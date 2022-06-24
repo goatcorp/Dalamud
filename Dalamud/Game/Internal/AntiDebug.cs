@@ -8,17 +8,15 @@ namespace Dalamud.Game.Internal
     /// <summary>
     /// This class disables anti-debug functionality in the game client.
     /// </summary>
-    internal sealed partial class AntiDebug : IEarlyLoadableServiceObject
+    [ServiceManager.EarlyLoadedService]
+    internal sealed partial class AntiDebug
     {
         private readonly byte[] nop = new byte[] { 0x31, 0xC0, 0x90, 0x90, 0x90, 0x90 };
         private byte[] original;
         private IntPtr debugCheckAddress;
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="AntiDebug"/> class.
-        /// </summary>
-        /// <param name="tag">Tag.</param>
-        private AntiDebug(ServiceManager.Tag tag)
+        [ServiceManager.ServiceConstructor]
+        private AntiDebug()
         {
             var scanner = Service<SigScanner>.Get();
 

@@ -22,7 +22,8 @@ namespace Dalamud.Game.ClientState.Keys
     /// </remarks>
     [PluginInterface]
     [InterfaceVersion("1.0")]
-    public class KeyState : IEarlyLoadableServiceObject
+    [ServiceManager.EarlyLoadedService]
+    public class KeyState
     {
         // The array is accessed in a way that this limit doesn't appear to exist
         // but there is other state data past this point, and keys beyond here aren't
@@ -32,11 +33,8 @@ namespace Dalamud.Game.ClientState.Keys
         private readonly IntPtr indexBase;
         private VirtualKey[] validVirtualKeyCache = null;
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="KeyState"/> class.
-        /// </summary>
-        /// <param name="tag">Tag.</param>
-        private KeyState(ServiceManager.Tag tag)
+        [ServiceManager.ServiceConstructor]
+        private KeyState()
         {
             var moduleBaseAddress = Service<SigScanner>.Get().Module.BaseAddress;
             var addressResolver = Service<ClientState>.Get().AddressResolver;

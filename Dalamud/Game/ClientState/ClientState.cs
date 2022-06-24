@@ -27,7 +27,8 @@ namespace Dalamud.Game.ClientState
     /// </summary>
     [PluginInterface]
     [InterfaceVersion("1.0")]
-    public sealed class ClientState : IDisposable, IServiceObject
+    [ServiceManager.EarlyLoadedService]
+    public sealed class ClientState : IDisposable
     {
         private readonly ClientStateAddressResolver address;
         private readonly Hook<SetupTerritoryTypeDelegate> setupTerritoryTypeHook;
@@ -40,12 +41,8 @@ namespace Dalamud.Game.ClientState
         /// </summary>
         internal ClientStateAddressResolver AddressResolver => this.address;
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="ClientState"/> class.
-        /// Set up client state access.
-        /// </summary>
-        /// <param name="tag">Tag.</param>
-        private ClientState(ServiceManager.Tag tag)
+        [ServiceManager.ServiceConstructor]
+        private ClientState()
         {
             this.address = new ClientStateAddressResolver();
             this.address.Setup();

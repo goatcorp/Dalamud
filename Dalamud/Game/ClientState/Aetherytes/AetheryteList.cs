@@ -14,17 +14,17 @@ namespace Dalamud.Game.ClientState.Aetherytes
     /// </summary>
     [PluginInterface]
     [InterfaceVersion("1.0")]
-    public sealed partial class AetheryteList : IEarlyLoadableServiceObject
+    [ServiceManager.EarlyLoadedService]
+    public sealed partial class AetheryteList
     {
+        private readonly ClientState clientState = Service<ClientState>.Get();
         private readonly ClientStateAddressResolver address;
         private readonly UpdateAetheryteListDelegate updateAetheryteListFunc;
 
-        [ServiceAttribute]
-        private ClientState ClientState { get; set; } = null!;
-
-        private AetheryteList(ServiceManager.Tag tag)
+        [ServiceManager.ServiceConstructor]
+        private AetheryteList()
         {
-            this.address = this.ClientState.AddressResolver;
+            this.address = this.clientState.AddressResolver;
             this.updateAetheryteListFunc = Marshal.GetDelegateForFunctionPointer<UpdateAetheryteListDelegate>(this.address.UpdateAetheryteList);
 
             Log.Verbose($"Teleport address 0x{this.address.Telepo.ToInt64():X}");
@@ -39,7 +39,7 @@ namespace Dalamud.Game.ClientState.Aetherytes
         {
             get
             {
-                if (this.ClientState.LocalPlayer == null)
+                if (this.clientState.LocalPlayer == null)
                     return 0;
 
                 this.Update();
@@ -67,7 +67,7 @@ namespace Dalamud.Game.ClientState.Aetherytes
                     return null;
                 }
 
-                if (this.ClientState.LocalPlayer == null)
+                if (this.clientState.LocalPlayer == null)
                     return null;
 
                 return new AetheryteEntry(TelepoStruct->TeleportList.Get((ulong)index));
@@ -77,7 +77,7 @@ namespace Dalamud.Game.ClientState.Aetherytes
         private void Update()
         {
             // this is very very important as otherwise it crashes
-            if (this.ClientState.LocalPlayer == null)
+            if (this.clientState.LocalPlayer == null)
                 return;
 
             this.updateAetheryteListFunc(this.address.Telepo, 0);

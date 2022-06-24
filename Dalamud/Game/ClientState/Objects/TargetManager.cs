@@ -11,15 +11,13 @@ namespace Dalamud.Game.ClientState.Objects
     /// </summary>
     [PluginInterface]
     [InterfaceVersion("1.0")]
-    public sealed unsafe class TargetManager : IEarlyLoadableServiceObject
+    [ServiceManager.EarlyLoadedService]
+    public sealed unsafe class TargetManager
     {
         private readonly ClientStateAddressResolver address;
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="TargetManager"/> class.
-        /// </summary>
-        /// <param name="tag">Tag.</param>
-        private TargetManager(ServiceManager.Tag tag)
+        [ServiceManager.ServiceConstructor]
+        private TargetManager()
         {
             this.address = Service<ClientState>.Get().AddressResolver;
         }

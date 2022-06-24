@@ -13,7 +13,8 @@ namespace Dalamud
     /// <summary>
     /// Class handling localization.
     /// </summary>
-    public class Localization : IEarlyLoadableServiceObject
+    [ServiceManager.EarlyLoadedService]
+    public class Localization
     {
         /// <summary>
         /// Array of language codes which have a valid translation in Dalamud.
@@ -41,11 +42,8 @@ namespace Dalamud
             this.assembly = Assembly.GetCallingAssembly();
         }
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="Localization"/> class.
-        /// </summary>
-        /// <param name="tag">Tag.</param>
-        private Localization(ServiceManager.Tag tag)
+        [ServiceManager.ServiceConstructor]
+        private Localization()
             : this(Path.Combine(Service<Dalamud>.Get().AssetDirectory.FullName, "UIRes", "loc", "dalamud"), "dalamud_")
         {
             var configuration = Service<DalamudConfiguration>.Get();

@@ -17,7 +17,8 @@ namespace Dalamud.Interface.GameFonts
     /// <summary>
     /// Loads game font for use in ImGui.
     /// </summary>
-    internal class GameFontManager : IDisposable, IServiceObject
+    [ServiceManager.EarlyLoadedService]
+    internal class GameFontManager : IDisposable
     {
         private static readonly string?[] FontNames =
         {
@@ -46,7 +47,8 @@ namespace Dalamud.Interface.GameFonts
         /// Initializes a new instance of the <see cref="GameFontManager"/> class.
         /// </summary>
         /// <param name="tag">Tag.</param>
-        private GameFontManager(ServiceManager.Tag tag)
+        [ServiceManager.ServiceConstructor]
+        private GameFontManager()
         {
             var dataManager = Service<DataManager>.Get();
 

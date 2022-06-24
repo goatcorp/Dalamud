@@ -7,7 +7,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
-
+using System.Threading.Tasks;
 using Dalamud.Configuration.Internal;
 using Dalamud.Game;
 using Dalamud.Game.ClientState.GamePad;
@@ -44,7 +44,8 @@ namespace Dalamud.Interface.Internal
     /// <summary>
     /// This class manages interaction with the ImGui interface.
     /// </summary>
-    internal class InterfaceManager : IDisposable, IServiceObject
+    [ServiceManager.EarlyLoadedService]
+    internal class InterfaceManager : IDisposable
     {
         private const float MinimumFallbackFontSizePt = 9.6f;  // Game's minimum AXIS font size
         private const float MinimumFallbackFontSizePx = MinimumFallbackFontSizePt * 4.0f / 3.0f;
@@ -64,6 +65,7 @@ namespace Dalamud.Interface.Internal
 
         private readonly ManualResetEvent fontBuildSignal;
         private readonly SwapChainVtableResolver address;
+        private readonly TaskCompletionSource sceneInitializeTaskCompletionSource = new();
         private RawDX11Scene? scene;
 
         // can't access imgui IO before first present call
@@ -72,11 +74,8 @@ namespace Dalamud.Interface.Internal
 
         private bool isFallbackFontMode = false;
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="InterfaceManager"/> class.
-        /// </summary>
-        /// <param name="tag">Tag.</param>
-        private InterfaceManager(ServiceManager.Tag tag)
+        [ServiceManager.ServiceConstructor]
+        private InterfaceManager()
         {
             var scanner = Service<SigScanner>.Get();
 
@@ -129,6 +128,11 @@ namespace Dalamud.Interface.Internal
         private delegate IntPtr SetCursorDelegate(IntPtr hCursor);
 
         private delegate void InstallRTSSHook();
+
+        /// <summary>
+        /// Gets a task that gets completed when scene gets initialized.
+        /// </summary>
+        public Task SceneInitializeTask => this.sceneInitializeTaskCompletionSource.Task;
 
         /// <summary>
         /// This event gets called each frame to facilitate ImGui drawing.
@@ -481,9 +485,11 @@ namespace Dalamud.Interface.Internal
                     try
                     {
                         this.scene = new RawDX11Scene(swapChain);
+                        this.sceneInitializeTaskCompletionSource.SetResult();
                     }
                     catch (DllNotFoundException ex)
                     {
+                        this.sceneInitializeTaskCompletionSource.SetException(ex);
                         Log.Error(ex, "Could not load ImGui dependencies.");
 
                         var res = PInvoke.User32.MessageBox(

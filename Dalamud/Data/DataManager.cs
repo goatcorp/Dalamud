@@ -26,14 +26,16 @@ namespace Dalamud.Data
     /// </summary>
     [PluginInterface]
     [InterfaceVersion("1.0")]
-    public sealed class DataManager : IDisposable, IServiceObject
+    [ServiceManager.EarlyLoadedService]
+    public sealed class DataManager : IDisposable
     {
         private const string IconFileFormat = "ui/icon/{0:D3}000/{1}{2:D6}.tex";
 
-        private Thread luminaResourceThread;
-        private CancellationTokenSource luminaCancellationTokenSource;
+        private readonly Thread luminaResourceThread;
+        private readonly CancellationTokenSource luminaCancellationTokenSource;
 
-        private DataManager(ServiceManager.Tag tag, DalamudStartInfo dalamudStartInfo, Dalamud dalamud)
+        [ServiceManager.ServiceConstructor]
+        private DataManager(DalamudStartInfo dalamudStartInfo, Dalamud dalamud)
         {
             this.Language = dalamudStartInfo.Language;
 
@@ -46,13 +48,13 @@ namespace Dalamud.Data
                 Log.Verbose("Starting data load...");
 
                 var zoneOpCodeDict = JsonConvert.DeserializeObject<Dictionary<string, ushort>>(
-                    File.ReadAllText(Path.Combine(baseDir, "UIRes", "serveropcode.json")));
+                    File.ReadAllText(Path.Combine(baseDir, "UIRes", "serveropcode.json")))!;
                 this.ServerOpCodes = new ReadOnlyDictionary<string, ushort>(zoneOpCodeDict);
 
                 Log.Verbose("Loaded {0} ServerOpCodes.", zoneOpCodeDict.Count);
 
                 var clientOpCodeDict = JsonConvert.DeserializeObject<Dictionary<string, ushort>>(
-                    File.ReadAllText(Path.Combine(baseDir, "UIRes", "clientopcode.json")));
+                    File.ReadAllText(Path.Combine(baseDir, "UIRes", "clientopcode.json")))!;
                 this.ClientOpCodes = new ReadOnlyDictionary<string, ushort>(clientOpCodeDict);
 
                 Log.Verbose("Loaded {0} ClientOpCodes.", clientOpCodeDict.Count);
@@ -74,7 +76,7 @@ namespace Dalamud.Data
                     var processModule = Process.GetCurrentProcess().MainModule;
                     if (processModule != null)
                     {
-                        this.GameData = new GameData(Path.Combine(Path.GetDirectoryName(processModule.FileName), "sqpack"), luminaOptions);
+                        this.GameData = new GameData(Path.Combine(Path.GetDirectoryName(processModule.FileName)!, "sqpack"), luminaOptions);
                     }
                     else
                     {
@@ -135,7 +137,7 @@ namespace Dalamud.Data
         /// <summary>
         /// Gets an <see cref="ExcelModule"/> object which gives access to any of the game's sheet data.
         /// </summary>
-        public ExcelModule Excel => this.GameData?.Excel;
+        public ExcelModule Excel => this.GameData.Excel;
 
         /// <summary>
         /// Gets a value indicating whether Game Data is ready to be read.
@@ -247,7 +249,7 @@ namespace Dalamud.Data
         /// <param name="type">The type of the icon (e.g. 'hq' to get the HQ variant of an item icon).</param>
         /// <param name="iconId">The icon ID.</param>
         /// <returns>The <see cref="TexFile"/> containing the icon.</returns>
-        public TexFile? GetIcon(string type, uint iconId)
+        public TexFile? GetIcon(string? type, uint iconId)
         {
             type ??= string.Empty;
             if (type.Length > 0 && !type.EndsWith("/"))

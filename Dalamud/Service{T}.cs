@@ -1,12 +1,11 @@
 using System;
-using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.Serialization;
 using System.Threading.Tasks;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Utility.Timing;
+using JetBrains.Annotations;
 
 namespace Dalamud
 {
@@ -17,7 +16,7 @@ namespace Dalamud
     /// Only used internally within Dalamud, if plugins need access to things it should be _only_ via DI.
     /// </remarks>
     /// <typeparam name="T">The class you want to store in the service locator.</typeparam>
-    internal static class Service<T> where T : IServiceObject
+    internal static class Service<T>
     {
         // ReSharper disable once StaticMemberInGenericType
         private static readonly TaskCompletionSource<T>? InstanceTcs;
@@ -27,7 +26,14 @@ namespace Dalamud
 
         static Service()
         {
-            if (!typeof(IProvidedServiceObject).IsAssignableFrom(typeof(T)))
+            var exposeToPlugins = typeof(T).GetCustomAttribute<PluginInterfaceAttribute>() != null;
+            if (exposeToPlugins)
+                ServiceManager.Log.Debug("Service<{0}>: Static ctor called; will be exposed to plugins", typeof(T).Name);
+            else
+                ServiceManager.Log.Debug("Service<{0}>: Static ctor called", typeof(T).Name);
+
+            var attr = typeof(T).GetCustomAttribute<ServiceManager.Service>(true)?.GetType();
+            if (attr?.IsAssignableTo(typeof(ServiceManager.EarlyLoadedService)) == true)
             {
                 InstanceTcs = null;
                 InstanceTask = Task.Run(async () =>
@@ -51,36 +57,21 @@ namespace Dalamud
             }
             else
             {
-                ServiceManager.Log.Debug("Service<{0}>: Placeholder set", typeof(T).Name);
                 InstanceTcs = new TaskCompletionSource<T>();
                 InstanceTask = InstanceTcs.Task;
             }
 
-            var attr = typeof(T).GetCustomAttribute<PluginInterfaceAttribute>();
-            if (attr != null)
-            {
+            if (exposeToPlugins)
                 Service<ServiceContainer>.Get().RegisterSingleton(InstanceTask);
-                ServiceManager.Log.Debug("Service<{0}>: Exposed to plugins", typeof(T).Name);
-            }
         }
 
         /// <summary>
-        /// Dummy function for calling static constructor.
-        /// </summary>
-        public static void Initialize() { }
-
-        /// <summary>
         /// Sets the type in the service locator to the given object.
-        /// Only applicable for Service&lt;IProvidedServiceObject&gt;.
         /// </summary>
         /// <param name="obj">Object to set.</param>
         public static void Provide(T obj)
         {
-            Debug.Assert(
-                typeof(IProvidedServiceObject).IsAssignableFrom(typeof(T)),
-                "Provide is usable only when the service is an IProvidedServiceObject.");
-
-            InstanceTcs?.SetResult(obj);
+            InstanceTcs!.SetResult(obj);
             ServiceManager.Log.Debug("Service<{0}>: Provided", typeof(T).Name);
         }
 
@@ -99,6 +90,7 @@ namespace Dalamud
         /// Pull the instance out of the service locator, waiting if necessary.
         /// </summary>
         /// <returns>The object.</returns>
+        [UsedImplicitly]
         public static async Task<T> GetAsync() => await InstanceTask;
 
         /// <summary>
@@ -109,9 +101,6 @@ namespace Dalamud
 
         private static async Task<object?> GetServiceObjectConstructArgument(Type type)
         {
-            if (type == typeof(ServiceManager.Tag))
-                return null;
-
             var task = (Task)typeof(Service<>)
                              .MakeGenericType(type)
                              .InvokeMember(
@@ -130,38 +119,15 @@ namespace Dalamud
 
         private static async Task<T> ConstructObject()
         {
-            const BindingFlags flags =
+            const BindingFlags ctorBindingFlags =
                 BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic |
                 BindingFlags.CreateInstance | BindingFlags.OptionalParamBinding;
-
-            foreach (var ctor in typeof(T).GetConstructors(flags))
-            {
-                var arginfo = ctor.GetParameters();
-                if (arginfo[0].ParameterType != typeof(ServiceManager.Tag))
-                    continue;
-
-                var instance = (T)FormatterServices.GetUninitializedObject(typeof(T));
-                foreach (var prop in typeof(T).GetProperties(
-                             BindingFlags.Static | BindingFlags.Instance | BindingFlags.Public |
-                             BindingFlags.NonPublic))
-                {
-                    if (!prop.GetCustomAttributes(typeof(ServiceAttribute)).Any())
-                        continue;
-                    prop.SetValue(
-                        instance,
-                        await GetServiceObjectConstructArgument(prop.PropertyType),
-                        BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance,
-                        null,
-                        null,
-                        null);
-                }
-
-                var args = await Task.WhenAll(arginfo.Select(x => GetServiceObjectConstructArgument(x.ParameterType)));
-                ctor.Invoke(instance, args);
-                return instance;
-            }
-
-            throw new InvalidOperationException("Missing constructor whose first parameter type is ServiceManager.Tag");
+            var ctor = typeof(T)
+                       .GetConstructors(ctorBindingFlags)
+                       .Single(x => x.GetCustomAttributes(typeof(ServiceManager.ServiceConstructor), true).Any());
+            var args = await Task.WhenAll(
+                           ctor.GetParameters().Select(x => GetServiceObjectConstructArgument(x.ParameterType)));
+            return (T)ctor.Invoke(args)!;
         }
     }
 }

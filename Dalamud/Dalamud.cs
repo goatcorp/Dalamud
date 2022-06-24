@@ -43,7 +43,7 @@ namespace Dalamud
     /// <summary>
     /// The main Dalamud class containing all subsystems.
     /// </summary>
-    internal sealed class Dalamud : IDisposable, IProvidedServiceObject
+    internal sealed class Dalamud : IDisposable
     {
         #region Internals
 
@@ -81,6 +81,7 @@ namespace Dalamud
             ServiceManager.InitializeEarlyLoadableServices();
 
             this.mainThreadContinueEvent = mainThreadContinueEvent;
+            ServiceManager.BlockingResolved.ContinueWith(_ => NativeFunctions.SetEvent(this.mainThreadContinueEvent));
         }
 
         /// <summary>
@@ -92,38 +93,6 @@ namespace Dalamud
         /// Gets location of stored assets.
         /// </summary>
         internal DirectoryInfo AssetDirectory => new(Service<DalamudStartInfo>.Get().AssetDirectory!);
-
-        /// <summary>
-        /// Runs tier 3 of the Dalamud initialization process.
-        /// </summary>
-        /// <returns>Whether or not the load succeeded.</returns>
-        public bool LoadTier3()
-        {
-            using var tier3Timing = Timings.Start("Tier 3 Init");
-
-            ThreadSafety.AssertMainThread();
-
-            try
-            {
-                Log.Information("[T3] START!");
-
-                PluginManager pluginManager;
-
-                Troubleshooting.LogTroubleshooting();
-
-                Log.Information("Dalamud is ready");
-                Timings.Event("Dalamud ready");
-            }
-            catch (Exception ex)
-            {
-                Log.Error(ex, "Tier 3 load failed");
-                this.Unload();
-
-                return false;
-            }
-
-            return true;
-        }
 
         /// <summary>
         /// Queue an unload of Dalamud when it gets the chance.

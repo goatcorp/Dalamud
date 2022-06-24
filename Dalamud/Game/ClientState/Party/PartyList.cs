@@ -14,18 +14,16 @@ namespace Dalamud.Game.ClientState.Party
     /// </summary>
     [PluginInterface]
     [InterfaceVersion("1.0")]
-    public sealed unsafe partial class PartyList : IEarlyLoadableServiceObject
+    [ServiceManager.EarlyLoadedService]
+    public sealed unsafe partial class PartyList
     {
         private const int GroupLength = 8;
         private const int AllianceLength = 20;
 
         private readonly ClientStateAddressResolver address;
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="PartyList"/> class.
-        /// </summary>
-        /// <param name="tag">Tag.</param>
-        private PartyList(ServiceManager.Tag tag)
+        [ServiceManager.ServiceConstructor]
+        private PartyList()
         {
             this.address = Service<ClientState>.Get().AddressResolver;
 

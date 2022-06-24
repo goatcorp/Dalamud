@@ -24,7 +24,8 @@ namespace Dalamud.Game
     /// </summary>
     [PluginInterface]
     [InterfaceVersion("1.0")]
-    public sealed class Framework : IDisposable, IServiceObject
+    [ServiceManager.EarlyLoadedService]
+    public sealed class Framework : IDisposable
     {
         private static Stopwatch statsStopwatch = new();
 
@@ -37,11 +38,8 @@ namespace Dalamud.Game
 
         private Thread? frameworkUpdateThread;
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="Framework"/> class.
-        /// </summary>
-        /// <param name="tag">Tag.</param>
-        private Framework(ServiceManager.Tag tag)
+        [ServiceManager.ServiceConstructor]
+        private Framework()
         {
             this.Address = new FrameworkAddressResolver();
             this.Address.Setup();
@@ -239,8 +237,8 @@ namespace Dalamud.Game
                 var gameNetwork = Service<GameNetwork>.GetNullable();
                 if (chatGui == null || toastGui == null || gameNetwork == null)
                     goto original;
-;
-                chatGui!.UpdateQueue();
+
+                chatGui.UpdateQueue();
                 toastGui.UpdateQueue();
                 gameNetwork.UpdateQueue();
             }

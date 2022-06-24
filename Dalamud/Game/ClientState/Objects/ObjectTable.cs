@@ -16,17 +16,15 @@ namespace Dalamud.Game.ClientState.Objects
     /// </summary>
     [PluginInterface]
     [InterfaceVersion("1.0")]
-    public sealed partial class ObjectTable : IEarlyLoadableServiceObject
+    [ServiceManager.EarlyLoadedService]
+    public sealed partial class ObjectTable
     {
         private const int ObjectTableLength = 424;
 
         private readonly ClientStateAddressResolver address;
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="ObjectTable"/> class.
-        /// </summary>
-        /// <param name="tag">Tag.</param>
-        private ObjectTable(ServiceManager.Tag tag)
+        [ServiceManager.ServiceConstructor]
+        private ObjectTable()
         {
             this.address = Service<ClientState>.Get().AddressResolver;
 

@@ -11,7 +11,8 @@ namespace Dalamud.Game.ClientState.Conditions
     /// </summary>
     [PluginInterface]
     [InterfaceVersion("1.0")]
-    public sealed partial class Condition : IEarlyLoadableServiceObject
+    [ServiceManager.EarlyLoadedService]
+    public sealed partial class Condition
     {
         /// <summary>
         /// The current max number of conditions. You can get this just by looking at the condition sheet and how many rows it has.
@@ -20,11 +21,8 @@ namespace Dalamud.Game.ClientState.Conditions
 
         private readonly bool[] cache = new bool[MaxConditionEntries];
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="Condition"/> class.
-        /// </summary>
-        /// <param name="tag">Tag.</param>
-        private Condition(ServiceManager.Tag tag)
+        [ServiceManager.ServiceConstructor]
+        private Condition()
         {
             var resolver = Service<ClientState>.Get().AddressResolver;
             this.Address = resolver.ConditionFlags;

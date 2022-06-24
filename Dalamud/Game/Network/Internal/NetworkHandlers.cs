@@ -21,7 +21,8 @@ namespace Dalamud.Game.Network.Internal
     /// <summary>
     /// This class handles network notifications and uploading market board data.
     /// </summary>
-    internal class NetworkHandlers : IEarlyLoadableServiceObject
+    [ServiceManager.EarlyLoadedService]
+    internal class NetworkHandlers
     {
         private readonly List<MarketBoardItemRequest> marketBoardRequests = new();
 
@@ -29,11 +30,8 @@ namespace Dalamud.Game.Network.Internal
 
         private MarketBoardPurchaseHandler marketBoardPurchaseHandler;
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="NetworkHandlers"/> class.
-        /// </summary>
-        /// <param name="tag">Tag.</param>
-        private NetworkHandlers(ServiceManager.Tag tag)
+        [ServiceManager.ServiceConstructor]
+        private NetworkHandlers()
         {
             this.uploader = new UniversalisMarketBoardUploader();
 

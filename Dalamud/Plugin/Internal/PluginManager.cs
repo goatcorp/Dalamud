@@ -29,7 +29,8 @@ namespace Dalamud.Plugin.Internal;
 /// <summary>
 /// Class responsible for loading and unloading plugins.
 /// </summary>
-internal partial class PluginManager : IEarlyLoadableServiceObject, IDisposable
+[ServiceManager.EarlyLoadedService]
+internal partial class PluginManager : IDisposable
 {
     /// <summary>
     /// The current Dalamud API level, used to handle breaking changes. Only plugins with this level will be loaded.
@@ -41,22 +42,19 @@ internal partial class PluginManager : IEarlyLoadableServiceObject, IDisposable
     private readonly DirectoryInfo pluginDirectory;
     private readonly DirectoryInfo devPluginDirectory;
     private readonly BannedPlugin[] bannedPlugins;
-
-    [ServiceAttribute]
-    private DalamudConfiguration Configuration { get; set; } = null!;
-
-    [ServiceAttribute]
-    private DalamudStartInfo StartInfo { get; set; } = null!;
+    private readonly DalamudConfiguration configuration = Service<DalamudConfiguration>.Get();
+    private readonly DalamudStartInfo startInfo = Service<DalamudStartInfo>.Get();
 
     /// <summary>
     /// A task that gets completed when all plugin load has been fired.
     /// </summary>
     public readonly Task InitializationTask;
 
-    private PluginManager(ServiceManager.Tag tag)
+    [ServiceManager.ServiceConstructor]
+    private PluginManager()
     {
-        this.pluginDirectory = new DirectoryInfo(this.StartInfo.PluginDirectory!);
-        this.devPluginDirectory = new DirectoryInfo(this.StartInfo.DefaultPluginDirectory!);
+        this.pluginDirectory = new DirectoryInfo(this.startInfo.PluginDirectory!);
+        this.devPluginDirectory = new DirectoryInfo(this.startInfo.DefaultPluginDirectory!);
 
         if (!this.pluginDirectory.Exists)
             this.pluginDirectory.Create();
@@ -64,16 +62,16 @@ internal partial class PluginManager : IEarlyLoadableServiceObject, IDisposable
         if (!this.devPluginDirectory.Exists)
             this.devPluginDirectory.Create();
 
-        this.SafeMode = EnvironmentConfiguration.DalamudNoPlugins || this.Configuration.PluginSafeMode;
+        this.SafeMode = EnvironmentConfiguration.DalamudNoPlugins || this.configuration.PluginSafeMode;
         if (this.SafeMode)
         {
-            this.Configuration.PluginSafeMode = false;
-            this.Configuration.Save();
+            this.configuration.PluginSafeMode = false;
+            this.configuration.Save();
         }
 
-        this.PluginConfigs = new PluginConfigurations(Path.Combine(Path.GetDirectoryName(this.StartInfo.ConfigurationPath) ?? string.Empty, "pluginConfigs"));
+        this.PluginConfigs = new PluginConfigurations(Path.Combine(Path.GetDirectoryName(this.startInfo.ConfigurationPath) ?? string.Empty, "pluginConfigs"));
 
-        var bannedPluginsJson = File.ReadAllText(Path.Combine(this.StartInfo.AssetDirectory!, "UIRes", "bannedplugin.json"));
+        var bannedPluginsJson = File.ReadAllText(Path.Combine(this.startInfo.AssetDirectory!, "UIRes", "bannedplugin.json"));
         this.bannedPlugins = JsonConvert.DeserializeObject<BannedPlugin[]>(bannedPluginsJson) ?? Array.Empty<BannedPlugin>();
 
         this.ApplyPatches();
@@ -265,7 +263,7 @@ internal partial class PluginManager : IEarlyLoadableServiceObject, IDisposable
     public async Task SetPluginReposFromConfigAsync(bool notify)
     {
         var repos = new List<PluginRepository>() { PluginRepository.MainRepo };
-        repos.AddRange(this.Configuration.ThirdRepoList
+        repos.AddRange(this.configuration.ThirdRepoList
                            .Where(repo => repo.IsEnabled)
                            .Select(repo => new PluginRepository(repo.Url, repo.IsEnabled)));
 
@@ -317,7 +315,7 @@ internal partial class PluginManager : IEarlyLoadableServiceObject, IDisposable
         // devPlugins are more freeform. Look for any dll and hope to get lucky.
         var devDllFiles = this.devPluginDirectory.GetFiles("*.dll", SearchOption.AllDirectories).ToList();
 
-        foreach (var setting in this.Configuration.DevPluginLoadLocations)
+        foreach (var setting in this.configuration.DevPluginLoadLocations)
         {
             if (!setting.IsEnabled)
                 continue;
@@ -461,7 +459,7 @@ internal partial class PluginManager : IEarlyLoadableServiceObject, IDisposable
         // devPlugins are more freeform. Look for any dll and hope to get lucky.
         var devDllFiles = this.devPluginDirectory.GetFiles("*.dll", SearchOption.AllDirectories).ToList();
 
-        foreach (var setting in this.Configuration.DevPluginLoadLocations)
+        foreach (var setting in this.configuration.DevPluginLoadLocations)
         {
             if (!setting.IsEnabled)
                 continue;
@@ -771,14 +769,14 @@ internal partial class PluginManager : IEarlyLoadableServiceObject, IDisposable
                                 continue;
                             }
 
-                            if (manifest.DalamudApiLevel < DalamudApiLevel - 1 && !Configuration.LoadAllApiLevels)
+                            if (manifest.DalamudApiLevel < DalamudApiLevel - 1 && !configuration.LoadAllApiLevels)
                             {
                                 Log.Information($"Lower API: cleaning up {versionDir.FullName}");
                                 versionDir.Delete(true);
                                 continue;
                             }
 
-                            if (manifest.ApplicableVersion <this.StartInfo.GameVersion)
+                            if (manifest.ApplicableVersion <this.startInfo.GameVersion)
                             {
                                 Log.Information($"Inapplicable version: cleaning up {versionDir.FullName}");
                                 versionDir.Delete(true);
@@ -950,15 +948,15 @@ internal partial class PluginManager : IEarlyLoadableServiceObject, IDisposable
     public bool IsManifestEligible(PluginManifest manifest)
     {
         // Testing exclusive
-        if (manifest.IsTestingExclusive && !Configuration.DoPluginTest)
+        if (manifest.IsTestingExclusive && !configuration.DoPluginTest)
             return false;
 
         // Applicable version
-        if (manifest.ApplicableVersion <this.StartInfo.GameVersion)
+        if (manifest.ApplicableVersion <this.startInfo.GameVersion)
             return false;
 
         // API level
-        if (manifest.DalamudApiLevel < DalamudApiLevel && !Configuration.LoadAllApiLevels)
+        if (manifest.DalamudApiLevel < DalamudApiLevel && !configuration.LoadAllApiLevels)
             return false;
 
         // Banned
@@ -972,7 +970,7 @@ internal partial class PluginManager : IEarlyLoadableServiceObject, IDisposable
     /// <returns>A value indicating whether the plugin/manifest has been banned.</returns>
     public bool IsManifestBanned(PluginManifest manifest)
     {
-        return !Configuration.LoadBannedPlugins && this.bannedPlugins.Any(ban => (ban.Name == manifest.InternalName || ban.Name == Hash.GetStringSha256Hash(manifest.InternalName))
+        return !configuration.LoadBannedPlugins && this.bannedPlugins.Any(ban => (ban.Name == manifest.InternalName || ban.Name == Hash.GetStringSha256Hash(manifest.InternalName))
                                                                               && ban.AssemblyVersion >= manifest.AssemblyVersion);
     }
 

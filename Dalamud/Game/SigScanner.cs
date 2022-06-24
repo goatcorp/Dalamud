@@ -19,7 +19,8 @@ namespace Dalamud.Game
     /// </summary>
     [PluginInterface]
     [InterfaceVersion("1.0")]
-    public class SigScanner : IDisposable, IServiceObject
+    [ServiceManager.EarlyLoadedService]
+    public class SigScanner : IDisposable
     {
         private readonly FileInfo? cacheFile;
 
@@ -28,11 +29,8 @@ namespace Dalamud.Game
 
         private Dictionary<string, long>? textCache;
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="SigScanner"/> class.
-        /// </summary>
-        /// <param name="tag">Tag.</param>
-        private SigScanner(ServiceManager.Tag tag)
+        [ServiceManager.ServiceConstructor]
+        private SigScanner()
         {
             // Initialize the process information.
             var info = Service<DalamudStartInfo>.Get();

@@ -28,7 +28,8 @@ namespace Dalamud.Game
     /// </summary>
     [PluginInterface]
     [InterfaceVersion("1.0")]
-    public class ChatHandlers : IEarlyLoadableServiceObject
+    [ServiceManager.EarlyLoadedService]
+    public class ChatHandlers
     {
         // private static readonly Dictionary<string, string> UnicodeToDiscordEmojiDict = new()
         // {
@@ -109,11 +110,8 @@ namespace Dalamud.Game
         private bool hasSeenLoadingMsg;
         private bool hasAutoUpdatedPlugins;
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="ChatHandlers"/> class.
-        /// </summary>
-        /// <param name="tag">Tag.</param>
-        private ChatHandlers(ServiceManager.Tag tag)
+        [ServiceManager.ServiceConstructor]
+        private ChatHandlers()
         {
             var chatGui = Service<ChatGui>.Get();
 

@@ -87,6 +87,7 @@ namespace Dalamud.Injector
             args.Remove("--console");
             args.Remove("--msgbox1");
             args.Remove("--msgbox2");
+            args.Remove("--msgbox3");
             args.Remove("--etw");
 
             var mainCommand = args[1].ToLowerInvariant();
@@ -316,6 +317,7 @@ namespace Dalamud.Injector
             startInfo.BootDotnetOpenProcessHookMode = 0;
             startInfo.BootWaitMessageBox |= args.Contains("--msgbox1") ? 1 : 0;
             startInfo.BootWaitMessageBox |= args.Contains("--msgbox2") ? 2 : 0;
+            startInfo.BootWaitMessageBox |= args.Contains("--msgbox3") ? 4 : 0;
             // startInfo.BootUnhookDlls = new List<string>() { "kernel32.dll", "ntdll.dll", "user32.dll" };
 
             return startInfo;

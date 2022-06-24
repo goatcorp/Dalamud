@@ -17,7 +17,8 @@ namespace Dalamud.Game.Command
     /// </summary>
     [PluginInterface]
     [InterfaceVersion("1.0")]
-    public sealed class CommandManager : IEarlyLoadableServiceObject
+    [ServiceManager.EarlyLoadedService]
+    public sealed class CommandManager
     {
         private readonly Dictionary<string, CommandInfo> commandMap = new();
         private readonly Regex commandRegexEn = new(@"^The command (?<command>.+) does not exist\.$", RegexOptions.Compiled);
@@ -27,11 +28,8 @@ namespace Dalamud.Game.Command
         private readonly Regex commandRegexCn = new(@"^^(“|「)(?<command>.+)(”|」)(出现问题：该命令不存在|出現問題：該命令不存在)。$", RegexOptions.Compiled);
         private readonly Regex currentLangCommandRegex;
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="CommandManager"/> class.
-        /// </summary>
-        /// <param name="tag">Tag.</param>
-        private CommandManager(ServiceManager.Tag tag)
+        [ServiceManager.ServiceConstructor]
+        private CommandManager()
         {
             var startInfo = Service<DalamudStartInfo>.Get();
 

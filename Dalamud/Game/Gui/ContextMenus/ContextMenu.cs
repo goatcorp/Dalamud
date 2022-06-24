@@ -24,7 +24,8 @@ namespace Dalamud.Game.Gui.ContextMenus
     /// </summary>
     [PluginInterface]
     [InterfaceVersion("1.0")]
-    public sealed class ContextMenu : IDisposable, IServiceObject
+    [ServiceManager.EarlyLoadedService]
+    public sealed class ContextMenu : IDisposable
     {
         private const int MaxContextMenuItemsPerContextMenu = 32;
 
@@ -47,11 +48,8 @@ namespace Dalamud.Game.Gui.ContextMenus
         private OpenSubContextMenuItem? selectedOpenSubContextMenuItem;
         private ContextMenuOpenedArgs? currentContextMenuOpenedArgs;
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="ContextMenu"/> class.
-        /// </summary>
-        /// <param name="tag">Tag.</param>
-        private ContextMenu(ServiceManager.Tag tag)
+        [ServiceManager.ServiceConstructor]
+        private ContextMenu()
         {
             this.Address = new ContextMenuAddressResolver();
             this.Address.Setup();

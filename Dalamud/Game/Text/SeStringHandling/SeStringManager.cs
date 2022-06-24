@@ -12,14 +12,12 @@ namespace Dalamud.Game.Text.SeStringHandling
     /// </summary>
     [PluginInterface]
     [InterfaceVersion("1.0")]
+    [ServiceManager.EarlyLoadedService]
     [Obsolete("This class is obsolete. Please use the static methods on SeString instead.")]
-    public sealed class SeStringManager : IEarlyLoadableServiceObject
+    public sealed class SeStringManager
     {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="SeStringManager"/> class.
-        /// </summary>
-        /// <param name="tag">Tag.</param>
-        private SeStringManager(ServiceManager.Tag tag)
+        [ServiceManager.ServiceConstructor]
+        private SeStringManager()
         {
         }
 

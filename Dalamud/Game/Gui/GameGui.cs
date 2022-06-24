@@ -27,7 +27,8 @@ namespace Dalamud.Game.Gui
     /// </summary>
     [PluginInterface]
     [InterfaceVersion("1.0")]
-    public sealed unsafe class GameGui : IDisposable, IServiceObject
+    [ServiceManager.EarlyLoadedService]
+    public sealed unsafe class GameGui : IDisposable
     {
         private readonly GameGuiAddressResolver address;
 
@@ -46,12 +47,8 @@ namespace Dalamud.Game.Gui
         private GetUIMapObjectDelegate getUIMapObject;
         private OpenMapWithFlagDelegate openMapWithFlag;
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="GameGui"/> class.
-        /// This class is responsible for many aspects of interacting with the native game UI.
-        /// </summary>
-        /// <param name="tag">Tag.</param>
-        private GameGui(ServiceManager.Tag tag)
+        [ServiceManager.ServiceConstructor]
+        private GameGui()
         {
             this.address = new GameGuiAddressResolver();
             this.address.Setup();
