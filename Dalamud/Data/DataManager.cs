@@ -303,6 +303,7 @@ namespace Dalamud.Data
                 {
                     var luminaOptions = new LuminaOptions
                     {
+                        LoadMultithreaded = true,
                         CacheFileResources = true,
 #if DEBUG
                         PanicOnSheetChecksumMismatch = true,

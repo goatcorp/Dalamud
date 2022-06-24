@@ -29,7 +29,7 @@ namespace Dalamud.Interface.Internal.Windows
         /// <inheritdoc/>
         public override void Draw()
         {
-            if (this.IsOpen && Service<KeyState>.Get()[VirtualKey.SHIFT]) Service<DalamudInterface>.Get().CloseIMEWindow();
+            if (this.IsOpen && Service<KeyState>.Get()[VirtualKey.SHIFT]) Service<DalamudInterface>.Get().CloseImeWindow();
             var ime = Service<DalamudIME>.GetNullable();
 
             if (ime == null || !ime.IsEnabled)
@@ -42,7 +42,7 @@ namespace Dalamud.Interface.Internal.Windows
         /// <inheritdoc/>
         public override void PostDraw()
         {
-            if (this.IsOpen && Service<KeyState>.Get()[VirtualKey.SHIFT]) Service<DalamudInterface>.Get().CloseIMEWindow();
+            if (this.IsOpen && Service<KeyState>.Get()[VirtualKey.SHIFT]) Service<DalamudInterface>.Get().CloseImeWindow();
             var ime = Service<DalamudIME>.GetNullable();
 
             if (ime == null || !ime.IsEnabled)

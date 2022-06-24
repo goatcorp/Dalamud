@@ -143,7 +143,6 @@ namespace Dalamud.Injector
                     Console.WriteLine("Command line error: {0}", clex.Message);
                     Console.WriteLine();
                     ProcessHelpCommand(args);
-                    Environment.Exit(-1);
                 }
                 else if (Log.Logger == null)
                 {
@@ -151,26 +150,12 @@ namespace Dalamud.Injector
                 }
                 else if (exObj is Exception ex)
                 {
-                    Log.Error(ex, "A fatal error has occurred.");
+                    Log.Error(ex, "A fatal error has occurred");
                 }
                 else
                 {
-                    Log.Error($"A fatal error has occurred: {eventArgs.ExceptionObject}");
+                    Log.Error("A fatal error has occurred: {Exception}", eventArgs.ExceptionObject.ToString());
                 }
-
-#if DEBUG
-                var caption = "Debug Error";
-                var message =
-                    $"Couldn't inject.\nMake sure that Dalamud was not injected into your target process " +
-                    $"as a release build before and that the target process can be accessed with VM_WRITE permissions.\n\n" +
-                    $"{eventArgs.ExceptionObject}";
-#else
-                var caption = "XIVLauncher Error";
-                var message =
-                    "Failed to inject the XIVLauncher in-game addon.\nPlease try restarting your game and your PC.\n" +
-                    "If this keeps happening, please report this error.";
-#endif
-                _ = MessageBoxW(IntPtr.Zero, message, caption, MessageBoxType.IconError | MessageBoxType.Ok);
 
                 Environment.Exit(-1);
             };

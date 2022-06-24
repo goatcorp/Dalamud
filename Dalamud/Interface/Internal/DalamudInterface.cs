@@ -232,7 +232,7 @@ namespace Dalamud.Interface.Internal
         /// <summary>
         /// Opens the <see cref="IMEWindow"/>.
         /// </summary>
-        public void OpenIMEWindow() => this.imeWindow.IsOpen = true;
+        public void OpenImeWindow() => this.imeWindow.IsOpen = true;
 
         /// <summary>
         /// Opens the <see cref="ConsoleWindow"/>.
@@ -263,7 +263,7 @@ namespace Dalamud.Interface.Internal
         /// Opens the <see cref="StyleEditorWindow"/>.
         /// </summary>
         public void OpenStyleEditor() => this.styleEditorWindow.IsOpen = true;
-        
+
         /// <summary>
         /// Opens the <see cref="ProfilerWindow"/>.
         /// </summary>
@@ -276,7 +276,12 @@ namespace Dalamud.Interface.Internal
         /// <summary>
         /// Closes the <see cref="IMEWindow"/>.
         /// </summary>
-        public void CloseIMEWindow() => this.imeWindow.IsOpen = false;
+        public void CloseImeWindow() => this.imeWindow.IsOpen = false;
+
+        /// <summary>
+        /// Closes the <see cref="GamepadModeNotifierWindow"/>.
+        /// </summary>
+        public void CloseGamepadModeNotifierWindow() => this.gamepadModeNotifierWindow.IsOpen = false;
 
         #endregion
 
