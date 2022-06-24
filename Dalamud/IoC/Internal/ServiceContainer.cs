@@ -45,7 +45,7 @@ namespace Dalamud.IoC.Internal
         /// <param name="objectType">The type of object to create.</param>
         /// <param name="scopedObjects">Scoped objects to be included in the constructor.</param>
         /// <returns>The created object.</returns>
-        public async Task<object?> Create(Type objectType, params object[] scopedObjects)
+        public async Task<object?> CreateAsync(Type objectType, params object[] scopedObjects)
         {
             var ctor = this.FindApplicableCtor(objectType, scopedObjects);
             if (ctor == null)
