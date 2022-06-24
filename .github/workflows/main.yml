@@ -1,6 +1,8 @@
 name: Build Dalamud
 on: [push, pull_request, workflow_dispatch]
-concurrency: build_dalamud
+concurrency:
+  group: build_dalamud_${{ github.ref_name }}
+  cancel-in-progress: true
 
 jobs:
   build:
