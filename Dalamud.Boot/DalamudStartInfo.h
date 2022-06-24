@@ -5,6 +5,7 @@ struct DalamudStartInfo {
         None = 0,
         BeforeInitialize = 1 << 0,
         BeforeDalamudEntrypoint = 1 << 1,
+        BeforeDalamudConstruct = 1 << 2,
     };
     friend void from_json(const nlohmann::json&, WaitMessageboxFlags&);
 

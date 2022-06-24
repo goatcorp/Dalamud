@@ -14,6 +14,7 @@ namespace Dalamud.Game.Gui.Toast
     /// </summary>
     [PluginInterface]
     [InterfaceVersion("1.0")]
+    [ServiceManager.BlockingEarlyLoadedService]
     public sealed partial class ToastGui : IDisposable
     {
         private const uint QuestToastCheckmarkMagic = 60081;
@@ -31,10 +32,12 @@ namespace Dalamud.Game.Gui.Toast
         /// <summary>
         /// Initializes a new instance of the <see cref="ToastGui"/> class.
         /// </summary>
-        internal ToastGui()
+        /// <param name="tag">Tag.</param>
+        [ServiceManager.ServiceConstructor]
+        private ToastGui(SigScanner sigScanner)
         {
             this.address = new ToastGuiAddressResolver();
-            this.address.Setup();
+            this.address.Setup(sigScanner);
 
             this.showNormalToastHook = new Hook<ShowNormalToastDelegate>(this.address.ShowNormalToast, new ShowNormalToastDelegate(this.HandleNormalToastDetour));
             this.showQuestToastHook = new Hook<ShowQuestToastDelegate>(this.address.ShowQuestToast, new ShowQuestToastDelegate(this.HandleQuestToastDetour));

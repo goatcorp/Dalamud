@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 
 using Dalamud.Game.Internal.DXGI.Definitions;
+using FFXIVClientStructs.FFXIV.Client.Graphics.Kernel;
 using Serilog;
 
 namespace Dalamud.Game.Internal.DXGI
@@ -30,9 +31,28 @@ namespace Dalamud.Game.Internal.DXGI
         /// <inheritdoc/>
         protected override unsafe void Setup64Bit(SigScanner sig)
         {
-            var kernelDev = FFXIVClientStructs.FFXIV.Client.Graphics.Kernel.Device.Instance();
+            Device* kernelDev;
+            SwapChain* swapChain;
+            void* dxgiSwapChain;
 
-            var scVtbl = GetVTblAddresses(new IntPtr(kernelDev->SwapChain->DXGISwapChain), Enum.GetValues(typeof(IDXGISwapChainVtbl)).Length);
+            while (true)
+            {
+                kernelDev = Device.Instance();
+                if (kernelDev == null)
+                    continue;
+
+                swapChain = kernelDev->SwapChain;
+                if (swapChain == null)
+                    continue;
+
+                dxgiSwapChain = swapChain->DXGISwapChain;
+                if (dxgiSwapChain == null)
+                    continue;
+
+                break;
+            }
+
+            var scVtbl = GetVTblAddresses(new IntPtr(dxgiSwapChain), Enum.GetValues(typeof(IDXGISwapChainVtbl)).Length);
 
             this.Present = scVtbl[(int)IDXGISwapChainVtbl.Present];
 

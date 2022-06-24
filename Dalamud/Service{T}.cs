@@ -1,9 +1,13 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
-
+using System.Threading;
+using System.Threading.Tasks;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
-using Dalamud.Logging.Internal;
+using Dalamud.Utility.Timing;
+using JetBrains.Annotations;
 
 namespace Dalamud
 {
@@ -14,112 +18,154 @@ namespace Dalamud
     /// Only used internally within Dalamud, if plugins need access to things it should be _only_ via DI.
     /// </remarks>
     /// <typeparam name="T">The class you want to store in the service locator.</typeparam>
-    internal static class Service<T> where T : class
+    internal static class Service<T>
     {
-        private static readonly ModuleLog Log = new("SVC");
+        // ReSharper disable once StaticMemberInGenericType
+        private static readonly TaskCompletionSource<T> InstanceTcs = new();
 
-        private static T? instance;
+        // ReSharper disable once StaticMemberInGenericType
+        private static bool startLoaderInvoked = false;
 
         static Service()
         {
+            var exposeToPlugins = typeof(T).GetCustomAttribute<PluginInterfaceAttribute>() != null;
+            if (exposeToPlugins)
+                ServiceManager.Log.Debug("Service<{0}>: Static ctor called; will be exposed to plugins", typeof(T).Name);
+            else
+                ServiceManager.Log.Debug("Service<{0}>: Static ctor called", typeof(T).Name);
+
+            if (exposeToPlugins)
+                Service<ServiceContainer>.Get().RegisterSingleton(InstanceTcs.Task);
+        }
+
+        /// <summary>
+        /// Initializes the service.
+        /// </summary>
+        /// <returns>The object.</returns>
+        [UsedImplicitly]
+        public static Task<T> StartLoader()
+        {
+            if (startLoaderInvoked)
+                throw new InvalidOperationException("StartLoader has already been called.");
+
+            var attr = typeof(T).GetCustomAttribute<ServiceManager.Service>(true)?.GetType();
+            if (attr?.IsAssignableTo(typeof(ServiceManager.EarlyLoadedService)) != true)
+                throw new InvalidOperationException($"{typeof(T).Name} is not an EarlyLoadedService");
+
+            startLoaderInvoked = true;
+            return Task.Run(async () =>
+            {
+                using (Timings.Start($"{typeof(T).Namespace} Enable"))
+                {
+                    if (attr?.IsAssignableTo(typeof(ServiceManager.BlockingEarlyLoadedService)) == true)
+                        ServiceManager.Log.Debug("Service<{0}>: Begin construction", typeof(T).Name);
+                    try
+                    {
+                        var x = await ConstructObject();
+                        if (attr?.IsAssignableTo(typeof(ServiceManager.BlockingEarlyLoadedService)) == true)
+                            ServiceManager.Log.Debug("Service<{0}>: Construction complete", typeof(T).Name);
+                        InstanceTcs.SetResult(x);
+                        return x;
+                    }
+                    catch (Exception e)
+                    {
+                        InstanceTcs.SetException(e);
+                        if (attr?.IsAssignableTo(typeof(ServiceManager.BlockingEarlyLoadedService)) == true)
+                            ServiceManager.Log.Error(e, "Service<{0}>: Construction failure", typeof(T).Name);
+                        throw;
+                    }
+                }
+            });
         }
 
         /// <summary>
         /// Sets the type in the service locator to the given object.
         /// </summary>
         /// <param name="obj">Object to set.</param>
-        /// <returns>The set object.</returns>
-        public static T Set(T obj)
+        public static void Provide(T obj)
         {
-            SetInstanceObject(obj);
-
-            return instance!;
+            InstanceTcs!.SetResult(obj);
+            ServiceManager.Log.Debug("Service<{0}>: Provided", typeof(T).Name);
         }
 
         /// <summary>
-        /// Sets the type in the service locator via the default parameterless constructor.
+        /// Pull the instance out of the service locator, waiting if necessary.
         /// </summary>
-        /// <returns>The set object.</returns>
-        public static T Set()
-        {
-            if (instance != null)
-                throw new Exception($"Service {typeof(T).FullName} was set twice");
-
-            var obj = (T?)Activator.CreateInstance(typeof(T), true);
-
-            SetInstanceObject(obj);
-
-            return instance!;
-        }
-
-        /// <summary>
-        /// Sets a type in the service locator via a constructor with the given parameter types.
-        /// </summary>
-        /// <param name="args">Constructor arguments.</param>
-        /// <returns>The set object.</returns>
-        public static T Set(params object[] args)
-        {
-            if (args == null)
-            {
-                throw new ArgumentNullException(nameof(args), $"Service locator was passed a null for type {typeof(T).FullName} parameterized constructor ");
-            }
-
-            var flags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.CreateInstance | BindingFlags.OptionalParamBinding;
-            var obj = (T?)Activator.CreateInstance(typeof(T), flags, null, args, null, null);
-
-            SetInstanceObject(obj);
-
-            return obj;
-        }
-
-        /// <summary>
-        /// Attempt to pull the instance out of the service locator.
-        /// </summary>
-        /// <returns>The object if registered.</returns>
-        /// <exception cref="InvalidOperationException">Thrown when the object instance is not present in the service locator.</exception>
+        /// <returns>The object.</returns>
         public static T Get()
         {
-            return instance ?? throw new InvalidOperationException($"{typeof(T).FullName} has not been registered in the service locator!");
+            if (!InstanceTcs.Task.IsCompleted)
+                InstanceTcs.Task.Wait();
+            return InstanceTcs.Task.Result;
         }
+
+        /// <summary>
+        /// Pull the instance out of the service locator, waiting if necessary.
+        /// </summary>
+        /// <returns>The object.</returns>
+        [UsedImplicitly]
+        public static Task<T> GetAsync() => InstanceTcs.Task;
 
         /// <summary>
         /// Attempt to pull the instance out of the service locator.
         /// </summary>
         /// <returns>The object if registered, null otherwise.</returns>
-        public static T? GetNullable()
+        public static T? GetNullable() => InstanceTcs.Task.IsCompleted ? InstanceTcs.Task.Result : default;
+
+        /// <summary>
+        /// Gets an enumerable containing Service&lt;T&gt;s that are required for this Service to initialize without blocking.
+        /// </summary>
+        /// <returns>List of dependency services.</returns>
+        public static List<Type> GetDependencyServices()
         {
-            return instance;
+            var res = new List<Type>();
+            res.AddRange(GetServiceConstructor()
+                .GetParameters()
+                .Select(x => x.ParameterType));
+            res.AddRange(typeof(T)
+                .GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
+                .Select(x => x.FieldType)
+                .Where(x => x.GetCustomAttribute<ServiceManager.ServiceDependency>(true) != null));
+            return res
+                .Distinct()
+                .Select(x => typeof(Service<>).MakeGenericType(x))
+                .ToList();
         }
 
-        private static void SetInstanceObject(T instance)
+        private static async Task<object?> GetServiceObjectConstructArgument(Type type)
         {
-            Service<T>.instance = instance ?? throw new ArgumentNullException(nameof(instance), $"Service locator received a null for type {typeof(T).FullName}");
-
-            var availableToPlugins = RegisterInIoCContainer(instance);
-
-            if (availableToPlugins)
-                Log.Information($"Registered {typeof(T).FullName} into service locator and exposed to plugins");
-            else
-                Log.Information($"Registered {typeof(T).FullName} into service locator privately");
+            var task = (Task)typeof(Service<>)
+                             .MakeGenericType(type)
+                             .InvokeMember(
+                                 "GetAsync",
+                                 BindingFlags.InvokeMethod |
+                                 BindingFlags.Static |
+                                 BindingFlags.Public,
+                                 null,
+                                 null,
+                                 null)!;
+            await task;
+            return typeof(Task<>).MakeGenericType(type)
+                                 .GetProperty("Result", BindingFlags.Instance | BindingFlags.Public)!
+                                 .GetValue(task);
         }
 
-        private static bool RegisterInIoCContainer(T instance)
+        private static ConstructorInfo GetServiceConstructor()
         {
-            var attr = typeof(T).GetCustomAttribute<PluginInterfaceAttribute>();
-            if (attr == null)
-            {
-                return false;
-            }
+            const BindingFlags ctorBindingFlags =
+                BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic |
+                BindingFlags.CreateInstance | BindingFlags.OptionalParamBinding;
+            return typeof(T)
+                .GetConstructors(ctorBindingFlags)
+                .Single(x => x.GetCustomAttributes(typeof(ServiceManager.ServiceConstructor), true).Any());
+        }
 
-            var ioc = Service<ServiceContainer>.GetNullable();
-            if (ioc == null)
-            {
-                return false;
-            }
-
-            ioc.RegisterSingleton(instance);
-
-            return true;
+        private static async Task<T> ConstructObject()
+        {
+            var ctor = GetServiceConstructor();
+            var args = await Task.WhenAll(
+                           ctor.GetParameters().Select(x => GetServiceObjectConstructArgument(x.ParameterType)));
+            return (T)ctor.Invoke(args)!;
         }
     }
 }

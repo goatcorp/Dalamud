@@ -86,12 +86,12 @@ namespace Dalamud
         /// <summary>
         /// Gets or sets a value that specifies how much to wait before a new Dalamud session.
         /// </summary>
-        public int DelayInitializeMs { get; set; } = 0;
+        public int DelayInitializeMs { get; set; }
 
         /// <summary>
         /// Gets or sets the path the boot log file is supposed to be written to.
         /// </summary>
-        public string BootLogPath { get; set; }
+        public string? BootLogPath { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether a Boot console should be shown.

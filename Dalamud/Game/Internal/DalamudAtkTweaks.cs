@@ -23,6 +23,7 @@ namespace Dalamud.Game.Internal
     /// <summary>
     /// This class implements in-game Dalamud options in the in-game System menu.
     /// </summary>
+    [ServiceManager.EarlyLoadedService]
     internal sealed unsafe partial class DalamudAtkTweaks
     {
         private readonly AtkValueChangeType atkValueChangeType;
@@ -37,13 +38,9 @@ namespace Dalamud.Game.Internal
         private readonly string locDalamudPlugins;
         private readonly string locDalamudSettings;
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="DalamudAtkTweaks"/> class.
-        /// </summary>
-        public DalamudAtkTweaks()
+        [ServiceManager.ServiceConstructor]
+        private DalamudAtkTweaks(SigScanner sigScanner)
         {
-            var sigScanner = Service<SigScanner>.Get();
-
             var openSystemMenuAddress = sigScanner.ScanText("E8 ?? ?? ?? ?? 32 C0 4C 8B AC 24 ?? ?? ?? ?? 48 8B 8D ?? ?? ?? ??");
 
             this.hookAgentHudOpenSystemMenu = new Hook<AgentHudOpenSystemMenuPrototype>(openSystemMenuAddress, this.AgentHudOpenSystemMenuDetour);

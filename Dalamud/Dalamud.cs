@@ -4,7 +4,7 @@ using System.IO;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading;
-
+using System.Threading.Tasks;
 using Dalamud.Configuration.Internal;
 using Dalamud.Data;
 using Dalamud.Game;
@@ -49,7 +49,6 @@ namespace Dalamud
 
         private readonly ManualResetEvent unloadSignal;
         private readonly ManualResetEvent finishUnloadSignal;
-        private readonly IntPtr mainThreadContinueEvent;
         private MonoMod.RuntimeDetour.Hook processMonoHook;
         private bool hasDisposedPlugins = false;
 
@@ -65,10 +64,6 @@ namespace Dalamud
         /// <param name="mainThreadContinueEvent">Event used to signal the main thread to continue.</param>
         public Dalamud(DalamudStartInfo info, LoggingLevelSwitch loggingLevelSwitch, ManualResetEvent finishSignal, DalamudConfiguration configuration, IntPtr mainThreadContinueEvent)
         {
-            Service<Dalamud>.Set(this);
-            Service<DalamudStartInfo>.Set(info);
-            Service<DalamudConfiguration>.Set(configuration);
-
             this.LogLevelSwitch = loggingLevelSwitch;
 
             this.unloadSignal = new ManualResetEvent(false);
@@ -77,7 +72,55 @@ namespace Dalamud
             this.finishUnloadSignal = finishSignal;
             this.finishUnloadSignal.Reset();
 
-            this.mainThreadContinueEvent = mainThreadContinueEvent;
+            SerilogEventSink.Instance.LogLine += SerilogOnLogLine;
+
+            Service<Dalamud>.Provide(this);
+            Service<DalamudStartInfo>.Provide(info);
+            Service<DalamudConfiguration>.Provide(configuration);
+
+            if (!configuration.IsResumeGameAfterPluginLoad)
+            {
+                NativeFunctions.SetEvent(mainThreadContinueEvent);
+                _ = ServiceManager.InitializeEarlyLoadableServices();
+            }
+            else
+            {
+                Task.Run(async () =>
+                {
+                    try
+                    {
+                        var tasks = new[]
+                        {
+                            ServiceManager.InitializeEarlyLoadableServices(),
+                            ServiceManager.BlockingResolved,
+                        };
+
+                        await Task.WhenAny(tasks);
+                        foreach (var task in tasks)
+                        {
+                            if (task.IsFaulted)
+                                throw task.Exception!;
+                        }
+
+                        NativeFunctions.SetEvent(mainThreadContinueEvent);
+
+                        await Task.WhenAll(tasks);
+                        foreach (var task in tasks)
+                        {
+                            if (task.IsFaulted)
+                                throw task.Exception!;
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        Log.Error(e, "Service initialization failure");
+                    }
+                    finally
+                    {
+                        NativeFunctions.SetEvent(mainThreadContinueEvent);
+                    }
+                });
+            }
         }
 
         /// <summary>
@@ -88,262 +131,7 @@ namespace Dalamud
         /// <summary>
         /// Gets location of stored assets.
         /// </summary>
-        internal DirectoryInfo AssetDirectory => new(Service<DalamudStartInfo>.Get().AssetDirectory);
-
-        /// <summary>
-        /// Runs tier 1 of the Dalamud initialization process.
-        /// </summary>
-        public void LoadTier1()
-        {
-            using var tier1Timing = Timings.Start("Tier 1 Init");
-
-            try
-            {
-                SerilogEventSink.Instance.LogLine += SerilogOnLogLine;
-
-                Service<ServiceContainer>.Set();
-
-                // Initialize the process information.
-                var info = Service<DalamudStartInfo>.Get();
-                var cacheDir = new DirectoryInfo(Path.Combine(info.WorkingDirectory!, "cachedSigs"));
-                if (!cacheDir.Exists)
-                    cacheDir.Create();
-
-                Service<SigScanner>.Set(
-                    new SigScanner(true, new FileInfo(Path.Combine(cacheDir.FullName, $"{info.GameVersion}.json"))));
-                Service<HookManager>.Set();
-
-                // Initialize FFXIVClientStructs function resolver
-                using (Timings.Start("CS Resolver Init"))
-                {
-                    FFXIVClientStructs.Resolver.InitializeParallel(new FileInfo(Path.Combine(cacheDir.FullName, $"{info.GameVersion}_cs.json")));
-                    Log.Information("[T1] FFXIVClientStructs initialized!");
-                }
-
-                // Initialize game subsystem
-                var framework = Service<Framework>.Set();
-                Log.Information("[T1] Framework OK!");
-
-#if DEBUG
-                Service<TaskTracker>.Set();
-                Log.Information("[T1] TaskTracker OK!");
-#endif
-                Service<GameNetwork>.Set();
-                Service<GameGui>.Set();
-
-                framework.Enable();
-
-                Log.Information("[T1] Load complete!");
-            }
-            catch (Exception ex)
-            {
-                Log.Error(ex, "Tier 1 load failed");
-                this.Unload();
-            }
-            finally
-            {
-                // Signal the main game thread to continue
-                // TODO: This is done in rewrite_entrypoint.cpp again to avoid a race condition. Should be fixed!
-                // NativeFunctions.SetEvent(this.mainThreadContinueEvent);
-
-                // Timings.Event("Game kickoff");
-                // Log.Information("[T1] Game thread continued!");
-            }
-        }
-
-        /// <summary>
-        /// Runs tier 2 of the Dalamud initialization process.
-        /// </summary>
-        /// <returns>Whether or not the load succeeded.</returns>
-        public bool LoadTier2()
-        {
-            // This marks the first time we are actually on the game's main thread
-            ThreadSafety.MarkMainThread();
-
-            using var tier2Timing = Timings.Start("Tier 2 Init");
-
-            try
-            {
-                var configuration = Service<DalamudConfiguration>.Get();
-
-                var antiDebug = Service<AntiDebug>.Set();
-                if (!antiDebug.IsEnabled)
-                {
-#if DEBUG
-                    antiDebug.Enable();
-#else
-                    if (configuration.IsAntiAntiDebugEnabled)
-                        antiDebug.Enable();
-#endif
-                }
-
-                Log.Information("[T2] AntiDebug OK!");
-
-                Service<WinSockHandlers>.Set();
-                Log.Information("[T2] WinSock OK!");
-
-                Service<NetworkHandlers>.Set();
-                Log.Information("[T2] NH OK!");
-
-                using (Timings.Start("DM Init"))
-                {
-                    try
-                    {
-                        Service<DataManager>.Set().Initialize(this.AssetDirectory.FullName);
-                    }
-                    catch (Exception e)
-                    {
-                        Log.Error(e, "Could not initialize DataManager");
-                        this.Unload();
-                        return false;
-                    }
-                }
-
-                Log.Information("[T2] Data OK!");
-
-                using (Timings.Start("CS Init"))
-                {
-                    Service<ClientState>.Set();
-                    Log.Information("[T2] CS OK!");
-                }
-
-                var localization = Service<Localization>.Set(new Localization(Path.Combine(this.AssetDirectory.FullName, "UIRes", "loc", "dalamud"), "dalamud_"));
-                if (!string.IsNullOrEmpty(configuration.LanguageOverride))
-                {
-                    localization.SetupWithLangCode(configuration.LanguageOverride);
-                }
-                else
-                {
-                    localization.SetupWithUiCulture();
-                }
-
-                Log.Information("[T2] LOC OK!");
-
-                // This is enabled in ImGuiScene setup
-                using (Timings.Start("IME Init"))
-                {
-                    Service<DalamudIME>.Set();
-                    Log.Information("[T2] IME OK!");
-                }
-
-                using (Timings.Start("IM Enable"))
-                {
-                    Service<InterfaceManager>.Set().Enable();
-                    Log.Information("[T2] IM OK!");
-                }
-
-                using (Timings.Start("GFM Init"))
-                {
-                    Service<GameFontManager>.Set();
-                    Log.Information("[T2] GFM OK!");
-                }
-
-#pragma warning disable CS0618 // Type or member is obsolete
-                Service<SeStringManager>.Set();
-#pragma warning restore CS0618 // Type or member is obsolete
-
-                Log.Information("[T2] SeString OK!");
-
-                using (Timings.Start("CM Init"))
-                {
-                    Service<CommandManager>.Set();
-                    Service<DalamudCommands>.Set().SetupCommands();
-                    Log.Information("[T2] CM OK!");
-                }
-
-                Service<ChatHandlers>.Set();
-                Log.Information("[T2] CH OK!");
-
-                using (Timings.Start("CS Enable"))
-                {
-                    Service<ClientState>.Get().Enable();
-                    Log.Information("[T2] CS ENABLE!");
-                }
-
-                Service<DalamudAtkTweaks>.Set().Enable();
-                Log.Information("[T2] ATKTWEAKS ENABLE!");
-
-                Log.Information("[T2] Load complete!");
-            }
-            catch (Exception ex)
-            {
-                Log.Error(ex, "Tier 2 load failed");
-                this.Unload();
-                return false;
-            }
-
-            return true;
-        }
-
-        /// <summary>
-        /// Runs tier 3 of the Dalamud initialization process.
-        /// </summary>
-        /// <returns>Whether or not the load succeeded.</returns>
-        public bool LoadTier3()
-        {
-            using var tier3Timing = Timings.Start("Tier 3 Init");
-
-            ThreadSafety.AssertMainThread();
-
-            try
-            {
-                Log.Information("[T3] START!");
-
-                Service<TitleScreenMenu>.Set();
-
-                PluginManager pluginManager;
-                using (Timings.Start("PM Init"))
-                {
-                    pluginManager = Service<PluginManager>.Set();
-                    Service<CallGate>.Set();
-                    Log.Information("[T3] PM OK!");
-                }
-
-                Service<DalamudInterface>.Set();
-                Log.Information("[T3] DUI OK!");
-
-                try
-                {
-                    using (Timings.Start("PM Load Plugin Repos"))
-                    {
-                        _ = pluginManager.SetPluginReposFromConfigAsync(false);
-                        pluginManager.OnInstalledPluginsChanged += Troubleshooting.LogTroubleshooting;
-
-                        Log.Information("[T3] PM repos OK!");
-                    }
-
-                    using (Timings.Start("PM Cleanup Plugins"))
-                    {
-                        pluginManager.CleanupPlugins();
-                        Log.Information("[T3] PMC OK!");
-                    }
-
-                    using (Timings.Start("PM Load Sync Plugins"))
-                    {
-                        pluginManager.LoadAllPlugins();
-                        Log.Information("[T3] PML OK!");
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Log.Error(ex, "Plugin load failed");
-                }
-
-                Troubleshooting.LogTroubleshooting();
-
-                Log.Information("Dalamud is ready");
-                Timings.Event("Dalamud ready");
-            }
-            catch (Exception ex)
-            {
-                Log.Error(ex, "Tier 3 load failed");
-                this.Unload();
-
-                return false;
-            }
-
-            return true;
-        }
+        internal DirectoryInfo AssetDirectory => new(Service<DalamudStartInfo>.Get().AssetDirectory!);
 
         /// <summary>
         /// Queue an unload of Dalamud when it gets the chance.

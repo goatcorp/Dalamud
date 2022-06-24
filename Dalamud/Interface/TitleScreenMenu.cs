@@ -12,6 +12,7 @@ namespace Dalamud.Interface
     /// </summary>
     [PluginInterface]
     [InterfaceVersion("1.0")]
+    [ServiceManager.BlockingEarlyLoadedService]
     public class TitleScreenMenu
     {
         /// <summary>
@@ -20,6 +21,11 @@ namespace Dalamud.Interface
         internal const uint TextureSize = 64;
 
         private readonly List<TitleScreenMenuEntry> entries = new();
+
+        [ServiceManager.ServiceConstructor]
+        private TitleScreenMenu()
+        {
+        }
 
         /// <summary>
         /// Gets the list of entries in the title screen menu.

@@ -23,15 +23,6 @@ namespace Dalamud.Game
         /// <summary>
         /// Setup the resolver, calling the appopriate method based on the process architecture.
         /// </summary>
-        public void Setup()
-        {
-            var scanner = Service<SigScanner>.Get();
-            this.Setup(scanner);
-        }
-
-        /// <summary>
-        /// Setup the resolver, calling the appopriate method based on the process architecture.
-        /// </summary>
         /// <param name="scanner">The SigScanner instance.</param>
         public void Setup(SigScanner scanner)
         {
@@ -55,11 +46,13 @@ namespace Dalamud.Game
             this.SetupInternal(scanner);
 
             var className = this.GetType().Name;
-            DebugScannedValues[className] = new List<(string, IntPtr)>();
+            var list = new List<(string, IntPtr)>();
+            lock (DebugScannedValues)
+                DebugScannedValues[className] = list;
 
             foreach (var property in this.GetType().GetProperties().Where(x => x.PropertyType == typeof(IntPtr)))
             {
-                DebugScannedValues[className].Add((property.Name, (IntPtr)property.GetValue(this)));
+                list.Add((property.Name, (IntPtr)property.GetValue(this)));
             }
 
             this.IsResolved = true;

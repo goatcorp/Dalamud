@@ -26,22 +26,91 @@ namespace Dalamud.Data
     /// </summary>
     [PluginInterface]
     [InterfaceVersion("1.0")]
+    [ServiceManager.BlockingEarlyLoadedService]
     public sealed class DataManager : IDisposable
     {
         private const string IconFileFormat = "ui/icon/{0:D3}000/{1}{2:D6}.tex";
 
-        private Thread luminaResourceThread;
-        private CancellationTokenSource luminaCancellationTokenSource;
+        private readonly Thread luminaResourceThread;
+        private readonly CancellationTokenSource luminaCancellationTokenSource;
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="DataManager"/> class.
-        /// </summary>
-        internal DataManager()
+        [ServiceManager.ServiceConstructor]
+        private DataManager(DalamudStartInfo dalamudStartInfo, Dalamud dalamud)
         {
-            this.Language = Service<DalamudStartInfo>.Get().Language;
+            this.Language = dalamudStartInfo.Language;
 
             // Set up default values so plugins do not null-reference when data is being loaded.
             this.ClientOpCodes = this.ServerOpCodes = new ReadOnlyDictionary<string, ushort>(new Dictionary<string, ushort>());
+
+            var baseDir = dalamud.AssetDirectory.FullName;
+            try
+            {
+                Log.Verbose("Starting data load...");
+
+                var zoneOpCodeDict = JsonConvert.DeserializeObject<Dictionary<string, ushort>>(
+                    File.ReadAllText(Path.Combine(baseDir, "UIRes", "serveropcode.json")))!;
+                this.ServerOpCodes = new ReadOnlyDictionary<string, ushort>(zoneOpCodeDict);
+
+                Log.Verbose("Loaded {0} ServerOpCodes.", zoneOpCodeDict.Count);
+
+                var clientOpCodeDict = JsonConvert.DeserializeObject<Dictionary<string, ushort>>(
+                    File.ReadAllText(Path.Combine(baseDir, "UIRes", "clientopcode.json")))!;
+                this.ClientOpCodes = new ReadOnlyDictionary<string, ushort>(clientOpCodeDict);
+
+                Log.Verbose("Loaded {0} ClientOpCodes.", clientOpCodeDict.Count);
+
+                using (Timings.Start("Lumina Init"))
+                {
+                    var luminaOptions = new LuminaOptions
+                    {
+                        LoadMultithreaded = true,
+                        CacheFileResources = true,
+#if DEBUG
+                        PanicOnSheetChecksumMismatch = true,
+#else
+                        PanicOnSheetChecksumMismatch = false,
+#endif
+                        DefaultExcelLanguage = this.Language.ToLumina(),
+                    };
+
+                    var processModule = Process.GetCurrentProcess().MainModule;
+                    if (processModule != null)
+                    {
+                        this.GameData = new GameData(Path.Combine(Path.GetDirectoryName(processModule.FileName)!, "sqpack"), luminaOptions);
+                    }
+                    else
+                    {
+                        throw new Exception("Could not main module.");
+                    }
+
+                    Log.Information("Lumina is ready: {0}", this.GameData.DataPath);
+                }
+
+                this.IsDataReady = true;
+
+                this.luminaCancellationTokenSource = new();
+
+                var luminaCancellationToken = this.luminaCancellationTokenSource.Token;
+                this.luminaResourceThread = new(() =>
+                {
+                    while (!luminaCancellationToken.IsCancellationRequested)
+                    {
+                        if (this.GameData.FileHandleManager.HasPendingFileLoads)
+                        {
+                            this.GameData.ProcessFileHandleQueue();
+                        }
+                        else
+                        {
+                            Thread.Sleep(5);
+                        }
+                    }
+                });
+                this.luminaResourceThread.Start();
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Could not download data.");
+            }
         }
 
         /// <summary>
@@ -68,7 +137,7 @@ namespace Dalamud.Data
         /// <summary>
         /// Gets an <see cref="ExcelModule"/> object which gives access to any of the game's sheet data.
         /// </summary>
-        public ExcelModule Excel => this.GameData?.Excel;
+        public ExcelModule Excel => this.GameData.Excel;
 
         /// <summary>
         /// Gets a value indicating whether Game Data is ready to be read.
@@ -180,7 +249,7 @@ namespace Dalamud.Data
         /// <param name="type">The type of the icon (e.g. 'hq' to get the HQ variant of an item icon).</param>
         /// <param name="iconId">The icon ID.</param>
         /// <returns>The <see cref="TexFile"/> containing the icon.</returns>
-        public TexFile? GetIcon(string type, uint iconId)
+        public TexFile? GetIcon(string? type, uint iconId)
         {
             type ??= string.Empty;
             if (type.Length > 0 && !type.EndsWith("/"))
@@ -275,82 +344,6 @@ namespace Dalamud.Data
         void IDisposable.Dispose()
         {
             this.luminaCancellationTokenSource.Cancel();
-        }
-
-        /// <summary>
-        /// Initialize this data manager.
-        /// </summary>
-        /// <param name="baseDir">The directory to load data from.</param>
-        internal void Initialize(string baseDir)
-        {
-            try
-            {
-                Log.Verbose("Starting data load...");
-
-                var zoneOpCodeDict = JsonConvert.DeserializeObject<Dictionary<string, ushort>>(
-                    File.ReadAllText(Path.Combine(baseDir, "UIRes", "serveropcode.json")));
-                this.ServerOpCodes = new ReadOnlyDictionary<string, ushort>(zoneOpCodeDict);
-
-                Log.Verbose("Loaded {0} ServerOpCodes.", zoneOpCodeDict.Count);
-
-                var clientOpCodeDict = JsonConvert.DeserializeObject<Dictionary<string, ushort>>(
-                    File.ReadAllText(Path.Combine(baseDir, "UIRes", "clientopcode.json")));
-                this.ClientOpCodes = new ReadOnlyDictionary<string, ushort>(clientOpCodeDict);
-
-                Log.Verbose("Loaded {0} ClientOpCodes.", clientOpCodeDict.Count);
-
-                using (Timings.Start("Lumina Init"))
-                {
-                    var luminaOptions = new LuminaOptions
-                    {
-                        LoadMultithreaded = true,
-                        CacheFileResources = true,
-#if DEBUG
-                        PanicOnSheetChecksumMismatch = true,
-#else
-                        PanicOnSheetChecksumMismatch = false,
-#endif
-                        DefaultExcelLanguage = this.Language.ToLumina(),
-                    };
-
-                    var processModule = Process.GetCurrentProcess().MainModule;
-                    if (processModule != null)
-                    {
-                        this.GameData = new GameData(Path.Combine(Path.GetDirectoryName(processModule.FileName), "sqpack"), luminaOptions);
-                    }
-                    else
-                    {
-                        throw new Exception("Could not main module.");
-                    }
-
-                    Log.Information("Lumina is ready: {0}", this.GameData.DataPath);
-                }
-
-                this.IsDataReady = true;
-
-                this.luminaCancellationTokenSource = new();
-
-                var luminaCancellationToken = this.luminaCancellationTokenSource.Token;
-                this.luminaResourceThread = new(() =>
-                {
-                    while (!luminaCancellationToken.IsCancellationRequested)
-                    {
-                        if (this.GameData.FileHandleManager.HasPendingFileLoads)
-                        {
-                            this.GameData.ProcessFileHandleQueue();
-                        }
-                        else
-                        {
-                            Thread.Sleep(5);
-                        }
-                    }
-                });
-                this.luminaResourceThread.Start();
-            }
-            catch (Exception ex)
-            {
-                Log.Error(ex, "Could not download data.");
-            }
         }
     }
 }

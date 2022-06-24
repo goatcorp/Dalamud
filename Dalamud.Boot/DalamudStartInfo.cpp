@@ -21,6 +21,8 @@ void from_json(const nlohmann::json& json, DalamudStartInfo::WaitMessageboxFlags
                     value = static_cast<DalamudStartInfo::WaitMessageboxFlags>(static_cast<int>(value) | static_cast<int>(DalamudStartInfo::WaitMessageboxFlags::BeforeInitialize));
                 else if (item == "beforedalamudentrypoint")
                     value = static_cast<DalamudStartInfo::WaitMessageboxFlags>(static_cast<int>(value) | static_cast<int>(DalamudStartInfo::WaitMessageboxFlags::BeforeDalamudEntrypoint));
+                else if (item == "beforedalamudconstruct")
+                    value = static_cast<DalamudStartInfo::WaitMessageboxFlags>(static_cast<int>(value) | static_cast<int>(DalamudStartInfo::WaitMessageboxFlags::BeforeDalamudConstruct));
             }
         }
 

@@ -83,8 +83,14 @@ namespace Dalamud.Injector
             }
 
             startInfo = ExtractAndInitializeStartInfoFromArguments(startInfo, args);
-            args.Remove("--console"); // Remove "console" flag, already handled
-            args.Remove("--etw"); // Remove "etw" flag, already handled
+            // Remove already handled arguments
+            args.Remove("--console");
+            args.Remove("--msgbox1");
+            args.Remove("--msgbox2");
+            args.Remove("--msgbox3");
+            args.Remove("--etw");
+            args.Remove("--veh");
+            args.Remove("--veh-full");
 
             var mainCommand = args[1].ToLowerInvariant();
             if (mainCommand.Length > 0 && mainCommand.Length <= 6 && "inject"[..mainCommand.Length] == mainCommand)
@@ -311,7 +317,11 @@ namespace Dalamud.Injector
             startInfo.BootLogPath = GetLogPath("dalamud.boot");
             startInfo.BootEnabledGameFixes = new List<string> { "prevent_devicechange_crashes", "disable_game_openprocess_access_check", "redirect_openprocess" };
             startInfo.BootDotnetOpenProcessHookMode = 0;
-            // startInfo.BootWaitMessageBox = 2;
+            startInfo.BootWaitMessageBox |= args.Contains("--msgbox1") ? 1 : 0;
+            startInfo.BootWaitMessageBox |= args.Contains("--msgbox2") ? 2 : 0;
+            startInfo.BootWaitMessageBox |= args.Contains("--msgbox3") ? 4 : 0;
+            startInfo.BootVehEnabled = args.Contains("--veh");
+            startInfo.BootVehFull = args.Contains("--veh-full");
             // startInfo.BootUnhookDlls = new List<string>() { "kernel32.dll", "ntdll.dll", "user32.dll" };
 
             return startInfo;
@@ -338,6 +348,7 @@ namespace Dalamud.Injector
                 Console.WriteLine("{0}        [-m entrypoint|inject] [--mode=entrypoint|inject]", exeSpaces);
                 Console.WriteLine("{0}        [--handle-owner=inherited-handle-value]", exeSpaces);
                 Console.WriteLine("{0}        [--without-dalamud] [--no-fix-acl]", exeSpaces);
+                Console.WriteLine("{0}        [--no-wait]", exeSpaces);
                 Console.WriteLine("{0}        [-- game_arg1=value1 game_arg2=value2 ...]", exeSpaces);
             }
 
@@ -349,6 +360,8 @@ namespace Dalamud.Injector
             Console.WriteLine("Verbose logging:\t[-v]");
             Console.WriteLine("Show Console:\t[--console]");
             Console.WriteLine("Enable ETW:\t[--etw]");
+            Console.WriteLine("Enable VEH:\t[--veh], [--veh-full]");
+            Console.WriteLine("Show messagebox:\t[--msgbox1], [--msgbox2], [--msgbox3]");
 
             return 0;
         }
@@ -464,6 +477,7 @@ namespace Dalamud.Injector
             var handleOwner = IntPtr.Zero;
             var withoutDalamud = false;
             var noFixAcl = false;
+            var waitForGameWindow = true;
 
             var parsingGameArgument = false;
             for (var i = 2; i < args.Count; i++)
@@ -480,6 +494,8 @@ namespace Dalamud.Injector
                     useFakeArguments = true;
                 else if (args[i] == "--without-dalamud")
                     withoutDalamud = true;
+                else if (args[i] == "--no-wait")
+                    waitForGameWindow = false;
                 else if (args[i] == "--no-fix-acl" || args[i] == "--no-acl-fix")
                     noFixAcl = true;
                 else if (args[i] == "-g")
@@ -596,7 +612,7 @@ namespace Dalamud.Injector
 
                     Log.Verbose("RewriteRemoteEntryPointW called!");
                 }
-            });
+            }, waitForGameWindow);
 
             Log.Verbose("Game process started with PID {0}", process.Id);
 
