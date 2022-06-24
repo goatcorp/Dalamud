@@ -9,7 +9,7 @@
 HMODULE g_hModule;
 HINSTANCE g_hGameInstance = GetModuleHandleW(nullptr);
 
-DllExport DWORD WINAPI Initialize(LPVOID lpParam, HANDLE hMainThreadContinue) {
+DWORD WINAPI InitializeImpl(LPVOID lpParam, HANDLE hMainThreadContinue) {
     g_startInfo.from_envvars();
     
     std::string jsonParseError;
@@ -149,11 +149,6 @@ DllExport DWORD WINAPI Initialize(LPVOID lpParam, HANDLE hMainThreadContinue) {
     if (static_cast<int>(g_startInfo.BootWaitMessageBox) & static_cast<int>(DalamudStartInfo::WaitMessageboxFlags::BeforeDalamudEntrypoint))
         MessageBoxW(nullptr, L"Press OK to continue (BeforeDalamudEntrypoint)", L"Dalamud Boot", MB_OK);
 
-    if (hMainThreadContinue) {
-        // Let the game initialize.
-        SetEvent(hMainThreadContinue);
-    }
-
     // We don't need to do this anymore, Dalamud now loads without needing the window to be there. Speed!
     // utils::wait_for_game_window();
 
@@ -162,6 +157,10 @@ DllExport DWORD WINAPI Initialize(LPVOID lpParam, HANDLE hMainThreadContinue) {
     logging::I("Done!");
 
     return 0;
+}
+
+DllExport DWORD WINAPI Initialize(LPVOID lpParam) {
+    return InitializeImpl(lpParam, CreateEvent(nullptr, TRUE, FALSE, nullptr));
 }
 
 BOOL APIENTRY DllMain(const HMODULE hModule, const DWORD dwReason, LPVOID lpReserved) {

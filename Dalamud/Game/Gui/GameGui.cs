@@ -27,6 +27,7 @@ namespace Dalamud.Game.Gui
     /// </summary>
     [PluginInterface]
     [InterfaceVersion("1.0")]
+    [ServiceManager.BlockingEarlyLoadedService]
     public sealed unsafe class GameGui : IDisposable
     {
         private readonly GameGuiAddressResolver address;
@@ -46,14 +47,11 @@ namespace Dalamud.Game.Gui
         private GetUIMapObjectDelegate getUIMapObject;
         private OpenMapWithFlagDelegate openMapWithFlag;
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="GameGui"/> class.
-        /// This class is responsible for many aspects of interacting with the native game UI.
-        /// </summary>
-        internal GameGui()
+        [ServiceManager.ServiceConstructor]
+        private GameGui(SigScanner sigScanner)
         {
             this.address = new GameGuiAddressResolver();
-            this.address.Setup();
+            this.address.Setup(sigScanner);
 
             Log.Verbose("===== G A M E G U I =====");
             Log.Verbose($"GameGuiManager address 0x{this.address.BaseAddress.ToInt64():X}");
@@ -61,13 +59,6 @@ namespace Dalamud.Game.Gui
             Log.Verbose($"HandleItemHover address 0x{this.address.HandleItemHover.ToInt64():X}");
             Log.Verbose($"HandleItemOut address 0x{this.address.HandleItemOut.ToInt64():X}");
             Log.Verbose($"HandleImm address 0x{this.address.HandleImm.ToInt64():X}");
-
-            Service<ChatGui>.Set();
-            Service<PartyFinderGui>.Set();
-            Service<ToastGui>.Set();
-            Service<FlyTextGui>.Set();
-            Service<ContextMenu>.Set();
-            Service<DtrBar>.Set();
 
             this.setGlobalBgmHook = new Hook<SetGlobalBgmDelegate>(this.address.SetGlobalBgm, this.HandleSetGlobalBgmDetour);
 

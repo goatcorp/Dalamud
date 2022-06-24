@@ -18,6 +18,7 @@ namespace Dalamud.Game.Gui.Internal
     /// <summary>
     /// This class handles IME for non-English users.
     /// </summary>
+    [ServiceManager.EarlyLoadedService]
     internal unsafe class DalamudIME : IDisposable
     {
         private static readonly ModuleLog Log = new("IME");
@@ -32,7 +33,9 @@ namespace Dalamud.Game.Gui.Internal
         /// <summary>
         /// Initializes a new instance of the <see cref="DalamudIME"/> class.
         /// </summary>
-        internal DalamudIME()
+        /// <param name="tag">Tag.</param>
+        [ServiceManager.ServiceConstructor]
+        private DalamudIME()
         {
         }
 

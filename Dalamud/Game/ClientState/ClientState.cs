@@ -27,6 +27,7 @@ namespace Dalamud.Game.ClientState
     /// </summary>
     [PluginInterface]
     [InterfaceVersion("1.0")]
+    [ServiceManager.BlockingEarlyLoadedService]
     public sealed class ClientState : IDisposable
     {
         private readonly ClientStateAddressResolver address;
@@ -36,46 +37,26 @@ namespace Dalamud.Game.ClientState
         private bool lastFramePvP = false;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ClientState"/> class.
-        /// Set up client state access.
+        /// Gets client state address resolver.
         /// </summary>
-        internal ClientState()
+        internal ClientStateAddressResolver AddressResolver => this.address;
+
+        [ServiceManager.ServiceConstructor]
+        private ClientState(Framework framework, NetworkHandlers networkHandlers, SigScanner sigScanner, DalamudStartInfo startInfo)
         {
             this.address = new ClientStateAddressResolver();
-            this.address.Setup();
+            this.address.Setup(sigScanner);
 
             Log.Verbose("===== C L I E N T  S T A T E =====");
 
-            this.ClientLanguage = Service<DalamudStartInfo>.Get().Language;
-
-            Service<ObjectTable>.Set(this.address);
-
-            Service<FateTable>.Set(this.address);
-
-            Service<PartyList>.Set(this.address);
-
-            Service<BuddyList>.Set(this.address);
-
-            Service<JobGauges>.Set(this.address);
-
-            Service<KeyState>.Set(this.address);
-
-            Service<GamepadState>.Set(this.address);
-
-            Service<Conditions.Condition>.Set(this.address);
-
-            Service<TargetManager>.Set(this.address);
-
-            Service<AetheryteList>.Set(this.address);
+            this.ClientLanguage = startInfo.Language;
 
             Log.Verbose($"SetupTerritoryType address 0x{this.address.SetupTerritoryType.ToInt64():X}");
 
             this.setupTerritoryTypeHook = new Hook<SetupTerritoryTypeDelegate>(this.address.SetupTerritoryType, this.SetupTerritoryTypeDetour);
 
-            var framework = Service<Framework>.Get();
             framework.Update += this.FrameworkOnOnUpdateEvent;
 
-            var networkHandlers = Service<NetworkHandlers>.Get();
             networkHandlers.CfPop += this.NetworkHandlersOnCfPop;
         }
 

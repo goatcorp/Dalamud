@@ -236,6 +236,11 @@ namespace Dalamud.Configuration.Internal
         public bool IsAntiAntiDebugEnabled { get; set; } = false;
 
         /// <summary>
+        /// Gets or sets a value indicating whether to resume game main thread after plugins load.
+        /// </summary>
+        public bool IsResumeGameAfterPluginLoad { get; set; } = false;
+
+        /// <summary>
         /// Gets or sets the kind of beta to download when <see cref="DalamudBetaKey"/> matches the server value.
         /// </summary>
         public string DalamudBetaKind { get; set; }

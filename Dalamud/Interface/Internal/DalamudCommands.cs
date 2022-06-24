@@ -18,22 +18,12 @@ namespace Dalamud.Interface.Internal
     /// <summary>
     /// Class handling Dalamud core commands.
     /// </summary>
+    [ServiceManager.EarlyLoadedService]
     internal class DalamudCommands
     {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="DalamudCommands"/> class.
-        /// </summary>
-        public DalamudCommands()
+        [ServiceManager.ServiceConstructor]
+        private DalamudCommands(CommandManager commandManager)
         {
-        }
-
-        /// <summary>
-        /// Register all command handlers with the Dalamud instance.
-        /// </summary>
-        public void SetupCommands()
-        {
-            var commandManager = Service<CommandManager>.Get();
-
             commandManager.AddHandler("/xldclose", new CommandInfo(this.OnUnloadCommand)
             {
                 HelpMessage = Loc.Localize("DalamudUnloadHelp", "Unloads XIVLauncher in-game addon."),

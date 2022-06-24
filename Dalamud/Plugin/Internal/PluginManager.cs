@@ -27,6 +27,7 @@ namespace Dalamud.Plugin.Internal;
 /// <summary>
 /// Class responsible for loading and unloading plugins.
 /// </summary>
+[ServiceManager.EarlyLoadedService]
 internal partial class PluginManager : IDisposable
 {
     /// <summary>
@@ -40,16 +41,17 @@ internal partial class PluginManager : IDisposable
     private readonly DirectoryInfo devPluginDirectory;
     private readonly BannedPlugin[] bannedPlugins;
 
-    /// <summary>
-    /// Initializes a new instance of the <see cref="PluginManager"/> class.
-    /// </summary>
-    public PluginManager()
-    {
-        var startInfo = Service<DalamudStartInfo>.Get();
-        var configuration = Service<DalamudConfiguration>.Get();
+    [ServiceManager.ServiceDependency]
+    private readonly DalamudConfiguration configuration = Service<DalamudConfiguration>.Get();
 
-        this.pluginDirectory = new DirectoryInfo(startInfo.PluginDirectory);
-        this.devPluginDirectory = new DirectoryInfo(startInfo.DefaultPluginDirectory);
+    [ServiceManager.ServiceDependency]
+    private readonly DalamudStartInfo startInfo = Service<DalamudStartInfo>.Get();
+
+    [ServiceManager.ServiceConstructor]
+    private PluginManager()
+    {
+        this.pluginDirectory = new DirectoryInfo(this.startInfo.PluginDirectory!);
+        this.devPluginDirectory = new DirectoryInfo(this.startInfo.DefaultPluginDirectory!);
 
         if (!this.pluginDirectory.Exists)
             this.pluginDirectory.Create();
@@ -57,16 +59,16 @@ internal partial class PluginManager : IDisposable
         if (!this.devPluginDirectory.Exists)
             this.devPluginDirectory.Create();
 
-        this.SafeMode = EnvironmentConfiguration.DalamudNoPlugins || configuration.PluginSafeMode;
+        this.SafeMode = EnvironmentConfiguration.DalamudNoPlugins || this.configuration.PluginSafeMode;
         if (this.SafeMode)
         {
-            configuration.PluginSafeMode = false;
-            configuration.Save();
+            this.configuration.PluginSafeMode = false;
+            this.configuration.Save();
         }
 
-        this.PluginConfigs = new PluginConfigurations(Path.Combine(Path.GetDirectoryName(startInfo.ConfigurationPath) ?? string.Empty, "pluginConfigs"));
+        this.PluginConfigs = new PluginConfigurations(Path.Combine(Path.GetDirectoryName(this.startInfo.ConfigurationPath) ?? string.Empty, "pluginConfigs"));
 
-        var bannedPluginsJson = File.ReadAllText(Path.Combine(startInfo.AssetDirectory, "UIRes", "bannedplugin.json"));
+        var bannedPluginsJson = File.ReadAllText(Path.Combine(this.startInfo.AssetDirectory!, "UIRes", "bannedplugin.json"));
         this.bannedPlugins = JsonConvert.DeserializeObject<BannedPlugin[]>(bannedPluginsJson) ?? Array.Empty<BannedPlugin>();
 
         this.ApplyPatches();
@@ -225,12 +227,10 @@ internal partial class PluginManager : IDisposable
     /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     public async Task SetPluginReposFromConfigAsync(bool notify)
     {
-        var configuration = Service<DalamudConfiguration>.Get();
-
         var repos = new List<PluginRepository>() { PluginRepository.MainRepo };
-        repos.AddRange(configuration.ThirdRepoList
-                                    .Where(repo => repo.IsEnabled)
-                                    .Select(repo => new PluginRepository(repo.Url, repo.IsEnabled)));
+        repos.AddRange(this.configuration.ThirdRepoList
+                           .Where(repo => repo.IsEnabled)
+                           .Select(repo => new PluginRepository(repo.Url, repo.IsEnabled)));
 
         this.Repos = repos;
         await this.ReloadPluginMastersAsync(notify);
@@ -250,8 +250,6 @@ internal partial class PluginManager : IDisposable
             Log.Information("PluginSafeMode was enabled, not loading any plugins.");
             return;
         }
-
-        var configuration = Service<DalamudConfiguration>.Get();
 
         var pluginDefs = new List<PluginDef>();
         var devPluginDefs = new List<PluginDef>();
@@ -282,7 +280,7 @@ internal partial class PluginManager : IDisposable
         // devPlugins are more freeform. Look for any dll and hope to get lucky.
         var devDllFiles = this.devPluginDirectory.GetFiles("*.dll", SearchOption.AllDirectories).ToList();
 
-        foreach (var setting in configuration.DevPluginLoadLocations)
+        foreach (var setting in this.configuration.DevPluginLoadLocations)
         {
             if (!setting.IsEnabled)
                 continue;
@@ -420,15 +418,13 @@ internal partial class PluginManager : IDisposable
             return;
         }
 
-        var configuration = Service<DalamudConfiguration>.Get();
-
         if (!this.devPluginDirectory.Exists)
             this.devPluginDirectory.Create();
 
         // devPlugins are more freeform. Look for any dll and hope to get lucky.
         var devDllFiles = this.devPluginDirectory.GetFiles("*.dll", SearchOption.AllDirectories).ToList();
 
-        foreach (var setting in configuration.DevPluginLoadLocations)
+        foreach (var setting in this.configuration.DevPluginLoadLocations)
         {
             if (!setting.IsEnabled)
                 continue;
@@ -682,9 +678,6 @@ internal partial class PluginManager : IDisposable
     /// </summary>
     public void CleanupPlugins()
     {
-        var configuration = Service<DalamudConfiguration>.Get();
-        var startInfo = Service<DalamudStartInfo>.Get();
-
         foreach (var pluginDir in this.pluginDirectory.GetDirectories())
         {
             try
@@ -748,7 +741,7 @@ internal partial class PluginManager : IDisposable
                                 continue;
                             }
 
-                            if (manifest.ApplicableVersion < startInfo.GameVersion)
+                            if (manifest.ApplicableVersion <this.startInfo.GameVersion)
                             {
                                 Log.Information($"Inapplicable version: cleaning up {versionDir.FullName}");
                                 versionDir.Delete(true);
@@ -919,15 +912,12 @@ internal partial class PluginManager : IDisposable
     /// <returns>If the manifest is eligible.</returns>
     public bool IsManifestEligible(PluginManifest manifest)
     {
-        var configuration = Service<DalamudConfiguration>.Get();
-        var startInfo = Service<DalamudStartInfo>.Get();
-
         // Testing exclusive
         if (manifest.IsTestingExclusive && !configuration.DoPluginTest)
             return false;
 
         // Applicable version
-        if (manifest.ApplicableVersion < startInfo.GameVersion)
+        if (manifest.ApplicableVersion <this.startInfo.GameVersion)
             return false;
 
         // API level
@@ -945,7 +935,6 @@ internal partial class PluginManager : IDisposable
     /// <returns>A value indicating whether the plugin/manifest has been banned.</returns>
     public bool IsManifestBanned(PluginManifest manifest)
     {
-        var configuration = Service<DalamudConfiguration>.Get();
         return !configuration.LoadBannedPlugins && this.bannedPlugins.Any(ban => (ban.Name == manifest.InternalName || ban.Name == Hash.GetStringSha256Hash(manifest.InternalName))
                                                                               && ban.AssemblyVersion >= manifest.AssemblyVersion);
     }

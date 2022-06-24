@@ -17,6 +17,7 @@ namespace Dalamud.Game.Gui.Dtr
     /// </summary>
     [PluginInterface]
     [InterfaceVersion("1.0")]
+    [ServiceManager.BlockingEarlyLoadedService]
     public sealed unsafe class DtrBar : IDisposable
     {
         private const uint BaseNodeId = 1000;
@@ -24,13 +25,10 @@ namespace Dalamud.Game.Gui.Dtr
         private List<DtrBarEntry> entries = new();
         private uint runningNodeIds = BaseNodeId;
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="DtrBar"/> class.
-        /// </summary>
-        internal DtrBar()
+        [ServiceManager.ServiceConstructor]
+        private DtrBar(DalamudConfiguration configuration)
         {
             Service<Framework>.Get().Update += this.Update;
-            var configuration = Service<DalamudConfiguration>.Get();
 
             configuration.DtrOrder ??= new List<string>();
             configuration.DtrIgnore ??= new List<string>();

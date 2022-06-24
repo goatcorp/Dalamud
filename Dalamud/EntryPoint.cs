@@ -47,8 +47,11 @@ namespace Dalamud
         /// <param name="mainThreadContinueEvent">Event used to signal the main thread to continue.</param>
         public static void Initialize(IntPtr infoPtr, IntPtr mainThreadContinueEvent)
         {
-            var infoStr = Marshal.PtrToStringUTF8(infoPtr);
-            var info = JsonConvert.DeserializeObject<DalamudStartInfo>(infoStr);
+            var infoStr = Marshal.PtrToStringUTF8(infoPtr)!;
+            var info = JsonConvert.DeserializeObject<DalamudStartInfo>(infoStr)!;
+
+            if ((info.BootWaitMessageBox & 4) != 0)
+                MessageBoxW(IntPtr.Zero, "Press OK to continue (BeforeDalamudConstruct)", "Dalamud Boot", MessageBoxType.Ok);
 
             new Thread(() => RunThread(info, mainThreadContinueEvent)).Start();
         }
@@ -147,9 +150,6 @@ namespace Dalamud
 
                 var dalamud = new Dalamud(info, levelSwitch, finishSignal, configuration, mainThreadContinueEvent);
                 Log.Information("This is Dalamud - Core: {GitHash}, CS: {CsGitHash}", Util.GetGitHash(), Util.GetGitHashClientStructs());
-
-                // Run session
-                dalamud.LoadTier1();
 
                 dalamud.WaitForUnload();
 

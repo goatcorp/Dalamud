@@ -60,6 +60,8 @@ namespace Dalamud.Interface.Internal.Windows
             var dalamud = Service<Dalamud>.Get();
             var interfaceManager = Service<InterfaceManager>.Get();
 
+            interfaceManager.SceneInitializeTask.Wait();
+
             this.DefaultIcon = interfaceManager.LoadImage(Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "defaultIcon.png"))!;
             this.TroubleIcon = interfaceManager.LoadImage(Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "troubleIcon.png"))!;
             this.UpdateIcon = interfaceManager.LoadImage(Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "updateIcon.png"))!;
