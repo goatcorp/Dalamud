@@ -166,7 +166,7 @@ namespace Dalamud.Interface.Internal
 
             try
             {
-                Service<PluginManager>.Get().ReloadAllPlugins();
+                Service<PluginManager>.Get().ReloadAllPluginsAsync();
                 chatGui.Print("OK");
             }
             catch (Exception ex)

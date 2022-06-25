@@ -46,29 +46,25 @@ namespace Dalamud
             if (attr?.IsAssignableTo(typeof(ServiceManager.EarlyLoadedService)) != true)
                 throw new InvalidOperationException($"{typeof(T).Name} is not an EarlyLoadedService");
 
-            return Task.Run(async () =>
+            return Task.Run(Timings.AttachTimingHandle(async () =>
             {
-                using (Timings.Start($"{typeof(T).Name} Enable"))
+                ServiceManager.Log.Debug("Service<{0}>: Begin construction", typeof(T).Name);
+                try
                 {
+                    var x = await ConstructObject();
                     if (attr?.IsAssignableTo(typeof(ServiceManager.BlockingEarlyLoadedService)) == true)
-                        ServiceManager.Log.Debug("Service<{0}>: Begin construction", typeof(T).Name);
-                    try
-                    {
-                        var x = await ConstructObject();
-                        if (attr?.IsAssignableTo(typeof(ServiceManager.BlockingEarlyLoadedService)) == true)
-                            ServiceManager.Log.Debug("Service<{0}>: Construction complete", typeof(T).Name);
-                        InstanceTcs.SetResult(x);
-                        return x;
-                    }
-                    catch (Exception e)
-                    {
-                        InstanceTcs.SetException(e);
-                        if (attr?.IsAssignableTo(typeof(ServiceManager.BlockingEarlyLoadedService)) == true)
-                            ServiceManager.Log.Error(e, "Service<{0}>: Construction failure", typeof(T).Name);
-                        throw;
-                    }
+                        ServiceManager.Log.Debug("Service<{0}>: Construction complete", typeof(T).Name);
+                    InstanceTcs.SetResult(x);
+                    return x;
                 }
-            });
+                catch (Exception e)
+                {
+                    InstanceTcs.SetException(e);
+                    if (attr?.IsAssignableTo(typeof(ServiceManager.BlockingEarlyLoadedService)) == true)
+                        ServiceManager.Log.Error(e, "Service<{0}>: Construction failure", typeof(T).Name);
+                    throw;
+                }
+            }));
         }
 
         /// <summary>
@@ -158,7 +154,10 @@ namespace Dalamud
             var ctor = GetServiceConstructor();
             var args = await Task.WhenAll(
                            ctor.GetParameters().Select(x => GetServiceObjectConstructArgument(x.ParameterType)));
-            return (T)ctor.Invoke(args)!;
+            using (Timings.Start($"{typeof(T).Name} Construct"))
+            {
+                return (T)ctor.Invoke(args)!;
+            }
         }
     }
 }

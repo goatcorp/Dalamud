@@ -17,7 +17,7 @@ public sealed class TimingHandle : TimingEvent, IDisposable, IComparable<TimingH
     /// <param name="name">The name of this timing.</param>
     internal TimingHandle(string name) : base(name)
     {
-        this.Stack = Timings.ThreadTimingsStack;
+        this.Stack = Timings.TaskTimingHandles;
 
         this.Parent = this.Stack.LastOrDefault();
 

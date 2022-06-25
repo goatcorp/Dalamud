@@ -35,7 +35,7 @@ namespace Dalamud.Interface.Internal
     /// <summary>
     /// This plugin implements all of the Dalamud interface separately, to allow for reloading of the interface and rapid prototyping.
     /// </summary>
-    [ServiceManager.EarlyLoadedService]
+    [ServiceManager.AfterDrawingEarlyLoadedService]
     internal class DalamudInterface : IDisposable
     {
         private static readonly ModuleLog Log = new("DUI");
@@ -714,7 +714,7 @@ namespace Dalamud.Interface.Internal
                         {
                             try
                             {
-                                pluginManager.ReloadAllPlugins();
+                                pluginManager.ReloadAllPluginsAsync();
                             }
                             catch (Exception ex)
                             {
