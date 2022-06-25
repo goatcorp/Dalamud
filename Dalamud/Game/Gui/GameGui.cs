@@ -423,13 +423,13 @@ namespace Dalamud.Game.Gui
         /// </summary>
         public void Enable()
         {
-            Service<ChatGui>.Get().Enable();
-            Service<ToastGui>.Get().Enable();
-            Service<FlyTextGui>.Get().Enable();
-            Service<PartyFinderGui>.Get().Enable();
+            Service<ChatGui>.GetAsync().ContinueWith(x => x.Result.Enable());
+            Service<ToastGui>.GetAsync().ContinueWith(x => x.Result.Enable());
+            Service<FlyTextGui>.GetAsync().ContinueWith(x => x.Result.Enable());
+            Service<PartyFinderGui>.GetAsync().ContinueWith(x => x.Result.Enable());
 
             if (EnvironmentConfiguration.DalamudDoContextMenu)
-                Service<ContextMenu>.Get().Enable();
+                Service<ContextMenu>.GetAsync().ContinueWith(x => x.Result.Enable());
 
             this.setGlobalBgmHook.Enable();
             this.handleItemHoverHook.Enable();

@@ -2,7 +2,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-
+using System.Threading.Tasks;
 using Dalamud.Configuration.Internal;
 using Dalamud.Game;
 using Dalamud.Game.Gui.Dtr;
@@ -160,7 +160,7 @@ internal class LocalPlugin : IDisposable
     public PluginState State { get; protected set; }
 
     /// <summary>
-    /// Gets the AssemblyName plugin, populated during <see cref="Load(PluginLoadReason, bool)"/>.
+    /// Gets the AssemblyName plugin, populated during <see cref="LoadAsync"/>.
     /// </summary>
     /// <returns>Plugin type.</returns>
     public AssemblyName? AssemblyName { get; private set; }
@@ -225,7 +225,8 @@ internal class LocalPlugin : IDisposable
     /// </summary>
     /// <param name="reason">The reason why this plugin is being loaded.</param>
     /// <param name="reloading">Load while reloading.</param>
-    public void Load(PluginLoadReason reason, bool reloading = false)
+    /// <returns>A task.</returns>
+    public async Task LoadAsync(PluginLoadReason reason, bool reloading = false)
     {
         var startInfo = Service<DalamudStartInfo>.Get();
         var configuration = Service<DalamudConfiguration>.Get();
@@ -334,7 +335,7 @@ internal class LocalPlugin : IDisposable
             this.DalamudInterface = new DalamudPluginInterface(this.pluginAssembly.GetName().Name!, this.DllFile, reason, this.IsDev);
 
             var ioc = Service<ServiceContainer>.Get();
-            this.instance = ioc.CreateAsync(this.pluginType, this.DalamudInterface).GetAwaiter().GetResult() as IDalamudPlugin;
+            this.instance = await ioc.CreateAsync(this.pluginType, this.DalamudInterface) as IDalamudPlugin;
             if (this.instance == null)
             {
                 this.State = PluginState.LoadError;
@@ -423,7 +424,8 @@ internal class LocalPlugin : IDisposable
     /// <summary>
     /// Reload this plugin.
     /// </summary>
-    public void Reload()
+    /// <returns>A task.</returns>
+    public async Task ReloadAsync()
     {
         this.Unload(true);
 
@@ -431,7 +433,7 @@ internal class LocalPlugin : IDisposable
         var dtr = Service<DtrBar>.Get();
         dtr.HandleRemovedNodes();
 
-        this.Load(PluginLoadReason.Reload, true);
+        await this.LoadAsync(PluginLoadReason.Reload, true);
     }
 
     /// <summary>

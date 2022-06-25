@@ -124,7 +124,7 @@ internal class LocalDevPlugin : LocalPlugin, IDisposable
         var current = Interlocked.Increment(ref this.reloadCounter);
 
         Task.Delay(500).ContinueWith(
-            _ =>
+            async _ =>
             {
                 if (this.fileWatcherTokenSource.IsCancellationRequested)
                 {
@@ -148,7 +148,7 @@ internal class LocalDevPlugin : LocalPlugin, IDisposable
 
                 try
                 {
-                    this.Reload();
+                    await this.ReloadAsync();
                     notificationManager.AddNotification($"The DevPlugin '{this.Name} was reloaded successfully.", "Plugin reloaded!", NotificationType.Success);
                 }
                 catch (Exception ex)
