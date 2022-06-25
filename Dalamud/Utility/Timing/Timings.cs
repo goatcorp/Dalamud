@@ -19,19 +19,23 @@ public static class Timings
     /// <summary>
     /// All concluded timings.
     /// </summary>
-    internal static readonly List<TimingHandle> AllTimings = new();
+    internal static readonly SortedList<TimingHandle, TimingHandle> AllTimings = new();
 
-    /// <summary>
-    /// All active timings.
-    /// </summary>
-    internal static readonly List<TimingHandle> ActiveTimings = new();
-    
     internal static readonly List<TimingEvent> Events = new();
 
+    private static readonly AsyncLocal<List<TimingHandle>> threadTimingsStackStorage = new();
+
     /// <summary>
-    /// Current active timing entry.
+    /// Gets all active timings of current thread.
     /// </summary>
-    internal static readonly AsyncLocal<TimingHandle> Current = new();
+    internal static List<TimingHandle> ThreadTimingsStack
+    {
+        get
+        {
+            threadTimingsStackStorage.Value ??= new List<TimingHandle>();
+            return threadTimingsStackStorage.Value;
+        }
+    }
 
     /// <summary>
     /// Start a new timing.
@@ -50,7 +54,7 @@ public static class Timings
             LineNumber = sourceLineNumber,
         };
     }
-    
+
     /// <summary>
     /// Record a one-time event.
     /// </summary>

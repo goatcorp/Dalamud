@@ -9,7 +9,6 @@ using System.Runtime.InteropServices;
 
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
-using Dalamud.Utility.Timing;
 using Newtonsoft.Json;
 using Serilog;
 
@@ -20,7 +19,6 @@ namespace Dalamud.Game
     /// </summary>
     [PluginInterface]
     [InterfaceVersion("1.0")]
-    [ServiceManager.BlockingEarlyLoadedService]
     public class SigScanner : IDisposable
     {
         private readonly FileInfo? cacheFile;
@@ -29,38 +27,6 @@ namespace Dalamud.Game
         private long moduleCopyOffset;
 
         private ConcurrentDictionary<string, long>? textCache;
-
-        [ServiceManager.ServiceConstructor]
-        private SigScanner(DalamudStartInfo startInfo)
-        {
-            // Initialize the process information.
-            var cacheDir = new DirectoryInfo(Path.Combine(startInfo.WorkingDirectory!, "cachedSigs"));
-            if (!cacheDir.Exists)
-                cacheDir.Create();
-
-            this.cacheFile = new FileInfo(Path.Combine(cacheDir.FullName, $"{startInfo.GameVersion}.json"));
-            this.Module = Process.GetCurrentProcess().MainModule!;
-            this.Is32BitProcess = !Environment.Is64BitProcess;
-            this.IsCopy = true;
-
-            // Limit the search space to .text section.
-            this.SetupSearchSpace(this.Module);
-
-            if (this.IsCopy)
-                this.SetupCopiedSegments();
-
-            Log.Verbose($"Module base: 0x{this.TextSectionBase.ToInt64():X}");
-            Log.Verbose($"Module size: 0x{this.TextSectionSize:X}");
-
-            if (this.cacheFile != null)
-                this.Load();
-
-            // Initialize FFXIVClientStructs function resolver
-            using (Timings.Start("CS Resolver Init"))
-            {
-                FFXIVClientStructs.Resolver.InitializeParallel(new FileInfo(Path.Combine(cacheDir.FullName, $"{startInfo.GameVersion}_cs.json")));
-            }
-        }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SigScanner"/> class using the main module of the current process.

@@ -23,9 +23,6 @@ namespace Dalamud
         // ReSharper disable once StaticMemberInGenericType
         private static readonly TaskCompletionSource<T> InstanceTcs = new();
 
-        // ReSharper disable once StaticMemberInGenericType
-        private static bool startLoaderInvoked = false;
-
         static Service()
         {
             var exposeToPlugins = typeof(T).GetCustomAttribute<PluginInterfaceAttribute>() != null;
@@ -45,17 +42,13 @@ namespace Dalamud
         [UsedImplicitly]
         public static Task<T> StartLoader()
         {
-            if (startLoaderInvoked)
-                throw new InvalidOperationException("StartLoader has already been called.");
-
             var attr = typeof(T).GetCustomAttribute<ServiceManager.Service>(true)?.GetType();
             if (attr?.IsAssignableTo(typeof(ServiceManager.EarlyLoadedService)) != true)
                 throw new InvalidOperationException($"{typeof(T).Name} is not an EarlyLoadedService");
 
-            startLoaderInvoked = true;
             return Task.Run(async () =>
             {
-                using (Timings.Start($"{typeof(T).Namespace} Enable"))
+                using (Timings.Start($"{typeof(T).Name} Enable"))
                 {
                     if (attr?.IsAssignableTo(typeof(ServiceManager.BlockingEarlyLoadedService)) == true)
                         ServiceManager.Log.Debug("Service<{0}>: Begin construction", typeof(T).Name);

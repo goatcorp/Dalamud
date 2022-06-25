@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using Dalamud.Interface.Colors;
@@ -13,25 +14,35 @@ public class ProfilerWindow : Window
 {
     private double min;
     private double max;
+    private List<List<Tuple<double, double>>> occupied = new();
 
     public ProfilerWindow() : base("Profiler", forceMainWindow: true) { }
 
     public override void OnOpen()
     {
-        this.min = Timings.AllTimings.Min(x => x.StartTime);
-        this.max = Timings.AllTimings.Max(x => x.EndTime);
+        this.min = Timings.AllTimings.Keys.Min(x => x.StartTime);
+        this.max = Timings.AllTimings.Keys.Max(x => x.EndTime);
+    }
+
+    private class RectInfo
+    {
+        internal TimingHandle Timing;
+        internal Vector2 MinPos;
+        internal Vector2 MaxPos;
+        internal Vector4 RectColor;
+        internal bool Hover;
     }
 
     /// <inheritdoc/>
     public override void Draw()
     {
         var width = ImGui.GetWindowWidth();
-        var actualMin = Timings.AllTimings.Min(x => x.StartTime);
-        var actualMax = Timings.AllTimings.Max(x => x.EndTime);
+        var actualMin = Timings.AllTimings.Keys.Min(x => x.StartTime);
+        var actualMax = Timings.AllTimings.Keys.Max(x => x.EndTime);
 
         ImGui.Text("Timings");
 
-        const int childHeight = 300;
+        var childHeight = Math.Max(300, 20 * (2 + this.occupied.Count));
 
         if (ImGui.BeginChild("Timings", new Vector2(0, childHeight), true))
         {
@@ -68,48 +79,113 @@ public class ProfilerWindow : Window
 
             uint maxRectDept = 0;
 
-            foreach (var timingHandle in Timings.AllTimings)
+            foreach (var l in this.occupied)
+                l.Clear();
+
+            var parentDepthDict = new Dictionary<long, int>();
+            var rects = new Dictionary<long, RectInfo>();
+            var mousePos = ImGui.GetMousePos();
+            foreach (var timingHandle in Timings.AllTimings.Keys)
             {
                 var startX = (timingHandle.StartTime - this.min) / (this.max - this.min) * width;
                 var endX = (timingHandle.EndTime - this.min) / (this.max - this.min) * width;
+                var depth = timingHandle.IdChain.Length < 2 ? 0 : parentDepthDict.GetValueOrDefault(timingHandle.IdChain[^2]);
+                for (; depth < this.occupied.Count; depth++)
+                {
+                    var acceptable = true;
+                    foreach (var (x1, x2) in this.occupied[depth])
+                    {
+                        if (x2 <= timingHandle.StartTime || x1 >= timingHandle.EndTime)
+                            continue;
+                        acceptable = false;
+                        break;
+                    }
+
+                    if (acceptable)
+                        break;
+                }
+
+                if (depth == this.occupied.Count)
+                    this.occupied.Add(new());
+                this.occupied[depth].Add(Tuple.Create(timingHandle.StartTime, timingHandle.EndTime));
+                parentDepthDict[timingHandle.Id] = depth;
 
                 startX = Math.Max(startX, 0);
                 endX = Math.Max(endX, 0);
 
-                var rectColor = timingHandle.IsMainThread ? ImGuiColors.ParsedBlue : ImGuiColors.ParsedPurple;
-                rectColor.X -= timingHandle.Depth * 0.12f;
-                rectColor.Y -= timingHandle.Depth * 0.12f;
-                rectColor.Z -= timingHandle.Depth * 0.12f;
+                Vector4 rectColor;
+                if (this.occupied[depth].Count % 2 == 0)
+                    rectColor = timingHandle.IsMainThread ? ImGuiColors.ParsedBlue : ImGuiColors.ParsedOrange;
+                else
+                    rectColor = timingHandle.IsMainThread ? ImGuiColors.ParsedPurple : ImGuiColors.ParsedGold;
+                rectColor.X -= timingHandle.IdChain.Length * 0.12f;
+                rectColor.Y -= timingHandle.IdChain.Length * 0.12f;
+                rectColor.Z -= timingHandle.IdChain.Length * 0.12f;
 
-                if (maxRectDept < timingHandle.Depth)
-                    maxRectDept = timingHandle.Depth;
+                if (maxRectDept < depth)
+                    maxRectDept = (uint)depth;
 
                 if (startX == endX)
                 {
                     continue;
                 }
 
-                var minPos = pos + new Vector2((uint)startX, 20 * timingHandle.Depth);
-                var maxPos = pos + new Vector2((uint)endX, 20 * (timingHandle.Depth + 1));
+                var minPos = pos + new Vector2((uint)startX, 20 * depth);
+                var maxPos = pos + new Vector2((uint)endX, 20 * (depth + 1));
 
+                rects[timingHandle.Id] = new RectInfo
+                {
+                    Hover = mousePos.X >= minPos.X && mousePos.X < maxPos.X &&
+                            mousePos.Y >= minPos.Y && mousePos.Y < maxPos.Y,
+                    Timing = timingHandle,
+                    MinPos = minPos,
+                    MaxPos = maxPos,
+                    RectColor = rectColor,
+                };
+            }
+
+            foreach (var hoveredItem in rects.Values.Where(x => x.Hover))
+            {
+                foreach (var rectInfo in rects.Values)
+                {
+                    if (rectInfo == hoveredItem)
+                        rectInfo.RectColor = new Vector4(255, 255, 255, 255);
+                    else if (rectInfo.Timing.IdChain.Contains(hoveredItem.Timing.Id))
+                        rectInfo.RectColor = ImGuiColors.ParsedGreen;
+                    else if (hoveredItem.Timing.IdChain.Contains(rectInfo.Timing.Id))
+                        rectInfo.RectColor = ImGuiColors.ParsedPink;
+                }
+            }
+
+            foreach (var rectInfo in rects.Values)
+            {
                 ImGui.GetWindowDrawList().AddRectFilled(
-                    minPos,
-                    maxPos,
-                    ImGui.GetColorU32(rectColor));
+                    rectInfo.MinPos,
+                    rectInfo.MaxPos,
+                    ImGui.GetColorU32(rectInfo.RectColor));
 
-                ImGui.GetWindowDrawList().AddTextClippedEx(minPos, maxPos, timingHandle.Name, null, Vector2.Zero, null);
+                if (rectInfo.Hover)
+                    ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(0, 0, 0, 255));
+                ImGui.GetWindowDrawList().AddTextClippedEx(
+                    rectInfo.MinPos,
+                    rectInfo.MaxPos,
+                    rectInfo.Timing.Name,
+                    null,
+                    Vector2.Zero,
+                    null);
+                if (rectInfo.Hover)
+                    ImGui.PopStyleColor();
 
                 // Show tooltip when hovered
-                var mousePos = ImGui.GetMousePos();
-                if (mousePos.X > pos.X + startX && mousePos.X < pos.X + endX &&
-                    mousePos.Y > pos.Y + (20 * timingHandle.Depth) &&
-                    mousePos.Y < pos.Y + (20 * (timingHandle.Depth + 1)))
+                if (rectInfo.Hover)
                 {
                     ImGui.BeginTooltip();
-                    ImGui.Text(timingHandle.Name);
-                    ImGui.Text(timingHandle.MemberName);
-                    ImGui.Text($"{timingHandle.FileName}:{timingHandle.LineNumber}");
-                    ImGui.Text($"Duration: {timingHandle.Duration}ms");
+                    ImGui.TextUnformatted(rectInfo.Timing.Name);
+                    ImGui.TextUnformatted(rectInfo.Timing.MemberName);
+                    ImGui.TextUnformatted($"{rectInfo.Timing.FileName}:{rectInfo.Timing.LineNumber}");
+                    ImGui.TextUnformatted($"Duration: {rectInfo.Timing.Duration}ms");
+                    if (rectInfo.Timing.Parent != null)
+                        ImGui.TextUnformatted($"Parent: {rectInfo.Timing.Parent.Name}");
                     ImGui.EndTooltip();
                 }
             }
