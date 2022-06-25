@@ -1735,7 +1735,7 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
                             if (!enableTask.Result)
                                 return;
 
-                            var loadTask = Task.Run(() => plugin.Load(PluginLoadReason.Installer))
+                            var loadTask = Task.Run(() => plugin.LoadAsync(PluginLoadReason.Installer))
                                 .ContinueWith(this.DisplayErrorContinuation, Locs.ErrorModal_LoadFail(plugin.Name));
 
                             loadTask.Wait();

@@ -26,9 +26,9 @@ namespace Dalamud.Game.Gui.Dtr
         private uint runningNodeIds = BaseNodeId;
 
         [ServiceManager.ServiceConstructor]
-        private DtrBar(DalamudConfiguration configuration)
+        private DtrBar(DalamudConfiguration configuration, Framework framework)
         {
-            Service<Framework>.Get().Update += this.Update;
+            framework.Update += this.Update;
 
             configuration.DtrOrder ??= new List<string>();
             configuration.DtrIgnore ??= new List<string>();

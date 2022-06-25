@@ -1,7 +1,5 @@
 using System;
-using System.Diagnostics;
 using System.IO;
-using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,24 +7,15 @@ using Dalamud.Configuration.Internal;
 using Dalamud.Data;
 using Dalamud.Game;
 using Dalamud.Game.ClientState;
-using Dalamud.Game.Command;
-using Dalamud.Game.Gui;
 using Dalamud.Game.Gui.Internal;
 using Dalamud.Game.Internal;
-using Dalamud.Game.Network;
 using Dalamud.Game.Network.Internal;
-using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Hooking.Internal;
-using Dalamud.Interface;
-using Dalamud.Interface.GameFonts;
 using Dalamud.Interface.Internal;
-using Dalamud.IoC.Internal;
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Internal;
-using Dalamud.Plugin.Ipc.Internal;
 using Dalamud.Support;
 using Dalamud.Utility;
-using Dalamud.Utility.Timing;
 using Serilog;
 using Serilog.Core;
 using Serilog.Events;
@@ -74,9 +63,7 @@ namespace Dalamud
 
             SerilogEventSink.Instance.LogLine += SerilogOnLogLine;
 
-            Service<Dalamud>.Provide(this);
-            Service<DalamudStartInfo>.Provide(info);
-            Service<DalamudConfiguration>.Provide(configuration);
+            ServiceManager.InitializeProvidedServicesAndClientStructs(this, info, configuration);
 
             if (!configuration.IsResumeGameAfterPluginLoad)
             {

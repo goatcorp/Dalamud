@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
 using Dalamud.Logging.Internal;
+using Dalamud.Utility.Timing;
 
 namespace Dalamud.IoC.Internal
 {
@@ -60,7 +61,7 @@ namespace Dalamud.IoC.Internal
                 var parameterType = p.ParameterType;
                 var requiredVersion = p.GetCustomAttribute(typeof(RequiredVersionAttribute)) as RequiredVersionAttribute;
                 return (parameterType, requiredVersion);
-            });
+            }).ToList();
 
             var versionCheck = parameters.All(p => CheckInterfaceVersion(p.requiredVersion, p.parameterType));
 

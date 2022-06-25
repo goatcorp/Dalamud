@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace Dalamud.Utility.Timing;
 
@@ -19,19 +20,75 @@ public static class Timings
     /// <summary>
     /// All concluded timings.
     /// </summary>
-    internal static readonly List<TimingHandle> AllTimings = new();
+    internal static readonly SortedList<TimingHandle, TimingHandle> AllTimings = new();
 
-    /// <summary>
-    /// All active timings.
-    /// </summary>
-    internal static readonly List<TimingHandle> ActiveTimings = new();
-    
     internal static readonly List<TimingEvent> Events = new();
 
+    private static readonly AsyncLocal<Tuple<int?, List<TimingHandle>>> taskTimingHandleStorage = new();
+
     /// <summary>
-    /// Current active timing entry.
+    /// Gets or sets all active timings of current thread.
     /// </summary>
-    internal static readonly AsyncLocal<TimingHandle> Current = new();
+    internal static List<TimingHandle> TaskTimingHandles
+    {
+        get
+        {
+            if (taskTimingHandleStorage.Value == null || taskTimingHandleStorage.Value.Item1 != Task.CurrentId)
+                taskTimingHandleStorage.Value = Tuple.Create<int?, List<TimingHandle>>(Task.CurrentId, new());
+            return taskTimingHandleStorage.Value!.Item2!;
+        }
+        set => taskTimingHandleStorage.Value = Tuple.Create(Task.CurrentId, value);
+    }
+
+    /// <summary>
+    /// Attaches timing handle to a Func{T}.
+    /// </summary>
+    /// <param name="task">Task to attach.</param>
+    /// <typeparam name="T">Return type.</typeparam>
+    /// <returns>Attached task.</returns>
+    public static Func<T> AttachTimingHandle<T>(Func<T> task)
+    {
+        var outerTimingHandle = TaskTimingHandles;
+        return () =>
+        {
+            T res = default(T);
+            var prev = TaskTimingHandles;
+            TaskTimingHandles = outerTimingHandle;
+            try
+            {
+                res = task();
+            }
+            finally
+            {
+                TaskTimingHandles = prev;
+            }
+
+            return res;
+        };
+    }
+
+    /// <summary>
+    /// Attaches timing handle to an Action.
+    /// </summary>
+    /// <param name="task">Task to attach.</param>
+    /// <returns>Attached task.</returns>
+    public static Action AttachTimingHandle(Action task)
+    {
+        var outerTimingHandle = TaskTimingHandles;
+        return () =>
+        {
+            var prev = TaskTimingHandles;
+            TaskTimingHandles = outerTimingHandle;
+            try
+            {
+                task();
+            }
+            finally
+            {
+                TaskTimingHandles = prev;
+            }
+        };
+    }
 
     /// <summary>
     /// Start a new timing.
@@ -50,7 +107,7 @@ public static class Timings
             LineNumber = sourceLineNumber,
         };
     }
-    
+
     /// <summary>
     /// Record a one-time event.
     /// </summary>
