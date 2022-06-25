@@ -714,7 +714,7 @@ namespace Dalamud.Interface.Internal
                         {
                             try
                             {
-                                pluginManager.ReloadAllPluginsAsync();
+                                pluginManager.ReloadAllPluginsAsync().Wait();
                             }
                             catch (Exception ex)
                             {
