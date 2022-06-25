@@ -5,7 +5,7 @@ using System.Globalization;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-
+using System.Windows.Forms;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Utility.Timing;
@@ -340,9 +340,15 @@ namespace Dalamud.Game
         /// <returns>The real offset of the found signature.</returns>
         public IntPtr ScanText(string signature)
         {
-            if (this.textCache != null && this.textCache.TryGetValue(signature, out var address))
+            if (this.textCache != null)
             {
-                return new IntPtr(address + this.Module.BaseAddress.ToInt64());
+                lock (this.textCache)
+                {
+                    if (this.textCache.TryGetValue(signature, out var address))
+                    {
+                        return new IntPtr(address + this.Module.BaseAddress.ToInt64());
+                    }
+                }
             }
 
             var mBase = this.IsCopy ? this.moduleCopyPtr : this.TextSectionBase;
@@ -356,7 +362,13 @@ namespace Dalamud.Game
             if (insnByte == 0xE8 || insnByte == 0xE9)
                 scanRet = ReadJmpCallSig(scanRet);
 
-            this.textCache?.Add(signature, scanRet.ToInt64() - this.Module.BaseAddress.ToInt64());
+            if (this.textCache != null)
+            {
+                lock (this.textCache)
+                {
+                    this.textCache[signature] = scanRet.ToInt64() - this.Module.BaseAddress.ToInt64();
+                }
+            }
 
             return scanRet;
         }

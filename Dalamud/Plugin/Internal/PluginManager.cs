@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -16,10 +17,13 @@ using Dalamud.Game;
 using Dalamud.Game.Gui;
 using Dalamud.Game.Gui.Dtr;
 using Dalamud.Game.Text;
+using Dalamud.Interface;
+using Dalamud.Interface.Internal;
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Internal.Exceptions;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Utility;
+using Dalamud.Utility.Timing;
 using Newtonsoft.Json;
 
 namespace Dalamud.Plugin.Internal;
@@ -37,6 +41,7 @@ internal partial class PluginManager : IDisposable
 
     private static readonly ModuleLog Log = new("PLUGINM");
 
+    private readonly object pluginListLock = new();
     private readonly DirectoryInfo pluginDirectory;
     private readonly DirectoryInfo devPluginDirectory;
     private readonly BannedPlugin[] bannedPlugins;
@@ -310,13 +315,18 @@ internal partial class PluginManager : IDisposable
         // Dev plugins should load first.
         pluginDefs.InsertRange(0, devPluginDefs);
 
-        void LoadPlugins(IEnumerable<PluginDef> pluginDefsList)
+        void LoadPluginOnBoot(string logPrefix, PluginDef pluginDef)
         {
-            foreach (var pluginDef in pluginDefsList)
+            using (Timings.Start($"{pluginDef.DllFile.Name}: {logPrefix}Boot"))
             {
                 try
                 {
-                    this.LoadPlugin(pluginDef.DllFile, pluginDef.Manifest, PluginLoadReason.Boot, pluginDef.IsDev, isBoot: true);
+                    this.LoadPlugin(
+                        pluginDef.DllFile,
+                        pluginDef.Manifest,
+                        PluginLoadReason.Boot,
+                        pluginDef.IsDev,
+                        isBoot: true);
                 }
                 catch (InvalidPluginException)
                 {
@@ -324,25 +334,93 @@ internal partial class PluginManager : IDisposable
                 }
                 catch (Exception ex)
                 {
-                    Log.Error(ex, "During boot plugin load, an unexpected error occurred");
+                    Log.Error(ex, "{0}: During boot plugin load, an unexpected error occurred", logPrefix);
                 }
             }
         }
 
-        // Load sync plugins
-        var syncPlugins = pluginDefs.Where(def => def.Manifest?.LoadPriority > 0);
-        LoadPlugins(syncPlugins);
+        void LoadPluginsSync(string logPrefix, IEnumerable<PluginDef> pluginDefsList)
+        {
+            foreach (var pluginDef in pluginDefsList)
+                LoadPluginOnBoot(logPrefix, pluginDef);
+        }
 
-        var asyncPlugins = pluginDefs.Where(def => def.Manifest == null || def.Manifest.LoadPriority <= 0);
-        Task.Run(() => LoadPlugins(asyncPlugins))
-            .ContinueWith(_ =>
-            {
-                this.PluginsReady = true;
-                this.NotifyInstalledPluginsChanged();
+        Task LoadPluginsAsync(string logPrefix, IEnumerable<PluginDef> pluginDefsList)
+        {
+            return Task.WhenAll(
+                pluginDefsList
+                    .Select(pluginDef => Task.Run(() => LoadPluginOnBoot(logPrefix, pluginDef)))
+                    .ToArray());
+        }
 
-                // Save signatures, makes sense to do it here since all plugins will be loaded
-                Service<SigScanner>.Get().Save();
-            });
+        var syncPlugins = pluginDefs.Where(def => def.Manifest?.LoadSync == true).ToList();
+        var asyncPlugins = pluginDefs.Where(def => def.Manifest?.LoadSync != true).ToList();
+        var loadTasks = new List<Task>();
+
+        // Load plugins that can be loaded anytime
+        LoadPluginsSync(
+            "AnytimeSync",
+            syncPlugins.Where(def => def.Manifest?.LoadRequiredState == 2));
+        loadTasks.Add(
+            LoadPluginsAsync(
+                "AnytimeAsync",
+                asyncPlugins.Where(def => def.Manifest?.LoadRequiredState == 2)));
+
+        // Load plugins that want to be loaded during Framework.Tick
+        loadTasks.Add(
+            Service<Framework>
+                .GetAsync()
+                .ContinueWith(
+                    x => x.Result.RunOnTick(
+                        () => LoadPluginsSync(
+                            "FrameworkTickSync",
+                            syncPlugins.Where(def => def.Manifest?.LoadRequiredState == 1))),
+                    TaskContinuationOptions.RunContinuationsAsynchronously)
+                .Unwrap()
+                .ContinueWith(
+                    _ => LoadPluginsAsync(
+                        "FrameworkTickAsync",
+                        asyncPlugins.Where(def => def.Manifest?.LoadRequiredState == 1)),
+                    TaskContinuationOptions.RunContinuationsAsynchronously)
+                .Unwrap());
+
+        // Load plugins that want to be loaded during Framework.Tick, when drawing facilities are available
+        loadTasks.Add(
+            Service<InterfaceManager>
+                .GetAsync()
+                .ContinueWith(
+                    x => x.Result.SceneInitializeTask,
+                    TaskContinuationOptions.RunContinuationsAsynchronously)
+                .Unwrap()
+                .ContinueWith(
+                    _ => Service<Framework>.Get().RunOnTick(() =>
+                    {
+                        LoadPluginsSync(
+                            "DrawAvailableSync",
+                            syncPlugins.Where(def => def.Manifest?.LoadRequiredState is 0 or null));
+                        return LoadPluginsAsync(
+                            "DrawAvailableAsync",
+                            asyncPlugins.Where(def => def.Manifest?.LoadRequiredState is 0 or null));
+                    }))
+                .Unwrap());
+
+        // Save signatures when all plugins are done loading, successful or not.
+        _ = Task
+            .WhenAll(loadTasks)
+            .ContinueWith(
+                _ => Service<SigScanner>.GetAsync(),
+                TaskContinuationOptions.RunContinuationsAsynchronously)
+            .Unwrap()
+            .ContinueWith(
+                sigScannerTask =>
+                {
+                    this.PluginsReady = true;
+                    this.NotifyInstalledPluginsChanged();
+
+                    sigScannerTask.Result.Save();
+                },
+                TaskContinuationOptions.RunContinuationsAsynchronously)
+            .ConfigureAwait(false);
     }
 
     /// <summary>
@@ -352,19 +430,22 @@ internal partial class PluginManager : IDisposable
     {
         var aggregate = new List<Exception>();
 
-        foreach (var plugin in this.InstalledPlugins)
+        lock (this.pluginListLock)
         {
-            if (plugin.IsLoaded)
+            foreach (var plugin in this.InstalledPlugins)
             {
-                try
+                if (plugin.IsLoaded)
                 {
-                    plugin.Reload();
-                }
-                catch (Exception ex)
-                {
-                    Log.Error(ex, "Error during reload all");
+                    try
+                    {
+                        plugin.Reload();
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Error(ex, "Error during reload all");
 
-                    aggregate.Add(ex);
+                        aggregate.Add(ex);
+                    }
                 }
             }
         }
@@ -444,8 +525,11 @@ internal partial class PluginManager : IDisposable
         foreach (var dllFile in devDllFiles)
         {
             // This file is already known to us
-            if (this.InstalledPlugins.Any(lp => lp.DllFile.FullName == dllFile.FullName))
-                continue;
+            lock (this.pluginListLock)
+            {
+                if (this.InstalledPlugins.Any(lp => lp.DllFile.FullName == dllFile.FullName))
+                    continue;
+            }
 
             // Manifests are not required for devPlugins. the Plugin type will handle any null manifests.
             var manifestFile = LocalPluginManifest.GetManifestFile(dllFile);
@@ -624,7 +708,7 @@ internal partial class PluginManager : IDisposable
             }
             catch (InvalidPluginException)
             {
-                PluginLocations.Remove(plugin.AssemblyName?.FullName ?? string.Empty);
+                PluginLocations.Remove(plugin.AssemblyName?.FullName ?? string.Empty, out _);
                 throw;
             }
             catch (BannedPluginException)
@@ -647,13 +731,17 @@ internal partial class PluginManager : IDisposable
                 }
                 else
                 {
-                    PluginLocations.Remove(plugin.AssemblyName?.FullName ?? string.Empty);
+                    PluginLocations.Remove(plugin.AssemblyName?.FullName ?? string.Empty, out _);
                     throw;
                 }
             }
         }
 
-        this.InstalledPlugins = this.InstalledPlugins.Add(plugin);
+        lock (this.pluginListLock)
+        {
+            this.InstalledPlugins = this.InstalledPlugins.Add(plugin);
+        }
+
         return plugin;
     }
 
@@ -666,8 +754,12 @@ internal partial class PluginManager : IDisposable
         if (plugin.State != PluginState.Unloaded)
             throw new InvalidPluginOperationException($"Unable to remove {plugin.Name}, not unloaded");
 
-        this.InstalledPlugins = this.InstalledPlugins.Remove(plugin);
-        PluginLocations.Remove(plugin.AssemblyName?.FullName ?? string.Empty);
+        lock (this.pluginListLock)
+        {
+            this.InstalledPlugins = this.InstalledPlugins.Remove(plugin);
+        }
+
+        PluginLocations.Remove(plugin.AssemblyName?.FullName ?? string.Empty, out _);
 
         this.NotifyInstalledPluginsChanged();
         this.NotifyAvailablePluginsChanged();
@@ -834,7 +926,10 @@ internal partial class PluginManager : IDisposable
                 try
                 {
                     plugin.DllFile.Delete();
-                    this.InstalledPlugins = this.InstalledPlugins.Remove(plugin);
+                    lock (this.pluginListLock)
+                    {
+                        this.InstalledPlugins = this.InstalledPlugins.Remove(plugin);
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -848,7 +943,10 @@ internal partial class PluginManager : IDisposable
                 try
                 {
                     plugin.Disable();
-                    this.InstalledPlugins = this.InstalledPlugins.Remove(plugin);
+                    lock (this.pluginListLock)
+                    {
+                        this.InstalledPlugins = this.InstalledPlugins.Remove(plugin);
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -1030,7 +1128,7 @@ internal partial class PluginManager
     /// A mapping of plugin assembly name to patch data. Used to fill in missing data due to loading
     /// plugins via byte[].
     /// </summary>
-    internal static readonly Dictionary<string, PluginPatchData> PluginLocations = new();
+    internal static readonly ConcurrentDictionary<string, PluginPatchData> PluginLocations = new();
 
     private MonoMod.RuntimeDetour.Hook? assemblyLocationMonoHook;
     private MonoMod.RuntimeDetour.Hook? assemblyCodeBaseMonoHook;
