@@ -114,9 +114,9 @@ namespace Dalamud
             {
                 try
                 {
-                    using var blockingServiceInitializeTimings = Timings.Start("BlockingServices Init");
                     await Task.WhenAll(blockingEarlyLoadingServices.Select(x => getAsyncTaskMap[x]));
                     BlockingServicesLoadedTaskCompletionSource.SetResult();
+                    Timings.Event("BlockingServices Initialized");
                 }
                 catch (Exception e)
                 {

@@ -52,16 +52,14 @@ namespace Dalamud
                 try
                 {
                     var x = await ConstructObject();
-                    if (attr?.IsAssignableTo(typeof(ServiceManager.BlockingEarlyLoadedService)) == true)
-                        ServiceManager.Log.Debug("Service<{0}>: Construction complete", typeof(T).Name);
+                    ServiceManager.Log.Debug("Service<{0}>: Construction complete", typeof(T).Name);
                     InstanceTcs.SetResult(x);
                     return x;
                 }
                 catch (Exception e)
                 {
+                    ServiceManager.Log.Error(e, "Service<{0}>: Construction failure", typeof(T).Name);
                     InstanceTcs.SetException(e);
-                    if (attr?.IsAssignableTo(typeof(ServiceManager.BlockingEarlyLoadedService)) == true)
-                        ServiceManager.Log.Error(e, "Service<{0}>: Construction failure", typeof(T).Name);
                     throw;
                 }
             }));

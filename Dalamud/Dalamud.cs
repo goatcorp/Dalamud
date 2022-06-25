@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -68,7 +69,14 @@ namespace Dalamud
             if (!configuration.IsResumeGameAfterPluginLoad)
             {
                 NativeFunctions.SetEvent(mainThreadContinueEvent);
-                _ = ServiceManager.InitializeEarlyLoadableServices();
+                try
+                {
+                    _ = ServiceManager.InitializeEarlyLoadableServices();
+                }
+                catch (Exception e)
+                {
+                    Log.Error(e, "Service initialization failure");
+                }
             }
             else
             {
@@ -83,20 +91,13 @@ namespace Dalamud
                         };
 
                         await Task.WhenAny(tasks);
-                        foreach (var task in tasks)
-                        {
-                            if (task.IsFaulted)
-                                throw task.Exception!;
-                        }
+                        var faultedTasks = tasks.Where(x => x.IsFaulted).Select(x => (Exception)x.Exception!).ToArray();
+                        if (faultedTasks.Any())
+                            throw new AggregateException(faultedTasks);
 
                         NativeFunctions.SetEvent(mainThreadContinueEvent);
 
                         await Task.WhenAll(tasks);
-                        foreach (var task in tasks)
-                        {
-                            if (task.IsFaulted)
-                                throw task.Exception!;
-                        }
                     }
                     catch (Exception e)
                     {
