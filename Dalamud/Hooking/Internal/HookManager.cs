@@ -31,12 +31,12 @@ namespace Dalamud.Hooking.Internal
         /// <summary>
         /// Gets a static dictionary of original code for a hooked address.
         /// </summary>
-        internal static Dictionary<IntPtr, byte[]> Originals { get; } = new();
+        internal static ConcurrentDictionary<IntPtr, byte[]> Originals { get; } = new();
 
         /// <summary>
         /// Gets a static dictionary of the number of hooks on a given address.
         /// </summary>
-        internal static Dictionary<IntPtr, List<IDalamudHook?>> MultiHookTracker { get; } = new();
+        internal static ConcurrentDictionary<IntPtr, List<IDalamudHook?>> MultiHookTracker { get; } = new();
 
         /// <inheritdoc/>
         public void Dispose()
