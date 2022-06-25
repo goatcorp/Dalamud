@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
+using JetBrains.Annotations;
 
 namespace Dalamud.Game
 {
@@ -21,7 +22,16 @@ namespace Dalamud.Game
         protected bool IsResolved { get; set; }
 
         /// <summary>
-        /// Setup the resolver, calling the appopriate method based on the process architecture.
+        /// Setup the resolver, calling the appropriate method based on the process architecture,
+        /// using the default SigScanner.
+        ///
+        /// For plugins. Not intended to be called from Dalamud Service{T} constructors.
+        /// </summary>
+        [UsedImplicitly]
+        public void Setup() => this.Setup(Service<SigScanner>.Get());
+
+        /// <summary>
+        /// Setup the resolver, calling the appropriate method based on the process architecture.
         /// </summary>
         /// <param name="scanner">The SigScanner instance.</param>
         public void Setup(SigScanner scanner)

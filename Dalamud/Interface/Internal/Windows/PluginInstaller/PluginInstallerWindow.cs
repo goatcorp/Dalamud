@@ -103,19 +103,22 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
                 MaximumSize = new Vector2(5000, 5000),
             };
 
-            var pluginManager = Service<PluginManager>.Get();
-
-            // For debugging
-            if (pluginManager.PluginsReady)
-                this.OnInstalledPluginsChanged();
-
-            pluginManager.OnAvailablePluginsChanged += this.OnAvailablePluginsChanged;
-            pluginManager.OnInstalledPluginsChanged += this.OnInstalledPluginsChanged;
-
-            for (var i = 0; i < this.testerImagePaths.Length; i++)
+            Service<PluginManager>.GetAsync().ContinueWith(pluginManagerTask =>
             {
-                this.testerImagePaths[i] = string.Empty;
-            }
+                var pluginManager = pluginManagerTask.Result;
+
+                // For debugging
+                if (pluginManager.PluginsReady)
+                    this.OnInstalledPluginsChanged();
+
+                pluginManager.OnAvailablePluginsChanged += this.OnAvailablePluginsChanged;
+                pluginManager.OnInstalledPluginsChanged += this.OnInstalledPluginsChanged;
+
+                for (var i = 0; i < this.testerImagePaths.Length; i++)
+                {
+                    this.testerImagePaths[i] = string.Empty;
+                }
+            });
         }
 
         private enum OperationStatus

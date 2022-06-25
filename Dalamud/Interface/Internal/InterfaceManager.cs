@@ -121,11 +121,6 @@ namespace Dalamud.Interface.Internal
         private delegate void InstallRTSSHook();
 
         /// <summary>
-        /// Gets a task that gets completed when scene gets initialized.
-        /// </summary>
-        public Task SceneInitializeTask => this.sceneInitializeTaskCompletionSource.Task;
-
-        /// <summary>
         /// This event gets called each frame to facilitate ImGui drawing.
         /// </summary>
         public event RawDX11Scene.BuildUIDelegate Draw;
@@ -164,6 +159,11 @@ namespace Dalamud.Interface.Internal
         /// Gets an included monospaced font.
         /// </summary>
         public static ImFontPtr MonoFont { get; private set; }
+
+        /// <summary>
+        /// Gets a task that gets completed when scene gets initialized.
+        /// </summary>
+        public Task SceneInitializeTask => this.sceneInitializeTaskCompletionSource.Task;
 
         /// <summary>
         /// Gets or sets the pointer to ImGui.IO(), when it was last used.
@@ -448,7 +448,6 @@ namespace Dalamud.Interface.Internal
                     try
                     {
                         this.scene = new RawDX11Scene(swapChain);
-                        this.sceneInitializeTaskCompletionSource.SetResult();
                     }
                     catch (DllNotFoundException ex)
                     {
@@ -568,10 +567,16 @@ namespace Dalamud.Interface.Internal
 
                 this.RenderImGui();
 
+                if (!this.SceneInitializeTask.IsCompleted)
+                    this.sceneInitializeTaskCompletionSource.SetResult();
+
                 return pRes;
             }
 
             this.RenderImGui();
+
+            if (!this.SceneInitializeTask.IsCompleted)
+                this.sceneInitializeTaskCompletionSource.SetResult();
 
             return this.presentHook.Original(swapChain, syncInterval, presentFlags);
         }
