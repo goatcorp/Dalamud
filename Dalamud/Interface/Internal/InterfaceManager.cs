@@ -284,6 +284,9 @@ namespace Dalamud.Interface.Internal
         /// <returns>A texture, ready to use in ImGui.</returns>
         public TextureWrap? LoadImage(string filePath)
         {
+            if (this.scene == null)
+                throw new InvalidOperationException("Scene isn't ready.");
+
             try
             {
                 return this.scene?.LoadImage(filePath) ?? null;
@@ -303,6 +306,9 @@ namespace Dalamud.Interface.Internal
         /// <returns>A texture, ready to use in ImGui.</returns>
         public TextureWrap? LoadImage(byte[] imageData)
         {
+            if (this.scene == null)
+                throw new InvalidOperationException("Scene isn't ready.");
+
             try
             {
                 return this.scene?.LoadImage(imageData) ?? null;
@@ -325,6 +331,9 @@ namespace Dalamud.Interface.Internal
         /// <returns>A texture, ready to use in ImGui.</returns>
         public TextureWrap? LoadImageRaw(byte[] imageData, int width, int height, int numChannels)
         {
+            if (this.scene == null)
+                throw new InvalidOperationException("Scene isn't ready.");
+
             try
             {
                 return this.scene?.LoadImageRaw(imageData, width, height, numChannels) ?? null;
