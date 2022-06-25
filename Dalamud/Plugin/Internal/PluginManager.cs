@@ -17,7 +17,6 @@ using Dalamud.Game;
 using Dalamud.Game.Gui;
 using Dalamud.Game.Gui.Dtr;
 using Dalamud.Game.Text;
-using Dalamud.Interface;
 using Dalamud.Interface.Internal;
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Internal.Exceptions;
@@ -315,13 +314,13 @@ internal partial class PluginManager : IDisposable
         // Dev plugins should load first.
         pluginDefs.InsertRange(0, devPluginDefs);
 
-        void LoadPluginOnBoot(string logPrefix, PluginDef pluginDef)
+        Task LoadPluginOnBoot(string logPrefix, PluginDef pluginDef)
         {
             using (Timings.Start($"{pluginDef.DllFile.Name}: {logPrefix}Boot"))
             {
                 try
                 {
-                    this.LoadPlugin(
+                    return this.LoadPluginAsync(
                         pluginDef.DllFile,
                         pluginDef.Manifest,
                         PluginLoadReason.Boot,
@@ -337,19 +336,21 @@ internal partial class PluginManager : IDisposable
                     Log.Error(ex, "{0}: During boot plugin load, an unexpected error occurred", logPrefix);
                 }
             }
+
+            return Task.CompletedTask;
         }
 
         void LoadPluginsSync(string logPrefix, IEnumerable<PluginDef> pluginDefsList)
         {
             foreach (var pluginDef in pluginDefsList)
-                LoadPluginOnBoot(logPrefix, pluginDef);
+                LoadPluginOnBoot(logPrefix, pluginDef).Wait();
         }
 
         Task LoadPluginsAsync(string logPrefix, IEnumerable<PluginDef> pluginDefsList)
         {
             return Task.WhenAll(
                 pluginDefsList
-                    .Select(pluginDef => Task.Run(() => LoadPluginOnBoot(logPrefix, pluginDef)))
+                    .Select(pluginDef => LoadPluginOnBoot(logPrefix, pluginDef))
                     .ToArray());
         }
 
@@ -538,7 +539,8 @@ internal partial class PluginManager : IDisposable
             try
             {
                 // Add them to the list and let the user decide, nothing is auto-loaded.
-                this.LoadPlugin(dllFile, manifest, PluginLoadReason.Installer, isDev: true, doNotLoad: true);
+                this.LoadPluginAsync(dllFile, manifest, PluginLoadReason.Installer, isDev: true, doNotLoad: true)
+                    .Wait();
                 listChanged = true;
             }
             catch (InvalidPluginException)
@@ -656,7 +658,7 @@ internal partial class PluginManager : IDisposable
 
         Log.Information($"Installed plugin {manifest.Name} (testing={useTesting})");
 
-        var plugin = this.LoadPlugin(dllFile, manifest, reason);
+        var plugin = await this.LoadPluginAsync(dllFile, manifest, reason);
 
         this.NotifyInstalledPluginsChanged();
         return plugin;
@@ -672,7 +674,7 @@ internal partial class PluginManager : IDisposable
     /// <param name="isBoot">If this plugin is being loaded at boot.</param>
     /// <param name="doNotLoad">Don't load the plugin, just don't do it.</param>
     /// <returns>The loaded plugin.</returns>
-    public LocalPlugin LoadPlugin(FileInfo dllFile, LocalPluginManifest? manifest, PluginLoadReason reason, bool isDev = false, bool isBoot = false, bool doNotLoad = false)
+    public async Task<LocalPlugin> LoadPluginAsync(FileInfo dllFile, LocalPluginManifest? manifest, PluginLoadReason reason, bool isDev = false, bool isBoot = false, bool doNotLoad = false)
     {
         var name = manifest?.Name ?? dllFile.Name;
         var loadPlugin = !doNotLoad;
@@ -703,6 +705,9 @@ internal partial class PluginManager : IDisposable
             {
                 if (plugin.IsDisabled)
                     plugin.Enable();
+
+                // Await for things that plugin just require
+                _ = await Service<SigScanner>.GetAsync();
 
                 plugin.Load(reason);
             }
