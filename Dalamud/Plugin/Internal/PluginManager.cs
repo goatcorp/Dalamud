@@ -314,13 +314,13 @@ internal partial class PluginManager : IDisposable
         // Dev plugins should load first.
         pluginDefs.InsertRange(0, devPluginDefs);
 
-        Task LoadPluginOnBoot(string logPrefix, PluginDef pluginDef)
+        async Task LoadPluginOnBoot(string logPrefix, PluginDef pluginDef)
         {
             using (Timings.Start($"{pluginDef.DllFile.Name}: {logPrefix}Boot"))
             {
                 try
                 {
-                    return this.LoadPluginAsync(
+                    await this.LoadPluginAsync(
                         pluginDef.DllFile,
                         pluginDef.Manifest,
                         PluginLoadReason.Boot,
@@ -336,8 +336,6 @@ internal partial class PluginManager : IDisposable
                     Log.Error(ex, "{0}: During boot plugin load, an unexpected error occurred", logPrefix);
                 }
             }
-
-            return Task.CompletedTask;
         }
 
         void LoadPluginsSync(string logPrefix, IEnumerable<PluginDef> pluginDefsList)
@@ -350,7 +348,8 @@ internal partial class PluginManager : IDisposable
         {
             return Task.WhenAll(
                 pluginDefsList
-                    .Select(pluginDef => LoadPluginOnBoot(logPrefix, pluginDef))
+                    .Select(pluginDef => Task.Run(Timings.AttachTimingHandle(
+                                                      () => LoadPluginOnBoot(logPrefix, pluginDef))))
                     .ToArray());
         }
 
@@ -394,15 +393,15 @@ internal partial class PluginManager : IDisposable
                     TaskContinuationOptions.RunContinuationsAsynchronously)
                 .Unwrap()
                 .ContinueWith(
-                    _ => Service<Framework>.Get().RunOnTick(() =>
-                    {
-                        LoadPluginsSync(
+                    _ => Service<Framework>.Get().RunOnTick(
+                        () => LoadPluginsSync(
                             "DrawAvailableSync",
-                            syncPlugins.Where(def => def.Manifest?.LoadRequiredState is 0 or null));
-                        return LoadPluginsAsync(
-                            "DrawAvailableAsync",
-                            asyncPlugins.Where(def => def.Manifest?.LoadRequiredState is 0 or null));
-                    }))
+                            syncPlugins.Where(def => def.Manifest?.LoadRequiredState is 0 or null))))
+                .Unwrap()
+                .ContinueWith(
+                    _ => LoadPluginsAsync(
+                        "DrawAvailableAsync",
+                        asyncPlugins.Where(def => def.Manifest?.LoadRequiredState is 0 or null)))
                 .Unwrap());
 
         // Save signatures when all plugins are done loading, successful or not.
@@ -427,33 +426,16 @@ internal partial class PluginManager : IDisposable
     /// <summary>
     /// Reload all loaded plugins.
     /// </summary>
-    public void ReloadAllPlugins()
+    /// <returns>A task.</returns>
+    public Task ReloadAllPluginsAsync()
     {
-        var aggregate = new List<Exception>();
-
         lock (this.pluginListLock)
         {
-            foreach (var plugin in this.InstalledPlugins)
-            {
-                if (plugin.IsLoaded)
-                {
-                    try
-                    {
-                        plugin.Reload();
-                    }
-                    catch (Exception ex)
-                    {
-                        Log.Error(ex, "Error during reload all");
-
-                        aggregate.Add(ex);
-                    }
-                }
-            }
-        }
-
-        if (aggregate.Any())
-        {
-            throw new AggregateException(aggregate);
+            return Task.WhenAll(this.InstalledPlugins
+                                    .Where(x => x.IsLoaded)
+                                    .ToList()
+                                    .Select(x => Task.Run(async () => await x.ReloadAsync()))
+                                    .ToList());
         }
     }
 
@@ -706,10 +688,7 @@ internal partial class PluginManager : IDisposable
                 if (plugin.IsDisabled)
                     plugin.Enable();
 
-                // Await for things that plugin just require
-                _ = await Service<SigScanner>.GetAsync();
-
-                plugin.Load(reason);
+                await plugin.LoadAsync(reason);
             }
             catch (InvalidPluginException)
             {
@@ -1004,7 +983,7 @@ internal partial class PluginManager : IDisposable
         Thread.Sleep(500);
 
         // Let's indicate "installer" here since this is supposed to be a fresh install
-        plugin.Load(PluginLoadReason.Installer);
+        plugin.LoadAsync(PluginLoadReason.Installer).Wait();
     }
 
     /// <summary>

@@ -57,7 +57,7 @@ namespace Dalamud.Interface.GameFonts
                                                  .Select(x => x.Glyphs.Select(y => y.TextureFileIndex).Max())
                                                  .Max())
                                .Select(x => dataManager.GetFile<TexFile>($"common/font/font{x}.tex")!)
-                               .Select(x => new Task<byte[]>(() => x.ImageData!))
+                               .Select(x => new Task<byte[]>(Timings.AttachTimingHandle(() => x.ImageData!)))
                                .ToArray();
                 foreach (var task in texTasks)
                     task.Start();

@@ -1,10 +1,15 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using Dalamud.Configuration.Internal;
+using Dalamud.Game;
+using Dalamud.Interface.Internal;
 using Dalamud.IoC.Internal;
 using Dalamud.Logging.Internal;
+using Dalamud.Utility.Timing;
 using JetBrains.Annotations;
 
 namespace Dalamud
@@ -27,15 +32,42 @@ namespace Dalamud
         public static Task BlockingResolved { get; } = BlockingServicesLoadedTaskCompletionSource.Task;
 
         /// <summary>
+        /// Initializes Provided Services and FFXIVClientStructs.
+        /// </summary>
+        /// <param name="dalamud">Instance of <see cref="Dalamud"/>.</param>
+        /// <param name="startInfo">Instance of <see cref="DalamudStartInfo"/>.</param>
+        /// <param name="configuration">Instance of <see cref="DalamudConfiguration"/>.</param>
+        public static void InitializeProvidedServicesAndClientStructs(Dalamud dalamud, DalamudStartInfo startInfo, DalamudConfiguration configuration)
+        {
+            Service<Dalamud>.Provide(dalamud);
+            Service<DalamudStartInfo>.Provide(startInfo);
+            Service<DalamudConfiguration>.Provide(configuration);
+            Service<ServiceContainer>.Provide(new ServiceContainer());
+
+            // Initialize the process information.
+            var cacheDir = new DirectoryInfo(Path.Combine(startInfo.WorkingDirectory!, "cachedSigs"));
+            if (!cacheDir.Exists)
+                cacheDir.Create();
+            Service<SigScanner>.Provide(new SigScanner(true, new FileInfo(Path.Combine(cacheDir.FullName, $"{startInfo.GameVersion}.json"))));
+
+            using (Timings.Start("CS Resolver Init"))
+            {
+                FFXIVClientStructs.Resolver.InitializeParallel(new FileInfo(Path.Combine(cacheDir.FullName, $"{startInfo.GameVersion}_cs.json")));
+            }
+        }
+
+        /// <summary>
         /// Kicks off construction of services that can handle early loading.
         /// </summary>
         /// <returns>Task for initializing all services.</returns>
         public static async Task InitializeEarlyLoadableServices()
         {
-            Service<ServiceContainer>.Provide(new ServiceContainer());
-
+            using var serviceInitializeTimings = Timings.Start("Services Init");
             var service = typeof(Service<>);
-            var blockingEarlyLoadingServices = new List<Task>();
+
+            var earlyLoadingServices = new HashSet<Type>();
+            var blockingEarlyLoadingServices = new HashSet<Type>();
+            var afterDrawingEarlyLoadedServices = new HashSet<Type>();
 
             var dependencyServicesMap = new Dictionary<Type, List<Type>>();
             var getAsyncTaskMap = new Dictionary<Type, Task>();
@@ -52,10 +84,19 @@ namespace Dalamud
                     null,
                     null,
                     null);
+
                 if (attr.IsAssignableTo(typeof(BlockingEarlyLoadedService)))
                 {
                     getAsyncTaskMap[serviceType] = getTask;
-                    blockingEarlyLoadingServices.Add(getTask);
+                    blockingEarlyLoadingServices.Add(serviceType);
+                }
+                else if (attr.IsAssignableTo(typeof(AfterDrawingEarlyLoadedService)))
+                {
+                    afterDrawingEarlyLoadedServices.Add(serviceType);
+                }
+                else
+                {
+                    earlyLoadingServices.Add(serviceType);
                 }
 
                 dependencyServicesMap[serviceType] =
@@ -69,50 +110,70 @@ namespace Dalamud
                                     null);
             }
 
-            _ = Task.WhenAll(blockingEarlyLoadingServices).ContinueWith(x =>
+            _ = Task.Run(async () =>
             {
                 try
                 {
-                    if (x.IsFaulted)
-                        BlockingServicesLoadedTaskCompletionSource.SetException(x.Exception!);
-                    else
-                        BlockingServicesLoadedTaskCompletionSource.SetResult();
+                    using var blockingServiceInitializeTimings = Timings.Start("BlockingServices Init");
+                    await Task.WhenAll(blockingEarlyLoadingServices.Select(x => getAsyncTaskMap[x]));
+                    BlockingServicesLoadedTaskCompletionSource.SetResult();
                 }
-                catch (Exception)
+                catch (Exception e)
                 {
-                    // don't care, as this means task result/exception has already been set
+                    BlockingServicesLoadedTaskCompletionSource.SetException(e);
                 }
             }).ConfigureAwait(false);
 
             try
             {
-                var tasks = new List<Task>();
-                while (dependencyServicesMap.Any())
+                for (var i = 0; i < 2; i++)
                 {
-                    tasks.Clear();
-                    foreach (var (serviceType, dependencies) in dependencyServicesMap.ToList())
+                    var tasks = new List<Task>();
+                    var servicesToLoad = new HashSet<Type>();
+                    if (i == 0)
                     {
-                        if (!dependencies.All(
-                                x => !getAsyncTaskMap.ContainsKey(x) || getAsyncTaskMap[x].IsCompleted))
-                            continue;
-
-                        tasks.Add((Task)service.MakeGenericType(serviceType).InvokeMember(
-                                      "StartLoader",
-                                      BindingFlags.InvokeMethod | BindingFlags.Static | BindingFlags.Public,
-                                      null,
-                                      null,
-                                      null));
-                        dependencyServicesMap.Remove(serviceType);
+                        servicesToLoad.UnionWith(earlyLoadingServices);
+                        servicesToLoad.UnionWith(blockingEarlyLoadingServices);
+                    }
+                    else
+                    {
+                        servicesToLoad.UnionWith(afterDrawingEarlyLoadedServices);
+                        await (await Service<InterfaceManager>.GetAsync()).SceneInitializeTask;
                     }
 
-                    if (!tasks.Any())
-                        throw new InvalidOperationException("Unresolvable dependency cycle detected");
-
-                    await Task.WhenAll(tasks);
-                    foreach (var task in tasks)
+                    while (servicesToLoad.Any())
                     {
-                        if (task.IsFaulted)
-                            throw task.Exception!;
+                        foreach (var serviceType in servicesToLoad)
+                        {
+                            if (dependencyServicesMap[serviceType].Any(
+                                    x => getAsyncTaskMap.GetValueOrDefault(x)?.IsCompleted == false))
+                                continue;
+
+                            tasks.Add((Task)service.MakeGenericType(serviceType).InvokeMember(
+                                          "StartLoader",
+                                          BindingFlags.InvokeMethod | BindingFlags.Static | BindingFlags.Public,
+                                          null,
+                                          null,
+                                          null));
+                            servicesToLoad.Remove(serviceType);
+                        }
+
+                        if (!tasks.Any())
+                            throw new InvalidOperationException("Unresolvable dependency cycle detected");
+
+                        if (servicesToLoad.Any())
+                        {
+                            await Task.WhenAny(tasks);
+                            var faultedTasks = tasks.Where(x => x.IsFaulted).Select(x => (Exception)x.Exception!).ToArray();
+                            if (faultedTasks.Any())
+                                throw new AggregateException(faultedTasks);
+                        }
+                        else
+                        {
+                            await Task.WhenAll(tasks);
+                        }
+
+                        tasks.RemoveAll(x => x.IsCompleted);
                     }
                 }
             }
@@ -171,6 +232,15 @@ namespace Dalamud
         /// </summary>
         [AttributeUsage(AttributeTargets.Class)]
         public class BlockingEarlyLoadedService : EarlyLoadedService
+        {
+        }
+
+        /// <summary>
+        /// Indicates that the class is a service, and will be instantiated automatically on startup,
+        /// when drawing becomes available.
+        /// </summary>
+        [AttributeUsage(AttributeTargets.Class)]
+        public class AfterDrawingEarlyLoadedService : EarlyLoadedService
         {
         }
     }
