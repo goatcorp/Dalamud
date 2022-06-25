@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
@@ -27,7 +28,7 @@ namespace Dalamud.Game
         private IntPtr moduleCopyPtr;
         private long moduleCopyOffset;
 
-        private Dictionary<string, long>? textCache;
+        private ConcurrentDictionary<string, long>? textCache;
 
         [ServiceManager.ServiceConstructor]
         private SigScanner(DalamudStartInfo startInfo)
@@ -340,9 +341,12 @@ namespace Dalamud.Game
         /// <returns>The real offset of the found signature.</returns>
         public IntPtr ScanText(string signature)
         {
-            if (this.textCache != null && this.textCache.TryGetValue(signature, out var address))
+            if (this.textCache != null)
             {
-                return new IntPtr(address + this.Module.BaseAddress.ToInt64());
+                if (this.textCache.TryGetValue(signature, out var address))
+                {
+                    return new IntPtr(address + this.Module.BaseAddress.ToInt64());
+                }
             }
 
             var mBase = this.IsCopy ? this.moduleCopyPtr : this.TextSectionBase;
@@ -356,7 +360,10 @@ namespace Dalamud.Game
             if (insnByte == 0xE8 || insnByte == 0xE9)
                 scanRet = ReadJmpCallSig(scanRet);
 
-            this.textCache?.Add(signature, scanRet.ToInt64() - this.Module.BaseAddress.ToInt64());
+            if (this.textCache != null)
+            {
+                this.textCache[signature] = scanRet.ToInt64() - this.Module.BaseAddress.ToInt64();
+            }
 
             return scanRet;
         }
@@ -551,7 +558,7 @@ namespace Dalamud.Game
                 return;
             }
 
-            this.textCache = JsonConvert.DeserializeObject<Dictionary<string, long>>(File.ReadAllText(this.cacheFile.FullName)) ?? new Dictionary<string, long>();
+            this.textCache = JsonConvert.DeserializeObject<ConcurrentDictionary<string, long>>(File.ReadAllText(this.cacheFile.FullName)) ?? new ConcurrentDictionary<string, long>();
         }
     }
 }

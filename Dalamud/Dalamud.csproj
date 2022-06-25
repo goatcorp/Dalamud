@@ -65,7 +65,7 @@
     <ItemGroup>
         <PackageReference Include="CheapLoc" Version="1.1.6" />
         <PackageReference Include="JetBrains.Annotations" Version="2021.2.0" />
-        <PackageReference Include="Lumina" Version="3.7.0" />
+        <PackageReference Include="Lumina" Version="3.8.0" />
         <PackageReference Include="Lumina.Excel" Version="6.1.1" />
         <PackageReference Include="MinSharp" Version="1.0.4" />
         <PackageReference Include="MonoMod.RuntimeDetour" Version="21.10.10.01" />

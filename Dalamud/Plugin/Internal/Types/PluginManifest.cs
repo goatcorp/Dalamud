@@ -135,6 +135,22 @@ internal record PluginManifest
     public string DownloadLinkTesting { get; init; } = null!;
 
     /// <summary>
+    /// Gets the required Dalamud load step for this plugin to load. Takes precedence over LoadPriority.
+    /// Valid values are:
+    /// 0. During Framework.Tick, when drawing facilities are available
+    /// 1. During Framework.Tick
+    /// 2. No requirement
+    /// </summary>
+    [JsonProperty]
+    public int LoadRequiredState { get; init; }
+
+    /// <summary>
+    /// Gets a value indicating whether Dalamud must load this plugin not at the same time with other plugins and the game.
+    /// </summary>
+    [JsonProperty]
+    public bool LoadSync { get; init; }
+
+    /// <summary>
     /// Gets the load priority for this plugin. Higher values means higher priority. 0 is default priority.
     /// </summary>
     [JsonProperty]
