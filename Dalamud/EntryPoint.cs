@@ -320,11 +320,14 @@ namespace Dalamud
                         config.Save();
                     }
 
+                    Log.CloseAndFlush();
                     Environment.Exit(-1);
-
                     break;
                 default:
                     Log.Fatal("Unhandled SEH object on AppDomain: {Object}", args.ExceptionObject);
+
+                    Log.CloseAndFlush();
+                    Environment.Exit(-1);
                     break;
             }
         }
