@@ -14,7 +14,7 @@ namespace Dalamud.Interface.Internal.Notifications
     /// Ported from https://github.com/patrickcjk/imgui-notify.
     /// </summary>
     [ServiceManager.EarlyLoadedService]
-    internal class NotificationManager
+    internal class NotificationManager : IServiceType
     {
         /// <summary>
         /// Value indicating the bottom-left X padding.

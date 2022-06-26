@@ -14,7 +14,7 @@ namespace Dalamud.Game.ClientState.Fates
     [PluginInterface]
     [InterfaceVersion("1.0")]
     [ServiceManager.BlockingEarlyLoadedService]
-    public sealed partial class FateTable
+    public sealed partial class FateTable : IServiceType
     {
         private readonly ClientStateAddressResolver address;
 

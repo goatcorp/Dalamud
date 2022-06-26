@@ -18,7 +18,7 @@ namespace Dalamud.Game.Gui.Dtr
     [PluginInterface]
     [InterfaceVersion("1.0")]
     [ServiceManager.BlockingEarlyLoadedService]
-    public sealed unsafe class DtrBar : IDisposable
+    public sealed unsafe class DtrBar : IDisposable, IServiceType
     {
         private const uint BaseNodeId = 1000;
 

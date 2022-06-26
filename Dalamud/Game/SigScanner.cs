@@ -19,7 +19,7 @@ namespace Dalamud.Game
     /// </summary>
     [PluginInterface]
     [InterfaceVersion("1.0")]
-    public class SigScanner : IDisposable
+    public class SigScanner : IDisposable, IServiceType
     {
         private readonly FileInfo? cacheFile;
 

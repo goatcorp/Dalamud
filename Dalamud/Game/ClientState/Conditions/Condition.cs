@@ -12,7 +12,7 @@ namespace Dalamud.Game.ClientState.Conditions
     [PluginInterface]
     [InterfaceVersion("1.0")]
     [ServiceManager.BlockingEarlyLoadedService]
-    public sealed partial class Condition
+    public sealed partial class Condition : IServiceType
     {
         /// <summary>
         /// The current max number of conditions. You can get this just by looking at the condition sheet and how many rows it has.
@@ -82,16 +82,14 @@ namespace Dalamud.Game.ClientState.Conditions
             return false;
         }
 
-        /// <summary>
-        /// Enables the hooks of the Condition class function.
-        /// </summary>
-        public void Enable()
+        [ServiceManager.CallWhenServicesReady]
+        private void ContinueConstruction(Framework framework)
         {
             // Initialization
             for (var i = 0; i < MaxConditionEntries; i++)
                 this.cache[i] = this[i];
 
-            Service<Framework>.Get().Update += this.FrameworkUpdate;
+            framework.Update += this.FrameworkUpdate;
         }
 
         private void FrameworkUpdate(Framework framework)

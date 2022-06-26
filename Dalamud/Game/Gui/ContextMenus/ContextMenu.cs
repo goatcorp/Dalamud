@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
-
+using Dalamud.Configuration.Internal;
 using Dalamud.Game.Gui.ContextMenus.OldStructs;
 using Dalamud.Hooking;
 using Dalamud.IoC;
@@ -25,7 +25,7 @@ namespace Dalamud.Game.Gui.ContextMenus
     [PluginInterface]
     [InterfaceVersion("1.0")]
     [ServiceManager.BlockingEarlyLoadedService]
-    public sealed class ContextMenu : IDisposable
+    public sealed class ContextMenu : IDisposable, IServiceType
     {
         private const int MaxContextMenuItemsPerContextMenu = 32;
 
@@ -97,18 +97,6 @@ namespace Dalamud.Game.Gui.ContextMenus
             this.contextMenuOpeningHook.Disable();
         }
 
-        /// <summary>
-        /// Enable this subsystem.
-        /// </summary>
-        internal void Enable()
-        {
-            this.contextMenuOpeningHook.Enable();
-            this.contextMenuOpenedHook.Enable();
-            this.contextMenuItemSelectedHook.Enable();
-            this.subContextMenuOpeningHook.Enable();
-            this.subContextMenuOpenedHook.Enable();
-        }
-
         private static unsafe bool IsInventoryContext(OldAgentContextInterface* agentContextInterface)
         {
             return agentContextInterface == AgentInventoryContext.Instance();
@@ -120,6 +108,19 @@ namespace Dalamud.Game.Gui.ContextMenus
             {
                 return contextMenuItems.Aggregate(17, (current, item) => (current * 23) + item.GetHashCode());
             }
+        }
+
+        [ServiceManager.CallWhenServicesReady]
+        private void ContinueConstruction(GameGui gameGui)
+        {
+            if (!EnvironmentConfiguration.DalamudDoContextMenu)
+                return;
+
+            this.contextMenuOpeningHook.Enable();
+            this.contextMenuOpenedHook.Enable();
+            this.contextMenuItemSelectedHook.Enable();
+            this.subContextMenuOpeningHook.Enable();
+            this.subContextMenuOpenedHook.Enable();
         }
 
         private unsafe IntPtr ContextMenuOpeningDetour(IntPtr a1, IntPtr a2, IntPtr a3, uint a4, IntPtr a5, OldAgentContextInterface* agentContextInterface, IntPtr a7, ushort a8)

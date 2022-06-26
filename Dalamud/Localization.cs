@@ -14,7 +14,7 @@ namespace Dalamud
     /// Class handling localization.
     /// </summary>
     [ServiceManager.EarlyLoadedService]
-    public class Localization
+    public class Localization : IServiceType
     {
         /// <summary>
         /// Array of language codes which have a valid translation in Dalamud.

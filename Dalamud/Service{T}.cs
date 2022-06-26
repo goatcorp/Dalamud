@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Threading;
 using System.Threading.Tasks;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
@@ -18,7 +17,7 @@ namespace Dalamud
     /// Only used internally within Dalamud, if plugins need access to things it should be _only_ via DI.
     /// </remarks>
     /// <typeparam name="T">The class you want to store in the service locator.</typeparam>
-    internal static class Service<T>
+    internal static class Service<T> where T : IServiceType
     {
         // ReSharper disable once StaticMemberInGenericType
         private static readonly TaskCompletionSource<T> InstanceTcs = new();
@@ -51,10 +50,23 @@ namespace Dalamud
                 ServiceManager.Log.Debug("Service<{0}>: Begin construction", typeof(T).Name);
                 try
                 {
-                    var x = await ConstructObject();
+                    var instance = await ConstructObject();
+                    InstanceTcs.SetResult(instance);
+
+                    foreach (var method in typeof(T).GetMethods(
+                                 BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
+                    {
+                        if (method.GetCustomAttribute<ServiceManager.CallWhenServicesReady>(true) == null)
+                            continue;
+
+                        ServiceManager.Log.Debug("Service<{0}>: Calling {1}", typeof(T).Name, method.Name);
+                        var args = await Task.WhenAll(method.GetParameters().Select(
+                                             x => ResolveServiceFromTypeAsync(x.ParameterType)));
+                        method.Invoke(instance, args);
+                    }
+
                     ServiceManager.Log.Debug("Service<{0}>: Construction complete", typeof(T).Name);
-                    InstanceTcs.SetResult(x);
-                    return x;
+                    return instance;
                 }
                 catch (Exception e)
                 {
@@ -71,8 +83,18 @@ namespace Dalamud
         /// <param name="obj">Object to set.</param>
         public static void Provide(T obj)
         {
-            InstanceTcs!.SetResult(obj);
+            InstanceTcs.SetResult(obj);
             ServiceManager.Log.Debug("Service<{0}>: Provided", typeof(T).Name);
+        }
+
+        /// <summary>
+        /// Sets the service load state to failure.
+        /// </summary>
+        /// <param name="exception">The exception.</param>
+        public static void ProvideException(Exception exception)
+        {
+            ServiceManager.Log.Error(exception, "Service<{0}>: Error", typeof(T).Name);
+            InstanceTcs.SetException(exception);
         }
 
         /// <summary>
@@ -103,6 +125,7 @@ namespace Dalamud
         /// Gets an enumerable containing Service&lt;T&gt;s that are required for this Service to initialize without blocking.
         /// </summary>
         /// <returns>List of dependency services.</returns>
+        [UsedImplicitly]
         public static List<Type> GetDependencyServices()
         {
             var res = new List<Type>();
@@ -119,7 +142,7 @@ namespace Dalamud
                 .ToList();
         }
 
-        private static async Task<object?> GetServiceObjectConstructArgument(Type type)
+        private static async Task<object?> ResolveServiceFromTypeAsync(Type type)
         {
             var task = (Task)typeof(Service<>)
                              .MakeGenericType(type)
@@ -151,7 +174,7 @@ namespace Dalamud
         {
             var ctor = GetServiceConstructor();
             var args = await Task.WhenAll(
-                           ctor.GetParameters().Select(x => GetServiceObjectConstructArgument(x.ParameterType)));
+                           ctor.GetParameters().Select(x => ResolveServiceFromTypeAsync(x.ParameterType)));
             using (Timings.Start($"{typeof(T).Name} Construct"))
             {
                 return (T)ctor.Invoke(args)!;

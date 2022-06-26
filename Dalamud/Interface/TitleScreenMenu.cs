@@ -13,7 +13,7 @@ namespace Dalamud.Interface
     [PluginInterface]
     [InterfaceVersion("1.0")]
     [ServiceManager.BlockingEarlyLoadedService]
-    public class TitleScreenMenu
+    public class TitleScreenMenu : IServiceType
     {
         /// <summary>
         /// Gets the texture size needed for title screen menu logos.

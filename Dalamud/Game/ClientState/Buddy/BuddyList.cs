@@ -16,7 +16,7 @@ namespace Dalamud.Game.ClientState.Buddy
     [PluginInterface]
     [InterfaceVersion("1.0")]
     [ServiceManager.BlockingEarlyLoadedService]
-    public sealed partial class BuddyList
+    public sealed partial class BuddyList : IServiceType
     {
         private const uint InvalidObjectID = 0xE0000000;
 

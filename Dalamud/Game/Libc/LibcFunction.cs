@@ -13,7 +13,7 @@ namespace Dalamud.Game.Libc
     [PluginInterface]
     [InterfaceVersion("1.0")]
     [ServiceManager.BlockingEarlyLoadedService]
-    public sealed class LibcFunction
+    public sealed class LibcFunction : IServiceType
     {
         private readonly LibcFunctionAddressResolver address;
         private readonly StdStringFromCStringDelegate stdStringCtorCString;

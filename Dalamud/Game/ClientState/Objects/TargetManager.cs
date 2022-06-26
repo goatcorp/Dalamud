@@ -12,7 +12,7 @@ namespace Dalamud.Game.ClientState.Objects
     [PluginInterface]
     [InterfaceVersion("1.0")]
     [ServiceManager.BlockingEarlyLoadedService]
-    public sealed unsafe class TargetManager
+    public sealed unsafe class TargetManager : IServiceType
     {
         private readonly ClientStateAddressResolver address;
 

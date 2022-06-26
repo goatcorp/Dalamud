@@ -31,7 +31,7 @@ namespace Dalamud.Plugin.Internal;
 /// Class responsible for loading and unloading plugins.
 /// </summary>
 [ServiceManager.EarlyLoadedService]
-internal partial class PluginManager : IDisposable
+internal partial class PluginManager : IDisposable, IServiceType
 {
     /// <summary>
     /// The current Dalamud API level, used to handle breaking changes. Only plugins with this level will be loaded.
@@ -386,12 +386,8 @@ internal partial class PluginManager : IDisposable
 
         // Load plugins that want to be loaded during Framework.Tick, when drawing facilities are available
         loadTasks.Add(
-            Service<InterfaceManager>
+            Service<InterfaceManager.InterfaceManagerWithScene>
                 .GetAsync()
-                .ContinueWith(
-                    x => x.Result.SceneInitializeTask,
-                    TaskContinuationOptions.RunContinuationsAsynchronously)
-                .Unwrap()
                 .ContinueWith(
                     _ => Service<Framework>.Get().RunOnTick(
                         () => LoadPluginsSync(

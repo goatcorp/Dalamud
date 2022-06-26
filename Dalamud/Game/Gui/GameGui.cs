@@ -28,7 +28,7 @@ namespace Dalamud.Game.Gui
     [PluginInterface]
     [InterfaceVersion("1.0")]
     [ServiceManager.BlockingEarlyLoadedService]
-    public sealed unsafe class GameGui : IDisposable
+    public sealed unsafe class GameGui : IDisposable, IServiceType
     {
         private readonly GameGuiAddressResolver address;
 
@@ -418,19 +418,9 @@ namespace Dalamud.Game.Gui
         /// <param name="bgmKey">The background music key.</param>
         public void SetBgm(ushort bgmKey) => this.setGlobalBgmHook.Original(bgmKey, 0, 0, 0, 0, 0);
 
-        /// <summary>
-        /// Enables the hooks and submodules of this module.
-        /// </summary>
-        public void Enable()
+        [ServiceManager.CallWhenServicesReady]
+        private void ContinueConstruction()
         {
-            Service<ChatGui>.GetAsync().ContinueWith(x => x.Result.Enable());
-            Service<ToastGui>.GetAsync().ContinueWith(x => x.Result.Enable());
-            Service<FlyTextGui>.GetAsync().ContinueWith(x => x.Result.Enable());
-            Service<PartyFinderGui>.GetAsync().ContinueWith(x => x.Result.Enable());
-
-            if (EnvironmentConfiguration.DalamudDoContextMenu)
-                Service<ContextMenu>.GetAsync().ContinueWith(x => x.Result.Enable());
-
             this.setGlobalBgmHook.Enable();
             this.handleItemHoverHook.Enable();
             this.handleItemOutHook.Enable();

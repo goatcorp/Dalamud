@@ -25,7 +25,7 @@ namespace Dalamud.Game
     [PluginInterface]
     [InterfaceVersion("1.0")]
     [ServiceManager.BlockingEarlyLoadedService]
-    public sealed class Framework : IDisposable
+    public sealed class Framework : IDisposable, IServiceType
     {
         private static Stopwatch statsStopwatch = new();
 
@@ -47,13 +47,6 @@ namespace Dalamud.Game
             this.updateHook = new Hook<OnUpdateDetour>(this.Address.TickAddress, this.HandleFrameworkUpdate);
             this.freeHook = new Hook<OnDestroyDetour>(this.Address.FreeAddress, this.HandleFrameworkFree);
             this.destroyHook = new Hook<OnRealDestroyDelegate>(this.Address.DestroyAddress, this.HandleFrameworkDestroy);
-
-            gameGui.Enable();
-            gameNetwork.Enable();
-
-            this.updateHook.Enable();
-            this.freeHook.Enable();
-            this.destroyHook.Enable();
         }
 
         /// <summary>
@@ -222,6 +215,14 @@ namespace Dalamud.Game
 
             this.updateStopwatch.Reset();
             statsStopwatch.Reset();
+        }
+
+        [ServiceManager.CallWhenServicesReady]
+        private void ContinueConstruction()
+        {
+            this.updateHook.Enable();
+            this.freeHook.Enable();
+            this.destroyHook.Enable();
         }
 
         private bool HandleFrameworkUpdate(IntPtr framework)

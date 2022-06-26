@@ -15,7 +15,7 @@ namespace Dalamud.Game.ClientState.Party
     [PluginInterface]
     [InterfaceVersion("1.0")]
     [ServiceManager.BlockingEarlyLoadedService]
-    public sealed unsafe partial class PartyList
+    public sealed unsafe partial class PartyList : IServiceType
     {
         private const int GroupLength = 8;
         private const int AllianceLength = 20;

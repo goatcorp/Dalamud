@@ -18,7 +18,7 @@ namespace Dalamud.Game.Command
     [PluginInterface]
     [InterfaceVersion("1.0")]
     [ServiceManager.BlockingEarlyLoadedService]
-    public sealed class CommandManager
+    public sealed class CommandManager : IServiceType
     {
         private readonly Dictionary<string, CommandInfo> commandMap = new();
         private readonly Regex commandRegexEn = new(@"^The command (?<command>.+) does not exist\.$", RegexOptions.Compiled);

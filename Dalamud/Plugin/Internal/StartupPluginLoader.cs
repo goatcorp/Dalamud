@@ -10,7 +10,7 @@ namespace Dalamud.Plugin.Internal;
 /// Class responsible for loading plugins on startup.
 /// </summary>
 [ServiceManager.BlockingEarlyLoadedService]
-public class StartupPluginLoader
+public class StartupPluginLoader : IServiceType
 {
     private static readonly ModuleLog Log = new("SPL");
 

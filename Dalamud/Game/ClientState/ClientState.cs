@@ -28,7 +28,7 @@ namespace Dalamud.Game.ClientState
     [PluginInterface]
     [InterfaceVersion("1.0")]
     [ServiceManager.BlockingEarlyLoadedService]
-    public sealed class ClientState : IDisposable
+    public sealed class ClientState : IDisposable, IServiceType
     {
         private readonly ClientStateAddressResolver address;
         private readonly Hook<SetupTerritoryTypeDelegate> setupTerritoryTypeHook;
@@ -129,16 +129,6 @@ namespace Dalamud.Game.ClientState
         public bool IsPvPExcludingDen { get; private set; }
 
         /// <summary>
-        /// Enable this module.
-        /// </summary>
-        public void Enable()
-        {
-            Service<Conditions.Condition>.Get().Enable();
-            Service<GamepadState>.Get().Enable();
-            this.setupTerritoryTypeHook.Enable();
-        }
-
-        /// <summary>
         /// Dispose of managed and unmanaged resources.
         /// </summary>
         void IDisposable.Dispose()
@@ -148,6 +138,12 @@ namespace Dalamud.Game.ClientState
             Service<GamepadState>.Get().ExplicitDispose();
             Service<Framework>.Get().Update -= this.FrameworkOnOnUpdateEvent;
             Service<NetworkHandlers>.Get().CfPop -= this.NetworkHandlersOnCfPop;
+        }
+
+        [ServiceManager.CallWhenServicesReady]
+        private void ContinueConstruction()
+        {
+            this.setupTerritoryTypeHook.Enable();
         }
 
         private IntPtr SetupTerritoryTypeDetour(IntPtr manager, ushort terriType)
