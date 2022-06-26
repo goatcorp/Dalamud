@@ -23,7 +23,7 @@ namespace Dalamud.Game.ClientState.Keys
     [PluginInterface]
     [InterfaceVersion("1.0")]
     [ServiceManager.BlockingEarlyLoadedService]
-    public class KeyState
+    public class KeyState : IServiceType
     {
         // The array is accessed in a way that this limit doesn't appear to exist
         // but there is other state data past this point, and keys beyond here aren't

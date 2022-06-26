@@ -17,7 +17,7 @@ namespace Dalamud.Game.Gui.FlyText
     [PluginInterface]
     [InterfaceVersion("1.0")]
     [ServiceManager.BlockingEarlyLoadedService]
-    public sealed class FlyTextGui : IDisposable
+    public sealed class FlyTextGui : IDisposable, IServiceType
     {
         /// <summary>
         /// The native function responsible for adding fly text to the UI. See <see cref="FlyTextGuiAddressResolver.AddFlyText"/>.
@@ -129,7 +129,10 @@ namespace Dalamud.Game.Gui.FlyText
             var strOffset = 28u;
 
             // Get the UI module and flytext addon pointers
-            var gameGui = Service<GameGui>.Get();
+            var gameGui = Service<GameGui>.GetNullable();
+            if (gameGui == null)
+                return;
+
             var ui = (FFXIVClientStructs.FFXIV.Client.UI.UIModule*)gameGui.GetUIModule();
             var flytext = gameGui.GetAddonByName("_FlyText", 1);
 
@@ -174,10 +177,8 @@ namespace Dalamud.Game.Gui.FlyText
             }
         }
 
-        /// <summary>
-        /// Enables this module.
-        /// </summary>
-        internal void Enable()
+        [ServiceManager.CallWhenServicesReady]
+        private void ContinueConstruction(GameGui gameGui)
         {
             this.createFlyTextHook.Enable();
         }

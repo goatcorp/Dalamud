@@ -14,7 +14,7 @@ namespace Dalamud.Hooking.Internal
     /// This class manages the final disposition of hooks, cleaning up any that have not reverted their changes.
     /// </summary>
     [ServiceManager.EarlyLoadedService]
-    internal class HookManager : IDisposable
+    internal class HookManager : IDisposable, IServiceType
     {
         private static readonly ModuleLog Log = new("HM");
 

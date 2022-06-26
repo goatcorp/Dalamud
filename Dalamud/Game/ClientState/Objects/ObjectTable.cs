@@ -17,7 +17,7 @@ namespace Dalamud.Game.ClientState.Objects
     [PluginInterface]
     [InterfaceVersion("1.0")]
     [ServiceManager.BlockingEarlyLoadedService]
-    public sealed partial class ObjectTable
+    public sealed partial class ObjectTable : IServiceType
     {
         private const int ObjectTableLength = 424;
 

@@ -12,7 +12,7 @@ namespace Dalamud.IoC.Internal
     /// <summary>
     /// A simple singleton-only IOC container that provides (optional) version-based dependency resolution.
     /// </summary>
-    internal class ServiceContainer : IServiceProvider
+    internal class ServiceContainer : IServiceProvider, IServiceType
     {
         private static readonly ModuleLog Log = new("SERVICECONTAINER");
 

@@ -109,12 +109,12 @@ namespace Dalamud.Interface
         /// <summary>
         /// Gets the game's active Direct3D device.
         /// </summary>
-        public Device Device => Service<InterfaceManager>.Get().Device;
+        public Device Device => Service<InterfaceManager.InterfaceManagerWithScene>.Get().Manager.Device!;
 
         /// <summary>
         /// Gets the game's main window handle.
         /// </summary>
-        public IntPtr WindowHandlePtr => Service<InterfaceManager>.Get().WindowHandlePtr;
+        public IntPtr WindowHandlePtr => Service<InterfaceManager.InterfaceManagerWithScene>.Get().Manager.WindowHandlePtr;
 
         /// <summary>
         /// Gets or sets a value indicating whether this plugin should hide its UI automatically when the game's UI is hidden.
@@ -215,7 +215,7 @@ namespace Dalamud.Interface
         /// <param name="filePath">The full filepath to the image.</param>
         /// <returns>A <see cref="TextureWrap"/> object wrapping the created image.  Use <see cref="TextureWrap.ImGuiHandle"/> inside ImGui.Image().</returns>
         public TextureWrap LoadImage(string filePath)
-            => Service<InterfaceManager>.Get().LoadImage(filePath);
+            => Service<InterfaceManager.InterfaceManagerWithScene>.Get().Manager.LoadImage(filePath);
 
         /// <summary>
         /// Loads an image from a byte stream, such as a png downloaded into memory.
@@ -223,7 +223,7 @@ namespace Dalamud.Interface
         /// <param name="imageData">A byte array containing the raw image data.</param>
         /// <returns>A <see cref="TextureWrap"/> object wrapping the created image.  Use <see cref="TextureWrap.ImGuiHandle"/> inside ImGui.Image().</returns>
         public TextureWrap LoadImage(byte[] imageData)
-            => Service<InterfaceManager>.Get().LoadImage(imageData);
+            => Service<InterfaceManager.InterfaceManagerWithScene>.Get().Manager.LoadImage(imageData);
 
         /// <summary>
         /// Loads an image from raw unformatted pixel data, with no type or header information.  To load formatted data, use <see cref="LoadImage(byte[])"/>.
@@ -234,7 +234,7 @@ namespace Dalamud.Interface
         /// <param name="numChannels">The number of channels (bytes per pixel) of the image contained in <paramref name="imageData"/>.  This should usually be 4.</param>
         /// <returns>A <see cref="TextureWrap"/> object wrapping the created image.  Use <see cref="TextureWrap.ImGuiHandle"/> inside ImGui.Image().</returns>
         public TextureWrap LoadImageRaw(byte[] imageData, int width, int height, int numChannels)
-            => Service<InterfaceManager>.Get().LoadImageRaw(imageData, width, height, numChannels);
+            => Service<InterfaceManager.InterfaceManagerWithScene>.Get().Manager.LoadImageRaw(imageData, width, height, numChannels);
 
         /// <summary>
         /// Gets a game font.

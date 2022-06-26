@@ -22,7 +22,7 @@ namespace Dalamud.Game.Gui
     [PluginInterface]
     [InterfaceVersion("1.0")]
     [ServiceManager.BlockingEarlyLoadedService]
-    public sealed class ChatGui : IDisposable
+    public sealed class ChatGui : IDisposable, IServiceType
     {
         private readonly ChatGuiAddressResolver address;
 
@@ -122,16 +122,6 @@ namespace Dalamud.Game.Gui
         /// Gets the flags of the last linked item.
         /// </summary>
         public byte LastLinkedItemFlags { get; private set; }
-
-        /// <summary>
-        /// Enables this module.
-        /// </summary>
-        public void Enable()
-        {
-            this.printMessageHook.Enable();
-            this.populateItemLinkHook.Enable();
-            this.interactableLinkClickedHook.Enable();
-        }
 
         /// <summary>
         /// Dispose of managed and unmanaged resources.
@@ -278,6 +268,14 @@ namespace Dalamud.Game.Gui
             {
                 this.dalamudLinkHandlers.Remove((pluginName, commandId));
             }
+        }
+
+        [ServiceManager.CallWhenServicesReady]
+        private void ContinueConstruction(GameGui gameGui, LibcFunction libcFunction)
+        {
+            this.printMessageHook.Enable();
+            this.populateItemLinkHook.Enable();
+            this.interactableLinkClickedHook.Enable();
         }
 
         private void HandlePopulateItemLinkDetour(IntPtr linkObjectPtr, IntPtr itemInfoPtr)

@@ -33,7 +33,7 @@ namespace Dalamud
     /// <summary>
     /// The main Dalamud class containing all subsystems.
     /// </summary>
-    internal sealed class Dalamud : IDisposable
+    internal sealed class Dalamud : IDisposable, IServiceType
     {
         #region Internals
 

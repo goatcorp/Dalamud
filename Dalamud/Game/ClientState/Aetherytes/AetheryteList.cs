@@ -15,7 +15,7 @@ namespace Dalamud.Game.ClientState.Aetherytes
     [PluginInterface]
     [InterfaceVersion("1.0")]
     [ServiceManager.BlockingEarlyLoadedService]
-    public sealed partial class AetheryteList
+    public sealed partial class AetheryteList : IServiceType
     {
         [ServiceManager.ServiceDependency]
         private readonly ClientState clientState = Service<ClientState>.Get();

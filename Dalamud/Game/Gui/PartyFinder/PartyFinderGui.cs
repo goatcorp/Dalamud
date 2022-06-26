@@ -16,7 +16,7 @@ namespace Dalamud.Game.Gui.PartyFinder
     [PluginInterface]
     [InterfaceVersion("1.0")]
     [ServiceManager.BlockingEarlyLoadedService]
-    public sealed class PartyFinderGui : IDisposable
+    public sealed class PartyFinderGui : IDisposable, IServiceType
     {
         private readonly PartyFinderAddressResolver address;
         private readonly IntPtr memory;
@@ -56,14 +56,6 @@ namespace Dalamud.Game.Gui.PartyFinder
         public event PartyFinderListingEventDelegate ReceiveListing;
 
         /// <summary>
-        /// Enables this module.
-        /// </summary>
-        public void Enable()
-        {
-            this.receiveListingHook.Enable();
-        }
-
-        /// <summary>
         /// Dispose of managed and unmanaged resources.
         /// </summary>
         void IDisposable.Dispose()
@@ -78,6 +70,12 @@ namespace Dalamud.Game.Gui.PartyFinder
             {
                 Log.Warning("Could not free PartyFinderGui memory.");
             }
+        }
+
+        [ServiceManager.CallWhenServicesReady]
+        private void ContinueConstruction(GameGui gameGui)
+        {
+            this.receiveListingHook.Enable();
         }
 
         private void HandleReceiveListingDetour(IntPtr managerPtr, IntPtr data)

@@ -35,8 +35,8 @@ namespace Dalamud.Interface.Internal
     /// <summary>
     /// This plugin implements all of the Dalamud interface separately, to allow for reloading of the interface and rapid prototyping.
     /// </summary>
-    [ServiceManager.AfterDrawingEarlyLoadedService]
-    internal class DalamudInterface : IDisposable
+    [ServiceManager.EarlyLoadedService]
+    internal class DalamudInterface : IDisposable, IServiceType
     {
         private static readonly ModuleLog Log = new("DUI");
 
@@ -77,8 +77,12 @@ namespace Dalamud.Interface.Internal
         private bool isImGuiDrawMetricsWindow = false;
 
         [ServiceManager.ServiceConstructor]
-        private DalamudInterface(Dalamud dalamud, DalamudConfiguration configuration, InterfaceManager interfaceManager)
+        private DalamudInterface(
+            Dalamud dalamud,
+            DalamudConfiguration configuration,
+            InterfaceManager.InterfaceManagerWithScene interfaceManagerWithScene)
         {
+            var interfaceManager = interfaceManagerWithScene.Manager;
             this.WindowSystem = new WindowSystem("DalamudCore");
 
             this.changelogWindow = new ChangelogWindow() { IsOpen = false };

@@ -15,7 +15,7 @@ namespace Dalamud.Game.Network
     [PluginInterface]
     [InterfaceVersion("1.0")]
     [ServiceManager.BlockingEarlyLoadedService]
-    public sealed class GameNetwork : IDisposable
+    public sealed class GameNetwork : IDisposable, IServiceType
     {
         private readonly GameNetworkAddressResolver address;
         private readonly Hook<ProcessZonePacketDownDelegate> processZonePacketDownHook;
@@ -60,15 +60,6 @@ namespace Dalamud.Game.Network
         public event OnNetworkMessageDelegate NetworkMessage;
 
         /// <summary>
-        /// Enable this module.
-        /// </summary>
-        public void Enable()
-        {
-            this.processZonePacketDownHook.Enable();
-            this.processZonePacketUpHook.Enable();
-        }
-
-        /// <summary>
         /// Dispose of managed and unmanaged resources.
         /// </summary>
         void IDisposable.Dispose()
@@ -96,6 +87,13 @@ namespace Dalamud.Game.Network
 
                 Marshal.FreeHGlobal(unmanagedPacketData);
             }
+        }
+
+        [ServiceManager.CallWhenServicesReady]
+        private void ContinueConstruction()
+        {
+            this.processZonePacketDownHook.Enable();
+            this.processZonePacketUpHook.Enable();
         }
 
         private void ProcessZonePacketDownDetour(IntPtr a, uint targetId, IntPtr dataPtr)
