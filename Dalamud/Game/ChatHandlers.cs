@@ -29,7 +29,7 @@ namespace Dalamud.Game
     [PluginInterface]
     [InterfaceVersion("1.0")]
     [ServiceManager.BlockingEarlyLoadedService]
-    public class ChatHandlers
+    public class ChatHandlers : IServiceType
     {
         // private static readonly Dictionary<string, string> UnicodeToDiscordEmojiDict = new()
         // {

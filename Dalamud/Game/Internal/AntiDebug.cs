@@ -9,7 +9,7 @@ namespace Dalamud.Game.Internal
     /// This class disables anti-debug functionality in the game client.
     /// </summary>
     [ServiceManager.EarlyLoadedService]
-    internal sealed partial class AntiDebug
+    internal sealed partial class AntiDebug : IServiceType
     {
         private readonly byte[] nop = new byte[] { 0x31, 0xC0, 0x90, 0x90, 0x90, 0x90 };
         private byte[] original;

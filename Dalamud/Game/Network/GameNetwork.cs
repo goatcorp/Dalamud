@@ -15,7 +15,7 @@ namespace Dalamud.Game.Network
     [PluginInterface]
     [InterfaceVersion("1.0")]
     [ServiceManager.BlockingEarlyLoadedService]
-    public sealed class GameNetwork : IDisposable
+    public sealed class GameNetwork : IDisposable, IServiceType
     {
         private readonly GameNetworkAddressResolver address;
         private readonly Hook<ProcessZonePacketDownDelegate> processZonePacketDownHook;

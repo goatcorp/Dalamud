@@ -17,7 +17,7 @@ namespace Dalamud.Game.Gui.FlyText
     [PluginInterface]
     [InterfaceVersion("1.0")]
     [ServiceManager.BlockingEarlyLoadedService]
-    public sealed class FlyTextGui : IDisposable
+    public sealed class FlyTextGui : IDisposable, IServiceType
     {
         /// <summary>
         /// The native function responsible for adding fly text to the UI. See <see cref="FlyTextGuiAddressResolver.AddFlyText"/>.

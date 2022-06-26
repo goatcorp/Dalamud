@@ -19,7 +19,7 @@ namespace Dalamud.Interface.Internal
     /// Class handling Dalamud core commands.
     /// </summary>
     [ServiceManager.EarlyLoadedService]
-    internal class DalamudCommands
+    internal class DalamudCommands : IServiceType
     {
         [ServiceManager.ServiceConstructor]
         private DalamudCommands(CommandManager commandManager)

@@ -43,7 +43,7 @@ namespace Dalamud.Interface.Internal
     /// This class manages interaction with the ImGui interface.
     /// </summary>
     [ServiceManager.BlockingEarlyLoadedService]
-    internal class InterfaceManager : IDisposable
+    internal class InterfaceManager : IDisposable, IServiceType
     {
         private const float MinimumFallbackFontSizePt = 9.6f;  // Game's minimum AXIS font size
         private const float MinimumFallbackFontSizePx = MinimumFallbackFontSizePt * 4.0f / 3.0f;
@@ -1178,7 +1178,7 @@ namespace Dalamud.Interface.Internal
         /// <summary>
         /// Represents an instance of InstanceManager with scene ready for use.
         /// </summary>
-        public class InterfaceManagerWithScene
+        public class InterfaceManagerWithScene : IServiceType
         {
             /// <summary>
             /// Initializes a new instance of the <see cref="InterfaceManagerWithScene"/> class.

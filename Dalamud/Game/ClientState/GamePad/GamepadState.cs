@@ -16,7 +16,7 @@ namespace Dalamud.Game.ClientState.GamePad
     [PluginInterface]
     [InterfaceVersion("1.0.0")]
     [ServiceManager.BlockingEarlyLoadedService]
-    public unsafe class GamepadState : IDisposable
+    public unsafe class GamepadState : IDisposable, IServiceType
     {
         private readonly Hook<ControllerPoll> gamepadPoll;
 

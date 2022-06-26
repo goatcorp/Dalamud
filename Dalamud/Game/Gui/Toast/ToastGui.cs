@@ -15,7 +15,7 @@ namespace Dalamud.Game.Gui.Toast
     [PluginInterface]
     [InterfaceVersion("1.0")]
     [ServiceManager.BlockingEarlyLoadedService]
-    public sealed partial class ToastGui : IDisposable
+    public sealed partial class ToastGui : IDisposable, IServiceType
     {
         private const uint QuestToastCheckmarkMagic = 60081;
 

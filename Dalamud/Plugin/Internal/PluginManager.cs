@@ -31,7 +31,7 @@ namespace Dalamud.Plugin.Internal;
 /// Class responsible for loading and unloading plugins.
 /// </summary>
 [ServiceManager.EarlyLoadedService]
-internal partial class PluginManager : IDisposable
+internal partial class PluginManager : IDisposable, IServiceType
 {
     /// <summary>
     /// The current Dalamud API level, used to handle breaking changes. Only plugins with this level will be loaded.

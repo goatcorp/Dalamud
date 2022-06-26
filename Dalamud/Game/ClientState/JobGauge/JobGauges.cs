@@ -15,7 +15,7 @@ namespace Dalamud.Game.ClientState.JobGauge
     [PluginInterface]
     [InterfaceVersion("1.0")]
     [ServiceManager.BlockingEarlyLoadedService]
-    public class JobGauges
+    public class JobGauges : IServiceType
     {
         private Dictionary<Type, JobGaugeBase> cache = new();
 

@@ -28,7 +28,7 @@ namespace Dalamud.Game.Gui
     [PluginInterface]
     [InterfaceVersion("1.0")]
     [ServiceManager.BlockingEarlyLoadedService]
-    public sealed unsafe class GameGui : IDisposable
+    public sealed unsafe class GameGui : IDisposable, IServiceType
     {
         private readonly GameGuiAddressResolver address;
 

@@ -24,7 +24,7 @@ namespace Dalamud.Game.Internal
     /// This class implements in-game Dalamud options in the in-game System menu.
     /// </summary>
     [ServiceManager.EarlyLoadedService]
-    internal sealed unsafe partial class DalamudAtkTweaks
+    internal sealed unsafe partial class DalamudAtkTweaks : IServiceType
     {
         private readonly AtkValueChangeType atkValueChangeType;
         private readonly AtkValueSetString atkValueSetString;

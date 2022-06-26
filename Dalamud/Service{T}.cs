@@ -17,7 +17,7 @@ namespace Dalamud
     /// Only used internally within Dalamud, if plugins need access to things it should be _only_ via DI.
     /// </remarks>
     /// <typeparam name="T">The class you want to store in the service locator.</typeparam>
-    internal static class Service<T>
+    internal static class Service<T> where T : IServiceType
     {
         // ReSharper disable once StaticMemberInGenericType
         private static readonly TaskCompletionSource<T> InstanceTcs = new();

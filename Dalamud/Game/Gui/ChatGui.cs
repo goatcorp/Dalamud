@@ -22,7 +22,7 @@ namespace Dalamud.Game.Gui
     [PluginInterface]
     [InterfaceVersion("1.0")]
     [ServiceManager.BlockingEarlyLoadedService]
-    public sealed class ChatGui : IDisposable
+    public sealed class ChatGui : IDisposable, IServiceType
     {
         private readonly ChatGuiAddressResolver address;
 

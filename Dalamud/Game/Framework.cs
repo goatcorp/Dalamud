@@ -25,7 +25,7 @@ namespace Dalamud.Game
     [PluginInterface]
     [InterfaceVersion("1.0")]
     [ServiceManager.BlockingEarlyLoadedService]
-    public sealed class Framework : IDisposable
+    public sealed class Framework : IDisposable, IServiceType
     {
         private static Stopwatch statsStopwatch = new();
 

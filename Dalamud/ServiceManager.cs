@@ -6,7 +6,6 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Dalamud.Configuration.Internal;
 using Dalamud.Game;
-using Dalamud.Interface.Internal;
 using Dalamud.IoC.Internal;
 using Dalamud.Logging.Internal;
 using Dalamud.Utility.Timing;

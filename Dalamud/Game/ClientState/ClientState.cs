@@ -28,7 +28,7 @@ namespace Dalamud.Game.ClientState
     [PluginInterface]
     [InterfaceVersion("1.0")]
     [ServiceManager.BlockingEarlyLoadedService]
-    public sealed class ClientState : IDisposable
+    public sealed class ClientState : IDisposable, IServiceType
     {
         private readonly ClientStateAddressResolver address;
         private readonly Hook<SetupTerritoryTypeDelegate> setupTerritoryTypeHook;

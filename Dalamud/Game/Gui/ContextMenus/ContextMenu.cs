@@ -25,7 +25,7 @@ namespace Dalamud.Game.Gui.ContextMenus
     [PluginInterface]
     [InterfaceVersion("1.0")]
     [ServiceManager.BlockingEarlyLoadedService]
-    public sealed class ContextMenu : IDisposable
+    public sealed class ContextMenu : IDisposable, IServiceType
     {
         private const int MaxContextMenuItemsPerContextMenu = 32;
 

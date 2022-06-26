@@ -16,7 +16,7 @@ namespace Dalamud.Game.Gui.PartyFinder
     [PluginInterface]
     [InterfaceVersion("1.0")]
     [ServiceManager.BlockingEarlyLoadedService]
-    public sealed class PartyFinderGui : IDisposable
+    public sealed class PartyFinderGui : IDisposable, IServiceType
     {
         private readonly PartyFinderAddressResolver address;
         private readonly IntPtr memory;
