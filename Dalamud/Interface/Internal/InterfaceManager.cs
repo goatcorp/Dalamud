@@ -68,8 +68,8 @@ namespace Dalamud.Interface.Internal
         // can't access imgui IO before first present call
         private bool lastWantCapture = false;
         private bool isRebuildingFonts = false;
-        private bool isOverrideGameCursor = false;
         private bool isFallbackFontMode = false;
+        private bool isOverrideGameCursor = true;
 
         [ServiceManager.ServiceConstructor]
         private InterfaceManager()
