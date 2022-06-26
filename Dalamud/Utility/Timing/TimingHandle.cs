@@ -19,7 +19,8 @@ public sealed class TimingHandle : TimingEvent, IDisposable, IComparable<TimingH
     {
         this.Stack = Timings.TaskTimingHandles;
 
-        this.Parent = this.Stack.LastOrDefault();
+        lock (this.Stack)
+            this.Parent = this.Stack.LastOrDefault();
 
         if (this.Parent != null)
         {
@@ -36,7 +37,8 @@ public sealed class TimingHandle : TimingEvent, IDisposable, IComparable<TimingH
         this.EndTime = this.StartTime;
         this.IsMainThread = ThreadSafety.IsMainThread;
 
-        this.Stack.Add(this);
+        lock (this.Stack)
+            this.Stack.Add(this);
     }
 
     /// <summary>
@@ -78,7 +80,10 @@ public sealed class TimingHandle : TimingEvent, IDisposable, IComparable<TimingH
     public void Dispose()
     {
         this.EndTime = Timings.Stopwatch.Elapsed.TotalMilliseconds;
-        this.Stack.Remove(this);
+
+        lock (this.Stack)
+            this.Stack.Remove(this);
+
         if (this.Duration > 1 || this.ChildCount > 0)
         {
             lock (Timings.AllTimings)
