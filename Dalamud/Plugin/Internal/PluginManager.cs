@@ -386,12 +386,8 @@ internal partial class PluginManager : IDisposable
 
         // Load plugins that want to be loaded during Framework.Tick, when drawing facilities are available
         loadTasks.Add(
-            Service<InterfaceManager>
+            Service<InterfaceManager.InterfaceManagerWithScene>
                 .GetAsync()
-                .ContinueWith(
-                    x => x.Result.SceneInitializeTask,
-                    TaskContinuationOptions.RunContinuationsAsynchronously)
-                .Unwrap()
                 .ContinueWith(
                     _ => Service<Framework>.Get().RunOnTick(
                         () => LoadPluginsSync(

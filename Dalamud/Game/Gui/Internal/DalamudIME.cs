@@ -83,15 +83,13 @@ namespace Dalamud.Game.Gui.Internal
             return new Vector2(this.cursorPos->X, this.cursorPos->Y);
         }
 
-        /// <summary>
-        /// Enables the IME module.
-        /// </summary>
-        internal void Enable()
+        [ServiceManager.CallWhenServicesReady]
+        private void ContinueConstruction(InterfaceManager.InterfaceManagerWithScene interfaceManagerWithScene)
         {
             try
             {
                 this.wndProcDelegate = this.WndProcDetour;
-                this.interfaceHandle = Service<InterfaceManager>.Get().WindowHandlePtr;
+                this.interfaceHandle = interfaceManagerWithScene.Manager.WindowHandlePtr;
                 this.wndProcPtr = Marshal.GetFunctionPointerForDelegate(this.wndProcDelegate);
                 this.oldWndProcPtr = SetWindowLongPtrW(this.interfaceHandle, WindowLongType.WndProc, this.wndProcPtr);
 

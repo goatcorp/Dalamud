@@ -67,7 +67,6 @@ namespace Dalamud
 
             var earlyLoadingServices = new HashSet<Type>();
             var blockingEarlyLoadingServices = new HashSet<Type>();
-            var afterDrawingEarlyLoadedServices = new HashSet<Type>();
 
             var dependencyServicesMap = new Dictionary<Type, List<Type>>();
             var getAsyncTaskMap = new Dictionary<Type, Task>();
@@ -89,10 +88,6 @@ namespace Dalamud
                 {
                     getAsyncTaskMap[serviceType] = getTask;
                     blockingEarlyLoadingServices.Add(serviceType);
-                }
-                else if (attr.IsAssignableTo(typeof(AfterDrawingEarlyLoadedService)))
-                {
-                    afterDrawingEarlyLoadedServices.Add(serviceType);
                 }
                 else
                 {
@@ -126,55 +121,44 @@ namespace Dalamud
 
             try
             {
-                for (var i = 0; i < 2; i++)
+                var tasks = new List<Task>();
+                var servicesToLoad = new HashSet<Type>();
+                servicesToLoad.UnionWith(earlyLoadingServices);
+                servicesToLoad.UnionWith(blockingEarlyLoadingServices);
+
+                while (servicesToLoad.Any())
                 {
-                    var tasks = new List<Task>();
-                    var servicesToLoad = new HashSet<Type>();
-                    if (i == 0)
+                    foreach (var serviceType in servicesToLoad)
                     {
-                        servicesToLoad.UnionWith(earlyLoadingServices);
-                        servicesToLoad.UnionWith(blockingEarlyLoadingServices);
+                        if (dependencyServicesMap[serviceType].Any(
+                                x => getAsyncTaskMap.GetValueOrDefault(x)?.IsCompleted == false))
+                            continue;
+
+                        tasks.Add((Task)service.MakeGenericType(serviceType).InvokeMember(
+                                      "StartLoader",
+                                      BindingFlags.InvokeMethod | BindingFlags.Static | BindingFlags.Public,
+                                      null,
+                                      null,
+                                      null));
+                        servicesToLoad.Remove(serviceType);
+                    }
+
+                    if (!tasks.Any())
+                        throw new InvalidOperationException("Unresolvable dependency cycle detected");
+
+                    if (servicesToLoad.Any())
+                    {
+                        await Task.WhenAny(tasks);
+                        var faultedTasks = tasks.Where(x => x.IsFaulted).Select(x => (Exception)x.Exception!).ToArray();
+                        if (faultedTasks.Any())
+                            throw new AggregateException(faultedTasks);
                     }
                     else
                     {
-                        servicesToLoad.UnionWith(afterDrawingEarlyLoadedServices);
-                        await (await Service<InterfaceManager>.GetAsync()).SceneInitializeTask;
+                        await Task.WhenAll(tasks);
                     }
 
-                    while (servicesToLoad.Any())
-                    {
-                        foreach (var serviceType in servicesToLoad)
-                        {
-                            if (dependencyServicesMap[serviceType].Any(
-                                    x => getAsyncTaskMap.GetValueOrDefault(x)?.IsCompleted == false))
-                                continue;
-
-                            tasks.Add((Task)service.MakeGenericType(serviceType).InvokeMember(
-                                          "StartLoader",
-                                          BindingFlags.InvokeMethod | BindingFlags.Static | BindingFlags.Public,
-                                          null,
-                                          null,
-                                          null));
-                            servicesToLoad.Remove(serviceType);
-                        }
-
-                        if (!tasks.Any())
-                            throw new InvalidOperationException("Unresolvable dependency cycle detected");
-
-                        if (servicesToLoad.Any())
-                        {
-                            await Task.WhenAny(tasks);
-                            var faultedTasks = tasks.Where(x => x.IsFaulted).Select(x => (Exception)x.Exception!).ToArray();
-                            if (faultedTasks.Any())
-                                throw new AggregateException(faultedTasks);
-                        }
-                        else
-                        {
-                            await Task.WhenAll(tasks);
-                        }
-
-                        tasks.RemoveAll(x => x.IsCompleted);
-                    }
+                    tasks.RemoveAll(x => x.IsCompleted);
                 }
             }
             catch (Exception e)
@@ -236,11 +220,11 @@ namespace Dalamud
         }
 
         /// <summary>
-        /// Indicates that the class is a service, and will be instantiated automatically on startup,
-        /// when drawing becomes available.
+        /// Indicates that the method should be called when the services given in the constructor are ready.
         /// </summary>
-        [AttributeUsage(AttributeTargets.Class)]
-        public class AfterDrawingEarlyLoadedService : EarlyLoadedService
+        [AttributeUsage(AttributeTargets.Method)]
+        [MeansImplicitUse]
+        public class CallWhenServicesReady : Attribute
         {
         }
     }

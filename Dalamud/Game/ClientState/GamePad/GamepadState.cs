@@ -168,10 +168,8 @@ namespace Dalamud.Game.ClientState.GamePad
             GC.SuppressFinalize(this);
         }
 
-        /// <summary>
-        /// Enables the hook of the GamepadPoll function.
-        /// </summary>
-        internal void Enable()
+        [ServiceManager.CallWhenServicesReady]
+        private void ContinueConstruction()
         {
             this.gamepadPoll.Enable();
         }

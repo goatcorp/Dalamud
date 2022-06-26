@@ -39,7 +39,7 @@ namespace Dalamud.Game.Internal
         private readonly string locDalamudSettings;
 
         [ServiceManager.ServiceConstructor]
-        private DalamudAtkTweaks(SigScanner sigScanner)
+        private DalamudAtkTweaks(SigScanner sigScanner, ContextMenu contextMenu)
         {
             var openSystemMenuAddress = sigScanner.ScanText("E8 ?? ?? ?? ?? 32 C0 4C 8B AC 24 ?? ?? ?? ?? 48 8B 8D ?? ?? ?? ??");
 
@@ -60,10 +60,7 @@ namespace Dalamud.Game.Internal
             this.locDalamudPlugins = Loc.Localize("SystemMenuPlugins", "Dalamud Plugins");
             this.locDalamudSettings = Loc.Localize("SystemMenuSettings", "Dalamud Settings");
 
-            var contextMenu = Service<ContextMenu>.Get();
             contextMenu.ContextMenuOpened += this.ContextMenuOnContextMenuOpened;
-
-            this.Enable();
         }
 
         private delegate void AgentHudOpenSystemMenuPrototype(void* thisPtr, AtkValue* atkValueArgs, uint menuSize);
@@ -76,10 +73,8 @@ namespace Dalamud.Game.Internal
 
         private delegate IntPtr AtkUnitBaseReceiveGlobalEvent(AtkUnitBase* thisPtr, ushort cmd, uint a3, IntPtr a4, uint* a5);
 
-        /// <summary>
-        /// Enables the <see cref="DalamudAtkTweaks"/>.
-        /// </summary>
-        public void Enable()
+        [ServiceManager.CallWhenServicesReady]
+        private void ContinueConstruction(DalamudInterface dalamudInterface)
         {
             this.hookAgentHudOpenSystemMenu.Enable();
             this.hookUiModuleRequestMainCommand.Enable();

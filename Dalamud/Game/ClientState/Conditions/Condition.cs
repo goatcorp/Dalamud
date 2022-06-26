@@ -82,16 +82,14 @@ namespace Dalamud.Game.ClientState.Conditions
             return false;
         }
 
-        /// <summary>
-        /// Enables the hooks of the Condition class function.
-        /// </summary>
-        public void Enable()
+        [ServiceManager.CallWhenServicesReady]
+        private void ContinueConstruction(Framework framework)
         {
             // Initialization
             for (var i = 0; i < MaxConditionEntries; i++)
                 this.cache[i] = this[i];
 
-            Service<Framework>.Get().Update += this.FrameworkUpdate;
+            framework.Update += this.FrameworkUpdate;
         }
 
         private void FrameworkUpdate(Framework framework)

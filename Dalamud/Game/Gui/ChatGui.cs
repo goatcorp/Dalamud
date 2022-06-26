@@ -124,16 +124,6 @@ namespace Dalamud.Game.Gui
         public byte LastLinkedItemFlags { get; private set; }
 
         /// <summary>
-        /// Enables this module.
-        /// </summary>
-        public void Enable()
-        {
-            this.printMessageHook.Enable();
-            this.populateItemLinkHook.Enable();
-            this.interactableLinkClickedHook.Enable();
-        }
-
-        /// <summary>
         /// Dispose of managed and unmanaged resources.
         /// </summary>
         void IDisposable.Dispose()
@@ -278,6 +268,14 @@ namespace Dalamud.Game.Gui
             {
                 this.dalamudLinkHandlers.Remove((pluginName, commandId));
             }
+        }
+
+        [ServiceManager.CallWhenServicesReady]
+        private void ContinueConstruction(GameGui gameGui, LibcFunction libcFunction)
+        {
+            this.printMessageHook.Enable();
+            this.populateItemLinkHook.Enable();
+            this.interactableLinkClickedHook.Enable();
         }
 
         private void HandlePopulateItemLinkDetour(IntPtr linkObjectPtr, IntPtr itemInfoPtr)

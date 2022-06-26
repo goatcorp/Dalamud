@@ -7,12 +7,10 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using Dalamud.Configuration.Internal;
 using Dalamud.Game;
 using Dalamud.Game.ClientState.GamePad;
 using Dalamud.Game.ClientState.Keys;
-using Dalamud.Game.Gui.Internal;
 using Dalamud.Game.Internal.DXGI;
 using Dalamud.Hooking;
 using Dalamud.Interface.GameFonts;
@@ -61,7 +59,6 @@ namespace Dalamud.Interface.Internal
 
         private readonly ManualResetEvent fontBuildSignal;
         private readonly SwapChainVtableResolver address;
-        private readonly TaskCompletionSource sceneInitializeTaskCompletionSource = new();
         private RawDX11Scene? scene;
 
         private Hook<PresentDelegate>? presentHook;
@@ -71,7 +68,7 @@ namespace Dalamud.Interface.Internal
         // can't access imgui IO before first present call
         private bool lastWantCapture = false;
         private bool isRebuildingFonts = false;
-
+        private bool isOverrideGameCursor = false;
         private bool isFallbackFontMode = false;
 
         [ServiceManager.ServiceConstructor]
@@ -100,13 +97,6 @@ namespace Dalamud.Interface.Internal
             {
                 Log.Error(e, "RTSS Free failed");
             }
-
-            Task.Run(async () =>
-            {
-                var framework = await Service<Framework>.GetAsync();
-                var sigScanner = await Service<SigScanner>.GetAsync();
-                await framework.RunOnFrameworkThread(() => this.Enable(sigScanner));
-            });
         }
 
         [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
@@ -161,11 +151,6 @@ namespace Dalamud.Interface.Internal
         public static ImFontPtr MonoFont { get; private set; }
 
         /// <summary>
-        /// Gets a task that gets completed when scene gets initialized.
-        /// </summary>
-        public Task SceneInitializeTask => this.sceneInitializeTaskCompletionSource.Task;
-
-        /// <summary>
         /// Gets or sets the pointer to ImGui.IO(), when it was last used.
         /// </summary>
         public ImGuiIOPtr LastImGuiIoPtr { get; set; }
@@ -178,15 +163,20 @@ namespace Dalamud.Interface.Internal
         /// <summary>
         /// Gets the address handle to the main process window.
         /// </summary>
-        public IntPtr WindowHandlePtr => this.scene.WindowHandlePtr;
+        public IntPtr WindowHandlePtr => this.scene?.WindowHandlePtr ?? IntPtr.Zero;
 
         /// <summary>
         /// Gets or sets a value indicating whether or not the game's cursor should be overridden with the ImGui cursor.
         /// </summary>
         public bool OverrideGameCursor
         {
-            get => this.scene.UpdateCursor;
-            set => this.scene.UpdateCursor = value;
+            get => this.scene?.UpdateCursor ?? this.isOverrideGameCursor;
+            set
+            {
+                this.isOverrideGameCursor = value;
+                if (this.scene != null)
+                    this.scene.UpdateCursor = value;
+            }
         }
 
         /// <summary>
@@ -344,6 +334,12 @@ namespace Dalamud.Interface.Internal
         /// </summary>
         public void RebuildFonts()
         {
+            if (this.scene == null)
+            {
+                Log.Verbose("[FONT] RebuildFonts(): scene not ready, doing nothing");
+                return;
+            }
+
             Log.Verbose("[FONT] RebuildFonts() called");
 
             // don't invoke this multiple times per frame, in case multiple plugins call it
@@ -439,7 +435,7 @@ namespace Dalamud.Interface.Internal
         private IntPtr PresentDetour(IntPtr swapChain, uint syncInterval, uint presentFlags)
         {
             if (this.scene != null && swapChain != this.scene.SwapChain.NativePointer)
-                return this.presentHook.Original(swapChain, syncInterval, presentFlags);
+                return this.presentHook!.Original(swapChain, syncInterval, presentFlags);
 
             if (this.scene == null)
             {
@@ -451,7 +447,7 @@ namespace Dalamud.Interface.Internal
                     }
                     catch (DllNotFoundException ex)
                     {
-                        this.sceneInitializeTaskCompletionSource.SetException(ex);
+                        Service<InterfaceManagerWithScene>.ProvideException(ex);
                         Log.Error(ex, "Could not load ImGui dependencies.");
 
                         var res = PInvoke.User32.MessageBox(
@@ -492,6 +488,7 @@ namespace Dalamud.Interface.Internal
                         Log.Error(ex, "Could not delete dalamudUI.ini");
                     }
 
+                    this.scene.UpdateCursor = this.isOverrideGameCursor;
                     this.scene.ImGuiIniPath = iniFileInfo.FullName;
                     this.scene.OnBuildUI += this.Display;
                     this.scene.OnNewInputFrame += this.OnNewInputFrame;
@@ -557,7 +554,7 @@ namespace Dalamud.Interface.Internal
 
                     Log.Information("[IM] Scene & ImGui setup OK!");
 
-                    Service<DalamudIME>.Get().Enable();
+                    Service<Framework>.Get().RunOnFrameworkThread(() => Service<InterfaceManagerWithScene>.Provide(new(this)));
                 }
             }
 
@@ -567,16 +564,10 @@ namespace Dalamud.Interface.Internal
 
                 this.RenderImGui();
 
-                if (!this.SceneInitializeTask.IsCompleted)
-                    this.sceneInitializeTaskCompletionSource.SetResult();
-
                 return pRes;
             }
 
             this.RenderImGui();
-
-            if (!this.SceneInitializeTask.IsCompleted)
-                this.sceneInitializeTaskCompletionSource.SetResult();
 
             return this.presentHook.Original(swapChain, syncInterval, presentFlags);
         }
@@ -978,21 +969,20 @@ namespace Dalamud.Interface.Internal
             }
         }
 
-        private void Enable(SigScanner sigScanner)
+        [ServiceManager.CallWhenServicesReady]
+        private void ContinueConstruction(SigScanner sigScanner)
         {
             this.address.Setup(sigScanner);
-            this.setCursorHook = Hook<SetCursorDelegate>.FromSymbol("user32.dll", "SetCursor", this.SetCursorDetour, true);
+            this.setCursorHook = Hook<SetCursorDelegate>.FromSymbol("user32.dll", "SetCursor", this.SetCursorDetour, true)!;
             this.presentHook = new Hook<PresentDelegate>(this.address.Present, this.PresentDetour);
             this.resizeBuffersHook = new Hook<ResizeBuffersDelegate>(this.address.ResizeBuffers, this.ResizeBuffersDetour);
 
-            var setCursorAddress = this.setCursorHook?.Address ?? IntPtr.Zero;
-
             Log.Verbose("===== S W A P C H A I N =====");
-            Log.Verbose($"SetCursor address 0x{setCursorAddress.ToInt64():X}");
-            Log.Verbose($"Present address 0x{this.presentHook.Address.ToInt64():X}");
-            Log.Verbose($"ResizeBuffers address 0x{this.resizeBuffersHook.Address.ToInt64():X}");
+            Log.Verbose($"SetCursor address 0x{this.setCursorHook!.Address.ToInt64():X}");
+            Log.Verbose($"Present address 0x{this.presentHook!.Address.ToInt64():X}");
+            Log.Verbose($"ResizeBuffers address 0x{this.resizeBuffersHook!.Address.ToInt64():X}");
 
-            this.setCursorHook?.Enable();
+            this.setCursorHook.Enable();
             this.presentHook.Enable();
             this.resizeBuffersHook.Enable();
 
@@ -1018,8 +1008,8 @@ namespace Dalamud.Interface.Internal
         private void Disable()
         {
             this.setCursorHook?.Disable();
-            this.presentHook.Disable();
-            this.resizeBuffersHook.Disable();
+            this.presentHook?.Disable();
+            this.resizeBuffersHook?.Disable();
         }
 
         // This is intended to only be called as a handler attached to scene.OnNewRenderFrame
@@ -1029,7 +1019,7 @@ namespace Dalamud.Interface.Internal
             this.SetupFonts();
 
             Log.Verbose("[FONT] RebuildFontsInternal() detaching");
-            this.scene.OnNewRenderFrame -= this.RebuildFontsInternal;
+            this.scene!.OnNewRenderFrame -= this.RebuildFontsInternal;
 
             Log.Verbose("[FONT] Calling InvalidateFonts");
             try
@@ -1077,11 +1067,11 @@ namespace Dalamud.Interface.Internal
             // We have to ensure we're working with the main swapchain,
             // as viewports might be resizing as well
             if (this.scene == null || swapChain != this.scene.SwapChain.NativePointer)
-                return this.resizeBuffersHook.Original(swapChain, bufferCount, width, height, newFormat, swapChainFlags);
+                return this.resizeBuffersHook!.Original(swapChain, bufferCount, width, height, newFormat, swapChainFlags);
 
             this.scene?.OnPreResize();
 
-            var ret = this.resizeBuffersHook.Original(swapChain, bufferCount, width, height, newFormat, swapChainFlags);
+            var ret = this.resizeBuffersHook!.Original(swapChain, bufferCount, width, height, newFormat, swapChainFlags);
             if (ret.ToInt64() == 0x887A0001)
             {
                 Log.Error("invalid call to resizeBuffers");
@@ -1097,7 +1087,7 @@ namespace Dalamud.Interface.Internal
             if (this.lastWantCapture == true && (!this.scene?.IsImGuiCursor(hCursor) ?? false) && this.OverrideGameCursor)
                 return IntPtr.Zero;
 
-            return this.setCursorHook.Original(hCursor);
+            return this.setCursorHook!.Original(hCursor);
         }
 
         private void OnNewInputFrame()
@@ -1183,6 +1173,26 @@ namespace Dalamud.Interface.Internal
             ImGuiManagedAsserts.ReportProblems("Dalamud Core", snap);
 
             Service<NotificationManager>.Get().Draw();
+        }
+
+        /// <summary>
+        /// Represents an instance of InstanceManager with scene ready for use.
+        /// </summary>
+        public class InterfaceManagerWithScene
+        {
+            /// <summary>
+            /// Initializes a new instance of the <see cref="InterfaceManagerWithScene"/> class.
+            /// </summary>
+            /// <param name="interfaceManager">An instance of <see cref="InterfaceManager"/>.</param>
+            internal InterfaceManagerWithScene(InterfaceManager interfaceManager)
+            {
+                this.Manager = interfaceManager;
+            }
+
+            /// <summary>
+            /// Associated InterfaceManager.
+            /// </summary>
+            public InterfaceManager Manager { get; init; }
         }
 
         /// <summary>
