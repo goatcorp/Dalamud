@@ -1079,7 +1079,7 @@ namespace Dalamud.Interface.Internal
                     return res.Value;
             }
 
-            return this.dispatchMessageWHook.Original(ref msg);
+            return this.dispatchMessageWHook.IsDisposed ? User32.DispatchMessage(ref msg) : this.dispatchMessageWHook.Original(ref msg);
         }
 
         private IntPtr ResizeBuffersDetour(IntPtr swapChain, uint bufferCount, uint width, uint height, uint newFormat, uint swapChainFlags)
