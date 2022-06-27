@@ -970,39 +970,42 @@ namespace Dalamud.Interface.Internal
         }
 
         [ServiceManager.CallWhenServicesReady]
-        private void ContinueConstruction(SigScanner sigScanner)
+        private void ContinueConstruction(SigScanner sigScanner, Framework framework)
         {
             this.address.Setup(sigScanner);
-            this.setCursorHook = Hook<SetCursorDelegate>.FromSymbol("user32.dll", "SetCursor", this.SetCursorDetour, true)!;
-            this.presentHook = new Hook<PresentDelegate>(this.address.Present, this.PresentDetour);
-            this.resizeBuffersHook = new Hook<ResizeBuffersDelegate>(this.address.ResizeBuffers, this.ResizeBuffersDetour);
-
-            Log.Verbose("===== S W A P C H A I N =====");
-            Log.Verbose($"SetCursor address 0x{this.setCursorHook!.Address.ToInt64():X}");
-            Log.Verbose($"Present address 0x{this.presentHook!.Address.ToInt64():X}");
-            Log.Verbose($"ResizeBuffers address 0x{this.resizeBuffersHook!.Address.ToInt64():X}");
-
-            this.setCursorHook.Enable();
-            this.presentHook.Enable();
-            this.resizeBuffersHook.Enable();
-
-            try
+            framework.RunOnFrameworkThread(() =>
             {
-                if (!string.IsNullOrEmpty(this.rtssPath))
+                this.setCursorHook = Hook<SetCursorDelegate>.FromSymbol("user32.dll", "SetCursor", this.SetCursorDetour, true)!;
+                this.presentHook = new Hook<PresentDelegate>(this.address.Present, this.PresentDetour);
+                this.resizeBuffersHook = new Hook<ResizeBuffersDelegate>(this.address.ResizeBuffers, this.ResizeBuffersDetour);
+
+                Log.Verbose("===== S W A P C H A I N =====");
+                Log.Verbose($"SetCursor address 0x{this.setCursorHook!.Address.ToInt64():X}");
+                Log.Verbose($"Present address 0x{this.presentHook!.Address.ToInt64():X}");
+                Log.Verbose($"ResizeBuffers address 0x{this.resizeBuffersHook!.Address.ToInt64():X}");
+
+                this.setCursorHook.Enable();
+                this.presentHook.Enable();
+                this.resizeBuffersHook.Enable();
+
+                try
                 {
-                    NativeFunctions.LoadLibraryW(this.rtssPath);
-                    var rtssModule = NativeFunctions.GetModuleHandleW("RTSSHooks64.dll");
-                    var installAddr = NativeFunctions.GetProcAddress(rtssModule, "InstallRTSSHook");
+                    if (!string.IsNullOrEmpty(this.rtssPath))
+                    {
+                        NativeFunctions.LoadLibraryW(this.rtssPath);
+                        var rtssModule = NativeFunctions.GetModuleHandleW("RTSSHooks64.dll");
+                        var installAddr = NativeFunctions.GetProcAddress(rtssModule, "InstallRTSSHook");
 
-                    Log.Debug("Installing RTSS hook");
-                    Marshal.GetDelegateForFunctionPointer<InstallRTSSHook>(installAddr).Invoke();
-                    Log.Debug("RTSS hook OK!");
+                        Log.Debug("Installing RTSS hook");
+                        Marshal.GetDelegateForFunctionPointer<InstallRTSSHook>(installAddr).Invoke();
+                        Log.Debug("RTSS hook OK!");
+                    }
                 }
-            }
-            catch (Exception ex)
-            {
-                Log.Error(ex, "Could not reload RTSS");
-            }
+                catch (Exception ex)
+                {
+                    Log.Error(ex, "Could not reload RTSS");
+                }
+            });
         }
 
         private void Disable()
