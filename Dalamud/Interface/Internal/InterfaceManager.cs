@@ -28,6 +28,7 @@ using Serilog;
 using SharpDX.Direct3D11;
 
 // general dev notes, here because it's easiest
+
 /*
  * - Hooking ResizeBuffers seemed to be unnecessary, though I'm not sure why.  Left out for now since it seems to work without it.
  * - We may want to build our ImGui command list in a thread to keep it divorced from present.  We'd still have to block in present to
@@ -58,7 +59,6 @@ namespace Dalamud.Interface.Internal
 
         private readonly ManualResetEvent fontBuildSignal;
         private readonly SwapChainVtableResolver address;
-        private readonly Hook<D3D11CreateDeviceAndSwapChainDelegate> d3d11CreateDeviceAndSwapChainHook;
         private readonly Hook<DispatchMessageWDelegate> dispatchMessageWHook;
         private readonly Hook<SetCursorDelegate> setCursorHook;
         private RawDX11Scene? scene;
@@ -75,9 +75,10 @@ namespace Dalamud.Interface.Internal
         [ServiceManager.ServiceConstructor]
         private InterfaceManager(SigScanner sigScanner)
         {
-            this.d3d11CreateDeviceAndSwapChainHook = Hook<D3D11CreateDeviceAndSwapChainDelegate>.FromSymbol("dxgi.dll", "D3D11CreateDeviceAndSwapChain", this.D3D11CreateDeviceAndSwapChainDetour);
-            this.dispatchMessageWHook = Hook<DispatchMessageWDelegate>.FromSymbol("user32.dll", "DispatchMessageW", this.DispatchMessageWDetour, true);
-            this.setCursorHook = Hook<SetCursorDelegate>.FromSymbol("user32.dll", "SetCursor", this.SetCursorDetour, true)!;
+            this.dispatchMessageWHook = Hook<DispatchMessageWDelegate>.FromImport(
+                Process.GetCurrentProcess().MainModule, "user32.dll", "DispatchMessageW", 0, this.DispatchMessageWDetour);
+            this.setCursorHook = Hook<SetCursorDelegate>.FromImport(
+                Process.GetCurrentProcess().MainModule, "user32.dll", "SetCursor", 0, this.SetCursorDetour);
 
             this.fontBuildSignal = new ManualResetEvent(false);
 
@@ -91,7 +92,10 @@ namespace Dalamud.Interface.Internal
         private delegate IntPtr ResizeBuffersDelegate(IntPtr swapChain, uint bufferCount, uint width, uint height, uint newFormat, uint swapChainFlags);
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-        private delegate int D3D11CreateDeviceAndSwapChainDelegate(IntPtr pAdapter, int driverType, IntPtr software, uint flags, IntPtr pFeatureLevels, uint featureLevels, uint sdkVersion, IntPtr pSwapChainDesc, ref IntPtr ppSwapChain, ref IntPtr ppDevice, IntPtr pFeatureLevel, ref IntPtr ppImmediateContext);
+        private delegate int CreateDXGIFactoryDelegate(Guid riid, out IntPtr ppFactory);
+
+        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+        private delegate int IDXGIFactory_CreateSwapChainDelegate(IntPtr pFactory, IntPtr pDevice, IntPtr pDesc, out IntPtr ppSwapChain);
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
         private delegate IntPtr SetCursorDelegate(IntPtr hCursor);
@@ -547,15 +551,6 @@ namespace Dalamud.Interface.Internal
 
             this.scene = newScene;
             Service<InterfaceManagerWithScene>.Provide(new(this));
-        }
-
-        private int D3D11CreateDeviceAndSwapChainDetour(IntPtr pAdapter, int driverType, IntPtr software, uint flags, IntPtr pFeatureLevels, uint featureLevels, uint sdkVersion, IntPtr pSwapChainDesc, ref IntPtr ppSwapChain, ref IntPtr ppDevice, IntPtr pFeatureLevel, ref IntPtr ppImmediateContext)
-        {
-            var res = this.d3d11CreateDeviceAndSwapChainHook.Original(pAdapter, driverType, software, flags, pFeatureLevel, featureLevels, sdkVersion, pSwapChainDesc, ref ppSwapChain, ref ppDevice, pFeatureLevel, ref ppImmediateContext);
-            if (res >= 0)
-                this.InitScene(ppSwapChain);
-
-            return res;
         }
 
         /*
