@@ -180,8 +180,23 @@ static TFnGetInputDeviceManager* GetGetInputDeviceManager(HWND hwnd) {
 
 void xivfixes::prevent_devicechange_crashes(bool bApply) {
     static const char* LogTag = "[xivfixes:prevent_devicechange_crashes]";
-    static std::optional<hooks::import_hook<decltype(CreateWindowExA)>> s_hookCreateWindowExA;
-    static std::optional<hooks::wndproc_hook> s_hookWndProc;
+
+    // We hook RegisterClassExA, since if the game has already launched (inject mode), the very crash we're trying to fix cannot happen at that point.
+    static std::optional<hooks::import_hook<decltype(RegisterClassExA)>> s_hookRegisterClassExA;
+    static WNDPROC s_pfnGameWndProc = nullptr;
+
+    // We're intentionally leaking memory for this one.
+    static const auto s_pfnBinder = static_cast<WNDPROC>(VirtualAlloc(nullptr, 64, MEM_RESERVE | MEM_COMMIT, PAGE_EXECUTE_READWRITE));
+    static const auto s_pfnAlternativeWndProc = static_cast<WNDPROC>([](HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) -> LRESULT {
+        if (uMsg == WM_DEVICECHANGE && wParam == DBT_DEVNODES_CHANGED) {
+            if (!GetGetInputDeviceManager(hWnd)()) {
+                logging::I("{} WndProc(0x{:X}, WM_DEVICECHANGE, DBT_DEVNODES_CHANGED, {}) called but the game does not have InputDeviceManager initialized; doing nothing.", LogTag, reinterpret_cast<size_t>(hWnd), lParam);
+                return 0;
+            }
+        }
+
+        return s_pfnGameWndProc(hWnd, uMsg, wParam, lParam);
+    });
 
     if (bApply) {
         if (!g_startInfo.BootEnabledGameFixes.contains("prevent_devicechange_crashes")) {
@@ -189,47 +204,38 @@ void xivfixes::prevent_devicechange_crashes(bool bApply) {
             return;
         }
 
-        s_hookCreateWindowExA.emplace("user32.dll!CreateWindowExA (prevent_devicechange_crashes)", "user32.dll", "CreateWindowExA", 0);
-        s_hookCreateWindowExA->set_detour([](DWORD dwExStyle, LPCSTR lpClassName, LPCSTR lpWindowName, DWORD dwStyle, int X, int Y, int nWidth, int nHeight, HWND hWndParent, HMENU hMenu, HINSTANCE hInstance, LPVOID lpParam)->HWND {
-            const auto hWnd = s_hookCreateWindowExA->call_original(dwExStyle, lpClassName, lpWindowName, dwStyle, X, Y, nWidth, nHeight, hWndParent, hMenu, hInstance, lpParam);
+        s_hookRegisterClassExA.emplace("user32.dll!RegisterClassExA (prevent_devicechange_crashes)", "user32.dll", "RegisterClassExA", 0);
+        s_hookRegisterClassExA->set_detour([](const WNDCLASSEXA* pWndClassExA)->ATOM {
+            // If this RegisterClassExA isn't initiated by the game executable, we do not handle it.
+            if (pWndClassExA->hInstance != GetModuleHandleW(nullptr))
+                return s_hookRegisterClassExA->call_original(pWndClassExA);
 
-            if (!hWnd
-                || hInstance != g_hGameInstance
-                || 0 != strcmp(lpClassName, "FFXIVGAME"))
-                return hWnd;
+            // If this RegisterClassExA isn't about FFXIVGAME, the game's main window, we do not handle it.
+            if (strncmp(pWndClassExA->lpszClassName, "FFXIVGAME", 10) != 0)
+                return s_hookRegisterClassExA->call_original(pWndClassExA);
 
-            logging::I(R"({} CreateWindow(0x{:08X}, "{}", "{}", 0x{:08X}, {}, {}, {}, {}, 0x{:X}, 0x{:X}, 0x{:X}, 0x{:X}) called; unhooking CreateWindowExA and hooking WndProc.)",
-                LogTag, dwExStyle, lpClassName, lpWindowName, dwStyle, X, Y, nWidth, nHeight, reinterpret_cast<size_t>(hWndParent), reinterpret_cast<size_t>(hMenu), reinterpret_cast<size_t>(hInstance), reinterpret_cast<size_t>(lpParam));
+            // push qword ptr [rip+1]
+            // ret
+            // <pointer to new wndproc>
+            memcpy(s_pfnBinder, "\xFF\x35\x01\x00\x00\x00\xC3", 7);
+            *reinterpret_cast<void**>(reinterpret_cast<char*>(s_pfnBinder) + 7) = s_pfnAlternativeWndProc;
+            
+            s_pfnGameWndProc = pWndClassExA->lpfnWndProc;
 
-            s_hookWndProc.emplace("FFXIVGAME:WndProc (prevent_devicechange_crashes)", hWnd);
-            s_hookWndProc->set_detour([](HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) -> LRESULT {
-
-                if (uMsg == WM_DEVICECHANGE && wParam == DBT_DEVNODES_CHANGED) {
-                    if (!GetGetInputDeviceManager(hWnd)()) {
-                        logging::I("{} WndProc(0x{:X}, WM_DEVICECHANGE, DBT_DEVNODES_CHANGED, {}) called but the game does not have InputDeviceManager initialized; doing nothing.", LogTag, reinterpret_cast<size_t>(hWnd), lParam);
-                        return 0;
-                    }
-                }
-
-                return s_hookWndProc->call_original(hWnd, uMsg, wParam, lParam);
-            });
-
-            return hWnd;
+            WNDCLASSEXA wndClassExA = *pWndClassExA;
+            wndClassExA.lpfnWndProc = s_pfnBinder;
+            return s_hookRegisterClassExA->call_original(&wndClassExA);
         });
 
         logging::I("{} Enable", LogTag);
 
     } else {
-        if (s_hookCreateWindowExA) {
-            logging::I("{} Disable CreateWindowExA", LogTag);
-            s_hookCreateWindowExA.reset();
+        if (s_hookRegisterClassExA) {
+            logging::I("{} Disable RegisterClassExA", LogTag);
+            s_hookRegisterClassExA.reset();
         }
 
-        // This will effectively revert any other WndProc alterations, including Dalamud.
-        if (s_hookWndProc) {
-            logging::I("{} Disable WndProc", LogTag);
-            s_hookWndProc.reset();
-        }
+        *reinterpret_cast<void**>(reinterpret_cast<char*>(s_pfnBinder) + 7) = s_pfnGameWndProc;
     }
 }
 
