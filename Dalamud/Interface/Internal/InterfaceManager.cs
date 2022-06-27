@@ -11,6 +11,7 @@ using Dalamud.Configuration.Internal;
 using Dalamud.Game;
 using Dalamud.Game.ClientState.GamePad;
 using Dalamud.Game.ClientState.Keys;
+using Dalamud.Game.Gui.Internal;
 using Dalamud.Game.Internal.DXGI;
 using Dalamud.Hooking;
 using Dalamud.Interface.GameFonts;
@@ -27,6 +28,7 @@ using Serilog;
 using SharpDX.Direct3D11;
 
 // general dev notes, here because it's easiest
+
 /*
  * - Hooking ResizeBuffers seemed to be unnecessary, though I'm not sure why.  Left out for now since it seems to work without it.
  * - We may want to build our ImGui command list in a thread to keep it divorced from present.  We'd still have to block in present to
@@ -52,18 +54,17 @@ namespace Dalamud.Interface.Internal
         private const ushort Fallback1Codepoint = 0x3013; // Geta mark; FFXIV uses this to indicate that a glyph is missing.
         private const ushort Fallback2Codepoint = '-'; // FFXIV uses dash if Geta mark is unavailable.
 
-        private readonly string rtssPath;
-
         private readonly HashSet<SpecialGlyphRequest> glyphRequests = new();
         private readonly Dictionary<ImFontPtr, TargetFontModification> loadedFontInfo = new();
 
         private readonly ManualResetEvent fontBuildSignal;
         private readonly SwapChainVtableResolver address;
+        private readonly Hook<DispatchMessageWDelegate> dispatchMessageWHook;
+        private readonly Hook<SetCursorDelegate> setCursorHook;
         private RawDX11Scene? scene;
 
         private Hook<PresentDelegate>? presentHook;
         private Hook<ResizeBuffersDelegate>? resizeBuffersHook;
-        private Hook<SetCursorDelegate>? setCursorHook;
 
         // can't access imgui IO before first present call
         private bool lastWantCapture = false;
@@ -72,31 +73,16 @@ namespace Dalamud.Interface.Internal
         private bool isOverrideGameCursor = true;
 
         [ServiceManager.ServiceConstructor]
-        private InterfaceManager()
+        private InterfaceManager(SigScanner sigScanner)
         {
+            this.dispatchMessageWHook = Hook<DispatchMessageWDelegate>.FromImport(
+                Process.GetCurrentProcess().MainModule, "user32.dll", "DispatchMessageW", 0, this.DispatchMessageWDetour);
+            this.setCursorHook = Hook<SetCursorDelegate>.FromImport(
+                Process.GetCurrentProcess().MainModule, "user32.dll", "SetCursor", 0, this.SetCursorDetour);
+
             this.fontBuildSignal = new ManualResetEvent(false);
 
             this.address = new SwapChainVtableResolver();
-
-            try
-            {
-                var rtss = NativeFunctions.GetModuleHandleW("RTSSHooks64.dll");
-
-                if (rtss != IntPtr.Zero)
-                {
-                    var fileName = new StringBuilder(255);
-                    _ = NativeFunctions.GetModuleFileNameW(rtss, fileName, fileName.Capacity);
-                    this.rtssPath = fileName.ToString();
-                    Log.Verbose($"RTSS at {this.rtssPath}");
-
-                    if (!NativeFunctions.FreeLibrary(rtss))
-                        throw new Win32Exception();
-                }
-            }
-            catch (Exception e)
-            {
-                Log.Error(e, "RTSS Free failed");
-            }
         }
 
         [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
@@ -105,10 +91,17 @@ namespace Dalamud.Interface.Internal
         [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
         private delegate IntPtr ResizeBuffersDelegate(IntPtr swapChain, uint bufferCount, uint width, uint height, uint newFormat, uint swapChainFlags);
 
-        [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
+        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+        private delegate int CreateDXGIFactoryDelegate(Guid riid, out IntPtr ppFactory);
+
+        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+        private delegate int IDXGIFactory_CreateSwapChainDelegate(IntPtr pFactory, IntPtr pDevice, IntPtr pDesc, out IntPtr ppSwapChain);
+
+        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
         private delegate IntPtr SetCursorDelegate(IntPtr hCursor);
 
-        private delegate void InstallRTSSHook();
+        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+        private delegate IntPtr DispatchMessageWDelegate(ref User32.MSG msg);
 
         /// <summary>
         /// This event gets called each frame to facilitate ImGui drawing.
@@ -246,6 +239,11 @@ namespace Dalamud.Interface.Internal
         public bool IsBuildingFontsBeforeAtlasBuild => this.isRebuildingFonts && !this.fontBuildSignal.WaitOne(0);
 
         /// <summary>
+        /// Gets a value indicating the native handle of the game main window.
+        /// </summary>
+        public IntPtr GameWindowHandle { get; private set; }
+
+        /// <summary>
         /// Dispose of managed and unmanaged resources.
         /// </summary>
         public void Dispose()
@@ -260,9 +258,10 @@ namespace Dalamud.Interface.Internal
             Thread.Sleep(500);
 
             this.scene?.Dispose();
-            this.setCursorHook?.Dispose();
+            this.setCursorHook.Dispose();
             this.presentHook?.Dispose();
             this.resizeBuffersHook?.Dispose();
+            this.dispatchMessageWHook.Dispose();
         }
 
 #nullable enable
@@ -437,6 +436,132 @@ namespace Dalamud.Interface.Internal
             Util.Fatal($"One or more files required by XIVLauncher were not found.\nPlease restart and report this error if it occurs again.\n\n{path}", "Error");
         }
 
+        private void InitScene(IntPtr swapChain)
+        {
+            RawDX11Scene newScene;
+            using (Timings.Start("IM Scene Init"))
+            {
+                try
+                {
+                    newScene = new RawDX11Scene(swapChain);
+                }
+                catch (DllNotFoundException ex)
+                {
+                    Service<InterfaceManagerWithScene>.ProvideException(ex);
+                    Log.Error(ex, "Could not load ImGui dependencies.");
+
+                    var res = PInvoke.User32.MessageBox(
+                        IntPtr.Zero,
+                        "Dalamud plugins require the Microsoft Visual C++ Redistributable to be installed.\nPlease install the runtime from the official Microsoft website or disable Dalamud.\n\nDo you want to download the redistributable now?",
+                        "Dalamud Error",
+                        User32.MessageBoxOptions.MB_YESNO | User32.MessageBoxOptions.MB_TOPMOST | User32.MessageBoxOptions.MB_ICONERROR);
+
+                    if (res == User32.MessageBoxResult.IDYES)
+                    {
+                        var psi = new ProcessStartInfo
+                        {
+                            FileName = "https://aka.ms/vs/16/release/vc_redist.x64.exe",
+                            UseShellExecute = true,
+                        };
+                        Process.Start(psi);
+                    }
+
+                    Environment.Exit(-1);
+
+                    // Doesn't reach here, but to make the compiler not complain
+                    return;
+                }
+
+                var startInfo = Service<DalamudStartInfo>.Get();
+                var configuration = Service<DalamudConfiguration>.Get();
+
+                var iniFileInfo = new FileInfo(Path.Combine(Path.GetDirectoryName(startInfo.ConfigurationPath), "dalamudUI.ini"));
+
+                try
+                {
+                    if (iniFileInfo.Length > 1200000)
+                    {
+                        Log.Warning("dalamudUI.ini was over 1mb, deleting");
+                        iniFileInfo.CopyTo(Path.Combine(iniFileInfo.DirectoryName, $"dalamudUI-{DateTimeOffset.Now.ToUnixTimeSeconds()}.ini"));
+                        iniFileInfo.Delete();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex, "Could not delete dalamudUI.ini");
+                }
+
+                newScene.UpdateCursor = this.isOverrideGameCursor;
+                newScene.ImGuiIniPath = iniFileInfo.FullName;
+                newScene.OnBuildUI += this.Display;
+                newScene.OnNewInputFrame += this.OnNewInputFrame;
+
+                StyleModel.TransferOldModels();
+
+                if (configuration.SavedStyles == null || configuration.SavedStyles.All(x => x.Name != StyleModelV1.DalamudStandard.Name))
+                {
+                    configuration.SavedStyles = new List<StyleModel> { StyleModelV1.DalamudStandard, StyleModelV1.DalamudClassic };
+                    configuration.ChosenStyle = StyleModelV1.DalamudStandard.Name;
+                }
+                else if (configuration.SavedStyles.Count == 1)
+                {
+                    configuration.SavedStyles.Add(StyleModelV1.DalamudClassic);
+                }
+                else if (configuration.SavedStyles[1].Name != StyleModelV1.DalamudClassic.Name)
+                {
+                    configuration.SavedStyles.Insert(1, StyleModelV1.DalamudClassic);
+                }
+
+                configuration.SavedStyles[0] = StyleModelV1.DalamudStandard;
+                configuration.SavedStyles[1] = StyleModelV1.DalamudClassic;
+
+                var style = configuration.SavedStyles.FirstOrDefault(x => x.Name == configuration.ChosenStyle);
+                if (style == null)
+                {
+                    style = StyleModelV1.DalamudStandard;
+                    configuration.ChosenStyle = style.Name;
+                    configuration.Save();
+                }
+
+                style.Apply();
+
+                ImGui.GetIO().FontGlobalScale = configuration.GlobalUiScale;
+
+                this.SetupFonts();
+
+                if (!configuration.IsDocking)
+                {
+                    ImGui.GetIO().ConfigFlags &= ~ImGuiConfigFlags.DockingEnable;
+                }
+                else
+                {
+                    ImGui.GetIO().ConfigFlags |= ImGuiConfigFlags.DockingEnable;
+                }
+
+                // NOTE (Chiv) Toggle gamepad navigation via setting
+                if (!configuration.IsGamepadNavigationEnabled)
+                {
+                    ImGui.GetIO().BackendFlags &= ~ImGuiBackendFlags.HasGamepad;
+                    ImGui.GetIO().ConfigFlags &= ~ImGuiConfigFlags.NavEnableSetMousePos;
+                }
+                else
+                {
+                    ImGui.GetIO().BackendFlags |= ImGuiBackendFlags.HasGamepad;
+                    ImGui.GetIO().ConfigFlags |= ImGuiConfigFlags.NavEnableSetMousePos;
+                }
+
+                // NOTE (Chiv) Explicitly deactivate on dalamud boot
+                ImGui.GetIO().ConfigFlags &= ~ImGuiConfigFlags.NavEnableGamepad;
+
+                ImGuiHelpers.MainViewport = ImGui.GetMainViewport();
+
+                Log.Information("[IM] Scene & ImGui setup OK!");
+            }
+
+            this.scene = newScene;
+            Service<InterfaceManagerWithScene>.Provide(new(this));
+        }
+
         /*
          * NOTE(goat): When hooking ReShade DXGISwapChain::runtime_present, this is missing the syncInterval arg.
          *             Seems to work fine regardless, I guess, so whatever.
@@ -447,125 +572,7 @@ namespace Dalamud.Interface.Internal
                 return this.presentHook!.Original(swapChain, syncInterval, presentFlags);
 
             if (this.scene == null)
-            {
-                using (Timings.Start("IM Scene Init"))
-                {
-                    try
-                    {
-                        this.scene = new RawDX11Scene(swapChain);
-                    }
-                    catch (DllNotFoundException ex)
-                    {
-                        Service<InterfaceManagerWithScene>.ProvideException(ex);
-                        Log.Error(ex, "Could not load ImGui dependencies.");
-
-                        var res = PInvoke.User32.MessageBox(
-                            IntPtr.Zero,
-                            "Dalamud plugins require the Microsoft Visual C++ Redistributable to be installed.\nPlease install the runtime from the official Microsoft website or disable Dalamud.\n\nDo you want to download the redistributable now?",
-                            "Dalamud Error",
-                            User32.MessageBoxOptions.MB_YESNO | User32.MessageBoxOptions.MB_TOPMOST | User32.MessageBoxOptions.MB_ICONERROR);
-
-                        if (res == User32.MessageBoxResult.IDYES)
-                        {
-                            var psi = new ProcessStartInfo
-                            {
-                                FileName = "https://aka.ms/vs/16/release/vc_redist.x64.exe",
-                                UseShellExecute = true,
-                            };
-                            Process.Start(psi);
-                        }
-
-                        Environment.Exit(-1);
-                    }
-
-                    var startInfo = Service<DalamudStartInfo>.Get();
-                    var configuration = Service<DalamudConfiguration>.Get();
-
-                    var iniFileInfo = new FileInfo(Path.Combine(Path.GetDirectoryName(startInfo.ConfigurationPath), "dalamudUI.ini"));
-
-                    try
-                    {
-                        if (iniFileInfo.Length > 1200000)
-                        {
-                            Log.Warning("dalamudUI.ini was over 1mb, deleting");
-                            iniFileInfo.CopyTo(Path.Combine(iniFileInfo.DirectoryName, $"dalamudUI-{DateTimeOffset.Now.ToUnixTimeSeconds()}.ini"));
-                            iniFileInfo.Delete();
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        Log.Error(ex, "Could not delete dalamudUI.ini");
-                    }
-
-                    this.scene.UpdateCursor = this.isOverrideGameCursor;
-                    this.scene.ImGuiIniPath = iniFileInfo.FullName;
-                    this.scene.OnBuildUI += this.Display;
-                    this.scene.OnNewInputFrame += this.OnNewInputFrame;
-
-                    StyleModel.TransferOldModels();
-
-                    if (configuration.SavedStyles == null || configuration.SavedStyles.All(x => x.Name != StyleModelV1.DalamudStandard.Name))
-                    {
-                        configuration.SavedStyles = new List<StyleModel> { StyleModelV1.DalamudStandard, StyleModelV1.DalamudClassic };
-                        configuration.ChosenStyle = StyleModelV1.DalamudStandard.Name;
-                    }
-                    else if (configuration.SavedStyles.Count == 1)
-                    {
-                        configuration.SavedStyles.Add(StyleModelV1.DalamudClassic);
-                    }
-                    else if (configuration.SavedStyles[1].Name != StyleModelV1.DalamudClassic.Name)
-                    {
-                        configuration.SavedStyles.Insert(1, StyleModelV1.DalamudClassic);
-                    }
-
-                    configuration.SavedStyles[0] = StyleModelV1.DalamudStandard;
-                    configuration.SavedStyles[1] = StyleModelV1.DalamudClassic;
-
-                    var style = configuration.SavedStyles.FirstOrDefault(x => x.Name == configuration.ChosenStyle);
-                    if (style == null)
-                    {
-                        style = StyleModelV1.DalamudStandard;
-                        configuration.ChosenStyle = style.Name;
-                        configuration.Save();
-                    }
-
-                    style.Apply();
-
-                    ImGui.GetIO().FontGlobalScale = configuration.GlobalUiScale;
-
-                    this.SetupFonts();
-
-                    if (!configuration.IsDocking)
-                    {
-                        ImGui.GetIO().ConfigFlags &= ~ImGuiConfigFlags.DockingEnable;
-                    }
-                    else
-                    {
-                        ImGui.GetIO().ConfigFlags |= ImGuiConfigFlags.DockingEnable;
-                    }
-
-                    // NOTE (Chiv) Toggle gamepad navigation via setting
-                    if (!configuration.IsGamepadNavigationEnabled)
-                    {
-                        ImGui.GetIO().BackendFlags &= ~ImGuiBackendFlags.HasGamepad;
-                        ImGui.GetIO().ConfigFlags &= ~ImGuiConfigFlags.NavEnableSetMousePos;
-                    }
-                    else
-                    {
-                        ImGui.GetIO().BackendFlags |= ImGuiBackendFlags.HasGamepad;
-                        ImGui.GetIO().ConfigFlags |= ImGuiConfigFlags.NavEnableSetMousePos;
-                    }
-
-                    // NOTE (Chiv) Explicitly deactivate on dalamud boot
-                    ImGui.GetIO().ConfigFlags &= ~ImGuiConfigFlags.NavEnableGamepad;
-
-                    ImGuiHelpers.MainViewport = ImGui.GetMainViewport();
-
-                    Log.Information("[IM] Scene & ImGui setup OK!");
-
-                    Service<Framework>.Get().RunOnFrameworkThread(() => Service<InterfaceManagerWithScene>.Provide(new(this)));
-                }
-            }
+                this.InitScene(swapChain);
 
             if (this.address.IsReshade)
             {
@@ -979,46 +986,39 @@ namespace Dalamud.Interface.Internal
         }
 
         [ServiceManager.CallWhenServicesReady]
-        private void ContinueConstruction(SigScanner sigScanner)
+        private void ContinueConstruction(SigScanner sigScanner, Framework framework)
         {
             this.address.Setup(sigScanner);
-            this.setCursorHook = Hook<SetCursorDelegate>.FromSymbol("user32.dll", "SetCursor", this.SetCursorDetour, true)!;
-            this.presentHook = new Hook<PresentDelegate>(this.address.Present, this.PresentDetour);
-            this.resizeBuffersHook = new Hook<ResizeBuffersDelegate>(this.address.ResizeBuffers, this.ResizeBuffersDetour);
-
-            Log.Verbose("===== S W A P C H A I N =====");
-            Log.Verbose($"SetCursor address 0x{this.setCursorHook!.Address.ToInt64():X}");
-            Log.Verbose($"Present address 0x{this.presentHook!.Address.ToInt64():X}");
-            Log.Verbose($"ResizeBuffers address 0x{this.resizeBuffersHook!.Address.ToInt64():X}");
-
-            this.setCursorHook.Enable();
-            this.presentHook.Enable();
-            this.resizeBuffersHook.Enable();
-
-            try
+            framework.RunOnFrameworkThread(() =>
             {
-                if (!string.IsNullOrEmpty(this.rtssPath))
+                while ((this.GameWindowHandle = NativeFunctions.FindWindowEx(IntPtr.Zero, this.GameWindowHandle, "FFXIVGAME", IntPtr.Zero)) != IntPtr.Zero)
                 {
-                    NativeFunctions.LoadLibraryW(this.rtssPath);
-                    var rtssModule = NativeFunctions.GetModuleHandleW("RTSSHooks64.dll");
-                    var installAddr = NativeFunctions.GetProcAddress(rtssModule, "InstallRTSSHook");
+                    _ = User32.GetWindowThreadProcessId(this.GameWindowHandle, out var pid);
 
-                    Log.Debug("Installing RTSS hook");
-                    Marshal.GetDelegateForFunctionPointer<InstallRTSSHook>(installAddr).Invoke();
-                    Log.Debug("RTSS hook OK!");
+                    if (pid == Environment.ProcessId && User32.IsWindowVisible(this.GameWindowHandle))
+                        break;
                 }
-            }
-            catch (Exception ex)
-            {
-                Log.Error(ex, "Could not reload RTSS");
-            }
+
+                this.presentHook = new Hook<PresentDelegate>(this.address.Present, this.PresentDetour);
+                this.resizeBuffersHook = new Hook<ResizeBuffersDelegate>(this.address.ResizeBuffers, this.ResizeBuffersDetour);
+
+                Log.Verbose("===== S W A P C H A I N =====");
+                Log.Verbose($"Present address 0x{this.presentHook!.Address.ToInt64():X}");
+                Log.Verbose($"ResizeBuffers address 0x{this.resizeBuffersHook!.Address.ToInt64():X}");
+
+                this.setCursorHook.Enable();
+                this.presentHook.Enable();
+                this.resizeBuffersHook.Enable();
+                this.dispatchMessageWHook.Enable();
+            });
         }
 
         private void Disable()
         {
-            this.setCursorHook?.Disable();
+            this.setCursorHook.Disable();
             this.presentHook?.Disable();
             this.resizeBuffersHook?.Disable();
+            this.dispatchMessageWHook.Disable();
         }
 
         // This is intended to only be called as a handler attached to scene.OnNewRenderFrame
@@ -1063,6 +1063,23 @@ namespace Dalamud.Interface.Internal
             Log.Verbose("[FONT] Font Rebuild OK!");
 
             this.isRebuildingFonts = false;
+        }
+
+        private unsafe IntPtr DispatchMessageWDetour(ref User32.MSG msg)
+        {
+            if (msg.hwnd == this.GameWindowHandle && this.scene != null)
+            {
+                var ime = Service<DalamudIME>.GetNullable();
+                var res = ime?.ProcessWndProcW(msg.hwnd, msg.message, (void*)msg.wParam, (void*)msg.lParam);
+                if (res != null)
+                    return res.Value;
+
+                res = this.scene.ProcessWndProcW(msg.hwnd, msg.message, (void*)msg.wParam, (void*)msg.lParam);
+                if (res != null)
+                    return res.Value;
+            }
+
+            return this.dispatchMessageWHook.Original(ref msg);
         }
 
         private IntPtr ResizeBuffersDetour(IntPtr swapChain, uint bufferCount, uint width, uint height, uint newFormat, uint swapChainFlags)
