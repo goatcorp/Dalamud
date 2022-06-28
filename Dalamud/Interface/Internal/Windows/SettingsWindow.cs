@@ -580,7 +580,7 @@ namespace Dalamud.Interface.Internal.Windows
             {
                 var waitTime = this.pluginWaitBeforeFree ?? PluginManager.PluginWaitBeforeFreeDefault;
                 if (ImGui.SliderInt(
-                        "Wait time###DalamudSettingsPluginCuistomizeWaitTimeSlider",
+                        "Wait time###DalamudSettingsPluginCustomizeWaitTimeSlider",
                         ref waitTime,
                         0,
                         5000))
@@ -588,6 +588,8 @@ namespace Dalamud.Interface.Internal.Windows
                     this.pluginWaitBeforeFree = waitTime;
                 }
             }
+
+            ImGui.TextColored(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingsPluginCustomizeWaitTimeHint", "Configure the wait time between stopping plugin and completely unloading plugin. If you are experiencing crashes when exiting the game, try increasing this value."));
 
             ImGuiHelpers.ScaledDummy(12);
 
