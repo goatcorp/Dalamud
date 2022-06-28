@@ -213,8 +213,17 @@ internal class LocalPlugin : IDisposable
     /// <inheritdoc/>
     public void Dispose()
     {
-        this.instance?.Dispose();
-        this.instance = null;
+        var framework = Service<Framework>.GetNullable();
+
+        if (this.instance != null)
+        {
+            if (this.Manifest.CanUnloadAsync || framework == null)
+                this.instance.Dispose();
+            else
+                framework.RunOnFrameworkThread(() => this.instance.Dispose()).Wait();
+
+            this.instance = null;
+        }
 
         this.DalamudInterface?.ExplicitDispose();
         this.DalamudInterface = null;

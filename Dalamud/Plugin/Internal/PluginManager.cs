@@ -7,6 +7,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 using System.Threading.Tasks;
 
 using CheapLoc;
@@ -206,7 +207,40 @@ internal partial class PluginManager : IDisposable, IServiceType
     /// <inheritdoc/>
     public void Dispose()
     {
+        // Unload them first, just in case some of plugin codes are still running via callbacks initiated externally.
         foreach (var plugin in this.InstalledPlugins.Where(plugin => !plugin.Manifest.CanUnloadAsync))
+        {
+            try
+            {
+                plugin.UnloadAsync(true).Wait();
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, $"Error unloading {plugin.Name}");
+            }
+        }
+
+        Task.WaitAll(this.InstalledPlugins
+                         .Where(plugin => plugin.Manifest.CanUnloadAsync)
+                         .Select(plugin => Task.Run(async () =>
+                         {
+                             try
+                             {
+                                 await plugin.UnloadAsync(true);
+                             }
+                             catch (Exception ex)
+                             {
+                                 Log.Error(ex, $"Error unloading {plugin.Name}");
+                             }
+                         })).ToArray());
+
+        // Just in case plugins still have tasks running that they didn't cancel when they should have,
+        // give them some time to complete it.
+        Thread.Sleep(500);
+
+        // Now that we've waited enough, dispose the whole plugin.
+        // Since plugins should have been unloaded above, this should be done quickly. 
+        foreach (var plugin in this.InstalledPlugins)
         {
             try
             {
@@ -217,20 +251,6 @@ internal partial class PluginManager : IDisposable, IServiceType
                 Log.Error(ex, $"Error disposing {plugin.Name}");
             }
         }
-
-        Task.WaitAll(this.InstalledPlugins
-                         .Where(plugin => plugin.Manifest.CanUnloadAsync)
-                         .Select(plugin => Task.Run(() =>
-                         {
-                             try
-                             {
-                                 plugin.Dispose();
-                             }
-                             catch (Exception ex)
-                             {
-                                 Log.Error(ex, $"Error disposing {plugin.Name}");
-                             }
-                         })).ToArray());
 
         this.assemblyLocationMonoHook?.Dispose();
         this.assemblyCodeBaseMonoHook?.Dispose();
