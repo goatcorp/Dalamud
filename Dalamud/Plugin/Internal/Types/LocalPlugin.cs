@@ -365,12 +365,12 @@ internal class LocalPlugin : IDisposable
             if (this.Manifest.LoadSync && this.Manifest.LoadRequiredState is 0 or 1)
             {
                 this.instance = await framework.RunOnFrameworkThread(
-                                    () => ioc.CreateAsync(this.pluginType, this.DalamudInterface)) as IDalamudPlugin;
+                                    () => ioc.CreateAsync(this.pluginType!, this.DalamudInterface!)) as IDalamudPlugin;
             }
             else
             {
                 this.instance =
-                    await ioc.CreateAsync(this.pluginType, this.DalamudInterface) as IDalamudPlugin;
+                    await ioc.CreateAsync(this.pluginType!, this.DalamudInterface!) as IDalamudPlugin;
             }
 
             if (this.instance == null)
@@ -470,6 +470,9 @@ internal class LocalPlugin : IDisposable
         }
         finally
         {
+            // We need to handle removed DTR nodes here, as otherwise, plugins will not be able to re-add their bar entries after updates.
+            Service<DtrBar>.GetNullable()?.HandleRemovedNodes();
+
             this.pluginLoadStateLock.Release();
         }
     }
@@ -481,11 +484,6 @@ internal class LocalPlugin : IDisposable
     public async Task ReloadAsync()
     {
         await this.UnloadAsync(true);
-
-        // We need to handle removed DTR nodes here, as otherwise, plugins will not be able to re-add their bar entries after updates.
-        var dtr = Service<DtrBar>.Get();
-        dtr.HandleRemovedNodes();
-
         await this.LoadAsync(PluginLoadReason.Reload, true);
     }
 
