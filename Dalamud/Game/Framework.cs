@@ -429,6 +429,7 @@ namespace Dalamud.Game
 
             Log.Information("Framework::Destroy!");
             Service<Dalamud>.Get().Unload();
+            this.runOnNextTickTaskList.RemoveAll(x => x.Run());
             ServiceManager.UnloadAllServices();
             Log.Information("Framework::Destroy OK!");
 
