@@ -137,12 +137,12 @@ namespace Dalamud.Interface.Internal
             this.tsmLogoTexture = tsmLogoTex;
 
             var tsm = Service<TitleScreenMenu>.Get();
-            tsm.AddEntry(Loc.Localize("TSMDalamudPlugins", "Plugin Installer"), this.tsmLogoTexture, () => this.pluginWindow.IsOpen = true);
-            tsm.AddEntry(Loc.Localize("TSMDalamudSettings", "Dalamud Settings"), this.tsmLogoTexture, () => this.settingsWindow.IsOpen = true);
+            tsm.AddEntryCore(Loc.Localize("TSMDalamudPlugins", "Plugin Installer"), this.tsmLogoTexture, () => this.pluginWindow.IsOpen = true);
+            tsm.AddEntryCore(Loc.Localize("TSMDalamudSettings", "Dalamud Settings"), this.tsmLogoTexture, () => this.settingsWindow.IsOpen = true);
 
             if (configuration.IsConventionalStaging)
             {
-                tsm.AddEntry(Loc.Localize("TSMDalamudDevMenu", "Developer Menu"), this.tsmLogoTexture, () => this.isImGuiDrawDevMenu = true);
+                tsm.AddEntryCore(Loc.Localize("TSMDalamudDevMenu", "Developer Menu"), this.tsmLogoTexture, () => this.isImGuiDrawDevMenu = true);
             }
         }
 
