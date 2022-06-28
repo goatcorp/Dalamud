@@ -726,7 +726,7 @@ namespace Dalamud.Injector
             using var startInfoBuffer = new MemoryBufferHelper(process).CreatePrivateMemoryBuffer(startInfoBytes.Length + 0x8);
             var startInfoAddress = startInfoBuffer.Add(startInfoBytes);
 
-            if (startInfoAddress == IntPtr.Zero)
+            if (startInfoAddress == UIntPtr.Zero)
                 throw new Exception("Unable to allocate start info JSON");
 
             injector.GetFunctionAddress(bootModule, "Initialize", out var initAddress);
