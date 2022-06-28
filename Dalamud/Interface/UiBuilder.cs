@@ -1,8 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-
+using System.Threading.Tasks;
 using Dalamud.Configuration.Internal;
+using Dalamud.Game;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.Gui;
 using Dalamud.Interface.GameFonts;
@@ -186,6 +187,11 @@ namespace Dalamud.Interface
         public bool ShouldModifyUi => this.interfaceManager.IsDispatchingEvents;
 
         /// <summary>
+        /// Gets a value indicating whether UI functions can be used.
+        /// </summary>
+        public bool UiPrepared => Service<InterfaceManager.InterfaceManagerWithScene>.GetNullable() != null;
+
+        /// <summary>
         /// Gets or sets a value indicating whether statistics about UI draw time should be collected.
         /// </summary>
 #if DEBUG
@@ -214,22 +220,29 @@ namespace Dalamud.Interface
         /// </summary>
         internal List<long> DrawTimeHistory { get; set; } = new List<long>();
 
-        private InterfaceManager InterfaceManagerWithScene =>
-            Service<InterfaceManager.InterfaceManagerWithScene>.Get().Manager;
+        private InterfaceManager? InterfaceManagerWithScene =>
+            Service<InterfaceManager.InterfaceManagerWithScene>.GetNullable()?.Manager;
+
+        private Task<InterfaceManager> InterfaceManagerWithSceneAsync =>
+            Service<InterfaceManager.InterfaceManagerWithScene>.GetAsync().ContinueWith(task => task.Result.Manager);
 
         /// <summary>
         /// Loads an image from the specified file.
         /// </summary>
         /// <param name="filePath">The full filepath to the image.</param>
         /// <returns>A <see cref="TextureWrap"/> object wrapping the created image.  Use <see cref="TextureWrap.ImGuiHandle"/> inside ImGui.Image().</returns>
-        public TextureWrap LoadImage(string filePath) => this.InterfaceManagerWithScene.LoadImage(filePath);
+        public TextureWrap LoadImage(string filePath)
+            => this.InterfaceManagerWithScene?.LoadImage(filePath)
+               ?? throw new InvalidOperationException("Load failed.");
 
         /// <summary>
         /// Loads an image from a byte stream, such as a png downloaded into memory.
         /// </summary>
         /// <param name="imageData">A byte array containing the raw image data.</param>
         /// <returns>A <see cref="TextureWrap"/> object wrapping the created image.  Use <see cref="TextureWrap.ImGuiHandle"/> inside ImGui.Image().</returns>
-        public TextureWrap LoadImage(byte[] imageData) => this.InterfaceManagerWithScene.LoadImage(imageData);
+        public TextureWrap LoadImage(byte[] imageData)
+            => this.InterfaceManagerWithScene?.LoadImage(imageData)
+               ?? throw new InvalidOperationException("Load failed.");
 
         /// <summary>
         /// Loads an image from raw unformatted pixel data, with no type or header information.  To load formatted data, use <see cref="LoadImage(byte[])"/>.
@@ -240,7 +253,92 @@ namespace Dalamud.Interface
         /// <param name="numChannels">The number of channels (bytes per pixel) of the image contained in <paramref name="imageData"/>.  This should usually be 4.</param>
         /// <returns>A <see cref="TextureWrap"/> object wrapping the created image.  Use <see cref="TextureWrap.ImGuiHandle"/> inside ImGui.Image().</returns>
         public TextureWrap LoadImageRaw(byte[] imageData, int width, int height, int numChannels)
-            => this.InterfaceManagerWithScene.LoadImageRaw(imageData, width, height, numChannels);
+            => this.InterfaceManagerWithScene?.LoadImageRaw(imageData, width, height, numChannels)
+               ?? throw new InvalidOperationException("Load failed.");
+
+        /// <summary>
+        /// Asynchronously loads an image from the specified file, when it's possible to do so.
+        /// </summary>
+        /// <param name="filePath">The full filepath to the image.</param>
+        /// <returns>A <see cref="TextureWrap"/> object wrapping the created image.  Use <see cref="TextureWrap.ImGuiHandle"/> inside ImGui.Image().</returns>
+        public Task<TextureWrap> LoadImageAsync(string filePath) => Task.Run(
+            async () =>
+                (await this.InterfaceManagerWithSceneAsync).LoadImage(filePath)
+                ?? throw new InvalidOperationException("Load failed."));
+
+        /// <summary>
+        /// Asynchronously loads an image from a byte stream, such as a png downloaded into memory, when it's possible to do so.
+        /// </summary>
+        /// <param name="imageData">A byte array containing the raw image data.</param>
+        /// <returns>A <see cref="TextureWrap"/> object wrapping the created image.  Use <see cref="TextureWrap.ImGuiHandle"/> inside ImGui.Image().</returns>
+        public Task<TextureWrap> LoadImageAsync(byte[] imageData) => Task.Run(
+            async () =>
+                (await this.InterfaceManagerWithSceneAsync).LoadImage(imageData)
+                ?? throw new InvalidOperationException("Load failed."));
+
+        /// <summary>
+        /// Asynchronously loads an image from raw unformatted pixel data, with no type or header information, when it's possible to do so.  To load formatted data, use <see cref="LoadImage(byte[])"/>.
+        /// </summary>
+        /// <param name="imageData">A byte array containing the raw pixel data.</param>
+        /// <param name="width">The width of the image contained in <paramref name="imageData"/>.</param>
+        /// <param name="height">The height of the image contained in <paramref name="imageData"/>.</param>
+        /// <param name="numChannels">The number of channels (bytes per pixel) of the image contained in <paramref name="imageData"/>.  This should usually be 4.</param>
+        /// <returns>A <see cref="TextureWrap"/> object wrapping the created image.  Use <see cref="TextureWrap.ImGuiHandle"/> inside ImGui.Image().</returns>
+        public Task<TextureWrap> LoadImageRawAsync(byte[] imageData, int width, int height, int numChannels) => Task.Run(
+            async () =>
+                (await this.InterfaceManagerWithSceneAsync).LoadImageRaw(imageData, width, height, numChannels)
+                ?? throw new InvalidOperationException("Load failed."));
+
+        /// <summary>
+        /// Waits for UI to become available for use.
+        /// </summary>
+        /// <returns>A task that completes when the game's Present has been called at least once.</returns>
+        public Task WaitForUi() => this.InterfaceManagerWithSceneAsync;
+
+        /// <summary>
+        /// Waits for UI to become available for use.
+        /// </summary>
+        /// <param name="func">Function to call.</param>
+        /// <param name="runInFrameworkThread">Specifies whether to call the function from the framework thread.</param>
+        /// <returns>A task that completes when the game's Present has been called at least once.</returns>
+        /// <typeparam name="T">Return type.</typeparam>
+        public Task<T> RunWhenUiPrepared<T>(Func<T> func, bool runInFrameworkThread = false)
+        {
+            if (runInFrameworkThread)
+            {
+                return this.InterfaceManagerWithSceneAsync
+                           .ContinueWith(_ => Service<Framework>.Get().RunOnFrameworkThread(func))
+                           .Unwrap();
+            }
+            else
+            {
+                return this.InterfaceManagerWithSceneAsync
+                           .ContinueWith(_ => func());
+            }
+        }
+
+        /// <summary>
+        /// Waits for UI to become available for use.
+        /// </summary>
+        /// <param name="func">Function to call.</param>
+        /// <param name="runInFrameworkThread">Specifies whether to call the function from the framework thread.</param>
+        /// <returns>A task that completes when the game's Present has been called at least once.</returns>
+        /// <typeparam name="T">Return type.</typeparam>
+        public Task<T> RunWhenUiPrepared<T>(Func<Task<T>> func, bool runInFrameworkThread = false)
+        {
+            if (runInFrameworkThread)
+            {
+                return this.InterfaceManagerWithSceneAsync
+                           .ContinueWith(_ => Service<Framework>.Get().RunOnFrameworkThread(func))
+                           .Unwrap();
+            }
+            else
+            {
+                return this.InterfaceManagerWithSceneAsync
+                           .ContinueWith(_ => func())
+                           .Unwrap();
+            }
+        }
 
         /// <summary>
         /// Gets a game font.
