@@ -41,8 +41,8 @@ namespace Dalamud.Game
             this.Address = new FrameworkAddressResolver();
             this.Address.Setup(sigScanner);
 
-            this.updateHook = new Hook<OnUpdateDetour>(this.Address.TickAddress, this.HandleFrameworkUpdate);
-            this.destroyHook = new Hook<OnRealDestroyDelegate>(this.Address.DestroyAddress, this.HandleFrameworkDestroy);
+            this.updateHook = Hook<OnUpdateDetour>.FromAddress(this.Address.TickAddress, this.HandleFrameworkUpdate);
+            this.destroyHook = Hook<OnRealDestroyDelegate>.FromAddress(this.Address.DestroyAddress, this.HandleFrameworkDestroy);
         }
 
         /// <summary>

@@ -60,23 +60,23 @@ namespace Dalamud.Game.Gui
             Log.Verbose($"HandleItemOut address 0x{this.address.HandleItemOut.ToInt64():X}");
             Log.Verbose($"HandleImm address 0x{this.address.HandleImm.ToInt64():X}");
 
-            this.setGlobalBgmHook = new Hook<SetGlobalBgmDelegate>(this.address.SetGlobalBgm, this.HandleSetGlobalBgmDetour);
+            this.setGlobalBgmHook = Hook<SetGlobalBgmDelegate>.FromAddress(this.address.SetGlobalBgm, this.HandleSetGlobalBgmDetour);
 
-            this.handleItemHoverHook = new Hook<HandleItemHoverDelegate>(this.address.HandleItemHover, this.HandleItemHoverDetour);
-            this.handleItemOutHook = new Hook<HandleItemOutDelegate>(this.address.HandleItemOut, this.HandleItemOutDetour);
+            this.handleItemHoverHook = Hook<HandleItemHoverDelegate>.FromAddress(this.address.HandleItemHover, this.HandleItemHoverDetour);
+            this.handleItemOutHook = Hook<HandleItemOutDelegate>.FromAddress(this.address.HandleItemOut, this.HandleItemOutDetour);
 
-            this.handleActionHoverHook = new Hook<HandleActionHoverDelegate>(this.address.HandleActionHover, this.HandleActionHoverDetour);
-            this.handleActionOutHook = new Hook<HandleActionOutDelegate>(this.address.HandleActionOut, this.HandleActionOutDetour);
+            this.handleActionHoverHook = Hook<HandleActionHoverDelegate>.FromAddress(this.address.HandleActionHover, this.HandleActionHoverDetour);
+            this.handleActionOutHook = Hook<HandleActionOutDelegate>.FromAddress(this.address.HandleActionOut, this.HandleActionOutDetour);
 
-            this.handleImmHook = new Hook<HandleImmDelegate>(this.address.HandleImm, this.HandleImmDetour);
+            this.handleImmHook = Hook<HandleImmDelegate>.FromAddress(this.address.HandleImm, this.HandleImmDetour);
 
             this.getMatrixSingleton = Marshal.GetDelegateForFunctionPointer<GetMatrixSingletonDelegate>(this.address.GetMatrixSingleton);
 
             this.screenToWorldNative = Marshal.GetDelegateForFunctionPointer<ScreenToWorldNativeDelegate>(this.address.ScreenToWorld);
 
-            this.toggleUiHideHook = new Hook<ToggleUiHideDelegate>(this.address.ToggleUiHide, this.ToggleUiHideDetour);
+            this.toggleUiHideHook = Hook<ToggleUiHideDelegate>.FromAddress(this.address.ToggleUiHide, this.ToggleUiHideDetour);
 
-            this.utf8StringFromSequenceHook = new Hook<Utf8StringFromSequenceDelegate>(this.address.Utf8StringFromSequence, this.Utf8StringFromSequenceDetour);
+            this.utf8StringFromSequenceHook = Hook<Utf8StringFromSequenceDelegate>.FromAddress(this.address.Utf8StringFromSequence, this.Utf8StringFromSequenceDetour);
         }
 
         // Marshaled delegates

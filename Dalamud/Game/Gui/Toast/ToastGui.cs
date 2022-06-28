@@ -39,9 +39,9 @@ namespace Dalamud.Game.Gui.Toast
             this.address = new ToastGuiAddressResolver();
             this.address.Setup(sigScanner);
 
-            this.showNormalToastHook = new Hook<ShowNormalToastDelegate>(this.address.ShowNormalToast, new ShowNormalToastDelegate(this.HandleNormalToastDetour));
-            this.showQuestToastHook = new Hook<ShowQuestToastDelegate>(this.address.ShowQuestToast, new ShowQuestToastDelegate(this.HandleQuestToastDetour));
-            this.showErrorToastHook = new Hook<ShowErrorToastDelegate>(this.address.ShowErrorToast, new ShowErrorToastDelegate(this.HandleErrorToastDetour));
+            this.showNormalToastHook = Hook<ShowNormalToastDelegate>.FromAddress(this.address.ShowNormalToast, new ShowNormalToastDelegate(this.HandleNormalToastDetour));
+            this.showQuestToastHook = Hook<ShowQuestToastDelegate>.FromAddress(this.address.ShowQuestToast, new ShowQuestToastDelegate(this.HandleQuestToastDetour));
+            this.showErrorToastHook = Hook<ShowErrorToastDelegate>.FromAddress(this.address.ShowErrorToast, new ShowErrorToastDelegate(this.HandleErrorToastDetour));
         }
 
         #region Event delegates

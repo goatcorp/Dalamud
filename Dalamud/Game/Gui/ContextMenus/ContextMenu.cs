@@ -58,11 +58,11 @@ namespace Dalamud.Game.Gui.ContextMenus
             {
                 this.openSubContextMenu = Marshal.GetDelegateForFunctionPointer<OpenSubContextMenuDelegate>(this.Address.OpenSubContextMenuPtr);
 
-                this.contextMenuOpeningHook = new Hook<ContextMenuOpeningDelegate>(this.Address.ContextMenuOpeningPtr, this.ContextMenuOpeningDetour);
-                this.contextMenuOpenedHook = new Hook<ContextMenuOpenedDelegate>(this.Address.ContextMenuOpenedPtr, this.ContextMenuOpenedDetour);
-                this.contextMenuItemSelectedHook = new Hook<ContextMenuItemSelectedDelegate>(this.Address.ContextMenuItemSelectedPtr, this.ContextMenuItemSelectedDetour);
-                this.subContextMenuOpeningHook = new Hook<SubContextMenuOpeningDelegate>(this.Address.SubContextMenuOpeningPtr, this.SubContextMenuOpeningDetour);
-                this.subContextMenuOpenedHook = new Hook<ContextMenuOpenedDelegate>(this.Address.SubContextMenuOpenedPtr, this.SubContextMenuOpenedDetour);
+                this.contextMenuOpeningHook = Hook<ContextMenuOpeningDelegate>.FromAddress(this.Address.ContextMenuOpeningPtr, this.ContextMenuOpeningDetour);
+                this.contextMenuOpenedHook = Hook<ContextMenuOpenedDelegate>.FromAddress(this.Address.ContextMenuOpenedPtr, this.ContextMenuOpenedDetour);
+                this.contextMenuItemSelectedHook = Hook<ContextMenuItemSelectedDelegate>.FromAddress(this.Address.ContextMenuItemSelectedPtr, this.ContextMenuItemSelectedDetour);
+                this.subContextMenuOpeningHook = Hook<SubContextMenuOpeningDelegate>.FromAddress(this.Address.SubContextMenuOpeningPtr, this.SubContextMenuOpeningDetour);
+                this.subContextMenuOpenedHook = Hook<ContextMenuOpenedDelegate>.FromAddress(this.Address.SubContextMenuOpenedPtr, this.SubContextMenuOpenedDetour);
             }
         }
 

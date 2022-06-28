@@ -980,8 +980,8 @@ namespace Dalamud.Interface.Internal
                         break;
                 }
 
-                this.presentHook = new Hook<PresentDelegate>(this.address.Present, this.PresentDetour);
-                this.resizeBuffersHook = new Hook<ResizeBuffersDelegate>(this.address.ResizeBuffers, this.ResizeBuffersDetour);
+                this.presentHook = Hook<PresentDelegate>.FromAddress(this.address.Present, this.PresentDetour);
+                this.resizeBuffersHook = Hook<ResizeBuffersDelegate>.FromAddress(this.address.ResizeBuffers, this.ResizeBuffersDetour);
 
                 Log.Verbose("===== S W A P C H A I N =====");
                 Log.Verbose($"Present address 0x{this.presentHook!.Address.ToInt64():X}");

@@ -47,9 +47,9 @@ namespace Dalamud.Game.Gui
             this.address = new ChatGuiAddressResolver();
             this.address.Setup(sigScanner);
 
-            this.printMessageHook = new Hook<PrintMessageDelegate>(this.address.PrintMessage, this.HandlePrintMessageDetour);
-            this.populateItemLinkHook = new Hook<PopulateItemLinkDelegate>(this.address.PopulateItemLinkObject, this.HandlePopulateItemLinkDetour);
-            this.interactableLinkClickedHook = new Hook<InteractableLinkClickedDelegate>(this.address.InteractableLinkClicked, this.InteractableLinkClickedDetour);
+            this.printMessageHook = Hook<PrintMessageDelegate>.FromAddress(this.address.PrintMessage, this.HandlePrintMessageDetour);
+            this.populateItemLinkHook = Hook<PopulateItemLinkDelegate>.FromAddress(this.address.PopulateItemLinkObject, this.HandlePopulateItemLinkDetour);
+            this.interactableLinkClickedHook = Hook<InteractableLinkClickedDelegate>.FromAddress(this.address.InteractableLinkClicked, this.InteractableLinkClickedDetour);
         }
 
         /// <summary>

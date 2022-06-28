@@ -32,7 +32,7 @@ namespace Dalamud.Game.ClientState.GamePad
         {
             var resolver = clientState.AddressResolver;
             Log.Verbose($"GamepadPoll address 0x{resolver.GamepadPoll.ToInt64():X}");
-            this.gamepadPoll = new Hook<ControllerPoll>(resolver.GamepadPoll, this.GamepadPollDetour);
+            this.gamepadPoll = Hook<ControllerPoll>.FromAddress(resolver.GamepadPoll, this.GamepadPollDetour);
         }
 
         private delegate int ControllerPoll(IntPtr controllerInput);
