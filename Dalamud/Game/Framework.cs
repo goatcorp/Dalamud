@@ -31,19 +31,17 @@ namespace Dalamud.Game
         private readonly Stopwatch updateStopwatch = new();
 
         private readonly Hook<OnUpdateDetour> updateHook;
-        private readonly Hook<OnDestroyDetour> freeHook;
         private readonly Hook<OnRealDestroyDelegate> destroyHook;
 
         private Thread? frameworkUpdateThread;
 
         [ServiceManager.ServiceConstructor]
-        private Framework(GameGui gameGui, GameNetwork gameNetwork, SigScanner sigScanner)
+        private Framework(SigScanner sigScanner)
         {
             this.Address = new FrameworkAddressResolver();
             this.Address.Setup(sigScanner);
 
             this.updateHook = new Hook<OnUpdateDetour>(this.Address.TickAddress, this.HandleFrameworkUpdate);
-            this.freeHook = new Hook<OnDestroyDetour>(this.Address.FreeAddress, this.HandleFrameworkFree);
             this.destroyHook = new Hook<OnRealDestroyDelegate>(this.Address.DestroyAddress, this.HandleFrameworkDestroy);
         }
 
@@ -127,7 +125,8 @@ namespace Dalamud.Game
         /// <typeparam name="T">Return type.</typeparam>
         /// <param name="func">Function to call.</param>
         /// <returns>Task representing the pending or already completed function.</returns>
-        public Task<T> RunOnFrameworkThread<T>(Func<T> func) => this.IsInFrameworkUpdateThread || this.IsFrameworkUnloading ? Task.FromResult(func()) : this.RunOnTick(func);
+        public Task<T> RunOnFrameworkThread<T>(Func<T> func) =>
+            this.IsInFrameworkUpdateThread || this.IsFrameworkUnloading ? Task.FromResult(func()) : this.RunOnTick(func);
 
         /// <summary>
         /// Run given function right away if this function has been called from game's Framework.Update thread, or otherwise run on next Framework.Update call.
@@ -153,6 +152,24 @@ namespace Dalamud.Game
                 return this.RunOnTick(action);
             }
         }
+
+        /// <summary>
+        /// Run given function right away if this function has been called from game's Framework.Update thread, or otherwise run on next Framework.Update call.
+        /// </summary>
+        /// <typeparam name="T">Return type.</typeparam>
+        /// <param name="func">Function to call.</param>
+        /// <returns>Task representing the pending or already completed function.</returns>
+        public Task<T> RunOnFrameworkThread<T>(Func<Task<T>> func) =>
+            this.IsInFrameworkUpdateThread || this.IsFrameworkUnloading ? func() : this.RunOnTick(func);
+
+        /// <summary>
+        /// Run given function right away if this function has been called from game's Framework.Update thread, or otherwise run on next Framework.Update call.
+        /// </summary>
+        /// <typeparam name="T">Return type.</typeparam>
+        /// <param name="func">Function to call.</param>
+        /// <returns>Task representing the pending or already completed function.</returns>
+        public Task RunOnFrameworkThread(Func<Task> func) =>
+            this.IsInFrameworkUpdateThread || this.IsFrameworkUnloading ? func() : this.RunOnTick(func);
 
         /// <summary>
         /// Run given function in upcoming Framework.Tick call.
@@ -220,6 +237,72 @@ namespace Dalamud.Game
         }
 
         /// <summary>
+        /// Run given function in upcoming Framework.Tick call.
+        /// </summary>
+        /// <typeparam name="T">Return type.</typeparam>
+        /// <param name="func">Function to call.</param>
+        /// <param name="delay">Wait for given timespan before calling this function.</param>
+        /// <param name="delayTicks">Count given number of Framework.Tick calls before calling this function. This takes precedence over delay parameter.</param>
+        /// <param name="cancellationToken">Cancellation token which will prevent the execution of this function if wait conditions are not met.</param>
+        /// <returns>Task representing the pending function.</returns>
+        public Task<T> RunOnTick<T>(Func<Task<T>> func, TimeSpan delay = default, int delayTicks = default, CancellationToken cancellationToken = default)
+        {
+            if (this.IsFrameworkUnloading)
+            {
+                if (delay == default && delayTicks == default)
+                    return this.RunOnFrameworkThread(func);
+
+                var cts = new CancellationTokenSource();
+                cts.Cancel();
+                return Task.FromCanceled<T>(cts.Token);
+            }
+
+            var tcs = new TaskCompletionSource<Task<T>>();
+            this.runOnNextTickTaskList.Add(new RunOnNextTickTaskFunc<Task<T>>()
+            {
+                RemainingTicks = delayTicks,
+                RunAfterTickCount = Environment.TickCount64 + (long)Math.Ceiling(delay.TotalMilliseconds),
+                CancellationToken = cancellationToken,
+                TaskCompletionSource = tcs,
+                Func = func,
+            });
+            return tcs.Task.ContinueWith(x => x.Result, cancellationToken).Unwrap();
+        }
+
+        /// <summary>
+        /// Run given function in upcoming Framework.Tick call.
+        /// </summary>
+        /// <typeparam name="T">Return type.</typeparam>
+        /// <param name="func">Function to call.</param>
+        /// <param name="delay">Wait for given timespan before calling this function.</param>
+        /// <param name="delayTicks">Count given number of Framework.Tick calls before calling this function. This takes precedence over delay parameter.</param>
+        /// <param name="cancellationToken">Cancellation token which will prevent the execution of this function if wait conditions are not met.</param>
+        /// <returns>Task representing the pending function.</returns>
+        public Task RunOnTick(Func<Task> func, TimeSpan delay = default, int delayTicks = default, CancellationToken cancellationToken = default)
+        {
+            if (this.IsFrameworkUnloading)
+            {
+                if (delay == default && delayTicks == default)
+                    return this.RunOnFrameworkThread(func);
+
+                var cts = new CancellationTokenSource();
+                cts.Cancel();
+                return Task.FromCanceled(cts.Token);
+            }
+
+            var tcs = new TaskCompletionSource<Task>();
+            this.runOnNextTickTaskList.Add(new RunOnNextTickTaskFunc<Task>()
+            {
+                RemainingTicks = delayTicks,
+                RunAfterTickCount = Environment.TickCount64 + (long)Math.Ceiling(delay.TotalMilliseconds),
+                CancellationToken = cancellationToken,
+                TaskCompletionSource = tcs,
+                Func = func,
+            });
+            return tcs.Task.ContinueWith(x => x.Result, cancellationToken).Unwrap();
+        }
+
+        /// <summary>
         /// Dispose of managed and unmanaged resources.
         /// </summary>
         void IDisposable.Dispose()
@@ -227,18 +310,14 @@ namespace Dalamud.Game
             this.RunOnFrameworkThread(() =>
             {
                 // ReSharper disable once AccessToDisposedClosure
-                this.updateHook?.Disable();
+                this.updateHook.Disable();
 
                 // ReSharper disable once AccessToDisposedClosure
-                this.freeHook?.Disable();
-
-                // ReSharper disable once AccessToDisposedClosure
-                this.destroyHook?.Disable();
+                this.destroyHook.Disable();
             }).Wait();
 
-            this.updateHook?.Dispose();
-            this.freeHook?.Dispose();
-            this.destroyHook?.Dispose();
+            this.updateHook.Dispose();
+            this.destroyHook.Dispose();
 
             this.updateStopwatch.Reset();
             statsStopwatch.Reset();
@@ -248,7 +327,6 @@ namespace Dalamud.Game
         private void ContinueConstruction()
         {
             this.updateHook.Enable();
-            this.freeHook.Enable();
             this.destroyHook.Enable();
         }
 
@@ -348,20 +426,13 @@ namespace Dalamud.Game
         {
             this.IsFrameworkUnloading = true;
             this.DispatchUpdateEvents = false;
+
+            Log.Information("Framework::Destroy!");
             Service<Dalamud>.Get().Unload();
+            ServiceManager.UnloadAllServices();
+            Log.Information("Framework::Destroy OK!");
 
             return this.destroyHook.OriginalDisposeSafe(framework);
-        }
-
-        private IntPtr HandleFrameworkFree()
-        {
-            Log.Information("Framework::Free!");
-
-            ServiceManager.UnloadAllServices();
-
-            Log.Information("Framework::Free OK!");
-
-            return this.freeHook.OriginalDisposeSafe();
         }
 
         private abstract class RunOnNextTickTaskBase

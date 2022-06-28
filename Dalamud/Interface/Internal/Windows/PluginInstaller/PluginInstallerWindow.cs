@@ -1644,7 +1644,7 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
 
                     this.installStatus = OperationStatus.InProgress;
 
-                    Task.Run(() => pluginManager.DeleteConfiguration(plugin))
+                    Task.Run(() => pluginManager.DeleteConfigurationAsync(plugin))
                         .ContinueWith(task =>
                         {
                             this.installStatus = OperationStatus.Idle;
@@ -1670,7 +1670,7 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
             // Disable everything if the plugin is outdated
             disabled = disabled || (plugin.IsOutdated && !configuration.LoadAllApiLevels) || plugin.IsBanned;
 
-            if (plugin.State == PluginState.InProgress)
+            if (plugin.State == PluginState.Loading || plugin.State == PluginState.Unloading)
             {
                 ImGuiComponents.DisabledButton(Locs.PluginButton_Working);
             }
@@ -1686,7 +1686,7 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
                     {
                         Task.Run(() =>
                         {
-                            var unloadTask = Task.Run(() => plugin.Unload())
+                            var unloadTask = Task.Run(() => plugin.UnloadAsync())
                                 .ContinueWith(this.DisplayErrorContinuation, Locs.ErrorModal_UnloadFail(plugin.Name));
 
                             unloadTask.Wait();

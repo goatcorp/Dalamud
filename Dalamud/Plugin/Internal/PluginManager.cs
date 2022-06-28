@@ -7,7 +7,6 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Reflection;
-using System.Threading;
 using System.Threading.Tasks;
 
 using CheapLoc;
@@ -207,7 +206,7 @@ internal partial class PluginManager : IDisposable, IServiceType
     /// <inheritdoc/>
     public void Dispose()
     {
-        Task.WaitAll(this.InstalledPlugins.Select(plugin => Task.Run(() =>
+        foreach (var plugin in this.InstalledPlugins.Where(plugin => !plugin.Manifest.CanUnloadAsync))
         {
             try
             {
@@ -217,7 +216,21 @@ internal partial class PluginManager : IDisposable, IServiceType
             {
                 Log.Error(ex, $"Error disposing {plugin.Name}");
             }
-        })).ToArray());
+        }
+
+        Task.WaitAll(this.InstalledPlugins
+                         .Where(plugin => plugin.Manifest.CanUnloadAsync)
+                         .Select(plugin => Task.Run(() =>
+                         {
+                             try
+                             {
+                                 plugin.Dispose();
+                             }
+                             catch (Exception ex)
+                             {
+                                 Log.Error(ex, $"Error disposing {plugin.Name}");
+                             }
+                         })).ToArray());
 
         this.assemblyLocationMonoHook?.Dispose();
         this.assemblyCodeBaseMonoHook?.Dispose();
@@ -891,7 +904,7 @@ internal partial class PluginManager : IDisposable, IServiceType
             {
                 try
                 {
-                    plugin.Unload();
+                    await plugin.UnloadAsync();
                 }
                 catch (Exception ex)
                 {
@@ -963,23 +976,30 @@ internal partial class PluginManager : IDisposable, IServiceType
     /// </summary>
     /// <param name="plugin">The plugin.</param>
     /// <exception cref="Exception">Throws if the plugin is still loading/unloading.</exception>
-    public void DeleteConfiguration(LocalPlugin plugin)
+    /// <returns>The task.</returns>
+    public async Task DeleteConfigurationAsync(LocalPlugin plugin)
     {
-        if (plugin.State == PluginState.InProgress)
+        if (plugin.State == PluginState.Loading || plugin.State == PluginState.Unloaded)
             throw new Exception("Cannot delete configuration for a loading/unloading plugin");
 
         if (plugin.IsLoaded)
-            plugin.Unload();
+            await plugin.UnloadAsync();
 
-        // Let's wait so any handles on files in plugin configurations can be closed
-        Thread.Sleep(500);
-
-        this.PluginConfigs.Delete(plugin.Name);
-
-        Thread.Sleep(500);
+        for (var waitUntil = Environment.TickCount64 + 1000; Environment.TickCount64 < waitUntil;)
+        {
+            try
+            {
+                this.PluginConfigs.Delete(plugin.Name);
+                break;
+            }
+            catch (IOException)
+            {
+                await Task.Delay(100);
+            }
+        }
 
         // Let's indicate "installer" here since this is supposed to be a fresh install
-        plugin.LoadAsync(PluginLoadReason.Installer).Wait();
+        await plugin.LoadAsync(PluginLoadReason.Installer);
     }
 
     /// <summary>

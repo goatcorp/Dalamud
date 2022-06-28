@@ -2,10 +2,13 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 using System.Threading.Tasks;
 using Dalamud.Configuration.Internal;
 using Dalamud.Game;
 using Dalamud.Game.Gui.Dtr;
+using Dalamud.Interface.GameFonts;
+using Dalamud.Interface.Internal;
 using Dalamud.IoC.Internal;
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Internal.Exceptions;
@@ -26,6 +29,8 @@ internal class LocalPlugin : IDisposable
     private readonly FileInfo manifestFile;
     private readonly FileInfo disabledFile;
     private readonly FileInfo testingFile;
+
+    private readonly SemaphoreSlim pluginLoadStateLock = new(1);
 
     private PluginLoader? loader;
     private Assembly? pluginAssembly;
@@ -228,54 +233,73 @@ internal class LocalPlugin : IDisposable
     /// <returns>A task.</returns>
     public async Task LoadAsync(PluginLoadReason reason, bool reloading = false)
     {
-        var startInfo = Service<DalamudStartInfo>.Get();
-        var configuration = Service<DalamudConfiguration>.Get();
-        var pluginManager = Service<PluginManager>.Get();
+        var configuration = await Service<DalamudConfiguration>.GetAsync();
+        var framework = await Service<Framework>.GetAsync();
+        var ioc = await Service<ServiceContainer>.GetAsync();
+        var pluginManager = await Service<PluginManager>.GetAsync();
+        var startInfo = await Service<DalamudStartInfo>.GetAsync();
 
-        // Allowed: Unloaded
-        switch (this.State)
-        {
-            case PluginState.InProgress:
-                throw new InvalidPluginOperationException($"Unable to load {this.Name}, already working");
-            case PluginState.Loaded:
-                throw new InvalidPluginOperationException($"Unable to load {this.Name}, already loaded");
-            case PluginState.LoadError:
-                throw new InvalidPluginOperationException($"Unable to load {this.Name}, load previously faulted, unload first");
-            case PluginState.UnloadError:
-                throw new InvalidPluginOperationException($"Unable to load {this.Name}, unload previously faulted, restart Dalamud");
-            case PluginState.Unloaded:
-                break;
-            default:
-                throw new ArgumentOutOfRangeException(this.State.ToString());
-        }
+        // UiBuilder constructor requires the following two.
+        await Service<InterfaceManager>.GetAsync();
+        await Service<GameFontManager>.GetAsync();
 
-        if (pluginManager.IsManifestBanned(this.Manifest))
-            throw new BannedPluginException($"Unable to load {this.Name}, banned");
+        if (this.Manifest.LoadRequiredState == 0)
+            _ = await Service<InterfaceManager.InterfaceManagerWithScene>.GetAsync();
 
-        if (this.Manifest.ApplicableVersion < startInfo.GameVersion)
-            throw new InvalidPluginOperationException($"Unable to load {this.Name}, no applicable version");
-
-        if (this.Manifest.DalamudApiLevel < PluginManager.DalamudApiLevel && !configuration.LoadAllApiLevels)
-            throw new InvalidPluginOperationException($"Unable to load {this.Name}, incompatible API level");
-
-        if (this.Manifest.Disabled)
-            throw new InvalidPluginOperationException($"Unable to load {this.Name}, disabled");
-
-        this.State = PluginState.InProgress;
-        Log.Information($"Loading {this.DllFile.Name}");
-
-        if (this.DllFile.DirectoryName != null && File.Exists(Path.Combine(this.DllFile.DirectoryName, "Dalamud.dll")))
-        {
-            Log.Error("==== IMPORTANT MESSAGE TO {0}, THE DEVELOPER OF {1} ====", this.Manifest.Author!, this.Manifest.InternalName);
-            Log.Error("YOU ARE INCLUDING DALAMUD DEPENDENCIES IN YOUR BUILDS!!!");
-            Log.Error("You may not be able to load your plugin. \"<Private>False</Private>\" needs to be set in your csproj.");
-            Log.Error("If you are using ILMerge, do not merge anything other than your direct dependencies.");
-            Log.Error("Do not merge FFXIVClientStructs.Generators.dll.");
-            Log.Error("Please refer to https://github.com/goatcorp/Dalamud/discussions/603 for more information.");
-        }
-
+        await this.pluginLoadStateLock.WaitAsync();
         try
         {
+            switch (this.State)
+            {
+                case PluginState.Loaded:
+                    throw new InvalidPluginOperationException($"Unable to load {this.Name}, already loaded");
+                case PluginState.LoadError:
+                    throw new InvalidPluginOperationException(
+                        $"Unable to load {this.Name}, load previously faulted, unload first");
+                case PluginState.UnloadError:
+                    throw new InvalidPluginOperationException(
+                        $"Unable to load {this.Name}, unload previously faulted, restart Dalamud");
+                case PluginState.Unloaded:
+                    break;
+                case PluginState.Loading:
+                case PluginState.Unloading:
+                default:
+                    throw new ArgumentOutOfRangeException(this.State.ToString());
+            }
+
+            if (pluginManager.IsManifestBanned(this.Manifest))
+                throw new BannedPluginException($"Unable to load {this.Name}, banned");
+
+            if (this.Manifest.ApplicableVersion < startInfo.GameVersion)
+                throw new InvalidPluginOperationException($"Unable to load {this.Name}, no applicable version");
+
+            if (this.Manifest.DalamudApiLevel < PluginManager.DalamudApiLevel && !configuration.LoadAllApiLevels)
+                throw new InvalidPluginOperationException($"Unable to load {this.Name}, incompatible API level");
+
+            if (this.Manifest.Disabled)
+                throw new InvalidPluginOperationException($"Unable to load {this.Name}, disabled");
+
+            this.State = PluginState.Loading;
+            Log.Information($"Loading {this.DllFile.Name}");
+
+            if (this.DllFile.DirectoryName != null &&
+                File.Exists(Path.Combine(this.DllFile.DirectoryName, "Dalamud.dll")))
+            {
+                Log.Error(
+                    "==== IMPORTANT MESSAGE TO {0}, THE DEVELOPER OF {1} ====",
+                    this.Manifest.Author!,
+                    this.Manifest.InternalName);
+                Log.Error(
+                    "YOU ARE INCLUDING DALAMUD DEPENDENCIES IN YOUR BUILDS!!!");
+                Log.Error(
+                    "You may not be able to load your plugin. \"<Private>False</Private>\" needs to be set in your csproj.");
+                Log.Error(
+                    "If you are using ILMerge, do not merge anything other than your direct dependencies.");
+                Log.Error("Do not merge FFXIVClientStructs.Generators.dll.");
+                Log.Error(
+                    "Please refer to https://github.com/goatcorp/Dalamud/discussions/603 for more information.");
+            }
+
             this.loader ??= PluginLoader.CreateFromAssemblyFile(this.DllFile.FullName, SetupLoaderConfig);
 
             if (reloading || this.IsDev)
@@ -309,7 +333,8 @@ internal class LocalPlugin : IDisposable
             this.AssemblyName = this.pluginAssembly.GetName();
 
             // Find the plugin interface implementation. It is guaranteed to exist after checking in the ctor.
-            this.pluginType ??= this.pluginAssembly.GetTypes().First(type => type.IsAssignableTo(typeof(IDalamudPlugin)));
+            this.pluginType ??= this.pluginAssembly.GetTypes()
+                                    .First(type => type.IsAssignableTo(typeof(IDalamudPlugin)));
 
             // Check for any loaded plugins with the same assembly name
             var assemblyName = this.pluginAssembly.GetName().Name;
@@ -319,7 +344,8 @@ internal class LocalPlugin : IDisposable
                 if (otherPlugin == this || otherPlugin.instance == null)
                     continue;
 
-                var otherPluginAssemblyName = otherPlugin.instance.GetType().Assembly.GetName().Name;
+                var otherPluginAssemblyName =
+                    otherPlugin.instance.GetType().Assembly.GetName().Name;
                 if (otherPluginAssemblyName == assemblyName && otherPluginAssemblyName != null)
                 {
                     this.State = PluginState.Unloaded;
@@ -330,17 +356,29 @@ internal class LocalPlugin : IDisposable
             }
 
             // Update the location for the Location and CodeBase patches
-            PluginManager.PluginLocations[this.pluginType.Assembly.FullName] = new PluginPatchData(this.DllFile);
+            PluginManager.PluginLocations[this.pluginType.Assembly.FullName] =
+                new PluginPatchData(this.DllFile);
 
-            this.DalamudInterface = new DalamudPluginInterface(this.pluginAssembly.GetName().Name!, this.DllFile, reason, this.IsDev);
+            this.DalamudInterface =
+                new DalamudPluginInterface(this.pluginAssembly.GetName().Name!, this.DllFile, reason, this.IsDev);
 
-            var ioc = Service<ServiceContainer>.Get();
-            this.instance = await ioc.CreateAsync(this.pluginType, this.DalamudInterface) as IDalamudPlugin;
+            if (this.Manifest.LoadSync && this.Manifest.LoadRequiredState is 0 or 1)
+            {
+                this.instance = await framework.RunOnFrameworkThread(
+                                    () => ioc.CreateAsync(this.pluginType, this.DalamudInterface)) as IDalamudPlugin;
+            }
+            else
+            {
+                this.instance =
+                    await ioc.CreateAsync(this.pluginType, this.DalamudInterface) as IDalamudPlugin;
+            }
+
             if (this.instance == null)
             {
                 this.State = PluginState.LoadError;
                 this.DalamudInterface.ExplicitDispose();
-                Log.Error($"Error while loading {this.Name}, failed to bind and call the plugin constructor");
+                Log.Error(
+                    $"Error while loading {this.Name}, failed to bind and call the plugin constructor");
                 return;
             }
 
@@ -363,6 +401,10 @@ internal class LocalPlugin : IDisposable
 
             throw;
         }
+        finally
+        {
+            this.pluginLoadStateLock.Release();
+        }
     }
 
     /// <summary>
@@ -370,31 +412,38 @@ internal class LocalPlugin : IDisposable
     /// in the plugin list until it has been actually disposed.
     /// </summary>
     /// <param name="reloading">Unload while reloading.</param>
-    public void Unload(bool reloading = false)
+    /// <returns>The task.</returns>
+    public async Task UnloadAsync(bool reloading = false)
     {
-        // Allowed: Loaded, LoadError(we are cleaning this up while we're at it)
-        switch (this.State)
-        {
-            case PluginState.InProgress:
-                throw new InvalidPluginOperationException($"Unable to unload {this.Name}, already working");
-            case PluginState.Unloaded:
-                throw new InvalidPluginOperationException($"Unable to unload {this.Name}, already unloaded");
-            case PluginState.UnloadError:
-                throw new InvalidPluginOperationException($"Unable to unload {this.Name}, unload previously faulted, restart Dalamud");
-            case PluginState.Loaded:
-                break;
-            case PluginState.LoadError:
-                break;
-            default:
-                throw new ArgumentOutOfRangeException(this.State.ToString());
-        }
+        var framework = Service<Framework>.GetNullable();
 
+        await this.pluginLoadStateLock.WaitAsync();
         try
         {
-            this.State = PluginState.InProgress;
+            switch (this.State)
+            {
+                case PluginState.Unloaded:
+                    throw new InvalidPluginOperationException($"Unable to unload {this.Name}, already unloaded");
+                case PluginState.UnloadError:
+                    throw new InvalidPluginOperationException(
+                        $"Unable to unload {this.Name}, unload previously faulted, restart Dalamud");
+                case PluginState.Loaded:
+                case PluginState.LoadError:
+                    break;
+                case PluginState.Loading:
+                case PluginState.Unloading:
+                default:
+                    throw new ArgumentOutOfRangeException(this.State.ToString());
+            }
+
+            this.State = PluginState.Unloading;
             Log.Information($"Unloading {this.DllFile.Name}");
 
-            this.instance?.Dispose();
+            if (this.Manifest.CanUnloadAsync || framework == null)
+                this.instance?.Dispose();
+            else
+                await framework.RunOnFrameworkThread(() => this.instance?.Dispose());
+
             this.instance = null;
 
             this.DalamudInterface?.ExplicitDispose();
@@ -419,6 +468,10 @@ internal class LocalPlugin : IDisposable
 
             throw;
         }
+        finally
+        {
+            this.pluginLoadStateLock.Release();
+        }
     }
 
     /// <summary>
@@ -427,7 +480,7 @@ internal class LocalPlugin : IDisposable
     /// <returns>A task.</returns>
     public async Task ReloadAsync()
     {
-        this.Unload(true);
+        await this.UnloadAsync(true);
 
         // We need to handle removed DTR nodes here, as otherwise, plugins will not be able to re-add their bar entries after updates.
         var dtr = Service<DtrBar>.Get();
@@ -444,7 +497,8 @@ internal class LocalPlugin : IDisposable
         // Allowed: Unloaded, UnloadError
         switch (this.State)
         {
-            case PluginState.InProgress:
+            case PluginState.Loading:
+            case PluginState.Unloading:
             case PluginState.Loaded:
             case PluginState.LoadError:
                 throw new InvalidPluginOperationException($"Unable to enable {this.Name}, still loaded");
@@ -471,7 +525,8 @@ internal class LocalPlugin : IDisposable
         // Allowed: Unloaded, UnloadError
         switch (this.State)
         {
-            case PluginState.InProgress:
+            case PluginState.Loading:
+            case PluginState.Unloading:
             case PluginState.Loaded:
             case PluginState.LoadError:
                 throw new InvalidPluginOperationException($"Unable to disable {this.Name}, still loaded");
