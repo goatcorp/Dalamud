@@ -214,9 +214,12 @@ internal class LocalPlugin : IDisposable
     public void Dispose()
     {
         var framework = Service<Framework>.GetNullable();
+        var configuration = Service<DalamudConfiguration>.Get();
 
+        var didPluginDispose = false;
         if (this.instance != null)
         {
+            didPluginDispose = true;
             if (this.Manifest.CanUnloadAsync || framework == null)
                 this.instance.Dispose();
             else
@@ -231,6 +234,8 @@ internal class LocalPlugin : IDisposable
         this.pluginType = null;
         this.pluginAssembly = null;
 
+        if (this.loader != null && didPluginDispose)
+            Thread.Sleep(configuration.PluginWaitBeforeFree ?? PluginManager.PluginWaitBeforeFreeDefault);
         this.loader?.Dispose();
     }
 
@@ -421,9 +426,11 @@ internal class LocalPlugin : IDisposable
     /// in the plugin list until it has been actually disposed.
     /// </summary>
     /// <param name="reloading">Unload while reloading.</param>
+    /// <param name="waitBeforeLoaderDispose">Wait before disposing loader.</param>
     /// <returns>The task.</returns>
-    public async Task UnloadAsync(bool reloading = false)
+    public async Task UnloadAsync(bool reloading = false, bool waitBeforeLoaderDispose = true)
     {
+        var configuration = Service<DalamudConfiguration>.Get();
         var framework = Service<Framework>.GetNullable();
 
         await this.pluginLoadStateLock.WaitAsync();
@@ -463,6 +470,8 @@ internal class LocalPlugin : IDisposable
 
             if (!reloading)
             {
+                if (waitBeforeLoaderDispose && this.loader != null)
+                    await Task.Delay(configuration.PluginWaitBeforeFree ?? PluginManager.PluginWaitBeforeFreeDefault);
                 this.loader?.Dispose();
                 this.loader = null;
             }

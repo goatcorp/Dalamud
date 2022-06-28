@@ -38,6 +38,11 @@ internal partial class PluginManager : IDisposable, IServiceType
     /// </summary>
     public const int DalamudApiLevel = 6;
 
+    /// <summary>
+    /// Default time to wait between plugin unload and plugin assembly unload.
+    /// </summary>
+    public const int PluginWaitBeforeFreeDefault = 500;
+
     private static readonly ModuleLog Log = new("PLUGINM");
 
     private readonly object pluginListLock = new();
@@ -219,7 +224,7 @@ internal partial class PluginManager : IDisposable, IServiceType
         {
             try
             {
-                plugin.UnloadAsync(true).Wait();
+                plugin.UnloadAsync(true, false).Wait();
             }
             catch (Exception ex)
             {
@@ -233,7 +238,7 @@ internal partial class PluginManager : IDisposable, IServiceType
                          {
                              try
                              {
-                                 await plugin.UnloadAsync(true);
+                                 await plugin.UnloadAsync(true, false);
                              }
                              catch (Exception ex)
                              {
@@ -243,7 +248,7 @@ internal partial class PluginManager : IDisposable, IServiceType
 
         // Just in case plugins still have tasks running that they didn't cancel when they should have,
         // give them some time to complete it.
-        Thread.Sleep(500);
+        Thread.Sleep(this.configuration.PluginWaitBeforeFree ?? PluginWaitBeforeFreeDefault);
 
         // Now that we've waited enough, dispose the whole plugin.
         // Since plugins should have been unloaded above, this should be done quickly. 

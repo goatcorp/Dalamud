@@ -262,6 +262,12 @@ namespace Dalamud.Configuration.Internal
         public bool PluginSafeMode { get; set; }
 
         /// <summary>
+        /// Gets or sets a value indicating the wait time between plugin unload and plugin assembly unload.
+        /// Uses default value that may change between versions if set to null.
+        /// </summary>
+        public int? PluginWaitBeforeFree { get; set; }
+
+        /// <summary>
         /// Gets or sets a list of saved styles.
         /// </summary>
         [JsonProperty("SavedStyles")]
