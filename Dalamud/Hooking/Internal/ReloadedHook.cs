@@ -19,16 +19,19 @@ namespace Dalamud.Hooking.Internal
         internal ReloadedHook(IntPtr address, T detour, Assembly callingAssembly)
             : base(address)
         {
-            var hasOtherHooks = HookManager.Originals.ContainsKey(this.Address);
-            if (!hasOtherHooks)
+            lock (HookManager.HookEnableSyncRoot)
             {
-                MemoryHelper.ReadRaw(this.Address, 0x32, out var original);
-                HookManager.Originals[this.Address] = original;
+                var hasOtherHooks = HookManager.Originals.ContainsKey(this.Address);
+                if (!hasOtherHooks)
+                {
+                    MemoryHelper.ReadRaw(this.Address, 0x32, out var original);
+                    HookManager.Originals[this.Address] = original;
+                }
+
+                this.hookImpl = ReloadedHooks.Instance.CreateHook<T>(detour, address.ToInt64());
+
+                HookManager.TrackedHooks.TryAdd(Guid.NewGuid(), new HookInfo(this, detour, callingAssembly));
             }
-
-            this.hookImpl = ReloadedHooks.Instance.CreateHook<T>(detour, address.ToInt64());
-
-            HookManager.TrackedHooks.TryAdd(Guid.NewGuid(), new HookInfo(this, detour, callingAssembly));
         }
 
         /// <inheritdoc/>
@@ -70,11 +73,14 @@ namespace Dalamud.Hooking.Internal
         {
             this.CheckDisposed();
 
-            if (!this.hookImpl.IsHookActivated)
-                this.hookImpl.Activate();
+            lock (HookManager.HookEnableSyncRoot)
+            {
+                if (!this.hookImpl.IsHookActivated)
+                    this.hookImpl.Activate();
 
-            if (!this.hookImpl.IsHookEnabled)
-                this.hookImpl.Enable();
+                if (!this.hookImpl.IsHookEnabled)
+                    this.hookImpl.Enable();
+            }
         }
 
         /// <inheritdoc/>
@@ -82,11 +88,14 @@ namespace Dalamud.Hooking.Internal
         {
             this.CheckDisposed();
 
-            if (!this.hookImpl.IsHookActivated)
-                return;
+            lock (HookManager.HookEnableSyncRoot)
+            {
+                if (!this.hookImpl.IsHookActivated)
+                    return;
 
-            if (this.hookImpl.IsHookEnabled)
-                this.hookImpl.Disable();
+                if (this.hookImpl.IsHookEnabled)
+                    this.hookImpl.Disable();
+            }
         }
     }
 }

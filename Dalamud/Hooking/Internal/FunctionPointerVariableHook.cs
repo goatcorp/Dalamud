@@ -27,24 +27,27 @@ namespace Dalamud.Hooking.Internal
         internal FunctionPointerVariableHook(IntPtr address, T detour, Assembly callingAssembly)
             : base(address)
         {
-            var hasOtherHooks = HookManager.Originals.ContainsKey(this.Address);
-            if (!hasOtherHooks)
+            lock (HookManager.HookEnableSyncRoot)
             {
-                MemoryHelper.ReadRaw(this.Address, 0x32, out var original);
-                HookManager.Originals[this.Address] = original;
+                var hasOtherHooks = HookManager.Originals.ContainsKey(this.Address);
+                if (!hasOtherHooks)
+                {
+                    MemoryHelper.ReadRaw(this.Address, 0x32, out var original);
+                    HookManager.Originals[this.Address] = original;
+                }
+
+                if (!HookManager.MultiHookTracker.TryGetValue(this.Address, out var indexList))
+                    indexList = HookManager.MultiHookTracker[this.Address] = new();
+
+                this.pfnOriginal = Marshal.ReadIntPtr(this.Address);
+                this.originalDelegate = Marshal.GetDelegateForFunctionPointer<T>(this.pfnOriginal);
+                this.detourDelegate = detour;
+
+                // Add afterwards, so the hookIdent starts at 0.
+                indexList.Add(this);
+
+                HookManager.TrackedHooks.TryAdd(Guid.NewGuid(), new HookInfo(this, detour, callingAssembly));
             }
-
-            if (!HookManager.MultiHookTracker.TryGetValue(this.Address, out var indexList))
-                indexList = HookManager.MultiHookTracker[this.Address] = new();
-
-            this.pfnOriginal = Marshal.ReadIntPtr(this.Address);
-            this.originalDelegate = Marshal.GetDelegateForFunctionPointer<T>(this.pfnOriginal);
-            this.detourDelegate = detour;
-
-            // Add afterwards, so the hookIdent starts at 0.
-            indexList.Add(this);
-
-            HookManager.TrackedHooks.TryAdd(Guid.NewGuid(), new HookInfo(this, detour, callingAssembly));
         }
 
         /// <inheritdoc/>
@@ -91,11 +94,15 @@ namespace Dalamud.Hooking.Internal
 
             if (!this.enabled)
             {
-                if (!NativeFunctions.VirtualProtect(this.Address, (UIntPtr)Marshal.SizeOf<IntPtr>(), MemoryProtection.ExecuteReadWrite, out var oldProtect))
-                    throw new Win32Exception(Marshal.GetLastWin32Error());
+                lock (HookManager.HookEnableSyncRoot)
+                {
+                    if (!NativeFunctions.VirtualProtect(this.Address, (UIntPtr)Marshal.SizeOf<IntPtr>(),
+                                                        MemoryProtection.ExecuteReadWrite, out var oldProtect))
+                        throw new Win32Exception(Marshal.GetLastWin32Error());
 
-                Marshal.WriteIntPtr(this.Address, Marshal.GetFunctionPointerForDelegate(this.detourDelegate));
-                NativeFunctions.VirtualProtect(this.Address, (UIntPtr)Marshal.SizeOf<IntPtr>(), oldProtect, out _);
+                    Marshal.WriteIntPtr(this.Address, Marshal.GetFunctionPointerForDelegate(this.detourDelegate));
+                    NativeFunctions.VirtualProtect(this.Address, (UIntPtr)Marshal.SizeOf<IntPtr>(), oldProtect, out _);
+                }
             }
         }
 
@@ -106,11 +113,15 @@ namespace Dalamud.Hooking.Internal
 
             if (this.enabled)
             {
-                if (!NativeFunctions.VirtualProtect(this.Address, (UIntPtr)Marshal.SizeOf<IntPtr>(), MemoryProtection.ExecuteReadWrite, out var oldProtect))
-                    throw new Win32Exception(Marshal.GetLastWin32Error());
+                lock (HookManager.HookEnableSyncRoot)
+                {
+                    if (!NativeFunctions.VirtualProtect(this.Address, (UIntPtr)Marshal.SizeOf<IntPtr>(),
+                                                        MemoryProtection.ExecuteReadWrite, out var oldProtect))
+                        throw new Win32Exception(Marshal.GetLastWin32Error());
 
-                Marshal.WriteIntPtr(this.Address, this.pfnOriginal);
-                NativeFunctions.VirtualProtect(this.Address, (UIntPtr)Marshal.SizeOf<IntPtr>(), oldProtect, out _);
+                    Marshal.WriteIntPtr(this.Address, this.pfnOriginal);
+                    NativeFunctions.VirtualProtect(this.Address, (UIntPtr)Marshal.SizeOf<IntPtr>(), oldProtect, out _);
+                }
             }
         }
     }
