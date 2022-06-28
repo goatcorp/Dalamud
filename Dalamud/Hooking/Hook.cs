@@ -89,6 +89,22 @@ namespace Dalamud.Hooking
         public virtual T Original => this.compatHookImpl != null ? this.compatHookImpl!.Original : throw new NotImplementedException();
 
         /// <summary>
+        /// Gets a delegate function that can be used to call the actual function as if function is not hooked yet.
+        /// This can be called even after Dispose.
+        /// </summary>
+        public T OriginalDisposeSafe
+        {
+            get
+            {
+                if (this.compatHookImpl != null)
+                    return this.compatHookImpl!.OriginalDisposeSafe;
+                if (this.IsDisposed)
+                    return Marshal.GetDelegateForFunctionPointer<T>(this.address);
+                return this.Original;
+            }
+        }
+
+        /// <summary>
         /// Gets a value indicating whether or not the hook is enabled.
         /// </summary>
         public virtual bool IsEnabled => this.compatHookImpl != null ? this.compatHookImpl!.IsEnabled : throw new NotImplementedException();
@@ -115,14 +131,17 @@ namespace Dalamud.Hooking
         /// <summary>
         /// Creates a hook by rewriting import table address.
         /// </summary>
-        /// <param name="module">Module to check for.</param>
+        /// <param name="module">Module to check for. Current process' main module if null.</param>
         /// <param name="moduleName">Name of the DLL, including the extension.</param>
         /// <param name="functionName">Decorated name of the function.</param>
         /// <param name="hintOrOrdinal">Hint or ordinal. 0 to unspecify.</param>
         /// <param name="detour">Callback function. Delegate must have a same original function prototype.</param>
         /// <returns>The hook with the supplied parameters.</returns>
-        public static unsafe Hook<T> FromImport(ProcessModule module, string moduleName, string functionName, uint hintOrOrdinal, T detour)
+        public static unsafe Hook<T> FromImport(ProcessModule? module, string moduleName, string functionName, uint hintOrOrdinal, T detour)
         {
+            module ??= Process.GetCurrentProcess().MainModule;
+            if (module == null)
+                throw new InvalidOperationException("Current module is null?");
             var pDos = (PeHeader.IMAGE_DOS_HEADER*)module.BaseAddress;
             var pNt = (PeHeader.IMAGE_FILE_HEADER*)(module.BaseAddress + (int)pDos->e_lfanew + 4);
             var isPe64 = pNt->SizeOfOptionalHeader == Marshal.SizeOf<PeHeader.IMAGE_OPTIONAL_HEADER64>();

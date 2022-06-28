@@ -207,7 +207,7 @@ internal partial class PluginManager : IDisposable, IServiceType
     /// <inheritdoc/>
     public void Dispose()
     {
-        foreach (var plugin in this.InstalledPlugins)
+        Task.WaitAll(this.InstalledPlugins.Select(plugin => Task.Run(() =>
         {
             try
             {
@@ -217,7 +217,7 @@ internal partial class PluginManager : IDisposable, IServiceType
             {
                 Log.Error(ex, $"Error disposing {plugin.Name}");
             }
-        }
+        })).ToArray());
 
         this.assemblyLocationMonoHook?.Dispose();
         this.assemblyCodeBaseMonoHook?.Dispose();

@@ -25,6 +25,8 @@ namespace Dalamud
 
         private static readonly TaskCompletionSource BlockingServicesLoadedTaskCompletionSource = new();
 
+        private static readonly List<Type> LoadedServices = new();
+
         /// <summary>
         /// Gets task that gets completed when all blocking early loading services are done loading.
         /// </summary>
@@ -38,20 +40,35 @@ namespace Dalamud
         /// <param name="configuration">Instance of <see cref="DalamudConfiguration"/>.</param>
         public static void InitializeProvidedServicesAndClientStructs(Dalamud dalamud, DalamudStartInfo startInfo, DalamudConfiguration configuration)
         {
-            Service<Dalamud>.Provide(dalamud);
-            Service<DalamudStartInfo>.Provide(startInfo);
-            Service<DalamudConfiguration>.Provide(configuration);
-            Service<ServiceContainer>.Provide(new ServiceContainer());
-
             // Initialize the process information.
             var cacheDir = new DirectoryInfo(Path.Combine(startInfo.WorkingDirectory!, "cachedSigs"));
             if (!cacheDir.Exists)
                 cacheDir.Create();
-            Service<SigScanner>.Provide(new SigScanner(true, new FileInfo(Path.Combine(cacheDir.FullName, $"{startInfo.GameVersion}.json"))));
+
+            lock (LoadedServices)
+            {
+                Service<Dalamud>.Provide(dalamud);
+                LoadedServices.Add(typeof(Dalamud));
+
+                Service<DalamudStartInfo>.Provide(startInfo);
+                LoadedServices.Add(typeof(DalamudStartInfo));
+
+                Service<DalamudConfiguration>.Provide(configuration);
+                LoadedServices.Add(typeof(DalamudConfiguration));
+
+                Service<ServiceContainer>.Provide(new ServiceContainer());
+                LoadedServices.Add(typeof(ServiceContainer));
+
+                Service<SigScanner>.Provide(
+                    new SigScanner(
+                        true, new FileInfo(Path.Combine(cacheDir.FullName, $"{startInfo.GameVersion}.json"))));
+                LoadedServices.Add(typeof(SigScanner));
+            }
 
             using (Timings.Start("CS Resolver Init"))
             {
-                FFXIVClientStructs.Resolver.InitializeParallel(new FileInfo(Path.Combine(cacheDir.FullName, $"{startInfo.GameVersion}_cs.json")));
+                FFXIVClientStructs.Resolver.InitializeParallel(
+                    new FileInfo(Path.Combine(cacheDir.FullName, $"{startInfo.GameVersion}_cs.json")));
             }
         }
 
@@ -62,7 +79,6 @@ namespace Dalamud
         public static async Task InitializeEarlyLoadableServices()
         {
             using var serviceInitializeTimings = Timings.Start("Services Init");
-            var service = typeof(Service<>);
 
             var earlyLoadingServices = new HashSet<Type>();
             var blockingEarlyLoadingServices = new HashSet<Type>();
@@ -76,12 +92,14 @@ namespace Dalamud
                 if (attr?.IsAssignableTo(typeof(EarlyLoadedService)) != true)
                     continue;
 
-                var getTask = (Task)service.MakeGenericType(serviceType).InvokeMember(
-                    "GetAsync",
-                    BindingFlags.InvokeMethod | BindingFlags.Static | BindingFlags.Public,
-                    null,
-                    null,
-                    null);
+                var getTask = (Task)typeof(Service<>)
+                                    .MakeGenericType(serviceType)
+                                    .InvokeMember(
+                                        "GetAsync",
+                                        BindingFlags.InvokeMethod | BindingFlags.Static | BindingFlags.Public,
+                                        null,
+                                        null,
+                                        null);
 
                 if (attr.IsAssignableTo(typeof(BlockingEarlyLoadedService)))
                 {
@@ -94,7 +112,7 @@ namespace Dalamud
                 }
 
                 dependencyServicesMap[serviceType] =
-                    (List<Type>)service
+                    (List<Type>)typeof(Service<>)
                                 .MakeGenericType(serviceType)
                                 .InvokeMember(
                                     "GetDependencyServices",
@@ -118,9 +136,9 @@ namespace Dalamud
                 }
             }).ConfigureAwait(false);
 
+            var tasks = new List<Task>();
             try
             {
-                var tasks = new List<Task>();
                 var servicesToLoad = new HashSet<Type>();
                 servicesToLoad.UnionWith(earlyLoadingServices);
                 servicesToLoad.UnionWith(blockingEarlyLoadingServices);
@@ -133,13 +151,25 @@ namespace Dalamud
                                 x => getAsyncTaskMap.GetValueOrDefault(x)?.IsCompleted == false))
                             continue;
 
-                        tasks.Add((Task)service.MakeGenericType(serviceType).InvokeMember(
-                                      "StartLoader",
-                                      BindingFlags.InvokeMethod | BindingFlags.Static | BindingFlags.Public,
-                                      null,
-                                      null,
-                                      null));
+                        tasks.Add((Task)typeof(Service<>)
+                                        .MakeGenericType(serviceType)
+                                        .InvokeMember(
+                                            "StartLoader",
+                                            BindingFlags.InvokeMethod | BindingFlags.Static | BindingFlags.NonPublic,
+                                            null,
+                                            null,
+                                            null));
                         servicesToLoad.Remove(serviceType);
+
+                        tasks.Add(tasks.Last().ContinueWith(task =>
+                        {
+                            if (task.IsFaulted)
+                                return;
+                            lock (LoadedServices)
+                            {
+                                LoadedServices.Add(serviceType);
+                            }
+                        }));
                     }
 
                     if (!tasks.Any())
@@ -172,7 +202,46 @@ namespace Dalamud
                     // don't care, as this means task result/exception has already been set
                 }
 
+                while (tasks.Any())
+                {
+                    await Task.WhenAny(tasks);
+                    tasks.RemoveAll(x => x.IsCompleted);
+                }
+
+                UnloadAllServices();
+
                 throw;
+            }
+        }
+
+        /// <summary>
+        /// Unloads all services, in the reverse order of load.
+        /// </summary>
+        public static void UnloadAllServices()
+        {
+            var framework = Service<Framework>.GetNullable(Service<Framework>.ExceptionPropagationMode.None);
+            if (framework is { IsInFrameworkUpdateThread: false, IsFrameworkUnloading: false })
+            {
+                framework.RunOnFrameworkThread(UnloadAllServices).Wait();
+                return;
+            }
+
+            lock (LoadedServices)
+            {
+                while (LoadedServices.Any())
+                {
+                    var serviceType = LoadedServices.Last();
+                    LoadedServices.RemoveAt(LoadedServices.Count - 1);
+
+                    typeof(Service<>)
+                        .MakeGenericType(serviceType)
+                        .InvokeMember(
+                            "Unset",
+                            BindingFlags.InvokeMethod | BindingFlags.Static | BindingFlags.NonPublic,
+                            null,
+                            null,
+                            null);
+                }
             }
         }
 

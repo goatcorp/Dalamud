@@ -8,10 +8,8 @@ using System.Threading.Tasks;
 
 using Dalamud.Game.Gui;
 using Dalamud.Game.Gui.Toast;
-using Dalamud.Game.Libc;
 using Dalamud.Game.Network;
 using Dalamud.Hooking;
-using Dalamud.Interface.Internal;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Utility;
@@ -32,9 +30,9 @@ namespace Dalamud.Game
         private readonly List<RunOnNextTickTaskBase> runOnNextTickTaskList = new();
         private readonly Stopwatch updateStopwatch = new();
 
-        private Hook<OnUpdateDetour> updateHook;
-        private Hook<OnDestroyDetour> freeHook;
-        private Hook<OnRealDestroyDelegate> destroyHook;
+        private readonly Hook<OnUpdateDetour> updateHook;
+        private readonly Hook<OnDestroyDetour> freeHook;
+        private readonly Hook<OnRealDestroyDelegate> destroyHook;
 
         private Thread? frameworkUpdateThread;
 
@@ -114,6 +112,11 @@ namespace Dalamud.Game
         public bool IsInFrameworkUpdateThread => Thread.CurrentThread == this.frameworkUpdateThread;
 
         /// <summary>
+        /// Gets a value indicating whether game Framework is unloading.
+        /// </summary>
+        public bool IsFrameworkUnloading { get; internal set; }
+
+        /// <summary>
         /// Gets or sets a value indicating whether to dispatch update events.
         /// </summary>
         internal bool DispatchUpdateEvents { get; set; } = true;
@@ -124,7 +127,7 @@ namespace Dalamud.Game
         /// <typeparam name="T">Return type.</typeparam>
         /// <param name="func">Function to call.</param>
         /// <returns>Task representing the pending or already completed function.</returns>
-        public Task<T> RunOnFrameworkThread<T>(Func<T> func) => this.IsInFrameworkUpdateThread ? Task.FromResult(func()) : this.RunOnTick(func);
+        public Task<T> RunOnFrameworkThread<T>(Func<T> func) => this.IsInFrameworkUpdateThread || this.IsFrameworkUnloading ? Task.FromResult(func()) : this.RunOnTick(func);
 
         /// <summary>
         /// Run given function right away if this function has been called from game's Framework.Update thread, or otherwise run on next Framework.Update call.
@@ -133,7 +136,7 @@ namespace Dalamud.Game
         /// <returns>Task representing the pending or already completed function.</returns>
         public Task RunOnFrameworkThread(Action action)
         {
-            if (this.IsInFrameworkUpdateThread)
+            if (this.IsInFrameworkUpdateThread || this.IsFrameworkUnloading)
             {
                 try
                 {
@@ -162,6 +165,16 @@ namespace Dalamud.Game
         /// <returns>Task representing the pending function.</returns>
         public Task<T> RunOnTick<T>(Func<T> func, TimeSpan delay = default, int delayTicks = default, CancellationToken cancellationToken = default)
         {
+            if (this.IsFrameworkUnloading)
+            {
+                if (delay == default && delayTicks == default)
+                    return this.RunOnFrameworkThread(func);
+
+                var cts = new CancellationTokenSource();
+                cts.Cancel();
+                return Task.FromCanceled<T>(cts.Token);
+            }
+
             var tcs = new TaskCompletionSource<T>();
             this.runOnNextTickTaskList.Add(new RunOnNextTickTaskFunc<T>()
             {
@@ -184,6 +197,16 @@ namespace Dalamud.Game
         /// <returns>Task representing the pending function.</returns>
         public Task RunOnTick(Action action, TimeSpan delay = default, int delayTicks = default, CancellationToken cancellationToken = default)
         {
+            if (this.IsFrameworkUnloading)
+            {
+                if (delay == default && delayTicks == default)
+                    return this.RunOnFrameworkThread(action);
+
+                var cts = new CancellationTokenSource();
+                cts.Cancel();
+                return Task.FromCanceled(cts.Token);
+            }
+
             var tcs = new TaskCompletionSource();
             this.runOnNextTickTaskList.Add(new RunOnNextTickTaskAction()
             {
@@ -201,13 +224,17 @@ namespace Dalamud.Game
         /// </summary>
         void IDisposable.Dispose()
         {
-            Service<GameGui>.GetNullable()?.ExplicitDispose();
-            Service<GameNetwork>.GetNullable()?.ExplicitDispose();
+            this.RunOnFrameworkThread(() =>
+            {
+                // ReSharper disable once AccessToDisposedClosure
+                this.updateHook?.Disable();
 
-            this.updateHook?.Disable();
-            this.freeHook?.Disable();
-            this.destroyHook?.Disable();
-            Thread.Sleep(500);
+                // ReSharper disable once AccessToDisposedClosure
+                this.freeHook?.Disable();
+
+                // ReSharper disable once AccessToDisposedClosure
+                this.destroyHook?.Disable();
+            }).Wait();
 
             this.updateHook?.Dispose();
             this.freeHook?.Dispose();
@@ -314,41 +341,27 @@ namespace Dalamud.Game
             }
 
             original:
-            return this.updateHook.Original(framework);
+            return this.updateHook.OriginalDisposeSafe(framework);
         }
 
         private bool HandleFrameworkDestroy(IntPtr framework)
         {
-            if (this.DispatchUpdateEvents)
-            {
-                Log.Information("Framework::Destroy!");
-
-                var dalamud = Service<Dalamud>.Get();
-                dalamud.DisposePlugins();
-
-                Log.Information("Framework::Destroy OK!");
-            }
-
+            this.IsFrameworkUnloading = true;
             this.DispatchUpdateEvents = false;
+            Service<Dalamud>.Get().Unload();
 
-            return this.destroyHook.Original(framework);
+            return this.destroyHook.OriginalDisposeSafe(framework);
         }
 
         private IntPtr HandleFrameworkFree()
         {
             Log.Information("Framework::Free!");
 
-            // Store the pointer to the original trampoline location
-            var originalPtr = Marshal.GetFunctionPointerForDelegate(this.freeHook.Original);
-
-            var dalamud = Service<Dalamud>.Get();
-            dalamud.Unload();
-            dalamud.WaitForUnloadFinish();
+            ServiceManager.UnloadAllServices();
 
             Log.Information("Framework::Free OK!");
 
-            // Return the original trampoline location to cleanly exit
-            return originalPtr;
+            return this.freeHook.OriginalDisposeSafe();
         }
 
         private abstract class RunOnNextTickTaskBase

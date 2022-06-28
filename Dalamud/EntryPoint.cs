@@ -115,10 +115,11 @@ namespace Dalamud
         private static void RunThread(DalamudStartInfo info, IntPtr mainThreadContinueEvent)
         {
             // Setup logger
-            var levelSwitch = InitLogging(info.WorkingDirectory, info.BootShowConsole);
+            var levelSwitch = InitLogging(info.WorkingDirectory!, info.BootShowConsole);
+            SerilogEventSink.Instance.LogLine += SerilogOnLogLine;
 
             // Load configuration first to get some early persistent state, like log level
-            var configuration = DalamudConfiguration.Load(info.ConfigurationPath);
+            var configuration = DalamudConfiguration.Load(info.ConfigurationPath!);
 
             // Set the appropriate logging level from the configuration
 #if !DEBUG
@@ -128,8 +129,6 @@ namespace Dalamud
             // Log any unhandled exception.
             AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
             TaskScheduler.UnobservedTaskException += OnUnobservedTaskException;
-
-            var finishSignal = new ManualResetEvent(false);
 
             try
             {
@@ -148,12 +147,12 @@ namespace Dalamud
                 if (!Util.IsLinux())
                     InitSymbolHandler(info);
 
-                var dalamud = new Dalamud(info, levelSwitch, finishSignal, configuration, mainThreadContinueEvent);
+                var dalamud = new Dalamud(info, levelSwitch, configuration, mainThreadContinueEvent);
                 Log.Information("This is Dalamud - Core: {GitHash}, CS: {CsGitHash}", Util.GetGitHash(), Util.GetGitHashClientStructs());
 
                 dalamud.WaitForUnload();
 
-                dalamud.Dispose();
+                ServiceManager.UnloadAllServices();
             }
             catch (Exception ex)
             {
@@ -166,9 +165,16 @@ namespace Dalamud
 
                 Log.Information("Session has ended.");
                 Log.CloseAndFlush();
-
-                finishSignal.Set();
+                SerilogEventSink.Instance.LogLine -= SerilogOnLogLine;
             }
+        }
+
+        private static void SerilogOnLogLine(object? sender, (string Line, LogEventLevel Level, DateTimeOffset TimeStamp, Exception? Exception) e)
+        {
+            if (e.Exception == null)
+                return;
+
+            Troubleshooting.LogException(e.Exception, e.Line);
         }
 
         private static void InitSymbolHandler(DalamudStartInfo info)

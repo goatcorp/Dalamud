@@ -11,6 +11,9 @@ namespace Dalamud.Game.ClientState.Buddy
     /// </summary>
     public unsafe class BuddyMember
     {
+        [ServiceManager.ServiceDependency]
+        private readonly ObjectTable objectTable = Service<ObjectTable>.Get();
+
         /// <summary>
         /// Initializes a new instance of the <see cref="BuddyMember"/> class.
         /// </summary>
@@ -36,7 +39,7 @@ namespace Dalamud.Game.ClientState.Buddy
         /// <remarks>
         /// This iterates the actor table, it should be used with care.
         /// </remarks>
-        public GameObject? GameObject => Service<ObjectTable>.Get().SearchById(this.ObjectId);
+        public GameObject? GameObject => this.objectTable.SearchById(this.ObjectId);
 
         /// <summary>
         /// Gets the current health of this buddy.

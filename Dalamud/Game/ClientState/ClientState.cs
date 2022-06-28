@@ -1,22 +1,15 @@
 using System;
+using System.Linq;
 using System.Runtime.InteropServices;
 
 using Dalamud.Data;
-using Dalamud.Game.ClientState.Aetherytes;
-using Dalamud.Game.ClientState.Buddy;
-using Dalamud.Game.ClientState.Fates;
-using Dalamud.Game.ClientState.GamePad;
-using Dalamud.Game.ClientState.JobGauge;
-using Dalamud.Game.ClientState.Keys;
 using Dalamud.Game.ClientState.Objects;
 using Dalamud.Game.ClientState.Objects.SubKinds;
-using Dalamud.Game.ClientState.Party;
 using Dalamud.Game.Gui;
 using Dalamud.Game.Network.Internal;
 using Dalamud.Hooking;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
-using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using Serilog;
 
@@ -33,6 +26,12 @@ namespace Dalamud.Game.ClientState
         private readonly ClientStateAddressResolver address;
         private readonly Hook<SetupTerritoryTypeDelegate> setupTerritoryTypeHook;
 
+        [ServiceManager.ServiceDependency]
+        private readonly Framework framework = Service<Framework>.Get();
+
+        [ServiceManager.ServiceDependency]
+        private readonly NetworkHandlers networkHandlers = Service<NetworkHandlers>.Get();
+
         private bool lastConditionNone = true;
         private bool lastFramePvP = false;
 
@@ -42,7 +41,7 @@ namespace Dalamud.Game.ClientState
         internal ClientStateAddressResolver AddressResolver => this.address;
 
         [ServiceManager.ServiceConstructor]
-        private ClientState(Framework framework, NetworkHandlers networkHandlers, SigScanner sigScanner, DalamudStartInfo startInfo)
+        private ClientState(SigScanner sigScanner, DalamudStartInfo startInfo)
         {
             this.address = new ClientStateAddressResolver();
             this.address.Setup(sigScanner);
@@ -55,9 +54,9 @@ namespace Dalamud.Game.ClientState
 
             this.setupTerritoryTypeHook = new Hook<SetupTerritoryTypeDelegate>(this.address.SetupTerritoryType, this.SetupTerritoryTypeDetour);
 
-            framework.Update += this.FrameworkOnOnUpdateEvent;
+            this.framework.Update += this.FrameworkOnOnUpdateEvent;
 
-            networkHandlers.CfPop += this.NetworkHandlersOnCfPop;
+            this.networkHandlers.CfPop += this.NetworkHandlersOnCfPop;
         }
 
         [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
@@ -106,7 +105,7 @@ namespace Dalamud.Game.ClientState
         /// <summary>
         /// Gets the local player character, if one is present.
         /// </summary>
-        public PlayerCharacter? LocalPlayer => Service<ObjectTable>.Get()[0] as PlayerCharacter;
+        public PlayerCharacter? LocalPlayer => Service<ObjectTable>.GetNullable()?.FirstOrDefault() as PlayerCharacter;
 
         /// <summary>
         /// Gets the content ID of the local character.
@@ -134,10 +133,8 @@ namespace Dalamud.Game.ClientState
         void IDisposable.Dispose()
         {
             this.setupTerritoryTypeHook.Dispose();
-            Service<Conditions.Condition>.Get().ExplicitDispose();
-            Service<GamepadState>.Get().ExplicitDispose();
-            Service<Framework>.Get().Update -= this.FrameworkOnOnUpdateEvent;
-            Service<NetworkHandlers>.Get().CfPop -= this.NetworkHandlersOnCfPop;
+            this.framework.Update -= this.FrameworkOnOnUpdateEvent;
+            this.networkHandlers.CfPop -= this.NetworkHandlersOnCfPop;
         }
 
         [ServiceManager.CallWhenServicesReady]
@@ -161,11 +158,14 @@ namespace Dalamud.Game.ClientState
             this.CfPop?.Invoke(this, e);
         }
 
-        private void FrameworkOnOnUpdateEvent(Framework framework)
+        private void FrameworkOnOnUpdateEvent(Framework framework1)
         {
-            var condition = Service<Conditions.Condition>.Get();
-            var gameGui = Service<GameGui>.Get();
-            var data = Service<DataManager>.Get();
+            var condition = Service<Conditions.Condition>.GetNullable();
+            var gameGui = Service<GameGui>.GetNullable();
+            var data = Service<DataManager>.GetNullable();
+
+            if (condition == null || gameGui == null || data == null)
+                return;
 
             if (condition.Any() && this.lastConditionNone == true)
             {

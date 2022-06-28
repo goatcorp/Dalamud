@@ -436,12 +436,6 @@ namespace Dalamud.Game.Gui
         /// </summary>
         void IDisposable.Dispose()
         {
-            Service<ChatGui>.Get().ExplicitDispose();
-            Service<ToastGui>.Get().ExplicitDispose();
-            Service<FlyTextGui>.Get().ExplicitDispose();
-            Service<PartyFinderGui>.Get().ExplicitDispose();
-            Service<ContextMenu>.Get().ExplicitDispose();
-            Service<DtrBar>.Get().ExplicitDispose();
             this.setGlobalBgmHook.Dispose();
             this.handleItemHoverHook.Dispose();
             this.handleItemOutHook.Dispose();

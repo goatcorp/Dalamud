@@ -28,6 +28,9 @@ namespace Dalamud.Game.Network.Internal
 
         private readonly IMarketBoardUploader uploader;
 
+        [ServiceManager.ServiceDependency]
+        private readonly DalamudConfiguration configuration = Service<DalamudConfiguration>.Get();
+
         private MarketBoardPurchaseHandler marketBoardPurchaseHandler;
 
         [ServiceManager.ServiceConstructor]
@@ -47,14 +50,12 @@ namespace Dalamud.Game.Network.Internal
         {
             var dataManager = Service<DataManager>.GetNullable();
 
-            if (dataManager?.IsDataReady == false)
+            if (dataManager?.IsDataReady != true)
                 return;
-
-            var configuration = Service<DalamudConfiguration>.Get();
 
             if (direction == NetworkMessageDirection.ZoneUp)
             {
-                if (configuration.IsMbCollect)
+                if (this.configuration.IsMbCollect)
                 {
                     if (opCode == dataManager.ClientOpCodes["MarketBoardPurchaseHandler"])
                     {
@@ -72,7 +73,7 @@ namespace Dalamud.Game.Network.Internal
                 return;
             }
 
-            if (configuration.IsMbCollect)
+            if (this.configuration.IsMbCollect)
             {
                 if (opCode == dataManager.ServerOpCodes["MarketBoardItemRequestStart"])
                 {
@@ -236,8 +237,9 @@ namespace Dalamud.Game.Network.Internal
 
         private unsafe void HandleCfPop(IntPtr dataPtr)
         {
-            var dataManager = Service<DataManager>.Get();
-            var configuration = Service<DalamudConfiguration>.Get();
+            var dataManager = Service<DataManager>.GetNullable();
+            if (dataManager == null)
+                return;
 
             using var stream = new UnmanagedMemoryStream((byte*)dataPtr.ToPointer(), 64);
             using var reader = new BinaryReader(stream);
@@ -266,7 +268,7 @@ namespace Dalamud.Game.Network.Internal
             }
 
             // Flash window
-            if (configuration.DutyFinderTaskbarFlash && !NativeFunctions.ApplicationIsActivated())
+            if (this.configuration.DutyFinderTaskbarFlash && !NativeFunctions.ApplicationIsActivated())
             {
                 var flashInfo = new NativeFunctions.FlashWindowInfo
                 {
@@ -281,9 +283,9 @@ namespace Dalamud.Game.Network.Internal
 
             Task.Run(() =>
             {
-                if (configuration.DutyFinderChatMessage)
+                if (this.configuration.DutyFinderChatMessage)
                 {
-                    Service<ChatGui>.Get().Print($"Duty pop: {cfcName}");
+                    Service<ChatGui>.GetNullable()?.Print($"Duty pop: {cfcName}");
                 }
 
                 this.CfPop?.Invoke(this, cfCondition);

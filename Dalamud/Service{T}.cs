@@ -19,8 +19,7 @@ namespace Dalamud
     /// <typeparam name="T">The class you want to store in the service locator.</typeparam>
     internal static class Service<T> where T : IServiceType
     {
-        // ReSharper disable once StaticMemberInGenericType
-        private static readonly TaskCompletionSource<T> InstanceTcs = new();
+        private static TaskCompletionSource<T> instanceTcs = new();
 
         static Service()
         {
@@ -31,50 +30,28 @@ namespace Dalamud
                 ServiceManager.Log.Debug("Service<{0}>: Static ctor called", typeof(T).Name);
 
             if (exposeToPlugins)
-                Service<ServiceContainer>.Get().RegisterSingleton(InstanceTcs.Task);
+                Service<ServiceContainer>.Get().RegisterSingleton(instanceTcs.Task);
         }
 
         /// <summary>
-        /// Initializes the service.
+        /// Specifies how to handle the cases of failed services when calling <see cref="Service{T}.GetNullable"/>.
         /// </summary>
-        /// <returns>The object.</returns>
-        [UsedImplicitly]
-        public static Task<T> StartLoader()
+        public enum ExceptionPropagationMode
         {
-            var attr = typeof(T).GetCustomAttribute<ServiceManager.Service>(true)?.GetType();
-            if (attr?.IsAssignableTo(typeof(ServiceManager.EarlyLoadedService)) != true)
-                throw new InvalidOperationException($"{typeof(T).Name} is not an EarlyLoadedService");
+            /// <summary>
+            /// Propagate all exceptions.
+            /// </summary>
+            PropagateAll,
 
-            return Task.Run(Timings.AttachTimingHandle(async () =>
-            {
-                ServiceManager.Log.Debug("Service<{0}>: Begin construction", typeof(T).Name);
-                try
-                {
-                    var instance = await ConstructObject();
-                    InstanceTcs.SetResult(instance);
+            /// <summary>
+            /// Propagate all exceptions, except for <see cref="UnloadedException"/>.
+            /// </summary>
+            PropagateNonUnloaded,
 
-                    foreach (var method in typeof(T).GetMethods(
-                                 BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
-                    {
-                        if (method.GetCustomAttribute<ServiceManager.CallWhenServicesReady>(true) == null)
-                            continue;
-
-                        ServiceManager.Log.Debug("Service<{0}>: Calling {1}", typeof(T).Name, method.Name);
-                        var args = await Task.WhenAll(method.GetParameters().Select(
-                                             x => ResolveServiceFromTypeAsync(x.ParameterType)));
-                        method.Invoke(instance, args);
-                    }
-
-                    ServiceManager.Log.Debug("Service<{0}>: Construction complete", typeof(T).Name);
-                    return instance;
-                }
-                catch (Exception e)
-                {
-                    ServiceManager.Log.Error(e, "Service<{0}>: Construction failure", typeof(T).Name);
-                    InstanceTcs.SetException(e);
-                    throw;
-                }
-            }));
+            /// <summary>
+            /// Treat all exceptions as null.
+            /// </summary>
+            None,
         }
 
         /// <summary>
@@ -83,7 +60,7 @@ namespace Dalamud
         /// <param name="obj">Object to set.</param>
         public static void Provide(T obj)
         {
-            InstanceTcs.SetResult(obj);
+            instanceTcs.SetResult(obj);
             ServiceManager.Log.Debug("Service<{0}>: Provided", typeof(T).Name);
         }
 
@@ -94,7 +71,7 @@ namespace Dalamud
         public static void ProvideException(Exception exception)
         {
             ServiceManager.Log.Error(exception, "Service<{0}>: Error", typeof(T).Name);
-            InstanceTcs.SetException(exception);
+            instanceTcs.SetException(exception);
         }
 
         /// <summary>
@@ -103,9 +80,9 @@ namespace Dalamud
         /// <returns>The object.</returns>
         public static T Get()
         {
-            if (!InstanceTcs.Task.IsCompleted)
-                InstanceTcs.Task.Wait();
-            return InstanceTcs.Task.Result;
+            if (!instanceTcs.Task.IsCompleted)
+                instanceTcs.Task.Wait();
+            return instanceTcs.Task.Result;
         }
 
         /// <summary>
@@ -113,13 +90,27 @@ namespace Dalamud
         /// </summary>
         /// <returns>The object.</returns>
         [UsedImplicitly]
-        public static Task<T> GetAsync() => InstanceTcs.Task;
+        public static Task<T> GetAsync() => instanceTcs.Task;
 
         /// <summary>
         /// Attempt to pull the instance out of the service locator.
         /// </summary>
+        /// <param name="propagateException">Specifies which exceptions to propagate.</param> 
         /// <returns>The object if registered, null otherwise.</returns>
-        public static T? GetNullable() => InstanceTcs.Task.IsCompleted ? InstanceTcs.Task.Result : default;
+        public static T? GetNullable(ExceptionPropagationMode propagateException = ExceptionPropagationMode.PropagateNonUnloaded)
+        {
+            if (instanceTcs.Task.IsCompletedSuccessfully)
+                return instanceTcs.Task.Result;
+            if (instanceTcs.Task.IsFaulted && propagateException != ExceptionPropagationMode.None)
+            {
+                if (propagateException == ExceptionPropagationMode.PropagateNonUnloaded
+                    && instanceTcs.Task.Exception!.InnerExceptions.FirstOrDefault() is UnloadedException)
+                    return default;
+                throw instanceTcs.Task.Exception!;
+            }
+
+            return default;
+        }
 
         /// <summary>
         /// Gets an enumerable containing Service&lt;T&gt;s that are required for this Service to initialize without blocking.
@@ -140,6 +131,77 @@ namespace Dalamud
                 .Distinct()
                 .Select(x => typeof(Service<>).MakeGenericType(x))
                 .ToList();
+        }
+
+        [UsedImplicitly]
+        private static Task<T> StartLoader()
+        {
+            if (instanceTcs.Task.IsCompleted)
+                throw new InvalidOperationException($"{typeof(T).Name} is already loaded or disposed.");
+
+            var attr = typeof(T).GetCustomAttribute<ServiceManager.Service>(true)?.GetType();
+            if (attr?.IsAssignableTo(typeof(ServiceManager.EarlyLoadedService)) != true)
+                throw new InvalidOperationException($"{typeof(T).Name} is not an EarlyLoadedService");
+
+            return Task.Run(Timings.AttachTimingHandle(async () =>
+            {
+                ServiceManager.Log.Debug("Service<{0}>: Begin construction", typeof(T).Name);
+                try
+                {
+                    var instance = await ConstructObject();
+                    instanceTcs.SetResult(instance);
+
+                    foreach (var method in typeof(T).GetMethods(
+                                 BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
+                    {
+                        if (method.GetCustomAttribute<ServiceManager.CallWhenServicesReady>(true) == null)
+                            continue;
+
+                        ServiceManager.Log.Debug("Service<{0}>: Calling {1}", typeof(T).Name, method.Name);
+                        var args = await Task.WhenAll(method.GetParameters().Select(
+                                             x => ResolveServiceFromTypeAsync(x.ParameterType)));
+                        method.Invoke(instance, args);
+                    }
+
+                    ServiceManager.Log.Debug("Service<{0}>: Construction complete", typeof(T).Name);
+                    return instance;
+                }
+                catch (Exception e)
+                {
+                    ServiceManager.Log.Error(e, "Service<{0}>: Construction failure", typeof(T).Name);
+                    instanceTcs.SetException(e);
+                    throw;
+                }
+            }));
+        }
+
+        [UsedImplicitly]
+        private static void Unset()
+        {
+            if (!instanceTcs.Task.IsCompletedSuccessfully)
+                return;
+
+            var instance = instanceTcs.Task.Result;
+            if (instance is IDisposable disposable)
+            {
+                ServiceManager.Log.Debug("Service<{0}>: Disposing", typeof(T).Name);
+                try
+                {
+                    disposable.Dispose();
+                    ServiceManager.Log.Debug("Service<{0}>: Disposed", typeof(T).Name);
+                }
+                catch (Exception e)
+                {
+                    ServiceManager.Log.Warning(e, "Service<{0}>: Dispose failure", typeof(T).Name);
+                }
+            }
+            else
+            {
+                ServiceManager.Log.Debug("Service<{0}>: Unset", typeof(T).Name);
+            }
+
+            instanceTcs = new TaskCompletionSource<T>();
+            instanceTcs.SetException(new UnloadedException());
         }
 
         private static async Task<object?> ResolveServiceFromTypeAsync(Type type)
@@ -178,6 +240,20 @@ namespace Dalamud
             using (Timings.Start($"{typeof(T).Name} Construct"))
             {
                 return (T)ctor.Invoke(args)!;
+            }
+        }
+
+        /// <summary>
+        /// Exception thrown when service is attempted to be retrieved when it's unloaded.
+        /// </summary>
+        public class UnloadedException : InvalidOperationException
+        {
+            /// <summary>
+            /// Initializes a new instance of the <see cref="UnloadedException"/> class.
+            /// </summary>
+            public UnloadedException()
+                : base("Service is unloaded.")
+            {
             }
         }
     }
