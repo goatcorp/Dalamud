@@ -60,8 +60,6 @@ namespace Dalamud.Interface.Internal
         private readonly TextureWrap logoTexture;
         private readonly TextureWrap tsmLogoTexture;
 
-        private ulong frameCount = 0;
-
 #if DEBUG
         private bool isImGuiDrawDevMenu = true;
 #else
@@ -80,7 +78,8 @@ namespace Dalamud.Interface.Internal
         private DalamudInterface(
             Dalamud dalamud,
             DalamudConfiguration configuration,
-            InterfaceManager.InterfaceManagerWithScene interfaceManagerWithScene)
+            InterfaceManager.InterfaceManagerWithScene interfaceManagerWithScene,
+            PluginImageCache pluginImageCache)
         {
             var interfaceManager = interfaceManagerWithScene.Manager;
             this.WindowSystem = new WindowSystem("DalamudCore");
@@ -94,7 +93,7 @@ namespace Dalamud.Interface.Internal
             this.imeWindow = new IMEWindow() { IsOpen = false };
             this.consoleWindow = new ConsoleWindow() { IsOpen = configuration.LogOpenAtStartup };
             this.pluginStatWindow = new PluginStatWindow() { IsOpen = false };
-            this.pluginWindow = new PluginInstallerWindow() { IsOpen = false };
+            this.pluginWindow = new PluginInstallerWindow(pluginImageCache) { IsOpen = false };
             this.settingsWindow = new SettingsWindow() { IsOpen = false };
             this.selfTestWindow = new SelfTestWindow() { IsOpen = false };
             this.styleEditorWindow = new StyleEditorWindow() { IsOpen = false };
@@ -146,6 +145,11 @@ namespace Dalamud.Interface.Internal
                 tsm.AddEntry(Loc.Localize("TSMDalamudDevMenu", "Developer Menu"), this.tsmLogoTexture, () => this.isImGuiDrawDevMenu = true);
             }
         }
+
+        /// <summary>
+        /// Gets the number of frames since Dalamud has loaded.
+        /// </summary>
+        public ulong FrameCount { get; private set; }
 
         /// <summary>
         /// Gets the <see cref="WindowSystem"/> controlling all Dalamud-internal windows.
@@ -373,7 +377,7 @@ namespace Dalamud.Interface.Internal
 
         private void OnDraw()
         {
-            this.frameCount++;
+            this.FrameCount++;
 
 #if BOOT_AGING
             if (this.frameCount > 500 && !this.signaledBoot)
@@ -795,7 +799,7 @@ namespace Dalamud.Interface.Internal
                         ImGui.PushFont(InterfaceManager.MonoFont);
 
                         ImGui.BeginMenu(Util.GetGitHash(), false);
-                        ImGui.BeginMenu(this.frameCount.ToString("000000"), false);
+                        ImGui.BeginMenu(this.FrameCount.ToString("000000"), false);
                         ImGui.BeginMenu(ImGui.GetIO().Framerate.ToString("000"), false);
                         ImGui.BeginMenu($"{Util.FormatBytes(GC.GetTotalMemory(false))}", false);
 
