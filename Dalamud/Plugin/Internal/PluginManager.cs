@@ -207,6 +207,13 @@ internal partial class PluginManager : IDisposable, IServiceType
     /// <inheritdoc/>
     public void Dispose()
     {
+        if (!this.InstalledPlugins.Any())
+        {
+            this.assemblyLocationMonoHook?.Dispose();
+            this.assemblyCodeBaseMonoHook?.Dispose();
+            return;
+        }
+
         // Unload them first, just in case some of plugin codes are still running via callbacks initiated externally.
         foreach (var plugin in this.InstalledPlugins.Where(plugin => !plugin.Manifest.CanUnloadAsync))
         {
