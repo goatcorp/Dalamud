@@ -191,6 +191,11 @@ namespace Dalamud.Configuration.Internal
         public LogEventLevel LogLevel { get; set; } = LogEventLevel.Information;
 
         /// <summary>
+        /// Gets or sets a value indicating whether to write to log files synchronously.
+        /// </summary>
+        public bool LogSynchronously { get; set; } = false;
+
+        /// <summary>
         /// Gets or sets a value indicating whether or not the debug log should scroll automatically.
         /// </summary>
         public bool LogAutoScroll { get; set; } = true;

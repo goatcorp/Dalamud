@@ -498,15 +498,28 @@ namespace Dalamud.Interface.Internal
                         {
                             foreach (var logLevel in Enum.GetValues(typeof(LogEventLevel)).Cast<LogEventLevel>())
                             {
-                                if (ImGui.MenuItem(logLevel + "##logLevelSwitch", string.Empty, dalamud.LogLevelSwitch.MinimumLevel == logLevel))
+                                if (ImGui.MenuItem(logLevel + "##logLevelSwitch", string.Empty, EntryPoint.LogLevelSwitch.MinimumLevel == logLevel))
                                 {
-                                    dalamud.LogLevelSwitch.MinimumLevel = logLevel;
+                                    EntryPoint.LogLevelSwitch.MinimumLevel = logLevel;
                                     configuration.LogLevel = logLevel;
                                     configuration.Save();
                                 }
                             }
 
                             ImGui.EndMenu();
+                        }
+
+                        var logSynchronously = configuration.LogSynchronously;
+                        if (ImGui.MenuItem("Log Synchronously", null, ref logSynchronously))
+                        {
+                            configuration.LogSynchronously = logSynchronously;
+                            configuration.Save();
+
+                            var startupInfo = Service<DalamudStartInfo>.Get();
+                            EntryPoint.InitLogging(
+                                startupInfo.WorkingDirectory!,
+                                startupInfo.BootShowConsole,
+                                configuration.LogSynchronously);
                         }
 
                         var antiDebug = Service<AntiDebug>.Get();
@@ -588,12 +601,21 @@ namespace Dalamud.Interface.Internal
                             Marshal.ReadByte(IntPtr.Zero);
                         }
 
-                        if (ImGui.MenuItem("Crash game"))
+                        if (ImGui.MenuItem("Crash game (nullptr)"))
                         {
                             unsafe
                             {
                                 var framework = Framework.Instance();
                                 framework->UIModule = (UIModule*)0;
+                            }
+                        }
+
+                        if (ImGui.MenuItem("Crash game (non-nullptr)"))
+                        {
+                            unsafe
+                            {
+                                var framework = Framework.Instance();
+                                framework->UIModule = (UIModule*)0x12345678;
                             }
                         }
 

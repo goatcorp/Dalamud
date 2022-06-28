@@ -5,21 +5,11 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Dalamud.Configuration.Internal;
-using Dalamud.Data;
 using Dalamud.Game;
-using Dalamud.Game.ClientState;
 using Dalamud.Game.Gui.Internal;
-using Dalamud.Game.Internal;
-using Dalamud.Game.Network.Internal;
-using Dalamud.Hooking.Internal;
 using Dalamud.Interface.Internal;
-using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Internal;
-using Dalamud.Support;
-using Dalamud.Utility;
 using Serilog;
-using Serilog.Core;
-using Serilog.Events;
 
 #if DEBUG
 [assembly: InternalsVisibleTo("Dalamud.CorePlugin")]
@@ -46,13 +36,10 @@ namespace Dalamud
         /// Initializes a new instance of the <see cref="Dalamud"/> class.
         /// </summary>
         /// <param name="info">DalamudStartInfo instance.</param>
-        /// <param name="loggingLevelSwitch">LoggingLevelSwitch to control Serilog level.</param>
         /// <param name="configuration">The Dalamud configuration.</param>
         /// <param name="mainThreadContinueEvent">Event used to signal the main thread to continue.</param>
-        public Dalamud(DalamudStartInfo info, LoggingLevelSwitch loggingLevelSwitch, DalamudConfiguration configuration, IntPtr mainThreadContinueEvent)
+        public Dalamud(DalamudStartInfo info, DalamudConfiguration configuration, IntPtr mainThreadContinueEvent)
         {
-            this.LogLevelSwitch = loggingLevelSwitch;
-
             this.unloadSignal = new ManualResetEvent(false);
             this.unloadSignal.Reset();
 
@@ -102,11 +89,6 @@ namespace Dalamud
                 });
             }
         }
-
-        /// <summary>
-        /// Gets LoggingLevelSwitch for Dalamud and Plugin logs.
-        /// </summary>
-        internal LoggingLevelSwitch LogLevelSwitch { get; private set; }
 
         /// <summary>
         /// Gets location of stored assets.
