@@ -1171,9 +1171,7 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
                 ImGui.TextWrapped(Locs.PluginBody_Outdated);
                 ImGui.PopStyleColor();
             }
-
-            // Banned warning
-            if (plugin is { IsBanned: true })
+            else if (plugin is { IsBanned: true }) // Banned warning
             {
                 ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudRed);
                 ImGuiHelpers.SafeTextWrapped(plugin.BanReason.IsNullOrEmpty()
@@ -1182,6 +1180,14 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
 
                 ImGui.PopStyleColor();
             }
+            else if (plugin is { State: PluginState.LoadError or PluginState.DependencyResolutionFailed }) // Load failed warning
+            {
+                ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudRed);
+                ImGui.TextWrapped(Locs.PluginBody_LoadFailed);
+                ImGui.PopStyleColor();
+            }
+
+            ImGui.SetCursorPosX(cursor.X);
 
             // Description
             if (plugin is null or { IsOutdated: false, IsBanned: false })
@@ -1458,7 +1464,7 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
             }
 
             // Load error
-            if (plugin.State == PluginState.LoadError)
+            if (plugin.State is PluginState.LoadError or PluginState.DependencyResolutionFailed)
             {
                 label += Locs.PluginTitleMod_LoadError;
                 trouble = true;
@@ -1685,11 +1691,14 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
             // Disable everything if the plugin is outdated
             disabled = disabled || (plugin.IsOutdated && !configuration.LoadAllApiLevels) || plugin.IsBanned;
 
+            // Disable everything if the plugin failed to load
+            disabled = disabled || plugin.State == PluginState.LoadError || plugin.State == PluginState.DependencyResolutionFailed;
+
             if (plugin.State == PluginState.Loading || plugin.State == PluginState.Unloading)
             {
                 ImGuiComponents.DisabledButton(Locs.PluginButton_Working);
             }
-            else if (plugin.State == PluginState.Loaded || plugin.State == PluginState.LoadError)
+            else if (plugin.State == PluginState.Loaded || plugin.State == PluginState.LoadError || plugin.State == PluginState.DependencyResolutionFailed)
             {
                 if (disabled)
                 {
@@ -2278,7 +2287,7 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
 
             public static string PluginBody_AuthorWithDownloadCount(string author, long count) => Loc.Localize("InstallerAuthorWithDownloadCount", " by {0} ({1} downloads)").Format(author, count.ToString("N0"));
 
-            public static string PluginBody_AuthorWithDownloadCountUnavailable(string author) => Loc.Localize("InstallerAuthorWithDownloadCountUnavailable", " by {0}, download count unavailable").Format(author);
+            public static string PluginBody_AuthorWithDownloadCountUnavailable(string author) => Loc.Localize("InstallerAuthorWithDownloadCountUnavailable", " by {0}").Format(author);
 
             public static string PluginBody_DevPluginPath(string path) => Loc.Localize("InstallerDevPluginPath", "From {0}").Format(path);
 
@@ -2289,6 +2298,8 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
             public static string PluginBody_DeleteDevPlugin => Loc.Localize("InstallerDeleteDevPlugin ", " To delete this plugin, please remove it from the devPlugins folder.");
 
             public static string PluginBody_Outdated => Loc.Localize("InstallerOutdatedPluginBody ", "This plugin is outdated and incompatible at the moment. Please wait for it to be updated by its author.");
+
+            public static string PluginBody_LoadFailed => Loc.Localize("InstallerLoadFailedPluginBody ", "This plugin failed to load. Please contact the author for more information.");
 
             public static string PluginBody_Banned => Loc.Localize("InstallerBannedPluginBody ", "This plugin was automatically disabled due to incompatibilities and is not available at the moment. Please wait for it to be updated by its author.");
 

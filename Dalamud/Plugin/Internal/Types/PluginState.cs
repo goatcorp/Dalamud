@@ -34,4 +34,9 @@ internal enum PluginState
     /// Currently loading.
     /// </summary>
     Loading,
+
+    /// <summary>
+    /// This plugin couldn't load one of its dependencies.
+    /// </summary>
+    DependencyResolutionFailed,
 }

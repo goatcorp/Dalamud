@@ -734,12 +734,22 @@ internal partial class PluginManager : IDisposable, IServiceType
                 {
                     // Dev plugins always get added to the list so they can be fiddled with in the UI
                     Log.Information(ex, $"Dev plugin failed to load, adding anyways: {dllFile.Name}");
-                    plugin.Disable(); // Disable here, otherwise you can't enable+load later
+
+                    // NOTE(goat): This can't work - plugins don't "unload" if they fail to load.
+                    // plugin.Disable(); // Disable here, otherwise you can't enable+load later
                 }
                 else if (plugin.IsOutdated)
                 {
                     // Out of date plugins get added so they can be updated.
                     Log.Information(ex, $"Plugin was outdated, adding anyways: {dllFile.Name}");
+                }
+                else if (isBoot)
+                {
+                    // During boot load, plugins always get added to the list so they can be fiddled with in the UI
+                    Log.Information(ex, $"Regular plugin failed to load, adding anyways: {dllFile.Name}");
+
+                    // NOTE(goat): This can't work - plugins don't "unload" if they fail to load.
+                    // plugin.Disable(); // Disable here, otherwise you can't enable+load later
                 }
                 else
                 {
@@ -919,7 +929,7 @@ internal partial class PluginManager : IDisposable, IServiceType
         if (!dryRun)
         {
             // Unload if loaded
-            if (plugin.State == PluginState.Loaded || plugin.State == PluginState.LoadError)
+            if (plugin.State is PluginState.Loaded or PluginState.LoadError or PluginState.DependencyResolutionFailed)
             {
                 try
                 {
