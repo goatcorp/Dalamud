@@ -245,13 +245,15 @@ namespace Dalamud.Interface.Internal
         /// </summary>
         public void Dispose()
         {
-            this.framework.RunOnFrameworkThread(this.Disable).Wait();
+            this.framework.RunOnFrameworkThread(() =>
+            {
+                this.setCursorHook.Dispose();
+                this.presentHook?.Dispose();
+                this.resizeBuffersHook?.Dispose();
+                this.dispatchMessageWHook.Dispose();
+            }).Wait();
 
             this.scene?.Dispose();
-            this.setCursorHook.Dispose();
-            this.presentHook?.Dispose();
-            this.resizeBuffersHook?.Dispose();
-            this.dispatchMessageWHook.Dispose();
         }
 
 #nullable enable
@@ -992,14 +994,6 @@ namespace Dalamud.Interface.Internal
                 this.resizeBuffersHook.Enable();
                 this.dispatchMessageWHook.Enable();
             });
-        }
-
-        private void Disable()
-        {
-            this.setCursorHook.Disable();
-            this.presentHook?.Disable();
-            this.resizeBuffersHook?.Disable();
-            this.dispatchMessageWHook.Disable();
         }
 
         // This is intended to only be called as a handler attached to scene.OnNewRenderFrame
