@@ -403,6 +403,96 @@ void xivfixes::redirect_openprocess(bool bApply) {
     }
 }
 
+void xivfixes::backup_userdata_save(bool bApply) {
+    static const char* LogTag = "[xivfixes:backup_userdata_save]";
+    static std::optional<hooks::import_hook<decltype(CreateFileW)>> s_hookCreateFileW;
+    static std::optional<hooks::import_hook<decltype(CloseHandle)>> s_hookCloseHandle;
+    static std::map<HANDLE, std::pair<std::filesystem::path, std::filesystem::path>> s_handles;
+    static std::mutex s_mtx;
+
+    if (bApply) {
+        if (!g_startInfo.BootEnabledGameFixes.contains("backup_userdata_save")) {
+            logging::I("{} Turned off via environment variable.", LogTag);
+            return;
+        }
+
+        s_hookCreateFileW.emplace("kernel32.dll!CreateFileW (import, backup_userdata_save)", "kernel32.dll", "CreateFileW", 0);
+        s_hookCloseHandle.emplace("kernel32.dll!CloseHandle (import, backup_userdata_save)", "kernel32.dll", "CloseHandle", 0);
+
+        s_hookCreateFileW->set_detour([](LPCWSTR lpFileName,
+            DWORD dwDesiredAccess,
+            DWORD dwShareMode,
+            LPSECURITY_ATTRIBUTES lpSecurityAttributes,
+            DWORD dwCreationDisposition,
+            DWORD dwFlagsAndAttributes,
+            HANDLE hTemplateFile)->HANDLE {
+            if (dwDesiredAccess != GENERIC_WRITE)
+                return s_hookCreateFileW->call_original(lpFileName, dwDesiredAccess, dwShareMode, lpSecurityAttributes, dwCreationDisposition, dwFlagsAndAttributes, hTemplateFile);
+
+            auto path = std::filesystem::path(lpFileName);
+            const auto ext = unicode::convert<std::string>(path.extension().wstring(), &unicode::lower);
+            if (ext != ".dat" && ext != ".cfg")
+                return s_hookCreateFileW->call_original(lpFileName, dwDesiredAccess, dwShareMode, lpSecurityAttributes, dwCreationDisposition, dwFlagsAndAttributes, hTemplateFile);
+
+            std::filesystem::path temporaryPath = path;
+            temporaryPath.replace_extension(path.extension().wstring() + L".new");
+            const auto handle = s_hookCreateFileW->call_original(temporaryPath.c_str(), GENERIC_READ | GENERIC_WRITE | DELETE, dwShareMode, lpSecurityAttributes, dwCreationDisposition, dwFlagsAndAttributes, hTemplateFile);
+            if (handle == INVALID_HANDLE_VALUE)
+                return handle;
+
+            const auto lock = std::lock_guard(s_mtx);
+            s_handles.try_emplace(handle, std::move(temporaryPath), std::move(path));
+            
+            return handle;
+        });
+
+        s_hookCloseHandle->set_detour([](HANDLE handle) {
+            const auto lock = std::lock_guard(s_mtx);
+            if (const auto it = s_handles.find(handle); it != s_handles.end()) {
+                std::filesystem::path tempPath(std::move(it->second.first));
+                std::filesystem::path finalPath(std::move(it->second.second));
+                s_handles.erase(it);
+
+                if (exists(finalPath)) {
+                    std::filesystem::path oldPath = finalPath;
+                    oldPath.replace_extension(finalPath.extension().wstring() + L".old");
+                    try {
+                        rename(finalPath, oldPath);
+                    } catch (const std::exception& e) {
+                        logging::E("{0} Failed to rename {1} to {2}: {3}",
+                            LogTag,
+                            unicode::convert<std::string>(finalPath.c_str()),
+                            unicode::convert<std::string>(oldPath.c_str()),
+                            e.what());
+                    }
+                }
+
+                const auto pathwstr = finalPath.wstring();
+                std::vector<char> renameInfoBuf(sizeof(FILE_RENAME_INFO) + sizeof(wchar_t) * pathwstr.size() + 2);
+                auto& renameInfo = *reinterpret_cast<FILE_RENAME_INFO*>(&renameInfoBuf[0]);
+                renameInfo.ReplaceIfExists = true;
+                renameInfo.FileNameLength = static_cast<DWORD>(pathwstr.size() * 2);
+                memcpy(renameInfo.FileName, &pathwstr[0], renameInfo.FileNameLength);
+                if (!SetFileInformationByHandle(handle, FileRenameInfo, &renameInfoBuf[0], static_cast<DWORD>(renameInfoBuf.size()))) {
+                    logging::E("{0} Failed to rename {1} to {2}: Win32 error {3}(0x{3})",
+                        LogTag,
+                        unicode::convert<std::string>(tempPath.c_str()),
+                        unicode::convert<std::string>(finalPath.c_str()),
+                        GetLastError());
+                }
+            }
+            return s_hookCloseHandle->call_original(handle);
+        });
+
+        logging::I("{} Enable", LogTag);
+    } else {
+        if (s_hookCreateFileW) {
+            logging::I("{} Disable OpenProcess", LogTag);
+            s_hookCreateFileW.reset();
+        }
+    }
+}
+
 void xivfixes::apply_all(bool bApply) {
     for (const auto& [taskName, taskFunction] : std::initializer_list<std::pair<const char*, void(*)(bool)>>
         {
@@ -410,6 +500,7 @@ void xivfixes::apply_all(bool bApply) {
             { "prevent_devicechange_crashes", &prevent_devicechange_crashes },
             { "disable_game_openprocess_access_check", &disable_game_openprocess_access_check },
             { "redirect_openprocess", &redirect_openprocess },
+            { "backup_userdata_save", &backup_userdata_save },
         }
         ) {
         try {

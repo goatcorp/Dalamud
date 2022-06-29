@@ -22,24 +22,27 @@ namespace Dalamud.Hooking.Internal
         internal MinHookHook(IntPtr address, T detour, Assembly callingAssembly)
             : base(address)
         {
-            var hasOtherHooks = HookManager.Originals.ContainsKey(this.Address);
-            if (!hasOtherHooks)
+            lock (HookManager.HookEnableSyncRoot)
             {
-                MemoryHelper.ReadRaw(this.Address, 0x32, out var original);
-                HookManager.Originals[this.Address] = original;
+                var hasOtherHooks = HookManager.Originals.ContainsKey(this.Address);
+                if (!hasOtherHooks)
+                {
+                    MemoryHelper.ReadRaw(this.Address, 0x32, out var original);
+                    HookManager.Originals[this.Address] = original;
+                }
+
+                if (!HookManager.MultiHookTracker.TryGetValue(this.Address, out var indexList))
+                    indexList = HookManager.MultiHookTracker[this.Address] = new();
+
+                var index = (ulong)indexList.Count;
+
+                this.minHookImpl = new MinSharp.Hook<T>(this.Address, detour, index);
+
+                // Add afterwards, so the hookIdent starts at 0.
+                indexList.Add(this);
+
+                HookManager.TrackedHooks.TryAdd(Guid.NewGuid(), new HookInfo(this, detour, callingAssembly));
             }
-
-            if (!HookManager.MultiHookTracker.TryGetValue(this.Address, out var indexList))
-                indexList = HookManager.MultiHookTracker[this.Address] = new();
-
-            var index = (ulong)indexList.Count;
-
-            this.minHookImpl = new MinSharp.Hook<T>(this.Address, detour, index);
-
-            // Add afterwards, so the hookIdent starts at 0.
-            indexList.Add(this);
-
-            HookManager.TrackedHooks.TryAdd(Guid.NewGuid(), new HookInfo(this, detour, callingAssembly));
         }
 
         /// <inheritdoc/>
@@ -71,10 +74,13 @@ namespace Dalamud.Hooking.Internal
             if (this.IsDisposed)
                 return;
 
-            this.minHookImpl.Dispose();
+            lock (HookManager.HookEnableSyncRoot)
+            {
+                this.minHookImpl.Dispose();
 
-            var index = HookManager.MultiHookTracker[this.Address].IndexOf(this);
-            HookManager.MultiHookTracker[this.Address][index] = null;
+                var index = HookManager.MultiHookTracker[this.Address].IndexOf(this);
+                HookManager.MultiHookTracker[this.Address][index] = null;
+            }
 
             base.Dispose();
         }
@@ -86,7 +92,10 @@ namespace Dalamud.Hooking.Internal
 
             if (!this.minHookImpl.Enabled)
             {
-                this.minHookImpl.Enable();
+                lock (HookManager.HookEnableSyncRoot)
+                {
+                    this.minHookImpl.Enable();
+                }
             }
         }
 
@@ -97,7 +106,10 @@ namespace Dalamud.Hooking.Internal
 
             if (this.minHookImpl.Enabled)
             {
-                this.minHookImpl.Disable();
+                lock (HookManager.HookEnableSyncRoot)
+                {
+                    this.minHookImpl.Disable();
+                }
             }
         }
     }

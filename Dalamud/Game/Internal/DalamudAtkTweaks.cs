@@ -9,7 +9,6 @@ using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Hooking;
-using Dalamud.Interface;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Windowing;
 using FFXIVClientStructs.FFXIV.Component.GUI;
@@ -35,15 +34,21 @@ namespace Dalamud.Game.Internal
 
         private readonly Hook<AtkUnitBaseReceiveGlobalEvent> hookAtkUnitBaseReceiveGlobalEvent;
 
+        [ServiceManager.ServiceDependency]
+        private readonly DalamudConfiguration configuration = Service<DalamudConfiguration>.Get();
+
+        [ServiceManager.ServiceDependency]
+        private readonly ContextMenu contextMenu = Service<ContextMenu>.Get();
+
         private readonly string locDalamudPlugins;
         private readonly string locDalamudSettings;
 
         [ServiceManager.ServiceConstructor]
-        private DalamudAtkTweaks(SigScanner sigScanner, ContextMenu contextMenu)
+        private DalamudAtkTweaks(SigScanner sigScanner)
         {
             var openSystemMenuAddress = sigScanner.ScanText("E8 ?? ?? ?? ?? 32 C0 4C 8B AC 24 ?? ?? ?? ?? 48 8B 8D ?? ?? ?? ??");
 
-            this.hookAgentHudOpenSystemMenu = new Hook<AgentHudOpenSystemMenuPrototype>(openSystemMenuAddress, this.AgentHudOpenSystemMenuDetour);
+            this.hookAgentHudOpenSystemMenu = Hook<AgentHudOpenSystemMenuPrototype>.FromAddress(openSystemMenuAddress, this.AgentHudOpenSystemMenuDetour);
 
             var atkValueChangeTypeAddress = sigScanner.ScanText("E8 ?? ?? ?? ?? 45 84 F6 48 8D 4C 24 ??");
             this.atkValueChangeType = Marshal.GetDelegateForFunctionPointer<AtkValueChangeType>(atkValueChangeTypeAddress);
@@ -52,15 +57,15 @@ namespace Dalamud.Game.Internal
             this.atkValueSetString = Marshal.GetDelegateForFunctionPointer<AtkValueSetString>(atkValueSetStringAddress);
 
             var uiModuleRequestMainCommandAddress = sigScanner.ScanText("40 53 56 48 81 EC ?? ?? ?? ?? 48 8B 05 ?? ?? ?? ?? 48 33 C4 48 89 84 24 ?? ?? ?? ?? 48 8B 01 8B DA 48 8B F1 FF 90 ?? ?? ?? ??");
-            this.hookUiModuleRequestMainCommand = new Hook<UiModuleRequestMainCommand>(uiModuleRequestMainCommandAddress, this.UiModuleRequestMainCommandDetour);
+            this.hookUiModuleRequestMainCommand = Hook<UiModuleRequestMainCommand>.FromAddress(uiModuleRequestMainCommandAddress, this.UiModuleRequestMainCommandDetour);
 
             var atkUnitBaseReceiveGlobalEventAddress = sigScanner.ScanText("48 89 5C 24 ?? 48 89 7C 24 ?? 55 41 56 41 57 48 8B EC 48 83 EC 50 44 0F B7 F2 ");
-            this.hookAtkUnitBaseReceiveGlobalEvent = new Hook<AtkUnitBaseReceiveGlobalEvent>(atkUnitBaseReceiveGlobalEventAddress, this.AtkUnitBaseReceiveGlobalEventDetour);
+            this.hookAtkUnitBaseReceiveGlobalEvent = Hook<AtkUnitBaseReceiveGlobalEvent>.FromAddress(atkUnitBaseReceiveGlobalEventAddress, this.AtkUnitBaseReceiveGlobalEventDetour);
 
             this.locDalamudPlugins = Loc.Localize("SystemMenuPlugins", "Dalamud Plugins");
             this.locDalamudSettings = Loc.Localize("SystemMenuSettings", "Dalamud Settings");
 
-            contextMenu.ContextMenuOpened += this.ContextMenuOnContextMenuOpened;
+            this.contextMenu.ContextMenuOpened += this.ContextMenuOnContextMenuOpened;
         }
 
         private delegate void AgentHudOpenSystemMenuPrototype(void* thisPtr, AtkValue* atkValueArgs, uint menuSize);
@@ -83,11 +88,13 @@ namespace Dalamud.Game.Internal
 
         private void ContextMenuOnContextMenuOpened(ContextMenuOpenedArgs args)
         {
-            var systemText = Service<DataManager>.Get().GetExcelSheet<Addon>()!.GetRow(1059)!.Text.RawString; // "System"
-            var configuration = Service<DalamudConfiguration>.Get();
-            var interfaceManager = Service<InterfaceManager>.Get();
+            var systemText = Service<DataManager>.GetNullable()?.GetExcelSheet<Addon>()?.GetRow(1059)?.Text?.RawString; // "System"
+            var interfaceManager = Service<InterfaceManager>.GetNullable();
 
-            if (args.Title == systemText && configuration.DoButtonsSystemMenu && interfaceManager.IsDispatchingEvents)
+            if (systemText == null || interfaceManager == null)
+                return;
+
+            if (args.Title == systemText && this.configuration.DoButtonsSystemMenu && interfaceManager.IsDispatchingEvents)
             {
                 var dalamudInterface = Service<DalamudInterface>.Get();
 
@@ -109,7 +116,7 @@ namespace Dalamud.Game.Internal
 
             // "SendHotkey"
             // 3 == Close
-            if (cmd == 12 && WindowSystem.HasAnyWindowSystemFocus && *arg == 3 && Service<DalamudConfiguration>.Get().IsFocusManagementEnabled)
+            if (cmd == 12 && WindowSystem.HasAnyWindowSystemFocus && *arg == 3 && this.configuration.IsFocusManagementEnabled)
             {
                 Log.Verbose($"Cancelling global event SendHotkey command due to WindowSystem {WindowSystem.FocusedWindowSystemNamespace}");
                 return IntPtr.Zero;
@@ -120,14 +127,18 @@ namespace Dalamud.Game.Internal
 
         private void AgentHudOpenSystemMenuDetour(void* thisPtr, AtkValue* atkValueArgs, uint menuSize)
         {
-            if (WindowSystem.HasAnyWindowSystemFocus && Service<DalamudConfiguration>.Get().IsFocusManagementEnabled)
+            if (WindowSystem.HasAnyWindowSystemFocus && this.configuration.IsFocusManagementEnabled)
             {
                 Log.Verbose($"Cancelling OpenSystemMenu due to WindowSystem {WindowSystem.FocusedWindowSystemNamespace}");
                 return;
             }
 
-            var configuration = Service<DalamudConfiguration>.Get();
-            var interfaceManager = Service<InterfaceManager>.Get();
+            var interfaceManager = Service<InterfaceManager>.GetNullable();
+            if (interfaceManager == null)
+            {
+                this.hookAgentHudOpenSystemMenu.Original(thisPtr, atkValueArgs, menuSize);
+                return;
+            }
 
             if (!configuration.DoButtonsSystemMenu || !interfaceManager.IsDispatchingEvents)
             {
@@ -207,15 +218,15 @@ namespace Dalamud.Game.Internal
 
         private void UiModuleRequestMainCommandDetour(void* thisPtr, int commandId)
         {
-            var dalamudInterface = Service<DalamudInterface>.Get();
+            var dalamudInterface = Service<DalamudInterface>.GetNullable();
 
             switch (commandId)
             {
                 case 69420:
-                    dalamudInterface.TogglePluginInstallerWindow();
+                    dalamudInterface?.TogglePluginInstallerWindow();
                     break;
                 case 69421:
-                    dalamudInterface.ToggleSettingsWindow();
+                    dalamudInterface?.ToggleSettingsWindow();
                     break;
                 default:
                     this.hookUiModuleRequestMainCommand.Original(thisPtr, commandId);
@@ -259,7 +270,7 @@ namespace Dalamud.Game.Internal
                 this.hookUiModuleRequestMainCommand.Dispose();
                 this.hookAtkUnitBaseReceiveGlobalEvent.Dispose();
 
-                Service<ContextMenu>.Get().ContextMenuOpened -= this.ContextMenuOnContextMenuOpened;
+                this.contextMenu.ContextMenuOpened -= this.ContextMenuOnContextMenuOpened;
             }
 
             this.disposed = true;

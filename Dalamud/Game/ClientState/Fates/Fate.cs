@@ -46,9 +46,9 @@ namespace Dalamud.Game.ClientState.Fates
         /// <returns>True or false.</returns>
         public static bool IsValid(Fate fate)
         {
-            var clientState = Service<ClientState>.Get();
+            var clientState = Service<ClientState>.GetNullable();
 
-            if (fate == null)
+            if (fate == null || clientState == null)
                 return false;
 
             if (clientState.LocalContentId == 0)

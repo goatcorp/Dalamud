@@ -38,6 +38,11 @@ internal partial class PluginManager : IDisposable, IServiceType
     /// </summary>
     public const int DalamudApiLevel = 6;
 
+    /// <summary>
+    /// Default time to wait between plugin unload and plugin assembly unload.
+    /// </summary>
+    public const int PluginWaitBeforeFreeDefault = 500;
+
     private static readonly ModuleLog Log = new("PLUGINM");
 
     private readonly object pluginListLock = new();
@@ -207,16 +212,43 @@ internal partial class PluginManager : IDisposable, IServiceType
     /// <inheritdoc/>
     public void Dispose()
     {
-        foreach (var plugin in this.InstalledPlugins)
+        if (this.InstalledPlugins.Any())
         {
-            try
+            // Unload them first, just in case some of plugin codes are still running via callbacks initiated externally.
+            foreach (var plugin in this.InstalledPlugins.Where(plugin => !plugin.Manifest.CanUnloadAsync))
             {
-                plugin.Dispose();
+                try
+                {
+                    plugin.UnloadAsync(true, false).Wait();
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex, $"Error unloading {plugin.Name}");
+                }
             }
-            catch (Exception ex)
-            {
-                Log.Error(ex, $"Error disposing {plugin.Name}");
-            }
+
+            Task.WaitAll(this.InstalledPlugins
+                             .Where(plugin => plugin.Manifest.CanUnloadAsync)
+                             .Select(plugin => Task.Run(async () =>
+                             {
+                                 try
+                                 {
+                                     await plugin.UnloadAsync(true, false);
+                                 }
+                                 catch (Exception ex)
+                                 {
+                                     Log.Error(ex, $"Error unloading {plugin.Name}");
+                                 }
+                             })).ToArray());
+
+            // Just in case plugins still have tasks running that they didn't cancel when they should have,
+            // give them some time to complete it.
+            Thread.Sleep(this.configuration.PluginWaitBeforeFree ?? PluginWaitBeforeFreeDefault);
+
+            // Now that we've waited enough, dispose the whole plugin.
+            // Since plugins should have been unloaded above, this should be done quickly.
+            foreach (var plugin in this.InstalledPlugins)
+                plugin.ExplicitDisposeIgnoreExceptions($"Error disposing {plugin.Name}", Log);
         }
 
         this.assemblyLocationMonoHook?.Dispose();
@@ -891,7 +923,7 @@ internal partial class PluginManager : IDisposable, IServiceType
             {
                 try
                 {
-                    plugin.Unload();
+                    await plugin.UnloadAsync();
                 }
                 catch (Exception ex)
                 {
@@ -963,23 +995,30 @@ internal partial class PluginManager : IDisposable, IServiceType
     /// </summary>
     /// <param name="plugin">The plugin.</param>
     /// <exception cref="Exception">Throws if the plugin is still loading/unloading.</exception>
-    public void DeleteConfiguration(LocalPlugin plugin)
+    /// <returns>The task.</returns>
+    public async Task DeleteConfigurationAsync(LocalPlugin plugin)
     {
-        if (plugin.State == PluginState.InProgress)
+        if (plugin.State == PluginState.Loading || plugin.State == PluginState.Unloaded)
             throw new Exception("Cannot delete configuration for a loading/unloading plugin");
 
         if (plugin.IsLoaded)
-            plugin.Unload();
+            await plugin.UnloadAsync();
 
-        // Let's wait so any handles on files in plugin configurations can be closed
-        Thread.Sleep(500);
-
-        this.PluginConfigs.Delete(plugin.Name);
-
-        Thread.Sleep(500);
+        for (var waitUntil = Environment.TickCount64 + 1000; Environment.TickCount64 < waitUntil;)
+        {
+            try
+            {
+                this.PluginConfigs.Delete(plugin.Name);
+                break;
+            }
+            catch (IOException)
+            {
+                await Task.Delay(100);
+            }
+        }
 
         // Let's indicate "installer" here since this is supposed to be a fresh install
-        plugin.LoadAsync(PluginLoadReason.Installer).Wait();
+        await plugin.LoadAsync(PluginLoadReason.Installer);
     }
 
     /// <summary>

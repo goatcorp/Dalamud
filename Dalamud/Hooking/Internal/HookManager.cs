@@ -24,6 +24,11 @@ namespace Dalamud.Hooking.Internal
         }
 
         /// <summary>
+        /// Gets sync root object for hook enabling/disabling.
+        /// </summary>
+        internal static object HookEnableSyncRoot { get; } = new();
+
+        /// <summary>
         /// Gets a static list of tracked and registered hooks.
         /// </summary>
         internal static ConcurrentDictionary<Guid, HookInfo> TrackedHooks { get; } = new();

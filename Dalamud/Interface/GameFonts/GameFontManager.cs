@@ -18,7 +18,7 @@ namespace Dalamud.Interface.GameFonts
     /// Loads game font for use in ImGui.
     /// </summary>
     [ServiceManager.EarlyLoadedService]
-    internal class GameFontManager : IDisposable, IServiceType
+    internal class GameFontManager : IServiceType
     {
         private static readonly string?[] FontNames =
         {
@@ -156,11 +156,6 @@ namespace Dalamud.Interface.GameFonts
 
             if (rebuildLookupTable)
                 fontPtr.BuildLookupTable();
-        }
-
-        /// <inheritdoc/>
-        public void Dispose()
-        {
         }
 
         /// <summary>

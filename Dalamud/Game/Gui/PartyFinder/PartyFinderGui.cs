@@ -35,7 +35,7 @@ namespace Dalamud.Game.Gui.PartyFinder
 
             this.memory = Marshal.AllocHGlobal(PartyFinderPacket.PacketSize);
 
-            this.receiveListingHook = new Hook<ReceiveListingDelegate>(this.address.ReceiveListing, new ReceiveListingDelegate(this.HandleReceiveListingDetour));
+            this.receiveListingHook = Hook<ReceiveListingDelegate>.FromAddress(this.address.ReceiveListing, new ReceiveListingDelegate(this.HandleReceiveListingDetour));
         }
 
         /// <summary>

@@ -107,6 +107,9 @@ namespace Dalamud.Game
 
         private readonly DalamudLinkPayload openInstallerWindowLink;
 
+        [ServiceManager.ServiceDependency]
+        private readonly DalamudConfiguration configuration = Service<DalamudConfiguration>.Get();
+
         private bool hasSeenLoadingMsg;
         private bool hasAutoUpdatedPlugins;
 
@@ -118,7 +121,7 @@ namespace Dalamud.Game
 
             this.openInstallerWindowLink = chatGui.AddChatLinkHandler("Dalamud", 1001, (i, m) =>
             {
-                Service<DalamudInterface>.Get().OpenPluginInstaller();
+                Service<DalamudInterface>.GetNullable()?.OpenPluginInstaller();
             });
         }
 
@@ -145,11 +148,9 @@ namespace Dalamud.Game
 
         private void OnCheckMessageHandled(XivChatType type, uint senderid, ref SeString sender, ref SeString message, ref bool isHandled)
         {
-            var configuration = Service<DalamudConfiguration>.Get();
-
             var textVal = message.TextValue;
 
-            if (!configuration.DisableRmtFiltering)
+            if (!this.configuration.DisableRmtFiltering)
             {
                 var matched = this.rmtRegex.IsMatch(textVal);
                 if (matched)
@@ -161,8 +162,8 @@ namespace Dalamud.Game
                 }
             }
 
-            if (configuration.BadWords != null &&
-                configuration.BadWords.Any(x => !string.IsNullOrEmpty(x) && textVal.Contains(x)))
+            if (this.configuration.BadWords != null &&
+                this.configuration.BadWords.Any(x => !string.IsNullOrEmpty(x) && textVal.Contains(x)))
             {
                 // This seems to be in the user block list - let's not show it
                 Log.Debug("Blocklist triggered");
@@ -174,7 +175,9 @@ namespace Dalamud.Game
         private void OnChatMessage(XivChatType type, uint senderId, ref SeString sender, ref SeString message, ref bool isHandled)
         {
             var startInfo = Service<DalamudStartInfo>.Get();
-            var clientState = Service<ClientState.ClientState>.Get();
+            var clientState = Service<ClientState.ClientState>.GetNullable();
+            if (clientState == null)
+                return;
 
             if (type == XivChatType.Notice && !this.hasSeenLoadingMsg)
                 this.PrintWelcomeMessage();
@@ -232,17 +235,19 @@ namespace Dalamud.Game
 
         private void PrintWelcomeMessage()
         {
-            var chatGui = Service<ChatGui>.Get();
-            var configuration = Service<DalamudConfiguration>.Get();
-            var pluginManager = Service<PluginManager>.Get();
-            var dalamudInterface = Service<DalamudInterface>.Get();
+            var chatGui = Service<ChatGui>.GetNullable();
+            var pluginManager = Service<PluginManager>.GetNullable();
+            var dalamudInterface = Service<DalamudInterface>.GetNullable();
+
+            if (chatGui == null || pluginManager == null || dalamudInterface == null)
+                return;
 
             var assemblyVersion = Assembly.GetAssembly(typeof(ChatHandlers)).GetName().Version.ToString();
 
             chatGui.Print(string.Format(Loc.Localize("DalamudWelcome", "Dalamud vD{0} loaded."), assemblyVersion)
                         + string.Format(Loc.Localize("PluginsWelcome", " {0} plugin(s) loaded."), pluginManager.InstalledPlugins.Count(x => x.IsLoaded)));
 
-            if (configuration.PrintPluginsWelcomeMsg)
+            if (this.configuration.PrintPluginsWelcomeMsg)
             {
                 foreach (var plugin in pluginManager.InstalledPlugins.OrderBy(plugin => plugin.Name).Where(x => x.IsLoaded))
                 {
@@ -250,7 +255,7 @@ namespace Dalamud.Game
                 }
             }
 
-            if (string.IsNullOrEmpty(configuration.LastVersion) || !assemblyVersion.StartsWith(configuration.LastVersion))
+            if (string.IsNullOrEmpty(this.configuration.LastVersion) || !assemblyVersion.StartsWith(this.configuration.LastVersion))
             {
                 chatGui.PrintChat(new XivChatEntry
                 {
@@ -258,14 +263,14 @@ namespace Dalamud.Game
                     Type = XivChatType.Notice,
                 });
 
-                if (string.IsNullOrEmpty(configuration.LastChangelogMajorMinor) || (!ChangelogWindow.WarrantsChangelogForMajorMinor.StartsWith(configuration.LastChangelogMajorMinor) && assemblyVersion.StartsWith(ChangelogWindow.WarrantsChangelogForMajorMinor)))
+                if (string.IsNullOrEmpty(this.configuration.LastChangelogMajorMinor) || (!ChangelogWindow.WarrantsChangelogForMajorMinor.StartsWith(this.configuration.LastChangelogMajorMinor) && assemblyVersion.StartsWith(ChangelogWindow.WarrantsChangelogForMajorMinor)))
                 {
                     dalamudInterface.OpenChangelogWindow();
-                    configuration.LastChangelogMajorMinor = ChangelogWindow.WarrantsChangelogForMajorMinor;
+                    this.configuration.LastChangelogMajorMinor = ChangelogWindow.WarrantsChangelogForMajorMinor;
                 }
 
-                configuration.LastVersion = assemblyVersion;
-                configuration.Save();
+                this.configuration.LastVersion = assemblyVersion;
+                this.configuration.Save();
             }
 
             this.hasSeenLoadingMsg = true;
@@ -273,10 +278,12 @@ namespace Dalamud.Game
 
         private void AutoUpdatePlugins()
         {
-            var chatGui = Service<ChatGui>.Get();
-            var configuration = Service<DalamudConfiguration>.Get();
-            var pluginManager = Service<PluginManager>.Get();
-            var notifications = Service<NotificationManager>.Get();
+            var chatGui = Service<ChatGui>.GetNullable();
+            var pluginManager = Service<PluginManager>.GetNullable();
+            var notifications = Service<NotificationManager>.GetNullable();
+
+            if (chatGui == null || pluginManager == null || notifications == null)
+                return;
 
             if (!pluginManager.ReposReady || pluginManager.InstalledPlugins.Count == 0 || pluginManager.AvailablePlugins.Count == 0)
             {
@@ -286,7 +293,7 @@ namespace Dalamud.Game
 
             this.hasAutoUpdatedPlugins = true;
 
-            Task.Run(() => pluginManager.UpdatePluginsAsync(!configuration.AutoUpdatePlugins)).ContinueWith(task =>
+            Task.Run(() => pluginManager.UpdatePluginsAsync(!this.configuration.AutoUpdatePlugins)).ContinueWith(task =>
             {
                 if (task.IsFaulted)
                 {
@@ -297,15 +304,13 @@ namespace Dalamud.Game
                 var updatedPlugins = task.Result;
                 if (updatedPlugins != null && updatedPlugins.Any())
                 {
-                    if (configuration.AutoUpdatePlugins)
+                    if (this.configuration.AutoUpdatePlugins)
                     {
                         PluginManager.PrintUpdatedPlugins(updatedPlugins, Loc.Localize("DalamudPluginAutoUpdate", "Auto-update:"));
                         notifications.AddNotification(Loc.Localize("NotificationUpdatedPlugins", "{0} of your plugins were updated.").Format(updatedPlugins.Count), Loc.Localize("NotificationAutoUpdate", "Auto-Update"), NotificationType.Info);
                     }
                     else
                     {
-                        var data = Service<DataManager>.Get();
-
                         chatGui.PrintChat(new XivChatEntry
                         {
                             Message = new SeString(new List<Payload>()

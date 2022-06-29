@@ -20,12 +20,15 @@ namespace Dalamud.Game.ClientState.Buddy
     {
         private const uint InvalidObjectID = 0xE0000000;
 
+        [ServiceManager.ServiceDependency]
+        private readonly ClientState clientState = Service<ClientState>.Get();
+
         private readonly ClientStateAddressResolver address;
 
         [ServiceManager.ServiceConstructor]
-        private BuddyList(ClientState clientState)
+        private BuddyList()
         {
-            this.address = clientState.AddressResolver;
+            this.address = this.clientState.AddressResolver;
 
             Log.Verbose($"Buddy list address 0x{this.address.BuddyList.ToInt64():X}");
         }
@@ -145,9 +148,7 @@ namespace Dalamud.Game.ClientState.Buddy
         /// <returns><see cref="BuddyMember"/> object containing the requested data.</returns>
         public BuddyMember? CreateBuddyMemberReference(IntPtr address)
         {
-            var clientState = Service<ClientState>.Get();
-
-            if (clientState.LocalContentId == 0)
+            if (this.clientState.LocalContentId == 0)
                 return null;
 
             if (address == IntPtr.Zero)
