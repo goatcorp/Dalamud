@@ -55,7 +55,16 @@ internal class LocalPlugin : IDisposable
         this.DllFile = dllFile;
         this.State = PluginState.Unloaded;
 
-        this.loader = PluginLoader.CreateFromAssemblyFile(this.DllFile.FullName, SetupLoaderConfig);
+        try
+        {
+            this.loader = PluginLoader.CreateFromAssemblyFile(this.DllFile.FullName, SetupLoaderConfig);
+        }
+        catch (InvalidOperationException ex)
+        {
+            Log.Error(ex, "Loader.CreateFromAssemblyFile() failed");
+            this.State = PluginState.DependencyResolutionFailed;
+            throw;
+        }
 
         try
         {
@@ -522,6 +531,8 @@ internal class LocalPlugin : IDisposable
                 break;
             case PluginState.UnloadError:
                 break;
+            case PluginState.DependencyResolutionFailed:
+                throw new InvalidPluginOperationException($"Unable to enable {this.Name}, dependency resolution failed");
             default:
                 throw new ArgumentOutOfRangeException(this.State.ToString());
         }
@@ -550,6 +561,8 @@ internal class LocalPlugin : IDisposable
                 break;
             case PluginState.UnloadError:
                 break;
+            case PluginState.DependencyResolutionFailed:
+                return; // This is a no-op.
             default:
                 throw new ArgumentOutOfRangeException(this.State.ToString());
         }
