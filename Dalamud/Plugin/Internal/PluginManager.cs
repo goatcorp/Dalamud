@@ -212,56 +212,43 @@ internal partial class PluginManager : IDisposable, IServiceType
     /// <inheritdoc/>
     public void Dispose()
     {
-        if (!this.InstalledPlugins.Any())
+        if (this.InstalledPlugins.Any())
         {
-            this.assemblyLocationMonoHook?.Dispose();
-            this.assemblyCodeBaseMonoHook?.Dispose();
-            return;
-        }
-
-        // Unload them first, just in case some of plugin codes are still running via callbacks initiated externally.
-        foreach (var plugin in this.InstalledPlugins.Where(plugin => !plugin.Manifest.CanUnloadAsync))
-        {
-            try
+            // Unload them first, just in case some of plugin codes are still running via callbacks initiated externally.
+            foreach (var plugin in this.InstalledPlugins.Where(plugin => !plugin.Manifest.CanUnloadAsync))
             {
-                plugin.UnloadAsync(true, false).Wait();
+                try
+                {
+                    plugin.UnloadAsync(true, false).Wait();
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex, $"Error unloading {plugin.Name}");
+                }
             }
-            catch (Exception ex)
-            {
-                Log.Error(ex, $"Error unloading {plugin.Name}");
-            }
-        }
 
-        Task.WaitAll(this.InstalledPlugins
-                         .Where(plugin => plugin.Manifest.CanUnloadAsync)
-                         .Select(plugin => Task.Run(async () =>
-                         {
-                             try
+            Task.WaitAll(this.InstalledPlugins
+                             .Where(plugin => plugin.Manifest.CanUnloadAsync)
+                             .Select(plugin => Task.Run(async () =>
                              {
-                                 await plugin.UnloadAsync(true, false);
-                             }
-                             catch (Exception ex)
-                             {
-                                 Log.Error(ex, $"Error unloading {plugin.Name}");
-                             }
-                         })).ToArray());
+                                 try
+                                 {
+                                     await plugin.UnloadAsync(true, false);
+                                 }
+                                 catch (Exception ex)
+                                 {
+                                     Log.Error(ex, $"Error unloading {plugin.Name}");
+                                 }
+                             })).ToArray());
 
-        // Just in case plugins still have tasks running that they didn't cancel when they should have,
-        // give them some time to complete it.
-        Thread.Sleep(this.configuration.PluginWaitBeforeFree ?? PluginWaitBeforeFreeDefault);
+            // Just in case plugins still have tasks running that they didn't cancel when they should have,
+            // give them some time to complete it.
+            Thread.Sleep(this.configuration.PluginWaitBeforeFree ?? PluginWaitBeforeFreeDefault);
 
-        // Now that we've waited enough, dispose the whole plugin.
-        // Since plugins should have been unloaded above, this should be done quickly. 
-        foreach (var plugin in this.InstalledPlugins)
-        {
-            try
-            {
-                plugin.Dispose();
-            }
-            catch (Exception ex)
-            {
-                Log.Error(ex, $"Error disposing {plugin.Name}");
-            }
+            // Now that we've waited enough, dispose the whole plugin.
+            // Since plugins should have been unloaded above, this should be done quickly.
+            foreach (var plugin in this.InstalledPlugins)
+                plugin.ExplicitDisposeIgnoreExceptions($"Error disposing {plugin.Name}", Log);
         }
 
         this.assemblyLocationMonoHook?.Dispose();
