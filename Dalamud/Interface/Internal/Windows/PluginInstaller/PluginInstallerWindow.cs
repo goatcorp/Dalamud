@@ -142,12 +142,12 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
         /// <inheritdoc/>
         public void Dispose()
         {
-            var pluginManager = Service<PluginManager>.Get();
-
-            pluginManager.OnAvailablePluginsChanged -= this.OnAvailablePluginsChanged;
-            pluginManager.OnInstalledPluginsChanged -= this.OnInstalledPluginsChanged;
-
-            this.imageCache?.Dispose();
+            var pluginManager = Service<PluginManager>.GetNullable();
+            if (pluginManager != null)
+            {
+                pluginManager.OnAvailablePluginsChanged -= this.OnAvailablePluginsChanged;
+                pluginManager.OnInstalledPluginsChanged -= this.OnInstalledPluginsChanged;
+            }
         }
 
         /// <inheritdoc/>
