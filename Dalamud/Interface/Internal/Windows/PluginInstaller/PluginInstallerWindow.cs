@@ -142,12 +142,12 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
         /// <inheritdoc/>
         public void Dispose()
         {
-            var pluginManager = Service<PluginManager>.Get();
-
-            pluginManager.OnAvailablePluginsChanged -= this.OnAvailablePluginsChanged;
-            pluginManager.OnInstalledPluginsChanged -= this.OnInstalledPluginsChanged;
-
-            this.imageCache?.Dispose();
+            var pluginManager = Service<PluginManager>.GetNullable();
+            if (pluginManager != null)
+            {
+                pluginManager.OnAvailablePluginsChanged -= this.OnAvailablePluginsChanged;
+                pluginManager.OnInstalledPluginsChanged -= this.OnInstalledPluginsChanged;
+            }
         }
 
         /// <inheritdoc/>
@@ -1964,7 +1964,7 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
         private bool DrawPluginImages(LocalPlugin? plugin, PluginManifest manifest, bool isThirdParty, int index)
         {
             var hasImages = this.imageCache.TryGetImages(plugin, manifest, isThirdParty, out var imageTextures);
-            if (!hasImages || imageTextures.Length == 0)
+            if (!hasImages || imageTextures.All(x => x == null))
                 return false;
 
             const float thumbFactor = 2.7f;
