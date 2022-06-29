@@ -32,7 +32,9 @@ namespace Dalamud.Game.Network.Internal.MarketBoardUploaders.Universalis
         /// <inheritdoc/>
         public async Task Upload(MarketBoardItemRequest request)
         {
-            var clientState = Service<ClientState.ClientState>.Get();
+            var clientState = Service<ClientState.ClientState>.GetNullable();
+            if (clientState == null)
+                return;
 
             Log.Verbose("Starting Universalis upload.");
             var uploader = clientState.LocalContentId;
@@ -118,7 +120,9 @@ namespace Dalamud.Game.Network.Internal.MarketBoardUploaders.Universalis
         /// <inheritdoc/>
         public async Task UploadTax(MarketTaxRates taxRates)
         {
-            var clientState = Service<ClientState.ClientState>.Get();
+            var clientState = Service<ClientState.ClientState>.GetNullable();
+            if (clientState == null)
+                return;
 
             // ====================================================================================
 
@@ -157,7 +161,9 @@ namespace Dalamud.Game.Network.Internal.MarketBoardUploaders.Universalis
         /// </remarks>
         public async Task UploadPurchase(MarketBoardPurchaseHandler purchaseHandler)
         {
-            var clientState = Service<ClientState.ClientState>.Get();
+            var clientState = Service<ClientState.ClientState>.GetNullable();
+            if (clientState == null)
+                return;
 
             var itemId = purchaseHandler.CatalogId;
             var worldId = clientState.LocalPlayer?.CurrentWorld.Id ?? 0;

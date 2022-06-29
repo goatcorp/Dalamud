@@ -57,6 +57,9 @@ namespace Dalamud.Interface.Internal
         private readonly HashSet<SpecialGlyphRequest> glyphRequests = new();
         private readonly Dictionary<ImFontPtr, TargetFontModification> loadedFontInfo = new();
 
+        [ServiceManager.ServiceDependency]
+        private readonly Framework framework = Service<Framework>.Get();
+
         private readonly ManualResetEvent fontBuildSignal;
         private readonly SwapChainVtableResolver address;
         private readonly Hook<DispatchMessageWDelegate> dispatchMessageWHook;
@@ -73,12 +76,12 @@ namespace Dalamud.Interface.Internal
         private bool isOverrideGameCursor = true;
 
         [ServiceManager.ServiceConstructor]
-        private InterfaceManager(SigScanner sigScanner)
+        private InterfaceManager()
         {
             this.dispatchMessageWHook = Hook<DispatchMessageWDelegate>.FromImport(
-                Process.GetCurrentProcess().MainModule, "user32.dll", "DispatchMessageW", 0, this.DispatchMessageWDetour);
+                null, "user32.dll", "DispatchMessageW", 0, this.DispatchMessageWDetour);
             this.setCursorHook = Hook<SetCursorDelegate>.FromImport(
-                Process.GetCurrentProcess().MainModule, "user32.dll", "SetCursor", 0, this.SetCursorDetour);
+                null, "user32.dll", "SetCursor", 0, this.SetCursorDetour);
 
             this.fontBuildSignal = new ManualResetEvent(false);
 
@@ -90,12 +93,6 @@ namespace Dalamud.Interface.Internal
 
         [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
         private delegate IntPtr ResizeBuffersDelegate(IntPtr swapChain, uint bufferCount, uint width, uint height, uint newFormat, uint swapChainFlags);
-
-        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-        private delegate int CreateDXGIFactoryDelegate(Guid riid, out IntPtr ppFactory);
-
-        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-        private delegate int IDXGIFactory_CreateSwapChainDelegate(IntPtr pFactory, IntPtr pDevice, IntPtr pDesc, out IntPtr ppSwapChain);
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
         private delegate IntPtr SetCursorDelegate(IntPtr hCursor);
@@ -248,20 +245,15 @@ namespace Dalamud.Interface.Internal
         /// </summary>
         public void Dispose()
         {
-            // HACK: this is usually called on a separate thread from PresentDetour (likely on a dedicated render thread)
-            // and if we aren't already disabled, disposing of the scene and hook can frequently crash due to the hook
-            // being disposed of in this thread while it is actively in use in the render thread.
-            // This is a terrible way to prevent issues, but should basically always work to ensure that all outstanding
-            // calls to PresentDetour have finished (and Disable means no new ones will start), before we try to cleanup
-            // So... not great, but much better than constantly crashing on unload
-            this.Disable();
-            Thread.Sleep(500);
+            this.framework.RunOnFrameworkThread(() =>
+            {
+                this.setCursorHook.Dispose();
+                this.presentHook?.Dispose();
+                this.resizeBuffersHook?.Dispose();
+                this.dispatchMessageWHook.Dispose();
+            }).Wait();
 
             this.scene?.Dispose();
-            this.setCursorHook.Dispose();
-            this.presentHook?.Dispose();
-            this.resizeBuffersHook?.Dispose();
-            this.dispatchMessageWHook.Dispose();
         }
 
 #nullable enable
@@ -990,8 +982,8 @@ namespace Dalamud.Interface.Internal
                         break;
                 }
 
-                this.presentHook = new Hook<PresentDelegate>(this.address.Present, this.PresentDetour);
-                this.resizeBuffersHook = new Hook<ResizeBuffersDelegate>(this.address.ResizeBuffers, this.ResizeBuffersDetour);
+                this.presentHook = Hook<PresentDelegate>.FromAddress(this.address.Present, this.PresentDetour);
+                this.resizeBuffersHook = Hook<ResizeBuffersDelegate>.FromAddress(this.address.ResizeBuffers, this.ResizeBuffersDetour);
 
                 Log.Verbose("===== S W A P C H A I N =====");
                 Log.Verbose($"Present address 0x{this.presentHook!.Address.ToInt64():X}");
@@ -1002,14 +994,6 @@ namespace Dalamud.Interface.Internal
                 this.resizeBuffersHook.Enable();
                 this.dispatchMessageWHook.Enable();
             });
-        }
-
-        private void Disable()
-        {
-            this.setCursorHook.Disable();
-            this.presentHook?.Disable();
-            this.resizeBuffersHook?.Disable();
-            this.dispatchMessageWHook.Disable();
         }
 
         // This is intended to only be called as a handler attached to scene.OnNewRenderFrame
@@ -1104,7 +1088,7 @@ namespace Dalamud.Interface.Internal
             if (this.lastWantCapture == true && (!this.scene?.IsImGuiCursor(hCursor) ?? false) && this.OverrideGameCursor)
                 return IntPtr.Zero;
 
-            return this.setCursorHook!.Original(hCursor);
+            return this.setCursorHook.IsDisposed ? User32.SetCursor(new User32.SafeCursorHandle(hCursor, false)).DangerousGetHandle() : this.setCursorHook.Original(hCursor);
         }
 
         private void OnNewInputFrame()

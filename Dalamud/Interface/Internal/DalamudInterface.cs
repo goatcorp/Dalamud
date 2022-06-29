@@ -60,8 +60,6 @@ namespace Dalamud.Interface.Internal
         private readonly TextureWrap logoTexture;
         private readonly TextureWrap tsmLogoTexture;
 
-        private ulong frameCount = 0;
-
 #if DEBUG
         private bool isImGuiDrawDevMenu = true;
 #else
@@ -80,7 +78,8 @@ namespace Dalamud.Interface.Internal
         private DalamudInterface(
             Dalamud dalamud,
             DalamudConfiguration configuration,
-            InterfaceManager.InterfaceManagerWithScene interfaceManagerWithScene)
+            InterfaceManager.InterfaceManagerWithScene interfaceManagerWithScene,
+            PluginImageCache pluginImageCache)
         {
             var interfaceManager = interfaceManagerWithScene.Manager;
             this.WindowSystem = new WindowSystem("DalamudCore");
@@ -94,7 +93,7 @@ namespace Dalamud.Interface.Internal
             this.imeWindow = new IMEWindow() { IsOpen = false };
             this.consoleWindow = new ConsoleWindow() { IsOpen = configuration.LogOpenAtStartup };
             this.pluginStatWindow = new PluginStatWindow() { IsOpen = false };
-            this.pluginWindow = new PluginInstallerWindow() { IsOpen = false };
+            this.pluginWindow = new PluginInstallerWindow(pluginImageCache) { IsOpen = false };
             this.settingsWindow = new SettingsWindow() { IsOpen = false };
             this.selfTestWindow = new SelfTestWindow() { IsOpen = false };
             this.styleEditorWindow = new StyleEditorWindow() { IsOpen = false };
@@ -138,14 +137,19 @@ namespace Dalamud.Interface.Internal
             this.tsmLogoTexture = tsmLogoTex;
 
             var tsm = Service<TitleScreenMenu>.Get();
-            tsm.AddEntry(Loc.Localize("TSMDalamudPlugins", "Plugin Installer"), this.tsmLogoTexture, () => this.pluginWindow.IsOpen = true);
-            tsm.AddEntry(Loc.Localize("TSMDalamudSettings", "Dalamud Settings"), this.tsmLogoTexture, () => this.settingsWindow.IsOpen = true);
+            tsm.AddEntryCore(Loc.Localize("TSMDalamudPlugins", "Plugin Installer"), this.tsmLogoTexture, () => this.pluginWindow.IsOpen = true);
+            tsm.AddEntryCore(Loc.Localize("TSMDalamudSettings", "Dalamud Settings"), this.tsmLogoTexture, () => this.settingsWindow.IsOpen = true);
 
             if (configuration.IsConventionalStaging)
             {
-                tsm.AddEntry(Loc.Localize("TSMDalamudDevMenu", "Developer Menu"), this.tsmLogoTexture, () => this.isImGuiDrawDevMenu = true);
+                tsm.AddEntryCore(Loc.Localize("TSMDalamudDevMenu", "Developer Menu"), this.tsmLogoTexture, () => this.isImGuiDrawDevMenu = true);
             }
         }
+
+        /// <summary>
+        /// Gets the number of frames since Dalamud has loaded.
+        /// </summary>
+        public ulong FrameCount { get; private set; }
 
         /// <summary>
         /// Gets the <see cref="WindowSystem"/> controlling all Dalamud-internal windows.
@@ -373,7 +377,7 @@ namespace Dalamud.Interface.Internal
 
         private void OnDraw()
         {
-            this.frameCount++;
+            this.FrameCount++;
 
 #if BOOT_AGING
             if (this.frameCount > 500 && !this.signaledBoot)
@@ -494,15 +498,28 @@ namespace Dalamud.Interface.Internal
                         {
                             foreach (var logLevel in Enum.GetValues(typeof(LogEventLevel)).Cast<LogEventLevel>())
                             {
-                                if (ImGui.MenuItem(logLevel + "##logLevelSwitch", string.Empty, dalamud.LogLevelSwitch.MinimumLevel == logLevel))
+                                if (ImGui.MenuItem(logLevel + "##logLevelSwitch", string.Empty, EntryPoint.LogLevelSwitch.MinimumLevel == logLevel))
                                 {
-                                    dalamud.LogLevelSwitch.MinimumLevel = logLevel;
+                                    EntryPoint.LogLevelSwitch.MinimumLevel = logLevel;
                                     configuration.LogLevel = logLevel;
                                     configuration.Save();
                                 }
                             }
 
                             ImGui.EndMenu();
+                        }
+
+                        var logSynchronously = configuration.LogSynchronously;
+                        if (ImGui.MenuItem("Log Synchronously", null, ref logSynchronously))
+                        {
+                            configuration.LogSynchronously = logSynchronously;
+                            configuration.Save();
+
+                            var startupInfo = Service<DalamudStartInfo>.Get();
+                            EntryPoint.InitLogging(
+                                startupInfo.WorkingDirectory!,
+                                startupInfo.BootShowConsole,
+                                configuration.LogSynchronously);
                         }
 
                         var antiDebug = Service<AntiDebug>.Get();
@@ -584,12 +601,21 @@ namespace Dalamud.Interface.Internal
                             Marshal.ReadByte(IntPtr.Zero);
                         }
 
-                        if (ImGui.MenuItem("Crash game"))
+                        if (ImGui.MenuItem("Crash game (nullptr)"))
                         {
                             unsafe
                             {
                                 var framework = Framework.Instance();
                                 framework->UIModule = (UIModule*)0;
+                            }
+                        }
+
+                        if (ImGui.MenuItem("Crash game (non-nullptr)"))
+                        {
+                            unsafe
+                            {
+                                var framework = Framework.Instance();
+                                framework->UIModule = (UIModule*)0x12345678;
                             }
                         }
 
@@ -795,7 +821,7 @@ namespace Dalamud.Interface.Internal
                         ImGui.PushFont(InterfaceManager.MonoFont);
 
                         ImGui.BeginMenu(Util.GetGitHash(), false);
-                        ImGui.BeginMenu(this.frameCount.ToString("000000"), false);
+                        ImGui.BeginMenu(this.FrameCount.ToString("000000"), false);
                         ImGui.BeginMenu(ImGui.GetIO().Framerate.ToString("000"), false);
                         ImGui.BeginMenu($"{Util.FormatBytes(GC.GetTotalMemory(false))}", false);
 

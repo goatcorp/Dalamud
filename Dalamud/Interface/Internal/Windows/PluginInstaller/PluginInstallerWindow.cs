@@ -37,8 +37,8 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
         private readonly Vector4 changelogBgColor = new(0.114f, 0.584f, 0.192f, 0.678f);
         private readonly Vector4 changelogTextColor = new(0.812f, 1.000f, 0.816f, 1.000f);
 
+        private readonly PluginImageCache imageCache;
         private readonly PluginCategoryManager categoryManager = new();
-        private readonly PluginImageCache imageCache = new();
         private readonly DalamudChangelogManager dalamudChangelogManager = new();
 
         private readonly List<int> openPluginCollapsibles = new();
@@ -87,12 +87,14 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
         /// <summary>
         /// Initializes a new instance of the <see cref="PluginInstallerWindow"/> class.
         /// </summary>
-        public PluginInstallerWindow()
+        /// <param name="imageCache">An instance of <see cref="PluginImageCache"/> class.</param>
+        public PluginInstallerWindow(PluginImageCache imageCache)
             : base(
                 Locs.WindowTitle + (Service<DalamudConfiguration>.Get().DoPluginTest ? Locs.WindowTitleMod_Testing : string.Empty) + "###XlPluginInstaller",
                 ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoScrollbar)
         {
             this.IsOpen = true;
+            this.imageCache = imageCache;
 
             this.Size = new Vector2(830, 570);
             this.SizeCondition = ImGuiCond.FirstUseEver;
@@ -200,6 +202,7 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
             ImGui.SetCursorPosY(ImGui.GetCursorPosY() - (5 * ImGuiHelpers.GlobalScale));
 
             var searchInputWidth = 240 * ImGuiHelpers.GlobalScale;
+            var searchClearButtonWidth = 40 * ImGuiHelpers.GlobalScale;
 
             var sortByText = Locs.SortBy_Label;
             var sortByTextWidth = ImGui.CalcTextSize(sortByText).X;
@@ -224,12 +227,27 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
             // Shift down a little to align with the middle of the header text
             ImGui.SetCursorPosY(ImGui.GetCursorPosY() + (headerTextSize.Y / 4) - 2);
 
-            ImGui.SetCursorPosX(windowSize.X - sortSelectWidth - style.ItemSpacing.X - searchInputWidth);
+            ImGui.SetCursorPosX(windowSize.X - sortSelectWidth - style.ItemSpacing.X - searchInputWidth - searchClearButtonWidth);
+
+            var searchTextChanged = false;
             ImGui.SetNextItemWidth(searchInputWidth);
-            if (ImGui.InputTextWithHint("###XlPluginInstaller_Search", Locs.Header_SearchPlaceholder, ref this.searchText, 100))
+            searchTextChanged |= ImGui.InputTextWithHint(
+                "###XlPluginInstaller_Search",
+                Locs.Header_SearchPlaceholder,
+                ref this.searchText,
+                100);
+
+            ImGui.SameLine();
+
+            ImGui.SetNextItemWidth(searchClearButtonWidth);
+            if (ImGuiComponents.IconButton(FontAwesomeIcon.Times))
             {
-                this.UpdateCategoriesOnSearchChange();
+                this.searchText = string.Empty;
+                searchTextChanged = true;
             }
+
+            if (searchTextChanged)
+                this.UpdateCategoriesOnSearchChange();
 
             ImGui.SameLine();
             ImGui.SetCursorPosX(windowSize.X - sortSelectWidth);
@@ -552,7 +570,8 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
             var i = 0;
             foreach (var manifest in categoryManifestsList)
             {
-                var remoteManifest = manifest as RemotePluginManifest;
+                if (manifest is not RemotePluginManifest remoteManifest)
+                    continue;
                 var (isInstalled, plugin) = this.IsManifestInstalled(remoteManifest);
 
                 ImGui.PushID($"{manifest.InternalName}{manifest.AssemblyVersion}");
@@ -1087,51 +1106,38 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
 
             ImGui.SetCursorPos(startCursor);
 
-            var iconTex = this.imageCache.DefaultIcon;
-            var hasIcon = this.imageCache.TryGetIcon(plugin, manifest, isThirdParty, out var cachedIconTex);
-            if (hasIcon && cachedIconTex != null)
-            {
-                iconTex = cachedIconTex;
-            }
-
             var iconSize = ImGuiHelpers.ScaledVector2(64, 64);
-
             var cursorBeforeImage = ImGui.GetCursorPos();
-            ImGui.Image(iconTex.ImGuiHandle, iconSize);
-            ImGui.SameLine();
+            var rectOffset = ImGui.GetWindowContentRegionMin() + ImGui.GetWindowPos();
+            if (ImGui.IsRectVisible(rectOffset + cursorBeforeImage, rectOffset + cursorBeforeImage + iconSize))
+            {
+                var iconTex = this.imageCache.DefaultIcon;
+                var hasIcon = this.imageCache.TryGetIcon(plugin, manifest, isThirdParty, out var cachedIconTex);
+                if (hasIcon && cachedIconTex != null)
+                {
+                    iconTex = cachedIconTex;
+                }
+
+                ImGui.Image(iconTex.ImGuiHandle, iconSize);
+                ImGui.SameLine();
+                ImGui.SetCursorPos(cursorBeforeImage);
+            }
 
             var isLoaded = plugin is { IsLoaded: true };
 
             if (updateAvailable)
-            {
-                ImGui.SetCursorPos(cursorBeforeImage);
                 ImGui.Image(this.imageCache.UpdateIcon.ImGuiHandle, iconSize);
-                ImGui.SameLine();
-            }
             else if (trouble)
-            {
-                ImGui.SetCursorPos(cursorBeforeImage);
                 ImGui.Image(this.imageCache.TroubleIcon.ImGuiHandle, iconSize);
-                ImGui.SameLine();
-            }
             else if (isLoaded && isThirdParty)
-            {
-                ImGui.SetCursorPos(cursorBeforeImage);
                 ImGui.Image(this.imageCache.ThirdInstalledIcon.ImGuiHandle, iconSize);
-                ImGui.SameLine();
-            }
             else if (isThirdParty)
-            {
-                ImGui.SetCursorPos(cursorBeforeImage);
                 ImGui.Image(this.imageCache.ThirdIcon.ImGuiHandle, iconSize);
-                ImGui.SameLine();
-            }
             else if (isLoaded)
-            {
-                ImGui.SetCursorPos(cursorBeforeImage);
                 ImGui.Image(this.imageCache.InstalledIcon.ImGuiHandle, iconSize);
-                ImGui.SameLine();
-            }
+            else
+                ImGui.Dummy(iconSize);
+            ImGui.SameLine();
 
             ImGuiHelpers.ScaledDummy(5);
             ImGui.SameLine();
@@ -1208,23 +1214,32 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
             var startCursor = ImGui.GetCursorPos();
 
             var iconSize = ImGuiHelpers.ScaledVector2(64, 64);
-
-            TextureWrap icon;
-            if (log is PluginChangelogEntry pluginLog)
+            var cursorBeforeImage = ImGui.GetCursorPos();
+            var rectOffset = ImGui.GetWindowContentRegionMin() + ImGui.GetWindowPos();
+            if (ImGui.IsRectVisible(rectOffset + cursorBeforeImage, rectOffset + cursorBeforeImage + iconSize))
             {
-                icon = this.imageCache.DefaultIcon;
-                var hasIcon = this.imageCache.TryGetIcon(pluginLog.Plugin, pluginLog.Plugin.Manifest, pluginLog.Plugin.Manifest.IsThirdParty, out var cachedIconTex);
-                if (hasIcon && cachedIconTex != null)
+                TextureWrap icon;
+                if (log is PluginChangelogEntry pluginLog)
                 {
-                    icon = cachedIconTex;
+                    icon = this.imageCache.DefaultIcon;
+                    var hasIcon = this.imageCache.TryGetIcon(pluginLog.Plugin, pluginLog.Plugin.Manifest, pluginLog.Plugin.Manifest.IsThirdParty, out var cachedIconTex);
+                    if (hasIcon && cachedIconTex != null)
+                    {
+                        icon = cachedIconTex;
+                    }
                 }
+                else
+                {
+                    icon = this.imageCache.CorePluginIcon;
+                }
+
+                ImGui.Image(icon.ImGuiHandle, iconSize);
             }
             else
             {
-                icon = this.imageCache.CorePluginIcon;
+                ImGui.Dummy(iconSize);
             }
 
-            ImGui.Image(icon.ImGuiHandle, iconSize);
             ImGui.SameLine();
 
             ImGuiHelpers.ScaledDummy(5);
@@ -1644,7 +1659,7 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
 
                     this.installStatus = OperationStatus.InProgress;
 
-                    Task.Run(() => pluginManager.DeleteConfiguration(plugin))
+                    Task.Run(() => pluginManager.DeleteConfigurationAsync(plugin))
                         .ContinueWith(task =>
                         {
                             this.installStatus = OperationStatus.Idle;
@@ -1670,7 +1685,7 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
             // Disable everything if the plugin is outdated
             disabled = disabled || (plugin.IsOutdated && !configuration.LoadAllApiLevels) || plugin.IsBanned;
 
-            if (plugin.State == PluginState.InProgress)
+            if (plugin.State == PluginState.Loading || plugin.State == PluginState.Unloading)
             {
                 ImGuiComponents.DisabledButton(Locs.PluginButton_Working);
             }
@@ -1686,7 +1701,7 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
                     {
                         Task.Run(() =>
                         {
-                            var unloadTask = Task.Run(() => plugin.Unload())
+                            var unloadTask = Task.Run(() => plugin.UnloadAsync())
                                 .ContinueWith(this.DisplayErrorContinuation, Locs.ErrorModal_UnloadFail(plugin.Name));
 
                             unloadTask.Wait();

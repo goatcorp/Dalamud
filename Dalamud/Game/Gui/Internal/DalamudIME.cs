@@ -266,9 +266,9 @@ namespace Dalamud.Game.Gui.Internal
         private void ToggleWindow(bool visible)
         {
             if (visible)
-                Service<DalamudInterface>.Get().OpenImeWindow();
+                Service<DalamudInterface>.GetNullable()?.OpenImeWindow();
             else
-                Service<DalamudInterface>.Get().CloseImeWindow();
+                Service<DalamudInterface>.GetNullable()?.CloseImeWindow();
         }
     }
 }

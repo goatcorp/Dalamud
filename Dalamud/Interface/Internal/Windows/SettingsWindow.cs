@@ -57,6 +57,8 @@ namespace Dalamud.Interface.Internal.Windows
         private int dtrSpacing;
         private bool dtrSwapDirection;
 
+        private int? pluginWaitBeforeFree;
+
         private List<ThirdPartyRepoSettings> thirdRepoList;
         private bool thirdRepoListChanged;
         private string thirdRepoTempUrl = string.Empty;
@@ -112,6 +114,8 @@ namespace Dalamud.Interface.Internal.Windows
 
             this.dtrSpacing = configuration.DtrSpacing;
             this.dtrSwapDirection = configuration.DtrSwapDirection;
+
+            this.pluginWaitBeforeFree = configuration.PluginWaitBeforeFree;
 
             this.doPluginTest = configuration.DoPluginTest;
             this.thirdRepoList = configuration.ThirdRepoList.Select(x => x.Clone()).ToList();
@@ -561,6 +565,34 @@ namespace Dalamud.Interface.Internal.Windows
             var configuration = Service<DalamudConfiguration>.Get();
             var pluginManager = Service<PluginManager>.Get();
 
+            var useCustomPluginWaitBeforeFree = this.pluginWaitBeforeFree.HasValue;
+            if (ImGui.Checkbox(
+                    Loc.Localize("DalamudSettingsPluginCustomizeWaitTime", "Customize wait time for plugin unload"),
+                    ref useCustomPluginWaitBeforeFree))
+            {
+                if (!useCustomPluginWaitBeforeFree)
+                    this.pluginWaitBeforeFree = null;
+                else
+                    this.pluginWaitBeforeFree = PluginManager.PluginWaitBeforeFreeDefault;
+            }
+
+            if (useCustomPluginWaitBeforeFree)
+            {
+                var waitTime = this.pluginWaitBeforeFree ?? PluginManager.PluginWaitBeforeFreeDefault;
+                if (ImGui.SliderInt(
+                        "Wait time###DalamudSettingsPluginCustomizeWaitTimeSlider",
+                        ref waitTime,
+                        0,
+                        5000))
+                {
+                    this.pluginWaitBeforeFree = waitTime;
+                }
+            }
+
+            ImGui.TextColored(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingsPluginCustomizeWaitTimeHint", "Configure the wait time between stopping plugin and completely unloading plugin. If you are experiencing crashes when exiting the game, try increasing this value."));
+
+            ImGuiHelpers.ScaledDummy(12);
+
             #region Plugin testing
 
             ImGui.Checkbox(Loc.Localize("DalamudSettingsPluginTest", "Get plugin testing builds"), ref this.doPluginTest);
@@ -973,6 +1005,8 @@ namespace Dalamud.Interface.Internal.Windows
 
             configuration.DtrSpacing = this.dtrSpacing;
             configuration.DtrSwapDirection = this.dtrSwapDirection;
+
+            configuration.PluginWaitBeforeFree = this.pluginWaitBeforeFree;
 
             configuration.DoPluginTest = this.doPluginTest;
             configuration.ThirdRepoList = this.thirdRepoList.Select(x => x.Clone()).ToList();

@@ -26,6 +26,11 @@ namespace Dalamud
     public sealed class EntryPoint
     {
         /// <summary>
+        /// Log level switch for runtime log level change.
+        /// </summary>
+        public static readonly LoggingLevelSwitch LogLevelSwitch = new(LogEventLevel.Verbose);
+
+        /// <summary>
         /// A delegate used during initialization of the CLR from Dalamud.Boot.
         /// </summary>
         /// <param name="infoPtr">Pointer to a serialized <see cref="DalamudStartInfo"/> data.</param>
@@ -108,6 +113,49 @@ namespace Dalamud
         }
 
         /// <summary>
+        /// Sets up logging.
+        /// </summary>
+        /// <param name="baseDirectory">Base directory.</param>
+        /// <param name="logConsole">Whether to log to console.</param>
+        /// <param name="logSynchronously">Log synchronously.</param>
+        internal static void InitLogging(string baseDirectory, bool logConsole, bool logSynchronously)
+        {
+#if DEBUG
+            var logPath = Path.Combine(baseDirectory, "dalamud.log");
+            var oldPath = Path.Combine(baseDirectory, "dalamud.log.old");
+#else
+            var logPath = Path.Combine(baseDirectory, "..", "..", "..", "dalamud.log");
+            var oldPath = Path.Combine(baseDirectory, "..", "..", "..", "dalamud.log.old");
+#endif
+            Log.CloseAndFlush();
+
+            CullLogFile(logPath, oldPath, 1 * 1024 * 1024);
+            CullLogFile(oldPath, null, 10 * 1024 * 1024);
+
+            var config = new LoggerConfiguration()
+                         .WriteTo.Sink(SerilogEventSink.Instance)
+                         .MinimumLevel.ControlledBy(LogLevelSwitch);
+
+            if (logSynchronously)
+            {
+                config = config.WriteTo.File(logPath, fileSizeLimitBytes: null);
+            }
+            else
+            {
+                config = config.WriteTo.Async(a => a.File(
+                                                  logPath,
+                                                  fileSizeLimitBytes: null,
+                                                  buffered: false,
+                                                  flushToDiskInterval: TimeSpan.FromSeconds(1)));
+            }
+
+            if (logConsole)
+                config = config.WriteTo.Console();
+
+            Log.Logger = config.CreateLogger();
+        }
+
+        /// <summary>
         /// Initialize all Dalamud subsystems and start running on the main thread.
         /// </summary>
         /// <param name="info">The <see cref="DalamudStartInfo"/> containing information needed to initialize Dalamud.</param>
@@ -115,21 +163,22 @@ namespace Dalamud
         private static void RunThread(DalamudStartInfo info, IntPtr mainThreadContinueEvent)
         {
             // Setup logger
-            var levelSwitch = InitLogging(info.WorkingDirectory, info.BootShowConsole);
+            InitLogging(info.WorkingDirectory!, info.BootShowConsole, true);
+            SerilogEventSink.Instance.LogLine += SerilogOnLogLine;
 
             // Load configuration first to get some early persistent state, like log level
-            var configuration = DalamudConfiguration.Load(info.ConfigurationPath);
+            var configuration = DalamudConfiguration.Load(info.ConfigurationPath!);
 
             // Set the appropriate logging level from the configuration
 #if !DEBUG
-            levelSwitch.MinimumLevel = configuration.LogLevel;
+            if (!configuration.LogSynchronously)
+                InitLogging(info.WorkingDirectory!, info.BootShowConsole, configuration.LogSynchronously);
+            LogLevelSwitch.MinimumLevel = configuration.LogLevel;
 #endif
 
             // Log any unhandled exception.
             AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
             TaskScheduler.UnobservedTaskException += OnUnobservedTaskException;
-
-            var finishSignal = new ManualResetEvent(false);
 
             try
             {
@@ -148,12 +197,12 @@ namespace Dalamud
                 if (!Util.IsLinux())
                     InitSymbolHandler(info);
 
-                var dalamud = new Dalamud(info, levelSwitch, finishSignal, configuration, mainThreadContinueEvent);
+                var dalamud = new Dalamud(info, configuration, mainThreadContinueEvent);
                 Log.Information("This is Dalamud - Core: {GitHash}, CS: {CsGitHash}", Util.GetGitHash(), Util.GetGitHashClientStructs());
 
                 dalamud.WaitForUnload();
 
-                dalamud.Dispose();
+                ServiceManager.UnloadAllServices();
             }
             catch (Exception ex)
             {
@@ -166,9 +215,16 @@ namespace Dalamud
 
                 Log.Information("Session has ended.");
                 Log.CloseAndFlush();
-
-                finishSignal.Set();
+                SerilogEventSink.Instance.LogLine -= SerilogOnLogLine;
             }
+        }
+
+        private static void SerilogOnLogLine(object? sender, (string Line, LogEventLevel Level, DateTimeOffset TimeStamp, Exception? Exception) e)
+        {
+            if (e.Exception == null)
+                return;
+
+            Troubleshooting.LogException(e.Exception, e.Line);
         }
 
         private static void InitSymbolHandler(DalamudStartInfo info)
@@ -191,33 +247,6 @@ namespace Dalamud
             {
                 Log.Error(ex, "SymbolHandler Initialize Failed.");
             }
-        }
-
-        private static LoggingLevelSwitch InitLogging(string baseDirectory, bool logConsole)
-        {
-#if DEBUG
-            var logPath = Path.Combine(baseDirectory, "dalamud.log");
-            var oldPath = Path.Combine(baseDirectory, "dalamud.log.old");
-#else
-            var logPath = Path.Combine(baseDirectory, "..", "..", "..", "dalamud.log");
-            var oldPath = Path.Combine(baseDirectory, "..", "..", "..", "dalamud.log.old");
-#endif
-
-            CullLogFile(logPath, oldPath, 1 * 1024 * 1024);
-            CullLogFile(oldPath, null, 10 * 1024 * 1024);
-
-            var levelSwitch = new LoggingLevelSwitch(LogEventLevel.Verbose);
-            var config = new LoggerConfiguration()
-                         .WriteTo.Async(a => a.File(logPath, fileSizeLimitBytes: null, buffered: false, flushToDiskInterval: TimeSpan.FromSeconds(1)))
-                         .WriteTo.Sink(SerilogEventSink.Instance)
-                         .MinimumLevel.ControlledBy(levelSwitch);
-
-            if (logConsole)
-                config = config.WriteTo.Console();
-
-            Log.Logger = config.CreateLogger();
-
-            return levelSwitch;
         }
 
         private static void CullLogFile(string logPath, string? oldPath, int cullingFileSize)

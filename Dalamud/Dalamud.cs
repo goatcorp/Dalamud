@@ -5,21 +5,11 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Dalamud.Configuration.Internal;
-using Dalamud.Data;
 using Dalamud.Game;
-using Dalamud.Game.ClientState;
 using Dalamud.Game.Gui.Internal;
-using Dalamud.Game.Internal;
-using Dalamud.Game.Network.Internal;
-using Dalamud.Hooking.Internal;
 using Dalamud.Interface.Internal;
-using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Internal;
-using Dalamud.Support;
-using Dalamud.Utility;
 using Serilog;
-using Serilog.Core;
-using Serilog.Events;
 
 #if DEBUG
 [assembly: InternalsVisibleTo("Dalamud.CorePlugin")]
@@ -33,13 +23,11 @@ namespace Dalamud
     /// <summary>
     /// The main Dalamud class containing all subsystems.
     /// </summary>
-    internal sealed class Dalamud : IDisposable, IServiceType
+    internal sealed class Dalamud : IServiceType
     {
         #region Internals
 
         private readonly ManualResetEvent unloadSignal;
-        private readonly ManualResetEvent finishUnloadSignal;
-        private MonoMod.RuntimeDetour.Hook processMonoHook;
         private bool hasDisposedPlugins = false;
 
         #endregion
@@ -48,21 +36,12 @@ namespace Dalamud
         /// Initializes a new instance of the <see cref="Dalamud"/> class.
         /// </summary>
         /// <param name="info">DalamudStartInfo instance.</param>
-        /// <param name="loggingLevelSwitch">LoggingLevelSwitch to control Serilog level.</param>
-        /// <param name="finishSignal">Signal signalling shutdown.</param>
         /// <param name="configuration">The Dalamud configuration.</param>
         /// <param name="mainThreadContinueEvent">Event used to signal the main thread to continue.</param>
-        public Dalamud(DalamudStartInfo info, LoggingLevelSwitch loggingLevelSwitch, ManualResetEvent finishSignal, DalamudConfiguration configuration, IntPtr mainThreadContinueEvent)
+        public Dalamud(DalamudStartInfo info, DalamudConfiguration configuration, IntPtr mainThreadContinueEvent)
         {
-            this.LogLevelSwitch = loggingLevelSwitch;
-
             this.unloadSignal = new ManualResetEvent(false);
             this.unloadSignal.Reset();
-
-            this.finishUnloadSignal = finishSignal;
-            this.finishUnloadSignal.Reset();
-
-            SerilogEventSink.Instance.LogLine += SerilogOnLogLine;
 
             ServiceManager.InitializeProvidedServicesAndClientStructs(this, info, configuration);
 
@@ -112,11 +91,6 @@ namespace Dalamud
         }
 
         /// <summary>
-        /// Gets LoggingLevelSwitch for Dalamud and Plugin logs.
-        /// </summary>
-        internal LoggingLevelSwitch LogLevelSwitch { get; private set; }
-
-        /// <summary>
         /// Gets location of stored assets.
         /// </summary>
         internal DirectoryInfo AssetDirectory => new(Service<DalamudStartInfo>.Get().AssetDirectory!);
@@ -136,14 +110,6 @@ namespace Dalamud
         public void WaitForUnload()
         {
             this.unloadSignal.WaitOne();
-        }
-
-        /// <summary>
-        /// Wait for a queued unload to be finalized.
-        /// </summary>
-        public void WaitForUnloadFinish()
-        {
-            this.finishUnloadSignal?.WaitOne();
         }
 
         /// <summary>
@@ -170,46 +136,6 @@ namespace Dalamud
         }
 
         /// <summary>
-        /// Dispose Dalamud subsystems.
-        /// </summary>
-        public void Dispose()
-        {
-            try
-            {
-                if (!this.hasDisposedPlugins)
-                {
-                    this.DisposePlugins();
-                    Thread.Sleep(100);
-                }
-
-                Service<Framework>.GetNullable()?.ExplicitDispose();
-                Service<ClientState>.GetNullable()?.ExplicitDispose();
-
-                this.unloadSignal?.Dispose();
-
-                Service<WinSockHandlers>.GetNullable()?.Dispose();
-                Service<DataManager>.GetNullable()?.ExplicitDispose();
-                Service<AntiDebug>.GetNullable()?.Dispose();
-                Service<DalamudAtkTweaks>.GetNullable()?.Dispose();
-                Service<HookManager>.GetNullable()?.Dispose();
-
-                var sigScanner = Service<SigScanner>.Get();
-                sigScanner.Save();
-                sigScanner.Dispose();
-
-                SerilogEventSink.Instance.LogLine -= SerilogOnLogLine;
-
-                this.processMonoHook?.Dispose();
-
-                Log.Debug("Dalamud::Dispose() OK!");
-            }
-            catch (Exception ex)
-            {
-                Log.Error(ex, "Dalamud::Dispose() failed.");
-            }
-        }
-
-        /// <summary>
         /// Replace the built-in exception handler with a debug one.
         /// </summary>
         internal void ReplaceExceptionHandler()
@@ -220,14 +146,6 @@ namespace Dalamud
 
             var oldFilter = NativeFunctions.SetUnhandledExceptionFilter(releaseFilter);
             Log.Debug("Reset ExceptionFilter, old: {0}", oldFilter);
-        }
-
-        private static void SerilogOnLogLine(object? sender, (string Line, LogEventLevel Level, DateTimeOffset TimeStamp, Exception? Exception) e)
-        {
-            if (e.Exception == null)
-                return;
-
-            Troubleshooting.LogException(e.Exception, e.Line);
         }
     }
 }

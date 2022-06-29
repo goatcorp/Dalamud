@@ -191,6 +191,11 @@ namespace Dalamud.Configuration.Internal
         public LogEventLevel LogLevel { get; set; } = LogEventLevel.Information;
 
         /// <summary>
+        /// Gets or sets a value indicating whether to write to log files synchronously.
+        /// </summary>
+        public bool LogSynchronously { get; set; } = false;
+
+        /// <summary>
         /// Gets or sets a value indicating whether or not the debug log should scroll automatically.
         /// </summary>
         public bool LogAutoScroll { get; set; } = true;
@@ -260,6 +265,12 @@ namespace Dalamud.Configuration.Internal
         /// It is reset immediately when read.
         /// </summary>
         public bool PluginSafeMode { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating the wait time between plugin unload and plugin assembly unload.
+        /// Uses default value that may change between versions if set to null.
+        /// </summary>
+        public int? PluginWaitBeforeFree { get; set; }
 
         /// <summary>
         /// Gets or sets a list of saved styles.

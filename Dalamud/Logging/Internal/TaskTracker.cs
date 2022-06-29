@@ -20,6 +20,9 @@ namespace Dalamud.Logging.Internal
         private static readonly ConcurrentQueue<TaskInfo> NewlyCreatedTasks = new();
         private static bool clearRequested = false;
 
+        [ServiceManager.ServiceDependency]
+        private readonly Framework framework = Service<Framework>.Get();
+
         private MonoMod.RuntimeDetour.Hook? scheduleAndStartHook;
         private bool enabled = false;
 
@@ -111,8 +114,7 @@ namespace Dalamud.Logging.Internal
 
             this.ApplyPatch();
 
-            var framework = Service<Framework>.Get();
-            framework.Update += this.FrameworkOnUpdate;
+            this.framework.Update += this.FrameworkOnUpdate;
             this.enabled = true;
         }
 
@@ -121,8 +123,7 @@ namespace Dalamud.Logging.Internal
         {
             this.scheduleAndStartHook?.Dispose();
 
-            var framework = Service<Framework>.Get();
-            framework.Update -= this.FrameworkOnUpdate;
+            this.framework.Update -= this.FrameworkOnUpdate;
         }
 
         private static bool AddToActiveTasksHook(Func<Task, bool> orig, Task self)

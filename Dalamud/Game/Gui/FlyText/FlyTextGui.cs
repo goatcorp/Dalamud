@@ -36,7 +36,7 @@ namespace Dalamud.Game.Gui.FlyText
             this.Address.Setup(sigScanner);
 
             this.addFlyTextNative = Marshal.GetDelegateForFunctionPointer<AddFlyTextDelegate>(this.Address.AddFlyText);
-            this.createFlyTextHook = new Hook<CreateFlyTextDelegate>(this.Address.CreateFlyText, this.CreateFlyTextDetour);
+            this.createFlyTextHook = Hook<CreateFlyTextDelegate>.FromAddress(this.Address.CreateFlyText, this.CreateFlyTextDetour);
         }
 
         /// <summary>

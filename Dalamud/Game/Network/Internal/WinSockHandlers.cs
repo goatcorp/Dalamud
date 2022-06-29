@@ -18,7 +18,7 @@ namespace Dalamud.Game.Network.Internal
         [ServiceManager.ServiceConstructor]
         private WinSockHandlers()
         {
-            this.ws2SocketHook = Hook<SocketDelegate>.FromImport(Process.GetCurrentProcess().MainModule, "ws2_32.dll", "socket", 23, this.OnSocket);
+            this.ws2SocketHook = Hook<SocketDelegate>.FromImport(null, "ws2_32.dll", "socket", 23, this.OnSocket);
             this.ws2SocketHook?.Enable();
         }
 

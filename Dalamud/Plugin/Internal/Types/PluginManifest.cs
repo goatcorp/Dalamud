@@ -157,6 +157,12 @@ internal record PluginManifest
     public int LoadPriority { get; init; }
 
     /// <summary>
+    /// Gets a value indicating whether the plugin can be unloaded asynchronously. 
+    /// </summary>
+    [JsonProperty]
+    public bool CanUnloadAsync { get; init; }
+
+    /// <summary>
     /// Gets a list of screenshot image URLs to show in the plugin installer.
     /// </summary>
     public List<string>? ImageUrls { get; init; }

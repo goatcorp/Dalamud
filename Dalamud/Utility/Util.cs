@@ -15,6 +15,7 @@ using Dalamud.Game;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Interface;
 using Dalamud.Interface.Colors;
+using Dalamud.Logging.Internal;
 using ImGuiNET;
 using Microsoft.Win32;
 using Serilog;
@@ -534,6 +535,31 @@ namespace Dalamud.Utility
         internal static void ExplicitDispose<T>(this T obj) where T : IDisposable
         {
             obj.Dispose();
+        }
+
+        /// <summary>
+        /// Dispose this object.
+        /// </summary>
+        /// <param name="obj">The object to dispose.</param>
+        /// <param name="logMessage">Log message to print, if specified and an error occurs.</param>
+        /// <param name="moduleLog">Module logger, if any.</param>
+        /// <typeparam name="T">The type of object to dispose.</typeparam>
+        internal static void ExplicitDisposeIgnoreExceptions<T>(this T obj, string? logMessage = null, ModuleLog? moduleLog = null) where T : IDisposable
+        {
+            try
+            {
+                obj.Dispose();
+            }
+            catch (Exception e)
+            {
+                if (logMessage == null)
+                    return;
+
+                if (moduleLog != null)
+                    moduleLog.Error(e, logMessage);
+                else
+                    Log.Error(e, logMessage);
+            }
         }
 
         private static unsafe void ShowValue(ulong addr, IEnumerable<string> path, Type type, object value)

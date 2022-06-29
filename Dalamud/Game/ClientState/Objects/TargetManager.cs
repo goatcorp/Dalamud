@@ -14,12 +14,18 @@ namespace Dalamud.Game.ClientState.Objects
     [ServiceManager.BlockingEarlyLoadedService]
     public sealed unsafe class TargetManager : IServiceType
     {
+        [ServiceManager.ServiceDependency]
+        private readonly ClientState clientState = Service<ClientState>.Get();
+
+        [ServiceManager.ServiceDependency]
+        private readonly ObjectTable objectTable = Service<ObjectTable>.Get();
+
         private readonly ClientStateAddressResolver address;
 
         [ServiceManager.ServiceConstructor]
-        private TargetManager(ClientState clientState)
+        private TargetManager()
         {
-            this.address = clientState.AddressResolver;
+            this.address = this.clientState.AddressResolver;
         }
 
         /// <summary>
@@ -32,7 +38,7 @@ namespace Dalamud.Game.ClientState.Objects
         /// </summary>
         public GameObject? Target
         {
-            get => Service<ObjectTable>.Get().CreateObjectReference((IntPtr)Struct->Target);
+            get => this.objectTable.CreateObjectReference((IntPtr)Struct->Target);
             set => this.SetTarget(value);
         }
 
@@ -41,7 +47,7 @@ namespace Dalamud.Game.ClientState.Objects
         /// </summary>
         public GameObject? MouseOverTarget
         {
-            get => Service<ObjectTable>.Get().CreateObjectReference((IntPtr)Struct->MouseOverTarget);
+            get => this.objectTable.CreateObjectReference((IntPtr)Struct->MouseOverTarget);
             set => this.SetMouseOverTarget(value);
         }
 
@@ -50,7 +56,7 @@ namespace Dalamud.Game.ClientState.Objects
         /// </summary>
         public GameObject? FocusTarget
         {
-            get => Service<ObjectTable>.Get().CreateObjectReference((IntPtr)Struct->FocusTarget);
+            get => this.objectTable.CreateObjectReference((IntPtr)Struct->FocusTarget);
             set => this.SetFocusTarget(value);
         }
 
@@ -59,7 +65,7 @@ namespace Dalamud.Game.ClientState.Objects
         /// </summary>
         public GameObject? PreviousTarget
         {
-            get => Service<ObjectTable>.Get().CreateObjectReference((IntPtr)Struct->PreviousTarget);
+            get => this.objectTable.CreateObjectReference((IntPtr)Struct->PreviousTarget);
             set => this.SetPreviousTarget(value);
         }
 
@@ -68,7 +74,7 @@ namespace Dalamud.Game.ClientState.Objects
         /// </summary>
         public GameObject? SoftTarget
         {
-            get => Service<ObjectTable>.Get().CreateObjectReference((IntPtr)Struct->SoftTarget);
+            get => this.objectTable.CreateObjectReference((IntPtr)Struct->SoftTarget);
             set => this.SetSoftTarget(value);
         }
 

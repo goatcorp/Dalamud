@@ -97,9 +97,9 @@ namespace Dalamud.Game.ClientState.Objects
         /// <returns><see cref="GameObject"/> object or inheritor containing the requested data.</returns>
         public unsafe GameObject? CreateObjectReference(IntPtr address)
         {
-            var clientState = Service<ClientState>.Get();
+            var clientState = Service<ClientState>.GetNullable();
 
-            if (clientState.LocalContentId == 0)
+            if (clientState == null || clientState.LocalContentId == 0)
                 return null;
 
             if (address == IntPtr.Zero)

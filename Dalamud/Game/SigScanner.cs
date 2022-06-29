@@ -359,6 +359,7 @@ namespace Dalamud.Game
         /// </summary>
         public void Dispose()
         {
+            this.Save();
             Marshal.FreeHGlobal(this.moduleCopyPtr);
         }
 
@@ -370,7 +371,14 @@ namespace Dalamud.Game
             if (this.cacheFile == null)
                 return;
 
-            File.WriteAllText(this.cacheFile.FullName, JsonConvert.SerializeObject(this.textCache));
+            try
+            {
+                File.WriteAllText(this.cacheFile.FullName, JsonConvert.SerializeObject(this.textCache));
+            }
+            catch (Exception e)
+            {
+                Log.Warning(e, "Failed to save cache to {0}", this.cacheFile);
+            }
         }
 
         /// <summary>
