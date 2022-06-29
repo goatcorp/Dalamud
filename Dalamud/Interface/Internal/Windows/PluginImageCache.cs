@@ -7,7 +7,6 @@ using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-
 using Dalamud.Game;
 using Dalamud.Plugin.Internal;
 using Dalamud.Plugin.Internal.Types;
@@ -23,11 +22,6 @@ namespace Dalamud.Interface.Internal.Windows
     [ServiceManager.EarlyLoadedService]
     internal class PluginImageCache : IDisposable, IServiceType
     {
-        /// <summary>
-        /// Maximum number of concurrent image downloads.
-        /// </summary>
-        public const int MaxConcurrentDownloads = 8;
-
         /// <summary>
         /// Maximum plugin image width.
         /// </summary>
@@ -50,13 +44,11 @@ namespace Dalamud.Interface.Internal.Windows
 
         private const string MainRepoImageUrl = "https://raw.githubusercontent.com/goatcorp/DalamudPlugins/api6/{0}/{1}/images/{2}";
 
-        [ServiceManager.ServiceDependency]
-        private readonly Framework framework = Service<Framework>.Get();
-
         private readonly BlockingCollection<Tuple<ulong, Func<Task>>> downloadQueue = new();
-        private readonly BlockingCollection<Action> loadQueue = new();
-        private readonly CancellationTokenSource downloadToken = new();
-        private readonly Thread downloadThread;
+        private readonly BlockingCollection<Func<Task>> loadQueue = new();
+        private readonly CancellationTokenSource cancelToken = new();
+        private readonly Task downloadTask;
+        private readonly Task loadTask;
 
         private readonly Dictionary<string, TextureWrap?> pluginIconMap = new();
         private readonly Dictionary<string, TextureWrap?[]> pluginImagesMap = new();
@@ -86,10 +78,10 @@ namespace Dalamud.Interface.Internal.Windows
             this.thirdInstalledIconTask = imwst.ContinueWith(task => TaskWrapIfNonNull(task.Result.Manager.LoadImage(Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "thirdInstalledIcon.png"))) ?? this.emptyTextureTask).Unwrap();
             this.corePluginIconTask = imwst.ContinueWith(task => TaskWrapIfNonNull(task.Result.Manager.LoadImage(Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "tsmLogo.png"))) ?? this.emptyTextureTask).Unwrap();
 
-            this.downloadThread = new Thread(this.DownloadTask);
-            this.downloadThread.Start();
-
-            this.framework.Update += this.FrameworkOnUpdate;
+            this.downloadTask = Task.Factory.StartNew(
+                () => this.DownloadTask(8), TaskCreationOptions.LongRunning);
+            this.loadTask = Task.Factory.StartNew(
+                () => this.LoadTask(Environment.ProcessorCount), TaskCreationOptions.LongRunning);
         }
 
         /// <summary>
@@ -151,26 +143,34 @@ namespace Dalamud.Interface.Internal.Windows
         /// <inheritdoc/>
         public void Dispose()
         {
-            this.framework.Update -= this.FrameworkOnUpdate;
+            this.cancelToken.Cancel();
+            this.downloadQueue.CompleteAdding();
+            this.loadQueue.CompleteAdding();
 
-            this.DefaultIcon.Dispose();
-            this.TroubleIcon.Dispose();
-            this.UpdateIcon.Dispose();
-            this.InstalledIcon.Dispose();
-            this.ThirdIcon.Dispose();
-            this.ThirdInstalledIcon.Dispose();
-            this.CorePluginIcon.Dispose();
-
-            this.downloadToken.Cancel();
-
-            if (!this.downloadThread.Join(4000))
+            if (!Task.WaitAll(new[] { this.loadTask, this.downloadTask }, 4000))
             {
-                Log.Error("Plugin Image Download thread has not cancelled in time");
+                Log.Error("Plugin Image download/load thread has not cancelled in time");
             }
 
-            this.downloadToken.Dispose();
-            this.downloadQueue.CompleteAdding();
+            this.cancelToken.Dispose();
             this.downloadQueue.Dispose();
+            this.loadQueue.Dispose();
+
+            foreach (var task in new[]
+                     {
+                         this.defaultIconTask,
+                         this.troubleIconTask,
+                         this.updateIconTask,
+                         this.installedIconTask,
+                         this.thirdIconTask,
+                         this.thirdInstalledIconTask,
+                         this.corePluginIconTask,
+                     })
+            {
+                task.Wait();
+                if (task.IsCompletedSuccessfully)
+                    task.Result.Dispose();
+            }
 
             foreach (var icon in this.pluginIconMap.Values)
             {
@@ -212,8 +212,7 @@ namespace Dalamud.Interface.Internal.Windows
             if (this.pluginIconMap.TryGetValue(manifest.InternalName, out iconTexture))
                 return true;
 
-            iconTexture = null;
-            this.pluginIconMap.Add(manifest.InternalName, iconTexture);
+            this.pluginIconMap.Add(manifest.InternalName, null);
 
             try
             {
@@ -223,7 +222,7 @@ namespace Dalamud.Interface.Internal.Windows
                         Tuple.Create(
                                 Service<DalamudInterface>.GetNullable()?.FrameCount ?? 0,
                                 () => this.DownloadPluginIconAsync(plugin, manifest, isThirdParty)),
-                        this.downloadToken.Token);
+                        this.cancelToken.Token);
                 }
             }
             catch (ObjectDisposedException)
@@ -258,8 +257,8 @@ namespace Dalamud.Interface.Internal.Windows
                     this.downloadQueue.Add(
                         Tuple.Create(
                             Service<DalamudInterface>.GetNullable()?.FrameCount ?? 0,
-                            () => this.DownloadPluginIconAsync(plugin, manifest, isThirdParty)),
-                        this.downloadToken.Token);
+                            () => this.DownloadPluginImagesAsync(plugin, manifest, isThirdParty)),
+                        this.cancelToken.Token);
                 }
             }
             catch (ObjectDisposedException)
@@ -270,24 +269,65 @@ namespace Dalamud.Interface.Internal.Windows
             return false;
         }
 
-        private void FrameworkOnUpdate(Framework framework1)
+        private static async Task<TextureWrap?> TryLoadIcon(
+            byte[] bytes,
+            string name,
+            string? loc,
+            PluginManifest manifest,
+            int maxWidth,
+            int maxHeight,
+            bool requireSquare)
         {
+            var interfaceManager = (await Service<InterfaceManager.InterfaceManagerWithScene>.GetAsync()).Manager;
+            var framework = await Service<Framework>.GetAsync();
+
+            TextureWrap? icon;
+            // FIXME(goat): This is a hack around this call failing randomly in certain situations. Might be related to not being called on the main thread.
             try
             {
-                if (!this.loadQueue.TryTake(out var loadAction, 0, this.downloadToken.Token))
-                    return;
-
-                loadAction.Invoke();
+                icon = interfaceManager.LoadImage(bytes);
             }
             catch (Exception ex)
             {
-                Log.Error(ex, "An unhandled exception occurred in image loader framework dispatcher");
+                Log.Error(ex, "Access violation during load plugin {name} from {Loc} (Async Thread)", name, loc);
+
+                try
+                {
+                    icon = await framework.RunOnFrameworkThread(() => interfaceManager.LoadImage(bytes));
+                }
+                catch (Exception ex2)
+                {
+                    Log.Error(ex2, "Access violation during load plugin {name} from {Loc} (Framework Thread)", name, loc);
+                    return null;
+                }
             }
+
+            if (icon == null)
+            {
+                Log.Error($"Could not load {name} for {manifest.InternalName} at {loc}");
+                return null;
+            }
+
+            if (icon.Width > maxWidth || icon.Height > maxHeight)
+            {
+                Log.Error($"Plugin {name} for {manifest.InternalName} at {loc} was larger than the maximum allowed resolution ({maxWidth}x{maxHeight}).");
+                icon.Dispose();
+                return null;
+            }
+
+            if (requireSquare && icon.Height != icon.Width)
+            {
+                Log.Error($"Plugin {name} for {manifest.InternalName} at {loc} was not square.");
+                icon.Dispose();
+                return null;
+            }
+
+            return icon!;
         }
 
-        private async void DownloadTask()
+        private async Task DownloadTask(int concurrency)
         {
-            var token = this.downloadToken.Token;
+            var token = this.cancelToken.Token;
             var runningTasks = new List<Task>();
             var pendingFuncs = new List<Tuple<ulong, Func<Task>>>();
             while (true)
@@ -314,9 +354,9 @@ namespace Dalamud.Interface.Internal.Windows
                     while (pendingFuncs.Any() && pendingFuncs.Last().Item1 == item1)
                     {
                         token.ThrowIfCancellationRequested();
-                        while (runningTasks.Count >= MaxConcurrentDownloads)
+                        while (runningTasks.Count >= concurrency)
                         {
-                            await Task.WhenAll(runningTasks);
+                            await Task.WhenAny(runningTasks);
                             runningTasks.RemoveAll(task => task.IsCompleted);
                         }
 
@@ -335,54 +375,55 @@ namespace Dalamud.Interface.Internal.Windows
                     Log.Error(ex, "An unhandled exception occurred in the plugin image downloader");
                 }
 
-                while (runningTasks.Count >= MaxConcurrentDownloads)
+                while (runningTasks.Count >= concurrency)
                 {
                     await Task.WhenAny(runningTasks);
                     runningTasks.RemoveAll(task => task.IsCompleted);
                 }
             }
 
+            await Task.WhenAll(runningTasks);
             Log.Debug("Plugin image downloader has shutdown");
+        }
+
+        private async Task LoadTask(int concurrency)
+        {
+            await Service<InterfaceManager.InterfaceManagerWithScene>.GetAsync();
+
+            var token = this.cancelToken.Token;
+            var runningTasks = new List<Task>();
+            while (true)
+            {
+                try
+                {
+                    token.ThrowIfCancellationRequested();
+                    while (runningTasks.Count >= concurrency)
+                    {
+                        await Task.WhenAny(runningTasks);
+                        runningTasks.RemoveAll(task => task.IsCompleted);
+                    }
+
+                    if (!this.loadQueue.TryTake(out var func, -1, token))
+                        return;
+                    runningTasks.Add(Task.Run(func, token));
+                }
+                catch (OperationCanceledException)
+                {
+                    // Shutdown signal.
+                    break;
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex, "An unhandled exception occurred in the plugin image loader");
+                }
+            }
+
+            await Task.WhenAll(runningTasks);
+            Log.Debug("Plugin image loader has shutdown");
         }
 
         private async Task DownloadPluginIconAsync(LocalPlugin? plugin, PluginManifest manifest, bool isThirdParty)
         {
-            static bool TryLoadIcon(byte[] bytes, string? loc, PluginManifest manifest, InterfaceManager interfaceManager, out TextureWrap? icon)
-            {
-                // FIXME(goat): This is a hack around this call failing randomly in certain situations. Might be related to not being called on the main thread.
-                try
-                {
-                    icon = interfaceManager.LoadImage(bytes);
-                }
-                catch (AccessViolationException ex)
-                {
-                    Log.Error(ex, "Access violation during load plugin icon from {Loc}", loc);
-
-                    icon = null;
-                    return false;
-                }
-
-                if (icon == null)
-                {
-                    Log.Error($"Could not load icon for {manifest.InternalName} at {loc}");
-                    return false;
-                }
-
-                if (icon.Width > PluginIconWidth || icon.Height > PluginIconHeight)
-                {
-                    Log.Error($"Icon for {manifest.InternalName} at {loc} was larger than the maximum allowed resolution ({PluginIconWidth}x{PluginIconHeight}).");
-                    return false;
-                }
-
-                if (icon.Height != icon.Width)
-                {
-                    Log.Error($"Icon for {manifest.InternalName} at {loc} was not square.");
-                    return false;
-                }
-
-                return true;
-            }
-
             if (plugin != null && plugin.IsDev)
             {
                 var file = this.GetPluginIconFileInfo(plugin);
@@ -391,7 +432,8 @@ namespace Dalamud.Interface.Internal.Windows
                     Log.Verbose($"Fetching icon for {manifest.InternalName} from {file.FullName}");
 
                     var bytes = await File.ReadAllBytesAsync(file.FullName);
-                    if (!TryLoadIcon(bytes, file.FullName, manifest, Service<InterfaceManager.InterfaceManagerWithScene>.Get().Manager, out var icon))
+                    var icon = await TryLoadIcon(bytes, "icon", file.FullName, manifest, PluginIconWidth, PluginIconHeight, true);
+                    if (icon == null)
                         return;
 
                     this.pluginIconMap[manifest.InternalName] = icon;
@@ -434,9 +476,10 @@ namespace Dalamud.Interface.Internal.Windows
                 data.EnsureSuccessStatusCode();
 
                 var bytes = await data.Content.ReadAsByteArrayAsync();
-                this.loadQueue.Add(() =>
+                this.loadQueue.Add(async () =>
                 {
-                    if (!TryLoadIcon(bytes, url, manifest, Service<InterfaceManager.InterfaceManagerWithScene>.Get().Manager, out var icon))
+                    var icon = await TryLoadIcon(bytes, "icon", url, manifest, PluginIconWidth, PluginIconHeight, true);
+                    if (icon == null)
                         return;
 
                     this.pluginIconMap[manifest.InternalName] = icon;
@@ -451,36 +494,6 @@ namespace Dalamud.Interface.Internal.Windows
 
         private async Task DownloadPluginImagesAsync(LocalPlugin? plugin, PluginManifest manifest, bool isThirdParty)
         {
-            static bool TryLoadImage(int i, byte[] bytes, string loc, PluginManifest manifest, InterfaceManager interfaceManager, out TextureWrap? image)
-            {
-                // FIXME(goat): This is a hack around this call failing randomly in certain situations. Might be related to not being called on the main thread.
-                try
-                {
-                    image = interfaceManager.LoadImage(bytes);
-                }
-                catch (AccessViolationException ex)
-                {
-                    Log.Error(ex, "Access violation during load plugin image from {Loc}", loc);
-
-                    image = null;
-                    return false;
-                }
-
-                if (image == null)
-                {
-                    Log.Error($"Could not load image{i + 1} for {manifest.InternalName} at {loc}");
-                    return false;
-                }
-
-                if (image.Width > PluginImageWidth || image.Height > PluginImageHeight)
-                {
-                    Log.Error($"Plugin image{i + 1} for {manifest.InternalName} at {loc} was larger than the maximum allowed resolution ({PluginImageWidth}x{PluginImageHeight}).");
-                    return false;
-                }
-
-                return true;
-            }
-
             if (plugin is { IsDev: true })
             {
                 var files = this.GetPluginImageFileInfos(plugin);
@@ -497,7 +510,8 @@ namespace Dalamud.Interface.Internal.Windows
                     Log.Verbose($"Loading image{i + 1} for {manifest.InternalName} from {file.FullName}");
                     var bytes = await File.ReadAllBytesAsync(file.FullName);
 
-                    if (!TryLoadImage(i, bytes, file.FullName, manifest, Service<InterfaceManager.InterfaceManagerWithScene>.Get().Manager, out var image) || image == null)
+                    var image = await TryLoadIcon(bytes, $"image{i + 1}", file.FullName, manifest, PluginImageWidth, PluginImageHeight, true);
+                    if (image == null)
                         continue;
 
                     Log.Verbose($"Plugin image{i + 1} for {manifest.InternalName} loaded from disk");
@@ -572,7 +586,7 @@ namespace Dalamud.Interface.Internal.Windows
 
                 if (didAny)
                 {
-                    this.loadQueue.Add(() =>
+                    this.loadQueue.Add(async () =>
                     {
                         var pluginImages = new TextureWrap[urls.Count];
 
@@ -580,7 +594,8 @@ namespace Dalamud.Interface.Internal.Windows
                         {
                             var bytes = imageBytes[i];
 
-                            if (!TryLoadImage(i, bytes, "queue", manifest, Service<InterfaceManager.InterfaceManagerWithScene>.Get().Manager, out var image) || image == null)
+                            var image = await TryLoadIcon(bytes, $"image{i + 1}", "queue", manifest, PluginImageWidth, PluginImageHeight, true);
+                            if (image == null)
                                 continue;
 
                             pluginImages[i] = image;
