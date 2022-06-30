@@ -145,17 +145,6 @@ namespace Dalamud.Configuration.Internal
         public float FontGammaLevel { get; set; } = 1.4f;
 
         /// <summary>
-        /// Gets or sets a value indicating the level of font resolution between 1 to 5.
-        /// 0(1024x1024), 1(2048x2048), 2(4096x4096), 3(8192x8192), 4(16384x16384).
-        /// </summary>
-        public int FontResolutionLevel { get; set; } = 2;
-
-        /// <summary>
-        /// Gets or sets a value indicating whether to disable font fallback notice.
-        /// </summary>
-        public bool DisableFontFallbackNotice { get; set; } = false;
-
-        /// <summary>
         /// Gets or sets a value indicating whether or not plugin UI should be hidden.
         /// </summary>
         public bool ToggleUiHide { get; set; } = true;

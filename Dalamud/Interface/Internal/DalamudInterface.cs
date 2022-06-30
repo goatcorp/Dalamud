@@ -54,7 +54,6 @@ namespace Dalamud.Interface.Internal
         private readonly SelfTestWindow selfTestWindow;
         private readonly StyleEditorWindow styleEditorWindow;
         private readonly TitleScreenMenuWindow titleScreenMenuWindow;
-        private readonly FallbackFontNoticeWindow fallbackFontNoticeWindow;
         private readonly ProfilerWindow profilerWindow;
 
         private readonly TextureWrap logoTexture;
@@ -98,7 +97,6 @@ namespace Dalamud.Interface.Internal
             this.selfTestWindow = new SelfTestWindow() { IsOpen = false };
             this.styleEditorWindow = new StyleEditorWindow() { IsOpen = false };
             this.titleScreenMenuWindow = new TitleScreenMenuWindow() { IsOpen = false };
-            this.fallbackFontNoticeWindow = new FallbackFontNoticeWindow() { IsOpen = interfaceManager.IsFallbackFontMode && !configuration.DisableFontFallbackNotice };
             this.profilerWindow = new ProfilerWindow() { IsOpen = false };
 
             this.WindowSystem.AddWindow(this.changelogWindow);
@@ -115,7 +113,6 @@ namespace Dalamud.Interface.Internal
             this.WindowSystem.AddWindow(this.selfTestWindow);
             this.WindowSystem.AddWindow(this.styleEditorWindow);
             this.WindowSystem.AddWindow(this.titleScreenMenuWindow);
-            this.WindowSystem.AddWindow(this.fallbackFontNoticeWindow);
             this.WindowSystem.AddWindow(this.profilerWindow);
 
             ImGuiManagedAsserts.AssertsEnabled = configuration.AssertsEnabledAtStartup;
@@ -221,11 +218,6 @@ namespace Dalamud.Interface.Internal
         /// Opens the dev menu bar.
         /// </summary>
         public void OpenDevMenu() => this.isImGuiDrawDevMenu = true;
-
-        /// <summary>
-        /// Opens the fallback font notice window.
-        /// </summary>
-        public void OpenFallbackFontNoticeWindow() => this.fallbackFontNoticeWindow.IsOpen = true;
 
         /// <summary>
         /// Opens the <see cref="GamepadModeNotifierWindow"/>.

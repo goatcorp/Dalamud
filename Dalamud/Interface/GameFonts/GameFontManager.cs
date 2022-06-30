@@ -40,7 +40,6 @@ namespace Dalamud.Interface.GameFonts
         private readonly Dictionary<GameFontStyle, Dictionary<char, Tuple<int, FdtReader.FontTableEntry>>> glyphRectIds = new();
 
         private bool isBetweenBuildFontsAndRightAfterImGuiIoFontsBuild = false;
-        private bool isBuildingAsFallbackFontMode = false;
 
         [ServiceManager.ServiceConstructor]
         private GameFontManager(DataManager dataManager)
@@ -253,10 +252,8 @@ namespace Dalamud.Interface.GameFonts
         /// <summary>
         /// Build fonts before plugins do something more. To be called from InterfaceManager.
         /// </summary>
-        /// <param name="forceMinSize">Whether to load fonts in minimum sizes.</param>
-        public void BuildFonts(bool forceMinSize)
+        public void BuildFonts()
         {
-            this.isBuildingAsFallbackFontMode = forceMinSize;
             this.isBetweenBuildFontsAndRightAfterImGuiIoFontsBuild = true;
 
             this.glyphRectIds.Clear();
@@ -305,7 +302,7 @@ namespace Dalamud.Interface.GameFonts
 
             foreach (var (style, font) in this.fonts)
             {
-                var fdt = this.fdts[(int)(this.isBuildingAsFallbackFontMode ? style.FamilyWithMinimumSize : style.FamilyAndSize)];
+                var fdt = this.fdts[(int)style.FamilyAndSize];
                 var scale = style.SizePt / fdt.FontHeader.Size;
                 var fontPtr = font.NativePtr;
 
@@ -436,7 +433,7 @@ namespace Dalamud.Interface.GameFonts
         {
             var rectIds = this.glyphRectIds[style] = new();
 
-            var fdt = this.fdts[(int)(this.isBuildingAsFallbackFontMode ? style.FamilyWithMinimumSize : style.FamilyAndSize)];
+            var fdt = this.fdts[(int)style.FamilyAndSize];
             if (fdt == null)
                 return;
 
