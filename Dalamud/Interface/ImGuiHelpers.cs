@@ -171,6 +171,7 @@ namespace Dalamud.Interface
                         target.Value!.AddGlyph(
                             target.Value!.ConfigData,
                             (ushort)glyph->Codepoint,
+                            0,
                             glyph->X0 * scale,
                             ((glyph->Y0 - source.Value!.Ascent) * scale) + target.Value!.Ascent,
                             glyph->X1 * scale,

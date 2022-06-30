@@ -279,7 +279,7 @@ namespace Dalamud.Interface.GameFonts
         {
             var interfaceManager = Service<InterfaceManager>.Get();
             var ioFonts = ImGui.GetIO().Fonts;
-            ioFonts.GetTexDataAsRGBA32(out byte* pixels8, out var width, out var height);
+            ioFonts.GetTexDataAsRGBA32(0, out byte* pixels8, out var width, out var height);
             var pixels32 = (uint*)pixels8;
             var fontGamma = interfaceManager.FontGamma;
 

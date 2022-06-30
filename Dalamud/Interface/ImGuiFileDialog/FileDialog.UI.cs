@@ -462,13 +462,13 @@ namespace Dalamud.Interface.ImGuiFileDialog
 
                 if (this.pathInputActivated)
                 {
-                    if (ImGui.IsKeyReleased(ImGui.GetKeyIndex(ImGuiKey.Enter)))
+                    if (ImGui.IsKeyReleased(ImGuiKey.Enter))
                     {
                         if (Directory.Exists(this.pathInputBuffer)) this.SetPath(this.pathInputBuffer);
                         this.pathInputActivated = false;
                     }
 
-                    if (ImGui.IsKeyReleased(ImGui.GetKeyIndex(ImGuiKey.Escape)))
+                    if (ImGui.IsKeyReleased(ImGuiKey.Escape))
                     {
                         this.pathInputActivated = false;
                     }
