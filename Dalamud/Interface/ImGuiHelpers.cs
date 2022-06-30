@@ -187,6 +187,7 @@ namespace Dalamud.Interface
                     else if (!missingOnly)
                     {
                         addedCodepoints.Add(glyph->Codepoint);
+                        prevGlyphPtr->TextureIndex = glyph->TextureIndex;
                         prevGlyphPtr->X0 = glyph->X0 * scale;
                         prevGlyphPtr->Y0 = ((glyph->Y0 - source.Value!.Ascent) * scale) + target.Value!.Ascent;
                         prevGlyphPtr->X1 = glyph->X1 * scale;
