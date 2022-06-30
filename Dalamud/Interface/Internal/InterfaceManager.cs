@@ -848,6 +848,12 @@ namespace Dalamud.Interface.Internal
                     }
                 }
 
+                for (int i = 0, i_ = ioFonts.ConfigData.Size; i < i_; i++)
+                {
+                    var config = ioFonts.ConfigData[i];
+                    config.RasterizerGamma = config.RasterizerGamma * fontGamma;
+                }
+
                 Log.Verbose("[FONT] ImGui.IO.Build will be called.");
                 ioFonts.Build();
                 gameFontManager.AfterIoFontsBuild();
@@ -880,14 +886,6 @@ namespace Dalamud.Interface.Internal
 
                 if (!disableBigFonts)
                     this.IsFallbackFontMode = false;
-
-                if (Math.Abs(fontGamma - 1.0f) >= 0.001)
-                {
-                    // Gamma correction (stbtt/FreeType would output in linear space whereas most real world usages will apply 1.4 or 1.8 gamma; Windows/XIV prebaked uses 1.4)
-                    ioFonts.GetTexDataAsRGBA32(0, out byte* texPixels, out var texWidth, out var texHeight);
-                    for (int i = 3, i_ = texWidth * texHeight * 4; i < i_; i += 4)
-                        texPixels[i] = (byte)(Math.Pow(texPixels[i] / 255.0f, 1.0f / fontGamma) * 255.0f);
-                }
 
                 gameFontManager.AfterBuildFonts();
 

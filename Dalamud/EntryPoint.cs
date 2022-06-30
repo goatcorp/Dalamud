@@ -10,6 +10,7 @@ using Dalamud.Configuration.Internal;
 using Dalamud.Logging.Internal;
 using Dalamud.Support;
 using Dalamud.Utility;
+using ImGuiNET;
 using Newtonsoft.Json;
 using PInvoke;
 using Serilog;
