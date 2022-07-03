@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 
 using CheapLoc;
 using Dalamud.Configuration.Internal;
-using Dalamud.Data;
 using Dalamud.Game.Gui;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;

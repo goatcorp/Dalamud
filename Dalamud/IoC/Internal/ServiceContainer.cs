@@ -4,8 +4,8 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
+
 using Dalamud.Logging.Internal;
-using Dalamud.Utility.Timing;
 
 namespace Dalamud.IoC.Internal
 {

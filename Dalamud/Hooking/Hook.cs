@@ -1,12 +1,9 @@
 using System;
 using System.Diagnostics;
-using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
-using Dalamud.Configuration.Internal;
+
 using Dalamud.Hooking.Internal;
-using Dalamud.Memory;
-using Reloaded.Hooks;
 
 namespace Dalamud.Hooking
 {
