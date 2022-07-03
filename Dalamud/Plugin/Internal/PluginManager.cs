@@ -658,11 +658,8 @@ internal partial class PluginManager : IDisposable, IServiceType
             manifest.Testing = true;
         }
 
-        if (repoManifest.SourceRepo.IsThirdParty)
-        {
-            // Only document the url if it came from a third party repo.
-            manifest.InstalledFromUrl = repoManifest.SourceRepo.PluginMasterUrl;
-        }
+        // Document the url the plugin was installed from
+        manifest.InstalledFromUrl = repoManifest.SourceRepo.PluginMasterUrl;
 
         manifest.Save(manifestFile);
 
@@ -740,8 +737,13 @@ internal partial class PluginManager : IDisposable, IServiceType
                 }
                 else if (plugin.IsOutdated)
                 {
-                    // Out of date plugins get added so they can be updated.
+                    // Out of date plugins get added, so they can be updated.
                     Log.Information(ex, $"Plugin was outdated, adding anyways: {dllFile.Name}");
+                }
+                else if (plugin.IsOrphaned)
+                {
+                    // Orphaned plugins get added, so that users aren't confused.
+                    Log.Information(ex, $"Plugin was orphaned, adding anyways: {dllFile.Name}");
                 }
                 else if (isBoot)
                 {
