@@ -24,7 +24,6 @@ namespace Dalamud.Game.Gui.PartyFinder.Types
         /// </summary>
         DutyCompleteWeeklyRewardUnclaimed = 8,
 
-
         /// <summary>
         /// The duty incomplete condition.
         /// </summary>
