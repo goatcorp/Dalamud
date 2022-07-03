@@ -19,7 +19,7 @@ namespace Dalamud.Game.Gui.PartyFinder.Types
         DutyComplete = 2,
 
         /// <summary>
-        /// The duty incomplete (weekly reward unclaimed) condition. This condition is
+        /// The duty complete (weekly reward unclaimed) condition. This condition is
         /// only available for savage fights prior to echo release.
         /// </summary>
         DutyCompleteWeeklyRewardUnclaimed = 8,
