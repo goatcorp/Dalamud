@@ -15,7 +15,10 @@ namespace Dalamud.Plugin.Internal.Types;
 /// </summary>
 internal class PluginRepository
 {
-    private const string DalamudPluginsMasterUrl = "https://kamori.goats.dev/Plugin/PluginMaster";
+    /// <summary>
+    /// The URL of the official main repository.
+    /// </summary>
+    public const string MainRepoUrl = "https://kamori.goats.dev/Plugin/PluginMaster";
 
     private static readonly ModuleLog Log = new("PLUGINR");
 
@@ -38,14 +41,14 @@ internal class PluginRepository
     public PluginRepository(string pluginMasterUrl, bool isEnabled)
     {
         this.PluginMasterUrl = pluginMasterUrl;
-        this.IsThirdParty = pluginMasterUrl != DalamudPluginsMasterUrl;
+        this.IsThirdParty = pluginMasterUrl != MainRepoUrl;
         this.IsEnabled = isEnabled;
     }
 
     /// <summary>
     /// Gets a new instance of the <see cref="PluginRepository"/> class for the main repo.
     /// </summary>
-    public static PluginRepository MainRepo => new(DalamudPluginsMasterUrl, true);
+    public static PluginRepository MainRepo => new(MainRepoUrl, true);
 
     /// <summary>
     /// Gets the pluginmaster.json URL.
