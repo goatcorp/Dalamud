@@ -46,6 +46,67 @@ namespace Dalamud.Game.Network.Internal
         /// </summary>
         public event EventHandler<ContentFinderCondition> CfPop;
 
+        /// <summary>
+        /// Handle cf pop notifications.
+        /// </summary>
+        /// <param name="dataPtr">The pointer to the raw data.</param>
+        internal unsafe void HandleCfPop(IntPtr dataPtr)
+        {
+            var dataManager = Service<DataManager>.GetNullable();
+            if (dataManager == null)
+                return;
+
+            using var stream = new UnmanagedMemoryStream((byte*)dataPtr.ToPointer(), 64);
+            using var reader = new BinaryReader(stream);
+
+            var notifyType = reader.ReadByte();
+            stream.Position += 0x13;
+            var conditionId = reader.ReadUInt16();
+
+            if (notifyType != 3)
+                return;
+
+            var cfConditionSheet = dataManager.GetExcelSheet<ContentFinderCondition>()!;
+            var cfCondition = cfConditionSheet.GetRow(conditionId);
+
+            if (cfCondition == null)
+            {
+                Log.Error($"CFC key {conditionId} not in Lumina data.");
+                return;
+            }
+
+            var cfcName = cfCondition.Name.ToString();
+            if (cfcName.IsNullOrEmpty())
+            {
+                cfcName = "Duty Roulette";
+                cfCondition.Image = 112324;
+            }
+
+            // Flash window
+            if (this.configuration.DutyFinderTaskbarFlash && !NativeFunctions.ApplicationIsActivated())
+            {
+                var flashInfo = new NativeFunctions.FlashWindowInfo
+                {
+                    Size = (uint)Marshal.SizeOf<NativeFunctions.FlashWindowInfo>(),
+                    Count = uint.MaxValue,
+                    Timeout = 0,
+                    Flags = NativeFunctions.FlashWindow.All | NativeFunctions.FlashWindow.TimerNoFG,
+                    Hwnd = Process.GetCurrentProcess().MainWindowHandle,
+                };
+                NativeFunctions.FlashWindowEx(ref flashInfo);
+            }
+
+            Task.Run(() =>
+            {
+                if (this.configuration.DutyFinderChatMessage)
+                {
+                    Service<ChatGui>.GetNullable()?.Print($"Duty pop: {cfcName}");
+                }
+
+                this.CfPop?.Invoke(this, cfCondition);
+            }).ContinueWith((task) => Log.Error(task.Exception, "CfPop.Invoke failed."), TaskContinuationOptions.OnlyOnFaulted);
+        }
+
         private void OnNetworkMessage(IntPtr dataPtr, ushort opCode, uint sourceActorId, uint targetActorId, NetworkMessageDirection direction)
         {
             var dataManager = Service<DataManager>.GetNullable();
@@ -64,12 +125,6 @@ namespace Dalamud.Game.Network.Internal
                     }
                 }
 
-                return;
-            }
-
-            if (opCode == dataManager.ServerOpCodes["CfNotifyPop"])
-            {
-                this.HandleCfPop(dataPtr);
                 return;
             }
 
@@ -233,63 +288,6 @@ namespace Dalamud.Game.Network.Internal
                     return;
                 }
             }
-        }
-
-        private unsafe void HandleCfPop(IntPtr dataPtr)
-        {
-            var dataManager = Service<DataManager>.GetNullable();
-            if (dataManager == null)
-                return;
-
-            using var stream = new UnmanagedMemoryStream((byte*)dataPtr.ToPointer(), 64);
-            using var reader = new BinaryReader(stream);
-
-            var notifyType = reader.ReadByte();
-            stream.Position += 0x13;
-            var conditionId = reader.ReadUInt16();
-
-            if (notifyType != 3)
-                return;
-
-            var cfConditionSheet = dataManager.GetExcelSheet<ContentFinderCondition>()!;
-            var cfCondition = cfConditionSheet.GetRow(conditionId);
-
-            if (cfCondition == null)
-            {
-                Log.Error($"CFC key {conditionId} not in Lumina data.");
-                return;
-            }
-
-            var cfcName = cfCondition.Name.ToString();
-            if (cfcName.IsNullOrEmpty())
-            {
-                cfcName = "Duty Roulette";
-                cfCondition.Image = 112324;
-            }
-
-            // Flash window
-            if (this.configuration.DutyFinderTaskbarFlash && !NativeFunctions.ApplicationIsActivated())
-            {
-                var flashInfo = new NativeFunctions.FlashWindowInfo
-                {
-                    Size = (uint)Marshal.SizeOf<NativeFunctions.FlashWindowInfo>(),
-                    Count = uint.MaxValue,
-                    Timeout = 0,
-                    Flags = NativeFunctions.FlashWindow.All | NativeFunctions.FlashWindow.TimerNoFG,
-                    Hwnd = Process.GetCurrentProcess().MainWindowHandle,
-                };
-                NativeFunctions.FlashWindowEx(ref flashInfo);
-            }
-
-            Task.Run(() =>
-            {
-                if (this.configuration.DutyFinderChatMessage)
-                {
-                    Service<ChatGui>.GetNullable()?.Print($"Duty pop: {cfcName}");
-                }
-
-                this.CfPop?.Invoke(this, cfCondition);
-            }).ContinueWith((task) => Log.Error(task.Exception, "CfPop.Invoke failed."), TaskContinuationOptions.OnlyOnFaulted);
         }
     }
 }

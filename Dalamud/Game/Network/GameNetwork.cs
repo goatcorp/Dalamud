@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
-
+using Dalamud.Game.Network.Internal;
 using Dalamud.Hooking;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
@@ -20,6 +20,7 @@ namespace Dalamud.Game.Network
         private readonly GameNetworkAddressResolver address;
         private readonly Hook<ProcessZonePacketDownDelegate> processZonePacketDownHook;
         private readonly Hook<ProcessZonePacketUpDelegate> processZonePacketUpHook;
+        private readonly Hook<ProcessCfPopPacketDelegate> processCfPopPacketHook;
         private readonly Queue<byte[]> zoneInjectQueue = new();
 
         private IntPtr baseAddress;
@@ -33,9 +34,11 @@ namespace Dalamud.Game.Network
             Log.Verbose("===== G A M E N E T W O R K =====");
             Log.Verbose($"ProcessZonePacketDown address 0x{this.address.ProcessZonePacketDown.ToInt64():X}");
             Log.Verbose($"ProcessZonePacketUp address 0x{this.address.ProcessZonePacketUp.ToInt64():X}");
+            Log.Verbose($"ProcessCfPopPacket address 0x{this.address.ProcessCfPopPacket.ToInt64():X}");
 
             this.processZonePacketDownHook = Hook<ProcessZonePacketDownDelegate>.FromAddress(this.address.ProcessZonePacketDown, this.ProcessZonePacketDownDetour);
             this.processZonePacketUpHook = Hook<ProcessZonePacketUpDelegate>.FromAddress(this.address.ProcessZonePacketUp, this.ProcessZonePacketUpDetour);
+            this.processCfPopPacketHook = Hook<ProcessCfPopPacketDelegate>.FromAddress(this.address.ProcessCfPopPacket, this.ProcessCfPopPacketDetour);
         }
 
         /// <summary>
@@ -54,6 +57,9 @@ namespace Dalamud.Game.Network
         [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
         private delegate byte ProcessZonePacketUpDelegate(IntPtr a1, IntPtr dataPtr, IntPtr a3, byte a4);
 
+        [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
+        private delegate void ProcessCfPopPacketDelegate(IntPtr dataPtr);
+
         /// <summary>
         /// Event that is called when a network message is sent/received.
         /// </summary>
@@ -66,6 +72,7 @@ namespace Dalamud.Game.Network
         {
             this.processZonePacketDownHook.Dispose();
             this.processZonePacketUpHook.Dispose();
+            this.processCfPopPacketHook.Dispose();
         }
 
         /// <summary>
@@ -94,6 +101,7 @@ namespace Dalamud.Game.Network
         {
             this.processZonePacketDownHook.Enable();
             this.processZonePacketUpHook.Enable();
+            this.processCfPopPacketHook.Enable();
         }
 
         private void ProcessZonePacketDownDetour(IntPtr a, uint targetId, IntPtr dataPtr)
@@ -156,6 +164,20 @@ namespace Dalamud.Game.Network
             }
 
             return this.processZonePacketUpHook.Original(a1, dataPtr, a3, a4);
+        }
+
+        private void ProcessCfPopPacketDetour(IntPtr dataPtr)
+        {
+            try
+            {
+                Service<NetworkHandlers>.Get().HandleCfPop(dataPtr);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Exception on ProcessCfPopPacket hook.");
+            }
+
+            this.processCfPopPacketHook.Original(dataPtr);
         }
 
         // private void InjectZoneProtoPacket(byte[] data)
