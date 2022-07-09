@@ -546,8 +546,8 @@ namespace Dalamud.Injector
                 }
                 catch (Exception)
                 {
-                    gamePath = @"C:\Program Files (x86)\SquareEnix\FINAL FANTASY XIV - A Realm Reborn\game\ffxiv_dx11.exe";
-                    Log.Warning("Failed to read launcherConfigV3.json. Using default game installation path: {0}", gamePath);
+                    Log.Error("Failed to read launcherConfigV3.json to get the set-up game path, please specify one using -g");
+                    return -1;
                 }
 
                 if (!File.Exists(gamePath))
