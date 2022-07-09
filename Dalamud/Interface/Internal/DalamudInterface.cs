@@ -27,6 +27,7 @@ using FFXIVClientStructs.FFXIV.Client.System.Framework;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using ImGuiNET;
 using ImGuiScene;
+using ImPlotNET;
 using PInvoke;
 using Serilog.Events;
 
@@ -54,7 +55,6 @@ namespace Dalamud.Interface.Internal
         private readonly SelfTestWindow selfTestWindow;
         private readonly StyleEditorWindow styleEditorWindow;
         private readonly TitleScreenMenuWindow titleScreenMenuWindow;
-        private readonly FallbackFontNoticeWindow fallbackFontNoticeWindow;
         private readonly ProfilerWindow profilerWindow;
 
         private readonly TextureWrap logoTexture;
@@ -71,6 +71,7 @@ namespace Dalamud.Interface.Internal
 #endif
 
         private bool isImGuiDrawDemoWindow = false;
+        private bool isImPlotDrawDemoWindow = false;
         private bool isImGuiTestWindowsInMonospace = false;
         private bool isImGuiDrawMetricsWindow = false;
 
@@ -98,7 +99,6 @@ namespace Dalamud.Interface.Internal
             this.selfTestWindow = new SelfTestWindow() { IsOpen = false };
             this.styleEditorWindow = new StyleEditorWindow() { IsOpen = false };
             this.titleScreenMenuWindow = new TitleScreenMenuWindow() { IsOpen = false };
-            this.fallbackFontNoticeWindow = new FallbackFontNoticeWindow() { IsOpen = interfaceManager.IsFallbackFontMode && !configuration.DisableFontFallbackNotice };
             this.profilerWindow = new ProfilerWindow() { IsOpen = false };
 
             this.WindowSystem.AddWindow(this.changelogWindow);
@@ -115,7 +115,6 @@ namespace Dalamud.Interface.Internal
             this.WindowSystem.AddWindow(this.selfTestWindow);
             this.WindowSystem.AddWindow(this.styleEditorWindow);
             this.WindowSystem.AddWindow(this.titleScreenMenuWindow);
-            this.WindowSystem.AddWindow(this.fallbackFontNoticeWindow);
             this.WindowSystem.AddWindow(this.profilerWindow);
 
             ImGuiManagedAsserts.AssertsEnabled = configuration.AssertsEnabledAtStartup;
@@ -221,11 +220,6 @@ namespace Dalamud.Interface.Internal
         /// Opens the dev menu bar.
         /// </summary>
         public void OpenDevMenu() => this.isImGuiDrawDevMenu = true;
-
-        /// <summary>
-        /// Opens the fallback font notice window.
-        /// </summary>
-        public void OpenFallbackFontNoticeWindow() => this.fallbackFontNoticeWindow.IsOpen = true;
 
         /// <summary>
         /// Opens the <see cref="GamepadModeNotifierWindow"/>.
@@ -407,6 +401,9 @@ namespace Dalamud.Interface.Internal
 
                 if (this.isImGuiDrawDemoWindow)
                     ImGui.ShowDemoWindow(ref this.isImGuiDrawDemoWindow);
+
+                if (this.isImPlotDrawDemoWindow)
+                    ImPlot.ShowDemoWindow(ref this.isImPlotDrawDemoWindow);
 
                 if (this.isImGuiDrawMetricsWindow)
                     ImGui.ShowMetricsWindow(ref this.isImGuiDrawMetricsWindow);
@@ -640,6 +637,7 @@ namespace Dalamud.Interface.Internal
                     {
                         ImGui.MenuItem("Use Monospace font for following windows", string.Empty, ref this.isImGuiTestWindowsInMonospace);
                         ImGui.MenuItem("Draw ImGui demo", string.Empty, ref this.isImGuiDrawDemoWindow);
+                        ImGui.MenuItem("Draw ImPlot demo", string.Empty, ref this.isImPlotDrawDemoWindow);
                         ImGui.MenuItem("Draw metrics", string.Empty, ref this.isImGuiDrawMetricsWindow);
 
                         ImGui.Separator();
