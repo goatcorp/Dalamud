@@ -18,11 +18,6 @@ namespace Dalamud.Configuration.Internal
     [Serializable]
     internal sealed class DalamudConfiguration : IServiceType
     {
-        /// <summary>
-        /// Currently used beta key for Dalamud staging builds.
-        /// </summary>
-        public const string DalamudCurrentBetaKey = "proof of context";
-
         private static readonly JsonSerializerSettings SerializerSettings = new()
         {
             TypeNameHandling = TypeNameHandling.All,
@@ -43,12 +38,6 @@ namespace Dalamud.Configuration.Internal
         /// Event that occurs when dalamud configuration is saved.
         /// </summary>
         public event DalamudConfigurationSavedDelegate DalamudConfigurationSaved;
-
-        /// <summary>
-        /// Gets a value indicating whether or not Dalamud staging is enabled.
-        /// </summary>
-        [JsonIgnore]
-        public bool IsConventionalStaging => this.DalamudBetaKey == DalamudCurrentBetaKey;
 
         /// <summary>
         /// Gets or sets a list of muted works.

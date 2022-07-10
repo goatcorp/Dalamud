@@ -82,6 +82,7 @@ jobs:
             } else {
               Move-Item -Force ".\canary.zip" ".\${branchName}\latest.zip"
               $versionData.AssemblyVersion = $newVersion
+              $versionData.GitSha = $newVersion
               $versionData | ConvertTo-Json -Compress | Out-File ".\${branchName}\version"
             }
 
