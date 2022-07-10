@@ -56,6 +56,7 @@ namespace Dalamud.Interface.Internal
         private readonly TitleScreenMenuWindow titleScreenMenuWindow;
         private readonly FallbackFontNoticeWindow fallbackFontNoticeWindow;
         private readonly ProfilerWindow profilerWindow;
+        private readonly BranchSwitcherWindow branchSwitcherWindow;
 
         private readonly TextureWrap logoTexture;
         private readonly TextureWrap tsmLogoTexture;
@@ -100,6 +101,7 @@ namespace Dalamud.Interface.Internal
             this.titleScreenMenuWindow = new TitleScreenMenuWindow() { IsOpen = false };
             this.fallbackFontNoticeWindow = new FallbackFontNoticeWindow() { IsOpen = interfaceManager.IsFallbackFontMode && !configuration.DisableFontFallbackNotice };
             this.profilerWindow = new ProfilerWindow() { IsOpen = false };
+            this.branchSwitcherWindow = new BranchSwitcherWindow() { IsOpen = false };
 
             this.WindowSystem.AddWindow(this.changelogWindow);
             this.WindowSystem.AddWindow(this.colorDemoWindow);
@@ -117,6 +119,7 @@ namespace Dalamud.Interface.Internal
             this.WindowSystem.AddWindow(this.titleScreenMenuWindow);
             this.WindowSystem.AddWindow(this.fallbackFontNoticeWindow);
             this.WindowSystem.AddWindow(this.profilerWindow);
+            this.WindowSystem.AddWindow(this.branchSwitcherWindow);
 
             ImGuiManagedAsserts.AssertsEnabled = configuration.AssertsEnabledAtStartup;
             this.isImGuiDrawDevMenu = this.isImGuiDrawDevMenu || configuration.DevBarOpenAtStartup;
@@ -140,7 +143,7 @@ namespace Dalamud.Interface.Internal
             tsm.AddEntryCore(Loc.Localize("TSMDalamudPlugins", "Plugin Installer"), this.tsmLogoTexture, () => this.pluginWindow.IsOpen = true);
             tsm.AddEntryCore(Loc.Localize("TSMDalamudSettings", "Dalamud Settings"), this.tsmLogoTexture, () => this.settingsWindow.IsOpen = true);
 
-            if (configuration.IsConventionalStaging)
+            if (!configuration.DalamudBetaKind.IsNullOrEmpty())
             {
                 tsm.AddEntryCore(Loc.Localize("TSMDalamudDevMenu", "Developer Menu"), this.tsmLogoTexture, () => this.isImGuiDrawDevMenu = true);
             }
@@ -271,6 +274,11 @@ namespace Dalamud.Interface.Internal
         /// Opens the <see cref="ProfilerWindow"/>.
         /// </summary>
         public void OpenProfiler() => this.profilerWindow.IsOpen = true;
+
+        /// <summary>
+        /// Opens the <see cref="BranchSwitcherWindow"/>
+        /// </summary>
+        public void OpenBranchSwitcher() => this.branchSwitcherWindow.IsOpen = true;
 
         #endregion
 
@@ -621,17 +629,15 @@ namespace Dalamud.Interface.Internal
 
                         ImGui.Separator();
 
-                        var isBeta = configuration.DalamudBetaKey == DalamudConfiguration.DalamudCurrentBetaKey;
-                        if (ImGui.MenuItem("Enable Dalamud testing", string.Empty, isBeta))
+                        if (ImGui.MenuItem("Open Dalamud branch switcher"))
                         {
-                            configuration.DalamudBetaKey = isBeta ? null : DalamudConfiguration.DalamudCurrentBetaKey;
-                            configuration.Save();
+                            this.OpenBranchSwitcher();
                         }
 
                         var startInfo = Service<DalamudStartInfo>.Get();
                         ImGui.MenuItem(Util.AssemblyVersion, false);
                         ImGui.MenuItem(startInfo.GameVersion.ToString(), false);
-                        ImGui.MenuItem($"CS: {Util.GetGitHashClientStructs()}", false);
+                        ImGui.MenuItem($"D: {Util.GetGitHash()} CS: {Util.GetGitHashClientStructs()}", false);
 
                         ImGui.EndMenu();
                     }
