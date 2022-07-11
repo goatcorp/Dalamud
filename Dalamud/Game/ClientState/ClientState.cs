@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using System.Runtime.InteropServices;
 
 using Dalamud.Data;
@@ -105,7 +104,7 @@ namespace Dalamud.Game.ClientState
         /// <summary>
         /// Gets the local player character, if one is present.
         /// </summary>
-        public PlayerCharacter? LocalPlayer => Service<ObjectTable>.GetNullable()?.FirstOrDefault() as PlayerCharacter;
+        public PlayerCharacter? LocalPlayer => Service<ObjectTable>.GetNullable()?[0] as PlayerCharacter;
 
         /// <summary>
         /// Gets the content ID of the local character.

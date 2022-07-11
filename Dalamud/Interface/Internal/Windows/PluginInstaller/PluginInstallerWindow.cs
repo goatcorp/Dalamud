@@ -1180,6 +1180,12 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
 
                 ImGui.PopStyleColor();
             }
+            else if (plugin is { IsOrphaned: true })
+            {
+                ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudRed);
+                ImGui.TextWrapped(Locs.PluginBody_Orphaned);
+                ImGui.PopStyleColor();
+            }
             else if (plugin is { State: PluginState.LoadError or PluginState.DependencyResolutionFailed }) // Load failed warning
             {
                 ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudRed);
@@ -1517,6 +1523,13 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
                 trouble = true;
             }
 
+            // Orphaned
+            if (plugin.IsOrphaned)
+            {
+                label += Locs.PluginTitleMod_OrphanedError;
+                trouble = true;
+            }
+
             ImGui.PushID($"installed{index}{plugin.Manifest.InternalName}");
             var hasChangelog = !plugin.Manifest.Changelog.IsNullOrEmpty();
 
@@ -1690,6 +1703,9 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
 
             // Disable everything if the plugin is outdated
             disabled = disabled || (plugin.IsOutdated && !configuration.LoadAllApiLevels) || plugin.IsBanned;
+
+            // Disable everything if the plugin is orphaned
+            disabled = disabled || plugin.IsOrphaned;
 
             // Disable everything if the plugin failed to load
             disabled = disabled || plugin.State == PluginState.LoadError || plugin.State == PluginState.DependencyResolutionFailed;
@@ -1904,7 +1920,7 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
         private void DrawDeletePluginButton(LocalPlugin plugin)
         {
             var unloaded = plugin.State == PluginState.Unloaded;
-            var showButton = unloaded && (plugin.IsDev || plugin.IsOutdated || plugin.IsBanned);
+            var showButton = unloaded && (plugin.IsDev || plugin.IsOutdated || plugin.IsBanned || plugin.IsOrphaned);
 
             if (!showButton)
                 return;
@@ -2264,6 +2280,8 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
             public static string PluginTitleMod_OutdatedError => Loc.Localize("InstallerOutdatedError", " (outdated)");
 
             public static string PluginTitleMod_BannedError => Loc.Localize("InstallerBannedError", " (automatically disabled)");
+            
+            public static string PluginTitleMod_OrphanedError => Loc.Localize("InstallerOrphanedError", " (unknown repository)");
 
             public static string PluginTitleMod_New => Loc.Localize("InstallerNewPlugin ", " New!");
 
@@ -2298,6 +2316,8 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
             public static string PluginBody_DeleteDevPlugin => Loc.Localize("InstallerDeleteDevPlugin ", " To delete this plugin, please remove it from the devPlugins folder.");
 
             public static string PluginBody_Outdated => Loc.Localize("InstallerOutdatedPluginBody ", "This plugin is outdated and incompatible at the moment. Please wait for it to be updated by its author.");
+
+            public static string PluginBody_Orphaned => Loc.Localize("InstallerOrphanedPluginBody ", "This plugin's source repository is no longer available. You may need to reinstall it from its repository, or re-add the repository.");
 
             public static string PluginBody_LoadFailed => Loc.Localize("InstallerLoadFailedPluginBody ", "This plugin failed to load. Please contact the author for more information.");
 

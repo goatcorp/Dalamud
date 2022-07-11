@@ -47,8 +47,6 @@ namespace Dalamud.Interface.Internal
     [ServiceManager.BlockingEarlyLoadedService]
     internal class InterfaceManager : IDisposable, IServiceType
     {
-        private const float MinimumFallbackFontSizePt = 9.6f;  // Game's minimum AXIS font size
-        private const float MinimumFallbackFontSizePx = MinimumFallbackFontSizePt * 4.0f / 3.0f;
         private const float DefaultFontSizePt = 12.0f;
         private const float DefaultFontSizePx = DefaultFontSizePt * 4.0f / 3.0f;
         private const ushort Fallback1Codepoint = 0x3013; // Geta mark; FFXIV uses this to indicate that a glyph is missing.
@@ -72,7 +70,6 @@ namespace Dalamud.Interface.Internal
         // can't access imgui IO before first present call
         private bool lastWantCapture = false;
         private bool isRebuildingFonts = false;
-        private bool isFallbackFontMode = false;
         private bool isOverrideGameCursor = true;
 
         [ServiceManager.ServiceConstructor]
@@ -119,11 +116,6 @@ namespace Dalamud.Interface.Internal
         /// Gets or sets an action that is executed right after fonts are rebuilt.
         /// </summary>
         public event Action AfterBuildFonts;
-
-        /// <summary>
-        /// Gets or sets an action that is executed right after font fallback mode has been changed.
-        /// </summary>
-        public event Action<bool> FallbackFontModeChange;
 
         /// <summary>
         /// Gets the default ImGui font.
@@ -185,22 +177,6 @@ namespace Dalamud.Interface.Internal
         public bool IsDispatchingEvents { get; set; } = true;
 
         /// <summary>
-        /// Gets or sets a value indicating whether the font has been loaded in fallback mode.
-        /// </summary>
-        public bool IsFallbackFontMode
-        {
-            get => this.isFallbackFontMode;
-            internal set
-            {
-                if (value == this.isFallbackFontMode)
-                    return;
-
-                this.isFallbackFontMode = value;
-                this.FallbackFontModeChange?.Invoke(value);
-            }
-        }
-
-        /// <summary>
         /// Gets or sets a value indicating whether to override configuration for UseAxis.
         /// </summary>
         public bool? UseAxisOverride { get; set; } = null;
@@ -219,16 +195,6 @@ namespace Dalamud.Interface.Internal
         /// Gets the font gamma value to use.
         /// </summary>
         public float FontGamma => Math.Max(0.1f, this.FontGammaOverride.GetValueOrDefault(Service<DalamudConfiguration>.Get().FontGammaLevel));
-
-        /// <summary>
-        /// Gets or sets a value indicating whether to override configuration for FontResolutionLevel.
-        /// </summary>
-        public int? FontResolutionLevelOverride { get; set; } = null;
-
-        /// <summary>
-        /// Gets a value indicating the level of font resolution.
-        /// </summary>
-        public int FontResolutionLevel => this.FontResolutionLevelOverride ?? Service<DalamudConfiguration>.Get().FontResolutionLevel;
 
         /// <summary>
         /// Gets a value indicating whether we're building fonts but haven't generated atlas yet.
@@ -608,8 +574,7 @@ namespace Dalamud.Interface.Internal
         /// <summary>
         /// Loads font for use in ImGui text functions.
         /// </summary>
-        /// <param name="disableBigFonts">If set, then glyphs will be loaded in smaller resolution to make all glyphs fit into given constraints.</param>
-        private unsafe void SetupFonts(bool disableBigFonts = false)
+        private unsafe void SetupFonts()
         {
             using var setupFontsTimings = Timings.Start("IM SetupFonts");
 
@@ -618,12 +583,11 @@ namespace Dalamud.Interface.Internal
             var io = ImGui.GetIO();
             var ioFonts = io.Fonts;
 
-            var maxTexDimension = 1 << (10 + Math.Max(0, Math.Min(4, this.FontResolutionLevel)));
             var fontGamma = this.FontGamma;
 
             this.fontBuildSignal.Reset();
             ioFonts.Clear();
-            ioFonts.TexDesiredWidth = maxTexDimension;
+            ioFonts.TexDesiredWidth = 4096;
 
             Log.Verbose("[FONT] SetupFonts - 1");
 
@@ -666,10 +630,9 @@ namespace Dalamud.Interface.Internal
                     "Default",
                     this.UseAxis ? TargetFontModification.AxisMode.Overwrite : TargetFontModification.AxisMode.GameGlyphsOnly,
                     this.UseAxis ? DefaultFontSizePx : DefaultFontSizePx + 1,
-                    io.FontGlobalScale,
-                    disableBigFonts);
+                    io.FontGlobalScale);
                 Log.Verbose("[FONT] SetupFonts - Default corresponding AXIS size: {0}pt ({1}px)", fontInfo.SourceAxis.Style.BaseSizePt, fontInfo.SourceAxis.Style.BaseSizePx);
-                fontConfig.SizePixels = disableBigFonts ? Math.Min(MinimumFallbackFontSizePx, fontInfo.TargetSizePx) : fontInfo.TargetSizePx * io.FontGlobalScale;
+                fontConfig.SizePixels = fontInfo.TargetSizePx * io.FontGlobalScale;
                 if (this.UseAxis)
                 {
                     fontConfig.GlyphRanges = dummyRangeHandle.AddrOfPinnedObject();
@@ -709,8 +672,8 @@ namespace Dalamud.Interface.Internal
 
                     fontConfig.GlyphRanges = iconRangeHandle.AddrOfPinnedObject();
                     fontConfig.PixelSnapH = true;
-                    IconFont = ioFonts.AddFontFromFileTTF(fontPathIcon, disableBigFonts ? Math.Min(MinimumFallbackFontSizePx, DefaultFontSizePx) : DefaultFontSizePx * io.FontGlobalScale, fontConfig);
-                    this.loadedFontInfo[IconFont] = new("Icon", TargetFontModification.AxisMode.GameGlyphsOnly, DefaultFontSizePx, io.FontGlobalScale, disableBigFonts);
+                    IconFont = ioFonts.AddFontFromFileTTF(fontPathIcon, DefaultFontSizePx * io.FontGlobalScale, fontConfig);
+                    this.loadedFontInfo[IconFont] = new("Icon", TargetFontModification.AxisMode.GameGlyphsOnly, DefaultFontSizePx, io.FontGlobalScale);
                 }
 
                 // Monospace font
@@ -722,8 +685,8 @@ namespace Dalamud.Interface.Internal
 
                     fontConfig.GlyphRanges = IntPtr.Zero;
                     fontConfig.PixelSnapH = true;
-                    MonoFont = ioFonts.AddFontFromFileTTF(fontPathMono, disableBigFonts ? Math.Min(MinimumFallbackFontSizePx, DefaultFontSizePx) : DefaultFontSizePx * io.FontGlobalScale, fontConfig);
-                    this.loadedFontInfo[MonoFont] = new("Mono", TargetFontModification.AxisMode.GameGlyphsOnly, DefaultFontSizePx, io.FontGlobalScale, disableBigFonts);
+                    MonoFont = ioFonts.AddFontFromFileTTF(fontPathMono, DefaultFontSizePx * io.FontGlobalScale, fontConfig);
+                    this.loadedFontInfo[MonoFont] = new("Mono", TargetFontModification.AxisMode.GameGlyphsOnly, DefaultFontSizePx, io.FontGlobalScale);
                 }
 
                 // Default font but in requested size for requested glyphs
@@ -775,8 +738,7 @@ namespace Dalamud.Interface.Internal
                             $"Requested({fontSize}px)",
                             this.UseAxis ? TargetFontModification.AxisMode.Overwrite : TargetFontModification.AxisMode.GameGlyphsOnly,
                             fontSize,
-                            io.FontGlobalScale,
-                            disableBigFonts);
+                            io.FontGlobalScale);
                         if (this.UseAxis)
                         {
                             fontConfig.GlyphRanges = dummyRangeHandle.AddrOfPinnedObject();
@@ -794,7 +756,7 @@ namespace Dalamud.Interface.Internal
                             garbageList.Add(rangeHandle);
                             fontConfig.PixelSnapH = true;
 
-                            var sizedFont = ioFonts.AddFontFromFileTTF(fontPathJp, disableBigFonts ? Math.Min(MinimumFallbackFontSizePx, fontSize) : fontSize * io.FontGlobalScale, fontConfig, rangeHandle.AddrOfPinnedObject());
+                            var sizedFont = ioFonts.AddFontFromFileTTF(fontPathJp, fontSize * io.FontGlobalScale, fontConfig, rangeHandle.AddrOfPinnedObject());
                             this.loadedFontInfo[sizedFont] = fontInfo;
                             foreach (var request in requests)
                                 request.FontInternal = sizedFont;
@@ -802,7 +764,7 @@ namespace Dalamud.Interface.Internal
                     }
                 }
 
-                gameFontManager.BuildFonts(disableBigFonts);
+                gameFontManager.BuildFonts();
 
                 var customFontFirstConfigIndex = ioFonts.ConfigData.Size;
 
@@ -844,59 +806,19 @@ namespace Dalamud.Interface.Internal
                         this.loadedFontInfo[config.DstFont.NativePtr] = new($"PlReq({name})", config.SizePixels);
                     }
 
-                    if (disableBigFonts)
-                    {
-                        // If a plugin has requested a font size that is bigger than current restrictions, load it scaled down.
-                        // After loading glyphs onto font atlas, font information will be modified to make it look like the font of original size has been loaded.
-                        if (config.SizePixels > MinimumFallbackFontSizePx)
-                            config.SizePixels = MinimumFallbackFontSizePx;
-                    }
-                    else
-                    {
-                        config.SizePixels = config.SizePixels * io.FontGlobalScale;
-                    }
+                    config.SizePixels = config.SizePixels * io.FontGlobalScale;
+                }
+
+                for (int i = 0, i_ = ioFonts.ConfigData.Size; i < i_; i++)
+                {
+                    var config = ioFonts.ConfigData[i];
+                    config.RasterizerGamma = config.RasterizerGamma * fontGamma;
                 }
 
                 Log.Verbose("[FONT] ImGui.IO.Build will be called.");
                 ioFonts.Build();
                 gameFontManager.AfterIoFontsBuild();
                 Log.Verbose("[FONT] ImGui.IO.Build OK!");
-
-                if (ioFonts.TexHeight > maxTexDimension)
-                {
-                    var possibilityForScaling = false;
-                    foreach (var x in this.loadedFontInfo.Values)
-                    {
-                        if (x.TargetSizePx * x.Scale > MinimumFallbackFontSizePx)
-                        {
-                            possibilityForScaling = true;
-                            break;
-                        }
-                    }
-
-                    if (possibilityForScaling && !disableBigFonts)
-                    {
-                        Log.Information("[FONT] Atlas size is {0}x{1} which is bigger than allowed {2}x{3}. Retrying with minimized font sizes.", ioFonts.TexWidth, ioFonts.TexHeight, maxTexDimension, maxTexDimension);
-                        this.IsFallbackFontMode = true;
-                        this.SetupFonts(true);
-                        return;
-                    }
-                    else
-                    {
-                        Log.Warning("[FONT] Atlas size is {0}x{1} which is bigger than allowed {2}x{3} even when font sizes are minimized up to {4}px. This may result in crash.", ioFonts.TexWidth, ioFonts.TexHeight, maxTexDimension, maxTexDimension, MinimumFallbackFontSizePx);
-                    }
-                }
-
-                if (!disableBigFonts)
-                    this.IsFallbackFontMode = false;
-
-                if (Math.Abs(fontGamma - 1.0f) >= 0.001)
-                {
-                    // Gamma correction (stbtt/FreeType would output in linear space whereas most real world usages will apply 1.4 or 1.8 gamma; Windows/XIV prebaked uses 1.4)
-                    ioFonts.GetTexDataAsRGBA32(out byte* texPixels, out var texWidth, out var texHeight);
-                    for (int i = 3, i_ = texWidth * texHeight * 4; i < i_; i += 4)
-                        texPixels[i] = (byte)(Math.Pow(texPixels[i] / 255.0f, 1.0f / fontGamma) * 255.0f);
-                }
 
                 gameFontManager.AfterBuildFonts();
 
@@ -1015,34 +937,7 @@ namespace Dalamud.Interface.Internal
             this.scene!.OnNewRenderFrame -= this.RebuildFontsInternal;
 
             Log.Verbose("[FONT] Calling InvalidateFonts");
-            try
-            {
-                this.scene.InvalidateFonts();
-            }
-            catch (Exception ex)
-            {
-                if (this.FontResolutionLevel > 2)
-                {
-                    Log.Error(ex, "[FONT] Failed to create font textures; setting font resolution level to 2 and retrying");
-                    this.FontResolutionLevelOverride = 2;
-                    this.SetupFonts();
-                }
-                else
-                {
-                    Log.Error(ex, "[FONT] Failed to create font textures; forcing fallback font mode");
-                    this.SetupFonts(true);
-                }
-
-                Log.Verbose("[FONT] Calling InvalidateFonts again");
-                try
-                {
-                    this.scene.InvalidateFonts();
-                }
-                catch (Exception ex2)
-                {
-                    Log.Error(ex2, "[FONT] Giving up");
-                }
-            }
+            this.scene.InvalidateFonts();
 
             Log.Verbose("[FONT] Font Rebuild OK!");
 
@@ -1290,13 +1185,12 @@ namespace Dalamud.Interface.Internal
             /// <param name="axis">Whether and how to use AXIS fonts.</param>
             /// <param name="sizePx">Target font size in pixels, which will not be considered for further scaling.</param>
             /// <param name="globalFontScale">Font scale to be referred for loading AXIS font of appropriate size.</param>
-            /// <param name="disableBigFonts">Whether to enable loading big AXIS fonts.</param>
-            internal TargetFontModification(string name, AxisMode axis, float sizePx, float globalFontScale, bool disableBigFonts)
+            internal TargetFontModification(string name, AxisMode axis, float sizePx, float globalFontScale)
             {
                 this.Name = name;
                 this.Axis = axis;
                 this.TargetSizePx = sizePx;
-                this.Scale = disableBigFonts ? MinimumFallbackFontSizePx / sizePx : globalFontScale;
+                this.Scale = globalFontScale;
                 this.SourceAxis = Service<GameFontManager>.Get().NewFontRef(new(GameFontFamily.Axis, this.TargetSizePx * this.Scale));
             }
 

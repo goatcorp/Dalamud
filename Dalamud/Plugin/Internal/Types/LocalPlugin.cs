@@ -210,6 +210,12 @@ internal class LocalPlugin : IDisposable
     public bool IsTesting => this.Manifest.IsTestingExclusive || this.Manifest.Testing;
 
     /// <summary>
+    /// Gets a value indicating whether or not this plugin is orphaned(belongs to a repo) or not.
+    /// </summary>
+    public bool IsOrphaned => !this.IsDev && !this.Manifest.InstalledFromUrl.IsNullOrEmpty() &&
+                              Service<PluginManager>.Get().Repos.All(x => x.PluginMasterUrl != this.Manifest.InstalledFromUrl);
+
+    /// <summary>
     /// Gets a value indicating whether this plugin has been banned.
     /// </summary>
     public bool IsBanned { get; }
@@ -301,6 +307,9 @@ internal class LocalPlugin : IDisposable
 
             if (this.Manifest.Disabled)
                 throw new InvalidPluginOperationException($"Unable to load {this.Name}, disabled");
+
+            if (this.IsOrphaned)
+                throw new InvalidPluginOperationException($"Plugin {this.Name} had no associated repo.");
 
             this.State = PluginState.Loading;
             Log.Information($"Loading {this.DllFile.Name}");

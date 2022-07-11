@@ -2,12 +2,6 @@ using System;
 using System.Numerics;
 using System.Runtime.InteropServices;
 
-using Dalamud.Configuration.Internal;
-using Dalamud.Game.Gui.ContextMenus;
-using Dalamud.Game.Gui.Dtr;
-using Dalamud.Game.Gui.FlyText;
-using Dalamud.Game.Gui.PartyFinder;
-using Dalamud.Game.Gui.Toast;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Hooking;
 using Dalamud.Interface;

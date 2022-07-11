@@ -18,11 +18,6 @@ namespace Dalamud.Configuration.Internal
     [Serializable]
     internal sealed class DalamudConfiguration : IServiceType
     {
-        /// <summary>
-        /// Currently used beta key for Dalamud staging builds.
-        /// </summary>
-        public const string DalamudCurrentBetaKey = "If you read this you are a beta tester for the awesome .NET 6 version of Dalamud! Hell yeah!";
-
         private static readonly JsonSerializerSettings SerializerSettings = new()
         {
             TypeNameHandling = TypeNameHandling.All,
@@ -43,12 +38,6 @@ namespace Dalamud.Configuration.Internal
         /// Event that occurs when dalamud configuration is saved.
         /// </summary>
         public event DalamudConfigurationSavedDelegate DalamudConfigurationSaved;
-
-        /// <summary>
-        /// Gets a value indicating whether or not Dalamud staging is enabled.
-        /// </summary>
-        [JsonIgnore]
-        public bool IsConventionalStaging => this.DalamudBetaKey == DalamudCurrentBetaKey;
 
         /// <summary>
         /// Gets or sets a list of muted works.
@@ -143,17 +132,6 @@ namespace Dalamud.Configuration.Internal
         /// * ...the game's prebaked AXIS fonts are in gamma space with gamma value of 1.4.
         /// </summary>
         public float FontGammaLevel { get; set; } = 1.4f;
-
-        /// <summary>
-        /// Gets or sets a value indicating the level of font resolution between 1 to 5.
-        /// 0(1024x1024), 1(2048x2048), 2(4096x4096), 3(8192x8192), 4(16384x16384).
-        /// </summary>
-        public int FontResolutionLevel { get; set; } = 2;
-
-        /// <summary>
-        /// Gets or sets a value indicating whether to disable font fallback notice.
-        /// </summary>
-        public bool DisableFontFallbackNotice { get; set; } = false;
 
         /// <summary>
         /// Gets or sets a value indicating whether or not plugin UI should be hidden.

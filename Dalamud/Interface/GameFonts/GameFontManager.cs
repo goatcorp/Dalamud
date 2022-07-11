@@ -11,6 +11,7 @@ using Dalamud.Utility.Timing;
 using ImGuiNET;
 using Lumina.Data.Files;
 using Serilog;
+using static Dalamud.Interface.ImGuiHelpers;
 
 namespace Dalamud.Interface.GameFonts
 {
@@ -39,7 +40,6 @@ namespace Dalamud.Interface.GameFonts
         private readonly Dictionary<GameFontStyle, Dictionary<char, Tuple<int, FdtReader.FontTableEntry>>> glyphRectIds = new();
 
         private bool isBetweenBuildFontsAndRightAfterImGuiIoFontsBuild = false;
-        private bool isBuildingAsFallbackFontMode = false;
 
         [ServiceManager.ServiceConstructor]
         private GameFontManager(DataManager dataManager)
@@ -134,15 +134,18 @@ namespace Dalamud.Interface.GameFonts
             unsafe
             {
                 var font = fontPtr.NativePtr;
-                for (int i = 0, i_ = font->IndexAdvanceX.Size; i < i_; ++i)
-                    ((float*)font->IndexAdvanceX.Data)[i] /= fontScale;
-                font->FallbackAdvanceX /= fontScale;
+                for (int i = 0, i_ = font->IndexedHotData.Size; i < i_; ++i)
+                {
+                    font->IndexedHotData.Ref<ImFontGlyphHotDataReal>(i).AdvanceX /= fontScale;
+                    font->IndexedHotData.Ref<ImFontGlyphHotDataReal>(i).OccupiedWidth /= fontScale;
+                }
+
                 font->FontSize /= fontScale;
                 font->Ascent /= fontScale;
                 font->Descent /= fontScale;
                 if (font->ConfigData != null)
                     font->ConfigData->SizePixels /= fontScale;
-                var glyphs = (ImGuiHelpers.ImFontGlyphReal*)font->Glyphs.Data;
+                var glyphs = (ImFontGlyphReal*)font->Glyphs.Data;
                 for (int i = 0, i_ = font->Glyphs.Size; i < i_; i++)
                 {
                     var glyph = &glyphs[i];
@@ -152,6 +155,11 @@ namespace Dalamud.Interface.GameFonts
                     glyph->Y1 /= fontScale;
                     glyph->AdvanceX /= fontScale;
                 }
+
+                for (int i = 0, i_ = font->KerningPairs.Size; i < i_; i++)
+                    font->KerningPairs.Ref<ImFontKerningPair>(i).AdvanceXAdjustment /= fontScale;
+                for (int i = 0, i_ = font->FrequentKerningPairs.Size; i < i_; i++)
+                    font->FrequentKerningPairs.Ref<float>(i) /= fontScale;
             }
 
             if (rebuildLookupTable)
@@ -244,17 +252,18 @@ namespace Dalamud.Interface.GameFonts
         /// <summary>
         /// Build fonts before plugins do something more. To be called from InterfaceManager.
         /// </summary>
-        /// <param name="forceMinSize">Whether to load fonts in minimum sizes.</param>
-        public void BuildFonts(bool forceMinSize)
+        public void BuildFonts()
         {
-            this.isBuildingAsFallbackFontMode = forceMinSize;
             this.isBetweenBuildFontsAndRightAfterImGuiIoFontsBuild = true;
 
             this.glyphRectIds.Clear();
             this.fonts.Clear();
 
-            foreach (var style in this.fontUseCounter.Keys)
-                this.EnsureFont(style);
+            lock (this.syncRoot)
+            {
+                foreach (var style in this.fontUseCounter.Keys)
+                    this.EnsureFont(style);
+            }
         }
 
         /// <summary>
@@ -279,13 +288,21 @@ namespace Dalamud.Interface.GameFonts
         {
             var interfaceManager = Service<InterfaceManager>.Get();
             var ioFonts = ImGui.GetIO().Fonts;
-            ioFonts.GetTexDataAsRGBA32(out byte* pixels8, out var width, out var height);
-            var pixels32 = (uint*)pixels8;
             var fontGamma = interfaceManager.FontGamma;
+
+            var pixels8s = new byte*[ioFonts.Textures.Size];
+            var pixels32s = new uint*[ioFonts.Textures.Size];
+            var widths = new int[ioFonts.Textures.Size];
+            var heights = new int[ioFonts.Textures.Size];
+            for (var i = 0; i < pixels8s.Length; i++)
+            {
+                ioFonts.GetTexDataAsRGBA32(i, out pixels8s[i], out widths[i], out heights[i]);
+                pixels32s[i] = (uint*)pixels8s[i];
+            }
 
             foreach (var (style, font) in this.fonts)
             {
-                var fdt = this.fdts[(int)(this.isBuildingAsFallbackFontMode ? style.FamilyWithMinimumSize : style.FamilyAndSize)];
+                var fdt = this.fdts[(int)style.FamilyAndSize];
                 var scale = style.SizePt / fdt.FontHeader.Size;
                 var fontPtr = font.NativePtr;
 
@@ -302,7 +319,10 @@ namespace Dalamud.Interface.GameFonts
                     var glyph = font.FindGlyphNoFallback(fallbackCharCandidate);
                     if ((IntPtr)glyph.NativePtr != IntPtr.Zero)
                     {
-                        font.SetFallbackChar(fallbackCharCandidate);
+                        var ptr = font.NativePtr;
+                        ptr->FallbackChar = fallbackCharCandidate;
+                        ptr->FallbackGlyph = glyph.NativePtr;
+                        ptr->FallbackHotData = (ImFontGlyphHotData*)ptr->IndexedHotData.Address<ImFontGlyphHotDataReal>(fallbackCharCandidate);
                         break;
                     }
                 }
@@ -323,7 +343,11 @@ namespace Dalamud.Interface.GameFonts
 
                 foreach (var (c, (rectId, glyph)) in this.glyphRectIds[style])
                 {
-                    var rc = ioFonts.GetCustomRectByIndex(rectId);
+                    var rc = (ImFontAtlasCustomRectReal*)ioFonts.GetCustomRectByIndex(rectId).NativePtr;
+                    var pixels8 = pixels8s[rc->TextureIndex];
+                    var pixels32 = pixels32s[rc->TextureIndex];
+                    var width = widths[rc->TextureIndex];
+                    var height = heights[rc->TextureIndex];
                     var sourceBuffer = this.texturePixels[glyph.TextureFileIndex];
                     var sourceBufferDelta = glyph.TextureChannelByteIndex;
                     var widthAdjustment = style.CalculateBaseWidthAdjustment(fdt, glyph);
@@ -334,7 +358,7 @@ namespace Dalamud.Interface.GameFonts
                             for (var x = 0; x < glyph.BoundingWidth; x++)
                             {
                                 var a = sourceBuffer[sourceBufferDelta + (4 * (((glyph.TextureOffsetY + y) * fdt.FontHeader.TextureWidth) + glyph.TextureOffsetX + x))];
-                                pixels32[((rc.Y + y) * width) + rc.X + x] = (uint)(a << 24) | 0xFFFFFFu;
+                                pixels32[((rc->Y + y) * width) + rc->X + x] = (uint)(a << 24) | 0xFFFFFFu;
                             }
                         }
                     }
@@ -343,7 +367,7 @@ namespace Dalamud.Interface.GameFonts
                         for (var y = 0; y < glyph.BoundingHeight; y++)
                         {
                             for (var x = 0; x < glyph.BoundingWidth + widthAdjustment; x++)
-                                pixels32[((rc.Y + y) * width) + rc.X + x] = 0xFFFFFFu;
+                                pixels32[((rc->Y + y) * width) + rc->X + x] = 0xFFFFFFu;
                         }
 
                         for (int xbold = 0, xbold_ = Math.Max(1, (int)Math.Ceiling(style.Weight + 1)); xbold < xbold_; xbold++)
@@ -364,7 +388,7 @@ namespace Dalamud.Interface.GameFonts
                                     var a1 = sourceBuffer[sourceBufferDelta + (4 * sourcePixelIndex)];
                                     var a2 = x == glyph.BoundingWidth - 1 ? 0 : sourceBuffer[sourceBufferDelta + (4 * (sourcePixelIndex + 1))];
                                     var n = (a1 * xness) + (a2 * (1 - xness));
-                                    var targetOffset = ((rc.Y + y) * width) + rc.X + x + xDeltaInt;
+                                    var targetOffset = ((rc->Y + y) * width) + rc->X + x + xDeltaInt;
                                     pixels8[(targetOffset * 4) + 3] = Math.Max(pixels8[(targetOffset * 4) + 3], (byte)(boldStrength * n));
                                 }
                             }
@@ -374,9 +398,9 @@ namespace Dalamud.Interface.GameFonts
                     if (Math.Abs(fontGamma - 1.4f) >= 0.001)
                     {
                         // Gamma correction (stbtt/FreeType would output in linear space whereas most real world usages will apply 1.4 or 1.8 gamma; Windows/XIV prebaked uses 1.4)
-                        for (int y = rc.Y, y_ = rc.Y + rc.Height; y < y_; y++)
+                        for (int y = rc->Y, y_ = rc->Y + rc->Height; y < y_; y++)
                         {
-                            for (int x = rc.X, x_ = rc.X + rc.Width; x < x_; x++)
+                            for (int x = rc->X, x_ = rc->X + rc->Width; x < x_; x++)
                             {
                                 var i = (((y * width) + x) * 4) + 3;
                                 pixels8[i] = (byte)(Math.Pow(pixels8[i] / 255.0f, 1.4f / fontGamma) * 255.0f);
@@ -409,7 +433,7 @@ namespace Dalamud.Interface.GameFonts
         {
             var rectIds = this.glyphRectIds[style] = new();
 
-            var fdt = this.fdts[(int)(this.isBuildingAsFallbackFontMode ? style.FamilyWithMinimumSize : style.FamilyAndSize)];
+            var fdt = this.fdts[(int)style.FamilyAndSize];
             if (fdt == null)
                 return;
 
@@ -435,12 +459,15 @@ namespace Dalamud.Interface.GameFonts
                     io.Fonts.AddCustomRectFontGlyph(
                         font,
                         c,
-                        glyph.BoundingWidth + widthAdjustment + 1,
-                        glyph.BoundingHeight + 1,
+                        glyph.BoundingWidth + widthAdjustment,
+                        glyph.BoundingHeight,
                         glyph.AdvanceWidth,
                         new Vector2(0, glyph.CurrentOffsetY)),
                     glyph);
             }
+
+            foreach (var kernPair in fdt.Distances)
+                font.AddKerningPair(kernPair.Left, kernPair.Right, kernPair.RightOffset);
         }
     }
 }
