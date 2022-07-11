@@ -95,7 +95,7 @@ namespace Dalamud.Interface.Internal
             ImGui.Text(isVisible ? "Visible" : "Not Visible");
             ImGui.PopStyleColor();
 
-            ImGui.SameLine(ImGui.GetWindowContentRegionWidth() - 25);
+            ImGui.SameLine(ImGui.GetWindowContentRegionMax().X - ImGui.GetWindowContentRegionMin().X - 25);
             if (ImGui.SmallButton("V"))
             {
                 atkUnitBase->Flags ^= 0x20;
