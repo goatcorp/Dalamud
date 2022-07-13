@@ -91,6 +91,8 @@ namespace Dalamud.Injector
             args.Remove("--etw");
             args.Remove("--veh");
             args.Remove("--veh-full");
+            args.Remove("--no-plugin");
+            args.Remove("--no-3rd-plugin");
 
             var mainCommand = args[1].ToLowerInvariant();
             if (mainCommand.Length > 0 && mainCommand.Length <= 6 && "inject"[..mainCommand.Length] == mainCommand)
@@ -322,6 +324,8 @@ namespace Dalamud.Injector
             startInfo.BootWaitMessageBox |= args.Contains("--msgbox3") ? 4 : 0;
             startInfo.BootVehEnabled = args.Contains("--veh");
             startInfo.BootVehFull = args.Contains("--veh-full");
+            startInfo.NoLoadPlugins = args.Contains("--no-plugin");
+            startInfo.NoLoadThirdPartyPlugins = args.Contains("--no-third-plugin");
             // startInfo.BootUnhookDlls = new List<string>() { "kernel32.dll", "ntdll.dll", "user32.dll" };
 
             return startInfo;
@@ -362,6 +366,7 @@ namespace Dalamud.Injector
             Console.WriteLine("Enable ETW:\t[--etw]");
             Console.WriteLine("Enable VEH:\t[--veh], [--veh-full]");
             Console.WriteLine("Show messagebox:\t[--msgbox1], [--msgbox2], [--msgbox3]");
+            Console.WriteLine("No plugins:\t[--no-plugin] [--no-3rd-plugin]");
 
             return 0;
         }

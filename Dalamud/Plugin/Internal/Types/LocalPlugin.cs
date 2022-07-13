@@ -311,6 +311,9 @@ internal class LocalPlugin : IDisposable
             if (this.IsOrphaned)
                 throw new InvalidPluginOperationException($"Plugin {this.Name} had no associated repo.");
 
+            if (!this.CheckPolicy())
+                throw new InvalidPluginOperationException("Plugin was not loaded as per policy");
+
             this.State = PluginState.Loading;
             Log.Information($"Loading {this.DllFile.Name}");
 
@@ -551,6 +554,27 @@ internal class LocalPlugin : IDisposable
 
         this.Manifest.Disabled = false;
         this.SaveManifest();
+    }
+
+    /// <summary>
+    /// Check if anything forbids this plugin from loading.
+    /// </summary>
+    /// <returns>Whether or not this plugin shouldn't load.</returns>
+    public bool CheckPolicy()
+    {
+        var startInfo = Service<DalamudStartInfo>.Get();
+        var manager = Service<PluginManager>.Get();
+
+        if (startInfo.NoLoadPlugins)
+            return false;
+
+        if (startInfo.NoLoadThirdPartyPlugins && this.Manifest.IsThirdParty)
+            return false;
+
+        if (manager.SafeMode)
+            return false;
+
+        return true;
     }
 
     /// <summary>

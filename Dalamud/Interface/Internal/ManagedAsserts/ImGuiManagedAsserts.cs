@@ -48,6 +48,9 @@ namespace Dalamud.Interface.Internal.ManagedAsserts
         /// <param name="before">ImGui context snapshot.</param>
         public static void ReportProblems(string source, ImGuiContextSnapshot before)
         {
+            // TODO: Needs to be updated for ImGui 1.88
+            return;
+
             if (!AssertsEnabled)
             {
                 return;

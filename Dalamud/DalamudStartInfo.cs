@@ -34,6 +34,8 @@ namespace Dalamud
             this.Language = other.Language;
             this.GameVersion = other.GameVersion;
             this.DelayInitializeMs = other.DelayInitializeMs;
+            this.NoLoadPlugins = other.NoLoadPlugins;
+            this.NoLoadThirdPartyPlugins = other.NoLoadThirdPartyPlugins;
             this.BootLogPath = other.BootLogPath;
             this.BootShowConsole = other.BootShowConsole;
             this.BootDisableFallbackConsole = other.BootDisableFallbackConsole;
@@ -87,6 +89,16 @@ namespace Dalamud
         /// Gets or sets a value that specifies how much to wait before a new Dalamud session.
         /// </summary>
         public int DelayInitializeMs { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether no plugins should be loaded.
+        /// </summary>
+        public bool NoLoadPlugins { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether no third-party plugins should be loaded.
+        /// </summary>
+        public bool NoLoadThirdPartyPlugins { get; set; }
 
         /// <summary>
         /// Gets or sets the path the boot log file is supposed to be written to.
