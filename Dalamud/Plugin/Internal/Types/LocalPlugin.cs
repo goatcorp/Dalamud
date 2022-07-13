@@ -190,6 +190,11 @@ internal class LocalPlugin : IDisposable
     public string BanReason { get; }
 
     /// <summary>
+    /// Gets a value indicating whether the plugin has ever started to load.
+    /// </summary>
+    public bool HasEverStartedLoad { get; private set; }
+
+    /// <summary>
     /// Gets a value indicating whether the plugin is loaded and running.
     /// </summary>
     public bool IsLoaded => this.State == PluginState.Loaded;
@@ -334,6 +339,8 @@ internal class LocalPlugin : IDisposable
                 Log.Error(
                     "Please refer to https://github.com/goatcorp/Dalamud/discussions/603 for more information.");
             }
+
+            this.HasEverStartedLoad = true;
 
             this.loader ??= PluginLoader.CreateFromAssemblyFile(this.DllFile.FullName, SetupLoaderConfig);
 

@@ -1724,7 +1724,6 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
             }
             else if (plugin.State == PluginState.Loaded || plugin.State == PluginState.LoadError || plugin.State == PluginState.DependencyResolutionFailed)
             {
-                // TODO: We should draw the trash can button for policy-blocked plugins in safe mode, so plugins can be deleted
                 if (pluginManager.SafeMode)
                 {
                     ImGuiComponents.DisabledButton(Locs.PluginButton_SafeMode);
@@ -1932,8 +1931,10 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
 
         private void DrawDeletePluginButton(LocalPlugin plugin)
         {
-            var unloaded = plugin.State == PluginState.Unloaded;
-            var showButton = unloaded && (plugin.IsDev || plugin.IsOutdated || plugin.IsBanned || plugin.IsOrphaned);
+            var unloaded = plugin.State == PluginState.Unloaded || plugin.State == PluginState.LoadError;
+
+            // When policy check fails, the plugin is never loaded
+            var showButton = unloaded && (plugin.IsDev || plugin.IsOutdated || plugin.IsBanned || plugin.IsOrphaned || !plugin.CheckPolicy());
 
             if (!showButton)
                 return;
@@ -1941,26 +1942,40 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
             var pluginManager = Service<PluginManager>.Get();
 
             ImGui.SameLine();
-            if (ImGuiComponents.IconButton(FontAwesomeIcon.TrashAlt))
+            if (plugin.HasEverStartedLoad)
             {
-                try
-                {
-                    plugin.DllFile.Delete();
-                    pluginManager.RemovePlugin(plugin);
-                }
-                catch (Exception ex)
-                {
-                    Log.Error(ex, $"Plugin installer threw an error during removal of {plugin.Name}");
+                ImGui.PushFont(InterfaceManager.IconFont);
+                ImGuiComponents.DisabledButton(FontAwesomeIcon.TrashAlt.ToIconString());
+                ImGui.PopFont();
 
-                    this.errorModalMessage = Locs.ErrorModal_DeleteFail(plugin.Name);
-                    this.errorModalDrawing = true;
-                    this.errorModalOnNextFrame = true;
+                if (ImGui.IsItemHovered())
+                {
+                    ImGui.SetTooltip(Locs.PluginButtonToolTip_DeletePluginRestricted);
                 }
             }
-
-            if (ImGui.IsItemHovered())
+            else
             {
-                ImGui.SetTooltip(Locs.PluginButtonToolTip_DeletePlugin);
+                if (ImGuiComponents.IconButton(FontAwesomeIcon.TrashAlt))
+                {
+                    try
+                    {
+                        plugin.DllFile.Delete();
+                        pluginManager.RemovePlugin(plugin);
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Error(ex, $"Plugin installer threw an error during removal of {plugin.Name}");
+
+                        this.errorModalMessage = Locs.ErrorModal_DeleteFail(plugin.Name);
+                        this.errorModalDrawing = true;
+                        this.errorModalOnNextFrame = true;
+                    }
+                }
+
+                if (ImGui.IsItemHovered())
+                {
+                    ImGui.SetTooltip(Locs.PluginButtonToolTip_DeletePlugin);
+                }
             }
         }
 
@@ -2368,6 +2383,8 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
             public static string PluginButtonToolTip_AutomaticReloading => Loc.Localize("InstallerAutomaticReloading", "Automatic reloading");
 
             public static string PluginButtonToolTip_DeletePlugin => Loc.Localize("InstallerDeletePlugin ", "Delete plugin");
+
+            public static string PluginButtonToolTip_DeletePluginRestricted => Loc.Localize("InstallerDeletePluginRestricted", "Cannot delete - please try restarting the game.");
 
             public static string PluginButtonToolTip_VisitPluginUrl => Loc.Localize("InstallerVisitPluginUrl", "Visit plugin URL");
 

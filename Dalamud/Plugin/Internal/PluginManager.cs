@@ -771,8 +771,8 @@ internal partial class PluginManager : IDisposable, IServiceType
     /// <param name="plugin">Plugin to remove.</param>
     public void RemovePlugin(LocalPlugin plugin)
     {
-        if (plugin.State != PluginState.Unloaded)
-            throw new InvalidPluginOperationException($"Unable to remove {plugin.Name}, not unloaded");
+        if (plugin.State != PluginState.Unloaded && plugin.HasEverStartedLoad)
+            throw new InvalidPluginOperationException($"Unable to remove {plugin.Name}, not unloaded and had loaded before");
 
         lock (this.pluginListLock)
         {
