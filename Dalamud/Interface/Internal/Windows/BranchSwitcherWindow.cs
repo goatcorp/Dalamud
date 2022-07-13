@@ -95,6 +95,7 @@ public class BranchSwitcherWindow : Window
             if (ImGui.Button("Pick"))
             {
                 Pick();
+                this.IsOpen = false;
             }
 
             ImGui.SameLine();
