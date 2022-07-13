@@ -317,7 +317,11 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
 
             var ready = pluginManager.PluginsReady && pluginManager.ReposReady;
 
-            if (!ready || this.updateStatus == OperationStatus.InProgress || this.installStatus == OperationStatus.InProgress)
+            if (pluginManager.SafeMode)
+            {
+                ImGuiComponents.DisabledButton(Locs.FooterButton_UpdateSafeMode);
+            }
+            else if (!ready || this.updateStatus == OperationStatus.InProgress || this.installStatus == OperationStatus.InProgress)
             {
                 ImGuiComponents.DisabledButton(Locs.FooterButton_UpdatePlugins);
             }
@@ -1039,12 +1043,6 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
         {
             var pluginManager = Service<PluginManager>.Get();
 
-            if (pluginManager.SafeMode)
-            {
-                ImGui.Text(Locs.TabBody_SafeMode);
-                return false;
-            }
-
             var ready = pluginManager.PluginsReady && pluginManager.ReposReady;
 
             if (!ready)
@@ -1184,6 +1182,12 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
             {
                 ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudRed);
                 ImGui.TextWrapped(Locs.PluginBody_Orphaned);
+                ImGui.PopStyleColor();
+            }
+            else if (plugin != null && !plugin.CheckPolicy())
+            {
+                ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudRed);
+                ImGui.TextWrapped(Locs.PluginBody_Policy);
                 ImGui.PopStyleColor();
             }
             else if (plugin is { State: PluginState.LoadError or PluginState.DependencyResolutionFailed }) // Load failed warning
@@ -1339,7 +1343,11 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
                     ? $"{manifest.TestingAssemblyVersion}"
                     : $"{manifest.AssemblyVersion}";
 
-                if (disabled)
+                if (pluginManager.SafeMode)
+                {
+                    ImGuiComponents.DisabledButton(Locs.PluginButton_SafeMode);
+                }
+                else if (disabled)
                 {
                     ImGuiComponents.DisabledButton(Locs.PluginButton_InstallVersion(versionString));
                 }
@@ -1463,14 +1471,14 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
             }
 
             // Disabled
-            if (plugin.IsDisabled)
+            if (plugin.IsDisabled || !plugin.CheckPolicy())
             {
                 label += Locs.PluginTitleMod_Disabled;
                 trouble = true;
             }
 
             // Load error
-            if (plugin.State is PluginState.LoadError or PluginState.DependencyResolutionFailed)
+            if (plugin.State is PluginState.LoadError or PluginState.DependencyResolutionFailed && plugin.CheckPolicy())
             {
                 label += Locs.PluginTitleMod_LoadError;
                 trouble = true;
@@ -1716,7 +1724,12 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
             }
             else if (plugin.State == PluginState.Loaded || plugin.State == PluginState.LoadError || plugin.State == PluginState.DependencyResolutionFailed)
             {
-                if (disabled)
+                // TODO: We should draw the trash can button for policy-blocked plugins in safe mode, so plugins can be deleted
+                if (pluginManager.SafeMode)
+                {
+                    ImGuiComponents.DisabledButton(Locs.PluginButton_SafeMode);
+                }
+                else if (disabled)
                 {
                     ImGuiComponents.DisabledButton(Locs.PluginButton_Disable);
                 }
@@ -2323,6 +2336,8 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
 
             public static string PluginBody_Banned => Loc.Localize("InstallerBannedPluginBody ", "This plugin was automatically disabled due to incompatibilities and is not available at the moment. Please wait for it to be updated by its author.");
 
+            public static string PluginBody_Policy => Loc.Localize("InstallerPolicyPluginBody ", "Plugin loads for this type of plugin were manually disabled.");
+
             public static string PluginBody_BannedReason(string message) =>
                 Loc.Localize("InstallerBannedPluginBodyReason ", "This plugin was automatically disabled: {0}").Format(message);
 
@@ -2339,6 +2354,8 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
             public static string PluginButton_Load => Loc.Localize("InstallerLoad", "Load");
 
             public static string PluginButton_Unload => Loc.Localize("InstallerUnload", "Unload");
+
+            public static string PluginButton_SafeMode => Loc.Localize("InstallerSafeModeButton", "Can't change in safe mode");
 
             #endregion
 
@@ -2387,6 +2404,8 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
             #region Footer
 
             public static string FooterButton_UpdatePlugins => Loc.Localize("InstallerUpdatePlugins", "Update plugins");
+
+            public static string FooterButton_UpdateSafeMode => Loc.Localize("InstallerUpdateSafeMode", "Can't update in safe mode");
 
             public static string FooterButton_InProgress => Loc.Localize("InstallerInProgress", "Install in progress...");
 

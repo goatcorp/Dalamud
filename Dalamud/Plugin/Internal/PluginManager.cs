@@ -68,7 +68,7 @@ internal partial class PluginManager : IDisposable, IServiceType
         if (!this.devPluginDirectory.Exists)
             this.devPluginDirectory.Create();
 
-        this.SafeMode = EnvironmentConfiguration.DalamudNoPlugins || this.configuration.PluginSafeMode;
+        this.SafeMode = EnvironmentConfiguration.DalamudNoPlugins || this.configuration.PluginSafeMode || this.startInfo.NoLoadPlugins;
         if (this.SafeMode)
         {
             this.configuration.PluginSafeMode = false;
@@ -281,12 +281,6 @@ internal partial class PluginManager : IDisposable, IServiceType
     /// </remarks>
     public void LoadAllPlugins()
     {
-        if (this.SafeMode)
-        {
-            Log.Information("PluginSafeMode was enabled, not loading any plugins.");
-            return;
-        }
-
         var pluginDefs = new List<PluginDef>();
         var devPluginDefs = new List<PluginDef>();
 
@@ -504,12 +498,6 @@ internal partial class PluginManager : IDisposable, IServiceType
     /// </summary>
     public void ScanDevPlugins()
     {
-        if (this.SafeMode)
-        {
-            Log.Information("PluginSafeMode was enabled, not scanning any dev plugins.");
-            return;
-        }
-
         if (!this.devPluginDirectory.Exists)
             this.devPluginDirectory.Create();
 
@@ -749,6 +737,14 @@ internal partial class PluginManager : IDisposable, IServiceType
                 {
                     // During boot load, plugins always get added to the list so they can be fiddled with in the UI
                     Log.Information(ex, $"Regular plugin failed to load, adding anyways: {dllFile.Name}");
+
+                    // NOTE(goat): This can't work - plugins don't "unload" if they fail to load.
+                    // plugin.Disable(); // Disable here, otherwise you can't enable+load later
+                }
+                else if (!plugin.CheckPolicy())
+                {
+                    // During boot load, plugins always get added to the list so they can be fiddled with in the UI
+                    Log.Information(ex, $"Plugin not loaded due to policy, adding anyways: {dllFile.Name}");
 
                     // NOTE(goat): This can't work - plugins don't "unload" if they fail to load.
                     // plugin.Disable(); // Disable here, otherwise you can't enable+load later
@@ -1064,7 +1060,7 @@ internal partial class PluginManager : IDisposable, IServiceType
     /// <returns>A value indicating whether the plugin/manifest has been banned.</returns>
     public bool IsManifestBanned(PluginManifest manifest)
     {
-        return !configuration.LoadBannedPlugins && this.bannedPlugins.Any(ban => (ban.Name == manifest.InternalName || ban.Name == Hash.GetStringSha256Hash(manifest.InternalName))
+        return !this.configuration.LoadBannedPlugins && this.bannedPlugins.Any(ban => (ban.Name == manifest.InternalName || ban.Name == Hash.GetStringSha256Hash(manifest.InternalName))
                                                                               && ban.AssemblyVersion >= manifest.AssemblyVersion);
     }
 
