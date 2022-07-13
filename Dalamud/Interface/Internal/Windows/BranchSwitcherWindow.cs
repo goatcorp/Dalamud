@@ -31,8 +31,8 @@ public class BranchSwitcherWindow : Window
     public BranchSwitcherWindow()
         : base("Branch Switcher", ImGuiWindowFlags.AlwaysAutoResize)
     {
-        this.ShowCloseButton = false;
-        this.RespectCloseHotkey = false;
+        this.ShowCloseButton = true;
+        this.RespectCloseHotkey = true;
     }
 
     /// <inheritdoc/>
