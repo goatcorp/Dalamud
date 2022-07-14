@@ -48,7 +48,7 @@ internal partial class PluginManager : IDisposable, IServiceType
     private readonly object pluginListLock = new();
     private readonly DirectoryInfo pluginDirectory;
     private readonly DirectoryInfo devPluginDirectory;
-    private readonly BannedPlugin[] bannedPlugins;
+    private readonly BannedPlugin[]? bannedPlugins;
 
     [ServiceManager.ServiceDependency]
     private readonly DalamudConfiguration configuration = Service<DalamudConfiguration>.Get();
@@ -78,7 +78,11 @@ internal partial class PluginManager : IDisposable, IServiceType
         this.PluginConfigs = new PluginConfigurations(Path.Combine(Path.GetDirectoryName(this.startInfo.ConfigurationPath) ?? string.Empty, "pluginConfigs"));
 
         var bannedPluginsJson = File.ReadAllText(Path.Combine(this.startInfo.AssetDirectory!, "UIRes", "bannedplugin.json"));
-        this.bannedPlugins = JsonConvert.DeserializeObject<BannedPlugin[]>(bannedPluginsJson) ?? Array.Empty<BannedPlugin>();
+        this.bannedPlugins = JsonConvert.DeserializeObject<BannedPlugin[]>(bannedPluginsJson);
+        if (this.bannedPlugins == null)
+        {
+            throw new InvalidDataException("Couldn't deserialize banned plugins manifest.");
+        }
 
         this.ApplyPatches();
     }
@@ -846,7 +850,7 @@ internal partial class PluginManager : IDisposable, IServiceType
                                 continue;
                             }
 
-                            if (manifest.DalamudApiLevel < DalamudApiLevel - 1 && !configuration.LoadAllApiLevels)
+                            if (manifest.DalamudApiLevel < DalamudApiLevel - 1 && !this.configuration.LoadAllApiLevels)
                             {
                                 Log.Information($"Lower API: cleaning up {versionDir.FullName}");
                                 versionDir.Delete(true);
@@ -1060,6 +1064,8 @@ internal partial class PluginManager : IDisposable, IServiceType
     /// <returns>A value indicating whether the plugin/manifest has been banned.</returns>
     public bool IsManifestBanned(PluginManifest manifest)
     {
+        Debug.Assert(this.bannedPlugins != null, "this.bannedPlugins != null");
+
         return !this.configuration.LoadBannedPlugins && this.bannedPlugins.Any(ban => (ban.Name == manifest.InternalName || ban.Name == Hash.GetStringSha256Hash(manifest.InternalName))
                                                                               && ban.AssemblyVersion >= manifest.AssemblyVersion);
     }
@@ -1071,6 +1077,8 @@ internal partial class PluginManager : IDisposable, IServiceType
     /// <returns>The reason of the ban, if any.</returns>
     public string GetBanReason(PluginManifest manifest)
     {
+        Debug.Assert(this.bannedPlugins != null, "this.bannedPlugins != null");
+
         return this.bannedPlugins.LastOrDefault(ban => ban.Name == manifest.InternalName).Reason;
     }
 

@@ -210,7 +210,7 @@ namespace Dalamud.Interface.Internal
         /// Opens the <see cref="DataWindow"/>.
         /// </summary>
         /// <param name="dataKind">The data kind to switch to after opening.</param>
-        public void OpenDataWindow(string dataKind = null)
+        public void OpenDataWindow(string? dataKind = null)
         {
             this.dataWindow.IsOpen = true;
             if (dataKind != null && this.dataWindow.IsOpen)
