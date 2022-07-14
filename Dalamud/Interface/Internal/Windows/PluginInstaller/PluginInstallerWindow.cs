@@ -1710,7 +1710,7 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
             var disabled = this.updateStatus == OperationStatus.InProgress || this.installStatus == OperationStatus.InProgress;
 
             // Disable everything if the plugin is outdated
-            disabled = disabled || (plugin.IsOutdated && !configuration.LoadAllApiLevels) || plugin.IsBanned;
+            disabled = disabled || (plugin.IsOutdated && !pluginManager.LoadAllApiLevels) || plugin.IsBanned;
 
             // Disable everything if the plugin is orphaned
             disabled = disabled || plugin.IsOrphaned;
