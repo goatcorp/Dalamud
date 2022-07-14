@@ -764,16 +764,14 @@ namespace Dalamud.Interface.Internal
 
                         ImGui.Separator();
 
-                        if (ImGui.MenuItem("Load all API levels (ONLY FOR DEVELOPERS!!!)", null, configuration.LoadAllApiLevels))
+                        if (ImGui.MenuItem("Load all API levels (ONLY FOR DEVELOPERS!!!)", null, pluginManager.LoadAllApiLevels))
                         {
-                            configuration.LoadAllApiLevels = !configuration.LoadAllApiLevels;
-                            configuration.Save();
+                            pluginManager.LoadAllApiLevels = !pluginManager.LoadAllApiLevels;
                         }
 
-                        if (ImGui.MenuItem("Load blacklisted plugins", null, configuration.LoadBannedPlugins))
+                        if (ImGui.MenuItem("Load blacklisted plugins", null, pluginManager.LoadBannedPlugins))
                         {
-                            configuration.LoadBannedPlugins = !configuration.LoadBannedPlugins;
-                            configuration.Save();
+                            pluginManager.LoadBannedPlugins = !pluginManager.LoadBannedPlugins;
                         }
 
                         ImGui.Separator();

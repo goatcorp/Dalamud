@@ -138,6 +138,16 @@ internal partial class PluginManager : IDisposable, IServiceType
     public PluginConfigurations PluginConfigs { get; }
 
     /// <summary>
+    /// Gets or sets a value indicating whether plugins of all API levels will be loaded.
+    /// </summary>
+    public bool LoadAllApiLevels { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether banned plugins will be loaded.
+    /// </summary>
+    public bool LoadBannedPlugins { get; set; }
+
+    /// <summary>
     /// Print to chat any plugin updates and whether they were successful.
     /// </summary>
     /// <param name="updateMetadata">The list of updated plugin metadata.</param>
@@ -839,28 +849,6 @@ internal partial class PluginManager : IDisposable, IServiceType
                             {
                                 Log.Information($"Missing manifest: cleaning up {versionDir.FullName}");
                                 versionDir.Delete(true);
-                                continue;
-                            }
-
-                            var manifest = LocalPluginManifest.Load(manifestFile);
-                            if (manifest.Disabled)
-                            {
-                                Log.Information($"Disabled: cleaning up {versionDir.FullName}");
-                                versionDir.Delete(true);
-                                continue;
-                            }
-
-                            if (manifest.DalamudApiLevel < DalamudApiLevel - 1 && !this.configuration.LoadAllApiLevels)
-                            {
-                                Log.Information($"Lower API: cleaning up {versionDir.FullName}");
-                                versionDir.Delete(true);
-                                continue;
-                            }
-
-                            if (manifest.ApplicableVersion <this.startInfo.GameVersion)
-                            {
-                                Log.Information($"Inapplicable version: cleaning up {versionDir.FullName}");
-                                versionDir.Delete(true);
                             }
                         }
                         catch (Exception ex)
@@ -1042,15 +1030,15 @@ internal partial class PluginManager : IDisposable, IServiceType
     public bool IsManifestEligible(PluginManifest manifest)
     {
         // Testing exclusive
-        if (manifest.IsTestingExclusive && !configuration.DoPluginTest)
+        if (manifest.IsTestingExclusive && !this.configuration.DoPluginTest)
             return false;
 
         // Applicable version
-        if (manifest.ApplicableVersion <this.startInfo.GameVersion)
+        if (manifest.ApplicableVersion < this.startInfo.GameVersion)
             return false;
 
         // API level
-        if (manifest.DalamudApiLevel < DalamudApiLevel && !configuration.LoadAllApiLevels)
+        if (manifest.DalamudApiLevel < DalamudApiLevel && !this.LoadAllApiLevels)
             return false;
 
         // Banned
@@ -1066,7 +1054,7 @@ internal partial class PluginManager : IDisposable, IServiceType
     {
         Debug.Assert(this.bannedPlugins != null, "this.bannedPlugins != null");
 
-        return !this.configuration.LoadBannedPlugins && this.bannedPlugins.Any(ban => (ban.Name == manifest.InternalName || ban.Name == Hash.GetStringSha256Hash(manifest.InternalName))
+        return !this.LoadBannedPlugins && this.bannedPlugins.Any(ban => (ban.Name == manifest.InternalName || ban.Name == Hash.GetStringSha256Hash(manifest.InternalName))
                                                                               && ban.AssemblyVersion >= manifest.AssemblyVersion);
     }
 
