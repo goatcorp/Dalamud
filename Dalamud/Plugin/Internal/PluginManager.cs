@@ -1031,18 +1031,33 @@ internal partial class PluginManager : IDisposable, IServiceType
     {
         // Testing exclusive
         if (manifest.IsTestingExclusive && !this.configuration.DoPluginTest)
+        {
+            Log.Verbose($"Testing exclusivity: {manifest.InternalName} - {manifest.AssemblyVersion} - {manifest.TestingAssemblyVersion}");
             return false;
+        }
 
         // Applicable version
         if (manifest.ApplicableVersion < this.startInfo.GameVersion)
+        {
+            Log.Verbose($"Game version: {manifest.InternalName} - {manifest.AssemblyVersion} - {manifest.TestingAssemblyVersion}");
             return false;
+        }
 
         // API level
         if (manifest.DalamudApiLevel < DalamudApiLevel && !this.LoadAllApiLevels)
+        {
+            Log.Verbose($"API Level: {manifest.InternalName} - {manifest.AssemblyVersion} - {manifest.TestingAssemblyVersion}");
             return false;
+        }
 
         // Banned
-        return !this.IsManifestBanned(manifest);
+        if (this.IsManifestBanned(manifest))
+        {
+            Log.Verbose($"Banned: {manifest.InternalName} - {manifest.AssemblyVersion} - {manifest.TestingAssemblyVersion}");
+            return false;
+        }
+
+        return true;
     }
 
     /// <summary>
@@ -1054,8 +1069,19 @@ internal partial class PluginManager : IDisposable, IServiceType
     {
         Debug.Assert(this.bannedPlugins != null, "this.bannedPlugins != null");
 
-        return !this.LoadBannedPlugins && this.bannedPlugins.Any(ban => (ban.Name == manifest.InternalName || ban.Name == Hash.GetStringSha256Hash(manifest.InternalName))
-                                                                              && ban.AssemblyVersion >= manifest.AssemblyVersion);
+        if (this.LoadBannedPlugins)
+            return true;
+
+        var config = Service<DalamudConfiguration>.Get();
+
+        var versionToCheck = manifest.AssemblyVersion;
+        if (config.DoPluginTest && manifest.TestingAssemblyVersion > manifest.AssemblyVersion)
+        {
+            versionToCheck = manifest.TestingAssemblyVersion;
+        }
+
+        return this.bannedPlugins.Any(ban => (ban.Name == manifest.InternalName || ban.Name == Hash.GetStringSha256Hash(manifest.InternalName))
+                                                                        && ban.AssemblyVersion >= versionToCheck);
     }
 
     /// <summary>
