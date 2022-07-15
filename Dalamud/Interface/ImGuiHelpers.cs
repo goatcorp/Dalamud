@@ -238,6 +238,36 @@ namespace Dalamud.Interface
         }
 
         /// <summary>
+        /// Show centered text.
+        /// </summary>
+        /// <param name="text">Text to show.</param>
+        public static void CenteredText(string text)
+        {
+            CenterCursorForText(text);
+            ImGui.TextUnformatted(text);
+        }
+
+        /// <summary>
+        /// Center the ImGui cursor for a certain text.
+        /// </summary>
+        /// <param name="text">The text to center for.</param>
+        public static void CenterCursorForText(string text)
+        {
+            var textWidth = ImGui.CalcTextSize(text).X;
+            CenterCursorFor((int)textWidth);
+        }
+
+        /// <summary>
+        /// Center the ImGui cursor for an item with a certain width.
+        /// </summary>
+        /// <param name="itemWidth">The width to center for.</param>
+        public static void CenterCursorFor(int itemWidth)
+        {
+            var window = (int)ImGui.GetWindowWidth();
+            ImGui.SetCursorPosX((window / 2) - (itemWidth / 2));
+        }
+
+        /// <summary>
         /// Get data needed for each new frame.
         /// </summary>
         internal static void NewFrame()
