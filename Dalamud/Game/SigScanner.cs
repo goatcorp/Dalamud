@@ -532,7 +532,17 @@ namespace Dalamud.Game
                 return;
             }
 
-            this.textCache = JsonConvert.DeserializeObject<ConcurrentDictionary<string, long>>(File.ReadAllText(this.cacheFile.FullName)) ?? new ConcurrentDictionary<string, long>();
+            try
+            {
+                this.textCache =
+                    JsonConvert.DeserializeObject<ConcurrentDictionary<string, long>>(
+                        File.ReadAllText(this.cacheFile.FullName)) ?? new ConcurrentDictionary<string, long>();
+            }
+            catch (Exception ex)
+            {
+                this.textCache = new ConcurrentDictionary<string, long>();
+                Log.Error(ex, "Couldn't load cached sigs");
+            }
         }
     }
 }
