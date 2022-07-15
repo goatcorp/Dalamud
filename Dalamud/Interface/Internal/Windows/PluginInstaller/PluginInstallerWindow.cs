@@ -1616,11 +1616,7 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
                     this.DrawUpdateSinglePluginButton(availablePluginUpdate);
 
                 ImGui.SameLine();
-                var version = plugin.AssemblyName?.Version;
-                version ??= plugin.Manifest.Testing
-                                ? plugin.Manifest.TestingAssemblyVersion
-                                : plugin.Manifest.AssemblyVersion;
-                ImGui.TextColored(ImGuiColors.DalamudGrey3, $" v{version}");
+                ImGui.TextColored(ImGuiColors.DalamudGrey3, $" v{plugin.Manifest.EffectiveVersion}");
 
                 if (plugin.IsDev)
                 {
@@ -1637,7 +1633,7 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
 
                 if (hasChangelog)
                 {
-                    if (ImGui.TreeNode($"Changelog (v{plugin.Manifest.AssemblyVersion})"))
+                    if (ImGui.TreeNode($"Changelog (v{plugin.Manifest.EffectiveVersion})"))
                     {
                         this.DrawInstalledPluginChangelog(plugin.Manifest);
                     }
@@ -1752,10 +1748,10 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
                             if (!disableTask.Result)
                                 return;
 
-                            if (!plugin.IsDev)
+                            /*if (!plugin.IsDev)
                             {
                                 pluginManager.RemovePlugin(plugin);
-                            }
+                            }*/
 
                             notifications.AddNotification(Locs.Notifications_PluginDisabled(plugin.Manifest.Name), Locs.Notifications_PluginDisabledTitle, NotificationType.Success);
                         });
@@ -1931,18 +1927,29 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
 
         private void DrawDeletePluginButton(LocalPlugin plugin)
         {
-            var unloaded = plugin.State == PluginState.Unloaded || plugin.State == PluginState.LoadError;
+            /*var unloaded = plugin.State == PluginState.Unloaded || plugin.State == PluginState.LoadError;
 
             // When policy check fails, the plugin is never loaded
             var showButton = unloaded && (plugin.IsDev || plugin.IsOutdated || plugin.IsBanned || plugin.IsOrphaned || !plugin.CheckPolicy());
 
             if (!showButton)
-                return;
+                return;*/
 
             var pluginManager = Service<PluginManager>.Get();
 
             ImGui.SameLine();
-            if (plugin.HasEverStartedLoad)
+            if (plugin.State != PluginState.Unloaded && plugin.State != PluginState.LoadError)
+            {
+                ImGui.PushFont(InterfaceManager.IconFont);
+                ImGuiComponents.DisabledButton(FontAwesomeIcon.TrashAlt.ToIconString());
+                ImGui.PopFont();
+
+                if (ImGui.IsItemHovered())
+                {
+                    ImGui.SetTooltip(Locs.PluginButtonToolTip_DeletePluginLoaded);
+                }
+            }
+            else if (plugin.HasEverStartedLoad)
             {
                 ImGui.PushFont(InterfaceManager.IconFont);
                 ImGuiComponents.DisabledButton(FontAwesomeIcon.TrashAlt.ToIconString());
@@ -2384,7 +2391,9 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
 
             public static string PluginButtonToolTip_DeletePlugin => Loc.Localize("InstallerDeletePlugin ", "Delete plugin");
 
-            public static string PluginButtonToolTip_DeletePluginRestricted => Loc.Localize("InstallerDeletePluginRestricted", "Cannot delete - please try restarting the game.");
+            public static string PluginButtonToolTip_DeletePluginRestricted => Loc.Localize("InstallerDeletePluginRestricted", "Cannot delete right now - please restart the game.");
+
+            public static string PluginButtonToolTip_DeletePluginLoaded => Loc.Localize("InstallerDeletePluginLoaded", "Disable this plugin before deleting it.");
 
             public static string PluginButtonToolTip_VisitPluginUrl => Loc.Localize("InstallerVisitPluginUrl", "Visit plugin URL");
 
