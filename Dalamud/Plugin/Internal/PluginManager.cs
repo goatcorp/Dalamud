@@ -968,7 +968,9 @@ internal partial class PluginManager : IDisposable, IServiceType
             {
                 try
                 {
-                    plugin.Disable();
+                    if (!plugin.IsDisabled)
+                        plugin.Disable();
+
                     lock (this.pluginListLock)
                     {
                         this.InstalledPlugins = this.InstalledPlugins.Remove(plugin);
