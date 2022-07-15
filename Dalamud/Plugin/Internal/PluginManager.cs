@@ -307,6 +307,7 @@ internal partial class PluginManager : IDisposable, IServiceType
         // Add installed plugins. These are expected to be in a specific format so we can look for exactly that.
         foreach (var pluginDir in this.pluginDirectory.GetDirectories())
         {
+            var versionsDefs = new List<PluginDef>();
             foreach (var versionDir in pluginDir.GetDirectories())
             {
                 var dllFile = new FileInfo(Path.Combine(versionDir.FullName, $"{pluginDir.Name}.dll"));
@@ -317,7 +318,16 @@ internal partial class PluginManager : IDisposable, IServiceType
 
                 var manifest = LocalPluginManifest.Load(manifestFile);
 
-                pluginDefs.Add(new PluginDef(dllFile, manifest, false));
+                versionsDefs.Add(new PluginDef(dllFile, manifest, false));
+            }
+
+            try
+            {
+                pluginDefs.Add(versionsDefs.OrderByDescending(x => x.Manifest!.EffectiveVersion).First());
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Couldn't choose best version for plugin: {Name}", pluginDir.Name);
             }
         }
 
@@ -712,10 +722,14 @@ internal partial class PluginManager : IDisposable, IServiceType
         {
             try
             {
-                if (plugin.IsDisabled)
-                    plugin.Enable();
-
-                await plugin.LoadAsync(reason);
+                if (!plugin.IsDisabled)
+                {
+                    await plugin.LoadAsync(reason);
+                }
+                else
+                {
+                    Log.Verbose($"{name} was disabled");
+                }
             }
             catch (InvalidPluginException)
             {
