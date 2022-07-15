@@ -1949,7 +1949,7 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
                     ImGui.SetTooltip(Locs.PluginButtonToolTip_DeletePluginLoaded);
                 }
             }
-            else if (plugin.HasEverStartedLoad)
+            else if (plugin.HasEverStartedLoad && !plugin.IsDev)
             {
                 ImGui.PushFont(InterfaceManager.IconFont);
                 ImGuiComponents.DisabledButton(FontAwesomeIcon.TrashAlt.ToIconString());
