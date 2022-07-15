@@ -1616,10 +1616,9 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
                     this.DrawUpdateSinglePluginButton(availablePluginUpdate);
 
                 ImGui.SameLine();
-                var version = plugin.AssemblyName?.Version;
-                version ??= plugin.Manifest.Testing
-                                ? plugin.Manifest.TestingAssemblyVersion
-                                : plugin.Manifest.AssemblyVersion;
+                var version = plugin.Manifest.Testing
+                                  ? plugin.Manifest.TestingAssemblyVersion
+                                  : plugin.Manifest.AssemblyVersion;
                 ImGui.TextColored(ImGuiColors.DalamudGrey3, $" v{version}");
 
                 if (plugin.IsDev)
@@ -2308,7 +2307,7 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
             public static string PluginTitleMod_OutdatedError => Loc.Localize("InstallerOutdatedError", " (outdated)");
 
             public static string PluginTitleMod_BannedError => Loc.Localize("InstallerBannedError", " (automatically disabled)");
-            
+
             public static string PluginTitleMod_OrphanedError => Loc.Localize("InstallerOrphanedError", " (unknown repository)");
 
             public static string PluginTitleMod_New => Loc.Localize("InstallerNewPlugin ", " New!");
