@@ -848,10 +848,9 @@ internal partial class PluginManager : IDisposable, IServiceType
                 {
                     for (var i = 0; i < versionDirs.Length; i++)
                     {
+                        var versionDir = versionDirs[i];
                         try
                         {
-                            var versionDir = versionDirs[i];
-
                             if (i != 0)
                             {
                                 Log.Information($"Old version: cleaning up {versionDir.FullName}");
