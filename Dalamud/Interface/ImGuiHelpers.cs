@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
+
 using Dalamud.Game.ClientState.Keys;
 using ImGuiNET;
 using ImGuiScene;
