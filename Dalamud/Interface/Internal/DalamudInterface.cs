@@ -12,6 +12,7 @@ using Dalamud.Configuration.Internal;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.Gui;
 using Dalamud.Game.Internal;
+using Dalamud.Interface.Colors;
 using Dalamud.Interface.Internal.ManagedAsserts;
 using Dalamud.Interface.Internal.Windows;
 using Dalamud.Interface.Internal.Windows.PluginInstaller;
@@ -369,7 +370,7 @@ namespace Dalamud.Interface.Internal
         /// Toggles the <see cref="StyleEditorWindow"/>.
         /// </summary>
         public void ToggleStyleEditorWindow() => this.selfTestWindow.Toggle();
-        
+
         /// <summary>
         /// Toggles the <see cref="ProfilerWindow"/>.
         /// </summary>
@@ -438,12 +439,9 @@ namespace Dalamud.Interface.Internal
 
             if (!this.isImGuiDrawDevMenu && !condition.Any())
             {
-                var config = Service<DalamudConfiguration>.Get();
-
                 ImGui.PushStyleColor(ImGuiCol.Button, Vector4.Zero);
                 ImGui.PushStyleColor(ImGuiCol.ButtonActive, Vector4.Zero);
                 ImGui.PushStyleColor(ImGuiCol.ButtonHovered, Vector4.Zero);
-                ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(0, 0, 0, 1));
                 ImGui.PushStyleColor(ImGuiCol.TextSelectedBg, new Vector4(0, 0, 0, 1));
                 ImGui.PushStyleColor(ImGuiCol.Border, new Vector4(0, 0, 0, 1));
                 ImGui.PushStyleColor(ImGuiCol.BorderShadow, new Vector4(0, 0, 0, 1));
@@ -467,8 +465,26 @@ namespace Dalamud.Interface.Internal
                     ImGui.End();
                 }
 
+                if (EnvironmentConfiguration.DalamudForceMinHook)
+                {
+                    ImGui.SetNextWindowPos(windowPos, ImGuiCond.Always);
+                    ImGui.SetNextWindowBgAlpha(1);
+
+                    if (ImGui.Begin(
+                            "Disclaimer",
+                            ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoBackground |
+                            ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.NoMove |
+                            ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoMouseInputs |
+                            ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoSavedSettings))
+                    {
+                        ImGui.TextColored(ImGuiColors.DalamudRed, "Is force MinHook!");
+                    }
+
+                    ImGui.End();
+                }
+
                 ImGui.PopStyleVar(4);
-                ImGui.PopStyleColor(8);
+                ImGui.PopStyleColor(7);
             }
         }
 
