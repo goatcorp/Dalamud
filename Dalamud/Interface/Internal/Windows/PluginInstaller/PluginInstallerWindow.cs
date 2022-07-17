@@ -14,6 +14,7 @@ using Dalamud.Game.Command;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Components;
 using Dalamud.Interface.Internal.Notifications;
+using Dalamud.Interface.Style;
 using Dalamud.Interface.Windowing;
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin;
@@ -420,7 +421,7 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
                     this.updateStatus = OperationStatus.InProgress;
                     this.loadingIndicatorKind = LoadingIndicatorKind.UpdatingAll;
 
-                    Task.Run(() => pluginManager.UpdatePluginsAsync())
+                    Task.Run(() => pluginManager.UpdatePluginsAsync(true, false))
                         .ContinueWith(task =>
                         {
                             this.updateStatus = OperationStatus.Complete;
@@ -1816,6 +1817,8 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
             var isLoadedAndUnloadable = plugin.State == PluginState.Loaded ||
                               plugin.State == PluginState.DependencyResolutionFailed;
 
+            StyleModelV1.DalamudStandard.Push();
+
             if (plugin.State == PluginState.UnloadError)
             {
                 ImGuiComponents.DisabledButton(FontAwesomeIcon.Frown);
@@ -1885,6 +1888,8 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
                     }
                 }
             }
+
+            StyleModelV1.DalamudStandard.Pop();
 
             ImGui.SameLine();
             ImGuiHelpers.ScaledDummy(15, 0);

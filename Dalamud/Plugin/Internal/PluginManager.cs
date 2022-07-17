@@ -884,7 +884,7 @@ internal partial class PluginManager : IDisposable, IServiceType
     /// </summary>
     /// <param name="dryRun">Perform a dry run, don't install anything.</param>
     /// <returns>Success or failure and a list of updated plugin metadata.</returns>
-    public async Task<List<PluginUpdateStatus>> UpdatePluginsAsync(bool dryRun = false)
+    public async Task<List<PluginUpdateStatus>> UpdatePluginsAsync(bool ignoreDisabled, bool dryRun)
     {
         Log.Information("Starting plugin update");
 
@@ -895,6 +895,9 @@ internal partial class PluginManager : IDisposable, IServiceType
         {
             // Can't update that!
             if (plugin.InstalledPlugin.IsDev)
+                continue;
+
+            if (plugin.InstalledPlugin.Manifest.Disabled && ignoreDisabled)
                 continue;
 
             var result = await this.UpdateSinglePluginAsync(plugin, false, dryRun);
