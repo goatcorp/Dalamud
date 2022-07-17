@@ -125,7 +125,7 @@ internal partial class PluginManager : IDisposable, IServiceType
     /// <summary>
     /// Gets a value indicating whether all added repos are not in progress.
     /// </summary>
-    public bool ReposReady => this.Repos.All(repo => repo.State != PluginRepositoryState.InProgress);
+    public bool ReposReady => this.Repos.All(repo => repo.State != PluginRepositoryState.InProgress || repo.State != PluginRepositoryState.Fail);
 
     /// <summary>
     /// Gets a value indicating whether the plugin manager started in safe mode.
@@ -492,7 +492,9 @@ internal partial class PluginManager : IDisposable, IServiceType
     /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     public async Task ReloadPluginMastersAsync(bool notify = true)
     {
+        Log.Information("Now reloading all PluginMasters...");
         await Task.WhenAll(this.Repos.Select(repo => repo.ReloadPluginMasterAsync()));
+        Log.Information("PluginMasters reloaded, now refiltering...");
 
         this.RefilterPluginMasters(notify);
     }
