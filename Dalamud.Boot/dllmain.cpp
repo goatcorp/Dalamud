@@ -172,6 +172,9 @@ BOOL APIENTRY DllMain(const HMODULE hModule, const DWORD dwReason, LPVOID lpRese
             break;
 
         case DLL_PROCESS_DETACH:
+            // do not show debug message boxes on abort() here
+            _set_abort_behavior(0, _WRITE_ABORT_MSG);
+            
             // process is terminating; don't bother cleaning up
             if (lpReserved)
                 return TRUE;
