@@ -29,6 +29,7 @@ namespace Dalamud.Hooking.Internal
                 }
 
                 this.hookImpl = ReloadedHooks.Instance.CreateHook<T>(detour, address.ToInt64());
+                this.hookImpl.Activate();
 
                 HookManager.TrackedHooks.TryAdd(Guid.NewGuid(), new HookInfo(this, detour, callingAssembly));
             }
@@ -75,9 +76,6 @@ namespace Dalamud.Hooking.Internal
 
             lock (HookManager.HookEnableSyncRoot)
             {
-                if (!this.hookImpl.IsHookActivated)
-                    this.hookImpl.Activate();
-
                 if (!this.hookImpl.IsHookEnabled)
                     this.hookImpl.Enable();
             }
