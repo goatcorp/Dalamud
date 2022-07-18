@@ -1614,7 +1614,8 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
             }
 
             // Load error
-            if (plugin.State is PluginState.LoadError or PluginState.DependencyResolutionFailed && plugin.CheckPolicy())
+            if (plugin.State is PluginState.LoadError or PluginState.DependencyResolutionFailed && plugin.CheckPolicy()
+                && !plugin.IsOutdated && !plugin.IsBanned && !plugin.IsOrphaned)
             {
                 label += Locs.PluginTitleMod_LoadError;
                 trouble = true;
