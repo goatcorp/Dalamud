@@ -30,6 +30,7 @@ namespace Dalamud.Hooking.Internal
 
                 this.hookImpl = ReloadedHooks.Instance.CreateHook<T>(detour, address.ToInt64());
                 this.hookImpl.Activate();
+                this.hookImpl.Disable();
 
                 HookManager.TrackedHooks.TryAdd(Guid.NewGuid(), new HookInfo(this, detour, callingAssembly));
             }
