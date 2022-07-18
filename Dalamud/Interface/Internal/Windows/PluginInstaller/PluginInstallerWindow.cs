@@ -1884,7 +1884,10 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
 
                             unloadTask.Wait();
                             if (!unloadTask.Result)
+                            {
+                                this.enableDisableStatus = OperationStatus.Complete;
                                 return;
+                            }
 
                             var disableTask = Task.Run(() => plugin.Disable())
                                                   .ContinueWith(this.DisplayErrorContinuation, Locs.ErrorModal_DisableFail(plugin.Name));
@@ -1910,7 +1913,10 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
 
                             enableTask.Wait();
                             if (!enableTask.Result)
+                            {
+                                this.enableDisableStatus = OperationStatus.Complete;
                                 return;
+                            }
 
                             var loadTask = Task.Run(() => plugin.LoadAsync(PluginLoadReason.Installer))
                                                .ContinueWith(this.DisplayErrorContinuation, Locs.ErrorModal_LoadFail(plugin.Name));
@@ -2455,7 +2461,7 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
             public static string PluginTitleMod_OutdatedError => Loc.Localize("InstallerOutdatedError", " (outdated)");
 
             public static string PluginTitleMod_BannedError => Loc.Localize("InstallerBannedError", " (automatically disabled)");
-            
+
             public static string PluginTitleMod_OrphanedError => Loc.Localize("InstallerOrphanedError", " (unknown repository)");
 
             public static string PluginTitleMod_New => Loc.Localize("InstallerNewPlugin ", " New!");
