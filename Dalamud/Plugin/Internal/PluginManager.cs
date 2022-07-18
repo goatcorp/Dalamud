@@ -872,6 +872,21 @@ internal partial class PluginManager : IDisposable, IServiceType
                             {
                                 Log.Information($"Missing manifest: cleaning up {versionDir.FullName}");
                                 versionDir.Delete(true);
+                                continue;
+                            }
+
+                            if (manifestFile.Length == 0)
+                            {
+                                Log.Information($"Manifest empty: cleaning up {versionDir.FullName}");
+                                versionDir.Delete(true);
+                                continue;
+                            }
+
+                            var manifest = LocalPluginManifest.Load(manifestFile);
+                            if (manifest.ScheduledForDeletion)
+                            {
+                                Log.Information($"Scheduled deletion: cleaning up {versionDir.FullName}");
+                                versionDir.Delete(true);
                             }
                         }
                         catch (Exception ex)
@@ -907,6 +922,9 @@ internal partial class PluginManager : IDisposable, IServiceType
                 continue;
 
             if (plugin.InstalledPlugin.Manifest.Disabled && ignoreDisabled)
+                continue;
+
+            if (plugin.InstalledPlugin.Manifest.ScheduledForDeletion)
                 continue;
 
             var result = await this.UpdateSinglePluginAsync(plugin, false, dryRun);

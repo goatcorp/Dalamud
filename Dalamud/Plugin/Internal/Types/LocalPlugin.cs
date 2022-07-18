@@ -560,6 +560,7 @@ internal class LocalPlugin : IDisposable
             throw new InvalidPluginOperationException($"Unable to enable {this.Name}, not disabled");
 
         this.Manifest.Disabled = false;
+        this.Manifest.ScheduledForDeletion = false;
         this.SaveManifest();
     }
 
@@ -611,6 +612,16 @@ internal class LocalPlugin : IDisposable
             throw new InvalidPluginOperationException($"Unable to disable {this.Name}, already disabled");
 
         this.Manifest.Disabled = true;
+        this.SaveManifest();
+    }
+
+    /// <summary>
+    /// Schedule the deletion of this plugin on next cleanup.
+    /// </summary>
+    /// <param name="status">Schedule or cancel the deletion.</param>
+    public void ScheduleDeletion(bool status = true)
+    {
+        this.Manifest.ScheduledForDeletion = status;
         this.SaveManifest();
     }
 

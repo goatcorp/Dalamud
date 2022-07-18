@@ -25,6 +25,11 @@ internal record LocalPluginManifest : PluginManifest
     public bool Testing { get; set; }
 
     /// <summary>
+    /// Gets or sets a value indicating whether the plugin should be deleted during the next cleanup.
+    /// </summary>
+    public bool ScheduledForDeletion { get; set; }
+
+    /// <summary>
     /// Gets or sets the 3rd party repo URL that this plugin was installed from. Used to display where the plugin was
     /// sourced from on the installed plugin view. This should not be included in the plugin master. This value is null
     /// when installed from the main repo.
