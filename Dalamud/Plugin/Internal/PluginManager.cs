@@ -848,10 +848,17 @@ internal partial class PluginManager : IDisposable, IServiceType
                 }
                 else
                 {
-                    foreach (var versionDir in versionDirs)
+                    for (var i = 0; i < versionDirs.Length; i++)
                     {
+                        var versionDir = versionDirs[i];
                         try
                         {
+                            if (i != 0)
+                            {
+                                Log.Information($"Old version: cleaning up {versionDir.FullName}");
+                                versionDir.Delete(true);
+                                continue;
+                            }
                             var dllFile = new FileInfo(Path.Combine(versionDir.FullName, $"{pluginDir.Name}.dll"));
                             if (!dllFile.Exists)
                             {
