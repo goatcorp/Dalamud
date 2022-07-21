@@ -12,6 +12,7 @@ using Dalamud.Configuration.Internal;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.Gui;
 using Dalamud.Game.Internal;
+using Dalamud.Interface.Colors;
 using Dalamud.Interface.Internal.ManagedAsserts;
 using Dalamud.Interface.Internal.Windows;
 using Dalamud.Interface.Internal.Windows.PluginInstaller;
@@ -56,6 +57,7 @@ namespace Dalamud.Interface.Internal
         private readonly StyleEditorWindow styleEditorWindow;
         private readonly TitleScreenMenuWindow titleScreenMenuWindow;
         private readonly ProfilerWindow profilerWindow;
+        private readonly BranchSwitcherWindow branchSwitcherWindow;
 
         private readonly TextureWrap logoTexture;
         private readonly TextureWrap tsmLogoTexture;
@@ -100,6 +102,7 @@ namespace Dalamud.Interface.Internal
             this.styleEditorWindow = new StyleEditorWindow() { IsOpen = false };
             this.titleScreenMenuWindow = new TitleScreenMenuWindow() { IsOpen = false };
             this.profilerWindow = new ProfilerWindow() { IsOpen = false };
+            this.branchSwitcherWindow = new BranchSwitcherWindow() { IsOpen = false };
 
             this.WindowSystem.AddWindow(this.changelogWindow);
             this.WindowSystem.AddWindow(this.colorDemoWindow);
@@ -116,6 +119,7 @@ namespace Dalamud.Interface.Internal
             this.WindowSystem.AddWindow(this.styleEditorWindow);
             this.WindowSystem.AddWindow(this.titleScreenMenuWindow);
             this.WindowSystem.AddWindow(this.profilerWindow);
+            this.WindowSystem.AddWindow(this.branchSwitcherWindow);
 
             ImGuiManagedAsserts.AssertsEnabled = configuration.AssertsEnabledAtStartup;
             this.isImGuiDrawDevMenu = this.isImGuiDrawDevMenu || configuration.DevBarOpenAtStartup;
@@ -139,7 +143,7 @@ namespace Dalamud.Interface.Internal
             tsm.AddEntryCore(Loc.Localize("TSMDalamudPlugins", "Plugin Installer"), this.tsmLogoTexture, () => this.pluginWindow.IsOpen = true);
             tsm.AddEntryCore(Loc.Localize("TSMDalamudSettings", "Dalamud Settings"), this.tsmLogoTexture, () => this.settingsWindow.IsOpen = true);
 
-            if (configuration.IsConventionalStaging)
+            if (!configuration.DalamudBetaKind.IsNullOrEmpty())
             {
                 tsm.AddEntryCore(Loc.Localize("TSMDalamudDevMenu", "Developer Menu"), this.tsmLogoTexture, () => this.isImGuiDrawDevMenu = true);
             }
@@ -207,7 +211,7 @@ namespace Dalamud.Interface.Internal
         /// Opens the <see cref="DataWindow"/>.
         /// </summary>
         /// <param name="dataKind">The data kind to switch to after opening.</param>
-        public void OpenDataWindow(string dataKind = null)
+        public void OpenDataWindow(string? dataKind = null)
         {
             this.dataWindow.IsOpen = true;
             if (dataKind != null && this.dataWindow.IsOpen)
@@ -265,6 +269,11 @@ namespace Dalamud.Interface.Internal
         /// Opens the <see cref="ProfilerWindow"/>.
         /// </summary>
         public void OpenProfiler() => this.profilerWindow.IsOpen = true;
+
+        /// <summary>
+        /// Opens the <see cref="BranchSwitcherWindow"/>
+        /// </summary>
+        public void OpenBranchSwitcher() => this.branchSwitcherWindow.IsOpen = true;
 
         #endregion
 
@@ -361,7 +370,7 @@ namespace Dalamud.Interface.Internal
         /// Toggles the <see cref="StyleEditorWindow"/>.
         /// </summary>
         public void ToggleStyleEditorWindow() => this.selfTestWindow.Toggle();
-        
+
         /// <summary>
         /// Toggles the <see cref="ProfilerWindow"/>.
         /// </summary>
@@ -430,12 +439,9 @@ namespace Dalamud.Interface.Internal
 
             if (!this.isImGuiDrawDevMenu && !condition.Any())
             {
-                var config = Service<DalamudConfiguration>.Get();
-
                 ImGui.PushStyleColor(ImGuiCol.Button, Vector4.Zero);
                 ImGui.PushStyleColor(ImGuiCol.ButtonActive, Vector4.Zero);
                 ImGui.PushStyleColor(ImGuiCol.ButtonHovered, Vector4.Zero);
-                ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(0, 0, 0, 1));
                 ImGui.PushStyleColor(ImGuiCol.TextSelectedBg, new Vector4(0, 0, 0, 1));
                 ImGui.PushStyleColor(ImGuiCol.Border, new Vector4(0, 0, 0, 1));
                 ImGui.PushStyleColor(ImGuiCol.BorderShadow, new Vector4(0, 0, 0, 1));
@@ -459,8 +465,26 @@ namespace Dalamud.Interface.Internal
                     ImGui.End();
                 }
 
+                if (EnvironmentConfiguration.DalamudForceMinHook)
+                {
+                    ImGui.SetNextWindowPos(windowPos, ImGuiCond.Always);
+                    ImGui.SetNextWindowBgAlpha(1);
+
+                    if (ImGui.Begin(
+                            "Disclaimer",
+                            ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoBackground |
+                            ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.NoMove |
+                            ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoMouseInputs |
+                            ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoSavedSettings))
+                    {
+                        ImGui.TextColored(ImGuiColors.DalamudRed, "Is force MinHook!");
+                    }
+
+                    ImGui.End();
+                }
+
                 ImGui.PopStyleVar(4);
-                ImGui.PopStyleColor(8);
+                ImGui.PopStyleColor(7);
             }
         }
 
@@ -618,17 +642,15 @@ namespace Dalamud.Interface.Internal
 
                         ImGui.Separator();
 
-                        var isBeta = configuration.DalamudBetaKey == DalamudConfiguration.DalamudCurrentBetaKey;
-                        if (ImGui.MenuItem("Enable Dalamud testing", string.Empty, isBeta))
+                        if (ImGui.MenuItem("Open Dalamud branch switcher"))
                         {
-                            configuration.DalamudBetaKey = isBeta ? null : DalamudConfiguration.DalamudCurrentBetaKey;
-                            configuration.Save();
+                            this.OpenBranchSwitcher();
                         }
 
                         var startInfo = Service<DalamudStartInfo>.Get();
                         ImGui.MenuItem(Util.AssemblyVersion, false);
                         ImGui.MenuItem(startInfo.GameVersion.ToString(), false);
-                        ImGui.MenuItem($"CS: {Util.GetGitHashClientStructs()}", false);
+                        ImGui.MenuItem($"D: {Util.GetGitHash()} CS: {Util.GetGitHashClientStructs()}", false);
 
                         ImGui.EndMenu();
                     }
@@ -758,16 +780,14 @@ namespace Dalamud.Interface.Internal
 
                         ImGui.Separator();
 
-                        if (ImGui.MenuItem("Load all API levels (ONLY FOR DEVELOPERS!!!)", null, configuration.LoadAllApiLevels))
+                        if (ImGui.MenuItem("Load all API levels (ONLY FOR DEVELOPERS!!!)", null, pluginManager.LoadAllApiLevels))
                         {
-                            configuration.LoadAllApiLevels = !configuration.LoadAllApiLevels;
-                            configuration.Save();
+                            pluginManager.LoadAllApiLevels = !pluginManager.LoadAllApiLevels;
                         }
 
-                        if (ImGui.MenuItem("Load blacklisted plugins", null, configuration.LoadBannedPlugins))
+                        if (ImGui.MenuItem("Load blacklisted plugins", null, pluginManager.LoadBannedPlugins))
                         {
-                            configuration.LoadBannedPlugins = !configuration.LoadBannedPlugins;
-                            configuration.Save();
+                            pluginManager.LoadBannedPlugins = !pluginManager.LoadBannedPlugins;
                         }
 
                         ImGui.Separator();

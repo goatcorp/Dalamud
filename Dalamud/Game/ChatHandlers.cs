@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 
 using CheapLoc;
 using Dalamud.Configuration.Internal;
-using Dalamud.Data;
 using Dalamud.Game.Gui;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
@@ -293,7 +292,7 @@ namespace Dalamud.Game
 
             this.hasAutoUpdatedPlugins = true;
 
-            Task.Run(() => pluginManager.UpdatePluginsAsync(!this.configuration.AutoUpdatePlugins)).ContinueWith(task =>
+            Task.Run(() => pluginManager.UpdatePluginsAsync(true, !this.configuration.AutoUpdatePlugins)).ContinueWith(task =>
             {
                 if (task.IsFaulted)
                 {
@@ -302,7 +301,7 @@ namespace Dalamud.Game
                 }
 
                 var updatedPlugins = task.Result;
-                if (updatedPlugins != null && updatedPlugins.Any())
+                if (updatedPlugins.Any())
                 {
                     if (this.configuration.AutoUpdatePlugins)
                     {

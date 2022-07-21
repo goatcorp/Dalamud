@@ -41,9 +41,10 @@ int InitializeClrAndGetEntryPoint(
 
     int result;
     SetEnvironmentVariable(L"DOTNET_MULTILEVEL_LOOKUP", L"0");
-    //SetEnvironmentVariable(L"COMPlus_legacyCorruptedStateExceptionsPolicy", L"1");
+    SetEnvironmentVariable(L"COMPlus_legacyCorruptedStateExceptionsPolicy", L"1");
     SetEnvironmentVariable(L"DOTNET_legacyCorruptedStateExceptionsPolicy", L"1");
     SetEnvironmentVariable(L"COMPLUS_ForceENC", L"1");
+    SetEnvironmentVariable(L"DOTNET_ForceENC", L"1");
 
     // Enable Dynamic PGO
     SetEnvironmentVariable(L"DOTNET_TieredPGO", L"1");

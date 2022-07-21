@@ -190,6 +190,11 @@ internal class LocalPlugin : IDisposable
     public string BanReason { get; }
 
     /// <summary>
+    /// Gets a value indicating whether the plugin has ever started to load.
+    /// </summary>
+    public bool HasEverStartedLoad { get; private set; }
+
+    /// <summary>
     /// Gets a value indicating whether the plugin is loaded and running.
     /// </summary>
     public bool IsLoaded => this.State == PluginState.Loaded;
@@ -208,6 +213,12 @@ internal class LocalPlugin : IDisposable
     /// Gets a value indicating whether the plugin is for testing use only.
     /// </summary>
     public bool IsTesting => this.Manifest.IsTestingExclusive || this.Manifest.Testing;
+
+    /// <summary>
+    /// Gets a value indicating whether or not this plugin is orphaned(belongs to a repo) or not.
+    /// </summary>
+    public bool IsOrphaned => !this.IsDev && !this.Manifest.InstalledFromUrl.IsNullOrEmpty() &&
+                              Service<PluginManager>.Get().Repos.All(x => x.PluginMasterUrl != this.Manifest.InstalledFromUrl);
 
     /// <summary>
     /// Gets a value indicating whether this plugin has been banned.
@@ -296,11 +307,17 @@ internal class LocalPlugin : IDisposable
             if (this.Manifest.ApplicableVersion < startInfo.GameVersion)
                 throw new InvalidPluginOperationException($"Unable to load {this.Name}, no applicable version");
 
-            if (this.Manifest.DalamudApiLevel < PluginManager.DalamudApiLevel && !configuration.LoadAllApiLevels)
+            if (this.Manifest.DalamudApiLevel < PluginManager.DalamudApiLevel && !pluginManager.LoadAllApiLevels)
                 throw new InvalidPluginOperationException($"Unable to load {this.Name}, incompatible API level");
 
             if (this.Manifest.Disabled)
                 throw new InvalidPluginOperationException($"Unable to load {this.Name}, disabled");
+
+            if (this.IsOrphaned)
+                throw new InvalidPluginOperationException($"Plugin {this.Name} had no associated repo.");
+
+            if (!this.CheckPolicy())
+                throw new InvalidPluginOperationException("Plugin was not loaded as per policy");
 
             this.State = PluginState.Loading;
             Log.Information($"Loading {this.DllFile.Name}");
@@ -322,6 +339,8 @@ internal class LocalPlugin : IDisposable
                 Log.Error(
                     "Please refer to https://github.com/goatcorp/Dalamud/discussions/603 for more information.");
             }
+
+            this.HasEverStartedLoad = true;
 
             this.loader ??= PluginLoader.CreateFromAssemblyFile(this.DllFile.FullName, SetupLoaderConfig);
 
@@ -542,6 +561,27 @@ internal class LocalPlugin : IDisposable
 
         this.Manifest.Disabled = false;
         this.SaveManifest();
+    }
+
+    /// <summary>
+    /// Check if anything forbids this plugin from loading.
+    /// </summary>
+    /// <returns>Whether or not this plugin shouldn't load.</returns>
+    public bool CheckPolicy()
+    {
+        var startInfo = Service<DalamudStartInfo>.Get();
+        var manager = Service<PluginManager>.Get();
+
+        if (startInfo.NoLoadPlugins)
+            return false;
+
+        if (startInfo.NoLoadThirdPartyPlugins && this.Manifest.IsThirdParty)
+            return false;
+
+        if (manager.SafeMode)
+            return false;
+
+        return true;
     }
 
     /// <summary>

@@ -1,5 +1,7 @@
+using System;
 using System.IO;
 
+using Dalamud.Utility;
 using Newtonsoft.Json;
 
 namespace Dalamud.Plugin.Internal.Types;
@@ -33,7 +35,12 @@ internal record LocalPluginManifest : PluginManifest
     /// Gets a value indicating whether this manifest is associated with a plugin that was installed from a third party
     /// repo. Unless the manifest has been manually modified, this is determined by the InstalledFromUrl being null.
     /// </summary>
-    public bool IsThirdParty => !string.IsNullOrEmpty(this.InstalledFromUrl);
+    public bool IsThirdParty => !this.InstalledFromUrl.IsNullOrEmpty() && this.InstalledFromUrl != PluginRepository.MainRepoUrl;
+
+    /// <summary>
+    /// Gets the effective version of this plugin.
+    /// </summary>
+    public Version EffectiveVersion => this.Testing && this.TestingAssemblyVersion != null ? this.TestingAssemblyVersion : this.AssemblyVersion;
 
     /// <summary>
     /// Save a plugin manifest to file.

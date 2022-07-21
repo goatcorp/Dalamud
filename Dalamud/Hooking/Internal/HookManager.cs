@@ -68,6 +68,9 @@ namespace Dalamud.Hooking.Internal
                     return address;
                 }
 
+                if (address.ToInt64() <= 0)
+                    throw new InvalidOperationException($"Address was <= 0, this can't be happening?! ({address:X})");
+
                 var bytes = MemoryHelper.ReadRaw(address, 8);
 
                 var codeReader = new ByteArrayCodeReader(bytes);

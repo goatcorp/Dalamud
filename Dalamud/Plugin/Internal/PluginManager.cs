@@ -48,7 +48,7 @@ internal partial class PluginManager : IDisposable, IServiceType
     private readonly object pluginListLock = new();
     private readonly DirectoryInfo pluginDirectory;
     private readonly DirectoryInfo devPluginDirectory;
-    private readonly BannedPlugin[] bannedPlugins;
+    private readonly BannedPlugin[]? bannedPlugins;
 
     [ServiceManager.ServiceDependency]
     private readonly DalamudConfiguration configuration = Service<DalamudConfiguration>.Get();
@@ -68,7 +68,7 @@ internal partial class PluginManager : IDisposable, IServiceType
         if (!this.devPluginDirectory.Exists)
             this.devPluginDirectory.Create();
 
-        this.SafeMode = EnvironmentConfiguration.DalamudNoPlugins || this.configuration.PluginSafeMode;
+        this.SafeMode = EnvironmentConfiguration.DalamudNoPlugins || this.configuration.PluginSafeMode || this.startInfo.NoLoadPlugins;
         if (this.SafeMode)
         {
             this.configuration.PluginSafeMode = false;
@@ -78,7 +78,11 @@ internal partial class PluginManager : IDisposable, IServiceType
         this.PluginConfigs = new PluginConfigurations(Path.Combine(Path.GetDirectoryName(this.startInfo.ConfigurationPath) ?? string.Empty, "pluginConfigs"));
 
         var bannedPluginsJson = File.ReadAllText(Path.Combine(this.startInfo.AssetDirectory!, "UIRes", "bannedplugin.json"));
-        this.bannedPlugins = JsonConvert.DeserializeObject<BannedPlugin[]>(bannedPluginsJson) ?? Array.Empty<BannedPlugin>();
+        this.bannedPlugins = JsonConvert.DeserializeObject<BannedPlugin[]>(bannedPluginsJson);
+        if (this.bannedPlugins == null)
+        {
+            throw new InvalidDataException("Couldn't deserialize banned plugins manifest.");
+        }
 
         this.ApplyPatches();
     }
@@ -121,7 +125,7 @@ internal partial class PluginManager : IDisposable, IServiceType
     /// <summary>
     /// Gets a value indicating whether all added repos are not in progress.
     /// </summary>
-    public bool ReposReady => this.Repos.All(repo => repo.State != PluginRepositoryState.InProgress);
+    public bool ReposReady => this.Repos.All(repo => repo.State != PluginRepositoryState.InProgress || repo.State != PluginRepositoryState.Fail);
 
     /// <summary>
     /// Gets a value indicating whether the plugin manager started in safe mode.
@@ -132,6 +136,16 @@ internal partial class PluginManager : IDisposable, IServiceType
     /// Gets the <see cref="PluginConfigurations"/> object used when initializing plugins.
     /// </summary>
     public PluginConfigurations PluginConfigs { get; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether plugins of all API levels will be loaded.
+    /// </summary>
+    public bool LoadAllApiLevels { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether banned plugins will be loaded.
+    /// </summary>
+    public bool LoadBannedPlugins { get; set; }
 
     /// <summary>
     /// Print to chat any plugin updates and whether they were successful.
@@ -281,12 +295,6 @@ internal partial class PluginManager : IDisposable, IServiceType
     /// </remarks>
     public void LoadAllPlugins()
     {
-        if (this.SafeMode)
-        {
-            Log.Information("PluginSafeMode was enabled, not loading any plugins.");
-            return;
-        }
-
         var pluginDefs = new List<PluginDef>();
         var devPluginDefs = new List<PluginDef>();
 
@@ -299,6 +307,7 @@ internal partial class PluginManager : IDisposable, IServiceType
         // Add installed plugins. These are expected to be in a specific format so we can look for exactly that.
         foreach (var pluginDir in this.pluginDirectory.GetDirectories())
         {
+            var versionsDefs = new List<PluginDef>();
             foreach (var versionDir in pluginDir.GetDirectories())
             {
                 var dllFile = new FileInfo(Path.Combine(versionDir.FullName, $"{pluginDir.Name}.dll"));
@@ -309,7 +318,16 @@ internal partial class PluginManager : IDisposable, IServiceType
 
                 var manifest = LocalPluginManifest.Load(manifestFile);
 
-                pluginDefs.Add(new PluginDef(dllFile, manifest, false));
+                versionsDefs.Add(new PluginDef(dllFile, manifest, false));
+            }
+
+            try
+            {
+                pluginDefs.Add(versionsDefs.OrderByDescending(x => x.Manifest!.EffectiveVersion).First());
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Couldn't choose best version for plugin: {Name}", pluginDir.Name);
             }
         }
 
@@ -474,7 +492,9 @@ internal partial class PluginManager : IDisposable, IServiceType
     /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     public async Task ReloadPluginMastersAsync(bool notify = true)
     {
+        Log.Information("Now reloading all PluginMasters...");
         await Task.WhenAll(this.Repos.Select(repo => repo.ReloadPluginMasterAsync()));
+        Log.Information("PluginMasters reloaded, now refiltering...");
 
         this.RefilterPluginMasters(notify);
     }
@@ -504,12 +524,6 @@ internal partial class PluginManager : IDisposable, IServiceType
     /// </summary>
     public void ScanDevPlugins()
     {
-        if (this.SafeMode)
-        {
-            Log.Information("PluginSafeMode was enabled, not scanning any dev plugins.");
-            return;
-        }
-
         if (!this.devPluginDirectory.Exists)
             this.devPluginDirectory.Create();
 
@@ -658,11 +672,8 @@ internal partial class PluginManager : IDisposable, IServiceType
             manifest.Testing = true;
         }
 
-        if (repoManifest.SourceRepo.IsThirdParty)
-        {
-            // Only document the url if it came from a third party repo.
-            manifest.InstalledFromUrl = repoManifest.SourceRepo.PluginMasterUrl;
-        }
+        // Document the url the plugin was installed from
+        manifest.InstalledFromUrl = repoManifest.SourceRepo.PluginMasterUrl;
 
         manifest.Save(manifestFile);
 
@@ -713,10 +724,14 @@ internal partial class PluginManager : IDisposable, IServiceType
         {
             try
             {
-                if (plugin.IsDisabled)
-                    plugin.Enable();
-
-                await plugin.LoadAsync(reason);
+                if (!plugin.IsDisabled)
+                {
+                    await plugin.LoadAsync(reason);
+                }
+                else
+                {
+                    Log.Verbose($"{name} was disabled");
+                }
             }
             catch (InvalidPluginException)
             {
@@ -740,13 +755,26 @@ internal partial class PluginManager : IDisposable, IServiceType
                 }
                 else if (plugin.IsOutdated)
                 {
-                    // Out of date plugins get added so they can be updated.
+                    // Out of date plugins get added, so they can be updated.
                     Log.Information(ex, $"Plugin was outdated, adding anyways: {dllFile.Name}");
+                }
+                else if (plugin.IsOrphaned)
+                {
+                    // Orphaned plugins get added, so that users aren't confused.
+                    Log.Information(ex, $"Plugin was orphaned, adding anyways: {dllFile.Name}");
                 }
                 else if (isBoot)
                 {
                     // During boot load, plugins always get added to the list so they can be fiddled with in the UI
                     Log.Information(ex, $"Regular plugin failed to load, adding anyways: {dllFile.Name}");
+
+                    // NOTE(goat): This can't work - plugins don't "unload" if they fail to load.
+                    // plugin.Disable(); // Disable here, otherwise you can't enable+load later
+                }
+                else if (!plugin.CheckPolicy())
+                {
+                    // During boot load, plugins always get added to the list so they can be fiddled with in the UI
+                    Log.Information(ex, $"Plugin not loaded due to policy, adding anyways: {dllFile.Name}");
 
                     // NOTE(goat): This can't work - plugins don't "unload" if they fail to load.
                     // plugin.Disable(); // Disable here, otherwise you can't enable+load later
@@ -773,8 +801,8 @@ internal partial class PluginManager : IDisposable, IServiceType
     /// <param name="plugin">Plugin to remove.</param>
     public void RemovePlugin(LocalPlugin plugin)
     {
-        if (plugin.State != PluginState.Unloaded)
-            throw new InvalidPluginOperationException($"Unable to remove {plugin.Name}, not unloaded");
+        if (plugin.State != PluginState.Unloaded && plugin.HasEverStartedLoad)
+            throw new InvalidPluginOperationException($"Unable to remove {plugin.Name}, not unloaded and had loaded before");
 
         lock (this.pluginListLock)
         {
@@ -837,28 +865,6 @@ internal partial class PluginManager : IDisposable, IServiceType
                             {
                                 Log.Information($"Missing manifest: cleaning up {versionDir.FullName}");
                                 versionDir.Delete(true);
-                                continue;
-                            }
-
-                            var manifest = LocalPluginManifest.Load(manifestFile);
-                            if (manifest.Disabled)
-                            {
-                                Log.Information($"Disabled: cleaning up {versionDir.FullName}");
-                                versionDir.Delete(true);
-                                continue;
-                            }
-
-                            if (manifest.DalamudApiLevel < DalamudApiLevel - 1 && !configuration.LoadAllApiLevels)
-                            {
-                                Log.Information($"Lower API: cleaning up {versionDir.FullName}");
-                                versionDir.Delete(true);
-                                continue;
-                            }
-
-                            if (manifest.ApplicableVersion <this.startInfo.GameVersion)
-                            {
-                                Log.Information($"Inapplicable version: cleaning up {versionDir.FullName}");
-                                versionDir.Delete(true);
                             }
                         }
                         catch (Exception ex)
@@ -880,7 +886,7 @@ internal partial class PluginManager : IDisposable, IServiceType
     /// </summary>
     /// <param name="dryRun">Perform a dry run, don't install anything.</param>
     /// <returns>Success or failure and a list of updated plugin metadata.</returns>
-    public async Task<List<PluginUpdateStatus>> UpdatePluginsAsync(bool dryRun = false)
+    public async Task<List<PluginUpdateStatus>> UpdatePluginsAsync(bool ignoreDisabled, bool dryRun)
     {
         Log.Information("Starting plugin update");
 
@@ -891,6 +897,9 @@ internal partial class PluginManager : IDisposable, IServiceType
         {
             // Can't update that!
             if (plugin.InstalledPlugin.IsDev)
+                continue;
+
+            if (plugin.InstalledPlugin.Manifest.Disabled && ignoreDisabled)
                 continue;
 
             var result = await this.UpdateSinglePluginAsync(plugin, false, dryRun);
@@ -964,7 +973,9 @@ internal partial class PluginManager : IDisposable, IServiceType
             {
                 try
                 {
-                    plugin.Disable();
+                    if (!plugin.IsDisabled)
+                        plugin.Disable();
+
                     lock (this.pluginListLock)
                     {
                         this.InstalledPlugins = this.InstalledPlugins.Remove(plugin);
@@ -1040,19 +1051,34 @@ internal partial class PluginManager : IDisposable, IServiceType
     public bool IsManifestEligible(PluginManifest manifest)
     {
         // Testing exclusive
-        if (manifest.IsTestingExclusive && !configuration.DoPluginTest)
+        if (manifest.IsTestingExclusive && !this.configuration.DoPluginTest)
+        {
+            Log.Verbose($"Testing exclusivity: {manifest.InternalName} - {manifest.AssemblyVersion} - {manifest.TestingAssemblyVersion}");
             return false;
+        }
 
         // Applicable version
-        if (manifest.ApplicableVersion <this.startInfo.GameVersion)
+        if (manifest.ApplicableVersion < this.startInfo.GameVersion)
+        {
+            Log.Verbose($"Game version: {manifest.InternalName} - {manifest.AssemblyVersion} - {manifest.TestingAssemblyVersion}");
             return false;
+        }
 
         // API level
-        if (manifest.DalamudApiLevel < DalamudApiLevel && !configuration.LoadAllApiLevels)
+        if (manifest.DalamudApiLevel < DalamudApiLevel && !this.LoadAllApiLevels)
+        {
+            Log.Verbose($"API Level: {manifest.InternalName} - {manifest.AssemblyVersion} - {manifest.TestingAssemblyVersion}");
             return false;
+        }
 
         // Banned
-        return !this.IsManifestBanned(manifest);
+        if (this.IsManifestBanned(manifest))
+        {
+            Log.Verbose($"Banned: {manifest.InternalName} - {manifest.AssemblyVersion} - {manifest.TestingAssemblyVersion}");
+            return false;
+        }
+
+        return true;
     }
 
     /// <summary>
@@ -1062,8 +1088,21 @@ internal partial class PluginManager : IDisposable, IServiceType
     /// <returns>A value indicating whether the plugin/manifest has been banned.</returns>
     public bool IsManifestBanned(PluginManifest manifest)
     {
-        return !configuration.LoadBannedPlugins && this.bannedPlugins.Any(ban => (ban.Name == manifest.InternalName || ban.Name == Hash.GetStringSha256Hash(manifest.InternalName))
-                                                                              && ban.AssemblyVersion >= manifest.AssemblyVersion);
+        Debug.Assert(this.bannedPlugins != null, "this.bannedPlugins != null");
+
+        if (this.LoadBannedPlugins)
+            return true;
+
+        var config = Service<DalamudConfiguration>.Get();
+
+        var versionToCheck = manifest.AssemblyVersion;
+        if (config.DoPluginTest && manifest.TestingAssemblyVersion > manifest.AssemblyVersion)
+        {
+            versionToCheck = manifest.TestingAssemblyVersion;
+        }
+
+        return this.bannedPlugins.Any(ban => (ban.Name == manifest.InternalName || ban.Name == Hash.GetStringSha256Hash(manifest.InternalName))
+                                                                        && ban.AssemblyVersion >= versionToCheck);
     }
 
     /// <summary>
@@ -1073,6 +1112,8 @@ internal partial class PluginManager : IDisposable, IServiceType
     /// <returns>The reason of the ban, if any.</returns>
     public string GetBanReason(PluginManifest manifest)
     {
+        Debug.Assert(this.bannedPlugins != null, "this.bannedPlugins != null");
+
         return this.bannedPlugins.LastOrDefault(ban => ban.Name == manifest.InternalName).Reason;
     }
 

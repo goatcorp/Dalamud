@@ -14,6 +14,7 @@ using Dalamud.Game.Command;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Components;
 using Dalamud.Interface.Internal.Notifications;
+using Dalamud.Interface.Style;
 using Dalamud.Interface.Windowing;
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin;
@@ -83,6 +84,9 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
 
         private OperationStatus installStatus = OperationStatus.Idle;
         private OperationStatus updateStatus = OperationStatus.Idle;
+        private OperationStatus enableDisableStatus = OperationStatus.Idle;
+
+        private LoadingIndicatorKind loadingIndicatorKind = LoadingIndicatorKind.Unknown;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PluginInstallerWindow"/> class.
@@ -130,6 +134,17 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
             Complete,
         }
 
+        private enum LoadingIndicatorKind
+        {
+            Unknown,
+            EnablingSingle,
+            DisablingSingle,
+            UpdatingSingle,
+            UpdatingAll,
+            Installing,
+            Manager,
+        }
+
         private enum PluginSortKind
         {
             Alphabetical,
@@ -138,6 +153,10 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
             NewOrNot,
             NotInstalled,
         }
+
+        private bool AnyOperationInProgress => this.installStatus == OperationStatus.InProgress ||
+                                               this.updateStatus == OperationStatus.InProgress ||
+                                               this.enableDisableStatus == OperationStatus.InProgress;
 
         /// <inheritdoc/>
         public void Dispose()
@@ -184,6 +203,7 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
             this.DrawFooter();
             this.DrawErrorModal();
             this.DrawFeedbackModal();
+            this.DrawProgressOverlay();
         }
 
         /// <summary>
@@ -192,6 +212,107 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
         public void ClearIconCache()
         {
             this.imageCache.ClearIconCache();
+        }
+
+        private void DrawProgressOverlay()
+        {
+            var pluginManager = Service<PluginManager>.Get();
+
+            var isWaitingManager = !pluginManager.PluginsReady ||
+                                   !pluginManager.ReposReady;
+            var isLoading = this.AnyOperationInProgress ||
+                            isWaitingManager;
+
+            if (isWaitingManager)
+                this.loadingIndicatorKind = LoadingIndicatorKind.Manager;
+
+            if (!isLoading)
+                return;
+
+            ImGui.SetCursorPos(Vector2.Zero);
+
+            var windowSize = ImGui.GetWindowSize();
+
+            ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, Vector2.Zero);
+            ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, Vector2.Zero);
+            ImGui.PushStyleVar(ImGuiStyleVar.CellPadding, Vector2.Zero);;
+            ImGui.PushStyleVar(ImGuiStyleVar.ChildBorderSize, 0);
+            ImGui.PushStyleVar(ImGuiStyleVar.ChildRounding, 0);
+
+            ImGui.SetNextWindowBgAlpha(0.8f);
+            if (ImGui.BeginChild("###installerLoadingFrame", new Vector2(-1, -1), false))
+            {
+                ImGui.SetCursorPosY(windowSize.Y / 2);
+
+                switch (this.loadingIndicatorKind)
+                {
+                    case LoadingIndicatorKind.Unknown:
+                        ImGuiHelpers.CenteredText("Doing something, not sure what!");
+                        break;
+                    case LoadingIndicatorKind.EnablingSingle:
+                        ImGuiHelpers.CenteredText("Enabling plugin...");
+                        break;
+                    case LoadingIndicatorKind.DisablingSingle:
+                        ImGuiHelpers.CenteredText("Disabling plugin...");
+                        break;
+                    case LoadingIndicatorKind.UpdatingSingle:
+                        ImGuiHelpers.CenteredText("Updating plugin...");
+                        break;
+                    case LoadingIndicatorKind.UpdatingAll:
+                        ImGuiHelpers.CenteredText("Updating plugins...");
+                        break;
+                    case LoadingIndicatorKind.Installing:
+                        ImGuiHelpers.CenteredText("Installing plugin...");
+                        break;
+                    case LoadingIndicatorKind.Manager:
+                        {
+                            if (pluginManager.PluginsReady && !pluginManager.ReposReady)
+                            {
+                                ImGuiHelpers.CenteredText("Loading repositories...");
+                            }
+                            else if (!pluginManager.PluginsReady && pluginManager.ReposReady)
+                            {
+                                ImGuiHelpers.CenteredText("Loading installed plugins...");
+                            }
+                            else
+                            {
+                                ImGuiHelpers.CenteredText("Loading repositories and plugins...");
+                            }
+
+                            var currentProgress = 0;
+                            var total = 0;
+
+                            var pendingRepos = pluginManager.Repos.ToArray()
+                                                            .Where(x => (x.State != PluginRepositoryState.Success &&
+                                                                        x.State != PluginRepositoryState.Fail) &&
+                                                                        x.IsEnabled)
+                                                            .ToArray();
+                            var allRepoCount =
+                                pluginManager.Repos.Count(x => x.State != PluginRepositoryState.Fail && x.IsEnabled);
+
+                            foreach (var repo in pendingRepos)
+                            {
+                                ImGuiHelpers.CenteredText($"{repo.PluginMasterUrl}: {repo.State}");
+                            }
+
+                            currentProgress += allRepoCount - pendingRepos.Length;
+                            total += allRepoCount;
+
+                            if (currentProgress != total)
+                            {
+                                ImGui.ProgressBar(currentProgress / (float)total, new Vector2(windowSize.X / 3, 50));
+                            }
+                        }
+
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+
+                ImGui.EndChild();
+            }
+
+            ImGui.PopStyleVar(5);
         }
 
         private void DrawHeader()
@@ -317,7 +438,11 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
 
             var ready = pluginManager.PluginsReady && pluginManager.ReposReady;
 
-            if (!ready || this.updateStatus == OperationStatus.InProgress || this.installStatus == OperationStatus.InProgress)
+            if (pluginManager.SafeMode)
+            {
+                ImGuiComponents.DisabledButton(Locs.FooterButton_UpdateSafeMode);
+            }
+            else if (!ready || this.updateStatus == OperationStatus.InProgress || this.installStatus == OperationStatus.InProgress)
             {
                 ImGuiComponents.DisabledButton(Locs.FooterButton_UpdatePlugins);
             }
@@ -332,8 +457,9 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
                 if (ImGui.Button(Locs.FooterButton_UpdatePlugins))
                 {
                     this.updateStatus = OperationStatus.InProgress;
+                    this.loadingIndicatorKind = LoadingIndicatorKind.UpdatingAll;
 
-                    Task.Run(() => pluginManager.UpdatePluginsAsync())
+                    Task.Run(() => pluginManager.UpdatePluginsAsync(true, false))
                         .ContinueWith(task =>
                         {
                             this.updateStatus = OperationStatus.Complete;
@@ -1039,12 +1165,6 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
         {
             var pluginManager = Service<PluginManager>.Get();
 
-            if (pluginManager.SafeMode)
-            {
-                ImGui.Text(Locs.TabBody_SafeMode);
-                return false;
-            }
-
             var ready = pluginManager.PluginsReady && pluginManager.ReposReady;
 
             if (!ready)
@@ -1106,6 +1226,8 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
 
             ImGui.SetCursorPos(startCursor);
 
+            var pluginDisabled = plugin is { IsDisabled: true };
+
             var iconSize = ImGuiHelpers.ScaledVector2(64, 64);
             var cursorBeforeImage = ImGui.GetCursorPos();
             var rectOffset = ImGui.GetWindowContentRegionMin() + ImGui.GetWindowPos();
@@ -1118,7 +1240,18 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
                     iconTex = cachedIconTex;
                 }
 
+                if (pluginDisabled)
+                {
+                    ImGui.PushStyleVar(ImGuiStyleVar.Alpha, 0.5f);
+                }
+
                 ImGui.Image(iconTex.ImGuiHandle, iconSize);
+
+                if (pluginDisabled)
+                {
+                    ImGui.PopStyleVar();
+                }
+
                 ImGui.SameLine();
                 ImGui.SetCursorPos(cursorBeforeImage);
             }
@@ -1127,8 +1260,10 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
 
             if (updateAvailable)
                 ImGui.Image(this.imageCache.UpdateIcon.ImGuiHandle, iconSize);
-            else if (trouble)
+            else if (trouble && !pluginDisabled)
                 ImGui.Image(this.imageCache.TroubleIcon.ImGuiHandle, iconSize);
+            else if (pluginDisabled)
+                ImGui.Image(this.imageCache.DisabledIcon.ImGuiHandle, iconSize);
             else if (isLoaded && isThirdParty)
                 ImGui.Image(this.imageCache.ThirdInstalledIcon.ImGuiHandle, iconSize);
             else if (isThirdParty)
@@ -1178,6 +1313,18 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
                                                  ? Locs.PluginBody_Banned
                                                  : Locs.PluginBody_BannedReason(plugin.BanReason));
 
+                ImGui.PopStyleColor();
+            }
+            else if (plugin is { IsOrphaned: true })
+            {
+                ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudRed);
+                ImGui.TextWrapped(Locs.PluginBody_Orphaned);
+                ImGui.PopStyleColor();
+            }
+            else if (plugin != null && !plugin.CheckPolicy())
+            {
+                ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudRed);
+                ImGui.TextWrapped(Locs.PluginBody_Policy);
                 ImGui.PopStyleColor();
             }
             else if (plugin is { State: PluginState.LoadError or PluginState.DependencyResolutionFailed }) // Load failed warning
@@ -1333,7 +1480,11 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
                     ? $"{manifest.TestingAssemblyVersion}"
                     : $"{manifest.AssemblyVersion}";
 
-                if (disabled)
+                if (pluginManager.SafeMode)
+                {
+                    ImGuiComponents.DisabledButton(Locs.PluginButton_SafeMode);
+                }
+                else if (disabled)
                 {
                     ImGuiComponents.DisabledButton(Locs.PluginButton_InstallVersion(versionString));
                 }
@@ -1343,6 +1494,7 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
                     if (ImGui.Button($"{buttonText}##{buttonText}{index}"))
                     {
                         this.installStatus = OperationStatus.InProgress;
+                        this.loadingIndicatorKind = LoadingIndicatorKind.Installing;
 
                         Task.Run(() => pluginManager.InstallPluginAsync(manifest, useTesting, PluginLoadReason.Installer))
                             .ContinueWith(task =>
@@ -1436,8 +1588,6 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
         {
             var configuration = Service<DalamudConfiguration>.Get();
             var commandManager = Service<CommandManager>.Get();
-            var pluginManager = Service<PluginManager>.Get();
-            var startInfo = Service<DalamudStartInfo>.Get();
 
             var trouble = false;
 
@@ -1457,14 +1607,14 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
             }
 
             // Disabled
-            if (plugin.IsDisabled)
+            if (plugin.IsDisabled || !plugin.CheckPolicy())
             {
                 label += Locs.PluginTitleMod_Disabled;
                 trouble = true;
             }
 
             // Load error
-            if (plugin.State is PluginState.LoadError or PluginState.DependencyResolutionFailed)
+            if (plugin.State is PluginState.LoadError or PluginState.DependencyResolutionFailed && plugin.CheckPolicy())
             {
                 label += Locs.PluginTitleMod_LoadError;
                 trouble = true;
@@ -1514,6 +1664,13 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
             if (plugin.IsBanned)
             {
                 label += Locs.PluginTitleMod_BannedError;
+                trouble = true;
+            }
+
+            // Orphaned
+            if (plugin.IsOrphaned)
+            {
+                label += Locs.PluginTitleMod_OrphanedError;
                 trouble = true;
             }
 
@@ -1595,11 +1752,7 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
                     this.DrawUpdateSinglePluginButton(availablePluginUpdate);
 
                 ImGui.SameLine();
-                var version = plugin.AssemblyName?.Version;
-                version ??= plugin.Manifest.Testing
-                                ? plugin.Manifest.TestingAssemblyVersion
-                                : plugin.Manifest.AssemblyVersion;
-                ImGui.TextColored(ImGuiColors.DalamudGrey3, $" v{version}");
+                ImGui.TextColored(ImGuiColors.DalamudGrey3, $" v{plugin.Manifest.EffectiveVersion}");
 
                 if (plugin.IsDev)
                 {
@@ -1616,7 +1769,7 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
 
                 if (hasChangelog)
                 {
-                    if (ImGui.TreeNode($"Changelog (v{plugin.Manifest.AssemblyVersion})"))
+                    if (ImGui.TreeNode($"Changelog (v{plugin.Manifest.EffectiveVersion})"))
                     {
                         this.DrawInstalledPluginChangelog(plugin.Manifest);
                     }
@@ -1680,101 +1833,109 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
 
         private void DrawPluginControlButton(LocalPlugin plugin)
         {
-            var configuration = Service<DalamudConfiguration>.Get();
             var notifications = Service<NotificationManager>.Get();
             var pluginManager = Service<PluginManager>.Get();
-            var startInfo = Service<DalamudStartInfo>.Get();
 
             // Disable everything if the updater is running or another plugin is operating
             var disabled = this.updateStatus == OperationStatus.InProgress || this.installStatus == OperationStatus.InProgress;
 
             // Disable everything if the plugin is outdated
-            disabled = disabled || (plugin.IsOutdated && !configuration.LoadAllApiLevels) || plugin.IsBanned;
+            disabled = disabled || (plugin.IsOutdated && !pluginManager.LoadAllApiLevels) || plugin.IsBanned;
+
+            // Disable everything if the plugin is orphaned
+            disabled = disabled || plugin.IsOrphaned;
 
             // Disable everything if the plugin failed to load
             disabled = disabled || plugin.State == PluginState.LoadError || plugin.State == PluginState.DependencyResolutionFailed;
 
-            if (plugin.State == PluginState.Loading || plugin.State == PluginState.Unloading)
+            // Disable everything if we're working
+            disabled = disabled || plugin.State == PluginState.Loading || plugin.State == PluginState.Unloading;
+
+            var toggleId = plugin.Manifest.InternalName;
+            var isLoadedAndUnloadable = plugin.State == PluginState.Loaded ||
+                              plugin.State == PluginState.DependencyResolutionFailed;
+
+            StyleModelV1.DalamudStandard.Push();
+
+            if (plugin.State == PluginState.UnloadError)
             {
-                ImGuiComponents.DisabledButton(Locs.PluginButton_Working);
+                ImGuiComponents.DisabledButton(FontAwesomeIcon.Frown);
+
+                if (ImGui.IsItemHovered())
+                    ImGui.SetTooltip(Locs.PluginButtonToolTip_UnloadFailed);
             }
-            else if (plugin.State == PluginState.Loaded || plugin.State == PluginState.LoadError || plugin.State == PluginState.DependencyResolutionFailed)
+            else if (disabled)
             {
-                if (disabled)
+                ImGuiComponents.DisabledToggleButton(toggleId, isLoadedAndUnloadable);
+            }
+            else
+            {
+                if (ImGuiComponents.ToggleButton(toggleId, ref isLoadedAndUnloadable))
                 {
-                    ImGuiComponents.DisabledButton(Locs.PluginButton_Disable);
-                }
-                else
-                {
-                    if (ImGui.Button(Locs.PluginButton_Disable))
+                    if (!isLoadedAndUnloadable)
                     {
+                        this.enableDisableStatus = OperationStatus.InProgress;
+                        this.loadingIndicatorKind = LoadingIndicatorKind.DisablingSingle;
+
                         Task.Run(() =>
                         {
                             var unloadTask = Task.Run(() => plugin.UnloadAsync())
-                                .ContinueWith(this.DisplayErrorContinuation, Locs.ErrorModal_UnloadFail(plugin.Name));
+                                                 .ContinueWith(this.DisplayErrorContinuation, Locs.ErrorModal_UnloadFail(plugin.Name));
 
                             unloadTask.Wait();
                             if (!unloadTask.Result)
                                 return;
 
                             var disableTask = Task.Run(() => plugin.Disable())
-                                .ContinueWith(this.DisplayErrorContinuation, Locs.ErrorModal_DisableFail(plugin.Name));
+                                                  .ContinueWith(this.DisplayErrorContinuation, Locs.ErrorModal_DisableFail(plugin.Name));
 
                             disableTask.Wait();
+                            this.enableDisableStatus = OperationStatus.Complete;
+
                             if (!disableTask.Result)
                                 return;
-
-                            if (!plugin.IsDev)
-                            {
-                                pluginManager.RemovePlugin(plugin);
-                            }
 
                             notifications.AddNotification(Locs.Notifications_PluginDisabled(plugin.Manifest.Name), Locs.Notifications_PluginDisabledTitle, NotificationType.Success);
                         });
                     }
-                }
-
-                if (plugin.State == PluginState.Loaded)
-                {
-                    // Only if the plugin isn't broken.
-                    this.DrawOpenPluginSettingsButton(plugin);
-                }
-            }
-            else if (plugin.State == PluginState.Unloaded)
-            {
-                if (disabled)
-                {
-                    ImGuiComponents.DisabledButton(Locs.PluginButton_Load);
-                }
-                else
-                {
-                    if (ImGui.Button(Locs.PluginButton_Load))
+                    else
                     {
+                        this.enableDisableStatus = OperationStatus.InProgress;
+                        this.loadingIndicatorKind = LoadingIndicatorKind.EnablingSingle;
+
                         Task.Run(() =>
                         {
                             var enableTask = Task.Run(() => plugin.Enable())
-                                .ContinueWith(this.DisplayErrorContinuation, Locs.ErrorModal_EnableFail(plugin.Name));
+                                                 .ContinueWith(this.DisplayErrorContinuation, Locs.ErrorModal_EnableFail(plugin.Name));
 
                             enableTask.Wait();
                             if (!enableTask.Result)
                                 return;
 
                             var loadTask = Task.Run(() => plugin.LoadAsync(PluginLoadReason.Installer))
-                                .ContinueWith(this.DisplayErrorContinuation, Locs.ErrorModal_LoadFail(plugin.Name));
+                                               .ContinueWith(this.DisplayErrorContinuation, Locs.ErrorModal_LoadFail(plugin.Name));
 
                             loadTask.Wait();
+                            this.enableDisableStatus = OperationStatus.Complete;
+
                             if (!loadTask.Result)
                                 return;
+
+                            notifications.AddNotification(Locs.Notifications_PluginEnabled(plugin.Manifest.Name), Locs.Notifications_PluginEnabledTitle, NotificationType.Success);
                         });
                     }
                 }
             }
-            else if (plugin.State == PluginState.UnloadError)
-            {
-                ImGuiComponents.DisabledButton(FontAwesomeIcon.Frown);
 
-                if (ImGui.IsItemHovered())
-                    ImGui.SetTooltip(Locs.PluginButtonToolTip_UnloadFailed);
+            StyleModelV1.DalamudStandard.Pop();
+
+            ImGui.SameLine();
+            ImGuiHelpers.ScaledDummy(15, 0);
+
+            if (plugin.State == PluginState.Loaded)
+            {
+                // Only if the plugin isn't broken.
+                this.DrawOpenPluginSettingsButton(plugin);
             }
         }
 
@@ -1787,6 +1948,7 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
             if (ImGuiComponents.IconButton(FontAwesomeIcon.Download))
             {
                 this.installStatus = OperationStatus.InProgress;
+                this.loadingIndicatorKind = LoadingIndicatorKind.UpdatingSingle;
 
                 Task.Run(async () => await pluginManager.UpdateSinglePluginAsync(update, true, false))
                     .ContinueWith(task =>
@@ -1855,6 +2017,8 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
 
         private void DrawDevPluginButtons(LocalPlugin localPlugin)
         {
+            ImGui.SameLine();
+
             var configuration = Service<DalamudConfiguration>.Get();
 
             if (localPlugin is LocalDevPlugin plugin)
@@ -1903,35 +2067,62 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
 
         private void DrawDeletePluginButton(LocalPlugin plugin)
         {
-            var unloaded = plugin.State == PluginState.Unloaded;
-            var showButton = unloaded && (plugin.IsDev || plugin.IsOutdated || plugin.IsBanned);
+            /*var unloaded = plugin.State == PluginState.Unloaded || plugin.State == PluginState.LoadError;
+
+            // When policy check fails, the plugin is never loaded
+            var showButton = unloaded && (plugin.IsDev || plugin.IsOutdated || plugin.IsBanned || plugin.IsOrphaned || !plugin.CheckPolicy());
 
             if (!showButton)
-                return;
+                return;*/
 
             var pluginManager = Service<PluginManager>.Get();
 
             ImGui.SameLine();
-            if (ImGuiComponents.IconButton(FontAwesomeIcon.TrashAlt))
+            if (plugin.State != PluginState.Unloaded && plugin.State != PluginState.LoadError)
             {
-                try
-                {
-                    plugin.DllFile.Delete();
-                    pluginManager.RemovePlugin(plugin);
-                }
-                catch (Exception ex)
-                {
-                    Log.Error(ex, $"Plugin installer threw an error during removal of {plugin.Name}");
+                ImGui.PushFont(InterfaceManager.IconFont);
+                ImGuiComponents.DisabledButton(FontAwesomeIcon.TrashAlt.ToIconString());
+                ImGui.PopFont();
 
-                    this.errorModalMessage = Locs.ErrorModal_DeleteFail(plugin.Name);
-                    this.errorModalDrawing = true;
-                    this.errorModalOnNextFrame = true;
+                if (ImGui.IsItemHovered())
+                {
+                    ImGui.SetTooltip(Locs.PluginButtonToolTip_DeletePluginLoaded);
                 }
             }
-
-            if (ImGui.IsItemHovered())
+            else if (plugin.HasEverStartedLoad && !plugin.IsDev)
             {
-                ImGui.SetTooltip(Locs.PluginButtonToolTip_DeletePlugin);
+                ImGui.PushFont(InterfaceManager.IconFont);
+                ImGuiComponents.DisabledButton(FontAwesomeIcon.TrashAlt.ToIconString());
+                ImGui.PopFont();
+
+                if (ImGui.IsItemHovered())
+                {
+                    ImGui.SetTooltip(Locs.PluginButtonToolTip_DeletePluginRestricted);
+                }
+            }
+            else
+            {
+                if (ImGuiComponents.IconButton(FontAwesomeIcon.TrashAlt))
+                {
+                    try
+                    {
+                        plugin.DllFile.Delete();
+                        pluginManager.RemovePlugin(plugin);
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Error(ex, $"Plugin installer threw an error during removal of {plugin.Name}");
+
+                        this.errorModalMessage = Locs.ErrorModal_DeleteFail(plugin.Name);
+                        this.errorModalDrawing = true;
+                        this.errorModalOnNextFrame = true;
+                    }
+                }
+
+                if (ImGui.IsItemHovered())
+                {
+                    ImGui.SetTooltip(Locs.PluginButtonToolTip_DeletePlugin);
+                }
             }
         }
 
@@ -2264,6 +2455,8 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
             public static string PluginTitleMod_OutdatedError => Loc.Localize("InstallerOutdatedError", " (outdated)");
 
             public static string PluginTitleMod_BannedError => Loc.Localize("InstallerBannedError", " (automatically disabled)");
+            
+            public static string PluginTitleMod_OrphanedError => Loc.Localize("InstallerOrphanedError", " (unknown repository)");
 
             public static string PluginTitleMod_New => Loc.Localize("InstallerNewPlugin ", " New!");
 
@@ -2299,9 +2492,13 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
 
             public static string PluginBody_Outdated => Loc.Localize("InstallerOutdatedPluginBody ", "This plugin is outdated and incompatible at the moment. Please wait for it to be updated by its author.");
 
+            public static string PluginBody_Orphaned => Loc.Localize("InstallerOrphanedPluginBody ", "This plugin's source repository is no longer available. You may need to reinstall it from its repository, or re-add the repository.");
+
             public static string PluginBody_LoadFailed => Loc.Localize("InstallerLoadFailedPluginBody ", "This plugin failed to load. Please contact the author for more information.");
 
             public static string PluginBody_Banned => Loc.Localize("InstallerBannedPluginBody ", "This plugin was automatically disabled due to incompatibilities and is not available at the moment. Please wait for it to be updated by its author.");
+
+            public static string PluginBody_Policy => Loc.Localize("InstallerPolicyPluginBody ", "Plugin loads for this type of plugin were manually disabled.");
 
             public static string PluginBody_BannedReason(string message) =>
                 Loc.Localize("InstallerBannedPluginBodyReason ", "This plugin was automatically disabled: {0}").Format(message);
@@ -2320,6 +2517,8 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
 
             public static string PluginButton_Unload => Loc.Localize("InstallerUnload", "Unload");
 
+            public static string PluginButton_SafeMode => Loc.Localize("InstallerSafeModeButton", "Can't change in safe mode");
+
             #endregion
 
             #region Plugin button tooltips
@@ -2331,6 +2530,10 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
             public static string PluginButtonToolTip_AutomaticReloading => Loc.Localize("InstallerAutomaticReloading", "Automatic reloading");
 
             public static string PluginButtonToolTip_DeletePlugin => Loc.Localize("InstallerDeletePlugin ", "Delete plugin");
+
+            public static string PluginButtonToolTip_DeletePluginRestricted => Loc.Localize("InstallerDeletePluginRestricted", "Cannot delete right now - please restart the game.");
+
+            public static string PluginButtonToolTip_DeletePluginLoaded => Loc.Localize("InstallerDeletePluginLoaded", "Disable this plugin before deleting it.");
 
             public static string PluginButtonToolTip_VisitPluginUrl => Loc.Localize("InstallerVisitPluginUrl", "Visit plugin URL");
 
@@ -2362,11 +2565,17 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
 
             public static string Notifications_PluginDisabled(string name) => Loc.Localize("NotificationsPluginDisabled", "'{0}' was disabled.").Format(name);
 
+            public static string Notifications_PluginEnabledTitle => Loc.Localize("NotificationsPluginEnabledTitle", "Plugin enabled!");
+
+            public static string Notifications_PluginEnabled(string name) => Loc.Localize("NotificationsPluginEnabled", "'{0}' was enabled.").Format(name);
+
             #endregion
 
             #region Footer
 
             public static string FooterButton_UpdatePlugins => Loc.Localize("InstallerUpdatePlugins", "Update plugins");
+
+            public static string FooterButton_UpdateSafeMode => Loc.Localize("InstallerUpdateSafeMode", "Can't update in safe mode");
 
             public static string FooterButton_InProgress => Loc.Localize("InstallerInProgress", "Install in progress...");
 

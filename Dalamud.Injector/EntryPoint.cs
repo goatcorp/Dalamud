@@ -91,6 +91,8 @@ namespace Dalamud.Injector
             args.Remove("--etw");
             args.Remove("--veh");
             args.Remove("--veh-full");
+            args.Remove("--no-plugin");
+            args.Remove("--no-3rd-plugin");
 
             var mainCommand = args[1].ToLowerInvariant();
             if (mainCommand.Length > 0 && mainCommand.Length <= 6 && "inject"[..mainCommand.Length] == mainCommand)
@@ -315,13 +317,15 @@ namespace Dalamud.Injector
             startInfo.BootShowConsole = args.Contains("--console");
             startInfo.BootEnableEtw = args.Contains("--etw");
             startInfo.BootLogPath = GetLogPath("dalamud.boot");
-            startInfo.BootEnabledGameFixes = new List<string> { "prevent_devicechange_crashes", "disable_game_openprocess_access_check", "redirect_openprocess", "backup_userdata_save" };
+            startInfo.BootEnabledGameFixes = new List<string> { "prevent_devicechange_crashes", "disable_game_openprocess_access_check", "redirect_openprocess", "backup_userdata_save", "clr_failfast_hijack" };
             startInfo.BootDotnetOpenProcessHookMode = 0;
             startInfo.BootWaitMessageBox |= args.Contains("--msgbox1") ? 1 : 0;
             startInfo.BootWaitMessageBox |= args.Contains("--msgbox2") ? 2 : 0;
             startInfo.BootWaitMessageBox |= args.Contains("--msgbox3") ? 4 : 0;
             startInfo.BootVehEnabled = args.Contains("--veh");
             startInfo.BootVehFull = args.Contains("--veh-full");
+            startInfo.NoLoadPlugins = args.Contains("--no-plugin");
+            startInfo.NoLoadThirdPartyPlugins = args.Contains("--no-third-plugin");
             // startInfo.BootUnhookDlls = new List<string>() { "kernel32.dll", "ntdll.dll", "user32.dll" };
 
             return startInfo;
@@ -362,6 +366,7 @@ namespace Dalamud.Injector
             Console.WriteLine("Enable ETW:\t[--etw]");
             Console.WriteLine("Enable VEH:\t[--veh], [--veh-full]");
             Console.WriteLine("Show messagebox:\t[--msgbox1], [--msgbox2], [--msgbox3]");
+            Console.WriteLine("No plugins:\t[--no-plugin] [--no-3rd-plugin]");
 
             return 0;
         }
@@ -546,8 +551,8 @@ namespace Dalamud.Injector
                 }
                 catch (Exception)
                 {
-                    gamePath = @"C:\Program Files (x86)\SquareEnix\FINAL FANTASY XIV - A Realm Reborn\game\ffxiv_dx11.exe";
-                    Log.Warning("Failed to read launcherConfigV3.json. Using default game installation path: {0}", gamePath);
+                    Log.Error("Failed to read launcherConfigV3.json to get the set-up game path, please specify one using -g");
+                    return -1;
                 }
 
                 if (!File.Exists(gamePath))
@@ -726,7 +731,7 @@ namespace Dalamud.Injector
             using var startInfoBuffer = new MemoryBufferHelper(process).CreatePrivateMemoryBuffer(startInfoBytes.Length + 0x8);
             var startInfoAddress = startInfoBuffer.Add(startInfoBytes);
 
-            if (startInfoAddress == IntPtr.Zero)
+            if (startInfoAddress == 0)
                 throw new Exception("Unable to allocate start info JSON");
 
             injector.GetFunctionAddress(bootModule, "Initialize", out var initAddress);

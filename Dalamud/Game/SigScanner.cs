@@ -326,7 +326,9 @@ namespace Dalamud.Game
             if (insnByte == 0xE8 || insnByte == 0xE9)
                 scanRet = ReadJmpCallSig(scanRet);
 
-            if (this.textCache != null)
+            // If this is below the module, there's bound to be a problem with the sig/resolution... Let's not save it
+            // TODO: THIS IS A HACK! FIX THE ROOT CAUSE!
+            if (this.textCache != null && scanRet.ToInt64() >= this.Module.BaseAddress.ToInt64())
             {
                 this.textCache[signature] = scanRet.ToInt64() - this.Module.BaseAddress.ToInt64();
             }
@@ -377,7 +379,7 @@ namespace Dalamud.Game
             }
             catch (Exception e)
             {
-                Log.Warning(e, "Failed to save cache to {0}", this.cacheFile);
+                Log.Warning(e, "Failed to save cache to {CachePath}", this.cacheFile);
             }
         }
 
@@ -532,7 +534,17 @@ namespace Dalamud.Game
                 return;
             }
 
-            this.textCache = JsonConvert.DeserializeObject<ConcurrentDictionary<string, long>>(File.ReadAllText(this.cacheFile.FullName)) ?? new ConcurrentDictionary<string, long>();
+            try
+            {
+                this.textCache =
+                    JsonConvert.DeserializeObject<ConcurrentDictionary<string, long>>(
+                        File.ReadAllText(this.cacheFile.FullName)) ?? new ConcurrentDictionary<string, long>();
+            }
+            catch (Exception ex)
+            {
+                this.textCache = new ConcurrentDictionary<string, long>();
+                Log.Error(ex, "Couldn't load cached sigs");
+            }
         }
     }
 }

@@ -1,6 +1,5 @@
 ﻿using System;
 
-using Dalamud.Plugin.Internal;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Utility;
 
