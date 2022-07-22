@@ -60,14 +60,17 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
         private bool errorModalDrawing = true;
         private bool errorModalOnNextFrame = false;
         private string errorModalMessage = string.Empty;
+        private TaskCompletionSource? errorModalTaskCompletionSource;
 
         private bool feedbackModalDrawing = true;
         private bool feedbackModalOnNextFrame = false;
+        private bool feedbackModalOnNextFrameDontClear = false;
         private string feedbackModalBody = string.Empty;
         private string feedbackModalContact = string.Empty;
         private bool feedbackModalIncludeException = false;
         private PluginManifest? feedbackPlugin = null;
         private bool feedbackIsTesting = false;
+        private bool feedbackIsAnonymous = false;
 
         private int updatePluginCount = 0;
         private List<PluginUpdateStatus>? updatedPlugins;
@@ -526,6 +529,7 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
                 if (ImGui.Button(Locs.ErrorModalButton_Ok, new Vector2(buttonWidth, 40)))
                 {
                     ImGui.CloseCurrentPopup();
+                    errorModalTaskCompletionSource?.SetResult();
                 }
 
                 ImGui.EndPopup();
@@ -568,7 +572,43 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
 
                 ImGui.Spacing();
 
-                ImGui.InputText(Locs.FeedbackModal_ContactInformation, ref this.feedbackModalContact, 100);
+                if (ImGui.Checkbox(Locs.FeedbackModal_ContactAnonymous, ref this.feedbackIsAnonymous))
+                {
+                    if (this.feedbackIsAnonymous)
+                        this.feedbackModalContact = string.Empty;
+                }
+
+                if (this.feedbackIsAnonymous)
+                {
+                    ImGui.BeginDisabled();
+                    ImGui.InputText(Locs.FeedbackModal_ContactInformation, ref this.feedbackModalContact, 0);
+                    ImGui.EndDisabled();
+                    ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudRed);
+                    ImGui.Text(Locs.FeedbackModal_ContactAnonymousWarning);
+                    ImGui.PopStyleColor();
+                }
+                else
+                {
+                    ImGui.InputText(Locs.FeedbackModal_ContactInformation, ref this.feedbackModalContact, 100);
+
+                    ImGui.SameLine();
+
+                    if (ImGui.Button(Locs.FeedbackModal_ContactInformationDiscordButton))
+                    {
+                        Process.Start(new ProcessStartInfo(Locs.FeedbackModal_ContactInformationDiscordUrl)
+                        {
+                            UseShellExecute = true,
+                        });
+                    }
+
+                    ImGui.Text(Locs.FeedbackModal_ContactInformationHelp);
+
+                    ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudRed);
+                    ImGui.Text(Locs.FeedbackModal_ContactInformationWarning);
+                    ImGui.PopStyleColor();
+                }
+
+                ImGui.Spacing();
 
                 ImGui.Checkbox(Locs.FeedbackModal_IncludeLastError, ref this.feedbackModalIncludeException);
                 ImGui.TextColored(ImGuiColors.DalamudGrey, Locs.FeedbackModal_IncludeLastErrorHint);
@@ -582,25 +622,52 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
 
                 if (ImGui.Button(Locs.ErrorModalButton_Ok, new Vector2(buttonWidth, 40)))
                 {
-                    if (this.feedbackPlugin != null)
+                    if (!this.feedbackIsAnonymous && string.IsNullOrWhiteSpace(this.feedbackModalContact))
                     {
-                        Task.Run(async () => await BugBait.SendFeedback(this.feedbackPlugin, this.feedbackIsTesting, this.feedbackModalBody, this.feedbackModalContact, this.feedbackModalIncludeException))
-                            .ContinueWith(
-                                t =>
-                                {
-                                    var notif = Service<NotificationManager>.Get();
-                                    if (t.IsCanceled || t.IsFaulted)
-                                        notif.AddNotification(Locs.FeedbackModal_NotificationError, Locs.FeedbackModal_Title, NotificationType.Error);
-                                    else
-                                        notif.AddNotification(Locs.FeedbackModal_NotificationSuccess, Locs.FeedbackModal_Title, NotificationType.Success);
-                                });
+                        this.ShowErrorModal(Locs.FeedbackModal_ContactInformationRequired)
+                            .ContinueWith(_ =>
+                            {
+                                this.feedbackModalOnNextFrameDontClear = true;
+                                this.feedbackModalOnNextFrame = true;
+                            });
                     }
                     else
                     {
-                        Log.Error("FeedbackPlugin was null.");
-                    }
+                        if (this.feedbackPlugin != null)
+                        {
+                            Task.Run(async () => await BugBait.SendFeedback(
+                                                     this.feedbackPlugin,
+                                                     this.feedbackIsTesting,
+                                                     this.feedbackModalBody,
+                                                     this.feedbackModalContact,
+                                                     this.feedbackModalIncludeException))
+                                .ContinueWith(
+                                    t =>
+                                    {
+                                        var notif = Service<NotificationManager>.Get();
+                                        if (t.IsCanceled || t.IsFaulted)
+                                        {
+                                            notif.AddNotification(
+                                                Locs.FeedbackModal_NotificationError,
+                                                Locs.FeedbackModal_Title,
+                                                NotificationType.Error);
+                                        }
+                                        else
+                                        {
+                                            notif.AddNotification(
+                                                Locs.FeedbackModal_NotificationSuccess,
+                                                Locs.FeedbackModal_Title,
+                                                NotificationType.Success);
+                                        }
+                                    });
+                        }
+                        else
+                        {
+                            Log.Error("FeedbackPlugin was null.");
+                        }
 
-                    ImGui.CloseCurrentPopup();
+                        ImGui.CloseCurrentPopup();
+                    }
                 }
 
                 ImGui.EndPopup();
@@ -611,9 +678,17 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
                 ImGui.OpenPopup(modalTitle);
                 this.feedbackModalOnNextFrame = false;
                 this.feedbackModalDrawing = true;
-                this.feedbackModalBody = string.Empty;
-                this.feedbackModalContact = string.Empty;
-                this.feedbackModalIncludeException = false;
+                if (!this.feedbackModalOnNextFrameDontClear)
+                {
+                    this.feedbackModalBody = string.Empty;
+                    this.feedbackModalContact = string.Empty;
+                    this.feedbackModalIncludeException = false;
+                    this.feedbackIsAnonymous = false;
+                }
+                else
+                {
+                    this.feedbackModalOnNextFrameDontClear = false;
+                }
             }
         }
 
@@ -2113,9 +2188,7 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
                     {
                         Log.Error(ex, $"Plugin installer threw an error during removal of {plugin.Name}");
 
-                        this.errorModalMessage = Locs.ErrorModal_DeleteFail(plugin.Name);
-                        this.errorModalDrawing = true;
-                        this.errorModalOnNextFrame = true;
+                        this.ShowErrorModal(Locs.ErrorModal_DeleteFail(plugin.Name));
                     }
                 }
 
@@ -2349,11 +2422,13 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
             return true;
         }
 
-        private void ShowErrorModal(string message)
+        private Task ShowErrorModal(string message)
         {
             this.errorModalMessage = message;
             this.errorModalDrawing = true;
             this.errorModalOnNextFrame = true;
+            this.errorModalTaskCompletionSource = new TaskCompletionSource();
+            return this.errorModalTaskCompletionSource!.Task;
         }
 
         private void UpdateCategoriesOnSearchChange()
@@ -2631,11 +2706,25 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
 
             public static string FeedbackModal_Title => Loc.Localize("InstallerFeedback", "Send Feedback");
 
-            public static string FeedbackModal_Text(string pluginName) => Loc.Localize("InstallerFeedbackInfo", "You can send feedback to the developer of \"{0}\" here.\nYou can include your Discord tag or email address if you wish to give them the opportunity to answer.\n\nIf you put your Discord name into the contact information field, please join the XIVLauncher discord server so we can get in touch.").Format(pluginName);
+            public static string FeedbackModal_Text(string pluginName) => Loc.Localize("InstallerFeedbackInfo", "You can send feedback to the developer of \"{0}\" here.").Format(pluginName);
 
             public static string FeedbackModal_HasUpdate => Loc.Localize("InstallerFeedbackHasUpdate", "A new version of this plugin is available, please update before reporting bugs.");
 
+            public static string FeedbackModal_ContactAnonymous => Loc.Localize("InstallerFeedbackContactAnonymous", "Submit feedback anonymously");
+
+            public static string FeedbackModal_ContactAnonymousWarning => Loc.Localize("InstallerFeedbackContactAnonymousWarning", "No response will be forthcoming.\nUntick \"{0}\" and provide contact information if you need help.").Format(FeedbackModal_ContactAnonymous);
+
             public static string FeedbackModal_ContactInformation => Loc.Localize("InstallerFeedbackContactInfo", "Contact information");
+
+            public static string FeedbackModal_ContactInformationHelp => Loc.Localize("InstallerFeedbackContactInfoHelp", "Discord usernames and e-mail addresses are accepted.\nIf you submit a Discord username, please join our discord server so that we can reach out to you easier.");
+
+            public static string FeedbackModal_ContactInformationWarning => Loc.Localize("InstallerFeedbackContactInfoWarning", "Do not submit in-game character names.");
+
+            public static string FeedbackModal_ContactInformationRequired => Loc.Localize("InstallerFeedbackContactInfoRequired", "Contact information has not been provided. If you do not want to provide contact information, tick on \"{0}\" above.").Format(FeedbackModal_ContactAnonymous);
+
+            public static string FeedbackModal_ContactInformationDiscordButton => Loc.Localize("ContactInformationDiscordButton", "Join Goat Place Discord");
+
+            public static string FeedbackModal_ContactInformationDiscordUrl => Loc.Localize("ContactInformationDiscordUrl", "https://goat.place/");
 
             public static string FeedbackModal_IncludeLastError => Loc.Localize("InstallerFeedbackIncludeLastError", "Include last error message");
 
