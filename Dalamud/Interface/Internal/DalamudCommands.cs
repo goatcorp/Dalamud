@@ -72,6 +72,18 @@ namespace Dalamud.Interface.Internal
                 ShowInHelp = false,
             });
 
+            commandManager.AddHandler("/xlstats", new CommandInfo(this.OnTogglePluginStats)
+            {
+                HelpMessage = Loc.Localize("DalamudPluginStats", "Draw plugin statistics window"),
+                ShowInHelp = false,
+            });
+
+            commandManager.AddHandler("/xlbranch", new CommandInfo(this.OnToggleBranchSwitcher)
+            {
+                HelpMessage = Loc.Localize("DalamudBranchSwitcher", "Draw branch switcher"),
+                ShowInHelp = false,
+            });
+
             commandManager.AddHandler("/xldata", new CommandInfo(this.OnDebugDrawDataMenu)
             {
                 HelpMessage = Loc.Localize("DalamudDevDataMenuHelp", "Draw dev data menu DEBUG. Usage: /xldata [Data Dropdown Type]"),
@@ -265,6 +277,16 @@ namespace Dalamud.Interface.Internal
         private void OnDebugDrawDevMenu(string command, string arguments)
         {
             Service<DalamudInterface>.Get().ToggleDevMenu();
+        }
+
+        private void OnTogglePluginStats(string command, string arguments)
+        {
+            Service<DalamudInterface>.Get().TogglePluginStatsWindow();
+        }
+
+        private void OnToggleBranchSwitcher(string command, string arguments)
+        {
+            Service<DalamudInterface>.Get().ToggleBranchSwitcher();
         }
 
         private void OnDebugDrawDataMenu(string command, string arguments)

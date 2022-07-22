@@ -376,6 +376,11 @@ namespace Dalamud.Interface.Internal
         /// </summary>
         public void ToggleProfilerWindow() => this.profilerWindow.Toggle();
 
+        /// <summary>
+        /// Toggles the <see cref="BranchSwitcherWindow"/>.
+        /// </summary>
+        public void ToggleBranchSwitcher() => this.branchSwitcherWindow.Toggle();
+
         #endregion
 
         private void OnDraw()
