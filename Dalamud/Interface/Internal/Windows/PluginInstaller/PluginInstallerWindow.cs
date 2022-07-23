@@ -1689,7 +1689,8 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
             }
 
             // Load error
-            if (plugin.State is PluginState.LoadError or PluginState.DependencyResolutionFailed && plugin.CheckPolicy())
+            if (plugin.State is PluginState.LoadError or PluginState.DependencyResolutionFailed && plugin.CheckPolicy()
+                && !plugin.IsOutdated && !plugin.IsBanned && !plugin.IsOrphaned)
             {
                 label += Locs.PluginTitleMod_LoadError;
                 trouble = true;
@@ -1747,6 +1748,12 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
             {
                 label += Locs.PluginTitleMod_OrphanedError;
                 trouble = true;
+            }
+
+            // Scheduled for deletion
+            if (plugin.Manifest.ScheduledForDeletion)
+            {
+                label += Locs.PluginTitleMod_ScheduledForDeletion;
             }
 
             ImGui.PushID($"installed{index}{plugin.Manifest.InternalName}");
@@ -1959,7 +1966,10 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
 
                             unloadTask.Wait();
                             if (!unloadTask.Result)
+                            {
+                                this.enableDisableStatus = OperationStatus.Complete;
                                 return;
+                            }
 
                             var disableTask = Task.Run(() => plugin.Disable())
                                                   .ContinueWith(this.DisplayErrorContinuation, Locs.ErrorModal_DisableFail(plugin.Name));
@@ -1985,7 +1995,10 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
 
                             enableTask.Wait();
                             if (!enableTask.Result)
+                            {
+                                this.enableDisableStatus = OperationStatus.Complete;
                                 return;
+                            }
 
                             var loadTask = Task.Run(() => plugin.LoadAsync(PluginLoadReason.Installer))
                                                .ContinueWith(this.DisplayErrorContinuation, Locs.ErrorModal_LoadFail(plugin.Name));
@@ -2152,8 +2165,10 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
 
             var pluginManager = Service<PluginManager>.Get();
 
+            var devNotDeletable = plugin.IsDev && plugin.State != PluginState.Unloaded && plugin.State != PluginState.DependencyResolutionFailed;
+
             ImGui.SameLine();
-            if (plugin.State != PluginState.Unloaded && plugin.State != PluginState.LoadError)
+            if (plugin.State == PluginState.Loaded || devNotDeletable)
             {
                 ImGui.PushFont(InterfaceManager.IconFont);
                 ImGuiComponents.DisabledButton(FontAwesomeIcon.TrashAlt.ToIconString());
@@ -2161,18 +2176,9 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
 
                 if (ImGui.IsItemHovered())
                 {
-                    ImGui.SetTooltip(Locs.PluginButtonToolTip_DeletePluginLoaded);
-                }
-            }
-            else if (plugin.HasEverStartedLoad && !plugin.IsDev)
-            {
-                ImGui.PushFont(InterfaceManager.IconFont);
-                ImGuiComponents.DisabledButton(FontAwesomeIcon.TrashAlt.ToIconString());
-                ImGui.PopFont();
-
-                if (ImGui.IsItemHovered())
-                {
-                    ImGui.SetTooltip(Locs.PluginButtonToolTip_DeletePluginRestricted);
+                    ImGui.SetTooltip(plugin.State == PluginState.Loaded
+                                         ? Locs.PluginButtonToolTip_DeletePluginLoaded
+                                         : Locs.PluginButtonToolTip_DeletePluginRestricted);
                 }
             }
             else
@@ -2181,8 +2187,19 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
                 {
                     try
                     {
-                        plugin.DllFile.Delete();
-                        pluginManager.RemovePlugin(plugin);
+                        if (plugin.IsDev)
+                        {
+                            plugin.DllFile.Delete();
+                        }
+                        else
+                        {
+                            plugin.ScheduleDeletion(!plugin.Manifest.ScheduledForDeletion);
+                        }
+
+                        if (plugin.State is PluginState.Unloaded or PluginState.DependencyResolutionFailed)
+                        {
+                            pluginManager.RemovePlugin(plugin);
+                        }
                     }
                     catch (Exception ex)
                     {
@@ -2194,7 +2211,21 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
 
                 if (ImGui.IsItemHovered())
                 {
-                    ImGui.SetTooltip(Locs.PluginButtonToolTip_DeletePlugin);
+                    string tooltipMessage;
+                    if (plugin.Manifest.ScheduledForDeletion)
+                    {
+                        tooltipMessage = Locs.PluginButtonToolTip_DeletePluginScheduledCancel;
+                    }
+                    else if (plugin.State is PluginState.Unloaded or PluginState.DependencyResolutionFailed)
+                    {
+                        tooltipMessage = Locs.PluginButtonToolTip_DeletePlugin;
+                    }
+                    else
+                    {
+                        tooltipMessage = Locs.PluginButtonToolTip_DeletePluginScheduled;
+                    }
+
+                    ImGui.SetTooltip(tooltipMessage);
                 }
             }
         }
@@ -2530,8 +2561,10 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
             public static string PluginTitleMod_OutdatedError => Loc.Localize("InstallerOutdatedError", " (outdated)");
 
             public static string PluginTitleMod_BannedError => Loc.Localize("InstallerBannedError", " (automatically disabled)");
-            
+
             public static string PluginTitleMod_OrphanedError => Loc.Localize("InstallerOrphanedError", " (unknown repository)");
+
+            public static string PluginTitleMod_ScheduledForDeletion => Loc.Localize("InstallerScheduledForDeletion", " (scheduled for deletion)");
 
             public static string PluginTitleMod_New => Loc.Localize("InstallerNewPlugin ", " New!");
 
@@ -2607,6 +2640,10 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
             public static string PluginButtonToolTip_DeletePlugin => Loc.Localize("InstallerDeletePlugin ", "Delete plugin");
 
             public static string PluginButtonToolTip_DeletePluginRestricted => Loc.Localize("InstallerDeletePluginRestricted", "Cannot delete right now - please restart the game.");
+
+            public static string PluginButtonToolTip_DeletePluginScheduled => Loc.Localize("InstallerDeletePluginScheduled", "Delete plugin on next restart");
+
+            public static string PluginButtonToolTip_DeletePluginScheduledCancel => Loc.Localize("InstallerDeletePluginScheduledCancel", "Cancel scheduled deletion");
 
             public static string PluginButtonToolTip_DeletePluginLoaded => Loc.Localize("InstallerDeletePluginLoaded", "Disable this plugin before deleting it.");
 

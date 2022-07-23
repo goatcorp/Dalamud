@@ -848,10 +848,17 @@ internal partial class PluginManager : IDisposable, IServiceType
                 }
                 else
                 {
-                    foreach (var versionDir in versionDirs)
+                    for (var i = 0; i < versionDirs.Length; i++)
                     {
+                        var versionDir = versionDirs[i];
                         try
                         {
+                            if (i != 0)
+                            {
+                                Log.Information($"Old version: cleaning up {versionDir.FullName}");
+                                versionDir.Delete(true);
+                                continue;
+                            }
                             var dllFile = new FileInfo(Path.Combine(versionDir.FullName, $"{pluginDir.Name}.dll"));
                             if (!dllFile.Exists)
                             {
@@ -864,6 +871,21 @@ internal partial class PluginManager : IDisposable, IServiceType
                             if (!manifestFile.Exists)
                             {
                                 Log.Information($"Missing manifest: cleaning up {versionDir.FullName}");
+                                versionDir.Delete(true);
+                                continue;
+                            }
+
+                            if (manifestFile.Length == 0)
+                            {
+                                Log.Information($"Manifest empty: cleaning up {versionDir.FullName}");
+                                versionDir.Delete(true);
+                                continue;
+                            }
+
+                            var manifest = LocalPluginManifest.Load(manifestFile);
+                            if (manifest.ScheduledForDeletion)
+                            {
+                                Log.Information($"Scheduled deletion: cleaning up {versionDir.FullName}");
                                 versionDir.Delete(true);
                             }
                         }
@@ -900,6 +922,9 @@ internal partial class PluginManager : IDisposable, IServiceType
                 continue;
 
             if (plugin.InstalledPlugin.Manifest.Disabled && ignoreDisabled)
+                continue;
+
+            if (plugin.InstalledPlugin.Manifest.ScheduledForDeletion)
                 continue;
 
             var result = await this.UpdateSinglePluginAsync(plugin, false, dryRun);
