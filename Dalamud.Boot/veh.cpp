@@ -372,7 +372,7 @@ LONG exception_handler(EXCEPTION_POINTERS* ex)
 
             break;
         case IDABORT:
-            ShellExecute(0, 0, L"https://goatcorp.github.io/faq/", 0, 0 , SW_SHOW );
+            ShellExecute(0, 0, L"https://goatcorp.github.io/faq?utm_source=vectored", 0, 0 , SW_SHOW );
             break;
         case IDCANCEL:
             break;
