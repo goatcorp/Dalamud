@@ -2,6 +2,9 @@
 
 #include "veh.h"
 
+#include "logging.h"
+#include "utils.h"
+
 PVOID g_veh_handle = nullptr;
 bool g_veh_do_full_dump = false;
 
@@ -218,7 +221,7 @@ void print_exception_info(const EXCEPTION_POINTERS* ex, std::wostringstream& log
 
 LONG exception_handler(EXCEPTION_POINTERS* ex)
 {
-    static std::mutex s_exception_handler_mutex;
+    static std::recursive_mutex s_exception_handler_mutex;
 
     if (!is_whitelist_exception(ex->ExceptionRecord->ExceptionCode))
         return EXCEPTION_CONTINUE_SEARCH;
@@ -229,16 +232,13 @@ LONG exception_handler(EXCEPTION_POINTERS* ex)
     // block any other exceptions hitting the veh while the messagebox is open
     const auto lock = std::lock_guard(s_exception_handler_mutex);
 
-    DWORD64 module_base;
-    std::filesystem::path module_path;
-
-    get_module_file_and_base(reinterpret_cast<DWORD64>(&exception_handler), module_base, module_path);
+    const auto module_path = utils::loaded_module(g_hModule).path().parent_path();
 #ifndef NDEBUG
-    std::wstring dmp_path = module_path.replace_filename(L"dalamud_appcrashd.dmp").wstring();
+    const auto dmp_path = (module_path / L"dalamud_appcrashd.dmp").wstring();
 #else
-    std::wstring dmp_path = module_path.replace_filename(L"dalamud_appcrash.dmp").wstring();
+    const auto dmp_path = (module_path / L"dalamud_appcrash.dmp").wstring();
 #endif
-    std::wstring log_path = module_path.replace_filename(L"dalamud_appcrash.log").wstring();
+    const auto log_path = (module_path / L"dalamud_appcrash.log").wstring();
 
     std::wostringstream log;
     log << std::format(L"Unhandled native exception occurred at {}", to_address_string(ex->ContextRecord->Rip, false)) << std::endl;
@@ -262,6 +262,7 @@ LONG exception_handler(EXCEPTION_POINTERS* ex)
     MiniDumpWriteDump(GetCurrentProcess(), GetCurrentProcessId(), file, miniDumpType, &ex_info, nullptr, nullptr);
     CloseHandle(file);
     
+    std::wstring message;
     void* fn;
     if (const auto err = static_cast<DWORD>(g_clr->get_function_pointer(
         L"Dalamud.EntryPoint, Dalamud",
@@ -269,24 +270,26 @@ LONG exception_handler(EXCEPTION_POINTERS* ex)
         L"Dalamud.EntryPoint+VehDelegate, Dalamud", 
         nullptr, nullptr, &fn)))
     {
-        const auto formatted = std::format(
+        message = std::format(
             L"An error within the game has occurred.\n\n"
             L"This may be caused by a faulty plugin, a broken TexTools modification, any other third-party tool or simply a bug in the game.\n"
             L"Please try \"Start Over\" or \"Download Index Backup\" in TexTools, an integrity check in the XIVLauncher settings, and disabling plugins you don't need.\n\n"
             L"The log file is located at:\n"
             L"{1}\n\n"
-            L"Press OK to exit the application.\n\nFailed to read stack trace: {2:08x}",
+            L"Press OK to exit the application.\n\nFailed to read stack trace: 0x{2:08x}",
             dmp_path, log_path, err);
-
-        // show in another thread to prevent messagebox from pumping messages of current thread
-        std::thread([&]() {
-            MessageBoxW(nullptr, formatted.c_str(), L"Dalamud Error", MB_OK | MB_ICONERROR | MB_TOPMOST);
-            }).join();
     }
     else
     {
-        ((void(__stdcall*)(const void*, const void*, const void*))fn)(dmp_path.c_str(), log_path.c_str(), log.str().c_str());
+        const auto pMessage = ((wchar_t*(__stdcall*)(const void*, const void*, const void*))fn)(dmp_path.c_str(), log_path.c_str(), log.str().c_str());
+        message = pMessage;
+        // Don't free it, as the program's going to be quit anyway
     }
+
+    logging::E(std::format(L"Trapped in VEH handler: {}", message));
+
+    // show in another thread to prevent messagebox from pumping messages of current thread
+    std::thread([&]() { MessageBoxW(nullptr, message.c_str(), L"Dalamud Error", MB_ICONERROR | MB_TOPMOST | MB_OK); }).join();
 
     return EXCEPTION_CONTINUE_SEARCH;
 }

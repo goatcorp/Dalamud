@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -43,7 +44,8 @@ namespace Dalamud
         /// <param name="dumpPath">Path to minidump file created in UTF-16.</param>
         /// <param name="logPath">Path to log file to create in UTF-16.</param>
         /// <param name="log">Log text in UTF-16.</param>
-        public delegate void VehDelegate(IntPtr dumpPath, IntPtr logPath, IntPtr log);
+        /// <returns>HGLOBAL for message.</returns>
+        public delegate IntPtr VehDelegate(IntPtr dumpPath, IntPtr logPath, IntPtr log);
 
         /// <summary>
         /// Initialize Dalamud.
@@ -67,7 +69,7 @@ namespace Dalamud
         /// <param name="dumpPath">Path to minidump file created in UTF-16.</param>
         /// <param name="logPath">Path to log file to create in UTF-16.</param>
         /// <param name="log">Log text in UTF-16.</param>
-        public static void VehCallback(IntPtr dumpPath, IntPtr logPath, IntPtr log)
+        public static IntPtr VehCallback(IntPtr dumpPath, IntPtr logPath, IntPtr log)
         {
             string stackTrace;
             try
@@ -97,19 +99,12 @@ namespace Dalamud
                 msg += "\n\nAdditionally, failed to write file: " + e.ToString();
             }
 
-            // Show in another thread to prevent messagebox from pumping messages of current thread.
-            var msgThread = new Thread(() =>
-            {
-                Utility.Util.Fatal(
-                    msg.Format(
+            msg = msg.Format(
                         Marshal.PtrToStringUni(dumpPath),
                         Marshal.PtrToStringUni(logPath),
-                        stackTrace),
-                    "Dalamud Error",
-                    false);
-            });
-            msgThread.Start();
-            msgThread.Join();
+                        stackTrace);
+
+            return Marshal.StringToHGlobalUni(msg);
         }
 
         /// <summary>
