@@ -7,7 +7,7 @@ namespace Dalamud.Game.Network.Structures
     /// Represents market board purchase information. This message is received from the
     /// server when a purchase is made at a market board.
     /// </summary>
-    internal class MarketBoardPurchase
+    public class MarketBoardPurchase
     {
         private MarketBoardPurchase()
         {
