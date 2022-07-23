@@ -165,11 +165,18 @@
     <ClInclude Include="DalamudStartInfo.h" />
     <ClInclude Include="hooks.h" />
     <ClInclude Include="logging.h" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="unicode.h" />
     <ClInclude Include="utils.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="veh.h" />
     <ClInclude Include="xivfixes.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Dalamud.Boot.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="dalamud.ico" />
   </ItemGroup>
   <Target Name="RemoveExtraFiles" AfterTargets="PostBuildEvent">
     <Delete Files="$(OutDir)$(TargetName).lib" />

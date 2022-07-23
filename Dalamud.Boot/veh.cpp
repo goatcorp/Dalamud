@@ -1,9 +1,25 @@
 #include "pch.h"
 
+#include "resource.h"
+
 #include "veh.h"
+
+#include <shellapi.h>
 
 #include "logging.h"
 #include "utils.h"
+
+#pragma comment(lib, "comctl32.lib")
+
+#if defined _M_IX86
+#pragma comment(linker, "/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='x86' publicKeyToken='6595b64144ccf1df' language='*'\"")
+#elif defined _M_IA64
+#pragma comment(linker, "/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='ia64' publicKeyToken='6595b64144ccf1df' language='*'\"")
+#elif defined _M_X64
+#pragma comment(linker, "/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='amd64' publicKeyToken='6595b64144ccf1df' language='*'\"")
+#else
+#pragma comment(linker, "/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
+#endif
 
 PVOID g_veh_handle = nullptr;
 bool g_veh_do_full_dump = false;
@@ -69,11 +85,11 @@ bool get_module_file_and_base(const DWORD64 address, DWORD64& module_base, std::
 }
 
 
-bool is_ffxiv_address(const DWORD64 address)
+bool is_ffxiv_address(const wchar_t* module_name, const DWORD64 address)
 {
     DWORD64 module_base;
     if (std::filesystem::path module_path; get_module_file_and_base(address, module_base, module_path))
-        return _wcsicmp(module_path.filename().c_str(), L"ffxiv_dx11.exe") == 0;
+        return _wcsicmp(module_path.filename().c_str(), module_name) == 0;
     return false;
 }
 
@@ -118,53 +134,9 @@ std::wstring to_address_string(const DWORD64 address, const bool try_ptrderef = 
     return value != 0 ? std::format(L"{} [{}]", addr_str, to_address_string(value, false)) : addr_str;
 }
 
-
-void print_exception_info(const EXCEPTION_POINTERS* ex, std::wostringstream& log)
+void print_exception_info_extended(const EXCEPTION_POINTERS* ex, std::wostringstream& log)
 {
-    size_t rec_index = 0;
-    for (auto rec = ex->ExceptionRecord; rec; rec = rec->ExceptionRecord)
-    {
-        log << std::format(L"\nException Info #{}\n", ++rec_index);
-        log << std::format(L"Address: {:X}\n", rec->ExceptionCode);
-        log << std::format(L"Flags: {:X}\n", rec->ExceptionFlags);
-        log << std::format(L"Address: {:X}\n", reinterpret_cast<size_t>(rec->ExceptionAddress));
-        if (!rec->NumberParameters)
-            continue;
-        log << L"Parameters: ";
-        for (DWORD i = 0; i < rec->NumberParameters; ++i)
-        {
-            if (i != 0)
-                log << L", ";
-            log << std::format(L"{:X}", rec->ExceptionInformation[i]);
-        }
-    }
-    
-    log << L"\nCall Stack\n{";
-
-    STACKFRAME64 sf;
-    sf.AddrPC.Offset = ex->ContextRecord->Rip;
-    sf.AddrPC.Mode = AddrModeFlat;
-    sf.AddrStack.Offset = ex->ContextRecord->Rsp;
-    sf.AddrStack.Mode = AddrModeFlat;
-    sf.AddrFrame.Offset = ex->ContextRecord->Rbp;
-    sf.AddrFrame.Mode = AddrModeFlat;
     CONTEXT ctx = *ex->ContextRecord;
-    int frame_index = 0;
-
-    log << std::format(L"\n  [{}]\t{}", frame_index++, to_address_string(sf.AddrPC.Offset, false));
-
-    do
-    {
-        if (!StackWalk64(IMAGE_FILE_MACHINE_AMD64, GetCurrentProcess(), GetCurrentThread(), &sf, &ctx, nullptr, SymFunctionTableAccess64, SymGetModuleBase64, nullptr))
-            break;
-
-        log << std::format(L"\n  [{}]\t{}", frame_index++, to_address_string(sf.AddrPC.Offset, false));
-
-    } while (sf.AddrReturn.Offset != 0 && sf.AddrPC.Offset != sf.AddrReturn.Offset);
-
-    log << L"\n}\n";
-
-    ctx = *ex->ContextRecord;
 
     log << L"\nRegisters\n{";
 
@@ -219,6 +191,70 @@ void print_exception_info(const EXCEPTION_POINTERS* ex, std::wostringstream& log
     log << L"\n}\n";
 }
 
+void print_exception_info(const EXCEPTION_POINTERS* ex, std::wostringstream& log)
+{
+    size_t rec_index = 0;
+    for (auto rec = ex->ExceptionRecord; rec; rec = rec->ExceptionRecord)
+    {
+        log << std::format(L"\nException Info #{}\n", ++rec_index);
+        log << std::format(L"Address: {:X}\n", rec->ExceptionCode);
+        log << std::format(L"Flags: {:X}\n", rec->ExceptionFlags);
+        log << std::format(L"Address: {:X}\n", reinterpret_cast<size_t>(rec->ExceptionAddress));
+        if (!rec->NumberParameters)
+            continue;
+        log << L"Parameters: ";
+        for (DWORD i = 0; i < rec->NumberParameters; ++i)
+        {
+            if (i != 0)
+                log << L", ";
+            log << std::format(L"{:X}", rec->ExceptionInformation[i]);
+        }
+    }
+    
+    log << L"\nCall Stack\n{";
+
+    STACKFRAME64 sf;
+    sf.AddrPC.Offset = ex->ContextRecord->Rip;
+    sf.AddrPC.Mode = AddrModeFlat;
+    sf.AddrStack.Offset = ex->ContextRecord->Rsp;
+    sf.AddrStack.Mode = AddrModeFlat;
+    sf.AddrFrame.Offset = ex->ContextRecord->Rbp;
+    sf.AddrFrame.Mode = AddrModeFlat;
+    CONTEXT ctx = *ex->ContextRecord;
+    int frame_index = 0;
+
+    log << std::format(L"\n  [{}]\t{}", frame_index++, to_address_string(sf.AddrPC.Offset, false));
+
+    do
+    {
+        if (!StackWalk64(IMAGE_FILE_MACHINE_AMD64, GetCurrentProcess(), GetCurrentThread(), &sf, &ctx, nullptr, SymFunctionTableAccess64, SymGetModuleBase64, nullptr))
+            break;
+
+        log << std::format(L"\n  [{}]\t{}", frame_index++, to_address_string(sf.AddrPC.Offset, false));
+
+    } while (sf.AddrReturn.Offset != 0 && sf.AddrPC.Offset != sf.AddrReturn.Offset);
+
+    log << L"\n}\n";
+}
+
+HRESULT CALLBACK TaskDialogCallbackProc(HWND hwnd,
+                                     UINT uNotification,
+                                     WPARAM wParam,
+                                     LPARAM lParam,
+                                     LONG_PTR dwRefData)
+{
+    HRESULT hr = S_OK;
+
+    switch (uNotification)
+    {
+    case TDN_CREATED:
+        SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+        break;
+    }
+
+    return hr;
+}
+
 LONG exception_handler(EXCEPTION_POINTERS* ex)
 {
     static std::recursive_mutex s_exception_handler_mutex;
@@ -226,7 +262,8 @@ LONG exception_handler(EXCEPTION_POINTERS* ex)
     if (!is_whitelist_exception(ex->ExceptionRecord->ExceptionCode))
         return EXCEPTION_CONTINUE_SEARCH;
 
-    if (!is_ffxiv_address(ex->ContextRecord->Rip))
+    if (!is_ffxiv_address(L"ffxiv_dx11.exe", ex->ContextRecord->Rip) &&
+        !is_ffxiv_address(L"cimgui.dll", ex->ContextRecord->Rip))
         return EXCEPTION_CONTINUE_SEARCH;
 
     // block any other exceptions hitting the veh while the messagebox is open
@@ -248,6 +285,8 @@ LONG exception_handler(EXCEPTION_POINTERS* ex)
 
     SymRefreshModuleList(GetCurrentProcess());
     print_exception_info(ex, log);
+    auto window_log_str = log.str();
+    print_exception_info_extended(ex, log);
 
     MINIDUMP_EXCEPTION_INFORMATION ex_info;
     ex_info.ClientPointers = false;
@@ -257,9 +296,9 @@ LONG exception_handler(EXCEPTION_POINTERS* ex)
     auto miniDumpType = MiniDumpWithDataSegs;
     if (g_veh_do_full_dump)
         miniDumpType = MiniDumpWithFullMemory;
-
+    
     HANDLE file = CreateFileW(dmp_path.c_str(), GENERIC_WRITE, FILE_SHARE_WRITE, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
-    MiniDumpWriteDump(GetCurrentProcess(), GetCurrentProcessId(), file, miniDumpType, &ex_info, nullptr, nullptr);
+    //MiniDumpWriteDump(GetCurrentProcess(), GetCurrentProcessId(), file, miniDumpType, &ex_info, nullptr, nullptr);
     CloseHandle(file);
     
     std::wstring message;
@@ -289,7 +328,58 @@ LONG exception_handler(EXCEPTION_POINTERS* ex)
     logging::E(std::format(L"Trapped in VEH handler: {}", message));
 
     // show in another thread to prevent messagebox from pumping messages of current thread
-    std::thread([&]() { MessageBoxW(nullptr, message.c_str(), L"Dalamud Error", MB_ICONERROR | MB_TOPMOST | MB_OK); }).join();
+    std::thread([&]()
+    {
+        int nButtonPressed = 0;
+        TASKDIALOGCONFIG config = {0};
+        const TASKDIALOG_BUTTON buttons[] = {
+            {IDOK, L"Disable all plugins"},
+            {IDABORT, L"Open help page"},
+        };
+        config.cbSize = sizeof(config);
+        config.hInstance = g_hModule;
+        config.dwCommonButtons = TDCBF_CLOSE_BUTTON;
+        config.pszMainIcon = MAKEINTRESOURCE(IDI_ICON1);
+        //config.hMainIcon = dalamud_icon;
+        config.pszMainInstruction = L"An error occurred";
+        config.pszContent = message.c_str();
+        config.pButtons = buttons;
+        config.cButtons = ARRAYSIZE(buttons);
+        config.pszExpandedInformation = window_log_str.c_str();
+        config.pszWindowTitle = L"Dalamud Error";
+        config.nDefaultButton = IDCLOSE;
+        config.cxWidth = 300;
+
+        // Can't do this, xiv stops pumping messages here
+        //config.hwndParent = FindWindowA("FFXIVGAME", NULL);
+        
+        config.pfCallback = TaskDialogCallbackProc;
+
+        TaskDialogIndirect(&config, &nButtonPressed, NULL, NULL);
+        switch (nButtonPressed)
+        {
+        case IDOK:
+            TCHAR szPath[MAX_PATH];
+            if (SUCCEEDED(SHGetFolderPath(NULL, CSIDL_APPDATA, NULL, SHGFP_TYPE_CURRENT, szPath)))
+            {
+                auto appdata = std::filesystem::path(szPath);
+                auto safemode_file_path = ( appdata / "XIVLauncher" / ".dalamud_safemode" );
+
+                std::ofstream ofs(safemode_file_path);
+                ofs << "STAY SAFE!!!"; 
+                ofs.close();
+            }
+
+            break;
+        case IDABORT:
+            ShellExecute(0, 0, L"https://goatcorp.github.io/faq/", 0, 0 , SW_SHOW );
+            break;
+        case IDCANCEL:
+            break;
+        default:
+            break;
+        }
+    }).join();
 
     return EXCEPTION_CONTINUE_SEARCH;
 }

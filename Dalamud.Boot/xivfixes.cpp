@@ -497,6 +497,7 @@ void xivfixes::clr_failfast_hijack(bool bApply)
 {
     static const char* LogTag = "[xivfixes:clr_failfast_hijack]";
     static std::optional<hooks::import_hook<decltype(RaiseFailFastException)>> s_HookClrFatalError;
+    static std::optional<hooks::import_hook<decltype(SetUnhandledExceptionFilter)>> s_HookSetUnhandledExceptionFilter;
 
     if (bApply)
     {
@@ -506,7 +507,8 @@ void xivfixes::clr_failfast_hijack(bool bApply)
         }
 
         s_HookClrFatalError.emplace("kernel32.dll!RaiseFailFastException (import, backup_userdata_save)", "kernel32.dll", "RaiseFailFastException", 0);
-
+        s_HookSetUnhandledExceptionFilter.emplace("kernel32.dll!SetUnhandledExceptionFilter (lpTopLevelExceptionFilter)", "kernel32.dll", "SetUnhandledExceptionFilter", 0);
+        
         s_HookClrFatalError->set_detour([](PEXCEPTION_RECORD pExceptionRecord,
                                            _In_opt_ PCONTEXT pContextRecord,
                                            _In_ DWORD dwFlags)
@@ -516,6 +518,12 @@ void xivfixes::clr_failfast_hijack(bool bApply)
             return s_HookClrFatalError->call_original(pExceptionRecord, pContextRecord, dwFlags);
         });
 
+        s_HookSetUnhandledExceptionFilter->set_detour([](LPTOP_LEVEL_EXCEPTION_FILTER lpTopLevelExceptionFilter) -> LPTOP_LEVEL_EXCEPTION_FILTER
+        {
+            logging::I("{} SetUnhandledExceptionFilter", LogTag);
+            return nullptr;
+        });
+
         logging::I("{} Enable", LogTag);
     }
     else
@@ -523,6 +531,7 @@ void xivfixes::clr_failfast_hijack(bool bApply)
         if (s_HookClrFatalError) {
             logging::I("{} Disable ClrFatalError", LogTag);
             s_HookClrFatalError.reset();
+            s_HookSetUnhandledExceptionFilter.reset();
         }
     }
 }

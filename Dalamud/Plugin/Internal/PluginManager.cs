@@ -69,6 +69,17 @@ internal partial class PluginManager : IDisposable, IServiceType
             this.devPluginDirectory.Create();
 
         this.SafeMode = EnvironmentConfiguration.DalamudNoPlugins || this.configuration.PluginSafeMode || this.startInfo.NoLoadPlugins;
+
+        try
+        {
+            var appdata = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+            this.SafeMode = this.SafeMode || File.Exists(Path.Combine(appdata, "XIVLauncher", ".dalamud_safemode"));
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Couldn't check safe mode file");
+        }
+
         if (this.SafeMode)
         {
             this.configuration.PluginSafeMode = false;

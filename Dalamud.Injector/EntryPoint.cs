@@ -322,7 +322,8 @@ namespace Dalamud.Injector
             startInfo.BootWaitMessageBox |= args.Contains("--msgbox1") ? 1 : 0;
             startInfo.BootWaitMessageBox |= args.Contains("--msgbox2") ? 2 : 0;
             startInfo.BootWaitMessageBox |= args.Contains("--msgbox3") ? 4 : 0;
-            startInfo.BootVehEnabled = args.Contains("--veh");
+            // startInfo.BootVehEnabled = args.Contains("--veh");
+            startInfo.BootVehEnabled = true;
             startInfo.BootVehFull = args.Contains("--veh-full");
             startInfo.NoLoadPlugins = args.Contains("--no-plugin");
             startInfo.NoLoadThirdPartyPlugins = args.Contains("--no-third-plugin");

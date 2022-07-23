@@ -138,5 +138,12 @@
     <ClInclude Include="..\lib\TsudaKageyu-minhook\src\HDE\table64.h">
       <Filter>MinHook</Filter>
     </ClInclude>
+    <ClInclude Include="resource.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Dalamud.Boot.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="dalamud.ico" />
   </ItemGroup>
 </Project>

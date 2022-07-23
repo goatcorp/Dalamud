@@ -81,12 +81,8 @@ namespace Dalamud
                 stackTrace = "Fail: " + e.ToString();
             }
 
-            var msg = "An error within the game has occurred.\n\n"
-                + "This may be caused by a faulty plugin, a broken TexTools modification, any other third-party tool or simply a bug in the game.\n"
-                + "Please try \"Start Over\" or \"Download Index Backup\" in TexTools, an integrity check in the XIVLauncher settings, and disabling plugins you don't need.\n\n"
-                + "The log file is located at:\n"
-                + "{1}\n\n"
-                + "Press OK to exit the application.\n\nStack trace:\n{2}";
+            var msg = "This may be caused by a faulty plugin, a broken TexTools modification, any other third-party tool or simply a bug in the game.\n\n"
+                      + "Please attempt an integrity check in the XIVLauncher settings, and disabling plugins you don't need.";
 
             try
             {
