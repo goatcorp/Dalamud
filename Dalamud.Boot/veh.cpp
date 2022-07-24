@@ -29,6 +29,8 @@ bool g_veh_do_full_dump = false;
 exception_info* g_crashhandler_shared_info;
 HANDLE g_crashhandler_event;
 
+std::chrono::time_point<std::chrono::system_clock> g_time_start;
+
 bool is_whitelist_exception(const DWORD code)
 {
     switch (code)
@@ -292,11 +294,6 @@ LONG exception_handler(EXCEPTION_POINTERS* ex)
     print_exception_info(ex, log);
     auto window_log_str = log.str();
     print_exception_info_extended(ex, log);
-
-    MINIDUMP_EXCEPTION_INFORMATION ex_info;
-    ex_info.ClientPointers = false;
-    ex_info.ExceptionPointers = ex;
-    ex_info.ThreadId = GetCurrentThreadId();
     
     if (g_crashhandler_shared_info && g_crashhandler_event)
     {
@@ -307,6 +304,15 @@ LONG exception_handler(EXCEPTION_POINTERS* ex)
         g_crashhandler_shared_info->ProcessId = GetCurrentProcessId();
         g_crashhandler_shared_info->ExceptionPointers = ex;
         g_crashhandler_shared_info->DoFullDump = g_veh_do_full_dump;
+        g_crashhandler_shared_info->ExceptionCode = ex->ExceptionRecord->ExceptionCode;
+
+        const auto time_now = std::chrono::system_clock::now();
+        auto lifetime = std::chrono::duration_cast<std::chrono::seconds>(
+                time_now.time_since_epoch()).count()
+            - std::chrono::duration_cast<std::chrono::seconds>(
+                g_time_start.time_since_epoch()).count();
+
+        g_crashhandler_shared_info->Lifetime = lifetime;
 
         SetEvent(g_crashhandler_event);
     }
@@ -402,6 +408,7 @@ bool veh::add_handler(bool doFullDump, std::string workingDirectory)
     SetUnhandledExceptionFilter(nullptr);
 
     g_veh_do_full_dump = doFullDump;
+    g_time_start = std::chrono::system_clock::now();
 
     auto file_mapping = CreateFileMapping(INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE, 0, sizeof(exception_info), SHARED_INFO_FILE_NAME);
     if (!file_mapping) {

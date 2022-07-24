@@ -9,6 +9,10 @@ struct exception_info
     DWORD ProcessId;
     BOOL DoFullDump;
     wchar_t DumpPath[1000];
+
+    // For metrics
+    DWORD ExceptionCode;
+    long long Lifetime;
 };
 
 constexpr wchar_t SHARED_INFO_FILE_NAME[] = L"DalamudCrashInfoShare";

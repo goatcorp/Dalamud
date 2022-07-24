@@ -1,11 +1,13 @@
 #include <iostream>
+#include <sstream>
 #include <windows.h>
 #include <minidumpapiset.h>
 #include <tlhelp32.h>
+#include <winhttp.h>
 
 #include "../Dalamud.Boot/crashhandler_shared.h"
 
-DWORD WINAPI MyThreadFunction(LPVOID lpParam)
+DWORD WINAPI ExitCheckThread(LPVOID lpParam)
 {
     while (true)
     {
@@ -53,7 +55,7 @@ int main()
     CreateThread(
         NULL,                   // default security attributes
         0,                      // use default stack size  
-        MyThreadFunction,       // thread function name
+        ExitCheckThread,       // thread function name
         NULL,          // argument to thread function 
         0,                      // use default creation flags 
         NULL);   // returns the thread identifier 
@@ -131,6 +133,39 @@ int main()
     CloseHandle(file);
     CloseHandle(process);
     CloseHandle(file_mapping);
+
+    if (getenv("DALAMUD_NO_METRIC"))
+        return 0;
+
+    HINTERNET internet = WinHttpOpen(L"DALAMUDCRASHHANDLER", WINHTTP_ACCESS_TYPE_AUTOMATIC_PROXY, NULL, NULL, WINHTTP_FLAG_SECURE_DEFAULTS);
+    HINTERNET connect = NULL, request = NULL;
+    if (internet)
+    {
+        connect = WinHttpConnect(internet, L"kamori.goats.dev", INTERNET_DEFAULT_HTTPS_PORT, 0);
+    }
+
+    if (connect)
+    {
+        std::wstringstream url{ L"/Dalamud/Metric/ReportCrash/" };
+        url << "?lt=" << info_share->Lifetime << "&code=" << std::hex << info_share->ExceptionCode;
+
+        request = WinHttpOpenRequest(internet, L"GET", url.str().c_str(), NULL, NULL, NULL, 0);
+    }
+
+    if (request)
+    {
+        bool sent = WinHttpSendRequest(request,
+            WINHTTP_NO_ADDITIONAL_HEADERS,
+            0, WINHTTP_NO_REQUEST_DATA, 0,
+            0, 0);
+
+        if (!sent)
+            std::cout << "Failed to send metric: " << std::hex << GetLastError() << std::endl;
+    }
+
+    if (request) WinHttpCloseHandle(request);
+    if (connect) WinHttpCloseHandle(connect);
+    if (internet) WinHttpCloseHandle(internet);
 
     return 0;
 }
