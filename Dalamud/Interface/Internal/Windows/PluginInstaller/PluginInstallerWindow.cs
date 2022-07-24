@@ -666,6 +666,11 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
                             Log.Error("FeedbackPlugin was null.");
                         }
 
+                        if (!string.IsNullOrWhiteSpace(this.feedbackModalContact))
+                        {
+                            Service<DalamudConfiguration>.Get().LastFeedbackContactDetails = this.feedbackModalContact;
+                        }
+
                         ImGui.CloseCurrentPopup();
                     }
                 }
@@ -681,7 +686,7 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
                 if (!this.feedbackModalOnNextFrameDontClear)
                 {
                     this.feedbackModalBody = string.Empty;
-                    this.feedbackModalContact = string.Empty;
+                    this.feedbackModalContact = Service<DalamudConfiguration>.Get().LastFeedbackContactDetails;
                     this.feedbackModalIncludeException = false;
                     this.feedbackIsAnonymous = false;
                 }

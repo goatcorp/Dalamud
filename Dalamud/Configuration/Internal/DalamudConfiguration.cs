@@ -333,6 +333,11 @@ namespace Dalamud.Configuration.Internal
         public bool ShowDevBarInfo { get; set; } = true;
 
         /// <summary>
+        /// Gets or sets the last-used contact details for the plugin feedback form.
+        /// </summary>
+        public string LastFeedbackContactDetails { get; set; } = string.Empty;
+
+        /// <summary>
         /// Load a configuration from the provided path.
         /// </summary>
         /// <param name="path">The path to load the configuration file from.</param>
