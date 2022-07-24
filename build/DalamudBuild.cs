@@ -104,6 +104,7 @@ public class DalamudBuild : NukeBuild
     Target Compile => _ => _
         .DependsOn(CompileDalamud)
         .DependsOn(CompileDalamudBoot)
+        .DependsOn(CompileDalamudCrashHandler)
         .DependsOn(CompileInjector)
         .DependsOn(CompileInjectorBoot);
 
