@@ -136,7 +136,7 @@ DWORD WINAPI InitializeImpl(LPVOID lpParam, HANDLE hMainThreadContinue) {
     if (utils::is_running_on_linux()) {
         logging::I("=> VEH was disabled, running on linux");
     } else if (g_startInfo.BootVehEnabled) {
-        if (veh::add_handler(g_startInfo.BootVehFull))
+        if (veh::add_handler(g_startInfo.BootVehFull, g_startInfo.WorkingDirectory))
             logging::I("=> Done!");
         else
             logging::I("=> Failed!");

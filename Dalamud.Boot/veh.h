@@ -2,6 +2,6 @@
 
 namespace veh
 {
-    bool add_handler(bool doFullDump);
+    bool add_handler(bool doFullDump, std::string workingDirectory);
     bool remove_handler();
 }

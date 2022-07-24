@@ -9,6 +9,8 @@
 #include "logging.h"
 #include "utils.h"
 
+#include "crashhandler_shared.h"
+
 #pragma comment(lib, "comctl32.lib")
 
 #if defined _M_IX86
@@ -23,6 +25,9 @@
 
 PVOID g_veh_handle = nullptr;
 bool g_veh_do_full_dump = false;
+
+exception_info* g_crashhandler_shared_info;
+HANDLE g_crashhandler_event;
 
 bool is_whitelist_exception(const DWORD code)
 {
@@ -292,14 +297,19 @@ LONG exception_handler(EXCEPTION_POINTERS* ex)
     ex_info.ClientPointers = false;
     ex_info.ExceptionPointers = ex;
     ex_info.ThreadId = GetCurrentThreadId();
-
-    auto miniDumpType = MiniDumpWithDataSegs;
-    if (g_veh_do_full_dump)
-        miniDumpType = MiniDumpWithFullMemory;
     
-    HANDLE file = CreateFileW(dmp_path.c_str(), GENERIC_WRITE, FILE_SHARE_WRITE, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
-    //MiniDumpWriteDump(GetCurrentProcess(), GetCurrentProcessId(), file, miniDumpType, &ex_info, nullptr, nullptr);
-    CloseHandle(file);
+    if (g_crashhandler_shared_info && g_crashhandler_event)
+    {
+        memset(g_crashhandler_shared_info, 0, sizeof(exception_info));
+        
+        wcsncpy_s(g_crashhandler_shared_info->DumpPath, dmp_path.c_str(), 1000);
+        g_crashhandler_shared_info->ThreadId = GetThreadId(GetCurrentThread());
+        g_crashhandler_shared_info->ProcessId = GetCurrentProcessId();
+        g_crashhandler_shared_info->ExceptionPointers = ex;
+        g_crashhandler_shared_info->DoFullDump = g_veh_do_full_dump;
+
+        SetEvent(g_crashhandler_event);
+    }
     
     std::wstring message;
     void* fn;
@@ -384,7 +394,7 @@ LONG exception_handler(EXCEPTION_POINTERS* ex)
     return EXCEPTION_CONTINUE_SEARCH;
 }
 
-bool veh::add_handler(bool doFullDump)
+bool veh::add_handler(bool doFullDump, std::string workingDirectory)
 {
     if (g_veh_handle)
         return false;
@@ -392,6 +402,58 @@ bool veh::add_handler(bool doFullDump)
     SetUnhandledExceptionFilter(nullptr);
 
     g_veh_do_full_dump = doFullDump;
+
+    auto file_mapping = CreateFileMapping(INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE, 0, sizeof(exception_info), SHARED_INFO_FILE_NAME);
+    if (!file_mapping) {
+        std::cout << "Could not map info share file.\n";
+        g_crashhandler_shared_info = nullptr;
+    }
+    else
+    {
+        g_crashhandler_shared_info = (exception_info*)MapViewOfFile(file_mapping, FILE_MAP_ALL_ACCESS, 0, 0, sizeof(exception_info));
+        if (!g_crashhandler_shared_info) {
+            std::cout << "Could not map view of info share file.\n";
+        }
+    }
+
+    g_crashhandler_event = CreateEvent(
+        NULL,               // default security attributes
+        TRUE,               // manual-reset event
+        FALSE,              // initial state is nonsignaled
+        CRASHDUMP_EVENT_NAME  // object name
+    );
+
+    if (!g_crashhandler_event)
+    {
+        std::cout << "Couldn't acquire event handle\n";
+    }
+
+    auto handler_path = std::filesystem::path(workingDirectory) / "DalamudCrashHandler.exe";
+    
+    // additional information
+    STARTUPINFO si;     
+    PROCESS_INFORMATION pi;
+
+    // set the size of the structures
+    ZeroMemory( &si, sizeof(si) );
+    si.cb = sizeof(si);
+    ZeroMemory( &pi, sizeof(pi) );
+
+    CreateProcess( handler_path.c_str(),   // the path
+    NULL,        // Command line
+    NULL,           // Process handle not inheritable
+    NULL,           // Thread handle not inheritable
+    FALSE,          // Set handle inheritance to FALSE
+    0,              // No creation flags
+    NULL,           // Use parent's environment block
+    NULL,           // Use parent's starting directory 
+    &si,            // Pointer to STARTUPINFO structure
+    &pi             // Pointer to PROCESS_INFORMATION structure (removed extra parentheses)
+    );
+
+    // Close process and thread handles. 
+    CloseHandle( pi.hProcess );
+    CloseHandle( pi.hThread );
 
     return g_veh_handle != nullptr;
 }
