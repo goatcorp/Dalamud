@@ -33,7 +33,7 @@ public class DalamudBuild : NukeBuild
     AbsolutePath DalamudBootProjectFile => DalamudBootProjectDir / "Dalamud.Boot.vcxproj";
     
     AbsolutePath DalamudCrashHandlerProjectDir => RootDirectory / "DalamudCrashHandler";
-    AbsolutePath DalamudCrashHandlerProjectFile => DalamudBootProjectDir / "DalamudCrashHandler.vcxproj";
+    AbsolutePath DalamudCrashHandlerProjectFile => DalamudCrashHandlerProjectDir / "DalamudCrashHandler.vcxproj";
 
     AbsolutePath InjectorProjectDir => RootDirectory / "Dalamud.Injector";
     AbsolutePath InjectorProjectFile => InjectorProjectDir / "Dalamud.Injector.csproj";
