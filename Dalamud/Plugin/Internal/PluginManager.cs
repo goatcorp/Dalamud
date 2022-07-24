@@ -73,7 +73,13 @@ internal partial class PluginManager : IDisposable, IServiceType
         try
         {
             var appdata = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-            this.SafeMode = this.SafeMode || File.Exists(Path.Combine(appdata, "XIVLauncher", ".dalamud_safemode"));
+            var safeModeFile = Path.Combine(appdata, "XIVLauncher", ".dalamud_safemode");
+
+            if (File.Exists(safeModeFile))
+            {
+                this.SafeMode = true;
+                File.Delete(safeModeFile);
+            }
         }
         catch (Exception ex)
         {
