@@ -8,6 +8,9 @@ struct DalamudStartInfo {
         BeforeDalamudConstruct = 1 << 2,
     };
     friend void from_json(const nlohmann::json&, WaitMessageboxFlags&);
+    friend WaitMessageboxFlags operator &(WaitMessageboxFlags a, WaitMessageboxFlags b) {
+        return static_cast<WaitMessageboxFlags>(static_cast<int>(a) & static_cast<int>(b));
+    }
 
     enum class DotNetOpenProcessHookMode : int {
         ImportHooks = 0,

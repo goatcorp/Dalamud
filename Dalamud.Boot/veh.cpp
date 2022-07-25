@@ -10,6 +10,7 @@
 #include "utils.h"
 
 #include "crashhandler_shared.h"
+#include "DalamudStartInfo.h"
 
 #pragma comment(lib, "comctl32.lib")
 
@@ -244,24 +245,6 @@ void print_exception_info(const EXCEPTION_POINTERS* ex, std::wostringstream& log
     log << L"\n}\n";
 }
 
-HRESULT CALLBACK TaskDialogCallbackProc(HWND hwnd,
-                                     UINT uNotification,
-                                     WPARAM wParam,
-                                     LPARAM lParam,
-                                     LONG_PTR dwRefData)
-{
-    HRESULT hr = S_OK;
-
-    switch (uNotification)
-    {
-    case TDN_CREATED:
-        SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
-        break;
-    }
-
-    return hr;
-}
-
 LONG exception_handler(EXCEPTION_POINTERS* ex)
 {
     static std::recursive_mutex s_exception_handler_mutex;
@@ -276,13 +259,15 @@ LONG exception_handler(EXCEPTION_POINTERS* ex)
     // block any other exceptions hitting the veh while the messagebox is open
     const auto lock = std::lock_guard(s_exception_handler_mutex);
 
-    const auto module_path = utils::loaded_module(g_hModule).path().parent_path();
+    const auto log_base_dir = g_startInfo.BootLogPath.empty()
+        ? utils::loaded_module(g_hModule).path().parent_path()
+        : std::filesystem::path(g_startInfo.BootLogPath).parent_path();
 #ifndef NDEBUG
-    const auto dmp_path = (module_path / L"dalamud_appcrashd.dmp").wstring();
+    const auto dmp_path = (log_base_dir / L"dalamud_appcrashd.dmp").wstring();
 #else
-    const auto dmp_path = (module_path / L"dalamud_appcrash.dmp").wstring();
+    const auto dmp_path = (log_base_dir / L"dalamud_appcrash.dmp").wstring();
 #endif
-    const auto log_path = (module_path / L"dalamud_appcrash.log").wstring();
+    const auto log_path = (log_base_dir / L"dalamud_appcrash.log").wstring();
 
     std::wostringstream log;
     log << std::format(L"Unhandled native exception occurred at {}", to_address_string(ex->ContextRecord->Rip, false)) << std::endl;
@@ -346,55 +331,158 @@ LONG exception_handler(EXCEPTION_POINTERS* ex)
     // show in another thread to prevent messagebox from pumping messages of current thread
     std::thread([&]()
     {
-        int nButtonPressed = 0;
         TASKDIALOGCONFIG config = {0};
-        const TASKDIALOG_BUTTON buttons[] = {
-            {IDOK, L"Disable all plugins"},
-            {IDABORT, L"Open help page"},
+
+        enum {
+            IdRadioRestartNormal = 101,
+            IdRadioRestartWithout3pPlugins,
+            IdRadioRestartWithoutPlugins,
+            IdRadioRestartWithoutDalamud,
         };
+
+        const TASKDIALOG_BUTTON radios[] {
+            {IdRadioRestartNormal, L"Restart"},
+            {IdRadioRestartWithout3pPlugins, L"Restart without 3rd party plugins"},
+            {IdRadioRestartWithoutPlugins, L"Restart without any plugin"},
+            {IdRadioRestartWithoutDalamud, L"Restart without Dalamud"},
+        };
+        
+        enum {
+            IdButtonRestart = 201,
+            IdButtonHelp = IDHELP,
+            IdButtonExit = IDCANCEL,
+        };
+
+        const TASKDIALOG_BUTTON buttons[] {
+            {IdButtonRestart, L"Restart\nRestart the game, optionally without plugins or Dalamud."},
+            {IdButtonExit, L"Exit\nExit the game."},
+        };
+        
         config.cbSize = sizeof(config);
         config.hInstance = g_hModule;
-        config.dwCommonButtons = TDCBF_CLOSE_BUTTON;
+        config.dwFlags = TDF_ENABLE_HYPERLINKS | TDF_CAN_BE_MINIMIZED | TDF_ALLOW_DIALOG_CANCELLATION | TDF_USE_COMMAND_LINKS;
         config.pszMainIcon = MAKEINTRESOURCE(IDI_ICON1);
-        //config.hMainIcon = dalamud_icon;
         config.pszMainInstruction = L"An error occurred";
         config.pszContent = message.c_str();
         config.pButtons = buttons;
         config.cButtons = ARRAYSIZE(buttons);
+        config.nDefaultButton = IdButtonRestart;
         config.pszExpandedInformation = window_log_str.c_str();
         config.pszWindowTitle = L"Dalamud Error";
-        config.nDefaultButton = IDCLOSE;
+        config.pRadioButtons = radios;
+        config.cRadioButtons = ARRAYSIZE(radios);
+        config.nDefaultRadioButton = IdRadioRestartNormal;
         config.cxWidth = 300;
+        config.pszFooter = LR"aaaaa(<a href="help">Open help</a> | <a href="log">Open log directory</a>)aaaaa";
 
         // Can't do this, xiv stops pumping messages here
         //config.hwndParent = FindWindowA("FFXIVGAME", NULL);
-        
-        config.pfCallback = TaskDialogCallbackProc;
 
-        TaskDialogIndirect(&config, &nButtonPressed, NULL, NULL);
-        switch (nButtonPressed)
+        const auto callback = [&](HWND hwnd, UINT uNotification, WPARAM wParam, LPARAM lParam) -> HRESULT
         {
-        case IDOK:
-            TCHAR szPath[MAX_PATH];
-            if (SUCCEEDED(SHGetFolderPath(NULL, CSIDL_APPDATA, NULL, SHGFP_TYPE_CURRENT, szPath)))
+            switch (uNotification)
             {
-                auto appdata = std::filesystem::path(szPath);
-                auto safemode_file_path = ( appdata / "XIVLauncher" / ".dalamud_safemode" );
-
-                std::ofstream ofs(safemode_file_path);
-                ofs << "STAY SAFE!!!"; 
-                ofs.close();
+                case TDN_CREATED:
+                {
+                    SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+                    return S_OK;
+                }
+                case TDN_HYPERLINK_CLICKED:
+                {
+                    const auto link = std::wstring_view(reinterpret_cast<const wchar_t*>(lParam));
+                    if (link == L"help")
+                        ShellExecuteW(hwnd, nullptr, L"https://goatcorp.github.io/faq?utm_source=vectored", nullptr, nullptr, SW_SHOW);
+                    else if (link == L"log")
+                        ShellExecuteW(hwnd, nullptr, log_base_dir.c_str(), nullptr, nullptr, SW_SHOW);
+                    return S_OK;
+                }
             }
 
-            break;
-        case IDABORT:
-            ShellExecute(0, 0, L"https://goatcorp.github.io/faq?utm_source=vectored", 0, 0 , SW_SHOW );
-            break;
-        case IDCANCEL:
-            break;
-        default:
-            break;
+            return S_OK;
+        };
+        
+        config.pfCallback = [](HWND hwnd, UINT uNotification, WPARAM wParam, LPARAM lParam, LONG_PTR dwRefData)
+        {
+            return (*reinterpret_cast<decltype(callback)*>(dwRefData))(hwnd, uNotification, wParam, lParam);
+        };
+        config.lpCallbackData = reinterpret_cast<LONG_PTR>(&callback);
+
+        int nButtonPressed = 0, nRadioButton = 0;
+        if (FAILED(TaskDialogIndirect(&config, &nButtonPressed, &nRadioButton, NULL)))
+            return EXCEPTION_CONTINUE_SEARCH;
+
+        switch (nButtonPressed)
+        {
+            case IdButtonRestart:
+            {
+                std::vector<std::wstring> args;
+                args.emplace_back((utils::loaded_module(g_hModule).path().parent_path() / L"Dalamud.Injector.exe").wstring());
+                args.emplace_back(L"launch");
+                args.emplace_back(L"-g");
+                args.emplace_back(utils::loaded_module::current_process().path().wstring());
+                if (g_startInfo.BootShowConsole)
+                    args.emplace_back(L"--console");
+                if (g_startInfo.BootEnableEtw)
+                    args.emplace_back(L"--etw");
+                if (g_startInfo.BootVehEnabled)
+                    args.emplace_back(L"--veh");
+                if (g_startInfo.BootVehFull)
+                    args.emplace_back(L"--veh-full");
+                if ((g_startInfo.BootWaitMessageBox & DalamudStartInfo::WaitMessageboxFlags::BeforeInitialize) != DalamudStartInfo::WaitMessageboxFlags::None)
+                    args.emplace_back(L"--msgbox1");
+                if ((g_startInfo.BootWaitMessageBox & DalamudStartInfo::WaitMessageboxFlags::BeforeDalamudEntrypoint) != DalamudStartInfo::WaitMessageboxFlags::None)
+                    args.emplace_back(L"--msgbox2");
+                if ((g_startInfo.BootWaitMessageBox & DalamudStartInfo::WaitMessageboxFlags::BeforeDalamudConstruct) != DalamudStartInfo::WaitMessageboxFlags::None)
+                    args.emplace_back(L"--msgbox3");
+                switch (nRadioButton)
+                {
+                    case IdRadioRestartWithout3pPlugins:
+                        args.emplace_back(L"--no-3rd-plugin");
+                        break;
+                    case IdRadioRestartWithoutPlugins:
+                        args.emplace_back(L"--no-plugin");
+                        break;
+                    case IdRadioRestartWithoutDalamud:
+                        args.emplace_back(L"--without-dalamud");
+                        break;
+                }
+                args.emplace_back(L"--");
+
+                if (int nArgs; LPWSTR* szArgList = CommandLineToArgvW(GetCommandLineW(), &nArgs)) {
+                    for (auto i = 1; i < nArgs; i++)
+                        args.emplace_back(szArgList[i]);
+                    LocalFree(szArgList);
+                }
+                
+                std::wstring argstr;
+                for (const auto& arg : args) {
+                    argstr.append(utils::escape_shell_arg(arg));
+                    argstr.push_back(L' ');
+                }
+                argstr.pop_back();
+
+                STARTUPINFOW si{};
+                si.cb = sizeof si;
+                si.dwFlags = STARTF_USESHOWWINDOW;
+#ifdef _DEBUG
+                si.wShowWindow = SW_SHOW;
+#else
+                si.wShowWindow = SW_HIDE;
+#endif
+                PROCESS_INFORMATION pi{};
+                if (CreateProcessW(args[0].c_str(), &argstr[0], nullptr, nullptr, FALSE, 0, nullptr, nullptr, &si, &pi))
+                {
+                    // attempt to prevent mutex clobbing by quitting as soon as possible
+                    TerminateProcess(GetCurrentProcess(), ex->ExceptionRecord->ExceptionCode);
+                }
+                else
+                {
+                    MessageBoxW(nullptr, std::format(L"Failed to restart: 0x{:x}", GetLastError()).c_str(), L"Dalamud Boot", MB_ICONERROR | MB_OK);
+                }
+                break;
+            }
         }
+        return 0;
     }).join();
 
     return EXCEPTION_CONTINUE_SEARCH;

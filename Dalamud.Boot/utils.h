@@ -260,4 +260,6 @@ namespace utils {
     HWND try_find_game_window();
 
     void wait_for_game_window();
+
+	std::wstring escape_shell_arg(const std::wstring& arg);
 }
