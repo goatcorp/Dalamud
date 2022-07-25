@@ -245,9 +245,90 @@ void print_exception_info(const EXCEPTION_POINTERS* ex, std::wostringstream& log
     log << L"\n}\n";
 }
 
+enum {
+    IdRadioRestartNormal = 101,
+    IdRadioRestartWithout3pPlugins,
+    IdRadioRestartWithoutPlugins,
+    IdRadioRestartWithoutDalamud,
+
+    IdButtonRestart = 201,
+    IdButtonHelp = IDHELP,
+    IdButtonExit = IDCANCEL,
+};
+
+static void restart_game_using_injector(int nRadioButton)
+{
+    std::vector<std::wstring> args;
+    args.emplace_back((utils::loaded_module(g_hModule).path().parent_path() / L"Dalamud.Injector.exe").wstring());
+    args.emplace_back(L"launch");
+    args.emplace_back(L"-g");
+    args.emplace_back(utils::loaded_module::current_process().path().wstring());
+    if (g_startInfo.BootShowConsole)
+        args.emplace_back(L"--console");
+    if (g_startInfo.BootEnableEtw)
+        args.emplace_back(L"--etw");
+    if (g_startInfo.BootVehEnabled)
+        args.emplace_back(L"--veh");
+    if (g_startInfo.BootVehFull)
+        args.emplace_back(L"--veh-full");
+    if ((g_startInfo.BootWaitMessageBox & DalamudStartInfo::WaitMessageboxFlags::BeforeInitialize) != DalamudStartInfo::WaitMessageboxFlags::None)
+        args.emplace_back(L"--msgbox1");
+    if ((g_startInfo.BootWaitMessageBox & DalamudStartInfo::WaitMessageboxFlags::BeforeDalamudEntrypoint) != DalamudStartInfo::WaitMessageboxFlags::None)
+        args.emplace_back(L"--msgbox2");
+    if ((g_startInfo.BootWaitMessageBox & DalamudStartInfo::WaitMessageboxFlags::BeforeDalamudConstruct) != DalamudStartInfo::WaitMessageboxFlags::None)
+        args.emplace_back(L"--msgbox3");
+    switch (nRadioButton) {
+        case IdRadioRestartWithout3pPlugins:
+            args.emplace_back(L"--no-3rd-plugin");
+            break;
+        case IdRadioRestartWithoutPlugins:
+            args.emplace_back(L"--no-plugin");
+            break;
+        case IdRadioRestartWithoutDalamud:
+            args.emplace_back(L"--without-dalamud");
+            break;
+    }
+    args.emplace_back(L"--");
+
+    if (int nArgs; LPWSTR * szArgList = CommandLineToArgvW(GetCommandLineW(), &nArgs)) {
+        for (auto i = 1; i < nArgs; i++)
+            args.emplace_back(szArgList[i]);
+        LocalFree(szArgList);
+    }
+
+    std::wstring argstr;
+    for (const auto& arg : args) {
+        argstr.append(utils::escape_shell_arg(arg));
+        argstr.push_back(L' ');
+    }
+    argstr.pop_back();
+
+    STARTUPINFOW si{};
+    si.cb = sizeof si;
+    si.dwFlags = STARTF_USESHOWWINDOW;
+#ifdef _DEBUG
+    si.wShowWindow = SW_SHOW;
+#else
+    si.wShowWindow = SW_HIDE;
+#endif
+    PROCESS_INFORMATION pi{};
+    if (CreateProcessW(args[0].c_str(), &argstr[0], nullptr, nullptr, FALSE, 0, nullptr, nullptr, &si, &pi)) {
+        CloseHandle(pi.hProcess);
+        CloseHandle(pi.hThread);
+    } else {
+        MessageBoxW(nullptr, std::format(L"Failed to restart: 0x{:x}", GetLastError()).c_str(), L"Dalamud Boot", MB_ICONERROR | MB_OK);
+    }
+}
+
 LONG exception_handler(EXCEPTION_POINTERS* ex)
 {
     static std::recursive_mutex s_exception_handler_mutex;
+
+    if (ex->ExceptionRecord->ExceptionCode == 0x12345678) {
+        restart_game_using_injector(IdRadioRestartNormal);
+        TerminateProcess(GetCurrentProcess(), 0);
+        return EXCEPTION_CONTINUE_SEARCH;
+    }
 
     if (!is_whitelist_exception(ex->ExceptionRecord->ExceptionCode))
         return EXCEPTION_CONTINUE_SEARCH;
@@ -333,13 +414,6 @@ LONG exception_handler(EXCEPTION_POINTERS* ex)
     {
         TASKDIALOGCONFIG config = {0};
 
-        enum {
-            IdRadioRestartNormal = 101,
-            IdRadioRestartWithout3pPlugins,
-            IdRadioRestartWithoutPlugins,
-            IdRadioRestartWithoutDalamud,
-        };
-
         const TASKDIALOG_BUTTON radios[] {
             {IdRadioRestartNormal, L"Restart"},
             {IdRadioRestartWithout3pPlugins, L"Restart without 3rd party plugins"},
@@ -347,12 +421,6 @@ LONG exception_handler(EXCEPTION_POINTERS* ex)
             {IdRadioRestartWithoutDalamud, L"Restart without Dalamud"},
         };
         
-        enum {
-            IdButtonRestart = 201,
-            IdButtonHelp = IDHELP,
-            IdButtonExit = IDCANCEL,
-        };
-
         const TASKDIALOG_BUTTON buttons[] {
             {IdButtonRestart, L"Restart\nRestart the game, optionally without plugins or Dalamud."},
             {IdButtonExit, L"Exit\nExit the game."},
@@ -415,70 +483,9 @@ LONG exception_handler(EXCEPTION_POINTERS* ex)
         {
             case IdButtonRestart:
             {
-                std::vector<std::wstring> args;
-                args.emplace_back((utils::loaded_module(g_hModule).path().parent_path() / L"Dalamud.Injector.exe").wstring());
-                args.emplace_back(L"launch");
-                args.emplace_back(L"-g");
-                args.emplace_back(utils::loaded_module::current_process().path().wstring());
-                if (g_startInfo.BootShowConsole)
-                    args.emplace_back(L"--console");
-                if (g_startInfo.BootEnableEtw)
-                    args.emplace_back(L"--etw");
-                if (g_startInfo.BootVehEnabled)
-                    args.emplace_back(L"--veh");
-                if (g_startInfo.BootVehFull)
-                    args.emplace_back(L"--veh-full");
-                if ((g_startInfo.BootWaitMessageBox & DalamudStartInfo::WaitMessageboxFlags::BeforeInitialize) != DalamudStartInfo::WaitMessageboxFlags::None)
-                    args.emplace_back(L"--msgbox1");
-                if ((g_startInfo.BootWaitMessageBox & DalamudStartInfo::WaitMessageboxFlags::BeforeDalamudEntrypoint) != DalamudStartInfo::WaitMessageboxFlags::None)
-                    args.emplace_back(L"--msgbox2");
-                if ((g_startInfo.BootWaitMessageBox & DalamudStartInfo::WaitMessageboxFlags::BeforeDalamudConstruct) != DalamudStartInfo::WaitMessageboxFlags::None)
-                    args.emplace_back(L"--msgbox3");
-                switch (nRadioButton)
-                {
-                    case IdRadioRestartWithout3pPlugins:
-                        args.emplace_back(L"--no-3rd-plugin");
-                        break;
-                    case IdRadioRestartWithoutPlugins:
-                        args.emplace_back(L"--no-plugin");
-                        break;
-                    case IdRadioRestartWithoutDalamud:
-                        args.emplace_back(L"--without-dalamud");
-                        break;
-                }
-                args.emplace_back(L"--");
-
-                if (int nArgs; LPWSTR* szArgList = CommandLineToArgvW(GetCommandLineW(), &nArgs)) {
-                    for (auto i = 1; i < nArgs; i++)
-                        args.emplace_back(szArgList[i]);
-                    LocalFree(szArgList);
-                }
-                
-                std::wstring argstr;
-                for (const auto& arg : args) {
-                    argstr.append(utils::escape_shell_arg(arg));
-                    argstr.push_back(L' ');
-                }
-                argstr.pop_back();
-
-                STARTUPINFOW si{};
-                si.cb = sizeof si;
-                si.dwFlags = STARTF_USESHOWWINDOW;
-#ifdef _DEBUG
-                si.wShowWindow = SW_SHOW;
-#else
-                si.wShowWindow = SW_HIDE;
-#endif
-                PROCESS_INFORMATION pi{};
-                if (CreateProcessW(args[0].c_str(), &argstr[0], nullptr, nullptr, FALSE, 0, nullptr, nullptr, &si, &pi))
-                {
-                    // attempt to prevent mutex clobbing by quitting as soon as possible
-                    TerminateProcess(GetCurrentProcess(), ex->ExceptionRecord->ExceptionCode);
-                }
-                else
-                {
-                    MessageBoxW(nullptr, std::format(L"Failed to restart: 0x{:x}", GetLastError()).c_str(), L"Dalamud Boot", MB_ICONERROR | MB_OK);
-                }
+                restart_game_using_injector(nRadioButton);
+                // attempt to prevent mutex clobbing by quitting as soon as possible
+                TerminateProcess(GetCurrentProcess(), ex->ExceptionRecord->ExceptionCode);
                 break;
             }
         }
