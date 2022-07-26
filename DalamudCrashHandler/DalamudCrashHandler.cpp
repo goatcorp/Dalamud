@@ -549,14 +549,11 @@ int main() {
         config.hInstance = GetModuleHandleW(nullptr);
         config.dwFlags = TDF_ENABLE_HYPERLINKS | TDF_CAN_BE_MINIMIZED | TDF_ALLOW_DIALOG_CANCELLATION | TDF_USE_COMMAND_LINKS;
         config.pszMainIcon = MAKEINTRESOURCE(IDI_ICON1);
-        config.pszMainInstruction = L"Error occurred";
+        config.pszMainInstruction = L"An error occurred";
         config.pszContent = (L""
-            R"aa(An error within the game has occurred.)aa" "\n"
+            R"aa(This may be caused by a faulty plugin, a broken TexTools modification, any other third-party tool, or simply a bug in the game.)aa" "\n"
             "\n"
-            R"aa(This may be caused by a faulty plugin, a broken TexTools modification, any other third-party tool or simply a bug in the game.)aa" "\n"
-            R"aa(Please try "Start Over" or "Download Index Backup" in TexTools, an integrity check in the XIVLauncher settings, and disabling plugins you don't need.)aa" "\n"
-            "\n"
-            R"aa(Open <a href="help">help</a>, <a href="logdir">log directory</a>, or <a href="logfile">log file</a>.)aa"
+            R"aa(Try running integrity check in the XIVLauncher settings, and disabling plugins you don't need.)aa"
         );
         config.pButtons = buttons;
         config.cButtons = ARRAYSIZE(buttons);
@@ -567,7 +564,9 @@ int main() {
         config.cRadioButtons = ARRAYSIZE(radios);
         config.nDefaultRadioButton = IdRadioRestartNormal;
         config.cxWidth = 300;
-        config.pszFooter = LR"aaaaa(<a href="resume">Attempt to resume</a>)aaaaa";
+        config.pszFooter = (L""
+            R"aa(<a href="help">Help</a> | <a href="logdir">Open log directory</a> | <a href="logfile">Open log file</a> | <a href="resume">Attempt to resume</a>)aa"
+        );
 
         // Can't do this, xiv stops pumping messages here
         //config.hwndParent = FindWindowA("FFXIVGAME", NULL);
