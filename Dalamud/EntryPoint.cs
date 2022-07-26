@@ -3,7 +3,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -41,11 +40,8 @@ namespace Dalamud
         /// <summary>
         /// A delegate used from VEH handler on exception which CoreCLR will fast fail by default.
         /// </summary>
-        /// <param name="dumpPath">Path to minidump file created in UTF-16.</param>
-        /// <param name="logPath">Path to log file to create in UTF-16.</param>
-        /// <param name="log">Log text in UTF-16.</param>
         /// <returns>HGLOBAL for message.</returns>
-        public delegate IntPtr VehDelegate(IntPtr dumpPath, IntPtr logPath, IntPtr log);
+        public delegate IntPtr VehDelegate();
 
         /// <summary>
         /// Initialize Dalamud.
@@ -64,43 +60,19 @@ namespace Dalamud
         }
 
         /// <summary>
-        /// Show error message along with stack trace and exit.
+        /// Returns stack trace.
         /// </summary>
-        /// <param name="dumpPath">Path to minidump file created in UTF-16.</param>
-        /// <param name="logPath">Path to log file to create in UTF-16.</param>
-        /// <param name="log">Log text in UTF-16.</param>
-        public static IntPtr VehCallback(IntPtr dumpPath, IntPtr logPath, IntPtr log)
+        /// <returns>HGlobal to wchar_t* stack trace c-string.</returns>
+        public static IntPtr VehCallback()
         {
-            string stackTrace;
             try
             {
-                stackTrace = Environment.StackTrace;
+                return Marshal.StringToHGlobalUni(Environment.StackTrace);
             }
             catch (Exception e)
             {
-                stackTrace = "Fail: " + e.ToString();
+                return Marshal.StringToHGlobalUni("Fail: " + e);
             }
-
-            var msg = "This may be caused by a faulty plugin, a broken TexTools modification, any other third-party tool or simply a bug in the game.\n\n"
-                      + "Please attempt an integrity check in the XIVLauncher settings, and disabling plugins you don't need.";
-
-            try
-            {
-                File.WriteAllText(
-                    Marshal.PtrToStringUni(logPath),
-                    "Stack trace:\n" + stackTrace + "\n\n" + Marshal.PtrToStringUni(log));
-            }
-            catch (Exception e)
-            {
-                msg += "\n\nAdditionally, failed to write file: " + e.ToString();
-            }
-
-            msg = msg.Format(
-                        Marshal.PtrToStringUni(dumpPath),
-                        Marshal.PtrToStringUni(logPath),
-                        stackTrace);
-
-            return Marshal.StringToHGlobalUni(msg);
         }
 
         /// <summary>

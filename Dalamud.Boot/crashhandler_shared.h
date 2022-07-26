@@ -1,19 +1,18 @@
 #pragma once
 
-#include "windows.h"
+#include <cinttypes>
+
+#define NOMINMAX
+#define WIN32_LEAN_AND_MEAN
+#include <Windows.h>
 
 struct exception_info
 {
-    void* ExceptionPointers; // Cannot dereference!
-    DWORD ThreadId;
-    DWORD ProcessId;
-    BOOL DoFullDump;
-    wchar_t DumpPath[1000];
-
-    // For metrics
-    DWORD ExceptionCode;
-    long long Lifetime;
+    LPEXCEPTION_POINTERS pExceptionPointers;
+    EXCEPTION_POINTERS ExceptionPointers;
+    EXCEPTION_RECORD ExceptionRecord;
+    CONTEXT ContextRecord;
+    uint64_t nLifetime;
+    HANDLE hThreadHandle;
+    DWORD dwStackTraceLength;
 };
-
-constexpr wchar_t SHARED_INFO_FILE_NAME[] = L"DalamudCrashInfoShare";
-constexpr wchar_t CRASHDUMP_EVENT_NAME[] = L"Global\\DalamudRequestWriteDump";
