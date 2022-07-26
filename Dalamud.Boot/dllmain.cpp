@@ -87,7 +87,7 @@ DWORD WINAPI InitializeImpl(LPVOID lpParam, HANDLE hMainThreadContinue) {
     logging::I("Dalamud.Boot Injectable, (c) 2021 XIVLauncher Contributors");
     logging::I("Built at: " __DATE__ "@" __TIME__);
 
-    if (static_cast<int>(g_startInfo.BootWaitMessageBox) & static_cast<int>(DalamudStartInfo::WaitMessageboxFlags::BeforeInitialize))
+    if ((g_startInfo.BootWaitMessageBox & DalamudStartInfo::WaitMessageboxFlags::BeforeInitialize) != DalamudStartInfo::WaitMessageboxFlags::None)
         MessageBoxW(nullptr, L"Press OK to continue (BeforeInitialize)", L"Dalamud Boot", MB_OK);
 
     if (minHookLoaded) {
