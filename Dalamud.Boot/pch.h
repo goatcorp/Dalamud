@@ -15,7 +15,6 @@
 #include <Windows.h>
 
 // Windows Header Files (2)
-#include <DbgHelp.h>
 #include <Dbt.h>
 #include <PathCch.h>
 #include <Psapi.h>
