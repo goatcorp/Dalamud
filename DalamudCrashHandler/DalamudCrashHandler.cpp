@@ -536,7 +536,7 @@ int main() {
         const TASKDIALOG_BUTTON radios[]{
             {IdRadioRestartNormal, L"Restart"},
             {IdRadioRestartWithout3pPlugins, L"Restart without 3rd party plugins"},
-            {IdRadioRestartWithoutPlugins, L"Restart without any plugin"},
+            {IdRadioRestartWithoutPlugins, L"Restart without any plugins"},
             {IdRadioRestartWithoutDalamud, L"Restart without Dalamud"},
         };
 
