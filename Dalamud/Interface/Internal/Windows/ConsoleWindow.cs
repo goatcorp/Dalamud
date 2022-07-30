@@ -12,6 +12,7 @@ using Dalamud.Interface.Colors;
 using Dalamud.Interface.Components;
 using Dalamud.Interface.Windowing;
 using Dalamud.Logging.Internal;
+using Dalamud.Plugin.Internal;
 using ImGuiNET;
 using Serilog;
 using Serilog.Events;
@@ -26,7 +27,7 @@ namespace Dalamud.Interface.Internal.Windows
         private readonly List<LogEntry> logText = new();
         private readonly object renderLock = new();
 
-        private readonly string[] logLevelStrings = new[] { "None", "Verbose", "Debug", "Information", "Warning", "Error", "Fatal" };
+        private readonly string[] logLevelStrings = new[] { "Verbose", "Debug", "Information", "Warning", "Error", "Fatal" };
 
         private List<LogEntry> filteredLogText = new();
         private bool autoScroll;
@@ -37,7 +38,8 @@ namespace Dalamud.Interface.Internal.Windows
         private string commandText = string.Empty;
 
         private string textFilter = string.Empty;
-        private LogEventLevel? levelFilter = null;
+        private int levelFilter;
+        private List<string> sourceFilters = new();
         private bool isFiltered = false;
 
         private int historyPos;
@@ -96,24 +98,23 @@ namespace Dalamud.Interface.Internal.Windows
         /// Add a single log line to the display.
         /// </summary>
         /// <param name="line">The line to add.</param>
-        /// <param name="level">The level of the event.</param>
-        /// <param name="offset">The <see cref="DateTimeOffset"/> of the event.</param>
-        public void HandleLogLine(string line, LogEventLevel level, DateTimeOffset offset)
+        /// <param name="logEvent">The Serilog event associated with this line.</param>
+        public void HandleLogLine(string line, LogEvent logEvent)
         {
             if (line.IndexOfAny(new[] { '\n', '\r' }) != -1)
             {
                 var subLines = line.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries);
 
-                this.AddAndFilter(subLines[0], level, offset, false);
+                this.AddAndFilter(subLines[0], logEvent, false);
 
                 for (var i = 1; i < subLines.Length; i++)
                 {
-                    this.AddAndFilter(subLines[i], level, offset, true);
+                    this.AddAndFilter(subLines[i], logEvent, true);
                 }
             }
             else
             {
-                this.AddAndFilter(line, level, offset, false);
+                this.AddAndFilter(line, logEvent, false);
             }
         }
 
@@ -160,11 +161,49 @@ namespace Dalamud.Interface.Internal.Windows
 
                 ImGui.TextColored(ImGuiColors.DalamudGrey, "Enter to confirm.");
 
-                var filterVal = this.levelFilter.HasValue ? (int)this.levelFilter.Value + 1 : 0;
-                if (ImGui.Combo("Level", ref filterVal, this.logLevelStrings, 7))
+                if (ImGui.BeginCombo("Levels", this.levelFilter == 0 ? "All Levels..." : "Selected Levels..."))
                 {
-                    this.levelFilter = (LogEventLevel)(filterVal - 1);
-                    this.Refilter();
+                    for (var i = 0; i < this.logLevelStrings.Length; i++)
+                    {
+                        if (ImGui.Selectable(this.logLevelStrings[i], ((this.levelFilter >> i) & 1) == 1))
+                        {
+                            this.levelFilter ^= 1 << i;
+                            this.Refilter();
+                        }
+                    }
+
+                    ImGui.EndCombo();
+                }
+
+                // Filter by specific plugin(s)
+                var pluginInternalNames = Service<PluginManager>.Get().InstalledPlugins.Select(p => p.Manifest.InternalName).ToList();
+                var sourcePreviewVal = this.sourceFilters.Count switch
+                {
+                    0 => "All plugins...",
+                    1 => "1 plugin...",
+                    _ => $"{this.sourceFilters.Count} plugins...",
+                };
+                var sourceSelectables = pluginInternalNames.Union(this.sourceFilters).ToList();
+                if (ImGui.BeginCombo("Plugins", sourcePreviewVal))
+                {
+                    foreach (var selectable in sourceSelectables)
+                    {
+                        if (ImGui.Selectable(selectable, this.sourceFilters.Contains(selectable)))
+                        {
+                            if (!this.sourceFilters.Contains(selectable))
+                            {
+                                this.sourceFilters.Add(selectable);
+                            }
+                            else
+                            {
+                                this.sourceFilters.Remove(selectable);
+                            }
+
+                            this.Refilter();
+                        }
+                    }
+
+                    ImGui.EndCombo();
                 }
 
                 ImGui.EndPopup();
@@ -435,7 +474,7 @@ namespace Dalamud.Interface.Internal.Windows
             return 0;
         }
 
-        private void AddAndFilter(string line, LogEventLevel level, DateTimeOffset offset, bool isMultiline)
+        private void AddAndFilter(string line, LogEvent logEvent, bool isMultiline)
         {
             if (line.StartsWith("TROUBLESHOOTING:") || line.StartsWith("LASTEXCEPTION:"))
                 return;
@@ -443,10 +482,16 @@ namespace Dalamud.Interface.Internal.Windows
             var entry = new LogEntry
             {
                 IsMultiline = isMultiline,
-                Level = level,
+                Level = logEvent.Level,
                 Line = line,
-                TimeStamp = offset,
+                TimeStamp = logEvent.Timestamp,
             };
+
+            if (logEvent.Properties.TryGetValue("SourceContext", out var sourceProp) &&
+                sourceProp is ScalarValue { Value: string value })
+            {
+                entry.Source = value;
+            }
 
             this.logText.Add(entry);
 
@@ -459,13 +504,14 @@ namespace Dalamud.Interface.Internal.Windows
 
         private bool IsFilterApplicable(LogEntry entry)
         {
-            if (this.levelFilter.HasValue)
-            {
-                return entry.Level == this.levelFilter.Value;
-            }
+            if (this.levelFilter > 0 && ((this.levelFilter >> (int)entry.Level) & 1) == 0)
+                return false;
 
-            if (!string.IsNullOrEmpty(this.textFilter))
-                return entry.Line.Contains(this.textFilter);
+            if (this.sourceFilters.Count > 0 && !this.sourceFilters.Contains(entry.Source))
+                return false;
+
+            if (!string.IsNullOrEmpty(this.textFilter) && !entry.Line.Contains(this.textFilter))
+                return false;
 
             return true;
         }
@@ -500,9 +546,9 @@ namespace Dalamud.Interface.Internal.Windows
             _ => throw new ArgumentOutOfRangeException(level.ToString(), "Invalid LogEventLevel"),
         };
 
-        private void OnLogLine(object sender, (string Line, LogEventLevel Level, DateTimeOffset Offset, Exception? Exception) logEvent)
+        private void OnLogLine(object sender, (string Line, LogEvent LogEvent) logEvent)
         {
-            this.HandleLogLine(logEvent.Line, logEvent.Level, logEvent.Offset);
+            this.HandleLogLine(logEvent.Line, logEvent.LogEvent);
         }
 
         private class LogEntry
@@ -514,6 +560,8 @@ namespace Dalamud.Interface.Internal.Windows
             public DateTimeOffset TimeStamp { get; set; }
 
             public bool IsMultiline { get; set; }
+
+            public string? Source { get; set; }
         }
     }
 }

@@ -25,7 +25,7 @@ namespace Dalamud.Logging.Internal
         /// <summary>
         /// Event on a log line being emitted.
         /// </summary>
-        public event EventHandler<(string Line, LogEventLevel Level, DateTimeOffset TimeStamp, Exception? Exception)>? LogLine;
+        public event EventHandler<(string Line, LogEvent LogEvent)>? LogLine;
 
         /// <summary>
         /// Gets the default instance.
@@ -40,12 +40,18 @@ namespace Dalamud.Logging.Internal
         {
             var message = logEvent.RenderMessage(this.formatProvider);
 
+            if (logEvent.Properties.TryGetValue("SourceContext", out var sourceProp) &&
+                sourceProp is ScalarValue { Value: string source })
+            {
+                message = $"[{source}] {message}";
+            }
+
             if (logEvent.Exception != null)
             {
                 message += "\n" + logEvent.Exception;
             }
 
-            this.LogLine?.Invoke(this, (message, logEvent.Level, logEvent.Timestamp, logEvent.Exception));
+            this.LogLine?.Invoke(this, (message, logEvent));
         }
     }
 }
