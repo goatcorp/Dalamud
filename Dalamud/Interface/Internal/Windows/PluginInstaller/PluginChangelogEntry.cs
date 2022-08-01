@@ -21,10 +21,7 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
             if (plugin.Manifest.Changelog.IsNullOrEmpty())
                 throw new ArgumentException("Manifest has no changelog.");
 
-            var version = plugin.AssemblyName?.Version;
-            version ??= plugin.Manifest.Testing
-                            ? plugin.Manifest.TestingAssemblyVersion
-                            : plugin.Manifest.AssemblyVersion;
+            var version = plugin.Manifest.EffectiveVersion;
 
             this.Version = version!.ToString();
         }
