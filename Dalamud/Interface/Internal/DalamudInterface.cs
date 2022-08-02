@@ -251,6 +251,11 @@ namespace Dalamud.Interface.Internal
         public void OpenPluginInstaller() => this.pluginWindow.IsOpen = true;
 
         /// <summary>
+        /// Opens the <see cref="PluginInstallerWindow"/> on the plugin changelogs.
+        /// </summary>
+        public void OpenPluginInstallerPluginChangelogs() => this.pluginWindow.OpenPluginChangelogs();
+
+        /// <summary>
         /// Opens the <see cref="SettingsWindow"/>.
         /// </summary>
         public void OpenSettings() => this.settingsWindow.IsOpen = true;
