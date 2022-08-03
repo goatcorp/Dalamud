@@ -325,8 +325,8 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
 
             ImGui.SetCursorPosY(ImGui.GetCursorPosY() - (5 * ImGuiHelpers.GlobalScale));
 
-            var searchInputWidth = 240 * ImGuiHelpers.GlobalScale;
-            var searchClearButtonWidth = 40 * ImGuiHelpers.GlobalScale;
+            var searchInputWidth = 180 * ImGuiHelpers.GlobalScale;
+            var searchClearButtonWidth = 25 * ImGuiHelpers.GlobalScale;
 
             var sortByText = Locs.SortBy_Label;
             var sortByTextWidth = ImGui.CalcTextSize(sortByText).X;
@@ -349,9 +349,10 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
             ImGui.SameLine();
 
             // Shift down a little to align with the middle of the header text
-            ImGui.SetCursorPosY(ImGui.GetCursorPosY() + (headerTextSize.Y / 4) - 2);
+            var downShift = ImGui.GetCursorPosY() + (headerTextSize.Y / 4) - 2;
+            ImGui.SetCursorPosY(downShift);
 
-            ImGui.SetCursorPosX(windowSize.X - sortSelectWidth - style.ItemSpacing.X - searchInputWidth - searchClearButtonWidth);
+            ImGui.SetCursorPosX(windowSize.X - sortSelectWidth - (style.ItemSpacing.X * 2) - searchInputWidth - searchClearButtonWidth);
 
             var searchTextChanged = false;
             ImGui.SetNextItemWidth(searchInputWidth);
@@ -362,6 +363,7 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
                 100);
 
             ImGui.SameLine();
+            ImGui.SetCursorPosY(downShift);
 
             ImGui.SetNextItemWidth(searchClearButtonWidth);
             if (ImGuiComponents.IconButton(FontAwesomeIcon.Times))
@@ -374,7 +376,7 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
                 this.UpdateCategoriesOnSearchChange();
 
             ImGui.SameLine();
-            ImGui.SetCursorPosX(windowSize.X - sortSelectWidth);
+            ImGui.SetCursorPosY(downShift);
             ImGui.SetNextItemWidth(selectableWidth);
             if (ImGui.BeginCombo(sortByText, this.filterText, ImGuiComboFlags.NoArrowButton))
             {
