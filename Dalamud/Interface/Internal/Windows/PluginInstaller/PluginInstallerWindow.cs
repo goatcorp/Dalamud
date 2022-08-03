@@ -303,6 +303,7 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
 
                             if (currentProgress != total)
                             {
+                                ImGui.SetCursorPosX(windowSize.X / 3);
                                 ImGui.ProgressBar(currentProgress / (float)total, new Vector2(windowSize.X / 3, 50));
                             }
                         }
