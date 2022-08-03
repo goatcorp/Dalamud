@@ -217,6 +217,16 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
             this.imageCache.ClearIconCache();
         }
 
+        /// <summary>
+        /// Open the window on the plugin changelogs.
+        /// </summary>
+        public void OpenPluginChangelogs()
+        {
+            this.categoryManager.CurrentGroupIdx = 3;
+            this.categoryManager.CurrentCategoryIdx = 2;
+            this.IsOpen = true;
+        }
+
         private void DrawProgressOverlay()
         {
             var pluginManager = Service<PluginManager>.Get();
@@ -501,7 +511,7 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
 
                                 if (this.updatePluginCount > 0)
                                 {
-                                    PluginManager.PrintUpdatedPlugins(this.updatedPlugins, Locs.PluginUpdateHeader_Chatbox);
+                                    Service<PluginManager>.Get().PrintUpdatedPlugins(this.updatedPlugins, Locs.PluginUpdateHeader_Chatbox);
                                     notifications.AddNotification(Locs.Notifications_UpdatesInstalled(this.updatePluginCount), Locs.Notifications_UpdatesInstalledTitle, NotificationType.Success);
 
                                     var installedGroupIdx = this.categoryManager.GroupList.TakeWhile(
