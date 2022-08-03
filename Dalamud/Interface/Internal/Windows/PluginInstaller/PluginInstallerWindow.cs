@@ -235,16 +235,19 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
             ImGui.SetCursorPos(Vector2.Zero);
 
             var windowSize = ImGui.GetWindowSize();
+            var titleHeight = ImGui.GetFontSize() + (ImGui.GetStyle().FramePadding.Y * 2);
 
-            ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, Vector2.Zero);
-            ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, Vector2.Zero);
-            ImGui.PushStyleVar(ImGuiStyleVar.CellPadding, Vector2.Zero);;
-            ImGui.PushStyleVar(ImGuiStyleVar.ChildBorderSize, 0);
-            ImGui.PushStyleVar(ImGuiStyleVar.ChildRounding, 0);
-
-            ImGui.SetNextWindowBgAlpha(0.8f);
             if (ImGui.BeginChild("###installerLoadingFrame", new Vector2(-1, -1), false))
             {
+                ImGui.GetWindowDrawList().PushClipRectFullScreen();
+                ImGui.GetWindowDrawList().AddRectFilled(
+                    ImGui.GetWindowPos() + new Vector2(0, titleHeight),
+                    ImGui.GetWindowPos() + windowSize,
+                    0xCC000000,
+                    ImGui.GetStyle().WindowRounding,
+                    ImDrawFlags.RoundCornersBottom);
+                ImGui.PopClipRect();
+
                 ImGui.SetCursorPosY(windowSize.Y / 2);
 
                 switch (this.loadingIndicatorKind)
@@ -303,6 +306,7 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
 
                             if (currentProgress != total)
                             {
+                                ImGui.SetCursorPosX(windowSize.X / 3);
                                 ImGui.ProgressBar(currentProgress / (float)total, new Vector2(windowSize.X / 3, 50));
                             }
                         }
@@ -314,8 +318,6 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
 
                 ImGui.EndChild();
             }
-
-            ImGui.PopStyleVar(5);
         }
 
         private void DrawHeader()
@@ -325,8 +327,8 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
 
             ImGui.SetCursorPosY(ImGui.GetCursorPosY() - (5 * ImGuiHelpers.GlobalScale));
 
-            var searchInputWidth = 240 * ImGuiHelpers.GlobalScale;
-            var searchClearButtonWidth = 40 * ImGuiHelpers.GlobalScale;
+            var searchInputWidth = 180 * ImGuiHelpers.GlobalScale;
+            var searchClearButtonWidth = 25 * ImGuiHelpers.GlobalScale;
 
             var sortByText = Locs.SortBy_Label;
             var sortByTextWidth = ImGui.CalcTextSize(sortByText).X;
@@ -349,9 +351,10 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
             ImGui.SameLine();
 
             // Shift down a little to align with the middle of the header text
-            ImGui.SetCursorPosY(ImGui.GetCursorPosY() + (headerTextSize.Y / 4) - 2);
+            var downShift = ImGui.GetCursorPosY() + (headerTextSize.Y / 4) - 2;
+            ImGui.SetCursorPosY(downShift);
 
-            ImGui.SetCursorPosX(windowSize.X - sortSelectWidth - style.ItemSpacing.X - searchInputWidth - searchClearButtonWidth);
+            ImGui.SetCursorPosX(windowSize.X - sortSelectWidth - (style.ItemSpacing.X * 2) - searchInputWidth - searchClearButtonWidth);
 
             var searchTextChanged = false;
             ImGui.SetNextItemWidth(searchInputWidth);
@@ -362,6 +365,7 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
                 100);
 
             ImGui.SameLine();
+            ImGui.SetCursorPosY(downShift);
 
             ImGui.SetNextItemWidth(searchClearButtonWidth);
             if (ImGuiComponents.IconButton(FontAwesomeIcon.Times))
@@ -374,7 +378,7 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
                 this.UpdateCategoriesOnSearchChange();
 
             ImGui.SameLine();
-            ImGui.SetCursorPosX(windowSize.X - sortSelectWidth);
+            ImGui.SetCursorPosY(downShift);
             ImGui.SetNextItemWidth(selectableWidth);
             if (ImGui.BeginCombo(sortByText, this.filterText, ImGuiComboFlags.NoArrowButton))
             {
