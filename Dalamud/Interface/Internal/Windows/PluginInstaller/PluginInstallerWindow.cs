@@ -235,16 +235,19 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
             ImGui.SetCursorPos(Vector2.Zero);
 
             var windowSize = ImGui.GetWindowSize();
+            var titleHeight = ImGui.GetFontSize() + (ImGui.GetStyle().FramePadding.Y * 2);
 
-            ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, Vector2.Zero);
-            ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, Vector2.Zero);
-            ImGui.PushStyleVar(ImGuiStyleVar.CellPadding, Vector2.Zero);;
-            ImGui.PushStyleVar(ImGuiStyleVar.ChildBorderSize, 0);
-            ImGui.PushStyleVar(ImGuiStyleVar.ChildRounding, 0);
-
-            ImGui.SetNextWindowBgAlpha(0.8f);
             if (ImGui.BeginChild("###installerLoadingFrame", new Vector2(-1, -1), false))
             {
+                ImGui.GetWindowDrawList().PushClipRectFullScreen();
+                ImGui.GetWindowDrawList().AddRectFilled(
+                    ImGui.GetWindowPos() + new Vector2(0, titleHeight),
+                    ImGui.GetWindowPos() + windowSize,
+                    0xCC000000,
+                    ImGui.GetStyle().WindowRounding,
+                    ImDrawFlags.RoundCornersBottom);
+                ImGui.PopClipRect();
+
                 ImGui.SetCursorPosY(windowSize.Y / 2);
 
                 switch (this.loadingIndicatorKind)
@@ -315,8 +318,6 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
 
                 ImGui.EndChild();
             }
-
-            ImGui.PopStyleVar(5);
         }
 
         private void DrawHeader()
