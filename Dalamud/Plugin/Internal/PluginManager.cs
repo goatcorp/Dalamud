@@ -265,10 +265,12 @@ internal partial class PluginManager : IDisposable, IServiceType
     /// <inheritdoc/>
     public void Dispose()
     {
-        if (this.InstalledPlugins.Any())
+        var disposablePlugins =
+            this.InstalledPlugins.Where(plugin => plugin.State is PluginState.Loaded or PluginState.LoadError).ToArray();
+        if (disposablePlugins.Any())
         {
             // Unload them first, just in case some of plugin codes are still running via callbacks initiated externally.
-            foreach (var plugin in this.InstalledPlugins.Where(plugin => !plugin.Manifest.CanUnloadAsync))
+            foreach (var plugin in disposablePlugins.Where(plugin => !plugin.Manifest.CanUnloadAsync))
             {
                 try
                 {
@@ -280,7 +282,7 @@ internal partial class PluginManager : IDisposable, IServiceType
                 }
             }
 
-            Task.WaitAll(this.InstalledPlugins
+            Task.WaitAll(disposablePlugins
                              .Where(plugin => plugin.Manifest.CanUnloadAsync)
                              .Select(plugin => Task.Run(async () =>
                              {
@@ -300,7 +302,7 @@ internal partial class PluginManager : IDisposable, IServiceType
 
             // Now that we've waited enough, dispose the whole plugin.
             // Since plugins should have been unloaded above, this should be done quickly.
-            foreach (var plugin in this.InstalledPlugins)
+            foreach (var plugin in disposablePlugins)
                 plugin.ExplicitDisposeIgnoreExceptions($"Error disposing {plugin.Name}", Log);
         }
 
