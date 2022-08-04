@@ -1688,6 +1688,12 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
             // Name
             var label = plugin.Manifest.Name;
 
+            // Dev
+            if (plugin.IsDev)
+            {
+                label += Locs.PluginTitleMod_DevPlugin;
+            }
+
             // Testing
             if (plugin.Manifest.Testing)
             {
@@ -1854,12 +1860,6 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
 
                 ImGui.SameLine();
                 ImGui.TextColored(ImGuiColors.DalamudGrey3, $" v{plugin.Manifest.EffectiveVersion}");
-
-                if (plugin.IsDev)
-                {
-                    ImGui.SameLine();
-                    ImGui.TextColored(ImGuiColors.DalamudRed, Locs.PluginBody_DeleteDevPlugin);
-                }
 
                 ImGuiHelpers.ScaledDummy(5);
 
@@ -2571,6 +2571,8 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
 
             public static string PluginTitleMod_TestingVersion => Loc.Localize("InstallerTestingVersion", " (testing version)");
 
+            public static string PluginTitleMod_DevPlugin => Loc.Localize("InstallerDevPlugin", " (dev plugin)");
+
             public static string PluginTitleMod_UpdateFailed => Loc.Localize("InstallerUpdateFailed", " (update failed)");
 
             public static string PluginTitleMod_LoadError => Loc.Localize("InstallerLoadError", " (load error)");
@@ -2614,9 +2616,6 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
             public static string PluginBody_Plugin3rdPartyRepo(string url) => Loc.Localize("InstallerPlugin3rdPartyRepo", "From custom plugin repository {0}").Format(url);
 
             public static string PluginBody_AvailableDevPlugin => Loc.Localize("InstallerDevPlugin", " This plugin is available in one of your repos, please remove it from the devPlugins folder.");
-
-            public static string PluginBody_DeleteDevPlugin => Loc.Localize("InstallerDeleteDevPlugin ", " To delete this plugin, please remove it from the devPlugins folder.");
-
             public static string PluginBody_Outdated => Loc.Localize("InstallerOutdatedPluginBody ", "This plugin is outdated and incompatible at the moment. Please wait for it to be updated by its author.");
 
             public static string PluginBody_Orphaned => Loc.Localize("InstallerOrphanedPluginBody ", "This plugin's source repository is no longer available. You may need to reinstall it from its repository, or re-add the repository.");
