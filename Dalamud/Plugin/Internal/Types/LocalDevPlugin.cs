@@ -138,9 +138,9 @@ internal class LocalDevPlugin : LocalPlugin, IDisposable
                     return;
                 }
 
-                if (this.State != PluginState.Loaded)
+                if (this.State != PluginState.Loaded && this.State != PluginState.LoadError)
                 {
-                    Log.Debug($"Skipping reload of {this.Name}, state ({this.State}) is not {PluginState.Loaded}.");
+                    Log.Debug($"Skipping reload of {this.Name}, state ({this.State}) is not {PluginState.Loaded} nor {PluginState.LoadError}.");
                     return;
                 }
 
