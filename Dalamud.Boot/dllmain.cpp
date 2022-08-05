@@ -87,7 +87,7 @@ DWORD WINAPI InitializeImpl(LPVOID lpParam, HANDLE hMainThreadContinue) {
     logging::I("Dalamud.Boot Injectable, (c) 2021 XIVLauncher Contributors");
     logging::I("Built at: " __DATE__ "@" __TIME__);
 
-    if (static_cast<int>(g_startInfo.BootWaitMessageBox) & static_cast<int>(DalamudStartInfo::WaitMessageboxFlags::BeforeInitialize))
+    if ((g_startInfo.BootWaitMessageBox & DalamudStartInfo::WaitMessageboxFlags::BeforeInitialize) != DalamudStartInfo::WaitMessageboxFlags::None)
         MessageBoxW(nullptr, L"Press OK to continue (BeforeInitialize)", L"Dalamud Boot", MB_OK);
 
     if (minHookLoaded) {
@@ -136,7 +136,7 @@ DWORD WINAPI InitializeImpl(LPVOID lpParam, HANDLE hMainThreadContinue) {
     if (utils::is_running_on_linux()) {
         logging::I("=> VEH was disabled, running on linux");
     } else if (g_startInfo.BootVehEnabled) {
-        if (veh::add_handler(g_startInfo.BootVehFull))
+        if (veh::add_handler(g_startInfo.BootVehFull, g_startInfo.WorkingDirectory))
             logging::I("=> Done!");
         else
             logging::I("=> Failed!");
@@ -172,6 +172,9 @@ BOOL APIENTRY DllMain(const HMODULE hModule, const DWORD dwReason, LPVOID lpRese
             break;
 
         case DLL_PROCESS_DETACH:
+            // do not show debug message boxes on abort() here
+            _set_abort_behavior(0, _WRITE_ABORT_MSG);
+            
             // process is terminating; don't bother cleaning up
             if (lpReserved)
                 return TRUE;

@@ -43,6 +43,7 @@ namespace Dalamud.Interface.Internal.Windows
         public const int PluginIconHeight = 512;
 
         private const string MainRepoImageUrl = "https://raw.githubusercontent.com/goatcorp/DalamudPlugins/api6/{0}/{1}/images/{2}";
+        private const string MainRepoDip17ImageUrl = "https://raw.githubusercontent.com/goatcorp/PluginDistD17/main/{0}/{1}/images/{2}";
 
         private readonly BlockingCollection<Tuple<ulong, Func<Task>>> downloadQueue = new();
         private readonly BlockingCollection<Func<Task>> loadQueue = new();
@@ -54,6 +55,7 @@ namespace Dalamud.Interface.Internal.Windows
         private readonly ConcurrentDictionary<string, TextureWrap?[]?> pluginImagesMap = new();
 
         private readonly Task<TextureWrap> emptyTextureTask;
+        private readonly Task<TextureWrap> disabledIconTask;
         private readonly Task<TextureWrap> defaultIconTask;
         private readonly Task<TextureWrap> troubleIconTask;
         private readonly Task<TextureWrap> updateIconTask;
@@ -71,6 +73,7 @@ namespace Dalamud.Interface.Internal.Windows
 
             this.emptyTextureTask = imwst.ContinueWith(task => task.Result.Manager.LoadImageRaw(new byte[64], 8, 8, 4)!);
             this.defaultIconTask = imwst.ContinueWith(task => TaskWrapIfNonNull(task.Result.Manager.LoadImage(Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "defaultIcon.png"))) ?? this.emptyTextureTask).Unwrap();
+            this.disabledIconTask = imwst.ContinueWith(task => TaskWrapIfNonNull(task.Result.Manager.LoadImage(Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "disabledIcon.png"))) ?? this.emptyTextureTask).Unwrap();
             this.troubleIconTask = imwst.ContinueWith(task => TaskWrapIfNonNull(task.Result.Manager.LoadImage(Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "troubleIcon.png"))) ?? this.emptyTextureTask).Unwrap();
             this.updateIconTask = imwst.ContinueWith(task => TaskWrapIfNonNull(task.Result.Manager.LoadImage(Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "updateIcon.png"))) ?? this.emptyTextureTask).Unwrap();
             this.installedIconTask = imwst.ContinueWith(task => TaskWrapIfNonNull(task.Result.Manager.LoadImage(Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "installedIcon.png"))) ?? this.emptyTextureTask).Unwrap();
@@ -90,6 +93,13 @@ namespace Dalamud.Interface.Internal.Windows
         public TextureWrap EmptyTexture => this.emptyTextureTask.IsCompleted
                                                ? this.emptyTextureTask.Result
                                                : this.emptyTextureTask.GetAwaiter().GetResult();
+
+        /// <summary>
+        /// Gets the default plugin icon.
+        /// </summary>
+        public TextureWrap DisabledIcon => this.disabledIconTask.IsCompleted
+                                              ? this.disabledIconTask.Result
+                                              : this.disabledIconTask.GetAwaiter().GetResult();
 
         /// <summary>
         /// Gets the default plugin icon.
@@ -644,6 +654,9 @@ namespace Dalamud.Interface.Internal.Windows
             if (isThirdParty)
                 return manifest.IconUrl;
 
+            if (manifest.IsDip17Plugin)
+                return MainRepoDip17ImageUrl.Format(manifest.Dip17Channel!, manifest.InternalName, "icon.png");
+
             return MainRepoImageUrl.Format(isTesting ? "testing" : "plugins", manifest.InternalName, "icon.png");
         }
 
@@ -663,7 +676,14 @@ namespace Dalamud.Interface.Internal.Windows
             var output = new List<string>();
             for (var i = 1; i <= 5; i++)
             {
-                output.Add(MainRepoImageUrl.Format(isTesting ? "testing" : "plugins", manifest.InternalName, $"image{i}.png"));
+                if (manifest.IsDip17Plugin)
+                {
+                    output.Add(MainRepoDip17ImageUrl.Format(manifest.Dip17Channel!, manifest.InternalName, $"image{i}.png"));
+                }
+                else
+                {
+                    output.Add(MainRepoImageUrl.Format(isTesting ? "testing" : "plugins", manifest.InternalName, $"image{i}.png"));
+                }
             }
 
             return output;

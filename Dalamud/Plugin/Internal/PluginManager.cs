@@ -17,6 +17,8 @@ using Dalamud.Game;
 using Dalamud.Game.Gui;
 using Dalamud.Game.Gui.Dtr;
 using Dalamud.Game.Text;
+using Dalamud.Game.Text.SeStringHandling;
+using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Interface.Internal;
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Internal.Exceptions;
@@ -50,6 +52,8 @@ internal partial class PluginManager : IDisposable, IServiceType
     private readonly DirectoryInfo devPluginDirectory;
     private readonly BannedPlugin[]? bannedPlugins;
 
+    private readonly DalamudLinkPayload openInstallerWindowPluginChangelogsLink;
+
     [ServiceManager.ServiceDependency]
     private readonly DalamudConfiguration configuration = Service<DalamudConfiguration>.Get();
 
@@ -69,6 +73,23 @@ internal partial class PluginManager : IDisposable, IServiceType
             this.devPluginDirectory.Create();
 
         this.SafeMode = EnvironmentConfiguration.DalamudNoPlugins || this.configuration.PluginSafeMode || this.startInfo.NoLoadPlugins;
+
+        try
+        {
+            var appdata = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+            var safeModeFile = Path.Combine(appdata, "XIVLauncher", ".dalamud_safemode");
+
+            if (File.Exists(safeModeFile))
+            {
+                this.SafeMode = true;
+                File.Delete(safeModeFile);
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Couldn't check safe mode file");
+        }
+
         if (this.SafeMode)
         {
             this.configuration.PluginSafeMode = false;
@@ -83,6 +104,11 @@ internal partial class PluginManager : IDisposable, IServiceType
         {
             throw new InvalidDataException("Couldn't deserialize banned plugins manifest.");
         }
+
+        this.openInstallerWindowPluginChangelogsLink = Service<ChatGui>.Get().AddChatLinkHandler("Dalamud", 1003, (i, m) =>
+        {
+            Service<DalamudInterface>.GetNullable()?.OpenPluginInstallerPluginChangelogs();
+        });
 
         this.ApplyPatches();
     }
@@ -125,7 +151,7 @@ internal partial class PluginManager : IDisposable, IServiceType
     /// <summary>
     /// Gets a value indicating whether all added repos are not in progress.
     /// </summary>
-    public bool ReposReady => this.Repos.All(repo => repo.State != PluginRepositoryState.InProgress);
+    public bool ReposReady => this.Repos.All(repo => repo.State != PluginRepositoryState.InProgress || repo.State != PluginRepositoryState.Fail);
 
     /// <summary>
     /// Gets a value indicating whether the plugin manager started in safe mode.
@@ -152,25 +178,38 @@ internal partial class PluginManager : IDisposable, IServiceType
     /// </summary>
     /// <param name="updateMetadata">The list of updated plugin metadata.</param>
     /// <param name="header">The header text to send to chat prior to any update info.</param>
-    public static void PrintUpdatedPlugins(List<PluginUpdateStatus>? updateMetadata, string header)
+    public void PrintUpdatedPlugins(List<PluginUpdateStatus>? updateMetadata, string header)
     {
         var chatGui = Service<ChatGui>.Get();
 
         if (updateMetadata is { Count: > 0 })
         {
-            chatGui.Print(header);
+            chatGui.PrintChat(new XivChatEntry
+            {
+                Message = new SeString(new List<Payload>()
+                {
+                    new TextPayload(header),
+                    new TextPayload("  ["),
+                    new UIForegroundPayload(500),
+                    this.openInstallerWindowPluginChangelogsLink,
+                    new TextPayload(Loc.Localize("DalamudInstallerPluginChangelogHelp", "Open plugin changelogs") + " "),
+                    RawPayload.LinkTerminator,
+                    new UIForegroundPayload(0),
+                    new TextPayload("]"),
+                }),
+            });
 
             foreach (var metadata in updateMetadata)
             {
                 if (metadata.WasUpdated)
                 {
-                    chatGui.Print(Locs.DalamudPluginUpdateSuccessful(metadata.Name, metadata.Version));
+                    chatGui.Print(Locs.DalamudPluginUpdateSuccessful(metadata.Name, metadata.Version) + (metadata.HasChangelog ? " " : string.Empty));
                 }
                 else
                 {
                     chatGui.PrintChat(new XivChatEntry
                     {
-                        Message = Locs.DalamudPluginUpdateFailed(metadata.Name, metadata.Version),
+                        Message = Locs.DalamudPluginUpdateFailed(metadata.Name, metadata.Version) + (metadata.HasChangelog ? " " : string.Empty),
                         Type = XivChatType.Urgent,
                     });
                 }
@@ -226,10 +265,12 @@ internal partial class PluginManager : IDisposable, IServiceType
     /// <inheritdoc/>
     public void Dispose()
     {
-        if (this.InstalledPlugins.Any())
+        var disposablePlugins =
+            this.InstalledPlugins.Where(plugin => plugin.State is PluginState.Loaded or PluginState.LoadError).ToArray();
+        if (disposablePlugins.Any())
         {
             // Unload them first, just in case some of plugin codes are still running via callbacks initiated externally.
-            foreach (var plugin in this.InstalledPlugins.Where(plugin => !plugin.Manifest.CanUnloadAsync))
+            foreach (var plugin in disposablePlugins.Where(plugin => !plugin.Manifest.CanUnloadAsync))
             {
                 try
                 {
@@ -241,7 +282,7 @@ internal partial class PluginManager : IDisposable, IServiceType
                 }
             }
 
-            Task.WaitAll(this.InstalledPlugins
+            Task.WaitAll(disposablePlugins
                              .Where(plugin => plugin.Manifest.CanUnloadAsync)
                              .Select(plugin => Task.Run(async () =>
                              {
@@ -261,7 +302,7 @@ internal partial class PluginManager : IDisposable, IServiceType
 
             // Now that we've waited enough, dispose the whole plugin.
             // Since plugins should have been unloaded above, this should be done quickly.
-            foreach (var plugin in this.InstalledPlugins)
+            foreach (var plugin in disposablePlugins)
                 plugin.ExplicitDisposeIgnoreExceptions($"Error disposing {plugin.Name}", Log);
         }
 
@@ -307,6 +348,7 @@ internal partial class PluginManager : IDisposable, IServiceType
         // Add installed plugins. These are expected to be in a specific format so we can look for exactly that.
         foreach (var pluginDir in this.pluginDirectory.GetDirectories())
         {
+            var versionsDefs = new List<PluginDef>();
             foreach (var versionDir in pluginDir.GetDirectories())
             {
                 var dllFile = new FileInfo(Path.Combine(versionDir.FullName, $"{pluginDir.Name}.dll"));
@@ -317,7 +359,16 @@ internal partial class PluginManager : IDisposable, IServiceType
 
                 var manifest = LocalPluginManifest.Load(manifestFile);
 
-                pluginDefs.Add(new PluginDef(dllFile, manifest, false));
+                versionsDefs.Add(new PluginDef(dllFile, manifest, false));
+            }
+
+            try
+            {
+                pluginDefs.Add(versionsDefs.OrderByDescending(x => x.Manifest!.EffectiveVersion).First());
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Couldn't choose best version for plugin: {Name}", pluginDir.Name);
             }
         }
 
@@ -482,7 +533,9 @@ internal partial class PluginManager : IDisposable, IServiceType
     /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     public async Task ReloadPluginMastersAsync(bool notify = true)
     {
+        Log.Information("Now reloading all PluginMasters...");
         await Task.WhenAll(this.Repos.Select(repo => repo.ReloadPluginMasterAsync()));
+        Log.Information("PluginMasters reloaded, now refiltering...");
 
         this.RefilterPluginMasters(notify);
     }
@@ -712,10 +765,14 @@ internal partial class PluginManager : IDisposable, IServiceType
         {
             try
             {
-                if (plugin.IsDisabled)
-                    plugin.Enable();
-
-                await plugin.LoadAsync(reason);
+                if (!plugin.IsDisabled)
+                {
+                    await plugin.LoadAsync(reason);
+                }
+                else
+                {
+                    Log.Verbose($"{name} was disabled");
+                }
             }
             catch (InvalidPluginException)
             {
@@ -832,10 +889,17 @@ internal partial class PluginManager : IDisposable, IServiceType
                 }
                 else
                 {
-                    foreach (var versionDir in versionDirs)
+                    for (var i = 0; i < versionDirs.Length; i++)
                     {
+                        var versionDir = versionDirs[i];
                         try
                         {
+                            if (i != 0)
+                            {
+                                Log.Information($"Old version: cleaning up {versionDir.FullName}");
+                                versionDir.Delete(true);
+                                continue;
+                            }
                             var dllFile = new FileInfo(Path.Combine(versionDir.FullName, $"{pluginDir.Name}.dll"));
                             if (!dllFile.Exists)
                             {
@@ -848,6 +912,21 @@ internal partial class PluginManager : IDisposable, IServiceType
                             if (!manifestFile.Exists)
                             {
                                 Log.Information($"Missing manifest: cleaning up {versionDir.FullName}");
+                                versionDir.Delete(true);
+                                continue;
+                            }
+
+                            if (manifestFile.Length == 0)
+                            {
+                                Log.Information($"Manifest empty: cleaning up {versionDir.FullName}");
+                                versionDir.Delete(true);
+                                continue;
+                            }
+
+                            var manifest = LocalPluginManifest.Load(manifestFile);
+                            if (manifest.ScheduledForDeletion)
+                            {
+                                Log.Information($"Scheduled deletion: cleaning up {versionDir.FullName}");
                                 versionDir.Delete(true);
                             }
                         }
@@ -870,7 +949,7 @@ internal partial class PluginManager : IDisposable, IServiceType
     /// </summary>
     /// <param name="dryRun">Perform a dry run, don't install anything.</param>
     /// <returns>Success or failure and a list of updated plugin metadata.</returns>
-    public async Task<List<PluginUpdateStatus>> UpdatePluginsAsync(bool dryRun = false)
+    public async Task<List<PluginUpdateStatus>> UpdatePluginsAsync(bool ignoreDisabled, bool dryRun)
     {
         Log.Information("Starting plugin update");
 
@@ -881,6 +960,12 @@ internal partial class PluginManager : IDisposable, IServiceType
         {
             // Can't update that!
             if (plugin.InstalledPlugin.IsDev)
+                continue;
+
+            if (plugin.InstalledPlugin.Manifest.Disabled && ignoreDisabled)
+                continue;
+
+            if (plugin.InstalledPlugin.Manifest.ScheduledForDeletion)
                 continue;
 
             var result = await this.UpdateSinglePluginAsync(plugin, false, dryRun);
@@ -914,6 +999,7 @@ internal partial class PluginManager : IDisposable, IServiceType
                            ? metadata.UpdateManifest.TestingAssemblyVersion
                            : metadata.UpdateManifest.AssemblyVersion)!,
             WasUpdated = true,
+            HasChangelog = !metadata.UpdateManifest.Changelog.IsNullOrWhitespace(),
         };
 
         if (!dryRun)
@@ -954,7 +1040,9 @@ internal partial class PluginManager : IDisposable, IServiceType
             {
                 try
                 {
-                    plugin.Disable();
+                    if (!plugin.IsDisabled)
+                        plugin.Disable();
+
                     lock (this.pluginListLock)
                     {
                         this.InstalledPlugins = this.InstalledPlugins.Remove(plugin);

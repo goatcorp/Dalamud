@@ -1030,22 +1030,43 @@ namespace Dalamud.Interface.Internal
 
             if (gamepadEnabled && (ImGui.GetIO().ConfigFlags & ImGuiConfigFlags.NavEnableGamepad) > 0)
             {
-                ImGui.GetIO().NavInputs[(int)ImGuiNavInput.Activate] = gamepadState.Raw(GamepadButtons.South);
-                ImGui.GetIO().NavInputs[(int)ImGuiNavInput.Cancel] = gamepadState.Raw(GamepadButtons.East);
-                ImGui.GetIO().NavInputs[(int)ImGuiNavInput.Input] = gamepadState.Raw(GamepadButtons.North);
-                ImGui.GetIO().NavInputs[(int)ImGuiNavInput.Menu] = gamepadState.Raw(GamepadButtons.West);
-                ImGui.GetIO().NavInputs[(int)ImGuiNavInput.DpadLeft] = gamepadState.Raw(GamepadButtons.DpadLeft);
-                ImGui.GetIO().NavInputs[(int)ImGuiNavInput.DpadRight] = gamepadState.Raw(GamepadButtons.DpadRight);
-                ImGui.GetIO().NavInputs[(int)ImGuiNavInput.DpadUp] = gamepadState.Raw(GamepadButtons.DpadUp);
-                ImGui.GetIO().NavInputs[(int)ImGuiNavInput.DpadDown] = gamepadState.Raw(GamepadButtons.DpadDown);
-                ImGui.GetIO().NavInputs[(int)ImGuiNavInput.LStickLeft] = gamepadState.LeftStickLeft;
-                ImGui.GetIO().NavInputs[(int)ImGuiNavInput.LStickRight] = gamepadState.LeftStickRight;
-                ImGui.GetIO().NavInputs[(int)ImGuiNavInput.LStickUp] = gamepadState.LeftStickUp;
-                ImGui.GetIO().NavInputs[(int)ImGuiNavInput.LStickDown] = gamepadState.LeftStickDown;
-                ImGui.GetIO().NavInputs[(int)ImGuiNavInput.FocusPrev] = gamepadState.Raw(GamepadButtons.L1);
-                ImGui.GetIO().NavInputs[(int)ImGuiNavInput.FocusNext] = gamepadState.Raw(GamepadButtons.R1);
-                ImGui.GetIO().NavInputs[(int)ImGuiNavInput.TweakSlow] = gamepadState.Raw(GamepadButtons.L2);
-                ImGui.GetIO().NavInputs[(int)ImGuiNavInput.TweakFast] = gamepadState.Raw(GamepadButtons.R2);
+                var northButton = gamepadState.Raw(GamepadButtons.North) != 0;
+                var eastButton = gamepadState.Raw(GamepadButtons.East) != 0;
+                var southButton = gamepadState.Raw(GamepadButtons.South) != 0;
+                var westButton = gamepadState.Raw(GamepadButtons.West) != 0;
+                var dPadUp = gamepadState.Raw(GamepadButtons.DpadUp) != 0;
+                var dPadRight = gamepadState.Raw(GamepadButtons.DpadRight) != 0;
+                var dPadDown = gamepadState.Raw(GamepadButtons.DpadDown) != 0;
+                var dPadLeft = gamepadState.Raw(GamepadButtons.DpadLeft) != 0;
+                var leftStickUp = gamepadState.LeftStickUp;
+                var leftStickRight = gamepadState.LeftStickRight;
+                var leftStickDown = gamepadState.LeftStickDown;
+                var leftStickLeft = gamepadState.LeftStickLeft;
+                var l1Button = gamepadState.Raw(GamepadButtons.L1) != 0;
+                var l2Button = gamepadState.Raw(GamepadButtons.L2) != 0;
+                var r1Button = gamepadState.Raw(GamepadButtons.R1) != 0;
+                var r2Button = gamepadState.Raw(GamepadButtons.R2) != 0;
+
+                var io = ImGui.GetIO();
+                io.AddKeyEvent(ImGuiKey.GamepadFaceUp, northButton);
+                io.AddKeyEvent(ImGuiKey.GamepadFaceRight, eastButton);
+                io.AddKeyEvent(ImGuiKey.GamepadFaceDown, southButton);
+                io.AddKeyEvent(ImGuiKey.GamepadFaceLeft, westButton);
+
+                io.AddKeyEvent(ImGuiKey.GamepadDpadUp, dPadUp);
+                io.AddKeyEvent(ImGuiKey.GamepadDpadRight, dPadRight);
+                io.AddKeyEvent(ImGuiKey.GamepadDpadDown, dPadDown);
+                io.AddKeyEvent(ImGuiKey.GamepadDpadLeft, dPadLeft);
+
+                io.AddKeyAnalogEvent(ImGuiKey.GamepadLStickUp, leftStickUp != 0, leftStickUp);
+                io.AddKeyAnalogEvent(ImGuiKey.GamepadLStickRight, leftStickRight != 0, leftStickRight);
+                io.AddKeyAnalogEvent(ImGuiKey.GamepadLStickDown, leftStickDown != 0, leftStickDown);
+                io.AddKeyAnalogEvent(ImGuiKey.GamepadLStickLeft, leftStickLeft != 0, leftStickLeft);
+
+                io.AddKeyEvent(ImGuiKey.GamepadL1, l1Button);
+                io.AddKeyEvent(ImGuiKey.GamepadL2, l2Button);
+                io.AddKeyEvent(ImGuiKey.GamepadR1, r1Button);
+                io.AddKeyEvent(ImGuiKey.GamepadR2, r2Button);
 
                 if (gamepadState.Pressed(GamepadButtons.R3) > 0)
                 {

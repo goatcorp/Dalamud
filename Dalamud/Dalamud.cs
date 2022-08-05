@@ -28,7 +28,6 @@ namespace Dalamud
         #region Internals
 
         private readonly ManualResetEvent unloadSignal;
-        private bool hasDisposedPlugins = false;
 
         #endregion
 
@@ -117,8 +116,6 @@ namespace Dalamud
         /// </summary>
         public void DisposePlugins()
         {
-            this.hasDisposedPlugins = true;
-
             // this must be done before unloading interface manager, in order to do rebuild
             // the correct cascaded WndProc (IME -> RawDX11Scene -> Game). Otherwise the game
             // will not receive any windows messages

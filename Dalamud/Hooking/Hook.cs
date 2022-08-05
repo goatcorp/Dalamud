@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.InteropServices;
 
+using Dalamud.Configuration.Internal;
 using Dalamud.Hooking.Internal;
 
 namespace Dalamud.Hooking
@@ -59,6 +60,9 @@ namespace Dalamud.Hooking
         [Obsolete("Use Hook<T>.FromAddress instead.")]
         private Hook(IntPtr address, T detour, bool useMinHook, Assembly callingAssembly)
         {
+            if (EnvironmentConfiguration.DalamudForceMinHook)
+                useMinHook = true;
+
             address = HookManager.FollowJmp(address);
             if (useMinHook)
                 this.compatHookImpl = new MinHookHook<T>(address, detour, callingAssembly);
@@ -214,6 +218,9 @@ namespace Dalamud.Hooking
         /// <returns>The hook with the supplied parameters.</returns>
         public static Hook<T> FromSymbol(string moduleName, string exportName, T detour, bool useMinHook)
         {
+            if (EnvironmentConfiguration.DalamudForceMinHook)
+                useMinHook = true;
+
             var moduleHandle = NativeFunctions.GetModuleHandleW(moduleName);
             if (moduleHandle == IntPtr.Zero)
                 throw new Exception($"Could not get a handle to module {moduleName}");
@@ -240,6 +247,9 @@ namespace Dalamud.Hooking
         /// <returns>The hook with the supplied parameters.</returns>
         public static Hook<T> FromAddress(IntPtr procAddress, T detour, bool useMinHook = false)
         {
+            if (EnvironmentConfiguration.DalamudForceMinHook)
+                useMinHook = true;
+
             procAddress = HookManager.FollowJmp(procAddress);
             if (useMinHook)
                 return new MinHookHook<T>(procAddress, detour, Assembly.GetCallingAssembly());

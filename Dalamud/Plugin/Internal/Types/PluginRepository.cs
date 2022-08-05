@@ -24,6 +24,7 @@ internal class PluginRepository
 
     private static readonly HttpClient HttpClient = new()
     {
+        Timeout = TimeSpan.FromSeconds(20),
         DefaultRequestHeaders =
         {
             CacheControl = new CacheControlHeaderValue
@@ -109,7 +110,7 @@ internal class PluginRepository
 
             this.PluginMaster = pluginMaster.AsReadOnly();
 
-            Log.Debug($"Successfully fetched repo: {this.PluginMasterUrl}");
+            Log.Information($"Successfully fetched repo: {this.PluginMasterUrl}");
             this.State = PluginRepositoryState.Success;
         }
         catch (Exception ex)

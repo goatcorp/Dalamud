@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using Dalamud.Data;
+using Dalamud.Game;
 using Dalamud.Interface.Internal;
 using Dalamud.Utility.Timing;
 using ImGuiNET;
@@ -184,16 +185,9 @@ namespace Dalamud.Interface.GameFonts
             needRebuild = !this.fonts.ContainsKey(style);
             if (needRebuild)
             {
-                if (interfaceManager.IsBuildingFontsBeforeAtlasBuild && this.isBetweenBuildFontsAndRightAfterImGuiIoFontsBuild)
-                {
-                    Log.Information("[GameFontManager] NewFontRef: Building {0} right now, as it is called while BuildFonts is already in progress yet atlas build has not been called yet.", style.ToString());
-                    this.EnsureFont(style);
-                }
-                else
-                {
-                    Log.Information("[GameFontManager] NewFontRef: Calling RebuildFonts because {0} has been requested.", style.ToString());
-                    interfaceManager.RebuildFonts();
-                }
+                Log.Information("[GameFontManager] NewFontRef: Queueing RebuildFonts because {0} has been requested.", style.ToString());
+                Service<Framework>.GetAsync()
+                                  .ContinueWith(task => task.Result.RunOnTick(() => interfaceManager.RebuildFonts()));
             }
 
             return new(this, style);

@@ -181,4 +181,17 @@ internal record PluginManifest
     /// Gets a message that is shown to users when sending feedback.
     /// </summary>
     public string? FeedbackMessage { get; init; }
+
+    /// <summary>
+    /// Gets a value indicating whether this plugin is DIP17.
+    /// To be removed.
+    /// </summary>
+    [JsonProperty("_isDip17Plugin")]
+    public bool IsDip17Plugin { get; init; } = false;
+
+    /// <summary>
+    /// Gets the DIP17 channel name.
+    /// </summary>
+    [JsonProperty("_Dip17Channel")]
+    public string? Dip17Channel { get; init; }
 }

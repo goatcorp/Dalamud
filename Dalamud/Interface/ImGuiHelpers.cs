@@ -4,7 +4,9 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 
+using Dalamud.Game.ClientState.Keys;
 using ImGuiNET;
+using ImGuiScene;
 
 namespace Dalamud.Interface
 {
@@ -220,6 +222,56 @@ namespace Dalamud.Interface
 
             if (rebuildLookupTable)
                 target.Value!.BuildLookupTable();
+        }
+
+        /// <summary>
+        /// Map a VirtualKey keycode to an ImGuiKey enum value.
+        /// </summary>
+        /// <param name="key">The VirtualKey value to retrieve the ImGuiKey counterpart for.</param>
+        /// <returns>The ImGuiKey that corresponds to this VirtualKey, or <c>ImGuiKey.None</c> otherwise.</returns>
+        public static ImGuiKey VirtualKeyToImGuiKey(VirtualKey key)
+        {
+            return ImGui_Input_Impl_Direct.VirtualKeyToImGuiKey((int)key);
+        }
+
+        /// <summary>
+        /// Map an ImGuiKey enum value to a VirtualKey code.
+        /// </summary>
+        /// <param name="key">The ImGuiKey value to retrieve the VirtualKey counterpart for.</param>
+        /// <returns>The VirtualKey that corresponds to this ImGuiKey, or <c>VirtualKey.NO_KEY</c> otherwise.</returns>
+        public static VirtualKey ImGuiKeyToVirtualKey(ImGuiKey key)
+        {
+            return (VirtualKey)ImGui_Input_Impl_Direct.ImGuiKeyToVirtualKey(key);
+        }
+
+        /// <summary>
+        /// Show centered text.
+        /// </summary>
+        /// <param name="text">Text to show.</param>
+        public static void CenteredText(string text)
+        {
+            CenterCursorForText(text);
+            ImGui.TextUnformatted(text);
+        }
+
+        /// <summary>
+        /// Center the ImGui cursor for a certain text.
+        /// </summary>
+        /// <param name="text">The text to center for.</param>
+        public static void CenterCursorForText(string text)
+        {
+            var textWidth = ImGui.CalcTextSize(text).X;
+            CenterCursorFor((int)textWidth);
+        }
+
+        /// <summary>
+        /// Center the ImGui cursor for an item with a certain width.
+        /// </summary>
+        /// <param name="itemWidth">The width to center for.</param>
+        public static void CenterCursorFor(int itemWidth)
+        {
+            var window = (int)ImGui.GetWindowWidth();
+            ImGui.SetCursorPosX((window / 2) - (itemWidth / 2));
         }
 
         /// <summary>

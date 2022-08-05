@@ -520,3 +520,36 @@ void utils::wait_for_game_window() {
 	};
 	SendMessageW(game_window, WM_NULL, 0, 0);
 }
+
+std::wstring utils::escape_shell_arg(const std::wstring& arg) {
+    // https://docs.microsoft.com/en-us/archive/blogs/twistylittlepassagesallalike/everyone-quotes-command-line-arguments-the-wrong-way
+    
+    std::wstring res;
+    if (!arg.empty() && arg.find_first_of(L" \t\n\v\"") == std::wstring::npos) {
+        res.append(arg);
+    } else {
+        res.push_back(L'"');
+        for (auto it = arg.begin(); ; ++it) {
+            size_t bsCount = 0;
+
+            while (it != arg.end() && *it == L'\\') {
+                ++it;
+                ++bsCount;
+            }
+
+            if (it == arg.end()) {
+                res.append(bsCount * 2, L'\\');
+                break;
+            } else if (*it == L'"') {
+                res.append(bsCount * 2 + 1, L'\\');
+                res.push_back(*it);
+            } else {
+                res.append(bsCount, L'\\');
+                res.push_back(*it);
+            }
+        }
+
+        res.push_back(L'"');
+    }
+    return res;
+}

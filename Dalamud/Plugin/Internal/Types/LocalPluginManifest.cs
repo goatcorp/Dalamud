@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 
 using Dalamud.Utility;
@@ -24,6 +25,11 @@ internal record LocalPluginManifest : PluginManifest
     public bool Testing { get; set; }
 
     /// <summary>
+    /// Gets or sets a value indicating whether the plugin should be deleted during the next cleanup.
+    /// </summary>
+    public bool ScheduledForDeletion { get; set; }
+
+    /// <summary>
     /// Gets or sets the 3rd party repo URL that this plugin was installed from. Used to display where the plugin was
     /// sourced from on the installed plugin view. This should not be included in the plugin master. This value is null
     /// when installed from the main repo.
@@ -35,6 +41,11 @@ internal record LocalPluginManifest : PluginManifest
     /// repo. Unless the manifest has been manually modified, this is determined by the InstalledFromUrl being null.
     /// </summary>
     public bool IsThirdParty => !this.InstalledFromUrl.IsNullOrEmpty() && this.InstalledFromUrl != PluginRepository.MainRepoUrl;
+
+    /// <summary>
+    /// Gets the effective version of this plugin.
+    /// </summary>
+    public Version EffectiveVersion => this.Testing && this.TestingAssemblyVersion != null ? this.TestingAssemblyVersion : this.AssemblyVersion;
 
     /// <summary>
     /// Save a plugin manifest to file.

@@ -32,11 +32,11 @@ namespace Dalamud.Injector
         private readonly CircularBuffer circularBuffer;
         private readonly PrivateMemoryBuffer memoryBuffer;
 
-        private UIntPtr loadLibraryShellPtr;
-        private UIntPtr loadLibraryRetPtr;
+        private nuint loadLibraryShellPtr;
+        private nuint loadLibraryRetPtr;
 
-        private UIntPtr getProcAddressShellPtr;
-        private UIntPtr getProcAddressRetPtr;
+        private nuint getProcAddressShellPtr;
+        private nuint getProcAddressRetPtr;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Injector"/> class.
@@ -81,16 +81,16 @@ namespace Dalamud.Injector
         /// </summary>
         /// <param name="modulePath">Absolute file path.</param>
         /// <param name="address">Address to the module.</param>
-        public void LoadLibrary(string modulePath, out UIntPtr address)
+        public void LoadLibrary(string modulePath, out IntPtr address)
         {
             var lpParameter = this.WriteNullTerminatedUnicodeString(modulePath);
 
-            if (lpParameter == UIntPtr.Zero)
+            if (lpParameter == 0)
                 throw new Exception("Unable to allocate LoadLibraryW parameter");
 
             this.CallRemoteFunction(this.loadLibraryShellPtr, lpParameter, out var err);
-            this.extMemory.Read(this.loadLibraryRetPtr, out address);
-            if (address == UIntPtr.Zero)
+            this.extMemory.Read<IntPtr>(this.loadLibraryRetPtr, out address);
+            if (address == IntPtr.Zero)
                 throw new Exception($"LoadLibraryW(\"{modulePath}\") failure: {new Win32Exception((int)err).Message} ({err})");
         }
 
@@ -100,17 +100,17 @@ namespace Dalamud.Injector
         /// <param name="module">Module address.</param>
         /// <param name="functionName">Name of the exported method.</param>
         /// <param name="address">Address to the function.</param>
-        public void GetFunctionAddress(UIntPtr module, string functionName, out UIntPtr address)
+        public void GetFunctionAddress(IntPtr module, string functionName, out nuint address)
         {
             var functionNamePtr = this.WriteNullTerminatedASCIIString(functionName);
             var getProcAddressParams = new GetProcAddressParams(module, functionNamePtr);
             var lpParameter = this.circularBuffer.Add(ref getProcAddressParams);
-            if (lpParameter == UIntPtr.Zero)
+            if (lpParameter == 0)
                 throw new Exception("Unable to allocate GetProcAddress parameter ptr");
 
             this.CallRemoteFunction(this.getProcAddressShellPtr, lpParameter, out var err);
-            this.extMemory.Read(this.getProcAddressRetPtr, out address);
-            if (address == UIntPtr.Zero)
+            this.extMemory.Read<nuint>(this.getProcAddressRetPtr, out address);
+            if (address == 0)
                 throw new Exception($"GetProcAddress(0x{module:X}, \"{functionName}\") failure: {new Win32Exception((int)err).Message} ({err})");
         }
 
@@ -120,7 +120,7 @@ namespace Dalamud.Injector
         /// <param name="methodAddress">Method address.</param>
         /// <param name="parameterAddress">Parameter address.</param>
         /// <param name="exitCode">Thread exit code.</param>
-        public void CallRemoteFunction(UIntPtr methodAddress, UIntPtr parameterAddress, out uint exitCode)
+        public void CallRemoteFunction(nuint methodAddress, nuint parameterAddress, out uint exitCode)
         {
             // Create and initialize a thread at our address and parameter address.
             var threadHandle = CreateRemoteThread(
@@ -150,27 +150,24 @@ namespace Dalamud.Injector
             var functionAddr = kernel32Module.BaseAddress + (int)this.GetExportedFunctionOffset(kernel32Exports, "LoadLibraryW");
             Log.Verbose($"LoadLibraryW:           0x{functionAddr.ToInt64():X}");
 
-            var functionPtr = (UIntPtr)this.memoryBuffer.Add(ref functionAddr);
-            Log.Verbose($"LoadLibraryPtr:         0x{functionPtr.ToUInt64():X}");
+            var functionPtr = this.memoryBuffer.Add(ref functionAddr);
+            Log.Verbose($"LoadLibraryPtr:         0x{functionPtr:X}");
 
-            if (functionPtr == UIntPtr.Zero)
+            if (functionPtr == 0)
                 throw new Exception("Unable to allocate LoadLibraryW function ptr");
 
             var dummy = IntPtr.Zero;
             this.loadLibraryRetPtr = this.memoryBuffer.Add(ref dummy);
-            Log.Verbose($"LoadLibraryRetPtr:      0x{this.loadLibraryRetPtr.ToUInt64():X}");
+            Log.Verbose($"LoadLibraryRetPtr:      0x{this.loadLibraryRetPtr:X}");
 
-            if (this.loadLibraryRetPtr == UIntPtr.Zero)
+            if (this.loadLibraryRetPtr == 0)
                 throw new Exception("Unable to allocate LoadLibraryW return value");
-
-            var func = functionPtr.ToUInt64();
-            var retVal = this.loadLibraryRetPtr.ToUInt64();
 
             var asm = new Assembler(64);
 
             asm.sub(rsp, 40);                               // sub rsp, 40                   // Re-align stack to 16 byte boundary + shadow space.
-            asm.call(__qword_ptr[__qword_ptr[func]]);       // call qword [qword func]       // CreateRemoteThread lpParameter with string already in ECX.
-            asm.mov(__qword_ptr[__qword_ptr[retVal]], rax); // mov qword [qword retVal], rax //
+            asm.call(__qword_ptr[__qword_ptr[functionPtr]]);       // call qword [qword func]       // CreateRemoteThread lpParameter with string already in ECX.
+            asm.mov(__qword_ptr[__qword_ptr[this.loadLibraryRetPtr]], rax); // mov qword [qword retVal], rax //
             asm.add(rsp, 40);                               // add rsp, 40                   // Re-align stack to 16 byte boundary + shadow space.
             asm.mov(rax, (ulong)getLastErrorAddr);          // mov rax, pfnGetLastError      // Change return address to GetLastError.
             asm.push(rax);                                  // push rax                      //
@@ -178,9 +175,9 @@ namespace Dalamud.Injector
 
             var bytes = this.Assemble(asm);
             this.loadLibraryShellPtr = this.memoryBuffer.Add(bytes);
-            Log.Verbose($"LoadLibraryShellPtr:    0x{this.loadLibraryShellPtr.ToUInt64():X}");
+            Log.Verbose($"LoadLibraryShellPtr:    0x{this.loadLibraryShellPtr:X}");
 
-            if (this.loadLibraryShellPtr == UIntPtr.Zero)
+            if (this.loadLibraryShellPtr == 0)
                 throw new Exception("Unable to allocate LoadLibraryW shellcode");
 
             this.extMemory.ChangePermission(this.loadLibraryShellPtr, bytes.Length, Reloaded.Memory.Kernel32.Kernel32.MEM_PROTECTION.PAGE_EXECUTE_READWRITE);
@@ -193,7 +190,7 @@ namespace Dalamud.Injector
             Log.Verbose($"LoadLibraryRet:         {this.GetResultMarker(dummy == outRetPtr)}");
 
             this.extMemory.ReadRaw(this.loadLibraryShellPtr, out var outBytes, bytes.Length);
-            Log.Verbose($"LoadLibraryShellPtr:    {this.GetResultMarker(bytes.SequenceEqual(outBytes))}");
+            Log.Verbose($"LoadLibraryShellPtr:    {this.GetResultMarker(Enumerable.SequenceEqual(bytes, outBytes))}");
 #endif
         }
 
@@ -206,29 +203,26 @@ namespace Dalamud.Injector
             var functionAddr = kernel32Module.BaseAddress + (int)offset;
             Log.Verbose($"GetProcAddress:         0x{functionAddr.ToInt64():X}");
 
-            var functionPtr = (UIntPtr)this.memoryBuffer.Add(ref functionAddr);
-            Log.Verbose($"GetProcAddressPtr:      0x{functionPtr.ToUInt64():X}");
+            var functionPtr = this.memoryBuffer.Add(ref functionAddr);
+            Log.Verbose($"GetProcAddressPtr:      0x{functionPtr:X}");
 
-            if (functionPtr == UIntPtr.Zero)
+            if (functionPtr == 0)
                 throw new Exception("Unable to allocate GetProcAddress function ptr");
 
             var dummy = IntPtr.Zero;
             this.getProcAddressRetPtr = this.memoryBuffer.Add(ref dummy);
-            Log.Verbose($"GetProcAddressRetPtr:   0x{this.loadLibraryRetPtr.ToUInt64():X}");
+            Log.Verbose($"GetProcAddressRetPtr:   0x{this.loadLibraryRetPtr:X}");
 
-            if (this.getProcAddressRetPtr == UIntPtr.Zero)
+            if (this.getProcAddressRetPtr == 0)
                 throw new Exception("Unable to allocate GetProcAddress return value");
-
-            var func = functionPtr.ToUInt64();
-            var retVal = this.getProcAddressRetPtr.ToUInt64();
 
             var asm = new Assembler(64);
 
             asm.sub(rsp, 40);                                // sub rsp, 40                    // Re-align stack to 16 byte boundary +32 shadow space
             asm.mov(rdx, __qword_ptr[__qword_ptr[rcx + 8]]); // mov rdx, qword [qword rcx + 8] // lpProcName
             asm.mov(rcx, __qword_ptr[__qword_ptr[rcx + 0]]); // mov rcx, qword [qword rcx + 0] // hModule
-            asm.call(__qword_ptr[__qword_ptr[func]]);        // call qword [qword func]        //
-            asm.mov(__qword_ptr[__qword_ptr[retVal]], rax);  // mov qword [qword retVal]       //
+            asm.call(__qword_ptr[__qword_ptr[functionPtr]]);        // call qword [qword func]        //
+            asm.mov(__qword_ptr[__qword_ptr[this.getProcAddressRetPtr]], rax);  // mov qword [qword retVal]       //
             asm.add(rsp, 40);                                // add rsp, 40                    // Re-align stack to 16 byte boundary + shadow space.
             asm.mov(rax, (ulong)getLastErrorAddr);           // mov rax, pfnGetLastError       // Change return address to GetLastError.
             asm.push(rax);                                   // push rax                       //
@@ -236,9 +230,9 @@ namespace Dalamud.Injector
 
             var bytes = this.Assemble(asm);
             this.getProcAddressShellPtr = this.memoryBuffer.Add(bytes);
-            Log.Verbose($"GetProcAddressShellPtr: 0x{this.getProcAddressShellPtr.ToUInt64():X}");
+            Log.Verbose($"GetProcAddressShellPtr: 0x{this.getProcAddressShellPtr:X}");
 
-            if (this.getProcAddressShellPtr == UIntPtr.Zero)
+            if (this.getProcAddressShellPtr == 0)
                 throw new Exception("Unable to allocate GetProcAddress shellcode");
 
             this.extMemory.ChangePermission(this.getProcAddressShellPtr, bytes.Length, Reloaded.Memory.Kernel32.Kernel32.MEM_PROTECTION.PAGE_EXECUTE_READWRITE);
@@ -251,7 +245,7 @@ namespace Dalamud.Injector
             Log.Verbose($"GetProcAddressRet:      {this.GetResultMarker(dummy == outRetPtr)}");
 
             this.extMemory.ReadRaw(this.getProcAddressShellPtr, out var outBytes, bytes.Length);
-            Log.Verbose($"GetProcAddressShellPtr: {this.GetResultMarker(bytes.SequenceEqual(outBytes))}");
+            Log.Verbose($"GetProcAddressShellPtr: {this.GetResultMarker(Enumerable.SequenceEqual(bytes, outBytes))}");
 #endif
         }
 
@@ -298,33 +292,33 @@ namespace Dalamud.Injector
             return exportFunction.Address;
         }
 
-        private UIntPtr WriteNullTerminatedASCIIString(string value)
+        private nuint WriteNullTerminatedASCIIString(string value)
         {
             var bytes = Encoding.ASCII.GetBytes(value + '\0');
-            var address = (UIntPtr)this.circularBuffer.Add(bytes);
+            var address = this.circularBuffer.Add(bytes);
 
-            if (address == UIntPtr.Zero)
+            if (address == 0)
                 throw new Exception("Unable to write ASCII string to buffer");
 
 #if DEBUG
             this.extMemory.ReadRaw(address, out var outBytes, bytes.Length);
-            Log.Verbose($"WriteASCII:             {this.GetResultMarker(bytes.SequenceEqual(outBytes))} 0x{address.ToUInt64():X} {value}");
+            Log.Verbose($"WriteASCII:             {this.GetResultMarker(Enumerable.SequenceEqual(bytes, outBytes))} 0x{address:X} {value}");
 #endif
 
             return address;
         }
 
-        private UIntPtr WriteNullTerminatedUnicodeString(string value)
+        private nuint WriteNullTerminatedUnicodeString(string value)
         {
             var bytes = Encoding.Unicode.GetBytes(value + '\0');
-            var address = (UIntPtr)this.circularBuffer.Add(bytes);
+            var address = this.circularBuffer.Add(bytes);
 
-            if (address == UIntPtr.Zero)
+            if (address == 0)
                 throw new Exception("Unable to write Unicode string to buffer");
 
 #if DEBUG
             this.extMemory.ReadRaw(address, out var outBytes, bytes.Length);
-            Log.Verbose($"WriteUnicode:           {this.GetResultMarker(bytes.SequenceEqual(outBytes))} 0x{address.ToUInt64():X} {value}");
+            Log.Verbose($"WriteUnicode:           {this.GetResultMarker(Enumerable.SequenceEqual(bytes, outBytes))} 0x{address:X} {value}");
 #endif
 
             return address;
@@ -337,15 +331,15 @@ namespace Dalamud.Injector
         [StructLayout(LayoutKind.Sequential)]
         private struct GetProcAddressParams
         {
-            public GetProcAddressParams(UIntPtr hModule, UIntPtr lPProcName)
+            public GetProcAddressParams(IntPtr hModule, nuint lPProcName)
             {
-                this.HModule = (long)hModule.ToUInt64();
-                this.LPProcName = (long)lPProcName.ToUInt64();
+                this.HModule = hModule.ToInt64();
+                this.LPProcName = lPProcName;
             }
 
             public long HModule { get; set; }
 
-            public long LPProcName { get; set; }
+            public nuint LPProcName { get; set; }
         }
     }
 }

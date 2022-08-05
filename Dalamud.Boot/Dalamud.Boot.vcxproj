@@ -33,10 +33,12 @@
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <LibraryPath>$(LibraryPath)</LibraryPath>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <LibraryPath>$(SolutionDir)bin\lib\$(Configuration)\libMinHook\;$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <LibraryPath>$(SolutionDir)bin\lib\$(Configuration)\libMinHook\;$(LibraryPath)</LibraryPath>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <LibraryPath>$(SolutionDir)bin\lib\$(Configuration)\libMinHook\;$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -53,7 +55,7 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
-      <AdditionalDependencies>dbghelp.lib;Version.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Version.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>..\lib\CoreCLR;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
@@ -162,14 +164,22 @@
     <ClInclude Include="..\lib\TsudaKageyu-minhook\src\HDE\table32.h" />
     <ClInclude Include="..\lib\TsudaKageyu-minhook\src\HDE\table64.h" />
     <ClInclude Include="..\lib\TsudaKageyu-minhook\src\trampoline.h" />
+    <ClInclude Include="crashhandler_shared.h" />
     <ClInclude Include="DalamudStartInfo.h" />
     <ClInclude Include="hooks.h" />
     <ClInclude Include="logging.h" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="unicode.h" />
     <ClInclude Include="utils.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="veh.h" />
     <ClInclude Include="xivfixes.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Dalamud.Boot.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="dalamud.ico" />
   </ItemGroup>
   <Target Name="RemoveExtraFiles" AfterTargets="PostBuildEvent">
     <Delete Files="$(OutDir)$(TargetName).lib" />
