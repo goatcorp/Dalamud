@@ -43,6 +43,7 @@ namespace Dalamud.Interface.Internal.Windows
         public const int PluginIconHeight = 512;
 
         private const string MainRepoImageUrl = "https://raw.githubusercontent.com/goatcorp/DalamudPlugins/api6/{0}/{1}/images/{2}";
+        private const string MainRepoDip17ImageUrl = "https://raw.githubusercontent.com/goatcorp/PluginDistD17/main/{0}/{1}/images/{2}";
 
         private readonly BlockingCollection<Tuple<ulong, Func<Task>>> downloadQueue = new();
         private readonly BlockingCollection<Func<Task>> loadQueue = new();
@@ -653,6 +654,9 @@ namespace Dalamud.Interface.Internal.Windows
             if (isThirdParty)
                 return manifest.IconUrl;
 
+            if (manifest.IsDip17Plugin)
+                return MainRepoDip17ImageUrl.Format(manifest.Dip17Channel!, manifest.InternalName, "icon.png");
+
             return MainRepoImageUrl.Format(isTesting ? "testing" : "plugins", manifest.InternalName, "icon.png");
         }
 
@@ -672,7 +676,14 @@ namespace Dalamud.Interface.Internal.Windows
             var output = new List<string>();
             for (var i = 1; i <= 5; i++)
             {
-                output.Add(MainRepoImageUrl.Format(isTesting ? "testing" : "plugins", manifest.InternalName, $"image{i}.png"));
+                if (manifest.IsDip17Plugin)
+                {
+                    output.Add(MainRepoDip17ImageUrl.Format(manifest.Dip17Channel!, manifest.InternalName, $"image{i}.png"));
+                }
+                else
+                {
+                    output.Add(MainRepoImageUrl.Format(isTesting ? "testing" : "plugins", manifest.InternalName, $"image{i}.png"));
+                }
             }
 
             return output;
