@@ -251,6 +251,11 @@ namespace Dalamud.Interface.Internal
         public void OpenPluginInstaller() => this.pluginWindow.IsOpen = true;
 
         /// <summary>
+        /// Opens the <see cref="PluginInstallerWindow"/> on the plugin changelogs.
+        /// </summary>
+        public void OpenPluginInstallerPluginChangelogs() => this.pluginWindow.OpenPluginChangelogs();
+
+        /// <summary>
         /// Opens the <see cref="SettingsWindow"/>.
         /// </summary>
         public void OpenSettings() => this.settingsWindow.IsOpen = true;
@@ -613,6 +618,16 @@ namespace Dalamud.Interface.Internal
                         if (ImGui.MenuItem("Unload Dalamud"))
                         {
                             Service<Dalamud>.Get().Unload();
+                        }
+
+                        if (ImGui.MenuItem("Restart game"))
+                        {
+                            [DllImport("kernel32.dll")]
+                            [return: MarshalAs(UnmanagedType.Bool)]
+                            static extern void RaiseException(uint dwExceptionCode, uint dwExceptionFlags, uint nNumberOfArguments, IntPtr lpArguments);
+
+                            RaiseException(0x12345678, 0, 0, IntPtr.Zero);
+                            Process.GetCurrentProcess().Kill();
                         }
 
                         if (ImGui.MenuItem("Kill game"))

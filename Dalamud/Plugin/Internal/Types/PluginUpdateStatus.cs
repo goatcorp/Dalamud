@@ -26,4 +26,9 @@ internal class PluginUpdateStatus
     /// Gets or sets a value indicating whether the plugin was updated.
     /// </summary>
     public bool WasUpdated { get; set; }
+
+    /// <summary>
+    /// Gets a value indicating whether the plugin has a changelog if it was updated.
+    /// </summary>
+    public bool HasChangelog { get; init; }
 }

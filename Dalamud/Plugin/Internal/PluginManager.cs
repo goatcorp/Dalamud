@@ -17,6 +17,8 @@ using Dalamud.Game;
 using Dalamud.Game.Gui;
 using Dalamud.Game.Gui.Dtr;
 using Dalamud.Game.Text;
+using Dalamud.Game.Text.SeStringHandling;
+using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Interface.Internal;
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Internal.Exceptions;
@@ -49,6 +51,8 @@ internal partial class PluginManager : IDisposable, IServiceType
     private readonly DirectoryInfo pluginDirectory;
     private readonly DirectoryInfo devPluginDirectory;
     private readonly BannedPlugin[]? bannedPlugins;
+
+    private readonly DalamudLinkPayload openInstallerWindowPluginChangelogsLink;
 
     [ServiceManager.ServiceDependency]
     private readonly DalamudConfiguration configuration = Service<DalamudConfiguration>.Get();
@@ -100,6 +104,11 @@ internal partial class PluginManager : IDisposable, IServiceType
         {
             throw new InvalidDataException("Couldn't deserialize banned plugins manifest.");
         }
+
+        this.openInstallerWindowPluginChangelogsLink = Service<ChatGui>.Get().AddChatLinkHandler("Dalamud", 1003, (i, m) =>
+        {
+            Service<DalamudInterface>.GetNullable()?.OpenPluginInstallerPluginChangelogs();
+        });
 
         this.ApplyPatches();
     }
@@ -169,25 +178,38 @@ internal partial class PluginManager : IDisposable, IServiceType
     /// </summary>
     /// <param name="updateMetadata">The list of updated plugin metadata.</param>
     /// <param name="header">The header text to send to chat prior to any update info.</param>
-    public static void PrintUpdatedPlugins(List<PluginUpdateStatus>? updateMetadata, string header)
+    public void PrintUpdatedPlugins(List<PluginUpdateStatus>? updateMetadata, string header)
     {
         var chatGui = Service<ChatGui>.Get();
 
         if (updateMetadata is { Count: > 0 })
         {
-            chatGui.Print(header);
+            chatGui.PrintChat(new XivChatEntry
+            {
+                Message = new SeString(new List<Payload>()
+                {
+                    new TextPayload(header),
+                    new TextPayload("  ["),
+                    new UIForegroundPayload(500),
+                    this.openInstallerWindowPluginChangelogsLink,
+                    new TextPayload(Loc.Localize("DalamudInstallerPluginChangelogHelp", "Open plugin changelogs") + " "),
+                    RawPayload.LinkTerminator,
+                    new UIForegroundPayload(0),
+                    new TextPayload("]"),
+                }),
+            });
 
             foreach (var metadata in updateMetadata)
             {
                 if (metadata.WasUpdated)
                 {
-                    chatGui.Print(Locs.DalamudPluginUpdateSuccessful(metadata.Name, metadata.Version));
+                    chatGui.Print(Locs.DalamudPluginUpdateSuccessful(metadata.Name, metadata.Version) + (metadata.HasChangelog ? " " : string.Empty));
                 }
                 else
                 {
                     chatGui.PrintChat(new XivChatEntry
                     {
-                        Message = Locs.DalamudPluginUpdateFailed(metadata.Name, metadata.Version),
+                        Message = Locs.DalamudPluginUpdateFailed(metadata.Name, metadata.Version) + (metadata.HasChangelog ? " " : string.Empty),
                         Type = XivChatType.Urgent,
                     });
                 }
@@ -243,10 +265,12 @@ internal partial class PluginManager : IDisposable, IServiceType
     /// <inheritdoc/>
     public void Dispose()
     {
-        if (this.InstalledPlugins.Any())
+        var disposablePlugins =
+            this.InstalledPlugins.Where(plugin => plugin.State is PluginState.Loaded or PluginState.LoadError).ToArray();
+        if (disposablePlugins.Any())
         {
             // Unload them first, just in case some of plugin codes are still running via callbacks initiated externally.
-            foreach (var plugin in this.InstalledPlugins.Where(plugin => !plugin.Manifest.CanUnloadAsync))
+            foreach (var plugin in disposablePlugins.Where(plugin => !plugin.Manifest.CanUnloadAsync))
             {
                 try
                 {
@@ -258,7 +282,7 @@ internal partial class PluginManager : IDisposable, IServiceType
                 }
             }
 
-            Task.WaitAll(this.InstalledPlugins
+            Task.WaitAll(disposablePlugins
                              .Where(plugin => plugin.Manifest.CanUnloadAsync)
                              .Select(plugin => Task.Run(async () =>
                              {
@@ -278,7 +302,7 @@ internal partial class PluginManager : IDisposable, IServiceType
 
             // Now that we've waited enough, dispose the whole plugin.
             // Since plugins should have been unloaded above, this should be done quickly.
-            foreach (var plugin in this.InstalledPlugins)
+            foreach (var plugin in disposablePlugins)
                 plugin.ExplicitDisposeIgnoreExceptions($"Error disposing {plugin.Name}", Log);
         }
 
@@ -975,6 +999,7 @@ internal partial class PluginManager : IDisposable, IServiceType
                            ? metadata.UpdateManifest.TestingAssemblyVersion
                            : metadata.UpdateManifest.AssemblyVersion)!,
             WasUpdated = true,
+            HasChangelog = !metadata.UpdateManifest.Changelog.IsNullOrWhitespace(),
         };
 
         if (!dryRun)

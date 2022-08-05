@@ -217,6 +217,16 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
             this.imageCache.ClearIconCache();
         }
 
+        /// <summary>
+        /// Open the window on the plugin changelogs.
+        /// </summary>
+        public void OpenPluginChangelogs()
+        {
+            this.categoryManager.CurrentGroupIdx = 3;
+            this.categoryManager.CurrentCategoryIdx = 2;
+            this.IsOpen = true;
+        }
+
         private void DrawProgressOverlay()
         {
             var pluginManager = Service<PluginManager>.Get();
@@ -235,16 +245,19 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
             ImGui.SetCursorPos(Vector2.Zero);
 
             var windowSize = ImGui.GetWindowSize();
+            var titleHeight = ImGui.GetFontSize() + (ImGui.GetStyle().FramePadding.Y * 2);
 
-            ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, Vector2.Zero);
-            ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, Vector2.Zero);
-            ImGui.PushStyleVar(ImGuiStyleVar.CellPadding, Vector2.Zero);;
-            ImGui.PushStyleVar(ImGuiStyleVar.ChildBorderSize, 0);
-            ImGui.PushStyleVar(ImGuiStyleVar.ChildRounding, 0);
-
-            ImGui.SetNextWindowBgAlpha(0.8f);
             if (ImGui.BeginChild("###installerLoadingFrame", new Vector2(-1, -1), false))
             {
+                ImGui.GetWindowDrawList().PushClipRectFullScreen();
+                ImGui.GetWindowDrawList().AddRectFilled(
+                    ImGui.GetWindowPos() + new Vector2(0, titleHeight),
+                    ImGui.GetWindowPos() + windowSize,
+                    0xCC000000,
+                    ImGui.GetStyle().WindowRounding,
+                    ImDrawFlags.RoundCornersBottom);
+                ImGui.PopClipRect();
+
                 ImGui.SetCursorPosY(windowSize.Y / 2);
 
                 switch (this.loadingIndicatorKind)
@@ -303,6 +316,7 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
 
                             if (currentProgress != total)
                             {
+                                ImGui.SetCursorPosX(windowSize.X / 3);
                                 ImGui.ProgressBar(currentProgress / (float)total, new Vector2(windowSize.X / 3, 50));
                             }
                         }
@@ -314,8 +328,6 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
 
                 ImGui.EndChild();
             }
-
-            ImGui.PopStyleVar(5);
         }
 
         private void DrawHeader()
@@ -325,8 +337,8 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
 
             ImGui.SetCursorPosY(ImGui.GetCursorPosY() - (5 * ImGuiHelpers.GlobalScale));
 
-            var searchInputWidth = 240 * ImGuiHelpers.GlobalScale;
-            var searchClearButtonWidth = 40 * ImGuiHelpers.GlobalScale;
+            var searchInputWidth = 180 * ImGuiHelpers.GlobalScale;
+            var searchClearButtonWidth = 25 * ImGuiHelpers.GlobalScale;
 
             var sortByText = Locs.SortBy_Label;
             var sortByTextWidth = ImGui.CalcTextSize(sortByText).X;
@@ -349,9 +361,10 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
             ImGui.SameLine();
 
             // Shift down a little to align with the middle of the header text
-            ImGui.SetCursorPosY(ImGui.GetCursorPosY() + (headerTextSize.Y / 4) - 2);
+            var downShift = ImGui.GetCursorPosY() + (headerTextSize.Y / 4) - 2;
+            ImGui.SetCursorPosY(downShift);
 
-            ImGui.SetCursorPosX(windowSize.X - sortSelectWidth - style.ItemSpacing.X - searchInputWidth - searchClearButtonWidth);
+            ImGui.SetCursorPosX(windowSize.X - sortSelectWidth - (style.ItemSpacing.X * 2) - searchInputWidth - searchClearButtonWidth);
 
             var searchTextChanged = false;
             ImGui.SetNextItemWidth(searchInputWidth);
@@ -362,6 +375,7 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
                 100);
 
             ImGui.SameLine();
+            ImGui.SetCursorPosY(downShift);
 
             ImGui.SetNextItemWidth(searchClearButtonWidth);
             if (ImGuiComponents.IconButton(FontAwesomeIcon.Times))
@@ -374,7 +388,7 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
                 this.UpdateCategoriesOnSearchChange();
 
             ImGui.SameLine();
-            ImGui.SetCursorPosX(windowSize.X - sortSelectWidth);
+            ImGui.SetCursorPosY(downShift);
             ImGui.SetNextItemWidth(selectableWidth);
             if (ImGui.BeginCombo(sortByText, this.filterText, ImGuiComboFlags.NoArrowButton))
             {
@@ -497,7 +511,7 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
 
                                 if (this.updatePluginCount > 0)
                                 {
-                                    PluginManager.PrintUpdatedPlugins(this.updatedPlugins, Locs.PluginUpdateHeader_Chatbox);
+                                    Service<PluginManager>.Get().PrintUpdatedPlugins(this.updatedPlugins, Locs.PluginUpdateHeader_Chatbox);
                                     notifications.AddNotification(Locs.Notifications_UpdatesInstalled(this.updatePluginCount), Locs.Notifications_UpdatesInstalledTitle, NotificationType.Success);
 
                                     var installedGroupIdx = this.categoryManager.GroupList.TakeWhile(
@@ -1674,6 +1688,12 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
             // Name
             var label = plugin.Manifest.Name;
 
+            // Dev
+            if (plugin.IsDev)
+            {
+                label += Locs.PluginTitleMod_DevPlugin;
+            }
+
             // Testing
             if (plugin.Manifest.Testing)
             {
@@ -1840,12 +1860,6 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
 
                 ImGui.SameLine();
                 ImGui.TextColored(ImGuiColors.DalamudGrey3, $" v{plugin.Manifest.EffectiveVersion}");
-
-                if (plugin.IsDev)
-                {
-                    ImGui.SameLine();
-                    ImGui.TextColored(ImGuiColors.DalamudRed, Locs.PluginBody_DeleteDevPlugin);
-                }
 
                 ImGuiHelpers.ScaledDummy(5);
 
@@ -2557,6 +2571,8 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
 
             public static string PluginTitleMod_TestingVersion => Loc.Localize("InstallerTestingVersion", " (testing version)");
 
+            public static string PluginTitleMod_DevPlugin => Loc.Localize("InstallerDevPlugin", " (dev plugin)");
+
             public static string PluginTitleMod_UpdateFailed => Loc.Localize("InstallerUpdateFailed", " (update failed)");
 
             public static string PluginTitleMod_LoadError => Loc.Localize("InstallerLoadError", " (load error)");
@@ -2600,9 +2616,6 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
             public static string PluginBody_Plugin3rdPartyRepo(string url) => Loc.Localize("InstallerPlugin3rdPartyRepo", "From custom plugin repository {0}").Format(url);
 
             public static string PluginBody_AvailableDevPlugin => Loc.Localize("InstallerDevPlugin", " This plugin is available in one of your repos, please remove it from the devPlugins folder.");
-
-            public static string PluginBody_DeleteDevPlugin => Loc.Localize("InstallerDeleteDevPlugin ", " To delete this plugin, please remove it from the devPlugins folder.");
-
             public static string PluginBody_Outdated => Loc.Localize("InstallerOutdatedPluginBody ", "This plugin is outdated and incompatible at the moment. Please wait for it to be updated by its author.");
 
             public static string PluginBody_Orphaned => Loc.Localize("InstallerOrphanedPluginBody ", "This plugin's source repository is no longer available. You may need to reinstall it from its repository, or re-add the repository.");
