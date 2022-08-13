@@ -2597,9 +2597,9 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
 
             public static string PluginContext_HidePlugin => Loc.Localize("InstallerHidePlugin", "Hide from installer");
 
-            public static string PluginContext_DeletePluginConfig => Loc.Localize("InstallerDeletePluginConfig", "Reset plugin");
+            public static string PluginContext_DeletePluginConfig => Loc.Localize("InstallerDeletePluginConfig", "Reset plugin configuration");
 
-            public static string PluginContext_DeletePluginConfigReload => Loc.Localize("InstallerDeletePluginConfigReload", "Reset plugin settings & reload");
+            public static string PluginContext_DeletePluginConfigReload => Loc.Localize("InstallerDeletePluginConfigReload", "Reset plugin configuration and reload");
 
             #endregion
 
