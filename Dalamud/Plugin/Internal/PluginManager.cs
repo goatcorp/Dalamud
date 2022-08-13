@@ -1086,7 +1086,7 @@ internal partial class PluginManager : IDisposable, IServiceType
     /// <returns>The task.</returns>
     public async Task DeleteConfigurationAsync(LocalPlugin plugin)
     {
-        if (plugin.State == PluginState.Loading || plugin.State == PluginState.Unloaded)
+        if (plugin.State == PluginState.Loading || plugin.State == PluginState.Unloading)
             throw new Exception("Cannot delete configuration for a loading/unloading plugin");
 
         if (plugin.IsLoaded)
