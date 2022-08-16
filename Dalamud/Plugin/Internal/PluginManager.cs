@@ -429,84 +429,133 @@ internal partial class PluginManager : IDisposable, IServiceType
             }
         }
 
-        void LoadPluginsSync(string logPrefix, IEnumerable<PluginDef> pluginDefsList)
+        async Task LoadPluginsSync(string logPrefix, IEnumerable<PluginDef> pluginDefsList)
         {
+            Log.Information("============= LoadPluginsSync START =============");
+
             foreach (var pluginDef in pluginDefsList)
-                LoadPluginOnBoot(logPrefix, pluginDef).Wait();
+                await LoadPluginOnBoot(logPrefix, pluginDef);
+
+            Log.Information("============= LoadPluginsSync END =============");
         }
 
         Task LoadPluginsAsync(string logPrefix, IEnumerable<PluginDef> pluginDefsList)
         {
+            Log.Information("============= LoadPluginsAsync START =============");
             return Task.WhenAll(
                 pluginDefsList
                     .Select(pluginDef => Task.Run(Timings.AttachTimingHandle(
                                                       () => LoadPluginOnBoot(logPrefix, pluginDef))))
-                    .ToArray());
+                    .ToArray()).ContinueWith(t => Log.Information($"============= LoadPluginsAsync END {t.IsCompletedSuccessfully} ============="));
         }
 
         var syncPlugins = pluginDefs.Where(def => def.Manifest?.LoadSync == true).ToList();
         var asyncPlugins = pluginDefs.Where(def => def.Manifest?.LoadSync != true).ToList();
         var loadTasks = new List<Task>();
 
+        var tokenSource = new CancellationTokenSource(TimeSpan.FromMinutes(5));
+
         // Load plugins that can be loaded anytime
         LoadPluginsSync(
             "AnytimeSync",
-            syncPlugins.Where(def => def.Manifest?.LoadRequiredState == 2));
+            syncPlugins.Where(def => def.Manifest?.LoadRequiredState == 2)).GetAwaiter().GetResult();
         loadTasks.Add(
-            LoadPluginsAsync(
-                "AnytimeAsync",
-                asyncPlugins.Where(def => def.Manifest?.LoadRequiredState == 2)));
+            Task.Run(
+                    () => LoadPluginsAsync(
+                    "AnytimeAsync",
+                    asyncPlugins.Where(def => def.Manifest?.LoadRequiredState == 2)),
+                    tokenSource.Token));
 
         // Load plugins that want to be loaded during Framework.Tick
         loadTasks.Add(
-            Service<Framework>
-                .GetAsync()
-                .ContinueWith(
-                    x => x.Result.RunOnTick(
-                        () => LoadPluginsSync(
-                            "FrameworkTickSync",
-                            syncPlugins.Where(def => def.Manifest?.LoadRequiredState == 1))),
-                    TaskContinuationOptions.RunContinuationsAsynchronously)
-                .Unwrap()
-                .ContinueWith(
-                    _ => LoadPluginsAsync(
-                        "FrameworkTickAsync",
-                        asyncPlugins.Where(def => def.Manifest?.LoadRequiredState == 1)),
-                    TaskContinuationOptions.RunContinuationsAsynchronously)
-                .Unwrap());
+            Task.Run(
+                    () => Service<Framework>
+                    .GetAsync()
+                    .ContinueWith(
+                        x => x.Result.RunOnTick(
+                            () => LoadPluginsSync(
+                                "FrameworkTickSync",
+                                syncPlugins.Where(def => def.Manifest?.LoadRequiredState == 1)),
+                            cancellationToken: tokenSource.Token),
+                        tokenSource.Token,
+                        TaskContinuationOptions.RunContinuationsAsynchronously,
+                        TaskScheduler.Default)
+                    .Unwrap()
+                    .ContinueWith(
+                        _ => LoadPluginsAsync(
+                            "FrameworkTickAsync",
+                            asyncPlugins.Where(def => def.Manifest?.LoadRequiredState == 1)),
+                        tokenSource.Token,
+                        TaskContinuationOptions.RunContinuationsAsynchronously,
+                        TaskScheduler.Default)
+                    .Unwrap(),
+                    tokenSource.Token));
 
         // Load plugins that want to be loaded during Framework.Tick, when drawing facilities are available
         loadTasks.Add(
-            Service<InterfaceManager.InterfaceManagerWithScene>
+            Task.Run(
+                () => Service<InterfaceManager.InterfaceManagerWithScene>
                 .GetAsync()
                 .ContinueWith(
                     _ => Service<Framework>.Get().RunOnTick(
                         () => LoadPluginsSync(
                             "DrawAvailableSync",
-                            syncPlugins.Where(def => def.Manifest?.LoadRequiredState is 0 or null))))
+                            syncPlugins.Where(def => def.Manifest?.LoadRequiredState is 0 or null)),
+                        cancellationToken: tokenSource.Token),
+                    tokenSource.Token)
                 .Unwrap()
                 .ContinueWith(
                     _ => LoadPluginsAsync(
-                        "DrawAvailableAsync",
-                        asyncPlugins.Where(def => def.Manifest?.LoadRequiredState is 0 or null)))
-                .Unwrap());
+                                  "DrawAvailableAsync",
+                                  asyncPlugins.Where(def => def.Manifest?.LoadRequiredState is 0 or null)), 
+                    tokenSource.Token)
+                .Unwrap(),
+                tokenSource.Token));
 
         // Save signatures when all plugins are done loading, successful or not.
         _ = Task
             .WhenAll(loadTasks)
             .ContinueWith(
-                _ => Service<SigScanner>.GetAsync(),
-                TaskContinuationOptions.RunContinuationsAsynchronously)
+                t =>
+                {
+                    Log.Information("Task.WhenAll continuing");
+                    if (!t.IsCompletedSuccessfully)
+                    {
+                        foreach (var loadTask in loadTasks)
+                        {
+                            if (!loadTask.IsCompletedSuccessfully)
+                            {
+                                if (loadTask.Exception != null)
+                                {
+                                    Log.Error(loadTask.Exception, " => Exception during load");
+                                }
+                                else
+                                {
+                                    Log.Error($" => Task failed, canceled: {t.IsCanceled} faulted: {t.IsFaulted}");
+                                }
+                            }
+                        }
+                    }
+
+                    return Service<SigScanner>.GetAsync();
+                },
+                tokenSource.Token,
+                TaskContinuationOptions.RunContinuationsAsynchronously,
+                TaskScheduler.Default)
             .Unwrap()
             .ContinueWith(
                 sigScannerTask =>
                 {
+                    Log.Information("sigScannerTask continuing");
+
                     this.PluginsReady = true;
                     this.NotifyInstalledPluginsChanged();
 
                     sigScannerTask.Result.Save();
                 },
-                TaskContinuationOptions.RunContinuationsAsynchronously)
+                tokenSource.Token,
+                TaskContinuationOptions.RunContinuationsAsynchronously,
+                TaskScheduler.Default)
             .ConfigureAwait(false);
     }
 
