@@ -330,12 +330,12 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
                         throw new ArgumentOutOfRangeException();
                 }
 
-                if (DateTime.Now - this.timeLoaded > TimeSpan.FromMinutes(2) && isWaitingManager)
+                if (DateTime.Now - this.timeLoaded > TimeSpan.FromSeconds(90) && isWaitingManager)
                 {
                     ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudRed);
                     ImGuiHelpers.CenteredText("This is embarrassing, but...");
                     ImGuiHelpers.CenteredText("one of your plugins may be blocking the installer.");
-                    ImGuiHelpers.CenteredText("You should tell us about this.");
+                    ImGuiHelpers.CenteredText("You should tell us about this, please keep this window open.");
                     ImGui.PopStyleColor();
                 }
 
