@@ -44,6 +44,8 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
 
         private readonly List<int> openPluginCollapsibles = new();
 
+        private readonly DateTime timeLoaded;
+        
         #region Image Tester State
 
         private string[] testerImagePaths = new string[5];
@@ -128,6 +130,8 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
                     this.testerImagePaths[i] = string.Empty;
                 }
             });
+
+            this.timeLoaded = DateTime.Now;
         }
 
         private enum OperationStatus
@@ -324,6 +328,15 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
                         break;
                     default:
                         throw new ArgumentOutOfRangeException();
+                }
+
+                if (DateTime.Now - this.timeLoaded > TimeSpan.FromMinutes(2) && isWaitingManager)
+                {
+                    ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudRed);
+                    ImGuiHelpers.CenteredText("This is embarrassing, but...");
+                    ImGuiHelpers.CenteredText("one of your plugins may be blocking the installer.");
+                    ImGuiHelpers.CenteredText("You should tell us about this.");
+                    ImGui.PopStyleColor();
                 }
 
                 ImGui.EndChild();
