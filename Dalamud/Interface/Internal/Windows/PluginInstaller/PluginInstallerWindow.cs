@@ -981,6 +981,27 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
                 return;
             }
 
+            var pm = Service<PluginManager>.Get();
+            if (pm.SafeMode)
+            {
+                ImGuiHelpers.ScaledDummy(10);
+                
+                ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudOrange);
+                ImGui.PushFont(InterfaceManager.IconFont);
+                ImGuiHelpers.CenteredText(FontAwesomeIcon.ExclamationTriangle.ToIconString());
+                ImGui.PopFont();
+                ImGui.PopStyleColor();
+                
+                var lines = Locs.SafeModeDisclaimer.Split('\n');
+                foreach (var line in lines)
+                {
+                    ImGuiHelpers.CenteredText(line);
+                }
+                
+                ImGuiHelpers.ScaledDummy(10);
+                ImGui.Separator();
+            }
+
             ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, ImGuiHelpers.ScaledVector2(1, 3));
 
             var groupInfo = this.categoryManager.GroupList[this.categoryManager.CurrentGroupIdx];
@@ -2815,6 +2836,12 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
             #region Error modal buttons
 
             public static string ErrorModalButton_Ok => Loc.Localize("OK", "OK");
+
+            #endregion
+
+            #region Other
+
+            public static string SafeModeDisclaimer => Loc.Localize("SafeModeDisclaimer", "You enabled safe mode, no plugins will be loaded.\nYou may delete plugins from the \"Installed plugins\" tab.\nSimply restart your game to disable safe mode.");
 
             #endregion
         }
