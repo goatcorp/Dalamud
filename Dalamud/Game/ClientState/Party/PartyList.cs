@@ -14,20 +14,21 @@ namespace Dalamud.Game.ClientState.Party
     /// </summary>
     [PluginInterface]
     [InterfaceVersion("1.0")]
-    public sealed unsafe partial class PartyList
+    [ServiceManager.BlockingEarlyLoadedService]
+    public sealed unsafe partial class PartyList : IServiceType
     {
         private const int GroupLength = 8;
         private const int AllianceLength = 20;
 
+        [ServiceManager.ServiceDependency]
+        private readonly ClientState clientState = Service<ClientState>.Get();
+
         private readonly ClientStateAddressResolver address;
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="PartyList"/> class.
-        /// </summary>
-        /// <param name="addressResolver">Client state address resolver.</param>
-        internal PartyList(ClientStateAddressResolver addressResolver)
+        [ServiceManager.ServiceConstructor]
+        private PartyList()
         {
-            this.address = addressResolver;
+            this.address = this.clientState.AddressResolver;
 
             Log.Verbose($"Group manager address 0x{this.address.GroupManager.ToInt64():X}");
         }
@@ -117,9 +118,7 @@ namespace Dalamud.Game.ClientState.Party
         /// <returns>The party member object containing the requested data.</returns>
         public PartyMember? CreatePartyMemberReference(IntPtr address)
         {
-            var clientState = Service<ClientState>.Get();
-
-            if (clientState.LocalContentId == 0)
+            if (this.clientState.LocalContentId == 0)
                 return null;
 
             if (address == IntPtr.Zero)
@@ -148,9 +147,7 @@ namespace Dalamud.Game.ClientState.Party
         /// <returns>The party member object containing the requested data.</returns>
         public PartyMember? CreateAllianceMemberReference(IntPtr address)
         {
-            var clientState = Service<ClientState>.Get();
-
-            if (clientState.LocalContentId == 0)
+            if (this.clientState.LocalContentId == 0)
                 return null;
 
             if (address == IntPtr.Zero)

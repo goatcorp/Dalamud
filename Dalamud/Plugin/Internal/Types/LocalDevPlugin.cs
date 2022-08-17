@@ -124,7 +124,7 @@ internal class LocalDevPlugin : LocalPlugin, IDisposable
         var current = Interlocked.Increment(ref this.reloadCounter);
 
         Task.Delay(500).ContinueWith(
-            _ =>
+            async _ =>
             {
                 if (this.fileWatcherTokenSource.IsCancellationRequested)
                 {
@@ -138,9 +138,9 @@ internal class LocalDevPlugin : LocalPlugin, IDisposable
                     return;
                 }
 
-                if (this.State != PluginState.Loaded)
+                if (this.State != PluginState.Loaded && this.State != PluginState.LoadError)
                 {
-                    Log.Debug($"Skipping reload of {this.Name}, state ({this.State}) is not {PluginState.Loaded}.");
+                    Log.Debug($"Skipping reload of {this.Name}, state ({this.State}) is not {PluginState.Loaded} nor {PluginState.LoadError}.");
                     return;
                 }
 
@@ -148,7 +148,7 @@ internal class LocalDevPlugin : LocalPlugin, IDisposable
 
                 try
                 {
-                    this.Reload();
+                    await this.ReloadAsync();
                     notificationManager.AddNotification($"The DevPlugin '{this.Name} was reloaded successfully.", "Plugin reloaded!", NotificationType.Success);
                 }
                 catch (Exception ex)

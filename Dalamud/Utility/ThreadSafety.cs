@@ -8,12 +8,12 @@ namespace Dalamud.Utility;
 public static class ThreadSafety
 {
     [ThreadStatic]
-    private static bool isMainThread;
+    private static bool threadStaticIsMainThread;
 
     /// <summary>
     /// Gets a value indicating whether the current thread is the main thread.
     /// </summary>
-    public static bool IsMainThread => isMainThread;
+    public static bool IsMainThread => threadStaticIsMainThread;
 
     /// <summary>
     /// Throws an exception when the current thread is not the main thread.
@@ -21,7 +21,7 @@ public static class ThreadSafety
     /// <exception cref="InvalidOperationException">Thrown when the current thread is not the main thread.</exception>
     public static void AssertMainThread()
     {
-        if (!isMainThread)
+        if (!threadStaticIsMainThread)
         {
             throw new InvalidOperationException("Not on main thread!");
         }
@@ -33,7 +33,7 @@ public static class ThreadSafety
     /// <exception cref="InvalidOperationException">Thrown when the current thread is the main thread.</exception>
     public static void AssertNotMainThread()
     {
-        if (isMainThread)
+        if (threadStaticIsMainThread)
         {
             throw new InvalidOperationException("On main thread!");
         }
@@ -44,6 +44,6 @@ public static class ThreadSafety
     /// </summary>
     internal static void MarkMainThread()
     {
-        isMainThread = true;
+        threadStaticIsMainThread = true;
     }
 }

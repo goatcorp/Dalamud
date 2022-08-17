@@ -123,7 +123,6 @@ namespace Dalamud.Interface.Internal.Windows
             // Options menu
             if (ImGui.BeginPopup("Options"))
             {
-                var dalamud = Service<Dalamud>.Get();
                 var configuration = Service<DalamudConfiguration>.Get();
 
                 if (ImGui.Checkbox("Auto-scroll", ref this.autoScroll))
@@ -138,10 +137,10 @@ namespace Dalamud.Interface.Internal.Windows
                     configuration.Save();
                 }
 
-                var prevLevel = (int)dalamud.LogLevelSwitch.MinimumLevel;
+                var prevLevel = (int)EntryPoint.LogLevelSwitch.MinimumLevel;
                 if (ImGui.Combo("Log Level", ref prevLevel, Enum.GetValues(typeof(LogEventLevel)).Cast<LogEventLevel>().Select(x => x.ToString()).ToArray(), 6))
                 {
-                    dalamud.LogLevelSwitch.MinimumLevel = (LogEventLevel)prevLevel;
+                    EntryPoint.LogLevelSwitch.MinimumLevel = (LogEventLevel)prevLevel;
                     configuration.LogLevel = (LogEventLevel)prevLevel;
                     configuration.Save();
                 }

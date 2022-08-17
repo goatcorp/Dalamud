@@ -218,9 +218,7 @@ namespace utils {
     }
 
     template<typename T>
-    T get_env(const wchar_t* pcwzName) {
-        static_assert(false);
-    }
+    T get_env(const wchar_t* pcwzName) = delete;
 
     template<>
     std::wstring get_env(const wchar_t* pcwzName);
@@ -240,12 +238,13 @@ namespace utils {
     }
 
     template<typename T>
-    std::vector<T> get_env_list(const wchar_t* pcwzName) {
-        static_assert(false);
-    }
+    std::vector<T> get_env_list(const wchar_t* pcwzName) = delete;
 
     template<>
     std::vector<std::wstring> get_env_list(const wchar_t* pcwzName);
+
+    template<>
+    std::vector<std::string> get_env_list(const wchar_t* pcwzName);
 
     template<typename T>
     std::vector<T> get_env_list(const char* pcszName) {
@@ -261,4 +260,6 @@ namespace utils {
     HWND try_find_game_window();
 
     void wait_for_game_window();
+
+	std::wstring escape_shell_arg(const std::wstring& arg);
 }

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 
+using Dalamud.Configuration.Internal;
 using Serilog;
 
 namespace Dalamud.Game.Internal
@@ -8,22 +9,19 @@ namespace Dalamud.Game.Internal
     /// <summary>
     /// This class disables anti-debug functionality in the game client.
     /// </summary>
-    internal sealed partial class AntiDebug
+    [ServiceManager.EarlyLoadedService]
+    internal sealed partial class AntiDebug : IServiceType
     {
         private readonly byte[] nop = new byte[] { 0x31, 0xC0, 0x90, 0x90, 0x90, 0x90 };
         private byte[] original;
         private IntPtr debugCheckAddress;
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="AntiDebug"/> class.
-        /// </summary>
-        public AntiDebug()
+        [ServiceManager.ServiceConstructor]
+        private AntiDebug(SigScanner sigScanner)
         {
-            var scanner = Service<SigScanner>.Get();
-
             try
             {
-                this.debugCheckAddress = scanner.ScanText("FF 15 ?? ?? ?? ?? 85 C0 74 11 41");
+                this.debugCheckAddress = sigScanner.ScanText("FF 15 ?? ?? ?? ?? 85 C0 74 11 41");
             }
             catch (KeyNotFoundException)
             {
@@ -31,6 +29,16 @@ namespace Dalamud.Game.Internal
             }
 
             Log.Verbose($"Debug check address 0x{this.debugCheckAddress.ToInt64():X}");
+
+            if (!this.IsEnabled)
+            {
+#if DEBUG
+                this.Enable();
+#else
+                if (Service<DalamudConfiguration>.Get().IsAntiAntiDebugEnabled)
+                    this.Enable();
+#endif
+            }
         }
 
         /// <summary>

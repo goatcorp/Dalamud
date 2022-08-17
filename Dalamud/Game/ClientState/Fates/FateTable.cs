@@ -13,17 +13,15 @@ namespace Dalamud.Game.ClientState.Fates
     /// </summary>
     [PluginInterface]
     [InterfaceVersion("1.0")]
-    public sealed partial class FateTable
+    [ServiceManager.BlockingEarlyLoadedService]
+    public sealed partial class FateTable : IServiceType
     {
         private readonly ClientStateAddressResolver address;
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="FateTable"/> class.
-        /// </summary>
-        /// <param name="addressResolver">Client state address resolver.</param>
-        internal FateTable(ClientStateAddressResolver addressResolver)
+        [ServiceManager.ServiceConstructor]
+        private FateTable(ClientState clientState)
         {
-            this.address = addressResolver;
+            this.address = clientState.AddressResolver;
 
             Log.Verbose($"Fate table address 0x{this.address.FateTablePtr.ToInt64():X}");
         }

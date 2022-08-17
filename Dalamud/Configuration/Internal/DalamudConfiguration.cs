@@ -16,13 +16,8 @@ namespace Dalamud.Configuration.Internal
     /// Class containing Dalamud settings.
     /// </summary>
     [Serializable]
-    internal sealed class DalamudConfiguration
+    internal sealed class DalamudConfiguration : IServiceType
     {
-        /// <summary>
-        /// Currently used beta key for Dalamud staging builds.
-        /// </summary>
-        public const string DalamudCurrentBetaKey = "proof of context";
-
         private static readonly JsonSerializerSettings SerializerSettings = new()
         {
             TypeNameHandling = TypeNameHandling.All,
@@ -43,12 +38,6 @@ namespace Dalamud.Configuration.Internal
         /// Event that occurs when dalamud configuration is saved.
         /// </summary>
         public event DalamudConfigurationSavedDelegate DalamudConfigurationSaved;
-
-        /// <summary>
-        /// Gets a value indicating whether or not Dalamud staging is enabled.
-        /// </summary>
-        [JsonIgnore]
-        public bool IsConventionalStaging => this.DalamudBetaKey == DalamudCurrentBetaKey;
 
         /// <summary>
         /// Gets or sets a list of muted works.
@@ -145,17 +134,6 @@ namespace Dalamud.Configuration.Internal
         public float FontGammaLevel { get; set; } = 1.4f;
 
         /// <summary>
-        /// Gets or sets a value indicating the level of font resolution between 1 to 5.
-        /// 0(1024x1024), 1(2048x2048), 2(4096x4096), 3(8192x8192), 4(16384x16384).
-        /// </summary>
-        public int FontResolutionLevel { get; set; } = 2;
-
-        /// <summary>
-        /// Gets or sets a value indicating whether to disable font fallback notice.
-        /// </summary>
-        public bool DisableFontFallbackNotice { get; set; } = false;
-
-        /// <summary>
         /// Gets or sets a value indicating whether or not plugin UI should be hidden.
         /// </summary>
         public bool ToggleUiHide { get; set; } = true;
@@ -189,6 +167,11 @@ namespace Dalamud.Configuration.Internal
         /// Gets or sets the default Dalamud debug log level on startup.
         /// </summary>
         public LogEventLevel LogLevel { get; set; } = LogEventLevel.Information;
+
+        /// <summary>
+        /// Gets or sets a value indicating whether to write to log files synchronously.
+        /// </summary>
+        public bool LogSynchronously { get; set; } = false;
 
         /// <summary>
         /// Gets or sets a value indicating whether or not the debug log should scroll automatically.
@@ -236,25 +219,26 @@ namespace Dalamud.Configuration.Internal
         public bool IsAntiAntiDebugEnabled { get; set; } = false;
 
         /// <summary>
+        /// Gets or sets a value indicating whether to resume game main thread after plugins load.
+        /// </summary>
+        public bool IsResumeGameAfterPluginLoad { get; set; } = false;
+
+        /// <summary>
         /// Gets or sets the kind of beta to download when <see cref="DalamudBetaKey"/> matches the server value.
         /// </summary>
         public string DalamudBetaKind { get; set; }
-
-        /// <summary>
-        /// Gets or sets a value indicating whether or not all plugins, regardless of API level, should be loaded.
-        /// </summary>
-        public bool LoadAllApiLevels { get; set; }
-
-        /// <summary>
-        /// Gets or sets a value indicating whether or not banned plugins should be loaded.
-        /// </summary>
-        public bool LoadBannedPlugins { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether or not any plugin should be loaded when the game is started.
         /// It is reset immediately when read.
         /// </summary>
         public bool PluginSafeMode { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating the wait time between plugin unload and plugin assembly unload.
+        /// Uses default value that may change between versions if set to null.
+        /// </summary>
+        public int? PluginWaitBeforeFree { get; set; }
 
         /// <summary>
         /// Gets or sets a list of saved styles.
@@ -347,6 +331,11 @@ namespace Dalamud.Configuration.Internal
         /// Gets or sets a value indicating whether or not to show info on dev bar.
         /// </summary>
         public bool ShowDevBarInfo { get; set; } = true;
+
+        /// <summary>
+        /// Gets or sets the last-used contact details for the plugin feedback form.
+        /// </summary>
+        public string LastFeedbackContactDetails { get; set; } = string.Empty;
 
         /// <summary>
         /// Load a configuration from the provided path.

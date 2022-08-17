@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
+using System.Threading.Tasks;
 
 using Dalamud.Logging.Internal;
 
@@ -11,25 +12,32 @@ namespace Dalamud.IoC.Internal
     /// <summary>
     /// A simple singleton-only IOC container that provides (optional) version-based dependency resolution.
     /// </summary>
-    internal class ServiceContainer : IServiceProvider
+    internal class ServiceContainer : IServiceProvider, IServiceType
     {
         private static readonly ModuleLog Log = new("SERVICECONTAINER");
 
         private readonly Dictionary<Type, ObjectInstance> instances = new();
 
         /// <summary>
+        /// Initializes a new instance of the <see cref="ServiceContainer"/> class.
+        /// </summary>
+        public ServiceContainer()
+        {
+        }
+
+        /// <summary>
         /// Register a singleton object of any type into the current IOC container.
         /// </summary>
         /// <param name="instance">The existing instance to register in the container.</param>
         /// <typeparam name="T">The interface to register.</typeparam>
-        public void RegisterSingleton<T>(T instance)
+        public void RegisterSingleton<T>(Task<T> instance)
         {
             if (instance == null)
             {
                 throw new ArgumentNullException(nameof(instance));
             }
 
-            this.instances[typeof(T)] = new(instance);
+            this.instances[typeof(T)] = new(instance.ContinueWith(x => new WeakReference(x.Result)), typeof(T));
         }
 
         /// <summary>
@@ -38,12 +46,12 @@ namespace Dalamud.IoC.Internal
         /// <param name="objectType">The type of object to create.</param>
         /// <param name="scopedObjects">Scoped objects to be included in the constructor.</param>
         /// <returns>The created object.</returns>
-        public object? Create(Type objectType, params object[] scopedObjects)
+        public async Task<object?> CreateAsync(Type objectType, params object[] scopedObjects)
         {
             var ctor = this.FindApplicableCtor(objectType, scopedObjects);
             if (ctor == null)
             {
-                Log.Error("Failed to create {TypeName}, an eligible ctor with satisfiable services could not be found", objectType.FullName);
+                Log.Error("Failed to create {TypeName}, an eligible ctor with satisfiable services could not be found", objectType.FullName!);
                 return null;
             }
 
@@ -53,42 +61,43 @@ namespace Dalamud.IoC.Internal
                 var parameterType = p.ParameterType;
                 var requiredVersion = p.GetCustomAttribute(typeof(RequiredVersionAttribute)) as RequiredVersionAttribute;
                 return (parameterType, requiredVersion);
-            });
+            }).ToList();
 
             var versionCheck = parameters.All(p => CheckInterfaceVersion(p.requiredVersion, p.parameterType));
 
             if (!versionCheck)
             {
-                Log.Error("Failed to create {TypeName}, a RequestedVersion could not be satisfied", objectType.FullName);
+                Log.Error("Failed to create {TypeName}, a RequestedVersion could not be satisfied", objectType.FullName!);
                 return null;
             }
 
-            var resolvedParams = parameters
-                .Select(p =>
-                {
-                    var service = this.GetService(p.parameterType, scopedObjects);
+            var resolvedParams =
+                await Task.WhenAll(
+                    parameters
+                        .Select(async p =>
+                        {
+                            var service = await this.GetService(p.parameterType, scopedObjects);
 
-                    if (service == null)
-                    {
-                        Log.Error("Requested service type {TypeName} was not available (null)", p.parameterType.FullName);
-                    }
+                            if (service == null)
+                            {
+                                Log.Error("Requested service type {TypeName} was not available (null)", p.parameterType.FullName!);
+                            }
 
-                    return service;
-                })
-                .ToArray();
+                            return service;
+                        }));
 
             var hasNull = resolvedParams.Any(p => p == null);
             if (hasNull)
             {
-                Log.Error("Failed to create {TypeName}, a requested service type could not be satisfied", objectType.FullName);
+                Log.Error("Failed to create {TypeName}, a requested service type could not be satisfied", objectType.FullName!);
                 return null;
             }
 
             var instance = FormatterServices.GetUninitializedObject(objectType);
 
-            if (!this.InjectProperties(instance, scopedObjects))
+            if (!await this.InjectProperties(instance, scopedObjects))
             {
-                Log.Error("Failed to create {TypeName}, a requested property service type could not be satisfied", objectType.FullName);
+                Log.Error("Failed to create {TypeName}, a requested property service type could not be satisfied", objectType.FullName!);
                 return null;
             }
 
@@ -105,7 +114,7 @@ namespace Dalamud.IoC.Internal
         /// <param name="instance">The object instance.</param>
         /// <param name="scopedObjects">Scoped objects.</param>
         /// <returns>Whether or not the injection was successful.</returns>
-        public bool InjectProperties(object instance, params object[] scopedObjects)
+        public async Task<bool> InjectProperties(object instance, params object[] scopedObjects)
         {
             var objectType = instance.GetType();
 
@@ -121,17 +130,17 @@ namespace Dalamud.IoC.Internal
 
             if (!versionCheck)
             {
-                Log.Error("Failed to create {TypeName}, a RequestedVersion could not be satisfied", objectType.FullName);
+                Log.Error("Failed to create {TypeName}, a RequestedVersion could not be satisfied", objectType.FullName!);
                 return false;
             }
 
             foreach (var prop in props)
             {
-                var service = this.GetService(prop.propertyInfo.PropertyType, scopedObjects);
+                var service = await this.GetService(prop.propertyInfo.PropertyType, scopedObjects);
 
                 if (service == null)
                 {
-                    Log.Error("Requested service type {TypeName} was not available (null)", prop.propertyInfo.PropertyType.FullName);
+                    Log.Error("Requested service type {TypeName} was not available (null)", prop.propertyInfo.PropertyType.FullName!);
                     return false;
                 }
 
@@ -162,14 +171,14 @@ namespace Dalamud.IoC.Internal
                 "Requested version {ReqVersion} does not match the implemented version {ImplVersion} for param type {ParamType}",
                 requiredVersion.Version,
                 declVersion.Version,
-                parameterType.FullName);
+                parameterType.FullName!);
 
             return false;
         }
 
-        private object? GetService(Type serviceType, object[] scopedObjects)
+        private async Task<object?> GetService(Type serviceType, object[] scopedObjects)
         {
-            var singletonService = this.GetService(serviceType);
+            var singletonService = await this.GetService(serviceType);
             if (singletonService != null)
             {
                 return singletonService;
@@ -185,15 +194,13 @@ namespace Dalamud.IoC.Internal
             return scoped;
         }
 
-        private object? GetService(Type serviceType)
+        private async Task<object?> GetService(Type serviceType)
         {
-            var hasInstance = this.instances.TryGetValue(serviceType, out var service);
-            if (hasInstance && service.Instance.IsAlive)
-            {
-                return service.Instance.Target;
-            }
+            if (!this.instances.TryGetValue(serviceType, out var service))
+                return null;
 
-            return null;
+            var instance = await service.InstanceTask;
+            return instance.Target;
         }
 
         private ConstructorInfo? FindApplicableCtor(Type type, object[] scopedObjects)
@@ -224,7 +231,7 @@ namespace Dalamud.IoC.Internal
                 var contains = types.Contains(parameter.ParameterType);
                 if (!contains)
                 {
-                    Log.Error("Failed to validate {TypeName}, unable to find any services that satisfy the type", parameter.ParameterType.FullName);
+                    Log.Error("Failed to validate {TypeName}, unable to find any services that satisfy the type", parameter.ParameterType.FullName!);
                     return false;
                 }
             }

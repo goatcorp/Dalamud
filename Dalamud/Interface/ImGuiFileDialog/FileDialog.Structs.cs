@@ -1,5 +1,7 @@
 using System.Collections.Generic;
+using System.IO;
 using System.Numerics;
+using Dalamud.Utility;
 
 namespace Dalamud.Interface.ImGuiFileDialog
 {
@@ -19,11 +21,26 @@ namespace Dalamud.Interface.ImGuiFileDialog
             public string FileModifiedDate;
         }
 
-        private struct SideBarItem
+        private readonly struct SideBarItem
         {
-            public char Icon;
-            public string Text;
-            public string Location;
+            public SideBarItem(string text, string location, FontAwesomeIcon icon)
+            {
+                this.Text = text;
+                this.Location = location;
+                this.Icon = icon;
+                this.Exists = !this.Location.IsNullOrEmpty() && Directory.Exists(this.Location);
+            }
+
+            public string Text { get; init; }
+
+            public string Location { get; init; }
+
+            public FontAwesomeIcon Icon { get; init; }
+
+            public bool Exists { get; init; }
+
+            public bool CheckExistence()
+                => !this.Location.IsNullOrEmpty() && Directory.Exists(this.Location);
         }
 
         private struct FilterStruct
@@ -50,7 +67,7 @@ namespace Dalamud.Interface.ImGuiFileDialog
 
         private struct IconColorItem
         {
-            public char Icon;
+            public FontAwesomeIcon Icon;
             public Vector4 Color;
         }
     }

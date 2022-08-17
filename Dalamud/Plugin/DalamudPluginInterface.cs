@@ -361,7 +361,7 @@ namespace Dalamud.Plugin
             realScopedObjects[0] = this;
             Array.Copy(scopedObjects, 0, realScopedObjects, 1, scopedObjects.Length);
 
-            return svcContainer.Create(typeof(T), realScopedObjects) as T;
+            return (T)svcContainer.CreateAsync(typeof(T), realScopedObjects).GetAwaiter().GetResult();
         }
 
         /// <summary>
@@ -378,7 +378,7 @@ namespace Dalamud.Plugin
             realScopedObjects[0] = this;
             Array.Copy(scopedObjects, 0, realScopedObjects, 1, scopedObjects.Length);
 
-            return svcContainer.InjectProperties(instance, realScopedObjects);
+            return svcContainer.InjectProperties(instance, realScopedObjects).GetAwaiter().GetResult();
         }
 
         #endregion

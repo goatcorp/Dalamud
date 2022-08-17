@@ -21,7 +21,8 @@ namespace Dalamud.Game.Gui
     /// </summary>
     [PluginInterface]
     [InterfaceVersion("1.0")]
-    public sealed class ChatGui : IDisposable
+    [ServiceManager.BlockingEarlyLoadedService]
+    public sealed class ChatGui : IDisposable, IServiceType
     {
         private readonly ChatGuiAddressResolver address;
 
@@ -32,22 +33,23 @@ namespace Dalamud.Game.Gui
         private readonly Hook<PopulateItemLinkDelegate> populateItemLinkHook;
         private readonly Hook<InteractableLinkClickedDelegate> interactableLinkClickedHook;
 
+        [ServiceManager.ServiceDependency]
+        private readonly DalamudConfiguration configuration = Service<DalamudConfiguration>.Get();
+
+        [ServiceManager.ServiceDependency]
+        private readonly LibcFunction libcFunction = Service<LibcFunction>.Get();
+
         private IntPtr baseAddress = IntPtr.Zero;
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="ChatGui"/> class.
-        /// </summary>
-        /// <param name="baseAddress">The base address of the ChatManager.</param>
-        internal ChatGui(IntPtr baseAddress)
+        [ServiceManager.ServiceConstructor]
+        private ChatGui(SigScanner sigScanner)
         {
-            this.address = new ChatGuiAddressResolver(baseAddress);
-            this.address.Setup();
+            this.address = new ChatGuiAddressResolver();
+            this.address.Setup(sigScanner);
 
-            Log.Verbose($"Chat manager address 0x{this.address.BaseAddress.ToInt64():X}");
-
-            this.printMessageHook = new Hook<PrintMessageDelegate>(this.address.PrintMessage, this.HandlePrintMessageDetour);
-            this.populateItemLinkHook = new Hook<PopulateItemLinkDelegate>(this.address.PopulateItemLinkObject, this.HandlePopulateItemLinkDetour);
-            this.interactableLinkClickedHook = new Hook<InteractableLinkClickedDelegate>(this.address.InteractableLinkClicked, this.InteractableLinkClickedDetour);
+            this.printMessageHook = Hook<PrintMessageDelegate>.FromAddress(this.address.PrintMessage, this.HandlePrintMessageDetour);
+            this.populateItemLinkHook = Hook<PopulateItemLinkDelegate>.FromAddress(this.address.PopulateItemLinkObject, this.HandlePopulateItemLinkDetour);
+            this.interactableLinkClickedHook = Hook<InteractableLinkClickedDelegate>.FromAddress(this.address.InteractableLinkClicked, this.InteractableLinkClickedDetour);
         }
 
         /// <summary>
@@ -128,16 +130,6 @@ namespace Dalamud.Game.Gui
         public byte LastLinkedItemFlags { get; private set; }
 
         /// <summary>
-        /// Enables this module.
-        /// </summary>
-        public void Enable()
-        {
-            this.printMessageHook.Enable();
-            this.populateItemLinkHook.Enable();
-            this.interactableLinkClickedHook.Enable();
-        }
-
-        /// <summary>
         /// Dispose of managed and unmanaged resources.
         /// </summary>
         void IDisposable.Dispose()
@@ -164,13 +156,11 @@ namespace Dalamud.Game.Gui
         /// <param name="message">A message to send.</param>
         public void Print(string message)
         {
-            var configuration = Service<DalamudConfiguration>.Get();
-
             // Log.Verbose("[CHATGUI PRINT REGULAR]{0}", message);
             this.PrintChat(new XivChatEntry
             {
                 Message = message,
-                Type = configuration.GeneralChatType,
+                Type = this.configuration.GeneralChatType,
             });
         }
 
@@ -181,13 +171,11 @@ namespace Dalamud.Game.Gui
         /// <param name="message">A message to send.</param>
         public void Print(SeString message)
         {
-            var configuration = Service<DalamudConfiguration>.Get();
-
             // Log.Verbose("[CHATGUI PRINT SESTRING]{0}", message.TextValue);
             this.PrintChat(new XivChatEntry
             {
                 Message = message,
-                Type = configuration.GeneralChatType,
+                Type = this.configuration.GeneralChatType,
             });
         }
 
@@ -236,10 +224,10 @@ namespace Dalamud.Game.Gui
                 }
 
                 var senderRaw = (chat.Name ?? string.Empty).Encode();
-                using var senderOwned = Service<LibcFunction>.Get().NewString(senderRaw);
+                using var senderOwned = this.libcFunction.NewString(senderRaw);
 
                 var messageRaw = (chat.Message ?? string.Empty).Encode();
-                using var messageOwned = Service<LibcFunction>.Get().NewString(messageRaw);
+                using var messageOwned = this.libcFunction.NewString(messageRaw);
 
                 this.HandlePrintMessageDetour(this.baseAddress, chat.Type, senderOwned.Address, messageOwned.Address, chat.SenderId, chat.Parameters);
             }
@@ -282,6 +270,14 @@ namespace Dalamud.Game.Gui
             {
                 this.dalamudLinkHandlers.Remove((pluginName, commandId));
             }
+        }
+
+        [ServiceManager.CallWhenServicesReady]
+        private void ContinueConstruction(GameGui gameGui, LibcFunction libcFunction)
+        {
+            this.printMessageHook.Enable();
+            this.populateItemLinkHook.Enable();
+            this.interactableLinkClickedHook.Enable();
         }
 
         private void HandlePopulateItemLinkDetour(IntPtr linkObjectPtr, IntPtr itemInfoPtr)
@@ -370,7 +366,7 @@ namespace Dalamud.Game.Gui
 
                 if (!Util.FastByteArrayCompare(originalMessageData, message.RawData))
                 {
-                    allocatedString = Service<LibcFunction>.Get().NewString(message.RawData);
+                    allocatedString = this.libcFunction.NewString(message.RawData);
                     Log.Debug($"HandlePrintMessageDetour String modified: {originalMessageData}({messagePtr}) -> {message}({allocatedString.Address})");
                     messagePtr = allocatedString.Address;
                 }
@@ -385,7 +381,7 @@ namespace Dalamud.Game.Gui
 
                 if (!Util.FastByteArrayCompare(originalSenderData, sender.RawData))
                 {
-                    allocatedStringSender = Service<LibcFunction>.Get().NewString(sender.RawData);
+                    allocatedStringSender = this.libcFunction.NewString(sender.RawData);
                     Log.Debug(
                         $"HandlePrintMessageDetour Sender modified: {originalSenderData}({senderPtr}) -> {sender}({allocatedStringSender.Address})");
                     senderPtr = allocatedStringSender.Address;

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 
 using CheapLoc;
+using Dalamud.Configuration.Internal;
 using Serilog;
 
 namespace Dalamud
@@ -12,7 +13,8 @@ namespace Dalamud
     /// <summary>
     /// Class handling localization.
     /// </summary>
-    public class Localization
+    [ServiceManager.EarlyLoadedService]
+    public class Localization : IServiceType
     {
         /// <summary>
         /// Array of language codes which have a valid translation in Dalamud.
@@ -38,6 +40,16 @@ namespace Dalamud
             this.locResourcePrefix = locResourcePrefix;
             this.useEmbedded = useEmbedded;
             this.assembly = Assembly.GetCallingAssembly();
+        }
+
+        [ServiceManager.ServiceConstructor]
+        private Localization(Dalamud dalamud, DalamudConfiguration configuration)
+            : this(Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "loc", "dalamud"), "dalamud_")
+        {
+            if (!string.IsNullOrEmpty(configuration.LanguageOverride))
+                this.SetupWithLangCode(configuration.LanguageOverride);
+            else
+                this.SetupWithUiCulture();
         }
 
         /// <summary>

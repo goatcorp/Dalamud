@@ -5,7 +5,7 @@ namespace Dalamud.Logging.Internal
     /// <summary>
     /// Class offering various methods to allow for logging in Dalamud modules.
     /// </summary>
-    internal class ModuleLog
+    public class ModuleLog
     {
         private readonly string moduleName;
 

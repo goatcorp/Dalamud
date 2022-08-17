@@ -12,9 +12,9 @@ using Serilog;
 namespace Dalamud.Injector
 {
     /// <summary>
-    /// Class responsible for stripping ACL protections from processes.
+    /// Class responsible for starting the game and stripping ACL protections from processes.
     /// </summary>
-    public static class NativeAclFix
+    public static class GameStart
     {
         /// <summary>
         /// Start a process without ACL protections.
@@ -24,13 +24,14 @@ namespace Dalamud.Injector
         /// <param name="arguments">Arguments to pass to the executable file.</param>
         /// <param name="dontFixAcl">Don't actually fix the ACL.</param>
         /// <param name="beforeResume">Action to execute before the process is started.</param>
+        /// <param name="waitForGameWindow">Wait for the game window to be ready before proceeding.</param>
         /// <returns>The started process.</returns>
         /// <exception cref="Win32Exception">Thrown when a win32 error occurs.</exception>
-        /// <exception cref="GameExitedException">Thrown when the process did not start correctly.</exception>
-        public static Process LaunchGame(string workingDir, string exePath, string arguments, bool dontFixAcl, Action<Process> beforeResume)
+        /// <exception cref="GameStartException">Thrown when the process did not start correctly.</exception>
+        public static Process LaunchGame(string workingDir, string exePath, string arguments, bool dontFixAcl, Action<Process> beforeResume, bool waitForGameWindow = true)
         {
             Process process = null;
-            
+
             var psecDesc = IntPtr.Zero;
             if (!dontFixAcl)
             {
@@ -121,19 +122,32 @@ namespace Dalamud.Injector
                 PInvoke.ResumeThread(lpProcessInformation.hThread);
 
                 // Ensure that the game main window is prepared
-                try
+                if (waitForGameWindow)
                 {
-                    do
+                    try
                     {
-                        process.WaitForInputIdle();
+                        var tries = 0;
+                        const int maxTries = 420;
+                        const int timeout = 50;
 
-                        Thread.Sleep(100);
+                        do
+                        {
+                            Thread.Sleep(timeout);
+
+                            if (process.HasExited)
+                                throw new GameStartException();
+
+                            if (tries > maxTries)
+                                throw new GameStartException($"Couldn't find game window after {maxTries * timeout}ms");
+
+                            tries++;
+                        }
+                        while (TryFindGameWindow(process) == IntPtr.Zero);
                     }
-                    while (TryFindGameWindow(process) == IntPtr.Zero);
-                }
-                catch (InvalidOperationException)
-                {
-                    throw new GameExitedException();
+                    catch (InvalidOperationException)
+                    {
+                        throw new GameStartException("Could not read process information.");
+                    }
                 }
 
                 if (!dontFixAcl)
@@ -141,7 +155,7 @@ namespace Dalamud.Injector
             }
             catch (Exception ex)
             {
-                Log.Error(ex, "[NativeAclFix] Uncaught error during initialization, trying to kill process");
+                Log.Error(ex, "[GameStart] Uncaught error during initialization, trying to kill process");
 
                 try
                 {
@@ -149,7 +163,7 @@ namespace Dalamud.Injector
                 }
                 catch (Exception killEx)
                 {
-                    Log.Error(killEx, "[NativeAclFix] Could not kill process");
+                    Log.Error(killEx, "[GameStart] Could not kill process");
                 }
 
                 throw;
@@ -309,13 +323,14 @@ namespace Dalamud.Injector
         /// <summary>
         /// Exception thrown when the process has exited before a window could be found.
         /// </summary>
-        public class GameExitedException : Exception
+        public class GameStartException : Exception
         {
             /// <summary>
-            /// Initializes a new instance of the <see cref="GameExitedException"/> class.
+            /// Initializes a new instance of the <see cref="GameStartException"/> class.
             /// </summary>
-            public GameExitedException()
-                : base("Game exited prematurely.")
+            /// <param name="message">The message to pass on.</param>
+            public GameStartException(string? message = null)
+                : base(message ?? "Game exited prematurely.")
             {
             }
         }

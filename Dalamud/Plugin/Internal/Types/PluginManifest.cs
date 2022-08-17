@@ -135,10 +135,32 @@ internal record PluginManifest
     public string DownloadLinkTesting { get; init; } = null!;
 
     /// <summary>
+    /// Gets the required Dalamud load step for this plugin to load. Takes precedence over LoadPriority.
+    /// Valid values are:
+    /// 0. During Framework.Tick, when drawing facilities are available
+    /// 1. During Framework.Tick
+    /// 2. No requirement
+    /// </summary>
+    [JsonProperty]
+    public int LoadRequiredState { get; init; }
+
+    /// <summary>
+    /// Gets a value indicating whether Dalamud must load this plugin not at the same time with other plugins and the game.
+    /// </summary>
+    [JsonProperty]
+    public bool LoadSync { get; init; }
+
+    /// <summary>
     /// Gets the load priority for this plugin. Higher values means higher priority. 0 is default priority.
     /// </summary>
     [JsonProperty]
     public int LoadPriority { get; init; }
+
+    /// <summary>
+    /// Gets a value indicating whether the plugin can be unloaded asynchronously. 
+    /// </summary>
+    [JsonProperty]
+    public bool CanUnloadAsync { get; init; }
 
     /// <summary>
     /// Gets a list of screenshot image URLs to show in the plugin installer.
@@ -159,4 +181,17 @@ internal record PluginManifest
     /// Gets a message that is shown to users when sending feedback.
     /// </summary>
     public string? FeedbackMessage { get; init; }
+
+    /// <summary>
+    /// Gets a value indicating whether this plugin is DIP17.
+    /// To be removed.
+    /// </summary>
+    [JsonProperty("_isDip17Plugin")]
+    public bool IsDip17Plugin { get; init; } = false;
+
+    /// <summary>
+    /// Gets the DIP17 channel name.
+    /// </summary>
+    [JsonProperty("_Dip17Channel")]
+    public string? Dip17Channel { get; init; }
 }

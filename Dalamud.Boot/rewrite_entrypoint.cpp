@@ -2,7 +2,7 @@
 
 #include "logging.h"
 
-DllExport DWORD WINAPI Initialize(LPVOID lpParam, HANDLE hMainThreadContinue);
+DWORD WINAPI InitializeImpl(LPVOID lpParam, HANDLE hMainThreadContinue);
 
 struct RewrittenEntryPointParameters {
     void* pAllocation;
@@ -234,7 +234,7 @@ void* get_mapped_image_base_address(HANDLE hProcess, const std::filesystem::path
             return mbi.AllocationBase;
 
         } catch (const std::exception& e) {
-            logging::print<logging::W>("Failed to check memory block 0x{:X}(len=0x{:X}): {}", mbi.BaseAddress, mbi.RegionSize, e.what());
+            logging::W("Failed to check memory block 0x{:X}(len=0x{:X}): {}", mbi.BaseAddress, mbi.RegionSize, e.what());
             continue;
         }
     }
@@ -368,7 +368,7 @@ DllExport void WINAPI RewrittenEntryPoint(RewrittenEntryPointParameters& params)
                 loadInfo = params.pLoadInfo;
             }
 
-            Initialize(&loadInfo[0], params.hMainThreadContinue);
+            InitializeImpl(&loadInfo[0], params.hMainThreadContinue);
             return 0;
         } catch (const std::exception& e) {
             MessageBoxA(nullptr, std::format("Failed to load Dalamud.\n\nError: {}", e.what()).c_str(), "Dalamud.Boot", MB_OK | MB_ICONERROR);
@@ -380,6 +380,5 @@ DllExport void WINAPI RewrittenEntryPoint(RewrittenEntryPointParameters& params)
 
     CloseHandle(params.hMainThread);
     WaitForSingleObject(params.hMainThreadContinue, INFINITE);
-    CloseHandle(params.hMainThreadContinue);
     VirtualFree(params.pAllocation, 0, MEM_RELEASE);
 }

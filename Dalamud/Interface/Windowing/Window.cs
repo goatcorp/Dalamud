@@ -105,6 +105,11 @@ namespace Dalamud.Interface.Windowing
         public float? BgAlpha { get; set; }
 
         /// <summary>
+        /// Gets or sets a value indicating whether or not this ImGui window should display a close button in the title bar.
+        /// </summary>
+        public bool ShowCloseButton { get; set; } = true;
+
+        /// <summary>
         /// Gets or sets a value indicating whether or not this window will stay open.
         /// </summary>
         public bool IsOpen
@@ -236,7 +241,7 @@ namespace Dalamud.Interface.Windowing
                 ImGui.PushStyleColor(ImGuiCol.TitleBgCollapsed, focusedHeaderColor);
             }
 
-            if (ImGui.Begin(this.WindowName, ref this.internalIsOpen, this.Flags))
+            if (this.ShowCloseButton ? ImGui.Begin(this.WindowName, ref this.internalIsOpen, this.Flags) : ImGui.Begin(this.WindowName, this.Flags))
             {
                 // Draw the actual window contents
                 this.Draw();

@@ -9,8 +9,8 @@
 
 int wmain(int argc, wchar_t** argv)
 {
-    logging::print<logging::I>("Dalamud Injector, (c) 2021 XIVLauncher Contributors");
-    logging::print<logging::I>("Built at : " __DATE__ "@" __TIME__);
+    logging::I("Dalamud Injector, (c) 2021 XIVLauncher Contributors");
+    logging::I("Built at : " __DATE__ "@" __TIME__);
 
     wchar_t _module_path[MAX_PATH];
     GetModuleFileNameW(NULL, _module_path, sizeof _module_path / 2);
@@ -24,6 +24,7 @@ int wmain(int argc, wchar_t** argv)
     void* entrypoint_vfn;
     int result = InitializeClrAndGetEntryPoint(
         GetModuleHandleW(nullptr),
+        false,
         runtimeconfig_path,
         module_path,
         L"Dalamud.Injector.EntryPoint, Dalamud.Injector",
@@ -37,9 +38,9 @@ int wmain(int argc, wchar_t** argv)
     typedef void (CORECLR_DELEGATE_CALLTYPE* custom_component_entry_point_fn)(int, wchar_t**);
     custom_component_entry_point_fn entrypoint_fn = reinterpret_cast<custom_component_entry_point_fn>(entrypoint_vfn);
 
-    logging::print<logging::I>("Running Dalamud Injector...");
+    logging::I("Running Dalamud Injector...");
     entrypoint_fn(argc, argv);
-    logging::print<logging::I>("Done!");
+    logging::I("Done!");
 
     return 0;
 }

@@ -41,52 +41,68 @@ namespace unicode {
         return encode(EncodingTag<T>(), ptr, c, strict);
     }
 
+    char32_t lower(char32_t in);
+    char32_t upper(char32_t in);
+
     template<class TTo, class TFromElem, class TFromTraits = std::char_traits<TFromElem>>
-    inline TTo& convert(TTo& out, const std::basic_string_view<TFromElem, TFromTraits>& in, bool strict = true) {
+    TTo& convert(TTo& out, const std::basic_string_view<TFromElem, TFromTraits>& in, char32_t(*pfnCharMap)(char32_t) = nullptr, bool strict = false) {
         out.reserve(out.size() + in.size() * 4 / sizeof(in[0]) / sizeof(out[0]));
 
         char32_t c{};
-        for (size_t decLen = 0, decIdx = 0; decIdx < in.size() && (decLen = unicode::decode(c, &in[decIdx], in.size() - decIdx, strict)); decIdx += decLen) {
+        for (size_t decLen = 0, decIdx = 0; decIdx < in.size() && ((decLen = decode(c, &in[decIdx], in.size() - decIdx, strict))); decIdx += decLen) {
+            if (pfnCharMap)
+                c = pfnCharMap(c);
+
             const auto encIdx = out.size();
-            const auto encLen = unicode::encode<TTo::value_type>(nullptr, c, strict);
+            const auto encLen = encode<typename TTo::value_type>(nullptr, c, strict);
             out.resize(encIdx + encLen);
-            unicode::encode(&out[encIdx], c, strict);
+            encode(&out[encIdx], c, strict);
         }
 
         return out;
     }
 
     template<class TTo, class TFromElem, class TFromTraits = std::char_traits<TFromElem>, class TFromAlloc = std::allocator<TFromElem>>
-    inline TTo& convert(TTo& out, const std::basic_string<TFromElem, TFromTraits, TFromAlloc>& in, bool strict = true) {
-        return convert(out, std::basic_string_view<TFromElem, TFromTraits>(in), strict);
+    TTo& convert(TTo& out, const std::basic_string<TFromElem, TFromTraits, TFromAlloc>& in, char32_t(*pfnCharMap)(char32_t) = nullptr, bool strict = false) {
+        return convert(out, std::basic_string_view<TFromElem, TFromTraits>(in), pfnCharMap, strict);
     }
 
     template<class TTo, class TFromElem, typename = std::enable_if_t<std::is_integral_v<TFromElem>>>
-    inline TTo& convert(TTo& out, const TFromElem* in, size_t length = (std::numeric_limits<size_t>::max)(), bool strict = true) {
+    TTo& convert(TTo& out, const TFromElem* in, size_t length = (std::numeric_limits<size_t>::max)(), char32_t(*pfnCharMap)(char32_t) = nullptr, bool strict = false) {
         if (length == (std::numeric_limits<size_t>::max)())
             length = std::char_traits<TFromElem>::length(in);
 
-        return convert(out, std::basic_string_view<TFromElem>(in, length), strict);
+        return convert(out, std::basic_string_view<TFromElem>(in, length), pfnCharMap, strict);
     }
 
     template<class TTo, class TFromElem, class TFromTraits = std::char_traits<TFromElem>>
-    inline TTo convert(const std::basic_string_view<TFromElem, TFromTraits>& in, bool strict = true) {
+    TTo convert(const std::basic_string_view<TFromElem, TFromTraits>& in, char32_t(*pfnCharMap)(char32_t) = nullptr, bool strict = false) {
         TTo out{};
-        return convert(out, in, strict);
+        return convert(out, in, pfnCharMap, strict);
     }
 
     template<class TTo, class TFromElem, class TFromTraits = std::char_traits<TFromElem>, class TFromAlloc = std::allocator<TFromElem>>
-    inline TTo convert(const std::basic_string<TFromElem, TFromTraits, TFromAlloc>& in, bool strict = true) {
+    TTo convert(const std::basic_string<TFromElem, TFromTraits, TFromAlloc>& in, char32_t(*pfnCharMap)(char32_t) = nullptr, bool strict = false) {
         TTo out{};
-        return convert(out, std::basic_string_view<TFromElem, TFromTraits>(in), strict);
+        return convert(out, std::basic_string_view<TFromElem, TFromTraits>(in), pfnCharMap, strict);
     }
 
     template<class TTo, class TFromElem, typename = std::enable_if_t<std::is_integral_v<TFromElem>>>
-    inline TTo convert(const TFromElem* in, size_t length = (std::numeric_limits<size_t>::max)(), bool strict = true) {
+    TTo convert(const TFromElem* in, size_t length = (std::numeric_limits<size_t>::max)(), char32_t(*pfnCharMap)(char32_t) = nullptr, bool strict = false) {
         if (length == (std::numeric_limits<size_t>::max)())
             length = std::char_traits<TFromElem>::length(in);
 
         TTo out{};
-        return convert(out, std::basic_string_view<TFromElem>(in, length), strict);
+        return convert(out, std::basic_string_view<TFromElem>(in, length), pfnCharMap, strict);
     }
+
+    inline const std::u8string& convert(const std::u8string& in) { return in; }
+
+    inline const std::u16string& convert(const std::u16string& in) { return in; }
+
+    inline const std::u32string& convert(const std::u32string& in) { return in; }
+
+    inline const std::string& convert(const std::string& in) { return in; }
+
+    inline const std::wstring& convert(const std::wstring& in) { return in; }
 }

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using ImGuiNET;
 
 namespace Dalamud.Interface.ImGuiFileDialog
 {
@@ -10,6 +11,11 @@ namespace Dalamud.Interface.ImGuiFileDialog
     /// </summary>
     public partial class FileDialog
     {
+        /// <summary>
+        /// The flags used to draw the file picker window.
+        /// </summary>
+        public ImGuiWindowFlags WindowFlags;
+
         private readonly string title;
         private readonly int selectionCountMax;
         private readonly ImGuiFileDialogFlags flags;
@@ -74,6 +80,9 @@ namespace Dalamud.Interface.ImGuiFileDialog
             this.flags = flags;
             this.selectionCountMax = selectionCountMax;
             this.isModal = isModal;
+            this.WindowFlags = ImGuiWindowFlags.NoNav;
+            if (!isModal)
+                this.WindowFlags |= ImGuiWindowFlags.NoScrollbar;
 
             this.currentPath = path;
             this.defaultExtension = defaultExtension;
@@ -161,6 +170,42 @@ namespace Dalamud.Interface.ImGuiFileDialog
             return this.currentPath;
         }
 
+        /// <summary>
+        /// Set or remove a quick access folder for the navigation panel.
+        /// </summary>
+        /// <param name="name">The displayed name of the folder. If this name already exists, it will be overwritten.</param>
+        /// <param name="path">The new linked path. If this is empty, no link will be added and existing links will be removed.</param>
+        /// <param name="icon">The FontAwesomeIcon-ID of the icon displayed before the name.</param>
+        /// <param name="position">An optional position at which to insert the new link. If the link is updated, having this less than zero will keep its position.
+        /// Otherwise, invalid indices will insert it at the end.</param>
+        public void SetQuickAccess(string name, string path, FontAwesomeIcon icon, int position = -1)
+        {
+            var idx = this.quickAccess.FindIndex(q => q.Text.Equals(name, StringComparison.InvariantCultureIgnoreCase));
+            if (idx >= 0)
+            {
+                if (position >= 0 || path.Length == 0)
+                {
+                    this.quickAccess.RemoveAt(idx);
+                }
+                else
+                {
+                    this.quickAccess[idx] = new SideBarItem(name, path, icon);
+                    return;
+                }
+            }
+
+            if (path.Length == 0) return;
+
+            if (position < 0 || position >= this.quickAccess.Count)
+            {
+                this.quickAccess.Add(new SideBarItem(name, path, icon));
+            }
+            else
+            {
+                this.quickAccess.Insert(position, new SideBarItem(name, path, icon));
+            }
+        }
+
         private string GetFilePathName()
         {
             var path = this.GetCurrentPath();
@@ -184,7 +229,7 @@ namespace Dalamud.Interface.ImGuiFileDialog
             var result = this.fileNameBuffer;
 
             // a collection like {.cpp, .h}, so can't decide on an extension
-            if (this.selectedFilter.CollectionFilters != null && this.selectedFilter.CollectionFilters.Count > 0)
+            if (this.selectedFilter.CollectionFilters is { Count: > 0 })
             {
                 return result;
             }
@@ -195,7 +240,7 @@ namespace Dalamud.Interface.ImGuiFileDialog
                 var lastPoint = result.LastIndexOf('.');
                 if (lastPoint != -1)
                 {
-                    result = result.Substring(0, lastPoint);
+                    result = result[..lastPoint];
                 }
 
                 result += this.selectedFilter.Filter;
@@ -230,7 +275,7 @@ namespace Dalamud.Interface.ImGuiFileDialog
             this.currentPath = dir.FullName;
             if (this.currentPath[^1] == Path.DirectorySeparatorChar)
             { // handle selecting a drive, like C: -> C:\
-                this.currentPath = this.currentPath[0..^1];
+                this.currentPath = this.currentPath[..^1];
             }
 
             this.pathInputBuffer = this.currentPath;

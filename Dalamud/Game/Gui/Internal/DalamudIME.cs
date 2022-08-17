@@ -10,7 +10,7 @@ using Dalamud.Hooking;
 using Dalamud.Interface.Internal;
 using Dalamud.Logging.Internal;
 using ImGuiNET;
-
+using PInvoke;
 using static Dalamud.NativeFunctions;
 
 namespace Dalamud.Game.Gui.Internal
@@ -18,25 +18,18 @@ namespace Dalamud.Game.Gui.Internal
     /// <summary>
     /// This class handles IME for non-English users.
     /// </summary>
-    internal unsafe class DalamudIME : IDisposable
+    [ServiceManager.EarlyLoadedService]
+    internal unsafe class DalamudIME : IDisposable, IServiceType
     {
         private static readonly ModuleLog Log = new("IME");
 
-        private IntPtr interfaceHandle;
-        private IntPtr wndProcPtr;
-        private IntPtr oldWndProcPtr;
-        private WndProcDelegate wndProcDelegate;
         private AsmHook imguiTextInputCursorHook;
         private Vector2* cursorPos;
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="DalamudIME"/> class.
-        /// </summary>
-        internal DalamudIME()
+        [ServiceManager.ServiceConstructor]
+        private DalamudIME()
         {
         }
-
-        private delegate long WndProcDelegate(IntPtr hWnd, uint msg, ulong wParam, long lParam);
 
         /// <summary>
         /// Gets a value indicating whether the module is enabled.
@@ -61,83 +54,23 @@ namespace Dalamud.Game.Gui.Internal
         /// <inheritdoc/>
         public void Dispose()
         {
-            if (this.oldWndProcPtr != IntPtr.Zero)
-            {
-                SetWindowLongPtrW(this.interfaceHandle, WindowLongType.WndProc, this.oldWndProcPtr);
-                this.oldWndProcPtr = IntPtr.Zero;
-            }
-
             this.imguiTextInputCursorHook?.Dispose();
             Marshal.FreeHGlobal((IntPtr)this.cursorPos);
         }
 
         /// <summary>
-        /// Get the position of the cursor.
+        /// Processes window messages.
         /// </summary>
-        /// <returns>The position of the cursor.</returns>
-        internal Vector2 GetCursorPos()
-        {
-            return new Vector2(this.cursorPos->X, this.cursorPos->Y);
-        }
-
-        /// <summary>
-        /// Enables the IME module.
-        /// </summary>
-        internal void Enable()
+        /// <param name="hWnd">Handle of the window.</param>
+        /// <param name="msg">Type of window message.</param>
+        /// <param name="wParam">wParam.</param>
+        /// <param name="lParam">lParam.</param>
+        /// <returns>Return value, if not doing further processing.</returns>
+        public unsafe IntPtr? ProcessWndProcW(IntPtr hWnd, User32.WindowMessage msg, void* wParam, void* lParam)
         {
             try
             {
-                this.wndProcDelegate = this.WndProcDetour;
-                this.interfaceHandle = Service<InterfaceManager>.Get().WindowHandlePtr;
-                this.wndProcPtr = Marshal.GetFunctionPointerForDelegate(this.wndProcDelegate);
-                this.oldWndProcPtr = SetWindowLongPtrW(this.interfaceHandle, WindowLongType.WndProc, this.wndProcPtr);
-
-                var module = Process.GetCurrentProcess().Modules.Cast<ProcessModule>().First(m => m.ModuleName == "cimgui.dll");
-                var scanner = new SigScanner(module);
-                var cursorDrawingPtr = scanner.ScanModule("F3 0F 11 75 ?? 0F 28 CF");
-                Log.Debug($"Found cursorDrawingPtr at {cursorDrawingPtr:X}");
-
-                this.cursorPos = (Vector2*)Marshal.AllocHGlobal(sizeof(Vector2));
-                this.cursorPos->X = 0f;
-                this.cursorPos->Y = 0f;
-
-                var asm = new[]
-                {
-                "use64",
-                $"push rax",
-                $"mov rax, {(IntPtr)this.cursorPos + sizeof(float)}",
-                $"movss [rax],xmm7",
-                $"mov rax, {(IntPtr)this.cursorPos}",
-                $"movss [rax],xmm6",
-                $"pop rax",
-                };
-
-                Log.Debug($"Asm Code:\n{string.Join("\n", asm)}");
-                this.imguiTextInputCursorHook = new AsmHook(cursorDrawingPtr, asm, "ImguiTextInputCursorHook");
-                this.imguiTextInputCursorHook?.Enable();
-
-                this.IsEnabled = true;
-                Log.Information("Enabled!");
-            }
-            catch (Exception ex)
-            {
-                Log.Information(ex, "Enable failed");
-            }
-        }
-
-        private void ToggleWindow(bool visible)
-        {
-            if (visible)
-                Service<DalamudInterface>.Get().OpenIMEWindow();
-            else
-                Service<DalamudInterface>.Get().CloseIMEWindow();
-        }
-
-        private long WndProcDetour(IntPtr hWnd, uint msg, ulong wParam, long lParam)
-        {
-            try
-            {
-                if (hWnd == this.interfaceHandle && ImGui.GetCurrentContext() != IntPtr.Zero && ImGui.GetIO().WantTextInput)
+                if (ImGui.GetCurrentContext() != IntPtr.Zero && ImGui.GetIO().WantTextInput)
                 {
                     var io = ImGui.GetIO();
                     var wmsg = (WindowsMessage)msg;
@@ -145,17 +78,17 @@ namespace Dalamud.Game.Gui.Internal
                     switch (wmsg)
                     {
                         case WindowsMessage.WM_IME_NOTIFY:
-                            switch ((IMECommand)wParam)
+                            switch ((IMECommand)(IntPtr)wParam)
                             {
                                 case IMECommand.ChangeCandidate:
                                     this.ToggleWindow(true);
 
                                     if (hWnd == IntPtr.Zero)
-                                        return 0;
+                                        return IntPtr.Zero;
 
                                     var hIMC = ImmGetContext(hWnd);
                                     if (hIMC == IntPtr.Zero)
-                                        return 0;
+                                        return IntPtr.Zero;
 
                                     var size = ImmGetCandidateListW(hIMC, 0, IntPtr.Zero, 0);
                                     if (size == 0)
@@ -224,11 +157,11 @@ namespace Dalamud.Game.Gui.Internal
 
                             break;
                         case WindowsMessage.WM_IME_COMPOSITION:
-                            if ((lParam & (long)IMEComposition.ResultStr) > 0)
+                            if (((long)(IntPtr)lParam & (long)IMEComposition.ResultStr) > 0)
                             {
                                 var hIMC = ImmGetContext(hWnd);
                                 if (hIMC == IntPtr.Zero)
-                                    return 0;
+                                    return IntPtr.Zero;
 
                                 var dwSize = ImmGetCompositionStringW(hIMC, IMEComposition.ResultStr, IntPtr.Zero, 0);
                                 var unmanagedPointer = Marshal.AllocHGlobal((int)dwSize);
@@ -248,11 +181,11 @@ namespace Dalamud.Game.Gui.Internal
                             }
 
                             if (((long)(IMEComposition.CompStr | IMEComposition.CompAttr | IMEComposition.CompClause |
-                                IMEComposition.CompReadAttr | IMEComposition.CompReadClause | IMEComposition.CompReadStr) & lParam) > 0)
+                                IMEComposition.CompReadAttr | IMEComposition.CompReadClause | IMEComposition.CompReadStr) & (long)(IntPtr)lParam) > 0)
                             {
                                 var hIMC = ImmGetContext(hWnd);
                                 if (hIMC == IntPtr.Zero)
-                                    return 0;
+                                    return IntPtr.Zero;
 
                                 var dwSize = ImmGetCompositionStringW(hIMC, IMEComposition.CompStr, IntPtr.Zero, 0);
                                 var unmanagedPointer = Marshal.AllocHGlobal((int)dwSize);
@@ -280,7 +213,62 @@ namespace Dalamud.Game.Gui.Internal
                 Log.Error(ex, "Prevented a crash in an IME hook");
             }
 
-            return CallWindowProcW(this.oldWndProcPtr, hWnd, msg, wParam, lParam);
+            return null;
+        }
+
+        /// <summary>
+        /// Get the position of the cursor.
+        /// </summary>
+        /// <returns>The position of the cursor.</returns>
+        internal Vector2 GetCursorPos()
+        {
+            return new Vector2(this.cursorPos->X, this.cursorPos->Y);
+        }
+
+        [ServiceManager.CallWhenServicesReady]
+        private void ContinueConstruction(InterfaceManager.InterfaceManagerWithScene interfaceManagerWithScene)
+        {
+            try
+            {
+                var module = Process.GetCurrentProcess().Modules.Cast<ProcessModule>().First(m => m.ModuleName == "cimgui.dll");
+                var scanner = new SigScanner(module);
+                var cursorDrawingPtr = scanner.ScanModule("F3 0F 11 75 ?? 0F 28 CF");
+                Log.Debug($"Found cursorDrawingPtr at {cursorDrawingPtr:X}");
+
+                this.cursorPos = (Vector2*)Marshal.AllocHGlobal(sizeof(Vector2));
+                this.cursorPos->X = 0f;
+                this.cursorPos->Y = 0f;
+
+                var asm = new[]
+                {
+                "use64",
+                $"push rax",
+                $"mov rax, {(IntPtr)this.cursorPos + sizeof(float)}",
+                $"movss [rax],xmm7",
+                $"mov rax, {(IntPtr)this.cursorPos}",
+                $"movss [rax],xmm6",
+                $"pop rax",
+                };
+
+                Log.Debug($"Asm Code:\n{string.Join("\n", asm)}");
+                this.imguiTextInputCursorHook = new AsmHook(cursorDrawingPtr, asm, "ImguiTextInputCursorHook");
+                this.imguiTextInputCursorHook?.Enable();
+
+                this.IsEnabled = true;
+                Log.Information("Enabled!");
+            }
+            catch (Exception ex)
+            {
+                Log.Information(ex, "Enable failed");
+            }
+        }
+
+        private void ToggleWindow(bool visible)
+        {
+            if (visible)
+                Service<DalamudInterface>.GetNullable()?.OpenImeWindow();
+            else
+                Service<DalamudInterface>.GetNullable()?.CloseImeWindow();
         }
     }
 }

@@ -14,7 +14,8 @@ namespace Dalamud.Game.Gui.Toast
     /// </summary>
     [PluginInterface]
     [InterfaceVersion("1.0")]
-    public sealed partial class ToastGui : IDisposable
+    [ServiceManager.BlockingEarlyLoadedService]
+    public sealed partial class ToastGui : IDisposable, IServiceType
     {
         private const uint QuestToastCheckmarkMagic = 60081;
 
@@ -31,14 +32,16 @@ namespace Dalamud.Game.Gui.Toast
         /// <summary>
         /// Initializes a new instance of the <see cref="ToastGui"/> class.
         /// </summary>
-        internal ToastGui()
+        /// <param name="tag">Tag.</param>
+        [ServiceManager.ServiceConstructor]
+        private ToastGui(SigScanner sigScanner)
         {
             this.address = new ToastGuiAddressResolver();
-            this.address.Setup();
+            this.address.Setup(sigScanner);
 
-            this.showNormalToastHook = new Hook<ShowNormalToastDelegate>(this.address.ShowNormalToast, new ShowNormalToastDelegate(this.HandleNormalToastDetour));
-            this.showQuestToastHook = new Hook<ShowQuestToastDelegate>(this.address.ShowQuestToast, new ShowQuestToastDelegate(this.HandleQuestToastDetour));
-            this.showErrorToastHook = new Hook<ShowErrorToastDelegate>(this.address.ShowErrorToast, new ShowErrorToastDelegate(this.HandleErrorToastDetour));
+            this.showNormalToastHook = Hook<ShowNormalToastDelegate>.FromAddress(this.address.ShowNormalToast, new ShowNormalToastDelegate(this.HandleNormalToastDetour));
+            this.showQuestToastHook = Hook<ShowQuestToastDelegate>.FromAddress(this.address.ShowQuestToast, new ShowQuestToastDelegate(this.HandleQuestToastDetour));
+            this.showErrorToastHook = Hook<ShowErrorToastDelegate>.FromAddress(this.address.ShowErrorToast, new ShowErrorToastDelegate(this.HandleErrorToastDetour));
         }
 
         #region Event delegates
@@ -98,16 +101,6 @@ namespace Dalamud.Game.Gui.Toast
         #endregion
 
         /// <summary>
-        /// Enables this module.
-        /// </summary>
-        public void Enable()
-        {
-            this.showNormalToastHook.Enable();
-            this.showQuestToastHook.Enable();
-            this.showErrorToastHook.Enable();
-        }
-
-        /// <summary>
         /// Disposes of managed and unmanaged resources.
         /// </summary>
         void IDisposable.Dispose()
@@ -148,6 +141,14 @@ namespace Dalamud.Game.Gui.Toast
             terminated[^1] = 0;
 
             return terminated;
+        }
+
+        [ServiceManager.CallWhenServicesReady]
+        private void ContinueConstruction(GameGui gameGui)
+        {
+            this.showNormalToastHook.Enable();
+            this.showQuestToastHook.Enable();
+            this.showErrorToastHook.Enable();
         }
 
         private SeString ParseString(IntPtr text)
@@ -199,7 +200,9 @@ namespace Dalamud.Game.Gui.Toast
         {
             options ??= new ToastOptions();
 
-            var manager = Service<GameGui>.Get().GetUIModule();
+            var manager = Service<GameGui>.GetNullable()?.GetUIModule();
+            if (manager == null)
+                return;
 
             // terminate the string
             var terminated = Terminate(bytes);
@@ -208,7 +211,7 @@ namespace Dalamud.Game.Gui.Toast
             {
                 fixed (byte* ptr = terminated)
                 {
-                    this.HandleNormalToastDetour(manager, (IntPtr)ptr, 5, (byte)options.Position, (byte)options.Speed, 0);
+                    this.HandleNormalToastDetour(manager!.Value, (IntPtr)ptr, 5, (byte)options.Position, (byte)options.Speed, 0);
                 }
             }
         }
@@ -280,7 +283,9 @@ namespace Dalamud.Game.Gui.Toast
         {
             options ??= new QuestToastOptions();
 
-            var manager = Service<GameGui>.Get().GetUIModule();
+            var manager = Service<GameGui>.GetNullable()?.GetUIModule();
+            if (manager == null)
+                return;
 
             // terminate the string
             var terminated = Terminate(bytes);
@@ -292,7 +297,7 @@ namespace Dalamud.Game.Gui.Toast
                 fixed (byte* ptr = terminated)
                 {
                     this.HandleQuestToastDetour(
-                        manager,
+                        manager!.Value,
                         (int)options.Position,
                         (IntPtr)ptr,
                         ioc1,
@@ -382,7 +387,9 @@ namespace Dalamud.Game.Gui.Toast
 
         private void ShowError(byte[] bytes)
         {
-            var manager = Service<GameGui>.Get().GetUIModule();
+            var manager = Service<GameGui>.GetNullable()?.GetUIModule();
+            if (manager == null)
+                return;
 
             // terminate the string
             var terminated = Terminate(bytes);
@@ -391,7 +398,7 @@ namespace Dalamud.Game.Gui.Toast
             {
                 fixed (byte* ptr = terminated)
                 {
-                    this.HandleErrorToastDetour(manager, (IntPtr)ptr, 0);
+                    this.HandleErrorToastDetour(manager!.Value, (IntPtr)ptr, 0);
                 }
             }
         }

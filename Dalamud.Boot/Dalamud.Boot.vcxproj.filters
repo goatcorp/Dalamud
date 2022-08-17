@@ -70,6 +70,9 @@
     <ClCompile Include="hooks.cpp">
       <Filter>Dalamud.Boot DLL</Filter>
     </ClCompile>
+    <ClCompile Include="DalamudStartInfo.cpp">
+      <Filter>Dalamud.Boot DLL</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\lib\CoreCLR\CoreCLR.h">
@@ -99,7 +102,7 @@
     <ClInclude Include="hooks.h">
       <Filter>Dalamud.Boot DLL</Filter>
     </ClInclude>
-    <ClInclude Include="bootconfig.h">
+    <ClInclude Include="DalamudStartInfo.h">
       <Filter>Dalamud.Boot DLL</Filter>
     </ClInclude>
     <ClInclude Include="xivfixes.h">
@@ -135,5 +138,13 @@
     <ClInclude Include="..\lib\TsudaKageyu-minhook\src\HDE\table64.h">
       <Filter>MinHook</Filter>
     </ClInclude>
+    <ClInclude Include="resource.h" />
+    <ClInclude Include="crashhandler_shared.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Dalamud.Boot.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="dalamud.ico" />
   </ItemGroup>
 </Project>

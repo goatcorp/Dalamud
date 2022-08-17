@@ -1906,6 +1906,21 @@ namespace Dalamud
             /// </summary>
             public int ClientPointers;
         }
+
+        /// <summary>
+        /// Finds window according to conditions.
+        /// </summary>
+        /// <param name="parentHandle">Handle to parent window.</param>
+        /// <param name="childAfter">Window to search after.</param>
+        /// <param name="className">Name of class.</param>
+        /// <param name="windowTitle">Name of window.</param>
+        /// <returns>Found window, or null.</returns>
+        [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+        public static extern IntPtr FindWindowEx(
+            IntPtr parentHandle,
+            IntPtr childAfter,
+            string className,
+            IntPtr windowTitle);
     }
 
     /// <summary>

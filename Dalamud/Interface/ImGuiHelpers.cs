@@ -4,7 +4,9 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 
+using Dalamud.Game.ClientState.Keys;
 using ImGuiNET;
+using ImGuiScene;
 
 namespace Dalamud.Interface
 {
@@ -154,6 +156,7 @@ namespace Dalamud.Interface
                 return;
 
             var scale = target.Value!.FontSize / source.Value!.FontSize;
+            var addedCodepoints = new HashSet<int>();
             unsafe
             {
                 var glyphs = (ImFontGlyphReal*)source.Value!.Glyphs.Data;
@@ -168,9 +171,11 @@ namespace Dalamud.Interface
                     var prevGlyphPtr = (ImFontGlyphReal*)target.Value!.FindGlyphNoFallback((ushort)glyph->Codepoint).NativePtr;
                     if ((IntPtr)prevGlyphPtr == IntPtr.Zero)
                     {
+                        addedCodepoints.Add(glyph->Codepoint);
                         target.Value!.AddGlyph(
                             target.Value!.ConfigData,
                             (ushort)glyph->Codepoint,
+                            glyph->TextureIndex,
                             glyph->X0 * scale,
                             ((glyph->Y0 - source.Value!.Ascent) * scale) + target.Value!.Ascent,
                             glyph->X1 * scale,
@@ -183,6 +188,8 @@ namespace Dalamud.Interface
                     }
                     else if (!missingOnly)
                     {
+                        addedCodepoints.Add(glyph->Codepoint);
+                        prevGlyphPtr->TextureIndex = glyph->TextureIndex;
                         prevGlyphPtr->X0 = glyph->X0 * scale;
                         prevGlyphPtr->Y0 = ((glyph->Y0 - source.Value!.Ascent) * scale) + target.Value!.Ascent;
                         prevGlyphPtr->X1 = glyph->X1 * scale;
@@ -194,10 +201,70 @@ namespace Dalamud.Interface
                         prevGlyphPtr->AdvanceX = glyph->AdvanceX * scale;
                     }
                 }
+
+                var kernPairs = source.Value!.KerningPairs;
+                for (int j = 0, k = kernPairs.Size; j < k; j++)
+                {
+                    if (!addedCodepoints.Contains(kernPairs[j].Left))
+                        continue;
+                    if (!addedCodepoints.Contains(kernPairs[j].Right))
+                        continue;
+                    target.Value.AddKerningPair(kernPairs[j].Left, kernPairs[j].Right, kernPairs[j].AdvanceXAdjustment);
+                }
             }
 
             if (rebuildLookupTable)
                 target.Value!.BuildLookupTable();
+        }
+
+        /// <summary>
+        /// Map a VirtualKey keycode to an ImGuiKey enum value.
+        /// </summary>
+        /// <param name="key">The VirtualKey value to retrieve the ImGuiKey counterpart for.</param>
+        /// <returns>The ImGuiKey that corresponds to this VirtualKey, or <c>ImGuiKey.None</c> otherwise.</returns>
+        public static ImGuiKey VirtualKeyToImGuiKey(VirtualKey key)
+        {
+            return ImGui_Input_Impl_Direct.VirtualKeyToImGuiKey((int)key);
+        }
+
+        /// <summary>
+        /// Map an ImGuiKey enum value to a VirtualKey code.
+        /// </summary>
+        /// <param name="key">The ImGuiKey value to retrieve the VirtualKey counterpart for.</param>
+        /// <returns>The VirtualKey that corresponds to this ImGuiKey, or <c>VirtualKey.NO_KEY</c> otherwise.</returns>
+        public static VirtualKey ImGuiKeyToVirtualKey(ImGuiKey key)
+        {
+            return (VirtualKey)ImGui_Input_Impl_Direct.ImGuiKeyToVirtualKey(key);
+        }
+
+        /// <summary>
+        /// Show centered text.
+        /// </summary>
+        /// <param name="text">Text to show.</param>
+        public static void CenteredText(string text)
+        {
+            CenterCursorForText(text);
+            ImGui.TextUnformatted(text);
+        }
+
+        /// <summary>
+        /// Center the ImGui cursor for a certain text.
+        /// </summary>
+        /// <param name="text">The text to center for.</param>
+        public static void CenterCursorForText(string text)
+        {
+            var textWidth = ImGui.CalcTextSize(text).X;
+            CenterCursorFor((int)textWidth);
+        }
+
+        /// <summary>
+        /// Center the ImGui cursor for an item with a certain width.
+        /// </summary>
+        /// <param name="itemWidth">The width to center for.</param>
+        public static void CenterCursorFor(int itemWidth)
+        {
+            var window = (int)ImGui.GetWindowWidth();
+            ImGui.SetCursorPosX((window / 2) - (itemWidth / 2));
         }
 
         /// <summary>
@@ -214,7 +281,7 @@ namespace Dalamud.Interface
         [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1600:Elements should be documented", Justification = "ImGui internals")]
         public struct ImFontGlyphReal
         {
-            public uint ColoredVisibleCodepoint;
+            public uint ColoredVisibleTextureIndexCodepoint;
             public float AdvanceX;
             public float X0;
             public float Y0;
@@ -225,23 +292,110 @@ namespace Dalamud.Interface
             public float U1;
             public float V1;
 
+            private const uint ColoredMask /*****/ = 0b_00000000_00000000_00000000_00000001u;
+            private const uint VisibleMask /*****/ = 0b_00000000_00000000_00000000_00000010u;
+            private const uint TextureMask /*****/ = 0b_00000000_00000000_00000111_11111100u;
+            private const uint CodepointMask /***/ = 0b_11111111_11111111_11111000_00000000u;
+
+            private const int ColoredShift = 0;
+            private const int VisibleShift = 1;
+            private const int TextureShift = 2;
+            private const int CodepointShift = 11;
+
             public bool Colored
             {
-                get => ((this.ColoredVisibleCodepoint >> 0) & 1) != 0;
-                set => this.ColoredVisibleCodepoint = (this.ColoredVisibleCodepoint & 0xFFFFFFFEu) | (value ? 1u : 0u);
+                get => (int)((this.ColoredVisibleTextureIndexCodepoint & ColoredMask) >> ColoredShift) != 0;
+                set => this.ColoredVisibleTextureIndexCodepoint = (this.ColoredVisibleTextureIndexCodepoint & ~ColoredMask) | (value ? 1u << ColoredShift : 0u);
             }
 
             public bool Visible
             {
-                get => ((this.ColoredVisibleCodepoint >> 1) & 1) != 0;
-                set => this.ColoredVisibleCodepoint = (this.ColoredVisibleCodepoint & 0xFFFFFFFDu) | (value ? 2u : 0u);
+                get => (int)((this.ColoredVisibleTextureIndexCodepoint & VisibleMask) >> VisibleShift) != 0;
+                set => this.ColoredVisibleTextureIndexCodepoint = (this.ColoredVisibleTextureIndexCodepoint & ~VisibleMask) | (value ? 1u << VisibleShift : 0u);
+            }
+
+            public int TextureIndex
+            {
+                get => (int)(this.ColoredVisibleTextureIndexCodepoint & TextureMask) >> TextureShift;
+                set => this.ColoredVisibleTextureIndexCodepoint = (this.ColoredVisibleTextureIndexCodepoint & ~TextureMask) | ((uint)value << TextureShift);
             }
 
             public int Codepoint
             {
-                get => (int)(this.ColoredVisibleCodepoint >> 2);
-                set => this.ColoredVisibleCodepoint = (this.ColoredVisibleCodepoint & 3u) | ((uint)value << 2);
+                get => (int)(this.ColoredVisibleTextureIndexCodepoint & CodepointMask) >> CodepointShift;
+                set => this.ColoredVisibleTextureIndexCodepoint = (this.ColoredVisibleTextureIndexCodepoint & ~CodepointMask) | ((uint)value << CodepointShift);
             }
         }
+
+        /// <summary>
+        /// ImFontGlyphHotData the correct version.
+        /// </summary>
+        [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1600:Elements should be documented", Justification = "ImGui internals")]
+        public struct ImFontGlyphHotDataReal
+        {
+            public float AdvanceX;
+            public float OccupiedWidth;
+            public uint KerningPairInfo;
+
+            private const uint UseBisectMask /***/ = 0b_00000000_00000000_00000000_00000001u;
+            private const uint OffsetMask /******/ = 0b_00000000_00001111_11111111_11111110u;
+            private const uint CountMask /*******/ = 0b_11111111_11110000_00000111_11111100u;
+
+            private const int UseBisectShift = 0;
+            private const int OffsetShift = 1;
+            private const int CountShift = 20;
+
+            public bool UseBisect
+            {
+                get => (int)((this.KerningPairInfo & UseBisectMask) >> UseBisectShift) != 0;
+                set => this.KerningPairInfo = (this.KerningPairInfo & ~UseBisectMask) | (value ? 1u << UseBisectShift : 0u);
+            }
+
+            public bool Offset
+            {
+                get => (int)((this.KerningPairInfo & OffsetMask) >> OffsetShift) != 0;
+                set => this.KerningPairInfo = (this.KerningPairInfo & ~OffsetMask) | (value ? 1u << OffsetShift : 0u);
+            }
+
+            public int Count
+            {
+                get => (int)(this.KerningPairInfo & CountMask) >> CountShift;
+                set => this.KerningPairInfo = (this.KerningPairInfo & ~CountMask) | ((uint)value << CountShift);
+            }
+        }
+
+        /// <summary>
+        /// ImFontAtlasCustomRect the correct version.
+        /// </summary>
+        [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1600:Elements should be documented", Justification = "ImGui internals")]
+        public unsafe struct ImFontAtlasCustomRectReal
+        {
+            public ushort Width;
+            public ushort Height;
+            public ushort X;
+            public ushort Y;
+            public uint TextureIndexAndGlyphID;
+            public float GlyphAdvanceX;
+            public Vector2 GlyphOffset;
+            public ImFont* Font;
+
+            private const uint TextureIndexMask /***/ = 0b_00000000_00000000_00000111_11111100u;
+            private const uint GlyphIDMask /********/ = 0b_11111111_11111111_11111000_00000000u;
+
+            private const int TextureIndexShift = 2;
+            private const int GlyphIDShift = 11;
+
+            public int TextureIndex
+            {
+                get => (int)(this.TextureIndexAndGlyphID & TextureIndexMask) >> TextureIndexShift;
+                set => this.TextureIndexAndGlyphID = (this.TextureIndexAndGlyphID & ~TextureIndexMask) | ((uint)value << TextureIndexShift);
+            }
+
+            public int GlyphID
+            {
+                get => (int)(this.TextureIndexAndGlyphID & GlyphIDMask) >> GlyphIDShift;
+                set => this.TextureIndexAndGlyphID = (this.TextureIndexAndGlyphID & ~GlyphIDMask) | ((uint)value << GlyphIDShift);
+            }
+        };
     }
 }

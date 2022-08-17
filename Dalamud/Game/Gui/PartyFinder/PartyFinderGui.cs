@@ -15,7 +15,8 @@ namespace Dalamud.Game.Gui.PartyFinder
     /// </summary>
     [PluginInterface]
     [InterfaceVersion("1.0")]
-    public sealed class PartyFinderGui : IDisposable
+    [ServiceManager.BlockingEarlyLoadedService]
+    public sealed class PartyFinderGui : IDisposable, IServiceType
     {
         private readonly PartyFinderAddressResolver address;
         private readonly IntPtr memory;
@@ -25,14 +26,16 @@ namespace Dalamud.Game.Gui.PartyFinder
         /// <summary>
         /// Initializes a new instance of the <see cref="PartyFinderGui"/> class.
         /// </summary>
-        internal PartyFinderGui()
+        /// <param name="tag">Tag.</param>
+        [ServiceManager.ServiceConstructor]
+        private PartyFinderGui(SigScanner sigScanner)
         {
             this.address = new PartyFinderAddressResolver();
-            this.address.Setup();
+            this.address.Setup(sigScanner);
 
             this.memory = Marshal.AllocHGlobal(PartyFinderPacket.PacketSize);
 
-            this.receiveListingHook = new Hook<ReceiveListingDelegate>(this.address.ReceiveListing, new ReceiveListingDelegate(this.HandleReceiveListingDetour));
+            this.receiveListingHook = Hook<ReceiveListingDelegate>.FromAddress(this.address.ReceiveListing, new ReceiveListingDelegate(this.HandleReceiveListingDetour));
         }
 
         /// <summary>
@@ -53,14 +56,6 @@ namespace Dalamud.Game.Gui.PartyFinder
         public event PartyFinderListingEventDelegate ReceiveListing;
 
         /// <summary>
-        /// Enables this module.
-        /// </summary>
-        public void Enable()
-        {
-            this.receiveListingHook.Enable();
-        }
-
-        /// <summary>
         /// Dispose of managed and unmanaged resources.
         /// </summary>
         void IDisposable.Dispose()
@@ -75,6 +70,12 @@ namespace Dalamud.Game.Gui.PartyFinder
             {
                 Log.Warning("Could not free PartyFinderGui memory.");
             }
+        }
+
+        [ServiceManager.CallWhenServicesReady]
+        private void ContinueConstruction(GameGui gameGui)
+        {
+            this.receiveListingHook.Enable();
         }
 
         private void HandleReceiveListingDetour(IntPtr managerPtr, IntPtr data)

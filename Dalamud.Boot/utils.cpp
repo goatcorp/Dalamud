@@ -55,8 +55,8 @@ std::span<char> utils::loaded_module::section(const char* pcszSectionName) const
 
 template<typename TEntryType>
 static bool find_imported_function_pointer_helper(const char* pcBaseAddress, const IMAGE_IMPORT_DESCRIPTOR& desc, const IMAGE_DATA_DIRECTORY& dir, std::string_view reqFunc, uint32_t hintOrOrdinal, void*& ppFunctionAddress) {
-    const auto importLookupsOversizedSpan = std::span(reinterpret_cast<const TEntryType*>(&pcBaseAddress[desc.OriginalFirstThunk]), (dir.Size - desc.OriginalFirstThunk) / sizeof TEntryType);
-    const auto importAddressesOversizedSpan = std::span(reinterpret_cast<const TEntryType*>(&pcBaseAddress[desc.FirstThunk]), (dir.Size - desc.FirstThunk) / sizeof TEntryType);
+    const auto importLookupsOversizedSpan = std::span(reinterpret_cast<const TEntryType*>(&pcBaseAddress[desc.OriginalFirstThunk]), (dir.Size - desc.OriginalFirstThunk) / sizeof(TEntryType));
+    const auto importAddressesOversizedSpan = std::span(reinterpret_cast<const TEntryType*>(&pcBaseAddress[desc.FirstThunk]), (dir.Size - desc.FirstThunk) / sizeof(TEntryType));
 
     for (size_t i = 0, i_ = (std::min)(importLookupsOversizedSpan.size(), importAddressesOversizedSpan.size()); i < i_ && importLookupsOversizedSpan[i] && importAddressesOversizedSpan[i]; i++) {
         const auto& importLookup = importLookupsOversizedSpan[i];
@@ -463,6 +463,17 @@ std::vector<std::wstring> utils::get_env_list(const wchar_t* pcszName) {
     return res;
 }
 
+template<>
+std::vector<std::string> utils::get_env_list(const wchar_t* pcszName) {
+    const auto src = utils::get_env<std::string>(pcszName);
+    auto res = utils::split(src, ",");
+    for (auto& s : res)
+        s = utils::trim(s);
+    if (res.size() == 1 && res[0].empty())
+        return {};
+    return res;
+}
+
 bool utils::is_running_on_linux() {
     if (get_env<bool>(L"XL_WINEONLINUX"))
         return true;
@@ -508,4 +519,37 @@ void utils::wait_for_game_window() {
 		Sleep(100);
 	};
 	SendMessageW(game_window, WM_NULL, 0, 0);
+}
+
+std::wstring utils::escape_shell_arg(const std::wstring& arg) {
+    // https://docs.microsoft.com/en-us/archive/blogs/twistylittlepassagesallalike/everyone-quotes-command-line-arguments-the-wrong-way
+    
+    std::wstring res;
+    if (!arg.empty() && arg.find_first_of(L" \t\n\v\"") == std::wstring::npos) {
+        res.append(arg);
+    } else {
+        res.push_back(L'"');
+        for (auto it = arg.begin(); ; ++it) {
+            size_t bsCount = 0;
+
+            while (it != arg.end() && *it == L'\\') {
+                ++it;
+                ++bsCount;
+            }
+
+            if (it == arg.end()) {
+                res.append(bsCount * 2, L'\\');
+                break;
+            } else if (*it == L'"') {
+                res.append(bsCount * 2 + 1, L'\\');
+                res.push_back(*it);
+            } else {
+                res.append(bsCount, L'\\');
+                res.push_back(*it);
+            }
+        }
+
+        res.push_back(L'"');
+    }
+    return res;
 }

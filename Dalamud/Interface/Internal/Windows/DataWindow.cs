@@ -452,7 +452,6 @@ namespace Dalamud.Interface.Internal.Windows
             }
             else
             {
-                stateString += $"FrameworkBase: {framework.Address.BaseAddress.ToInt64():X}\n";
                 stateString += $"ObjectTableLen: {objectTable.Length}\n";
                 stateString += $"LocalPlayerName: {clientState.LocalPlayer.Name}\n";
                 stateString += $"CurrentWorldName: {(this.resolveGameData ? clientState.LocalPlayer.CurrentWorld.GameData.Name : clientState.LocalPlayer.CurrentWorld.Id.ToString())}\n";
@@ -530,7 +529,6 @@ namespace Dalamud.Interface.Internal.Windows
             }
             else
             {
-                stateString += $"FrameworkBase: {framework.Address.BaseAddress.ToInt64():X}\n";
                 stateString += $"FateTableLen: {fateTable.Length}\n";
 
                 ImGui.TextUnformatted(stateString);
@@ -1487,7 +1485,7 @@ namespace Dalamud.Interface.Internal.Windows
             ImGuiHelpers.ScaledDummy(20);
 
             // Needed to init the task tracker, if we're not on a debug build
-            var tracker = Service<TaskTracker>.GetNullable() ?? Service<TaskTracker>.Set();
+            Service<TaskTracker>.Get().Enable();
 
             for (var i = 0; i < TaskTracker.Tasks.Count; i++)
             {

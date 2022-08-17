@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-
+using System.Numerics;
 using Dalamud.Configuration.Internal;
 using Dalamud.Interface.Colors;
 using Dalamud.Utility;
+using ImGuiNET;
 using Newtonsoft.Json;
 using Serilog;
 
@@ -15,6 +16,10 @@ namespace Dalamud.Interface.Style
     /// </summary>
     public abstract class StyleModel
     {
+        private static int NumPushedStyles = 0;
+        private static int NumPushedColors = 0;
+        private static bool HasPushedOnce = false;
+
         /// <summary>
         /// Gets or sets the name of the style model.
         /// </summary>
@@ -84,7 +89,7 @@ namespace Dalamud.Interface.Style
             configuration.SavedStyles = new List<StyleModel>();
             configuration.SavedStyles.AddRange(configuration.SavedStylesOld);
 
-            Log.Information("Transferred {0} styles", configuration.SavedStyles.Count);
+            Log.Information("Transferred {NumStyles} styles", configuration.SavedStyles.Count);
 
             configuration.SavedStylesOld = null;
             configuration.Save();
@@ -123,6 +128,60 @@ namespace Dalamud.Interface.Style
         /// <summary>
         /// Pop this style model from the ImGui style/color stack.
         /// </summary>
-        public abstract void Pop();
+        public void Pop()
+        {
+            if (!HasPushedOnce)
+                throw new InvalidOperationException("Wasn't pushed at least once.");
+
+            ImGui.PopStyleVar(NumPushedStyles);
+            ImGui.PopStyleColor(NumPushedColors);
+        }
+
+        /// <summary>
+        /// Push a style var.
+        /// </summary>
+        /// <param name="style">Style kind.</param>
+        /// <param name="arg">Style var.</param>
+        protected void PushStyleHelper(ImGuiStyleVar style, float arg)
+        {
+            ImGui.PushStyleVar(style, arg);
+
+            if (!HasPushedOnce)
+                NumPushedStyles++;
+        }
+
+        /// <summary>
+        /// Push a style var.
+        /// </summary>
+        /// <param name="style">Style kind.</param>
+        /// <param name="arg">Style var.</param>
+        protected void PushStyleHelper(ImGuiStyleVar style, Vector2 arg)
+        {
+            ImGui.PushStyleVar(style, arg);
+
+            if (!HasPushedOnce)
+                NumPushedStyles++;
+        }
+
+        /// <summary>
+        /// Push a style color.
+        /// </summary>
+        /// <param name="color">Color kind.</param>
+        /// <param name="value">Color value.</param>
+        protected void PushColorHelper(ImGuiCol color, Vector4 value)
+        {
+            ImGui.PushStyleColor(color, value);
+
+            if (!HasPushedOnce)
+                NumPushedColors++;
+        }
+
+        /// <summary>
+        /// Indicate that you have pushed.
+        /// </summary>
+        protected void DonePushing()
+        {
+            HasPushedOnce = true;
+        }
     }
 }

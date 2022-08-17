@@ -16,9 +16,9 @@ internal enum PluginState
     UnloadError,
 
     /// <summary>
-    /// Currently loading.
+    /// Currently unloading.
     /// </summary>
-    InProgress,
+    Unloading,
 
     /// <summary>
     /// Load is successful.
@@ -29,4 +29,14 @@ internal enum PluginState
     /// Plugin has thrown an error during loading.
     /// </summary>
     LoadError,
+
+    /// <summary>
+    /// Currently loading.
+    /// </summary>
+    Loading,
+
+    /// <summary>
+    /// This plugin couldn't load one of its dependencies.
+    /// </summary>
+    DependencyResolutionFailed,
 }

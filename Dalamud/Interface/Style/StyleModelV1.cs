@@ -487,13 +487,41 @@ namespace Dalamud.Interface.Style
         /// <inheritdoc/>
         public override void Push()
         {
-            throw new NotImplementedException();
-        }
+            this.PushStyleHelper(ImGuiStyleVar.Alpha, this.Alpha);
+            this.PushStyleHelper(ImGuiStyleVar.WindowPadding, this.WindowPadding);
+            this.PushStyleHelper(ImGuiStyleVar.WindowRounding, this.WindowRounding);
+            this.PushStyleHelper(ImGuiStyleVar.WindowBorderSize, this.WindowBorderSize);
+            this.PushStyleHelper(ImGuiStyleVar.WindowTitleAlign, this.WindowTitleAlign);
+            this.PushStyleHelper(ImGuiStyleVar.ChildRounding, this.ChildRounding);
+            this.PushStyleHelper(ImGuiStyleVar.ChildBorderSize, this.ChildBorderSize);
+            this.PushStyleHelper(ImGuiStyleVar.PopupRounding, this.PopupRounding);
+            this.PushStyleHelper(ImGuiStyleVar.PopupBorderSize, this.PopupBorderSize);
+            this.PushStyleHelper(ImGuiStyleVar.FramePadding, this.FramePadding);
+            this.PushStyleHelper(ImGuiStyleVar.FrameRounding, this.FrameRounding);
+            this.PushStyleHelper(ImGuiStyleVar.FrameBorderSize, this.FrameBorderSize);
+            this.PushStyleHelper(ImGuiStyleVar.ItemSpacing, this.ItemSpacing);
+            this.PushStyleHelper(ImGuiStyleVar.ItemInnerSpacing, this.ItemInnerSpacing);
+            this.PushStyleHelper(ImGuiStyleVar.CellPadding, this.CellPadding);
+            this.PushStyleHelper(ImGuiStyleVar.IndentSpacing, this.IndentSpacing);
+            this.PushStyleHelper(ImGuiStyleVar.ScrollbarSize, this.ScrollbarSize);
+            this.PushStyleHelper(ImGuiStyleVar.ScrollbarRounding, this.ScrollbarRounding);
+            this.PushStyleHelper(ImGuiStyleVar.GrabMinSize, this.GrabMinSize);
+            this.PushStyleHelper(ImGuiStyleVar.GrabRounding, this.GrabRounding);
+            this.PushStyleHelper(ImGuiStyleVar.TabRounding, this.TabRounding);
+            this.PushStyleHelper(ImGuiStyleVar.ButtonTextAlign, this.ButtonTextAlign);
+            this.PushStyleHelper(ImGuiStyleVar.SelectableTextAlign, this.SelectableTextAlign);
 
-        /// <inheritdoc/>
-        public override void Pop()
-        {
-            throw new NotImplementedException();
+            foreach (var imGuiCol in Enum.GetValues<ImGuiCol>())
+            {
+                if (imGuiCol == ImGuiCol.COUNT)
+                {
+                    continue;
+                }
+
+                this.PushColorHelper(imGuiCol, this.Colors[imGuiCol.ToString()]);
+            }
+
+            this.DonePushing();
         }
     }
 }

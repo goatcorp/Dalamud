@@ -15,19 +15,20 @@ namespace Dalamud.Game.ClientState.Buddy
     /// </summary>
     [PluginInterface]
     [InterfaceVersion("1.0")]
-    public sealed partial class BuddyList
+    [ServiceManager.BlockingEarlyLoadedService]
+    public sealed partial class BuddyList : IServiceType
     {
         private const uint InvalidObjectID = 0xE0000000;
 
+        [ServiceManager.ServiceDependency]
+        private readonly ClientState clientState = Service<ClientState>.Get();
+
         private readonly ClientStateAddressResolver address;
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="BuddyList"/> class.
-        /// </summary>
-        /// <param name="addressResolver">Client state address resolver.</param>
-        internal BuddyList(ClientStateAddressResolver addressResolver)
+        [ServiceManager.ServiceConstructor]
+        private BuddyList()
         {
-            this.address = addressResolver;
+            this.address = this.clientState.AddressResolver;
 
             Log.Verbose($"Buddy list address 0x{this.address.BuddyList.ToInt64():X}");
         }
@@ -147,9 +148,7 @@ namespace Dalamud.Game.ClientState.Buddy
         /// <returns><see cref="BuddyMember"/> object containing the requested data.</returns>
         public BuddyMember? CreateBuddyMemberReference(IntPtr address)
         {
-            var clientState = Service<ClientState>.Get();
-
-            if (clientState.LocalContentId == 0)
+            if (this.clientState.LocalContentId == 0)
                 return null;
 
             if (address == IntPtr.Zero)

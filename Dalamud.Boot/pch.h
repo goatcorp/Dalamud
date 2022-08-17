@@ -11,15 +11,16 @@
 #define WIN32_LEAN_AND_MEAN
 #define NOMINMAX
 
-// Windows Header Files
-#include <windows.h>
-#include <DbgHelp.h>
+// Windows Header Files (1)
+#include <Windows.h>
+
+// Windows Header Files (2)
+#include <Dbt.h>
 #include <PathCch.h>
 #include <Psapi.h>
-#include <Shlobj.h>
-#include <TlHelp32.h>
-#include <Dbt.h>
+#include <ShlObj.h>
 #include <SubAuth.h>
+#include <TlHelp32.h>
 
 // MSVC Compiler Intrinsic
 #include <intrin.h>
@@ -33,11 +34,11 @@
 #include <fstream>
 #include <functional>
 #include <iostream>
+#include <mutex>
 #include <ranges>
 #include <set>
 #include <span>
 #include <string>
-#include <mutex>
 #include <type_traits>
 
 // https://www.akenotsuki.com/misc/srell/en/
@@ -50,8 +51,11 @@
 #include "../lib/Nomade040-nmd/nmd_assembly.h"
 
 // https://github.com/dotnet/coreclr
-#include "../lib/CoreCLR/CoreCLR.h"
 #include "../lib/CoreCLR/boot.h"
+#include "../lib/CoreCLR/CoreCLR.h"
+
+// https://github.com/nlohmann/json
+#include "../lib/nlohmann-json/json.hpp"
 
 #include "unicode.h"
 
