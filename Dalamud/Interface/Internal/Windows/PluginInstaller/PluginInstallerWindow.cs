@@ -985,19 +985,19 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
             if (pm.SafeMode)
             {
                 ImGuiHelpers.ScaledDummy(10);
-                
+
                 ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudOrange);
                 ImGui.PushFont(InterfaceManager.IconFont);
                 ImGuiHelpers.CenteredText(FontAwesomeIcon.ExclamationTriangle.ToIconString());
                 ImGui.PopFont();
                 ImGui.PopStyleColor();
-                
+
                 var lines = Locs.SafeModeDisclaimer.Split('\n');
                 foreach (var line in lines)
                 {
                     ImGuiHelpers.CenteredText(line);
                 }
-                
+
                 ImGuiHelpers.ScaledDummy(10);
                 ImGui.Separator();
             }
