@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 using CheapLoc;
 using Dalamud.Configuration.Internal;
 using Dalamud.Data;
-using Dalamud.Game.Gui.ContextMenus;
+//using Dalamud.Game.Gui.ContextMenus;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
@@ -37,8 +37,8 @@ namespace Dalamud.Game.Internal
         [ServiceManager.ServiceDependency]
         private readonly DalamudConfiguration configuration = Service<DalamudConfiguration>.Get();
 
-        [ServiceManager.ServiceDependency]
-        private readonly ContextMenu contextMenu = Service<ContextMenu>.Get();
+        // [ServiceManager.ServiceDependency]
+        // private readonly ContextMenu contextMenu = Service<ContextMenu>.Get();
 
         private readonly string locDalamudPlugins;
         private readonly string locDalamudSettings;
@@ -65,7 +65,7 @@ namespace Dalamud.Game.Internal
             this.locDalamudPlugins = Loc.Localize("SystemMenuPlugins", "Dalamud Plugins");
             this.locDalamudSettings = Loc.Localize("SystemMenuSettings", "Dalamud Settings");
 
-            this.contextMenu.ContextMenuOpened += this.ContextMenuOnContextMenuOpened;
+            // this.contextMenu.ContextMenuOpened += this.ContextMenuOnContextMenuOpened;
         }
 
         private delegate void AgentHudOpenSystemMenuPrototype(void* thisPtr, AtkValue* atkValueArgs, uint menuSize);
@@ -86,6 +86,7 @@ namespace Dalamud.Game.Internal
             this.hookAtkUnitBaseReceiveGlobalEvent.Enable();
         }
 
+        /*
         private void ContextMenuOnContextMenuOpened(ContextMenuOpenedArgs args)
         {
             var systemText = Service<DataManager>.GetNullable()?.GetExcelSheet<Addon>()?.GetRow(1059)?.Text?.RawString; // "System"
@@ -109,6 +110,7 @@ namespace Dalamud.Game.Internal
                 }));
             }
         }
+        */
 
         private IntPtr AtkUnitBaseReceiveGlobalEventDetour(AtkUnitBase* thisPtr, ushort cmd, uint a3, IntPtr a4, uint* arg)
         {
@@ -270,7 +272,7 @@ namespace Dalamud.Game.Internal
                 this.hookUiModuleRequestMainCommand.Dispose();
                 this.hookAtkUnitBaseReceiveGlobalEvent.Dispose();
 
-                this.contextMenu.ContextMenuOpened -= this.ContextMenuOnContextMenuOpened;
+                // this.contextMenu.ContextMenuOpened -= this.ContextMenuOnContextMenuOpened;
             }
 
             this.disposed = true;

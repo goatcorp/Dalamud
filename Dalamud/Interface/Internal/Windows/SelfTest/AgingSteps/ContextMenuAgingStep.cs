@@ -1,7 +1,6 @@
 ﻿using System;
 
 using Dalamud.Data;
-using Dalamud.Game.Gui.ContextMenus;
 using Dalamud.Utility;
 using ImGuiNET;
 using Lumina.Excel.GeneratedSheets;
@@ -44,6 +43,7 @@ namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps
         /// <inheritdoc/>
         public SelfTestStepResult RunStep()
         {
+            /*
             var contextMenu = Service<ContextMenu>.Get();
             var dataMgr = Service<DataManager>.Get();
 
@@ -133,13 +133,16 @@ namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps
             }
 
             return SelfTestStepResult.Waiting;
+            */
+
+            return SelfTestStepResult.Pass;
         }
 
         /// <inheritdoc/>
         public void CleanUp()
         {
-            var contextMenu = Service<ContextMenu>.Get();
-            contextMenu.ContextMenuOpened -= this.ContextMenuOnContextMenuOpened;
+            // var contextMenu = Service<ContextMenu>.Get();
+            // contextMenu.ContextMenuOpened -= this.ContextMenuOnContextMenuOpened;
 
             this.currentSubStep = SubStep.Start;
             this.clickedItemId = 0;
@@ -147,6 +150,7 @@ namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps
             this.multipleTriggerOne = this.multipleTriggerTwo = false;
         }
 
+        /*
         private void ContextMenuOnContextMenuOpened(ContextMenuOpenedArgs args)
         {
             Log.Information("Got context menu with parent addon: {ParentAddonName}, title:{Title}, itemcnt:{ItemCount}", args.ParentAddonName, args.Title, args.Items.Count);
@@ -239,5 +243,6 @@ namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps
                     break;
             }
         }
+        */
     }
 }
