@@ -564,10 +564,17 @@ int main() {
         config.cRadioButtons = ARRAYSIZE(radios);
         config.nDefaultRadioButton = IdRadioRestartNormal;
         config.cxWidth = 300;
+
+#if _DEBUG
         config.pszFooter = (L""
             R"aa(<a href="help">Help</a> | <a href="logdir">Open log directory</a> | <a href="logfile">Open log file</a> | <a href="resume">Attempt to resume</a>)aa"
         );
-
+#else
+        config.pszFooter = (L""
+            R"aa(<a href="help">Help</a> | <a href="logdir">Open log directory</a> | <a href="logfile">Open log file</a>)aa"
+        );
+#endif
+        
         // Can't do this, xiv stops pumping messages here
         //config.hwndParent = FindWindowA("FFXIVGAME", NULL);
 

@@ -24,8 +24,11 @@
 
 PVOID g_veh_handle = nullptr;
 bool g_veh_do_full_dump = false;
+
 HANDLE g_crashhandler_process = nullptr;
 HANDLE g_crashhandler_pipe_write = nullptr;
+
+std::recursive_mutex g_exception_handler_mutex;
 
 std::chrono::time_point<std::chrono::system_clock> g_time_start;
 
@@ -126,8 +129,6 @@ static void append_injector_launch_args(std::vector<std::wstring>& args)
 
 LONG exception_handler(EXCEPTION_POINTERS* ex)
 {
-    static std::recursive_mutex s_exception_handler_mutex;
-
     if (ex->ExceptionRecord->ExceptionCode == 0x12345678)
     {
         // pass
@@ -143,7 +144,7 @@ LONG exception_handler(EXCEPTION_POINTERS* ex)
     }
 
     // block any other exceptions hitting the veh while the messagebox is open
-    const auto lock = std::lock_guard(s_exception_handler_mutex);
+    const auto lock = std::lock_guard(g_exception_handler_mutex);
 
     exception_info exinfo{};
     exinfo.pExceptionPointers = ex;

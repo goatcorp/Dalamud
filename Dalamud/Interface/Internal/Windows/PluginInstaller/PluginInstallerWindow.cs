@@ -44,6 +44,8 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
 
         private readonly List<int> openPluginCollapsibles = new();
 
+        private readonly DateTime timeLoaded;
+        
         #region Image Tester State
 
         private string[] testerImagePaths = new string[5];
@@ -128,6 +130,8 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
                     this.testerImagePaths[i] = string.Empty;
                 }
             });
+
+            this.timeLoaded = DateTime.Now;
         }
 
         private enum OperationStatus
@@ -324,6 +328,15 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
                         break;
                     default:
                         throw new ArgumentOutOfRangeException();
+                }
+
+                if (DateTime.Now - this.timeLoaded > TimeSpan.FromSeconds(90) && isWaitingManager)
+                {
+                    ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudRed);
+                    ImGuiHelpers.CenteredText("This is embarrassing, but...");
+                    ImGuiHelpers.CenteredText("one of your plugins may be blocking the installer.");
+                    ImGuiHelpers.CenteredText("You should tell us about this, please keep this window open.");
+                    ImGui.PopStyleColor();
                 }
 
                 ImGui.EndChild();
@@ -966,6 +979,27 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
             if (!this.categoryManager.IsSelectionValid || !ready)
             {
                 return;
+            }
+
+            var pm = Service<PluginManager>.Get();
+            if (pm.SafeMode)
+            {
+                ImGuiHelpers.ScaledDummy(10);
+
+                ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudOrange);
+                ImGui.PushFont(InterfaceManager.IconFont);
+                ImGuiHelpers.CenteredText(FontAwesomeIcon.ExclamationTriangle.ToIconString());
+                ImGui.PopFont();
+                ImGui.PopStyleColor();
+
+                var lines = Locs.SafeModeDisclaimer.Split('\n');
+                foreach (var line in lines)
+                {
+                    ImGuiHelpers.CenteredText(line);
+                }
+
+                ImGuiHelpers.ScaledDummy(10);
+                ImGui.Separator();
             }
 
             ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, ImGuiHelpers.ScaledVector2(1, 3));
@@ -2802,6 +2836,12 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
             #region Error modal buttons
 
             public static string ErrorModalButton_Ok => Loc.Localize("OK", "OK");
+
+            #endregion
+
+            #region Other
+
+            public static string SafeModeDisclaimer => Loc.Localize("SafeModeDisclaimer", "You enabled safe mode, no plugins will be loaded.\nYou may delete plugins from the \"Installed plugins\" tab.\nSimply restart your game to disable safe mode.");
 
             #endregion
         }
