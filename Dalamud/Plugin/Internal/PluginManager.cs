@@ -1128,17 +1128,18 @@ internal partial class PluginManager : IDisposable, IServiceType
     }
 
     /// <summary>
-    /// Unload the plugin, delete its configuration, and reload it.
+    /// Delete the plugin configuration, unload/reload it if loaded.
     /// </summary>
     /// <param name="plugin">The plugin.</param>
     /// <exception cref="Exception">Throws if the plugin is still loading/unloading.</exception>
     /// <returns>The task.</returns>
     public async Task DeleteConfigurationAsync(LocalPlugin plugin)
     {
-        if (plugin.State == PluginState.Loading || plugin.State == PluginState.Unloaded)
+        if (plugin.State is PluginState.Loading or PluginState.Unloading)
             throw new Exception("Cannot delete configuration for a loading/unloading plugin");
 
-        if (plugin.IsLoaded)
+        var isReloading = plugin.IsLoaded;
+        if (isReloading)
             await plugin.UnloadAsync();
 
         for (var waitUntil = Environment.TickCount64 + 1000; Environment.TickCount64 < waitUntil;)
@@ -1154,8 +1155,11 @@ internal partial class PluginManager : IDisposable, IServiceType
             }
         }
 
-        // Let's indicate "installer" here since this is supposed to be a fresh install
-        await plugin.LoadAsync(PluginLoadReason.Installer);
+        if (isReloading)
+        {
+            // Let's indicate "installer" here since this is supposed to be a fresh install
+            await plugin.LoadAsync(PluginLoadReason.Installer);
+        }
     }
 
     /// <summary>

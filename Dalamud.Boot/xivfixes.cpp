@@ -26,7 +26,20 @@ void xivfixes::unhook_dll(bool bApply) {
         std::filesystem::path path;
         try {
             path = mod.path();
-            logging::I("{} [{}/{}] Module 0x{:X} ~ 0x{:X} (0x{:X}): \"{}\"", LogTagW, i + 1, mods.size(), mod.address_int(), mod.address_int() + mod.image_size(), mod.image_size(), path.wstring());
+            std::wstring version, description;
+            try {
+                version = utils::format_file_version(mod.get_file_version());
+            } catch (...) {
+                version = L"<unknown>";
+            }
+            
+            try {
+                description = mod.get_description();
+            } catch (...) {
+                description = L"<unknown>";
+            }
+            
+            logging::I(R"({} [{}/{}] Module 0x{:X} ~ 0x{:X} (0x{:X}): "{}" ("{}" ver {}))", LogTagW, i + 1, mods.size(), mod.address_int(), mod.address_int() + mod.image_size(), mod.image_size(), path.wstring(), description, version);
         } catch (const std::exception& e) {
             logging::W("{} [{}/{}] Module 0x{:X}: Failed to resolve path: {}", LogTag, i + 1, mods.size(), mod.address_int(), e.what());
             return;
