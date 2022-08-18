@@ -143,6 +143,69 @@ void* utils::loaded_module::get_imported_function_pointer(const char* pcszDllNam
     throw std::runtime_error(std::format("Failed to find import for {}!{} ({}).", pcszDllName, pcszFunctionName ? pcszFunctionName : "<unnamed>", hintOrOrdinal));
 }
 
+std::unique_ptr<std::remove_pointer_t<HGLOBAL>, decltype(&FreeResource)> utils::loaded_module::get_resource(LPCWSTR lpName, LPCWSTR lpType) const {
+    const auto hres = FindResourceW(m_hModule, lpName, lpType);
+    if (!hres)
+        throw std::runtime_error("No such resource");
+    
+    const auto hRes = LoadResource(m_hModule, hres);
+    if (!hRes)
+        throw std::runtime_error("LoadResource failure");
+
+    return {hRes, &FreeResource};
+}
+
+std::wstring utils::loaded_module::get_description() const {
+    const auto rsrc = get_resource(MAKEINTRESOURCE(VS_VERSION_INFO), RT_VERSION);
+    const auto pBlock = LockResource(rsrc.get());
+    
+    struct LANGANDCODEPAGE {
+        WORD wLanguage;
+        WORD wCodePage;
+    } * lpTranslate;
+    UINT cbTranslate;
+    if (!VerQueryValueW(pBlock,
+        TEXT("\\VarFileInfo\\Translation"),
+        reinterpret_cast<LPVOID*>(&lpTranslate),
+        &cbTranslate)) {
+        throw std::runtime_error("Invalid version information (1)");
+    }
+
+    for (size_t i = 0; i < (cbTranslate / sizeof(LANGANDCODEPAGE)); i++) {
+        wchar_t* buf = nullptr;
+        UINT size = 0;
+        if (!VerQueryValueW(pBlock,
+            std::format(L"\\StringFileInfo\\{:04x}{:04x}\\FileDescription",
+                lpTranslate[i].wLanguage,
+                lpTranslate[i].wCodePage).c_str(),
+            reinterpret_cast<LPVOID*>(&buf),
+            &size)) {
+            continue;
+        }
+        auto currName = std::wstring_view(buf, size);
+        while (!currName.empty() && currName.back() == L'\0')
+            currName = currName.substr(0, currName.size() - 1);
+        if (currName.empty())
+            continue;
+        return std::wstring(currName);
+    }
+    
+    throw std::runtime_error("Invalid version information (2)");
+}
+
+VS_FIXEDFILEINFO utils::loaded_module::get_file_version() const {
+    const auto rsrc = get_resource(MAKEINTRESOURCE(VS_VERSION_INFO), RT_VERSION);
+    const auto pBlock = LockResource(rsrc.get());
+    UINT size = 0;
+    LPVOID lpBuffer = nullptr;
+    if (!VerQueryValueW(pBlock, L"\\", &lpBuffer, &size))
+		throw std::runtime_error("Failed to query version information.");
+    const VS_FIXEDFILEINFO& versionInfo = *static_cast<const VS_FIXEDFILEINFO*>(lpBuffer);
+    if (versionInfo.dwSignature != 0xfeef04bd)
+		throw std::runtime_error("Invalid version info found.");
+    return versionInfo;
+}
+
 utils::loaded_module utils::loaded_module::current_process() {
     return { GetModuleHandleW(nullptr) };
 }
@@ -161,6 +224,26 @@ std::vector<utils::loaded_module> utils::loaded_module::all_modules() {
     }
 
     return modules;
+}
+
+std::wstring utils::format_file_version(const VS_FIXEDFILEINFO& v) {
+    if (v.dwFileVersionMS == v.dwProductVersionMS && v.dwFileVersionLS == v.dwProductVersionLS) {
+        return std::format(L"{}.{}.{}.{}",
+            (v.dwProductVersionMS >> 16) & 0xFFFF,
+            (v.dwProductVersionMS >> 0) & 0xFFFF,
+            (v.dwProductVersionLS >> 16) & 0xFFFF,
+            (v.dwProductVersionLS >> 0) & 0xFFFF);
+    } else {
+        return std::format(L"file={}.{}.{}.{} prod={}.{}.{}.{}",
+            (v.dwFileVersionMS >> 16) & 0xFFFF,
+            (v.dwFileVersionMS >> 0) & 0xFFFF,
+            (v.dwFileVersionLS >> 16) & 0xFFFF,
+            (v.dwFileVersionLS >> 0) & 0xFFFF,
+            (v.dwProductVersionMS >> 16) & 0xFFFF,
+            (v.dwProductVersionMS >> 0) & 0xFFFF,
+            (v.dwProductVersionLS >> 16) & 0xFFFF,
+            (v.dwProductVersionLS >> 0) & 0xFFFF);
+    }
 }
 
 utils::signature_finder& utils::signature_finder::look_in(const void* pFirst, size_t length) {
