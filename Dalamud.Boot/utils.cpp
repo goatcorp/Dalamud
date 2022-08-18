@@ -140,7 +140,7 @@ void* utils::loaded_module::get_imported_function_pointer(const char* pcszDllNam
     if (void* ppImportTableItem{}; find_imported_function_pointer(pcszDllName, pcszFunctionName, hintOrOrdinal, ppImportTableItem))
         return ppImportTableItem;
 
-    throw std::runtime_error("Failed to find import for kernel32!OpenProcess.");
+    throw std::runtime_error(std::format("Failed to find import for {}!{} ({}).", pcszDllName, pcszFunctionName ? pcszFunctionName : "<unnamed>", hintOrOrdinal));
 }
 
 utils::loaded_module utils::loaded_module::current_process() {
