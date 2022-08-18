@@ -58,9 +58,15 @@ namespace utils {
         void* get_imported_function_pointer(const char* pcszDllName, const char* pcszFunctionName, uint32_t hintOrOrdinal) const;
         template<typename TFn> TFn** get_imported_function_pointer(const char* pcszDllName, const char* pcszFunctionName, uint32_t hintOrOrdinal) { return reinterpret_cast<TFn**>(get_imported_function_pointer(pcszDllName, pcszFunctionName, hintOrOrdinal)); }
 
+        [[nodiscard]] std::unique_ptr<std::remove_pointer_t<HGLOBAL>, decltype(&FreeResource)> get_resource(LPCWSTR lpName, LPCWSTR lpType) const;
+        [[nodiscard]] std::wstring get_description() const;
+        [[nodiscard]] VS_FIXEDFILEINFO get_file_version() const;
+
         static loaded_module current_process();
         static std::vector<loaded_module> all_modules();
     };
+
+    std::wstring format_file_version(const VS_FIXEDFILEINFO& v);
 
     class signature_finder {
         std::vector<std::span<const char>> m_ranges;

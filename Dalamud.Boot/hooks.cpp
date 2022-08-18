@@ -103,8 +103,23 @@ void hooks::getprocaddress_singleton_import_hook::initialize() {
     LdrRegisterDllNotification(0, [](ULONG notiReason, const LDR_DLL_NOTIFICATION_DATA* pData, void* context) {
         if (notiReason == LDR_DLL_NOTIFICATION_REASON_LOADED) {
             const auto dllName = unicode::convert<std::string>(pData->Loaded.FullDllName->Buffer);
-            logging::I(R"({} "{}" has been loaded at 0x{:X} ~ 0x{:X} (0x{:X}); finding import table items to hook.)",
-                LogTag, dllName, 
+
+            utils::loaded_module mod(pData->Loaded.DllBase);
+            std::wstring version, description;
+            try {
+                version = utils::format_file_version(mod.get_file_version());
+            } catch (...) {
+                version = L"<unknown>";
+            }
+            
+            try {
+                description = mod.get_description();
+            } catch (...) {
+                description = L"<unknown>";
+            }
+            
+            logging::I(R"({} "{}" ("{}" ver {}) has been loaded at 0x{:X} ~ 0x{:X} (0x{:X}); finding import table items to hook.)",
+                LogTag, dllName, description, version,
                 reinterpret_cast<size_t>(pData->Loaded.DllBase),
                 reinterpret_cast<size_t>(pData->Loaded.DllBase) + pData->Loaded.SizeOfImage,
                 pData->Loaded.SizeOfImage);
