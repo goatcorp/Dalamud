@@ -511,20 +511,39 @@ int main() {
 
         std::thread submitThread;
         if (!getenv("DALAMUD_NO_METRIC")) {
-            auto url = std::format(L"/Dalamud/Metric/ReportCrash/?lt={}&code={:x}", exinfo.nLifetime, exinfo.ExceptionRecord.ExceptionCode);
+            auto url = std::format(L"/Dalamud/Metric/ReportCrash?lt={}&code={:x}", exinfo.nLifetime, exinfo.ExceptionRecord.ExceptionCode);
 
             submitThread = std::thread([url = std::move(url)] {
-                const auto hInternet = WinHttpOpen(L"DALAMUDCRASHHANDLER", WINHTTP_ACCESS_TYPE_AUTOMATIC_PROXY, nullptr, nullptr, WINHTTP_FLAG_SECURE_DEFAULTS);
-                const auto hConnect = !hInternet ? nullptr : WinHttpConnect(hInternet, L"kamori.goats.dev", INTERNET_DEFAULT_HTTPS_PORT, 0);
-                const auto hRequest = !hConnect ? nullptr : WinHttpOpenRequest(hConnect, L"GET", url.c_str(), nullptr, nullptr, nullptr, 0);
-                const auto bSent = !hRequest ? false : WinHttpSendRequest(hRequest,
-                    WINHTTP_NO_ADDITIONAL_HEADERS,
-                    0, WINHTTP_NO_REQUEST_DATA, 0,
-                    0, 0);
+                const auto hInternet = WinHttpOpen(L"Dalamud Crash Handler/1.0", 
+                                     WINHTTP_ACCESS_TYPE_DEFAULT_PROXY,
+                                     WINHTTP_NO_PROXY_NAME, 
+                                     WINHTTP_NO_PROXY_BYPASS, 0);
+                const auto hConnect = !hInternet ? nullptr : WinHttpConnect(hInternet, L"kamori.goats.dev", INTERNET_DEFAULT_HTTP_PORT, 0);
+                const auto hRequest = !hConnect ? nullptr : WinHttpOpenRequest(hConnect, L"GET", url.c_str(), NULL, WINHTTP_NO_REFERER, 
+                                               WINHTTP_DEFAULT_ACCEPT_TYPES,
+                                               0);
+                if (hRequest) WinHttpAddRequestHeaders(hRequest, L"Host: kamori.goats.dev", (ULONG)-1L, WINHTTP_ADDREQ_FLAG_ADD);
+                const auto bSent = !hRequest ? false : WinHttpSendRequest(hRequest, WINHTTP_NO_ADDITIONAL_HEADERS,
+                                               0, WINHTTP_NO_REQUEST_DATA, 0, 
+                                               0, 0);
 
                 if (!bSent)
                     std::cerr << std::format("Failed to send metric: 0x{:x}", GetLastError()) << std::endl;
 
+                if (WinHttpReceiveResponse(hRequest, nullptr))
+                {
+                    DWORD dwStatusCode = 0;
+                    DWORD dwStatusCodeSize = sizeof(DWORD);
+
+                    WinHttpQueryHeaders(hRequest,
+                                        WINHTTP_QUERY_STATUS_CODE | WINHTTP_QUERY_FLAG_NUMBER,
+                                        WINHTTP_HEADER_NAME_BY_INDEX,
+                                        &dwStatusCode, &dwStatusCodeSize, WINHTTP_NO_HEADER_INDEX);
+
+                    if (dwStatusCode != 200)
+                        std::cerr << std::format("Failed to send metric: {}", dwStatusCode) << std::endl;
+                }
+                
                 if (hRequest) WinHttpCloseHandle(hRequest);
                 if (hConnect) WinHttpCloseHandle(hConnect);
                 if (hInternet) WinHttpCloseHandle(hInternet);
