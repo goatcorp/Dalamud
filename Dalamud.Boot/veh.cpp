@@ -268,7 +268,7 @@ bool veh::add_handler(bool doFullDump, const std::string& workingDirectory)
 
     std::vector<std::wstring> args;
     std::wstring argstr;
-    args.emplace_back((std::filesystem::path(workingDirectory) / "DalamudCrashHandler.exe").wstring());
+    args.emplace_back((std::filesystem::path(unicode::convert<std::wstring>(workingDirectory)) / L"DalamudCrashHandler.exe").wstring());
     args.emplace_back(std::format(L"--process-handle={}", reinterpret_cast<size_t>(hInheritableCurrentProcess)));
     args.emplace_back(std::format(L"--exception-info-pipe-read-handle={}", reinterpret_cast<size_t>(hReadPipeInheritable->get())));
     args.emplace_back(std::format(L"--asset-directory={}", unicode::convert<std::wstring>(g_startInfo.AssetDirectory)));
