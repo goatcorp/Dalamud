@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Generic;
+
+#if !DEBUG
 using Dalamud.Configuration.Internal;
+#endif
 using Serilog;
 
 namespace Dalamud.Game.Internal
