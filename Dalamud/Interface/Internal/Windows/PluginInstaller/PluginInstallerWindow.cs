@@ -45,7 +45,7 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
         private readonly List<int> openPluginCollapsibles = new();
 
         private readonly DateTime timeLoaded;
-        
+
         #region Image Tester State
 
         private string[] testerImagePaths = new string[5];
@@ -63,6 +63,11 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
         private bool errorModalOnNextFrame = false;
         private string errorModalMessage = string.Empty;
         private TaskCompletionSource? errorModalTaskCompletionSource;
+
+        private bool updateModalDrawing = true;
+        private bool updateModalOnNextFrame = false;
+        private LocalPlugin? updateModalPlugin = null;
+        private TaskCompletionSource<bool>? updateModalTaskCompletionSource;
 
         private bool feedbackModalDrawing = true;
         private bool feedbackModalOnNextFrame = false;
@@ -209,6 +214,7 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
             this.DrawPluginCategories();
             this.DrawFooter();
             this.DrawErrorModal();
+            this.DrawUpdateModal();
             this.DrawFeedbackModal();
             this.DrawProgressOverlay();
         }
@@ -556,7 +562,7 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
                 if (ImGui.Button(Locs.ErrorModalButton_Ok, new Vector2(buttonWidth, 40)))
                 {
                     ImGui.CloseCurrentPopup();
-                    errorModalTaskCompletionSource?.SetResult();
+                    this.errorModalTaskCompletionSource?.SetResult();
                 }
 
                 ImGui.EndPopup();
@@ -571,6 +577,50 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
                 ImGui.OpenPopup(modalTitle);
                 this.errorModalOnNextFrame = false;
                 this.errorModalDrawing = true;
+            }
+        }
+
+        private void DrawUpdateModal()
+        {
+            var modalTitle = Locs.UpdateModal_Title;
+
+            if (this.updateModalPlugin == null)
+                return;
+
+            if (ImGui.BeginPopupModal(modalTitle, ref this.updateModalDrawing, ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoScrollbar))
+            {
+                ImGui.Text(Locs.UpdateModal_UpdateAvailable(this.updateModalPlugin.Name));
+                ImGui.Spacing();
+
+                var buttonWidth = 120f;
+                ImGui.SetCursorPosX((ImGui.GetWindowWidth() - ((buttonWidth * 2) - (ImGui.GetStyle().ItemSpacing.Y * 2))) / 2);
+
+                if (ImGui.Button(Locs.UpdateModal_Yes, new Vector2(buttonWidth, 40)))
+                {
+                    ImGui.CloseCurrentPopup();
+                    this.updateModalTaskCompletionSource?.SetResult(true);
+                }
+
+                ImGui.SameLine();
+
+                if (ImGui.Button(Locs.UpdateModal_No, new Vector2(buttonWidth, 40)))
+                {
+                    ImGui.CloseCurrentPopup();
+                    this.updateModalTaskCompletionSource?.SetResult(false);
+                }
+
+                ImGui.EndPopup();
+            }
+
+            if (this.updateModalOnNextFrame)
+            {
+                // NOTE(goat): ImGui cannot open a modal if no window is focused, at the moment.
+                // If people click out of the installer into the game while a plugin is installing, we won't be able to show a modal if we don't grab focus.
+                ImGui.SetWindowFocus(this.WindowName);
+
+                ImGui.OpenPopup(modalTitle);
+                this.updateModalOnNextFrame = false;
+                this.updateModalDrawing = true;
             }
         }
 
@@ -1879,7 +1929,7 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
                 }
 
                 // Controls
-                this.DrawPluginControlButton(plugin);
+                this.DrawPluginControlButton(plugin, availablePluginUpdate);
                 this.DrawDevPluginButtons(plugin);
                 this.DrawDeletePluginButton(plugin);
                 this.DrawVisitRepoUrlButton(plugin.Manifest.RepoUrl);
@@ -1966,7 +2016,7 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
             }
         }
 
-        private void DrawPluginControlButton(LocalPlugin plugin)
+        private void DrawPluginControlButton(LocalPlugin plugin, AvailablePluginUpdate? availableUpdate)
         {
             var notifications = Service<NotificationManager>.Get();
             var pluginManager = Service<PluginManager>.Get();
@@ -2038,13 +2088,14 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
                     }
                     else
                     {
-                        this.enableDisableStatus = OperationStatus.InProgress;
-                        this.loadingIndicatorKind = LoadingIndicatorKind.EnablingSingle;
-
-                        Task.Run(() =>
+                        var enabler = new Task(() =>
                         {
+                            this.enableDisableStatus = OperationStatus.InProgress;
+                            this.loadingIndicatorKind = LoadingIndicatorKind.EnablingSingle;
+
                             var enableTask = Task.Run(() => plugin.Enable())
-                                                 .ContinueWith(this.DisplayErrorContinuation, Locs.ErrorModal_EnableFail(plugin.Name));
+                                                 .ContinueWith(this.DisplayErrorContinuation,
+                                                               Locs.ErrorModal_EnableFail(plugin.Name));
 
                             enableTask.Wait();
                             if (!enableTask.Result)
@@ -2054,7 +2105,8 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
                             }
 
                             var loadTask = Task.Run(() => plugin.LoadAsync(PluginLoadReason.Installer))
-                                               .ContinueWith(this.DisplayErrorContinuation, Locs.ErrorModal_LoadFail(plugin.Name));
+                                               .ContinueWith(this.DisplayErrorContinuation,
+                                                             Locs.ErrorModal_LoadFail(plugin.Name));
 
                             loadTask.Wait();
                             this.enableDisableStatus = OperationStatus.Complete;
@@ -2062,8 +2114,31 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
                             if (!loadTask.Result)
                                 return;
 
-                            notifications.AddNotification(Locs.Notifications_PluginEnabled(plugin.Manifest.Name), Locs.Notifications_PluginEnabledTitle, NotificationType.Success);
+                            notifications.AddNotification(Locs.Notifications_PluginEnabled(plugin.Manifest.Name),
+                                                          Locs.Notifications_PluginEnabledTitle,
+                                                          NotificationType.Success);
                         });
+
+                        if (availableUpdate != default)
+                        {
+                            this.ShowUpdateModal(plugin).ContinueWith(async t =>
+                            {
+                                var shouldUpdate = t.Result;
+
+                                if (shouldUpdate)
+                                {
+                                    await this.UpdateSinglePlugin(availableUpdate);
+                                }
+                                else
+                                {
+                                    enabler.Start();
+                                }
+                            });
+                        }
+                        else
+                        {
+                            enabler.Start();
+                        }
                     }
                 }
             }
@@ -2080,31 +2155,31 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
             }
         }
 
-        private void DrawUpdateSinglePluginButton(AvailablePluginUpdate update)
+        private async Task<bool> UpdateSinglePlugin(AvailablePluginUpdate update)
         {
             var pluginManager = Service<PluginManager>.Get();
+            
+            this.installStatus = OperationStatus.InProgress;
+            this.loadingIndicatorKind = LoadingIndicatorKind.UpdatingSingle;
 
+            return await Task.Run(async () => await pluginManager.UpdateSinglePluginAsync(update, true, false))
+                .ContinueWith(task =>
+                {
+                    // There is no need to set as Complete for an individual plugin installation
+                    this.installStatus = OperationStatus.Idle;
+
+                    var errorMessage = Locs.ErrorModal_SingleUpdateFail(update.UpdateManifest.Name);
+                    return this.DisplayErrorContinuation(task, errorMessage);
+                });
+        }
+
+        private void DrawUpdateSinglePluginButton(AvailablePluginUpdate update)
+        {
             ImGui.SameLine();
 
             if (ImGuiComponents.IconButton(FontAwesomeIcon.Download))
             {
-                this.installStatus = OperationStatus.InProgress;
-                this.loadingIndicatorKind = LoadingIndicatorKind.UpdatingSingle;
-
-                Task.Run(async () => await pluginManager.UpdateSinglePluginAsync(update, true, false))
-                    .ContinueWith(task =>
-                    {
-                        // There is no need to set as Complete for an individual plugin installation
-                        this.installStatus = OperationStatus.Idle;
-
-                        var errorMessage = Locs.ErrorModal_SingleUpdateFail(update.UpdateManifest.Name);
-                        this.DisplayErrorContinuation(task, errorMessage);
-
-                        if (!task.Result.WasUpdated)
-                        {
-                            this.ShowErrorModal(errorMessage);
-                        }
-                    });
+                Task.Run(() => this.UpdateSinglePlugin(update));
             }
 
             if (ImGui.IsItemHovered())
@@ -2512,7 +2587,15 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
             this.errorModalDrawing = true;
             this.errorModalOnNextFrame = true;
             this.errorModalTaskCompletionSource = new TaskCompletionSource();
-            return this.errorModalTaskCompletionSource!.Task;
+            return this.errorModalTaskCompletionSource.Task;
+        }
+
+        private Task<bool> ShowUpdateModal(LocalPlugin plugin)
+        {
+            this.updateModalOnNextFrame = true;
+            this.updateModalPlugin = plugin;
+            this.updateModalTaskCompletionSource = new TaskCompletionSource<bool>();
+            return this.updateModalTaskCompletionSource.Task;
         }
 
         private void UpdateCategoriesOnSearchChange()
@@ -2752,6 +2835,18 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
             public static string FooterButton_ScanDevPlugins => Loc.Localize("InstallerScanDevPlugins", "Scan Dev Plugins");
 
             public static string FooterButton_Close => Loc.Localize("InstallerClose", "Close");
+
+            #endregion
+
+            #region Update modal
+
+            public static string UpdateModal_Title => Loc.Localize("UpdateQuestionModal", "Update Available");
+
+            public static string UpdateModal_UpdateAvailable(string name) => Loc.Localize("UpdateModalUpdateAvailable", "An update for \"{0}\" is available.\nDo you want to update it before enabling?\nUpdates will fix bugs and incompatibilities, and may add new features.").Format(name);
+
+            public static string UpdateModal_Yes => Loc.Localize("UpdateModalYes", "Update plugin");
+
+            public static string UpdateModal_No => Loc.Localize("UpdateModalNo", "Just enable");
 
             #endregion
 
