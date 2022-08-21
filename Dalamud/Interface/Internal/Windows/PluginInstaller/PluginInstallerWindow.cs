@@ -45,7 +45,7 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
         private readonly List<int> openPluginCollapsibles = new();
 
         private readonly DateTime timeLoaded;
-        
+
         #region Image Tester State
 
         private string[] testerImagePaths = new string[5];
@@ -226,7 +226,9 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
         /// </summary>
         public void OpenPluginChangelogs()
         {
+            // Changelog group
             this.categoryManager.CurrentGroupIdx = 3;
+            // Plugins category
             this.categoryManager.CurrentCategoryIdx = 2;
             this.IsOpen = true;
         }
@@ -400,6 +402,11 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
             if (searchTextChanged)
                 this.UpdateCategoriesOnSearchChange();
 
+            // Changelog group
+            var isSortDisabled = this.categoryManager.CurrentGroupIdx == 3;
+            if (isSortDisabled)
+                ImGui.BeginDisabled();
+
             ImGui.SameLine();
             ImGui.SetCursorPosY(downShift);
             ImGui.SetNextItemWidth(selectableWidth);
@@ -418,6 +425,9 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
 
                 ImGui.EndCombo();
             }
+
+            if (isSortDisabled)
+                ImGui.EndDisabled();
         }
 
         private void DrawFooter()
