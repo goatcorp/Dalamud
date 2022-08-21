@@ -1,10 +1,10 @@
-﻿using System;
+﻿/*using System;
 
 using Dalamud.Data;
 using Dalamud.Utility;
 using ImGuiNET;
 using Lumina.Excel.GeneratedSheets;
-using Serilog;
+using Serilog;*/
 
 namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps
 {

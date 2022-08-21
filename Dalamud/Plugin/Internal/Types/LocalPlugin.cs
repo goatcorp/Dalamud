@@ -182,7 +182,7 @@ internal class LocalPlugin : IDisposable
     /// <summary>
     /// Gets the plugin name, directly from the plugin or if it is not loaded from the manifest.
     /// </summary>
-    public string Name => this.instance?.Name ?? this.Manifest.Name;
+    public string Name => this.Manifest.Name;
 
     /// <summary>
     /// Gets an optional reason, if the plugin is banned.
@@ -427,7 +427,7 @@ internal class LocalPlugin : IDisposable
             SignatureHelper.Initialise(this.instance);
 
             // In-case the manifest name was a placeholder. Can occur when no manifest was included.
-            if (this.instance.Name != this.Manifest.Name)
+            if (this.Manifest.Name.IsNullOrEmpty())
             {
                 this.Manifest.Name = this.instance.Name;
                 this.Manifest.Save(this.manifestFile);

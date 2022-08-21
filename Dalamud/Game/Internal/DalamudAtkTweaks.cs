@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 
 using CheapLoc;
 using Dalamud.Configuration.Internal;
-using Dalamud.Data;
+//using Dalamud.Data;
 //using Dalamud.Game.Gui.ContextMenus;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
@@ -12,7 +12,7 @@ using Dalamud.Hooking;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Windowing;
 using FFXIVClientStructs.FFXIV.Component.GUI;
-using Lumina.Excel.GeneratedSheets;
+//using Lumina.Excel.GeneratedSheets;
 using Serilog;
 
 using ValueType = FFXIVClientStructs.FFXIV.Component.GUI.ValueType;
