@@ -217,8 +217,10 @@ internal class LocalPlugin : IDisposable
     /// <summary>
     /// Gets a value indicating whether or not this plugin is orphaned(belongs to a repo) or not.
     /// </summary>
-    public bool IsOrphaned => !this.IsDev && !this.Manifest.InstalledFromUrl.IsNullOrEmpty() &&
-                              Service<PluginManager>.Get().Repos.All(x => x.PluginMasterUrl != this.Manifest.InstalledFromUrl);
+    public bool IsOrphaned => !this.IsDev && 
+                              !this.Manifest.InstalledFromUrl.IsNullOrEmpty() && // TODO(api8): Remove this, all plugins will have a proper flag
+                              Service<PluginManager>.Get().Repos.All(x => x.PluginMasterUrl != this.Manifest.InstalledFromUrl) &&
+                              this.Manifest.InstalledFromUrl != LocalPluginManifest.FlagMainRepo;
 
     /// <summary>
     /// Gets a value indicating whether this plugin has been banned.

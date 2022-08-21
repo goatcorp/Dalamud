@@ -763,7 +763,7 @@ internal partial class PluginManager : IDisposable, IServiceType
         }
 
         // Document the url the plugin was installed from
-        manifest.InstalledFromUrl = repoManifest.SourceRepo.PluginMasterUrl;
+        manifest.InstalledFromUrl = repoManifest.SourceRepo.IsThirdParty ? repoManifest.SourceRepo.PluginMasterUrl : LocalPluginManifest.FlagMainRepo;
 
         manifest.Save(manifestFile);
 
