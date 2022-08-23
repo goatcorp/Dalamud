@@ -85,209 +85,214 @@ namespace Dalamud.Game.Gui.FlyText
         /// Serif Val1 with all caps condensed font EXP with Text2 in sans-serif as subtitle.
         /// </summary>
         Exp = 14,
+        
+        /// <summary>
+        /// Serif Val1 with all caps condensed font ISLAND EXP with Text2 in sans-serif as subtitle.
+        /// </summary>
+        IslandExp = 15,
 
         /// <summary>
         /// Sans-serif Text1 next to serif Val1 with all caps condensed font MP with Text2 in sans-serif as subtitle.
         /// </summary>
-        NamedMp = 15,
+        NamedMp = 16,
 
         /// <summary>
         /// Sans-serif Text1 next to serif Val1 with all caps condensed font TP with Text2 in sans-serif as subtitle.
         /// </summary>
-        NamedTp = 16,
+        NamedTp = 17,
 
         /// <summary>
         /// AutoAttack with sans-serif Text1 to the left of the Val1 (2).
         /// </summary>
-        NamedAttack2 = 17,
+        NamedAttack2 = 18,
 
         /// <summary>
         /// Sans-serif Text1 next to serif Val1 with all caps condensed font MP with Text2 in sans-serif as subtitle (2).
         /// </summary>
-        NamedMp2 = 18,
+        NamedMp2 = 19,
 
         /// <summary>
         /// Sans-serif Text1 next to serif Val1 with all caps condensed font TP with Text2 in sans-serif as subtitle (2).
         /// </summary>
-        NamedTp2 = 19,
+        NamedTp2 = 20,
 
         /// <summary>
         /// Sans-serif Text1 next to serif Val1 with all caps condensed font EP with Text2 in sans-serif as subtitle.
         /// </summary>
-        NamedEp = 20,
+        NamedEp = 21,
 
         /// <summary>
         /// Sans-serif Text1 next to serif Val1 with all caps condensed font CP with Text2 in sans-serif as subtitle.
         /// </summary>
-        NamedCp = 21,
+        NamedCp = 22,
 
         /// <summary>
         /// Sans-serif Text1 next to serif Val1 with all caps condensed font GP with Text2 in sans-serif as subtitle.
         /// </summary>
-        NamedGp = 22,
+        NamedGp = 23,
 
         /// <summary>
         /// Displays nothing.
         /// </summary>
-        None = 23,
+        None = 24,
 
         /// <summary>
         /// All caps serif INVULNERABLE.
         /// </summary>
-        Invulnerable = 24,
+        Invulnerable = 25,
 
         /// <summary>
         /// All caps sans-serif condensed font INTERRUPTED!
         /// Does a large bounce effect on appearance.
         /// Does not scroll up or down the screen.
         /// </summary>
-        Interrupted = 25,
+        Interrupted = 26,
 
         /// <summary>
         /// AutoAttack with no Text2.
         /// </summary>
-        AutoAttackNoText = 26,
+        AutoAttackNoText = 27,
 
         /// <summary>
         /// AutoAttack with no Text2 (2).
         /// </summary>
-        AutoAttackNoText2 = 27,
+        AutoAttackNoText2 = 28,
 
         /// <summary>
         /// Val1 in larger serif font with exclamation, with Text2 in sans-serif as subtitle. Does a bigger bounce effect on appearance (2).
         /// </summary>
-        CriticalHit2 = 28,
+        CriticalHit2 = 29,
 
         /// <summary>
         /// AutoAttack with no Text2 (3).
         /// </summary>
-        AutoAttackNoText3 = 29,
+        AutoAttackNoText3 = 30,
 
         /// <summary>
         /// CriticalHit with sans-serif Text1 to the left of the Val1 (2).
         /// </summary>
-        NamedCriticalHit2 = 30,
+        NamedCriticalHit2 = 31,
 
         /// <summary>
         /// Same as NamedCriticalHit with a green (cannot change) MP in condensed font to the right of Val1.
         /// Does a jiggle effect to the right on appearance.
         /// </summary>
-        NamedCriticalHitWithMp = 31,
+        NamedCriticalHitWithMp = 32,
 
         /// <summary>
         /// Same as NamedCriticalHit with a yellow (cannot change) TP in condensed font to the right of Val1.
         /// Does a jiggle effect to the right on appearance.
         /// </summary>
-        NamedCriticalHitWithTp = 32,
+        NamedCriticalHitWithTp = 33,
 
         /// <summary>
         /// Same as NamedIcon with sans-serif "has no effect!" to the right.
         /// </summary>
-        NamedIconHasNoEffect = 33,
+        NamedIconHasNoEffect = 34,
 
         /// <summary>
         /// Same as NamedIcon but Text1 is slightly faded. Used for buff expiration.
         /// </summary>
-        NamedIconFaded = 34,
+        NamedIconFaded = 35,
 
         /// <summary>
         /// Same as NamedIcon but Text1 is slightly faded (2).
         /// Used for buff expiration.
         /// </summary>
-        NamedIconFaded2 = 35,
+        NamedIconFaded2 = 36,
 
         /// <summary>
         /// Text1 in sans-serif font.
         /// </summary>
-        Named = 36,
+        Named = 37,
 
         /// <summary>
         /// Same as NamedIcon with sans-serif "(fully resisted)" to the right.
         /// </summary>
-        NamedIconFullyResisted = 37,
+        NamedIconFullyResisted = 38,
 
         /// <summary>
         /// All caps serif 'INCAPACITATED!'.
         /// </summary>
-        Incapacitated = 38,
+        Incapacitated = 39,
 
         /// <summary>
         /// Text1 with sans-serif "(fully resisted)" to the right.
         /// </summary>
-        NamedFullyResisted = 39,
+        NamedFullyResisted = 40,
 
         /// <summary>
         /// Text1 with sans-serif "has no effect!" to the right.
         /// </summary>
-        NamedHasNoEffect = 40,
+        NamedHasNoEffect = 41,
 
         /// <summary>
         /// AutoAttack with sans-serif Text1 to the left of the Val1 (3).
         /// </summary>
-        NamedAttack3 = 41,
+        NamedAttack3 = 42,
 
         /// <summary>
         /// Sans-serif Text1 next to serif Val1 with all caps condensed font MP with Text2 in sans-serif as subtitle (3).
         /// </summary>
-        NamedMp3 = 42,
+        NamedMp3 = 43,
 
         /// <summary>
         /// Sans-serif Text1 next to serif Val1 with all caps condensed font TP with Text2 in sans-serif as subtitle (3).
         /// </summary>
-        NamedTp3 = 43,
+        NamedTp3 = 44,
 
         /// <summary>
         /// Same as NamedIcon with serif "INVULNERABLE!" beneath the Text1.
         /// </summary>
-        NamedIconInvulnerable = 44,
+        NamedIconInvulnerable = 45,
 
         /// <summary>
         /// All caps serif RESIST.
         /// </summary>
-        Resist = 45,
+        Resist = 46,
 
         /// <summary>
         /// Same as NamedIcon but places the given icon in the item icon outline.
         /// </summary>
-        NamedIconWithItemOutline = 46,
+        NamedIconWithItemOutline = 47,
 
         /// <summary>
         /// AutoAttack with no Text2 (4).
         /// </summary>
-        AutoAttackNoText4 = 47,
+        AutoAttackNoText4 = 48,
 
         /// <summary>
         /// Val1 in larger serif font with exclamation, with Text2 in sans-serif as subtitle (3).
         /// Does a bigger bounce effect on appearance.
         /// </summary>
-        CriticalHit3 = 48,
+        CriticalHit3 = 49,
 
         /// <summary>
         /// All caps serif REFLECT.
         /// </summary>
-        Reflect = 49,
+        Reflect = 50,
 
         /// <summary>
         /// All caps serif REFLECTED.
         /// </summary>
-        Reflected = 50,
+        Reflected = 51,
 
         /// <summary>
         /// Val1 in serif font, Text2 in sans-serif as subtitle (2).
         /// Does a bounce effect on appearance.
         /// </summary>
-        DirectHit2 = 51,
+        DirectHit2 = 52,
 
         /// <summary>
         /// Val1 in larger serif font with exclamation, with Text2 in sans-serif as subtitle (4).
         /// Does a bigger bounce effect on appearance.
         /// </summary>
-        CriticalHit4 = 52,
+        CriticalHit4 = 53,
 
         /// <summary>
         /// Val1 in even larger serif font with 2 exclamations, Text2 in sans-serif as subtitle (2).
         /// Does a large bounce effect on appearance. Does not scroll up or down the screen.
         /// </summary>
-        CriticalDirectHit2 = 53,
+        CriticalDirectHit2 = 54,
     }
 }
