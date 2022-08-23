@@ -38,7 +38,7 @@ namespace Dalamud.Game.ClientState.Statuses
         /// <summary>
         /// Gets the parameter value of the status.
         /// </summary>
-        public byte Param => this.Struct->Param;
+        public ushort Param => this.Struct->Param;
 
         /// <summary>
         /// Gets the stack count of this status.
@@ -53,7 +53,7 @@ namespace Dalamud.Game.ClientState.Statuses
         /// <summary>
         /// Gets the source ID of this status.
         /// </summary>
-        public uint SourceID => this.Struct->SourceID;
+        public uint SourceId => this.Struct->SourceID;
 
         /// <summary>
         /// Gets the source actor associated with this status.
@@ -61,7 +61,7 @@ namespace Dalamud.Game.ClientState.Statuses
         /// <remarks>
         /// This iterates the actor table, it should be used with care.
         /// </remarks>
-        public GameObject? SourceObject => Service<ObjectTable>.Get().SearchById(this.SourceID);
+        public GameObject? SourceObject => Service<ObjectTable>.Get().SearchById(this.SourceId);
 
         private FFXIVClientStructs.FFXIV.Client.Game.Status* Struct => (FFXIVClientStructs.FFXIV.Client.Game.Status*)this.Address;
     }
