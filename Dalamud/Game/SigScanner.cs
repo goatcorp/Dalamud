@@ -376,6 +376,7 @@ namespace Dalamud.Game
             try
             {
                 File.WriteAllText(this.cacheFile.FullName, JsonConvert.SerializeObject(this.textCache));
+                Log.Information("Saved cache to {CachePath}", this.cacheFile);
             }
             catch (Exception e)
             {
