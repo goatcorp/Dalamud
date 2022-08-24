@@ -245,7 +245,7 @@ namespace Dalamud.Game.Network.Internal
             using var reader = new BinaryReader(stream);
 
             var notifyType = reader.ReadByte();
-            stream.Position += 0x13;
+            stream.Position += 0x1B;
             var conditionId = reader.ReadUInt16();
 
             if (notifyType != 3)
