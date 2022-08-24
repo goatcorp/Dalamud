@@ -30,12 +30,6 @@ namespace Dalamud.Interface.Internal
                 ShowInHelp = false,
             });
 
-            commandManager.AddHandler("/xldreloadplugins", new CommandInfo(this.OnPluginReloadCommand)
-            {
-                HelpMessage = Loc.Localize("DalamudPluginReloadHelp", "Reloads all plugins."),
-                ShowInHelp = false,
-            });
-
             commandManager.AddHandler("/xlhelp", new CommandInfo(this.OnHelpCommand)
             {
                 HelpMessage = Loc.Localize("DalamudCmdInfoHelp", "Shows list of commands available."),
@@ -167,24 +161,6 @@ namespace Dalamud.Interface.Internal
                     continue;
 
                 chatGui.Print($"{cmd.Key}: {cmd.Value.HelpMessage}");
-            }
-        }
-
-        private void OnPluginReloadCommand(string command, string arguments)
-        {
-            var chatGui = Service<ChatGui>.Get();
-
-            chatGui.Print("Reloading...");
-
-            try
-            {
-                Service<PluginManager>.Get().ReloadAllPluginsAsync().Wait();
-                chatGui.Print("OK");
-            }
-            catch (Exception ex)
-            {
-                Log.Error(ex, "Plugin reload failed.");
-                chatGui.PrintError("Reload failed.");
             }
         }
 

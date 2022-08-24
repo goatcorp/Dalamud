@@ -780,19 +780,6 @@ namespace Dalamud.Interface.Internal
                             }
                         }
 
-                        if (ImGui.MenuItem("Reload plugins"))
-                        {
-                            try
-                            {
-                                pluginManager.ReloadAllPluginsAsync().Wait();
-                            }
-                            catch (Exception ex)
-                            {
-                                Service<ChatGui>.Get().PrintError("Reload failed.");
-                                PluginLog.Error(ex, "Plugin reload failed.");
-                            }
-                        }
-
                         if (ImGui.MenuItem("Scan dev plugins"))
                         {
                             pluginManager.ScanDevPlugins();

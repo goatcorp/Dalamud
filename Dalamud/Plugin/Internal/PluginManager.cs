@@ -535,6 +535,7 @@ internal partial class PluginManager : IDisposable, IServiceType
     /// Reload all loaded plugins.
     /// </summary>
     /// <returns>A task.</returns>
+    [Obsolete("This method should no longer be used and will be removed in a future release.")]
     public Task ReloadAllPluginsAsync()
     {
         lock (this.pluginListLock)
