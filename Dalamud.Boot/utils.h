@@ -96,11 +96,18 @@ namespace utils {
             size_t PatternIndex;
             size_t MatchIndex;
             size_t CaptureIndex;
+
+            const char* resolve_jump_target(size_t instructionOffset = 0) const;
+
+            template<typename T>
+            T resolve_jump_target(size_t instructionOffset = 0) const {
+                return reinterpret_cast<T>(const_cast<char*>(resolve_jump_target(instructionOffset)));
+            }
         };
 
         std::vector<result> find(size_t minCount, size_t maxCount, bool bErrorOnMoreThanMaximum) const;
 
-        std::span<const char> find_one() const;
+        result find_one() const;
     };
 
     class memory_tenderizer {
