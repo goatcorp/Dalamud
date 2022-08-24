@@ -19,7 +19,7 @@ namespace Dalamud.Game.ClientState.Objects
     [ServiceManager.BlockingEarlyLoadedService]
     public sealed partial class ObjectTable : IServiceType
     {
-        private const int ObjectTableLength = 424;
+        private const int ObjectTableLength = 596;
 
         private readonly ClientStateAddressResolver address;
 
