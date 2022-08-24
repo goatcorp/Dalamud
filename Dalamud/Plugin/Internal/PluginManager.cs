@@ -398,6 +398,13 @@ internal partial class PluginManager : IDisposable, IServiceType
             // Manifests are not required for devPlugins. the Plugin type will handle any null manifests.
             var manifestFile = LocalPluginManifest.GetManifestFile(dllFile);
             var manifest = manifestFile.Exists ? LocalPluginManifest.Load(manifestFile) : null;
+
+            if (manifest != null && manifest.InternalName.IsNullOrEmpty())
+            {
+                Log.Error("InternalName for dll at {Path} was null", manifestFile.FullName);
+                continue;
+            }
+
             devPluginDefs.Add(new PluginDef(dllFile, manifest, true));
         }
 
