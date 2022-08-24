@@ -258,6 +258,8 @@ internal partial class PluginManager : IDisposable, IServiceType
         if (configuration.HiddenPluginInternalName.Contains(manifest.InternalName))
             return false;
 
+        return true; // TODO temporary
+
         // Hidden by manifest
         return !manifest.IsHide;
     }
