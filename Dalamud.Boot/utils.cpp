@@ -348,6 +348,27 @@ utils::signature_finder& utils::signature_finder::look_for_hex(std::string_view 
     return *this;
 }
 
+const char* utils::signature_finder::result::resolve_jump_target(size_t instructionOffset) const {
+    nmd_x86_instruction instruction{};
+    if (!nmd_x86_decode(&Match[instructionOffset], NMD_X86_MAXIMUM_INSTRUCTION_LENGTH, &instruction, NMD_X86_MODE_64, NMD_X86_DECODER_FLAGS_ALL))
+        throw std::runtime_error("Matched address does not have a valid assembly instruction");
+    
+    size_t numExplicitOperands = 0;
+    for (size_t i = 0; i < instruction.num_operands; i++)
+        numExplicitOperands += instruction.operands[i].is_implicit ? 0 : 1;
+    if (numExplicitOperands != 1)
+        throw std::runtime_error("Number of operands at the instruction at matched address is not 1");
+
+    if (!(instruction.group & NMD_GROUP_CALL) && !(instruction.group & NMD_GROUP_JUMP))
+        throw std::runtime_error("The instruction at matched address is not a call or jump instruction");
+
+    const auto& arg1 = instruction.operands[0];
+    if (arg1.type != NMD_X86_OPERAND_TYPE_IMMEDIATE)
+        throw std::runtime_error("The first operand for the instruction at matched address is not an immediate value");
+
+    return &Match[instructionOffset] + instruction.length + arg1.fields.imm;
+}
+
 std::vector<utils::signature_finder::result> utils::signature_finder::find(size_t minCount, size_t maxCount, bool bErrorOnMoreThanMaximum) const {
     std::vector<result> res;
 
@@ -383,8 +404,8 @@ std::vector<utils::signature_finder::result> utils::signature_finder::find(size_
     return res;
 }
 
-std::span<const char> utils::signature_finder::find_one() const {
-    return find(1, 1, false).front().Match;
+utils::signature_finder::result utils::signature_finder::find_one() const {
+    return find(1, 1, false).front();
 }
 
 utils::memory_tenderizer::memory_tenderizer(const void* pAddress, size_t length, DWORD dwNewProtect) : m_data(reinterpret_cast<char*>(const_cast<void*>(pAddress)), length) {

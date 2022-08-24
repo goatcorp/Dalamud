@@ -169,26 +169,11 @@ static TFnGetInputDeviceManager* GetGetInputDeviceManager(HWND hwnd) {
     if (pCached)
         return pCached;
 
-    char szClassName[256];
-    GetClassNameA(hwnd, szClassName, static_cast<int>(sizeof szClassName));
-
-    WNDCLASSEXA wcx{};
-    GetClassInfoExA(g_hGameInstance, szClassName, &wcx);
-    const auto match = utils::signature_finder()
+    return pCached = utils::signature_finder()
         .look_in(utils::loaded_module(g_hGameInstance), ".text")
-        .look_for_hex("41 81 fe 19 02 00 00 0f 87 ?? ?? 00 00 0f 84 ?? ?? 00 00")
-        .find_one();
-
-    auto ptr = match.data() + match.size() + *reinterpret_cast<const int*>(match.data() + match.size() - 4);
-    ptr += 4;  // CMP RBX, 0x7
-    ptr += 2;  // JNZ <giveup>
-    ptr += 7;  // MOV RCX, <Framework::Instance>
-    ptr += 3;  // TEST RCX, RCX
-    ptr += 2;  // JZ <giveup>
-    ptr += 5;  // CALL <GetInputDeviceManagerInstance()>
-    ptr += *reinterpret_cast<const int*>(ptr - 4);
-
-    return pCached = reinterpret_cast<TFnGetInputDeviceManager*>(ptr);
+        .look_for_hex("e8 ?? ?? ?? ?? 48 8b 58 10 48 85 db")
+        .find_one()
+        .resolve_jump_target<TFnGetInputDeviceManager*>();
 }
 
 void xivfixes::prevent_devicechange_crashes(bool bApply) {
@@ -202,9 +187,13 @@ void xivfixes::prevent_devicechange_crashes(bool bApply) {
     static const auto s_pfnBinder = static_cast<WNDPROC>(VirtualAlloc(nullptr, 64, MEM_RESERVE | MEM_COMMIT, PAGE_EXECUTE_READWRITE));
     static const auto s_pfnAlternativeWndProc = static_cast<WNDPROC>([](HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) -> LRESULT {
         if (uMsg == WM_DEVICECHANGE && wParam == DBT_DEVNODES_CHANGED) {
-            if (!GetGetInputDeviceManager(hWnd)()) {
-                logging::I("{} WndProc(0x{:X}, WM_DEVICECHANGE, DBT_DEVNODES_CHANGED, {}) called but the game does not have InputDeviceManager initialized; doing nothing.", LogTag, reinterpret_cast<size_t>(hWnd), lParam);
-                return 0;
+            try {
+                if (!GetGetInputDeviceManager(hWnd)()) {
+                    logging::I("{} WndProc(0x{:X}, WM_DEVICECHANGE, DBT_DEVNODES_CHANGED, {}) called but the game does not have InputDeviceManager initialized; doing nothing.", LogTag, reinterpret_cast<size_t>(hWnd), lParam);
+                    return 0;
+                }
+            } catch (const std::exception& e) {
+                logging::W("{} WndProc(0x{:X}, WM_DEVICECHANGE, DBT_DEVNODES_CHANGED, {}) called, but failed to resolve address for GetInputDeviceManager: {}", LogTag, reinterpret_cast<size_t>(hWnd), lParam, e.what());
             }
         }
 
