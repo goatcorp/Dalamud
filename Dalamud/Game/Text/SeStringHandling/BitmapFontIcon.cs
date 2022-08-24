@@ -454,5 +454,9 @@ namespace Dalamud.Game.Text.SeStringHandling
         /// The Garlemald region icon.
         /// </summary>
         Garlemald = 115,
+
+        /// <summary>
+        /// The Island Sanctuary icon.
+        IslandSanctuary = 116,
     }
 }
