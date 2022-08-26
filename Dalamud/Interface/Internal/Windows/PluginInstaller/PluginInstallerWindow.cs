@@ -2129,7 +2129,7 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
                                                           NotificationType.Success);
                         });
 
-                        if (availableUpdate != default)
+                        if (availableUpdate != default && !availableUpdate.InstalledPlugin.IsDev)
                         {
                             this.ShowUpdateModal(plugin).ContinueWith(async t =>
                             {
@@ -2168,7 +2168,7 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
         private async Task<bool> UpdateSinglePlugin(AvailablePluginUpdate update)
         {
             var pluginManager = Service<PluginManager>.Get();
-            
+
             this.installStatus = OperationStatus.InProgress;
             this.loadingIndicatorKind = LoadingIndicatorKind.UpdatingSingle;
 
