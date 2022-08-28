@@ -2037,8 +2037,8 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
             // Disable everything if the plugin is outdated
             disabled = disabled || (plugin.IsOutdated && !pluginManager.LoadAllApiLevels) || plugin.IsBanned;
 
-            // Disable everything if the plugin is orphaned
-            disabled = disabled || plugin.IsOrphaned;
+            // Disable everything if the plugin is orphaned and not loaded
+            disabled = disabled || (plugin.IsOrphaned && !plugin.IsLoaded);
 
             // Disable everything if the plugin failed to load
             disabled = disabled || plugin.State == PluginState.LoadError || plugin.State == PluginState.DependencyResolutionFailed;
