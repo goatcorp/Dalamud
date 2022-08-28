@@ -1964,9 +1964,20 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
 
                 if (hasChangelog)
                 {
-                    if (ImGui.TreeNode($"Changelog (v{plugin.Manifest.EffectiveVersion})"))
+                    if (ImGui.TreeNode(Locs.PluginBody_CurrentChangeLog(plugin.Manifest.EffectiveVersion)))
                     {
                         this.DrawInstalledPluginChangelog(plugin.Manifest);
+                        ImGui.TreePop();
+                    }
+                }
+
+                if (availablePluginUpdate != default && !availablePluginUpdate.UpdateManifest.Changelog.IsNullOrWhitespace())
+                {
+                    var availablePluginUpdateVersion = availablePluginUpdate.UseTesting ? availablePluginUpdate.UpdateManifest.TestingAssemblyVersion : availablePluginUpdate.UpdateManifest.AssemblyVersion;
+                    if (ImGui.TreeNode(Locs.PluginBody_UpdateChangeLog(availablePluginUpdateVersion)))
+                    {
+                        this.DrawInstalledPluginChangelog(availablePluginUpdate.UpdateManifest);
+                        ImGui.TreePop();
                     }
                 }
             }
@@ -2737,6 +2748,10 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
             public static string PluginBody_AuthorWithDownloadCount(string author, long count) => Loc.Localize("InstallerAuthorWithDownloadCount", " by {0} ({1} downloads)").Format(author, count.ToString("N0"));
 
             public static string PluginBody_AuthorWithDownloadCountUnavailable(string author) => Loc.Localize("InstallerAuthorWithDownloadCountUnavailable", " by {0}").Format(author);
+
+            public static string PluginBody_CurrentChangeLog(Version version) => Loc.Localize("InstallerCurrentChangeLog", "Changelog (v{0})").Format(version);
+
+            public static string PluginBody_UpdateChangeLog(Version version) => Loc.Localize("InstallerUpdateChangeLog", "Available update changelog (v{0})").Format(version);
 
             public static string PluginBody_DevPluginPath(string path) => Loc.Localize("InstallerDevPluginPath", "From {0}").Format(path);
 
