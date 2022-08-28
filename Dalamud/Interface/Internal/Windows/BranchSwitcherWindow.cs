@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -74,8 +74,7 @@ public class BranchSwitcherWindow : Window
 
         if (pickedBranch.Value.SupportedGameVer != si.GameVersion)
         {
-            ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudRed);
-            ImGui.TextWrapped("Can't pick this branch. GameVer != SupportedGameVer.");
+            ImGui.TextColored(ImGuiColors.DalamudRed, "Can't pick this branch. GameVer != SupportedGameVer.");
         }
         else
         {
