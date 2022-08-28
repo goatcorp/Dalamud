@@ -403,7 +403,7 @@ namespace Dalamud.Utility
                 dblSByte = bytes / 1024.0;
             }
 
-            return $"{dblSByte:0.##} {suffix[i]}";
+            return $"{dblSByte:0.00} {suffix[i]}";
         }
 
         /// <summary>
