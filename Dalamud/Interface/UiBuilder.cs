@@ -1,8 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-
+using System.Threading.Tasks;
 using Dalamud.Configuration.Internal;
+using Dalamud.Game;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.Gui;
 using Dalamud.Interface.GameFonts;
@@ -24,8 +25,11 @@ namespace Dalamud.Interface
     {
         private readonly Stopwatch stopwatch;
         private readonly string namespaceName;
+        private readonly InterfaceManager interfaceManager = Service<InterfaceManager>.Get();
+        private readonly GameFontManager gameFontManager = Service<GameFontManager>.Get();
 
-        private bool hasErrorWindow;
+        private bool hasErrorWindow = false;
+        private bool lastFrameUiHideState = false;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="UiBuilder"/> class and registers it.
@@ -37,11 +41,10 @@ namespace Dalamud.Interface
             this.stopwatch = new Stopwatch();
             this.namespaceName = namespaceName;
 
-            var interfaceManager = Service<InterfaceManager>.Get();
-            interfaceManager.Draw += this.OnDraw;
-            interfaceManager.BuildFonts += this.OnBuildFonts;
-            interfaceManager.AfterBuildFonts += this.OnAfterBuildFonts;
-            interfaceManager.ResizeBuffers += this.OnResizeBuffers;
+            this.interfaceManager.Draw += this.OnDraw;
+            this.interfaceManager.BuildFonts += this.OnBuildFonts;
+            this.interfaceManager.AfterBuildFonts += this.OnAfterBuildFonts;
+            this.interfaceManager.ResizeBuffers += this.OnResizeBuffers;
         }
 
         /// <summary>
@@ -79,6 +82,18 @@ namespace Dalamud.Interface
         public event Action AfterBuildFonts;
 
         /// <summary>
+        /// Gets or sets an action that is called when plugin UI or interface modifications are supposed to be hidden.
+        /// These may be fired consecutively.
+        /// </summary>
+        public event Action ShowUi;
+
+        /// <summary>
+        /// Gets or sets an action that is called when plugin UI or interface modifications are supposed to be shown.
+        /// These may be fired consecutively.
+        /// </summary>
+        public event Action HideUi;
+
+        /// <summary>
         /// Gets the default Dalamud font based on Noto Sans CJK Medium in 17pt - supporting all game languages and icons.
         /// </summary>
         public static ImFontPtr DefaultFont => InterfaceManager.DefaultFont;
@@ -96,12 +111,12 @@ namespace Dalamud.Interface
         /// <summary>
         /// Gets the game's active Direct3D device.
         /// </summary>
-        public Device Device => Service<InterfaceManager>.Get().Device;
+        public Device Device => this.InterfaceManagerWithScene.Device!;
 
         /// <summary>
         /// Gets the game's main window handle.
         /// </summary>
-        public IntPtr WindowHandlePtr => Service<InterfaceManager>.Get().WindowHandlePtr;
+        public IntPtr WindowHandlePtr => this.InterfaceManagerWithScene.WindowHandlePtr;
 
         /// <summary>
         /// Gets or sets a value indicating whether this plugin should hide its UI automatically when the game's UI is hidden.
@@ -128,14 +143,53 @@ namespace Dalamud.Interface
         /// </summary>
         public bool OverrideGameCursor
         {
-            get => Service<InterfaceManager>.Get().OverrideGameCursor;
-            set => Service<InterfaceManager>.Get().OverrideGameCursor = value;
+            get => this.interfaceManager.OverrideGameCursor;
+            set => this.interfaceManager.OverrideGameCursor = value;
         }
 
         /// <summary>
         /// Gets the count of Draw calls made since plugin creation.
         /// </summary>
         public ulong FrameCount { get; private set; } = 0;
+
+        /// <summary>
+        /// Gets a value indicating whether or not a cutscene is playing.
+        /// </summary>
+        public bool CutsceneActive
+        {
+            get
+            {
+                var condition = Service<Condition>.GetNullable();
+                if (condition == null)
+                    return false;
+                return condition[ConditionFlag.OccupiedInCutSceneEvent]
+                       || condition[ConditionFlag.WatchingCutscene78];
+            }
+        }
+
+        /// <summary>
+        /// Gets a value indicating whether or not gpose is active.
+        /// </summary>
+        public bool GposeActive
+        {
+            get
+            {
+                var condition = Service<Condition>.GetNullable();
+                if (condition == null)
+                    return false;
+                return condition[ConditionFlag.WatchingCutscene];
+            }
+        }
+
+        /// <summary>
+        /// Gets a value indicating whether this plugin should modify the game's interface at this time.
+        /// </summary>
+        public bool ShouldModifyUi => this.interfaceManager.IsDispatchingEvents;
+
+        /// <summary>
+        /// Gets a value indicating whether UI functions can be used.
+        /// </summary>
+        public bool UiPrepared => Service<InterfaceManager.InterfaceManagerWithScene>.GetNullable() != null;
 
         /// <summary>
         /// Gets or sets a value indicating whether statistics about UI draw time should be collected.
@@ -166,24 +220,11 @@ namespace Dalamud.Interface
         /// </summary>
         internal List<long> DrawTimeHistory { get; set; } = new List<long>();
 
-        private bool CutsceneActive
-        {
-            get
-            {
-                var condition = Service<Condition>.Get();
-                return condition[ConditionFlag.OccupiedInCutSceneEvent]
-                    || condition[ConditionFlag.WatchingCutscene78];
-            }
-        }
+        private InterfaceManager? InterfaceManagerWithScene =>
+            Service<InterfaceManager.InterfaceManagerWithScene>.GetNullable()?.Manager;
 
-        private bool GposeActive
-        {
-            get
-            {
-                var condition = Service<Condition>.Get();
-                return condition[ConditionFlag.WatchingCutscene];
-            }
-        }
+        private Task<InterfaceManager> InterfaceManagerWithSceneAsync =>
+            Service<InterfaceManager.InterfaceManagerWithScene>.GetAsync().ContinueWith(task => task.Result.Manager);
 
         /// <summary>
         /// Loads an image from the specified file.
@@ -191,7 +232,8 @@ namespace Dalamud.Interface
         /// <param name="filePath">The full filepath to the image.</param>
         /// <returns>A <see cref="TextureWrap"/> object wrapping the created image.  Use <see cref="TextureWrap.ImGuiHandle"/> inside ImGui.Image().</returns>
         public TextureWrap LoadImage(string filePath)
-            => Service<InterfaceManager>.Get().LoadImage(filePath);
+            => this.InterfaceManagerWithScene?.LoadImage(filePath)
+               ?? throw new InvalidOperationException("Load failed.");
 
         /// <summary>
         /// Loads an image from a byte stream, such as a png downloaded into memory.
@@ -199,7 +241,8 @@ namespace Dalamud.Interface
         /// <param name="imageData">A byte array containing the raw image data.</param>
         /// <returns>A <see cref="TextureWrap"/> object wrapping the created image.  Use <see cref="TextureWrap.ImGuiHandle"/> inside ImGui.Image().</returns>
         public TextureWrap LoadImage(byte[] imageData)
-            => Service<InterfaceManager>.Get().LoadImage(imageData);
+            => this.InterfaceManagerWithScene?.LoadImage(imageData)
+               ?? throw new InvalidOperationException("Load failed.");
 
         /// <summary>
         /// Loads an image from raw unformatted pixel data, with no type or header information.  To load formatted data, use <see cref="LoadImage(byte[])"/>.
@@ -210,14 +253,99 @@ namespace Dalamud.Interface
         /// <param name="numChannels">The number of channels (bytes per pixel) of the image contained in <paramref name="imageData"/>.  This should usually be 4.</param>
         /// <returns>A <see cref="TextureWrap"/> object wrapping the created image.  Use <see cref="TextureWrap.ImGuiHandle"/> inside ImGui.Image().</returns>
         public TextureWrap LoadImageRaw(byte[] imageData, int width, int height, int numChannels)
-            => Service<InterfaceManager>.Get().LoadImageRaw(imageData, width, height, numChannels);
+            => this.InterfaceManagerWithScene?.LoadImageRaw(imageData, width, height, numChannels)
+               ?? throw new InvalidOperationException("Load failed.");
+
+        /// <summary>
+        /// Asynchronously loads an image from the specified file, when it's possible to do so.
+        /// </summary>
+        /// <param name="filePath">The full filepath to the image.</param>
+        /// <returns>A <see cref="TextureWrap"/> object wrapping the created image.  Use <see cref="TextureWrap.ImGuiHandle"/> inside ImGui.Image().</returns>
+        public Task<TextureWrap> LoadImageAsync(string filePath) => Task.Run(
+            async () =>
+                (await this.InterfaceManagerWithSceneAsync).LoadImage(filePath)
+                ?? throw new InvalidOperationException("Load failed."));
+
+        /// <summary>
+        /// Asynchronously loads an image from a byte stream, such as a png downloaded into memory, when it's possible to do so.
+        /// </summary>
+        /// <param name="imageData">A byte array containing the raw image data.</param>
+        /// <returns>A <see cref="TextureWrap"/> object wrapping the created image.  Use <see cref="TextureWrap.ImGuiHandle"/> inside ImGui.Image().</returns>
+        public Task<TextureWrap> LoadImageAsync(byte[] imageData) => Task.Run(
+            async () =>
+                (await this.InterfaceManagerWithSceneAsync).LoadImage(imageData)
+                ?? throw new InvalidOperationException("Load failed."));
+
+        /// <summary>
+        /// Asynchronously loads an image from raw unformatted pixel data, with no type or header information, when it's possible to do so.  To load formatted data, use <see cref="LoadImage(byte[])"/>.
+        /// </summary>
+        /// <param name="imageData">A byte array containing the raw pixel data.</param>
+        /// <param name="width">The width of the image contained in <paramref name="imageData"/>.</param>
+        /// <param name="height">The height of the image contained in <paramref name="imageData"/>.</param>
+        /// <param name="numChannels">The number of channels (bytes per pixel) of the image contained in <paramref name="imageData"/>.  This should usually be 4.</param>
+        /// <returns>A <see cref="TextureWrap"/> object wrapping the created image.  Use <see cref="TextureWrap.ImGuiHandle"/> inside ImGui.Image().</returns>
+        public Task<TextureWrap> LoadImageRawAsync(byte[] imageData, int width, int height, int numChannels) => Task.Run(
+            async () =>
+                (await this.InterfaceManagerWithSceneAsync).LoadImageRaw(imageData, width, height, numChannels)
+                ?? throw new InvalidOperationException("Load failed."));
+
+        /// <summary>
+        /// Waits for UI to become available for use.
+        /// </summary>
+        /// <returns>A task that completes when the game's Present has been called at least once.</returns>
+        public Task WaitForUi() => this.InterfaceManagerWithSceneAsync;
+
+        /// <summary>
+        /// Waits for UI to become available for use.
+        /// </summary>
+        /// <param name="func">Function to call.</param>
+        /// <param name="runInFrameworkThread">Specifies whether to call the function from the framework thread.</param>
+        /// <returns>A task that completes when the game's Present has been called at least once.</returns>
+        /// <typeparam name="T">Return type.</typeparam>
+        public Task<T> RunWhenUiPrepared<T>(Func<T> func, bool runInFrameworkThread = false)
+        {
+            if (runInFrameworkThread)
+            {
+                return this.InterfaceManagerWithSceneAsync
+                           .ContinueWith(_ => Service<Framework>.Get().RunOnFrameworkThread(func))
+                           .Unwrap();
+            }
+            else
+            {
+                return this.InterfaceManagerWithSceneAsync
+                           .ContinueWith(_ => func());
+            }
+        }
+
+        /// <summary>
+        /// Waits for UI to become available for use.
+        /// </summary>
+        /// <param name="func">Function to call.</param>
+        /// <param name="runInFrameworkThread">Specifies whether to call the function from the framework thread.</param>
+        /// <returns>A task that completes when the game's Present has been called at least once.</returns>
+        /// <typeparam name="T">Return type.</typeparam>
+        public Task<T> RunWhenUiPrepared<T>(Func<Task<T>> func, bool runInFrameworkThread = false)
+        {
+            if (runInFrameworkThread)
+            {
+                return this.InterfaceManagerWithSceneAsync
+                           .ContinueWith(_ => Service<Framework>.Get().RunOnFrameworkThread(func))
+                           .Unwrap();
+            }
+            else
+            {
+                return this.InterfaceManagerWithSceneAsync
+                           .ContinueWith(_ => func())
+                           .Unwrap();
+            }
+        }
 
         /// <summary>
         /// Gets a game font.
         /// </summary>
         /// <param name="style">Font to get.</param>
         /// <returns>Handle to the game font which may or may not be available for use yet.</returns>
-        public GameFontHandle GetGameFontHandle(GameFontStyle style) => Service<GameFontManager>.Get().NewFontRef(style);
+        public GameFontHandle GetGameFontHandle(GameFontStyle style) => this.gameFontManager.NewFontRef(style);
 
         /// <summary>
         /// Call this to queue a rebuild of the font atlas.<br/>
@@ -227,7 +355,7 @@ namespace Dalamud.Interface
         public void RebuildFonts()
         {
             Log.Verbose("[FONT] {0} plugin is initiating FONT REBUILD", this.namespaceName);
-            Service<InterfaceManager>.Get().RebuildFonts();
+            this.interfaceManager.RebuildFonts();
         }
 
         /// <summary>
@@ -238,19 +366,25 @@ namespace Dalamud.Interface
         /// <param name="type">The type of the notification.</param>
         /// <param name="msDelay">The time the notification should be displayed for.</param>
         public void AddNotification(
-            string content, string? title = null, NotificationType type = NotificationType.None, uint msDelay = 3000) =>
-            Service<NotificationManager>.Get().AddNotification(content, title, type, msDelay);
+            string content, string? title = null, NotificationType type = NotificationType.None, uint msDelay = 3000)
+        {
+            Service<NotificationManager>
+                .GetAsync()
+                .ContinueWith(task =>
+                {
+                    if (task.IsCompletedSuccessfully)
+                        task.Result.AddNotification(content, title, type, msDelay);
+                });
+        }
 
         /// <summary>
         /// Unregister the UiBuilder. Do not call this in plugin code.
         /// </summary>
         void IDisposable.Dispose()
         {
-            var interfaceManager = Service<InterfaceManager>.Get();
-
-            interfaceManager.Draw -= this.OnDraw;
-            interfaceManager.BuildFonts -= this.OnBuildFonts;
-            interfaceManager.ResizeBuffers -= this.OnResizeBuffers;
+            this.interfaceManager.Draw -= this.OnDraw;
+            this.interfaceManager.BuildFonts -= this.OnBuildFonts;
+            this.interfaceManager.ResizeBuffers -= this.OnResizeBuffers;
         }
 
         /// <summary>
@@ -261,18 +395,52 @@ namespace Dalamud.Interface
             this.OpenConfigUi?.Invoke();
         }
 
+        /// <summary>
+        /// Notify this UiBuilder about plugin UI being hidden.
+        /// </summary>
+        internal void NotifyHideUi()
+        {
+            this.HideUi?.Invoke();
+        }
+
+        /// <summary>
+        /// Notify this UiBuilder about plugin UI being shown.
+        /// </summary>
+        internal void NotifyShowUi()
+        {
+            this.ShowUi?.Invoke();
+        }
+
         private void OnDraw()
         {
             var configuration = Service<DalamudConfiguration>.Get();
-            var gameGui = Service<GameGui>.Get();
-            var interfaceManager = Service<InterfaceManager>.Get();
-
-            if ((gameGui.GameUiHidden && configuration.ToggleUiHide && !(this.DisableUserUiHide || this.DisableAutomaticUiHide)) ||
-                (this.CutsceneActive && configuration.ToggleUiHideDuringCutscenes && !(this.DisableCutsceneUiHide || this.DisableAutomaticUiHide)) ||
-                (this.GposeActive && configuration.ToggleUiHideDuringGpose && !(this.DisableGposeUiHide || this.DisableAutomaticUiHide)))
+            var gameGui = Service<GameGui>.GetNullable();
+            if (gameGui == null)
                 return;
 
-            if (!interfaceManager.FontsReady)
+            if ((gameGui.GameUiHidden && configuration.ToggleUiHide &&
+                 !(this.DisableUserUiHide || this.DisableAutomaticUiHide)) ||
+                (this.CutsceneActive && configuration.ToggleUiHideDuringCutscenes &&
+                 !(this.DisableCutsceneUiHide || this.DisableAutomaticUiHide)) ||
+                (this.GposeActive && configuration.ToggleUiHideDuringGpose &&
+                 !(this.DisableGposeUiHide || this.DisableAutomaticUiHide)))
+            {
+                if (!this.lastFrameUiHideState)
+                {
+                    this.lastFrameUiHideState = true;
+                    this.HideUi?.Invoke();
+                }
+
+                return;
+            }
+
+            if (this.lastFrameUiHideState)
+            {
+                this.lastFrameUiHideState = false;
+                this.ShowUi?.Invoke();
+            }
+
+            if (!this.interfaceManager.FontsReady)
                 return;
 
             ImGui.PushID(this.namespaceName);

@@ -74,7 +74,7 @@ namespace Dalamud.Support
                     Language = startInfo.Language.ToString(),
                     BetaKey = configuration.DalamudBetaKey,
                     DoPluginTest = configuration.DoPluginTest,
-                    LoadAllApiLevels = configuration.LoadAllApiLevels,
+                    LoadAllApiLevels = pluginManager?.LoadAllApiLevels == true,
                     InterfaceLoaded = interfaceManager?.IsReady ?? false,
                     HasThirdRepo = configuration.ThirdRepoList is { Count: > 0 },
                     ForcedMinHook = EnvironmentConfiguration.DalamudForceMinHook,
@@ -100,7 +100,7 @@ namespace Dalamud.Support
 
         private class TroubleshootingPayload
         {
-            public PluginManifest[] LoadedPlugins { get; set; }
+            public LocalPluginManifest[] LoadedPlugins { get; set; }
 
             public string DalamudVersion { get; set; }
 

@@ -14,18 +14,18 @@ namespace Dalamud.Game.ClientState.Aetherytes
     /// </summary>
     [PluginInterface]
     [InterfaceVersion("1.0")]
-    public sealed partial class AetheryteList
+    [ServiceManager.BlockingEarlyLoadedService]
+    public sealed partial class AetheryteList : IServiceType
     {
+        [ServiceManager.ServiceDependency]
+        private readonly ClientState clientState = Service<ClientState>.Get();
         private readonly ClientStateAddressResolver address;
         private readonly UpdateAetheryteListDelegate updateAetheryteListFunc;
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="AetheryteList"/> class.
-        /// </summary>
-        /// <param name="addressResolver">Client state address resolver.</param>
-        internal AetheryteList(ClientStateAddressResolver addressResolver)
+        [ServiceManager.ServiceConstructor]
+        private AetheryteList()
         {
-            this.address = addressResolver;
+            this.address = this.clientState.AddressResolver;
             this.updateAetheryteListFunc = Marshal.GetDelegateForFunctionPointer<UpdateAetheryteListDelegate>(this.address.UpdateAetheryteList);
 
             Log.Verbose($"Teleport address 0x{this.address.Telepo.ToInt64():X}");
@@ -40,9 +40,7 @@ namespace Dalamud.Game.ClientState.Aetherytes
         {
             get
             {
-                var clientState = Service<ClientState>.Get();
-
-                if (clientState.LocalPlayer == null)
+                if (this.clientState.LocalPlayer == null)
                     return 0;
 
                 this.Update();
@@ -70,9 +68,7 @@ namespace Dalamud.Game.ClientState.Aetherytes
                     return null;
                 }
 
-                var clientState = Service<ClientState>.Get();
-
-                if (clientState.LocalPlayer == null)
+                if (this.clientState.LocalPlayer == null)
                     return null;
 
                 return new AetheryteEntry(TelepoStruct->TeleportList.Get((ulong)index));
@@ -81,10 +77,8 @@ namespace Dalamud.Game.ClientState.Aetherytes
 
         private void Update()
         {
-            var clientState = Service<ClientState>.Get();
-
             // this is very very important as otherwise it crashes
-            if (clientState.LocalPlayer == null)
+            if (this.clientState.LocalPlayer == null)
                 return;
 
             this.updateAetheryteListFunc(this.address.Telepo, 0);

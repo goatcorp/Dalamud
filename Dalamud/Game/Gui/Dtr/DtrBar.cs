@@ -17,24 +17,31 @@ namespace Dalamud.Game.Gui.Dtr
     /// </summary>
     [PluginInterface]
     [InterfaceVersion("1.0")]
-    public sealed unsafe class DtrBar : IDisposable
+    [ServiceManager.BlockingEarlyLoadedService]
+    public sealed unsafe class DtrBar : IDisposable, IServiceType
     {
         private const uint BaseNodeId = 1000;
+
+        [ServiceManager.ServiceDependency]
+        private readonly Framework framework = Service<Framework>.Get();
+
+        [ServiceManager.ServiceDependency]
+        private readonly GameGui gameGui = Service<GameGui>.Get();
+
+        [ServiceManager.ServiceDependency]
+        private readonly DalamudConfiguration configuration = Service<DalamudConfiguration>.Get();
 
         private List<DtrBarEntry> entries = new();
         private uint runningNodeIds = BaseNodeId;
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="DtrBar"/> class.
-        /// </summary>
-        internal DtrBar()
+        [ServiceManager.ServiceConstructor]
+        private DtrBar()
         {
-            Service<Framework>.Get().Update += this.Update;
-            var configuration = Service<DalamudConfiguration>.Get();
+            this.framework.Update += this.Update;
 
-            configuration.DtrOrder ??= new List<string>();
-            configuration.DtrIgnore ??= new List<string>();
-            configuration.Save();
+            this.configuration.DtrOrder ??= new List<string>();
+            this.configuration.DtrIgnore ??= new List<string>();
+            this.configuration.Save();
         }
 
         /// <summary>
@@ -50,14 +57,13 @@ namespace Dalamud.Game.Gui.Dtr
             if (this.entries.Any(x => x.Title == title))
                 throw new ArgumentException("An entry with the same title already exists.");
 
-            var configuration = Service<DalamudConfiguration>.Get();
             var node = this.MakeNode(++this.runningNodeIds);
             var entry = new DtrBarEntry(title, node);
             entry.Text = text;
 
             // Add the entry to the end of the order list, if it's not there already.
-            if (!configuration.DtrOrder!.Contains(title))
-                configuration.DtrOrder!.Add(title);
+            if (!this.configuration.DtrOrder!.Contains(title))
+                this.configuration.DtrOrder!.Add(title);
             this.entries.Add(entry);
             this.ApplySort();
 
@@ -71,7 +77,7 @@ namespace Dalamud.Game.Gui.Dtr
                 this.RemoveNode(entry.TextNode);
 
             this.entries.Clear();
-            Service<Framework>.Get().Update -= this.Update;
+            this.framework.Update -= this.Update;
         }
 
         /// <summary>
@@ -114,12 +120,11 @@ namespace Dalamud.Game.Gui.Dtr
         /// </summary>
         internal void ApplySort()
         {
-            var configuration = Service<DalamudConfiguration>.Get();
-
             // Sort the current entry list, based on the order in the configuration.
-            var positions = configuration.DtrOrder!
-                                         .Select(entry => (entry, index: configuration.DtrOrder!.IndexOf(entry)))
-                                         .ToDictionary(x => x.entry, x => x.index);
+            var positions = this.configuration
+                                .DtrOrder!
+                                .Select(entry => (entry, index: this.configuration.DtrOrder!.IndexOf(entry)))
+                                .ToDictionary(x => x.entry, x => x.index);
 
             this.entries.Sort((x, y) =>
             {
@@ -129,13 +134,13 @@ namespace Dalamud.Game.Gui.Dtr
             });
         }
 
-        private static AtkUnitBase* GetDtr() => (AtkUnitBase*)Service<GameGui>.Get().GetAddonByName("_DTR", 1).ToPointer();
+        private AtkUnitBase* GetDtr() => (AtkUnitBase*)this.gameGui.GetAddonByName("_DTR", 1).ToPointer();
 
         private void Update(Framework unused)
         {
             this.HandleRemovedNodes();
 
-            var dtr = GetDtr();
+            var dtr = this.GetDtr();
             if (dtr == null) return;
 
             // The collision node on the DTR element is always the width of its content
@@ -149,16 +154,16 @@ namespace Dalamud.Game.Gui.Dtr
             var collisionNode = dtr->UldManager.NodeList[1];
             if (collisionNode == null) return;
 
-            var configuration = Service<DalamudConfiguration>.Get();
-
             // If we are drawing backwards, we should start from the right side of the collision node. That is,
             // collisionNode->X + collisionNode->Width.
-            var runningXPos = configuration.DtrSwapDirection ? collisionNode->X + collisionNode->Width : collisionNode->X;
+            var runningXPos = this.configuration.DtrSwapDirection
+                                  ? collisionNode->X + collisionNode->Width
+                                  : collisionNode->X;
 
             for (var i = 0; i < this.entries.Count; i++)
             {
                 var data = this.entries[i];
-                var isHide = configuration.DtrIgnore!.Any(x => x == data.Title) || !data.Shown;
+                var isHide = this.configuration.DtrIgnore!.Any(x => x == data.Title) || !data.Shown;
 
                 if (data.Dirty && data.Added && data.Text != null && data.TextNode != null)
                 {
@@ -187,9 +192,9 @@ namespace Dalamud.Game.Gui.Dtr
 
                 if (!isHide)
                 {
-                    var elementWidth = data.TextNode->AtkResNode.Width + configuration.DtrSpacing;
+                    var elementWidth = data.TextNode->AtkResNode.Width + this.configuration.DtrSpacing;
 
-                    if (configuration.DtrSwapDirection)
+                    if (this.configuration.DtrSwapDirection)
                     {
                         data.TextNode->AtkResNode.SetPositionFloat(runningXPos, 2);
                         runningXPos += elementWidth;
@@ -211,7 +216,7 @@ namespace Dalamud.Game.Gui.Dtr
         /// <returns>True if there are nodes with an ID > 1000.</returns>
         private bool CheckForDalamudNodes()
         {
-            var dtr = GetDtr();
+            var dtr = this.GetDtr();
             if (dtr == null || dtr->RootNode == null) return false;
 
             for (var i = 0; i < dtr->UldManager.NodeListCount; i++)
@@ -235,7 +240,7 @@ namespace Dalamud.Game.Gui.Dtr
 
         private bool AddNode(AtkTextNode* node)
         {
-            var dtr = GetDtr();
+            var dtr = this.GetDtr();
             if (dtr == null || dtr->RootNode == null || dtr->UldManager.NodeList == null || node == null) return false;
 
             var lastChild = dtr->RootNode->ChildNode;
@@ -255,7 +260,7 @@ namespace Dalamud.Game.Gui.Dtr
 
         private bool RemoveNode(AtkTextNode* node)
         {
-            var dtr = GetDtr();
+            var dtr = this.GetDtr();
             if (dtr == null || dtr->RootNode == null || dtr->UldManager.NodeList == null || node == null) return false;
 
             var tmpPrevNode = node->AtkResNode.PrevSiblingNode;

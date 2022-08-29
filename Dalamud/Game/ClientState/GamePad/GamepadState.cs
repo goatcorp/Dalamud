@@ -14,8 +14,9 @@ namespace Dalamud.Game.ClientState.GamePad
     /// Will block game's gamepad input if <see cref="ImGuiConfigFlags.NavEnableGamepad"/> is set.
     /// </summary>
     [PluginInterface]
-    [InterfaceVersion("1.0.0")]
-    public unsafe class GamepadState : IDisposable
+    [InterfaceVersion("1.0")]
+    [ServiceManager.BlockingEarlyLoadedService]
+    public unsafe class GamepadState : IDisposable, IServiceType
     {
         private readonly Hook<ControllerPoll> gamepadPoll;
 
@@ -26,14 +27,12 @@ namespace Dalamud.Game.ClientState.GamePad
         private int rightStickX;
         private int rightStickY;
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="GamepadState" /> class.
-        /// </summary>
-        /// <param name="resolver">Resolver knowing the pointer to the GamepadPoll function.</param>
-        public GamepadState(ClientStateAddressResolver resolver)
+        [ServiceManager.ServiceConstructor]
+        private GamepadState(ClientState clientState)
         {
+            var resolver = clientState.AddressResolver;
             Log.Verbose($"GamepadPoll address 0x{resolver.GamepadPoll.ToInt64():X}");
-            this.gamepadPoll = new Hook<ControllerPoll>(resolver.GamepadPoll, this.GamepadPollDetour);
+            this.gamepadPoll = Hook<ControllerPoll>.FromAddress(resolver.GamepadPoll, this.GamepadPollDetour);
         }
 
         private delegate int ControllerPoll(IntPtr controllerInput);
@@ -169,10 +168,8 @@ namespace Dalamud.Game.ClientState.GamePad
             GC.SuppressFinalize(this);
         }
 
-        /// <summary>
-        /// Enables the hook of the GamepadPoll function.
-        /// </summary>
-        internal void Enable()
+        [ServiceManager.CallWhenServicesReady]
+        private void ContinueConstruction()
         {
             this.gamepadPoll.Enable();
         }

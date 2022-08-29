@@ -1,12 +1,15 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
+using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
+using Newtonsoft.Json;
 using Serilog;
 
 namespace Dalamud.Game
@@ -16,17 +19,22 @@ namespace Dalamud.Game
     /// </summary>
     [PluginInterface]
     [InterfaceVersion("1.0")]
-    public sealed class SigScanner : IDisposable
+    public class SigScanner : IDisposable, IServiceType
     {
+        private readonly FileInfo? cacheFile;
+
         private IntPtr moduleCopyPtr;
         private long moduleCopyOffset;
+
+        private ConcurrentDictionary<string, long>? textCache;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SigScanner"/> class using the main module of the current process.
         /// </summary>
         /// <param name="doCopy">Whether or not to copy the module upon initialization for search operations to use, as to not get disturbed by possible hooks.</param>
-        public SigScanner(bool doCopy = false)
-            : this(Process.GetCurrentProcess().MainModule!, doCopy)
+        /// <param name="cacheFile">File used to cached signatures.</param>
+        public SigScanner(bool doCopy = false, FileInfo? cacheFile = null)
+            : this(Process.GetCurrentProcess().MainModule!, doCopy, cacheFile)
         {
         }
 
@@ -35,8 +43,10 @@ namespace Dalamud.Game
         /// </summary>
         /// <param name="module">The ProcessModule to be used for scanning.</param>
         /// <param name="doCopy">Whether or not to copy the module upon initialization for search operations to use, as to not get disturbed by possible hooks.</param>
-        public SigScanner(ProcessModule module, bool doCopy = false)
+        /// <param name="cacheFile">File used to cached signatures.</param>
+        public SigScanner(ProcessModule module, bool doCopy = false, FileInfo? cacheFile = null)
         {
+            this.cacheFile = cacheFile;
             this.Module = module;
             this.Is32BitProcess = !Environment.Is64BitProcess;
             this.IsCopy = doCopy;
@@ -49,6 +59,9 @@ namespace Dalamud.Game
 
             Log.Verbose($"Module base: 0x{this.TextSectionBase.ToInt64():X}");
             Log.Verbose($"Module size: 0x{this.TextSectionSize:X}");
+
+            if (cacheFile != null)
+                this.Load();
         }
 
         /// <summary>
@@ -294,8 +307,15 @@ namespace Dalamud.Game
         /// <returns>The real offset of the found signature.</returns>
         public IntPtr ScanText(string signature)
         {
-            var mBase = this.IsCopy ? this.moduleCopyPtr : this.TextSectionBase;
+            if (this.textCache != null)
+            {
+                if (this.textCache.TryGetValue(signature, out var address))
+                {
+                    return new IntPtr(address + this.Module.BaseAddress.ToInt64());
+                }
+            }
 
+            var mBase = this.IsCopy ? this.moduleCopyPtr : this.TextSectionBase;
             var scanRet = Scan(mBase, this.TextSectionSize, signature);
 
             if (this.IsCopy)
@@ -304,7 +324,14 @@ namespace Dalamud.Game
             var insnByte = Marshal.ReadByte(scanRet);
 
             if (insnByte == 0xE8 || insnByte == 0xE9)
-                return ReadJmpCallSig(scanRet);
+                scanRet = ReadJmpCallSig(scanRet);
+
+            // If this is below the module, there's bound to be a problem with the sig/resolution... Let's not save it
+            // TODO: THIS IS A HACK! FIX THE ROOT CAUSE!
+            if (this.textCache != null && scanRet.ToInt64() >= this.Module.BaseAddress.ToInt64())
+            {
+                this.textCache[signature] = scanRet.ToInt64() - this.Module.BaseAddress.ToInt64();
+            }
 
             return scanRet;
         }
@@ -334,7 +361,27 @@ namespace Dalamud.Game
         /// </summary>
         public void Dispose()
         {
+            this.Save();
             Marshal.FreeHGlobal(this.moduleCopyPtr);
+        }
+
+        /// <summary>
+        /// Save the current state of the cache.
+        /// </summary>
+        internal void Save()
+        {
+            if (this.cacheFile == null)
+                return;
+
+            try
+            {
+                File.WriteAllText(this.cacheFile.FullName, JsonConvert.SerializeObject(this.textCache));
+                Log.Information("Saved cache to {CachePath}", this.cacheFile);
+            }
+            catch (Exception e)
+            {
+                Log.Warning(e, "Failed to save cache to {CachePath}", this.cacheFile);
+            }
         }
 
         /// <summary>
@@ -478,6 +525,27 @@ namespace Dalamud.Game
                 this.Module.ModuleMemorySize);
 
             this.moduleCopyOffset = this.moduleCopyPtr.ToInt64() - this.Module.BaseAddress.ToInt64();
+        }
+
+        private void Load()
+        {
+            if (this.cacheFile is not { Exists: true })
+            {
+                this.textCache = new();
+                return;
+            }
+
+            try
+            {
+                this.textCache =
+                    JsonConvert.DeserializeObject<ConcurrentDictionary<string, long>>(
+                        File.ReadAllText(this.cacheFile.FullName)) ?? new ConcurrentDictionary<string, long>();
+            }
+            catch (Exception ex)
+            {
+                this.textCache = new ConcurrentDictionary<string, long>();
+                Log.Error(ex, "Couldn't load cached sigs");
+            }
         }
     }
 }

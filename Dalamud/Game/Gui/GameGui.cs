@@ -2,12 +2,6 @@ using System;
 using System.Numerics;
 using System.Runtime.InteropServices;
 
-using Dalamud.Configuration.Internal;
-using Dalamud.Game.Gui.ContextMenus;
-using Dalamud.Game.Gui.Dtr;
-using Dalamud.Game.Gui.FlyText;
-using Dalamud.Game.Gui.PartyFinder;
-using Dalamud.Game.Gui.Toast;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Hooking;
 using Dalamud.Interface;
@@ -27,7 +21,8 @@ namespace Dalamud.Game.Gui
     /// </summary>
     [PluginInterface]
     [InterfaceVersion("1.0")]
-    public sealed unsafe class GameGui : IDisposable
+    [ServiceManager.BlockingEarlyLoadedService]
+    public sealed unsafe class GameGui : IDisposable, IServiceType
     {
         private readonly GameGuiAddressResolver address;
 
@@ -46,14 +41,11 @@ namespace Dalamud.Game.Gui
         private GetUIMapObjectDelegate getUIMapObject;
         private OpenMapWithFlagDelegate openMapWithFlag;
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="GameGui"/> class.
-        /// This class is responsible for many aspects of interacting with the native game UI.
-        /// </summary>
-        internal GameGui()
+        [ServiceManager.ServiceConstructor]
+        private GameGui(SigScanner sigScanner)
         {
             this.address = new GameGuiAddressResolver();
-            this.address.Setup();
+            this.address.Setup(sigScanner);
 
             Log.Verbose("===== G A M E G U I =====");
             Log.Verbose($"GameGuiManager address 0x{this.address.BaseAddress.ToInt64():X}");
@@ -62,30 +54,23 @@ namespace Dalamud.Game.Gui
             Log.Verbose($"HandleItemOut address 0x{this.address.HandleItemOut.ToInt64():X}");
             Log.Verbose($"HandleImm address 0x{this.address.HandleImm.ToInt64():X}");
 
-            Service<ChatGui>.Set(new ChatGui(this.address.ChatManager));
-            Service<PartyFinderGui>.Set();
-            Service<ToastGui>.Set();
-            Service<FlyTextGui>.Set();
-            Service<ContextMenu>.Set();
-            Service<DtrBar>.Set();
+            this.setGlobalBgmHook = Hook<SetGlobalBgmDelegate>.FromAddress(this.address.SetGlobalBgm, this.HandleSetGlobalBgmDetour);
 
-            this.setGlobalBgmHook = new Hook<SetGlobalBgmDelegate>(this.address.SetGlobalBgm, this.HandleSetGlobalBgmDetour);
+            this.handleItemHoverHook = Hook<HandleItemHoverDelegate>.FromAddress(this.address.HandleItemHover, this.HandleItemHoverDetour);
+            this.handleItemOutHook = Hook<HandleItemOutDelegate>.FromAddress(this.address.HandleItemOut, this.HandleItemOutDetour);
 
-            this.handleItemHoverHook = new Hook<HandleItemHoverDelegate>(this.address.HandleItemHover, this.HandleItemHoverDetour);
-            this.handleItemOutHook = new Hook<HandleItemOutDelegate>(this.address.HandleItemOut, this.HandleItemOutDetour);
+            this.handleActionHoverHook = Hook<HandleActionHoverDelegate>.FromAddress(this.address.HandleActionHover, this.HandleActionHoverDetour);
+            this.handleActionOutHook = Hook<HandleActionOutDelegate>.FromAddress(this.address.HandleActionOut, this.HandleActionOutDetour);
 
-            this.handleActionHoverHook = new Hook<HandleActionHoverDelegate>(this.address.HandleActionHover, this.HandleActionHoverDetour);
-            this.handleActionOutHook = new Hook<HandleActionOutDelegate>(this.address.HandleActionOut, this.HandleActionOutDetour);
-
-            this.handleImmHook = new Hook<HandleImmDelegate>(this.address.HandleImm, this.HandleImmDetour);
+            this.handleImmHook = Hook<HandleImmDelegate>.FromAddress(this.address.HandleImm, this.HandleImmDetour);
 
             this.getMatrixSingleton = Marshal.GetDelegateForFunctionPointer<GetMatrixSingletonDelegate>(this.address.GetMatrixSingleton);
 
             this.screenToWorldNative = Marshal.GetDelegateForFunctionPointer<ScreenToWorldNativeDelegate>(this.address.ScreenToWorld);
 
-            this.toggleUiHideHook = new Hook<ToggleUiHideDelegate>(this.address.ToggleUiHide, this.ToggleUiHideDetour);
+            this.toggleUiHideHook = Hook<ToggleUiHideDelegate>.FromAddress(this.address.ToggleUiHide, this.ToggleUiHideDetour);
 
-            this.utf8StringFromSequenceHook = new Hook<Utf8StringFromSequenceDelegate>(this.address.Utf8StringFromSequence, this.Utf8StringFromSequenceDetour);
+            this.utf8StringFromSequenceHook = Hook<Utf8StringFromSequenceDelegate>.FromAddress(this.address.Utf8StringFromSequence, this.Utf8StringFromSequenceDetour);
         }
 
         // Marshaled delegates
@@ -427,19 +412,9 @@ namespace Dalamud.Game.Gui
         /// <param name="bgmKey">The background music key.</param>
         public void SetBgm(ushort bgmKey) => this.setGlobalBgmHook.Original(bgmKey, 0, 0, 0, 0, 0);
 
-        /// <summary>
-        /// Enables the hooks and submodules of this module.
-        /// </summary>
-        public void Enable()
+        [ServiceManager.CallWhenServicesReady]
+        private void ContinueConstruction()
         {
-            Service<ChatGui>.Get().Enable();
-            Service<ToastGui>.Get().Enable();
-            Service<FlyTextGui>.Get().Enable();
-            Service<PartyFinderGui>.Get().Enable();
-
-            if (EnvironmentConfiguration.DalamudDoContextMenu)
-                Service<ContextMenu>.Get().Enable();
-
             this.setGlobalBgmHook.Enable();
             this.handleItemHoverHook.Enable();
             this.handleItemOutHook.Enable();
@@ -455,12 +430,6 @@ namespace Dalamud.Game.Gui
         /// </summary>
         void IDisposable.Dispose()
         {
-            Service<ChatGui>.Get().ExplicitDispose();
-            Service<ToastGui>.Get().ExplicitDispose();
-            Service<FlyTextGui>.Get().ExplicitDispose();
-            Service<PartyFinderGui>.Get().ExplicitDispose();
-            Service<ContextMenu>.Get().ExplicitDispose();
-            Service<DtrBar>.Get().ExplicitDispose();
             this.setGlobalBgmHook.Dispose();
             this.handleItemHoverHook.Dispose();
             this.handleItemOutHook.Dispose();

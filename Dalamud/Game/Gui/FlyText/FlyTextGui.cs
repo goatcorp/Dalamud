@@ -16,7 +16,8 @@ namespace Dalamud.Game.Gui.FlyText
     /// </summary>
     [PluginInterface]
     [InterfaceVersion("1.0")]
-    public sealed class FlyTextGui : IDisposable
+    [ServiceManager.BlockingEarlyLoadedService]
+    public sealed class FlyTextGui : IDisposable, IServiceType
     {
         /// <summary>
         /// The native function responsible for adding fly text to the UI. See <see cref="FlyTextGuiAddressResolver.AddFlyText"/>.
@@ -28,16 +29,14 @@ namespace Dalamud.Game.Gui.FlyText
         /// </summary>
         private readonly Hook<CreateFlyTextDelegate> createFlyTextHook;
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="FlyTextGui"/> class.
-        /// </summary>
-        internal FlyTextGui()
+        [ServiceManager.ServiceConstructor]
+        private FlyTextGui(SigScanner sigScanner)
         {
             this.Address = new FlyTextGuiAddressResolver();
-            this.Address.Setup();
+            this.Address.Setup(sigScanner);
 
             this.addFlyTextNative = Marshal.GetDelegateForFunctionPointer<AddFlyTextDelegate>(this.Address.AddFlyText);
-            this.createFlyTextHook = new Hook<CreateFlyTextDelegate>(this.Address.CreateFlyText, this.CreateFlyTextDetour);
+            this.createFlyTextHook = Hook<CreateFlyTextDelegate>.FromAddress(this.Address.CreateFlyText, this.CreateFlyTextDetour);
         }
 
         /// <summary>
@@ -130,7 +129,10 @@ namespace Dalamud.Game.Gui.FlyText
             var strOffset = 28u;
 
             // Get the UI module and flytext addon pointers
-            var gameGui = Service<GameGui>.Get();
+            var gameGui = Service<GameGui>.GetNullable();
+            if (gameGui == null)
+                return;
+
             var ui = (FFXIVClientStructs.FFXIV.Client.UI.UIModule*)gameGui.GetUIModule();
             var flytext = gameGui.GetAddonByName("_FlyText", 1);
 
@@ -175,10 +177,8 @@ namespace Dalamud.Game.Gui.FlyText
             }
         }
 
-        /// <summary>
-        /// Enables this module.
-        /// </summary>
-        internal void Enable()
+        [ServiceManager.CallWhenServicesReady]
+        private void ContinueConstruction(GameGui gameGui)
         {
             this.createFlyTextHook.Enable();
         }

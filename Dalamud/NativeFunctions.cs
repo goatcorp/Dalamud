@@ -1394,6 +1394,18 @@ namespace Dalamud
         }
 
         /// <summary>
+        /// See https://docs.microsoft.com/en-us/windows/win32/api/synchapi/nf-synchapi-setevent
+        /// Sets the specified event object to the signaled state.
+        /// </summary>
+        /// <param name="hEvent">A handle to the event object. The CreateEvent or OpenEvent function returns this handle.</param>
+        /// <returns>
+        /// If the function succeeds, the return value is nonzero.
+        /// If the function fails, the return value is zero. To get extended error information, call GetLastError.
+        /// </returns>
+        [DllImport("kernel32.dll")]
+        public static extern bool SetEvent(IntPtr hEvent);
+
+        /// <summary>
         /// See https://docs.microsoft.com/en-us/windows/win32/api/libloaderapi/nf-libloaderapi-freelibrary.
         /// Frees the loaded dynamic-link library (DLL) module and, if necessary, decrements its reference count. When the reference
         /// count reaches zero, the module is unloaded from the address space of the calling process and the handle is no longer
@@ -1894,6 +1906,21 @@ namespace Dalamud
             /// </summary>
             public int ClientPointers;
         }
+
+        /// <summary>
+        /// Finds window according to conditions.
+        /// </summary>
+        /// <param name="parentHandle">Handle to parent window.</param>
+        /// <param name="childAfter">Window to search after.</param>
+        /// <param name="className">Name of class.</param>
+        /// <param name="windowTitle">Name of window.</param>
+        /// <returns>Found window, or null.</returns>
+        [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+        public static extern IntPtr FindWindowEx(
+            IntPtr parentHandle,
+            IntPtr childAfter,
+            string className,
+            IntPtr windowTitle);
     }
 
     /// <summary>

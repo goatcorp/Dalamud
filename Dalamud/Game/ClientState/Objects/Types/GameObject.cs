@@ -61,9 +61,9 @@ namespace Dalamud.Game.ClientState.Objects.Types
         /// <returns>True or false.</returns>
         public static bool IsValid(GameObject? actor)
         {
-            var clientState = Service<ClientState>.Get();
+            var clientState = Service<ClientState>.GetNullable();
 
-            if (actor is null)
+            if (actor is null || clientState == null)
                 return false;
 
             if (clientState.LocalContentId == 0)

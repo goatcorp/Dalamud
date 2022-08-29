@@ -95,7 +95,7 @@ namespace Dalamud.Interface.Internal
             ImGui.Text(isVisible ? "Visible" : "Not Visible");
             ImGui.PopStyleColor();
 
-            ImGui.SameLine(ImGui.GetWindowContentRegionWidth() - 25);
+            ImGui.SameLine(ImGui.GetWindowContentRegionMax().X - ImGui.GetWindowContentRegionMin().X - 25);
             if (ImGui.SmallButton("V"))
             {
                 atkUnitBase->Flags ^= 0x20;
@@ -302,14 +302,19 @@ namespace Dalamud.Interface.Internal
             var popped = false;
             var isVisible = (node->Flags & 0x10) == 0x10;
 
-            if (isVisible)
-                ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(0, 255, 0, 255));
-
             var componentInfo = compNode->Component->UldManager;
 
             var childCount = componentInfo.NodeListCount;
 
             var objectInfo = (AtkUldComponentInfo*)componentInfo.Objects;
+            if (objectInfo == null)
+            {
+                return;
+            }
+
+            if (isVisible)
+                ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(0, 255, 0, 255));
+
             if (ImGui.TreeNode($"{treePrefix}{objectInfo->ComponentType} Component Node (ptr = {(long)node:X}, component ptr = {(long)compNode->Component:X}) child count = {childCount}  ###{(long)node}"))
             {
                 if (ImGui.IsItemHovered())

@@ -8,12 +8,18 @@
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
+    <Filter Include="Project Files">
+      <UniqueIdentifier>{0c915688-91ea-431f-8b68-845cad422a50}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Common Boot">
+      <UniqueIdentifier>{e31f7ca0-db29-4198-8b91-bb11b339705f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="MinHook">
+      <UniqueIdentifier>{6ec5597d-e293-4d2a-a307-7444c8fac04b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
-      <Filter>Dalamud.Boot DLL</Filter>
-    </ClCompile>
-    <ClCompile Include="pch.cpp">
       <Filter>Dalamud.Boot DLL</Filter>
     </ClCompile>
     <ClCompile Include="veh.cpp">
@@ -27,6 +33,45 @@
     </ClCompile>
     <ClCompile Include="..\lib\CoreCLR\boot.cpp">
       <Filter>CoreCLR</Filter>
+    </ClCompile>
+    <ClCompile Include="pch_nmd_assembly_impl.cpp">
+      <Filter>Project Files</Filter>
+    </ClCompile>
+    <ClCompile Include="pch.cpp">
+      <Filter>Project Files</Filter>
+    </ClCompile>
+    <ClCompile Include="utils.cpp">
+      <Filter>Dalamud.Boot DLL</Filter>
+    </ClCompile>
+    <ClCompile Include="xivfixes.cpp">
+      <Filter>Dalamud.Boot DLL</Filter>
+    </ClCompile>
+    <ClCompile Include="logging.cpp">
+      <Filter>Common Boot</Filter>
+    </ClCompile>
+    <ClCompile Include="unicode.cpp">
+      <Filter>Common Boot</Filter>
+    </ClCompile>
+    <ClCompile Include="..\lib\TsudaKageyu-minhook\src\buffer.c">
+      <Filter>MinHook</Filter>
+    </ClCompile>
+    <ClCompile Include="..\lib\TsudaKageyu-minhook\src\HDE\hde32.c">
+      <Filter>MinHook</Filter>
+    </ClCompile>
+    <ClCompile Include="..\lib\TsudaKageyu-minhook\src\HDE\hde64.c">
+      <Filter>MinHook</Filter>
+    </ClCompile>
+    <ClCompile Include="..\lib\TsudaKageyu-minhook\src\hook.c">
+      <Filter>MinHook</Filter>
+    </ClCompile>
+    <ClCompile Include="..\lib\TsudaKageyu-minhook\src\trampoline.c">
+      <Filter>MinHook</Filter>
+    </ClCompile>
+    <ClCompile Include="hooks.cpp">
+      <Filter>Dalamud.Boot DLL</Filter>
+    </ClCompile>
+    <ClCompile Include="DalamudStartInfo.cpp">
+      <Filter>Dalamud.Boot DLL</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -49,7 +94,57 @@
       <Filter>Dalamud.Boot DLL</Filter>
     </ClInclude>
     <ClInclude Include="pch.h">
+      <Filter>Project Files</Filter>
+    </ClInclude>
+    <ClInclude Include="utils.h">
       <Filter>Dalamud.Boot DLL</Filter>
     </ClInclude>
+    <ClInclude Include="hooks.h">
+      <Filter>Dalamud.Boot DLL</Filter>
+    </ClInclude>
+    <ClInclude Include="DalamudStartInfo.h">
+      <Filter>Dalamud.Boot DLL</Filter>
+    </ClInclude>
+    <ClInclude Include="xivfixes.h">
+      <Filter>Dalamud.Boot DLL</Filter>
+    </ClInclude>
+    <ClInclude Include="logging.h">
+      <Filter>Common Boot</Filter>
+    </ClInclude>
+    <ClInclude Include="unicode.h">
+      <Filter>Common Boot</Filter>
+    </ClInclude>
+    <ClInclude Include="..\lib\TsudaKageyu-minhook\src\trampoline.h">
+      <Filter>MinHook</Filter>
+    </ClInclude>
+    <ClInclude Include="..\lib\TsudaKageyu-minhook\src\buffer.h">
+      <Filter>MinHook</Filter>
+    </ClInclude>
+    <ClInclude Include="..\lib\TsudaKageyu-minhook\src\HDE\hde32.h">
+      <Filter>MinHook</Filter>
+    </ClInclude>
+    <ClInclude Include="..\lib\TsudaKageyu-minhook\src\HDE\hde64.h">
+      <Filter>MinHook</Filter>
+    </ClInclude>
+    <ClInclude Include="..\lib\TsudaKageyu-minhook\include\MinHook.h">
+      <Filter>MinHook</Filter>
+    </ClInclude>
+    <ClInclude Include="..\lib\TsudaKageyu-minhook\src\HDE\pstdint.h">
+      <Filter>MinHook</Filter>
+    </ClInclude>
+    <ClInclude Include="..\lib\TsudaKageyu-minhook\src\HDE\table32.h">
+      <Filter>MinHook</Filter>
+    </ClInclude>
+    <ClInclude Include="..\lib\TsudaKageyu-minhook\src\HDE\table64.h">
+      <Filter>MinHook</Filter>
+    </ClInclude>
+    <ClInclude Include="resource.h" />
+    <ClInclude Include="crashhandler_shared.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Dalamud.Boot.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="dalamud.ico" />
   </ItemGroup>
 </Project>

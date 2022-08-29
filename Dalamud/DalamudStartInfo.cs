@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 using Dalamud.Game;
 using Newtonsoft.Json;
@@ -9,47 +10,149 @@ namespace Dalamud
     /// Struct containing information needed to initialize Dalamud.
     /// </summary>
     [Serializable]
-    public record DalamudStartInfo
+    public record DalamudStartInfo : IServiceType
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DalamudStartInfo"/> class.
+        /// </summary>
+        public DalamudStartInfo()
+        {
+            // ignored
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DalamudStartInfo"/> class.
+        /// </summary>
+        /// <param name="other">Object to copy values from.</param>
+        public DalamudStartInfo(DalamudStartInfo other)
+        {
+            this.WorkingDirectory = other.WorkingDirectory;
+            this.ConfigurationPath = other.ConfigurationPath;
+            this.PluginDirectory = other.PluginDirectory;
+            this.DefaultPluginDirectory = other.DefaultPluginDirectory;
+            this.AssetDirectory = other.AssetDirectory;
+            this.Language = other.Language;
+            this.GameVersion = other.GameVersion;
+            this.DelayInitializeMs = other.DelayInitializeMs;
+            this.NoLoadPlugins = other.NoLoadPlugins;
+            this.NoLoadThirdPartyPlugins = other.NoLoadThirdPartyPlugins;
+            this.BootLogPath = other.BootLogPath;
+            this.BootShowConsole = other.BootShowConsole;
+            this.BootDisableFallbackConsole = other.BootDisableFallbackConsole;
+            this.BootWaitMessageBox = other.BootWaitMessageBox;
+            this.BootWaitDebugger = other.BootWaitDebugger;
+            this.BootVehEnabled = other.BootVehEnabled;
+            this.BootVehFull = other.BootVehFull;
+            this.BootEnableEtw = other.BootEnableEtw;
+            this.BootDotnetOpenProcessHookMode = other.BootDotnetOpenProcessHookMode;
+            this.BootEnabledGameFixes = other.BootEnabledGameFixes;
+            this.BootUnhookDlls = other.BootUnhookDlls;
+        }
+
         /// <summary>
         /// Gets or sets the working directory of the XIVLauncher installations.
         /// </summary>
-        public string WorkingDirectory { get; set; }
+        public string? WorkingDirectory { get; set; }
 
         /// <summary>
-        /// Gets the path to the configuration file.
+        /// Gets or sets the path to the configuration file.
         /// </summary>
-        public string ConfigurationPath { get; init; }
+        public string? ConfigurationPath { get; set; }
 
         /// <summary>
-        /// Gets the path to the directory for installed plugins.
+        /// Gets or sets the path to the directory for installed plugins.
         /// </summary>
-        public string PluginDirectory { get; init; }
+        public string? PluginDirectory { get; set; }
 
         /// <summary>
-        /// Gets the path to the directory for developer plugins.
+        /// Gets or sets the path to the directory for developer plugins.
         /// </summary>
-        public string DefaultPluginDirectory { get; init; }
+        public string? DefaultPluginDirectory { get; set; }
 
         /// <summary>
-        /// Gets the path to core Dalamud assets.
+        /// Gets or sets the path to core Dalamud assets.
         /// </summary>
-        public string AssetDirectory { get; init; }
+        public string? AssetDirectory { get; set; }
 
         /// <summary>
-        /// Gets the language of the game client.
+        /// Gets or sets the language of the game client.
         /// </summary>
-        public ClientLanguage Language { get; init; }
+        public ClientLanguage Language { get; set; } = ClientLanguage.English;
 
         /// <summary>
-        /// Gets the current game version code.
+        /// Gets or sets the current game version code.
         /// </summary>
         [JsonConverter(typeof(GameVersionConverter))]
-        public GameVersion GameVersion { get; init; }
+        public GameVersion? GameVersion { get; set; }
 
         /// <summary>
-        /// Gets a value that specifies how much to wait before a new Dalamud session.
+        /// Gets or sets a value that specifies how much to wait before a new Dalamud session.
         /// </summary>
-        public int DelayInitializeMs { get; init; } = 0;
+        public int DelayInitializeMs { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether no plugins should be loaded.
+        /// </summary>
+        public bool NoLoadPlugins { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether no third-party plugins should be loaded.
+        /// </summary>
+        public bool NoLoadThirdPartyPlugins { get; set; }
+
+        /// <summary>
+        /// Gets or sets the path the boot log file is supposed to be written to.
+        /// </summary>
+        public string? BootLogPath { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether a Boot console should be shown.
+        /// </summary>
+        public bool BootShowConsole { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether the fallback console should be shown, if needed.
+        /// </summary>
+        public bool BootDisableFallbackConsole { get; set; }
+
+        /// <summary>
+        /// Gets or sets a flag indicating where Dalamud should wait with a message box.
+        /// </summary>
+        public int BootWaitMessageBox { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether Dalamud should wait for a debugger to be attached before initializing.
+        /// </summary>
+        public bool BootWaitDebugger { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether the VEH should be enabled.
+        /// </summary>
+        public bool BootVehEnabled { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether the VEH should be doing full crash dumps.
+        /// </summary>
+        public bool BootVehFull { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether or not ETW should be enabled.
+        /// </summary>
+        public bool BootEnableEtw { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value choosing the OpenProcess hookmode.
+        /// </summary>
+        public int BootDotnetOpenProcessHookMode { get; set; }
+
+        /// <summary>
+        /// Gets or sets a list of enabled game fixes.
+        /// </summary>
+        public List<string>? BootEnabledGameFixes { get; set; }
+
+        /// <summary>
+        /// Gets or sets a list of DLLs that should be unhooked.
+        /// </summary>
+        public List<string>? BootUnhookDlls { get; set; }
     }
 }

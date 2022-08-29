@@ -114,6 +114,9 @@ namespace Dalamud.Interface.Internal.Windows
         private DtrBarEntry? dtrTest2;
         private DtrBarEntry? dtrTest3;
 
+        // Task Scheduler
+        private CancellationTokenSource taskSchedCancelSource = new();
+
         private uint copyButtonIndex = 0;
 
         /// <summary>
@@ -449,7 +452,6 @@ namespace Dalamud.Interface.Internal.Windows
             }
             else
             {
-                stateString += $"FrameworkBase: {framework.Address.BaseAddress.ToInt64():X}\n";
                 stateString += $"ObjectTableLen: {objectTable.Length}\n";
                 stateString += $"LocalPlayerName: {clientState.LocalPlayer.Name}\n";
                 stateString += $"CurrentWorldName: {(this.resolveGameData ? clientState.LocalPlayer.CurrentWorld.GameData.Name : clientState.LocalPlayer.CurrentWorld.Id.ToString())}\n";
@@ -527,7 +529,6 @@ namespace Dalamud.Interface.Internal.Windows
             }
             else
             {
-                stateString += $"FrameworkBase: {framework.Address.BaseAddress.ToInt64():X}\n";
                 stateString += $"FateTableLen: {fateTable.Length}\n";
 
                 ImGui.TextUnformatted(stateString);
@@ -1359,6 +1360,15 @@ namespace Dalamud.Interface.Internal.Windows
             ImGuiHelpers.ScaledDummy(10);
             ImGui.SameLine();
 
+            if (ImGui.Button("Cancel using CancellationTokenSource"))
+            {
+                this.taskSchedCancelSource.Cancel();
+                this.taskSchedCancelSource = new();
+            }
+
+            ImGui.Text("Run in any thread: ");
+            ImGui.SameLine();
+
             if (ImGui.Button("Short Task.Run"))
             {
                 Task.Run(() => { Thread.Sleep(500); });
@@ -1368,7 +1378,8 @@ namespace Dalamud.Interface.Internal.Windows
 
             if (ImGui.Button("Task in task(Delay)"))
             {
-                Task.Run(async () => await this.TestTaskInTaskDelay());
+                var token = this.taskSchedCancelSource.Token;
+                Task.Run(async () => await this.TestTaskInTaskDelay(token));
             }
 
             ImGui.SameLine();
@@ -1391,29 +1402,72 @@ namespace Dalamud.Interface.Internal.Windows
                 });
             }
 
+            ImGui.Text("Run in Framework.Update: ");
+            ImGui.SameLine();
+
+            if (ImGui.Button("ASAP"))
+            {
+                Task.Run(async () => await Service<Framework>.Get().RunOnTick(() => { }, cancellationToken: this.taskSchedCancelSource.Token));
+            }
+
+            ImGui.SameLine();
+
+            if (ImGui.Button("In 1s"))
+            {
+                Task.Run(async () => await Service<Framework>.Get().RunOnTick(() => { }, cancellationToken: this.taskSchedCancelSource.Token, delay: TimeSpan.FromSeconds(1)));
+            }
+
+            ImGui.SameLine();
+
+            if (ImGui.Button("In 60f"))
+            {
+                Task.Run(async () => await Service<Framework>.Get().RunOnTick(() => { }, cancellationToken: this.taskSchedCancelSource.Token, delayTicks: 60));
+            }
+
+            ImGui.SameLine();
+
+            if (ImGui.Button("Error in 1s"))
+            {
+                Task.Run(async () => await Service<Framework>.Get().RunOnTick(() => throw new Exception("Test Exception"), cancellationToken: this.taskSchedCancelSource.Token, delay: TimeSpan.FromSeconds(1)));
+            }
+
+            ImGui.SameLine();
+
+            if (ImGui.Button("As long as it's in Framework Thread"))
+            {
+                Task.Run(async () => await Service<Framework>.Get().RunOnFrameworkThread(() => { Log.Information("Task dispatched from non-framework.update thread"); }));
+                Service<Framework>.Get().RunOnFrameworkThread(() => { Log.Information("Task dispatched from framework.update thread"); }).Wait();
+            }
+
             if (ImGui.Button("Drown in tasks"))
             {
+                var token = this.taskSchedCancelSource.Token;
                 Task.Run(() =>
                 {
                     for (var i = 0; i < 100; i++)
                     {
+                        token.ThrowIfCancellationRequested();
                         Task.Run(() =>
                         {
                             for (var i = 0; i < 100; i++)
                             {
+                                token.ThrowIfCancellationRequested();
                                 Task.Run(() =>
                                 {
                                     for (var i = 0; i < 100; i++)
                                     {
+                                        token.ThrowIfCancellationRequested();
                                         Task.Run(() =>
                                         {
                                             for (var i = 0; i < 100; i++)
                                             {
-                                                Task.Run(() =>
+                                                token.ThrowIfCancellationRequested();
+                                                Task.Run(async () =>
                                                 {
                                                     for (var i = 0; i < 100; i++)
                                                     {
-                                                        Thread.Sleep(1);
+                                                        token.ThrowIfCancellationRequested();
+                                                        await Task.Delay(1);
                                                     }
                                                 });
                                             }
@@ -1431,7 +1485,7 @@ namespace Dalamud.Interface.Internal.Windows
             ImGuiHelpers.ScaledDummy(20);
 
             // Needed to init the task tracker, if we're not on a debug build
-            var tracker = Service<TaskTracker>.GetNullable() ?? Service<TaskTracker>.Set();
+            Service<TaskTracker>.Get().Enable();
 
             for (var i = 0; i < TaskTracker.Tasks.Count; i++)
             {
@@ -1652,9 +1706,9 @@ namespace Dalamud.Interface.Internal.Windows
             }
         }
 
-        private async Task TestTaskInTaskDelay()
+        private async Task TestTaskInTaskDelay(CancellationToken token)
         {
-            await Task.Delay(5000);
+            await Task.Delay(5000, token);
         }
 
 #pragma warning disable 1998

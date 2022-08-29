@@ -11,7 +11,8 @@ namespace Dalamud.Game.ClientState.Conditions
     /// </summary>
     [PluginInterface]
     [InterfaceVersion("1.0")]
-    public sealed partial class Condition
+    [ServiceManager.BlockingEarlyLoadedService]
+    public sealed partial class Condition : IServiceType
     {
         /// <summary>
         /// The current max number of conditions. You can get this just by looking at the condition sheet and how many rows it has.
@@ -20,12 +21,10 @@ namespace Dalamud.Game.ClientState.Conditions
 
         private readonly bool[] cache = new bool[MaxConditionEntries];
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="Condition"/> class.
-        /// </summary>
-        /// <param name="resolver">The ClientStateAddressResolver instance.</param>
-        internal Condition(ClientStateAddressResolver resolver)
+        [ServiceManager.ServiceConstructor]
+        private Condition(ClientState clientState)
         {
+            var resolver = clientState.AddressResolver;
             this.Address = resolver.ConditionFlags;
         }
 
@@ -83,16 +82,14 @@ namespace Dalamud.Game.ClientState.Conditions
             return false;
         }
 
-        /// <summary>
-        /// Enables the hooks of the Condition class function.
-        /// </summary>
-        public void Enable()
+        [ServiceManager.CallWhenServicesReady]
+        private void ContinueConstruction(Framework framework)
         {
             // Initialization
             for (var i = 0; i < MaxConditionEntries; i++)
                 this.cache[i] = this[i];
 
-            Service<Framework>.Get().Update += this.FrameworkUpdate;
+            framework.Update += this.FrameworkUpdate;
         }
 
         private void FrameworkUpdate(Framework framework)

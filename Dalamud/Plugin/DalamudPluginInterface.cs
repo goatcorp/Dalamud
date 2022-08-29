@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -14,6 +15,7 @@ using Dalamud.Game.Text.Sanitizer;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Interface;
+using Dalamud.Interface.Internal;
 using Dalamud.Plugin.Internal;
 using Dalamud.Plugin.Ipc;
 using Dalamud.Plugin.Ipc.Exceptions;
@@ -138,11 +140,12 @@ namespace Dalamud.Plugin
         /// <summary>
         /// Gets a value indicating whether Dalamud is running in Debug mode or the /xldev menu is open. This can occur on release builds.
         /// </summary>
-#if DEBUG
-        public bool IsDebugging => true;
-#else
-        public bool IsDebugging => Service<DalamudInterface>.GetNullable() is {IsDevMenuOpen: true}; // Can be null during boot
-#endif
+        public bool IsDevMenuOpen => Service<DalamudInterface>.GetNullable() is { IsDevMenuOpen: true }; // Can be null during boot
+
+        /// <summary>
+        /// Gets a value indicating whether a debugger is attached.
+        /// </summary>
+        public bool IsDebugging => Debugger.IsAttached;
 
         /// <summary>
         /// Gets the current UI language in two-letter iso format.
@@ -358,7 +361,7 @@ namespace Dalamud.Plugin
             realScopedObjects[0] = this;
             Array.Copy(scopedObjects, 0, realScopedObjects, 1, scopedObjects.Length);
 
-            return svcContainer.Create(typeof(T), realScopedObjects) as T;
+            return (T)svcContainer.CreateAsync(typeof(T), realScopedObjects).GetAwaiter().GetResult();
         }
 
         /// <summary>
@@ -375,7 +378,7 @@ namespace Dalamud.Plugin
             realScopedObjects[0] = this;
             Array.Copy(scopedObjects, 0, realScopedObjects, 1, scopedObjects.Length);
 
-            return svcContainer.InjectProperties(instance, realScopedObjects);
+            return svcContainer.InjectProperties(instance, realScopedObjects).GetAwaiter().GetResult();
         }
 
         #endregion

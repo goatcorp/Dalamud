@@ -4,21 +4,25 @@ using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
-
+using System.Threading.Tasks;
 using Dalamud.Data;
+using Dalamud.Game;
 using Dalamud.Interface.Internal;
+using Dalamud.Utility.Timing;
 using ImGuiNET;
 using Lumina.Data.Files;
 using Serilog;
+using static Dalamud.Interface.ImGuiHelpers;
 
 namespace Dalamud.Interface.GameFonts
 {
     /// <summary>
     /// Loads game font for use in ImGui.
     /// </summary>
-    internal class GameFontManager : IDisposable
+    [ServiceManager.EarlyLoadedService]
+    internal class GameFontManager : IServiceType
     {
-        private static readonly string[] FontNames =
+        private static readonly string?[] FontNames =
         {
             null,
             "AXIS_96", "AXIS_12", "AXIS_14", "AXIS_18", "AXIS_36",
@@ -30,29 +34,36 @@ namespace Dalamud.Interface.GameFonts
 
         private readonly object syncRoot = new();
 
-        private readonly InterfaceManager interfaceManager;
-
         private readonly FdtReader?[] fdts;
         private readonly List<byte[]> texturePixels;
         private readonly Dictionary<GameFontStyle, ImFontPtr> fonts = new();
         private readonly Dictionary<GameFontStyle, int> fontUseCounter = new();
         private readonly Dictionary<GameFontStyle, Dictionary<char, Tuple<int, FdtReader.FontTableEntry>>> glyphRectIds = new();
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="GameFontManager"/> class.
-        /// </summary>
-        public GameFontManager()
+        private bool isBetweenBuildFontsAndRightAfterImGuiIoFontsBuild = false;
+
+        [ServiceManager.ServiceConstructor]
+        private GameFontManager(DataManager dataManager)
         {
-            var dataManager = Service<DataManager>.Get();
-
-            this.fdts = FontNames.Select(fontName =>
+            using (Timings.Start("Getting fdt data"))
             {
-                var file = fontName == null ? null : dataManager.GetFile($"common/font/{fontName}.fdt");
-                return file == null ? null : new FdtReader(file!.Data);
-            }).ToArray();
-            this.texturePixels = Enumerable.Range(1, 1 + this.fdts.Where(x => x != null).Select(x => x.Glyphs.Select(x => x.TextureFileIndex).Max()).Max()).Select(x => dataManager.GameData.GetFile<TexFile>($"common/font/font{x}.tex").ImageData).ToList();
+                this.fdts = FontNames.Select(fontName => fontName == null ? null : new FdtReader(dataManager.GetFile($"common/font/{fontName}.fdt")!.Data)).ToArray();
+            }
 
-            this.interfaceManager = Service<InterfaceManager>.Get();
+            using (Timings.Start("Getting texture data"))
+            {
+                var texTasks = Enumerable
+                               .Range(1, 1 + this.fdts
+                                                 .Where(x => x != null)
+                                                 .Select(x => x.Glyphs.Select(y => y.TextureFileIndex).Max())
+                                                 .Max())
+                               .Select(x => dataManager.GetFile<TexFile>($"common/font/font{x}.tex")!)
+                               .Select(x => new Task<byte[]>(Timings.AttachTimingHandle(() => x.ImageData!)))
+                               .ToArray();
+                foreach (var task in texTasks)
+                    task.Start();
+                this.texturePixels = texTasks.Select(x => x.GetAwaiter().GetResult()).ToList();
+            }
         }
 
         /// <summary>
@@ -111,65 +122,6 @@ namespace Dalamud.Interface.GameFonts
         }
 
         /// <summary>
-        /// Fills missing glyphs in target font from source font, if both are not null.
-        /// </summary>
-        /// <param name="source">Source font.</param>
-        /// <param name="target">Target font.</param>
-        /// <param name="missingOnly">Whether to copy missing glyphs only.</param>
-        /// <param name="rebuildLookupTable">Whether to call target.BuildLookupTable().</param>
-        /// <param name="rangeLow">Low codepoint range to copy.</param>
-        /// <param name="rangeHigh">High codepoing range to copy.</param>
-        public static void CopyGlyphsAcrossFonts(ImFontPtr? source, ImFontPtr? target, bool missingOnly, bool rebuildLookupTable, int rangeLow = 32, int rangeHigh = 0xFFFE)
-        {
-            if (!source.HasValue || !target.HasValue)
-                return;
-
-            var scale = target.Value!.FontSize / source.Value!.FontSize;
-            unsafe
-            {
-                var glyphs = (ImFontGlyphReal*)source.Value!.Glyphs.Data;
-                for (int j = 0, j_ = source.Value!.Glyphs.Size; j < j_; j++)
-                {
-                    var glyph = &glyphs[j];
-                    if (glyph->Codepoint < rangeLow || glyph->Codepoint > rangeHigh)
-                        continue;
-
-                    var prevGlyphPtr = (ImFontGlyphReal*)target.Value!.FindGlyphNoFallback((ushort)glyph->Codepoint).NativePtr;
-                    if ((IntPtr)prevGlyphPtr == IntPtr.Zero)
-                    {
-                        target.Value!.AddGlyph(
-                            target.Value!.ConfigData,
-                            (ushort)glyph->Codepoint,
-                            glyph->X0 * scale,
-                            ((glyph->Y0 - source.Value!.Ascent) * scale) + target.Value!.Ascent,
-                            glyph->X1 * scale,
-                            ((glyph->Y1 - source.Value!.Ascent) * scale) + target.Value!.Ascent,
-                            glyph->U0,
-                            glyph->V0,
-                            glyph->U1,
-                            glyph->V1,
-                            glyph->AdvanceX * scale);
-                    }
-                    else if (!missingOnly)
-                    {
-                        prevGlyphPtr->X0 = glyph->X0 * scale;
-                        prevGlyphPtr->Y0 = ((glyph->Y0 - source.Value!.Ascent) * scale) + target.Value!.Ascent;
-                        prevGlyphPtr->X1 = glyph->X1 * scale;
-                        prevGlyphPtr->Y1 = ((glyph->Y1 - source.Value!.Ascent) * scale) + target.Value!.Ascent;
-                        prevGlyphPtr->U0 = glyph->U0;
-                        prevGlyphPtr->V0 = glyph->V0;
-                        prevGlyphPtr->U1 = glyph->U1;
-                        prevGlyphPtr->V1 = glyph->V1;
-                        prevGlyphPtr->AdvanceX = glyph->AdvanceX * scale;
-                    }
-                }
-            }
-
-            if (rebuildLookupTable)
-                target.Value!.BuildLookupTable();
-        }
-
-        /// <summary>
         /// Unscales fonts after they have been rendered onto atlas.
         /// </summary>
         /// <param name="fontPtr">Font to unscale.</param>
@@ -183,9 +135,12 @@ namespace Dalamud.Interface.GameFonts
             unsafe
             {
                 var font = fontPtr.NativePtr;
-                for (int i = 0, i_ = font->IndexAdvanceX.Size; i < i_; ++i)
-                    ((float*)font->IndexAdvanceX.Data)[i] /= fontScale;
-                font->FallbackAdvanceX /= fontScale;
+                for (int i = 0, i_ = font->IndexedHotData.Size; i < i_; ++i)
+                {
+                    font->IndexedHotData.Ref<ImFontGlyphHotDataReal>(i).AdvanceX /= fontScale;
+                    font->IndexedHotData.Ref<ImFontGlyphHotDataReal>(i).OccupiedWidth /= fontScale;
+                }
+
                 font->FontSize /= fontScale;
                 font->Ascent /= fontScale;
                 font->Descent /= fontScale;
@@ -201,15 +156,15 @@ namespace Dalamud.Interface.GameFonts
                     glyph->Y1 /= fontScale;
                     glyph->AdvanceX /= fontScale;
                 }
+
+                for (int i = 0, i_ = font->KerningPairs.Size; i < i_; i++)
+                    font->KerningPairs.Ref<ImFontKerningPair>(i).AdvanceXAdjustment /= fontScale;
+                for (int i = 0, i_ = font->FrequentKerningPairs.Size; i < i_; i++)
+                    font->FrequentKerningPairs.Ref<float>(i) /= fontScale;
             }
 
             if (rebuildLookupTable)
                 fontPtr.BuildLookupTable();
-        }
-
-        /// <inheritdoc/>
-        public void Dispose()
-        {
         }
 
         /// <summary>
@@ -219,19 +174,20 @@ namespace Dalamud.Interface.GameFonts
         /// <returns>Handle to game font that may or may not be ready yet.</returns>
         public GameFontHandle NewFontRef(GameFontStyle style)
         {
+            var interfaceManager = Service<InterfaceManager>.Get();
             var needRebuild = false;
 
             lock (this.syncRoot)
             {
-                var prevValue = this.fontUseCounter.GetValueOrDefault(style, 0);
-                var newValue = this.fontUseCounter[style] = prevValue + 1;
-                needRebuild = (prevValue == 0) != (newValue == 0) && !this.fonts.ContainsKey(style);
+                this.fontUseCounter[style] = this.fontUseCounter.GetValueOrDefault(style, 0) + 1;
             }
 
+            needRebuild = !this.fonts.ContainsKey(style);
             if (needRebuild)
             {
-                Log.Information("[GameFontManager] Calling RebuildFonts because {0} has been requested.", style.ToString());
-                this.interfaceManager.RebuildFonts();
+                Log.Information("[GameFontManager] NewFontRef: Queueing RebuildFonts because {0} has been requested.", style.ToString());
+                Service<Framework>.GetAsync()
+                                  .ContinueWith(task => task.Result.RunOnTick(() => interfaceManager.RebuildFonts()));
             }
 
             return new(this, style);
@@ -260,7 +216,7 @@ namespace Dalamud.Interface.GameFonts
         /// <param name="rebuildLookupTable">Whether to call target.BuildLookupTable().</param>
         public void CopyGlyphsAcrossFonts(ImFontPtr? source, GameFontStyle target, bool missingOnly, bool rebuildLookupTable)
         {
-            GameFontManager.CopyGlyphsAcrossFonts(source, this.fonts[target], missingOnly, rebuildLookupTable);
+            ImGuiHelpers.CopyGlyphsAcrossFonts(source, this.fonts[target], missingOnly, rebuildLookupTable);
         }
 
         /// <summary>
@@ -272,7 +228,7 @@ namespace Dalamud.Interface.GameFonts
         /// <param name="rebuildLookupTable">Whether to call target.BuildLookupTable().</param>
         public void CopyGlyphsAcrossFonts(GameFontStyle source, ImFontPtr? target, bool missingOnly, bool rebuildLookupTable)
         {
-            GameFontManager.CopyGlyphsAcrossFonts(this.fonts[source], target, missingOnly, rebuildLookupTable);
+            ImGuiHelpers.CopyGlyphsAcrossFonts(this.fonts[source], target, missingOnly, rebuildLookupTable);
         }
 
         /// <summary>
@@ -284,77 +240,68 @@ namespace Dalamud.Interface.GameFonts
         /// <param name="rebuildLookupTable">Whether to call target.BuildLookupTable().</param>
         public void CopyGlyphsAcrossFonts(GameFontStyle source, GameFontStyle target, bool missingOnly, bool rebuildLookupTable)
         {
-            GameFontManager.CopyGlyphsAcrossFonts(this.fonts[source], this.fonts[target], missingOnly, rebuildLookupTable);
+            ImGuiHelpers.CopyGlyphsAcrossFonts(this.fonts[source], this.fonts[target], missingOnly, rebuildLookupTable);
         }
 
         /// <summary>
         /// Build fonts before plugins do something more. To be called from InterfaceManager.
         /// </summary>
-        /// <param name="forceMinSize">Whether to load fonts in minimum sizes.</param>
-        public void BuildFonts(bool forceMinSize)
+        public void BuildFonts()
         {
-            unsafe
+            this.isBetweenBuildFontsAndRightAfterImGuiIoFontsBuild = true;
+
+            this.glyphRectIds.Clear();
+            this.fonts.Clear();
+
+            lock (this.syncRoot)
             {
-                ImFontConfigPtr fontConfig = ImGuiNative.ImFontConfig_ImFontConfig();
-                fontConfig.OversampleH = 1;
-                fontConfig.OversampleV = 1;
-                fontConfig.PixelSnapH = false;
-
-                var io = ImGui.GetIO();
-
-                this.glyphRectIds.Clear();
-                this.fonts.Clear();
-
                 foreach (var style in this.fontUseCounter.Keys)
-                {
-                    var rectIds = this.glyphRectIds[style] = new();
-
-                    var fdt = this.fdts[(int)(forceMinSize ? style.FamilyWithMinimumSize : style.FamilyAndSize)];
-                    if (fdt == null)
-                        continue;
-
-                    var font = io.Fonts.AddFontDefault(fontConfig);
-
-                    this.fonts[style] = font;
-                    foreach (var glyph in fdt.Glyphs)
-                    {
-                        var c = glyph.Char;
-                        if (c < 32 || c >= 0xFFFF)
-                            continue;
-
-                        var widthAdjustment = style.CalculateBaseWidthAdjustment(fdt, glyph);
-                        rectIds[c] = Tuple.Create(
-                            io.Fonts.AddCustomRectFontGlyph(
-                                font,
-                                c,
-                                glyph.BoundingWidth + widthAdjustment + 1,
-                                glyph.BoundingHeight + 1,
-                                glyph.AdvanceWidth,
-                                new Vector2(0, glyph.CurrentOffsetY)),
-                            glyph);
-                    }
-                }
-
-                fontConfig.Destroy();
+                    this.EnsureFont(style);
             }
         }
 
         /// <summary>
+        /// Record that ImGui.GetIO().Fonts.Build() has been called.
+        /// </summary>
+        public void AfterIoFontsBuild()
+        {
+            this.isBetweenBuildFontsAndRightAfterImGuiIoFontsBuild = false;
+        }
+
+        /// <summary>
+        /// Checks whether GameFontMamager owns an ImFont.
+        /// </summary>
+        /// <param name="fontPtr">ImFontPtr to check.</param>
+        /// <returns>Whether it owns.</returns>
+        public bool OwnsFont(ImFontPtr fontPtr) => this.fonts.ContainsValue(fontPtr);
+
+        /// <summary>
         /// Post-build fonts before plugins do something more. To be called from InterfaceManager.
         /// </summary>
-        /// <param name="forceMinSize">Whether to load fonts in minimum sizes.</param>
-        public unsafe void AfterBuildFonts(bool forceMinSize)
+        public unsafe void AfterBuildFonts()
         {
+            var interfaceManager = Service<InterfaceManager>.Get();
             var ioFonts = ImGui.GetIO().Fonts;
-            ioFonts.GetTexDataAsRGBA32(out byte* pixels8, out var width, out var height);
-            var pixels32 = (uint*)pixels8;
-            var fontGamma = this.interfaceManager.FontGamma;
+            var fontGamma = interfaceManager.FontGamma;
+
+            var pixels8s = new byte*[ioFonts.Textures.Size];
+            var pixels32s = new uint*[ioFonts.Textures.Size];
+            var widths = new int[ioFonts.Textures.Size];
+            var heights = new int[ioFonts.Textures.Size];
+            for (var i = 0; i < pixels8s.Length; i++)
+            {
+                ioFonts.GetTexDataAsRGBA32(i, out pixels8s[i], out widths[i], out heights[i]);
+                pixels32s[i] = (uint*)pixels8s[i];
+            }
 
             foreach (var (style, font) in this.fonts)
             {
-                var fdt = this.fdts[(int)(forceMinSize ? style.FamilyWithMinimumSize : style.FamilyAndSize)];
+                var fdt = this.fdts[(int)style.FamilyAndSize];
                 var scale = style.SizePt / fdt.FontHeader.Size;
                 var fontPtr = font.NativePtr;
+
+                Log.Verbose("[GameFontManager] AfterBuildFonts: Scaling {0} from {1}pt to {2}pt (scale: {3})", style.ToString(), fdt.FontHeader.Size, style.SizePt, scale);
+
                 fontPtr->FontSize = fdt.FontHeader.Size * 4 / 3;
                 if (fontPtr->ConfigData != null)
                     fontPtr->ConfigData->SizePixels = fontPtr->FontSize;
@@ -366,7 +313,10 @@ namespace Dalamud.Interface.GameFonts
                     var glyph = font.FindGlyphNoFallback(fallbackCharCandidate);
                     if ((IntPtr)glyph.NativePtr != IntPtr.Zero)
                     {
-                        font.SetFallbackChar(fallbackCharCandidate);
+                        var ptr = font.NativePtr;
+                        ptr->FallbackChar = fallbackCharCandidate;
+                        ptr->FallbackGlyph = glyph.NativePtr;
+                        ptr->FallbackHotData = (ImFontGlyphHotData*)ptr->IndexedHotData.Address<ImFontGlyphHotDataReal>(fallbackCharCandidate);
                         break;
                     }
                 }
@@ -387,7 +337,11 @@ namespace Dalamud.Interface.GameFonts
 
                 foreach (var (c, (rectId, glyph)) in this.glyphRectIds[style])
                 {
-                    var rc = ioFonts.GetCustomRectByIndex(rectId);
+                    var rc = (ImFontAtlasCustomRectReal*)ioFonts.GetCustomRectByIndex(rectId).NativePtr;
+                    var pixels8 = pixels8s[rc->TextureIndex];
+                    var pixels32 = pixels32s[rc->TextureIndex];
+                    var width = widths[rc->TextureIndex];
+                    var height = heights[rc->TextureIndex];
                     var sourceBuffer = this.texturePixels[glyph.TextureFileIndex];
                     var sourceBufferDelta = glyph.TextureChannelByteIndex;
                     var widthAdjustment = style.CalculateBaseWidthAdjustment(fdt, glyph);
@@ -398,7 +352,7 @@ namespace Dalamud.Interface.GameFonts
                             for (var x = 0; x < glyph.BoundingWidth; x++)
                             {
                                 var a = sourceBuffer[sourceBufferDelta + (4 * (((glyph.TextureOffsetY + y) * fdt.FontHeader.TextureWidth) + glyph.TextureOffsetX + x))];
-                                pixels32[((rc.Y + y) * width) + rc.X + x] = (uint)(a << 24) | 0xFFFFFFu;
+                                pixels32[((rc->Y + y) * width) + rc->X + x] = (uint)(a << 24) | 0xFFFFFFu;
                             }
                         }
                     }
@@ -407,7 +361,7 @@ namespace Dalamud.Interface.GameFonts
                         for (var y = 0; y < glyph.BoundingHeight; y++)
                         {
                             for (var x = 0; x < glyph.BoundingWidth + widthAdjustment; x++)
-                                pixels32[((rc.Y + y) * width) + rc.X + x] = 0xFFFFFFu;
+                                pixels32[((rc->Y + y) * width) + rc->X + x] = 0xFFFFFFu;
                         }
 
                         for (int xbold = 0, xbold_ = Math.Max(1, (int)Math.Ceiling(style.Weight + 1)); xbold < xbold_; xbold++)
@@ -428,7 +382,7 @@ namespace Dalamud.Interface.GameFonts
                                     var a1 = sourceBuffer[sourceBufferDelta + (4 * sourcePixelIndex)];
                                     var a2 = x == glyph.BoundingWidth - 1 ? 0 : sourceBuffer[sourceBufferDelta + (4 * (sourcePixelIndex + 1))];
                                     var n = (a1 * xness) + (a2 * (1 - xness));
-                                    var targetOffset = ((rc.Y + y) * width) + rc.X + x + xDeltaInt;
+                                    var targetOffset = ((rc->Y + y) * width) + rc->X + x + xDeltaInt;
                                     pixels8[(targetOffset * 4) + 3] = Math.Max(pixels8[(targetOffset * 4) + 3], (byte)(boldStrength * n));
                                 }
                             }
@@ -438,9 +392,9 @@ namespace Dalamud.Interface.GameFonts
                     if (Math.Abs(fontGamma - 1.4f) >= 0.001)
                     {
                         // Gamma correction (stbtt/FreeType would output in linear space whereas most real world usages will apply 1.4 or 1.8 gamma; Windows/XIV prebaked uses 1.4)
-                        for (int y = rc.Y, y_ = rc.Y + rc.Height; y < y_; y++)
+                        for (int y = rc->Y, y_ = rc->Y + rc->Height; y < y_; y++)
                         {
-                            for (int x = rc.X, x_ = rc.X + rc.Width; x < x_; x++)
+                            for (int x = rc->X, x_ = rc->X + rc->Width; x < x_; x++)
                             {
                                 var i = (((y * width) + x) * 4) + 3;
                                 pixels8[i] = (byte)(Math.Pow(pixels8[i] / 255.0f, 1.4f / fontGamma) * 255.0f);
@@ -449,9 +403,7 @@ namespace Dalamud.Interface.GameFonts
                     }
                 }
 
-                CopyGlyphsAcrossFonts(InterfaceManager.DefaultFont, font, true, false);
                 UnscaleFont(font, 1 / scale, false);
-                font.BuildLookupTable();
             }
         }
 
@@ -471,36 +423,45 @@ namespace Dalamud.Interface.GameFonts
             }
         }
 
-        private struct ImFontGlyphReal
+        private unsafe void EnsureFont(GameFontStyle style)
         {
-            public uint ColoredVisibleCodepoint;
-            public float AdvanceX;
-            public float X0;
-            public float Y0;
-            public float X1;
-            public float Y1;
-            public float U0;
-            public float V0;
-            public float U1;
-            public float V1;
+            var rectIds = this.glyphRectIds[style] = new();
 
-            public bool Colored
+            var fdt = this.fdts[(int)style.FamilyAndSize];
+            if (fdt == null)
+                return;
+
+            ImFontConfigPtr fontConfig = ImGuiNative.ImFontConfig_ImFontConfig();
+            fontConfig.OversampleH = 1;
+            fontConfig.OversampleV = 1;
+            fontConfig.PixelSnapH = false;
+
+            var io = ImGui.GetIO();
+            var font = io.Fonts.AddFontDefault(fontConfig);
+
+            fontConfig.Destroy();
+
+            this.fonts[style] = font;
+            foreach (var glyph in fdt.Glyphs)
             {
-                get => ((this.ColoredVisibleCodepoint >> 0) & 1) != 0;
-                set => this.ColoredVisibleCodepoint = (this.ColoredVisibleCodepoint & 0xFFFFFFFEu) | (value ? 1u : 0u);
+                var c = glyph.Char;
+                if (c < 32 || c >= 0xFFFF)
+                    continue;
+
+                var widthAdjustment = style.CalculateBaseWidthAdjustment(fdt, glyph);
+                rectIds[c] = Tuple.Create(
+                    io.Fonts.AddCustomRectFontGlyph(
+                        font,
+                        c,
+                        glyph.BoundingWidth + widthAdjustment,
+                        glyph.BoundingHeight,
+                        glyph.AdvanceWidth,
+                        new Vector2(0, glyph.CurrentOffsetY)),
+                    glyph);
             }
 
-            public bool Visible
-            {
-                get => ((this.ColoredVisibleCodepoint >> 1) & 1) != 0;
-                set => this.ColoredVisibleCodepoint = (this.ColoredVisibleCodepoint & 0xFFFFFFFDu) | (value ? 2u : 0u);
-            }
-
-            public int Codepoint
-            {
-                get => (int)(this.ColoredVisibleCodepoint >> 2);
-                set => this.ColoredVisibleCodepoint = (this.ColoredVisibleCodepoint & 3u) | ((uint)this.Codepoint << 2);
-            }
+            foreach (var kernPair in fdt.Distances)
+                font.AddKerningPair(kernPair.Left, kernPair.Right, kernPair.RightOffset);
         }
     }
 }

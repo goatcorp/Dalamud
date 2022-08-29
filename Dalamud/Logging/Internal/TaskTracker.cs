@@ -12,24 +12,26 @@ namespace Dalamud.Logging.Internal
     /// <summary>
     /// Class responsible for tracking asynchronous tasks.
     /// </summary>
-    internal class TaskTracker : IDisposable
+    [ServiceManager.EarlyLoadedService]
+    internal class TaskTracker : IDisposable, IServiceType
     {
         private static readonly ModuleLog Log = new("TT");
         private static readonly List<TaskInfo> TrackedTasksInternal = new();
         private static readonly ConcurrentQueue<TaskInfo> NewlyCreatedTasks = new();
         private static bool clearRequested = false;
 
+        [ServiceManager.ServiceDependency]
+        private readonly Framework framework = Service<Framework>.Get();
+
         private MonoMod.RuntimeDetour.Hook? scheduleAndStartHook;
+        private bool enabled = false;
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="TaskTracker"/> class.
-        /// </summary>
-        public TaskTracker()
+        [ServiceManager.ServiceConstructor]
+        private TaskTracker()
         {
-            this.ApplyPatch();
-
-            var framework = Service<Framework>.Get();
-            framework.Update += this.FrameworkOnUpdate;
+#if DEBUG
+            this.Enable();
+#endif
         }
 
         /// <summary>
@@ -102,13 +104,26 @@ namespace Dalamud.Logging.Internal
             }
         }
 
+        /// <summary>
+        /// Enables TaskTracker.
+        /// </summary>
+        public void Enable()
+        {
+            if (this.enabled)
+                return;
+
+            this.ApplyPatch();
+
+            this.framework.Update += this.FrameworkOnUpdate;
+            this.enabled = true;
+        }
+
         /// <inheritdoc/>
         public void Dispose()
         {
             this.scheduleAndStartHook?.Dispose();
 
-            var framework = Service<Framework>.Get();
-            framework.Update -= this.FrameworkOnUpdate;
+            this.framework.Update -= this.FrameworkOnUpdate;
         }
 
         private static bool AddToActiveTasksHook(Func<Task, bool> orig, Task self)

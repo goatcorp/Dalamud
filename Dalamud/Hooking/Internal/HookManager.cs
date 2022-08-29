@@ -13,16 +13,20 @@ namespace Dalamud.Hooking.Internal
     /// <summary>
     /// This class manages the final disposition of hooks, cleaning up any that have not reverted their changes.
     /// </summary>
-    internal class HookManager : IDisposable
+    [ServiceManager.EarlyLoadedService]
+    internal class HookManager : IDisposable, IServiceType
     {
         private static readonly ModuleLog Log = new("HM");
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="HookManager"/> class.
-        /// </summary>
-        public HookManager()
+        [ServiceManager.ServiceConstructor]
+        private HookManager()
         {
         }
+
+        /// <summary>
+        /// Gets sync root object for hook enabling/disabling.
+        /// </summary>
+        internal static object HookEnableSyncRoot { get; } = new();
 
         /// <summary>
         /// Gets a static list of tracked and registered hooks.
@@ -32,12 +36,12 @@ namespace Dalamud.Hooking.Internal
         /// <summary>
         /// Gets a static dictionary of original code for a hooked address.
         /// </summary>
-        internal static Dictionary<IntPtr, byte[]> Originals { get; } = new();
+        internal static ConcurrentDictionary<IntPtr, byte[]> Originals { get; } = new();
 
         /// <summary>
         /// Gets a static dictionary of the number of hooks on a given address.
         /// </summary>
-        internal static Dictionary<IntPtr, List<IDalamudHook?>> MultiHookTracker { get; } = new();
+        internal static ConcurrentDictionary<IntPtr, List<IDalamudHook?>> MultiHookTracker { get; } = new();
 
         /// <inheritdoc/>
         public void Dispose()
@@ -63,6 +67,9 @@ namespace Dalamud.Hooking.Internal
                     Log.Verbose($"Detected hook trampoline at {address.ToInt64():X}, stopping jump resolution.");
                     return address;
                 }
+
+                if (address.ToInt64() <= 0)
+                    throw new InvalidOperationException($"Address was <= 0, this can't be happening?! ({address:X})");
 
                 var bytes = MemoryHelper.ReadRaw(address, 8);
 

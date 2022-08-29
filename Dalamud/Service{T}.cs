@@ -1,9 +1,12 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
-
+using System.Threading.Tasks;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
-using Dalamud.Logging.Internal;
+using Dalamud.Utility.Timing;
+using JetBrains.Annotations;
 
 namespace Dalamud
 {
@@ -14,112 +17,244 @@ namespace Dalamud
     /// Only used internally within Dalamud, if plugins need access to things it should be _only_ via DI.
     /// </remarks>
     /// <typeparam name="T">The class you want to store in the service locator.</typeparam>
-    internal static class Service<T> where T : class
+    internal static class Service<T> where T : IServiceType
     {
-        private static readonly ModuleLog Log = new("SVC");
-
-        private static T? instance;
+        private static TaskCompletionSource<T> instanceTcs = new();
 
         static Service()
         {
+            var exposeToPlugins = typeof(T).GetCustomAttribute<PluginInterfaceAttribute>() != null;
+            if (exposeToPlugins)
+                ServiceManager.Log.Debug("Service<{0}>: Static ctor called; will be exposed to plugins", typeof(T).Name);
+            else
+                ServiceManager.Log.Debug("Service<{0}>: Static ctor called", typeof(T).Name);
+
+            if (exposeToPlugins)
+                Service<ServiceContainer>.Get().RegisterSingleton(instanceTcs.Task);
+        }
+
+        /// <summary>
+        /// Specifies how to handle the cases of failed services when calling <see cref="Service{T}.GetNullable"/>.
+        /// </summary>
+        public enum ExceptionPropagationMode
+        {
+            /// <summary>
+            /// Propagate all exceptions.
+            /// </summary>
+            PropagateAll,
+
+            /// <summary>
+            /// Propagate all exceptions, except for <see cref="UnloadedException"/>.
+            /// </summary>
+            PropagateNonUnloaded,
+
+            /// <summary>
+            /// Treat all exceptions as null.
+            /// </summary>
+            None,
         }
 
         /// <summary>
         /// Sets the type in the service locator to the given object.
         /// </summary>
         /// <param name="obj">Object to set.</param>
-        /// <returns>The set object.</returns>
-        public static T Set(T obj)
+        public static void Provide(T obj)
         {
-            SetInstanceObject(obj);
-
-            return instance!;
+            instanceTcs.SetResult(obj);
+            ServiceManager.Log.Debug("Service<{0}>: Provided", typeof(T).Name);
         }
 
         /// <summary>
-        /// Sets the type in the service locator via the default parameterless constructor.
+        /// Sets the service load state to failure.
         /// </summary>
-        /// <returns>The set object.</returns>
-        public static T Set()
+        /// <param name="exception">The exception.</param>
+        public static void ProvideException(Exception exception)
         {
-            if (instance != null)
-                throw new Exception($"Service {typeof(T).FullName} was set twice");
-
-            var obj = (T?)Activator.CreateInstance(typeof(T), true);
-
-            SetInstanceObject(obj);
-
-            return instance!;
+            ServiceManager.Log.Error(exception, "Service<{0}>: Error", typeof(T).Name);
+            instanceTcs.SetException(exception);
         }
 
         /// <summary>
-        /// Sets a type in the service locator via a constructor with the given parameter types.
+        /// Pull the instance out of the service locator, waiting if necessary.
         /// </summary>
-        /// <param name="args">Constructor arguments.</param>
-        /// <returns>The set object.</returns>
-        public static T Set(params object[] args)
-        {
-            if (args == null)
-            {
-                throw new ArgumentNullException(nameof(args), $"Service locator was passed a null for type {typeof(T).FullName} parameterized constructor ");
-            }
-
-            var flags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.CreateInstance | BindingFlags.OptionalParamBinding;
-            var obj = (T?)Activator.CreateInstance(typeof(T), flags, null, args, null, null);
-
-            SetInstanceObject(obj);
-
-            return obj;
-        }
-
-        /// <summary>
-        /// Attempt to pull the instance out of the service locator.
-        /// </summary>
-        /// <returns>The object if registered.</returns>
-        /// <exception cref="InvalidOperationException">Thrown when the object instance is not present in the service locator.</exception>
+        /// <returns>The object.</returns>
         public static T Get()
         {
-            return instance ?? throw new InvalidOperationException($"{typeof(T).FullName} has not been registered in the service locator!");
+            if (!instanceTcs.Task.IsCompleted)
+                instanceTcs.Task.Wait();
+            return instanceTcs.Task.Result;
         }
+
+        /// <summary>
+        /// Pull the instance out of the service locator, waiting if necessary.
+        /// </summary>
+        /// <returns>The object.</returns>
+        [UsedImplicitly]
+        public static Task<T> GetAsync() => instanceTcs.Task;
 
         /// <summary>
         /// Attempt to pull the instance out of the service locator.
         /// </summary>
+        /// <param name="propagateException">Specifies which exceptions to propagate.</param> 
         /// <returns>The object if registered, null otherwise.</returns>
-        public static T? GetNullable()
+        public static T? GetNullable(ExceptionPropagationMode propagateException = ExceptionPropagationMode.PropagateNonUnloaded)
         {
-            return instance;
+            if (instanceTcs.Task.IsCompletedSuccessfully)
+                return instanceTcs.Task.Result;
+            if (instanceTcs.Task.IsFaulted && propagateException != ExceptionPropagationMode.None)
+            {
+                if (propagateException == ExceptionPropagationMode.PropagateNonUnloaded
+                    && instanceTcs.Task.Exception!.InnerExceptions.FirstOrDefault() is UnloadedException)
+                    return default;
+                throw instanceTcs.Task.Exception!;
+            }
+
+            return default;
         }
 
-        private static void SetInstanceObject(T instance)
+        /// <summary>
+        /// Gets an enumerable containing Service&lt;T&gt;s that are required for this Service to initialize without blocking.
+        /// </summary>
+        /// <returns>List of dependency services.</returns>
+        [UsedImplicitly]
+        public static List<Type> GetDependencyServices()
         {
-            Service<T>.instance = instance ?? throw new ArgumentNullException(nameof(instance), $"Service locator received a null for type {typeof(T).FullName}");
+            var res = new List<Type>();
+            res.AddRange(GetServiceConstructor()
+                .GetParameters()
+                .Select(x => x.ParameterType));
+            res.AddRange(typeof(T)
+                .GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
+                .Select(x => x.FieldType)
+                .Where(x => x.GetCustomAttribute<ServiceManager.ServiceDependency>(true) != null));
+            return res
+                .Distinct()
+                .Select(x => typeof(Service<>).MakeGenericType(x))
+                .ToList();
+        }
 
-            var availableToPlugins = RegisterInIoCContainer(instance);
+        [UsedImplicitly]
+        private static Task<T> StartLoader()
+        {
+            if (instanceTcs.Task.IsCompleted)
+                throw new InvalidOperationException($"{typeof(T).Name} is already loaded or disposed.");
 
-            if (availableToPlugins)
-                Log.Information($"Registered {typeof(T).FullName} into service locator and exposed to plugins");
+            var attr = typeof(T).GetCustomAttribute<ServiceManager.Service>(true)?.GetType();
+            if (attr?.IsAssignableTo(typeof(ServiceManager.EarlyLoadedService)) != true)
+                throw new InvalidOperationException($"{typeof(T).Name} is not an EarlyLoadedService");
+
+            return Task.Run(Timings.AttachTimingHandle(async () =>
+            {
+                ServiceManager.Log.Debug("Service<{0}>: Begin construction", typeof(T).Name);
+                try
+                {
+                    var instance = await ConstructObject();
+                    instanceTcs.SetResult(instance);
+
+                    foreach (var method in typeof(T).GetMethods(
+                                 BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
+                    {
+                        if (method.GetCustomAttribute<ServiceManager.CallWhenServicesReady>(true) == null)
+                            continue;
+
+                        ServiceManager.Log.Debug("Service<{0}>: Calling {1}", typeof(T).Name, method.Name);
+                        var args = await Task.WhenAll(method.GetParameters().Select(
+                                             x => ResolveServiceFromTypeAsync(x.ParameterType)));
+                        method.Invoke(instance, args);
+                    }
+
+                    ServiceManager.Log.Debug("Service<{0}>: Construction complete", typeof(T).Name);
+                    return instance;
+                }
+                catch (Exception e)
+                {
+                    ServiceManager.Log.Error(e, "Service<{0}>: Construction failure", typeof(T).Name);
+                    instanceTcs.SetException(e);
+                    throw;
+                }
+            }));
+        }
+
+        [UsedImplicitly]
+        private static void Unset()
+        {
+            if (!instanceTcs.Task.IsCompletedSuccessfully)
+                return;
+
+            var instance = instanceTcs.Task.Result;
+            if (instance is IDisposable disposable)
+            {
+                ServiceManager.Log.Debug("Service<{0}>: Disposing", typeof(T).Name);
+                try
+                {
+                    disposable.Dispose();
+                    ServiceManager.Log.Debug("Service<{0}>: Disposed", typeof(T).Name);
+                }
+                catch (Exception e)
+                {
+                    ServiceManager.Log.Warning(e, "Service<{0}>: Dispose failure", typeof(T).Name);
+                }
+            }
             else
-                Log.Information($"Registered {typeof(T).FullName} into service locator privately");
+            {
+                ServiceManager.Log.Debug("Service<{0}>: Unset", typeof(T).Name);
+            }
+
+            instanceTcs = new TaskCompletionSource<T>();
+            instanceTcs.SetException(new UnloadedException());
         }
 
-        private static bool RegisterInIoCContainer(T instance)
+        private static async Task<object?> ResolveServiceFromTypeAsync(Type type)
         {
-            var attr = typeof(T).GetCustomAttribute<PluginInterfaceAttribute>();
-            if (attr == null)
+            var task = (Task)typeof(Service<>)
+                             .MakeGenericType(type)
+                             .InvokeMember(
+                                 "GetAsync",
+                                 BindingFlags.InvokeMethod |
+                                 BindingFlags.Static |
+                                 BindingFlags.Public,
+                                 null,
+                                 null,
+                                 null)!;
+            await task;
+            return typeof(Task<>).MakeGenericType(type)
+                                 .GetProperty("Result", BindingFlags.Instance | BindingFlags.Public)!
+                                 .GetValue(task);
+        }
+
+        private static ConstructorInfo GetServiceConstructor()
+        {
+            const BindingFlags ctorBindingFlags =
+                BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic |
+                BindingFlags.CreateInstance | BindingFlags.OptionalParamBinding;
+            return typeof(T)
+                .GetConstructors(ctorBindingFlags)
+                .Single(x => x.GetCustomAttributes(typeof(ServiceManager.ServiceConstructor), true).Any());
+        }
+
+        private static async Task<T> ConstructObject()
+        {
+            var ctor = GetServiceConstructor();
+            var args = await Task.WhenAll(
+                           ctor.GetParameters().Select(x => ResolveServiceFromTypeAsync(x.ParameterType)));
+            using (Timings.Start($"{typeof(T).Name} Construct"))
             {
-                return false;
+                return (T)ctor.Invoke(args)!;
             }
+        }
 
-            var ioc = Service<ServiceContainer>.GetNullable();
-            if (ioc == null)
+        /// <summary>
+        /// Exception thrown when service is attempted to be retrieved when it's unloaded.
+        /// </summary>
+        public class UnloadedException : InvalidOperationException
+        {
+            /// <summary>
+            /// Initializes a new instance of the <see cref="UnloadedException"/> class.
+            /// </summary>
+            public UnloadedException()
+                : base("Service is unloaded.")
             {
-                return false;
             }
-
-            ioc.RegisterSingleton(instance);
-
-            return true;
         }
     }
 }

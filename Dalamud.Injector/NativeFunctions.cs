@@ -661,8 +661,8 @@ namespace Dalamud.Injector
             IntPtr hProcess,
             IntPtr lpThreadAttributes,
             UIntPtr dwStackSize,
-            IntPtr lpStartAddress,
-            IntPtr lpParameter,
+            nuint lpStartAddress,
+            nuint lpParameter,
             CreateThreadFlags dwCreationFlags,
             out uint lpThreadId);
 

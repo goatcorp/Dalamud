@@ -14,7 +14,8 @@ namespace Dalamud.Game.Network
     /// </summary>
     [PluginInterface]
     [InterfaceVersion("1.0")]
-    public sealed class GameNetwork : IDisposable
+    [ServiceManager.BlockingEarlyLoadedService]
+    public sealed class GameNetwork : IDisposable, IServiceType
     {
         private readonly GameNetworkAddressResolver address;
         private readonly Hook<ProcessZonePacketDownDelegate> processZonePacketDownHook;
@@ -23,20 +24,18 @@ namespace Dalamud.Game.Network
 
         private IntPtr baseAddress;
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="GameNetwork"/> class.
-        /// </summary>
-        internal GameNetwork()
+        [ServiceManager.ServiceConstructor]
+        private GameNetwork(SigScanner sigScanner)
         {
             this.address = new GameNetworkAddressResolver();
-            this.address.Setup();
+            this.address.Setup(sigScanner);
 
             Log.Verbose("===== G A M E N E T W O R K =====");
             Log.Verbose($"ProcessZonePacketDown address 0x{this.address.ProcessZonePacketDown.ToInt64():X}");
             Log.Verbose($"ProcessZonePacketUp address 0x{this.address.ProcessZonePacketUp.ToInt64():X}");
 
-            this.processZonePacketDownHook = new Hook<ProcessZonePacketDownDelegate>(this.address.ProcessZonePacketDown, this.ProcessZonePacketDownDetour);
-            this.processZonePacketUpHook = new Hook<ProcessZonePacketUpDelegate>(this.address.ProcessZonePacketUp, this.ProcessZonePacketUpDetour);
+            this.processZonePacketDownHook = Hook<ProcessZonePacketDownDelegate>.FromAddress(this.address.ProcessZonePacketDown, this.ProcessZonePacketDownDetour);
+            this.processZonePacketUpHook = Hook<ProcessZonePacketUpDelegate>.FromAddress(this.address.ProcessZonePacketUp, this.ProcessZonePacketUpDetour);
         }
 
         /// <summary>
@@ -59,15 +58,6 @@ namespace Dalamud.Game.Network
         /// Event that is called when a network message is sent/received.
         /// </summary>
         public event OnNetworkMessageDelegate NetworkMessage;
-
-        /// <summary>
-        /// Enable this module.
-        /// </summary>
-        public void Enable()
-        {
-            this.processZonePacketDownHook.Enable();
-            this.processZonePacketUpHook.Enable();
-        }
 
         /// <summary>
         /// Dispose of managed and unmanaged resources.
@@ -97,6 +87,13 @@ namespace Dalamud.Game.Network
 
                 Marshal.FreeHGlobal(unmanagedPacketData);
             }
+        }
+
+        [ServiceManager.CallWhenServicesReady]
+        private void ContinueConstruction()
+        {
+            this.processZonePacketDownHook.Enable();
+            this.processZonePacketUpHook.Enable();
         }
 
         private void ProcessZonePacketDownDetour(IntPtr a, uint targetId, IntPtr dataPtr)

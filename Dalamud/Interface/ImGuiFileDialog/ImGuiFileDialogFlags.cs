@@ -16,41 +16,41 @@ namespace Dalamud.Interface.ImGuiFileDialog
         /// <summary>
         /// Confirm the selection when choosing a file which already exists.
         /// </summary>
-        ConfirmOverwrite = 1,
+        ConfirmOverwrite = 0x01,
 
         /// <summary>
         /// Only allow selection of files or folders which currently exist.
         /// </summary>
-        SelectOnly = 2,
+        SelectOnly = 0x02,
 
         /// <summary>
         /// Hide files or folders which start with a period.
         /// </summary>
-        DontShowHiddenFiles = 3,
+        DontShowHiddenFiles = 0x04,
 
         /// <summary>
         /// Disable the creation of new folders within the dialog.
         /// </summary>
-        DisableCreateDirectoryButton = 4,
+        DisableCreateDirectoryButton = 0x08,
 
         /// <summary>
         /// Hide the type column.
         /// </summary>
-        HideColumnType = 5,
+        HideColumnType = 0x10,
 
         /// <summary>
         /// Hide the file size column.
         /// </summary>
-        HideColumnSize = 6,
+        HideColumnSize = 0x20,
 
         /// <summary>
         /// Hide the last modified date column.
         /// </summary>
-        HideColumnDate = 7,
+        HideColumnDate = 0x40,
 
         /// <summary>
         /// Hide the quick access sidebar.
         /// </summary>
-        HideSideBar = 8,
+        HideSideBar = 0x80,
     }
 }

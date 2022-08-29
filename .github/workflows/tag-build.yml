@@ -1,6 +1,5 @@
 name: Tag Build
 on: [push]
-concurrency: build_dalamud
 
 jobs:
   tag:

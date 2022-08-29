@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using ImGuiNET;
 
 namespace Dalamud.Interface.ImGuiFileDialog
 {
@@ -8,6 +9,12 @@ namespace Dalamud.Interface.ImGuiFileDialog
     /// </summary>
     public class FileDialogManager
     {
+        /// <summary> Additional quick access items for the side bar.</summary>
+        public readonly List<(string Name, string Path, FontAwesomeIcon Icon, int Position)> CustomSideBarItems = new();
+
+        /// <summary> Additional flags with which to draw the window. </summary>
+        public ImGuiWindowFlags AddedWindowFlags = ImGuiWindowFlags.None;
+
         private FileDialog? dialog;
         private Action<bool, string>? callback;
         private Action<bool, List<string>>? multiCallback;
@@ -20,8 +27,7 @@ namespace Dalamud.Interface.ImGuiFileDialog
         /// <param name="callback">The action to execute when the dialog is finished.</param>
         public void OpenFolderDialog(string title, Action<bool, string> callback)
         {
-            this.SetCallback(callback);
-            this.SetDialog("OpenFolderDialog", title, string.Empty, this.savedPath, ".", string.Empty, 1, false, ImGuiFileDialogFlags.SelectOnly);
+            this.SetDialog("OpenFolderDialog", title, string.Empty, this.savedPath, ".", string.Empty, 1, false, ImGuiFileDialogFlags.SelectOnly, callback);
         }
 
         /// <summary>
@@ -33,8 +39,7 @@ namespace Dalamud.Interface.ImGuiFileDialog
         /// <param name="isModal">Whether the dialog should be a modal popup.</param>
         public void OpenFolderDialog(string title, Action<bool, string> callback, string? startPath, bool isModal = false)
         {
-            this.SetCallback(callback);
-            this.SetDialog("OpenFolderDialog", title, string.Empty, startPath ?? this.savedPath, ".", string.Empty, 1, isModal, ImGuiFileDialogFlags.SelectOnly);
+            this.SetDialog("OpenFolderDialog", title, string.Empty, startPath ?? this.savedPath, ".", string.Empty, 1, isModal, ImGuiFileDialogFlags.SelectOnly, callback);
         }
 
         /// <summary>
@@ -45,8 +50,7 @@ namespace Dalamud.Interface.ImGuiFileDialog
         /// <param name="callback">The action to execute when the dialog is finished.</param>
         public void SaveFolderDialog(string title, string defaultFolderName, Action<bool, string> callback)
         {
-            this.SetCallback(callback);
-            this.SetDialog("SaveFolderDialog", title, string.Empty, this.savedPath, defaultFolderName, string.Empty, 1, false, ImGuiFileDialogFlags.None);
+            this.SetDialog("SaveFolderDialog", title, string.Empty, this.savedPath, defaultFolderName, string.Empty, 1, false, ImGuiFileDialogFlags.None, callback);
         }
 
         /// <summary>
@@ -59,8 +63,7 @@ namespace Dalamud.Interface.ImGuiFileDialog
         /// <param name="isModal">Whether the dialog should be a modal popup.</param>
         public void SaveFolderDialog(string title, string defaultFolderName, Action<bool, string> callback, string? startPath, bool isModal = false)
         {
-            this.SetCallback(callback);
-            this.SetDialog("SaveFolderDialog", title, string.Empty, startPath ?? this.savedPath, defaultFolderName, string.Empty, 1, isModal, ImGuiFileDialogFlags.None);
+            this.SetDialog("SaveFolderDialog", title, string.Empty, startPath ?? this.savedPath, defaultFolderName, string.Empty, 1, isModal, ImGuiFileDialogFlags.None, callback);
         }
 
         /// <summary>
@@ -71,8 +74,7 @@ namespace Dalamud.Interface.ImGuiFileDialog
         /// <param name="callback">The action to execute when the dialog is finished.</param>
         public void OpenFileDialog(string title, string filters, Action<bool, string> callback)
         {
-            this.SetCallback(callback);
-            this.SetDialog("OpenFileDialog", title, filters, this.savedPath, ".", string.Empty, 1, false, ImGuiFileDialogFlags.SelectOnly);
+            this.SetDialog("OpenFileDialog", title, filters, this.savedPath, ".", string.Empty, 1, false, ImGuiFileDialogFlags.SelectOnly, callback);
         }
 
         /// <summary>
@@ -81,19 +83,18 @@ namespace Dalamud.Interface.ImGuiFileDialog
         /// <param name="title">The header title of the dialog.</param>
         /// <param name="filters">Which files to show in the dialog.</param>
         /// <param name="callback">The action to execute when the dialog is finished.</param>
-        /// <param name="startPath">The directory which the dialog should start inside of. The last path this manager was in is used if this is null.</param>
         /// <param name="selectionCountMax">The maximum amount of files or directories which can be selected. Set to 0 for an infinite number.</param>
+        /// <param name="startPath">The directory which the dialog should start inside of. The last path this manager was in is used if this is null.</param>
         /// <param name="isModal">Whether the dialog should be a modal popup.</param>
         public void OpenFileDialog(
             string title,
             string filters,
             Action<bool, List<string>> callback,
+            int selectionCountMax,
             string? startPath = null,
-            int selectionCountMax = 1,
             bool isModal = false)
         {
-            this.SetCallback(callback);
-            this.SetDialog("OpenFileDialog", title, filters, startPath ?? this.savedPath, ".", string.Empty, selectionCountMax, isModal, ImGuiFileDialogFlags.SelectOnly);
+            this.SetDialog("OpenFileDialog", title, filters, startPath ?? this.savedPath, ".", string.Empty, selectionCountMax, isModal, ImGuiFileDialogFlags.SelectOnly, callback);
         }
 
         /// <summary>
@@ -111,8 +112,7 @@ namespace Dalamud.Interface.ImGuiFileDialog
             string defaultExtension,
             Action<bool, string> callback)
         {
-            this.SetCallback(callback);
-            this.SetDialog("SaveFileDialog", title, filters, this.savedPath, defaultFileName, defaultExtension, 1, false, ImGuiFileDialogFlags.None);
+            this.SetDialog("SaveFileDialog", title, filters, this.savedPath, defaultFileName, defaultExtension, 1, false, ImGuiFileDialogFlags.None, callback);
         }
 
         /// <summary>
@@ -134,8 +134,7 @@ namespace Dalamud.Interface.ImGuiFileDialog
             string? startPath,
             bool isModal = false)
         {
-            this.SetCallback(callback);
-            this.SetDialog("SaveFileDialog", title, filters, startPath ?? this.savedPath, defaultFileName, defaultExtension, 1, isModal, ImGuiFileDialogFlags.None);
+            this.SetDialog("SaveFileDialog", title, filters, startPath ?? this.savedPath, defaultFileName, defaultExtension, 1, isModal, ImGuiFileDialogFlags.None, callback);
         }
 
         /// <summary>
@@ -166,18 +165,6 @@ namespace Dalamud.Interface.ImGuiFileDialog
             this.multiCallback = null;
         }
 
-        private void SetCallback(Action<bool, string> action)
-        {
-            this.callback = action;
-            this.multiCallback = null;
-        }
-
-        private void SetCallback(Action<bool, List<string>> action)
-        {
-            this.multiCallback = action;
-            this.callback = null;
-        }
-
         private void SetDialog(
             string id,
             string title,
@@ -187,10 +174,23 @@ namespace Dalamud.Interface.ImGuiFileDialog
             string defaultExtension,
             int selectionCountMax,
             bool isModal,
-            ImGuiFileDialogFlags flags)
+            ImGuiFileDialogFlags flags,
+            Delegate callback)
         {
             this.Reset();
+            if (callback is Action<bool, List<string>> multi)
+            {
+                this.multiCallback = multi;
+            }
+            else
+            {
+                this.callback = callback as Action<bool, string>;
+            }
+
             this.dialog = new FileDialog(id, title, filters, path, defaultFileName, defaultExtension, selectionCountMax, isModal, flags);
+            this.dialog.WindowFlags |= this.AddedWindowFlags;
+            foreach (var (name, location, icon, position) in this.CustomSideBarItems)
+                this.dialog.SetQuickAccess(name, location, icon, position);
             this.dialog.Show();
         }
     }

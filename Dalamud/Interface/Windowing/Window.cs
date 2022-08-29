@@ -65,7 +65,7 @@ namespace Dalamud.Interface.Windowing
         public ImGuiCond PositionCondition { get; set; }
 
         /// <summary>
-        /// Gets or sets the size of the window.
+        /// Gets or sets the size of the window. The size provided will be scaled by the global scale.
         /// </summary>
         public Vector2? Size { get; set; }
 
@@ -75,7 +75,7 @@ namespace Dalamud.Interface.Windowing
         public ImGuiCond SizeCondition { get; set; }
 
         /// <summary>
-        /// Gets or sets the size constraints of the window.
+        /// Gets or sets the size constraints of the window. The size constraints provided will be scaled by the global scale.
         /// </summary>
         public WindowSizeConstraints? SizeConstraints { get; set; }
 
@@ -103,6 +103,11 @@ namespace Dalamud.Interface.Windowing
         /// Gets or sets this window's background alpha value.
         /// </summary>
         public float? BgAlpha { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether or not this ImGui window should display a close button in the title bar.
+        /// </summary>
+        public bool ShowCloseButton { get; set; } = true;
 
         /// <summary>
         /// Gets or sets a value indicating whether or not this window will stay open.
@@ -236,7 +241,7 @@ namespace Dalamud.Interface.Windowing
                 ImGui.PushStyleColor(ImGuiCol.TitleBgCollapsed, focusedHeaderColor);
             }
 
-            if (ImGui.Begin(this.WindowName, ref this.internalIsOpen, this.Flags))
+            if (this.ShowCloseButton ? ImGui.Begin(this.WindowName, ref this.internalIsOpen, this.Flags) : ImGui.Begin(this.WindowName, this.Flags))
             {
                 // Draw the actual window contents
                 this.Draw();

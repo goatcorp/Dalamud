@@ -17,7 +17,8 @@ namespace Dalamud.Game.Command
     /// </summary>
     [PluginInterface]
     [InterfaceVersion("1.0")]
-    public sealed class CommandManager
+    [ServiceManager.BlockingEarlyLoadedService]
+    public sealed class CommandManager : IServiceType, IDisposable
     {
         private readonly Dictionary<string, CommandInfo> commandMap = new();
         private readonly Regex commandRegexEn = new(@"^The command (?<command>.+) does not exist\.$", RegexOptions.Compiled);
@@ -27,13 +28,12 @@ namespace Dalamud.Game.Command
         private readonly Regex commandRegexCn = new(@"^^(“|「)(?<command>.+)(”|」)(出现问题：该命令不存在|出現問題：該命令不存在)。$", RegexOptions.Compiled);
         private readonly Regex currentLangCommandRegex;
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="CommandManager"/> class.
-        /// </summary>
-        internal CommandManager()
-        {
-            var startInfo = Service<DalamudStartInfo>.Get();
+        [ServiceManager.ServiceDependency]
+        private readonly ChatGui chatGui = Service<ChatGui>.Get();
 
+        [ServiceManager.ServiceConstructor]
+        private CommandManager(DalamudStartInfo startInfo)
+        {
             this.currentLangCommandRegex = startInfo.Language switch
             {
                 ClientLanguage.Japanese => this.commandRegexJp,
@@ -43,7 +43,7 @@ namespace Dalamud.Game.Command
                 _ => this.currentLangCommandRegex,
             };
 
-            Service<ChatGui>.Get().CheckMessageHandled += this.OnCheckMessageHandled;
+            this.chatGui.CheckMessageHandled += this.OnCheckMessageHandled;
         }
 
         /// <summary>
@@ -172,6 +172,11 @@ namespace Dalamud.Game.Command
                     }
                 }
             }
+        }
+
+        public void Dispose()
+        {
+            this.chatGui.CheckMessageHandled -= this.OnCheckMessageHandled;
         }
     }
 }

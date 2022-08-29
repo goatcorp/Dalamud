@@ -1,0 +1,484 @@
+20220511; version 3.009:
+  * Fixed an optimisation bug that caused /abcd|ab/ not to match "abc".
+
+20220504; version 3.008:
+  * Fixed the behaviour of [^\P{...}] when the icase flag is set, as it
+    behaved similarly to the one in v-mode that has been proposed in
+    TC39.
+
+20220429; version 3.007:
+  * Further modification to the counter mechanism.
+
+20220428; version 3.006:
+  * Modified the mechanism of the counter used for repetition.
+  * Re-removed the implementation of linear search for small character
+    classes.
+
+20220424; version 3.005:
+  * Fixed a bug that caused /(?<=$.*)/ not to match the end of "a" when
+    the multiline flag is set
+  * Preparations for \A, \z, (?m:) that have been proposed in TC39.
+
+20220420; version 3.004:
+  * Added a new optimisation for /A*B/ and /A+B/ where a character class
+    A overlaps a character or character class B, such as /[A-Za-z]+ing/,
+    /".*"/.
+
+20220416; version 3.003:
+  * Combined two optimisation functions into one.
+  * Reduced the amount of code for lookaround (lookahead and lookbehind)
+    assertions.
+
+20220416; version 3.002:
+  * Fixed a bug that caused regex_match or regex_search with the
+    match_continuous flag being set to fail when the entry point
+    selector introduced in version 3.000 was used internally.
+
+20211025; version 3.001:
+  * Removed the code for splitting counter as it seemed to be no effect
+    or to make performance a bit worse.
+  * Fixed potential bugs.
+  * Minor improvements.
+
+20211023; version 3.000:
+  * Updated srell_ucfdata2.hpp and srell_updata.hpp to support Unicode
+    14.0.0.
+  * Updated unicode/updataout.cpp to support Unicode 14. (Support in
+    advance new script names that are expected to be available in RegExp
+    of ECMAScript 2022).
+  * Changed the type used to store a Unicode value when char32_t is not
+    available, from an "unsigned integer type with width of at least 21
+    bits" to a "one of at least 32 bits".
+  * Changed the type used to store a repetition count or character class
+    number when char32_t is not available, from "unsigned int" to
+    "unsigned integer type of at least 32-bit width".
+  * Added overflow check in the function that translates digits into a
+    numeric value. For example, while up to the previous version
+    /a{0,4294967297}/ was treated as /a{0,1}/ because of overflow when
+    the unsigned int type is 32-bit width, SRELL now throws error_brace
+    in cases like this.
+  * Fixed a bug that caused /[^;]*^;?/ not to match the beginning of an
+    input string when the multiline flag is not set.
+  * Implemented a very simple and limited entry point selector.
+
+20211004; version 2.930:
+  * Added new typedefs whose prefix is u1632w- and support UTF-16 or
+    UTF-32 depending on the value of WCHAR_MAX. (When 0xFFFF <=
+    WCHAR_MAX < 0x10FFFF, u1632w- types are aliases of u16w- types.
+    When 0x10FFFF <= WCHAR_MAX, u1632w- types are aliases of u32w-
+    types).
+  * Reduced the amount of memory used for Eytzinger layout search.
+  * Various improvements. (Some of them are based on suggestions to NIRE
+    by Marko Njezic).
+
+20210624; version 2.920:
+  * Added a new optimisation for the quantifier '?' (I.e., {0,1}).
+  * Changed the version number of the ECMAScript specification
+    referenced in misc/sample01.cpp to 2021.
+
+20210429; version 2.912:
+  * Fixed another bug in the optimisation introduced in version 2.900,
+    which caused /aa|a|aa/ not to match "a" (Thanks to Jan Schrötter for
+    the report).
+    Incidentally, this optimisation can be disabled by defining
+    SRELLDBG_NO_BRANCH_OPT2 prior to including srell.hpp.
+
+20210424; version 2.911:
+  * Fixed a bug in the optimisation introduced in version 2.900, which
+    caused /abc|ab|ac/ not to match "ac". (Thanks for the bug report [As
+    my email to the reporter was rejected by the email server and
+    returned, it is unclear whether mentioning the name here is okay
+    with the reporter. So, I refrain]).
+
+20210407; version 2.910:
+  * Fixed a potential memory leak in move assignment operators used by
+    the pattern compiler since 2.900. (Thanks to Michal Švec for the
+    report).
+
+20210214; version 2.901:
+  * Removed redundant template specialisations.
+
+20210214; version 2.900:
+  * Added a new optimisation for the alternative expression that consist
+    of string literals, such as /abc|abd|acde/.
+  * Fixed the problem that brought u(8|16)[cs]regex_(token_)?iterator
+    (i.e., regex (token) iterators specialised for char8_t or char16_t)
+    to a compile error.
+  * Minor improvements.
+
+20210131; version 2.810:
+  * Improved internal UTF-8 iterators.
+
+20200724; version 2.800:
+  * Introduced the Eytzinger layout for binary search in the character
+    class.
+  * Reimplemented linear search for small character classes.
+  * Modified handling of the property data used for parsing the name for
+    a named capturing group. Now they are loaded only when needed
+    instead of being loaded into an instance of basic_regex always.
+
+20200714; version 2.730:
+  * Added code to prevent redundant save and restore operations when
+    nested capturing round brackets are processed.
+  * Improved regex_iterator.
+
+20200703; version 2.720:
+  * Improved case-insensitive (icase) search using the
+    Boyer-Moore-Horspool algorithm for UTF-8 string that includes
+    non-ASCII characters or UTF-16 string that includes non-BMP
+    characters.
+  * Fixed a bug that caused regex_iterator->prefix().first to point to
+    the beginning of the subject string instead of the end of the
+    previous match (regression introduced in version 2.650, when
+    three-iterators overloads were added to regex_search()).
+  * In accordance with the fix above, when a three-iterators version of
+    regex_search() is called, now match_results.position() returns a
+    distance from the position passed to as the lookbehind limit (3rd
+    param of regex_search) and match_results.prefix().first points to
+    the position passed to as the beginning of the subject string (1st
+    param of regex_search).
+  * Fixed a bug that could cause a valid UTF-8 sequence being adjacent
+    to an invalid UTF-8 sequence to be skipped when the BMH algorithm
+    was used (regression introduced in version 2.630, when UTF-8
+    handling was modified).
+
+20200701; version 2.710:
+  * Minor modifications to Boyer-Moore-Horspool search.
+
+20200630; version 2.700:
+  * Optimisation adjustments.
+
+20200620: version 2.651:
+  * Move the group name validity check to after parsing the \u escape.
+  * Updated misc/sample01.cpp to version 1.103. Changed the version
+    number of the ECMAScript specification referenced by to 2020 (ES11).
+
+20200618: version 2.650:
+  * To element access functions in match_results, added overload
+    functions for specifying the group name by a pointer.
+  * When a three-iterators version of regex_search() is used, SRELL now
+    sets match_results::prefix::first to the position passed to as the
+    lookbehind limit (third param) instead of the position passed to as
+    the beginning of the subject (first param).
+  * Removed some operations that seem to be redundant.
+
+20200601: version 2.643:
+  * Added "inline" to operators in syntax_option_type and
+    match_flag_type types, based on a report that it is needed not to
+    cause the multiple definition error.
+  * Minor improvements.
+
+20200530: version 2.642:
+  * Reduced the size of memory allocated by the basic_regex instance.
+
+20200528: version 2.641:
+  * The fix in 2.640 was incomplete. Fixed the optimisation bug 1 again.
+  * Optimisation adjustments.
+
+20200516: version 2.640:
+  * Fixed an optimisation bug 1: It was possible for regex_match to pass
+    the end of a subject string under certain conditions.
+  * Fixed an optimisation bug 2: ^ and $ were not given a chance to
+    match an appropriate position in some cases when the multiline flag
+    is set to true.
+  * Updated srell_ucfdata2.hpp and srell_updata.hpp.
+
+20200509: version 2.630:
+  * SRELL's pattern compiler no longer permits invalid UTF-8 sequences
+    in regular expressions. It throws regex_utf8. (Invalid UTF-8
+    sequences in the subject string are not treated as an error.)
+  * Fixed BMH search functions not to include extra (invalid) UTF-8
+    trailing bytes following the real matched substring, in a returned
+    result.
+  * Fixed minor issues: 1) basic_regex.flags() did not return the
+    correct value in some cases, 2) match_results.format() did not
+    replace $<NAME> with an empty string when any capturing group whose
+    name is NAME did not exist.
+
+20200502: version 2.620:
+  * Removed methods used for match_continuous and regex_match in the
+    class for the Boyer-Moore-Horspool algorithm. Now SRELL always uses
+    the automaton like earlier versions when they are processed.
+  * Some clean-ups.
+
+20200428: version 2.611:
+  * Fixed a bug that caused /\d*/ not to match the head of "abc" but to
+    match the end of it. (regression introduced in version 2.210.)
+
+20200426: version 2.610:
+  * Fixed a bug that caused case-insensitive (icase) BMH search to skip
+    a matched sequence at the beginning of the entire text, when 1)
+    search is done against UTF-8 or UTF-16 text, and 2) the searched
+    pattern ends with a character that consists of multiple code units
+    in that encoding.
+  * Now SRELL parses a capturing group name according to the ECMA
+    specification and strictly checks its validity. Group names like
+    /(?<,>...)/ cause regex_error.
+
+20200418: version 2.600:
+  * To pass to regex_search() directly the limit of a sequence until
+    where the automaton can lookbehind, added three-iterators versions
+    of regex_search().
+  * [Breaking Change] Removed the match_lblim_avail flag from
+    match_flag_type and the lookbehind_limit member from match_results
+    which were added in version 2.300.
+  * Updated srell_ucfdata2.hpp and srell_updata.hpp to support Unicode
+    13.0.0.
+  * Updated unicode/updataout.cpp to support Unicode 13. (Support in
+    advance new script names that will be available in RegExp of
+    ECMAScript 2020).
+
+20191118: version 2.500:
+  * Modified basic_regex to hold precomputed tables for icase matching,
+    instead of creating them from case folding data when its instance is
+    first created.
+  * In accordance with the change above, srell_ucfdata.hpp and
+    ucfdataout.cpp that outputs the former were replaced with
+    srell_ucfdata2.hpp that holds precomputed tables and ucfdataout2.cpp
+    that outputs the former.
+  * Changed the method of character class matching from linear search to
+    binary search.
+  * Changed the timing of optimisation of a character class from "when a
+    closing bracket ']' is found" to "every time a character or
+    character range is pushed to its character class array".
+  * Removed all asserts.
+  * Modified the pattern compiler to interpret sequential \uHHHH escapes
+    as a Unicode code point value if they represent a valid surrogate
+    pair. (By this change, incompatibilities with the ECMAScript
+    specification disappeared.)
+  * Fixed the position of an endif directive that caused a compiler
+    error when -DSRELL_NO_NAMEDCAPTURE is specified.
+  * Updated updataout.cpp to version 1.101.
+  * Added a standalone version of SRELL in the single-header directory.
+
+20190914: version 2.401:
+  * Reduced the size of basic_regex. (It was bloated by my carelessness
+    when support for Unicode property escapes was added).
+  * Improved basic_regex::swap().
+
+20190907: version 2.400:
+  * Improved the performance of character class matching.
+  * Modified the pattern compiler to interpret the \u escape sequence in
+    the group name in accordance with the ECMAScript specification.
+  * Updated ucfdataout.cpp to version 1.200. A new member has been added
+    to the unicode_casefolding class in srell_ucfdata.hpp that
+    ucfdataout.cpp generates.
+    Because SRELL 2.400 and later need this added member, they cannot be
+    used with srell_ucfdata.hpp output by ucfdataout.cpp version 1.101
+    or earlier. (No problem in using an older version of SRELL with a
+    newer version of srell_ucfdata.hpp).
+  * Some clean-ups and improvements.
+
+20190902: version 2.304:
+  * Fixed regex_iterator that had been broken by the code clean-up in
+    version 2.303.
+
+20190810: version 2.303:
+  * Refixed the problem that was fixed in version 2.302 as the fix was
+    incomplete.
+  * Cleaned up code.
+
+20190809: version 2.302:
+  * Bug fix: When (?...) has a quantifier, strings captured by round
+    brackets inside it were not cleared in each repetition but carried
+    over to the next loop. For example,
+    /(?:(ab)|(cd))+/.exec("abcd") returned ["abcd", "ab", "cd"], instead
+    of ["abcd", undefined, "cd"]. (The latter is correct).
+  * Updated misc/sample01.cpp to version 1.102. Rewrote the chapter
+    numbers in accordance with ECMAScript 2019 (ES10).
+
+20190724: version 2.301:
+  * In accordance with the ECMAScript spec, restricted the characters
+    which can be escaped by '\', to the following fifteen characters:
+    ^$\.*+?()[]{}|/
+    Only in the character class, i.e., inside [], '-' also becomes a
+    member of the group.
+
+20190717: version 2.300:
+  * Added a feature for specifying the limit until where the automaton
+    can lookbehind, separated from the beginning of a target sequence.
+    (Addition of the match_lblim_avail flag to match_flag_type and the
+    lookbehind_limit member to match_results).
+    And, lookbehind_limit of match_results being private and used
+    internally in regex_iterator is also set in its constructor.
+  * Removed order restriction of capturing parentheses and
+    backreferences, in accordance with the ECMAScript spec. Now /\1(.)/,
+    /(?<=(.)\1)/, and /\k<a>(?<a>.)/ are all okay.
+  * Updated misc/sample01.cpp to version 1.101. Added one compliance
+    test from misc.js.
+
+20190714: version 2.230:
+  * Improved the performance of searching when regular expressions begin
+    with a character or character class followed by a '*' or '+'. (E.g.,
+    /[A-Za-z]+ing/).
+
+20190707: version 2.221:
+  * Changed the feature test macro used for checking availability of
+    std::u8string, from __cpp_char8_t to __cpp_lib_char8_t.
+  * When icase specified, if all characters in a character class become
+    the same character as a result of case-folding, the pattern compiler
+    has been changed to convert the character class to the character
+    literal (e.g., /r[Ss\u017F]t/i -> /rst/i).
+  * Fixed a minor issue.
+
+20190617: version 2.220:
+  * Changed the internal representation of repetition in the case that
+    it becomes more compact by not using the counter.
+  * Fixed an optimisation bug that caused searching for /a{1,2}?b/
+    against "aab" to return "ab" instead of "aab". (Condition: a
+    character or character class with a non-greedy quantifier is
+    followed by its exclusive character or character class).
+
+20190613: version 2.210:
+  * Improved a method of matching for expressions like /ab|cd|ef/ (where
+    string literals separaterd by '|' begin with a character exclusive
+    to each other).
+
+20190603: version 2.202:
+  * Fixed a bug that caused regex_match to behave like regex_search in
+    the situation where the BMH algorithm is used.
+
+20190531: version 2.200:
+  * For searching with a ordinary (non-regex) string, added an
+    implementation based on the Boyer-Moore-Horspool algorithm.
+  * Improved UTF-8 iterators.
+  * Fixed behaviours of \b and \B when icase specified, to match /.\B./i
+    against "s\u017F".
+  * Fixed minor issues.
+
+20190508: version 2.100:
+  * Fixed a bug that caused failure of capturing when 1) a pair of
+    capturing brackets exists in a lookbehind assertion, and 2) variable
+    length expressions exist in both the left side of and the inside of
+    the pair of brackets. E.g., given "1053" =~ /(?<=(\d+)(\d+))$/, no
+    appropriate string was set for $2.
+  * Updated srell_ucfdata.hpp and srell_updata.hpp to support Unicode
+    12.1.0.
+  * Updated unicode/updataout.cpp to support Unicode 12. (Support in
+    advance a new binary property and new script names that will be
+    available in RegExp of ECMAScript 2019 and new script names that are
+    anticipated to be available in RegExp of ECMAScript 2020).
+  * Changed the newline character in srell.hpp from CR+LF to LF.
+  * Modified unicode/*.cpp to output LF as a newline instead of CR+LF.
+  * Updated misc/sample01.cpp to version 1.100:
+    1. Rewrote the chapter numbers in subtitles of compliance tests, in
+       accordance with ECMAScript 2018 Language Specification (ES9).
+       (The old chapter numbers were based on ECMAScript specifications
+       up to version 5.1).
+    2. Added one compliance test from ECMAScript 2018 Language
+       Specification 21.2.2.3, NOTE.
+  * Modified the macros for detecting C++11 features.
+  * Changed the method of the character class.
+  * For all the constructors and assign functions of basic_regex to have
+    a default argument for flag_type, reimplemented syntax_option_type
+    and match_flag_type (missed changes between TR1 -> C++11).
+  * Experimental support for the char8_t type. If a compiler supports
+    char8_t (detected by the __cpp_char8_t macro), classes whose names
+    have the "u8-" prefix accept a sequence of char8_t and handle it as
+    a UTF-8 string. If char8_t is not supported, the classes handle a
+    sequence of char as a UTF-8 string, as before.
+  * As classes that always handle a sequence of char as a UTF-8 string,
+    new classes whose names have the "u8c-" prefix were added. They
+    correspond to the classes having the "u8-" prefix in their names up
+    to version 2.002:
+    * u8cregex; u8ccmatch, u8csmatch; u8ccsub_match, u8cssub_match;
+      u8ccregex_iterator, u8csregex_iterator; u8ccregex_token_iterator,
+      u8csregex_token_iterator.
+
+20180717: version 2.002:
+  * Changed the maximum number of hexdigits in \u{h...} from six to
+    'unlimited' in accordance with the ECMAScript specification. ("one
+    to six hexadecimal digits" of the old implementation was based on
+    the proposal document).
+  * Updated updataout.cpp to version 1.001. Encounting unknown
+    (newly-encoded) script names is no longer treated as an error.
+  * Updated srell_ucfdata.hpp and srell_updata.hpp to support Unicode
+    11.0.0.
+
+20180204: version 2.001:
+  * When icase is specified, [\W] (a character class containing \W) no
+    longer matches any of [KkSs\u017F\u212A] (ecma262 issue #512).
+
+20180127: version 2.000:
+  * Added the following features that are to be included into RegExp of
+    ECMAScript 2018:
+    * New syntax option flag for '.' to match every code point, dotall,
+      was added to srell::regex_constants as a value of
+      syntax_option_type and to srell::basic_regex as a value of
+      flag_type.
+    * New expressions to support the Unicode property, \p{...} and
+      \P{...}.
+    * Named capture groups (?<NAME>...) and the new expression for
+      backreference to a named capture group, \k<NAME>.
+  * The behaviors of lookbehind assertions changed. Now both (?<=...)
+    and (?<!...) support variable-length lookbehind.
+
+20180125; version 1.401:
+  * Limited the maximum of numbers that are recognised as backreference
+    in match_results.format() up to 99, in accordance with the
+    ECMAScript specification. (I.e., restricted to $1..$9 and $01..$99).
+  * Removed an unused macro and its related code.
+
+20180101; version 1.400:
+  * Changed the behaviour of the pattern compiler so that an empty
+    non-capturing group can have a quantifier, for example, /(?:)*/. It
+    is a meaningless expression, but changed just for compatibility with
+    RegExp of ECMAScript.
+  * Fixed a hang bug: This occured when 1) a non-capturing group has a
+    quantifier, 2) and the length of the group itself can be zero-width,
+    3) and a backreference that can be zero-width is included in the
+    group somewhere other than the last, such as /(.*)(?:\1.*)*/.
+
+20171216; version 1.300:
+  * Fixed an important bug: /^(;[^;]*)*$/ did not match ";;;;" because
+    of a bug in optimisation. This problem occured when a sequence of
+    regular expressions ended like /(A...B*)*$/ where a character or
+    character set that A represents and the one that B represents are
+    exclusive to each other.
+
+20170621; version 1.200:
+  * Updated srell_ucfdata.hpp to support Unicode 10.0.0.
+  * Improved u8regex_traits to handle corrupt UTF-8 sequences more
+    safely.
+
+20150618; version 1.141:
+    Updated srell_ucfdata.hpp to support Unicode 8.0.0.
+
+20150517; version 1.140:
+  * Modified the method for regex_match() to determine whether a
+    sequence of regular expressions is matched against a sequence of
+    characters. (Issue raised at #2273 in C++ Standard Library Issues
+    List).
+  * Restricted the accepted range of X in the expression "\cX" to
+    [A-Za-z] in accordance with the ECMAScript specification.
+  * Fixed the problem that caused parens in a lookaround assertion not
+    to capture a sequence correctly in some circumstances because the
+    bug fix done in version 1.111 was imperfect.
+
+20150503; version 1.130:
+  * Improved case-folding functions.
+  * Updated unicode/ucfdataout.cpp to version 1.100.
+  * Fixed a typo in #if directives for u(16|32)[cs]match.
+
+20150425; version 1.120:
+  * Fixed the bug that caused characters in U+010000-U+10FFFF in UTF-8
+    (i.e., four octet length characters) not to have been recognised.
+  * Updated misc/sample01.cpp to version 1.010.
+
+20150402; version 1.111:
+  * Fixed the problem that caused $2 of "aaa" =~ /((.*)*)/ to be empty
+    instead of "aaa" because of a bug in optimisation.
+
+20141101; version 1.110:
+  * Several fixes based on a bug report:
+      1. Added "this->" to compile() in basic_regex::assign().
+      2. Implemented operator=() functions explicitly instead of using
+         default ones generated automatically.
+  * unicode/ucfdataout.cpp revised and updated to version 1.001.
+
+20140622; version 1.101:
+    Updated srell_ucfdata.hpp to support Unicode 7.0.0.
+
+20121118; version 1.100:
+    The first released version.
+

@@ -26,112 +26,122 @@ namespace Dalamud
     public sealed class EntryPoint
     {
         /// <summary>
+        /// Log level switch for runtime log level change.
+        /// </summary>
+        public static readonly LoggingLevelSwitch LogLevelSwitch = new(LogEventLevel.Verbose);
+
+        /// <summary>
         /// A delegate used during initialization of the CLR from Dalamud.Boot.
         /// </summary>
         /// <param name="infoPtr">Pointer to a serialized <see cref="DalamudStartInfo"/> data.</param>
-        public delegate void InitDelegate(IntPtr infoPtr);
+        /// <param name="mainThreadContinueEvent">Event used to signal the main thread to continue.</param>
+        public delegate void InitDelegate(IntPtr infoPtr, IntPtr mainThreadContinueEvent);
 
         /// <summary>
         /// A delegate used from VEH handler on exception which CoreCLR will fast fail by default.
         /// </summary>
-        /// <param name="dumpPath">Path to minidump file created in UTF-16.</param>
-        /// <param name="logPath">Path to log file to create in UTF-16.</param>
-        /// <param name="log">Log text in UTF-16.</param>
-        public delegate void VehDelegate(IntPtr dumpPath, IntPtr logPath, IntPtr log);
+        /// <returns>HGLOBAL for message.</returns>
+        public delegate IntPtr VehDelegate();
 
         /// <summary>
         /// Initialize Dalamud.
         /// </summary>
         /// <param name="infoPtr">Pointer to a serialized <see cref="DalamudStartInfo"/> data.</param>
-        public static void Initialize(IntPtr infoPtr)
+        /// <param name="mainThreadContinueEvent">Event used to signal the main thread to continue.</param>
+        public static void Initialize(IntPtr infoPtr, IntPtr mainThreadContinueEvent)
         {
-            var infoStr = Marshal.PtrToStringUTF8(infoPtr);
-            var info = JsonConvert.DeserializeObject<DalamudStartInfo>(infoStr);
+            var infoStr = Marshal.PtrToStringUTF8(infoPtr)!;
+            var info = JsonConvert.DeserializeObject<DalamudStartInfo>(infoStr)!;
 
-            new Thread(() => RunThread(info)).Start();
+            if ((info.BootWaitMessageBox & 4) != 0)
+                MessageBoxW(IntPtr.Zero, "Press OK to continue (BeforeDalamudConstruct)", "Dalamud Boot", MessageBoxType.Ok);
+
+            new Thread(() => RunThread(info, mainThreadContinueEvent)).Start();
         }
 
         /// <summary>
-        /// Show error message along with stack trace and exit.
+        /// Returns stack trace.
         /// </summary>
-        /// <param name="dumpPath">Path to minidump file created in UTF-16.</param>
-        /// <param name="logPath">Path to log file to create in UTF-16.</param>
-        /// <param name="log">Log text in UTF-16.</param>
-        public static void VehCallback(IntPtr dumpPath, IntPtr logPath, IntPtr log)
+        /// <returns>HGlobal to wchar_t* stack trace c-string.</returns>
+        public static IntPtr VehCallback()
         {
-            string stackTrace;
             try
             {
-                stackTrace = Environment.StackTrace;
+                return Marshal.StringToHGlobalUni(Environment.StackTrace);
             }
             catch (Exception e)
             {
-                stackTrace = "Fail: " + e.ToString();
+                return Marshal.StringToHGlobalUni("Fail: " + e);
+            }
+        }
+
+        /// <summary>
+        /// Sets up logging.
+        /// </summary>
+        /// <param name="baseDirectory">Base directory.</param>
+        /// <param name="logConsole">Whether to log to console.</param>
+        /// <param name="logSynchronously">Log synchronously.</param>
+        internal static void InitLogging(string baseDirectory, bool logConsole, bool logSynchronously)
+        {
+#if DEBUG
+            var logPath = Path.Combine(baseDirectory, "dalamud.log");
+            var oldPath = Path.Combine(baseDirectory, "dalamud.log.old");
+#else
+            var logPath = Path.Combine(baseDirectory, "..", "..", "..", "dalamud.log");
+            var oldPath = Path.Combine(baseDirectory, "..", "..", "..", "dalamud.log.old");
+#endif
+            Log.CloseAndFlush();
+
+            CullLogFile(logPath, oldPath, 1 * 1024 * 1024);
+            CullLogFile(oldPath, null, 10 * 1024 * 1024);
+
+            var config = new LoggerConfiguration()
+                         .WriteTo.Sink(SerilogEventSink.Instance)
+                         .MinimumLevel.ControlledBy(LogLevelSwitch);
+
+            if (logSynchronously)
+            {
+                config = config.WriteTo.File(logPath, fileSizeLimitBytes: null);
+            }
+            else
+            {
+                config = config.WriteTo.Async(a => a.File(
+                                                  logPath,
+                                                  fileSizeLimitBytes: null,
+                                                  buffered: false,
+                                                  flushToDiskInterval: TimeSpan.FromSeconds(1)));
             }
 
-            var msg = "An error within the game has occurred.\n\n"
-                + "This may be caused by a faulty plugin, a broken TexTools modification, any other third-party tool or simply a bug in the game.\n"
-                + "Please try \"Start Over\" or \"Download Index Backup\" in TexTools, an integrity check in the XIVLauncher settings, and disabling plugins you don't need.\n\n"
-                + "The log file is located at:\n"
-                + "{1}\n\n"
-                + "Press OK to exit the application.\n\nStack trace:\n{2}";
+            if (logConsole)
+                config = config.WriteTo.Console();
 
-            try
-            {
-                File.WriteAllText(
-                    Marshal.PtrToStringUni(logPath),
-                    "Stack trace:\n" + stackTrace + "\n\n" + Marshal.PtrToStringUni(log));
-            }
-            catch (Exception e)
-            {
-                msg += "\n\nAdditionally, failed to write file: " + e.ToString();
-            }
-
-            // Show in another thread to prevent messagebox from pumping messages of current thread.
-            var msgThread = new Thread(() =>
-            {
-                Utility.Util.Fatal(
-                    msg.Format(
-                        Marshal.PtrToStringUni(dumpPath),
-                        Marshal.PtrToStringUni(logPath),
-                        stackTrace),
-                    "Dalamud Error",
-                    false);
-            });
-            msgThread.Start();
-            msgThread.Join();
+            Log.Logger = config.CreateLogger();
         }
 
         /// <summary>
         /// Initialize all Dalamud subsystems and start running on the main thread.
         /// </summary>
         /// <param name="info">The <see cref="DalamudStartInfo"/> containing information needed to initialize Dalamud.</param>
-        private static void RunThread(DalamudStartInfo info)
+        /// <param name="mainThreadContinueEvent">Event used to signal the main thread to continue.</param>
+        private static void RunThread(DalamudStartInfo info, IntPtr mainThreadContinueEvent)
         {
-            if (EnvironmentConfiguration.DalamudWaitForDebugger)
-            {
-                while (!Debugger.IsAttached)
-                {
-                    Thread.Sleep(100);
-                }
-            }
-
             // Setup logger
-            var levelSwitch = InitLogging(info.WorkingDirectory);
+            InitLogging(info.WorkingDirectory!, info.BootShowConsole, true);
+            SerilogEventSink.Instance.LogLine += SerilogOnLogLine;
 
             // Load configuration first to get some early persistent state, like log level
-            var configuration = DalamudConfiguration.Load(info.ConfigurationPath);
+            var configuration = DalamudConfiguration.Load(info.ConfigurationPath!);
 
             // Set the appropriate logging level from the configuration
 #if !DEBUG
-            levelSwitch.MinimumLevel = configuration.LogLevel;
+            if (!configuration.LogSynchronously)
+                InitLogging(info.WorkingDirectory!, info.BootShowConsole, configuration.LogSynchronously);
+            LogLevelSwitch.MinimumLevel = configuration.LogLevel;
 #endif
 
             // Log any unhandled exception.
             AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
             TaskScheduler.UnobservedTaskException += OnUnobservedTaskException;
-
-            var finishSignal = new ManualResetEvent(false);
 
             try
             {
@@ -150,14 +160,12 @@ namespace Dalamud
                 if (!Util.IsLinux())
                     InitSymbolHandler(info);
 
-                var dalamud = new Dalamud(info, levelSwitch, finishSignal, configuration);
-                Log.Information("Starting a session..");
+                var dalamud = new Dalamud(info, configuration, mainThreadContinueEvent);
+                Log.Information("This is Dalamud - Core: {GitHash}, CS: {CsGitHash}", Util.GetGitHash(), Util.GetGitHashClientStructs());
 
-                // Run session
-                dalamud.LoadTier1();
                 dalamud.WaitForUnload();
 
-                dalamud.Dispose();
+                ServiceManager.UnloadAllServices();
             }
             catch (Exception ex)
             {
@@ -170,9 +178,16 @@ namespace Dalamud
 
                 Log.Information("Session has ended.");
                 Log.CloseAndFlush();
-
-                finishSignal.Set();
+                SerilogEventSink.Instance.LogLine -= SerilogOnLogLine;
             }
+        }
+
+        private static void SerilogOnLogLine(object? sender, (string Line, LogEventLevel Level, DateTimeOffset TimeStamp, Exception? Exception) e)
+        {
+            if (e.Exception == null)
+                return;
+
+            Troubleshooting.LogException(e.Exception, e.Line);
         }
 
         private static void InitSymbolHandler(DalamudStartInfo info)
@@ -195,29 +210,6 @@ namespace Dalamud
             {
                 Log.Error(ex, "SymbolHandler Initialize Failed.");
             }
-        }
-
-        private static LoggingLevelSwitch InitLogging(string baseDirectory)
-        {
-#if DEBUG
-            var logPath = Path.Combine(baseDirectory, "dalamud.log");
-            var oldPath = Path.Combine(baseDirectory, "dalamud.log.old");
-#else
-            var logPath = Path.Combine(baseDirectory, "..", "..", "..", "dalamud.log");
-            var oldPath = Path.Combine(baseDirectory, "..", "..", "..", "dalamud.log.old");
-#endif
-
-            CullLogFile(logPath, oldPath, 1 * 1024 * 1024);
-            CullLogFile(oldPath, null, 10 * 1024 * 1024);
-
-            var levelSwitch = new LoggingLevelSwitch(LogEventLevel.Verbose);
-            Log.Logger = new LoggerConfiguration()
-                .WriteTo.Async(a => a.File(logPath))
-                .WriteTo.Sink(SerilogEventSink.Instance)
-                .MinimumLevel.ControlledBy(levelSwitch)
-                .CreateLogger();
-
-            return levelSwitch;
         }
 
         private static void CullLogFile(string logPath, string? oldPath, int cullingFileSize)
@@ -320,11 +312,14 @@ namespace Dalamud
                         config.Save();
                     }
 
+                    Log.CloseAndFlush();
                     Environment.Exit(-1);
-
                     break;
                 default:
                     Log.Fatal("Unhandled SEH object on AppDomain: {Object}", args.ExceptionObject);
+
+                    Log.CloseAndFlush();
+                    Environment.Exit(-1);
                     break;
             }
         }
