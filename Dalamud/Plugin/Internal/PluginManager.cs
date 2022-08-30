@@ -556,7 +556,12 @@ internal partial class PluginManager : IDisposable, IServiceType
     public async Task ReloadPluginMastersAsync(bool notify = true)
     {
         Log.Information("Now reloading all PluginMasters...");
-        await Task.WhenAll(this.Repos.Select(repo => repo.ReloadPluginMasterAsync()));
+
+        Debug.Assert(!this.Repos.First().IsThirdParty, "First repository should be main repository");
+        await this.Repos.First().ReloadPluginMasterAsync(); // Load official repo first
+
+        await Task.WhenAll(this.Repos.Skip(1).Select(repo => repo.ReloadPluginMasterAsync()));
+
         Log.Information("PluginMasters reloaded, now refiltering...");
 
         this.RefilterPluginMasters(notify);
@@ -729,6 +734,13 @@ internal partial class PluginManager : IDisposable, IServiceType
 
         // Reload as a local manifest, add some attributes, and save again.
         var manifest = LocalPluginManifest.Load(manifestFile);
+
+        if (manifest.InternalName != repoManifest.InternalName)
+        {
+            Directory.Delete(outputDir.FullName, true);
+            throw new Exception(
+                $"Distributed internal name does not match repo internal name: {manifest.InternalName} - {repoManifest.InternalName}");
+        }
 
         if (useTesting)
         {
