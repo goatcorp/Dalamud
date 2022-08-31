@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
+using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
@@ -106,6 +108,35 @@ internal class PluginRepository
             foreach (var manifest in pluginMaster)
             {
                 manifest.SourceRepo = this;
+            }
+
+            var pm = Service<PluginManager>.Get();
+            var official = pm.Repos.First();
+            Debug.Assert(!official.IsThirdParty, "First repository should be official repository");
+
+            if (official.State == PluginRepositoryState.Success && this.IsThirdParty)
+            {
+                pluginMaster = pluginMaster.Where(thisRepoEntry =>
+                {
+                    if (official.PluginMaster!.Any(officialRepoEntry =>
+                                                       string.Equals(thisRepoEntry.InternalName, officialRepoEntry.InternalName, StringComparison.InvariantCultureIgnoreCase)))
+                    {
+                        Log.Warning(
+                            "The repository {RepoName} tried to replace the plugin {PluginName}, which is already installed through the official repo - this is no longer allowed for security reasons. " +
+                            "Please reach out if you have an use case for this.",
+                            this.PluginMasterUrl,
+                            thisRepoEntry.InternalName);
+                        return false;
+                    }
+
+                    return true;
+                }).ToList();
+            }
+            else if (this.IsThirdParty)
+            {
+                Log.Warning("Official repository not loaded - couldn't check for overrides!");
+                this.State = PluginRepositoryState.Fail;
+                return;
             }
 
             this.PluginMaster = pluginMaster.AsReadOnly();
