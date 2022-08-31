@@ -119,8 +119,7 @@ internal class PluginRepository
                 pluginMaster = pluginMaster.Where(thisRepoEntry =>
                 {
                     if (official.PluginMaster!.Any(officialRepoEntry =>
-                                                       string.Equals(thisRepoEntry.InternalName, officialRepoEntry.InternalName, StringComparison.InvariantCultureIgnoreCase) ||
-                                                       thisRepoEntry.Name.Contains(officialRepoEntry.Name)))
+                                                       string.Equals(thisRepoEntry.InternalName, officialRepoEntry.InternalName, StringComparison.InvariantCultureIgnoreCase)))
                     {
                         Log.Warning(
                             "The repository {RepoName} tried to replace the plugin {PluginName}, which is already installed through the official repo - this is no longer allowed for security reasons. " +
