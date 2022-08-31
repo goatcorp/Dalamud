@@ -1234,6 +1234,7 @@ internal partial class PluginManager : IDisposable, IServiceType
 
             var updates = this.AvailablePlugins
                               .Where(remoteManifest => plugin.Manifest.InternalName == remoteManifest.InternalName)
+                              .Where(remoteManifest => plugin.Manifest.RepoUrl == remoteManifest.RepoUrl || !remoteManifest.SourceRepo.IsThirdParty)
                               .Select(remoteManifest =>
                               {
                                   var useTesting = UseTesting(remoteManifest);
