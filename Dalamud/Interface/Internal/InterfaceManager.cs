@@ -1105,7 +1105,7 @@ namespace Dalamud.Interface.Internal
             var snap = ImGuiManagedAsserts.GetSnapshot();
 
             if (this.IsDispatchingEvents)
-                this.Draw?.Raise();
+                this.Draw?.Invoke();
 
             ImGuiManagedAsserts.ReportProblems("Dalamud Core", snap);
 
