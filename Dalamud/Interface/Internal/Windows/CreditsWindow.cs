@@ -84,6 +84,20 @@ Xorus
 
 
 
+Plogon
+The Plugin Build System
+brought to you by:
+
+goat
+NotNite
+Styr1x
+Kouzukii
+wolfcomp
+Philpax
+All DIP enjoyers
+
+
+
 Logo by:
 
 gucciBane
