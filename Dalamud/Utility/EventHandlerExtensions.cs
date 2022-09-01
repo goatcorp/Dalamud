@@ -20,14 +20,14 @@ namespace Dalamud.Utility
         /// <param name="eh">The EventHandler in question.</param>
         /// <param name="sender">Default sender for Invoke equivalent.</param>
         /// <param name="e">Default EventArgs for Invoke equivalent.</param>
-        public static void Raise(this EventHandler eh, object sender, EventArgs e)
+        public static void InvokeSafely(this EventHandler eh, object sender, EventArgs e)
         {
             if (eh == null)
                 return;
 
             foreach (var handler in eh.GetInvocationList().Cast<EventHandler>())
             {
-                HandleRaise(() => handler(sender, e));
+                HandleInvoke(() => handler(sender, e));
             }
         }
 
@@ -39,14 +39,14 @@ namespace Dalamud.Utility
         /// <param name="sender">Default sender for Invoke equivalent.</param>
         /// <param name="e">Default EventArgs for Invoke equivalent.</param>
         /// <typeparam name="T">Type of EventArgs.</typeparam>
-        public static void Raise<T>(this EventHandler<T> eh, object sender, T e)
+        public static void InvokeSafely<T>(this EventHandler<T> eh, object sender, T e)
         {
             if (eh == null)
                 return;
 
             foreach (var handler in eh.GetInvocationList().Cast<EventHandler<T>>())
             {
-                HandleRaise(() => handler(sender, e));
+                HandleInvoke(() => handler(sender, e));
             }
         }
 
@@ -55,14 +55,14 @@ namespace Dalamud.Utility
         /// of a thrown Exception inside of an invocation.
         /// </summary>
         /// <param name="act">The Action in question.</param>
-        public static void Raise(this Action act)
+        public static void InvokeSafely(this Action act)
         {
             if (act == null)
                 return;
 
             foreach (var action in act.GetInvocationList().Cast<Action>())
             {
-                HandleRaise(action);
+                HandleInvoke(action);
             }
         }
 
@@ -72,18 +72,18 @@ namespace Dalamud.Utility
         /// </summary>
         /// <param name="updateDelegate">The OnUpdateDelegate in question.</param>
         /// <param name="framework">Framework to be passed on to OnUpdateDelegate.</param>
-        public static void Raise(this OnUpdateDelegate updateDelegate, Framework framework)
+        public static void InvokeSafely(this OnUpdateDelegate updateDelegate, Framework framework)
         {
             if (updateDelegate == null)
                 return;
 
             foreach (var action in updateDelegate.GetInvocationList().Cast<OnUpdateDelegate>())
             {
-                HandleRaise(() => action(framework));
+                HandleInvoke(() => action(framework));
             }
         }
 
-        private static void HandleRaise(Action act)
+        private static void HandleInvoke(Action act)
         {
             try
             {

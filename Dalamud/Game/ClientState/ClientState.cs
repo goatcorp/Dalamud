@@ -146,7 +146,7 @@ namespace Dalamud.Game.ClientState
         private IntPtr SetupTerritoryTypeDetour(IntPtr manager, ushort terriType)
         {
             this.TerritoryType = terriType;
-            this.TerritoryChanged?.Raise(this, terriType);
+            this.TerritoryChanged?.InvokeSafely(this, terriType);
 
             Log.Debug("TerritoryType changed: {0}", terriType);
 
@@ -155,7 +155,7 @@ namespace Dalamud.Game.ClientState
 
         private void NetworkHandlersOnCfPop(object sender, Lumina.Excel.GeneratedSheets.ContentFinderCondition e)
         {
-            this.CfPop?.Raise(this, e);
+            this.CfPop?.InvokeSafely(this, e);
         }
 
         private void FrameworkOnOnUpdateEvent(Framework framework1)
@@ -172,7 +172,7 @@ namespace Dalamud.Game.ClientState
                 Log.Debug("Is login");
                 this.lastConditionNone = false;
                 this.IsLoggedIn = true;
-                this.Login?.Raise(this, null);
+                this.Login?.InvokeSafely(this, null);
                 gameGui.ResetUiHideState();
             }
 
@@ -181,7 +181,7 @@ namespace Dalamud.Game.ClientState
                 Log.Debug("Is logout");
                 this.lastConditionNone = true;
                 this.IsLoggedIn = false;
-                this.Logout?.Raise(this, null);
+                this.Logout?.InvokeSafely(this, null);
                 gameGui.ResetUiHideState();
             }
 
@@ -194,11 +194,11 @@ namespace Dalamud.Game.ClientState
 
                 if (this.IsPvP)
                 {
-                    this.EnterPvP?.Raise();
+                    this.EnterPvP?.InvokeSafely();
                 }
                 else
                 {
-                    this.LeavePvP?.Raise();
+                    this.LeavePvP?.InvokeSafely();
                 }
             }
         }

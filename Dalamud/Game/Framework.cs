@@ -415,7 +415,7 @@ namespace Dalamud.Game
                 }
                 else
                 {
-                    this.Update?.Raise(this);
+                    this.Update?.InvokeSafely(this);
                 }
             }
 

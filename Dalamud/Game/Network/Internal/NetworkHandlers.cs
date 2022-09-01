@@ -288,7 +288,7 @@ namespace Dalamud.Game.Network.Internal
                     Service<ChatGui>.GetNullable()?.Print($"Duty pop: {cfcName}");
                 }
 
-                this.CfPop?.Raise(this, cfCondition);
+                this.CfPop?.InvokeSafely(this, cfCondition);
             }).ContinueWith((task) => Log.Error(task.Exception, "CfPop.Invoke failed."), TaskContinuationOptions.OnlyOnFaulted);
         }
     }

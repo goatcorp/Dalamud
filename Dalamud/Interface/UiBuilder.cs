@@ -393,7 +393,7 @@ namespace Dalamud.Interface
         /// </summary>
         internal void OpenConfig()
         {
-            this.OpenConfigUi?.Raise();
+            this.OpenConfigUi?.InvokeSafely();
         }
 
         /// <summary>
@@ -401,7 +401,7 @@ namespace Dalamud.Interface
         /// </summary>
         internal void NotifyHideUi()
         {
-            this.HideUi?.Raise();
+            this.HideUi?.InvokeSafely();
         }
 
         /// <summary>
@@ -409,7 +409,7 @@ namespace Dalamud.Interface
         /// </summary>
         internal void NotifyShowUi()
         {
-            this.ShowUi?.Raise();
+            this.ShowUi?.InvokeSafely();
         }
 
         private void OnDraw()
@@ -429,7 +429,7 @@ namespace Dalamud.Interface
                 if (!this.lastFrameUiHideState)
                 {
                     this.lastFrameUiHideState = true;
-                    this.HideUi?.Raise();
+                    this.HideUi?.InvokeSafely();
                 }
 
                 return;
@@ -438,7 +438,7 @@ namespace Dalamud.Interface
             if (this.lastFrameUiHideState)
             {
                 this.lastFrameUiHideState = false;
-                this.ShowUi?.Raise();
+                this.ShowUi?.InvokeSafely();
             }
 
             if (!this.interfaceManager.FontsReady)
@@ -471,7 +471,7 @@ namespace Dalamud.Interface
 
             try
             {
-                this.Draw?.Raise();
+                this.Draw?.InvokeSafely();
             }
             catch (Exception ex)
             {
@@ -504,17 +504,17 @@ namespace Dalamud.Interface
 
         private void OnBuildFonts()
         {
-            this.BuildFonts?.Raise();
+            this.BuildFonts?.InvokeSafely();
         }
 
         private void OnAfterBuildFonts()
         {
-            this.AfterBuildFonts?.Raise();
+            this.AfterBuildFonts?.InvokeSafely();
         }
 
         private void OnResizeBuffers()
         {
-            this.ResizeBuffers?.Raise();
+            this.ResizeBuffers?.InvokeSafely();
         }
     }
 }
