@@ -773,7 +773,7 @@ namespace Dalamud.Interface.Internal
                 var customFontFirstConfigIndex = ioFonts.ConfigData.Size;
 
                 Log.Verbose("[FONT] Invoke OnBuildFonts");
-                this.BuildFonts?.Invoke();
+                this.BuildFonts?.Raise();
                 Log.Verbose("[FONT] OnBuildFonts OK!");
 
                 for (int i = customFontFirstConfigIndex, i_ = ioFonts.ConfigData.Size; i < i_; i++)
@@ -881,7 +881,7 @@ namespace Dalamud.Interface.Internal
                 }
 
                 Log.Verbose("[FONT] Invoke OnAfterBuildFonts");
-                this.AfterBuildFonts?.Invoke();
+                this.AfterBuildFonts?.Raise();
                 Log.Verbose("[FONT] OnAfterBuildFonts OK!");
 
                 if (ioFonts.Fonts[0].NativePtr != DefaultFont.NativePtr)
@@ -978,7 +978,7 @@ namespace Dalamud.Interface.Internal
             Log.Verbose($"Calling resizebuffers swap@{swapChain.ToInt64():X}{bufferCount} {width} {height} {newFormat} {swapChainFlags}");
 #endif
 
-            this.ResizeBuffers?.Invoke();
+            this.ResizeBuffers?.Raise();
 
             // We have to ensure we're working with the main swapchain,
             // as viewports might be resizing as well
@@ -1105,7 +1105,7 @@ namespace Dalamud.Interface.Internal
             var snap = ImGuiManagedAsserts.GetSnapshot();
 
             if (this.IsDispatchingEvents)
-                this.Draw?.Invoke();
+                this.Draw?.Raise();
 
             ImGuiManagedAsserts.ReportProblems("Dalamud Core", snap);
 

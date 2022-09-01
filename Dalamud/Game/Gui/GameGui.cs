@@ -466,14 +466,7 @@ namespace Dalamud.Game.Gui
                 var itemId = (ulong)Marshal.ReadInt32(hoverState, 0x138);
                 this.HoveredItem = itemId;
 
-                try
-                {
-                    this.HoveredItemChanged?.Invoke(this, itemId);
-                }
-                catch (Exception e)
-                {
-                    Log.Error(e, "Could not dispatch HoveredItemChanged event.");
-                }
+                this.HoveredItemChanged?.Raise(this, itemId);
 
                 Log.Verbose("HoverItemId:{0} this:{1}", itemId, hoverState.ToInt64().ToString("X"));
             }
@@ -515,14 +508,7 @@ namespace Dalamud.Game.Gui
             this.HoveredAction.ActionKind = actionKind;
             this.HoveredAction.BaseActionID = actionId;
             this.HoveredAction.ActionID = (uint)Marshal.ReadInt32(hoverState, 0x3C);
-            try
-            {
-                this.HoveredActionChanged?.Invoke(this, this.HoveredAction);
-            }
-            catch (Exception e)
-            {
-                Log.Error(e, "Could not dispatch HoveredItemChanged event.");
-            }
+            this.HoveredActionChanged?.Raise(this, this.HoveredAction);
 
             Log.Verbose("HoverActionId: {0}/{1} this:{2}", actionKind, actionId, hoverState.ToInt64().ToString("X"));
         }
@@ -562,14 +548,7 @@ namespace Dalamud.Game.Gui
             // TODO(goat): We should read this from memory directly, instead of relying on catching every toggle.
             this.GameUiHidden = !this.GameUiHidden;
 
-            try
-            {
-                this.UiHideToggled?.Invoke(this, this.GameUiHidden);
-            }
-            catch (Exception ex)
-            {
-                Log.Error(ex, "Error on OnUiHideToggled event dispatch");
-            }
+            this.UiHideToggled?.Raise(this, this.GameUiHidden);
 
             Log.Debug("UiHide toggled: {0}", this.GameUiHidden);
 

@@ -9,6 +9,7 @@ using Dalamud.Game.Network.Internal;
 using Dalamud.Hooking;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
+using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using Serilog;
 
@@ -145,7 +146,7 @@ namespace Dalamud.Game.ClientState
         private IntPtr SetupTerritoryTypeDetour(IntPtr manager, ushort terriType)
         {
             this.TerritoryType = terriType;
-            this.TerritoryChanged?.Invoke(this, terriType);
+            this.TerritoryChanged?.Raise(this, terriType);
 
             Log.Debug("TerritoryType changed: {0}", terriType);
 
@@ -154,7 +155,7 @@ namespace Dalamud.Game.ClientState
 
         private void NetworkHandlersOnCfPop(object sender, Lumina.Excel.GeneratedSheets.ContentFinderCondition e)
         {
-            this.CfPop?.Invoke(this, e);
+            this.CfPop?.Raise(this, e);
         }
 
         private void FrameworkOnOnUpdateEvent(Framework framework1)
@@ -171,7 +172,7 @@ namespace Dalamud.Game.ClientState
                 Log.Debug("Is login");
                 this.lastConditionNone = false;
                 this.IsLoggedIn = true;
-                this.Login?.Invoke(this, null);
+                this.Login?.Raise(this, null);
                 gameGui.ResetUiHideState();
             }
 
@@ -180,7 +181,7 @@ namespace Dalamud.Game.ClientState
                 Log.Debug("Is logout");
                 this.lastConditionNone = true;
                 this.IsLoggedIn = false;
-                this.Logout?.Invoke(this, null);
+                this.Logout?.Raise(this, null);
                 gameGui.ResetUiHideState();
             }
 
@@ -193,11 +194,11 @@ namespace Dalamud.Game.ClientState
 
                 if (this.IsPvP)
                 {
-                    this.EnterPvP?.Invoke();
+                    this.EnterPvP?.Raise();
                 }
                 else
                 {
-                    this.LeavePvP?.Invoke();
+                    this.LeavePvP?.Raise();
                 }
             }
         }
