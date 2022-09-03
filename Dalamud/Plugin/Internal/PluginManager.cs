@@ -1263,28 +1263,14 @@ internal partial class PluginManager : IDisposable, IServiceType
     {
         this.DetectAvailablePluginUpdates();
 
-        try
-        {
-            this.OnAvailablePluginsChanged?.Invoke();
-        }
-        catch (Exception ex)
-        {
-            Log.Error(ex, $"Error notifying {nameof(this.OnAvailablePluginsChanged)}");
-        }
+        this.OnAvailablePluginsChanged?.InvokeSafely();
     }
 
     private void NotifyInstalledPluginsChanged()
     {
         this.DetectAvailablePluginUpdates();
 
-        try
-        {
-            this.OnInstalledPluginsChanged?.Invoke();
-        }
-        catch (Exception ex)
-        {
-            Log.Error(ex, $"Error notifying {nameof(this.OnInstalledPluginsChanged)}");
-        }
+        this.OnInstalledPluginsChanged?.InvokeSafely();
     }
 
     private static class Locs

@@ -362,63 +362,64 @@ namespace Dalamud.Game
                 this.LastUpdate = DateTime.Now;
                 this.LastUpdateUTC = DateTime.UtcNow;
 
-                try
+                this.runOnNextTickTaskList.RemoveAll(x => x.Run());
+
+                if (StatsEnabled && this.Update != null)
                 {
-                    this.runOnNextTickTaskList.RemoveAll(x => x.Run());
+                    // Stat Tracking for Framework Updates
+                    var invokeList = this.Update.GetInvocationList();
+                    var notUpdated = StatsHistory.Keys.ToList();
 
-                    if (StatsEnabled && this.Update != null)
+                    // Individually invoke OnUpdate handlers and time them.
+                    foreach (var d in invokeList)
                     {
-                        // Stat Tracking for Framework Updates
-                        var invokeList = this.Update.GetInvocationList();
-                        var notUpdated = StatsHistory.Keys.ToList();
-
-                        // Individually invoke OnUpdate handlers and time them.
-                        foreach (var d in invokeList)
+                        statsStopwatch.Restart();
+                        try
                         {
-                            statsStopwatch.Restart();
                             d.Method.Invoke(d.Target, new object[] { this });
-                            statsStopwatch.Stop();
-
-                            var key = $"{d.Target}::{d.Method.Name}";
-                            if (notUpdated.Contains(key))
-                                notUpdated.Remove(key);
-
-                            if (!StatsHistory.ContainsKey(key))
-                                StatsHistory.Add(key, new List<double>());
-
-                            StatsHistory[key].Add(statsStopwatch.Elapsed.TotalMilliseconds);
-
-                            if (StatsHistory[key].Count > 1000)
-                            {
-                                StatsHistory[key].RemoveRange(0, StatsHistory[key].Count - 1000);
-                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Log.Error(ex, "Exception while dispatching Framework::Update event.");
                         }
 
-                        // Cleanup handlers that are no longer being called
-                        foreach (var key in notUpdated)
+                        statsStopwatch.Stop();
+
+                        var key = $"{d.Target}::{d.Method.Name}";
+                        if (notUpdated.Contains(key))
+                            notUpdated.Remove(key);
+
+                        if (!StatsHistory.ContainsKey(key))
+                            StatsHistory.Add(key, new List<double>());
+
+                        StatsHistory[key].Add(statsStopwatch.Elapsed.TotalMilliseconds);
+
+                        if (StatsHistory[key].Count > 1000)
                         {
-                            if (StatsHistory[key].Count > 0)
-                            {
-                                StatsHistory[key].RemoveAt(0);
-                            }
-                            else
-                            {
-                                StatsHistory.Remove(key);
-                            }
+                            StatsHistory[key].RemoveRange(0, StatsHistory[key].Count - 1000);
                         }
                     }
-                    else
+
+                    // Cleanup handlers that are no longer being called
+                    foreach (var key in notUpdated)
                     {
-                        this.Update?.Invoke(this);
+                        if (StatsHistory[key].Count > 0)
+                        {
+                            StatsHistory[key].RemoveAt(0);
+                        }
+                        else
+                        {
+                            StatsHistory.Remove(key);
+                        }
                     }
                 }
-                catch (Exception ex)
+                else
                 {
-                    Log.Error(ex, "Exception while dispatching Framework::Update event.");
+                    this.Update?.InvokeSafely(this);
                 }
             }
 
-            original:
+        original:
             return this.updateHook.OriginalDisposeSafe(framework);
         }
 

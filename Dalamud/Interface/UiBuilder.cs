@@ -10,6 +10,7 @@ using Dalamud.Interface.GameFonts;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Internal.ManagedAsserts;
 using Dalamud.Interface.Internal.Notifications;
+using Dalamud.Utility;
 using ImGuiNET;
 using ImGuiScene;
 using Serilog;
@@ -392,7 +393,7 @@ namespace Dalamud.Interface
         /// </summary>
         internal void OpenConfig()
         {
-            this.OpenConfigUi?.Invoke();
+            this.OpenConfigUi?.InvokeSafely();
         }
 
         /// <summary>
@@ -400,7 +401,7 @@ namespace Dalamud.Interface
         /// </summary>
         internal void NotifyHideUi()
         {
-            this.HideUi?.Invoke();
+            this.HideUi?.InvokeSafely();
         }
 
         /// <summary>
@@ -408,7 +409,7 @@ namespace Dalamud.Interface
         /// </summary>
         internal void NotifyShowUi()
         {
-            this.ShowUi?.Invoke();
+            this.ShowUi?.InvokeSafely();
         }
 
         private void OnDraw()
@@ -428,7 +429,7 @@ namespace Dalamud.Interface
                 if (!this.lastFrameUiHideState)
                 {
                     this.lastFrameUiHideState = true;
-                    this.HideUi?.Invoke();
+                    this.HideUi?.InvokeSafely();
                 }
 
                 return;
@@ -437,7 +438,7 @@ namespace Dalamud.Interface
             if (this.lastFrameUiHideState)
             {
                 this.lastFrameUiHideState = false;
-                this.ShowUi?.Invoke();
+                this.ShowUi?.InvokeSafely();
             }
 
             if (!this.interfaceManager.FontsReady)
@@ -470,7 +471,7 @@ namespace Dalamud.Interface
 
             try
             {
-                this.Draw?.Invoke();
+                this.Draw?.InvokeSafely();
             }
             catch (Exception ex)
             {
@@ -503,17 +504,17 @@ namespace Dalamud.Interface
 
         private void OnBuildFonts()
         {
-            this.BuildFonts?.Invoke();
+            this.BuildFonts?.InvokeSafely();
         }
 
         private void OnAfterBuildFonts()
         {
-            this.AfterBuildFonts?.Invoke();
+            this.AfterBuildFonts?.InvokeSafely();
         }
 
         private void OnResizeBuffers()
         {
-            this.ResizeBuffers?.Invoke();
+            this.ResizeBuffers?.InvokeSafely();
         }
     }
 }
