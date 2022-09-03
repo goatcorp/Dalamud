@@ -31,6 +31,69 @@
 HANDLE g_hProcess = nullptr;
 bool g_bSymbolsAvailable = false;
 
+std::wstring describe_module(const std::filesystem::path& path) {
+    DWORD verHandle = 0;
+    std::vector<uint8_t> block;
+    block.resize(GetFileVersionInfoSizeW(path.c_str(), &verHandle));
+    if (block.empty()) {
+        if (GetLastError() == ERROR_RESOURCE_TYPE_NOT_FOUND)
+            return L"<no information available>";
+        return std::format(L"<error: GetFileVersionInfoSizeW#1 returned {}>", GetLastError());
+    }
+    if (!GetFileVersionInfoW(path.c_str(), 0, static_cast<DWORD>(block.size()), block.data()))
+        return std::format(L"<error: GetFileVersionInfoSizeW#2 returned {}>", GetLastError());
+
+    UINT size = 0;
+    
+    std::wstring version = L"v?.?.?.?";
+    if (LPVOID lpBuffer; VerQueryValueW(block.data(), L"\\", &lpBuffer, &size)) {
+        const auto& v = *static_cast<const VS_FIXEDFILEINFO*>(lpBuffer);
+        if (v.dwSignature != 0xfeef04bd || sizeof v > size) {
+            version = L"<invalid version information>";
+        } else {
+            if (v.dwFileVersionMS == v.dwProductVersionMS && v.dwFileVersionLS == v.dwProductVersionLS) {
+                version = std::format(L"v{}.{}.{}.{}",
+                    (v.dwProductVersionMS >> 16) & 0xFFFF,
+                    (v.dwProductVersionMS >> 0) & 0xFFFF,
+                    (v.dwProductVersionLS >> 16) & 0xFFFF,
+                    (v.dwProductVersionLS >> 0) & 0xFFFF);
+            } else {
+                version = std::format(L"file=v{}.{}.{}.{} prod=v{}.{}.{}.{}",
+                    (v.dwFileVersionMS >> 16) & 0xFFFF,
+                    (v.dwFileVersionMS >> 0) & 0xFFFF,
+                    (v.dwFileVersionLS >> 16) & 0xFFFF,
+                    (v.dwFileVersionLS >> 0) & 0xFFFF,
+                    (v.dwProductVersionMS >> 16) & 0xFFFF,
+                    (v.dwProductVersionMS >> 0) & 0xFFFF,
+                    (v.dwProductVersionLS >> 16) & 0xFFFF,
+                    (v.dwProductVersionLS >> 0) & 0xFFFF);
+            }
+        }
+    }
+
+    std::wstring description = L"<no description>";
+    if (LPVOID lpBuffer; VerQueryValueW(block.data(), L"\\VarFileInfo\\Translation", &lpBuffer, &size)) {
+        struct LANGANDCODEPAGE {
+            WORD wLanguage;
+            WORD wCodePage;
+        };
+        const auto langs = std::span(reinterpret_cast<const LANGANDCODEPAGE*>(lpBuffer), size / sizeof(LANGANDCODEPAGE));
+        for (const auto& lang : langs) {
+            if (!VerQueryValueW(block.data(), std::format(L"\\StringFileInfo\\{:04x}{:04x}\\FileDescription", lang.wLanguage, lang.wCodePage).c_str(), &lpBuffer, &size))
+                continue;
+            auto currName = std::wstring_view(static_cast<wchar_t*>(lpBuffer), size);
+            while (!currName.empty() && currName.back() == L'\0')
+                currName = currName.substr(0, currName.size() - 1);
+            if (currName.empty())
+                continue;
+            description = currName;
+            break;
+        }
+    }
+
+    return std::format(L"{} {}", description, version);
+}
+
 const std::map<HMODULE, size_t>& get_remote_modules() {
     static const auto data = [] {
         std::map<HMODULE, size_t> data;
@@ -265,7 +328,7 @@ void print_exception_info_extended(const EXCEPTION_POINTERS& ex, const CONTEXT& 
     log << L"\nModules\n{";
 
     for (const auto& [hModule, path] : get_remote_module_paths())
-        log << std::format(L"\n  {:08X}\t{}", reinterpret_cast<DWORD64>(hModule), path.wstring());
+        log << std::format(L"\n  {:08X}\t{}\t{}", reinterpret_cast<DWORD64>(hModule), path.wstring(), describe_module(path));
 
     log << L"\n}\n";
 }
