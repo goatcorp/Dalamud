@@ -1169,8 +1169,8 @@ internal partial class PluginManager : IDisposable, IServiceType
             return false;
         }
 
-        // API level
-        if (manifest.DalamudApiLevel < DalamudApiLevel && !this.LoadAllApiLevels)
+        // API level - we keep the API before this in the installer to show as "outdated"
+        if (manifest.DalamudApiLevel < DalamudApiLevel - 1 && !this.LoadAllApiLevels)
         {
             Log.Verbose($"API Level: {manifest.InternalName} - {manifest.AssemblyVersion} - {manifest.TestingAssemblyVersion}");
             return false;
@@ -1235,6 +1235,7 @@ internal partial class PluginManager : IDisposable, IServiceType
             var updates = this.AvailablePlugins
                               .Where(remoteManifest => plugin.Manifest.InternalName == remoteManifest.InternalName)
                               .Where(remoteManifest => plugin.Manifest.InstalledFromUrl == remoteManifest.SourceRepo.PluginMasterUrl || !remoteManifest.SourceRepo.IsThirdParty)
+                              .Where(remoteManifest => remoteManifest.DalamudApiLevel == DalamudApiLevel)
                               .Select(remoteManifest =>
                               {
                                   var useTesting = UseTesting(remoteManifest);
