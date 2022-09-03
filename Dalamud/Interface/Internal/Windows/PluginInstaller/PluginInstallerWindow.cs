@@ -1377,7 +1377,7 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
             return ready;
         }
 
-        private bool DrawPluginCollapsingHeader(string label, LocalPlugin? plugin, PluginManifest manifest, bool isThirdParty, bool trouble, bool updateAvailable, bool isNew, Action drawContextMenuAction, int index)
+        private bool DrawPluginCollapsingHeader(string label, LocalPlugin? plugin, PluginManifest manifest, bool isThirdParty, bool trouble, bool updateAvailable, bool isNew, bool installableOutdated, Action drawContextMenuAction, int index)
         {
             ImGui.Separator();
 
@@ -1428,14 +1428,14 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
                     iconTex = cachedIconTex;
                 }
 
-                if (pluginDisabled)
+                if (pluginDisabled || installableOutdated)
                 {
-                    ImGui.PushStyleVar(ImGuiStyleVar.Alpha, 0.5f);
+                    ImGui.PushStyleVar(ImGuiStyleVar.Alpha, 0.4f);
                 }
 
                 ImGui.Image(iconTex.ImGuiHandle, iconSize);
 
-                if (pluginDisabled)
+                if (pluginDisabled || installableOutdated)
                 {
                     ImGui.PopStyleVar();
                 }
@@ -1450,6 +1450,8 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
                 ImGui.Image(this.imageCache.UpdateIcon.ImGuiHandle, iconSize);
             else if (trouble && !pluginDisabled)
                 ImGui.Image(this.imageCache.TroubleIcon.ImGuiHandle, iconSize);
+            else if (installableOutdated)
+                ImGui.Image(this.imageCache.OutdatedInstallableIcon.ImGuiHandle, iconSize);
             else if (pluginDisabled)
                 ImGui.Image(this.imageCache.DisabledIcon.ImGuiHandle, iconSize);
             else if (isLoaded && isThirdParty)
@@ -1488,7 +1490,7 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
             ImGui.SetCursorPos(cursor);
 
             // Outdated warning
-            if (plugin is { IsOutdated: true, IsBanned: false })
+            if (plugin is { IsOutdated: true, IsBanned: false } || installableOutdated)
             {
                 ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudRed);
                 ImGui.TextWrapped(Locs.PluginBody_Outdated);
@@ -1616,6 +1618,8 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
             var useTesting = PluginManager.UseTesting(manifest);
             var wasSeen = this.WasPluginSeen(manifest.InternalName);
 
+            var isOutdated = manifest.DalamudApiLevel < PluginManager.DalamudApiLevel;
+
             // Check for valid versions
             if ((useTesting && manifest.TestingAssemblyVersion == null) || manifest.AssemblyVersion == null)
             {
@@ -1635,7 +1639,7 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
             ImGui.PushID($"available{index}{manifest.InternalName}");
 
             var isThirdParty = manifest.SourceRepo.IsThirdParty;
-            if (this.DrawPluginCollapsingHeader(label, null, manifest, isThirdParty, false, false, !wasSeen, () => this.DrawAvailablePluginContextMenu(manifest), index))
+            if (this.DrawPluginCollapsingHeader(label, null, manifest, isThirdParty, false, false, !wasSeen, isOutdated, () => this.DrawAvailablePluginContextMenu(manifest), index))
             {
                 if (!wasSeen)
                     configuration.SeenPluginInternalName.Add(manifest.InternalName);
@@ -1662,7 +1666,7 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
                 ImGuiHelpers.ScaledDummy(5);
 
                 // Controls
-                var disabled = this.updateStatus == OperationStatus.InProgress || this.installStatus == OperationStatus.InProgress;
+                var disabled = this.updateStatus == OperationStatus.InProgress || this.installStatus == OperationStatus.InProgress || isOutdated;
 
                 var versionString = useTesting
                     ? $"{manifest.TestingAssemblyVersion}"
@@ -1878,7 +1882,7 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
             ImGui.PushID($"installed{index}{plugin.Manifest.InternalName}");
             var hasChangelog = !plugin.Manifest.Changelog.IsNullOrEmpty();
 
-            if (this.DrawPluginCollapsingHeader(label, plugin, plugin.Manifest, plugin.Manifest.IsThirdParty, trouble, availablePluginUpdate != default, false, () => this.DrawInstalledPluginContextMenu(plugin), index))
+            if (this.DrawPluginCollapsingHeader(label, plugin, plugin.Manifest, plugin.Manifest.IsThirdParty, trouble, availablePluginUpdate != default, false, false, () => this.DrawInstalledPluginContextMenu(plugin), index))
             {
                 if (!this.WasPluginSeen(plugin.Manifest.InternalName))
                     configuration.SeenPluginInternalName.Add(plugin.Manifest.InternalName);
@@ -2484,15 +2488,21 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
         {
             var searchString = this.searchText.ToLowerInvariant();
             var hasSearchString = !string.IsNullOrWhiteSpace(searchString);
+            var oldApi = manifest.DalamudApiLevel < PluginManager.DalamudApiLevel;
+            var installed = this.IsManifestInstalled(manifest).IsInstalled;
+
+            if (oldApi && !hasSearchString && !installed)
+                return true;
 
             return hasSearchString && !(
                 manifest.Name.ToLowerInvariant().Contains(searchString) ||
+                manifest.InternalName.ToLowerInvariant().Contains(searchString) ||
                 (!manifest.Author.IsNullOrEmpty() && manifest.Author.Equals(this.searchText, StringComparison.InvariantCultureIgnoreCase)) ||
                 (!manifest.Punchline.IsNullOrEmpty() && manifest.Punchline.ToLowerInvariant().Contains(searchString)) ||
                 (manifest.Tags != null && manifest.Tags.Contains(searchString, StringComparer.InvariantCultureIgnoreCase)));
         }
 
-        private (bool IsInstalled, LocalPlugin Plugin) IsManifestInstalled(RemotePluginManifest? manifest)
+        private (bool IsInstalled, LocalPlugin Plugin) IsManifestInstalled(PluginManifest? manifest)
         {
             if (manifest == null) return (false, default);
 

@@ -56,6 +56,7 @@ namespace Dalamud.Interface.Internal.Windows
 
         private readonly Task<TextureWrap> emptyTextureTask;
         private readonly Task<TextureWrap> disabledIconTask;
+        private readonly Task<TextureWrap> outdatedInstallableIconTask;
         private readonly Task<TextureWrap> defaultIconTask;
         private readonly Task<TextureWrap> troubleIconTask;
         private readonly Task<TextureWrap> updateIconTask;
@@ -74,6 +75,7 @@ namespace Dalamud.Interface.Internal.Windows
             this.emptyTextureTask = imwst.ContinueWith(task => task.Result.Manager.LoadImageRaw(new byte[64], 8, 8, 4)!);
             this.defaultIconTask = imwst.ContinueWith(task => TaskWrapIfNonNull(task.Result.Manager.LoadImage(Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "defaultIcon.png"))) ?? this.emptyTextureTask).Unwrap();
             this.disabledIconTask = imwst.ContinueWith(task => TaskWrapIfNonNull(task.Result.Manager.LoadImage(Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "disabledIcon.png"))) ?? this.emptyTextureTask).Unwrap();
+            this.outdatedInstallableIconTask = imwst.ContinueWith(task => TaskWrapIfNonNull(task.Result.Manager.LoadImage(Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "outdatedInstallableIcon.png"))) ?? this.emptyTextureTask).Unwrap();
             this.troubleIconTask = imwst.ContinueWith(task => TaskWrapIfNonNull(task.Result.Manager.LoadImage(Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "troubleIcon.png"))) ?? this.emptyTextureTask).Unwrap();
             this.updateIconTask = imwst.ContinueWith(task => TaskWrapIfNonNull(task.Result.Manager.LoadImage(Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "updateIcon.png"))) ?? this.emptyTextureTask).Unwrap();
             this.installedIconTask = imwst.ContinueWith(task => TaskWrapIfNonNull(task.Result.Manager.LoadImage(Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "installedIcon.png"))) ?? this.emptyTextureTask).Unwrap();
@@ -95,11 +97,18 @@ namespace Dalamud.Interface.Internal.Windows
                                                : this.emptyTextureTask.GetAwaiter().GetResult();
 
         /// <summary>
-        /// Gets the default plugin icon.
+        /// Gets the disabled plugin icon.
         /// </summary>
         public TextureWrap DisabledIcon => this.disabledIconTask.IsCompleted
                                               ? this.disabledIconTask.Result
                                               : this.disabledIconTask.GetAwaiter().GetResult();
+
+        /// <summary>
+        /// Gets the outdated installable plugin icon.
+        /// </summary>
+        public TextureWrap OutdatedInstallableIcon => this.outdatedInstallableIconTask.IsCompleted
+                                               ? this.outdatedInstallableIconTask.Result
+                                               : this.outdatedInstallableIconTask.GetAwaiter().GetResult();
 
         /// <summary>
         /// Gets the default plugin icon.
