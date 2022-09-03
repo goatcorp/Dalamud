@@ -182,12 +182,17 @@ namespace Dalamud
             }
         }
 
-        private static void SerilogOnLogLine(object? sender, (string Line, LogEventLevel Level, DateTimeOffset TimeStamp, Exception? Exception) e)
+        private static void SerilogOnLogLine(object? sender, (string Line, LogEvent LogEvent) ev)
         {
-            if (e.Exception == null)
+            if (ev.LogEvent.Exception == null)
                 return;
 
-            Troubleshooting.LogException(e.Exception, e.Line);
+            // Don't pass verbose/debug/info exceptions to the troubleshooter, as the developer is probably doing
+            // something intentionally (or this is known).
+            if (ev.LogEvent.Level < LogEventLevel.Warning)
+                return;
+
+            Troubleshooting.LogException(ev.LogEvent.Exception, ev.Line);
         }
 
         private static void InitSymbolHandler(DalamudStartInfo info)
