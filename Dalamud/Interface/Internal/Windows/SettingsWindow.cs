@@ -836,7 +836,7 @@ namespace Dalamud.Interface.Internal.Windows
                 {
                     this.devPluginLocations.Add(new DevPluginLocationSettings
                     {
-                        Path = this.devPluginTempLocation,
+                        Path = this.devPluginTempLocation.Replace("\"", string.Empty),
                         IsEnabled = true,
                     });
                     this.devPluginLocationsChanged = true;
