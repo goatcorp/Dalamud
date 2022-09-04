@@ -354,15 +354,22 @@ internal partial class PluginManager : IDisposable, IServiceType
             var versionsDefs = new List<PluginDef>();
             foreach (var versionDir in pluginDir.GetDirectories())
             {
-                var dllFile = new FileInfo(Path.Combine(versionDir.FullName, $"{pluginDir.Name}.dll"));
-                var manifestFile = LocalPluginManifest.GetManifestFile(dllFile);
+                try
+                {
+                    var dllFile = new FileInfo(Path.Combine(versionDir.FullName, $"{pluginDir.Name}.dll"));
+                    var manifestFile = LocalPluginManifest.GetManifestFile(dllFile);
 
-                if (!manifestFile.Exists)
-                    continue;
+                    if (!manifestFile.Exists)
+                        continue;
 
-                var manifest = LocalPluginManifest.Load(manifestFile);
+                    var manifest = LocalPluginManifest.Load(manifestFile);
 
-                versionsDefs.Add(new PluginDef(dllFile, manifest, false));
+                    versionsDefs.Add(new PluginDef(dllFile, manifest, false));
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex, "Could not load manifest for installed at {Directory}", versionDir.FullName);
+                }
             }
 
             try
@@ -395,17 +402,24 @@ internal partial class PluginManager : IDisposable, IServiceType
 
         foreach (var dllFile in devDllFiles)
         {
-            // Manifests are not required for devPlugins. the Plugin type will handle any null manifests.
-            var manifestFile = LocalPluginManifest.GetManifestFile(dllFile);
-            var manifest = manifestFile.Exists ? LocalPluginManifest.Load(manifestFile) : null;
-
-            if (manifest != null && manifest.InternalName.IsNullOrEmpty())
+            try
             {
-                Log.Error("InternalName for dll at {Path} was null", manifestFile.FullName);
-                continue;
-            }
+                // Manifests are not required for devPlugins. the Plugin type will handle any null manifests.
+                var manifestFile = LocalPluginManifest.GetManifestFile(dllFile);
+                var manifest = manifestFile.Exists ? LocalPluginManifest.Load(manifestFile) : null;
 
-            devPluginDefs.Add(new PluginDef(dllFile, manifest, true));
+                if (manifest != null && manifest.InternalName.IsNullOrEmpty())
+                {
+                    Log.Error("InternalName for dll at {Path} was null", manifestFile.FullName);
+                    continue;
+                }
+
+                devPluginDefs.Add(new PluginDef(dllFile, manifest, true));
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Could not load manifest for dev at {Directory}", dllFile.FullName);
+            }
         }
 
         // Sort for load order - unloaded definitions have default priority of 0
