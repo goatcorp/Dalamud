@@ -816,7 +816,7 @@ namespace Dalamud.Interface.Internal
                 for (int i = 0, i_ = ioFonts.ConfigData.Size; i < i_; i++)
                 {
                     var config = ioFonts.ConfigData[i];
-                    config.RasterizerGamma = config.RasterizerGamma * fontGamma;
+                    config.RasterizerGamma *= fontGamma;
                 }
 
                 Log.Verbose("[FONT] ImGui.IO.Build will be called.");
@@ -876,7 +876,15 @@ namespace Dalamud.Interface.Internal
                 for (int i = 0, i_ = ioFonts.Fonts.Size; i < i_; i++)
                 {
                     var font = ioFonts.Fonts[i];
-                    font.FallbackChar = Fallback1Codepoint;
+                    if (font.Glyphs.Size == 0)
+                    {
+                        Log.Warning("[FONT] Font has no glyph: {0}", font.GetDebugName());
+                        continue;
+                    }
+
+                    if (font.FindGlyphNoFallback(Fallback1Codepoint).NativePtr != null)
+                        font.FallbackChar = Fallback1Codepoint;
+
                     font.BuildLookupTable();
                 }
 
