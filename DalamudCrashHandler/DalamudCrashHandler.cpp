@@ -432,6 +432,7 @@ int main() {
     HANDLE hPipeRead = nullptr;
     std::filesystem::path assetDir, logDir;
     std::optional<std::vector<std::wstring>> launcherArgs;
+    auto fullDump = false;
     
     std::vector<std::wstring> args;
     if (int argc = 0; const auto argv = CommandLineToArgvW(GetCommandLineW(), &argc)) {
@@ -451,6 +452,8 @@ int main() {
             assetDir = arg.substr(ARRAYSIZE(pwszArgPrefix) - 1);
         } else if (constexpr wchar_t pwszArgPrefix[] = L"--log-directory="; arg.starts_with(pwszArgPrefix)) {
             logDir = arg.substr(ARRAYSIZE(pwszArgPrefix) - 1);
+        } else if (arg == L"--veh-full") {
+            fullDump = true;
         } else if (arg == L"--") {
             launcherArgs.emplace();
         } else {
@@ -544,7 +547,7 @@ int main() {
                 }
 
                 std::unique_ptr<std::remove_pointer_t<HANDLE>, decltype(&CloseHandle)> hDumpFilePtr(hDumpFile, &CloseHandle);
-                if (!MiniDumpWriteDump(g_hProcess, dwProcessId, hDumpFile, static_cast<MINIDUMP_TYPE>(MiniDumpWithDataSegs | MiniDumpWithModuleHeaders), &mdmp_info, nullptr, nullptr)) {
+                if (!MiniDumpWriteDump(g_hProcess, dwProcessId, hDumpFile, fullDump ? MiniDumpWithFullMemory : static_cast<MINIDUMP_TYPE>(MiniDumpWithDataSegs | MiniDumpWithModuleHeaders), &mdmp_info, nullptr, nullptr)) {
                     std::wcerr << (dumpError = std::format(L"MiniDumpWriteDump(0x{:x}, {}, 0x{:x}({}), MiniDumpWithFullMemory, ..., nullptr, nullptr) error: 0x{:x}", reinterpret_cast<size_t>(g_hProcess), dwProcessId, reinterpret_cast<size_t>(hDumpFile), dumpPath.wstring(), GetLastError())) << std::endl;
                     break;
                 }
