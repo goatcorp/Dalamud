@@ -220,7 +220,7 @@ namespace Dalamud.Interface
                 }
             }
 
-            if (rebuildLookupTable)
+            if (rebuildLookupTable && target.Value!.Glyphs.Size > 0)
                 target.Value!.BuildLookupTable();
         }
 

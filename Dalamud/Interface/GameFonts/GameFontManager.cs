@@ -163,7 +163,7 @@ namespace Dalamud.Interface.GameFonts
                     font->FrequentKerningPairs.Ref<float>(i) /= fontScale;
             }
 
-            if (rebuildLookupTable)
+            if (rebuildLookupTable && fontPtr.Glyphs.Size > 0)
                 fontPtr.BuildLookupTable();
         }
 
