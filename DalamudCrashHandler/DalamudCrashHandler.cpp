@@ -444,6 +444,9 @@ int main() {
         const auto arg = std::wstring_view(args[i]);
         if (launcherArgs) {
             launcherArgs->emplace_back(arg);
+            if (arg == L"--veh-full") {
+                fullDump = true;
+            }
         } else if (constexpr wchar_t pwszArgPrefix[] = L"--process-handle="; arg.starts_with(pwszArgPrefix)) {
             g_hProcess = reinterpret_cast<HANDLE>(std::wcstoull(&arg[ARRAYSIZE(pwszArgPrefix) - 1], nullptr, 0));
         } else if (constexpr wchar_t pwszArgPrefix[] = L"--exception-info-pipe-read-handle="; arg.starts_with(pwszArgPrefix)) {
@@ -452,8 +455,6 @@ int main() {
             assetDir = arg.substr(ARRAYSIZE(pwszArgPrefix) - 1);
         } else if (constexpr wchar_t pwszArgPrefix[] = L"--log-directory="; arg.starts_with(pwszArgPrefix)) {
             logDir = arg.substr(ARRAYSIZE(pwszArgPrefix) - 1);
-        } else if (arg == L"--veh-full") {
-            fullDump = true;
         } else if (arg == L"--") {
             launcherArgs.emplace();
         } else {
