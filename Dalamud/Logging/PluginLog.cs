@@ -248,7 +248,14 @@ namespace Dalamud.Logging
         private static void WriteLog(string? pluginName, LogEventLevel level, string messageTemplate, Exception? exception = null, params object[] values)
         {
             var pluginLogger = GetPluginLogger(pluginName);
-            pluginLogger.Write(level, exception: exception, messageTemplate: messageTemplate, values);
+
+            // FIXME: Eventually, the `pluginName` tag should be removed from here and moved over to the actual log
+            //        formatter.
+            pluginLogger.Write(
+                level,
+                exception: exception,
+                messageTemplate: $"[{pluginName}] {messageTemplate}",
+                values);
         }
     }
 }

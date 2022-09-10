@@ -40,12 +40,6 @@ namespace Dalamud.Logging.Internal
         {
             var message = logEvent.RenderMessage(this.formatProvider);
 
-            if (logEvent.Properties.TryGetValue("SourceContext", out var sourceProp) &&
-                sourceProp is ScalarValue { Value: string source })
-            {
-                message = $"[{source}] {message}";
-            }
-
             if (logEvent.Exception != null)
             {
                 message += "\n" + logEvent.Exception;
