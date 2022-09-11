@@ -364,7 +364,7 @@ namespace Dalamud.Memory
         /// <param name="memoryAddress">The memory address to read from.</param>
         /// <param name="item">The item to write to the address.</param>
         public static void Write<T>(IntPtr memoryAddress, T item) where T : unmanaged
-            => Write(memoryAddress, item);
+            => Write(memoryAddress, item, false);
 
         /// <summary>
         /// Writes a generic type to a specified memory address.
