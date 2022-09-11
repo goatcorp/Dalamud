@@ -152,7 +152,10 @@ namespace Dalamud.Interface.Internal.Windows
             // Filter menu
             if (ImGui.BeginPopup("Filters"))
             {
-                ImGui.Checkbox("Enabled", ref this.isFiltered);
+                if (ImGui.Checkbox("Enabled", ref this.isFiltered))
+                {
+                    this.Refilter();
+                }
 
                 if (ImGui.InputTextWithHint("##filterText", "Text Filter", ref this.textFilter, 255, ImGuiInputTextFlags.EnterReturnsTrue))
                 {
