@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Reflection;
 
 using Dalamud.Game;
 using Dalamud.Hooking.Internal;
+using Dalamud.Interface.Internal.Notifications;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin.Internal;
 using Dalamud.Plugin.Internal.Types;
@@ -26,6 +28,9 @@ namespace Dalamud.Interface.Internal.Windows
             : base("Plugin Statistics###DalamudPluginStatWindow")
         {
             this.RespectCloseHotkey = false;
+
+            this.Size = new Vector2(810, 520);
+            this.SizeCondition = ImGuiCond.FirstUseEver;
         }
 
         /// <inheritdoc/>
@@ -51,56 +56,74 @@ namespace Dalamud.Interface.Internal.Windows
                     {
                         foreach (var plugin in pluginManager.InstalledPlugins)
                         {
-                            plugin.DalamudInterface.UiBuilder.LastDrawTime = -1;
-                            plugin.DalamudInterface.UiBuilder.MaxDrawTime = -1;
-                            plugin.DalamudInterface.UiBuilder.DrawTimeHistory.Clear();
+                            if (plugin.DalamudInterface != null)
+                            {
+                                plugin.DalamudInterface.UiBuilder.LastDrawTime = -1;
+                                plugin.DalamudInterface.UiBuilder.MaxDrawTime = -1;
+                                plugin.DalamudInterface.UiBuilder.DrawTimeHistory.Clear();
+                            }
                         }
                     }
 
-                    ImGui.Columns(4);
-                    ImGui.SetColumnWidth(0, 180f);
-                    ImGui.SetColumnWidth(1, 100f);
-                    ImGui.SetColumnWidth(2, 100f);
-                    ImGui.SetColumnWidth(3, 100f);
-
-                    ImGui.Text("Plugin");
-                    ImGui.NextColumn();
-
-                    ImGui.Text("Last");
-                    ImGui.NextColumn();
-
-                    ImGui.Text("Longest");
-                    ImGui.NextColumn();
-
-                    ImGui.Text("Average");
-                    ImGui.NextColumn();
-
-                    ImGui.Separator();
-
-                    foreach (var plugin in pluginManager.InstalledPlugins.Where(plugin => plugin.State == PluginState.Loaded))
+                    if (ImGui.BeginTable(
+                            "##PluginStatsDrawTimes",
+                            4,
+                            ImGuiTableFlags.RowBg
+                            | ImGuiTableFlags.SizingStretchProp
+                            | ImGuiTableFlags.Sortable
+                            | ImGuiTableFlags.Resizable
+                            | ImGuiTableFlags.ScrollY
+                            | ImGuiTableFlags.Reorderable
+                            | ImGuiTableFlags.Hideable))
                     {
-                        ImGui.Text(plugin.Manifest.Name);
-                        ImGui.NextColumn();
+                        ImGui.TableSetupScrollFreeze(0, 1);
+                        ImGui.TableSetupColumn("Plugin");
+                        ImGui.TableSetupColumn("Last", ImGuiTableColumnFlags.NoSort); // Changes too fast to sort
+                        ImGui.TableSetupColumn("Longest");
+                        ImGui.TableSetupColumn("Average");
+                        ImGui.TableHeadersRow();
 
-                        ImGui.Text($"{plugin.DalamudInterface.UiBuilder.LastDrawTime / 10000f:F4}ms");
-                        ImGui.NextColumn();
+                        var loadedPlugins = pluginManager.InstalledPlugins.Where(plugin => plugin.State == PluginState.Loaded);
 
-                        ImGui.Text($"{plugin.DalamudInterface.UiBuilder.MaxDrawTime / 10000f:F4}ms");
-                        ImGui.NextColumn();
-
-                        if (plugin.DalamudInterface.UiBuilder.DrawTimeHistory.Count > 0)
+                        var sortSpecs = ImGui.TableGetSortSpecs();
+                        loadedPlugins = sortSpecs.Specs.ColumnIndex switch
                         {
-                            ImGui.Text($"{plugin.DalamudInterface.UiBuilder.DrawTimeHistory.Average() / 10000f:F4}ms");
-                        }
-                        else
+                            0 => sortSpecs.Specs.SortDirection == ImGuiSortDirection.Ascending
+                                     ? loadedPlugins.OrderBy(plugin => plugin.Name)
+                                     : loadedPlugins.OrderByDescending(plugin => plugin.Name),
+                            2 => sortSpecs.Specs.SortDirection == ImGuiSortDirection.Ascending
+                                     ? loadedPlugins.OrderBy(plugin => plugin.DalamudInterface?.UiBuilder.MaxDrawTime)
+                                     : loadedPlugins.OrderByDescending(plugin => plugin.DalamudInterface?.UiBuilder.MaxDrawTime),
+                            3 => sortSpecs.Specs.SortDirection == ImGuiSortDirection.Ascending
+                                     ? loadedPlugins.OrderBy(plugin => plugin.DalamudInterface?.UiBuilder.DrawTimeHistory.Average())
+                                     : loadedPlugins.OrderByDescending(plugin => plugin.DalamudInterface?.UiBuilder.DrawTimeHistory.Average()),
+                            _ => loadedPlugins,
+                        };
+
+                        foreach (var plugin in loadedPlugins)
                         {
-                            ImGui.Text("-");
+                            ImGui.TableNextRow();
+
+                            ImGui.TableNextColumn();
+                            ImGui.Text(plugin.Manifest.Name);
+
+                            if (plugin.DalamudInterface != null)
+                            {
+                                ImGui.TableNextColumn();
+                                ImGui.Text($"{plugin.DalamudInterface.UiBuilder.LastDrawTime / 10000f:F4}ms");
+
+                                ImGui.TableNextColumn();
+                                ImGui.Text($"{plugin.DalamudInterface.UiBuilder.MaxDrawTime / 10000f:F4}ms");
+
+                                ImGui.TableNextColumn();
+                                ImGui.Text(plugin.DalamudInterface.UiBuilder.DrawTimeHistory.Count > 0
+                                               ? $"{plugin.DalamudInterface.UiBuilder.DrawTimeHistory.Average() / 10000f:F4}ms"
+                                               : "-");
+                            }
                         }
 
-                        ImGui.NextColumn();
+                        ImGui.EndTable();
                     }
-
-                    ImGui.Columns(1);
                 }
 
                 ImGui.EndTabItem();
@@ -123,51 +146,61 @@ namespace Dalamud.Interface.Internal.Windows
                         Framework.StatsHistory.Clear();
                     }
 
-                    ImGui.Columns(4);
-
-                    ImGui.SetColumnWidth(0, ImGui.GetWindowContentRegionMax().X - ImGui.GetWindowContentRegionMin().X - 300);
-                    ImGui.SetColumnWidth(1, 100f);
-                    ImGui.SetColumnWidth(2, 100f);
-                    ImGui.SetColumnWidth(3, 100f);
-
-                    ImGui.Text("Method");
-                    ImGui.NextColumn();
-
-                    ImGui.Text("Last");
-                    ImGui.NextColumn();
-
-                    ImGui.Text("Longest");
-                    ImGui.NextColumn();
-
-                    ImGui.Text("Average");
-                    ImGui.NextColumn();
-
-                    ImGui.Separator();
-                    ImGui.Separator();
-
-                    foreach (var handlerHistory in Framework.StatsHistory)
+                    if (ImGui.BeginTable(
+                            "##PluginStatsFrameworkTimes",
+                            4,
+                            ImGuiTableFlags.RowBg
+                            | ImGuiTableFlags.SizingStretchProp
+                            | ImGuiTableFlags.Sortable
+                            | ImGuiTableFlags.Resizable
+                            | ImGuiTableFlags.ScrollY
+                            | ImGuiTableFlags.Reorderable
+                            | ImGuiTableFlags.Hideable))
                     {
-                        if (handlerHistory.Value.Count == 0)
-                            continue;
+                        ImGui.TableSetupScrollFreeze(0, 1);
+                        ImGui.TableSetupColumn("Method", ImGuiTableColumnFlags.None, 250);
+                        ImGui.TableSetupColumn("Last", ImGuiTableColumnFlags.NoSort, 50); // Changes too fast to sort
+                        ImGui.TableSetupColumn("Longest", ImGuiTableColumnFlags.None, 50);
+                        ImGui.TableSetupColumn("Average", ImGuiTableColumnFlags.None, 50);
+                        ImGui.TableHeadersRow();
 
-                        ImGui.SameLine();
+                        var statsHistory = Framework.StatsHistory.ToArray();
 
-                        ImGui.Text($"{handlerHistory.Key}");
-                        ImGui.NextColumn();
+                        var sortSpecs = ImGui.TableGetSortSpecs();
+                        statsHistory = sortSpecs.Specs.ColumnIndex switch
+                        {
+                            0 => sortSpecs.Specs.SortDirection == ImGuiSortDirection.Ascending
+                                     ? statsHistory.OrderBy(handler => handler.Key).ToArray()
+                                     : statsHistory.OrderByDescending(handler => handler.Key).ToArray(),
+                            2 => sortSpecs.Specs.SortDirection == ImGuiSortDirection.Ascending
+                                     ? statsHistory.OrderBy(handler => handler.Value.Max()).ToArray()
+                                     : statsHistory.OrderByDescending(handler => handler.Value.Max()).ToArray(),
+                            3 => sortSpecs.Specs.SortDirection == ImGuiSortDirection.Ascending
+                                     ? statsHistory.OrderBy(handler => handler.Value.Average()).ToArray()
+                                     : statsHistory.OrderByDescending(handler => handler.Value.Average()).ToArray(),
+                            _ => statsHistory,
+                        };
 
-                        ImGui.Text($"{handlerHistory.Value.Last():F4}ms");
-                        ImGui.NextColumn();
+                        foreach (var handlerHistory in statsHistory)
+                        {
+                            ImGui.TableNextRow();
 
-                        ImGui.Text($"{handlerHistory.Value.Max():F4}ms");
-                        ImGui.NextColumn();
+                            ImGui.TableNextColumn();
+                            ImGui.Text($"{handlerHistory.Key}");
 
-                        ImGui.Text($"{handlerHistory.Value.Average():F4}ms");
-                        ImGui.NextColumn();
 
-                        ImGui.Separator();
+                            ImGui.TableNextColumn();
+                            ImGui.Text($"{handlerHistory.Value.Last():F4}ms");
+
+                            ImGui.TableNextColumn();
+                            ImGui.Text($"{handlerHistory.Value.Max():F4}ms");
+
+                            ImGui.TableNextColumn();
+                            ImGui.Text($"{handlerHistory.Value.Average():F4}ms");
+                        }
+
+                        ImGui.EndTable();
                     }
-
-                    ImGui.Columns(0);
                 }
 
                 ImGui.EndTabItem();
@@ -177,94 +210,84 @@ namespace Dalamud.Interface.Internal.Windows
 
             if (ImGui.BeginTabItem("Hooks"))
             {
-                ImGui.Columns(4);
+                ImGui.Checkbox("Show Dalamud Hooks", ref this.showDalamudHooks);
 
-                ImGui.SetColumnWidth(0, ImGui.GetWindowContentRegionMax().X - ImGui.GetWindowContentRegionMin().X - 330);
-                ImGui.SetColumnWidth(1, 180f);
-                ImGui.SetColumnWidth(2, 100f);
-                ImGui.SetColumnWidth(3, 100f);
-
-                ImGui.Text("Detour Method");
-                ImGui.SameLine();
-
-                ImGui.Text("   ");
-                ImGui.SameLine();
-
-                ImGui.Checkbox("Show Dalamud Hooks ###showDalamudHooksCheckbox", ref this.showDalamudHooks);
-                ImGui.NextColumn();
-
-                ImGui.Text("Address");
-                ImGui.NextColumn();
-
-                ImGui.Text("Status");
-                ImGui.NextColumn();
-
-                ImGui.Text("Backend");
-                ImGui.NextColumn();
-
-                ImGui.Separator();
-                ImGui.Separator();
-
-                foreach (var (guid, trackedHook) in HookManager.TrackedHooks)
+                if (ImGui.BeginTable(
+                      "##PluginStatsHooks",
+                      4,
+                      ImGuiTableFlags.RowBg
+                      | ImGuiTableFlags.SizingStretchProp
+                      | ImGuiTableFlags.Resizable
+                      | ImGuiTableFlags.ScrollY
+                      | ImGuiTableFlags.Reorderable
+                      | ImGuiTableFlags.Hideable))
                 {
-                    try
+                    ImGui.TableSetupScrollFreeze(0, 1);
+                    ImGui.TableSetupColumn("Detour Method", ImGuiTableColumnFlags.None, 250);
+                    ImGui.TableSetupColumn("Address", ImGuiTableColumnFlags.None, 100);
+                    ImGui.TableSetupColumn("Status", ImGuiTableColumnFlags.None, 40);
+                    ImGui.TableSetupColumn("Backend", ImGuiTableColumnFlags.None, 40);
+                    ImGui.TableHeadersRow();
+
+                    foreach (var (guid, trackedHook) in HookManager.TrackedHooks)
                     {
-                        if (trackedHook.Hook.IsDisposed)
-                            toRemove.Add(guid);
-
-                        if (!this.showDalamudHooks && trackedHook.Assembly == Assembly.GetExecutingAssembly())
-                            continue;
-
-                        ImGui.Text($"{trackedHook.Delegate.Target} :: {trackedHook.Delegate.Method.Name}");
-                        ImGui.TextDisabled(trackedHook.Assembly.FullName);
-                        ImGui.NextColumn();
-                        if (!trackedHook.Hook.IsDisposed)
+                        try
                         {
-                            ImGui.Text($"{trackedHook.Hook.Address.ToInt64():X}");
-                            if (ImGui.IsItemClicked())
-                            {
-                                ImGui.SetClipboardText($"{trackedHook.Hook.Address.ToInt64():X}");
-                            }
+                            if (trackedHook.Hook.IsDisposed)
+                                toRemove.Add(guid);
 
-                            var processMemoryOffset = trackedHook.InProcessMemory;
-                            if (processMemoryOffset.HasValue)
+                            if (!this.showDalamudHooks && trackedHook.Assembly == Assembly.GetExecutingAssembly())
+                                continue;
+
+                            ImGui.TableNextRow();
+
+                            ImGui.TableNextColumn();
+
+                            ImGui.Text($"{trackedHook.Delegate.Target} :: {trackedHook.Delegate.Method.Name}");
+                            ImGui.TextDisabled(trackedHook.Assembly.FullName);
+                            ImGui.TableNextColumn();
+                            if (!trackedHook.Hook.IsDisposed)
                             {
-                                ImGui.Text($"ffxiv_dx11.exe + {processMemoryOffset:X}");
-                                if (ImGui.IsItemClicked())
+                                if (ImGui.Selectable($"{trackedHook.Hook.Address.ToInt64():X}"))
                                 {
-                                    ImGui.SetClipboardText($"ffxiv_dx11.exe+{processMemoryOffset:X}");
+                                    ImGui.SetClipboardText($"{trackedHook.Hook.Address.ToInt64():X}");
+                                    Service<NotificationManager>.Get().AddNotification($"{trackedHook.Hook.Address.ToInt64():X}", "Copied to clipboard", NotificationType.Success);
+                                }
+
+                                var processMemoryOffset = trackedHook.InProcessMemory;
+                                if (processMemoryOffset.HasValue)
+                                {
+                                    if (ImGui.Selectable($"ffxiv_dx11.exe+{processMemoryOffset:X}"))
+                                    {
+                                        ImGui.SetClipboardText($"ffxiv_dx11.exe+{processMemoryOffset:X}");
+                                        Service<NotificationManager>.Get().AddNotification($"ffxiv_dx11.exe+{processMemoryOffset:X}", "Copied to clipboard", NotificationType.Success);
+                                    }
                                 }
                             }
+
+                            ImGui.TableNextColumn();
+
+                            if (trackedHook.Hook.IsDisposed)
+                            {
+                                ImGui.Text("Disposed");
+                            }
+                            else
+                            {
+                                ImGui.Text(trackedHook.Hook.IsEnabled ? "Enabled" : "Disabled");
+                            }
+
+                            ImGui.TableNextColumn();
+
+                            ImGui.Text(trackedHook.Hook.BackendName);
                         }
-
-                        ImGui.NextColumn();
-
-                        if (trackedHook.Hook.IsDisposed)
+                        catch (Exception ex)
                         {
-                            ImGui.Text("Disposed");
+                            ImGui.Text(ex.Message);
                         }
-                        else
-                        {
-                            ImGui.Text(trackedHook.Hook.IsEnabled ? "Enabled" : "Disabled");
-                        }
-
-                        ImGui.NextColumn();
-
-                        ImGui.Text(trackedHook.Hook.BackendName);
-
-                        ImGui.NextColumn();
-                    }
-                    catch (Exception ex)
-                    {
-                        ImGui.Text(ex.Message);
-                        ImGui.NextColumn();
-                        while (ImGui.GetColumnIndex() != 0) ImGui.NextColumn();
                     }
 
-                    ImGui.Separator();
+                    ImGui.EndTable();
                 }
-
-                ImGui.Columns();
             }
 
             if (ImGui.IsWindowAppearing())
