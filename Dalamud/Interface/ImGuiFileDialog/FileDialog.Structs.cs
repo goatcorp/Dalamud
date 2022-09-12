@@ -1,5 +1,7 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Numerics;
 using Dalamud.Utility;
 
@@ -56,12 +58,12 @@ namespace Dalamud.Interface.ImGuiFileDialog
 
             public bool Empty()
             {
-                return string.IsNullOrEmpty(this.Filter) && ((this.CollectionFilters == null) || (this.CollectionFilters.Count == 0));
+                return string.IsNullOrEmpty(this.Filter) && (this.CollectionFilters.Count == 0);
             }
 
             public bool FilterExists(string filter)
             {
-                return (this.Filter == filter) || (this.CollectionFilters != null && this.CollectionFilters.Contains(filter));
+                return this.Filter.Equals(filter, StringComparison.InvariantCultureIgnoreCase) || this.CollectionFilters.Any(colFilter => colFilter.Equals(filter, StringComparison.InvariantCultureIgnoreCase));
             }
         }
 
