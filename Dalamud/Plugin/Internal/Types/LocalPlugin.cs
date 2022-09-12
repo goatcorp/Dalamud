@@ -217,7 +217,7 @@ internal class LocalPlugin : IDisposable
     /// <summary>
     /// Gets a value indicating whether or not this plugin is orphaned(belongs to a repo) or not.
     /// </summary>
-    public bool IsOrphaned => !this.IsDev && 
+    public bool IsOrphaned => !this.IsDev &&
                               !this.Manifest.InstalledFromUrl.IsNullOrEmpty() && // TODO(api8): Remove this, all plugins will have a proper flag
                               Service<PluginManager>.Get().Repos.All(x => x.PluginMasterUrl != this.Manifest.InstalledFromUrl) &&
                               this.Manifest.InstalledFromUrl != LocalPluginManifest.FlagMainRepo;
@@ -285,6 +285,16 @@ internal class LocalPlugin : IDisposable
         await this.pluginLoadStateLock.WaitAsync();
         try
         {
+            if (reloading && this.IsDev)
+            {
+                // Reload the manifest in-case there were changes here too.
+                var manifestDevFile = LocalPluginManifest.GetManifestFile(this.DllFile);
+                if (manifestDevFile.Exists)
+                {
+                    this.Manifest = LocalPluginManifest.Load(manifestDevFile);
+                }
+            }
+
             switch (this.State)
             {
                 case PluginState.Loaded:
@@ -359,16 +369,6 @@ internal class LocalPlugin : IDisposable
                 }
 
                 this.loader.Reload();
-
-                if (this.IsDev)
-                {
-                    // Reload the manifest in-case there were changes here too.
-                    var manifestDevFile = LocalPluginManifest.GetManifestFile(this.DllFile);
-                    if (manifestDevFile.Exists)
-                    {
-                        this.Manifest = LocalPluginManifest.Load(manifestDevFile);
-                    }
-                }
             }
 
             // Load the assembly
