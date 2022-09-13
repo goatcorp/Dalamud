@@ -58,12 +58,12 @@ namespace Dalamud.Interface.ImGuiFileDialog
 
             public bool Empty()
             {
-                return string.IsNullOrEmpty(this.Filter) && (this.CollectionFilters.Count == 0);
+                return string.IsNullOrEmpty(this.Filter) && (this.CollectionFilters == null || (this.CollectionFilters.Count == 0));
             }
 
             public bool FilterExists(string filter)
             {
-                return this.Filter.Equals(filter, StringComparison.InvariantCultureIgnoreCase) || this.CollectionFilters.Any(colFilter => colFilter.Equals(filter, StringComparison.InvariantCultureIgnoreCase));
+                return this.Filter.Equals(filter, StringComparison.InvariantCultureIgnoreCase) || (this.CollectionFilters != null && this.CollectionFilters.Any(colFilter => colFilter.Equals(filter, StringComparison.InvariantCultureIgnoreCase)));
             }
         }
 
