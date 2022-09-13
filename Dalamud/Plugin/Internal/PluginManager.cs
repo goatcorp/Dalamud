@@ -151,7 +151,7 @@ internal partial class PluginManager : IDisposable, IServiceType
     /// <summary>
     /// Gets a value indicating whether all added repos are not in progress.
     /// </summary>
-    public bool ReposReady => this.Repos.All(repo => repo.State != PluginRepositoryState.InProgress || repo.State != PluginRepositoryState.Fail);
+    public bool ReposReady => this.Repos.All(repo => repo.State != PluginRepositoryState.InProgress);
 
     /// <summary>
     /// Gets a value indicating whether the plugin manager started in safe mode.

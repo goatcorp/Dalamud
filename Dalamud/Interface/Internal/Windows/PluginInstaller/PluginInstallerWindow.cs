@@ -1035,7 +1035,7 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
 
         private void DrawPluginCategoryContent()
         {
-            var ready = this.DrawPluginListLoading();
+            var ready = this.DrawPluginListLoading() && !this.AnyOperationInProgress;
             if (!this.categoryManager.IsSelectionValid || !ready)
             {
                 return;
