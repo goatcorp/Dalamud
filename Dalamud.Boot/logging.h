@@ -24,7 +24,7 @@ namespace logging {
     /**
      * @brief Starts writing log to specified file.
      */
-    void start_file_logging(const std::filesystem::path& path, bool redirect_stderrout = false);
+    void start_file_logging(const std::filesystem::path& logPath, bool redirect_stderrout = false);
 
     /**
      * @brief Marks this DLL either as loaded or unloaded, top prevent accessing handles when the DLL is not loaded.

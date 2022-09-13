@@ -85,15 +85,26 @@ namespace Dalamud
         {
 #if DEBUG
             var logPath = Path.Combine(baseDirectory, "dalamud.log");
-            var oldPath = Path.Combine(baseDirectory, "dalamud.log.old");
+            var oldPath = Path.Combine(baseDirectory, "dalamud.old.log");
+            var oldPathOld = Path.Combine(baseDirectory, "dalamud.log.old");
 #else
             var logPath = Path.Combine(baseDirectory, "..", "..", "..", "dalamud.log");
-            var oldPath = Path.Combine(baseDirectory, "..", "..", "..", "dalamud.log.old");
+            var oldPath = Path.Combine(baseDirectory, "..", "..", "..", "dalamud.old.log");
+            var oldPathOld = Path.Combine(baseDirectory, "..", "..", "..", "dalamud.log.old");
 #endif
             Log.CloseAndFlush();
 
-            CullLogFile(logPath, oldPath, 1 * 1024 * 1024);
-            CullLogFile(oldPath, null, 10 * 1024 * 1024);
+            var oldFileOld = new FileInfo(oldPathOld);
+            if (oldFileOld.Exists)
+            {
+                var oldFile = new FileInfo(oldPath);
+                if (oldFile.Exists)
+                    oldFileOld.Delete();
+                else
+                    oldFileOld.MoveTo(oldPath);
+            }
+
+            CullLogFile(logPath, 1 * 1024 * 1024, oldPath, 10 * 1024 * 1024);
 
             var config = new LoggerConfiguration()
                          .WriteTo.Sink(SerilogEventSink.Instance)
@@ -217,67 +228,76 @@ namespace Dalamud
             }
         }
 
-        private static void CullLogFile(string logPath, string? oldPath, int cullingFileSize)
+        /// <summary>
+        /// Trim existing log file to a specified length, and optionally move the excess data to another file.
+        /// </summary>
+        /// <param name="logPath">Target log file to trim.</param>
+        /// <param name="logMaxSize">Maximum size of target log file.</param>
+        /// <param name="oldPath">.old file to move excess data to.</param>
+        /// <param name="oldMaxSize">Maximum size of .old file.</param>
+        private static void CullLogFile(string logPath, int logMaxSize, string oldPath, int oldMaxSize)
         {
+            var logFile = new FileInfo(logPath);
+            var oldFile = new FileInfo(oldPath);
+            var targetFiles = new[]
+            {
+                (logFile, logMaxSize),
+                (oldFile, oldMaxSize),
+            };
+            var buffer = new byte[4096];
+
             try
             {
-                var bufferSize = 4096;
-
-                var logFile = new FileInfo(logPath);
-
                 if (!logFile.Exists)
-                    logFile.Create();
+                    logFile.Create().Close();
 
-                if (logFile.Length <= cullingFileSize)
-                    return;
-
-                var amountToCull = logFile.Length - cullingFileSize;
-
-                if (amountToCull < bufferSize)
-                    return;
-
-                if (oldPath != null)
+                // 1. Move excess data from logFile to oldFile
+                if (logFile.Length > logMaxSize)
                 {
-                    var oldFile = new FileInfo(oldPath);
+                    using var reader = logFile.Open(FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                    using var writer = oldFile.Open(FileMode.Append, FileAccess.Write, FileShare.ReadWrite);
 
-                    if (!oldFile.Exists)
-                        oldFile.Create().Close();
+                    var amountToMove = (int)Math.Min(logFile.Length - logMaxSize, oldMaxSize);
+                    reader.Seek(-(logMaxSize + amountToMove), SeekOrigin.End);
 
-                    using var reader = new BinaryReader(logFile.Open(FileMode.Open, FileAccess.Read, FileShare.ReadWrite));
-                    using var writer = new BinaryWriter(oldFile.Open(FileMode.Append, FileAccess.Write, FileShare.ReadWrite));
-
-                    var read = -1;
-                    var total = 0;
-                    var buffer = new byte[bufferSize];
-                    while (read != 0 && total < amountToCull)
-                    {
-                        read = reader.Read(buffer, 0, buffer.Length);
-                        writer.Write(buffer, 0, read);
-                        total += read;
-                    }
+                    for (var i = 0; i < amountToMove; i += buffer.Length)
+                        writer.Write(buffer, 0, reader.Read(buffer, 0, Math.Min(buffer.Length, amountToMove - i)));
                 }
 
+                // 2. Cull each of .log and .old files
+                foreach (var (file, maxSize) in targetFiles)
                 {
-                    using var reader = new BinaryReader(logFile.Open(FileMode.Open, FileAccess.Read, FileShare.ReadWrite));
-                    using var writer = new BinaryWriter(logFile.Open(FileMode.Open, FileAccess.Write, FileShare.ReadWrite));
+                    if (!file.Exists || file.Length <= maxSize)
+                        continue;
 
-                    reader.BaseStream.Seek(amountToCull, SeekOrigin.Begin);
+                    using var reader = file.Open(FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                    using var writer = file.Open(FileMode.Open, FileAccess.Write, FileShare.ReadWrite);
 
-                    var read = -1;
-                    var total = 0;
-                    var buffer = new byte[bufferSize];
-                    while (read != 0)
-                    {
-                        read = reader.Read(buffer, 0, buffer.Length);
+                    reader.Seek(file.Length - maxSize, SeekOrigin.Begin);
+                    for (int read; (read = reader.Read(buffer, 0, buffer.Length)) > 0;)
                         writer.Write(buffer, 0, read);
-                        total += read;
-                    }
 
-                    writer.BaseStream.SetLength(total);
+                    writer.SetLength(maxSize);
                 }
             }
             catch (Exception ex)
             {
+                if (ex is IOException)
+                {
+                    foreach (var (file, _) in targetFiles)
+                    {
+                        try
+                        {
+                            if (file.Exists)
+                                file.Delete();
+                        }
+                        catch (Exception ex2)
+                        {
+                            Log.Error(ex2, "Failed to delete {file}", file.FullName);
+                        }
+                    }
+                }
+
                 Log.Error(ex, "Log cull failed");
 
                 /*
