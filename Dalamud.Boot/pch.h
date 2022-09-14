@@ -27,6 +27,7 @@
 
 // C++ Standard Libraries
 #include <cassert>
+#include <chrono>
 #include <cstdio>
 #include <deque>
 #include <filesystem>

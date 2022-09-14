@@ -427,7 +427,8 @@ void xivfixes::backup_userdata_save(bool bApply) {
             LPSECURITY_ATTRIBUTES lpSecurityAttributes,
             DWORD dwCreationDisposition,
             DWORD dwFlagsAndAttributes,
-            HANDLE hTemplateFile)->HANDLE {
+            HANDLE hTemplateFile) noexcept {
+
             if (dwDesiredAccess != GENERIC_WRITE)
                 return s_hookCreateFileW->call_original(lpFileName, dwDesiredAccess, dwShareMode, lpSecurityAttributes, dwCreationDisposition, dwFlagsAndAttributes, hTemplateFile);
 
@@ -436,9 +437,17 @@ void xivfixes::backup_userdata_save(bool bApply) {
             if (ext != ".dat" && ext != ".cfg")
                 return s_hookCreateFileW->call_original(lpFileName, dwDesiredAccess, dwShareMode, lpSecurityAttributes, dwCreationDisposition, dwFlagsAndAttributes, hTemplateFile);
 
+            for (auto i = 0; i < 16; i++) {
+                std::error_code ec;
+                auto resolved = read_symlink(path, ec);
+                if (ec || resolved == path)
+                    break;
+                path = std::move(resolved);
+            }
+
             std::filesystem::path temporaryPath = path;
-            temporaryPath.replace_extension(path.extension().wstring() + L".new");
-            const auto handle = s_hookCreateFileW->call_original(temporaryPath.c_str(), GENERIC_READ | GENERIC_WRITE | DELETE, dwShareMode, lpSecurityAttributes, dwCreationDisposition, dwFlagsAndAttributes, hTemplateFile);
+            temporaryPath.replace_extension(std::format(L"{}.new.{:X}.{:X}", path.extension().c_str(), std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now().time_since_epoch()).count(), GetCurrentProcessId()));
+            const auto handle = s_hookCreateFileW->call_original(temporaryPath.c_str(), GENERIC_READ | GENERIC_WRITE | DELETE, dwShareMode, lpSecurityAttributes, CREATE_ALWAYS, dwFlagsAndAttributes, hTemplateFile);
             if (handle == INVALID_HANDLE_VALUE)
                 return handle;
 
@@ -448,7 +457,7 @@ void xivfixes::backup_userdata_save(bool bApply) {
             return handle;
         });
 
-        s_hookCloseHandle->set_detour([](HANDLE handle) {
+        s_hookCloseHandle->set_detour([](HANDLE handle) noexcept {
             const auto lock = std::lock_guard(s_mtx);
             if (const auto it = s_handles.find(handle); it != s_handles.end()) {
                 std::filesystem::path tempPath(std::move(it->second.first));
