@@ -338,7 +338,7 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
                         throw new ArgumentOutOfRangeException();
                 }
 
-                if (DateTime.Now - this.timeLoaded > TimeSpan.FromSeconds(90) && isWaitingManager)
+                if (DateTime.Now - this.timeLoaded > TimeSpan.FromSeconds(90) && !pluginManager.PluginsReady)
                 {
                     ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudRed);
                     ImGuiHelpers.CenteredText("This is embarrassing, but...");
@@ -1035,7 +1035,7 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
 
         private void DrawPluginCategoryContent()
         {
-            var ready = this.DrawPluginListLoading();
+            var ready = this.DrawPluginListLoading() && !this.AnyOperationInProgress;
             if (!this.categoryManager.IsSelectionValid || !ready)
             {
                 return;
