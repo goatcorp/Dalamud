@@ -94,6 +94,7 @@ namespace Dalamud.Injector
             args.Remove("--veh-full");
             args.Remove("--no-plugin");
             args.Remove("--no-3rd-plugin");
+            args.Remove("--crash-handler-console");
 
             var mainCommand = args[1].ToLowerInvariant();
             if (mainCommand.Length > 0 && mainCommand.Length <= 6 && "inject"[..mainCommand.Length] == mainCommand)
@@ -252,6 +253,7 @@ namespace Dalamud.Injector
             var assetDirectory = startInfo.AssetDirectory;
             var delayInitializeMs = startInfo.DelayInitializeMs;
             var languageStr = startInfo.Language.ToString().ToLowerInvariant();
+            var troubleshootingData = "{\"empty\": true, \"description\": \"No troubleshooting data supplied.\"}";
 
             for (var i = 2; i < args.Count; i++)
             {
@@ -269,6 +271,8 @@ namespace Dalamud.Injector
                     delayInitializeMs = int.Parse(args[i][key.Length..]);
                 else if (args[i].StartsWith(key = "--dalamud-client-language="))
                     languageStr = args[i][key.Length..].ToLowerInvariant();
+                else if (args[i].StartsWith(key = "--dalamud-tspack-b64="))
+                    troubleshootingData = Encoding.UTF8.GetString(Convert.FromBase64String(args[i][key.Length..]));
                 else
                     continue;
 
@@ -313,6 +317,7 @@ namespace Dalamud.Injector
             startInfo.Language = clientLanguage;
             startInfo.DelayInitializeMs = delayInitializeMs;
             startInfo.GameVersion = null;
+            startInfo.TroubleshootingPackData = troubleshootingData;
 
             // Set boot defaults
             startInfo.BootShowConsole = args.Contains("--console");
@@ -329,6 +334,7 @@ namespace Dalamud.Injector
             startInfo.NoLoadPlugins = args.Contains("--no-plugin");
             startInfo.NoLoadThirdPartyPlugins = args.Contains("--no-third-plugin");
             // startInfo.BootUnhookDlls = new List<string>() { "kernel32.dll", "ntdll.dll", "user32.dll" };
+            startInfo.CrashHandlerShow = args.Contains("--crash-handler-console");
 
             return startInfo;
         }
@@ -364,7 +370,7 @@ namespace Dalamud.Injector
             Console.WriteLine("                               [--dalamud-client-language=0-3|j(apanese)|e(nglish)|d|g(erman)|f(rench)]");
 
             Console.WriteLine("Verbose logging:\t[-v]");
-            Console.WriteLine("Show Console:\t[--console]");
+            Console.WriteLine("Show Console:\t[--console] [--crash-handler-console]");
             Console.WriteLine("Enable ETW:\t[--etw]");
             Console.WriteLine("Enable VEH:\t[--veh], [--veh-full]");
             Console.WriteLine("Show messagebox:\t[--msgbox1], [--msgbox2], [--msgbox3]");
