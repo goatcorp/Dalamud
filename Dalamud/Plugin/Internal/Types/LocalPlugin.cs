@@ -288,11 +288,7 @@ internal class LocalPlugin : IDisposable
             if (reloading && this.IsDev)
             {
                 // Reload the manifest in-case there were changes here too.
-                var manifestDevFile = LocalPluginManifest.GetManifestFile(this.DllFile);
-                if (manifestDevFile.Exists)
-                {
-                    this.Manifest = LocalPluginManifest.Load(manifestDevFile);
-                }
+                this.ReloadManifest();
             }
 
             switch (this.State)
@@ -625,6 +621,22 @@ internal class LocalPlugin : IDisposable
     {
         this.Manifest.ScheduledForDeletion = status;
         this.SaveManifest();
+    }
+
+    /// <summary>
+    /// Reload the manifest if it exists, preserve the internal Disabled state.
+    /// </summary>
+    public void ReloadManifest()
+    {
+        var manifest = LocalPluginManifest.GetManifestFile(this.DllFile);
+        if (manifest.Exists)
+        {
+            var isDisabled = this.IsDisabled; // saving the internal state because it could have been deleted
+            this.Manifest = LocalPluginManifest.Load(manifest);
+            this.Manifest.Disabled = isDisabled;
+
+            this.SaveManifest();
+        }
     }
 
     private static void SetupLoaderConfig(LoaderConfig config)

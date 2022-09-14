@@ -2118,6 +2118,11 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
                             this.enableDisableStatus = OperationStatus.InProgress;
                             this.loadingIndicatorKind = LoadingIndicatorKind.EnablingSingle;
 
+                            if (plugin.IsDev)
+                            {
+                                plugin.ReloadManifest();
+                            }
+
                             var enableTask = Task.Run(() => plugin.Enable())
                                                  .ContinueWith(this.DisplayErrorContinuation,
                                                                Locs.ErrorModal_EnableFail(plugin.Name));
