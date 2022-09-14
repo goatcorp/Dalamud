@@ -34,6 +34,7 @@ namespace Dalamud
             this.Language = other.Language;
             this.GameVersion = other.GameVersion;
             this.DelayInitializeMs = other.DelayInitializeMs;
+            this.TroubleshootingPackData = other.TroubleshootingPackData;
             this.NoLoadPlugins = other.NoLoadPlugins;
             this.NoLoadThirdPartyPlugins = other.NoLoadThirdPartyPlugins;
             this.BootLogPath = other.BootLogPath;
@@ -47,6 +48,7 @@ namespace Dalamud
             this.BootDotnetOpenProcessHookMode = other.BootDotnetOpenProcessHookMode;
             this.BootEnabledGameFixes = other.BootEnabledGameFixes;
             this.BootUnhookDlls = other.BootUnhookDlls;
+            this.CrashHandlerShow = other.CrashHandlerShow;
         }
 
         /// <summary>
@@ -84,6 +86,11 @@ namespace Dalamud
         /// </summary>
         [JsonConverter(typeof(GameVersionConverter))]
         public GameVersion? GameVersion { get; set; }
+
+        /// <summary>
+        /// Gets or sets troubleshooting information to attach when generating a tspack file.
+        /// </summary>
+        public string TroubleshootingPackData { get; set; }
 
         /// <summary>
         /// Gets or sets a value that specifies how much to wait before a new Dalamud session.
@@ -154,5 +161,10 @@ namespace Dalamud
         /// Gets or sets a list of DLLs that should be unhooked.
         /// </summary>
         public List<string>? BootUnhookDlls { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether to show crash handler console window.
+        /// </summary>
+        public bool CrashHandlerShow { get; set; }
     }
 }

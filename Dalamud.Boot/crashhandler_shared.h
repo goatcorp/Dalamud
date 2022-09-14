@@ -15,4 +15,5 @@ struct exception_info
     uint64_t nLifetime;
     HANDLE hThreadHandle;
     DWORD dwStackTraceLength;
+    DWORD dwTroubleshootingPackDataLength;
 };

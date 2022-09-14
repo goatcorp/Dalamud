@@ -175,10 +175,14 @@ LONG exception_handler(EXCEPTION_POINTERS* ex)
     }
     
     exinfo.dwStackTraceLength = static_cast<DWORD>(stackTrace.size());
+    exinfo.dwTroubleshootingPackDataLength = static_cast<DWORD>(g_startInfo.TroubleshootingPackData.size());
     if (DWORD written; !WriteFile(g_crashhandler_pipe_write, &exinfo, static_cast<DWORD>(sizeof exinfo), &written, nullptr) || sizeof exinfo != written)
         return EXCEPTION_CONTINUE_SEARCH;
 
     if (DWORD written; !WriteFile(g_crashhandler_pipe_write, &stackTrace[0], static_cast<DWORD>(std::span(stackTrace).size_bytes()), &written, nullptr) || std::span(stackTrace).size_bytes() != written)
+        return EXCEPTION_CONTINUE_SEARCH;
+
+    if (DWORD written; !WriteFile(g_crashhandler_pipe_write, &g_startInfo.TroubleshootingPackData[0], static_cast<DWORD>(std::span(g_startInfo.TroubleshootingPackData).size_bytes()), &written, nullptr) || std::span(g_startInfo.TroubleshootingPackData).size_bytes() != written)
         return EXCEPTION_CONTINUE_SEARCH;
 
     SuspendThread(GetCurrentThread());
@@ -224,11 +228,7 @@ bool veh::add_handler(bool doFullDump, const std::string& workingDirectory)
     
     siex.StartupInfo.cb = sizeof siex;
     siex.StartupInfo.dwFlags = STARTF_USESHOWWINDOW;
-#ifdef NDEBUG
-    siex.StartupInfo.wShowWindow = SW_HIDE;
-#else
-    siex.StartupInfo.wShowWindow = SW_SHOW;
-#endif
+    siex.StartupInfo.wShowWindow = g_startInfo.CrashHandlerShow ? SW_SHOW : SW_HIDE;
 
     // set up list of handles to inherit to child process
     std::vector<char> attributeListBuf;
@@ -309,7 +309,7 @@ bool veh::add_handler(bool doFullDump, const std::string& workingDirectory)
     }
 
     CloseHandle(pi.hThread);
-
+    
     g_crashhandler_process = pi.hProcess;
     g_crashhandler_pipe_write = hWritePipe->release();
     logging::I("Launched DalamudCrashHandler.exe: PID {}", pi.dwProcessId);

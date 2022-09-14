@@ -79,9 +79,11 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="DalamudCrashHandler.cpp" />
+    <ClCompile Include="miniz.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Dalamud.Boot\crashhandler_shared.h" />
+    <ClInclude Include="miniz.h" />
     <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>

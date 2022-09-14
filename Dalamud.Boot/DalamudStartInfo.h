@@ -34,6 +34,7 @@ struct DalamudStartInfo {
     ClientLanguage Language = ClientLanguage::English;
     std::string GameVersion;
     int DelayInitializeMs = 0;
+    std::string TroubleshootingPackData;
 
     std::string BootLogPath;
     bool BootShowConsole = false;
@@ -46,6 +47,8 @@ struct DalamudStartInfo {
     DotNetOpenProcessHookMode BootDotnetOpenProcessHookMode = DotNetOpenProcessHookMode::ImportHooks;
     std::set<std::string> BootEnabledGameFixes{};
     std::set<std::string> BootUnhookDlls{};
+
+    bool CrashHandlerShow = false;
 
     friend void from_json(const nlohmann::json&, DalamudStartInfo&);
     void from_envvars();

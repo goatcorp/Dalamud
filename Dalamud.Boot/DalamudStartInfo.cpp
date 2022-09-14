@@ -80,6 +80,7 @@ void from_json(const nlohmann::json& json, DalamudStartInfo& config) {
     config.Language = json.value("Language", config.Language);
     config.GameVersion = json.value("GameVersion", config.GameVersion);
     config.DelayInitializeMs = json.value("DelayInitializeMs", config.DelayInitializeMs);
+    config.TroubleshootingPackData = json.value("TroubleshootingPackData", std::string{});
 
     config.BootLogPath = json.value("BootLogPath", config.BootLogPath);
     config.BootShowConsole = json.value("BootShowConsole", config.BootShowConsole);
@@ -100,6 +101,8 @@ void from_json(const nlohmann::json& json, DalamudStartInfo& config) {
         for (const auto& val : *it)
             config.BootUnhookDlls.insert(unicode::convert<std::string>(val.get<std::string>(), &unicode::lower));
     }
+
+    config.CrashHandlerShow = json.value("CrashHandlerShow", config.CrashHandlerShow);
 }
 
 void DalamudStartInfo::from_envvars() {
