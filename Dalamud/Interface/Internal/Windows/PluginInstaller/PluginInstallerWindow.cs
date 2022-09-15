@@ -2089,6 +2089,11 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
 
                         Task.Run(() =>
                         {
+                            if (plugin.IsDev)
+                            {
+                                plugin.ReloadManifest();
+                            }
+
                             var unloadTask = Task.Run(() => plugin.UnloadAsync())
                                                  .ContinueWith(this.DisplayErrorContinuation, Locs.ErrorModal_UnloadFail(plugin.Name));
 
