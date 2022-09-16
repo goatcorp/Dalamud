@@ -875,11 +875,11 @@ int main() {
         config.pszMainIcon = MAKEINTRESOURCE(IDI_ICON1);
         config.pszMainInstruction = L"An error occurred";
         config.pszContent = (L""
-            R"aa(Upload <a href="exporttspack">THIS FILE (click here)</a> if you want to ask in our <a href="discord">Discord server</a>.)aa" "\n"
+            R"aa(This error may be caused by a faulty plugin, a broken TexTools modification, any other third-party tool, or simply a bug in the game.)aa" "\n"
             "\n"
-            R"aa(This may be caused by a faulty plugin, a broken TexTools modification, any other third-party tool, or simply a bug in the game.)aa" "\n"
+            R"aa(Upload <a href="exporttspack">this file (click here)</a> if you want to ask for help in our <a href="discord">Discord server</a>.)aa" "\n"
             "\n"
-            R"aa(Try running integrity check in the XIVLauncher settings, and disabling plugins you don't need.)aa"
+            R"aa(Try running a game repair in XIVLauncher by right clicking the login button, and disabling plugins you don't need.)aa"
         );
         config.pButtons = buttons;
         config.cButtons = ARRAYSIZE(buttons);
