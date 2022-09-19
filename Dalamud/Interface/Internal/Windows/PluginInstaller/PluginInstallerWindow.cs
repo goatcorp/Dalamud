@@ -1300,12 +1300,34 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
 
             ImGuiHelpers.ScaledDummy(20);
 
+            static void CheckImageSize(TextureWrap? image, int maxWidth, int maxHeight, bool requireSquare)
+            {
+                if (image == null)
+                    return;
+                if (image.Width > maxWidth || image.Height > maxHeight)
+                    ImGui.TextColored(ImGuiColors.DalamudRed, $"Image is larger than the maximum allowed resolution ({image.Width}x{image.Height} > {maxWidth}x{maxHeight})");
+                if (requireSquare && image.Width != image.Height)
+                    ImGui.TextColored(ImGuiColors.DalamudRed, $"Image must be square! Current size: {image.Width}x{image.Height}");
+            }
+
             ImGui.InputText("Icon Path", ref this.testerIconPath, 1000);
+            if (this.testerIcon != null)
+                CheckImageSize(this.testerIcon, PluginImageCache.PluginIconWidth, PluginImageCache.PluginIconHeight, true);
             ImGui.InputText("Image 1 Path", ref this.testerImagePaths[0], 1000);
+            if (this.testerImages?.Length > 0)
+                CheckImageSize(this.testerImages[0], PluginImageCache.PluginImageWidth, PluginImageCache.PluginImageHeight, false);
             ImGui.InputText("Image 2 Path", ref this.testerImagePaths[1], 1000);
+            if (this.testerImages?.Length > 1)
+                CheckImageSize(this.testerImages[1], PluginImageCache.PluginImageWidth, PluginImageCache.PluginImageHeight, false);
             ImGui.InputText("Image 3 Path", ref this.testerImagePaths[2], 1000);
+            if (this.testerImages?.Length > 2)
+                CheckImageSize(this.testerImages[2], PluginImageCache.PluginImageWidth, PluginImageCache.PluginImageHeight, false);
             ImGui.InputText("Image 4 Path", ref this.testerImagePaths[3], 1000);
+            if (this.testerImages?.Length > 3)
+                CheckImageSize(this.testerImages[3], PluginImageCache.PluginImageWidth, PluginImageCache.PluginImageHeight, false);
             ImGui.InputText("Image 5 Path", ref this.testerImagePaths[4], 1000);
+            if (this.testerImages?.Length > 4)
+                CheckImageSize(this.testerImages[4], PluginImageCache.PluginImageWidth, PluginImageCache.PluginImageHeight, false);
 
             var im = Service<InterfaceManager>.Get();
             if (ImGui.Button("Load"))
