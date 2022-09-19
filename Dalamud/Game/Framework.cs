@@ -27,11 +27,14 @@ namespace Dalamud.Game
     {
         private static Stopwatch statsStopwatch = new();
 
-        private readonly List<RunOnNextTickTaskBase> runOnNextTickTaskList = new();
         private readonly Stopwatch updateStopwatch = new();
 
         private readonly Hook<OnUpdateDetour> updateHook;
         private readonly Hook<OnRealDestroyDelegate> destroyHook;
+
+        private readonly object runOnNextTickTaskListSync = new();
+        private List<RunOnNextTickTaskBase> runOnNextTickTaskList = new();
+        private List<RunOnNextTickTaskBase> runOnNextTickTaskList2 = new();
 
         private Thread? frameworkUpdateThread;
 
@@ -193,14 +196,18 @@ namespace Dalamud.Game
             }
 
             var tcs = new TaskCompletionSource<T>();
-            this.runOnNextTickTaskList.Add(new RunOnNextTickTaskFunc<T>()
+            lock (this.runOnNextTickTaskListSync)
             {
-                RemainingTicks = delayTicks,
-                RunAfterTickCount = Environment.TickCount64 + (long)Math.Ceiling(delay.TotalMilliseconds),
-                CancellationToken = cancellationToken,
-                TaskCompletionSource = tcs,
-                Func = func,
-            });
+                this.runOnNextTickTaskList.Add(new RunOnNextTickTaskFunc<T>()
+                {
+                    RemainingTicks = delayTicks,
+                    RunAfterTickCount = Environment.TickCount64 + (long)Math.Ceiling(delay.TotalMilliseconds),
+                    CancellationToken = cancellationToken,
+                    TaskCompletionSource = tcs,
+                    Func = func,
+                });
+            }
+
             return tcs.Task;
         }
 
@@ -225,14 +232,18 @@ namespace Dalamud.Game
             }
 
             var tcs = new TaskCompletionSource();
-            this.runOnNextTickTaskList.Add(new RunOnNextTickTaskAction()
+            lock (this.runOnNextTickTaskListSync)
             {
-                RemainingTicks = delayTicks,
-                RunAfterTickCount = Environment.TickCount64 + (long)Math.Ceiling(delay.TotalMilliseconds),
-                CancellationToken = cancellationToken,
-                TaskCompletionSource = tcs,
-                Action = action,
-            });
+                this.runOnNextTickTaskList.Add(new RunOnNextTickTaskAction()
+                {
+                    RemainingTicks = delayTicks,
+                    RunAfterTickCount = Environment.TickCount64 + (long)Math.Ceiling(delay.TotalMilliseconds),
+                    CancellationToken = cancellationToken,
+                    TaskCompletionSource = tcs,
+                    Action = action,
+                });
+            }
+
             return tcs.Task;
         }
 
@@ -258,14 +269,18 @@ namespace Dalamud.Game
             }
 
             var tcs = new TaskCompletionSource<Task<T>>();
-            this.runOnNextTickTaskList.Add(new RunOnNextTickTaskFunc<Task<T>>()
+            lock (this.runOnNextTickTaskListSync)
             {
-                RemainingTicks = delayTicks,
-                RunAfterTickCount = Environment.TickCount64 + (long)Math.Ceiling(delay.TotalMilliseconds),
-                CancellationToken = cancellationToken,
-                TaskCompletionSource = tcs,
-                Func = func,
-            });
+                this.runOnNextTickTaskList.Add(new RunOnNextTickTaskFunc<Task<T>>()
+                {
+                    RemainingTicks = delayTicks,
+                    RunAfterTickCount = Environment.TickCount64 + (long)Math.Ceiling(delay.TotalMilliseconds),
+                    CancellationToken = cancellationToken,
+                    TaskCompletionSource = tcs,
+                    Func = func,
+                });
+            }
+
             return tcs.Task.ContinueWith(x => x.Result, cancellationToken).Unwrap();
         }
 
@@ -291,14 +306,18 @@ namespace Dalamud.Game
             }
 
             var tcs = new TaskCompletionSource<Task>();
-            this.runOnNextTickTaskList.Add(new RunOnNextTickTaskFunc<Task>()
+            lock (this.runOnNextTickTaskListSync)
             {
-                RemainingTicks = delayTicks,
-                RunAfterTickCount = Environment.TickCount64 + (long)Math.Ceiling(delay.TotalMilliseconds),
-                CancellationToken = cancellationToken,
-                TaskCompletionSource = tcs,
-                Func = func,
-            });
+                this.runOnNextTickTaskList.Add(new RunOnNextTickTaskFunc<Task>()
+                {
+                    RemainingTicks = delayTicks,
+                    RunAfterTickCount = Environment.TickCount64 + (long)Math.Ceiling(delay.TotalMilliseconds),
+                    CancellationToken = cancellationToken,
+                    TaskCompletionSource = tcs,
+                    Func = func,
+                });
+            }
+
             return tcs.Task.ContinueWith(x => x.Result, cancellationToken).Unwrap();
         }
 
@@ -328,6 +347,20 @@ namespace Dalamud.Game
         {
             this.updateHook.Enable();
             this.destroyHook.Enable();
+        }
+
+        private void RunPendingTickTasks()
+        {
+            if (this.runOnNextTickTaskList.Count == 0 && this.runOnNextTickTaskList2.Count == 0)
+                return;
+
+            for (var i = 0; i < 2; i++)
+            {
+                lock (this.runOnNextTickTaskListSync)
+                    (this.runOnNextTickTaskList, this.runOnNextTickTaskList2) = (this.runOnNextTickTaskList2, this.runOnNextTickTaskList);
+
+                this.runOnNextTickTaskList2.RemoveAll(x => x.Run());
+            }
         }
 
         private bool HandleFrameworkUpdate(IntPtr framework)
@@ -362,7 +395,7 @@ namespace Dalamud.Game
                 this.LastUpdate = DateTime.Now;
                 this.LastUpdateUTC = DateTime.UtcNow;
 
-                this.runOnNextTickTaskList.RemoveAll(x => x.Run());
+                this.RunPendingTickTasks();
 
                 if (StatsEnabled && this.Update != null)
                 {
@@ -430,7 +463,7 @@ namespace Dalamud.Game
 
             Log.Information("Framework::Destroy!");
             Service<Dalamud>.Get().Unload();
-            this.runOnNextTickTaskList.RemoveAll(x => x.Run());
+            this.RunPendingTickTasks();
             ServiceManager.UnloadAllServices();
             Log.Information("Framework::Destroy OK!");
 
