@@ -422,8 +422,6 @@ internal class LocalPlugin : IDisposable
                 return;
             }
 
-            SignatureHelper.Initialise(this.instance);
-
             // In-case the manifest name was a placeholder. Can occur when no manifest was included.
             if (this.Manifest.Name.IsNullOrEmpty())
             {
