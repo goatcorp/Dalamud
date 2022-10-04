@@ -40,6 +40,7 @@ namespace Dalamud.Interface.Internal.Windows
         private string textFilter = string.Empty;
         private int levelFilter;
         private List<string> sourceFilters = new();
+        private bool filterShowUncaughtExceptions = false;
         private bool isFiltered = false;
 
         private int historyPos;
@@ -179,7 +180,9 @@ namespace Dalamud.Interface.Internal.Windows
                 }
 
                 // Filter by specific plugin(s)
-                var pluginInternalNames = Service<PluginManager>.Get().InstalledPlugins.Select(p => p.Manifest.InternalName).ToList();
+                var pluginInternalNames = Service<PluginManager>.Get().InstalledPlugins
+                                                                .Select(p => p.Manifest.InternalName)
+                                                                .OrderBy(s => s).ToList();
                 var sourcePreviewVal = this.sourceFilters.Count switch
                 {
                     0 => "All plugins...",
@@ -207,6 +210,11 @@ namespace Dalamud.Interface.Internal.Windows
                     }
 
                     ImGui.EndCombo();
+                }
+
+                if (ImGui.Checkbox("Always Show Uncaught Exceptions", ref this.filterShowUncaughtExceptions))
+                {
+                    this.Refilter();
                 }
 
                 ImGui.EndPopup();
@@ -488,6 +496,7 @@ namespace Dalamud.Interface.Internal.Windows
                 Level = logEvent.Level,
                 Line = line,
                 TimeStamp = logEvent.Timestamp,
+                HasException = logEvent.Exception != null,
             };
 
             if (logEvent.Properties.TryGetValue("SourceContext", out var sourceProp) &&
@@ -509,6 +518,11 @@ namespace Dalamud.Interface.Internal.Windows
         {
             if (this.levelFilter > 0 && ((this.levelFilter >> (int)entry.Level) & 1) == 0)
                 return false;
+
+            // Show exceptions that weren't properly tagged with a Source (generally meaning they were uncaught)
+            // After log levels because uncaught exceptions should *never* fall below Error.
+            if (this.filterShowUncaughtExceptions && entry.HasException && entry.Source == null)
+                return true;
 
             if (this.sourceFilters.Count > 0 && !this.sourceFilters.Contains(entry.Source))
                 return false;
@@ -565,6 +579,8 @@ namespace Dalamud.Interface.Internal.Windows
             public bool IsMultiline { get; set; }
 
             public string? Source { get; set; }
+
+            public bool HasException { get; set; }
         }
     }
 }
