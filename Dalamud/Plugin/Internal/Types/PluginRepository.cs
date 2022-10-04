@@ -141,7 +141,7 @@ internal class PluginRepository
 
             this.PluginMaster = pluginMaster.AsReadOnly();
 
-            Log.Information($"Successfully fetched repo: {this.PluginMasterUrl}");
+            Log.Information($"Successfully fetched repo: {this.PluginMasterUrl.Split("?")[0]}");
             this.State = PluginRepositoryState.Success;
         }
         catch (Exception ex)
