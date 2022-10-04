@@ -89,7 +89,7 @@ internal class PluginRepository
 
         try
         {
-            Log.Information($"Fetching repo: {this.PluginMasterUrl}.Split("?")[0]");
+            Log.Information($"Fetching repo: {this.PluginMasterUrl.Split("?")[0]}");
 
             using var response = await HttpClient.GetAsync(this.PluginMasterUrl);
             response.EnsureSuccessStatusCode();
@@ -141,12 +141,12 @@ internal class PluginRepository
 
             this.PluginMaster = pluginMaster.AsReadOnly();
 
-            Log.Information($"Successfully fetched repo: {this.PluginMasterUrl}.Split("?")[0]");
+            Log.Information($"Successfully fetched repo: {this.PluginMasterUrl}");
             this.State = PluginRepositoryState.Success;
         }
         catch (Exception ex)
         {
-            Log.Error(ex, $"PluginMaster failed: {this.PluginMasterUrl}.Split("?")[0]");
+            Log.Error(ex, $"PluginMaster failed: {this.PluginMasterUrl.Split("?")[0]}");
             this.State = PluginRepositoryState.Fail;
         }
     }
