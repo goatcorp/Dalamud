@@ -1064,65 +1064,70 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
 
             ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, ImGuiHelpers.ScaledVector2(1, 3));
 
-            var groupInfo = this.categoryManager.GroupList[this.categoryManager.CurrentGroupIdx];
-            if (this.categoryManager.IsContentDirty)
+            try
             {
-                // reset opened list of collapsibles when switching between categories
-                this.openPluginCollapsibles.Clear();
-
-                // do NOT reset dirty flag when Available group is selected, it will be handled by DrawAvailablePluginList()
-                if (groupInfo.GroupKind != PluginCategoryManager.GroupKind.Available)
+                var groupInfo = this.categoryManager.GroupList[this.categoryManager.CurrentGroupIdx];
+                if (this.categoryManager.IsContentDirty)
                 {
-                    this.categoryManager.ResetContentDirty();
+                    // reset opened list of collapsibles when switching between categories
+                    this.openPluginCollapsibles.Clear();
+
+                    // do NOT reset dirty flag when Available group is selected, it will be handled by DrawAvailablePluginList()
+                    if (groupInfo.GroupKind != PluginCategoryManager.GroupKind.Available)
+                    {
+                        this.categoryManager.ResetContentDirty();
+                    }
+                }
+
+                switch (groupInfo.GroupKind)
+                {
+                    case PluginCategoryManager.GroupKind.DevTools:
+                        // this one is never sorted and remains in hardcoded order from group ctor
+                        switch (this.categoryManager.CurrentCategoryIdx)
+                        {
+                            case 0:
+                                this.DrawInstalledDevPluginList();
+                                break;
+
+                            case 1:
+                                this.DrawImageTester();
+                                break;
+
+                            default:
+                                // umm, there's nothing else, keep handled set and just skip drawing...
+                                break;
+                        }
+
+                        break;
+                    case PluginCategoryManager.GroupKind.Installed:
+                        this.DrawInstalledPluginList();
+                        break;
+                    case PluginCategoryManager.GroupKind.Changelog:
+                        switch (this.categoryManager.CurrentCategoryIdx)
+                        {
+                            case 0:
+                                this.DrawChangelogList(true, true);
+                                break;
+
+                            case 1:
+                                this.DrawChangelogList(true, false);
+                                break;
+
+                            case 2:
+                                this.DrawChangelogList(false, true);
+                                break;
+                        }
+
+                        break;
+                    default:
+                        this.DrawAvailablePluginList();
+                        break;
                 }
             }
-
-            switch (groupInfo.GroupKind)
+            finally
             {
-                case PluginCategoryManager.GroupKind.DevTools:
-                    // this one is never sorted and remains in hardcoded order from group ctor
-                    switch (this.categoryManager.CurrentCategoryIdx)
-                    {
-                        case 0:
-                            this.DrawInstalledDevPluginList();
-                            break;
-
-                        case 1:
-                            this.DrawImageTester();
-                            break;
-
-                        default:
-                            // umm, there's nothing else, keep handled set and just skip drawing...
-                            break;
-                    }
-
-                    break;
-                case PluginCategoryManager.GroupKind.Installed:
-                    this.DrawInstalledPluginList();
-                    break;
-                case PluginCategoryManager.GroupKind.Changelog:
-                    switch (this.categoryManager.CurrentCategoryIdx)
-                    {
-                        case 0:
-                            this.DrawChangelogList(true, true);
-                            break;
-
-                        case 1:
-                            this.DrawChangelogList(true, false);
-                            break;
-
-                        case 2:
-                            this.DrawChangelogList(false, true);
-                            break;
-                    }
-
-                    break;
-                default:
-                    this.DrawAvailablePluginList();
-                    break;
+                ImGui.PopStyleVar();
             }
-
-            ImGui.PopStyleVar();
         }
 
         private void DrawImageTester()
