@@ -131,6 +131,25 @@ namespace Dalamud.Game.Text.SeStringHandling
 
         /// <summary>
         /// Parse a binary game message into an SeString.
+        /// Searches for null terminator to calculate string length.
+        /// </summary>
+        /// <param name="ptr">Pointer to the string's data in memory.</param>
+        /// <returns>An SeString containing parsed Payload objects for each payload in the data.</returns>
+        public static unsafe SeString Parse(byte* ptr)
+        {
+            if (ptr == null)
+                return Empty;
+
+            var countPtr = ptr;
+            while (*countPtr != 0) countPtr++;
+
+            var len = (int)(countPtr - ptr);
+
+            return Parse(ptr, len);
+        }
+
+        /// <summary>
+        /// Parse a binary game message into an SeString.
         /// </summary>
         /// <param name="data">Binary message payload data in SE's internal format.</param>
         /// <returns>An SeString containing parsed Payload objects for each payload in the data.</returns>
