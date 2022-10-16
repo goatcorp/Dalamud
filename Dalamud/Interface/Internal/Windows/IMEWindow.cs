@@ -37,6 +37,9 @@ namespace Dalamud.Interface.Internal.Windows
                 ImGui.Text("IME is unavailable.");
                 return;
             }
+
+            //ImGui.Text($"{ime.GetCursorPos()}");
+            //ImGui.Text($"{ImGui.GetWindowViewport().WorkSize}");
         }
 
         /// <inheritdoc/>
@@ -48,12 +51,8 @@ namespace Dalamud.Interface.Internal.Windows
             if (ime == null || !ime.IsEnabled)
                 return;
 
-            var cursorPos = ime.GetCursorPos();
-
-            var nextDrawPosY = cursorPos.Y;
             var maxTextWidth = 0f;
             var textHeight = ImGui.CalcTextSize(ime.ImmComp).Y;
-            var drawAreaPosX = cursorPos.X + ImGui.GetStyle().WindowPadding.X;
 
             var native = ime.ImmCandNative;
             var totalIndex = native.Selection + 1;
@@ -74,9 +73,25 @@ namespace Dalamud.Interface.Internal.Windows
             maxTextWidth = maxTextWidth > ImGui.CalcTextSize(pageInfo).X ? maxTextWidth : ImGui.CalcTextSize(pageInfo).X;
             maxTextWidth = maxTextWidth > ImGui.CalcTextSize(ime.ImmComp).X ? maxTextWidth : ImGui.CalcTextSize(ime.ImmComp).X;
 
-            var imeWindowMinPos = new Vector2(cursorPos.X, cursorPos.Y);
-            var imeWindowMaxPos = new Vector2(cursorPos.X + maxTextWidth + (2 * ImGui.GetStyle().WindowPadding.X), cursorPos.Y + (textHeight * (ime.ImmCand.Count + 2)) + (5 * (ime.ImmCand.Count - 1)) + (2 * ImGui.GetStyle().WindowPadding.Y));
+            var imeWindowWidth = maxTextWidth + (2 * ImGui.GetStyle().WindowPadding.X);
+            var imeWindowHeight = (textHeight * (ime.ImmCand.Count + 2)) + (5 * (ime.ImmCand.Count - 1)) + (2 * ImGui.GetStyle().WindowPadding.Y);
 
+            // Calc the window pos
+            var cursorPos = ime.GetCursorPos();
+            var imeWindowMinPos = new Vector2(cursorPos.X, cursorPos.Y);
+            var imeWindowMaxPos = new Vector2(imeWindowMinPos.X + imeWindowWidth, imeWindowMinPos.Y + imeWindowHeight);
+            var gameWindowSize = ImGui.GetWindowViewport().WorkSize;
+
+            var offset = new Vector2(
+                imeWindowMaxPos.X - gameWindowSize.X > 0 ? imeWindowMaxPos.X - gameWindowSize.X : 0,
+                imeWindowMaxPos.Y - gameWindowSize.Y > 0 ? imeWindowMaxPos.Y - gameWindowSize.Y : 0);
+            imeWindowMinPos -= offset;
+            imeWindowMaxPos -= offset;
+
+            var nextDrawPosY = imeWindowMinPos.Y;
+            var drawAreaPosX = imeWindowMinPos.X + ImGui.GetStyle().WindowPadding.X;
+
+            // Draw the ime window
             var drawList = ImGui.GetForegroundDrawList();
             // Draw the background rect
             drawList.AddRectFilled(imeWindowMinPos, imeWindowMaxPos, ImGui.GetColorU32(ImGuiCol.WindowBg), ImGui.GetStyle().WindowRounding);
