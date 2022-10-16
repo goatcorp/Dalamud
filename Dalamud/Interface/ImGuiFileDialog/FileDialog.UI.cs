@@ -39,7 +39,7 @@ namespace Dalamud.Interface.ImGuiFileDialog
 
             this.ResetEvents();
 
-            ImGui.SetNextWindowSize(new Vector2(800, 500), ImGuiCond.FirstUseEver);
+            ImGui.SetNextWindowSize(ImGuiHelpers.ScaledVector2(800, 500), ImGuiCond.FirstUseEver);
 
             if (this.isModal && !this.okResultToConfirm)
             {
@@ -100,6 +100,9 @@ namespace Dalamud.Interface.ImGuiFileDialog
             return wasClosed || this.ConfirmOrOpenOverWriteFileDialogIfNeeded(res);
         }
 
+        private static float Scaled(float value)
+            => value * ImGuiHelpers.GlobalScale;
+
         private static void AddToIconMap(string[] extensions, FontAwesomeIcon icon, Vector4 color)
         {
             foreach (var ext in extensions)
@@ -138,9 +141,9 @@ namespace Dalamud.Interface.ImGuiFileDialog
         {
             this.DrawPathComposer();
 
-            ImGui.SetCursorPosY(ImGui.GetCursorPosY() + 2);
+            ImGui.SetCursorPosY(ImGui.GetCursorPosY() + Scaled(2));
             ImGui.Separator();
-            ImGui.SetCursorPosY(ImGui.GetCursorPosY() + 2);
+            ImGui.SetCursorPosY(ImGui.GetCursorPosY() + Scaled(2));
 
             this.DrawSearchBar();
         }
@@ -171,7 +174,7 @@ namespace Dalamud.Interface.ImGuiFileDialog
                         if (idx > 0)
                         {
                             ImGui.SameLine();
-                            ImGui.SetCursorPosX(ImGui.GetCursorPosX() - 3);
+                            ImGui.SetCursorPosX(ImGui.GetCursorPosX() - Scaled(3));
                         }
 
                         ImGui.PushID(idx);
@@ -254,7 +257,7 @@ namespace Dalamud.Interface.ImGuiFileDialog
                 ImGui.TextUnformatted("New Directory Name");
 
                 ImGui.SameLine();
-                ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X - 100f);
+                ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X - Scaled(100));
                 ImGui.InputText("##DirectoryFileName", ref this.createDirectoryBuffer, 255);
 
                 ImGui.SameLine();
@@ -288,12 +291,12 @@ namespace Dalamud.Interface.ImGuiFileDialog
                 {
                     ImGui.Columns(2, "##FileDialog_Columns");
 
-                    this.DrawSideBar(size with { X = 150 });
+                    this.DrawSideBar(size with { X = Scaled(150) });
 
-                    ImGui.SetColumnWidth(0, 150);
+                    ImGui.SetColumnWidth(0, Scaled(150));
                     ImGui.NextColumn();
 
-                    this.DrawFileListView(size - new Vector2(160, 0));
+                    this.DrawFileListView(size - new Vector2(Scaled(160), 0));
 
                     ImGui.Columns(1);
                 }
@@ -311,13 +314,13 @@ namespace Dalamud.Interface.ImGuiFileDialog
             if (ImGui.BeginChild("##FileDialog_SideBar", size))
             {
 
-                ImGui.SetCursorPosY(ImGui.GetCursorPosY() + 5);
+                ImGui.SetCursorPosY(ImGui.GetCursorPosY() + Scaled(5));
 
                 var idx = 0;
                 foreach (var qa in this.drives.Concat(this.quickAccess).Where(qa => qa.Exists))
                 {
                     ImGui.PushID(idx++);
-                    ImGui.SetCursorPosX(25);
+                    ImGui.SetCursorPosX(Scaled(25));
                     if (ImGui.Selectable(qa.Text, qa.Text == this.selectedSideBar) && qa.CheckExistence())
                     {
                         this.SetPath(qa.Location);
@@ -445,7 +448,7 @@ namespace Dalamud.Interface.ImGuiFileDialog
                                 if (ImGui.TableNextColumn())
                                 {
                                     var sz = ImGui.CalcTextSize(file.FileModifiedDate);
-                                    ImGui.SetNextItemWidth(sz.X                 + 5);
+                                    ImGui.SetNextItemWidth(sz.X + Scaled(5));
                                     ImGui.TextUnformatted(file.FileModifiedDate + " ");
                                 }
 
@@ -494,7 +497,7 @@ namespace Dalamud.Interface.ImGuiFileDialog
             ImGui.TextUnformatted(icon.ToIconString());
             ImGui.PopFont();
 
-            ImGui.SameLine(25f);
+            ImGui.SameLine(Scaled(25f));
 
             if (ImGui.Selectable(file.FileName, selected, flags))
             {
@@ -703,10 +706,10 @@ namespace Dalamud.Interface.ImGuiFileDialog
 
             ImGui.SameLine();
 
-            var width = ImGui.GetContentRegionAvail().X - 100;
+            var width = ImGui.GetContentRegionAvail().X - Scaled(100);
             if (this.filters.Count > 0)
             {
-                width -= 150f;
+                width -= Scaled(150);
             }
 
             var selectOnly = this.flags.HasFlag(ImGuiFileDialogFlags.SelectOnly);
@@ -721,7 +724,7 @@ namespace Dalamud.Interface.ImGuiFileDialog
                 ImGui.SameLine();
                 var needToApplyNewFilter = false;
 
-                ImGui.SetNextItemWidth(150f);
+                ImGui.SetNextItemWidth(Scaled(150f));
                 if (ImGui.BeginCombo("##Filters", this.selectedFilter.Filter, ImGuiComboFlags.None))
                 {
                     var idx = 0;
