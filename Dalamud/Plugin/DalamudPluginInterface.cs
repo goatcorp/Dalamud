@@ -17,6 +17,7 @@ using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Interface;
 using Dalamud.Interface.Internal;
 using Dalamud.Plugin.Internal;
+using Dalamud.Plugin.Internal.Types;
 using Dalamud.Plugin.Ipc;
 using Dalamud.Plugin.Ipc.Exceptions;
 using Dalamud.Plugin.Ipc.Internal;
@@ -54,7 +55,7 @@ namespace Dalamud.Plugin
             this.configs = Service<PluginManager>.Get().PluginConfigs;
             this.Reason = reason;
             this.IsDev = isDev;
-            this.SourceRepository = isDev ? "DevPlugin" : sourceRepository;
+            this.SourceRepository = isDev ? LocalPluginManifest.FlagDevPlugin : sourceRepository;
 
             this.LoadTime = DateTime.Now;
             this.LoadTimeUTC = DateTime.UtcNow;
@@ -125,7 +126,7 @@ namespace Dalamud.Plugin
         public FileInfo AssemblyLocation { get; }
 
         /// <summary>
-        /// Gets the custom repository from which this plugin is installed, the main repo flag or "DevPlugin".
+        /// Gets the custom repository from which this plugin is installed, <inheritdoc cref="LocalPluginManifest.FlagMainRepo"/>, or <inheritdoc cref="LocalPluginManifest.FlagDevPlugin"/>.
         /// </summary>
         public string SourceRepository { get; }
 

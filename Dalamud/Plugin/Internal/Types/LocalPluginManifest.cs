@@ -12,9 +12,14 @@ namespace Dalamud.Plugin.Internal.Types;
 /// </summary>
 internal record LocalPluginManifest : PluginManifest
 {
+    /// <summary> "OFFICIAL" </summary>
     [JsonIgnore]
     public const string FlagMainRepo = "OFFICIAL";
-    
+
+    /// <summary> "DEVPLUGIN" </summary>
+    [JsonIgnore]
+    public const string FlagDevPlugin = "DEVPLUGIN";
+
     /// <summary>
     /// Gets or sets a value indicating whether the plugin is disabled and should not be loaded.
     /// This value supersedes the ".disabled" file functionality and should not be included in the plugin master.
