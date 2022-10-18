@@ -40,7 +40,8 @@ namespace Dalamud.Plugin
         /// <param name="assemblyLocation">Location of the assembly.</param>
         /// <param name="reason">The reason the plugin was loaded.</param>
         /// <param name="isDev">A value indicating whether this is a dev plugin.</param>
-        internal DalamudPluginInterface(string pluginName, FileInfo assemblyLocation, PluginLoadReason reason, bool isDev)
+        /// <param name="sourceRepository">The repository from which the plugin is installed.</param>
+        internal DalamudPluginInterface(string pluginName, FileInfo assemblyLocation, PluginLoadReason reason, bool isDev, string sourceRepository)
         {
             var configuration = Service<DalamudConfiguration>.Get();
             var dataManager = Service<DataManager>.Get();
@@ -53,6 +54,7 @@ namespace Dalamud.Plugin
             this.configs = Service<PluginManager>.Get().PluginConfigs;
             this.Reason = reason;
             this.IsDev = isDev;
+            this.SourceRepository = isDev ? "DevPlugin" : sourceRepository;
 
             this.LoadTime = DateTime.Now;
             this.LoadTimeUTC = DateTime.UtcNow;
@@ -121,6 +123,11 @@ namespace Dalamud.Plugin
         /// Gets the location of your plugin assembly.
         /// </summary>
         public FileInfo AssemblyLocation { get; }
+
+        /// <summary>
+        /// Gets the custom repository from which this plugin is installed, the main repo flag or "DevPlugin".
+        /// </summary>
+        public string SourceRepository { get; }
 
         /// <summary>
         /// Gets the directory your plugin configurations are stored in.
