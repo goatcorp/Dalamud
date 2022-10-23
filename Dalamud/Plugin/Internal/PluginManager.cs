@@ -45,6 +45,15 @@ internal partial class PluginManager : IDisposable, IServiceType
     /// </summary>
     public const int PluginWaitBeforeFreeDefault = 500;
 
+    private const string DevPluginsDisclaimerFilename = "DONT_USE_THIS_FOLDER.txt";
+
+    private const string DevPluginsDisclaimerText = @"Hey!
+The devPlugins folder is deprecated and will be removed soon. Please don't use it anymore for plugin development.
+Instead, open the Dalamud settings and add the path to your plugins build output folder as a dev plugin location.
+Remove your devPlugin from this folder.
+
+Thanks and have fun!";
+
     private static readonly ModuleLog Log = new("PLUGINM");
 
     private readonly object pluginListLock = new();
@@ -71,6 +80,10 @@ internal partial class PluginManager : IDisposable, IServiceType
 
         if (!this.devPluginDirectory.Exists)
             this.devPluginDirectory.Create();
+
+        var disclaimerFileName = Path.Combine(this.devPluginDirectory.FullName, DevPluginsDisclaimerFilename);
+        if (!File.Exists(disclaimerFileName))
+            File.WriteAllText(disclaimerFileName, DevPluginsDisclaimerText);
 
         this.SafeMode = EnvironmentConfiguration.DalamudNoPlugins || this.configuration.PluginSafeMode || this.startInfo.NoLoadPlugins;
 
