@@ -2,10 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
+
 using Dalamud.Plugin.Ipc.Exceptions;
 
 namespace Dalamud.Plugin.Ipc.Internal;
 
+/// <summary>
+/// This class facilitates sharing data-references of standard types between plugins without using more expensive IPC.
+/// </summary>
 [ServiceManager.EarlyLoadedService]
 internal class DataShare : IServiceType
 {
@@ -45,7 +49,7 @@ internal class DataShare : IServiceType
             if (obj == null)
                 throw new Exception("Returned data was null.");
 
-            cache            = new DataCache(callerName, obj, typeof(T));
+            cache = new DataCache(callerName, obj, typeof(T));
             this.caches[tag] = cache;
             return obj;
         }
@@ -104,7 +108,23 @@ internal class DataShare : IServiceType
     /// </summary>
     /// <typeparam name="T">The type for the requested data - needs to be a reference type.</typeparam>
     /// <param name="tag">The name for the data cache.</param>
-    /// <returns>The requested data on success or null.</returns>
-    public T? GetData<T>(string tag) where T : class
-        => TryGetData<T>(tag, out var data) ? data : null;
+    /// <returns>The requested data</returns>
+    /// <exception cref="KeyNotFoundException">Thrown if <paramref name="tag"/> is not registered.</exception>
+    /// <exception cref="DataCacheTypeMismatchError">Thrown if a cache for <paramref name="tag"/> exists, but contains data of a type not assignable to <typeparamref name="T>"/>.</exception>
+    /// <exception cref="DataCacheValueNullError">Thrown if the stored data for a cache is null.</exception>
+    public T GetData<T>(string tag) where T : class
+    {
+        if (!this.caches.TryGetValue(tag, out var cache))
+            throw new KeyNotFoundException($"The data cache {tag} is not registered.");
+
+        var callerName = Assembly.GetCallingAssembly().GetName().Name ?? string.Empty;
+        if (!cache.Type.IsAssignableTo(typeof(T)))
+            throw new DataCacheTypeMismatchError(tag, callerName, typeof(T), cache.Type);
+
+        if (cache.Data is not T data)
+            throw new DataCacheValueNullError(tag, typeof(T));
+
+        cache.UserAssemblyNames.Add(callerName);
+        return data;
+    }
 }

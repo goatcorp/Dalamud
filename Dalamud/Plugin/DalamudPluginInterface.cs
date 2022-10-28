@@ -175,21 +175,21 @@ namespace Dalamud.Plugin
 
         #region IPC
 
-        /// <inheritdoc cref="Ipc.Internal.DataShare.GetOrCreateData{T}"/>
+        /// <inheritdoc cref="DataShare.GetOrCreateData{T}"/>
         public T GetOrCreateData<T>(string tag, Func<T> dataGenerator) where T : class
-            => Service<Ipc.Internal.DataShare>.Get().GetOrCreateData(tag, dataGenerator);
+            => Service<DataShare>.Get().GetOrCreateData(tag, dataGenerator);
 
-        /// <inheritdoc cref="Ipc.Internal.DataShare.RelinquishData"/>
+        /// <inheritdoc cref="DataShare.RelinquishData"/>
         public void RelinquishData(string tag)
-            => Service<Ipc.Internal.DataShare>.Get().RelinquishData(tag);
+            => Service<DataShare>.Get().RelinquishData(tag);
 
-        /// <inheritdoc cref="Ipc.Internal.DataShare.TryGetData{T}"/>
+        /// <inheritdoc cref="DataShare.TryGetData{T}"/>
         public bool TryGetData<T>(string tag, [NotNullWhen(true)] out T? data) where T : class
-            => Service<Ipc.Internal.DataShare>.Get().TryGetData(tag, out data);
+            => Service<DataShare>.Get().TryGetData(tag, out data);
 
-        /// <inheritdoc cref="Ipc.Internal.DataShare.GetData{T}"/>
+        /// <inheritdoc cref="DataShare.GetData{T}"/>
         public T? GetData<T>(string tag) where T : class
-            => Service<Ipc.Internal.DataShare>.Get().GetData<T>(tag);
+            => Service<DataShare>.Get().GetData<T>(tag);
 
         /// <summary>
         /// Gets an IPC provider.
