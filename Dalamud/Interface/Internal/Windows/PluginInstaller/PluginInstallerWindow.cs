@@ -69,6 +69,9 @@ internal class PluginInstallerWindow : Window, IDisposable
     private LocalPlugin? updateModalPlugin = null;
     private TaskCompletionSource<bool>? updateModalTaskCompletionSource;
 
+    private bool testingWarningModalDrawing = true;
+    private bool testingWarningModalOnNextFrame = false;
+
     private bool feedbackModalDrawing = true;
     private bool feedbackModalOnNextFrame = false;
     private bool feedbackModalOnNextFrameDontClear = false;
@@ -215,6 +218,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         this.DrawFooter();
         this.DrawErrorModal();
         this.DrawUpdateModal();
+        this.DrawTestingWarningModal();
         this.DrawFeedbackModal();
         this.DrawProgressOverlay();
     }
@@ -631,6 +635,39 @@ internal class PluginInstallerWindow : Window, IDisposable
             ImGui.OpenPopup(modalTitle);
             this.updateModalOnNextFrame = false;
             this.updateModalDrawing = true;
+        }
+    }
+
+    private void DrawTestingWarningModal()
+    {
+        var modalTitle = Locs.TestingWarningModal_Title;
+
+        if (ImGui.BeginPopupModal(modalTitle, ref this.testingWarningModalDrawing, ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoScrollbar))
+        {
+            ImGui.Text(Locs.TestingWarningModal_DowngradeBody);
+
+            ImGuiHelpers.ScaledDummy(10);
+
+            var buttonWidth = 120f;
+            ImGui.SetCursorPosX((ImGui.GetWindowWidth() - buttonWidth) / 2);
+
+            if (ImGui.Button(Locs.ErrorModalButton_Ok, new Vector2(buttonWidth, 40)))
+            {
+                ImGui.CloseCurrentPopup();
+            }
+
+            ImGui.EndPopup();
+        }
+
+        if (this.testingWarningModalOnNextFrame)
+        {
+            // NOTE(goat): ImGui cannot open a modal if no window is focused, at the moment.
+            // If people click out of the installer into the game while a plugin is installing, we won't be able to show a modal if we don't grab focus.
+            ImGui.SetWindowFocus(this.WindowName);
+
+            ImGui.OpenPopup(modalTitle);
+            this.testingWarningModalOnNextFrame = false;
+            this.testingWarningModalDrawing = true;
         }
     }
 
@@ -2063,6 +2100,11 @@ internal class PluginInstallerWindow : Window, IDisposable
                 if (optIn != null)
                 {
                     configuration.PluginTestingOptIns!.Remove(optIn);
+
+                    if (plugin.Manifest.TestingAssemblyVersion > repoManifest?.AssemblyVersion)
+                    {
+                        this.testingWarningModalOnNextFrame = true;
+                    }
                 }
                 else
                 {
@@ -3025,6 +3067,14 @@ internal class PluginInstallerWindow : Window, IDisposable
         public static string FeedbackModal_NotificationSuccess => Loc.Localize("InstallerFeedbackNotificationSuccess", "Your feedback was sent successfully!");
 
         public static string FeedbackModal_NotificationError => Loc.Localize("InstallerFeedbackNotificationError", "Your feedback could not be sent.");
+
+        #endregion
+
+        #region Testing Warning Modal
+
+        public static string TestingWarningModal_Title => Loc.Localize("InstallerTestingWarning", "Warning###InstallerTestingWarning");
+
+        public static string TestingWarningModal_DowngradeBody => Loc.Localize("InstallerTestingWarningDowngradeBody", "Take care! If you opt out of testing for a plugin, you will remain on the testing version until it is deleted and reinstalled, or the non-testing version of the plugin is updated.\nKeep in mind that you may lose the settings for this plugin if you downgrade manually.");
 
         #endregion
 
