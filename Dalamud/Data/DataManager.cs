@@ -66,7 +66,7 @@ public sealed class DataManager : IDisposable, IServiceType
                     LoadMultithreaded = true,
                     CacheFileResources = true,
 #if DEBUG
-                        PanicOnSheetChecksumMismatch = true,
+                    PanicOnSheetChecksumMismatch = true,
 #else
                     PanicOnSheetChecksumMismatch = false,
 #endif

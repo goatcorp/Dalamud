@@ -2656,16 +2656,16 @@ internal class PluginInstallerWindow : Window, IDisposable
                 {
                     Log.Error(ex, "Plugin installer threw an error");
 #if DEBUG
-                        if (!string.IsNullOrEmpty(ex.Message))
-                            errorModalMessage += $"\n\n{ex.Message}";
+                    if (!string.IsNullOrEmpty(ex.Message))
+                        errorModalMessage += $"\n\n{ex.Message}";
 #endif
                 }
                 else
                 {
                     Log.Error(ex, "Plugin installer threw an unexpected error");
 #if DEBUG
-                        if (!string.IsNullOrEmpty(ex.Message))
-                            errorModalMessage += $"\n\n{ex.Message}";
+                    if (!string.IsNullOrEmpty(ex.Message))
+                        errorModalMessage += $"\n\n{ex.Message}";
 #endif
                 }
             }

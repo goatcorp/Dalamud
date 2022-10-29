@@ -759,7 +759,7 @@ internal class DataWindow : Window
         var condition = Service<Condition>.Get();
 
 #if DEBUG
-            ImGui.Text($"ptr: 0x{condition.Address.ToInt64():X}");
+        ImGui.Text($"ptr: 0x{condition.Address.ToInt64():X}");
 #endif
 
         ImGui.Text("Current Conditions:");
@@ -1310,11 +1310,11 @@ internal class DataWindow : Window
         ImGui.Text($"GamepadInput 0x{gamepadState.GamepadInputAddress.ToInt64():X}");
 
 #if DEBUG
-            if (ImGui.IsItemHovered())
-                ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
+        if (ImGui.IsItemHovered())
+            ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
 
-            if (ImGui.IsItemClicked())
-                ImGui.SetClipboardText($"0x{gamepadState.GamepadInputAddress.ToInt64():X}");
+        if (ImGui.IsItemClicked())
+            ImGui.SetClipboardText($"0x{gamepadState.GamepadInputAddress.ToInt64():X}");
 #endif
 
         DrawHelper(

@@ -985,7 +985,7 @@ internal class InterfaceManager : IDisposable, IServiceType
     private IntPtr ResizeBuffersDetour(IntPtr swapChain, uint bufferCount, uint width, uint height, uint newFormat, uint swapChainFlags)
     {
 #if DEBUG
-            Log.Verbose($"Calling resizebuffers swap@{swapChain.ToInt64():X}{bufferCount} {width} {height} {newFormat} {swapChainFlags}");
+        Log.Verbose($"Calling resizebuffers swap@{swapChain.ToInt64():X}{bufferCount} {width} {height} {newFormat} {swapChainFlags}");
 #endif
 
         this.ResizeBuffers?.InvokeSafely();

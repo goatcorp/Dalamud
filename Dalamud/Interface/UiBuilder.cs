@@ -197,7 +197,7 @@ public sealed class UiBuilder : IDisposable
     /// Gets or sets a value indicating whether statistics about UI draw time should be collected.
     /// </summary>
 #if DEBUG
-        internal static bool DoStats { get; set; } = true;
+    internal static bool DoStats { get; set; } = true;
 #else
     internal static bool DoStats { get; set; } = false;
 #endif

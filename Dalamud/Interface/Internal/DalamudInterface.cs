@@ -63,7 +63,7 @@ internal class DalamudInterface : IDisposable, IServiceType
     private readonly TextureWrap tsmLogoTexture;
 
 #if DEBUG
-        private bool isImGuiDrawDevMenu = true;
+    private bool isImGuiDrawDevMenu = true;
 #else
     private bool isImGuiDrawDevMenu = false;
 #endif

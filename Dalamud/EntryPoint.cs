@@ -84,9 +84,9 @@ public sealed class EntryPoint
     internal static void InitLogging(string baseDirectory, bool logConsole, bool logSynchronously)
     {
 #if DEBUG
-            var logPath = Path.Combine(baseDirectory, "dalamud.log");
-            var oldPath = Path.Combine(baseDirectory, "dalamud.old.log");
-            var oldPathOld = Path.Combine(baseDirectory, "dalamud.log.old");
+        var logPath = Path.Combine(baseDirectory, "dalamud.log");
+        var oldPath = Path.Combine(baseDirectory, "dalamud.old.log");
+        var oldPathOld = Path.Combine(baseDirectory, "dalamud.log.old");
 #else
         var logPath = Path.Combine(baseDirectory, "..", "..", "..", "dalamud.log");
         var oldPath = Path.Combine(baseDirectory, "..", "..", "..", "dalamud.old.log");
