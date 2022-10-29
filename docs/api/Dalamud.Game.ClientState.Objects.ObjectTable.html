@@ -10,7 +10,7 @@
     <meta name="viewport" content="width=device-width">
     <meta name="title" content="Class ObjectTable
    ">
-    <meta name="generator" content="docfx 2.59.1.0">
+    <meta name="generator" content="docfx 2.59.4.0">
     
     <link rel="shortcut icon" href="../favicon.ico">
     <link rel="stylesheet" href="../styles/docfx.vendor.css">
@@ -81,8 +81,9 @@
     <div class="level0"><span class="xref">System.Object</span></div>
     <div class="level1"><span class="xref">ObjectTable</span></div>
   </div>
-  <div classs="implements">
+  <div class="implements">
     <h5>Implements</h5>
+    <div><a class="xref" href="Dalamud.IServiceType.html">IServiceType</a></div>
     <div><span class="xref">System.Collections.Generic.IReadOnlyCollection</span>&lt;<a class="xref" href="Dalamud.Game.ClientState.Objects.Types.GameObject.html">GameObject</a>&gt;</div>
     <div><span class="xref">System.Collections.Generic.IEnumerable</span>&lt;<a class="xref" href="Dalamud.Game.ClientState.Objects.Types.GameObject.html">GameObject</a>&gt;</div>
     <div><span class="xref">System.Collections.IEnumerable</span></div>
@@ -115,7 +116,7 @@
   <h6><strong>Assembly</strong>: Dalamud.dll</h6>
   <h5 id="Dalamud_Game_ClientState_Objects_ObjectTable_syntax">Syntax</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public sealed class ObjectTable : IReadOnlyCollection&lt;GameObject&gt;, IEnumerable&lt;GameObject&gt;, IEnumerable</code></pre>
+    <pre><code class="lang-csharp hljs">public sealed class ObjectTable : IServiceType, IReadOnlyCollection&lt;GameObject&gt;, IEnumerable&lt;GameObject&gt;, IEnumerable</code></pre>
   </div>
   <h3 id="properties">Properties
   </h3>
@@ -124,7 +125,7 @@
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_Objects_ObjectTable_Address.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.Objects.ObjectTable.Address%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/Objects/ObjectTable.cs/#L39">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/Objects/ObjectTable.cs/#L37">View Source</a>
   </span>
   <a id="Dalamud_Game_ClientState_Objects_ObjectTable_Address_" data-uid="Dalamud.Game.ClientState.Objects.ObjectTable.Address*"></a>
   <h4 id="Dalamud_Game_ClientState_Objects_ObjectTable_Address" data-uid="Dalamud.Game.ClientState.Objects.ObjectTable.Address">Address</h4>
@@ -155,7 +156,7 @@
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_Objects_ObjectTable_Item_System_Int32_.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.Objects.ObjectTable.Item(System.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/Objects/ObjectTable.cs/#L51">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/Objects/ObjectTable.cs/#L49">View Source</a>
   </span>
   <a id="Dalamud_Game_ClientState_Objects_ObjectTable_Item_" data-uid="Dalamud.Game.ClientState.Objects.ObjectTable.Item*"></a>
   <h4 id="Dalamud_Game_ClientState_Objects_ObjectTable_Item_System_Int32_" data-uid="Dalamud.Game.ClientState.Objects.ObjectTable.Item(System.Int32)">Item[Int32]</h4>
@@ -205,7 +206,7 @@
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_Objects_ObjectTable_Length.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.Objects.ObjectTable.Length%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/Objects/ObjectTable.cs/#L44">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/Objects/ObjectTable.cs/#L42">View Source</a>
   </span>
   <a id="Dalamud_Game_ClientState_Objects_ObjectTable_Length_" data-uid="Dalamud.Game.ClientState.Objects.ObjectTable.Length*"></a>
   <h4 id="Dalamud_Game_ClientState_Objects_ObjectTable_Length" data-uid="Dalamud.Game.ClientState.Objects.ObjectTable.Length">Length</h4>
@@ -238,7 +239,7 @@
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_Objects_ObjectTable_CreateObjectReference_System_IntPtr_.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.Objects.ObjectTable.CreateObjectReference(System.IntPtr)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/Objects/ObjectTable.cs/#L100">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/Objects/ObjectTable.cs/#L98">View Source</a>
   </span>
   <a id="Dalamud_Game_ClientState_Objects_ObjectTable_CreateObjectReference_" data-uid="Dalamud.Game.ClientState.Objects.ObjectTable.CreateObjectReference*"></a>
   <h4 id="Dalamud_Game_ClientState_Objects_ObjectTable_CreateObjectReference_System_IntPtr_" data-uid="Dalamud.Game.ClientState.Objects.ObjectTable.CreateObjectReference(System.IntPtr)">CreateObjectReference(IntPtr)</h4>
@@ -288,7 +289,7 @@
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_Objects_ObjectTable_GetEnumerator.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.Objects.ObjectTable.GetEnumerator%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/Objects/ObjectTable.cs/#L132">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/Objects/ObjectTable.cs/#L130">View Source</a>
   </span>
   <a id="Dalamud_Game_ClientState_Objects_ObjectTable_GetEnumerator_" data-uid="Dalamud.Game.ClientState.Objects.ObjectTable.GetEnumerator*"></a>
   <h4 id="Dalamud_Game_ClientState_Objects_ObjectTable_GetEnumerator" data-uid="Dalamud.Game.ClientState.Objects.ObjectTable.GetEnumerator">GetEnumerator()</h4>
@@ -318,7 +319,7 @@
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_Objects_ObjectTable_GetObjectAddress_System_Int32_.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.Objects.ObjectTable.GetObjectAddress(System.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/Objects/ObjectTable.cs/#L87">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/Objects/ObjectTable.cs/#L85">View Source</a>
   </span>
   <a id="Dalamud_Game_ClientState_Objects_ObjectTable_GetObjectAddress_" data-uid="Dalamud.Game.ClientState.Objects.ObjectTable.GetObjectAddress*"></a>
   <h4 id="Dalamud_Game_ClientState_Objects_ObjectTable_GetObjectAddress_System_Int32_" data-uid="Dalamud.Game.ClientState.Objects.ObjectTable.GetObjectAddress(System.Int32)">GetObjectAddress(Int32)</h4>
@@ -368,7 +369,7 @@
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_Objects_ObjectTable_SearchById_System_UInt32_.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.Objects.ObjectTable.SearchById(System.UInt32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/Objects/ObjectTable.cs/#L65">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/Objects/ObjectTable.cs/#L63">View Source</a>
   </span>
   <a id="Dalamud_Game_ClientState_Objects_ObjectTable_SearchById_" data-uid="Dalamud.Game.ClientState.Objects.ObjectTable.SearchById*"></a>
   <h4 id="Dalamud_Game_ClientState_Objects_ObjectTable_SearchById_System_UInt32_" data-uid="Dalamud.Game.ClientState.Objects.ObjectTable.SearchById(System.UInt32)">SearchById(UInt32)</h4>
@@ -420,7 +421,7 @@
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_Objects_ObjectTable_System_Collections_Generic_IReadOnlyCollection_Dalamud_Game_ClientState_Objects_Types_GameObject__Count.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.Objects.ObjectTable.System%23Collections%23Generic%23IReadOnlyCollection%7BDalamud%23Game%23ClientState%23Objects%23Types%23GameObject%7D%23Count%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/Objects/ObjectTable.cs/#L129">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/Objects/ObjectTable.cs/#L127">View Source</a>
   </span>
   <a id="Dalamud_Game_ClientState_Objects_ObjectTable_System_Collections_Generic_IReadOnlyCollection_Dalamud_Game_ClientState_Objects_Types_GameObject__Count_" data-uid="Dalamud.Game.ClientState.Objects.ObjectTable.System#Collections#Generic#IReadOnlyCollection{Dalamud#Game#ClientState#Objects#Types#GameObject}#Count*"></a>
   <h4 id="Dalamud_Game_ClientState_Objects_ObjectTable_System_Collections_Generic_IReadOnlyCollection_Dalamud_Game_ClientState_Objects_Types_GameObject__Count" data-uid="Dalamud.Game.ClientState.Objects.ObjectTable.System#Collections#Generic#IReadOnlyCollection{Dalamud#Game#ClientState#Objects#Types#GameObject}#Count">IReadOnlyCollection&lt;GameObject&gt;.Count</h4>
@@ -450,7 +451,7 @@
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_Objects_ObjectTable_System_Collections_IEnumerable_GetEnumerator.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.Objects.ObjectTable.System%23Collections%23IEnumerable%23GetEnumerator%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/Objects/ObjectTable.cs/#L146">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/Objects/ObjectTable.cs/#L144">View Source</a>
   </span>
   <a id="Dalamud_Game_ClientState_Objects_ObjectTable_System_Collections_IEnumerable_GetEnumerator_" data-uid="Dalamud.Game.ClientState.Objects.ObjectTable.System#Collections#IEnumerable#GetEnumerator*"></a>
   <h4 id="Dalamud_Game_ClientState_Objects_ObjectTable_System_Collections_IEnumerable_GetEnumerator" data-uid="Dalamud.Game.ClientState.Objects.ObjectTable.System#Collections#IEnumerable#GetEnumerator">IEnumerable.GetEnumerator()</h4>
@@ -477,6 +478,9 @@
   </table>
   <h3 id="implements">Implements</h3>
   <div>
+      <a class="xref" href="Dalamud.IServiceType.html">IServiceType</a>
+  </div>
+  <div>
       <span class="xref">System.Collections.Generic.IReadOnlyCollection&lt;T&gt;</span>
   </div>
   <div>
@@ -496,7 +500,7 @@
                     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_Objects_ObjectTable.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.Objects.ObjectTable%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
                   </li>
                   <li>
-                    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/Objects/ObjectTable.cs/#L126" class="contribution-link">View Source</a>
+                    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/Objects/ObjectTable.cs/#L124" class="contribution-link">View Source</a>
                   </li>
                 </ul>
               </div>

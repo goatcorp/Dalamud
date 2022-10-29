@@ -10,7 +10,7 @@
     <meta name="viewport" content="width=device-width">
     <meta name="title" content="Class StyleModelV1
    ">
-    <meta name="generator" content="docfx 2.59.1.0">
+    <meta name="generator" content="docfx 2.59.4.0">
     
     <link rel="shortcut icon" href="../favicon.ico">
     <link rel="stylesheet" href="../styles/docfx.vendor.css">
@@ -112,6 +112,21 @@
       <a class="xref" href="Dalamud.Interface.Style.StyleModel.html#Dalamud_Interface_Style_StyleModel_Serialize">StyleModel.Serialize()</a>
     </div>
     <div>
+      <a class="xref" href="Dalamud.Interface.Style.StyleModel.html#Dalamud_Interface_Style_StyleModel_Pop">StyleModel.Pop()</a>
+    </div>
+    <div>
+      <a class="xref" href="Dalamud.Interface.Style.StyleModel.html#Dalamud_Interface_Style_StyleModel_PushStyleHelper_ImGuiNET_ImGuiStyleVar_System_Single_">StyleModel.PushStyleHelper(ImGuiStyleVar, Single)</a>
+    </div>
+    <div>
+      <a class="xref" href="Dalamud.Interface.Style.StyleModel.html#Dalamud_Interface_Style_StyleModel_PushStyleHelper_ImGuiNET_ImGuiStyleVar_System_Numerics_Vector2_">StyleModel.PushStyleHelper(ImGuiStyleVar, Vector2)</a>
+    </div>
+    <div>
+      <a class="xref" href="Dalamud.Interface.Style.StyleModel.html#Dalamud_Interface_Style_StyleModel_PushColorHelper_ImGuiNET_ImGuiCol_System_Numerics_Vector4_">StyleModel.PushColorHelper(ImGuiCol, Vector4)</a>
+    </div>
+    <div>
+      <a class="xref" href="Dalamud.Interface.Style.StyleModel.html#Dalamud_Interface_Style_StyleModel_DonePushing">StyleModel.DonePushing()</a>
+    </div>
+    <div>
       <span class="xref">System.Object.Equals(System.Object)</span>
     </div>
     <div>
@@ -146,7 +161,7 @@
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Interface_Style_StyleModelV1_Alpha.md&amp;value=---%0Auid%3A%20Dalamud.Interface.Style.StyleModelV1.Alpha%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Interface/Style/StyleModelV1.cs/#L252">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Interface/Style/StyleModelV1.cs/#L270">View Source</a>
   </span>
   <a id="Dalamud_Interface_Style_StyleModelV1_Alpha_" data-uid="Dalamud.Interface.Style.StyleModelV1.Alpha*"></a>
   <h4 id="Dalamud_Interface_Style_StyleModelV1_Alpha" data-uid="Dalamud.Interface.Style.StyleModelV1.Alpha">Alpha</h4>
@@ -154,7 +169,8 @@
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public float Alpha { get; set; }</code></pre>
+    <pre><code class="lang-csharp hljs">[JsonProperty(&quot;a&quot;)]
+public float Alpha { get; set; }</code></pre>
   </div>
   <h5 class="propertyValue">Property Value</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -176,7 +192,7 @@
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Interface_Style_StyleModelV1_ButtonTextAlign.md&amp;value=---%0Auid%3A%20Dalamud.Interface.Style.StyleModelV1.ButtonTextAlign%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Interface/Style/StyleModelV1.cs/#L327">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Interface/Style/StyleModelV1.cs/#L345">View Source</a>
   </span>
   <a id="Dalamud_Interface_Style_StyleModelV1_ButtonTextAlign_" data-uid="Dalamud.Interface.Style.StyleModelV1.ButtonTextAlign*"></a>
   <h4 id="Dalamud_Interface_Style_StyleModelV1_ButtonTextAlign" data-uid="Dalamud.Interface.Style.StyleModelV1.ButtonTextAlign">ButtonTextAlign</h4>
@@ -184,7 +200,8 @@
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public Vector2 ButtonTextAlign { get; set; }</code></pre>
+    <pre><code class="lang-csharp hljs">[JsonProperty(&quot;y&quot;)]
+public Vector2 ButtonTextAlign { get; set; }</code></pre>
   </div>
   <h5 class="propertyValue">Property Value</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -206,7 +223,7 @@
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Interface_Style_StyleModelV1_CellPadding.md&amp;value=---%0Auid%3A%20Dalamud.Interface.Style.StyleModelV1.CellPadding%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Interface/Style/StyleModelV1.cs/#L297">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Interface/Style/StyleModelV1.cs/#L315">View Source</a>
   </span>
   <a id="Dalamud_Interface_Style_StyleModelV1_CellPadding_" data-uid="Dalamud.Interface.Style.StyleModelV1.CellPadding*"></a>
   <h4 id="Dalamud_Interface_Style_StyleModelV1_CellPadding" data-uid="Dalamud.Interface.Style.StyleModelV1.CellPadding">CellPadding</h4>
@@ -214,7 +231,8 @@
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public Vector2 CellPadding { get; set; }</code></pre>
+    <pre><code class="lang-csharp hljs">[JsonProperty(&quot;o&quot;)]
+public Vector2 CellPadding { get; set; }</code></pre>
   </div>
   <h5 class="propertyValue">Property Value</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -236,7 +254,7 @@
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Interface_Style_StyleModelV1_ChildBorderSize.md&amp;value=---%0Auid%3A%20Dalamud.Interface.Style.StyleModelV1.ChildBorderSize%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Interface/Style/StyleModelV1.cs/#L273">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Interface/Style/StyleModelV1.cs/#L291">View Source</a>
   </span>
   <a id="Dalamud_Interface_Style_StyleModelV1_ChildBorderSize_" data-uid="Dalamud.Interface.Style.StyleModelV1.ChildBorderSize*"></a>
   <h4 id="Dalamud_Interface_Style_StyleModelV1_ChildBorderSize" data-uid="Dalamud.Interface.Style.StyleModelV1.ChildBorderSize">ChildBorderSize</h4>
@@ -244,7 +262,8 @@
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public float ChildBorderSize { get; set; }</code></pre>
+    <pre><code class="lang-csharp hljs">[JsonProperty(&quot;h&quot;)]
+public float ChildBorderSize { get; set; }</code></pre>
   </div>
   <h5 class="propertyValue">Property Value</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -266,7 +285,7 @@
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Interface_Style_StyleModelV1_ChildRounding.md&amp;value=---%0Auid%3A%20Dalamud.Interface.Style.StyleModelV1.ChildRounding%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Interface/Style/StyleModelV1.cs/#L270">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Interface/Style/StyleModelV1.cs/#L288">View Source</a>
   </span>
   <a id="Dalamud_Interface_Style_StyleModelV1_ChildRounding_" data-uid="Dalamud.Interface.Style.StyleModelV1.ChildRounding*"></a>
   <h4 id="Dalamud_Interface_Style_StyleModelV1_ChildRounding" data-uid="Dalamud.Interface.Style.StyleModelV1.ChildRounding">ChildRounding</h4>
@@ -274,7 +293,8 @@
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public float ChildRounding { get; set; }</code></pre>
+    <pre><code class="lang-csharp hljs">[JsonProperty(&quot;g&quot;)]
+public float ChildRounding { get; set; }</code></pre>
   </div>
   <h5 class="propertyValue">Property Value</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -296,7 +316,7 @@
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Interface_Style_StyleModelV1_Colors.md&amp;value=---%0Auid%3A%20Dalamud.Interface.Style.StyleModelV1.Colors%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Interface/Style/StyleModelV1.cs/#L341">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Interface/Style/StyleModelV1.cs/#L359">View Source</a>
   </span>
   <a id="Dalamud_Interface_Style_StyleModelV1_Colors_" data-uid="Dalamud.Interface.Style.StyleModelV1.Colors*"></a>
   <h4 id="Dalamud_Interface_Style_StyleModelV1_Colors" data-uid="Dalamud.Interface.Style.StyleModelV1.Colors">Colors</h4>
@@ -305,7 +325,8 @@
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public Dictionary&lt;string, Vector4&gt; Colors { get; set; }</code></pre>
+    <pre><code class="lang-csharp hljs">[JsonProperty(&quot;col&quot;)]
+public Dictionary&lt;string, Vector4&gt; Colors { get; set; }</code></pre>
   </div>
   <h5 class="propertyValue">Property Value</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -327,7 +348,7 @@
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Interface_Style_StyleModelV1_DalamudClassic.md&amp;value=---%0Auid%3A%20Dalamud.Interface.Style.StyleModelV1.DalamudClassic%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Interface/Style/StyleModelV1.cs/#L138">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Interface/Style/StyleModelV1.cs/#L147">View Source</a>
   </span>
   <a id="Dalamud_Interface_Style_StyleModelV1_DalamudClassic_" data-uid="Dalamud.Interface.Style.StyleModelV1.DalamudClassic*"></a>
   <h4 id="Dalamud_Interface_Style_StyleModelV1_DalamudClassic" data-uid="Dalamud.Interface.Style.StyleModelV1.DalamudClassic">DalamudClassic</h4>
@@ -389,7 +410,7 @@
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Interface_Style_StyleModelV1_DisplaySafeAreaPadding.md&amp;value=---%0Auid%3A%20Dalamud.Interface.Style.StyleModelV1.DisplaySafeAreaPadding%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Interface/Style/StyleModelV1.cs/#L333">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Interface/Style/StyleModelV1.cs/#L351">View Source</a>
   </span>
   <a id="Dalamud_Interface_Style_StyleModelV1_DisplaySafeAreaPadding_" data-uid="Dalamud.Interface.Style.StyleModelV1.DisplaySafeAreaPadding*"></a>
   <h4 id="Dalamud_Interface_Style_StyleModelV1_DisplaySafeAreaPadding" data-uid="Dalamud.Interface.Style.StyleModelV1.DisplaySafeAreaPadding">DisplaySafeAreaPadding</h4>
@@ -397,7 +418,8 @@
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public Vector2 DisplaySafeAreaPadding { get; set; }</code></pre>
+    <pre><code class="lang-csharp hljs">[JsonProperty(&quot;aa&quot;)]
+public Vector2 DisplaySafeAreaPadding { get; set; }</code></pre>
   </div>
   <h5 class="propertyValue">Property Value</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -419,7 +441,7 @@
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Interface_Style_StyleModelV1_FrameBorderSize.md&amp;value=---%0Auid%3A%20Dalamud.Interface.Style.StyleModelV1.FrameBorderSize%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Interface/Style/StyleModelV1.cs/#L288">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Interface/Style/StyleModelV1.cs/#L306">View Source</a>
   </span>
   <a id="Dalamud_Interface_Style_StyleModelV1_FrameBorderSize_" data-uid="Dalamud.Interface.Style.StyleModelV1.FrameBorderSize*"></a>
   <h4 id="Dalamud_Interface_Style_StyleModelV1_FrameBorderSize" data-uid="Dalamud.Interface.Style.StyleModelV1.FrameBorderSize">FrameBorderSize</h4>
@@ -427,7 +449,8 @@
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public float FrameBorderSize { get; set; }</code></pre>
+    <pre><code class="lang-csharp hljs">[JsonProperty(&quot;l&quot;)]
+public float FrameBorderSize { get; set; }</code></pre>
   </div>
   <h5 class="propertyValue">Property Value</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -449,7 +472,7 @@
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Interface_Style_StyleModelV1_FramePadding.md&amp;value=---%0Auid%3A%20Dalamud.Interface.Style.StyleModelV1.FramePadding%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Interface/Style/StyleModelV1.cs/#L282">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Interface/Style/StyleModelV1.cs/#L300">View Source</a>
   </span>
   <a id="Dalamud_Interface_Style_StyleModelV1_FramePadding_" data-uid="Dalamud.Interface.Style.StyleModelV1.FramePadding*"></a>
   <h4 id="Dalamud_Interface_Style_StyleModelV1_FramePadding" data-uid="Dalamud.Interface.Style.StyleModelV1.FramePadding">FramePadding</h4>
@@ -457,7 +480,8 @@
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public Vector2 FramePadding { get; set; }</code></pre>
+    <pre><code class="lang-csharp hljs">[JsonProperty(&quot;j&quot;)]
+public Vector2 FramePadding { get; set; }</code></pre>
   </div>
   <h5 class="propertyValue">Property Value</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -479,7 +503,7 @@
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Interface_Style_StyleModelV1_FrameRounding.md&amp;value=---%0Auid%3A%20Dalamud.Interface.Style.StyleModelV1.FrameRounding%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Interface/Style/StyleModelV1.cs/#L285">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Interface/Style/StyleModelV1.cs/#L303">View Source</a>
   </span>
   <a id="Dalamud_Interface_Style_StyleModelV1_FrameRounding_" data-uid="Dalamud.Interface.Style.StyleModelV1.FrameRounding*"></a>
   <h4 id="Dalamud_Interface_Style_StyleModelV1_FrameRounding" data-uid="Dalamud.Interface.Style.StyleModelV1.FrameRounding">FrameRounding</h4>
@@ -487,7 +511,8 @@
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public float FrameRounding { get; set; }</code></pre>
+    <pre><code class="lang-csharp hljs">[JsonProperty(&quot;k&quot;)]
+public float FrameRounding { get; set; }</code></pre>
   </div>
   <h5 class="propertyValue">Property Value</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -509,7 +534,7 @@
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Interface_Style_StyleModelV1_GrabMinSize.md&amp;value=---%0Auid%3A%20Dalamud.Interface.Style.StyleModelV1.GrabMinSize%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Interface/Style/StyleModelV1.cs/#L312">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Interface/Style/StyleModelV1.cs/#L330">View Source</a>
   </span>
   <a id="Dalamud_Interface_Style_StyleModelV1_GrabMinSize_" data-uid="Dalamud.Interface.Style.StyleModelV1.GrabMinSize*"></a>
   <h4 id="Dalamud_Interface_Style_StyleModelV1_GrabMinSize" data-uid="Dalamud.Interface.Style.StyleModelV1.GrabMinSize">GrabMinSize</h4>
@@ -517,7 +542,8 @@
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public float GrabMinSize { get; set; }</code></pre>
+    <pre><code class="lang-csharp hljs">[JsonProperty(&quot;t&quot;)]
+public float GrabMinSize { get; set; }</code></pre>
   </div>
   <h5 class="propertyValue">Property Value</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -539,7 +565,7 @@
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Interface_Style_StyleModelV1_GrabRounding.md&amp;value=---%0Auid%3A%20Dalamud.Interface.Style.StyleModelV1.GrabRounding%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Interface/Style/StyleModelV1.cs/#L315">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Interface/Style/StyleModelV1.cs/#L333">View Source</a>
   </span>
   <a id="Dalamud_Interface_Style_StyleModelV1_GrabRounding_" data-uid="Dalamud.Interface.Style.StyleModelV1.GrabRounding*"></a>
   <h4 id="Dalamud_Interface_Style_StyleModelV1_GrabRounding" data-uid="Dalamud.Interface.Style.StyleModelV1.GrabRounding">GrabRounding</h4>
@@ -547,7 +573,8 @@
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public float GrabRounding { get; set; }</code></pre>
+    <pre><code class="lang-csharp hljs">[JsonProperty(&quot;u&quot;)]
+public float GrabRounding { get; set; }</code></pre>
   </div>
   <h5 class="propertyValue">Property Value</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -569,7 +596,7 @@
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Interface_Style_StyleModelV1_IndentSpacing.md&amp;value=---%0Auid%3A%20Dalamud.Interface.Style.StyleModelV1.IndentSpacing%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Interface/Style/StyleModelV1.cs/#L303">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Interface/Style/StyleModelV1.cs/#L321">View Source</a>
   </span>
   <a id="Dalamud_Interface_Style_StyleModelV1_IndentSpacing_" data-uid="Dalamud.Interface.Style.StyleModelV1.IndentSpacing*"></a>
   <h4 id="Dalamud_Interface_Style_StyleModelV1_IndentSpacing" data-uid="Dalamud.Interface.Style.StyleModelV1.IndentSpacing">IndentSpacing</h4>
@@ -577,7 +604,8 @@
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public float IndentSpacing { get; set; }</code></pre>
+    <pre><code class="lang-csharp hljs">[JsonProperty(&quot;q&quot;)]
+public float IndentSpacing { get; set; }</code></pre>
   </div>
   <h5 class="propertyValue">Property Value</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -599,7 +627,7 @@
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Interface_Style_StyleModelV1_ItemInnerSpacing.md&amp;value=---%0Auid%3A%20Dalamud.Interface.Style.StyleModelV1.ItemInnerSpacing%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Interface/Style/StyleModelV1.cs/#L294">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Interface/Style/StyleModelV1.cs/#L312">View Source</a>
   </span>
   <a id="Dalamud_Interface_Style_StyleModelV1_ItemInnerSpacing_" data-uid="Dalamud.Interface.Style.StyleModelV1.ItemInnerSpacing*"></a>
   <h4 id="Dalamud_Interface_Style_StyleModelV1_ItemInnerSpacing" data-uid="Dalamud.Interface.Style.StyleModelV1.ItemInnerSpacing">ItemInnerSpacing</h4>
@@ -607,7 +635,8 @@
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public Vector2 ItemInnerSpacing { get; set; }</code></pre>
+    <pre><code class="lang-csharp hljs">[JsonProperty(&quot;n&quot;)]
+public Vector2 ItemInnerSpacing { get; set; }</code></pre>
   </div>
   <h5 class="propertyValue">Property Value</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -629,7 +658,7 @@
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Interface_Style_StyleModelV1_ItemSpacing.md&amp;value=---%0Auid%3A%20Dalamud.Interface.Style.StyleModelV1.ItemSpacing%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Interface/Style/StyleModelV1.cs/#L291">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Interface/Style/StyleModelV1.cs/#L309">View Source</a>
   </span>
   <a id="Dalamud_Interface_Style_StyleModelV1_ItemSpacing_" data-uid="Dalamud.Interface.Style.StyleModelV1.ItemSpacing*"></a>
   <h4 id="Dalamud_Interface_Style_StyleModelV1_ItemSpacing" data-uid="Dalamud.Interface.Style.StyleModelV1.ItemSpacing">ItemSpacing</h4>
@@ -637,7 +666,8 @@
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public Vector2 ItemSpacing { get; set; }</code></pre>
+    <pre><code class="lang-csharp hljs">[JsonProperty(&quot;m&quot;)]
+public Vector2 ItemSpacing { get; set; }</code></pre>
   </div>
   <h5 class="propertyValue">Property Value</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -659,7 +689,7 @@
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Interface_Style_StyleModelV1_LogSliderDeadzone.md&amp;value=---%0Auid%3A%20Dalamud.Interface.Style.StyleModelV1.LogSliderDeadzone%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Interface/Style/StyleModelV1.cs/#L318">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Interface/Style/StyleModelV1.cs/#L336">View Source</a>
   </span>
   <a id="Dalamud_Interface_Style_StyleModelV1_LogSliderDeadzone_" data-uid="Dalamud.Interface.Style.StyleModelV1.LogSliderDeadzone*"></a>
   <h4 id="Dalamud_Interface_Style_StyleModelV1_LogSliderDeadzone" data-uid="Dalamud.Interface.Style.StyleModelV1.LogSliderDeadzone">LogSliderDeadzone</h4>
@@ -667,7 +697,8 @@
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public float LogSliderDeadzone { get; set; }</code></pre>
+    <pre><code class="lang-csharp hljs">[JsonProperty(&quot;v&quot;)]
+public float LogSliderDeadzone { get; set; }</code></pre>
   </div>
   <h5 class="propertyValue">Property Value</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -689,7 +720,7 @@
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Interface_Style_StyleModelV1_PopupBorderSize.md&amp;value=---%0Auid%3A%20Dalamud.Interface.Style.StyleModelV1.PopupBorderSize%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Interface/Style/StyleModelV1.cs/#L279">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Interface/Style/StyleModelV1.cs/#L297">View Source</a>
   </span>
   <a id="Dalamud_Interface_Style_StyleModelV1_PopupBorderSize_" data-uid="Dalamud.Interface.Style.StyleModelV1.PopupBorderSize*"></a>
   <h4 id="Dalamud_Interface_Style_StyleModelV1_PopupBorderSize" data-uid="Dalamud.Interface.Style.StyleModelV1.PopupBorderSize">PopupBorderSize</h4>
@@ -697,7 +728,8 @@
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public float PopupBorderSize { get; set; }</code></pre>
+    <pre><code class="lang-csharp hljs">[JsonProperty(&quot;ab&quot;)]
+public float PopupBorderSize { get; set; }</code></pre>
   </div>
   <h5 class="propertyValue">Property Value</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -719,7 +751,7 @@
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Interface_Style_StyleModelV1_PopupRounding.md&amp;value=---%0Auid%3A%20Dalamud.Interface.Style.StyleModelV1.PopupRounding%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Interface/Style/StyleModelV1.cs/#L276">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Interface/Style/StyleModelV1.cs/#L294">View Source</a>
   </span>
   <a id="Dalamud_Interface_Style_StyleModelV1_PopupRounding_" data-uid="Dalamud.Interface.Style.StyleModelV1.PopupRounding*"></a>
   <h4 id="Dalamud_Interface_Style_StyleModelV1_PopupRounding" data-uid="Dalamud.Interface.Style.StyleModelV1.PopupRounding">PopupRounding</h4>
@@ -727,7 +759,8 @@
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public float PopupRounding { get; set; }</code></pre>
+    <pre><code class="lang-csharp hljs">[JsonProperty(&quot;i&quot;)]
+public float PopupRounding { get; set; }</code></pre>
   </div>
   <h5 class="propertyValue">Property Value</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -749,7 +782,7 @@
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Interface_Style_StyleModelV1_ScrollbarRounding.md&amp;value=---%0Auid%3A%20Dalamud.Interface.Style.StyleModelV1.ScrollbarRounding%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Interface/Style/StyleModelV1.cs/#L309">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Interface/Style/StyleModelV1.cs/#L327">View Source</a>
   </span>
   <a id="Dalamud_Interface_Style_StyleModelV1_ScrollbarRounding_" data-uid="Dalamud.Interface.Style.StyleModelV1.ScrollbarRounding*"></a>
   <h4 id="Dalamud_Interface_Style_StyleModelV1_ScrollbarRounding" data-uid="Dalamud.Interface.Style.StyleModelV1.ScrollbarRounding">ScrollbarRounding</h4>
@@ -757,7 +790,8 @@
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public float ScrollbarRounding { get; set; }</code></pre>
+    <pre><code class="lang-csharp hljs">[JsonProperty(&quot;s&quot;)]
+public float ScrollbarRounding { get; set; }</code></pre>
   </div>
   <h5 class="propertyValue">Property Value</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -779,7 +813,7 @@
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Interface_Style_StyleModelV1_ScrollbarSize.md&amp;value=---%0Auid%3A%20Dalamud.Interface.Style.StyleModelV1.ScrollbarSize%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Interface/Style/StyleModelV1.cs/#L306">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Interface/Style/StyleModelV1.cs/#L324">View Source</a>
   </span>
   <a id="Dalamud_Interface_Style_StyleModelV1_ScrollbarSize_" data-uid="Dalamud.Interface.Style.StyleModelV1.ScrollbarSize*"></a>
   <h4 id="Dalamud_Interface_Style_StyleModelV1_ScrollbarSize" data-uid="Dalamud.Interface.Style.StyleModelV1.ScrollbarSize">ScrollbarSize</h4>
@@ -787,7 +821,8 @@
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public float ScrollbarSize { get; set; }</code></pre>
+    <pre><code class="lang-csharp hljs">[JsonProperty(&quot;r&quot;)]
+public float ScrollbarSize { get; set; }</code></pre>
   </div>
   <h5 class="propertyValue">Property Value</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -809,7 +844,7 @@
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Interface_Style_StyleModelV1_SelectableTextAlign.md&amp;value=---%0Auid%3A%20Dalamud.Interface.Style.StyleModelV1.SelectableTextAlign%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Interface/Style/StyleModelV1.cs/#L330">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Interface/Style/StyleModelV1.cs/#L348">View Source</a>
   </span>
   <a id="Dalamud_Interface_Style_StyleModelV1_SelectableTextAlign_" data-uid="Dalamud.Interface.Style.StyleModelV1.SelectableTextAlign*"></a>
   <h4 id="Dalamud_Interface_Style_StyleModelV1_SelectableTextAlign" data-uid="Dalamud.Interface.Style.StyleModelV1.SelectableTextAlign">SelectableTextAlign</h4>
@@ -817,7 +852,8 @@
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public Vector2 SelectableTextAlign { get; set; }</code></pre>
+    <pre><code class="lang-csharp hljs">[JsonProperty(&quot;z&quot;)]
+public Vector2 SelectableTextAlign { get; set; }</code></pre>
   </div>
   <h5 class="propertyValue">Property Value</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -839,7 +875,7 @@
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Interface_Style_StyleModelV1_SerializedPrefix.md&amp;value=---%0Auid%3A%20Dalamud.Interface.Style.StyleModelV1.SerializedPrefix%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Interface/Style/StyleModelV1.cs/#L248">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Interface/Style/StyleModelV1.cs/#L266">View Source</a>
   </span>
   <a id="Dalamud_Interface_Style_StyleModelV1_SerializedPrefix_" data-uid="Dalamud.Interface.Style.StyleModelV1.SerializedPrefix*"></a>
   <h4 id="Dalamud_Interface_Style_StyleModelV1_SerializedPrefix" data-uid="Dalamud.Interface.Style.StyleModelV1.SerializedPrefix">SerializedPrefix</h4>
@@ -870,7 +906,7 @@
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Interface_Style_StyleModelV1_TabBorderSize.md&amp;value=---%0Auid%3A%20Dalamud.Interface.Style.StyleModelV1.TabBorderSize%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Interface/Style/StyleModelV1.cs/#L324">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Interface/Style/StyleModelV1.cs/#L342">View Source</a>
   </span>
   <a id="Dalamud_Interface_Style_StyleModelV1_TabBorderSize_" data-uid="Dalamud.Interface.Style.StyleModelV1.TabBorderSize*"></a>
   <h4 id="Dalamud_Interface_Style_StyleModelV1_TabBorderSize" data-uid="Dalamud.Interface.Style.StyleModelV1.TabBorderSize">TabBorderSize</h4>
@@ -878,7 +914,8 @@
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public float TabBorderSize { get; set; }</code></pre>
+    <pre><code class="lang-csharp hljs">[JsonProperty(&quot;x&quot;)]
+public float TabBorderSize { get; set; }</code></pre>
   </div>
   <h5 class="propertyValue">Property Value</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -900,7 +937,7 @@
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Interface_Style_StyleModelV1_TabRounding.md&amp;value=---%0Auid%3A%20Dalamud.Interface.Style.StyleModelV1.TabRounding%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Interface/Style/StyleModelV1.cs/#L321">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Interface/Style/StyleModelV1.cs/#L339">View Source</a>
   </span>
   <a id="Dalamud_Interface_Style_StyleModelV1_TabRounding_" data-uid="Dalamud.Interface.Style.StyleModelV1.TabRounding*"></a>
   <h4 id="Dalamud_Interface_Style_StyleModelV1_TabRounding" data-uid="Dalamud.Interface.Style.StyleModelV1.TabRounding">TabRounding</h4>
@@ -908,7 +945,8 @@
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public float TabRounding { get; set; }</code></pre>
+    <pre><code class="lang-csharp hljs">[JsonProperty(&quot;w&quot;)]
+public float TabRounding { get; set; }</code></pre>
   </div>
   <h5 class="propertyValue">Property Value</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -930,7 +968,7 @@
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Interface_Style_StyleModelV1_TouchExtraPadding.md&amp;value=---%0Auid%3A%20Dalamud.Interface.Style.StyleModelV1.TouchExtraPadding%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Interface/Style/StyleModelV1.cs/#L300">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Interface/Style/StyleModelV1.cs/#L318">View Source</a>
   </span>
   <a id="Dalamud_Interface_Style_StyleModelV1_TouchExtraPadding_" data-uid="Dalamud.Interface.Style.StyleModelV1.TouchExtraPadding*"></a>
   <h4 id="Dalamud_Interface_Style_StyleModelV1_TouchExtraPadding" data-uid="Dalamud.Interface.Style.StyleModelV1.TouchExtraPadding">TouchExtraPadding</h4>
@@ -938,7 +976,8 @@
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public Vector2 TouchExtraPadding { get; set; }</code></pre>
+    <pre><code class="lang-csharp hljs">[JsonProperty(&quot;p&quot;)]
+public Vector2 TouchExtraPadding { get; set; }</code></pre>
   </div>
   <h5 class="propertyValue">Property Value</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -960,7 +999,7 @@
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Interface_Style_StyleModelV1_WindowBorderSize.md&amp;value=---%0Auid%3A%20Dalamud.Interface.Style.StyleModelV1.WindowBorderSize%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Interface/Style/StyleModelV1.cs/#L261">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Interface/Style/StyleModelV1.cs/#L279">View Source</a>
   </span>
   <a id="Dalamud_Interface_Style_StyleModelV1_WindowBorderSize_" data-uid="Dalamud.Interface.Style.StyleModelV1.WindowBorderSize*"></a>
   <h4 id="Dalamud_Interface_Style_StyleModelV1_WindowBorderSize" data-uid="Dalamud.Interface.Style.StyleModelV1.WindowBorderSize">WindowBorderSize</h4>
@@ -968,7 +1007,8 @@
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public float WindowBorderSize { get; set; }</code></pre>
+    <pre><code class="lang-csharp hljs">[JsonProperty(&quot;d&quot;)]
+public float WindowBorderSize { get; set; }</code></pre>
   </div>
   <h5 class="propertyValue">Property Value</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -990,7 +1030,7 @@
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Interface_Style_StyleModelV1_WindowMenuButtonPosition.md&amp;value=---%0Auid%3A%20Dalamud.Interface.Style.StyleModelV1.WindowMenuButtonPosition%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Interface/Style/StyleModelV1.cs/#L267">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Interface/Style/StyleModelV1.cs/#L285">View Source</a>
   </span>
   <a id="Dalamud_Interface_Style_StyleModelV1_WindowMenuButtonPosition_" data-uid="Dalamud.Interface.Style.StyleModelV1.WindowMenuButtonPosition*"></a>
   <h4 id="Dalamud_Interface_Style_StyleModelV1_WindowMenuButtonPosition" data-uid="Dalamud.Interface.Style.StyleModelV1.WindowMenuButtonPosition">WindowMenuButtonPosition</h4>
@@ -998,7 +1038,8 @@
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public ImGuiDir WindowMenuButtonPosition { get; set; }</code></pre>
+    <pre><code class="lang-csharp hljs">[JsonProperty(&quot;f&quot;)]
+public ImGuiDir WindowMenuButtonPosition { get; set; }</code></pre>
   </div>
   <h5 class="propertyValue">Property Value</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -1020,7 +1061,7 @@
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Interface_Style_StyleModelV1_WindowPadding.md&amp;value=---%0Auid%3A%20Dalamud.Interface.Style.StyleModelV1.WindowPadding%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Interface/Style/StyleModelV1.cs/#L255">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Interface/Style/StyleModelV1.cs/#L273">View Source</a>
   </span>
   <a id="Dalamud_Interface_Style_StyleModelV1_WindowPadding_" data-uid="Dalamud.Interface.Style.StyleModelV1.WindowPadding*"></a>
   <h4 id="Dalamud_Interface_Style_StyleModelV1_WindowPadding" data-uid="Dalamud.Interface.Style.StyleModelV1.WindowPadding">WindowPadding</h4>
@@ -1028,7 +1069,8 @@
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public Vector2 WindowPadding { get; set; }</code></pre>
+    <pre><code class="lang-csharp hljs">[JsonProperty(&quot;b&quot;)]
+public Vector2 WindowPadding { get; set; }</code></pre>
   </div>
   <h5 class="propertyValue">Property Value</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -1050,7 +1092,7 @@
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Interface_Style_StyleModelV1_WindowRounding.md&amp;value=---%0Auid%3A%20Dalamud.Interface.Style.StyleModelV1.WindowRounding%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Interface/Style/StyleModelV1.cs/#L258">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Interface/Style/StyleModelV1.cs/#L276">View Source</a>
   </span>
   <a id="Dalamud_Interface_Style_StyleModelV1_WindowRounding_" data-uid="Dalamud.Interface.Style.StyleModelV1.WindowRounding*"></a>
   <h4 id="Dalamud_Interface_Style_StyleModelV1_WindowRounding" data-uid="Dalamud.Interface.Style.StyleModelV1.WindowRounding">WindowRounding</h4>
@@ -1058,7 +1100,8 @@
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public float WindowRounding { get; set; }</code></pre>
+    <pre><code class="lang-csharp hljs">[JsonProperty(&quot;c&quot;)]
+public float WindowRounding { get; set; }</code></pre>
   </div>
   <h5 class="propertyValue">Property Value</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -1080,7 +1123,7 @@
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Interface_Style_StyleModelV1_WindowTitleAlign.md&amp;value=---%0Auid%3A%20Dalamud.Interface.Style.StyleModelV1.WindowTitleAlign%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Interface/Style/StyleModelV1.cs/#L264">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Interface/Style/StyleModelV1.cs/#L282">View Source</a>
   </span>
   <a id="Dalamud_Interface_Style_StyleModelV1_WindowTitleAlign_" data-uid="Dalamud.Interface.Style.StyleModelV1.WindowTitleAlign*"></a>
   <h4 id="Dalamud_Interface_Style_StyleModelV1_WindowTitleAlign" data-uid="Dalamud.Interface.Style.StyleModelV1.WindowTitleAlign">WindowTitleAlign</h4>
@@ -1088,7 +1131,8 @@
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public Vector2 WindowTitleAlign { get; set; }</code></pre>
+    <pre><code class="lang-csharp hljs">[JsonProperty(&quot;e&quot;)]
+public Vector2 WindowTitleAlign { get; set; }</code></pre>
   </div>
   <h5 class="propertyValue">Property Value</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -1112,7 +1156,7 @@
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Interface_Style_StyleModelV1_Apply.md&amp;value=---%0Auid%3A%20Dalamud.Interface.Style.StyleModelV1.Apply%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Interface/Style/StyleModelV1.cs/#L414">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Interface/Style/StyleModelV1.cs/#L441">View Source</a>
   </span>
   <a id="Dalamud_Interface_Style_StyleModelV1_Apply_" data-uid="Dalamud.Interface.Style.StyleModelV1.Apply*"></a>
   <h4 id="Dalamud_Interface_Style_StyleModelV1_Apply" data-uid="Dalamud.Interface.Style.StyleModelV1.Apply">Apply()</h4>
@@ -1130,7 +1174,7 @@
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Interface_Style_StyleModelV1_Get.md&amp;value=---%0Auid%3A%20Dalamud.Interface.Style.StyleModelV1.Get%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Interface/Style/StyleModelV1.cs/#L348">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Interface/Style/StyleModelV1.cs/#L366">View Source</a>
   </span>
   <a id="Dalamud_Interface_Style_StyleModelV1_Get_" data-uid="Dalamud.Interface.Style.StyleModelV1.Get*"></a>
   <h4 id="Dalamud_Interface_Style_StyleModelV1_Get" data-uid="Dalamud.Interface.Style.StyleModelV1.Get">Get()</h4>
@@ -1159,28 +1203,10 @@
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Interface_Style_StyleModelV1_Pop.md&amp;value=---%0Auid%3A%20Dalamud.Interface.Style.StyleModelV1.Pop%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Interface/Style/StyleModelV1.cs/#L467">View Source</a>
-  </span>
-  <a id="Dalamud_Interface_Style_StyleModelV1_Pop_" data-uid="Dalamud.Interface.Style.StyleModelV1.Pop*"></a>
-  <h4 id="Dalamud_Interface_Style_StyleModelV1_Pop" data-uid="Dalamud.Interface.Style.StyleModelV1.Pop">Pop()</h4>
-  <div class="markdown level1 summary"><p>Pop this style model from the ImGui style/color stack.</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-  <h5 class="decalaration">Declaration</h5>
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public override void Pop()</code></pre>
-  </div>
-  <h5 class="overrides">Overrides</h5>
-  <div><a class="xref" href="Dalamud.Interface.Style.StyleModel.html#Dalamud_Interface_Style_StyleModel_Pop">StyleModel.Pop()</a></div>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Interface_Style_StyleModelV1_Push.md&amp;value=---%0Auid%3A%20Dalamud.Interface.Style.StyleModelV1.Push%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Interface/Style/StyleModelV1.cs/#L461">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Interface/Style/StyleModelV1.cs/#L488">View Source</a>
   </span>
   <a id="Dalamud_Interface_Style_StyleModelV1_Push_" data-uid="Dalamud.Interface.Style.StyleModelV1.Push*"></a>
   <h4 id="Dalamud_Interface_Style_StyleModelV1_Push" data-uid="Dalamud.Interface.Style.StyleModelV1.Push">Push()</h4>

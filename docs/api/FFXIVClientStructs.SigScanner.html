@@ -10,7 +10,7 @@
     <meta name="viewport" content="width=device-width">
     <meta name="title" content="Class SigScanner
    ">
-    <meta name="generator" content="docfx 2.59.1.0">
+    <meta name="generator" content="docfx 2.59.4.0">
     
     <link rel="shortcut icon" href="../favicon.ico">
     <link rel="stylesheet" href="../styles/docfx.vendor.css">
@@ -81,7 +81,7 @@
     <div class="level0"><span class="xref">System.Object</span></div>
     <div class="level1"><span class="xref">SigScanner</span></div>
   </div>
-  <div classs="implements">
+  <div class="implements">
     <h5>Implements</h5>
     <div><span class="xref">System.IDisposable</span></div>
   </div>
@@ -119,19 +119,19 @@
   </h3>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goatcorp/FFXIVClientStructs/new/db6e7c4a7b2638bedc2888c546009c7292c5de45/apiSpec/new?filename=FFXIVClientStructs_SigScanner__ctor_System_Diagnostics_ProcessModule_System_Boolean_.md&amp;value=---%0Auid%3A%20FFXIVClientStructs.SigScanner.%23ctor(System.Diagnostics.ProcessModule%2CSystem.Boolean)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goatcorp/FFXIVClientStructs/new/main/apiSpec/new?filename=FFXIVClientStructs_SigScanner__ctor_System_Diagnostics_ProcessModule_System_Boolean_System_IO_FileInfo_.md&amp;value=---%0Auid%3A%20FFXIVClientStructs.SigScanner.%23ctor(System.Diagnostics.ProcessModule%2CSystem.Boolean%2CSystem.IO.FileInfo)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/FFXIVClientStructs/blob/db6e7c4a7b2638bedc2888c546009c7292c5de45/FFXIVClientStructs/SigScanner.cs/#L24">View Source</a>
+    <a href="https://github.com/goatcorp/FFXIVClientStructs/blob/main/FFXIVClientStructs/SigScanner.cs/#L32">View Source</a>
   </span>
   <a id="FFXIVClientStructs_SigScanner__ctor_" data-uid="FFXIVClientStructs.SigScanner.#ctor*"></a>
-  <h4 id="FFXIVClientStructs_SigScanner__ctor_System_Diagnostics_ProcessModule_System_Boolean_" data-uid="FFXIVClientStructs.SigScanner.#ctor(System.Diagnostics.ProcessModule,System.Boolean)">SigScanner(ProcessModule, Boolean)</h4>
+  <h4 id="FFXIVClientStructs_SigScanner__ctor_System_Diagnostics_ProcessModule_System_Boolean_System_IO_FileInfo_" data-uid="FFXIVClientStructs.SigScanner.#ctor(System.Diagnostics.ProcessModule,System.Boolean,System.IO.FileInfo)">SigScanner(ProcessModule, Boolean, FileInfo)</h4>
   <div class="markdown level1 summary"><p>Initializes a new instance of the <a class="xref" href="FFXIVClientStructs.SigScanner.html">SigScanner</a> class.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public SigScanner(ProcessModule module, bool doCopy = false)</code></pre>
+    <pre><code class="lang-csharp hljs">public SigScanner(ProcessModule module, bool doCopy = false, FileInfo cacheFile = null)</code></pre>
   </div>
   <h5 class="parameters">Parameters</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -152,25 +152,32 @@
       <tr>
         <td><span class="xref">System.Boolean</span></td>
         <td><span class="parametername">doCopy</span></td>
-        <td><p>Whether or not to copy the module upon initialization for search operations to use, as to not get disturbed by possible hooks.</p>
+        <td><p>Whether or not to copy the module upon initialization for search operations to use, as to not get
+disturbed by possible hooks.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.IO.FileInfo</span></td>
+        <td><span class="parametername">cacheFile</span></td>
+        <td><p>The FileInfo to use as Signature Cache File</p>
 </td>
       </tr>
     </tbody>
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goatcorp/FFXIVClientStructs/new/db6e7c4a7b2638bedc2888c546009c7292c5de45/apiSpec/new?filename=FFXIVClientStructs_SigScanner__ctor_System_Diagnostics_ProcessModule_System_IntPtr_.md&amp;value=---%0Auid%3A%20FFXIVClientStructs.SigScanner.%23ctor(System.Diagnostics.ProcessModule%2CSystem.IntPtr)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goatcorp/FFXIVClientStructs/new/main/apiSpec/new?filename=FFXIVClientStructs_SigScanner__ctor_System_Diagnostics_ProcessModule_System_IntPtr_System_IO_FileInfo_.md&amp;value=---%0Auid%3A%20FFXIVClientStructs.SigScanner.%23ctor(System.Diagnostics.ProcessModule%2CSystem.IntPtr%2CSystem.IO.FileInfo)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/FFXIVClientStructs/blob/db6e7c4a7b2638bedc2888c546009c7292c5de45/FFXIVClientStructs/SigScanner.cs/#L38">View Source</a>
+    <a href="https://github.com/goatcorp/FFXIVClientStructs/blob/main/FFXIVClientStructs/SigScanner.cs/#L49">View Source</a>
   </span>
   <a id="FFXIVClientStructs_SigScanner__ctor_" data-uid="FFXIVClientStructs.SigScanner.#ctor*"></a>
-  <h4 id="FFXIVClientStructs_SigScanner__ctor_System_Diagnostics_ProcessModule_System_IntPtr_" data-uid="FFXIVClientStructs.SigScanner.#ctor(System.Diagnostics.ProcessModule,System.IntPtr)">SigScanner(ProcessModule, IntPtr)</h4>
+  <h4 id="FFXIVClientStructs_SigScanner__ctor_System_Diagnostics_ProcessModule_System_IntPtr_System_IO_FileInfo_" data-uid="FFXIVClientStructs.SigScanner.#ctor(System.Diagnostics.ProcessModule,System.IntPtr,System.IO.FileInfo)">SigScanner(ProcessModule, IntPtr, FileInfo)</h4>
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public SigScanner(ProcessModule module, IntPtr moduleCopy)</code></pre>
+    <pre><code class="lang-csharp hljs">public SigScanner(ProcessModule module, IntPtr moduleCopy, FileInfo cacheFile = null)</code></pre>
   </div>
   <h5 class="parameters">Parameters</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -192,16 +199,21 @@
         <td><span class="parametername">moduleCopy</span></td>
         <td></td>
       </tr>
+      <tr>
+        <td><span class="xref">System.IO.FileInfo</span></td>
+        <td><span class="parametername">cacheFile</span></td>
+        <td></td>
+      </tr>
     </tbody>
   </table>
   <h3 id="properties">Properties
   </h3>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goatcorp/FFXIVClientStructs/new/db6e7c4a7b2638bedc2888c546009c7292c5de45/apiSpec/new?filename=FFXIVClientStructs_SigScanner_DataSectionBase.md&amp;value=---%0Auid%3A%20FFXIVClientStructs.SigScanner.DataSectionBase%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goatcorp/FFXIVClientStructs/new/main/apiSpec/new?filename=FFXIVClientStructs_SigScanner_DataSectionBase.md&amp;value=---%0Auid%3A%20FFXIVClientStructs.SigScanner.DataSectionBase%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/FFXIVClientStructs/blob/db6e7c4a7b2638bedc2888c546009c7292c5de45/FFXIVClientStructs/SigScanner.cs/#L87">View Source</a>
+    <a href="https://github.com/goatcorp/FFXIVClientStructs/blob/main/FFXIVClientStructs/SigScanner.cs/#L101">View Source</a>
   </span>
   <a id="FFXIVClientStructs_SigScanner_DataSectionBase_" data-uid="FFXIVClientStructs.SigScanner.DataSectionBase*"></a>
   <h4 id="FFXIVClientStructs_SigScanner_DataSectionBase" data-uid="FFXIVClientStructs.SigScanner.DataSectionBase">DataSectionBase</h4>
@@ -229,10 +241,10 @@
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goatcorp/FFXIVClientStructs/new/db6e7c4a7b2638bedc2888c546009c7292c5de45/apiSpec/new?filename=FFXIVClientStructs_SigScanner_DataSectionOffset.md&amp;value=---%0Auid%3A%20FFXIVClientStructs.SigScanner.DataSectionOffset%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goatcorp/FFXIVClientStructs/new/main/apiSpec/new?filename=FFXIVClientStructs_SigScanner_DataSectionOffset.md&amp;value=---%0Auid%3A%20FFXIVClientStructs.SigScanner.DataSectionOffset%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/FFXIVClientStructs/blob/db6e7c4a7b2638bedc2888c546009c7292c5de45/FFXIVClientStructs/SigScanner.cs/#L92">View Source</a>
+    <a href="https://github.com/goatcorp/FFXIVClientStructs/blob/main/FFXIVClientStructs/SigScanner.cs/#L106">View Source</a>
   </span>
   <a id="FFXIVClientStructs_SigScanner_DataSectionOffset_" data-uid="FFXIVClientStructs.SigScanner.DataSectionOffset*"></a>
   <h4 id="FFXIVClientStructs_SigScanner_DataSectionOffset" data-uid="FFXIVClientStructs.SigScanner.DataSectionOffset">DataSectionOffset</h4>
@@ -260,10 +272,10 @@
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goatcorp/FFXIVClientStructs/new/db6e7c4a7b2638bedc2888c546009c7292c5de45/apiSpec/new?filename=FFXIVClientStructs_SigScanner_DataSectionSize.md&amp;value=---%0Auid%3A%20FFXIVClientStructs.SigScanner.DataSectionSize%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goatcorp/FFXIVClientStructs/new/main/apiSpec/new?filename=FFXIVClientStructs_SigScanner_DataSectionSize.md&amp;value=---%0Auid%3A%20FFXIVClientStructs.SigScanner.DataSectionSize%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/FFXIVClientStructs/blob/db6e7c4a7b2638bedc2888c546009c7292c5de45/FFXIVClientStructs/SigScanner.cs/#L97">View Source</a>
+    <a href="https://github.com/goatcorp/FFXIVClientStructs/blob/main/FFXIVClientStructs/SigScanner.cs/#L111">View Source</a>
   </span>
   <a id="FFXIVClientStructs_SigScanner_DataSectionSize_" data-uid="FFXIVClientStructs.SigScanner.DataSectionSize*"></a>
   <h4 id="FFXIVClientStructs_SigScanner_DataSectionSize" data-uid="FFXIVClientStructs.SigScanner.DataSectionSize">DataSectionSize</h4>
@@ -291,10 +303,10 @@
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goatcorp/FFXIVClientStructs/new/db6e7c4a7b2638bedc2888c546009c7292c5de45/apiSpec/new?filename=FFXIVClientStructs_SigScanner_Is32BitProcess.md&amp;value=---%0Auid%3A%20FFXIVClientStructs.SigScanner.Is32BitProcess%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goatcorp/FFXIVClientStructs/new/main/apiSpec/new?filename=FFXIVClientStructs_SigScanner_Is32BitProcess.md&amp;value=---%0Auid%3A%20FFXIVClientStructs.SigScanner.Is32BitProcess%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/FFXIVClientStructs/blob/db6e7c4a7b2638bedc2888c546009c7292c5de45/FFXIVClientStructs/SigScanner.cs/#L62">View Source</a>
+    <a href="https://github.com/goatcorp/FFXIVClientStructs/blob/main/FFXIVClientStructs/SigScanner.cs/#L76">View Source</a>
   </span>
   <a id="FFXIVClientStructs_SigScanner_Is32BitProcess_" data-uid="FFXIVClientStructs.SigScanner.Is32BitProcess*"></a>
   <h4 id="FFXIVClientStructs_SigScanner_Is32BitProcess" data-uid="FFXIVClientStructs.SigScanner.Is32BitProcess">Is32BitProcess</h4>
@@ -322,10 +334,10 @@
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goatcorp/FFXIVClientStructs/new/db6e7c4a7b2638bedc2888c546009c7292c5de45/apiSpec/new?filename=FFXIVClientStructs_SigScanner_IsCopy.md&amp;value=---%0Auid%3A%20FFXIVClientStructs.SigScanner.IsCopy%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goatcorp/FFXIVClientStructs/new/main/apiSpec/new?filename=FFXIVClientStructs_SigScanner_IsCopy.md&amp;value=---%0Auid%3A%20FFXIVClientStructs.SigScanner.IsCopy%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/FFXIVClientStructs/blob/db6e7c4a7b2638bedc2888c546009c7292c5de45/FFXIVClientStructs/SigScanner.cs/#L55">View Source</a>
+    <a href="https://github.com/goatcorp/FFXIVClientStructs/blob/main/FFXIVClientStructs/SigScanner.cs/#L69">View Source</a>
   </span>
   <a id="FFXIVClientStructs_SigScanner_IsCopy_" data-uid="FFXIVClientStructs.SigScanner.IsCopy*"></a>
   <h4 id="FFXIVClientStructs_SigScanner_IsCopy" data-uid="FFXIVClientStructs.SigScanner.IsCopy">IsCopy</h4>
@@ -353,10 +365,10 @@
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goatcorp/FFXIVClientStructs/new/db6e7c4a7b2638bedc2888c546009c7292c5de45/apiSpec/new?filename=FFXIVClientStructs_SigScanner_Module.md&amp;value=---%0Auid%3A%20FFXIVClientStructs.SigScanner.Module%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goatcorp/FFXIVClientStructs/new/main/apiSpec/new?filename=FFXIVClientStructs_SigScanner_Module.md&amp;value=---%0Auid%3A%20FFXIVClientStructs.SigScanner.Module%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/FFXIVClientStructs/blob/db6e7c4a7b2638bedc2888c546009c7292c5de45/FFXIVClientStructs/SigScanner.cs/#L117">View Source</a>
+    <a href="https://github.com/goatcorp/FFXIVClientStructs/blob/main/FFXIVClientStructs/SigScanner.cs/#L131">View Source</a>
   </span>
   <a id="FFXIVClientStructs_SigScanner_Module_" data-uid="FFXIVClientStructs.SigScanner.Module*"></a>
   <h4 id="FFXIVClientStructs_SigScanner_Module" data-uid="FFXIVClientStructs.SigScanner.Module">Module</h4>
@@ -384,10 +396,10 @@
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goatcorp/FFXIVClientStructs/new/db6e7c4a7b2638bedc2888c546009c7292c5de45/apiSpec/new?filename=FFXIVClientStructs_SigScanner_OwnsCopy.md&amp;value=---%0Auid%3A%20FFXIVClientStructs.SigScanner.OwnsCopy%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goatcorp/FFXIVClientStructs/new/main/apiSpec/new?filename=FFXIVClientStructs_SigScanner_OwnsCopy.md&amp;value=---%0Auid%3A%20FFXIVClientStructs.SigScanner.OwnsCopy%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/FFXIVClientStructs/blob/db6e7c4a7b2638bedc2888c546009c7292c5de45/FFXIVClientStructs/SigScanner.cs/#L57">View Source</a>
+    <a href="https://github.com/goatcorp/FFXIVClientStructs/blob/main/FFXIVClientStructs/SigScanner.cs/#L71">View Source</a>
   </span>
   <a id="FFXIVClientStructs_SigScanner_OwnsCopy_" data-uid="FFXIVClientStructs.SigScanner.OwnsCopy*"></a>
   <h4 id="FFXIVClientStructs_SigScanner_OwnsCopy" data-uid="FFXIVClientStructs.SigScanner.OwnsCopy">OwnsCopy</h4>
@@ -414,10 +426,10 @@
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goatcorp/FFXIVClientStructs/new/db6e7c4a7b2638bedc2888c546009c7292c5de45/apiSpec/new?filename=FFXIVClientStructs_SigScanner_RDataSectionBase.md&amp;value=---%0Auid%3A%20FFXIVClientStructs.SigScanner.RDataSectionBase%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goatcorp/FFXIVClientStructs/new/main/apiSpec/new?filename=FFXIVClientStructs_SigScanner_RDataSectionBase.md&amp;value=---%0Auid%3A%20FFXIVClientStructs.SigScanner.RDataSectionBase%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/FFXIVClientStructs/blob/db6e7c4a7b2638bedc2888c546009c7292c5de45/FFXIVClientStructs/SigScanner.cs/#L102">View Source</a>
+    <a href="https://github.com/goatcorp/FFXIVClientStructs/blob/main/FFXIVClientStructs/SigScanner.cs/#L116">View Source</a>
   </span>
   <a id="FFXIVClientStructs_SigScanner_RDataSectionBase_" data-uid="FFXIVClientStructs.SigScanner.RDataSectionBase*"></a>
   <h4 id="FFXIVClientStructs_SigScanner_RDataSectionBase" data-uid="FFXIVClientStructs.SigScanner.RDataSectionBase">RDataSectionBase</h4>
@@ -445,10 +457,10 @@
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goatcorp/FFXIVClientStructs/new/db6e7c4a7b2638bedc2888c546009c7292c5de45/apiSpec/new?filename=FFXIVClientStructs_SigScanner_RDataSectionOffset.md&amp;value=---%0Auid%3A%20FFXIVClientStructs.SigScanner.RDataSectionOffset%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goatcorp/FFXIVClientStructs/new/main/apiSpec/new?filename=FFXIVClientStructs_SigScanner_RDataSectionOffset.md&amp;value=---%0Auid%3A%20FFXIVClientStructs.SigScanner.RDataSectionOffset%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/FFXIVClientStructs/blob/db6e7c4a7b2638bedc2888c546009c7292c5de45/FFXIVClientStructs/SigScanner.cs/#L107">View Source</a>
+    <a href="https://github.com/goatcorp/FFXIVClientStructs/blob/main/FFXIVClientStructs/SigScanner.cs/#L121">View Source</a>
   </span>
   <a id="FFXIVClientStructs_SigScanner_RDataSectionOffset_" data-uid="FFXIVClientStructs.SigScanner.RDataSectionOffset*"></a>
   <h4 id="FFXIVClientStructs_SigScanner_RDataSectionOffset" data-uid="FFXIVClientStructs.SigScanner.RDataSectionOffset">RDataSectionOffset</h4>
@@ -476,10 +488,10 @@
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goatcorp/FFXIVClientStructs/new/db6e7c4a7b2638bedc2888c546009c7292c5de45/apiSpec/new?filename=FFXIVClientStructs_SigScanner_RDataSectionSize.md&amp;value=---%0Auid%3A%20FFXIVClientStructs.SigScanner.RDataSectionSize%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goatcorp/FFXIVClientStructs/new/main/apiSpec/new?filename=FFXIVClientStructs_SigScanner_RDataSectionSize.md&amp;value=---%0Auid%3A%20FFXIVClientStructs.SigScanner.RDataSectionSize%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/FFXIVClientStructs/blob/db6e7c4a7b2638bedc2888c546009c7292c5de45/FFXIVClientStructs/SigScanner.cs/#L112">View Source</a>
+    <a href="https://github.com/goatcorp/FFXIVClientStructs/blob/main/FFXIVClientStructs/SigScanner.cs/#L126">View Source</a>
   </span>
   <a id="FFXIVClientStructs_SigScanner_RDataSectionSize_" data-uid="FFXIVClientStructs.SigScanner.RDataSectionSize*"></a>
   <h4 id="FFXIVClientStructs_SigScanner_RDataSectionSize" data-uid="FFXIVClientStructs.SigScanner.RDataSectionSize">RDataSectionSize</h4>
@@ -507,10 +519,10 @@
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goatcorp/FFXIVClientStructs/new/db6e7c4a7b2638bedc2888c546009c7292c5de45/apiSpec/new?filename=FFXIVClientStructs_SigScanner_SearchBase.md&amp;value=---%0Auid%3A%20FFXIVClientStructs.SigScanner.SearchBase%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goatcorp/FFXIVClientStructs/new/main/apiSpec/new?filename=FFXIVClientStructs_SigScanner_SearchBase.md&amp;value=---%0Auid%3A%20FFXIVClientStructs.SigScanner.SearchBase%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/FFXIVClientStructs/blob/db6e7c4a7b2638bedc2888c546009c7292c5de45/FFXIVClientStructs/SigScanner.cs/#L67">View Source</a>
+    <a href="https://github.com/goatcorp/FFXIVClientStructs/blob/main/FFXIVClientStructs/SigScanner.cs/#L81">View Source</a>
   </span>
   <a id="FFXIVClientStructs_SigScanner_SearchBase_" data-uid="FFXIVClientStructs.SigScanner.SearchBase*"></a>
   <h4 id="FFXIVClientStructs_SigScanner_SearchBase" data-uid="FFXIVClientStructs.SigScanner.SearchBase">SearchBase</h4>
@@ -538,10 +550,10 @@
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goatcorp/FFXIVClientStructs/new/db6e7c4a7b2638bedc2888c546009c7292c5de45/apiSpec/new?filename=FFXIVClientStructs_SigScanner_TextSectionBase.md&amp;value=---%0Auid%3A%20FFXIVClientStructs.SigScanner.TextSectionBase%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goatcorp/FFXIVClientStructs/new/main/apiSpec/new?filename=FFXIVClientStructs_SigScanner_TextSectionBase.md&amp;value=---%0Auid%3A%20FFXIVClientStructs.SigScanner.TextSectionBase%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/FFXIVClientStructs/blob/db6e7c4a7b2638bedc2888c546009c7292c5de45/FFXIVClientStructs/SigScanner.cs/#L72">View Source</a>
+    <a href="https://github.com/goatcorp/FFXIVClientStructs/blob/main/FFXIVClientStructs/SigScanner.cs/#L86">View Source</a>
   </span>
   <a id="FFXIVClientStructs_SigScanner_TextSectionBase_" data-uid="FFXIVClientStructs.SigScanner.TextSectionBase*"></a>
   <h4 id="FFXIVClientStructs_SigScanner_TextSectionBase" data-uid="FFXIVClientStructs.SigScanner.TextSectionBase">TextSectionBase</h4>
@@ -569,10 +581,10 @@
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goatcorp/FFXIVClientStructs/new/db6e7c4a7b2638bedc2888c546009c7292c5de45/apiSpec/new?filename=FFXIVClientStructs_SigScanner_TextSectionOffset.md&amp;value=---%0Auid%3A%20FFXIVClientStructs.SigScanner.TextSectionOffset%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goatcorp/FFXIVClientStructs/new/main/apiSpec/new?filename=FFXIVClientStructs_SigScanner_TextSectionOffset.md&amp;value=---%0Auid%3A%20FFXIVClientStructs.SigScanner.TextSectionOffset%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/FFXIVClientStructs/blob/db6e7c4a7b2638bedc2888c546009c7292c5de45/FFXIVClientStructs/SigScanner.cs/#L77">View Source</a>
+    <a href="https://github.com/goatcorp/FFXIVClientStructs/blob/main/FFXIVClientStructs/SigScanner.cs/#L91">View Source</a>
   </span>
   <a id="FFXIVClientStructs_SigScanner_TextSectionOffset_" data-uid="FFXIVClientStructs.SigScanner.TextSectionOffset*"></a>
   <h4 id="FFXIVClientStructs_SigScanner_TextSectionOffset" data-uid="FFXIVClientStructs.SigScanner.TextSectionOffset">TextSectionOffset</h4>
@@ -600,10 +612,10 @@
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goatcorp/FFXIVClientStructs/new/db6e7c4a7b2638bedc2888c546009c7292c5de45/apiSpec/new?filename=FFXIVClientStructs_SigScanner_TextSectionSize.md&amp;value=---%0Auid%3A%20FFXIVClientStructs.SigScanner.TextSectionSize%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goatcorp/FFXIVClientStructs/new/main/apiSpec/new?filename=FFXIVClientStructs_SigScanner_TextSectionSize.md&amp;value=---%0Auid%3A%20FFXIVClientStructs.SigScanner.TextSectionSize%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/FFXIVClientStructs/blob/db6e7c4a7b2638bedc2888c546009c7292c5de45/FFXIVClientStructs/SigScanner.cs/#L82">View Source</a>
+    <a href="https://github.com/goatcorp/FFXIVClientStructs/blob/main/FFXIVClientStructs/SigScanner.cs/#L96">View Source</a>
   </span>
   <a id="FFXIVClientStructs_SigScanner_TextSectionSize_" data-uid="FFXIVClientStructs.SigScanner.TextSectionSize*"></a>
   <h4 id="FFXIVClientStructs_SigScanner_TextSectionSize" data-uid="FFXIVClientStructs.SigScanner.TextSectionSize">TextSectionSize</h4>
@@ -633,10 +645,10 @@
   </h3>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goatcorp/FFXIVClientStructs/new/db6e7c4a7b2638bedc2888c546009c7292c5de45/apiSpec/new?filename=FFXIVClientStructs_SigScanner_Dispose.md&amp;value=---%0Auid%3A%20FFXIVClientStructs.SigScanner.Dispose%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goatcorp/FFXIVClientStructs/new/main/apiSpec/new?filename=FFXIVClientStructs_SigScanner_Dispose.md&amp;value=---%0Auid%3A%20FFXIVClientStructs.SigScanner.Dispose%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/FFXIVClientStructs/blob/db6e7c4a7b2638bedc2888c546009c7292c5de45/FFXIVClientStructs/SigScanner.cs/#L230">View Source</a>
+    <a href="https://github.com/goatcorp/FFXIVClientStructs/blob/main/FFXIVClientStructs/SigScanner.cs/#L138">View Source</a>
   </span>
   <a id="FFXIVClientStructs_SigScanner_Dispose_" data-uid="FFXIVClientStructs.SigScanner.Dispose*"></a>
   <h4 id="FFXIVClientStructs_SigScanner_Dispose" data-uid="FFXIVClientStructs.SigScanner.Dispose">Dispose()</h4>
@@ -649,10 +661,10 @@
   </div>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goatcorp/FFXIVClientStructs/new/db6e7c4a7b2638bedc2888c546009c7292c5de45/apiSpec/new?filename=FFXIVClientStructs_SigScanner_GetStaticAddressFromSig_System_String_System_Int32_.md&amp;value=---%0Auid%3A%20FFXIVClientStructs.SigScanner.GetStaticAddressFromSig(System.String%2CSystem.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goatcorp/FFXIVClientStructs/new/main/apiSpec/new?filename=FFXIVClientStructs_SigScanner_GetStaticAddressFromSig_System_String_System_Int32_.md&amp;value=---%0Auid%3A%20FFXIVClientStructs.SigScanner.GetStaticAddressFromSig(System.String%2CSystem.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/FFXIVClientStructs/blob/db6e7c4a7b2638bedc2888c546009c7292c5de45/FFXIVClientStructs/SigScanner.cs/#L145">View Source</a>
+    <a href="https://github.com/goatcorp/FFXIVClientStructs/blob/main/FFXIVClientStructs/SigScanner.cs/#L197">View Source</a>
   </span>
   <a id="FFXIVClientStructs_SigScanner_GetStaticAddressFromSig_" data-uid="FFXIVClientStructs.SigScanner.GetStaticAddressFromSig*"></a>
   <h4 id="FFXIVClientStructs_SigScanner_GetStaticAddressFromSig_System_String_System_Int32_" data-uid="FFXIVClientStructs.SigScanner.GetStaticAddressFromSig(System.String,System.Int32)">GetStaticAddressFromSig(String, Int32)</h4>
@@ -707,10 +719,10 @@ Place your cursor on the line calling a static address, and create and IDA sig.<
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goatcorp/FFXIVClientStructs/new/db6e7c4a7b2638bedc2888c546009c7292c5de45/apiSpec/new?filename=FFXIVClientStructs_SigScanner_ResolveRelativeAddress_System_IntPtr_System_Int32_.md&amp;value=---%0Auid%3A%20FFXIVClientStructs.SigScanner.ResolveRelativeAddress(System.IntPtr%2CSystem.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goatcorp/FFXIVClientStructs/new/main/apiSpec/new?filename=FFXIVClientStructs_SigScanner_ResolveRelativeAddress_System_IntPtr_System_Int32_.md&amp;value=---%0Auid%3A%20FFXIVClientStructs.SigScanner.ResolveRelativeAddress(System.IntPtr%2CSystem.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/FFXIVClientStructs/blob/db6e7c4a7b2638bedc2888c546009c7292c5de45/FFXIVClientStructs/SigScanner.cs/#L199">View Source</a>
+    <a href="https://github.com/goatcorp/FFXIVClientStructs/blob/main/FFXIVClientStructs/SigScanner.cs/#L250">View Source</a>
   </span>
   <a id="FFXIVClientStructs_SigScanner_ResolveRelativeAddress_" data-uid="FFXIVClientStructs.SigScanner.ResolveRelativeAddress*"></a>
   <h4 id="FFXIVClientStructs_SigScanner_ResolveRelativeAddress_System_IntPtr_System_Int32_" data-uid="FFXIVClientStructs.SigScanner.ResolveRelativeAddress(System.IntPtr,System.Int32)">ResolveRelativeAddress(IntPtr, Int32)</h4>
@@ -763,10 +775,10 @@ Place your cursor on the line calling a static address, and create and IDA sig.<
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goatcorp/FFXIVClientStructs/new/db6e7c4a7b2638bedc2888c546009c7292c5de45/apiSpec/new?filename=FFXIVClientStructs_SigScanner_Scan_System_IntPtr_System_Int32_System_String_.md&amp;value=---%0Auid%3A%20FFXIVClientStructs.SigScanner.Scan(System.IntPtr%2CSystem.Int32%2CSystem.String)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goatcorp/FFXIVClientStructs/new/main/apiSpec/new?filename=FFXIVClientStructs_SigScanner_Scan_System_IntPtr_System_Int32_System_String_.md&amp;value=---%0Auid%3A%20FFXIVClientStructs.SigScanner.Scan(System.IntPtr%2CSystem.Int32%2CSystem.String)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/FFXIVClientStructs/blob/db6e7c4a7b2638bedc2888c546009c7292c5de45/FFXIVClientStructs/SigScanner.cs/#L128">View Source</a>
+    <a href="https://github.com/goatcorp/FFXIVClientStructs/blob/main/FFXIVClientStructs/SigScanner.cs/#L180">View Source</a>
   </span>
   <a id="FFXIVClientStructs_SigScanner_Scan_" data-uid="FFXIVClientStructs.SigScanner.Scan*"></a>
   <h4 id="FFXIVClientStructs_SigScanner_Scan_System_IntPtr_System_Int32_System_String_" data-uid="FFXIVClientStructs.SigScanner.Scan(System.IntPtr,System.Int32,System.String)">Scan(IntPtr, Int32, String)</h4>
@@ -825,10 +837,10 @@ Place your cursor on the line calling a static address, and create and IDA sig.<
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goatcorp/FFXIVClientStructs/new/db6e7c4a7b2638bedc2888c546009c7292c5de45/apiSpec/new?filename=FFXIVClientStructs_SigScanner_ScanData_System_String_.md&amp;value=---%0Auid%3A%20FFXIVClientStructs.SigScanner.ScanData(System.String)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goatcorp/FFXIVClientStructs/new/main/apiSpec/new?filename=FFXIVClientStructs_SigScanner_ScanData_System_String_.md&amp;value=---%0Auid%3A%20FFXIVClientStructs.SigScanner.ScanData(System.String)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/FFXIVClientStructs/blob/db6e7c4a7b2638bedc2888c546009c7292c5de45/FFXIVClientStructs/SigScanner.cs/#L168">View Source</a>
+    <a href="https://github.com/goatcorp/FFXIVClientStructs/blob/main/FFXIVClientStructs/SigScanner.cs/#L219">View Source</a>
   </span>
   <a id="FFXIVClientStructs_SigScanner_ScanData_" data-uid="FFXIVClientStructs.SigScanner.ScanData*"></a>
   <h4 id="FFXIVClientStructs_SigScanner_ScanData_System_String_" data-uid="FFXIVClientStructs.SigScanner.ScanData(System.String)">ScanData(String)</h4>
@@ -875,10 +887,10 @@ Place your cursor on the line calling a static address, and create and IDA sig.<
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goatcorp/FFXIVClientStructs/new/db6e7c4a7b2638bedc2888c546009c7292c5de45/apiSpec/new?filename=FFXIVClientStructs_SigScanner_ScanModule_System_String_.md&amp;value=---%0Auid%3A%20FFXIVClientStructs.SigScanner.ScanModule(System.String)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goatcorp/FFXIVClientStructs/new/main/apiSpec/new?filename=FFXIVClientStructs_SigScanner_ScanModule_System_String_.md&amp;value=---%0Auid%3A%20FFXIVClientStructs.SigScanner.ScanModule(System.String)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/FFXIVClientStructs/blob/db6e7c4a7b2638bedc2888c546009c7292c5de45/FFXIVClientStructs/SigScanner.cs/#L183">View Source</a>
+    <a href="https://github.com/goatcorp/FFXIVClientStructs/blob/main/FFXIVClientStructs/SigScanner.cs/#L234">View Source</a>
   </span>
   <a id="FFXIVClientStructs_SigScanner_ScanModule_" data-uid="FFXIVClientStructs.SigScanner.ScanModule*"></a>
   <h4 id="FFXIVClientStructs_SigScanner_ScanModule_System_String_" data-uid="FFXIVClientStructs.SigScanner.ScanModule(System.String)">ScanModule(String)</h4>
@@ -925,10 +937,10 @@ Place your cursor on the line calling a static address, and create and IDA sig.<
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goatcorp/FFXIVClientStructs/new/db6e7c4a7b2638bedc2888c546009c7292c5de45/apiSpec/new?filename=FFXIVClientStructs_SigScanner_ScanText_System_String_.md&amp;value=---%0Auid%3A%20FFXIVClientStructs.SigScanner.ScanText(System.String)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goatcorp/FFXIVClientStructs/new/main/apiSpec/new?filename=FFXIVClientStructs_SigScanner_ScanText_System_String_.md&amp;value=---%0Auid%3A%20FFXIVClientStructs.SigScanner.ScanText(System.String)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/FFXIVClientStructs/blob/db6e7c4a7b2638bedc2888c546009c7292c5de45/FFXIVClientStructs/SigScanner.cs/#L210">View Source</a>
+    <a href="https://github.com/goatcorp/FFXIVClientStructs/blob/main/FFXIVClientStructs/SigScanner.cs/#L261">View Source</a>
   </span>
   <a id="FFXIVClientStructs_SigScanner_ScanText_" data-uid="FFXIVClientStructs.SigScanner.ScanText*"></a>
   <h4 id="FFXIVClientStructs_SigScanner_ScanText_System_String_" data-uid="FFXIVClientStructs.SigScanner.ScanText(System.String)">ScanText(String)</h4>
@@ -985,10 +997,10 @@ Place your cursor on the line calling a static address, and create and IDA sig.<
               <div class="contribution">
                 <ul class="nav">
                   <li>
-                    <a href="https://github.com/goatcorp/FFXIVClientStructs/new/db6e7c4a7b2638bedc2888c546009c7292c5de45/apiSpec/new?filename=FFXIVClientStructs_SigScanner.md&amp;value=---%0Auid%3A%20FFXIVClientStructs.SigScanner%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                    <a href="https://github.com/goatcorp/FFXIVClientStructs/new/main/apiSpec/new?filename=FFXIVClientStructs_SigScanner.md&amp;value=---%0Auid%3A%20FFXIVClientStructs.SigScanner%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
                   </li>
                   <li>
-                    <a href="https://github.com/goatcorp/FFXIVClientStructs/blob/db6e7c4a7b2638bedc2888c546009c7292c5de45/FFXIVClientStructs/SigScanner.cs/#L14" class="contribution-link">View Source</a>
+                    <a href="https://github.com/goatcorp/FFXIVClientStructs/blob/main/FFXIVClientStructs/SigScanner.cs/#L15" class="contribution-link">View Source</a>
                   </li>
                 </ul>
               </div>

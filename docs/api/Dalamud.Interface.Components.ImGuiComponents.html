@@ -10,7 +10,7 @@
     <meta name="viewport" content="width=device-width">
     <meta name="title" content="Class ImGuiComponents
    ">
-    <meta name="generator" content="docfx 2.59.1.0">
+    <meta name="generator" content="docfx 2.59.4.0">
     
     <link rel="shortcut icon" href="../favicon.ico">
     <link rel="stylesheet" href="../styles/docfx.vendor.css">
@@ -393,6 +393,46 @@
       <tr>
         <td><span class="xref">System.Boolean</span></td>
         <td><p>Indicator if button is clicked.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Interface_Components_ImGuiComponents_DisabledToggleButton_System_String_System_Boolean_.md&amp;value=---%0Auid%3A%20Dalamud.Interface.Components.ImGuiComponents.DisabledToggleButton(System.String%2CSystem.Boolean)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Interface/Components/ImGuiComponents.ToggleSwitch.cs/#L52">View Source</a>
+  </span>
+  <a id="Dalamud_Interface_Components_ImGuiComponents_DisabledToggleButton_" data-uid="Dalamud.Interface.Components.ImGuiComponents.DisabledToggleButton*"></a>
+  <h4 id="Dalamud_Interface_Components_ImGuiComponents_DisabledToggleButton_System_String_System_Boolean_" data-uid="Dalamud.Interface.Components.ImGuiComponents.DisabledToggleButton(System.String,System.Boolean)">DisabledToggleButton(String, Boolean)</h4>
+  <div class="markdown level1 summary"><p>Draw a disabled toggle button.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static void DisabledToggleButton(string id, bool v)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">id</span></td>
+        <td><p>The id of the button.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">v</span></td>
+        <td><p>The state of the switch.</p>
 </td>
       </tr>
     </tbody>
@@ -859,6 +899,62 @@
       </tr>
     </tbody>
   </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Interface_Components_ImGuiComponents_ToggleButton_System_String_System_Boolean__.md&amp;value=---%0Auid%3A%20Dalamud.Interface.Components.ImGuiComponents.ToggleButton(System.String%2CSystem.Boolean%40)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Interface/Components/ImGuiComponents.ToggleSwitch.cs/#L18">View Source</a>
+  </span>
+  <a id="Dalamud_Interface_Components_ImGuiComponents_ToggleButton_" data-uid="Dalamud.Interface.Components.ImGuiComponents.ToggleButton*"></a>
+  <h4 id="Dalamud_Interface_Components_ImGuiComponents_ToggleButton_System_String_System_Boolean__" data-uid="Dalamud.Interface.Components.ImGuiComponents.ToggleButton(System.String,System.Boolean@)">ToggleButton(String, ref Boolean)</h4>
+  <div class="markdown level1 summary"><p>Draw a toggle button.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static bool ToggleButton(string id, ref bool v)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">id</span></td>
+        <td><p>The id of the button.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><span class="parametername">v</span></td>
+        <td><p>The state of the switch.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td><p>If the button has been interacted with this frame.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
 </article>
           </div>
           
@@ -870,7 +966,7 @@
                     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Interface_Components_ImGuiComponents.md&amp;value=---%0Auid%3A%20Dalamud.Interface.Components.ImGuiComponents%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
                   </li>
                   <li>
-                    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Interface/Components/ImGuiComponents.TextWithLabel.cs/#L8" class="contribution-link">View Source</a>
+                    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Interface/Components/ImGuiComponents.ToggleSwitch.cs/#L10" class="contribution-link">View Source</a>
                   </li>
                 </ul>
               </div>

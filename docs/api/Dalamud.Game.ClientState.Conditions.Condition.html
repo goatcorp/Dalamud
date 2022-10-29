@@ -10,7 +10,7 @@
     <meta name="viewport" content="width=device-width">
     <meta name="title" content="Class Condition
    ">
-    <meta name="generator" content="docfx 2.59.1.0">
+    <meta name="generator" content="docfx 2.59.4.0">
     
     <link rel="shortcut icon" href="../favicon.ico">
     <link rel="stylesheet" href="../styles/docfx.vendor.css">
@@ -81,8 +81,9 @@
     <div class="level0"><span class="xref">System.Object</span></div>
     <div class="level1"><span class="xref">Condition</span></div>
   </div>
-  <div classs="implements">
+  <div class="implements">
     <h5>Implements</h5>
+    <div><a class="xref" href="Dalamud.IServiceType.html">IServiceType</a></div>
     <div><span class="xref">System.IDisposable</span></div>
   </div>
   <div class="inheritedMembers">
@@ -113,7 +114,7 @@
   <h6><strong>Assembly</strong>: Dalamud.dll</h6>
   <h5 id="Dalamud_Game_ClientState_Conditions_Condition_syntax">Syntax</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public sealed class Condition : IDisposable</code></pre>
+    <pre><code class="lang-csharp hljs">public sealed class Condition : IServiceType, IDisposable</code></pre>
   </div>
   <h3 id="fields">Fields
   </h3>
@@ -122,7 +123,7 @@
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_Conditions_Condition_MaxConditionEntries.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.Conditions.Condition.MaxConditionEntries%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/Conditions/Condition.cs/#L19">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/Conditions/Condition.cs/#L20">View Source</a>
   </span>
   <h4 id="Dalamud_Game_ClientState_Conditions_Condition_MaxConditionEntries" data-uid="Dalamud.Game.ClientState.Conditions.Condition.MaxConditionEntries">MaxConditionEntries</h4>
   <div class="markdown level1 summary"><p>The current max number of conditions. You can get this just by looking at the condition sheet and how many rows it has.</p>
@@ -154,7 +155,7 @@
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_Conditions_Condition_Address.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.Conditions.Condition.Address%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/Conditions/Condition.cs/#L48">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/Conditions/Condition.cs/#L47">View Source</a>
   </span>
   <a id="Dalamud_Game_ClientState_Conditions_Condition_Address_" data-uid="Dalamud.Game.ClientState.Conditions.Condition.Address*"></a>
   <h4 id="Dalamud_Game_ClientState_Conditions_Condition_Address" data-uid="Dalamud.Game.ClientState.Conditions.Condition.Address">Address</h4>
@@ -185,7 +186,7 @@
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_Conditions_Condition_Item_Dalamud_Game_ClientState_Conditions_ConditionFlag_.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.Conditions.Condition.Item(Dalamud.Game.ClientState.Conditions.ConditionFlag)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/Conditions/Condition.cs/#L66">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/Conditions/Condition.cs/#L65">View Source</a>
   </span>
   <a id="Dalamud_Game_ClientState_Conditions_Condition_Item_" data-uid="Dalamud.Game.ClientState.Conditions.Condition.Item*"></a>
   <h4 id="Dalamud_Game_ClientState_Conditions_Condition_Item_Dalamud_Game_ClientState_Conditions_ConditionFlag_" data-uid="Dalamud.Game.ClientState.Conditions.Condition.Item(Dalamud.Game.ClientState.Conditions.ConditionFlag)">Item[ConditionFlag]</h4>
@@ -233,7 +234,7 @@
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_Conditions_Condition_Item_System_Int32_.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.Conditions.Condition.Item(System.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/Conditions/Condition.cs/#L54">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/Conditions/Condition.cs/#L53">View Source</a>
   </span>
   <a id="Dalamud_Game_ClientState_Conditions_Condition_Item_" data-uid="Dalamud.Game.ClientState.Conditions.Condition.Item*"></a>
   <h4 id="Dalamud_Game_ClientState_Conditions_Condition_Item_System_Int32_" data-uid="Dalamud.Game.ClientState.Conditions.Condition.Item(System.Int32)">Item[Int32]</h4>
@@ -284,7 +285,7 @@
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_Conditions_Condition_Any.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.Conditions.Condition.Any%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/Conditions/Condition.cs/#L73">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/Conditions/Condition.cs/#L72">View Source</a>
   </span>
   <a id="Dalamud_Game_ClientState_Conditions_Condition_Any_" data-uid="Dalamud.Game.ClientState.Conditions.Condition.Any*"></a>
   <h4 id="Dalamud_Game_ClientState_Conditions_Condition_Any" data-uid="Dalamud.Game.ClientState.Conditions.Condition.Any">Any()</h4>
@@ -313,26 +314,10 @@
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_Conditions_Condition_Enable.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.Conditions.Condition.Enable%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/Conditions/Condition.cs/#L89">View Source</a>
-  </span>
-  <a id="Dalamud_Game_ClientState_Conditions_Condition_Enable_" data-uid="Dalamud.Game.ClientState.Conditions.Condition.Enable*"></a>
-  <h4 id="Dalamud_Game_ClientState_Conditions_Condition_Enable" data-uid="Dalamud.Game.ClientState.Conditions.Condition.Enable">Enable()</h4>
-  <div class="markdown level1 summary"><p>Enables the hooks of the Condition class function.</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-  <h5 class="decalaration">Declaration</h5>
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public void Enable()</code></pre>
-  </div>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_Conditions_Condition_Finalize.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.Conditions.Condition.Finalize%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/Conditions/Condition.cs/#L131">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/Conditions/Condition.cs/#L128">View Source</a>
   </span>
   <a id="Dalamud_Game_ClientState_Conditions_Condition_Finalize_" data-uid="Dalamud.Game.ClientState.Conditions.Condition.Finalize*"></a>
   <h4 id="Dalamud_Game_ClientState_Conditions_Condition_Finalize" data-uid="Dalamud.Game.ClientState.Conditions.Condition.Finalize">Finalize()</h4>
@@ -350,7 +335,7 @@
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_Conditions_Condition_ConditionChange.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.Conditions.Condition.ConditionChange%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/Conditions/Condition.cs/#L43">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/Conditions/Condition.cs/#L42">View Source</a>
   </span>
   <h4 id="Dalamud_Game_ClientState_Conditions_Condition_ConditionChange" data-uid="Dalamud.Game.ClientState.Conditions.Condition.ConditionChange">ConditionChange</h4>
   <div class="markdown level1 summary"><p>Event that gets fired when a condition is set.
@@ -383,7 +368,7 @@ Should only get fired for actual changes, so the previous value will always be !
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_Conditions_Condition_System_IDisposable_Dispose.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.Conditions.Condition.System%23IDisposable%23Dispose%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/Conditions/Condition.cs/#L139">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/Conditions/Condition.cs/#L136">View Source</a>
   </span>
   <a id="Dalamud_Game_ClientState_Conditions_Condition_System_IDisposable_Dispose_" data-uid="Dalamud.Game.ClientState.Conditions.Condition.System#IDisposable#Dispose*"></a>
   <h4 id="Dalamud_Game_ClientState_Conditions_Condition_System_IDisposable_Dispose" data-uid="Dalamud.Game.ClientState.Conditions.Condition.System#IDisposable#Dispose">IDisposable.Dispose()</h4>
@@ -395,6 +380,9 @@ Should only get fired for actual changes, so the previous value will always be !
     <pre><code class="lang-csharp hljs">void IDisposable.Dispose()</code></pre>
   </div>
   <h3 id="implements">Implements</h3>
+  <div>
+      <a class="xref" href="Dalamud.IServiceType.html">IServiceType</a>
+  </div>
   <div>
       <span class="xref">System.IDisposable</span>
   </div>
@@ -409,7 +397,7 @@ Should only get fired for actual changes, so the previous value will always be !
                     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_Conditions_Condition.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.Conditions.Condition%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
                   </li>
                   <li>
-                    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/Conditions/Condition.cs/#L124" class="contribution-link">View Source</a>
+                    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/Conditions/Condition.cs/#L121" class="contribution-link">View Source</a>
                   </li>
                 </ul>
               </div>

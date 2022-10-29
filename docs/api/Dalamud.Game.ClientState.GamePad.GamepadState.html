@@ -10,7 +10,7 @@
     <meta name="viewport" content="width=device-width">
     <meta name="title" content="Class GamepadState
    ">
-    <meta name="generator" content="docfx 2.59.1.0">
+    <meta name="generator" content="docfx 2.59.4.0">
     
     <link rel="shortcut icon" href="../favicon.ico">
     <link rel="stylesheet" href="../styles/docfx.vendor.css">
@@ -82,9 +82,10 @@
     <div class="level0"><span class="xref">System.Object</span></div>
     <div class="level1"><span class="xref">GamepadState</span></div>
   </div>
-  <div classs="implements">
+  <div class="implements">
     <h5>Implements</h5>
     <div><span class="xref">System.IDisposable</span></div>
+    <div><a class="xref" href="Dalamud.IServiceType.html">IServiceType</a></div>
   </div>
   <div class="inheritedMembers">
     <h5>Inherited Members</h5>
@@ -114,44 +115,8 @@
   <h6><strong>Assembly</strong>: Dalamud.dll</h6>
   <h5 id="Dalamud_Game_ClientState_GamePad_GamepadState_syntax">Syntax</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public class GamepadState : IDisposable</code></pre>
+    <pre><code class="lang-csharp hljs">public class GamepadState : IDisposable, IServiceType</code></pre>
   </div>
-  <h3 id="constructors">Constructors
-  </h3>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_GamePad_GamepadState__ctor_Dalamud_Game_ClientState_ClientStateAddressResolver_.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.GamePad.GamepadState.%23ctor(Dalamud.Game.ClientState.ClientStateAddressResolver)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/GamePad/GamepadState.cs/#L33">View Source</a>
-  </span>
-  <a id="Dalamud_Game_ClientState_GamePad_GamepadState__ctor_" data-uid="Dalamud.Game.ClientState.GamePad.GamepadState.#ctor*"></a>
-  <h4 id="Dalamud_Game_ClientState_GamePad_GamepadState__ctor_Dalamud_Game_ClientState_ClientStateAddressResolver_" data-uid="Dalamud.Game.ClientState.GamePad.GamepadState.#ctor(Dalamud.Game.ClientState.ClientStateAddressResolver)">GamepadState(ClientStateAddressResolver)</h4>
-  <div class="markdown level1 summary"><p>Initializes a new instance of the <a class="xref" href="Dalamud.Game.ClientState.GamePad.GamepadState.html">GamepadState</a> class.</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-  <h5 class="decalaration">Declaration</h5>
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public GamepadState(ClientStateAddressResolver resolver)</code></pre>
-  </div>
-  <h5 class="parameters">Parameters</h5>
-  <table class="table table-bordered table-striped table-condensed">
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Name</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><a class="xref" href="Dalamud.Game.ClientState.ClientStateAddressResolver.html">ClientStateAddressResolver</a></td>
-        <td><span class="parametername">resolver</span></td>
-        <td><p>Resolver knowing the pointer to the GamepadPoll function.</p>
-</td>
-      </tr>
-    </tbody>
-  </table>
   <h3 id="properties">Properties
   </h3>
   <span class="small pull-right mobile-hide">
@@ -159,7 +124,7 @@
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_GamePad_GamepadState_GamepadInputAddress.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.GamePad.GamepadState.GamepadInputAddress%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/GamePad/GamepadState.cs/#L44">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/GamePad/GamepadState.cs/#L43">View Source</a>
   </span>
   <a id="Dalamud_Game_ClientState_GamePad_GamepadState_GamepadInputAddress_" data-uid="Dalamud.Game.ClientState.GamePad.GamepadState.GamepadInputAddress*"></a>
   <h4 id="Dalamud_Game_ClientState_GamePad_GamepadState_GamepadInputAddress" data-uid="Dalamud.Game.ClientState.GamePad.GamepadState.GamepadInputAddress">GamepadInputAddress</h4>
@@ -190,7 +155,7 @@
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_GamePad_GamepadState_LeftStickDown.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.GamePad.GamepadState.LeftStickDown%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/GamePad/GamepadState.cs/#L64">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/GamePad/GamepadState.cs/#L63">View Source</a>
   </span>
   <a id="Dalamud_Game_ClientState_GamePad_GamepadState_LeftStickDown_" data-uid="Dalamud.Game.ClientState.GamePad.GamepadState.LeftStickDown*"></a>
   <h4 id="Dalamud_Game_ClientState_GamePad_GamepadState_LeftStickDown" data-uid="Dalamud.Game.ClientState.GamePad.GamepadState.LeftStickDown">LeftStickDown</h4>
@@ -221,7 +186,7 @@
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_GamePad_GamepadState_LeftStickLeft.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.GamePad.GamepadState.LeftStickLeft%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/GamePad/GamepadState.cs/#L49">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/GamePad/GamepadState.cs/#L48">View Source</a>
   </span>
   <a id="Dalamud_Game_ClientState_GamePad_GamepadState_LeftStickLeft_" data-uid="Dalamud.Game.ClientState.GamePad.GamepadState.LeftStickLeft*"></a>
   <h4 id="Dalamud_Game_ClientState_GamePad_GamepadState_LeftStickLeft" data-uid="Dalamud.Game.ClientState.GamePad.GamepadState.LeftStickLeft">LeftStickLeft</h4>
@@ -252,7 +217,7 @@
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_GamePad_GamepadState_LeftStickRight.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.GamePad.GamepadState.LeftStickRight%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/GamePad/GamepadState.cs/#L54">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/GamePad/GamepadState.cs/#L53">View Source</a>
   </span>
   <a id="Dalamud_Game_ClientState_GamePad_GamepadState_LeftStickRight_" data-uid="Dalamud.Game.ClientState.GamePad.GamepadState.LeftStickRight*"></a>
   <h4 id="Dalamud_Game_ClientState_GamePad_GamepadState_LeftStickRight" data-uid="Dalamud.Game.ClientState.GamePad.GamepadState.LeftStickRight">LeftStickRight</h4>
@@ -283,7 +248,7 @@
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_GamePad_GamepadState_LeftStickUp.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.GamePad.GamepadState.LeftStickUp%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/GamePad/GamepadState.cs/#L59">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/GamePad/GamepadState.cs/#L58">View Source</a>
   </span>
   <a id="Dalamud_Game_ClientState_GamePad_GamepadState_LeftStickUp_" data-uid="Dalamud.Game.ClientState.GamePad.GamepadState.LeftStickUp*"></a>
   <h4 id="Dalamud_Game_ClientState_GamePad_GamepadState_LeftStickUp" data-uid="Dalamud.Game.ClientState.GamePad.GamepadState.LeftStickUp">LeftStickUp</h4>
@@ -314,7 +279,7 @@
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_GamePad_GamepadState_RightStickDown.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.GamePad.GamepadState.RightStickDown%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/GamePad/GamepadState.cs/#L84">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/GamePad/GamepadState.cs/#L83">View Source</a>
   </span>
   <a id="Dalamud_Game_ClientState_GamePad_GamepadState_RightStickDown_" data-uid="Dalamud.Game.ClientState.GamePad.GamepadState.RightStickDown*"></a>
   <h4 id="Dalamud_Game_ClientState_GamePad_GamepadState_RightStickDown" data-uid="Dalamud.Game.ClientState.GamePad.GamepadState.RightStickDown">RightStickDown</h4>
@@ -345,7 +310,7 @@
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_GamePad_GamepadState_RightStickLeft.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.GamePad.GamepadState.RightStickLeft%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/GamePad/GamepadState.cs/#L69">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/GamePad/GamepadState.cs/#L68">View Source</a>
   </span>
   <a id="Dalamud_Game_ClientState_GamePad_GamepadState_RightStickLeft_" data-uid="Dalamud.Game.ClientState.GamePad.GamepadState.RightStickLeft*"></a>
   <h4 id="Dalamud_Game_ClientState_GamePad_GamepadState_RightStickLeft" data-uid="Dalamud.Game.ClientState.GamePad.GamepadState.RightStickLeft">RightStickLeft</h4>
@@ -376,7 +341,7 @@
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_GamePad_GamepadState_RightStickRight.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.GamePad.GamepadState.RightStickRight%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/GamePad/GamepadState.cs/#L74">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/GamePad/GamepadState.cs/#L73">View Source</a>
   </span>
   <a id="Dalamud_Game_ClientState_GamePad_GamepadState_RightStickRight_" data-uid="Dalamud.Game.ClientState.GamePad.GamepadState.RightStickRight*"></a>
   <h4 id="Dalamud_Game_ClientState_GamePad_GamepadState_RightStickRight" data-uid="Dalamud.Game.ClientState.GamePad.GamepadState.RightStickRight">RightStickRight</h4>
@@ -407,7 +372,7 @@
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_GamePad_GamepadState_RightStickUp.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.GamePad.GamepadState.RightStickUp%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/GamePad/GamepadState.cs/#L79">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/GamePad/GamepadState.cs/#L78">View Source</a>
   </span>
   <a id="Dalamud_Game_ClientState_GamePad_GamepadState_RightStickUp_" data-uid="Dalamud.Game.ClientState.GamePad.GamepadState.RightStickUp*"></a>
   <h4 id="Dalamud_Game_ClientState_GamePad_GamepadState_RightStickUp" data-uid="Dalamud.Game.ClientState.GamePad.GamepadState.RightStickUp">RightStickUp</h4>
@@ -440,7 +405,7 @@
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_GamePad_GamepadState_Pressed_Dalamud_Game_ClientState_GamePad_GamepadButtons_.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.GamePad.GamepadState.Pressed(Dalamud.Game.ClientState.GamePad.GamepadButtons)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/GamePad/GamepadState.cs/#L132">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/GamePad/GamepadState.cs/#L131">View Source</a>
   </span>
   <a id="Dalamud_Game_ClientState_GamePad_GamepadState_Pressed_" data-uid="Dalamud.Game.ClientState.GamePad.GamepadState.Pressed*"></a>
   <h4 id="Dalamud_Game_ClientState_GamePad_GamepadState_Pressed_Dalamud_Game_ClientState_GamePad_GamepadButtons_" data-uid="Dalamud.Game.ClientState.GamePad.GamepadState.Pressed(Dalamud.Game.ClientState.GamePad.GamepadButtons)">Pressed(GamepadButtons)</h4>
@@ -492,7 +457,7 @@ If ImGuiConfigFlags.NavEnableGamepad is set, this is unreliable.</p>
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_GamePad_GamepadState_Raw_Dalamud_Game_ClientState_GamePad_GamepadButtons_.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.GamePad.GamepadState.Raw(Dalamud.Game.ClientState.GamePad.GamepadButtons)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/GamePad/GamepadState.cs/#L161">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/GamePad/GamepadState.cs/#L160">View Source</a>
   </span>
   <a id="Dalamud_Game_ClientState_GamePad_GamepadState_Raw_" data-uid="Dalamud.Game.ClientState.GamePad.GamepadState.Raw*"></a>
   <h4 id="Dalamud_Game_ClientState_GamePad_GamepadState_Raw_Dalamud_Game_ClientState_GamePad_GamepadButtons_" data-uid="Dalamud.Game.ClientState.GamePad.GamepadState.Raw(Dalamud.Game.ClientState.GamePad.GamepadButtons)">Raw(GamepadButtons)</h4>
@@ -543,7 +508,7 @@ If ImGuiConfigFlags.NavEnableGamepad is set, this is unreliable.</p>
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_GamePad_GamepadState_Released_Dalamud_Game_ClientState_GamePad_GamepadButtons_.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.GamePad.GamepadState.Released(Dalamud.Game.ClientState.GamePad.GamepadButtons)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/GamePad/GamepadState.cs/#L152">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/GamePad/GamepadState.cs/#L151">View Source</a>
   </span>
   <a id="Dalamud_Game_ClientState_GamePad_GamepadState_Released_" data-uid="Dalamud.Game.ClientState.GamePad.GamepadState.Released*"></a>
   <h4 id="Dalamud_Game_ClientState_GamePad_GamepadState_Released_Dalamud_Game_ClientState_GamePad_GamepadButtons_" data-uid="Dalamud.Game.ClientState.GamePad.GamepadState.Released(Dalamud.Game.ClientState.GamePad.GamepadButtons)">Released(GamepadButtons)</h4>
@@ -595,7 +560,7 @@ If ImGuiConfigFlags.NavEnableGamepad is set, this is unreliable.</p>
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_GamePad_GamepadState_Repeat_Dalamud_Game_ClientState_GamePad_GamepadButtons_.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.GamePad.GamepadState.Repeat(Dalamud.Game.ClientState.GamePad.GamepadButtons)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/GamePad/GamepadState.cs/#L142">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/GamePad/GamepadState.cs/#L141">View Source</a>
   </span>
   <a id="Dalamud_Game_ClientState_GamePad_GamepadState_Repeat_" data-uid="Dalamud.Game.ClientState.GamePad.GamepadState.Repeat*"></a>
   <h4 id="Dalamud_Game_ClientState_GamePad_GamepadState_Repeat_Dalamud_Game_ClientState_GamePad_GamepadButtons_" data-uid="Dalamud.Game.ClientState.GamePad.GamepadState.Repeat(Dalamud.Game.ClientState.GamePad.GamepadButtons)">Repeat(GamepadButtons)</h4>
@@ -649,7 +614,7 @@ If ImGuiConfigFlags.NavEnableGamepad is set, this is unreliable.</p>
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_ClientState_GamePad_GamepadState_System_IDisposable_Dispose.md&amp;value=---%0Auid%3A%20Dalamud.Game.ClientState.GamePad.GamepadState.System%23IDisposable%23Dispose%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/GamePad/GamepadState.cs/#L166">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/ClientState/GamePad/GamepadState.cs/#L165">View Source</a>
   </span>
   <a id="Dalamud_Game_ClientState_GamePad_GamepadState_System_IDisposable_Dispose_" data-uid="Dalamud.Game.ClientState.GamePad.GamepadState.System#IDisposable#Dispose*"></a>
   <h4 id="Dalamud_Game_ClientState_GamePad_GamepadState_System_IDisposable_Dispose" data-uid="Dalamud.Game.ClientState.GamePad.GamepadState.System#IDisposable#Dispose">IDisposable.Dispose()</h4>
@@ -663,6 +628,9 @@ If ImGuiConfigFlags.NavEnableGamepad is set, this is unreliable.</p>
   <h3 id="implements">Implements</h3>
   <div>
       <span class="xref">System.IDisposable</span>
+  </div>
+  <div>
+      <a class="xref" href="Dalamud.IServiceType.html">IServiceType</a>
   </div>
 </article>
           </div>
