@@ -1637,7 +1637,7 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
             var notifications = Service<NotificationManager>.Get();
             var pluginManager = Service<PluginManager>.Get();
 
-            var useTesting = PluginManager.UseTesting(manifest);
+            var useTesting = pluginManager.UseTesting(manifest);
             var wasSeen = this.WasPluginSeen(manifest.InternalName);
 
             var isOutdated = manifest.DalamudApiLevel < PluginManager.DalamudApiLevel;
@@ -1653,7 +1653,7 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
             var label = manifest.Name;
 
             // Testing
-            if (useTesting)
+            if (useTesting || manifest.IsTestingExclusive)
             {
                 label += Locs.PluginTitleMod_TestingVersion;
             }
@@ -1710,7 +1710,7 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
                         this.installStatus = OperationStatus.InProgress;
                         this.loadingIndicatorKind = LoadingIndicatorKind.Installing;
 
-                        Task.Run(() => pluginManager.InstallPluginAsync(manifest, useTesting, PluginLoadReason.Installer))
+                        Task.Run(() => pluginManager.InstallPluginAsync(manifest, useTesting || manifest.IsTestingExclusive, PluginLoadReason.Installer))
                             .ContinueWith(task =>
                             {
                                 // There is no need to set as Complete for an individual plugin installation
@@ -1803,6 +1803,8 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
             var configuration = Service<DalamudConfiguration>.Get();
             var commandManager = Service<CommandManager>.Get();
 
+            var testingOptIn = 
+                configuration.PluginTestingOptIns?.FirstOrDefault(x => x.InternalName == plugin.Manifest.InternalName);
             var trouble = false;
 
             // Name
@@ -1818,6 +1820,11 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
             if (plugin.Manifest.Testing)
             {
                 label += Locs.PluginTitleMod_TestingVersion;
+            }
+
+            if (plugin.Manifest.IsAvailableForTesting && configuration.DoPluginTest && testingOptIn == null)
+            {
+                label += Locs.PluginTitleMod_TestingAvailable;
             }
 
             // Freshly installed
@@ -1904,7 +1911,7 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
             ImGui.PushID($"installed{index}{plugin.Manifest.InternalName}");
             var hasChangelog = !plugin.Manifest.Changelog.IsNullOrEmpty();
 
-            if (this.DrawPluginCollapsingHeader(label, plugin, plugin.Manifest, plugin.Manifest.IsThirdParty, trouble, availablePluginUpdate != default, false, false, () => this.DrawInstalledPluginContextMenu(plugin), index))
+            if (this.DrawPluginCollapsingHeader(label, plugin, plugin.Manifest, plugin.Manifest.IsThirdParty, trouble, availablePluginUpdate != default, false, false, () => this.DrawInstalledPluginContextMenu(plugin, testingOptIn), index))
             {
                 if (!this.WasPluginSeen(plugin.Manifest.InternalName))
                     configuration.SeenPluginInternalName.Add(plugin.Manifest.InternalName);
@@ -2038,13 +2045,35 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
             ImGui.PopStyleColor(2);
         }
 
-        private void DrawInstalledPluginContextMenu(LocalPlugin plugin)
+        private void DrawInstalledPluginContextMenu(LocalPlugin plugin, PluginTestingOptIn? optIn)
         {
             var pluginManager = Service<PluginManager>.Get();
+            var configuration = Service<DalamudConfiguration>.Get();
 
             if (ImGui.BeginPopupContextItem("InstalledItemContextMenu"))
             {
-                if (ImGui.Selectable(Locs.PluginContext_DeletePluginConfigReload))
+                var repoManifest = this.pluginListAvailable.FirstOrDefault(x => x.InternalName == plugin.Manifest.InternalName);
+                if (repoManifest?.IsTestingExclusive == true)
+                    ImGui.BeginDisabled();
+
+                if (ImGui.MenuItem(Locs.PluginContext_TestingOptIn, string.Empty, optIn != null))
+                {
+                    if (optIn != null)
+                    {
+                        configuration.PluginTestingOptIns!.Remove(optIn);
+                    }
+                    else
+                    {
+                        configuration.PluginTestingOptIns!.Add(new PluginTestingOptIn(plugin.Manifest.InternalName));
+                    }
+
+                    configuration.Save();
+                }
+
+                if (repoManifest?.IsTestingExclusive == true)
+                    ImGui.EndDisabled();
+
+                if (ImGui.MenuItem(Locs.PluginContext_DeletePluginConfigReload))
                 {
                     Log.Debug($"Deleting config for {plugin.Manifest.InternalName}");
 
@@ -2751,6 +2780,8 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
 
             public static string PluginTitleMod_TestingVersion => Loc.Localize("InstallerTestingVersion", " (testing version)");
 
+            public static string PluginTitleMod_TestingAvailable => Loc.Localize("InstallerTestingAvailable", " (available for testing)");
+
             public static string PluginTitleMod_DevPlugin => Loc.Localize("InstallerDevPlugin", " (dev plugin)");
 
             public static string PluginTitleMod_UpdateFailed => Loc.Localize("InstallerUpdateFailed", " (update failed)");
@@ -2772,6 +2803,8 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
             #endregion
 
             #region Plugin context menu
+
+            public static string PluginContext_TestingOptIn => Loc.Localize("InstallerTestingOptIn", "Receive plugin testing versions");
 
             public static string PluginContext_MarkAllSeen => Loc.Localize("InstallerMarkAllSeen", "Mark all as seen");
 

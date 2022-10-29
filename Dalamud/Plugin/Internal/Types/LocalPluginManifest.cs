@@ -51,6 +51,11 @@ internal record LocalPluginManifest : PluginManifest
     public Version EffectiveVersion => this.Testing && this.TestingAssemblyVersion != null ? this.TestingAssemblyVersion : this.AssemblyVersion;
 
     /// <summary>
+    /// Gets a value indicating whether this plugin is eligible for testing.
+    /// </summary>
+    public bool IsAvailableForTesting => this.TestingAssemblyVersion != null && this.TestingAssemblyVersion > this.AssemblyVersion;
+
+    /// <summary>
     /// Save a plugin manifest to file.
     /// </summary>
     /// <param name="manifestFile">Path to save at.</param>

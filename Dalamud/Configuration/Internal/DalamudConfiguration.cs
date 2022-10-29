@@ -338,6 +338,11 @@ namespace Dalamud.Configuration.Internal
         public string LastFeedbackContactDetails { get; set; } = string.Empty;
 
         /// <summary>
+        /// Gets or sets a list of plugins that testing builds should be downloaded for.
+        /// </summary>
+        public List<PluginTestingOptIn>? PluginTestingOptIns { get; set; }
+
+        /// <summary>
         /// Load a configuration from the provided path.
         /// </summary>
         /// <param name="path">The path to load the configuration file from.</param>
