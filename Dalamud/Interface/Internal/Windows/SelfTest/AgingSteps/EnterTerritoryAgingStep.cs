@@ -1,70 +1,69 @@
 using Dalamud.Game.ClientState;
 using ImGuiNET;
 
-namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps
+namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps;
+
+/// <summary>
+/// Test setup for Territory Change.
+/// </summary>
+internal class EnterTerritoryAgingStep : IAgingStep
 {
+    private readonly ushort territory;
+    private readonly string terriName;
+    private bool subscribed = false;
+    private bool hasPassed = false;
+
     /// <summary>
-    /// Test setup for Territory Change.
+    /// Initializes a new instance of the <see cref="EnterTerritoryAgingStep"/> class.
     /// </summary>
-    internal class EnterTerritoryAgingStep : IAgingStep
+    /// <param name="terri">The territory to check for.</param>
+    /// <param name="name">Name to show.</param>
+    public EnterTerritoryAgingStep(ushort terri, string name)
     {
-        private readonly ushort territory;
-        private readonly string terriName;
-        private bool subscribed = false;
-        private bool hasPassed = false;
+        this.terriName = name;
+        this.territory = terri;
+    }
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="EnterTerritoryAgingStep"/> class.
-        /// </summary>
-        /// <param name="terri">The territory to check for.</param>
-        /// <param name="name">Name to show.</param>
-        public EnterTerritoryAgingStep(ushort terri, string name)
+    /// <inheritdoc/>
+    public string Name => $"Enter Terri: {this.terriName}";
+
+    /// <inheritdoc/>
+    public SelfTestStepResult RunStep()
+    {
+        var clientState = Service<ClientState>.Get();
+
+        ImGui.TextUnformatted(this.Name);
+
+        if (!this.subscribed)
         {
-            this.terriName = name;
-            this.territory = terri;
+            clientState.TerritoryChanged += this.ClientStateOnTerritoryChanged;
+            this.subscribed = true;
         }
 
-        /// <inheritdoc/>
-        public string Name => $"Enter Terri: {this.terriName}";
-
-        /// <inheritdoc/>
-        public SelfTestStepResult RunStep()
+        if (this.hasPassed)
         {
-            var clientState = Service<ClientState>.Get();
-
-            ImGui.TextUnformatted(this.Name);
-
-            if (!this.subscribed)
-            {
-                clientState.TerritoryChanged += this.ClientStateOnTerritoryChanged;
-                this.subscribed = true;
-            }
-
-            if (this.hasPassed)
-            {
-                clientState.TerritoryChanged -= this.ClientStateOnTerritoryChanged;
-                this.subscribed = false;
-                return SelfTestStepResult.Pass;
-            }
-
-            return SelfTestStepResult.Waiting;
-        }
-
-        /// <inheritdoc/>
-        public void CleanUp()
-        {
-            var clientState = Service<ClientState>.Get();
-
             clientState.TerritoryChanged -= this.ClientStateOnTerritoryChanged;
             this.subscribed = false;
+            return SelfTestStepResult.Pass;
         }
 
-        private void ClientStateOnTerritoryChanged(object sender, ushort e)
+        return SelfTestStepResult.Waiting;
+    }
+
+    /// <inheritdoc/>
+    public void CleanUp()
+    {
+        var clientState = Service<ClientState>.Get();
+
+        clientState.TerritoryChanged -= this.ClientStateOnTerritoryChanged;
+        this.subscribed = false;
+    }
+
+    private void ClientStateOnTerritoryChanged(object sender, ushort e)
+    {
+        if (e == this.territory)
         {
-            if (e == this.territory)
-            {
-                this.hasPassed = true;
-            }
+            this.hasPassed = true;
         }
     }
 }

@@ -2,69 +2,68 @@ using System.Numerics;
 
 using ImGuiNET;
 
-namespace Dalamud.Interface.Components
+namespace Dalamud.Interface.Components;
+
+/// <summary>
+/// Class containing various methods providing ImGui components.
+/// </summary>
+public static partial class ImGuiComponents
 {
     /// <summary>
-    /// Class containing various methods providing ImGui components.
+    /// ColorPicker with palette.
     /// </summary>
-    public static partial class ImGuiComponents
+    /// <param name="id">Id for the color picker.</param>
+    /// <param name="description">The description of the color picker.</param>
+    /// <param name="originalColor">The current color.</param>
+    /// <returns>Selected color.</returns>
+    public static Vector4 ColorPickerWithPalette(int id, string description, Vector4 originalColor)
     {
-        /// <summary>
-        /// ColorPicker with palette.
-        /// </summary>
-        /// <param name="id">Id for the color picker.</param>
-        /// <param name="description">The description of the color picker.</param>
-        /// <param name="originalColor">The current color.</param>
-        /// <returns>Selected color.</returns>
-        public static Vector4 ColorPickerWithPalette(int id, string description, Vector4 originalColor)
+        const ImGuiColorEditFlags flags = ImGuiColorEditFlags.NoSidePreview | ImGuiColorEditFlags.NoSmallPreview;
+        return ColorPickerWithPalette(id, description, originalColor, flags);
+    }
+
+    /// <summary>
+    /// ColorPicker with palette with color picker options.
+    /// </summary>
+    /// <param name="id">Id for the color picker.</param>
+    /// <param name="description">The description of the color picker.</param>
+    /// <param name="originalColor">The current color.</param>
+    /// <param name="flags">Flags to customize color picker.</param>
+    /// <returns>Selected color.</returns>
+    public static Vector4 ColorPickerWithPalette(int id, string description, Vector4 originalColor, ImGuiColorEditFlags flags)
+    {
+        var existingColor = originalColor;
+        var selectedColor = originalColor;
+        var colorPalette = ImGuiHelpers.DefaultColorPalette(36);
+        if (ImGui.ColorButton($"{description}###ColorPickerButton{id}", originalColor))
         {
-            const ImGuiColorEditFlags flags = ImGuiColorEditFlags.NoSidePreview | ImGuiColorEditFlags.NoSmallPreview;
-            return ColorPickerWithPalette(id, description, originalColor, flags);
+            ImGui.OpenPopup($"###ColorPickerPopup{id}");
         }
 
-        /// <summary>
-        /// ColorPicker with palette with color picker options.
-        /// </summary>
-        /// <param name="id">Id for the color picker.</param>
-        /// <param name="description">The description of the color picker.</param>
-        /// <param name="originalColor">The current color.</param>
-        /// <param name="flags">Flags to customize color picker.</param>
-        /// <returns>Selected color.</returns>
-        public static Vector4 ColorPickerWithPalette(int id, string description, Vector4 originalColor, ImGuiColorEditFlags flags)
+        if (ImGui.BeginPopup($"###ColorPickerPopup{id}"))
         {
-            var existingColor = originalColor;
-            var selectedColor = originalColor;
-            var colorPalette = ImGuiHelpers.DefaultColorPalette(36);
-            if (ImGui.ColorButton($"{description}###ColorPickerButton{id}", originalColor))
+            if (ImGui.ColorPicker4($"###ColorPicker{id}", ref existingColor, flags))
             {
-                ImGui.OpenPopup($"###ColorPickerPopup{id}");
+                selectedColor = existingColor;
             }
 
-            if (ImGui.BeginPopup($"###ColorPickerPopup{id}"))
+            for (var i = 0; i < 4; i++)
             {
-                if (ImGui.ColorPicker4($"###ColorPicker{id}", ref existingColor, flags))
+                ImGui.Spacing();
+                for (var j = i * 9; j < (i * 9) + 9; j++)
                 {
-                    selectedColor = existingColor;
-                }
-
-                for (var i = 0; i < 4; i++)
-                {
-                    ImGui.Spacing();
-                    for (var j = i * 9; j < (i * 9) + 9; j++)
+                    if (ImGui.ColorButton($"###ColorPickerSwatch{id}{i}{j}", colorPalette[j]))
                     {
-                        if (ImGui.ColorButton($"###ColorPickerSwatch{id}{i}{j}", colorPalette[j]))
-                        {
-                            selectedColor = colorPalette[j];
-                        }
-
-                        ImGui.SameLine();
+                        selectedColor = colorPalette[j];
                     }
-                }
 
-                ImGui.EndPopup();
+                    ImGui.SameLine();
+                }
             }
 
-            return selectedColor;
+            ImGui.EndPopup();
         }
+
+        return selectedColor;
     }
 }

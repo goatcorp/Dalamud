@@ -1,18 +1,17 @@
-namespace Dalamud.Game.Gui.Toast
+namespace Dalamud.Game.Gui.Toast;
+
+/// <summary>
+/// The positioning of native toast windows.
+/// </summary>
+public enum ToastPosition : byte
 {
     /// <summary>
-    /// The positioning of native toast windows.
+    /// The toast will be towards the bottom.
     /// </summary>
-    public enum ToastPosition : byte
-    {
-        /// <summary>
-        /// The toast will be towards the bottom.
-        /// </summary>
-        Bottom = 0,
+    Bottom = 0,
 
-        /// <summary>
-        /// The toast will be towards the top.
-        /// </summary>
-        Top = 1,
-    }
+    /// <summary>
+    /// The toast will be towards the top.
+    /// </summary>
+    Top = 1,
 }

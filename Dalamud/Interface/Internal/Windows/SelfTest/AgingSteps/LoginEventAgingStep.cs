@@ -3,57 +3,56 @@ using System;
 using Dalamud.Game.ClientState;
 using ImGuiNET;
 
-namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps
+namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps;
+
+/// <summary>
+/// Test setup for the login events.
+/// </summary>
+internal class LoginEventAgingStep : IAgingStep
 {
-    /// <summary>
-    /// Test setup for the login events.
-    /// </summary>
-    internal class LoginEventAgingStep : IAgingStep
+    private bool subscribed = false;
+    private bool hasPassed = false;
+
+    /// <inheritdoc/>
+    public string Name => "Test Log-In";
+
+    /// <inheritdoc/>
+    public SelfTestStepResult RunStep()
     {
-        private bool subscribed = false;
-        private bool hasPassed = false;
+        var clientState = Service<ClientState>.Get();
 
-        /// <inheritdoc/>
-        public string Name => "Test Log-In";
+        ImGui.Text("Log in now...");
 
-        /// <inheritdoc/>
-        public SelfTestStepResult RunStep()
+        if (!this.subscribed)
         {
-            var clientState = Service<ClientState>.Get();
-
-            ImGui.Text("Log in now...");
-
-            if (!this.subscribed)
-            {
-                clientState.Login += this.ClientStateOnOnLogin;
-                this.subscribed = true;
-            }
-
-            if (this.hasPassed)
-            {
-                clientState.Login -= this.ClientStateOnOnLogin;
-                this.subscribed = false;
-                return SelfTestStepResult.Pass;
-            }
-
-            return SelfTestStepResult.Waiting;
+            clientState.Login += this.ClientStateOnOnLogin;
+            this.subscribed = true;
         }
 
-        /// <inheritdoc/>
-        public void CleanUp()
+        if (this.hasPassed)
         {
-            var clientState = Service<ClientState>.Get();
-
-            if (this.subscribed)
-            {
-                clientState.Login -= this.ClientStateOnOnLogin;
-                this.subscribed = false;
-            }
+            clientState.Login -= this.ClientStateOnOnLogin;
+            this.subscribed = false;
+            return SelfTestStepResult.Pass;
         }
 
-        private void ClientStateOnOnLogin(object sender, EventArgs e)
+        return SelfTestStepResult.Waiting;
+    }
+
+    /// <inheritdoc/>
+    public void CleanUp()
+    {
+        var clientState = Service<ClientState>.Get();
+
+        if (this.subscribed)
         {
-            this.hasPassed = true;
+            clientState.Login -= this.ClientStateOnOnLogin;
+            this.subscribed = false;
         }
+    }
+
+    private void ClientStateOnOnLogin(object sender, EventArgs e)
+    {
+        this.hasPassed = true;
     }
 }

@@ -1,20 +1,19 @@
 using Dalamud.Utility;
 
-namespace Dalamud.Game.Text
+namespace Dalamud.Game.Text;
+
+/// <summary>
+/// Extension methods for the <see cref="XivChatType"/> type.
+/// </summary>
+public static class XivChatTypeExtensions
 {
     /// <summary>
-    /// Extension methods for the <see cref="XivChatType"/> type.
+    /// Get the InfoAttribute associated with this chat type.
     /// </summary>
-    public static class XivChatTypeExtensions
+    /// <param name="chatType">The chat type.</param>
+    /// <returns>The info attribute.</returns>
+    public static XivChatTypeInfoAttribute GetDetails(this XivChatType chatType)
     {
-        /// <summary>
-        /// Get the InfoAttribute associated with this chat type.
-        /// </summary>
-        /// <param name="chatType">The chat type.</param>
-        /// <returns>The info attribute.</returns>
-        public static XivChatTypeInfoAttribute GetDetails(this XivChatType chatType)
-        {
-            return chatType.GetAttribute<XivChatTypeInfoAttribute>();
-        }
+        return chatType.GetAttribute<XivChatTypeInfoAttribute>();
     }
 }
