@@ -378,6 +378,9 @@ Thanks and have fun!";
 
                     var manifest = LocalPluginManifest.Load(manifestFile);
 
+                    if (manifest.IsTestingExclusive && this.configuration.PluginTestingOptIns!.All(x => x.InternalName != manifest.InternalName))
+                        this.configuration.PluginTestingOptIns.Add(new PluginTestingOptIn(manifest.InternalName));
+
                     versionsDefs.Add(new PluginDef(dllFile, manifest, false));
                 }
                 catch (Exception ex)
@@ -385,6 +388,8 @@ Thanks and have fun!";
                     Log.Error(ex, "Could not load manifest for installed at {Directory}", versionDir.FullName);
                 }
             }
+
+            this.configuration.Save();
 
             try
             {
