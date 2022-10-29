@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -173,6 +174,22 @@ namespace Dalamud.Plugin
         public List<string> PluginInternalNames => Service<PluginManager>.Get().InstalledPlugins.Select(p => p.Manifest.InternalName).ToList();
 
         #region IPC
+
+        /// <inheritdoc cref="DataShare.GetOrCreateData{T}"/>
+        public T GetOrCreateData<T>(string tag, Func<T> dataGenerator) where T : class
+            => Service<DataShare>.Get().GetOrCreateData(tag, dataGenerator);
+
+        /// <inheritdoc cref="DataShare.RelinquishData"/>
+        public void RelinquishData(string tag)
+            => Service<DataShare>.Get().RelinquishData(tag);
+
+        /// <inheritdoc cref="DataShare.TryGetData{T}"/>
+        public bool TryGetData<T>(string tag, [NotNullWhen(true)] out T? data) where T : class
+            => Service<DataShare>.Get().TryGetData(tag, out data);
+
+        /// <inheritdoc cref="DataShare.GetData{T}"/>
+        public T? GetData<T>(string tag) where T : class
+            => Service<DataShare>.Get().GetData<T>(tag);
 
         /// <summary>
         /// Gets an IPC provider.
