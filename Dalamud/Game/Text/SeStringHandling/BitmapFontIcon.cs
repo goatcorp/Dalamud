@@ -457,6 +457,7 @@ namespace Dalamud.Game.Text.SeStringHandling
 
         /// <summary>
         /// The Island Sanctuary icon.
+        /// </summary>
         IslandSanctuary = 116,
     }
 }

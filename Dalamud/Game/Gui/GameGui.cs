@@ -407,25 +407,6 @@ namespace Dalamud.Game.Gui
         }
 
         /// <summary>
-        /// Set the current background music.
-        /// </summary>
-        /// <param name="bgmKey">The background music key.</param>
-        public void SetBgm(ushort bgmKey) => this.setGlobalBgmHook.Original(bgmKey, 0, 0, 0, 0, 0);
-
-        [ServiceManager.CallWhenServicesReady]
-        private void ContinueConstruction()
-        {
-            this.setGlobalBgmHook.Enable();
-            this.handleItemHoverHook.Enable();
-            this.handleItemOutHook.Enable();
-            this.handleImmHook.Enable();
-            this.toggleUiHideHook.Enable();
-            this.handleActionHoverHook.Enable();
-            this.handleActionOutHook.Enable();
-            this.utf8StringFromSequenceHook.Enable();
-        }
-
-        /// <summary>
         /// Disables the hooks and submodules of this module.
         /// </summary>
         void IDisposable.Dispose()
@@ -441,11 +422,30 @@ namespace Dalamud.Game.Gui
         }
 
         /// <summary>
+        /// Set the current background music.
+        /// </summary>
+        /// <param name="bgmKey">The background music key.</param>
+        public void SetBgm(ushort bgmKey) => this.setGlobalBgmHook.Original(bgmKey, 0, 0, 0, 0, 0);
+
+        /// <summary>
         /// Reset the stored "UI hide" state.
         /// </summary>
         internal void ResetUiHideState()
         {
             this.GameUiHidden = false;
+        }
+
+        [ServiceManager.CallWhenServicesReady]
+        private void ContinueConstruction()
+        {
+            this.setGlobalBgmHook.Enable();
+            this.handleItemHoverHook.Enable();
+            this.handleItemOutHook.Enable();
+            this.handleImmHook.Enable();
+            this.toggleUiHideHook.Enable();
+            this.handleActionHoverHook.Enable();
+            this.handleActionOutHook.Enable();
+            this.utf8StringFromSequenceHook.Enable();
         }
 
         private IntPtr HandleSetGlobalBgmDetour(ushort bgmKey, byte a2, uint a3, uint a4, uint a5, byte a6)

@@ -1815,6 +1815,7 @@ namespace Dalamud
     /// <summary>
     /// Native dbghelp functions.
     /// </summary>
+    [SuppressMessage("StyleCop.CSharp.OrderingRules", "SA1201:Elements should appear in the correct order", Justification = "Native funcs")]
     internal static partial class NativeFunctions
     {
         /// <summary>

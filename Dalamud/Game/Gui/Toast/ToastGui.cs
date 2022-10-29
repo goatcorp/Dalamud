@@ -32,7 +32,7 @@ namespace Dalamud.Game.Gui.Toast
         /// <summary>
         /// Initializes a new instance of the <see cref="ToastGui"/> class.
         /// </summary>
-        /// <param name="tag">Tag.</param>
+        /// <param name="sigScanner">Sig scanner to use.</param>
         [ServiceManager.ServiceConstructor]
         private ToastGui(SigScanner sigScanner)
         {

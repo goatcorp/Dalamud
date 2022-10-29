@@ -1518,8 +1518,9 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
                 ImGui.TextWrapped(Locs.PluginBody_Outdated);
                 ImGui.PopStyleColor();
             }
-            else if (plugin is { IsBanned: true }) // Banned warning
+            else if (plugin is { IsBanned: true })
             {
+                // Banned warning
                 ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudRed);
                 ImGuiHelpers.SafeTextWrapped(plugin.BanReason.IsNullOrEmpty()
                                                  ? Locs.PluginBody_Banned
@@ -1539,8 +1540,9 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
                 ImGui.TextWrapped(Locs.PluginBody_Policy);
                 ImGui.PopStyleColor();
             }
-            else if (plugin is { State: PluginState.LoadError or PluginState.DependencyResolutionFailed }) // Load failed warning
+            else if (plugin is { State: PluginState.LoadError or PluginState.DependencyResolutionFailed })
             {
+                // Load failed warning
                 ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudRed);
                 ImGui.TextWrapped(Locs.PluginBody_LoadFailed);
                 ImGui.PopStyleColor();
@@ -1803,7 +1805,7 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
             var configuration = Service<DalamudConfiguration>.Get();
             var commandManager = Service<CommandManager>.Get();
 
-            var testingOptIn = 
+            var testingOptIn =
                 configuration.PluginTestingOptIns?.FirstOrDefault(x => x.InternalName == plugin.Manifest.InternalName);
             var trouble = false;
 
@@ -2179,9 +2181,10 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
                                 plugin.ReloadManifest();
                             }
 
-                            var enableTask = Task.Run(() => plugin.Enable())
-                                                 .ContinueWith(this.DisplayErrorContinuation,
-                                                               Locs.ErrorModal_EnableFail(plugin.Name));
+                            var enableTask = Task.Run(plugin.Enable)
+                                                 .ContinueWith(
+                                                     this.DisplayErrorContinuation,
+                                                     Locs.ErrorModal_EnableFail(plugin.Name));
 
                             enableTask.Wait();
                             if (!enableTask.Result)
@@ -2191,8 +2194,9 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
                             }
 
                             var loadTask = Task.Run(() => plugin.LoadAsync(PluginLoadReason.Installer))
-                                               .ContinueWith(this.DisplayErrorContinuation,
-                                                             Locs.ErrorModal_LoadFail(plugin.Name));
+                                               .ContinueWith(
+                                                   this.DisplayErrorContinuation,
+                                                   Locs.ErrorModal_LoadFail(plugin.Name));
 
                             loadTask.Wait();
                             this.enableDisableStatus = OperationStatus.Complete;
@@ -2200,9 +2204,10 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
                             if (!loadTask.Result)
                                 return;
 
-                            notifications.AddNotification(Locs.Notifications_PluginEnabled(plugin.Manifest.Name),
-                                                          Locs.Notifications_PluginEnabledTitle,
-                                                          NotificationType.Success);
+                            notifications.AddNotification(
+                                Locs.Notifications_PluginEnabled(plugin.Manifest.Name),
+                                Locs.Notifications_PluginEnabledTitle,
+                                NotificationType.Success);
                         });
 
                         if (availableUpdate != default && !availableUpdate.InstalledPlugin.IsDev)
@@ -2833,6 +2838,7 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller
             public static string PluginBody_Plugin3rdPartyRepo(string url) => Loc.Localize("InstallerPlugin3rdPartyRepo", "From custom plugin repository {0}").Format(url);
 
             public static string PluginBody_AvailableDevPlugin => Loc.Localize("InstallerDevPlugin", " This plugin is available in one of your repos, please remove it from the devPlugins folder.");
+
             public static string PluginBody_Outdated => Loc.Localize("InstallerOutdatedPluginBody ", "This plugin is outdated and incompatible at the moment. Please wait for it to be updated by its author.");
 
             public static string PluginBody_Orphaned => Loc.Localize("InstallerOrphanedPluginBody ", "This plugin's source repository is no longer available. You may need to reinstall it from its repository, or re-add the repository.");

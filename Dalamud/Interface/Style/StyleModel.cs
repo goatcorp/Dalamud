@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+
 using Dalamud.Configuration.Internal;
 using Dalamud.Interface.Colors;
 using Dalamud.Utility;
@@ -16,9 +17,9 @@ namespace Dalamud.Interface.Style
     /// </summary>
     public abstract class StyleModel
     {
-        private static int NumPushedStyles = 0;
-        private static int NumPushedColors = 0;
-        private static bool HasPushedOnce = false;
+        private static int numPushedStyles = 0;
+        private static int numPushedColors = 0;
+        private static bool hasPushedOnce = false;
 
         /// <summary>
         /// Gets or sets the name of the style model.
@@ -130,11 +131,11 @@ namespace Dalamud.Interface.Style
         /// </summary>
         public void Pop()
         {
-            if (!HasPushedOnce)
+            if (!hasPushedOnce)
                 throw new InvalidOperationException("Wasn't pushed at least once.");
 
-            ImGui.PopStyleVar(NumPushedStyles);
-            ImGui.PopStyleColor(NumPushedColors);
+            ImGui.PopStyleVar(numPushedStyles);
+            ImGui.PopStyleColor(numPushedColors);
         }
 
         /// <summary>
@@ -146,8 +147,8 @@ namespace Dalamud.Interface.Style
         {
             ImGui.PushStyleVar(style, arg);
 
-            if (!HasPushedOnce)
-                NumPushedStyles++;
+            if (!hasPushedOnce)
+                numPushedStyles++;
         }
 
         /// <summary>
@@ -159,8 +160,8 @@ namespace Dalamud.Interface.Style
         {
             ImGui.PushStyleVar(style, arg);
 
-            if (!HasPushedOnce)
-                NumPushedStyles++;
+            if (!hasPushedOnce)
+                numPushedStyles++;
         }
 
         /// <summary>
@@ -172,8 +173,8 @@ namespace Dalamud.Interface.Style
         {
             ImGui.PushStyleColor(color, value);
 
-            if (!HasPushedOnce)
-                NumPushedColors++;
+            if (!hasPushedOnce)
+                numPushedColors++;
         }
 
         /// <summary>
@@ -181,7 +182,7 @@ namespace Dalamud.Interface.Style
         /// </summary>
         protected void DonePushing()
         {
-            HasPushedOnce = true;
+            hasPushedOnce = true;
         }
     }
 }

@@ -10,14 +10,14 @@ namespace Dalamud.Interface.Internal.Windows
     /// <summary>
     /// A window for displaying IME details.
     /// </summary>
-    internal unsafe class IMEWindow : Window
+    internal unsafe class ImeWindow : Window
     {
         private const int ImePageSize = 9;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="IMEWindow"/> class.
+        /// Initializes a new instance of the <see cref="ImeWindow"/> class.
         /// </summary>
-        public IMEWindow()
+        public ImeWindow()
             : base("Dalamud IME", ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoFocusOnAppearing | ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoBackground)
         {
             this.Size = new Vector2(100, 200);
@@ -38,8 +38,8 @@ namespace Dalamud.Interface.Internal.Windows
                 return;
             }
 
-            //ImGui.Text($"{ime.GetCursorPos()}");
-            //ImGui.Text($"{ImGui.GetWindowViewport().WorkSize}");
+            // ImGui.Text($"{ime.GetCursorPos()}");
+            // ImGui.Text($"{ImGui.GetWindowViewport().WorkSize}");
         }
 
         /// <inheritdoc/>

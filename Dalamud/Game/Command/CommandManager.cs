@@ -149,6 +149,12 @@ namespace Dalamud.Game.Command
             return this.commandMap.Remove(command);
         }
 
+        /// <inheritdoc/>
+        void IDisposable.Dispose()
+        {
+            this.chatGui.CheckMessageHandled -= this.OnCheckMessageHandled;
+        }
+
         private void OnCheckMessageHandled(XivChatType type, uint senderId, ref SeString sender, ref SeString message, ref bool isHandled)
         {
             if (type == XivChatType.ErrorMessage && senderId == 0)
@@ -172,11 +178,6 @@ namespace Dalamud.Game.Command
                     }
                 }
             }
-        }
-
-        public void Dispose()
-        {
-            this.chatGui.CheckMessageHandled -= this.OnCheckMessageHandled;
         }
     }
 }

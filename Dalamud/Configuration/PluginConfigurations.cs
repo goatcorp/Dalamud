@@ -22,36 +22,6 @@ namespace Dalamud.Configuration
         }
 
         /// <summary>
-        /// Serializes a plugin configuration object.
-        /// </summary>
-        /// <param name="config">The configuration object.</param>
-        /// <returns>A string representing the serialized configuration object.</returns>
-        internal static string SerializeConfig(object? config)
-        {
-            return JsonConvert.SerializeObject(config, Formatting.Indented, new JsonSerializerSettings
-            {
-                TypeNameAssemblyFormatHandling = TypeNameAssemblyFormatHandling.Simple,
-                TypeNameHandling = TypeNameHandling.Objects,
-            });
-        }
-
-        /// <summary>
-        /// Deserializes a plugin configuration from a string.
-        /// </summary>
-        /// <param name="data">The serialized configuration.</param>
-        /// <returns>The configuration object, or null.</returns>
-        internal static IPluginConfiguration? DeserializeConfig(string data)
-        {
-            return JsonConvert.DeserializeObject<IPluginConfiguration>(
-                data,
-                new JsonSerializerSettings
-                {
-                    TypeNameAssemblyFormatHandling = TypeNameAssemblyFormatHandling.Simple,
-                    TypeNameHandling = TypeNameHandling.Objects,
-                });
-        }
-
-        /// <summary>
         /// Save/Load plugin configuration.
         /// NOTE: Save/Load are still using Type information for now,
         /// despite LoadForType superseding Load and not requiring or using it.
@@ -144,6 +114,36 @@ namespace Dalamud.Configuration
         /// <param name="pluginName">InternalName of the plugin.</param>
         /// <returns>FileInfo of the config file.</returns>
         public FileInfo GetConfigFile(string pluginName) => new(Path.Combine(this.configDirectory.FullName, $"{pluginName}.json"));
+
+        /// <summary>
+        /// Serializes a plugin configuration object.
+        /// </summary>
+        /// <param name="config">The configuration object.</param>
+        /// <returns>A string representing the serialized configuration object.</returns>
+        internal static string SerializeConfig(object? config)
+        {
+            return JsonConvert.SerializeObject(config, Formatting.Indented, new JsonSerializerSettings
+            {
+                TypeNameAssemblyFormatHandling = TypeNameAssemblyFormatHandling.Simple,
+                TypeNameHandling = TypeNameHandling.Objects,
+            });
+        }
+
+        /// <summary>
+        /// Deserializes a plugin configuration from a string.
+        /// </summary>
+        /// <param name="data">The serialized configuration.</param>
+        /// <returns>The configuration object, or null.</returns>
+        internal static IPluginConfiguration? DeserializeConfig(string data)
+        {
+            return JsonConvert.DeserializeObject<IPluginConfiguration>(
+                data,
+                new JsonSerializerSettings
+                {
+                    TypeNameAssemblyFormatHandling = TypeNameAssemblyFormatHandling.Simple,
+                    TypeNameHandling = TypeNameHandling.Objects,
+                });
+        }
 
         private DirectoryInfo GetDirectoryPath(string pluginName) => new(Path.Combine(this.configDirectory.FullName, pluginName));
     }

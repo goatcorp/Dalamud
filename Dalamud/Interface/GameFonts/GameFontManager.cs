@@ -5,6 +5,7 @@ using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+
 using Dalamud.Data;
 using Dalamud.Game;
 using Dalamud.Interface.Internal;
@@ -12,6 +13,7 @@ using Dalamud.Utility.Timing;
 using ImGuiNET;
 using Lumina.Data.Files;
 using Serilog;
+
 using static Dalamud.Interface.ImGuiHelpers;
 
 namespace Dalamud.Interface.GameFonts
@@ -40,7 +42,9 @@ namespace Dalamud.Interface.GameFonts
         private readonly Dictionary<GameFontStyle, int> fontUseCounter = new();
         private readonly Dictionary<GameFontStyle, Dictionary<char, Tuple<int, FdtReader.FontTableEntry>>> glyphRectIds = new();
 
+#pragma warning disable CS0414
         private bool isBetweenBuildFontsAndRightAfterImGuiIoFontsBuild = false;
+#pragma warning restore CS0414
 
         [ServiceManager.ServiceConstructor]
         private GameFontManager(DataManager dataManager)

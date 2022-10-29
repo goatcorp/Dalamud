@@ -168,7 +168,6 @@ namespace Dalamud.Game
         /// <summary>
         /// Run given function right away if this function has been called from game's Framework.Update thread, or otherwise run on next Framework.Update call.
         /// </summary>
-        /// <typeparam name="T">Return type.</typeparam>
         /// <param name="func">Function to call.</param>
         /// <returns>Task representing the pending or already completed function.</returns>
         public Task RunOnFrameworkThread(Func<Task> func) =>
@@ -287,7 +286,6 @@ namespace Dalamud.Game
         /// <summary>
         /// Run given function in upcoming Framework.Tick call.
         /// </summary>
-        /// <typeparam name="T">Return type.</typeparam>
         /// <param name="func">Function to call.</param>
         /// <param name="delay">Wait for given timespan before calling this function.</param>
         /// <param name="delayTicks">Count given number of Framework.Tick calls before calling this function. This takes precedence over delay parameter.</param>

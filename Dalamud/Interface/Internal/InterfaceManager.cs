@@ -7,6 +7,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
+
 using Dalamud.Configuration.Internal;
 using Dalamud.Game;
 using Dalamud.Game.ClientState.GamePad;
@@ -100,6 +101,7 @@ namespace Dalamud.Interface.Internal
 
         [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
         private delegate IntPtr ProcessMessageDelegate(IntPtr hWnd, uint msg, ulong wParam, ulong lParam, IntPtr handeled);
+
         /// <summary>
         /// This event gets called each frame to facilitate ImGui drawing.
         /// </summary>
@@ -1135,7 +1137,7 @@ namespace Dalamud.Interface.Internal
             }
 
             /// <summary>
-            /// Associated InterfaceManager.
+            /// Gets the associated InterfaceManager.
             /// </summary>
             public InterfaceManager Manager { get; init; }
         }

@@ -35,11 +35,6 @@ namespace Dalamud.Game.ClientState
         private bool lastConditionNone = true;
         private bool lastFramePvP = false;
 
-        /// <summary>
-        /// Gets client state address resolver.
-        /// </summary>
-        internal ClientStateAddressResolver AddressResolver => this.address;
-
         [ServiceManager.ServiceConstructor]
         private ClientState(SigScanner sigScanner, DalamudStartInfo startInfo)
         {
@@ -126,6 +121,11 @@ namespace Dalamud.Game.ClientState
         /// Gets a value indicating whether or not the user is playing PvP, excluding the Wolves' Den.
         /// </summary>
         public bool IsPvPExcludingDen { get; private set; }
+
+        /// <summary>
+        /// Gets client state address resolver.
+        /// </summary>
+        internal ClientStateAddressResolver AddressResolver => this.address;
 
         /// <summary>
         /// Dispose of managed and unmanaged resources.

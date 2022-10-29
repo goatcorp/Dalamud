@@ -188,7 +188,6 @@ namespace Dalamud.Interface.Internal.Windows
                             ImGui.TableNextColumn();
                             ImGui.Text($"{handlerHistory.Key}");
 
-
                             ImGui.TableNextColumn();
                             ImGui.Text($"{handlerHistory.Value.Last():F4}ms");
 

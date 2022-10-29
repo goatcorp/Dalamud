@@ -11,6 +11,7 @@ using Dalamud.Interface.Internal;
 using Dalamud.Logging.Internal;
 using ImGuiNET;
 using PInvoke;
+
 using static Dalamud.NativeFunctions;
 
 namespace Dalamud.Game.Gui.Internal
@@ -58,64 +59,6 @@ namespace Dalamud.Game.Gui.Internal
             Marshal.FreeHGlobal((IntPtr)this.cursorPos);
         }
 
-        private unsafe void LoadCand(IntPtr hWnd)
-        {
-            if (hWnd == IntPtr.Zero)
-                return;
-
-            var hIMC = ImmGetContext(hWnd);
-            if (hIMC == IntPtr.Zero)
-                return;
-
-            var size = ImmGetCandidateListW(hIMC, 0, IntPtr.Zero, 0);
-            if (size == 0)
-                return;
-
-            var candlistPtr = Marshal.AllocHGlobal((int)size);
-            size = ImmGetCandidateListW(hIMC, 0, candlistPtr, (uint)size);
-
-            var candlist = this.ImmCandNative = Marshal.PtrToStructure<CandidateList>(candlistPtr);
-            var pageSize = candlist.PageSize;
-            var candCount = candlist.Count;
-
-            if (pageSize > 0 && candCount > 1)
-            {
-                var dwOffsets = new int[candCount];
-                for (var i = 0; i < candCount; i++)
-                {
-                    dwOffsets[i] = Marshal.ReadInt32(candlistPtr + ((i + 6) * sizeof(int)));
-                }
-
-                var pageStart = candlist.PageStart;
-
-                var cand = new string[pageSize];
-                this.ImmCand.Clear();
-
-                for (var i = 0; i < pageSize; i++)
-                {
-                    var offStart = dwOffsets[i + pageStart];
-                    var offEnd = i + pageStart + 1 < candCount ? dwOffsets[i + pageStart + 1] : size;
-
-                    var pStrStart = candlistPtr + (int)offStart;
-                    var pStrEnd = candlistPtr + (int)offEnd;
-
-                    var len = (int)(pStrEnd.ToInt64() - pStrStart.ToInt64());
-                    if (len > 0)
-                    {
-                        var candBytes = new byte[len];
-                        Marshal.Copy(pStrStart, candBytes, 0, len);
-
-                        var candStr = Encoding.Unicode.GetString(candBytes);
-                        cand[i] = candStr;
-
-                        this.ImmCand.Add(candStr);
-                    }
-                }
-
-                Marshal.FreeHGlobal(candlistPtr);
-            }
-        }
-
         /// <summary>
         /// Processes window messages.
         /// </summary>
@@ -137,13 +80,19 @@ namespace Dalamud.Game.Gui.Internal
                     {
                         wParam = Marshal.ReadInt32((IntPtr)wParamPtr);
                     }
-                    catch { }
+                    catch
+                    {
+                        // ignored
+                    }
 
                     try
                     {
                         lParam = Marshal.ReadInt32((IntPtr)lParamPtr);
                     }
-                    catch { }
+                    catch
+                    {
+                        // ignored
+                    }
 
                     switch (wmsg)
                     {
@@ -244,6 +193,64 @@ namespace Dalamud.Game.Gui.Internal
         internal Vector2 GetCursorPos()
         {
             return new Vector2(this.cursorPos->X, this.cursorPos->Y);
+        }
+
+        private unsafe void LoadCand(IntPtr hWnd)
+        {
+            if (hWnd == IntPtr.Zero)
+                return;
+
+            var hImc = ImmGetContext(hWnd);
+            if (hImc == IntPtr.Zero)
+                return;
+
+            var size = ImmGetCandidateListW(hImc, 0, IntPtr.Zero, 0);
+            if (size == 0)
+                return;
+
+            var candlistPtr = Marshal.AllocHGlobal((int)size);
+            size = ImmGetCandidateListW(hImc, 0, candlistPtr, (uint)size);
+
+            var candlist = this.ImmCandNative = Marshal.PtrToStructure<CandidateList>(candlistPtr);
+            var pageSize = candlist.PageSize;
+            var candCount = candlist.Count;
+
+            if (pageSize > 0 && candCount > 1)
+            {
+                var dwOffsets = new int[candCount];
+                for (var i = 0; i < candCount; i++)
+                {
+                    dwOffsets[i] = Marshal.ReadInt32(candlistPtr + ((i + 6) * sizeof(int)));
+                }
+
+                var pageStart = candlist.PageStart;
+
+                var cand = new string[pageSize];
+                this.ImmCand.Clear();
+
+                for (var i = 0; i < pageSize; i++)
+                {
+                    var offStart = dwOffsets[i + pageStart];
+                    var offEnd = i + pageStart + 1 < candCount ? dwOffsets[i + pageStart + 1] : size;
+
+                    var pStrStart = candlistPtr + (int)offStart;
+                    var pStrEnd = candlistPtr + (int)offEnd;
+
+                    var len = (int)(pStrEnd.ToInt64() - pStrStart.ToInt64());
+                    if (len > 0)
+                    {
+                        var candBytes = new byte[len];
+                        Marshal.Copy(pStrStart, candBytes, 0, len);
+
+                        var candStr = Encoding.Unicode.GetString(candBytes);
+                        cand[i] = candStr;
+
+                        this.ImmCand.Add(candStr);
+                    }
+                }
+
+                Marshal.FreeHGlobal(candlistPtr);
+            }
         }
 
         [ServiceManager.CallWhenServicesReady]

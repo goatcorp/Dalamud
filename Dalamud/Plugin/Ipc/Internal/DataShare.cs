@@ -99,7 +99,6 @@ internal class DataShare : IServiceType
 
         cache.UserAssemblyNames.Add(callerName);
         return true;
-
     }
 
     /// <summary>
@@ -108,7 +107,7 @@ internal class DataShare : IServiceType
     /// </summary>
     /// <typeparam name="T">The type of the stored data - needs to be a reference type that is shared through Dalamud itself, not loaded by the plugin.</typeparam>
     /// <param name="tag">The name for the data cache.</param>
-    /// <returns>The requested data</returns>
+    /// <returns>The requested data.</returns>
     /// <exception cref="KeyNotFoundException">Thrown if <paramref name="tag"/> is not registered.</exception>
     /// <exception cref="DataCacheTypeMismatchError">Thrown if a cache for <paramref name="tag"/> exists, but contains data of a type not assignable to <typeparamref name="T>"/>.</exception>
     /// <exception cref="DataCacheValueNullError">Thrown if the stored data for a cache is null.</exception>

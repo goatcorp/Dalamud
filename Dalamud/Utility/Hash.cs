@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Security.Cryptography;
 
 namespace Dalamud.Utility
 {
@@ -24,7 +25,7 @@ namespace Dalamud.Utility
         /// <returns>The computed hash.</returns>
         internal static string GetSha256Hash(byte[] buffer)
         {
-            using var sha = new System.Security.Cryptography.SHA256Managed();
+            using var sha = SHA256.Create();
             var hash = sha.ComputeHash(buffer);
             return ByteArrayToString(hash);
         }

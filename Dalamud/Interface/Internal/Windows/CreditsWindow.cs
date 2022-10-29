@@ -19,7 +19,8 @@ namespace Dalamud.Interface.Internal.Windows
     /// </summary>
     internal class CreditsWindow : Window, IDisposable
     {
-        private const float CreditFPS = 60.0f;
+        private const float CreditFps = 60.0f;
+        private const string ThankYouText = "Thank you!";
         private const string CreditsTextTempl = @"
 Dalamud
 A FFXIV Plugin Framework
@@ -163,7 +164,6 @@ Contribute at: https://github.com/goatsoft/Dalamud
         private string creditsText;
 
         private GameFontHandle? thankYouFont;
-        private const string thankYouText = "Thank you!";
 
         /// <summary>
         /// Initializes a new instance of the <see cref="CreditsWindow"/> class.
@@ -265,11 +265,11 @@ Contribute at: https://github.com/goatsoft/Dalamud
             if (this.thankYouFont != null)
             {
                 ImGui.PushFont(this.thankYouFont.ImFont);
-                var thankYouLenX = ImGui.CalcTextSize(thankYouText).X;
+                var thankYouLenX = ImGui.CalcTextSize(ThankYouText).X;
 
                 ImGui.Dummy(new Vector2((windowX / 2) - (thankYouLenX / 2), 0f));
                 ImGui.SameLine();
-                ImGui.TextUnformatted(thankYouText);
+                ImGui.TextUnformatted(ThankYouText);
 
                 ImGui.PopFont();
             }
@@ -278,7 +278,7 @@ Contribute at: https://github.com/goatsoft/Dalamud
 
             ImGui.PopStyleVar();
 
-            if (this.creditsThrottler.Elapsed.TotalMilliseconds > (1000.0f / CreditFPS))
+            if (this.creditsThrottler.Elapsed.TotalMilliseconds > (1000.0f / CreditFps))
             {
                 var curY = ImGui.GetScrollY();
                 var maxY = ImGui.GetScrollMaxY();

@@ -177,12 +177,6 @@ namespace Dalamud.Game.Gui.FlyText
             }
         }
 
-        [ServiceManager.CallWhenServicesReady]
-        private void ContinueConstruction(GameGui gameGui)
-        {
-            this.createFlyTextHook.Enable();
-        }
-
         private static byte[] Terminate(byte[] source)
         {
             var terminated = new byte[source.Length + 1];
@@ -190,6 +184,12 @@ namespace Dalamud.Game.Gui.FlyText
             terminated[^1] = 0;
 
             return terminated;
+        }
+
+        [ServiceManager.CallWhenServicesReady]
+        private void ContinueConstruction(GameGui gameGui)
+        {
+            this.createFlyTextHook.Enable();
         }
 
         private IntPtr CreateFlyTextDetour(

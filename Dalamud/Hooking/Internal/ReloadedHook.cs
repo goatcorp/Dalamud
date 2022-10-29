@@ -6,6 +6,10 @@ using Reloaded.Hooks;
 
 namespace Dalamud.Hooking.Internal
 {
+    /// <summary>
+    /// Class facilitating hooks via reloaded.
+    /// </summary>
+    /// <typeparam name="T">Delegate of the hook.</typeparam>
     internal class ReloadedHook<T> : Hook<T> where T : Delegate
     {
         private readonly Reloaded.Hooks.Definitions.IHook<T> hookImpl;

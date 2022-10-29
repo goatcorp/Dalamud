@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Numerics;
+
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Windowing;
 using Dalamud.Utility.Numerics;
@@ -10,27 +12,28 @@ using ImGuiNET;
 
 namespace Dalamud.Interface.Internal.Windows;
 
+/// <summary>
+/// Class used to draw the Dalamud profiler.
+/// </summary>
 public class ProfilerWindow : Window
 {
     private double min;
     private double max;
     private List<List<Tuple<double, double>>> occupied = new();
 
-    public ProfilerWindow() : base("Profiler", forceMainWindow: true) { }
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ProfilerWindow"/> class.
+    /// </summary>
+    public ProfilerWindow()
+        : base("Profiler", forceMainWindow: true)
+    {
+    }
 
+    /// <inheritdoc cref="Window.OnOpen"/>
     public override void OnOpen()
     {
         this.min = Timings.AllTimings.Keys.Min(x => x.StartTime);
         this.max = Timings.AllTimings.Keys.Max(x => x.EndTime);
-    }
-
-    private class RectInfo
-    {
-        internal TimingHandle Timing;
-        internal Vector2 MinPos;
-        internal Vector2 MaxPos;
-        internal Vector4 RectColor;
-        internal bool Hover;
     }
 
     /// <inheritdoc/>
@@ -248,5 +251,15 @@ public class ProfilerWindow : Window
         ImGui.Text("Min: " + actualMin.ToString("0.000"));
         ImGui.Text("Max: " + actualMax.ToString("0.000"));
         ImGui.Text("Timings: " + Timings.AllTimings.Count);
+    }
+
+    [SuppressMessage("StyleCop.CSharp.MaintainabilityRules", "SA1401:Fields should be private", Justification = "Internals")]
+    private class RectInfo
+    {
+        internal TimingHandle Timing;
+        internal Vector2 MinPos;
+        internal Vector2 MaxPos;
+        internal Vector4 RectColor;
+        internal bool Hover;
     }
 }

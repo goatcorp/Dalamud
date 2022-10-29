@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+
 using Dalamud.Configuration.Internal;
 using Dalamud.Game;
 using Dalamud.IoC.Internal;

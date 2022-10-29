@@ -51,6 +51,7 @@ namespace Dalamud.Interface.Internal.ManagedAsserts
             // TODO: Needs to be updated for ImGui 1.88
             return;
 
+#pragma warning disable CS0162
             if (!AssertsEnabled)
             {
                 return;
@@ -93,6 +94,7 @@ namespace Dalamud.Interface.Internal.ManagedAsserts
                     ShowAssert(source, $"Mismatched Begin/BeginChild vs End/EndChild calls: did you call End/EndChild too much?\n\ncSnap.WindowStackSize = {cSnap.WindowStackSize}");
                 }
             }
+#pragma warning restore CS0162
         }
 
         private static void ShowAssert(string source, string message)

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Utility.Timing;
@@ -95,7 +96,7 @@ namespace Dalamud
         /// <summary>
         /// Attempt to pull the instance out of the service locator.
         /// </summary>
-        /// <param name="propagateException">Specifies which exceptions to propagate.</param> 
+        /// <param name="propagateException">Specifies which exceptions to propagate.</param>
         /// <returns>The object if registered, null otherwise.</returns>
         public static T? GetNullable(ExceptionPropagationMode propagateException = ExceptionPropagationMode.PropagateNonUnloaded)
         {

@@ -28,7 +28,7 @@ namespace Dalamud.Interface
         /// <summary>
         /// Gets a <see cref="Vector2"/> that is pre-scaled with the <see cref="GlobalScale"/> multiplier.
         /// </summary>
-        /// <param name="x">Vector2 X & Y parameter.</param>
+        /// <param name="x">Vector2 X/Y parameter.</param>
         /// <returns>A scaled Vector2.</returns>
         public static Vector2 ScaledVector2(float x) => new Vector2(x, x) * GlobalScale;
 
@@ -381,7 +381,7 @@ namespace Dalamud.Interface
             public ushort Height;
             public ushort X;
             public ushort Y;
-            public uint TextureIndexAndGlyphID;
+            public uint TextureIndexAndGlyphId;
             public float GlyphAdvanceX;
             public Vector2 GlyphOffset;
             public ImFont* Font;
@@ -394,15 +394,15 @@ namespace Dalamud.Interface
 
             public int TextureIndex
             {
-                get => (int)(this.TextureIndexAndGlyphID & TextureIndexMask) >> TextureIndexShift;
-                set => this.TextureIndexAndGlyphID = (this.TextureIndexAndGlyphID & ~TextureIndexMask) | ((uint)value << TextureIndexShift);
+                get => (int)(this.TextureIndexAndGlyphId & TextureIndexMask) >> TextureIndexShift;
+                set => this.TextureIndexAndGlyphId = (this.TextureIndexAndGlyphId & ~TextureIndexMask) | ((uint)value << TextureIndexShift);
             }
 
-            public int GlyphID
+            public int GlyphId
             {
-                get => (int)(this.TextureIndexAndGlyphID & GlyphIDMask) >> GlyphIDShift;
-                set => this.TextureIndexAndGlyphID = (this.TextureIndexAndGlyphID & ~GlyphIDMask) | ((uint)value << GlyphIDShift);
+                get => (int)(this.TextureIndexAndGlyphId & GlyphIDMask) >> GlyphIDShift;
+                set => this.TextureIndexAndGlyphId = (this.TextureIndexAndGlyphId & ~GlyphIDMask) | ((uint)value << GlyphIDShift);
             }
-        };
+        }
     }
 }

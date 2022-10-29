@@ -9,16 +9,6 @@ namespace Dalamud.Interface.GameFonts
     /// </summary>
     public class FdtReader
     {
-        private static unsafe T StructureFromByteArray<T> (byte[] data, int offset)
-        {
-            var len = Marshal.SizeOf<T>();
-            if (offset + len > data.Length)
-                throw new Exception("Data too short");
-
-            fixed (byte* ptr = data)
-                return Marshal.PtrToStructure<T>(new(ptr + offset));
-        }
-
         /// <summary>
         /// Initializes a new instance of the <see cref="FdtReader"/> class.
         /// </summary>
@@ -33,7 +23,7 @@ namespace Dalamud.Interface.GameFonts
                 this.Glyphs.Add(StructureFromByteArray<FontTableEntry>(data, this.FileHeader.FontTableHeaderOffset + Marshal.SizeOf<FontTableHeader>() + (Marshal.SizeOf<FontTableEntry>() * i)));
 
             for (int i = 0, i_ = Math.Min(this.FontHeader.KerningTableEntryCount, this.KerningHeader.Count); i < i_; i++)
-                this.Distances.Add(StructureFromByteArray<KerningTableEntry>(data, this.FileHeader.KerningTableHeaderOffset+ Marshal.SizeOf<KerningTableHeader>() + (Marshal.SizeOf<KerningTableEntry>() * i)));
+                this.Distances.Add(StructureFromByteArray<KerningTableEntry>(data, this.FileHeader.KerningTableHeaderOffset + Marshal.SizeOf<KerningTableHeader>() + (Marshal.SizeOf<KerningTableEntry>() * i)));
         }
 
         /// <summary>
@@ -68,7 +58,7 @@ namespace Dalamud.Interface.GameFonts
         /// <returns>Corresponding FontTableEntry, or null if not found.</returns>
         public FontTableEntry? FindGlyph(int codepoint)
         {
-            var i = this.Glyphs.BinarySearch(new FontTableEntry { CharUtf8 = CodePointToUtf8int32(codepoint) });
+            var i = this.Glyphs.BinarySearch(new FontTableEntry { CharUtf8 = CodePointToUtf8Int32(codepoint) });
             if (i < 0 || i == this.Glyphs.Count)
                 return null;
             return this.Glyphs[i];
@@ -95,13 +85,23 @@ namespace Dalamud.Interface.GameFonts
         /// <returns>Supposed distance adjustment between given characters.</returns>
         public int GetDistance(int codepoint1, int codepoint2)
         {
-            var i = this.Distances.BinarySearch(new KerningTableEntry { LeftUtf8 = CodePointToUtf8int32(codepoint1), RightUtf8 = CodePointToUtf8int32(codepoint2) });
+            var i = this.Distances.BinarySearch(new KerningTableEntry { LeftUtf8 = CodePointToUtf8Int32(codepoint1), RightUtf8 = CodePointToUtf8Int32(codepoint2) });
             if (i < 0 || i == this.Distances.Count)
                 return 0;
             return this.Distances[i].RightOffset;
         }
 
-        private static int CodePointToUtf8int32(int codepoint)
+        private static unsafe T StructureFromByteArray<T>(byte[] data, int offset)
+        {
+            var len = Marshal.SizeOf<T>();
+            if (offset + len > data.Length)
+                throw new Exception("Data too short");
+
+            fixed (byte* ptr = data)
+                return Marshal.PtrToStructure<T>(new(ptr + offset));
+        }
+
+        private static int CodePointToUtf8Int32(int codepoint)
         {
             if (codepoint <= 0x7F)
             {

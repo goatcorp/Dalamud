@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+
 using ImGuiNET;
 
 namespace Dalamud.Interface.ImGuiFileDialog
@@ -14,7 +15,9 @@ namespace Dalamud.Interface.ImGuiFileDialog
         /// <summary>
         /// The flags used to draw the file picker window.
         /// </summary>
+#pragma warning disable SA1401
         public ImGuiWindowFlags WindowFlags;
+#pragma warning restore SA1401
 
         private readonly string title;
         private readonly int selectionCountMax;

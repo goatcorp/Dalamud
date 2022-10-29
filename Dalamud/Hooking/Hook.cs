@@ -15,8 +15,12 @@ namespace Dalamud.Hooking
     /// <typeparam name="T">Delegate type to represents a function prototype. This must be the same prototype as original function do.</typeparam>
     public class Hook<T> : IDisposable, IDalamudHook where T : Delegate
     {
+#pragma warning disable SA1310
+        // ReSharper disable once InconsistentNaming
         private const ulong IMAGE_ORDINAL_FLAG64 = 0x8000000000000000;
+        // ReSharper disable once InconsistentNaming
         private const uint IMAGE_ORDINAL_FLAG32 = 0x80000000;
+#pragma warning restore SA1310
 
         private readonly IntPtr address;
 

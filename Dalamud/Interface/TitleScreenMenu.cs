@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using ImGuiScene;
@@ -202,14 +203,6 @@ namespace Dalamud.Interface
             /// </summary>
             internal Guid Id { get; init; } = Guid.NewGuid();
 
-            /// <summary>
-            /// Trigger the action associated with this entry.
-            /// </summary>
-            internal void Trigger()
-            {
-                this.onTriggered();
-            }
-
             /// <inheritdoc/>
             public int CompareTo(TitleScreenMenuEntry? other)
             {
@@ -234,6 +227,14 @@ namespace Dalamud.Interface
                 if (this.Name != other.Name)
                     return string.Compare(this.Name, other.Name, StringComparison.InvariantCultureIgnoreCase);
                 return string.Compare(this.Name, other.Name, StringComparison.InvariantCulture);
+            }
+
+            /// <summary>
+            /// Trigger the action associated with this entry.
+            /// </summary>
+            internal void Trigger()
+            {
+                this.onTriggered();
             }
         }
     }

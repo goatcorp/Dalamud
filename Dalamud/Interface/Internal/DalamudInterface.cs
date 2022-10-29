@@ -48,7 +48,7 @@ namespace Dalamud.Interface.Internal
         private readonly CreditsWindow creditsWindow;
         private readonly DataWindow dataWindow;
         private readonly GamepadModeNotifierWindow gamepadModeNotifierWindow;
-        private readonly IMEWindow imeWindow;
+        private readonly ImeWindow imeWindow;
         private readonly ConsoleWindow consoleWindow;
         private readonly PluginStatWindow pluginStatWindow;
         private readonly PluginInstallerWindow pluginWindow;
@@ -93,7 +93,7 @@ namespace Dalamud.Interface.Internal
             this.creditsWindow = new CreditsWindow() { IsOpen = false };
             this.dataWindow = new DataWindow() { IsOpen = false };
             this.gamepadModeNotifierWindow = new GamepadModeNotifierWindow() { IsOpen = false };
-            this.imeWindow = new IMEWindow() { IsOpen = false };
+            this.imeWindow = new ImeWindow() { IsOpen = false };
             this.consoleWindow = new ConsoleWindow() { IsOpen = configuration.LogOpenAtStartup };
             this.pluginStatWindow = new PluginStatWindow() { IsOpen = false };
             this.pluginWindow = new PluginInstallerWindow(pluginImageCache) { IsOpen = false };
@@ -231,7 +231,7 @@ namespace Dalamud.Interface.Internal
         public void OpenGamepadModeNotifierWindow() => this.gamepadModeNotifierWindow.IsOpen = true;
 
         /// <summary>
-        /// Opens the <see cref="IMEWindow"/>.
+        /// Opens the <see cref="ImeWindow"/>.
         /// </summary>
         public void OpenImeWindow() => this.imeWindow.IsOpen = true;
 
@@ -276,7 +276,7 @@ namespace Dalamud.Interface.Internal
         public void OpenProfiler() => this.profilerWindow.IsOpen = true;
 
         /// <summary>
-        /// Opens the <see cref="BranchSwitcherWindow"/>
+        /// Opens the <see cref="BranchSwitcherWindow"/>.
         /// </summary>
         public void OpenBranchSwitcher() => this.branchSwitcherWindow.IsOpen = true;
 
@@ -285,7 +285,7 @@ namespace Dalamud.Interface.Internal
         #region Close
 
         /// <summary>
-        /// Closes the <see cref="IMEWindow"/>.
+        /// Closes the <see cref="ImeWindow"/>.
         /// </summary>
         public void CloseImeWindow() => this.imeWindow.IsOpen = false;
 
@@ -342,7 +342,7 @@ namespace Dalamud.Interface.Internal
         public void ToggleGamepadModeNotifierWindow() => this.gamepadModeNotifierWindow.Toggle();
 
         /// <summary>
-        /// Toggles the <see cref="IMEWindow"/>.
+        /// Toggles the <see cref="ImeWindow"/>.
         /// </summary>
         public void ToggleIMEWindow() => this.imeWindow.Toggle();
 

@@ -313,7 +313,6 @@ namespace Dalamud.Interface.ImGuiFileDialog
         {
             if (ImGui.BeginChild("##FileDialog_SideBar", size))
             {
-
                 ImGui.SetCursorPosY(ImGui.GetCursorPosY() + Scaled(5));
 
                 var idx = 0;
@@ -508,6 +507,7 @@ namespace Dalamud.Interface.ImGuiFileDialog
                         this.pathClicked = this.SelectDirectory(file);
                         return true;
                     }
+
                     if (this.IsDirectoryMode())
                     {
                         this.SelectFileName(file);

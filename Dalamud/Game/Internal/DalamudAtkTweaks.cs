@@ -3,8 +3,6 @@ using System.Runtime.InteropServices;
 
 using CheapLoc;
 using Dalamud.Configuration.Internal;
-//using Dalamud.Data;
-//using Dalamud.Game.Gui.ContextMenus;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
@@ -12,7 +10,6 @@ using Dalamud.Hooking;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Windowing;
 using FFXIVClientStructs.FFXIV.Component.GUI;
-//using Lumina.Excel.GeneratedSheets;
 using Serilog;
 
 using ValueType = FFXIVClientStructs.FFXIV.Component.GUI.ValueType;
@@ -142,7 +139,7 @@ namespace Dalamud.Game.Internal
                 return;
             }
 
-            if (!configuration.DoButtonsSystemMenu || !interfaceManager.IsDispatchingEvents)
+            if (!this.configuration.DoButtonsSystemMenu || !interfaceManager.IsDispatchingEvents)
             {
                 this.hookAgentHudOpenSystemMenu.Original(thisPtr, atkValueArgs, menuSize);
                 return;

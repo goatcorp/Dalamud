@@ -12,9 +12,12 @@ namespace Dalamud.Plugin.Internal.Types;
 /// </summary>
 internal record LocalPluginManifest : PluginManifest
 {
+    /// <summary>
+    /// Flag indicating that a plugin was installed from the official repo.
+    /// </summary>
     [JsonIgnore]
     public const string FlagMainRepo = "OFFICIAL";
-    
+
     /// <summary>
     /// Gets or sets a value indicating whether the plugin is disabled and should not be loaded.
     /// This value supersedes the ".disabled" file functionality and should not be included in the plugin master.

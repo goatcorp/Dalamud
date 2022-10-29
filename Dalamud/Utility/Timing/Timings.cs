@@ -22,9 +22,12 @@ public static class Timings
     /// </summary>
     internal static readonly SortedList<TimingHandle, TimingHandle> AllTimings = new();
 
+    /// <summary>
+    /// List of all timing events.
+    /// </summary>
     internal static readonly List<TimingEvent> Events = new();
 
-    private static readonly AsyncLocal<Tuple<int?, List<TimingHandle>>> taskTimingHandleStorage = new();
+    private static readonly AsyncLocal<Tuple<int?, List<TimingHandle>>> TaskTimingHandleStorage = new();
 
     /// <summary>
     /// Gets or sets all active timings of current thread.
@@ -33,11 +36,11 @@ public static class Timings
     {
         get
         {
-            if (taskTimingHandleStorage.Value == null || taskTimingHandleStorage.Value.Item1 != Task.CurrentId)
-                taskTimingHandleStorage.Value = Tuple.Create<int?, List<TimingHandle>>(Task.CurrentId, new());
-            return taskTimingHandleStorage.Value!.Item2!;
+            if (TaskTimingHandleStorage.Value == null || TaskTimingHandleStorage.Value.Item1 != Task.CurrentId)
+                TaskTimingHandleStorage.Value = Tuple.Create<int?, List<TimingHandle>>(Task.CurrentId, new());
+            return TaskTimingHandleStorage.Value!.Item2!;
         }
-        set => taskTimingHandleStorage.Value = Tuple.Create(Task.CurrentId, value);
+        set => TaskTimingHandleStorage.Value = Tuple.Create(Task.CurrentId, value);
     }
 
     /// <summary>
@@ -115,9 +118,11 @@ public static class Timings
     /// <param name="memberName">Name of the calling member.</param>
     /// <param name="sourceFilePath">Name of the calling file.</param>
     /// <param name="sourceLineNumber">Name of the calling line number.</param>
-    /// <returns>Disposable that stops the timing once disposed.</returns>
-    public static void Event(string name, [CallerMemberName] string memberName = "", [CallerFilePath] string sourceFilePath = "",
-                             [CallerLineNumber] int sourceLineNumber = 0)
+    public static void Event(
+        string name,
+        [CallerMemberName] string memberName = "",
+        [CallerFilePath] string sourceFilePath = "",
+        [CallerLineNumber] int sourceLineNumber = 0)
     {
         lock (Events)
         {

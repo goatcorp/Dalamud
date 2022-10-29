@@ -26,7 +26,7 @@ namespace Dalamud.Game.Gui.PartyFinder
         /// <summary>
         /// Initializes a new instance of the <see cref="PartyFinderGui"/> class.
         /// </summary>
-        /// <param name="tag">Tag.</param>
+        /// <param name="sigScanner">Sig scanner to use.</param>
         [ServiceManager.ServiceConstructor]
         private PartyFinderGui(SigScanner sigScanner)
         {

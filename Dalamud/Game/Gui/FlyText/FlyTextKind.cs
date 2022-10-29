@@ -85,7 +85,7 @@ namespace Dalamud.Game.Gui.FlyText
         /// Serif Val1 with all caps condensed font EXP with Text2 in sans-serif as subtitle.
         /// </summary>
         Exp = 14,
-        
+
         /// <summary>
         /// Serif Val1 with all caps condensed font ISLAND EXP with Text2 in sans-serif as subtitle.
         /// </summary>

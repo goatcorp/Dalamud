@@ -13,6 +13,7 @@ namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps
     /// </summary>
     internal class ContextMenuAgingStep : IAgingStep
     {
+        /*
         private SubStep currentSubStep;
 
         private uint clickedItemId;
@@ -36,6 +37,7 @@ namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps
             TestMultiple,
             Finish,
         }
+        */
 
         /// <inheritdoc/>
         public string Name => "Test Context Menu";
@@ -141,13 +143,15 @@ namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps
         /// <inheritdoc/>
         public void CleanUp()
         {
-            // var contextMenu = Service<ContextMenu>.Get();
-            // contextMenu.ContextMenuOpened -= this.ContextMenuOnContextMenuOpened;
+            /*
+            var contextMenu = Service<ContextMenu>.Get();
+            contextMenu.ContextMenuOpened -= this.ContextMenuOnContextMenuOpened;
 
             this.currentSubStep = SubStep.Start;
             this.clickedItemId = 0;
             this.clickedPlayerName = null;
             this.multipleTriggerOne = this.multipleTriggerTwo = false;
+            */
         }
 
         /*

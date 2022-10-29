@@ -2,6 +2,7 @@ using System;
 using System.ComponentModel;
 using System.Reflection;
 using System.Runtime.InteropServices;
+
 using Dalamud.Memory;
 
 namespace Dalamud.Hooking.Internal
@@ -96,8 +97,7 @@ namespace Dalamud.Hooking.Internal
             {
                 lock (HookManager.HookEnableSyncRoot)
                 {
-                    if (!NativeFunctions.VirtualProtect(this.Address, (UIntPtr)Marshal.SizeOf<IntPtr>(),
-                                                        MemoryProtection.ExecuteReadWrite, out var oldProtect))
+                    if (!NativeFunctions.VirtualProtect(this.Address, (UIntPtr)Marshal.SizeOf<IntPtr>(), MemoryProtection.ExecuteReadWrite, out var oldProtect))
                         throw new Win32Exception(Marshal.GetLastWin32Error());
 
                     Marshal.WriteIntPtr(this.Address, Marshal.GetFunctionPointerForDelegate(this.detourDelegate));
@@ -115,8 +115,7 @@ namespace Dalamud.Hooking.Internal
             {
                 lock (HookManager.HookEnableSyncRoot)
                 {
-                    if (!NativeFunctions.VirtualProtect(this.Address, (UIntPtr)Marshal.SizeOf<IntPtr>(),
-                                                        MemoryProtection.ExecuteReadWrite, out var oldProtect))
+                    if (!NativeFunctions.VirtualProtect(this.Address, (UIntPtr)Marshal.SizeOf<IntPtr>(), MemoryProtection.ExecuteReadWrite, out var oldProtect))
                         throw new Win32Exception(Marshal.GetLastWin32Error());
 
                     Marshal.WriteIntPtr(this.Address, this.pfnOriginal);
