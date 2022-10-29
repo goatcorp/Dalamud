@@ -84,6 +84,19 @@ public sealed class DataManager : IDisposable, IServiceType
                 }
 
                 Log.Information("Lumina is ready: {0}", this.GameData.DataPath);
+
+                try
+                {
+                    var tsInfo =
+                        JsonConvert.DeserializeObject<LauncherTroubleshootingInfo>(
+                            dalamudStartInfo.TroubleshootingPackData);
+                    this.HasModifiedGameDataFiles =
+                        tsInfo?.IndexIntegrity is LauncherTroubleshootingInfo.IndexIntegrityResult.Failed or LauncherTroubleshootingInfo.IndexIntegrityResult.Exception;
+                }
+                catch
+                {
+                    // ignored
+                }
             }
 
             this.IsDataReady = true;
@@ -143,6 +156,11 @@ public sealed class DataManager : IDisposable, IServiceType
     /// Gets a value indicating whether Game Data is ready to be read.
     /// </summary>
     public bool IsDataReady { get; private set; }
+
+    /// <summary>
+    /// Gets a value indicating whether the game data files have been modified by another third-party tool.
+    /// </summary>
+    public bool HasModifiedGameDataFiles { get; private set; }
 
     #region Lumina Wrappers
 
@@ -344,5 +362,20 @@ public sealed class DataManager : IDisposable, IServiceType
     void IDisposable.Dispose()
     {
         this.luminaCancellationTokenSource.Cancel();
+    }
+
+    private class LauncherTroubleshootingInfo
+    {
+        public enum IndexIntegrityResult
+        {
+            Failed,
+            Exception,
+            NoGame,
+            ReferenceNotFound,
+            ReferenceFetchFailure,
+            Success,
+        }
+
+        public IndexIntegrityResult IndexIntegrity { get; set; }
     }
 }
