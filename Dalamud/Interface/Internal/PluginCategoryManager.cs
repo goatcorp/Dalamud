@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 using CheapLoc;
+using Dalamud.Plugin.Internal;
 using Dalamud.Plugin.Internal.Types;
 
 namespace Dalamud.Interface.Internal;
@@ -20,6 +21,8 @@ internal class PluginCategoryManager
     private readonly CategoryInfo[] categoryList =
     {
         new(0, "special.all", () => Locs.Category_All),
+        new(1, "special.isTesting", () => Locs.Category_IsTesting, CategoryInfo.AppearCondition.DoPluginTest),
+        new(2, "special.availableForTesting", () => Locs.Category_AvailableForTesting, CategoryInfo.AppearCondition.DoPluginTest),
         new(10, "special.devInstalled", () => Locs.Category_DevInstalled),
         new(11, "special.devIconTester", () => Locs.Category_IconTester),
         new(12, "special.dalamud", () => Locs.Category_Dalamud),
@@ -39,7 +42,7 @@ internal class PluginCategoryManager
     private GroupInfo[] groupList =
     {
         new(GroupKind.DevTools, () => Locs.Group_DevTools, 10, 11),
-        new(GroupKind.Installed, () => Locs.Group_Installed, 0),
+        new(GroupKind.Installed, () => Locs.Group_Installed, 0, 1),
         new(GroupKind.Available, () => Locs.Group_Available, 0),
         new(GroupKind.Changelog, () => Locs.Group_Changelog, 0, 12, 13),
 
@@ -153,11 +156,11 @@ internal class PluginCategoryManager
         var categoryList = new List<int>();
         var allCategoryIndices = new List<int>();
 
-        foreach (var plugin in availablePlugins)
+        foreach (var manifest in availablePlugins)
         {
             categoryList.Clear();
 
-            var pluginCategoryTags = this.GetCategoryTagsForManifest(plugin);
+            var pluginCategoryTags = this.GetCategoryTagsForManifest(manifest);
             if (pluginCategoryTags != null)
             {
                 foreach (var tag in pluginCategoryTags)
@@ -180,12 +183,16 @@ internal class PluginCategoryManager
                 }
             }
 
+            if (PluginManager.HasTestingVersion(manifest) || manifest.IsTestingExclusive)
+                categoryList.Add(2);
+
             // always add, even if empty
-            this.mapPluginCategories.Add(plugin, categoryList.ToArray());
+            this.mapPluginCategories.Add(manifest, categoryList.ToArray());
         }
 
         // sort all categories by their loc name
         allCategoryIndices.Sort((idxX, idxY) => this.CategoryList[idxX].Name.CompareTo(this.CategoryList[idxY].Name));
+        allCategoryIndices.Insert(0, 2); // "Available for testing"
 
         // rebuild all categories in group, leaving first entry = All intact and always on top
         if (groupAvail.Categories.Count > 1)
@@ -321,12 +328,35 @@ internal class PluginCategoryManager
         /// <param name="categoryId">Unique id of category.</param>
         /// <param name="tag">Tag to match.</param>
         /// <param name="nameFunc">Function returning localized name of category.</param>
-        public CategoryInfo(int categoryId, string tag, Func<string> nameFunc)
+        /// <param name="condition">Condition to be checked when deciding whether this category should be shown.</param>
+        public CategoryInfo(int categoryId, string tag, Func<string> nameFunc, AppearCondition condition = AppearCondition.None)
         {
             this.CategoryId = categoryId;
             this.Tag = tag;
             this.nameFunc = nameFunc;
+            this.Condition = condition;
         }
+
+        /// <summary>
+        /// Conditions for categories.
+        /// </summary>
+        public enum AppearCondition
+        {
+            /// <summary>
+            /// Check no conditions.
+            /// </summary>
+            None,
+
+            /// <summary>
+            /// Check if plugin testing is enabled.
+            /// </summary>
+            DoPluginTest,
+        }
+
+        /// <summary>
+        /// Gets or sets the condition to be checked when rendering.
+        /// </summary>
+        public AppearCondition Condition { get; set; }
 
         /// <summary>
         /// Gets the name of category.
@@ -389,6 +419,10 @@ internal class PluginCategoryManager
         #region Categories
 
         public static string Category_All => Loc.Localize("InstallerCategoryAll", "All");
+
+        public static string Category_IsTesting => Loc.Localize("InstallerCategoryIsTesting", "Currently Testing");
+
+        public static string Category_AvailableForTesting => Loc.Localize("InstallerCategoryAvailableForTesting", "Testing Available");
 
         public static string Category_DevInstalled => Loc.Localize("InstallerInstalledDevPlugins", "Installed Dev Plugins");
 

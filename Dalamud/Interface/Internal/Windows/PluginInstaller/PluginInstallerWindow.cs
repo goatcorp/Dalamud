@@ -918,9 +918,10 @@ internal class PluginInstallerWindow : Window, IDisposable
         }
     }
 
-    private void DrawInstalledPluginList()
+    private void DrawInstalledPluginList(bool filterTesting)
     {
         var pluginList = this.pluginListInstalled;
+        var manager = Service<PluginManager>.Get();
 
         if (pluginList.Count == 0)
         {
@@ -941,6 +942,9 @@ internal class PluginInstallerWindow : Window, IDisposable
         var i = 0;
         foreach (var plugin in filteredList)
         {
+            if (filterTesting && !manager.HasTestingOptIn(plugin.Manifest))
+                continue;
+
             this.DrawInstalledPlugin(plugin, i++);
         }
     }
@@ -1043,6 +1047,19 @@ internal class PluginInstallerWindow : Window, IDisposable
                 {
                     var categoryInfo = Array.Find(this.categoryManager.CategoryList, x => x.CategoryId == groupInfo.Categories[categoryIdx]);
 
+                    switch (categoryInfo.Condition)
+                    {
+                        case PluginCategoryManager.CategoryInfo.AppearCondition.None:
+                            // Do nothing
+                            break;
+                        case PluginCategoryManager.CategoryInfo.AppearCondition.DoPluginTest:
+                            if (!Service<DalamudConfiguration>.Get().DoPluginTest)
+                                continue;
+                            break;
+                        default:
+                            throw new ArgumentOutOfRangeException();
+                    }
+
                     var hasSearchHighlight = this.categoryManager.IsCategoryHighlighted(categoryInfo.CategoryId);
                     if (hasSearchHighlight)
                     {
@@ -1135,7 +1152,17 @@ internal class PluginInstallerWindow : Window, IDisposable
 
                 break;
             case PluginCategoryManager.GroupKind.Installed:
-                this.DrawInstalledPluginList();
+                switch (this.categoryManager.CurrentCategoryIdx)
+                {
+                    case 0:
+                        this.DrawInstalledPluginList(false);
+                        break;
+
+                    case 1:
+                        this.DrawInstalledPluginList(true);
+                        break;
+                }
+
                 break;
             case PluginCategoryManager.GroupKind.Changelog:
                 switch (this.categoryManager.CurrentCategoryIdx)
@@ -1677,7 +1704,6 @@ internal class PluginInstallerWindow : Window, IDisposable
         var pluginManager = Service<PluginManager>.Get();
 
         var useTesting = pluginManager.UseTesting(manifest);
-        var activelyTesting = useTesting || manifest.IsTestingExclusive;
         var wasSeen = this.WasPluginSeen(manifest.InternalName);
 
         var isOutdated = manifest.DalamudApiLevel < PluginManager.DalamudApiLevel;
@@ -1693,9 +1719,13 @@ internal class PluginInstallerWindow : Window, IDisposable
         var label = manifest.Name;
 
         // Testing
-        if (activelyTesting)
+        if (useTesting)
         {
             label += Locs.PluginTitleMod_TestingVersion;
+        }
+        else if (manifest.IsTestingExclusive)
+        {
+            label += Locs.PluginTitleMod_TestingExclusive;
         }
         else if (configuration.DoPluginTest && PluginManager.HasTestingVersion(manifest))
         {
@@ -2832,7 +2862,9 @@ internal class PluginInstallerWindow : Window, IDisposable
 
         public static string PluginTitleMod_TestingVersion => Loc.Localize("InstallerTestingVersion", " (testing version)");
 
-        public static string PluginTitleMod_TestingAvailable => Loc.Localize("InstallerTestingAvailable", " (available for testing)");
+        public static string PluginTitleMod_TestingExclusive => Loc.Localize("InstallerTestingExclusive", " (testing exclusive)");
+
+        public static string PluginTitleMod_TestingAvailable => Loc.Localize("InstallerTestingAvailable", " (has testing version)");
 
         public static string PluginTitleMod_DevPlugin => Loc.Localize("InstallerDevPlugin", " (dev plugin)");
 
