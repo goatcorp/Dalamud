@@ -206,6 +206,25 @@ Thanks and have fun!";
     }
 
     /// <summary>
+    /// Check if a manifest even has an available testing version.
+    /// </summary>
+    /// <param name="manifest">The manifest to test.</param>
+    /// <returns>Whether or not a testing version is available.</returns>
+    public static bool HasTestingVersion(PluginManifest manifest)
+    {
+        var av = manifest.AssemblyVersion;
+        var tv = manifest.TestingAssemblyVersion;
+        var hasTv = tv != null;
+
+        if (hasTv)
+        {
+            return tv > av;
+        }
+
+        return false;
+    }
+
+    /// <summary>
     /// Print to chat any plugin updates and whether they were successful.
     /// </summary>
     /// <param name="updateMetadata">The list of updated plugin metadata.</param>
@@ -250,6 +269,16 @@ Thanks and have fun!";
     }
 
     /// <summary>
+    /// For a given manifest, determine if the user opted into testing this plugin.
+    /// </summary>
+    /// <param name="manifest">Manifest to check.</param>
+    /// <returns>A value indicating whether testing should be used.</returns>
+    public bool HasTestingOptIn(PluginManifest manifest)
+    {
+        return this.configuration.PluginTestingOptIns!.Any(x => x.InternalName == manifest.InternalName);
+    }
+
+    /// <summary>
     /// For a given manifest, determine if the testing version should be used over the normal version.
     /// The higher of the two versions is calculated after checking other settings.
     /// </summary>
@@ -260,22 +289,13 @@ Thanks and have fun!";
         if (!this.configuration.DoPluginTest)
             return false;
 
-        if (this.configuration.PluginTestingOptIns!.All(x => x.InternalName != manifest.InternalName))
+        if (!this.HasTestingOptIn(manifest))
             return false;
 
         if (manifest.IsTestingExclusive)
             return true;
 
-        var av = manifest.AssemblyVersion;
-        var tv = manifest.TestingAssemblyVersion;
-        var hasTv = tv != null;
-
-        if (hasTv)
-        {
-            return tv > av;
-        }
-
-        return false;
+        return HasTestingVersion(manifest);
     }
 
     /// <inheritdoc/>

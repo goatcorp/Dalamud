@@ -1677,6 +1677,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         var pluginManager = Service<PluginManager>.Get();
 
         var useTesting = pluginManager.UseTesting(manifest);
+        var activelyTesting = useTesting || manifest.IsTestingExclusive;
         var wasSeen = this.WasPluginSeen(manifest.InternalName);
 
         var isOutdated = manifest.DalamudApiLevel < PluginManager.DalamudApiLevel;
@@ -1692,9 +1693,13 @@ internal class PluginInstallerWindow : Window, IDisposable
         var label = manifest.Name;
 
         // Testing
-        if (useTesting || manifest.IsTestingExclusive)
+        if (activelyTesting)
         {
             label += Locs.PluginTitleMod_TestingVersion;
+        }
+        else if (configuration.DoPluginTest && PluginManager.HasTestingVersion(manifest))
+        {
+            label += Locs.PluginTitleMod_TestingAvailable;
         }
 
         ImGui.PushID($"available{index}{manifest.InternalName}");
