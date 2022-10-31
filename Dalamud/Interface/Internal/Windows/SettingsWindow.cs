@@ -12,6 +12,7 @@ using Dalamud.Game.Gui.Dtr;
 using Dalamud.Game.Text;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Components;
+using Dalamud.Interface.Internal.Windows.PluginInstaller;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin.Internal;
 using Dalamud.Utility;
@@ -229,7 +230,7 @@ internal class SettingsWindow : Window
     {
         ImGui.Text(Loc.Localize("DalamudSettingsLanguage", "Language"));
         ImGui.Combo("##XlLangCombo", ref this.langIndex, this.locLanguages, this.locLanguages.Length);
-        ImGui.TextColored(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingsLanguageHint", "Select the language Dalamud will be displayed in."));
+        ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingsLanguageHint", "Select the language Dalamud will be displayed in."));
 
         ImGuiHelpers.ScaledDummy(5);
 
@@ -247,30 +248,30 @@ internal class SettingsWindow : Window
             ImGui.EndCombo();
         }
 
-        ImGui.TextColored(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingsChannelHint", "Select the chat channel that is to be used for general Dalamud messages."));
+        ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingsChannelHint", "Select the chat channel that is to be used for general Dalamud messages."));
 
         ImGuiHelpers.ScaledDummy(5);
 
         ImGui.Checkbox(Loc.Localize("DalamudSettingsWaitForPluginsOnStartup", "Wait for plugins before game loads"), ref this.doWaitForPluginsOnStartup);
-        ImGui.TextColored(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingsWaitForPluginsOnStartupHint", "Do not let the game load, until plugins are loaded."));
+        ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingsWaitForPluginsOnStartupHint", "Do not let the game load, until plugins are loaded."));
 
         ImGui.Checkbox(Loc.Localize("DalamudSettingsFlash", "Flash FFXIV window on duty pop"), ref this.doCfTaskBarFlash);
-        ImGui.TextColored(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingsFlashHint", "Flash the FFXIV window in your task bar when a duty is ready."));
+        ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingsFlashHint", "Flash the FFXIV window in your task bar when a duty is ready."));
 
         ImGui.Checkbox(Loc.Localize("DalamudSettingsDutyFinderMessage", "Chatlog message on duty pop"), ref this.doCfChatMessage);
-        ImGui.TextColored(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingsDutyFinderMessageHint", "Send a message in FFXIV chat when a duty is ready."));
+        ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingsDutyFinderMessageHint", "Send a message in FFXIV chat when a duty is ready."));
 
         ImGui.Checkbox(Loc.Localize("DalamudSettingsPrintPluginsWelcomeMsg", "Display loaded plugins in the welcome message"), ref this.printPluginsWelcomeMsg);
-        ImGui.TextColored(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingsPrintPluginsWelcomeMsgHint", "Display loaded plugins in FFXIV chat when logging in with a character."));
+        ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingsPrintPluginsWelcomeMsgHint", "Display loaded plugins in FFXIV chat when logging in with a character."));
 
         ImGui.Checkbox(Loc.Localize("DalamudSettingsAutoUpdatePlugins", "Auto-update plugins"), ref this.autoUpdatePlugins);
-        ImGui.TextColored(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingsAutoUpdatePluginsMsgHint", "Automatically update plugins when logging in with a character."));
+        ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingsAutoUpdatePluginsMsgHint", "Automatically update plugins when logging in with a character."));
 
         ImGui.Checkbox(Loc.Localize("DalamudSettingsSystemMenu", "Dalamud buttons in system menu"), ref this.doButtonsSystemMenu);
-        ImGui.TextColored(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingsSystemMenuMsgHint", "Add buttons for Dalamud plugins and settings to the system menu."));
+        ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingsSystemMenuMsgHint", "Add buttons for Dalamud plugins and settings to the system menu."));
 
         ImGui.Checkbox(Loc.Localize("DalamudSettingsDisableRmtFiltering", "Disable RMT Filtering"), ref this.disableRmtFiltering);
-        ImGui.TextColored(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingsDisableRmtFilteringMsgHint", "Disable Dalamud's built-in RMT ad filtering."));
+        ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingsDisableRmtFilteringMsgHint", "Disable Dalamud's built-in RMT ad filtering."));
 
         ImGuiHelpers.ScaledDummy(5);
 
@@ -336,7 +337,7 @@ internal class SettingsWindow : Window
             interfaceManager.RebuildFonts();
         }
 
-        ImGui.TextColored(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingsGlobalUiScaleHint", "Scale text in all XIVLauncher UI elements - this is useful for 4K displays."));
+        ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingsGlobalUiScaleHint", "Scale text in all XIVLauncher UI elements - this is useful for 4K displays."));
 
         ImGuiHelpers.ScaledDummy(10, 16);
 
@@ -345,7 +346,7 @@ internal class SettingsWindow : Window
             Service<DalamudInterface>.Get().OpenStyleEditor();
         }
 
-        ImGui.TextColored(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingsStyleEditorHint", "Modify the look & feel of Dalamud windows."));
+        ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingsStyleEditorHint", "Modify the look & feel of Dalamud windows."));
 
         ImGuiHelpers.ScaledDummy(10);
 
@@ -355,39 +356,39 @@ internal class SettingsWindow : Window
             interfaceManager.RebuildFonts();
         }
 
-        ImGui.TextColored(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingToggleUiAxisFontsHint", "Use AXIS fonts (the game's main UI fonts) as default Dalamud font."));
+        ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingToggleUiAxisFontsHint", "Use AXIS fonts (the game's main UI fonts) as default Dalamud font."));
 
         ImGuiHelpers.ScaledDummy(10);
 
-        ImGui.TextColored(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingToggleUiHideOptOutNote", "Plugins may independently opt out of the settings below."));
+        ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingToggleUiHideOptOutNote", "Plugins may independently opt out of the settings below."));
 
         ImGuiHelpers.ScaledDummy(3);
 
         ImGui.Checkbox(Loc.Localize("DalamudSettingToggleUiHide", "Hide plugin UI when the game UI is toggled off"), ref this.doToggleUiHide);
-        ImGui.TextColored(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingToggleUiHideHint", "Hide any open windows by plugins when toggling the game overlay."));
+        ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingToggleUiHideHint", "Hide any open windows by plugins when toggling the game overlay."));
 
         ImGui.Checkbox(Loc.Localize("DalamudSettingToggleUiHideDuringCutscenes", "Hide plugin UI during cutscenes"), ref this.doToggleUiHideDuringCutscenes);
-        ImGui.TextColored(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingToggleUiHideDuringCutscenesHint", "Hide any open windows by plugins during cutscenes."));
+        ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingToggleUiHideDuringCutscenesHint", "Hide any open windows by plugins during cutscenes."));
 
         ImGui.Checkbox(Loc.Localize("DalamudSettingToggleUiHideDuringGpose", "Hide plugin UI while gpose is active"), ref this.doToggleUiHideDuringGpose);
-        ImGui.TextColored(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingToggleUiHideDuringGposeHint", "Hide any open windows by plugins while gpose is active."));
+        ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingToggleUiHideDuringGposeHint", "Hide any open windows by plugins while gpose is active."));
 
         ImGuiHelpers.ScaledDummy(10, 16);
 
         ImGui.Checkbox(Loc.Localize("DalamudSettingToggleFocusManagement", "Use escape to close Dalamud windows"), ref this.doFocus);
-        ImGui.TextColored(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingToggleFocusManagementHint", "This will cause Dalamud windows to behave like in-game windows when pressing escape.\nThey will close one after another until all are closed. May not work for all plugins."));
+        ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingToggleFocusManagementHint", "This will cause Dalamud windows to behave like in-game windows when pressing escape.\nThey will close one after another until all are closed. May not work for all plugins."));
 
         ImGui.Checkbox(Loc.Localize("DalamudSettingToggleViewports", "Enable multi-monitor windows"), ref this.doViewport);
-        ImGui.TextColored(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingToggleViewportsHint", "This will allow you move plugin windows onto other monitors.\nWill only work in Borderless Window or Windowed mode."));
+        ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingToggleViewportsHint", "This will allow you move plugin windows onto other monitors.\nWill only work in Borderless Window or Windowed mode."));
 
         ImGui.Checkbox(Loc.Localize("DalamudSettingToggleDocking", "Enable window docking"), ref this.doDocking);
-        ImGui.TextColored(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingToggleDockingHint", "This will allow you to fuse and tab plugin windows."));
+        ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingToggleDockingHint", "This will allow you to fuse and tab plugin windows."));
 
         ImGui.Checkbox(Loc.Localize("DalamudSettingToggleGamepadNavigation", "Control plugins via gamepad"), ref this.doGamepad);
-        ImGui.TextColored(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingToggleGamepadNavigationHint", "This will allow you to toggle between game and plugin navigation via L1+L3.\nToggle the PluginInstaller window via R3 if ImGui navigation is enabled."));
+        ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingToggleGamepadNavigationHint", "This will allow you to toggle between game and plugin navigation via L1+L3.\nToggle the PluginInstaller window via R3 if ImGui navigation is enabled."));
 
         ImGui.Checkbox(Loc.Localize("DalamudSettingToggleTsm", "Show title screen menu"), ref this.doTsm);
-        ImGui.TextColored(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingToggleTsmHint", "This will allow you to access certain Dalamud and Plugin functionality from the title screen."));
+        ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingToggleTsmHint", "This will allow you to access certain Dalamud and Plugin functionality from the title screen."));
 
         ImGuiHelpers.ScaledDummy(10, 16);
         ImGui.SetCursorPosY(ImGui.GetCursorPosY() + 3);
@@ -407,7 +408,7 @@ internal class SettingsWindow : Window
             interfaceManager.RebuildFonts();
         }
 
-        ImGui.TextColored(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingsFontGammaHint", "Changes the thickness of text."));
+        ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingsFontGammaHint", "Changes the thickness of text."));
 
         ImGuiHelpers.ScaledDummy(10, 16);
     }
@@ -415,7 +416,7 @@ internal class SettingsWindow : Window
     private void DrawServerInfoBarTab()
     {
         ImGui.Text(Loc.Localize("DalamudSettingServerInfoBar", "Server Info Bar configuration"));
-        ImGui.TextColored(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingServerInfoBarHint", "Plugins can put additional information into your server information bar(where world & time can be seen).\nYou can reorder and disable these here."));
+        ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingServerInfoBarHint", "Plugins can put additional information into your server information bar(where world & time can be seen).\nYou can reorder and disable these here."));
 
         ImGuiHelpers.ScaledDummy(10);
 
@@ -429,7 +430,7 @@ internal class SettingsWindow : Window
 
         if (order.Count == 0)
         {
-            ImGui.TextColored(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingServerInfoBarDidNone", "You have no plugins that use this feature."));
+            ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingServerInfoBarDidNone", "You have no plugins that use this feature."));
         }
 
         var isOrderChange = false;
@@ -504,11 +505,11 @@ internal class SettingsWindow : Window
         ImGuiHelpers.ScaledDummy(10);
 
         ImGui.Text(Loc.Localize("DalamudSettingServerInfoBarSpacing", "Server Info Bar spacing"));
-        ImGui.TextColored(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingServerInfoBarSpacingHint", "Configure the amount of space between entries in the server info bar here."));
+        ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingServerInfoBarSpacingHint", "Configure the amount of space between entries in the server info bar here."));
         ImGui.SliderInt("Spacing", ref this.dtrSpacing, 0, 40);
 
         ImGui.Text(Loc.Localize("DalamudSettingServerInfoBarDirection", "Server Info Bar direction"));
-        ImGui.TextColored(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingServerInfoBarDirectionHint", "If checked, the Server Info Bar elements will expand to the right instead of the left."));
+        ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingServerInfoBarDirectionHint", "If checked, the Server Info Bar elements will expand to the right instead of the left."));
         ImGui.Checkbox("Swap Direction", ref this.dtrSwapDirection);
     }
 
@@ -541,15 +542,20 @@ internal class SettingsWindow : Window
             }
         }
 
-        ImGui.TextColored(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingsPluginCustomizeWaitTimeHint", "Configure the wait time between stopping plugin and completely unloading plugin. If you are experiencing crashes when exiting the game, try increasing this value."));
+        ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingsPluginCustomizeWaitTimeHint", "Configure the wait time between stopping plugin and completely unloading plugin. If you are experiencing crashes when exiting the game, try increasing this value."));
 
         ImGuiHelpers.ScaledDummy(12);
 
         #region Plugin testing
 
         ImGui.Checkbox(Loc.Localize("DalamudSettingsPluginTest", "Get plugin testing builds"), ref this.doPluginTest);
-        ImGui.TextColored(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingsPluginTestHint", "Receive testing prereleases for plugins."));
-        ImGui.TextColored(ImGuiColors.DalamudRed, Loc.Localize("DalamudSettingsPluginTestWarning", "Testing plugins may not have been vetted before being published. Please only enable this if you are aware of the risks."));
+        ImGuiHelpers.SafeTextColoredWrapped(
+            ImGuiColors.DalamudGrey,
+            string.Format(
+                Loc.Localize("DalamudSettingsPluginTestHint", "Receive testing prereleases for selected plugins.\nTo opt-in to testing builds for a plugin, you have to right click it in the \"{0}\" tab of the plugin installer and select \"{1}\"."),
+                PluginCategoryManager.Locs.Group_Installed,
+                PluginInstallerWindow.Locs.PluginContext_TestingOptIn));
+        ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudRed, Loc.Localize("DalamudSettingsPluginTestWarning", "Testing plugins may not have been vetted before being published. Please only enable this if you are aware of the risks."));
 
         #endregion
 
@@ -563,7 +569,7 @@ internal class SettingsWindow : Window
             pluginManager.RefilterPluginMasters();
         }
 
-        ImGui.TextColored(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingsClearHiddenHint", "Restore plugins you have previously hidden from the plugin installer."));
+        ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingsClearHiddenHint", "Restore plugins you have previously hidden from the plugin installer."));
 
         #endregion
 
@@ -577,7 +583,7 @@ internal class SettingsWindow : Window
 
         ImGuiHelpers.ScaledDummy(12);
 
-        ImGui.TextColored(ImGuiColors.DalamudGrey, "Total memory used by Dalamud & Plugins: " + Util.FormatBytes(GC.GetTotalMemory(false)));
+        ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudGrey, "Total memory used by Dalamud & Plugins: " + Util.FormatBytes(GC.GetTotalMemory(false)));
     }
 
     private void DrawCustomReposSection()
@@ -591,10 +597,10 @@ internal class SettingsWindow : Window
             ImGui.PopStyleColor();
         }
 
-        ImGui.TextColored(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingCustomRepoHint", "Add custom plugin repositories."));
-        ImGui.TextColored(ImGuiColors.DalamudRed, Loc.Localize("DalamudSettingCustomRepoWarning", "We cannot take any responsibility for third-party plugins and repositories."));
-        ImGui.TextColored(ImGuiColors.DalamudRed, Loc.Localize("DalamudSettingCustomRepoWarning2", "Plugins have full control over your PC, like any other program, and may cause harm or crashes."));
-        ImGui.TextColored(ImGuiColors.DalamudRed, Loc.Localize("DalamudSettingCustomRepoWarning3", "Please make absolutely sure that you only install third-party plugins from developers you trust."));
+        ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingCustomRepoHint", "Add custom plugin repositories."));
+        ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudRed, Loc.Localize("DalamudSettingCustomRepoWarning", "We cannot take any responsibility for third-party plugins and repositories."));
+        ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudRed, Loc.Localize("DalamudSettingCustomRepoWarning2", "Plugins have full control over your PC, like any other program, and may cause harm or crashes."));
+        ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudRed, Loc.Localize("DalamudSettingCustomRepoWarning3", "Please make absolutely sure that you only install third-party plugins from developers you trust."));
 
         ImGuiHelpers.ScaledDummy(5);
 
@@ -718,7 +724,7 @@ internal class SettingsWindow : Window
 
         if (!string.IsNullOrEmpty(this.thirdRepoAddError))
         {
-            ImGui.TextColored(new Vector4(1, 0, 0, 1), this.thirdRepoAddError);
+            ImGuiHelpers.SafeTextColoredWrapped(new Vector4(1, 0, 0, 1), this.thirdRepoAddError);
         }
     }
 
@@ -733,7 +739,7 @@ internal class SettingsWindow : Window
             ImGui.PopStyleColor();
         }
 
-        ImGui.TextColored(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingsDevPluginLocationsHint", "Add additional dev plugin load locations.\nThese can be either the directory or DLL path."));
+        ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingsDevPluginLocationsHint", "Add additional dev plugin load locations.\nThese can be either the directory or DLL path."));
 
         ImGuiHelpers.ScaledDummy(5);
 
@@ -848,7 +854,7 @@ internal class SettingsWindow : Window
 
         if (!string.IsNullOrEmpty(this.devPluginLocationAddError))
         {
-            ImGui.TextColored(new Vector4(1, 0, 0, 1), this.devPluginLocationAddError);
+            ImGuiHelpers.SafeTextColoredWrapped(new Vector4(1, 0, 0, 1), this.devPluginLocationAddError);
         }
     }
 

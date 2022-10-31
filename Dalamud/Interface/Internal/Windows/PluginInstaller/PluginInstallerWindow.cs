@@ -2792,7 +2792,8 @@ internal class PluginInstallerWindow : Window, IDisposable
     }
 
     [SuppressMessage("StyleCop.CSharp.OrderingRules", "SA1201:Elements should appear in the correct order", Justification = "Disregard here")]
-    private static class Locs
+    [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1600:Elements should be documented", Justification = "Locs")]
+    internal static class Locs
     {
         #region Window Title
 

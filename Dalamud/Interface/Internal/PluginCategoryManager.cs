@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 using CheapLoc;
@@ -402,7 +403,8 @@ internal class PluginCategoryManager
         public string Name => this.nameFunc();
     }
 
-    private static class Locs
+    [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1600:Elements should be documented", Justification = "locs")]
+    internal static class Locs
     {
         #region UI groups
 

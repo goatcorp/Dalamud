@@ -149,6 +149,18 @@ public static class ImGuiHelpers
     public static void SafeTextWrapped(string text) => ImGui.TextWrapped(text.Replace("%", "%%"));
 
     /// <summary>
+    /// Write unformatted text wrapped.
+    /// </summary>
+    /// <param name="color">The color of the text.</param>
+    /// <param name="text">The text to write.</param>
+    public static void SafeTextColoredWrapped(Vector4 color, string text)
+    {
+        ImGui.PushStyleColor(ImGuiCol.Text, color);
+        ImGui.TextWrapped(text.Replace("%", "%%"));
+        ImGui.PopStyleColor();
+    }
+
+    /// <summary>
     /// Fills missing glyphs in target font from source font, if both are not null.
     /// </summary>
     /// <param name="source">Source font.</param>
