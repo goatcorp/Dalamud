@@ -70,7 +70,7 @@ public class SwapChainVtableResolver : BaseAddressResolver, ISwapChainAddressRes
                 var scanner = new SigScanner(processModule);
                 try
                 {
-                    var p = scanner.ScanText("E8 ?? ?? ?? ?? 45 0F B6 5E ??");
+                    var p = scanner.ScanText("F6 C2 01 0F 85 ?? ?? ?? ??"); // E8 ?? ?? ?? ?? 45 0F B6 5E ??
                     Log.Information($"ReShade DLL: {processModule.FileName} with DXGISwapChain::runtime_present at {p:X}");
 
                     this.Present = p;
