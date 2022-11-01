@@ -179,7 +179,7 @@ internal class DalamudCommands : IServiceType
 
         configuration.BadWords.Add(arguments);
 
-        configuration.Save();
+        configuration.QueueSave();
 
         chatGui.Print(string.Format(Loc.Localize("DalamudMuted", "Muted \"{0}\"."), arguments));
     }
@@ -197,7 +197,7 @@ internal class DalamudCommands : IServiceType
             return;
         }
 
-        configuration.Save();
+        configuration.QueueSave();
 
         foreach (var word in configuration.BadWords)
             chatGui.Print($"\"{word}\"");
@@ -212,7 +212,7 @@ internal class DalamudCommands : IServiceType
 
         configuration.BadWords.RemoveAll(x => x == arguments);
 
-        configuration.Save();
+        configuration.QueueSave();
 
         chatGui.Print(string.Format(Loc.Localize("DalamudUnmuted", "Unmuted \"{0}\"."), arguments));
     }
@@ -354,7 +354,7 @@ internal class DalamudCommands : IServiceType
             chatGui.Print(string.Format(Loc.Localize("DalamudLanguageSetTo", "Language set to {0}"), "default"));
         }
 
-        configuration.Save();
+        configuration.QueueSave();
     }
 
     private void OnOpenSettingsCommand(string command, string arguments)

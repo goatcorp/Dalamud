@@ -6,6 +6,7 @@ using System.Linq;
 
 using Dalamud.Game.Text;
 using Dalamud.Interface.Style;
+using Dalamud.Utility;
 using Newtonsoft.Json;
 using Serilog;
 using Serilog.Events;
@@ -27,6 +28,9 @@ internal sealed class DalamudConfiguration : IServiceType
 
     [JsonIgnore]
     private string configPath;
+
+    [JsonIgnore]
+    private bool isSaveQueued;
 
     /// <summary>
     /// Delegate for the <see cref="DalamudConfiguration.DalamudConfigurationSaved"/> event that occurs when the dalamud configuration is saved.
@@ -368,8 +372,29 @@ internal sealed class DalamudConfiguration : IServiceType
     /// <summary>
     /// Save the configuration at the path it was loaded from.
     /// </summary>
-    public void Save()
+    public void QueueSave()
     {
+        this.isSaveQueued = true;
+    }
+
+    /// <summary>
+    /// Save the file, if needed. Only needs to be done once a frame.
+    /// </summary>
+    internal void Update()
+    {
+        if (this.isSaveQueued)
+        {
+            this.Save();
+            this.isSaveQueued = false;
+
+            Log.Verbose("Config saved");
+        }
+    }
+
+    private void Save()
+    {
+        ThreadSafety.AssertMainThread();
+
         File.WriteAllText(this.configPath, JsonConvert.SerializeObject(this, SerializerSettings));
         this.DalamudConfigurationSaved?.Invoke(this);
     }

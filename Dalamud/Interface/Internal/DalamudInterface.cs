@@ -515,7 +515,7 @@ internal class DalamudInterface : IDisposable, IServiceType
                     if (ImGui.MenuItem("Draw dev menu at startup", string.Empty, ref devBarAtStartup))
                     {
                         configuration.DevBarOpenAtStartup ^= true;
-                        configuration.Save();
+                        configuration.QueueSave();
                     }
 
                     ImGui.Separator();
@@ -533,7 +533,7 @@ internal class DalamudInterface : IDisposable, IServiceType
                             {
                                 EntryPoint.LogLevelSwitch.MinimumLevel = logLevel;
                                 configuration.LogLevel = logLevel;
-                                configuration.Save();
+                                configuration.QueueSave();
                             }
                         }
 
@@ -544,7 +544,7 @@ internal class DalamudInterface : IDisposable, IServiceType
                     if (ImGui.MenuItem("Log Synchronously", null, ref logSynchronously))
                     {
                         configuration.LogSynchronously = logSynchronously;
-                        configuration.Save();
+                        configuration.QueueSave();
 
                         var startupInfo = Service<DalamudStartInfo>.Get();
                         EntryPoint.InitLogging(
@@ -563,7 +563,7 @@ internal class DalamudInterface : IDisposable, IServiceType
                             antiDebug.Disable();
 
                         configuration.IsAntiAntiDebugEnabled = newEnabled;
-                        configuration.Save();
+                        configuration.QueueSave();
                     }
 
                     ImGui.Separator();
@@ -693,7 +693,7 @@ internal class DalamudInterface : IDisposable, IServiceType
                     if (ImGui.MenuItem("Enable asserts at startup", null, configuration.AssertsEnabledAtStartup))
                     {
                         configuration.AssertsEnabledAtStartup = !configuration.AssertsEnabledAtStartup;
-                        configuration.Save();
+                        configuration.QueueSave();
                     }
 
                     if (ImGui.MenuItem("Clear focus"))

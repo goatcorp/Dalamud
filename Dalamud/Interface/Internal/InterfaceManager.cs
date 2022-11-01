@@ -484,7 +484,7 @@ internal class InterfaceManager : IDisposable, IServiceType
             {
                 style = StyleModelV1.DalamudStandard;
                 configuration.ChosenStyle = style.Name;
-                configuration.Save();
+                configuration.QueueSave();
             }
 
             style.Apply();

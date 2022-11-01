@@ -130,13 +130,13 @@ internal class ConsoleWindow : Window, IDisposable
             if (ImGui.Checkbox("Auto-scroll", ref this.autoScroll))
             {
                 configuration.LogAutoScroll = this.autoScroll;
-                configuration.Save();
+                configuration.QueueSave();
             }
 
             if (ImGui.Checkbox("Open at startup", ref this.openAtStartup))
             {
                 configuration.LogOpenAtStartup = this.openAtStartup;
-                configuration.Save();
+                configuration.QueueSave();
             }
 
             var prevLevel = (int)EntryPoint.LogLevelSwitch.MinimumLevel;
@@ -144,7 +144,7 @@ internal class ConsoleWindow : Window, IDisposable
             {
                 EntryPoint.LogLevelSwitch.MinimumLevel = (LogEventLevel)prevLevel;
                 configuration.LogLevel = (LogEventLevel)prevLevel;
-                configuration.Save();
+                configuration.QueueSave();
             }
 
             ImGui.EndPopup();

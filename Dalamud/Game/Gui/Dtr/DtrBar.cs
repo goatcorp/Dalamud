@@ -41,7 +41,7 @@ public sealed unsafe class DtrBar : IDisposable, IServiceType
 
         this.configuration.DtrOrder ??= new List<string>();
         this.configuration.DtrIgnore ??= new List<string>();
-        this.configuration.Save();
+        this.configuration.QueueSave();
     }
 
     /// <summary>

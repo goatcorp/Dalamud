@@ -269,7 +269,7 @@ public class ChatHandlers : IServiceType
             }
 
             this.configuration.LastVersion = assemblyVersion;
-            this.configuration.Save();
+            this.configuration.QueueSave();
         }
 
         this.hasSeenLoadingMsg = true;

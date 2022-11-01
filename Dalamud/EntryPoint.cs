@@ -334,7 +334,7 @@ public sealed class EntryPoint
                     Log.Information("User chose to disable plugins on next launch...");
                     var config = Service<DalamudConfiguration>.Get();
                     config.PluginSafeMode = true;
-                    config.Save();
+                    config.QueueSave();
                 }
 
                 Log.CloseAndFlush();

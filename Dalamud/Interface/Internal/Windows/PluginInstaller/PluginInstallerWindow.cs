@@ -207,7 +207,7 @@ internal class PluginInstallerWindow : Window, IDisposable
     /// <inheritdoc/>
     public override void OnClose()
     {
-        Service<DalamudConfiguration>.Get().Save();
+        Service<DalamudConfiguration>.Get().QueueSave();
     }
 
     /// <inheritdoc/>
@@ -477,7 +477,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         if (ImGui.Button(closeText))
         {
             this.IsOpen = false;
-            configuration.Save();
+            configuration.QueueSave();
         }
     }
 
@@ -1834,7 +1834,7 @@ internal class PluginInstallerWindow : Window, IDisposable
             if (ImGui.Selectable(Locs.PluginContext_MarkAllSeen))
             {
                 configuration.SeenPluginInternalName.AddRange(this.pluginListAvailable.Select(x => x.InternalName));
-                configuration.Save();
+                configuration.QueueSave();
                 pluginManager.RefilterPluginMasters();
             }
 
@@ -1842,7 +1842,7 @@ internal class PluginInstallerWindow : Window, IDisposable
             {
                 Log.Debug($"Adding {manifest.InternalName} to hidden plugins");
                 configuration.HiddenPluginInternalName.Add(manifest.InternalName);
-                configuration.Save();
+                configuration.QueueSave();
                 pluginManager.RefilterPluginMasters();
             }
 
@@ -2146,7 +2146,7 @@ internal class PluginInstallerWindow : Window, IDisposable
                     configuration.PluginTestingOptIns!.Add(new PluginTestingOptIn(plugin.Manifest.InternalName));
                 }
 
-                configuration.Save();
+                configuration.QueueSave();
             }
 
             if (repoManifest?.IsTestingExclusive == true)
@@ -2419,7 +2419,7 @@ internal class PluginInstallerWindow : Window, IDisposable
             if (ImGuiComponents.IconButton(FontAwesomeIcon.PowerOff))
             {
                 plugin.StartOnBoot ^= true;
-                configuration.Save();
+                configuration.QueueSave();
             }
 
             ImGui.PopStyleColor(2);
@@ -2437,7 +2437,7 @@ internal class PluginInstallerWindow : Window, IDisposable
             if (ImGuiComponents.IconButton(FontAwesomeIcon.SyncAlt))
             {
                 plugin.AutomaticReload ^= true;
-                configuration.Save();
+                configuration.QueueSave();
             }
 
             ImGui.PopStyleColor(2);

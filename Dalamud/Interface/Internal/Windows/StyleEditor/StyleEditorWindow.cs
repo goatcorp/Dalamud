@@ -105,7 +105,7 @@ public class StyleEditorWindow : Window
             newStyle.Apply();
             appliedThisFrame = true;
 
-            config.Save();
+            config.QueueSave();
         }
 
         ImGui.SameLine();
@@ -119,7 +119,7 @@ public class StyleEditorWindow : Window
 
             config.SavedStyles.RemoveAt(this.currentSel + 1);
 
-            config.Save();
+            config.QueueSave();
         }
 
         if (ImGui.IsItemHovered())
@@ -180,7 +180,7 @@ public class StyleEditorWindow : Window
 
                 this.currentSel = config.SavedStyles.Count - 1;
 
-                config.Save();
+                config.QueueSave();
             }
             catch (Exception ex)
             {
@@ -366,7 +366,7 @@ public class StyleEditorWindow : Window
             if (ImGui.Button("OK", new Vector2(buttonWidth, 40)))
             {
                 config.SavedStyles[this.currentSel].Name = this.renameText;
-                config.Save();
+                config.QueueSave();
 
                 ImGui.CloseCurrentPopup();
             }
@@ -396,6 +396,6 @@ public class StyleEditorWindow : Window
         config.SavedStyles[this.currentSel] = newStyle;
         newStyle.Apply();
 
-        config.Save();
+        config.QueueSave();
     }
 }

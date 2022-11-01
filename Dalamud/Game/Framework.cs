@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 
+using Dalamud.Configuration.Internal;
 using Dalamud.Game.Gui;
 using Dalamud.Game.Gui.Toast;
 using Dalamud.Game.Network;
@@ -372,12 +373,15 @@ public sealed class Framework : IDisposable, IServiceType
             var chatGui = Service<ChatGui>.GetNullable();
             var toastGui = Service<ToastGui>.GetNullable();
             var gameNetwork = Service<GameNetwork>.GetNullable();
+            var config = Service<DalamudConfiguration>.GetNullable();
             if (chatGui == null || toastGui == null || gameNetwork == null)
                 goto original;
 
             chatGui.UpdateQueue();
             toastGui.UpdateQueue();
             gameNetwork.UpdateQueue();
+
+            config?.Update();
         }
         catch (Exception ex)
         {

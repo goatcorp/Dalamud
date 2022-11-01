@@ -93,7 +93,7 @@ public abstract class StyleModel
         Log.Information("Transferred {NumStyles} styles", configuration.SavedStyles.Count);
 
         configuration.SavedStylesOld = null;
-        configuration.Save();
+        configuration.QueueSave();
     }
 
     /// <summary>

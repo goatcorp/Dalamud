@@ -106,7 +106,7 @@ Thanks and have fun!";
         if (this.SafeMode)
         {
             this.configuration.PluginSafeMode = false;
-            this.configuration.Save();
+            this.configuration.QueueSave();
         }
 
         this.PluginConfigs = new PluginConfigurations(Path.Combine(Path.GetDirectoryName(this.startInfo.ConfigurationPath) ?? string.Empty, "pluginConfigs"));
@@ -409,7 +409,7 @@ Thanks and have fun!";
                 }
             }
 
-            this.configuration.Save();
+            this.configuration.QueueSave();
 
             try
             {
@@ -716,8 +716,9 @@ Thanks and have fun!";
         // Ensure that we have a testing opt-in for this plugin if we are installing a testing version
         if (useTesting && this.configuration.PluginTestingOptIns!.All(x => x.InternalName != repoManifest.InternalName))
         {
+            // TODO: this isn't safe
             this.configuration.PluginTestingOptIns.Add(new PluginTestingOptIn(repoManifest.InternalName));
-            this.configuration.Save();
+            this.configuration.QueueSave();
         }
 
         var downloadUrl = useTesting ? repoManifest.DownloadLinkTesting : repoManifest.DownloadLinkInstall;

@@ -974,7 +974,7 @@ internal class SettingsWindow : Window
         configuration.DoButtonsSystemMenu = this.doButtonsSystemMenu;
         configuration.DisableRmtFiltering = this.disableRmtFiltering;
 
-        configuration.Save();
+        configuration.QueueSave();
 
         _ = Service<PluginManager>.Get().ReloadPluginMastersAsync();
         Service<InterfaceManager>.Get().RebuildFonts();
