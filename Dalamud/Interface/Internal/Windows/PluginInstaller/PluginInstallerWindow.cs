@@ -167,6 +167,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         LastUpdate,
         NewOrNot,
         NotInstalled,
+        EnabledDisabled,
     }
 
     private bool AnyOperationInProgress => this.installStatus == OperationStatus.InProgress ||
@@ -374,6 +375,7 @@ internal class PluginInstallerWindow : Window, IDisposable
             (Locs.SortBy_LastUpdate, PluginSortKind.LastUpdate),
             (Locs.SortBy_NewOrNot, PluginSortKind.NewOrNot),
             (Locs.SortBy_NotInstalled, PluginSortKind.NotInstalled),
+            (Locs.SortBy_EnabledDisabled, PluginSortKind.EnabledDisabled),
         };
         var longestSelectableWidth = sortSelectables.Select(t => ImGui.CalcTextSize(t.Localization).X).Max();
         var selectableWidth = longestSelectableWidth + (style.FramePadding.X * 2);  // This does not include the label
@@ -2707,6 +2709,18 @@ internal class PluginInstallerWindow : Window, IDisposable
                                                               .CompareTo(this.pluginListInstalled.Any(x => x.Manifest.InternalName == p2.InternalName)));
                 this.pluginListInstalled.Sort((p1, p2) => p1.Manifest.Name.CompareTo(p2.Manifest.Name)); // Makes no sense for installed plugins
                 break;
+            case PluginSortKind.EnabledDisabled:
+                this.pluginListAvailable.Sort((p1, p2) =>
+                {
+                    bool IsEnabled(PluginManifest manifest)
+                    {
+                        return this.pluginListInstalled.Any(x => x.Manifest.InternalName == manifest.InternalName);
+                    }
+
+                    return IsEnabled(p2).CompareTo(IsEnabled(p1));
+                });
+                this.pluginListInstalled.Sort((p1, p2) => (p2.State == PluginState.Loaded).CompareTo(p1.State == PluginState.Loaded));
+                break;
             default:
                 throw new InvalidEnumArgumentException("Unknown plugin sort type.");
         }
@@ -2822,6 +2836,8 @@ internal class PluginInstallerWindow : Window, IDisposable
         public static string SortBy_NewOrNot => Loc.Localize("InstallerNewOrNot", "New or not");
 
         public static string SortBy_NotInstalled => Loc.Localize("InstallerNotInstalled", "Not Installed");
+
+        public static string SortBy_EnabledDisabled => Loc.Localize("InstallerEnabledDisabled", "Enabled/Disabled");
 
         public static string SortBy_Label => Loc.Localize("InstallerSortBy", "Sort By");
 
