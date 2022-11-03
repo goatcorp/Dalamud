@@ -10,7 +10,7 @@
     <meta name="viewport" content="width=device-width">
     <meta name="title" content="Class LibcFunction
    ">
-    <meta name="generator" content="docfx 2.59.1.0">
+    <meta name="generator" content="docfx 2.59.4.0">
     
     <link rel="shortcut icon" href="../favicon.ico">
     <link rel="stylesheet" href="../styles/docfx.vendor.css">
@@ -81,6 +81,10 @@
     <div class="level0"><span class="xref">System.Object</span></div>
     <div class="level1"><span class="xref">LibcFunction</span></div>
   </div>
+  <div class="implements">
+    <h5>Implements</h5>
+    <div><a class="xref" href="Dalamud.IServiceType.html">IServiceType</a></div>
+  </div>
   <div class="inheritedMembers">
     <h5>Inherited Members</h5>
     <div>
@@ -109,25 +113,7 @@
   <h6><strong>Assembly</strong>: Dalamud.dll</h6>
   <h5 id="Dalamud_Game_Libc_LibcFunction_syntax">Syntax</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public sealed class LibcFunction</code></pre>
-  </div>
-  <h3 id="constructors">Constructors
-  </h3>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Libc_LibcFunction__ctor.md&amp;value=---%0Auid%3A%20Dalamud.Game.Libc.LibcFunction.%23ctor%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Libc/LibcFunction.cs/#L24">View Source</a>
-  </span>
-  <a id="Dalamud_Game_Libc_LibcFunction__ctor_" data-uid="Dalamud.Game.Libc.LibcFunction.#ctor*"></a>
-  <h4 id="Dalamud_Game_Libc_LibcFunction__ctor" data-uid="Dalamud.Game.Libc.LibcFunction.#ctor">LibcFunction()</h4>
-  <div class="markdown level1 summary"><p>Initializes a new instance of the <a class="xref" href="Dalamud.Game.Libc.LibcFunction.html">LibcFunction</a> class.</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-  <h5 class="decalaration">Declaration</h5>
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public LibcFunction()</code></pre>
+    <pre><code class="lang-csharp hljs">public sealed class LibcFunction : IServiceType</code></pre>
   </div>
   <h3 id="methods">Methods
   </h3>
@@ -136,7 +122,7 @@
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Libc_LibcFunction_NewString_System_Byte___.md&amp;value=---%0Auid%3A%20Dalamud.Game.Libc.LibcFunction.NewString(System.Byte%5B%5D)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Libc/LibcFunction.cs/#L46">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Libc/LibcFunction.cs/#L45">View Source</a>
   </span>
   <a id="Dalamud_Game_Libc_LibcFunction_NewString_" data-uid="Dalamud.Game.Libc.LibcFunction.NewString*"></a>
   <h4 id="Dalamud_Game_Libc_LibcFunction_NewString_System_Byte___" data-uid="Dalamud.Game.Libc.LibcFunction.NewString(System.Byte[])">NewString(Byte[])</h4>
@@ -186,7 +172,7 @@
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Libc_LibcFunction_NewString_System_String_System_Text_Encoding_.md&amp;value=---%0Auid%3A%20Dalamud.Game.Libc.LibcFunction.NewString(System.String%2CSystem.Text.Encoding)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Libc/LibcFunction.cs/#L67">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Libc/LibcFunction.cs/#L66">View Source</a>
   </span>
   <a id="Dalamud_Game_Libc_LibcFunction_NewString_" data-uid="Dalamud.Game.Libc.LibcFunction.NewString*"></a>
   <h4 id="Dalamud_Game_Libc_LibcFunction_NewString_System_String_System_Text_Encoding_" data-uid="Dalamud.Game.Libc.LibcFunction.NewString(System.String,System.Text.Encoding)">NewString(String, Encoding)</h4>
@@ -237,6 +223,10 @@
       </tr>
     </tbody>
   </table>
+  <h3 id="implements">Implements</h3>
+  <div>
+      <a class="xref" href="Dalamud.IServiceType.html">IServiceType</a>
+  </div>
 </article>
           </div>
           

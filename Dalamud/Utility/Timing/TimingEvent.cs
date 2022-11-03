@@ -2,15 +2,24 @@ using System.Threading;
 
 namespace Dalamud.Utility.Timing;
 
+/// <summary>
+/// Class representing a timing event.
+/// </summary>
 public class TimingEvent
 {
-    private static long IdCounter = 0;
-
     /// <summary>
     /// Id of this timing event.
     /// </summary>
-    public readonly long Id = Interlocked.Increment(ref IdCounter);
+#pragma warning disable SA1401
+    public readonly long Id = Interlocked.Increment(ref idCounter);
+#pragma warning restore SA1401
 
+    private static long idCounter = 0;
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="TimingEvent"/> class.
+    /// </summary>
+    /// <param name="name">Name of the event.</param>
     internal TimingEvent(string name)
     {
         this.Name = name;

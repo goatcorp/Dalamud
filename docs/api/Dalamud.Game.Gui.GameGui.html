@@ -10,7 +10,7 @@
     <meta name="viewport" content="width=device-width">
     <meta name="title" content="Class GameGui
    ">
-    <meta name="generator" content="docfx 2.59.1.0">
+    <meta name="generator" content="docfx 2.59.4.0">
     
     <link rel="shortcut icon" href="../favicon.ico">
     <link rel="stylesheet" href="../styles/docfx.vendor.css">
@@ -81,9 +81,10 @@
     <div class="level0"><span class="xref">System.Object</span></div>
     <div class="level1"><span class="xref">GameGui</span></div>
   </div>
-  <div classs="implements">
+  <div class="implements">
     <h5>Implements</h5>
     <div><span class="xref">System.IDisposable</span></div>
+    <div><a class="xref" href="Dalamud.IServiceType.html">IServiceType</a></div>
   </div>
   <div class="inheritedMembers">
     <h5>Inherited Members</h5>
@@ -113,7 +114,7 @@
   <h6><strong>Assembly</strong>: Dalamud.dll</h6>
   <h5 id="Dalamud_Game_Gui_GameGui_syntax">Syntax</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public sealed class GameGui : IDisposable</code></pre>
+    <pre><code class="lang-csharp hljs">public sealed class GameGui : IDisposable, IServiceType</code></pre>
   </div>
   <h3 id="properties">Properties
   </h3>
@@ -122,7 +123,7 @@
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Gui_GameGui_GameUiHidden.md&amp;value=---%0Auid%3A%20Dalamud.Game.Gui.GameGui.GameUiHidden%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Gui/GameGui.cs/#L153">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Gui/GameGui.cs/#L134">View Source</a>
   </span>
   <a id="Dalamud_Game_Gui_GameGui_GameUiHidden_" data-uid="Dalamud.Game.Gui.GameGui.GameUiHidden*"></a>
   <h4 id="Dalamud_Game_Gui_GameGui_GameUiHidden" data-uid="Dalamud.Game.Gui.GameGui.GameUiHidden">GameUiHidden</h4>
@@ -153,7 +154,7 @@
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Gui_GameGui_HoveredAction.md&amp;value=---%0Auid%3A%20Dalamud.Game.Gui.GameGui.HoveredAction%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Gui/GameGui.cs/#L164">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Gui/GameGui.cs/#L145">View Source</a>
   </span>
   <a id="Dalamud_Game_Gui_GameGui_HoveredAction_" data-uid="Dalamud.Game.Gui.GameGui.HoveredAction*"></a>
   <h4 id="Dalamud_Game_Gui_GameGui_HoveredAction" data-uid="Dalamud.Game.Gui.GameGui.HoveredAction">HoveredAction</h4>
@@ -184,7 +185,7 @@
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Gui_GameGui_HoveredItem.md&amp;value=---%0Auid%3A%20Dalamud.Game.Gui.GameGui.HoveredItem%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Gui/GameGui.cs/#L159">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Gui/GameGui.cs/#L140">View Source</a>
   </span>
   <a id="Dalamud_Game_Gui_GameGui_HoveredItem_" data-uid="Dalamud.Game.Gui.GameGui.HoveredItem*"></a>
   <h4 id="Dalamud_Game_Gui_GameGui_HoveredItem" data-uid="Dalamud.Game.Gui.GameGui.HoveredItem">HoveredItem</h4>
@@ -215,26 +216,10 @@ If &gt; 1.000.000, subtract 1.000.000 and treat it as HQ.</p>
   </h3>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Gui_GameGui_Enable.md&amp;value=---%0Auid%3A%20Dalamud.Game.Gui.GameGui.Enable%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Gui/GameGui.cs/#L441">View Source</a>
-  </span>
-  <a id="Dalamud_Game_Gui_GameGui_Enable_" data-uid="Dalamud.Game.Gui.GameGui.Enable*"></a>
-  <h4 id="Dalamud_Game_Gui_GameGui_Enable" data-uid="Dalamud.Game.Gui.GameGui.Enable">Enable()</h4>
-  <div class="markdown level1 summary"><p>Enables the hooks and submodules of this module.</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-  <h5 class="decalaration">Declaration</h5>
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public void Enable()</code></pre>
-  </div>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Gui_GameGui_FindAgentInterface_System_IntPtr_.md&amp;value=---%0Auid%3A%20Dalamud.Game.Gui.GameGui.FindAgentInterface(System.IntPtr)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Gui/GameGui.cs/#L395">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Gui/GameGui.cs/#L376">View Source</a>
   </span>
   <a id="Dalamud_Game_Gui_GameGui_FindAgentInterface_" data-uid="Dalamud.Game.Gui.GameGui.FindAgentInterface*"></a>
   <h4 id="Dalamud_Game_Gui_GameGui_FindAgentInterface_System_IntPtr_" data-uid="Dalamud.Game.Gui.GameGui.FindAgentInterface(System.IntPtr)">FindAgentInterface(IntPtr)</h4>
@@ -243,7 +228,7 @@ If &gt; 1.000.000, subtract 1.000.000 and treat it as HQ.</p>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public IntPtr FindAgentInterface(IntPtr addon)</code></pre>
+    <pre><code class="lang-csharp hljs">public IntPtr FindAgentInterface(IntPtr addonPtr)</code></pre>
   </div>
   <h5 class="parameters">Parameters</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -257,7 +242,7 @@ If &gt; 1.000.000, subtract 1.000.000 and treat it as HQ.</p>
     <tbody>
       <tr>
         <td><span class="xref">System.IntPtr</span></td>
-        <td><span class="parametername">addon</span></td>
+        <td><span class="parametername">addonPtr</span></td>
         <td><p>The addon address.</p>
 </td>
       </tr>
@@ -284,7 +269,7 @@ If &gt; 1.000.000, subtract 1.000.000 and treat it as HQ.</p>
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Gui_GameGui_FindAgentInterface_System_String_.md&amp;value=---%0Auid%3A%20Dalamud.Game.Gui.GameGui.FindAgentInterface(System.String)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Gui/GameGui.cs/#L377">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Gui/GameGui.cs/#L358">View Source</a>
   </span>
   <a id="Dalamud_Game_Gui_GameGui_FindAgentInterface_" data-uid="Dalamud.Game.Gui.GameGui.FindAgentInterface*"></a>
   <h4 id="Dalamud_Game_Gui_GameGui_FindAgentInterface_System_String_" data-uid="Dalamud.Game.Gui.GameGui.FindAgentInterface(System.String)">FindAgentInterface(String)</h4>
@@ -334,7 +319,7 @@ If &gt; 1.000.000, subtract 1.000.000 and treat it as HQ.</p>
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Gui_GameGui_FindAgentInterface_System_Void__.md&amp;value=---%0Auid%3A%20Dalamud.Game.Gui.GameGui.FindAgentInterface(System.Void*)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Gui/GameGui.cs/#L388">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Gui/GameGui.cs/#L369">View Source</a>
   </span>
   <a id="Dalamud_Game_Gui_GameGui_FindAgentInterface_" data-uid="Dalamud.Game.Gui.GameGui.FindAgentInterface*"></a>
   <h4 id="Dalamud_Game_Gui_GameGui_FindAgentInterface_System_Void__" data-uid="Dalamud.Game.Gui.GameGui.FindAgentInterface(System.Void*)">FindAgentInterface(Void*)</h4>
@@ -384,7 +369,7 @@ If &gt; 1.000.000, subtract 1.000.000 and treat it as HQ.</p>
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Gui_GameGui_GetAddonByName_System_String_System_Int32_.md&amp;value=---%0Auid%3A%20Dalamud.Game.Gui.GameGui.GetAddonByName(System.String%2CSystem.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Gui/GameGui.cs/#L355">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Gui/GameGui.cs/#L336">View Source</a>
   </span>
   <a id="Dalamud_Game_Gui_GameGui_GetAddonByName_" data-uid="Dalamud.Game.Gui.GameGui.GetAddonByName*"></a>
   <h4 id="Dalamud_Game_Gui_GameGui_GetAddonByName_System_String_System_Int32_" data-uid="Dalamud.Game.Gui.GameGui.GetAddonByName(System.String,System.Int32)">GetAddonByName(String, Int32)</h4>
@@ -440,7 +425,7 @@ If &gt; 1.000.000, subtract 1.000.000 and treat it as HQ.</p>
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Gui_GameGui_GetUIModule.md&amp;value=---%0Auid%3A%20Dalamud.Game.Gui.GameGui.GetUIModule%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Gui/GameGui.cs/#L336">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Gui/GameGui.cs/#L317">View Source</a>
   </span>
   <a id="Dalamud_Game_Gui_GameGui_GetUIModule_" data-uid="Dalamud.Game.Gui.GameGui.GetUIModule*"></a>
   <h4 id="Dalamud_Game_Gui_GameGui_GetUIModule" data-uid="Dalamud.Game.Gui.GameGui.GetUIModule">GetUIModule()</h4>
@@ -472,7 +457,7 @@ If &gt; 1.000.000, subtract 1.000.000 and treat it as HQ.</p>
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Gui_GameGui_OpenMapWithMapLink_Dalamud_Game_Text_SeStringHandling_Payloads_MapLinkPayload_.md&amp;value=---%0Auid%3A%20Dalamud.Game.Gui.GameGui.OpenMapWithMapLink(Dalamud.Game.Text.SeStringHandling.Payloads.MapLinkPayload)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Gui/GameGui.cs/#L171">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Gui/GameGui.cs/#L152">View Source</a>
   </span>
   <a id="Dalamud_Game_Gui_GameGui_OpenMapWithMapLink_" data-uid="Dalamud.Game.Gui.GameGui.OpenMapWithMapLink*"></a>
   <h4 id="Dalamud_Game_Gui_GameGui_OpenMapWithMapLink_Dalamud_Game_Text_SeStringHandling_Payloads_MapLinkPayload_" data-uid="Dalamud.Game.Gui.GameGui.OpenMapWithMapLink(Dalamud.Game.Text.SeStringHandling.Payloads.MapLinkPayload)">OpenMapWithMapLink(MapLinkPayload)</h4>
@@ -522,7 +507,7 @@ If &gt; 1.000.000, subtract 1.000.000 and treat it as HQ.</p>
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Gui_GameGui_ScreenToWorld_System_Numerics_Vector2_System_Numerics_Vector3__System_Single_.md&amp;value=---%0Auid%3A%20Dalamud.Game.Gui.GameGui.ScreenToWorld(System.Numerics.Vector2%2CSystem.Numerics.Vector3%40%2CSystem.Single)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Gui/GameGui.cs/#L247">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Gui/GameGui.cs/#L228">View Source</a>
   </span>
   <a id="Dalamud_Game_Gui_GameGui_ScreenToWorld_" data-uid="Dalamud.Game.Gui.GameGui.ScreenToWorld*"></a>
   <h4 id="Dalamud_Game_Gui_GameGui_ScreenToWorld_System_Numerics_Vector2_System_Numerics_Vector3__System_Single_" data-uid="Dalamud.Game.Gui.GameGui.ScreenToWorld(System.Numerics.Vector2,System.Numerics.Vector3@,System.Single)">ScreenToWorld(Vector2, out Vector3, Single)</h4>
@@ -584,7 +569,7 @@ If &gt; 1.000.000, subtract 1.000.000 and treat it as HQ.</p>
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Gui_GameGui_SetBgm_System_UInt16_.md&amp;value=---%0Auid%3A%20Dalamud.Game.Gui.GameGui.SetBgm(System.UInt16)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Gui/GameGui.cs/#L436">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Gui/GameGui.cs/#L428">View Source</a>
   </span>
   <a id="Dalamud_Game_Gui_GameGui_SetBgm_" data-uid="Dalamud.Game.Gui.GameGui.SetBgm*"></a>
   <h4 id="Dalamud_Game_Gui_GameGui_SetBgm_System_UInt16_" data-uid="Dalamud.Game.Gui.GameGui.SetBgm(System.UInt16)">SetBgm(UInt16)</h4>
@@ -618,7 +603,7 @@ If &gt; 1.000.000, subtract 1.000.000 and treat it as HQ.</p>
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Gui_GameGui_WorldToScreen_System_Numerics_Vector3_System_Numerics_Vector2__.md&amp;value=---%0Auid%3A%20Dalamud.Game.Gui.GameGui.WorldToScreen(System.Numerics.Vector3%2CSystem.Numerics.Vector2%40)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Gui/GameGui.cs/#L206">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Gui/GameGui.cs/#L187">View Source</a>
   </span>
   <a id="Dalamud_Game_Gui_GameGui_WorldToScreen_" data-uid="Dalamud.Game.Gui.GameGui.WorldToScreen*"></a>
   <h4 id="Dalamud_Game_Gui_GameGui_WorldToScreen_System_Numerics_Vector3_System_Numerics_Vector2__" data-uid="Dalamud.Game.Gui.GameGui.WorldToScreen(System.Numerics.Vector3,System.Numerics.Vector2@)">WorldToScreen(Vector3, out Vector2)</h4>
@@ -676,7 +661,7 @@ If &gt; 1.000.000, subtract 1.000.000 and treat it as HQ.</p>
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Gui_GameGui_HoveredActionChanged.md&amp;value=---%0Auid%3A%20Dalamud.Game.Gui.GameGui.HoveredActionChanged%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Gui/GameGui.cs/#L148">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Gui/GameGui.cs/#L129">View Source</a>
   </span>
   <h4 id="Dalamud_Game_Gui_GameGui_HoveredActionChanged" data-uid="Dalamud.Game.Gui.GameGui.HoveredActionChanged">HoveredActionChanged</h4>
   <div class="markdown level1 summary"><p>Event that is fired when the currently hovered action changes.</p>
@@ -706,7 +691,7 @@ If &gt; 1.000.000, subtract 1.000.000 and treat it as HQ.</p>
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Gui_GameGui_HoveredItemChanged.md&amp;value=---%0Auid%3A%20Dalamud.Game.Gui.GameGui.HoveredItemChanged%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Gui/GameGui.cs/#L143">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Gui/GameGui.cs/#L124">View Source</a>
   </span>
   <h4 id="Dalamud_Game_Gui_GameGui_HoveredItemChanged" data-uid="Dalamud.Game.Gui.GameGui.HoveredItemChanged">HoveredItemChanged</h4>
   <div class="markdown level1 summary"><p>Event that is fired when the currently hovered item changes.</p>
@@ -736,7 +721,7 @@ If &gt; 1.000.000, subtract 1.000.000 and treat it as HQ.</p>
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Gui_GameGui_UiHideToggled.md&amp;value=---%0Auid%3A%20Dalamud.Game.Gui.GameGui.UiHideToggled%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Gui/GameGui.cs/#L138">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Gui/GameGui.cs/#L119">View Source</a>
   </span>
   <h4 id="Dalamud_Game_Gui_GameGui_UiHideToggled" data-uid="Dalamud.Game.Gui.GameGui.UiHideToggled">UiHideToggled</h4>
   <div class="markdown level1 summary"><p>Event which is fired when the game UI hiding is toggled.</p>
@@ -768,7 +753,7 @@ If &gt; 1.000.000, subtract 1.000.000 and treat it as HQ.</p>
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Gui_GameGui_System_IDisposable_Dispose.md&amp;value=---%0Auid%3A%20Dalamud.Game.Gui.GameGui.System%23IDisposable%23Dispose%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Gui/GameGui.cs/#L469">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Gui/GameGui.cs/#L412">View Source</a>
   </span>
   <a id="Dalamud_Game_Gui_GameGui_System_IDisposable_Dispose_" data-uid="Dalamud.Game.Gui.GameGui.System#IDisposable#Dispose*"></a>
   <h4 id="Dalamud_Game_Gui_GameGui_System_IDisposable_Dispose" data-uid="Dalamud.Game.Gui.GameGui.System#IDisposable#Dispose">IDisposable.Dispose()</h4>
@@ -783,6 +768,9 @@ If &gt; 1.000.000, subtract 1.000.000 and treat it as HQ.</p>
   <div>
       <span class="xref">System.IDisposable</span>
   </div>
+  <div>
+      <a class="xref" href="Dalamud.IServiceType.html">IServiceType</a>
+  </div>
 </article>
           </div>
           
@@ -794,7 +782,7 @@ If &gt; 1.000.000, subtract 1.000.000 and treat it as HQ.</p>
                     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Gui_GameGui.md&amp;value=---%0Auid%3A%20Dalamud.Game.Gui.GameGui%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
                   </li>
                   <li>
-                    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Gui/GameGui.cs/#L26" class="contribution-link">View Source</a>
+                    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Gui/GameGui.cs/#L22" class="contribution-link">View Source</a>
                   </li>
                 </ul>
               </div>

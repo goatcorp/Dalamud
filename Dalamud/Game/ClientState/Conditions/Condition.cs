@@ -4,152 +4,151 @@ using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Serilog;
 
-namespace Dalamud.Game.ClientState.Conditions
+namespace Dalamud.Game.ClientState.Conditions;
+
+/// <summary>
+/// Provides access to conditions (generally player state). You can check whether a player is in combat, mounted, etc.
+/// </summary>
+[PluginInterface]
+[InterfaceVersion("1.0")]
+[ServiceManager.BlockingEarlyLoadedService]
+public sealed partial class Condition : IServiceType
 {
     /// <summary>
-    /// Provides access to conditions (generally player state). You can check whether a player is in combat, mounted, etc.
+    /// The current max number of conditions. You can get this just by looking at the condition sheet and how many rows it has.
     /// </summary>
-    [PluginInterface]
-    [InterfaceVersion("1.0")]
-    [ServiceManager.BlockingEarlyLoadedService]
-    public sealed partial class Condition : IServiceType
+    public const int MaxConditionEntries = 100;
+
+    private readonly bool[] cache = new bool[MaxConditionEntries];
+
+    [ServiceManager.ServiceConstructor]
+    private Condition(ClientState clientState)
     {
-        /// <summary>
-        /// The current max number of conditions. You can get this just by looking at the condition sheet and how many rows it has.
-        /// </summary>
-        public const int MaxConditionEntries = 100;
+        var resolver = clientState.AddressResolver;
+        this.Address = resolver.ConditionFlags;
+    }
 
-        private readonly bool[] cache = new bool[MaxConditionEntries];
+    /// <summary>
+    /// A delegate type used with the <see cref="ConditionChange"/> event.
+    /// </summary>
+    /// <param name="flag">The changed condition.</param>
+    /// <param name="value">The value the condition is set to.</param>
+    public delegate void ConditionChangeDelegate(ConditionFlag flag, bool value);
 
-        [ServiceManager.ServiceConstructor]
-        private Condition(ClientState clientState)
+    /// <summary>
+    /// Event that gets fired when a condition is set.
+    /// Should only get fired for actual changes, so the previous value will always be !value.
+    /// </summary>
+    public event ConditionChangeDelegate? ConditionChange;
+
+    /// <summary>
+    /// Gets the condition array base pointer.
+    /// </summary>
+    public IntPtr Address { get; private set; }
+
+    /// <summary>
+    /// Check the value of a specific condition/state flag.
+    /// </summary>
+    /// <param name="flag">The condition flag to check.</param>
+    public unsafe bool this[int flag]
+    {
+        get
         {
-            var resolver = clientState.AddressResolver;
-            this.Address = resolver.ConditionFlags;
+            if (flag < 0 || flag >= MaxConditionEntries)
+                return false;
+
+            return *(bool*)(this.Address + flag);
+        }
+    }
+
+    /// <inheritdoc cref="this[int]"/>
+    public unsafe bool this[ConditionFlag flag]
+        => this[(int)flag];
+
+    /// <summary>
+    /// Check if any condition flags are set.
+    /// </summary>
+    /// <returns>Whether any single flag is set.</returns>
+    public bool Any()
+    {
+        for (var i = 0; i < MaxConditionEntries; i++)
+        {
+            var cond = this[i];
+
+            if (cond)
+                return true;
         }
 
-        /// <summary>
-        /// A delegate type used with the <see cref="ConditionChange"/> event.
-        /// </summary>
-        /// <param name="flag">The changed condition.</param>
-        /// <param name="value">The value the condition is set to.</param>
-        public delegate void ConditionChangeDelegate(ConditionFlag flag, bool value);
+        return false;
+    }
 
-        /// <summary>
-        /// Event that gets fired when a condition is set.
-        /// Should only get fired for actual changes, so the previous value will always be !value.
-        /// </summary>
-        public event ConditionChangeDelegate? ConditionChange;
+    [ServiceManager.CallWhenServicesReady]
+    private void ContinueConstruction(Framework framework)
+    {
+        // Initialization
+        for (var i = 0; i < MaxConditionEntries; i++)
+            this.cache[i] = this[i];
 
-        /// <summary>
-        /// Gets the condition array base pointer.
-        /// </summary>
-        public IntPtr Address { get; private set; }
+        framework.Update += this.FrameworkUpdate;
+    }
 
-        /// <summary>
-        /// Check the value of a specific condition/state flag.
-        /// </summary>
-        /// <param name="flag">The condition flag to check.</param>
-        public unsafe bool this[int flag]
+    private void FrameworkUpdate(Framework framework)
+    {
+        for (var i = 0; i < MaxConditionEntries; i++)
         {
-            get
+            var value = this[i];
+
+            if (value != this.cache[i])
             {
-                if (flag < 0 || flag >= MaxConditionEntries)
-                    return false;
+                this.cache[i] = value;
 
-                return *(bool*)(this.Address + flag);
-            }
-        }
-
-        /// <inheritdoc cref="this[int]"/>
-        public unsafe bool this[ConditionFlag flag]
-            => this[(int)flag];
-
-        /// <summary>
-        /// Check if any condition flags are set.
-        /// </summary>
-        /// <returns>Whether any single flag is set.</returns>
-        public bool Any()
-        {
-            for (var i = 0; i < MaxConditionEntries; i++)
-            {
-                var cond = this[i];
-
-                if (cond)
-                    return true;
-            }
-
-            return false;
-        }
-
-        [ServiceManager.CallWhenServicesReady]
-        private void ContinueConstruction(Framework framework)
-        {
-            // Initialization
-            for (var i = 0; i < MaxConditionEntries; i++)
-                this.cache[i] = this[i];
-
-            framework.Update += this.FrameworkUpdate;
-        }
-
-        private void FrameworkUpdate(Framework framework)
-        {
-            for (var i = 0; i < MaxConditionEntries; i++)
-            {
-                var value = this[i];
-
-                if (value != this.cache[i])
+                try
                 {
-                    this.cache[i] = value;
-
-                    try
-                    {
-                        this.ConditionChange?.Invoke((ConditionFlag)i, value);
-                    }
-                    catch (Exception ex)
-                    {
-                        Log.Error(ex, $"While invoking {nameof(this.ConditionChange)}, an exception was thrown.");
-                    }
+                    this.ConditionChange?.Invoke((ConditionFlag)i, value);
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex, $"While invoking {nameof(this.ConditionChange)}, an exception was thrown.");
                 }
             }
         }
     }
+}
+
+/// <summary>
+/// Provides access to conditions (generally player state). You can check whether a player is in combat, mounted, etc.
+/// </summary>
+public sealed partial class Condition : IDisposable
+{
+    private bool isDisposed;
 
     /// <summary>
-    /// Provides access to conditions (generally player state). You can check whether a player is in combat, mounted, etc.
+    /// Finalizes an instance of the <see cref="Condition" /> class.
     /// </summary>
-    public sealed partial class Condition : IDisposable
+    ~Condition()
     {
-        private bool isDisposed;
+        this.Dispose(false);
+    }
 
-        /// <summary>
-        /// Finalizes an instance of the <see cref="Condition" /> class.
-        /// </summary>
-        ~Condition()
+    /// <summary>
+    /// Disposes this instance, alongside its hooks.
+    /// </summary>
+    void IDisposable.Dispose()
+    {
+        GC.SuppressFinalize(this);
+        this.Dispose(true);
+    }
+
+    private void Dispose(bool disposing)
+    {
+        if (this.isDisposed)
+            return;
+
+        if (disposing)
         {
-            this.Dispose(false);
+            Service<Framework>.Get().Update -= this.FrameworkUpdate;
         }
 
-        /// <summary>
-        /// Disposes this instance, alongside its hooks.
-        /// </summary>
-        void IDisposable.Dispose()
-        {
-            GC.SuppressFinalize(this);
-            this.Dispose(true);
-        }
-
-        private void Dispose(bool disposing)
-        {
-            if (this.isDisposed)
-                return;
-
-            if (disposing)
-            {
-                Service<Framework>.Get().Update -= this.FrameworkUpdate;
-            }
-
-            this.isDisposed = true;
-        }
+        this.isDisposed = true;
     }
 }

@@ -1,24 +1,23 @@
 using System.IO;
 
-namespace Dalamud.Plugin.Internal.Exceptions
+namespace Dalamud.Plugin.Internal.Exceptions;
+
+/// <summary>
+/// This exception represents a file that does not implement IDalamudPlugin.
+/// </summary>
+internal class InvalidPluginException : PluginException
 {
     /// <summary>
-    /// This exception represents a file that does not implement IDalamudPlugin.
+    /// Initializes a new instance of the <see cref="InvalidPluginException"/> class.
     /// </summary>
-    internal class InvalidPluginException : PluginException
+    /// <param name="dllFile">The invalid file.</param>
+    public InvalidPluginException(FileInfo dllFile)
     {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="InvalidPluginException"/> class.
-        /// </summary>
-        /// <param name="dllFile">The invalid file.</param>
-        public InvalidPluginException(FileInfo dllFile)
-        {
-            this.DllFile = dllFile;
-        }
-
-        /// <summary>
-        /// Gets the invalid file.
-        /// </summary>
-        public FileInfo DllFile { get; init; }
+        this.DllFile = dllFile;
     }
+
+    /// <summary>
+    /// Gets the invalid file.
+    /// </summary>
+    public FileInfo DllFile { get; init; }
 }

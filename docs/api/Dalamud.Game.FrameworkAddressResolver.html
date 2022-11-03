@@ -10,7 +10,7 @@
     <meta name="viewport" content="width=device-width">
     <meta name="title" content="Class FrameworkAddressResolver
    ">
-    <meta name="generator" content="docfx 2.59.1.0">
+    <meta name="generator" content="docfx 2.59.4.0">
     
     <link rel="shortcut icon" href="../favicon.ico">
     <link rel="stylesheet" href="../styles/docfx.vendor.css">
@@ -140,16 +140,17 @@
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_FrameworkAddressResolver_BaseAddress.md&amp;value=---%0Auid%3A%20Dalamud.Game.FrameworkAddressResolver.BaseAddress%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/FrameworkAddressResolver.cs/#L16">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/FrameworkAddressResolver.cs/#L13">View Source</a>
   </span>
   <a id="Dalamud_Game_FrameworkAddressResolver_BaseAddress_" data-uid="Dalamud.Game.FrameworkAddressResolver.BaseAddress*"></a>
   <h4 id="Dalamud_Game_FrameworkAddressResolver_BaseAddress" data-uid="Dalamud.Game.FrameworkAddressResolver.BaseAddress">BaseAddress</h4>
-  <div class="markdown level1 summary"><p>Gets the base address native Framework class.</p>
+  <div class="markdown level1 summary"><p>Gets the base address of the Framework object.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public IntPtr BaseAddress { get; }</code></pre>
+    <pre><code class="lang-csharp hljs">[Obsolete(&quot;Please use FFXIVClientStructs.FFXIV.Client.System.Framework.Framework.Instance() instead.&quot;)]
+public IntPtr BaseAddress { get; }</code></pre>
   </div>
   <h5 class="propertyValue">Property Value</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -168,19 +169,19 @@
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_FrameworkAddressResolver_GuiManager.md&amp;value=---%0Auid%3A%20Dalamud.Game.FrameworkAddressResolver.GuiManager%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_FrameworkAddressResolver_DestroyAddress.md&amp;value=---%0Auid%3A%20Dalamud.Game.FrameworkAddressResolver.DestroyAddress%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/FrameworkAddressResolver.cs/#L21">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/FrameworkAddressResolver.cs/#L19">View Source</a>
   </span>
-  <a id="Dalamud_Game_FrameworkAddressResolver_GuiManager_" data-uid="Dalamud.Game.FrameworkAddressResolver.GuiManager*"></a>
-  <h4 id="Dalamud_Game_FrameworkAddressResolver_GuiManager" data-uid="Dalamud.Game.FrameworkAddressResolver.GuiManager">GuiManager</h4>
-  <div class="markdown level1 summary"><p>Gets the address for the native GuiManager class.</p>
+  <a id="Dalamud_Game_FrameworkAddressResolver_DestroyAddress_" data-uid="Dalamud.Game.FrameworkAddressResolver.DestroyAddress*"></a>
+  <h4 id="Dalamud_Game_FrameworkAddressResolver_DestroyAddress" data-uid="Dalamud.Game.FrameworkAddressResolver.DestroyAddress">DestroyAddress</h4>
+  <div class="markdown level1 summary"><p>Gets the address for the function that is called once the Framework is destroyed.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public IntPtr GuiManager { get; }</code></pre>
+    <pre><code class="lang-csharp hljs">public IntPtr DestroyAddress { get; }</code></pre>
   </div>
   <h5 class="propertyValue">Property Value</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -199,19 +200,50 @@
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_FrameworkAddressResolver_ScriptManager.md&amp;value=---%0Auid%3A%20Dalamud.Game.FrameworkAddressResolver.ScriptManager%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_FrameworkAddressResolver_FreeAddress.md&amp;value=---%0Auid%3A%20Dalamud.Game.FrameworkAddressResolver.FreeAddress%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/FrameworkAddressResolver.cs/#L26">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/FrameworkAddressResolver.cs/#L24">View Source</a>
   </span>
-  <a id="Dalamud_Game_FrameworkAddressResolver_ScriptManager_" data-uid="Dalamud.Game.FrameworkAddressResolver.ScriptManager*"></a>
-  <h4 id="Dalamud_Game_FrameworkAddressResolver_ScriptManager" data-uid="Dalamud.Game.FrameworkAddressResolver.ScriptManager">ScriptManager</h4>
-  <div class="markdown level1 summary"><p>Gets the address for the native ScriptManager class.</p>
+  <a id="Dalamud_Game_FrameworkAddressResolver_FreeAddress_" data-uid="Dalamud.Game.FrameworkAddressResolver.FreeAddress*"></a>
+  <h4 id="Dalamud_Game_FrameworkAddressResolver_FreeAddress" data-uid="Dalamud.Game.FrameworkAddressResolver.FreeAddress">FreeAddress</h4>
+  <div class="markdown level1 summary"><p>Gets the address for the function that is called once the Framework is free'd.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public IntPtr ScriptManager { get; }</code></pre>
+    <pre><code class="lang-csharp hljs">public IntPtr FreeAddress { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.IntPtr</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_FrameworkAddressResolver_TickAddress.md&amp;value=---%0Auid%3A%20Dalamud.Game.FrameworkAddressResolver.TickAddress%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/FrameworkAddressResolver.cs/#L29">View Source</a>
+  </span>
+  <a id="Dalamud_Game_FrameworkAddressResolver_TickAddress_" data-uid="Dalamud.Game.FrameworkAddressResolver.TickAddress*"></a>
+  <h4 id="Dalamud_Game_FrameworkAddressResolver_TickAddress" data-uid="Dalamud.Game.FrameworkAddressResolver.TickAddress">TickAddress</h4>
+  <div class="markdown level1 summary"><p>Gets the function that is called every tick.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public IntPtr TickAddress { get; }</code></pre>
   </div>
   <h5 class="propertyValue">Property Value</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -235,7 +267,7 @@
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_FrameworkAddressResolver_Setup64Bit_Dalamud_Game_SigScanner_.md&amp;value=---%0Auid%3A%20Dalamud.Game.FrameworkAddressResolver.Setup64Bit(Dalamud.Game.SigScanner)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/FrameworkAddressResolver.cs/#L29">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/FrameworkAddressResolver.cs/#L32">View Source</a>
   </span>
   <a id="Dalamud_Game_FrameworkAddressResolver_Setup64Bit_" data-uid="Dalamud.Game.FrameworkAddressResolver.Setup64Bit*"></a>
   <h4 id="Dalamud_Game_FrameworkAddressResolver_Setup64Bit_Dalamud_Game_SigScanner_" data-uid="Dalamud.Game.FrameworkAddressResolver.Setup64Bit(Dalamud.Game.SigScanner)">Setup64Bit(SigScanner)</h4>
@@ -276,7 +308,7 @@
                     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_FrameworkAddressResolver.md&amp;value=---%0Auid%3A%20Dalamud.Game.FrameworkAddressResolver%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
                   </li>
                   <li>
-                    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/FrameworkAddressResolver.cs/#L11" class="contribution-link">View Source</a>
+                    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/FrameworkAddressResolver.cs/#L8" class="contribution-link">View Source</a>
                   </li>
                 </ul>
               </div>

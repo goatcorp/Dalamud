@@ -1,27 +1,26 @@
 ﻿using System;
 
-namespace Dalamud.Interface.Animation.EasingFunctions
+namespace Dalamud.Interface.Animation.EasingFunctions;
+
+/// <summary>
+/// Class providing an "OutQuint" easing animation.
+/// </summary>
+public class OutQuint : Easing
 {
     /// <summary>
-    /// Class providing an "OutQuint" easing animation.
+    /// Initializes a new instance of the <see cref="OutQuint"/> class.
     /// </summary>
-    public class OutQuint : Easing
+    /// <param name="duration">The duration of the animation.</param>
+    public OutQuint(TimeSpan duration)
+        : base(duration)
     {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="OutQuint"/> class.
-        /// </summary>
-        /// <param name="duration">The duration of the animation.</param>
-        public OutQuint(TimeSpan duration)
-            : base(duration)
-        {
-            // ignored
-        }
+        // ignored
+    }
 
-        /// <inheritdoc/>
-        public override void Update()
-        {
-            var p = this.Progress;
-            this.Value = 1 - Math.Pow(1 - p, 5);
-        }
+    /// <inheritdoc/>
+    public override void Update()
+    {
+        var p = this.Progress;
+        this.Value = 1 - Math.Pow(1 - p, 5);
     }
 }

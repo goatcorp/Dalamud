@@ -2,47 +2,46 @@ using Dalamud.Game.ClientState.Objects;
 using Dalamud.Utility;
 using ImGuiNET;
 
-namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps
+namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps;
+
+/// <summary>
+/// Test setup for the Actor Table.
+/// </summary>
+internal class ActorTableAgingStep : IAgingStep
 {
-    /// <summary>
-    /// Test setup for the Actor Table.
-    /// </summary>
-    internal class ActorTableAgingStep : IAgingStep
+    private int index = 0;
+
+    /// <inheritdoc/>
+    public string Name => "Test ActorTable";
+
+    /// <inheritdoc/>
+    public SelfTestStepResult RunStep()
     {
-        private int index = 0;
+        var objectTable = Service<ObjectTable>.Get();
 
-        /// <inheritdoc/>
-        public string Name => "Test ActorTable";
+        ImGui.Text("Checking actor table...");
 
-        /// <inheritdoc/>
-        public SelfTestStepResult RunStep()
+        if (this.index == objectTable.Length - 1)
         {
-            var objectTable = Service<ObjectTable>.Get();
+            return SelfTestStepResult.Pass;
+        }
 
-            ImGui.Text("Checking actor table...");
+        var actor = objectTable[this.index];
+        this.index++;
 
-            if (this.index == objectTable.Length - 1)
-            {
-                return SelfTestStepResult.Pass;
-            }
-
-            var actor = objectTable[this.index];
-            this.index++;
-
-            if (actor == null)
-            {
-                return SelfTestStepResult.Waiting;
-            }
-
-            Util.ShowObject(actor);
-
+        if (actor == null)
+        {
             return SelfTestStepResult.Waiting;
         }
 
-        /// <inheritdoc/>
-        public void CleanUp()
-        {
-            // ignored
-        }
+        Util.ShowObject(actor);
+
+        return SelfTestStepResult.Waiting;
+    }
+
+    /// <inheritdoc/>
+    public void CleanUp()
+    {
+        // ignored
     }
 }

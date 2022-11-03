@@ -15,7 +15,8 @@ public sealed class TimingHandle : TimingEvent, IDisposable, IComparable<TimingH
     /// Initializes a new instance of the <see cref="TimingHandle"/> class.
     /// </summary>
     /// <param name="name">The name of this timing.</param>
-    internal TimingHandle(string name) : base(name)
+    internal TimingHandle(string name)
+        : base(name)
     {
         this.Stack = Timings.TaskTimingHandles;
 

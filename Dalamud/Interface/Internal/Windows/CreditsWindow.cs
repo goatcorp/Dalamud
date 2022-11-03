@@ -12,15 +12,16 @@ using Dalamud.Utility;
 using ImGuiNET;
 using ImGuiScene;
 
-namespace Dalamud.Interface.Internal.Windows
+namespace Dalamud.Interface.Internal.Windows;
+
+/// <summary>
+/// A window documenting contributors to the project.
+/// </summary>
+internal class CreditsWindow : Window, IDisposable
 {
-    /// <summary>
-    /// A window documenting contributors to the project.
-    /// </summary>
-    internal class CreditsWindow : Window, IDisposable
-    {
-        private const float CreditFPS = 60.0f;
-        private const string CreditsTextTempl = @"
+    private const float CreditFps = 60.0f;
+    private const string ThankYouText = "Thank you!";
+    private const string CreditsTextTempl = @"
 Dalamud
 A FFXIV Plugin Framework
 Version D{0}
@@ -157,171 +158,169 @@ Dalamud is licensed under AGPL v3 or later
 Contribute at: https://github.com/goatsoft/Dalamud
 ";
 
-        private readonly TextureWrap logoTexture;
-        private readonly Stopwatch creditsThrottler;
+    private readonly TextureWrap logoTexture;
+    private readonly Stopwatch creditsThrottler;
 
-        private string creditsText;
+    private string creditsText;
 
-        private GameFontHandle? thankYouFont;
-        private const string thankYouText = "Thank you!";
+    private GameFontHandle? thankYouFont;
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="CreditsWindow"/> class.
-        /// </summary>
-        public CreditsWindow()
-            : base("Dalamud Credits", ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoTitleBar, true)
+    /// <summary>
+    /// Initializes a new instance of the <see cref="CreditsWindow"/> class.
+    /// </summary>
+    public CreditsWindow()
+        : base("Dalamud Credits", ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoTitleBar, true)
+    {
+        var dalamud = Service<Dalamud>.Get();
+        var interfaceManager = Service<InterfaceManager>.Get();
+
+        this.logoTexture = interfaceManager.LoadImage(Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "logo.png"));
+        this.creditsThrottler = new();
+
+        this.Size = new Vector2(500, 400);
+        this.SizeCondition = ImGuiCond.Always;
+
+        this.PositionCondition = ImGuiCond.Always;
+
+        this.BgAlpha = 0.8f;
+    }
+
+    /// <inheritdoc/>
+    public override void OnOpen()
+    {
+        var pluginCredits = Service<PluginManager>.Get().InstalledPlugins
+                                                  .Where(plugin => plugin.Manifest != null)
+                                                  .Select(plugin => $"{plugin.Manifest.Name} by {plugin.Manifest.Author}\n")
+                                                  .Aggregate(string.Empty, (current, next) => $"{current}{next}");
+
+        this.creditsText = string.Format(CreditsTextTempl, typeof(Dalamud).Assembly.GetName().Version, pluginCredits, Util.GetGitHashClientStructs());
+
+        Service<GameGui>.Get().SetBgm(833);
+        this.creditsThrottler.Restart();
+
+        if (this.thankYouFont == null)
         {
-            var dalamud = Service<Dalamud>.Get();
-            var interfaceManager = Service<InterfaceManager>.Get();
+            var gfm = Service<GameFontManager>.Get();
+            this.thankYouFont = gfm.NewFontRef(new GameFontStyle(GameFontFamilyAndSize.TrumpGothic34));
+        }
+    }
 
-            this.logoTexture = interfaceManager.LoadImage(Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "logo.png"));
-            this.creditsThrottler = new();
+    /// <inheritdoc/>
+    public override void OnClose()
+    {
+        this.creditsThrottler.Reset();
+        Service<GameGui>.Get().SetBgm(9999);
+    }
 
-            this.Size = new Vector2(500, 400);
-            this.SizeCondition = ImGuiCond.Always;
+    /// <inheritdoc/>
+    public override void PreDraw()
+    {
+        ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(0, 0));
 
-            this.PositionCondition = ImGuiCond.Always;
+        base.PreDraw();
+    }
 
-            this.BgAlpha = 0.8f;
+    /// <inheritdoc/>
+    public override void PostDraw()
+    {
+        ImGui.PopStyleVar();
+
+        base.PostDraw();
+    }
+
+    /// <inheritdoc/>
+    public override void Draw()
+    {
+        var screenSize = ImGui.GetMainViewport().Size;
+        var windowSize = ImGui.GetWindowSize();
+
+        this.Position = (screenSize - windowSize) / 2;
+
+        ImGui.BeginChild("scrolling", Vector2.Zero, false, ImGuiWindowFlags.NoScrollbar);
+
+        ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, Vector2.Zero);
+
+        ImGuiHelpers.ScaledDummy(0, windowSize.Y + 20f);
+        ImGui.Text(string.Empty);
+
+        const float imageSize = 190f;
+        ImGui.SameLine((ImGui.GetWindowWidth() / 2) - (imageSize / 2));
+        ImGui.Image(this.logoTexture.ImGuiHandle, ImGuiHelpers.ScaledVector2(imageSize));
+
+        ImGuiHelpers.ScaledDummy(0, 20f);
+
+        var windowX = ImGui.GetWindowSize().X;
+
+        foreach (var creditsLine in this.creditsText.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None))
+        {
+            var lineLenX = ImGui.CalcTextSize(creditsLine).X;
+
+            ImGui.Dummy(new Vector2((windowX / 2) - (lineLenX / 2), 0f));
+            ImGui.SameLine();
+            ImGui.TextUnformatted(creditsLine);
         }
 
-        /// <inheritdoc/>
-        public override void OnOpen()
+        ImGuiHelpers.ScaledDummy(0, 40f);
+
+        if (this.thankYouFont != null)
         {
-            var pluginCredits = Service<PluginManager>.Get().InstalledPlugins
-                .Where(plugin => plugin.Manifest != null)
-                .Select(plugin => $"{plugin.Manifest.Name} by {plugin.Manifest.Author}\n")
-                .Aggregate(string.Empty, (current, next) => $"{current}{next}");
+            ImGui.PushFont(this.thankYouFont.ImFont);
+            var thankYouLenX = ImGui.CalcTextSize(ThankYouText).X;
 
-            this.creditsText = string.Format(CreditsTextTempl, typeof(Dalamud).Assembly.GetName().Version, pluginCredits, Util.GetGitHashClientStructs());
+            ImGui.Dummy(new Vector2((windowX / 2) - (thankYouLenX / 2), 0f));
+            ImGui.SameLine();
+            ImGui.TextUnformatted(ThankYouText);
 
-            Service<GameGui>.Get().SetBgm(833);
-            this.creditsThrottler.Restart();
-
-            if (this.thankYouFont == null)
-            {
-                var gfm = Service<GameFontManager>.Get();
-                this.thankYouFont = gfm.NewFontRef(new GameFontStyle(GameFontFamilyAndSize.TrumpGothic34));
-            }
-        }
-
-        /// <inheritdoc/>
-        public override void OnClose()
-        {
-            this.creditsThrottler.Reset();
-            Service<GameGui>.Get().SetBgm(9999);
-        }
-
-        /// <inheritdoc/>
-        public override void PreDraw()
-        {
-            ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(0, 0));
-
-            base.PreDraw();
-        }
-
-        /// <inheritdoc/>
-        public override void PostDraw()
-        {
-            ImGui.PopStyleVar();
-
-            base.PostDraw();
-        }
-
-        /// <inheritdoc/>
-        public override void Draw()
-        {
-            var screenSize = ImGui.GetMainViewport().Size;
-            var windowSize = ImGui.GetWindowSize();
-
-            this.Position = (screenSize - windowSize) / 2;
-
-            ImGui.BeginChild("scrolling", Vector2.Zero, false, ImGuiWindowFlags.NoScrollbar);
-
-            ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, Vector2.Zero);
-
-            ImGuiHelpers.ScaledDummy(0, windowSize.Y + 20f);
-            ImGui.Text(string.Empty);
-
-            const float imageSize = 190f;
-            ImGui.SameLine((ImGui.GetWindowWidth() / 2) - (imageSize / 2));
-            ImGui.Image(this.logoTexture.ImGuiHandle, ImGuiHelpers.ScaledVector2(imageSize));
-
-            ImGuiHelpers.ScaledDummy(0, 20f);
-
-            var windowX = ImGui.GetWindowSize().X;
-
-            foreach (var creditsLine in this.creditsText.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None))
-            {
-                var lineLenX = ImGui.CalcTextSize(creditsLine).X;
-
-                ImGui.Dummy(new Vector2((windowX / 2) - (lineLenX / 2), 0f));
-                ImGui.SameLine();
-                ImGui.TextUnformatted(creditsLine);
-            }
-
-            ImGuiHelpers.ScaledDummy(0, 40f);
-
-            if (this.thankYouFont != null)
-            {
-                ImGui.PushFont(this.thankYouFont.ImFont);
-                var thankYouLenX = ImGui.CalcTextSize(thankYouText).X;
-
-                ImGui.Dummy(new Vector2((windowX / 2) - (thankYouLenX / 2), 0f));
-                ImGui.SameLine();
-                ImGui.TextUnformatted(thankYouText);
-
-                ImGui.PopFont();
-            }
-
-            ImGuiHelpers.ScaledDummy(0, windowSize.Y + 50f);
-
-            ImGui.PopStyleVar();
-
-            if (this.creditsThrottler.Elapsed.TotalMilliseconds > (1000.0f / CreditFPS))
-            {
-                var curY = ImGui.GetScrollY();
-                var maxY = ImGui.GetScrollMaxY();
-
-                if (curY < maxY - 1)
-                {
-                    ImGui.SetScrollY(curY + 1);
-                }
-                else
-                {
-                    ImGui.SetScrollY(0);
-                }
-            }
-
-            ImGui.EndChild();
-
-            ImGui.SetCursorPos(new Vector2(0));
-            ImGui.BeginChild("button", Vector2.Zero, false, ImGuiWindowFlags.NoScrollbar);
-
-            var closeButtonSize = new Vector2(30);
-            ImGui.PushFont(InterfaceManager.IconFont);
-            ImGui.SetCursorPos(new Vector2(windowSize.X - closeButtonSize.X - 5, 5));
-            ImGui.PushStyleColor(ImGuiCol.Button, Vector4.Zero);
-            ImGui.PushStyleColor(ImGuiCol.ButtonHovered, Vector4.Zero);
-            ImGui.PushStyleColor(ImGuiCol.ButtonActive, Vector4.Zero);
-
-            if (ImGui.Button(FontAwesomeIcon.Times.ToIconString(), closeButtonSize))
-            {
-                this.IsOpen = false;
-            }
-
-            ImGui.PopStyleColor(3);
             ImGui.PopFont();
-            ImGui.EndChild();
         }
 
-        /// <summary>
-        /// Disposes of managed and unmanaged resources.
-        /// </summary>
-        public void Dispose()
+        ImGuiHelpers.ScaledDummy(0, windowSize.Y + 50f);
+
+        ImGui.PopStyleVar();
+
+        if (this.creditsThrottler.Elapsed.TotalMilliseconds > (1000.0f / CreditFps))
         {
-            this.logoTexture?.Dispose();
-            this.thankYouFont?.Dispose();
+            var curY = ImGui.GetScrollY();
+            var maxY = ImGui.GetScrollMaxY();
+
+            if (curY < maxY - 1)
+            {
+                ImGui.SetScrollY(curY + 1);
+            }
+            else
+            {
+                ImGui.SetScrollY(0);
+            }
         }
+
+        ImGui.EndChild();
+
+        ImGui.SetCursorPos(new Vector2(0));
+        ImGui.BeginChild("button", Vector2.Zero, false, ImGuiWindowFlags.NoScrollbar);
+
+        var closeButtonSize = new Vector2(30);
+        ImGui.PushFont(InterfaceManager.IconFont);
+        ImGui.SetCursorPos(new Vector2(windowSize.X - closeButtonSize.X - 5, 5));
+        ImGui.PushStyleColor(ImGuiCol.Button, Vector4.Zero);
+        ImGui.PushStyleColor(ImGuiCol.ButtonHovered, Vector4.Zero);
+        ImGui.PushStyleColor(ImGuiCol.ButtonActive, Vector4.Zero);
+
+        if (ImGui.Button(FontAwesomeIcon.Times.ToIconString(), closeButtonSize))
+        {
+            this.IsOpen = false;
+        }
+
+        ImGui.PopStyleColor(3);
+        ImGui.PopFont();
+        ImGui.EndChild();
+    }
+
+    /// <summary>
+    /// Disposes of managed and unmanaged resources.
+    /// </summary>
+    public void Dispose()
+    {
+        this.logoTexture?.Dispose();
+        this.thankYouFont?.Dispose();
     }
 }

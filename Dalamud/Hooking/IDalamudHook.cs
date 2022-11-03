@@ -1,30 +1,29 @@
 using System;
 
-namespace Dalamud.Hooking
+namespace Dalamud.Hooking;
+
+/// <summary>
+/// Interface describing a generic hook.
+/// </summary>
+public interface IDalamudHook
 {
     /// <summary>
-    /// Interface describing a generic hook.
+    /// Gets the address to hook.
     /// </summary>
-    public interface IDalamudHook
-    {
-        /// <summary>
-        /// Gets the address to hook.
-        /// </summary>
-        public IntPtr Address { get; }
+    public IntPtr Address { get; }
 
-        /// <summary>
-        /// Gets a value indicating whether or not the hook is enabled.
-        /// </summary>
-        public bool IsEnabled { get; }
+    /// <summary>
+    /// Gets a value indicating whether or not the hook is enabled.
+    /// </summary>
+    public bool IsEnabled { get; }
 
-        /// <summary>
-        /// Gets a value indicating whether or not the hook is disposed.
-        /// </summary>
-        public bool IsDisposed { get; }
+    /// <summary>
+    /// Gets a value indicating whether or not the hook is disposed.
+    /// </summary>
+    public bool IsDisposed { get; }
 
-        /// <summary>
-        /// Gets the name of the hooking backend used for the hook.
-        /// </summary>
-        public string BackendName { get; }
-    }
+    /// <summary>
+    /// Gets the name of the hooking backend used for the hook.
+    /// </summary>
+    public string BackendName { get; }
 }

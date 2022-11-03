@@ -1,19 +1,18 @@
 ﻿using System;
 
-namespace Dalamud.Utility.Signatures
+namespace Dalamud.Utility.Signatures;
+
+/// <summary>
+/// An exception for signatures.
+/// </summary>
+public class SignatureException : Exception
 {
     /// <summary>
-    /// An exception for signatures.
+    /// Initializes a new instance of the <see cref="SignatureException"/> class.
     /// </summary>
-    public class SignatureException : Exception
+    /// <param name="message">Message.</param>
+    internal SignatureException(string message)
+        : base(message)
     {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="SignatureException"/> class.
-        /// </summary>
-        /// <param name="message">Message.</param>
-        internal SignatureException(string message)
-            : base(message)
-        {
-        }
     }
 }

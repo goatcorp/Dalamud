@@ -45,6 +45,15 @@ internal partial class PluginManager : IDisposable, IServiceType
     /// </summary>
     public const int PluginWaitBeforeFreeDefault = 500;
 
+    private const string DevPluginsDisclaimerFilename = "DONT_USE_THIS_FOLDER.txt";
+
+    private const string DevPluginsDisclaimerText = @"Hey!
+The devPlugins folder is deprecated and will be removed soon. Please don't use it anymore for plugin development.
+Instead, open the Dalamud settings and add the path to your plugins build output folder as a dev plugin location.
+Remove your devPlugin from this folder.
+
+Thanks and have fun!";
+
     private static readonly ModuleLog Log = new("PLUGINM");
 
     private readonly object pluginListLock = new();
@@ -72,6 +81,10 @@ internal partial class PluginManager : IDisposable, IServiceType
         if (!this.devPluginDirectory.Exists)
             this.devPluginDirectory.Create();
 
+        var disclaimerFileName = Path.Combine(this.devPluginDirectory.FullName, DevPluginsDisclaimerFilename);
+        if (!File.Exists(disclaimerFileName))
+            File.WriteAllText(disclaimerFileName, DevPluginsDisclaimerText);
+
         this.SafeMode = EnvironmentConfiguration.DalamudNoPlugins || this.configuration.PluginSafeMode || this.startInfo.NoLoadPlugins;
 
         try
@@ -93,7 +106,7 @@ internal partial class PluginManager : IDisposable, IServiceType
         if (this.SafeMode)
         {
             this.configuration.PluginSafeMode = false;
-            this.configuration.Save();
+            this.configuration.QueueSave();
         }
 
         this.PluginConfigs = new PluginConfigurations(Path.Combine(Path.GetDirectoryName(this.startInfo.ConfigurationPath) ?? string.Empty, "pluginConfigs"));
@@ -105,10 +118,12 @@ internal partial class PluginManager : IDisposable, IServiceType
             throw new InvalidDataException("Couldn't deserialize banned plugins manifest.");
         }
 
-        this.openInstallerWindowPluginChangelogsLink = Service<ChatGui>.Get().AddChatLinkHandler("Dalamud", 1003, (i, m) =>
+        this.openInstallerWindowPluginChangelogsLink = Service<ChatGui>.Get().AddChatLinkHandler("Dalamud", 1003, (_, _) =>
         {
             Service<DalamudInterface>.GetNullable()?.OpenPluginInstallerPluginChangelogs();
         });
+
+        this.configuration.PluginTestingOptIns ??= new List<PluginTestingOptIn>();
 
         this.ApplyPatches();
     }
@@ -174,6 +189,42 @@ internal partial class PluginManager : IDisposable, IServiceType
     public bool LoadBannedPlugins { get; set; }
 
     /// <summary>
+    /// Gets a value indicating whether the given repo manifest should be visible to the user.
+    /// </summary>
+    /// <param name="manifest">Repo manifest.</param>
+    /// <returns>If the manifest is visible.</returns>
+    public static bool IsManifestVisible(RemotePluginManifest manifest)
+    {
+        var configuration = Service<DalamudConfiguration>.Get();
+
+        // Hidden by user
+        if (configuration.HiddenPluginInternalName.Contains(manifest.InternalName))
+            return false;
+
+        // Hidden by manifest
+        return !manifest.IsHide;
+    }
+
+    /// <summary>
+    /// Check if a manifest even has an available testing version.
+    /// </summary>
+    /// <param name="manifest">The manifest to test.</param>
+    /// <returns>Whether or not a testing version is available.</returns>
+    public static bool HasTestingVersion(PluginManifest manifest)
+    {
+        var av = manifest.AssemblyVersion;
+        var tv = manifest.TestingAssemblyVersion;
+        var hasTv = tv != null;
+
+        if (hasTv)
+        {
+            return tv > av;
+        }
+
+        return false;
+    }
+
+    /// <summary>
     /// Print to chat any plugin updates and whether they were successful.
     /// </summary>
     /// <param name="updateMetadata">The list of updated plugin metadata.</param>
@@ -218,50 +269,33 @@ internal partial class PluginManager : IDisposable, IServiceType
     }
 
     /// <summary>
+    /// For a given manifest, determine if the user opted into testing this plugin.
+    /// </summary>
+    /// <param name="manifest">Manifest to check.</param>
+    /// <returns>A value indicating whether testing should be used.</returns>
+    public bool HasTestingOptIn(PluginManifest manifest)
+    {
+        return this.configuration.PluginTestingOptIns!.Any(x => x.InternalName == manifest.InternalName);
+    }
+
+    /// <summary>
     /// For a given manifest, determine if the testing version should be used over the normal version.
     /// The higher of the two versions is calculated after checking other settings.
     /// </summary>
     /// <param name="manifest">Manifest to check.</param>
     /// <returns>A value indicating whether testing should be used.</returns>
-    public static bool UseTesting(PluginManifest manifest)
+    public bool UseTesting(PluginManifest manifest)
     {
-        var configuration = Service<DalamudConfiguration>.Get();
+        if (!this.configuration.DoPluginTest)
+            return false;
 
-        if (!configuration.DoPluginTest)
+        if (!this.HasTestingOptIn(manifest))
             return false;
 
         if (manifest.IsTestingExclusive)
             return true;
 
-        var av = manifest.AssemblyVersion;
-        var tv = manifest.TestingAssemblyVersion;
-        var hasTv = tv != null;
-
-        if (hasTv)
-        {
-            return tv > av;
-        }
-
-        return false;
-    }
-
-    /// <summary>
-    /// Gets a value indicating whether the given repo manifest should be visible to the user.
-    /// </summary>
-    /// <param name="manifest">Repo manifest.</param>
-    /// <returns>If the manifest is visible.</returns>
-    public static bool IsManifestVisible(RemotePluginManifest manifest)
-    {
-        var configuration = Service<DalamudConfiguration>.Get();
-
-        // Hidden by user
-        if (configuration.HiddenPluginInternalName.Contains(manifest.InternalName))
-            return false;
-
-        return true; // TODO temporary
-
-        // Hidden by manifest
-        return !manifest.IsHide;
+        return HasTestingVersion(manifest);
     }
 
     /// <inheritdoc/>
@@ -364,6 +398,9 @@ internal partial class PluginManager : IDisposable, IServiceType
 
                     var manifest = LocalPluginManifest.Load(manifestFile);
 
+                    if (manifest.IsTestingExclusive && this.configuration.PluginTestingOptIns!.All(x => x.InternalName != manifest.InternalName))
+                        this.configuration.PluginTestingOptIns.Add(new PluginTestingOptIn(manifest.InternalName));
+
                     versionsDefs.Add(new PluginDef(dllFile, manifest, false));
                 }
                 catch (Exception ex)
@@ -371,6 +408,8 @@ internal partial class PluginManager : IDisposable, IServiceType
                     Log.Error(ex, "Could not load manifest for installed at {Directory}", versionDir.FullName);
                 }
             }
+
+            this.configuration.QueueSave();
 
             try
             {
@@ -674,6 +713,14 @@ internal partial class PluginManager : IDisposable, IServiceType
     {
         Log.Debug($"Installing plugin {repoManifest.Name} (testing={useTesting})");
 
+        // Ensure that we have a testing opt-in for this plugin if we are installing a testing version
+        if (useTesting && this.configuration.PluginTestingOptIns!.All(x => x.InternalName != repoManifest.InternalName))
+        {
+            // TODO: this isn't safe
+            this.configuration.PluginTestingOptIns.Add(new PluginTestingOptIn(repoManifest.InternalName));
+            this.configuration.QueueSave();
+        }
+
         var downloadUrl = useTesting ? repoManifest.DownloadLinkTesting : repoManifest.DownloadLinkInstall;
         var version = useTesting ? repoManifest.TestingAssemblyVersion : repoManifest.AssemblyVersion;
 
@@ -948,6 +995,7 @@ internal partial class PluginManager : IDisposable, IServiceType
                                 versionDir.Delete(true);
                                 continue;
                             }
+
                             var dllFile = new FileInfo(Path.Combine(versionDir.FullName, $"{pluginDir.Name}.dll"));
                             if (!dllFile.Exists)
                             {
@@ -995,6 +1043,7 @@ internal partial class PluginManager : IDisposable, IServiceType
     /// <summary>
     /// Update all non-dev plugins.
     /// </summary>
+    /// <param name="ignoreDisabled">Ignore disabled plugins.</param>
     /// <param name="dryRun">Perform a dry run, don't install anything.</param>
     /// <returns>Success or failure and a list of updated plugin metadata.</returns>
     public async Task<List<PluginUpdateStatus>> UpdatePluginsAsync(bool ignoreDisabled, bool dryRun)
@@ -1252,7 +1301,7 @@ internal partial class PluginManager : IDisposable, IServiceType
                               .Where(remoteManifest => remoteManifest.DalamudApiLevel == DalamudApiLevel)
                               .Select(remoteManifest =>
                               {
-                                  var useTesting = UseTesting(remoteManifest);
+                                  var useTesting = this.UseTesting(remoteManifest);
                                   var candidateVersion = useTesting
                                                              ? remoteManifest.TestingAssemblyVersion
                                                              : remoteManifest.AssemblyVersion;

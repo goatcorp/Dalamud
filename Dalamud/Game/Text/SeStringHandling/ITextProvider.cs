@@ -1,13 +1,12 @@
-namespace Dalamud.Game.Text.SeStringHandling
+namespace Dalamud.Game.Text.SeStringHandling;
+
+/// <summary>
+/// An interface binding for a payload that can provide readable Text.
+/// </summary>
+public interface ITextProvider
 {
     /// <summary>
-    /// An interface binding for a payload that can provide readable Text.
+    /// Gets the readable text.
     /// </summary>
-    public interface ITextProvider
-    {
-        /// <summary>
-        /// Gets the readable text.
-        /// </summary>
-        string Text { get; }
-    }
+    string Text { get; }
 }
