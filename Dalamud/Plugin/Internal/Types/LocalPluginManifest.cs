@@ -17,6 +17,10 @@ internal record LocalPluginManifest : PluginManifest
     /// </summary>
     [JsonIgnore]
     public const string FlagMainRepo = "OFFICIAL";
+    
+    /// <summary> "DEVPLUGIN" </summary>
+    [JsonIgnore]
+    public const string FlagDevPlugin = "DEVPLUGIN";
 
     /// <summary>
     /// Gets or sets a value indicating whether the plugin is disabled and should not be loaded.
