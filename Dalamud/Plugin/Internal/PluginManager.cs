@@ -838,6 +838,12 @@ Thanks and have fun!";
 
         LocalPlugin plugin;
 
+        if (manifest != null && manifest.InternalName == null)
+        {
+            Log.Error("{FileName}: Your manifest has no internal name set! Can't load this.", dllFile.FullName);
+            throw new Exception("No internal name");
+        }
+
         if (isDev)
         {
             Log.Information($"Loading dev plugin {name}");

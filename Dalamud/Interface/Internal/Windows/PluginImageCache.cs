@@ -228,13 +228,20 @@ internal class PluginImageCache : IDisposable, IServiceType
     /// <returns>True if an entry exists, may be null if currently downloading.</returns>
     public bool TryGetIcon(LocalPlugin? plugin, PluginManifest manifest, bool isThirdParty, out TextureWrap? iconTexture)
     {
+        iconTexture = null;
+
+        if (manifest == null || manifest.InternalName == null)
+        {
+            Log.Error("THIS SHOULD NEVER HAPPEN! manifest == null || manifest.InternalName == null");
+            return false;
+        }
+
         if (!this.pluginIconMap.TryAdd(manifest.InternalName, null))
         {
             iconTexture = this.pluginIconMap[manifest.InternalName];
             return true;
         }
 
-        iconTexture = null;
         var requestedFrame = Service<DalamudInterface>.GetNullable()?.FrameCount ?? 0;
         Task.Run(async () =>
         {
