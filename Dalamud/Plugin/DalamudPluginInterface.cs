@@ -95,7 +95,7 @@ public sealed class DalamudPluginInterface : IDisposable
     /// Gets the reason this plugin was loaded.
     /// </summary>
     public PluginLoadReason Reason { get; }
-    
+
     /// <summary>
     /// Gets the custom repository from which this plugin is installed, <inheritdoc cref="LocalPluginManifest.FlagMainRepo"/>, or <inheritdoc cref="LocalPluginManifest.FlagDevPlugin"/>.
     /// </summary>

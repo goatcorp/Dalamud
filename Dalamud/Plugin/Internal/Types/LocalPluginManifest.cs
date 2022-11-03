@@ -17,8 +17,10 @@ internal record LocalPluginManifest : PluginManifest
     /// </summary>
     [JsonIgnore]
     public const string FlagMainRepo = "OFFICIAL";
-    
-    /// <summary> "DEVPLUGIN" </summary>
+
+    /// <summary>
+    /// Flag indicating that a plugin is a dev plugin..
+    /// </summary>
     [JsonIgnore]
     public const string FlagDevPlugin = "DEVPLUGIN";
 
