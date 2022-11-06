@@ -2128,31 +2128,34 @@ internal class PluginInstallerWindow : Window, IDisposable
 
         if (ImGui.BeginPopupContextItem("InstalledItemContextMenu"))
         {
-            var repoManifest = this.pluginListAvailable.FirstOrDefault(x => x.InternalName == plugin.Manifest.InternalName);
-            if (repoManifest?.IsTestingExclusive == true)
-                ImGui.BeginDisabled();
-
-            if (ImGui.MenuItem(Locs.PluginContext_TestingOptIn, string.Empty, optIn != null))
+            if (configuration.DoPluginTest)
             {
-                if (optIn != null)
-                {
-                    configuration.PluginTestingOptIns!.Remove(optIn);
+                var repoManifest = this.pluginListAvailable.FirstOrDefault(x => x.InternalName == plugin.Manifest.InternalName);
+                if (repoManifest?.IsTestingExclusive == true)
+                    ImGui.BeginDisabled();
 
-                    if (plugin.Manifest.TestingAssemblyVersion > repoManifest?.AssemblyVersion)
+                if (ImGui.MenuItem(Locs.PluginContext_TestingOptIn, string.Empty, optIn != null))
+                {
+                    if (optIn != null)
                     {
-                        this.testingWarningModalOnNextFrame = true;
+                        configuration.PluginTestingOptIns!.Remove(optIn);
+
+                        if (plugin.Manifest.TestingAssemblyVersion > repoManifest?.AssemblyVersion)
+                        {
+                            this.testingWarningModalOnNextFrame = true;
+                        }
                     }
-                }
-                else
-                {
-                    configuration.PluginTestingOptIns!.Add(new PluginTestingOptIn(plugin.Manifest.InternalName));
+                    else
+                    {
+                        configuration.PluginTestingOptIns!.Add(new PluginTestingOptIn(plugin.Manifest.InternalName));
+                    }
+
+                    configuration.QueueSave();
                 }
 
-                configuration.QueueSave();
+                if (repoManifest?.IsTestingExclusive == true)
+                    ImGui.EndDisabled();
             }
-
-            if (repoManifest?.IsTestingExclusive == true)
-                ImGui.EndDisabled();
 
             if (ImGui.MenuItem(Locs.PluginContext_DeletePluginConfigReload))
             {
