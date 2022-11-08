@@ -30,8 +30,8 @@ public sealed class Framework : IDisposable, IServiceType
 
     private readonly Stopwatch updateStopwatch = new();
 
-    private readonly Hook<OnUpdateDetour> updateHook;
-    private readonly Hook<OnRealDestroyDelegate> destroyHook;
+    private readonly Hook<OnUpdateDetour>? updateHook;
+    private readonly Hook<OnRealDestroyDelegate>? destroyHook;
 
     private readonly object runOnNextTickTaskListSync = new();
     private List<RunOnNextTickTaskBase> runOnNextTickTaskList = new();
@@ -328,14 +328,14 @@ public sealed class Framework : IDisposable, IServiceType
         this.RunOnFrameworkThread(() =>
         {
             // ReSharper disable once AccessToDisposedClosure
-            this.updateHook.Disable();
+            this.updateHook?.Disable();
 
             // ReSharper disable once AccessToDisposedClosure
-            this.destroyHook.Disable();
+            this.destroyHook?.Disable();
         }).Wait();
 
-        this.updateHook.Dispose();
-        this.destroyHook.Dispose();
+        this.updateHook?.Dispose();
+        this.destroyHook?.Dispose();
 
         this.updateStopwatch.Reset();
         statsStopwatch.Reset();
@@ -344,8 +344,8 @@ public sealed class Framework : IDisposable, IServiceType
     [ServiceManager.CallWhenServicesReady]
     private void ContinueConstruction()
     {
-        this.updateHook.Enable();
-        this.destroyHook.Enable();
+        this.updateHook!.Enable();
+        this.destroyHook!.Enable();
     }
 
     private void RunPendingTickTasks()
@@ -455,7 +455,7 @@ public sealed class Framework : IDisposable, IServiceType
         }
 
         original:
-        return this.updateHook.OriginalDisposeSafe(framework);
+        return this.updateHook?.OriginalDisposeSafe(framework) ?? false;
     }
 
     private bool HandleFrameworkDestroy(IntPtr framework)
