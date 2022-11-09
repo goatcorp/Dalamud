@@ -80,10 +80,19 @@ jobs:
             if ($oldVersion -eq $newVersion) {
               Remove-Item .\canary.zip
             } else {
-              Move-Item -Force ".\canary.zip" ".\${branchName}\latest.zip"
+              Copy-Item -Force ".\canary.zip" ".\${branchName}\latest.zip"
               $versionData.AssemblyVersion = $newVersion
               $versionData | add-member -Force -Name "GitSha" $newVersion -MemberType NoteProperty
               $versionData | ConvertTo-Json -Compress | Out-File ".\${branchName}\version"
+              
+              # TEMP for net7
+              if ($branchName -eq "stg") {
+                Copy-Item -Force ".\canary.zip" ".\net7\latest.zip"
+                $versionData.RuntimeVersion = "7.0.0"
+                $versionData | ConvertTo-Json -Compress | Out-File ".\net7\version"
+              }
+              
+              Remove-Item .\canary.zip
             }
 
             echo "DVER=${newVersion}" >> $Env:GITHUB_ENV
