@@ -135,6 +135,11 @@ public unsafe partial class GameObject
     public byte YalmDistanceZ => this.Struct->YalmDistanceFromPlayerZ;
 
     /// <summary>
+    /// Gets a value indicating whether the object is dead or alive.
+    /// </summary>
+    public bool IsDead => this.Struct->IsDead();
+
+    /// <summary>
     /// Gets the position of this <see cref="GameObject" />.
     /// </summary>
     public Vector3 Position => new(this.Struct->Position.X, this.Struct->Position.Y, this.Struct->Position.Z);
