@@ -100,6 +100,11 @@ public unsafe class Character : GameObject
     public ExcelResolver<OnlineStatus> OnlineStatus => new(this.Struct->OnlineStatus);
 
     /// <summary>
+    /// Gets a value indicating whether the character is dead or alive.
+    /// </summary>
+    public bool IsDead => this.Struct->EventState == 2;
+
+    /// <summary>
     /// Gets the status flags.
     /// </summary>
     public StatusFlags StatusFlags => (StatusFlags)this.Struct->StatusFlags;
