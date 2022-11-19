@@ -165,6 +165,8 @@ public sealed class EntryPoint
             Log.Information(new string('-', 80));
             Log.Information("Initializing a session..");
 
+            Reloaded.Hooks.Tools.Utilities.FasmBasePath = new DirectoryInfo(info.WorkingDirectory);
+
             // This is due to GitHub not supporting TLS 1.0, so we enable all TLS versions globally
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12 | SecurityProtocolType.Tls;
 
