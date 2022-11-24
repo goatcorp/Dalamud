@@ -8,6 +8,7 @@ using Dalamud.Interface;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Utility;
+using FFXIVClientStructs.FFXIV.Client.Graphics.Kernel;
 using FFXIVClientStructs.FFXIV.Client.System.String;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Component.GUI;
@@ -200,9 +201,9 @@ public sealed unsafe class GameGui : IDisposable, IServiceType
 
             for (var i = 0; i < 16; i++, rawMatrix++)
                 viewProjectionMatrix[i] = *rawMatrix;
-
-            width = *rawMatrix;
-            height = *(rawMatrix + 1);
+            var device = Device.Instance();
+            width = device->Width;
+            height = device->Height;
         }
 
         var worldPosDx = worldPos.ToSharpDX();
