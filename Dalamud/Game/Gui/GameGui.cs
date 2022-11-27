@@ -79,8 +79,7 @@ public sealed unsafe class GameGui : IDisposable, IServiceType
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
     private delegate IntPtr GetMatrixSingletonDelegate();
 
-    [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
-    private unsafe delegate bool ScreenToWorldNativeDelegate(float* camPos, float* clipPos, float rayDistance, float* worldPos, int* unknown);
+    private delegate bool ScreenToWorldNativeDelegate(Vector3 origin, Vector3 direction, float maxDistance, void* hitInfo, int* flags);
 
     // Hooked delegates
 
@@ -233,71 +232,36 @@ public sealed unsafe class GameGui : IDisposable, IServiceType
         var matrixSingleton = this.getMatrixSingleton();
 
         // Read current ViewProjectionMatrix plus game window size
-        var viewProjectionMatrix = default(SharpDX.Matrix);
-        float width, height;
-        unsafe
+        var viewProjectionMatrix = *(Matrix4x4*)(matrixSingleton + 0x1b4);
+        float width = Device.Instance()->Width;
+        float height = Device.Instance()->Height;
+
+        Matrix4x4.Invert(viewProjectionMatrix, out viewProjectionMatrix);
+
+        var screenPos3D = new Vector3
         {
-            var rawMatrix = (float*)(matrixSingleton + 0x1b4).ToPointer();
-
-            for (var i = 0; i < 16; i++, rawMatrix++)
-                viewProjectionMatrix[i] = *rawMatrix;
-
-            width = *rawMatrix;
-            height = *(rawMatrix + 1);
-        }
-
-        viewProjectionMatrix.Invert();
-
-        var localScreenPos = new SharpDX.Vector2(screenPos.X - windowPos.X, screenPos.Y - windowPos.Y);
-        var screenPos3D = new SharpDX.Vector3
-        {
-            X = (localScreenPos.X / width * 2.0f) - 1.0f,
-            Y = -((localScreenPos.Y / height * 2.0f) - 1.0f),
-            Z = 0,
+            X = ((screenPos.X - windowPos.X) / width * 2f) - 1f,
+            Y = -(((screenPos.Y - windowPos.Y) / height * 2f) - 1f),
+            Z = 0f,
         };
 
-        SharpDX.Vector3.TransformCoordinate(ref screenPos3D, ref viewProjectionMatrix, out var camPos);
+        var camPos = TransformCoordinate(screenPos3D, viewProjectionMatrix);
+        var camPosFar = TransformCoordinate(screenPos3D with { Z = 1f }, viewProjectionMatrix);
+        var direction = Vector3.Normalize(camPosFar - camPos);
 
-        screenPos3D.Z = 1;
-        SharpDX.Vector3.TransformCoordinate(ref screenPos3D, ref viewProjectionMatrix, out var camPosOne);
+        var flags = stackalloc int[] { 0x4000, 0x4000, 0 };
+        var hit = stackalloc Vector3[7];
 
-        var clipPos = camPosOne - camPos;
-        clipPos.Normalize();
-
-        bool isSuccess;
-        unsafe
-        {
-            var camPosArray = camPos.ToArray();
-            var clipPosArray = clipPos.ToArray();
-
-            // This array is larger than necessary because it contains more info than we currently use
-            var worldPosArray = stackalloc float[32];
-
-            // Theory: this is some kind of flag on what type of things the ray collides with
-            var unknown = stackalloc int[3]
-            {
-                0x4000,
-                0x4000,
-                0x0,
-            };
-
-            fixed (float* pCamPos = camPosArray)
-            {
-                fixed (float* pClipPos = clipPosArray)
-                {
-                    isSuccess = this.screenToWorldNative(pCamPos, pClipPos, rayDistance, worldPosArray, unknown);
-                }
-            }
-
-            worldPos = new Vector3
-            {
-                X = worldPosArray[0],
-                Y = worldPosArray[1],
-                Z = worldPosArray[2],
-            };
-        }
+        var isSuccess = this.screenToWorldNative(camPos, direction, rayDistance, hit, flags);
+        worldPos = hit[0];
 
         return isSuccess;
+
+        static Vector3 TransformCoordinate(Vector3 pos, Matrix4x4 m)
+        {
+            var w = 1f / ((pos.X * m.M14) + (pos.Y * m.M24) + (pos.Z * m.M34) + m.M44);
+            return Vector3.Transform(pos, m) * w;
+        }
     }
 
     /// <summary>
