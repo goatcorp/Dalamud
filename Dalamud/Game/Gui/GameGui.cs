@@ -8,6 +8,7 @@ using Dalamud.Interface;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Utility;
+using FFXIVClientStructs.FFXIV.Client.Graphics.Kernel;
 using FFXIVClientStructs.FFXIV.Client.System.String;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Component.GUI;
@@ -190,25 +191,14 @@ public sealed unsafe class GameGui : IDisposable, IServiceType
         var matrixSingleton = this.getMatrixSingleton();
 
         // Read current ViewProjectionMatrix plus game window size
-        var viewProjectionMatrix = default(SharpDX.Matrix);
-        float width, height;
         var windowPos = ImGuiHelpers.MainViewport.Pos;
+        var viewProjectionMatrix = *(Matrix4x4*)(matrixSingleton + 0x1b4);
+        var device = Device.Instance();
+        float width = device->Width;
+        float height = device->Height;
 
-        unsafe
-        {
-            var rawMatrix = (float*)(matrixSingleton + 0x1b4).ToPointer();
-
-            for (var i = 0; i < 16; i++, rawMatrix++)
-                viewProjectionMatrix[i] = *rawMatrix;
-
-            width = *rawMatrix;
-            height = *(rawMatrix + 1);
-        }
-
-        var worldPosDx = worldPos.ToSharpDX();
-        SharpDX.Vector3.Transform(ref worldPosDx, ref viewProjectionMatrix, out SharpDX.Vector3 pCoords);
-
-        screenPos = new Vector2(pCoords.X / pCoords.Z, pCoords.Y / pCoords.Z);
+        var pCoords = Vector3.Transform(worldPos, viewProjectionMatrix);
+        screenPos = new Vector2(pCoords.X / MathF.Abs(pCoords.Z), pCoords.Y / MathF.Abs(pCoords.Z));
 
         screenPos.X = (0.5f * width * (screenPos.X + 1f)) + windowPos.X;
         screenPos.Y = (0.5f * height * (1f - screenPos.Y)) + windowPos.Y;
