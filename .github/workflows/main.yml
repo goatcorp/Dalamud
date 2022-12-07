@@ -56,6 +56,12 @@ jobs:
       run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
       id: extract_branch
 
+    # GitHub only ships the LTS, which is stuck on .NET 6
+    - name: Install PowerShell latest
+      shell: pwsh
+      run: |
+        Invoke-Expression "& { $(Invoke-RestMethod https://aka.ms/install-powershell.ps1) } -UseMSI -Quiet"
+
     - name: Generate dalamud-distrib version file
       shell: pwsh
       env:
