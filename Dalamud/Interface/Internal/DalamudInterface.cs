@@ -671,6 +671,7 @@ internal class DalamudInterface : IDisposable, IServiceType
                     ImGui.MenuItem(Util.AssemblyVersion, false);
                     ImGui.MenuItem(startInfo.GameVersion.ToString(), false);
                     ImGui.MenuItem($"D: {Util.GetGitHash()} CS: {Util.GetGitHashClientStructs()}", false);
+                    ImGui.MenuItem($"CLR: {Environment.Version}", false);
 
                     ImGui.EndMenu();
                 }
