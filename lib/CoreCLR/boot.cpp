@@ -126,7 +126,7 @@ int InitializeClrAndGetEntryPoint(
 
     // =========================================================================== //
 
-    logging::I("Loading module...");
+    logging::I("Loading module from {}...", module_path.c_str());
     if ((result = g_clr->load_assembly_and_get_function_pointer(
         module_path.c_str(),
         entrypoint_assembly_name.c_str(),
