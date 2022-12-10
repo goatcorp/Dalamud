@@ -110,7 +110,7 @@
         </ItemGroup>
     </Target>
 
-    <Target Name="GetGitHash" BeforeTargets="WriteGitHash" Condition="'$(BuildHash)' == ''">
+    <Target Name="GetGitHash" BeforeTargets="WriteGitHash" Condition="'$(BuildHash)' == '' AND '$(Configuration)' == 'Release'">
         <PropertyGroup>
             <!-- temp file for the git version (lives in "obj" folder)-->
             <VerFile>$(IntermediateOutputPath)gitver</VerFile>
@@ -136,7 +136,7 @@
             <BuildHashClientStructs>@(GitVersionClientStructs)</BuildHashClientStructs>
         </PropertyGroup>
     </Target>
-    <Target Name="WriteGitHash" BeforeTargets="CoreCompile">
+    <Target Name="WriteGitHash" BeforeTargets="CoreCompile" Condition="'$(Configuration)'=='Release'">
         <!-- names the obj/.../CustomAssemblyInfo.cs file -->
         <PropertyGroup>
             <CustomAssemblyInfoFile>$(IntermediateOutputPath)CustomAssemblyInfo.cs</CustomAssemblyInfoFile>
@@ -154,6 +154,32 @@
             <AssemblyAttributes Include="AssemblyMetadata">
                 <_Parameter1>GitHashClientStructs</_Parameter1>
                 <_Parameter2>$(BuildHashClientStructs)</_Parameter2>
+            </AssemblyAttributes>
+        </ItemGroup>
+        <!-- writes the attribute to the customAssemblyInfo file -->
+        <WriteCodeFragment Language="C#" OutputFile="$(CustomAssemblyInfoFile)" AssemblyAttributes="@(AssemblyAttributes)" />
+    </Target>
+
+    <!-- Stubbed, running git commands takes a long time and I don't want to wait every time -->
+    <Target Name="WriteGitHash" BeforeTargets="CoreCompile" Condition="'$(Configuration)'=='Debug'">
+        <!-- names the obj/.../CustomAssemblyInfo.cs file -->
+        <PropertyGroup>
+            <CustomAssemblyInfoFile>$(IntermediateOutputPath)CustomAssemblyInfo.cs</CustomAssemblyInfoFile>
+            <LocalBuildText>Local build at $([System.DateTime]::Now.ToString(yyyyMMdd-hhmmss))</LocalBuildText>
+        </PropertyGroup>
+        <!-- includes the CustomAssemblyInfo for compilation into your project -->
+        <ItemGroup>
+            <Compile Include="$(CustomAssemblyInfoFile)" />
+        </ItemGroup>
+        <!-- defines the AssemblyMetadata attribute that will be written -->
+        <ItemGroup>
+            <AssemblyAttributes Include="AssemblyMetadata">
+                <_Parameter1>GitHash</_Parameter1>
+                <_Parameter2>$(LocalBuildText)</_Parameter2>
+            </AssemblyAttributes>
+            <AssemblyAttributes Include="AssemblyMetadata">
+                <_Parameter1>GitHashClientStructs</_Parameter1>
+                <_Parameter2>$(LocalBuildText)</_Parameter2>
             </AssemblyAttributes>
         </ItemGroup>
         <!-- writes the attribute to the customAssemblyInfo file -->
