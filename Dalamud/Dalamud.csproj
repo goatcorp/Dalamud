@@ -109,23 +109,20 @@
             <ContentWithTargetPath Include="$(ProjectRuntimeConfigFilePath)" CopyToOutputDirectory="PreserveNewest" TargetPath="$(ProjectRuntimeConfigFileName)" />
         </ItemGroup>
     </Target>
-    
-    <Target Name="TempWriteAssemblyVersion" BeforeTargets="CoreCompile">
-        <PropertyGroup>
-            <TempAssemblyNameFile>$(OutputPath)TEMP_assver.txt</TempAssemblyNameFile>
-        </PropertyGroup>
-        <Exec Command="echo $(DalamudVersion) &gt; $(TempAssemblyNameFile)" />
-    </Target>
 
     <Target Name="GetGitHash" BeforeTargets="WriteGitHash" Condition="'$(BuildHash)' == ''">
         <PropertyGroup>
             <!-- temp file for the git version (lives in "obj" folder)-->
             <VerFile>$(IntermediateOutputPath)gitver</VerFile>
             <VerFileClientStructs>$(IntermediateOutputPath)csver</VerFileClientStructs>
+            <TempVerFile>$(OutputPath)TEMP_gitver.txt</TempVerFile>
         </PropertyGroup>
         <!-- write the hash to the temp file.-->
         <Exec Command="git -C &quot;$(ProjectDir.Replace('\','\\'))&quot; describe --long --always --dirty &gt; $(VerFile)" />
         <Exec Command="git -C &quot;$(ProjectDir.Replace('\','\\'))\..\lib\FFXIVClientStructs&quot; describe --long --always --dirty &gt; $(VerFileClientStructs)" />
+
+        <Exec Command="type $(VerFile) &gt; $(TempVerFile)" />
+        
         <!-- read the version into the GitVersion itemGroup-->
         <ReadLinesFromFile File="$(VerFile)">
             <Output TaskParameter="Lines" ItemName="GitVersion" />
