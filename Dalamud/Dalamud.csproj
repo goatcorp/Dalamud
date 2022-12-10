@@ -112,29 +112,25 @@
 
     <Target Name="GetGitHash" BeforeTargets="WriteGitHash" Condition="'$(BuildHash)' == '' AND '$(Configuration)' == 'Release'">
         <PropertyGroup>
-            <!-- temp file for the git version (lives in "obj" folder)-->
-            <VerFile>$(IntermediateOutputPath)gitver</VerFile>
-            <VerFileClientStructs>$(IntermediateOutputPath)csver</VerFileClientStructs>
             <TempVerFile>$(OutputPath)TEMP_gitver.txt</TempVerFile>
         </PropertyGroup>
-        <!-- write the hash to the temp file.-->
-        <Exec Command="git -C &quot;$(ProjectDir.Replace('\','\\'))&quot; describe --long --always --dirty &gt; $(VerFile)" />
-        <Exec Command="git -C &quot;$(ProjectDir.Replace('\','\\'))\..\lib\FFXIVClientStructs&quot; describe --long --always --dirty &gt; $(VerFileClientStructs)" />
-
-        <Exec Command="type $(VerFile) &gt; $(TempVerFile)" />
         
-        <!-- read the version into the GitVersion itemGroup-->
-        <ReadLinesFromFile File="$(VerFile)">
-            <Output TaskParameter="Lines" ItemName="GitVersion" />
-        </ReadLinesFromFile>
-        <ReadLinesFromFile File="$(VerFileClientStructs)">
-            <Output TaskParameter="Lines" ItemName="GitVersionClientStructs" />
-        </ReadLinesFromFile>
+        <!-- write the hash to the temp file.-->
+        <Exec Command="git -C &quot;$(ProjectDir.Replace('\','\\'))&quot; describe --long --always --dirty" ConsoleToMSBuild="true">
+            <Output TaskParameter="ConsoleOutput" PropertyName="DalamudGitDescribeOutput" />
+        </Exec>
+        <Exec Command="git -C &quot;$(ProjectDir.Replace('\','\\'))\..\lib\FFXIVClientStructs&quot; describe --long --always --dirty" ConsoleToMSBuild="true">
+            <Output TaskParameter="ConsoleOutput" PropertyName="ClientStructsGitDescribeOutput" />
+        </Exec>
+        
         <!-- Set the BuildHash property to contain the GitVersion, if it wasn't already set.-->
         <PropertyGroup>
-            <BuildHash>@(GitVersion)</BuildHash>
-            <BuildHashClientStructs>@(GitVersionClientStructs)</BuildHashClientStructs>
+            <BuildHash>$([System.Text.RegularExpressions.Regex]::Replace($(DalamudGitDescribeOutput), @"\t|\n|\r", ""))</BuildHash>
+            <BuildHashClientStructs>$([System.Text.RegularExpressions.Regex]::Replace($(ClientStructsGitDescribeOutput), @"\t|\n|\r", ""))</BuildHashClientStructs>
         </PropertyGroup>
+
+        <!-- Looks like this is the only way to write a file without a carriage return in msbuild... -->
+        <Exec Command="echo|set /P =&quot;$(BuildHash)&quot; &gt; $(TempVerFile)" IgnoreExitCode="true"/>
     </Target>
     <Target Name="WriteGitHash" BeforeTargets="CoreCompile" Condition="'$(Configuration)'=='Release'">
         <!-- names the obj/.../CustomAssemblyInfo.cs file -->
