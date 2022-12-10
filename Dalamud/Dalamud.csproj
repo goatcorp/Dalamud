@@ -110,11 +110,12 @@
         </ItemGroup>
     </Target>
 
-    <Target Name="GetGitHash" BeforeTargets="WriteGitHash" Condition="'$(BuildHash)' == '' AND '$(Configuration)' == 'Release'">
-        <PropertyGroup>
-            <TempVerFile>$(OutputPath)TEMP_gitver.txt</TempVerFile>
-        </PropertyGroup>
-        
+    <PropertyGroup>
+        <!-- Needed temporarily for CI -->
+        <TempVerFile>$(OutputPath)TEMP_gitver.txt</TempVerFile>
+    </PropertyGroup>
+
+    <Target Name="GetGitHash" BeforeTargets="WriteGitHash" Condition="'$(BuildHash)'=='' And '$(Configuration)'=='Release'">
         <!-- write the hash to the temp file.-->
         <Exec Command="git -C &quot;$(ProjectDir.Replace('\','\\'))&quot; describe --long --always --dirty" ConsoleToMSBuild="true">
             <Output TaskParameter="ConsoleOutput" PropertyName="DalamudGitDescribeOutput" />
@@ -132,7 +133,20 @@
         <!-- Looks like this is the only way to write a file without a carriage return in msbuild... -->
         <Exec Command="echo|set /P =&quot;$(BuildHash)&quot; &gt; $(TempVerFile)" IgnoreExitCode="true"/>
     </Target>
-    <Target Name="WriteGitHash" BeforeTargets="CoreCompile" Condition="'$(Configuration)'=='Release'">
+
+    <Target Name="GetGitHashStub" BeforeTargets="WriteGitHash" Condition="'$(BuildHash)'=='' And '$(Configuration)'=='Debug'">
+        <!-- Set the BuildHash property to contain some placeholder, if it wasn't already set.-->
+        <PropertyGroup>
+            <LocalBuildText>Local build at $([System.DateTime]::Now.ToString(yyyyMMdd-hhmmss))</LocalBuildText>
+            <BuildHash>$(LocalBuildText)</BuildHash>
+            <BuildHashClientStructs>???</BuildHashClientStructs>
+        </PropertyGroup>
+
+        <!-- Looks like this is the only way to write a file without a carriage return in msbuild... -->
+        <Exec Command="echo|set /P =&quot;$(BuildHash)&quot; &gt; $(TempVerFile)" IgnoreExitCode="true"/>
+    </Target>
+    
+    <Target Name="WriteGitHash" BeforeTargets="CoreCompile">
         <!-- names the obj/.../CustomAssemblyInfo.cs file -->
         <PropertyGroup>
             <CustomAssemblyInfoFile>$(IntermediateOutputPath)CustomAssemblyInfo.cs</CustomAssemblyInfoFile>
@@ -150,32 +164,6 @@
             <AssemblyAttributes Include="AssemblyMetadata">
                 <_Parameter1>GitHashClientStructs</_Parameter1>
                 <_Parameter2>$(BuildHashClientStructs)</_Parameter2>
-            </AssemblyAttributes>
-        </ItemGroup>
-        <!-- writes the attribute to the customAssemblyInfo file -->
-        <WriteCodeFragment Language="C#" OutputFile="$(CustomAssemblyInfoFile)" AssemblyAttributes="@(AssemblyAttributes)" />
-    </Target>
-
-    <!-- Stubbed, running git commands takes a long time and I don't want to wait every time -->
-    <Target Name="WriteGitHash" BeforeTargets="CoreCompile" Condition="'$(Configuration)'=='Debug'">
-        <!-- names the obj/.../CustomAssemblyInfo.cs file -->
-        <PropertyGroup>
-            <CustomAssemblyInfoFile>$(IntermediateOutputPath)CustomAssemblyInfo.cs</CustomAssemblyInfoFile>
-            <LocalBuildText>Local build at $([System.DateTime]::Now.ToString(yyyyMMdd-hhmmss))</LocalBuildText>
-        </PropertyGroup>
-        <!-- includes the CustomAssemblyInfo for compilation into your project -->
-        <ItemGroup>
-            <Compile Include="$(CustomAssemblyInfoFile)" />
-        </ItemGroup>
-        <!-- defines the AssemblyMetadata attribute that will be written -->
-        <ItemGroup>
-            <AssemblyAttributes Include="AssemblyMetadata">
-                <_Parameter1>GitHash</_Parameter1>
-                <_Parameter2>$(LocalBuildText)</_Parameter2>
-            </AssemblyAttributes>
-            <AssemblyAttributes Include="AssemblyMetadata">
-                <_Parameter1>GitHashClientStructs</_Parameter1>
-                <_Parameter2>$(LocalBuildText)</_Parameter2>
             </AssemblyAttributes>
         </ItemGroup>
         <!-- writes the attribute to the customAssemblyInfo file -->
