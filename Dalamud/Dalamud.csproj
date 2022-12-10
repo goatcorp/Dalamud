@@ -109,6 +109,13 @@
             <ContentWithTargetPath Include="$(ProjectRuntimeConfigFilePath)" CopyToOutputDirectory="PreserveNewest" TargetPath="$(ProjectRuntimeConfigFileName)" />
         </ItemGroup>
     </Target>
+    
+    <Target Name="TempWriteAssemblyVersion" BeforeTargets="CoreCompile">
+        <PropertyGroup>
+            <TempAssemblyNameFile>$(OutputPath)TEMP_assver.txt</TempAssemblyNameFile>
+        </PropertyGroup>
+        <Exec Command="echo $(DalamudVersion) &gt; $(TempAssemblyNameFile)" />
+    </Target>
 
     <Target Name="GetGitHash" BeforeTargets="WriteGitHash" Condition="'$(BuildHash)' == ''">
         <PropertyGroup>
