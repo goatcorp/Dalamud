@@ -69,7 +69,7 @@ jobs:
           $branchName = "stg"
         }
         
-        $newVersion = [System.IO.File]::ReadAllText("$(Get-Location)\scratch\TEMP_assver.txt")
+        $newVersion = [System.IO.File]::ReadAllText("$(Get-Location)\scratch\TEMP_gitver.txt")
         Remove-Item -Force -Recurse .\scratch
         
         if (Test-Path -Path $branchName) {
