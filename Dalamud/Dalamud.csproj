@@ -131,7 +131,7 @@
         </PropertyGroup>
 
         <!-- Looks like this is the only way to write a file without a carriage return in msbuild... -->
-        <Exec Command="echo|set /P =&quot;$(BuildHash)&quot; &gt; $(TempVerFile)" IgnoreExitCode="true"/>
+        <Exec Command="echo|set /P =&quot;$(BuildHash)&quot; &gt; $(TempVerFile)" IgnoreExitCode="true" />
     </Target>
 
     <Target Name="GetGitHashStub" BeforeTargets="WriteGitHash" Condition="'$(BuildHash)'=='' And '$(Configuration)'=='Debug'">
@@ -143,7 +143,7 @@
         </PropertyGroup>
 
         <!-- Looks like this is the only way to write a file without a carriage return in msbuild... -->
-        <Exec Command="echo|set /P =&quot;$(BuildHash)&quot; &gt; $(TempVerFile)" IgnoreExitCode="true"/>
+        <Exec Command="echo|set /P =&quot;$(BuildHash)&quot; &gt; $(TempVerFile)" IgnoreExitCode="true" />
     </Target>
     
     <Target Name="WriteGitHash" BeforeTargets="CoreCompile">

@@ -56,6 +56,8 @@ internal class InterfaceManager : IDisposable, IServiceType
     private readonly HashSet<SpecialGlyphRequest> glyphRequests = new();
     private readonly Dictionary<ImFontPtr, TargetFontModification> loadedFontInfo = new();
 
+    private readonly List<DalamudTextureWrap> deferredDisposeTextures = new();
+
     [ServiceManager.ServiceDependency]
     private readonly Framework framework = Service<Framework>.Get();
 
@@ -242,7 +244,8 @@ internal class InterfaceManager : IDisposable, IServiceType
 
         try
         {
-            return this.scene?.LoadImage(filePath) ?? null;
+            var wrap = this.scene?.LoadImage(filePath);
+            return wrap != null ? new DalamudTextureWrap(wrap) : null;
         }
         catch (Exception ex)
         {
@@ -264,7 +267,8 @@ internal class InterfaceManager : IDisposable, IServiceType
 
         try
         {
-            return this.scene?.LoadImage(imageData) ?? null;
+            var wrap = this.scene?.LoadImage(imageData);
+            return wrap != null ? new DalamudTextureWrap(wrap) : null;
         }
         catch (Exception ex)
         {
@@ -289,7 +293,8 @@ internal class InterfaceManager : IDisposable, IServiceType
 
         try
         {
-            return this.scene?.LoadImageRaw(imageData, width, height, numChannels) ?? null;
+            var wrap = this.scene?.LoadImageRaw(imageData, width, height, numChannels);
+            return wrap != null ? new DalamudTextureWrap(wrap) : null;
         }
         catch (Exception ex)
         {
@@ -393,6 +398,15 @@ internal class InterfaceManager : IDisposable, IServiceType
         }
 
         return this.NewFontSizeRef(size, ranges);
+    }
+
+    /// <summary>
+    /// Enqueue a texture to be disposed at the end of the frame.
+    /// </summary>
+    /// <param name="wrap">The texture.</param>
+    public void EnqueueDeferredDispose(DalamudTextureWrap wrap)
+    {
+        this.deferredDisposeTextures.Add(wrap);
     }
 
     private static void ShowFontError(string path)
@@ -548,6 +562,13 @@ internal class InterfaceManager : IDisposable, IServiceType
         }
 
         this.RenderImGui();
+
+        foreach (var texture in this.deferredDisposeTextures)
+        {
+            texture.RealDispose();
+        }
+
+        this.deferredDisposeTextures.Clear();
 
         return this.presentHook.Original(swapChain, syncInterval, presentFlags);
     }
