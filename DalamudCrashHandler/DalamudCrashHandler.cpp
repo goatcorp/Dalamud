@@ -1,4 +1,5 @@
 #include <array>
+#include <cassert>
 #include <chrono>
 #include <filesystem>
 #include <fstream>
@@ -40,7 +41,9 @@ static constexpr GUID Guid_IFileDialog_Tspack{ 0xfc057318, 0xad35, 0x4599, {0xa7
 
 #include "resource.h"
 #include "../Dalamud.Boot/crashhandler_shared.h"
+
 #include "miniz.h"
+#include "json.hpp"
 
 HANDLE g_hProcess = nullptr;
 bool g_bSymbolsAvailable = false;
@@ -441,6 +444,62 @@ std::wstring escape_shell_arg(const std::wstring& arg) {
     return res;
 }
 
+size_t base64_decode(std::string& out, std::string_view in) {
+    static constexpr uint8_t ReverseBase64Map[] {
+        0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+        0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+        0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x3E, 0xFF, 0x3E, 0xFF, 0x3F,  // +, -, /
+        0x34, 0x35, 0x36, 0x37, 0x38, 0x39, 0x3A, 0x3B, 0x3C, 0x3D, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,  // 0 to 9
+        0xFF, 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E,  // A to O
+        0x0F, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0xFF, 0xFF, 0xFF, 0xFF, 0x3F,  // P to Z, _
+        0xFF, 0x1A, 0x1B, 0x1C, 0x1D, 0x1E, 0x1F, 0x20, 0x21, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27, 0x28,  // a to o
+        0x29, 0x2A, 0x2B, 0x2C, 0x2D, 0x2E, 0x2F, 0x30, 0x31, 0x32, 0x33, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,  // p to z
+        0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+        0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+        0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+        0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+        0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+        0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+        0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+        0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+    };
+
+    out.clear();
+    out.reserve((in.size() + 3) * 3 / 4);
+
+    size_t i = 0, inlen = 4, val = 0;
+    while (true) {
+        for (inlen = 0; inlen < 4 && i < in.size() && in[i] != '='; inlen++, i++) {
+            const auto v = ReverseBase64Map[static_cast<uint8_t>(in[i])];
+            if (v & 0xC0)
+                break;
+            
+            val <<= 6;
+            val |= v;
+        }
+
+        switch (inlen) {
+            case 4:
+                out.push_back(static_cast<char>((val >> 16) & 0xFF));
+                out.push_back(static_cast<char>((val >> 8) & 0xFF));
+                out.push_back(static_cast<char>((val >> 0) & 0xFF));
+                break;
+            case 3:
+                out.push_back(static_cast<char>((val >> 10) & 0xFF));
+                out.push_back(static_cast<char>((val >> 2) & 0xFF));
+                break;
+            case 2:
+                out.push_back(static_cast<char>((val >> 4) & 0xFF));
+                break;
+            case 1:
+            case 0:
+                return i;
+            default:
+                assert(false);
+        }
+    }
+}
+
 void export_tspack(HWND hWndParent, const std::filesystem::path& logDir, const std::string& crashLog, const std::string& troubleshootingPackData) {
     static const char* SourceLogFiles[] = {
         "output.log",
@@ -450,11 +509,46 @@ void export_tspack(HWND hWndParent, const std::filesystem::path& logDir, const s
         "dalamud.boot.log",
         "aria.log",
     };
+    static constexpr char TroubleshootingLineSep[] = "[INF] TROUBLESHOOTING:";
     static constexpr auto MaxSizePerLog = 1 * 1024 * 1024;
     static constexpr std::array<COMDLG_FILTERSPEC, 2> OutputFileTypeFilterSpec{{
         { L"Dalamud Troubleshooting Pack File (*.tspack)", L"*.tspack" },
         { L"All files (*.*)", L"*" },
     }};
+
+    auto thirdPartyPluginActive = false;
+    auto doDalamudTest = false;
+    auto doPluginTest = false;
+    auto loadAllApiLevels = false;
+    try {
+        std::ifstream in(logDir / "dalamud.log", std::ios::in | std::ios::binary);
+        in.seekg(-MaxSizePerLog, std::ios::end);
+        for (std::string line, decoded; std::getline(in, line);) {
+            const auto pos = line.find(TroubleshootingLineSep);
+            if (pos == std::string::npos)
+                continue;
+
+            try {
+                auto lineView = std::string_view(line).substr(pos + sizeof TroubleshootingLineSep - 1);
+                while (!lineView.empty() && std::isspace(lineView[lineView.size() - 1]))
+                    lineView = lineView.substr(0, lineView.size() - 1);
+            
+                base64_decode(decoded, lineView);
+
+                const auto obj = nlohmann::json::parse(decoded);
+                doDalamudTest = obj.value("DoDalamudTest", false);
+                doPluginTest = obj.value("DoPluginTest", false);
+                loadAllApiLevels = obj.value("LoadAllApiLevels", false);
+                thirdPartyPluginActive = std::ranges::any_of(
+                        obj.at("LoadedPlugins"),
+                        [](const auto& j){ return j.value("IsThirdParty", false); });
+            } catch (...) {
+                // ignore errors
+            }
+        }
+    } catch (...) {
+        // ignore errors
+    }
 
     IShellItemPtr pItem;
     try {
@@ -466,7 +560,14 @@ void export_tspack(HWND hWndParent, const std::filesystem::path& logDir, const s
         throw_if_failed(pDialog->SetFileTypes(static_cast<UINT>(OutputFileTypeFilterSpec.size()), OutputFileTypeFilterSpec.data()), {}, "pDialog->SetFileTypes");
         throw_if_failed(pDialog->SetFileTypeIndex(0), {}, "pDialog->SetFileTypeIndex");
         throw_if_failed(pDialog->SetTitle(L"Export Dalamud Troubleshooting Pack"), {}, "pDialog->SetTitle");
-        throw_if_failed(pDialog->SetFileName(std::format(L"crash-{:04}{:02}{:02}{:02}{:02}{:02}.tspack", st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond).c_str()), {}, "pDialog->SetFileName");
+        throw_if_failed(pDialog->SetFileName(std::format(
+            L"crash{}{}{}{}-{:04}{:02}{:02}{:02}{:02}{:02}.tspack",
+            thirdPartyPluginActive ? L"3" : L"",
+            doDalamudTest ? L"D" : L"",
+            doPluginTest ? L"P" : L"",
+            loadAllApiLevels ? L"L" : L"",
+            st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond
+            ).c_str()), {}, "pDialog->SetFileName");
         throw_if_failed(pDialog->SetDefaultExtension(L"tspack"), {}, "pDialog->SetDefaultExtension");
         switch (throw_if_failed(pDialog->Show(hWndParent), { HRESULT_FROM_WIN32(ERROR_CANCELLED) }, "pDialog->Show")) {
             case HRESULT_FROM_WIN32(ERROR_CANCELLED):
@@ -585,11 +686,15 @@ void export_tspack(HWND hWndParent, const std::filesystem::path& logDir, const s
             if (FAILED(pItem->GetDisplayName(SIGDN_DESKTOPABSOLUTEEDITING, &pwszFileName))) {
                 MessageBoxW(hWndParent, L"The file has been saved to the specified path.", get_window_string(hWndParent).c_str(), MB_OK | MB_ICONINFORMATION);
             } else {
-                std::unique_ptr<std::remove_pointer<PWSTR>::type, decltype(CoTaskMemFree)*> pszFileNamePtr(pwszFileName, CoTaskMemFree);
+                std::unique_ptr<std::remove_pointer_t<PWSTR>, decltype(CoTaskMemFree)*> pszFileNamePtr(pwszFileName, CoTaskMemFree);
                 MessageBoxW(hWndParent, std::format(L"The file has been saved to: {}", pwszFileName).c_str(), get_window_string(hWndParent).c_str(), MB_OK | MB_ICONINFORMATION);
             }
         } else {
-            std::unique_ptr<std::remove_pointer<PWSTR>::type, decltype(CoTaskMemFree)*> pszFileNamePtr(pwszFileName, CoTaskMemFree);
+            std::unique_ptr<std::remove_pointer_t<PWSTR>, decltype(CoTaskMemFree)*> pszFileNamePtr(pwszFileName, CoTaskMemFree);
+
+            // if explorer is invoked right away, the file "blinks" once; workaround for that
+            Sleep(1000);
+            
             ShellExecuteW(hWndParent, nullptr, L"explorer.exe", escape_shell_arg(std::format(L"/select,{}", pwszFileName)).c_str(), nullptr, SW_SHOW);
         }
     }
