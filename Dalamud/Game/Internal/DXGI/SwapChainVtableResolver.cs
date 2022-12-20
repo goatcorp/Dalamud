@@ -68,9 +68,26 @@ public class SwapChainVtableResolver : BaseAddressResolver, ISwapChainAddressRes
                 // DXGISwapChain::handle_device_loss => DXGISwapChain::Present => DXGISwapChain::runtime_present
 
                 var scanner = new SigScanner(processModule);
+                var runtimePresentSig = "F6 C2 01 0F 85 ?? ?? ?? ??";
+
                 try
                 {
-                    var p = scanner.ScanText("F6 C2 01 0F 85 ?? ?? ?? ??"); // E8 ?? ?? ?? ?? 45 0F B6 5E ??
+                    var fileInfo = FileVersionInfo.GetVersionInfo(processModule.FileName);
+
+                    if (fileInfo.FileMajorPart >= 5)
+                    {
+                        // ReShade 5/GShade 4
+                        runtimePresentSig = "E8 ?? ?? ?? ?? 45 0F B6 5E ??";
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex, "Failed to get reshade version info - falling back to default DXGISwapChain::runtime_present signature");
+                }
+
+                try
+                {
+                    var p = scanner.ScanText(runtimePresentSig);
                     Log.Information($"ReShade DLL: {processModule.FileName} with DXGISwapChain::runtime_present at {p:X}");
 
                     this.Present = p;
