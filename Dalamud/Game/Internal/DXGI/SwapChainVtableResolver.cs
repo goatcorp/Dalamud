@@ -74,9 +74,10 @@ public class SwapChainVtableResolver : BaseAddressResolver, ISwapChainAddressRes
                 {
                     var fileInfo = FileVersionInfo.GetVersionInfo(processModule.FileName);
 
-                    if (fileInfo.FileMajorPart >= 5)
+                    // Looks like this sig only works for GShade 4
+                    if (fileInfo.FileDescription?.Contains("GShade 4.") == true)
                     {
-                        // ReShade 5/GShade 4
+                        Log.Verbose("Hooking present for GShade 4");
                         runtimePresentSig = "E8 ?? ?? ?? ?? 45 0F B6 5E ??";
                     }
                 }
