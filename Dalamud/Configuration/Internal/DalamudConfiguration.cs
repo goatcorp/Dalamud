@@ -370,11 +370,19 @@ internal sealed class DalamudConfiguration : IServiceType
     }
 
     /// <summary>
-    /// Save the configuration at the path it was loaded from.
+    /// Save the configuration at the path it was loaded from, at the next frame.
     /// </summary>
     public void QueueSave()
     {
         this.isSaveQueued = true;
+    }
+
+    /// <summary>
+    /// Immediately save the configuration.
+    /// </summary>
+    public void ForceSave()
+    {
+        this.Save();
     }
 
     /// <summary>
