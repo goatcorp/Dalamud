@@ -765,7 +765,7 @@ int main() {
         else
         {
             g_bSymbolsAvailable = SymInitializeW(g_hProcess, nullptr, true);
-            std::cout << std::format("Init symbols without PDB") << std::endl;
+            std::cout << "Init symbols without PDB" << std::endl;
         }
         
         if (!g_bSymbolsAvailable) {
