@@ -68,7 +68,7 @@ int InitializeClrAndGetEntryPoint(
     }
     else
     {
-        result = SHGetKnownFolderPath(FOLDERID_RoamingAppData, KF_FLAG_DEFAULT, nullptr, &_appdata);
+        result = SHGetKnownFolderPath(FOLDERID_RoamingAppData, KF_FLAG_DEFAULT | KF_FLAG_DONT_VERIFY, nullptr, &_appdata);
 
         if (result != 0)
         {

@@ -681,7 +681,15 @@ namespace Dalamud.Injector
                 gameArgumentString = string.Join(" ", gameArguments.Select(x => EncodeParameterArgument(x)));
             }
 
-            var process = GameStart.LaunchGame(Path.GetDirectoryName(gamePath), gamePath, gameArgumentString, noFixAcl, (Process p) =>
+            var launchContext = new GameLaunchContext
+            {
+                WorkingDir = Path.GetDirectoryName(gamePath),
+                ExePath = gamePath,
+                Arguments = gameArgumentString,
+                DontFixAcl = noFixAcl,
+                WaitForGameWindow = waitForGameWindow,
+            };
+            var process = GameStart.LaunchGame(launchContext, (Process p) =>
             {
                 if (!withoutDalamud && mode == "entrypoint")
                 {
@@ -695,7 +703,7 @@ namespace Dalamud.Injector
 
                     Log.Verbose("RewriteRemoteEntryPointW called!");
                 }
-            }, waitForGameWindow);
+            });
 
             Log.Verbose("Game process started with PID {0}", process.Id);
 
