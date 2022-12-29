@@ -12,19 +12,20 @@ namespace Dalamud.Injector.Win32;
 internal sealed class WellKnownSid : IDisposable
 {
     private readonly IntPtr mSid;
+
     public unsafe PSID AsPointer() => (PSID)this.mSid.ToPointer();
 
     public WellKnownSid(WELL_KNOWN_SID_TYPE sidType)
     {
         uint sidAllocSize = 0;
-        
+
         // First call is to ask its size
         PInvoke.CreateWellKnownSid(
             sidType,
             (PSID)null,
             (PSID)null,
             ref sidAllocSize);
-            
+
         this.mSid = Marshal.AllocCoTaskMem((int)sidAllocSize);
 
         var ok = PInvoke.CreateWellKnownSid(

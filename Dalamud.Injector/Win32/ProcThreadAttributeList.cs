@@ -26,9 +26,7 @@ internal sealed class ProcThreadAttributeList : IDisposable
             0,
             ref attributeAllocSize);
 
-        // Note that array is pinned as it needs to be transmuted into LPPROC_THREAD_ATTRIBUTE_LIST as needed
         this.mAttributeListData = Marshal.AllocCoTaskMem((int)attributeAllocSize);
-        GC.AllocateArray<byte>((int)attributeAllocSize, true);
 
         // Initialize it for real this time
         var ok = PInvoke.InitializeProcThreadAttributeList(

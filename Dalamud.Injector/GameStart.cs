@@ -359,7 +359,7 @@ namespace Dalamud.Injector
 
             var appContainer = new AppContainer("Dalamud.Container", "Dalamud", "A container for sandboxing dalamud plugins");
             
-            // TODO: this can be owned by administrator (with high integrity level) in which case we might be able to grant an access to appcontainer
+            // TODO: this can be owned by administrator (with high integrity level) in which case we might not be able to give an access to appcontainer
             appContainer.GrantFileAccess(context.WorkingDir, FILE_ACCESS_FLAGS.FILE_GENERIC_READ | FILE_ACCESS_FLAGS.FILE_GENERIC_EXECUTE);
 
             // TODO: need to revoke $gameConfig/downloads to prevent dropping files on retail launcher patches
