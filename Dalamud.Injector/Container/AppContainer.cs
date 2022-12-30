@@ -18,7 +18,7 @@ internal sealed class AppContainer : IDisposable
     public AppContainer(string containerName, string? displayName, string? description)
     {
         HRESULT hresult;
-        
+
         hresult = PInvoke.CreateAppContainerProfile(
             containerName,
             displayName ?? containerName,
@@ -26,18 +26,17 @@ internal sealed class AppContainer : IDisposable
             Span<SID_AND_ATTRIBUTES>.Empty,
             out this.sid);
 
-        if (!hresult.Succeeded)
+        if (hresult.Succeeded)
         {
-            if (hresult == PInvoke.HRESULT_FROM_WIN32(WIN32_ERROR.ERROR_ALREADY_EXISTS))
-            {
-                hresult = PInvoke.DeriveAppContainerSidFromAppContainerName(containerName, out this.sid);
-                hresult.ThrowOnFailure();
-            }
-            else
-            {
-                hresult.ThrowOnFailure();
-            }
+            return;
         }
+
+        if (hresult == PInvoke.HRESULT_FROM_WIN32(WIN32_ERROR.ERROR_ALREADY_EXISTS))
+        {
+            hresult = PInvoke.DeriveAppContainerSidFromAppContainerName(containerName, out this.sid);
+        }
+
+        hresult.ThrowOnFailure();
     }
 
     ~AppContainer()
@@ -58,7 +57,7 @@ internal sealed class AppContainer : IDisposable
         PInvoke.FreeSid(this.sid);
     }
 
-    public void GrantFileAccess(string path, FILE_ACCESS_FLAGS accessMask)
+    private void AddNamedObjectDacl(SE_OBJECT_TYPE objectType, string path, ACCESS_MODE accessMode, uint accessMask)
     {
         unsafe
         {
@@ -68,8 +67,8 @@ internal sealed class AppContainer : IDisposable
 
             try
             {
-                access.grfAccessMode = ACCESS_MODE.GRANT_ACCESS;
-                access.grfAccessPermissions = (uint)accessMask;
+                access.grfAccessMode = accessMode;
+                access.grfAccessPermissions = accessMask;
                 access.grfInheritance = ACE_FLAGS.OBJECT_INHERIT_ACE | ACE_FLAGS.CONTAINER_INHERIT_ACE;
                 access.Trustee.pMultipleTrustee = null;
                 access.Trustee.TrusteeForm = TRUSTEE_FORM.TRUSTEE_IS_SID;
@@ -80,7 +79,7 @@ internal sealed class AppContainer : IDisposable
                 {
                     errc = PInvoke.GetNamedSecurityInfo(
                         pPath,
-                        SE_OBJECT_TYPE.SE_FILE_OBJECT,
+                        objectType,
                         OBJECT_SECURITY_INFORMATION.DACL_SECURITY_INFORMATION,
                         null,
                         null,
@@ -89,18 +88,18 @@ internal sealed class AppContainer : IDisposable
                         default);
                     if (errc != WIN32_ERROR.ERROR_SUCCESS)
                     {
-                        throw new Exception($"Failed to fetch dacl information for {path}");
+                        throw new Exception($"Failed to fetch DACL information on {path}");
                     }
 
                     errc = PInvoke.SetEntriesInAcl(1, &access, pacl, &newPacl);
                     if (errc != WIN32_ERROR.ERROR_SUCCESS)
                     {
-                        throw new Exception($"Failed to set acl entries");
+                        throw new Exception($"Failed to add acl entries on {path}");
                     }
 
                     errc = PInvoke.SetNamedSecurityInfo(
                         pPath,
-                        SE_OBJECT_TYPE.SE_FILE_OBJECT,
+                        objectType,
                         OBJECT_SECURITY_INFORMATION.DACL_SECURITY_INFORMATION,
                         default,
                         default,
@@ -108,18 +107,27 @@ internal sealed class AppContainer : IDisposable
                         null);
                     if (errc != WIN32_ERROR.ERROR_SUCCESS)
                     {
-                        throw new Exception($"Failed to set dacl information for {path}");
+                        throw new Exception($"Failed to update DACL information on {path}");
                     }
                 }
             }
             finally
             {
-                // if (pacl is not null)
-                //     PInvoke.LocalFree((IntPtr)pacl);
-
                 if (newPacl is not null)
+                {
                     PInvoke.LocalFree((IntPtr)newPacl);
+                }
             }
         }
+    }
+
+    public void GrantFileAccess(string path, FILE_ACCESS_FLAGS accessMask)
+    {
+        this.AddNamedObjectDacl(SE_OBJECT_TYPE.SE_FILE_OBJECT, path, ACCESS_MODE.GRANT_ACCESS, (uint)accessMask);
+    }
+
+    public void DenyFileAccess(string path, FILE_ACCESS_FLAGS accessMask)
+    {
+        this.AddNamedObjectDacl(SE_OBJECT_TYPE.SE_FILE_OBJECT, path, ACCESS_MODE.DENY_ACCESS, (uint)accessMask);
     }
 }

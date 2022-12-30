@@ -31,4 +31,9 @@ public record GameLaunchContext
     /// Launch executable under an appcontainer.
     /// </summary>
     public bool UseAppContainer { get; init; } = false;
+
+    /// <summary>
+    /// The path to where dalamud binaries (i.e. directory containing Dalamud.dll) are located.
+    /// </summary>
+    public string? DalamudBinaryDirectory { get; init; } = null!;
 }

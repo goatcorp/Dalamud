@@ -91,6 +91,7 @@ namespace Dalamud.Injector
                         Environment.SetEnvironmentVariable("__COMPAT_LAYER", "RunAsInvoker");
                     }
 
+                    AppContainer? appContainer = null;
                     try
                     {
                         var startupInfo = new STARTUPINFOW
@@ -104,15 +105,16 @@ namespace Dalamud.Injector
 
                         using var capabilityList = new CapabilityList(2);
                         using var procThreadAttrList = new ProcThreadAttributeList(1);
+                        SECURITY_CAPABILITIES capability;
 
                         if (context.UseAppContainer)
                         {
-                            var appContainer = InitializeAppContainer(context);
+                            appContainer = InitializeAppContainer(context);
 
                             capabilityList.Add(WELL_KNOWN_SID_TYPE.WinCapabilityInternetClientServerSid); // for internet access
                             capabilityList.Add(WELL_KNOWN_SID_TYPE.WinCapabilityPrivateNetworkClientServerSid); // for intranet access (except loopback)
 
-                            var capability = new SECURITY_CAPABILITIES
+                            capability = new SECURITY_CAPABILITIES
                             {
                                 AppContainerSid = appContainer.Sid,
                                 Capabilities = capabilityList.AsPointer(),
@@ -137,9 +139,12 @@ namespace Dalamud.Injector
                         {
                             throw new Win32Exception();
                         }
-                    } finally
+                    }
+                    finally
                     {
                         Environment.SetEnvironmentVariable("__COMPAT_LAYER", compatLayerPrev);
+                        
+                        appContainer?.Dispose();
                     }
 
                     if (!context.DontFixAcl)
@@ -353,21 +358,53 @@ namespace Dalamud.Injector
 
         private static AppContainer InitializeAppContainer(GameLaunchContext context)
         {
-            // TODO: hardcoded for now
             var gameConfigDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "My Games", "FINAL FANTASY XIV - A Realm Reborn");
-            var xivLauncherDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "XIVLauncher");
+            var gameConfigDownloadDirectory = Path.Combine(gameConfigDirectory, "downloads");
+            var xlDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "XIVLauncher");
+            var xlAddonDirectory = Path.Combine(xlDirectory, "addon");
+            var xlRuntimeDirectory = Path.Combine(xlDirectory, "runtime");
+            var xlPatchesDirectory = Path.Combine(xlDirectory, "patches");
 
             var appContainer = new AppContainer("Dalamud.Container", "Dalamud", "A container for sandboxing dalamud plugins");
-            
-            // TODO: this can be owned by administrator (with high integrity level) in which case we might not be able to give an access to appcontainer
+
+            // Current policy is:
+            // (Has Low IL)
+            // 1. [grant, r-x] $base_game
+            // 2. [grant, rw-] $game_config
+            // 3. [deny,  -w-] $game_config/downloads (otherwise may overwrite stock launcher/patch files)
+            // 4. [grant, rwx] $xl (can execute plugins)
+            // 5. [deny,  -w-] $xl/{addon, runtime, patches} (same reason as (3) except it's XL this time)
+            // 6. [grant, r-x] $dalamud_dir (can be outside of $xl if someone is manually compiling this)
+            //
+            // Notes:
+            // - $screenshot_dir is unaddressed for now.
+            // - Anything not listed here follows normal access check rules for AppContainer.
+
+            // Keep in mind that files created from normal process usually have medium IL, preventing read(NO_READ_UP) or write(NO_WRITE_UP) access from the app running inside the container
+            // (i.e. low IL process can't access higher IL objects)
+
+            // Create directories as these might not actually exist yet
+            Directory.CreateDirectory(gameConfigDownloadDirectory);
+            Directory.CreateDirectory(xlAddonDirectory);
+            Directory.CreateDirectory(xlRuntimeDirectory);
+            Directory.CreateDirectory(xlPatchesDirectory);
+
+            // TODO: this can be owned by administrator(as Xl.Patcher runs as admin) in which case this can fail
             appContainer.GrantFileAccess(context.WorkingDir, FILE_ACCESS_FLAGS.FILE_GENERIC_READ | FILE_ACCESS_FLAGS.FILE_GENERIC_EXECUTE);
 
-            // TODO: need to revoke $gameConfig/downloads to prevent dropping files on retail launcher patches
-            // TODO: also "already existing" config files have medium integrity, preventing read(NO_READ_UP) or write access(NO_WRITE_UP) from apps inside a container
-            appContainer.GrantFileAccess(gameConfigDirectory, FILE_ACCESS_FLAGS.FILE_GENERIC_READ | FILE_ACCESS_FLAGS.FILE_GENERIC_WRITE | FILE_ACCESS_FLAGS.FILE_GENERIC_EXECUTE);
+            appContainer.GrantFileAccess(gameConfigDirectory, FILE_ACCESS_FLAGS.FILE_GENERIC_READ | FILE_ACCESS_FLAGS.FILE_GENERIC_WRITE);
+            appContainer.DenyFileAccess(Path.Combine(gameConfigDirectory, "downloads"), FILE_ACCESS_FLAGS.FILE_GENERIC_WRITE);
 
             // TODO: must either revoke write access to $xl/addon, $xl/patches and $xl/runtime or change directory structure to support appcontainer
-            appContainer.GrantFileAccess(xivLauncherDirectory, FILE_ACCESS_FLAGS.FILE_GENERIC_READ | FILE_ACCESS_FLAGS.FILE_GENERIC_WRITE | FILE_ACCESS_FLAGS.FILE_GENERIC_EXECUTE);
+            appContainer.GrantFileAccess(xlDirectory, FILE_ACCESS_FLAGS.FILE_GENERIC_READ | FILE_ACCESS_FLAGS.FILE_GENERIC_WRITE | FILE_ACCESS_FLAGS.FILE_GENERIC_EXECUTE);
+            appContainer.DenyFileAccess(xlAddonDirectory, FILE_ACCESS_FLAGS.FILE_GENERIC_WRITE);
+            appContainer.DenyFileAccess(xlRuntimeDirectory, FILE_ACCESS_FLAGS.FILE_GENERIC_WRITE);
+            appContainer.DenyFileAccess(xlPatchesDirectory, FILE_ACCESS_FLAGS.FILE_GENERIC_WRITE);
+
+            if (context.DalamudBinaryDirectory is not null)
+            {
+                appContainer.GrantFileAccess(context.DalamudBinaryDirectory, FILE_ACCESS_FLAGS.FILE_GENERIC_READ | FILE_ACCESS_FLAGS.FILE_GENERIC_EXECUTE);
+            }
 
             return appContainer;
         }

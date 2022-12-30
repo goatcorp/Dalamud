@@ -690,8 +690,10 @@ namespace Dalamud.Injector
                 Arguments = gameArgumentString,
                 DontFixAcl = noFixAcl,
                 WaitForGameWindow = waitForGameWindow,
-                UseAppContainer = dalamudStartInfo.UseAppContainer, 
+                UseAppContainer = dalamudStartInfo.UseAppContainer,
+                DalamudBinaryDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location),
             };
+            
             var process = GameStart.LaunchGame(launchContext, (Process p) =>
             {
                 if (!withoutDalamud && mode == "entrypoint")
