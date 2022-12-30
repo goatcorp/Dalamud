@@ -364,10 +364,10 @@ namespace Dalamud.Injector
 
             // TODO: need to revoke $gameConfig/downloads to prevent dropping files on retail launcher patches
             // TODO: also "already existing" config files have medium integrity, preventing read(NO_READ_UP) or write access(NO_WRITE_UP) from apps inside a container
-            appContainer.GrantFileAccess(gameConfigDirectory, FILE_ACCESS_FLAGS.FILE_GENERIC_WRITE | FILE_ACCESS_FLAGS.FILE_GENERIC_WRITE | FILE_ACCESS_FLAGS.FILE_GENERIC_EXECUTE);
+            appContainer.GrantFileAccess(gameConfigDirectory, FILE_ACCESS_FLAGS.FILE_GENERIC_READ | FILE_ACCESS_FLAGS.FILE_GENERIC_WRITE | FILE_ACCESS_FLAGS.FILE_GENERIC_EXECUTE);
 
             // TODO: must either revoke write access to $xl/addon, $xl/patches and $xl/runtime or change directory structure to support appcontainer
-            appContainer.GrantFileAccess(xivLauncherDirectory, FILE_ACCESS_FLAGS.FILE_GENERIC_WRITE | FILE_ACCESS_FLAGS.FILE_GENERIC_WRITE | FILE_ACCESS_FLAGS.FILE_GENERIC_EXECUTE);
+            appContainer.GrantFileAccess(xivLauncherDirectory, FILE_ACCESS_FLAGS.FILE_GENERIC_READ | FILE_ACCESS_FLAGS.FILE_GENERIC_WRITE | FILE_ACCESS_FLAGS.FILE_GENERIC_EXECUTE);
 
             return appContainer;
         }
