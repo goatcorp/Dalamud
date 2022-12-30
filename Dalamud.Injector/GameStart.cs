@@ -105,7 +105,7 @@ namespace Dalamud.Injector
                         using var capabilityList = new CapabilityList(2);
                         using var procThreadAttrList = new ProcThreadAttributeList(1);
 
-                        if (context.UseContainer)
+                        if (context.UseAppContainer)
                         {
                             var appContainer = InitializeAppContainer(context);
 

@@ -7,6 +7,7 @@ namespace xivfixes {
     void redirect_openprocess(bool bApply);
     void backup_userdata_save(bool bApply);
     void clr_failfast_hijack(bool bApply);
+    void fix_appcontainer_compat(bool bApply);
 
     void apply_all(bool bApply);
 }

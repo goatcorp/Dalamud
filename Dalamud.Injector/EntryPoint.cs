@@ -95,6 +95,7 @@ namespace Dalamud.Injector
             args.Remove("--no-plugin");
             args.Remove("--no-3rd-plugin");
             args.Remove("--crash-handler-console");
+            args.Remove("--use-app-container");
 
             var mainCommand = args[1].ToLowerInvariant();
             if (mainCommand.Length > 0 && mainCommand.Length <= 6 && "inject"[..mainCommand.Length] == mainCommand)
@@ -335,6 +336,7 @@ namespace Dalamud.Injector
             startInfo.NoLoadThirdPartyPlugins = args.Contains("--no-third-plugin");
             // startInfo.BootUnhookDlls = new List<string>() { "kernel32.dll", "ntdll.dll", "user32.dll" };
             startInfo.CrashHandlerShow = args.Contains("--crash-handler-console");
+            startInfo.UseAppContainer = args.Contains("--use-app-container");
 
             return startInfo;
         }
@@ -688,6 +690,7 @@ namespace Dalamud.Injector
                 Arguments = gameArgumentString,
                 DontFixAcl = noFixAcl,
                 WaitForGameWindow = waitForGameWindow,
+                UseAppContainer = dalamudStartInfo.UseAppContainer, 
             };
             var process = GameStart.LaunchGame(launchContext, (Process p) =>
             {

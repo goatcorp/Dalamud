@@ -30,5 +30,5 @@ public record GameLaunchContext
     /// <summary>
     /// Launch executable under an appcontainer.
     /// </summary>
-    public bool UseContainer { get; init; } = true;
+    public bool UseAppContainer { get; init; } = false;
 }
