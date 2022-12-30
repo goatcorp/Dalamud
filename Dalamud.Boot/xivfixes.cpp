@@ -547,6 +547,23 @@ void xivfixes::clr_failfast_hijack(bool bApply)
     }
 }
 
+void xivfixes::fix_appcontainer_compat(bool bApply) {
+    DWORD oldProt = 0;
+
+    auto inst = utils::signature_finder()
+        .look_in(utils::loaded_module(g_hGameInstance), ".text")
+        .look_for_hex("75 ?? 83 c8 ff 4c 8b ?? ?? ?? ?? ?? 00 4c 8b ?? 24 ?? ?? ?? 00 4c 8b ?? 24 ?? ?? ?? 00 48 8B ?? ?? ?? ?? 00 48 ?? ?? e8")
+        .find_one()
+        .Match;
+
+    // yes this is a kludge until we make a proper solution for it
+    auto veryBad = const_cast<char*>(inst.data());
+    VirtualProtect(veryBad, 1, PAGE_EXECUTE_READWRITE, &oldProt);
+    veryBad[0] = 0xEB;
+    VirtualProtect(veryBad, 1, oldProt, &oldProt);
+    FlushInstructionCache(GetCurrentProcess(), veryBad, 1);
+}
+
 void xivfixes::apply_all(bool bApply) {
     for (const auto& [taskName, taskFunction] : std::initializer_list<std::pair<const char*, void(*)(bool)>>
         {
@@ -555,7 +572,8 @@ void xivfixes::apply_all(bool bApply) {
             { "disable_game_openprocess_access_check", &disable_game_openprocess_access_check },
             { "redirect_openprocess", &redirect_openprocess },
             { "backup_userdata_save", &backup_userdata_save },
-            { "clr_failfast_hijack", &clr_failfast_hijack }
+            { "clr_failfast_hijack", &clr_failfast_hijack },
+            { "fix_appcontainer_compat", &fix_appcontainer_compat },
         }
         ) {
         try {
