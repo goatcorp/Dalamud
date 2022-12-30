@@ -97,6 +97,11 @@ namespace Dalamud.Injector
             args.Remove("--crash-handler-console");
             args.Remove("--use-app-container");
 
+            if (Environment.GetEnvironmentVariable("DALAMUD_EXPERIMENT_APP_CONTAINER") == "1")
+            {
+                startInfo.UseAppContainer = true;
+            }
+
             var mainCommand = args[1].ToLowerInvariant();
             if (mainCommand.Length > 0 && mainCommand.Length <= 6 && "inject"[..mainCommand.Length] == mainCommand)
             {
@@ -682,7 +687,7 @@ namespace Dalamud.Injector
             {
                 gameArgumentString = string.Join(" ", gameArguments.Select(x => EncodeParameterArgument(x)));
             }
-
+            
             var launchContext = new GameLaunchContext
             {
                 WorkingDir = Path.GetDirectoryName(gamePath),
