@@ -26,7 +26,6 @@ using ImGuiNET;
 using ImGuiScene;
 using PInvoke;
 using Serilog;
-using SharpDX.Direct3D11;
 
 // general dev notes, here because it's easiest
 
@@ -147,7 +146,7 @@ internal class InterfaceManager : IDisposable, IServiceType
     /// <summary>
     /// Gets the D3D11 device instance.
     /// </summary>
-    public Device? Device => this.scene?.Device;
+    public SharpDX.Direct3D11.Device? Device => this.scene?.Device;
 
     /// <summary>
     /// Gets the address handle to the main process window.
@@ -407,6 +406,24 @@ internal class InterfaceManager : IDisposable, IServiceType
     public void EnqueueDeferredDispose(DalamudTextureWrap wrap)
     {
         this.deferredDisposeTextures.Add(wrap);
+    }
+
+    /// <summary>
+    /// Get video memory information.
+    /// </summary>
+    /// <returns>The currently used video memory, or null if not available.</returns>
+    public (long Used, long Available)? GetD3dMemoryInfo()
+    {
+        if (this.Device == null)
+            return null;
+
+        var dxgiDev = this.Device.QueryInterface<SharpDX.DXGI.Device>();
+        var dxgiAdapter = dxgiDev.Adapter.QueryInterfaceOrNull<SharpDX.DXGI.Adapter4>();
+        if (dxgiAdapter == null)
+            return null;
+
+        var memInfo = dxgiAdapter.QueryVideoMemoryInfo(0, SharpDX.DXGI.MemorySegmentGroup.Local);
+        return (memInfo.CurrentUsage, memInfo.CurrentReservation);
     }
 
     private static void ShowFontError(string path)

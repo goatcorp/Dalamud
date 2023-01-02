@@ -849,7 +849,12 @@ internal class DalamudInterface : IDisposable, IServiceType
                     ImGui.BeginMenu(Util.GetGitHash(), false);
                     ImGui.BeginMenu(this.FrameCount.ToString("000000"), false);
                     ImGui.BeginMenu(ImGui.GetIO().Framerate.ToString("000"), false);
-                    ImGui.BeginMenu($"{Util.FormatBytes(GC.GetTotalMemory(false))}", false);
+                    ImGui.BeginMenu($"W:{Util.FormatBytes(GC.GetTotalMemory(false))}", false);
+
+                    var videoMem = Service<InterfaceManager>.Get().GetD3dMemoryInfo();
+                    ImGui.BeginMenu(
+                        !videoMem.HasValue ? $"V:???" : $"V:{Util.FormatBytes(videoMem.Value.Used)}",
+                        false);
 
                     ImGui.PopFont();
                 }
