@@ -43,7 +43,7 @@ public sealed class DalamudPluginInterface : IDisposable
     /// <param name="reason">The reason the plugin was loaded.</param>
     /// <param name="isDev">A value indicating whether this is a dev plugin.</param>
     /// <param name="sourceRepository">The repository from which the plugin is installed.</param>
-    internal DalamudPluginInterface(string pluginName, FileInfo assemblyLocation, PluginLoadReason reason, bool isDev, string sourceRepository)
+    internal DalamudPluginInterface(string pluginName, FileInfo assemblyLocation, PluginLoadReason reason, bool isDev, LocalPluginManifest manifest)
     {
         var configuration = Service<DalamudConfiguration>.Get();
         var dataManager = Service<DataManager>.Get();
@@ -56,7 +56,8 @@ public sealed class DalamudPluginInterface : IDisposable
         this.configs = Service<PluginManager>.Get().PluginConfigs;
         this.Reason = reason;
         this.IsDev = isDev;
-        this.SourceRepository = isDev ? LocalPluginManifest.FlagDevPlugin : sourceRepository;
+        this.SourceRepository = isDev ? LocalPluginManifest.FlagDevPlugin : manifest.InstalledFromUrl;
+        this.IsTesting = manifest.Testing;
 
         this.LoadTime = DateTime.Now;
         this.LoadTimeUTC = DateTime.UtcNow;
@@ -97,7 +98,11 @@ public sealed class DalamudPluginInterface : IDisposable
     public PluginLoadReason Reason { get; }
 
     /// <summary>
-    /// Gets the custom repository from which this plugin is installed, <inheritdoc cref="LocalPluginManifest.FlagMainRepo"/>, or <inheritdoc cref="LocalPluginManifest.FlagDevPlugin"/>.
+    /// Gets the repository from which this plugin was installed.
+    ///
+    /// If a plugin was installed from the official/main repository, this will return the value of
+    /// <see cref="LocalPluginManifest.FlagMainRepo"/>. Developer plugins will return the value of
+    /// <see cref="LocalPluginManifest.FlagDevPlugin"/>.
     /// </summary>
     public string SourceRepository { get; }
 
@@ -105,6 +110,14 @@ public sealed class DalamudPluginInterface : IDisposable
     /// Gets a value indicating whether this is a dev plugin.
     /// </summary>
     public bool IsDev { get; }
+
+    /// <summary>
+    /// Gets a value indicating whether this is a testing release of a plugin.
+    /// </summary>
+    /// <remarks>
+    /// Dev plugins have undefined behavior for this value, but can be expected to return <c>false</c>.
+    /// </remarks>
+    public bool IsTesting { get; }
 
     /// <summary>
     /// Gets the time that this plugin was loaded.
