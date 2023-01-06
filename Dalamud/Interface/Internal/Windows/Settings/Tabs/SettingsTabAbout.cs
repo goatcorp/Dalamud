@@ -1,23 +1,22 @@
-using System;
+﻿using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Numerics;
 
+using CheapLoc;
 using Dalamud.Game.Gui;
 using Dalamud.Interface.GameFonts;
-using Dalamud.Interface.Windowing;
 using Dalamud.Plugin.Internal;
 using Dalamud.Utility;
 using ImGuiNET;
 using ImGuiScene;
 
-namespace Dalamud.Interface.Internal.Windows;
+namespace Dalamud.Interface.Internal.Windows.Settings.Tabs;
 
-/// <summary>
-/// A window documenting contributors to the project.
-/// </summary>
-internal class CreditsWindow : Window, IDisposable
+[SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1600:Elements should be documented", Justification = "Internals")]
+public class SettingsTabAbout : SettingsTab
 {
     private const float CreditFps = 60.0f;
     private const string ThankYouText = "Thank you!";
@@ -27,7 +26,8 @@ A FFXIV Plugin Framework
 Version D{0}
 
 
-created by:
+
+Created by:
 
 goat
 daemitus
@@ -124,8 +124,15 @@ philpax
 
 We use these awesome libraries:
 
+FFXIVClientStructs ({2})
+Copyright (c) 2021 aers
+Licensed under the MIT License
+
 Lumina by Adam
-FFXIVClientStructs by aers ({2})
+Licensed under the WTFPL v2.0
+
+Reloaded Libraries by Sewer56
+Licensed under the GNU Lesser General Public License v3.0
 
 DotNetCorePlugins
 Copyright (c) Nate McMaster
@@ -145,17 +152,20 @@ Licensed under the BSD 2-Clause License
 SRELL
 Copyright (c) 2012-2022, Nozomu Katoo
 
+STB Libraries
+Copyright (c) 2017 Sean Barrett
+Licensed under the MIT License
+
 Please see licenses.txt for more information.
 
 
-Thanks to everyone in the XIVLauncher Discord server
-
+Thanks to everyone in the XIVLauncher Discord server!
 Join us at: https://discord.gg/3NMcUV5
 
 
 
-Dalamud is licensed under AGPL v3 or later
-Contribute at: https://github.com/goatsoft/Dalamud
+Dalamud is licensed under AGPL v3 or later.
+Contribute at: https://github.com/goatcorp/Dalamud
 ";
 
     private readonly TextureWrap logoTexture;
@@ -163,27 +173,21 @@ Contribute at: https://github.com/goatsoft/Dalamud
 
     private string creditsText;
 
+    private bool resetNow = false;
     private GameFontHandle? thankYouFont;
 
-    /// <summary>
-    /// Initializes a new instance of the <see cref="CreditsWindow"/> class.
-    /// </summary>
-    public CreditsWindow()
-        : base("Dalamud Credits", ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoTitleBar, true)
+    public SettingsTabAbout()
     {
         var dalamud = Service<Dalamud>.Get();
         var interfaceManager = Service<InterfaceManager>.Get();
 
-        this.logoTexture = interfaceManager.LoadImage(Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "logo.png"));
+        this.logoTexture = interfaceManager.LoadImage(Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "logo.png"))!;
         this.creditsThrottler = new();
-
-        this.Size = new Vector2(500, 400);
-        this.SizeCondition = ImGuiCond.Always;
-
-        this.PositionCondition = ImGuiCond.Always;
-
-        this.BgAlpha = 0.8f;
     }
+
+    public override SettingsEntry[] Entries { get; } = { };
+
+    public override string Title => Loc.Localize("DalamudAbout", "About");
 
     /// <inheritdoc/>
     public override void OnOpen()
@@ -195,7 +199,10 @@ Contribute at: https://github.com/goatsoft/Dalamud
 
         this.creditsText = string.Format(CreditsTextTempl, typeof(Dalamud).Assembly.GetName().Version, pluginCredits, Util.GetGitHashClientStructs());
 
-        Service<GameGui>.Get().SetBgm(833);
+        var gg = Service<GameGui>.Get();
+        if (!gg.IsOnTitleScreen())
+            gg.SetBgm(833);
+
         this.creditsThrottler.Restart();
 
         if (this.thankYouFont == null)
@@ -203,40 +210,35 @@ Contribute at: https://github.com/goatsoft/Dalamud
             var gfm = Service<GameFontManager>.Get();
             this.thankYouFont = gfm.NewFontRef(new GameFontStyle(GameFontFamilyAndSize.TrumpGothic34));
         }
+
+        this.resetNow = true;
+
+        Service<DalamudInterface>.Get().SetCreditsDarkeningAnimation(true);
     }
 
     /// <inheritdoc/>
     public override void OnClose()
     {
         this.creditsThrottler.Reset();
-        Service<GameGui>.Get().SetBgm(9999);
+
+        var gg = Service<GameGui>.Get();
+        if (!gg.IsOnTitleScreen())
+            gg.SetBgm(9999);
+
+        Service<DalamudInterface>.Get().SetCreditsDarkeningAnimation(false);
     }
 
-    /// <inheritdoc/>
-    public override void PreDraw()
-    {
-        ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(0, 0));
-
-        base.PreDraw();
-    }
-
-    /// <inheritdoc/>
-    public override void PostDraw()
-    {
-        ImGui.PopStyleVar();
-
-        base.PostDraw();
-    }
-
-    /// <inheritdoc/>
     public override void Draw()
     {
-        var screenSize = ImGui.GetMainViewport().Size;
         var windowSize = ImGui.GetWindowSize();
 
-        this.Position = (screenSize - windowSize) / 2;
-
         ImGui.BeginChild("scrolling", Vector2.Zero, false, ImGuiWindowFlags.NoScrollbar);
+
+        if (this.resetNow)
+        {
+            ImGui.SetScrollY(0);
+            this.resetNow = false;
+        }
 
         ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, Vector2.Zero);
 
@@ -295,30 +297,13 @@ Contribute at: https://github.com/goatsoft/Dalamud
 
         ImGui.EndChild();
 
-        ImGui.SetCursorPos(new Vector2(0));
-        ImGui.BeginChild("button", Vector2.Zero, false, ImGuiWindowFlags.NoScrollbar);
-
-        var closeButtonSize = new Vector2(30);
-        ImGui.PushFont(InterfaceManager.IconFont);
-        ImGui.SetCursorPos(new Vector2(windowSize.X - closeButtonSize.X - 5, 5));
-        ImGui.PushStyleColor(ImGuiCol.Button, Vector4.Zero);
-        ImGui.PushStyleColor(ImGuiCol.ButtonHovered, Vector4.Zero);
-        ImGui.PushStyleColor(ImGuiCol.ButtonActive, Vector4.Zero);
-
-        if (ImGui.Button(FontAwesomeIcon.Times.ToIconString(), closeButtonSize))
-        {
-            this.IsOpen = false;
-        }
-
-        ImGui.PopStyleColor(3);
-        ImGui.PopFont();
-        ImGui.EndChild();
+        base.Draw();
     }
 
     /// <summary>
     /// Disposes of managed and unmanaged resources.
     /// </summary>
-    public void Dispose()
+    public override void Dispose()
     {
         this.logoTexture?.Dispose();
         this.thankYouFont?.Dispose();

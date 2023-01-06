@@ -363,7 +363,7 @@ public sealed unsafe class GameGui : IDisposable, IServiceType
     /// </summary>
     /// <param name="addonPtr">The addon address.</param>
     /// <returns>A pointer to the agent interface.</returns>
-    public unsafe IntPtr FindAgentInterface(IntPtr addonPtr)
+    public IntPtr FindAgentInterface(IntPtr addonPtr)
     {
         if (addonPtr == IntPtr.Zero)
             return IntPtr.Zero;
@@ -412,10 +412,25 @@ public sealed unsafe class GameGui : IDisposable, IServiceType
     }
 
     /// <summary>
+    /// Indicates if the game is on the title screen.
+    /// </summary>
+    /// <returns>A value indicating whether or not the game is on the title screen.</returns>
+    internal bool IsOnTitleScreen()
+    {
+        var charaSelect = this.GetAddonByName("CharaSelect", 1);
+        var charaMake = this.GetAddonByName("CharaMake", 1);
+        var titleDcWorldMap = this.GetAddonByName("TitleDCWorldMap", 1);
+        if (charaMake != nint.Zero || charaSelect != nint.Zero || titleDcWorldMap != nint.Zero)
+            return false;
+
+        return !Service<ClientState.ClientState>.Get().IsLoggedIn;
+    }
+
+    /// <summary>
     /// Set the current background music.
     /// </summary>
     /// <param name="bgmKey">The background music key.</param>
-    public void SetBgm(ushort bgmKey) => this.setGlobalBgmHook.Original(bgmKey, 0, 0, 0, 0, 0);
+    internal void SetBgm(ushort bgmKey) => this.setGlobalBgmHook.Original(bgmKey, 0, 0, 0, 0, 0);
 
     /// <summary>
     /// Reset the stored "UI hide" state.

@@ -43,7 +43,7 @@ internal partial class PluginManager : IDisposable, IServiceType
     /// <summary>
     /// Default time to wait between plugin unload and plugin assembly unload.
     /// </summary>
-    public const int PluginWaitBeforeFreeDefault = 500;
+    public const int PluginWaitBeforeFreeDefault = 1000; // upped from 500ms, seems more stable
 
     private const string DevPluginsDisclaimerFilename = "DONT_USE_THIS_FOLDER.txt";
 
