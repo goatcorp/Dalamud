@@ -63,7 +63,7 @@ public sealed class ClientState : IDisposable, IServiceType
     public event EventHandler<ushort> TerritoryChanged;
 
     /// <summary>
-    /// Event that fires when a character is logging in.
+    /// Event that fires when a character is logging in, and the local character object is available.
     /// </summary>
     public event EventHandler Login;
 
@@ -167,7 +167,7 @@ public sealed class ClientState : IDisposable, IServiceType
         if (condition == null || gameGui == null || data == null)
             return;
 
-        if (condition.Any() && this.lastConditionNone == true)
+        if (condition.Any() && this.lastConditionNone == true && this.LocalPlayer != null)
         {
             Log.Debug("Is login");
             this.lastConditionNone = false;
