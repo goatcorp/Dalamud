@@ -42,7 +42,7 @@ public sealed class DalamudPluginInterface : IDisposable
     /// <param name="assemblyLocation">Location of the assembly.</param>
     /// <param name="reason">The reason the plugin was loaded.</param>
     /// <param name="isDev">A value indicating whether this is a dev plugin.</param>
-    /// <param name="sourceRepository">The repository from which the plugin is installed.</param>
+    /// <param name="manifest">The local manifest for this plugin.</param>
     internal DalamudPluginInterface(string pluginName, FileInfo assemblyLocation, PluginLoadReason reason, bool isDev, LocalPluginManifest manifest)
     {
         var configuration = Service<DalamudConfiguration>.Get();
