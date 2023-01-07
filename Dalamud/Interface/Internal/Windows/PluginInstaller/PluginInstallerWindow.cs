@@ -1465,7 +1465,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         return ready;
     }
 
-    private bool DrawPluginCollapsingHeader(string label, LocalPlugin? plugin, PluginManifest manifest, bool isThirdParty, bool trouble, bool updateAvailable, bool isNew, bool installableOutdated, Action drawContextMenuAction, int index)
+    private bool DrawPluginCollapsingHeader(string label, LocalPlugin? plugin, PluginManifest manifest, bool isThirdParty, bool trouble, bool updateAvailable, bool isNew, bool installableOutdated, bool isOrphan, Action drawContextMenuAction, int index)
     {
         ImGui.Separator();
 
@@ -1536,7 +1536,7 @@ internal class PluginInstallerWindow : Window, IDisposable
 
         if (updateAvailable)
             ImGui.Image(this.imageCache.UpdateIcon.ImGuiHandle, iconSize);
-        else if (trouble && !pluginDisabled)
+        else if ((trouble && !pluginDisabled) || isOrphan)
             ImGui.Image(this.imageCache.TroubleIcon.ImGuiHandle, iconSize);
         else if (installableOutdated)
             ImGui.Image(this.imageCache.OutdatedInstallableIcon.ImGuiHandle, iconSize);
@@ -1737,7 +1737,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         ImGui.PushID($"available{index}{manifest.InternalName}");
 
         var isThirdParty = manifest.SourceRepo.IsThirdParty;
-        if (this.DrawPluginCollapsingHeader(label, null, manifest, isThirdParty, false, false, !wasSeen, isOutdated, () => this.DrawAvailablePluginContextMenu(manifest), index))
+        if (this.DrawPluginCollapsingHeader(label, null, manifest, isThirdParty, false, false, !wasSeen, isOutdated, false, () => this.DrawAvailablePluginContextMenu(manifest), index))
         {
             if (!wasSeen)
                 configuration.SeenPluginInternalName.Add(manifest.InternalName);
@@ -1987,7 +1987,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         ImGui.PushID($"installed{index}{plugin.Manifest.InternalName}");
         var hasChangelog = !plugin.Manifest.Changelog.IsNullOrEmpty();
 
-        if (this.DrawPluginCollapsingHeader(label, plugin, plugin.Manifest, plugin.Manifest.IsThirdParty, trouble, availablePluginUpdate != default, false, false, () => this.DrawInstalledPluginContextMenu(plugin, testingOptIn), index))
+        if (this.DrawPluginCollapsingHeader(label, plugin, plugin.Manifest, plugin.Manifest.IsThirdParty, trouble, availablePluginUpdate != default, false, false, plugin.IsOrphaned, () => this.DrawInstalledPluginContextMenu(plugin, testingOptIn), index))
         {
             if (!this.WasPluginSeen(plugin.Manifest.InternalName))
                 configuration.SeenPluginInternalName.Add(plugin.Manifest.InternalName);
@@ -2188,7 +2188,8 @@ internal class PluginInstallerWindow : Window, IDisposable
         disabled = disabled || (plugin.IsOutdated && !pluginManager.LoadAllApiLevels) || plugin.IsBanned;
 
         // Disable everything if the plugin is orphaned
-        disabled = disabled || plugin.IsOrphaned;
+        // Control will immediately be disabled once the plugin is disabled
+        disabled = disabled || (plugin.IsOrphaned && !plugin.IsLoaded);
 
         // Disable everything if the plugin failed to load
         disabled = disabled || plugin.State == PluginState.LoadError || plugin.State == PluginState.DependencyResolutionFailed;
