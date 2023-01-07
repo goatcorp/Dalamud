@@ -10,7 +10,9 @@ using Dalamud.Interface.Internal.Notifications;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin.Internal;
 using Dalamud.Plugin.Internal.Types;
+using Dalamud.Utility;
 using ImGuiNET;
+using Serilog;
 
 namespace Dalamud.Interface.Internal.Windows;
 
@@ -20,6 +22,7 @@ namespace Dalamud.Interface.Internal.Windows;
 internal class PluginStatWindow : Window
 {
     private bool showDalamudHooks;
+    private string hookSearchText = string.Empty;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="PluginStatWindow"/> class.
@@ -211,6 +214,12 @@ internal class PluginStatWindow : Window
         {
             ImGui.Checkbox("Show Dalamud Hooks", ref this.showDalamudHooks);
 
+            ImGui.InputTextWithHint(
+                "###PluginStatWindow_HookSearch",
+                "Search",
+                ref this.hookSearchText,
+                500);
+
             if (ImGui.BeginTable(
                     "##PluginStatsHooks",
                     4,
@@ -237,6 +246,13 @@ internal class PluginStatWindow : Window
 
                         if (!this.showDalamudHooks && trackedHook.Assembly == Assembly.GetExecutingAssembly())
                             continue;
+
+                        if (!this.hookSearchText.IsNullOrEmpty())
+                        {
+                            if ((trackedHook.Delegate.Target == null || !trackedHook.Delegate.Target.ToString().Contains(this.hookSearchText, StringComparison.OrdinalIgnoreCase))
+                                && !trackedHook.Delegate.Method.Name.Contains(this.hookSearchText, StringComparison.OrdinalIgnoreCase))
+                                continue;
+                        }
 
                         ImGui.TableNextRow();
 
@@ -281,7 +297,7 @@ internal class PluginStatWindow : Window
                     }
                     catch (Exception ex)
                     {
-                        ImGui.Text(ex.Message);
+                        Log.Error(ex, "Error drawing hooks in plugin stats");
                     }
                 }
 
