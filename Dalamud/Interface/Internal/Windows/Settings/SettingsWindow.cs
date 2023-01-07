@@ -170,14 +170,19 @@ internal class SettingsWindow : Window
             {
                 this.Save();
 
-                this.IsOpen = false;
+                if (!ImGui.IsKeyDown(ImGuiKey.ModShift))
+                    this.IsOpen = false;
             }
 
             ImGui.PopStyleVar();
             ImGui.PopFont();
 
             if (ImGui.IsItemHovered())
-                ImGui.SetTooltip(Loc.Localize("DalamudSettingsSaveAndExit", "Save changes and close"));
+            {
+                ImGui.SetTooltip(!ImGui.IsKeyDown(ImGuiKey.ModShift)
+                                     ? Loc.Localize("DalamudSettingsSaveAndExit", "Save changes and close")
+                                     : Loc.Localize("DalamudSettingsSaveAndExit", "Save changes"));
+            }
 
             if (invalid)
                 ImGui.EndDisabled();
