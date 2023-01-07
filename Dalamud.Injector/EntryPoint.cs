@@ -332,7 +332,7 @@ namespace Dalamud.Injector
             startInfo.BootVehEnabled = true;
             startInfo.BootVehFull = args.Contains("--veh-full");
             startInfo.NoLoadPlugins = args.Contains("--no-plugin");
-            startInfo.NoLoadThirdPartyPlugins = args.Contains("--no-third-plugin");
+            startInfo.NoLoadThirdPartyPlugins = args.Contains("--no-3rd-plugin");
             // startInfo.BootUnhookDlls = new List<string>() { "kernel32.dll", "ntdll.dll", "user32.dll" };
             startInfo.CrashHandlerShow = args.Contains("--crash-handler-console");
 
