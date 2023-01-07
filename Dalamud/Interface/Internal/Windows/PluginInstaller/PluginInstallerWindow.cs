@@ -1629,7 +1629,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         ImGui.SetCursorPosX(cursor.X);
 
         // Description
-        if (plugin is null or { IsOutdated: false, IsBanned: false })
+        if (plugin is null or { IsOutdated: false, IsBanned: false } && !trouble)
         {
             if (!string.IsNullOrWhiteSpace(manifest.Punchline))
             {
