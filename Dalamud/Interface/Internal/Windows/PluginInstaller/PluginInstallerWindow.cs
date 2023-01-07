@@ -1991,7 +1991,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         }
 
         // Out of service
-        if (plugin.IsDecommissioned)
+        if (plugin.IsDecommissioned && !plugin.IsOrphaned)
         {
             label += Locs.PluginTitleMod_NoService;
             trouble = true;
