@@ -866,13 +866,13 @@ Thanks and have fun!";
         {
             try
             {
-                if (!plugin.IsDisabled)
+                if (!plugin.IsDisabled && !plugin.IsOrphaned)
                 {
                     await plugin.LoadAsync(reason);
                 }
                 else
                 {
-                    Log.Verbose($"{name} was disabled");
+                    Log.Verbose($"{name} not loaded, disabled:{plugin.IsDisabled} orphaned:{plugin.IsOrphaned}");
                 }
             }
             catch (InvalidPluginException)
