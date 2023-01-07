@@ -220,8 +220,13 @@ internal class LocalPlugin : IDisposable
     /// </summary>
     public bool IsOrphaned => !this.IsDev &&
                               !this.Manifest.InstalledFromUrl.IsNullOrEmpty() && // TODO(api8): Remove this, all plugins will have a proper flag
-                              Service<PluginManager>.Get().Repos.All(x => x.PluginMasterUrl != this.Manifest.InstalledFromUrl) &&
-                              this.Manifest.InstalledFromUrl != LocalPluginManifest.FlagMainRepo;
+                              this.GetSourceRepository() == null;
+
+    /// <summary>
+    /// Gets a value indicating whether or not this plugin is serviced(repo still exists, but plugin no longer does).
+    /// </summary>
+    public bool IsDecommissioned => !this.IsDev &&
+                                    this.GetSourceRepository()?.PluginMaster?.FirstOrDefault(x => x.InternalName == this.Manifest.InternalName) == null;
 
     /// <summary>
     /// Gets a value indicating whether this plugin has been banned.
@@ -636,6 +641,25 @@ internal class LocalPlugin : IDisposable
 
             this.SaveManifest();
         }
+    }
+
+    /// <summary>
+    /// Get the repository this plugin was installed from.
+    /// </summary>
+    /// <returns>The plugin repository this plugin was installed from, or null if it is no longer there or if the plugin is a dev plugin.</returns>
+    public PluginRepository? GetSourceRepository()
+    {
+        if (this.IsDev)
+            return null;
+
+        var repos = Service<PluginManager>.Get().Repos;
+        return repos.FirstOrDefault(x =>
+        {
+            if (!x.IsThirdParty && !this.Manifest.IsThirdParty)
+                return true;
+
+            return x.PluginMasterUrl == this.Manifest.InstalledFromUrl;
+        });
     }
 
     private static void SetupLoaderConfig(LoaderConfig config)

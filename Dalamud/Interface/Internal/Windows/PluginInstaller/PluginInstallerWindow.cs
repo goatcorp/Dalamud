@@ -1600,6 +1600,18 @@ internal class PluginInstallerWindow : Window, IDisposable
             ImGui.TextWrapped(Locs.PluginBody_Orphaned);
             ImGui.PopStyleColor();
         }
+        else if (plugin is { IsDecommissioned: true } && !plugin.Manifest.IsThirdParty)
+        {
+            ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudRed);
+            ImGui.TextWrapped(Locs.PluginBody_NoServiceOfficial);
+            ImGui.PopStyleColor();
+        }
+        else if (plugin is { IsDecommissioned: true } && plugin.Manifest.IsThirdParty)
+        {
+            ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudRed);
+            ImGui.TextWrapped(Locs.PluginBody_NoServiceThird);
+            ImGui.PopStyleColor();
+        }
         else if (plugin != null && !plugin.CheckPolicy())
         {
             ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudRed);
@@ -1975,6 +1987,13 @@ internal class PluginInstallerWindow : Window, IDisposable
         if (plugin.IsOrphaned)
         {
             label += Locs.PluginTitleMod_OrphanedError;
+            trouble = true;
+        }
+
+        // Out of service
+        if (plugin.IsDecommissioned)
+        {
+            label += Locs.PluginTitleMod_NoService;
             trouble = true;
         }
 
@@ -2875,6 +2894,8 @@ internal class PluginInstallerWindow : Window, IDisposable
 
         public static string PluginTitleMod_Disabled => Loc.Localize("InstallerDisabled", " (disabled)");
 
+        public static string PluginTitleMod_NoService => Loc.Localize("InstallerNoService", " (decommissioned)");
+
         public static string PluginTitleMod_Unloaded => Loc.Localize("InstallerUnloaded", " (unloaded)");
 
         public static string PluginTitleMod_HasUpdate => Loc.Localize("InstallerHasUpdate", " (has update)");
@@ -2942,6 +2963,10 @@ internal class PluginInstallerWindow : Window, IDisposable
         public static string PluginBody_Outdated => Loc.Localize("InstallerOutdatedPluginBody ", "This plugin is outdated and incompatible at the moment. Please wait for it to be updated by its author.");
 
         public static string PluginBody_Orphaned => Loc.Localize("InstallerOrphanedPluginBody ", "This plugin's source repository is no longer available. You may need to reinstall it from its repository, or re-add the repository.");
+
+        public static string PluginBody_NoServiceOfficial => Loc.Localize("InstallerNoServiceOfficialPluginBody", "This plugin is no longer being maintained. It will still work, but there will be no further updates and you can't reinstall it.");
+
+        public static string PluginBody_NoServiceThird => Loc.Localize("InstallerNoServiceThirdPluginBody", "This plugin is no longer being serviced by its source repo. You may have to look for an updated version in another repo.");
 
         public static string PluginBody_LoadFailed => Loc.Localize("InstallerLoadFailedPluginBody ", "This plugin failed to load. Please contact the author for more information.");
 
