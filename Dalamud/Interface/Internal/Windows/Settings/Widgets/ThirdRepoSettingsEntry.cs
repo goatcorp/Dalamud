@@ -131,7 +131,11 @@ public class ThirdRepoSettingsEntry : SettingsEntry
             ImGui.NextColumn();
 
             ImGui.SetCursorPosX(ImGui.GetCursorPosX() + (ImGui.GetColumnWidth() / 2) - 7 - (12 * ImGuiHelpers.GlobalScale));
-            ImGui.Checkbox("##thirdRepoCheck", ref isEnabled);
+            if (ImGui.Checkbox("##thirdRepoCheck", ref isEnabled))
+            {
+                this.thirdRepoListChanged = true;
+            }
+
             ImGui.NextColumn();
 
             if (ImGuiComponents.IconButton(FontAwesomeIcon.Trash))
