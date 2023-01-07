@@ -134,7 +134,7 @@ internal class TitleScreenMenuWindow : Window, IDisposable
                         pos = finalPos;
                     }
 
-                    this.DrawEntry(entry, moveEasing.IsRunning && i != 0, true, i == 0, true);
+                    this.DrawEntry(entry, moveEasing.IsRunning && i != 0, true, i == 0, true, moveEasing.IsDone);
 
                     var cursor = ImGui.GetCursorPos();
                     cursor.Y = (float)pos;
@@ -177,7 +177,7 @@ internal class TitleScreenMenuWindow : Window, IDisposable
 
                     var finalPos = (i + 1) * this.shadeTexture.Height * scale;
 
-                    this.DrawEntry(entry, i != 0, true, i == 0, false);
+                    this.DrawEntry(entry, i != 0, true, i == 0, false, false);
 
                     var cursor = ImGui.GetCursorPos();
                     cursor.Y = finalPos;
@@ -205,7 +205,7 @@ internal class TitleScreenMenuWindow : Window, IDisposable
 
             case State.Hide:
             {
-                if (this.DrawEntry(tsm.Entries[0], true, false, true, true))
+                if (this.DrawEntry(tsm.Entries[0], true, false, true, true, false))
                 {
                     this.state = State.Show;
                 }
@@ -228,7 +228,7 @@ internal class TitleScreenMenuWindow : Window, IDisposable
     }
 
     private bool DrawEntry(
-        TitleScreenMenu.TitleScreenMenuEntry entry, bool inhibitFadeout, bool showText, bool isFirst, bool overrideAlpha)
+        TitleScreenMenu.TitleScreenMenuEntry entry, bool inhibitFadeout, bool showText, bool isFirst, bool overrideAlpha, bool interactable)
     {
         InterfaceManager.SpecialGlyphRequest fontHandle;
         if (this.specialGlyphRequests.TryGetValue(entry.Name, out fontHandle) && fontHandle.Size != TargetFontSizePx)
@@ -271,7 +271,7 @@ internal class TitleScreenMenuWindow : Window, IDisposable
         }
 
         var isClick = ImGui.IsItemClicked();
-        if (isClick)
+        if (isClick && interactable)
         {
             entry.Trigger();
         }
