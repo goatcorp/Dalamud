@@ -138,9 +138,9 @@ internal class LocalDevPlugin : LocalPlugin, IDisposable
                     return;
                 }
 
-                if (this.State != PluginState.Loaded && this.State != PluginState.LoadError)
+                if (this.State != PluginState.Loaded && this.State != PluginState.LoadError && this.State != PluginState.UnloadError)
                 {
-                    Log.Debug($"Skipping reload of {this.Name}, state ({this.State}) is not {PluginState.Loaded} nor {PluginState.LoadError}.");
+                    Log.Debug($"Skipping reload of {this.Name}, state ({this.State}) is not {PluginState.Loaded}, {PluginState.LoadError} or {PluginState.UnloadError}.");
                     return;
                 }
 
@@ -148,6 +148,12 @@ internal class LocalDevPlugin : LocalPlugin, IDisposable
 
                 try
                 {
+                    if (this.State == PluginState.UnloadError)
+                    {
+                        Log.Warning($"{this.Manifest.Author}: TAKE CARE!!! You need to fix your unload error, and restart the game - your plugin might be in an inconsistent state.");
+                        Log.Warning("Reloading anyway, as this is a dev plugin, but you might encounter unexpected results.");
+                    }
+
                     await this.ReloadAsync();
                     notificationManager.AddNotification($"The DevPlugin '{this.Name} was reloaded successfully.", "Plugin reloaded!", NotificationType.Success);
                 }

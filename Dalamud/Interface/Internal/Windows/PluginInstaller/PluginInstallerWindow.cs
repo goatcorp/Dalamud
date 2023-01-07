@@ -2222,7 +2222,7 @@ internal class PluginInstallerWindow : Window, IDisposable
 
         StyleModelV1.DalamudStandard.Push();
 
-        if (plugin.State == PluginState.UnloadError)
+        if (plugin.State == PluginState.UnloadError && !plugin.IsDev)
         {
             ImGuiComponents.DisabledButton(FontAwesomeIcon.Frown);
 

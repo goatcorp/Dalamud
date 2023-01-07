@@ -15,7 +15,6 @@ using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Internal.Exceptions;
 using Dalamud.Plugin.Internal.Loader;
 using Dalamud.Utility;
-using Dalamud.Utility.Signatures;
 
 namespace Dalamud.Plugin.Internal.Types;
 
@@ -305,8 +304,13 @@ internal class LocalPlugin : IDisposable
                     throw new InvalidPluginOperationException(
                         $"Unable to load {this.Name}, load previously faulted, unload first");
                 case PluginState.UnloadError:
-                    throw new InvalidPluginOperationException(
+                    if (!this.IsDev)
+                    {
+                        throw new InvalidPluginOperationException(
                         $"Unable to load {this.Name}, unload previously faulted, restart Dalamud");
+                    }
+
+                    break;
                 case PluginState.Unloaded:
                     break;
                 case PluginState.Loading:
@@ -471,8 +475,13 @@ internal class LocalPlugin : IDisposable
                 case PluginState.Unloaded:
                     throw new InvalidPluginOperationException($"Unable to unload {this.Name}, already unloaded");
                 case PluginState.UnloadError:
-                    throw new InvalidPluginOperationException(
-                        $"Unable to unload {this.Name}, unload previously faulted, restart Dalamud");
+                    if (!this.IsDev)
+                    {
+                        throw new InvalidPluginOperationException(
+                            $"Unable to unload {this.Name}, unload previously faulted, restart Dalamud");
+                    }
+
+                    break;
                 case PluginState.Loaded:
                 case PluginState.LoadError:
                     break;
@@ -531,7 +540,10 @@ internal class LocalPlugin : IDisposable
     /// <returns>A task.</returns>
     public async Task ReloadAsync()
     {
-        await this.UnloadAsync(true);
+        // Don't unload if we're a dev plugin and have an unload error, this is a bad idea but whatever
+        if (this.IsDev && this.State != PluginState.UnloadError)
+            await this.UnloadAsync(true);
+
         await this.LoadAsync(PluginLoadReason.Reload, true);
     }
 
