@@ -570,8 +570,11 @@ internal class LocalPlugin : IDisposable
                 throw new ArgumentOutOfRangeException(this.State.ToString());
         }
 
-        if (!this.Manifest.Disabled)
-            throw new InvalidPluginOperationException($"Unable to enable {this.Name}, not disabled");
+        // NOTE(goat): This is inconsequential, and we do have situations where a plugin can end up enabled but not loaded:
+        // Orphaned plugins can have their repo added back, but may not have been loaded at boot and may still be enabled.
+        // We don't want to disable orphaned plugins when they are orphaned so this is how it's going to be.
+        // if (!this.Manifest.Disabled)
+        //    throw new InvalidPluginOperationException($"Unable to enable {this.Name}, not disabled");
 
         this.Manifest.Disabled = false;
         this.Manifest.ScheduledForDeletion = false;
