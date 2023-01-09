@@ -68,8 +68,8 @@ internal static class ServiceManager
 
         using (Timings.Start("CS Resolver Init"))
         {
-            FFXIVClientStructs.Resolver.InitializeParallel(
-                new FileInfo(Path.Combine(cacheDir.FullName, $"{startInfo.GameVersion}_cs.json")));
+            FFXIVClientStructs.Interop.Resolver.GetInstance.SetupSearchSpace(Service<SigScanner>.Get().SearchBase, new FileInfo(Path.Combine(cacheDir.FullName, $"{startInfo.GameVersion}_cs.json")));
+            FFXIVClientStructs.Interop.Resolver.GetInstance.Resolve();
         }
     }
 
