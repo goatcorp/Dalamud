@@ -53,6 +53,7 @@ internal class UniversalisMarketBoardUploader : IMarketBoardUploader
         {
             var universalisListing = new UniversalisItemListingsEntry
             {
+                ListingId = marketBoardItemListing.ListingId.ToString(),
                 Hq = marketBoardItemListing.IsHq,
                 SellerId = marketBoardItemListing.RetainerOwnerId.ToString(),
                 RetainerName = marketBoardItemListing.RetainerName,
