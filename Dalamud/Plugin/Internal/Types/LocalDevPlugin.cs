@@ -37,7 +37,7 @@ internal class LocalDevPlugin : LocalPlugin, IDisposable
         if (!configuration.DevPluginSettings.TryGetValue(dllFile.FullName, out this.devSettings))
         {
             configuration.DevPluginSettings[dllFile.FullName] = this.devSettings = new DevPluginSettings();
-            configuration.Save();
+            configuration.QueueSave();
         }
 
         if (this.AutomaticReload)

@@ -8,7 +8,7 @@
     <title>Dalamud    </title>
     <meta name="viewport" content="width=device-width">
     <meta name="title" content="Dalamud    ">
-    <meta name="generator" content="docfx 2.59.1.0">
+    <meta name="generator" content="docfx 2.59.4.0">
     
     <link rel="shortcut icon" href="favicon.ico">
     <link rel="stylesheet" href="styles/docfx.vendor.css">
@@ -75,6 +75,39 @@ Please see our <a href="https://goatcorp.github.io/faq/development">Developer FA
 <p>If you need any support regarding the API or usage of Dalamud, please <a href="https://discord.gg/3NMcUV5">join our discord server</a>.</p>
 <br>
 <p>Thanks to Mino, whose work has made this possible!</p>
+<h2 id="components--pipeline">Components &amp; Pipeline</h2>
+<p>These components are used in order to load Dalamud into a target process.
+Dalamud can be loaded via DLL injection, or by rewriting a process' entrypoint.</p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><em>Dalamud.Injector.Boot</em> (C++)</td>
+<td>Loads the .NET Core runtime into a process via hostfxr and kicks off Dalamud.Injector</td>
+</tr>
+<tr>
+<td><em>Dalamud.Injector</em> (C#)</td>
+<td>Performs DLL injection on the target process</td>
+</tr>
+<tr>
+<td><em>Dalamud.Boot</em> (C++)</td>
+<td>Loads the .NET Core runtime into the active process and kicks off Dalamud, or rewrites a target process' entrypoint to do so</td>
+</tr>
+<tr>
+<td><em>Dalamud</em> (C#)</td>
+<td>Core API, game bindings, plugin framework</td>
+</tr>
+<tr>
+<td><em>Dalamud.CorePlugin</em> (C#)</td>
+<td>Testbed plugin that can access Dalamud internals, to prototype new Dalamud features</td>
+</tr>
+</tbody>
+</table>
 <h2 id="branches">Branches</h2>
 <p>We are currently working from the following branches.</p>
 <table>
@@ -83,18 +116,27 @@ Please see our <a href="https://goatcorp.github.io/faq/development">Developer FA
 <th>Name</th>
 <th>Purpose</th>
 <th>.NET Version</th>
+<th>Track</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td><em>master</em></td>
-<td>.NET Core rework, replaced api3 on 10/08/21</td>
+<td>Upgrade to .NET 6</td>
+<td>.NET 6.0.3 (March 2022)</td>
+<td>Staging</td>
+</tr>
+<tr>
+<td><em>net5</em></td>
+<td>Current release branch</td>
 <td>.NET 5.0.6 (May 2021)</td>
+<td>Release</td>
 </tr>
 <tr>
 <td><em>api3</em></td>
 <td>Legacy version, no longer in active use</td>
 <td>.NET Framework 4.7.2 (April 2017)</td>
+<td>-</td>
 </tr>
 </tbody>
 </table>

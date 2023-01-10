@@ -1,20 +1,19 @@
 ﻿using Dalamud.Utility;
 
-namespace Dalamud.Game.ClientState.Keys
+namespace Dalamud.Game.ClientState.Keys;
+
+/// <summary>
+/// Extension methods for <see cref="VirtualKey"/>.
+/// </summary>
+public static class VirtualKeyExtensions
 {
     /// <summary>
-    /// Extension methods for <see cref="VirtualKey"/>.
+    /// Get the fancy name associated with this key.
     /// </summary>
-    public static class VirtualKeyExtensions
+    /// <param name="key">The they key to act on.</param>
+    /// <returns>The key's fancy name.</returns>
+    public static string GetFancyName(this VirtualKey key)
     {
-        /// <summary>
-        /// Get the fancy name associated with this key.
-        /// </summary>
-        /// <param name="key">The they key to act on.</param>
-        /// <returns>The key's fancy name.</returns>
-        public static string GetFancyName(this VirtualKey key)
-        {
-            return key.GetAttribute<VirtualKeyAttribute>().FancyName;
-        }
+        return key.GetAttribute<VirtualKeyAttribute>().FancyName;
     }
 }

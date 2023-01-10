@@ -1,18 +1,17 @@
-namespace Dalamud.Game.Network
+namespace Dalamud.Game.Network;
+
+/// <summary>
+/// This represents the direction of a network message.
+/// </summary>
+public enum NetworkMessageDirection
 {
     /// <summary>
-    /// This represents the direction of a network message.
+    /// A zone down message.
     /// </summary>
-    public enum NetworkMessageDirection
-    {
-        /// <summary>
-        /// A zone down message.
-        /// </summary>
-        ZoneDown,
+    ZoneDown,
 
-        /// <summary>
-        /// A zone up message.
-        /// </summary>
-        ZoneUp,
-    }
+    /// <summary>
+    /// A zone up message.
+    /// </summary>
+    ZoneUp,
 }

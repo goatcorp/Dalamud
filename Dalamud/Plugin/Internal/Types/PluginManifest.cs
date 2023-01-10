@@ -137,9 +137,9 @@ internal record PluginManifest
     /// <summary>
     /// Gets the required Dalamud load step for this plugin to load. Takes precedence over LoadPriority.
     /// Valid values are:
-    /// 0. During Framework.Tick, when drawing facilities are available
-    /// 1. During Framework.Tick
-    /// 2. No requirement
+    /// 0. During Framework.Tick, when drawing facilities are available.
+    /// 1. During Framework.Tick.
+    /// 2. No requirement.
     /// </summary>
     [JsonProperty]
     public int LoadRequiredState { get; init; }
@@ -157,7 +157,7 @@ internal record PluginManifest
     public int LoadPriority { get; init; }
 
     /// <summary>
-    /// Gets a value indicating whether the plugin can be unloaded asynchronously. 
+    /// Gets a value indicating whether the plugin can be unloaded asynchronously.
     /// </summary>
     [JsonProperty]
     public bool CanUnloadAsync { get; init; }

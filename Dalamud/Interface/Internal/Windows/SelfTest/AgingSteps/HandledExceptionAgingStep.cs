@@ -1,35 +1,34 @@
 using System;
 using System.Runtime.InteropServices;
 
-namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps
+namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps;
+
+/// <summary>
+/// Test dedicated to handling of Access Violations.
+/// </summary>
+internal class HandledExceptionAgingStep : IAgingStep
 {
-    /// <summary>
-    /// Test dedicated to handling of Access Violations.
-    /// </summary>
-    internal class HandledExceptionAgingStep : IAgingStep
+    /// <inheritdoc/>
+    public string Name => "Test Handled Exception";
+
+    /// <inheritdoc/>
+    public SelfTestStepResult RunStep()
     {
-        /// <inheritdoc/>
-        public string Name => "Test Handled Exception";
-
-        /// <inheritdoc/>
-        public SelfTestStepResult RunStep()
+        try
         {
-            try
-            {
-                Marshal.ReadByte(IntPtr.Zero);
-            }
-            catch (AccessViolationException)
-            {
-                return SelfTestStepResult.Pass;
-            }
-
-            return SelfTestStepResult.Fail;
+            Marshal.ReadByte(IntPtr.Zero);
+        }
+        catch (AccessViolationException)
+        {
+            return SelfTestStepResult.Pass;
         }
 
-        /// <inheritdoc/>
-        public void CleanUp()
-        {
-            // ignored
-        }
+        return SelfTestStepResult.Fail;
+    }
+
+    /// <inheritdoc/>
+    public void CleanUp()
+    {
+        // ignored
     }
 }

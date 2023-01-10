@@ -1,25 +1,24 @@
 ﻿using System;
 
-namespace Dalamud.Game.ClientState.Keys
+namespace Dalamud.Game.ClientState.Keys;
+
+/// <summary>
+/// Attribute describing a VirtualKey.
+/// </summary>
+[AttributeUsage(AttributeTargets.Field)]
+internal sealed class VirtualKeyAttribute : Attribute
 {
     /// <summary>
-    /// Attribute describing a VirtualKey.
+    /// Initializes a new instance of the <see cref="VirtualKeyAttribute"/> class.
     /// </summary>
-    [AttributeUsage(AttributeTargets.Field)]
-    internal sealed class VirtualKeyAttribute : Attribute
+    /// <param name="fancyName">Fancy name of this key.</param>
+    public VirtualKeyAttribute(string fancyName)
     {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="VirtualKeyAttribute"/> class.
-        /// </summary>
-        /// <param name="fancyName">Fancy name of this key.</param>
-        public VirtualKeyAttribute(string fancyName)
-        {
-            this.FancyName = fancyName;
-        }
-
-        /// <summary>
-        /// Gets the fancy name of this virtual key.
-        /// </summary>
-        public string FancyName { get; init; }
+        this.FancyName = fancyName;
     }
+
+    /// <summary>
+    /// Gets the fancy name of this virtual key.
+    /// </summary>
+    public string FancyName { get; init; }
 }

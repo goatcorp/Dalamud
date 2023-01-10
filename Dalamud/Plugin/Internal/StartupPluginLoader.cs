@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+
 using Dalamud.Logging.Internal;
 using Dalamud.Support;
 using Dalamud.Utility.Timing;

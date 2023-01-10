@@ -10,7 +10,7 @@
     <meta name="viewport" content="width=device-width">
     <meta name="title" content="Class Framework
    ">
-    <meta name="generator" content="docfx 2.59.1.0">
+    <meta name="generator" content="docfx 2.59.4.0">
     
     <link rel="shortcut icon" href="../favicon.ico">
     <link rel="stylesheet" href="../styles/docfx.vendor.css">
@@ -81,9 +81,10 @@
     <div class="level0"><span class="xref">System.Object</span></div>
     <div class="level1"><span class="xref">Framework</span></div>
   </div>
-  <div classs="implements">
+  <div class="implements">
     <h5>Implements</h5>
     <div><span class="xref">System.IDisposable</span></div>
+    <div><a class="xref" href="Dalamud.IServiceType.html">IServiceType</a></div>
   </div>
   <div class="inheritedMembers">
     <h5>Inherited Members</h5>
@@ -113,7 +114,7 @@
   <h6><strong>Assembly</strong>: Dalamud.dll</h6>
   <h5 id="Dalamud_Game_Framework_syntax">Syntax</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public sealed class Framework : IDisposable</code></pre>
+    <pre><code class="lang-csharp hljs">public sealed class Framework : IDisposable, IServiceType</code></pre>
   </div>
   <h3 id="properties">Properties
   </h3>
@@ -122,7 +123,7 @@
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Framework_Address.md&amp;value=---%0Auid%3A%20Dalamud.Game.Framework.Address%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Framework.cs/#L99">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Framework.cs/#L93">View Source</a>
   </span>
   <a id="Dalamud_Game_Framework_Address_" data-uid="Dalamud.Game.Framework.Address*"></a>
   <h4 id="Dalamud_Game_Framework_Address" data-uid="Dalamud.Game.Framework.Address">Address</h4>
@@ -150,10 +151,72 @@
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Framework_IsFrameworkUnloading.md&amp;value=---%0Auid%3A%20Dalamud.Game.Framework.IsFrameworkUnloading%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Framework.cs/#L118">View Source</a>
+  </span>
+  <a id="Dalamud_Game_Framework_IsFrameworkUnloading_" data-uid="Dalamud.Game.Framework.IsFrameworkUnloading*"></a>
+  <h4 id="Dalamud_Game_Framework_IsFrameworkUnloading" data-uid="Dalamud.Game.Framework.IsFrameworkUnloading">IsFrameworkUnloading</h4>
+  <div class="markdown level1 summary"><p>Gets a value indicating whether game Framework is unloading.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public bool IsFrameworkUnloading { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Framework_IsInFrameworkUpdateThread.md&amp;value=---%0Auid%3A%20Dalamud.Game.Framework.IsInFrameworkUpdateThread%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Framework.cs/#L113">View Source</a>
+  </span>
+  <a id="Dalamud_Game_Framework_IsInFrameworkUpdateThread_" data-uid="Dalamud.Game.Framework.IsInFrameworkUpdateThread*"></a>
+  <h4 id="Dalamud_Game_Framework_IsInFrameworkUpdateThread" data-uid="Dalamud.Game.Framework.IsInFrameworkUpdateThread">IsInFrameworkUpdateThread</h4>
+  <div class="markdown level1 summary"><p>Gets a value indicating whether currently executing code is running in the game's framework update thread.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public bool IsInFrameworkUpdateThread { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Boolean</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Framework_LastUpdate.md&amp;value=---%0Auid%3A%20Dalamud.Game.Framework.LastUpdate%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Framework.cs/#L104">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Framework.cs/#L98">View Source</a>
   </span>
   <a id="Dalamud_Game_Framework_LastUpdate_" data-uid="Dalamud.Game.Framework.LastUpdate*"></a>
   <h4 id="Dalamud_Game_Framework_LastUpdate" data-uid="Dalamud.Game.Framework.LastUpdate">LastUpdate</h4>
@@ -184,7 +247,7 @@
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Framework_LastUpdateUTC.md&amp;value=---%0Auid%3A%20Dalamud.Game.Framework.LastUpdateUTC%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Framework.cs/#L109">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Framework.cs/#L103">View Source</a>
   </span>
   <a id="Dalamud_Game_Framework_LastUpdateUTC_" data-uid="Dalamud.Game.Framework.LastUpdateUTC*"></a>
   <h4 id="Dalamud_Game_Framework_LastUpdateUTC" data-uid="Dalamud.Game.Framework.LastUpdateUTC">LastUpdateUTC</h4>
@@ -215,7 +278,7 @@
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Framework_StatsEnabled.md&amp;value=---%0Auid%3A%20Dalamud.Game.Framework.StatsEnabled%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Framework.cs/#L89">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Framework.cs/#L83">View Source</a>
   </span>
   <a id="Dalamud_Game_Framework_StatsEnabled_" data-uid="Dalamud.Game.Framework.StatsEnabled*"></a>
   <h4 id="Dalamud_Game_Framework_StatsEnabled" data-uid="Dalamud.Game.Framework.StatsEnabled">StatsEnabled</h4>
@@ -246,7 +309,7 @@
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Framework_StatsHistory.md&amp;value=---%0Auid%3A%20Dalamud.Game.Framework.StatsHistory%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Framework.cs/#L94">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Framework.cs/#L88">View Source</a>
   </span>
   <a id="Dalamud_Game_Framework_StatsHistory_" data-uid="Dalamud.Game.Framework.StatsHistory*"></a>
   <h4 id="Dalamud_Game_Framework_StatsHistory" data-uid="Dalamud.Game.Framework.StatsHistory">StatsHistory</h4>
@@ -277,7 +340,7 @@
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Framework_UpdateDelta.md&amp;value=---%0Auid%3A%20Dalamud.Game.Framework.UpdateDelta%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Framework.cs/#L114">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Framework.cs/#L108">View Source</a>
   </span>
   <a id="Dalamud_Game_Framework_UpdateDelta_" data-uid="Dalamud.Game.Framework.UpdateDelta*"></a>
   <h4 id="Dalamud_Game_Framework_UpdateDelta" data-uid="Dalamud.Game.Framework.UpdateDelta">UpdateDelta</h4>
@@ -307,20 +370,540 @@
   </h3>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Framework_Enable.md&amp;value=---%0Auid%3A%20Dalamud.Game.Framework.Enable%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Framework_RunOnFrameworkThread_System_Action_.md&amp;value=---%0Auid%3A%20Dalamud.Game.Framework.RunOnFrameworkThread(System.Action)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Framework.cs/#L124">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Framework.cs/#L139">View Source</a>
   </span>
-  <a id="Dalamud_Game_Framework_Enable_" data-uid="Dalamud.Game.Framework.Enable*"></a>
-  <h4 id="Dalamud_Game_Framework_Enable" data-uid="Dalamud.Game.Framework.Enable">Enable()</h4>
-  <div class="markdown level1 summary"><p>Enable this module.</p>
+  <a id="Dalamud_Game_Framework_RunOnFrameworkThread_" data-uid="Dalamud.Game.Framework.RunOnFrameworkThread*"></a>
+  <h4 id="Dalamud_Game_Framework_RunOnFrameworkThread_System_Action_" data-uid="Dalamud.Game.Framework.RunOnFrameworkThread(System.Action)">RunOnFrameworkThread(Action)</h4>
+  <div class="markdown level1 summary"><p>Run given function right away if this function has been called from game's Framework.Update thread, or otherwise run on next Framework.Update call.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public void Enable()</code></pre>
+    <pre><code class="lang-csharp hljs">public Task RunOnFrameworkThread(Action action)</code></pre>
   </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Action</span></td>
+        <td><span class="parametername">action</span></td>
+        <td><p>Function to call.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Threading.Tasks.Task</span></td>
+        <td><p>Task representing the pending or already completed function.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Framework_RunOnFrameworkThread_System_Func_System_Threading_Tasks_Task__.md&amp;value=---%0Auid%3A%20Dalamud.Game.Framework.RunOnFrameworkThread(System.Func%7BSystem.Threading.Tasks.Task%7D)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Framework.cs/#L173">View Source</a>
+  </span>
+  <a id="Dalamud_Game_Framework_RunOnFrameworkThread_" data-uid="Dalamud.Game.Framework.RunOnFrameworkThread*"></a>
+  <h4 id="Dalamud_Game_Framework_RunOnFrameworkThread_System_Func_System_Threading_Tasks_Task__" data-uid="Dalamud.Game.Framework.RunOnFrameworkThread(System.Func{System.Threading.Tasks.Task})">RunOnFrameworkThread(Func&lt;Task&gt;)</h4>
+  <div class="markdown level1 summary"><p>Run given function right away if this function has been called from game's Framework.Update thread, or otherwise run on next Framework.Update call.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Task RunOnFrameworkThread(Func&lt;Task&gt; func)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Func</span>&lt;<span class="xref">System.Threading.Tasks.Task</span>&gt;</td>
+        <td><span class="parametername">func</span></td>
+        <td><p>Function to call.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Threading.Tasks.Task</span></td>
+        <td><p>Task representing the pending or already completed function.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Framework_RunOnFrameworkThread__1_System_Func___0__.md&amp;value=---%0Auid%3A%20Dalamud.Game.Framework.RunOnFrameworkThread%60%601(System.Func%7B%60%600%7D)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Framework.cs/#L131">View Source</a>
+  </span>
+  <a id="Dalamud_Game_Framework_RunOnFrameworkThread_" data-uid="Dalamud.Game.Framework.RunOnFrameworkThread*"></a>
+  <h4 id="Dalamud_Game_Framework_RunOnFrameworkThread__1_System_Func___0__" data-uid="Dalamud.Game.Framework.RunOnFrameworkThread``1(System.Func{``0})">RunOnFrameworkThread&lt;T&gt;(Func&lt;T&gt;)</h4>
+  <div class="markdown level1 summary"><p>Run given function right away if this function has been called from game's Framework.Update thread, or otherwise run on next Framework.Update call.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Task&lt;T&gt; RunOnFrameworkThread&lt;T&gt;(Func&lt;T&gt; func)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Func</span>&lt;T&gt;</td>
+        <td><span class="parametername">func</span></td>
+        <td><p>Function to call.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Threading.Tasks.Task</span>&lt;T&gt;</td>
+        <td><p>Task representing the pending or already completed function.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="typeParameters">Type Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="parametername">T</span></td>
+        <td><p>Return type.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Framework_RunOnFrameworkThread__1_System_Func_System_Threading_Tasks_Task___0___.md&amp;value=---%0Auid%3A%20Dalamud.Game.Framework.RunOnFrameworkThread%60%601(System.Func%7BSystem.Threading.Tasks.Task%7B%60%600%7D%7D)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Framework.cs/#L165">View Source</a>
+  </span>
+  <a id="Dalamud_Game_Framework_RunOnFrameworkThread_" data-uid="Dalamud.Game.Framework.RunOnFrameworkThread*"></a>
+  <h4 id="Dalamud_Game_Framework_RunOnFrameworkThread__1_System_Func_System_Threading_Tasks_Task___0___" data-uid="Dalamud.Game.Framework.RunOnFrameworkThread``1(System.Func{System.Threading.Tasks.Task{``0}})">RunOnFrameworkThread&lt;T&gt;(Func&lt;Task&lt;T&gt;&gt;)</h4>
+  <div class="markdown level1 summary"><p>Run given function right away if this function has been called from game's Framework.Update thread, or otherwise run on next Framework.Update call.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Task&lt;T&gt; RunOnFrameworkThread&lt;T&gt;(Func&lt;Task&lt;T&gt;&gt; func)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Func</span>&lt;<span class="xref">System.Threading.Tasks.Task</span>&lt;T&gt;&gt;</td>
+        <td><span class="parametername">func</span></td>
+        <td><p>Function to call.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Threading.Tasks.Task</span>&lt;T&gt;</td>
+        <td><p>Task representing the pending or already completed function.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="typeParameters">Type Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="parametername">T</span></td>
+        <td><p>Return type.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Framework_RunOnTick_System_Action_System_TimeSpan_System_Int32_System_Threading_CancellationToken_.md&amp;value=---%0Auid%3A%20Dalamud.Game.Framework.RunOnTick(System.Action%2CSystem.TimeSpan%2CSystem.Int32%2CSystem.Threading.CancellationToken)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Framework.cs/#L221">View Source</a>
+  </span>
+  <a id="Dalamud_Game_Framework_RunOnTick_" data-uid="Dalamud.Game.Framework.RunOnTick*"></a>
+  <h4 id="Dalamud_Game_Framework_RunOnTick_System_Action_System_TimeSpan_System_Int32_System_Threading_CancellationToken_" data-uid="Dalamud.Game.Framework.RunOnTick(System.Action,System.TimeSpan,System.Int32,System.Threading.CancellationToken)">RunOnTick(Action, TimeSpan, Int32, CancellationToken)</h4>
+  <div class="markdown level1 summary"><p>Run given function in upcoming Framework.Tick call.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Task RunOnTick(Action action, TimeSpan delay = default(TimeSpan), int delayTicks = 0, CancellationToken cancellationToken = default(CancellationToken))</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Action</span></td>
+        <td><span class="parametername">action</span></td>
+        <td><p>Function to call.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.TimeSpan</span></td>
+        <td><span class="parametername">delay</span></td>
+        <td><p>Wait for given timespan before calling this function.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">delayTicks</span></td>
+        <td><p>Count given number of Framework.Tick calls before calling this function. This takes precedence over delay parameter.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Threading.CancellationToken</span></td>
+        <td><span class="parametername">cancellationToken</span></td>
+        <td><p>Cancellation token which will prevent the execution of this function if wait conditions are not met.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Threading.Tasks.Task</span></td>
+        <td><p>Task representing the pending function.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Framework_RunOnTick_System_Func_System_Threading_Tasks_Task__System_TimeSpan_System_Int32_System_Threading_CancellationToken_.md&amp;value=---%0Auid%3A%20Dalamud.Game.Framework.RunOnTick(System.Func%7BSystem.Threading.Tasks.Task%7D%2CSystem.TimeSpan%2CSystem.Int32%2CSystem.Threading.CancellationToken)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Framework.cs/#L294">View Source</a>
+  </span>
+  <a id="Dalamud_Game_Framework_RunOnTick_" data-uid="Dalamud.Game.Framework.RunOnTick*"></a>
+  <h4 id="Dalamud_Game_Framework_RunOnTick_System_Func_System_Threading_Tasks_Task__System_TimeSpan_System_Int32_System_Threading_CancellationToken_" data-uid="Dalamud.Game.Framework.RunOnTick(System.Func{System.Threading.Tasks.Task},System.TimeSpan,System.Int32,System.Threading.CancellationToken)">RunOnTick(Func&lt;Task&gt;, TimeSpan, Int32, CancellationToken)</h4>
+  <div class="markdown level1 summary"><p>Run given function in upcoming Framework.Tick call.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Task RunOnTick(Func&lt;Task&gt; func, TimeSpan delay = default(TimeSpan), int delayTicks = 0, CancellationToken cancellationToken = default(CancellationToken))</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Func</span>&lt;<span class="xref">System.Threading.Tasks.Task</span>&gt;</td>
+        <td><span class="parametername">func</span></td>
+        <td><p>Function to call.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.TimeSpan</span></td>
+        <td><span class="parametername">delay</span></td>
+        <td><p>Wait for given timespan before calling this function.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">delayTicks</span></td>
+        <td><p>Count given number of Framework.Tick calls before calling this function. This takes precedence over delay parameter.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Threading.CancellationToken</span></td>
+        <td><span class="parametername">cancellationToken</span></td>
+        <td><p>Cancellation token which will prevent the execution of this function if wait conditions are not met.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Threading.Tasks.Task</span></td>
+        <td><p>Task representing the pending function.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Framework_RunOnTick__1_System_Func___0__System_TimeSpan_System_Int32_System_Threading_CancellationToken_.md&amp;value=---%0Auid%3A%20Dalamud.Game.Framework.RunOnTick%60%601(System.Func%7B%60%600%7D%2CSystem.TimeSpan%2CSystem.Int32%2CSystem.Threading.CancellationToken)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Framework.cs/#L185">View Source</a>
+  </span>
+  <a id="Dalamud_Game_Framework_RunOnTick_" data-uid="Dalamud.Game.Framework.RunOnTick*"></a>
+  <h4 id="Dalamud_Game_Framework_RunOnTick__1_System_Func___0__System_TimeSpan_System_Int32_System_Threading_CancellationToken_" data-uid="Dalamud.Game.Framework.RunOnTick``1(System.Func{``0},System.TimeSpan,System.Int32,System.Threading.CancellationToken)">RunOnTick&lt;T&gt;(Func&lt;T&gt;, TimeSpan, Int32, CancellationToken)</h4>
+  <div class="markdown level1 summary"><p>Run given function in upcoming Framework.Tick call.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Task&lt;T&gt; RunOnTick&lt;T&gt;(Func&lt;T&gt; func, TimeSpan delay = default(TimeSpan), int delayTicks = 0, CancellationToken cancellationToken = default(CancellationToken))</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Func</span>&lt;T&gt;</td>
+        <td><span class="parametername">func</span></td>
+        <td><p>Function to call.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.TimeSpan</span></td>
+        <td><span class="parametername">delay</span></td>
+        <td><p>Wait for given timespan before calling this function.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">delayTicks</span></td>
+        <td><p>Count given number of Framework.Tick calls before calling this function. This takes precedence over delay parameter.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Threading.CancellationToken</span></td>
+        <td><span class="parametername">cancellationToken</span></td>
+        <td><p>Cancellation token which will prevent the execution of this function if wait conditions are not met.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Threading.Tasks.Task</span>&lt;T&gt;</td>
+        <td><p>Task representing the pending function.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="typeParameters">Type Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="parametername">T</span></td>
+        <td><p>Return type.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Framework_RunOnTick__1_System_Func_System_Threading_Tasks_Task___0___System_TimeSpan_System_Int32_System_Threading_CancellationToken_.md&amp;value=---%0Auid%3A%20Dalamud.Game.Framework.RunOnTick%60%601(System.Func%7BSystem.Threading.Tasks.Task%7B%60%600%7D%7D%2CSystem.TimeSpan%2CSystem.Int32%2CSystem.Threading.CancellationToken)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Framework.cs/#L258">View Source</a>
+  </span>
+  <a id="Dalamud_Game_Framework_RunOnTick_" data-uid="Dalamud.Game.Framework.RunOnTick*"></a>
+  <h4 id="Dalamud_Game_Framework_RunOnTick__1_System_Func_System_Threading_Tasks_Task___0___System_TimeSpan_System_Int32_System_Threading_CancellationToken_" data-uid="Dalamud.Game.Framework.RunOnTick``1(System.Func{System.Threading.Tasks.Task{``0}},System.TimeSpan,System.Int32,System.Threading.CancellationToken)">RunOnTick&lt;T&gt;(Func&lt;Task&lt;T&gt;&gt;, TimeSpan, Int32, CancellationToken)</h4>
+  <div class="markdown level1 summary"><p>Run given function in upcoming Framework.Tick call.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Task&lt;T&gt; RunOnTick&lt;T&gt;(Func&lt;Task&lt;T&gt;&gt; func, TimeSpan delay = default(TimeSpan), int delayTicks = 0, CancellationToken cancellationToken = default(CancellationToken))</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Func</span>&lt;<span class="xref">System.Threading.Tasks.Task</span>&lt;T&gt;&gt;</td>
+        <td><span class="parametername">func</span></td>
+        <td><p>Function to call.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.TimeSpan</span></td>
+        <td><span class="parametername">delay</span></td>
+        <td><p>Wait for given timespan before calling this function.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Int32</span></td>
+        <td><span class="parametername">delayTicks</span></td>
+        <td><p>Count given number of Framework.Tick calls before calling this function. This takes precedence over delay parameter.</p>
+</td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Threading.CancellationToken</span></td>
+        <td><span class="parametername">cancellationToken</span></td>
+        <td><p>Cancellation token which will prevent the execution of this function if wait conditions are not met.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">System.Threading.Tasks.Task</span>&lt;T&gt;</td>
+        <td><p>Task representing the pending function.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="typeParameters">Type Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="parametername">T</span></td>
+        <td><p>Return type.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
   <h3 id="events">Events
   </h3>
   <span class="small pull-right mobile-hide">
@@ -328,7 +911,7 @@
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Framework_Update.md&amp;value=---%0Auid%3A%20Dalamud.Game.Framework.Update%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Framework.cs/#L84">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Framework.cs/#L78">View Source</a>
   </span>
   <h4 id="Dalamud_Game_Framework_Update" data-uid="Dalamud.Game.Framework.Update">Update</h4>
   <div class="markdown level1 summary"><p>Event that gets fired every time the game framework updates.</p>
@@ -360,7 +943,7 @@
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Framework_System_IDisposable_Dispose.md&amp;value=---%0Auid%3A%20Dalamud.Game.Framework.System%23IDisposable%23Dispose%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Framework.cs/#L138">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Framework.cs/#L325">View Source</a>
   </span>
   <a id="Dalamud_Game_Framework_System_IDisposable_Dispose_" data-uid="Dalamud.Game.Framework.System#IDisposable#Dispose*"></a>
   <h4 id="Dalamud_Game_Framework_System_IDisposable_Dispose" data-uid="Dalamud.Game.Framework.System#IDisposable#Dispose">IDisposable.Dispose()</h4>
@@ -375,6 +958,9 @@
   <div>
       <span class="xref">System.IDisposable</span>
   </div>
+  <div>
+      <a class="xref" href="Dalamud.IServiceType.html">IServiceType</a>
+  </div>
 </article>
           </div>
           
@@ -386,7 +972,7 @@
                     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Framework.md&amp;value=---%0Auid%3A%20Dalamud.Game.Framework%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
                   </li>
                   <li>
-                    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Framework.cs/#L24" class="contribution-link">View Source</a>
+                    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Framework.cs/#L23" class="contribution-link">View Source</a>
                   </li>
                 </ul>
               </div>

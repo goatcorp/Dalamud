@@ -1,108 +1,107 @@
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-namespace Dalamud.Interface.ImGuiFileDialog
+namespace Dalamud.Interface.ImGuiFileDialog;
+
+/// <summary>
+/// A file or folder picker.
+/// </summary>
+public partial class FileDialog
 {
-    /// <summary>
-    /// A file or folder picker.
-    /// </summary>
-    public partial class FileDialog
+    private static Regex filterRegex = new(@"[^,{}]+(\{([^{}]*?)\})?", RegexOptions.Compiled);
+
+    private List<FilterStruct> filters = new();
+    private FilterStruct selectedFilter;
+
+    private void ParseFilters(string filters)
     {
-        private static Regex filterRegex = new(@"[^,{}]+(\{([^{}]*?)\})?", RegexOptions.Compiled);
+        // ".*,.cpp,.h,.hpp"
+        // "Source files{.cpp,.h,.hpp},Image files{.png,.gif,.jpg,.jpeg},.md"
 
-        private List<FilterStruct> filters = new();
-        private FilterStruct selectedFilter;
+        this.filters.Clear();
+        if (filters.Length == 0) return;
 
-        private void ParseFilters(string filters)
+        var currentFilterFound = false;
+        var matches = filterRegex.Matches(filters);
+        foreach (Match m in matches)
         {
-            // ".*,.cpp,.h,.hpp"
-            // "Source files{.cpp,.h,.hpp},Image files{.png,.gif,.jpg,.jpeg},.md"
+            var match = m.Value;
+            var filter = default(FilterStruct);
 
-            this.filters.Clear();
-            if (filters.Length == 0) return;
-
-            var currentFilterFound = false;
-            var matches = filterRegex.Matches(filters);
-            foreach (Match m in matches)
+            if (match.Contains("{"))
             {
-                var match = m.Value;
-                var filter = default(FilterStruct);
-
-                if (match.Contains("{"))
+                var exts = m.Groups[2].Value;
+                filter = new FilterStruct
                 {
-                    var exts = m.Groups[2].Value;
-                    filter = new FilterStruct
-                    {
-                        Filter = match.Split('{')[0],
-                        CollectionFilters = new HashSet<string>(exts.Split(',')),
-                    };
-                }
-                else
+                    Filter = match.Split('{')[0],
+                    CollectionFilters = new HashSet<string>(exts.Split(',')),
+                };
+            }
+            else
+            {
+                filter = new FilterStruct
                 {
-                    filter = new FilterStruct
-                    {
-                        Filter = match,
-                        CollectionFilters = new(),
-                    };
-                }
-
-                this.filters.Add(filter);
-
-                if (!currentFilterFound && filter.Filter == this.selectedFilter.Filter)
-                {
-                    currentFilterFound = true;
-                    this.selectedFilter = filter;
-                }
+                    Filter = match,
+                    CollectionFilters = new(),
+                };
             }
 
-            if (!currentFilterFound && !(this.filters.Count == 0))
+            this.filters.Add(filter);
+
+            if (!currentFilterFound && filter.Filter == this.selectedFilter.Filter)
             {
-                this.selectedFilter = this.filters[0];
+                currentFilterFound = true;
+                this.selectedFilter = filter;
             }
         }
 
-        private void SetSelectedFilterWithExt(string ext)
+        if (!currentFilterFound && !(this.filters.Count == 0))
         {
-            if (this.filters.Count == 0) return;
-            if (string.IsNullOrEmpty(ext)) return;
+            this.selectedFilter = this.filters[0];
+        }
+    }
 
-            foreach (var filter in this.filters)
-            {
-                if (filter.FilterExists(ext))
-                {
-                    this.selectedFilter = filter;
-                }
-            }
+    private void SetSelectedFilterWithExt(string ext)
+    {
+        if (this.filters.Count == 0) return;
+        if (string.IsNullOrEmpty(ext)) return;
 
-            if (this.selectedFilter.Empty())
+        foreach (var filter in this.filters)
+        {
+            if (filter.FilterExists(ext))
             {
-                this.selectedFilter = this.filters[0];
+                this.selectedFilter = filter;
             }
         }
 
-        private void ApplyFilteringOnFileList()
+        if (this.selectedFilter.Empty())
         {
-            lock (this.filesLock)
+            this.selectedFilter = this.filters[0];
+        }
+    }
+
+    private void ApplyFilteringOnFileList()
+    {
+        lock (this.filesLock)
+        {
+            this.filteredFiles.Clear();
+
+            foreach (var file in this.files)
             {
-                this.filteredFiles.Clear();
-
-                foreach (var file in this.files)
+                var show = true;
+                if (!string.IsNullOrEmpty(this.searchBuffer) && !file.FileName.ToLower().Contains(this.searchBuffer.ToLower()))
                 {
-                    var show = true;
-                    if (!string.IsNullOrEmpty(this.searchBuffer) && !file.FileName.ToLower().Contains(this.searchBuffer.ToLower()))
-                    {
-                        show = false;
-                    }
+                    show = false;
+                }
 
-                    if (this.IsDirectoryMode() && file.Type != FileStructType.Directory)
-                    {
-                        show = false;
-                    }
+                if (this.IsDirectoryMode() && file.Type != FileStructType.Directory)
+                {
+                    show = false;
+                }
 
-                    if (show)
-                    {
-                        this.filteredFiles.Add(file);
-                    }
+                if (show)
+                {
+                    this.filteredFiles.Add(file);
                 }
             }
         }

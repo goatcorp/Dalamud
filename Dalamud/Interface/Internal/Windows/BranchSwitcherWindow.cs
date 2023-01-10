@@ -88,7 +88,7 @@ public class BranchSwitcherWindow : Window
                 var config = Service<DalamudConfiguration>.Get();
                 config.DalamudBetaKind = pickedBranch.Key;
                 config.DalamudBetaKey = pickedBranch.Value.Key;
-                config.Save();
+                config.QueueSave();
             }
 
             if (ImGui.Button("Pick"))
@@ -102,6 +102,9 @@ public class BranchSwitcherWindow : Window
             if (ImGui.Button("Pick & Restart"))
             {
                 Pick();
+
+                // If we exit immediately, we need to write out the new config now
+                Service<DalamudConfiguration>.Get().ForceSave();
 
                 var appData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
                 var xlPath = Path.Combine(appData, "XIVLauncher", "XIVLauncher.exe");

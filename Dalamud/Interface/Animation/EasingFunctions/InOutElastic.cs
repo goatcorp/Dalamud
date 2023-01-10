@@ -1,35 +1,34 @@
 ﻿using System;
 
-namespace Dalamud.Interface.Animation.EasingFunctions
+namespace Dalamud.Interface.Animation.EasingFunctions;
+
+/// <summary>
+/// Class providing an "InOutCirc" easing animation.
+/// </summary>
+public class InOutElastic : Easing
 {
+    private const double Constant = (2 * Math.PI) / 4.5;
+
     /// <summary>
-    /// Class providing an "InOutCirc" easing animation.
+    /// Initializes a new instance of the <see cref="InOutElastic"/> class.
     /// </summary>
-    public class InOutElastic : Easing
+    /// <param name="duration">The duration of the animation.</param>
+    public InOutElastic(TimeSpan duration)
+        : base(duration)
     {
-        private const double Constant = (2 * Math.PI) / 4.5;
+        // ignored
+    }
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="InOutElastic"/> class.
-        /// </summary>
-        /// <param name="duration">The duration of the animation.</param>
-        public InOutElastic(TimeSpan duration)
-            : base(duration)
-        {
-            // ignored
-        }
-
-        /// <inheritdoc/>
-        public override void Update()
-        {
-            var p = this.Progress;
-            this.Value = p == 0
-                        ? 0
-                        : p == 1
-                            ? 1
-                            : p < 0.5
-                                ? -(Math.Pow(2, (20 * p) - 10) * Math.Sin(((20 * p) - 11.125) * Constant)) / 2
-                                : (Math.Pow(2, (-20 * p) + 10) * Math.Sin(((20 * p) - 11.125) * Constant) / 2) + 1;
-        }
+    /// <inheritdoc/>
+    public override void Update()
+    {
+        var p = this.Progress;
+        this.Value = p == 0
+                         ? 0
+                         : p == 1
+                             ? 1
+                             : p < 0.5
+                                 ? -(Math.Pow(2, (20 * p) - 10) * Math.Sin(((20 * p) - 11.125) * Constant)) / 2
+                                 : (Math.Pow(2, (-20 * p) + 10) * Math.Sin(((20 * p) - 11.125) * Constant) / 2) + 1;
     }
 }

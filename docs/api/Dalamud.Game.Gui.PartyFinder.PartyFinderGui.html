@@ -10,7 +10,7 @@
     <meta name="viewport" content="width=device-width">
     <meta name="title" content="Class PartyFinderGui
    ">
-    <meta name="generator" content="docfx 2.59.1.0">
+    <meta name="generator" content="docfx 2.59.4.0">
     
     <link rel="shortcut icon" href="../favicon.ico">
     <link rel="stylesheet" href="../styles/docfx.vendor.css">
@@ -81,9 +81,10 @@
     <div class="level0"><span class="xref">System.Object</span></div>
     <div class="level1"><span class="xref">PartyFinderGui</span></div>
   </div>
-  <div classs="implements">
+  <div class="implements">
     <h5>Implements</h5>
     <div><span class="xref">System.IDisposable</span></div>
+    <div><a class="xref" href="Dalamud.IServiceType.html">IServiceType</a></div>
   </div>
   <div class="inheritedMembers">
     <h5>Inherited Members</h5>
@@ -113,25 +114,7 @@
   <h6><strong>Assembly</strong>: Dalamud.dll</h6>
   <h5 id="Dalamud_Game_Gui_PartyFinder_PartyFinderGui_syntax">Syntax</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public sealed class PartyFinderGui : IDisposable</code></pre>
-  </div>
-  <h3 id="methods">Methods
-  </h3>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Gui_PartyFinder_PartyFinderGui_Enable.md&amp;value=---%0Auid%3A%20Dalamud.Game.Gui.PartyFinder.PartyFinderGui.Enable%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Gui/PartyFinder/PartyFinderGui.cs/#L58">View Source</a>
-  </span>
-  <a id="Dalamud_Game_Gui_PartyFinder_PartyFinderGui_Enable_" data-uid="Dalamud.Game.Gui.PartyFinder.PartyFinderGui.Enable*"></a>
-  <h4 id="Dalamud_Game_Gui_PartyFinder_PartyFinderGui_Enable" data-uid="Dalamud.Game.Gui.PartyFinder.PartyFinderGui.Enable">Enable()</h4>
-  <div class="markdown level1 summary"><p>Enables this module.</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-  <h5 class="decalaration">Declaration</h5>
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public void Enable()</code></pre>
+    <pre><code class="lang-csharp hljs">public sealed class PartyFinderGui : IDisposable, IServiceType</code></pre>
   </div>
   <h3 id="events">Events
   </h3>
@@ -140,7 +123,7 @@
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Gui_PartyFinder_PartyFinderGui_ReceiveListing.md&amp;value=---%0Auid%3A%20Dalamud.Game.Gui.PartyFinder.PartyFinderGui.ReceiveListing%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Gui/PartyFinder/PartyFinderGui.cs/#L53">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Gui/PartyFinder/PartyFinderGui.cs/#L56">View Source</a>
   </span>
   <h4 id="Dalamud_Game_Gui_PartyFinder_PartyFinderGui_ReceiveListing" data-uid="Dalamud.Game.Gui.PartyFinder.PartyFinderGui.ReceiveListing">ReceiveListing</h4>
   <div class="markdown level1 summary"><p>Event fired each time the game receives an individual Party Finder listing.
@@ -173,7 +156,7 @@ Cannot modify listings but can hide them.</p>
     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Gui_PartyFinder_PartyFinderGui_System_IDisposable_Dispose.md&amp;value=---%0Auid%3A%20Dalamud.Game.Gui.PartyFinder.PartyFinderGui.System%23IDisposable%23Dispose%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Gui/PartyFinder/PartyFinderGui.cs/#L66">View Source</a>
+    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Gui/PartyFinder/PartyFinderGui.cs/#L61">View Source</a>
   </span>
   <a id="Dalamud_Game_Gui_PartyFinder_PartyFinderGui_System_IDisposable_Dispose_" data-uid="Dalamud.Game.Gui.PartyFinder.PartyFinderGui.System#IDisposable#Dispose*"></a>
   <h4 id="Dalamud_Game_Gui_PartyFinder_PartyFinderGui_System_IDisposable_Dispose" data-uid="Dalamud.Game.Gui.PartyFinder.PartyFinderGui.System#IDisposable#Dispose">IDisposable.Dispose()</h4>
@@ -187,6 +170,9 @@ Cannot modify listings but can hide them.</p>
   <h3 id="implements">Implements</h3>
   <div>
       <span class="xref">System.IDisposable</span>
+  </div>
+  <div>
+      <a class="xref" href="Dalamud.IServiceType.html">IServiceType</a>
   </div>
 </article>
           </div>

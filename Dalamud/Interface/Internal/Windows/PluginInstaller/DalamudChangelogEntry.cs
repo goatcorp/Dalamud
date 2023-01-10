@@ -1,47 +1,46 @@
 ﻿using System;
 
-namespace Dalamud.Interface.Internal.Windows.PluginInstaller
+namespace Dalamud.Interface.Internal.Windows.PluginInstaller;
+
+/// <summary>
+/// Class representing a Dalamud changelog.
+/// </summary>
+internal class DalamudChangelogEntry : IChangelogEntry
 {
+    private readonly DalamudChangelog changelog;
+
     /// <summary>
-    /// Class representing a Dalamud changelog.
+    /// Initializes a new instance of the <see cref="DalamudChangelogEntry"/> class.
     /// </summary>
-    internal class DalamudChangelogEntry : IChangelogEntry
+    /// <param name="changelog">The changelog.</param>
+    public DalamudChangelogEntry(DalamudChangelog changelog)
     {
-        private readonly DalamudChangelog changelog;
+        this.changelog = changelog;
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="DalamudChangelogEntry"/> class.
-        /// </summary>
-        /// <param name="changelog">The changelog.</param>
-        public DalamudChangelogEntry(DalamudChangelog changelog)
+        var changelogText = string.Empty;
+        for (var i = 0; i < changelog.Changes.Count; i++)
         {
-            this.changelog = changelog;
+            var change = changelog.Changes[i];
+            changelogText += $"{change.Message} (by {change.Author})";
 
-            var changelogText = string.Empty;
-            for (var i = 0; i < changelog.Changes.Count; i++)
+            if (i < changelog.Changes.Count - 1)
             {
-                var change = changelog.Changes[i];
-                changelogText += $"{change.Message} (by {change.Author})";
-
-                if (i < changelog.Changes.Count - 1)
-                {
-                    changelogText += Environment.NewLine;
-                }
+                changelogText += Environment.NewLine;
             }
-
-            this.Text = changelogText;
         }
 
-        /// <inheritdoc/>
-        public string Title => "Dalamud Core";
-
-        /// <inheritdoc/>
-        public string Version => this.changelog.Version;
-
-        /// <inheritdoc/>
-        public string Text { get; init; }
-
-        /// <inheritdoc/>
-        public DateTime Date => this.changelog.Date;
+        this.Text = changelogText;
     }
+
+    /// <inheritdoc/>
+    public string Title => "Dalamud Core";
+
+    /// <inheritdoc/>
+    public string Version => this.changelog.Version;
+
+    /// <inheritdoc/>
+    public string Text { get; init; }
+
+    /// <inheritdoc/>
+    public DateTime Date => this.changelog.Date;
 }

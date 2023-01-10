@@ -3,71 +3,70 @@ using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
 using ImGuiNET;
 
-namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps
+namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps;
+
+/// <summary>
+/// Test setup for Chat.
+/// </summary>
+internal class ChatAgingStep : IAgingStep
 {
-    /// <summary>
-    /// Test setup for Chat.
-    /// </summary>
-    internal class ChatAgingStep : IAgingStep
+    private int step = 0;
+    private bool subscribed = false;
+    private bool hasPassed = false;
+
+    /// <inheritdoc/>
+    public string Name => "Test Chat";
+
+    /// <inheritdoc/>
+    public SelfTestStepResult RunStep()
     {
-        private int step = 0;
-        private bool subscribed = false;
-        private bool hasPassed = false;
+        var chatGui = Service<ChatGui>.Get();
 
-        /// <inheritdoc/>
-        public string Name => "Test Chat";
-
-        /// <inheritdoc/>
-        public SelfTestStepResult RunStep()
+        switch (this.step)
         {
-            var chatGui = Service<ChatGui>.Get();
+            case 0:
+                chatGui.Print("Testing!");
+                this.step++;
 
-            switch (this.step)
-            {
-                case 0:
-                    chatGui.Print("Testing!");
-                    this.step++;
+                break;
 
-                    break;
+            case 1:
+                ImGui.Text("Type \"/e DALAMUD\" in chat...");
 
-                case 1:
-                    ImGui.Text("Type \"/e DALAMUD\" in chat...");
+                if (!this.subscribed)
+                {
+                    this.subscribed = true;
+                    chatGui.ChatMessage += this.ChatOnOnChatMessage;
+                }
 
-                    if (!this.subscribed)
-                    {
-                        this.subscribed = true;
-                        chatGui.ChatMessage += this.ChatOnOnChatMessage;
-                    }
+                if (this.hasPassed)
+                {
+                    chatGui.ChatMessage -= this.ChatOnOnChatMessage;
+                    this.subscribed = false;
+                    return SelfTestStepResult.Pass;
+                }
 
-                    if (this.hasPassed)
-                    {
-                        chatGui.ChatMessage -= this.ChatOnOnChatMessage;
-                        this.subscribed = false;
-                        return SelfTestStepResult.Pass;
-                    }
-
-                    break;
-            }
-
-            return SelfTestStepResult.Waiting;
+                break;
         }
 
-        /// <inheritdoc/>
-        public void CleanUp()
-        {
-            var chatGui = Service<ChatGui>.Get();
+        return SelfTestStepResult.Waiting;
+    }
 
-            chatGui.ChatMessage -= this.ChatOnOnChatMessage;
-            this.subscribed = false;
-        }
+    /// <inheritdoc/>
+    public void CleanUp()
+    {
+        var chatGui = Service<ChatGui>.Get();
 
-        private void ChatOnOnChatMessage(
-            XivChatType type, uint senderid, ref SeString sender, ref SeString message, ref bool ishandled)
+        chatGui.ChatMessage -= this.ChatOnOnChatMessage;
+        this.subscribed = false;
+    }
+
+    private void ChatOnOnChatMessage(
+        XivChatType type, uint senderid, ref SeString sender, ref SeString message, ref bool ishandled)
+    {
+        if (type == XivChatType.Echo && message.TextValue == "DALAMUD")
         {
-            if (type == XivChatType.Echo && message.TextValue == "DALAMUD")
-            {
-                this.hasPassed = true;
-            }
+            this.hasPassed = true;
         }
     }
 }

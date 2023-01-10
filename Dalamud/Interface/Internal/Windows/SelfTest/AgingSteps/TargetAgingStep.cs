@@ -3,74 +3,73 @@ using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
 using ImGuiNET;
 
-namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps
+namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps;
+
+/// <summary>
+/// Test setup for targets.
+/// </summary>
+internal class TargetAgingStep : IAgingStep
 {
-    /// <summary>
-    /// Test setup for targets.
-    /// </summary>
-    internal class TargetAgingStep : IAgingStep
+    private int step = 0;
+
+    /// <inheritdoc/>
+    public string Name => "Test Target";
+
+    /// <inheritdoc/>
+    public SelfTestStepResult RunStep()
     {
-        private int step = 0;
+        var targetManager = Service<TargetManager>.Get();
 
-        /// <inheritdoc/>
-        public string Name => "Test Target";
-
-        /// <inheritdoc/>
-        public SelfTestStepResult RunStep()
+        switch (this.step)
         {
-            var targetManager = Service<TargetManager>.Get();
+            case 0:
+                targetManager.ClearTarget();
+                targetManager.ClearFocusTarget();
 
-            switch (this.step)
-            {
-                case 0:
-                    targetManager.ClearTarget();
-                    targetManager.ClearFocusTarget();
+                this.step++;
 
+                break;
+
+            case 1:
+                ImGui.Text("Target a player...");
+
+                var cTarget = targetManager.Target;
+                if (cTarget is PlayerCharacter)
+                {
                     this.step++;
+                }
 
-                    break;
+                break;
 
-                case 1:
-                    ImGui.Text("Target a player...");
+            case 2:
+                ImGui.Text("Focus-Target a Battle NPC...");
 
-                    var cTarget = targetManager.Target;
-                    if (cTarget is PlayerCharacter)
-                    {
-                        this.step++;
-                    }
+                var fTarget = targetManager.FocusTarget;
+                if (fTarget is BattleNpc)
+                {
+                    this.step++;
+                }
 
-                    break;
+                break;
 
-                case 2:
-                    ImGui.Text("Focus-Target a Battle NPC...");
+            case 3:
+                ImGui.Text("Soft-Target an EventObj...");
 
-                    var fTarget = targetManager.FocusTarget;
-                    if (fTarget is BattleNpc)
-                    {
-                        this.step++;
-                    }
+                var sTarget = targetManager.SoftTarget;
+                if (sTarget is EventObj)
+                {
+                    return SelfTestStepResult.Pass;
+                }
 
-                    break;
-
-                case 3:
-                    ImGui.Text("Soft-Target an EventObj...");
-
-                    var sTarget = targetManager.SoftTarget;
-                    if (sTarget is EventObj)
-                    {
-                        return SelfTestStepResult.Pass;
-                    }
-
-                    break;
-            }
-
-            return SelfTestStepResult.Waiting;
+                break;
         }
 
-        /// <inheritdoc/>
-        public void CleanUp()
-        {
-            // ignored
-        }
+        return SelfTestStepResult.Waiting;
+    }
+
+    /// <inheritdoc/>
+    public void CleanUp()
+    {
+        // ignored
     }
 }

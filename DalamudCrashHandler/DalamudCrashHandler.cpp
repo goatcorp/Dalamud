@@ -739,14 +739,36 @@ int main() {
 
         std::cout << "Crash triggered" << std::endl;
 
+        /*
+        Hard won wisdom: changing symbol path with SymSetSearchPath() after modules
+        have been loaded (invadeProcess=TRUE in SymInitialize() or SymRefreshModuleList())
+        doesn't work.
+        I had to provide symbol path in SymInitialize() (and either invadeProcess=TRUE
+        or invadeProcess=FALSE and call SymRefreshModuleList()). There's probably
+        a way to force it, but I'm happy I found a way that works.
+
+        https://github.com/sumatrapdfreader/sumatrapdf/blob/master/src/utils/DbgHelpDyn.cpp
+        */
+        
         if (g_bSymbolsAvailable) {
             SymRefreshModuleList(g_hProcess);
-        } else if (g_bSymbolsAvailable = SymInitialize(g_hProcess, nullptr, true); g_bSymbolsAvailable) {
-            if (!assetDir.empty()) {
-                if (!SymSetSearchPathW(g_hProcess, std::format(L".;{}", (assetDir / "UIRes" / "pdb").wstring()).c_str()))
-                    std::wcerr << std::format(L"SymSetSearchPathW error: 0x{:x}", GetLastError()) << std::endl;
-            }
-        } else {
+        }
+        else if(!assetDir.empty())
+        {
+            auto symbol_search_path = std::format(L".;{}", (assetDir / "UIRes" / "pdb").wstring());
+            
+            g_bSymbolsAvailable = SymInitializeW(g_hProcess, symbol_search_path.c_str(), true);
+            std::wcout << std::format(L"Init symbols with PDB at {}", symbol_search_path) << std::endl;
+
+            SymRefreshModuleList(g_hProcess);
+        }
+        else
+        {
+            g_bSymbolsAvailable = SymInitializeW(g_hProcess, nullptr, true);
+            std::cout << "Init symbols without PDB" << std::endl;
+        }
+        
+        if (!g_bSymbolsAvailable) {
             std::wcerr << std::format(L"SymInitialize error: 0x{:x}", GetLastError()) << std::endl;
         }
 
@@ -873,13 +895,14 @@ int main() {
         config.hInstance = GetModuleHandleW(nullptr);
         config.dwFlags = TDF_ENABLE_HYPERLINKS | TDF_CAN_BE_MINIMIZED | TDF_ALLOW_DIALOG_CANCELLATION | TDF_USE_COMMAND_LINKS;
         config.pszMainIcon = MAKEINTRESOURCE(IDI_ICON1);
-        config.pszMainInstruction = L"An error occurred";
+        config.pszMainInstruction = L"An error in the game occurred";
         config.pszContent = (L""
-            R"aa(This error may be caused by a faulty plugin, a broken TexTools modification, any other third-party tool, or simply a bug in the game.)aa" "\n"
+            R"aa(The game has to close. This error may be caused by a faulty plugin, a broken mod, any other third-party tool, or simply a bug in the game.)aa" "\n"
+            "\n"
+            R"aa(Try running a game repair in XIVLauncher by right clicking the login button, and disabling plugins you don't need. Please also check your antivirus, see our <a href="help">help site</a> for more information.)aa" "\n"
             "\n"
             R"aa(Upload <a href="exporttspack">this file (click here)</a> if you want to ask for help in our <a href="discord">Discord server</a>.)aa" "\n"
-            "\n"
-            R"aa(Try running a game repair in XIVLauncher by right clicking the login button, and disabling plugins you don't need.)aa"
+
         );
         config.pButtons = buttons;
         config.cButtons = ARRAYSIZE(buttons);

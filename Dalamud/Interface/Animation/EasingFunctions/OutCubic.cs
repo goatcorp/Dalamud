@@ -1,27 +1,26 @@
 ﻿using System;
 
-namespace Dalamud.Interface.Animation.EasingFunctions
+namespace Dalamud.Interface.Animation.EasingFunctions;
+
+/// <summary>
+/// Class providing an "OutCubic" easing animation.
+/// </summary>
+public class OutCubic : Easing
 {
     /// <summary>
-    /// Class providing an "OutCubic" easing animation.
+    /// Initializes a new instance of the <see cref="OutCubic"/> class.
     /// </summary>
-    public class OutCubic : Easing
+    /// <param name="duration">The duration of the animation.</param>
+    public OutCubic(TimeSpan duration)
+        : base(duration)
     {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="OutCubic"/> class.
-        /// </summary>
-        /// <param name="duration">The duration of the animation.</param>
-        public OutCubic(TimeSpan duration)
-            : base(duration)
-        {
-            // ignored
-        }
+        // ignored
+    }
 
-        /// <inheritdoc/>
-        public override void Update()
-        {
-            var p = this.Progress;
-            this.Value = 1 - Math.Pow(1 - p, 3);
-        }
+    /// <inheritdoc/>
+    public override void Update()
+    {
+        var p = this.Progress;
+        this.Value = 1 - Math.Pow(1 - p, 3);
     }
 }
