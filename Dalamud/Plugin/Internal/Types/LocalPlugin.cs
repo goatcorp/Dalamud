@@ -406,11 +406,10 @@ internal class LocalPlugin : IDisposable
             }
 
             // Update the location for the Location and CodeBase patches
-            PluginManager.PluginLocations[this.pluginType.Assembly.FullName] =
-                new PluginPatchData(this.DllFile);
+            PluginManager.PluginLocations[this.pluginType.Assembly.FullName] = new PluginPatchData(this.DllFile);
 
             this.DalamudInterface =
-                new DalamudPluginInterface(this.pluginAssembly.GetName().Name!, this.DllFile, reason, this.IsDev, this.Manifest.InstalledFromUrl);
+                new DalamudPluginInterface(this.pluginAssembly.GetName().Name!, this.DllFile, reason, this.IsDev, this.Manifest);
 
             if (this.Manifest.LoadSync && this.Manifest.LoadRequiredState is 0 or 1)
             {

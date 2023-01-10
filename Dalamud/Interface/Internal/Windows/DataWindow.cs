@@ -451,6 +451,10 @@ internal class DataWindow : Window
         {
             ImGui.TextUnformatted("LocalPlayer null.");
         }
+        else if (clientState.IsPvPExcludingDen)
+        {
+            ImGui.TextUnformatted("Cannot access object table while in PvP.");
+        }
         else
         {
             stateString += $"ObjectTableLen: {objectTable.Length}\n";
