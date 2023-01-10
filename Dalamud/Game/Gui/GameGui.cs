@@ -323,7 +323,7 @@ public sealed unsafe class GameGui : IDisposable, IServiceType
     /// <param name="name">Name of addon to find.</param>
     /// <param name="index">Index of addon to find (1-indexed).</param>
     /// <returns>IntPtr.Zero if unable to find UI, otherwise IntPtr pointing to the start of the addon.</returns>
-    public unsafe IntPtr GetAddonByName(string name, int index)
+    public unsafe IntPtr GetAddonByName(string name, int index = 1)
     {
         var atkStage = FFXIVClientStructs.FFXIV.Component.GUI.AtkStage.GetSingleton();
         if (atkStage == null)
