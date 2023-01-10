@@ -140,9 +140,10 @@ public class Localization : IServiceType
     /// <summary>
     /// Saves localizable JSON data in the current working directory for the provided assembly.
     /// </summary>
-    public void ExportLocalizable()
+    /// <param name="ignoreInvalidFunctions">If set to true, this ignores malformed Localize functions instead of failing.</param>
+    public void ExportLocalizable(bool ignoreInvalidFunctions = false)
     {
-        Loc.ExportLocalizableForAssembly(this.assembly);
+        Loc.ExportLocalizableForAssembly(this.assembly, ignoreInvalidFunctions);
     }
 
     private string ReadLocData(string langCode)
