@@ -49,6 +49,7 @@ public sealed class FlyTextGui : IDisposable, IServiceType
     /// <param name="text2">Text2 passed to the native flytext function.</param>
     /// <param name="color">Color passed to the native flytext function. Changes flytext color.</param>
     /// <param name="icon">Icon ID passed to the native flytext function. Only displays with select FlyTextKind.</param>
+    /// <param name="damageTypeIcon">Damage Type Icon ID passed to the native flytext function. Displayed next to damage values to denote damage type.</param>
     /// <param name="yOffset">The vertical offset to place the flytext at. 0 is default. Negative values result
     /// in text appearing higher on the screen. This does not change where the element begins to fade.</param>
     /// <param name="handled">Whether this flytext has been handled. If a subscriber sets this to true, the FlyText will not appear.</param>
@@ -60,6 +61,7 @@ public sealed class FlyTextGui : IDisposable, IServiceType
         ref SeString text2,
         ref uint color,
         ref uint icon,
+        ref uint damageTypeIcon,
         ref float yOffset,
         ref bool handled);
 
@@ -74,6 +76,7 @@ public sealed class FlyTextGui : IDisposable, IServiceType
         IntPtr text2,
         uint color,
         uint icon,
+        uint damageTypeIcon,
         IntPtr text1,
         float yOffset);
 
@@ -120,7 +123,8 @@ public sealed class FlyTextGui : IDisposable, IServiceType
     /// <param name="text2">Text2 passed to the native flytext function.</param>
     /// <param name="color">Color passed to the native flytext function. Changes flytext color.</param>
     /// <param name="icon">Icon ID passed to the native flytext function. Only displays with select FlyTextKind.</param>
-    public unsafe void AddFlyText(FlyTextKind kind, uint actorIndex, uint val1, uint val2, SeString text1, SeString text2, uint color, uint icon)
+    /// <param name="damageTypeIcon">Damage Type Icon ID passed to the native flytext function. Displayed next to damage values to denote damage type.</param>
+    public unsafe void AddFlyText(FlyTextKind kind, uint actorIndex, uint val1, uint val2, SeString text1, SeString text2, uint color, uint icon, uint damageTypeIcon)
     {
         // Known valid flytext region within the atk arrays
         var numIndex = 28;
@@ -134,7 +138,7 @@ public sealed class FlyTextGui : IDisposable, IServiceType
             return;
 
         var ui = (FFXIVClientStructs.FFXIV.Client.UI.UIModule*)gameGui.GetUIModule();
-        var flytext = gameGui.GetAddonByName("_FlyText", 1);
+        var flytext = gameGui.GetAddonByName("_FlyText");
 
         if (ui == null || flytext == IntPtr.Zero)
             return;
@@ -149,11 +153,12 @@ public sealed class FlyTextGui : IDisposable, IServiceType
         numArray->IntArray[numOffset + 1] = (int)kind;
         numArray->IntArray[numOffset + 2] = unchecked((int)val1);
         numArray->IntArray[numOffset + 3] = unchecked((int)val2);
-        numArray->IntArray[numOffset + 4] = 5; // Unknown
-        numArray->IntArray[numOffset + 5] = unchecked((int)color);
-        numArray->IntArray[numOffset + 6] = unchecked((int)icon);
-        numArray->IntArray[numOffset + 7] = 0; // Unknown
-        numArray->IntArray[numOffset + 8] = 0; // Unknown, has something to do with yOffset
+        numArray->IntArray[numOffset + 4] = unchecked((int)damageTypeIcon); // Icons for damage type
+        numArray->IntArray[numOffset + 5] = 5; // Unknown
+        numArray->IntArray[numOffset + 6] = unchecked((int)color);
+        numArray->IntArray[numOffset + 7] = unchecked((int)icon);
+        numArray->IntArray[numOffset + 8] = 0; // Unknown
+        numArray->IntArray[numOffset + 9] = 0; // Unknown, has something to do with yOffset
 
         fixed (byte* pText1 = text1.Encode())
         {
@@ -200,6 +205,7 @@ public sealed class FlyTextGui : IDisposable, IServiceType
         IntPtr text2,
         uint color,
         uint icon,
+        uint damageTypeIcon,
         IntPtr text1,
         float yOffset)
     {
@@ -217,13 +223,14 @@ public sealed class FlyTextGui : IDisposable, IServiceType
             var tmpText2 = text2 == IntPtr.Zero ? string.Empty : MemoryHelper.ReadSeStringNullTerminated(text2);
             var tmpColor = color;
             var tmpIcon = icon;
+            var tmpDamageTypeIcon = damageTypeIcon;
             var tmpYOffset = yOffset;
 
             var cmpText1 = tmpText1.ToString();
             var cmpText2 = tmpText2.ToString();
 
             Log.Verbose($"[FlyText] Called with addonFlyText({addonFlyText.ToInt64():X}) " +
-                        $"kind({kind}) val1({val1}) val2({val2}) " +
+                        $"kind({kind}) val1({val1}) val2({val2}) damageTypeIcon({damageTypeIcon}) " +
                         $"text1({text1.ToInt64():X}, \"{tmpText1}\") text2({text2.ToInt64():X}, \"{tmpText2}\") " +
                         $"color({color:X}) icon({icon}) yOffset({yOffset})");
             Log.Verbose("[FlyText] Calling flytext events!");
@@ -235,6 +242,7 @@ public sealed class FlyTextGui : IDisposable, IServiceType
                 ref tmpText2,
                 ref tmpColor,
                 ref tmpIcon,
+                ref tmpDamageTypeIcon,
                 ref tmpYOffset,
                 ref handled);
 
@@ -262,7 +270,7 @@ public sealed class FlyTextGui : IDisposable, IServiceType
             if (!dirty)
             {
                 Log.Verbose("[FlyText] Calling flytext with original args.");
-                return this.createFlyTextHook.Original(addonFlyText, kind, val1, val2, text2, color, icon, text1, yOffset);
+                return this.createFlyTextHook.Original(addonFlyText, kind, val1, val2, text2, color, icon, damageTypeIcon, text1, yOffset);
             }
 
             var terminated1 = Terminate(tmpText1.Encode());
@@ -281,6 +289,7 @@ public sealed class FlyTextGui : IDisposable, IServiceType
                 pText2,
                 tmpColor,
                 tmpIcon,
+                tmpDamageTypeIcon,
                 pText1,
                 tmpYOffset);
 
