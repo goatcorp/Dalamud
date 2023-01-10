@@ -1,4 +1,4 @@
-name: Submodule daily check
+name: Check for FFXIVCS changes
 on: 
   schedule:
     - cron: "0 0 */1 * *"
@@ -6,7 +6,7 @@ on:
 
 jobs:
   check:
-    name: Submodule check
+    name: FFXIVCS Check
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -43,4 +43,4 @@ jobs:
     - name: Create PR
       run: |
         echo ${{ secrets.PAT }} | gh auth login --with-token
-        gh pr create --head csupdate-${{ matrix.branches }} --title "Update ClientStructs" --body "" --base ${{ matrix.branches }}
+        gh pr create --head csupdate-${{ matrix.branches }} --title "[${{ matrix.branches }}] Update ClientStructs" --body "" --base ${{ matrix.branches }}
