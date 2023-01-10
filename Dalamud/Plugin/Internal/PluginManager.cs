@@ -38,12 +38,12 @@ internal partial class PluginManager : IDisposable, IServiceType
     /// <summary>
     /// The current Dalamud API level, used to handle breaking changes. Only plugins with this level will be loaded.
     /// </summary>
-    public const int DalamudApiLevel = 7;
+    public const int DalamudApiLevel = 8;
 
     /// <summary>
     /// Default time to wait between plugin unload and plugin assembly unload.
     /// </summary>
-    public const int PluginWaitBeforeFreeDefault = 500;
+    public const int PluginWaitBeforeFreeDefault = 1000; // upped from 500ms, seems more stable
 
     private const string DevPluginsDisclaimerFilename = "DONT_USE_THIS_FOLDER.txt";
 
@@ -866,13 +866,13 @@ Thanks and have fun!";
         {
             try
             {
-                if (!plugin.IsDisabled)
+                if (!plugin.IsDisabled && !plugin.IsOrphaned)
                 {
                     await plugin.LoadAsync(reason);
                 }
                 else
                 {
-                    Log.Verbose($"{name} was disabled");
+                    Log.Verbose($"{name} not loaded, disabled:{plugin.IsDisabled} orphaned:{plugin.IsOrphaned}");
                 }
             }
             catch (InvalidPluginException)

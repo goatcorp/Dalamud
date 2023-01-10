@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup Label="Target">
-        <TargetFramework>net6.0-windows</TargetFramework>
+        <TargetFramework>net7.0-windows</TargetFramework>
         <PlatformTarget>x64</PlatformTarget>
         <Platforms>x64;AnyCPU</Platforms>
         <LangVersion>10.0</LangVersion>
@@ -63,7 +63,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="CheapLoc" Version="1.1.6" />
+        <PackageReference Include="CheapLoc" Version="1.1.8" />
         <PackageReference Include="goaaats.Reloaded.Hooks" Version="4.2.0-goat.4" />
         <PackageReference Include="goaaats.Reloaded.Assembler" Version="1.0.14-goat.2" />
         <PackageReference Include="JetBrains.Annotations" Version="2021.2.0" />
@@ -71,7 +71,7 @@
         <PackageReference Include="Lumina.Excel" Version="6.2.1" />
         <PackageReference Include="MinSharp" Version="1.0.4" />
         <PackageReference Include="MonoMod.RuntimeDetour" Version="21.10.10.01" />
-        <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+        <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
         <PackageReference Include="Serilog" Version="2.11.0" />
         <PackageReference Include="Serilog.Sinks.Async" Version="1.5.0" />
         <PackageReference Include="Serilog.Sinks.Console" Version="4.0.1" />
@@ -80,10 +80,10 @@
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="System.Collections.Immutable" Version="5.0.0" />
-        <PackageReference Include="System.Drawing.Common" Version="6.0.0" />
-        <PackageReference Include="System.Reflection.MetadataLoadContext" Version="5.0.1" />
-        <PackageReference Include="System.Resources.Extensions" Version="5.0.0" />
+        <PackageReference Include="System.Collections.Immutable" Version="7.0.0" />
+        <PackageReference Include="System.Drawing.Common" Version="7.0.0" />
+        <PackageReference Include="System.Reflection.MetadataLoadContext" Version="7.0.0" />
+        <PackageReference Include="System.Resources.Extensions" Version="7.0.0" />
     </ItemGroup>
     <ItemGroup>
         <ProjectReference Include="..\lib\FFXIVClientStructs\FFXIVClientStructs\FFXIVClientStructs.csproj" />
@@ -110,28 +110,42 @@
         </ItemGroup>
     </Target>
 
-    <Target Name="GetGitHash" BeforeTargets="WriteGitHash" Condition="'$(BuildHash)' == ''">
-        <PropertyGroup>
-            <!-- temp file for the git version (lives in "obj" folder)-->
-            <VerFile>$(IntermediateOutputPath)gitver</VerFile>
-            <VerFileClientStructs>$(IntermediateOutputPath)csver</VerFileClientStructs>
-        </PropertyGroup>
+    <PropertyGroup>
+        <!-- Needed temporarily for CI -->
+        <TempVerFile>$(OutputPath)TEMP_gitver.txt</TempVerFile>
+    </PropertyGroup>
+
+    <Target Name="GetGitHash" BeforeTargets="WriteGitHash" Condition="'$(BuildHash)'=='' And '$(Configuration)'=='Release'">
         <!-- write the hash to the temp file.-->
-        <Exec Command="git -C &quot;$(ProjectDir.Replace('\','\\'))&quot; describe --long --always --dirty &gt; $(VerFile)" />
-        <Exec Command="git -C &quot;$(ProjectDir.Replace('\','\\'))\..\lib\FFXIVClientStructs&quot; describe --long --always --dirty &gt; $(VerFileClientStructs)" />
-        <!-- read the version into the GitVersion itemGroup-->
-        <ReadLinesFromFile File="$(VerFile)">
-            <Output TaskParameter="Lines" ItemName="GitVersion" />
-        </ReadLinesFromFile>
-        <ReadLinesFromFile File="$(VerFileClientStructs)">
-            <Output TaskParameter="Lines" ItemName="GitVersionClientStructs" />
-        </ReadLinesFromFile>
+        <Exec Command="git -C &quot;$(ProjectDir.Replace('\','\\'))&quot; describe --long --always --dirty" ConsoleToMSBuild="true">
+            <Output TaskParameter="ConsoleOutput" PropertyName="DalamudGitDescribeOutput" />
+        </Exec>
+        <Exec Command="git -C &quot;$(ProjectDir.Replace('\','\\'))\..\lib\FFXIVClientStructs&quot; describe --long --always --dirty" ConsoleToMSBuild="true">
+            <Output TaskParameter="ConsoleOutput" PropertyName="ClientStructsGitDescribeOutput" />
+        </Exec>
+        
         <!-- Set the BuildHash property to contain the GitVersion, if it wasn't already set.-->
         <PropertyGroup>
-            <BuildHash>@(GitVersion)</BuildHash>
-            <BuildHashClientStructs>@(GitVersionClientStructs)</BuildHashClientStructs>
+            <BuildHash>$([System.Text.RegularExpressions.Regex]::Replace($(DalamudGitDescribeOutput), @"\t|\n|\r", ""))</BuildHash>
+            <BuildHashClientStructs>$([System.Text.RegularExpressions.Regex]::Replace($(ClientStructsGitDescribeOutput), @"\t|\n|\r", ""))</BuildHashClientStructs>
         </PropertyGroup>
+
+        <!-- Looks like this is the only way to write a file without a carriage return in msbuild... -->
+        <Exec Command="echo|set /P =&quot;$(BuildHash)&quot; &gt; $(TempVerFile)" IgnoreExitCode="true" />
     </Target>
+
+    <Target Name="GetGitHashStub" BeforeTargets="WriteGitHash" Condition="'$(BuildHash)'=='' And '$(Configuration)'=='Debug'">
+        <!-- Set the BuildHash property to contain some placeholder, if it wasn't already set.-->
+        <PropertyGroup>
+            <LocalBuildText>Local build at $([System.DateTime]::Now.ToString(yyyyMMdd-hhmmss))</LocalBuildText>
+            <BuildHash>$(LocalBuildText)</BuildHash>
+            <BuildHashClientStructs>???</BuildHashClientStructs>
+        </PropertyGroup>
+
+        <!-- Looks like this is the only way to write a file without a carriage return in msbuild... -->
+        <Exec Command="echo|set /P =&quot;$(BuildHash)&quot; &gt; $(TempVerFile)" IgnoreExitCode="true" />
+    </Target>
+    
     <Target Name="WriteGitHash" BeforeTargets="CoreCompile">
         <!-- names the obj/.../CustomAssemblyInfo.cs file -->
         <PropertyGroup>

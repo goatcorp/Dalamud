@@ -51,6 +51,9 @@ int InitializeClrAndGetEntryPoint(
     SetEnvironmentVariable(L"DOTNET_TC_QuickJitForLoops", L"1");
     SetEnvironmentVariable(L"DOTNET_ReadyToRun", L"1");
 
+    // WINE does not support QUIC and we don't need it
+    SetEnvironmentVariable(L"DOTNET_SYSTEM_NET_HTTP_SOCKETSHTTPHANDLER_HTTP3SUPPORT", L"0");
+
     SetEnvironmentVariable(L"COMPlus_ETWEnabled", enable_etw ? L"1" : L"0");
 
     wchar_t* dotnet_path;
@@ -126,7 +129,7 @@ int InitializeClrAndGetEntryPoint(
 
     // =========================================================================== //
 
-    logging::I("Loading module...");
+    logging::I("Loading module from {}...", module_path.c_str());
     if ((result = g_clr->load_assembly_and_get_function_pointer(
         module_path.c_str(),
         entrypoint_assembly_name.c_str(),

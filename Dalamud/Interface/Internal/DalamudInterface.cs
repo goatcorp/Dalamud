@@ -12,11 +12,13 @@ using Dalamud.Configuration.Internal;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.Gui;
 using Dalamud.Game.Internal;
+using Dalamud.Interface.Animation.EasingFunctions;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Internal.ManagedAsserts;
 using Dalamud.Interface.Internal.Windows;
 using Dalamud.Interface.Internal.Windows.PluginInstaller;
 using Dalamud.Interface.Internal.Windows.SelfTest;
+using Dalamud.Interface.Internal.Windows.Settings;
 using Dalamud.Interface.Internal.Windows.StyleEditor;
 using Dalamud.Interface.Style;
 using Dalamud.Interface.Windowing;
@@ -40,12 +42,13 @@ namespace Dalamud.Interface.Internal;
 [ServiceManager.EarlyLoadedService]
 internal class DalamudInterface : IDisposable, IServiceType
 {
+    private const float CreditsDarkeningMaxAlpha = 0.8f;
+
     private static readonly ModuleLog Log = new("DUI");
 
     private readonly ChangelogWindow changelogWindow;
     private readonly ColorDemoWindow colorDemoWindow;
     private readonly ComponentDemoWindow componentDemoWindow;
-    private readonly CreditsWindow creditsWindow;
     private readonly DataWindow dataWindow;
     private readonly GamepadModeNotifierWindow gamepadModeNotifierWindow;
     private readonly ImeWindow imeWindow;
@@ -61,6 +64,9 @@ internal class DalamudInterface : IDisposable, IServiceType
 
     private readonly TextureWrap logoTexture;
     private readonly TextureWrap tsmLogoTexture;
+
+    private bool isCreditsDarkening = false;
+    private OutCubic creditsDarkeningAnimation = new(TimeSpan.FromSeconds(10));
 
 #if DEBUG
     private bool isImGuiDrawDevMenu = true;
@@ -90,7 +96,6 @@ internal class DalamudInterface : IDisposable, IServiceType
         this.changelogWindow = new ChangelogWindow() { IsOpen = false };
         this.colorDemoWindow = new ColorDemoWindow() { IsOpen = false };
         this.componentDemoWindow = new ComponentDemoWindow() { IsOpen = false };
-        this.creditsWindow = new CreditsWindow() { IsOpen = false };
         this.dataWindow = new DataWindow() { IsOpen = false };
         this.gamepadModeNotifierWindow = new GamepadModeNotifierWindow() { IsOpen = false };
         this.imeWindow = new ImeWindow() { IsOpen = false };
@@ -107,7 +112,6 @@ internal class DalamudInterface : IDisposable, IServiceType
         this.WindowSystem.AddWindow(this.changelogWindow);
         this.WindowSystem.AddWindow(this.colorDemoWindow);
         this.WindowSystem.AddWindow(this.componentDemoWindow);
-        this.WindowSystem.AddWindow(this.creditsWindow);
         this.WindowSystem.AddWindow(this.dataWindow);
         this.WindowSystem.AddWindow(this.gamepadModeNotifierWindow);
         this.WindowSystem.AddWindow(this.imeWindow);
@@ -147,6 +151,9 @@ internal class DalamudInterface : IDisposable, IServiceType
         {
             tsm.AddEntryCore(Loc.Localize("TSMDalamudDevMenu", "Developer Menu"), this.tsmLogoTexture, () => this.isImGuiDrawDevMenu = true);
         }
+
+        this.creditsDarkeningAnimation.Point1 = Vector2.Zero;
+        this.creditsDarkeningAnimation.Point2 = new Vector2(CreditsDarkeningMaxAlpha);
     }
 
     /// <summary>
@@ -176,7 +183,6 @@ internal class DalamudInterface : IDisposable, IServiceType
         this.WindowSystem.RemoveAllWindows();
 
         this.changelogWindow.Dispose();
-        this.creditsWindow.Dispose();
         this.consoleWindow.Dispose();
         this.pluginWindow.Dispose();
         this.titleScreenMenuWindow.Dispose();
@@ -201,11 +207,6 @@ internal class DalamudInterface : IDisposable, IServiceType
     /// Opens the <see cref="ComponentDemoWindow"/>.
     /// </summary>
     public void OpenComponentDemoWindow() => this.componentDemoWindow.IsOpen = true;
-
-    /// <summary>
-    /// Opens the <see cref="CreditsWindow"/>.
-    /// </summary>
-    public void OpenCreditsWindow() => this.creditsWindow.IsOpen = true;
 
     /// <summary>
     /// Opens the <see cref="DataWindow"/>.
@@ -314,11 +315,6 @@ internal class DalamudInterface : IDisposable, IServiceType
     public void ToggleComponentDemoWindow() => this.componentDemoWindow.Toggle();
 
     /// <summary>
-    /// Toggles the <see cref="CreditsWindow"/>.
-    /// </summary>
-    public void ToggleCreditsWindow() => this.creditsWindow.Toggle();
-
-    /// <summary>
     /// Toggles the <see cref="DataWindow"/>.
     /// </summary>
     /// <param name="dataKind">The data kind to switch to after opening.</param>
@@ -388,6 +384,18 @@ internal class DalamudInterface : IDisposable, IServiceType
 
     #endregion
 
+    /// <summary>
+    /// Toggle the screen darkening effect used for the credits.
+    /// </summary>
+    /// <param name="status">Whether or not to turn the effect on.</param>
+    public void SetCreditsDarkeningAnimation(bool status)
+    {
+        this.isCreditsDarkening = status;
+
+        if (status)
+            this.creditsDarkeningAnimation.Restart();
+    }
+
     private void OnDraw()
     {
         this.FrameCount++;
@@ -430,6 +438,9 @@ internal class DalamudInterface : IDisposable, IServiceType
             if (this.isImGuiTestWindowsInMonospace)
                 ImGui.PopFont();
 
+            if (this.isCreditsDarkening)
+                this.DrawCreditsDarkeningAnimation();
+
             // Release focus of any ImGui window if we click into the game.
             var io = ImGui.GetIO();
             if (!io.WantCaptureMouse && (User32.GetKeyState((int)User32.VirtualKey.VK_LBUTTON) & 0x8000) != 0)
@@ -441,6 +452,26 @@ internal class DalamudInterface : IDisposable, IServiceType
         {
             PluginLog.Error(ex, "Error during OnDraw");
         }
+    }
+
+    private void DrawCreditsDarkeningAnimation()
+    {
+        ImGui.PushStyleVar(ImGuiStyleVar.WindowRounding, 0f);
+        ImGui.SetNextWindowPos(new Vector2(0, 0));
+        ImGui.SetNextWindowSize(ImGuiHelpers.MainViewport.Size);
+        ImGuiHelpers.ForceNextWindowMainViewport();
+
+        this.creditsDarkeningAnimation.Update();
+        ImGui.SetNextWindowBgAlpha(Math.Min(this.creditsDarkeningAnimation.EasedPoint.X, CreditsDarkeningMaxAlpha));
+
+        ImGui.Begin(
+            "###CreditsDarkenWindow",
+            ImGuiWindowFlags.NoInputs | ImGuiWindowFlags.NoDocking | ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoMove |
+            ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoFocusOnAppearing | ImGuiWindowFlags.NoBringToFrontOnFocus |
+            ImGuiWindowFlags.NoNav);
+        ImGui.End();
+
+        ImGui.PopStyleVar();
     }
 
     private void DrawHiddenDevMenuOpener()
@@ -573,11 +604,6 @@ internal class DalamudInterface : IDisposable, IServiceType
                         this.OpenDataWindow();
                     }
 
-                    if (ImGui.MenuItem("Open Credits window"))
-                    {
-                        this.OpenCreditsWindow();
-                    }
-
                     if (ImGui.MenuItem("Open Settings window"))
                     {
                         this.OpenSettings();
@@ -671,6 +697,7 @@ internal class DalamudInterface : IDisposable, IServiceType
                     ImGui.MenuItem(Util.AssemblyVersion, false);
                     ImGui.MenuItem(startInfo.GameVersion.ToString(), false);
                     ImGui.MenuItem($"D: {Util.GetGitHash()} CS: {Util.GetGitHashClientStructs()}", false);
+                    ImGui.MenuItem($"CLR: {Environment.Version}", false);
 
                     ImGui.EndMenu();
                 }
@@ -848,7 +875,12 @@ internal class DalamudInterface : IDisposable, IServiceType
                     ImGui.BeginMenu(Util.GetGitHash(), false);
                     ImGui.BeginMenu(this.FrameCount.ToString("000000"), false);
                     ImGui.BeginMenu(ImGui.GetIO().Framerate.ToString("000"), false);
-                    ImGui.BeginMenu($"{Util.FormatBytes(GC.GetTotalMemory(false))}", false);
+                    ImGui.BeginMenu($"W:{Util.FormatBytes(GC.GetTotalMemory(false))}", false);
+
+                    var videoMem = Service<InterfaceManager>.Get().GetD3dMemoryInfo();
+                    ImGui.BeginMenu(
+                        !videoMem.HasValue ? $"V:???" : $"V:{Util.FormatBytes(videoMem.Value.Used)}",
+                        false);
 
                     ImGui.PopFont();
                 }

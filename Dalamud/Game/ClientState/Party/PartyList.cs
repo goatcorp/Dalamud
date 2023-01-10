@@ -46,7 +46,7 @@ public sealed unsafe partial class PartyList : IServiceType
     /// <summary>
     /// Gets a value indicating whether this group is an alliance.
     /// </summary>
-    public bool IsAlliance => this.GroupManagerStruct->IsAlliance;
+    public bool IsAlliance => this.GroupManagerStruct->AllianceFlags > 0;
 
     /// <summary>
     /// Gets the address of the Group Manager.

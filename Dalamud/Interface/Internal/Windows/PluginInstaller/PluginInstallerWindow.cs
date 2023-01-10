@@ -1465,7 +1465,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         return ready;
     }
 
-    private bool DrawPluginCollapsingHeader(string label, LocalPlugin? plugin, PluginManifest manifest, bool isThirdParty, bool trouble, bool updateAvailable, bool isNew, bool installableOutdated, Action drawContextMenuAction, int index)
+    private bool DrawPluginCollapsingHeader(string label, LocalPlugin? plugin, PluginManifest manifest, bool isThirdParty, bool trouble, bool updateAvailable, bool isNew, bool installableOutdated, bool isOrphan, Action drawContextMenuAction, int index)
     {
         ImGui.Separator();
 
@@ -1536,7 +1536,7 @@ internal class PluginInstallerWindow : Window, IDisposable
 
         if (updateAvailable)
             ImGui.Image(this.imageCache.UpdateIcon.ImGuiHandle, iconSize);
-        else if (trouble && !pluginDisabled)
+        else if ((trouble && !pluginDisabled) || isOrphan)
             ImGui.Image(this.imageCache.TroubleIcon.ImGuiHandle, iconSize);
         else if (installableOutdated)
             ImGui.Image(this.imageCache.OutdatedInstallableIcon.ImGuiHandle, iconSize);
@@ -1600,6 +1600,18 @@ internal class PluginInstallerWindow : Window, IDisposable
             ImGui.TextWrapped(Locs.PluginBody_Orphaned);
             ImGui.PopStyleColor();
         }
+        else if (plugin is { IsDecommissioned: true } && !plugin.Manifest.IsThirdParty)
+        {
+            ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudRed);
+            ImGui.TextWrapped(Locs.PluginBody_NoServiceOfficial);
+            ImGui.PopStyleColor();
+        }
+        else if (plugin is { IsDecommissioned: true } && plugin.Manifest.IsThirdParty)
+        {
+            ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudRed);
+            ImGui.TextWrapped(Locs.PluginBody_NoServiceThird);
+            ImGui.PopStyleColor();
+        }
         else if (plugin != null && !plugin.CheckPolicy())
         {
             ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudRed);
@@ -1617,7 +1629,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         ImGui.SetCursorPosX(cursor.X);
 
         // Description
-        if (plugin is null or { IsOutdated: false, IsBanned: false })
+        if (plugin is null or { IsOutdated: false, IsBanned: false } && !trouble)
         {
             if (!string.IsNullOrWhiteSpace(manifest.Punchline))
             {
@@ -1737,7 +1749,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         ImGui.PushID($"available{index}{manifest.InternalName}");
 
         var isThirdParty = manifest.SourceRepo.IsThirdParty;
-        if (this.DrawPluginCollapsingHeader(label, null, manifest, isThirdParty, false, false, !wasSeen, isOutdated, () => this.DrawAvailablePluginContextMenu(manifest), index))
+        if (this.DrawPluginCollapsingHeader(label, null, manifest, isThirdParty, false, false, !wasSeen, isOutdated, false, () => this.DrawAvailablePluginContextMenu(manifest), index))
         {
             if (!wasSeen)
                 configuration.SeenPluginInternalName.Add(manifest.InternalName);
@@ -1978,6 +1990,13 @@ internal class PluginInstallerWindow : Window, IDisposable
             trouble = true;
         }
 
+        // Out of service
+        if (plugin.IsDecommissioned && !plugin.IsOrphaned)
+        {
+            label += Locs.PluginTitleMod_NoService;
+            trouble = true;
+        }
+
         // Scheduled for deletion
         if (plugin.Manifest.ScheduledForDeletion)
         {
@@ -1987,7 +2006,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         ImGui.PushID($"installed{index}{plugin.Manifest.InternalName}");
         var hasChangelog = !plugin.Manifest.Changelog.IsNullOrEmpty();
 
-        if (this.DrawPluginCollapsingHeader(label, plugin, plugin.Manifest, plugin.Manifest.IsThirdParty, trouble, availablePluginUpdate != default, false, false, () => this.DrawInstalledPluginContextMenu(plugin, testingOptIn), index))
+        if (this.DrawPluginCollapsingHeader(label, plugin, plugin.Manifest, plugin.Manifest.IsThirdParty, trouble, availablePluginUpdate != default, false, false, plugin.IsOrphaned, () => this.DrawInstalledPluginContextMenu(plugin, testingOptIn), index))
         {
             if (!this.WasPluginSeen(plugin.Manifest.InternalName))
                 configuration.SeenPluginInternalName.Add(plugin.Manifest.InternalName);
@@ -2188,7 +2207,8 @@ internal class PluginInstallerWindow : Window, IDisposable
         disabled = disabled || (plugin.IsOutdated && !pluginManager.LoadAllApiLevels) || plugin.IsBanned;
 
         // Disable everything if the plugin is orphaned
-        disabled = disabled || plugin.IsOrphaned;
+        // Control will immediately be disabled once the plugin is disabled
+        disabled = disabled || (plugin.IsOrphaned && !plugin.IsLoaded);
 
         // Disable everything if the plugin failed to load
         disabled = disabled || plugin.State == PluginState.LoadError || plugin.State == PluginState.DependencyResolutionFailed;
@@ -2202,7 +2222,7 @@ internal class PluginInstallerWindow : Window, IDisposable
 
         StyleModelV1.DalamudStandard.Push();
 
-        if (plugin.State == PluginState.UnloadError)
+        if (plugin.State == PluginState.UnloadError && !plugin.IsDev)
         {
             ImGuiComponents.DisabledButton(FontAwesomeIcon.Frown);
 
@@ -2874,6 +2894,8 @@ internal class PluginInstallerWindow : Window, IDisposable
 
         public static string PluginTitleMod_Disabled => Loc.Localize("InstallerDisabled", " (disabled)");
 
+        public static string PluginTitleMod_NoService => Loc.Localize("InstallerNoService", " (decommissioned)");
+
         public static string PluginTitleMod_Unloaded => Loc.Localize("InstallerUnloaded", " (unloaded)");
 
         public static string PluginTitleMod_HasUpdate => Loc.Localize("InstallerHasUpdate", " (has update)");
@@ -2941,6 +2963,10 @@ internal class PluginInstallerWindow : Window, IDisposable
         public static string PluginBody_Outdated => Loc.Localize("InstallerOutdatedPluginBody ", "This plugin is outdated and incompatible at the moment. Please wait for it to be updated by its author.");
 
         public static string PluginBody_Orphaned => Loc.Localize("InstallerOrphanedPluginBody ", "This plugin's source repository is no longer available. You may need to reinstall it from its repository, or re-add the repository.");
+
+        public static string PluginBody_NoServiceOfficial => Loc.Localize("InstallerNoServiceOfficialPluginBody", "This plugin is no longer being maintained. It will still work, but there will be no further updates and you can't reinstall it.");
+
+        public static string PluginBody_NoServiceThird => Loc.Localize("InstallerNoServiceThirdPluginBody", "This plugin is no longer being serviced by its source repo. You may have to look for an updated version in another repo.");
 
         public static string PluginBody_LoadFailed => Loc.Localize("InstallerLoadFailedPluginBody ", "This plugin failed to load. Please contact the author for more information.");
 

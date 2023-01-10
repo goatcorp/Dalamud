@@ -583,15 +583,18 @@ public static unsafe class MemoryHelper
     /// <param name="value">The read in bytes.</param>
     public static void ReadProcessMemory(IntPtr memoryAddress, ref byte[] value)
     {
-        var length = value.Length;
-        var result = NativeFunctions.ReadProcessMemory((IntPtr)0xFFFFFFFF, memoryAddress, value, length, out _);
+        unchecked
+        {
+            var length = value.Length;
+            var result = NativeFunctions.ReadProcessMemory((IntPtr)0xFFFFFFFF, memoryAddress, value, length, out _);
 
-        if (!result)
-            throw new MemoryReadException($"Unable to read memory at 0x{memoryAddress.ToInt64():X} of length {length} (result={result})");
+            if (!result)
+                throw new MemoryReadException($"Unable to read memory at 0x{memoryAddress.ToInt64():X} of length {length} (result={result})");
 
-        var last = Marshal.GetLastWin32Error();
-        if (last > 0)
-            throw new MemoryReadException($"Unable to read memory at 0x{memoryAddress.ToInt64():X} of length {length} (error={last})");
+            var last = Marshal.GetLastWin32Error();
+            if (last > 0)
+                throw new MemoryReadException($"Unable to read memory at 0x{memoryAddress.ToInt64():X} of length {length} (error={last})");
+        }
     }
 
     /// <summary>
@@ -602,15 +605,18 @@ public static unsafe class MemoryHelper
     /// <param name="data">The bytes to write to memoryAddress.</param>
     public static void WriteProcessMemory(IntPtr memoryAddress, byte[] data)
     {
-        var length = data.Length;
-        var result = NativeFunctions.WriteProcessMemory((IntPtr)0xFFFFFFFF, memoryAddress, data, length, out _);
+        unchecked
+        {
+            var length = data.Length;
+            var result = NativeFunctions.WriteProcessMemory((IntPtr)0xFFFFFFFF, memoryAddress, data, length, out _);
 
-        if (!result)
-            throw new MemoryWriteException($"Unable to write memory at 0x{memoryAddress.ToInt64():X} of length {length} (result={result})");
+            if (!result)
+                throw new MemoryWriteException($"Unable to write memory at 0x{memoryAddress.ToInt64():X} of length {length} (result={result})");
 
-        var last = Marshal.GetLastWin32Error();
-        if (last > 0)
-            throw new MemoryWriteException($"Unable to write memory at 0x{memoryAddress.ToInt64():X} of length {length} (error={last})");
+            var last = Marshal.GetLastWin32Error();
+            if (last > 0)
+                throw new MemoryWriteException($"Unable to write memory at 0x{memoryAddress.ToInt64():X} of length {length} (error={last})");
+        }
     }
 
     #endregion

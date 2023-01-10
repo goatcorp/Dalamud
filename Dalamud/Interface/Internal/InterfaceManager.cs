@@ -26,7 +26,6 @@ using ImGuiNET;
 using ImGuiScene;
 using PInvoke;
 using Serilog;
-using SharpDX.Direct3D11;
 
 // general dev notes, here because it's easiest
 
@@ -55,6 +54,8 @@ internal class InterfaceManager : IDisposable, IServiceType
 
     private readonly HashSet<SpecialGlyphRequest> glyphRequests = new();
     private readonly Dictionary<ImFontPtr, TargetFontModification> loadedFontInfo = new();
+
+    private readonly List<DalamudTextureWrap> deferredDisposeTextures = new();
 
     [ServiceManager.ServiceDependency]
     private readonly Framework framework = Service<Framework>.Get();
@@ -145,7 +146,7 @@ internal class InterfaceManager : IDisposable, IServiceType
     /// <summary>
     /// Gets the D3D11 device instance.
     /// </summary>
-    public Device? Device => this.scene?.Device;
+    public SharpDX.Direct3D11.Device? Device => this.scene?.Device;
 
     /// <summary>
     /// Gets the address handle to the main process window.
@@ -242,7 +243,8 @@ internal class InterfaceManager : IDisposable, IServiceType
 
         try
         {
-            return this.scene?.LoadImage(filePath) ?? null;
+            var wrap = this.scene?.LoadImage(filePath);
+            return wrap != null ? new DalamudTextureWrap(wrap) : null;
         }
         catch (Exception ex)
         {
@@ -264,7 +266,8 @@ internal class InterfaceManager : IDisposable, IServiceType
 
         try
         {
-            return this.scene?.LoadImage(imageData) ?? null;
+            var wrap = this.scene?.LoadImage(imageData);
+            return wrap != null ? new DalamudTextureWrap(wrap) : null;
         }
         catch (Exception ex)
         {
@@ -289,7 +292,8 @@ internal class InterfaceManager : IDisposable, IServiceType
 
         try
         {
-            return this.scene?.LoadImageRaw(imageData, width, height, numChannels) ?? null;
+            var wrap = this.scene?.LoadImageRaw(imageData, width, height, numChannels);
+            return wrap != null ? new DalamudTextureWrap(wrap) : null;
         }
         catch (Exception ex)
         {
@@ -393,6 +397,33 @@ internal class InterfaceManager : IDisposable, IServiceType
         }
 
         return this.NewFontSizeRef(size, ranges);
+    }
+
+    /// <summary>
+    /// Enqueue a texture to be disposed at the end of the frame.
+    /// </summary>
+    /// <param name="wrap">The texture.</param>
+    public void EnqueueDeferredDispose(DalamudTextureWrap wrap)
+    {
+        this.deferredDisposeTextures.Add(wrap);
+    }
+
+    /// <summary>
+    /// Get video memory information.
+    /// </summary>
+    /// <returns>The currently used video memory, or null if not available.</returns>
+    public (long Used, long Available)? GetD3dMemoryInfo()
+    {
+        if (this.Device == null)
+            return null;
+
+        var dxgiDev = this.Device.QueryInterface<SharpDX.DXGI.Device>();
+        var dxgiAdapter = dxgiDev.Adapter.QueryInterfaceOrNull<SharpDX.DXGI.Adapter4>();
+        if (dxgiAdapter == null)
+            return null;
+
+        var memInfo = dxgiAdapter.QueryVideoMemoryInfo(0, SharpDX.DXGI.MemorySegmentGroup.Local);
+        return (memInfo.CurrentUsage, memInfo.CurrentReservation);
     }
 
     private static void ShowFontError(string path)
@@ -548,6 +579,13 @@ internal class InterfaceManager : IDisposable, IServiceType
         }
 
         this.RenderImGui();
+
+        foreach (var texture in this.deferredDisposeTextures)
+        {
+            texture.RealDispose();
+        }
+
+        this.deferredDisposeTextures.Clear();
 
         return this.presentHook.Original(swapChain, syncInterval, presentFlags);
     }

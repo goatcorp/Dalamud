@@ -101,11 +101,6 @@ internal class DalamudCommands : IServiceType
             HelpMessage = Loc.Localize("DalamudInstallerHelp", "Open the plugin installer"),
         });
 
-        commandManager.AddHandler("/xlcredits", new CommandInfo(this.OnOpenCreditsCommand)
-        {
-            HelpMessage = Loc.Localize("DalamudCreditsHelp", "Opens the credits for dalamud."),
-        });
-
         commandManager.AddHandler("/xllanguage", new CommandInfo(this.OnSetLanguageCommand)
         {
             HelpMessage =
@@ -326,11 +321,6 @@ internal class DalamudCommands : IServiceType
     private void OnOpenInstallerCommand(string command, string arguments)
     {
         Service<DalamudInterface>.Get().TogglePluginInstallerWindow();
-    }
-
-    private void OnOpenCreditsCommand(string command, string arguments)
-    {
-        Service<DalamudInterface>.Get().ToggleCreditsWindow();
     }
 
     private void OnSetLanguageCommand(string command, string arguments)
