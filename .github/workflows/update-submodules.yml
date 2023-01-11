@@ -22,7 +22,7 @@ jobs:
       with:
         submodules: true
         ref: ${{ matrix.branches }}
-        token: ${{ secrets.PAT }}
+        token: ${{ secrets.GITHUB_TOKEN }}
     - name: Create update branch
       run: git checkout -b csupdate/${{ matrix.branches }}
     - name: Initialize mandatory git config
