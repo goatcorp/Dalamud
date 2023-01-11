@@ -87,7 +87,7 @@ public unsafe class Character : GameObject
     /// <summary>
     /// Gets the target object ID of the character.
     /// </summary>
-    public override uint TargetObjectId => this.Struct->TargetObjectID;
+    public override ulong TargetObjectId => this.Struct->TargetObjectID;
 
     /// <summary>
     /// Gets the name ID of the character.

@@ -25,5 +25,5 @@ public unsafe class BattleNpc : BattleChara
     public BattleNpcSubKind BattleNpcKind => (BattleNpcSubKind)this.Struct->Character.GameObject.SubKind;
 
     /// <inheritdoc/>
-    public override uint TargetObjectId => this.Struct->Character.TargetObjectID;
+    public override ulong TargetObjectId => this.Struct->Character.TargetObjectID;
 }

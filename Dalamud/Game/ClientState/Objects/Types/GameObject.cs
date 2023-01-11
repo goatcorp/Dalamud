@@ -158,7 +158,7 @@ public unsafe partial class GameObject
     /// <summary>
     /// Gets the current target of the game object.
     /// </summary>
-    public virtual uint TargetObjectId => 0;
+    public virtual ulong TargetObjectId => 0;
 
     /// <summary>
     /// Gets the target object of the game object.
