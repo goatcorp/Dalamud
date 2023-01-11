@@ -149,7 +149,7 @@ public sealed class EntryPoint
         // Set the appropriate logging level from the configuration
 #if !DEBUG
         if (!configuration.LogSynchronously)
-            InitLogging(info.WorkingDirectory!, info.BootShowConsole, configuration.LogSynchronously);
+            InitLogging(info.WorkingDirectory!, info.BootShowConsole, configuration.LogSynchronously, info.LogName);
         LogLevelSwitch.MinimumLevel = configuration.LogLevel;
 #endif
 
