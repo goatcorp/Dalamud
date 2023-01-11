@@ -81,16 +81,19 @@ public sealed class EntryPoint
     /// <param name="baseDirectory">Base directory.</param>
     /// <param name="logConsole">Whether to log to console.</param>
     /// <param name="logSynchronously">Log synchronously.</param>
-    internal static void InitLogging(string baseDirectory, bool logConsole, bool logSynchronously)
+    /// <param name="logName">Name that should be appended to the log file.</param>
+    internal static void InitLogging(string baseDirectory, bool logConsole, bool logSynchronously, string? logName)
     {
+        var logFileName = logName.IsNullOrEmpty() ? "dalamud" : $"dalamud-{logName}";
+
 #if DEBUG
-        var logPath = Path.Combine(baseDirectory, "dalamud.log");
-        var oldPath = Path.Combine(baseDirectory, "dalamud.old.log");
-        var oldPathOld = Path.Combine(baseDirectory, "dalamud.log.old");
+        var logPath = Path.Combine(baseDirectory, $"{logFileName}.log");
+        var oldPath = Path.Combine(baseDirectory, $"{logFileName}.old.log");
+        var oldPathOld = Path.Combine(baseDirectory, $"{logFileName}.log.old");
 #else
-        var logPath = Path.Combine(baseDirectory, "..", "..", "..", "dalamud.log");
-        var oldPath = Path.Combine(baseDirectory, "..", "..", "..", "dalamud.old.log");
-        var oldPathOld = Path.Combine(baseDirectory, "..", "..", "..", "dalamud.log.old");
+        var logPath = Path.Combine(baseDirectory, "..", "..", "..", $"{logFileName}.log");
+        var oldPath = Path.Combine(baseDirectory, "..", "..", "..", $"{logFileName}.old.log");
+        var oldPathOld = Path.Combine(baseDirectory, "..", "..", "..", $"{logFileName}.log.old");
 #endif
         Log.CloseAndFlush();
 
@@ -137,7 +140,7 @@ public sealed class EntryPoint
     private static void RunThread(DalamudStartInfo info, IntPtr mainThreadContinueEvent)
     {
         // Setup logger
-        InitLogging(info.WorkingDirectory!, info.BootShowConsole, true);
+        InitLogging(info.WorkingDirectory!, info.BootShowConsole, true, info.LogName);
         SerilogEventSink.Instance.LogLine += SerilogOnLogLine;
 
         // Load configuration first to get some early persistent state, like log level

@@ -571,17 +571,19 @@ internal class DalamudInterface : IDisposable, IServiceType
                         ImGui.EndMenu();
                     }
 
+                    var startInfo = Service<DalamudStartInfo>.Get();
+
                     var logSynchronously = configuration.LogSynchronously;
                     if (ImGui.MenuItem("Log Synchronously", null, ref logSynchronously))
                     {
                         configuration.LogSynchronously = logSynchronously;
                         configuration.QueueSave();
 
-                        var startupInfo = Service<DalamudStartInfo>.Get();
                         EntryPoint.InitLogging(
-                            startupInfo.WorkingDirectory!,
-                            startupInfo.BootShowConsole,
-                            configuration.LogSynchronously);
+                            startInfo.WorkingDirectory!,
+                            startInfo.BootShowConsole,
+                            configuration.LogSynchronously,
+                            startInfo.LogName);
                     }
 
                     var antiDebug = Service<AntiDebug>.Get();
@@ -693,9 +695,8 @@ internal class DalamudInterface : IDisposable, IServiceType
                         this.OpenBranchSwitcher();
                     }
 
-                    var startInfo = Service<DalamudStartInfo>.Get();
                     ImGui.MenuItem(Util.AssemblyVersion, false);
-                    ImGui.MenuItem(startInfo.GameVersion.ToString(), false);
+                    ImGui.MenuItem(startInfo.GameVersion?.ToString() ?? "Unknown version", false);
                     ImGui.MenuItem($"D: {Util.GetGitHash()} CS: {Util.GetGitHashClientStructs()}", false);
                     ImGui.MenuItem($"CLR: {Environment.Version}", false);
 
