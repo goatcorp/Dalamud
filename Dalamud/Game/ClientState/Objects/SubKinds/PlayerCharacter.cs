@@ -33,5 +33,5 @@ public unsafe class PlayerCharacter : BattleChara
     /// <summary>
     /// Gets the target actor ID of the PlayerCharacter.
     /// </summary>
-    public override uint TargetObjectId => this.Struct->Character.PlayerTargetObjectID;
+    public override ulong TargetObjectId => this.Struct->Character.PlayerTargetObjectID;
 }
