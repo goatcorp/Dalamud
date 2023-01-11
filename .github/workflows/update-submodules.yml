@@ -42,5 +42,5 @@ jobs:
         git push origin csupdate-${{ matrix.branches }}
     - name: Create PR
       run: |
-        echo ${{ secrets.PAT }} | gh auth login --with-token
+        echo ${{ secrets.GITHUB_TOKEN }} | gh auth login --with-token
         gh pr create --head csupdate-${{ matrix.branches }} --title "[${{ matrix.branches }}] Update ClientStructs" --body "" --base ${{ matrix.branches }}
