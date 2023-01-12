@@ -55,7 +55,7 @@ public static partial class ImGuiComponents
     /// <param name="hoveredColor">The color of the button when hovered.</param>
     /// <returns>Indicator if button is clicked.</returns>
     public static bool IconButton(int id, FontAwesomeIcon icon, Vector4? defaultColor = null, Vector4? activeColor = null, Vector4? hoveredColor = null)
-        => IconButton($"{icon.ToIconString()}{id}", defaultColor, activeColor, hoveredColor);
+        => IconButton($"{icon.ToIconString()}##{id}", defaultColor, activeColor, hoveredColor);
 
     /// <summary>
     /// IconButton component to use an icon as a button with color options.
