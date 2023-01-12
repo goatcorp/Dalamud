@@ -1,3 +1,4 @@
+using System;
 using System.Numerics;
 
 using ImGuiNET;
@@ -65,6 +66,7 @@ public static partial class ImGuiComponents
     /// <param name="activeColor">The color of the button when active.</param>
     /// <param name="hoveredColor">The color of the button when hovered.</param>
     /// <returns>Indicator if button is clicked.</returns>
+    [Obsolete("Issues may occur from this element not having a unique ID")]
     public static bool IconButton(string iconText, Vector4? defaultColor = null, Vector4? activeColor = null, Vector4? hoveredColor = null)
     {
         var numColors = 0;
@@ -92,6 +94,51 @@ public static partial class ImGuiComponents
         var button = ImGui.Button(iconText);
 
         ImGui.PopFont();
+
+        if (numColors > 0)
+            ImGui.PopStyleColor(numColors);
+
+        return button;
+    }
+
+    /// <summary>
+    /// IconButton component to use an icon as a button with color options.
+    /// </summary>
+    /// <param name="iconText">Text already containing the icon string.</param>
+    /// <param name="id">Value to uniquely identify this element.</param>
+    /// <param name="defaultColor">The default color of the button.</param>
+    /// <param name="activeColor">The color of the button when active.</param>
+    /// <param name="hoveredColor">The color of the button when hovered.</param>
+    /// <returns>Indicator if button is clicked.</returns>
+    public static bool IconButton(string iconText, string id, Vector4? defaultColor = null, Vector4? activeColor = null, Vector4? hoveredColor = null)
+    {
+        var numColors = 0;
+
+        if (defaultColor.HasValue)
+        {
+            ImGui.PushStyleColor(ImGuiCol.Button, defaultColor.Value);
+            numColors++;
+        }
+
+        if (activeColor.HasValue)
+        {
+            ImGui.PushStyleColor(ImGuiCol.ButtonActive, activeColor.Value);
+            numColors++;
+        }
+
+        if (hoveredColor.HasValue)
+        {
+            ImGui.PushStyleColor(ImGuiCol.ButtonHovered, hoveredColor.Value);
+            numColors++;
+        }
+
+        ImGui.PushID(id);
+        ImGui.PushFont(UiBuilder.IconFont);
+
+        var button = ImGui.Button(iconText);
+
+        ImGui.PopFont();
+        ImGui.PopID();
 
         if (numColors > 0)
             ImGui.PopStyleColor(numColors);
