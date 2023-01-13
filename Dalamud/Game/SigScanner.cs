@@ -9,6 +9,7 @@ using System.Runtime.InteropServices;
 
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
+using Iced.Intel;
 using Newtonsoft.Json;
 using Serilog;
 
@@ -173,33 +174,36 @@ public class SigScanner : IDisposable, IServiceType
     /// Scan for a .data address using a .text function.
     /// This is intended to be used with IDA sigs.
     /// Place your cursor on the line calling a static address, and create and IDA sig.
+    /// The signature and offset should not break through instruction boundaries.
     /// </summary>
     /// <param name="signature">The signature of the function using the data.</param>
     /// <param name="offset">The offset from function start of the instruction using the data.</param>
-    /// <returns>An IntPtr to the static memory location or IntPtr.Zero if no valid offset could be found.</returns>
+    /// <returns>An IntPtr to the static memory location.</returns>
     public unsafe IntPtr GetStaticAddressFromSig(string signature, int offset = 0)
     {
         var instructionAddress = (byte*)this.ScanText(signature);
         instructionAddress += offset;
-        var baseAddress = (long)this.Module.BaseAddress;
-        var data = this.DataSectionOffset + baseAddress;
-        var dataEnd = data + this.DataSectionSize;
-        var rData = this.RDataSectionOffset + baseAddress;
-        var rDataEnd = rData + this.RDataSectionSize;
 
-        for (var end = instructionAddress + signature.Length + 4; instructionAddress < end; ++instructionAddress)
+        try
         {
-            var byte1 = instructionAddress[0];
-            var byte2 = instructionAddress[1];
-            if (byte1 is >= 0x40 and <= 0x4F && byte2 is 0x89 or 0x8B or 0x8D)
+            var reader = new UnsafeCodeReader(instructionAddress, signature.Length + 8);
+            var decoder = Decoder.Create(64, reader, (ulong)instructionAddress, DecoderOptions.AMD);
+            while (reader.CanReadByte)
             {
-                var ret = *(int*)(instructionAddress + 3) + (long)instructionAddress + 7;
-                if ((ret >= data && ret <= dataEnd) || (ret >= rData && ret <= rDataEnd))
-                    return (IntPtr)ret;
+                var instruction = decoder.Decode();
+                if (instruction.IsInvalid) continue;
+                if (instruction.Op0Kind is OpKind.Memory || instruction.Op1Kind is OpKind.Memory)
+                {
+                    return (IntPtr)instruction.MemoryDisplacement64;
+                }
             }
         }
+        catch
+        {
+            // ignored
+        }
 
-        return IntPtr.Zero;
+        throw new KeyNotFoundException($"Can't find any referenced address in the given signature {signature}.");
     }
 
     /// <summary>
@@ -388,6 +392,26 @@ public class SigScanner : IDisposable, IServiceType
         catch (Exception e)
         {
             Log.Warning(e, "Failed to save cache to {CachePath}", this.cacheFile);
+        }
+    }
+
+    private unsafe class UnsafeCodeReader : CodeReader
+    {
+        private readonly int length;
+        private readonly byte* address;
+        private int pos;
+        public UnsafeCodeReader(byte* address, int length)
+        {
+            this.length  = length;
+            this.address = address;
+        }
+
+        public bool CanReadByte => this.pos < this.length;
+
+        public override int ReadByte()
+        {
+            if (this.pos >= this.length) return -1;
+            return *(this.address + this.pos++);
         }
     }
 
