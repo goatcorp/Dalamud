@@ -75,6 +75,11 @@ public sealed class ClientStateAddressResolver : BaseAddressResolver
     public IntPtr SetupTerritoryType { get; private set; }
 
     /// <summary>
+    /// Gets the address where the current instance number is stored at.
+    /// </summary>
+    public IntPtr InstanceNumberPtr { get; private set; }
+
+    /// <summary>
     /// Gets the address of the method which polls the gamepads for data.
     /// Called every frame, even when `Enable Gamepad` is off in the settings.
     /// </summary>
@@ -107,6 +112,7 @@ public sealed class ClientStateAddressResolver : BaseAddressResolver
         this.JobGaugeData = sig.GetStaticAddressFromSig("48 8B 3D ?? ?? ?? ?? 33 ED") + 0x8;
 
         this.SetupTerritoryType = sig.ScanText("48 89 5C 24 ?? 48 89 6C 24 ?? 48 89 74 24 ?? 57 48 83 EC 20 48 8B F9 66 89 91 ?? ?? ?? ??");
+        this.InstanceNumberPtr = sig.GetStaticAddressFromSig("48 8D 0D ?? ?? ?? ?? 0F B7 F0 E8 ?? ?? ?? ?? 8B D8 3B C6", 2) + 0x20;
 
         // These resolve to fixed offsets only, without the base address added in, so GetStaticAddressFromSig() can't be used.
         // lea   rcx, ds:1DB9F74h[rax*4]          KeyboardState

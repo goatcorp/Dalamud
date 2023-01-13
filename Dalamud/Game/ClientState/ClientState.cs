@@ -9,6 +9,7 @@ using Dalamud.Game.Network.Internal;
 using Dalamud.Hooking;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
+using Dalamud.Memory;
 using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using Serilog;
@@ -96,6 +97,11 @@ public sealed class ClientState : IDisposable, IServiceType
     /// Gets the current Territory the player resides in.
     /// </summary>
     public ushort TerritoryType { get; private set; }
+
+    /// <summary>
+    /// Gets the current Instance number the player is at.
+    /// </summary>
+    public byte InstanceNumber => MemoryHelper.Read<byte>(this.address.InstanceNumberPtr);
 
     /// <summary>
     /// Gets the local player character, if one is present.
