@@ -176,23 +176,30 @@ public class SigScanner : IDisposable, IServiceType
     /// </summary>
     /// <param name="signature">The signature of the function using the data.</param>
     /// <param name="offset">The offset from function start of the instruction using the data.</param>
-    /// <returns>An IntPtr to the static memory location.</returns>
-    public IntPtr GetStaticAddressFromSig(string signature, int offset = 0)
+    /// <returns>An IntPtr to the static memory location or IntPtr.Zero if no valid offset could be found.</returns>
+    public unsafe IntPtr GetStaticAddressFromSig(string signature, int offset = 0)
     {
-        var instrAddr = this.ScanText(signature);
-        instrAddr = IntPtr.Add(instrAddr, offset);
-        var bAddr = (long)this.Module.BaseAddress;
-        long num;
+        var instructionAddress = (byte*)this.ScanText(signature);
+        instructionAddress += offset;
+        var baseAddress = (long)this.Module.BaseAddress;
+        var data = this.DataSectionOffset + baseAddress;
+        var dataEnd = data + this.DataSectionSize;
+        var rData = this.RDataSectionOffset + baseAddress;
+        var rDataEnd = rData + this.RDataSectionSize;
 
-        do
+        for (var end = instructionAddress + signature.Length + 4; instructionAddress < end; ++instructionAddress)
         {
-            instrAddr = IntPtr.Add(instrAddr, 1);
-            num = Marshal.ReadInt32(instrAddr) + (long)instrAddr + 4 - bAddr;
+            var byte1 = instructionAddress[0];
+            var byte2 = instructionAddress[1];
+            if (byte1 is >= 0x40 and <= 0x4F && byte2 is 0x89 or 0x8B or 0x8D)
+            {
+                var ret = *(int*)(instructionAddress + 3) + (long)instructionAddress + 7;
+                if ((ret >= data && ret <= dataEnd) || (ret >= rData && ret <= rDataEnd))
+                    return (IntPtr)ret;
+            }
         }
-        while (!(num >= this.DataSectionOffset && num <= this.DataSectionOffset + this.DataSectionSize)
-               && !(num >= this.RDataSectionOffset && num <= this.RDataSectionOffset + this.RDataSectionSize));
 
-        return IntPtr.Add(instrAddr, Marshal.ReadInt32(instrAddr) + 4);
+        return IntPtr.Zero;
     }
 
     /// <summary>
