@@ -29,6 +29,15 @@ public static partial class ImGuiComponents
     /// <summary>
     /// IconButton component to use an icon as a button.
     /// </summary>
+    /// <param name="id">The ID of the button.</param>
+    /// <param name="icon">The icon for the button.</param>
+    /// <returns>Indicator if button is clicked.</returns>
+    public static bool IconButton(string id, FontAwesomeIcon icon)
+        => IconButton(id, icon, null, null, null);
+
+    /// <summary>
+    /// IconButton component to use an icon as a button.
+    /// </summary>
     /// <param name="iconText">Text already containing the icon string.</param>
     /// <returns>Indicator if button is clicked.</returns>
     public static bool IconButton(string iconText)
@@ -55,7 +64,19 @@ public static partial class ImGuiComponents
     /// <param name="hoveredColor">The color of the button when hovered.</param>
     /// <returns>Indicator if button is clicked.</returns>
     public static bool IconButton(int id, FontAwesomeIcon icon, Vector4? defaultColor = null, Vector4? activeColor = null, Vector4? hoveredColor = null)
-        => IconButton($"{icon.ToIconString()}{id}", defaultColor, activeColor, hoveredColor);
+        => IconButton($"{icon.ToIconString()}##{id}", defaultColor, activeColor, hoveredColor);
+
+    /// <summary>
+    /// IconButton component to use an icon as a button with color options.
+    /// </summary>
+    /// <param name="id">The ID of the button.</param>
+    /// <param name="icon">The icon for the button.</param>
+    /// <param name="defaultColor">The default color of the button.</param>
+    /// <param name="activeColor">The color of the button when active.</param>
+    /// <param name="hoveredColor">The color of the button when hovered.</param>
+    /// <returns>Indicator if button is clicked.</returns>
+    public static bool IconButton(string id, FontAwesomeIcon icon, Vector4? defaultColor = null, Vector4? activeColor = null, Vector4? hoveredColor = null)
+        => IconButton($"{icon.ToIconString()}##{id}", defaultColor, activeColor, hoveredColor);
 
     /// <summary>
     /// IconButton component to use an icon as a button with color options.
