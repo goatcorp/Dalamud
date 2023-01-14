@@ -225,6 +225,7 @@ internal class LocalPlugin : IDisposable
     /// Gets a value indicating whether or not this plugin is serviced(repo still exists, but plugin no longer does).
     /// </summary>
     public bool IsDecommissioned => !this.IsDev &&
+                                    this.GetSourceRepository()?.State == PluginRepositoryState.Success &&
                                     this.GetSourceRepository()?.PluginMaster?.FirstOrDefault(x => x.InternalName == this.Manifest.InternalName) == null;
 
     /// <summary>
