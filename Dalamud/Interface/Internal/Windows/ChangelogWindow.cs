@@ -18,12 +18,11 @@ internal sealed class ChangelogWindow : Window, IDisposable
     /// <summary>
     /// Whether the latest update warrants a changelog window.
     /// </summary>
-    public const string WarrantsChangelogForMajorMinor = "7.0.";
+    public const string WarrantsChangelogForMajorMinor = "7.4.";
 
     private const string ChangeLog =
-        @"• Updated Dalamud for compatibility with Patch 6.2
-• Made things more speedy
-• Plugins can now be toggled off while remaining installed, instead of being removed completely
+        @"• Updated Dalamud for compatibility with Patch 6.3
+• Made things more speedy by updating to .NET 7
 
 If you note any issues or need help, please check the FAQ, and reach out on our Discord if you need help.
 Thanks and have fun!";
