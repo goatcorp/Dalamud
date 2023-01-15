@@ -1,0 +1,13 @@
+﻿CreateAppContainerProfile
+DeriveAppContainerSidFromAppContainerName
+ConvertSidToStringSid
+FreeSid
+LocalFree
+HRESULT_FROM_WIN32
+CloseHandle
+CreateProcessW
+STARTUPINFOEXW
+InitializeProcThreadAttributeList
+UpdateProcThreadAttribute
+DeleteProcThreadAttributeList
+ResumeThread

@@ -1,0 +1,37 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net7.0-windows8.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="BouncyCastle.Cryptography" Version="2.0.0" />
+      <PackageReference Include="CommandLineParser" Version="2.9.1" />
+      <PackageReference Include="GrpcDotNetNamedPipes" Version="2.0.0" />
+      <PackageReference Include="Jab" Version="0.8.6" PrivateAssets="all" />
+      <PackageReference Include="Microsoft.Windows.CsWin32" Version="0.2.164-beta">
+        <PrivateAssets>all</PrivateAssets>
+        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      </PackageReference>
+      <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
+      <PackageReference Include="Serilog" Version="2.12.0" />
+      <PackageReference Include="Serilog.Sinks.Console" Version="4.1.0" />
+      <PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Dalamud.Broker.Protos\Dalamud.Broker.Protos.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <Compile Include="..\Dalamud\ClientLanguage.cs" Link="Included\%(Filename)%(Extension)" />
+        <Compile Include="..\Dalamud\IServiceType.cs" Link="Included\%(Filename)%(Extension)" />
+        <Compile Include="..\Dalamud\DalamudStartInfo.cs" Link="Included\%(Filename)%(Extension)" />
+        <Compile Include="..\Dalamud\Game\GameVersion.cs" Link="Included\Game\%(Filename)%(Extension)" />
+        <Compile Include="..\Dalamud\Game\GameVersionConverter.cs" Link="Included\Game\%(Filename)%(Extension)" />
+    </ItemGroup>
+
+</Project>
