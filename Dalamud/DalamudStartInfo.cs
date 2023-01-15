@@ -55,7 +55,7 @@ public record DalamudStartInfo : IServiceType
     /// <summary>
     /// Gets or sets the working directory of the XIVLauncher installations.
     /// </summary>
-    public string? WorkingDirectory { get; set; }
+    public string WorkingDirectory { get; set; } = default!;
 
     /// <summary>
     /// Gets or sets the path to the configuration file.
