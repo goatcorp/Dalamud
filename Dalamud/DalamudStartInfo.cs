@@ -60,7 +60,7 @@ public record DalamudStartInfo : IServiceType
     /// <summary>
     /// Gets or sets the path to the configuration file.
     /// </summary>
-    public string? ConfigurationPath { get; set; }
+    public string ConfigurationPath { get; set; } = default!;
 
     /// <summary>
     /// Gets or sets the name of the log file.
