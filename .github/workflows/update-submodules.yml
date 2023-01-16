@@ -47,8 +47,7 @@ jobs:
         prNumber=$(gh pr list --base ${{ matrix.branches }} --head csupdate-${{ matrix.branches }} --state open --json number --template "{{range .}}{{.number}}{{end}}")
         if [ -z "$prNumber" ]; then
           echo "No PR found, creating one"
+          gh pr create --head csupdate-${{ matrix.branches }} --title "[${{ matrix.branches }}] Update ClientStructs" --body "" --base ${{ matrix.branches }}
         else
-          echo "PR already exists, closing it"
-          gh pr close $prNumber
+          echo "PR already exists, ignoring"
         fi
-        gh pr create --head csupdate-${{ matrix.branches }} --title "[${{ matrix.branches }}] Update ClientStructs" --body "" --base ${{ matrix.branches }}
