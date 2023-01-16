@@ -1,4 +1,5 @@
-﻿using Windows.Win32;
+﻿using System.Security.Principal;
+using Windows.Win32;
 using Windows.Win32.Foundation;
 using Windows.Win32.Security;
 
@@ -54,5 +55,13 @@ internal sealed class AppContainer : IDisposable
         hresult.ThrowOnFailure();
 
         return new AppContainer(psid);
+    }
+
+    public IdentityReference GetIdentityReference()
+    {
+        unsafe
+        {
+            return new SecurityIdentifier((IntPtr)this.Psid.Value);
+        }
     }
 }

@@ -11,3 +11,15 @@ InitializeProcThreadAttributeList
 UpdateProcThreadAttribute
 DeleteProcThreadAttributeList
 ResumeThread
+OpenProcess
+PROCESS_ACCESS_RIGHTS
+DuplicateHandle
+InitializeAcl
+AddMandatoryAce
+GetNamedSecurityInfoW
+SetNamedSecurityInfoW
+SYSTEM_MANDATORY_LABEL_NO_READ_UP
+SYSTEM_MANDATORY_LABEL_NO_WRITE_UP
+SYSTEM_MANDATORY_LABEL_NO_EXECUTE_UP
+CreateWellKnownSid
+GetAclInformation
