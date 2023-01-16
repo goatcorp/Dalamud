@@ -40,7 +40,7 @@ jobs:
         cd ../..
         git add lib/FFXIVClientStructs
         git commit --message "Update ClientStructs"
-        git push origin csupdate-${{ matrix.branches }}
+        git push origin csupdate-${{ matrix.branches }} --force
     - name: Create PR
       run: |
         echo ${{ secrets.UPDATE_PAT }} | gh auth login --with-token
