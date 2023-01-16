@@ -33,6 +33,7 @@ jobs:
     - name: Update submodule
       run: |
         git checkout -b csupdate-${{ matrix.branches }}
+        git reset --hard origin/${{ matrix.branches }}
         cd lib/FFXIVClientStructs
         git fetch
         git reset --hard origin/main
@@ -43,4 +44,11 @@ jobs:
     - name: Create PR
       run: |
         echo ${{ secrets.UPDATE_PAT }} | gh auth login --with-token
+        prNumber=$(gh pr list --base ${{ matrix.branches }} --head csupdate-${{ matrix.branches }} --state open --json number --template "{{range .}}{{.number}}{{end}}")
+        if [ -z "$prNumber" ]; then
+          echo "No PR found, creating one"
+        else
+          echo "PR already exists, closing it"
+          gh pr close $prNumber
+        fi
         gh pr create --head csupdate-${{ matrix.branches }} --title "[${{ matrix.branches }}] Update ClientStructs" --body "" --base ${{ matrix.branches }}
