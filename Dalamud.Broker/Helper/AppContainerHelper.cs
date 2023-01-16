@@ -9,7 +9,7 @@ internal static class AppContainerHelper
     public const string ContainerDisplayName = "Dalamud Container";
     public const string ContainerDescription = "AppContainer sandbox for Dalamud and FINAL FANTASY XIV";
 
-    public static AppContainer GetContainer()
+    public static AppContainer CreateContainer()
     {
         return AppContainer.GetOrCreate(ContainerName, ContainerDisplayName, ContainerDescription);
     }

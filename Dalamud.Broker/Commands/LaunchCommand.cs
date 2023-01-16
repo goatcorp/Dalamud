@@ -15,7 +15,7 @@ internal static class LaunchCommand
 {
     public static void Run(LaunchCommandOptions options)
     {
-        using var appContainer = AppContainerHelper.GetContainer();
+        using var appContainer = AppContainerHelper.CreateContainer();
         
         var server = StartIpcServer(appContainer.Psid, CreateIpcPipePath());
         

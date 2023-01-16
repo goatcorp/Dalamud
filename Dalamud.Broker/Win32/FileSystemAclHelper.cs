@@ -16,8 +16,10 @@ internal static class FileSystemAclHelper
     /// </summary>
     public static void SetIntegrityLevel(string path, WELL_KNOWN_SID_TYPE sidType, ACE_FLAGS inheritanceFlags)
     {
-        // As much as we want to delegate this task to System.Security.AccessControl,
-        // FileSecurity doesn't expose its SecurityDescriptor and is sealed.
+        // As much as we want to delegate this task to System.Security.AccessControl but:
+        // 1. It lacks support for it
+        // 2. `FileSecurity` doesn't expose its internal `SecurityDescriptor`
+        // 3. It's sealed so there's no clean way to change this.
 
         unsafe
         {
