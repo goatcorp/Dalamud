@@ -262,6 +262,7 @@ public sealed class FlyTextGui : IDisposable, IServiceType
                         tmpVal2 != val2 ||
                         tmpText1.ToString() != cmpText1 ||
                         tmpText2.ToString() != cmpText2 ||
+                        tmpDamageTypeIcon != damageTypeIcon ||
                         tmpColor != color ||
                         tmpIcon != icon ||
                         Math.Abs(tmpYOffset - yOffset) > float.Epsilon;
