@@ -1091,7 +1091,7 @@ internal class PluginInstallerWindow : Window, IDisposable
 
     private void DrawPluginCategoryContent()
     {
-        var ready = this.DrawPluginListLoading() && !this.AnyOperationInProgress;
+        var ready = this.DrawPluginListLoading();
         if (!this.categoryManager.IsSelectionValid || !ready)
         {
             return;
