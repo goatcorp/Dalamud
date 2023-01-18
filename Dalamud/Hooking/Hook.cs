@@ -67,7 +67,7 @@ public class Hook<T> : IDisposable, IDalamudHook where T : Delegate
         if (EnvironmentConfiguration.DalamudForceMinHook)
             useMinHook = true;
 
-        address = HookManager.FollowJmp(address);
+        this.address = address = HookManager.FollowJmp(address);
         if (useMinHook)
             this.compatHookImpl = new MinHookHook<T>(address, detour, callingAssembly);
         else
