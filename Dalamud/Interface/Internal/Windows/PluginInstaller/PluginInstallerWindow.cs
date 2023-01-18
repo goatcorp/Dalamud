@@ -216,14 +216,17 @@ internal class PluginInstallerWindow : Window, IDisposable
     /// <inheritdoc/>
     public override void Draw()
     {
-        this.DrawHeader();
-        this.DrawPluginCategories();
-        this.DrawFooter();
-        this.DrawErrorModal();
-        this.DrawUpdateModal();
-        this.DrawTestingWarningModal();
-        this.DrawFeedbackModal();
-        this.DrawProgressOverlay();
+        lock (this.listLock)
+        {
+            this.DrawHeader();
+            this.DrawPluginCategories();
+            this.DrawFooter();
+            this.DrawErrorModal();
+            this.DrawUpdateModal();
+            this.DrawTestingWarningModal();
+            this.DrawFeedbackModal();
+            this.DrawProgressOverlay();
+        }
     }
 
     /// <summary>
@@ -433,7 +436,7 @@ internal class PluginInstallerWindow : Window, IDisposable
                     this.sortKind = selectable.SortKind;
                     this.filterText = selectable.Localization;
 
-                    lock(this.listLock)
+                    lock (this.listLock)
                         this.ResortPlugins();
                 }
             }
