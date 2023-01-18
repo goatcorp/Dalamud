@@ -1,5 +1,5 @@
 ﻿using System.ComponentModel;
-using System.Data;
+using System.Runtime.InteropServices;
 using System.Text;
 using Windows.Win32;
 using Windows.Win32.Foundation;
@@ -10,7 +10,16 @@ namespace Dalamud.Broker.Win32;
 
 internal static class ProcessLauncher
 {
-    public static ProcessHandle Start(ProcessLaunchContext context)
+    public static (SafeProcessHandle, SafeProcessHandle) Start(string path)
+    {
+        var context = new ProcessLaunchContext()
+        {
+            ApplicationPath = path
+        };
+        return Start(context);
+    }
+
+    public static (SafeProcessHandle, SafeProcessHandle) Start(ProcessLaunchContext context)
     {
         const PROCESS_CREATION_FLAGS requiredCreationFlags = PROCESS_CREATION_FLAGS.EXTENDED_STARTUPINFO_PRESENT;
 
@@ -54,11 +63,8 @@ internal static class ProcessLauncher
                 throw new Win32Exception();
             }
 
-            return new ProcessHandle
-            {
-                Process = new SafeProcessHandle(processInfo.hProcess, true),
-                Thread = new SafeProcessHandle(processInfo.hThread, true),
-            };
+            return (new SafeProcessHandle(processInfo.hProcess, true),
+                       new SafeProcessHandle(processInfo.hThread, true));
         }
     }
 

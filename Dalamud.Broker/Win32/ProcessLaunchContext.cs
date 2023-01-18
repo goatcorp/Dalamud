@@ -11,4 +11,6 @@ internal sealed class ProcessLaunchContext
     public PROCESS_CREATION_FLAGS CreationFlags { get; set; }
     
     public string? WorkingDirectory { get; set; }
+    
+    public AppContainer? AppContainer { get; set; }
 }

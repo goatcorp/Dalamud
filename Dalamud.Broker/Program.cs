@@ -1,4 +1,4 @@
-﻿using System.Reflection;
+using System.Reflection;
 using CommandLine;
 using Dalamud.Broker.Commands;
 using Serilog;
@@ -8,33 +8,43 @@ namespace Dalamud.Broker;
 
 internal static class Program
 {
-    private static void Main(string[] arguments)
+    private static async Task Main(string[] arguments)
     {
         InitializeLogging();
-        
-        var commands = GetCommands();
-        Parser.Default.ParseArguments(arguments, commands)
-              .WithParsed(static options => InvokeCommand(options));
+
+        try
+        {
+            var commands = GetCommands();
+            await Parser.Default.ParseArguments(arguments, commands)
+                        .WithParsedAsync(static async options => await InvokeCommand(options));
+        }
+        catch (Exception ex)
+        {
+            Log.Fatal(ex, "Something went wrong");
+#if DEBUG
+            throw;
+#endif
+        }
     }
 
     private static Type[] GetCommands() => Assembly
-                                         .GetExecutingAssembly()
-                                         .GetTypes()
-                                         .Where(t => t.GetCustomAttribute<VerbAttribute>() is not null)
-                                         .ToArray();
+                                           .GetExecutingAssembly()
+                                           .GetTypes()
+                                           .Where(t => t.GetCustomAttribute<VerbAttribute>() is not null)
+                                           .ToArray();
 
-    private static void InvokeCommand(object options)
+    private static async Task InvokeCommand(object options)
     {
         switch (options)
         {
             case LaunchCommandOptions opt:
-                LaunchCommand.Run(opt);
+                await LaunchCommand.Run(opt);
                 break;
             case SetupCommandOptions opt:
                 SetupCommand.Run(opt);
                 break;
             case DebugCommandOptions opt:
-                DebugCommand.Run(opt);
+                await DebugCommand.Run(opt);
                 break;
         }
     }
@@ -43,8 +53,8 @@ internal static class Program
     {
         // TODO: file logging
         Log.Logger = new LoggerConfiguration()
-            .MinimumLevel.Information()
-            .WriteTo.Console()
-            .CreateLogger();
+                     .MinimumLevel.Information()
+                     .WriteTo.Console()
+                     .CreateLogger();
     }
 }

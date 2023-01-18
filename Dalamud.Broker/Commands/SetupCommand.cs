@@ -2,12 +2,12 @@
 using System.Security.AccessControl;
 using System.Security.Principal;
 using Windows.Win32.Security;
-using Dalamud.Broker.Helper;
 using Dalamud.Broker.Win32;
+using Serilog;
 
 namespace Dalamud.Broker.Commands;
 
-internal static class SetupCommand
+internal static partial class SetupCommand
 {
     public static void Run(SetupCommandOptions options)
     {
@@ -44,110 +44,112 @@ internal static class SetupCommand
         using var appContainer = AppContainerHelper.CreateContainer();
         var containerSid = appContainer.GetIdentityReference();
 
-        // Resolve paths
-        // TODO: clean up this "optional arguments" + concat dir handling stuff..
-        // TODO: also this code is extremely verbose... (but it's very unlikely to be changed so I don't think abstraction is not needed..? idk)
-        var baseGameDirectory = options.BaseGameDirectory;
-        var gameConfigDirectory = options.GameConfigDirectory ?? GetDefaultGameConfigDirectory();
-        var gameConfigDownloadDirectory = Path.Combine(gameConfigDirectory, "downloads");
-        var xlDirectory = options.XlDataDirectory ?? GetDefaultXlDirectory();
-        var xlAddonDirectory = Path.Combine(xlDirectory, "addon");
-        var xlRuntimeDirectory = Path.Combine(xlDirectory, "runtime");
-        var xlPatchesDirectory = Path.Combine(xlDirectory, "patches");
-        var dalamudDirectory = options.DalamudBinaryDirectory ?? GetDefaultDalamudDirectory();
+        // Initialize policies (see above)
+        var policies = new PolicyEntry[]
+        {
+            // $base_game
+            new()
+            {
+                Path = options.BaseGameDirectory,
+                Access = FileSystemRights.ReadAndExecute,
+                Outcome = AccessControlType.Allow,
+                Integrity = null,
+            },
 
-        // $base_game
-        FileSystemAclHelper.AddDirectoryAce(baseGameDirectory, containerSid, FileSystemRights.ReadAndExecute,
-                                            InheritanceFlags.ObjectInherit | InheritanceFlags.ContainerInherit,
-                                            AccessControlType.Allow);
+            // $game_config
+            new()
+            {
+                Path = options.GameConfigDirectory,
+                Access = FileSystemRights.Read | FileSystemRights.Write | FileSystemRights.ExecuteFile,
+                Outcome = AccessControlType.Allow,
+                Integrity = WELL_KNOWN_SID_TYPE.WinLowLabelSid,
+            },
 
-        // $gmae_config
-        FileSystemAclHelper.AddDirectoryAce(gameConfigDirectory, containerSid,
-                                            FileSystemRights.Read | FileSystemRights.Write |
-                                            FileSystemRights.ExecuteFile,
-                                            InheritanceFlags.ObjectInherit | InheritanceFlags.ContainerInherit,
-                                            AccessControlType.Allow);
-        FileSystemAclHelper.SetIntegrityLevel(
-            gameConfigDirectory,
-            WELL_KNOWN_SID_TYPE.WinLowLabelSid,
-            ACE_FLAGS.CONTAINER_INHERIT_ACE | ACE_FLAGS.OBJECT_INHERIT_ACE);
+            // $game_config/downloads
+            new()
+            {
+                Path = Path.Combine(options.GameConfigDirectory, "downloads"),
+                Access = FileSystemRights.Write,
+                Outcome = AccessControlType.Deny,
+                Integrity = WELL_KNOWN_SID_TYPE.WinMediumLabelSid
+            },
 
-        // $game_config/downloads
-        FileSystemAclHelper.AddDirectoryAce(gameConfigDirectory, containerSid,
-                                            FileSystemRights.Write,
-                                            InheritanceFlags.ObjectInherit | InheritanceFlags.ContainerInherit,
-                                            AccessControlType.Deny);
-        FileSystemAclHelper.SetIntegrityLevel(
-            gameConfigDownloadDirectory,
-            WELL_KNOWN_SID_TYPE.WinMediumLabelSid,
-            ACE_FLAGS.CONTAINER_INHERIT_ACE | ACE_FLAGS.OBJECT_INHERIT_ACE);
+            // $xl
+            new()
+            {
+                Path = options.XlDataDirectory,
+                Access = FileSystemRights.Read | FileSystemRights.Write | FileSystemRights.ExecuteFile,
+                Outcome = AccessControlType.Allow,
+                Integrity = WELL_KNOWN_SID_TYPE.WinLowLabelSid,
+            },
 
-        // $xl
-        FileSystemAclHelper.AddDirectoryAce(xlDirectory, containerSid,
-                                            FileSystemRights.Read | FileSystemRights.Write |
-                                            FileSystemRights.ExecuteFile,
-                                            InheritanceFlags.ObjectInherit | InheritanceFlags.ContainerInherit,
-                                            AccessControlType.Allow);
-        FileSystemAclHelper.SetIntegrityLevel(
-            xlDirectory,
-            WELL_KNOWN_SID_TYPE.WinLowLabelSid,
-            ACE_FLAGS.CONTAINER_INHERIT_ACE | ACE_FLAGS.OBJECT_INHERIT_ACE);
+            // $xl/addon
+            new()
+            {
+                Path = Path.Combine(options.XlDataDirectory, "addon"),
+                Access = FileSystemRights.Write,
+                Outcome = AccessControlType.Deny,
+                Integrity = WELL_KNOWN_SID_TYPE.WinMediumLabelSid
+            },
 
-        // $xl/{..}
-        FileSystemAclHelper.AddDirectoryAce(xlAddonDirectory, containerSid,
-                                            FileSystemRights.Write,
-                                            InheritanceFlags.ObjectInherit | InheritanceFlags.ContainerInherit,
-                                            AccessControlType.Deny);
-        FileSystemAclHelper.SetIntegrityLevel(
-            xlAddonDirectory,
-            WELL_KNOWN_SID_TYPE.WinMediumLabelSid,
-            ACE_FLAGS.CONTAINER_INHERIT_ACE | ACE_FLAGS.OBJECT_INHERIT_ACE);
-        FileSystemAclHelper.AddDirectoryAce(xlRuntimeDirectory, containerSid,
-                                            FileSystemRights.Write,
-                                            InheritanceFlags.ObjectInherit | InheritanceFlags.ContainerInherit,
-                                            AccessControlType.Deny);
-        FileSystemAclHelper.SetIntegrityLevel(
-            xlRuntimeDirectory,
-            WELL_KNOWN_SID_TYPE.WinMediumLabelSid,
-            ACE_FLAGS.CONTAINER_INHERIT_ACE | ACE_FLAGS.OBJECT_INHERIT_ACE);
-        FileSystemAclHelper.AddDirectoryAce(xlPatchesDirectory, containerSid,
-                                            FileSystemRights.Write,
-                                            InheritanceFlags.ObjectInherit | InheritanceFlags.ContainerInherit,
-                                            AccessControlType.Deny);
-        FileSystemAclHelper.SetIntegrityLevel(
-            xlPatchesDirectory,
-            WELL_KNOWN_SID_TYPE.WinMediumLabelSid,
-            ACE_FLAGS.CONTAINER_INHERIT_ACE | ACE_FLAGS.OBJECT_INHERIT_ACE);
+            // $xl/runtime
+            new()
+            {
+                Path = Path.Combine(options.XlDataDirectory, "runtime"),
+                Access = FileSystemRights.Write,
+                Outcome = AccessControlType.Deny,
+                Integrity = WELL_KNOWN_SID_TYPE.WinMediumLabelSid
+            },
 
-        // $dalamud
-        FileSystemAclHelper.AddDirectoryAce(dalamudDirectory, containerSid,
-                                            FileSystemRights.ReadAndExecute,
-                                            InheritanceFlags.ObjectInherit | InheritanceFlags.ContainerInherit,
-                                            AccessControlType.Allow);
-    }
+            // $xl/patches
+            new()
+            {
+                Path = Path.Combine(options.XlDataDirectory, "patches"),
+                Access = FileSystemRights.Write,
+                Outcome = AccessControlType.Deny,
+                Integrity = WELL_KNOWN_SID_TYPE.WinMediumLabelSid
+            },
 
-    private static string GetDefaultGameConfigDirectory()
-    {
-        return Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
-            "My Games",
-            "FINAL FANTASY XIV - A Realm Reborn"
-        );
-    }
-
-    private static string GetDefaultXlDirectory()
-    {
-        return Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            "XIVLauncher"
-        );
-    }
-
-    private static string GetDefaultDalamudDirectory()
-    {
-        var assembly = Assembly.GetExecutingAssembly();
-        var assemblyDirectory = Path.GetDirectoryName(assembly.Location);
+            // $dalamud
+            new()
+            {
+                Path = options.DalamudBinaryDirectory,
+                Access = FileSystemRights.ReadAndExecute,
+                Outcome = AccessControlType.Allow,
+                Integrity = null,
+            },
+        };
         
-        return assemblyDirectory ?? Environment.CurrentDirectory;
+        // Apply policies
+        Log.Information("Changing the file system permissions for the AppContainer {ContainerSid}", containerSid);
+        
+        foreach (var policy in policies)
+        {
+            // Update DACL
+            Log.Information(@"Changing the DACL for ""{Path}"" ({Outcome}: {Access})", policy.Path,
+                            policy.Outcome, policy.Access);
+            FileSystemAclHelper.AddDirectoryAce(
+                policy.Path,
+                containerSid,
+                policy.Access,
+                InheritanceFlags.ObjectInherit | InheritanceFlags.ContainerInherit,
+                policy.Outcome
+            );
+
+            // Update IL
+            if (policy.Integrity is WELL_KNOWN_SID_TYPE wellKnownSid)
+            {
+                Log.Information(@"Changing the integrity level for ""{Path}"" to {WellKnownSid}", policy.Path,
+                                policy.Integrity);
+                FileSystemAclHelper.SetIntegrityLevel(
+                    policy.Path,
+                    wellKnownSid,
+                    ACE_FLAGS.OBJECT_INHERIT_ACE | ACE_FLAGS.CONTAINER_INHERIT_ACE
+                );
+            }
+        }
+
+        Log.Information("Successfully updated the file system permissions for the AppContainer {ContainerSid}",
+                        containerSid);
     }
 }

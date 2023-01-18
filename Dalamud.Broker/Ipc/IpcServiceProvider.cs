@@ -4,12 +4,11 @@ using Jab;
 
 namespace Dalamud.Broker.Ipc;
 
-[ServiceProvider]
-[Singleton<DebugService>]
-internal partial class IpcService
+// [Singleton<DebugService>]
+internal partial class IpcServiceProvider
 {
     public void BindServices(ServiceBinderBase binder)
     {
-        BrokerDebugging.BindService(binder, this.GetService<DebugService>());
+        // BrokerDebugging.BindService(binder, this.GetService<DebugService>());
     }
 }
