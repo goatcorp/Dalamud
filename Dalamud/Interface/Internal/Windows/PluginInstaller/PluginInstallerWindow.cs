@@ -46,6 +46,8 @@ internal class PluginInstallerWindow : Window, IDisposable
 
     private readonly DateTime timeLoaded;
 
+    private readonly object listLock = new();
+
     #region Image Tester State
 
     private string[] testerImagePaths = new string[5];
@@ -431,7 +433,8 @@ internal class PluginInstallerWindow : Window, IDisposable
                     this.sortKind = selectable.SortKind;
                     this.filterText = selectable.Localization;
 
-                    this.ResortPlugins();
+                    lock(this.listLock)
+                        this.ResortPlugins();
                 }
             }
 
@@ -2684,11 +2687,14 @@ internal class PluginInstallerWindow : Window, IDisposable
     {
         var pluginManager = Service<PluginManager>.Get();
 
-        // By removing installed plugins only when the available plugin list changes (basically when the window is
-        // opened), plugins that have been newly installed remain in the available plugin list as installed.
-        this.pluginListAvailable = pluginManager.AvailablePlugins.ToList();
-        this.pluginListUpdatable = pluginManager.UpdatablePlugins.ToList();
-        this.ResortPlugins();
+        lock (this.listLock)
+        {
+            // By removing installed plugins only when the available plugin list changes (basically when the window is
+            // opened), plugins that have been newly installed remain in the available plugin list as installed.
+            this.pluginListAvailable = pluginManager.AvailablePlugins.ToList();
+            this.pluginListUpdatable = pluginManager.UpdatablePlugins.ToList();
+            this.ResortPlugins();
+        }
 
         this.UpdateCategoriesOnPluginsChange();
     }
@@ -2697,10 +2703,13 @@ internal class PluginInstallerWindow : Window, IDisposable
     {
         var pluginManager = Service<PluginManager>.Get();
 
-        this.pluginListInstalled = pluginManager.InstalledPlugins.ToList();
-        this.pluginListUpdatable = pluginManager.UpdatablePlugins.ToList();
-        this.hasDevPlugins = this.pluginListInstalled.Any(plugin => plugin.IsDev);
-        this.ResortPlugins();
+        lock (this.listLock)
+        {
+            this.pluginListInstalled = pluginManager.InstalledPlugins.ToList();
+            this.pluginListUpdatable = pluginManager.UpdatablePlugins.ToList();
+            this.hasDevPlugins = this.pluginListInstalled.Any(plugin => plugin.IsDev);
+            this.ResortPlugins();
+        }
 
         this.UpdateCategoriesOnPluginsChange();
     }
