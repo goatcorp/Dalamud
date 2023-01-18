@@ -23,3 +23,7 @@ SYSTEM_MANDATORY_LABEL_NO_WRITE_UP
 SYSTEM_MANDATORY_LABEL_NO_EXECUTE_UP
 CreateWellKnownSid
 GetAclInformation
+WaitForSingleObject
+WaitForMultipleObjects
+INFINITE
+GetProcessId
