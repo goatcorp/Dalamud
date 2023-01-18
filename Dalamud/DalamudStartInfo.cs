@@ -63,6 +63,11 @@ public record DalamudStartInfo : IServiceType
     public string ConfigurationPath { get; set; } = default!;
 
     /// <summary>
+    /// Gets or sets the pipe path to communicate with the broker process.
+    /// </summary>
+    public string BrokerPipePath { get; set; } = default!;
+
+    /// <summary>
     /// Gets or sets the name of the log file.
     /// </summary>
     public string? LogName { get; set; }
