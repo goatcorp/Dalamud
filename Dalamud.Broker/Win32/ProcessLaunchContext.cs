@@ -1,4 +1,6 @@
-﻿using Windows.Win32.System.Threading;
+﻿using System.Security.Principal;
+using Windows.Win32.Security;
+using Windows.Win32.System.Threading;
 
 namespace Dalamud.Broker.Win32;
 
@@ -13,4 +15,6 @@ internal sealed class ProcessLaunchContext
     public string? WorkingDirectory { get; set; }
     
     public AppContainer? AppContainer { get; set; }
+    
+    public (SecurityIdentifier, int)[]? Capabilities { get; set; }
 }

@@ -1,6 +1,7 @@
 ﻿CreateAppContainerProfile
 DeriveAppContainerSidFromAppContainerName
 ConvertSidToStringSid
+ConvertStringSidToSidW
 FreeSid
 LocalFree
 HRESULT_FROM_WIN32
@@ -10,6 +11,10 @@ STARTUPINFOEXW
 InitializeProcThreadAttributeList
 UpdateProcThreadAttribute
 DeleteProcThreadAttributeList
+SECURITY_CAPABILITIES
+PROC_THREAD_ATTRIBUTE_SECURITY_CAPABILITIES
+SE_GROUP_ENABLED
+SE_GROUP_USE_FOR_DENY_ONLY
 ResumeThread
 OpenProcess
 PROCESS_ACCESS_RIGHTS
@@ -27,3 +32,4 @@ WaitForSingleObject
 WaitForMultipleObjects
 INFINITE
 GetProcessId
+SID

@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using System.Security.Principal;
 using System.Text;
 using System.Text.Json;
 using Windows.Win32;
@@ -15,10 +16,21 @@ internal sealed class DebugCommand
 {
     public static async Task Run(DebugCommandOptions options)
     {
-        var (process, thread) = ProcessLauncher.Start(@"C:\Windows\System32\notepad.exe");
+        var capabilities = new[]
+        {
+            (new SecurityIdentifier(WellKnownSidType.WinCapabilityInternetClientServerSid, null), PInvoke.SE_GROUP_ENABLED),
+            (new SecurityIdentifier(WellKnownSidType.WinCapabilityPrivateNetworkClientServerSid, null), PInvoke.SE_GROUP_ENABLED),
+        };
+        var context = new ProcessLaunchContext
+        {
+            ApplicationPath = @"C:\Windows\System32\notepad.exe",
+            AppContainer = AppContainerHelper.CreateContainer(),
+            Capabilities = capabilities,
+        };
+        var startHandle = ProcessLauncher.Start(context);
 
         var ctx = new CancellationTokenSource();
-        var waiter = new ProcessWaiter(process);
+        var waiter = new ProcessWaiter(startHandle.Process);
         await waiter.WaitAsync(ctx.Token);
     }
     //     var procContext = new ProcessLaunchContext
