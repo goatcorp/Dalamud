@@ -6,6 +6,7 @@ using System.Reflection;
 
 using Dalamud.Game;
 using Dalamud.Hooking.Internal;
+using Dalamud.Interface.Components;
 using Dalamud.Interface.Internal.Notifications;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin.Internal;
@@ -68,6 +69,24 @@ internal class PluginStatWindow : Window
                     }
                 }
 
+                var loadedPlugins = pluginManager.InstalledPlugins.Where(plugin => plugin.State == PluginState.Loaded);
+
+                var allLast = loadedPlugins
+                    .DefaultIfEmpty()
+                    .Where(plugin => plugin.DalamudInterface != null)
+                    .Select(plugin => plugin.DalamudInterface.UiBuilder.LastDrawTime);
+
+                var allAverage = loadedPlugins
+                    .DefaultIfEmpty()
+                    .Where(plugin => plugin.DalamudInterface != null)
+                    .Select(plugin => plugin.DalamudInterface.UiBuilder.DrawTimeHistory.DefaultIfEmpty().Average());
+
+                ImGuiComponents.TextWithLabel("Total Last", $"{allLast.Aggregate(0d, (a, b) => a + b) / 10000f:F4}ms", "All last draw times added together");
+                ImGui.SameLine();
+                ImGuiComponents.TextWithLabel("Total Average", $"{allAverage.Aggregate(0d, (a, b) => a + b) / 10000f:F4}ms", "All average draw times added together");
+                ImGui.SameLine();
+                ImGuiComponents.TextWithLabel("Collective Average", $"{allAverage.Average() / 10000f:F4}ms", "Average of all average draw times");
+
                 if (ImGui.BeginTable(
                         "##PluginStatsDrawTimes",
                         4,
@@ -85,8 +104,6 @@ internal class PluginStatWindow : Window
                     ImGui.TableSetupColumn("Longest");
                     ImGui.TableSetupColumn("Average");
                     ImGui.TableHeadersRow();
-
-                    var loadedPlugins = pluginManager.InstalledPlugins.Where(plugin => plugin.State == PluginState.Loaded);
 
                     var sortSpecs = ImGui.TableGetSortSpecs();
                     loadedPlugins = sortSpecs.Specs.ColumnIndex switch
@@ -149,6 +166,22 @@ internal class PluginStatWindow : Window
                     Framework.StatsHistory.Clear();
                 }
 
+                var statsHistory = Framework.StatsHistory.ToArray();
+
+                var allLast = statsHistory
+                    .DefaultIfEmpty()
+                    .Select(x => x.Value.LastOrDefault());
+
+                var allAverage = statsHistory
+                    .DefaultIfEmpty()
+                    .Select(x => x.Value.DefaultIfEmpty().Average());
+
+                ImGuiComponents.TextWithLabel("Total Last", $"{allLast.Aggregate(0d, (a, b) => a + b):F4}ms", "All last update times added together");
+                ImGui.SameLine();
+                ImGuiComponents.TextWithLabel("Total Average", $"{allAverage.Aggregate(0d, (a, b) => a + b):F4}ms", "All average update times added together");
+                ImGui.SameLine();
+                ImGuiComponents.TextWithLabel("Collective Average", $"{allAverage.Average():F4}ms", "Average of all average update times");
+
                 if (ImGui.BeginTable(
                         "##PluginStatsFrameworkTimes",
                         4,
@@ -166,8 +199,6 @@ internal class PluginStatWindow : Window
                     ImGui.TableSetupColumn("Longest", ImGuiTableColumnFlags.None, 50);
                     ImGui.TableSetupColumn("Average", ImGuiTableColumnFlags.None, 50);
                     ImGui.TableHeadersRow();
-
-                    var statsHistory = Framework.StatsHistory.ToArray();
 
                     var sortSpecs = ImGui.TableGetSortSpecs();
                     statsHistory = sortSpecs.Specs.ColumnIndex switch
