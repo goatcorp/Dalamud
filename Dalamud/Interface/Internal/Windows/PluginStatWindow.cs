@@ -70,22 +70,14 @@ internal class PluginStatWindow : Window
                 }
 
                 var loadedPlugins = pluginManager.InstalledPlugins.Where(plugin => plugin.State == PluginState.Loaded);
+                var totalLast = loadedPlugins.Sum(plugin => plugin.DalamudInterface?.UiBuilder.LastDrawTime ?? 0);
+                var totalAverage = loadedPlugins.Sum(plugin => plugin.DalamudInterface?.UiBuilder.DrawTimeHistory.DefaultIfEmpty().Average() ?? 0);
 
-                var allLast = loadedPlugins
-                    .DefaultIfEmpty()
-                    .Where(plugin => plugin.DalamudInterface != null)
-                    .Select(plugin => plugin.DalamudInterface.UiBuilder.LastDrawTime);
-
-                var allAverage = loadedPlugins
-                    .DefaultIfEmpty()
-                    .Where(plugin => plugin.DalamudInterface != null)
-                    .Select(plugin => plugin.DalamudInterface.UiBuilder.DrawTimeHistory.DefaultIfEmpty().Average());
-
-                ImGuiComponents.TextWithLabel("Total Last", $"{allLast.Aggregate(0d, (a, b) => a + b) / 10000f:F4}ms", "All last draw times added together");
+                ImGuiComponents.TextWithLabel("Total Last", $"{totalLast / 10000f:F4}ms", "All last draw times added together");
                 ImGui.SameLine();
-                ImGuiComponents.TextWithLabel("Total Average", $"{allAverage.Aggregate(0d, (a, b) => a + b) / 10000f:F4}ms", "All average draw times added together");
+                ImGuiComponents.TextWithLabel("Total Average", $"{totalAverage / 10000f:F4}ms", "All average draw times added together");
                 ImGui.SameLine();
-                ImGuiComponents.TextWithLabel("Collective Average", $"{allAverage.Average() / 10000f:F4}ms", "Average of all average draw times");
+                ImGuiComponents.TextWithLabel("Collective Average", $"{(loadedPlugins.Any() ? totalAverage / loadedPlugins.Count() / 10000f : 0):F4}ms", "Average of all average draw times");
 
                 if (ImGui.BeginTable(
                         "##PluginStatsDrawTimes",
@@ -167,20 +159,14 @@ internal class PluginStatWindow : Window
                 }
 
                 var statsHistory = Framework.StatsHistory.ToArray();
+                var totalLast = statsHistory.Sum(stats => stats.Value.LastOrDefault());
+                var totalAverage = statsHistory.Sum(stats => stats.Value.Average());
 
-                var allLast = statsHistory
-                    .DefaultIfEmpty()
-                    .Select(x => x.Value.LastOrDefault());
-
-                var allAverage = statsHistory
-                    .DefaultIfEmpty()
-                    .Select(x => x.Value.DefaultIfEmpty().Average());
-
-                ImGuiComponents.TextWithLabel("Total Last", $"{allLast.Aggregate(0d, (a, b) => a + b):F4}ms", "All last update times added together");
+                ImGuiComponents.TextWithLabel("Total Last", $"{totalLast:F4}ms", "All last update times added together");
                 ImGui.SameLine();
-                ImGuiComponents.TextWithLabel("Total Average", $"{allAverage.Aggregate(0d, (a, b) => a + b):F4}ms", "All average update times added together");
+                ImGuiComponents.TextWithLabel("Total Average", $"{totalAverage:F4}ms", "All average update times added together");
                 ImGui.SameLine();
-                ImGuiComponents.TextWithLabel("Collective Average", $"{allAverage.Average():F4}ms", "Average of all average update times");
+                ImGuiComponents.TextWithLabel("Collective Average", $"{(statsHistory.Any() ? totalAverage / statsHistory.Length : 0):F4}ms", "Average of all average update times");
 
                 if (ImGui.BeginTable(
                         "##PluginStatsFrameworkTimes",
