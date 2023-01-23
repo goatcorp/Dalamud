@@ -395,26 +395,6 @@ public class SigScanner : IDisposable, IServiceType
         }
     }
 
-    private unsafe class UnsafeCodeReader : CodeReader
-    {
-        private readonly int length;
-        private readonly byte* address;
-        private int pos;
-        public UnsafeCodeReader(byte* address, int length)
-        {
-            this.length  = length;
-            this.address = address;
-        }
-
-        public bool CanReadByte => this.pos < this.length;
-
-        public override int ReadByte()
-        {
-            if (this.pos >= this.length) return -1;
-            return *(this.address + this.pos++);
-        }
-    }
-
     /// <summary>
     /// Helper for ScanText to get the correct address for IDA sigs that mark the first JMP or CALL location.
     /// </summary>
@@ -576,6 +556,27 @@ public class SigScanner : IDisposable, IServiceType
         {
             this.textCache = new ConcurrentDictionary<string, long>();
             Log.Error(ex, "Couldn't load cached sigs");
+        }
+    }
+
+    private unsafe class UnsafeCodeReader : CodeReader
+    {
+        private readonly int length;
+        private readonly byte* address;
+        private int pos;
+
+        public UnsafeCodeReader(byte* address, int length)
+        {
+            this.length = length;
+            this.address = address;
+        }
+
+        public bool CanReadByte => this.pos < this.length;
+
+        public override int ReadByte()
+        {
+            if (this.pos >= this.length) return -1;
+            return *(this.address + this.pos++);
         }
     }
 }

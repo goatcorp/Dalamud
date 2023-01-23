@@ -147,7 +147,7 @@ internal class LocalPlugin : IDisposable
         }
 
         var pluginManager = Service<PluginManager>.Get();
-        this.IsBanned = pluginManager.IsManifestBanned(this.Manifest);
+        this.IsBanned = pluginManager.IsManifestBanned(this.Manifest) && !this.IsDev;
         this.BanReason = pluginManager.GetBanReason(this.Manifest);
 
         this.SaveManifest();
@@ -320,7 +320,7 @@ internal class LocalPlugin : IDisposable
                     throw new ArgumentOutOfRangeException(this.State.ToString());
             }
 
-            if (pluginManager.IsManifestBanned(this.Manifest))
+            if (pluginManager.IsManifestBanned(this.Manifest) && !this.IsDev)
                 throw new BannedPluginException($"Unable to load {this.Name}, banned");
 
             if (this.Manifest.ApplicableVersion < startInfo.GameVersion)

@@ -55,5 +55,6 @@ public class SettingsTabExperimental : SettingsTab
         base.Draw();
 
         ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudGrey, "Total memory used by Dalamud & Plugins: " + Util.FormatBytes(GC.GetTotalMemory(false)));
+        ImGuiHelpers.ScaledDummy(15);
     }
 }
