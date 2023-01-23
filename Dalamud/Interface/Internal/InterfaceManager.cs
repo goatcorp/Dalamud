@@ -417,8 +417,8 @@ internal class InterfaceManager : IDisposable, IServiceType
         if (this.Device == null)
             return null;
 
-        var dxgiDev = this.Device.QueryInterface<SharpDX.DXGI.Device>();
-        var dxgiAdapter = dxgiDev.Adapter.QueryInterfaceOrNull<SharpDX.DXGI.Adapter4>();
+        var dxgiDev = this.Device.QueryInterfaceOrNull<SharpDX.DXGI.Device>();
+        var dxgiAdapter = dxgiDev?.Adapter.QueryInterfaceOrNull<SharpDX.DXGI.Adapter4>();
         if (dxgiAdapter == null)
             return null;
 
