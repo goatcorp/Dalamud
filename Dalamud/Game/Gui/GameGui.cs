@@ -184,8 +184,18 @@ public sealed unsafe class GameGui : IDisposable, IServiceType
     /// </summary>
     /// <param name="worldPos">Coordinates in the world.</param>
     /// <param name="screenPos">Converted coordinates.</param>
-    /// <returns>True if worldPos corresponds to a position in front of the camera.</returns>
+    /// <returns>True if worldPos corresponds to a position in front of the camera and screenPos is in the viewport.</returns>
     public bool WorldToScreen(Vector3 worldPos, out Vector2 screenPos)
+        => this.WorldToScreen(worldPos, out screenPos, out var inView) && inView;
+
+    /// <summary>
+    /// Converts in-world coordinates to screen coordinates (upper left corner origin).
+    /// </summary>
+    /// <param name="worldPos">Coordinates in the world.</param>
+    /// <param name="screenPos">Converted coordinates.</param>
+    /// <param name="inView">True if screenPos corresponds to a position inside the camera viewport.</param>
+    /// <returns>True if worldPos corresponds to a position in front of the camera.</returns>
+    public bool WorldToScreen(Vector3 worldPos, out Vector2 screenPos, out bool inView)
     {
         // Get base object with matrices
         var matrixSingleton = this.getMatrixSingleton();
@@ -203,9 +213,12 @@ public sealed unsafe class GameGui : IDisposable, IServiceType
         screenPos.X = (0.5f * width * (screenPos.X + 1f)) + windowPos.X;
         screenPos.Y = (0.5f * height * (1f - screenPos.Y)) + windowPos.Y;
 
-        return pCoords.Z > 0 &&
-               screenPos.X > windowPos.X && screenPos.X < windowPos.X + width &&
-               screenPos.Y > windowPos.Y && screenPos.Y < windowPos.Y + height;
+        var inFront = pCoords.Z > 0;
+        inView = inFront &&
+                 screenPos.X > windowPos.X && screenPos.X < windowPos.X + width &&
+                 screenPos.Y > windowPos.Y && screenPos.Y < windowPos.Y + height;
+
+        return inFront;
     }
 
     /// <summary>

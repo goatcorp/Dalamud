@@ -65,7 +65,7 @@ public sealed class DataManager : IDisposable, IServiceType
                 {
                     LoadMultithreaded = true,
                     CacheFileResources = true,
-#if DEBUG
+#if NEVER // Lumina bug
                     PanicOnSheetChecksumMismatch = true,
 #else
                     PanicOnSheetChecksumMismatch = false,

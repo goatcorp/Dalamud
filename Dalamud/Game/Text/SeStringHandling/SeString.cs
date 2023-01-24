@@ -304,7 +304,7 @@ public class SeString
         foreach (var place in matches)
         {
             var map = mapSheet.FirstOrDefault(row => row.PlaceName.Row == place.RowId);
-            if (map != null)
+            if (map != null && map.TerritoryType.Row != 0)
             {
                 return CreateMapLink(map.TerritoryType.Row, map.RowId, xCoord, yCoord, fudgeFactor);
             }

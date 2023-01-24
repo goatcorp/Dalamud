@@ -260,7 +260,6 @@ namespace Dalamud.Injector
 
             for (var i = 2; i < args.Count; i++)
             {
-                Log.Information(args[i]);
                 if (args[i].StartsWith(key = "--dalamud-working-directory="))
                     workingDirectory = args[i][key.Length..];
                 else if (args[i].StartsWith(key = "--dalamud-configuration-path="))
