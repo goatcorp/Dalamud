@@ -135,6 +135,12 @@ public unsafe class DutyState : IDisposable, IServiceType
 
     private void TerritoryOnChangedEvent(object? sender, ushort e)
     {
+        if (this.IsDutyStarted)
+        {
+            this.IsDutyStarted = false;
+        }
+
+        this.CompletedThisTerritory = false;
     }
 
     /// <summary>
