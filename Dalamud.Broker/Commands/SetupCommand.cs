@@ -42,7 +42,7 @@ internal static partial class SetupCommand
 
         // Create an AppContainer and get its security identifier(SID).
         using var appContainer = AppContainerHelper.CreateContainer();
-        var containerSid = appContainer.GetIdentityReference();
+        var containerSid = appContainer.ToIdentityReference();
 
         // Initialize policies (see above)
         var policies = new PolicyEntry[]

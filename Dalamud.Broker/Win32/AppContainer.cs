@@ -57,7 +57,7 @@ internal sealed class AppContainer : IDisposable
         return new AppContainer(psid);
     }
 
-    public IdentityReference GetIdentityReference()
+    public SecurityIdentifier ToIdentityReference()
     {
         unsafe
         {

@@ -7,6 +7,7 @@ LocalFree
 HRESULT_FROM_WIN32
 CloseHandle
 CreateProcessW
+TerminateProcess
 STARTUPINFOEXW
 InitializeProcThreadAttributeList
 UpdateProcThreadAttribute
