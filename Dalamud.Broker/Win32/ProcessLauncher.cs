@@ -13,7 +13,7 @@ namespace Dalamud.Broker.Win32;
 
 internal static class ProcessLauncher
 {
-    public static ProcessStartHandle Start(string path)
+    public static ProcessHandle Start(string path)
     {
         var context = new ProcessLaunchContext()
         {
@@ -22,7 +22,7 @@ internal static class ProcessLauncher
         return Start(context);
     }
 
-    public static ProcessStartHandle Start(ProcessLaunchContext context)
+    public static ProcessHandle Start(ProcessLaunchContext context)
     {
         const PROCESS_CREATION_FLAGS requiredCreationFlags = PROCESS_CREATION_FLAGS.EXTENDED_STARTUPINFO_PRESENT;
 
@@ -134,7 +134,7 @@ internal static class ProcessLauncher
                     }
                 }
 
-                return new ProcessStartHandle
+                return new ProcessHandle
                 {
                     Process = new SafeProcessHandle(processInfo.hProcess, true),
                     Thread = new SafeProcessHandle(processInfo.hThread, true),
