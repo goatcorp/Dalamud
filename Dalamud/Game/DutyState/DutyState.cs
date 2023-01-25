@@ -14,7 +14,7 @@ namespace Dalamud.Game.DutyState;
 /// </summary>
 [PluginInterface]
 [InterfaceVersion("1.0")]
-[ServiceManager.BlockingEarlyLoadedService]
+[ServiceManager.EarlyLoadedService]
 public unsafe class DutyState : IDisposable, IServiceType
 {
     private readonly DutyStateAddressResolver address;
@@ -104,25 +104,25 @@ public unsafe class DutyState : IDisposable, IServiceType
             switch (type)
             {
                 // Duty Commenced
-                case 0x40000001:
+                case 0x4000_0001:
                     this.IsDutyStarted = true;
                     this.DutyStarted.InvokeSafely(this, this.clientState.TerritoryType);
                     break;
 
                 // Party Wipe
-                case 0x40000005:
+                case 0x4000_0005:
                     this.IsDutyStarted = false;
                     this.DutyWiped.InvokeSafely(this, this.clientState.TerritoryType);
                     break;
 
                 // Duty Recommence
-                case 0x40000006:
+                case 0x4000_0006:
                     this.IsDutyStarted = true;
                     this.DutyRecommenced.InvokeSafely(this, this.clientState.TerritoryType);
                     break;
 
                 // Duty Completed
-                case 0x40000003:
+                case 0x4000_0003:
                     this.IsDutyStarted = false;
                     this.CompletedThisTerritory = true;
                     this.DutyCompleted.InvokeSafely(this, this.clientState.TerritoryType);
@@ -145,9 +145,9 @@ public unsafe class DutyState : IDisposable, IServiceType
 
     /// <summary>
     /// Fallback event handler in the case that we missed the duty started event.
-    /// Joining a duty in progress, or disconnecting and reconnecting will cause the player to miss the event
+    /// Joining a duty in progress, or disconnecting and reconnecting will cause the player to miss the event.
     /// </summary>
-    /// <param name="framework1">Framework reference</param>
+    /// <param name="framework1">Framework reference.</param>
     private void FrameworkOnUpdateEvent(Framework framework1)
     {
         // If the duty hasn't been started, and has not been completed yet this territory
