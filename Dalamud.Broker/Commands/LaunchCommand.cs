@@ -1,4 +1,5 @@
-﻿using System.IO.Pipes;
+﻿using System.Diagnostics;
+using System.IO.Pipes;
 using System.Runtime.InteropServices;
 using System.Security.AccessControl;
 using System.Security.Principal;
@@ -16,110 +17,101 @@ namespace Dalamud.Broker.Commands;
 internal static partial class LaunchCommand
 {
     [DllImport("Dalamud.Boot.dll")]
-    private static extern int RewriteRemoteEntryPointW(SafeHandle hProcess, [MarshalAs(UnmanagedType.LPWStr)] string gamePath, [MarshalAs(UnmanagedType.LPWStr)] string loadInfoJson);
+    private static extern int RewriteRemoteEntryPointW(
+        SafeHandle hProcess, [MarshalAs(UnmanagedType.LPWStr)] string gamePath,
+        [MarshalAs(UnmanagedType.LPWStr)] string loadInfoJson);
 
     public static async Task Run(LaunchCommandOptions options)
     {
-        // var pipePath = CreateIpcPipePath();
-        //
-        // using var serviceProvider = new ServiceProvider();
-        // using var appContainer = AppContainerHelper.CreateContainer();
-        //
-        // using var server = StartIpcServer(pipePath, serviceProvider, appContainer);
-        // var (gameProcess, gameThread) = StartGame(serviceProvider, options);
-        //
-        // var waiter = new ProcessWaiter(gameProcess);
-        // await waiter.WaitAsync();
+        ProcessHandle? gameProcess = default;
+
+        try
+        {
+            using var container = AppContainerHelper.CreateContainer();
+
+            // Create the game process.
+            gameProcess = CreateGameProcess(options, container);
+
+            // Create dependencies
+            var services = new ServiceProvider(options, container, gameProcess);
+            
+            // Bind services
+            var ipcServer = services.GetService<IpcServer>();
+            var ipcBinder = services.GetService<IpcServiceBinder>();
+            ipcBinder.BindServices(ipcServer.ServiceBinder);
+            ipcServer.Start();
+
+            // Start the ipc server 
+            Log.Information("Dalamud.Broker is now running at {Path} for the container {ContainerSid}",
+                            ipcServer.Path,
+                            container.ToIdentityReference());
+        }
+        catch (Exception ex)
+        {
+            // If anything went wrong during the initial launch process, we need to bring down the game
+            // along with it to not make a stale process. (i.e. handle broker.State == Exited &&
+            // game.State == Suspended case)
+            // 
+            // However, if this is a debug build then F that 💩 since leaving the game alive is much much easier
+            // to track down what actually went wrong.
+            Log.Fatal(ex, "Something went wrong while launching the game");
+
+#if DEBUG
+            // Let the debugger handle this
+            throw;
+#else
+            if (gameProcess != null)
+            {
+                PInvoke.TerminateProcess(gameProcess.Process, 100);
+            }
+#endif
+        }
     }
-    //
-    // private static string CreateIpcPipePath()
-    // {
-    //     // NOTE:
-    //     // Current strategy is to create a pipe with unique name then pass the path to Dalamud via StartupObject.
-    //     //
-    //     // Because the broker and ffxiv have different namespace root for kernel objects (CreatePrivateNamespaceA?)
-    //     // we simply create a pipe on `\Global` (which is just an alias for `\Sessions\0`, according to Windows Internals book)
-    //     // and set appropriate ACEs to let the sandboxed game can connect to the broker to simplify this "resolving path" part.
-    //     //
-    //     // Note that connecting to the broker requires both AppContainer SID and current user SID to have
-    //     // ReadWrite access to it.
-    //     // (This is realized by passing a PipeSecurity object at IpcServer creation time)
-    //
-    //     // From API docs:
-    //     // The method creates a Version 4 Universally Unique Identifier (UUID) as described in RFC 4122, Sec. 4.4.
-    //     //                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-    //     //                          6 bits for metadata + 122 random bits!
-    //     var uuid = Guid.NewGuid();
-    //
-    //     return $@"Global\Dalamud.Broker.{uuid}";
-    // }
-    //
-    // private static NamedPipeServer StartIpcServer(string pipePath, ServiceProvider service, AppContainer container)
-    // {
-    //     var currentUserSid = new NTAccount(Environment.UserName);
-    //     var containerSid = container.GetIdentityReference();
-    //
-    //     // Set up a security descriptor for the pipe.
-    //     // Since the pipe is bidirectional both the user and container must have rw access to it.
-    //     var pipeSecurity = new PipeSecurity();
-    //     pipeSecurity.AddAccessRule(new PipeAccessRule(currentUserSid, PipeAccessRights.ReadWrite,
-    //                                                   AccessControlType.Allow));
-    //     pipeSecurity.AddAccessRule(
-    //         new PipeAccessRule(containerSid, PipeAccessRights.ReadWrite, AccessControlType.Allow));
-    //
-    //     // Create an ipc server
-    //     var serverOptions = new NamedPipeServerOptions
-    //     {
-    //         PipeSecurity = pipeSecurity,
-    //     };
-    //     var server = new NamedPipeServer(pipePath, serverOptions);
-    //
-    //     // Bind services
-    //     var services = new IpcServiceProvider();
-    //     services.BindServices(server.ServiceBinder);
-    //
-    //     // Start the server
-    //     server.Start();
-    //     Log.Information("ipc server is now running (User={User}, ContainerSid={ContainerSid}, Path={Path})",
-    //                     currentUserSid,
-    //                     containerSid,
-    //                     pipePath);
-    //
-    //     return server;
-    // }
-    //
-    // private static (SafeProcessHandle, SafeProcessHandle) StartGame(ServiceProvider service, LaunchCommandOptions options)
-    // {
-    //     // TODO:
-    //     var processLaunchContext = new ProcessLaunchContext
-    //     {
-    //         ApplicationPath = options.Game,
-    //     };
-    //     var (process, thread) = ProcessLauncher.Start(processLaunchContext);
-    //
-    //     return (process, thread);
-    // }
-    //
-    // private static string CreateStartInfo(LaunchCommandOptions options)
-    // {
-    //     var info = new DalamudStartInfo
-    //     {
-    //         WorkingDirectory = Directory.GetCurrentDirectory(),
-    //         ConfigurationPath = @"C:\Users\Workbench\AppData\Roaming\XIVLauncher\dalamudConfig.json",
-    //         PluginDirectory = @"C:\Users\Workbench\AppData\Roaming\XIVLauncher\installedPlugins",
-    //         DefaultPluginDirectory = @"C:\Users\Workbench\AppData\Roaming\XIVLauncher\devPlugins",
-    //         AssetDirectory = @"C:\Users\Workbench\AppData\Roaming\XIVLauncher\dalamudAssets\dev",
-    //         BootShowConsole = true,
-    //         CrashHandlerShow = true,
-    //         BootLogPath = @"D:\Projects\FFXIV\minoost\Dalamud.Experiment.Ldm\bin\Debug\dalamud_injector.log",
-    //         BootDotnetOpenProcessHookMode = 0,
-    //         BootWaitMessageBox = 1 | 2 | 4,
-    //         BootVehEnabled = true,
-    //         NoLoadPlugins = options.NoPlugin,
-    //         NoLoadThirdPartyPlugins = options.NoThirdPartyPlugin,
-    //         Language = ClientLanguage.English,
-    //     };
-    //
-    //     return JsonConvert.ToString(info);
-    // }
+
+    private static ProcessHandle CreateGameProcess(
+        LaunchCommandOptions options, AppContainer container)
+    {
+        var processLaunchContext = new ProcessLaunchContext
+        {
+            ApplicationPath = options.Game,
+        };
+        var handle = ProcessLauncher.Start(processLaunchContext);
+
+        // Load dalamud
+        if (!options.NoDalamud)
+        {
+            var startInfo = CreateStartInfo(options);
+            
+            var errc = RewriteRemoteEntryPointW(handle.Process, options.Game, startInfo);
+            if (errc != 0)
+            {
+                throw new Exception($"Failed to load Dalamud (Error Code {errc:X04}h)");
+            }
+        }
+
+        return handle;
+    }
+
+    private static string CreateStartInfo(LaunchCommandOptions options)
+    {
+        var info = new DalamudStartInfo
+        {
+            WorkingDirectory = Directory.GetCurrentDirectory(),
+            ConfigurationPath = options.DalamudConfigurationPath,
+            PluginDirectory = options.DalamudPluginDirectory,
+            DefaultPluginDirectory = options.DalamudDevPluginDirectory,
+            AssetDirectory = options.DalamudAssetDirectory,
+            BootShowConsole = false,
+            CrashHandlerShow = true,
+            BootLogPath = @"D:\Projects\FFXIV\minoost\Dalamud.Experiment.Ldm\bin\Debug\dalamud_injector.log",
+            BootDotnetOpenProcessHookMode = 0,
+            BootWaitMessageBox = 1 | 2 | 4,
+            BootVehEnabled = true,
+            NoLoadPlugins = options.NoPlugin,
+            NoLoadThirdPartyPlugins = options.NoThirdPartyPlugin,
+            Language = (ClientLanguage)options.DalamudClientLanguage,
+        };
+
+        return JsonConvert.ToString(info);
+    }
 }
