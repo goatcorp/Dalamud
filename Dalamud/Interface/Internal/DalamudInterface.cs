@@ -144,8 +144,8 @@ internal class DalamudInterface : IDisposable, IServiceType
         this.tsmLogoTexture = tsmLogoTex;
 
         var tsm = Service<TitleScreenMenu>.Get();
-        tsm.AddEntryCore(Loc.Localize("TSMDalamudPlugins", "Plugin Installer"), this.tsmLogoTexture, () => this.pluginWindow.IsOpen = true);
-        tsm.AddEntryCore(Loc.Localize("TSMDalamudSettings", "Dalamud Settings"), this.tsmLogoTexture, () => this.settingsWindow.IsOpen = true);
+        tsm.AddEntryCore(Loc.Localize("TSMDalamudPlugins", "Plugin Installer"), this.tsmLogoTexture, this.OpenPluginInstaller);
+        tsm.AddEntryCore(Loc.Localize("TSMDalamudSettings", "Dalamud Settings"), this.tsmLogoTexture, this.OpenSettings);
 
         if (!configuration.DalamudBetaKind.IsNullOrEmpty())
         {
@@ -239,47 +239,83 @@ internal class DalamudInterface : IDisposable, IServiceType
     /// <summary>
     /// Opens the <see cref="ConsoleWindow"/>.
     /// </summary>
-    public void OpenLogWindow() => this.consoleWindow.IsOpen = true;
+    public void OpenLogWindow()
+    {
+        this.consoleWindow.IsOpen = true;
+        this.consoleWindow.BringToFront();
+    }
 
     /// <summary>
     /// Opens the <see cref="PluginStatWindow"/>.
     /// </summary>
-    public void OpenPluginStats() => this.pluginStatWindow.IsOpen = true;
+    public void OpenPluginStats()
+    {
+        this.pluginStatWindow.IsOpen = true;
+        this.pluginStatWindow.BringToFront();
+    }
 
     /// <summary>
     /// Opens the <see cref="PluginInstallerWindow"/>.
     /// </summary>
-    public void OpenPluginInstaller() => this.pluginWindow.IsOpen = true;
+    public void OpenPluginInstaller()
+    {
+        this.pluginWindow.IsOpen = true;
+        this.pluginWindow.BringToFront();
+    }
 
     /// <summary>
     /// Opens the <see cref="PluginInstallerWindow"/> on the plugin changelogs.
     /// </summary>
-    public void OpenPluginInstallerPluginChangelogs() => this.pluginWindow.OpenPluginChangelogs();
+    public void OpenPluginInstallerPluginChangelogs()
+    {
+        this.pluginWindow.OpenPluginChangelogs();
+        this.pluginWindow.BringToFront();
+    }
 
     /// <summary>
     /// Opens the <see cref="SettingsWindow"/>.
     /// </summary>
-    public void OpenSettings() => this.settingsWindow.IsOpen = true;
+    public void OpenSettings()
+    {
+        this.settingsWindow.IsOpen = true;
+        this.settingsWindow.BringToFront();
+    }
 
     /// <summary>
     /// Opens the <see cref="SelfTestWindow"/>.
     /// </summary>
-    public void OpenSelfTest() => this.selfTestWindow.IsOpen = true;
+    public void OpenSelfTest()
+    {
+        this.selfTestWindow.IsOpen = true;
+        this.selfTestWindow.BringToFront();
+    }
 
     /// <summary>
     /// Opens the <see cref="StyleEditorWindow"/>.
     /// </summary>
-    public void OpenStyleEditor() => this.styleEditorWindow.IsOpen = true;
+    public void OpenStyleEditor()
+    {
+        this.styleEditorWindow.IsOpen = true;
+        this.styleEditorWindow.BringToFront();
+    }
 
     /// <summary>
     /// Opens the <see cref="ProfilerWindow"/>.
     /// </summary>
-    public void OpenProfiler() => this.profilerWindow.IsOpen = true;
+    public void OpenProfiler()
+    {
+        this.profilerWindow.IsOpen = true;
+        this.profilerWindow.BringToFront();
+    }
 
     /// <summary>
     /// Opens the <see cref="BranchSwitcherWindow"/>.
     /// </summary>
-    public void OpenBranchSwitcher() => this.branchSwitcherWindow.IsOpen = true;
+    public void OpenBranchSwitcher()
+    {
+        this.branchSwitcherWindow.IsOpen = true;
+        this.branchSwitcherWindow.BringToFront();
+    }
 
     #endregion
 
