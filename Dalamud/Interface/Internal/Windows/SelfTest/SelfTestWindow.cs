@@ -41,8 +41,8 @@ internal class SelfTestWindow : Window
             new LuminaAgingStep<TerritoryType>(),
             new PartyFinderAgingStep(),
             new HandledExceptionAgingStep(),
-            new LogoutEventAgingStep(),
             new DutyStateAgingStep(),
+            new LogoutEventAgingStep(),
         };
 
     private readonly List<(SelfTestStepResult Result, TimeSpan? Duration)> stepResults = new();
