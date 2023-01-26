@@ -81,13 +81,25 @@ public class WindowSystem
         if (!this.windows.Contains(window))
             throw new ArgumentException("This window is not registered on this WindowSystem.");
 
+        if (window is IDisposable disposable)
+            disposable.Dispose();
+        
         this.windows.Remove(window);
     }
 
     /// <summary>
     /// Remove all windows from this <see cref="WindowSystem"/>.
     /// </summary>
-    public void RemoveAllWindows() => this.windows.Clear();
+    public void RemoveAllWindows()
+    {
+        foreach (var window in this.windows)
+        {
+            if (window is IDisposable disposable)
+                disposable.Dispose();
+        }
+
+        this.windows.Clear();
+    }
 
     /// <summary>
     /// Get a window by name.
