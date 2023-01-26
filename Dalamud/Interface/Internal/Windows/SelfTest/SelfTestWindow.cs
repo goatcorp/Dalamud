@@ -42,6 +42,7 @@ internal class SelfTestWindow : Window
             new PartyFinderAgingStep(),
             new HandledExceptionAgingStep(),
             new LogoutEventAgingStep(),
+            new DutyStateAgingStep(),
         };
 
     private readonly List<(SelfTestStepResult Result, TimeSpan? Duration)> stepResults = new();
