@@ -83,7 +83,7 @@ public class WindowSystem
 
         if (window is IDisposable disposable)
             disposable.Dispose();
-        
+
         this.windows.Remove(window);
     }
 
