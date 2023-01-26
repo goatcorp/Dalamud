@@ -15,6 +15,7 @@ public abstract class Window
 
     private bool internalLastIsOpen = false;
     private bool internalIsOpen = false;
+    private bool nextFrameBringToFront = false;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="Window"/> class.
@@ -124,6 +125,17 @@ public abstract class Window
     public void Toggle()
     {
         this.IsOpen ^= true;
+    }
+
+    /// <summary>
+    /// Bring this window to the front.
+    /// </summary>
+    public void BringToFront()
+    {
+        if (!this.IsOpen)
+            return;
+
+        this.nextFrameBringToFront = true;
     }
 
     /// <summary>
@@ -239,6 +251,12 @@ public abstract class Window
             var style = ImGui.GetStyle();
             var focusedHeaderColor = style.Colors[(int)ImGuiCol.TitleBgActive];
             ImGui.PushStyleColor(ImGuiCol.TitleBgCollapsed, focusedHeaderColor);
+        }
+
+        if (this.nextFrameBringToFront)
+        {
+            ImGui.SetNextWindowFocus();
+            this.nextFrameBringToFront = false;
         }
 
         if (this.ShowCloseButton ? ImGui.Begin(this.WindowName, ref this.internalIsOpen, this.Flags) : ImGui.Begin(this.WindowName, this.Flags))
