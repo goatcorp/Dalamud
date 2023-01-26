@@ -417,13 +417,22 @@ internal class InterfaceManager : IDisposable, IServiceType
         if (this.Device == null)
             return null;
 
-        var dxgiDev = this.Device.QueryInterfaceOrNull<SharpDX.DXGI.Device>();
-        var dxgiAdapter = dxgiDev?.Adapter.QueryInterfaceOrNull<SharpDX.DXGI.Adapter4>();
-        if (dxgiAdapter == null)
-            return null;
+        try
+        {
+            var dxgiDev = this.Device.QueryInterfaceOrNull<SharpDX.DXGI.Device>();
+            var dxgiAdapter = dxgiDev?.Adapter.QueryInterfaceOrNull<SharpDX.DXGI.Adapter4>();
+            if (dxgiAdapter == null)
+                return null;
 
-        var memInfo = dxgiAdapter.QueryVideoMemoryInfo(0, SharpDX.DXGI.MemorySegmentGroup.Local);
-        return (memInfo.CurrentUsage, memInfo.CurrentReservation);
+            var memInfo = dxgiAdapter.QueryVideoMemoryInfo(0, SharpDX.DXGI.MemorySegmentGroup.Local);
+            return (memInfo.CurrentUsage, memInfo.CurrentReservation);
+        }
+        catch
+        {
+            // ignored
+        }
+
+        return null;
     }
 
     private static void ShowFontError(string path)
