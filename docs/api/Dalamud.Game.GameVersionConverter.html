@@ -79,41 +79,10 @@
   <div class="inheritance">
     <h5>Inheritance</h5>
     <div class="level0"><span class="xref">System.Object</span></div>
-    <div class="level1"><span class="xref">Newtonsoft.Json.JsonConverter</span></div>
-    <div class="level2"><span class="xref">GameVersionConverter</span></div>
-  </div>
-  <div class="inheritedMembers">
-    <h5>Inherited Members</h5>
-    <div>
-      <span class="xref">Newtonsoft.Json.JsonConverter.CanRead</span>
-    </div>
-    <div>
-      <span class="xref">Newtonsoft.Json.JsonConverter.CanWrite</span>
-    </div>
-    <div>
-      <span class="xref">System.Object.Equals(System.Object)</span>
-    </div>
-    <div>
-      <span class="xref">System.Object.Equals(System.Object, System.Object)</span>
-    </div>
-    <div>
-      <span class="xref">System.Object.GetHashCode()</span>
-    </div>
-    <div>
-      <span class="xref">System.Object.GetType()</span>
-    </div>
-    <div>
-      <span class="xref">System.Object.MemberwiseClone()</span>
-    </div>
-    <div>
-      <span class="xref">System.Object.ReferenceEquals(System.Object, System.Object)</span>
-    </div>
-    <div>
-      <span class="xref">System.Object.ToString()</span>
-    </div>
+    <div class="level1"><span class="xref">GameVersionConverter</span></div>
   </div>
   <h6><strong>Namespace</strong>: <a class="xref" href="Dalamud.Game.html">Dalamud.Game</a></h6>
-  <h6><strong>Assembly</strong>: Dalamud.dll</h6>
+  <h6><strong>Assembly</strong>: Dalamud.Injector.dll</h6>
   <h5 id="Dalamud_Game_GameVersionConverter_syntax">Syntax</h5>
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">public sealed class GameVersionConverter : JsonConverter</code></pre>
@@ -170,17 +139,15 @@
       </tr>
     </tbody>
   </table>
-  <h5 class="overrides">Overrides</h5>
-  <div><span class="xref">Newtonsoft.Json.JsonConverter.CanConvert(System.Type)</span></div>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_GameVersionConverter_ReadJson_Newtonsoft_Json_JsonReader_System_Type_System_Object_Newtonsoft_Json_JsonSerializer_.md&amp;value=---%0Auid%3A%20Dalamud.Game.GameVersionConverter.ReadJson(Newtonsoft.Json.JsonReader%2CSystem.Type%2CSystem.Object%2CNewtonsoft.Json.JsonSerializer)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_GameVersionConverter_ReadJson_JsonReader_System_Type_System_Object_JsonSerializer_.md&amp;value=---%0Auid%3A%20Dalamud.Game.GameVersionConverter.ReadJson(JsonReader%2CSystem.Type%2CSystem.Object%2CJsonSerializer)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
     <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/GameVersionConverter.cs/#L42">View Source</a>
   </span>
   <a id="Dalamud_Game_GameVersionConverter_ReadJson_" data-uid="Dalamud.Game.GameVersionConverter.ReadJson*"></a>
-  <h4 id="Dalamud_Game_GameVersionConverter_ReadJson_Newtonsoft_Json_JsonReader_System_Type_System_Object_Newtonsoft_Json_JsonSerializer_" data-uid="Dalamud.Game.GameVersionConverter.ReadJson(Newtonsoft.Json.JsonReader,System.Type,System.Object,Newtonsoft.Json.JsonSerializer)">ReadJson(JsonReader, Type, Object, JsonSerializer)</h4>
+  <h4 id="Dalamud_Game_GameVersionConverter_ReadJson_JsonReader_System_Type_System_Object_JsonSerializer_" data-uid="Dalamud.Game.GameVersionConverter.ReadJson(JsonReader,System.Type,System.Object,JsonSerializer)">ReadJson(JsonReader, Type, Object, JsonSerializer)</h4>
   <div class="markdown level1 summary"><p>Reads the JSON representation of the object.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
@@ -199,9 +166,9 @@
     </thead>
     <tbody>
       <tr>
-        <td><span class="xref">Newtonsoft.Json.JsonReader</span></td>
+        <td><span class="xref">JsonReader</span></td>
         <td><span class="parametername">reader</span></td>
-        <td><p>The <span class="xref">Newtonsoft.Json.JsonReader</span> to read from.</p>
+        <td><p>The <see cref="!:JsonReader"></see> to read from.</p>
 </td>
       </tr>
       <tr>
@@ -217,7 +184,7 @@
 </td>
       </tr>
       <tr>
-        <td><span class="xref">Newtonsoft.Json.JsonSerializer</span></td>
+        <td><span class="xref">JsonSerializer</span></td>
         <td><span class="parametername">serializer</span></td>
         <td><p>The calling serializer.</p>
 </td>
@@ -240,17 +207,15 @@
       </tr>
     </tbody>
   </table>
-  <h5 class="overrides">Overrides</h5>
-  <div><span class="xref">Newtonsoft.Json.JsonConverter.ReadJson(Newtonsoft.Json.JsonReader, System.Type, System.Object, Newtonsoft.Json.JsonSerializer)</span></div>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_GameVersionConverter_WriteJson_Newtonsoft_Json_JsonWriter_System_Object_Newtonsoft_Json_JsonSerializer_.md&amp;value=---%0Auid%3A%20Dalamud.Game.GameVersionConverter.WriteJson(Newtonsoft.Json.JsonWriter%2CSystem.Object%2CNewtonsoft.Json.JsonSerializer)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_GameVersionConverter_WriteJson_JsonWriter_System_Object_JsonSerializer_.md&amp;value=---%0Auid%3A%20Dalamud.Game.GameVersionConverter.WriteJson(JsonWriter%2CSystem.Object%2CJsonSerializer)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
     <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/GameVersionConverter.cs/#L18">View Source</a>
   </span>
   <a id="Dalamud_Game_GameVersionConverter_WriteJson_" data-uid="Dalamud.Game.GameVersionConverter.WriteJson*"></a>
-  <h4 id="Dalamud_Game_GameVersionConverter_WriteJson_Newtonsoft_Json_JsonWriter_System_Object_Newtonsoft_Json_JsonSerializer_" data-uid="Dalamud.Game.GameVersionConverter.WriteJson(Newtonsoft.Json.JsonWriter,System.Object,Newtonsoft.Json.JsonSerializer)">WriteJson(JsonWriter, Object, JsonSerializer)</h4>
+  <h4 id="Dalamud_Game_GameVersionConverter_WriteJson_JsonWriter_System_Object_JsonSerializer_" data-uid="Dalamud.Game.GameVersionConverter.WriteJson(JsonWriter,System.Object,JsonSerializer)">WriteJson(JsonWriter, Object, JsonSerializer)</h4>
   <div class="markdown level1 summary"><p>Writes the JSON representation of the object.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
@@ -269,9 +234,9 @@
     </thead>
     <tbody>
       <tr>
-        <td><span class="xref">Newtonsoft.Json.JsonWriter</span></td>
+        <td><span class="xref">JsonWriter</span></td>
         <td><span class="parametername">writer</span></td>
-        <td><p>The <span class="xref">Newtonsoft.Json.JsonWriter</span> to write to.</p>
+        <td><p>The <see cref="!:JsonWriter"></see> to write to.</p>
 </td>
       </tr>
       <tr>
@@ -281,15 +246,13 @@
 </td>
       </tr>
       <tr>
-        <td><span class="xref">Newtonsoft.Json.JsonSerializer</span></td>
+        <td><span class="xref">JsonSerializer</span></td>
         <td><span class="parametername">serializer</span></td>
         <td><p>The calling serializer.</p>
 </td>
       </tr>
     </tbody>
   </table>
-  <h5 class="overrides">Overrides</h5>
-  <div><span class="xref">Newtonsoft.Json.JsonConverter.WriteJson(Newtonsoft.Json.JsonWriter, System.Object, Newtonsoft.Json.JsonSerializer)</span></div>
 </article>
           </div>
           

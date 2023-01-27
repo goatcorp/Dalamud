@@ -80,7 +80,7 @@
   <h6><strong>Assembly</strong>: Dalamud.dll</h6>
   <h5 id="Dalamud_Game_Gui_FlyText_FlyTextGui_OnFlyTextCreatedDelegate_syntax">Syntax</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public delegate void OnFlyTextCreatedDelegate(ref FlyTextKind kind, ref int val1, ref int val2, ref SeString text1, ref SeString text2, ref uint color, ref uint icon, ref float yOffset, ref bool handled);</code></pre>
+    <pre><code class="lang-csharp hljs">public delegate void OnFlyTextCreatedDelegate(ref FlyTextKind kind, ref int val1, ref int val2, ref SeString text1, ref SeString text2, ref uint color, ref uint icon, ref uint damageTypeIcon, ref float yOffset, ref bool handled);</code></pre>
   </div>
   <h5 class="parameters">Parameters</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -135,6 +135,12 @@
 </td>
       </tr>
       <tr>
+        <td><span class="xref">System.UInt32</span></td>
+        <td><span class="parametername">damageTypeIcon</span></td>
+        <td><p>Damage Type Icon ID passed to the native flytext function. Displayed next to damage values to denote damage type.</p>
+</td>
+      </tr>
+      <tr>
         <td><span class="xref">System.Single</span></td>
         <td><span class="parametername">yOffset</span></td>
         <td><p>The vertical offset to place the flytext at. 0 is default. Negative values result
@@ -160,7 +166,7 @@ in text appearing higher on the screen. This does not change where the element b
                     <a href="https://github.com/goatcorp/Dalamud/new/master/apiSpec/new?filename=Dalamud_Game_Gui_FlyText_FlyTextGui_OnFlyTextCreatedDelegate.md&amp;value=---%0Auid%3A%20Dalamud.Game.Gui.FlyText.FlyTextGui.OnFlyTextCreatedDelegate%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
                   </li>
                   <li>
-                    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Gui/FlyText/FlyTextGui.cs/#L55" class="contribution-link">View Source</a>
+                    <a href="https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Gui/FlyText/FlyTextGui.cs/#L56" class="contribution-link">View Source</a>
                   </li>
                 </ul>
               </div>
