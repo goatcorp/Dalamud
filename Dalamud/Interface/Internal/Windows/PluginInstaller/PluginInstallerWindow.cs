@@ -144,14 +144,14 @@ internal class PluginInstallerWindow : Window, IDisposable
         this.timeLoaded = DateTime.Now;
     }
 
-    private enum OperationStatus
+    public enum OperationStatus
     {
         Idle,
         InProgress,
         Complete,
     }
 
-    private enum LoadingIndicatorKind
+    public enum LoadingIndicatorKind
     {
         Unknown,
         EnablingSingle,
@@ -247,6 +247,26 @@ internal class PluginInstallerWindow : Window, IDisposable
         // Plugins category
         this.categoryManager.CurrentCategoryIdx = 2;
         this.IsOpen = true;
+    }
+
+    /// <summary>
+    /// Returns the current status of the installer.
+    /// </summary>
+    /// <returns>True if the installer is busy.</returns>
+    public bool IsBusy()
+    {
+        return this.AnyOperationInProgress && this.loadingIndicatorKind != LoadingIndicatorKind.Unknown;
+    }
+
+    /// <summary>
+    /// Set an progress status and indicator for the plugin installer, preventing accidental double actions.
+    /// </summary>
+    /// <param name="status">Status to set.</param>
+    /// <param name="indicator">Indicator to set.</param>
+    public void SetStatusAndIndicator(OperationStatus status, LoadingIndicatorKind indicator)
+    {
+        this.enableDisableStatus = status;
+        this.loadingIndicatorKind = indicator;
     }
 
     private void DrawProgressOverlay()

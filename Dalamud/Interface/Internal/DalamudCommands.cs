@@ -10,6 +10,7 @@ using Dalamud.Game;
 using Dalamud.Game.Command;
 using Dalamud.Game.Gui;
 using Dalamud.Game.Text.SeStringHandling;
+using Dalamud.Interface.Internal.Windows.PluginInstaller;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Internal;
 using Dalamud.Utility;
@@ -398,8 +399,9 @@ internal class DalamudCommands : IServiceType
     {
         var pluginManager = Service<PluginManager>.Get();
         var chatGui = Service<ChatGui>.Get();
+        var pluginInstaller = Service<DalamudInterface>.Get();
 
-        if (this.HasOrSetCooldown(command))
+        if (this.HasOrSetCooldown("EnableDisableCommand"))
         {
             chatGui.PrintError($"Command is on cooldown for {CooldownTime / 1000}s, please wait.");
             return;
@@ -420,6 +422,12 @@ internal class DalamudCommands : IServiceType
             return;
         }
 
+        if (pluginInstaller.PluginWindow.IsBusy())
+        {
+            chatGui.PrintError($"Another task is in progress, please try again after {CooldownTime / 1000}s.");
+            return;
+        }
+
         if (plugin.IsDev)
         {
             plugin.ReloadManifest();
@@ -427,6 +435,10 @@ internal class DalamudCommands : IServiceType
 
         try
         {
+            pluginInstaller.PluginWindow.SetStatusAndIndicator(
+                PluginInstallerWindow.OperationStatus.InProgress,
+                PluginInstallerWindow.LoadingIndicatorKind.EnablingSingle);
+
             var enableTask = Task.Run(plugin.Enable);
             enableTask.Wait();
 
@@ -439,14 +451,21 @@ internal class DalamudCommands : IServiceType
         {
             chatGui.PrintError($"{plugin.Name} failed to load.");
         }
+        finally
+        {
+            pluginInstaller.PluginWindow.SetStatusAndIndicator(
+                PluginInstallerWindow.OperationStatus.Idle,
+                PluginInstallerWindow.LoadingIndicatorKind.Unknown);
+        }
     }
 
     private void OnDisableCommand(string command, string arguments)
     {
         var pluginManager = Service<PluginManager>.Get();
         var chatGui = Service<ChatGui>.Get();
+        var pluginInstaller = Service<DalamudInterface>.Get();
 
-        if (this.HasOrSetCooldown(command))
+        if (this.HasOrSetCooldown("EnableDisableCommand"))
         {
             chatGui.PrintError($"Command is on cooldown for {CooldownTime / 1000}s, please wait.");
             return;
@@ -467,6 +486,12 @@ internal class DalamudCommands : IServiceType
             return;
         }
 
+        if (pluginInstaller.PluginWindow.IsBusy())
+        {
+            chatGui.PrintError($"Another task is in progress, please try again after {CooldownTime / 1000}s.");
+            return;
+        }
+
         if (plugin.IsDev)
         {
             plugin.ReloadManifest();
@@ -474,6 +499,10 @@ internal class DalamudCommands : IServiceType
 
         try
         {
+            pluginInstaller.PluginWindow.SetStatusAndIndicator(
+                PluginInstallerWindow.OperationStatus.InProgress,
+                PluginInstallerWindow.LoadingIndicatorKind.DisablingSingle);
+
             var unloadTask = plugin.UnloadAsync(true, false);
             unloadTask.Wait();
 
@@ -485,6 +514,12 @@ internal class DalamudCommands : IServiceType
         catch (Exception)
         {
             chatGui.PrintError($"{plugin.Name} failed to unload.");
+        }
+        finally
+        {
+            pluginInstaller.PluginWindow.SetStatusAndIndicator(
+                PluginInstallerWindow.OperationStatus.Idle,
+                PluginInstallerWindow.LoadingIndicatorKind.Unknown);
         }
     }
 

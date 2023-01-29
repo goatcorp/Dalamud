@@ -46,6 +46,7 @@ internal class DalamudInterface : IDisposable, IServiceType
 
     private static readonly ModuleLog Log = new("DUI");
 
+    public readonly PluginInstallerWindow PluginWindow;
     private readonly ChangelogWindow changelogWindow;
     private readonly ColorDemoWindow colorDemoWindow;
     private readonly ComponentDemoWindow componentDemoWindow;
@@ -54,7 +55,6 @@ internal class DalamudInterface : IDisposable, IServiceType
     private readonly ImeWindow imeWindow;
     private readonly ConsoleWindow consoleWindow;
     private readonly PluginStatWindow pluginStatWindow;
-    private readonly PluginInstallerWindow pluginWindow;
     private readonly SettingsWindow settingsWindow;
     private readonly SelfTestWindow selfTestWindow;
     private readonly StyleEditorWindow styleEditorWindow;
@@ -101,7 +101,7 @@ internal class DalamudInterface : IDisposable, IServiceType
         this.imeWindow = new ImeWindow() { IsOpen = false };
         this.consoleWindow = new ConsoleWindow() { IsOpen = configuration.LogOpenAtStartup };
         this.pluginStatWindow = new PluginStatWindow() { IsOpen = false };
-        this.pluginWindow = new PluginInstallerWindow(pluginImageCache) { IsOpen = false };
+        this.PluginWindow = new PluginInstallerWindow(pluginImageCache) { IsOpen = false };
         this.settingsWindow = new SettingsWindow() { IsOpen = false };
         this.selfTestWindow = new SelfTestWindow() { IsOpen = false };
         this.styleEditorWindow = new StyleEditorWindow() { IsOpen = false };
@@ -117,7 +117,7 @@ internal class DalamudInterface : IDisposable, IServiceType
         this.WindowSystem.AddWindow(this.imeWindow);
         this.WindowSystem.AddWindow(this.consoleWindow);
         this.WindowSystem.AddWindow(this.pluginStatWindow);
-        this.WindowSystem.AddWindow(this.pluginWindow);
+        this.WindowSystem.AddWindow(this.PluginWindow);
         this.WindowSystem.AddWindow(this.settingsWindow);
         this.WindowSystem.AddWindow(this.selfTestWindow);
         this.WindowSystem.AddWindow(this.styleEditorWindow);
@@ -184,7 +184,7 @@ internal class DalamudInterface : IDisposable, IServiceType
 
         this.changelogWindow.Dispose();
         this.consoleWindow.Dispose();
-        this.pluginWindow.Dispose();
+        this.PluginWindow.Dispose();
         this.titleScreenMenuWindow.Dispose();
 
         this.logoTexture.Dispose();
@@ -259,8 +259,8 @@ internal class DalamudInterface : IDisposable, IServiceType
     /// </summary>
     public void OpenPluginInstaller()
     {
-        this.pluginWindow.IsOpen = true;
-        this.pluginWindow.BringToFront();
+        this.PluginWindow.IsOpen = true;
+        this.PluginWindow.BringToFront();
     }
 
     /// <summary>
@@ -268,8 +268,8 @@ internal class DalamudInterface : IDisposable, IServiceType
     /// </summary>
     public void OpenPluginInstallerPluginChangelogs()
     {
-        this.pluginWindow.OpenPluginChangelogs();
-        this.pluginWindow.BringToFront();
+        this.PluginWindow.OpenPluginChangelogs();
+        this.PluginWindow.BringToFront();
     }
 
     /// <summary>
@@ -391,7 +391,7 @@ internal class DalamudInterface : IDisposable, IServiceType
     /// <summary>
     /// Toggles the <see cref="PluginInstallerWindow"/>.
     /// </summary>
-    public void TogglePluginInstallerWindow() => this.pluginWindow.Toggle();
+    public void TogglePluginInstallerWindow() => this.PluginWindow.Toggle();
 
     /// <summary>
     /// Toggles the <see cref="SettingsWindow"/>.
@@ -825,7 +825,7 @@ internal class DalamudInterface : IDisposable, IServiceType
 
                     if (ImGui.MenuItem("Clear cached images/icons"))
                     {
-                        this.pluginWindow?.ClearIconCache();
+                        this.PluginWindow?.ClearIconCache();
                     }
 
                     ImGui.Separator();
