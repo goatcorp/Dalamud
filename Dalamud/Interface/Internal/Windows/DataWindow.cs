@@ -1734,13 +1734,13 @@ internal class DataWindow : Window
 
     private void DrawUIColor(UIColor color)
     {
-        ImGui.Text($"[{color.RowId:D3}]");
+        ImGui.Text($"[{color.RowId:D3}] ");
         ImGui.SameLine();
-        ImGui.TextColored(this.ConvertToVector4(color.Unknown2), $"Unknown2");
+        ImGui.TextColored(this.ConvertToVector4(color.Unknown2), $"Unknown2 ");
         ImGui.SameLine();
-        ImGui.TextColored(this.ConvertToVector4(color.UIForeground), "UIForeground");
+        ImGui.TextColored(this.ConvertToVector4(color.UIForeground), "UIForeground ");
         ImGui.SameLine();
-        ImGui.TextColored(this.ConvertToVector4(color.Unknown3), "Unknown3");
+        ImGui.TextColored(this.ConvertToVector4(color.Unknown3), "Unknown3 ");
         ImGui.SameLine();
         ImGui.TextColored(this.ConvertToVector4(color.UIGlow), "UIGlow");
     }
