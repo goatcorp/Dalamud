@@ -23,6 +23,10 @@ namespace Dalamud.Interface.Internal;
 [ServiceManager.EarlyLoadedService]
 internal class DalamudCommands : IServiceType
 {
+    // in milliseconds
+    private const int CooldownTime = 10000;
+    private Dictionary<string, long> cooldown = new();
+
     [ServiceManager.ServiceConstructor]
     private DalamudCommands(CommandManager commandManager)
     {
@@ -392,18 +396,27 @@ internal class DalamudCommands : IServiceType
 
     private void OnEnableCommand(string command, string arguments)
     {
-        var plugin = Service<PluginManager>.Get().InstalledPlugins
-                                           .Find(plugin => plugin.Name.ToLowerInvariant() == arguments.ToLowerInvariant());
+        var pluginManager = Service<PluginManager>.Get();
+        var chatGui = Service<ChatGui>.Get();
+
+        if (this.HasOrSetCooldown(command))
+        {
+            chatGui.PrintError($"Command is on cooldown for {CooldownTime / 1000}s, please wait.");
+            return;
+        }
+
+        var plugin = pluginManager.InstalledPlugins
+                                  .Find(plugin => plugin.Name.ToLowerInvariant() == arguments.ToLowerInvariant());
 
         if (plugin == null)
         {
-            Service<ChatGui>.Get().PrintError($"No plugin with the name {arguments} installed.");
+            chatGui.PrintError($"No plugin with the name {arguments} installed.");
             return;
         }
 
         if (!plugin.IsDisabled)
         {
-            Service<ChatGui>.Get().PrintError($"{plugin.Name} already enabled.");
+            chatGui.PrintError($"{plugin.Name} already enabled.");
             return;
         }
 
@@ -420,28 +433,37 @@ internal class DalamudCommands : IServiceType
             var loadTask = plugin.LoadAsync(PluginLoadReason.Command);
             loadTask.Wait();
 
-            Service<ChatGui>.Get().Print($"{plugin.Name} enabled.");
+            chatGui.Print($"{plugin.Name} enabled.");
         }
         catch (Exception)
         {
-            Service<ChatGui>.Get().PrintError($"{plugin.Name} failed to load.");
+            chatGui.PrintError($"{plugin.Name} failed to load.");
         }
     }
 
     private void OnDisableCommand(string command, string arguments)
     {
-        var plugin = Service<PluginManager>.Get().InstalledPlugins
-                                           .Find(plugin => plugin.Name.ToLowerInvariant() == arguments.ToLowerInvariant());
+        var pluginManager = Service<PluginManager>.Get();
+        var chatGui = Service<ChatGui>.Get();
+
+        if (this.HasOrSetCooldown(command))
+        {
+            chatGui.PrintError($"Command is on cooldown for {CooldownTime / 1000}s, please wait.");
+            return;
+        }
+
+        var plugin = pluginManager.InstalledPlugins
+                                  .Find(plugin => plugin.Name.ToLowerInvariant() == arguments.ToLowerInvariant());
 
         if (plugin == null)
         {
-            Service<ChatGui>.Get().PrintError($"No plugin with the name {arguments} installed.");
+            chatGui.PrintError($"No plugin with the name {arguments} installed.");
             return;
         }
 
         if (plugin.IsDisabled)
         {
-            Service<ChatGui>.Get().PrintError($"{plugin.Name} already disabled.");
+            chatGui.PrintError($"{plugin.Name} already disabled.");
             return;
         }
 
@@ -458,11 +480,25 @@ internal class DalamudCommands : IServiceType
             var disableTask = Task.Run(plugin.Disable);
             disableTask.Wait();
 
-            Service<ChatGui>.Get().Print($"{plugin.Name} disabled.");
+            chatGui.Print($"{plugin.Name} disabled.");
         }
         catch (Exception)
         {
-            Service<ChatGui>.Get().PrintError($"{plugin.Name} failed to unload.");
+            chatGui.PrintError($"{plugin.Name} failed to unload.");
         }
+    }
+
+    private bool HasOrSetCooldown(string command)
+    {
+        if (this.cooldown.TryGetValue(command, out var time))
+        {
+            if (Environment.TickCount64 < time)
+            {
+                return true;
+            }
+        }
+
+        this.cooldown[command] = Environment.TickCount64 + CooldownTime;
+        return false;
     }
 }
