@@ -29,4 +29,9 @@ public enum PluginLoadReason
     /// This plugin was loaded because the game was started or Dalamud was reinjected.
     /// </summary>
     Boot,
+
+    /// <summary>
+    /// This plugin was loaded because the user requested it via command
+    /// </summary>
+    Command,
 }

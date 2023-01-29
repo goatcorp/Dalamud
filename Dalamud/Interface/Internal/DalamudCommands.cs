@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading.Tasks;
 
 using CheapLoc;
 using Dalamud.Configuration.Internal;
@@ -9,6 +10,7 @@ using Dalamud.Game;
 using Dalamud.Game.Command;
 using Dalamud.Game.Gui;
 using Dalamud.Game.Text.SeStringHandling;
+using Dalamud.Plugin;
 using Dalamud.Plugin.Internal;
 using Dalamud.Utility;
 using Serilog;
@@ -133,6 +135,16 @@ internal class DalamudCommands : IServiceType
         {
             HelpMessage = "ImGui DEBUG",
             ShowInHelp = false,
+        });
+
+        commandManager.AddHandler("/xlenable", new CommandInfo(this.OnEnableCommand)
+        {
+            HelpMessage = "Enable named plugin. Usage: /xlenable [Plugin Name]",
+        });
+
+        commandManager.AddHandler("/xldisable", new CommandInfo(this.OnDisableCommand)
+        {
+            HelpMessage = "Disable named plugin. Usage: /xldisable [Plugin Name]",
         });
     }
 
@@ -375,6 +387,82 @@ internal class DalamudCommands : IServiceType
             {
                 plugin.DalamudInterface?.UiBuilder.NotifyHideUi();
             }
+        }
+    }
+
+    private void OnEnableCommand(string command, string arguments)
+    {
+        var plugin = Service<PluginManager>.Get().InstalledPlugins
+                                           .Find(plugin => plugin.Name.ToLowerInvariant() == arguments.ToLowerInvariant());
+
+        if (plugin == null)
+        {
+            Service<ChatGui>.Get().PrintError($"No plugin with the name {arguments} installed.");
+            return;
+        }
+
+        if (!plugin.IsDisabled)
+        {
+            Service<ChatGui>.Get().PrintError($"{plugin.Name} already enabled.");
+            return;
+        }
+
+        if (plugin.IsDev)
+        {
+            plugin.ReloadManifest();
+        }
+
+        try
+        {
+            var enableTask = Task.Run(plugin.Enable);
+            enableTask.Wait();
+
+            var loadTask = plugin.LoadAsync(PluginLoadReason.Command);
+            loadTask.Wait();
+
+            Service<ChatGui>.Get().Print($"{plugin.Name} enabled.");
+        }
+        catch (Exception)
+        {
+            Service<ChatGui>.Get().PrintError($"{plugin.Name} failed to load.");
+        }
+    }
+
+    private void OnDisableCommand(string command, string arguments)
+    {
+        var plugin = Service<PluginManager>.Get().InstalledPlugins
+                                           .Find(plugin => plugin.Name.ToLowerInvariant() == arguments.ToLowerInvariant());
+
+        if (plugin == null)
+        {
+            Service<ChatGui>.Get().PrintError($"No plugin with the name {arguments} installed.");
+            return;
+        }
+
+        if (plugin.IsDisabled)
+        {
+            Service<ChatGui>.Get().PrintError($"{plugin.Name} already disabled.");
+            return;
+        }
+
+        if (plugin.IsDev)
+        {
+            plugin.ReloadManifest();
+        }
+
+        try
+        {
+            var unloadTask = plugin.UnloadAsync(true, false);
+            unloadTask.Wait();
+
+            var disableTask = Task.Run(plugin.Disable);
+            disableTask.Wait();
+
+            Service<ChatGui>.Get().Print($"{plugin.Name} disabled.");
+        }
+        catch (Exception)
+        {
+            Service<ChatGui>.Get().PrintError($"{plugin.Name} failed to unload.");
         }
     }
 }
