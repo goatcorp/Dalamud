@@ -44,6 +44,7 @@ using Lumina.Excel.GeneratedSheets;
 using Newtonsoft.Json;
 using PInvoke;
 using Serilog;
+
 using Condition = Dalamud.Game.ClientState.Conditions.Condition;
 
 namespace Dalamud.Interface.Internal.Windows;
@@ -1728,11 +1729,11 @@ internal class DataWindow : Window
 
         foreach (var color in colorSheet)
         {
-            this.DrawUIColor(color);
+            this.DrawUiColor(color);
         }
     }
 
-    private void DrawUIColor(UIColor color)
+    private void DrawUiColor(UIColor color)
     {
         ImGui.Text($"[{color.RowId:D3}] ");
         ImGui.SameLine();
@@ -1750,7 +1751,7 @@ internal class DataWindow : Window
         var r = (byte)(color >> 24);
         var g = (byte)(color >> 16);
         var b = (byte)(color >> 8);
-        var a = (byte)(color);
+        var a = (byte)color;
 
         return new Vector4(r / 255.0f, g / 255.0f, b / 255.0f, a / 255.0f);
     }

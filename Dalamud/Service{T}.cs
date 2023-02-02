@@ -128,6 +128,11 @@ internal static class Service<T> where T : IServiceType
                      .GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
                      .Select(x => x.FieldType)
                      .Where(x => x.GetCustomAttribute<ServiceManager.ServiceDependency>(true) != null));
+        res.AddRange(typeof(T)
+                     .GetCustomAttributes()
+                     .OfType<InherentDependencyAttribute>()
+                     .Select(x => x.GetType().GetGenericArguments().First()));
+
         return res
                .Distinct()
                .Select(x => typeof(Service<>).MakeGenericType(x))

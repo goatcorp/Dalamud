@@ -20,6 +20,7 @@ using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Interface.Internal;
+using Dalamud.IoC.Internal;
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Internal.Exceptions;
 using Dalamud.Plugin.Internal.Types;
@@ -33,6 +34,9 @@ namespace Dalamud.Plugin.Internal;
 /// Class responsible for loading and unloading plugins.
 /// </summary>
 [ServiceManager.EarlyLoadedService]
+#pragma warning disable SA1015
+[InherentDependency<InterfaceManager.InterfaceManagerWithScene>]
+#pragma warning restore SA1015
 internal partial class PluginManager : IDisposable, IServiceType
 {
     /// <summary>
