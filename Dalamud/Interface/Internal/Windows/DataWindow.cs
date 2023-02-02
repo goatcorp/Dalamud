@@ -40,9 +40,11 @@ using Dalamud.Plugin.Ipc.Internal;
 using Dalamud.Utility;
 using ImGuiNET;
 using ImGuiScene;
+using Lumina.Excel.GeneratedSheets;
 using Newtonsoft.Json;
 using PInvoke;
 using Serilog;
+using Condition = Dalamud.Game.ClientState.Conditions.Condition;
 
 namespace Dalamud.Interface.Internal.Windows;
 
@@ -169,6 +171,7 @@ internal class DataWindow : Window
         Hook,
         Aetherytes,
         Dtr_Bar,
+        UIColor,
     }
 
     /// <inheritdoc/>
@@ -195,6 +198,7 @@ internal class DataWindow : Window
             "ai" => "Addon Inspector",
             "at" => "Object Table", // Actor Table
             "ot" => "Object Table",
+            "uic" => "UIColor",
             _ => dataKind,
         };
 
@@ -355,6 +359,10 @@ internal class DataWindow : Window
 
                     case DataKind.Dtr_Bar:
                         this.DrawDtr();
+                        break;
+
+                    case DataKind.UIColor:
+                        this.DrawUIColor();
                         break;
                 }
             }
@@ -1711,6 +1719,40 @@ internal class DataWindow : Window
                 entry = dtrBar.Get(title, title);
             }
         }
+    }
+
+    private void DrawUIColor()
+    {
+        var colorSheet = Service<DataManager>.Get().GetExcelSheet<UIColor>();
+        if (colorSheet is null) return;
+
+        foreach (var color in colorSheet)
+        {
+            this.DrawUIColor(color);
+        }
+    }
+
+    private void DrawUIColor(UIColor color)
+    {
+        ImGui.Text($"[{color.RowId:D3}] ");
+        ImGui.SameLine();
+        ImGui.TextColored(this.ConvertToVector4(color.Unknown2), $"Unknown2 ");
+        ImGui.SameLine();
+        ImGui.TextColored(this.ConvertToVector4(color.UIForeground), "UIForeground ");
+        ImGui.SameLine();
+        ImGui.TextColored(this.ConvertToVector4(color.Unknown3), "Unknown3 ");
+        ImGui.SameLine();
+        ImGui.TextColored(this.ConvertToVector4(color.UIGlow), "UIGlow");
+    }
+
+    private Vector4 ConvertToVector4(uint color)
+    {
+        var r = (byte)(color >> 24);
+        var g = (byte)(color >> 16);
+        var b = (byte)(color >> 8);
+        var a = (byte)(color);
+
+        return new Vector4(r / 255.0f, g / 255.0f, b / 255.0f, a / 255.0f);
     }
 
     private async Task TestTaskInTaskDelay(CancellationToken token)
