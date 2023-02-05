@@ -437,13 +437,13 @@ void xivfixes::backup_userdata_save(bool bApply) {
             if (ext != ".dat" && ext != ".cfg")
                 return s_hookCreateFileW->call_original(lpFileName, dwDesiredAccess, dwShareMode, lpSecurityAttributes, dwCreationDisposition, dwFlagsAndAttributes, hTemplateFile);
 
-            for (auto i = 0; i < 16; i++) {
-                std::error_code ec;
-                auto resolved = read_symlink(path, ec);
-                if (ec || resolved == path)
-                    break;
-                path = std::move(resolved);
-            }
+            // Resolve any symbolic links or shenanigans in the chain so that we'll always be working with a canonical
+            // file. If there's an error getting the canonical path, fall back to default behavior and ignore our
+            // fancy logic. We use weakly_canonical here so that we don't run into issues if `path` does not exist.
+            std::error_code ec;
+            path = weakly_canonical(path, ec);
+            if (ec)
+                return s_hookCreateFileW->call_original(lpFileName, dwDesiredAccess, dwShareMode, lpSecurityAttributes, dwCreationDisposition, dwFlagsAndAttributes, hTemplateFile);
 
             std::filesystem::path temporaryPath = path;
             temporaryPath.replace_extension(std::format(L"{}.new.{:X}.{:X}", path.extension().c_str(), std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now().time_since_epoch()).count(), GetCurrentProcessId()));
