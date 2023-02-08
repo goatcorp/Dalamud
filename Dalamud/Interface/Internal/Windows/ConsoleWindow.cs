@@ -331,6 +331,7 @@ internal class ConsoleWindow : Window, IDisposable
             }
 
             clipper.End();
+            clipper.Destroy();
         }
 
         ImGui.PopFont();
