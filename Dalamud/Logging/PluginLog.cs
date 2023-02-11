@@ -240,6 +240,20 @@ public static class PluginLog
 
     #endregion
 
+    /// <summary>
+    /// Log a message to the in-game log, setting level at runtime.
+    /// </summary>
+    /// <remarks>
+    /// This method is primarily meant for interoperability with other logging systems that may want to be forwarded to
+    /// the PluginLog.
+    /// </remarks>
+    /// <param name="level">The log level for this message.</param>
+    /// <param name="exception">An exception (if any) to include in this log message.</param>
+    /// <param name="messageTemplate">The message template.</param>
+    /// <param name="values">Values to log.</param>
+    public static void LogRaw(LogEventLevel level, Exception? exception, string messageTemplate, params object[] values)
+        => WriteLog(Assembly.GetCallingAssembly().GetName().Name, level, messageTemplate, exception, values);
+
     private static ILogger GetPluginLogger(string? pluginName)
     {
         return Serilog.Log.ForContext("SourceContext", pluginName ?? string.Empty);
