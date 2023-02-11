@@ -197,6 +197,10 @@ void xivfixes::prevent_devicechange_crashes(bool bApply) {
             }
         }
 
+        // While at it, prevent game from entering restored mode if the game does not have window frames (borderless window/fullscreen.)
+        if (uMsg == WM_SIZE && wParam == SIZE_RESTORED && (GetWindowLongW(hWnd, GWL_STYLE) & WS_POPUP))
+            return ShowWindow(hWnd, SW_MAXIMIZE);
+
         return s_pfnGameWndProc(hWnd, uMsg, wParam, lParam);
     });
 
