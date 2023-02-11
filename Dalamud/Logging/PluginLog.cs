@@ -27,7 +27,7 @@ public static class PluginLog
     /// <param name="exception">The exception that caused the error.</param>
     /// <param name="messageTemplate">The message template.</param>
     /// <param name="values">Values to log.</param>
-    public static void Log(Exception exception, string messageTemplate, params object[] values)
+    public static void Log(Exception? exception, string messageTemplate, params object[] values)
         => WriteLog(Assembly.GetCallingAssembly().GetName().Name, LogEventLevel.Information, messageTemplate, exception, values);
 
     /// <summary>
@@ -44,7 +44,7 @@ public static class PluginLog
     /// <param name="exception">The exception that caused the error.</param>
     /// <param name="messageTemplate">The message template.</param>
     /// <param name="values">Values to log.</param>
-    public static void LogVerbose(Exception exception, string messageTemplate, params object[] values)
+    public static void LogVerbose(Exception? exception, string messageTemplate, params object[] values)
         => WriteLog(Assembly.GetCallingAssembly().GetName().Name, LogEventLevel.Verbose, messageTemplate, exception, values);
 
     /// <summary>
@@ -61,7 +61,7 @@ public static class PluginLog
     /// <param name="exception">The exception that caused the error.</param>
     /// <param name="messageTemplate">The message template.</param>
     /// <param name="values">Values to log.</param>
-    public static void LogDebug(Exception exception, string messageTemplate, params object[] values)
+    public static void LogDebug(Exception? exception, string messageTemplate, params object[] values)
         => WriteLog(Assembly.GetCallingAssembly().GetName().Name, LogEventLevel.Debug, messageTemplate, exception, values);
 
     /// <summary>
@@ -78,7 +78,7 @@ public static class PluginLog
     /// <param name="exception">The exception that caused the error.</param>
     /// <param name="messageTemplate">The message template.</param>
     /// <param name="values">Values to log.</param>
-    public static void LogInformation(Exception exception, string messageTemplate, params object[] values)
+    public static void LogInformation(Exception? exception, string messageTemplate, params object[] values)
         => WriteLog(Assembly.GetCallingAssembly().GetName().Name, LogEventLevel.Information, messageTemplate, exception, values);
 
     /// <summary>
@@ -95,7 +95,7 @@ public static class PluginLog
     /// <param name="exception">The exception that caused the error.</param>
     /// <param name="messageTemplate">The message template.</param>
     /// <param name="values">Values to log.</param>
-    public static void LogWarning(Exception exception, string messageTemplate, params object[] values)
+    public static void LogWarning(Exception? exception, string messageTemplate, params object[] values)
         => WriteLog(Assembly.GetCallingAssembly().GetName().Name, LogEventLevel.Warning, messageTemplate, exception, values);
 
     /// <summary>
@@ -112,7 +112,7 @@ public static class PluginLog
     /// <param name="exception">The exception that caused the error.</param>
     /// <param name="messageTemplate">The message template.</param>
     /// <param name="values">Values to log.</param>
-    public static void LogError(Exception exception, string messageTemplate, params object[] values)
+    public static void LogError(Exception? exception, string messageTemplate, params object[] values)
         => WriteLog(Assembly.GetCallingAssembly().GetName().Name, LogEventLevel.Error, messageTemplate, exception, values);
 
     /// <summary>
@@ -129,7 +129,7 @@ public static class PluginLog
     /// <param name="exception">The exception that caused the error.</param>
     /// <param name="messageTemplate">The message template.</param>
     /// <param name="values">Values to log.</param>
-    public static void LogFatal(Exception exception, string messageTemplate, params object[] values)
+    public static void LogFatal(Exception? exception, string messageTemplate, params object[] values)
         => WriteLog(Assembly.GetCallingAssembly().GetName().Name, LogEventLevel.Fatal, messageTemplate, exception, values);
 
     #endregion
@@ -150,7 +150,7 @@ public static class PluginLog
     /// <param name="exception">The exception that caused the error.</param>
     /// <param name="messageTemplate">The message template.</param>
     /// <param name="values">Values to log.</param>
-    public static void Verbose(Exception exception, string messageTemplate, params object[] values)
+    public static void Verbose(Exception? exception, string messageTemplate, params object[] values)
         => WriteLog(Assembly.GetCallingAssembly().GetName().Name, LogEventLevel.Verbose, messageTemplate, exception, values);
 
     /// <summary>
@@ -167,7 +167,7 @@ public static class PluginLog
     /// <param name="exception">The exception that caused the error.</param>
     /// <param name="messageTemplate">The message template.</param>
     /// <param name="values">Values to log.</param>
-    public static void Debug(Exception exception, string messageTemplate, params object[] values)
+    public static void Debug(Exception? exception, string messageTemplate, params object[] values)
         => WriteLog(Assembly.GetCallingAssembly().GetName().Name, LogEventLevel.Debug, messageTemplate, exception, values);
 
     /// <summary>
@@ -184,7 +184,7 @@ public static class PluginLog
     /// <param name="exception">The exception that caused the error.</param>
     /// <param name="messageTemplate">The message template.</param>
     /// <param name="values">Values to log.</param>
-    public static void Information(Exception exception, string messageTemplate, params object[] values)
+    public static void Information(Exception? exception, string messageTemplate, params object[] values)
         => WriteLog(Assembly.GetCallingAssembly().GetName().Name, LogEventLevel.Information, messageTemplate, exception, values);
 
     /// <summary>
@@ -201,7 +201,7 @@ public static class PluginLog
     /// <param name="exception">The exception that caused the error.</param>
     /// <param name="messageTemplate">The message template.</param>
     /// <param name="values">Values to log.</param>
-    public static void Warning(Exception exception, string messageTemplate, params object[] values)
+    public static void Warning(Exception? exception, string messageTemplate, params object[] values)
         => WriteLog(Assembly.GetCallingAssembly().GetName().Name, LogEventLevel.Warning, messageTemplate, exception, values);
 
     /// <summary>
@@ -218,7 +218,7 @@ public static class PluginLog
     /// <param name="exception">The exception that caused the error.</param>
     /// <param name="messageTemplate">The message template.</param>
     /// <param name="values">Values to log.</param>
-    public static void Error(Exception exception, string messageTemplate, params object[] values)
+    public static void Error(Exception? exception, string messageTemplate, params object[] values)
         => WriteLog(Assembly.GetCallingAssembly().GetName().Name, LogEventLevel.Error, messageTemplate, exception, values);
 
     /// <summary>
@@ -235,7 +235,7 @@ public static class PluginLog
     /// <param name="exception">The exception that caused the error.</param>
     /// <param name="messageTemplate">The message template.</param>
     /// <param name="values">Values to log.</param>
-    public static void Fatal(Exception exception, string messageTemplate, params object[] values)
+    public static void Fatal(Exception? exception, string messageTemplate, params object[] values)
         => WriteLog(Assembly.GetCallingAssembly().GetName().Name, LogEventLevel.Fatal, messageTemplate, exception, values);
 
     #endregion
