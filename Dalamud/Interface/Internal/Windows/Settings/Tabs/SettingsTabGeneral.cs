@@ -1,4 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics.CodeAnalysis;
 
 using CheapLoc;
 using Dalamud.Game.Text;
@@ -15,7 +15,7 @@ public class SettingsTabGeneral : SettingsTab
 
         new GapSettingsEntry(5),
 
-        new SettingsEntry<XivChatType>(
+        new SettingsEntry<XivChatType2>(
             Loc.Localize("DalamudSettingsChannel", "Dalamud Chat Channel"),
             Loc.Localize("DalamudSettingsChannelHint", "Select the chat channel that is to be used for general Dalamud messages."),
             c => c.GeneralChatType,
@@ -23,7 +23,7 @@ public class SettingsTabGeneral : SettingsTab
             warning: (v) =>
             {
                 // TODO: Maybe actually implement UI for the validity check...
-                if (v == XivChatType.None)
+                if (v == XivChatType2.None)
                     return Loc.Localize("DalamudSettingsChannelNone", "Do not pick \"None\".");
 
                 return null;

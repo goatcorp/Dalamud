@@ -93,6 +93,11 @@ public sealed class DalamudPluginInterface : IDisposable
     public event LanguageChangedDelegate LanguageChanged;
 
     /// <summary>
+    /// Gets the plugin's internal name.
+    /// </summary>
+    public string InternalName => this.pluginName;
+
+    /// <summary>
     /// Gets the reason this plugin was loaded.
     /// </summary>
     public PluginLoadReason Reason { get; }
@@ -182,7 +187,7 @@ public sealed class DalamudPluginInterface : IDisposable
     /// <summary>
     /// Gets the chat type used by default for plugin messages.
     /// </summary>
-    public XivChatType GeneralChatType { get; private set; }
+    public XivChatType2 GeneralChatType { get; private set; }
 
     /// <summary>
     /// Gets a list of installed plugin names.

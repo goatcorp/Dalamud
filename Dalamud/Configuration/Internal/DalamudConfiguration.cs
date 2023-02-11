@@ -76,7 +76,7 @@ internal sealed class DalamudConfiguration : IServiceType
     /// <summary>
     /// Gets or sets the chat type used by default for plugin messages.
     /// </summary>
-    public XivChatType GeneralChatType { get; set; } = XivChatType.Debug;
+    public XivChatType2 GeneralChatType { get; set; } = XivChatType2.Debug;
 
     /// <summary>
     /// Gets or sets a value indicating whether or not plugin testing builds should be shown.

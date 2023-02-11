@@ -3,7 +3,7 @@ namespace Dalamud.Game.Text;
 /// <summary>
 /// The FFXIV chat types as seen in the LogKind ex table.
 /// </summary>
-public enum XivChatType : ushort // FIXME: this is a single byte
+public enum XivChatType : ushort
 {
     /// <summary>
     /// No chat type.
