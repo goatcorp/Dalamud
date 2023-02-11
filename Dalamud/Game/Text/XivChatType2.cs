@@ -450,10 +450,11 @@ public enum XivChatType2 : ushort
 
     #endregion
 
-    //***** TODO: Possible additional masks to look for:
-    // Other players' pets
-    // Unengaged/unclaimed enemies
-    // Friendly NPCs
+    // ***** TODO: Possible additional masks to look for:
+    // Enemy Pets
+    // Friendly NPC Pets
+    // Hostile players and pets
+    // These seem unlikely to exist though, considering the log filter settings in the game.
 
     // Target masks start at 0x80 and go as high as 0x780 (bits 7-10).
     #region Target Masks
@@ -489,10 +490,16 @@ public enum XivChatType2 : ushort
     TargetMask_Enemy = 0x280,
 
     /// <summary>
-    /// The target mask for unclaimed enemies.
+    /// The target mask for unengaged enemies.
     /// </summary>
     [XivChatType2Mask(XivChatType2EntryKind.Target)]
-    TargetMask_UnclaimedEnemy = 0x300, //***** TODO: Needs Confirmation
+    TargetMask_UnengagedEnemy = 0x300,
+
+    /// <summary>
+    /// The target mask for friendly NPCs.
+    /// </summary>
+    [XivChatType2Mask(XivChatType2EntryKind.Target)]
+    TargetMask_FriendlyNPC = 0x380,
 
     /// <summary>
     /// The target mask for the player's pet.
@@ -511,6 +518,12 @@ public enum XivChatType2 : ushort
     /// </summary>
     [XivChatType2Mask(XivChatType2EntryKind.Target)]
     TargetMask_AlliancePet = 0x500,
+
+    /// <summary>
+    /// The target mask for other players' pets.
+    /// </summary>
+    [XivChatType2Mask(XivChatType2EntryKind.Target)]
+    TargetMask_OtherPlayerPet = 0x580,
 
     #endregion
 
@@ -548,6 +561,18 @@ public enum XivChatType2 : ushort
     SourceMask_Enemy = 0x2800,
 
     /// <summary>
+    /// The source mask for unengaged enemies.
+    /// </summary>
+    [XivChatType2Mask(XivChatType2EntryKind.Source)]
+    SourceMask_UnengagedEnemy = 0x3000,
+
+    /// <summary>
+    /// The source mask for friendly NPCs.
+    /// </summary>
+    [XivChatType2Mask(XivChatType2EntryKind.Source)]
+    SourceMask_FriendlyNPC = 0x3800,
+
+    /// <summary>
     /// The source mask for the player's pet.
     /// </summary>
     [XivChatType2Mask(XivChatType2EntryKind.Source)]
@@ -564,6 +589,12 @@ public enum XivChatType2 : ushort
     /// </summary>
     [XivChatType2Mask(XivChatType2EntryKind.Source)]
     SourceMask_AlliancePet = 0x5000,
+
+    /// <summary>
+    /// The source mask for other players' pets.
+    /// </summary>
+    [XivChatType2Mask(XivChatType2EntryKind.Source)]
+    SourceMask_OtherPlayerPet = 0x5800,
 
     #endregion
 }
