@@ -315,6 +315,51 @@ public class SeString
     }
 
     /// <summary>
+    /// Creates an SeString representing an entire payload chain that can be used to link party finder listings in the chat log.
+    /// </summary>
+    /// <param name="listingId">The listing ID of the party finder entry.</param>
+    /// <param name="recruiterName">The name of the recruiter.</param>
+    /// <param name="isCrossWorld">Whether the listing is limited to the current world or not.</param>
+    /// <returns>An SeString containing all the payloads necessary to display a party finder link in the chat log.</returns>
+    public static SeString CreatePartyFinderLink(uint listingId, string recruiterName, bool isCrossWorld = false)
+    {
+        var payloads = new List<Payload>()
+        {
+            new PartyFinderPayload(listingId, isCrossWorld ? PartyFinderPayload.PartyFinderLinkType.NotSpecified : PartyFinderPayload.PartyFinderLinkType.LimitedToHomeWorld),
+            // ->
+            new TextPayload($"Looking for Party ({recruiterName})"),
+        };
+
+        payloads.InsertRange(1, TextArrowPayloads);
+
+        if (isCrossWorld)
+            payloads.Add(new IconPayload(BitmapFontIcon.CrossWorld));
+
+        payloads.Add(RawPayload.LinkTerminator);
+
+        return new SeString(payloads);
+    }
+
+    /// <summary>
+    /// Creates an SeString representing an entire payload chain that can be used to link the party finder search conditions.
+    /// </summary>
+    /// <param name="message">The text that should be displayed for the link.</param>
+    /// <returns>An SeString containing all the payloads necessary to display a link to the party finder search conditions.</returns>
+    public static SeString CreatePartyFinderSearchConditionsLink(string message)
+    {
+        var payloads = new List<Payload>()
+        {
+            new PartyFinderPayload(),
+            // ->
+            new TextPayload(message),
+        };
+        payloads.InsertRange(1, TextArrowPayloads);
+        payloads.Add(RawPayload.LinkTerminator);
+
+        return new SeString(payloads);
+    }
+
+    /// <summary>
     /// Creates a SeString from a json. (For testing - not recommended for production use.)
     /// </summary>
     /// <param name="json">A serialized SeString produced by ToJson() <see cref="ToJson"/>.</param>
