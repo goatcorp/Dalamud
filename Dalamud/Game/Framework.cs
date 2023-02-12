@@ -370,7 +370,7 @@ public sealed class Framework : IDisposable, IServiceType
 
         try
         {
-            var chatGui = Service<ChatGui>.GetNullable();
+            var chatGui = Service<ChatGui2>.GetNullable();
             var toastGui = Service<ToastGui>.GetNullable();
             var gameNetwork = Service<GameNetwork>.GetNullable();
             var config = Service<DalamudConfiguration>.GetNullable();
