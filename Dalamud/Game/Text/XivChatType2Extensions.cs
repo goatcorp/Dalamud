@@ -70,7 +70,7 @@ public static class XivChatType2Extensions
         return Enum.GetValues(typeof(XivChatType2))
                 .Cast<XivChatType2>()
                 .ToList() // Supposedly a potential efficiency gain by preventing repeated boxing if linq query is deferred.
-                .Where(chatType => chatType.GetMaskKind().Kind == XivChatType2EntryKind.Channel)
+                .Where(chatType => chatType.GetMaskKind()?.Kind == XivChatType2EntryKind.Channel)
                 .ToList();
     }
 
@@ -83,7 +83,7 @@ public static class XivChatType2Extensions
         return Enum.GetValues(typeof(XivChatType2))
                 .Cast<XivChatType2>()
                 .ToList() // Supposedly a potential efficiency gain by preventing repeated boxing if linq query is deferred.
-                .Where(chatType => chatType.GetMaskKind().Kind == XivChatType2EntryKind.Target)
+                .Where(chatType => chatType == XivChatType2.None || chatType.GetMaskKind()?.Kind == XivChatType2EntryKind.Target)
                 .ToList();
     }
 
@@ -96,7 +96,7 @@ public static class XivChatType2Extensions
         return Enum.GetValues(typeof(XivChatType2))
                 .Cast<XivChatType2>()
                 .ToList() // Supposedly a potential efficiency gain by preventing repeated boxing if linq query is deferred.
-                .Where(chatType => chatType.GetMaskKind().Kind == XivChatType2EntryKind.Source)
+                .Where(chatType => chatType == XivChatType2.None || chatType.GetMaskKind()?.Kind == XivChatType2EntryKind.Source)
                 .ToList();
     }
 
