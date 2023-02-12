@@ -168,6 +168,12 @@ public abstract partial class Payload
                             payload = new DalamudLinkPayload();
                             break;
 
+                        case EmbeddedInfoType.PartyFinderNotificationLink:
+                        // this is handled by PartyFinderPayload, so let this fall through
+                        case EmbeddedInfoType.PartyFinderLink:
+                            payload = new PartyFinderPayload();
+                            break;
+
                         case EmbeddedInfoType.LinkTerminator:
                         // this has no custom handling and so needs to fallthrough to ensure it is captured
                         default:
@@ -268,9 +274,19 @@ public abstract partial class Payload
         QuestLink = 0x05,
 
         /// <summary>
+        /// The link to the party finder search conditions.
+        /// </summary>
+        PartyFinderNotificationLink = 0x08,
+
+        /// <summary>
         /// A status effect.
         /// </summary>
         Status = 0x09,
+
+        /// <summary>
+        /// The link to a party finder listing.
+        /// </summary>
+        PartyFinderLink = 0x0A,
 
         /// <summary>
         /// A custom Dalamud link.

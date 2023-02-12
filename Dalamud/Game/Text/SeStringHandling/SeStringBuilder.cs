@@ -187,6 +187,20 @@ public class SeStringBuilder
     public SeStringBuilder AddStatusLink(uint statusId) => this.Add(new StatusPayload(statusId));
 
     /// <summary>
+    /// Add a link to the party finder search conditions to the builder.
+    /// </summary>
+    /// <returns>The current builder.</returns>
+    public SeStringBuilder AddPartyFinderSearchConditionsLink() => this.Add(new PartyFinderPayload());
+
+    /// <summary>
+    /// Add a party finder listing link to the builder.
+    /// </summary>
+    /// <param name="id">The listing ID of the party finder listing.</param>
+    /// <param name="isCrossWorld">Whether the listing is limited to the recruiting world.</param>
+    /// <returns>The current builder.</returns>
+    public SeStringBuilder AddPartyFinderLink(uint id, bool isCrossWorld = false) => this.Add(new PartyFinderPayload(id, isCrossWorld ? PartyFinderPayload.PartyFinderLinkType.NotSpecified : PartyFinderPayload.PartyFinderLinkType.LimitedToHomeWorld));
+
+    /// <summary>
     /// Add a payload to the builder.
     /// </summary>
     /// <param name="payload">The payload to add.</param>
