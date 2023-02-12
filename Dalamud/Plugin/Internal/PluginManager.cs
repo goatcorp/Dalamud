@@ -35,7 +35,11 @@ namespace Dalamud.Plugin.Internal;
 /// </summary>
 [ServiceManager.EarlyLoadedService]
 #pragma warning disable SA1015
+// DalamudTextureWrap registers textures to dispose with IM
 [InherentDependency<InterfaceManager.InterfaceManagerWithScene>]
+
+// DalamudPluginInterface asks to remove chat link handlers
+[InherentDependency<ChatGui>]
 #pragma warning restore SA1015
 internal partial class PluginManager : IDisposable, IServiceType
 {
