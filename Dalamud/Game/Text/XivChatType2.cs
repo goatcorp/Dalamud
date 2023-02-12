@@ -443,9 +443,6 @@ public enum XivChatType2 : ushort
 
     #endregion
 
-    // ***** TODO: Possible additional masks to look for:
-    // Hostile players and pets
-
     // Target masks start at 0x80 and go as high as 0x780 (bits 7-10).
     #region Target Masks
 
