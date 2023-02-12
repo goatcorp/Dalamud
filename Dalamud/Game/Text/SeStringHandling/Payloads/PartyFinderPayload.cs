@@ -76,6 +76,12 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads
         public override PayloadType Type => PayloadType.PartyFinder;
 
         /// <inheritdoc/>
+        public override string ToString()
+        {
+            return $"{this.Type} - ListingId: {this.ListingId}, PartyFinderLinkType: {this.LinkType}";
+        }
+
+        /// <inheritdoc/>
         protected override void DecodeImpl(BinaryReader reader, long endOfStream)
         {
             // 0x01 here indicates a party finder notification, which needs to be handled uniquely
