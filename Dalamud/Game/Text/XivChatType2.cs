@@ -270,13 +270,6 @@ public enum XivChatType2 : ushort
     BattleSystemMessage = 58,
 
     /// <summary>
-    /// The system error chat type.
-    /// </summary>
-    [XivChatType2Mask(XivChatType2EntryKind.Channel)]
-    [Obsolete("This value is improperly named, use \"BattleSystemMessage\" instead for the same channel with the proper name.", true)]
-    SystemError = 58,
-
-    /// <summary>
     /// The system message (gathering) chat type.
     /// </summary>
     [XivChatType2Mask(XivChatType2EntryKind.Channel)]
@@ -451,10 +444,7 @@ public enum XivChatType2 : ushort
     #endregion
 
     // ***** TODO: Possible additional masks to look for:
-    // Enemy Pets
-    // Friendly NPC Pets
     // Hostile players and pets
-    // These seem unlikely to exist though, considering the log filter settings in the game.
 
     // Target masks start at 0x80 and go as high as 0x780 (bits 7-10).
     #region Target Masks
@@ -484,10 +474,10 @@ public enum XivChatType2 : ushort
     TargetMask_OtherPlayers = 0x200,
 
     /// <summary>
-    /// The target mask for enemies.
+    /// The target mask for engaged enemies.
     /// </summary>
     [XivChatType2Mask(XivChatType2EntryKind.Target)]
-    TargetMask_Enemy = 0x280,
+    TargetMask_EngagedEnemy = 0x280,
 
     /// <summary>
     /// The target mask for unengaged enemies.
@@ -555,10 +545,10 @@ public enum XivChatType2 : ushort
     SourceMask_OtherPlayers = 0x2000,
 
     /// <summary>
-    /// The source mask for enemies.
+    /// The source mask for engaged enemies.
     /// </summary>
     [XivChatType2Mask(XivChatType2EntryKind.Source)]
-    SourceMask_Enemy = 0x2800,
+    SourceMask_EngagedEnemy = 0x2800,
 
     /// <summary>
     /// The source mask for unengaged enemies.
