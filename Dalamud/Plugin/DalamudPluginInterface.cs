@@ -95,7 +95,7 @@ public sealed class DalamudPluginInterface : IDisposable
     /// <summary>
     /// Gets the plugin's internal name.
     /// </summary>
-    public string InternalName => this.pluginName;
+    public string PluginName => this.pluginName;
 
     /// <summary>
     /// Gets the reason this plugin was loaded.

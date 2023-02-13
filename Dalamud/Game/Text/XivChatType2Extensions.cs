@@ -26,9 +26,9 @@ public static class XivChatType2Extensions
     /// </summary>
     /// <param name="chatType">The chat type.</param>
     /// <returns>The mask kind attribute.</returns>
-    public static XivChatType2MaskAttribute GetMaskKind(this XivChatType2 chatType)
+    public static XivChatTypeKindAttribute GetMaskKind(this XivChatType2 chatType)
     {
-        return chatType.GetAttribute<XivChatType2MaskAttribute>();
+        return chatType.GetAttribute<XivChatTypeKindAttribute>();
     }
 
     /// <summary>
@@ -70,7 +70,7 @@ public static class XivChatType2Extensions
         return Enum.GetValues(typeof(XivChatType2))
                 .Cast<XivChatType2>()
                 .ToList() // Supposedly a potential efficiency gain by preventing repeated boxing if linq query is deferred.
-                .Where(chatType => chatType.GetMaskKind()?.Kind == XivChatType2EntryKind.Channel)
+                .Where(chatType => chatType.GetMaskKind()?.Kind == XivChatTypeKind.Channel)
                 .ToList();
     }
 
@@ -83,7 +83,7 @@ public static class XivChatType2Extensions
         return Enum.GetValues(typeof(XivChatType2))
                 .Cast<XivChatType2>()
                 .ToList() // Supposedly a potential efficiency gain by preventing repeated boxing if linq query is deferred.
-                .Where(chatType => chatType == XivChatType2.None || chatType.GetMaskKind()?.Kind == XivChatType2EntryKind.Target)
+                .Where(chatType => chatType == XivChatType2.None || chatType.GetMaskKind()?.Kind == XivChatTypeKind.Target)
                 .ToList();
     }
 
@@ -96,7 +96,7 @@ public static class XivChatType2Extensions
         return Enum.GetValues(typeof(XivChatType2))
                 .Cast<XivChatType2>()
                 .ToList() // Supposedly a potential efficiency gain by preventing repeated boxing if linq query is deferred.
-                .Where(chatType => chatType == XivChatType2.None || chatType.GetMaskKind()?.Kind == XivChatType2EntryKind.Source)
+                .Where(chatType => chatType == XivChatType2.None || chatType.GetMaskKind()?.Kind == XivChatTypeKind.Source)
                 .ToList();
     }
 

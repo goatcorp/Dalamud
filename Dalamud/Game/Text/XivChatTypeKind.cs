@@ -3,7 +3,7 @@ namespace Dalamud.Game.Text;
 /// <summary>
 /// The "kind" of the XivChatType (channel or mask).
 /// </summary>
-public enum XivChatType2EntryKind : ushort
+public enum XivChatTypeKind : ushort
 {
     /// <summary>
     /// An unmasked chat channel.
