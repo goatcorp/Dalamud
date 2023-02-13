@@ -156,7 +156,7 @@ public sealed class ChatGui2 : IDisposable, IServiceType
     /// <param name="pluginInterface">Your plugin's <see cref="DalamudPluginInterface"/>.</param>
     public void PrintChat(XivChatEntry2 chat, DalamudPluginInterface pluginInterface)
     {
-        this.PrintChat(chat, XivChatMessageSource.Plugin, pluginInterface?.InternalName);
+        this.PrintChat(chat, XivChatMessageSource.Plugin, pluginInterface?.PluginName);
     }
 
     /// <summary>
@@ -343,7 +343,7 @@ public sealed class ChatGui2 : IDisposable, IServiceType
 
     private IntPtr PrintMessageDetour(IntPtr manager, XivChatType2 chattype, IntPtr pSenderName, IntPtr pMessage, uint timestamp, IntPtr parameter)
     {
-        return this.HandlePrintMessage(manager, chattype, pSenderName, pMessage, timestamp, parameter, XivChatMessageSource.Game, "Game");
+        return this.HandlePrintMessage (manager, chattype, pSenderName, pMessage, timestamp, parameter, XivChatMessageSource.Game, "Game");
     }
 
     private IntPtr HandlePrintMessage(IntPtr manager, XivChatType2 chattype, IntPtr pSenderName, IntPtr pMessage, uint timestamp, IntPtr parameter, XivChatMessageSource source, string sourceName)
