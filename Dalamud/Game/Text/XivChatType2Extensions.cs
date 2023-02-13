@@ -62,43 +62,67 @@ public static class XivChatType2Extensions
     }
 
     /// <summary>
-    /// Gets a list of all known chat channels (say, tell, shout, etc.).
+    /// Gets a collection of all known chat channels (say, tell, shout, etc.).
     /// </summary>
-    /// <returns>A list of the known XivChatType entries that are channels.</returns>
-    public static List<XivChatType2> GetAllChatChannels()
+    /// <returns>A collection of <see cref="XivChatType2"/>.</returns>
+    public static XivChatType2[] GetAllChatChannels()
     {
-        return Enum.GetValues(typeof(XivChatType2))
+        if (AllChannelsList == null)
+        {
+            AllChannelsList = Enum.GetValues(typeof(XivChatType2))
                 .Cast<XivChatType2>()
                 .ToList() // Supposedly a potential efficiency gain by preventing repeated boxing if linq query is deferred.
                 .Where(chatType => chatType.GetMaskKind()?.Kind == XivChatTypeKind.Channel)
                 .ToList();
+        }
+
+        // Return a copy since we're caching this.
+        return AllChannelsList.ToArray();
     }
 
     /// <summary>
-    /// Gets a list of all known target masks (you, party member, pet, etc.).
+    /// Gets a collection of all known target masks (you, party member, pet, etc.).
     /// </summary>
-    /// <returns>A list of the known XivChatType entries that are target masks.</returns>
-    public static List<XivChatType2> GetAllTargetMasks()
+    /// <returns>A collection of <see cref="XivChatType2"/>.</returns>
+    public static XivChatType2[] GetAllTargetMasks()
     {
-        return Enum.GetValues(typeof(XivChatType2))
+        if (AllTargetMasksList == null)
+        {
+            AllTargetMasksList = Enum.GetValues(typeof(XivChatType2))
                 .Cast<XivChatType2>()
                 .ToList() // Supposedly a potential efficiency gain by preventing repeated boxing if linq query is deferred.
                 .Where(chatType => chatType == XivChatType2.None || chatType.GetMaskKind()?.Kind == XivChatTypeKind.Target)
                 .ToList();
+        }
+
+        // Return a copy since we're caching this.
+        return AllTargetMasksList.ToArray();
     }
 
     /// <summary>
-    /// Gets a list of all known source masks (you, party member, pet, etc.).
+    /// Gets a collection of all known source masks (you, party member, pet, etc.).
     /// </summary>
-    /// <returns>A list of the known XivChatType entries that are source masks.</returns>
-    public static List<XivChatType2> GetAllSourceMasks()
+    /// <returns>A collection of <see cref="XivChatType2"/>.</returns>
+    public static XivChatType2[] GetAllSourceMasks()
     {
-        return Enum.GetValues(typeof(XivChatType2))
+        if (AllSourceMasksList == null)
+        {
+            AllSourceMasksList = Enum.GetValues(typeof(XivChatType2))
                 .Cast<XivChatType2>()
                 .ToList() // Supposedly a potential efficiency gain by preventing repeated boxing if linq query is deferred.
                 .Where(chatType => chatType == XivChatType2.None || chatType.GetMaskKind()?.Kind == XivChatTypeKind.Source)
                 .ToList();
+        }
+
+        // Return a copy since we're caching this.
+        return AllSourceMasksList.ToArray();
     }
+
+    private static List<XivChatType2> AllChannelsList { get; set; } = null;
+
+    private static List<XivChatType2> AllTargetMasksList { get; set; } = null;
+
+    private static List<XivChatType2> AllSourceMasksList { get; set; } = null;
 
     //***** TODO: Can/should we override the equality operator to only compare the channel portion?
 
