@@ -55,4 +55,9 @@ public sealed class XivChatEntry2
     /// Gets or sets the source plugin name for messages originating from plugins.  This is something that is set by Dalamud itself, and should not be exposed to plugins in this struct.
     /// </summary>
     internal string SourceName { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Gets or sets a delegate that is invoked when this message is actually added to the chat log.
+    /// </summary>
+    internal Action<nint> MessagePrintedCallback { get; set; }
 }

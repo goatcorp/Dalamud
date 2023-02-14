@@ -154,9 +154,11 @@ public sealed class ChatGui2 : IDisposable, IServiceType
     /// </summary>
     /// <param name="chat">A message to send.</param>
     /// <param name="pluginInterface">Your plugin's <see cref="DalamudPluginInterface"/>.</param>
-    public void PrintChat(XivChatEntry2 chat, DalamudPluginInterface pluginInterface)
+    /// <param name="messagePrintedCallback">A delegate that is invoked once the message is actually printed to the chat log.  The parameter is the RaptureLogModule message index.</param>
+    public void PrintChat(XivChatEntry2 chat, DalamudPluginInterface pluginInterface, Action<nint> messagePrintedCallback = null)
     {
-        this.PrintChat(chat, XivChatMessageSource.Plugin, pluginInterface?.PluginName);
+        chat.MessagePrintedCallback = messagePrintedCallback;
+        this.PrintChat_Internal(chat, XivChatMessageSource.Plugin, pluginInterface?.PluginName);
     }
 
     /// <summary>
@@ -251,8 +253,76 @@ public sealed class ChatGui2 : IDisposable, IServiceType
             var messageRaw = (chat.Message ?? string.Empty).Encode();
             using var messageOwned = this.libcFunction.NewString(messageRaw);
 
-            this.HandlePrintMessage(this.baseAddress, chat.Type, senderOwned.Address, messageOwned.Address, chat.Timestamp, chat.Parameters, chat.MessageSource, chat.SourceName);
+            this.HandlePrintMessage(this.baseAddress, chat.Type, senderOwned.Address, messageOwned.Address, chat.Timestamp, chat.Parameters, chat.MessageSource, chat.SourceName, chat.MessagePrintedCallback);
         }
+    }
+
+    /// <summary>
+    /// Queue a chat message. While method is named as Print, it only adds an entry to the queue,
+    /// later to be processed when UpdateQueue() is called.  This is the internal version that should be used by all Dalamud calls to properly set the message source.
+    /// </summary>
+    /// <param name="message">A message to send.</param>
+    internal void Print_Internal(string message)
+    {
+        // Log.Verbose("[CHATGUI PRINT REGULAR]{0}", message);
+        this.PrintChat_Internal(
+            new XivChatEntry2
+            {
+                Message = message,
+                Type = this.configuration.GeneralChatType,
+            },
+            XivChatMessageSource.Dalamud);
+    }
+
+    /// <summary>
+    /// Queue a chat message. While method is named as Print, it only adds an entry to the queue,
+    /// later to be processed when UpdateQueue() is called.  This is the internal version that should be used by all Dalamud calls to properly set the message source.
+    /// </summary>
+    /// <param name="message">A message to send.</param>
+    internal void Print_Internal(SeString message)
+    {
+        // Log.Verbose("[CHATGUI PRINT SESTRING]{0}", message.TextValue);
+        this.PrintChat_Internal(
+            new XivChatEntry2
+            {
+                Message = message,
+                Type = this.configuration.GeneralChatType,
+            },
+            XivChatMessageSource.Dalamud);
+    }
+
+    /// <summary>
+    /// Queue an error chat message. While method is named as Print, it only adds an entry to
+    /// the queue, later to be processed when UpdateQueue() is called.  This is the internal version that should be used by all Dalamud calls to properly set the message source.
+    /// </summary>
+    /// <param name="message">A message to send.</param>
+    internal void PrintError_Internal(string message)
+    {
+        // Log.Verbose("[CHATGUI PRINT REGULAR ERROR]{0}", message);
+        this.PrintChat_Internal(
+            new XivChatEntry2
+            {
+                Message = message,
+                Type = XivChatType2.Urgent,
+            },
+            XivChatMessageSource.Dalamud);
+    }
+
+    /// <summary>
+    /// Queue an error chat message. While method is named as Print, it only adds an entry to
+    /// the queue, later to be processed when UpdateQueue() is called.  This is the internal version that should be used by all Dalamud calls to properly set the message source.
+    /// </summary>
+    /// <param name="message">A message to send.</param>
+    internal void PrintError_Internal(SeString message)
+    {
+        // Log.Verbose("[CHATGUI PRINT SESTRING ERROR]{0}", message.TextValue);
+        this.PrintChat_Internal(
+            new XivChatEntry2
+            {
+                Message = message,
+                Type = XivChatType2.Urgent,
+            },
+            XivChatMessageSource.Dalamud);
     }
 
     /// <summary>
@@ -261,7 +331,8 @@ public sealed class ChatGui2 : IDisposable, IServiceType
     /// <param name="chat">A message to send.</param>
     /// <param name="source">The ultimate source of the chat message (game, Dalamud, or plugin).</param>
     /// <param name="sourceName">The name of the source of the chat message (i.e., generally the plugin name).  This parameter can be omitted if the source is not a plugin.</param>
-    internal void PrintChat(XivChatEntry2 chat, XivChatMessageSource source, string? sourceName = null)
+    /// <param name="messagePrintedCallback">A delegate that is invoked once the message is actually printed to the chat log.  The parameter is the RaptureLogModule message index.</param>
+    internal void PrintChat_Internal(XivChatEntry2 chat, XivChatMessageSource source, string? sourceName = null, Action<nint> messagePrintedCallback = null)
     {
         sourceName ??= source switch
         {
@@ -273,6 +344,8 @@ public sealed class ChatGui2 : IDisposable, IServiceType
 
         chat.MessageSource = source;
         chat.SourceName = sourceName;
+        chat.MessagePrintedCallback = messagePrintedCallback;
+
         this.chatQueue.Enqueue(chat);
     }
 
@@ -343,10 +416,10 @@ public sealed class ChatGui2 : IDisposable, IServiceType
 
     private IntPtr PrintMessageDetour(IntPtr manager, XivChatType2 chattype, IntPtr pSenderName, IntPtr pMessage, uint timestamp, IntPtr parameter)
     {
-        return this.HandlePrintMessage (manager, chattype, pSenderName, pMessage, timestamp, parameter, XivChatMessageSource.Game, "Game");
+        return this.HandlePrintMessage (manager, chattype, pSenderName, pMessage, timestamp, parameter, XivChatMessageSource.Game, "Game", null);
     }
 
-    private IntPtr HandlePrintMessage(IntPtr manager, XivChatType2 chattype, IntPtr pSenderName, IntPtr pMessage, uint timestamp, IntPtr parameter, XivChatMessageSource source, string sourceName)
+    private IntPtr HandlePrintMessage(IntPtr manager, XivChatType2 chattype, IntPtr pSenderName, IntPtr pMessage, uint timestamp, IntPtr parameter, XivChatMessageSource source, string sourceName, Action<nint> messagePrintedCallback)
     {
         var retVal = IntPtr.Zero;
 
@@ -443,6 +516,7 @@ public sealed class ChatGui2 : IDisposable, IServiceType
             else
             {
                 retVal = this.printMessageHook.Original(manager, chattype, senderPtr, messagePtr, timestamp, parameter);
+                messagePrintedCallback?.Invoke(retVal);
                 this.ChatMessageUnhandled?.Invoke(chattype, timestamp, parsedSender, parsedMessage, source, sourceName);
             }
 
