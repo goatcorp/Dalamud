@@ -166,7 +166,7 @@ public sealed class ChatGui : IDisposable, IServiceType
     /// <param name="chat">A message to send.</param>
     public void PrintChat(XivChatEntry chat)
     {
-        this.chatGui2Service.PrintChat(ConvertChatEntryToChatEntry2(chat), XivChatMessageSource.Plugin, string.Empty);
+        this.chatGui2Service.PrintChat_Internal(ConvertChatEntryToChatEntry2(chat), XivChatMessageSource.Plugin, string.Empty);
     }
 
     /// <summary>
