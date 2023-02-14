@@ -6,17 +6,22 @@ namespace Dalamud.Game.Text;
 public enum XivChatTypeKind : ushort
 {
     /// <summary>
+    /// The kind is not known.
+    /// </summary>
+    Unknown = 0,
+
+    /// <summary>
     /// An unmasked chat channel.
     /// </summary>
-    Channel = 0,
+    Channel,
 
     /// <summary>
     /// A chat type mask for source.
     /// </summary>
-    Source = 1,
+    Source,
 
     /// <summary>
     /// A chat type mask for target.
     /// </summary>
-    Target = 2,
+    Target,
 }
