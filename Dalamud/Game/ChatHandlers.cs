@@ -113,7 +113,7 @@ public class ChatHandlers : IServiceType
     private bool hasAutoUpdatedPlugins;
 
     [ServiceManager.ServiceConstructor]
-    private ChatHandlers(ChatGui chatGui)
+    private ChatHandlers(ChatGui2 chatGui)
     {
         chatGui.CheckMessageHandled += this.OnCheckMessageHandled;
         chatGui.ChatMessage += this.OnChatMessage;
@@ -145,7 +145,7 @@ public class ChatHandlers : IServiceType
     public static SeString MakeItalics(TextPayload text)
         => new(EmphasisItalicPayload.ItalicsOn, text, EmphasisItalicPayload.ItalicsOff);
 
-    private void OnCheckMessageHandled(XivChatType type, uint senderid, ref SeString sender, ref SeString message, ref bool isHandled)
+    private void OnCheckMessageHandled(XivChatType2 type, uint timestamp, ref SeString sender, ref SeString message, XivChatMessageSource source, string sourceName, ref bool isHandled)
     {
         var textVal = message.TextValue;
 
@@ -171,14 +171,14 @@ public class ChatHandlers : IServiceType
         }
     }
 
-    private void OnChatMessage(XivChatType type, uint senderId, ref SeString sender, ref SeString message, ref bool isHandled)
+    private void OnChatMessage(XivChatType2 type, uint timestamp, ref SeString sender, ref SeString message, XivChatMessageSource source, string sourceName, ref bool isHandled)
     {
         var startInfo = Service<DalamudStartInfo>.Get();
         var clientState = Service<ClientState.ClientState>.GetNullable();
         if (clientState == null)
             return;
 
-        if (type == XivChatType.Notice && !this.hasSeenLoadingMsg)
+        if (type == XivChatType2.Notice && !this.hasSeenLoadingMsg)
             this.PrintWelcomeMessage();
 
         // For injections while logged in
@@ -193,7 +193,7 @@ public class ChatHandlers : IServiceType
                 return;
 #endif
 
-        if (type == XivChatType.RetainerSale)
+        if (type == XivChatType2.RetainerSale)
         {
             foreach (var regex in this.retainerSaleRegexes[startInfo.Language])
             {
@@ -234,7 +234,7 @@ public class ChatHandlers : IServiceType
 
     private void PrintWelcomeMessage()
     {
-        var chatGui = Service<ChatGui>.GetNullable();
+        var chatGui = Service<ChatGui2>.GetNullable();
         var pluginManager = Service<PluginManager>.GetNullable();
         var dalamudInterface = Service<DalamudInterface>.GetNullable();
 
@@ -243,24 +243,26 @@ public class ChatHandlers : IServiceType
 
         var assemblyVersion = Assembly.GetAssembly(typeof(ChatHandlers)).GetName().Version.ToString();
 
-        chatGui.Print(string.Format(Loc.Localize("DalamudWelcome", "Dalamud vD{0} loaded."), assemblyVersion)
-                      + string.Format(Loc.Localize("PluginsWelcome", " {0} plugin(s) loaded."), pluginManager.InstalledPlugins.Count(x => x.IsLoaded)));
+        chatGui.Print_Internal(string.Format(Loc.Localize("DalamudWelcome", "Dalamud vD{0} loaded."), assemblyVersion)
+                               + string.Format(Loc.Localize("PluginsWelcome", " {0} plugin(s) loaded."), pluginManager.InstalledPlugins.Count(x => x.IsLoaded)));
 
         if (this.configuration.PrintPluginsWelcomeMsg)
         {
             foreach (var plugin in pluginManager.InstalledPlugins.OrderBy(plugin => plugin.Name).Where(x => x.IsLoaded))
             {
-                chatGui.Print(string.Format(Loc.Localize("DalamudPluginLoaded", "    》 {0} v{1} loaded."), plugin.Name, plugin.Manifest.AssemblyVersion));
+                chatGui.Print_Internal(string.Format(Loc.Localize("DalamudPluginLoaded", "    》 {0} v{1} loaded."), plugin.Name, plugin.Manifest.AssemblyVersion));
             }
         }
 
         if (string.IsNullOrEmpty(this.configuration.LastVersion) || !assemblyVersion.StartsWith(this.configuration.LastVersion))
         {
-            chatGui.PrintChat(new XivChatEntry
-            {
-                Message = Loc.Localize("DalamudUpdated", "Dalamud has been updated successfully! Please check the discord for a full changelog."),
-                Type = XivChatType.Notice,
-            });
+            chatGui.PrintChat_Internal(
+                new XivChatEntry2
+                {
+                    Message = Loc.Localize("DalamudUpdated", "Dalamud has been updated successfully! Please check the discord for a full changelog."),
+                    Type = XivChatType2.Notice,
+                },
+                XivChatMessageSource.Dalamud);
 
             if (string.IsNullOrEmpty(this.configuration.LastChangelogMajorMinor) || (!ChangelogWindow.WarrantsChangelogForMajorMinor.StartsWith(this.configuration.LastChangelogMajorMinor) && assemblyVersion.StartsWith(ChangelogWindow.WarrantsChangelogForMajorMinor)))
             {
@@ -277,7 +279,7 @@ public class ChatHandlers : IServiceType
 
     private void AutoUpdatePlugins()
     {
-        var chatGui = Service<ChatGui>.GetNullable();
+        var chatGui = Service<ChatGui2>.GetNullable();
         var pluginManager = Service<PluginManager>.GetNullable();
         var notifications = Service<NotificationManager>.GetNullable();
 
@@ -310,21 +312,23 @@ public class ChatHandlers : IServiceType
                 }
                 else
                 {
-                    chatGui.PrintChat(new XivChatEntry
-                    {
-                        Message = new SeString(new List<Payload>()
+                    chatGui.PrintChat_Internal(
+                        new XivChatEntry2
                         {
-                            new TextPayload(Loc.Localize("DalamudPluginUpdateRequired", "One or more of your plugins needs to be updated. Please use the /xlplugins command in-game to update them!")),
-                            new TextPayload("  ["),
-                            new UIForegroundPayload(500),
-                            this.openInstallerWindowLink,
-                            new TextPayload(Loc.Localize("DalamudInstallerHelp", "Open the plugin installer")),
-                            RawPayload.LinkTerminator,
-                            new UIForegroundPayload(0),
-                            new TextPayload("]"),
-                        }),
-                        Type = XivChatType.Urgent,
-                    });
+                            Message = new SeString(new List<Payload>()
+                            {
+                                new TextPayload(Loc.Localize("DalamudPluginUpdateRequired", "One or more of your plugins needs to be updated. Please use the /xlplugins command in-game to update them!")),
+                                new TextPayload("  ["),
+                                new UIForegroundPayload(500),
+                                this.openInstallerWindowLink,
+                                new TextPayload(Loc.Localize("DalamudInstallerHelp", "Open the plugin installer")),
+                                RawPayload.LinkTerminator,
+                                new UIForegroundPayload(0),
+                                new TextPayload("]"),
+                            }),
+                            Type = XivChatType2.Urgent,
+                        },
+                        XivChatMessageSource.Dalamud);
                 }
             }
         });

@@ -215,7 +215,7 @@ internal class DataWindow : Window
         }
         else
         {
-            Service<ChatGui>.Get().PrintError($"/xldata: Invalid data type {dataKind}");
+            Service<ChatGui2>.Get().PrintError_Internal($"/xldata: Invalid data type {dataKind}");
         }
     }
 
@@ -448,7 +448,7 @@ internal class DataWindow : Window
 
     private void DrawObjectTable()
     {
-        var chatGui = Service<ChatGui>.Get();
+        var chatGui = Service<ChatGui2>.Get();
         var clientState = Service<ClientState>.Get();
         var framework = Service<Framework>.Get();
         var gameGui = Service<GameGui>.Get();

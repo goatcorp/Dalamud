@@ -138,37 +138,37 @@ internal class DalamudCommands : IServiceType
 
     private void OnUnloadCommand(string command, string arguments)
     {
-        Service<ChatGui>.Get().Print("Unloading...");
+        Service<ChatGui2>.Get().Print_Internal("Unloading...");
         Service<Dalamud>.Get().Unload();
     }
 
     private void OnHelpCommand(string command, string arguments)
     {
-        var chatGui = Service<ChatGui>.Get();
+        var chatGui = Service<ChatGui2>.Get();
         var commandManager = Service<CommandManager>.Get();
 
         var showDebug = arguments.Contains("debug");
 
-        chatGui.Print(Loc.Localize("DalamudCmdHelpAvailable", "Available commands:"));
+        chatGui.Print_Internal(Loc.Localize("DalamudCmdHelpAvailable", "Available commands:"));
         foreach (var cmd in commandManager.Commands)
         {
             if (!cmd.Value.ShowInHelp && !showDebug)
                 continue;
 
-            chatGui.Print($"{cmd.Key}: {cmd.Value.HelpMessage}");
+            chatGui.Print_Internal($"{cmd.Key}: {cmd.Value.HelpMessage}");
         }
     }
 
     private void OnBadWordsAddCommand(string command, string arguments)
     {
-        var chatGui = Service<ChatGui>.Get();
+        var chatGui = Service<ChatGui2>.Get();
         var configuration = Service<DalamudConfiguration>.Get();
 
         configuration.BadWords ??= new List<string>();
 
         if (string.IsNullOrEmpty(arguments))
         {
-            chatGui.Print(Loc.Localize("DalamudMuteNoArgs", "Please provide a word to mute."));
+            chatGui.Print_Internal(Loc.Localize("DalamudMuteNoArgs", "Please provide a word to mute."));
             return;
         }
 
@@ -176,31 +176,31 @@ internal class DalamudCommands : IServiceType
 
         configuration.QueueSave();
 
-        chatGui.Print(string.Format(Loc.Localize("DalamudMuted", "Muted \"{0}\"."), arguments));
+        chatGui.Print_Internal(string.Format(Loc.Localize("DalamudMuted", "Muted \"{0}\"."), arguments));
     }
 
     private void OnBadWordsListCommand(string command, string arguments)
     {
-        var chatGui = Service<ChatGui>.Get();
+        var chatGui = Service<ChatGui2>.Get();
         var configuration = Service<DalamudConfiguration>.Get();
 
         configuration.BadWords ??= new List<string>();
 
         if (configuration.BadWords.Count == 0)
         {
-            chatGui.Print(Loc.Localize("DalamudNoneMuted", "No muted words or sentences."));
+            chatGui.Print_Internal(Loc.Localize("DalamudNoneMuted", "No muted words or sentences."));
             return;
         }
 
         configuration.QueueSave();
 
         foreach (var word in configuration.BadWords)
-            chatGui.Print($"\"{word}\"");
+            chatGui.Print_Internal($"\"{word}\"");
     }
 
     private void OnBadWordsRemoveCommand(string command, string arguments)
     {
-        var chatGui = Service<ChatGui>.Get();
+        var chatGui = Service<ChatGui2>.Get();
         var configuration = Service<DalamudConfiguration>.Get();
 
         configuration.BadWords ??= new List<string>();
@@ -209,21 +209,21 @@ internal class DalamudCommands : IServiceType
 
         configuration.QueueSave();
 
-        chatGui.Print(string.Format(Loc.Localize("DalamudUnmuted", "Unmuted \"{0}\"."), arguments));
+        chatGui.Print_Internal(string.Format(Loc.Localize("DalamudUnmuted", "Unmuted \"{0}\"."), arguments));
     }
 
     private void OnLastLinkCommand(string command, string arguments)
     {
         var chatHandlers = Service<ChatHandlers>.Get();
-        var chatGui = Service<ChatGui>.Get();
+        var chatGui = Service<ChatGui2>.Get();
 
         if (string.IsNullOrEmpty(chatHandlers.LastLink))
         {
-            chatGui.Print(Loc.Localize("DalamudNoLastLink", "No last link..."));
+            chatGui.Print_Internal(Loc.Localize("DalamudNoLastLink", "No last link..."));
             return;
         }
 
-        chatGui.Print(string.Format(Loc.Localize("DalamudOpeningLink", "Opening {0}"), chatHandlers.LastLink));
+        chatGui.Print_Internal(string.Format(Loc.Localize("DalamudOpeningLink", "Opening {0}"), chatHandlers.LastLink));
         Process.Start(new ProcessStartInfo(chatHandlers.LastLink)
         {
             UseShellExecute = true,
@@ -305,17 +305,17 @@ internal class DalamudCommands : IServiceType
 
     private void OnVersionInfoCommand(string command, string arguments)
     {
-        var chatGui = Service<ChatGui>.Get();
+        var chatGui = Service<ChatGui2>.Get();
 
-        chatGui.Print(new SeStringBuilder()
-                      .AddItalics("Dalamud:")
-                      .AddText($" D{Util.AssemblyVersion}({Util.GetGitHash()}")
-                      .Build());
+        chatGui.Print_Internal(new SeStringBuilder()
+                               .AddItalics("Dalamud:")
+                               .AddText($" D{Util.AssemblyVersion}({Util.GetGitHash()}")
+                               .Build());
 
-        chatGui.Print(new SeStringBuilder()
-                      .AddItalics("FFXIVCS:")
-                      .AddText($" {Util.GetGitHashClientStructs()}")
-                      .Build());
+        chatGui.Print_Internal(new SeStringBuilder()
+                               .AddItalics("FFXIVCS:")
+                               .AddText($" {Util.GetGitHashClientStructs()}")
+                               .Build());
     }
 
     private void OnOpenInstallerCommand(string command, string arguments)
@@ -325,7 +325,7 @@ internal class DalamudCommands : IServiceType
 
     private void OnSetLanguageCommand(string command, string arguments)
     {
-        var chatGui = Service<ChatGui>.Get();
+        var chatGui = Service<ChatGui2>.Get();
         var configuration = Service<DalamudConfiguration>.Get();
         var localization = Service<Localization>.Get();
 
@@ -334,14 +334,14 @@ internal class DalamudCommands : IServiceType
             localization.SetupWithLangCode(arguments.ToLower());
             configuration.LanguageOverride = arguments.ToLower();
 
-            chatGui.Print(string.Format(Loc.Localize("DalamudLanguageSetTo", "Language set to {0}"), arguments));
+            chatGui.Print_Internal(string.Format(Loc.Localize("DalamudLanguageSetTo", "Language set to {0}"), arguments));
         }
         else
         {
             localization.SetupWithUiCulture();
             configuration.LanguageOverride = null;
 
-            chatGui.Print(string.Format(Loc.Localize("DalamudLanguageSetTo", "Language set to {0}"), "default"));
+            chatGui.Print_Internal(string.Format(Loc.Localize("DalamudLanguageSetTo", "Language set to {0}"), "default"));
         }
 
         configuration.QueueSave();

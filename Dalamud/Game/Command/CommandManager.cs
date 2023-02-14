@@ -29,7 +29,7 @@ public sealed class CommandManager : IServiceType, IDisposable
     private readonly Regex currentLangCommandRegex;
 
     [ServiceManager.ServiceDependency]
-    private readonly ChatGui chatGui = Service<ChatGui>.Get();
+    private readonly ChatGui2 chatGui = Service<ChatGui2>.Get();
 
     [ServiceManager.ServiceConstructor]
     private CommandManager(DalamudStartInfo startInfo)
@@ -155,9 +155,9 @@ public sealed class CommandManager : IServiceType, IDisposable
         this.chatGui.CheckMessageHandled -= this.OnCheckMessageHandled;
     }
 
-    private void OnCheckMessageHandled(XivChatType type, uint senderId, ref SeString sender, ref SeString message, ref bool isHandled)
+    private void OnCheckMessageHandled(XivChatType2 type, uint timestamp, ref SeString sender, ref SeString message, XivChatMessageSource source, string sourceName, ref bool isHandled)
     {
-        if (type == XivChatType.ErrorMessage && senderId == 0)
+        if (type == XivChatType2.ErrorMessage && timestamp == 0 && source == XivChatMessageSource.Game)
         {
             var cmdMatch = this.currentLangCommandRegex.Match(message.TextValue).Groups["command"];
             if (cmdMatch.Success)

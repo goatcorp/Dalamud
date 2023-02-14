@@ -20,12 +20,12 @@ internal class ChatAgingStep : IAgingStep
     /// <inheritdoc/>
     public SelfTestStepResult RunStep()
     {
-        var chatGui = Service<ChatGui>.Get();
+        var chatGui = Service<ChatGui2>.Get();
 
         switch (this.step)
         {
             case 0:
-                chatGui.Print("Testing!");
+                chatGui.Print_Internal("Testing!");
                 this.step++;
 
                 break;
@@ -55,16 +55,16 @@ internal class ChatAgingStep : IAgingStep
     /// <inheritdoc/>
     public void CleanUp()
     {
-        var chatGui = Service<ChatGui>.Get();
+        var chatGui = Service<ChatGui2>.Get();
 
         chatGui.ChatMessage -= this.ChatOnOnChatMessage;
         this.subscribed = false;
     }
 
     private void ChatOnOnChatMessage(
-        XivChatType type, uint senderid, ref SeString sender, ref SeString message, ref bool ishandled)
+        XivChatType2 type, uint timestamp, ref SeString sender, ref SeString message, XivChatMessageSource source, string sourceName, ref bool ishandled)
     {
-        if (type == XivChatType.Echo && message.TextValue == "DALAMUD")
+        if (type == XivChatType2.Echo && message.TextValue == "DALAMUD")
         {
             this.hasPassed = true;
         }

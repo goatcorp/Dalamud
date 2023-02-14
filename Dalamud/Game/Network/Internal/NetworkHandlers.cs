@@ -285,7 +285,7 @@ internal class NetworkHandlers : IServiceType
         {
             if (this.configuration.DutyFinderChatMessage)
             {
-                Service<ChatGui>.GetNullable()?.Print($"Duty pop: {cfcName}");
+                Service<ChatGui2>.GetNullable()?.Print_Internal($"Duty pop: {cfcName}");
             }
 
             this.CfPop?.InvokeSafely(this, cfCondition);
