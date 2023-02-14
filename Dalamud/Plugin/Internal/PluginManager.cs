@@ -126,7 +126,7 @@ Thanks and have fun!";
             throw new InvalidDataException("Couldn't deserialize banned plugins manifest.");
         }
 
-        this.openInstallerWindowPluginChangelogsLink = Service<ChatGui>.Get().AddChatLinkHandler("Dalamud", 1003, (_, _) =>
+        this.openInstallerWindowPluginChangelogsLink = Service<ChatGui2>.Get().AddChatLinkHandler("Dalamud", 1003, (_, _) =>
         {
             Service<DalamudInterface>.GetNullable()?.OpenPluginInstallerPluginChangelogs();
         });
@@ -239,38 +239,42 @@ Thanks and have fun!";
     /// <param name="header">The header text to send to chat prior to any update info.</param>
     public void PrintUpdatedPlugins(List<PluginUpdateStatus>? updateMetadata, string header)
     {
-        var chatGui = Service<ChatGui>.Get();
+        var chatGui = Service<ChatGui2>.Get();
 
         if (updateMetadata is { Count: > 0 })
         {
-            chatGui.PrintChat(new XivChatEntry
-            {
-                Message = new SeString(new List<Payload>()
+            chatGui.PrintChat_Internal(
+                new XivChatEntry2
                 {
-                    new TextPayload(header),
-                    new TextPayload("  ["),
-                    new UIForegroundPayload(500),
-                    this.openInstallerWindowPluginChangelogsLink,
-                    new TextPayload(Loc.Localize("DalamudInstallerPluginChangelogHelp", "Open plugin changelogs") + " "),
-                    RawPayload.LinkTerminator,
-                    new UIForegroundPayload(0),
-                    new TextPayload("]"),
-                }),
-            });
+                    Message = new SeString(new List<Payload>()
+                    {
+                        new TextPayload(header),
+                        new TextPayload("  ["),
+                        new UIForegroundPayload(500),
+                        this.openInstallerWindowPluginChangelogsLink,
+                        new TextPayload(Loc.Localize("DalamudInstallerPluginChangelogHelp", "Open plugin changelogs") + " "),
+                        RawPayload.LinkTerminator,
+                        new UIForegroundPayload(0),
+                        new TextPayload("]"),
+                    }),
+                },
+                XivChatMessageSource.Dalamud);
 
             foreach (var metadata in updateMetadata)
             {
                 if (metadata.WasUpdated)
                 {
-                    chatGui.Print(Locs.DalamudPluginUpdateSuccessful(metadata.Name, metadata.Version) + (metadata.HasChangelog ? " " : string.Empty));
+                    chatGui.Print_Internal(Locs.DalamudPluginUpdateSuccessful(metadata.Name, metadata.Version) + (metadata.HasChangelog ? " " : string.Empty));
                 }
                 else
                 {
-                    chatGui.PrintChat(new XivChatEntry
-                    {
-                        Message = Locs.DalamudPluginUpdateFailed(metadata.Name, metadata.Version) + (metadata.HasChangelog ? " " : string.Empty),
-                        Type = XivChatType.Urgent,
-                    });
+                    chatGui.PrintChat_Internal(
+                        new XivChatEntry2
+                        {
+                            Message = Locs.DalamudPluginUpdateFailed(metadata.Name, metadata.Version) + (metadata.HasChangelog ? " " : string.Empty),
+                            Type = XivChatType2.Urgent,
+                        },
+                        XivChatMessageSource.Dalamud);
                 }
             }
         }

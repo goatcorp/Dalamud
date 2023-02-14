@@ -367,7 +367,7 @@ public sealed class DalamudPluginInterface : IDisposable
     /// <returns>Returns an SeString payload for the link.</returns>
     public DalamudLinkPayload AddChatLinkHandler(uint commandId, Action<uint, SeString> commandAction)
     {
-        return Service<ChatGui>.Get().AddChatLinkHandler(this.pluginName, commandId, commandAction);
+        return Service<ChatGui2>.Get().AddChatLinkHandler(this.pluginName, commandId, commandAction);
     }
 
     /// <summary>
@@ -376,7 +376,7 @@ public sealed class DalamudPluginInterface : IDisposable
     /// <param name="commandId">The ID of the command.</param>
     public void RemoveChatLinkHandler(uint commandId)
     {
-        Service<ChatGui>.Get().RemoveChatLinkHandler(this.pluginName, commandId);
+        Service<ChatGui2>.Get().RemoveChatLinkHandler(this.pluginName, commandId);
     }
 
     /// <summary>
@@ -384,7 +384,7 @@ public sealed class DalamudPluginInterface : IDisposable
     /// </summary>
     public void RemoveChatLinkHandler()
     {
-        Service<ChatGui>.Get().RemoveChatLinkHandler(this.pluginName);
+        Service<ChatGui2>.Get().RemoveChatLinkHandler(this.pluginName);
     }
     #endregion
 
@@ -432,7 +432,7 @@ public sealed class DalamudPluginInterface : IDisposable
     void IDisposable.Dispose()
     {
         this.UiBuilder.ExplicitDispose();
-        Service<ChatGui>.Get().RemoveChatLinkHandler(this.pluginName);
+        Service<ChatGui2>.Get().RemoveChatLinkHandler(this.pluginName);
         Service<Localization>.Get().LocalizationChanged -= this.OnLocalizationChanged;
         Service<DalamudConfiguration>.Get().DalamudConfigurationSaved -= this.OnDalamudConfigurationSaved;
     }

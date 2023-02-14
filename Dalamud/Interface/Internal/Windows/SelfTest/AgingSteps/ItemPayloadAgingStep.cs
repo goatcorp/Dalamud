@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 using Dalamud.Game.Gui;
 using Dalamud.Game.Text.SeStringHandling;
@@ -36,7 +36,7 @@ internal class ItemPayloadAgingStep : IAgingStep
     public SelfTestStepResult RunStep()
     {
         var gameGui = Service<GameGui>.Get();
-        var chatGui = Service<ChatGui>.Get();
+        var chatGui = Service<ChatGui2>.Get();
 
         const uint normalItemId = 24002;      // Capybara pup
         const uint hqItemId = 31861;          // Exarchic circlets of healing
@@ -106,7 +106,7 @@ internal class ItemPayloadAgingStep : IAgingStep
         }
 
         if (toPrint != null)
-            chatGui.Print(toPrint);
+            chatGui.Print_Internal(toPrint);
 
         return SelfTestStepResult.Waiting;
     }
