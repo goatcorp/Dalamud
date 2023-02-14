@@ -3,7 +3,7 @@ using System;
 namespace Dalamud.Game.Gui;
 
 /// <summary>
-/// The address resolver for the <see cref="ChatGui"/> class.
+/// The address resolver for the <see cref="ChatGui2"/> class.
 /// </summary>
 public sealed class ChatGuiAddressResolver : BaseAddressResolver
 {
