@@ -11,6 +11,15 @@ namespace Dalamud.Game.Text;
 /// </summary>
 public static class XivChatType2Extensions
 {
+    // Property to cache the relevant types to avoid repeat queries.
+    private static List<XivChatType2> AllChannelsList { get; set; } = null;
+
+    // Property to cache the relevant types to avoid repeat queries.
+    private static List<XivChatType2> AllTargetMasksList { get; set; } = null;
+
+    // Property to cache the relevant types to avoid repeat queries.
+    private static List<XivChatType2> AllSourceMasksList { get; set; } = null;
+
     /// <summary>
     /// Get the InfoAttribute associated with this chat type.
     /// </summary>
@@ -25,10 +34,10 @@ public static class XivChatType2Extensions
     /// Get the MaskAttribute associated with this chat type.
     /// </summary>
     /// <param name="chatType">The chat type.</param>
-    /// <returns>The mask kind attribute.</returns>
-    public static XivChatTypeKindAttribute GetMaskKind(this XivChatType2 chatType)
+    /// <returns>The chat type's "kind".</returns>
+    public static XivChatTypeKind GetKind(this XivChatType2 chatType)
     {
-        return chatType.GetAttribute<XivChatTypeKindAttribute>();
+        return chatType.GetAttribute<XivChatTypeKindAttribute>()?.Kind ?? XivChatTypeKind.Unknown;
     }
 
     /// <summary>
@@ -62,6 +71,17 @@ public static class XivChatType2Extensions
     }
 
     /// <summary>
+    /// Get the current-language name of the chat type, if there is one.
+    /// </summary>
+    /// <param name="chatType">The chat type.</param>
+    /// <returns>A string containing the XivChatType's name.</returns>
+    public static string GetTranslatedName(this XivChatType2 chatType)
+    {
+        // ***** TODO: Stubbed for now.
+        return $"{chatType}";
+    }
+
+    /// <summary>
     /// Gets a collection of all known chat channels (say, tell, shout, etc.).
     /// </summary>
     /// <returns>A collection of <see cref="XivChatType2"/>.</returns>
@@ -72,7 +92,7 @@ public static class XivChatType2Extensions
             AllChannelsList = Enum.GetValues(typeof(XivChatType2))
                 .Cast<XivChatType2>()
                 .ToList() // Supposedly a potential efficiency gain by preventing repeated boxing if linq query is deferred.
-                .Where(chatType => chatType.GetMaskKind()?.Kind == XivChatTypeKind.Channel)
+                .Where(chatType => chatType.GetKind() == XivChatTypeKind.Channel)
                 .ToList();
         }
 
@@ -91,7 +111,7 @@ public static class XivChatType2Extensions
             AllTargetMasksList = Enum.GetValues(typeof(XivChatType2))
                 .Cast<XivChatType2>()
                 .ToList() // Supposedly a potential efficiency gain by preventing repeated boxing if linq query is deferred.
-                .Where(chatType => chatType == XivChatType2.None || chatType.GetMaskKind()?.Kind == XivChatTypeKind.Target)
+                .Where(chatType => chatType == XivChatType2.None || chatType.GetKind() == XivChatTypeKind.Target)
                 .ToList();
         }
 
@@ -110,25 +130,11 @@ public static class XivChatType2Extensions
             AllSourceMasksList = Enum.GetValues(typeof(XivChatType2))
                 .Cast<XivChatType2>()
                 .ToList() // Supposedly a potential efficiency gain by preventing repeated boxing if linq query is deferred.
-                .Where(chatType => chatType == XivChatType2.None || chatType.GetMaskKind()?.Kind == XivChatTypeKind.Source)
+                .Where(chatType => chatType == XivChatType2.None || chatType.GetKind() == XivChatTypeKind.Source)
                 .ToList();
         }
 
         // Return a copy since we're caching this.
         return AllSourceMasksList.ToArray();
     }
-
-    private static List<XivChatType2> AllChannelsList { get; set; } = null;
-
-    private static List<XivChatType2> AllTargetMasksList { get; set; } = null;
-
-    private static List<XivChatType2> AllSourceMasksList { get; set; } = null;
-
-    //***** TODO: Can/should we override the equality operator to only compare the channel portion?
-
-    //***** TODO: Can we make it so that enumerating the enum values (not using the extensions above) implicitly returns only channels?  Would it even be good to do this?
-
-    //***** TODO: Method to get localized name for chat channel.  Include masks in the text if present?  Should we do this by resource file, by sheets at runtime (it's almost impossible for this to be exhaustive without manual intervention), or put it right in the code with an attribute?
-
-    //***** TODO: Is it better to initialize lists early on (can we do this at compile time?) and just return them instead of creating them every time for the GetAll...() Methods?  How much does it affect performance?
 }
