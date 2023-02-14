@@ -1,5 +1,3 @@
-using System;
-
 namespace Dalamud.Game.Text;
 
 /// <summary>
@@ -168,6 +166,8 @@ public enum XivChatType2 : ushort
     [XivChatTypeKind(XivChatTypeKind.Channel)]
     [XivChatTypeInfo("Yell", "yell", 0xFFFFFF00)]
     Yell = 30,
+
+    // LogKind 31 is something that uses the same color parameter and format as cross-world party chat, but I haven't been able to find it used in any logs, nor any other clues as to what it is.
 
     /// <summary>
     /// The cross-world party chat type.
@@ -391,6 +391,96 @@ public enum XivChatType2 : ushort
     /// </summary>
     [XivChatTypeKind(XivChatTypeKind.Channel)]
     MessageBookAlert = 79,
+
+    /// <summary>
+    /// The incoming tell from GM chat type.
+    /// </summary>
+    [XivChatTypeKind(XivChatTypeKind.Channel)]
+    GM_TellIncoming = 80,
+
+    /// <summary>
+    /// The say from GM chat type.
+    /// </summary>
+    [XivChatTypeKind(XivChatTypeKind.Channel)]
+    GM_Say = 81,
+
+    /// <summary>
+    /// The shout from GM chat type.
+    /// </summary>
+    [XivChatTypeKind(XivChatTypeKind.Channel)]
+    GM_Shout = 82,
+
+    /// <summary>
+    /// The yell from GM chat type.
+    /// </summary>
+    [XivChatTypeKind(XivChatTypeKind.Channel)]
+    GM_Yell = 83,
+
+    /// <summary>
+    /// The party from GM chat type.
+    /// </summary>
+    [XivChatTypeKind(XivChatTypeKind.Channel)]
+    GM_Party = 84,
+
+    /// <summary>
+    /// The free company from GM chat type.
+    /// </summary>
+    [XivChatTypeKind(XivChatTypeKind.Channel)]
+    GM_FreeCompany = 85,
+
+    /// <summary>
+    /// The linkshell 1 from GM chat type.
+    /// </summary>
+    [XivChatTypeKind(XivChatTypeKind.Channel)]
+    GM_Ls1 = 86,
+
+    /// <summary>
+    /// The linkshell 2 from GM chat type.
+    /// </summary>
+    [XivChatTypeKind(XivChatTypeKind.Channel)]
+    GM_Ls2 = 87,
+
+    /// <summary>
+    /// The linkshell 3 from GM chat type.
+    /// </summary>
+    [XivChatTypeKind(XivChatTypeKind.Channel)]
+    GM_Ls3 = 88,
+
+    /// <summary>
+    /// The linkshell 4 from GM chat type.
+    /// </summary>
+    [XivChatTypeKind(XivChatTypeKind.Channel)]
+    GM_Ls4 = 89,
+
+    /// <summary>
+    /// The linkshell 5 from GM chat type.
+    /// </summary>
+    [XivChatTypeKind(XivChatTypeKind.Channel)]
+    GM_Ls5 = 90,
+
+    /// <summary>
+    /// The linkshell 6 from GM chat type.
+    /// </summary>
+    [XivChatTypeKind(XivChatTypeKind.Channel)]
+    GM_Ls6 = 91,
+
+    /// <summary>
+    /// The linkshell 7 from GM chat type.
+    /// </summary>
+    [XivChatTypeKind(XivChatTypeKind.Channel)]
+    GM_Ls7 = 92,
+
+    /// <summary>
+    /// The linkshell 8 from GM chat type.
+    /// </summary>
+    [XivChatTypeKind(XivChatTypeKind.Channel)]
+    GM_Ls8 = 93,
+
+    /// <summary>
+    /// The novice network from GM chat type.
+    /// </summary>
+    [XivChatTypeKind(XivChatTypeKind.Channel)]
+    GM_NoviceNetwork = 94,
 
     /// <summary>
     /// The cross-world linkshell 2 chat type.
