@@ -198,7 +198,10 @@ void xivfixes::prevent_devicechange_crashes(bool bApply) {
         }
 
         // While at it, prevent game from entering restored mode if the game does not have window frames (borderless window/fullscreen.)
-        if (uMsg == WM_SIZE && wParam == SIZE_RESTORED && (GetWindowLongW(hWnd, GWL_STYLE) & WS_POPUP))
+        if (uMsg == WM_SIZE && wParam == SIZE_RESTORED
+            && (GetWindowLongW(hWnd, GWL_STYLE) & WS_POPUP)  // Is the game not in windowed mode?
+            && !((GetKeyState(VK_LWIN) | GetKeyState(VK_RWIN)) & 0x8000)  // Allow Win+Shift+Left/Right key combinations to temporarily restore the window to let it move across displays.
+            )
             return ShowWindow(hWnd, SW_MAXIMIZE);
 
         return s_pfnGameWndProc(hWnd, uMsg, wParam, lParam);
