@@ -6,6 +6,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Numerics;
+using System.Threading;
 using System.Threading.Tasks;
 
 using CheapLoc;
@@ -40,13 +41,16 @@ internal class PluginInstallerWindow : Window, IDisposable
 
     private readonly PluginImageCache imageCache;
     private readonly PluginCategoryManager categoryManager = new();
-    private readonly DalamudChangelogManager dalamudChangelogManager = new();
 
     private readonly List<int> openPluginCollapsibles = new();
 
     private readonly DateTime timeLoaded;
 
     private readonly object listLock = new();
+
+    private DalamudChangelogManager? dalamudChangelogManager;
+    private Task? dalamudChangelogRefreshTask;
+    private CancellationTokenSource? dalamudChangelogRefreshTaskCts;
 
     #region Image Tester State
 
@@ -132,6 +136,8 @@ internal class PluginInstallerWindow : Window, IDisposable
             if (pluginManager.PluginsReady)
                 this.OnInstalledPluginsChanged();
 
+            this.dalamudChangelogManager = new(pluginManager);
+
             pluginManager.OnAvailablePluginsChanged += this.OnAvailablePluginsChanged;
             pluginManager.OnInstalledPluginsChanged += this.OnInstalledPluginsChanged;
 
@@ -179,6 +185,8 @@ internal class PluginInstallerWindow : Window, IDisposable
     /// <inheritdoc/>
     public void Dispose()
     {
+        this.dalamudChangelogRefreshTaskCts?.Cancel();
+
         var pluginManager = Service<PluginManager>.GetNullable();
         if (pluginManager != null)
         {
@@ -193,7 +201,6 @@ internal class PluginInstallerWindow : Window, IDisposable
         var pluginManager = Service<PluginManager>.Get();
 
         _ = pluginManager.ReloadPluginMastersAsync();
-        _ = this.dalamudChangelogManager.ReloadChangelogAsync();
 
         this.searchText = string.Empty;
         this.sortKind = PluginSortKind.Alphabetical;
@@ -837,30 +844,40 @@ internal class PluginInstallerWindow : Window, IDisposable
             return;
         }
 
-        var pluginChangelogs = this.pluginListInstalled
-                                   .Where(plugin => !this.IsManifestFiltered(plugin.Manifest)
-                                                    && !plugin.Manifest.Changelog.IsNullOrEmpty())
-                                   .Select(x =>
-                                   {
-                                       var changelog = new PluginChangelogEntry(x);
-                                       return (IChangelogEntry)changelog;
-                                   });
+        if (this.dalamudChangelogRefreshTask?.IsFaulted == true ||
+            this.dalamudChangelogRefreshTask?.IsCanceled == true)
+        {
+            ImGui.TextColored(ImGuiColors.DalamudGrey, Locs.TabBody_ChangelogError);
+            return;
+        }
+
+        if (this.dalamudChangelogManager?.Changelogs == null)
+        {
+            ImGui.TextColored(ImGuiColors.DalamudGrey, Locs.TabBody_LoadingPlugins);
+
+            if (this.dalamudChangelogManager != null &&
+                this.dalamudChangelogRefreshTask == null)
+            {
+                this.dalamudChangelogRefreshTaskCts = new CancellationTokenSource();
+                this.dalamudChangelogRefreshTask =
+                    Task.Run(this.dalamudChangelogManager.ReloadChangelogAsync, this.dalamudChangelogRefreshTaskCts.Token);
+            }
+
+            return;
+        }
 
         IEnumerable<IChangelogEntry> changelogs = null;
         if (displayDalamud && displayPlugins && this.dalamudChangelogManager.Changelogs != null)
         {
-            changelogs = pluginChangelogs
-                .Concat(this.dalamudChangelogManager.Changelogs.Select(
-                            x => new DalamudChangelogEntry(x)));
+            changelogs = this.dalamudChangelogManager.Changelogs;
         }
         else if (displayDalamud && this.dalamudChangelogManager.Changelogs != null)
         {
-            changelogs = this.dalamudChangelogManager.Changelogs.Select(
-                x => new DalamudChangelogEntry(x));
+            changelogs = this.dalamudChangelogManager.Changelogs.OfType<DalamudChangelogEntry>();
         }
         else if (displayPlugins)
         {
-            changelogs = pluginChangelogs;
+            changelogs = this.dalamudChangelogManager.Changelogs.OfType<PluginChangelogEntry>();
         }
 
         var sortedChangelogs = changelogs?.OrderByDescending(x => x.Date).ToList();
@@ -2897,6 +2914,8 @@ internal class PluginInstallerWindow : Window, IDisposable
         public static string TabBody_SearchNoInstalled => Loc.Localize("InstallerNoInstalled", "No plugins are currently installed. You can install them from the \"All Plugins\" tab.");
 
         public static string TabBody_ChangelogNone => Loc.Localize("InstallerNoChangelog", "None of your installed plugins have a changelog.");
+
+        public static string TabBody_ChangelogError => Loc.Localize("InstallerChangelogError", "Could not download changelogs.");
 
         #endregion
 
