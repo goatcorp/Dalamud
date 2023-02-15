@@ -36,7 +36,7 @@ internal class UniversalisMarketBoardUploader : IMarketBoardUploader
         if (clientState == null)
             return;
 
-        Log.Verbose("Starting Universalis upload.");
+        Log.Verbose("Starting Universalis upload");
         var uploader = clientState.LocalContentId;
 
         // ====================================================================================
@@ -82,7 +82,7 @@ internal class UniversalisMarketBoardUploader : IMarketBoardUploader
 
         var listingPath = "/upload";
         var listingUpload = JsonConvert.SerializeObject(listingsUploadObject);
-        Log.Verbose($"{listingPath}: {listingUpload}");
+        Log.Verbose("{ListingPath}: {ListingUpload}", listingPath, listingUpload);
         await Util.HttpClient.PostAsync($"{ApiBase}{listingPath}/{ApiKey}", new StringContent(listingUpload, Encoding.UTF8, "application/json"));
 
         // ====================================================================================
@@ -110,12 +110,12 @@ internal class UniversalisMarketBoardUploader : IMarketBoardUploader
 
         var historyPath = "/upload";
         var historyUpload = JsonConvert.SerializeObject(historyUploadObject);
-        Log.Verbose($"{historyPath}: {historyUpload}");
+        Log.Verbose("{HistoryPath}: {HistoryUpload}", historyPath, historyUpload);
         await Util.HttpClient.PostAsync($"{ApiBase}{historyPath}/{ApiKey}", new StringContent(historyUpload, Encoding.UTF8, "application/json"));
 
         // ====================================================================================
 
-        Log.Verbose("Universalis data upload for item#{0} completed.", request.CatalogId);
+        Log.Verbose("Universalis data upload for item#{CatalogId} completed", request.CatalogId);
     }
 
     /// <inheritdoc/>
@@ -145,13 +145,13 @@ internal class UniversalisMarketBoardUploader : IMarketBoardUploader
 
         var taxPath = "/upload";
         var taxUpload = JsonConvert.SerializeObject(taxUploadObject);
-        Log.Verbose($"{taxPath}: {taxUpload}");
+        Log.Verbose("{TaxPath}: {TaxUpload}", taxPath, taxUpload);
 
         await Util.HttpClient.PostAsync($"{ApiBase}{taxPath}/{ApiKey}", new StringContent(taxUpload, Encoding.UTF8, "application/json"));
 
         // ====================================================================================
 
-        Log.Verbose("Universalis tax upload completed.");
+        Log.Verbose("Universalis tax upload completed");
     }
 
     /// <inheritdoc/>
@@ -182,7 +182,7 @@ internal class UniversalisMarketBoardUploader : IMarketBoardUploader
 
         var deletePath = $"/api/{worldId}/{itemId}/delete";
         var deleteListing = JsonConvert.SerializeObject(deleteListingObject);
-        Log.Verbose($"{deletePath}: {deleteListing}");
+        Log.Verbose("{DeletePath}: {DeleteListing}", deletePath, deleteListing);
 
         var content = new StringContent(deleteListing, Encoding.UTF8, "application/json");
         var message = new HttpRequestMessage(HttpMethod.Post, $"{ApiBase}{deletePath}");
@@ -193,6 +193,6 @@ internal class UniversalisMarketBoardUploader : IMarketBoardUploader
 
         // ====================================================================================
 
-        Log.Verbose("Universalis purchase upload completed.");
+        Log.Verbose("Universalis purchase upload completed");
     }
 }
