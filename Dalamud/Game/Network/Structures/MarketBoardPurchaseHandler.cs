@@ -48,13 +48,14 @@ public class MarketBoardPurchaseHandler
         using var stream = new UnmanagedMemoryStream((byte*)dataPtr.ToPointer(), 1544);
         using var reader = new BinaryReader(stream);
 
-        var output = new MarketBoardPurchaseHandler();
-
-        output.RetainerId = reader.ReadUInt64();
-        output.ListingId = reader.ReadUInt64();
-        output.CatalogId = reader.ReadUInt32();
-        output.ItemQuantity = reader.ReadUInt32();
-        output.PricePerUnit = reader.ReadUInt32();
+        var output = new MarketBoardPurchaseHandler
+        {
+            RetainerId = reader.ReadUInt64(),
+            ListingId = reader.ReadUInt64(),
+            CatalogId = reader.ReadUInt32(),
+            ItemQuantity = reader.ReadUInt32(),
+            PricePerUnit = reader.ReadUInt32(),
+        };
 
         return output;
     }
