@@ -201,6 +201,17 @@ void xivfixes::prevent_devicechange_crashes(bool bApply) {
         if (uMsg == WM_SIZE && wParam == SIZE_RESTORED && (GetWindowLongW(hWnd, GWL_STYLE) & WS_POPUP))
             return ShowWindow(hWnd, SW_MAXIMIZE);
 
+        if (uMsg == WM_CREATE) {
+            // While at it, also apply dark mode title bar to the game.
+            if (const auto dwmapi = LoadLibraryW(L"dwmapi.dll")) {
+                if (const auto fn = reinterpret_cast<decltype(&DwmSetWindowAttribute)>(GetProcAddress(dwmapi, "DwmSetWindowAttribute"))) {
+                    const BOOL trueValue = TRUE;
+                    fn(hWnd, DWMWA_USE_IMMERSIVE_DARK_MODE, &trueValue, sizeof trueValue);
+                }
+                FreeLibrary(dwmapi);
+            }
+        }
+
         return s_pfnGameWndProc(hWnd, uMsg, wParam, lParam);
     });
 
