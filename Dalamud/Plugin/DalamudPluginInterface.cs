@@ -62,7 +62,7 @@ public sealed class DalamudPluginInterface : IDisposable
         this.LoadTime = DateTime.Now;
         this.LoadTimeUTC = DateTime.UtcNow;
 
-        this.GeneralChatType = configuration.GeneralChatType;
+        this.GeneralChatType = (XivChatType)configuration.GeneralChatType;
         this.Sanitizer = new Sanitizer(dataManager.Language);
         if (configuration.LanguageOverride != null)
         {
@@ -187,7 +187,7 @@ public sealed class DalamudPluginInterface : IDisposable
     /// <summary>
     /// Gets the chat type used by default for plugin messages.
     /// </summary>
-    public XivChatType2 GeneralChatType { get; private set; }
+    public XivChatType GeneralChatType { get; private set; }
 
     /// <summary>
     /// Gets a list of installed plugin names.
@@ -454,6 +454,6 @@ public sealed class DalamudPluginInterface : IDisposable
 
     private void OnDalamudConfigurationSaved(DalamudConfiguration dalamudConfiguration)
     {
-        this.GeneralChatType = dalamudConfiguration.GeneralChatType;
+        this.GeneralChatType = (XivChatType)dalamudConfiguration.GeneralChatType;
     }
 }
