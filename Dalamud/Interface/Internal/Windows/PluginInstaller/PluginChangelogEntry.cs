@@ -1,7 +1,7 @@
 ﻿using System;
 
+using CheapLoc;
 using Dalamud.Plugin.Internal.Types;
-using Dalamud.Utility;
 
 namespace Dalamud.Interface.Internal.Windows.PluginInstaller;
 
@@ -14,16 +14,15 @@ internal class PluginChangelogEntry : IChangelogEntry
     /// Initializes a new instance of the <see cref="PluginChangelogEntry"/> class.
     /// </summary>
     /// <param name="plugin">The plugin manifest.</param>
-    public PluginChangelogEntry(LocalPlugin plugin)
+    /// <param name="history">The changelog history entry.</param>
+    public PluginChangelogEntry(LocalPlugin plugin, DalamudChangelogManager.PluginHistory.PluginVersion history)
     {
         this.Plugin = plugin;
 
-        if (plugin.Manifest.Changelog.IsNullOrEmpty())
-            throw new ArgumentException("Manifest has no changelog.");
-
-        var version = plugin.Manifest.EffectiveVersion;
-
-        this.Version = version!.ToString();
+        this.Version = history.Version;
+        this.Text = history.Changelog ?? Loc.Localize("ChangelogNoText", "No changelog for this version.");
+        this.Author = history.PublishedBy;
+        this.Date = history.PublishedAt;
     }
 
     /// <summary>
@@ -35,11 +34,14 @@ internal class PluginChangelogEntry : IChangelogEntry
     public string Title => this.Plugin.Manifest.Name;
 
     /// <inheritdoc/>
-    public string Version { get; init; }
+    public string Version { get; private set; }
 
     /// <inheritdoc/>
-    public string Text => this.Plugin.Manifest.Changelog!;
+    public string Text { get; private set; }
 
     /// <inheritdoc/>
-    public DateTime Date => DateTimeOffset.FromUnixTimeSeconds(this.Plugin.Manifest.LastUpdate).DateTime;
+    public string? Author { get; private set; }
+
+    /// <inheritdoc/>
+    public DateTime Date { get; private set; }
 }

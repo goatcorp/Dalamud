@@ -42,5 +42,8 @@ internal class DalamudChangelogEntry : IChangelogEntry
     public string Text { get; init; }
 
     /// <inheritdoc/>
+    public string? Author { get; private set; } = null;
+
+    /// <inheritdoc/>
     public DateTime Date => this.changelog.Date;
 }

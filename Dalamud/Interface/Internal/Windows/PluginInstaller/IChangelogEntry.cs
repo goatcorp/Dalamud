@@ -23,6 +23,11 @@ internal interface IChangelogEntry
     string Text { get; }
 
     /// <summary>
+    /// Gets the author of the changelog.
+    /// </summary>
+    string? Author { get; }
+
+    /// <summary>
     /// Gets the date of the entry.
     /// </summary>
     DateTime Date { get; }

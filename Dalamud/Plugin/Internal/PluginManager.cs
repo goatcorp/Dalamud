@@ -1299,6 +1299,35 @@ Thanks and have fun!";
         return this.bannedPlugins.LastOrDefault(ban => ban.Name == manifest.InternalName).Reason;
     }
 
+    /// <summary>
+    /// Get the plugin that called this method by walking the stack,
+    /// or null, if it cannot be determined.
+    /// At the time, this is naive and shouldn't be used for security-critical checks.
+    /// </summary>
+    /// <returns>The calling plugin, or null.</returns>
+    public LocalPlugin? FindCallingPlugin()
+    {
+        var trace = new StackTrace();
+        foreach (var frame in trace.GetFrames())
+        {
+            var declaringType = frame.GetMethod()?.DeclaringType;
+            if (declaringType == null)
+                continue;
+
+            lock (this.pluginListLock)
+            {
+                foreach (var plugin in this.InstalledPlugins)
+                {
+                    if (plugin.AssemblyName != null &&
+                        plugin.AssemblyName.FullName == declaringType.Assembly.GetName().FullName)
+                        return plugin;
+                }
+            }
+        }
+
+        return null;
+    }
+
     private void DetectAvailablePluginUpdates()
     {
         var updatablePlugins = new List<AvailablePluginUpdate>();
