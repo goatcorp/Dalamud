@@ -329,8 +329,8 @@ internal class NetworkHandlers : IDisposable, IServiceType
     private IDisposable HandleMarketBoardPurchaseHandler()
     {
         return this.OnMarketBoardPurchaseHandler()
+                   .Zip(this.OnMarketBoardPurchase())
                    .Where(this.ShouldUpload)
-                   .Zip(this.OnMarketBoardPurchase().Where(this.ShouldUpload))
                    .Subscribe(
                        data =>
                        {
