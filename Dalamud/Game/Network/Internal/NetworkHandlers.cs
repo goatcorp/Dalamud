@@ -36,13 +36,10 @@ internal class NetworkHandlers : IDisposable, IServiceType
     private readonly IDisposable handleMarketBoardHistory;
     private readonly IDisposable handleMarketTaxRates;
     private readonly IDisposable handleMarketBoardPurchaseHandler;
-    private readonly IDisposable handleMarketBoardPurchase;
     private readonly IDisposable handleCfPop;
 
     [ServiceManager.ServiceDependency]
     private readonly DalamudConfiguration configuration = Service<DalamudConfiguration>.Get();
-
-    private MarketBoardPurchaseHandler? marketBoardPurchaseHandler;
 
     private bool disposing;
 
@@ -60,7 +57,6 @@ internal class NetworkHandlers : IDisposable, IServiceType
         this.handleMarketBoardHistory = this.HandleMarketBoardHistory();
         this.handleMarketTaxRates = this.HandleMarketTaxRates();
         this.handleMarketBoardPurchaseHandler = this.HandleMarketBoardPurchaseHandler();
-        this.handleMarketBoardPurchase = this.HandleMarketBoardPurchase();
         this.handleCfPop = this.HandleCfPop();
 
         gameNetwork.NetworkMessage += this.ObserveNetworkMessage;
@@ -94,7 +90,6 @@ internal class NetworkHandlers : IDisposable, IServiceType
         this.handleMarketBoardHistory.Dispose();
         this.handleMarketTaxRates.Dispose();
         this.handleMarketBoardPurchaseHandler.Dispose();
-        this.handleMarketBoardPurchase.Dispose();
         this.handleCfPop.Dispose();
     }
 
@@ -334,42 +329,31 @@ internal class NetworkHandlers : IDisposable, IServiceType
     private IDisposable HandleMarketBoardPurchaseHandler()
     {
         return this.OnMarketBoardPurchaseHandler()
-                   .Where(_ => this.configuration.IsMbCollect)
+                   .Where(this.ShouldUpload)
+                   .Zip(this.OnMarketBoardPurchase().Where(this.ShouldUpload))
                    .Subscribe(
-                       handler => { this.marketBoardPurchaseHandler = handler; },
-                       ex => Log.Error(ex, "Failed to handle Market Board purchase handler event"));
-    }
-
-    private IDisposable HandleMarketBoardPurchase()
-    {
-        return this.OnMarketBoardPurchase()
-                   .Where(_ => this.configuration.IsMbCollect)
-                   .Subscribe(
-                       purchase =>
+                       data =>
                        {
-                           if (this.marketBoardPurchaseHandler == null)
-                               return;
+                           var (handler, purchase) = data;
 
-                           var sameQty = purchase.ItemQuantity == this.marketBoardPurchaseHandler.ItemQuantity;
-                           var itemMatch = purchase.CatalogId == this.marketBoardPurchaseHandler.CatalogId;
-                           var itemMatchHq = purchase.CatalogId == this.marketBoardPurchaseHandler.CatalogId + 1_000_000;
+                           var sameQty = purchase.ItemQuantity == handler.ItemQuantity;
+                           var itemMatch = purchase.CatalogId == handler.CatalogId;
+                           var itemMatchHq = purchase.CatalogId == handler.CatalogId + 1_000_000;
 
                            // Transaction succeeded
                            if (sameQty && (itemMatch || itemMatchHq))
                            {
                                Log.Verbose(
-                                   $"Bought {purchase.ItemQuantity}x {this.marketBoardPurchaseHandler.CatalogId} for {this.marketBoardPurchaseHandler.PricePerUnit * purchase.ItemQuantity} gils, listing id is {this.marketBoardPurchaseHandler.ListingId}");
-
-                               var handler =
-                                   this.marketBoardPurchaseHandler; // Capture the object so that we don't pass in a null one when the task starts.
-
+                                   "Bought {PurchaseItemQuantity}x {HandlerCatalogId} for {HandlerPricePerUnit} gils, listing id is {HandlerListingId}",
+                                   purchase.ItemQuantity,
+                                   handler.CatalogId,
+                                   handler.PricePerUnit * purchase.ItemQuantity,
+                                   handler.ListingId);
                                Task.Run(() => this.uploader.UploadPurchase(handler))
                                    .ContinueWith(
-                                       task => Log.Error(task.Exception, "Market Board purchase data upload failed."),
+                                       task => Log.Error(task.Exception, "Market Board purchase data upload failed"),
                                        TaskContinuationOptions.OnlyOnFaulted);
                            }
-
-                           this.marketBoardPurchaseHandler = null;
                        },
                        ex => Log.Error(ex, "Failed to handle Market Board purchase event"));
     }
