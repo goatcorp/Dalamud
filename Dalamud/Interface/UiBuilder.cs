@@ -26,6 +26,7 @@ namespace Dalamud.Interface;
 public sealed class UiBuilder : IDisposable
 {
     private readonly Stopwatch stopwatch;
+    private readonly HitchDetector hitchDetector;
     private readonly string namespaceName;
     private readonly InterfaceManager interfaceManager = Service<InterfaceManager>.Get();
     private readonly GameFontManager gameFontManager = Service<GameFontManager>.Get();
@@ -41,6 +42,7 @@ public sealed class UiBuilder : IDisposable
     internal UiBuilder(string namespaceName)
     {
         this.stopwatch = new Stopwatch();
+        this.hitchDetector = new HitchDetector($"UiBuilder({namespaceName})", 15.0f);
         this.namespaceName = namespaceName;
 
         this.interfaceManager.Draw += this.OnDraw;
@@ -415,6 +417,8 @@ public sealed class UiBuilder : IDisposable
 
     private void OnDraw()
     {
+        this.hitchDetector.Start();
+
         var configuration = Service<DalamudConfiguration>.Get();
         var gameGui = Service<GameGui>.GetNullable();
         if (gameGui == null)
@@ -501,6 +505,8 @@ public sealed class UiBuilder : IDisposable
         }
 
         ImGui.PopID();
+
+        this.hitchDetector.Stop();
     }
 
     private void OnBuildFonts()
