@@ -5,6 +5,7 @@ using System.Runtime.InteropServices;
 using Dalamud.Hooking;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
+using Dalamud.Utility;
 using Serilog;
 
 namespace Dalamud.Game.Network;
@@ -20,7 +21,9 @@ public sealed class GameNetwork : IDisposable, IServiceType
     private readonly GameNetworkAddressResolver address;
     private readonly Hook<ProcessZonePacketDownDelegate> processZonePacketDownHook;
     private readonly Hook<ProcessZonePacketUpDelegate> processZonePacketUpHook;
-    private readonly Queue<byte[]> zoneInjectQueue = new();
+
+    private readonly HitchDetector hitchDetectorUp = new("GameNetworkUp");
+    private readonly HitchDetector hitchDetectorDown = new("GameNetworkDown");
 
     private IntPtr baseAddress;
 
@@ -68,27 +71,6 @@ public sealed class GameNetwork : IDisposable, IServiceType
         this.processZonePacketUpHook.Dispose();
     }
 
-    /// <summary>
-    /// Process a chat queue.
-    /// </summary>
-    internal void UpdateQueue()
-    {
-        while (this.zoneInjectQueue.Count > 0)
-        {
-            var packetData = this.zoneInjectQueue.Dequeue();
-
-            var unmanagedPacketData = Marshal.AllocHGlobal(packetData.Length);
-            Marshal.Copy(packetData, 0, unmanagedPacketData, packetData.Length);
-
-            if (this.baseAddress != IntPtr.Zero)
-            {
-                this.processZonePacketDownHook.Original(this.baseAddress, 0, unmanagedPacketData);
-            }
-
-            Marshal.FreeHGlobal(unmanagedPacketData);
-        }
-    }
-
     [ServiceManager.CallWhenServicesReady]
     private void ContinueConstruction()
     {
@@ -99,6 +81,8 @@ public sealed class GameNetwork : IDisposable, IServiceType
     private void ProcessZonePacketDownDetour(IntPtr a, uint targetId, IntPtr dataPtr)
     {
         this.baseAddress = a;
+
+        this.hitchDetectorDown.Start();
 
         // Go back 0x10 to get back to the start of the packet header
         dataPtr -= 0x10;
@@ -128,10 +112,14 @@ public sealed class GameNetwork : IDisposable, IServiceType
 
             this.processZonePacketDownHook.Original(a, targetId, dataPtr + 0x10);
         }
+
+        this.hitchDetectorDown.Stop();
     }
 
     private byte ProcessZonePacketUpDetour(IntPtr a1, IntPtr dataPtr, IntPtr a3, byte a4)
     {
+        this.hitchDetectorUp.Start();
+
         try
         {
             // Call events
@@ -155,27 +143,8 @@ public sealed class GameNetwork : IDisposable, IServiceType
             Log.Error(ex, "Exception on ProcessZonePacketUp hook. Header: " + header);
         }
 
+        this.hitchDetectorUp.Stop();
+
         return this.processZonePacketUpHook.Original(a1, dataPtr, a3, a4);
     }
-
-    // private void InjectZoneProtoPacket(byte[] data)
-    // {
-    //     this.zoneInjectQueue.Enqueue(data);
-    // }
-
-    // private void InjectActorControl(short cat, int param1)
-    // {
-    //     var packetData = new byte[]
-    //     {
-    //         0x14, 0x00, 0x8D, 0x00, 0x00, 0x00, 0x0E, 0x00, 0x17, 0x7C, 0xC5, 0x5D, 0x00, 0x00, 0x00, 0x00,
-    //         0x05, 0x00, 0x48, 0xB2, 0x0C, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    //         0x00, 0x00, 0x00, 0x00, 0x43, 0x7F, 0x00, 0x00,
-    //     };
-    //
-    //     BitConverter.GetBytes((short)cat).CopyTo(packetData, 0x10);
-    //
-    //     BitConverter.GetBytes((uint)param1).CopyTo(packetData, 0x14);
-    //
-    //     this.InjectZoneProtoPacket(packetData);
-    // }
 }
