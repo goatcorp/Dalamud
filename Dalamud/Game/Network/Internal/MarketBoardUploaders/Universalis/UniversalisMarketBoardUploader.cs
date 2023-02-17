@@ -41,12 +41,13 @@ internal class UniversalisMarketBoardUploader : IMarketBoardUploader
 
         // ====================================================================================
 
-        var listingsUploadObject = new UniversalisItemListingsUploadRequest
+        var uploadObject = new UniversalisItemUploadRequest
         {
             WorldId = clientState.LocalPlayer?.CurrentWorld.Id ?? 0,
             UploaderId = uploader.ToString(),
             ItemId = request.CatalogId,
             Listings = new List<UniversalisItemListingsEntry>(),
+            Sales = new List<UniversalisHistoryEntry>(),
         };
 
         foreach (var marketBoardItemListing in request.Listings)
@@ -77,27 +78,12 @@ internal class UniversalisMarketBoardUploader : IMarketBoardUploader
                 });
             }
 
-            listingsUploadObject.Listings.Add(universalisListing);
+            uploadObject.Listings.Add(universalisListing);
         }
-
-        var listingPath = "/upload";
-        var listingUpload = JsonConvert.SerializeObject(listingsUploadObject);
-        Log.Verbose("{ListingPath}: {ListingUpload}", listingPath, listingUpload);
-        await Util.HttpClient.PostAsync($"{ApiBase}{listingPath}/{ApiKey}", new StringContent(listingUpload, Encoding.UTF8, "application/json"));
-
-        // ====================================================================================
-
-        var historyUploadObject = new UniversalisHistoryUploadRequest
-        {
-            WorldId = clientState.LocalPlayer?.CurrentWorld.Id ?? 0,
-            UploaderId = uploader.ToString(),
-            ItemId = request.CatalogId,
-            Entries = new List<UniversalisHistoryEntry>(),
-        };
 
         foreach (var marketBoardHistoryListing in request.History)
         {
-            historyUploadObject.Entries.Add(new UniversalisHistoryEntry
+            uploadObject.Sales.Add(new UniversalisHistoryEntry
             {
                 BuyerName = marketBoardHistoryListing.BuyerName,
                 Hq = marketBoardHistoryListing.IsHq,
@@ -108,10 +94,10 @@ internal class UniversalisMarketBoardUploader : IMarketBoardUploader
             });
         }
 
-        var historyPath = "/upload";
-        var historyUpload = JsonConvert.SerializeObject(historyUploadObject);
-        Log.Verbose("{HistoryPath}: {HistoryUpload}", historyPath, historyUpload);
-        await Util.HttpClient.PostAsync($"{ApiBase}{historyPath}/{ApiKey}", new StringContent(historyUpload, Encoding.UTF8, "application/json"));
+        var uploadPath = "/upload";
+        var uploadData = JsonConvert.SerializeObject(uploadObject);
+        Log.Verbose("{ListingPath}: {ListingUpload}", uploadPath, uploadData);
+        await Util.HttpClient.PostAsync($"{ApiBase}{uploadPath}/{ApiKey}", new StringContent(uploadData, Encoding.UTF8, "application/json"));
 
         // ====================================================================================
 

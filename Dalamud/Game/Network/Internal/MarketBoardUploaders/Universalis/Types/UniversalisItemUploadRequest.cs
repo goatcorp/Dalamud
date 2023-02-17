@@ -7,7 +7,7 @@ namespace Dalamud.Game.Network.Internal.MarketBoardUploaders.Universalis.Types;
 /// <summary>
 /// A Universalis API structure.
 /// </summary>
-internal class UniversalisHistoryUploadRequest
+internal class UniversalisItemUploadRequest
 {
     /// <summary>
     /// Gets or sets the world ID.
@@ -22,10 +22,16 @@ internal class UniversalisHistoryUploadRequest
     public uint ItemId { get; set; }
 
     /// <summary>
+    /// Gets or sets the list of available items.
+    /// </summary>
+    [JsonProperty("listings")]
+    public List<UniversalisItemListingsEntry> Listings { get; set; }
+
+    /// <summary>
     /// Gets or sets the list of available entries.
     /// </summary>
     [JsonProperty("entries")]
-    public List<UniversalisHistoryEntry> Entries { get; set; }
+    public List<UniversalisHistoryEntry> Sales { get; set; }
 
     /// <summary>
     /// Gets or sets the uploader ID.
