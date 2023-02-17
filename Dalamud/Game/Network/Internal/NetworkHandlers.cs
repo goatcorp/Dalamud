@@ -2,8 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
-using System.Reactive;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Runtime.InteropServices;
@@ -29,21 +27,15 @@ internal class NetworkHandlers : IDisposable, IServiceType
 {
     private readonly IMarketBoardUploader uploader;
 
-    private readonly List<MarketBoardItemRequest> marketBoardRequests;
     private readonly ISubject<NetworkMessage> messages;
 
     private readonly IDisposable handleMarketBoardItemRequest;
-    private readonly IDisposable handleMarketBoardOfferings;
-    private readonly IDisposable handleMarketBoardHistory;
     private readonly IDisposable handleMarketTaxRates;
     private readonly IDisposable handleMarketBoardPurchaseHandler;
-    private readonly IDisposable handleMarketBoardPurchase;
     private readonly IDisposable handleCfPop;
 
     [ServiceManager.ServiceDependency]
     private readonly DalamudConfiguration configuration = Service<DalamudConfiguration>.Get();
-
-    private MarketBoardPurchaseHandler? marketBoardPurchaseHandler;
 
     private bool disposing;
 
@@ -51,17 +43,13 @@ internal class NetworkHandlers : IDisposable, IServiceType
     private NetworkHandlers(GameNetwork gameNetwork)
     {
         this.uploader = new UniversalisMarketBoardUploader();
-        this.marketBoardRequests = new List<MarketBoardItemRequest>();
         this.CfPop = (_, _) => { };
 
         this.messages = new Subject<NetworkMessage>();
 
         this.handleMarketBoardItemRequest = this.HandleMarketBoardItemRequest();
-        this.handleMarketBoardOfferings = this.HandleMarketBoardOfferings();
-        this.handleMarketBoardHistory = this.HandleMarketBoardHistory();
         this.handleMarketTaxRates = this.HandleMarketTaxRates();
         this.handleMarketBoardPurchaseHandler = this.HandleMarketBoardPurchaseHandler();
-        this.handleMarketBoardPurchase = this.HandleMarketBoardPurchase();
         this.handleCfPop = this.HandleCfPop();
 
         gameNetwork.NetworkMessage += this.ObserveNetworkMessage;
@@ -91,11 +79,8 @@ internal class NetworkHandlers : IDisposable, IServiceType
             return;
 
         this.handleMarketBoardItemRequest.Dispose();
-        this.handleMarketBoardOfferings.Dispose();
-        this.handleMarketBoardHistory.Dispose();
         this.handleMarketTaxRates.Dispose();
         this.handleMarketBoardPurchaseHandler.Dispose();
-        this.handleMarketBoardPurchase.Dispose();
         this.handleCfPop.Dispose();
     }
 
@@ -119,7 +104,7 @@ internal class NetworkHandlers : IDisposable, IServiceType
         return this.messages.Where(message => message.DataManager?.IsDataReady == true);
     }
 
-    private IObservable<MarketBoardItemRequest> OnMarketBoardItemRequest()
+    private IObservable<MarketBoardItemRequest> OnMarketBoardItemRequestStart()
     {
         return this.OnNetworkMessage()
                    .Where(message => message.Direction == NetworkMessageDirection.ZoneDown)
@@ -182,244 +167,223 @@ internal class NetworkHandlers : IDisposable, IServiceType
                    .Where(message => message.Opcode == message.DataManager?.ServerOpCodes["CfNotifyPop"]);
     }
 
+    private IObservable<List<MarketBoardCurrentOfferings.MarketBoardItemListing>> OnMarketBoardListingsBatch(
+        IObservable<MarketBoardItemRequest> start)
+    {
+        var startShared = start.Publish().RefCount();
+        var offeringsObservable = this.OnMarketBoardOfferings().Publish().RefCount();
+
+        void LogStartObserved(MarketBoardItemRequest request)
+        {
+            Log.Verbose(
+                "Observed start of request for item#{CatalogId} with {NumListings} expected listings",
+                request.CatalogId,
+                request.AmountToArrive);
+        }
+
+        void LogEndObserved(MarketBoardCurrentOfferings offerings)
+        {
+            Log.Verbose(
+                "Observed end of request {RequestId}",
+                offerings.RequestId);
+        }
+
+        void LogOfferingsObserved(MarketBoardCurrentOfferings offerings)
+        {
+            Log.Verbose(
+                "Observed element of request {RequestId} with {NumListings} listings",
+                offerings.RequestId,
+                offerings.ItemListings.Count);
+        }
+
+        IObservable<MarketBoardCurrentOfferings> UntilBatchEnd(MarketBoardItemRequest request)
+        {
+            var totalPackets = Convert.ToInt32(Math.Ceiling((double)request.AmountToArrive / 10));
+            return offeringsObservable
+                   .Skip(totalPackets - 1)
+                   .Do(LogEndObserved);
+        }
+
+        // When a start packet is observed, begin observing a window of listings packets
+        // according to the count described by the start packet. Aggregate the listings
+        // packets, and then flatten them to the listings themselves.
+        return offeringsObservable
+               .Do(LogOfferingsObserved)
+               .Window(startShared.Where(request => request.Ok).Do(LogStartObserved), UntilBatchEnd)
+               .SelectMany(
+                   o => o.Aggregate(
+                       new List<MarketBoardCurrentOfferings.MarketBoardItemListing>(),
+                       (agg, next) =>
+                       {
+                           agg.AddRange(next.ItemListings);
+                           return agg;
+                       }));
+    }
+
+    private IObservable<List<MarketBoardHistory.MarketBoardHistoryListing>> OnMarketBoardSalesBatch()
+    {
+        return this.OnMarketBoardHistory().Select(history => history.HistoryListings);
+    }
+
     private IDisposable HandleMarketBoardItemRequest()
     {
-        return this.OnMarketBoardItemRequest()
-                   .Where(_ => this.configuration.IsMbCollect)
-                   .Subscribe(request =>
-                   {
-                       this.marketBoardRequests.Add(request);
-                       Log.Verbose($"NEW MB REQUEST START: item#{request.CatalogId} amount#{request.AmountToArrive}");
-                   });
+        var startObservable = this.OnMarketBoardItemRequestStart();
+        return Observable.When(
+                             startObservable
+                                 .And(this.OnMarketBoardSalesBatch())
+                                 .And(this.OnMarketBoardListingsBatch(startObservable))
+                                 .Then((request, sales, listings) => (request, sales, listings)))
+                         .Where(this.ShouldUpload)
+                         .Subscribe(
+                             data =>
+                             {
+                                 var (request, sales, listings) = data;
+                                 this.UploadMarketBoardData(request, sales, listings);
+                             },
+                             ex => Log.Error(ex, "Failed to handle Market Board item request event"));
     }
 
-    private IDisposable HandleMarketBoardOfferings()
+    private void UploadMarketBoardData(
+        MarketBoardItemRequest request,
+        ICollection<MarketBoardHistory.MarketBoardHistoryListing> sales,
+        ICollection<MarketBoardCurrentOfferings.MarketBoardItemListing> listings)
     {
-        return this.OnMarketBoardOfferings()
-                   .Where(_ => this.configuration.IsMbCollect)
-                   .Subscribe(listing =>
-                   {
-                       var request =
-                           this.marketBoardRequests.LastOrDefault(
-                               r => r.CatalogId == listing.ItemListings[0].CatalogId && !r.IsDone);
+        Log.Verbose(
+            "Market Board request resolved, starting upload: item#{CatalogId} listings#{ListingsObserved} sales#{SalesObserved}",
+            request.CatalogId,
+            listings.Count,
+            sales.Count);
 
-                       if (request == default)
-                       {
-                           Log.Error(
-                               $"Market Board data arrived without a corresponding request: item#{listing.ItemListings[0].CatalogId}");
-                           return;
-                       }
+        request.Listings.AddRange(listings);
+        request.History.AddRange(sales);
 
-                       if (request.Listings.Count + listing.ItemListings.Count > request.AmountToArrive)
-                       {
-                           Log.Error(
-                               $"Too many Market Board listings received for request: {request.Listings.Count + listing.ItemListings.Count} > {request.AmountToArrive} item#{listing.ItemListings[0].CatalogId}");
-                           return;
-                       }
-
-                       if (request.ListingsRequestId != -1 && request.ListingsRequestId != listing.RequestId)
-                       {
-                           Log.Error(
-                               $"Non-matching RequestIds for Market Board data request: {request.ListingsRequestId}, {listing.RequestId}");
-                           return;
-                       }
-
-                       if (request.ListingsRequestId == -1 && request.Listings.Count > 0)
-                       {
-                           Log.Error(
-                               $"Market Board data request sequence break: {request.ListingsRequestId}, {request.Listings.Count}");
-                           return;
-                       }
-
-                       if (request.ListingsRequestId == -1)
-                       {
-                           request.ListingsRequestId = listing.RequestId;
-                           Log.Verbose($"First Market Board packet in sequence: {listing.RequestId}");
-                       }
-
-                       request.Listings.AddRange(listing.ItemListings);
-
-                       Log.Verbose(
-                           "Added {0} ItemListings to request#{1}, now {2}/{3}, item#{4}",
-                           listing.ItemListings.Count,
-                           request.ListingsRequestId,
-                           request.Listings.Count,
-                           request.AmountToArrive,
-                           request.CatalogId);
-
-                       if (request.IsDone)
-                       {
-                           Log.Verbose(
-                               "Market Board request finished, starting upload: request#{0} item#{1} amount#{2}",
-                               request.ListingsRequestId,
-                               request.CatalogId,
-                               request.AmountToArrive);
-
-                           Task.Run(() => this.uploader.Upload(request))
-                               .ContinueWith(
-                                   task => Log.Error(task.Exception, "Market Board offerings data upload failed."),
-                                   TaskContinuationOptions.OnlyOnFaulted);
-                       }
-                   });
-    }
-
-    private IDisposable HandleMarketBoardHistory()
-    {
-        return this.OnMarketBoardHistory()
-                   .Where(_ => this.configuration.IsMbCollect)
-                   .Subscribe(listing =>
-                   {
-                       var request = this.marketBoardRequests.LastOrDefault(r => r.CatalogId == listing.CatalogId);
-
-                       if (request == default)
-                       {
-                           Log.Error(
-                               $"Market Board data arrived without a corresponding request: item#{listing.CatalogId}");
-                           return;
-                       }
-
-                       if (request.ListingsRequestId != -1)
-                       {
-                           Log.Error(
-                               $"Market Board data history sequence break: {request.ListingsRequestId}, {request.Listings.Count}");
-                           return;
-                       }
-
-                       request.History.AddRange(listing.HistoryListings);
-
-                       Log.Verbose("Added history for item#{0}", listing.CatalogId);
-
-                       if (request.AmountToArrive == 0)
-                       {
-                           Log.Verbose("Request had 0 amount, uploading now");
-
-                           Task.Run(() => this.uploader.Upload(request))
-                               .ContinueWith(
-                                   (task) => Log.Error(task.Exception, "Market Board history data upload failed."),
-                                   TaskContinuationOptions.OnlyOnFaulted);
-                       }
-                   });
+        Task.Run(() => this.uploader.Upload(request))
+            .ContinueWith(
+                task => Log.Error(task.Exception, "Market Board offerings data upload failed"),
+                TaskContinuationOptions.OnlyOnFaulted);
     }
 
     private IDisposable HandleMarketTaxRates()
     {
         return this.OnMarketTaxRates()
-                   .Where(_ => this.configuration.IsMbCollect)
-                   .Subscribe(taxes =>
-                   {
-                       Log.Verbose(
-                           "MarketTaxRates: limsa#{0} grid#{1} uldah#{2} ish#{3} kugane#{4} cr#{5} sh#{6}",
-                           taxes.LimsaLominsaTax,
-                           taxes.GridaniaTax,
-                           taxes.UldahTax,
-                           taxes.IshgardTax,
-                           taxes.KuganeTax,
-                           taxes.CrystariumTax,
-                           taxes.SharlayanTax);
+                   .Where(this.ShouldUpload)
+                   .Subscribe(
+                       taxes =>
+                       {
+                           Log.Verbose(
+                               "MarketTaxRates: limsa#{0} grid#{1} uldah#{2} ish#{3} kugane#{4} cr#{5} sh#{6}",
+                               taxes.LimsaLominsaTax,
+                               taxes.GridaniaTax,
+                               taxes.UldahTax,
+                               taxes.IshgardTax,
+                               taxes.KuganeTax,
+                               taxes.CrystariumTax,
+                               taxes.SharlayanTax);
 
-                       Task.Run(() => this.uploader.UploadTax(taxes))
-                           .ContinueWith(
-                               task => Log.Error(task.Exception, "Market Board tax data upload failed."),
-                               TaskContinuationOptions.OnlyOnFaulted);
-                   });
+                           Task.Run(() => this.uploader.UploadTax(taxes))
+                               .ContinueWith(
+                                   task => Log.Error(task.Exception, "Market Board tax data upload failed"),
+                                   TaskContinuationOptions.OnlyOnFaulted);
+                       },
+                       ex => Log.Error(ex, "Failed to handle Market Board tax data event"));
     }
 
     private IDisposable HandleMarketBoardPurchaseHandler()
     {
         return this.OnMarketBoardPurchaseHandler()
-                   .Where(_ => this.configuration.IsMbCollect)
-                   .Subscribe(handler => { this.marketBoardPurchaseHandler = handler; });
-    }
-
-    private IDisposable HandleMarketBoardPurchase()
-    {
-        return this.OnMarketBoardPurchase()
-                   .Where(_ => this.configuration.IsMbCollect)
-                   .Subscribe(purchase =>
-                   {
-                       if (this.marketBoardPurchaseHandler == null)
-                           return;
-
-                       var sameQty = purchase.ItemQuantity == this.marketBoardPurchaseHandler.ItemQuantity;
-                       var itemMatch = purchase.CatalogId == this.marketBoardPurchaseHandler.CatalogId;
-                       var itemMatchHq = purchase.CatalogId == this.marketBoardPurchaseHandler.CatalogId + 1_000_000;
-
-                       // Transaction succeeded
-                       if (sameQty && (itemMatch || itemMatchHq))
+                   .Zip(this.OnMarketBoardPurchase())
+                   .Where(this.ShouldUpload)
+                   .Subscribe(
+                       data =>
                        {
-                           Log.Verbose(
-                               $"Bought {purchase.ItemQuantity}x {this.marketBoardPurchaseHandler.CatalogId} for {this.marketBoardPurchaseHandler.PricePerUnit * purchase.ItemQuantity} gils, listing id is {this.marketBoardPurchaseHandler.ListingId}");
+                           var (handler, purchase) = data;
 
-                           var handler =
-                               this.marketBoardPurchaseHandler; // Capture the object so that we don't pass in a null one when the task starts.
+                           var sameQty = purchase.ItemQuantity == handler.ItemQuantity;
+                           var itemMatch = purchase.CatalogId == handler.CatalogId;
+                           var itemMatchHq = purchase.CatalogId == handler.CatalogId + 1_000_000;
 
-                           Task.Run(() => this.uploader.UploadPurchase(handler))
-                               .ContinueWith(
-                                   task => Log.Error(task.Exception, "Market Board purchase data upload failed."),
-                                   TaskContinuationOptions.OnlyOnFaulted);
-                       }
-
-                       this.marketBoardPurchaseHandler = null;
-                   });
+                           // Transaction succeeded
+                           if (sameQty && (itemMatch || itemMatchHq))
+                           {
+                               Log.Verbose(
+                                   "Bought {PurchaseItemQuantity}x {HandlerCatalogId} for {HandlerPricePerUnit} gils, listing id is {HandlerListingId}",
+                                   purchase.ItemQuantity,
+                                   handler.CatalogId,
+                                   handler.PricePerUnit * purchase.ItemQuantity,
+                                   handler.ListingId);
+                               Task.Run(() => this.uploader.UploadPurchase(handler))
+                                   .ContinueWith(
+                                       task => Log.Error(task.Exception, "Market Board purchase data upload failed"),
+                                       TaskContinuationOptions.OnlyOnFaulted);
+                           }
+                       },
+                       ex => Log.Error(ex, "Failed to handle Market Board purchase event"));
     }
 
     private unsafe IDisposable HandleCfPop()
     {
         return this.OnCfNotifyPop()
-                   .Subscribe(message =>
-                   {
-                       using var stream = new UnmanagedMemoryStream((byte*)message.Data.ToPointer(), 64);
-                       using var reader = new BinaryReader(stream);
-
-                       var notifyType = reader.ReadByte();
-                       stream.Position += 0x1B;
-                       var conditionId = reader.ReadUInt16();
-
-                       if (notifyType != 3)
-                           return;
-
-                       var cfConditionSheet = message.DataManager!.GetExcelSheet<ContentFinderCondition>()!;
-                       var cfCondition = cfConditionSheet.GetRow(conditionId);
-
-                       if (cfCondition == null)
+                   .Subscribe(
+                       message =>
                        {
-                           Log.Error($"CFC key {conditionId} not in Lumina data.");
-                           return;
-                       }
+                           using var stream = new UnmanagedMemoryStream((byte*)message.Data.ToPointer(), 64);
+                           using var reader = new BinaryReader(stream);
 
-                       var cfcName = cfCondition.Name.ToString();
-                       if (cfcName.IsNullOrEmpty())
-                       {
-                           cfcName = "Duty Roulette";
-                           cfCondition.Image = 112324;
-                       }
+                           var notifyType = reader.ReadByte();
+                           stream.Position += 0x1B;
+                           var conditionId = reader.ReadUInt16();
 
-                       // Flash window
-                       if (this.configuration.DutyFinderTaskbarFlash && !NativeFunctions.ApplicationIsActivated())
-                       {
-                           var flashInfo = new NativeFunctions.FlashWindowInfo
+                           if (notifyType != 3)
+                               return;
+
+                           var cfConditionSheet = message.DataManager!.GetExcelSheet<ContentFinderCondition>()!;
+                           var cfCondition = cfConditionSheet.GetRow(conditionId);
+
+                           if (cfCondition == null)
                            {
-                               Size = (uint)Marshal.SizeOf<NativeFunctions.FlashWindowInfo>(),
-                               Count = uint.MaxValue,
-                               Timeout = 0,
-                               Flags = NativeFunctions.FlashWindow.All | NativeFunctions.FlashWindow.TimerNoFG,
-                               Hwnd = Process.GetCurrentProcess().MainWindowHandle,
-                           };
-                           NativeFunctions.FlashWindowEx(ref flashInfo);
-                       }
-
-                       Task.Run(() =>
-                       {
-                           if (this.configuration.DutyFinderChatMessage)
-                           {
-                               Service<ChatGui>.GetNullable()?.Print($"Duty pop: {cfcName}");
+                               Log.Error("CFC key {ConditionId} not in Lumina data", conditionId);
+                               return;
                            }
 
-                           this.CfPop.InvokeSafely(this, cfCondition);
-                       }).ContinueWith(
-                           task => Log.Error(task.Exception, "CfPop.Invoke failed."),
-                           TaskContinuationOptions.OnlyOnFaulted);
-                   });
+                           var cfcName = cfCondition.Name.ToString();
+                           if (cfcName.IsNullOrEmpty())
+                           {
+                               cfcName = "Duty Roulette";
+                               cfCondition.Image = 112324;
+                           }
+
+                           // Flash window
+                           if (this.configuration.DutyFinderTaskbarFlash && !NativeFunctions.ApplicationIsActivated())
+                           {
+                               var flashInfo = new NativeFunctions.FlashWindowInfo
+                               {
+                                   Size = (uint)Marshal.SizeOf<NativeFunctions.FlashWindowInfo>(),
+                                   Count = uint.MaxValue,
+                                   Timeout = 0,
+                                   Flags = NativeFunctions.FlashWindow.All | NativeFunctions.FlashWindow.TimerNoFG,
+                                   Hwnd = Process.GetCurrentProcess().MainWindowHandle,
+                               };
+                               NativeFunctions.FlashWindowEx(ref flashInfo);
+                           }
+
+                           Task.Run(() =>
+                           {
+                               if (this.configuration.DutyFinderChatMessage)
+                               {
+                                   Service<ChatGui>.GetNullable()?.Print($"Duty pop: {cfcName}");
+                               }
+
+                               this.CfPop.InvokeSafely(this, cfCondition);
+                           }).ContinueWith(
+                               task => Log.Error(task.Exception, "CfPop.Invoke failed"),
+                               TaskContinuationOptions.OnlyOnFaulted);
+                       },
+                       ex => Log.Error(ex, "Failed to handle Market Board purchase event"));
+    }
+
+    private bool ShouldUpload<T>(T any)
+    {
+        return this.configuration.IsMbCollect;
     }
 
     private class NetworkMessage
