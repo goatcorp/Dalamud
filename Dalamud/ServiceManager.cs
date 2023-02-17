@@ -289,6 +289,14 @@ internal static class ServiceManager
     }
 
     /// <summary>
+    /// Indicates that the class is a service, and will be instantiated automatically on startup.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Class)]
+    public class ScopedService : Service
+    {
+    }
+
+    /// <summary>
     /// Indicates that the method should be called when the services given in the constructor are ready.
     /// </summary>
     [AttributeUsage(AttributeTargets.Method)]

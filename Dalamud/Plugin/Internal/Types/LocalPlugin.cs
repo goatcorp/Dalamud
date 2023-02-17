@@ -11,6 +11,7 @@ using Dalamud.Game.Gui.Dtr;
 using Dalamud.Interface.GameFonts;
 using Dalamud.Interface.Internal;
 using Dalamud.IoC.Internal;
+using Dalamud.Logging;
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Internal.Exceptions;
 using Dalamud.Plugin.Internal.Loader;
@@ -180,9 +181,14 @@ internal class LocalPlugin : IDisposable
     public AssemblyName? AssemblyName { get; private set; }
 
     /// <summary>
-    /// Gets the plugin name, directly from the plugin or if it is not loaded from the manifest.
+    /// Gets the plugin name from the manifest.
     /// </summary>
     public string Name => this.Manifest.Name;
+
+    /// <summary>
+    /// Gets the plugin internal name from the manifest.
+    /// </summary>
+    public string InternalName => this.Manifest.Name;
 
     /// <summary>
     /// Gets an optional reason, if the plugin is banned.
@@ -410,17 +416,17 @@ internal class LocalPlugin : IDisposable
             PluginManager.PluginLocations[this.pluginType.Assembly.FullName] = new PluginPatchData(this.DllFile);
 
             this.DalamudInterface =
-                new DalamudPluginInterface(this.pluginAssembly.GetName().Name!, this.DllFile, reason, this.IsDev, this.Manifest);
+                new DalamudPluginInterface(this, reason);
 
             if (this.Manifest.LoadSync && this.Manifest.LoadRequiredState is 0 or 1)
             {
                 this.instance = await framework.RunOnFrameworkThread(
-                                    () => ioc.CreateAsync(this.pluginType!, this.DalamudInterface!)) as IDalamudPlugin;
+                                    () => ioc.CreateAsync(this.pluginType!, new object[] { this.DalamudInterface! }, new object[] { this })) as IDalamudPlugin;
             }
             else
             {
                 this.instance =
-                    await ioc.CreateAsync(this.pluginType!, this.DalamudInterface!) as IDalamudPlugin;
+                    await ioc.CreateAsync(this.pluginType!, new object[] { this.DalamudInterface! }, new object[] { this }) as IDalamudPlugin;
             }
 
             if (this.instance == null)
@@ -675,6 +681,11 @@ internal class LocalPlugin : IDisposable
 
             return x.PluginMasterUrl == this.Manifest.InstalledFromUrl;
         });
+    }
+
+    public object[] GetPluginScopedIocObjects(object[] scoped)
+    {
+        return scoped;
     }
 
     private static void SetupLoaderConfig(LoaderConfig config)

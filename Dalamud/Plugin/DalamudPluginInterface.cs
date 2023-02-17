@@ -31,33 +31,30 @@ namespace Dalamud.Plugin;
 /// </summary>
 public sealed class DalamudPluginInterface : IDisposable
 {
-    private readonly string pluginName;
+    private readonly LocalPlugin plugin;
     private readonly PluginConfigurations configs;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DalamudPluginInterface"/> class.
     /// Set up the interface and populate all fields needed.
     /// </summary>
-    /// <param name="pluginName">The internal name of the plugin.</param>
-    /// <param name="assemblyLocation">Location of the assembly.</param>
+    /// <param name="plugin">The plugin this interface belongs to.</param>
     /// <param name="reason">The reason the plugin was loaded.</param>
-    /// <param name="isDev">A value indicating whether this is a dev plugin.</param>
-    /// <param name="manifest">The local manifest for this plugin.</param>
-    internal DalamudPluginInterface(string pluginName, FileInfo assemblyLocation, PluginLoadReason reason, bool isDev, LocalPluginManifest manifest)
+    internal DalamudPluginInterface(
+        LocalPlugin plugin,
+        PluginLoadReason reason)
     {
+        this.plugin = plugin;
         var configuration = Service<DalamudConfiguration>.Get();
         var dataManager = Service<DataManager>.Get();
         var localization = Service<Localization>.Get();
 
-        this.UiBuilder = new UiBuilder(pluginName);
+        this.UiBuilder = new UiBuilder(plugin.Name);
 
-        this.pluginName = pluginName;
-        this.AssemblyLocation = assemblyLocation;
         this.configs = Service<PluginManager>.Get().PluginConfigs;
         this.Reason = reason;
-        this.IsDev = isDev;
-        this.SourceRepository = isDev ? LocalPluginManifest.FlagDevPlugin : manifest.InstalledFromUrl;
-        this.IsTesting = manifest.Testing;
+        this.SourceRepository = this.IsDev ? LocalPluginManifest.FlagDevPlugin : plugin.Manifest.InstalledFromUrl;
+        this.IsTesting = plugin.IsTesting;
 
         this.LoadTime = DateTime.Now;
         this.LoadTimeUTC = DateTime.UtcNow;
@@ -109,7 +106,7 @@ public sealed class DalamudPluginInterface : IDisposable
     /// <summary>
     /// Gets a value indicating whether this is a dev plugin.
     /// </summary>
-    public bool IsDev { get; }
+    public bool IsDev => this.plugin.IsDev;
 
     /// <summary>
     /// Gets a value indicating whether this is a testing release of a plugin.
@@ -142,7 +139,7 @@ public sealed class DalamudPluginInterface : IDisposable
     /// <summary>
     /// Gets the location of your plugin assembly.
     /// </summary>
-    public FileInfo AssemblyLocation { get; }
+    public FileInfo AssemblyLocation => this.plugin.DllFile;
 
     /// <summary>
     /// Gets the directory your plugin configurations are stored in.
@@ -152,7 +149,7 @@ public sealed class DalamudPluginInterface : IDisposable
     /// <summary>
     /// Gets the config file of your plugin.
     /// </summary>
-    public FileInfo ConfigFile => this.configs.GetConfigFile(this.pluginName);
+    public FileInfo ConfigFile => this.configs.GetConfigFile(this.plugin.InternalName);
 
     /// <summary>
     /// Gets the <see cref="UiBuilder"/> instance which allows you to draw UI into the game via ImGui draw calls.
@@ -308,7 +305,7 @@ public sealed class DalamudPluginInterface : IDisposable
         if (currentConfig == null)
             return;
 
-        this.configs.Save(currentConfig, this.pluginName);
+        this.configs.Save(currentConfig, this.plugin.InternalName);
     }
 
     /// <summary>
@@ -330,29 +327,31 @@ public sealed class DalamudPluginInterface : IDisposable
             {
                 var mi = this.configs.GetType().GetMethod("LoadForType");
                 var fn = mi.MakeGenericMethod(type);
-                return (IPluginConfiguration)fn.Invoke(this.configs, new object[] { this.pluginName });
+                return (IPluginConfiguration)fn.Invoke(this.configs, new object[] { this.plugin.InternalName });
             }
         }
 
         // this shouldn't be a thing, I think, but just in case
-        return this.configs.Load(this.pluginName);
+        return this.configs.Load(this.plugin.InternalName);
     }
 
     /// <summary>
     /// Get the config directory.
     /// </summary>
     /// <returns>directory with path of AppData/XIVLauncher/pluginConfig/PluginInternalName.</returns>
-    public string GetPluginConfigDirectory() => this.configs.GetDirectory(this.pluginName);
+    public string GetPluginConfigDirectory() => this.configs.GetDirectory(this.plugin.InternalName);
 
     /// <summary>
     /// Get the loc directory.
     /// </summary>
     /// <returns>directory with path of AppData/XIVLauncher/pluginConfig/PluginInternalName/loc.</returns>
-    public string GetPluginLocDirectory() => this.configs.GetDirectory(Path.Combine(this.pluginName, "loc"));
+    public string GetPluginLocDirectory() => this.configs.GetDirectory(Path.Combine(this.plugin.InternalName, "loc"));
 
     #endregion
 
     #region Chat Links
+
+    // TODO API9: Move to chatgui, don't allow passing own commandId
 
     /// <summary>
     /// Register a chat link handler.
@@ -362,7 +361,7 @@ public sealed class DalamudPluginInterface : IDisposable
     /// <returns>Returns an SeString payload for the link.</returns>
     public DalamudLinkPayload AddChatLinkHandler(uint commandId, Action<uint, SeString> commandAction)
     {
-        return Service<ChatGui>.Get().AddChatLinkHandler(this.pluginName, commandId, commandAction);
+        return Service<ChatGui>.Get().AddChatLinkHandler(this.plugin.InternalName, commandId, commandAction);
     }
 
     /// <summary>
@@ -371,7 +370,7 @@ public sealed class DalamudPluginInterface : IDisposable
     /// <param name="commandId">The ID of the command.</param>
     public void RemoveChatLinkHandler(uint commandId)
     {
-        Service<ChatGui>.Get().RemoveChatLinkHandler(this.pluginName, commandId);
+        Service<ChatGui>.Get().RemoveChatLinkHandler(this.plugin.InternalName, commandId);
     }
 
     /// <summary>
@@ -379,7 +378,7 @@ public sealed class DalamudPluginInterface : IDisposable
     /// </summary>
     public void RemoveChatLinkHandler()
     {
-        Service<ChatGui>.Get().RemoveChatLinkHandler(this.pluginName);
+        Service<ChatGui>.Get().RemoveChatLinkHandler(this.plugin.InternalName);
     }
     #endregion
 
@@ -399,7 +398,7 @@ public sealed class DalamudPluginInterface : IDisposable
         realScopedObjects[0] = this;
         Array.Copy(scopedObjects, 0, realScopedObjects, 1, scopedObjects.Length);
 
-        return (T)svcContainer.CreateAsync(typeof(T), realScopedObjects).GetAwaiter().GetResult();
+        return (T)svcContainer.CreateAsync(typeof(T), realScopedObjects, new object[] { this }).GetAwaiter().GetResult();
     }
 
     /// <summary>
@@ -416,7 +415,7 @@ public sealed class DalamudPluginInterface : IDisposable
         realScopedObjects[0] = this;
         Array.Copy(scopedObjects, 0, realScopedObjects, 1, scopedObjects.Length);
 
-        return svcContainer.InjectProperties(instance, realScopedObjects).GetAwaiter().GetResult();
+        return svcContainer.InjectProperties(instance, realScopedObjects, new object[] { this }).GetAwaiter().GetResult();
     }
 
     #endregion
@@ -427,7 +426,7 @@ public sealed class DalamudPluginInterface : IDisposable
     void IDisposable.Dispose()
     {
         this.UiBuilder.ExplicitDispose();
-        Service<ChatGui>.Get().RemoveChatLinkHandler(this.pluginName);
+        Service<ChatGui>.Get().RemoveChatLinkHandler(this.plugin.InternalName);
         Service<Localization>.Get().LocalizationChanged -= this.OnLocalizationChanged;
         Service<DalamudConfiguration>.Get().DalamudConfigurationSaved -= this.OnDalamudConfigurationSaved;
     }

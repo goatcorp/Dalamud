@@ -6,6 +6,7 @@ using System.Runtime.Serialization;
 using System.Threading.Tasks;
 
 using Dalamud.Logging.Internal;
+using Dalamud.Plugin.Internal.Types;
 
 namespace Dalamud.IoC.Internal;
 
@@ -46,9 +47,19 @@ internal class ServiceContainer : IServiceProvider, IServiceType
     /// <param name="objectType">The type of object to create.</param>
     /// <param name="scopedObjects">Scoped objects to be included in the constructor.</param>
     /// <returns>The created object.</returns>
-    public async Task<object?> CreateAsync(Type objectType, params object[] scopedObjects)
+    public Task<object?> CreateAsync(Type objectType, params object[] scopedObjects)
+        => this.CreateAsync(objectType, scopedObjects, Array.Empty<object>());
+
+    /// <summary>
+    /// Create an object.
+    /// </summary>
+    /// <param name="objectType">The type of object to create.</param>
+    /// <param name="publicScopes">Scoped objects to be included in the constructor.</param>
+    /// <param name="privateScopes">Scoped objects to be passed down to scoped services.</param>
+    /// <returns>The created object.</returns>
+    public async Task<object?> CreateAsync(Type objectType, object[] publicScopes, object[] privateScopes)
     {
-        var ctor = this.FindApplicableCtor(objectType, scopedObjects);
+        var ctor = this.FindApplicableCtor(objectType, publicScopes);
         if (ctor == null)
         {
             Log.Error("Failed to create {TypeName}, an eligible ctor with satisfiable services could not be found", objectType.FullName!);
@@ -76,11 +87,16 @@ internal class ServiceContainer : IServiceProvider, IServiceType
                 parameters
                     .Select(async p =>
                     {
-                        var service = await this.GetService(p.parameterType, scopedObjects);
+                        if (p.parameterType.GetCustomAttribute<ServiceManager.ScopedService>() != null)
+                        {
+                            return await this.CreateAsync(p.parameterType, privateScopes.Concat(publicScopes).ToArray());
+                        }
+
+                        var service = await this.GetService(p.parameterType, publicScopes);
 
                         if (service == null)
                         {
-                            Log.Error("Requested service type {TypeName} was not available (null)", p.parameterType.FullName!);
+                            Log.Error("Requested ctor service type {TypeName} was not available (null)", p.parameterType.FullName!);
                         }
 
                         return service;
@@ -95,7 +111,7 @@ internal class ServiceContainer : IServiceProvider, IServiceType
 
         var instance = FormatterServices.GetUninitializedObject(objectType);
 
-        if (!await this.InjectProperties(instance, scopedObjects))
+        if (!await this.InjectProperties(instance, publicScopes, privateScopes))
         {
             Log.Error("Failed to create {TypeName}, a requested property service type could not be satisfied", objectType.FullName!);
             return null;
@@ -112,9 +128,10 @@ internal class ServiceContainer : IServiceProvider, IServiceType
     /// The properties can be marked with the <see cref="RequiredVersionAttribute"/> to lock down versions.
     /// </summary>
     /// <param name="instance">The object instance.</param>
-    /// <param name="scopedObjects">Scoped objects.</param>
+    /// <param name="publicScopes">Scoped objects to be injected.</param>
+    /// <param name="privateScopes">Scoped objects to be passed down to scoped services.</param>
     /// <returns>Whether or not the injection was successful.</returns>
-    public async Task<bool> InjectProperties(object instance, params object[] scopedObjects)
+    public async Task<bool> InjectProperties(object instance, object[] publicScopes, object[] privateScopes)
     {
         var objectType = instance.GetType();
 
@@ -136,7 +153,14 @@ internal class ServiceContainer : IServiceProvider, IServiceType
 
         foreach (var prop in props)
         {
-            var service = await this.GetService(prop.propertyInfo.PropertyType, scopedObjects);
+            object service = null;
+
+            if (prop.propertyInfo.PropertyType.GetCustomAttribute<ServiceManager.ScopedService>() != null)
+            {
+                service = await this.CreateAsync(prop.propertyInfo.PropertyType, publicScopes.Concat(privateScopes).ToArray());
+            }
+
+            service ??= await this.GetService(prop.propertyInfo.PropertyType, publicScopes);
 
             if (service == null)
             {
@@ -185,7 +209,7 @@ internal class ServiceContainer : IServiceProvider, IServiceType
         }
 
         // resolve dependency from scoped objects
-        var scoped = scopedObjects.FirstOrDefault(o => o.GetType() == serviceType);
+        var scoped = scopedObjects.FirstOrDefault(o => o.GetType().IsAssignableTo(serviceType));
         if (scoped == default)
         {
             return null;
@@ -211,7 +235,12 @@ internal class ServiceContainer : IServiceProvider, IServiceType
                     .Union(this.instances.Keys)
                     .ToArray();
 
-        var ctors = type.GetConstructors(BindingFlags.Public | BindingFlags.Instance);
+        // Allow resolving non-public ctors for Dalamud types
+        var ctorFlags = BindingFlags.Public | BindingFlags.Instance;
+        if (type.Assembly == Assembly.GetExecutingAssembly())
+            ctorFlags |= BindingFlags.NonPublic;
+
+        var ctors = type.GetConstructors(ctorFlags);
         foreach (var ctor in ctors)
         {
             if (this.ValidateCtor(ctor, types))
@@ -228,8 +257,10 @@ internal class ServiceContainer : IServiceProvider, IServiceType
         var parameters = ctor.GetParameters();
         foreach (var parameter in parameters)
         {
-            var contains = types.Contains(parameter.ParameterType);
-            if (!contains)
+            var contains = types.Any(x => x.IsAssignableTo(parameter.ParameterType));
+
+            // Scoped services are created on-demand
+            if (!contains && parameter.ParameterType.GetCustomAttribute<ServiceManager.ScopedService>() == null)
             {
                 Log.Error("Failed to validate {TypeName}, unable to find any services that satisfy the type", parameter.ParameterType.FullName!);
                 return false;
