@@ -16,6 +16,7 @@
 
 // Windows Header Files (2)
 #include <Dbt.h>
+#include <dwmapi.h>
 #include <PathCch.h>
 #include <Psapi.h>
 #include <ShlObj.h>
