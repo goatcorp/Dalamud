@@ -289,7 +289,8 @@ internal static class ServiceManager
     }
 
     /// <summary>
-    /// Indicates that the class is a service, and will be instantiated automatically on startup.
+    /// Indicates that the class is a service that will be created specifically for a
+    /// service scope, and that it cannot be created outside of a scope.
     /// </summary>
     [AttributeUsage(AttributeTargets.Class)]
     public class ScopedService : Service
