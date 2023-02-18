@@ -121,8 +121,15 @@ public unsafe class DutyState : IDisposable, IServiceType
                     this.DutyRecommenced.InvokeSafely(this, this.clientState.TerritoryType);
                     break;
 
+                // Duty Completed Flytext Shown
+                case 0x4000_0002 when !this.CompletedThisTerritory:
+                    this.IsDutyStarted = false;
+                    this.CompletedThisTerritory = true;
+                    this.DutyCompleted.InvokeSafely(this, this.clientState.TerritoryType);
+                    break;
+
                 // Duty Completed
-                case 0x4000_0003:
+                case 0x4000_0003 when !this.CompletedThisTerritory:
                     this.IsDutyStarted = false;
                     this.CompletedThisTerritory = true;
                     this.DutyCompleted.InvokeSafely(this, this.clientState.TerritoryType);
