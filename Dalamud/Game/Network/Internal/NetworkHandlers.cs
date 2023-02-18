@@ -27,7 +27,7 @@ internal class NetworkHandlers : IDisposable, IServiceType
 {
     private readonly IMarketBoardUploader uploader;
 
-    private readonly ISubject<NetworkMessage> messages;
+    private readonly IObservable<NetworkMessage> messages;
 
     private readonly IDisposable handleMarketBoardItemRequest;
     private readonly IDisposable handleMarketTaxRates;
@@ -45,14 +45,33 @@ internal class NetworkHandlers : IDisposable, IServiceType
         this.uploader = new UniversalisMarketBoardUploader();
         this.CfPop = (_, _) => { };
 
-        this.messages = new Subject<NetworkMessage>();
+        this.messages = Observable.Create<NetworkMessage>(observer =>
+        {
+            void Observe(IntPtr dataPtr, ushort opCode, uint sourceActorId, uint targetActorId, NetworkMessageDirection direction)
+            {
+                var dataManager = Service<DataManager>.GetNullable();
+                observer.OnNext(new NetworkMessage
+                {
+                    DataManager = dataManager,
+                    Data = dataPtr,
+                    Opcode = opCode,
+                    SourceActorId = sourceActorId,
+                    TargetActorId = targetActorId,
+                    Direction = direction,
+                });
+            }
+
+            gameNetwork.NetworkMessage += Observe;
+            return () =>
+            {
+                gameNetwork.NetworkMessage -= Observe;
+            };
+        });
 
         this.handleMarketBoardItemRequest = this.HandleMarketBoardItemRequest();
         this.handleMarketTaxRates = this.HandleMarketTaxRates();
         this.handleMarketBoardPurchaseHandler = this.HandleMarketBoardPurchaseHandler();
         this.handleCfPop = this.HandleCfPop();
-
-        gameNetwork.NetworkMessage += this.ObserveNetworkMessage;
     }
 
     /// <summary>
@@ -82,21 +101,6 @@ internal class NetworkHandlers : IDisposable, IServiceType
         this.handleMarketTaxRates.Dispose();
         this.handleMarketBoardPurchaseHandler.Dispose();
         this.handleCfPop.Dispose();
-    }
-
-    private void ObserveNetworkMessage(
-        IntPtr dataPtr, ushort opCode, uint sourceActorId, uint targetActorId, NetworkMessageDirection direction)
-    {
-        var dataManager = Service<DataManager>.GetNullable();
-        this.messages.OnNext(new NetworkMessage
-        {
-            DataManager = dataManager,
-            Data = dataPtr,
-            Opcode = opCode,
-            SourceActorId = sourceActorId,
-            TargetActorId = targetActorId,
-            Direction = direction,
-        });
     }
 
     private IObservable<NetworkMessage> OnNetworkMessage()
