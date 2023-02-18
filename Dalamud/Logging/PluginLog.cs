@@ -15,7 +15,7 @@ namespace Dalamud.Logging;
 [PluginInterface]
 [InterfaceVersion("1.0")]
 [ServiceManager.ScopedService]
-public class PluginLog
+public class PluginLog : IDisposable
 {
     private readonly LocalPlugin plugin;
 
@@ -290,6 +290,12 @@ public class PluginLog
 
     #endregion
 
+    /// <inheritdoc/>
+    void IDisposable.Dispose()
+    {
+        Log("GOODBYE!!!");
+    }
+
     private static ILogger GetPluginLogger(string? pluginName)
     {
         return Serilog.Log.ForContext("SourceContext", pluginName ?? string.Empty);
@@ -309,6 +315,10 @@ public class PluginLog
     }
 }
 
+/// <summary>
+/// Class offering logging services, for a specific type.
+/// </summary>
+/// <typeparam name="T">The type to log for.</typeparam>
 [PluginInterface]
 [InterfaceVersion("1.0")]
 [ServiceManager.ScopedService]

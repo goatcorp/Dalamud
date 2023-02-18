@@ -244,6 +244,11 @@ internal class LocalPlugin : IDisposable
     /// </summary>
     public bool IsDev => this is LocalDevPlugin;
 
+    /// <summary>
+    /// Gets the service scope for this plugin.
+    /// </summary>
+    public IServiceScope? ServiceScope { get; private set; }
+
     /// <inheritdoc/>
     public void Dispose()
     {
@@ -264,6 +269,9 @@ internal class LocalPlugin : IDisposable
 
         this.DalamudInterface?.ExplicitDispose();
         this.DalamudInterface = null;
+
+        this.ServiceScope?.Dispose();
+        this.ServiceScope = null;
 
         this.pluginType = null;
         this.pluginAssembly = null;
@@ -418,15 +426,18 @@ internal class LocalPlugin : IDisposable
             this.DalamudInterface =
                 new DalamudPluginInterface(this, reason);
 
+            this.ServiceScope = ioc.GetScope();
+            this.ServiceScope.RegisterPrivateScopes(this); // Add this LocalPlugin as a private scope, so services can get it
+
             if (this.Manifest.LoadSync && this.Manifest.LoadRequiredState is 0 or 1)
             {
                 this.instance = await framework.RunOnFrameworkThread(
-                                    () => ioc.CreateAsync(this.pluginType!, new object[] { this.DalamudInterface! }, new object[] { this })) as IDalamudPlugin;
+                                    () => this.ServiceScope.CreateAsync(this.pluginType!, this.DalamudInterface!)) as IDalamudPlugin;
             }
             else
             {
                 this.instance =
-                    await ioc.CreateAsync(this.pluginType!, new object[] { this.DalamudInterface! }, new object[] { this }) as IDalamudPlugin;
+                    await this.ServiceScope.CreateAsync(this.pluginType!, this.DalamudInterface!) as IDalamudPlugin;
             }
 
             if (this.instance == null)
@@ -472,6 +483,7 @@ internal class LocalPlugin : IDisposable
     {
         var configuration = Service<DalamudConfiguration>.Get();
         var framework = Service<Framework>.GetNullable();
+        var ioc = await Service<ServiceContainer>.GetAsync();
 
         await this.pluginLoadStateLock.WaitAsync();
         try
@@ -509,6 +521,9 @@ internal class LocalPlugin : IDisposable
 
             this.DalamudInterface?.ExplicitDispose();
             this.DalamudInterface = null;
+
+            this.ServiceScope?.Dispose();
+            this.ServiceScope = null;
 
             this.pluginType = null;
             this.pluginAssembly = null;
@@ -681,11 +696,6 @@ internal class LocalPlugin : IDisposable
 
             return x.PluginMasterUrl == this.Manifest.InstalledFromUrl;
         });
-    }
-
-    public object[] GetPluginScopedIocObjects(object[] scoped)
-    {
-        return scoped;
     }
 
     private static void SetupLoaderConfig(LoaderConfig config)

@@ -46,20 +46,13 @@ internal class ServiceContainer : IServiceProvider, IServiceType
     /// </summary>
     /// <param name="objectType">The type of object to create.</param>
     /// <param name="scopedObjects">Scoped objects to be included in the constructor.</param>
+    /// <param name="scope">The scope to be used to create scoped services.</param>
     /// <returns>The created object.</returns>
-    public Task<object?> CreateAsync(Type objectType, params object[] scopedObjects)
-        => this.CreateAsync(objectType, scopedObjects, Array.Empty<object>());
-
-    /// <summary>
-    /// Create an object.
-    /// </summary>
-    /// <param name="objectType">The type of object to create.</param>
-    /// <param name="publicScopes">Scoped objects to be included in the constructor.</param>
-    /// <param name="privateScopes">Scoped objects to be passed down to scoped services.</param>
-    /// <returns>The created object.</returns>
-    public async Task<object?> CreateAsync(Type objectType, object[] publicScopes, object[] privateScopes)
+    public async Task<object?> CreateAsync(Type objectType, object[] scopedObjects, IServiceScope? scope = null)
     {
-        var ctor = this.FindApplicableCtor(objectType, publicScopes);
+        var scopeImpl = scope as ServiceScopeImpl;
+
+        var ctor = this.FindApplicableCtor(objectType, scopedObjects);
         if (ctor == null)
         {
             Log.Error("Failed to create {TypeName}, an eligible ctor with satisfiable services could not be found", objectType.FullName!);
@@ -89,10 +82,16 @@ internal class ServiceContainer : IServiceProvider, IServiceType
                     {
                         if (p.parameterType.GetCustomAttribute<ServiceManager.ScopedService>() != null)
                         {
-                            return await this.CreateAsync(p.parameterType, privateScopes.Concat(publicScopes).ToArray());
+                            if (scopeImpl == null)
+                            {
+                                Log.Error("Failed to create {TypeName}, depends on scoped service but no scope", objectType.FullName!);
+                                return null;
+                            }
+
+                            return await scopeImpl.CreatePrivateScopedObject(p.parameterType, scopedObjects);
                         }
 
-                        var service = await this.GetService(p.parameterType, publicScopes);
+                        var service = await this.GetService(p.parameterType, scopedObjects);
 
                         if (service == null)
                         {
@@ -111,7 +110,7 @@ internal class ServiceContainer : IServiceProvider, IServiceType
 
         var instance = FormatterServices.GetUninitializedObject(objectType);
 
-        if (!await this.InjectProperties(instance, publicScopes, privateScopes))
+        if (!await this.InjectProperties(instance, scopedObjects, scope))
         {
             Log.Error("Failed to create {TypeName}, a requested property service type could not be satisfied", objectType.FullName!);
             return null;
@@ -129,10 +128,11 @@ internal class ServiceContainer : IServiceProvider, IServiceType
     /// </summary>
     /// <param name="instance">The object instance.</param>
     /// <param name="publicScopes">Scoped objects to be injected.</param>
-    /// <param name="privateScopes">Scoped objects to be passed down to scoped services.</param>
+    /// <param name="scope">The scope to be used to create scoped services.</param>
     /// <returns>Whether or not the injection was successful.</returns>
-    public async Task<bool> InjectProperties(object instance, object[] publicScopes, object[] privateScopes)
+    public async Task<bool> InjectProperties(object instance, object[] publicScopes, IServiceScope? scope = null)
     {
+        var scopeImpl = scope as ServiceScopeImpl;
         var objectType = instance.GetType();
 
         var props = objectType.GetProperties(BindingFlags.Static | BindingFlags.Instance | BindingFlags.Public |
@@ -157,7 +157,14 @@ internal class ServiceContainer : IServiceProvider, IServiceType
 
             if (prop.propertyInfo.PropertyType.GetCustomAttribute<ServiceManager.ScopedService>() != null)
             {
-                service = await this.CreateAsync(prop.propertyInfo.PropertyType, publicScopes.Concat(privateScopes).ToArray());
+                if (scopeImpl == null)
+                {
+                    Log.Error("Failed to create {TypeName}, depends on scoped service but no scope", objectType.FullName!);
+                }
+                else
+                {
+                    service = await scopeImpl.CreatePrivateScopedObject(prop.propertyInfo.PropertyType, publicScopes);
+                }
             }
 
             service ??= await this.GetService(prop.propertyInfo.PropertyType, publicScopes);
@@ -173,6 +180,12 @@ internal class ServiceContainer : IServiceProvider, IServiceType
 
         return true;
     }
+
+    /// <summary>
+    /// Get a service scope, enabling the creation of objects with scoped services.
+    /// </summary>
+    /// <returns>An implementation of a service scope.</returns>
+    public IServiceScope GetScope() => new ServiceScopeImpl(this);
 
     /// <inheritdoc/>
     object? IServiceProvider.GetService(Type serviceType) => this.GetService(serviceType);

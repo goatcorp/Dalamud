@@ -394,11 +394,9 @@ public sealed class DalamudPluginInterface : IDisposable
     {
         var svcContainer = Service<IoC.Internal.ServiceContainer>.Get();
 
-        var realScopedObjects = new object[scopedObjects.Length + 1];
-        realScopedObjects[0] = this;
-        Array.Copy(scopedObjects, 0, realScopedObjects, 1, scopedObjects.Length);
-
-        return (T)svcContainer.CreateAsync(typeof(T), realScopedObjects, new object[] { this }).GetAwaiter().GetResult();
+        return (T)this.plugin.ServiceScope!.CreateAsync(
+            typeof(T),
+            this.GetPublicIocScopes(scopedObjects)).GetAwaiter().GetResult();
     }
 
     /// <summary>
@@ -409,13 +407,9 @@ public sealed class DalamudPluginInterface : IDisposable
     /// <returns>Whether or not the injection succeeded.</returns>
     public bool Inject(object instance, params object[] scopedObjects)
     {
-        var svcContainer = Service<IoC.Internal.ServiceContainer>.Get();
-
-        var realScopedObjects = new object[scopedObjects.Length + 1];
-        realScopedObjects[0] = this;
-        Array.Copy(scopedObjects, 0, realScopedObjects, 1, scopedObjects.Length);
-
-        return svcContainer.InjectProperties(instance, realScopedObjects, new object[] { this }).GetAwaiter().GetResult();
+        return this.plugin.ServiceScope!.InjectPropertiesAsync(
+            instance,
+            this.GetPublicIocScopes(scopedObjects)).GetAwaiter().GetResult();
     }
 
     #endregion
@@ -449,5 +443,10 @@ public sealed class DalamudPluginInterface : IDisposable
     private void OnDalamudConfigurationSaved(DalamudConfiguration dalamudConfiguration)
     {
         this.GeneralChatType = dalamudConfiguration.GeneralChatType;
+    }
+
+    private object[] GetPublicIocScopes(IEnumerable<object> scopedObjects)
+    {
+        return scopedObjects.Append(this).ToArray();
     }
 }
