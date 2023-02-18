@@ -42,7 +42,7 @@ public sealed class UiBuilder : IDisposable
     internal UiBuilder(string namespaceName)
     {
         this.stopwatch = new Stopwatch();
-        this.hitchDetector = new HitchDetector($"UiBuilder({namespaceName})", 15.0f);
+        this.hitchDetector = new HitchDetector($"UiBuilder({namespaceName})", 100);
         this.namespaceName = namespaceName;
 
         this.interfaceManager.Draw += this.OnDraw;

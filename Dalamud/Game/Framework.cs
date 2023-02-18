@@ -28,7 +28,7 @@ public sealed class Framework : IDisposable, IServiceType
     private static Stopwatch statsStopwatch = new();
 
     private readonly Stopwatch updateStopwatch = new();
-    private readonly HitchDetector hitchDetector = new("FrameworkUpdate", 20);
+    private readonly HitchDetector hitchDetector = new("FrameworkUpdate", 50);
 
     private readonly Hook<OnUpdateDetour> updateHook;
     private readonly Hook<OnRealDestroyDelegate> destroyHook;

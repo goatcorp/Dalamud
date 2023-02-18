@@ -22,8 +22,8 @@ public sealed class GameNetwork : IDisposable, IServiceType
     private readonly Hook<ProcessZonePacketDownDelegate> processZonePacketDownHook;
     private readonly Hook<ProcessZonePacketUpDelegate> processZonePacketUpHook;
 
-    private readonly HitchDetector hitchDetectorUp = new("GameNetworkUp");
-    private readonly HitchDetector hitchDetectorDown = new("GameNetworkDown");
+    private readonly HitchDetector hitchDetectorUp = new("GameNetworkUp", 30);
+    private readonly HitchDetector hitchDetectorDown = new("GameNetworkDown", 30);
 
     private IntPtr baseAddress;
 
