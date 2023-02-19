@@ -1956,3 +1956,31 @@ internal static partial class NativeFunctions
     [DllImport("ws2_32.dll", CallingConvention = CallingConvention.Winapi, EntryPoint = "setsockopt")]
     public static extern int SetSockOpt(IntPtr socket, SocketOptionLevel level, SocketOptionName optName, ref IntPtr optVal, int optLen);
 }
+
+/// <summary>
+/// Native dwmapi functions.
+/// </summary>
+internal static partial class NativeFunctions
+{
+    /// <summary>
+    /// Attributes for use with DwmSetWindowAttribute.
+    /// </summary>
+    public enum DWMWINDOWATTRIBUTE : int
+    {
+        /// <summary>
+        /// Allows the window frame for this window to be drawn in dark mode colors when the dark mode system setting is enabled.
+        /// </summary>
+        DWMWA_USE_IMMERSIVE_DARK_MODE = 20,
+    }
+
+    /// <summary>
+    /// Sets the value of Desktop Window Manager (DWM) non-client rendering attributes for a window.
+    /// </summary>
+    /// <param name="hwnd">The handle to the window for which the attribute value is to be set.</param>
+    /// <param name="attr">The attribute to be set.</param>
+    /// <param name="attrValue">The value of the attribute.</param>
+    /// <param name="attrSize">The size of the attribute.</param>
+    /// <returns>HRESULT.</returns>
+    [DllImport("dwmapi.dll", PreserveSig = true)]
+    public static extern int DwmSetWindowAttribute(IntPtr hwnd, DWMWINDOWATTRIBUTE attr, ref int attrValue, int attrSize);
+}

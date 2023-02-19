@@ -515,6 +515,12 @@ public static class Util
     }
 
     /// <summary>
+    /// Heuristically determine if the Windows version is higher than Windows 11's first build.
+    /// </summary>
+    /// <returns>If Windows 11 has been detected.</returns>
+    public static bool IsWindows11() => Environment.OSVersion.Version.Build >= 22000;
+
+    /// <summary>
     /// Open a link in the default browser.
     /// </summary>
     /// <param name="url">The link to open.</param>

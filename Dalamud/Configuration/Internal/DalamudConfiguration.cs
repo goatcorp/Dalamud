@@ -347,6 +347,11 @@ internal sealed class DalamudConfiguration : IServiceType
     public List<PluginTestingOptIn>? PluginTestingOptIns { get; set; }
 
     /// <summary>
+    /// Gets or sets a value indicating whether the FFXIV window should be toggled to immersive mode.
+    /// </summary>
+    public bool WindowIsImmersive { get; set; } = false;
+
+    /// <summary>
     /// Load a configuration from the provided path.
     /// </summary>
     /// <param name="path">The path to load the configuration file from.</param>

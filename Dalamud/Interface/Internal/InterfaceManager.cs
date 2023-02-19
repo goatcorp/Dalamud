@@ -435,6 +435,23 @@ internal class InterfaceManager : IDisposable, IServiceType
         return null;
     }
 
+    /// <summary>
+    /// Toggle Windows 11 immersive mode on the game window.
+    /// </summary>
+    /// <param name="enabled">Value.</param>
+    internal void SetImmersiveMode(bool enabled)
+    {
+        if (this.GameWindowHandle == nint.Zero)
+            return;
+
+        int value = enabled ? 1 : 0;
+        var hr = NativeFunctions.DwmSetWindowAttribute(
+            this.GameWindowHandle,
+            NativeFunctions.DWMWINDOWATTRIBUTE.DWMWA_USE_IMMERSIVE_DARK_MODE,
+            ref value,
+            sizeof(int));
+    }
+
     private static void ShowFontError(string path)
     {
         Util.Fatal($"One or more files required by XIVLauncher were not found.\nPlease restart and report this error if it occurs again.\n\n{path}", "Error");
@@ -972,6 +989,16 @@ internal class InterfaceManager : IDisposable, IServiceType
 
                 if (pid == Environment.ProcessId && User32.IsWindowVisible(this.GameWindowHandle))
                     break;
+            }
+
+            try
+            {
+                if (Service<DalamudConfiguration>.Get().WindowIsImmersive)
+                    this.SetImmersiveMode(true);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Could not enable immersive mode");
             }
 
             this.presentHook = Hook<PresentDelegate>.FromAddress(this.address.Present, this.PresentDetour);

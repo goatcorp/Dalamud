@@ -21,7 +21,7 @@ internal sealed class SettingsEntry<T> : SettingsEntry
 
     private object? valueBacking;
 
-    public SettingsEntry(string name, string description, LoadSettingDelegate load, SaveSettingDelegate save, Action<T?>? change = null, Func<T?, string?>? warning = null, Func<T?, string?>? validity = null)
+    public SettingsEntry(string name, string description, LoadSettingDelegate load, SaveSettingDelegate save, Action<T?>? change = null, Func<T?, string?>? warning = null, Func<T?, string?>? validity = null, Func<bool>? visibility = null)
     {
         this.load = load;
         this.save = save;
@@ -30,6 +30,7 @@ internal sealed class SettingsEntry<T> : SettingsEntry
         this.Description = description;
         this.CheckWarning = warning;
         this.CheckValidity = validity;
+        this.CheckVisibility = visibility;
     }
 
     public delegate T? LoadSettingDelegate(DalamudConfiguration config);

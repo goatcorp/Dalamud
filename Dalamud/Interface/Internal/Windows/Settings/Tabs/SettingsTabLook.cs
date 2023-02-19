@@ -1,10 +1,13 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System;
+using System.Diagnostics.CodeAnalysis;
 
 using CheapLoc;
 using Dalamud.Configuration.Internal;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Internal.Windows.Settings.Widgets;
+using Dalamud.Utility;
 using ImGuiNET;
+using Serilog;
 
 namespace Dalamud.Interface.Internal.Windows.Settings.Tabs;
 
@@ -18,13 +21,6 @@ public class SettingsTabLook : SettingsTab
     {
         new GapSettingsEntry(5),
 
-        new ButtonSettingsEntry(
-            Loc.Localize("DalamudSettingsOpenStyleEditor", "Open Style Editor"),
-            Loc.Localize("DalamudSettingsStyleEditorHint", "Modify the look & feel of Dalamud windows."),
-            () => Service<DalamudInterface>.Get().OpenStyleEditor()),
-
-        new GapSettingsEntry(5),
-
         new SettingsEntry<bool>(
             Loc.Localize("DalamudSettingToggleAxisFonts", "Use AXIS fonts as default Dalamud font"),
             Loc.Localize("DalamudSettingToggleUiAxisFontsHint", "Use AXIS fonts (the game's main UI fonts) as default Dalamud font."),
@@ -36,6 +32,31 @@ public class SettingsTabLook : SettingsTab
                 im.UseAxisOverride = v;
                 im.RebuildFonts();
             }),
+
+        new GapSettingsEntry(5, true),
+
+        new ButtonSettingsEntry(
+            Loc.Localize("DalamudSettingsOpenStyleEditor", "Open Style Editor"),
+            Loc.Localize("DalamudSettingsStyleEditorHint", "Modify the look & feel of Dalamud windows."),
+            () => Service<DalamudInterface>.Get().OpenStyleEditor()),
+
+        new SettingsEntry<bool>(
+            Loc.Localize("DalamudSettingsUseDarkMode", "Use Windows immersive/dark mode"),
+            Loc.Localize("DalamudSettingsUseDarkModeHint", "This will cause the FFXIV window title bar to follow your preferred Windows color settings, and switch to dark mode if enabled."),
+            c => c.WindowIsImmersive,
+            (v, c) => c.WindowIsImmersive = v,
+            b =>
+            {
+                try
+                {
+                    Service<InterfaceManager>.GetNullable()?.SetImmersiveMode(b);
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex, "Could not toggle immersive mode");
+                }
+            },
+            visibility: Util.IsWindows11),
 
         new GapSettingsEntry(5, true),
 
