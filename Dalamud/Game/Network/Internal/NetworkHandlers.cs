@@ -234,9 +234,9 @@ internal class NetworkHandlers : IDisposable, IServiceType
         var startObservable = this.OnMarketBoardItemRequestStart();
         return Observable.When(
                              startObservable
-                                 .And(this.OnMarketBoardSalesBatch())
+                                 // .And(this.OnMarketBoardSalesBatch())
                                  .And(this.OnMarketBoardListingsBatch(startObservable))
-                                 .Then((request, sales, listings) => (request, sales, listings)))
+                                 .Then((request, listings) => (request, new List<MarketBoardHistory.MarketBoardHistoryListing>(), listings)))
                          .Where(this.ShouldUpload)
                          .Subscribe(
                              data =>
