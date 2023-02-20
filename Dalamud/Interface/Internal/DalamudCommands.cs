@@ -160,7 +160,8 @@ internal class DalamudCommands : IServiceType
         }
         else
         {
-            var targetCommandText = arguments[0] == '/' ? arguments : $"/{arguments}";
+            var trimmedArguments = arguments.Trim();
+            var targetCommandText = trimmedArguments[0] == '/' ? trimmedArguments : $"/{trimmedArguments}";
             chatGui.Print(commandManager.Commands.TryGetValue(targetCommandText, out var targetCommand)
                               ? $"{targetCommandText}: {targetCommand.HelpMessage}"
                               : Loc.Localize("DalamudCmdHelpNotFound", "Command not found."));
