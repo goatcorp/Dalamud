@@ -32,7 +32,7 @@ internal class DalamudCommands : IServiceType
 
         commandManager.AddHandler("/xlhelp", new CommandInfo(this.OnHelpCommand)
         {
-            HelpMessage = Loc.Localize("DalamudCmdInfoHelp", "Shows list of commands available."),
+            HelpMessage = Loc.Localize("DalamudCmdInfoHelp", "Shows list of commands available. If an argument is provided, shows help for that command."),
         });
 
         commandManager.AddHandler("/xlmute", new CommandInfo(this.OnBadWordsAddCommand)
@@ -147,15 +147,23 @@ internal class DalamudCommands : IServiceType
         var chatGui = Service<ChatGui>.Get();
         var commandManager = Service<CommandManager>.Get();
 
-        var showDebug = arguments.Contains("debug");
-
-        chatGui.Print(Loc.Localize("DalamudCmdHelpAvailable", "Available commands:"));
-        foreach (var cmd in commandManager.Commands)
+        if (arguments.IsNullOrWhitespace())
         {
-            if (!cmd.Value.ShowInHelp && !showDebug)
-                continue;
+            chatGui.Print(Loc.Localize("DalamudCmdHelpAvailable", "Available commands:"));
+            foreach (var cmd in commandManager.Commands)
+            {
+                if (!cmd.Value.ShowInHelp)
+                    continue;
 
-            chatGui.Print($"{cmd.Key}: {cmd.Value.HelpMessage}");
+                chatGui.Print($"{cmd.Key}: {cmd.Value.HelpMessage}");
+            }
+        }
+        else
+        {
+            var targetCommandText = arguments[0] == '/' ? arguments : $"/{arguments}";
+            chatGui.Print(commandManager.Commands.TryGetValue(targetCommandText, out var targetCommand)
+                              ? $"{targetCommandText}: {targetCommand.HelpMessage}"
+                              : Loc.Localize("DalamudCmdHelpNotFound", "Command not found."));
         }
     }
 
