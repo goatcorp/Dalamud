@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
@@ -269,6 +270,7 @@ internal class NetworkHandlers : IDisposable, IServiceType
                                  .And(this.OnMarketBoardListingsBatch(startObservable))
                                  .Then((request, sales, listings) => (request, sales, listings)))
                          .Where(this.ShouldUpload)
+                         .SubscribeOn(ThreadPoolScheduler.Instance)
                          .Subscribe(
                              data =>
                              {
@@ -314,6 +316,7 @@ internal class NetworkHandlers : IDisposable, IServiceType
     {
         return this.OnMarketTaxRates()
                    .Where(this.ShouldUpload)
+                   .SubscribeOn(ThreadPoolScheduler.Instance)
                    .Subscribe(
                        taxes =>
                        {
@@ -340,6 +343,7 @@ internal class NetworkHandlers : IDisposable, IServiceType
         return this.OnMarketBoardPurchaseHandler()
                    .Zip(this.OnMarketBoardPurchase())
                    .Where(this.ShouldUpload)
+                   .SubscribeOn(ThreadPoolScheduler.Instance)
                    .Subscribe(
                        data =>
                        {
@@ -370,6 +374,7 @@ internal class NetworkHandlers : IDisposable, IServiceType
     private unsafe IDisposable HandleCfPop()
     {
         return this.OnCfNotifyPop()
+                   .SubscribeOn(ThreadPoolScheduler.Instance)
                    .Subscribe(
                        message =>
                        {
