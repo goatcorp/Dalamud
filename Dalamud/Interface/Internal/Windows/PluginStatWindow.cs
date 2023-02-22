@@ -160,7 +160,7 @@ internal class PluginStatWindow : Window
 
                 var statsHistory = Framework.StatsHistory.ToArray();
                 var totalLast = statsHistory.Sum(stats => stats.Value.LastOrDefault());
-                var totalAverage = statsHistory.Sum(stats => stats.Value.Average());
+                var totalAverage = statsHistory.Sum(stats => stats.Value.DefaultIfEmpty().Average());
 
                 ImGuiComponents.TextWithLabel("Total Last", $"{totalLast:F4}ms", "All last update times added together");
                 ImGui.SameLine();
@@ -193,16 +193,21 @@ internal class PluginStatWindow : Window
                                  ? statsHistory.OrderBy(handler => handler.Key).ToArray()
                                  : statsHistory.OrderByDescending(handler => handler.Key).ToArray(),
                         2 => sortSpecs.Specs.SortDirection == ImGuiSortDirection.Ascending
-                                 ? statsHistory.OrderBy(handler => handler.Value.Max()).ToArray()
-                                 : statsHistory.OrderByDescending(handler => handler.Value.Max()).ToArray(),
+                                 ? statsHistory.OrderBy(handler => handler.Value.DefaultIfEmpty().Max()).ToArray()
+                                 : statsHistory.OrderByDescending(handler => handler.Value.DefaultIfEmpty().Max()).ToArray(),
                         3 => sortSpecs.Specs.SortDirection == ImGuiSortDirection.Ascending
-                                 ? statsHistory.OrderBy(handler => handler.Value.Average()).ToArray()
-                                 : statsHistory.OrderByDescending(handler => handler.Value.Average()).ToArray(),
+                                 ? statsHistory.OrderBy(handler => handler.Value.DefaultIfEmpty().Average()).ToArray()
+                                 : statsHistory.OrderByDescending(handler => handler.Value.DefaultIfEmpty().Average()).ToArray(),
                         _ => statsHistory,
                     };
 
                     foreach (var handlerHistory in statsHistory)
                     {
+                        if (!handlerHistory.Value.Any())
+                        {
+                            continue;
+                        }
+
                         ImGui.TableNextRow();
 
                         ImGui.TableNextColumn();
