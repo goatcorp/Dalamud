@@ -192,6 +192,11 @@ internal class NetworkHandlers : IDisposable, IServiceType
         IObservable<MarketBoardCurrentOfferings> UntilBatchEnd(MarketBoardItemRequest request)
         {
             var totalPackets = Convert.ToInt32(Math.Ceiling((double)request.AmountToArrive / 10));
+            if (totalPackets == 0)
+            {
+                return Observable.Empty<MarketBoardCurrentOfferings>();
+            }
+
             return offeringsObservable
                    .Where(offerings => offerings.ItemListings.All(l => l.CatalogId == request.CatalogId))
                    .Skip(totalPackets - 1)
