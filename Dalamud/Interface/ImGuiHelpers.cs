@@ -75,6 +75,12 @@ public static class ImGuiHelpers
     public static void ScaledDummy(Vector2 size) => ImGui.Dummy(size * GlobalScale);
 
     /// <summary>
+    /// Create an indent scaled by the global Dalamud scale.
+    /// </summary>
+    /// <param name="size">The size of the indent.</param>
+    public static void ScaledIndent(float size) => ImGui.Indent(size * GlobalScale);
+    
+    /// <summary>
     /// Use a relative ImGui.SameLine() from your current cursor position, scaled by the Dalamud global scale.
     /// </summary>
     /// <param name="offset">The offset from your current cursor position.</param>
