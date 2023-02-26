@@ -201,7 +201,7 @@ public sealed class DalamudPluginInterface : IDisposable
     /// <returns>Returns false if the DalamudInterface was null.</returns>
     public bool OpenPluginInstaller()
     {
-        var dalamudInterface = Service<DalamudInterface>.Get();
+        var dalamudInterface = Service<DalamudInterface>.GetNullable(); // Can be null during boot
         if (dalamudInterface == null)
         {
             return false;
