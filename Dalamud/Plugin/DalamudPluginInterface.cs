@@ -196,7 +196,7 @@ public sealed class DalamudPluginInterface : IDisposable
     public List<string> PluginInternalNames => Service<PluginManager>.Get().InstalledPlugins.Select(p => p.Manifest.InternalName).ToList();
 
     /// <summary>
-    /// Opens the <see cref="PluginInstallerWindow"/>.
+    /// Opens the <see cref="PluginInstallerWindow"/> with the plugin name set as search target.
     /// </summary>
     /// <returns>Returns false if the DalamudInterface was null.</returns>
     public bool OpenPluginInstaller()
@@ -207,7 +207,9 @@ public sealed class DalamudPluginInterface : IDisposable
             return false;
         }
 
-        dalamudInterface.OpenPluginInstaller();
+        dalamudInterface.OpenPluginInstallerPluginInstalled();
+        dalamudInterface.SetPluginInstallerSearchText(this.pluginName);
+
         return true;
     }
 

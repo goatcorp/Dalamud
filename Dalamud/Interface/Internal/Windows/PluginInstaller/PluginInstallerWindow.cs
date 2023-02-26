@@ -97,6 +97,7 @@ internal class PluginInstallerWindow : Window, IDisposable
     private bool hasDevPlugins = false;
 
     private string searchText = string.Empty;
+    private bool prefilledSearchTexted = false;
 
     private PluginSortKind sortKind = PluginSortKind.Alphabetical;
     private string filterText = Locs.SortBy_Alphabetical;
@@ -202,7 +203,7 @@ internal class PluginInstallerWindow : Window, IDisposable
 
         _ = pluginManager.ReloadPluginMastersAsync();
 
-        this.searchText = string.Empty;
+        if (!this.prefilledSearchTexted) this.searchText = string.Empty;
         this.sortKind = PluginSortKind.Alphabetical;
         this.filterText = Locs.SortBy_Alphabetical;
 
@@ -218,6 +219,12 @@ internal class PluginInstallerWindow : Window, IDisposable
     public override void OnClose()
     {
         Service<DalamudConfiguration>.Get().QueueSave();
+
+        if (this.prefilledSearchTexted)
+        {
+            this.prefilledSearchTexted = false;
+            this.searchText = string.Empty;
+        }
     }
 
     /// <inheritdoc/>
@@ -247,6 +254,18 @@ internal class PluginInstallerWindow : Window, IDisposable
     /// <summary>
     /// Open the window on the plugin changelogs.
     /// </summary>
+    public void OpenInstalledPlugins()
+    {
+        // Installed group
+        this.categoryManager.CurrentGroupIdx = 1;
+        // All category
+        this.categoryManager.CurrentCategoryIdx = 0;
+        this.IsOpen = true;
+    }
+
+    /// <summary>
+    /// Open the window on the plugin changelogs.
+    /// </summary>
     public void OpenPluginChangelogs()
     {
         // Changelog group
@@ -254,6 +273,16 @@ internal class PluginInstallerWindow : Window, IDisposable
         // Plugins category
         this.categoryManager.CurrentCategoryIdx = 2;
         this.IsOpen = true;
+    }
+
+    /// <summary>
+    /// Sets the current search text and marks it as prefilled.
+    /// </summary>
+    /// <param name="text">The search term.</param>
+    public void SetSearchText(string text)
+    {
+        this.prefilledSearchTexted = true;
+        this.searchText = text;
     }
 
     private void DrawProgressOverlay()

@@ -264,6 +264,15 @@ internal class DalamudInterface : IDisposable, IServiceType
     }
 
     /// <summary>
+    /// Opens the <see cref="PluginInstallerWindow"/> on the plugin installed.
+    /// </summary>
+    public void OpenPluginInstallerPluginInstalled()
+    {
+        this.pluginWindow.OpenInstalledPlugins();
+        this.pluginWindow.BringToFront();
+    }
+
+    /// <summary>
     /// Opens the <see cref="PluginInstallerWindow"/> on the plugin changelogs.
     /// </summary>
     public void OpenPluginInstallerPluginChangelogs()
@@ -419,6 +428,15 @@ internal class DalamudInterface : IDisposable, IServiceType
     public void ToggleBranchSwitcher() => this.branchSwitcherWindow.Toggle();
 
     #endregion
+
+    /// <summary>
+    /// Sets the current search text for the plugin installer.
+    /// </summary>
+    /// <param name="text">The search term.</param>
+    public void SetPluginInstallerSearchText(string text)
+    {
+        this.pluginWindow.SetSearchText(text);
+    }
 
     /// <summary>
     /// Toggle the screen darkening effect used for the credits.
