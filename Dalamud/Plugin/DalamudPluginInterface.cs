@@ -107,6 +107,11 @@ public sealed class DalamudPluginInterface : IDisposable
     public string SourceRepository { get; }
 
     /// <summary>
+    /// Gets the current plugin name.
+    /// </summary>
+    public string Name => this.pluginName;
+    
+    /// <summary>
     /// Gets a value indicating whether this is a dev plugin.
     /// </summary>
     public bool IsDev { get; }
