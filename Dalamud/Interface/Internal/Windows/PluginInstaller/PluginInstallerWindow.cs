@@ -97,7 +97,7 @@ internal class PluginInstallerWindow : Window, IDisposable
     private bool hasDevPlugins = false;
 
     private string searchText = string.Empty;
-    private bool prefilledSearchTexted = false;
+    private bool isSearchTextPrefilled = false;
 
     private PluginSortKind sortKind = PluginSortKind.Alphabetical;
     private string filterText = Locs.SortBy_Alphabetical;
@@ -203,7 +203,7 @@ internal class PluginInstallerWindow : Window, IDisposable
 
         _ = pluginManager.ReloadPluginMastersAsync();
 
-        if (!this.prefilledSearchTexted) this.searchText = string.Empty;
+        if (!this.isSearchTextPrefilled) this.searchText = string.Empty;
         this.sortKind = PluginSortKind.Alphabetical;
         this.filterText = Locs.SortBy_Alphabetical;
 
@@ -220,9 +220,9 @@ internal class PluginInstallerWindow : Window, IDisposable
     {
         Service<DalamudConfiguration>.Get().QueueSave();
 
-        if (this.prefilledSearchTexted)
+        if (this.isSearchTextPrefilled)
         {
-            this.prefilledSearchTexted = false;
+            this.isSearchTextPrefilled = false;
             this.searchText = string.Empty;
         }
     }
@@ -281,7 +281,7 @@ internal class PluginInstallerWindow : Window, IDisposable
     /// <param name="text">The search term.</param>
     public void SetSearchText(string text)
     {
-        this.prefilledSearchTexted = true;
+        this.isSearchTextPrefilled = true;
         this.searchText = text;
     }
 
