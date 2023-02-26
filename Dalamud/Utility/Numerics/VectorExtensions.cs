@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
+using FFXIVClientStructs.FFXIV.Client.Graphics;
 
 namespace Dalamud.Utility.Numerics;
 
@@ -52,5 +53,10 @@ public static class VectorExtensions
     public static Vector2 WithY(this Vector2 v, float y)
     {
         return new Vector2(v.X, y);
+    }
+
+    public static ByteColor ToByteColor(this Vector4 value)
+    {
+        return new ByteColor { A = (byte)(value.W * 255), R = (byte)(value.X * 255), G = (byte)(value.Y * 255), B = (byte)(value.Z * 255) };
     }
 }
