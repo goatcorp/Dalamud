@@ -17,6 +17,7 @@ using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Interface;
 using Dalamud.Interface.Internal;
+using Dalamud.Interface.Internal.Windows.PluginInstaller;
 using Dalamud.Plugin.Internal;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Plugin.Ipc;
@@ -193,6 +194,22 @@ public sealed class DalamudPluginInterface : IDisposable
     /// Gets a list of installed plugin internal names.
     /// </summary>
     public List<string> PluginInternalNames => Service<PluginManager>.Get().InstalledPlugins.Select(p => p.Manifest.InternalName).ToList();
+
+    /// <summary>
+    /// Opens the <see cref="PluginInstallerWindow"/>.
+    /// </summary>
+    /// <returns>Returns false if the DalamudInterface was null.</returns>
+    public bool OpenPluginInstaller()
+    {
+        var dalamudInterface = Service<DalamudInterface>.Get();
+        if (dalamudInterface == null)
+        {
+            return false;
+        }
+
+        dalamudInterface.OpenPluginInstaller();
+        return true;
+    }
 
     #region IPC
 
