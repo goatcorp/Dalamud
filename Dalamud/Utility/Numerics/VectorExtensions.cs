@@ -55,8 +55,8 @@ public static class VectorExtensions
         return new Vector2(v.X, y);
     }
 
-    public static ByteColor ToByteColor(this Vector4 value)
+    public static ByteColor ToByteColor(this Vector4 v)
     {
-        return new ByteColor { A = (byte)(value.W * 255), R = (byte)(value.X * 255), G = (byte)(value.Y * 255), B = (byte)(value.Z * 255) };
+        return new ByteColor { A = (byte)(v.W * 255), R = (byte)(v.X * 255), G = (byte)(v.Y * 255), B = (byte)(v.Z * 255) };
     }
 }
