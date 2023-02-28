@@ -61,6 +61,7 @@ internal class DalamudInterface : IDisposable, IServiceType
     private readonly TitleScreenMenuWindow titleScreenMenuWindow;
     private readonly ProfilerWindow profilerWindow;
     private readonly BranchSwitcherWindow branchSwitcherWindow;
+    private readonly HitchSettingsWindow hitchSettingsWindow;
 
     private readonly TextureWrap logoTexture;
     private readonly TextureWrap tsmLogoTexture;
@@ -108,6 +109,7 @@ internal class DalamudInterface : IDisposable, IServiceType
         this.titleScreenMenuWindow = new TitleScreenMenuWindow() { IsOpen = false };
         this.profilerWindow = new ProfilerWindow() { IsOpen = false };
         this.branchSwitcherWindow = new BranchSwitcherWindow() { IsOpen = false };
+        this.hitchSettingsWindow = new HitchSettingsWindow() { IsOpen = false };
 
         this.WindowSystem.AddWindow(this.changelogWindow);
         this.WindowSystem.AddWindow(this.colorDemoWindow);
@@ -124,6 +126,7 @@ internal class DalamudInterface : IDisposable, IServiceType
         this.WindowSystem.AddWindow(this.titleScreenMenuWindow);
         this.WindowSystem.AddWindow(this.profilerWindow);
         this.WindowSystem.AddWindow(this.branchSwitcherWindow);
+        this.WindowSystem.AddWindow(this.hitchSettingsWindow);
 
         ImGuiManagedAsserts.AssertsEnabled = configuration.AssertsEnabledAtStartup;
         this.isImGuiDrawDevMenu = this.isImGuiDrawDevMenu || configuration.DevBarOpenAtStartup;
@@ -306,6 +309,15 @@ internal class DalamudInterface : IDisposable, IServiceType
     {
         this.profilerWindow.IsOpen = true;
         this.profilerWindow.BringToFront();
+    }
+    
+    /// <summary>
+    /// Opens the <see cref="HitchSettingsWindow"/>.
+    /// </summary>
+    public void OpenHitchSettings()
+    {
+        this.hitchSettingsWindow.IsOpen = true;
+        this.hitchSettingsWindow.BringToFront();
     }
 
     /// <summary>
@@ -675,6 +687,11 @@ internal class DalamudInterface : IDisposable, IServiceType
                     if (ImGui.MenuItem("Open Profiler"))
                     {
                         this.OpenProfiler();
+                    }
+                    
+                    if (ImGui.MenuItem("Open Hitch Settings"))
+                    {
+                        this.OpenHitchSettings();
                     }
 
                     ImGui.Separator();

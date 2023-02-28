@@ -28,7 +28,7 @@ public sealed class Framework : IDisposable, IServiceType
     private static Stopwatch statsStopwatch = new();
 
     private readonly Stopwatch updateStopwatch = new();
-    private readonly HitchDetector hitchDetector = new("FrameworkUpdate", 50);
+    private readonly HitchDetector hitchDetector;
 
     private readonly Hook<OnUpdateDetour> updateHook;
     private readonly Hook<OnRealDestroyDelegate> destroyHook;
@@ -39,9 +39,14 @@ public sealed class Framework : IDisposable, IServiceType
 
     private Thread? frameworkUpdateThread;
 
+    [ServiceManager.ServiceDependency]
+    private readonly DalamudConfiguration configuration = Service<DalamudConfiguration>.Get();
+    
     [ServiceManager.ServiceConstructor]
     private Framework(SigScanner sigScanner)
     {
+        this.hitchDetector = new HitchDetector("FrameworkUpdate", this.configuration.FrameworkUpdateHitch);
+
         this.Address = new FrameworkAddressResolver();
         this.Address.Setup(sigScanner);
 

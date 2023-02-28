@@ -34,6 +34,9 @@ public sealed class UiBuilder : IDisposable
     private bool hasErrorWindow = false;
     private bool lastFrameUiHideState = false;
 
+    [ServiceManager.ServiceDependency]
+    private readonly DalamudConfiguration configuration = Service<DalamudConfiguration>.Get();
+
     /// <summary>
     /// Initializes a new instance of the <see cref="UiBuilder"/> class and registers it.
     /// You do not have to call this manually.
@@ -42,7 +45,7 @@ public sealed class UiBuilder : IDisposable
     internal UiBuilder(string namespaceName)
     {
         this.stopwatch = new Stopwatch();
-        this.hitchDetector = new HitchDetector($"UiBuilder({namespaceName})", 100);
+        this.hitchDetector = new HitchDetector($"UiBuilder({namespaceName})", this.configuration.UiBuilderHitch);
         this.namespaceName = namespaceName;
 
         this.interfaceManager.Draw += this.OnDraw;
