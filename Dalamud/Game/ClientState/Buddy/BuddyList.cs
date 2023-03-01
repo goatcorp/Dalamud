@@ -92,7 +92,7 @@ public sealed partial class BuddyList : IServiceType
     /// </summary>
     internal IntPtr BuddyListAddress => this.address.BuddyList;
 
-    private static int BuddyMemberSize { get; } = Marshal.SizeOf<FFXIVClientStructs.FFXIV.Client.Game.UI.Buddy>();
+    private static int BuddyMemberSize { get; } = Marshal.SizeOf<FFXIVClientStructs.FFXIV.Client.Game.UI.Buddy.BuddyMember>();
 
     private unsafe FFXIVClientStructs.FFXIV.Client.Game.UI.Buddy* BuddyListStruct => (FFXIVClientStructs.FFXIV.Client.Game.UI.Buddy*)this.BuddyListAddress;
 
