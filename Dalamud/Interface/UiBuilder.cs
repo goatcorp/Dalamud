@@ -89,13 +89,13 @@ public sealed class UiBuilder : IDisposable
     public event Action AfterBuildFonts;
 
     /// <summary>
-    /// Gets or sets an action that is called when plugin UI or interface modifications are supposed to be hidden.
+    /// Gets or sets an action that is called when plugin UI or interface modifications are supposed to be shown.
     /// These may be fired consecutively.
     /// </summary>
     public event Action ShowUi;
 
     /// <summary>
-    /// Gets or sets an action that is called when plugin UI or interface modifications are supposed to be shown.
+    /// Gets or sets an action that is called when plugin UI or interface modifications are supposed to be hidden.
     /// These may be fired consecutively.
     /// </summary>
     public event Action HideUi;
