@@ -29,6 +29,12 @@ internal class DalamudCommands : IServiceType
             HelpMessage = Loc.Localize("DalamudUnloadHelp", "Unloads XIVLauncher in-game addon."),
             ShowInHelp = false,
         });
+        
+        commandManager.AddHandler("/xlkill", new CommandInfo(this.OnKillCommand)
+        {
+            HelpMessage = "Kill the game.",
+            ShowInHelp = false,
+        });
 
         commandManager.AddHandler("/xlhelp", new CommandInfo(this.OnHelpCommand)
         {
@@ -140,6 +146,11 @@ internal class DalamudCommands : IServiceType
     {
         Service<ChatGui>.Get().Print("Unloading...");
         Service<Dalamud>.Get().Unload();
+    }
+    
+    private void OnKillCommand(string command, string arguments)
+    {
+        Process.GetCurrentProcess().Kill();
     }
 
     private void OnHelpCommand(string command, string arguments)
