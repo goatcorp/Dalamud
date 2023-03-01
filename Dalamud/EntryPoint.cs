@@ -147,11 +147,9 @@ public sealed class EntryPoint
         var configuration = DalamudConfiguration.Load(info.ConfigurationPath!);
 
         // Set the appropriate logging level from the configuration
-#if !DEBUG
         if (!configuration.LogSynchronously)
             InitLogging(info.WorkingDirectory!, info.BootShowConsole, configuration.LogSynchronously, info.LogName);
         LogLevelSwitch.MinimumLevel = configuration.LogLevel;
-#endif
 
         // Log any unhandled exception.
         AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;

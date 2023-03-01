@@ -733,7 +733,7 @@ internal class InterfaceManager : IDisposable, IServiceType
             // FontAwesome icon font
             Log.Verbose("[FONT] SetupFonts - FontAwesome icon font");
             {
-                var fontPathIcon = Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "FontAwesome5FreeSolid.otf");
+                var fontPathIcon = Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "FontAwesomeFreeSolid.otf");
                 if (!File.Exists(fontPathIcon))
                     ShowFontError(fontPathIcon);
 

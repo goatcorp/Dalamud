@@ -34,6 +34,9 @@ public sealed class UiBuilder : IDisposable
     private bool hasErrorWindow = false;
     private bool lastFrameUiHideState = false;
 
+    [ServiceManager.ServiceDependency]
+    private readonly DalamudConfiguration configuration = Service<DalamudConfiguration>.Get();
+
     /// <summary>
     /// Initializes a new instance of the <see cref="UiBuilder"/> class and registers it.
     /// You do not have to call this manually.
@@ -42,7 +45,7 @@ public sealed class UiBuilder : IDisposable
     internal UiBuilder(string namespaceName)
     {
         this.stopwatch = new Stopwatch();
-        this.hitchDetector = new HitchDetector($"UiBuilder({namespaceName})", 100);
+        this.hitchDetector = new HitchDetector($"UiBuilder({namespaceName})", this.configuration.UiBuilderHitch);
         this.namespaceName = namespaceName;
 
         this.interfaceManager.Draw += this.OnDraw;
@@ -86,13 +89,13 @@ public sealed class UiBuilder : IDisposable
     public event Action AfterBuildFonts;
 
     /// <summary>
-    /// Gets or sets an action that is called when plugin UI or interface modifications are supposed to be hidden.
+    /// Gets or sets an action that is called when plugin UI or interface modifications are supposed to be shown.
     /// These may be fired consecutively.
     /// </summary>
     public event Action ShowUi;
 
     /// <summary>
-    /// Gets or sets an action that is called when plugin UI or interface modifications are supposed to be shown.
+    /// Gets or sets an action that is called when plugin UI or interface modifications are supposed to be hidden.
     /// These may be fired consecutively.
     /// </summary>
     public event Action HideUi;

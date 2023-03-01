@@ -174,10 +174,6 @@ namespace Dalamud.Injector
 
         private static void InitLogging(bool verbose, IEnumerable<string> args)
         {
-#if DEBUG
-            verbose = true;
-#endif
-
             var levelSwitch = new LoggingLevelSwitch
             {
                 MinimumLevel = verbose ? LogEventLevel.Verbose : LogEventLevel.Information,
