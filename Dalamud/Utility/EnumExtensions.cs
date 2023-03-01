@@ -27,4 +27,14 @@ public static class EnumExtensions
                    .OfType<TAttribute>()
                    .SingleOrDefault();
     }
+
+    /// <summary>
+    /// Gets an indicator if enum has been flagged as obsolete (deprecated).
+    /// </summary>
+    /// <param name="value">The enum value that has an attached attribute.</param>
+    /// <returns>Indicator if enum has been flagged as obsolete.</returns>
+    public static bool IsObsolete(this Enum value)
+    {
+        return GetAttribute<ObsoleteAttribute>(value) != null;
+    }
 }
