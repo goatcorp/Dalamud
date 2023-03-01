@@ -352,6 +352,26 @@ internal sealed class DalamudConfiguration : IServiceType
     public bool WindowIsImmersive { get; set; } = false;
 
     /// <summary>
+    /// Gets or sets hitch threshold for game network up in milliseconds.
+    /// </summary>
+    public double GameNetworkUpHitch { get; set; } = 30;
+    
+    /// <summary>
+    /// Gets or sets hitch threshold for game network down in milliseconds.
+    /// </summary>
+    public double GameNetworkDownHitch { get; set; } = 30;
+    
+    /// <summary>
+    /// Gets or sets hitch threshold for framework update in milliseconds.
+    /// </summary>
+    public double FrameworkUpdateHitch { get; set; } = 50;
+    
+    /// <summary>
+    /// Gets or sets hitch threshold for ui builder in milliseconds.
+    /// </summary>
+    public double UiBuilderHitch { get; set; } = 100;
+
+    /// <summary>
     /// Load a configuration from the provided path.
     /// </summary>
     /// <param name="path">The path to load the configuration file from.</param>

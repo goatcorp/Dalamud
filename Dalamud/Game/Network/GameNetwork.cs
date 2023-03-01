@@ -1,12 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
-
+using Dalamud.Configuration.Internal;
 using Dalamud.Hooking;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Utility;
 using Serilog;
+using Serilog.Core;
 
 namespace Dalamud.Game.Network;
 
@@ -22,14 +23,20 @@ public sealed class GameNetwork : IDisposable, IServiceType
     private readonly Hook<ProcessZonePacketDownDelegate> processZonePacketDownHook;
     private readonly Hook<ProcessZonePacketUpDelegate> processZonePacketUpHook;
 
-    private readonly HitchDetector hitchDetectorUp = new("GameNetworkUp", 30);
-    private readonly HitchDetector hitchDetectorDown = new("GameNetworkDown", 30);
+    private readonly HitchDetector hitchDetectorUp;
+    private readonly HitchDetector hitchDetectorDown;
 
     private IntPtr baseAddress;
 
+    [ServiceManager.ServiceDependency]
+    private readonly DalamudConfiguration configuration = Service<DalamudConfiguration>.Get();
+    
     [ServiceManager.ServiceConstructor]
     private GameNetwork(SigScanner sigScanner)
     {
+        this.hitchDetectorUp = new HitchDetector("GameNetworkUp", this.configuration.GameNetworkUpHitch);
+        this.hitchDetectorDown = new HitchDetector("GameNetworkDown", this.configuration.GameNetworkDownHitch);
+
         this.address = new GameNetworkAddressResolver();
         this.address.Setup(sigScanner);
 
