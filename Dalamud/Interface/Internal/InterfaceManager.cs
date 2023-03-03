@@ -1052,12 +1052,39 @@ internal class InterfaceManager : IDisposable, IServiceType
     {
         if (msg.hwnd == this.GameWindowHandle && this.scene != null)
         {
+            this.DispatchMessageDalamud(in msg);
+
             var res = this.scene.ProcessWndProcW(msg.hwnd, msg.message, (void*)msg.wParam, (void*)msg.lParam);
             if (res != null)
                 return res.Value;
         }
 
         return this.dispatchMessageWHook.IsDisposed ? User32.DispatchMessage(ref msg) : this.dispatchMessageWHook.Original(ref msg);
+    }
+
+    private void DispatchMessageDalamud(in User32.MSG msg)
+    {
+        // Processes window message and call Dalamud services based on it.
+        // Ideally, this shouldn't be wired here though.. (not to mention this file is already 1K+ lines long!)
+        // maybe something something refactoring TODO?
+        switch (msg.message)
+        {
+            // Handle keyboard events
+            case User32.WindowMessage.WM_KEYDOWN:
+            case User32.WindowMessage.WM_SYSKEYDOWN:
+            case User32.WindowMessage.WM_KEYUP:
+            case User32.WindowMessage.WM_SYSKEYUP:
+                var simulatedKey = Service<SimulatedKeyState>.GetNullable();
+
+                var keyDown = msg.message switch
+                {
+                    User32.WindowMessage.WM_KEYDOWN or User32.WindowMessage.WM_SYSKEYDOWN => true,
+                    _ => false,
+                };
+
+                simulatedKey?.AddKeyEvent((ushort)msg.wParam, keyDown);
+                break;
+        }
     }
 
     private IntPtr ResizeBuffersDetour(IntPtr swapChain, uint bufferCount, uint width, uint height, uint newFormat, uint swapChainFlags)
@@ -1094,11 +1121,12 @@ internal class InterfaceManager : IDisposable, IServiceType
         return this.setCursorHook.IsDisposed ? User32.SetCursor(new User32.SafeCursorHandle(hCursor, false)).DangerousGetHandle() : this.setCursorHook.Original(hCursor);
     }
 
-    private void OnFrameworkUpdate(Framework framework)
+    private void OnFrameworkUpdate(Framework _)
     {
-        var keyState = Service<KeyState>.Get();
+        var simulatedKey = Service<SimulatedKeyState>.GetNullable();
+        var keyCapture = Service<KeyCapture>.GetNullable();
         var io = ImGui.GetIO();
-        
+
         // fix for keys in game getting stuck, if you were holding a game key (like run)
         // and then clicked on an imgui textbox - imgui would swallow the keyup event,
         // so the game would think the key remained pressed continuously until you left
@@ -1110,18 +1138,18 @@ internal class InterfaceManager : IDisposable, IServiceType
         // |   (Updates KeyState)             (this fn)                     (Uses KeyState)                               |
         // +--------------------------------------------------------------------------------------------------------------+
         // - So this "fix" must be applied before `Framework_TaskUpdateInputDevice` (check FFXIVClientStructs) is called
-        //   or else any KeyPressed events raised during the current frame will erronously be applied for a single frame.
-        // - Currently we naively clear all `KeyState` buffer to zero to simulate key releases. This approach may cause some
-        //   problem as original values won't be restored (because we don't know what value should be at this point)
-        //   even after ImGui no longer wants to capture keyboard inputs. (in practice, player can see this in effect when
-        //   an action like moving/running being interrupted out of nowhere and they have to press WASD again)
-        // - This inconvenience can be solved if we introduce something like an "overlay" which tracks inputs and restores
-        //   `KeyState` to what should've been once `WantCaptureKeyboard` is released. So, what we have right now is an
-        //   interim solution in the meantime.
-        
-        if (io.WantCaptureKeyboard || io.WantTextInput)
+        //   or else any KeyPressed events raised during the current frame will erroneously be applied on current frame.
+
+        // Block inputs from being delivered to the game if ImGui wants it.
+        if ((io.WantCaptureKeyboard || io.WantTextInput) && keyCapture != null)
         {
-            keyState.ClearAll();
+            keyCapture.CaptureAllSingleFrame();
+        }
+
+        // Update window focus info
+        if (simulatedKey != null)
+        {
+            simulatedKey.HasFocus = User32.GetForegroundWindow() == this.GameWindowHandle;
         }
     }
 
