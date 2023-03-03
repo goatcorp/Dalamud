@@ -217,6 +217,7 @@ internal class InterfaceManager : IDisposable, IServiceType
     /// </summary>
     public void Dispose()
     {
+        this.framework.Update -= OnFrameworkUpdate;
         this.framework.RunOnFrameworkThread(() =>
         {
             this.setCursorHook.Dispose();
@@ -980,6 +981,8 @@ internal class InterfaceManager : IDisposable, IServiceType
     [ServiceManager.CallWhenServicesReady]
     private void ContinueConstruction(SigScanner sigScanner, Framework framework)
     {
+        framework.Update += this.OnFrameworkUpdate;
+
         this.address.Setup(sigScanner);
         framework.RunOnFrameworkThread(() =>
         {
@@ -1019,6 +1022,7 @@ internal class InterfaceManager : IDisposable, IServiceType
             this.processMessageHook.Enable();
         });
     }
+
 
     // This is intended to only be called as a handler attached to scene.OnNewRenderFrame
     private void RebuildFontsInternal()
@@ -1090,6 +1094,37 @@ internal class InterfaceManager : IDisposable, IServiceType
         return this.setCursorHook.IsDisposed ? User32.SetCursor(new User32.SafeCursorHandle(hCursor, false)).DangerousGetHandle() : this.setCursorHook.Original(hCursor);
     }
 
+    private void OnFrameworkUpdate(Framework framework)
+    {
+        var keyState = Service<KeyState>.Get();
+        var io = ImGui.GetIO();
+        
+        // fix for keys in game getting stuck, if you were holding a game key (like run)
+        // and then clicked on an imgui textbox - imgui would swallow the keyup event,
+        // so the game would think the key remained pressed continuously until you left
+        // imgui and pressed and released the key again
+        //
+        // Notes:
+        // Simplified main game loop (names based on FFXIVClientStructs)
+        // +--> DispatchMessage --> .. --> Framework_Tick --> .. --> Framework_TaskUpdateInputDevice --> .. --> Present --+
+        // |   (Updates KeyState)             (this fn)                     (Uses KeyState)                               |
+        // +--------------------------------------------------------------------------------------------------------------+
+        // - So this "fix" must be applied before `Framework_TaskUpdateInputDevice` (check FFXIVClientStructs) is called
+        //   or else any KeyPressed events raised during the current frame will erronously be applied for a single frame.
+        // - Currently we naively clear all `KeyState` buffer to zero to simulate key releases. This approach may cause some
+        //   problem as original values won't be restored (because we don't know what value should be at this point)
+        //   even after ImGui no longer wants to capture keyboard inputs. (in practice, player can see this in effect when
+        //   an action like moving/running being interrupted out of nowhere and they have to press WASD again)
+        // - This inconvenience can be solved if we introduce something like an "overlay" which tracks inputs and restores
+        //   `KeyState` to what should've been once `WantCaptureKeyboard` is released. So, what we have right now is an
+        //   interim solution in the meantime.
+        
+        if (io.WantCaptureKeyboard || io.WantTextInput)
+        {
+            keyState.ClearAll();
+        }
+    }
+
     private void OnNewInputFrame()
     {
         var dalamudInterface = Service<DalamudInterface>.GetNullable();
@@ -1098,15 +1133,6 @@ internal class InterfaceManager : IDisposable, IServiceType
 
         if (dalamudInterface == null || gamepadState == null || keyState == null)
             return;
-
-        // fix for keys in game getting stuck, if you were holding a game key (like run)
-        // and then clicked on an imgui textbox - imgui would swallow the keyup event,
-        // so the game would think the key remained pressed continuously until you left
-        // imgui and pressed and released the key again
-        if (ImGui.GetIO().WantTextInput)
-        {
-            keyState.ClearAll();
-        }
 
         // TODO: mouse state?
 
