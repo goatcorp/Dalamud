@@ -10,7 +10,7 @@ namespace Dalamud.Game.ClientState.Keys;
 [PluginInterface]
 [InterfaceVersion("1.0")]
 [ServiceManager.BlockingEarlyLoadedService]
-public sealed partial class KeyCapture : IDisposable, IServiceType
+internal sealed partial class KeyCapture : IDisposable, IServiceType
 {
     private readonly InputDevicePoll mInputDevicePoll;
 
