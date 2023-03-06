@@ -298,6 +298,7 @@ public static class ImGuiHelpers
     internal static void NewFrame()
     {
         GlobalScale = ImGui.GetIO().FontGlobalScale;
+        InterfaceHelpers.GlobalScale = GlobalScale;
     }
 
     /// <summary>
