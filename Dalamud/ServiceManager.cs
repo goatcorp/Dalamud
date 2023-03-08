@@ -126,26 +126,6 @@ internal static class ServiceManager
 
         var dependencyServicesMap = new Dictionary<Type, List<Type>>();
         var getAsyncTaskMap = new Dictionary<Type, Task>();
-        
-        // fill getAsyncTaskMap with services that were provided
-        lock (LoadedServices)
-        {
-            foreach (var loadedService in LoadedServices)
-            {
-                var getTask = (Task)typeof(Service<>)
-                                    .MakeGenericType(loadedService)
-                                    .InvokeMember(
-                                        "GetAsync",
-                                        BindingFlags.InvokeMethod | BindingFlags.Static | BindingFlags.Public,
-                                        null,
-                                        null,
-                                        null);
-                
-                Debug.Assert(getTask != null, "Provided service getTask was null");
-
-                getAsyncTaskMap[typeof(Service<>).MakeGenericType(loadedService)] = getTask;
-            }
-        }
 
         foreach (var serviceType in Assembly.GetExecutingAssembly().GetTypes())
         {
@@ -218,16 +198,11 @@ internal static class ServiceManager
 
                         if (depResolveTask == null && (depServiceKind.HasFlag(ServiceKind.EarlyLoadedService) || depServiceKind.HasFlag(ServiceKind.BlockingEarlyLoadedService)))
                         {
-                            Log.Information("{Type}: {Dependency} has no resolver task, is it early loaded or blocking early loaded?", serviceType.FullName!, dependency.FullName!);
+                            Log.Error("{Type}: {Dependency} has no resolver task, is it early loaded or blocking early loaded?", serviceType.FullName!, dependency.FullName!);
                             Debug.Assert(false, $"No resolver for dependent service {dependency.FullName}");
-                        }
-                        else if (depResolveTask is { Status: TaskStatus.Created })
-                        {
-                            depResolveTask.Start();
                         }
                         else if (depResolveTask is { IsCompleted: false })
                         {
-                            Log.Verbose("{Type} waiting for {Dependency}", serviceType.FullName!, dependency.FullName!);
                             hasDeps = false;
                         }
                     }
@@ -331,14 +306,6 @@ internal static class ServiceManager
                                 null,
                                 null))!
                 .Select(x => x.GetGenericArguments()[0]).ToList();
-            
-            /*
-            Log.Verbose("=> Deps for {Type}", serviceType.FullName!);
-            foreach (var dependencyService in dependencyServicesMap[serviceType])
-            {
-                Log.Verbose("\t\t=> {Type}", dependencyService.FullName!);
-            }
-            */
 
             allToUnload.Add(serviceType);
         }
