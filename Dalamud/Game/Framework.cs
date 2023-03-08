@@ -492,7 +492,10 @@ public sealed class Framework : IDisposable, IServiceType
         Log.Information("Framework::Destroy!");
         Service<Dalamud>.Get().Unload();
         this.RunPendingTickTasks();
-        ServiceManager.UnloadAllServices();
+
+        // why did we do this here? EntryPoint also does it when the signal is set, what sense does that make
+        // we should definitely wait for pending tick tasks though
+        // ServiceManager.UnloadAllServices();
         Log.Information("Framework::Destroy OK!");
 
         return this.destroyHook.OriginalDisposeSafe(framework);

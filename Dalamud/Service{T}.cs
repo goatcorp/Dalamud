@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
+using Dalamud.Plugin.Internal;
 using Dalamud.Utility.Timing;
 using JetBrains.Annotations;
 
@@ -121,17 +122,42 @@ internal static class Service<T> where T : IServiceType
     public static List<Type> GetDependencyServices()
     {
         var res = new List<Type>();
-        res.AddRange(GetServiceConstructor()
-                     .GetParameters()
-                     .Select(x => x.ParameterType));
+
+        var ctor = GetServiceConstructor();
+        if (ctor != null)
+        {
+            res.AddRange(ctor
+               .GetParameters()
+               .Select(x => x.ParameterType));
+        }
+        
         res.AddRange(typeof(T)
-                     .GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
-                     .Select(x => x.FieldType)
-                     .Where(x => x.GetCustomAttribute<ServiceManager.ServiceDependency>(true) != null));
+                         .GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
+                         .Select(x => x.FieldType)
+                         .Where(x => x.GetCustomAttribute<ServiceManager.ServiceDependency>(true) != null));
+        
         res.AddRange(typeof(T)
                      .GetCustomAttributes()
                      .OfType<InherentDependencyAttribute>()
                      .Select(x => x.GetType().GetGenericArguments().First()));
+
+
+        // HACK: PluginManager needs to depend on ALL plugin exposed services
+        if (typeof(T) == typeof(PluginManager))
+        {
+            foreach (var serviceType in Assembly.GetExecutingAssembly().GetTypes())
+            {
+                if (!serviceType.IsAssignableTo(typeof(IServiceType)))
+                    continue;
+
+                var attr = serviceType.GetCustomAttribute<PluginInterfaceAttribute>(true);
+                if (attr == null)
+                    continue;
+
+                ServiceManager.Log.Verbose("PluginManager MUST depend on {Type}", serviceType.FullName!);
+                res.Add(serviceType);
+            }
+        }
 
         return res
                .Distinct()
@@ -228,19 +254,22 @@ internal static class Service<T> where T : IServiceType
                              .GetValue(task);
     }
 
-    private static ConstructorInfo GetServiceConstructor()
+    private static ConstructorInfo? GetServiceConstructor()
     {
         const BindingFlags ctorBindingFlags =
             BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic |
             BindingFlags.CreateInstance | BindingFlags.OptionalParamBinding;
         return typeof(T)
                .GetConstructors(ctorBindingFlags)
-               .Single(x => x.GetCustomAttributes(typeof(ServiceManager.ServiceConstructor), true).Any());
+               .SingleOrDefault(x => x.GetCustomAttributes(typeof(ServiceManager.ServiceConstructor), true).Any());
     }
 
     private static async Task<T> ConstructObject()
     {
         var ctor = GetServiceConstructor();
+        if (ctor == null)
+            throw new Exception($"Service \"{typeof(T).FullName}\" had no applicable constructor");
+        
         var args = await Task.WhenAll(
                        ctor.GetParameters().Select(x => ResolveServiceFromTypeAsync(x.ParameterType)));
         using (Timings.Start($"{typeof(T).Name} Construct"))
