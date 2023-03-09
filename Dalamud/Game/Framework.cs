@@ -492,7 +492,7 @@ public sealed class Framework : IDisposable, IServiceType
         Log.Information("Framework::Destroy!");
         Service<Dalamud>.Get().Unload();
         this.RunPendingTickTasks();
-        ServiceManager.UnloadAllServices();
+        ServiceManager.WaitForServiceUnload();
         Log.Information("Framework::Destroy OK!");
 
         return this.destroyHook.OriginalDisposeSafe(framework);

@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 using System.Threading.Tasks;
 
 using Dalamud.Configuration.Internal;
@@ -19,6 +21,13 @@ namespace Dalamud;
 /// </summary>
 internal static class ServiceManager
 {
+    /**
+     * TODO:
+     * - Unify dependency walking code(load/unload
+     * - Visualize/output .dot or imgui thing
+     */
+
+
     /// <summary>
     /// Static log facility for Service{T}, to avoid duplicate instances for different types.
     /// </summary>
@@ -27,6 +36,40 @@ internal static class ServiceManager
     private static readonly TaskCompletionSource BlockingServicesLoadedTaskCompletionSource = new();
 
     private static readonly List<Type> LoadedServices = new();
+
+    private static ManualResetEvent unloadResetEvent = new(false);
+    
+    /// <summary>
+    /// Kinds of services.
+    /// </summary>
+    [Flags]
+    public enum ServiceKind
+    {
+        /// <summary>
+        /// Not a service.
+        /// </summary>
+        None = 0,
+        
+        /// <summary>
+        /// Regular service.
+        /// </summary>
+        ManualService = 1 << 0,
+        
+        /// <summary>
+        /// Service that is loaded asynchronously while the game starts.
+        /// </summary>
+        EarlyLoadedService = 1 << 1,
+        
+        /// <summary>
+        /// Service that is loaded before the game starts.
+        /// </summary>
+        BlockingEarlyLoadedService = 1 << 2,
+        
+        /// <summary>
+        /// Service that is loaded automatically when the game starts, synchronously or asynchronously.
+        /// </summary>
+        AutoLoadService = EarlyLoadedService | BlockingEarlyLoadedService,
+    }
 
     /// <summary>
     /// Gets task that gets completed when all blocking early loading services are done loading.
@@ -89,9 +132,11 @@ internal static class ServiceManager
 
         foreach (var serviceType in Assembly.GetExecutingAssembly().GetTypes())
         {
-            var attr = serviceType.GetCustomAttribute<Service>(true)?.GetType();
-            if (attr?.IsAssignableTo(typeof(EarlyLoadedService)) != true)
+            var serviceKind = serviceType.GetServiceKind();
+            if (serviceKind == ServiceKind.None)
                 continue;
+            
+            Debug.Assert(!serviceKind.HasFlag(ServiceKind.ManualService), "Regular services should never end up here");
 
             var getTask = (Task)typeof(Service<>)
                                 .MakeGenericType(serviceType)
@@ -102,9 +147,9 @@ internal static class ServiceManager
                                     null,
                                     null);
 
-            if (attr.IsAssignableTo(typeof(BlockingEarlyLoadedService)))
+            if (serviceKind.HasFlag(ServiceKind.BlockingEarlyLoadedService))
             {
-                getAsyncTaskMap[serviceType] = getTask;
+                getAsyncTaskMap[typeof(Service<>).MakeGenericType(serviceType)] = getTask;
                 blockingEarlyLoadingServices.Add(serviceType);
             }
             else
@@ -148,8 +193,24 @@ internal static class ServiceManager
             {
                 foreach (var serviceType in servicesToLoad)
                 {
-                    if (dependencyServicesMap[serviceType].Any(
-                            x => getAsyncTaskMap.GetValueOrDefault(x)?.IsCompleted == false))
+                    var hasDeps = true;
+                    foreach (var dependency in dependencyServicesMap[serviceType])
+                    {
+                        var depServiceKind = dependency.GetServiceKind();
+                        var depResolveTask = getAsyncTaskMap.GetValueOrDefault(dependency);
+
+                        if (depResolveTask == null && (depServiceKind.HasFlag(ServiceKind.EarlyLoadedService) || depServiceKind.HasFlag(ServiceKind.BlockingEarlyLoadedService)))
+                        {
+                            Log.Error("{Type}: {Dependency} has no resolver task, is it early loaded or blocking early loaded?", serviceType.FullName!, dependency.FullName!);
+                            Debug.Assert(false, $"No resolver for dependent service {dependency.FullName}");
+                        }
+                        else if (depResolveTask is { IsCompleted: false })
+                        {
+                            hasDeps = false;
+                        }
+                    }
+                    
+                    if (!hasDeps)
                         continue;
 
                     tasks.Add((Task)typeof(Service<>)
@@ -227,23 +288,108 @@ internal static class ServiceManager
             return;
         }
 
-        lock (LoadedServices)
-        {
-            while (LoadedServices.Any())
-            {
-                var serviceType = LoadedServices.Last();
-                LoadedServices.RemoveAt(LoadedServices.Count - 1);
+        unloadResetEvent.Reset();
 
-                typeof(Service<>)
-                    .MakeGenericType(serviceType)
+        var dependencyServicesMap = new Dictionary<Type, List<Type>>();
+        var allToUnload = new HashSet<Type>();
+        var unloadOrder = new List<Type>();
+        
+        Log.Information("==== COLLECTING SERVICES TO UNLOAD ====");
+        
+        foreach (var serviceType in Assembly.GetExecutingAssembly().GetTypes())
+        {
+            if (!serviceType.IsAssignableTo(typeof(IServiceType)))
+                continue;
+            
+            dependencyServicesMap[serviceType] =
+                ((List<Type>)typeof(Service<>)
+                            .MakeGenericType(serviceType)
+                            .InvokeMember(
+                                "GetDependencyServices",
+                                BindingFlags.InvokeMethod | BindingFlags.Static | BindingFlags.Public,
+                                null,
+                                null,
+                                null))!
+                .Select(x => x.GetGenericArguments()[0]).ToList();
+
+            allToUnload.Add(serviceType);
+        }
+
+        void UnloadService(Type serviceType)
+        {
+            if (unloadOrder.Contains(serviceType))
+                return;
+
+            var deps = dependencyServicesMap[serviceType];
+            foreach (var dep in deps)
+            {
+                UnloadService(dep);
+            }
+
+            unloadOrder.Add(serviceType);
+            Log.Information("Queue for unload {Type}", serviceType.FullName!);
+        }
+        
+        foreach (var serviceType in allToUnload)
+        {
+            UnloadService(serviceType);
+        }
+        
+        Log.Information("==== UNLOADING ALL SERVICES ====");
+
+        unloadOrder.Reverse();
+        foreach (var type in unloadOrder)
+        {
+            Log.Verbose("Unload {Type}", type.FullName!);
+
+            typeof(Service<>)
+                    .MakeGenericType(type)
                     .InvokeMember(
                         "Unset",
                         BindingFlags.InvokeMethod | BindingFlags.Static | BindingFlags.NonPublic,
                         null,
                         null,
                         null);
-            }
         }
+        
+        lock (LoadedServices)
+        {
+            LoadedServices.Clear();
+        }
+
+        unloadResetEvent.Set();
+    }
+
+    /// <summary>
+    /// Wait until all services have been unloaded.
+    /// </summary>
+    public static void WaitForServiceUnload()
+    {
+        unloadResetEvent.WaitOne();
+    }
+
+    /// <summary>
+    /// Get the service type of this type.
+    /// </summary>
+    /// <param name="type">The type to check.</param>
+    /// <returns>The type of service this type is.</returns>
+    public static ServiceKind GetServiceKind(this Type type)
+    {
+        var attr = type.GetCustomAttribute<Service>(true)?.GetType();
+        if (attr == null)
+            return ServiceKind.None;
+        
+        Debug.Assert(
+            type.IsAssignableTo(typeof(IServiceType)),
+            "Service did not inherit from IServiceType");
+
+        if (attr.IsAssignableTo(typeof(BlockingEarlyLoadedService)))
+            return ServiceKind.BlockingEarlyLoadedService;
+        
+        if (attr.IsAssignableTo(typeof(EarlyLoadedService)))
+            return ServiceKind.EarlyLoadedService;
+
+        return ServiceKind.ManualService;
     }
 
     /// <summary>

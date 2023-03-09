@@ -32,14 +32,14 @@ namespace Dalamud.Plugin.Internal;
 
 /// <summary>
 /// Class responsible for loading and unloading plugins.
+/// NOTE: ALL plugin exposed services are marked as dependencies for PluginManager in Service{T}.
 /// </summary>
 [ServiceManager.EarlyLoadedService]
 #pragma warning disable SA1015
-// DalamudTextureWrap registers textures to dispose with IM
-[InherentDependency<InterfaceManager.InterfaceManagerWithScene>]
 
-// DalamudPluginInterface asks to remove chat link handlers
-[InherentDependency<ChatGui>]
+// DalamudTextureWrap registers textures to dispose with IM
+[InherentDependency<InterfaceManager>]
+
 #pragma warning restore SA1015
 internal partial class PluginManager : IDisposable, IServiceType
 {
