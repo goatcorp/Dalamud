@@ -138,8 +138,9 @@ internal static class ServiceManager
             
             Debug.Assert(!serviceKind.HasFlag(ServiceKind.ManualService), "Regular services should never end up here");
 
-            var getTask = (Task)typeof(Service<>)
-                                .MakeGenericType(serviceType)
+            var genericWrappedServiceType = typeof(Service<>).MakeGenericType(serviceType);
+            
+            var getTask = (Task)genericWrappedServiceType
                                 .InvokeMember(
                                     "GetAsync",
                                     BindingFlags.InvokeMethod | BindingFlags.Static | BindingFlags.Public,
@@ -149,7 +150,7 @@ internal static class ServiceManager
 
             if (serviceKind.HasFlag(ServiceKind.BlockingEarlyLoadedService))
             {
-                getAsyncTaskMap[typeof(Service<>).MakeGenericType(serviceType)] = getTask;
+                getAsyncTaskMap[serviceType] = getTask;
                 blockingEarlyLoadingServices.Add(serviceType);
             }
             else

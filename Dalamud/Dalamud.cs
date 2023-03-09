@@ -10,6 +10,7 @@ using Dalamud.Game;
 using Dalamud.Game.Gui.Internal;
 using Dalamud.Interface.Internal;
 using Dalamud.Plugin.Internal;
+using Dalamud.Utility;
 using Serilog;
 
 #if DEBUG
@@ -81,6 +82,7 @@ internal sealed class Dalamud : IServiceType
                 catch (Exception e)
                 {
                     Log.Error(e, "Service initialization failure");
+                    Util.Fatal("Dalamud could not initialize correctly. Please report this error. \n\nThe game will continue, but you may not be able to use plugins.", "Dalamud", false);
                 }
                 finally
                 {
