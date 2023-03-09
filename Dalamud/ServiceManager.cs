@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 using System.Threading.Tasks;
 
 using Dalamud.Configuration.Internal;
@@ -35,6 +36,8 @@ internal static class ServiceManager
     private static readonly TaskCompletionSource BlockingServicesLoadedTaskCompletionSource = new();
 
     private static readonly List<Type> LoadedServices = new();
+
+    private static ManualResetEvent unloadResetEvent = new(false);
     
     /// <summary>
     /// Kinds of services.
@@ -285,6 +288,8 @@ internal static class ServiceManager
             return;
         }
 
+        unloadResetEvent.Reset();
+
         var dependencyServicesMap = new Dictionary<Type, List<Type>>();
         var allToUnload = new HashSet<Type>();
         var unloadOrder = new List<Type>();
@@ -351,6 +356,16 @@ internal static class ServiceManager
         {
             LoadedServices.Clear();
         }
+
+        unloadResetEvent.Set();
+    }
+
+    /// <summary>
+    /// Wait until all services have been unloaded.
+    /// </summary>
+    public static void WaitForServiceUnload()
+    {
+        unloadResetEvent.WaitOne();
     }
 
     /// <summary>
