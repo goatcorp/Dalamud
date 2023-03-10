@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 
 using Dalamud.Memory;
+using JetBrains.Annotations;
 
 namespace Dalamud.Hooking.Internal;
 
@@ -18,7 +19,7 @@ internal class FunctionPointerVariableHook<T> : Hook<T>
     private readonly nint pfnDetour;
 
     // Keep it referenced so that pfnDetour doesn't become invalidated.
-    // ReSharper disable once NotAccessedField.Local
+    [UsedImplicitly]
     private readonly T detourDelegate;
 
     private readonly nint pfnThunk;
