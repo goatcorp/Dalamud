@@ -1,9 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Reflection;
 
 using Dalamud.Plugin.Ipc.Exceptions;
+using Serilog;
 
 namespace Dalamud.Plugin.Ipc.Internal;
 
@@ -32,30 +35,41 @@ internal class DataShare : IServiceType
     /// <exception cref="DataCacheTypeMismatchError">Thrown if a cache for <paramref name="tag"/> exists, but contains data of a type not assignable to <typeparamref name="T>"/>.</exception>
     /// <exception cref="DataCacheValueNullError">Thrown if the stored data for a cache is null.</exception>
     /// <exception cref="DataCacheCreationError">Thrown if <paramref name="dataGenerator"/> throws an exception or returns null.</exception>
-    public T GetOrCreateData<T>(string tag, Func<T> dataGenerator) where T : class
+    public T GetOrCreateData<T>(string tag, Func<T> dataGenerator)
+        where T : class
     {
-        var callerName = Assembly.GetCallingAssembly().GetName().Name ?? string.Empty;
-        if (this.caches.TryGetValue(tag, out var cache))
+        var callerName = GetCallerName();
+        lock (this.caches)
         {
-            if (!cache.Type.IsAssignableTo(typeof(T)))
-                throw new DataCacheTypeMismatchError(tag, cache.CreatorAssemblyName, typeof(T), cache.Type);
-            cache.UserAssemblyNames.Add(callerName);
-            return cache.Data as T ?? throw new DataCacheValueNullError(tag, cache.Type);
-        }
+            if (this.caches.TryGetValue(tag, out var cache))
+            {
+                if (!cache.Type.IsAssignableTo(typeof(T)))
+                {
+                    throw new DataCacheTypeMismatchError(tag, cache.CreatorAssemblyName, typeof(T), cache.Type);
+                }
 
-        try
-        {
-            var obj = dataGenerator.Invoke();
-            if (obj == null)
-                throw new Exception("Returned data was null.");
+                cache.UserAssemblyNames.Add(callerName);
+                return cache.Data as T ?? throw new DataCacheValueNullError(tag, cache.Type);
+            }
 
-            cache = new DataCache(callerName, obj, typeof(T));
-            this.caches[tag] = cache;
-            return obj;
-        }
-        catch (Exception e)
-        {
-            throw new DataCacheCreationError(tag, callerName, typeof(T), e);
+            try
+            {
+                var obj = dataGenerator.Invoke();
+                if (obj == null)
+                {
+                    throw new Exception("Returned data was null.");
+                }
+
+                cache = new DataCache(callerName, obj, typeof(T));
+                this.caches[tag] = cache;
+
+                Log.Verbose("[DataShare] Created new data for [{Tag:l}] for creator {Creator:l}.", tag, callerName);
+                return obj;
+            }
+            catch (Exception e)
+            {
+                throw new DataCacheCreationError(tag, callerName, typeof(T), e);
+            }
         }
     }
 
@@ -66,16 +80,35 @@ internal class DataShare : IServiceType
     /// <param name="tag">The name for the data cache.</param>
     public void RelinquishData(string tag)
     {
-        if (!this.caches.TryGetValue(tag, out var cache))
-            return;
+        lock (this.caches)
+        {
+            if (!this.caches.TryGetValue(tag, out var cache))
+            {
+                return;
+            }
 
-        var callerName = Assembly.GetCallingAssembly().GetName().Name ?? string.Empty;
-        if (!cache.UserAssemblyNames.Remove(callerName) || cache.UserAssemblyNames.Count > 0)
-            return;
+            var callerName = GetCallerName();
+            lock (this.caches)
+            {
+                if (!cache.UserAssemblyNames.Remove(callerName) || cache.UserAssemblyNames.Count > 0)
+                {
+                    return;
+                }
 
-        this.caches.Remove(tag);
-        if (cache.Data is IDisposable disposable)
-            disposable.Dispose();
+                if (this.caches.Remove(tag))
+                {
+                    if (cache.Data is IDisposable disposable)
+                    {
+                        disposable.Dispose();
+                        Log.Verbose("[DataShare] Disposed [{Tag:l}] after it was removed from all shares.", tag);
+                    }
+                    else
+                    {
+                        Log.Verbose("[DataShare] Removed [{Tag:l}] from all shares.", tag);
+                    }
+                }
+            }
+        }
     }
 
     /// <summary>
@@ -86,19 +119,27 @@ internal class DataShare : IServiceType
     /// <param name="tag">The name for the data cache.</param>
     /// <param name="data">The requested data on success, null otherwise.</param>
     /// <returns>True if the requested data exists and is assignable to the requested type.</returns>
-    public bool TryGetData<T>(string tag, [NotNullWhen(true)] out T? data) where T : class
+    public bool TryGetData<T>(string tag, [NotNullWhen(true)] out T? data)
+        where T : class
     {
         data = null;
-        if (!this.caches.TryGetValue(tag, out var cache) || !cache.Type.IsAssignableTo(typeof(T)))
-            return false;
+        lock (this.caches)
+        {
+            if (!this.caches.TryGetValue(tag, out var cache) || !cache.Type.IsAssignableTo(typeof(T)))
+            {
+                return false;
+            }
 
-        var callerName = Assembly.GetCallingAssembly().GetName().Name ?? string.Empty;
-        data = cache.Data as T;
-        if (data == null)
-            return false;
+            var callerName = GetCallerName();
+            data = cache.Data as T;
+            if (data == null)
+            {
+                return false;
+            }
 
-        cache.UserAssemblyNames.Add(callerName);
-        return true;
+            cache.UserAssemblyNames.Add(callerName);
+            return true;
+        }
     }
 
     /// <summary>
@@ -111,19 +152,57 @@ internal class DataShare : IServiceType
     /// <exception cref="KeyNotFoundException">Thrown if <paramref name="tag"/> is not registered.</exception>
     /// <exception cref="DataCacheTypeMismatchError">Thrown if a cache for <paramref name="tag"/> exists, but contains data of a type not assignable to <typeparamref name="T>"/>.</exception>
     /// <exception cref="DataCacheValueNullError">Thrown if the stored data for a cache is null.</exception>
-    public T GetData<T>(string tag) where T : class
+    public T GetData<T>(string tag)
+        where T : class
     {
-        if (!this.caches.TryGetValue(tag, out var cache))
-            throw new KeyNotFoundException($"The data cache {tag} is not registered.");
+        lock (this.caches)
+        {
+            if (!this.caches.TryGetValue(tag, out var cache))
+            {
+                throw new KeyNotFoundException($"The data cache [{tag}] is not registered.");
+            }
 
-        var callerName = Assembly.GetCallingAssembly().GetName().Name ?? string.Empty;
-        if (!cache.Type.IsAssignableTo(typeof(T)))
-            throw new DataCacheTypeMismatchError(tag, callerName, typeof(T), cache.Type);
+            var callerName = Assembly.GetCallingAssembly().GetName().Name ?? string.Empty;
+            if (!cache.Type.IsAssignableTo(typeof(T)))
+            {
+                throw new DataCacheTypeMismatchError(tag, callerName, typeof(T), cache.Type);
+            }
 
-        if (cache.Data is not T data)
-            throw new DataCacheValueNullError(tag, typeof(T));
+            if (cache.Data is not T data)
+            {
+                throw new DataCacheValueNullError(tag, typeof(T));
+            }
 
-        cache.UserAssemblyNames.Add(callerName);
-        return data;
+            cache.UserAssemblyNames.Add(callerName);
+            return data;
+        }
+    }
+
+    /// <summary>
+    /// Obtain a read-only list of data shares.
+    /// </summary>
+    /// <returns>All currently subscribed tags, their creator names and all their users.</returns>
+    internal IEnumerable<(string Tag, string CreatorAssembly, string[] Users)> GetAllShares()
+    {
+        lock (this.caches)
+        {
+            return this.caches.Select(kvp => (kvp.Key, kvp.Value.CreatorAssemblyName, kvp.Value.UserAssemblyNames.ToArray()));
+        }
+    }
+
+    /// <summary> Obtain the last assembly name in the stack trace that is not a system or dalamud assembly. </summary>
+    private static string GetCallerName()
+    {
+        var frames = new StackTrace().GetFrames();
+        foreach (var frame in frames.Reverse())
+        {
+            var name = frame.GetMethod()?.DeclaringType?.Assembly.GetName().Name ?? "Unknown";
+            if (!name.StartsWith("System") && !name.StartsWith("Dalamud"))
+            {
+                return name;
+            }
+        }
+
+        return "Unknown";
     }
 }
