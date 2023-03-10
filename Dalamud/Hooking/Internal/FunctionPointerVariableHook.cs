@@ -12,7 +12,7 @@ namespace Dalamud.Hooking.Internal;
 /// Manages a hook with MinHook.
 /// </summary>
 /// <typeparam name="T">Delegate type to represents a function prototype. This must be the same prototype as original function do.</typeparam>
-internal unsafe class FunctionPointerVariableHook<T> : Hook<T>
+internal class FunctionPointerVariableHook<T> : Hook<T>
     where T : Delegate
 {
     private readonly nint pfnDetour;
@@ -21,13 +21,13 @@ internal unsafe class FunctionPointerVariableHook<T> : Hook<T>
     // ReSharper disable once NotAccessedField.Local
     private readonly T detourDelegate;
 
-    private readonly byte* pfnThunk;
-    private readonly nint* ppfnThunkJumpTarget;
+    private readonly nint pfnThunk;
+    private readonly nint ppfnThunkJumpTarget;
 
     private readonly nint pfnOriginal;
     private readonly T originalDelegate;
 
-    private bool enabled = false;
+    private bool enabled;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="FunctionPointerVariableHook{T}"/> class.
@@ -55,20 +55,26 @@ internal unsafe class FunctionPointerVariableHook<T> : Hook<T>
             this.detourDelegate = detour;
             this.pfnDetour = Marshal.GetFunctionPointerForDelegate(detour);
 
-            this.pfnThunk = (byte*)NativeFunctions.HeapAlloc(HookManager.NoFreeExecutableHeap, 0, 12);
-            if (this.pfnThunk == null)
+            unsafe
             {
-                throw new OutOfMemoryException("Failed to allocate memory for import hooks.");
+                var pfnThunkBytes = (byte*)NativeFunctions.HeapAlloc(HookManager.NoFreeExecutableHeap, 0, 12);
+                if (pfnThunkBytes == null)
+                {
+                    throw new OutOfMemoryException("Failed to allocate memory for import hooks.");
+                }
+
+                // movabs rax, imm
+                pfnThunkBytes[0] = 0x48;
+                pfnThunkBytes[1] = 0xB8;
+
+                // jmp rax
+                pfnThunkBytes[10] = 0xFF;
+                pfnThunkBytes[11] = 0xE0;
+
+                this.pfnThunk = (nint)pfnThunkBytes;
             }
 
-            // movabs rax, imm
-            this.pfnThunk[0] = 0x48;
-            this.pfnThunk[1] = 0xB8;
-            this.ppfnThunkJumpTarget = (nint*)&this.pfnThunk[2];
-
-            // jmp rax
-            this.pfnThunk[10] = 0xFF;
-            this.pfnThunk[11] = 0xE0;
+            this.ppfnThunkJumpTarget = this.pfnThunk + 2;
 
             if (!NativeFunctions.VirtualProtect(
                     this.Address,
@@ -81,8 +87,8 @@ internal unsafe class FunctionPointerVariableHook<T> : Hook<T>
 
             this.pfnOriginal = Marshal.ReadIntPtr(this.Address);
             this.originalDelegate = Marshal.GetDelegateForFunctionPointer<T>(this.pfnOriginal);
-            *this.ppfnThunkJumpTarget = this.pfnOriginal;
-            Marshal.WriteIntPtr(this.Address, this.pfnDetour);
+            Marshal.WriteIntPtr(this.ppfnThunkJumpTarget, this.pfnOriginal);
+            Marshal.WriteIntPtr(this.Address, this.pfnThunk);
 
             // This really should not fail, but then even if it does, whatever.
             NativeFunctions.VirtualProtect(this.Address, (UIntPtr)Marshal.SizeOf<IntPtr>(), oldProtect, out _);
@@ -145,7 +151,7 @@ internal unsafe class FunctionPointerVariableHook<T> : Hook<T>
 
         lock (HookManager.HookEnableSyncRoot)
         {
-            *this.ppfnThunkJumpTarget = this.pfnDetour;
+            Marshal.WriteIntPtr(this.ppfnThunkJumpTarget, this.pfnDetour);
             this.enabled = true;
         }
     }
@@ -162,7 +168,7 @@ internal unsafe class FunctionPointerVariableHook<T> : Hook<T>
 
         lock (HookManager.HookEnableSyncRoot)
         {
-            *this.ppfnThunkJumpTarget = this.pfnOriginal;
+            Marshal.WriteIntPtr(this.ppfnThunkJumpTarget, this.pfnOriginal);
             this.enabled = false;
         }
     }
