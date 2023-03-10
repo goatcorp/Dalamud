@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -11,13 +12,20 @@ namespace Dalamud.Hooking.Internal;
 /// Manages a hook with MinHook.
 /// </summary>
 /// <typeparam name="T">Delegate type to represents a function prototype. This must be the same prototype as original function do.</typeparam>
-internal class FunctionPointerVariableHook<T> : Hook<T> where T : Delegate
+internal unsafe class FunctionPointerVariableHook<T> : Hook<T>
+    where T : Delegate
 {
     private readonly nint pfnDetour;
+
+    // Keep it referenced so that pfnDetour doesn't become invalidated.
+    // ReSharper disable once NotAccessedField.Local
     private readonly T detourDelegate;
 
-    private nint pfnOriginal;
-    private T? originalDelegate;
+    private readonly byte* pfnThunk;
+    private readonly nint* ppfnThunkJumpTarget;
+
+    private readonly nint pfnOriginal;
+    private readonly T originalDelegate;
 
     private bool enabled = false;
 
@@ -40,10 +48,44 @@ internal class FunctionPointerVariableHook<T> : Hook<T> where T : Delegate
             }
 
             if (!HookManager.MultiHookTracker.TryGetValue(this.Address, out var indexList))
-                indexList = HookManager.MultiHookTracker[this.Address] = new();
+            {
+                indexList = HookManager.MultiHookTracker[this.Address] = new List<IDalamudHook>();
+            }
 
             this.detourDelegate = detour;
             this.pfnDetour = Marshal.GetFunctionPointerForDelegate(detour);
+
+            this.pfnThunk = (byte*)NativeFunctions.HeapAlloc(HookManager.NoFreeExecutableHeap, 0, 12);
+            if (this.pfnThunk == null)
+            {
+                throw new OutOfMemoryException("Failed to allocate memory for import hooks.");
+            }
+
+            // movabs rax, imm
+            this.pfnThunk[0] = 0x48;
+            this.pfnThunk[1] = 0xB8;
+            this.ppfnThunkJumpTarget = (nint*)&this.pfnThunk[2];
+
+            // jmp rax
+            this.pfnThunk[10] = 0xFF;
+            this.pfnThunk[11] = 0xE0;
+
+            if (!NativeFunctions.VirtualProtect(
+                    this.Address,
+                    (UIntPtr)Marshal.SizeOf<IntPtr>(),
+                    MemoryProtection.ExecuteReadWrite,
+                    out var oldProtect))
+            {
+                throw new Win32Exception(Marshal.GetLastWin32Error());
+            }
+
+            this.pfnOriginal = Marshal.ReadIntPtr(this.Address);
+            this.originalDelegate = Marshal.GetDelegateForFunctionPointer<T>(this.pfnOriginal);
+            *this.ppfnThunkJumpTarget = this.pfnOriginal;
+            Marshal.WriteIntPtr(this.Address, this.pfnDetour);
+
+            // This really should not fail, but then even if it does, whatever.
+            NativeFunctions.VirtualProtect(this.Address, (UIntPtr)Marshal.SizeOf<IntPtr>(), oldProtect, out _);
 
             // Add afterwards, so the hookIdent starts at 0.
             indexList.Add(this);
@@ -79,7 +121,9 @@ internal class FunctionPointerVariableHook<T> : Hook<T> where T : Delegate
     public override void Dispose()
     {
         if (this.IsDisposed)
+        {
             return;
+        }
 
         this.Disable();
 
@@ -94,19 +138,15 @@ internal class FunctionPointerVariableHook<T> : Hook<T> where T : Delegate
     {
         this.CheckDisposed();
 
-        if (!this.enabled)
+        if (this.enabled)
         {
-            lock (HookManager.HookEnableSyncRoot)
-            {
-                if (!NativeFunctions.VirtualProtect(this.Address, (UIntPtr)Marshal.SizeOf<IntPtr>(), MemoryProtection.ExecuteReadWrite, out var oldProtect))
-                    throw new Win32Exception(Marshal.GetLastWin32Error());
+            return;
+        }
 
-                this.pfnOriginal = Marshal.ReadIntPtr(this.Address);
-                this.originalDelegate = Marshal.GetDelegateForFunctionPointer<T>(this.pfnOriginal);
-                Marshal.WriteIntPtr(this.Address, this.pfnDetour);
-
-                NativeFunctions.VirtualProtect(this.Address, (UIntPtr)Marshal.SizeOf<IntPtr>(), oldProtect, out _);
-            }
+        lock (HookManager.HookEnableSyncRoot)
+        {
+            *this.ppfnThunkJumpTarget = this.pfnDetour;
+            this.enabled = true;
         }
     }
 
@@ -115,19 +155,15 @@ internal class FunctionPointerVariableHook<T> : Hook<T> where T : Delegate
     {
         this.CheckDisposed();
 
-        if (this.enabled)
+        if (!this.enabled)
         {
-            lock (HookManager.HookEnableSyncRoot)
-            {
-                if (!NativeFunctions.VirtualProtect(this.Address, (UIntPtr)Marshal.SizeOf<IntPtr>(), MemoryProtection.ExecuteReadWrite, out var oldProtect))
-                    throw new Win32Exception(Marshal.GetLastWin32Error());
+            return;
+        }
 
-                if (Marshal.ReadIntPtr(this.Address) != this.pfnOriginal)
-                    Environment.FailFast("Cannot disable this hook in a sane manner.");
-
-                Marshal.WriteIntPtr(this.Address, this.pfnOriginal);
-                NativeFunctions.VirtualProtect(this.Address, (UIntPtr)Marshal.SizeOf<IntPtr>(), oldProtect, out _);
-            }
+        lock (HookManager.HookEnableSyncRoot)
+        {
+            *this.ppfnThunkJumpTarget = this.pfnOriginal;
+            this.enabled = false;
         }
     }
 }
