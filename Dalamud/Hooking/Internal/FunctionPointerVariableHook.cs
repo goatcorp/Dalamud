@@ -13,9 +13,11 @@ namespace Dalamud.Hooking.Internal;
 /// <typeparam name="T">Delegate type to represents a function prototype. This must be the same prototype as original function do.</typeparam>
 internal class FunctionPointerVariableHook<T> : Hook<T> where T : Delegate
 {
-    private readonly IntPtr pfnOriginal;
-    private readonly T originalDelegate;
+    private readonly nint pfnDetour;
     private readonly T detourDelegate;
+
+    private nint pfnOriginal;
+    private T? originalDelegate;
 
     private bool enabled = false;
 
@@ -40,9 +42,8 @@ internal class FunctionPointerVariableHook<T> : Hook<T> where T : Delegate
             if (!HookManager.MultiHookTracker.TryGetValue(this.Address, out var indexList))
                 indexList = HookManager.MultiHookTracker[this.Address] = new();
 
-            this.pfnOriginal = Marshal.ReadIntPtr(this.Address);
-            this.originalDelegate = Marshal.GetDelegateForFunctionPointer<T>(this.pfnOriginal);
             this.detourDelegate = detour;
+            this.pfnDetour = Marshal.GetFunctionPointerForDelegate(detour);
 
             // Add afterwards, so the hookIdent starts at 0.
             indexList.Add(this);
@@ -100,7 +101,10 @@ internal class FunctionPointerVariableHook<T> : Hook<T> where T : Delegate
                 if (!NativeFunctions.VirtualProtect(this.Address, (UIntPtr)Marshal.SizeOf<IntPtr>(), MemoryProtection.ExecuteReadWrite, out var oldProtect))
                     throw new Win32Exception(Marshal.GetLastWin32Error());
 
-                Marshal.WriteIntPtr(this.Address, Marshal.GetFunctionPointerForDelegate(this.detourDelegate));
+                this.pfnOriginal = Marshal.ReadIntPtr(this.Address);
+                this.originalDelegate = Marshal.GetDelegateForFunctionPointer<T>(this.pfnOriginal);
+                Marshal.WriteIntPtr(this.Address, this.pfnDetour);
+
                 NativeFunctions.VirtualProtect(this.Address, (UIntPtr)Marshal.SizeOf<IntPtr>(), oldProtect, out _);
             }
         }
@@ -117,6 +121,9 @@ internal class FunctionPointerVariableHook<T> : Hook<T> where T : Delegate
             {
                 if (!NativeFunctions.VirtualProtect(this.Address, (UIntPtr)Marshal.SizeOf<IntPtr>(), MemoryProtection.ExecuteReadWrite, out var oldProtect))
                     throw new Win32Exception(Marshal.GetLastWin32Error());
+
+                if (Marshal.ReadIntPtr(this.Address) != this.pfnOriginal)
+                    Environment.FailFast("Cannot disable this hook in a sane manner.");
 
                 Marshal.WriteIntPtr(this.Address, this.pfnOriginal);
                 NativeFunctions.VirtualProtect(this.Address, (UIntPtr)Marshal.SizeOf<IntPtr>(), oldProtect, out _);
