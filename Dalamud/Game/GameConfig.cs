@@ -174,6 +174,7 @@ public sealed class GameConfig : IServiceType
 
         /// <summary>
         /// Set a boolean config option.
+        /// Note: Not all config options will be be immediately reflected in the game.
         /// </summary>
         /// <param name="name">Name of the config option.</param>
         /// <param name="value">New value of the config option.</param>
@@ -237,6 +238,7 @@ public sealed class GameConfig : IServiceType
 
         /// <summary>
         /// Set an unsigned integer config option.
+        /// Note: Not all config options will be be immediately reflected in the game.
         /// </summary>
         /// <param name="name">Name of the config option.</param>
         /// <param name="value">New value of the config option.</param>
@@ -302,6 +304,7 @@ public sealed class GameConfig : IServiceType
 
         /// <summary>
         /// Set a float config option.
+        /// Note: Not all config options will be be immediately reflected in the game.
         /// </summary>
         /// <param name="name">Name of the config option.</param>
         /// <param name="value">New value of the config option.</param>
@@ -377,6 +380,7 @@ public sealed class GameConfig : IServiceType
 
         /// <summary>
         /// Set a string config option.
+        /// Note: Not all config options will be be immediately reflected in the game.
         /// </summary>
         /// <param name="name">Name of the config option.</param>
         /// <param name="value">New value of the config option.</param>
