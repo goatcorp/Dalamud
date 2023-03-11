@@ -16,7 +16,7 @@ namespace Dalamud.Game.Config;
 /// </summary>
 [InterfaceVersion("1.0")]
 [PluginInterface]
-[ServiceManager.BlockingEarlyLoadedService]
+[ServiceManager.EarlyLoadedService]
 public sealed class GameConfig : IServiceType
 {
     [ServiceManager.ServiceConstructor]
@@ -24,7 +24,7 @@ public sealed class GameConfig : IServiceType
     {
         framework.RunOnTick(() =>
         {
-            Log.Information("[GameConfig] Initalizing");
+            Log.Verbose("[GameConfig] Initalizing");
             var csFramework = FFXIVClientStructs.FFXIV.Client.System.Framework.Framework.Instance();
             var commonConfig = &csFramework->SystemConfig.CommonSystemConfig;
             this.System = new GameConfigSection("System", framework, &commonConfig->ConfigBase);
@@ -113,7 +113,7 @@ public sealed class GameConfig : IServiceType
             this.SectionName = sectionName;
             this.framework = framework;
             this.GetConfigBase = getConfigBase;
-            Log.Information("[GameConfig] Initalizing {SectionName} with {ConfigCount} entries.", this.SectionName, this.ConfigCount);
+            Log.Verbose("[GameConfig] Initalizing {SectionName} with {ConfigCount} entries.", this.SectionName, this.ConfigCount);
         }
 
         /// <summary>
