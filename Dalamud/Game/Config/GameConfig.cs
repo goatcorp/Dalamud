@@ -9,7 +9,7 @@ using Dalamud.Memory;
 using FFXIVClientStructs.FFXIV.Common.Configuration;
 using Serilog;
 
-namespace Dalamud.Game;
+namespace Dalamud.Game.Config;
 
 /// <summary>
 /// This class represents the game's configuration.
