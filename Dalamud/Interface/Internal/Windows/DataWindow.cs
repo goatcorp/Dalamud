@@ -182,6 +182,7 @@ internal class DataWindow : Window
         Aetherytes,
         Dtr_Bar,
         UIColor,
+        DataShare,
     }
 
     /// <inheritdoc/>
@@ -377,6 +378,9 @@ internal class DataWindow : Window
 
                     case DataKind.UIColor:
                         this.DrawUIColor();
+                        break;
+                    case DataKind.DataShare:
+                        this.DrawDataShareTab();
                         break;
                 }
             }
@@ -1762,6 +1766,35 @@ internal class DataWindow : Window
             {
                 entry = dtrBar.Get(title, title);
             }
+        }
+    }
+
+    private void DrawDataShareTab()
+    {
+        if (!ImGui.BeginTable("###DataShareTable", 4, ImGuiTableFlags.SizingFixedFit | ImGuiTableFlags.RowBg))
+            return;
+
+        try
+        {
+            ImGui.TableSetupColumn("Shared Tag");
+            ImGui.TableSetupColumn("Creator Assembly");
+            ImGui.TableSetupColumn("#", ImGuiTableColumnFlags.WidthFixed, 30 * ImGuiHelpers.GlobalScale);
+            ImGui.TableSetupColumn("Consumers");
+            ImGui.TableHeadersRow();
+            foreach (var share in Service<DataShare>.Get().GetAllShares())
+            {
+                ImGui.TableNextColumn();
+                ImGui.TextUnformatted(share.Tag);
+                ImGui.TableNextColumn();
+                ImGui.TextUnformatted(share.CreatorAssembly);
+                ImGui.TableNextColumn();
+                ImGui.TextUnformatted(share.Users.Length.ToString());
+                ImGui.TableNextColumn();
+                ImGui.TextUnformatted(string.Join(", ", share.Users));
+            }
+        } finally
+        {
+            ImGui.EndTable();
         }
     }
 
