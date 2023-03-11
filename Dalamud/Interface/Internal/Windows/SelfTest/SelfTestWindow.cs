@@ -42,6 +42,7 @@ internal class SelfTestWindow : Window
             new PartyFinderAgingStep(),
             new HandledExceptionAgingStep(),
             new DutyStateAgingStep(),
+            new GameConfigAgingStep(),
             new LogoutEventAgingStep(),
         };
 
