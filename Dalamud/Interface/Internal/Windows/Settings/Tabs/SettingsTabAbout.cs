@@ -10,6 +10,7 @@ using Dalamud.Game.Gui;
 using Dalamud.Interface.GameFonts;
 using Dalamud.Plugin.Internal;
 using Dalamud.Utility;
+using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using ImGuiNET;
 using ImGuiScene;
 
@@ -190,7 +191,7 @@ Contribute at: https://github.com/goatcorp/Dalamud
     public override string Title => Loc.Localize("DalamudAbout", "About");
 
     /// <inheritdoc/>
-    public override void OnOpen()
+    public override unsafe void OnOpen()
     {
         var pluginCredits = Service<PluginManager>.Get().InstalledPlugins
                                                   .Where(plugin => plugin.Manifest != null)
@@ -200,8 +201,10 @@ Contribute at: https://github.com/goatcorp/Dalamud
         this.creditsText = string.Format(CreditsTextTempl, typeof(Dalamud).Assembly.GetName().Version, pluginCredits, Util.GetGitHashClientStructs());
 
         var gg = Service<GameGui>.Get();
-        if (!gg.IsOnTitleScreen())
-            gg.SetBgm(833);
+        if (!gg.IsOnTitleScreen() && UIState.Instance() != null)
+        {
+            gg.SetBgm((ushort)(UIState.Instance()->PlayerState.MaxExpansion > 3 ? 833 : 132));
+        }
 
         this.creditsThrottler.Restart();
 
