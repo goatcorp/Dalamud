@@ -1,4 +1,6 @@
-﻿namespace Dalamud.Fools.Plugins;
+﻿using ImGuiNET;
+
+namespace Dalamud.Fools.Plugins;
 
 public class TestFoolPlugin : IFoolsPlugin
 {
@@ -11,6 +13,16 @@ public class TestFoolPlugin : IFoolsPlugin
     public string Author => "NotNite";
 
     public TestFoolPlugin() { }
+
+    public void DrawUI()
+    {
+        if (ImGui.Begin("Nuts"))
+        {
+            ImGui.Text("balls");
+        }
+        
+        ImGui.End();
+    }
 
     public void Dispose() { }
 }

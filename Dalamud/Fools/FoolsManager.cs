@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Dalamud.Fools.Plugins;
+using Dalamud.Interface;
 using Dalamud.Logging.Internal;
 
 namespace Dalamud.Fools;
@@ -15,12 +16,17 @@ internal class FoolsManager : IDisposable, IServiceType
 {
     public readonly List<FoolsPluginMetadata> FoolsPlugins = new();
     public readonly Dictionary<string, IFoolsPlugin> ActivatedPlugins = new();
-    
+
     private static readonly ModuleLog Log = new("FOOLS");
+
+    private UiBuilder uiBuilder;
 
     [ServiceManager.ServiceConstructor]
     private FoolsManager()
     {
+        this.uiBuilder = new UiBuilder("fools");
+        this.uiBuilder.Draw += this.DrawUI;
+
         // reflect over all IFoolsPlugin implementations
         this.FoolsPlugins = new List<FoolsPluginMetadata>
         {
@@ -47,6 +53,18 @@ internal class FoolsManager : IDisposable, IServiceType
         this.ActivatedPlugins.Add(plugin, pluginInstance);
     }
 
+    public void Dispose()
+    {
+        foreach (var plugin in this.ActivatedPlugins.Values)
+        {
+            plugin.Dispose();
+        }
+
+        this.ActivatedPlugins.Clear();
+
+        ((IDisposable)this.uiBuilder).Dispose();
+    }
+
     public bool IsPluginActivated(string plugin)
     {
         return this.ActivatedPlugins.ContainsKey(plugin);
@@ -65,13 +83,11 @@ internal class FoolsManager : IDisposable, IServiceType
         this.ActivatedPlugins.Remove(plugin);
     }
 
-    public void Dispose()
+    private void DrawUI()
     {
         foreach (var plugin in this.ActivatedPlugins.Values)
         {
-            plugin.Dispose();
+            plugin.DrawUI();
         }
-
-        this.ActivatedPlugins.Clear();
     }
 }
