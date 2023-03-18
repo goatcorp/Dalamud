@@ -909,7 +909,8 @@ internal class PluginInstallerWindow : Window, IDisposable
             changelogs = this.dalamudChangelogManager.Changelogs.OfType<PluginChangelogEntry>();
         }
 
-        var sortedChangelogs = changelogs?.OrderByDescending(x => x.Date).ToList();
+        var sortedChangelogs = changelogs?.Where(x => this.searchText.IsNullOrWhitespace() || x.Title.ToLowerInvariant().Contains(this.searchText.ToLowerInvariant()))
+                                                            .OrderByDescending(x => x.Date).ToList();
 
         if (sortedChangelogs == null || !sortedChangelogs.Any())
         {
