@@ -264,6 +264,14 @@ public sealed class UiBuilder : IDisposable
            ?? throw new InvalidOperationException("Load failed.");
 
     /// <summary>
+    /// Loads an ULD file that can load textures containing multiple icons in a single texture.
+    /// </summary>
+    /// <param name="uldPath">The path of the requested ULD file.</param>
+    /// <returns>A wrapper around said ULD file.</returns>
+    public UldWrapper LoadUld(string uldPath)
+        => new(this, uldPath);
+
+    /// <summary>
     /// Asynchronously loads an image from the specified file, when it's possible to do so.
     /// </summary>
     /// <param name="filePath">The full filepath to the image.</param>
