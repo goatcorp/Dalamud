@@ -56,9 +56,9 @@ internal class DalamudChangelogManager
                     continue;
 
                 var pluginChangelogs = await client.GetFromJsonAsync<PluginHistory>(string.Format(
-                                           PluginChangelogUrl,
-                                           plugin.Manifest.InternalName,
-                                           plugin.Manifest.Dip17Channel));
+                                               PluginChangelogUrl,
+                                               plugin.Manifest.InternalName,
+                                               plugin.Manifest.Dip17Channel));
 
                 changelogs = changelogs.Concat(pluginChangelogs.Versions
                                                                .Where(x => x.Dip17Track == plugin.Manifest.Dip17Channel)
@@ -71,8 +71,6 @@ internal class DalamudChangelogManager
 
                 changelogs = changelogs.Append(new PluginChangelogEntry(plugin));
             }
-
-
         }
 
         this.Changelogs = changelogs.OrderByDescending(x => x.Date).ToList();
