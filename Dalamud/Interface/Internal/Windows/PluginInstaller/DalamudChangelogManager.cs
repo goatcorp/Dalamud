@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using Dalamud.Plugin.Internal;
+using Dalamud.Utility;
 using Serilog;
 
 namespace Dalamud.Interface.Internal.Windows.PluginInstaller;
@@ -49,17 +50,27 @@ internal class DalamudChangelogManager
 
         foreach (var plugin in this.manager.InstalledPlugins)
         {
-            if (plugin.Manifest.IsThirdParty || !plugin.Manifest.IsDip17Plugin)
-                continue;
+            if (!plugin.Manifest.IsThirdParty)
+            {
+                if (!plugin.Manifest.IsDip17Plugin)
+                    continue;
 
-            var pluginChangelogs = await client.GetFromJsonAsync<PluginHistory>(string.Format(
-                                           PluginChangelogUrl,
-                                           plugin.Manifest.InternalName,
-                                           plugin.Manifest.Dip17Channel));
+                var pluginChangelogs = await client.GetFromJsonAsync<PluginHistory>(string.Format(
+                                               PluginChangelogUrl,
+                                               plugin.Manifest.InternalName,
+                                               plugin.Manifest.Dip17Channel));
 
-            changelogs = changelogs.Concat(pluginChangelogs.Versions
-                                                           .Where(x => x.Dip17Track == plugin.Manifest.Dip17Channel)
-                                                           .Select(x => new PluginChangelogEntry(plugin, x)));
+                changelogs = changelogs.Concat(pluginChangelogs.Versions
+                                                               .Where(x => x.Dip17Track == plugin.Manifest.Dip17Channel)
+                                                               .Select(x => new PluginChangelogEntry(plugin, x)));
+            }
+            else
+            {
+                if (plugin.Manifest.Changelog.IsNullOrWhitespace())
+                    continue;
+
+                changelogs = changelogs.Append(new PluginChangelogEntry(plugin));
+            }
         }
 
         this.Changelogs = changelogs.OrderByDescending(x => x.Date).ToList();
