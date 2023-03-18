@@ -1748,6 +1748,11 @@ internal class PluginInstallerWindow : Window, IDisposable
 
         ImGui.SameLine();
         ImGui.TextColored(ImGuiColors.DalamudGrey3, $" v{log.Version}");
+        if (log.Author != null)
+        {
+            ImGui.SameLine();
+            ImGui.TextColored(ImGuiColors.DalamudGrey3, Locs.PluginBody_AuthorWithoutDownloadCount(log.Author));
+        }
 
         cursor.Y += ImGui.GetTextLineHeightWithSpacing();
         ImGui.SetCursorPos(cursor);
