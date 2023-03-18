@@ -1,0 +1,77 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using Dalamud.Fools.Plugins;
+using Dalamud.Logging.Internal;
+
+namespace Dalamud.Fools;
+
+/// <summary>
+/// Manager for all the IFoolsPlugin instances.
+/// </summary>
+[ServiceManager.BlockingEarlyLoadedService]
+internal class FoolsManager : IDisposable, IServiceType
+{
+    public readonly List<FoolsPluginMetadata> FoolsPlugins = new();
+    public readonly Dictionary<string, IFoolsPlugin> ActivatedPlugins = new();
+    
+    private static readonly ModuleLog Log = new("FOOLS");
+
+    [ServiceManager.ServiceConstructor]
+    private FoolsManager()
+    {
+        // reflect over all IFoolsPlugin implementations
+        this.FoolsPlugins = new List<FoolsPluginMetadata>
+        {
+            new("Test Fool Plugin", "TestFoolPlugin", "this is a test", "NotNite", typeof(TestFoolPlugin)),
+        };
+    }
+
+    public void ActivatePlugin(string plugin)
+    {
+        if (this.ActivatedPlugins.ContainsKey(plugin))
+        {
+            Log.Warning("Trying to activate plugin {0} that is already activated", plugin);
+            return;
+        }
+
+        var pluginMetadata = this.FoolsPlugins.FirstOrDefault(x => x.InternalName == plugin);
+        if (pluginMetadata == null)
+        {
+            Log.Warning("Trying to activate plugin {0} that does not exist", plugin);
+            return;
+        }
+
+        var pluginInstance = (IFoolsPlugin)Activator.CreateInstance(pluginMetadata.Type);
+        this.ActivatedPlugins.Add(plugin, pluginInstance);
+    }
+
+    public bool IsPluginActivated(string plugin)
+    {
+        return this.ActivatedPlugins.ContainsKey(plugin);
+    }
+
+    public void DeactivatePlugin(string plugin)
+    {
+        if (!this.ActivatedPlugins.ContainsKey(plugin))
+        {
+            Log.Warning("Trying to deactivate plugin {0} that is not activated", plugin);
+            return;
+        }
+
+        var pluginInstance = this.ActivatedPlugins[plugin];
+        pluginInstance.Dispose();
+        this.ActivatedPlugins.Remove(plugin);
+    }
+
+    public void Dispose()
+    {
+        foreach (var plugin in this.ActivatedPlugins.Values)
+        {
+            plugin.Dispose();
+        }
+
+        this.ActivatedPlugins.Clear();
+    }
+}

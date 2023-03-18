@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 
 using CheapLoc;
 using Dalamud.Configuration.Internal;
+using Dalamud.Fools;
 using Dalamud.Game.Command;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Components;
@@ -1236,12 +1237,52 @@ internal class PluginInstallerWindow : Window, IDisposable
                 }
 
                 break;
+
+            case PluginCategoryManager.GroupKind.AlternateReality:
+                this.DrawAlternateRealityPlugins();
+                break;
+
             default:
                 this.DrawAvailablePluginList();
                 break;
         }
 
         ImGui.PopStyleVar();
+    }
+
+    private void DrawAlternateRealityPlugins()
+    {
+        var manager = Service<FoolsManager>.Get();
+
+        foreach (var plugin in manager.FoolsPlugins)
+        {
+            // dropdown
+            if (ImGui.CollapsingHeader($"{plugin.Name}##AprilFools_{plugin.Name}"))
+            {
+                ImGui.Indent();
+                ImGui.Text(plugin.Name);
+                ImGui.SameLine();
+
+                ImGui.TextColored(ImGuiColors.DalamudGrey3, $" by {plugin.Author}");
+
+                ImGui.TextWrapped(plugin.Description);
+
+                if (manager.IsPluginActivated(plugin.InternalName))
+                {
+                    if (ImGui.Button("Disable"))
+                    {
+                        manager.DeactivatePlugin(plugin.InternalName);
+                    }
+                }
+                else
+                {
+                    if (ImGui.Button("Install"))
+                    {
+                        manager.ActivatePlugin(plugin.InternalName);
+                    }
+                }
+            }
+        }
     }
 
     private void DrawImageTester()
