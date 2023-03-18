@@ -26,6 +26,20 @@ internal class PluginChangelogEntry : IChangelogEntry
     }
 
     /// <summary>
+    /// Initializes a new instance of the <see cref="PluginChangelogEntry"/> class.
+    /// </summary>
+    /// <param name="plugin">The plugin manifest.</param>
+    public PluginChangelogEntry(LocalPlugin plugin)
+    {
+        this.Plugin = plugin;
+
+        this.Version = plugin.Manifest.EffectiveVersion.ToString();
+        this.Text = plugin.Manifest.Changelog ?? Loc.Localize("ChangelogNoText", "No changelog for this version.");
+        this.Author = plugin.Manifest.Author;
+        this.Date = DateTimeOffset.FromUnixTimeSeconds(this.Plugin.Manifest.LastUpdate).DateTime;
+    }
+
+    /// <summary>
     /// Gets the respective plugin.
     /// </summary>
     public LocalPlugin Plugin { get; private set; }
