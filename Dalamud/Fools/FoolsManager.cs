@@ -78,7 +78,8 @@ internal class FoolsManager : IDisposable, IServiceType
             new("Pixel Imperfect", "PixelImperfectPlugin", "Whoops... we messed up the math on that one.", "Halpo",
                 typeof(PixelImperfectPlugin)),
             new("DailyLifeDuty", "DailyLifeDutyPlugin", "Easily Track Daily and Weekly tasks... in real life", "MidoriKami", typeof(DailyLifeDutyPlugin)),
-            new("Oops, Maybe Lalafells!", "OopsMaybeLalafellsPlugin", "Turn everyone into Lalafells? Maybe. We haven't quite tested it yet.", "Chrip", typeof(OopsMaybeLalafells))
+            new("Oops, Maybe Lalafells!", "OopsMaybeLalafellsPlugin", "Turn everyone into Lalafells? Maybe. We haven't quite tested it yet.", "Chrip", typeof(OopsMaybeLalafells)),
+            new("Screensaver", "ScreensaverPlugin", "Prevent burn-in on loading screens.", "NotNite", typeof(ScreensaverPlugin)),
         };
     }
 
