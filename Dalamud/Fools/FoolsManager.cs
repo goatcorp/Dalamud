@@ -30,7 +30,6 @@ internal class FoolsManager : IDisposable, IServiceType
         // reflect over all IFoolsPlugin implementations sometime(?)
         this.FoolsPlugins = new List<FoolsPluginMetadata>
         {
-            new("Test Fool Plugin", "TestFoolPlugin", "this is a test", "NotNite", typeof(TestFoolPlugin)),
             new("Pixel Imperfect", "PixelImperfectPlugin", "Whoops... we messed up the math on that one.", "Halpo",
                 typeof(PixelImperfectPlugin)),
             new("DailyLifeDuty", "DailyLifeDutyPlugin", "Easily Track Daily and Weekly tasks... in real life", "MidoriKami", typeof(DailyLifeDutyPlugin)),
