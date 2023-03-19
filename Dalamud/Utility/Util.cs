@@ -568,6 +568,22 @@ public static class Util
         }
     }
 
+    /// <summary>
+    /// Overwrite text in a file by first writing it to a temporary file, and then
+    /// moving that file to the path specified.
+    /// </summary>
+    /// <param name="path">The path of the file to write to.</param>
+    /// <param name="text">The text to write.</param>
+    internal static void WriteAllTextSafe(string path, string text)
+    {
+        var tmpPath = path + ".tmp";
+        if (File.Exists(tmpPath))
+            File.Delete(tmpPath);
+
+        File.WriteAllText(tmpPath, text);
+        File.Move(tmpPath, path, true);
+    }
+
     private static unsafe void ShowValue(ulong addr, IEnumerable<string> path, Type type, object value)
     {
         if (type.IsPointer)

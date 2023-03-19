@@ -39,7 +39,7 @@ public sealed class GameConfig : IServiceType
     public GameConfigSection UiConfig { get; private set; }
 
     /// <summary>
-    /// Gets the collection of config options that are control mode specific. (Mouse & Keyboard / Gamepad).
+    /// Gets the collection of config options that are control mode specific. (Mouse and Keyboard / Gamepad).
     /// </summary>
     public GameConfigSection UiControl { get; private set; }
 
