@@ -14,7 +14,7 @@ public class TestFoolPlugin : IFoolsPlugin
 
     public TestFoolPlugin() { }
 
-    public void DrawUI()
+    public void DrawUi()
     {
         if (ImGui.Begin("Nuts"))
         {

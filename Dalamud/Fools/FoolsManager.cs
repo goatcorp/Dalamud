@@ -31,6 +31,8 @@ internal class FoolsManager : IDisposable, IServiceType
         this.FoolsPlugins = new List<FoolsPluginMetadata>
         {
             new("Test Fool Plugin", "TestFoolPlugin", "this is a test", "NotNite", typeof(TestFoolPlugin)),
+            new("Pixel Imperfect", "PixelImperfectPlugin", "Whoops... we messed up the math on that one.", "Halpo",
+                typeof(PixelImperfectPlugin)),
         };
     }
 
@@ -87,7 +89,7 @@ internal class FoolsManager : IDisposable, IServiceType
     {
         foreach (var plugin in this.ActivatedPlugins.Values)
         {
-            plugin.DrawUI();
+            plugin.DrawUi();
         }
     }
 }

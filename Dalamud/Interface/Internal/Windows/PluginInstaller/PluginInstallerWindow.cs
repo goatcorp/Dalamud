@@ -1257,7 +1257,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         foreach (var plugin in manager.FoolsPlugins)
         {
             // dropdown
-            if (ImGui.CollapsingHeader($"{plugin.Name}##AprilFools_{plugin.Name}"))
+            if (ImGui.CollapsingHeader($"{plugin.Name}##AprilFools_Header_{plugin.Name}"))
             {
                 ImGui.Indent();
                 ImGui.Text(plugin.Name);
@@ -1269,18 +1269,20 @@ internal class PluginInstallerWindow : Window, IDisposable
 
                 if (manager.IsPluginActivated(plugin.InternalName))
                 {
-                    if (ImGui.Button("Disable"))
+                    if (ImGui.Button($"Disable##AprilFools_Disable_{plugin.Name}"))
                     {
                         manager.DeactivatePlugin(plugin.InternalName);
                     }
                 }
                 else
                 {
-                    if (ImGui.Button("Install"))
+                    if (ImGui.Button($"Install##AprilFools_Enable_{plugin.Name}"))
                     {
                         manager.ActivatePlugin(plugin.InternalName);
                     }
                 }
+
+                ImGui.Unindent();
             }
         }
     }

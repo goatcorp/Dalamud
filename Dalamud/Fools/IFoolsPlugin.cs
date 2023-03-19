@@ -1,8 +1,8 @@
-﻿using Dalamud.Plugin;
+﻿using System;
 
 namespace Dalamud.Fools;
 
-public interface IFoolsPlugin : IDalamudPlugin
+public interface IFoolsPlugin : IDisposable
 {
-    public void DrawUI() { }
+    public void DrawUi() { }
 }
