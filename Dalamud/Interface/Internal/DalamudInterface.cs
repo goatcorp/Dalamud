@@ -706,7 +706,7 @@ internal class DalamudInterface : IDisposable, IServiceType
                     {
                         this.OpenProfiler();
                     }
-                    
+
                     if (ImGui.MenuItem("Open Hitch Settings"))
                     {
                         this.OpenHitchSettings();
@@ -768,7 +768,7 @@ internal class DalamudInterface : IDisposable, IServiceType
 
                     ImGui.MenuItem(Util.AssemblyVersion, false);
                     ImGui.MenuItem(startInfo.GameVersion?.ToString() ?? "Unknown version", false);
-                    ImGui.MenuItem($"D: {Util.GetGitHash()} CS: {Util.GetGitHashClientStructs()} [{FFXIVClientStructs.Interop.Resolver.Version}]", false);
+                    ImGui.MenuItem($"D: {Util.GetGitHash()}[{Util.GetGitCommitCount()}] CS: {Util.GetGitHashClientStructs()}[{FFXIVClientStructs.Interop.Resolver.Version}]", false);
                     ImGui.MenuItem($"CLR: {Environment.Version}", false);
 
                     ImGui.EndMenu();
@@ -944,7 +944,7 @@ internal class DalamudInterface : IDisposable, IServiceType
                 {
                     ImGui.PushFont(InterfaceManager.MonoFont);
 
-                    ImGui.BeginMenu(Util.GetGitHash(), false);
+                    ImGui.BeginMenu($"{Util.GetGitHash()}({Util.GetGitCommitCount()})", false);
                     ImGui.BeginMenu(this.FrameCount.ToString("000000"), false);
                     ImGui.BeginMenu(ImGui.GetIO().Framerate.ToString("000"), false);
                     ImGui.BeginMenu($"W:{Util.FormatBytes(GC.GetTotalMemory(false))}", false);

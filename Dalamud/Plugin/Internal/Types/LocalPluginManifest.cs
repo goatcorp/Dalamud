@@ -68,7 +68,7 @@ internal record LocalPluginManifest : PluginManifest
     /// Save a plugin manifest to file.
     /// </summary>
     /// <param name="manifestFile">Path to save at.</param>
-    public void Save(FileInfo manifestFile) => File.WriteAllText(manifestFile.FullName, JsonConvert.SerializeObject(this, Formatting.Indented));
+    public void Save(FileInfo manifestFile) => Util.WriteAllTextSafe(manifestFile.FullName, JsonConvert.SerializeObject(this, Formatting.Indented));
 
     /// <summary>
     /// Loads a plugin manifest from file.

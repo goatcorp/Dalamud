@@ -355,17 +355,17 @@ internal sealed class DalamudConfiguration : IServiceType
     /// Gets or sets hitch threshold for game network up in milliseconds.
     /// </summary>
     public double GameNetworkUpHitch { get; set; } = 30;
-    
+
     /// <summary>
     /// Gets or sets hitch threshold for game network down in milliseconds.
     /// </summary>
     public double GameNetworkDownHitch { get; set; } = 30;
-    
+
     /// <summary>
     /// Gets or sets hitch threshold for framework update in milliseconds.
     /// </summary>
     public double FrameworkUpdateHitch { get; set; } = 50;
-    
+
     /// <summary>
     /// Gets or sets hitch threshold for ui builder in milliseconds.
     /// </summary>
@@ -428,7 +428,7 @@ internal sealed class DalamudConfiguration : IServiceType
     {
         ThreadSafety.AssertMainThread();
 
-        File.WriteAllText(this.configPath, JsonConvert.SerializeObject(this, SerializerSettings));
+        Util.WriteAllTextSafe(this.configPath, JsonConvert.SerializeObject(this, SerializerSettings));
         this.DalamudConfigurationSaved?.Invoke(this);
     }
 }
