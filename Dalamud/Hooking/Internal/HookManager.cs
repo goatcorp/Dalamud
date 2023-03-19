@@ -16,13 +16,6 @@ namespace Dalamud.Hooking.Internal;
 [ServiceManager.EarlyLoadedService]
 internal class HookManager : IDisposable, IServiceType
 {
-    /// <summary>
-    /// Handle to an executable heap that we shall never free anything unless we can be absolutely sure that nothing is
-    /// referencing to it anymore.
-    /// </summary>
-    internal static readonly nint NoFreeExecutableHeap =
-        NativeFunctions.HeapCreate(NativeFunctions.HeapOptions.CreateEnableExecute, 0, 0);
-
     private static readonly ModuleLog Log = new("HM");
 
     [ServiceManager.ServiceConstructor]

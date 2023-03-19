@@ -58,7 +58,14 @@ internal class FunctionPointerVariableHook<T> : Hook<T>
 
             unsafe
             {
-                var pfnThunkBytes = (byte*)NativeFunctions.HeapAlloc(HookManager.NoFreeExecutableHeap, 0, 12);
+                // Note: WINE seemingly tries to clean up all heap allocations on process exit.
+                // We want our allocation to be kept there forever, until no running thread remains.
+                // Therefore we're using VirtualAlloc instead of HeapCreate/HeapAlloc.
+                var pfnThunkBytes = (byte*)NativeFunctions.VirtualAlloc(
+                    0,
+                    12,
+                    NativeFunctions.AllocationType.Reserve | NativeFunctions.AllocationType.Commit,
+                    MemoryProtection.ExecuteReadWrite);
                 if (pfnThunkBytes == null)
                 {
                     throw new OutOfMemoryException("Failed to allocate memory for import hooks.");
