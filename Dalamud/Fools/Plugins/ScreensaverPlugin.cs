@@ -59,6 +59,9 @@ public class ScreensaverPlugin : IFoolsPlugin
         ImGui.Begin("Screensaver", NoInputs | NoNav | NoTitleBar | NoScrollbar | NoBackground);
         ImGui.SetWindowSize(textureSize);
         ImGui.Image(this.logoTexture.ImGuiHandle, textureSize);
+
+        ImGui.End();
+        ImGui.PopStyleVar();
     }
 
     public void Dispose()
