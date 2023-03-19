@@ -1,5 +1,6 @@
 using System.IO;
 
+using Dalamud.Utility;
 using Newtonsoft.Json;
 
 namespace Dalamud.Configuration;
@@ -32,7 +33,7 @@ public sealed class PluginConfigurations
     /// <param name="pluginName">Plugin name.</param>
     public void Save(IPluginConfiguration config, string pluginName)
     {
-        File.WriteAllText(this.GetConfigFile(pluginName).FullName, SerializeConfig(config));
+        Util.WriteAllTextSafe(this.GetConfigFile(pluginName).FullName, SerializeConfig(config));
     }
 
     /// <summary>
