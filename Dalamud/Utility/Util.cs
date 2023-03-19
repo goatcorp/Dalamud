@@ -28,6 +28,7 @@ namespace Dalamud.Utility;
 public static class Util
 {
     private static string? gitHashInternal;
+    private static int? gitCommitCountInternal;
     private static string? gitHashClientStructsInternal;
 
     private static ulong moduleStartAddr;
@@ -112,6 +113,26 @@ public static class Util
         gitHashInternal = attrs.First(a => a.Key == "GitHash").Value;
 
         return gitHashInternal;
+    }
+
+    /// <summary>
+    /// Gets the amount of commits in the current branch, or null if undetermined.
+    /// </summary>
+    /// <returns>The amount of commits in the current branch.</returns>
+    public static int? GetGitCommitCount()
+    {
+        if (gitCommitCountInternal != null)
+            return gitCommitCountInternal.Value;
+
+        var asm = typeof(Util).Assembly;
+        var attrs = asm.GetCustomAttributes<AssemblyMetadataAttribute>();
+
+        var value = attrs.First(a => a.Key == "GitCommitCount").Value;
+        if (value == null)
+            return null;
+
+        gitCommitCountInternal = int.Parse(value);
+        return gitCommitCountInternal.Value;
     }
 
     /// <summary>

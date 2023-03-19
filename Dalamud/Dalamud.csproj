@@ -125,6 +125,17 @@
         <TempVerFile>$(OutputPath)TEMP_gitver.txt</TempVerFile>
     </PropertyGroup>
 
+    <Target Name="GetGitCommitCount" BeforeTargets="WriteGitHash" Condition="'$(CommitCount)'==''">
+        <Exec Command="git -C &quot;$(ProjectDir.Replace('\','\\'))&quot; rev-list --count HEAD" ConsoleToMSBuild="true">
+            <Output TaskParameter="ConsoleOutput" PropertyName="DalamudGitCommitCount" />
+        </Exec>
+
+        <!-- Set the BuildHash property to contain the GitVersion, if it wasn't already set.-->
+        <PropertyGroup>
+            <CommitCount>$([System.Text.RegularExpressions.Regex]::Replace($(DalamudGitCommitCount), @"\t|\n|\r", ""))</CommitCount>
+        </PropertyGroup>
+    </Target>
+
     <Target Name="GetGitHash" BeforeTargets="WriteGitHash" Condition="'$(BuildHash)'=='' And '$(Configuration)'=='Release'">
         <!-- write the hash to the temp file.-->
         <Exec Command="git -C &quot;$(ProjectDir.Replace('\','\\'))&quot; describe --long --always --dirty" ConsoleToMSBuild="true">
@@ -170,6 +181,10 @@
             <AssemblyAttributes Include="AssemblyMetadata">
                 <_Parameter1>GitHash</_Parameter1>
                 <_Parameter2>$(BuildHash)</_Parameter2>
+            </AssemblyAttributes>
+            <AssemblyAttributes Include="AssemblyMetadata">
+                <_Parameter1>GitCommitCount</_Parameter1>
+                <_Parameter2>$(CommitCount)</_Parameter2>
             </AssemblyAttributes>
             <AssemblyAttributes Include="AssemblyMetadata">
                 <_Parameter1>GitHashClientStructs</_Parameter1>
