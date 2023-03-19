@@ -46,8 +46,9 @@ namespace Dalamud.Fools;
 //
 // April fools! <3
 // This was a group effort in one week lead by:
-// NotNite: FoolsManager, Pixel Imperfect
+// NotNite: FoolsManager, Pixel Imperfect, Screensaver
 // Berna: DailyLifeDuty
+// Chirp: Oops, Maybe Lalafells!
 
 /// <summary>
 /// Manager for all the IFoolsPlugin instances.
