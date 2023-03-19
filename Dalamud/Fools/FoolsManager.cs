@@ -27,7 +27,7 @@ internal class FoolsManager : IDisposable, IServiceType
         this.uiBuilder = new UiBuilder("fools");
         this.uiBuilder.Draw += this.DrawUI;
 
-        // reflect over all IFoolsPlugin implementations
+        // reflect over all IFoolsPlugin implementations sometime(?)
         this.FoolsPlugins = new List<FoolsPluginMetadata>
         {
             new("Test Fool Plugin", "TestFoolPlugin", "this is a test", "NotNite", typeof(TestFoolPlugin)),
