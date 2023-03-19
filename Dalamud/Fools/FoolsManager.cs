@@ -2,8 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Dalamud.Configuration.Internal;
 using Dalamud.Fools.Plugins;
+using Dalamud.Game.ClientState;
 using Dalamud.Interface;
+using Dalamud.Interface.Internal;
 using Dalamud.Logging.Internal;
 
 namespace Dalamud.Fools;
@@ -58,21 +61,27 @@ internal class FoolsManager : IDisposable, IServiceType
     private static readonly ModuleLog Log = new("FOOLS");
 
     private UiBuilder uiBuilder;
+    private ClientState clientState;
 
     [ServiceManager.ServiceConstructor]
     private FoolsManager()
     {
         this.uiBuilder = new UiBuilder("fools");
-        this.uiBuilder.Draw += this.DrawUI;
+        this.uiBuilder.Draw += this.DrawUi;
+
+        this.clientState = Service<ClientState>.Get();
+        this.clientState.Login += this.ClientStateOnLogin;
 
         // reflect over all IFoolsPlugin implementations sometime(?)
         this.FoolsPlugins = new List<FoolsPluginMetadata>
         {
             new("Pixel Imperfect", "PixelImperfectPlugin", "Whoops... we messed up the math on that one.", "Halpo",
                 typeof(PixelImperfectPlugin)),
-            new("DailyLifeDuty", "DailyLifeDutyPlugin", "Easily Track Daily and Weekly tasks... in real life", "MidoriKami", typeof(DailyLifeDutyPlugin)),
+            new("DailyLifeDuty", "DailyLifeDutyPlugin", "Easily Track Daily and Weekly tasks... in real life",
+                "MidoriKami", typeof(DailyLifeDutyPlugin)),
         };
     }
+
 
     public void ActivatePlugin(string plugin)
     {
@@ -101,8 +110,8 @@ internal class FoolsManager : IDisposable, IServiceType
         }
 
         this.ActivatedPlugins.Clear();
-
         ((IDisposable)this.uiBuilder).Dispose();
+        this.clientState.Login -= this.ClientStateOnLogin;
     }
 
     public bool IsPluginActivated(string plugin)
@@ -123,11 +132,34 @@ internal class FoolsManager : IDisposable, IServiceType
         this.ActivatedPlugins.Remove(plugin);
     }
 
-    private void DrawUI()
+    private void DrawUi()
     {
         foreach (var plugin in this.ActivatedPlugins.Values)
         {
             plugin.DrawUi();
         }
+    }
+
+    private void ClientStateOnLogin(object? o, EventArgs e)
+    {
+        var dalamudConfig = Service<DalamudConfiguration>.Get();
+
+#if !DEBUG
+        if (DateTime.Now is not { Month: 4, Day: 1 })
+        {
+            return;
+        }
+#endif
+
+        if (dalamudConfig.HasSeenFools23)
+        {
+            return;
+        }
+
+        var di = Service<DalamudInterface>.Get();
+        di.OpenFoolsWindow();
+
+        dalamudConfig.HasSeenFools23 = true;
+        dalamudConfig.QueueSave();
     }
 }
