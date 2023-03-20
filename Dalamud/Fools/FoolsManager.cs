@@ -117,6 +117,15 @@ internal class FoolsManager : IDisposable, IServiceType
                 RealAuthor = "Chirp",
                 Type = typeof(CatBubblesPlugin),
             },
+            new()
+            {
+                Name = "YesSoliciting",
+                InternalName = "YesSolicitingPlugin",
+                Description = "Summon annoying shout messages from beyond the rift.",
+                Author = "Anna",
+                RealAuthor = "NotNite",
+                Type = typeof(YesSolicitingPlugin),
+            },
         };
     }
 
