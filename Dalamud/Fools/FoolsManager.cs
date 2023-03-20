@@ -85,7 +85,7 @@ internal class FoolsManager : IDisposable, IServiceType
             {
                 Name = "DailyLifeDuty",
                 InternalName = "DailyLifeDutyPlugin",
-                Description = "Easily Track Daily and Weekly tasks... in real life",
+                Description = "We were just informed there are these things called \"chores\" outside the game. No worries, though, we can track them!",
                 Author = "MidoriKami",
                 RealAuthor = "Berna",
                 Type = typeof(DailyLifeDutyPlugin),
@@ -144,7 +144,6 @@ internal class FoolsManager : IDisposable, IServiceType
                 RealAuthor = "Berna",
                 Type = typeof(YesHealMePlugin),
             },
-
         };
     }
 
