@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 
 using Dalamud.Game;
 using Dalamud.Game.ClientState.Objects;
 using Dalamud.Game.ClientState.Objects.Enums;
 using Dalamud.Hooking;
+using Dalamud.Logging;
 
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 
@@ -27,6 +29,7 @@ public class OopsMaybeLalafells : IFoolsPlugin
         {
             SetupCharacterHook.Disable();
             SetupCharacterHook.Dispose();
+
             RedrawAll();
         }
 
@@ -36,7 +39,7 @@ public class OopsMaybeLalafells : IFoolsPlugin
                 var objects = Service<ObjectTable>.Get();
                 foreach (var obj in objects)
                 {
-                    if (obj.ObjectIndex > 241) break;
+                    if (obj.ObjectIndex > 241 && obj.ObjectIndex < 301) continue;
 
                     var csObject = (GameObject*)obj.Address;
                     if (csObject == null) continue;
@@ -54,30 +57,51 @@ public class OopsMaybeLalafells : IFoolsPlugin
         private readonly List<ushort> ReplaceIDs = new() { 84, 85, 86, 87, 88, 89, 90, 91, 257, 258, 581, 597, 744 };
 
         private const string SetupCharacterSig = "E8 ?? ?? ?? ?? 48 8B 0D ?? ?? ?? ?? 48 8B D7 E8 ?? ?? ?? ?? 48 8B CF E8 ?? ?? ?? ?? 48 8B C7";
-        
         private delegate char SetupCharacterDelegate(nint a1, nint a2);
         private Hook<SetupCharacterDelegate> SetupCharacterHook = null!;
 
-        private unsafe char SetupCharacterDetour(nint a1, nint a2)
+        private char SetupCharacterDetour(nint a1, nint a2)
         {
-            // Roll the dice
-            if (Rng.Next(0, 4) == 0)
+            try
             {
-                var customize = (byte*)a2;
-                customize[(int)CustomizeIndex.Race] = 3;
-
-                var face = customize + (int)CustomizeIndex.FaceType;
-                *face = (byte)(1 + ((*face - 1) % 4));
+                var custom = Marshal.PtrToStructure<CustomizeData>(a2);
                 
-                var equipTar = (ushort)(customize[(int)CustomizeIndex.Gender] == 0 ? 92 : 93);
-                for (var i = 1; i < 5; i++)
+                // Roll the dice
+                if (custom.Race != 3 && Rng.Next(0, 4) == 0)
                 {
-                    var equip = (ushort*)(a2 + 28 + (i * 4));
-                    if (ReplaceIDs.Contains(*equip))
-                        *equip = equipTar;
+                    custom.Race = 3;
+                    custom.Tribe = (byte)(((custom.Race * 2) - 1) + 1 - (custom.Tribe % 2));
+                    custom.FaceType = (byte)(1 + ((custom.FaceType - 1) % 4));
+                    custom.ModelType %= 2;
+                    Marshal.StructureToPtr(custom, a2, true);
+                    
+                    var equipTar = (ushort)(custom.Gender == 0 ? 92 : 93);
+                    for (var i = 1; i < 5; i++)
+                    {
+                        var ofs = a2 + 28 + (i * 4);
+                        var equip = (ushort)Marshal.ReadInt16(ofs);
+                        if (ReplaceIDs.Contains(equip))
+                            Marshal.WriteInt16(ofs, (short)equipTar);
+                    }
                 }
+            }
+            catch (Exception e)
+            {
+                PluginLog.Error(e.ToString(), e);
             }
 
             return SetupCharacterHook.Original(a1, a2);
+        }
+        
+        // Customize shit
+
+        [StructLayout(LayoutKind.Explicit)]
+        private struct CustomizeData
+        {
+            [FieldOffset((int)CustomizeIndex.FaceType)] public byte FaceType;
+            [FieldOffset((int)CustomizeIndex.ModelType)] public byte ModelType;
+            [FieldOffset((int)CustomizeIndex.Race)] public byte Race;
+            [FieldOffset((int)CustomizeIndex.Tribe)] public byte Tribe;
+            [FieldOffset((int)CustomizeIndex.Gender)] public byte Gender;
         }
 }

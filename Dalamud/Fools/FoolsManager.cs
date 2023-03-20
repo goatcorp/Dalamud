@@ -81,6 +81,7 @@ internal class FoolsManager : IDisposable, IServiceType
             new("DailyLifeDuty", "DailyLifeDutyPlugin", "Easily Track Daily and Weekly tasks... in real life", "MidoriKami", typeof(DailyLifeDutyPlugin)),
             new("Oops, Maybe Lalafells!", "OopsMaybeLalafellsPlugin", "Turn everyone into Lalafells? Maybe. We haven't quite tested it yet.", "Chrip", typeof(OopsMaybeLalafells)),
             new("Screensaver", "ScreensaverPlugin", "Prevent burn-in on loading screens.", "NotNite", typeof(ScreensaverPlugin)),
+            new("Cat Bubbles", "CatBubblesPlugin", "Enables in-game sdfgasdfgkljewriogdfkjghahfvcxbnmlqpwoeiruty", "Chirp's Cat, Sir Fluffington III", typeof(CatBubblesPlugin))
         };
     }
 
