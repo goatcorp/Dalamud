@@ -1303,6 +1303,10 @@ internal class PluginInstallerWindow : Window, IDisposable
                 ImGui.SameLine();
 
                 ImGui.TextColored(ImGuiColors.DalamudGrey3, $" by {plugin.Author}");
+                if (ImGui.IsItemHovered() && plugin.Author != plugin.RealAuthor)
+                {
+                    ImGui.SetTooltip($"actually by {plugin.RealAuthor}");
+                }
 
                 ImGui.TextWrapped(plugin.Description);
 

@@ -4,22 +4,15 @@ namespace Dalamud.Fools;
 
 public class FoolsPluginMetadata
 {
-    public string Name { get; }
+    public string Name { get; init; }
 
-    public string InternalName { get; }
+    public string InternalName { get; init; }
 
-    public string Description { get; }
+    public string Description { get; init; }
 
-    public string Author { get; }
+    public string Author { get; init; }
 
-    public Type Type { get; }
+    public string RealAuthor { get; init; }
 
-    public FoolsPluginMetadata(string name, string internalName, string description, string author, Type type)
-    {
-        this.Name = name;
-        this.InternalName = internalName;
-        this.Description = description;
-        this.Author = author;
-        this.Type = type;
-    }
+    public Type Type { get; init; }
 }

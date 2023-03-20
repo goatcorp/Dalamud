@@ -45,10 +45,6 @@ namespace Dalamud.Fools;
 //                * //(/******,,,.,,..,,,****/*///((((#(###(/##(,
 //
 // April fools! <3
-// This was a group effort in one week lead by:
-// NotNite: FoolsManager, Pixel Imperfect, Screensaver
-// Berna: DailyLifeDuty
-// Chirp: Oops, Maybe Lalafells!
 
 /// <summary>
 /// Manager for all the IFoolsPlugin instances.
@@ -76,12 +72,51 @@ internal class FoolsManager : IDisposable, IServiceType
         // reflect over all IFoolsPlugin implementations sometime(?)
         this.FoolsPlugins = new List<FoolsPluginMetadata>
         {
-            new("Pixel Imperfect", "PixelImperfectPlugin", "Whoops... we messed up the math on that one.", "Halpo",
-                typeof(PixelImperfectPlugin)),
-            new("DailyLifeDuty", "DailyLifeDutyPlugin", "Easily Track Daily and Weekly tasks... in real life", "MidoriKami", typeof(DailyLifeDutyPlugin)),
-            new("Oops, Maybe Lalafells!", "OopsMaybeLalafellsPlugin", "Turn everyone into Lalafells? Maybe. We haven't quite tested it yet.", "Chrip", typeof(OopsMaybeLalafells)),
-            new("Screensaver", "ScreensaverPlugin", "Prevent burn-in on loading screens.", "NotNite", typeof(ScreensaverPlugin)),
-            new("Cat Bubbles", "CatBubblesPlugin", "Enables in-game sdfgasdfgkljewriogdfkjghahfvcxbnmlqpwoeiruty", "Chirp's Cat, Sir Fluffington III", typeof(CatBubblesPlugin))
+            new()
+            {
+                Name = "Pixel Imperfect",
+                InternalName = "PixelImperfectPlugin",
+                Description = "Whoops... we messed up the math on that one.",
+                Author = "Halpo",
+                RealAuthor = "NotNite",
+                Type = typeof(PixelImperfectPlugin),
+            },
+            new()
+            {
+                Name = "DailyLifeDuty",
+                InternalName = "DailyLifeDutyPlugin",
+                Description = "Easily Track Daily and Weekly tasks... in real life",
+                Author = "MidoriKami",
+                RealAuthor = "Berna",
+                Type = typeof(DailyLifeDutyPlugin),
+            },
+            new()
+            {
+                Name = "Oops, Maybe Lalafells!",
+                InternalName = "OopsMaybeLalafellsPlugin",
+                Description = "Turn everyone into Lalafells? Maybe. We haven't quite tested it yet.",
+                Author = "Chrip",
+                RealAuthor = "Chirp",
+                Type = typeof(OopsMaybeLalafells),
+            },
+            new()
+            {
+                Name = "Screensaver",
+                InternalName = "ScreensaverPlugin",
+                Description = "Prevent burn-in on loading screens.",
+                Author = "NotNite",
+                RealAuthor = "NotNite",
+                Type = typeof(ScreensaverPlugin),
+            },
+            new()
+            {
+                Name = "Cat Bubbles",
+                InternalName = "CatBubblesPlugin",
+                Description = "Enables in-game sdfgasdfgkljewriogdfkjghahfvcxbnmlqpwoeiruty",
+                Author = "Chirp's Cat, Sir Fluffington III",
+                RealAuthor = "Chirp",
+                Type = typeof(CatBubblesPlugin),
+            },
         };
     }
 
