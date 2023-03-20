@@ -245,6 +245,11 @@ internal sealed class DalamudConfiguration : IServiceType
     public int? PluginWaitBeforeFree { get; set; }
 
     /// <summary>
+    /// Gets or sets a value indicating whether or not crashes during shutdown should be reported.
+    /// </summary>
+    public bool ReportShutdownCrashes { get; set; }
+
+    /// <summary>
     /// Gets or sets a list of saved styles.
     /// </summary>
     [JsonProperty("SavedStyles")]

@@ -759,6 +759,12 @@ internal class DalamudInterface : IDisposable, IServiceType
                         }
                     }
 
+                    if (ImGui.MenuItem("Report crashes at shutdown", null, configuration.ReportShutdownCrashes))
+                    {
+                        configuration.ReportShutdownCrashes = !configuration.ReportShutdownCrashes;
+                        configuration.QueueSave();
+                    }
+
                     ImGui.Separator();
 
                     if (ImGui.MenuItem("Open Dalamud branch switcher"))
