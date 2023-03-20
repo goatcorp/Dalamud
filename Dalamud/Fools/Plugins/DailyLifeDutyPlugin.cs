@@ -13,10 +13,14 @@ public class DailyLifeDutyPlugin : IFoolsPlugin
 
     private static readonly List<Duty> Duties = new[]
     {
-        new Duty("Dishes", i => $"{i} dishes to be cleaned"),
+        new Duty("Dishes", i => $"{i} dish(es) to be cleaned"),
         new Duty("Taxes", _ => "Taxes need to be filed"),
-        new Duty("Pets", i => $"{i} dogs waiting to be pet"),
-        new Duty("Garbage", i => $"{i} garbage bags to be put out"),
+        new Duty("Pets", i => $"{i} dog(s) waiting to be pet"),
+        new Duty("Garbage", i => $"{i} garbage bag(s) to be put out"),
+        new Duty("Bank", i => $"{i} bill(s) waiting payment"),
+        new Duty("Hydration", i => $"{i} glasses(s) of water remaining to reach Full Hydration"),
+
+        // new Duty("FINAL FANTASY XIV", i => $"At least {i} minute(s) left on your sub... maybe. Time is relative."),
     }.ToList();
 
     private long lastMessage;
