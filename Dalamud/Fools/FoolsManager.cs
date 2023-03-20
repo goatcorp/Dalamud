@@ -139,7 +139,7 @@ internal class FoolsManager : IDisposable, IServiceType
             {
                 Name = "YesHealMe",
                 InternalName = "YesHealMePlugin",
-                Description = "The only warning you need.",
+                Description = "As the saying goes: it's the first missing HP that matters. And the second. And the third...",
                 Author = "MidoriKami",
                 RealAuthor = "Berna",
                 Type = typeof(YesHealMePlugin),

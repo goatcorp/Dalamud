@@ -1,32 +1,31 @@
-﻿using System.Linq;
-using Dalamud.Logging;
+﻿using Dalamud.Fools.Helper.YesHealMe;
+using Dalamud.Interface;
 using NoTankYou.System;
 
 namespace Dalamud.Fools.Plugins;
 
-public class YesHealMePlugin: IFoolsPlugin
+public class YesHealMePlugin : IFoolsPlugin
 {
-    private PartyListAddon partyListAddon;
+    private readonly FontManager fontManager;
+    private readonly PartyListAddon partyListAddon = new();
+    private int iconId = 1;
 
     public YesHealMePlugin()
     {
-        partyListAddon = new PartyListAddon();
+        const string nameSpace = "fools+YesHealMe";
+        var uiBuilder = new UiBuilder(nameSpace);
+        this.fontManager = new FontManager(uiBuilder);
+    }
+
+    /// <inheritdoc/>
+    public void Dispose()
+    {
+        this.fontManager.Dispose();
+        this.partyListAddon.Dispose();
     }
 
     public void DrawUi()
     {
-        foreach (var partyMember in this.partyListAddon.Select(pla => pla.PlayerCharacter).Where(pc => pc is not null))
-        {
-            if (partyMember.CurrentHp < partyMember.MaxHp)
-            {
-                // Do things here
-            }
-        }
-    }
-
-
-    public void Dispose()
-    {
-        this.partyListAddon.Dispose();
+        YesHealMePluginWindow.Draw(this.partyListAddon, this.fontManager, ref this.iconId);
     }
 }
