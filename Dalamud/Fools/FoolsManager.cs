@@ -135,6 +135,16 @@ internal class FoolsManager : IDisposable, IServiceType
                 RealAuthor = "Chirp",
                 Type = typeof(GoodVibesPlugin),
             },
+            new()
+            {
+                Name = "YesHealMe",
+                InternalName = "YesHealMePlugin",
+                Description = "The only warning you need.",
+                Author = "MidoriKami",
+                RealAuthor = "Berna",
+                Type = typeof(YesHealMePlugin),
+            },
+
         };
     }
 
