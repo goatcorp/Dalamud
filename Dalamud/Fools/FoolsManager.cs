@@ -95,7 +95,7 @@ internal class FoolsManager : IDisposable, IServiceType
                 Name = "Oops, Maybe Lalafells!",
                 InternalName = "OopsMaybeLalafellsPlugin",
                 Description = "Turn everyone into Lalafells? Maybe. We haven't quite tested it yet.",
-                Author = "Chrip",
+                Author = "Chirpopo Chirpo",
                 RealAuthor = "Chirp",
                 Type = typeof(OopsMaybeLalafells),
             },
@@ -125,6 +125,15 @@ internal class FoolsManager : IDisposable, IServiceType
                 Author = "Anna",
                 RealAuthor = "NotNite",
                 Type = typeof(YesSolicitingPlugin),
+            },
+            new()
+            {
+                Name = "Good Vibes",
+                InternalName = "GoodVibesPlugin",
+                Description = "Shake things up with this vibe plugin!",
+                Author = "C h i r p",
+                RealAuthor = "Chirp",
+                Type = typeof(GoodVibesPlugin),
             },
         };
     }
