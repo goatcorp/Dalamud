@@ -128,7 +128,7 @@ internal class FoolsManager : IDisposable, IServiceType
             },
             new()
             {
-                Name = "Good Vibes",
+                Name = "GoodVibes",
                 InternalName = "GoodVibesPlugin",
                 Description = "Shake things up with this vibe plugin!",
                 Author = "C h i r p",

@@ -19,7 +19,7 @@ public class OopsMaybeLalafells : IFoolsPlugin
         public OopsMaybeLalafells()
         {
             var scanner = Service<SigScanner>.Get();
-            var addr = scanner.ScanText(SetupCharacterSig);
+            var addr = scanner.Module.BaseAddress + 0x0484F60;
             SetupCharacterHook = Hook<SetupCharacterDelegate>.FromAddress(addr, SetupCharacterDetour);
             SetupCharacterHook.Enable();
             RedrawAll();
@@ -55,8 +55,6 @@ public class OopsMaybeLalafells : IFoolsPlugin
         private readonly Random Rng = new();
         
         private readonly List<ushort> ReplaceIDs = new() { 84, 85, 86, 87, 88, 89, 90, 91, 257, 258, 581, 597, 744 };
-
-        private const string SetupCharacterSig = "E8 ?? ?? ?? ?? 48 8B 0D ?? ?? ?? ?? 48 8B D7 E8 ?? ?? ?? ?? 48 8B CF E8 ?? ?? ?? ?? 48 8B C7";
         private delegate char SetupCharacterDelegate(nint a1, nint a2);
         private Hook<SetupCharacterDelegate> SetupCharacterHook = null!;
 
