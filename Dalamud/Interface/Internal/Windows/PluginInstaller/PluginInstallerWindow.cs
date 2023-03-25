@@ -2087,7 +2087,12 @@ internal class PluginInstallerWindow : Window, IDisposable
             ImGui.TextColored(ImGuiColors.DalamudGrey3, downloadText);
 
             var isThirdParty = manifest.IsThirdParty;
-            var canFeedback = !isThirdParty && !plugin.IsDev && plugin.Manifest.DalamudApiLevel == PluginManager.DalamudApiLevel && plugin.Manifest.AcceptsFeedback && availablePluginUpdate == default;
+            var canFeedback = !isThirdParty &&
+                              !plugin.IsDev &&
+                              !plugin.IsOrphaned &&
+                              plugin.Manifest.DalamudApiLevel == PluginManager.DalamudApiLevel &&
+                              plugin.Manifest.AcceptsFeedback &&
+                              availablePluginUpdate == default;
 
             // Installed from
             if (plugin.IsDev)
