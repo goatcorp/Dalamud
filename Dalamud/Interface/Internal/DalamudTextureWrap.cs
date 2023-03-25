@@ -22,6 +22,14 @@ public class DalamudTextureWrap : TextureWrap
     }
 
     /// <summary>
+    /// Finalizes an instance of the <see cref="DalamudTextureWrap"/> class.
+    /// </summary>
+    ~DalamudTextureWrap()
+    {
+        this.Dispose(false);
+    }
+
+    /// <summary>
     /// Gets the ImGui handle of the texture.
     /// </summary>
     public IntPtr ImGuiHandle => this.wrappedWrap.ImGuiHandle;
@@ -41,7 +49,8 @@ public class DalamudTextureWrap : TextureWrap
     /// </summary>
     public void Dispose()
     {
-        Service<InterfaceManager>.Get().EnqueueDeferredDispose(this);
+        this.Dispose(true);
+        GC.SuppressFinalize(this);
     }
 
     /// <summary>
@@ -50,5 +59,13 @@ public class DalamudTextureWrap : TextureWrap
     internal void RealDispose()
     {
         this.wrappedWrap.Dispose();
+    }
+
+    private void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            Service<InterfaceManager>.GetNullable()?.EnqueueDeferredDispose(this);
+        }
     }
 }
