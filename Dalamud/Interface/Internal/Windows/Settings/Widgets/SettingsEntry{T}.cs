@@ -7,6 +7,7 @@ using System.Linq;
 using Dalamud.Configuration.Internal;
 
 using Dalamud.Interface.Colors;
+using Dalamud.Interface.Raii;
 using Dalamud.Utility;
 using ImGuiNET;
 
@@ -121,9 +122,11 @@ internal sealed class SettingsEntry<T> : SettingsEntry
             }
         }
 
-        ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudGrey);
-        ImGuiHelpers.SafeTextWrapped(this.Description);
-        ImGui.PopStyleColor();
+        using (ImRaii.PushColor(ImGuiCol.Text, ImGuiColors.DalamudGrey))
+        {
+            ImGuiHelpers.SafeTextWrapped(this.Description);
+            ImGui.PopStyleColor();
+        }
 
         if (this.CheckValidity != null)
         {
@@ -132,9 +135,11 @@ internal sealed class SettingsEntry<T> : SettingsEntry
 
             if (!this.IsValid)
             {
-                ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudRed);
-                ImGui.Text(validityMsg);
-                ImGui.PopStyleColor();
+                using (ImRaii.PushColor(ImGuiCol.Text, ImGuiColors.DalamudRed))
+                {
+                    ImGui.Text(validityMsg);
+                    ImGui.PopStyleColor();
+                }
             }
         }
         else
@@ -146,9 +151,11 @@ internal sealed class SettingsEntry<T> : SettingsEntry
 
         if (warningMessage != null)
         {
-            ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudRed);
-            ImGui.Text(warningMessage);
-            ImGui.PopStyleColor();
+            using (ImRaii.PushColor(ImGuiCol.Text, ImGuiColors.DalamudRed))
+            {
+                ImGui.Text(warningMessage);
+                ImGui.PopStyleColor();
+            }
         }
     }
 

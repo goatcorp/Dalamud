@@ -8,6 +8,7 @@ using System.Numerics;
 using CheapLoc;
 using Dalamud.Game.Gui;
 using Dalamud.Interface.GameFonts;
+using Dalamud.Interface.Raii;
 using Dalamud.Plugin.Internal;
 using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
@@ -243,45 +244,44 @@ Contribute at: https://github.com/goatcorp/Dalamud
             this.resetNow = false;
         }
 
-        ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, Vector2.Zero);
-
-        ImGuiHelpers.ScaledDummy(0, windowSize.Y + 20f);
-        ImGui.Text(string.Empty);
-
-        const float imageSize = 190f;
-        ImGui.SameLine((ImGui.GetWindowWidth() / 2) - (imageSize / 2));
-        ImGui.Image(this.logoTexture.ImGuiHandle, ImGuiHelpers.ScaledVector2(imageSize));
-
-        ImGuiHelpers.ScaledDummy(0, 20f);
-
-        var windowX = ImGui.GetWindowSize().X;
-
-        foreach (var creditsLine in this.creditsText.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None))
+        using (ImRaii.PushStyle(ImGuiStyleVar.ItemSpacing, Vector2.Zero))
         {
-            var lineLenX = ImGui.CalcTextSize(creditsLine).X;
+            ImGuiHelpers.ScaledDummy(0, windowSize.Y + 20f);
+            ImGui.Text(string.Empty);
 
-            ImGui.Dummy(new Vector2((windowX / 2) - (lineLenX / 2), 0f));
-            ImGui.SameLine();
-            ImGui.TextUnformatted(creditsLine);
+            const float imageSize = 190f;
+            ImGui.SameLine((ImGui.GetWindowWidth() / 2) - (imageSize / 2));
+            ImGui.Image(this.logoTexture.ImGuiHandle, ImGuiHelpers.ScaledVector2(imageSize));
+
+            ImGuiHelpers.ScaledDummy(0, 20f);
+
+            var windowX = ImGui.GetWindowSize().X;
+
+            foreach (var creditsLine in this.creditsText.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None))
+            {
+                var lineLenX = ImGui.CalcTextSize(creditsLine).X;
+
+                ImGui.Dummy(new Vector2((windowX / 2) - (lineLenX / 2), 0f));
+                ImGui.SameLine();
+                ImGui.TextUnformatted(creditsLine);
+            }
+
+            ImGuiHelpers.ScaledDummy(0, 40f);
+
+            if (this.thankYouFont != null)
+            {
+                ImGui.PushFont(this.thankYouFont.ImFont);
+                var thankYouLenX = ImGui.CalcTextSize(ThankYouText).X;
+
+                ImGui.Dummy(new Vector2((windowX / 2) - (thankYouLenX / 2), 0f));
+                ImGui.SameLine();
+                ImGui.TextUnformatted(ThankYouText);
+
+                ImGui.PopFont();
+            }
+
+            ImGuiHelpers.ScaledDummy(0, windowSize.Y + 50f);
         }
-
-        ImGuiHelpers.ScaledDummy(0, 40f);
-
-        if (this.thankYouFont != null)
-        {
-            ImGui.PushFont(this.thankYouFont.ImFont);
-            var thankYouLenX = ImGui.CalcTextSize(ThankYouText).X;
-
-            ImGui.Dummy(new Vector2((windowX / 2) - (thankYouLenX / 2), 0f));
-            ImGui.SameLine();
-            ImGui.TextUnformatted(ThankYouText);
-
-            ImGui.PopFont();
-        }
-
-        ImGuiHelpers.ScaledDummy(0, windowSize.Y + 50f);
-
-        ImGui.PopStyleVar();
 
         if (this.creditsThrottler.Elapsed.TotalMilliseconds > (1000.0f / CreditFps))
         {
