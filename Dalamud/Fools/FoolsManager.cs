@@ -144,6 +144,15 @@ internal class FoolsManager : IDisposable, IServiceType
                 RealAuthor = "Berna",
                 Type = typeof(YesHealMePlugin),
             },
+            new()
+            {
+                Name = "Complicated Tweaks",
+                InternalName = "ComplicatedTweaksPlugin",
+                Description = "As complicated as it gets!",
+                Author = "Caraxi",
+                RealAuthor = "NotNite",
+                Type = typeof(ComplicatedTweaksPlugin),
+            },
         };
     }
 
