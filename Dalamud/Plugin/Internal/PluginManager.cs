@@ -251,7 +251,7 @@ Thanks and have fun!";
                     new TextPayload("  ["),
                     new UIForegroundPayload(500),
                     this.openInstallerWindowPluginChangelogsLink,
-                    new TextPayload(Loc.Localize("DalamudInstallerPluginChangelogHelp", "Open plugin changelogs") + " "),
+                    new TextPayload(Loc.Localize("DalamudInstallerPluginChangelogHelp", "Open plugin changelogs")),
                     RawPayload.LinkTerminator,
                     new UIForegroundPayload(0),
                     new TextPayload("]"),
@@ -262,13 +262,13 @@ Thanks and have fun!";
             {
                 if (metadata.WasUpdated)
                 {
-                    chatGui.Print(Locs.DalamudPluginUpdateSuccessful(metadata.Name, metadata.Version) + (metadata.HasChangelog ? " " : string.Empty));
+                    chatGui.Print(Locs.DalamudPluginUpdateSuccessful(metadata.Name, metadata.Version));
                 }
                 else
                 {
                     chatGui.PrintChat(new XivChatEntry
                     {
-                        Message = Locs.DalamudPluginUpdateFailed(metadata.Name, metadata.Version) + (metadata.HasChangelog ? " " : string.Empty),
+                        Message = Locs.DalamudPluginUpdateFailed(metadata.Name, metadata.Version),
                         Type = XivChatType.Urgent,
                     });
                 }
