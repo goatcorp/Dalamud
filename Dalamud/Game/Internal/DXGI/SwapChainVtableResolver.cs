@@ -61,6 +61,14 @@ public class SwapChainVtableResolver : BaseAddressResolver, ISwapChainAddressRes
         {
             if (processModule.FileName != null && processModule.FileName.EndsWith("game\\dxgi.dll"))
             {
+                var fileInfo = FileVersionInfo.GetVersionInfo(processModule.FileName);
+
+                if (fileInfo.FileDescription == null)
+                    break;
+
+                if (!fileInfo.FileDescription.Contains("GShade") && !fileInfo.FileDescription.Contains("ReShade"))
+                    break;
+
                 // reshade master@4232872 RVA
                 // var p = processModule.BaseAddress + 0x82C7E0; // DXGISwapChain::Present
                 // var p = processModule.BaseAddress + 0x82FAC0; // DXGISwapChain::runtime_present
@@ -72,8 +80,6 @@ public class SwapChainVtableResolver : BaseAddressResolver, ISwapChainAddressRes
 
                 try
                 {
-                    var fileInfo = FileVersionInfo.GetVersionInfo(processModule.FileName);
-
                     // Looks like this sig only works for GShade 4
                     if (fileInfo.FileDescription?.Contains("GShade 4.") == true)
                     {
