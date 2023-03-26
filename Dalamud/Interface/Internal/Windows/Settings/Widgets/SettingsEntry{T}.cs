@@ -125,7 +125,6 @@ internal sealed class SettingsEntry<T> : SettingsEntry
         using (ImRaii.PushColor(ImGuiCol.Text, ImGuiColors.DalamudGrey))
         {
             ImGuiHelpers.SafeTextWrapped(this.Description);
-            ImGui.PopStyleColor();
         }
 
         if (this.CheckValidity != null)
@@ -138,7 +137,6 @@ internal sealed class SettingsEntry<T> : SettingsEntry
                 using (ImRaii.PushColor(ImGuiCol.Text, ImGuiColors.DalamudRed))
                 {
                     ImGui.Text(validityMsg);
-                    ImGui.PopStyleColor();
                 }
             }
         }
@@ -154,7 +152,6 @@ internal sealed class SettingsEntry<T> : SettingsEntry
             using (ImRaii.PushColor(ImGuiCol.Text, ImGuiColors.DalamudRed))
             {
                 ImGui.Text(warningMessage);
-                ImGui.PopStyleColor();
             }
         }
     }
