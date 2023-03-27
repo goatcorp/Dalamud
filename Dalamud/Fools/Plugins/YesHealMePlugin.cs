@@ -1,6 +1,5 @@
 ﻿using Dalamud.Fools.Helper.YesHealMe;
 using Dalamud.Interface;
-using NoTankYou.System;
 
 namespace Dalamud.Fools.Plugins;
 
@@ -22,6 +21,7 @@ public class YesHealMePlugin : IFoolsPlugin
     {
         this.fontManager.Dispose();
         this.partyListAddon.Dispose();
+        IconCache.Cleanup();
     }
 
     public void DrawUi()

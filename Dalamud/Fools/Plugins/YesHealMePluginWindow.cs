@@ -1,16 +1,11 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
-using Dalamud.Data;
 using Dalamud.Fools.Helper.YesHealMe;
 using Dalamud.Game.ClientState;
 using Dalamud.Game.ClientState.Objects.SubKinds;
-using Dalamud.Game.Text.SeStringHandling;
-using Dalamud.Game.Text.SeStringHandling.Payloads;
-using Dalamud.Interface.Components;
 using Dalamud.Interface.Internal;
 using ImGuiNET;
-using NoTankYou.System;
 
 namespace Dalamud.Fools.Plugins;
 
@@ -84,7 +79,7 @@ public static class YesHealMePluginWindow
         var textSize = DrawUtilities.CalculateTextSize(fontManager, hurtingCharacter.Name.TextValue, Scale);
         var namePosition = new Vector2
         {
-            X = healMePosition.X - textSize.X / 2.0f,
+            X = healMePosition.X - (textSize.X / 2.0f),
             Y = healMePosition.Y + textSize.Y,
         };
         DrawUtilities.TextOutlined(

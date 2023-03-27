@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Numerics;
 using ImGuiNET;
-using KamiLib.Caching;
 
 namespace Dalamud.Fools.Helper.YesHealMe;
 
 internal static class DrawUtilities
 {
-    public static void TextOutlined(FontManager fontManager, Vector2 startingPosition, string text, float scale, Vector4 color)
+    public static void TextOutlined(
+        FontManager fontManager, Vector2 startingPosition, string text, float scale, Vector4 color)
     {
         startingPosition = startingPosition.Ceil();
 
@@ -29,40 +29,44 @@ internal static class DrawUtilities
         DrawText(fontManager, startingPosition, text, color, scale);
     }
 
-    public static void DrawIconWithName(FontManager fontManager, Vector2 drawPosition, uint iconID, string name, float iconScale, float textScale, bool drawText = true)
+    public static void DrawIconWithName(
+        FontManager fontManager, Vector2 drawPosition, uint iconID, string name, float iconScale, float textScale)
     {
-        if (!fontManager.GameFont.Available) return;
-    
+        if (!fontManager.GameFont.Available)
+        {
+            return;
+        }
+
         var icon = IconCache.Instance.GetIcon(iconID);
         if (icon != null)
         {
             var drawList = ImGui.GetBackgroundDrawList();
-    
+
             var imagePadding = new Vector2(20.0f, 10.0f) * iconScale;
             var imageSize = new Vector2(50.0f, 50.0f) * iconScale;
-    
+
             drawPosition += imagePadding;
-    
+
             drawList.AddImage(icon.ImGuiHandle, drawPosition, drawPosition + imageSize);
-    
-            if (drawText)
-            {
-                drawPosition.X += imageSize.X / 2.0f;
-                drawPosition.Y += imageSize.Y + 2.0f * iconScale;
-    
-                var textSize = CalculateTextSize(fontManager, name, textScale / 2.75f);
-                var textOffset = new Vector2(0.0f, 5.0f) * iconScale;
-    
-                drawPosition.X -= textSize.X / 2.0f;
-    
-                TextOutlined(fontManager, drawPosition + textOffset, name, textScale / 2.75f, Colors.White);
-            }
+
+            drawPosition.X += imageSize.X / 2.0f;
+            drawPosition.Y += imageSize.Y + (2.0f * iconScale);
+
+            var textSize = CalculateTextSize(fontManager, name, textScale / 2.75f);
+            var textOffset = new Vector2(0.0f, 5.0f) * iconScale;
+
+            drawPosition.X -= textSize.X / 2.0f;
+
+            TextOutlined(fontManager, drawPosition + textOffset, name, textScale / 2.75f, Colors.White);
         }
     }
 
     public static Vector2 CalculateTextSize(FontManager fontManager, string text, float scale)
     {
-        if(!fontManager.GameFont.Available) return Vector2.Zero;
+        if (!fontManager.GameFont.Available)
+        {
+            return Vector2.Zero;
+        }
 
         var fontSize = fontManager.GameFont.ImFont.FontSize;
         var textSize = ImGui.CalcTextSize(text);
@@ -73,18 +77,16 @@ internal static class DrawUtilities
         return new Vector2(textWidth, fontSize) * scale;
     }
 
-    private static void DrawText(FontManager fontManager, Vector2 drawPosition, string text, Vector4 color, float scale, bool debug = false)
+    private static void DrawText(FontManager fontManager, Vector2 drawPosition, string text, Vector4 color, float scale)
     {
-        if (!fontManager.GameFont.Available) return;
+        if (!fontManager.GameFont.Available)
+        {
+            return;
+        }
+
         var font = fontManager.GameFont.ImFont;
 
         var drawList = ImGui.GetBackgroundDrawList();
-        var stringSize = CalculateTextSize(fontManager, text, scale);
-
-        if (debug)
-        {
-            drawList.AddRect(drawPosition, drawPosition + stringSize, ImGui.GetColorU32(Colors.Green));
-        }
 
         drawList.AddText(font, font.FontSize * scale, drawPosition, ImGui.GetColorU32(color), text);
     }

@@ -1,70 +1,71 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Dalamud;
 using Dalamud.Data;
 using Dalamud.Logging;
 using Dalamud.Utility;
 using ImGuiScene;
 
-namespace KamiLib.Caching;
+namespace Dalamud.Fools.Helper.YesHealMe;
 
 public class IconCache : IDisposable
 {
-    private readonly Dictionary<uint, TextureWrap?> iconTextures = new();
-
     private const string IconFilePath = "ui/icon/{0:D3}000/{1:D6}_hr1.tex";
-    
-    private static IconCache? _instance;
-    public static IconCache Instance => _instance ??= new IconCache();
-    
-    public static void Cleanup()
+
+    private static IconCache? internalInstance;
+    private readonly Dictionary<uint, TextureWrap?> iconTextures = new();
+    public static IconCache Instance => internalInstance ??= new IconCache();
+
+    public void Dispose()
     {
-        _instance?.Dispose();
-    }
-    
-    public void Dispose() 
-    {
-        foreach (var texture in iconTextures.Values) 
+        foreach (var texture in this.iconTextures.Values)
         {
             texture?.Dispose();
         }
 
-        iconTextures.Clear();
+        this.iconTextures.Clear();
     }
-        
-    private void LoadIconTexture(uint iconId) 
+
+    public static void Cleanup()
     {
-        Task.Run(() => 
+        internalInstance?.Dispose();
+    }
+
+    private void LoadIconTexture(uint iconId)
+    {
+        Task.Run(() =>
         {
             try
             {
                 var path = IconFilePath.Format(iconId / 1000, iconId);
                 var tex = Service<DataManager>.Get().GetImGuiTexture(path);
 
-                if (tex is not null && tex.ImGuiHandle != nint.Zero) 
+                if (tex is not null && tex.ImGuiHandle != nint.Zero)
                 {
-                    iconTextures[iconId] = tex;
-                } 
-                else 
+                    this.iconTextures[iconId] = tex;
+                }
+                else
                 {
                     tex?.Dispose();
                 }
-            } 
-            catch (Exception ex) 
+            }
+            catch (Exception ex)
             {
                 PluginLog.LogError($"Failed loading texture for icon {iconId} - {ex.Message}");
             }
         });
     }
-    
-    public TextureWrap? GetIcon(uint iconId) 
+
+    public TextureWrap? GetIcon(uint iconId)
     {
-        if (iconTextures.TryGetValue(iconId, out var value)) return value;
+        if (this.iconTextures.TryGetValue(iconId, out var value))
+        {
+            return value;
+        }
 
-        iconTextures.Add(iconId, null);
-        LoadIconTexture(iconId);
+        this.iconTextures.Add(iconId, null);
+        this.LoadIconTexture(iconId);
 
-        return iconTextures[iconId];
+        return this.iconTextures[iconId];
     }
 }
