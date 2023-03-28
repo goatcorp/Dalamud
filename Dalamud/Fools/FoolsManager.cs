@@ -92,7 +92,7 @@ internal class FoolsManager : IDisposable, IServiceType
             },
             new()
             {
-                Name = "Oops, Maybe Lalafells!",
+                Name = "Oops, Maybe Lalafells?",
                 InternalName = "OopsMaybeLalafellsPlugin",
                 Description = "Turn everyone into Lalafells? Maybe. We haven't quite tested it yet.",
                 Author = "Chirpopo Chirpo",
