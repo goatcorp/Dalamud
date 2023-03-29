@@ -153,9 +153,17 @@ internal class FoolsManager : IDisposable, IServiceType
                 RealAuthor = "NotNite",
                 Type = typeof(ComplicatedTweaksPlugin),
             },
+            new()
+            {
+                Name = "Hey Dalamud!",
+                InternalName = "HeyDalamudPlugin",
+                Description = "Scientists have unearthed advanced Allagan Voice Recognition Technology from before the Calamity, then they used it in a Dalamud plugin. Was it a good idea? That's for you to decide.",
+                Author = "snake",
+                RealAuthor = "Avaflow",
+                Type = typeof(HeyDalamudPlugin),
+            },
         };
     }
-
 
     public void ActivatePlugin(string plugin)
     {
