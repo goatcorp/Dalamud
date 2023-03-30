@@ -86,7 +86,6 @@ internal class PluginInstallerWindow : Window, IDisposable
     private bool feedbackModalIncludeException = false;
     private PluginManifest? feedbackPlugin = null;
     private bool feedbackIsTesting = false;
-    private bool feedbackIsAnonymous = false;
 
     private int updatePluginCount = 0;
     private List<PluginUpdateStatus>? updatedPlugins;
@@ -740,41 +739,21 @@ internal class PluginInstallerWindow : Window, IDisposable
 
             ImGui.Spacing();
 
-            if (ImGui.Checkbox(Locs.FeedbackModal_ContactAnonymous, ref this.feedbackIsAnonymous))
-            {
-                if (this.feedbackIsAnonymous)
-                    this.feedbackModalContact = string.Empty;
-            }
+            ImGui.InputText(Locs.FeedbackModal_ContactInformation, ref this.feedbackModalContact, 100);
 
-            if (this.feedbackIsAnonymous)
-            {
-                ImGui.BeginDisabled();
-                ImGui.InputText(Locs.FeedbackModal_ContactInformation, ref this.feedbackModalContact, 0);
-                ImGui.EndDisabled();
-                ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudRed);
-                ImGui.Text(Locs.FeedbackModal_ContactAnonymousWarning);
-                ImGui.PopStyleColor();
-            }
-            else
-            {
-                ImGui.InputText(Locs.FeedbackModal_ContactInformation, ref this.feedbackModalContact, 100);
+            ImGui.SameLine();
 
-                ImGui.SameLine();
-
-                if (ImGui.Button(Locs.FeedbackModal_ContactInformationDiscordButton))
+            if (ImGui.Button(Locs.FeedbackModal_ContactInformationDiscordButton))
+            {
+                Process.Start(new ProcessStartInfo(Locs.FeedbackModal_ContactInformationDiscordUrl)
                 {
-                    Process.Start(new ProcessStartInfo(Locs.FeedbackModal_ContactInformationDiscordUrl)
-                    {
-                        UseShellExecute = true,
-                    });
-                }
-
-                ImGui.Text(Locs.FeedbackModal_ContactInformationHelp);
-
-                ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudRed);
-                ImGui.Text(Locs.FeedbackModal_ContactInformationWarning);
-                ImGui.PopStyleColor();
+                    UseShellExecute = true,
+                });
             }
+
+            ImGui.Text(Locs.FeedbackModal_ContactInformationHelp);
+
+            ImGui.TextColored(ImGuiColors.DalamudRed, Locs.FeedbackModal_ContactInformationWarning);
 
             ImGui.Spacing();
 
@@ -790,7 +769,7 @@ internal class PluginInstallerWindow : Window, IDisposable
 
             if (ImGui.Button(Locs.ErrorModalButton_Ok, new Vector2(buttonWidth, 40)))
             {
-                if (!this.feedbackIsAnonymous && string.IsNullOrWhiteSpace(this.feedbackModalContact))
+                if (string.IsNullOrWhiteSpace(this.feedbackModalContact))
                 {
                     this.ShowErrorModal(Locs.FeedbackModal_ContactInformationRequired)
                         .ContinueWith(_ =>
@@ -856,7 +835,6 @@ internal class PluginInstallerWindow : Window, IDisposable
                 this.feedbackModalBody = string.Empty;
                 this.feedbackModalContact = Service<DalamudConfiguration>.Get().LastFeedbackContactDetails;
                 this.feedbackModalIncludeException = false;
-                this.feedbackIsAnonymous = false;
             }
             else
             {
@@ -3204,7 +3182,7 @@ internal class PluginInstallerWindow : Window, IDisposable
 
         public static string FeedbackModal_ContactInformationWarning => Loc.Localize("InstallerFeedbackContactInfoWarning", "Do not submit in-game character names.");
 
-        public static string FeedbackModal_ContactInformationRequired => Loc.Localize("InstallerFeedbackContactInfoRequired", "Contact information has not been provided. If you do not want to provide contact information, tick on \"{0}\" above.").Format(FeedbackModal_ContactAnonymous);
+        public static string FeedbackModal_ContactInformationRequired => Loc.Localize("InstallerFeedbackContactInfoRequired", "Contact information has not been provided. We require contact information to respond to questions, or to request additional information to troubleshoot problems.");
 
         public static string FeedbackModal_ContactInformationDiscordButton => Loc.Localize("ContactInformationDiscordButton", "Join Goat Place Discord");
 
