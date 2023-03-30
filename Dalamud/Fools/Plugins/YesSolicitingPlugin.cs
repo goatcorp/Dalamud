@@ -74,16 +74,21 @@ public class YesSolicitingPlugin : IFoolsPlugin
 
             "Like to ERP? Join our Extraordinary Raid Party today!",
             "Bored? Hungry? Visit the Alternate Reality Plugins section today!",
-            "Need to protect your eyes from stingy bugs? Get BeeShade! Now with 39% less malware.",
             "Selling iTomestone 14 Pro - has 0.5x mechanic zoom camera, /tell if interested",
             "buying gf 10k gil",
+            "ULTIMATE TWENTY NINE HOUR RAID SESSION BEGINS NOW. WATCH LIVE AT twitch.tomestone/xXx_HARDCORE_GAMING_xXx",
+
+            // Copilot wrote this joke and it was so funny I had to keep it
+            "looking for group to clear ultimates with. i am 2000+ ilvl tank tell if interested",
+            "Are you looking for a night out of fun? Want to meet new people? See things you've never seen before? Meet me at the back alley of Ul'dah at 10pm tonight! Bring a robe.",
         };
 
         var message = messages[Random.Shared.Next(0, messages.Count)];
 
         this.chatGui.PrintChat(new XivChatEntry
         {
-            Message = $"[YesSoliciting] {firstName} {lastName}: {message}",
+            Name = $"[YesSoliciting] {firstName} {lastName}",
+            Message = message,
             Type = XivChatType.Shout,
         });
     }
