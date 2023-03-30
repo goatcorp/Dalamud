@@ -74,7 +74,7 @@ public class YesSolicitingPlugin : IFoolsPlugin
 
             "Like to ERP? Join our Extraordinary Raid Party today!",
             "Bored? Hungry? Visit the Alternate Reality Plugins section today!",
-            "Selling iTomestone 14 Pro - has 0.5x mechanic zoom camera, /tell if interested",
+            "Selling iTomestone 14 Pro - has world-first 0.5x mechanic zoom camera, /tell if interested",
             "buying gf 10k gil",
             "ULTIMATE TWENTY NINE HOUR RAID SESSION BEGINS NOW. WATCH LIVE AT twitch.tomestone/xXx_HARDCORE_GAMING_xXx",
 
