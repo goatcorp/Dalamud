@@ -5,6 +5,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 
 using Dalamud.Game.ClientState.Keys;
+using Dalamud.Interface.Raii;
 using ImGuiNET;
 using ImGuiScene;
 
@@ -161,9 +162,10 @@ public static class ImGuiHelpers
     /// <param name="text">The text to write.</param>
     public static void SafeTextColoredWrapped(Vector4 color, string text)
     {
-        ImGui.PushStyleColor(ImGuiCol.Text, color);
-        ImGui.TextWrapped(text.Replace("%", "%%"));
-        ImGui.PopStyleColor();
+        using (ImRaii.PushColor(ImGuiCol.Text, color))
+        {
+            ImGui.TextWrapped(text.Replace("%", "%%"));
+        }
     }
 
     /// <summary>

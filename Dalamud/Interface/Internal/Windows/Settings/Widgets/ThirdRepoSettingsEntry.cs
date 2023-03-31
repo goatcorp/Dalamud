@@ -10,6 +10,7 @@ using Dalamud.Configuration;
 using Dalamud.Configuration.Internal;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Components;
+using Dalamud.Interface.Raii;
 using Dalamud.Plugin.Internal;
 using ImGuiNET;
 
@@ -53,10 +54,11 @@ public class ThirdRepoSettingsEntry : SettingsEntry
         ImGui.Text(Loc.Localize("DalamudSettingsCustomRepo", "Custom Plugin Repositories"));
         if (this.thirdRepoListChanged)
         {
-            ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.HealerGreen);
-            ImGui.SameLine();
-            ImGui.Text(Loc.Localize("DalamudSettingsChanged", "(Changed)"));
-            ImGui.PopStyleColor();
+            using (ImRaii.PushColor(ImGuiCol.Text, ImGuiColors.HealerGreen))
+            {
+                ImGui.SameLine();
+                ImGui.Text(Loc.Localize("DalamudSettingsChanged", "(Changed)"));
+            }
         }
 
         ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingCustomRepoHint", "Add custom plugin repositories."));

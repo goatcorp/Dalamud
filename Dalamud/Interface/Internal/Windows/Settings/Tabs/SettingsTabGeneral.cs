@@ -27,7 +27,8 @@ public class SettingsTabGeneral : SettingsTab
                     return Loc.Localize("DalamudSettingsChannelNone", "Do not pick \"None\".");
 
                 return null;
-            }),
+            },
+            fallbackValue: XivChatType.Debug),
 
         new GapSettingsEntry(5),
 

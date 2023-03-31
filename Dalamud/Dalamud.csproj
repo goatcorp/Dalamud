@@ -8,7 +8,7 @@
     </PropertyGroup>
 
     <PropertyGroup Label="Feature">
-        <DalamudVersion>7.4.7.5</DalamudVersion>
+        <DalamudVersion>7.4.9.0</DalamudVersion>
         <Description>XIV Launcher addon framework</Description>
         <AssemblyVersion>$(DalamudVersion)</AssemblyVersion>
         <Version>$(DalamudVersion)</Version>
@@ -124,6 +124,7 @@
     <PropertyGroup>
         <!-- Needed temporarily for CI -->
         <TempVerFile>$(OutputPath)TEMP_gitver.txt</TempVerFile>
+        <DalamudRevisionFile>$(OutputPath)revision.txt</DalamudRevisionFile>
     </PropertyGroup>
 
     <Target Name="GetGitCommitCount" BeforeTargets="WriteGitHash" Condition="'$(CommitCount)'==''">
@@ -135,6 +136,8 @@
         <PropertyGroup>
             <CommitCount>$([System.Text.RegularExpressions.Regex]::Replace($(DalamudGitCommitCount), @"\t|\n|\r", ""))</CommitCount>
         </PropertyGroup>
+
+        <Exec Command="echo|set /P =&quot;$(CommitCount)&quot; &gt; $(DalamudRevisionFile)" IgnoreExitCode="true" />
     </Target>
 
     <Target Name="GetGitHash" BeforeTargets="WriteGitHash" Condition="'$(BuildHash)'=='' And '$(Configuration)'=='Release'">

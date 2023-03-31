@@ -25,6 +25,8 @@ namespace Dalamud.Game;
 [ServiceManager.BlockingEarlyLoadedService]
 public sealed class Framework : IDisposable, IServiceType
 {
+    private readonly GameLifecycle lifecycle;
+
     private static Stopwatch statsStopwatch = new();
 
     private readonly Stopwatch updateStopwatch = new();
@@ -41,10 +43,11 @@ public sealed class Framework : IDisposable, IServiceType
 
     [ServiceManager.ServiceDependency]
     private readonly DalamudConfiguration configuration = Service<DalamudConfiguration>.Get();
-    
+
     [ServiceManager.ServiceConstructor]
-    private Framework(SigScanner sigScanner)
+    private Framework(SigScanner sigScanner, GameLifecycle lifecycle)
     {
+        this.lifecycle = lifecycle;
         this.hitchDetector = new HitchDetector("FrameworkUpdate", this.configuration.FrameworkUpdateHitch);
 
         this.Address = new FrameworkAddressResolver();
@@ -488,6 +491,10 @@ public sealed class Framework : IDisposable, IServiceType
     {
         this.IsFrameworkUnloading = true;
         this.DispatchUpdateEvents = false;
+
+        // All the same, for now...
+        this.lifecycle.SetShuttingDown();
+        this.lifecycle.SetUnloading();
 
         Log.Information("Framework::Destroy!");
         Service<Dalamud>.Get().Unload();

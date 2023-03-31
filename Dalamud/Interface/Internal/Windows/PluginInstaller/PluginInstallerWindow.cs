@@ -348,45 +348,45 @@ internal class PluginInstallerWindow : Window, IDisposable
                     ImGuiHelpers.CenteredText("Installing plugin...");
                     break;
                 case LoadingIndicatorKind.Manager:
-                {
-                    if (pluginManager.PluginsReady && !pluginManager.ReposReady)
                     {
-                        ImGuiHelpers.CenteredText("Loading repositories...");
-                    }
-                    else if (!pluginManager.PluginsReady && pluginManager.ReposReady)
-                    {
-                        ImGuiHelpers.CenteredText("Loading installed plugins...");
-                    }
-                    else
-                    {
-                        ImGuiHelpers.CenteredText("Loading repositories and plugins...");
-                    }
+                        if (pluginManager.PluginsReady && !pluginManager.ReposReady)
+                        {
+                            ImGuiHelpers.CenteredText("Loading repositories...");
+                        }
+                        else if (!pluginManager.PluginsReady && pluginManager.ReposReady)
+                        {
+                            ImGuiHelpers.CenteredText("Loading installed plugins...");
+                        }
+                        else
+                        {
+                            ImGuiHelpers.CenteredText("Loading repositories and plugins...");
+                        }
 
-                    var currentProgress = 0;
-                    var total = 0;
+                        var currentProgress = 0;
+                        var total = 0;
 
-                    var pendingRepos = pluginManager.Repos.ToArray()
-                                                    .Where(x => (x.State != PluginRepositoryState.Success &&
-                                                                 x.State != PluginRepositoryState.Fail) &&
-                                                                x.IsEnabled)
-                                                    .ToArray();
-                    var allRepoCount =
-                        pluginManager.Repos.Count(x => x.State != PluginRepositoryState.Fail && x.IsEnabled);
+                        var pendingRepos = pluginManager.Repos.ToArray()
+                                                        .Where(x => (x.State != PluginRepositoryState.Success &&
+                                                                     x.State != PluginRepositoryState.Fail) &&
+                                                                    x.IsEnabled)
+                                                        .ToArray();
+                        var allRepoCount =
+                            pluginManager.Repos.Count(x => x.State != PluginRepositoryState.Fail && x.IsEnabled);
 
-                    foreach (var repo in pendingRepos)
-                    {
-                        ImGuiHelpers.CenteredText($"{repo.PluginMasterUrl}: {repo.State}");
+                        foreach (var repo in pendingRepos)
+                        {
+                            ImGuiHelpers.CenteredText($"{repo.PluginMasterUrl}: {repo.State}");
+                        }
+
+                        currentProgress += allRepoCount - pendingRepos.Length;
+                        total += allRepoCount;
+
+                        if (currentProgress != total)
+                        {
+                            ImGui.SetCursorPosX(windowSize.X / 3);
+                            ImGui.ProgressBar(currentProgress / (float)total, new Vector2(windowSize.X / 3, 50));
+                        }
                     }
-
-                    currentProgress += allRepoCount - pendingRepos.Length;
-                    total += allRepoCount;
-
-                    if (currentProgress != total)
-                    {
-                        ImGui.SetCursorPosX(windowSize.X / 3);
-                        ImGui.ProgressBar(currentProgress / (float)total, new Vector2(windowSize.X / 3, 50));
-                    }
-                }
 
                     break;
                 default:
@@ -2199,9 +2199,12 @@ internal class PluginInstallerWindow : Window, IDisposable
             ImGui.TextColored(ImGuiColors.DalamudGrey3, downloadText);
 
             var isThirdParty = manifest.IsThirdParty;
-            var canFeedback = !isThirdParty && !plugin.IsDev &&
+            var canFeedback = !isThirdParty &&
+                              !plugin.IsDev &&
+                              !plugin.IsOrphaned &&
                               plugin.Manifest.DalamudApiLevel == PluginManager.DalamudApiLevel &&
-                              plugin.Manifest.AcceptsFeedback && availablePluginUpdate == default;
+                              plugin.Manifest.AcceptsFeedback &&
+                              availablePluginUpdate == default;
 
             // Installed from
             if (plugin.IsDev)

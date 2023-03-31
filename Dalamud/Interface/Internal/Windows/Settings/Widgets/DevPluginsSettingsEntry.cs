@@ -10,6 +10,7 @@ using Dalamud.Configuration;
 using Dalamud.Configuration.Internal;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Components;
+using Dalamud.Interface.Raii;
 using Dalamud.Plugin.Internal;
 using ImGuiNET;
 
@@ -57,10 +58,11 @@ public class DevPluginsSettingsEntry : SettingsEntry
         ImGui.Text(this.Name);
         if (this.devPluginLocationsChanged)
         {
-            ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.HealerGreen);
-            ImGui.SameLine();
-            ImGui.Text(Loc.Localize("DalamudSettingsChanged", "(Changed)"));
-            ImGui.PopStyleColor();
+            using (ImRaii.PushColor(ImGuiCol.Text, ImGuiColors.HealerGreen))
+            {
+                ImGui.SameLine();
+                ImGui.Text(Loc.Localize("DalamudSettingsChanged", "(Changed)"));
+            }
         }
 
         ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingsDevPluginLocationsHint", "Add additional dev plugin load locations.\nThese can be either the directory or DLL path."));

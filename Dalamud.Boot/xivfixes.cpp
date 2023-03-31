@@ -6,6 +6,8 @@
 #include "hooks.h"
 #include "logging.h"
 #include "utils.h"
+#include <iphlpapi.h>
+#include <icmpapi.h>
 
 template<typename T>
 static std::span<T> assume_nonempty_span(std::span<T> t, const char* descr) {
@@ -554,6 +556,40 @@ void xivfixes::clr_failfast_hijack(bool bApply)
     }
 }
 
+
+void xivfixes::prevent_icmphandle_crashes(bool bApply) {
+    static const char* LogTag = "[xivfixes:prevent_icmphandle_crashes]";
+
+    static std::optional<hooks::import_hook<decltype(IcmpCloseHandle)>> s_hookIcmpCloseHandle;
+
+    if (bApply) {
+        if (!g_startInfo.BootEnabledGameFixes.contains("prevent_icmphandle_crashes")) {
+            logging::I("{} Turned off via environment variable.", LogTag);
+            return;
+        }
+
+        s_hookIcmpCloseHandle.emplace("iphlpapi.dll!IcmpCloseHandle (import, prevent_icmphandle_crashes)", "iphlpapi.dll", "IcmpCloseHandle", 0);
+
+        s_hookIcmpCloseHandle->set_detour([](HANDLE IcmpHandle) noexcept {
+            // this is exactly how windows behaves, however calling IcmpCloseHandle with
+            // an invalid handle will segfault on wine...
+            if (IcmpHandle == INVALID_HANDLE_VALUE) {
+                logging::W("{} IcmpCloseHandle was called with INVALID_HANDLE_VALUE", LogTag);
+                return FALSE;
+            }
+            return s_hookIcmpCloseHandle->call_original(IcmpHandle);
+        });
+
+        logging::I("{} Enable", LogTag);
+    }
+    else {
+        if (s_hookIcmpCloseHandle) {
+            logging::I("{} Disable", LogTag);
+            s_hookIcmpCloseHandle.reset();
+        }
+    }
+}
+
 void xivfixes::apply_all(bool bApply) {
     for (const auto& [taskName, taskFunction] : std::initializer_list<std::pair<const char*, void(*)(bool)>>
         {
@@ -562,7 +598,8 @@ void xivfixes::apply_all(bool bApply) {
             { "disable_game_openprocess_access_check", &disable_game_openprocess_access_check },
             { "redirect_openprocess", &redirect_openprocess },
             { "backup_userdata_save", &backup_userdata_save },
-            { "clr_failfast_hijack", &clr_failfast_hijack }
+            { "clr_failfast_hijack", &clr_failfast_hijack },
+            { "prevent_icmphandle_crashes", &prevent_icmphandle_crashes }
         }
         ) {
         try {

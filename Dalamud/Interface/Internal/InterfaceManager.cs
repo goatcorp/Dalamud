@@ -606,12 +606,16 @@ internal class InterfaceManager : IDisposable, IServiceType
 
         this.RenderImGui();
 
-        foreach (var texture in this.deferredDisposeTextures)
+        if (this.deferredDisposeTextures.Count > 0)
         {
-            texture.RealDispose();
-        }
+            Log.Verbose("[IM] Disposing {Count} textures", this.deferredDisposeTextures.Count);
+            foreach (var texture in this.deferredDisposeTextures)
+            {
+                texture.RealDispose();
+            }
 
-        this.deferredDisposeTextures.Clear();
+            this.deferredDisposeTextures.Clear();
+        }
 
         return this.presentHook.Original(swapChain, syncInterval, presentFlags);
     }

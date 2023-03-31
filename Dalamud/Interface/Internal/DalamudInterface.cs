@@ -21,6 +21,7 @@ using Dalamud.Interface.Internal.Windows.PluginInstaller;
 using Dalamud.Interface.Internal.Windows.SelfTest;
 using Dalamud.Interface.Internal.Windows.Settings;
 using Dalamud.Interface.Internal.Windows.StyleEditor;
+using Dalamud.Interface.Raii;
 using Dalamud.Interface.Style;
 using Dalamud.Interface.Windowing;
 using Dalamud.Logging;
@@ -538,7 +539,8 @@ internal class DalamudInterface : IDisposable, IServiceType
 
     private void DrawCreditsDarkeningAnimation()
     {
-        ImGui.PushStyleVar(ImGuiStyleVar.WindowRounding, 0f);
+        using var style = ImRaii.PushStyle(ImGuiStyleVar.WindowRounding, 0f);
+
         ImGui.SetNextWindowPos(new Vector2(0, 0));
         ImGui.SetNextWindowSize(ImGuiHelpers.MainViewport.Size);
         ImGuiHelpers.ForceNextWindowMainViewport();
@@ -552,8 +554,6 @@ internal class DalamudInterface : IDisposable, IServiceType
             ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoFocusOnAppearing | ImGuiWindowFlags.NoBringToFrontOnFocus |
             ImGuiWindowFlags.NoNav);
         ImGui.End();
-
-        ImGui.PopStyleVar();
     }
 
     private void DrawHiddenDevMenuOpener()
@@ -562,18 +562,17 @@ internal class DalamudInterface : IDisposable, IServiceType
 
         if (!this.isImGuiDrawDevMenu && !condition.Any())
         {
-            ImGui.PushStyleColor(ImGuiCol.Button, Vector4.Zero);
-            ImGui.PushStyleColor(ImGuiCol.ButtonActive, Vector4.Zero);
-            ImGui.PushStyleColor(ImGuiCol.ButtonHovered, Vector4.Zero);
-            ImGui.PushStyleColor(ImGuiCol.TextSelectedBg, new Vector4(0, 0, 0, 1));
-            ImGui.PushStyleColor(ImGuiCol.Border, new Vector4(0, 0, 0, 1));
-            ImGui.PushStyleColor(ImGuiCol.BorderShadow, new Vector4(0, 0, 0, 1));
-            ImGui.PushStyleColor(ImGuiCol.WindowBg, new Vector4(0, 0, 0, 1));
+            using var color = ImRaii.PushColor(ImGuiCol.Button, Vector4.Zero);
+            color.Push(ImGuiCol.ButtonActive, Vector4.Zero);
+            color.Push(ImGuiCol.ButtonHovered, Vector4.Zero);
+            color.Push(ImGuiCol.TextSelectedBg, new Vector4(0, 0, 0, 1));
+            color.Push(ImGuiCol.Border, new Vector4(0, 0, 0, 1));
+            color.Push(ImGuiCol.BorderShadow, new Vector4(0, 0, 0, 1));
+            color.Push(ImGuiCol.WindowBg, new Vector4(0, 0, 0, 1));
 
-            ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, Vector2.Zero);
-            ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, Vector2.Zero);
-            ImGui.PushStyleVar(ImGuiStyleVar.WindowBorderSize, 0);
-            ImGui.PushStyleVar(ImGuiStyleVar.FrameBorderSize, 0);
+            using var style = ImRaii.PushStyle(ImGuiStyleVar.WindowPadding, Vector2.Zero);
+            style.Push(ImGuiStyleVar.WindowBorderSize, 0);
+            style.Push(ImGuiStyleVar.FrameBorderSize, 0);
 
             var windowPos = ImGui.GetMainViewport().Pos + new Vector2(20);
             ImGui.SetNextWindowPos(windowPos, ImGuiCond.Always);
@@ -605,9 +604,6 @@ internal class DalamudInterface : IDisposable, IServiceType
 
                 ImGui.End();
             }
-
-            ImGui.PopStyleVar(4);
-            ImGui.PopStyleColor(7);
         }
     }
 
@@ -773,6 +769,12 @@ internal class DalamudInterface : IDisposable, IServiceType
                             var framework = Framework.Instance();
                             framework->UIModule = (UIModule*)0x12345678;
                         }
+                    }
+
+                    if (ImGui.MenuItem("Report crashes at shutdown", null, configuration.ReportShutdownCrashes))
+                    {
+                        configuration.ReportShutdownCrashes = !configuration.ReportShutdownCrashes;
+                        configuration.QueueSave();
                     }
 
                     ImGui.Separator();

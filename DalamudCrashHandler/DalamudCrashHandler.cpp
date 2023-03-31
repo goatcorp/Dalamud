@@ -739,6 +739,11 @@ int main() {
 
         std::cout << "Crash triggered" << std::endl;
 
+        auto shutup_mutex = CreateMutex(NULL, false, L"DALAMUD_CRASHES_NO_MORE");
+        bool shutup = false;
+        if (shutup_mutex == NULL && GetLastError() == ERROR_ALREADY_EXISTS)
+            shutup = true;
+
         /*
         Hard won wisdom: changing symbol path with SymSetSearchPath() after modules
         have been loaded (invadeProcess=TRUE in SymInitialize() or SymRefreshModuleList())
@@ -795,7 +800,11 @@ int main() {
         std::wstring dumpError;
         if (dumpPath.empty()) {
             std::cout << "Skipping dump path, as log directory has not been specified" << std::endl;
-        } else {
+        } else if (shutup) {
+            std::cout << "Skipping dump, was shutdown" << std::endl;
+        }
+        else
+        {
             MINIDUMP_EXCEPTION_INFORMATION mdmp_info{};
             mdmp_info.ThreadId = GetThreadId(exinfo.hThreadHandle);
             mdmp_info.ExceptionPointers = exinfo.pExceptionPointers;
@@ -821,6 +830,10 @@ int main() {
         std::wostringstream log;
         log << std::format(L"Unhandled native exception occurred at {}", to_address_string(exinfo.ContextRecord.Rip, false)) << std::endl;
         log << std::format(L"Code: {:X}", exinfo.ExceptionRecord.ExceptionCode) << std::endl;
+
+        if (shutup)
+            log << L"======= Crash handler was globally muted(shutdown?) =======" << std::endl;
+        
         if (dumpPath.empty())
             log << L"Dump skipped" << std::endl;
         else if (dumpError.empty())
@@ -969,6 +982,11 @@ int main() {
         if (submitThread.joinable()) {
             submitThread.join();
             submitThread = {};
+        }
+
+        if (shutup) {
+            TerminateProcess(g_hProcess, exinfo.ExceptionRecord.ExceptionCode);
+            return 0;
         }
 
         int nButtonPressed = 0, nRadioButton = 0;
