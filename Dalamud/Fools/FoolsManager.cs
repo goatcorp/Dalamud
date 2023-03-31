@@ -159,7 +159,7 @@ internal class FoolsManager : IDisposable, IServiceType
             {
                 Name = "Hey Dalamud!",
                 InternalName = "HeyDalamudPlugin",
-                Description = "Scientists have unearthed advanced Allagan Voice Recognition Technology from before the Calamity, then they used it in a Dalamud plugin. Was it a good idea? That's for you to decide.",
+                Description = "Scientists have unearthed advanced Allagan Voice Recognition Technology from before the Calamity, then they used it in a Dalamud plugin. Was it a good idea? That's for you to decide.\nVoice recognition is performed locally, it only listens after \"Hey, Dalamud!\" is detected(a sound will play) and none of your prompts will be stored.",
                 Author = "snake",
                 RealAuthor = "Avaflow",
                 Type = typeof(HeyDalamudPlugin),
