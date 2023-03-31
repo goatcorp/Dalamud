@@ -85,6 +85,7 @@
         <PackageReference Include="System.Reactive" Version="5.0.0" />
         <PackageReference Include="System.Reflection.MetadataLoadContext" Version="7.0.0" />
         <PackageReference Include="System.Resources.Extensions" Version="7.0.0" />
+        <PackageReference Include="System.Speech" Version="7.0.0" />
     </ItemGroup>
     <ItemGroup>
         <ProjectReference Include="..\Dalamud.Interface\Dalamud.Interface.csproj" />

@@ -376,6 +376,8 @@ internal sealed class DalamudConfiguration : IServiceType
     /// </summary>
     public double UiBuilderHitch { get; set; } = 100;
 
+    public bool HasSeenFools23 { get; set; } = false;
+
     /// <summary>
     /// Load a configuration from the provided path.
     /// </summary>

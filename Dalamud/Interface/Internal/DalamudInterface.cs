@@ -9,6 +9,7 @@ using System.Runtime.InteropServices;
 
 using CheapLoc;
 using Dalamud.Configuration.Internal;
+using Dalamud.Fools;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.Gui;
 using Dalamud.Game.Internal;
@@ -63,6 +64,7 @@ internal class DalamudInterface : IDisposable, IServiceType
     private readonly ProfilerWindow profilerWindow;
     private readonly BranchSwitcherWindow branchSwitcherWindow;
     private readonly HitchSettingsWindow hitchSettingsWindow;
+    private readonly FoolsWindow foolsWindow;
 
     private readonly TextureWrap logoTexture;
     private readonly TextureWrap tsmLogoTexture;
@@ -111,6 +113,7 @@ internal class DalamudInterface : IDisposable, IServiceType
         this.profilerWindow = new ProfilerWindow() { IsOpen = false };
         this.branchSwitcherWindow = new BranchSwitcherWindow() { IsOpen = false };
         this.hitchSettingsWindow = new HitchSettingsWindow() { IsOpen = false };
+        this.foolsWindow = new FoolsWindow() { IsOpen = false };
 
         this.WindowSystem.AddWindow(this.changelogWindow);
         this.WindowSystem.AddWindow(this.colorDemoWindow);
@@ -128,6 +131,7 @@ internal class DalamudInterface : IDisposable, IServiceType
         this.WindowSystem.AddWindow(this.profilerWindow);
         this.WindowSystem.AddWindow(this.branchSwitcherWindow);
         this.WindowSystem.AddWindow(this.hitchSettingsWindow);
+        this.WindowSystem.AddWindow(this.foolsWindow);
 
         ImGuiManagedAsserts.AssertsEnabled = configuration.AssertsEnabledAtStartup;
         this.isImGuiDrawDevMenu = this.isImGuiDrawDevMenu || configuration.DevBarOpenAtStartup;
@@ -337,6 +341,18 @@ internal class DalamudInterface : IDisposable, IServiceType
     {
         this.branchSwitcherWindow.IsOpen = true;
         this.branchSwitcherWindow.BringToFront();
+    }
+
+    public void OpenFoolsWindow()
+    {
+        this.foolsWindow.IsOpen = true;
+        this.foolsWindow.BringToFront();
+    }
+
+    public void OpenPluginInstallerFools()
+    {
+        this.pluginWindow.OpenFools();
+        this.pluginWindow.BringToFront();
     }
 
     #endregion

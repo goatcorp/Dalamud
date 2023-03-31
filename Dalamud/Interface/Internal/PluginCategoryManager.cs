@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-
 using CheapLoc;
 using Dalamud.Plugin.Internal;
 using Dalamud.Plugin.Internal.Types;
@@ -23,11 +22,13 @@ internal class PluginCategoryManager
     {
         new(0, "special.all", () => Locs.Category_All),
         new(1, "special.isTesting", () => Locs.Category_IsTesting, CategoryInfo.AppearCondition.DoPluginTest),
-        new(2, "special.availableForTesting", () => Locs.Category_AvailableForTesting, CategoryInfo.AppearCondition.DoPluginTest),
+        new(2, "special.availableForTesting", () => Locs.Category_AvailableForTesting,
+            CategoryInfo.AppearCondition.DoPluginTest),
         new(10, "special.devInstalled", () => Locs.Category_DevInstalled),
         new(11, "special.devIconTester", () => Locs.Category_IconTester),
         new(12, "special.dalamud", () => Locs.Category_Dalamud),
         new(13, "special.plugins", () => Locs.Category_Plugins),
+        new(14, "special.alternateReality", () => "Alternate Reality", CategoryInfo.AppearCondition.Fools23),
         new(FirstTagBasedCategoryId + 0, "other", () => Locs.Category_Other),
         new(FirstTagBasedCategoryId + 1, "jobs", () => Locs.Category_Jobs),
         new(FirstTagBasedCategoryId + 2, "ui", () => Locs.Category_UI),
@@ -36,7 +37,6 @@ internal class PluginCategoryManager
         new(FirstTagBasedCategoryId + 5, "sound", () => Locs.Category_Sound),
         new(FirstTagBasedCategoryId + 6, "social", () => Locs.Category_Social),
         new(FirstTagBasedCategoryId + 7, "utility", () => Locs.Category_Utility),
-
         // order doesn't matter, all tag driven categories should have Id >= FirstTagBasedCategoryId
     };
 
@@ -46,6 +46,7 @@ internal class PluginCategoryManager
         new(GroupKind.Installed, () => Locs.Group_Installed, 0, 1),
         new(GroupKind.Available, () => Locs.Group_Available, 0),
         new(GroupKind.Changelog, () => Locs.Group_Changelog, 0, 12, 13),
+        new(GroupKind.AlternateReality, () => "Alternate Reality", 14),
 
         // order important, used for drawing, keep in sync with defaults for currentGroupIdx
     };
@@ -81,6 +82,11 @@ internal class PluginCategoryManager
         /// UI group: changelog of plugins.
         /// </summary>
         Changelog,
+
+        /// <summary>
+        /// April fools!
+        /// </summary>
+        AlternateReality
     }
 
     /// <summary>
@@ -167,7 +173,8 @@ internal class PluginCategoryManager
                 foreach (var tag in pluginCategoryTags)
                 {
                     // only tags from whitelist can be accepted
-                    var matchIdx = Array.FindIndex(this.CategoryList, x => x.Tag.Equals(tag, StringComparison.InvariantCultureIgnoreCase));
+                    var matchIdx = Array.FindIndex(this.CategoryList,
+                                                   x => x.Tag.Equals(tag, StringComparison.InvariantCultureIgnoreCase));
                     if (matchIdx >= 0)
                     {
                         var categoryId = this.CategoryList[matchIdx].CategoryId;
@@ -235,7 +242,9 @@ internal class PluginCategoryManager
             }
             else
             {
-                var selectedCategoryInfo = Array.Find(this.categoryList, x => x.CategoryId == groupInfo.Categories[this.currentCategoryIdx]);
+                var selectedCategoryInfo = Array.Find(this.categoryList,
+                                                      x => x.CategoryId ==
+                                                           groupInfo.Categories[this.currentCategoryIdx]);
 
                 foreach (var plugin in plugins)
                 {
@@ -330,7 +339,8 @@ internal class PluginCategoryManager
         /// <param name="tag">Tag to match.</param>
         /// <param name="nameFunc">Function returning localized name of category.</param>
         /// <param name="condition">Condition to be checked when deciding whether this category should be shown.</param>
-        public CategoryInfo(int categoryId, string tag, Func<string> nameFunc, AppearCondition condition = AppearCondition.None)
+        public CategoryInfo(
+            int categoryId, string tag, Func<string> nameFunc, AppearCondition condition = AppearCondition.None)
         {
             this.CategoryId = categoryId;
             this.Tag = tag;
@@ -352,6 +362,8 @@ internal class PluginCategoryManager
             /// Check if plugin testing is enabled.
             /// </summary>
             DoPluginTest,
+
+            Fools23,
         }
 
         /// <summary>
@@ -403,7 +415,8 @@ internal class PluginCategoryManager
         public string Name => this.nameFunc();
     }
 
-    [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1600:Elements should be documented", Justification = "locs")]
+    [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1600:Elements should be documented",
+                     Justification = "locs")]
     internal static class Locs
     {
         #region UI groups
@@ -424,9 +437,11 @@ internal class PluginCategoryManager
 
         public static string Category_IsTesting => Loc.Localize("InstallerCategoryIsTesting", "Currently Testing");
 
-        public static string Category_AvailableForTesting => Loc.Localize("InstallerCategoryAvailableForTesting", "Testing Available");
+        public static string Category_AvailableForTesting =>
+            Loc.Localize("InstallerCategoryAvailableForTesting", "Testing Available");
 
-        public static string Category_DevInstalled => Loc.Localize("InstallerInstalledDevPlugins", "Installed Dev Plugins");
+        public static string Category_DevInstalled =>
+            Loc.Localize("InstallerInstalledDevPlugins", "Installed Dev Plugins");
 
         public static string Category_IconTester => "Image/Icon Tester";
 
