@@ -1304,7 +1304,7 @@ version of Dalamud that includes plugins from other realities.
 With our high tech systems, the plugin installer now offers new and unique
 plugins with endless possibilities.
 
-We hope you enjoy this new version of Dalamud, and we look forward to your feedback.
+We hope you enjoy this new version of Dalamud. Be quick - it's only available for one day!
 ".Trim());
 
         ImGuiHelpers.ScaledDummy(8);
