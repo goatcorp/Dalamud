@@ -117,6 +117,7 @@ internal class FoolsManager : IDisposable, IServiceType
                 RealAuthor = "Chirp",
                 Type = typeof(CatBubblesPlugin),
             },
+            /*
             new()
             {
                 Name = "YesSoliciting",
@@ -126,6 +127,7 @@ internal class FoolsManager : IDisposable, IServiceType
                 RealAuthor = "NotNite",
                 Type = typeof(YesSolicitingPlugin),
             },
+            */
             new()
             {
                 Name = "GoodVibes",
