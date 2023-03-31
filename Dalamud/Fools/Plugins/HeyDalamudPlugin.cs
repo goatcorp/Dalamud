@@ -22,6 +22,8 @@ using Newtonsoft.Json;
 
 namespace Dalamud.Fools.Plugins;
 
+// The server for this one is open-source and available at: https://github.com/avafloww/HeyDalamud
+
 public class HeyDalamudPlugin : IFoolsPlugin
 {
     public enum DetectionState
