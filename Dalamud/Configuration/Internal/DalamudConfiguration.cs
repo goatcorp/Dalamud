@@ -153,6 +153,11 @@ internal sealed class DalamudConfiguration : IServiceType
     public bool ToggleUiHideDuringGpose { get; set; } = true;
 
     /// <summary>
+    /// Gets or sets a value indicating whether or not a message containing Dalamud's current version and the number of loaded plugins should be sent at login.
+    /// </summary>
+    public bool PrintDalamudWelcomeMsg { get; set; } = true;
+
+    /// <summary>
     /// Gets or sets a value indicating whether or not a message containing detailed plugin information should be sent at login.
     /// </summary>
     public bool PrintPluginsWelcomeMsg { get; set; } = true;
