@@ -238,7 +238,7 @@ public class HeyDalamudPlugin : IFoolsPlugin
                         if (!string.IsNullOrEmpty(responseObject.Command))
                         {
                             Log.Information("[REC] Executing command: {0}", responseObject.Command);
-                            this.commandManager.ProcessCommand(responseObject.Command);
+                            //this.commandManager.ProcessCommand(responseObject.Command);
                         }
                     } finally
                     {
