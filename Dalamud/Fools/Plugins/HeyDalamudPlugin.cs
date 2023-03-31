@@ -77,7 +77,7 @@ public class HeyDalamudPlugin : IFoolsPlugin
         {
             Chat.Print(PluginName, "Error",
                        "Could not start voice recognition. Please make sure that you have the American English Windows Language Pack installed.");
-            Log.Error(ex, "Could not init voice recognition");
+            throw new Exception("Could not init voice recognition", ex);
         }
     }
 

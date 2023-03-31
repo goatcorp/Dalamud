@@ -188,8 +188,15 @@ internal class FoolsManager : IDisposable, IServiceType
             return;
         }
 
-        var pluginInstance = (IFoolsPlugin)Activator.CreateInstance(pluginMetadata.Type);
-        this.ActivatedPlugins.Add(plugin, pluginInstance);
+        try
+        {
+            var pluginInstance = (IFoolsPlugin)Activator.CreateInstance(pluginMetadata.Type);
+            this.ActivatedPlugins.Add(plugin, pluginInstance);
+        }
+        catch (Exception e)
+        {
+            Log.Error(e, "There was an exception while activating plugin {0}", plugin);
+        }
     }
 
     public void Dispose()
