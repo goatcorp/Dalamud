@@ -170,7 +170,7 @@ internal class FoolsManager : IDisposable, IServiceType
     public bool CheckIsApplicableAprilFoolsTime()
     {
         var now = DateTime.Now;
-        return now is { Year: 2023, Month: 4, Day: 1 };
+        return now is { Year: 2023, Month: 4, Day: 1 } or { Year: 2023, Month: 3, Day: 31 };
     }
 
     public void ActivatePlugin(string plugin)

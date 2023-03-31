@@ -40,6 +40,7 @@ plugins with endless possibilities. Open the ""Alternate Reality"" tab in the
 plugin installer to see what's available.
 
 We hope you enjoy this new version of Dalamud, and we look forward to your feedback.
+Be quick - it's only available for one day!
 ".Trim());
 
         if (ImGui.Button("Open the plugin installer"))
