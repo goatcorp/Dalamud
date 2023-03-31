@@ -14,12 +14,13 @@ namespace Dalamud.Fools.Plugins;
 
 public class OopsMaybeLalafells : IFoolsPlugin
 {
-        // Plugin
+        // Oops, Maybe Lalafells?
+        // This plugin is deliberately nerfed to prevent a fully-formed revival of the original.
         
         public OopsMaybeLalafells()
         {
             var scanner = Service<SigScanner>.Get();
-            var addr = scanner.Module.BaseAddress + 0x0484F60;
+            var addr = scanner.Module.BaseAddress + 0x0484F60; // Deliberate choice in line with the above comment - this is intended to break after the next patch.
             SetupCharacterHook = Hook<SetupCharacterDelegate>.FromAddress(addr, SetupCharacterDetour);
             SetupCharacterHook.Enable();
             RedrawAll();
