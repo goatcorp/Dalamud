@@ -1150,6 +1150,10 @@ internal class PluginInstallerWindow : Window, IDisposable
                             if (!Service<DalamudConfiguration>.Get().DoPluginTest)
                                 continue;
                             break;
+                        case PluginCategoryManager.CategoryInfo.AppearCondition.Fools23:
+                            if (!Service<FoolsManager>.Get().CheckIsApplicableAprilFoolsTime())
+                                continue;
+                            break;
                         default:
                             throw new ArgumentOutOfRangeException();
                     }
@@ -1292,6 +1296,20 @@ internal class PluginInstallerWindow : Window, IDisposable
     private void DrawAlternateRealityPlugins()
     {
         var manager = Service<FoolsManager>.Get();
+
+        ImGui.TextWrapped(@"
+A team of scientists and plugin developers have collaborated to create a new
+version of Dalamud that includes plugins from other realities.
+
+With our high tech systems, the plugin installer now offers new and unique
+plugins with endless possibilities.
+
+We hope you enjoy this new version of Dalamud, and we look forward to your feedback.
+".Trim());
+
+        ImGuiHelpers.ScaledDummy(8);
+        ImGui.SameLine();
+        ImGuiHelpers.ScaledDummy(8);
 
         foreach (var plugin in manager.FoolsPlugins)
         {

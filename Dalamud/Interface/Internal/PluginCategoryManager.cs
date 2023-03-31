@@ -28,7 +28,7 @@ internal class PluginCategoryManager
         new(11, "special.devIconTester", () => Locs.Category_IconTester),
         new(12, "special.dalamud", () => Locs.Category_Dalamud),
         new(13, "special.plugins", () => Locs.Category_Plugins),
-        new(14, "special.alternateReality", () => "Alternate Reality"),
+        new(14, "special.alternateReality", () => "Alternate Reality", CategoryInfo.AppearCondition.Fools23),
         new(FirstTagBasedCategoryId + 0, "other", () => Locs.Category_Other),
         new(FirstTagBasedCategoryId + 1, "jobs", () => Locs.Category_Jobs),
         new(FirstTagBasedCategoryId + 2, "ui", () => Locs.Category_UI),
@@ -362,6 +362,8 @@ internal class PluginCategoryManager
             /// Check if plugin testing is enabled.
             /// </summary>
             DoPluginTest,
+
+            Fools23,
         }
 
         /// <summary>

@@ -165,6 +165,12 @@ internal class FoolsManager : IDisposable, IServiceType
         };
     }
 
+    public bool CheckIsApplicableAprilFoolsTime()
+    {
+        var now = DateTime.Now;
+        return now is { Year: 2023, Month: 4, Day: 1 };
+    }
+
     public void ActivatePlugin(string plugin)
     {
         if (this.ActivatedPlugins.ContainsKey(plugin))
@@ -238,10 +244,12 @@ internal class FoolsManager : IDisposable, IServiceType
             return;
         }
 
+        /*
         var di = Service<DalamudInterface>.Get();
         di.OpenFoolsWindow();
 
         dalamudConfig.HasSeenFools23 = true;
         dalamudConfig.QueueSave();
+        */
     }
 }
