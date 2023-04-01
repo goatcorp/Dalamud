@@ -19,14 +19,15 @@ public static class YesHealMePluginWindow
     private static readonly Vector2 Position = new(200, 200);
     private static readonly Vector2 Size = new(Length, SectionHeight);
 
-    private static IEnumerable<PlayerCharacter> Characters(PartyListAddon partyListAddon)
+    private static IEnumerable<PlayerCharacter?> Characters(PartyListAddon partyListAddon)
     {
             return partyListAddon.Any() ? partyListAddon.Select(pla => pla.PlayerCharacter) : new[] { Service<ClientState>.Get().LocalPlayer };
     }
 
-    private static List<PlayerCharacter> HurtingCharacters(IEnumerable<PlayerCharacter> characters)
+    private static List<PlayerCharacter> HurtingCharacters(IEnumerable<PlayerCharacter?> characters)
     {
         return characters
+               .Where(pc => pc is not null)
                .Where(pc => pc.CurrentHp < pc.MaxHp ||
                             Service<DalamudInterface>.Get()
                                                      .IsDevMenuOpen)
