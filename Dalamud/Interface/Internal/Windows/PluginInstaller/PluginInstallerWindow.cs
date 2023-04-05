@@ -2730,7 +2730,7 @@ internal class PluginInstallerWindow : Window, IDisposable
                                        manifest.InternalName.ToLowerInvariant().Contains(searchString) ||
                                        (!manifest.Author.IsNullOrEmpty() && manifest.Author.Equals(this.searchText, StringComparison.InvariantCultureIgnoreCase)) ||
                                        (!manifest.Punchline.IsNullOrEmpty() && manifest.Punchline.ToLowerInvariant().Contains(searchString)) ||
-                                       (manifest.Tags != null && manifest.Tags.Contains(searchString, StringComparer.InvariantCultureIgnoreCase)));
+                                       (manifest.Tags != null && manifest.Tags.Any(tag => tag.ToLowerInvariant().Contains(searchString))));
     }
 
     private (bool IsInstalled, LocalPlugin Plugin) IsManifestInstalled(PluginManifest? manifest)
