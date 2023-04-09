@@ -399,9 +399,7 @@ internal class PluginInstallerWindow : Window, IDisposable
             if (DateTime.Now - this.timeLoaded > TimeSpan.FromSeconds(90) && !pluginManager.PluginsReady)
             {
                 ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudRed);
-                ImGuiHelpers.CenteredText("This is embarrassing, but...");
-                ImGuiHelpers.CenteredText("one of your plugins may be blocking the installer.");
-                ImGuiHelpers.CenteredText("You should tell us about this, please keep this window open.");
+                ImGuiHelpers.CenteredText("One of your plugins may be blocking the installer.");
                 ImGui.PopStyleColor();
             }
 
@@ -2282,6 +2280,11 @@ internal class PluginInstallerWindow : Window, IDisposable
     {
         var notifications = Service<NotificationManager>.Get();
         var pluginManager = Service<PluginManager>.Get();
+        var profileManager = Service<ProfileManager>.Get();
+        var config = Service<DalamudConfiguration>.Get();
+
+        var applicableForProfiles = !plugin.Manifest.IsThirdParty && config.ProfilesEnabled;
+        var isDefaultPlugin = profileManager.IsInDefaultProfile(plugin.Manifest.InternalName);
 
         // Disable everything if the updater is running or another plugin is operating
         var disabled = this.updateStatus == OperationStatus.InProgress || this.installStatus == OperationStatus.InProgress;
@@ -2296,14 +2299,67 @@ internal class PluginInstallerWindow : Window, IDisposable
         // Disable everything if the plugin failed to load
         disabled = disabled || plugin.State == PluginState.LoadError || plugin.State == PluginState.DependencyResolutionFailed;
 
-        // Disable everything if we're working
+        // Disable everything if we're loading plugins
         disabled = disabled || plugin.State == PluginState.Loading || plugin.State == PluginState.Unloading;
+
+        // Disable everything if we're applying profiles
+        disabled = disabled || profileManager.IsBusy;
 
         var toggleId = plugin.Manifest.InternalName;
         var isLoadedAndUnloadable = plugin.State == PluginState.Loaded ||
                                     plugin.State == PluginState.DependencyResolutionFailed;
 
         StyleModelV1.DalamudStandard.Push();
+
+        var profileChooserPopupName = $"###pluginProfileChooser{plugin.Manifest.InternalName}";
+        if (ImGui.BeginPopup(profileChooserPopupName))
+        {
+            var didAny = false;
+
+            foreach (var profile in profileManager.Profiles.Where(x => !x.IsDefaultProfile))
+            {
+                var isInProfile = profile.WantsPlugin(plugin.Manifest.InternalName).HasValue;
+                if (ImGui.Checkbox($"###profilePick{profile.Guid}{plugin.Manifest.InternalName}", ref isInProfile))
+                {
+                    if (isInProfile)
+                    {
+                        Task.Run(() => profile.Remove(plugin.Manifest.InternalName));
+                    }
+                    else
+                    {
+                        Task.Run(() => profile.AddOrUpdate(plugin.Manifest.InternalName, true));
+                    }
+                }
+
+                ImGui.SameLine();
+
+                ImGui.TextUnformatted(profile.Name);
+
+                didAny = true;
+            }
+
+            if (!didAny)
+                ImGui.TextColored(ImGuiColors.DalamudGrey, "No profiles! Go add some!");
+
+            ImGui.Separator();
+
+            if (ImGuiComponents.IconButton(FontAwesomeIcon.Cross))
+            {
+                profileManager.DefaultProfile.AddOrUpdate(plugin.Manifest.InternalName, plugin.IsLoaded, false);
+                foreach (var profile in profileManager.Profiles.Where(x => !x.IsDefaultProfile && x.Plugins.Any(y => y.InternalName == plugin.Manifest.InternalName)))
+                {
+                    profile.Remove(plugin.Manifest.InternalName, false);
+                }
+
+                // TODO error handling
+                Task.Run(() => profileManager.ApplyAllWantStates());
+            }
+
+            ImGui.SameLine();
+            ImGui.Text("Remove from all profiles");
+
+            ImGui.EndPopup();
+        }
 
         if (plugin.State == PluginState.UnloadError && !plugin.IsDev)
         {
@@ -2312,9 +2368,12 @@ internal class PluginInstallerWindow : Window, IDisposable
             if (ImGui.IsItemHovered())
                 ImGui.SetTooltip(Locs.PluginButtonToolTip_UnloadFailed);
         }
-        else if (disabled)
+        else if (disabled || !isDefaultPlugin)
         {
             ImGuiComponents.DisabledToggleButton(toggleId, isLoadedAndUnloadable);
+
+            if (!isDefaultPlugin)
+                ImGui.SetTooltip(Locs.PluginButtonToolTip_NeedsToBeInDefault);
         }
         else
         {
@@ -2428,6 +2487,20 @@ internal class PluginInstallerWindow : Window, IDisposable
         {
             // Only if the plugin isn't broken.
             this.DrawOpenPluginSettingsButton(plugin);
+        }
+
+        if (applicableForProfiles)
+        {
+            ImGui.SameLine();
+            if (ImGuiComponents.IconButton(FontAwesomeIcon.Toolbox))
+            {
+                ImGui.OpenPopup(profileChooserPopupName);
+            }
+
+            if (ImGui.IsItemHovered())
+            {
+                ImGui.SetTooltip(Locs.PluginButtonToolTip_PickProfiles);
+            }
         }
     }
 
@@ -3088,6 +3161,8 @@ internal class PluginInstallerWindow : Window, IDisposable
 
         public static string PluginButtonToolTip_OpenConfiguration => Loc.Localize("InstallerOpenConfig", "Open Configuration");
 
+        public static string PluginButtonToolTip_PickProfiles => Loc.Localize("InstallerPickProfiles", "Pick profiles for this plugin");
+
         public static string PluginButtonToolTip_StartOnBoot => Loc.Localize("InstallerStartOnBoot", "Start on boot");
 
         public static string PluginButtonToolTip_AutomaticReloading => Loc.Localize("InstallerAutomaticReloading", "Automatic reloading");
@@ -3107,6 +3182,8 @@ internal class PluginInstallerWindow : Window, IDisposable
         public static string PluginButtonToolTip_UpdateSingle(string version) => Loc.Localize("InstallerUpdateSingle", "Update to {0}").Format(version);
 
         public static string PluginButtonToolTip_UnloadFailed => Loc.Localize("InstallerUnloadFailedTooltip", "Plugin unload failed, please restart your game and try again.");
+
+        public static string PluginButtonToolTip_NeedsToBeInDefault => Loc.Localize("InstallerUnloadNeedsToBeInDefault", "This plugin is in one or more profiles. If you want to enable or disable it, please do so by enabling or disabling one of the profiles it is in.\nIf you want to manage it manually, remove it from all profiles.");
 
         #endregion
 

@@ -152,7 +152,7 @@ internal class Profile
         // We need to remove this plugin from the default profile, if it declares it.
         if (!this.IsDefaultProfile && this.manager.DefaultProfile.WantsPlugin(internalName) != null)
         {
-            this.manager.DefaultProfile.RemoveAsync(internalName, false);
+            this.manager.DefaultProfile.Remove(internalName, false);
         }
 
         var existing = this.modelV1.Plugins.FirstOrDefault(x => x.InternalName == internalName);
@@ -181,7 +181,7 @@ internal class Profile
     /// </summary>
     /// <param name="internalName">The internal name of the plugin.</param>
     /// <param name="apply">Whether or not the current state should immediately be applied.</param>
-    public void RemoveAsync(string internalName, bool apply = true)
+    public void Remove(string internalName, bool apply = true)
     {
         var entry = this.modelV1.Plugins.FirstOrDefault(x => x.InternalName == internalName);
         if (entry == null)
