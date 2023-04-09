@@ -202,6 +202,7 @@ internal class LocalPlugin : IDisposable
     /// <summary>
     /// Gets a value indicating whether the plugin is disabled.
     /// </summary>
+    [Obsolete("This is no longer accurate, use the profile manager instead.")]
     public bool IsDisabled => this.Manifest.Disabled;
 
     /// <summary>

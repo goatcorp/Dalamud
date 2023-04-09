@@ -23,6 +23,7 @@ using Dalamud.Interface.Internal;
 using Dalamud.IoC.Internal;
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Internal.Exceptions;
+using Dalamud.Plugin.Internal.Profiles;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Utility;
 using Dalamud.Utility.Timing;
@@ -76,6 +77,9 @@ Thanks and have fun!";
 
     [ServiceManager.ServiceDependency]
     private readonly DalamudStartInfo startInfo = Service<DalamudStartInfo>.Get();
+
+    [ServiceManager.ServiceDependency]
+    private readonly ProfileManager profileManager = Service<ProfileManager>.Get();
 
     [ServiceManager.ServiceConstructor]
     private PluginManager()
@@ -421,7 +425,7 @@ Thanks and have fun!";
 
             try
             {
-                pluginDefs.Add(versionsDefs.OrderByDescending(x => x.Manifest!.EffectiveVersion).First());
+                pluginDefs.Add(versionsDefs.MaxBy(x => x.Manifest!.EffectiveVersion));
             }
             catch (Exception ex)
             {
@@ -874,7 +878,7 @@ Thanks and have fun!";
         {
             try
             {
-                if (!plugin.IsDisabled && !plugin.IsOrphaned)
+                if (this.profileManager.GetWantState(plugin.Manifest.InternalName, isBoot) && !plugin.IsOrphaned)
                 {
                     await plugin.LoadAsync(reason);
                 }

@@ -21,6 +21,7 @@ using Dalamud.Logging.Internal;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Internal;
 using Dalamud.Plugin.Internal.Exceptions;
+using Dalamud.Plugin.Internal.Profiles;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Support;
 using Dalamud.Utility;
@@ -51,6 +52,8 @@ internal class PluginInstallerWindow : Window, IDisposable
     private DalamudChangelogManager? dalamudChangelogManager;
     private Task? dalamudChangelogRefreshTask;
     private CancellationTokenSource? dalamudChangelogRefreshTaskCts;
+
+    private ProfileManagerWidget profileManagerWidget = new();
 
     #region Image Tester State
 
@@ -167,6 +170,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         UpdatingAll,
         Installing,
         Manager,
+        ProfilesLoading,
     }
 
     private enum PluginSortKind
@@ -288,14 +292,19 @@ internal class PluginInstallerWindow : Window, IDisposable
     private void DrawProgressOverlay()
     {
         var pluginManager = Service<PluginManager>.Get();
+        var profileManager = Service<ProfileManager>.Get();
 
         var isWaitingManager = !pluginManager.PluginsReady ||
                                !pluginManager.ReposReady;
+        var isWaitingProfiles = profileManager.IsBusy;
+
         var isLoading = this.AnyOperationInProgress ||
-                        isWaitingManager;
+                        isWaitingManager || isWaitingProfiles;
 
         if (isWaitingManager)
             this.loadingIndicatorKind = LoadingIndicatorKind.Manager;
+        else if (isWaitingProfiles)
+            this.loadingIndicatorKind = LoadingIndicatorKind.ProfilesLoading;
 
         if (!isLoading)
             return;
@@ -379,6 +388,9 @@ internal class PluginInstallerWindow : Window, IDisposable
                         }
                     }
 
+                    break;
+                case LoadingIndicatorKind.ProfilesLoading:
+                    ImGuiHelpers.CenteredText("Profiles are being applied...");
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -1111,6 +1123,10 @@ internal class PluginInstallerWindow : Window, IDisposable
                             if (!Service<DalamudConfiguration>.Get().DoPluginTest)
                                 continue;
                             break;
+                        case PluginCategoryManager.CategoryInfo.AppearCondition.ProfilesEnabled:
+                            if (!Service<DalamudConfiguration>.Get().DoPluginTest)
+                                continue;
+                            break;
                         default:
                             throw new ArgumentOutOfRangeException();
                     }
@@ -1215,6 +1231,10 @@ internal class PluginInstallerWindow : Window, IDisposable
 
                     case 1:
                         this.DrawInstalledPluginList(true);
+                        break;
+
+                    case 2:
+                        this.profileManagerWidget.Draw();
                         break;
                 }
 

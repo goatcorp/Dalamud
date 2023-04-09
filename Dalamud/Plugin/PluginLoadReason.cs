@@ -30,3 +30,5 @@ public enum PluginLoadReason
     /// </summary>
     Boot,
 }
+
+// TODO(api9): This should be a mask, so that we can combine Installer | ProfileLoaded
