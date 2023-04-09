@@ -1122,7 +1122,7 @@ internal class PluginInstallerWindow : Window, IDisposable
                                 continue;
                             break;
                         case PluginCategoryManager.CategoryInfo.AppearCondition.ProfilesEnabled:
-                            if (!Service<DalamudConfiguration>.Get().DoPluginTest)
+                            if (!Service<DalamudConfiguration>.Get().ProfilesEnabled)
                                 continue;
                             break;
                         default:
