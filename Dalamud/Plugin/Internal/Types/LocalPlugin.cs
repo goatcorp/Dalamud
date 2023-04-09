@@ -342,8 +342,9 @@ internal class LocalPlugin : IDisposable
             if (this.Manifest.DalamudApiLevel < PluginManager.DalamudApiLevel && !pluginManager.LoadAllApiLevels)
                 throw new InvalidPluginOperationException($"Unable to load {this.Name}, incompatible API level");
 
-            if (this.Manifest.Disabled)
-                throw new InvalidPluginOperationException($"Unable to load {this.Name}, disabled");
+            // TODO: should we throw here?
+            if (!this.IsWantedByAnyProfile)
+                Log.Warning("{Name} is loading, but isn't wanted by any profile", this.Name);
 
             if (this.IsOrphaned)
                 throw new InvalidPluginOperationException($"Plugin {this.Name} had no associated repo.");

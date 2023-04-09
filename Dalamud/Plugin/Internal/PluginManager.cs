@@ -1085,7 +1085,7 @@ Thanks and have fun!";
             if (plugin.InstalledPlugin.IsDev)
                 continue;
 
-            if (plugin.InstalledPlugin.Manifest.Disabled && ignoreDisabled)
+            if (!plugin.InstalledPlugin.IsWantedByAnyProfile && ignoreDisabled)
                 continue;
 
             if (plugin.InstalledPlugin.Manifest.ScheduledForDeletion)
