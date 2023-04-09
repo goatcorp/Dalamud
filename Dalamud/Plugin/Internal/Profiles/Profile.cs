@@ -149,12 +149,6 @@ internal class Profile
     {
         Debug.Assert(!internalName.IsNullOrEmpty(), "!internalName.IsNullOrEmpty()");
 
-        // We need to remove this plugin from the default profile, if it declares it.
-        if (!this.IsDefaultProfile && this.manager.DefaultProfile.WantsPlugin(internalName) != null)
-        {
-            this.manager.DefaultProfile.Remove(internalName, false);
-        }
-
         var existing = this.modelV1.Plugins.FirstOrDefault(x => x.InternalName == internalName);
         if (existing != null)
         {
@@ -167,6 +161,12 @@ internal class Profile
                 InternalName = internalName,
                 IsEnabled = state,
             });
+        }
+
+        // We need to remove this plugin from the default profile, if it declares it.
+        if (!this.IsDefaultProfile && this.manager.DefaultProfile.WantsPlugin(internalName) != null)
+        {
+            this.manager.DefaultProfile.Remove(internalName, false);
         }
 
         Service<DalamudConfiguration>.Get().QueueSave();

@@ -63,14 +63,14 @@ internal class ProfileManager : IServiceType
         var want = false;
         var wasInAnyProfile = false;
 
-        foreach (var profile in this.profiles.Where(x => x.IsEnabled))
+        foreach (var profile in this.profiles)
         {
             var state = profile.WantsPlugin(internalName);
             Log.Verbose("Checking {Name} in {Profile}: {State}", internalName, profile.Guid, state == null ? "null" : state);
 
             if (state.HasValue)
             {
-                want = want || state.Value;
+                want = want || (profile.IsEnabled && state.Value);
                 wasInAnyProfile = true;
             }
         }
