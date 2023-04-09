@@ -843,7 +843,7 @@ Thanks and have fun!";
     /// <param name="isBoot">If this plugin is being loaded at boot.</param>
     /// <param name="doNotLoad">Don't load the plugin, just don't do it.</param>
     /// <returns>The loaded plugin.</returns>
-    public async Task<LocalPlugin> LoadPluginAsync(FileInfo dllFile, LocalPluginManifest? manifest, PluginLoadReason reason, bool isDev = false, bool isBoot = false, bool doNotLoad = false)
+    private async Task<LocalPlugin> LoadPluginAsync(FileInfo dllFile, LocalPluginManifest? manifest, PluginLoadReason reason, bool isDev = false, bool isBoot = false, bool doNotLoad = false)
     {
         var name = manifest?.Name ?? dllFile.Name;
         var loadPlugin = !doNotLoad;
@@ -863,8 +863,9 @@ Thanks and have fun!";
             loadPlugin &= !isBoot || devPlugin.StartOnBoot;
 
             // If we're not loading it, make sure it's disabled
-            if (!loadPlugin && !devPlugin.IsDisabled)
-                devPlugin.Disable();
+            // NOTE: Should be taken care of below by the profile code
+            // if (!loadPlugin && !devPlugin.IsDisabled)
+            //     devPlugin.Disable();
 
             plugin = devPlugin;
         }
@@ -874,17 +875,24 @@ Thanks and have fun!";
             plugin = new LocalPlugin(dllFile, manifest);
         }
 
+#pragma warning disable CS0618
+        var defaultState = manifest?.Disabled != true && loadPlugin;
+#pragma warning restore CS0618
+
+        // Need to do this here, so plugins that don't load are still added to the default profile
+        var wantToLoad = this.profileManager.GetWantState(plugin.Manifest.InternalName, defaultState);
+
         if (loadPlugin)
         {
             try
             {
-                if (this.profileManager.GetWantState(plugin.Manifest.InternalName, isBoot) && !plugin.IsOrphaned)
+                if (wantToLoad && !plugin.IsOrphaned)
                 {
                     await plugin.LoadAsync(reason);
                 }
                 else
                 {
-                    Log.Verbose($"{name} not loaded, disabled:{plugin.IsDisabled} orphaned:{plugin.IsOrphaned}");
+                    Log.Verbose($"{name} not loaded, wantToLoad:{wantToLoad} orphaned:{plugin.IsOrphaned}");
                 }
             }
             catch (InvalidPluginException)
@@ -1136,6 +1144,7 @@ Thanks and have fun!";
 
             if (plugin.IsDev)
             {
+                // TODO: Does this ever work? Why? We should never update devplugins
                 try
                 {
                     plugin.DllFile.Delete();
@@ -1155,8 +1164,11 @@ Thanks and have fun!";
             {
                 try
                 {
+                    // TODO: Why were we ever doing this? We should never be loading the old version in the first place
+                    /*
                     if (!plugin.IsDisabled)
                         plugin.Disable();
+                        */
 
                     lock (this.pluginListLock)
                     {

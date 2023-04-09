@@ -1573,7 +1573,7 @@ internal class PluginInstallerWindow : Window, IDisposable
 
         ImGui.SetCursorPos(startCursor);
 
-        var pluginDisabled = plugin is { IsDisabled: true };
+        var pluginDisabled = plugin is { IsWantedByAnyProfile: false };
 
         var iconSize = ImGuiHelpers.ScaledVector2(64, 64);
         var cursorBeforeImage = ImGui.GetCursorPos();
@@ -1998,7 +1998,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         }
 
         // Disabled
-        if (plugin.IsDisabled || !plugin.CheckPolicy())
+        if (!plugin.IsWantedByAnyProfile || !plugin.CheckPolicy())
         {
             label += Locs.PluginTitleMod_Disabled;
             trouble = true;
@@ -2381,6 +2381,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         {
             if (ImGuiComponents.ToggleButton(toggleId, ref isLoadedAndUnloadable))
             {
+                // TODO: We can technically let profile manager take care of unloading/loading the plugin, but we should figure out error handling first.
                 if (!isLoadedAndUnloadable)
                 {
                     this.enableDisableStatus = OperationStatus.InProgress;
@@ -2403,14 +2404,8 @@ internal class PluginInstallerWindow : Window, IDisposable
                             return;
                         }
 
-                        var disableTask = Task.Run(() => plugin.Disable())
-                                              .ContinueWith(this.DisplayErrorContinuation, Locs.ErrorModal_DisableFail(plugin.Name));
-
-                        disableTask.Wait();
+                        profileManager.DefaultProfile.AddOrUpdate(plugin.Manifest.InternalName, false, false);
                         this.enableDisableStatus = OperationStatus.Complete;
-
-                        if (!disableTask.Result)
-                            return;
 
                         notifications.AddNotification(Locs.Notifications_PluginDisabled(plugin.Manifest.Name), Locs.Notifications_PluginDisabledTitle, NotificationType.Success);
                     });
@@ -2427,17 +2422,7 @@ internal class PluginInstallerWindow : Window, IDisposable
                             plugin.ReloadManifest();
                         }
 
-                        var enableTask = Task.Run(plugin.Enable)
-                                             .ContinueWith(
-                                                 this.DisplayErrorContinuation,
-                                                 Locs.ErrorModal_EnableFail(plugin.Name));
-
-                        enableTask.Wait();
-                        if (!enableTask.Result)
-                        {
-                            this.enableDisableStatus = OperationStatus.Complete;
-                            return;
-                        }
+                        profileManager.DefaultProfile.AddOrUpdate(plugin.Manifest.InternalName, true, false);
 
                         var loadTask = Task.Run(() => plugin.LoadAsync(PluginLoadReason.Installer))
                                            .ContinueWith(

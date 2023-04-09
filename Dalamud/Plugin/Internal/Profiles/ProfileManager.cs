@@ -1,12 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+
 using CheapLoc;
 using Dalamud.Configuration.Internal;
 using Dalamud.Logging.Internal;
-using Dalamud.Plugin.Internal.Types;
 using Dalamud.Utility;
 
 namespace Dalamud.Plugin.Internal.Profiles;
@@ -55,10 +54,10 @@ internal class ProfileManager : IServiceType
     /// Check if any enabled profile wants a specific plugin enabled.
     /// </summary>
     /// <param name="internalName">The internal name of the plugin.</param>
-    /// <param name="isBoot">Whether this method is called during bootup plugin load.</param>
+    /// <param name="defaultState">The state the plugin shall be in, if it needs to be added.</param>
+    /// <param name="addIfNotDeclared">Whether or not the plugin should be added to the default preset, if it's not present in any preset.</param>
     /// <returns>Whether or not the plugin shall be enabled.</returns>
-    /// <exception cref="InvalidOperationException">Thrown when something odd has happened.</exception>
-    public bool GetWantState(string internalName, bool isBoot)
+    public bool GetWantState(string internalName, bool defaultState, bool addIfNotDeclared = true)
     {
         var want = false;
         var wasInAnyProfile = false;
@@ -75,12 +74,11 @@ internal class ProfileManager : IServiceType
             }
         }
 
-        // Can we just do migration here?
-        if (!wasInAnyProfile && isBoot)
+        if (!wasInAnyProfile && addIfNotDeclared)
         {
-            Log.Warning("{Name} was not in any profile during boot, adding to default", internalName);
-            this.DefaultProfile.AddOrUpdate(internalName, false, false);
-            return false;
+            Log.Warning("{Name} was not in any profile, adding to default with {Default}", internalName, defaultState);
+            this.DefaultProfile.AddOrUpdate(internalName, defaultState, false);
+            return defaultState;
         }
 
         return want;
@@ -246,7 +244,8 @@ internal class ProfileManager : IServiceType
 
         if (needMigration)
         {
-            this.MigratePluginsIntoDefaultProfile();
+            // Don't think we need this here with the migration logic in GetWantState
+            //this.MigratePluginsIntoDefaultProfile();
         }
 
         this.config.SavedProfiles ??= new List<ProfileModel>();
@@ -259,6 +258,7 @@ internal class ProfileManager : IServiceType
     }
 
     // This duplicates some of the original handling in PM; don't care though
+    /*
     private void MigratePluginsIntoDefaultProfile()
     {
         var pluginDirectory = new DirectoryInfo(Service<DalamudStartInfo>.Get().PluginDirectory!);
@@ -323,4 +323,5 @@ internal class ProfileManager : IServiceType
 #pragma warning restore CS0618
         }
     }
+    */
 }

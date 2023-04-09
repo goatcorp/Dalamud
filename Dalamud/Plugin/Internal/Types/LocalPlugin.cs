@@ -14,6 +14,7 @@ using Dalamud.IoC.Internal;
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Internal.Exceptions;
 using Dalamud.Plugin.Internal.Loader;
+using Dalamud.Plugin.Internal.Profiles;
 using Dalamud.Utility;
 
 namespace Dalamud.Plugin.Internal.Types;
@@ -199,11 +200,19 @@ internal class LocalPlugin : IDisposable
     /// </summary>
     public bool IsLoaded => this.State == PluginState.Loaded;
 
+    /*
     /// <summary>
     /// Gets a value indicating whether the plugin is disabled.
     /// </summary>
-    [Obsolete("This is no longer accurate, use the profile manager instead.")]
+    [Obsolete("This is no longer accurate, use the profile manager instead.", true)]
     public bool IsDisabled => this.Manifest.Disabled;
+    */
+
+    /// <summary>
+    /// Gets a value indicating whether this plugin is wanted active by any profile.
+    /// </summary>
+    public bool IsWantedByAnyProfile =>
+        Service<ProfileManager>.Get().GetWantState(this.Manifest.InternalName, false, false);
 
     /// <summary>
     /// Gets a value indicating whether this plugin's API level is out of date.
@@ -276,7 +285,6 @@ internal class LocalPlugin : IDisposable
     /// <returns>A task.</returns>
     public async Task LoadAsync(PluginLoadReason reason, bool reloading = false)
     {
-        var configuration = await Service<DalamudConfiguration>.GetAsync();
         var framework = await Service<Framework>.GetAsync();
         var ioc = await Service<ServiceContainer>.GetAsync();
         var pluginManager = await Service<PluginManager>.GetAsync();
@@ -297,6 +305,10 @@ internal class LocalPlugin : IDisposable
                 // Reload the manifest in-case there were changes here too.
                 this.ReloadManifest();
             }
+
+            // If we reload a plugin we don't want to delete it. Makes sense, right?
+            this.Manifest.ScheduledForDeletion = false;
+            this.SaveManifest();
 
             switch (this.State)
             {
@@ -548,9 +560,11 @@ internal class LocalPlugin : IDisposable
         await this.LoadAsync(PluginLoadReason.Reload, true);
     }
 
+    /*
     /// <summary>
     /// Revert a disable. Must be unloaded first, does not load.
     /// </summary>
+    [Obsolete("Profile API", true)]
     public void Enable()
     {
         // Allowed: Unloaded, UnloadError
@@ -581,6 +595,7 @@ internal class LocalPlugin : IDisposable
         this.Manifest.ScheduledForDeletion = false;
         this.SaveManifest();
     }
+    */
 
     /// <summary>
     /// Check if anything forbids this plugin from loading.
@@ -603,9 +618,11 @@ internal class LocalPlugin : IDisposable
         return true;
     }
 
+    /*
     /// <summary>
     /// Disable this plugin, must be unloaded first.
     /// </summary>
+    [Obsolete("Profile API", true)]
     public void Disable()
     {
         // Allowed: Unloaded, UnloadError
@@ -632,6 +649,7 @@ internal class LocalPlugin : IDisposable
         this.Manifest.Disabled = true;
         this.SaveManifest();
     }
+    */
 
     /// <summary>
     /// Schedule the deletion of this plugin on next cleanup.
@@ -651,9 +669,9 @@ internal class LocalPlugin : IDisposable
         var manifest = LocalPluginManifest.GetManifestFile(this.DllFile);
         if (manifest.Exists)
         {
-            var isDisabled = this.IsDisabled; // saving the internal state because it could have been deleted
+            //var isDisabled = this.IsDisabled; // saving the internal state because it could have been deleted
             this.Manifest = LocalPluginManifest.Load(manifest);
-            this.Manifest.Disabled = isDisabled;
+            //this.Manifest.Disabled = isDisabled;
 
             this.SaveManifest();
         }
