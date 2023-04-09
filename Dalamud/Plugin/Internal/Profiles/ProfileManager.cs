@@ -61,17 +61,27 @@ internal class ProfileManager : IServiceType
     public bool GetWantState(string internalName, bool isBoot)
     {
         var want = false;
+        var wasInAnyProfile = false;
+
         foreach (var profile in this.profiles.Where(x => x.IsEnabled))
         {
             var state = profile.WantsPlugin(internalName);
             Log.Verbose("Checking {Name} in {Profile}: {State}", internalName, profile.Guid, state == null ? "null" : state);
 
             if (state.HasValue)
+            {
                 want = want || state.Value;
+                wasInAnyProfile = true;
+            }
         }
 
-        if (!isBoot && !want)
-            throw new InvalidOperationException("Unwanted plugin in GetWantState() without isBoot indicates bad state.");
+        // Can we just do migration here?
+        if (!wasInAnyProfile && isBoot)
+        {
+            Log.Warning("{Name} was not in any profile during boot, adding to default", internalName);
+            this.DefaultProfile.AddOrUpdate(internalName, false, false);
+            return false;
+        }
 
         return want;
     }

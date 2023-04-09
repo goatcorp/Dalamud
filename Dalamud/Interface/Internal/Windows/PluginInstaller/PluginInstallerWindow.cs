@@ -2318,16 +2318,18 @@ internal class PluginInstallerWindow : Window, IDisposable
 
             foreach (var profile in profileManager.Profiles.Where(x => !x.IsDefaultProfile))
             {
-                var isInProfile = profile.WantsPlugin(plugin.Manifest.InternalName).HasValue;
-                if (ImGui.Checkbox($"###profilePick{profile.Guid}{plugin.Manifest.InternalName}", ref isInProfile))
+                var inProfile = profile.WantsPlugin(plugin.Manifest.InternalName) != null;
+                if (ImGui.Checkbox($"###profilePick{profile.Guid}{plugin.Manifest.InternalName}", ref inProfile))
                 {
-                    if (isInProfile)
+                    if (inProfile)
                     {
-                        Task.Run(() => profile.Remove(plugin.Manifest.InternalName));
+                        Task.Run(() => profile.AddOrUpdate(plugin.Manifest.InternalName, true))
+                            .ContinueWith(this.DisplayErrorContinuation, "Poop");
                     }
                     else
                     {
-                        Task.Run(() => profile.AddOrUpdate(plugin.Manifest.InternalName, true));
+                        Task.Run(() => profile.Remove(plugin.Manifest.InternalName))
+                            .ContinueWith(this.DisplayErrorContinuation, "Poop");
                     }
                 }
 
@@ -2343,7 +2345,7 @@ internal class PluginInstallerWindow : Window, IDisposable
 
             ImGui.Separator();
 
-            if (ImGuiComponents.IconButton(FontAwesomeIcon.Cross))
+            if (ImGuiComponents.IconButton(FontAwesomeIcon.Times))
             {
                 profileManager.DefaultProfile.AddOrUpdate(plugin.Manifest.InternalName, plugin.IsLoaded, false);
                 foreach (var profile in profileManager.Profiles.Where(x => !x.IsDefaultProfile && x.Plugins.Any(y => y.InternalName == plugin.Manifest.InternalName)))
@@ -2372,7 +2374,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         {
             ImGuiComponents.DisabledToggleButton(toggleId, isLoadedAndUnloadable);
 
-            if (!isDefaultPlugin)
+            if (!isDefaultPlugin && ImGui.IsItemHovered())
                 ImGui.SetTooltip(Locs.PluginButtonToolTip_NeedsToBeInDefault);
         }
         else
