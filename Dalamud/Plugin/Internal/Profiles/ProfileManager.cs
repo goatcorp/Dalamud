@@ -232,13 +232,16 @@ internal class ProfileManager : IServiceType
     }
 
     /// <summary>
-    /// Delete a profile and re-apply all profiles.
+    /// Delete a profile.
     /// </summary>
+    /// <remarks>
+    /// You should definitely apply states after this. It doesn't do it for you.
+    /// </remarks>
     /// <param name="profile">The profile to delete.</param>
     public void DeleteProfile(Profile profile)
     {
         // We need to remove all plugins from the profile first, so that they are re-added to the default profile if needed
-        foreach (var plugin in profile.Plugins)
+        foreach (var plugin in profile.Plugins.ToArray())
         {
             profile.Remove(plugin.InternalName, false);
         }
@@ -246,7 +249,6 @@ internal class ProfileManager : IServiceType
         Debug.Assert(this.config.SavedProfiles!.Remove(profile.Model), "this.config.SavedProfiles!.Remove(profile.Model)");
         Debug.Assert(this.profiles.Remove(profile), "this.profiles.Remove(profile)");
 
-        this.ApplyAllWantStates();
         this.config.QueueSave();
     }
 

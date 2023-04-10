@@ -243,7 +243,9 @@ internal class ProfileManagerWidget
 
         if (ImGuiComponents.IconButton(FontAwesomeIcon.Trash))
         {
-            Task.Run(() => profman.DeleteProfile(profile))
+            // DeleteProfile() is sync, it doesn't apply and we are modifying the plugins collection. Will throw below when iterating
+            profman.DeleteProfile(profile);
+            Task.Run(() => profman.ApplyAllWantStates())
                 .ContinueWith(t =>
                 {
                     this.Reset();
