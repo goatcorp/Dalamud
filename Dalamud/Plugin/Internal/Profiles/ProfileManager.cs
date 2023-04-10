@@ -246,8 +246,11 @@ internal class ProfileManager : IServiceType
             profile.Remove(plugin.InternalName, false);
         }
 
-        Debug.Assert(this.config.SavedProfiles!.Remove(profile.Model), "this.config.SavedProfiles!.Remove(profile.Model)");
-        Debug.Assert(this.profiles.Remove(profile), "this.profiles.Remove(profile)");
+        if (!this.config.SavedProfiles!.Remove(profile.Model))
+            throw new Exception("Couldn't remove profile from models");
+
+        if (!this.profiles.Remove(profile))
+            throw new Exception("Couldn't remove runtime profile");
 
         this.config.QueueSave();
     }
