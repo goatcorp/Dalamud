@@ -69,10 +69,12 @@ internal class ProfileManagerWidget
             try
             {
                 profman.ImportProfile(ImGui.GetClipboardText());
+                Service<NotificationManager>.Get().AddNotification("Profile successfully imported!", type: NotificationType.Success);
             }
             catch (Exception ex)
             {
                 Log.Error(ex, "Could not import profile");
+                Service<NotificationManager>.Get().AddNotification("Could not import profile.", type: NotificationType.Error);
             }
         }
 
