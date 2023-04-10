@@ -2176,7 +2176,7 @@ internal class PluginInstallerWindow : Window, IDisposable
                 this.DrawSendFeedbackButton(plugin.Manifest, plugin.IsTesting);
             }
 
-            if (availablePluginUpdate != default)
+            if (availablePluginUpdate != default && ! plugin.IsDev)
                 this.DrawUpdateSinglePluginButton(availablePluginUpdate);
 
             ImGui.SameLine();

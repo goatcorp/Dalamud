@@ -1144,43 +1144,27 @@ Thanks and have fun!";
 
             if (plugin.IsDev)
             {
-                // TODO: Does this ever work? Why? We should never update devplugins
-                try
-                {
-                    plugin.DllFile.Delete();
-                    lock (this.pluginListLock)
-                    {
-                        this.InstalledPlugins = this.InstalledPlugins.Remove(plugin);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Log.Error(ex, "Error during delete (update)");
-                    updateStatus.WasUpdated = false;
-                    return updateStatus;
-                }
+                throw new Exception("We should never update a dev plugin");
             }
-            else
+
+            try
             {
-                try
-                {
-                    // TODO: Why were we ever doing this? We should never be loading the old version in the first place
-                    /*
+                // TODO: Why were we ever doing this? We should never be loading the old version in the first place
+                /*
                     if (!plugin.IsDisabled)
                         plugin.Disable();
                         */
 
-                    lock (this.pluginListLock)
-                    {
-                        this.InstalledPlugins = this.InstalledPlugins.Remove(plugin);
-                    }
-                }
-                catch (Exception ex)
+                lock (this.pluginListLock)
                 {
-                    Log.Error(ex, "Error during disable (update)");
-                    updateStatus.WasUpdated = false;
-                    return updateStatus;
+                    this.InstalledPlugins = this.InstalledPlugins.Remove(plugin);
                 }
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Error during disable (update)");
+                updateStatus.WasUpdated = false;
+                return updateStatus;
             }
 
             // We need to handle removed DTR nodes here, as otherwise, plugins will not be able to re-add their bar entries after updates.
