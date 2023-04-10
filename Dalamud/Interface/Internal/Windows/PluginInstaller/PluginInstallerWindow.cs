@@ -15,6 +15,7 @@ using Dalamud.Game.Command;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Components;
 using Dalamud.Interface.Internal.Notifications;
+using Dalamud.Interface.Raii;
 using Dalamud.Interface.Style;
 using Dalamud.Interface.Windowing;
 using Dalamud.Logging.Internal;
@@ -219,7 +220,7 @@ internal class PluginInstallerWindow : Window, IDisposable
             this.updatePluginCount = 0;
             this.updatedPlugins = null;
         }
-        
+
         this.profileManagerWidget.Reset();
     }
 
@@ -482,54 +483,54 @@ internal class PluginInstallerWindow : Window, IDisposable
 
         ImGui.SetCursorPosX(windowSize.X - sortSelectWidth - (style.ItemSpacing.X * 2) - searchInputWidth - searchClearButtonWidth);
 
-        var searchTextChanged = false;
-        ImGui.SetNextItemWidth(searchInputWidth);
-        searchTextChanged |= ImGui.InputTextWithHint(
-            "###XlPluginInstaller_Search",
-            Locs.Header_SearchPlaceholder,
-            ref this.searchText,
-            100);
-
-        ImGui.SameLine();
-        ImGui.SetCursorPosY(downShift);
-
-        ImGui.SetNextItemWidth(searchClearButtonWidth);
-        if (ImGuiComponents.IconButton(FontAwesomeIcon.Times))
+        // Disable search if profile editor
+        using (ImRaii.Disabled(this.categoryManager.CurrentCategoryIdx == 14))
         {
-            this.searchText = string.Empty;
-            searchTextChanged = true;
-        }
+            var searchTextChanged = false;
+            ImGui.SetNextItemWidth(searchInputWidth);
+            searchTextChanged |= ImGui.InputTextWithHint(
+                "###XlPluginInstaller_Search",
+                Locs.Header_SearchPlaceholder,
+                ref this.searchText,
+                100);
 
-        if (searchTextChanged)
-            this.UpdateCategoriesOnSearchChange();
+            ImGui.SameLine();
+            ImGui.SetCursorPosY(downShift);
 
-        // Changelog group
-        var isSortDisabled = this.categoryManager.CurrentGroupIdx == 3;
-        if (isSortDisabled)
-            ImGui.BeginDisabled();
-
-        ImGui.SameLine();
-        ImGui.SetCursorPosY(downShift);
-        ImGui.SetNextItemWidth(selectableWidth);
-        if (ImGui.BeginCombo(sortByText, this.filterText, ImGuiComboFlags.NoArrowButton))
-        {
-            foreach (var selectable in sortSelectables)
+            ImGui.SetNextItemWidth(searchClearButtonWidth);
+            if (ImGuiComponents.IconButton(FontAwesomeIcon.Times))
             {
-                if (ImGui.Selectable(selectable.Localization))
-                {
-                    this.sortKind = selectable.SortKind;
-                    this.filterText = selectable.Localization;
-
-                    lock (this.listLock)
-                        this.ResortPlugins();
-                }
+                this.searchText = string.Empty;
+                searchTextChanged = true;
             }
 
-            ImGui.EndCombo();
+            if (searchTextChanged)
+                this.UpdateCategoriesOnSearchChange();
         }
 
-        if (isSortDisabled)
-            ImGui.EndDisabled();
+        // Disable sort if changelogs or profile editor
+        using (ImRaii.Disabled(this.categoryManager.CurrentGroupIdx == 3 || this.categoryManager.CurrentCategoryIdx == 14))
+        {
+            ImGui.SameLine();
+            ImGui.SetCursorPosY(downShift);
+            ImGui.SetNextItemWidth(selectableWidth);
+            if (ImGui.BeginCombo(sortByText, this.filterText, ImGuiComboFlags.NoArrowButton))
+            {
+                foreach (var selectable in sortSelectables)
+                {
+                    if (ImGui.Selectable(selectable.Localization))
+                    {
+                        this.sortKind = selectable.SortKind;
+                        this.filterText = selectable.Localization;
+
+                        lock (this.listLock)
+                            this.ResortPlugins();
+                    }
+                }
+
+                ImGui.EndCombo();
+            }
+        }
     }
 
     private void DrawFooter()
