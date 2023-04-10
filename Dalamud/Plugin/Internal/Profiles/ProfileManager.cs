@@ -237,6 +237,12 @@ internal class ProfileManager : IServiceType
     /// <param name="profile">The profile to delete.</param>
     public void DeleteProfile(Profile profile)
     {
+        // We need to remove all plugins from the profile first, so that they are re-added to the default profile if needed
+        foreach (var plugin in profile.Plugins)
+        {
+            profile.Remove(plugin.InternalName, false);
+        }
+
         Debug.Assert(this.config.SavedProfiles!.Remove(profile.Model), "this.config.SavedProfiles!.Remove(profile.Model)");
         Debug.Assert(this.profiles.Remove(profile), "this.profiles.Remove(profile)");
 
