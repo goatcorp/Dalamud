@@ -204,10 +204,10 @@ internal class ProfileManagerWidget
 
             using (ImRaii.Disabled(this.pickerSelectedPluginInternalName == null))
             {
-                if (ImGui.Button("Do it") && selected != null)
+                if (ImGui.Button("Add plugin") && selected != null)
                 {
                     // TODO: handle error
-                    profile.AddOrUpdate(selected.Manifest.InternalName, selected.IsLoaded, false);
+                    profile.AddOrUpdate(selected.Manifest.InternalName, true, false);
                     Task.Run(() => profman.ApplyAllWantStates())
                         .ContinueWith(this.installer.DisplayErrorContinuation, "Could not change plugin state.");
                 }
