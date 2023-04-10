@@ -1,10 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
+using CheapLoc;
 using Dalamud.Game;
 using Dalamud.Game.Command;
 using Dalamud.Game.Gui;
+using Dalamud.Utility;
+using Serilog;
 
 namespace Dalamud.Plugin.Internal.Profiles;
 
@@ -59,25 +63,47 @@ internal class ProfileCommandHandler : IServiceType, IDisposable
         if (this.queue.TryDequeue(out var op))
         {
             var profile = this.profileManager.Profiles.FirstOrDefault(x => x.Name == op.Item1);
-            if (profile == null)
+            if (profile == null || profile.IsDefaultProfile)
                 return;
 
             switch (op.Item2)
             {
                 case ProfileOp.Enable:
                     if (!profile.IsEnabled)
-                        profile.SetState(true);
+                        profile.SetState(true, false);
                     break;
                 case ProfileOp.Disable:
                     if (profile.IsEnabled)
-                        profile.SetState(false);
+                        profile.SetState(false, false);
                     break;
                 case ProfileOp.Toggle:
-                    profile.SetState(!profile.IsEnabled);
+                    profile.SetState(!profile.IsEnabled, false);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
             }
+
+            if (profile.IsEnabled)
+            {
+                this.chat.Print(Loc.Localize("ProfileCommandsEnabling", "Enabling profile \"{0}\"...").Format(profile.Name));
+            }
+            else
+            {
+                this.chat.Print(Loc.Localize("ProfileCommandsDisabling", "Disabling profile \"{0}\"...").Format(profile.Name));
+            }
+
+            Task.Run(() => this.profileManager.ApplyAllWantStates()).ContinueWith(t =>
+            {
+                if (!t.IsCompletedSuccessfully && t.Exception != null)
+                {
+                    Log.Error(t.Exception, "Could not apply profiles through commands");
+                    this.chat.PrintError(Loc.Localize("ProfileCommandsApplyFailed", "Failed to apply all of your profiles. Please check the console for errors."));
+                }
+                else
+                {
+                    this.chat.Print(Loc.Localize("ProfileCommandsApplySuccess", "Profiles applied."));
+                }
+            });
         }
     }
 

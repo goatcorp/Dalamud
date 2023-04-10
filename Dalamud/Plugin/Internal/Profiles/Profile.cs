@@ -39,6 +39,7 @@ internal class Profile
         {
             // Default profile cannot be disabled
             this.IsEnabled = this.modelV1.IsEnabled = true;
+            this.Name = this.modelV1.Name = "DEFAULT";
         }
         else if (this.modelV1.AlwaysEnableOnBoot && isBoot)
         {
@@ -113,8 +114,9 @@ internal class Profile
     /// This will block until all states have been applied.
     /// </summary>
     /// <param name="enabled">Whether or not the profile is enabled.</param>
+    /// <param name="apply">Whether or not the current state should immediately be applied.</param>
     /// <exception cref="InvalidOperationException">Thrown when an untoggleable profile is toggled.</exception>
-    public void SetState(bool enabled)
+    public void SetState(bool enabled, bool apply = true)
     {
         if (this.IsDefaultProfile)
             throw new InvalidOperationException("Cannot set state of default profile");
@@ -124,7 +126,9 @@ internal class Profile
         Log.Verbose("Set state {State} for {Guid}", enabled, this.modelV1.Guid);
 
         Service<DalamudConfiguration>.Get().QueueSave();
-        this.manager.ApplyAllWantStates();
+
+        if (apply)
+            this.manager.ApplyAllWantStates();
     }
 
     /// <summary>
