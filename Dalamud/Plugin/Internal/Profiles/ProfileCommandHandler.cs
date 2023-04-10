@@ -12,6 +12,9 @@ using Serilog;
 
 namespace Dalamud.Plugin.Internal.Profiles;
 
+/// <summary>
+/// Service responsible for profile-related chat commands.
+/// </summary>
 [ServiceManager.EarlyLoadedService]
 internal class ProfileCommandHandler : IServiceType, IDisposable
 {
@@ -20,12 +23,15 @@ internal class ProfileCommandHandler : IServiceType, IDisposable
     private readonly ChatGui chat;
     private readonly Framework framework;
 
-    private Queue<(string, ProfileOp)> queue = new();
+    private List<(string, ProfileOp)> queue = new();
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ProfileCommandHandler"/> class.
     /// </summary>
-    /// <param name="cmd"></param>
+    /// <param name="cmd">Command handler.</param>
+    /// <param name="profileManager">Profile manager.</param>
+    /// <param name="chat">Chat handler.</param>
+    /// <param name="framework">Framework.</param>
     [ServiceManager.ServiceConstructor]
     public ProfileCommandHandler(CommandManager cmd, ProfileManager profileManager, ChatGui chat, Framework framework)
     {
@@ -36,21 +42,31 @@ internal class ProfileCommandHandler : IServiceType, IDisposable
 
         this.cmd.AddHandler("/xlenableprofile", new CommandInfo(this.OnEnableProfile)
         {
-            HelpMessage = "",
+            HelpMessage = Loc.Localize("ProfileCommandsEnableHint", "Enable a profile. Usage: /xlenableprofile \"Profile Name\""),
             ShowInHelp = true,
         });
 
         this.cmd.AddHandler("/xldisableprofile", new CommandInfo(this.OnDisableProfile)
         {
-            HelpMessage = "",
+            HelpMessage = Loc.Localize("ProfileCommandsDisableHint", "Disable a profile. Usage: /xldisableprofile \"Profile Name\""),
             ShowInHelp = true,
         });
 
         this.cmd.AddHandler("/xltoggleprofile", new CommandInfo(this.OnToggleProfile)
         {
-            HelpMessage = "",
+            HelpMessage = Loc.Localize("ProfileCommandsToggleHint", "Toggle a profile. Usage: /xltoggleprofile \"Profile Name\""),
             ShowInHelp = true,
         });
+
+        this.framework.Update += this.FrameworkOnUpdate;
+    }
+
+    /// <inheritdoc/>
+    public void Dispose()
+    {
+        this.cmd.RemoveHandler("/xlenableprofile");
+        this.cmd.RemoveHandler("/xldisableprofile");
+        this.cmd.RemoveHandler("/xltoggleprofile");
 
         this.framework.Update += this.FrameworkOnUpdate;
     }
@@ -60,8 +76,11 @@ internal class ProfileCommandHandler : IServiceType, IDisposable
         if (this.profileManager.IsBusy)
             return;
 
-        if (this.queue.TryDequeue(out var op))
+        if (this.queue.Count > 0)
         {
+            var op = this.queue[0];
+            this.queue.RemoveAt(0);
+
             var profile = this.profileManager.Profiles.FirstOrDefault(x => x.Name == op.Item1);
             if (profile == null || profile.IsDefaultProfile)
                 return;
@@ -107,22 +126,14 @@ internal class ProfileCommandHandler : IServiceType, IDisposable
         }
     }
 
-    public void Dispose()
-    {
-        this.cmd.RemoveHandler("/xlenableprofile");
-        this.cmd.RemoveHandler("/xldisableprofile");
-        this.cmd.RemoveHandler("/xltoggleprofile");
-
-        this.framework.Update += this.FrameworkOnUpdate;
-    }
-
     private void OnEnableProfile(string command, string arguments)
     {
         var name = this.ValidateName(arguments);
         if (name == null)
             return;
 
-        this.queue.Enqueue((name, ProfileOp.Enable));
+        this.queue = this.queue.Where(x => x.Item1 != name).ToList();
+        this.queue.Add((name, ProfileOp.Enable));
     }
 
     private void OnDisableProfile(string command, string arguments)
@@ -131,7 +142,8 @@ internal class ProfileCommandHandler : IServiceType, IDisposable
         if (name == null)
             return;
 
-        this.queue.Enqueue((name, ProfileOp.Disable));
+        this.queue = this.queue.Where(x => x.Item1 != name).ToList();
+        this.queue.Add((name, ProfileOp.Disable));
     }
 
     private void OnToggleProfile(string command, string arguments)
@@ -140,7 +152,7 @@ internal class ProfileCommandHandler : IServiceType, IDisposable
         if (name == null)
             return;
 
-        this.queue.Enqueue((name, ProfileOp.Toggle));
+        this.queue.Add((name, ProfileOp.Toggle));
     }
 
     private string? ValidateName(string arguments)
