@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 using CheapLoc;
@@ -156,7 +159,10 @@ internal class ProfileManager : IServiceType
         this.config.SavedProfiles!.Add(newModel);
         this.config.QueueSave();
 
-        return new Profile(this, newModel, false, false);
+        var profile = new Profile(this, newModel, false, false);
+        this.profiles.Add(profile);
+
+        return profile;
     }
 
     /// <summary>
@@ -225,17 +231,32 @@ internal class ProfileManager : IServiceType
         this.isBusy = false;
     }
 
+    /// <summary>
+    /// Delete a profile and re-apply all profiles.
+    /// </summary>
+    /// <param name="profile">The profile to delete.</param>
+    public void DeleteProfile(Profile profile)
+    {
+        Debug.Assert(this.config.SavedProfiles!.Remove(profile.Model), "this.config.SavedProfiles!.Remove(profile.Model)");
+        Debug.Assert(this.profiles.Remove(profile), "this.profiles.Remove(profile)");
+
+        this.ApplyAllWantStates();
+        this.config.QueueSave();
+    }
+
     private string GenerateUniqueProfileName(string startingWith)
     {
         if (this.profiles.All(x => x.Name != startingWith))
             return startingWith;
 
+        startingWith = Regex.Replace(startingWith, @" \(.* Mix\)", string.Empty);
+
         while (true)
         {
-            var newName = $"{startingWith} ({Util.GetRandomName()} Mix)";
+            var newName = $"{startingWith} ({CultureInfo.InvariantCulture.TextInfo.ToTitleCase(Util.GetRandomName())} Mix)";
 
             if (this.profiles.All(x => x.Name != newName))
-                return startingWith;
+                return newName;
         }
     }
 

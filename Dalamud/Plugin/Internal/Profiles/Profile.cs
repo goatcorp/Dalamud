@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Threading.Tasks;
 
 using Dalamud.Configuration.Internal;
 using Dalamud.Logging.Internal;
@@ -46,7 +45,7 @@ internal class Profile
             this.IsEnabled = true;
             Log.Verbose("{Guid} set enabled because bootup", this.modelV1.Guid);
         }
-        else if (this.modelV1.IsEnabled && this.modelV1.RememberState)
+        else if (this.modelV1.IsEnabled)
         {
             this.IsEnabled = true;
             Log.Verbose("{Guid} set enabled because remember", this.modelV1.Guid);

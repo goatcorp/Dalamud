@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Linq;
+using System.Numerics;
 using System.Threading.Tasks;
 
+using Dalamud.Interface.Colors;
 using Dalamud.Interface.Components;
+using Dalamud.Interface.Internal.Notifications;
 using Dalamud.Interface.Raii;
 using Dalamud.Plugin.Internal;
 using Dalamud.Plugin.Internal.Profiles;
@@ -11,18 +14,18 @@ using Serilog;
 
 namespace Dalamud.Interface.Internal.Windows.PluginInstaller;
 
-public class ProfileManagerWidget
+internal class ProfileManagerWidget
 {
+    private readonly PluginInstallerWindow installer;
     private Mode mode = Mode.Overview;
     private Guid? editingProfileGuid;
-
-    private Task? doingStuffTask = null;
 
     private string? pickerSelectedPluginInternalName = null;
     private string profileNameEdit = string.Empty;
 
-    public ProfileManagerWidget()
+    public ProfileManagerWidget(PluginInstallerWindow installer)
     {
+        this.installer = installer;
     }
 
     public void Draw()
@@ -52,53 +55,109 @@ public class ProfileManagerWidget
         var profman = Service<ProfileManager>.Get();
 
         if (ImGuiComponents.IconButton(FontAwesomeIcon.Plus))
-        {
             profman.AddNewProfile();
+
+        if (ImGui.IsItemHovered())
+            ImGui.SetTooltip("Add a new profile");
+
+        ImGui.SameLine();
+        ImGuiHelpers.ScaledDummy(5);
+        ImGui.SameLine();
+
+        if (ImGuiComponents.IconButton(FontAwesomeIcon.FileImport))
+        {
+            try
+            {
+                profman.ImportProfile(ImGui.GetClipboardText());
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Could not import profile");
+            }
         }
 
-        foreach (var profile in profman.Profiles)
+        if (ImGui.IsItemHovered())
+            ImGui.SetTooltip("Import a shared profile from your clipboard");
+
+        ImGui.Separator();
+        ImGuiHelpers.ScaledDummy(5);
+
+        var windowSize = ImGui.GetWindowSize();
+
+        if (ImGui.BeginChild("###profileChooserScrolling"))
         {
-            if (profile.IsDefaultProfile)
-                continue;
+            Guid? toCloneGuid = null;
 
-            var isEnabled = profile.IsEnabled;
-            if (ImGuiComponents.ToggleButton($"###toggleButton{profile.Guid}", ref isEnabled))
+            foreach (var profile in profman.Profiles)
             {
-                this.doingStuffTask = Task.Run(() => profile.SetState(isEnabled));
+                if (profile.IsDefaultProfile)
+                    continue;
+
+                var isEnabled = profile.IsEnabled;
+                if (ImGuiComponents.ToggleButton($"###toggleButton{profile.Guid}", ref isEnabled))
+                {
+                    Task.Run(() => profile.SetState(isEnabled))
+                        .ContinueWith(this.installer.DisplayErrorContinuation, "Could not change profile state.");
+                }
+
+                ImGui.SameLine();
+                ImGuiHelpers.ScaledDummy(3);
+                ImGui.SameLine();
+
+                ImGui.Text(profile.Name);
+
+                ImGui.SameLine();
+                ImGui.SetCursorPosX(windowSize.X - (ImGuiHelpers.GlobalScale * 30));
+
+                if (ImGuiComponents.IconButton($"###editButton{profile.Guid}", FontAwesomeIcon.PencilAlt))
+                {
+                    this.mode = Mode.EditSingleProfile;
+                    this.editingProfileGuid = profile.Guid;
+                    this.profileNameEdit = profile.Name;
+                }
+
+                if (ImGui.IsItemHovered())
+                    ImGui.SetTooltip("Edit this profile");
+
+                ImGui.SameLine();
+                ImGui.SetCursorPosX(windowSize.X - (ImGuiHelpers.GlobalScale * 30 * 2) - 5);
+
+                if (ImGuiComponents.IconButton($"###cloneButton{profile.Guid}", FontAwesomeIcon.Copy))
+                    toCloneGuid = profile.Guid;
+
+                if (ImGui.IsItemHovered())
+                    ImGui.SetTooltip("Clone this profile");
+
+                ImGui.SameLine();
+                ImGui.SetCursorPosX(windowSize.X - (ImGuiHelpers.GlobalScale * 30 * 3) - 5);
+
+                if (ImGuiComponents.IconButton(FontAwesomeIcon.FileExport))
+                {
+                    ImGui.SetClipboardText(profile.Model.Serialize());
+                    Service<NotificationManager>.Get().AddNotification("Copied to clipboard!", type: NotificationType.Success);
+                }
+
+                if (ImGui.IsItemHovered())
+                    ImGui.SetTooltip("Copy profile to clipboard for sharing");
+
+                didAny = true;
+
+                ImGuiHelpers.ScaledDummy(2);
             }
 
-            ImGui.SameLine();
-
-            ImGui.Text(profile.Name);
-            if (ImGui.IsItemHovered())
+            if (toCloneGuid != null)
             {
-                ImGui.BeginTooltip();
-                ImGui.Text(profile.Guid.ToString());
-                ImGui.EndTooltip();
+                profman.CloneProfile(profman.Profiles.First(x => x.Guid == toCloneGuid));
             }
 
-            ImGui.SameLine();
-
-            if (ImGui.Button($"Edit###editButton{profile.Guid}"))
+            if (!didAny)
             {
-                this.mode = Mode.EditSingleProfile;
-                this.editingProfileGuid = profile.Guid;
-                this.profileNameEdit = profile.Name;
+                ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudGrey);
+                ImGuiHelpers.CenteredText("No profiles! Add one!");
+                ImGui.PopStyleColor();
             }
 
-            ImGui.SameLine();
-
-            if (ImGui.Button("Clone"))
-            {
-                profman.CloneProfile(profile);
-            }
-
-            didAny = true;
-        }
-
-        if (!didAny)
-        {
-            ImGui.Text("No profiles! Add one!");
+            ImGui.EndChild();
         }
     }
 
@@ -113,6 +172,7 @@ public class ProfileManagerWidget
 
         var profman = Service<ProfileManager>.Get();
         var pm = Service<PluginManager>.Get();
+        var pic = Service<PluginImageCache>.Get();
         var profile = profman.Profiles.FirstOrDefault(x => x.Guid == this.editingProfileGuid);
 
         if (profile == null)
@@ -121,8 +181,6 @@ public class ProfileManagerWidget
             this.Reset();
             return;
         }
-
-        var didAny = false;
 
         const string addPluginToProfilePopup = "###addPluginToProfile";
         if (ImGui.BeginPopup(addPluginToProfilePopup))
@@ -133,7 +191,7 @@ public class ProfileManagerWidget
 
             if (ImGui.BeginCombo("###pluginPicker", selected == null ? "Pick one" : selected.Manifest.Name))
             {
-                foreach (var plugin in pm.InstalledPlugins.Where(x => !x.Manifest.IsThirdParty))
+                foreach (var plugin in pm.InstalledPlugins.Where(x => x.Manifest.SupportsProfiles))
                 {
                     if (ImGui.Selectable($"{plugin.Manifest.Name}###selector{plugin.Manifest.InternalName}"))
                     {
@@ -143,7 +201,6 @@ public class ProfileManagerWidget
 
                 ImGui.EndCombo();
             }
-
 
             using (ImRaii.Disabled(this.pickerSelectedPluginInternalName == null))
             {
@@ -156,58 +213,73 @@ public class ProfileManagerWidget
             ImGui.EndPopup();
         }
 
-        var isEnabled = profile.IsEnabled;
-        if (ImGuiComponents.ToggleButton($"###toggleButton{profile.Guid}", ref isEnabled))
-        {
-            this.doingStuffTask = Task.Run(() => profile.SetState(isEnabled));
-        }
+        var didAny = false;
+
+        // ======== Top bar ========
+        var windowSize = ImGui.GetWindowSize();
+
+        if (ImGuiComponents.IconButton(FontAwesomeIcon.ArrowLeft))
+            this.Reset();
+
+        if (ImGui.IsItemHovered())
+            ImGui.SetTooltip("Back to overview");
 
         ImGui.SameLine();
+        ImGuiHelpers.ScaledDummy(5);
+        ImGui.SameLine();
 
-        ImGui.Text("Enable/Disable");
-
-        ImGui.Separator();
-
-        if (ImGuiComponents.IconButton(FontAwesomeIcon.Plus))
+        if (ImGuiComponents.IconButton(FontAwesomeIcon.FileExport))
         {
-            ImGui.OpenPopup(addPluginToProfilePopup);
+            ImGui.SetClipboardText(profile.Model.Serialize());
+            Service<NotificationManager>.Get().AddNotification("Copied to clipboard!", type: NotificationType.Success);
         }
 
-        foreach (var plugin in profile.Plugins)
+        if (ImGui.IsItemHovered())
+            ImGui.SetTooltip("Copy profile to clipboard for sharing");
+
+        ImGui.SameLine();
+        ImGuiHelpers.ScaledDummy(5);
+        ImGui.SameLine();
+
+        if (ImGuiComponents.IconButton(FontAwesomeIcon.Trash))
         {
-            didAny = true;
-
-            var enabled = plugin.IsEnabled;
-            if (ImGui.Checkbox($"###{this.editingProfileGuid}-{plugin.InternalName}", ref enabled))
-            {
-                this.doingStuffTask = Task.Run(() => profile.AddOrUpdate(plugin.InternalName, enabled));
-            }
-
-            ImGui.SameLine();
-
-            var pmPlugin = pm.InstalledPlugins.FirstOrDefault(x => x.Manifest.InternalName == plugin.InternalName);
-
-            if (pmPlugin != null)
-            {
-                ImGui.TextUnformatted($"{pmPlugin.Name}");
-            }
-            else
-            {
-                ImGui.Text($"{plugin.InternalName} (Unknown/Not Installed)");
-            }
+            Task.Run(() => profman.DeleteProfile(profile))
+                .ContinueWith(t =>
+                {
+                    this.Reset();
+                    this.installer.DisplayErrorContinuation(t, "Could not refresh profiles.");
+                });
         }
 
-        if (!didAny)
-        {
-            ImGui.Text("Profile has no plugins!");
-        }
+        if (ImGui.IsItemHovered())
+            ImGui.SetTooltip("Delete this profile");
 
-        ImGui.Separator();
+        ImGui.SameLine();
+        ImGuiHelpers.ScaledDummy(5);
+        ImGui.SameLine();
 
-        if (ImGui.InputText("Profile Name", ref this.profileNameEdit, 255))
+        ImGui.SetNextItemWidth(windowSize.X / 3);
+        if (ImGui.InputText("###profileNameInput", ref this.profileNameEdit, 255))
         {
             profile.Name = this.profileNameEdit;
         }
+
+        ImGui.SameLine();
+        ImGui.SetCursorPosX(windowSize.X - (ImGui.GetFrameHeight() * 1.55f * ImGuiHelpers.GlobalScale));
+
+        var isEnabled = profile.IsEnabled;
+        if (ImGuiComponents.ToggleButton($"###toggleButton{profile.Guid}", ref isEnabled))
+        {
+            Task.Run(() => profile.SetState(isEnabled))
+                .ContinueWith(this.installer.DisplayErrorContinuation, "Could not change profile state.");
+        }
+
+        if (ImGui.IsItemHovered())
+            ImGui.SetTooltip("Enable/Disable this profile");
+
+        ImGui.Separator();
+
+        ImGuiHelpers.ScaledDummy(5);
 
         var enableAtBoot = profile.AlwaysEnableAtBoot;
         if (ImGui.Checkbox("Always enable when game starts", ref enableAtBoot))
@@ -215,11 +287,108 @@ public class ProfileManagerWidget
             profile.AlwaysEnableAtBoot = enableAtBoot;
         }
 
+        ImGuiHelpers.ScaledDummy(5);
+
         ImGui.Separator();
-        if (ImGui.Button("Back"))
+        var wantPluginAddPopup = false;
+
+        if (ImGui.BeginChild("###profileEditorPluginList"))
         {
-            this.Reset();
+            var pluginLineHeight = 32 * ImGuiHelpers.GlobalScale;
+
+            foreach (var plugin in profile.Plugins)
+            {
+                didAny = true;
+                var pmPlugin = pm.InstalledPlugins.FirstOrDefault(x => x.Manifest.InternalName == plugin.InternalName);
+
+                if (pmPlugin != null)
+                {
+                    pic.TryGetIcon(pmPlugin, pmPlugin.Manifest, pmPlugin.Manifest.IsThirdParty, out var icon);
+                    icon ??= pic.DefaultIcon;
+
+                    ImGui.Image(icon.ImGuiHandle, new Vector2(pluginLineHeight));
+                    ImGui.SameLine();
+
+                    var text = $"{pmPlugin.Name}";
+                    var textHeight = ImGui.CalcTextSize(text);
+                    var before = ImGui.GetCursorPos();
+
+                    ImGui.SetCursorPosY(ImGui.GetCursorPosY() + (pluginLineHeight / 2) - (textHeight.Y / 2));
+                    ImGui.TextUnformatted(text);
+
+                    ImGui.SetCursorPos(before);
+                }
+                else
+                {
+                    ImGui.Image(pic.DefaultIcon.ImGuiHandle, new Vector2(pluginLineHeight));
+                    ImGui.SameLine();
+
+                    var text = $"{plugin.InternalName} (Not Installed)";
+                    var textHeight = ImGui.CalcTextSize(text);
+                    var before = ImGui.GetCursorPos();
+
+                    ImGui.SetCursorPosY(ImGui.GetCursorPosY() + (pluginLineHeight / 2) - (textHeight.Y / 2));
+                    ImGui.TextUnformatted(text);
+
+                    var available =
+                        pm.AvailablePlugins.FirstOrDefault(
+                            x => x.InternalName == plugin.InternalName && !x.SourceRepo.IsThirdParty);
+                    if (available != null)
+                    {
+                        ImGui.SameLine();
+                        ImGui.SetCursorPosX(windowSize.X - (ImGuiHelpers.GlobalScale * 32 * 2));
+                        ImGui.SetCursorPosY(ImGui.GetCursorPosY() + (pluginLineHeight / 2) - (ImGui.GetFrameHeight() / 2));
+
+                        if (ImGuiComponents.IconButton(FontAwesomeIcon.Download))
+                        {
+                            this.installer.StartInstall(available, false);
+                        }
+
+                        if (ImGui.IsItemHovered())
+                            ImGui.SetTooltip("Install this plugin");
+                    }
+
+                    ImGui.SetCursorPos(before);
+                }
+
+                ImGui.SameLine();
+                ImGui.SetCursorPosX(windowSize.X - (ImGuiHelpers.GlobalScale * 30));
+                ImGui.SetCursorPosY(ImGui.GetCursorPosY() + (pluginLineHeight / 2) - (ImGui.GetFrameHeight() / 2));
+
+                var enabled = plugin.IsEnabled;
+                if (ImGui.Checkbox($"###{this.editingProfileGuid}-{plugin.InternalName}", ref enabled))
+                {
+                    Task.Run(() => profile.AddOrUpdate(plugin.InternalName, enabled))
+                        .ContinueWith(this.installer.DisplayErrorContinuation, "Could not change plugin state.");
+                }
+            }
+
+            if (!didAny)
+            {
+                ImGui.TextColored(ImGuiColors.DalamudGrey, "Profile has no plugins!");
+            }
+
+            ImGuiHelpers.ScaledDummy(10);
+
+            var addPluginsText = "Add a plugin!";
+            ImGuiHelpers.CenterCursorFor((int)(ImGui.CalcTextSize(addPluginsText).X + 30 + (ImGuiHelpers.GlobalScale * 5)));
+
+            if (ImGuiComponents.IconButton(FontAwesomeIcon.Plus))
+                wantPluginAddPopup = true;
+
+            ImGui.SameLine();
+            ImGuiHelpers.ScaledDummy(5);
+            ImGui.SameLine();
+
+            ImGui.TextUnformatted(addPluginsText);
+
+            ImGuiHelpers.ScaledDummy(10);
+
+            ImGui.EndChild();
         }
+
+        if (wantPluginAddPopup)
+            ImGui.OpenPopup(addPluginToProfilePopup);
     }
 
     private enum Mode

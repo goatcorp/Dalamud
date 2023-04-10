@@ -163,6 +163,12 @@ internal record PluginManifest
     public bool CanUnloadAsync { get; init; }
 
     /// <summary>
+    /// Gets a value indicating whether the plugin supports profiles.
+    /// </summary>
+    [JsonProperty]
+    public bool SupportsProfiles { get; init; } = true;
+
+    /// <summary>
     /// Gets a list of screenshot image URLs to show in the plugin installer.
     /// </summary>
     public List<string>? ImageUrls { get; init; }

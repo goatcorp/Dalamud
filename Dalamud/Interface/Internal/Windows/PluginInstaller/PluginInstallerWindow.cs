@@ -49,11 +49,11 @@ internal class PluginInstallerWindow : Window, IDisposable
 
     private readonly object listLock = new();
 
+    private readonly ProfileManagerWidget profileManagerWidget;
+
     private DalamudChangelogManager? dalamudChangelogManager;
     private Task? dalamudChangelogRefreshTask;
     private CancellationTokenSource? dalamudChangelogRefreshTaskCts;
-
-    private ProfileManagerWidget profileManagerWidget = new();
 
     #region Image Tester State
 
@@ -152,6 +152,8 @@ internal class PluginInstallerWindow : Window, IDisposable
         });
 
         this.timeLoaded = DateTime.Now;
+
+        this.profileManagerWidget = new(this);
     }
 
     private enum OperationStatus
@@ -217,6 +219,8 @@ internal class PluginInstallerWindow : Window, IDisposable
             this.updatePluginCount = 0;
             this.updatedPlugins = null;
         }
+        
+        this.profileManagerWidget.Reset();
     }
 
     /// <inheritdoc/>
@@ -287,6 +291,40 @@ internal class PluginInstallerWindow : Window, IDisposable
     {
         this.isSearchTextPrefilled = true;
         this.searchText = text;
+    }
+
+    /// <summary>
+    /// Start a plugin install and handle errors visually.
+    /// </summary>
+    /// <param name="manifest">The manifest to install.</param>
+    /// <param name="useTesting">Install the testing version.</param>
+    public void StartInstall(RemotePluginManifest manifest, bool useTesting)
+    {
+        var pluginManager = Service<PluginManager>.Get();
+        var notifications = Service<NotificationManager>.Get();
+
+        this.installStatus = OperationStatus.InProgress;
+        this.loadingIndicatorKind = LoadingIndicatorKind.Installing;
+
+        Task.Run(() => pluginManager.InstallPluginAsync(manifest, useTesting || manifest.IsTestingExclusive, PluginLoadReason.Installer))
+            .ContinueWith(task =>
+            {
+                // There is no need to set as Complete for an individual plugin installation
+                this.installStatus = OperationStatus.Idle;
+                if (this.DisplayErrorContinuation(task, Locs.ErrorModal_InstallFail(manifest.Name)))
+                {
+                    // Fine as long as we aren't in an error state
+                    if (task.Result.State is PluginState.Loaded or PluginState.Unloaded)
+                    {
+                        notifications.AddNotification(Locs.Notifications_PluginInstalled(manifest.Name), Locs.Notifications_PluginInstalledTitle, NotificationType.Success);
+                    }
+                    else
+                    {
+                        notifications.AddNotification(Locs.Notifications_PluginNotInstalled(manifest.Name), Locs.Notifications_PluginNotInstalledTitle, NotificationType.Error);
+                        this.ShowErrorModal(Locs.ErrorModal_InstallFail(manifest.Name));
+                    }
+                }
+            });
     }
 
     private void DrawProgressOverlay()
@@ -1871,27 +1909,7 @@ internal class PluginInstallerWindow : Window, IDisposable
                 var buttonText = Locs.PluginButton_InstallVersion(versionString);
                 if (ImGui.Button($"{buttonText}##{buttonText}{index}"))
                 {
-                    this.installStatus = OperationStatus.InProgress;
-                    this.loadingIndicatorKind = LoadingIndicatorKind.Installing;
-
-                    Task.Run(() => pluginManager.InstallPluginAsync(manifest, useTesting || manifest.IsTestingExclusive, PluginLoadReason.Installer))
-                        .ContinueWith(task =>
-                        {
-                            // There is no need to set as Complete for an individual plugin installation
-                            this.installStatus = OperationStatus.Idle;
-                            if (this.DisplayErrorContinuation(task, Locs.ErrorModal_InstallFail(manifest.Name)))
-                            {
-                                if (task.Result.State == PluginState.Loaded)
-                                {
-                                    notifications.AddNotification(Locs.Notifications_PluginInstalled(manifest.Name), Locs.Notifications_PluginInstalledTitle, NotificationType.Success);
-                                }
-                                else
-                                {
-                                    notifications.AddNotification(Locs.Notifications_PluginNotInstalled(manifest.Name), Locs.Notifications_PluginNotInstalledTitle, NotificationType.Error);
-                                    this.ShowErrorModal(Locs.ErrorModal_InstallFail(manifest.Name));
-                                }
-                            }
-                        });
+                    this.StartInstall(manifest, useTesting);
                 }
             }
 
@@ -2283,7 +2301,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         var profileManager = Service<ProfileManager>.Get();
         var config = Service<DalamudConfiguration>.Get();
 
-        var applicableForProfiles = !plugin.Manifest.IsThirdParty && config.ProfilesEnabled;
+        var applicableForProfiles = plugin.Manifest.SupportsProfiles;
         var isDefaultPlugin = profileManager.IsInDefaultProfile(plugin.Manifest.InternalName);
 
         // Disable everything if the updater is running or another plugin is operating
@@ -2324,12 +2342,12 @@ internal class PluginInstallerWindow : Window, IDisposable
                     if (inProfile)
                     {
                         Task.Run(() => profile.AddOrUpdate(plugin.Manifest.InternalName, true))
-                            .ContinueWith(this.DisplayErrorContinuation, "Poop");
+                            .ContinueWith(this.DisplayErrorContinuation, "Couldn't add plugin to this profile.");
                     }
                     else
                     {
                         Task.Run(() => profile.Remove(plugin.Manifest.InternalName))
-                            .ContinueWith(this.DisplayErrorContinuation, "Poop");
+                            .ContinueWith(this.DisplayErrorContinuation, "Couldn't remove plugin from this profile.");
                     }
                 }
 
@@ -2476,7 +2494,7 @@ internal class PluginInstallerWindow : Window, IDisposable
             this.DrawOpenPluginSettingsButton(plugin);
         }
 
-        if (applicableForProfiles)
+        if (applicableForProfiles && config.ProfilesEnabled)
         {
             ImGui.SameLine();
             if (ImGuiComponents.IconButton(FontAwesomeIcon.Toolbox))
@@ -2485,9 +2503,18 @@ internal class PluginInstallerWindow : Window, IDisposable
             }
 
             if (ImGui.IsItemHovered())
-            {
                 ImGui.SetTooltip(Locs.PluginButtonToolTip_PickProfiles);
-            }
+        }
+        else if (!applicableForProfiles && config.ProfilesEnabled)
+        {
+            ImGui.SameLine();
+
+            ImGui.BeginDisabled();
+            ImGuiComponents.IconButton(FontAwesomeIcon.Toolbox);
+            ImGui.EndDisabled();
+
+            if (ImGui.IsItemHovered())
+                ImGui.SetTooltip(Locs.PluginButtonToolTip_ProfilesNotSupported);
         }
     }
 
@@ -2907,7 +2934,7 @@ internal class PluginInstallerWindow : Window, IDisposable
     /// <param name="task">The previous task.</param>
     /// <param name="state">An error message to be displayed.</param>
     /// <returns>A value indicating whether to continue with the next task.</returns>
-    private bool DisplayErrorContinuation(Task task, object state)
+    public bool DisplayErrorContinuation(Task task, object state)
     {
         if (task.IsFaulted)
         {
@@ -2991,7 +3018,7 @@ internal class PluginInstallerWindow : Window, IDisposable
 
         #region Header
 
-        public static string Header_Hint => Loc.Localize("InstallerHint", "This window allows you to install and remove in-game plugins.\nThey are made by third-party developers.");
+        public static string Header_Hint => Loc.Localize("InstallerHint", "This window allows you to install and remove Dalamud plugins.\nThey are made by the community.");
 
         public static string Header_SearchPlaceholder => Loc.Localize("InstallerSearch", "Search");
 
@@ -3149,6 +3176,8 @@ internal class PluginInstallerWindow : Window, IDisposable
         public static string PluginButtonToolTip_OpenConfiguration => Loc.Localize("InstallerOpenConfig", "Open Configuration");
 
         public static string PluginButtonToolTip_PickProfiles => Loc.Localize("InstallerPickProfiles", "Pick profiles for this plugin");
+
+        public static string PluginButtonToolTip_ProfilesNotSupported => Loc.Localize("InstallerProfilesNotSupported", "This plugin does not support profiles");
 
         public static string PluginButtonToolTip_StartOnBoot => Loc.Localize("InstallerStartOnBoot", "Start on boot");
 

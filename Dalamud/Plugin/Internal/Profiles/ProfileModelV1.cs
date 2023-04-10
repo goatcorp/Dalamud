@@ -7,9 +7,6 @@ public class ProfileModelV1 : ProfileModel
 {
     public static string SerializedPrefix => "DP1";
 
-    [JsonProperty("r")]
-    public bool RememberState { get; set; } = false;
-
     [JsonProperty("b")]
     public bool AlwaysEnableOnBoot { get; set; } = false;
 
