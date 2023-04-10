@@ -9,6 +9,7 @@ using Dalamud.Interface.Internal.Notifications;
 using Dalamud.Interface.Raii;
 using Dalamud.Plugin.Internal;
 using Dalamud.Plugin.Internal.Profiles;
+using Dalamud.Utility;
 using ImGuiNET;
 using Serilog;
 
@@ -20,7 +21,7 @@ internal class ProfileManagerWidget
     private Mode mode = Mode.Overview;
     private Guid? editingProfileGuid;
 
-    private string? pickerSelectedPluginInternalName = null;
+    private string pickerSearch = string.Empty;
     private string profileNameEdit = string.Empty;
 
     public ProfileManagerWidget(PluginInstallerWindow installer)
@@ -46,7 +47,7 @@ internal class ProfileManagerWidget
     {
         this.mode = Mode.Overview;
         this.editingProfileGuid = null;
-        this.pickerSelectedPluginInternalName = null;
+        this.pickerSearch = string.Empty;
     }
 
     private void DrawOverview()
@@ -185,37 +186,38 @@ internal class ProfileManagerWidget
         }
 
         const string addPluginToProfilePopup = "###addPluginToProfile";
-        if (ImGui.BeginPopup(addPluginToProfilePopup))
+        using (var popup = ImRaii.Popup(addPluginToProfilePopup))
         {
-            var selected =
-                pm.InstalledPlugins.FirstOrDefault(
-                    x => x.Manifest.InternalName == this.pickerSelectedPluginInternalName);
-
-            if (ImGui.BeginCombo("###pluginPicker", selected == null ? "Pick one" : selected.Manifest.Name))
+            if (popup.Success)
             {
-                foreach (var plugin in pm.InstalledPlugins.Where(x => x.Manifest.SupportsProfiles))
+                var width = ImGuiHelpers.GlobalScale * 300;
+
+                using var disabled = ImRaii.Disabled(profman.IsBusy);
+
+                ImGui.SetNextItemWidth(width);
+                ImGui.InputTextWithHint("###pluginPickerSearch", "Search...", ref this.pickerSearch, 255);
+
+                if (ImGui.BeginListBox("###pluginPicker", new Vector2(width, width - 80)))
                 {
-                    if (ImGui.Selectable($"{plugin.Manifest.Name}###selector{plugin.Manifest.InternalName}"))
+                    // TODO: Plugin searching should be abstracted... installer and this should use the same search
+                    foreach (var plugin in pm.InstalledPlugins.Where(x => x.Manifest.SupportsProfiles &&
+                                                                          (this.pickerSearch.IsNullOrWhitespace() || x.Manifest.Name.ToLowerInvariant().Contains(this.pickerSearch.ToLowerInvariant()))))
                     {
-                        this.pickerSelectedPluginInternalName = plugin.Manifest.InternalName;
+                        using var disabled2 =
+                            ImRaii.Disabled(profile.Plugins.Any(y => y.InternalName == plugin.Manifest.InternalName));
+
+                        if (ImGui.Selectable($"{plugin.Manifest.Name}###selector{plugin.Manifest.InternalName}"))
+                        {
+                            // TODO this sucks
+                            profile.AddOrUpdate(plugin.Manifest.InternalName, true, false);
+                            Task.Run(() => profman.ApplyAllWantStates())
+                                .ContinueWith(this.installer.DisplayErrorContinuation, "Could not apply profiles.");
+                        }
                     }
-                }
 
-                ImGui.EndCombo();
-            }
-
-            using (ImRaii.Disabled(this.pickerSelectedPluginInternalName == null))
-            {
-                if (ImGui.Button("Add plugin") && selected != null)
-                {
-                    // TODO: handle error
-                    profile.AddOrUpdate(selected.Manifest.InternalName, true, false);
-                    Task.Run(() => profman.ApplyAllWantStates())
-                        .ContinueWith(this.installer.DisplayErrorContinuation, "Could not change plugin state.");
+                    ImGui.EndListBox();
                 }
             }
-
-            ImGui.EndPopup();
         }
 
         var didAny = false;
@@ -419,7 +421,10 @@ internal class ProfileManagerWidget
         }
 
         if (wantPluginAddPopup)
+        {
+            this.pickerSearch = string.Empty;
             ImGui.OpenPopup(addPluginToProfilePopup);
+        }
     }
 
     private enum Mode
