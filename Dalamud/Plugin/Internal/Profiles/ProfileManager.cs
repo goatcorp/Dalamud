@@ -68,8 +68,6 @@ internal class ProfileManager : IServiceType
         foreach (var profile in this.profiles)
         {
             var state = profile.WantsPlugin(internalName);
-            Log.Verbose("Checking {Name} in {Profile}: {State}", internalName, profile.Guid, state == null ? "null" : state);
-
             if (state.HasValue)
             {
                 want = want || (profile.IsEnabled && state.Value);
