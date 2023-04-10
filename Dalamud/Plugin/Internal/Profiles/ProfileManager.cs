@@ -190,9 +190,6 @@ internal class ProfileManager : IServiceType
 
         foreach (var installedPlugin in pm.InstalledPlugins)
         {
-            if (installedPlugin.IsDev)
-                continue;
-
             var wantThis = wantActive.Contains(installedPlugin.Manifest.InternalName);
             switch (wantThis)
             {
