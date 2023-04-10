@@ -131,7 +131,7 @@ internal class ProfileManagerWidget
                 ImGui.SameLine();
                 ImGui.SetCursorPosX(windowSize.X - (ImGuiHelpers.GlobalScale * 30 * 3) - 5);
 
-                if (ImGuiComponents.IconButton(FontAwesomeIcon.FileExport))
+                if (ImGuiComponents.IconButton($"###exportButton{profile.Guid}", FontAwesomeIcon.FileExport))
                 {
                     ImGui.SetClipboardText(profile.Model.Serialize());
                     Service<NotificationManager>.Get().AddNotification("Copied to clipboard!", type: NotificationType.Success);
@@ -295,11 +295,13 @@ internal class ProfileManagerWidget
         if (ImGui.BeginChild("###profileEditorPluginList"))
         {
             var pluginLineHeight = 32 * ImGuiHelpers.GlobalScale;
+            string? wantRemovePluginInternalName = null;
 
             foreach (var plugin in profile.Plugins)
             {
                 didAny = true;
                 var pmPlugin = pm.InstalledPlugins.FirstOrDefault(x => x.Manifest.InternalName == plugin.InternalName);
+                var btnOffset = 2;
 
                 if (pmPlugin != null)
                 {
@@ -336,10 +338,11 @@ internal class ProfileManagerWidget
                     if (available != null)
                     {
                         ImGui.SameLine();
-                        ImGui.SetCursorPosX(windowSize.X - (ImGuiHelpers.GlobalScale * 32 * 2));
+                        ImGui.SetCursorPosX(windowSize.X - (ImGuiHelpers.GlobalScale * 30 * 2) - 2);
                         ImGui.SetCursorPosY(ImGui.GetCursorPosY() + (pluginLineHeight / 2) - (ImGui.GetFrameHeight() / 2));
+                        btnOffset = 3;
 
-                        if (ImGuiComponents.IconButton(FontAwesomeIcon.Download))
+                        if (ImGuiComponents.IconButton($"###installMissingPlugin{available.InternalName}", FontAwesomeIcon.Download))
                         {
                             this.installer.StartInstall(available, false);
                         }
@@ -361,6 +364,24 @@ internal class ProfileManagerWidget
                     Task.Run(() => profile.AddOrUpdate(plugin.InternalName, enabled))
                         .ContinueWith(this.installer.DisplayErrorContinuation, "Could not change plugin state.");
                 }
+
+                ImGui.SameLine();
+                ImGui.SetCursorPosX(windowSize.X - (ImGuiHelpers.GlobalScale * 30 * btnOffset) - 5);
+                ImGui.SetCursorPosY(ImGui.GetCursorPosY() + (pluginLineHeight / 2) - (ImGui.GetFrameHeight() / 2));
+
+                if (ImGuiComponents.IconButton($"###removePlugin{plugin.InternalName}", FontAwesomeIcon.Trash))
+                {
+                    wantRemovePluginInternalName = plugin.InternalName;
+                }
+
+                if (ImGui.IsItemHovered())
+                    ImGui.SetTooltip("Remove plugin from this profile");
+            }
+
+            if (wantRemovePluginInternalName != null)
+            {
+                Task.Run(() => profile.Remove(wantRemovePluginInternalName))
+                    .ContinueWith(this.installer.DisplayErrorContinuation, "Could not remove plugin.");
             }
 
             if (!didAny)
