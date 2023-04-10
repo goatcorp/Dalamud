@@ -193,8 +193,16 @@ internal class ProfileManager : IServiceType
             switch (wantThis)
             {
                 case true when !installedPlugin.IsLoaded:
-                    Log.Information("\t=> Enabling {Name}", installedPlugin.Manifest.InternalName);
-                    tasks.Add(installedPlugin.LoadAsync(PluginLoadReason.Installer));
+                    if (installedPlugin.ApplicableForLoad)
+                    {
+                        Log.Information("\t=> Enabling {Name}", installedPlugin.Manifest.InternalName);
+                        tasks.Add(installedPlugin.LoadAsync(PluginLoadReason.Installer));
+                    }
+                    else
+                    {
+                        Log.Warning("\t=> {Name} wanted active, but not applicable", installedPlugin.Manifest.InternalName);
+                    }
+
                     break;
                 case false when installedPlugin.IsLoaded:
                     Log.Information("\t=> Disabling {Name}", installedPlugin.Manifest.InternalName);

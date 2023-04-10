@@ -210,6 +210,7 @@ internal class LocalPlugin : IDisposable
 
     /// <summary>
     /// Gets a value indicating whether this plugin is wanted active by any profile.
+    /// INCLUDES the default profile.
     /// </summary>
     public bool IsWantedByAnyProfile =>
         Service<ProfileManager>.Get().GetWantState(this.Manifest.InternalName, false, false);
@@ -247,6 +248,12 @@ internal class LocalPlugin : IDisposable
     /// Gets a value indicating whether this plugin is dev plugin.
     /// </summary>
     public bool IsDev => this is LocalDevPlugin;
+
+    /// <summary>
+    /// Gets a value indicating whether this plugin should be allowed to load.
+    /// </summary>
+    public bool ApplicableForLoad => !this.IsBanned && !this.IsDecommissioned && !this.IsOrphaned && !this.IsOutdated
+                                     && !(!this.IsDev && this.State == PluginState.UnloadError) && this.CheckPolicy();
 
     /// <inheritdoc/>
     public void Dispose()
