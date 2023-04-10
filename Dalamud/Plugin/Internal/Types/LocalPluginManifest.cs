@@ -28,6 +28,7 @@ internal record LocalPluginManifest : PluginManifest
     /// Gets or sets a value indicating whether the plugin is disabled and should not be loaded.
     /// This value supersedes the ".disabled" file functionality and should not be included in the plugin master.
     /// </summary>
+    [Obsolete("This is merely used for migrations now. Use the profile manager to check if a plugin shall be enabled.")]
     public bool Disabled { get; set; }
 
     /// <summary>
