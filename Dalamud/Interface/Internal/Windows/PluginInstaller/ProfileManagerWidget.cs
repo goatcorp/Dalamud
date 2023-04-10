@@ -206,7 +206,10 @@ internal class ProfileManagerWidget
             {
                 if (ImGui.Button("Do it") && selected != null)
                 {
-                    Task.Run(() => profile.AddOrUpdate(selected.Manifest.InternalName, selected.IsLoaded));
+                    // TODO: handle error
+                    profile.AddOrUpdate(selected.Manifest.InternalName, selected.IsLoaded, false);
+                    Task.Run(() => profman.ApplyAllWantStates())
+                        .ContinueWith(this.installer.DisplayErrorContinuation, "Could not change plugin state.");
                 }
             }
 
@@ -382,7 +385,9 @@ internal class ProfileManagerWidget
 
             if (wantRemovePluginInternalName != null)
             {
-                Task.Run(() => profile.Remove(wantRemovePluginInternalName))
+                // TODO: handle error
+                profile.Remove(wantRemovePluginInternalName, false);
+                Task.Run(() => profman.ApplyAllWantStates())
                     .ContinueWith(this.installer.DisplayErrorContinuation, "Could not remove plugin.");
             }
 
