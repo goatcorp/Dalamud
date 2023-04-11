@@ -1300,14 +1300,14 @@ Thanks and have fun!";
     }
 
     /// <summary>
-    /// Get the plugin that called this method by walking the stack,
+    /// Get the plugin that called this method by walking the provided stack trace,
     /// or null, if it cannot be determined.
     /// At the time, this is naive and shouldn't be used for security-critical checks.
     /// </summary>
+    /// <param name="trace">The trace to walk.</param>
     /// <returns>The calling plugin, or null.</returns>
-    public LocalPlugin? FindCallingPlugin()
+    public LocalPlugin? FindCallingPlugin(StackTrace trace)
     {
-        var trace = new StackTrace();
         foreach (var frame in trace.GetFrames())
         {
             var declaringType = frame.GetMethod()?.DeclaringType;
@@ -1327,6 +1327,14 @@ Thanks and have fun!";
 
         return null;
     }
+
+    /// <summary>
+    /// Get the plugin that called this method by walking the stack,
+    /// or null, if it cannot be determined.
+    /// At the time, this is naive and shouldn't be used for security-critical checks.
+    /// </summary>
+    /// <returns>The calling plugin, or null.</returns>
+    public LocalPlugin? FindCallingPlugin() => this.FindCallingPlugin(new StackTrace());
 
     private void DetectAvailablePluginUpdates()
     {
