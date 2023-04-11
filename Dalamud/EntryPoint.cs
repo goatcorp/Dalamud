@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 
 using Dalamud.Configuration.Internal;
 using Dalamud.Logging.Internal;
+using Dalamud.Plugin.Internal;
 using Dalamud.Support;
 using Dalamud.Utility;
 using Newtonsoft.Json;
@@ -325,10 +326,29 @@ public sealed class EntryPoint
                     info = $"{ex.TargetSite.DeclaringType.Assembly.GetName().Name}, {ex.TargetSite.DeclaringType.FullName}::{ex.TargetSite.Name}";
                 }
 
+                var pluginInfo = string.Empty;
+                var supportText = ", please visit us on Discord for more help.";
+                try
+                {
+                    var pm = Service<PluginManager>.GetNullable();
+                    var plugin = pm?.FindCallingPlugin(new StackTrace(ex));
+                    if (plugin != null)
+                    {
+                        pluginInfo = $"Plugin that caused this:\n{plugin.Name}\n\nClick \"Yes\" and remove it.\n\n";
+
+                        if (plugin.Manifest.IsThirdParty)
+                            supportText = string.Empty;
+                    }
+                }
+                catch
+                {
+                    // ignored
+                }
+
                 const MessageBoxType flags = NativeFunctions.MessageBoxType.YesNo | NativeFunctions.MessageBoxType.IconError | NativeFunctions.MessageBoxType.SystemModal;
                 var result = MessageBoxW(
                     Process.GetCurrentProcess().MainWindowHandle,
-                    $"An internal error in a Dalamud plugin occurred.\nThe game must close.\n\nType: {ex.GetType().Name}\n{info}\n\nMore information has been recorded separately, please contact us in our Discord or on GitHub.\n\nDo you want to disable all plugins the next time you start the game?",
+                    $"An internal error in a Dalamud plugin occurred.\nThe game must close.\n\n{ex.GetType().Name}\n{info}\n\n{pluginInfo}More information has been recorded separately{supportText}.\n\nDo you want to disable all plugins the next time you start the game?",
                     "Dalamud",
                     flags);
 
