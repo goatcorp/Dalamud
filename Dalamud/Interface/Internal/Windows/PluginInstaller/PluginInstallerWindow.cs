@@ -2581,26 +2581,32 @@ internal class PluginInstallerWindow : Window, IDisposable
 
         if (localPlugin is LocalDevPlugin plugin)
         {
+            var isInDefaultProfile =
+                Service<ProfileManager>.Get().IsInDefaultProfile(localPlugin.Manifest.InternalName);
+
             // https://colorswall.com/palette/2868/
             var greenColor = new Vector4(0x5C, 0xB8, 0x5C, 0xFF) / 0xFF;
             var redColor = new Vector4(0xD9, 0x53, 0x4F, 0xFF) / 0xFF;
 
             // Load on boot
-            ImGui.PushStyleColor(ImGuiCol.Button, plugin.StartOnBoot ? greenColor : redColor);
-            ImGui.PushStyleColor(ImGuiCol.ButtonHovered, plugin.StartOnBoot ? greenColor : redColor);
-
-            ImGui.SameLine();
-            if (ImGuiComponents.IconButton(FontAwesomeIcon.PowerOff))
+            using (ImRaii.Disabled(!isInDefaultProfile))
             {
-                plugin.StartOnBoot ^= true;
-                configuration.QueueSave();
-            }
+                ImGui.PushStyleColor(ImGuiCol.Button, plugin.StartOnBoot ? greenColor : redColor);
+                ImGui.PushStyleColor(ImGuiCol.ButtonHovered, plugin.StartOnBoot ? greenColor : redColor);
 
-            ImGui.PopStyleColor(2);
+                ImGui.SameLine();
+                if (ImGuiComponents.IconButton(FontAwesomeIcon.PowerOff))
+                {
+                    plugin.StartOnBoot ^= true;
+                    configuration.QueueSave();
+                }
 
-            if (ImGui.IsItemHovered())
-            {
-                ImGui.SetTooltip(Locs.PluginButtonToolTip_StartOnBoot);
+                ImGui.PopStyleColor(2);
+
+                if (ImGui.IsItemHovered())
+                {
+                    ImGui.SetTooltip(isInDefaultProfile ? Locs.PluginButtonToolTip_StartOnBoot : Locs.PluginButtonToolTip_NeedsToBeInDefault);
+                }
             }
 
             // Automatic reload

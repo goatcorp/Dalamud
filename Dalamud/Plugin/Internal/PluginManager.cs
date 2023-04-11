@@ -862,10 +862,17 @@ Thanks and have fun!";
             var devPlugin = new LocalDevPlugin(dllFile, manifest);
             loadPlugin &= !isBoot || devPlugin.StartOnBoot;
 
-            // If we're not loading it, make sure it's disabled
-            // NOTE: Should be taken care of below by the profile code
-            // if (!loadPlugin && !devPlugin.IsDisabled)
-            //     devPlugin.Disable();
+            var probablyInternalNameForThisPurpose = manifest?.InternalName ?? dllFile.Name;
+            var wantsInDefaultProfile =
+                this.profileManager.DefaultProfile.WantsPlugin(probablyInternalNameForThisPurpose);
+            if (wantsInDefaultProfile == false && devPlugin.StartOnBoot)
+            {
+                this.profileManager.DefaultProfile.AddOrUpdate(probablyInternalNameForThisPurpose, true, false);
+            }
+            else if (wantsInDefaultProfile == true && !devPlugin.StartOnBoot)
+            {
+                this.profileManager.DefaultProfile.AddOrUpdate(probablyInternalNameForThisPurpose, false, false);
+            }
 
             plugin = devPlugin;
         }
