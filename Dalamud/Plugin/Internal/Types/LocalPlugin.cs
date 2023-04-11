@@ -200,14 +200,6 @@ internal class LocalPlugin : IDisposable
     /// </summary>
     public bool IsLoaded => this.State == PluginState.Loaded;
 
-    /*
-    /// <summary>
-    /// Gets a value indicating whether the plugin is disabled.
-    /// </summary>
-    [Obsolete("This is no longer accurate, use the profile manager instead.", true)]
-    public bool IsDisabled => this.Manifest.Disabled;
-    */
-
     /// <summary>
     /// Gets a value indicating whether this plugin is wanted active by any profile.
     /// INCLUDES the default profile.
@@ -349,7 +341,7 @@ internal class LocalPlugin : IDisposable
             if (this.Manifest.DalamudApiLevel < PluginManager.DalamudApiLevel && !pluginManager.LoadAllApiLevels)
                 throw new InvalidPluginOperationException($"Unable to load {this.Name}, incompatible API level");
 
-            // TODO: should we throw here?
+            // We might want to throw here?
             if (!this.IsWantedByAnyProfile)
                 Log.Warning("{Name} is loading, but isn't wanted by any profile", this.Name);
 
@@ -568,43 +560,6 @@ internal class LocalPlugin : IDisposable
         await this.LoadAsync(PluginLoadReason.Reload, true);
     }
 
-    /*
-    /// <summary>
-    /// Revert a disable. Must be unloaded first, does not load.
-    /// </summary>
-    [Obsolete("Profile API", true)]
-    public void Enable()
-    {
-        // Allowed: Unloaded, UnloadError
-        switch (this.State)
-        {
-            case PluginState.Loading:
-            case PluginState.Unloading:
-            case PluginState.Loaded:
-            case PluginState.LoadError:
-                throw new InvalidPluginOperationException($"Unable to enable {this.Name}, still loaded");
-            case PluginState.Unloaded:
-                break;
-            case PluginState.UnloadError:
-                break;
-            case PluginState.DependencyResolutionFailed:
-                throw new InvalidPluginOperationException($"Unable to enable {this.Name}, dependency resolution failed");
-            default:
-                throw new ArgumentOutOfRangeException(this.State.ToString());
-        }
-
-        // NOTE(goat): This is inconsequential, and we do have situations where a plugin can end up enabled but not loaded:
-        // Orphaned plugins can have their repo added back, but may not have been loaded at boot and may still be enabled.
-        // We don't want to disable orphaned plugins when they are orphaned so this is how it's going to be.
-        // if (!this.Manifest.Disabled)
-        //    throw new InvalidPluginOperationException($"Unable to enable {this.Name}, not disabled");
-
-        this.Manifest.Disabled = false;
-        this.Manifest.ScheduledForDeletion = false;
-        this.SaveManifest();
-    }
-    */
-
     /// <summary>
     /// Check if anything forbids this plugin from loading.
     /// </summary>
@@ -625,39 +580,6 @@ internal class LocalPlugin : IDisposable
 
         return true;
     }
-
-    /*
-    /// <summary>
-    /// Disable this plugin, must be unloaded first.
-    /// </summary>
-    [Obsolete("Profile API", true)]
-    public void Disable()
-    {
-        // Allowed: Unloaded, UnloadError
-        switch (this.State)
-        {
-            case PluginState.Loading:
-            case PluginState.Unloading:
-            case PluginState.Loaded:
-            case PluginState.LoadError:
-                throw new InvalidPluginOperationException($"Unable to disable {this.Name}, still loaded");
-            case PluginState.Unloaded:
-                break;
-            case PluginState.UnloadError:
-                break;
-            case PluginState.DependencyResolutionFailed:
-                return; // This is a no-op.
-            default:
-                throw new ArgumentOutOfRangeException(this.State.ToString());
-        }
-
-        if (this.Manifest.Disabled)
-            throw new InvalidPluginOperationException($"Unable to disable {this.Name}, already disabled");
-
-        this.Manifest.Disabled = true;
-        this.SaveManifest();
-    }
-    */
 
     /// <summary>
     /// Schedule the deletion of this plugin on next cleanup.

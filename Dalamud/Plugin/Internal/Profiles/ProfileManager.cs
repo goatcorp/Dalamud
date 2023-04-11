@@ -268,20 +268,8 @@ internal class ProfileManager : IServiceType
 
     private void LoadProfilesFromConfigInitially()
     {
-        var needMigration = false;
-        if (this.config.DefaultProfile == null)
-        {
-            this.config.DefaultProfile = new ProfileModelV1();
-            needMigration = true;
-        }
-
+        this.config.DefaultProfile ??= new ProfileModelV1();
         this.profiles.Add(new Profile(this, this.config.DefaultProfile, true, true));
-
-        if (needMigration)
-        {
-            // Don't think we need this here with the migration logic in GetWantState
-            //this.MigratePluginsIntoDefaultProfile();
-        }
 
         this.config.SavedProfiles ??= new List<ProfileModel>();
         foreach (var profileModel in this.config.SavedProfiles)
@@ -291,72 +279,4 @@ internal class ProfileManager : IServiceType
 
         this.config.QueueSave();
     }
-
-    // This duplicates some of the original handling in PM; don't care though
-    /*
-    private void MigratePluginsIntoDefaultProfile()
-    {
-        var pluginDirectory = new DirectoryInfo(Service<DalamudStartInfo>.Get().PluginDirectory!);
-        var pluginDefs = new List<PluginDef>();
-
-        Log.Information($"Now migrating plugins at {pluginDirectory} into profiles");
-
-        // Nothing to migrate
-        if (!pluginDirectory.Exists)
-        {
-            Log.Information("\t=> Plugin directory didn't exist, nothing to migrate");
-            return;
-        }
-
-        // Add installed plugins. These are expected to be in a specific format so we can look for exactly that.
-        foreach (var pluginDir in pluginDirectory.GetDirectories())
-        {
-            var versionsDefs = new List<PluginDef>();
-            foreach (var versionDir in pluginDir.GetDirectories())
-            {
-                try
-                {
-                    var dllFile = new FileInfo(Path.Combine(versionDir.FullName, $"{pluginDir.Name}.dll"));
-                    var manifestFile = LocalPluginManifest.GetManifestFile(dllFile);
-
-                    if (!manifestFile.Exists)
-                        continue;
-
-                    var manifest = LocalPluginManifest.Load(manifestFile);
-                    versionsDefs.Add(new PluginDef(dllFile, manifest, false));
-                }
-                catch (Exception ex)
-                {
-                    Log.Error(ex, "Could not load manifest for installed at {Directory}", versionDir.FullName);
-                }
-            }
-
-            try
-            {
-                pluginDefs.Add(versionsDefs.MaxBy(x => x.Manifest!.EffectiveVersion));
-            }
-            catch (Exception ex)
-            {
-                Log.Error(ex, "Couldn't choose best version for plugin: {Name}", pluginDir.Name);
-            }
-        }
-
-        var defaultProfile = this.DefaultProfile;
-        foreach (var pluginDef in pluginDefs)
-        {
-            if (pluginDef.Manifest == null)
-            {
-                Log.Information($"\t=> Skipping DLL at {pluginDef.DllFile.FullName}, no valid manifest");
-                continue;
-            }
-
-            // OK for migration code
-#pragma warning disable CS0618
-            defaultProfile.AddOrUpdate(pluginDef.Manifest.InternalName, !pluginDef.Manifest.Disabled, false);
-            Log.Information(
-                $"\t=> Added {pluginDef.Manifest.InternalName} to default profile with {!pluginDef.Manifest.Disabled}");
-#pragma warning restore CS0618
-        }
-    }
-    */
 }
