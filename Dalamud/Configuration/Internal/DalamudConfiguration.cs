@@ -280,7 +280,7 @@ internal sealed class DalamudConfiguration : IServiceType
     /// <summary>
     /// Gets or sets a value indicating whether or not profiles are enabled.
     /// </summary>
-    public bool ProfilesEnabled { get; set; } = false;
+    public bool ProfilesEnabled { get; set; } = true;
 
     /// <summary>
     /// Gets or sets a value indicating whether or not Dalamud RMT filtering should be disabled.
