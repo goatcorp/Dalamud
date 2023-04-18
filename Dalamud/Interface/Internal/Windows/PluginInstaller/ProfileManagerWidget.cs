@@ -3,6 +3,7 @@ using System.Linq;
 using System.Numerics;
 using System.Threading.Tasks;
 
+using CheapLoc;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Components;
 using Dalamud.Interface.Internal.Notifications;
@@ -59,7 +60,7 @@ internal class ProfileManagerWidget
             profman.AddNewProfile();
 
         if (ImGui.IsItemHovered())
-            ImGui.SetTooltip("Add a new profile");
+            ImGui.SetTooltip(Locs.AddProfile);
 
         ImGui.SameLine();
         ImGuiHelpers.ScaledDummy(5);
@@ -70,17 +71,17 @@ internal class ProfileManagerWidget
             try
             {
                 profman.ImportProfile(ImGui.GetClipboardText());
-                Service<NotificationManager>.Get().AddNotification("Profile successfully imported!", type: NotificationType.Success);
+                Service<NotificationManager>.Get().AddNotification(Locs.NotificationImportSuccess, type: NotificationType.Success);
             }
             catch (Exception ex)
             {
                 Log.Error(ex, "Could not import profile");
-                Service<NotificationManager>.Get().AddNotification("Could not import profile.", type: NotificationType.Error);
+                Service<NotificationManager>.Get().AddNotification(Locs.NotificationImportError, type: NotificationType.Error);
             }
         }
 
         if (ImGui.IsItemHovered())
-            ImGui.SetTooltip("Import a shared profile from your clipboard");
+            ImGui.SetTooltip(Locs.ImportProfileHint);
 
         ImGui.Separator();
         ImGuiHelpers.ScaledDummy(5);
@@ -100,7 +101,7 @@ internal class ProfileManagerWidget
                 if (ImGuiComponents.ToggleButton($"###toggleButton{profile.Guid}", ref isEnabled))
                 {
                     Task.Run(() => profile.SetState(isEnabled))
-                        .ContinueWith(this.installer.DisplayErrorContinuation, "Could not change profile state.");
+                        .ContinueWith(this.installer.DisplayErrorContinuation, Locs.ErrorCouldNotChangeState);
                 }
 
                 ImGui.SameLine();
@@ -120,7 +121,7 @@ internal class ProfileManagerWidget
                 }
 
                 if (ImGui.IsItemHovered())
-                    ImGui.SetTooltip("Edit this profile");
+                    ImGui.SetTooltip(Locs.EditProfileHint);
 
                 ImGui.SameLine();
                 ImGui.SetCursorPosX(windowSize.X - (ImGuiHelpers.GlobalScale * 30 * 2) - 5);
@@ -129,7 +130,7 @@ internal class ProfileManagerWidget
                     toCloneGuid = profile.Guid;
 
                 if (ImGui.IsItemHovered())
-                    ImGui.SetTooltip("Clone this profile");
+                    ImGui.SetTooltip(Locs.CloneProfileHint);
 
                 ImGui.SameLine();
                 ImGui.SetCursorPosX(windowSize.X - (ImGuiHelpers.GlobalScale * 30 * 3) - 5);
@@ -137,11 +138,11 @@ internal class ProfileManagerWidget
                 if (ImGuiComponents.IconButton($"###exportButton{profile.Guid}", FontAwesomeIcon.FileExport))
                 {
                     ImGui.SetClipboardText(profile.Model.Serialize());
-                    Service<NotificationManager>.Get().AddNotification("Copied to clipboard!", type: NotificationType.Success);
+                    Service<NotificationManager>.Get().AddNotification(Locs.CopyToClipboardNotification, type: NotificationType.Success);
                 }
 
                 if (ImGui.IsItemHovered())
-                    ImGui.SetTooltip("Copy profile to clipboard for sharing");
+                    ImGui.SetTooltip(Locs.CopyToClipboardHint);
 
                 didAny = true;
 
@@ -156,7 +157,7 @@ internal class ProfileManagerWidget
             if (!didAny)
             {
                 ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudGrey);
-                ImGuiHelpers.CenteredText("No profiles! Add one!");
+                ImGuiHelpers.CenteredText(Locs.AddProfileHint);
                 ImGui.PopStyleColor();
             }
 
@@ -195,7 +196,7 @@ internal class ProfileManagerWidget
                 using var disabled = ImRaii.Disabled(profman.IsBusy);
 
                 ImGui.SetNextItemWidth(width);
-                ImGui.InputTextWithHint("###pluginPickerSearch", "Search...", ref this.pickerSearch, 255);
+                ImGui.InputTextWithHint("###pluginPickerSearch", Locs.SearchHint, ref this.pickerSearch, 255);
 
                 if (ImGui.BeginListBox("###pluginPicker", new Vector2(width, width - 80)))
                 {
@@ -211,7 +212,7 @@ internal class ProfileManagerWidget
                             // TODO this sucks
                             profile.AddOrUpdate(plugin.Manifest.InternalName, true, false);
                             Task.Run(() => profman.ApplyAllWantStates())
-                                .ContinueWith(this.installer.DisplayErrorContinuation, "Could not apply profiles.");
+                                .ContinueWith(this.installer.DisplayErrorContinuation, Locs.ErrorCouldNotChangeState);
                         }
                     }
 
@@ -229,7 +230,7 @@ internal class ProfileManagerWidget
             this.Reset();
 
         if (ImGui.IsItemHovered())
-            ImGui.SetTooltip("Back to overview");
+            ImGui.SetTooltip(Locs.BackToOverview);
 
         ImGui.SameLine();
         ImGuiHelpers.ScaledDummy(5);
@@ -238,11 +239,11 @@ internal class ProfileManagerWidget
         if (ImGuiComponents.IconButton(FontAwesomeIcon.FileExport))
         {
             ImGui.SetClipboardText(profile.Model.Serialize());
-            Service<NotificationManager>.Get().AddNotification("Copied to clipboard!", type: NotificationType.Success);
+            Service<NotificationManager>.Get().AddNotification(Locs.CopyToClipboardNotification, type: NotificationType.Success);
         }
 
         if (ImGui.IsItemHovered())
-            ImGui.SetTooltip("Copy profile to clipboard for sharing");
+            ImGui.SetTooltip(Locs.CopyToClipboardHint);
 
         ImGui.SameLine();
         ImGuiHelpers.ScaledDummy(5);
@@ -257,12 +258,12 @@ internal class ProfileManagerWidget
             Task.Run(() => profman.ApplyAllWantStates())
                 .ContinueWith(t =>
                 {
-                    this.installer.DisplayErrorContinuation(t, "Could not refresh profiles.");
+                    this.installer.DisplayErrorContinuation(t, Locs.ErrorCouldNotChangeState);
                 });
         }
 
         if (ImGui.IsItemHovered())
-            ImGui.SetTooltip("Delete this profile");
+            ImGui.SetTooltip(Locs.DeleteProfileHint);
 
         ImGui.SameLine();
         ImGuiHelpers.ScaledDummy(5);
@@ -281,18 +282,18 @@ internal class ProfileManagerWidget
         if (ImGuiComponents.ToggleButton($"###toggleButton{profile.Guid}", ref isEnabled))
         {
             Task.Run(() => profile.SetState(isEnabled))
-                .ContinueWith(this.installer.DisplayErrorContinuation, "Could not change profile state.");
+                .ContinueWith(this.installer.DisplayErrorContinuation, Locs.ErrorCouldNotChangeState);
         }
 
         if (ImGui.IsItemHovered())
-            ImGui.SetTooltip("Enable/Disable this profile");
+            ImGui.SetTooltip(Locs.TooltipEnableDisable);
 
         ImGui.Separator();
 
         ImGuiHelpers.ScaledDummy(5);
 
         var enableAtBoot = profile.AlwaysEnableAtBoot;
-        if (ImGui.Checkbox("Always enable when game starts", ref enableAtBoot))
+        if (ImGui.Checkbox(Locs.AlwaysEnableAtBoot, ref enableAtBoot))
         {
             profile.AlwaysEnableAtBoot = enableAtBoot;
         }
@@ -335,7 +336,7 @@ internal class ProfileManagerWidget
                     ImGui.Image(pic.DefaultIcon.ImGuiHandle, new Vector2(pluginLineHeight));
                     ImGui.SameLine();
 
-                    var text = $"{plugin.InternalName} (Not Installed)";
+                    var text = Locs.NotInstalled(plugin.InternalName);
                     var textHeight = ImGui.CalcTextSize(text);
                     var before = ImGui.GetCursorPos();
 
@@ -358,7 +359,7 @@ internal class ProfileManagerWidget
                         }
 
                         if (ImGui.IsItemHovered())
-                            ImGui.SetTooltip("Install this plugin");
+                            ImGui.SetTooltip(Locs.InstallPlugin);
                     }
 
                     ImGui.SetCursorPos(before);
@@ -372,7 +373,7 @@ internal class ProfileManagerWidget
                 if (ImGui.Checkbox($"###{this.editingProfileGuid}-{plugin.InternalName}", ref enabled))
                 {
                     Task.Run(() => profile.AddOrUpdate(plugin.InternalName, enabled))
-                        .ContinueWith(this.installer.DisplayErrorContinuation, "Could not change plugin state.");
+                        .ContinueWith(this.installer.DisplayErrorContinuation, Locs.ErrorCouldNotChangeState);
                 }
 
                 ImGui.SameLine();
@@ -385,7 +386,7 @@ internal class ProfileManagerWidget
                 }
 
                 if (ImGui.IsItemHovered())
-                    ImGui.SetTooltip("Remove plugin from this profile");
+                    ImGui.SetTooltip(Locs.RemovePlugin);
             }
 
             if (wantRemovePluginInternalName != null)
@@ -393,17 +394,17 @@ internal class ProfileManagerWidget
                 // TODO: handle error
                 profile.Remove(wantRemovePluginInternalName, false);
                 Task.Run(() => profman.ApplyAllWantStates())
-                    .ContinueWith(this.installer.DisplayErrorContinuation, "Could not remove plugin.");
+                    .ContinueWith(this.installer.DisplayErrorContinuation, Locs.ErrorCouldNotRemove);
             }
 
             if (!didAny)
             {
-                ImGui.TextColored(ImGuiColors.DalamudGrey, "Profile has no plugins!");
+                ImGui.TextColored(ImGuiColors.DalamudGrey, Locs.NoPluginsInProfile);
             }
 
             ImGuiHelpers.ScaledDummy(10);
 
-            var addPluginsText = "Add a plugin!";
+            var addPluginsText = Locs.AddPlugin;
             ImGuiHelpers.CenterCursorFor((int)(ImGui.CalcTextSize(addPluginsText).X + 30 + (ImGuiHelpers.GlobalScale * 5)));
 
             if (ImGuiComponents.IconButton(FontAwesomeIcon.Plus))
@@ -431,5 +432,62 @@ internal class ProfileManagerWidget
     {
         Overview,
         EditSingleProfile,
+    }
+
+    private static class Locs
+    {
+        public static string TooltipEnableDisable =>
+            Loc.Localize("ProfileManagerEnableDisableHint", "Enable/Disable this profile");
+
+        public static string InstallPlugin => Loc.Localize("ProfileManagerInstall", "Install this plugin");
+
+        public static string RemovePlugin =>
+            Loc.Localize("ProfileManagerRemoveFromProfile", "Remove plugin from this profile");
+
+        public static string AddPlugin => Loc.Localize("ProfileManagerAddPlugin", "Add a plugin!");
+
+        public static string NoPluginsInProfile =>
+            Loc.Localize("ProfileManagerNoPluginsInProfile", "Profile has no plugins!");
+
+        public static string AlwaysEnableAtBoot =>
+            Loc.Localize("ProfileManagerAlwaysEnableAtBoot", "Always enable when game starts");
+
+        public static string DeleteProfileHint => Loc.Localize("ProfileManagerDeleteProfile", "Delete this profile");
+
+        public static string CopyToClipboardHint =>
+            Loc.Localize("ProfileManagerCopyToClipboard", "Copy profile to clipboard for sharing");
+
+        public static string CopyToClipboardNotification =>
+            Loc.Localize("ProfileManagerCopyToClipboardHint", "Copied to clipboard!");
+
+        public static string BackToOverview => Loc.Localize("ProfileManagerBackToOverview", "Back to overview");
+
+        public static string SearchHint => Loc.Localize("ProfileManagerSearchHint", "Search...");
+
+        public static string AddProfileHint => Loc.Localize("ProfileManagerAddProfileHint", "No profiles! Add one!");
+
+        public static string CloneProfileHint => Loc.Localize("ProfileManagerCloneProfile", "Clone this profile");
+
+        public static string EditProfileHint => Loc.Localize("ProfileManagerEditProfile", "Edit this profile");
+
+        public static string ImportProfileHint =>
+            Loc.Localize("ProfileManagerImportProfile", "Import a shared profile from your clipboard");
+
+        public static string AddProfile => Loc.Localize("ProfileManagerAddProfile", "Add a new profile");
+
+        public static string NotificationImportSuccess =>
+            Loc.Localize("ProfileManagerNotificationImportSuccess", "Profile successfully imported!");
+
+        public static string NotificationImportError =>
+            Loc.Localize("ProfileManagerNotificationImportError", "Could not import profile.");
+
+        public static string ErrorCouldNotRemove =>
+            Loc.Localize("ProfileManagerCouldNotRemove", "Could not remove plugin.");
+
+        public static string ErrorCouldNotChangeState =>
+            Loc.Localize("ProfileManagerCouldNotChangeState", "Could not change plugin state.");
+
+        public static string NotInstalled(string name) =>
+            Loc.Localize("ProfileManagerNotInstalled", "{0} (Not Installed)").Format(name);
     }
 }

@@ -435,8 +435,8 @@ internal class PluginCategoryManager
         public static string Category_DevInstalled => Loc.Localize("InstallerInstalledDevPlugins", "Installed Dev Plugins");
 
         public static string Category_IconTester => "Image/Icon Tester";
-        
-        public static string Category_PluginProfiles => Loc.Localize("InstallerCategoryPluginProfiles", "Plugin Profiles");
+
+        public static string Category_PluginProfiles => Loc.Localize("InstallerCategoryPluginProfiles", "Plugin Collections");
 
         public static string Category_Other => Loc.Localize("InstallerCategoryOther", "Other");
 

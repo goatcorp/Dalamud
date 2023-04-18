@@ -428,7 +428,7 @@ internal class PluginInstallerWindow : Window, IDisposable
 
                     break;
                 case LoadingIndicatorKind.ProfilesLoading:
-                    ImGuiHelpers.CenteredText("Profiles are being applied...");
+                    ImGuiHelpers.CenteredText("Collections are being applied...");
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -2321,12 +2321,12 @@ internal class PluginInstallerWindow : Window, IDisposable
                     if (inProfile)
                     {
                         Task.Run(() => profile.AddOrUpdate(plugin.Manifest.InternalName, true))
-                            .ContinueWith(this.DisplayErrorContinuation, "Couldn't add plugin to this profile.");
+                            .ContinueWith(this.DisplayErrorContinuation, Locs.Profiles_CouldNotAdd);
                     }
                     else
                     {
                         Task.Run(() => profile.Remove(plugin.Manifest.InternalName))
-                            .ContinueWith(this.DisplayErrorContinuation, "Couldn't remove plugin from this profile.");
+                            .ContinueWith(this.DisplayErrorContinuation, Locs.Profiles_CouldNotRemove);
                     }
                 }
 
@@ -2338,7 +2338,7 @@ internal class PluginInstallerWindow : Window, IDisposable
             }
 
             if (!didAny)
-                ImGui.TextColored(ImGuiColors.DalamudGrey, "No profiles! Go add some!");
+                ImGui.TextColored(ImGuiColors.DalamudGrey, Locs.Profiles_None);
 
             ImGui.Separator();
 
@@ -2355,7 +2355,7 @@ internal class PluginInstallerWindow : Window, IDisposable
             }
 
             ImGui.SameLine();
-            ImGui.Text("Remove from all profiles");
+            ImGui.Text(Locs.Profiles_RemoveFromAll);
 
             ImGui.EndPopup();
         }
@@ -3160,9 +3160,9 @@ internal class PluginInstallerWindow : Window, IDisposable
 
         public static string PluginButtonToolTip_OpenConfiguration => Loc.Localize("InstallerOpenConfig", "Open Configuration");
 
-        public static string PluginButtonToolTip_PickProfiles => Loc.Localize("InstallerPickProfiles", "Pick profiles for this plugin");
+        public static string PluginButtonToolTip_PickProfiles => Loc.Localize("InstallerPickProfiles", "Pick collections for this plugin");
 
-        public static string PluginButtonToolTip_ProfilesNotSupported => Loc.Localize("InstallerProfilesNotSupported", "This plugin does not support profiles");
+        public static string PluginButtonToolTip_ProfilesNotSupported => Loc.Localize("InstallerProfilesNotSupported", "This plugin does not support collections");
 
         public static string PluginButtonToolTip_StartOnBoot => Loc.Localize("InstallerStartOnBoot", "Start on boot");
 
@@ -3184,7 +3184,7 @@ internal class PluginInstallerWindow : Window, IDisposable
 
         public static string PluginButtonToolTip_UnloadFailed => Loc.Localize("InstallerUnloadFailedTooltip", "Plugin unload failed, please restart your game and try again.");
 
-        public static string PluginButtonToolTip_NeedsToBeInDefault => Loc.Localize("InstallerUnloadNeedsToBeInDefault", "This plugin is in one or more profiles. If you want to enable or disable it, please do so by enabling or disabling one of the profiles it is in.\nIf you want to manage it manually, remove it from all profiles.");
+        public static string PluginButtonToolTip_NeedsToBeInDefault => Loc.Localize("InstallerUnloadNeedsToBeInDefault", "This plugin is in one or more collections. If you want to enable or disable it, please do so by enabling or disabling the collections it is in.\nIf you want to manage it manually, remove it from all collections.");
 
         #endregion
 
@@ -3343,6 +3343,21 @@ internal class PluginInstallerWindow : Window, IDisposable
         #region Other
 
         public static string SafeModeDisclaimer => Loc.Localize("SafeModeDisclaimer", "You enabled safe mode, no plugins will be loaded.\nYou may delete plugins from the \"Installed plugins\" tab.\nSimply restart your game to disable safe mode.");
+
+        #endregion
+
+        #region Profiles
+
+        public static string Profiles_CouldNotAdd =>
+            Loc.Localize("InstallerProfilesCouldNotAdd", "Couldn't add plugin to this collection.");
+
+        public static string Profiles_CouldNotRemove =>
+            Loc.Localize("InstallerProfilesCouldNotRemove", "Couldn't remove plugin from this collection.");
+
+        public static string Profiles_None => Loc.Localize("InstallerProfilesNone", "No collections! Go add some in \"Plugin Collections\"!");
+
+        public static string Profiles_RemoveFromAll =>
+            Loc.Localize("InstallerProfilesRemoveFromAll", "Remove from all collections");
 
         #endregion
     }
