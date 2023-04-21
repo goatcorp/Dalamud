@@ -8,6 +8,7 @@ using System.Net.Http.Headers;
 using System.Threading.Tasks;
 
 using Dalamud.Logging.Internal;
+using Dalamud.Networking.Http;
 using Newtonsoft.Json;
 
 namespace Dalamud.Plugin.Internal.Types;
@@ -24,7 +25,7 @@ internal class PluginRepository
 
     private static readonly ModuleLog Log = new("PLUGINR");
 
-    private static readonly HttpClient HttpClient = new()
+    private static readonly HttpClient HttpClient = new(Service<HappyHttpClient>.Get().SharedSocketsHandler)
     {
         Timeout = TimeSpan.FromSeconds(20),
         DefaultRequestHeaders =

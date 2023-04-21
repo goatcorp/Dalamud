@@ -22,6 +22,7 @@ using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Interface.Internal;
 using Dalamud.IoC.Internal;
 using Dalamud.Logging.Internal;
+using Dalamud.Networking.Http;
 using Dalamud.Plugin.Internal.Exceptions;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Utility;
@@ -76,6 +77,9 @@ Thanks and have fun!";
 
     [ServiceManager.ServiceDependency]
     private readonly DalamudStartInfo startInfo = Service<DalamudStartInfo>.Get();
+
+    [ServiceManager.ServiceDependency]
+    private readonly HappyHttpClient happyHttpClient = Service<HappyHttpClient>.Get();
 
     [ServiceManager.ServiceConstructor]
     private PluginManager()
@@ -732,7 +736,7 @@ Thanks and have fun!";
         var downloadUrl = useTesting ? repoManifest.DownloadLinkTesting : repoManifest.DownloadLinkInstall;
         var version = useTesting ? repoManifest.TestingAssemblyVersion : repoManifest.AssemblyVersion;
 
-        var response = await Util.HttpClient.GetAsync(downloadUrl);
+        var response = await this.happyHttpClient.SharedHttpClient.GetAsync(downloadUrl);
         response.EnsureSuccessStatusCode();
 
         var outputDir = new DirectoryInfo(Path.Combine(this.pluginDirectory.FullName, repoManifest.InternalName, version?.ToString() ?? string.Empty));

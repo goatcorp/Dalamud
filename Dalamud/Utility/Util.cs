@@ -16,6 +16,7 @@ using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Interface;
 using Dalamud.Interface.Colors;
 using Dalamud.Logging.Internal;
+using Dalamud.Networking.Http;
 using ImGuiNET;
 using Microsoft.Win32;
 using Serilog;
@@ -38,7 +39,8 @@ public static class Util
     /// Gets an httpclient for usage.
     /// Do NOT await this.
     /// </summary>
-    public static HttpClient HttpClient { get; } = new();
+    [Obsolete($"Use Service<{nameof(HappyHttpClient)}> instead.")]
+    public static HttpClient HttpClient { get; } = Service<HappyHttpClient>.Get().SharedHttpClient;
 
     /// <summary>
     /// Gets the assembly version of Dalamud.
