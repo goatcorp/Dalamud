@@ -17,7 +17,7 @@ namespace Dalamud.Networking.Http;
 ///
 /// Each instance of this class tracks its own state.
 /// </summary>
-public class HappyEyeballsCallback
+public class HappyEyeballsCallback : IDisposable
 {
     private readonly Dictionary<DnsEndPoint, AddressFamily> addressFamilyCache = new();
 
@@ -25,7 +25,7 @@ public class HappyEyeballsCallback
     private readonly int ipv4WaitMillis;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="HappyHttpSocketsCallback"/> class.
+    /// Initializes a new instance of the <see cref="HappyEyeballsCallback"/> class.
     /// </summary>
     /// <param name="forcedAddressFamily">Optional override to force a specific AddressFamily.</param>
     /// <param name="ipv4WaitMillis">Time to wait before initiating the IPv4 request.</param>
@@ -33,6 +33,14 @@ public class HappyEyeballsCallback
     {
         this.forcedAddressFamily = forcedAddressFamily;
         this.ipv4WaitMillis = ipv4WaitMillis;
+    }
+
+    /// <inheritdoc/>
+    public void Dispose()
+    {
+        this.addressFamilyCache.Clear();
+
+        GC.SuppressFinalize(this);
     }
 
     /// <summary>

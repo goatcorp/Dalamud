@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Net;
 using System.Net.Http;
-using Dalamud.IoC;
 
 namespace Dalamud.Networking.Http;
 
@@ -9,9 +8,8 @@ namespace Dalamud.Networking.Http;
 /// A service to help build and manage HttpClients with some semblance of Happy Eyeballs (RFC 8305 - IPv4 fallback)
 /// awareness.
 /// </summary>
-[PluginInterface]
 [ServiceManager.BlockingEarlyLoadedService]
-public class HappyHttpClient : IDisposable, IServiceType
+internal class HappyHttpClient : IDisposable, IServiceType
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="HappyHttpClient"/> class.
@@ -21,13 +19,13 @@ public class HappyHttpClient : IDisposable, IServiceType
     [ServiceManager.ServiceConstructor]
     private HappyHttpClient()
     {
-        this.SharedSocketsHandler = new SocketsHttpHandler
+        this.SharedHappyEyeballsCallback = new HappyEyeballsCallback();
+
+        this.SharedHttpClient = new HttpClient(new SocketsHttpHandler
         {
             AutomaticDecompression = DecompressionMethods.All,
             ConnectCallback = new HappyEyeballsCallback().ConnectCallback,
-        };
-
-        this.SharedHttpClient = new HttpClient(this.SharedSocketsHandler, false);
+        });
     }
 
     /// <summary>
@@ -39,18 +37,19 @@ public class HappyHttpClient : IDisposable, IServiceType
     public HttpClient SharedHttpClient { get; }
 
     /// <summary>
-    /// Gets a <see cref="SocketsHttpHandler"/> meant to be shared across any custom <see cref="HttpClient"/>s that
+    /// Gets a <see cref="HappyEyeballsCallback"/> meant to be shared across any custom <see cref="HttpClient"/>s that
     /// need to be made in other parts of the application.
     ///
-    /// This handler comes pre-loaded with a common <see cref="HappyEyeballsCallback"/> for your convenience.
+    /// This should be used when shared callback/IPv6 cache state is desired across multiple clients, as sharing the
+    /// SocketsHandler may lead to GC issues.
     /// </summary>
-    public SocketsHttpHandler SharedSocketsHandler { get; }
+    public HappyEyeballsCallback SharedHappyEyeballsCallback { get; }
 
     /// <inheritdoc/>
     void IDisposable.Dispose()
     {
         this.SharedHttpClient.Dispose();
-        this.SharedSocketsHandler.Dispose();
+        this.SharedHappyEyeballsCallback.Dispose();
 
         GC.SuppressFinalize(this);
     }
