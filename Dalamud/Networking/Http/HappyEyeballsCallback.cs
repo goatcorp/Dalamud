@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
@@ -6,6 +7,7 @@ using System.Net.Http;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
+using Dalamud.Utility;
 
 namespace Dalamud.Networking.Http;
 
@@ -19,7 +21,7 @@ namespace Dalamud.Networking.Http;
 /// </summary>
 public class HappyEyeballsCallback : IDisposable
 {
-    private readonly Dictionary<DnsEndPoint, AddressFamily> addressFamilyCache = new();
+    private readonly ConcurrentDictionary<DnsEndPoint, AddressFamily> addressFamilyCache = new();
 
     private readonly AddressFamily? forcedAddressFamily;
     private readonly int ipv4WaitMillis;
@@ -59,27 +61,23 @@ public class HappyEyeballsCallback : IDisposable
         }
 
         using var linkedToken = CancellationTokenSource.CreateLinkedTokenSource(token);
-        var tryV6 = this.AttemptConnection(AddressFamily.InterNetworkV6, context, linkedToken.Token);
-        var tryV4 = this.AttemptConnection(AddressFamily.InterNetwork, context, linkedToken.Token, this.ipv4WaitMillis);
-
-        var victor = await Task.WhenAny(tryV6, tryV4).ConfigureAwait(false);
-        if (victor.IsCompletedSuccessfully)
+        var race = AsyncUtils.FirstSuccessfulTask(new List<Task<NetworkStream>>
         {
-            var victorStream = victor.GetAwaiter().GetResult();
+            this.AttemptConnection(AddressFamily.InterNetworkV6, context, linkedToken.Token),
+            this.AttemptConnection(AddressFamily.InterNetwork, context, linkedToken.Token, this.ipv4WaitMillis),
+        });
 
-            this.addressFamilyCache[context.DnsEndPoint] = victorStream.Socket.AddressFamily;
+        var stream = await race.ConfigureAwait(false);
 
-            return victorStream;
+        // Only cache the address family if a stream was successfully created and returned.
+        // Note that this cache is *in addition* to HttpClient keepalives, and really exists to share IPv6 state across
+        // multiple HttpClients.
+        if (race.IsCompletedSuccessfully)
+        {
+            this.addressFamilyCache[context.DnsEndPoint] = stream.Socket.AddressFamily;
         }
 
-        // The loser can still fail, but we'll wait for it.
-        // If it succeeds, cache the result. If not, just throw the exception up the chain.
-        var loser = victor == tryV6 ? tryV4 : tryV6;
-        var loserStream = loser.GetAwaiter().GetResult();
-
-        this.addressFamilyCache[context.DnsEndPoint] = loserStream.Socket.AddressFamily;
-
-        return loserStream;
+        return stream;
     }
 
     private AddressFamily? GetAddressFamilyOverride(SocketsHttpConnectionContext context)
@@ -91,7 +89,7 @@ public class HappyEyeballsCallback : IDisposable
 
         if (this.addressFamilyCache.TryGetValue(context.DnsEndPoint, out var cachedValue))
         {
-            // TODO: Find some way to delete this after a while. It shouldn't stick around _forever_.
+            // TODO: Find some way to delete this after a while.
             return cachedValue;
         }
 
