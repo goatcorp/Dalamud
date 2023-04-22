@@ -87,6 +87,12 @@ public class HappyEyeballsCallback : IDisposable
             return this.forcedAddressFamily.Value;
         }
 
+        // Force IPv4 if IPv6 support isn't detected to avoid the resolution delay.
+        if (!Socket.OSSupportsIPv6)
+        {
+            return AddressFamily.InterNetwork;
+        }
+
         if (this.addressFamilyCache.TryGetValue(context.DnsEndPoint, out var cachedValue))
         {
             // TODO: Find some way to delete this after a while.
