@@ -20,14 +20,12 @@ public static class AsyncUtils
     /// <typeparam name="T">The return type of all raced tasks.</typeparam>
     /// <exception cref="AggregateException">Thrown when all tasks given to this method fail.</exception>
     /// <returns>Returns the first task that completes, according to <see cref="Task{TResult}.IsCompletedSuccessfully"/>.</returns>
-    public static Task<T> FirstSuccessfulTask<T>(IEnumerable<Task<T>> tasks)
+    public static Task<T> FirstSuccessfulTask<T>(ICollection<Task<T>> tasks)
     {
-        var taskList = tasks.ToList();
-
         var tcs = new TaskCompletionSource<T>();
-        var remainingTasks = taskList.Count;
+        var remainingTasks = tasks.Count;
 
-        foreach (var task in taskList)
+        foreach (var task in tasks)
         {
             task.ContinueWith(t =>
             {
@@ -37,7 +35,7 @@ public static class AsyncUtils
                 }
                 else if (Interlocked.Decrement(ref remainingTasks) == 0)
                 {
-                    tcs.SetException(new AggregateException(taskList.SelectMany(f => f.Exception?.InnerExceptions)));
+                    tcs.SetException(new AggregateException(tasks.SelectMany(f => f.Exception?.InnerExceptions)));
                 }
             });
         }

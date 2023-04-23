@@ -24,17 +24,17 @@ public class HappyEyeballsCallback : IDisposable
     private readonly ConcurrentDictionary<DnsEndPoint, AddressFamily> addressFamilyCache = new();
 
     private readonly AddressFamily? forcedAddressFamily;
-    private readonly int ipv4WaitMillis;
+    private readonly int ipv6GracePeriod;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="HappyEyeballsCallback"/> class.
     /// </summary>
     /// <param name="forcedAddressFamily">Optional override to force a specific AddressFamily.</param>
-    /// <param name="ipv4WaitMillis">Time to wait before initiating the IPv4 request.</param>
-    public HappyEyeballsCallback(AddressFamily? forcedAddressFamily = null, int ipv4WaitMillis = 100)
+    /// <param name="ipv6GracePeriod">Grace period for IPv6 connectivity before starting IPv4 attempt.</param>
+    public HappyEyeballsCallback(AddressFamily? forcedAddressFamily = null, int ipv6GracePeriod = 100)
     {
         this.forcedAddressFamily = forcedAddressFamily;
-        this.ipv4WaitMillis = ipv4WaitMillis;
+        this.ipv6GracePeriod = ipv6GracePeriod;
     }
 
     /// <inheritdoc/>
@@ -61,22 +61,31 @@ public class HappyEyeballsCallback : IDisposable
         }
 
         using var linkedToken = CancellationTokenSource.CreateLinkedTokenSource(token);
-        var race = AsyncUtils.FirstSuccessfulTask(new List<Task<NetworkStream>>
-        {
-            this.AttemptConnection(AddressFamily.InterNetworkV6, context, linkedToken.Token),
-            this.AttemptConnection(AddressFamily.InterNetwork, context, linkedToken.Token, this.ipv4WaitMillis),
-        });
 
-        var stream = await race.ConfigureAwait(false);
+        NetworkStream stream;
 
-        // Only cache the address family if a stream was successfully created and returned.
-        // Note that this cache is *in addition* to HttpClient keepalives, and really exists to share IPv6 state across
-        // multiple HttpClients.
-        if (race.IsCompletedSuccessfully)
+        // Give IPv6 a chance to connect first.
+        // However, only give it ipv4WaitMillis to connect before throwing IPv4 into the mix.
+        var tryConnectIPv6 = this.AttemptConnection(AddressFamily.InterNetworkV6, context, linkedToken.Token);
+        var timedV6Attempt = Task.WhenAny(tryConnectIPv6, Task.Delay(this.ipv6GracePeriod, linkedToken.Token));
+
+        if (await timedV6Attempt == tryConnectIPv6 && tryConnectIPv6.IsCompletedSuccessfully)
         {
-            this.addressFamilyCache[context.DnsEndPoint] = stream.Socket.AddressFamily;
+            stream = tryConnectIPv6.GetAwaiter().GetResult();
+        }
+        else
+        {
+            var race = AsyncUtils.FirstSuccessfulTask(new List<Task<NetworkStream>>
+            {
+                tryConnectIPv6,
+                this.AttemptConnection(AddressFamily.InterNetwork, context, linkedToken.Token),
+            });
+
+            // If our connections all fail, this will explode with an exception.
+            stream = race.GetAwaiter().GetResult();
         }
 
+        this.addressFamilyCache[context.DnsEndPoint] = stream.Socket.AddressFamily;
         return stream;
     }
 
@@ -103,14 +112,8 @@ public class HappyEyeballsCallback : IDisposable
     }
 
     private async Task<NetworkStream> AttemptConnection(
-        AddressFamily family, SocketsHttpConnectionContext context, CancellationToken token, int delayMillis = 0)
+        AddressFamily family, SocketsHttpConnectionContext context, CancellationToken token)
     {
-        if (delayMillis > 0)
-        {
-            await Task.Delay(delayMillis, token);
-            token.ThrowIfCancellationRequested();
-        }
-
         var socket = new Socket(family, SocketType.Stream, ProtocolType.Tcp)
         {
             NoDelay = true,
