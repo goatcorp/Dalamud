@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using Dalamud.Game;
+using Dalamud.Networking.Http;
 using Dalamud.Plugin.Internal;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Utility;
@@ -47,6 +48,9 @@ internal class PluginImageCache : IDisposable, IServiceType
 
     [ServiceManager.ServiceDependency]
     private readonly InterfaceManager.InterfaceManagerWithScene imWithScene = Service<InterfaceManager.InterfaceManagerWithScene>.Get();
+
+    [ServiceManager.ServiceDependency]
+    private readonly HappyHttpClient happyHttpClient = Service<HappyHttpClient>.Get();
 
     private readonly BlockingCollection<Tuple<ulong, Func<Task>>> downloadQueue = new();
     private readonly BlockingCollection<Func<Task>> loadQueue = new();
@@ -535,7 +539,7 @@ internal class PluginImageCache : IDisposable, IServiceType
         var bytes = await this.RunInDownloadQueue<byte[]?>(
                         async () =>
                         {
-                            var data = await Util.HttpClient.GetAsync(url);
+                            var data = await this.happyHttpClient.SharedHttpClient.GetAsync(url);
                             if (data.StatusCode == HttpStatusCode.NotFound)
                                 return null;
 
@@ -627,7 +631,9 @@ internal class PluginImageCache : IDisposable, IServiceType
                 var bytes = await this.RunInDownloadQueue<byte[]?>(
                                 async () =>
                                 {
-                                    var data = await Util.HttpClient.GetAsync(url);
+                                    var httpClient = Service<HappyHttpClient>.Get().SharedHttpClient;
+
+                                    var data = await httpClient.GetAsync(url);
                                     if (data.StatusCode == HttpStatusCode.NotFound)
                                         return null;
 

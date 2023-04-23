@@ -1,7 +1,7 @@
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
-
+using Dalamud.Networking.Http;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Utility;
 using Newtonsoft.Json;
@@ -42,9 +42,11 @@ internal static class BugBait
         {
             model.Exception = Troubleshooting.LastException == null ? "Was included, but none happened" : Troubleshooting.LastException?.ToString();
         }
+        
+        var httpClient = Service<HappyHttpClient>.Get().SharedHttpClient;
 
         var postContent = new StringContent(JsonConvert.SerializeObject(model), Encoding.UTF8, "application/json");
-        var response = await Util.HttpClient.PostAsync(BugBaitUrl, postContent);
+        var response = await httpClient.PostAsync(BugBaitUrl, postContent);
 
         response.EnsureSuccessStatusCode();
     }
