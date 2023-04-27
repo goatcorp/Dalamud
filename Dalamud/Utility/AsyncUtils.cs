@@ -13,7 +13,7 @@ public static class AsyncUtils
 {
     /// <summary>
     /// Race a set of tasks, returning either the first to succeed or an aggregate of all exceptions. This helper does
-    /// not perform any automatic cancellation of losing tasks.
+    /// not perform any automatic cancellation of losing tasks, nor does it handle exceptions of losing tasks.
     /// </summary>
     /// <remarks>Derived from <a href="https://stackoverflow.com/a/37529395">this StackOverflow post</a>.</remarks>
     /// <param name="tasks">A list of tasks to race.</param>
@@ -29,7 +29,7 @@ public static class AsyncUtils
         {
             task.ContinueWith(t =>
             {
-                if (task.IsCompletedSuccessfully)
+                if (t.IsCompletedSuccessfully)
                 {
                     tcs.TrySetResult(t.Result);
                 }
@@ -41,5 +41,20 @@ public static class AsyncUtils
         }
 
         return tcs.Task;
+    }
+
+    /// <summary>
+    /// Provide a <see cref="Task.Delay(int, CancellationToken)"/> that won't throw an exception when it's canceled.
+    /// </summary>
+    /// <inheritdoc cref="Task.Delay(int, CancellationToken)"/>
+    public static async Task CancellableDelay(int millisecondsDelay, CancellationToken cancellationToken)
+    {
+        try
+        {
+            await Task.Delay(millisecondsDelay, cancellationToken);
+        }
+        catch (TaskCanceledException)
+        {
+        }
     }
 }
