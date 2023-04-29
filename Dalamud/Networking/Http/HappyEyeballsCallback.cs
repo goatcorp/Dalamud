@@ -83,12 +83,7 @@ public class HappyEyeballsCallback : IDisposable
         // If we're here, it means we have a successful connection. A failure to connect would have caused the above
         // line to explode, so we're safe to clean everything up.
         linkedToken.Cancel();
-        tasks.ForEach(task =>
-        {
-            // Suppress any other exceptions that come down the pipe. We've already thrown an exception we cared
-            // about above.
-            task.ContinueWith(inner => { _ = inner.Exception; });
-        });
+        tasks.ForEach(task => { task.ContinueWith(this.CleanupConnectionTask); });
 
         return stream;
     }
@@ -132,5 +127,17 @@ public class HappyEyeballsCallback : IDisposable
                      .Select(g => g.Select(v => v)).ToArray();
 
         return Util.ZipperMerge(groups).ToList();
+    }
+
+    private void CleanupConnectionTask(Task task)
+    {
+        // marks the exception as handled as well, nifty!
+        // will also handle canceled cases, which aren't explicitly faulted.
+        var exception = task.Exception;
+
+        if (task.IsFaulted)
+        {
+            Log.Verbose(exception!, "A HappyEyeballs connection task failed. Are there network issues?");
+        }
     }
 }
