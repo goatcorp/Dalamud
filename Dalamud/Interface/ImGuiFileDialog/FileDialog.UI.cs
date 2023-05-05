@@ -316,7 +316,7 @@ public partial class FileDialog
             ImGui.SetCursorPosY(ImGui.GetCursorPosY() + Scaled(5));
 
             var idx = 0;
-            foreach (var qa in this.drives.Concat(this.quickAccess).Where(qa => qa.Exists))
+            foreach (var qa in this.GetDrives().Concat(this.quickAccess).Where(qa => qa.Exists))
             {
                 ImGui.PushID(idx++);
                 ImGui.SetCursorPosX(Scaled(25));
