@@ -52,7 +52,6 @@ public partial class FileDialog
     private float footerHeight = 0;
 
     private string selectedSideBar = string.Empty;
-    private List<SideBarItem> drives = new();
     private List<SideBarItem> quickAccess = new();
 
     /// <summary>
