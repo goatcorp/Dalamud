@@ -8,7 +8,7 @@ namespace Dalamud.Interface.ImGuiFileDialog;
 /// <summary>
 /// A drive list loader. Thread-safety guaranteed.
 /// </summary>
-public class DriveListLoader
+internal class DriveListLoader
 {
     private bool initialized;
 
