@@ -24,7 +24,7 @@ internal class HappyHttpClient : IDisposable, IServiceType
         this.SharedHttpClient = new HttpClient(new SocketsHttpHandler
         {
             AutomaticDecompression = DecompressionMethods.All,
-            ConnectCallback = new HappyEyeballsCallback().ConnectCallback,
+            ConnectCallback = this.SharedHappyEyeballsCallback.ConnectCallback,
         });
     }
 
@@ -40,8 +40,8 @@ internal class HappyHttpClient : IDisposable, IServiceType
     /// Gets a <see cref="HappyEyeballsCallback"/> meant to be shared across any custom <see cref="HttpClient"/>s that
     /// need to be made in other parts of the application.
     ///
-    /// This should be used when shared callback/IPv6 cache state is desired across multiple clients, as sharing the
-    /// SocketsHandler may lead to GC issues.
+    /// This should be used when shared callback state is desired across multiple clients, as sharing the SocketsHandler
+    /// may lead to GC issues.
     /// </summary>
     public HappyEyeballsCallback SharedHappyEyeballsCallback { get; }
 
