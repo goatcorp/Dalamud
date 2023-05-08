@@ -51,6 +51,12 @@ public class SettingsTabGeneral : SettingsTab
             (v, c) => c.DutyFinderChatMessage = v),
 
         new SettingsEntry<bool>(
+            Loc.Localize("DalamudSettingsPrintDalamudWelcomeMsg", "Display Dalamud's welcome message"),
+            Loc.Localize("DalamudSettingsPrintDalamudWelcomeMsgHint", "Display Dalamud's welcome message in FFXIV chat when logging in with a character."),
+            c => c.PrintDalamudWelcomeMsg,
+            (v, c) => c.PrintDalamudWelcomeMsg = v),
+
+        new SettingsEntry<bool>(
             Loc.Localize("DalamudSettingsPrintPluginsWelcomeMsg", "Display loaded plugins in the welcome message"),
             Loc.Localize("DalamudSettingsPrintPluginsWelcomeMsgHint", "Display loaded plugins in FFXIV chat when logging in with a character."),
             c => c.PrintPluginsWelcomeMsg,
