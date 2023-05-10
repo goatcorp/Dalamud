@@ -258,6 +258,7 @@ public partial class FileDialog
 
     private void SetPath(string path)
     {
+        this.searchBuffer = string.Empty;
         this.selectedSideBar = string.Empty;
         this.currentPath = path;
         this.files.Clear();
