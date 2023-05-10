@@ -49,6 +49,11 @@ internal class DriveListLoader
 
     private async Task InitDrives()
     {
+        // Force async to avoid this being invoked synchronously unless it's awaited.
+        // Putting this after the GetDrives call (inside the loop) keeps this on the
+        // UI thread sometimes.
+        await Task.Yield();
+
         var drives = ImmutableArray<DriveInfo>.Empty;
         foreach (var drive in DriveInfo.GetDrives())
         {
@@ -59,9 +64,6 @@ internal class DriveListLoader
                 // the existing drive list
                 this.Drives = drives;
             }
-
-            // Force async to avoid this being invoked synchronously unless it's awaited
-            await Task.Yield();
         }
 
         // Replace the whole drive list
