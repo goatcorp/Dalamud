@@ -1,5 +1,5 @@
-﻿using System.Collections.Generic;
-using System.Collections.Immutable;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 
@@ -10,14 +10,12 @@ namespace Dalamud.Interface.ImGuiFileDialog;
 /// </summary>
 internal class DriveListLoader
 {
-    private bool initialized;
-
     /// <summary>
     /// Initializes a new instance of the <see cref="DriveListLoader"/> class.
     /// </summary>
     public DriveListLoader()
     {
-        this.Drives = ImmutableArray<DriveInfo>.Empty;
+        this.Drives = Array.Empty<DriveInfo>();
     }
 
     /// <summary>
@@ -49,23 +47,8 @@ internal class DriveListLoader
 
     private async Task InitDrives()
     {
-        var drives = ImmutableArray<DriveInfo>.Empty;
-        foreach (var drive in DriveInfo.GetDrives())
-        {
-            drives = drives.Add(drive);
-            if (!this.initialized)
-            {
-                // Show results as soon as they load initially, but otherwise keep
-                // the existing drive list
-                this.Drives = drives;
-            }
-
-            // Force async to avoid this being invoked synchronously unless it's awaited
-            await Task.Yield();
-        }
-
-        // Replace the whole drive list
-        this.Drives = drives;
-        this.initialized = true;
+        // Force async to avoid this being invoked synchronously unless it's awaited.
+        await Task.Yield();
+        this.Drives = DriveInfo.GetDrives();
     }
 }
