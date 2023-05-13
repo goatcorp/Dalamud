@@ -193,12 +193,19 @@ public sealed class DalamudPluginInterface : IDisposable
     /// <summary>
     /// Gets a list of installed plugin names.
     /// </summary>
+    [Obsolete($"This property is obsolete. Use {nameof(InstalledPlugins)} instead.")]
     public List<string> PluginNames => Service<PluginManager>.Get().InstalledPlugins.Select(p => p.Manifest.Name).ToList();
 
     /// <summary>
     /// Gets a list of installed plugin internal names.
     /// </summary>
+    [Obsolete($"This property is obsolete. Use {nameof(InstalledPlugins)} instead.")]
     public List<string> PluginInternalNames => Service<PluginManager>.Get().InstalledPlugins.Select(p => p.Manifest.InternalName).ToList();
+
+    /// <summary>
+    /// Gets a list of installed plugins along with their current state.
+    /// </summary>
+    public IEnumerable<InstalledPluginState> InstalledPlugins => Service<PluginManager>.Get().InstalledPlugins.Select(p => new InstalledPluginState(p.Name, p.Manifest.InternalName, p.IsLoaded, p.Manifest.EffectiveVersion));
 
     /// <summary>
     /// Opens the <see cref="PluginInstallerWindow"/> with the plugin name set as search target.
