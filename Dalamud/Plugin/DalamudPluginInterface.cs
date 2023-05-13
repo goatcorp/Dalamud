@@ -201,6 +201,11 @@ public sealed class DalamudPluginInterface : IDisposable
     public List<string> PluginInternalNames => Service<PluginManager>.Get().InstalledPlugins.Select(p => p.Manifest.InternalName).ToList();
 
     /// <summary>
+    /// Gets a list of installed plugins along with their current state.
+    /// </summary>
+    public IEnumerable<InstalledPluginState> InstalledPlugins => Service<PluginManager>.Get().InstalledPlugins.Select(p => new InstalledPluginState(p.Name, p.Manifest.InternalName, p.IsLoaded, p.Manifest.EffectiveVersion));
+
+    /// <summary>
     /// Opens the <see cref="PluginInstallerWindow"/> with the plugin name set as search target.
     /// </summary>
     /// <returns>Returns false if the DalamudInterface was null.</returns>
