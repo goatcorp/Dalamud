@@ -17,7 +17,7 @@ public sealed partial class Condition : IServiceType
     /// <summary>
     /// The current max number of conditions. You can get this just by looking at the condition sheet and how many rows it has.
     /// </summary>
-    public const int MaxConditionEntries = 100;
+    public const int MaxConditionEntries = 104;
 
     private readonly bool[] cache = new bool[MaxConditionEntries];
 
