@@ -193,11 +193,13 @@ public sealed class DalamudPluginInterface : IDisposable
     /// <summary>
     /// Gets a list of installed plugin names.
     /// </summary>
+    [Obsolete($"This property is obsolete. Use {nameof(InstalledPlugins)} instead.")]
     public List<string> PluginNames => Service<PluginManager>.Get().InstalledPlugins.Select(p => p.Manifest.Name).ToList();
 
     /// <summary>
     /// Gets a list of installed plugin internal names.
     /// </summary>
+    [Obsolete($"This property is obsolete. Use {nameof(InstalledPlugins)} instead.")]
     public List<string> PluginInternalNames => Service<PluginManager>.Get().InstalledPlugins.Select(p => p.Manifest.InternalName).ToList();
 
     /// <summary>
