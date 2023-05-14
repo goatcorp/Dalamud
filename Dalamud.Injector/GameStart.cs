@@ -71,7 +71,7 @@ namespace Dalamud.Injector
 
             var procAttrListBuffer = nint.Zero;
             var parentProcessHandle = nint.Zero;
-            if (!dontUnelevate)
+            if (!dontUnelevate && !Util.IsOnWine())
             {
                 try
                 {
