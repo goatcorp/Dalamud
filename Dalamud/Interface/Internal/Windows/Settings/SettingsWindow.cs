@@ -5,6 +5,7 @@ using CheapLoc;
 using Dalamud.Configuration.Internal;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Internal.Windows.Settings.Tabs;
+using Dalamud.Interface.Raii;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin.Internal;
 using Dalamud.Utility;
@@ -159,23 +160,20 @@ internal class SettingsWindow : Window
 
         if (ImGui.BeginChild("###settingsFinishButton"))
         {
-            ImGui.PushStyleVar(ImGuiStyleVar.FrameRounding, 100f);
-            ImGui.PushFont(InterfaceManager.IconFont);
+            using var disabled = ImRaii.Disabled(this.tabs.Any(x => x.Entries.Any(y => !y.IsValid)));
 
-            var invalid = this.tabs.Any(x => x.Entries.Any(y => !y.IsValid));
-            if (invalid)
-                ImGui.BeginDisabled();
-
-            if (ImGui.Button(FontAwesomeIcon.Save.ToIconString(), new Vector2(40)))
+            using (ImRaii.PushStyle(ImGuiStyleVar.FrameRounding, 100f))
             {
-                this.Save();
+                using var font = ImRaii.PushFont(InterfaceManager.IconFont);
 
-                if (!ImGui.IsKeyDown(ImGuiKey.ModShift))
-                    this.IsOpen = false;
+                if (ImGui.Button(FontAwesomeIcon.Save.ToIconString(), new Vector2(40)))
+                {
+                    this.Save();
+
+                    if (!ImGui.IsKeyDown(ImGuiKey.ModShift))
+                        this.IsOpen = false;
+                }
             }
-
-            ImGui.PopStyleVar();
-            ImGui.PopFont();
 
             if (ImGui.IsItemHovered())
             {
@@ -183,9 +181,6 @@ internal class SettingsWindow : Window
                                      ? Loc.Localize("DalamudSettingsSaveAndExit", "Save changes and close")
                                      : Loc.Localize("DalamudSettingsSaveAndExit", "Save changes"));
             }
-
-            if (invalid)
-                ImGui.EndDisabled();
         }
 
         ImGui.EndChild();

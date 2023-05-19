@@ -5,6 +5,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 
 using Dalamud.Game.ClientState.Keys;
+using Dalamud.Interface.Raii;
 using ImGuiNET;
 using ImGuiScene;
 
@@ -74,6 +75,12 @@ public static class ImGuiHelpers
     /// <param name="size">The size of the dummy.</param>
     public static void ScaledDummy(Vector2 size) => ImGui.Dummy(size * GlobalScale);
 
+    /// <summary>
+    /// Create an indent scaled by the global Dalamud scale.
+    /// </summary>
+    /// <param name="size">The size of the indent.</param>
+    public static void ScaledIndent(float size) => ImGui.Indent(size * GlobalScale);
+    
     /// <summary>
     /// Use a relative ImGui.SameLine() from your current cursor position, scaled by the Dalamud global scale.
     /// </summary>
@@ -155,9 +162,10 @@ public static class ImGuiHelpers
     /// <param name="text">The text to write.</param>
     public static void SafeTextColoredWrapped(Vector4 color, string text)
     {
-        ImGui.PushStyleColor(ImGuiCol.Text, color);
-        ImGui.TextWrapped(text.Replace("%", "%%"));
-        ImGui.PopStyleColor();
+        using (ImRaii.PushColor(ImGuiCol.Text, color))
+        {
+            ImGui.TextWrapped(text.Replace("%", "%%"));
+        }
     }
 
     /// <summary>
@@ -292,6 +300,7 @@ public static class ImGuiHelpers
     internal static void NewFrame()
     {
         GlobalScale = ImGui.GetIO().FontGlobalScale;
+        InterfaceHelpers.GlobalScale = GlobalScale;
     }
 
     /// <summary>

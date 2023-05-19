@@ -174,10 +174,6 @@ namespace Dalamud.Injector
 
         private static void InitLogging(bool verbose, IEnumerable<string> args)
         {
-#if DEBUG
-            verbose = true;
-#endif
-
             var levelSwitch = new LoggingLevelSwitch
             {
                 MinimumLevel = verbose ? LogEventLevel.Verbose : LogEventLevel.Information,
@@ -329,7 +325,7 @@ namespace Dalamud.Injector
             startInfo.BootShowConsole = args.Contains("--console");
             startInfo.BootEnableEtw = args.Contains("--etw");
             startInfo.BootLogPath = GetLogPath("dalamud.boot", startInfo.LogName);
-            startInfo.BootEnabledGameFixes = new List<string> { "prevent_devicechange_crashes", "disable_game_openprocess_access_check", "redirect_openprocess", "backup_userdata_save", "clr_failfast_hijack" };
+            startInfo.BootEnabledGameFixes = new List<string> { "prevent_devicechange_crashes", "disable_game_openprocess_access_check", "redirect_openprocess", "backup_userdata_save", "clr_failfast_hijack", "prevent_icmphandle_crashes" };
             startInfo.BootDotnetOpenProcessHookMode = 0;
             startInfo.BootWaitMessageBox |= args.Contains("--msgbox1") ? 1 : 0;
             startInfo.BootWaitMessageBox |= args.Contains("--msgbox2") ? 2 : 0;

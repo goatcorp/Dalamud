@@ -10,6 +10,8 @@ using Dalamud.Game;
 using Dalamud.Game.Gui.Internal;
 using Dalamud.Interface.Internal;
 using Dalamud.Plugin.Internal;
+using Dalamud.Utility;
+using PInvoke;
 using Serilog;
 
 #if DEBUG
@@ -81,6 +83,7 @@ internal sealed class Dalamud : IServiceType
                 catch (Exception e)
                 {
                     Log.Error(e, "Service initialization failure");
+                    Util.Fatal("Dalamud could not initialize correctly. Please report this error. \n\nThe game will continue, but you may not be able to use plugins.", "Dalamud", false);
                 }
                 finally
                 {
@@ -101,6 +104,16 @@ internal sealed class Dalamud : IServiceType
     public void Unload()
     {
         Log.Information("Trigger unload");
+
+        var reportCrashesSetting = Service<DalamudConfiguration>.GetNullable()?.ReportShutdownCrashes ?? true;
+        var pmHasDevPlugins = Service<PluginManager>.GetNullable()?.InstalledPlugins.Any(x => x.IsDev) ?? false;
+        if (!reportCrashesSetting && !pmHasDevPlugins)
+        {
+            // Leaking on purpose for now
+            var attribs = Kernel32.SECURITY_ATTRIBUTES.Create();
+            Kernel32.CreateMutex(attribs, false, "DALAMUD_CRASHES_NO_MORE");
+        }
+
         this.unloadSignal.Set();
     }
 

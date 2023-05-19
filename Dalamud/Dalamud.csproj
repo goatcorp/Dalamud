@@ -8,7 +8,7 @@
     </PropertyGroup>
 
     <PropertyGroup Label="Feature">
-        <DalamudVersion>7.4.5.0</DalamudVersion>
+        <DalamudVersion>7.5.1.0</DalamudVersion>
         <Description>XIV Launcher addon framework</Description>
         <AssemblyVersion>$(DalamudVersion)</AssemblyVersion>
         <Version>$(DalamudVersion)</Version>
@@ -67,8 +67,8 @@
         <PackageReference Include="goaaats.Reloaded.Hooks" Version="4.2.0-goat.4" />
         <PackageReference Include="goaaats.Reloaded.Assembler" Version="1.0.14-goat.2" />
         <PackageReference Include="JetBrains.Annotations" Version="2021.2.0" />
-        <PackageReference Include="Lumina" Version="3.10.0" />
-        <PackageReference Include="Lumina.Excel" Version="6.3.1" />
+        <PackageReference Include="Lumina" Version="3.10.2" />
+        <PackageReference Include="Lumina.Excel" Version="6.3.2" />
         <PackageReference Include="MinSharp" Version="1.0.4" />
         <PackageReference Include="MonoModReorg.RuntimeDetour" Version="23.1.2-prerelease.1" />
         <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
@@ -87,6 +87,7 @@
         <PackageReference Include="System.Resources.Extensions" Version="7.0.0" />
     </ItemGroup>
     <ItemGroup>
+        <ProjectReference Include="..\Dalamud.Interface\Dalamud.Interface.csproj" />
         <ProjectReference Include="..\lib\FFXIVClientStructs\FFXIVClientStructs\FFXIVClientStructs.csproj" />
         <ProjectReference Include="..\lib\ImGuiScene\deps\ImGui.NET\src\ImGui.NET-472\ImGui.NET-472.csproj" />
         <ProjectReference Include="..\lib\ImGuiScene\deps\SDL2-CS\SDL2-CS.csproj" />
@@ -122,7 +123,21 @@
     <PropertyGroup>
         <!-- Needed temporarily for CI -->
         <TempVerFile>$(OutputPath)TEMP_gitver.txt</TempVerFile>
+        <DalamudRevisionFile>$(OutputPath)revision.txt</DalamudRevisionFile>
     </PropertyGroup>
+
+    <Target Name="GetGitCommitCount" BeforeTargets="WriteGitHash" Condition="'$(CommitCount)'==''">
+        <Exec Command="git -C &quot;$(ProjectDir.Replace('\','\\'))&quot; rev-list --count HEAD" ConsoleToMSBuild="true">
+            <Output TaskParameter="ConsoleOutput" PropertyName="DalamudGitCommitCount" />
+        </Exec>
+
+        <!-- Set the BuildHash property to contain the GitVersion, if it wasn't already set.-->
+        <PropertyGroup>
+            <CommitCount>$([System.Text.RegularExpressions.Regex]::Replace($(DalamudGitCommitCount), @"\t|\n|\r", ""))</CommitCount>
+        </PropertyGroup>
+
+        <Exec Command="echo|set /P =&quot;$(CommitCount)&quot; &gt; $(DalamudRevisionFile)" IgnoreExitCode="true" />
+    </Target>
 
     <Target Name="GetGitHash" BeforeTargets="WriteGitHash" Condition="'$(BuildHash)'=='' And '$(Configuration)'=='Release'">
         <!-- write the hash to the temp file.-->
@@ -146,7 +161,7 @@
     <Target Name="GetGitHashStub" BeforeTargets="WriteGitHash" Condition="'$(BuildHash)'=='' And '$(Configuration)'=='Debug'">
         <!-- Set the BuildHash property to contain some placeholder, if it wasn't already set.-->
         <PropertyGroup>
-            <LocalBuildText>Local build at $([System.DateTime]::Now.ToString(yyyyMMdd-hhmmss))</LocalBuildText>
+            <LocalBuildText>Local build at $([System.DateTime]::Now.ToString(yyyy-MM-dd HH:mm:ss))</LocalBuildText>
             <BuildHash>$(LocalBuildText)</BuildHash>
             <BuildHashClientStructs>???</BuildHashClientStructs>
         </PropertyGroup>
@@ -171,11 +186,20 @@
                 <_Parameter2>$(BuildHash)</_Parameter2>
             </AssemblyAttributes>
             <AssemblyAttributes Include="AssemblyMetadata">
+                <_Parameter1>GitCommitCount</_Parameter1>
+                <_Parameter2>$(CommitCount)</_Parameter2>
+            </AssemblyAttributes>
+            <AssemblyAttributes Include="AssemblyMetadata">
                 <_Parameter1>GitHashClientStructs</_Parameter1>
                 <_Parameter2>$(BuildHashClientStructs)</_Parameter2>
             </AssemblyAttributes>
         </ItemGroup>
         <!-- writes the attribute to the customAssemblyInfo file -->
         <WriteCodeFragment Language="C#" OutputFile="$(CustomAssemblyInfoFile)" AssemblyAttributes="@(AssemblyAttributes)" />
+    </Target>
+
+    <!-- Copy plugin .targets folder into distrib -->
+    <Target Name="CopyPluginTargets" AfterTargets="Build">
+        <Copy SourceFiles="$(ProjectDir)\..\targets\Dalamud.Plugin.targets;$(ProjectDir)\..\targets\Dalamud.Plugin.Bootstrap.targets" DestinationFolder="$(OutDir)\targets" />
     </Target>
 </Project>

@@ -16,6 +16,7 @@ using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Interface;
 using Dalamud.Interface.Colors;
 using Dalamud.Logging.Internal;
+using Dalamud.Networking.Http;
 using ImGuiNET;
 using Microsoft.Win32;
 using Serilog;
@@ -28,6 +29,7 @@ namespace Dalamud.Utility;
 public static class Util
 {
     private static string? gitHashInternal;
+    private static int? gitCommitCountInternal;
     private static string? gitHashClientStructsInternal;
 
     private static ulong moduleStartAddr;
@@ -37,7 +39,8 @@ public static class Util
     /// Gets an httpclient for usage.
     /// Do NOT await this.
     /// </summary>
-    public static HttpClient HttpClient { get; } = new();
+    [Obsolete($"Use Service<{nameof(HappyHttpClient)}> instead.")]
+    public static HttpClient HttpClient { get; } = Service<HappyHttpClient>.Get().SharedHttpClient;
 
     /// <summary>
     /// Gets the assembly version of Dalamud.
@@ -112,6 +115,26 @@ public static class Util
         gitHashInternal = attrs.First(a => a.Key == "GitHash").Value;
 
         return gitHashInternal;
+    }
+
+    /// <summary>
+    /// Gets the amount of commits in the current branch, or null if undetermined.
+    /// </summary>
+    /// <returns>The amount of commits in the current branch.</returns>
+    public static int? GetGitCommitCount()
+    {
+        if (gitCommitCountInternal != null)
+            return gitCommitCountInternal.Value;
+
+        var asm = typeof(Util).Assembly;
+        var attrs = asm.GetCustomAttributes<AssemblyMetadataAttribute>();
+
+        var value = attrs.First(a => a.Key == "GitCommitCount").Value;
+        if (value == null)
+            return null;
+
+        gitCommitCountInternal = int.Parse(value);
+        return gitCommitCountInternal.Value;
     }
 
     /// <summary>
@@ -515,6 +538,12 @@ public static class Util
     }
 
     /// <summary>
+    /// Heuristically determine if the Windows version is higher than Windows 11's first build.
+    /// </summary>
+    /// <returns>If Windows 11 has been detected.</returns>
+    public static bool IsWindows11() => Environment.OSVersion.Version.Build >= 22000;
+
+    /// <summary>
     /// Open a link in the default browser.
     /// </summary>
     /// <param name="url">The link to open.</param>
@@ -525,6 +554,56 @@ public static class Util
             UseShellExecute = true,
         };
         Process.Start(process);
+    }
+
+    /// <summary>
+    /// Perform a "zipper merge" (A, 1, B, 2, C, 3) of multiple enumerables, allowing for lists to end early.
+    /// </summary>
+    /// <param name="sources">A set of enumerable sources to combine.</param>
+    /// <typeparam name="TSource">The resulting type of the merged list to return.</typeparam>
+    /// <returns>A new enumerable, consisting of the final merge of all lists.</returns>
+    public static IEnumerable<TSource> ZipperMerge<TSource>(params IEnumerable<TSource>[] sources)
+    {
+        // Borrowed from https://codereview.stackexchange.com/a/263451, thank you!
+        var enumerators = new IEnumerator<TSource>[sources.Length];
+        try
+        {
+            for (var i = 0; i < sources.Length; i++)
+            {
+                enumerators[i] = sources[i].GetEnumerator();
+            }
+
+            var hasNext = new bool[enumerators.Length];
+
+            bool MoveNext()
+            {
+                var anyHasNext = false;
+                for (var i = 0; i < enumerators.Length; i++)
+                {
+                    anyHasNext |= hasNext[i] = enumerators[i].MoveNext();
+                }
+
+                return anyHasNext;
+            }
+
+            while (MoveNext())
+            {
+                for (var i = 0; i < enumerators.Length; i++)
+                {
+                    if (hasNext[i])
+                    {
+                        yield return enumerators[i].Current;
+                    }
+                }
+            }
+        }
+        finally
+        {
+            foreach (var enumerator in enumerators)
+            {
+                enumerator?.Dispose();
+            }
+        }
     }
 
     /// <summary>
@@ -560,6 +639,22 @@ public static class Util
             else
                 Log.Error(e, logMessage);
         }
+    }
+
+    /// <summary>
+    /// Overwrite text in a file by first writing it to a temporary file, and then
+    /// moving that file to the path specified.
+    /// </summary>
+    /// <param name="path">The path of the file to write to.</param>
+    /// <param name="text">The text to write.</param>
+    internal static void WriteAllTextSafe(string path, string text)
+    {
+        var tmpPath = path + ".tmp";
+        if (File.Exists(tmpPath))
+            File.Delete(tmpPath);
+
+        File.WriteAllText(tmpPath, text);
+        File.Move(tmpPath, path, true);
     }
 
     private static unsafe void ShowValue(ulong addr, IEnumerable<string> path, Type type, object value)

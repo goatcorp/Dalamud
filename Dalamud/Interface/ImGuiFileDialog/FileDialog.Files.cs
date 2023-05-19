@@ -12,11 +12,13 @@ public partial class FileDialog
 {
     private readonly object filesLock = new();
 
+    private readonly DriveListLoader driveListLoader = new();
+
     private List<FileStruct> files = new();
     private List<FileStruct> filteredFiles = new();
 
     private SortingField currentSortingField = SortingField.FileName;
-    private bool[] sortDescending = new[] { false, false, false, false };
+    private bool[] sortDescending = { false, false, false, false };
 
     private enum FileStructType
     {
@@ -296,12 +298,14 @@ public partial class FileDialog
         }
     }
 
+    private IEnumerable<SideBarItem> GetDrives()
+    {
+        return this.driveListLoader.Drives.Select(drive => new SideBarItem(drive.Name, drive.Name, FontAwesomeIcon.Server));
+    }
+
     private void SetupSideBar()
     {
-        foreach (var drive in DriveInfo.GetDrives())
-        {
-            this.drives.Add(new SideBarItem(drive.Name, drive.Name, FontAwesomeIcon.Server));
-        }
+        _ = this.driveListLoader.LoadDrivesAsync();
 
         var personal = Path.GetDirectoryName(Environment.GetFolderPath(Environment.SpecialFolder.Personal));
 

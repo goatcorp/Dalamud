@@ -6,6 +6,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
 		.gitignore = .gitignore
+		targets\Dalamud.Plugin.targets = targets\Dalamud.Plugin.targets
+		targets\Dalamud.Plugin.Bootstrap.targets = targets\Dalamud.Plugin.Bootstrap.targets
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "build", "build\build.csproj", "{94E5B016-02B1-459B-97D9-E783F28764B2}"
@@ -35,6 +37,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FFXIVClientStructs.InteropSourceGenerators", "lib\FFXIVClientStructs\FFXIVClientStructs.InteropSourceGenerators\FFXIVClientStructs.InteropSourceGenerators.csproj", "{05AB2F46-268B-4915-806F-DDF813E2D59D}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DalamudCrashHandler", "DalamudCrashHandler\DalamudCrashHandler.vcxproj", "{317A264C-920B-44A1-8A34-F3A6827B0705}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dalamud.Interface", "Dalamud.Interface\Dalamud.Interface.csproj", "{757C997D-AA58-4241-8299-243C56514917}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -200,6 +204,18 @@ Global
 		{317A264C-920B-44A1-8A34-F3A6827B0705}.Release|x64.Build.0 = Release|x64
 		{317A264C-920B-44A1-8A34-F3A6827B0705}.Release|x86.ActiveCfg = Release|x64
 		{317A264C-920B-44A1-8A34-F3A6827B0705}.Release|x86.Build.0 = Release|x64
+		{757C997D-AA58-4241-8299-243C56514917}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{757C997D-AA58-4241-8299-243C56514917}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{757C997D-AA58-4241-8299-243C56514917}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{757C997D-AA58-4241-8299-243C56514917}.Debug|x64.Build.0 = Debug|Any CPU
+		{757C997D-AA58-4241-8299-243C56514917}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{757C997D-AA58-4241-8299-243C56514917}.Debug|x86.Build.0 = Debug|Any CPU
+		{757C997D-AA58-4241-8299-243C56514917}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{757C997D-AA58-4241-8299-243C56514917}.Release|Any CPU.Build.0 = Release|Any CPU
+		{757C997D-AA58-4241-8299-243C56514917}.Release|x64.ActiveCfg = Release|Any CPU
+		{757C997D-AA58-4241-8299-243C56514917}.Release|x64.Build.0 = Release|Any CPU
+		{757C997D-AA58-4241-8299-243C56514917}.Release|x86.ActiveCfg = Release|Any CPU
+		{757C997D-AA58-4241-8299-243C56514917}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

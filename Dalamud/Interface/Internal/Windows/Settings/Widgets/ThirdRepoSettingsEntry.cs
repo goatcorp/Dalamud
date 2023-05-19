@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -10,6 +10,7 @@ using Dalamud.Configuration;
 using Dalamud.Configuration.Internal;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Components;
+using Dalamud.Interface.Raii;
 using Dalamud.Plugin.Internal;
 using ImGuiNET;
 
@@ -50,13 +51,15 @@ public class ThirdRepoSettingsEntry : SettingsEntry
 
     public override void Draw()
     {
-        ImGui.Text(Loc.Localize("DalamudSettingsCustomRepo", "Custom Plugin Repositories"));
+        using var id = ImRaii.PushId("thirdRepo");
+        ImGui.TextUnformatted(Loc.Localize("DalamudSettingsCustomRepo", "Custom Plugin Repositories"));
         if (this.thirdRepoListChanged)
         {
-            ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.HealerGreen);
-            ImGui.SameLine();
-            ImGui.Text(Loc.Localize("DalamudSettingsChanged", "(Changed)"));
-            ImGui.PopStyleColor();
+            using (ImRaii.PushColor(ImGuiCol.Text, ImGuiColors.HealerGreen))
+            {
+                ImGui.SameLine();
+                ImGui.TextUnformatted(Loc.Localize("DalamudSettingsChanged", "(Changed)"));
+            }
         }
 
         ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingCustomRepoHint", "Add custom plugin repositories."));
@@ -75,20 +78,20 @@ public class ThirdRepoSettingsEntry : SettingsEntry
 
         ImGui.Separator();
 
-        ImGui.Text("#");
+        ImGui.TextUnformatted("#");
         ImGui.NextColumn();
-        ImGui.Text("URL");
+        ImGui.TextUnformatted("URL");
         ImGui.NextColumn();
-        ImGui.Text("Enabled");
+        ImGui.TextUnformatted("Enabled");
         ImGui.NextColumn();
-        ImGui.Text(string.Empty);
+        ImGui.TextUnformatted(string.Empty);
         ImGui.NextColumn();
 
         ImGui.Separator();
 
-        ImGui.Text("0");
+        ImGui.TextUnformatted("0");
         ImGui.NextColumn();
-        ImGui.Text("XIVLauncher");
+        ImGui.TextUnformatted("XIVLauncher");
         ImGui.NextColumn();
         ImGui.NextColumn();
         ImGui.NextColumn();
@@ -101,10 +104,10 @@ public class ThirdRepoSettingsEntry : SettingsEntry
         {
             var isEnabled = thirdRepoSetting.IsEnabled;
 
-            ImGui.PushID($"thirdRepo_{thirdRepoSetting.Url}");
+            id.Push(thirdRepoSetting.Url);
 
             ImGui.SetCursorPosX(ImGui.GetCursorPosX() + (ImGui.GetColumnWidth() / 2) - 8 - (ImGui.CalcTextSize(repoNumber.ToString()).X / 2));
-            ImGui.Text(repoNumber.ToString());
+            ImGui.TextUnformatted(repoNumber.ToString());
             ImGui.NextColumn();
 
             ImGui.SetNextItemWidth(-1);
@@ -119,6 +122,11 @@ public class ThirdRepoSettingsEntry : SettingsEntry
                 else if (contains && thirdRepoSetting.Url != url)
                 {
                     this.thirdRepoAddError = Loc.Localize("DalamudThirdRepoExists", "Repo already exists.");
+                    Task.Delay(5000).ContinueWith(t => this.thirdRepoAddError = string.Empty);
+                }
+                else if (!ValidThirdPartyRepoUrl(url))
+                {
+                    this.thirdRepoAddError = Loc.Localize("DalamudThirdRepoNotUrl", "The entered address is not a valid URL.\nDid you mean to enter it as a DevPlugin in the fields above instead?");
                     Task.Delay(5000).ContinueWith(t => this.thirdRepoAddError = string.Empty);
                 }
                 else
@@ -143,7 +151,7 @@ public class ThirdRepoSettingsEntry : SettingsEntry
                 repoToRemove = thirdRepoSetting;
             }
 
-            ImGui.PopID();
+            id.Pop();
 
             ImGui.NextColumn();
             ImGui.Separator();
@@ -160,7 +168,7 @@ public class ThirdRepoSettingsEntry : SettingsEntry
         }
 
         ImGui.SetCursorPosX(ImGui.GetCursorPosX() + (ImGui.GetColumnWidth() / 2) - 8 - (ImGui.CalcTextSize(repoNumber.ToString()).X / 2));
-        ImGui.Text(repoNumber.ToString());
+        ImGui.TextUnformatted(repoNumber.ToString());
         ImGui.NextColumn();
         ImGui.SetNextItemWidth(-1);
         ImGui.InputText("##thirdRepoUrlInput", ref this.thirdRepoTempUrl, 300);
@@ -173,6 +181,11 @@ public class ThirdRepoSettingsEntry : SettingsEntry
             if (this.thirdRepoList.Any(r => string.Equals(r.Url, this.thirdRepoTempUrl, StringComparison.InvariantCultureIgnoreCase)))
             {
                 this.thirdRepoAddError = Loc.Localize("DalamudThirdRepoExists", "Repo already exists.");
+                Task.Delay(5000).ContinueWith(t => this.thirdRepoAddError = string.Empty);
+            }
+            else if (!ValidThirdPartyRepoUrl(this.thirdRepoTempUrl))
+            {
+                this.thirdRepoAddError = Loc.Localize("DalamudThirdRepoNotUrl", "The entered address is not a valid URL.\nDid you mean to enter it as a DevPlugin in the fields above instead?");
                 Task.Delay(5000).ContinueWith(t => this.thirdRepoAddError = string.Empty);
             }
             else
@@ -194,4 +207,8 @@ public class ThirdRepoSettingsEntry : SettingsEntry
             ImGuiHelpers.SafeTextColoredWrapped(new Vector4(1, 0, 0, 1), this.thirdRepoAddError);
         }
     }
+
+    private static bool ValidThirdPartyRepoUrl(string url)
+        => Uri.TryCreate(url, UriKind.Absolute, out var uriResult)
+        && (uriResult.Scheme == Uri.UriSchemeHttps || uriResult.Scheme == Uri.UriSchemeHttp);
 }

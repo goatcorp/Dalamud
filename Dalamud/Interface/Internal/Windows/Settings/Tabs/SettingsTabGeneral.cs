@@ -27,7 +27,8 @@ public class SettingsTabGeneral : SettingsTab
                     return Loc.Localize("DalamudSettingsChannelNone", "Do not pick \"None\".");
 
                 return null;
-            }),
+            },
+            fallbackValue: XivChatType.Debug),
 
         new GapSettingsEntry(5),
 
@@ -48,6 +49,12 @@ public class SettingsTabGeneral : SettingsTab
             Loc.Localize("DalamudSettingsDutyFinderMessageHint", "Send a message in FFXIV chat when a duty is ready."),
             c => c.DutyFinderChatMessage,
             (v, c) => c.DutyFinderChatMessage = v),
+
+        new SettingsEntry<bool>(
+            Loc.Localize("DalamudSettingsPrintDalamudWelcomeMsg", "Display Dalamud's welcome message"),
+            Loc.Localize("DalamudSettingsPrintDalamudWelcomeMsgHint", "Display Dalamud's welcome message in FFXIV chat when logging in with a character."),
+            c => c.PrintDalamudWelcomeMsg,
+            (v, c) => c.PrintDalamudWelcomeMsg = v),
 
         new SettingsEntry<bool>(
             Loc.Localize("DalamudSettingsPrintPluginsWelcomeMsg", "Display loaded plugins in the welcome message"),

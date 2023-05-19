@@ -7,6 +7,7 @@ using System.Linq;
 using Dalamud.Configuration.Internal;
 
 using Dalamud.Interface.Colors;
+using Dalamud.Interface.Raii;
 using Dalamud.Utility;
 using ImGuiNET;
 
@@ -20,8 +21,10 @@ internal sealed class SettingsEntry<T> : SettingsEntry
     private readonly Action<T?>? change;
 
     private object? valueBacking;
+    private object? fallbackValue;
 
-    public SettingsEntry(string name, string description, LoadSettingDelegate load, SaveSettingDelegate save, Action<T?>? change = null, Func<T?, string?>? warning = null, Func<T?, string?>? validity = null)
+    public SettingsEntry(string name, string description, LoadSettingDelegate load, SaveSettingDelegate save, Action<T?>? change = null, Func<T?, string?>? warning = null, Func<T?, string?>? validity = null, Func<bool>? visibility = null,
+                         object? fallbackValue = null)
     {
         this.load = load;
         this.save = save;
@@ -30,6 +33,9 @@ internal sealed class SettingsEntry<T> : SettingsEntry
         this.Description = description;
         this.CheckWarning = warning;
         this.CheckValidity = validity;
+        this.CheckVisibility = visibility;
+
+        this.fallbackValue = fallbackValue;
     }
 
     public delegate T? LoadSettingDelegate(DalamudConfiguration config);
@@ -96,6 +102,12 @@ internal sealed class SettingsEntry<T> : SettingsEntry
             var descriptions =
                 values.Cast<Enum>().ToDictionary(x => x, x => x.GetAttribute<SettingsAnnotationAttribute>() ?? new SettingsAnnotationAttribute(x.ToString(), string.Empty));
 
+            if (!descriptions.ContainsKey(idx))
+            {
+                idx = (Enum)this.fallbackValue ?? throw new Exception("No fallback value for enum");
+                this.valueBacking = idx;
+            }
+
             if (ImGui.BeginCombo($"###{this.Id.ToString()}", descriptions[idx].FriendlyName))
             {
                 foreach (Enum value in values)
@@ -110,9 +122,10 @@ internal sealed class SettingsEntry<T> : SettingsEntry
             }
         }
 
-        ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudGrey);
-        ImGuiHelpers.SafeTextWrapped(this.Description);
-        ImGui.PopStyleColor();
+        using (ImRaii.PushColor(ImGuiCol.Text, ImGuiColors.DalamudGrey))
+        {
+            ImGuiHelpers.SafeTextWrapped(this.Description);
+        }
 
         if (this.CheckValidity != null)
         {
@@ -121,9 +134,10 @@ internal sealed class SettingsEntry<T> : SettingsEntry
 
             if (!this.IsValid)
             {
-                ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudRed);
-                ImGui.Text(validityMsg);
-                ImGui.PopStyleColor();
+                using (ImRaii.PushColor(ImGuiCol.Text, ImGuiColors.DalamudRed))
+                {
+                    ImGui.Text(validityMsg);
+                }
             }
         }
         else
@@ -135,9 +149,10 @@ internal sealed class SettingsEntry<T> : SettingsEntry
 
         if (warningMessage != null)
         {
-            ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudRed);
-            ImGui.Text(warningMessage);
-            ImGui.PopStyleColor();
+            using (ImRaii.PushColor(ImGuiCol.Text, ImGuiColors.DalamudRed))
+            {
+                ImGui.Text(warningMessage);
+            }
         }
     }
 

@@ -20,6 +20,7 @@ using Dalamud.Interface.Internal.Windows.PluginInstaller;
 using Dalamud.Interface.Internal.Windows.SelfTest;
 using Dalamud.Interface.Internal.Windows.Settings;
 using Dalamud.Interface.Internal.Windows.StyleEditor;
+using Dalamud.Interface.Raii;
 using Dalamud.Interface.Style;
 using Dalamud.Interface.Windowing;
 using Dalamud.Logging;
@@ -61,6 +62,7 @@ internal class DalamudInterface : IDisposable, IServiceType
     private readonly TitleScreenMenuWindow titleScreenMenuWindow;
     private readonly ProfilerWindow profilerWindow;
     private readonly BranchSwitcherWindow branchSwitcherWindow;
+    private readonly HitchSettingsWindow hitchSettingsWindow;
 
     private readonly TextureWrap logoTexture;
     private readonly TextureWrap tsmLogoTexture;
@@ -108,6 +110,7 @@ internal class DalamudInterface : IDisposable, IServiceType
         this.titleScreenMenuWindow = new TitleScreenMenuWindow() { IsOpen = false };
         this.profilerWindow = new ProfilerWindow() { IsOpen = false };
         this.branchSwitcherWindow = new BranchSwitcherWindow() { IsOpen = false };
+        this.hitchSettingsWindow = new HitchSettingsWindow() { IsOpen = false };
 
         this.WindowSystem.AddWindow(this.changelogWindow);
         this.WindowSystem.AddWindow(this.colorDemoWindow);
@@ -124,6 +127,7 @@ internal class DalamudInterface : IDisposable, IServiceType
         this.WindowSystem.AddWindow(this.titleScreenMenuWindow);
         this.WindowSystem.AddWindow(this.profilerWindow);
         this.WindowSystem.AddWindow(this.branchSwitcherWindow);
+        this.WindowSystem.AddWindow(this.hitchSettingsWindow);
 
         ImGuiManagedAsserts.AssertsEnabled = configuration.AssertsEnabledAtStartup;
         this.isImGuiDrawDevMenu = this.isImGuiDrawDevMenu || configuration.DevBarOpenAtStartup;
@@ -264,6 +268,15 @@ internal class DalamudInterface : IDisposable, IServiceType
     }
 
     /// <summary>
+    /// Opens the <see cref="PluginInstallerWindow"/> on the plugin installed.
+    /// </summary>
+    public void OpenPluginInstallerPluginInstalled()
+    {
+        this.pluginWindow.OpenInstalledPlugins();
+        this.pluginWindow.BringToFront();
+    }
+
+    /// <summary>
     /// Opens the <see cref="PluginInstallerWindow"/> on the plugin changelogs.
     /// </summary>
     public void OpenPluginInstallerPluginChangelogs()
@@ -306,6 +319,15 @@ internal class DalamudInterface : IDisposable, IServiceType
     {
         this.profilerWindow.IsOpen = true;
         this.profilerWindow.BringToFront();
+    }
+    
+    /// <summary>
+    /// Opens the <see cref="HitchSettingsWindow"/>.
+    /// </summary>
+    public void OpenHitchSettings()
+    {
+        this.hitchSettingsWindow.IsOpen = true;
+        this.hitchSettingsWindow.BringToFront();
     }
 
     /// <summary>
@@ -421,6 +443,15 @@ internal class DalamudInterface : IDisposable, IServiceType
     #endregion
 
     /// <summary>
+    /// Sets the current search text for the plugin installer.
+    /// </summary>
+    /// <param name="text">The search term.</param>
+    public void SetPluginInstallerSearchText(string text)
+    {
+        this.pluginWindow.SetSearchText(text);
+    }
+
+    /// <summary>
     /// Toggle the screen darkening effect used for the credits.
     /// </summary>
     /// <param name="status">Whether or not to turn the effect on.</param>
@@ -492,7 +523,8 @@ internal class DalamudInterface : IDisposable, IServiceType
 
     private void DrawCreditsDarkeningAnimation()
     {
-        ImGui.PushStyleVar(ImGuiStyleVar.WindowRounding, 0f);
+        using var style = ImRaii.PushStyle(ImGuiStyleVar.WindowRounding, 0f);
+
         ImGui.SetNextWindowPos(new Vector2(0, 0));
         ImGui.SetNextWindowSize(ImGuiHelpers.MainViewport.Size);
         ImGuiHelpers.ForceNextWindowMainViewport();
@@ -506,8 +538,6 @@ internal class DalamudInterface : IDisposable, IServiceType
             ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoFocusOnAppearing | ImGuiWindowFlags.NoBringToFrontOnFocus |
             ImGuiWindowFlags.NoNav);
         ImGui.End();
-
-        ImGui.PopStyleVar();
     }
 
     private void DrawHiddenDevMenuOpener()
@@ -516,18 +546,17 @@ internal class DalamudInterface : IDisposable, IServiceType
 
         if (!this.isImGuiDrawDevMenu && !condition.Any())
         {
-            ImGui.PushStyleColor(ImGuiCol.Button, Vector4.Zero);
-            ImGui.PushStyleColor(ImGuiCol.ButtonActive, Vector4.Zero);
-            ImGui.PushStyleColor(ImGuiCol.ButtonHovered, Vector4.Zero);
-            ImGui.PushStyleColor(ImGuiCol.TextSelectedBg, new Vector4(0, 0, 0, 1));
-            ImGui.PushStyleColor(ImGuiCol.Border, new Vector4(0, 0, 0, 1));
-            ImGui.PushStyleColor(ImGuiCol.BorderShadow, new Vector4(0, 0, 0, 1));
-            ImGui.PushStyleColor(ImGuiCol.WindowBg, new Vector4(0, 0, 0, 1));
+            using var color = ImRaii.PushColor(ImGuiCol.Button, Vector4.Zero);
+            color.Push(ImGuiCol.ButtonActive, Vector4.Zero);
+            color.Push(ImGuiCol.ButtonHovered, Vector4.Zero);
+            color.Push(ImGuiCol.TextSelectedBg, new Vector4(0, 0, 0, 1));
+            color.Push(ImGuiCol.Border, new Vector4(0, 0, 0, 1));
+            color.Push(ImGuiCol.BorderShadow, new Vector4(0, 0, 0, 1));
+            color.Push(ImGuiCol.WindowBg, new Vector4(0, 0, 0, 1));
 
-            ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, Vector2.Zero);
-            ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, Vector2.Zero);
-            ImGui.PushStyleVar(ImGuiStyleVar.WindowBorderSize, 0);
-            ImGui.PushStyleVar(ImGuiStyleVar.FrameBorderSize, 0);
+            using var style = ImRaii.PushStyle(ImGuiStyleVar.WindowPadding, Vector2.Zero);
+            style.Push(ImGuiStyleVar.WindowBorderSize, 0);
+            style.Push(ImGuiStyleVar.FrameBorderSize, 0);
 
             var windowPos = ImGui.GetMainViewport().Pos + new Vector2(20);
             ImGui.SetNextWindowPos(windowPos, ImGuiCond.Always);
@@ -559,9 +588,6 @@ internal class DalamudInterface : IDisposable, IServiceType
 
                 ImGui.End();
             }
-
-            ImGui.PopStyleVar(4);
-            ImGui.PopStyleColor(7);
         }
     }
 
@@ -677,6 +703,11 @@ internal class DalamudInterface : IDisposable, IServiceType
                         this.OpenProfiler();
                     }
 
+                    if (ImGui.MenuItem("Open Hitch Settings"))
+                    {
+                        this.OpenHitchSettings();
+                    }
+
                     ImGui.Separator();
 
                     if (ImGui.MenuItem("Unload Dalamud"))
@@ -724,6 +755,12 @@ internal class DalamudInterface : IDisposable, IServiceType
                         }
                     }
 
+                    if (ImGui.MenuItem("Report crashes at shutdown", null, configuration.ReportShutdownCrashes))
+                    {
+                        configuration.ReportShutdownCrashes = !configuration.ReportShutdownCrashes;
+                        configuration.QueueSave();
+                    }
+
                     ImGui.Separator();
 
                     if (ImGui.MenuItem("Open Dalamud branch switcher"))
@@ -733,7 +770,7 @@ internal class DalamudInterface : IDisposable, IServiceType
 
                     ImGui.MenuItem(Util.AssemblyVersion, false);
                     ImGui.MenuItem(startInfo.GameVersion?.ToString() ?? "Unknown version", false);
-                    ImGui.MenuItem($"D: {Util.GetGitHash()} CS: {Util.GetGitHashClientStructs()} [{FFXIVClientStructs.Interop.Resolver.Version}]", false);
+                    ImGui.MenuItem($"D: {Util.GetGitHash()}[{Util.GetGitCommitCount()}] CS: {Util.GetGitHashClientStructs()}[{FFXIVClientStructs.Interop.Resolver.Version}]", false);
                     ImGui.MenuItem($"CLR: {Environment.Version}", false);
 
                     ImGui.EndMenu();
@@ -909,7 +946,7 @@ internal class DalamudInterface : IDisposable, IServiceType
                 {
                     ImGui.PushFont(InterfaceManager.MonoFont);
 
-                    ImGui.BeginMenu(Util.GetGitHash(), false);
+                    ImGui.BeginMenu($"{Util.GetGitHash()}({Util.GetGitCommitCount()})", false);
                     ImGui.BeginMenu(this.FrameCount.ToString("000000"), false);
                     ImGui.BeginMenu(ImGui.GetIO().Framerate.ToString("000"), false);
                     ImGui.BeginMenu($"W:{Util.FormatBytes(GC.GetTotalMemory(false))}", false);

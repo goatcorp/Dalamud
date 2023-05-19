@@ -1,6 +1,7 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using System.Linq;
 using System.Numerics;
 using System.Threading.Tasks;
@@ -10,6 +11,7 @@ using Dalamud.Configuration;
 using Dalamud.Configuration.Internal;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Components;
+using Dalamud.Interface.Raii;
 using Dalamud.Plugin.Internal;
 using ImGuiNET;
 
@@ -54,13 +56,15 @@ public class DevPluginsSettingsEntry : SettingsEntry
 
     public override void Draw()
     {
-        ImGui.Text(this.Name);
+        using var id = ImRaii.PushId("devPluginLocation");
+        ImGui.TextUnformatted(this.Name);
         if (this.devPluginLocationsChanged)
         {
-            ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.HealerGreen);
-            ImGui.SameLine();
-            ImGui.Text(Loc.Localize("DalamudSettingsChanged", "(Changed)"));
-            ImGui.PopStyleColor();
+            using (ImRaii.PushColor(ImGuiCol.Text, ImGuiColors.HealerGreen))
+            {
+                ImGui.SameLine();
+                ImGui.TextUnformatted(Loc.Localize("DalamudSettingsChanged", "(Changed)"));
+            }
         }
 
         ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingsDevPluginLocationsHint", "Add additional dev plugin load locations.\nThese can be either the directory or DLL path."));
@@ -75,13 +79,13 @@ public class DevPluginsSettingsEntry : SettingsEntry
 
         ImGui.Separator();
 
-        ImGui.Text("#");
+        ImGui.TextUnformatted("#");
         ImGui.NextColumn();
-        ImGui.Text("Path");
+        ImGui.TextUnformatted("Path");
         ImGui.NextColumn();
-        ImGui.Text("Enabled");
+        ImGui.TextUnformatted("Enabled");
         ImGui.NextColumn();
-        ImGui.Text(string.Empty);
+        ImGui.TextUnformatted(string.Empty);
         ImGui.NextColumn();
 
         ImGui.Separator();
@@ -93,10 +97,10 @@ public class DevPluginsSettingsEntry : SettingsEntry
         {
             var isEnabled = devPluginLocationSetting.IsEnabled;
 
-            ImGui.PushID($"devPluginLocation_{devPluginLocationSetting.Path}");
+            id.Push(devPluginLocationSetting.Path);
 
             ImGui.SetCursorPosX(ImGui.GetCursorPosX() + (ImGui.GetColumnWidth() / 2) - 8 - (ImGui.CalcTextSize(locNumber.ToString()).X / 2));
-            ImGui.Text(locNumber.ToString());
+            ImGui.TextUnformatted(locNumber.ToString());
             ImGui.NextColumn();
 
             ImGui.SetNextItemWidth(-1);
@@ -111,6 +115,11 @@ public class DevPluginsSettingsEntry : SettingsEntry
                 else if (contains && devPluginLocationSetting.Path != path)
                 {
                     this.devPluginLocationAddError = Loc.Localize("DalamudDevPluginLocationExists", "Location already exists.");
+                    Task.Delay(5000).ContinueWith(t => this.devPluginLocationAddError = string.Empty);
+                }
+                else if (!ValidDevPluginPath(path))
+                {
+                    this.devPluginLocationAddError = Loc.Localize("DalamudDevPluginInvalid", "The entered value is not a valid path to a potential Dev Plugin.\nDid you mean to enter it as a custom plugin repository in the fields below instead?");
                     Task.Delay(5000).ContinueWith(t => this.devPluginLocationAddError = string.Empty);
                 }
                 else
@@ -131,7 +140,7 @@ public class DevPluginsSettingsEntry : SettingsEntry
                 locationToRemove = devPluginLocationSetting;
             }
 
-            ImGui.PopID();
+            id.Pop();
 
             ImGui.NextColumn();
             ImGui.Separator();
@@ -148,7 +157,7 @@ public class DevPluginsSettingsEntry : SettingsEntry
         }
 
         ImGui.SetCursorPosX(ImGui.GetCursorPosX() + (ImGui.GetColumnWidth() / 2) - 8 - (ImGui.CalcTextSize(locNumber.ToString()).X / 2));
-        ImGui.Text(locNumber.ToString());
+        ImGui.TextUnformatted(locNumber.ToString());
         ImGui.NextColumn();
         ImGui.SetNextItemWidth(-1);
         ImGui.InputText("##devPluginLocationInput", ref this.devPluginTempLocation, 300);
@@ -160,6 +169,11 @@ public class DevPluginsSettingsEntry : SettingsEntry
             if (this.devPluginLocations.Any(r => string.Equals(r.Path, this.devPluginTempLocation, StringComparison.InvariantCultureIgnoreCase)))
             {
                 this.devPluginLocationAddError = Loc.Localize("DalamudDevPluginLocationExists", "Location already exists.");
+                Task.Delay(5000).ContinueWith(t => this.devPluginLocationAddError = string.Empty);
+            }
+            else if (!ValidDevPluginPath(this.devPluginTempLocation))
+            {
+                this.devPluginLocationAddError = Loc.Localize("DalamudDevPluginInvalid", "The entered value is not a valid path to a potential Dev Plugin.\nDid you mean to enter it as a custom plugin repository in the fields below instead?");
                 Task.Delay(5000).ContinueWith(t => this.devPluginLocationAddError = string.Empty);
             }
             else
@@ -181,4 +195,7 @@ public class DevPluginsSettingsEntry : SettingsEntry
             ImGuiHelpers.SafeTextColoredWrapped(new Vector4(1, 0, 0, 1), this.devPluginLocationAddError);
         }
     }
+
+    private static bool ValidDevPluginPath(string path)
+        => Path.IsPathRooted(path) && (Path.GetExtension(path) == ".dll" || !Path.Exists(path) || Directory.Exists(path));
 }

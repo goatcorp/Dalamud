@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using Dalamud.Configuration.Internal;
 using Dalamud.Game.Gui;
 using Dalamud.Game.Gui.Toast;
-using Dalamud.Game.Network;
 using Dalamud.Hooking;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
@@ -26,9 +25,12 @@ namespace Dalamud.Game;
 [ServiceManager.BlockingEarlyLoadedService]
 public sealed class Framework : IDisposable, IServiceType
 {
+    private readonly GameLifecycle lifecycle;
+
     private static Stopwatch statsStopwatch = new();
 
     private readonly Stopwatch updateStopwatch = new();
+    private readonly HitchDetector hitchDetector;
 
     private readonly Hook<OnUpdateDetour> updateHook;
     private readonly Hook<OnRealDestroyDelegate> destroyHook;
@@ -39,9 +41,15 @@ public sealed class Framework : IDisposable, IServiceType
 
     private Thread? frameworkUpdateThread;
 
+    [ServiceManager.ServiceDependency]
+    private readonly DalamudConfiguration configuration = Service<DalamudConfiguration>.Get();
+
     [ServiceManager.ServiceConstructor]
-    private Framework(SigScanner sigScanner)
+    private Framework(SigScanner sigScanner, GameLifecycle lifecycle)
     {
+        this.lifecycle = lifecycle;
+        this.hitchDetector = new HitchDetector("FrameworkUpdate", this.configuration.FrameworkUpdateHitch);
+
         this.Address = new FrameworkAddressResolver();
         this.Address.Setup(sigScanner);
 
@@ -368,18 +376,18 @@ public sealed class Framework : IDisposable, IServiceType
 
         ThreadSafety.MarkMainThread();
 
+        this.hitchDetector.Start();
+
         try
         {
             var chatGui = Service<ChatGui>.GetNullable();
             var toastGui = Service<ToastGui>.GetNullable();
-            var gameNetwork = Service<GameNetwork>.GetNullable();
             var config = Service<DalamudConfiguration>.GetNullable();
-            if (chatGui == null || toastGui == null || gameNetwork == null)
+            if (chatGui == null || toastGui == null)
                 goto original;
 
             chatGui.UpdateQueue();
             toastGui.UpdateQueue();
-            gameNetwork.UpdateQueue();
 
             config?.Update();
         }
@@ -397,7 +405,31 @@ public sealed class Framework : IDisposable, IServiceType
             this.LastUpdate = DateTime.Now;
             this.LastUpdateUTC = DateTime.UtcNow;
 
-            this.RunPendingTickTasks();
+            void AddToStats(string key, double ms)
+            {
+                if (!StatsHistory.ContainsKey(key))
+                    StatsHistory.Add(key, new List<double>());
+
+                StatsHistory[key].Add(ms);
+
+                if (StatsHistory[key].Count > 1000)
+                {
+                    StatsHistory[key].RemoveRange(0, StatsHistory[key].Count - 1000);
+                }
+            }
+
+            if (StatsEnabled)
+            {
+                statsStopwatch.Restart();
+                this.RunPendingTickTasks();
+                statsStopwatch.Stop();
+
+                AddToStats(nameof(this.RunPendingTickTasks), statsStopwatch.Elapsed.TotalMilliseconds);
+            }
+            else
+            {
+                this.RunPendingTickTasks();
+            }
 
             if (StatsEnabled && this.Update != null)
             {
@@ -424,20 +456,15 @@ public sealed class Framework : IDisposable, IServiceType
                     if (notUpdated.Contains(key))
                         notUpdated.Remove(key);
 
-                    if (!StatsHistory.ContainsKey(key))
-                        StatsHistory.Add(key, new List<double>());
-
-                    StatsHistory[key].Add(statsStopwatch.Elapsed.TotalMilliseconds);
-
-                    if (StatsHistory[key].Count > 1000)
-                    {
-                        StatsHistory[key].RemoveRange(0, StatsHistory[key].Count - 1000);
-                    }
+                    AddToStats(key, statsStopwatch.Elapsed.TotalMilliseconds);
                 }
 
                 // Cleanup handlers that are no longer being called
                 foreach (var key in notUpdated)
                 {
+                    if (key == nameof(this.RunPendingTickTasks))
+                        continue;
+
                     if (StatsHistory[key].Count > 0)
                     {
                         StatsHistory[key].RemoveAt(0);
@@ -454,6 +481,8 @@ public sealed class Framework : IDisposable, IServiceType
             }
         }
 
+        this.hitchDetector.Stop();
+
         original:
         return this.updateHook.OriginalDisposeSafe(framework);
     }
@@ -463,10 +492,14 @@ public sealed class Framework : IDisposable, IServiceType
         this.IsFrameworkUnloading = true;
         this.DispatchUpdateEvents = false;
 
+        // All the same, for now...
+        this.lifecycle.SetShuttingDown();
+        this.lifecycle.SetUnloading();
+
         Log.Information("Framework::Destroy!");
         Service<Dalamud>.Get().Unload();
         this.RunPendingTickTasks();
-        ServiceManager.UnloadAllServices();
+        ServiceManager.WaitForServiceUnload();
         Log.Information("Framework::Destroy OK!");
 
         return this.destroyHook.OriginalDisposeSafe(framework);

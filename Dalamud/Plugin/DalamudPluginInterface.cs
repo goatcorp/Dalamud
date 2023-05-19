@@ -17,6 +17,7 @@ using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Interface;
 using Dalamud.Interface.Internal;
+using Dalamud.Interface.Internal.Windows.PluginInstaller;
 using Dalamud.Plugin.Internal;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Plugin.Ipc;
@@ -104,6 +105,11 @@ public sealed class DalamudPluginInterface : IDisposable
     public string SourceRepository { get; }
 
     /// <summary>
+    /// Gets the current internal plugin name.
+    /// </summary>
+    public string InternalName => this.pluginName;
+    
+    /// <summary>
     /// Gets a value indicating whether this is a dev plugin.
     /// </summary>
     public bool IsDev => this.plugin.IsDev;
@@ -184,12 +190,37 @@ public sealed class DalamudPluginInterface : IDisposable
     /// <summary>
     /// Gets a list of installed plugin names.
     /// </summary>
+    [Obsolete($"This property is obsolete. Use {nameof(InstalledPlugins)} instead.")]
     public List<string> PluginNames => Service<PluginManager>.Get().InstalledPlugins.Select(p => p.Manifest.Name).ToList();
 
     /// <summary>
     /// Gets a list of installed plugin internal names.
     /// </summary>
+    [Obsolete($"This property is obsolete. Use {nameof(InstalledPlugins)} instead.")]
     public List<string> PluginInternalNames => Service<PluginManager>.Get().InstalledPlugins.Select(p => p.Manifest.InternalName).ToList();
+
+    /// <summary>
+    /// Gets a list of installed plugins along with their current state.
+    /// </summary>
+    public IEnumerable<InstalledPluginState> InstalledPlugins => Service<PluginManager>.Get().InstalledPlugins.Select(p => new InstalledPluginState(p.Name, p.Manifest.InternalName, p.IsLoaded, p.Manifest.EffectiveVersion));
+
+    /// <summary>
+    /// Opens the <see cref="PluginInstallerWindow"/> with the plugin name set as search target.
+    /// </summary>
+    /// <returns>Returns false if the DalamudInterface was null.</returns>
+    public bool OpenPluginInstaller()
+    {
+        var dalamudInterface = Service<DalamudInterface>.GetNullable(); // Can be null during boot
+        if (dalamudInterface == null)
+        {
+            return false;
+        }
+
+        dalamudInterface.OpenPluginInstallerPluginInstalled();
+        dalamudInterface.SetPluginInstallerSearchText(this.pluginName);
+
+        return true;
+    }
 
     #region IPC
 

@@ -29,10 +29,16 @@ internal class DalamudCommands : IServiceType
             HelpMessage = Loc.Localize("DalamudUnloadHelp", "Unloads XIVLauncher in-game addon."),
             ShowInHelp = false,
         });
+        
+        commandManager.AddHandler("/xlkill", new CommandInfo(this.OnKillCommand)
+        {
+            HelpMessage = "Kill the game.",
+            ShowInHelp = false,
+        });
 
         commandManager.AddHandler("/xlhelp", new CommandInfo(this.OnHelpCommand)
         {
-            HelpMessage = Loc.Localize("DalamudCmdInfoHelp", "Shows list of commands available."),
+            HelpMessage = Loc.Localize("DalamudCmdInfoHelp", "Shows list of commands available. If an argument is provided, shows help for that command."),
         });
 
         commandManager.AddHandler("/xlmute", new CommandInfo(this.OnBadWordsAddCommand)
@@ -141,21 +147,35 @@ internal class DalamudCommands : IServiceType
         Service<ChatGui>.Get().Print("Unloading...");
         Service<Dalamud>.Get().Unload();
     }
+    
+    private void OnKillCommand(string command, string arguments)
+    {
+        Process.GetCurrentProcess().Kill();
+    }
 
     private void OnHelpCommand(string command, string arguments)
     {
         var chatGui = Service<ChatGui>.Get();
         var commandManager = Service<CommandManager>.Get();
 
-        var showDebug = arguments.Contains("debug");
-
-        chatGui.Print(Loc.Localize("DalamudCmdHelpAvailable", "Available commands:"));
-        foreach (var cmd in commandManager.Commands)
+        if (arguments.IsNullOrWhitespace())
         {
-            if (!cmd.Value.ShowInHelp && !showDebug)
-                continue;
+            chatGui.Print(Loc.Localize("DalamudCmdHelpAvailable", "Available commands:"));
+            foreach (var cmd in commandManager.Commands)
+            {
+                if (!cmd.Value.ShowInHelp)
+                    continue;
 
-            chatGui.Print($"{cmd.Key}: {cmd.Value.HelpMessage}");
+                chatGui.Print($"{cmd.Key}: {cmd.Value.HelpMessage}");
+            }
+        }
+        else
+        {
+            var trimmedArguments = arguments.Trim();
+            var targetCommandText = trimmedArguments[0] == '/' ? trimmedArguments : $"/{trimmedArguments}";
+            chatGui.Print(commandManager.Commands.TryGetValue(targetCommandText, out var targetCommand)
+                              ? $"{targetCommandText}: {targetCommand.HelpMessage}"
+                              : Loc.Localize("DalamudCmdHelpNotFound", "Command not found."));
         }
     }
 

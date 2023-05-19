@@ -1394,6 +1394,40 @@ internal static partial class NativeFunctions
     }
 
     /// <summary>
+    /// HEAP_* from heapapi
+    /// </summary>
+    [Flags]
+    public enum HeapOptions
+    {
+        /// <summary>
+        /// Serialized access is not used when the heap functions access this heap. This option applies to all
+        /// subsequent heap function calls. Alternatively, you can specify this option on individual heap function
+        /// calls. The low-fragmentation heap (LFH) cannot be enabled for a heap created with this option. A heap
+        /// created with this option cannot be locked.
+        /// </summary>
+        NoSerialize = 0x00000001,
+        
+        /// <summary>
+        /// The system raises an exception to indicate failure (for example, an out-of-memory condition) for calls to
+        /// HeapAlloc and HeapReAlloc instead of returning NULL.
+        /// </summary>
+        GenerateExceptions = 0x00000004,
+        
+        /// <summary>
+        /// The allocated memory will be initialized to zero. Otherwise, the memory is not initialized to zero.
+        /// </summary>
+        ZeroMemory = 0x00000008,
+    
+        /// <summary>
+        /// All memory blocks that are allocated from this heap allow code execution, if the hardware enforces data
+        /// execution prevention. Use this flag heap in applications that run code from the heap. If
+        /// HEAP_CREATE_ENABLE_EXECUTE is not specified and an application attempts to run code from a protected page,
+        /// the application receives an exception with the status code STATUS_ACCESS_VIOLATION.
+        /// </summary>
+        CreateEnableExecute = 0x00040000,
+    }
+
+    /// <summary>
     /// See https://docs.microsoft.com/en-us/windows/win32/api/synchapi/nf-synchapi-setevent
     /// Sets the specified event object to the signaled state.
     /// </summary>
@@ -1630,6 +1664,77 @@ internal static partial class NativeFunctions
     [DllImport("kernel32.dll")]
     public static extern IntPtr SetUnhandledExceptionFilter(IntPtr lpTopLevelExceptionFilter);
 
+    /// <summary>
+    /// HeapCreate - Creates a private heap object that can be used by the calling process.
+    /// The function reserves space in the virtual address space of the process and allocates
+    /// physical storage for a specified initial portion of this block.
+    /// Ref: https://learn.microsoft.com/en-us/windows/win32/api/heapapi/nf-heapapi-heapcreate
+    /// </summary>
+    /// <param name="flOptions">
+    /// The heap allocation options.
+    /// These options affect subsequent access to the new heap through calls to the heap functions.
+    /// </param>
+    /// <param name="dwInitialSize">
+    /// The initial size of the heap, in bytes.
+    ///
+    /// This value determines the initial amount of memory that is committed for the heap.
+    /// The value is rounded up to a multiple of the system page size. The value must be smaller than dwMaximumSize.
+    /// 
+    /// If this parameter is 0, the function commits one page. To determine the size of a page on the host computer,
+    /// use the GetSystemInfo function.
+    /// </param>
+    /// <param name="dwMaximumSize">
+    /// The maximum size of the heap, in bytes. The HeapCreate function rounds dwMaximumSize up to a multiple of the
+    /// system page size and then reserves a block of that size in the process's virtual address space for the heap.
+    /// If allocation requests made by the HeapAlloc or HeapReAlloc functions exceed the size specified by
+    /// dwInitialSize, the system commits additional pages of memory for the heap, up to the heap's maximum size.
+    /// 
+    /// If dwMaximumSize is not zero, the heap size is fixed and cannot grow beyond the maximum size. Also, the largest
+    /// memory block that can be allocated from the heap is slightly less than 512 KB for a 32-bit process and slightly
+    /// less than 1,024 KB for a 64-bit process. Requests to allocate larger blocks fail, even if the maximum size of
+    /// the heap is large enough to contain the block.
+    /// 
+    /// If dwMaximumSize is 0, the heap can grow in size. The heap's size is limited only by the available memory.
+    /// Requests to allocate memory blocks larger than the limit for a fixed-size heap do not automatically fail;
+    /// instead, the system calls the VirtualAlloc function to obtain the memory that is needed for large blocks.
+    /// Applications that need to allocate large memory blocks should set dwMaximumSize to 0.
+    /// </param>
+    /// <returns>
+    /// If the function succeeds, the return value is a handle to the newly created heap.
+    /// 
+    /// If the function fails, the return value is NULL. To get extended error information, call GetLastError.
+    /// </returns>
+    [DllImport("kernel32.dll", SetLastError = true)]
+    public static extern nint HeapCreate(HeapOptions flOptions, nuint dwInitialSize, nuint dwMaximumSize);
+    
+    /// <summary>
+    /// Allocates a block of memory from a heap. The allocated memory is not movable.
+    /// </summary>
+    /// <param name="hHeap">
+    /// A handle to the heap from which the memory will be allocated. This handle is returned by the HeapCreate or
+    /// GetProcessHeap function.
+    /// </param>
+    /// <param name="dwFlags">
+    /// The heap allocation options. Specifying any of these values will override the corresponding value specified when
+    /// the heap was created with HeapCreate. </param>
+    /// <param name="dwBytes">
+    /// The number of bytes to be allocated.
+    ///
+    /// If the heap specified by the hHeap parameter is a "non-growable" heap, dwBytes must be less than 0x7FFF8.
+    /// You create a non-growable heap by calling the HeapCreate function with a nonzero value.
+    /// </param>
+    /// <returns>
+    /// If the function succeeds, the return value is a pointer to the allocated memory block.
+    ///
+    /// If the function fails and you have not specified HEAP_GENERATE_EXCEPTIONS, the return value is NULL.
+    ///
+    /// If the function fails and you have specified HEAP_GENERATE_EXCEPTIONS, the function may generate either of the
+    /// exceptions listed in the following table. The particular exception depends upon the nature of the heap
+    /// corruption. For more information, see GetExceptionCode.
+    /// </returns>
+    [DllImport("kernel32.dll", SetLastError=false)]
+    public static extern nint HeapAlloc(nint hHeap, HeapOptions dwFlags, nuint dwBytes);
+    
     /// <summary>
     /// See https://docs.microsoft.com/en-us/windows/win32/api/memoryapi/nf-memoryapi-virtualalloc.
     /// Reserves, commits, or changes the state of a region of pages in the virtual address space of the calling process.
@@ -1955,4 +2060,32 @@ internal static partial class NativeFunctions
     /// </returns>
     [DllImport("ws2_32.dll", CallingConvention = CallingConvention.Winapi, EntryPoint = "setsockopt")]
     public static extern int SetSockOpt(IntPtr socket, SocketOptionLevel level, SocketOptionName optName, ref IntPtr optVal, int optLen);
+}
+
+/// <summary>
+/// Native dwmapi functions.
+/// </summary>
+internal static partial class NativeFunctions
+{
+    /// <summary>
+    /// Attributes for use with DwmSetWindowAttribute.
+    /// </summary>
+    public enum DWMWINDOWATTRIBUTE : int
+    {
+        /// <summary>
+        /// Allows the window frame for this window to be drawn in dark mode colors when the dark mode system setting is enabled.
+        /// </summary>
+        DWMWA_USE_IMMERSIVE_DARK_MODE = 20,
+    }
+
+    /// <summary>
+    /// Sets the value of Desktop Window Manager (DWM) non-client rendering attributes for a window.
+    /// </summary>
+    /// <param name="hwnd">The handle to the window for which the attribute value is to be set.</param>
+    /// <param name="attr">The attribute to be set.</param>
+    /// <param name="attrValue">The value of the attribute.</param>
+    /// <param name="attrSize">The size of the attribute.</param>
+    /// <returns>HRESULT.</returns>
+    [DllImport("dwmapi.dll", PreserveSig = true)]
+    public static extern int DwmSetWindowAttribute(IntPtr hwnd, DWMWINDOWATTRIBUTE attr, ref int attrValue, int attrSize);
 }

@@ -52,7 +52,6 @@ public partial class FileDialog
     private float footerHeight = 0;
 
     private string selectedSideBar = string.Empty;
-    private List<SideBarItem> drives = new();
     private List<SideBarItem> quickAccess = new();
 
     /// <summary>
@@ -259,6 +258,7 @@ public partial class FileDialog
 
     private void SetPath(string path)
     {
+        this.searchBuffer = string.Empty;
         this.selectedSideBar = string.Empty;
         this.currentPath = path;
         this.files.Clear();
