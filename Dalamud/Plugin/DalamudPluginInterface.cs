@@ -107,7 +107,7 @@ public sealed class DalamudPluginInterface : IDisposable
     /// <summary>
     /// Gets the current internal plugin name.
     /// </summary>
-    public string InternalName => this.pluginName;
+    public string InternalName => this.plugin.InternalName;
     
     /// <summary>
     /// Gets a value indicating whether this is a dev plugin.
@@ -217,7 +217,7 @@ public sealed class DalamudPluginInterface : IDisposable
         }
 
         dalamudInterface.OpenPluginInstallerPluginInstalled();
-        dalamudInterface.SetPluginInstallerSearchText(this.pluginName);
+        dalamudInterface.SetPluginInstallerSearchText(this.plugin.InternalName);
 
         return true;
     }
