@@ -283,7 +283,7 @@ public class PluginLog : IDisposable
     /// Log some information.
     /// </summary>
     /// <param name="message">The message.</param>
-    public void Information(string message)
+    internal void Information(string message)
     {
         Serilog.Log.Information($"[{this.plugin.InternalName}] {this.LogPrefix} {message}");
     }
@@ -293,7 +293,7 @@ public class PluginLog : IDisposable
     /// <inheritdoc/>
     void IDisposable.Dispose()
     {
-        Log("GOODBYE!!!");
+        // ignored
     }
 
     private static ILogger GetPluginLogger(string? pluginName)
