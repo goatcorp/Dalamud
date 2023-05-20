@@ -197,23 +197,45 @@ public sealed unsafe class GameGui : IDisposable, IServiceType
     /// <returns>True if worldPos corresponds to a position in front of the camera.</returns>
     public bool WorldToScreen(Vector3 worldPos, out Vector2 screenPos, out bool inView)
     {
+        var pCoords = this.WorldToCamera(worldPos);
+        return this.CameraToScreen(pCoords, out screenPos, out inView);
+    }
+
+    /// <summary>
+    /// Convert in-world coordinates to camera coordinates.
+    /// </summary>
+    /// <param name="worldPos">Coordinates in the world.</param>
+    /// <returns>Converted coordinates.</returns>
+    public Vector3 WorldToCamera(Vector3 worldPos)
+    {
         // Get base object with matrices
         var matrixSingleton = this.getMatrixSingleton();
 
         // Read current ViewProjectionMatrix plus game window size
-        var windowPos = ImGuiHelpers.MainViewport.Pos;
         var viewProjectionMatrix = *(Matrix4x4*)(matrixSingleton + 0x1b4);
+        return Vector3.Transform(worldPos, viewProjectionMatrix);
+    }
+
+    /// <summary>
+    /// Convert camera coordinates to screen coordinates.
+    /// </summary>
+    /// <param name="cameraPos">Coordinates in the camera.</param>
+    /// <param name="screenPos">Converted coordinates.</param>
+    /// <param name="inView">True if screenPos corresponds to a position inside the camera viewport.</param>
+    /// <returns>True if worldPos corresponds to a position in front of the camera.</returns>
+    public bool CameraToScreen(Vector3 cameraPos, out Vector2 screenPos, out bool inView)
+    {
+        screenPos = new Vector2(cameraPos.X / MathF.Abs(cameraPos.Z), cameraPos.Y / MathF.Abs(cameraPos.Z));
+        var windowPos = ImGuiHelpers.MainViewport.Pos;
+
         var device = Device.Instance();
         float width = device->Width;
         float height = device->Height;
 
-        var pCoords = Vector3.Transform(worldPos, viewProjectionMatrix);
-        screenPos = new Vector2(pCoords.X / MathF.Abs(pCoords.Z), pCoords.Y / MathF.Abs(pCoords.Z));
-
         screenPos.X = (0.5f * width * (screenPos.X + 1f)) + windowPos.X;
         screenPos.Y = (0.5f * height * (1f - screenPos.Y)) + windowPos.Y;
 
-        var inFront = pCoords.Z > 0;
+        var inFront = cameraPos.Z > 0;
         inView = inFront &&
                  screenPos.X > windowPos.X && screenPos.X < windowPos.X + width &&
                  screenPos.Y > windowPos.Y && screenPos.Y < windowPos.Y + height;
