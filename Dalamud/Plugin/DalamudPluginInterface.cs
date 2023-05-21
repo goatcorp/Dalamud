@@ -10,6 +10,7 @@ using System.Reflection;
 using Dalamud.Configuration;
 using Dalamud.Configuration.Internal;
 using Dalamud.Data;
+using Dalamud.Game;
 using Dalamud.Game.Gui;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.Sanitizer;
@@ -111,6 +112,11 @@ public sealed class DalamudPluginInterface : IDisposable
     public PluginLoadReason Reason { get; }
 
     /// <summary>
+    /// Gets a value indicating whether or not auto-updates have already completed this session.
+    /// </summary>
+    public bool IsAutoUpdateComplete => Service<ChatHandlers>.Get().IsAutoUpdateComplete;
+
+    /// <summary>
     /// Gets the repository from which this plugin was installed.
     ///
     /// If a plugin was installed from the official/main repository, this will return the value of
@@ -123,7 +129,7 @@ public sealed class DalamudPluginInterface : IDisposable
     /// Gets the current internal plugin name.
     /// </summary>
     public string InternalName => this.pluginName;
-    
+
     /// <summary>
     /// Gets a value indicating whether this is a dev plugin.
     /// </summary>
