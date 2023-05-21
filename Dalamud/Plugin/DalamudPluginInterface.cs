@@ -89,9 +89,21 @@ public sealed class DalamudPluginInterface : IDisposable
     public delegate void LanguageChangedDelegate(string langCode);
 
     /// <summary>
+    /// Delegate for events that listen to changes to the list of active plugins.
+    /// </summary>
+    /// <param name="kind">What action caused this event to be fired.</param>
+    /// <param name="affectedThisPlugin">If this plugin was affected by the change.</param>
+    public delegate void ActivePluginsChangedDelegate(PluginListInvalidationKind kind, bool affectedThisPlugin);
+
+    /// <summary>
     /// Event that gets fired when loc is changed
     /// </summary>
     public event LanguageChangedDelegate LanguageChanged;
+
+    /// <summary>
+    /// Event that is fired when the active list of plugins is changed.
+    /// </summary>
+    public event ActivePluginsChangedDelegate ActivePluginsChanged;
 
     /// <summary>
     /// Gets the reason this plugin was loaded.
@@ -470,6 +482,16 @@ public sealed class DalamudPluginInterface : IDisposable
     public void Dispose()
     {
         // ignored
+    }
+
+    /// <summary>
+    /// Dispatch the active plugins changed event.
+    /// </summary>
+    /// <param name="kind">What action caused this event to be fired.</param>
+    /// <param name="affectedThisPlugin">If this plugin was affected by the change.</param>
+    internal void NotifyActivePluginsChanged(PluginListInvalidationKind kind, bool affectedThisPlugin)
+    {
+        this.ActivePluginsChanged.Invoke(kind, affectedThisPlugin);
     }
 
     private void OnLocalizationChanged(string langCode)

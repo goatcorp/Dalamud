@@ -294,7 +294,7 @@ public class ChatHandlers : IServiceType
 
         this.hasAutoUpdatedPlugins = true;
 
-        Task.Run(() => pluginManager.UpdatePluginsAsync(true, !this.configuration.AutoUpdatePlugins)).ContinueWith(task =>
+        Task.Run(() => pluginManager.UpdatePluginsAsync(true, !this.configuration.AutoUpdatePlugins, true)).ContinueWith(task =>
         {
             if (task.IsFaulted)
             {
