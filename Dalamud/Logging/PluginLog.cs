@@ -15,7 +15,7 @@ namespace Dalamud.Logging;
 [PluginInterface]
 [InterfaceVersion("1.0")]
 [ServiceManager.ScopedService]
-public class PluginLog : IDisposable
+public class PluginLog : IServiceType, IDisposable
 {
     private readonly LocalPlugin plugin;
 
