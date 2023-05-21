@@ -66,6 +66,11 @@ internal static class ServiceManager
         BlockingEarlyLoadedService = 1 << 2,
         
         /// <summary>
+        /// Service that is only instantiable via scopes.
+        /// </summary>
+        ScopedService = 1 << 3,
+        
+        /// <summary>
         /// Service that is loaded automatically when the game starts, synchronously or asynchronously.
         /// </summary>
         AutoLoadService = EarlyLoadedService | BlockingEarlyLoadedService,
@@ -133,10 +138,12 @@ internal static class ServiceManager
         foreach (var serviceType in Assembly.GetExecutingAssembly().GetTypes())
         {
             var serviceKind = serviceType.GetServiceKind();
-            if (serviceKind == ServiceKind.None)
+            if (serviceKind is ServiceKind.None or ServiceKind.ScopedService)
                 continue;
             
-            Debug.Assert(!serviceKind.HasFlag(ServiceKind.ManualService), "Regular services should never end up here");
+            Debug.Assert(
+                !serviceKind.HasFlag(ServiceKind.ManualService) && !serviceKind.HasFlag(ServiceKind.ScopedService),
+                "Regular and scoped services should never be loaded early");
 
             var genericWrappedServiceType = typeof(Service<>).MakeGenericType(serviceType);
             
@@ -389,6 +396,9 @@ internal static class ServiceManager
         
         if (attr.IsAssignableTo(typeof(EarlyLoadedService)))
             return ServiceKind.EarlyLoadedService;
+        
+        if (attr.IsAssignableTo(typeof(ScopedService)))
+            return ServiceKind.ScopedService;
 
         return ServiceKind.ManualService;
     }
