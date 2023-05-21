@@ -188,7 +188,7 @@ internal class LocalPlugin : IDisposable
     /// <summary>
     /// Gets the plugin internal name from the manifest.
     /// </summary>
-    public string InternalName => this.Manifest.Name;
+    public string InternalName => this.Manifest.InternalName;
 
     /// <summary>
     /// Gets an optional reason, if the plugin is banned.
