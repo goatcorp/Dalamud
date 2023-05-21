@@ -10,6 +10,7 @@ using System.Reflection;
 using Dalamud.Configuration;
 using Dalamud.Configuration.Internal;
 using Dalamud.Data;
+using Dalamud.Game;
 using Dalamud.Game.Gui;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.Sanitizer;
@@ -86,14 +87,31 @@ public sealed class DalamudPluginInterface : IDisposable
     public delegate void LanguageChangedDelegate(string langCode);
 
     /// <summary>
+    /// Delegate for events that listen to changes to the list of active plugins.
+    /// </summary>
+    /// <param name="kind">What action caused this event to be fired.</param>
+    /// <param name="affectedThisPlugin">If this plugin was affected by the change.</param>
+    public delegate void ActivePluginsChangedDelegate(PluginListInvalidationKind kind, bool affectedThisPlugin);
+
+    /// <summary>
     /// Event that gets fired when loc is changed
     /// </summary>
     public event LanguageChangedDelegate LanguageChanged;
 
     /// <summary>
+    /// Event that is fired when the active list of plugins is changed.
+    /// </summary>
+    public event ActivePluginsChangedDelegate ActivePluginsChanged;
+
+    /// <summary>
     /// Gets the reason this plugin was loaded.
     /// </summary>
     public PluginLoadReason Reason { get; }
+
+    /// <summary>
+    /// Gets a value indicating whether or not auto-updates have already completed this session.
+    /// </summary>
+    public bool IsAutoUpdateComplete => Service<ChatHandlers>.Get().IsAutoUpdateComplete;
 
     /// <summary>
     /// Gets the repository from which this plugin was installed.
@@ -108,7 +126,7 @@ public sealed class DalamudPluginInterface : IDisposable
     /// Gets the current internal plugin name.
     /// </summary>
     public string InternalName => this.plugin.InternalName;
-    
+
     /// <summary>
     /// Gets a value indicating whether this is a dev plugin.
     /// </summary>
@@ -463,6 +481,16 @@ public sealed class DalamudPluginInterface : IDisposable
     public void Dispose()
     {
         // ignored
+    }
+
+    /// <summary>
+    /// Dispatch the active plugins changed event.
+    /// </summary>
+    /// <param name="kind">What action caused this event to be fired.</param>
+    /// <param name="affectedThisPlugin">If this plugin was affected by the change.</param>
+    internal void NotifyActivePluginsChanged(PluginListInvalidationKind kind, bool affectedThisPlugin)
+    {
+        this.ActivePluginsChanged.Invoke(kind, affectedThisPlugin);
     }
 
     private void OnLocalizationChanged(string langCode)
