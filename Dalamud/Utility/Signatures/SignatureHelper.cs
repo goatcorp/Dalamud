@@ -7,6 +7,7 @@ using Dalamud.Game;
 using Dalamud.Hooking;
 using Dalamud.Logging;
 using Dalamud.Utility.Signatures.Wrappers;
+using Serilog;
 
 namespace Dalamud.Utility.Signatures;
 
@@ -151,7 +152,7 @@ public static class SignatureHelper
                     var ctor = actualType.GetConstructor(new[] { typeof(IntPtr), hookDelegateType });
                     if (ctor == null)
                     {
-                        PluginLog.Error("Error in SignatureHelper: could not find Hook constructor");
+                        Log.Error("Error in SignatureHelper: could not find Hook constructor");
                         continue;
                     }
 
