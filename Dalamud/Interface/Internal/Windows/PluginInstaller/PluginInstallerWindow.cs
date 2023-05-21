@@ -2252,7 +2252,8 @@ internal class PluginInstallerWindow : Window, IDisposable
         disabled = disabled || (plugin.IsOrphaned && !plugin.IsLoaded);
 
         // Disable everything if the plugin failed to load
-        disabled = disabled || plugin.State == PluginState.LoadError || plugin.State == PluginState.DependencyResolutionFailed;
+        // Now handled by the first case below
+        // disabled = disabled || plugin.State == PluginState.LoadError || plugin.State == PluginState.DependencyResolutionFailed;
 
         // Disable everything if we're working
         disabled = disabled || plugin.State == PluginState.Loading || plugin.State == PluginState.Unloading;
@@ -2263,7 +2264,7 @@ internal class PluginInstallerWindow : Window, IDisposable
 
         StyleModelV1.DalamudStandard.Push();
 
-        if (plugin.State == PluginState.UnloadError && !plugin.IsDev)
+        if (plugin.State is PluginState.UnloadError or PluginState.LoadError or PluginState.DependencyResolutionFailed && !plugin.IsDev)
         {
             ImGuiComponents.DisabledButton(FontAwesomeIcon.Frown);
 
@@ -3064,7 +3065,7 @@ internal class PluginInstallerWindow : Window, IDisposable
 
         public static string PluginButtonToolTip_UpdateSingle(string version) => Loc.Localize("InstallerUpdateSingle", "Update to {0}").Format(version);
 
-        public static string PluginButtonToolTip_UnloadFailed => Loc.Localize("InstallerUnloadFailedTooltip", "Plugin unload failed, please restart your game and try again.");
+        public static string PluginButtonToolTip_UnloadFailed => Loc.Localize("InstallerLoadUnloadFailedTooltip", "Plugin load/unload failed, please restart your game and try again.");
 
         #endregion
 

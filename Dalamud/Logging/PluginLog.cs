@@ -1,6 +1,9 @@
 using System;
 using System.Reflection;
 
+using Dalamud.IoC;
+using Dalamud.IoC.Internal;
+using Dalamud.Plugin.Internal.Types;
 using Serilog;
 using Serilog.Events;
 
@@ -9,9 +12,29 @@ namespace Dalamud.Logging;
 /// <summary>
 /// Class offering various static methods to allow for logging in plugins.
 /// </summary>
-public static class PluginLog
+[PluginInterface]
+[InterfaceVersion("1.0")]
+[ServiceManager.ScopedService]
+public class PluginLog : IServiceType, IDisposable
 {
-    #region "Log" prefixed Serilog style methods
+    private readonly LocalPlugin plugin;
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="PluginLog"/> class.
+    /// Do not use this ctor, inject PluginLog instead.
+    /// </summary>
+    /// <param name="plugin">The plugin this service is scoped for.</param>
+    internal PluginLog(LocalPlugin plugin)
+    {
+        this.plugin = plugin;
+    }
+
+    /// <summary>
+    /// Gets or sets a prefix appended to log messages.
+    /// </summary>
+    public string? LogPrefix { get; set; } = null;
+
+    #region Legacy static "Log" prefixed Serilog style methods
 
     /// <summary>
     /// Log a templated message to the in-game debug log.
@@ -134,7 +157,7 @@ public static class PluginLog
 
     #endregion
 
-    #region Serilog style methods
+    #region Legacy static Serilog style methods
 
     /// <summary>
     /// Log a templated verbose message to the in-game debug log.
@@ -254,6 +277,25 @@ public static class PluginLog
     public static void LogRaw(LogEventLevel level, Exception? exception, string messageTemplate, params object[] values)
         => WriteLog(Assembly.GetCallingAssembly().GetName().Name, level, messageTemplate, exception, values);
 
+    #region New instanced methods
+
+    /// <summary>
+    /// Log some information.
+    /// </summary>
+    /// <param name="message">The message.</param>
+    internal void Information(string message)
+    {
+        Serilog.Log.Information($"[{this.plugin.InternalName}] {this.LogPrefix} {message}");
+    }
+
+    #endregion
+
+    /// <inheritdoc/>
+    void IDisposable.Dispose()
+    {
+        // ignored
+    }
+
     private static ILogger GetPluginLogger(string? pluginName)
     {
         return Serilog.Log.ForContext("SourceContext", pluginName ?? string.Empty);
@@ -270,5 +312,26 @@ public static class PluginLog
             exception: exception,
             messageTemplate: $"[{pluginName}] {messageTemplate}",
             values);
+    }
+}
+
+/// <summary>
+/// Class offering logging services, for a specific type.
+/// </summary>
+/// <typeparam name="T">The type to log for.</typeparam>
+[PluginInterface]
+[InterfaceVersion("1.0")]
+[ServiceManager.ScopedService]
+public class PluginLog<T> : PluginLog
+{
+    /// <summary>
+    /// Initializes a new instance of the <see cref="PluginLog{T}"/> class.
+    /// Do not use this ctor, inject PluginLog instead.
+    /// </summary>
+    /// <param name="plugin">The plugin this service is scoped for.</param>
+    internal PluginLog(LocalPlugin plugin)
+        : base(plugin)
+    {
+        this.LogPrefix = typeof(T).Name;
     }
 }
