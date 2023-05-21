@@ -490,7 +490,7 @@ public sealed class DalamudPluginInterface : IDisposable
     /// <param name="affectedThisPlugin">If this plugin was affected by the change.</param>
     internal void NotifyActivePluginsChanged(PluginListInvalidationKind kind, bool affectedThisPlugin)
     {
-        this.ActivePluginsChanged.Invoke(kind, affectedThisPlugin);
+        this.ActivePluginsChanged?.Invoke(kind, affectedThisPlugin);
     }
 
     private void OnLocalizationChanged(string langCode)
