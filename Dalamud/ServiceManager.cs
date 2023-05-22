@@ -309,6 +309,13 @@ internal static class ServiceManager
             if (!serviceType.IsAssignableTo(typeof(IServiceType)))
                 continue;
             
+            // Scoped services shall never be unloaded here.
+            // Their lifetime must be managed by the IServiceScope that owns them. If it leaks, it's their fault.
+            if (serviceType.GetServiceKind() == ServiceKind.ScopedService)
+                continue;
+
+            Log.Verbose("Calling GetDependencyServices for '{ServiceName}'", serviceType.FullName!);
+
             dependencyServicesMap[serviceType] =
                 ((List<Type>)typeof(Service<>)
                             .MakeGenericType(serviceType)
