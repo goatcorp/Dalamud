@@ -316,8 +316,13 @@ internal class LocalPlugin : IDisposable
                 case PluginState.Loaded:
                     throw new InvalidPluginOperationException($"Unable to load {this.Name}, already loaded");
                 case PluginState.LoadError:
-                    throw new InvalidPluginOperationException(
-                        $"Unable to load {this.Name}, load previously faulted, unload first");
+                    if (!this.IsDev)
+                    {
+                        throw new InvalidPluginOperationException(
+                            $"Unable to load {this.Name}, load previously faulted, unload first");
+                    }
+
+                    break;
                 case PluginState.UnloadError:
                     if (!this.IsDev)
                     {
@@ -580,7 +585,9 @@ internal class LocalPlugin : IDisposable
             case PluginState.Unloading:
             case PluginState.Loaded:
             case PluginState.LoadError:
-                throw new InvalidPluginOperationException($"Unable to enable {this.Name}, still loaded");
+                if (!this.IsDev)
+                    throw new InvalidPluginOperationException($"Unable to enable {this.Name}, still loaded");
+                break;
             case PluginState.Unloaded:
                 break;
             case PluginState.UnloadError:
