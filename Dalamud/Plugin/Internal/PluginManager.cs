@@ -41,6 +41,9 @@ namespace Dalamud.Plugin.Internal;
 // DalamudTextureWrap registers textures to dispose with IM
 [InherentDependency<InterfaceManager>]
 
+// LocalPlugin uses ServiceContainer to create scopes
+[InherentDependency<ServiceContainer>]
+
 #pragma warning restore SA1015
 internal partial class PluginManager : IDisposable, IServiceType
 {
