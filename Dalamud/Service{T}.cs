@@ -154,6 +154,10 @@ internal static class Service<T> where T : IServiceType
                 if (attr == null)
                     continue;
 
+                // Scoped plugin services lifetime is tied to their scopes. They go away when LocalPlugin goes away.
+                if (serviceType.GetServiceKind() == ServiceManager.ServiceKind.ScopedService)
+                    continue;
+
                 ServiceManager.Log.Verbose("PluginManager MUST depend on {Type}", serviceType.FullName!);
                 res.Add(serviceType);
             }
