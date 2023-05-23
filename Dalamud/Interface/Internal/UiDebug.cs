@@ -19,7 +19,6 @@ internal unsafe class UiDebug
 {
     private const int UnitListCount = 18;
 
-    private readonly GetAtkStageSingleton getAtkStageSingleton;
     private readonly bool[] selectedInList = new bool[UnitListCount];
     private readonly string[] listNames = new string[UnitListCount]
     {
@@ -52,9 +51,6 @@ internal unsafe class UiDebug
     /// </summary>
     public UiDebug()
     {
-        var sigScanner = Service<SigScanner>.Get();
-        var getSingletonAddr = sigScanner.ScanText("E8 ?? ?? ?? ?? 41 B8 01 00 00 00 48 8D 15 ?? ?? ?? ?? 48 8B 48 20 E8 ?? ?? ?? ?? 48 8B CF");
-        this.getAtkStageSingleton = Marshal.GetDelegateForFunctionPointer<GetAtkStageSingleton>(getSingletonAddr);
     }
 
     private delegate AtkStage* GetAtkStageSingleton();
@@ -445,7 +441,7 @@ internal unsafe class UiDebug
     {
         var foundSelected = false;
         var noResults = true;
-        var stage = this.getAtkStageSingleton();
+        var stage = AtkStage.GetSingleton();
 
         var unitManagers = &stage->RaptureAtkUnitManager->AtkUnitManager.DepthLayerOneList;
 
