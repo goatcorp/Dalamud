@@ -1,12 +1,13 @@
 using System;
 using System.IO;
-
+using System.Windows.Forms;
 using Dalamud.Configuration.Internal;
 using Dalamud.Game.Command;
 using Dalamud.Interface.Windowing;
 using Dalamud.Logging;
 using Dalamud.Plugin;
 using Dalamud.Utility;
+using PInvoke;
 
 namespace Dalamud.CorePlugin
 {

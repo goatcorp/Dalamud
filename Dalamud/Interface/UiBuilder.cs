@@ -7,6 +7,7 @@ using Dalamud.Configuration.Internal;
 using Dalamud.Game;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.Gui;
+using Dalamud.Interface.DragDrop;
 using Dalamud.Interface.GameFonts;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Internal.ManagedAsserts;
@@ -30,6 +31,7 @@ public sealed class UiBuilder : IDisposable
     private readonly string namespaceName;
     private readonly InterfaceManager interfaceManager = Service<InterfaceManager>.Get();
     private readonly GameFontManager gameFontManager = Service<GameFontManager>.Get();
+    private readonly DragDropManager dragDropManager;
 
     private bool hasErrorWindow = false;
     private bool lastFrameUiHideState = false;
@@ -47,6 +49,7 @@ public sealed class UiBuilder : IDisposable
         this.stopwatch = new Stopwatch();
         this.hitchDetector = new HitchDetector($"UiBuilder({namespaceName})", this.configuration.UiBuilderHitch);
         this.namespaceName = namespaceName;
+        this.dragDropManager = new DragDropManager(this);
 
         this.interfaceManager.Draw += this.OnDraw;
         this.interfaceManager.BuildFonts += this.OnBuildFonts;
@@ -99,6 +102,11 @@ public sealed class UiBuilder : IDisposable
     /// These may be fired consecutively.
     /// </summary>
     public event Action HideUi;
+
+    /// <summary>
+    /// Gets the manager for external, WinAPI-based drag and drop functionality.
+    /// </summary>
+    public IDragDropManager DragDropManager => this.dragDropManager;
 
     /// <summary>
     /// Gets the default Dalamud font based on Noto Sans CJK Medium in 17pt - supporting all game languages and icons.
@@ -397,6 +405,7 @@ public sealed class UiBuilder : IDisposable
     /// </summary>
     void IDisposable.Dispose()
     {
+        this.dragDropManager.Dispose();
         this.interfaceManager.Draw -= this.OnDraw;
         this.interfaceManager.BuildFonts -= this.OnBuildFonts;
         this.interfaceManager.ResizeBuffers -= this.OnResizeBuffers;
