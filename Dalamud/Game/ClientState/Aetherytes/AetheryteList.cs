@@ -14,21 +14,23 @@ namespace Dalamud.Game.ClientState.Aetherytes;
 [PluginInterface]
 [InterfaceVersion("1.0")]
 [ServiceManager.BlockingEarlyLoadedService]
-public sealed partial class AetheryteList : IServiceType
+public sealed unsafe partial class AetheryteList : IServiceType
 {
     [ServiceManager.ServiceDependency]
     private readonly ClientState clientState = Service<ClientState>.Get();
 
+    private readonly Telepo* telepoInstance = Telepo.Instance();
+
     [ServiceManager.ServiceConstructor]
-    private unsafe AetheryteList()
+    private AetheryteList()
     {
-        Log.Verbose($"Teleport address 0x{((nint)Telepo.Instance()).ToInt64():X}");
+        Log.Verbose($"Teleport address 0x{((nint)this.telepoInstance).ToInt64():X}");
     }
-    
+
     /// <summary>
     /// Gets the amount of Aetherytes the local player has unlocked.
     /// </summary>
-    public unsafe int Length
+    public int Length
     {
         get
         {
@@ -37,10 +39,10 @@ public sealed partial class AetheryteList : IServiceType
 
             this.Update();
 
-            if (Telepo.Instance()->TeleportList.First == Telepo.Instance()->TeleportList.Last)
+            if (this.telepoInstance->TeleportList.First == this.telepoInstance->TeleportList.Last)
                 return 0;
 
-            return (int)Telepo.Instance()->TeleportList.Size();
+            return (int)this.telepoInstance->TeleportList.Size();
         }
     }
 
@@ -49,7 +51,7 @@ public sealed partial class AetheryteList : IServiceType
     /// </summary>
     /// <param name="index">Index.</param>
     /// <returns>A <see cref="AetheryteEntry"/> at the specified index.</returns>
-    public unsafe AetheryteEntry? this[int index]
+    public AetheryteEntry? this[int index]
     {
         get
         {
@@ -61,17 +63,17 @@ public sealed partial class AetheryteList : IServiceType
             if (this.clientState.LocalPlayer == null)
                 return null;
 
-            return new AetheryteEntry(Telepo.Instance()->TeleportList.Get((ulong)index));
+            return new AetheryteEntry(this.telepoInstance->TeleportList.Get((ulong)index));
         }
     }
 
-    private unsafe void Update()
+    private void Update()
     {
         // this is very very important as otherwise it crashes
         if (this.clientState.LocalPlayer == null)
             return;
 
-        Telepo.Instance()->UpdateAetheryteList();
+        this.telepoInstance->UpdateAetheryteList();
     }
 }
 
