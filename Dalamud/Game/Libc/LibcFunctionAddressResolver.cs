@@ -22,7 +22,7 @@ public sealed class LibcFunctionAddressResolver : BaseAddressResolver
     /// <inheritdoc/>
     protected override void Setup64Bit(SigScanner sig)
     {
-        this.StdStringFromCstring = sig.ScanText("48895C2408 4889742410 57 4883EC20 488D4122 66C741200101 488901 498BD8");
-        this.StdStringDeallocate = sig.ScanText("80792100 7512 488B5108 41B833000000 488B09 E9??????00 C3");
+        this.StdStringFromCstring = sig.ScanText("48 89 5C 24 08 48 89 74 24 10 57 48 83 EC 20 48 8D 41 22 66 C7 41 20 01 01 48 89 01 49 8B D8");
+        this.StdStringDeallocate = sig.ScanText("80 79 21 00 75 12 48 8B 51 08 41 B8 33 00 00 00 48 8B 09 E9 ?? ?? ?? 00 C3");
     }
 }
