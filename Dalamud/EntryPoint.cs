@@ -97,7 +97,8 @@ public sealed class EntryPoint
         var oldPathOld = Path.Combine(baseDirectory, "..", "..", "..", $"{logFileName}.log.old");
 #endif
         Log.CloseAndFlush();
-
+        
+#if DEBUG
         var oldFileOld = new FileInfo(oldPathOld);
         if (oldFileOld.Exists)
         {
@@ -109,6 +110,23 @@ public sealed class EntryPoint
         }
 
         CullLogFile(logPath, 1 * 1024 * 1024, oldPath, 10 * 1024 * 1024);
+#else
+        try
+        {
+            if (File.Exists(logPath))
+                File.Delete(logPath);
+            
+            if (File.Exists(oldPath))
+                File.Delete(oldPath);
+            
+            if (File.Exists(oldPathOld))
+                File.Delete(oldPathOld);
+        }
+        catch
+        {
+            // ignored
+        }
+#endif
 
         var config = new LoggerConfiguration()
                      .WriteTo.Sink(SerilogEventSink.Instance)
