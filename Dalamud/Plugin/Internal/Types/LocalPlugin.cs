@@ -467,7 +467,9 @@ internal class LocalPlugin : IDisposable
         catch (Exception ex)
         {
             this.State = PluginState.LoadError;
-            Log.Error(ex, $"Error while loading {this.Name}");
+
+            if (ex is not BannedPluginException)
+                Log.Error(ex, $"Error while loading {this.Name}");
 
             throw;
         }
