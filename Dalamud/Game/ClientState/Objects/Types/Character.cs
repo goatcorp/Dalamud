@@ -102,7 +102,15 @@ public unsafe class Character : GameObject
     /// <summary>
     /// Gets the status flags.
     /// </summary>
-    public StatusFlags StatusFlags => (StatusFlags)this.Struct->StatusFlags;
+    public StatusFlags StatusFlags =>
+        (this.Struct->IsHostile ? StatusFlags.Hostile : StatusFlags.None) |
+        (this.Struct->InCombat ? StatusFlags.InCombat : StatusFlags.None) |
+        (this.Struct->IsWeaponDrawn ? StatusFlags.WeaponOut : StatusFlags.None) |
+        (this.Struct->IsOffhandDrawn ? StatusFlags.OffhandOut : StatusFlags.None) |
+        (this.Struct->IsPartyMember ? StatusFlags.PartyMember : StatusFlags.None) |
+        (this.Struct->IsAllianceMember ? StatusFlags.AllianceMember : StatusFlags.None) |
+        (this.Struct->IsFriend ? StatusFlags.Friend : StatusFlags.None) |
+        (this.Struct->IsCasting ? StatusFlags.IsCasting : StatusFlags.None);
 
     /// <summary>
     /// Gets the underlying structure.
