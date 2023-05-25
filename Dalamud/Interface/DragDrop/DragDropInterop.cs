@@ -9,6 +9,7 @@ using System.Text;
 // ReSharper disable InconsistentNaming
 namespace Dalamud.Interface.DragDrop;
 
+#pragma warning disable SA1600 // Elements should be documented
 /// <summary> Implements interop enums and function calls to interact with external drag and drop. </summary>
 internal partial class DragDropManager
 {
@@ -27,10 +28,13 @@ internal partial class DragDropManager
     {
         [MethodImpl(MethodImplOptions.InternalCall)]
         void DragEnter([MarshalAs(UnmanagedType.Interface), In] IDataObject pDataObj, [ComAliasName("Microsoft.VisualStudio.OLE.Interop.DWORD"), In] uint grfKeyState, [ComAliasName("Microsoft.VisualStudio.OLE.Interop.POINTL"), In] POINTL pt, [ComAliasName("Microsoft.VisualStudio.OLE.Interop.DWORD"), In, Out] ref uint pdwEffect);
+
         [MethodImpl(MethodImplOptions.InternalCall)]
         void DragOver([ComAliasName("Microsoft.VisualStudio.OLE.Interop.DWORD"), In] uint grfKeyState, [ComAliasName("Microsoft.VisualStudio.OLE.Interop.POINTL"), In] POINTL pt, [ComAliasName("Microsoft.VisualStudio.OLE.Interop.DWORD"), In, Out] ref uint pdwEffect);
+
         [MethodImpl(MethodImplOptions.InternalCall)]
         void DragLeave();
+
         [MethodImpl(MethodImplOptions.InternalCall)]
         void Drop([MarshalAs(UnmanagedType.Interface), In] IDataObject pDataObj, [ComAliasName("Microsoft.VisualStudio.OLE.Interop.DWORD"), In] uint grfKeyState, [ComAliasName("Microsoft.VisualStudio.OLE.Interop.POINTL"), In] POINTL pt, [ComAliasName("Microsoft.VisualStudio.OLE.Interop.DWORD"), In, Out] ref uint pdwEffect);
     }
@@ -100,3 +104,4 @@ internal partial class DragDropManager
         public static extern int DragQueryFile(IntPtr hDrop, uint iFile, StringBuilder lpszFile, int cch);
     }
 }
+#pragma warning restore SA1600 // Elements should be documented
