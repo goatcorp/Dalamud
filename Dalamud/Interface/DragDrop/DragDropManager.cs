@@ -35,16 +35,17 @@ internal partial class DragDropManager : IDisposable, IDragDropManager, IService
     /// <summary> Gets a value indicating whether a valid external drag and drop is currently active and hovering over any FFXIV-related viewport. </summary>
     public bool IsDragging { get; private set; }
 
-    /// <summary> Gets a value indicating whether there are any files or directories currently being dragged. </summary>
-    public bool HasPaths { get; private set; }
+    /// <summary> Gets a value indicating whether there are any files or directories currently being dragged, or stored from the last drop. </summary>
+    public bool HasPaths
+        => this.Files.Count + this.Directories.Count > 0;
 
-    /// <summary> Gets the list of file paths currently being dragged from an external application over any FFXIV-related viewport. </summary>
+    /// <summary> Gets the list of file paths currently being dragged from an external application over any FFXIV-related viewport, or stored from the last drop. </summary>
     public IReadOnlyList<string> Files { get; private set; } = Array.Empty<string>();
 
-    /// <summary> Gets a set of all extensions available in the paths currently being dragged from an external application over any FFXIV-related viewport. </summary>
+    /// <summary> Gets a set of all extensions available in the paths currently being dragged from an external application over any FFXIV-related viewport or stored from the last drop. </summary>
     public IReadOnlySet<string> Extensions { get; private set; } = new HashSet<string>();
 
-    /// <summary> Gets the list of directory paths currently being dragged from an external application over any FFXIV-related viewport. </summary>
+    /// <summary> Gets the list of directory paths currently being dragged from an external application over any FFXIV-related viewport or stored from the last drop. </summary>
     public IReadOnlyList<string> Directories { get; private set; } = Array.Empty<string>();
 
     /// <summary> Enable external drag and drop. </summary>
@@ -96,7 +97,7 @@ internal partial class DragDropManager : IDisposable, IDragDropManager, IService
     /// <inheritdoc cref="IDragDropManager.CreateImGuiSource(string, Func{IDragDropManager, bool}, Func{IDragDropManager, bool})"/>
     public void CreateImGuiSource(string label, Func<IDragDropManager, bool> validityCheck, Func<IDragDropManager, bool> tooltipBuilder)
     {
-        if (!this.HasPaths && !this.IsDropping())
+        if (!this.IsDragging && !this.IsDropping())
         {
             return;
         }
@@ -120,7 +121,7 @@ internal partial class DragDropManager : IDisposable, IDragDropManager, IService
     {
         files = Array.Empty<string>();
         directories = Array.Empty<string>();
-        if (!this.IsDragging || !ImGui.BeginDragDropTarget())
+        if (!this.HasPaths || !ImGui.BeginDragDropTarget())
         {
             return false;
         }

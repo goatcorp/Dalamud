@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices.ComTypes;
 using System.Text;
 
@@ -15,6 +16,7 @@ namespace Dalamud.Interface.DragDrop;
 internal partial class DragDropManager : DragDropManager.IDropTarget
 {
     private int lastUpdateFrame = -1;
+    private DragDropInterop.ModifierKeys lastKeyState = DragDropInterop.ModifierKeys.MK_NONE;
 
     /// <summary> Create the drag and drop formats we accept. </summary>
     private static FORMATETC FormatEtc =
@@ -37,7 +39,7 @@ internal partial class DragDropManager : DragDropManager.IDropTarget
     public void DragEnter(IDataObject pDataObj, uint grfKeyState, POINTL pt, ref uint pdwEffect)
     {
         this.IsDragging = true;
-        UpdateIo((DragDropInterop.ModifierKeys)grfKeyState, true);
+        this.lastKeyState = UpdateIo((DragDropInterop.ModifierKeys)grfKeyState, true);
 
         if (pDataObj.QueryGetData(ref FormatEtc) != 0)
         {
@@ -47,9 +49,9 @@ internal partial class DragDropManager : DragDropManager.IDropTarget
         {
             pdwEffect &= (uint)DragDropInterop.DropEffects.Copy;
             (this.Files, this.Directories) = this.GetPaths(pDataObj);
-            this.HasPaths = this.Files.Count + this.Directories.Count > 0;
             this.Extensions = this.Files.Select(Path.GetExtension).Where(p => !p.IsNullOrEmpty()).Distinct().ToHashSet();
         }
+
         Log.Debug("[DragDrop] Entering external Drag and Drop with {KeyState} at {PtX}, {PtY} and with {N} files.", (DragDropInterop.ModifierKeys)grfKeyState, pt.x, pt.y, this.Files.Count + this.Directories.Count);
     }
 
@@ -64,7 +66,7 @@ internal partial class DragDropManager : DragDropManager.IDropTarget
         if (frame != this.lastUpdateFrame)
         {
             this.lastUpdateFrame = frame;
-            UpdateIo((DragDropInterop.ModifierKeys)grfKeyState, false);
+            this.lastKeyState = UpdateIo((DragDropInterop.ModifierKeys)grfKeyState, false);
             pdwEffect &= (uint)DragDropInterop.DropEffects.Copy;
             Log.Verbose("[DragDrop] External Drag and Drop with {KeyState} at {PtX}, {PtY}.", (DragDropInterop.ModifierKeys)grfKeyState, pt.x, pt.y);
         }
@@ -87,10 +89,10 @@ internal partial class DragDropManager : DragDropManager.IDropTarget
     /// <param name="pdwEffect"> Effects that can be used with this drag and drop process. </param>
     public void Drop(IDataObject pDataObj, uint grfKeyState, POINTL pt, ref uint pdwEffect)
     {
-        MouseDrop((DragDropInterop.ModifierKeys)grfKeyState);
+        MouseDrop(this.lastKeyState);
         this.lastDropFrame = ImGui.GetFrameCount();
         this.IsDragging = false;
-        if (this.Files.Count > 0 || this.Directories.Count > 0)
+        if (this.HasPaths)
         {
             pdwEffect &= (uint)DragDropInterop.DropEffects.Copy;
         }
@@ -102,7 +104,7 @@ internal partial class DragDropManager : DragDropManager.IDropTarget
         Log.Debug("[DragDrop] Dropping {N} files with {KeyState} at {PtX}, {PtY}.", this.Files.Count + this.Directories.Count, (DragDropInterop.ModifierKeys)grfKeyState, pt.x, pt.y);
     }
 
-    private static void UpdateIo(DragDropInterop.ModifierKeys keys, bool entering)
+    private static DragDropInterop.ModifierKeys UpdateIo(DragDropInterop.ModifierKeys keys, bool entering)
     {
         var io = ImGui.GetIO();
         void UpdateMouse(int mouseIdx)
@@ -163,6 +165,8 @@ internal partial class DragDropManager : DragDropManager.IDropTarget
             io.KeyShift = false;
             io.AddKeyEvent(ImGuiKey.LeftShift, false);
         }
+
+        return keys;
     }
 
     private static void MouseDrop(DragDropInterop.ModifierKeys keys)
