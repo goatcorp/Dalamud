@@ -1,8 +1,8 @@
 using System;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Runtime.InteropServices.ComTypes;
 using System.Text;
-
-using Microsoft.VisualStudio.OLE.Interop;
 
 // ReSharper disable UnusedMember.Local
 // ReSharper disable IdentifierTypo
@@ -12,6 +12,29 @@ namespace Dalamud.Interface.DragDrop;
 /// <summary> Implements interop enums and function calls to interact with external drag and drop. </summary>
 internal partial class DragDropManager
 {
+    internal struct POINTL
+    {
+        [ComAliasName("Microsoft.VisualStudio.OLE.Interop.LONG")]
+        public int x;
+        [ComAliasName("Microsoft.VisualStudio.OLE.Interop.LONG")]
+        public int y;
+    }
+
+    [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+    [Guid("00000122-0000-0000-C000-000000000046")]
+    [ComImport]
+    public interface IDropTarget
+    {
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        void DragEnter([MarshalAs(UnmanagedType.Interface), In] IDataObject pDataObj, [ComAliasName("Microsoft.VisualStudio.OLE.Interop.DWORD"), In] uint grfKeyState, [ComAliasName("Microsoft.VisualStudio.OLE.Interop.POINTL"), In] POINTL pt, [ComAliasName("Microsoft.VisualStudio.OLE.Interop.DWORD"), In, Out] ref uint pdwEffect);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        void DragOver([ComAliasName("Microsoft.VisualStudio.OLE.Interop.DWORD"), In] uint grfKeyState, [ComAliasName("Microsoft.VisualStudio.OLE.Interop.POINTL"), In] POINTL pt, [ComAliasName("Microsoft.VisualStudio.OLE.Interop.DWORD"), In, Out] ref uint pdwEffect);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        void DragLeave();
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        void Drop([MarshalAs(UnmanagedType.Interface), In] IDataObject pDataObj, [ComAliasName("Microsoft.VisualStudio.OLE.Interop.DWORD"), In] uint grfKeyState, [ComAliasName("Microsoft.VisualStudio.OLE.Interop.POINTL"), In] POINTL pt, [ComAliasName("Microsoft.VisualStudio.OLE.Interop.DWORD"), In, Out] ref uint pdwEffect);
+    }
+
     private static class DragDropInterop
     {
         [Flags]

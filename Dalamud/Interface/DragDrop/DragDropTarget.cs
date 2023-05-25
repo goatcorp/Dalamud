@@ -2,30 +2,30 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices.ComTypes;
 using System.Text;
 
 using Dalamud.Utility;
 using ImGuiNET;
-using Microsoft.VisualStudio.OLE.Interop;
 using Serilog;
 
 namespace Dalamud.Interface.DragDrop;
 
 /// <summary> Implements the IDropTarget interface to interact with external drag and dropping. </summary>
-internal partial class DragDropManager : IDropTarget
+internal partial class DragDropManager : DragDropManager.IDropTarget
 {
+    private int lastUpdateFrame = -1;
+
     /// <summary> Create the drag and drop formats we accept. </summary>
-    private static readonly FORMATETC[] FormatEtc =
-    {
+    private static FORMATETC FormatEtc =
         new()
         {
-            cfFormat = (ushort)DragDropInterop.ClipboardFormat.CF_HDROP,
+            cfFormat = (short)DragDropInterop.ClipboardFormat.CF_HDROP,
             ptd = nint.Zero,
-            dwAspect = (uint)DragDropInterop.DVAspect.DVASPECT_CONTENT,
+            dwAspect = DVASPECT.DVASPECT_CONTENT,
             lindex = -1,
-            tymed = (uint)DragDropInterop.TYMED.TYMED_HGLOBAL,
-        },
-    };
+            tymed = TYMED.TYMED_HGLOBAL,
+        };
 
     /// <summary>
     /// Invoked whenever a drag and drop process drags files into any FFXIV-related viewport.
@@ -39,7 +39,7 @@ internal partial class DragDropManager : IDropTarget
         this.IsDragging = true;
         UpdateIo((DragDropInterop.ModifierKeys)grfKeyState, true);
 
-        if (pDataObj.QueryGetData(FormatEtc) != 0)
+        if (pDataObj.QueryGetData(ref FormatEtc) != 0)
         {
             pdwEffect = 0;
         }
@@ -50,17 +50,24 @@ internal partial class DragDropManager : IDropTarget
             this.HasPaths = this.Files.Count + this.Directories.Count > 0;
             this.Extensions = this.Files.Select(Path.GetExtension).Where(p => !p.IsNullOrEmpty()).Distinct().ToHashSet();
         }
+        Log.Debug("[DragDrop] Entering external Drag and Drop with {KeyState} at {PtX}, {PtY} and with {N} files.", (DragDropInterop.ModifierKeys)grfKeyState, pt.x, pt.y, this.Files.Count + this.Directories.Count);
     }
 
     /// <summary> Invoked every windows update-frame as long as the drag and drop process keeps hovering over an FFXIV-related viewport. </summary>
     /// <param name="grfKeyState"> The mouse button used to drag as well as key modifiers. </param>
     /// <param name="pt"> The global cursor position. </param>
     /// <param name="pdwEffect"> Effects that can be used with this drag and drop process. </param>
-    /// <remarks> Can be invoked more often than once a XIV frame, can also be less often (?). </remarks>
+    /// <remarks> Can be invoked more often than once a XIV frame, so we are keeping track of frames to skip unnecessary updates. </remarks>
     public void DragOver(uint grfKeyState, POINTL pt, ref uint pdwEffect)
     {
-        UpdateIo((DragDropInterop.ModifierKeys)grfKeyState, false);
-        pdwEffect &= (uint)DragDropInterop.DropEffects.Copy;
+        var frame = ImGui.GetFrameCount();
+        if (frame != this.lastUpdateFrame)
+        {
+            this.lastUpdateFrame = frame;
+            UpdateIo((DragDropInterop.ModifierKeys)grfKeyState, false);
+            pdwEffect &= (uint)DragDropInterop.DropEffects.Copy;
+            Log.Verbose("[DragDrop] External Drag and Drop with {KeyState} at {PtX}, {PtY}.", (DragDropInterop.ModifierKeys)grfKeyState, pt.x, pt.y);
+        }
     }
 
     /// <summary> Invoked whenever a drag and drop process that hovered over any FFXIV-related viewport leaves all FFXIV-related viewports. </summary>
@@ -70,6 +77,7 @@ internal partial class DragDropManager : IDropTarget
         this.Files = Array.Empty<string>();
         this.Directories = Array.Empty<string>();
         this.Extensions = new HashSet<string>();
+        Log.Debug("[DragDrop] Leaving external Drag and Drop.");
     }
 
     /// <summary> Invoked whenever a drag process ends by dropping over any FFXIV-related viewport. </summary>
@@ -90,6 +98,8 @@ internal partial class DragDropManager : IDropTarget
         {
             pdwEffect = 0;
         }
+
+        Log.Debug("[DragDrop] Dropping {N} files with {KeyState} at {PtX}, {PtY}.", this.Files.Count + this.Directories.Count, (DragDropInterop.ModifierKeys)grfKeyState, pt.x, pt.y);
     }
 
     private static void UpdateIo(DragDropInterop.ModifierKeys keys, bool entering)
@@ -189,12 +199,8 @@ internal partial class DragDropManager : IDropTarget
 
         try
         {
-            var stgMedium = new STGMEDIUM[]
-            {
-                default,
-            };
-            data.GetData(FormatEtc, stgMedium);
-            var numFiles = DragDropInterop.DragQueryFile(stgMedium[0].unionmember, uint.MaxValue, new StringBuilder(), 0);
+            data.GetData(ref FormatEtc, out var stgMedium);
+            var numFiles = DragDropInterop.DragQueryFile(stgMedium.unionmember, uint.MaxValue, new StringBuilder(), 0);
             var files = new string[numFiles];
             var sb = new StringBuilder(1024);
             var directoryCount = 0;
@@ -202,11 +208,11 @@ internal partial class DragDropManager : IDropTarget
             for (var i = 0u; i < numFiles; ++i)
             {
                 sb.Clear();
-                var ret = DragDropInterop.DragQueryFile(stgMedium[0].unionmember, i, sb, sb.Capacity);
+                var ret = DragDropInterop.DragQueryFile(stgMedium.unionmember, i, sb, sb.Capacity);
                 if (ret >= sb.Capacity)
                 {
                     sb.Capacity = ret + 1;
-                    ret = DragDropInterop.DragQueryFile(stgMedium[0].unionmember, i, sb, sb.Capacity);
+                    ret = DragDropInterop.DragQueryFile(stgMedium.unionmember, i, sb, sb.Capacity);
                 }
 
                 if (ret > 0 && ret < sb.Capacity)

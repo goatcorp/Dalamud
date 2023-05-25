@@ -31,7 +31,7 @@ public sealed class UiBuilder : IDisposable
     private readonly string namespaceName;
     private readonly InterfaceManager interfaceManager = Service<InterfaceManager>.Get();
     private readonly GameFontManager gameFontManager = Service<GameFontManager>.Get();
-    private readonly DragDropManager dragDropManager;
+    private readonly DragDropManager dragDropManager = Service<DragDropManager>.Get();
 
     private bool hasErrorWindow = false;
     private bool lastFrameUiHideState = false;
@@ -49,8 +49,6 @@ public sealed class UiBuilder : IDisposable
         this.stopwatch = new Stopwatch();
         this.hitchDetector = new HitchDetector($"UiBuilder({namespaceName})", this.configuration.UiBuilderHitch);
         this.namespaceName = namespaceName;
-        this.dragDropManager = new DragDropManager(this);
-        this.dragDropManager.Enable();
 
         this.interfaceManager.Draw += this.OnDraw;
         this.interfaceManager.BuildFonts += this.OnBuildFonts;
@@ -406,7 +404,6 @@ public sealed class UiBuilder : IDisposable
     /// </summary>
     void IDisposable.Dispose()
     {
-        this.dragDropManager.Dispose();
         this.interfaceManager.Draw -= this.OnDraw;
         this.interfaceManager.BuildFonts -= this.OnBuildFonts;
         this.interfaceManager.ResizeBuffers -= this.OnResizeBuffers;
