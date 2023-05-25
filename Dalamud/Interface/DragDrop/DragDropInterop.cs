@@ -1,10 +1,15 @@
 using System;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Windows.Forms;
 
+using Microsoft.VisualStudio.OLE.Interop;
+
+// ReSharper disable UnusedMember.Local
+// ReSharper disable IdentifierTypo
+// ReSharper disable InconsistentNaming
 namespace Dalamud.Interface.DragDrop;
 
+/// <summary> Implements interop enums and function calls to interact with external drag and drop. </summary>
 internal partial class DragDropManager
 {
     private static class DragDropInterop

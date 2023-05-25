@@ -50,6 +50,7 @@ public sealed class UiBuilder : IDisposable
         this.hitchDetector = new HitchDetector($"UiBuilder({namespaceName})", this.configuration.UiBuilderHitch);
         this.namespaceName = namespaceName;
         this.dragDropManager = new DragDropManager(this);
+        this.dragDropManager.Enable();
 
         this.interfaceManager.Draw += this.OnDraw;
         this.interfaceManager.BuildFonts += this.OnBuildFonts;

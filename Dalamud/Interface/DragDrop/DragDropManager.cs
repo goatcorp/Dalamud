@@ -1,18 +1,47 @@
-using ImGuiNET;
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+
+using ImGuiNET;
 using Serilog;
 
 namespace Dalamud.Interface.DragDrop;
 
+/// <summary>
+/// A manager that keeps state of external windows drag and drop events,
+/// and can be used to create ImGui drag and drop sources and targets for those external events.
+/// </summary>
 internal partial class DragDropManager : IDisposable, IDragDropManager
 {
     private readonly UiBuilder uiBuilder;
 
+    private int lastDropFrame = -2;
+    private int lastTooltipFrame = -1;
+
+    /// <summary> Initializes a new instance of the <see cref="DragDropManager"/> class.</summary>
+    /// <param name="uiBuilder">The parent <see cref="UiBuilder"/> instance.</param>
     public DragDropManager(UiBuilder uiBuilder)
         => this.uiBuilder = uiBuilder;
 
+    /// <summary> Gets a value indicating whether external drag and drop is available at all. </summary>
+    public bool ServiceAvailable { get; private set; }
+
+    /// <summary> Gets a value indicating whether a valid external drag and drop is currently active and hovering over any FFXIV-related viewport. </summary>
+    public bool IsDragging { get; private set; }
+
+    /// <summary> Gets a value indicating whether there are any files or directories currently being dragged. </summary>
+    public bool HasPaths { get; private set; }
+
+    /// <summary> Gets the list of file paths currently being dragged from an external application over any FFXIV-related viewport. </summary>
+    public IReadOnlyList<string> Files { get; private set; } = Array.Empty<string>();
+
+    /// <summary> Gets a set of all extensions available in the paths currently being dragged from an external application over any FFXIV-related viewport. </summary>
+    public IReadOnlySet<string> Extensions { get; private set; } = new HashSet<string>();
+
+    /// <summary> Gets the list of directory paths currently being dragged from an external application over any FFXIV-related viewport. </summary>
+    public IReadOnlyList<string> Directories { get; private set; } = Array.Empty<string>();
+
+    /// <summary> Enable external drag and drop. </summary>
     public void Enable()
     {
         if (this.ServiceAvailable)
@@ -32,31 +61,42 @@ internal partial class DragDropManager : IDisposable, IDragDropManager
         }
     }
 
-    public void Dispose()
+    /// <summary> Disable external drag and drop. </summary>
+    public void Disable()
     {
         if (!this.ServiceAvailable)
         {
             return;
         }
 
+        try
+        {
+            DragDropInterop.RevokeDragDrop(this.uiBuilder.WindowHandlePtr);
+        }
+        catch (Exception ex)
+        {
+            Log.Error($"Could not disable windows drag and drop utility:\n{ex}");
+        }
 
+        this.ServiceAvailable = false;
     }
 
-    public bool ServiceAvailable { get; internal set; }
-
-    public bool IsDragging { get; private set; }
-
-    public IReadOnlyList<string> Files { get; private set; } = Array.Empty<string>();
-
-    public IReadOnlySet<string> Extensions { get; private set; } = new HashSet<string>();
-
-    public IReadOnlyList<string> Directories { get; private set; } = Array.Empty<string>();
+    /// <inheritdoc cref="Disable"/>
+    public void Dispose()
+        => this.Disable();
 
     /// <inheritdoc cref="IDragDropManager.CreateImGuiSource(string, Func{IDragDropManager, bool}, Func{IDragDropManager, bool})"/>
     public void CreateImGuiSource(string label, Func<IDragDropManager, bool> validityCheck, Func<IDragDropManager, bool> tooltipBuilder)
     {
-        if (!this.IsDragging && !this.IsDropping()) return;
-        if (!validityCheck(this) || !ImGui.BeginDragDropSource(ImGuiDragDropFlags.SourceExtern)) return;
+        if (!this.HasPaths && !this.IsDropping())
+        {
+            return;
+        }
+
+        if (!validityCheck(this) || !ImGui.BeginDragDropSource(ImGuiDragDropFlags.SourceExtern))
+        {
+            return;
+        }
 
         ImGui.SetDragDropPayload(label, nint.Zero, 0);
         if (this.CheckTooltipFrame(out var frame) && tooltipBuilder(this))
@@ -72,7 +112,10 @@ internal partial class DragDropManager : IDisposable, IDragDropManager
     {
         files = Array.Empty<string>();
         directories = Array.Empty<string>();
-        if (!this.IsDragging || !ImGui.BeginDragDropTarget()) return false;
+        if (!this.IsDragging || !ImGui.BeginDragDropTarget())
+        {
+            return false;
+        }
 
         unsafe
         {
@@ -88,9 +131,6 @@ internal partial class DragDropManager : IDisposable, IDragDropManager
         ImGui.EndDragDropTarget();
         return false;
     }
-
-    private int lastDropFrame = -2;
-    private int lastTooltipFrame = -1;
 
     private bool CheckTooltipFrame(out int frame)
     {

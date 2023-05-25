@@ -37,7 +37,8 @@ public interface IDragDropManager
 
     /// <summary> Create an ImGui drag & drop target on the last ImGui object. </summary>
     /// <param name="label">The label used for the drag & drop payload.</param>
-    /// <param name="files">On success, contains the files dropped onto the target.</param>
+    /// <param name="files">On success, contains the list of file paths dropped onto the target.</param>
+    /// <param name="directories">On success, contains the list of directory paths dropped onto the target.</param>
     /// <returns>True if items were dropped onto the target this frame, false otherwise.</returns>
-    public bool CreateImGuiTarget(string label, out IReadOnlyList<string> files);
+    public bool CreateImGuiTarget(string label, out IReadOnlyList<string> files, out IReadOnlyList<string> directories);
 }
