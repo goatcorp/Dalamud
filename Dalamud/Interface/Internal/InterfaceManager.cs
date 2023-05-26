@@ -1005,8 +1005,8 @@ internal class InterfaceManager : IDisposable, IServiceType
                 Log.Error(ex, "Could not enable immersive mode");
             }
 
-            this.presentHook = Hook<PresentDelegate>.FromAddress(this.address.Present, this.PresentDetour);
-            this.resizeBuffersHook = Hook<ResizeBuffersDelegate>.FromAddress(this.address.ResizeBuffers, this.ResizeBuffersDetour);
+            this.presentHook = Hook<PresentDelegate>.FromAddress(this.address.Present, this.PresentDetour, true);
+            this.resizeBuffersHook = Hook<ResizeBuffersDelegate>.FromAddress(this.address.ResizeBuffers, this.ResizeBuffersDetour, true);
 
             Log.Verbose("===== S W A P C H A I N =====");
             Log.Verbose($"Present address 0x{this.presentHook!.Address.ToInt64():X}");
