@@ -247,7 +247,6 @@ namespace Dalamud.Injector
             var workingDirectory = startInfo.WorkingDirectory;
             var configurationPath = startInfo.ConfigurationPath;
             var pluginDirectory = startInfo.PluginDirectory;
-            var defaultPluginDirectory = startInfo.DefaultPluginDirectory;
             var assetDirectory = startInfo.AssetDirectory;
             var delayInitializeMs = startInfo.DelayInitializeMs;
             var logName = startInfo.LogName;
@@ -262,8 +261,6 @@ namespace Dalamud.Injector
                     configurationPath = args[i][key.Length..];
                 else if (args[i].StartsWith(key = "--dalamud-plugin-directory="))
                     pluginDirectory = args[i][key.Length..];
-                else if (args[i].StartsWith(key = "--dalamud-dev-plugin-directory="))
-                    defaultPluginDirectory = args[i][key.Length..];
                 else if (args[i].StartsWith(key = "--dalamud-asset-directory="))
                     assetDirectory = args[i][key.Length..];
                 else if (args[i].StartsWith(key = "--dalamud-delay-initialize="))
@@ -287,7 +284,6 @@ namespace Dalamud.Injector
             workingDirectory ??= Directory.GetCurrentDirectory();
             configurationPath ??= Path.Combine(xivlauncherDir, "dalamudConfig.json");
             pluginDirectory ??= Path.Combine(xivlauncherDir, "installedPlugins");
-            defaultPluginDirectory ??= Path.Combine(xivlauncherDir, "devPlugins");
             assetDirectory ??= Path.Combine(xivlauncherDir, "dalamudAssets", "dev");
 
             ClientLanguage clientLanguage;
@@ -313,7 +309,6 @@ namespace Dalamud.Injector
             startInfo.WorkingDirectory = workingDirectory;
             startInfo.ConfigurationPath = configurationPath;
             startInfo.PluginDirectory = pluginDirectory;
-            startInfo.DefaultPluginDirectory = defaultPluginDirectory;
             startInfo.AssetDirectory = assetDirectory;
             startInfo.Language = clientLanguage;
             startInfo.DelayInitializeMs = delayInitializeMs;
@@ -367,7 +362,7 @@ namespace Dalamud.Injector
             }
 
             Console.WriteLine("Specifying dalamud start info: [--dalamud-working-directory=path] [--dalamud-configuration-path=path]");
-            Console.WriteLine("                               [--dalamud-plugin-directory=path] [--dalamud-dev-plugin-directory=path]");
+            Console.WriteLine("                               [--dalamud-plugin-directory=path]");
             Console.WriteLine("                               [--dalamud-asset-directory=path] [--dalamud-delay-initialize=0(ms)]");
             Console.WriteLine("                               [--dalamud-client-language=0-3|j(apanese)|e(nglish)|d|g(erman)|f(rench)]");
 

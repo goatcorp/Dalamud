@@ -57,15 +57,6 @@ internal partial class PluginManager : IDisposable, IServiceType
     /// </summary>
     public const int PluginWaitBeforeFreeDefault = 1000; // upped from 500ms, seems more stable
 
-    private const string DevPluginsDisclaimerFilename = "DONT_USE_THIS_FOLDER.txt";
-
-    private const string DevPluginsDisclaimerText = @"Hey!
-The devPlugins folder is deprecated and will be removed soon. Please don't use it anymore for plugin development.
-Instead, open the Dalamud settings and add the path to your plugins build output folder as a dev plugin location.
-Remove your devPlugin from this folder.
-
-Thanks and have fun!";
-
     private static readonly ModuleLog Log = new("PLUGINM");
 
     private readonly object pluginListLock = new();
@@ -88,17 +79,9 @@ Thanks and have fun!";
     private PluginManager()
     {
         this.pluginDirectory = new DirectoryInfo(this.startInfo.PluginDirectory!);
-        this.devPluginDirectory = new DirectoryInfo(this.startInfo.DefaultPluginDirectory!);
 
         if (!this.pluginDirectory.Exists)
             this.pluginDirectory.Create();
-
-        if (!this.devPluginDirectory.Exists)
-            this.devPluginDirectory.Create();
-
-        var disclaimerFileName = Path.Combine(this.devPluginDirectory.FullName, DevPluginsDisclaimerFilename);
-        if (!File.Exists(disclaimerFileName))
-            File.WriteAllText(disclaimerFileName, DevPluginsDisclaimerText);
 
         this.SafeMode = EnvironmentConfiguration.DalamudNoPlugins || this.configuration.PluginSafeMode || this.startInfo.NoLoadPlugins;
 
@@ -394,9 +377,6 @@ Thanks and have fun!";
         if (!this.pluginDirectory.Exists)
             this.pluginDirectory.Create();
 
-        if (!this.devPluginDirectory.Exists)
-            this.devPluginDirectory.Create();
-
         // Add installed plugins. These are expected to be in a specific format so we can look for exactly that.
         foreach (var pluginDir in this.pluginDirectory.GetDirectories())
         {
@@ -437,7 +417,7 @@ Thanks and have fun!";
         }
 
         // devPlugins are more freeform. Look for any dll and hope to get lucky.
-        var devDllFiles = this.devPluginDirectory.GetFiles("*.dll", SearchOption.AllDirectories).ToList();
+        var devDllFiles = new List<FileInfo>();
 
         foreach (var setting in this.configuration.DevPluginLoadLocations)
         {
@@ -660,11 +640,8 @@ Thanks and have fun!";
     /// </summary>
     public void ScanDevPlugins()
     {
-        if (!this.devPluginDirectory.Exists)
-            this.devPluginDirectory.Create();
-
         // devPlugins are more freeform. Look for any dll and hope to get lucky.
-        var devDllFiles = this.devPluginDirectory.GetFiles("*.dll", SearchOption.AllDirectories).ToList();
+        var devDllFiles = new List<FileInfo>();
 
         foreach (var setting in this.configuration.DevPluginLoadLocations)
         {

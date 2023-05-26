@@ -30,7 +30,6 @@ public record DalamudStartInfo : IServiceType
         this.ConfigurationPath = other.ConfigurationPath;
         this.LogName = other.LogName;
         this.PluginDirectory = other.PluginDirectory;
-        this.DefaultPluginDirectory = other.DefaultPluginDirectory;
         this.AssetDirectory = other.AssetDirectory;
         this.Language = other.Language;
         this.GameVersion = other.GameVersion;
@@ -71,11 +70,6 @@ public record DalamudStartInfo : IServiceType
     /// Gets or sets the path to the directory for installed plugins.
     /// </summary>
     public string? PluginDirectory { get; set; }
-
-    /// <summary>
-    /// Gets or sets the path to the directory for developer plugins.
-    /// </summary>
-    public string? DefaultPluginDirectory { get; set; }
 
     /// <summary>
     /// Gets or sets the path to core Dalamud assets.
