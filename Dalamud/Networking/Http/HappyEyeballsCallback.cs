@@ -91,11 +91,7 @@ public class HappyEyeballsCallback : IDisposable
     private async Task<NetworkStream> AttemptConnection(IPAddress address, int port, CancellationToken token, CancellationToken delayToken)
     {
         await AsyncUtils.CancellableDelay(-1, delayToken).ConfigureAwait(false);
-
-        if (token.IsCancellationRequested)
-        {
-            return Task.FromCanceled<NetworkStream>(token).Result;
-        }
+        token.ThrowIfCancellationRequested();
 
         var socket = new Socket(address.AddressFamily, SocketType.Stream, ProtocolType.Tcp)
         {
@@ -116,9 +112,9 @@ public class HappyEyeballsCallback : IDisposable
 
     private async Task<List<IPAddress>> GetSortedAddresses(string hostname, CancellationToken token)
     {
-        // This method abuses DNS ordering and LINQ a bit. We can normally assume that "addresses" will be provided in
+        // This method abuses DNS ordering and LINQ a bit. We can normally assume that addresses will be provided in
         // the order the system wants to use. GroupBy will return its groups *in the order they're discovered*. Meaning,
-        // the first group created will always be the "preferred" group, and all other groups are in preference order.
+        // the first group created will always be the preferred group, and all other groups are in preference order.
         // This means a straight zipper merge is nice and clean and gives us most -> least preferred, repeating.
         var dnsRecords = await Dns.GetHostAddressesAsync(hostname, this.forcedAddressFamily, token);
 
