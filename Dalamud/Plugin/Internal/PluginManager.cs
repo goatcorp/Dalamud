@@ -49,8 +49,9 @@ internal partial class PluginManager : IDisposable, IServiceType
 {
     /// <summary>
     /// The current Dalamud API level, used to handle breaking changes. Only plugins with this level will be loaded.
+    /// As of Dalamud 9.x, this always matches the major version number of Dalamud.
     /// </summary>
-    public const int DalamudApiLevel = 8;
+    public static int DalamudApiLevel => Assembly.GetExecutingAssembly().GetName().Version!.Major;
 
     /// <summary>
     /// Default time to wait between plugin unload and plugin assembly unload.
