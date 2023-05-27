@@ -200,15 +200,21 @@ namespace Dalamud.Injector
                 var logFile = new FileInfo(logPath);
 
                 if (!logFile.Exists)
+                {
                     logFile.Create();
+                }
 
                 if (logFile.Length <= cullingFileSize)
+                {
                     return;
+                }
 
                 var amountToCull = logFile.Length - cullingFileSize;
 
                 if (amountToCull < bufferSize)
+                {
                     return;
+                }
 
                 using var reader = new BinaryReader(logFile.Open(FileMode.Open, FileAccess.Read, FileShare.ReadWrite));
                 using var writer = new BinaryWriter(logFile.Open(FileMode.Open, FileAccess.Write, FileShare.ReadWrite));
@@ -247,7 +253,6 @@ namespace Dalamud.Injector
             var workingDirectory = startInfo.WorkingDirectory;
             var configurationPath = startInfo.ConfigurationPath;
             var pluginDirectory = startInfo.PluginDirectory;
-            var defaultPluginDirectory = startInfo.DefaultPluginDirectory;
             var assetDirectory = startInfo.AssetDirectory;
             var delayInitializeMs = startInfo.DelayInitializeMs;
             var logName = startInfo.LogName;
@@ -257,25 +262,41 @@ namespace Dalamud.Injector
             for (var i = 2; i < args.Count; i++)
             {
                 if (args[i].StartsWith(key = "--dalamud-working-directory="))
+                {
                     workingDirectory = args[i][key.Length..];
+                }
                 else if (args[i].StartsWith(key = "--dalamud-configuration-path="))
+                {
                     configurationPath = args[i][key.Length..];
+                }
                 else if (args[i].StartsWith(key = "--dalamud-plugin-directory="))
+                {
                     pluginDirectory = args[i][key.Length..];
-                else if (args[i].StartsWith(key = "--dalamud-dev-plugin-directory="))
-                    defaultPluginDirectory = args[i][key.Length..];
+                }
                 else if (args[i].StartsWith(key = "--dalamud-asset-directory="))
+                {
                     assetDirectory = args[i][key.Length..];
+                }
                 else if (args[i].StartsWith(key = "--dalamud-delay-initialize="))
+                {
                     delayInitializeMs = int.Parse(args[i][key.Length..]);
+                }
                 else if (args[i].StartsWith(key = "--dalamud-client-language="))
+                {
                     languageStr = args[i][key.Length..].ToLowerInvariant();
+                }
                 else if (args[i].StartsWith(key = "--dalamud-tspack-b64="))
+                {
                     troubleshootingData = Encoding.UTF8.GetString(Convert.FromBase64String(args[i][key.Length..]));
+                }
                 else if (args[i].StartsWith(key = "--logname="))
+                {
                     logName = args[i][key.Length..];
+                }
                 else
+                {
                     continue;
+                }
 
                 args.RemoveAt(i);
                 i--;
@@ -287,33 +308,49 @@ namespace Dalamud.Injector
             workingDirectory ??= Directory.GetCurrentDirectory();
             configurationPath ??= Path.Combine(xivlauncherDir, "dalamudConfig.json");
             pluginDirectory ??= Path.Combine(xivlauncherDir, "installedPlugins");
-            defaultPluginDirectory ??= Path.Combine(xivlauncherDir, "devPlugins");
             assetDirectory ??= Path.Combine(xivlauncherDir, "dalamudAssets", "dev");
 
             ClientLanguage clientLanguage;
             if (languageStr[0..(len = Math.Min(languageStr.Length, (key = "english").Length))] == key[0..len])
+            {
                 clientLanguage = ClientLanguage.English;
+            }
             else if (languageStr[0..(len = Math.Min(languageStr.Length, (key = "japanese").Length))] == key[0..len])
+            {
                 clientLanguage = ClientLanguage.Japanese;
+            }
             else if (languageStr[0..(len = Math.Min(languageStr.Length, (key = "日本語").Length))] == key[0..len])
+            {
                 clientLanguage = ClientLanguage.Japanese;
+            }
             else if (languageStr[0..(len = Math.Min(languageStr.Length, (key = "german").Length))] == key[0..len])
+            {
                 clientLanguage = ClientLanguage.German;
+            }
             else if (languageStr[0..(len = Math.Min(languageStr.Length, (key = "deutsch").Length))] == key[0..len])
+            {
                 clientLanguage = ClientLanguage.German;
+            }
             else if (languageStr[0..(len = Math.Min(languageStr.Length, (key = "french").Length))] == key[0..len])
+            {
                 clientLanguage = ClientLanguage.French;
+            }
             else if (languageStr[0..(len = Math.Min(languageStr.Length, (key = "français").Length))] == key[0..len])
+            {
                 clientLanguage = ClientLanguage.French;
+            }
             else if (int.TryParse(languageStr, out var languageInt) && Enum.IsDefined((ClientLanguage)languageInt))
+            {
                 clientLanguage = (ClientLanguage)languageInt;
+            }
             else
+            {
                 throw new CommandLineException($"\"{languageStr}\" is not a valid supported language.");
+            }
 
             startInfo.WorkingDirectory = workingDirectory;
             startInfo.ConfigurationPath = configurationPath;
             startInfo.PluginDirectory = pluginDirectory;
-            startInfo.DefaultPluginDirectory = defaultPluginDirectory;
             startInfo.AssetDirectory = assetDirectory;
             startInfo.Language = clientLanguage;
             startInfo.DelayInitializeMs = delayInitializeMs;
@@ -350,10 +387,14 @@ namespace Dalamud.Injector
                 exeSpaces += " ";
 
             if (particularCommand is null or "help")
+            {
                 Console.WriteLine("{0} help [command]", exeName);
+            }
 
             if (particularCommand is null or "inject")
+            {
                 Console.WriteLine("{0} inject [-h/--help] [-a/--all] [--warn] [--fix-acl] [--se-debug-privilege] [pid1] [pid2] [pid3] ...", exeName);
+            }
 
             if (particularCommand is null or "launch")
             {
@@ -367,7 +408,7 @@ namespace Dalamud.Injector
             }
 
             Console.WriteLine("Specifying dalamud start info: [--dalamud-working-directory=path] [--dalamud-configuration-path=path]");
-            Console.WriteLine("                               [--dalamud-plugin-directory=path] [--dalamud-dev-plugin-directory=path]");
+            Console.WriteLine("                               [--dalamud-plugin-directory=path]");
             Console.WriteLine("                               [--dalamud-asset-directory=path] [--dalamud-delay-initialize=0(ms)]");
             Console.WriteLine("                               [--dalamud-client-language=0-3|j(apanese)|e(nglish)|d|g(erman)|f(rench)]");
 
@@ -431,7 +472,7 @@ namespace Dalamud.Injector
                 }
                 else
                 {
-                    throw new CommandLineException($"\"{args[i]}\" is not a command line argument.");
+                    Log.Warning($"\"{args[i]}\" is not a valid command line argument, ignoring.");
                 }
             }
 
@@ -505,29 +546,53 @@ namespace Dalamud.Injector
                 }
 
                 if (args[i] == "-h" || args[i] == "--help")
+                {
                     showHelp = true;
+                }
                 else if (args[i] == "-f" || args[i] == "--fake-arguments")
+                {
                     useFakeArguments = true;
+                }
                 else if (args[i] == "--without-dalamud")
+                {
                     withoutDalamud = true;
+                }
                 else if (args[i] == "--no-wait")
+                {
                     waitForGameWindow = false;
+                }
                 else if (args[i] == "--no-fix-acl" || args[i] == "--no-acl-fix")
+                {
                     noFixAcl = true;
+                }
                 else if (args[i] == "-g")
+                {
                     gamePath = args[++i];
+                }
                 else if (args[i].StartsWith("--game="))
+                {
                     gamePath = args[i].Split('=', 2)[1];
+                }
                 else if (args[i] == "-m")
+                {
                     mode = args[++i];
+                }
                 else if (args[i].StartsWith("--mode="))
+                {
                     mode = args[i].Split('=', 2)[1];
+                }
                 else if (args[i].StartsWith("--handle-owner="))
+                {
                     handleOwner = IntPtr.Parse(args[i].Split('=', 2)[1]);
+                }
                 else if (args[i] == "--")
+                {
                     parsingGameArgument = true;
+                }
                 else
-                    throw new CommandLineException($"\"{args[i]}\" is not a command line argument.");
+                {
+                    Log.Warning($"\"{args[i]}\" is not a valid command line argument, ignoring.");
+                }
             }
 
             var checksumTable = "fX1pGtdS5CAP4_VL";
@@ -536,11 +601,15 @@ namespace Dalamud.Injector
             gameArguments = gameArguments.SelectMany(x =>
             {
                 if (!x.StartsWith("//**sqex0003") || !x.EndsWith("**//"))
+                {
                     return new List<string>() { x };
+                }
 
                 var checksum = checksumTable.IndexOf(x[x.Length - 5]);
                 if (checksum == -1)
+                {
                     return new List<string>() { x };
+                }
 
                 var encData = Convert.FromBase64String(x.Substring(12, x.Length - 12 - 5).Replace('-', '+').Replace('_', '/').Replace('*', '='));
                 var rawData = new byte[encData.Length];
@@ -554,13 +623,25 @@ namespace Dalamud.Injector
                     encryptArguments = true;
                     var args = argDelimiterRegex.Split(rawString).Skip(1).Select(y => string.Join('=', kvDelimiterRegex.Split(y, 2)).Replace("  ", " ")).ToList();
                     if (!args.Any())
+                    {
                         continue;
+                    }
+
                     if (!args.First().StartsWith("T="))
+                    {
                         continue;
+                    }
+
                     if (!uint.TryParse(args.First().Substring(2), out var tickCount))
+                    {
                         continue;
+                    }
+
                     if (tickCount >> 16 != i)
+                    {
                         continue;
+                    }
+
                     return args.Skip(1);
                 }
 
@@ -712,7 +793,9 @@ namespace Dalamud.Injector
             if (handleOwner != IntPtr.Zero)
             {
                 if (!DuplicateHandle(Process.GetCurrentProcess().Handle, process.Handle, handleOwner, out processHandleForOwner, 0, false, DuplicateOptions.SameAccess))
+                {
                     Log.Warning("Failed to call DuplicateHandle: Win32 error code {0}", Marshal.GetLastWin32Error());
+                }
             }
 
             Console.WriteLine($"{{\"pid\": {process.Id}, \"handle\": {processHandleForOwner}}}");
@@ -755,7 +838,9 @@ namespace Dalamud.Injector
             helperProcess.BeginErrorReadLine();
             helperProcess.WaitForExit();
             if (helperProcess.ExitCode != 0)
+            {
                 return -1;
+            }
 
             var result = JsonSerializer.CreateDefault().Deserialize<Dictionary<string, int>>(new JsonTextReader(helperProcess.StandardOutput));
             var pid = result["pid"];
@@ -812,7 +897,9 @@ namespace Dalamud.Injector
             var startInfoAddress = startInfoBuffer.Add(startInfoBytes);
 
             if (startInfoAddress == 0)
+            {
                 throw new Exception("Unable to allocate start info JSON");
+            }
 
             injector.GetFunctionAddress(bootModule, "Initialize", out var initAddress);
             injector.CallRemoteFunction(initAddress, startInfoAddress, out var exitCode);
@@ -847,7 +934,10 @@ namespace Dalamud.Injector
         /// </param>
         private static string EncodeParameterArgument(string argument, bool force = false)
         {
-            if (argument == null) throw new ArgumentNullException(nameof(argument));
+            if (argument == null)
+            {
+                throw new ArgumentNullException(nameof(argument));
+            }
 
             // Unless we're told otherwise, don't quote unless we actually
             // need to do so --- hopefully avoid problems if programs won't

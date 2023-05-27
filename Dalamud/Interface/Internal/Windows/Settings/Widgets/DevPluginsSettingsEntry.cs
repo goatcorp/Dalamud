@@ -67,7 +67,7 @@ public class DevPluginsSettingsEntry : SettingsEntry
             }
         }
 
-        ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingsDevPluginLocationsHint", "Add additional dev plugin load locations.\nThese can be either the directory or DLL path."));
+        ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingsDevPluginLocationsHint", "Add dev plugin load locations.\nThese can be either the directory or DLL path."));
 
         ImGuiHelpers.ScaledDummy(5);
 
