@@ -68,7 +68,7 @@ public static class Troubleshooting
             var payload = new TroubleshootingPayload
             {
                 LoadedPlugins = pluginManager?.InstalledPlugins?.Select(x => x.Manifest)?.OrderByDescending(x => x.InternalName).ToArray(),
-                PluginStates = pluginManager?.InstalledPlugins?.ToDictionary(x => x.Manifest.InternalName, x => x.IsBanned ? "Banned" : x.State.ToString()),
+                PluginStates = pluginManager?.InstalledPlugins?.Where(x => !x.IsDev).ToDictionary(x => x.Manifest.InternalName, x => x.IsBanned ? "Banned" : x.State.ToString()),
                 EverStartedLoadingPlugins = pluginManager?.InstalledPlugins.Where(x => x.HasEverStartedLoad).Select(x => x.InternalName).ToList(),
                 DalamudVersion = Util.AssemblyVersion,
                 DalamudGitHash = Util.GetGitHash(),
