@@ -95,8 +95,9 @@ internal class InterfaceManager : IDisposable, IServiceType
         Log.Verbose("Resolver setup complete");
 
         Log.Verbose("===== S W A P C H A I N =====");
-        Log.Verbose($"Present address 0x{this.presentHook!.Address.ToInt64():X}");
-        Log.Verbose($"ResizeBuffers address 0x{this.resizeBuffersHook!.Address.ToInt64():X}");
+        Log.Verbose($"Is ReShade: {this.address.IsReshade}");
+        Log.Verbose($"Present address 0x{this.address.Present.ToInt64():X}");
+        Log.Verbose($"ResizeBuffers address 0x{this.address.ResizeBuffers.ToInt64():X}");
 
         this.presentHook = Hook<PresentDelegate>.FromAddress(this.address.Present, this.PresentDetour);
         this.resizeBuffersHook = Hook<ResizeBuffersDelegate>.FromAddress(this.address.ResizeBuffers, this.ResizeBuffersDetour);
