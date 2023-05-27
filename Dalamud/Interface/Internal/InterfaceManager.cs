@@ -20,12 +20,12 @@ using Dalamud.Interface.Internal.ManagedAsserts;
 using Dalamud.Interface.Internal.Notifications;
 using Dalamud.Interface.Style;
 using Dalamud.Interface.Windowing;
+using Dalamud.Logging.Internal;
 using Dalamud.Utility;
 using Dalamud.Utility.Timing;
 using ImGuiNET;
 using ImGuiScene;
 using PInvoke;
-using Serilog;
 
 // general dev notes, here because it's easiest
 
@@ -47,6 +47,8 @@ namespace Dalamud.Interface.Internal;
 [ServiceManager.BlockingEarlyLoadedService]
 internal class InterfaceManager : IDisposable, IServiceType
 {
+    private static ModuleLog Log = new ModuleLog("IM");
+
     private const float DefaultFontSizePt = 12.0f;
     private const float DefaultFontSizePx = DefaultFontSizePt * 4.0f / 3.0f;
     private const ushort Fallback1Codepoint = 0x3013; // Geta mark; FFXIV uses this to indicate that a glyph is missing.
@@ -78,22 +80,27 @@ internal class InterfaceManager : IDisposable, IServiceType
     [ServiceManager.ServiceConstructor]
     private InterfaceManager(SigScanner sigScanner)
     {
+        Log.Verbose("ctor called");
+
         this.dispatchMessageWHook = Hook<DispatchMessageWDelegate>.FromImport(
             null, "user32.dll", "DispatchMessageW", 0, this.DispatchMessageWDetour);
         this.setCursorHook = Hook<SetCursorDelegate>.FromImport(
             null, "user32.dll", "SetCursor", 0, this.SetCursorDetour);
+        Log.Verbose("Import hooks applied");
 
         this.fontBuildSignal = new ManualResetEvent(false);
 
         this.address = new SwapChainVtableResolver();
         this.address.Setup();
-
-        this.presentHook = Hook<PresentDelegate>.FromAddress(this.address.Present, this.PresentDetour);
-        this.resizeBuffersHook = Hook<ResizeBuffersDelegate>.FromAddress(this.address.ResizeBuffers, this.ResizeBuffersDetour);
+        Log.Verbose("Resolver setup complete");
 
         Log.Verbose("===== S W A P C H A I N =====");
         Log.Verbose($"Present address 0x{this.presentHook!.Address.ToInt64():X}");
         Log.Verbose($"ResizeBuffers address 0x{this.resizeBuffersHook!.Address.ToInt64():X}");
+
+        this.presentHook = Hook<PresentDelegate>.FromAddress(this.address.Present, this.PresentDetour);
+        this.resizeBuffersHook = Hook<ResizeBuffersDelegate>.FromAddress(this.address.ResizeBuffers, this.ResizeBuffersDetour);
+        Log.Verbose("Present and ResizeBuffers hooked");
 
         var wndProcAddress = sigScanner.ScanText("E8 ?? ?? ?? ?? 80 7C 24 ?? ?? 74 ?? B8");
         Log.Verbose($"WndProc address 0x{wndProcAddress.ToInt64():X}");
@@ -104,6 +111,7 @@ internal class InterfaceManager : IDisposable, IServiceType
         this.resizeBuffersHook.Enable();
         this.dispatchMessageWHook.Enable();
         this.processMessageHook.Enable();
+        Log.Verbose("Hooks enabled");
     }
 
     [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
