@@ -28,50 +28,11 @@ public class Hook<T> : IDisposable, IDalamudHook where T : Delegate
 
     /// <summary>
     /// Initializes a new instance of the <see cref="Hook{T}"/> class.
-    /// Hook is not activated until Enable() method is called.
-    /// </summary>
-    /// <param name="address">A memory address to install a hook.</param>
-    /// <param name="detour">Callback function. Delegate must have a same original function prototype.</param>
-    [Obsolete("Use Hook<T>.FromAddress instead.")]
-    public Hook(IntPtr address, T detour)
-        : this(address, detour, false, Assembly.GetCallingAssembly())
-    {
-    }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="Hook{T}"/> class.
-    /// Hook is not activated until Enable() method is called.
-    /// Please do not use MinHook unless you have thoroughly troubleshot why Reloaded does not work.
-    /// </summary>
-    /// <param name="address">A memory address to install a hook.</param>
-    /// <param name="detour">Callback function. Delegate must have a same original function prototype.</param>
-    /// <param name="useMinHook">Use the MinHook hooking library instead of Reloaded.</param>
-    [Obsolete("Use Hook<T>.FromAddress instead.")]
-    public Hook(IntPtr address, T detour, bool useMinHook)
-        : this(address, detour, useMinHook, Assembly.GetCallingAssembly())
-    {
-    }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="Hook{T}"/> class.
     /// </summary>
     /// <param name="address">A memory address to install a hook.</param>
     internal Hook(IntPtr address)
     {
         this.address = address;
-    }
-
-    [Obsolete("Use Hook<T>.FromAddress instead.")]
-    private Hook(IntPtr address, T detour, bool useMinHook, Assembly callingAssembly)
-    {
-        if (EnvironmentConfiguration.DalamudForceMinHook)
-            useMinHook = true;
-
-        this.address = address = HookManager.FollowJmp(address);
-        if (useMinHook)
-            this.compatHookImpl = new MinHookHook<T>(address, detour, callingAssembly);
-        else
-            this.compatHookImpl = new ReloadedHook<T>(address, detour, callingAssembly);
     }
 
     /// <summary>
