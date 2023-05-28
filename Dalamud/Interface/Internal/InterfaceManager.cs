@@ -14,6 +14,7 @@ using Dalamud.Game.ClientState.GamePad;
 using Dalamud.Game.ClientState.Keys;
 using Dalamud.Game.Gui.Internal;
 using Dalamud.Game.Internal.DXGI;
+using Dalamud.Game.Internal.DXGI.Definitions;
 using Dalamud.Hooking;
 using Dalamud.Interface.GameFonts;
 using Dalamud.Interface.Internal.ManagedAsserts;
@@ -60,6 +61,9 @@ internal class InterfaceManager : IDisposable, IServiceType
     [ServiceManager.ServiceDependency]
     private readonly Framework framework = Service<Framework>.Get();
 
+    [ServiceManager.ServiceDependency]
+    private readonly SigScanner sigScanner = Service<SigScanner>.Get();
+
     private readonly ManualResetEvent fontBuildSignal;
     private readonly SwapChainVtableResolver address;
     private readonly Hook<DispatchMessageWDelegate> dispatchMessageWHook;
@@ -67,8 +71,12 @@ internal class InterfaceManager : IDisposable, IServiceType
     private Hook<ProcessMessageDelegate> processMessageHook;
     private RawDX11Scene? scene;
 
-    private Hook<PresentDelegate>? presentHook;
-    private Hook<ResizeBuffersDelegate>? resizeBuffersHook;
+    private ObjectVTableHook? swapChainHook;
+
+    // Use these instead of querying for functions inside the above,
+    // since we behave differently if ReShade or stuff are detected.
+    private PresentDelegate presentOriginal;
+    private ResizeBuffersDelegate resizeBuffersOriginal;
 
     // can't access imgui IO before first present call
     private bool lastWantCapture = false;
@@ -84,8 +92,9 @@ internal class InterfaceManager : IDisposable, IServiceType
             null, "user32.dll", "SetCursor", 0, this.SetCursorDetour);
 
         this.fontBuildSignal = new ManualResetEvent(false);
-
         this.address = new SwapChainVtableResolver();
+
+        this.QueueHookResolution();
     }
 
     [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
@@ -220,13 +229,13 @@ internal class InterfaceManager : IDisposable, IServiceType
         this.framework.RunOnFrameworkThread(() =>
         {
             this.setCursorHook.Dispose();
-            this.presentHook?.Dispose();
-            this.resizeBuffersHook?.Dispose();
             this.dispatchMessageWHook.Dispose();
             this.processMessageHook?.Dispose();
         }).Wait();
 
         this.scene?.Dispose();
+
+        this.swapChainHook?.Dispose();
     }
 
 #nullable enable
@@ -598,22 +607,22 @@ internal class InterfaceManager : IDisposable, IServiceType
      */
     private IntPtr PresentDetour(IntPtr swapChain, uint syncInterval, uint presentFlags)
     {
-        if (this.scene != null && swapChain != this.scene.SwapChain.NativePointer)
-            return this.presentHook!.Original(swapChain, syncInterval, presentFlags);
-
         if (this.scene == null)
-            this.InitScene(swapChain);
-
-        if (this.address.IsReshade)
         {
-            var pRes = this.presentHook.Original(swapChain, syncInterval, presentFlags);
-
-            this.RenderImGui();
-
-            return pRes;
+            this.InitScene(swapChain);
         }
 
-        this.RenderImGui();
+        nint res;
+        if (this.address.IsReshade)
+        {
+            res = this.presentOriginal(swapChain, syncInterval, presentFlags);
+            this.RenderImGui();
+        }
+        else
+        {
+            this.RenderImGui();
+            res = this.presentOriginal(swapChain, syncInterval, presentFlags);
+        }
 
         if (this.deferredDisposeTextures.Count > 0)
         {
@@ -626,7 +635,95 @@ internal class InterfaceManager : IDisposable, IServiceType
             this.deferredDisposeTextures.Clear();
         }
 
-        return this.presentHook.Original(swapChain, syncInterval, presentFlags);
+        return res;
+    }
+
+    private void QueueHookResolution()
+    {
+        if (this.GameWindowHandle != 0 && this.address.IsResolved)
+        {
+            return;
+        }
+
+        this.framework.RunOnFrameworkThread(() =>
+        {
+            if (this.GameWindowHandle == 0)
+            {
+                while ((this.GameWindowHandle = NativeFunctions.FindWindowEx(IntPtr.Zero, this.GameWindowHandle, "FFXIVGAME", IntPtr.Zero)) != IntPtr.Zero)
+                {
+                    _ = User32.GetWindowThreadProcessId(this.GameWindowHandle, out var pid);
+
+                    if (pid == Environment.ProcessId && User32.IsWindowVisible(this.GameWindowHandle))
+                    {
+                        break;
+                    }
+                }
+            }
+
+            if (this.GameWindowHandle == 0)
+            {
+                return;
+            }
+
+            try
+            {
+                if (Service<DalamudConfiguration>.Get().WindowIsImmersive)
+                {
+                    this.SetImmersiveMode(true);
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Could not enable immersive mode");
+            }
+
+            if (!this.address.IsResolved)
+            {
+                try
+                {
+                    this.address.Setup();
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex, "Could not resolve addresses and set up hooks; trying again later");
+                    return;
+                }
+
+                Log.Information("Resolver setup complete");
+
+                Log.Information("===== S W A P C H A I N =====");
+                Log.Information($"Is ReShade: {this.address.IsReshade}");
+                Log.Information($"Present address 0x{this.address.Present.ToInt64():X}");
+                Log.Information($"ResizeBuffers address 0x{this.address.ResizeBuffers.ToInt64():X}");
+
+                this.presentOriginal =
+                    Marshal.GetDelegateForFunctionPointer<PresentDelegate>(this.address.Present);
+                this.resizeBuffersOriginal =
+                    Marshal.GetDelegateForFunctionPointer<ResizeBuffersDelegate>(this.address.ResizeBuffers);
+
+                this.swapChainHook = new ObjectVTableHook(
+                    this.address.DxgiSwapChain,
+                    SwapChainVtableResolver.NumDxgiSwapChainMethods);
+                this.swapChainHook.SetVtableEntry<PresentDelegate>(
+                    (int)IDXGISwapChainVtbl.Present,
+                    this.PresentDetour);
+                this.swapChainHook.SetVtableEntry<ResizeBuffersDelegate>(
+                    (int)IDXGISwapChainVtbl.ResizeBuffers,
+                    this.ResizeBuffersDetour);
+                this.swapChainHook.Enable();
+                Log.Information("Present and ResizeBuffers hooked");
+
+                var wndProcAddress = this.sigScanner.ScanText("E8 ?? ?? ?? ?? 80 7C 24 ?? ?? 74 ?? B8");
+                Log.Information($"WndProc address 0x{wndProcAddress.ToInt64():X}");
+                this.processMessageHook =
+                    Hook<ProcessMessageDelegate>.FromAddress(wndProcAddress, this.ProcessMessageDetour);
+
+                this.setCursorHook.Enable();
+                this.dispatchMessageWHook.Enable();
+                this.processMessageHook.Enable();
+                Log.Information("Hooks enabled");
+            }
+        }).ContinueWith(_ => this.QueueHookResolution());
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -991,49 +1088,6 @@ internal class InterfaceManager : IDisposable, IServiceType
         }
     }
 
-    [ServiceManager.CallWhenServicesReady]
-    private void ContinueConstruction(SigScanner sigScanner, Framework framework)
-    {
-        this.address.Setup(sigScanner);
-        framework.RunOnFrameworkThread(() =>
-        {
-            while ((this.GameWindowHandle = NativeFunctions.FindWindowEx(IntPtr.Zero, this.GameWindowHandle, "FFXIVGAME", IntPtr.Zero)) != IntPtr.Zero)
-            {
-                _ = User32.GetWindowThreadProcessId(this.GameWindowHandle, out var pid);
-
-                if (pid == Environment.ProcessId && User32.IsWindowVisible(this.GameWindowHandle))
-                    break;
-            }
-
-            try
-            {
-                if (Service<DalamudConfiguration>.Get().WindowIsImmersive)
-                    this.SetImmersiveMode(true);
-            }
-            catch (Exception ex)
-            {
-                Log.Error(ex, "Could not enable immersive mode");
-            }
-
-            this.presentHook = Hook<PresentDelegate>.FromAddress(this.address.Present, this.PresentDetour);
-            this.resizeBuffersHook = Hook<ResizeBuffersDelegate>.FromAddress(this.address.ResizeBuffers, this.ResizeBuffersDetour);
-
-            Log.Verbose("===== S W A P C H A I N =====");
-            Log.Verbose($"Present address 0x{this.presentHook!.Address.ToInt64():X}");
-            Log.Verbose($"ResizeBuffers address 0x{this.resizeBuffersHook!.Address.ToInt64():X}");
-
-            var wndProcAddress = sigScanner.ScanText("E8 ?? ?? ?? ?? 80 7C 24 ?? ?? 74 ?? B8");
-            Log.Verbose($"WndProc address 0x{wndProcAddress.ToInt64():X}");
-            this.processMessageHook = Hook<ProcessMessageDelegate>.FromAddress(wndProcAddress, this.ProcessMessageDetour);
-
-            this.setCursorHook.Enable();
-            this.presentHook.Enable();
-            this.resizeBuffersHook.Enable();
-            this.dispatchMessageWHook.Enable();
-            this.processMessageHook.Enable();
-        });
-    }
-
     // This is intended to only be called as a handler attached to scene.OnNewRenderFrame
     private void RebuildFontsInternal()
     {
@@ -1078,14 +1132,9 @@ internal class InterfaceManager : IDisposable, IServiceType
 
         this.ResizeBuffers?.InvokeSafely();
 
-        // We have to ensure we're working with the main swapchain,
-        // as viewports might be resizing as well
-        if (this.scene == null || swapChain != this.scene.SwapChain.NativePointer)
-            return this.resizeBuffersHook!.Original(swapChain, bufferCount, width, height, newFormat, swapChainFlags);
-
         this.scene?.OnPreResize();
 
-        var ret = this.resizeBuffersHook!.Original(swapChain, bufferCount, width, height, newFormat, swapChainFlags);
+        var ret = this.resizeBuffersOriginal(swapChain, bufferCount, width, height, newFormat, swapChainFlags);
         if (ret.ToInt64() == 0x887A0001)
         {
             Log.Error("invalid call to resizeBuffers");

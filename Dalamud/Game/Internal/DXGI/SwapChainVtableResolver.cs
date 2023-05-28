@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 
 using Dalamud.Game.Internal.DXGI.Definitions;
+using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Client.Graphics.Kernel;
 using Serilog;
 
@@ -17,11 +18,18 @@ namespace Dalamud.Game.Internal.DXGI;
 /// </remarks>
 public class SwapChainVtableResolver : BaseAddressResolver, ISwapChainAddressResolver
 {
+    public static readonly int NumDxgiSwapChainMethods = Enum.GetValues(typeof(IDXGISwapChainVtbl)).Length;
+
     /// <inheritdoc/>
     public IntPtr Present { get; set; }
 
     /// <inheritdoc/>
     public IntPtr ResizeBuffers { get; set; }
+
+    /// <summary>
+    /// Gets or sets the pointer to DxgiSwapChain.
+    /// </summary>
+    public IntPtr DxgiSwapChain { get; set; }
 
     /// <summary>
     /// Gets a value indicating whether or not ReShade is loaded/used.
@@ -31,28 +39,12 @@ public class SwapChainVtableResolver : BaseAddressResolver, ISwapChainAddressRes
     /// <inheritdoc/>
     protected override unsafe void Setup64Bit(SigScanner sig)
     {
-        Device* kernelDev;
-        SwapChain* swapChain;
-        void* dxgiSwapChain;
+        var kernelDev = Util.NotNull(Device.Instance(), "Device.Instance()");
+        var swapChain = Util.NotNull(kernelDev->SwapChain, "KernelDevice->SwapChain");
+        var dxgiSwapChain = Util.NotNull(swapChain->DXGISwapChain, "SwapChain->DXGISwapChain");
 
-        while (true)
-        {
-            kernelDev = Device.Instance();
-            if (kernelDev == null)
-                continue;
-
-            swapChain = kernelDev->SwapChain;
-            if (swapChain == null)
-                continue;
-
-            dxgiSwapChain = swapChain->DXGISwapChain;
-            if (dxgiSwapChain == null)
-                continue;
-
-            break;
-        }
-
-        var scVtbl = GetVTblAddresses(new IntPtr(dxgiSwapChain), Enum.GetValues(typeof(IDXGISwapChainVtbl)).Length);
+        this.DxgiSwapChain = (nint)dxgiSwapChain;
+        var scVtbl = GetVTblAddresses(this.DxgiSwapChain, NumDxgiSwapChainMethods);
 
         this.Present = scVtbl[(int)IDXGISwapChainVtbl.Present];
 
