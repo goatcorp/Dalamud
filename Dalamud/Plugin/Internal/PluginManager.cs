@@ -581,23 +581,6 @@ internal partial class PluginManager : IDisposable, IServiceType
     }
 
     /// <summary>
-    /// Reload all loaded plugins.
-    /// </summary>
-    /// <returns>A task.</returns>
-    [Obsolete("This method should no longer be used and will be removed in a future release.")]
-    public Task ReloadAllPluginsAsync()
-    {
-        lock (this.pluginListLock)
-        {
-            return Task.WhenAll(this.InstalledPlugins
-                                    .Where(x => x.IsLoaded)
-                                    .ToList()
-                                    .Select(x => Task.Run(async () => await x.ReloadAsync()))
-                                    .ToList());
-        }
-    }
-
-    /// <summary>
     /// Reload the PluginMaster for each repo, filter, and event that the list has updated.
     /// </summary>
     /// <param name="notify">Whether to notify that available plugins have changed afterwards.</param>
