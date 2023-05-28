@@ -80,31 +80,31 @@ internal class InterfaceManager : IDisposable, IServiceType
     [ServiceManager.ServiceConstructor]
     private InterfaceManager(SigScanner sigScanner)
     {
-        Log.Verbose("ctor called");
+        Log.Information("ctor called");
 
         this.dispatchMessageWHook = Hook<DispatchMessageWDelegate>.FromImport(
             null, "user32.dll", "DispatchMessageW", 0, this.DispatchMessageWDetour);
         this.setCursorHook = Hook<SetCursorDelegate>.FromImport(
             null, "user32.dll", "SetCursor", 0, this.SetCursorDetour);
-        Log.Verbose("Import hooks applied");
+        Log.Information("Import hooks applied");
 
         this.fontBuildSignal = new ManualResetEvent(false);
 
         this.address = new SwapChainVtableResolver();
         this.address.Setup();
-        Log.Verbose("Resolver setup complete");
+        Log.Information("Resolver setup complete");
 
-        Log.Verbose("===== S W A P C H A I N =====");
-        Log.Verbose($"Is ReShade: {this.address.IsReshade}");
-        Log.Verbose($"Present address 0x{this.address.Present.ToInt64():X}");
-        Log.Verbose($"ResizeBuffers address 0x{this.address.ResizeBuffers.ToInt64():X}");
+        Log.Information("===== S W A P C H A I N =====");
+        Log.Information($"Is ReShade: {this.address.IsReshade}");
+        Log.Information($"Present address 0x{this.address.Present.ToInt64():X}");
+        Log.Information($"ResizeBuffers address 0x{this.address.ResizeBuffers.ToInt64():X}");
 
         this.presentHook = Hook<PresentDelegate>.FromAddress(this.address.Present, this.PresentDetour);
         this.resizeBuffersHook = Hook<ResizeBuffersDelegate>.FromAddress(this.address.ResizeBuffers, this.ResizeBuffersDetour);
-        Log.Verbose("Present and ResizeBuffers hooked");
+        Log.Information("Present and ResizeBuffers hooked");
 
         var wndProcAddress = sigScanner.ScanText("E8 ?? ?? ?? ?? 80 7C 24 ?? ?? 74 ?? B8");
-        Log.Verbose($"WndProc address 0x{wndProcAddress.ToInt64():X}");
+        Log.Information($"WndProc address 0x{wndProcAddress.ToInt64():X}");
         this.processMessageHook = Hook<ProcessMessageDelegate>.FromAddress(wndProcAddress, this.ProcessMessageDetour);
 
         this.setCursorHook.Enable();
@@ -112,7 +112,7 @@ internal class InterfaceManager : IDisposable, IServiceType
         this.resizeBuffersHook.Enable();
         this.dispatchMessageWHook.Enable();
         this.processMessageHook.Enable();
-        Log.Verbose("Hooks enabled");
+        Log.Information("Hooks enabled");
     }
 
     [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
