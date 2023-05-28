@@ -36,13 +36,6 @@ public static class Util
     private static ulong moduleEndAddr;
 
     /// <summary>
-    /// Gets an httpclient for usage.
-    /// Do NOT await this.
-    /// </summary>
-    [Obsolete($"Use Service<{nameof(HappyHttpClient)}> instead.")]
-    public static HttpClient HttpClient { get; } = Service<HappyHttpClient>.Get().SharedHttpClient;
-
-    /// <summary>
     /// Gets the assembly version of Dalamud.
     /// </summary>
     public static string AssemblyVersion { get; } = Assembly.GetAssembly(typeof(ChatHandlers)).GetName().Version.ToString();
@@ -491,21 +484,6 @@ public static class Util
         }
 
         return Encoding.UTF8.GetString(mso.ToArray());
-    }
-
-    /// <summary>
-    /// Copy one stream to another.
-    /// </summary>
-    /// <param name="src">The source stream.</param>
-    /// <param name="dest">The destination stream.</param>
-    /// <param name="len">The maximum length to copy.</param>
-    [Obsolete("Use Stream.CopyTo() instead", true)]
-    public static void CopyTo(Stream src, Stream dest, int len = 4069)
-    {
-        var bytes = new byte[len];
-        int cnt;
-
-        while ((cnt = src.Read(bytes, 0, bytes.Length)) != 0) dest.Write(bytes, 0, cnt);
     }
 
     /// <summary>
