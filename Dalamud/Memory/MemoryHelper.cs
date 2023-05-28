@@ -167,7 +167,7 @@ public static unsafe class MemoryHelper
     /// Read a UTF-8 encoded string from a specified memory address.
     /// </summary>
     /// <remarks>
-    /// Attention! If this is an SeString, use the <see cref="SeStringManager"/> to decode or the applicable helper method.
+    /// Attention! If this is an <see cref="SeString"/>, use the applicable helper methods to decode.
     /// </remarks>
     /// <param name="memoryAddress">The memory address to read from.</param>
     /// <returns>The read in string.</returns>
@@ -178,7 +178,7 @@ public static unsafe class MemoryHelper
     /// Read a string with the given encoding from a specified memory address.
     /// </summary>
     /// <remarks>
-    /// Attention! If this is an SeString, use the <see cref="SeStringManager"/> to decode or the applicable helper method.
+    /// Attention! If this is an <see cref="SeString"/>, use the applicable helper methods to decode.
     /// </remarks>
     /// <param name="memoryAddress">The memory address to read from.</param>
     /// <param name="encoding">The encoding to use to decode the string.</param>
@@ -193,7 +193,7 @@ public static unsafe class MemoryHelper
     /// Read a UTF-8 encoded string from a specified memory address.
     /// </summary>
     /// <remarks>
-    /// Attention! If this is an SeString, use the <see cref="SeStringManager"/> to decode or the applicable helper method.
+    /// Attention! If this is an <see cref="SeString"/>, use the applicable helper methods to decode.
     /// </remarks>
     /// <param name="memoryAddress">The memory address to read from.</param>
     /// <param name="maxLength">The maximum length of the string.</param>
@@ -205,7 +205,7 @@ public static unsafe class MemoryHelper
     /// Read a string with the given encoding from a specified memory address.
     /// </summary>
     /// <remarks>
-    /// Attention! If this is an SeString, use the <see cref="SeStringManager"/> to decode or the applicable helper method.
+    /// Attention! If this is an <see cref="SeString"/>, use the applicable helper methods to decode.
     /// </remarks>
     /// <param name="memoryAddress">The memory address to read from.</param>
     /// <param name="encoding">The encoding to use to decode the string.</param>
@@ -284,7 +284,7 @@ public static unsafe class MemoryHelper
     /// Read a UTF-8 encoded string from a specified memory address.
     /// </summary>
     /// <remarks>
-    /// Attention! If this is an SeString, use the <see cref="SeStringManager"/> to decode or the applicable helper method.
+    /// Attention! If this is an <see cref="SeString"/>, use the applicable helper methods to decode.
     /// </remarks>
     /// <param name="memoryAddress">The memory address to read from.</param>
     /// <param name="value">The read in string.</param>
@@ -295,7 +295,7 @@ public static unsafe class MemoryHelper
     /// Read a string with the given encoding from a specified memory address.
     /// </summary>
     /// <remarks>
-    /// Attention! If this is an SeString, use the <see cref="SeStringManager"/> to decode or the applicable helper method.
+    /// Attention! If this is an <see cref="SeString"/>, use the applicable helper methods to decode.
     /// </remarks>
     /// <param name="memoryAddress">The memory address to read from.</param>
     /// <param name="encoding">The encoding to use to decode the string.</param>
@@ -307,7 +307,7 @@ public static unsafe class MemoryHelper
     /// Read a UTF-8 encoded string from a specified memory address.
     /// </summary>
     /// <remarks>
-    /// Attention! If this is an SeString, use the <see cref="SeStringManager"/> to decode or the applicable helper method.
+    /// Attention! If this is an <see cref="SeString"/>, use the applicable helper methods to decode.
     /// </remarks>
     /// <param name="memoryAddress">The memory address to read from.</param>
     /// <param name="value">The read in string.</param>
@@ -319,7 +319,7 @@ public static unsafe class MemoryHelper
     /// Read a string with the given encoding from a specified memory address.
     /// </summary>
     /// <remarks>
-    /// Attention! If this is an SeString, use the <see cref="SeStringManager"/> to decode or the applicable helper method.
+    /// Attention! If this is an <see cref="SeString"/>, use the applicable helper methods to decode.
     /// </remarks>
     /// <param name="memoryAddress">The memory address to read from.</param>
     /// <param name="encoding">The encoding to use to decode the string.</param>
@@ -426,7 +426,7 @@ public static unsafe class MemoryHelper
     /// Write a UTF-8 encoded string to a specified memory address.
     /// </summary>
     /// <remarks>
-    /// Attention! If this is an SeString, use the <see cref="SeStringManager"/> to encode or the applicable helper method.
+    /// Attention! If this is an <see cref="SeString"/>, use the applicable helper methods to decode.
     /// </remarks>
     /// <param name="memoryAddress">The memory address to write to.</param>
     /// <param name="value">The string to write.</param>
@@ -437,7 +437,7 @@ public static unsafe class MemoryHelper
     /// Write a string with the given encoding to a specified memory address.
     /// </summary>
     /// <remarks>
-    /// Attention! If this is an SeString, use the <see cref="SeStringManager"/> to encode or the applicable helper method.
+    /// Attention! If this is an <see cref="SeString"/>, use the applicable helper methods to decode.
     /// </remarks>
     /// <param name="memoryAddress">The memory address to write to.</param>
     /// <param name="value">The string to write.</param>
