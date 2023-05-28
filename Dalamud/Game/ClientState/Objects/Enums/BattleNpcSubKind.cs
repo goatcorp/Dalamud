@@ -10,6 +10,12 @@ public enum BattleNpcSubKind : byte
     /// </summary>
     None = 0,
 
+    ///<summary>
+    /// Weak Spots / Battle NPC parts
+    /// Eg: Titan's Heart (Naval), Tioman's left and right wing (Sohm Al), Golem Soulstone (The Sunken Temple of Qarn)
+    /// </summary>
+    BattleNpcPart = 1,
+
     /// <summary>
     /// BattleNpc representing a Pet.
     /// </summary>

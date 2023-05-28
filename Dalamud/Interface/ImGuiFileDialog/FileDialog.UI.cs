@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Numerics;
 
+using Dalamud.Utility;
 using ImGuiNET;
 
 namespace Dalamud.Interface.ImGuiFileDialog;
@@ -316,7 +317,7 @@ public partial class FileDialog
             ImGui.SetCursorPosY(ImGui.GetCursorPosY() + Scaled(5));
 
             var idx = 0;
-            foreach (var qa in this.drives.Concat(this.quickAccess).Where(qa => qa.Exists))
+            foreach (var qa in this.GetDrives().Concat(this.quickAccess).Where(qa => !qa.Location.IsNullOrEmpty()))
             {
                 ImGui.PushID(idx++);
                 ImGui.SetCursorPosX(Scaled(25));

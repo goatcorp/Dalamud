@@ -157,6 +157,14 @@ public class SettingsTabLook : SettingsTab
         }
 
         ImGui.SameLine();
+        if (ImGui.Button("24pt##DalamudSettingsGlobalUiScaleReset24"))
+        {
+            this.globalUiScale = 24.0f / 12.0f;
+            ImGui.GetIO().FontGlobalScale = this.globalUiScale;
+            interfaceManager.RebuildFonts();
+        }
+
+        ImGui.SameLine();
         if (ImGui.Button("36pt##DalamudSettingsGlobalUiScaleReset36"))
         {
             this.globalUiScale = 36.0f / 12.0f;

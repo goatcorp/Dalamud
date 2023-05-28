@@ -66,6 +66,11 @@ internal static class ServiceManager
         BlockingEarlyLoadedService = 1 << 2,
         
         /// <summary>
+        /// Service that is only instantiable via scopes.
+        /// </summary>
+        ScopedService = 1 << 3,
+        
+        /// <summary>
         /// Service that is loaded automatically when the game starts, synchronously or asynchronously.
         /// </summary>
         AutoLoadService = EarlyLoadedService | BlockingEarlyLoadedService,
@@ -133,10 +138,12 @@ internal static class ServiceManager
         foreach (var serviceType in Assembly.GetExecutingAssembly().GetTypes())
         {
             var serviceKind = serviceType.GetServiceKind();
-            if (serviceKind == ServiceKind.None)
+            if (serviceKind is ServiceKind.None or ServiceKind.ScopedService)
                 continue;
             
-            Debug.Assert(!serviceKind.HasFlag(ServiceKind.ManualService), "Regular services should never end up here");
+            Debug.Assert(
+                !serviceKind.HasFlag(ServiceKind.ManualService) && !serviceKind.HasFlag(ServiceKind.ScopedService),
+                "Regular and scoped services should never be loaded early");
 
             var genericWrappedServiceType = typeof(Service<>).MakeGenericType(serviceType);
             
@@ -302,6 +309,13 @@ internal static class ServiceManager
             if (!serviceType.IsAssignableTo(typeof(IServiceType)))
                 continue;
             
+            // Scoped services shall never be unloaded here.
+            // Their lifetime must be managed by the IServiceScope that owns them. If it leaks, it's their fault.
+            if (serviceType.GetServiceKind() == ServiceKind.ScopedService)
+                continue;
+
+            Log.Verbose("Calling GetDependencyServices for '{ServiceName}'", serviceType.FullName!);
+
             dependencyServicesMap[serviceType] =
                 ((List<Type>)typeof(Service<>)
                             .MakeGenericType(serviceType)
@@ -389,6 +403,9 @@ internal static class ServiceManager
         
         if (attr.IsAssignableTo(typeof(EarlyLoadedService)))
             return ServiceKind.EarlyLoadedService;
+        
+        if (attr.IsAssignableTo(typeof(ScopedService)))
+            return ServiceKind.ScopedService;
 
         return ServiceKind.ManualService;
     }
@@ -432,6 +449,15 @@ internal static class ServiceManager
     /// </summary>
     [AttributeUsage(AttributeTargets.Class)]
     public class BlockingEarlyLoadedService : EarlyLoadedService
+    {
+    }
+
+    /// <summary>
+    /// Indicates that the class is a service that will be created specifically for a
+    /// service scope, and that it cannot be created outside of a scope.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Class)]
+    public class ScopedService : Service
     {
     }
 

@@ -517,7 +517,7 @@ internal class DalamudInterface : IDisposable, IServiceType
         }
         catch (Exception ex)
         {
-            PluginLog.Error(ex, "Error during OnDraw");
+            Log.Error(ex, "Error during OnDraw");
         }
     }
 
@@ -877,7 +877,7 @@ internal class DalamudInterface : IDisposable, IServiceType
                         foreach (var plugin in pluginManager.InstalledPlugins)
                         {
                             // TODO: some more here, state maybe?
-                            PluginLog.Information($"{plugin.Name}");
+                            Log.Information($"{plugin.Name}");
                         }
                     }
 

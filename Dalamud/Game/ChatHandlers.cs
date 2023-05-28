@@ -110,7 +110,7 @@ public class ChatHandlers : IServiceType
     private readonly DalamudConfiguration configuration = Service<DalamudConfiguration>.Get();
 
     private bool hasSeenLoadingMsg;
-    private bool hasAutoUpdatedPlugins;
+    private bool startedAutoUpdatingPlugins;
 
     [ServiceManager.ServiceConstructor]
     private ChatHandlers(ChatGui chatGui)
@@ -128,6 +128,11 @@ public class ChatHandlers : IServiceType
     /// Gets the last URL seen in chat.
     /// </summary>
     public string? LastLink { get; private set; }
+
+    /// <summary>
+    /// Gets a value indicating whether or not auto-updates have already completed this session.
+    /// </summary>
+    public bool IsAutoUpdateComplete { get; private set; }
 
     /// <summary>
     /// Convert a TextPayload to SeString and wrap in italics payloads.
@@ -185,7 +190,7 @@ public class ChatHandlers : IServiceType
         if (clientState.LocalPlayer != null && clientState.TerritoryType == 0 && !this.hasSeenLoadingMsg)
             this.PrintWelcomeMessage();
 
-        if (!this.hasAutoUpdatedPlugins)
+        if (!this.startedAutoUpdatingPlugins)
             this.AutoUpdatePlugins();
 
 #if !DEBUG && false
@@ -243,8 +248,10 @@ public class ChatHandlers : IServiceType
 
         var assemblyVersion = Assembly.GetAssembly(typeof(ChatHandlers)).GetName().Version.ToString();
 
-        chatGui.Print(string.Format(Loc.Localize("DalamudWelcome", "Dalamud vD{0} loaded."), assemblyVersion)
-                      + string.Format(Loc.Localize("PluginsWelcome", " {0} plugin(s) loaded."), pluginManager.InstalledPlugins.Count(x => x.IsLoaded)));
+        if (this.configuration.PrintDalamudWelcomeMsg) {
+            chatGui.Print(string.Format(Loc.Localize("DalamudWelcome", "Dalamud vD{0} loaded."), assemblyVersion)
+                          + string.Format(Loc.Localize("PluginsWelcome", " {0} plugin(s) loaded."), pluginManager.InstalledPlugins.Count(x => x.IsLoaded)));
+        }
 
         if (this.configuration.PrintPluginsWelcomeMsg)
         {
@@ -287,13 +294,16 @@ public class ChatHandlers : IServiceType
         if (!pluginManager.ReposReady || pluginManager.InstalledPlugins.Count == 0 || pluginManager.AvailablePlugins.Count == 0)
         {
             // Plugins aren't ready yet.
+            // TODO: We should retry. This sucks, because it means we won't ever get here again until another notice.
             return;
         }
 
-        this.hasAutoUpdatedPlugins = true;
+        this.startedAutoUpdatingPlugins = true;
 
-        Task.Run(() => pluginManager.UpdatePluginsAsync(true, !this.configuration.AutoUpdatePlugins)).ContinueWith(task =>
+        Task.Run(() => pluginManager.UpdatePluginsAsync(true, !this.configuration.AutoUpdatePlugins, true)).ContinueWith(task =>
         {
+            this.IsAutoUpdateComplete = true;
+
             if (task.IsFaulted)
             {
                 Log.Error(task.Exception, Loc.Localize("DalamudPluginUpdateCheckFail", "Could not check for plugin updates."));

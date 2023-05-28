@@ -1,14 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http;
 using System.Net.Http.Json;
-using System.Threading;
 using System.Threading.Tasks;
-
+using Dalamud.Networking.Http;
 using Dalamud.Plugin.Internal;
 using Dalamud.Utility;
-using Serilog;
 
 namespace Dalamud.Interface.Internal.Windows.PluginInstaller;
 
@@ -42,7 +39,7 @@ internal class DalamudChangelogManager
     /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     public async Task ReloadChangelogAsync()
     {
-        using var client = new HttpClient();
+        var client = Service<HappyHttpClient>.Get().SharedHttpClient;
         this.Changelogs = null;
 
         var dalamudChangelogs = await client.GetFromJsonAsync<List<DalamudChangelog>>(DalamudChangelogUrl);

@@ -68,6 +68,8 @@ public static class Troubleshooting
             var payload = new TroubleshootingPayload
             {
                 LoadedPlugins = pluginManager?.InstalledPlugins?.Select(x => x.Manifest)?.OrderByDescending(x => x.InternalName).ToArray(),
+                PluginStates = pluginManager?.InstalledPlugins?.Where(x => !x.IsDev).ToDictionary(x => x.Manifest.InternalName, x => x.IsBanned ? "Banned" : x.State.ToString()),
+                EverStartedLoadingPlugins = pluginManager?.InstalledPlugins.Where(x => x.HasEverStartedLoad).Select(x => x.InternalName).ToList(),
                 DalamudVersion = Util.AssemblyVersion,
                 DalamudGitHash = Util.GetGitHash(),
                 GameVersion = startInfo.GameVersion.ToString(),
@@ -100,7 +102,11 @@ public static class Troubleshooting
 
     private class TroubleshootingPayload
     {
-        public LocalPluginManifest[] LoadedPlugins { get; set; }
+        public LocalPluginManifest[]? LoadedPlugins { get; set; }
+
+        public Dictionary<string, string>? PluginStates { get; set; }
+
+        public List<string>? EverStartedLoadingPlugins { get; set; }
 
         public string DalamudVersion { get; set; }
 

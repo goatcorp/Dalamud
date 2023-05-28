@@ -97,7 +97,8 @@ public sealed class EntryPoint
         var oldPathOld = Path.Combine(baseDirectory, "..", "..", "..", $"{logFileName}.log.old");
 #endif
         Log.CloseAndFlush();
-
+        
+#if DEBUG
         var oldFileOld = new FileInfo(oldPathOld);
         if (oldFileOld.Exists)
         {
@@ -109,6 +110,23 @@ public sealed class EntryPoint
         }
 
         CullLogFile(logPath, 1 * 1024 * 1024, oldPath, 10 * 1024 * 1024);
+#else
+        try
+        {
+            if (File.Exists(logPath))
+                File.Delete(logPath);
+            
+            if (File.Exists(oldPath))
+                File.Delete(oldPath);
+            
+            if (File.Exists(oldPathOld))
+                File.Delete(oldPathOld);
+        }
+        catch
+        {
+            // ignored
+        }
+#endif
 
         var config = new LoggerConfiguration()
                      .WriteTo.Sink(SerilogEventSink.Instance)
@@ -156,6 +174,8 @@ public sealed class EntryPoint
         AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
         TaskScheduler.UnobservedTaskException += OnUnobservedTaskException;
 
+        var unloadFailed = false;
+
         try
         {
             if (info.DelayInitializeMs > 0)
@@ -180,7 +200,15 @@ public sealed class EntryPoint
 
             dalamud.WaitForUnload();
 
-            ServiceManager.UnloadAllServices();
+            try
+            {
+                ServiceManager.UnloadAllServices();
+            }
+            catch (Exception ex)
+            {
+                Log.Fatal(ex, "Could not unload services.");
+                unloadFailed = true;
+            }
         }
         catch (Exception ex)
         {
@@ -195,6 +223,11 @@ public sealed class EntryPoint
             Log.CloseAndFlush();
             SerilogEventSink.Instance.LogLine -= SerilogOnLogLine;
         }
+
+        // If we didn't unload services correctly, we need to kill the process.
+        // We will never signal to Framework.
+        if (unloadFailed)
+            Environment.Exit(-1);
     }
 
     private static void SerilogOnLogLine(object? sender, (string Line, LogEvent LogEvent) ev)
@@ -327,7 +360,7 @@ public sealed class EntryPoint
                 }
 
                 var pluginInfo = string.Empty;
-                var supportText = ", please visit us on Discord for more help.";
+                var supportText = ", please visit us on Discord for more help";
                 try
                 {
                     var pm = Service<PluginManager>.GetNullable();

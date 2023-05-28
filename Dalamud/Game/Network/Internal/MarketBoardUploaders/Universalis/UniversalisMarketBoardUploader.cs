@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 using Dalamud.Game.Network.Internal.MarketBoardUploaders.Universalis.Types;
 using Dalamud.Game.Network.Structures;
-using Dalamud.Utility;
+using Dalamud.Networking.Http;
 using Newtonsoft.Json;
 using Serilog;
 
@@ -21,6 +21,8 @@ internal class UniversalisMarketBoardUploader : IMarketBoardUploader
     // private const string ApiBase = "https://127.0.0.1:443";
 
     private const string ApiKey = "GGD6RdSfGyRiHM5WDnAo0Nj9Nv7aC5NDhMj3BebT";
+
+    private readonly HttpClient httpClient = Service<HappyHttpClient>.Get().SharedHttpClient;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="UniversalisMarketBoardUploader"/> class.
@@ -97,7 +99,7 @@ internal class UniversalisMarketBoardUploader : IMarketBoardUploader
         var uploadPath = "/upload";
         var uploadData = JsonConvert.SerializeObject(uploadObject);
         Log.Verbose("{ListingPath}: {ListingUpload}", uploadPath, uploadData);
-        await Util.HttpClient.PostAsync($"{ApiBase}{uploadPath}/{ApiKey}", new StringContent(uploadData, Encoding.UTF8, "application/json"));
+        await this.httpClient.PostAsync($"{ApiBase}{uploadPath}/{ApiKey}", new StringContent(uploadData, Encoding.UTF8, "application/json"));
 
         // ====================================================================================
 
@@ -133,7 +135,7 @@ internal class UniversalisMarketBoardUploader : IMarketBoardUploader
         var taxUpload = JsonConvert.SerializeObject(taxUploadObject);
         Log.Verbose("{TaxPath}: {TaxUpload}", taxPath, taxUpload);
 
-        await Util.HttpClient.PostAsync($"{ApiBase}{taxPath}/{ApiKey}", new StringContent(taxUpload, Encoding.UTF8, "application/json"));
+        await this.httpClient.PostAsync($"{ApiBase}{taxPath}/{ApiKey}", new StringContent(taxUpload, Encoding.UTF8, "application/json"));
 
         // ====================================================================================
 
@@ -175,7 +177,7 @@ internal class UniversalisMarketBoardUploader : IMarketBoardUploader
         message.Headers.Add("Authorization", ApiKey);
         message.Content = content;
 
-        await Util.HttpClient.SendAsync(message);
+        await this.httpClient.SendAsync(message);
 
         // ====================================================================================
 

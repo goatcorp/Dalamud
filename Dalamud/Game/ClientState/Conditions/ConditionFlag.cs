@@ -464,4 +464,14 @@ public enum ConditionFlag
     /// Unable to execute command while recruiting for a non-cross-world party.
     /// </summary>
     RecruitingWorldOnly = 98,
+
+    /// <summary>
+    /// Command unavailable in this location.
+    /// </summary>
+    Unknown99 = 99,
+
+    /// <summary>
+    /// Unable to execute command while editing a portrait.
+    /// </summary>
+    EditingPortrait = 100,
 }
