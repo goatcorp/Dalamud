@@ -51,7 +51,7 @@ public static class AsyncUtils
     {
         try
         {
-            await Task.Delay(millisecondsDelay, cancellationToken);
+            await Task.Delay(millisecondsDelay, cancellationToken).ConfigureAwait(false);
         }
         catch (TaskCanceledException)
         {
