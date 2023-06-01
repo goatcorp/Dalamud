@@ -462,6 +462,15 @@ internal static class ServiceManager
     }
 
     /// <summary>
+    /// Indicates that an interface a service can implement can be used to resolve that service.
+    /// Take care: only one service can implement an interface with this attribute at a time.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Interface)]
+    public class Resolvable : Attribute
+    {
+    }
+
+    /// <summary>
     /// Indicates that the method should be called when the services given in the constructor are ready.
     /// </summary>
     [AttributeUsage(AttributeTargets.Method)]

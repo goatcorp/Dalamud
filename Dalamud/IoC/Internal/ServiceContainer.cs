@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
 
 using Dalamud.Logging.Internal;
-using Dalamud.Plugin.Internal.Types;
 
 namespace Dalamud.IoC.Internal;
 
@@ -18,6 +18,7 @@ internal class ServiceContainer : IServiceProvider, IServiceType
     private static readonly ModuleLog Log = new("SERVICECONTAINER");
 
     private readonly Dictionary<Type, ObjectInstance> instances = new();
+    private readonly Dictionary<Type, Type> interfaceToTypeMap = new();
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ServiceContainer"/> class.
@@ -39,6 +40,16 @@ internal class ServiceContainer : IServiceProvider, IServiceType
         }
 
         this.instances[typeof(T)] = new(instance.ContinueWith(x => new WeakReference(x.Result)), typeof(T));
+
+        var resolvableInterfaces = typeof(T)
+                                  .GetInterfaces()
+                                  .Where(x => x.GetCustomAttribute<ServiceManager.Resolvable>() != null);
+        foreach (var resolvableInterface in resolvableInterfaces)
+        {
+            Log.Verbose("=> {InterfaceName} provides for {TName}", resolvableInterface.FullName ?? "???", typeof(T).FullName ?? "???");
+            Debug.Assert(!this.interfaceToTypeMap.ContainsKey(resolvableInterface), "A service already implements this interface, this is not allowed");
+            this.interfaceToTypeMap[resolvableInterface] = typeof(T);
+        }
     }
 
     /// <summary>
@@ -233,6 +244,9 @@ internal class ServiceContainer : IServiceProvider, IServiceType
 
     private async Task<object?> GetService(Type serviceType)
     {
+        if (this.interfaceToTypeMap.TryGetValue(serviceType, out var implementingType))
+            serviceType = implementingType;
+
         if (!this.instances.TryGetValue(serviceType, out var service))
             return null;
 
