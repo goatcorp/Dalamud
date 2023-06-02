@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using System.Threading.Tasks;
+
 using Dalamud.Interface.Internal;
+using Dalamud.IoC;
+using Dalamud.IoC.Internal;
 using ImGuiNET;
 using Serilog;
 
@@ -12,22 +14,19 @@ namespace Dalamud.Interface.DragDrop;
 /// A manager that keeps state of external windows drag and drop events,
 /// and can be used to create ImGui drag and drop sources and targets for those external events.
 /// </summary>
+[PluginInterface]
 [ServiceManager.EarlyLoadedService]
+[InherentDependency<InterfaceManager.InterfaceManagerWithScene>]
 internal partial class DragDropManager : IDisposable, IDragDropManager, IServiceType
 {
-    private InterfaceManager? interfaceManager;
+    private readonly InterfaceManager interfaceManager = Service<InterfaceManager>.Get();
     private int lastDropFrame = -2;
     private int lastTooltipFrame = -1;
 
+
     [ServiceManager.ServiceConstructor]
     private DragDropManager()
-    {
-        Service<InterfaceManager.InterfaceManagerWithScene>.GetAsync().ContinueWith(task =>
-        {
-            this.interfaceManager = task.Result.Manager;
-            this.Enable();
-        });
-    }
+        => this.Enable();
 
     /// <summary> Gets a value indicating whether external drag and drop is available at all. </summary>
     public bool ServiceAvailable { get; private set; }
@@ -51,16 +50,16 @@ internal partial class DragDropManager : IDisposable, IDragDropManager, IService
     /// <summary> Enable external drag and drop. </summary>
     public void Enable()
     {
-        if (this.ServiceAvailable || this.interfaceManager == null)
+        if (this.ServiceAvailable)
         {
             return;
         }
 
         try
         {
-            var ret2 = DragDropInterop.RegisterDragDrop(this.interfaceManager.WindowHandlePtr, this);
-            Log.Information($"[DragDrop] Registered window {this.interfaceManager.WindowHandlePtr} for external drag and drop operations. ({ret2})");
-            Marshal.ThrowExceptionForHR(ret2);
+            var ret = DragDropInterop.RegisterDragDrop(this.interfaceManager.WindowHandlePtr, this);
+            Log.Information($"[DragDrop] Registered window {this.interfaceManager.WindowHandlePtr} for external drag and drop operations. ({ret})");
+            Marshal.ThrowExceptionForHR(ret);
             this.ServiceAvailable = true;
         }
         catch (Exception ex)
@@ -79,8 +78,9 @@ internal partial class DragDropManager : IDisposable, IDragDropManager, IService
 
         try
         {
-            DragDropInterop.RevokeDragDrop(this.interfaceManager!.WindowHandlePtr);
-            Log.Information($"[DragDrop] Disabled external drag and drop operations for window {this.interfaceManager.WindowHandlePtr}.");
+            var ret = DragDropInterop.RevokeDragDrop(this.interfaceManager!.WindowHandlePtr);
+            Log.Information($"[DragDrop] Disabled external drag and drop operations for window {this.interfaceManager.WindowHandlePtr}. ({ret})");
+            Marshal.ThrowExceptionForHR(ret);
         }
         catch (Exception ex)
         {

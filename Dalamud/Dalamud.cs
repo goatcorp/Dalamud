@@ -151,9 +151,6 @@ internal sealed class Dalamud : IServiceType
         // will not receive any windows messages
         Service<DalamudIME>.GetNullable()?.Dispose();
 
-        // this must be done before unloading interface manager, since it relies on the window handle members.
-        Service<DragDropManager>.GetNullable()?.Dispose();
-
         // this must be done before unloading plugins, or it can cause a race condition
         // due to rendering happening on another thread, where a plugin might receive
         // a render call after it has been disposed, which can crash if it attempts to

@@ -31,7 +31,6 @@ public sealed class UiBuilder : IDisposable
     private readonly string namespaceName;
     private readonly InterfaceManager interfaceManager = Service<InterfaceManager>.Get();
     private readonly GameFontManager gameFontManager = Service<GameFontManager>.Get();
-    private readonly DragDropManager dragDropManager = Service<DragDropManager>.Get();
 
     [ServiceManager.ServiceDependency]
     private readonly DalamudConfiguration configuration = Service<DalamudConfiguration>.Get();
@@ -101,11 +100,6 @@ public sealed class UiBuilder : IDisposable
     /// These may be fired consecutively.
     /// </summary>
     public event Action HideUi;
-
-    /// <summary>
-    /// Gets the manager for external, WinAPI-based drag and drop functionality.
-    /// </summary>
-    public IDragDropManager DragDropManager => this.dragDropManager;
 
     /// <summary>
     /// Gets the default Dalamud font based on Noto Sans CJK Medium in 17pt - supporting all game languages and icons.
