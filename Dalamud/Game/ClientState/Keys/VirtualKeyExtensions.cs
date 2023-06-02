@@ -7,6 +7,11 @@ namespace Dalamud.Game.ClientState.Keys;
 /// </summary>
 public static class VirtualKeyExtensions
 {
+    // The array is accessed in a way that this limit doesn't appear to exist
+    // but there is other state data past this point, and keys beyond here aren't
+    // generally valid for most things anyway
+    internal const int MaxValidCode = 0xF0;
+
     /// <summary>
     /// Get the fancy name associated with this key.
     /// </summary>
@@ -15,5 +20,10 @@ public static class VirtualKeyExtensions
     public static string GetFancyName(this VirtualKey key)
     {
         return key.GetAttribute<VirtualKeyAttribute>().FancyName;
+    }
+
+    internal static bool IsValidVirtualKey(ushort vkCode)
+    {
+        return vkCode <= MaxValidCode;
     }
 }

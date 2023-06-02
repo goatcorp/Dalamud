@@ -552,8 +552,9 @@ public sealed unsafe class GameGui : IDisposable, IServiceType
 
     private char HandleImmDetour(IntPtr framework, char a2, byte a3)
     {
+        var io = ImGui.GetIO();
         var result = this.handleImmHook.Original(framework, a2, a3);
-        return ImGui.GetIO().WantTextInput
+        return (io.WantTextInput || io.WantCaptureKeyboard)
                    ? (char)0
                    : result;
     }

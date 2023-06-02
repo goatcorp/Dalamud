@@ -217,6 +217,7 @@ internal class InterfaceManager : IDisposable, IServiceType
     /// </summary>
     public void Dispose()
     {
+        this.framework.Update -= OnFrameworkUpdate;
         this.framework.RunOnFrameworkThread(() =>
         {
             this.setCursorHook.Dispose();
@@ -984,6 +985,8 @@ internal class InterfaceManager : IDisposable, IServiceType
     [ServiceManager.CallWhenServicesReady]
     private void ContinueConstruction(SigScanner sigScanner, Framework framework)
     {
+        framework.Update += this.OnFrameworkUpdate;
+
         this.address.Setup(sigScanner);
         framework.RunOnFrameworkThread(() =>
         {
@@ -1024,6 +1027,7 @@ internal class InterfaceManager : IDisposable, IServiceType
         });
     }
 
+
     // This is intended to only be called as a handler attached to scene.OnNewRenderFrame
     private void RebuildFontsInternal()
     {
@@ -1052,12 +1056,39 @@ internal class InterfaceManager : IDisposable, IServiceType
     {
         if (msg.hwnd == this.GameWindowHandle && this.scene != null)
         {
+            this.DispatchMessageDalamud(in msg);
+
             var res = this.scene.ProcessWndProcW(msg.hwnd, msg.message, (void*)msg.wParam, (void*)msg.lParam);
             if (res != null)
                 return res.Value;
         }
 
         return this.dispatchMessageWHook.IsDisposed ? User32.DispatchMessage(ref msg) : this.dispatchMessageWHook.Original(ref msg);
+    }
+
+    private void DispatchMessageDalamud(in User32.MSG msg)
+    {
+        // Processes window message and call Dalamud services based on it.
+        // Ideally, this shouldn't be wired here though.. (not to mention this file is already 1K+ lines long!)
+        // maybe something something refactoring TODO?
+        switch (msg.message)
+        {
+            // Handle keyboard events
+            case User32.WindowMessage.WM_KEYDOWN:
+            case User32.WindowMessage.WM_SYSKEYDOWN:
+            case User32.WindowMessage.WM_KEYUP:
+            case User32.WindowMessage.WM_SYSKEYUP:
+                var simulatedKey = Service<SimulatedKeyState>.GetNullable();
+
+                var keyDown = msg.message switch
+                {
+                    User32.WindowMessage.WM_KEYDOWN or User32.WindowMessage.WM_SYSKEYDOWN => true,
+                    _ => false,
+                };
+
+                simulatedKey?.AddKeyEvent((ushort)msg.wParam, keyDown);
+                break;
+        }
     }
 
     private IntPtr ResizeBuffersDetour(IntPtr swapChain, uint bufferCount, uint width, uint height, uint newFormat, uint swapChainFlags)
@@ -1094,6 +1125,38 @@ internal class InterfaceManager : IDisposable, IServiceType
         return this.setCursorHook.IsDisposed ? User32.SetCursor(new User32.SafeCursorHandle(hCursor, false)).DangerousGetHandle() : this.setCursorHook.Original(hCursor);
     }
 
+    private void OnFrameworkUpdate(Framework _)
+    {
+        var simulatedKey = Service<SimulatedKeyState>.GetNullable();
+        var keyCapture = Service<KeyCapture>.GetNullable();
+        var io = ImGui.GetIO();
+
+        // fix for keys in game getting stuck, if you were holding a game key (like run)
+        // and then clicked on an imgui textbox - imgui would swallow the keyup event,
+        // so the game would think the key remained pressed continuously until you left
+        // imgui and pressed and released the key again
+        //
+        // Notes:
+        // Simplified main game loop (names based on FFXIVClientStructs)
+        // +--> DispatchMessage --> .. --> Framework_Tick --> .. --> Framework_TaskUpdateInputDevice --> .. --> Present --+
+        // |   (Updates KeyState)             (this fn)                     (Uses KeyState)                               |
+        // +--------------------------------------------------------------------------------------------------------------+
+        // - So this "fix" must be applied before `Framework_TaskUpdateInputDevice` (check FFXIVClientStructs) is called
+        //   or else any KeyPressed events raised during the current frame will erroneously be applied on current frame.
+
+        // Block inputs from being delivered to the game if ImGui wants it.
+        if ((io.WantCaptureKeyboard || io.WantTextInput) && keyCapture != null)
+        {
+            keyCapture.CaptureAllSingleFrame();
+        }
+
+        // Update window focus info
+        if (simulatedKey != null)
+        {
+            simulatedKey.HasFocus = User32.GetForegroundWindow() == this.GameWindowHandle;
+        }
+    }
+
     private void OnNewInputFrame()
     {
         var dalamudInterface = Service<DalamudInterface>.GetNullable();
@@ -1102,15 +1165,6 @@ internal class InterfaceManager : IDisposable, IServiceType
 
         if (dalamudInterface == null || gamepadState == null || keyState == null)
             return;
-
-        // fix for keys in game getting stuck, if you were holding a game key (like run)
-        // and then clicked on an imgui textbox - imgui would swallow the keyup event,
-        // so the game would think the key remained pressed continuously until you left
-        // imgui and pressed and released the key again
-        if (ImGui.GetIO().WantTextInput)
-        {
-            keyState.ClearAll();
-        }
 
         // TODO: mouse state?
 
