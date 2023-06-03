@@ -1,8 +1,6 @@
 using System;
 using System.Reflection;
 
-using Dalamud.Memory;
-
 namespace Dalamud.Hooking.Internal;
 
 /// <summary>
@@ -24,12 +22,7 @@ internal class MinHookHook<T> : Hook<T> where T : Delegate
     {
         lock (HookManager.HookEnableSyncRoot)
         {
-            var hasOtherHooks = HookManager.Originals.ContainsKey(this.Address);
-            if (!hasOtherHooks)
-            {
-                MemoryHelper.ReadRaw(this.Address, 0x32, out var original);
-                HookManager.Originals[this.Address] = original;
-            }
+            var unhooker = HookManager.RegisterUnhooker(this.Address);
 
             if (!HookManager.MultiHookTracker.TryGetValue(this.Address, out var indexList))
                 indexList = HookManager.MultiHookTracker[this.Address] = new();
@@ -40,6 +33,8 @@ internal class MinHookHook<T> : Hook<T> where T : Delegate
 
             // Add afterwards, so the hookIdent starts at 0.
             indexList.Add(this);
+
+            unhooker.TrimAfterHook();
 
             HookManager.TrackedHooks.TryAdd(Guid.NewGuid(), new HookInfo(this, detour, callingAssembly));
         }

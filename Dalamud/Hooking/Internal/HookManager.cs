@@ -16,7 +16,10 @@ namespace Dalamud.Hooking.Internal;
 [ServiceManager.EarlyLoadedService]
 internal class HookManager : IDisposable, IServiceType
 {
-    private static readonly ModuleLog Log = new("HM");
+    /// <summary>
+    /// Logger shared with <see cref="Unhooker"/>
+    /// </summary>
+    internal static readonly ModuleLog Log = new("HM");
 
     [ServiceManager.ServiceConstructor]
     private HookManager()
@@ -34,9 +37,21 @@ internal class HookManager : IDisposable, IServiceType
     internal static ConcurrentDictionary<Guid, HookInfo> TrackedHooks { get; } = new();
 
     /// <summary>
-    /// Gets a static dictionary of original code for a hooked address.
+    /// Gets a static dictionary of unhookers for a hooked address.
     /// </summary>
-    internal static ConcurrentDictionary<IntPtr, byte[]> Originals { get; } = new();
+    internal static ConcurrentDictionary<IntPtr, Unhooker> Unhookers { get; } = new();
+
+    /// <summary>
+    /// Creates a new Unhooker instance for the provided address if no such unhooker was already registered, or returns
+    /// an existing instance if the address registered previously.
+    /// </summary>
+    /// <param name="address">The address of the instruction.</param>
+    /// <returns>A new Unhooker instance.</returns>
+    public static Unhooker RegisterUnhooker(IntPtr address)
+    {
+        Log.Verbose($"Registering hook at 0x{address.ToInt64():X}");
+        return Unhookers.GetOrAdd(address, adr => new Unhooker(adr));
+    }
 
     /// <summary>
     /// Gets a static dictionary of the number of hooks on a given address.
@@ -48,7 +63,7 @@ internal class HookManager : IDisposable, IServiceType
     {
         RevertHooks();
         TrackedHooks.Clear();
-        Originals.Clear();
+        Unhookers.Clear();
     }
 
     /// <summary>
@@ -60,7 +75,7 @@ internal class HookManager : IDisposable, IServiceType
     {
         while (true)
         {
-            var hasOtherHooks = HookManager.Originals.ContainsKey(address);
+            var hasOtherHooks = HookManager.Unhookers.ContainsKey(address);
             if (hasOtherHooks)
             {
                 // This address has been hooked already. Do not follow a jmp into a trampoline of our own making.
@@ -124,28 +139,11 @@ internal class HookManager : IDisposable, IServiceType
         return address;
     }
 
-    private static unsafe void RevertHooks()
+    private static void RevertHooks()
     {
-        foreach (var (address, originalBytes) in Originals)
+        foreach (var unhooker in Unhookers.Values)
         {
-            var i = 0;
-            var current = (byte*)address;
-            // Find how many bytes have been modified by comparing to the saved original
-            for (; i < originalBytes.Length; i++)
-            {
-                if (current[i] == originalBytes[i])
-                    break;
-            }
-
-            var snippet = originalBytes[0..i];
-
-            if (i > 0)
-            {
-                Log.Verbose($"Reverting hook at 0x{address.ToInt64():X} ({snippet.Length} bytes)");
-                MemoryHelper.ChangePermission(address, i, MemoryProtection.ExecuteReadWrite, out var oldPermissions);
-                MemoryHelper.WriteRaw(address, snippet);
-                MemoryHelper.ChangePermission(address, i, oldPermissions);
-            }
+            unhooker.Unhook();
         }
     }
 }

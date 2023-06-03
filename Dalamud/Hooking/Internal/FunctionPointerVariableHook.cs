@@ -41,12 +41,7 @@ internal class FunctionPointerVariableHook<T> : Hook<T>
     {
         lock (HookManager.HookEnableSyncRoot)
         {
-            var hasOtherHooks = HookManager.Originals.ContainsKey(this.Address);
-            if (!hasOtherHooks)
-            {
-                MemoryHelper.ReadRaw(this.Address, 0x32, out var original);
-                HookManager.Originals[this.Address] = original;
-            }
+            var unhooker = HookManager.RegisterUnhooker(this.Address);
 
             if (!HookManager.MultiHookTracker.TryGetValue(this.Address, out var indexList))
             {
@@ -103,6 +98,8 @@ internal class FunctionPointerVariableHook<T> : Hook<T>
 
             // Add afterwards, so the hookIdent starts at 0.
             indexList.Add(this);
+
+            unhooker.TrimAfterHook();
 
             HookManager.TrackedHooks.TryAdd(Guid.NewGuid(), new HookInfo(this, detour, callingAssembly));
         }
