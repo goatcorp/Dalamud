@@ -11,6 +11,7 @@ namespace Dalamud.Hooking.Internal;
 public class Unhooker
 {
     private readonly IntPtr address;
+    private readonly int minBytes;
     private byte[] originalBytes;
     private bool trimmed;
 
@@ -20,10 +21,18 @@ public class Unhooker
     /// removed. As such this class should be instantiated before the function is actually hooked.
     /// </summary>
     /// <param name="address">The address which will be hooked.</param>
-    public Unhooker(IntPtr address)
+    /// <param name="minBytes">The minimum amount of bytes to restore when unhooking.</param>
+    /// <param name="maxBytes">The maximum amount of bytes to restore when unhooking.</param>
+    internal Unhooker(IntPtr address, int minBytes, int maxBytes)
     {
+        if (minBytes < 0 || minBytes > maxBytes)
+        {
+            throw new ArgumentException($"minBytes ({minBytes}) must be <= maxBytes ({maxBytes}) and nonnegative.");
+        }
+
         this.address = address;
-        MemoryHelper.ReadRaw(address, 0x32, out this.originalBytes);
+        this.minBytes = minBytes;
+        MemoryHelper.ReadRaw(address, maxBytes, out this.originalBytes);
     }
 
     /// <summary>
@@ -39,7 +48,9 @@ public class Unhooker
             return;
         }
 
-        this.originalBytes = this.originalBytes[..this.GetFullHookLength()];
+        var len = int.Max(this.GetFullHookLength(), this.minBytes);
+
+        this.originalBytes = this.originalBytes[..len];
         this.trimmed = true;
     }
 
@@ -51,7 +62,7 @@ public class Unhooker
     /// </summary>
     public void Unhook()
     {
-        var len = this.trimmed ? this.originalBytes.Length : this.GetNaiveHookLength();
+        var len = this.trimmed ? this.originalBytes.Length : int.Max(this.GetNaiveHookLength(), this.minBytes);
         if (len > 0)
         {
             HookManager.Log.Verbose($"Reverting hook at 0x{this.address.ToInt64():X} ({len} bytes, trimmed={this.trimmed})");
@@ -82,7 +93,7 @@ public class Unhooker
         {
             if (current[i] != this.originalBytes[i])
             {
-                return i + 1;
+                return int.Max(i + 1, this.minBytes);
             }
         }
 

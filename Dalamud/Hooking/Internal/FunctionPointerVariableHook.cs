@@ -41,7 +41,7 @@ internal class FunctionPointerVariableHook<T> : Hook<T>
     {
         lock (HookManager.HookEnableSyncRoot)
         {
-            var unhooker = HookManager.RegisterUnhooker(this.Address);
+            var unhooker = HookManager.RegisterUnhooker(this.Address, 8, 8);
 
             if (!HookManager.MultiHookTracker.TryGetValue(this.Address, out var indexList))
             {
