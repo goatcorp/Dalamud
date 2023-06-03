@@ -43,13 +43,26 @@ internal class HookManager : IDisposable, IServiceType
 
     /// <summary>
     /// Creates a new Unhooker instance for the provided address if no such unhooker was already registered, or returns
-    /// an existing instance if the address registered previously.
+    /// an existing instance if the address was registered previously. By default, the unhooker will restore between 0
+    /// and 0x32 bytes depending on the detected size of the hook. To specify the minimum and maximum bytes restored
+    /// manually, use <see cref="RegisterUnhooker(System.IntPtr, int, int)"/>.
     /// </summary>
     /// <param name="address">The address of the instruction.</param>
-    /// <param name="minBytes">The minimum amount of bytes to restore when unhooking. Defaults to 0.</param>
-    /// <param name="maxBytes">The maximum amount of bytes to restore when unhooking. Defaults to 0x32.</param>
     /// <returns>A new Unhooker instance.</returns>
-    public static Unhooker RegisterUnhooker(IntPtr address, int minBytes = 0, int maxBytes = 0x32)
+    public static Unhooker RegisterUnhooker(IntPtr address)
+    {
+        return RegisterUnhooker(address, 0, 0x32);
+    }
+
+    /// <summary>
+    /// Creates a new Unhooker instance for the provided address if no such unhooker was already registered, or returns
+    /// an existing instance if the address was registered previously.
+    /// </summary>
+    /// <param name="address">The address of the instruction.</param>
+    /// <param name="minBytes">The minimum amount of bytes to restore when unhooking.</param>
+    /// <param name="maxBytes">The maximum amount of bytes to restore when unhooking.</param>
+    /// <returns>A new Unhooker instance.</returns>
+    public static Unhooker RegisterUnhooker(IntPtr address, int minBytes, int maxBytes)
     {
         Log.Verbose($"Registering hook at 0x{address.ToInt64():X} (minBytes=0x{minBytes:X}, maxBytes=0x{maxBytes:X})");
         return Unhookers.GetOrAdd(address, _ => new Unhooker(address, minBytes, maxBytes));
