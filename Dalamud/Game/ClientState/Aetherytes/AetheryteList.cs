@@ -15,6 +15,7 @@ namespace Dalamud.Game.ClientState.Aetherytes;
 [PluginInterface]
 [InterfaceVersion("1.0")]
 [ServiceManager.BlockingEarlyLoadedService]
+[ResolveVia<IAetheryteList>]
 public sealed unsafe partial class AetheryteList : IServiceType, IAetheryteList
 {
     [ServiceManager.ServiceDependency]

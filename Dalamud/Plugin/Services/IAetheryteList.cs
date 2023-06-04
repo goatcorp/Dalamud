@@ -7,7 +7,6 @@ namespace Dalamud.Plugin.Services;
 /// <summary>
 /// This collection represents the list of available Aetherytes in the Teleport window.
 /// </summary>
-[ServiceManager.Resolvable]
 public interface IAetheryteList : IReadOnlyCollection<AetheryteEntry>
 {
     /// <summary>
