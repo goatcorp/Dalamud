@@ -104,11 +104,11 @@ internal class PluginStatWindow : Window
                                  ? loadedPlugins.OrderBy(plugin => plugin.Name)
                                  : loadedPlugins.OrderByDescending(plugin => plugin.Name),
                         2 => sortSpecs.Specs.SortDirection == ImGuiSortDirection.Ascending
-                                 ? loadedPlugins.OrderBy(plugin => plugin.DalamudInterface?.UiBuilder.MaxDrawTime)
-                                 : loadedPlugins.OrderByDescending(plugin => plugin.DalamudInterface?.UiBuilder.MaxDrawTime),
+                                 ? loadedPlugins.OrderBy(plugin => plugin.DalamudInterface?.UiBuilder.MaxDrawTime ?? 0)
+                                 : loadedPlugins.OrderByDescending(plugin => plugin.DalamudInterface?.UiBuilder.MaxDrawTime ?? 0),
                         3 => sortSpecs.Specs.SortDirection == ImGuiSortDirection.Ascending
-                                 ? loadedPlugins.OrderBy(plugin => plugin.DalamudInterface?.UiBuilder.DrawTimeHistory.Average())
-                                 : loadedPlugins.OrderByDescending(plugin => plugin.DalamudInterface?.UiBuilder.DrawTimeHistory.Average()),
+                                 ? loadedPlugins.OrderBy(plugin => plugin.DalamudInterface?.UiBuilder.DrawTimeHistory.DefaultIfEmpty().Average() ?? 0)
+                                 : loadedPlugins.OrderByDescending(plugin => plugin.DalamudInterface?.UiBuilder.DrawTimeHistory.DefaultIfEmpty().Average() ?? 0),
                         _ => loadedPlugins,
                     };
 
