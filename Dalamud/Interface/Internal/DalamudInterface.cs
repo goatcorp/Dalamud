@@ -802,6 +802,11 @@ internal class DalamudInterface : IDisposable, IServiceType
                         ImGui.SetWindowFocus(null);
                     }
 
+                    if (ImGui.MenuItem("Clear stacks"))
+                    {
+                        Service<InterfaceManager>.Get().ClearStacks();
+                    }
+
                     if (ImGui.MenuItem("Dump style"))
                     {
                         var info = string.Empty;
