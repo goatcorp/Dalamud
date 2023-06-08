@@ -1,7 +1,9 @@
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -97,6 +99,19 @@ internal sealed class Dalamud : IServiceType
     /// Gets location of stored assets.
     /// </summary>
     internal DirectoryInfo AssetDirectory => new(Service<DalamudStartInfo>.Get().AssetDirectory!);
+    
+    /// <summary>
+    /// Signal to the crash handler process that we should restart the game.
+    /// </summary>
+    public static void RestartGame()
+    {
+        [DllImport("kernel32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        static extern void RaiseException(uint dwExceptionCode, uint dwExceptionFlags, uint nNumberOfArguments, IntPtr lpArguments);
+
+        RaiseException(0x12345678, 0, 0, IntPtr.Zero);
+        Process.GetCurrentProcess().Kill();
+    }
 
     /// <summary>
     /// Queue an unload of Dalamud when it gets the chance.
