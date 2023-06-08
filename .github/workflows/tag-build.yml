@@ -1,5 +1,10 @@
 name: Tag Build
-on: [push]
+on:
+  push:
+    branches:
+      - master
+    tags-ignore:
+      - '*' # don't needlessly execute on tags
 
 jobs:
   tag:

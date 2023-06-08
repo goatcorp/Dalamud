@@ -20,12 +20,12 @@ using Dalamud.Interface.Internal.ManagedAsserts;
 using Dalamud.Interface.Internal.Notifications;
 using Dalamud.Interface.Style;
 using Dalamud.Interface.Windowing;
-using Dalamud.Logging.Internal;
 using Dalamud.Utility;
 using Dalamud.Utility.Timing;
 using ImGuiNET;
 using ImGuiScene;
 using PInvoke;
+using Serilog;
 
 // general dev notes, here because it's easiest
 
@@ -47,8 +47,6 @@ namespace Dalamud.Interface.Internal;
 [ServiceManager.BlockingEarlyLoadedService]
 internal class InterfaceManager : IDisposable, IServiceType
 {
-    private static ModuleLog Log = new ModuleLog("IM");
-
     private const float DefaultFontSizePt = 12.0f;
     private const float DefaultFontSizePx = DefaultFontSizePt * 4.0f / 3.0f;
     private const ushort Fallback1Codepoint = 0x3013; // Geta mark; FFXIV uses this to indicate that a glyph is missing.
@@ -78,41 +76,16 @@ internal class InterfaceManager : IDisposable, IServiceType
     private bool isOverrideGameCursor = true;
 
     [ServiceManager.ServiceConstructor]
-    private InterfaceManager(SigScanner sigScanner)
+    private InterfaceManager()
     {
-        Log.Information("ctor called");
-
         this.dispatchMessageWHook = Hook<DispatchMessageWDelegate>.FromImport(
             null, "user32.dll", "DispatchMessageW", 0, this.DispatchMessageWDetour);
         this.setCursorHook = Hook<SetCursorDelegate>.FromImport(
             null, "user32.dll", "SetCursor", 0, this.SetCursorDetour);
-        Log.Information("Import hooks applied");
 
         this.fontBuildSignal = new ManualResetEvent(false);
 
         this.address = new SwapChainVtableResolver();
-        this.address.Setup();
-        Log.Information("Resolver setup complete");
-
-        Log.Information("===== S W A P C H A I N =====");
-        Log.Information($"Is ReShade: {this.address.IsReshade}");
-        Log.Information($"Present address 0x{this.address.Present.ToInt64():X}");
-        Log.Information($"ResizeBuffers address 0x{this.address.ResizeBuffers.ToInt64():X}");
-
-        this.presentHook = Hook<PresentDelegate>.FromAddress(this.address.Present, this.PresentDetour);
-        this.resizeBuffersHook = Hook<ResizeBuffersDelegate>.FromAddress(this.address.ResizeBuffers, this.ResizeBuffersDetour);
-        Log.Information("Present and ResizeBuffers hooked");
-
-        var wndProcAddress = sigScanner.ScanText("E8 ?? ?? ?? ?? 80 7C 24 ?? ?? 74 ?? B8");
-        Log.Information($"WndProc address 0x{wndProcAddress.ToInt64():X}");
-        this.processMessageHook = Hook<ProcessMessageDelegate>.FromAddress(wndProcAddress, this.ProcessMessageDetour);
-
-        this.setCursorHook.Enable();
-        this.presentHook.Enable();
-        this.resizeBuffersHook.Enable();
-        this.dispatchMessageWHook.Enable();
-        this.processMessageHook.Enable();
-        Log.Information("Hooks enabled");
     }
 
     [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
@@ -460,6 +433,15 @@ internal class InterfaceManager : IDisposable, IServiceType
         }
 
         return null;
+    }
+
+    /// <summary>
+    /// Clear font, style, and color stack. Dangerous, only use when you know
+    /// no one else has something pushed they may try to pop.
+    /// </summary>
+    public void ClearStacks()
+    {
+        this.scene?.ClearStacksOnContext();
     }
 
     /// <summary>
@@ -919,6 +901,7 @@ internal class InterfaceManager : IDisposable, IServiceType
             Log.Verbose("[FONT] ImGui.IO.Build will be called.");
             ioFonts.Build();
             gameFontManager.AfterIoFontsBuild();
+            this.ClearStacks();
             Log.Verbose("[FONT] ImGui.IO.Build OK!");
 
             gameFontManager.AfterBuildFonts();
@@ -1009,9 +992,10 @@ internal class InterfaceManager : IDisposable, IServiceType
     }
 
     [ServiceManager.CallWhenServicesReady]
-    private void ContinueConstruction()
+    private void ContinueConstruction(SigScanner sigScanner, Framework framework)
     {
-        this.framework.RunOnFrameworkThread(() =>
+        this.address.Setup(sigScanner);
+        framework.RunOnFrameworkThread(() =>
         {
             while ((this.GameWindowHandle = NativeFunctions.FindWindowEx(IntPtr.Zero, this.GameWindowHandle, "FFXIVGAME", IntPtr.Zero)) != IntPtr.Zero)
             {
@@ -1030,6 +1014,23 @@ internal class InterfaceManager : IDisposable, IServiceType
             {
                 Log.Error(ex, "Could not enable immersive mode");
             }
+
+            this.presentHook = Hook<PresentDelegate>.FromAddress(this.address.Present, this.PresentDetour);
+            this.resizeBuffersHook = Hook<ResizeBuffersDelegate>.FromAddress(this.address.ResizeBuffers, this.ResizeBuffersDetour);
+
+            Log.Verbose("===== S W A P C H A I N =====");
+            Log.Verbose($"Present address 0x{this.presentHook!.Address.ToInt64():X}");
+            Log.Verbose($"ResizeBuffers address 0x{this.resizeBuffersHook!.Address.ToInt64():X}");
+
+            var wndProcAddress = sigScanner.ScanText("E8 ?? ?? ?? ?? 80 7C 24 ?? ?? 74 ?? B8");
+            Log.Verbose($"WndProc address 0x{wndProcAddress.ToInt64():X}");
+            this.processMessageHook = Hook<ProcessMessageDelegate>.FromAddress(wndProcAddress, this.ProcessMessageDetour);
+
+            this.setCursorHook.Enable();
+            this.presentHook.Enable();
+            this.resizeBuffersHook.Enable();
+            this.dispatchMessageWHook.Enable();
+            this.processMessageHook.Enable();
         });
     }
 
