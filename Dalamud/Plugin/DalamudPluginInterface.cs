@@ -11,6 +11,7 @@ using Dalamud.Configuration;
 using Dalamud.Configuration.Internal;
 using Dalamud.Data;
 using Dalamud.Game;
+using Dalamud.Game.ClientState;
 using Dalamud.Game.Gui;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.Sanitizer;
@@ -25,6 +26,8 @@ using Dalamud.Plugin.Ipc;
 using Dalamud.Plugin.Ipc.Exceptions;
 using Dalamud.Plugin.Ipc.Internal;
 using Dalamud.Utility;
+
+using Serilog;
 
 namespace Dalamud.Plugin;
 
@@ -354,7 +357,50 @@ public sealed class DalamudPluginInterface : IDisposable
         if (currentConfig == null)
             return;
 
-        this.configs.Save(currentConfig, this.plugin.InternalName);
+        if (currentConfig is ICharacterConfiguration characterConfig)
+        {
+            this.configs.Save(currentConfig, this.plugin.InternalName, $"c{characterConfig.ContentId}");
+        }
+        else
+        {
+            this.configs.Save(currentConfig, this.plugin.InternalName);
+        }
+    }
+
+    /// <summary>
+    /// Get a previously saved per-character plugin configuration, or a newly created T.
+    /// </summary>
+    /// <typeparam name="T">The configuration class.</typeparam>
+    /// <returns>The configuration instance for the current character.</returns>
+    /// <exception cref="InvalidOperationException">Thrown if this function is called when no character is logged in.</exception>
+    public T GetPluginConfigForCharacter<T>()
+        where T : class, ICharacterConfiguration
+    {
+        var cs = Service<ClientState>.Get();
+        if (cs.LocalContentId == 0)
+            throw new InvalidOperationException("Player is not logged in.");
+
+        return this.GetPluginConfigForContentId<T>(cs.LocalContentId);
+    }
+
+    /// <summary>
+    /// Get a previously saved per-character plugin configuration for the specified Content ID, or a newly created T.
+    /// </summary>
+    /// <param name="contentId">The Content ID to receive a plugin configuration for.</param>
+    /// <typeparam name="T">The configuration class.</typeparam>
+    /// <returns>The configuration instance for the specified Content ID.</returns>
+    public T GetPluginConfigForContentId<T>(ulong contentId)
+        where T : class, ICharacterConfiguration
+    {
+        var config = this.configs.LoadForType<T>(this.InternalName, $"c{contentId}");
+
+        // This should be supported, since people might be renaming these.
+        // Plugins can also migrate configs by changing the Content ID and saving.
+        if (config.ContentId != contentId)
+            Log.Warning("Loaded a config for {InternalName} with the wrong Content ID: {Passed} != {Actual}", this.InternalName, contentId, config.ContentId);
+        config.ContentId = contentId;
+
+        return config;
     }
 
     /// <summary>
@@ -376,7 +422,7 @@ public sealed class DalamudPluginInterface : IDisposable
             {
                 var mi = this.configs.GetType().GetMethod("LoadForType");
                 var fn = mi.MakeGenericMethod(type);
-                return (IPluginConfiguration)fn.Invoke(this.configs, new object[] { this.plugin.InternalName });
+                return (IPluginConfiguration)fn.Invoke(this.configs, new object[] { this.plugin.InternalName, null });
             }
         }
 
