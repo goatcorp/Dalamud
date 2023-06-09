@@ -16,18 +16,15 @@ using JetBrains.Annotations;
 
 namespace Dalamud;
 
+// TODO:
+// - Unify dependency walking code(load/unload
+// - Visualize/output .dot or imgui thing
+
 /// <summary>
 /// Class to initialize Service&lt;T&gt;s.
 /// </summary>
 internal static class ServiceManager
 {
-    /**
-     * TODO:
-     * - Unify dependency walking code(load/unload
-     * - Visualize/output .dot or imgui thing
-     */
-
-
     /// <summary>
     /// Static log facility for Service{T}, to avoid duplicate instances for different types.
     /// </summary>

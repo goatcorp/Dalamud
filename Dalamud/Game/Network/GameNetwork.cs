@@ -1,13 +1,12 @@
 using System;
-using System.Collections.Generic;
 using System.Runtime.InteropServices;
+
 using Dalamud.Configuration.Internal;
 using Dalamud.Hooking;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Utility;
 using Serilog;
-using Serilog.Core;
 
 namespace Dalamud.Game.Network;
 
@@ -26,11 +25,11 @@ public sealed class GameNetwork : IDisposable, IServiceType
     private readonly HitchDetector hitchDetectorUp;
     private readonly HitchDetector hitchDetectorDown;
 
-    private IntPtr baseAddress;
-
     [ServiceManager.ServiceDependency]
     private readonly DalamudConfiguration configuration = Service<DalamudConfiguration>.Get();
-    
+
+    private IntPtr baseAddress;
+
     [ServiceManager.ServiceConstructor]
     private GameNetwork(SigScanner sigScanner)
     {

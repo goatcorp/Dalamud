@@ -17,7 +17,7 @@ namespace Dalamud.Hooking.Internal;
 internal class HookManager : IDisposable, IServiceType
 {
     /// <summary>
-    /// Logger shared with <see cref="Unhooker"/>
+    /// Logger shared with <see cref="Unhooker"/>.
     /// </summary>
     internal static readonly ModuleLog Log = new("HM");
 
@@ -40,6 +40,11 @@ internal class HookManager : IDisposable, IServiceType
     /// Gets a static dictionary of unhookers for a hooked address.
     /// </summary>
     internal static ConcurrentDictionary<IntPtr, Unhooker> Unhookers { get; } = new();
+
+    /// <summary>
+    /// Gets a static dictionary of the number of hooks on a given address.
+    /// </summary>
+    internal static ConcurrentDictionary<IntPtr, List<IDalamudHook?>> MultiHookTracker { get; } = new();
 
     /// <summary>
     /// Creates a new Unhooker instance for the provided address if no such unhooker was already registered, or returns
@@ -67,11 +72,6 @@ internal class HookManager : IDisposable, IServiceType
         Log.Verbose($"Registering hook at 0x{address.ToInt64():X} (minBytes=0x{minBytes:X}, maxBytes=0x{maxBytes:X})");
         return Unhookers.GetOrAdd(address, _ => new Unhooker(address, minBytes, maxBytes));
     }
-
-    /// <summary>
-    /// Gets a static dictionary of the number of hooks on a given address.
-    /// </summary>
-    internal static ConcurrentDictionary<IntPtr, List<IDalamudHook?>> MultiHookTracker { get; } = new();
 
     /// <inheritdoc/>
     public void Dispose()
