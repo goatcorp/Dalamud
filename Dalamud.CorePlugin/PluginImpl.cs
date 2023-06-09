@@ -54,6 +54,7 @@ namespace Dalamud.CorePlugin
         /// Initializes a new instance of the <see cref="PluginImpl"/> class.
         /// </summary>
         /// <param name="pluginInterface">Dalamud plugin interface.</param>
+        /// <param name="log">Logging service.</param>
         public PluginImpl(DalamudPluginInterface pluginInterface, PluginLog log)
         {
             try
