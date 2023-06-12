@@ -717,12 +717,7 @@ internal class DalamudInterface : IDisposable, IServiceType
 
                     if (ImGui.MenuItem("Restart game"))
                     {
-                        [DllImport("kernel32.dll")]
-                        [return: MarshalAs(UnmanagedType.Bool)]
-                        static extern void RaiseException(uint dwExceptionCode, uint dwExceptionFlags, uint nNumberOfArguments, IntPtr lpArguments);
-
-                        RaiseException(0x12345678, 0, 0, IntPtr.Zero);
-                        Process.GetCurrentProcess().Kill();
+                        Dalamud.RestartGame();
                     }
 
                     if (ImGui.MenuItem("Kill game"))

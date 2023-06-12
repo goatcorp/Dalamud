@@ -141,7 +141,6 @@ internal static class Service<T> where T : IServiceType
                      .OfType<InherentDependencyAttribute>()
                      .Select(x => x.GetType().GetGenericArguments().First()));
 
-
         // HACK: PluginManager needs to depend on ALL plugin exposed services
         if (typeof(T) == typeof(PluginManager))
         {

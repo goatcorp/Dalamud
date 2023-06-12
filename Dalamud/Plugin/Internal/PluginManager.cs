@@ -62,7 +62,6 @@ internal partial class PluginManager : IDisposable, IServiceType
 
     private readonly object pluginListLock = new();
     private readonly DirectoryInfo pluginDirectory;
-    private readonly DirectoryInfo devPluginDirectory;
     private readonly BannedPlugin[]? bannedPlugins;
 
     private readonly DalamudLinkPayload openInstallerWindowPluginChangelogsLink;

@@ -25,9 +25,9 @@ namespace Dalamud.Game;
 [ServiceManager.BlockingEarlyLoadedService]
 public sealed class Framework : IDisposable, IServiceType
 {
+    private static readonly Stopwatch StatsStopwatch = new();
+    
     private readonly GameLifecycle lifecycle;
-
-    private static Stopwatch statsStopwatch = new();
 
     private readonly Stopwatch updateStopwatch = new();
     private readonly HitchDetector hitchDetector;
@@ -35,14 +35,14 @@ public sealed class Framework : IDisposable, IServiceType
     private readonly Hook<OnUpdateDetour> updateHook;
     private readonly Hook<OnRealDestroyDelegate> destroyHook;
 
+    [ServiceManager.ServiceDependency]
+    private readonly DalamudConfiguration configuration = Service<DalamudConfiguration>.Get();
+
     private readonly object runOnNextTickTaskListSync = new();
     private List<RunOnNextTickTaskBase> runOnNextTickTaskList = new();
     private List<RunOnNextTickTaskBase> runOnNextTickTaskList2 = new();
 
     private Thread? frameworkUpdateThread;
-
-    [ServiceManager.ServiceDependency]
-    private readonly DalamudConfiguration configuration = Service<DalamudConfiguration>.Get();
 
     [ServiceManager.ServiceConstructor]
     private Framework(SigScanner sigScanner, GameLifecycle lifecycle)
@@ -346,7 +346,7 @@ public sealed class Framework : IDisposable, IServiceType
         this.destroyHook.Dispose();
 
         this.updateStopwatch.Reset();
-        statsStopwatch.Reset();
+        StatsStopwatch.Reset();
     }
 
     [ServiceManager.CallWhenServicesReady]
@@ -420,11 +420,11 @@ public sealed class Framework : IDisposable, IServiceType
 
             if (StatsEnabled)
             {
-                statsStopwatch.Restart();
+                StatsStopwatch.Restart();
                 this.RunPendingTickTasks();
-                statsStopwatch.Stop();
+                StatsStopwatch.Stop();
 
-                AddToStats(nameof(this.RunPendingTickTasks), statsStopwatch.Elapsed.TotalMilliseconds);
+                AddToStats(nameof(this.RunPendingTickTasks), StatsStopwatch.Elapsed.TotalMilliseconds);
             }
             else
             {
@@ -440,7 +440,7 @@ public sealed class Framework : IDisposable, IServiceType
                 // Individually invoke OnUpdate handlers and time them.
                 foreach (var d in invokeList)
                 {
-                    statsStopwatch.Restart();
+                    StatsStopwatch.Restart();
                     try
                     {
                         d.Method.Invoke(d.Target, new object[] { this });
@@ -450,13 +450,13 @@ public sealed class Framework : IDisposable, IServiceType
                         Log.Error(ex, "Exception while dispatching Framework::Update event.");
                     }
 
-                    statsStopwatch.Stop();
+                    StatsStopwatch.Stop();
 
                     var key = $"{d.Target}::{d.Method.Name}";
                     if (notUpdated.Contains(key))
                         notUpdated.Remove(key);
 
-                    AddToStats(key, statsStopwatch.Elapsed.TotalMilliseconds);
+                    AddToStats(key, StatsStopwatch.Elapsed.TotalMilliseconds);
                 }
 
                 // Cleanup handlers that are no longer being called

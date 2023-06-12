@@ -1792,7 +1792,8 @@ internal class DataWindow : Window
                 ImGui.TableNextColumn();
                 ImGui.TextUnformatted(string.Join(", ", share.Users));
             }
-        } finally
+        }
+        finally
         {
             ImGui.EndTable();
         }

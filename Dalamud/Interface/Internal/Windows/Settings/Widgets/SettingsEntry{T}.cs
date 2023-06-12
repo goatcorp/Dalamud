@@ -23,8 +23,16 @@ internal sealed class SettingsEntry<T> : SettingsEntry
     private object? valueBacking;
     private object? fallbackValue;
 
-    public SettingsEntry(string name, string description, LoadSettingDelegate load, SaveSettingDelegate save, Action<T?>? change = null, Func<T?, string?>? warning = null, Func<T?, string?>? validity = null, Func<bool>? visibility = null,
-                         object? fallbackValue = null)
+    public SettingsEntry(
+        string name,
+        string description,
+        LoadSettingDelegate load,
+        SaveSettingDelegate save,
+        Action<T?>? change = null,
+        Func<T?, string?>? warning = null,
+        Func<T?, string?>? validity = null,
+        Func<bool>? visibility = null, 
+        object? fallbackValue = null)
     {
         this.load = load;
         this.save = save;

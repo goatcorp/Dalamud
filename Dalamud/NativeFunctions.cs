@@ -1132,6 +1132,7 @@ internal static partial class NativeFunctions
 /// <summary>
 /// Native kernel32 functions.
 /// </summary>
+[SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1629:Documentation text should end with a period", Justification = "Stupid rule")]
 internal static partial class NativeFunctions
 {
     /// <summary>
@@ -1394,7 +1395,7 @@ internal static partial class NativeFunctions
     }
 
     /// <summary>
-    /// HEAP_* from heapapi
+    /// HEAP_* from heapapi.
     /// </summary>
     [Flags]
     public enum HeapOptions
