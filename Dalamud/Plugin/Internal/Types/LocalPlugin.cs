@@ -136,7 +136,9 @@ internal class LocalPlugin : IDisposable
         this.disabledFile = LocalPluginManifest.GetDisabledFile(this.DllFile);
         if (this.disabledFile.Exists)
         {
+#pragma warning disable CS0618
             this.Manifest.Disabled = true;
+#pragma warning restore CS0618
             this.disabledFile.Delete();
         }
 
@@ -627,9 +629,9 @@ internal class LocalPlugin : IDisposable
         var manifest = LocalPluginManifest.GetManifestFile(this.DllFile);
         if (manifest.Exists)
         {
-            //var isDisabled = this.IsDisabled; // saving the internal state because it could have been deleted
+            // var isDisabled = this.IsDisabled; // saving the internal state because it could have been deleted
             this.Manifest = LocalPluginManifest.Load(manifest);
-            //this.Manifest.Disabled = isDisabled;
+            // this.Manifest.Disabled = isDisabled;
 
             this.SaveManifest();
         }

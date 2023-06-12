@@ -61,6 +61,13 @@ internal class ProfileCommandHandler : IServiceType, IDisposable
         this.framework.Update += this.FrameworkOnUpdate;
     }
 
+    private enum ProfileOp
+    {
+        Enable,
+        Disable,
+        Toggle,
+    }
+    
     /// <inheritdoc/>
     public void Dispose()
     {
@@ -165,12 +172,5 @@ internal class ProfileCommandHandler : IServiceType, IDisposable
         }
 
         return name;
-    }
-
-    private enum ProfileOp
-    {
-        Enable,
-        Disable,
-        Toggle,
     }
 }

@@ -16,6 +16,9 @@ using Serilog;
 
 namespace Dalamud.Interface.Internal.Windows.PluginInstaller;
 
+/// <summary>
+/// ImGui widget used to manage profiles.
+/// </summary>
 internal class ProfileManagerWidget
 {
     private readonly PluginInstallerWindow installer;
@@ -25,11 +28,24 @@ internal class ProfileManagerWidget
     private string pickerSearch = string.Empty;
     private string profileNameEdit = string.Empty;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ProfileManagerWidget"/> class.
+    /// </summary>
+    /// <param name="installer">The plugin installer.</param>
     public ProfileManagerWidget(PluginInstallerWindow installer)
     {
         this.installer = installer;
     }
 
+    private enum Mode
+    {
+        Overview,
+        EditSingleProfile,
+    }
+
+    /// <summary>
+    /// Draw this widget's contents.
+    /// </summary>
     public void Draw()
     {
         switch (this.mode)
@@ -44,6 +60,9 @@ internal class ProfileManagerWidget
         }
     }
 
+    /// <summary>
+    /// Reset the widget.
+    /// </summary>
     public void Reset()
     {
         this.mode = Mode.Overview;
@@ -426,12 +445,6 @@ internal class ProfileManagerWidget
             this.pickerSearch = string.Empty;
             ImGui.OpenPopup(addPluginToProfilePopup);
         }
-    }
-
-    private enum Mode
-    {
-        Overview,
-        EditSingleProfile,
     }
 
     private static class Locs

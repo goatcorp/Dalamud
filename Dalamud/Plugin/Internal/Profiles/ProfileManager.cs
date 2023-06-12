@@ -165,7 +165,7 @@ internal class ProfileManager : IServiceType
 
     /// <summary>
     /// Go through all profiles and plugins, and enable/disable plugins they want active.
-    /// This will block until all plugins have been loaded/reloaded!
+    /// This will block until all plugins have been loaded/reloaded.
     /// </summary>
     public void ApplyAllWantStates()
     {

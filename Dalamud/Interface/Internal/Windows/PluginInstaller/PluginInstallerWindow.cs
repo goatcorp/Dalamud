@@ -327,6 +327,46 @@ internal class PluginInstallerWindow : Window, IDisposable
             });
     }
 
+    /// <summary>
+    /// A continuation task that displays any errors received into the error modal.
+    /// </summary>
+    /// <param name="task">The previous task.</param>
+    /// <param name="state">An error message to be displayed.</param>
+    /// <returns>A value indicating whether to continue with the next task.</returns>
+    public bool DisplayErrorContinuation(Task task, object state)
+    {
+        if (task.IsFaulted)
+        {
+            var errorModalMessage = state as string;
+
+            foreach (var ex in task.Exception.InnerExceptions)
+            {
+                if (ex is PluginException)
+                {
+                    Log.Error(ex, "Plugin installer threw an error");
+#if DEBUG
+                    if (!string.IsNullOrEmpty(ex.Message))
+                        errorModalMessage += $"\n\n{ex.Message}";
+#endif
+                }
+                else
+                {
+                    Log.Error(ex, "Plugin installer threw an unexpected error");
+#if DEBUG
+                    if (!string.IsNullOrEmpty(ex.Message))
+                        errorModalMessage += $"\n\n{ex.Message}";
+#endif
+                }
+            }
+
+            this.ShowErrorModal(errorModalMessage);
+
+            return false;
+        }
+
+        return true;
+    }
+
     private void DrawProgressOverlay()
     {
         var pluginManager = Service<PluginManager>.Get();
@@ -2155,7 +2195,7 @@ internal class PluginInstallerWindow : Window, IDisposable
                 this.DrawSendFeedbackButton(plugin.Manifest, plugin.IsTesting);
             }
 
-            if (availablePluginUpdate != default && ! plugin.IsDev)
+            if (availablePluginUpdate != default && !plugin.IsDev)
                 this.DrawUpdateSinglePluginButton(availablePluginUpdate);
 
             ImGui.SameLine();
@@ -2913,46 +2953,6 @@ internal class PluginInstallerWindow : Window, IDisposable
 
     private bool WasPluginSeen(string internalName) =>
         Service<DalamudConfiguration>.Get().SeenPluginInternalName.Contains(internalName);
-
-    /// <summary>
-    /// A continuation task that displays any errors received into the error modal.
-    /// </summary>
-    /// <param name="task">The previous task.</param>
-    /// <param name="state">An error message to be displayed.</param>
-    /// <returns>A value indicating whether to continue with the next task.</returns>
-    public bool DisplayErrorContinuation(Task task, object state)
-    {
-        if (task.IsFaulted)
-        {
-            var errorModalMessage = state as string;
-
-            foreach (var ex in task.Exception.InnerExceptions)
-            {
-                if (ex is PluginException)
-                {
-                    Log.Error(ex, "Plugin installer threw an error");
-#if DEBUG
-                    if (!string.IsNullOrEmpty(ex.Message))
-                        errorModalMessage += $"\n\n{ex.Message}";
-#endif
-                }
-                else
-                {
-                    Log.Error(ex, "Plugin installer threw an unexpected error");
-#if DEBUG
-                    if (!string.IsNullOrEmpty(ex.Message))
-                        errorModalMessage += $"\n\n{ex.Message}";
-#endif
-                }
-            }
-
-            this.ShowErrorModal(errorModalMessage);
-
-            return false;
-        }
-
-        return true;
-    }
 
     private Task ShowErrorModal(string message)
     {

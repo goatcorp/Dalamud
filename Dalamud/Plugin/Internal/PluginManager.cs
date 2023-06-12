@@ -817,137 +817,6 @@ internal partial class PluginManager : IDisposable, IServiceType
     }
 
     /// <summary>
-    /// Load a plugin.
-    /// </summary>
-    /// <param name="dllFile">The <see cref="FileInfo"/> associated with the main assembly of this plugin.</param>
-    /// <param name="manifest">The already loaded definition, if available.</param>
-    /// <param name="reason">The reason this plugin was loaded.</param>
-    /// <param name="isDev">If this plugin should support development features.</param>
-    /// <param name="isBoot">If this plugin is being loaded at boot.</param>
-    /// <param name="doNotLoad">Don't load the plugin, just don't do it.</param>
-    /// <returns>The loaded plugin.</returns>
-    private async Task<LocalPlugin> LoadPluginAsync(FileInfo dllFile, LocalPluginManifest? manifest, PluginLoadReason reason, bool isDev = false, bool isBoot = false, bool doNotLoad = false)
-    {
-        var name = manifest?.Name ?? dllFile.Name;
-        var loadPlugin = !doNotLoad;
-
-        LocalPlugin plugin;
-
-        if (manifest != null && manifest.InternalName == null)
-        {
-            Log.Error("{FileName}: Your manifest has no internal name set! Can't load this.", dllFile.FullName);
-            throw new Exception("No internal name");
-        }
-
-        if (isDev)
-        {
-            Log.Information($"Loading dev plugin {name}");
-            var devPlugin = new LocalDevPlugin(dllFile, manifest);
-            loadPlugin &= !isBoot || devPlugin.StartOnBoot;
-
-            var probablyInternalNameForThisPurpose = manifest?.InternalName ?? dllFile.Name;
-            var wantsInDefaultProfile =
-                this.profileManager.DefaultProfile.WantsPlugin(probablyInternalNameForThisPurpose);
-            if (wantsInDefaultProfile == false && devPlugin.StartOnBoot)
-            {
-                this.profileManager.DefaultProfile.AddOrUpdate(probablyInternalNameForThisPurpose, true, false);
-            }
-            else if (wantsInDefaultProfile == true && !devPlugin.StartOnBoot)
-            {
-                this.profileManager.DefaultProfile.AddOrUpdate(probablyInternalNameForThisPurpose, false, false);
-            }
-
-            plugin = devPlugin;
-        }
-        else
-        {
-            Log.Information($"Loading plugin {name}");
-            plugin = new LocalPlugin(dllFile, manifest);
-        }
-
-#pragma warning disable CS0618
-        var defaultState = manifest?.Disabled != true && loadPlugin;
-#pragma warning restore CS0618
-
-        // Need to do this here, so plugins that don't load are still added to the default profile
-        var wantToLoad = this.profileManager.GetWantState(plugin.Manifest.InternalName, defaultState);
-
-        if (loadPlugin)
-        {
-            try
-            {
-                if (wantToLoad && !plugin.IsOrphaned)
-                {
-                    await plugin.LoadAsync(reason);
-                }
-                else
-                {
-                    Log.Verbose($"{name} not loaded, wantToLoad:{wantToLoad} orphaned:{plugin.IsOrphaned}");
-                }
-            }
-            catch (InvalidPluginException)
-            {
-                PluginLocations.Remove(plugin.AssemblyName?.FullName ?? string.Empty, out _);
-                throw;
-            }
-            catch (BannedPluginException)
-            {
-                // Out of date plugins get added so they can be updated.
-                Log.Information($"Plugin was banned, adding anyways: {dllFile.Name}");
-            }
-            catch (Exception ex)
-            {
-                if (plugin.IsDev)
-                {
-                    // Dev plugins always get added to the list so they can be fiddled with in the UI
-                    Log.Information(ex, $"Dev plugin failed to load, adding anyways: {dllFile.Name}");
-
-                    // NOTE(goat): This can't work - plugins don't "unload" if they fail to load.
-                    // plugin.Disable(); // Disable here, otherwise you can't enable+load later
-                }
-                else if (plugin.IsOutdated)
-                {
-                    // Out of date plugins get added, so they can be updated.
-                    Log.Information(ex, $"Plugin was outdated, adding anyways: {dllFile.Name}");
-                }
-                else if (plugin.IsOrphaned)
-                {
-                    // Orphaned plugins get added, so that users aren't confused.
-                    Log.Information(ex, $"Plugin was orphaned, adding anyways: {dllFile.Name}");
-                }
-                else if (isBoot)
-                {
-                    // During boot load, plugins always get added to the list so they can be fiddled with in the UI
-                    Log.Information(ex, $"Regular plugin failed to load, adding anyways: {dllFile.Name}");
-
-                    // NOTE(goat): This can't work - plugins don't "unload" if they fail to load.
-                    // plugin.Disable(); // Disable here, otherwise you can't enable+load later
-                }
-                else if (!plugin.CheckPolicy())
-                {
-                    // During boot load, plugins always get added to the list so they can be fiddled with in the UI
-                    Log.Information(ex, $"Plugin not loaded due to policy, adding anyways: {dllFile.Name}");
-
-                    // NOTE(goat): This can't work - plugins don't "unload" if they fail to load.
-                    // plugin.Disable(); // Disable here, otherwise you can't enable+load later
-                }
-                else
-                {
-                    PluginLocations.Remove(plugin.AssemblyName?.FullName ?? string.Empty, out _);
-                    throw;
-                }
-            }
-        }
-
-        lock (this.pluginListLock)
-        {
-            this.InstalledPlugins = this.InstalledPlugins.Add(plugin);
-        }
-
-        return plugin;
-    }
-
-    /// <summary>
     /// Remove a plugin.
     /// </summary>
     /// <param name="plugin">Plugin to remove.</param>
@@ -1329,6 +1198,137 @@ internal partial class PluginManager : IDisposable, IServiceType
     /// </summary>
     /// <returns>The calling plugin, or null.</returns>
     public LocalPlugin? FindCallingPlugin() => this.FindCallingPlugin(new StackTrace());
+
+    /// <summary>
+    /// Load a plugin.
+    /// </summary>
+    /// <param name="dllFile">The <see cref="FileInfo"/> associated with the main assembly of this plugin.</param>
+    /// <param name="manifest">The already loaded definition, if available.</param>
+    /// <param name="reason">The reason this plugin was loaded.</param>
+    /// <param name="isDev">If this plugin should support development features.</param>
+    /// <param name="isBoot">If this plugin is being loaded at boot.</param>
+    /// <param name="doNotLoad">Don't load the plugin, just don't do it.</param>
+    /// <returns>The loaded plugin.</returns>
+    private async Task<LocalPlugin> LoadPluginAsync(FileInfo dllFile, LocalPluginManifest? manifest, PluginLoadReason reason, bool isDev = false, bool isBoot = false, bool doNotLoad = false)
+    {
+        var name = manifest?.Name ?? dllFile.Name;
+        var loadPlugin = !doNotLoad;
+
+        LocalPlugin plugin;
+
+        if (manifest != null && manifest.InternalName == null)
+        {
+            Log.Error("{FileName}: Your manifest has no internal name set! Can't load this.", dllFile.FullName);
+            throw new Exception("No internal name");
+        }
+
+        if (isDev)
+        {
+            Log.Information($"Loading dev plugin {name}");
+            var devPlugin = new LocalDevPlugin(dllFile, manifest);
+            loadPlugin &= !isBoot || devPlugin.StartOnBoot;
+
+            var probablyInternalNameForThisPurpose = manifest?.InternalName ?? dllFile.Name;
+            var wantsInDefaultProfile =
+                this.profileManager.DefaultProfile.WantsPlugin(probablyInternalNameForThisPurpose);
+            if (wantsInDefaultProfile == false && devPlugin.StartOnBoot)
+            {
+                this.profileManager.DefaultProfile.AddOrUpdate(probablyInternalNameForThisPurpose, true, false);
+            }
+            else if (wantsInDefaultProfile == true && !devPlugin.StartOnBoot)
+            {
+                this.profileManager.DefaultProfile.AddOrUpdate(probablyInternalNameForThisPurpose, false, false);
+            }
+
+            plugin = devPlugin;
+        }
+        else
+        {
+            Log.Information($"Loading plugin {name}");
+            plugin = new LocalPlugin(dllFile, manifest);
+        }
+
+#pragma warning disable CS0618
+        var defaultState = manifest?.Disabled != true && loadPlugin;
+#pragma warning restore CS0618
+
+        // Need to do this here, so plugins that don't load are still added to the default profile
+        var wantToLoad = this.profileManager.GetWantState(plugin.Manifest.InternalName, defaultState);
+
+        if (loadPlugin)
+        {
+            try
+            {
+                if (wantToLoad && !plugin.IsOrphaned)
+                {
+                    await plugin.LoadAsync(reason);
+                }
+                else
+                {
+                    Log.Verbose($"{name} not loaded, wantToLoad:{wantToLoad} orphaned:{plugin.IsOrphaned}");
+                }
+            }
+            catch (InvalidPluginException)
+            {
+                PluginLocations.Remove(plugin.AssemblyName?.FullName ?? string.Empty, out _);
+                throw;
+            }
+            catch (BannedPluginException)
+            {
+                // Out of date plugins get added so they can be updated.
+                Log.Information($"Plugin was banned, adding anyways: {dllFile.Name}");
+            }
+            catch (Exception ex)
+            {
+                if (plugin.IsDev)
+                {
+                    // Dev plugins always get added to the list so they can be fiddled with in the UI
+                    Log.Information(ex, $"Dev plugin failed to load, adding anyways: {dllFile.Name}");
+
+                    // NOTE(goat): This can't work - plugins don't "unload" if they fail to load.
+                    // plugin.Disable(); // Disable here, otherwise you can't enable+load later
+                }
+                else if (plugin.IsOutdated)
+                {
+                    // Out of date plugins get added, so they can be updated.
+                    Log.Information(ex, $"Plugin was outdated, adding anyways: {dllFile.Name}");
+                }
+                else if (plugin.IsOrphaned)
+                {
+                    // Orphaned plugins get added, so that users aren't confused.
+                    Log.Information(ex, $"Plugin was orphaned, adding anyways: {dllFile.Name}");
+                }
+                else if (isBoot)
+                {
+                    // During boot load, plugins always get added to the list so they can be fiddled with in the UI
+                    Log.Information(ex, $"Regular plugin failed to load, adding anyways: {dllFile.Name}");
+
+                    // NOTE(goat): This can't work - plugins don't "unload" if they fail to load.
+                    // plugin.Disable(); // Disable here, otherwise you can't enable+load later
+                }
+                else if (!plugin.CheckPolicy())
+                {
+                    // During boot load, plugins always get added to the list so they can be fiddled with in the UI
+                    Log.Information(ex, $"Plugin not loaded due to policy, adding anyways: {dllFile.Name}");
+
+                    // NOTE(goat): This can't work - plugins don't "unload" if they fail to load.
+                    // plugin.Disable(); // Disable here, otherwise you can't enable+load later
+                }
+                else
+                {
+                    PluginLocations.Remove(plugin.AssemblyName?.FullName ?? string.Empty, out _);
+                    throw;
+                }
+            }
+        }
+
+        lock (this.pluginListLock)
+        {
+            this.InstalledPlugins = this.InstalledPlugins.Add(plugin);
+        }
+
+        return plugin;
+    }
 
     private void DetectAvailablePluginUpdates()
     {
