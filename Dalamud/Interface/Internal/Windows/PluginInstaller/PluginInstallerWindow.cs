@@ -522,8 +522,11 @@ internal class PluginInstallerWindow : Window, IDisposable
 
         ImGui.SetCursorPosX(windowSize.X - sortSelectWidth - (style.ItemSpacing.X * 2) - searchInputWidth - searchClearButtonWidth);
 
+        var isProfileManager =
+            this.categoryManager.CurrentGroupIdx == 1 && this.categoryManager.CurrentCategoryIdx == 2;
+        
         // Disable search if profile editor
-        using (ImRaii.Disabled(this.categoryManager.CurrentCategoryIdx == 14))
+        using (ImRaii.Disabled(isProfileManager))
         {
             var searchTextChanged = false;
             ImGui.SetNextItemWidth(searchInputWidth);
@@ -548,7 +551,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         }
 
         // Disable sort if changelogs or profile editor
-        using (ImRaii.Disabled(this.categoryManager.CurrentGroupIdx == 3 || this.categoryManager.CurrentCategoryIdx == 14))
+        using (ImRaii.Disabled(this.categoryManager.CurrentGroupIdx == 3 || isProfileManager))
         {
             ImGui.SameLine();
             ImGui.SetCursorPosY(downShift);
