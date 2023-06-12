@@ -111,7 +111,7 @@ internal class ProfileManager : IServiceType
         var model = new ProfileModelV1
         {
             Guid = Guid.NewGuid(),
-            Name = this.GenerateUniqueProfileName(Loc.Localize("PluginProfilesNewProfile", "New Profile")),
+            Name = this.GenerateUniqueProfileName(Loc.Localize("PluginProfilesNewProfile", "New Collection")),
             IsEnabled = false,
         };
 
