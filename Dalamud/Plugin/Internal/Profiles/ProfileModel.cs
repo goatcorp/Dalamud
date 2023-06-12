@@ -20,7 +20,7 @@ public abstract class ProfileModel
     /// Gets or sets the name of the profile.
     /// </summary>
     [JsonProperty("n")]
-    public string Name { get; set; } = "New Profile";
+    public string Name { get; set; } = "New Collection";
 
     /// <summary>
     /// Deserialize a profile into a model.
