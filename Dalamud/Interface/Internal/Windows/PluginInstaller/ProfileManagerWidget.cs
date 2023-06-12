@@ -450,25 +450,25 @@ internal class ProfileManagerWidget
     private static class Locs
     {
         public static string TooltipEnableDisable =>
-            Loc.Localize("ProfileManagerEnableDisableHint", "Enable/Disable this profile");
+            Loc.Localize("ProfileManagerEnableDisableHint", "Enable/Disable this collection");
 
         public static string InstallPlugin => Loc.Localize("ProfileManagerInstall", "Install this plugin");
 
         public static string RemovePlugin =>
-            Loc.Localize("ProfileManagerRemoveFromProfile", "Remove plugin from this profile");
+            Loc.Localize("ProfileManagerRemoveFromProfile", "Remove plugin from this collection");
 
         public static string AddPlugin => Loc.Localize("ProfileManagerAddPlugin", "Add a plugin!");
 
         public static string NoPluginsInProfile =>
-            Loc.Localize("ProfileManagerNoPluginsInProfile", "Profile has no plugins!");
+            Loc.Localize("ProfileManagerNoPluginsInProfile", "Collection has no plugins!");
 
         public static string AlwaysEnableAtBoot =>
             Loc.Localize("ProfileManagerAlwaysEnableAtBoot", "Always enable when game starts");
 
-        public static string DeleteProfileHint => Loc.Localize("ProfileManagerDeleteProfile", "Delete this profile");
+        public static string DeleteProfileHint => Loc.Localize("ProfileManagerDeleteProfile", "Delete this collection");
 
         public static string CopyToClipboardHint =>
-            Loc.Localize("ProfileManagerCopyToClipboard", "Copy profile to clipboard for sharing");
+            Loc.Localize("ProfileManagerCopyToClipboard", "Copy collection to clipboard for sharing");
 
         public static string CopyToClipboardNotification =>
             Loc.Localize("ProfileManagerCopyToClipboardHint", "Copied to clipboard!");
@@ -477,22 +477,22 @@ internal class ProfileManagerWidget
 
         public static string SearchHint => Loc.Localize("ProfileManagerSearchHint", "Search...");
 
-        public static string AddProfileHint => Loc.Localize("ProfileManagerAddProfileHint", "No profiles! Add one!");
+        public static string AddProfileHint => Loc.Localize("ProfileManagerAddProfileHint", "No collections! Add one!");
 
-        public static string CloneProfileHint => Loc.Localize("ProfileManagerCloneProfile", "Clone this profile");
+        public static string CloneProfileHint => Loc.Localize("ProfileManagerCloneProfile", "Clone this collection");
 
-        public static string EditProfileHint => Loc.Localize("ProfileManagerEditProfile", "Edit this profile");
+        public static string EditProfileHint => Loc.Localize("ProfileManagerEditProfile", "Edit this collection");
 
         public static string ImportProfileHint =>
-            Loc.Localize("ProfileManagerImportProfile", "Import a shared profile from your clipboard");
+            Loc.Localize("ProfileManagerImportProfile", "Import a shared collection from your clipboard");
 
-        public static string AddProfile => Loc.Localize("ProfileManagerAddProfile", "Add a new profile");
+        public static string AddProfile => Loc.Localize("ProfileManagerAddProfile", "Add a new collection");
 
         public static string NotificationImportSuccess =>
-            Loc.Localize("ProfileManagerNotificationImportSuccess", "Profile successfully imported!");
+            Loc.Localize("ProfileManagerNotificationImportSuccess", "Collection successfully imported!");
 
         public static string NotificationImportError =>
-            Loc.Localize("ProfileManagerNotificationImportError", "Could not import profile.");
+            Loc.Localize("ProfileManagerNotificationImportError", "Could not import collection.");
 
         public static string ErrorCouldNotRemove =>
             Loc.Localize("ProfileManagerCouldNotRemove", "Could not remove plugin.");
