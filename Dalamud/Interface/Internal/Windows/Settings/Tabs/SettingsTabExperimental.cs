@@ -50,8 +50,8 @@ public class SettingsTabExperimental : SettingsTab
         new GapSettingsEntry(5, true),
 
         new SettingsEntry<bool>(
-            Loc.Localize("DalamudSettingsEnableProfiles", "Enable plugin profiles"),
-            Loc.Localize("DalamudSettingsEnableProfilesHint", "EXPERIMENTAL: Enables plugin profiles."),
+            Loc.Localize("DalamudSettingsEnableProfiles", "Enable plugin collections"),
+            Loc.Localize("DalamudSettingsEnableProfilesHint", "Enables plugin collections, which lets you create toggleable lists of plugins."),
             c => c.ProfilesEnabled,
             (v, c) => c.ProfilesEnabled = v),
     };

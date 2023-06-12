@@ -35,7 +35,7 @@ public abstract class ProfileModel
         if (model.StartsWith(ProfileModelV1.SerializedPrefix))
             return JsonConvert.DeserializeObject<ProfileModelV1>(json);
 
-        throw new ArgumentException("Was not a compressed style model.");
+        throw new ArgumentException("Was not a compressed profile.");
     }
 
     /// <summary>

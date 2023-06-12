@@ -42,19 +42,19 @@ internal class ProfileCommandHandler : IServiceType, IDisposable
 
         this.cmd.AddHandler("/xlenableprofile", new CommandInfo(this.OnEnableProfile)
         {
-            HelpMessage = Loc.Localize("ProfileCommandsEnableHint", "Enable a profile. Usage: /xlenableprofile \"Profile Name\""),
+            HelpMessage = Loc.Localize("ProfileCommandsEnableHint", "Enable a collection. Usage: /xlenablecollection \"Collection Name\""),
             ShowInHelp = true,
         });
 
         this.cmd.AddHandler("/xldisableprofile", new CommandInfo(this.OnDisableProfile)
         {
-            HelpMessage = Loc.Localize("ProfileCommandsDisableHint", "Disable a profile. Usage: /xldisableprofile \"Profile Name\""),
+            HelpMessage = Loc.Localize("ProfileCommandsDisableHint", "Disable a collection. Usage: /xldisablecollection \"Collection Name\""),
             ShowInHelp = true,
         });
 
         this.cmd.AddHandler("/xltoggleprofile", new CommandInfo(this.OnToggleProfile)
         {
-            HelpMessage = Loc.Localize("ProfileCommandsToggleHint", "Toggle a profile. Usage: /xltoggleprofile \"Profile Name\""),
+            HelpMessage = Loc.Localize("ProfileCommandsToggleHint", "Toggle a collection. Usage: /xltogglecollection \"Collection Name\""),
             ShowInHelp = true,
         });
 
@@ -71,9 +71,9 @@ internal class ProfileCommandHandler : IServiceType, IDisposable
     /// <inheritdoc/>
     public void Dispose()
     {
-        this.cmd.RemoveHandler("/xlenableprofile");
-        this.cmd.RemoveHandler("/xldisableprofile");
-        this.cmd.RemoveHandler("/xltoggleprofile");
+        this.cmd.RemoveHandler("/xlenablecollection");
+        this.cmd.RemoveHandler("/xldisablecollection");
+        this.cmd.RemoveHandler("/xltogglecollection");
 
         this.framework.Update += this.FrameworkOnUpdate;
     }
@@ -111,11 +111,11 @@ internal class ProfileCommandHandler : IServiceType, IDisposable
 
             if (profile.IsEnabled)
             {
-                this.chat.Print(Loc.Localize("ProfileCommandsEnabling", "Enabling profile \"{0}\"...").Format(profile.Name));
+                this.chat.Print(Loc.Localize("ProfileCommandsEnabling", "Enabling collection \"{0}\"...").Format(profile.Name));
             }
             else
             {
-                this.chat.Print(Loc.Localize("ProfileCommandsDisabling", "Disabling profile \"{0}\"...").Format(profile.Name));
+                this.chat.Print(Loc.Localize("ProfileCommandsDisabling", "Disabling collection \"{0}\"...").Format(profile.Name));
             }
 
             Task.Run(() => this.profileManager.ApplyAllWantStates()).ContinueWith(t =>
@@ -123,11 +123,11 @@ internal class ProfileCommandHandler : IServiceType, IDisposable
                 if (!t.IsCompletedSuccessfully && t.Exception != null)
                 {
                     Log.Error(t.Exception, "Could not apply profiles through commands");
-                    this.chat.PrintError(Loc.Localize("ProfileCommandsApplyFailed", "Failed to apply all of your profiles. Please check the console for errors."));
+                    this.chat.PrintError(Loc.Localize("ProfileCommandsApplyFailed", "Failed to apply your collections. Please check the console for errors."));
                 }
                 else
                 {
-                    this.chat.Print(Loc.Localize("ProfileCommandsApplySuccess", "Profiles applied."));
+                    this.chat.Print(Loc.Localize("ProfileCommandsApplySuccess", "Collections applied."));
                 }
             });
         }
@@ -167,7 +167,7 @@ internal class ProfileCommandHandler : IServiceType, IDisposable
         var name = arguments.Replace("\"", string.Empty);
         if (this.profileManager.Profiles.All(x => x.Name != name))
         {
-            this.chat.PrintError($"No profile like \"{name}\".");
+            this.chat.PrintError($"No collection like \"{name}\".");
             return null;
         }
 

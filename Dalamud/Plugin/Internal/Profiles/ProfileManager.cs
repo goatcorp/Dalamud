@@ -150,7 +150,7 @@ internal class ProfileManager : IServiceType
             return null;
 
         newModel.Guid = Guid.NewGuid();
-        newModel.Name = this.GenerateUniqueProfileName(newModel.Name.IsNullOrEmpty() ? "Unknown Profile" : newModel.Name);
+        newModel.Name = this.GenerateUniqueProfileName(newModel.Name.IsNullOrEmpty() ? "Unknown Collection" : newModel.Name);
         if (newModel is ProfileModelV1 modelV1)
             modelV1.IsEnabled = false;
 
