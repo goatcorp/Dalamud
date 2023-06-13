@@ -6,6 +6,7 @@ using System.Linq;
 
 using Dalamud.Game.Text;
 using Dalamud.Interface.Style;
+using Dalamud.Plugin.Internal.Profiles;
 using Dalamud.Utility;
 using Newtonsoft.Json;
 using Serilog;
@@ -270,6 +271,21 @@ internal sealed class DalamudConfiguration : IServiceType
     /// Gets or sets the name of the currently chosen style.
     /// </summary>
     public string ChosenStyle { get; set; } = "Dalamud Standard";
+
+    /// <summary>
+    /// Gets or sets a list of saved plugin profiles.
+    /// </summary>
+    public List<ProfileModel>? SavedProfiles { get; set; }
+
+    /// <summary>
+    /// Gets or sets the default plugin profile.
+    /// </summary>
+    public ProfileModel? DefaultProfile { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether or not profiles are enabled.
+    /// </summary>
+    public bool ProfilesEnabled { get; set; } = false;
 
     /// <summary>
     /// Gets or sets a value indicating whether or not Dalamud RMT filtering should be disabled.
