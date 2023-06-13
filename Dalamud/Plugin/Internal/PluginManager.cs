@@ -26,6 +26,7 @@ using Dalamud.Networking.Http;
 using Dalamud.Plugin.Internal.Exceptions;
 using Dalamud.Plugin.Internal.Profiles;
 using Dalamud.Plugin.Internal.Types;
+using Dalamud.Plugin.Ipc.Internal;
 using Dalamud.Utility;
 using Dalamud.Utility.Timing;
 using Newtonsoft.Json;
@@ -44,6 +45,10 @@ namespace Dalamud.Plugin.Internal;
 
 // LocalPlugin uses ServiceContainer to create scopes
 [InherentDependency<ServiceContainer>]
+
+// DalamudPluginInterface hands out a reference to this, so we have to keep it around
+// TODO api9: make it a service 
+[InherentDependency<DataShare>]
 
 #pragma warning restore SA1015
 internal partial class PluginManager : IDisposable, IServiceType
