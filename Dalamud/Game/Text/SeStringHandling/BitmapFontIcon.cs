@@ -462,252 +462,252 @@ public enum BitmapFontIcon : uint
     
     /// <summary>
     /// The Physical Damage icon.
-    /// </Summary>
+    /// </summary>
     DamagePhysical = 117,
 
     /// <summary>
     /// The Magical Damage icon.
-    /// </Summary>
+    /// </summary>
     DamageMagical = 118,
 
     /// <summary>
     /// The Special Damage icon.
-    /// </Summary>
+    /// </summary>
     DamageSpecial = 119,
 
     /// <summary>
     /// A gold star icon with an orange exclamation mark.
-    /// </Summary>
+    /// </summary>
     GoldStarProblem = 120,
 
     /// <summary>
     /// A blue star icon.
-    /// </Summary>
+    /// </summary>
     BlueStar = 121,
 
     /// <summary>
     /// A blue star icon with an orange exclamation mark.
-    /// </Summary>
+    /// </summary>
     BlueStarProblem = 121,
 
     /// <summary>
     /// The Disconnecting icon.
-    /// </Summary>
+    /// </summary>
     Disconnecting = 124,
 
     /// <summary>
     /// The Do Not Disturb icon.
-    /// </Summary>
+    /// </summary>
     DoNotDisturb = 125,
 
     /// <summary>
     /// The Meteor icon.
-    /// </Summary>
+    /// </summary>
     Meteor = 126,
 
     /// <summary>
     /// The Role Playing icon.
-    /// </Summary>
+    /// </summary>
     RolePlaying = 127,
 
     /// <summary>
     /// The Gladiator icon.
-    /// </Summary>
+    /// </summary>
     Gladiator = 128,
 
     /// <summary>
     /// The Pugilist icon.
-    /// </Summary>
+    /// </summary>
     Pugilist = 129,
 
     /// <summary>
     /// The Marauder icon.
-    /// </Summary>
+    /// </summary>
     Marauder = 130,
 
     /// <summary>
     /// The Lancer icon.
-    /// </Summary>
+    /// </summary>
     Lancer = 131,
 
     /// <summary>
     /// The Archer icon.
-    /// </Summary>
+    /// </summary>
     Archer = 132,
 
     /// <summary>
     /// The Conjurer icon.
-    /// </Summary>
+    /// </summary>
     Conjurer = 133,
 
     /// <summary>
     /// The Thaumaturge icon.
-    /// </Summary>
+    /// </summary>
     Thaumaturge = 134,
 
     /// <summary>
     /// The Carpenter icon.
-    /// </Summary>
+    /// </summary>
     Carpenter = 135,
 
     /// <summary>
     /// The Blacksmith icon.
-    /// </Summary>
+    /// </summary>
     Blacksmith = 136,
 
     /// <summary>
     /// The Armorer icon.
-    /// </Summary>
+    /// </summary>
     Armorer = 137,
 
     /// <summary>
     /// The Goldsmith icon.
-    /// </Summary>
+    /// </summary>
     Goldsmith = 138,
 
     /// <summary>
     /// The Leatherworker icon.
-    /// </Summary>
+    /// </summary>
     Leatherworker = 139,
 
     /// <summary>
     /// The Weaver icon.
-    /// </Summary>
+    /// </summary>
     Weaver = 140,
 
     /// <summary>
     /// The Alchemist icon.
-    /// </Summary>
+    /// </summary>
     Alchemist = 131,
 
     /// <summary>
     /// The Culinarian icon.
-    /// </Summary>
+    /// </summary>
     Culinarian = 132,
 
     /// <summary>
     /// The Miner icon.
-    /// </Summary>
+    /// </summary>
     Miner = 143,
 
     /// <summary>
     /// The Botanist icon.
-    /// </Summary>
+    /// </summary>
     Botanist = 144,
 
     /// <summary>
     /// The Fisher icon.
-    /// </Summary>
+    /// </summary>
     Fisher = 145,
 
     /// <summary>
     /// The Paladin icon.
-    /// </Summary>
+    /// </summary>
     Paladin = 146,
 
     /// <summary>
     /// The Monk icon.
-    /// </Summary>
+    /// </summary>
     Monk = 147,
 
     /// <summary>
     /// The Warrior icon.
-    /// </Summary>
+    /// </summary>
     Warrior = 148,
 
     /// <summary>
     /// The Dragoon icon.
-    /// </Summary>
+    /// </summary>
     Dragoon = 149,
 
     /// <summary>
     /// The Bard icon.
-    /// </Summary>
+    /// </summary>
     Bard = 150,
 
     /// <summary>
     /// The White Mage icon.
-    /// </Summary>
+    /// </summary>
     WhiteMage = 151,
 
     /// <summary>
     /// The Black Mage icon.
-    /// </Summary>
+    /// </summary>
     BlackMage = 152,
 
     /// <summary>
     /// The Arcanist icon.
-    /// </Summary>
+    /// </summary>
     Arcanist = 153,
 
     /// <summary>
     /// The Summoner icon.
-    /// </Summary>
+    /// </summary>
     Summoner = 154,
 
     /// <summary>
     /// The Scholar icon.
-    /// </Summary>
+    /// </summary>
     Scholar = 155,
 
     /// <summary>
     /// The Rogue icon.
-    /// </Summary>
+    /// </summary>
     Rogue = 156,
 
     /// <summary>
     /// The Ninja icon.
-    /// </Summary>
+    /// </summary>
     Ninja = 157,
 
     /// <summary>
     /// The Machinist icon.
-    /// </Summary>
+    /// </summary>
     Machinist = 158,
 
     /// <summary>
     /// The Dark Knight icon.
-    /// </Summary>
+    /// </summary>
     DarkKnight = 159,
 
     /// <summary>
     /// The Astrologian icon.
-    /// </Summary>
+    /// </summary>
     Astrologian = 160,
 
     /// <summary>
     /// The Samurai icon.
-    /// </Summary>
+    /// </summary>
     Samurai = 161,
 
     /// <summary>
     /// The Red Mage icon.
-    /// </Summary>
+    /// </summary>
     RedMage = 162,
 
     /// <summary>
     /// The Blue Mage icon.
-    /// </Summary>
+    /// </summary>
     BlueMage = 163,
 
     /// <summary>
     /// The Gunbreaker icon.
-    /// </Summary>
+    /// </summary>
     Gunbreaker = 164,
 
     /// <summary>
     /// The Dancer icon.
-    /// </Summary>
+    /// </summary>
     Dancer = 165,
 
     /// <summary>
     /// The Reaper icon.
-    /// </Summary>
+    /// </summary>
     Reaper = 166,
 
     /// <summary>
     /// The Sage icon.
-    /// </Summary>
+    /// </summary>
     Sage = 167,
 
     /// <summary>
