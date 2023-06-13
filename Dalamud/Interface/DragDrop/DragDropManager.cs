@@ -17,6 +17,7 @@ namespace Dalamud.Interface.DragDrop;
 [PluginInterface]
 [ServiceManager.EarlyLoadedService]
 [InherentDependency<InterfaceManager.InterfaceManagerWithScene>]
+[ResolveVia<IDragDropManager>]
 internal partial class DragDropManager : IDisposable, IDragDropManager, IServiceType
 {
     private readonly InterfaceManager interfaceManager = Service<InterfaceManager>.Get();
