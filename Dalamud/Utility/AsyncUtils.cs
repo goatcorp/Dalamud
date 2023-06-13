@@ -19,7 +19,7 @@ public static class AsyncUtils
     /// <param name="tasks">A list of tasks to race.</param>
     /// <typeparam name="T">The return type of all raced tasks.</typeparam>
     /// <exception cref="AggregateException">Thrown when all tasks given to this method fail.</exception>
-    /// <returns>Returns the first task that completes, according to <see cref="Task{TResult}.IsCompletedSuccessfully"/>.</returns>
+    /// <returns>Returns the first task that completes, according to <see cref="Task.IsCompletedSuccessfully"/>.</returns>
     public static Task<T> FirstSuccessfulTask<T>(ICollection<Task<T>> tasks)
     {
         var tcs = new TaskCompletionSource<T>();
@@ -51,7 +51,7 @@ public static class AsyncUtils
     {
         try
         {
-            await Task.Delay(millisecondsDelay, cancellationToken);
+            await Task.Delay(millisecondsDelay, cancellationToken).ConfigureAwait(false);
         }
         catch (TaskCanceledException)
         {

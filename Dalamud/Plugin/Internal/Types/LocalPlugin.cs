@@ -15,6 +15,7 @@ using Dalamud.Logging;
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Internal.Exceptions;
 using Dalamud.Plugin.Internal.Loader;
+using Dalamud.Plugin.Internal.Profiles;
 using Dalamud.Utility;
 
 namespace Dalamud.Plugin.Internal.Types;
@@ -135,7 +136,9 @@ internal class LocalPlugin : IDisposable
         this.disabledFile = LocalPluginManifest.GetDisabledFile(this.DllFile);
         if (this.disabledFile.Exists)
         {
+#pragma warning disable CS0618
             this.Manifest.Disabled = true;
+#pragma warning restore CS0618
             this.disabledFile.Delete();
         }
 
@@ -206,9 +209,11 @@ internal class LocalPlugin : IDisposable
     public bool IsLoaded => this.State == PluginState.Loaded;
 
     /// <summary>
-    /// Gets a value indicating whether the plugin is disabled.
+    /// Gets a value indicating whether this plugin is wanted active by any profile.
+    /// INCLUDES the default profile.
     /// </summary>
-    public bool IsDisabled => this.Manifest.Disabled;
+    public bool IsWantedByAnyProfile =>
+        Service<ProfileManager>.Get().GetWantState(this.Manifest.InternalName, false, false);
 
     /// <summary>
     /// Gets a value indicating whether this plugin's API level is out of date.
@@ -243,6 +248,12 @@ internal class LocalPlugin : IDisposable
     /// Gets a value indicating whether this plugin is dev plugin.
     /// </summary>
     public bool IsDev => this is LocalDevPlugin;
+
+    /// <summary>
+    /// Gets a value indicating whether this plugin should be allowed to load.
+    /// </summary>
+    public bool ApplicableForLoad => !this.IsBanned && !this.IsDecommissioned && !this.IsOrphaned && !this.IsOutdated
+                                     && !(!this.IsDev && this.State == PluginState.UnloadError) && this.CheckPolicy();
 
     /// <summary>
     /// Gets the service scope for this plugin.
@@ -289,7 +300,6 @@ internal class LocalPlugin : IDisposable
     /// <returns>A task.</returns>
     public async Task LoadAsync(PluginLoadReason reason, bool reloading = false)
     {
-        var configuration = await Service<DalamudConfiguration>.GetAsync();
         var framework = await Service<Framework>.GetAsync();
         var ioc = await Service<ServiceContainer>.GetAsync();
         var pluginManager = await Service<PluginManager>.GetAsync();
@@ -310,6 +320,10 @@ internal class LocalPlugin : IDisposable
                 // Reload the manifest in-case there were changes here too.
                 this.ReloadManifest();
             }
+
+            // If we reload a plugin we don't want to delete it. Makes sense, right?
+            this.Manifest.ScheduledForDeletion = false;
+            this.SaveManifest();
 
             switch (this.State)
             {
@@ -348,8 +362,9 @@ internal class LocalPlugin : IDisposable
             if (this.Manifest.DalamudApiLevel < PluginManager.DalamudApiLevel && !pluginManager.LoadAllApiLevels)
                 throw new InvalidPluginOperationException($"Unable to load {this.Name}, incompatible API level");
 
-            if (this.Manifest.Disabled)
-                throw new InvalidPluginOperationException($"Unable to load {this.Name}, disabled");
+            // We might want to throw here?
+            if (!this.IsWantedByAnyProfile)
+                Log.Warning("{Name} is loading, but isn't wanted by any profile", this.Name);
 
             if (this.IsOrphaned)
                 throw new InvalidPluginOperationException($"Plugin {this.Name} had no associated repo.");
@@ -576,42 +591,6 @@ internal class LocalPlugin : IDisposable
     }
 
     /// <summary>
-    /// Revert a disable. Must be unloaded first, does not load.
-    /// </summary>
-    public void Enable()
-    {
-        // Allowed: Unloaded, UnloadError
-        switch (this.State)
-        {
-            case PluginState.Loading:
-            case PluginState.Unloading:
-            case PluginState.Loaded:
-            case PluginState.LoadError:
-                if (!this.IsDev)
-                    throw new InvalidPluginOperationException($"Unable to enable {this.Name}, still loaded");
-                break;
-            case PluginState.Unloaded:
-                break;
-            case PluginState.UnloadError:
-                break;
-            case PluginState.DependencyResolutionFailed:
-                throw new InvalidPluginOperationException($"Unable to enable {this.Name}, dependency resolution failed");
-            default:
-                throw new ArgumentOutOfRangeException(this.State.ToString());
-        }
-
-        // NOTE(goat): This is inconsequential, and we do have situations where a plugin can end up enabled but not loaded:
-        // Orphaned plugins can have their repo added back, but may not have been loaded at boot and may still be enabled.
-        // We don't want to disable orphaned plugins when they are orphaned so this is how it's going to be.
-        // if (!this.Manifest.Disabled)
-        //    throw new InvalidPluginOperationException($"Unable to enable {this.Name}, not disabled");
-
-        this.Manifest.Disabled = false;
-        this.Manifest.ScheduledForDeletion = false;
-        this.SaveManifest();
-    }
-
-    /// <summary>
     /// Check if anything forbids this plugin from loading.
     /// </summary>
     /// <returns>Whether or not this plugin shouldn't load.</returns>
@@ -633,36 +612,6 @@ internal class LocalPlugin : IDisposable
     }
 
     /// <summary>
-    /// Disable this plugin, must be unloaded first.
-    /// </summary>
-    public void Disable()
-    {
-        // Allowed: Unloaded, UnloadError
-        switch (this.State)
-        {
-            case PluginState.Loading:
-            case PluginState.Unloading:
-            case PluginState.Loaded:
-            case PluginState.LoadError:
-                throw new InvalidPluginOperationException($"Unable to disable {this.Name}, still loaded");
-            case PluginState.Unloaded:
-                break;
-            case PluginState.UnloadError:
-                break;
-            case PluginState.DependencyResolutionFailed:
-                return; // This is a no-op.
-            default:
-                throw new ArgumentOutOfRangeException(this.State.ToString());
-        }
-
-        if (this.Manifest.Disabled)
-            throw new InvalidPluginOperationException($"Unable to disable {this.Name}, already disabled");
-
-        this.Manifest.Disabled = true;
-        this.SaveManifest();
-    }
-
-    /// <summary>
     /// Schedule the deletion of this plugin on next cleanup.
     /// </summary>
     /// <param name="status">Schedule or cancel the deletion.</param>
@@ -680,9 +629,9 @@ internal class LocalPlugin : IDisposable
         var manifest = LocalPluginManifest.GetManifestFile(this.DllFile);
         if (manifest.Exists)
         {
-            var isDisabled = this.IsDisabled; // saving the internal state because it could have been deleted
+            // var isDisabled = this.IsDisabled; // saving the internal state because it could have been deleted
             this.Manifest = LocalPluginManifest.Load(manifest);
-            this.Manifest.Disabled = isDisabled;
+            // this.Manifest.Disabled = isDisabled;
 
             this.SaveManifest();
         }

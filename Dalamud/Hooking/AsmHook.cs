@@ -35,12 +35,8 @@ public sealed class AsmHook : IDisposable, IDalamudHook
     {
         address = HookManager.FollowJmp(address);
 
-        var hasOtherHooks = HookManager.Originals.ContainsKey(address);
-        if (!hasOtherHooks)
-        {
-            MemoryHelper.ReadRaw(address, 0x32, out var original);
-            HookManager.Originals[address] = original;
-        }
+        // We cannot call TrimAfterHook here because the hook is activated by the caller.
+        HookManager.RegisterUnhooker(address);
 
         this.address = address;
         this.hookImpl = ReloadedHooks.Instance.CreateAsmHook(assembly, address.ToInt64(), (Reloaded.Hooks.Definitions.Enums.AsmHookBehaviour)asmHookBehaviour);
@@ -65,12 +61,8 @@ public sealed class AsmHook : IDisposable, IDalamudHook
     {
         address = HookManager.FollowJmp(address);
 
-        var hasOtherHooks = HookManager.Originals.ContainsKey(address);
-        if (!hasOtherHooks)
-        {
-            MemoryHelper.ReadRaw(address, 0x32, out var original);
-            HookManager.Originals[address] = original;
-        }
+        // We cannot call TrimAfterHook here because the hook is activated by the caller.
+        HookManager.RegisterUnhooker(address);
 
         this.address = address;
         this.hookImpl = ReloadedHooks.Instance.CreateAsmHook(assembly, address.ToInt64(), (Reloaded.Hooks.Definitions.Enums.AsmHookBehaviour)asmHookBehaviour);

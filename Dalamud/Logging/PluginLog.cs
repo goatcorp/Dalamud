@@ -277,6 +277,12 @@ public class PluginLog : IServiceType, IDisposable
     public static void LogRaw(LogEventLevel level, Exception? exception, string messageTemplate, params object[] values)
         => WriteLog(Assembly.GetCallingAssembly().GetName().Name, level, messageTemplate, exception, values);
 
+    /// <inheritdoc/>
+    void IDisposable.Dispose()
+    {
+        // ignored
+    }
+
     #region New instanced methods
 
     /// <summary>
@@ -289,12 +295,6 @@ public class PluginLog : IServiceType, IDisposable
     }
 
     #endregion
-
-    /// <inheritdoc/>
-    void IDisposable.Dispose()
-    {
-        // ignored
-    }
 
     private static ILogger GetPluginLogger(string? pluginName)
     {

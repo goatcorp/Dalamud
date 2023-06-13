@@ -24,6 +24,7 @@ using Dalamud.IoC.Internal;
 using Dalamud.Logging.Internal;
 using Dalamud.Networking.Http;
 using Dalamud.Plugin.Internal.Exceptions;
+using Dalamud.Plugin.Internal.Profiles;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Utility;
 using Dalamud.Utility.Timing;
@@ -57,20 +58,10 @@ internal partial class PluginManager : IDisposable, IServiceType
     /// </summary>
     public const int PluginWaitBeforeFreeDefault = 1000; // upped from 500ms, seems more stable
 
-    private const string DevPluginsDisclaimerFilename = "DONT_USE_THIS_FOLDER.txt";
-
-    private const string DevPluginsDisclaimerText = @"Hey!
-The devPlugins folder is deprecated and will be removed soon. Please don't use it anymore for plugin development.
-Instead, open the Dalamud settings and add the path to your plugins build output folder as a dev plugin location.
-Remove your devPlugin from this folder.
-
-Thanks and have fun!";
-
     private static readonly ModuleLog Log = new("PLUGINM");
 
     private readonly object pluginListLock = new();
     private readonly DirectoryInfo pluginDirectory;
-    private readonly DirectoryInfo devPluginDirectory;
     private readonly BannedPlugin[]? bannedPlugins;
 
     private readonly DalamudLinkPayload openInstallerWindowPluginChangelogsLink;
@@ -82,23 +73,18 @@ Thanks and have fun!";
     private readonly DalamudStartInfo startInfo = Service<DalamudStartInfo>.Get();
 
     [ServiceManager.ServiceDependency]
+    private readonly ProfileManager profileManager = Service<ProfileManager>.Get();
+
+    [ServiceManager.ServiceDependency]
     private readonly HappyHttpClient happyHttpClient = Service<HappyHttpClient>.Get();
 
     [ServiceManager.ServiceConstructor]
     private PluginManager()
     {
         this.pluginDirectory = new DirectoryInfo(this.startInfo.PluginDirectory!);
-        this.devPluginDirectory = new DirectoryInfo(this.startInfo.DefaultPluginDirectory!);
 
         if (!this.pluginDirectory.Exists)
             this.pluginDirectory.Create();
-
-        if (!this.devPluginDirectory.Exists)
-            this.devPluginDirectory.Create();
-
-        var disclaimerFileName = Path.Combine(this.devPluginDirectory.FullName, DevPluginsDisclaimerFilename);
-        if (!File.Exists(disclaimerFileName))
-            File.WriteAllText(disclaimerFileName, DevPluginsDisclaimerText);
 
         this.SafeMode = EnvironmentConfiguration.DalamudNoPlugins || this.configuration.PluginSafeMode || this.startInfo.NoLoadPlugins;
 
@@ -394,9 +380,6 @@ Thanks and have fun!";
         if (!this.pluginDirectory.Exists)
             this.pluginDirectory.Create();
 
-        if (!this.devPluginDirectory.Exists)
-            this.devPluginDirectory.Create();
-
         // Add installed plugins. These are expected to be in a specific format so we can look for exactly that.
         foreach (var pluginDir in this.pluginDirectory.GetDirectories())
         {
@@ -428,7 +411,7 @@ Thanks and have fun!";
 
             try
             {
-                pluginDefs.Add(versionsDefs.OrderByDescending(x => x.Manifest!.EffectiveVersion).First());
+                pluginDefs.Add(versionsDefs.MaxBy(x => x.Manifest!.EffectiveVersion));
             }
             catch (Exception ex)
             {
@@ -437,7 +420,7 @@ Thanks and have fun!";
         }
 
         // devPlugins are more freeform. Look for any dll and hope to get lucky.
-        var devDllFiles = this.devPluginDirectory.GetFiles("*.dll", SearchOption.AllDirectories).ToList();
+        var devDllFiles = new List<FileInfo>();
 
         foreach (var setting in this.configuration.DevPluginLoadLocations)
         {
@@ -660,11 +643,8 @@ Thanks and have fun!";
     /// </summary>
     public void ScanDevPlugins()
     {
-        if (!this.devPluginDirectory.Exists)
-            this.devPluginDirectory.Create();
-
         // devPlugins are more freeform. Look for any dll and hope to get lucky.
-        var devDllFiles = this.devPluginDirectory.GetFiles("*.dll", SearchOption.AllDirectories).ToList();
+        var devDllFiles = new List<FileInfo>();
 
         foreach (var setting in this.configuration.DevPluginLoadLocations)
         {
@@ -837,122 +817,6 @@ Thanks and have fun!";
     }
 
     /// <summary>
-    /// Load a plugin.
-    /// </summary>
-    /// <param name="dllFile">The <see cref="FileInfo"/> associated with the main assembly of this plugin.</param>
-    /// <param name="manifest">The already loaded definition, if available.</param>
-    /// <param name="reason">The reason this plugin was loaded.</param>
-    /// <param name="isDev">If this plugin should support development features.</param>
-    /// <param name="isBoot">If this plugin is being loaded at boot.</param>
-    /// <param name="doNotLoad">Don't load the plugin, just don't do it.</param>
-    /// <returns>The loaded plugin.</returns>
-    public async Task<LocalPlugin> LoadPluginAsync(FileInfo dllFile, LocalPluginManifest? manifest, PluginLoadReason reason, bool isDev = false, bool isBoot = false, bool doNotLoad = false)
-    {
-        var name = manifest?.Name ?? dllFile.Name;
-        var loadPlugin = !doNotLoad;
-
-        LocalPlugin plugin;
-
-        if (manifest != null && manifest.InternalName == null)
-        {
-            Log.Error("{FileName}: Your manifest has no internal name set! Can't load this.", dllFile.FullName);
-            throw new Exception("No internal name");
-        }
-
-        if (isDev)
-        {
-            Log.Information($"Loading dev plugin {name}");
-            var devPlugin = new LocalDevPlugin(dllFile, manifest);
-            loadPlugin &= !isBoot || devPlugin.StartOnBoot;
-
-            // If we're not loading it, make sure it's disabled
-            if (!loadPlugin && !devPlugin.IsDisabled)
-                devPlugin.Disable();
-
-            plugin = devPlugin;
-        }
-        else
-        {
-            Log.Information($"Loading plugin {name}");
-            plugin = new LocalPlugin(dllFile, manifest);
-        }
-
-        if (loadPlugin)
-        {
-            try
-            {
-                if (!plugin.IsDisabled && !plugin.IsOrphaned)
-                {
-                    await plugin.LoadAsync(reason);
-                }
-                else
-                {
-                    Log.Verbose($"{name} not loaded, disabled:{plugin.IsDisabled} orphaned:{plugin.IsOrphaned}");
-                }
-            }
-            catch (InvalidPluginException)
-            {
-                PluginLocations.Remove(plugin.AssemblyName?.FullName ?? string.Empty, out _);
-                throw;
-            }
-            catch (BannedPluginException)
-            {
-                // Out of date plugins get added so they can be updated.
-                Log.Information($"Plugin was banned, adding anyways: {dllFile.Name}");
-            }
-            catch (Exception ex)
-            {
-                if (plugin.IsDev)
-                {
-                    // Dev plugins always get added to the list so they can be fiddled with in the UI
-                    Log.Information(ex, $"Dev plugin failed to load, adding anyways: {dllFile.Name}");
-
-                    // NOTE(goat): This can't work - plugins don't "unload" if they fail to load.
-                    // plugin.Disable(); // Disable here, otherwise you can't enable+load later
-                }
-                else if (plugin.IsOutdated)
-                {
-                    // Out of date plugins get added, so they can be updated.
-                    Log.Information(ex, $"Plugin was outdated, adding anyways: {dllFile.Name}");
-                }
-                else if (plugin.IsOrphaned)
-                {
-                    // Orphaned plugins get added, so that users aren't confused.
-                    Log.Information(ex, $"Plugin was orphaned, adding anyways: {dllFile.Name}");
-                }
-                else if (isBoot)
-                {
-                    // During boot load, plugins always get added to the list so they can be fiddled with in the UI
-                    Log.Information(ex, $"Regular plugin failed to load, adding anyways: {dllFile.Name}");
-
-                    // NOTE(goat): This can't work - plugins don't "unload" if they fail to load.
-                    // plugin.Disable(); // Disable here, otherwise you can't enable+load later
-                }
-                else if (!plugin.CheckPolicy())
-                {
-                    // During boot load, plugins always get added to the list so they can be fiddled with in the UI
-                    Log.Information(ex, $"Plugin not loaded due to policy, adding anyways: {dllFile.Name}");
-
-                    // NOTE(goat): This can't work - plugins don't "unload" if they fail to load.
-                    // plugin.Disable(); // Disable here, otherwise you can't enable+load later
-                }
-                else
-                {
-                    PluginLocations.Remove(plugin.AssemblyName?.FullName ?? string.Empty, out _);
-                    throw;
-                }
-            }
-        }
-
-        lock (this.pluginListLock)
-        {
-            this.InstalledPlugins = this.InstalledPlugins.Add(plugin);
-        }
-
-        return plugin;
-    }
-
-    /// <summary>
     /// Remove a plugin.
     /// </summary>
     /// <param name="plugin">Plugin to remove.</param>
@@ -1081,7 +945,7 @@ Thanks and have fun!";
             if (plugin.InstalledPlugin.IsDev)
                 continue;
 
-            if (plugin.InstalledPlugin.Manifest.Disabled && ignoreDisabled)
+            if (!plugin.InstalledPlugin.IsWantedByAnyProfile && ignoreDisabled)
                 continue;
 
             if (plugin.InstalledPlugin.Manifest.ScheduledForDeletion)
@@ -1143,39 +1007,27 @@ Thanks and have fun!";
 
             if (plugin.IsDev)
             {
-                try
-                {
-                    plugin.DllFile.Delete();
-                    lock (this.pluginListLock)
-                    {
-                        this.InstalledPlugins = this.InstalledPlugins.Remove(plugin);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Log.Error(ex, "Error during delete (update)");
-                    updateStatus.WasUpdated = false;
-                    return updateStatus;
-                }
+                throw new Exception("We should never update a dev plugin");
             }
-            else
+
+            try
             {
-                try
-                {
+                // TODO: Why were we ever doing this? We should never be loading the old version in the first place
+                /*
                     if (!plugin.IsDisabled)
                         plugin.Disable();
+                        */
 
-                    lock (this.pluginListLock)
-                    {
-                        this.InstalledPlugins = this.InstalledPlugins.Remove(plugin);
-                    }
-                }
-                catch (Exception ex)
+                lock (this.pluginListLock)
                 {
-                    Log.Error(ex, "Error during disable (update)");
-                    updateStatus.WasUpdated = false;
-                    return updateStatus;
+                    this.InstalledPlugins = this.InstalledPlugins.Remove(plugin);
                 }
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Error during disable (update)");
+                updateStatus.WasUpdated = false;
+                return updateStatus;
             }
 
             // We need to handle removed DTR nodes here, as otherwise, plugins will not be able to re-add their bar entries after updates.
@@ -1346,6 +1198,137 @@ Thanks and have fun!";
     /// </summary>
     /// <returns>The calling plugin, or null.</returns>
     public LocalPlugin? FindCallingPlugin() => this.FindCallingPlugin(new StackTrace());
+
+    /// <summary>
+    /// Load a plugin.
+    /// </summary>
+    /// <param name="dllFile">The <see cref="FileInfo"/> associated with the main assembly of this plugin.</param>
+    /// <param name="manifest">The already loaded definition, if available.</param>
+    /// <param name="reason">The reason this plugin was loaded.</param>
+    /// <param name="isDev">If this plugin should support development features.</param>
+    /// <param name="isBoot">If this plugin is being loaded at boot.</param>
+    /// <param name="doNotLoad">Don't load the plugin, just don't do it.</param>
+    /// <returns>The loaded plugin.</returns>
+    private async Task<LocalPlugin> LoadPluginAsync(FileInfo dllFile, LocalPluginManifest? manifest, PluginLoadReason reason, bool isDev = false, bool isBoot = false, bool doNotLoad = false)
+    {
+        var name = manifest?.Name ?? dllFile.Name;
+        var loadPlugin = !doNotLoad;
+
+        LocalPlugin plugin;
+
+        if (manifest != null && manifest.InternalName == null)
+        {
+            Log.Error("{FileName}: Your manifest has no internal name set! Can't load this.", dllFile.FullName);
+            throw new Exception("No internal name");
+        }
+
+        if (isDev)
+        {
+            Log.Information($"Loading dev plugin {name}");
+            var devPlugin = new LocalDevPlugin(dllFile, manifest);
+            loadPlugin &= !isBoot || devPlugin.StartOnBoot;
+
+            var probablyInternalNameForThisPurpose = manifest?.InternalName ?? dllFile.Name;
+            var wantsInDefaultProfile =
+                this.profileManager.DefaultProfile.WantsPlugin(probablyInternalNameForThisPurpose);
+            if (wantsInDefaultProfile == false && devPlugin.StartOnBoot)
+            {
+                this.profileManager.DefaultProfile.AddOrUpdate(probablyInternalNameForThisPurpose, true, false);
+            }
+            else if (wantsInDefaultProfile == true && !devPlugin.StartOnBoot)
+            {
+                this.profileManager.DefaultProfile.AddOrUpdate(probablyInternalNameForThisPurpose, false, false);
+            }
+
+            plugin = devPlugin;
+        }
+        else
+        {
+            Log.Information($"Loading plugin {name}");
+            plugin = new LocalPlugin(dllFile, manifest);
+        }
+
+#pragma warning disable CS0618
+        var defaultState = manifest?.Disabled != true && loadPlugin;
+#pragma warning restore CS0618
+
+        // Need to do this here, so plugins that don't load are still added to the default profile
+        var wantToLoad = this.profileManager.GetWantState(plugin.Manifest.InternalName, defaultState);
+
+        if (loadPlugin)
+        {
+            try
+            {
+                if (wantToLoad && !plugin.IsOrphaned)
+                {
+                    await plugin.LoadAsync(reason);
+                }
+                else
+                {
+                    Log.Verbose($"{name} not loaded, wantToLoad:{wantToLoad} orphaned:{plugin.IsOrphaned}");
+                }
+            }
+            catch (InvalidPluginException)
+            {
+                PluginLocations.Remove(plugin.AssemblyName?.FullName ?? string.Empty, out _);
+                throw;
+            }
+            catch (BannedPluginException)
+            {
+                // Out of date plugins get added so they can be updated.
+                Log.Information($"Plugin was banned, adding anyways: {dllFile.Name}");
+            }
+            catch (Exception ex)
+            {
+                if (plugin.IsDev)
+                {
+                    // Dev plugins always get added to the list so they can be fiddled with in the UI
+                    Log.Information(ex, $"Dev plugin failed to load, adding anyways: {dllFile.Name}");
+
+                    // NOTE(goat): This can't work - plugins don't "unload" if they fail to load.
+                    // plugin.Disable(); // Disable here, otherwise you can't enable+load later
+                }
+                else if (plugin.IsOutdated)
+                {
+                    // Out of date plugins get added, so they can be updated.
+                    Log.Information(ex, $"Plugin was outdated, adding anyways: {dllFile.Name}");
+                }
+                else if (plugin.IsOrphaned)
+                {
+                    // Orphaned plugins get added, so that users aren't confused.
+                    Log.Information(ex, $"Plugin was orphaned, adding anyways: {dllFile.Name}");
+                }
+                else if (isBoot)
+                {
+                    // During boot load, plugins always get added to the list so they can be fiddled with in the UI
+                    Log.Information(ex, $"Regular plugin failed to load, adding anyways: {dllFile.Name}");
+
+                    // NOTE(goat): This can't work - plugins don't "unload" if they fail to load.
+                    // plugin.Disable(); // Disable here, otherwise you can't enable+load later
+                }
+                else if (!plugin.CheckPolicy())
+                {
+                    // During boot load, plugins always get added to the list so they can be fiddled with in the UI
+                    Log.Information(ex, $"Plugin not loaded due to policy, adding anyways: {dllFile.Name}");
+
+                    // NOTE(goat): This can't work - plugins don't "unload" if they fail to load.
+                    // plugin.Disable(); // Disable here, otherwise you can't enable+load later
+                }
+                else
+                {
+                    PluginLocations.Remove(plugin.AssemblyName?.FullName ?? string.Empty, out _);
+                    throw;
+                }
+            }
+        }
+
+        lock (this.pluginListLock)
+        {
+            this.InstalledPlugins = this.InstalledPlugins.Add(plugin);
+        }
+
+        return plugin;
+    }
 
     private void DetectAvailablePluginUpdates()
     {

@@ -68,7 +68,7 @@ public sealed class EntryPoint
     {
         try
         {
-            return Marshal.StringToHGlobalUni(Environment.StackTrace);
+            return Marshal.StringToHGlobalUni(new StackTrace(1).ToString());
         }
         catch (Exception e)
         {

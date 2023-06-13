@@ -33,11 +33,11 @@ public sealed class UiBuilder : IDisposable
     private readonly GameFontManager gameFontManager = Service<GameFontManager>.Get();
     private readonly DragDropManager dragDropManager = Service<DragDropManager>.Get();
 
-    private bool hasErrorWindow = false;
-    private bool lastFrameUiHideState = false;
-
     [ServiceManager.ServiceDependency]
     private readonly DalamudConfiguration configuration = Service<DalamudConfiguration>.Get();
+
+    private bool hasErrorWindow = false;
+    private bool lastFrameUiHideState = false;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="UiBuilder"/> class and registers it.

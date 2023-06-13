@@ -11,6 +11,7 @@ using Dalamud.Interface.Colors;
 using Dalamud.Interface.Components;
 using Dalamud.Interface.Style;
 using Dalamud.Interface.Windowing;
+using Dalamud.Utility;
 using ImGuiNET;
 using Lumina.Excel.GeneratedSheets;
 using Serilog;
@@ -97,7 +98,7 @@ public class StyleEditorWindow : Window
             this.SaveStyle();
 
             var newStyle = StyleModelV1.DalamudStandard;
-            newStyle.Name = GetRandomName();
+            newStyle.Name = Util.GetRandomName();
             config.SavedStyles.Add(newStyle);
 
             this.currentSel = config.SavedStyles.Count - 1;
@@ -167,11 +168,11 @@ public class StyleEditorWindow : Window
             {
                 var newStyle = StyleModel.Deserialize(styleJson);
 
-                newStyle.Name ??= GetRandomName();
+                newStyle.Name ??= Util.GetRandomName();
 
                 if (config.SavedStyles.Any(x => x.Name == newStyle.Name))
                 {
-                    newStyle.Name = $"{newStyle.Name} ({GetRandomName()} Mix)";
+                    newStyle.Name = $"{newStyle.Name} ({Util.GetRandomName()} Mix)";
                 }
 
                 config.SavedStyles.Add(newStyle);
@@ -373,15 +374,6 @@ public class StyleEditorWindow : Window
 
             ImGui.EndPopup();
         }
-    }
-
-    private static string GetRandomName()
-    {
-        var data = Service<DataManager>.Get();
-        var names = data.GetExcelSheet<BNpcName>(ClientLanguage.English);
-        var rng = new Random();
-
-        return names.ElementAt(rng.Next(0, names.Count() - 1)).Singular.RawString;
     }
 
     private void SaveStyle()

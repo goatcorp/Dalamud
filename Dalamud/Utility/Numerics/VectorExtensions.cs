@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
+
 using FFXIVClientStructs.FFXIV.Client.Graphics;
 
 namespace Dalamud.Utility.Numerics;

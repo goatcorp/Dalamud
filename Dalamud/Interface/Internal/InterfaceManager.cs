@@ -436,6 +436,15 @@ internal class InterfaceManager : IDisposable, IServiceType
     }
 
     /// <summary>
+    /// Clear font, style, and color stack. Dangerous, only use when you know
+    /// no one else has something pushed they may try to pop.
+    /// </summary>
+    public void ClearStacks()
+    {
+        this.scene?.ClearStacksOnContext();
+    }
+
+    /// <summary>
     /// Toggle Windows 11 immersive mode on the game window.
     /// </summary>
     /// <param name="enabled">Value.</param>
@@ -892,6 +901,7 @@ internal class InterfaceManager : IDisposable, IServiceType
             Log.Verbose("[FONT] ImGui.IO.Build will be called.");
             ioFonts.Build();
             gameFontManager.AfterIoFontsBuild();
+            this.ClearStacks();
             Log.Verbose("[FONT] ImGui.IO.Build OK!");
 
             gameFontManager.AfterBuildFonts();

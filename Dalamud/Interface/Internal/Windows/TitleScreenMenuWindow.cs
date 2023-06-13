@@ -254,7 +254,6 @@ internal class TitleScreenMenuWindow : Window, IDisposable
 
         var initialCursor = ImGui.GetCursorPos();
 
-
         using (ImRaii.PushStyle(ImGuiStyleVar.Alpha, (float)shadeEasing.Value))
         {
             ImGui.Image(this.shadeTexture.ImGuiHandle, new Vector2(this.shadeTexture.Width * scale, this.shadeTexture.Height * scale));
