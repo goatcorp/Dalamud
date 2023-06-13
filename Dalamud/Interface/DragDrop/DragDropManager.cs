@@ -21,9 +21,9 @@ internal partial class DragDropManager : IDisposable, IDragDropManager, IService
 {
     [ServiceManager.ServiceDependency]
     private readonly InterfaceManager.InterfaceManagerWithScene interfaceManager = Service<InterfaceManager.InterfaceManagerWithScene>.Get();
+
     private int lastDropFrame = -2;
     private int lastTooltipFrame = -1;
-
 
     [ServiceManager.ServiceConstructor]
     private DragDropManager()
