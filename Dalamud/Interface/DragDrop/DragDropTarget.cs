@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices.ComTypes;
 using System.Text;
 
@@ -19,7 +18,7 @@ internal partial class DragDropManager : DragDropManager.IDropTarget
     private DragDropInterop.ModifierKeys lastKeyState = DragDropInterop.ModifierKeys.MK_NONE;
 
     /// <summary> Create the drag and drop formats we accept. </summary>
-    private static FORMATETC FormatEtc =
+    private FORMATETC formatEtc =
         new()
         {
             cfFormat = (short)DragDropInterop.ClipboardFormat.CF_HDROP,
@@ -41,7 +40,7 @@ internal partial class DragDropManager : DragDropManager.IDropTarget
         this.IsDragging = true;
         this.lastKeyState = UpdateIo((DragDropInterop.ModifierKeys)grfKeyState, true);
 
-        if (pDataObj.QueryGetData(ref FormatEtc) != 0)
+        if (pDataObj.QueryGetData(ref this.formatEtc) != 0)
         {
             pdwEffect = 0;
         }
@@ -203,7 +202,7 @@ internal partial class DragDropManager : DragDropManager.IDropTarget
 
         try
         {
-            data.GetData(ref FormatEtc, out var stgMedium);
+            data.GetData(ref this.formatEtc, out var stgMedium);
             var numFiles = DragDropInterop.DragQueryFile(stgMedium.unionmember, uint.MaxValue, new StringBuilder(), 0);
             var files = new string[numFiles];
             var sb = new StringBuilder(1024);

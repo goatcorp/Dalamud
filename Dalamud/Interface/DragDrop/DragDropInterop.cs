@@ -13,14 +13,6 @@ namespace Dalamud.Interface.DragDrop;
 /// <summary> Implements interop enums and function calls to interact with external drag and drop. </summary>
 internal partial class DragDropManager
 {
-    internal struct POINTL
-    {
-        [ComAliasName("Microsoft.VisualStudio.OLE.Interop.LONG")]
-        public int x;
-        [ComAliasName("Microsoft.VisualStudio.OLE.Interop.LONG")]
-        public int y;
-    }
-
     [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
     [Guid("00000122-0000-0000-C000-000000000046")]
     [ComImport]
@@ -37,6 +29,14 @@ internal partial class DragDropManager
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         void Drop([MarshalAs(UnmanagedType.Interface), In] IDataObject pDataObj, [ComAliasName("Microsoft.VisualStudio.OLE.Interop.DWORD"), In] uint grfKeyState, [ComAliasName("Microsoft.VisualStudio.OLE.Interop.POINTL"), In] POINTL pt, [ComAliasName("Microsoft.VisualStudio.OLE.Interop.DWORD"), In, Out] ref uint pdwEffect);
+    }
+
+    internal struct POINTL
+    {
+        [ComAliasName("Microsoft.VisualStudio.OLE.Interop.LONG")]
+        public int x;
+        [ComAliasName("Microsoft.VisualStudio.OLE.Interop.LONG")]
+        public int y;
     }
 
     private static class DragDropInterop
