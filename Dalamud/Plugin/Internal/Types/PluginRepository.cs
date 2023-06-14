@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 
 using Dalamud.Logging.Internal;
 using Dalamud.Networking.Http;
+using Dalamud.Utility;
 using Newtonsoft.Json;
 
 namespace Dalamud.Plugin.Internal.Types;
@@ -145,7 +146,7 @@ internal class PluginRepository
                 return;
             }
 
-            this.PluginMaster = pluginMaster.AsReadOnly();
+            this.PluginMaster = pluginMaster.Where(this.IsValidManifest).ToList().AsReadOnly();
 
             Log.Information($"Successfully fetched repo: {this.PluginMasterUrl}");
             this.State = PluginRepositoryState.Success;
@@ -155,5 +156,29 @@ internal class PluginRepository
             Log.Error(ex, $"PluginMaster failed: {this.PluginMasterUrl}");
             this.State = PluginRepositoryState.Fail;
         }
+    }
+
+    private bool IsValidManifest(RemotePluginManifest manifest)
+    {
+        if (manifest.InternalName.IsNullOrWhitespace())
+        {
+            Log.Error("Repository at {RepoLink} has a plugin with an invalid InternalName.", this.PluginMasterUrl);
+            return false;
+        }
+
+        if (manifest.Name.IsNullOrWhitespace())
+        {
+            Log.Error("Plugin {PluginName} in {RepoLink} has an invalid Name.", manifest.InternalName, this.PluginMasterUrl);
+            return false;
+        }
+        
+        // ReSharper disable once ConditionIsAlwaysTrueOrFalse
+        if (manifest.AssemblyVersion == null)
+        {
+            Log.Error("Plugin {PluginName} in {RepoLink} has an invalid AssemblyVersion.", manifest.InternalName, this.PluginMasterUrl);
+            return false;
+        }
+
+        return true;
     }
 }

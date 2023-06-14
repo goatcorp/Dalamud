@@ -2862,8 +2862,8 @@ internal class PluginInstallerWindow : Window, IDisposable
             return true;
 
         return hasSearchString && !(
-                                       manifest.Name.ToLowerInvariant().Contains(searchString) ||
-                                       manifest.InternalName.ToLowerInvariant().Contains(searchString) ||
+                                       (!manifest.Name.IsNullOrEmpty() && manifest.Name.ToLowerInvariant().Contains(searchString)) ||
+                                       (!manifest.InternalName.IsNullOrEmpty() && manifest.InternalName.ToLowerInvariant().Contains(searchString)) ||
                                        (!manifest.Author.IsNullOrEmpty() && manifest.Author.Equals(this.searchText, StringComparison.InvariantCultureIgnoreCase)) ||
                                        (!manifest.Punchline.IsNullOrEmpty() && manifest.Punchline.ToLowerInvariant().Contains(searchString)) ||
                                        (manifest.Tags != null && manifest.Tags.Any(tag => tag.ToLowerInvariant().Contains(searchString))));
