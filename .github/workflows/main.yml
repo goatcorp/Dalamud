@@ -13,7 +13,7 @@ jobs:
         uses: actions/checkout@v3
         with:
           submodules: recursive
-          fetch-depth: 0
+          fetch-depth: 1
       - name: Setup MSBuild
         uses: microsoft/setup-msbuild@v1.0.2
       - name: Define VERSION
@@ -105,3 +105,32 @@ jobs:
         git commit -m "[CI] Update staging for ${DVER} on ${GH_BRANCH}" || true
         
         git push origin main || true
+
+  # docfx metadata generation can often take several minutes, so we run it in parallel to the main build
+  generate-docfx-metadata:
+    name: Generate docfx metadata
+    runs-on: windows-2022
+    steps:
+      - name: Checkout Dalamud
+        uses: actions/checkout@v3
+        with:
+          submodules: recursive
+          fetch-depth: 1
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v1.0.2
+      - name: Define VERSION
+        run: |
+          $env:COMMIT = $env:GITHUB_SHA.Substring(0, 7)
+          $env:REPO_NAME = $env:GITHUB_REPOSITORY -replace '.*/'
+          $env:BRANCH = $env:GITHUB_REF -replace '.*/'
+
+          ($env:REPO_NAME) >> VERSION
+          ($env:BRANCH) >> VERSION
+          ($env:COMMIT) >> VERSION
+      - name: Build Dalamud & generate metadata
+        run: .\build.ps1 ExportDocfxMetadata
+      - name: Upload artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: dalamud-docfx-metadata
+          path: api\

@@ -5,6 +5,7 @@ using Nuke.Common.Execution;
 using Nuke.Common.Git;
 using Nuke.Common.IO;
 using Nuke.Common.ProjectModel;
+using Nuke.Common.Tools.DocFX;
 using Nuke.Common.Tools.DotNet;
 using Nuke.Common.Tools.MSBuild;
 
@@ -98,6 +99,13 @@ public class DalamudBuild : NukeBuild
             MSBuildTasks.MSBuild(s => s
                 .SetTargetPath(InjectorBootProjectFile)
                 .SetConfiguration(Configuration));
+        });
+
+    Target ExportDocfxMetadata => _ => _
+        .DependsOn(CompileDalamud)
+        .Executes(() =>
+        {
+            DocFXTasks.DocFXMetadata();
         });
 
     Target Compile => _ => _

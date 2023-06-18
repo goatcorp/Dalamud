@@ -79,6 +79,7 @@
               "CompileDalamudCrashHandler",
               "CompileInjector",
               "CompileInjectorBoot",
+              "ExportDocfxMetadata",
               "Restore",
               "Test"
             ]
@@ -101,6 +102,7 @@
               "CompileDalamudCrashHandler",
               "CompileInjector",
               "CompileInjectorBoot",
+              "ExportDocfxMetadata",
               "Restore",
               "Test"
             ]
