@@ -739,10 +739,12 @@ namespace Dalamud.Injector
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
                 {
                     [System.Runtime.InteropServices.DllImport("c")]
-                    static extern ulong clock_gettime_nsec_np(int clock_id);
+#pragma warning disable SA1300
+                    static extern ulong clock_gettime_nsec_np(int clockId);
+#pragma warning restore SA1300
 
                     const int CLOCK_MONOTONIC_RAW = 4;
-                    var rawTickCountFixed = (clock_gettime_nsec_np(CLOCK_MONOTONIC_RAW) / 1000000);
+                    var rawTickCountFixed = clock_gettime_nsec_np(CLOCK_MONOTONIC_RAW) / 1000000;
                     Log.Information("ArgumentBuilder::DeriveKey() fixing up rawTickCount from {0} to {1} on macOS", rawTickCount, rawTickCountFixed);
                     rawTickCount = (uint)rawTickCountFixed;
                 }
@@ -764,21 +766,27 @@ namespace Dalamud.Injector
                 gameArgumentString = string.Join(" ", gameArguments.Select(x => EncodeParameterArgument(x)));
             }
 
-            var process = GameStart.LaunchGame(Path.GetDirectoryName(gamePath), gamePath, gameArgumentString, noFixAcl, (Process p) =>
-            {
-                if (!withoutDalamud && mode == "entrypoint")
+            var process = GameStart.LaunchGame(
+                Path.GetDirectoryName(gamePath),
+                gamePath,
+                gameArgumentString,
+                noFixAcl,
+                p =>
                 {
-                    var startInfo = AdjustStartInfo(dalamudStartInfo, gamePath);
-                    Log.Information("Using start info: {0}", JsonConvert.SerializeObject(startInfo));
-                    if (RewriteRemoteEntryPointW(p.Handle, gamePath, JsonConvert.SerializeObject(startInfo)) != 0)
+                    if (!withoutDalamud && mode == "entrypoint")
                     {
-                        Log.Error("[HOOKS] RewriteRemoteEntryPointW failed");
-                        throw new Exception("RewriteRemoteEntryPointW failed");
-                    }
+                        var startInfo = AdjustStartInfo(dalamudStartInfo, gamePath);
+                        Log.Information("Using start info: {0}", JsonConvert.SerializeObject(startInfo));
+                        if (RewriteRemoteEntryPointW(p.Handle, gamePath, JsonConvert.SerializeObject(startInfo)) != 0)
+                        {
+                            Log.Error("[HOOKS] RewriteRemoteEntryPointW failed");
+                            throw new Exception("RewriteRemoteEntryPointW failed");
+                        }
 
-                    Log.Verbose("RewriteRemoteEntryPointW called!");
-                }
-            }, waitForGameWindow);
+                        Log.Verbose("RewriteRemoteEntryPointW called!");
+                    }
+                },
+                waitForGameWindow);
 
             Log.Verbose("Game process started with PID {0}", process.Id);
 

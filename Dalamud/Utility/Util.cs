@@ -11,6 +11,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 
 using Dalamud.Configuration.Internal;
+using Dalamud.Data;
 using Dalamud.Game;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Interface;
@@ -18,6 +19,7 @@ using Dalamud.Interface.Colors;
 using Dalamud.Logging.Internal;
 using Dalamud.Networking.Http;
 using ImGuiNET;
+using Lumina.Excel.GeneratedSheets;
 using Microsoft.Win32;
 using Serilog;
 
@@ -633,6 +635,19 @@ public static class Util
 
         File.WriteAllText(tmpPath, text);
         File.Move(tmpPath, path, true);
+    }
+
+    /// <summary>
+    /// Gets a random, inoffensive, human-friendly string.
+    /// </summary>
+    /// <returns>A random human-friendly name.</returns>
+    internal static string GetRandomName()
+    {
+        var data = Service<DataManager>.Get();
+        var names = data.GetExcelSheet<BNpcName>(ClientLanguage.English)!;
+        var rng = new Random();
+
+        return names.ElementAt(rng.Next(0, names.Count() - 1)).Singular.RawString;
     }
 
     private static unsafe void ShowValue(ulong addr, IEnumerable<string> path, Type type, object value)

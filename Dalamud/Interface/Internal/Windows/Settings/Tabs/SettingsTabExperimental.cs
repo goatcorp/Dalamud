@@ -46,6 +46,14 @@ public class SettingsTabExperimental : SettingsTab
         new GapSettingsEntry(5, true),
 
         new ThirdRepoSettingsEntry(),
+
+        new GapSettingsEntry(5, true),
+
+        new SettingsEntry<bool>(
+            Loc.Localize("DalamudSettingsEnableProfiles", "Enable plugin collections"),
+            Loc.Localize("DalamudSettingsEnableProfilesHint", "Enables plugin collections, which lets you create toggleable lists of plugins."),
+            c => c.ProfilesEnabled,
+            (v, c) => c.ProfilesEnabled = v),
     };
 
     public override string Title => Loc.Localize("DalamudSettingsExperimental", "Experimental");

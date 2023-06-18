@@ -9,6 +9,7 @@ using Dalamud.Game.Network.Internal;
 using Dalamud.Hooking;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
+using Dalamud.Plugin.Services;
 using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using Serilog;
@@ -21,7 +22,10 @@ namespace Dalamud.Game.ClientState;
 [PluginInterface]
 [InterfaceVersion("1.0")]
 [ServiceManager.BlockingEarlyLoadedService]
-public sealed class ClientState : IDisposable, IServiceType
+#pragma warning disable SA1015
+[ResolveVia<IClientState>]
+#pragma warning restore SA1015
+public sealed class ClientState : IDisposable, IServiceType, IClientState
 {
     private readonly GameLifecycle lifecycle;
     private readonly ClientStateAddressResolver address;
@@ -59,69 +63,43 @@ public sealed class ClientState : IDisposable, IServiceType
     [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
     private delegate IntPtr SetupTerritoryTypeDelegate(IntPtr manager, ushort terriType);
 
-    /// <summary>
-    /// Event that gets fired when the current Territory changes.
-    /// </summary>
+    /// <inheritdoc/>
     public event EventHandler<ushort> TerritoryChanged;
 
-    /// <summary>
-    /// Event that fires when a character is logging in, and the local character object is available.
-    /// </summary>
+    /// <inheritdoc/>
     public event EventHandler Login;
 
-    /// <summary>
-    /// Event that fires when a character is logging out.
-    /// </summary>
+    /// <inheritdoc/>
     public event EventHandler Logout;
 
-    /// <summary>
-    /// Event that fires when a character is entering PvP.
-    /// </summary>
+    /// <inheritdoc/>
     public event Action EnterPvP;
 
-    /// <summary>
-    /// Event that fires when a character is leaving PvP.
-    /// </summary>
+    /// <inheritdoc/>
     public event Action LeavePvP;
 
-    /// <summary>
-    /// Event that gets fired when a duty is ready.
-    /// </summary>
+    /// <inheritdoc/>
     public event EventHandler<Lumina.Excel.GeneratedSheets.ContentFinderCondition> CfPop;
 
-    /// <summary>
-    /// Gets the language of the client.
-    /// </summary>
+    /// <inheritdoc/>
     public ClientLanguage ClientLanguage { get; }
 
-    /// <summary>
-    /// Gets the current Territory the player resides in.
-    /// </summary>
+    /// <inheritdoc/>
     public ushort TerritoryType { get; private set; }
 
-    /// <summary>
-    /// Gets the local player character, if one is present.
-    /// </summary>
+    /// <inheritdoc/>
     public PlayerCharacter? LocalPlayer => Service<ObjectTable>.GetNullable()?[0] as PlayerCharacter;
 
-    /// <summary>
-    /// Gets the content ID of the local character.
-    /// </summary>
+    /// <inheritdoc/>
     public ulong LocalContentId => (ulong)Marshal.ReadInt64(this.address.LocalContentId);
 
-    /// <summary>
-    /// Gets a value indicating whether a character is logged in.
-    /// </summary>
+    /// <inheritdoc/>
     public bool IsLoggedIn { get; private set; }
 
-    /// <summary>
-    /// Gets a value indicating whether or not the user is playing PvP.
-    /// </summary>
+    /// <inheritdoc/>
     public bool IsPvP { get; private set; }
 
-    /// <summary>
-    /// Gets a value indicating whether or not the user is playing PvP, excluding the Wolves' Den.
-    /// </summary>
+    /// <inheritdoc/>
     public bool IsPvPExcludingDen { get; private set; }
 
     /// <summary>

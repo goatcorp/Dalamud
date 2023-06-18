@@ -28,6 +28,7 @@ internal class PluginCategoryManager
         new(11, "special.devIconTester", () => Locs.Category_IconTester),
         new(12, "special.dalamud", () => Locs.Category_Dalamud),
         new(13, "special.plugins", () => Locs.Category_Plugins),
+        new(14, "special.profiles", () => Locs.Category_PluginProfiles, CategoryInfo.AppearCondition.ProfilesEnabled),
         new(FirstTagBasedCategoryId + 0, "other", () => Locs.Category_Other),
         new(FirstTagBasedCategoryId + 1, "jobs", () => Locs.Category_Jobs),
         new(FirstTagBasedCategoryId + 2, "ui", () => Locs.Category_UI),
@@ -43,7 +44,7 @@ internal class PluginCategoryManager
     private GroupInfo[] groupList =
     {
         new(GroupKind.DevTools, () => Locs.Group_DevTools, 10, 11),
-        new(GroupKind.Installed, () => Locs.Group_Installed, 0, 1),
+        new(GroupKind.Installed, () => Locs.Group_Installed, 0, 1, 14),
         new(GroupKind.Available, () => Locs.Group_Available, 0),
         new(GroupKind.Changelog, () => Locs.Group_Changelog, 0, 12, 13),
 
@@ -352,6 +353,11 @@ internal class PluginCategoryManager
             /// Check if plugin testing is enabled.
             /// </summary>
             DoPluginTest,
+
+            /// <summary>
+            /// Check if plugin profiles are enabled.
+            /// </summary>
+            ProfilesEnabled,
         }
 
         /// <summary>
@@ -429,6 +435,8 @@ internal class PluginCategoryManager
         public static string Category_DevInstalled => Loc.Localize("InstallerInstalledDevPlugins", "Installed Dev Plugins");
 
         public static string Category_IconTester => "Image/Icon Tester";
+
+        public static string Category_PluginProfiles => Loc.Localize("InstallerCategoryPluginProfiles", "Plugin Collections");
 
         public static string Category_Other => Loc.Localize("InstallerCategoryOther", "Other");
 

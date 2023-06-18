@@ -23,6 +23,8 @@ namespace Dalamud.Interface.Internal.Windows;
 internal class PluginStatWindow : Window
 {
     private bool showDalamudHooks;
+    private string drawSearchText = string.Empty;
+    private string frameworkSearchText = string.Empty;
     private string hookSearchText = string.Empty;
 
     /// <summary>
@@ -79,6 +81,12 @@ internal class PluginStatWindow : Window
                 ImGui.SameLine();
                 ImGuiComponents.TextWithLabel("Collective Average", $"{(loadedPlugins.Any() ? totalAverage / loadedPlugins.Count() / 10000f : 0):F4}ms", "Average of all average draw times");
 
+                ImGui.InputTextWithHint(
+                    "###PluginStatWindow_DrawSearch",
+                    "Search",
+                    ref this.drawSearchText,
+                    500);
+
                 if (ImGui.BeginTable(
                         "##PluginStatsDrawTimes",
                         4,
@@ -104,16 +112,22 @@ internal class PluginStatWindow : Window
                                  ? loadedPlugins.OrderBy(plugin => plugin.Name)
                                  : loadedPlugins.OrderByDescending(plugin => plugin.Name),
                         2 => sortSpecs.Specs.SortDirection == ImGuiSortDirection.Ascending
-                                 ? loadedPlugins.OrderBy(plugin => plugin.DalamudInterface?.UiBuilder.MaxDrawTime)
-                                 : loadedPlugins.OrderByDescending(plugin => plugin.DalamudInterface?.UiBuilder.MaxDrawTime),
+                                 ? loadedPlugins.OrderBy(plugin => plugin.DalamudInterface?.UiBuilder.MaxDrawTime ?? 0)
+                                 : loadedPlugins.OrderByDescending(plugin => plugin.DalamudInterface?.UiBuilder.MaxDrawTime ?? 0),
                         3 => sortSpecs.Specs.SortDirection == ImGuiSortDirection.Ascending
-                                 ? loadedPlugins.OrderBy(plugin => plugin.DalamudInterface?.UiBuilder.DrawTimeHistory.Average())
-                                 : loadedPlugins.OrderByDescending(plugin => plugin.DalamudInterface?.UiBuilder.DrawTimeHistory.Average()),
+                                 ? loadedPlugins.OrderBy(plugin => plugin.DalamudInterface?.UiBuilder.DrawTimeHistory.DefaultIfEmpty().Average() ?? 0)
+                                 : loadedPlugins.OrderByDescending(plugin => plugin.DalamudInterface?.UiBuilder.DrawTimeHistory.DefaultIfEmpty().Average() ?? 0),
                         _ => loadedPlugins,
                     };
 
                     foreach (var plugin in loadedPlugins)
                     {
+                        if (!this.drawSearchText.IsNullOrEmpty()
+                            && !plugin.Manifest.Name.Contains(this.drawSearchText, StringComparison.OrdinalIgnoreCase))
+                        {
+                            continue;
+                        }
+
                         ImGui.TableNextRow();
 
                         ImGui.TableNextColumn();
@@ -168,6 +182,12 @@ internal class PluginStatWindow : Window
                 ImGui.SameLine();
                 ImGuiComponents.TextWithLabel("Collective Average", $"{(statsHistory.Any() ? totalAverage / statsHistory.Length : 0):F4}ms", "Average of all average update times");
 
+                ImGui.InputTextWithHint(
+                    "###PluginStatWindow_FrameworkSearch",
+                    "Search",
+                    ref this.frameworkSearchText,
+                    500);
+
                 if (ImGui.BeginTable(
                         "##PluginStatsFrameworkTimes",
                         4,
@@ -204,6 +224,13 @@ internal class PluginStatWindow : Window
                     foreach (var handlerHistory in statsHistory)
                     {
                         if (!handlerHistory.Value.Any())
+                        {
+                            continue;
+                        }
+
+                        if (!this.frameworkSearchText.IsNullOrEmpty()
+                            && handlerHistory.Key != null
+                            && !handlerHistory.Key.Contains(this.frameworkSearchText, StringComparison.OrdinalIgnoreCase))
                         {
                             continue;
                         }
