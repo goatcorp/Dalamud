@@ -373,7 +373,7 @@ namespace Dalamud.Injector
 #if DEBUG
             startInfo.LogPath ??= startInfo.WorkingDirectory;
 #else
-            startInfo.LogPath = xivlauncherDir;
+            startInfo.LogPath ??= xivlauncherDir;
 #endif
 
             // Set boot defaults
