@@ -2898,6 +2898,7 @@ internal class PluginInstallerWindow : Window, IDisposable
     private void OnInstalledPluginsChanged()
     {
         var pluginManager = Service<PluginManager>.Get();
+        using var pmLock = pluginManager.LockPluginLists();
 
         lock (this.listLock)
         {

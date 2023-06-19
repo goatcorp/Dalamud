@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
@@ -68,6 +67,10 @@ internal partial class PluginManager : IDisposable, IServiceType
     private readonly object pluginListLock = new();
     private readonly DirectoryInfo pluginDirectory;
     private readonly BannedPlugin[]? bannedPlugins;
+    
+    private readonly List<LocalPlugin> installedPluginsList = new();
+    private readonly List<RemotePluginManifest> availablePluginsList = new();
+    private readonly List<AvailablePluginUpdate> updatablePluginsList = new();
 
     private readonly DalamudLinkPayload openInstallerWindowPluginChangelogsLink;
 
@@ -145,19 +148,46 @@ internal partial class PluginManager : IDisposable, IServiceType
     public event Action? OnAvailablePluginsChanged;
 
     /// <summary>
-    /// Gets a list of all loaded plugins.
+    /// Gets a copy of the list of all loaded plugins.
     /// </summary>
-    public ImmutableList<LocalPlugin> InstalledPlugins { get; private set; } = ImmutableList.Create<LocalPlugin>();
+    public IEnumerable<LocalPlugin> InstalledPlugins
+    {
+        get
+        {
+            lock (this.pluginListLock)
+            {
+                return this.installedPluginsList.ToList();
+            }
+        }
+    }
 
     /// <summary>
     /// Gets a list of all available plugins.
     /// </summary>
-    public ImmutableList<RemotePluginManifest> AvailablePlugins { get; private set; } = ImmutableList.Create<RemotePluginManifest>();
-
+    public IEnumerable<RemotePluginManifest> AvailablePlugins
+    {
+        get
+        {
+            lock (this.pluginListLock)
+            {
+                return this.availablePluginsList.ToList();
+            }
+        }
+    }
+    
     /// <summary>
     /// Gets a list of all plugins with an available update.
     /// </summary>
-    public ImmutableList<AvailablePluginUpdate> UpdatablePlugins { get; private set; } = ImmutableList.Create<AvailablePluginUpdate>();
+    public IEnumerable<AvailablePluginUpdate> UpdatablePlugins
+    {
+        get
+        {
+            lock (this.pluginListLock)
+            {
+                return this.updatablePluginsList.ToList();
+            }
+        }
+    }
 
     /// <summary>
     /// Gets a list of all plugin repositories. The main repo should always be first.
@@ -229,6 +259,12 @@ internal partial class PluginManager : IDisposable, IServiceType
 
         return false;
     }
+
+    /// <summary>
+    /// Get a disposable that will lock plugin lists while it is not disposed.
+    /// </summary>
+    /// <returns>The aforementioned disposable.</returns>
+    public IDisposable LockPluginLists() => new PluginListLockScope(this.pluginListLock);
 
     /// <summary>
     /// Print to chat any plugin updates and whether they were successful.
@@ -308,7 +344,7 @@ internal partial class PluginManager : IDisposable, IServiceType
     public void Dispose()
     {
         var disposablePlugins =
-            this.InstalledPlugins.Where(plugin => plugin.State is PluginState.Loaded or PluginState.LoadError).ToArray();
+            this.installedPluginsList.Where(plugin => plugin.State is PluginState.Loaded or PluginState.LoadError).ToArray();
         if (disposablePlugins.Any())
         {
             // Unload them first, just in case some of plugin codes are still running via callbacks initiated externally.
@@ -581,7 +617,7 @@ internal partial class PluginManager : IDisposable, IServiceType
 
                 var sigScanner = await Service<SigScanner>.GetAsync().ConfigureAwait(false);
                 this.PluginsReady = true;
-                this.NotifyInstalledPluginsChanged();
+                this.NotifyinstalledPluginsListChanged();
                 sigScanner.Save();
             },
             tokenSource.Token);
@@ -596,7 +632,7 @@ internal partial class PluginManager : IDisposable, IServiceType
     {
         lock (this.pluginListLock)
         {
-            return Task.WhenAll(this.InstalledPlugins
+            return Task.WhenAll(this.installedPluginsList
                                     .Where(x => x.IsLoaded)
                                     .ToList()
                                     .Select(x => Task.Run(async () => await x.ReloadAsync()))
@@ -629,11 +665,14 @@ internal partial class PluginManager : IDisposable, IServiceType
     /// <param name="notify">Whether to notify that available plugins have changed afterwards.</param>
     public void RefilterPluginMasters(bool notify = true)
     {
-        this.AvailablePlugins = this.Repos
-                                    .SelectMany(repo => repo.PluginMaster)
-                                    .Where(this.IsManifestEligible)
-                                    .Where(IsManifestVisible)
-                                    .ToImmutableList();
+        lock (this.pluginListLock)
+        {
+            this.availablePluginsList.Clear();
+            this.availablePluginsList.AddRange(this.Repos
+                                                   .SelectMany(repo => repo.PluginMaster)
+                                                   .Where(this.IsManifestEligible)
+                                                   .Where(IsManifestVisible));
+        }
 
         if (notify)
         {
@@ -673,7 +712,7 @@ internal partial class PluginManager : IDisposable, IServiceType
             // This file is already known to us
             lock (this.pluginListLock)
             {
-                if (this.InstalledPlugins.Any(lp => lp.DllFile.FullName == dllFile.FullName))
+                if (this.installedPluginsList.Any(lp => lp.DllFile.FullName == dllFile.FullName))
                     continue;
             }
 
@@ -699,7 +738,7 @@ internal partial class PluginManager : IDisposable, IServiceType
         }
 
         if (listChanged)
-            this.NotifyInstalledPluginsChanged();
+            this.NotifyinstalledPluginsListChanged();
     }
 
     /// <summary>
@@ -817,7 +856,7 @@ internal partial class PluginManager : IDisposable, IServiceType
 
         var plugin = await this.LoadPluginAsync(dllFile, manifest, reason);
 
-        this.NotifyInstalledPluginsChanged();
+        this.NotifyinstalledPluginsListChanged();
         return plugin;
     }
 
@@ -832,12 +871,12 @@ internal partial class PluginManager : IDisposable, IServiceType
 
         lock (this.pluginListLock)
         {
-            this.InstalledPlugins = this.InstalledPlugins.Remove(plugin);
+            this.installedPluginsList.Remove(plugin);
         }
 
         PluginLocations.Remove(plugin.AssemblyName?.FullName ?? string.Empty, out _);
 
-        this.NotifyInstalledPluginsChanged();
+        this.NotifyinstalledPluginsListChanged();
         this.NotifyAvailablePluginsChanged();
     }
 
@@ -937,31 +976,34 @@ internal partial class PluginManager : IDisposable, IServiceType
     /// <param name="dryRun">Perform a dry run, don't install anything.</param>
     /// <param name="autoUpdate">If this action was performed as part of an auto-update.</param>
     /// <returns>Success or failure and a list of updated plugin metadata.</returns>
-    public async Task<List<PluginUpdateStatus>> UpdatePluginsAsync(bool ignoreDisabled, bool dryRun, bool autoUpdate = false)
+    public async Task<IEnumerable<PluginUpdateStatus>> UpdatePluginsAsync(bool ignoreDisabled, bool dryRun, bool autoUpdate = false)
     {
         Log.Information("Starting plugin update");
 
-        var updatedList = new List<PluginUpdateStatus>();
+        var updateTasks = new List<Task<PluginUpdateStatus>>();
 
         // Prevent collection was modified errors
-        foreach (var plugin in this.UpdatablePlugins)
+        lock (this.pluginListLock)
         {
-            // Can't update that!
-            if (plugin.InstalledPlugin.IsDev)
-                continue;
+            foreach (var plugin in this.updatablePluginsList)
+            {
+                // Can't update that!
+                if (plugin.InstalledPlugin.IsDev)
+                    continue;
 
-            if (!plugin.InstalledPlugin.IsWantedByAnyProfile && ignoreDisabled)
-                continue;
+                if (!plugin.InstalledPlugin.IsWantedByAnyProfile && ignoreDisabled)
+                    continue;
 
-            if (plugin.InstalledPlugin.Manifest.ScheduledForDeletion)
-                continue;
+                if (plugin.InstalledPlugin.Manifest.ScheduledForDeletion)
+                    continue;
 
-            var result = await this.UpdateSinglePluginAsync(plugin, false, dryRun);
-            if (result != null)
-                updatedList.Add(result);
+                updateTasks.Add(this.UpdateSinglePluginAsync(plugin, false, dryRun));
+            }
         }
 
-        this.NotifyInstalledPluginsChanged();
+        var updatedList = await Task.WhenAll(updateTasks);
+
+        this.NotifyinstalledPluginsListChanged();
         this.NotifyPluginsForStateChange(
             autoUpdate ? PluginListInvalidationKind.AutoUpdate : PluginListInvalidationKind.Update,
             updatedList.Select(x => x.InternalName));
@@ -978,7 +1020,7 @@ internal partial class PluginManager : IDisposable, IServiceType
     /// <param name="notify">Whether to notify that installed plugins have changed afterwards.</param>
     /// <param name="dryRun">Whether or not to actually perform the update, or just indicate success.</param>
     /// <returns>The status of the update.</returns>
-    public async Task<PluginUpdateStatus?> UpdateSinglePluginAsync(AvailablePluginUpdate metadata, bool notify, bool dryRun)
+    public async Task<PluginUpdateStatus> UpdateSinglePluginAsync(AvailablePluginUpdate metadata, bool notify, bool dryRun)
     {
         var plugin = metadata.InstalledPlugin;
 
@@ -1025,7 +1067,7 @@ internal partial class PluginManager : IDisposable, IServiceType
 
                 lock (this.pluginListLock)
                 {
-                    this.InstalledPlugins = this.InstalledPlugins.Remove(plugin);
+                    this.installedPluginsList.Remove(plugin);
                 }
             }
             catch (Exception ex)
@@ -1052,7 +1094,7 @@ internal partial class PluginManager : IDisposable, IServiceType
         }
 
         if (notify && updateStatus.WasUpdated)
-            this.NotifyInstalledPluginsChanged();
+            this.NotifyinstalledPluginsListChanged();
 
         return updateStatus;
     }
@@ -1184,7 +1226,7 @@ internal partial class PluginManager : IDisposable, IServiceType
 
             lock (this.pluginListLock)
             {
-                foreach (var plugin in this.InstalledPlugins)
+                foreach (var plugin in this.installedPluginsList)
                 {
                     if (plugin.AssemblyName != null &&
                         plugin.AssemblyName.FullName == declaringType.Assembly.GetName().FullName)
@@ -1219,11 +1261,11 @@ internal partial class PluginManager : IDisposable, IServiceType
         var name = manifest?.Name ?? dllFile.Name;
         var loadPlugin = !doNotLoad;
 
-        LocalPlugin plugin;
+        LocalPlugin? plugin;
 
-        if (manifest != null && manifest.InternalName == null)
+        if (manifest != null && (manifest.InternalName == null || manifest.Name == null))
         {
-            Log.Error("{FileName}: Your manifest has no internal name set! Can't load this.", dllFile.FullName);
+            Log.Error("{FileName}: Your manifest has no internal name or name set! Can't load this.", dllFile.FullName);
             throw new Exception("No internal name");
         }
 
@@ -1327,9 +1369,12 @@ internal partial class PluginManager : IDisposable, IServiceType
             }
         }
 
+        if (plugin == null)
+            throw new Exception("Plugin was null when adding to list");
+        
         lock (this.pluginListLock)
         {
-            this.InstalledPlugins = this.InstalledPlugins.Add(plugin);
+            this.installedPluginsList.Add(plugin);
         }
 
         return plugin;
@@ -1337,39 +1382,40 @@ internal partial class PluginManager : IDisposable, IServiceType
 
     private void DetectAvailablePluginUpdates()
     {
-        var updatablePlugins = new List<AvailablePluginUpdate>();
-
-        foreach (var plugin in this.InstalledPlugins)
+        lock (this.pluginListLock)
         {
-            var installedVersion = plugin.IsTesting
-                                       ? plugin.Manifest.TestingAssemblyVersion
-                                       : plugin.Manifest.AssemblyVersion;
-
-            var updates = this.AvailablePlugins
-                              .Where(remoteManifest => plugin.Manifest.InternalName == remoteManifest.InternalName)
-                              .Where(remoteManifest => plugin.Manifest.InstalledFromUrl == remoteManifest.SourceRepo.PluginMasterUrl || !remoteManifest.SourceRepo.IsThirdParty)
-                              .Where(remoteManifest => remoteManifest.DalamudApiLevel == DalamudApiLevel)
-                              .Select(remoteManifest =>
-                              {
-                                  var useTesting = this.UseTesting(remoteManifest);
-                                  var candidateVersion = useTesting
-                                                             ? remoteManifest.TestingAssemblyVersion
-                                                             : remoteManifest.AssemblyVersion;
-                                  var isUpdate = candidateVersion > installedVersion;
-
-                                  return (isUpdate, useTesting, candidateVersion, remoteManifest);
-                              })
-                              .Where(tpl => tpl.isUpdate)
-                              .ToList();
-
-            if (updates.Count > 0)
+            this.updatablePluginsList.Clear();
+            
+            foreach (var plugin in this.installedPluginsList)
             {
-                var update = updates.Aggregate((t1, t2) => t1.candidateVersion > t2.candidateVersion ? t1 : t2);
-                updatablePlugins.Add(new AvailablePluginUpdate(plugin, update.remoteManifest, update.useTesting));
+                var installedVersion = plugin.IsTesting
+                                           ? plugin.Manifest.TestingAssemblyVersion
+                                           : plugin.Manifest.AssemblyVersion;
+
+                var updates = this.AvailablePlugins
+                                  .Where(remoteManifest => plugin.Manifest.InternalName == remoteManifest.InternalName)
+                                  .Where(remoteManifest => plugin.Manifest.InstalledFromUrl == remoteManifest.SourceRepo.PluginMasterUrl || !remoteManifest.SourceRepo.IsThirdParty)
+                                  .Where(remoteManifest => remoteManifest.DalamudApiLevel == DalamudApiLevel)
+                                  .Select(remoteManifest =>
+                                  {
+                                      var useTesting = this.UseTesting(remoteManifest);
+                                      var candidateVersion = useTesting
+                                                                 ? remoteManifest.TestingAssemblyVersion
+                                                                 : remoteManifest.AssemblyVersion;
+                                      var isUpdate = candidateVersion > installedVersion;
+
+                                      return (isUpdate, useTesting, candidateVersion, remoteManifest);
+                                  })
+                                  .Where(tpl => tpl.isUpdate)
+                                  .ToList();
+
+                if (updates.Count > 0)
+                {
+                    var update = updates.Aggregate((t1, t2) => t1.candidateVersion > t2.candidateVersion ? t1 : t2);
+                    this.updatablePluginsList.Add(new AvailablePluginUpdate(plugin, update.remoteManifest, update.useTesting));
+                }
             }
         }
-
-        this.UpdatablePlugins = updatablePlugins.ToImmutableList();
     }
 
     private void NotifyAvailablePluginsChanged()
@@ -1379,7 +1425,7 @@ internal partial class PluginManager : IDisposable, IServiceType
         this.OnAvailablePluginsChanged?.InvokeSafely();
     }
 
-    private void NotifyInstalledPluginsChanged()
+    private void NotifyinstalledPluginsListChanged()
     {
         this.DetectAvailablePluginUpdates();
 
@@ -1388,7 +1434,7 @@ internal partial class PluginManager : IDisposable, IServiceType
 
     private void NotifyPluginsForStateChange(PluginListInvalidationKind kind, IEnumerable<string> affectedInternalNames)
     {
-        foreach (var installedPlugin in this.InstalledPlugins)
+        foreach (var installedPlugin in this.installedPluginsList)
         {
             if (!installedPlugin.IsLoaded || installedPlugin.DalamudInterface == null)
                 continue;
@@ -1513,5 +1559,26 @@ internal partial class PluginManager
 #pragma warning restore CS0618
         var codebasePatch = typeof(PluginManager).GetMethod(nameof(AssemblyCodeBasePatch), BindingFlags.NonPublic | BindingFlags.Static);
         this.assemblyCodeBaseMonoHook = new MonoMod.RuntimeDetour.Hook(codebaseTarget, codebasePatch);
+    }
+    
+    /// <summary>
+    /// Scope for plugin list locks.
+    /// </summary>
+    private class PluginListLockScope : IDisposable
+    {
+        private readonly object lockObj;
+
+        public PluginListLockScope(object lockObj)
+        {
+            this.lockObj = lockObj;
+            Monitor.Enter(lockObj);
+        }
+
+        /// <inheritdoc/>
+        public void Dispose()
+        {
+            GC.SuppressFinalize(this);
+            Monitor.Exit(this.lockObj);
+        }
     }
 }
