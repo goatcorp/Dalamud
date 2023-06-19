@@ -88,13 +88,9 @@ public sealed class EntryPoint
     {
         var logFileName = logName.IsNullOrEmpty() ? "dalamud" : $"dalamud-{logName}";
 
-#if DEBUG
         var logPath = new FileInfo(Path.Combine(baseDirectory, $"{logFileName}.log"));
         var oldPath = new FileInfo(Path.Combine(baseDirectory, $"{logFileName}.old.log"));
-#else
-        var logPath = Path.Combine(baseDirectory, "..", "..", "..", $"{logFileName}.log");
-        var oldPath = Path.Combine(baseDirectory, "..", "..", "..", $"{logFileName}.old.log");
-#endif
+
         Log.CloseAndFlush();
 
         RetentionBehaviour behaviour;
@@ -137,7 +133,7 @@ public sealed class EntryPoint
     private static void RunThread(DalamudStartInfo info, IntPtr mainThreadContinueEvent)
     {
         // Setup logger
-        InitLogging(info.WorkingDirectory!, info.BootShowConsole, true, info.LogName);
+        InitLogging(info.LogPath!, info.BootShowConsole, true, info.LogName);
         SerilogEventSink.Instance.LogLine += SerilogOnLogLine;
 
         // Load configuration first to get some early persistent state, like log level
@@ -145,7 +141,7 @@ public sealed class EntryPoint
 
         // Set the appropriate logging level from the configuration
         if (!configuration.LogSynchronously)
-            InitLogging(info.WorkingDirectory!, info.BootShowConsole, configuration.LogSynchronously, info.LogName);
+            InitLogging(info.LogPath!, info.BootShowConsole, configuration.LogSynchronously, info.LogName);
         LogLevelSwitch.MinimumLevel = configuration.LogLevel;
 
         // Log any unhandled exception.

@@ -642,7 +642,7 @@ internal class DalamudInterface : IDisposable, IServiceType
                         configuration.QueueSave();
 
                         EntryPoint.InitLogging(
-                            startInfo.WorkingDirectory!,
+                            startInfo.LogPath!,
                             startInfo.BootShowConsole,
                             configuration.LogSynchronously,
                             startInfo.LogName);
