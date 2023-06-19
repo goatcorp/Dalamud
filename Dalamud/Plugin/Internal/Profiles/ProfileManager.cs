@@ -169,6 +169,9 @@ internal class ProfileManager : IServiceType
     /// </summary>
     public void ApplyAllWantStates()
     {
+        var pm = Service<PluginManager>.Get();
+        using var pmLock = pm.LockPluginLists();
+        
         this.isBusy = true;
         Log.Information("Getting want states...");
 
@@ -185,7 +188,6 @@ internal class ProfileManager : IServiceType
 
         Log.Information("Applying want states...");
 
-        var pm = Service<PluginManager>.Get();
         var tasks = new List<Task>();
 
         foreach (var installedPlugin in pm.InstalledPlugins)

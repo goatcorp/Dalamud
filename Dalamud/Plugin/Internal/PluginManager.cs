@@ -162,7 +162,7 @@ internal partial class PluginManager : IDisposable, IServiceType
     }
 
     /// <summary>
-    /// Gets a list of all available plugins.
+    /// Gets a copy of the list of all available plugins.
     /// </summary>
     public IEnumerable<RemotePluginManifest> AvailablePlugins
     {
@@ -176,7 +176,7 @@ internal partial class PluginManager : IDisposable, IServiceType
     }
     
     /// <summary>
-    /// Gets a list of all plugins with an available update.
+    /// Gets a copy of the list of all plugins with an available update.
     /// </summary>
     public IEnumerable<AvailablePluginUpdate> UpdatablePlugins
     {
