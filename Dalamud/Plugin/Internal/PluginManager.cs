@@ -672,11 +672,11 @@ internal partial class PluginManager : IDisposable, IServiceType
                                                    .SelectMany(repo => repo.PluginMaster)
                                                    .Where(this.IsManifestEligible)
                                                    .Where(IsManifestVisible));
-        }
-
-        if (notify)
-        {
-            this.NotifyAvailablePluginsChanged();
+            
+            if (notify)
+            {
+                this.NotifyAvailablePluginsChanged();
+            }
         }
     }
 
