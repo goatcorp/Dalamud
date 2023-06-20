@@ -694,6 +694,8 @@ internal partial class PluginManager : IDisposable, IServiceType
         {
             if (!setting.IsEnabled)
                 continue;
+            
+            Log.Verbose("Scanning dev plugins at {Path}", setting.Path);
 
             if (Directory.Exists(setting.Path))
             {
@@ -1279,33 +1281,38 @@ internal partial class PluginManager : IDisposable, IServiceType
 
             var wantsInDefaultProfile =
                 this.profileManager.DefaultProfile.WantsPlugin(probablyInternalNameForThisPurpose);
-            var wantsInAnyProfile = this.profileManager.GetWantState(probablyInternalNameForThisPurpose, false, false);
             if (wantsInDefaultProfile == null)
             {
                 // We don't know about this plugin, so we don't want to do anything here.
                 // The code below will take care of it and add it with the default value.
-                if (!wantsInAnyProfile)
-                    loadPlugin = false;
             }
             else if (wantsInDefaultProfile == false && devPlugin.StartOnBoot)
             {
                 // We didn't want this plugin, and StartOnBoot is on. That means we don't want it and it should stay off until manually enabled.
+                Log.Verbose("DevPlugin {Name} disabled and StartOnBoot => disable", probablyInternalNameForThisPurpose);
                 this.profileManager.DefaultProfile.AddOrUpdate(probablyInternalNameForThisPurpose, false, false);
+                loadPlugin = false;
             }
             else if (wantsInDefaultProfile == true && devPlugin.StartOnBoot)
             {
                 // We wanted this plugin, and StartOnBoot is on. That means we actually do want it.
+                Log.Verbose("DevPlugin {Name} enabled and StartOnBoot => enable", probablyInternalNameForThisPurpose);
                 this.profileManager.DefaultProfile.AddOrUpdate(probablyInternalNameForThisPurpose, true, false);
+                loadPlugin = !doNotLoad;
             }
             else if (wantsInDefaultProfile == true && !devPlugin.StartOnBoot)
             {
                 // We wanted this plugin, but StartOnBoot is off. This means we don't want it anymore.
+                Log.Verbose("DevPlugin {Name} enabled and !StartOnBoot => disable", probablyInternalNameForThisPurpose);
                 this.profileManager.DefaultProfile.AddOrUpdate(probablyInternalNameForThisPurpose, false, false);
+                loadPlugin = false;
             }
             else if (wantsInDefaultProfile == false && !devPlugin.StartOnBoot)
             {
                 // We didn't want this plugin, and StartOnBoot is off. We don't want it.
+                Log.Verbose("DevPlugin {Name} disabled and !StartOnBoot => disable", probablyInternalNameForThisPurpose);
                 this.profileManager.DefaultProfile.AddOrUpdate(probablyInternalNameForThisPurpose, false, false);
+                loadPlugin = false;
             }
 
             plugin = devPlugin;
