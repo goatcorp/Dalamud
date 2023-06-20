@@ -1115,20 +1115,35 @@ internal class PluginInstallerWindow : Window, IDisposable
             ImGui.PushStyleVar(ImGuiStyleVar.CellPadding, ImGuiHelpers.ScaledVector2(5, 0));
             if (ImGui.BeginTable("##InstallerCategoriesCont", 2, ImGuiTableFlags.SizingFixedFit | ImGuiTableFlags.Resizable | ImGuiTableFlags.BordersInnerV))
             {
-                ImGui.TableSetupColumn("##InstallerCategoriesSelector", ImGuiTableColumnFlags.WidthFixed, useMenuWidth * ImGuiHelpers.GlobalScale);
-                ImGui.TableSetupColumn("##InstallerCategoriesBody", ImGuiTableColumnFlags.WidthStretch);
-                ImGui.TableNextRow();
-
-                ImGui.TableNextColumn();
-                this.DrawPluginCategorySelectors();
-
-                ImGui.TableNextColumn();
-                if (ImGui.BeginChild("ScrollingPlugins", new Vector2(-1, 0), false, ImGuiWindowFlags.NoBackground))
+                try
                 {
-                    this.DrawPluginCategoryContent();
-                }
+                    ImGui.TableSetupColumn("##InstallerCategoriesSelector", ImGuiTableColumnFlags.WidthFixed, useMenuWidth * ImGuiHelpers.GlobalScale);
+                    ImGui.TableSetupColumn("##InstallerCategoriesBody", ImGuiTableColumnFlags.WidthStretch);
+                    ImGui.TableNextRow();
 
-                ImGui.EndChild();
+                    ImGui.TableNextColumn();
+                    this.DrawPluginCategorySelectors();
+
+                    ImGui.TableNextColumn();
+                    if (ImGui.BeginChild("ScrollingPlugins", new Vector2(-1, 0), false, ImGuiWindowFlags.NoBackground))
+                    {
+                        try
+                        {
+                            this.DrawPluginCategoryContent();
+                        }
+                        catch (Exception ex)
+                        {
+                            Log.Error(ex, "Could not draw category content");
+                        }
+                    }
+
+                    ImGui.EndChild();
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex, "Could not draw plugin categories");
+                }
+                
                 ImGui.EndTable();
             }
 
