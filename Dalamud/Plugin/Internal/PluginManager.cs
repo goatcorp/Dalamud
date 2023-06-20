@@ -264,7 +264,7 @@ internal partial class PluginManager : IDisposable, IServiceType
     /// Get a disposable that will lock plugin lists while it is not disposed.
     /// </summary>
     /// <returns>The aforementioned disposable.</returns>
-    public IDisposable LockPluginLists() => new PluginListLockScope(this.pluginListLock);
+    public IDisposable GetSyncScope() => new ScopedSyncRoot(this.pluginListLock);
 
     /// <summary>
     /// Print to chat any plugin updates and whether they were successful.
@@ -1559,26 +1559,5 @@ internal partial class PluginManager
 #pragma warning restore CS0618
         var codebasePatch = typeof(PluginManager).GetMethod(nameof(AssemblyCodeBasePatch), BindingFlags.NonPublic | BindingFlags.Static);
         this.assemblyCodeBaseMonoHook = new MonoMod.RuntimeDetour.Hook(codebaseTarget, codebasePatch);
-    }
-    
-    /// <summary>
-    /// Scope for plugin list locks.
-    /// </summary>
-    private class PluginListLockScope : IDisposable
-    {
-        private readonly object lockObj;
-
-        public PluginListLockScope(object lockObj)
-        {
-            this.lockObj = lockObj;
-            Monitor.Enter(lockObj);
-        }
-
-        /// <inheritdoc/>
-        public void Dispose()
-        {
-            GC.SuppressFinalize(this);
-            Monitor.Exit(this.lockObj);
-        }
     }
 }

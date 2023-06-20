@@ -41,7 +41,14 @@ internal class ProfileManager : IServiceType
     /// <summary>
     /// Gets the default profile.
     /// </summary>
-    public Profile DefaultProfile => this.profiles.First(x => x.IsDefaultProfile);
+    public Profile DefaultProfile
+    {
+        get
+        {
+            lock (this.profiles)
+                return this.profiles.First(x => x.IsDefaultProfile);
+        }
+    }
 
     /// <summary>
     /// Gets all profiles, including the default profile.
@@ -54,6 +61,12 @@ internal class ProfileManager : IServiceType
     public bool IsBusy => this.isBusy;
 
     /// <summary>
+    /// Get a disposable that will lock the profile list while it is not disposed.
+    /// </summary>
+    /// <returns>The aforementioned disposable.</returns>
+    public ScopedSyncRoot GetSyncScope() => new ScopedSyncRoot(this.profiles);
+
+    /// <summary>
     /// Check if any enabled profile wants a specific plugin enabled.
     /// </summary>
     /// <param name="internalName">The internal name of the plugin.</param>
@@ -62,27 +75,30 @@ internal class ProfileManager : IServiceType
     /// <returns>Whether or not the plugin shall be enabled.</returns>
     public bool GetWantState(string internalName, bool defaultState, bool addIfNotDeclared = true)
     {
-        var want = false;
-        var wasInAnyProfile = false;
-
-        foreach (var profile in this.profiles)
+        lock (this.profiles)
         {
-            var state = profile.WantsPlugin(internalName);
-            if (state.HasValue)
+            var want = false;
+            var wasInAnyProfile = false;
+
+            foreach (var profile in this.profiles)
             {
-                want = want || (profile.IsEnabled && state.Value);
-                wasInAnyProfile = true;
+                var state = profile.WantsPlugin(internalName);
+                if (state.HasValue)
+                {
+                    want = want || (profile.IsEnabled && state.Value);
+                    wasInAnyProfile = true;
+                }
             }
-        }
 
-        if (!wasInAnyProfile && addIfNotDeclared)
-        {
-            Log.Warning("{Name} was not in any profile, adding to default with {Default}", internalName, defaultState);
-            this.DefaultProfile.AddOrUpdate(internalName, defaultState, false);
-            return defaultState;
-        }
+            if (!wasInAnyProfile && addIfNotDeclared)
+            {
+                Log.Warning("{Name} was not in any profile, adding to default with {Default}", internalName, defaultState);
+                this.DefaultProfile.AddOrUpdate(internalName, defaultState, false);
+                return defaultState;
+            }
 
-        return want;
+            return want;
+        }
     }
 
     /// <summary>
@@ -91,7 +107,10 @@ internal class ProfileManager : IServiceType
     /// <param name="internalName">The internal name of the plugin.</param>
     /// <returns>Whether or not the plugin is in any profile.</returns>
     public bool IsInAnyProfile(string internalName)
-        => this.profiles.Any(x => x.WantsPlugin(internalName) != null);
+    {
+        lock (this.profiles)
+            return this.profiles.Any(x => x.WantsPlugin(internalName) != null);
+    }
 
     /// <summary>
     /// Check whether a plugin is only in the default profile.
@@ -170,8 +189,9 @@ internal class ProfileManager : IServiceType
     public void ApplyAllWantStates()
     {
         var pm = Service<PluginManager>.Get();
-        using var pmLock = pm.LockPluginLists();
-        
+        using var managerLock = pm.GetSyncScope();
+        using var profilesLock = this.GetSyncScope();
+
         this.isBusy = true;
         Log.Information("Getting want states...");
 

@@ -137,6 +137,8 @@ internal class Profile
     /// <returns>Null if this profile does not declare the plugin, true if the profile declares the plugin and wants it enabled, false if the profile declares the plugin and does not want it enabled.</returns>
     public bool? WantsPlugin(string internalName)
     {
+        using var lockScope = this.manager.GetSyncScope();
+
         var entry = this.modelV1.Plugins.FirstOrDefault(x => x.InternalName == internalName);
         return entry?.IsEnabled;
     }
@@ -150,6 +152,8 @@ internal class Profile
     /// <param name="apply">Whether or not the current state should immediately be applied.</param>
     public void AddOrUpdate(string internalName, bool state, bool apply = true)
     {
+        using var lockScope = this.manager.GetSyncScope();
+        
         Debug.Assert(!internalName.IsNullOrEmpty(), "!internalName.IsNullOrEmpty()");
 
         var existing = this.modelV1.Plugins.FirstOrDefault(x => x.InternalName == internalName);
@@ -186,6 +190,8 @@ internal class Profile
     /// <param name="apply">Whether or not the current state should immediately be applied.</param>
     public void Remove(string internalName, bool apply = true)
     {
+        using var lockScope = this.manager.GetSyncScope();
+        
         var entry = this.modelV1.Plugins.FirstOrDefault(x => x.InternalName == internalName);
         if (entry == null)
             throw new ArgumentException($"No plugin \"{internalName}\" in profile \"{this.Guid}\"");
