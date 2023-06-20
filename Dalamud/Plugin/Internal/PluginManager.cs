@@ -1273,17 +1273,38 @@ internal partial class PluginManager : IDisposable, IServiceType
         {
             Log.Information($"Loading dev plugin {name}");
             var devPlugin = new LocalDevPlugin(dllFile, manifest);
-            loadPlugin &= !isBoot || devPlugin.StartOnBoot;
+            loadPlugin &= !isBoot;
 
             var probablyInternalNameForThisPurpose = manifest?.InternalName ?? dllFile.Name;
+
             var wantsInDefaultProfile =
                 this.profileManager.DefaultProfile.WantsPlugin(probablyInternalNameForThisPurpose);
-            if (wantsInDefaultProfile == false && devPlugin.StartOnBoot)
+            var wantsInAnyProfile = this.profileManager.GetWantState(probablyInternalNameForThisPurpose, false, false);
+            if (wantsInDefaultProfile == null)
             {
+                // We don't know about this plugin, so we don't want to do anything here.
+                // The code below will take care of it and add it with the default value.
+                if (!wantsInAnyProfile)
+                    loadPlugin = false;
+            }
+            else if (wantsInDefaultProfile == false && devPlugin.StartOnBoot)
+            {
+                // We didn't want this plugin, and StartOnBoot is on. That means we don't want it and it should stay off until manually enabled.
+                this.profileManager.DefaultProfile.AddOrUpdate(probablyInternalNameForThisPurpose, false, false);
+            }
+            else if (wantsInDefaultProfile == true && devPlugin.StartOnBoot)
+            {
+                // We wanted this plugin, and StartOnBoot is on. That means we actually do want it.
                 this.profileManager.DefaultProfile.AddOrUpdate(probablyInternalNameForThisPurpose, true, false);
             }
             else if (wantsInDefaultProfile == true && !devPlugin.StartOnBoot)
             {
+                // We wanted this plugin, but StartOnBoot is off. This means we don't want it anymore.
+                this.profileManager.DefaultProfile.AddOrUpdate(probablyInternalNameForThisPurpose, false, false);
+            }
+            else if (wantsInDefaultProfile == false && !devPlugin.StartOnBoot)
+            {
+                // We didn't want this plugin, and StartOnBoot is off. We don't want it.
                 this.profileManager.DefaultProfile.AddOrUpdate(probablyInternalNameForThisPurpose, false, false);
             }
 
