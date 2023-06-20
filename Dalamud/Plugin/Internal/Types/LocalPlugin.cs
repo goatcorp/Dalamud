@@ -213,7 +213,7 @@ internal class LocalPlugin : IDisposable
     /// INCLUDES the default profile.
     /// </summary>
     public bool IsWantedByAnyProfile =>
-        Service<ProfileManager>.Get().GetWantState(this.Manifest.InternalName, false, false);
+        Service<ProfileManager>.Get().GetWantStateAsync(this.Manifest.InternalName, false, false).GetAwaiter().GetResult();
 
     /// <summary>
     /// Gets a value indicating whether this plugin's API level is out of date.

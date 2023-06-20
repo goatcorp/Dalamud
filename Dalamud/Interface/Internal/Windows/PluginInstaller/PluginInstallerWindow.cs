@@ -2367,12 +2367,12 @@ internal class PluginInstallerWindow : Window, IDisposable
                 {
                     if (inProfile)
                     {
-                        Task.Run(() => profile.AddOrUpdate(plugin.Manifest.InternalName, true))
+                        Task.Run(() => profile.AddOrUpdateAsync(plugin.Manifest.InternalName, true))
                             .ContinueWith(this.DisplayErrorContinuation, Locs.Profiles_CouldNotAdd);
                     }
                     else
                     {
-                        Task.Run(() => profile.Remove(plugin.Manifest.InternalName))
+                        Task.Run(() => profile.RemoveAsync(plugin.Manifest.InternalName))
                             .ContinueWith(this.DisplayErrorContinuation, Locs.Profiles_CouldNotRemove);
                     }
                 }
@@ -2391,14 +2391,17 @@ internal class PluginInstallerWindow : Window, IDisposable
 
             if (ImGuiComponents.IconButton(FontAwesomeIcon.Times))
             {
-                profileManager.DefaultProfile.AddOrUpdate(plugin.Manifest.InternalName, plugin.IsLoaded, false);
+                // TODO: Work this out
+                Task.Run(() => profileManager.DefaultProfile.AddOrUpdateAsync(plugin.Manifest.InternalName, plugin.IsLoaded, false))
+                    .GetAwaiter().GetResult();
                 foreach (var profile in profileManager.Profiles.Where(x => !x.IsDefaultProfile && x.Plugins.Any(y => y.InternalName == plugin.Manifest.InternalName)))
                 {
-                    profile.Remove(plugin.Manifest.InternalName, false);
+                    Task.Run(() => profile.RemoveAsync(plugin.Manifest.InternalName, false))
+                        .GetAwaiter().GetResult();
                 }
 
-                // TODO error handling
-                Task.Run(() => profileManager.ApplyAllWantStates());
+                Task.Run(profileManager.ApplyAllWantStatesAsync)
+                    .ContinueWith(this.DisplayErrorContinuation, Locs.ErrorModal_ProfileApplyFail);
             }
 
             ImGui.SameLine();
@@ -2448,7 +2451,9 @@ internal class PluginInstallerWindow : Window, IDisposable
                             return;
                         }
 
-                        profileManager.DefaultProfile.AddOrUpdate(plugin.Manifest.InternalName, false, false);
+                        // TODO: Work this out
+                        Task.Run(() => profileManager.DefaultProfile.AddOrUpdateAsync(plugin.Manifest.InternalName, false, false))
+                            .GetAwaiter().GetResult();
                         this.enableDisableStatus = OperationStatus.Complete;
 
                         notifications.AddNotification(Locs.Notifications_PluginDisabled(plugin.Manifest.Name), Locs.Notifications_PluginDisabledTitle, NotificationType.Success);
@@ -2466,7 +2471,9 @@ internal class PluginInstallerWindow : Window, IDisposable
                             plugin.ReloadManifest();
                         }
 
-                        profileManager.DefaultProfile.AddOrUpdate(plugin.Manifest.InternalName, true, false);
+                        // TODO: Work this out
+                        Task.Run(() => profileManager.DefaultProfile.AddOrUpdateAsync(plugin.Manifest.InternalName, true, false))
+                            .GetAwaiter().GetResult();
 
                         var loadTask = Task.Run(() => plugin.LoadAsync(PluginLoadReason.Installer))
                                            .ContinueWith(
@@ -3281,6 +3288,8 @@ internal class PluginInstallerWindow : Window, IDisposable
         public static string ErrorModal_DeleteFail(string name) => Loc.Localize("InstallerDeleteFail", "Failed to delete plugin {0}.\n{1}").Format(name, ErrorModal_InstallContactAuthor);
 
         public static string ErrorModal_UpdaterFatal => Loc.Localize("InstallerUpdaterFatal", "Failed to update plugins.\nPlease restart your game and try again. If this error occurs again, please complain.");
+
+        public static string ErrorModal_ProfileApplyFail => Loc.Localize("InstallerProfileApplyFail", "Failed to process collections.\nPlease restart your game and try again. If this error occurs again, please complain.");
 
         public static string ErrorModal_UpdaterFail(int failCount) => Loc.Localize("InstallerUpdaterFail", "Failed to update {0} plugins.\nPlease restart your game and try again. If this error occurs again, please complain.").Format(failCount);
 

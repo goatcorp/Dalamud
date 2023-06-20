@@ -96,14 +96,14 @@ internal class ProfileCommandHandler : IServiceType, IDisposable
             {
                 case ProfileOp.Enable:
                     if (!profile.IsEnabled)
-                        profile.SetState(true, false);
+                        Task.Run(() => profile.SetStateAsync(true, false)).GetAwaiter().GetResult();
                     break;
                 case ProfileOp.Disable:
                     if (profile.IsEnabled)
-                        profile.SetState(false, false);
+                        Task.Run(() => profile.SetStateAsync(false, false)).GetAwaiter().GetResult();
                     break;
                 case ProfileOp.Toggle:
-                    profile.SetState(!profile.IsEnabled, false);
+                    Task.Run(() => profile.SetStateAsync(!profile.IsEnabled, false)).GetAwaiter().GetResult();
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -118,7 +118,7 @@ internal class ProfileCommandHandler : IServiceType, IDisposable
                 this.chat.Print(Loc.Localize("ProfileCommandsDisabling", "Disabling collection \"{0}\"...").Format(profile.Name));
             }
 
-            Task.Run(() => this.profileManager.ApplyAllWantStates()).ContinueWith(t =>
+            Task.Run(this.profileManager.ApplyAllWantStatesAsync).ContinueWith(t =>
             {
                 if (!t.IsCompletedSuccessfully && t.Exception != null)
                 {

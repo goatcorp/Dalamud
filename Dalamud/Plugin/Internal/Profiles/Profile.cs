@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading.Tasks;
 
 using Dalamud.Configuration.Internal;
 using Dalamud.Logging.Internal;
@@ -115,7 +116,8 @@ internal class Profile
     /// <param name="enabled">Whether or not the profile is enabled.</param>
     /// <param name="apply">Whether or not the current state should immediately be applied.</param>
     /// <exception cref="InvalidOperationException">Thrown when an untoggleable profile is toggled.</exception>
-    public void SetState(bool enabled, bool apply = true)
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    public async Task SetStateAsync(bool enabled, bool apply = true)
     {
         if (this.IsDefaultProfile)
             throw new InvalidOperationException("Cannot set state of default profile");
@@ -127,7 +129,7 @@ internal class Profile
         Service<DalamudConfiguration>.Get().QueueSave();
 
         if (apply)
-            this.manager.ApplyAllWantStates();
+            await this.manager.ApplyAllWantStatesAsync();
     }
 
     /// <summary>
@@ -137,10 +139,11 @@ internal class Profile
     /// <returns>Null if this profile does not declare the plugin, true if the profile declares the plugin and wants it enabled, false if the profile declares the plugin and does not want it enabled.</returns>
     public bool? WantsPlugin(string internalName)
     {
-        using var lockScope = this.manager.GetSyncScope();
-
-        var entry = this.modelV1.Plugins.FirstOrDefault(x => x.InternalName == internalName);
-        return entry?.IsEnabled;
+        lock (this)
+        {
+            var entry = this.modelV1.Plugins.FirstOrDefault(x => x.InternalName == internalName);
+            return entry?.IsEnabled;
+        }
     }
 
     /// <summary>
@@ -150,36 +153,38 @@ internal class Profile
     /// <param name="internalName">The internal name of the plugin.</param>
     /// <param name="state">Whether or not the plugin should be enabled.</param>
     /// <param name="apply">Whether or not the current state should immediately be applied.</param>
-    public void AddOrUpdate(string internalName, bool state, bool apply = true)
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    public async Task AddOrUpdateAsync(string internalName, bool state, bool apply = true)
     {
-        using var lockScope = this.manager.GetSyncScope();
-        
         Debug.Assert(!internalName.IsNullOrEmpty(), "!internalName.IsNullOrEmpty()");
 
-        var existing = this.modelV1.Plugins.FirstOrDefault(x => x.InternalName == internalName);
-        if (existing != null)
+        lock (this)
         {
-            existing.IsEnabled = state;
-        }
-        else
-        {
-            this.modelV1.Plugins.Add(new ProfileModelV1.ProfileModelV1Plugin
+            var existing = this.modelV1.Plugins.FirstOrDefault(x => x.InternalName == internalName);
+            if (existing != null)
             {
-                InternalName = internalName,
-                IsEnabled = state,
-            });
+                existing.IsEnabled = state;
+            }
+            else
+            {
+                this.modelV1.Plugins.Add(new ProfileModelV1.ProfileModelV1Plugin
+                {
+                    InternalName = internalName,
+                    IsEnabled = state,
+                });
+            }
         }
 
         // We need to remove this plugin from the default profile, if it declares it.
         if (!this.IsDefaultProfile && this.manager.DefaultProfile.WantsPlugin(internalName) != null)
         {
-            this.manager.DefaultProfile.Remove(internalName, false);
+            await this.manager.DefaultProfile.RemoveAsync(internalName, false);
         }
 
         Service<DalamudConfiguration>.Get().QueueSave();
 
         if (apply)
-            this.manager.ApplyAllWantStates();
+            await this.manager.ApplyAllWantStatesAsync();
     }
 
     /// <summary>
@@ -188,23 +193,26 @@ internal class Profile
     /// </summary>
     /// <param name="internalName">The internal name of the plugin.</param>
     /// <param name="apply">Whether or not the current state should immediately be applied.</param>
-    public void Remove(string internalName, bool apply = true)
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    public async Task RemoveAsync(string internalName, bool apply = true)
     {
-        using var lockScope = this.manager.GetSyncScope();
-        
-        var entry = this.modelV1.Plugins.FirstOrDefault(x => x.InternalName == internalName);
-        if (entry == null)
-            throw new ArgumentException($"No plugin \"{internalName}\" in profile \"{this.Guid}\"");
+        ProfileModelV1.ProfileModelV1Plugin entry;
+        lock (this)
+        {
+            entry = this.modelV1.Plugins.FirstOrDefault(x => x.InternalName == internalName);
+            if (entry == null)
+                throw new ArgumentException($"No plugin \"{internalName}\" in profile \"{this.Guid}\"");
 
-        if (!this.modelV1.Plugins.Remove(entry))
-            throw new Exception("Couldn't remove plugin from model collection");
+            if (!this.modelV1.Plugins.Remove(entry))
+                throw new Exception("Couldn't remove plugin from model collection");
+        }
 
         // We need to add this plugin back to the default profile, if we were the last profile to have it.
         if (!this.manager.IsInAnyProfile(internalName))
         {
             if (!this.IsDefaultProfile)
             {
-                this.manager.DefaultProfile.AddOrUpdate(internalName, entry.IsEnabled, false);
+                await this.manager.DefaultProfile.AddOrUpdateAsync(internalName, entry.IsEnabled, false);
             }
             else
             {
@@ -215,6 +223,6 @@ internal class Profile
         Service<DalamudConfiguration>.Get().QueueSave();
 
         if (apply)
-            this.manager.ApplyAllWantStates();
+            await this.manager.ApplyAllWantStatesAsync();
     }
 }
