@@ -2174,7 +2174,10 @@ internal class PluginInstallerWindow : Window, IDisposable
             if (plugin.IsLoaded)
             {
                 var commands = commandManager.Commands
-                                             .Where(cInfo => cInfo.Value.ShowInHelp && cInfo.Value.LoaderAssemblyName == plugin.Manifest.InternalName)
+                                             .Where(cInfo => 
+                                                        cInfo.Value != null &&
+                                                        cInfo.Value.ShowInHelp &&
+                                                        cInfo.Value.LoaderAssemblyName == plugin.Manifest.InternalName)
                                              .ToArray();
 
                 if (commands.Any())

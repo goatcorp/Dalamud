@@ -630,7 +630,7 @@ internal class LocalPlugin : IDisposable
         if (manifest.Exists)
         {
             // var isDisabled = this.IsDisabled; // saving the internal state because it could have been deleted
-            this.Manifest = LocalPluginManifest.Load(manifest);
+            this.Manifest = LocalPluginManifest.Load(manifest) ?? throw new Exception("Could not reload manifest.");
             // this.Manifest.Disabled = isDisabled;
 
             this.SaveManifest();
