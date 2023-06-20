@@ -202,7 +202,7 @@ internal partial class PluginManager : IDisposable, IServiceType
     /// <summary>
     /// Gets a value indicating whether all added repos are not in progress.
     /// </summary>
-    public bool ReposReady => this.Repos.All(repo => repo.State != PluginRepositoryState.InProgress);
+    public bool ReposReady { get; private set; }
 
     /// <summary>
     /// Gets a value indicating whether the plugin manager started in safe mode.
@@ -649,15 +649,27 @@ internal partial class PluginManager : IDisposable, IServiceType
     public async Task ReloadPluginMastersAsync(bool notify = true)
     {
         Log.Information("Now reloading all PluginMasters...");
+        this.ReposReady = false;
 
-        Debug.Assert(!this.Repos.First().IsThirdParty, "First repository should be main repository");
-        await this.Repos.First().ReloadPluginMasterAsync(); // Load official repo first
+        try
+        {
+            Debug.Assert(!this.Repos.First().IsThirdParty, "First repository should be main repository");
+            await this.Repos.First().ReloadPluginMasterAsync(); // Load official repo first
 
-        await Task.WhenAll(this.Repos.Skip(1).Select(repo => repo.ReloadPluginMasterAsync()));
+            await Task.WhenAll(this.Repos.Skip(1).Select(repo => repo.ReloadPluginMasterAsync()));
 
-        Log.Information("PluginMasters reloaded, now refiltering...");
+            Log.Information("PluginMasters reloaded, now refiltering...");
 
-        this.RefilterPluginMasters(notify);
+            this.RefilterPluginMasters(notify);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Could not reload plugin repositories");
+        }
+        finally
+        {
+            this.ReposReady = true;
+        }
     }
 
     /// <summary>
