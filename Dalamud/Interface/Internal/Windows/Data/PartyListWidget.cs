@@ -1,8 +1,4 @@
-﻿using System;
-
-using Dalamud.Game.ClientState.Objects.SubKinds;
-using Dalamud.Game.ClientState.Objects.Types;
-using Dalamud.Game.ClientState.Party;
+﻿using Dalamud.Game.ClientState.Party;
 using Dalamud.Utility;
 using ImGuiNET;
 
@@ -13,7 +9,6 @@ namespace Dalamud.Interface.Internal.Windows;
 /// </summary>
 internal class PartyListWidget : IDataWindowWidget
 {
-    private bool resolveObjects;
     private bool resolveGameData;
 
     /// <inheritdoc/>
@@ -34,7 +29,6 @@ internal class PartyListWidget : IDataWindowWidget
         var partyList = Service<PartyList>.Get();
 
         ImGui.Checkbox("Resolve GameData", ref this.resolveGameData);
-        ImGui.Checkbox("Resolve Actors", ref this.resolveObjects);
 
         ImGui.Text($"GroupManager: {partyList.GroupManagerAddress.ToInt64():X}");
         ImGui.Text($"GroupList: {partyList.GroupListAddress.ToInt64():X}");
@@ -52,7 +46,7 @@ internal class PartyListWidget : IDataWindowWidget
             }
 
             ImGui.Text($"[{i}] {member.Address.ToInt64():X} - {member.Name} - {member.GameObject?.ObjectId}");
-            if (this.resolveObjects)
+            if (this.resolveGameData)
             {
                 var actor = member.GameObject;
                 if (actor == null)
