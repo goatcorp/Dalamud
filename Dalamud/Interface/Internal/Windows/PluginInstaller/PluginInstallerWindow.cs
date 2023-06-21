@@ -1110,45 +1110,40 @@ internal class PluginInstallerWindow : Window, IDisposable
 
         var useContentWidth = ImGui.GetContentRegionAvail().X;
 
-        if (ImGui.BeginChild("InstallerCategories", new Vector2(useContentWidth, useContentHeight * ImGuiHelpers.GlobalScale)))
+        using (ImRaii.Child("InstallerCategories", new Vector2(useContentWidth, useContentHeight * ImGuiHelpers.GlobalScale)))
         {
-            ImGui.PushStyleVar(ImGuiStyleVar.CellPadding, ImGuiHelpers.ScaledVector2(5, 0));
-            if (ImGui.BeginTable("##InstallerCategoriesCont", 2, ImGuiTableFlags.SizingFixedFit | ImGuiTableFlags.Resizable | ImGuiTableFlags.BordersInnerV))
+            using var style = ImRaii.PushStyle(ImGuiStyleVar.CellPadding, ImGuiHelpers.ScaledVector2(5, 0));
+            using var table = ImRaii.Table(
+                "##InstallerCategoriesCont", 
+                2,
+                ImGuiTableFlags.SizingFixedFit | ImGuiTableFlags.Resizable | ImGuiTableFlags.BordersInnerV);
+            
+            try
             {
-                try
+                ImGui.TableSetupColumn("##InstallerCategoriesSelector", ImGuiTableColumnFlags.WidthFixed, useMenuWidth * ImGuiHelpers.GlobalScale);
+                ImGui.TableSetupColumn("##InstallerCategoriesBody", ImGuiTableColumnFlags.WidthStretch);
+                ImGui.TableNextRow();
+
+                ImGui.TableNextColumn();
+                this.DrawPluginCategorySelectors();
+
+                ImGui.TableNextColumn();
+                using (ImRaii.Child("ScrollingPlugins", new Vector2(-1, 0), false, ImGuiWindowFlags.NoBackground))
                 {
-                    ImGui.TableSetupColumn("##InstallerCategoriesSelector", ImGuiTableColumnFlags.WidthFixed, useMenuWidth * ImGuiHelpers.GlobalScale);
-                    ImGui.TableSetupColumn("##InstallerCategoriesBody", ImGuiTableColumnFlags.WidthStretch);
-                    ImGui.TableNextRow();
-
-                    ImGui.TableNextColumn();
-                    this.DrawPluginCategorySelectors();
-
-                    ImGui.TableNextColumn();
-                    if (ImGui.BeginChild("ScrollingPlugins", new Vector2(-1, 0), false, ImGuiWindowFlags.NoBackground))
+                    try
                     {
-                        try
-                        {
-                            this.DrawPluginCategoryContent();
-                        }
-                        catch (Exception ex)
-                        {
-                            Log.Error(ex, "Could not draw category content");
-                        }
+                        this.DrawPluginCategoryContent();
                     }
-
-                    ImGui.EndChild();
+                    catch (Exception ex)
+                    {
+                        Log.Error(ex, "Could not draw category content");
+                    }
                 }
-                catch (Exception ex)
-                {
-                    Log.Error(ex, "Could not draw plugin categories");
-                }
-                
-                ImGui.EndTable();
             }
-
-            ImGui.PopStyleVar();
-            ImGui.EndChild();
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Could not draw plugin categories");
+            }
         }
     }
 
