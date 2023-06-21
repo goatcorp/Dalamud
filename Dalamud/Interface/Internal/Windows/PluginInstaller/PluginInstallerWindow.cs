@@ -392,7 +392,8 @@ internal class PluginInstallerWindow : Window, IDisposable
         var windowSize = ImGui.GetWindowSize();
         var titleHeight = ImGui.GetFontSize() + (ImGui.GetStyle().FramePadding.Y * 2);
 
-        if (ImGui.BeginChild("###installerLoadingFrame", new Vector2(-1, -1), false))
+        using var loadingChild = ImRaii.Child("###installerLoadingFrame", new Vector2(-1, -1), false);
+        if (loadingChild)
         {
             ImGui.GetWindowDrawList().PushClipRectFullScreen();
             ImGui.GetWindowDrawList().AddRectFilled(
@@ -480,8 +481,6 @@ internal class PluginInstallerWindow : Window, IDisposable
                 ImGuiHelpers.CenteredText("One of your plugins may be blocking the installer.");
                 ImGui.PopStyleColor();
             }
-
-            ImGui.EndChild();
         }
     }
 
@@ -1110,46 +1109,40 @@ internal class PluginInstallerWindow : Window, IDisposable
 
         var useContentWidth = ImGui.GetContentRegionAvail().X;
 
-        using var categoriesChild = ImRaii.Child("InstallerCategories", new Vector2(useContentWidth, useContentHeight * ImGuiHelpers.GlobalScale));
-        if (categoriesChild)
+        using var installerMainChild = ImRaii.Child("InstallerCategories", new Vector2(useContentWidth, useContentHeight * ImGuiHelpers.GlobalScale));
+        if (installerMainChild)
         {
             using var style = ImRaii.PushStyle(ImGuiStyleVar.CellPadding, ImGuiHelpers.ScaledVector2(5, 0));
-            using var table = ImRaii.Table(
-                "##InstallerCategoriesCont", 
-                2,
-                ImGuiTableFlags.SizingFixedFit | ImGuiTableFlags.Resizable | ImGuiTableFlags.BordersInnerV);
-
-            if (table)
+            
+            try
             {
-                try
+                using (var categoriesChild = ImRaii.Child("InstallerCategoriesSelector", new Vector2(useMenuWidth * ImGuiHelpers.GlobalScale, -1), false))
                 {
-                    ImGui.TableSetupColumn("##InstallerCategoriesSelector", ImGuiTableColumnFlags.WidthFixed, useMenuWidth * ImGuiHelpers.GlobalScale);
-                    ImGui.TableSetupColumn("##InstallerCategoriesBody", ImGuiTableColumnFlags.WidthStretch);
-                    ImGui.TableNextRow();
-
-                    ImGui.TableNextColumn();
-                    this.DrawPluginCategorySelectors();
-
-                    ImGui.TableNextColumn();
-                    
-                    using var scrollingChild =
-                        ImRaii.Child("ScrollingPlugins", new Vector2(-1, 0), false, ImGuiWindowFlags.NoBackground);
-                    if (scrollingChild)
+                    if (categoriesChild)
                     {
-                        try
-                        {
-                            this.DrawPluginCategoryContent();
-                        }
-                        catch (Exception ex)
-                        {
-                            Log.Error(ex, "Could not draw category content");
-                        }
+                        this.DrawPluginCategorySelectors();
                     }
                 }
-                catch (Exception ex)
+
+                ImGui.SameLine();
+
+                using var scrollingChild =
+                    ImRaii.Child("ScrollingPlugins", new Vector2(-1, -1), false, ImGuiWindowFlags.NoBackground);
+                if (scrollingChild)
                 {
-                    Log.Error(ex, "Could not draw plugin categories");
+                    try
+                    {
+                        this.DrawPluginCategoryContent();
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Error(ex, "Could not draw category content");
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Could not draw plugin categories");
             }
         }
     }

@@ -107,7 +107,8 @@ internal class ProfileManagerWidget
 
         var windowSize = ImGui.GetWindowSize();
 
-        if (ImGui.BeginChild("###profileChooserScrolling"))
+        using var profileChooserChild = ImRaii.Child("###profileChooserScrolling");
+        if (profileChooserChild)
         {
             Guid? toCloneGuid = null;
 
@@ -180,8 +181,6 @@ internal class ProfileManagerWidget
                 ImGuiHelpers.CenteredText(Locs.AddProfileHint);
                 ImGui.PopStyleColor();
             }
-
-            ImGui.EndChild();
         }
     }
 
@@ -325,7 +324,8 @@ internal class ProfileManagerWidget
         ImGui.Separator();
         var wantPluginAddPopup = false;
 
-        if (ImGui.BeginChild("###profileEditorPluginList"))
+        using var pluginListChild = ImRaii.Child("###profileEditorPluginList");
+        if (pluginListChild)
         {
             var pluginLineHeight = 32 * ImGuiHelpers.GlobalScale;
             string? wantRemovePluginInternalName = null;
@@ -439,8 +439,6 @@ internal class ProfileManagerWidget
             ImGui.TextUnformatted(addPluginsText);
 
             ImGuiHelpers.ScaledDummy(10);
-
-            ImGui.EndChild();
         }
 
         if (wantPluginAddPopup)
