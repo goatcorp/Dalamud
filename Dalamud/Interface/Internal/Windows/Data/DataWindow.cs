@@ -124,8 +124,6 @@ internal class DataWindow : Window
     /// </summary>
     public override void Draw()
     {
-        Util.copyButtonIndex = 0;
-        
         if (ImGuiComponents.IconButton("forceReload", FontAwesomeIcon.Sync)) this.Load();
         if (ImGui.IsItemHovered()) ImGui.SetTooltip("Force Reload");
         ImGui.SameLine();

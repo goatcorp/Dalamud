@@ -38,8 +38,6 @@ public static class Util
     private static ulong moduleStartAddr;
     private static ulong moduleEndAddr;
     
-    public static int copyButtonIndex;
-
     /// <summary>
     /// Gets an httpclient for usage.
     /// Do NOT await this.
@@ -703,7 +701,7 @@ public static class Util
 
         ImGui.TextUnformatted(actorString);
         ImGui.SameLine();
-        if (ImGui.Button($"C##{copyButtonIndex++}"))
+        if (ImGui.Button($"C##{actor.Address.ToInt64()}"))
         {
             ImGui.SetClipboardText(actor.Address.ToInt64().ToString("X"));
         }

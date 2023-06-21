@@ -12,7 +12,6 @@ internal class AddressesWidget : IDataWindowWidget
 {
     private string inputSig = string.Empty;
     private nint sigResult = nint.Zero;
-    private int copyButtonIndex;
 
     /// <inheritdoc/>
     public DataKind DataKind { get; init; } = DataKind.Address;
@@ -29,8 +28,6 @@ internal class AddressesWidget : IDataWindowWidget
     /// <inheritdoc/>
     public void Draw()
     {
-        this.copyButtonIndex = 0;
-        
         ImGui.InputText(".text sig", ref this.inputSig, 400);
         if (ImGui.Button("Resolve"))
         {
@@ -47,7 +44,7 @@ internal class AddressesWidget : IDataWindowWidget
 
         ImGui.Text($"Result: {this.sigResult.ToInt64():X}");
         ImGui.SameLine();
-        if (ImGui.Button($"C##{this.DataKind.ToString()}+{this.copyButtonIndex++}"))
+        if (ImGui.Button($"C##{this.sigResult.ToInt64():X}"))
             ImGui.SetClipboardText(this.sigResult.ToInt64().ToString("X"));
 
         foreach (var debugScannedValue in BaseAddressResolver.DebugScannedValues)
@@ -59,7 +56,7 @@ internal class AddressesWidget : IDataWindowWidget
                     $"      {valueTuple.ClassName} - 0x{valueTuple.Address.ToInt64():X}");
                 ImGui.SameLine();
 
-                if (ImGui.Button($"C##{this.DataKind.ToString()}+copyAddress{this.copyButtonIndex++}"))
+                if (ImGui.Button($"C##{valueTuple.Address.ToInt64():X}"))
                     ImGui.SetClipboardText(valueTuple.Address.ToInt64().ToString("X"));
             }
         }
