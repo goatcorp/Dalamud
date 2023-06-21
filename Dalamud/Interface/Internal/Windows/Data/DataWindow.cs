@@ -6,11 +6,10 @@ using System.Numerics;
 using Dalamud.Game.Gui;
 using Dalamud.Interface.Components;
 using Dalamud.Interface.Windowing;
-using Dalamud.Utility;
 using ImGuiNET;
 using Serilog;
 
-namespace Dalamud.Interface.Internal.Windows;
+namespace Dalamud.Interface.Internal.Windows.Data;
 
 /// <summary>
 /// Class responsible for drawing the data/debug window.

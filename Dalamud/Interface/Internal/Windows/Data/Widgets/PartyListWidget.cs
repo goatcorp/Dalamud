@@ -2,7 +2,7 @@
 using Dalamud.Utility;
 using ImGuiNET;
 
-namespace Dalamud.Interface.Internal.Windows;
+namespace Dalamud.Interface.Internal.Windows.Data;
 
 /// <summary>
 /// Widget for displaying information about the current party.

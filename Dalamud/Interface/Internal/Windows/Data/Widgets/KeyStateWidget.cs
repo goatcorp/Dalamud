@@ -2,7 +2,7 @@
 using Dalamud.Interface.Colors;
 using ImGuiNET;
 
-namespace Dalamud.Interface.Internal.Windows;
+namespace Dalamud.Interface.Internal.Windows.Data;
 
 /// <summary>
 /// Widget for displaying keyboard state.

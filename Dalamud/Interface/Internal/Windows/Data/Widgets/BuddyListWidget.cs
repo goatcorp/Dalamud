@@ -2,7 +2,7 @@
 using Dalamud.Utility;
 using ImGuiNET;
 
-namespace Dalamud.Interface.Internal.Windows;
+namespace Dalamud.Interface.Internal.Windows.Data;
 
 /// <summary>
 /// Widget for displaying data about the Buddy List.

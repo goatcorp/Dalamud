@@ -7,7 +7,7 @@ using ImGuiNET;
 using ImGuiScene;
 using Serilog;
 
-namespace Dalamud.Interface.Internal.Windows;
+namespace Dalamud.Interface.Internal.Windows.Data;
 
 /// <summary>
 /// Widget for displaying texture test.

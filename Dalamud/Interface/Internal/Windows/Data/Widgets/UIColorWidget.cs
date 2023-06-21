@@ -4,7 +4,7 @@ using Dalamud.Data;
 using ImGuiNET;
 using Lumina.Excel.GeneratedSheets;
 
-namespace Dalamud.Interface.Internal.Windows;
+namespace Dalamud.Interface.Internal.Windows.Data;
 
 /// <summary>
 /// Widget for displaying all UI Colors from Lumina.

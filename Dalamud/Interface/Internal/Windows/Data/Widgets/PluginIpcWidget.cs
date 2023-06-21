@@ -6,7 +6,7 @@ using Dalamud.Utility;
 using ImGuiNET;
 using Serilog;
 
-namespace Dalamud.Interface.Internal.Windows;
+namespace Dalamud.Interface.Internal.Windows.Data;
 
 /// <summary>
 /// Widget for testing plugin IPC systems.

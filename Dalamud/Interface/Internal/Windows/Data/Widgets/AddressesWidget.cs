@@ -3,7 +3,7 @@
 using Dalamud.Game;
 using ImGuiNET;
 
-namespace Dalamud.Interface.Internal.Windows;
+namespace Dalamud.Interface.Internal.Windows.Data;
 
 /// <summary>
 /// Widget to display resolved .text sigs.

@@ -10,7 +10,7 @@ using Dalamud.Logging.Internal;
 using ImGuiNET;
 using Serilog;
 
-namespace Dalamud.Interface.Internal.Windows;
+namespace Dalamud.Interface.Internal.Windows.Data;
 
 /// <summary>
 /// Widget for displaying task scheduler test.

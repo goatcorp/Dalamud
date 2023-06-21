@@ -1,7 +1,7 @@
 ﻿using Dalamud.Game.ClientState.Aetherytes;
 using ImGuiNET;
 
-namespace Dalamud.Interface.Internal.Windows;
+namespace Dalamud.Interface.Internal.Windows.Data;
 
 /// <summary>
 /// Widget for displaying aetheryte table.

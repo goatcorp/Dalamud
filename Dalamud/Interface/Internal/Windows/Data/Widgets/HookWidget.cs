@@ -6,7 +6,7 @@ using ImGuiNET;
 using PInvoke;
 using Serilog;
 
-namespace Dalamud.Interface.Internal.Windows;
+namespace Dalamud.Interface.Internal.Windows.Data;
 
 /// <summary>
 /// Widget for displaying hook information.

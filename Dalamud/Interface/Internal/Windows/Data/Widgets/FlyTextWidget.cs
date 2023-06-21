@@ -4,7 +4,7 @@ using System.Numerics;
 using Dalamud.Game.Gui.FlyText;
 using ImGuiNET;
 
-namespace Dalamud.Interface.Internal.Windows;
+namespace Dalamud.Interface.Internal.Windows.Data;
 
 /// <summary>
 /// Widget for displaying fly text info.

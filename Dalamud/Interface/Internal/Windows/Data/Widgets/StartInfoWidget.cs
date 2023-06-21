@@ -1,7 +1,7 @@
 ﻿using ImGuiNET;
 using Newtonsoft.Json;
 
-namespace Dalamud.Interface.Internal.Windows;
+namespace Dalamud.Interface.Internal.Windows.Data;
 
 /// <summary>
 /// Widget for displaying start info.

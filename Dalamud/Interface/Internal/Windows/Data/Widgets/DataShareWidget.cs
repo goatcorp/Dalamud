@@ -1,7 +1,7 @@
 ﻿using Dalamud.Plugin.Ipc.Internal;
 using ImGuiNET;
 
-namespace Dalamud.Interface.Internal.Windows;
+namespace Dalamud.Interface.Internal.Windows.Data;
 
 /// <summary>
 /// Widget for displaying plugin data share modules.

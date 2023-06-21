@@ -4,7 +4,7 @@ using Dalamud.Game.ClientState.JobGauge.Types;
 using Dalamud.Utility;
 using ImGuiNET;
 
-namespace Dalamud.Interface.Internal.Windows;
+namespace Dalamud.Interface.Internal.Windows.Data;
 
 /// <summary>
 /// Widget for displaying job gauge data.

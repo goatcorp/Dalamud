@@ -1,7 +1,7 @@
 ﻿using Dalamud.Game.Command;
 using ImGuiNET;
 
-namespace Dalamud.Interface.Internal.Windows;
+namespace Dalamud.Interface.Internal.Windows.Data;
 
 /// <summary>
 /// Widget for displaying command info.
