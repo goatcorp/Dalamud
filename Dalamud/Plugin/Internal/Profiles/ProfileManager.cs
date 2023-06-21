@@ -58,6 +58,13 @@ internal class ProfileManager : IServiceType
     /// Gets a value indicating whether or not the profile manager is busy enabling/disabling plugins.
     /// </summary>
     public bool IsBusy => this.isBusy;
+    
+    /// <summary>
+    /// Get a disposable that will lock the profile list while it is not disposed.
+    /// You must NEVER use this in async code.
+    /// </summary>
+    /// <returns>The aforementioned disposable.</returns>
+    public IDisposable GetSyncScope() => new ScopedSyncRoot(this.profiles);
 
     /// <summary>
     /// Check if any enabled profile wants a specific plugin enabled.

@@ -110,6 +110,13 @@ internal class Profile
     public ProfileModel Model => this.modelV1;
 
     /// <summary>
+    /// Get a disposable that will lock the plugin list while it is not disposed.
+    /// You must NEVER use this in async code.
+    /// </summary>
+    /// <returns>The aforementioned disposable.</returns>
+    public IDisposable GetSyncScope() => new ScopedSyncRoot(this);
+
+    /// <summary>
     /// Set this profile's state. This cannot be called for the default profile.
     /// This will block until all states have been applied.
     /// </summary>

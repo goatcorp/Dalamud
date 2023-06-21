@@ -111,6 +111,7 @@ internal class ProfileManagerWidget
         {
             Guid? toCloneGuid = null;
 
+            using var syncScope = profman.GetSyncScope();
             foreach (var profile in profman.Profiles)
             {
                 if (profile.IsDefaultProfile)
@@ -329,7 +330,8 @@ internal class ProfileManagerWidget
             var pluginLineHeight = 32 * ImGuiHelpers.GlobalScale;
             string? wantRemovePluginInternalName = null;
 
-            foreach (var plugin in profile.Plugins)
+            using var syncScope = profile.GetSyncScope();
+            foreach (var plugin in profile.Plugins.ToArray())
             {
                 didAny = true;
                 var pmPlugin = pm.InstalledPlugins.FirstOrDefault(x => x.Manifest.InternalName == plugin.InternalName);
