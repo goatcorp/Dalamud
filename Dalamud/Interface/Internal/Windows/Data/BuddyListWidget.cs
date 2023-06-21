@@ -9,7 +9,6 @@ namespace Dalamud.Interface.Internal.Windows;
 /// </summary>
 internal class BuddyListWidget : IDataWindowWidget
 {
-    private bool resolveObjects;
     private bool resolveGameData;
 
     /// <inheritdoc/>
@@ -30,7 +29,6 @@ internal class BuddyListWidget : IDataWindowWidget
         var buddyList = Service<BuddyList>.Get();
 
         ImGui.Checkbox("Resolve GameData", ref this.resolveGameData);
-        ImGui.Checkbox("Resolve Actors", ref this.resolveObjects);
 
         ImGui.Text($"BuddyList: {buddyList.BuddyListAddress.ToInt64():X}");
         {
@@ -42,7 +40,7 @@ internal class BuddyListWidget : IDataWindowWidget
             else
             {
                 ImGui.Text($"[Companion] {member.Address.ToInt64():X} - {member.ObjectId} - {member.DataID}");
-                if (this.resolveObjects)
+                if (this.resolveGameData)
                 {
                     var gameObject = member.GameObject;
                     if (gameObject == null)
@@ -66,7 +64,7 @@ internal class BuddyListWidget : IDataWindowWidget
             else
             {
                 ImGui.Text($"[Pet] {member.Address.ToInt64():X} - {member.ObjectId} - {member.DataID}");
-                if (this.resolveObjects)
+                if (this.resolveGameData)
                 {
                     var gameObject = member.GameObject;
                     if (gameObject == null)
@@ -93,7 +91,7 @@ internal class BuddyListWidget : IDataWindowWidget
                 {
                     var member = buddyList[i];
                     ImGui.Text($"[BattleBuddy] [{i}] {member?.Address.ToInt64():X} - {member?.ObjectId} - {member?.DataID}");
-                    if (this.resolveObjects)
+                    if (this.resolveGameData)
                     {
                         var gameObject = member?.GameObject;
                         if (gameObject == null)
