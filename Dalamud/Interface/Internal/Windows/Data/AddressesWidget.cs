@@ -29,6 +29,8 @@ internal class AddressesWidget : IDataWindowWidget
     /// <inheritdoc/>
     public void Draw()
     {
+        this.copyButtonIndex = 0;
+        
         ImGui.InputText(".text sig", ref this.inputSig, 400);
         if (ImGui.Button("Resolve"))
         {
