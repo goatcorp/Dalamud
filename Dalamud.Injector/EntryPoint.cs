@@ -118,15 +118,15 @@ namespace Dalamud.Injector
         private static string GetLogPath(string? baseDirectory, string fileName, string? logName)
         {
             baseDirectory ??= Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            baseDirectory ??= Environment.CurrentDirectory;
             fileName = !string.IsNullOrEmpty(logName) ? $"{fileName}-{logName}.log" : $"{fileName}.log";
 
-#if DEBUG
-            var logPath = Path.Combine(baseDirectory, fileName);
-#else
-            var logPath = Path.Combine(baseDirectory, "..", "..", "..", fileName);
-#endif
+            // TODO(api9): remove
+            var previousLogPath = Path.Combine(baseDirectory, "..", "..", "..", fileName);
+            if (File.Exists(previousLogPath))
+                File.Delete(previousLogPath);
 
-            return logPath;
+            return Path.Combine(baseDirectory, fileName);
         }
 
         private static void Init(List<string> args)
