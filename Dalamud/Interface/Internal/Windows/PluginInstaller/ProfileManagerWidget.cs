@@ -206,6 +206,7 @@ internal class ProfileManagerWidget
         }
 
         const string addPluginToProfilePopup = "###addPluginToProfile";
+        var addPluginToProfilePopupId = ImGui.GetID(addPluginToProfilePopup);
         using (var popup = ImRaii.Popup(addPluginToProfilePopup))
         {
             if (popup.Success)
@@ -444,7 +445,7 @@ internal class ProfileManagerWidget
         if (wantPluginAddPopup)
         {
             this.pickerSearch = string.Empty;
-            ImGui.OpenPopup(addPluginToProfilePopup);
+            ImGui.OpenPopup(addPluginToProfilePopupId);
         }
     }
 
