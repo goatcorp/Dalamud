@@ -169,10 +169,8 @@ public sealed class DataManager : IDisposable, IServiceType
     /// </summary>
     /// <typeparam name="T">The excel sheet type to get.</typeparam>
     /// <returns>The <see cref="ExcelSheet{T}"/>, giving access to game rows.</returns>
-    public ExcelSheet<T>? GetExcelSheet<T>() where T : ExcelRow
-    {
-        return this.Excel.GetSheet<T>();
-    }
+    public ExcelSheet<T>? GetExcelSheet<T>() where T : ExcelRow 
+        => this.Excel.GetSheet<T>();
 
     /// <summary>
     /// Get an <see cref="ExcelSheet{T}"/> with the given Excel sheet row type with a specified language.
@@ -180,20 +178,16 @@ public sealed class DataManager : IDisposable, IServiceType
     /// <param name="language">Language of the sheet to get.</param>
     /// <typeparam name="T">The excel sheet type to get.</typeparam>
     /// <returns>The <see cref="ExcelSheet{T}"/>, giving access to game rows.</returns>
-    public ExcelSheet<T>? GetExcelSheet<T>(ClientLanguage language) where T : ExcelRow
-    {
-        return this.Excel.GetSheet<T>(language.ToLumina());
-    }
+    public ExcelSheet<T>? GetExcelSheet<T>(ClientLanguage language) where T : ExcelRow 
+        => this.Excel.GetSheet<T>(language.ToLumina());
 
     /// <summary>
     /// Get a <see cref="FileResource"/> with the given path.
     /// </summary>
     /// <param name="path">The path inside of the game files.</param>
     /// <returns>The <see cref="FileResource"/> of the file.</returns>
-    public FileResource? GetFile(string path)
-    {
-        return this.GetFile<FileResource>(path);
-    }
+    public FileResource? GetFile(string path) 
+        => this.GetFile<FileResource>(path);
 
     /// <summary>
     /// Get a <see cref="FileResource"/> with the given path, of the given type.
@@ -214,10 +208,8 @@ public sealed class DataManager : IDisposable, IServiceType
     /// </summary>
     /// <param name="path">The path inside of the game files.</param>
     /// <returns>True if the file exists.</returns>
-    public bool FileExists(string path)
-    {
-        return this.GameData.FileExists(path);
-    }
+    public bool FileExists(string path) 
+        => this.GameData.FileExists(path);
 
     /// <summary>
     /// Get a <see cref="TexFile"/> containing the icon with the given ID.
@@ -299,9 +291,7 @@ public sealed class DataManager : IDisposable, IServiceType
     /// <param name="tex">The Lumina <see cref="TexFile"/>.</param>
     /// <returns>A <see cref="TextureWrap"/> that can be used to draw the texture.</returns>
     public TextureWrap? GetImGuiTexture(TexFile? tex)
-    {
-        return tex == null ? null : Service<InterfaceManager>.Get().LoadImageRaw(tex.GetRgbaImageData(), tex.Header.Width, tex.Header.Height, 4);
-    }
+        => tex == null ? null : Service<InterfaceManager>.Get().LoadImageRaw(tex.GetRgbaImageData(), tex.Header.Width, tex.Header.Height, 4);
 
     /// <summary>
     /// Get the passed texture path as a drawable ImGui TextureWrap.
