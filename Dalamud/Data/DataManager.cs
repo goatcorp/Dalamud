@@ -30,6 +30,7 @@ namespace Dalamud.Data;
 public sealed class DataManager : IDisposable, IServiceType
 {
     private const string IconFileFormat = "ui/icon/{0:D3}000/{1}{2:D6}.tex";
+    private const string HighResolutionIconFileFormat = "ui/icon/{0:D3}000/{1}{2:D6}_hr1.tex";
 
     private readonly Thread luminaResourceThread;
     private readonly CancellationTokenSource luminaCancellationTokenSource;
@@ -216,11 +217,19 @@ public sealed class DataManager : IDisposable, IServiceType
     /// </summary>
     /// <param name="iconId">The icon ID.</param>
     /// <returns>The <see cref="TexFile"/> containing the icon.</returns>
-    public TexFile? GetIcon(uint iconId)
-    {
-        return this.GetIcon(this.Language, iconId);
-    }
+    /// todo: remove in api9 in favor of GetIcon(uint iconId, bool highResolution)
+    public TexFile? GetIcon(uint iconId) 
+        => this.GetIcon(this.Language, iconId, false);
 
+    /// <summary>
+    /// Get a <see cref="TexFile"/> containing the icon with the given ID.
+    /// </summary>
+    /// <param name="iconId">The icon ID.</param>
+    /// <param name="highResolution">Return high resolution version.</param>
+    /// <returns>The <see cref="TexFile"/> containing the icon.</returns>
+    public TexFile? GetIcon(uint iconId, bool highResolution)
+        => this.GetIcon(this.Language, iconId, highResolution);
+    
     /// <summary>
     /// Get a <see cref="TexFile"/> containing the icon with the given ID, of the given quality.
     /// </summary>
@@ -239,7 +248,18 @@ public sealed class DataManager : IDisposable, IServiceType
     /// <param name="iconLanguage">The requested language.</param>
     /// <param name="iconId">The icon ID.</param>
     /// <returns>The <see cref="TexFile"/> containing the icon.</returns>
+    /// todo: remove in api9 in favor of GetIcon(ClientLanguage iconLanguage, uint iconId, bool highResolution)
     public TexFile? GetIcon(ClientLanguage iconLanguage, uint iconId)
+        => this.GetIcon(iconLanguage, iconId, false);
+
+    /// <summary>
+    /// Get a <see cref="TexFile"/> containing the icon with the given ID, of the given language.
+    /// </summary>
+    /// <param name="iconLanguage">The requested language.</param>
+    /// <param name="iconId">The icon ID.</param>
+    /// <param name="highResolution">Return high resolution version.</param>
+    /// <returns>The <see cref="TexFile"/> containing the icon.</returns>
+    public TexFile? GetIcon(ClientLanguage iconLanguage, uint iconId, bool highResolution)
     {
         var type = iconLanguage switch
         {
@@ -250,7 +270,7 @@ public sealed class DataManager : IDisposable, IServiceType
             _ => throw new ArgumentOutOfRangeException(nameof(iconLanguage), $"Unknown Language: {iconLanguage}"),
         };
 
-        return this.GetIcon(type, iconId);
+        return this.GetIcon(type, iconId, highResolution);
     }
 
     /// <summary>
@@ -259,20 +279,33 @@ public sealed class DataManager : IDisposable, IServiceType
     /// <param name="type">The type of the icon (e.g. 'hq' to get the HQ variant of an item icon).</param>
     /// <param name="iconId">The icon ID.</param>
     /// <returns>The <see cref="TexFile"/> containing the icon.</returns>
+    /// todo: remove in api9 in favor of GetIcon(string? type, uint iconId, bool highResolution)
     public TexFile? GetIcon(string? type, uint iconId)
+        => this.GetIcon(type, iconId, false);
+
+    /// <summary>
+    /// Get a <see cref="TexFile"/> containing the icon with the given ID, of the given type.
+    /// </summary>
+    /// <param name="type">The type of the icon (e.g. 'hq' to get the HQ variant of an item icon).</param>
+    /// <param name="iconId">The icon ID.</param>
+    /// <param name="highResolution">Return high resolution version.</param>
+    /// <returns>The <see cref="TexFile"/> containing the icon.</returns>
+    public TexFile? GetIcon(string? type, uint iconId, bool highResolution)
     {
+        var format = highResolution ? HighResolutionIconFileFormat : IconFileFormat;
+        
         type ??= string.Empty;
         if (type.Length > 0 && !type.EndsWith("/"))
             type += "/";
 
-        var filePath = string.Format(IconFileFormat, iconId / 1000, type, iconId);
+        var filePath = string.Format(format, iconId / 1000, type, iconId);
         var file = this.GetFile<TexFile>(filePath);
 
         if (type == string.Empty || file != default)
             return file;
 
         // Couldn't get specific type, try for generic version.
-        filePath = string.Format(IconFileFormat, iconId / 1000, string.Empty, iconId);
+        filePath = string.Format(format, iconId / 1000, string.Empty, iconId);
         file = this.GetFile<TexFile>(filePath);
         return file;
     }
@@ -306,8 +339,18 @@ public sealed class DataManager : IDisposable, IServiceType
     /// </summary>
     /// <param name="iconId">The icon ID.</param>
     /// <returns>The <see cref="TextureWrap"/> containing the icon.</returns>
-    public TextureWrap? GetImGuiTextureIcon(uint iconId)
-        => this.GetImGuiTexture(this.GetIcon(iconId));
+    /// todo: remove in api9 in favor of GetImGuiTextureIcon(uint iconId, bool highResolution)
+    public TextureWrap? GetImGuiTextureIcon(uint iconId) 
+        => this.GetImGuiTexture(this.GetIcon(iconId, false));
+
+    /// <summary>
+    /// Get a <see cref="TextureWrap"/> containing the icon with the given ID.
+    /// </summary>
+    /// <param name="iconId">The icon ID.</param>
+    /// <param name="highResolution">Return the high resolution version.</param>
+    /// <returns>The <see cref="TextureWrap"/> containing the icon.</returns>
+    public TextureWrap? GetImGuiTextureIcon(uint iconId, bool highResolution)
+        => this.GetImGuiTexture(this.GetIcon(iconId, highResolution));
 
     /// <summary>
     /// Get a <see cref="TextureWrap"/> containing the icon with the given ID, of the given quality.
