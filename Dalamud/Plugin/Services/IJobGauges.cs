@@ -17,5 +17,5 @@ public interface IJobGauges
     /// </summary>
     /// <typeparam name="T">A JobGauge struct from ClientState.Structs.JobGauge.</typeparam>
     /// <returns>A JobGauge.</returns>
-    public T? Get<T>() where T : JobGaugeBase;
+    public T Get<T>() where T : JobGaugeBase;
 }
