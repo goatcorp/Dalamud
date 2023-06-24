@@ -2,6 +2,7 @@ using System;
 
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
+using Dalamud.Plugin.Services;
 using Serilog;
 
 namespace Dalamud.Game.ClientState.Conditions;
@@ -12,13 +13,16 @@ namespace Dalamud.Game.ClientState.Conditions;
 [PluginInterface]
 [InterfaceVersion("1.0")]
 [ServiceManager.BlockingEarlyLoadedService]
-public sealed partial class Condition : IServiceType
+#pragma warning disable SA1015
+[ResolveVia<ICondition>]
+#pragma warning restore SA1015
+public sealed partial class Condition : IServiceType, ICondition
 {
     /// <summary>
-    /// The current max number of conditions. You can get this just by looking at the condition sheet and how many rows it has.
+    /// Gets the current max number of conditions. You can get this just by looking at the condition sheet and how many rows it has.
     /// </summary>
     public const int MaxConditionEntries = 104;
-
+    
     private readonly bool[] cache = new bool[MaxConditionEntries];
 
     [ServiceManager.ServiceConstructor]
@@ -27,29 +31,17 @@ public sealed partial class Condition : IServiceType
         var resolver = clientState.AddressResolver;
         this.Address = resolver.ConditionFlags;
     }
+    
+    /// <inheritdoc/>
+    public event ICondition.ConditionChangeDelegate? ConditionChange;
 
-    /// <summary>
-    /// A delegate type used with the <see cref="ConditionChange"/> event.
-    /// </summary>
-    /// <param name="flag">The changed condition.</param>
-    /// <param name="value">The value the condition is set to.</param>
-    public delegate void ConditionChangeDelegate(ConditionFlag flag, bool value);
+    /// <inheritdoc/>
+    public int MaxEntries => MaxConditionEntries;
 
-    /// <summary>
-    /// Event that gets fired when a condition is set.
-    /// Should only get fired for actual changes, so the previous value will always be !value.
-    /// </summary>
-    public event ConditionChangeDelegate? ConditionChange;
-
-    /// <summary>
-    /// Gets the condition array base pointer.
-    /// </summary>
+    /// <inheritdoc/>
     public IntPtr Address { get; private set; }
 
-    /// <summary>
-    /// Check the value of a specific condition/state flag.
-    /// </summary>
-    /// <param name="flag">The condition flag to check.</param>
+    /// <inheritdoc/>
     public unsafe bool this[int flag]
     {
         get
@@ -61,14 +53,11 @@ public sealed partial class Condition : IServiceType
         }
     }
 
-    /// <inheritdoc cref="this[int]"/>
-    public unsafe bool this[ConditionFlag flag]
+    /// <inheritdoc/>
+    public bool this[ConditionFlag flag]
         => this[(int)flag];
 
-    /// <summary>
-    /// Check if any condition flags are set.
-    /// </summary>
-    /// <returns>Whether any single flag is set.</returns>
+    /// <inheritdoc/>
     public bool Any()
     {
         for (var i = 0; i < MaxConditionEntries; i++)
@@ -77,6 +66,21 @@ public sealed partial class Condition : IServiceType
 
             if (cond)
                 return true;
+        }
+
+        return false;
+    }
+    
+    /// <inheritdoc/>
+    public bool Any(params ConditionFlag[] flags)
+    {
+        foreach (var flag in flags)
+        {
+            // this[i] performs range checking, so no need to check here
+            if (this[flag]) 
+            {
+                return true;
+            }
         }
 
         return false;
