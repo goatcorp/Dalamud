@@ -17,18 +17,6 @@ public interface IBuddyList : IReadOnlyCollection<BuddyMember>
     public int Length { get; }
     
     /// <summary>
-    /// Gets a value indicating whether the local player's companion is present.
-    /// </summary>
-    [MemberNotNullWhen(true, "CompanionBuddy")]
-    public bool CompanionBuddyPresent { get; }
-    
-    /// <summary>
-    /// Gets a value indicating whether the local player's pet is present.
-    /// </summary>
-    [MemberNotNullWhen(true, "PetBuddy")]
-    public bool PetBuddyPresent { get; }
-    
-    /// <summary>
     /// Gets the active companion buddy.
     /// </summary>
     public BuddyMember? CompanionBuddy { get; }
