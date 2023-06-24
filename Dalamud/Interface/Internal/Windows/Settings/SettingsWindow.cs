@@ -226,7 +226,6 @@ internal class SettingsWindow : Window
 
         configuration.QueueSave();
 
-        _ = Service<PluginManager>.Get().ReloadPluginMastersAsync();
         Service<InterfaceManager>.Get().RebuildFonts();
     }
 }

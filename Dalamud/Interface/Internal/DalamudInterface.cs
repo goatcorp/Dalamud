@@ -16,6 +16,7 @@ using Dalamud.Interface.Animation.EasingFunctions;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Internal.ManagedAsserts;
 using Dalamud.Interface.Internal.Windows;
+using Dalamud.Interface.Internal.Windows.Data;
 using Dalamud.Interface.Internal.Windows.PluginInstaller;
 using Dalamud.Interface.Internal.Windows.SelfTest;
 using Dalamud.Interface.Internal.Windows.Settings;
@@ -642,7 +643,7 @@ internal class DalamudInterface : IDisposable, IServiceType
                         configuration.QueueSave();
 
                         EntryPoint.InitLogging(
-                            startInfo.WorkingDirectory!,
+                            startInfo.LogPath!,
                             startInfo.BootShowConsole,
                             configuration.LogSynchronously,
                             startInfo.LogName);
@@ -900,7 +901,7 @@ internal class DalamudInterface : IDisposable, IServiceType
 
                     ImGui.Separator();
                     ImGui.MenuItem("API Level:" + PluginManager.DalamudApiLevel, false);
-                    ImGui.MenuItem("Loaded plugins:" + pluginManager.InstalledPlugins.Count, false);
+                    ImGui.MenuItem("Loaded plugins:" + pluginManager.InstalledPlugins.Count(), false);
                     ImGui.EndMenu();
                 }
 

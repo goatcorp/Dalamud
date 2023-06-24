@@ -76,7 +76,7 @@ internal record LocalPluginManifest : PluginManifest
     /// </summary>
     /// <param name="manifestFile">Path to the manifest.</param>
     /// <returns>A <see cref="PluginManifest"/> object.</returns>
-    public static LocalPluginManifest Load(FileInfo manifestFile) => JsonConvert.DeserializeObject<LocalPluginManifest>(File.ReadAllText(manifestFile.FullName))!;
+    public static LocalPluginManifest? Load(FileInfo manifestFile) => JsonConvert.DeserializeObject<LocalPluginManifest>(File.ReadAllText(manifestFile.FullName));
 
     /// <summary>
     /// A standardized way to get the plugin DLL name that should accompany a manifest file. May not exist.

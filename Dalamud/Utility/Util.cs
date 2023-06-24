@@ -13,6 +13,7 @@ using System.Text;
 using Dalamud.Configuration.Internal;
 using Dalamud.Data;
 using Dalamud.Game;
+using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Interface;
 using Dalamud.Interface.Colors;
@@ -36,7 +37,7 @@ public static class Util
 
     private static ulong moduleStartAddr;
     private static ulong moduleEndAddr;
-
+    
     /// <summary>
     /// Gets the assembly version of Dalamud.
     /// </summary>
@@ -650,6 +651,40 @@ public static class Util
         return names.ElementAt(rng.Next(0, names.Count() - 1)).Singular.RawString;
     }
 
+    /// <summary>
+    /// Print formatted GameObject Information to ImGui
+    /// </summary>
+    /// <param name="actor">Game Object to Display.</param>
+    /// <param name="tag">Display Tag.</param>
+    /// <param name="resolveGameData">If the GameObjects data should be resolved.</param>
+    internal static void PrintGameObject(GameObject actor, string tag, bool resolveGameData)
+    {
+        var actorString =
+            $"{actor.Address.ToInt64():X}:{actor.ObjectId:X}[{tag}] - {actor.ObjectKind} - {actor.Name} - X{actor.Position.X} Y{actor.Position.Y} Z{actor.Position.Z} D{actor.YalmDistanceX} R{actor.Rotation} - Target: {actor.TargetObjectId:X}\n";
+
+        if (actor is Npc npc)
+            actorString += $"       DataId: {npc.DataId}  NameId:{npc.NameId}\n";
+
+        if (actor is Character chara)
+        {
+            actorString +=
+                $"       Level: {chara.Level} ClassJob: {(resolveGameData ? chara.ClassJob.GameData?.Name : chara.ClassJob.Id.ToString())} CHP: {chara.CurrentHp} MHP: {chara.MaxHp} CMP: {chara.CurrentMp} MMP: {chara.MaxMp}\n       Customize: {BitConverter.ToString(chara.Customize).Replace("-", " ")} StatusFlags: {chara.StatusFlags}\n";
+        }
+
+        if (actor is PlayerCharacter pc)
+        {
+            actorString +=
+                $"       HomeWorld: {(resolveGameData ? pc.HomeWorld.GameData?.Name : pc.HomeWorld.Id.ToString())} CurrentWorld: {(resolveGameData ? pc.CurrentWorld.GameData?.Name : pc.CurrentWorld.Id.ToString())} FC: {pc.CompanyTag}\n";
+        }
+
+        ImGui.TextUnformatted(actorString);
+        ImGui.SameLine();
+        if (ImGui.Button($"C##{actor.Address.ToInt64()}"))
+        {
+            ImGui.SetClipboardText(actor.Address.ToInt64().ToString("X"));
+        }
+    }
+    
     private static unsafe void ShowValue(ulong addr, IEnumerable<string> path, Type type, object value)
     {
         if (type.IsPointer)

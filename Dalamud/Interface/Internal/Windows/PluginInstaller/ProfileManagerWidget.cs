@@ -107,10 +107,12 @@ internal class ProfileManagerWidget
 
         var windowSize = ImGui.GetWindowSize();
 
-        if (ImGui.BeginChild("###profileChooserScrolling"))
+        using var profileChooserChild = ImRaii.Child("###profileChooserScrolling");
+        if (profileChooserChild)
         {
             Guid? toCloneGuid = null;
 
+            using var syncScope = profman.GetSyncScope();
             foreach (var profile in profman.Profiles)
             {
                 if (profile.IsDefaultProfile)
@@ -119,7 +121,7 @@ internal class ProfileManagerWidget
                 var isEnabled = profile.IsEnabled;
                 if (ImGuiComponents.ToggleButton($"###toggleButton{profile.Guid}", ref isEnabled))
                 {
-                    Task.Run(() => profile.SetState(isEnabled))
+                    Task.Run(() => profile.SetStateAsync(isEnabled))
                         .ContinueWith(this.installer.DisplayErrorContinuation, Locs.ErrorCouldNotChangeState);
                 }
 
@@ -179,8 +181,6 @@ internal class ProfileManagerWidget
                 ImGuiHelpers.CenteredText(Locs.AddProfileHint);
                 ImGui.PopStyleColor();
             }
-
-            ImGui.EndChild();
         }
     }
 
@@ -206,6 +206,7 @@ internal class ProfileManagerWidget
         }
 
         const string addPluginToProfilePopup = "###addPluginToProfile";
+        var addPluginToProfilePopupId = ImGui.GetID(addPluginToProfilePopup);
         using (var popup = ImRaii.Popup(addPluginToProfilePopup))
         {
             if (popup.Success)
@@ -228,9 +229,7 @@ internal class ProfileManagerWidget
 
                         if (ImGui.Selectable($"{plugin.Manifest.Name}###selector{plugin.Manifest.InternalName}"))
                         {
-                            // TODO this sucks
-                            profile.AddOrUpdate(plugin.Manifest.InternalName, true, false);
-                            Task.Run(() => profman.ApplyAllWantStates())
+                            Task.Run(() => profile.AddOrUpdateAsync(plugin.Manifest.InternalName, true, false))
                                 .ContinueWith(this.installer.DisplayErrorContinuation, Locs.ErrorCouldNotChangeState);
                         }
                     }
@@ -273,8 +272,12 @@ internal class ProfileManagerWidget
             this.Reset();
 
             // DeleteProfile() is sync, it doesn't apply and we are modifying the plugins collection. Will throw below when iterating
-            profman.DeleteProfile(profile);
-            Task.Run(() => profman.ApplyAllWantStates())
+            // TODO: DeleteProfileAsync should probably apply as well
+            Task.Run(async () =>
+                {
+                    await profman.DeleteProfileAsync(profile);
+                    await profman.ApplyAllWantStatesAsync();
+                })
                 .ContinueWith(t =>
                 {
                     this.installer.DisplayErrorContinuation(t, Locs.ErrorCouldNotChangeState);
@@ -300,7 +303,7 @@ internal class ProfileManagerWidget
         var isEnabled = profile.IsEnabled;
         if (ImGuiComponents.ToggleButton($"###toggleButton{profile.Guid}", ref isEnabled))
         {
-            Task.Run(() => profile.SetState(isEnabled))
+            Task.Run(() => profile.SetStateAsync(isEnabled))
                 .ContinueWith(this.installer.DisplayErrorContinuation, Locs.ErrorCouldNotChangeState);
         }
 
@@ -322,12 +325,14 @@ internal class ProfileManagerWidget
         ImGui.Separator();
         var wantPluginAddPopup = false;
 
-        if (ImGui.BeginChild("###profileEditorPluginList"))
+        using var pluginListChild = ImRaii.Child("###profileEditorPluginList");
+        if (pluginListChild)
         {
             var pluginLineHeight = 32 * ImGuiHelpers.GlobalScale;
             string? wantRemovePluginInternalName = null;
 
-            foreach (var plugin in profile.Plugins)
+            using var syncScope = profile.GetSyncScope();
+            foreach (var plugin in profile.Plugins.ToArray())
             {
                 didAny = true;
                 var pmPlugin = pm.InstalledPlugins.FirstOrDefault(x => x.Manifest.InternalName == plugin.InternalName);
@@ -391,7 +396,7 @@ internal class ProfileManagerWidget
                 var enabled = plugin.IsEnabled;
                 if (ImGui.Checkbox($"###{this.editingProfileGuid}-{plugin.InternalName}", ref enabled))
                 {
-                    Task.Run(() => profile.AddOrUpdate(plugin.InternalName, enabled))
+                    Task.Run(() => profile.AddOrUpdateAsync(plugin.InternalName, enabled))
                         .ContinueWith(this.installer.DisplayErrorContinuation, Locs.ErrorCouldNotChangeState);
                 }
 
@@ -411,9 +416,8 @@ internal class ProfileManagerWidget
             if (wantRemovePluginInternalName != null)
             {
                 // TODO: handle error
-                profile.Remove(wantRemovePluginInternalName, false);
-                Task.Run(() => profman.ApplyAllWantStates())
-                    .ContinueWith(this.installer.DisplayErrorContinuation, Locs.ErrorCouldNotRemove);
+                Task.Run(() => profile.RemoveAsync(wantRemovePluginInternalName, false))
+                                .ContinueWith(this.installer.DisplayErrorContinuation, Locs.ErrorCouldNotRemove);
             }
 
             if (!didAny)
@@ -436,14 +440,12 @@ internal class ProfileManagerWidget
             ImGui.TextUnformatted(addPluginsText);
 
             ImGuiHelpers.ScaledDummy(10);
-
-            ImGui.EndChild();
         }
 
         if (wantPluginAddPopup)
         {
             this.pickerSearch = string.Empty;
-            ImGui.OpenPopup(addPluginToProfilePopup);
+            ImGui.OpenPopup(addPluginToProfilePopupId);
         }
     }
 

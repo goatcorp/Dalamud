@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -41,7 +40,14 @@ internal class ProfileManager : IServiceType
     /// <summary>
     /// Gets the default profile.
     /// </summary>
-    public Profile DefaultProfile => this.profiles.First(x => x.IsDefaultProfile);
+    public Profile DefaultProfile
+    {
+        get
+        {
+            lock (this.profiles)
+                return this.profiles.First(x => x.IsDefaultProfile);
+        }
+    }
 
     /// <summary>
     /// Gets all profiles, including the default profile.
@@ -52,6 +58,13 @@ internal class ProfileManager : IServiceType
     /// Gets a value indicating whether or not the profile manager is busy enabling/disabling plugins.
     /// </summary>
     public bool IsBusy => this.isBusy;
+    
+    /// <summary>
+    /// Get a disposable that will lock the profile list while it is not disposed.
+    /// You must NEVER use this in async code.
+    /// </summary>
+    /// <returns>The aforementioned disposable.</returns>
+    public IDisposable GetSyncScope() => new ScopedSyncRoot(this.profiles);
 
     /// <summary>
     /// Check if any enabled profile wants a specific plugin enabled.
@@ -60,25 +73,29 @@ internal class ProfileManager : IServiceType
     /// <param name="defaultState">The state the plugin shall be in, if it needs to be added.</param>
     /// <param name="addIfNotDeclared">Whether or not the plugin should be added to the default preset, if it's not present in any preset.</param>
     /// <returns>Whether or not the plugin shall be enabled.</returns>
-    public bool GetWantState(string internalName, bool defaultState, bool addIfNotDeclared = true)
+    public async Task<bool> GetWantStateAsync(string internalName, bool defaultState, bool addIfNotDeclared = true)
     {
         var want = false;
         var wasInAnyProfile = false;
-
-        foreach (var profile in this.profiles)
+        
+        lock (this.profiles)
         {
-            var state = profile.WantsPlugin(internalName);
-            if (state.HasValue)
+            foreach (var profile in this.profiles)
             {
-                want = want || (profile.IsEnabled && state.Value);
-                wasInAnyProfile = true;
+                var state = profile.WantsPlugin(internalName);
+                if (state.HasValue)
+                {
+                    want = want || (profile.IsEnabled && state.Value);
+                    wasInAnyProfile = true;
+                }
             }
         }
 
         if (!wasInAnyProfile && addIfNotDeclared)
         {
             Log.Warning("{Name} was not in any profile, adding to default with {Default}", internalName, defaultState);
-            this.DefaultProfile.AddOrUpdate(internalName, defaultState, false);
+            await this.DefaultProfile.AddOrUpdateAsync(internalName, defaultState, false);
+
             return defaultState;
         }
 
@@ -91,7 +108,10 @@ internal class ProfileManager : IServiceType
     /// <param name="internalName">The internal name of the plugin.</param>
     /// <returns>Whether or not the plugin is in any profile.</returns>
     public bool IsInAnyProfile(string internalName)
-        => this.profiles.Any(x => x.WantsPlugin(internalName) != null);
+    {
+        lock (this.profiles)
+            return this.profiles.Any(x => x.WantsPlugin(internalName) != null);
+    }
 
     /// <summary>
     /// Check whether a plugin is only in the default profile.
@@ -167,16 +187,24 @@ internal class ProfileManager : IServiceType
     /// Go through all profiles and plugins, and enable/disable plugins they want active.
     /// This will block until all plugins have been loaded/reloaded.
     /// </summary>
-    public void ApplyAllWantStates()
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    public async Task ApplyAllWantStatesAsync()
     {
+        if (this.isBusy)
+            throw new Exception("Already busy, this must not run in parallel. Check before starting another apply!");
+
         this.isBusy = true;
         Log.Information("Getting want states...");
 
-        var wantActive = this.profiles
+        List<string> wantActive;
+        lock (this.profiles)
+        {
+            wantActive = this.profiles
                              .Where(x => x.IsEnabled)
                              .SelectMany(profile => profile.Plugins.Where(plugin => plugin.IsEnabled)
                                                            .Select(plugin => plugin.InternalName))
                              .Distinct().ToList();
+        }
 
         foreach (var internalName in wantActive)
         {
@@ -185,9 +213,9 @@ internal class ProfileManager : IServiceType
 
         Log.Information("Applying want states...");
 
-        var pm = Service<PluginManager>.Get();
         var tasks = new List<Task>();
 
+        var pm = Service<PluginManager>.Get();
         foreach (var installedPlugin in pm.InstalledPlugins)
         {
             var wantThis = wantActive.Contains(installedPlugin.Manifest.InternalName);
@@ -215,7 +243,7 @@ internal class ProfileManager : IServiceType
         // This is probably not ideal... Might need to rethink the error handling strategy for this.
         try
         {
-            Task.WaitAll(tasks.ToArray());
+            await Task.WhenAll(tasks.ToArray());
         }
         catch (Exception e)
         {
@@ -233,12 +261,13 @@ internal class ProfileManager : IServiceType
     /// You should definitely apply states after this. It doesn't do it for you.
     /// </remarks>
     /// <param name="profile">The profile to delete.</param>
-    public void DeleteProfile(Profile profile)
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    public async Task DeleteProfileAsync(Profile profile)
     {
         // We need to remove all plugins from the profile first, so that they are re-added to the default profile if needed
         foreach (var plugin in profile.Plugins.ToArray())
         {
-            profile.Remove(plugin.InternalName, false);
+            await profile.RemoveAsync(plugin.InternalName, false);
         }
 
         if (!this.config.SavedProfiles!.Remove(profile.Model))

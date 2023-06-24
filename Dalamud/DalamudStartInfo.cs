@@ -28,6 +28,7 @@ public record DalamudStartInfo : IServiceType
     {
         this.WorkingDirectory = other.WorkingDirectory;
         this.ConfigurationPath = other.ConfigurationPath;
+        this.LogPath = other.LogPath;
         this.LogName = other.LogName;
         this.PluginDirectory = other.PluginDirectory;
         this.AssetDirectory = other.AssetDirectory;
@@ -60,6 +61,11 @@ public record DalamudStartInfo : IServiceType
     /// Gets or sets the path to the configuration file.
     /// </summary>
     public string? ConfigurationPath { get; set; }
+
+    /// <summary>
+    /// Gets or sets the path of the log files.
+    /// </summary>
+    public string? LogPath { get; set; }
 
     /// <summary>
     /// Gets or sets the name of the log file.

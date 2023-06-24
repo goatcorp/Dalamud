@@ -53,8 +53,6 @@ internal unsafe class UiDebug
     {
     }
 
-    private delegate AtkStage* GetAtkStageSingleton();
-
     /// <summary>
     /// Renders this window.
     /// </summary>
@@ -165,7 +163,7 @@ internal unsafe class UiDebug
     private void PrintSimpleNode(AtkResNode* node, string treePrefix)
     {
         var popped = false;
-        var isVisible = (node->Flags & 0x10) == 0x10;
+        var isVisible = node->NodeFlags.HasFlag(NodeFlags.Visible);
 
         if (isVisible)
             ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(0, 255, 0, 255));
@@ -296,7 +294,7 @@ internal unsafe class UiDebug
         var compNode = (AtkComponentNode*)node;
 
         var popped = false;
-        var isVisible = (node->Flags & 0x10) == 0x10;
+        var isVisible = node->NodeFlags.HasFlag(NodeFlags.Visible);
 
         var componentInfo = compNode->Component->UldManager;
 
@@ -396,7 +394,7 @@ internal unsafe class UiDebug
         ImGui.SameLine();
         if (ImGui.SmallButton($"T:Visible##{(ulong)node:X}"))
         {
-            node->Flags ^= 0x10;
+            node->NodeFlags ^= NodeFlags.Visible;
         }
 
         ImGui.SameLine();
@@ -573,7 +571,7 @@ internal unsafe class UiDebug
         if (node == null) return false;
         while (node != null)
         {
-            if ((node->Flags & (short)NodeFlags.Visible) != (short)NodeFlags.Visible) return false;
+            if (!node->NodeFlags.HasFlag(NodeFlags.Visible)) return false;
             node = node->ParentNode;
         }
 

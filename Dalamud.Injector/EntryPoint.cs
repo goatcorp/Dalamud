@@ -115,18 +115,18 @@ namespace Dalamud.Injector
             }
         }
 
-        private static string GetLogPath(string fileName, string logName)
+        private static string GetLogPath(string? baseDirectory, string fileName, string? logName)
         {
-            var baseDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            baseDirectory ??= Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            baseDirectory ??= Environment.CurrentDirectory;
             fileName = !string.IsNullOrEmpty(logName) ? $"{fileName}-{logName}.log" : $"{fileName}.log";
 
-#if DEBUG
-            var logPath = Path.Combine(baseDirectory, fileName);
-#else
-            var logPath = Path.Combine(baseDirectory, "..", "..", "..", fileName);
-#endif
+            // TODO(api9): remove
+            var previousLogPath = Path.Combine(baseDirectory, "..", "..", "..", fileName);
+            if (File.Exists(previousLogPath))
+                File.Delete(previousLogPath);
 
-            return logPath;
+            return Path.Combine(baseDirectory, fileName);
         }
 
         private static void Init(List<string> args)
@@ -168,6 +168,7 @@ namespace Dalamud.Injector
                     Log.Error("A fatal error has occurred: {Exception}", eventArgs.ExceptionObject.ToString());
                 }
 
+                Log.CloseAndFlush();
                 Environment.Exit(-1);
             };
         }
@@ -180,15 +181,18 @@ namespace Dalamud.Injector
             };
 
             var logName = args.FirstOrDefault(x => x.StartsWith("--logname="))?[10..];
-            var logPath = GetLogPath("dalamud.injector", logName);
+            var logBaseDir = args.FirstOrDefault(x => x.StartsWith("--logpath="))?[10..];
+            var logPath = GetLogPath(logBaseDir, "dalamud.injector", logName);
 
             CullLogFile(logPath, 1 * 1024 * 1024);
 
             Log.Logger = new LoggerConfiguration()
-                .WriteTo.Console(standardErrorFromLevel: LogEventLevel.Verbose)
-                .WriteTo.Async(a => a.File(logPath))
-                .MinimumLevel.ControlledBy(levelSwitch)
-                .CreateLogger();
+                         .WriteTo.File(logPath, fileSizeLimitBytes: null)
+                         .MinimumLevel.ControlledBy(levelSwitch)
+                         .CreateLogger();
+
+            Log.Information(new string('-', 80));
+            Log.Information("Dalamud.Injector, (c) 2023 XIVLauncher Contributors");
         }
 
         private static void CullLogFile(string logPath, int cullingFileSize)
@@ -199,9 +203,10 @@ namespace Dalamud.Injector
 
                 var logFile = new FileInfo(logPath);
 
+                // Leave it to serilog
                 if (!logFile.Exists)
                 {
-                    logFile.Create();
+                    return;
                 }
 
                 if (logFile.Length <= cullingFileSize)
@@ -256,6 +261,7 @@ namespace Dalamud.Injector
             var assetDirectory = startInfo.AssetDirectory;
             var delayInitializeMs = startInfo.DelayInitializeMs;
             var logName = startInfo.LogName;
+            var logPath = startInfo.LogPath;
             var languageStr = startInfo.Language.ToString().ToLowerInvariant();
             var troubleshootingData = "{\"empty\": true, \"description\": \"No troubleshooting data supplied.\"}";
 
@@ -292,6 +298,10 @@ namespace Dalamud.Injector
                 else if (args[i].StartsWith(key = "--logname="))
                 {
                     logName = args[i][key.Length..];
+                }
+                else if (args[i].StartsWith(key = "--logpath="))
+                {
+                    logPath = args[i][key.Length..];
                 }
                 else
                 {
@@ -357,11 +367,19 @@ namespace Dalamud.Injector
             startInfo.GameVersion = null;
             startInfo.TroubleshootingPackData = troubleshootingData;
             startInfo.LogName = logName;
+            startInfo.LogPath = logPath;
+
+            // TODO: XL should set --logpath to its roaming path. We are only doing this here until that's rolled out.
+#if DEBUG
+            startInfo.LogPath ??= startInfo.WorkingDirectory;
+#else
+            startInfo.LogPath ??= xivlauncherDir;
+#endif
 
             // Set boot defaults
             startInfo.BootShowConsole = args.Contains("--console");
             startInfo.BootEnableEtw = args.Contains("--etw");
-            startInfo.BootLogPath = GetLogPath("dalamud.boot", startInfo.LogName);
+            startInfo.BootLogPath = GetLogPath(startInfo.LogPath, "dalamud.boot", startInfo.LogName);
             startInfo.BootEnabledGameFixes = new List<string> { "prevent_devicechange_crashes", "disable_game_openprocess_access_check", "redirect_openprocess", "backup_userdata_save", "clr_failfast_hijack", "prevent_icmphandle_crashes" };
             startInfo.BootDotnetOpenProcessHookMode = 0;
             startInfo.BootWaitMessageBox |= args.Contains("--msgbox1") ? 1 : 0;
@@ -418,6 +436,7 @@ namespace Dalamud.Injector
             Console.WriteLine("Enable VEH:\t[--veh], [--veh-full]");
             Console.WriteLine("Show messagebox:\t[--msgbox1], [--msgbox2], [--msgbox3]");
             Console.WriteLine("No plugins:\t[--no-plugin] [--no-3rd-plugin]");
+            Console.WriteLine("Logging:\t[--logname=<logfile suffix>] [--logpath=<log base directory>]");
 
             return 0;
         }
@@ -520,6 +539,7 @@ namespace Dalamud.Injector
             foreach (var process in processes)
                 Inject(process, AdjustStartInfo(dalamudStartInfo, process.MainModule.FileName), tryFixAcl);
 
+            Log.CloseAndFlush();
             return 0;
         }
 
@@ -808,6 +828,7 @@ namespace Dalamud.Injector
 
             Console.WriteLine($"{{\"pid\": {process.Id}, \"handle\": {processHandleForOwner}}}");
 
+            Log.CloseAndFlush();
             return 0;
         }
 
