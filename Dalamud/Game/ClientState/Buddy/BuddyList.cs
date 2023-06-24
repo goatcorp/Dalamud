@@ -5,6 +5,7 @@ using System.Runtime.InteropServices;
 
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
+using Dalamud.Plugin.Services;
 using Serilog;
 
 namespace Dalamud.Game.ClientState.Buddy;
@@ -16,7 +17,10 @@ namespace Dalamud.Game.ClientState.Buddy;
 [PluginInterface]
 [InterfaceVersion("1.0")]
 [ServiceManager.BlockingEarlyLoadedService]
-public sealed partial class BuddyList : IServiceType
+#pragma warning disable SA1015
+[ResolveVia<IBuddyList>]
+#pragma warning restore SA1015
+public sealed partial class BuddyList : IServiceType, IBuddyList
 {
     private const uint InvalidObjectID = 0xE0000000;
 
@@ -165,7 +169,7 @@ public sealed partial class BuddyList : IServiceType
 /// <summary>
 /// This collection represents the buddies present in your squadron or trust party.
 /// </summary>
-public sealed partial class BuddyList : IReadOnlyCollection<BuddyMember>
+public sealed partial class BuddyList
 {
     /// <inheritdoc/>
     int IReadOnlyCollection<BuddyMember>.Count => this.Length;
