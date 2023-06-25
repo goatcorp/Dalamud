@@ -1,8 +1,10 @@
 using System;
+using System.Numerics;
 
 using Dalamud.Hooking;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
+using Dalamud.Plugin.Services;
 using ImGuiNET;
 using Serilog;
 
@@ -16,9 +18,12 @@ namespace Dalamud.Game.ClientState.GamePad;
 [PluginInterface]
 [InterfaceVersion("1.0")]
 [ServiceManager.BlockingEarlyLoadedService]
-public unsafe class GamepadState : IDisposable, IServiceType
+#pragma warning disable SA1015
+[ResolveVia<IGamepadState>]
+#pragma warning restore SA1015
+public unsafe class GamepadState : IDisposable, IServiceType, IGamepadState
 {
-    private readonly Hook<ControllerPoll> gamepadPoll;
+    private readonly Hook<ControllerPoll>? gamepadPoll;
 
     private bool isDisposed;
 
@@ -42,44 +47,60 @@ public unsafe class GamepadState : IDisposable, IServiceType
     /// </summary>
     public IntPtr GamepadInputAddress { get; private set; }
 
+    /// <inheritdoc/>
+    public Vector2 LeftStick => 
+        new(this.leftStickX, this.leftStickY);
+    
+    /// <inheritdoc/>
+    public Vector2 RightStick => 
+        new(this.rightStickX, this.rightStickY);
+
     /// <summary>
     ///     Gets the state of the left analogue stick in the left direction between 0 (not tilted) and 1 (max tilt).
     /// </summary>
+    [Obsolete("Use IGamepadState.LeftStick.X", false)]
     public float LeftStickLeft => this.leftStickX < 0 ? -this.leftStickX / 100f : 0;
 
     /// <summary>
     ///     Gets the state of the left analogue stick in the right direction between 0 (not tilted) and 1 (max tilt).
     /// </summary>
+    [Obsolete("Use IGamepadState.LeftStick.X", false)]
     public float LeftStickRight => this.leftStickX > 0 ? this.leftStickX / 100f : 0;
 
     /// <summary>
     ///     Gets the state of the left analogue stick in the up direction between 0 (not tilted) and 1 (max tilt).
     /// </summary>
+    [Obsolete("Use IGamepadState.LeftStick.Y", false)]
     public float LeftStickUp => this.leftStickY > 0 ? this.leftStickY / 100f : 0;
 
     /// <summary>
     ///     Gets the state of the left analogue stick in the down direction between 0 (not tilted) and 1 (max tilt).
     /// </summary>
+    [Obsolete("Use IGamepadState.LeftStick.Y", false)]
     public float LeftStickDown => this.leftStickY < 0 ? -this.leftStickY / 100f : 0;
 
     /// <summary>
     ///     Gets the state of the right analogue stick in the left direction between 0 (not tilted) and 1 (max tilt).
     /// </summary>
+    [Obsolete("Use IGamepadState.RightStick.X", false)]
     public float RightStickLeft => this.rightStickX < 0 ? -this.rightStickX / 100f : 0;
 
     /// <summary>
     ///     Gets the state of the right analogue stick in the right direction between 0 (not tilted) and 1 (max tilt).
     /// </summary>
+    [Obsolete("Use IGamepadState.RightStick.X", false)]
     public float RightStickRight => this.rightStickX > 0 ? this.rightStickX / 100f : 0;
 
     /// <summary>
     ///     Gets the state of the right analogue stick in the up direction between 0 (not tilted) and 1 (max tilt).
     /// </summary>
+    [Obsolete("Use IGamepadState.RightStick.Y", false)]
     public float RightStickUp => this.rightStickY > 0 ? this.rightStickY / 100f : 0;
 
     /// <summary>
     ///     Gets the state of the right analogue stick in the down direction between 0 (not tilted) and 1 (max tilt).
     /// </summary>
+    [Obsolete("Use IGamepadState.RightStick.Y", false)]
     public float RightStickDown => this.rightStickY < 0 ? -this.rightStickY / 100f : 0;
 
     /// <summary>
@@ -120,43 +141,16 @@ public unsafe class GamepadState : IDisposable, IServiceType
     /// </summary>
     internal bool NavEnableGamepad { get; set; }
 
-    /// <summary>
-    /// Gets whether <paramref name="button"/> has been pressed.
-    ///
-    /// Only true on first frame of the press.
-    /// If ImGuiConfigFlags.NavEnableGamepad is set, this is unreliable.
-    /// </summary>
-    /// <param name="button">The button to check for.</param>
-    /// <returns>1 if pressed, 0 otherwise.</returns>
+    /// <inheritdoc/>
     public float Pressed(GamepadButtons button) => (this.ButtonsPressed & (ushort)button) > 0 ? 1 : 0;
 
-    /// <summary>
-    /// Gets whether <paramref name="button"/> is being pressed.
-    ///
-    /// True in intervals if button is held down.
-    /// If ImGuiConfigFlags.NavEnableGamepad is set, this is unreliable.
-    /// </summary>
-    /// <param name="button">The button to check for.</param>
-    /// <returns>1 if still pressed during interval, 0 otherwise or in between intervals.</returns>
+    /// <inheritdoc/>
     public float Repeat(GamepadButtons button) => (this.ButtonsRepeat & (ushort)button) > 0 ? 1 : 0;
 
-    /// <summary>
-    /// Gets whether <paramref name="button"/> has been released.
-    ///
-    /// Only true the frame after release.
-    /// If ImGuiConfigFlags.NavEnableGamepad is set, this is unreliable.
-    /// </summary>
-    /// <param name="button">The button to check for.</param>
-    /// <returns>1 if released, 0 otherwise.</returns>
+    /// <inheritdoc/>
     public float Released(GamepadButtons button) => (this.ButtonsReleased & (ushort)button) > 0 ? 1 : 0;
 
-    /// <summary>
-    /// Gets the raw state of <paramref name="button"/>.
-    ///
-    /// Is set the entire time a button is pressed down.
-    /// </summary>
-    /// <param name="button">The button to check for.</param>
-    /// <returns>1 the whole time button is pressed, 0 otherwise.</returns>
+    /// <inheritdoc/>
     public float Raw(GamepadButtons button) => (this.ButtonsRaw & (ushort)button) > 0 ? 1 : 0;
 
     /// <summary>
@@ -171,12 +165,12 @@ public unsafe class GamepadState : IDisposable, IServiceType
     [ServiceManager.CallWhenServicesReady]
     private void ContinueConstruction()
     {
-        this.gamepadPoll.Enable();
+        this.gamepadPoll?.Enable();
     }
 
     private int GamepadPollDetour(IntPtr gamepadInput)
     {
-        var original = this.gamepadPoll.Original(gamepadInput);
+        var original = this.gamepadPoll!.Original(gamepadInput);
         try
         {
             this.GamepadInputAddress = gamepadInput;
