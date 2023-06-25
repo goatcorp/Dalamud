@@ -33,7 +33,7 @@ jobs:
           git config --global pull.rebase false
       - name: Update submodule
         run: |
-          git fetch
+          git fetch origin master
           git merge -s recursive -X ours origin/master
           git push origin ${{ matrix.branches }}-rollup --force
       - name: Create PR
