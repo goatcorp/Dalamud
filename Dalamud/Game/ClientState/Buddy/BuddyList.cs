@@ -5,6 +5,7 @@ using System.Runtime.InteropServices;
 
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
+using Dalamud.Plugin.Services;
 using Serilog;
 
 namespace Dalamud.Game.ClientState.Buddy;
@@ -16,7 +17,10 @@ namespace Dalamud.Game.ClientState.Buddy;
 [PluginInterface]
 [InterfaceVersion("1.0")]
 [ServiceManager.BlockingEarlyLoadedService]
-public sealed partial class BuddyList : IServiceType
+#pragma warning disable SA1015
+[ResolveVia<IBuddyList>]
+#pragma warning restore SA1015
+public sealed partial class BuddyList : IServiceType, IBuddyList
 {
     private const uint InvalidObjectID = 0xE0000000;
 
@@ -33,9 +37,7 @@ public sealed partial class BuddyList : IServiceType
         Log.Verbose($"Buddy list address 0x{this.address.BuddyList.ToInt64():X}");
     }
 
-    /// <summary>
-    /// Gets the amount of battle buddies the local player has.
-    /// </summary>
+    /// <inheritdoc/>
     public int Length
     {
         get
@@ -56,16 +58,16 @@ public sealed partial class BuddyList : IServiceType
     /// <summary>
     /// Gets a value indicating whether the local player's companion is present.
     /// </summary>
+    [Obsolete("Use CompanionBuddy != null", false)]
     public bool CompanionBuddyPresent => this.CompanionBuddy != null;
 
     /// <summary>
     /// Gets a value indicating whether the local player's pet is present.
     /// </summary>
+    [Obsolete("Use PetBuddy != null", false)]
     public bool PetBuddyPresent => this.PetBuddy != null;
 
-    /// <summary>
-    /// Gets the active companion buddy.
-    /// </summary>
+    /// <inheritdoc/>
     public BuddyMember? CompanionBuddy
     {
         get
@@ -75,9 +77,7 @@ public sealed partial class BuddyList : IServiceType
         }
     }
 
-    /// <summary>
-    /// Gets the active pet buddy.
-    /// </summary>
+    /// <inheritdoc/>
     public BuddyMember? PetBuddy
     {
         get
@@ -96,11 +96,7 @@ public sealed partial class BuddyList : IServiceType
 
     private unsafe FFXIVClientStructs.FFXIV.Client.Game.UI.Buddy* BuddyListStruct => (FFXIVClientStructs.FFXIV.Client.Game.UI.Buddy*)this.BuddyListAddress;
 
-    /// <summary>
-    /// Gets a battle buddy at the specified spawn index.
-    /// </summary>
-    /// <param name="index">Spawn index.</param>
-    /// <returns>A <see cref="BuddyMember"/> at the specified spawn index.</returns>
+    /// <inheritdoc/>
     public BuddyMember? this[int index]
     {
         get
@@ -110,29 +106,19 @@ public sealed partial class BuddyList : IServiceType
         }
     }
 
-    /// <summary>
-    /// Gets the address of the companion buddy.
-    /// </summary>
-    /// <returns>The memory address of the companion buddy.</returns>
+    /// <inheritdoc/>
     public unsafe IntPtr GetCompanionBuddyMemberAddress()
     {
         return (IntPtr)(&this.BuddyListStruct->Companion);
     }
 
-    /// <summary>
-    /// Gets the address of the pet buddy.
-    /// </summary>
-    /// <returns>The memory address of the pet buddy.</returns>
+    /// <inheritdoc/>
     public unsafe IntPtr GetPetBuddyMemberAddress()
     {
         return (IntPtr)(&this.BuddyListStruct->Pet);
     }
 
-    /// <summary>
-    /// Gets the address of the battle buddy at the specified index of the buddy list.
-    /// </summary>
-    /// <param name="index">The index of the battle buddy.</param>
-    /// <returns>The memory address of the battle buddy.</returns>
+    /// <inheritdoc/>
     public unsafe IntPtr GetBattleBuddyMemberAddress(int index)
     {
         if (index < 0 || index >= 3)
@@ -141,11 +127,7 @@ public sealed partial class BuddyList : IServiceType
         return (IntPtr)(this.BuddyListStruct->BattleBuddies + (index * BuddyMemberSize));
     }
 
-    /// <summary>
-    /// Create a reference to a buddy.
-    /// </summary>
-    /// <param name="address">The address of the buddy in memory.</param>
-    /// <returns><see cref="BuddyMember"/> object containing the requested data.</returns>
+    /// <inheritdoc/>
     public BuddyMember? CreateBuddyMemberReference(IntPtr address)
     {
         if (this.clientState.LocalContentId == 0)
@@ -165,7 +147,7 @@ public sealed partial class BuddyList : IServiceType
 /// <summary>
 /// This collection represents the buddies present in your squadron or trust party.
 /// </summary>
-public sealed partial class BuddyList : IReadOnlyCollection<BuddyMember>
+public sealed partial class BuddyList
 {
     /// <inheritdoc/>
     int IReadOnlyCollection<BuddyMember>.Count => this.Length;
