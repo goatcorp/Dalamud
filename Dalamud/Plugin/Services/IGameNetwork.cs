@@ -7,6 +7,8 @@ namespace Dalamud.Plugin.Services;
 /// </summary>
 public interface IGameNetwork
 {
+    // TODO(v9): we shouldn't be passing pointers to the actual data here
+
     /// <summary>
     /// The delegate type of a network message event.
     /// </summary>
