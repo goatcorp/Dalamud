@@ -125,10 +125,14 @@ public class ChatHandlers : IServiceType
         });
     }
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// Gets the last URL seen in chat.
+    /// </summary>
     public string? LastLink { get; private set; }
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// Gets a value indicating whether or not auto-updates have already completed this session.
+    /// </summary>
     public bool IsAutoUpdateComplete { get; private set; }
 
     /// <summary>
