@@ -40,31 +40,31 @@ public interface ITargetManager
     /// <summary>
     /// Sets the current target.
     /// </summary>
-    /// <param name="gameObject">Actor to target.</param>
+    /// <param name="gameObject">GameObject to target.</param>
     public void SetTarget(GameObject? gameObject);
 
     /// <summary>
     /// Sets the mouseover target.
     /// </summary>
-    /// <param name="gameObject">Actor to target.</param>
+    /// <param name="gameObject">GameObject to target.</param>
     public void SetMouseOverTarget(GameObject? gameObject);
 
     /// <summary>
     /// Sets the focus target.
     /// </summary>
-    /// <param name="gameObject">Actor to target.</param>
+    /// <param name="gameObject">GameObject to target.</param>
     public void SetFocusTarget(GameObject? gameObject);
 
     /// <summary>
     /// Sets the previous target.
     /// </summary>
-    /// <param name="gameObject">Actor to target.</param>
+    /// <param name="gameObject">GameObject to target.</param>
     public void SetPreviousTarget(GameObject? gameObject);
 
     /// <summary>
     /// Sets the soft target.
     /// </summary>
-    /// <param name="gameObject">Actor to target.</param>
+    /// <param name="gameObject">GameObject to target.</param>
     public void SetSoftTarget(GameObject? gameObject);
     
     /// <summary>
