@@ -75,28 +75,28 @@ public sealed unsafe class TargetManager : IServiceType, ITargetManager
     /// Sets the current target.
     /// </summary>
     /// <param name="actor">Actor to target.</param>
-    [Obsolete("Use SoftTarget Property", false)]
+    [Obsolete("Use Target Property", false)]
     public void SetTarget(GameObject? actor) => this.SetTarget(actor?.Address ?? IntPtr.Zero);
 
     /// <summary>
     /// Sets the mouseover target.
     /// </summary>
     /// <param name="actor">Actor to target.</param>
-    [Obsolete("Use SoftTarget Property", false)]
+    [Obsolete("Use MouseOverTarget Property", false)]
     public void SetMouseOverTarget(GameObject? actor) => this.SetMouseOverTarget(actor?.Address ?? IntPtr.Zero);
 
     /// <summary>
     /// Sets the focus target.
     /// </summary>
     /// <param name="actor">Actor to target.</param>
-    [Obsolete("Use SoftTarget Property", false)]
+    [Obsolete("Use FocusTarget Property", false)]
     public void SetFocusTarget(GameObject? actor) => this.SetFocusTarget(actor?.Address ?? IntPtr.Zero);
 
     /// <summary>
     /// Sets the previous target.
     /// </summary>
     /// <param name="actor">Actor to target.</param>
-    [Obsolete("Use SoftTarget Property", false)]
+    [Obsolete("Use PreviousTarget Property", false)]
     public void SetPreviousTarget(GameObject? actor) => this.SetTarget(actor?.Address ?? IntPtr.Zero);
 
     /// <summary>
@@ -110,28 +110,28 @@ public sealed unsafe class TargetManager : IServiceType, ITargetManager
     /// Sets the current target.
     /// </summary>
     /// <param name="actorAddress">Actor (address) to target.</param>
-    [Obsolete("Use SoftTarget Property", false)]
+    [Obsolete("Use Target Property", false)]
     public void SetTarget(IntPtr actorAddress) => Struct->Target = (FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject*)actorAddress;
 
     /// <summary>
     /// Sets the mouseover target.
     /// </summary>
     /// <param name="actorAddress">Actor (address) to target.</param>
-    [Obsolete("Use SoftTarget Property", false)]
+    [Obsolete("Use MouseOverTarget Property", false)]
     public void SetMouseOverTarget(IntPtr actorAddress) => Struct->MouseOverTarget = (FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject*)actorAddress;
 
     /// <summary>
     /// Sets the focus target.
     /// </summary>
     /// <param name="actorAddress">Actor (address) to target.</param>
-    [Obsolete("Use SoftTarget Property", false)]
+    [Obsolete("Use FocusTarget Property", false)]
     public void SetFocusTarget(IntPtr actorAddress) => Struct->FocusTarget = (FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject*)actorAddress;
 
     /// <summary>
     /// Sets the previous target.
     /// </summary>
     /// <param name="actorAddress">Actor (address) to target.</param>
-    [Obsolete("Use SoftTarget Property", false)]
+    [Obsolete("Use PreviousTarget Property", false)]
     public void SetPreviousTarget(IntPtr actorAddress) => Struct->PreviousTarget = (FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject*)actorAddress;
 
     /// <summary>
@@ -144,25 +144,25 @@ public sealed unsafe class TargetManager : IServiceType, ITargetManager
     /// <summary>
     /// Clears the current target.
     /// </summary>
-    [Obsolete("Use SoftTarget Property", false)]
+    [Obsolete("Use Target Property", false)]
     public void ClearTarget() => this.SetTarget(IntPtr.Zero);
 
     /// <summary>
     /// Clears the mouseover target.
     /// </summary>
-    [Obsolete("Use SoftTarget Property", false)]
+    [Obsolete("Use MouseOverTarget Property", false)]
     public void ClearMouseOverTarget() => this.SetMouseOverTarget(IntPtr.Zero);
 
     /// <summary>
     /// Clears the focus target.
     /// </summary>
-    [Obsolete("Use SoftTarget Property", false)]
+    [Obsolete("Use FocusTarget Property", false)]
     public void ClearFocusTarget() => this.SetFocusTarget(IntPtr.Zero);
 
     /// <summary>
     /// Clears the previous target.
     /// </summary>
-    [Obsolete("Use SoftTarget Property", false)]
+    [Obsolete("Use PreviousTarget Property", false)]
     public void ClearPreviousTarget() => this.SetPreviousTarget(IntPtr.Zero);
 
     /// <summary>
