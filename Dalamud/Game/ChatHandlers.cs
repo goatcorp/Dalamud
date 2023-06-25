@@ -25,6 +25,7 @@ namespace Dalamud.Game;
 /// <summary>
 /// Chat events and public helper functions.
 /// </summary>
+/// todo(v9): remove service
 [PluginInterface]
 [InterfaceVersion("1.0")]
 [ServiceManager.BlockingEarlyLoadedService]
@@ -124,14 +125,10 @@ public class ChatHandlers : IServiceType
         });
     }
 
-    /// <summary>
-    /// Gets the last URL seen in chat.
-    /// </summary>
+    /// <inheritdoc/>
     public string? LastLink { get; private set; }
 
-    /// <summary>
-    /// Gets a value indicating whether or not auto-updates have already completed this session.
-    /// </summary>
+    /// <inheritdoc/>
     public bool IsAutoUpdateComplete { get; private set; }
 
     /// <summary>
