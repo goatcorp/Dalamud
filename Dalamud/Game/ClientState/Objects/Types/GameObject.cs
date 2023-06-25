@@ -147,7 +147,7 @@ public unsafe partial class GameObject
     /// <summary>
     /// Gets a value indicating whether the object is targetable.
     /// </summary>
-    public bool IsTargetable => Struct->GetIsTargetable();
+    public bool IsTargetable => this.Struct->GetIsTargetable();
 
     /// <summary>
     /// Gets the position of this <see cref="GameObject" />.
