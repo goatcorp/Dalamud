@@ -5,6 +5,7 @@ using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Hooking;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
+using Dalamud.Plugin.Services;
 using Dalamud.Utility;
 
 namespace Dalamud.Game.DutyState;
@@ -15,7 +16,10 @@ namespace Dalamud.Game.DutyState;
 [PluginInterface]
 [InterfaceVersion("1.0")]
 [ServiceManager.EarlyLoadedService]
-public unsafe class DutyState : IDisposable, IServiceType
+#pragma warning disable SA1015
+[ResolveVia<IDutyState>]
+#pragma warning restore SA1015
+public unsafe class DutyState : IDisposable, IServiceType, IDutyState
 {
     private readonly DutyStateAddressResolver address;
     private readonly Hook<SetupContentDirectNetworkMessageDelegate> contentDirectorNetworkMessageHook;
@@ -44,42 +48,24 @@ public unsafe class DutyState : IDisposable, IServiceType
     [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
     private delegate byte SetupContentDirectNetworkMessageDelegate(IntPtr a1, IntPtr a2, ushort* a3);
 
-    /// <summary>
-    /// Event that gets fired when the duty starts. Triggers when the "Duty Start"
-    /// message displays, and on the remove of the ring at duty's spawn.
-    /// </summary>
+    /// <inheritdoc/>
     public event EventHandler<ushort> DutyStarted;
 
-    /// <summary>
-    /// Event that gets fired when everyone in the party dies and the screen fades to black.
-    /// </summary>
+    /// <inheritdoc/>
     public event EventHandler<ushort> DutyWiped;
-
-    /// <summary>
-    /// Event that gets fired when the "Duty Recommence" message displays,
-    /// and on the remove the the ring at duty's spawn.
-    /// </summary>
+    
+    /// <inheritdoc/>
     public event EventHandler<ushort> DutyRecommenced;
-
-    /// <summary>
-    /// Event that gets fired when the duty is completed successfully.
-    /// </summary>
+    
+    /// <inheritdoc/>
     public event EventHandler<ushort> DutyCompleted;
-
-    /// <summary>
-    /// Gets a value indicating whether the current duty has been started.
-    /// </summary>
+    
+    /// <inheritdoc/>
     public bool IsDutyStarted { get; private set; }
 
-    /// <summary>
-    /// Gets or sets a value indicating whether the current duty has been completed or not.
-    /// Prevents DutyStarted from triggering if combat is entered after receiving a duty complete network event.
-    /// </summary>
     private bool CompletedThisTerritory { get; set; }
 
-    /// <summary>
-    /// Dispose of managed and unmanaged resources.
-    /// </summary>
+    /// <inheritdoc/>
     void IDisposable.Dispose()
     {
         this.contentDirectorNetworkMessageHook.Dispose();
@@ -171,9 +157,6 @@ public unsafe class DutyState : IDisposable, IServiceType
         else if (!this.IsBoundByDuty() && this.IsDutyStarted)
         {
             this.IsDutyStarted = false;
-
-            // Could potentially add a call to DutyCompleted here since this
-            // should only be reached if we are actually no longer in a duty, and missed the network event.
         }
     }
 
