@@ -8,6 +8,7 @@ using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
+using Dalamud.Plugin.Services;
 using Serilog;
 
 namespace Dalamud.Game.Command;
@@ -18,7 +19,10 @@ namespace Dalamud.Game.Command;
 [PluginInterface]
 [InterfaceVersion("1.0")]
 [ServiceManager.BlockingEarlyLoadedService]
-public sealed class CommandManager : IServiceType, IDisposable
+#pragma warning disable SA1015
+[ResolveVia<ICommandManager>]
+#pragma warning restore SA1015
+public sealed class CommandManager : IServiceType, IDisposable, ICommandManager
 {
     private readonly Dictionary<string, CommandInfo> commandMap = new();
     private readonly Regex commandRegexEn = new(@"^The command (?<command>.+) does not exist\.$", RegexOptions.Compiled);
@@ -46,16 +50,10 @@ public sealed class CommandManager : IServiceType, IDisposable
         this.chatGui.CheckMessageHandled += this.OnCheckMessageHandled;
     }
 
-    /// <summary>
-    /// Gets a read-only list of all registered commands.
-    /// </summary>
+    /// <inheritdoc/>
     public ReadOnlyDictionary<string, CommandInfo> Commands => new(this.commandMap);
 
-    /// <summary>
-    /// Process a command in full.
-    /// </summary>
-    /// <param name="content">The full command string.</param>
-    /// <returns>True if the command was found and dispatched.</returns>
+    /// <inheritdoc/>
     public bool ProcessCommand(string content)
     {
         string command;
@@ -91,19 +89,14 @@ public sealed class CommandManager : IServiceType, IDisposable
             argument = content[argStart..];
         }
 
-        if (!this.commandMap.TryGetValue(command, out var handler)) // Commad was not found.
+        if (!this.commandMap.TryGetValue(command, out var handler)) // Command was not found.
             return false;
 
         this.DispatchCommand(command, argument, handler);
         return true;
     }
 
-    /// <summary>
-    /// Dispatch the handling of a command.
-    /// </summary>
-    /// <param name="command">The command to dispatch.</param>
-    /// <param name="argument">The provided arguments.</param>
-    /// <param name="info">A <see cref="CommandInfo"/> object describing this command.</param>
+    /// <inheritdoc/>
     public void DispatchCommand(string command, string argument, CommandInfo info)
     {
         try
@@ -116,12 +109,7 @@ public sealed class CommandManager : IServiceType, IDisposable
         }
     }
 
-    /// <summary>
-    /// Add a command handler, which you can use to add your own custom commands to the in-game chat.
-    /// </summary>
-    /// <param name="command">The command to register.</param>
-    /// <param name="info">A <see cref="CommandInfo"/> object describing the command.</param>
-    /// <returns>If adding was successful.</returns>
+    /// <inheritdoc/>
     public bool AddHandler(string command, CommandInfo info)
     {
         if (info == null)
@@ -139,11 +127,7 @@ public sealed class CommandManager : IServiceType, IDisposable
         }
     }
 
-    /// <summary>
-    /// Remove a command from the command handlers.
-    /// </summary>
-    /// <param name="command">The command to remove.</param>
-    /// <returns>If the removal was successful.</returns>
+    /// <inheritdoc/>
     public bool RemoveHandler(string command)
     {
         return this.commandMap.Remove(command);
