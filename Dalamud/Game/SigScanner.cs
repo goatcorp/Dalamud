@@ -15,12 +15,17 @@ using Serilog;
 
 namespace Dalamud.Game;
 
+// TODO(v9): There are static functions here that we can't keep due to interfaces
+
 /// <summary>
 /// A SigScanner facilitates searching for memory signatures in a given ProcessModule.
 /// </summary>
 [PluginInterface]
 [InterfaceVersion("1.0")]
-public class SigScanner : IDisposable, IServiceType
+#pragma warning disable SA1015
+[ResolveVia<ISigScanner>]
+#pragma warning restore SA1015
+public class SigScanner : IDisposable, IServiceType, ISigScanner
 {
     private readonly FileInfo? cacheFile;
 
@@ -65,69 +70,43 @@ public class SigScanner : IDisposable, IServiceType
             this.Load();
     }
 
-    /// <summary>
-    /// Gets a value indicating whether or not the search on this module is performed on a copy.
-    /// </summary>
+    /// <inheritdoc/>
     public bool IsCopy { get; }
 
-    /// <summary>
-    /// Gets a value indicating whether or not the ProcessModule is 32-bit.
-    /// </summary>
+    /// <inheritdoc/>
     public bool Is32BitProcess { get; }
 
-    /// <summary>
-    /// Gets the base address of the search area. When copied, this will be the address of the copy.
-    /// </summary>
+    /// <inheritdoc/>
     public IntPtr SearchBase => this.IsCopy ? this.moduleCopyPtr : this.Module.BaseAddress;
 
-    /// <summary>
-    /// Gets the base address of the .text section search area.
-    /// </summary>
+    /// <inheritdoc/>
     public IntPtr TextSectionBase => new(this.SearchBase.ToInt64() + this.TextSectionOffset);
 
-    /// <summary>
-    /// Gets the offset of the .text section from the base of the module.
-    /// </summary>
+    /// <inheritdoc/>
     public long TextSectionOffset { get; private set; }
 
-    /// <summary>
-    /// Gets the size of the text section.
-    /// </summary>
+    /// <inheritdoc/>
     public int TextSectionSize { get; private set; }
 
-    /// <summary>
-    /// Gets the base address of the .data section search area.
-    /// </summary>
+    /// <inheritdoc/>
     public IntPtr DataSectionBase => new(this.SearchBase.ToInt64() + this.DataSectionOffset);
 
-    /// <summary>
-    /// Gets the offset of the .data section from the base of the module.
-    /// </summary>
+    /// <inheritdoc/>
     public long DataSectionOffset { get; private set; }
 
-    /// <summary>
-    /// Gets the size of the .data section.
-    /// </summary>
+    /// <inheritdoc/>
     public int DataSectionSize { get; private set; }
 
-    /// <summary>
-    /// Gets the base address of the .rdata section search area.
-    /// </summary>
+    /// <inheritdoc/>
     public IntPtr RDataSectionBase => new(this.SearchBase.ToInt64() + this.RDataSectionOffset);
 
-    /// <summary>
-    /// Gets the offset of the .rdata section from the base of the module.
-    /// </summary>
+    /// <inheritdoc/>
     public long RDataSectionOffset { get; private set; }
 
-    /// <summary>
-    /// Gets the size of the .rdata section.
-    /// </summary>
+    /// <inheritdoc/>
     public int RDataSectionSize { get; private set; }
 
-    /// <summary>
-    /// Gets the ProcessModule on which the search is performed.
-    /// </summary>
+    /// <inheritdoc/>
     public ProcessModule Module { get; }
 
     private IntPtr TextSectionTop => this.TextSectionBase + this.TextSectionSize;
@@ -229,11 +208,7 @@ public class SigScanner : IDisposable, IServiceType
         }
     }
 
-    /// <summary>
-    /// Scan for a byte signature in the .data section.
-    /// </summary>
-    /// <param name="signature">The signature.</param>
-    /// <returns>The real offset of the found signature.</returns>
+    /// <inheritdoc/>
     public IntPtr ScanData(string signature)
     {
         var scanRet = Scan(this.DataSectionBase, this.DataSectionSize, signature);
@@ -244,12 +219,7 @@ public class SigScanner : IDisposable, IServiceType
         return scanRet;
     }
 
-    /// <summary>
-    /// Try scanning for a byte signature in the .data section.
-    /// </summary>
-    /// <param name="signature">The signature.</param>
-    /// <param name="result">The real offset of the signature, if found.</param>
-    /// <returns>true if the signature was found.</returns>
+    /// <inheritdoc/>
     public bool TryScanData(string signature, out IntPtr result)
     {
         try
@@ -264,11 +234,7 @@ public class SigScanner : IDisposable, IServiceType
         }
     }
 
-    /// <summary>
-    /// Scan for a byte signature in the whole module search area.
-    /// </summary>
-    /// <param name="signature">The signature.</param>
-    /// <returns>The real offset of the found signature.</returns>
+    /// <inheritdoc/>
     public IntPtr ScanModule(string signature)
     {
         var scanRet = Scan(this.SearchBase, this.Module.ModuleMemorySize, signature);
@@ -279,12 +245,7 @@ public class SigScanner : IDisposable, IServiceType
         return scanRet;
     }
 
-    /// <summary>
-    /// Try scanning for a byte signature in the whole module search area.
-    /// </summary>
-    /// <param name="signature">The signature.</param>
-    /// <param name="result">The real offset of the signature, if found.</param>
-    /// <returns>true if the signature was found.</returns>
+    /// <inheritdoc/>
     public bool TryScanModule(string signature, out IntPtr result)
     {
         try
@@ -299,23 +260,14 @@ public class SigScanner : IDisposable, IServiceType
         }
     }
 
-    /// <summary>
-    /// Resolve a RVA address.
-    /// </summary>
-    /// <param name="nextInstAddr">The address of the next instruction.</param>
-    /// <param name="relOffset">The relative offset.</param>
-    /// <returns>The calculated offset.</returns>
+    /// <inheritdoc/>
     public IntPtr ResolveRelativeAddress(IntPtr nextInstAddr, int relOffset)
     {
         if (this.Is32BitProcess) throw new NotSupportedException("32 bit is not supported.");
         return nextInstAddr + relOffset;
     }
 
-    /// <summary>
-    /// Scan for a byte signature in the .text section.
-    /// </summary>
-    /// <param name="signature">The signature.</param>
-    /// <returns>The real offset of the found signature.</returns>
+    /// <inheritdoc/>
     public IntPtr ScanText(string signature)
     {
         if (this.textCache != null)
@@ -347,12 +299,7 @@ public class SigScanner : IDisposable, IServiceType
         return scanRet;
     }
 
-    /// <summary>
-    /// Try scanning for a byte signature in the .text section.
-    /// </summary>
-    /// <param name="signature">The signature.</param>
-    /// <param name="result">The real offset of the signature, if found.</param>
-    /// <returns>true if the signature was found.</returns>
+    /// <inheritdoc/>
     public bool TryScanText(string signature, out IntPtr result)
     {
         try
