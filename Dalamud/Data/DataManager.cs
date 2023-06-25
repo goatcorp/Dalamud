@@ -8,6 +8,7 @@ using System.Threading;
 using Dalamud.Interface.Internal;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
+using Dalamud.Plugin.Services;
 using Dalamud.Utility;
 using Dalamud.Utility.Timing;
 using ImGuiScene;
@@ -27,7 +28,10 @@ namespace Dalamud.Data;
 [PluginInterface]
 [InterfaceVersion("1.0")]
 [ServiceManager.BlockingEarlyLoadedService]
-public sealed class DataManager : IDisposable, IServiceType
+#pragma warning disable SA1015
+[ResolveVia<IDataManager>]
+#pragma warning restore SA1015
+public sealed class DataManager : IDisposable, IServiceType, IDataManager
 {
     private const string IconFileFormat = "ui/icon/{0:D3}000/{1}{2:D6}.tex";
     private const string HighResolutionIconFileFormat = "ui/icon/{0:D3}000/{1}{2:D6}_hr1.tex";
@@ -127,75 +131,43 @@ public sealed class DataManager : IDisposable, IServiceType
         }
     }
 
-    /// <summary>
-    /// Gets the current game client language.
-    /// </summary>
+    /// <inheritdoc/>
     public ClientLanguage Language { get; private set; }
 
-    /// <summary>
-    /// Gets the OpCodes sent by the server to the client.
-    /// </summary>
+    /// <inheritdoc/>
     public ReadOnlyDictionary<string, ushort> ServerOpCodes { get; private set; }
 
-    /// <summary>
-    /// Gets the OpCodes sent by the client to the server.
-    /// </summary>
+    /// <inheritdoc/>
     [UsedImplicitly]
     public ReadOnlyDictionary<string, ushort> ClientOpCodes { get; private set; }
 
-    /// <summary>
-    /// Gets a <see cref="Lumina"/> object which gives access to any excel/game data.
-    /// </summary>
+    /// <inheritdoc/>
     public GameData GameData { get; private set; }
 
-    /// <summary>
-    /// Gets an <see cref="ExcelModule"/> object which gives access to any of the game's sheet data.
-    /// </summary>
+    /// <inheritdoc/>
     public ExcelModule Excel => this.GameData.Excel;
 
-    /// <summary>
-    /// Gets a value indicating whether Game Data is ready to be read.
-    /// </summary>
+    /// <inheritdoc/>
     public bool IsDataReady { get; private set; }
 
-    /// <summary>
-    /// Gets a value indicating whether the game data files have been modified by another third-party tool.
-    /// </summary>
+    /// <inheritdoc/>
     public bool HasModifiedGameDataFiles { get; private set; }
 
     #region Lumina Wrappers
 
-    /// <summary>
-    /// Get an <see cref="ExcelSheet{T}"/> with the given Excel sheet row type.
-    /// </summary>
-    /// <typeparam name="T">The excel sheet type to get.</typeparam>
-    /// <returns>The <see cref="ExcelSheet{T}"/>, giving access to game rows.</returns>
+    /// <inheritdoc/>
     public ExcelSheet<T>? GetExcelSheet<T>() where T : ExcelRow 
         => this.Excel.GetSheet<T>();
 
-    /// <summary>
-    /// Get an <see cref="ExcelSheet{T}"/> with the given Excel sheet row type with a specified language.
-    /// </summary>
-    /// <param name="language">Language of the sheet to get.</param>
-    /// <typeparam name="T">The excel sheet type to get.</typeparam>
-    /// <returns>The <see cref="ExcelSheet{T}"/>, giving access to game rows.</returns>
+    /// <inheritdoc/>
     public ExcelSheet<T>? GetExcelSheet<T>(ClientLanguage language) where T : ExcelRow 
         => this.Excel.GetSheet<T>(language.ToLumina());
 
-    /// <summary>
-    /// Get a <see cref="FileResource"/> with the given path.
-    /// </summary>
-    /// <param name="path">The path inside of the game files.</param>
-    /// <returns>The <see cref="FileResource"/> of the file.</returns>
+    /// <inheritdoc/>
     public FileResource? GetFile(string path) 
         => this.GetFile<FileResource>(path);
 
-    /// <summary>
-    /// Get a <see cref="FileResource"/> with the given path, of the given type.
-    /// </summary>
-    /// <typeparam name="T">The type of resource.</typeparam>
-    /// <param name="path">The path inside of the game files.</param>
-    /// <returns>The <see cref="FileResource"/> of the file.</returns>
+    /// <inheritdoc/>
     public T? GetFile<T>(string path) where T : FileResource
     {
         var filePath = GameData.ParseFilePath(path);
@@ -204,11 +176,7 @@ public sealed class DataManager : IDisposable, IServiceType
         return this.GameData.Repositories.TryGetValue(filePath.Repository, out var repository) ? repository.GetFile<T>(filePath.Category, filePath) : default;
     }
 
-    /// <summary>
-    /// Check if the file with the given path exists within the game's index files.
-    /// </summary>
-    /// <param name="path">The path inside of the game files.</param>
-    /// <returns>True if the file exists.</returns>
+    /// <inheritdoc/>
     public bool FileExists(string path) 
         => this.GameData.FileExists(path);
 
@@ -217,25 +185,15 @@ public sealed class DataManager : IDisposable, IServiceType
     /// </summary>
     /// <param name="iconId">The icon ID.</param>
     /// <returns>The <see cref="TexFile"/> containing the icon.</returns>
-    /// todo: remove in api9 in favor of GetIcon(uint iconId, bool highResolution)
+    /// TODO(v9): remove in api9 in favor of GetIcon(uint iconId, bool highResolution)
     public TexFile? GetIcon(uint iconId) 
         => this.GetIcon(this.Language, iconId, false);
 
-    /// <summary>
-    /// Get a <see cref="TexFile"/> containing the icon with the given ID.
-    /// </summary>
-    /// <param name="iconId">The icon ID.</param>
-    /// <param name="highResolution">Return high resolution version.</param>
-    /// <returns>The <see cref="TexFile"/> containing the icon.</returns>
+    /// <inheritdoc/>
     public TexFile? GetIcon(uint iconId, bool highResolution)
         => this.GetIcon(this.Language, iconId, highResolution);
-    
-    /// <summary>
-    /// Get a <see cref="TexFile"/> containing the icon with the given ID, of the given quality.
-    /// </summary>
-    /// <param name="isHq">A value indicating whether the icon should be HQ.</param>
-    /// <param name="iconId">The icon ID.</param>
-    /// <returns>The <see cref="TexFile"/> containing the icon.</returns>
+
+    /// <inheritdoc/>
     public TexFile? GetIcon(bool isHq, uint iconId)
     {
         var type = isHq ? "hq/" : string.Empty;
@@ -248,17 +206,11 @@ public sealed class DataManager : IDisposable, IServiceType
     /// <param name="iconLanguage">The requested language.</param>
     /// <param name="iconId">The icon ID.</param>
     /// <returns>The <see cref="TexFile"/> containing the icon.</returns>
-    /// todo: remove in api9 in favor of GetIcon(ClientLanguage iconLanguage, uint iconId, bool highResolution)
+    /// TODO(v9): remove in api9 in favor of GetIcon(ClientLanguage iconLanguage, uint iconId, bool highResolution)
     public TexFile? GetIcon(ClientLanguage iconLanguage, uint iconId)
         => this.GetIcon(iconLanguage, iconId, false);
 
-    /// <summary>
-    /// Get a <see cref="TexFile"/> containing the icon with the given ID, of the given language.
-    /// </summary>
-    /// <param name="iconLanguage">The requested language.</param>
-    /// <param name="iconId">The icon ID.</param>
-    /// <param name="highResolution">Return high resolution version.</param>
-    /// <returns>The <see cref="TexFile"/> containing the icon.</returns>
+    /// <inheritdoc/>
     public TexFile? GetIcon(ClientLanguage iconLanguage, uint iconId, bool highResolution)
     {
         var type = iconLanguage switch
@@ -279,17 +231,11 @@ public sealed class DataManager : IDisposable, IServiceType
     /// <param name="type">The type of the icon (e.g. 'hq' to get the HQ variant of an item icon).</param>
     /// <param name="iconId">The icon ID.</param>
     /// <returns>The <see cref="TexFile"/> containing the icon.</returns>
-    /// todo: remove in api9 in favor of GetIcon(string? type, uint iconId, bool highResolution)
+    /// TODO(v9): remove in api9 in favor of GetIcon(string? type, uint iconId, bool highResolution)
     public TexFile? GetIcon(string? type, uint iconId)
         => this.GetIcon(type, iconId, false);
 
-    /// <summary>
-    /// Get a <see cref="TexFile"/> containing the icon with the given ID, of the given type.
-    /// </summary>
-    /// <param name="type">The type of the icon (e.g. 'hq' to get the HQ variant of an item icon).</param>
-    /// <param name="iconId">The icon ID.</param>
-    /// <param name="highResolution">Return high resolution version.</param>
-    /// <returns>The <see cref="TexFile"/> containing the icon.</returns>
+    /// <inheritdoc/>
     public TexFile? GetIcon(string? type, uint iconId, bool highResolution)
     {
         var format = highResolution ? HighResolutionIconFileFormat : IconFileFormat;
@@ -310,27 +256,15 @@ public sealed class DataManager : IDisposable, IServiceType
         return file;
     }
 
-    /// <summary>
-    /// Get a <see cref="TexFile"/> containing the HQ icon with the given ID.
-    /// </summary>
-    /// <param name="iconId">The icon ID.</param>
-    /// <returns>The <see cref="TexFile"/> containing the icon.</returns>
+    /// <inheritdoc/>
     public TexFile? GetHqIcon(uint iconId)
         => this.GetIcon(true, iconId);
 
-    /// <summary>
-    /// Get the passed <see cref="TexFile"/> as a drawable ImGui TextureWrap.
-    /// </summary>
-    /// <param name="tex">The Lumina <see cref="TexFile"/>.</param>
-    /// <returns>A <see cref="TextureWrap"/> that can be used to draw the texture.</returns>
+    /// <inheritdoc/>
     public TextureWrap? GetImGuiTexture(TexFile? tex)
         => tex == null ? null : Service<InterfaceManager>.Get().LoadImageRaw(tex.GetRgbaImageData(), tex.Header.Width, tex.Header.Height, 4);
 
-    /// <summary>
-    /// Get the passed texture path as a drawable ImGui TextureWrap.
-    /// </summary>
-    /// <param name="path">The internal path to the texture.</param>
-    /// <returns>A <see cref="TextureWrap"/> that can be used to draw the texture.</returns>
+    /// <inheritdoc/>
     public TextureWrap? GetImGuiTexture(string path)
         => this.GetImGuiTexture(this.GetFile<TexFile>(path));
 
@@ -339,59 +273,33 @@ public sealed class DataManager : IDisposable, IServiceType
     /// </summary>
     /// <param name="iconId">The icon ID.</param>
     /// <returns>The <see cref="TextureWrap"/> containing the icon.</returns>
-    /// todo: remove in api9 in favor of GetImGuiTextureIcon(uint iconId, bool highResolution)
+    /// TODO(v9): remove in api9 in favor of GetImGuiTextureIcon(uint iconId, bool highResolution)
     public TextureWrap? GetImGuiTextureIcon(uint iconId) 
         => this.GetImGuiTexture(this.GetIcon(iconId, false));
 
-    /// <summary>
-    /// Get a <see cref="TextureWrap"/> containing the icon with the given ID.
-    /// </summary>
-    /// <param name="iconId">The icon ID.</param>
-    /// <param name="highResolution">Return the high resolution version.</param>
-    /// <returns>The <see cref="TextureWrap"/> containing the icon.</returns>
+    /// <inheritdoc/>
     public TextureWrap? GetImGuiTextureIcon(uint iconId, bool highResolution)
         => this.GetImGuiTexture(this.GetIcon(iconId, highResolution));
 
-    /// <summary>
-    /// Get a <see cref="TextureWrap"/> containing the icon with the given ID, of the given quality.
-    /// </summary>
-    /// <param name="isHq">A value indicating whether the icon should be HQ.</param>
-    /// <param name="iconId">The icon ID.</param>
-    /// <returns>The <see cref="TextureWrap"/> containing the icon.</returns>
+    /// <inheritdoc/>
     public TextureWrap? GetImGuiTextureIcon(bool isHq, uint iconId)
         => this.GetImGuiTexture(this.GetIcon(isHq, iconId));
 
-    /// <summary>
-    /// Get a <see cref="TextureWrap"/> containing the icon with the given ID, of the given language.
-    /// </summary>
-    /// <param name="iconLanguage">The requested language.</param>
-    /// <param name="iconId">The icon ID.</param>
-    /// <returns>The <see cref="TextureWrap"/> containing the icon.</returns>
+    /// <inheritdoc/>
     public TextureWrap? GetImGuiTextureIcon(ClientLanguage iconLanguage, uint iconId)
         => this.GetImGuiTexture(this.GetIcon(iconLanguage, iconId));
 
-    /// <summary>
-    /// Get a <see cref="TextureWrap"/> containing the icon with the given ID, of the given type.
-    /// </summary>
-    /// <param name="type">The type of the icon (e.g. 'hq' to get the HQ variant of an item icon).</param>
-    /// <param name="iconId">The icon ID.</param>
-    /// <returns>The <see cref="TextureWrap"/> containing the icon.</returns>
+    /// <inheritdoc/>
     public TextureWrap? GetImGuiTextureIcon(string type, uint iconId)
         => this.GetImGuiTexture(this.GetIcon(type, iconId));
 
-    /// <summary>
-    /// Get a <see cref="TextureWrap"/> containing the HQ icon with the given ID.
-    /// </summary>
-    /// <param name="iconId">The icon ID.</param>
-    /// <returns>The <see cref="TextureWrap"/> containing the icon.</returns>
+    /// <inheritdoc/>
     public TextureWrap? GetImGuiTextureHqIcon(uint iconId)
         => this.GetImGuiTexture(this.GetHqIcon(iconId));
 
     #endregion
 
-    /// <summary>
-    /// Dispose this DataManager.
-    /// </summary>
+    /// <inheritdoc/>
     void IDisposable.Dispose()
     {
         this.luminaCancellationTokenSource.Cancel();
