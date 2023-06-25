@@ -15,6 +15,8 @@ using Serilog;
 
 namespace Dalamud.Game;
 
+// TODO(v9): There are static functions here that we can't keep due to interfaces
+
 /// <summary>
 /// A SigScanner facilitates searching for memory signatures in a given ProcessModule.
 /// </summary>
