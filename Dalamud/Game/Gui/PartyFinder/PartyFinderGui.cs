@@ -6,6 +6,7 @@ using Dalamud.Game.Gui.PartyFinder.Types;
 using Dalamud.Hooking;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
+using Dalamud.Plugin.Services;
 using Serilog;
 
 namespace Dalamud.Game.Gui.PartyFinder;
@@ -16,7 +17,10 @@ namespace Dalamud.Game.Gui.PartyFinder;
 [PluginInterface]
 [InterfaceVersion("1.0")]
 [ServiceManager.BlockingEarlyLoadedService]
-public sealed class PartyFinderGui : IDisposable, IServiceType
+#pragma warning disable SA1015
+[ResolveVia<IPartyFinderGui>]
+#pragma warning restore SA1015
+public sealed class PartyFinderGui : IDisposable, IServiceType, IPartyFinderGui
 {
     private readonly PartyFinderAddressResolver address;
     private readonly IntPtr memory;
@@ -38,22 +42,11 @@ public sealed class PartyFinderGui : IDisposable, IServiceType
         this.receiveListingHook = Hook<ReceiveListingDelegate>.FromAddress(this.address.ReceiveListing, new ReceiveListingDelegate(this.HandleReceiveListingDetour));
     }
 
-    /// <summary>
-    /// Event type fired each time the game receives an individual Party Finder listing.
-    /// Cannot modify listings but can hide them.
-    /// </summary>
-    /// <param name="listing">The listings received.</param>
-    /// <param name="args">Additional arguments passed by the game.</param>
-    public delegate void PartyFinderListingEventDelegate(PartyFinderListing listing, PartyFinderListingEventArgs args);
-
     [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
     private delegate void ReceiveListingDelegate(IntPtr managerPtr, IntPtr data);
 
-    /// <summary>
-    /// Event fired each time the game receives an individual Party Finder listing.
-    /// Cannot modify listings but can hide them.
-    /// </summary>
-    public event PartyFinderListingEventDelegate ReceiveListing;
+    /// <inheritdoc/>
+    public event IPartyFinderGui.PartyFinderListingEventDelegate ReceiveListing;
 
     /// <summary>
     /// Dispose of managed and unmanaged resources.
