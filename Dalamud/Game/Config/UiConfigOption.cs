@@ -3314,4 +3314,165 @@ public enum UiConfigOption
     /// </summary>
     [GameConfigOption("PvPFrontlinesGCFree", ConfigType.UInt)]
     PvPFrontlinesGCFree,
+
+    /// <summary>
+    /// System option with the internal name PetMirageTypeFairy.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("PetMirageTypeFairy", ConfigType.UInt)]
+    PetMirageTypeFairy,
+
+    /// <summary>
+    /// System option with the internal name ExHotbarChangeHotbar1IsFashion.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("ExHotbarChangeHotbar1IsFashion", ConfigType.UInt)]
+    ExHotbarChangeHotbar1IsFashion,
+
+    /// <summary>
+    /// System option with the internal name HotbarCrossUseExDirectionAutoSwitch.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("HotbarCrossUseExDirectionAutoSwitch", ConfigType.UInt)]
+    HotbarCrossUseExDirectionAutoSwitch,
+
+    /// <summary>
+    /// System option with the internal name NamePlateDispJobIcon.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("NamePlateDispJobIcon", ConfigType.UInt)]
+    NamePlateDispJobIcon,
+
+    /// <summary>
+    /// System option with the internal name NamePlateDispJobIconType.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("NamePlateDispJobIconType", ConfigType.UInt)]
+    NamePlateDispJobIconType,
+
+    /// <summary>
+    /// System option with the internal name NamePlateSetRoleColor.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("NamePlateSetRoleColor", ConfigType.UInt)]
+    NamePlateSetRoleColor,
+
+    /// <summary>
+    /// System option with the internal name NamePlateColorTank.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("NamePlateColorTank", ConfigType.UInt)]
+    NamePlateColorTank,
+
+    /// <summary>
+    /// System option with the internal name NamePlateEdgeTank.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("NamePlateEdgeTank", ConfigType.UInt)]
+    NamePlateEdgeTank,
+
+    /// <summary>
+    /// System option with the internal name NamePlateColorHealer.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("NamePlateColorHealer", ConfigType.UInt)]
+    NamePlateColorHealer,
+
+    /// <summary>
+    /// System option with the internal name NamePlateEdgeHealer.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("NamePlateEdgeHealer", ConfigType.UInt)]
+    NamePlateEdgeHealer,
+
+    /// <summary>
+    /// System option with the internal name NamePlateColorDps.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("NamePlateColorDps", ConfigType.UInt)]
+    NamePlateColorDps,
+
+    /// <summary>
+    /// System option with the internal name NamePlateEdgeDps.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("NamePlateEdgeDps", ConfigType.UInt)]
+    NamePlateEdgeDps,
+
+    /// <summary>
+    /// System option with the internal name NamePlateColorOtherClass.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("NamePlateColorOtherClass", ConfigType.UInt)]
+    NamePlateColorOtherClass,
+
+    /// <summary>
+    /// System option with the internal name NamePlateEdgeOtherClass.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("NamePlateEdgeOtherClass", ConfigType.UInt)]
+    NamePlateEdgeOtherClass,
+
+    /// <summary>
+    /// System option with the internal name NamePlateDispWorldTravel.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("NamePlateDispWorldTravel", ConfigType.UInt)]
+    NamePlateDispWorldTravel,
+
+    /// <summary>
+    /// System option with the internal name LogNameIconType.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("LogNameIconType", ConfigType.UInt)]
+    LogNameIconType,
+
+    /// <summary>
+    /// System option with the internal name LogDispClassJobName.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("LogDispClassJobName", ConfigType.UInt)]
+    LogDispClassJobName,
+
+    /// <summary>
+    /// System option with the internal name LogSetRoleColor.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("LogSetRoleColor", ConfigType.UInt)]
+    LogSetRoleColor,
+
+    /// <summary>
+    /// System option with the internal name LogColorRoleTank.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("LogColorRoleTank", ConfigType.UInt)]
+    LogColorRoleTank,
+
+    /// <summary>
+    /// System option with the internal name LogColorRoleHealer.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("LogColorRoleHealer", ConfigType.UInt)]
+    LogColorRoleHealer,
+
+    /// <summary>
+    /// System option with the internal name LogColorRoleDPS.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("LogColorRoleDPS", ConfigType.UInt)]
+    LogColorRoleDPS,
+
+    /// <summary>
+    /// System option with the internal name LogColorOtherClass.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("LogColorOtherClass", ConfigType.UInt)]
+    LogColorOtherClass,
+
+    /// <summary>
+    /// System option with the internal name ItemInventryStoreEnd.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("ItemInventryStoreEnd", ConfigType.UInt)]
+    ItemInventryStoreEnd,
 }
