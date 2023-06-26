@@ -3,6 +3,7 @@ using System.IO;
 
 using Dalamud.Utility;
 using Newtonsoft.Json;
+using Serilog;
 
 namespace Dalamud.Plugin.Internal.Types;
 
@@ -69,7 +70,21 @@ internal record LocalPluginManifest : PluginManifest
     /// Save a plugin manifest to file.
     /// </summary>
     /// <param name="manifestFile">Path to save at.</param>
-    public void Save(FileInfo manifestFile) => Util.WriteAllTextSafe(manifestFile.FullName, JsonConvert.SerializeObject(this, Formatting.Indented));
+    /// <param name="reason">The reason the manifest was saved.</param>
+    public void Save(FileInfo manifestFile, string reason)
+    {
+        Log.Verbose("Saving manifest for '{PluginName}' because '{Reason}'", this.InternalName, reason);
+
+        try
+        {
+            Util.WriteAllTextSafe(manifestFile.FullName, JsonConvert.SerializeObject(this, Formatting.Indented));
+        }
+        catch
+        {
+            Log.Error("Could not write out manifest for '{PluginName}' because '{Reason}'", this.InternalName, reason);
+            throw;
+        }
+    }
 
     /// <summary>
     /// Loads a plugin manifest from file.

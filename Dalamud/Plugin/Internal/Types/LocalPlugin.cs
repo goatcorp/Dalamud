@@ -125,12 +125,14 @@ internal class LocalPlugin : IDisposable
 
             // Save the manifest to disk so there won't be any problems later.
             // We'll update the name property after it can be retrieved from the instance.
-            this.Manifest.Save(this.manifestFile);
+            this.Manifest.Save(this.manifestFile, "manifest was null");
         }
         else
         {
             this.Manifest = manifest;
         }
+
+        var needsSaveDueToLegacyFiles = false;
 
         // This converts from the ".disabled" file feature to the manifest instead.
         this.disabledFile = LocalPluginManifest.GetDisabledFile(this.DllFile);
@@ -140,6 +142,8 @@ internal class LocalPlugin : IDisposable
             this.Manifest.Disabled = true;
 #pragma warning restore CS0618
             this.disabledFile.Delete();
+
+            needsSaveDueToLegacyFiles = true;
         }
 
         // This converts from the ".testing" file feature to the manifest instead.
@@ -148,13 +152,16 @@ internal class LocalPlugin : IDisposable
         {
             this.Manifest.Testing = true;
             this.testingFile.Delete();
+
+            needsSaveDueToLegacyFiles = true;
         }
 
         var pluginManager = Service<PluginManager>.Get();
         this.IsBanned = pluginManager.IsManifestBanned(this.Manifest) && !this.IsDev;
         this.BanReason = pluginManager.GetBanReason(this.Manifest);
 
-        this.SaveManifest();
+        if (needsSaveDueToLegacyFiles)
+            this.SaveManifest("legacy");
     }
 
     /// <summary>
@@ -322,8 +329,11 @@ internal class LocalPlugin : IDisposable
             }
 
             // If we reload a plugin we don't want to delete it. Makes sense, right?
-            this.Manifest.ScheduledForDeletion = false;
-            this.SaveManifest();
+            if (this.Manifest.ScheduledForDeletion)
+            {
+                this.Manifest.ScheduledForDeletion = false;
+                this.SaveManifest("Scheduled for deletion, but loading");
+            }
 
             switch (this.State)
             {
@@ -470,10 +480,10 @@ internal class LocalPlugin : IDisposable
             }
 
             // In-case the manifest name was a placeholder. Can occur when no manifest was included.
-            if (this.Manifest.Name.IsNullOrEmpty())
+            if (this.Manifest.Name.IsNullOrEmpty() && !this.IsDev)
             {
                 this.Manifest.Name = this.instance.Name;
-                this.Manifest.Save(this.manifestFile);
+                this.Manifest.Save(this.manifestFile, "manifest name null or empty");
             }
 
             this.State = PluginState.Loaded;
@@ -618,7 +628,7 @@ internal class LocalPlugin : IDisposable
     public void ScheduleDeletion(bool status = true)
     {
         this.Manifest.ScheduledForDeletion = status;
-        this.SaveManifest();
+        this.SaveManifest("scheduling for deletion");
     }
 
     /// <summary>
@@ -633,7 +643,7 @@ internal class LocalPlugin : IDisposable
             this.Manifest = LocalPluginManifest.Load(manifest) ?? throw new Exception("Could not reload manifest.");
             // this.Manifest.Disabled = isDisabled;
 
-            this.SaveManifest();
+            this.SaveManifest("dev reload");
         }
     }
 
@@ -665,5 +675,5 @@ internal class LocalPlugin : IDisposable
         config.SharedAssemblies.Add(typeof(Lumina.Excel.ExcelSheetImpl).Assembly.GetName());
     }
 
-    private void SaveManifest() => this.Manifest.Save(this.manifestFile);
+    private void SaveManifest(string reason) => this.Manifest.Save(this.manifestFile, reason);
 }
