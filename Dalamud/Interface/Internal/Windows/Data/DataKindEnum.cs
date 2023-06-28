@@ -154,5 +154,10 @@ internal enum DataKind
     /// <summary>
     /// Data Share.
     /// </summary>
-    DataShare,
+    Data_Share,
+
+    /// <summary>
+    /// Network Monitor.
+    /// </summary>
+    Network_Monitor,
 }

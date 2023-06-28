@@ -48,6 +48,7 @@ internal class DataWindow : Window
         new DtrBarWidget(),
         new UIColorWidget(),
         new DataShareWidget(),
+        new NetworkMonitorWidget(),
     };
 
     private readonly Dictionary<DataKind, string> dataKindNames = new();
