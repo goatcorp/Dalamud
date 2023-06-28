@@ -246,7 +246,7 @@ internal partial class PluginManager : IDisposable, IServiceType
     /// </summary>
     /// <param name="manifest">The manifest to test.</param>
     /// <returns>Whether or not a testing version is available.</returns>
-    public static bool HasTestingVersion(PluginManifest manifest)
+    public static bool HasTestingVersion(IPluginManifest manifest)
     {
         var av = manifest.AssemblyVersion;
         var tv = manifest.TestingAssemblyVersion;
@@ -316,7 +316,7 @@ internal partial class PluginManager : IDisposable, IServiceType
     /// </summary>
     /// <param name="manifest">Manifest to check.</param>
     /// <returns>A value indicating whether testing should be used.</returns>
-    public bool HasTestingOptIn(PluginManifest manifest)
+    public bool HasTestingOptIn(IPluginManifest manifest)
     {
         return this.configuration.PluginTestingOptIns!.Any(x => x.InternalName == manifest.InternalName);
     }
@@ -327,7 +327,7 @@ internal partial class PluginManager : IDisposable, IServiceType
     /// </summary>
     /// <param name="manifest">Manifest to check.</param>
     /// <returns>A value indicating whether testing should be used.</returns>
-    public bool UseTesting(PluginManifest manifest)
+    public bool UseTesting(IPluginManifest manifest)
     {
         if (!this.configuration.DoPluginTest)
             return false;

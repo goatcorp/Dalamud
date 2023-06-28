@@ -88,7 +88,7 @@ internal class PluginInstallerWindow : Window, IDisposable
     private string feedbackModalBody = string.Empty;
     private string feedbackModalContact = string.Empty;
     private bool feedbackModalIncludeException = false;
-    private PluginManifest? feedbackPlugin = null;
+    private IPluginManifest? feedbackPlugin = null;
     private bool feedbackIsTesting = false;
 
     private int updatePluginCount = 0;
@@ -1606,7 +1606,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         return ready;
     }
 
-    private bool DrawPluginCollapsingHeader(string label, LocalPlugin? plugin, PluginManifest manifest, bool isThirdParty, bool trouble, bool updateAvailable, bool isNew, bool installableOutdated, bool isOrphan, Action drawContextMenuAction, int index)
+    private bool DrawPluginCollapsingHeader(string label, LocalPlugin? plugin, IPluginManifest manifest, bool isThirdParty, bool trouble, bool updateAvailable, bool isNew, bool installableOutdated, bool isOrphan, Action drawContextMenuAction, int index)
     {
         ImGui.Separator();
 
@@ -1741,13 +1741,13 @@ internal class PluginInstallerWindow : Window, IDisposable
             ImGui.TextWrapped(Locs.PluginBody_Orphaned);
             ImGui.PopStyleColor();
         }
-        else if (plugin is { IsDecommissioned: true } && !plugin.Manifest.IsThirdParty)
+        else if (plugin is { IsDecommissioned: true, IsThirdParty: false })
         {
             ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudRed);
             ImGui.TextWrapped(Locs.PluginBody_NoServiceOfficial);
             ImGui.PopStyleColor();
         }
-        else if (plugin is { IsDecommissioned: true } && plugin.Manifest.IsThirdParty)
+        else if (plugin is { IsDecommissioned: true, IsThirdParty: true })
         {
             ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudRed);
             ImGui.TextWrapped(Locs.PluginBody_NoServiceThird);
@@ -1808,7 +1808,7 @@ internal class PluginInstallerWindow : Window, IDisposable
             if (log is PluginChangelogEntry pluginLog)
             {
                 icon = this.imageCache.DefaultIcon;
-                var hasIcon = this.imageCache.TryGetIcon(pluginLog.Plugin, pluginLog.Plugin.Manifest, pluginLog.Plugin.Manifest.IsThirdParty, out var cachedIconTex);
+                var hasIcon = this.imageCache.TryGetIcon(pluginLog.Plugin, pluginLog.Plugin.Manifest, pluginLog.Plugin.IsThirdParty, out var cachedIconTex);
                 if (hasIcon && cachedIconTex != null)
                 {
                     icon = cachedIconTex;
@@ -2031,15 +2031,18 @@ internal class PluginInstallerWindow : Window, IDisposable
         }
 
         // Testing
-        if (plugin.Manifest.Testing)
+        if (plugin.IsTesting)
         {
             label += Locs.PluginTitleMod_TestingVersion;
         }
 
+        // TODO: check with the repos instead
+        /*
         if (plugin.Manifest.IsAvailableForTesting && configuration.DoPluginTest && testingOptIn == null)
         {
             label += Locs.PluginTitleMod_TestingAvailable;
         }
+        */
 
         // Freshly installed
         if (showInstalled)
@@ -2132,7 +2135,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         ImGui.PushID($"installed{index}{plugin.Manifest.InternalName}");
         var hasChangelog = !plugin.Manifest.Changelog.IsNullOrEmpty();
 
-        if (this.DrawPluginCollapsingHeader(label, plugin, plugin.Manifest, plugin.Manifest.IsThirdParty, trouble, availablePluginUpdate != default, false, false, plugin.IsOrphaned, () => this.DrawInstalledPluginContextMenu(plugin, testingOptIn), index))
+        if (this.DrawPluginCollapsingHeader(label, plugin, plugin.Manifest, plugin.IsThirdParty, trouble, availablePluginUpdate != default, false, false, plugin.IsOrphaned, () => this.DrawInstalledPluginContextMenu(plugin, testingOptIn), index))
         {
             if (!this.WasPluginSeen(plugin.Manifest.InternalName))
                 configuration.SeenPluginInternalName.Add(plugin.Manifest.InternalName);
@@ -2154,12 +2157,12 @@ internal class PluginInstallerWindow : Window, IDisposable
             ImGui.SameLine();
             ImGui.TextColored(ImGuiColors.DalamudGrey3, downloadText);
 
-            var isThirdParty = manifest.IsThirdParty;
+            var isThirdParty = plugin.IsThirdParty;
             var canFeedback = !isThirdParty &&
                               !plugin.IsDev &&
                               !plugin.IsOrphaned &&
                               plugin.Manifest.DalamudApiLevel == PluginManager.DalamudApiLevel &&
-                              plugin.Manifest.AcceptsFeedback &&
+                              // plugin.Manifest.AcceptsFeedback && // TODO: check with the repos
                               availablePluginUpdate == default;
 
             // Installed from
@@ -2215,7 +2218,7 @@ internal class PluginInstallerWindow : Window, IDisposable
                 this.DrawUpdateSinglePluginButton(availablePluginUpdate);
 
             ImGui.SameLine();
-            ImGui.TextColored(ImGuiColors.DalamudGrey3, $" v{plugin.Manifest.EffectiveVersion}");
+            ImGui.TextColored(ImGuiColors.DalamudGrey3, $" v{plugin.EffectiveVersion}");
 
             ImGuiHelpers.ScaledDummy(5);
 
@@ -2226,7 +2229,7 @@ internal class PluginInstallerWindow : Window, IDisposable
 
             if (hasChangelog)
             {
-                if (ImGui.TreeNode(Locs.PluginBody_CurrentChangeLog(plugin.Manifest.EffectiveVersion)))
+                if (ImGui.TreeNode(Locs.PluginBody_CurrentChangeLog(plugin.EffectiveVersion)))
                 {
                     this.DrawInstalledPluginChangelog(plugin.Manifest);
                     ImGui.TreePop();
@@ -2252,7 +2255,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         ImGui.PopID();
     }
 
-    private void DrawInstalledPluginChangelog(PluginManifest manifest)
+    private void DrawInstalledPluginChangelog(IPluginManifest manifest)
     {
         ImGuiHelpers.ScaledDummy(5);
 
@@ -2265,7 +2268,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         {
             ImGui.Text("Changelog:");
             ImGuiHelpers.ScaledDummy(2);
-            ImGuiHelpers.SafeTextWrapped(manifest.Changelog);
+            ImGuiHelpers.SafeTextWrapped(manifest.Changelog!);
         }
 
         ImGui.EndChild();
@@ -2363,7 +2366,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         var isLoadedAndUnloadable = plugin.State == PluginState.Loaded ||
                                     plugin.State == PluginState.DependencyResolutionFailed;
 
-        //StyleModelV1.DalamudStandard.Push();
+        // StyleModelV1.DalamudStandard.Push();
 
         var profileChooserPopupName = $"###pluginProfileChooser{plugin.Manifest.InternalName}";
         if (ImGui.BeginPopup(profileChooserPopupName))
@@ -2526,7 +2529,7 @@ internal class PluginInstallerWindow : Window, IDisposable
             }
         }
 
-        //StyleModelV1.DalamudStandard.Pop();
+        // StyleModelV1.DalamudStandard.Pop();
 
         ImGui.SameLine();
         ImGuiHelpers.ScaledDummy(15, 0);
@@ -2621,7 +2624,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         }
     }
 
-    private void DrawSendFeedbackButton(PluginManifest manifest, bool isTesting)
+    private void DrawSendFeedbackButton(IPluginManifest manifest, bool isTesting)
     {
         ImGui.SameLine();
         if (ImGuiComponents.IconButton(FontAwesomeIcon.Comment))
@@ -2796,7 +2799,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         }
     }
 
-    private bool DrawPluginImages(LocalPlugin? plugin, PluginManifest manifest, bool isThirdParty, int index)
+    private bool DrawPluginImages(LocalPlugin? plugin, IPluginManifest manifest, bool isThirdParty, int index)
     {
         var hasImages = this.imageCache.TryGetImages(plugin, manifest, isThirdParty, out var imageTextures);
         if (!hasImages || imageTextures.All(x => x == null))
@@ -2871,7 +2874,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         return true;
     }
 
-    private bool IsManifestFiltered(PluginManifest manifest)
+    private bool IsManifestFiltered(IPluginManifest manifest)
     {
         var searchString = this.searchText.ToLowerInvariant();
         var hasSearchString = !string.IsNullOrWhiteSpace(searchString);
@@ -2889,7 +2892,7 @@ internal class PluginInstallerWindow : Window, IDisposable
                                        (manifest.Tags != null && manifest.Tags.Any(tag => tag.ToLowerInvariant().Contains(searchString))));
     }
 
-    private (bool IsInstalled, LocalPlugin Plugin) IsManifestInstalled(PluginManifest? manifest)
+    private (bool IsInstalled, LocalPlugin Plugin) IsManifestInstalled(IPluginManifest? manifest)
     {
         if (manifest == null) return (false, default);
 

@@ -77,9 +77,9 @@ internal class ProfileManagerWidget
 
     private void DrawTutorial(string modalTitle)
     {
-        var _ = true;
+        var open = true;
         ImGui.SetNextWindowSize(new Vector2(450, 350), ImGuiCond.Appearing);
-        using (var popup = ImRaii.PopupModal(modalTitle, ref _))
+        using (var popup = ImRaii.PopupModal(modalTitle, ref open))
         {
             if (popup)
             {
@@ -399,7 +399,7 @@ internal class ProfileManagerWidget
 
                 if (pmPlugin != null)
                 {
-                    pic.TryGetIcon(pmPlugin, pmPlugin.Manifest, pmPlugin.Manifest.IsThirdParty, out var icon);
+                    pic.TryGetIcon(pmPlugin, pmPlugin.Manifest, pmPlugin.IsThirdParty, out var icon);
                     icon ??= pic.DefaultIcon;
 
                     ImGui.Image(icon.ImGuiHandle, new Vector2(pluginLineHeight));
@@ -596,6 +596,5 @@ internal class ProfileManagerWidget
         
         public static string TutorialCommandsEnd =>
             Loc.Localize("ProfileManagerTutorialCommandsEnd", "If you run multiple of these commands, they will be executed in order.");
-
     }
 }

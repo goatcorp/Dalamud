@@ -11,7 +11,7 @@ namespace Dalamud.Plugin.Internal.Types;
 /// Information about a plugin, packaged in a json file with the DLL. This variant includes additional information such as
 /// if the plugin is disabled and if it was installed from a testing URL. This is designed for use with manifests on disk.
 /// </summary>
-internal record LocalPluginManifest : PluginManifest
+internal record LocalPluginManifest : PluginManifest, ILocalPluginManifest
 {
     /// <summary>
     /// Flag indicating that a plugin was installed from the official repo.
@@ -38,16 +38,10 @@ internal record LocalPluginManifest : PluginManifest
     /// </summary>
     public bool Testing { get; set; }
 
-    /// <summary>
-    /// Gets or sets a value indicating whether the plugin should be deleted during the next cleanup.
-    /// </summary>
+    /// <inheritdoc/>
     public bool ScheduledForDeletion { get; set; }
 
-    /// <summary>
-    /// Gets or sets the 3rd party repo URL that this plugin was installed from. Used to display where the plugin was
-    /// sourced from on the installed plugin view. This should not be included in the plugin master. This value is null
-    /// when installed from the main repo.
-    /// </summary>
+    /// <inheritdoc/>
     public string InstalledFromUrl { get; set; } = string.Empty;
 
     /// <summary>
