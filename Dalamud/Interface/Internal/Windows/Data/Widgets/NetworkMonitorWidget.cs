@@ -2,6 +2,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Text.RegularExpressions;
 
 using Dalamud.Data;
@@ -27,12 +28,14 @@ internal class NetworkMonitorWidget : IDataWindowWidget
     }
 
     private readonly ConcurrentQueue<NetworkPacketData> packets = new();
-    private readonly Dictionary<ushort, (string, int)> opCodeDict = new();
+    private readonly Dictionary<ushort, (string Name, int Size)> opCodeDict = new();
 
     private bool trackNetwork;
     private int trackedPackets;
     private Regex? trackedOpCodes;
     private string filterString = string.Empty;
+    private Regex? untrackedOpCodes;
+    private string negativeFilterString = string.Empty;
 
     /// <summary> Finalizes an instance of the <see cref="NetworkMonitorWidget"/> class. </summary>
     ~NetworkMonitorWidget()
@@ -91,8 +94,9 @@ internal class NetworkMonitorWidget : IDataWindowWidget
         }
 
         this.DrawFilterInput();
+        this.DrawNegativeFilterInput();
 
-        ImGuiTable.DrawTable(string.Empty, this.packets, this.DrawNetworkPacket, ImGuiTableFlags.SizingFixedFit | ImGuiTableFlags.RowBg, "Direction", "OpCode", "Source", "Target", "Data");
+        ImGuiTable.DrawTable(string.Empty, this.packets, this.DrawNetworkPacket, ImGuiTableFlags.SizingFixedFit | ImGuiTableFlags.RowBg, "Direction", "Known Name", "OpCode", "Hex", "Target", "Source", "Data");
     }
 
     private void DrawNetworkPacket(NetworkPacketData data)
@@ -101,18 +105,35 @@ internal class NetworkMonitorWidget : IDataWindowWidget
         ImGui.TextUnformatted(data.Direction.ToString());
 
         ImGui.TableNextColumn();
-        ImGui.TextUnformatted(this.opCodeDict.TryGetValue(data.OpCode, out var pair) ? pair.Item1 : data.OpCode.ToString());
+        if (this.opCodeDict.TryGetValue(data.OpCode, out var pair))
+        {
+            ImGui.TextUnformatted(pair.Name);
+        }
+        else
+        {
+            ImGui.Dummy(new Vector2(150 * ImGuiHelpers.GlobalScale, 0));
+        }
 
         ImGui.TableNextColumn();
-        ImGui.TextUnformatted($"0x{data.SourceActorId:X}");
+        ImGui.TextUnformatted(data.OpCode.ToString());
 
         ImGui.TableNextColumn();
-        ImGui.TextUnformatted($"0x{data.TargetActorId:X}");
+        ImGui.TextUnformatted($"0x{data.OpCode:X4}");
+
+        ImGui.TableNextColumn();
+        ImGui.TextUnformatted(data.TargetActorId > 0 ? $"0x{data.TargetActorId:X}" : string.Empty);
+
+        ImGui.TableNextColumn();
+        ImGui.TextUnformatted(data.SourceActorId > 0 ? $"0x{data.SourceActorId:X}" : string.Empty);
 
         ImGui.TableNextColumn();
         if (data.Data.Count > 0)
         {
             ImGui.TextUnformatted(string.Join(" ", data.Data.Select(b => b.ToString("X2"))));
+        }
+        else
+        {
+            ImGui.Dummy(ImGui.GetContentRegionAvail() with { Y = 0 });
         }
     }
 
@@ -122,7 +143,7 @@ internal class NetworkMonitorWidget : IDataWindowWidget
         using var style = ImRaii.PushStyle(ImGuiStyleVar.FrameBorderSize, 2 * ImGuiHelpers.GlobalScale, invalidRegEx);
         using var color = ImRaii.PushColor(ImGuiCol.Border, 0xFF0000FF, invalidRegEx);
         ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X);
-        if (!ImGui.InputTextWithHint("##Filter", "Regex Filter OpCodes...", ref this.filterString, 256))
+        if (!ImGui.InputTextWithHint("##Filter", "Regex Filter OpCodes...", ref this.filterString, 1024))
         {
             return;
         }
@@ -144,9 +165,38 @@ internal class NetworkMonitorWidget : IDataWindowWidget
         }
     }
 
+    private void DrawNegativeFilterInput()
+    {
+        var invalidRegEx = this.negativeFilterString.Length > 0 && this.untrackedOpCodes == null;
+        using var style = ImRaii.PushStyle(ImGuiStyleVar.FrameBorderSize, 2 * ImGuiHelpers.GlobalScale, invalidRegEx);
+        using var color = ImRaii.PushColor(ImGuiCol.Border, 0xFF0000FF, invalidRegEx);
+        ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X);
+        if (!ImGui.InputTextWithHint("##NegativeFilter", "Regex Filter Against OpCodes...", ref this.negativeFilterString, 1024))
+        {
+            return;
+        }
+
+        if (this.negativeFilterString.Length == 0)
+        {
+            this.untrackedOpCodes = null;
+        }
+        else
+        {
+            try
+            {
+                this.untrackedOpCodes = new Regex(this.negativeFilterString, RegexOptions.Compiled | RegexOptions.ExplicitCapture);
+            }
+            catch
+            {
+                this.untrackedOpCodes = null;
+            }
+        }
+    }
+
     private void OnNetworkMessage(nint dataPtr, ushort opCode, uint sourceActorId, uint targetActorId, NetworkMessageDirection direction)
     {
-        if (this.trackedOpCodes == null || this.trackedOpCodes.IsMatch(this.OpCodeToString(opCode)))
+        if ((this.trackedOpCodes == null || this.trackedOpCodes.IsMatch(this.OpCodeToString(opCode)))
+            && (this.untrackedOpCodes == null || !this.untrackedOpCodes.IsMatch(this.OpCodeToString(opCode))))
         {
             this.packets.Enqueue(new NetworkPacketData(this, opCode, direction, sourceActorId, targetActorId, dataPtr));
             while (this.packets.Count > this.trackedPackets)
@@ -157,7 +207,7 @@ internal class NetworkMonitorWidget : IDataWindowWidget
     }
 
     private int GetSizeFromOpCode(ushort opCode)
-        => this.opCodeDict.TryGetValue(opCode, out var pair) ? pair.Item2 : 0;
+        => this.opCodeDict.TryGetValue(opCode, out var pair) ? pair.Size : 0;
 
     /// <remarks> Add known packet-name -> packet struct size associations here to copy the byte data for such packets. </remarks>>
     private int GetSizeFromName(string name)
@@ -168,5 +218,5 @@ internal class NetworkMonitorWidget : IDataWindowWidget
 
     /// <remarks> The filter should find opCodes by number (decimal and hex) and name, if existing. </remarks>
     private string OpCodeToString(ushort opCode)
-        => this.opCodeDict.TryGetValue(opCode, out var pair) ? $"{pair.Item1}\0{opCode}\0{opCode:X}" : $"{opCode}\0{opCode:X}";
+        => this.opCodeDict.TryGetValue(opCode, out var pair) ? $"{opCode}\0{opCode:X}\0{pair.Name}" : $"{opCode}\0{opCode:X}";
 }
