@@ -1,4 +1,4 @@
-﻿namespace Dalamud.Plugin.Internal.Types;
+﻿namespace Dalamud.Plugin.Internal.Types.Manifest;
 
 /// <summary>
 /// Public interface for the local plugin manifest.

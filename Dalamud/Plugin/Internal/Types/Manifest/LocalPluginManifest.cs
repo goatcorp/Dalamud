@@ -5,7 +5,7 @@ using Dalamud.Utility;
 using Newtonsoft.Json;
 using Serilog;
 
-namespace Dalamud.Plugin.Internal.Types;
+namespace Dalamud.Plugin.Internal.Types.Manifest;
 
 /// <summary>
 /// Information about a plugin, packaged in a json file with the DLL. This variant includes additional information such as
@@ -54,11 +54,6 @@ internal record LocalPluginManifest : PluginManifest, ILocalPluginManifest
     /// Gets the effective version of this plugin.
     /// </summary>
     public Version EffectiveVersion => this.Testing && this.TestingAssemblyVersion != null ? this.TestingAssemblyVersion : this.AssemblyVersion;
-
-    /// <summary>
-    /// Gets a value indicating whether this plugin is eligible for testing.
-    /// </summary>
-    public bool IsAvailableForTesting => this.TestingAssemblyVersion != null && this.TestingAssemblyVersion > this.AssemblyVersion;
 
     /// <summary>
     /// Save a plugin manifest to file.

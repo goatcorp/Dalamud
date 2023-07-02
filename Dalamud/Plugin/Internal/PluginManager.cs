@@ -25,6 +25,7 @@ using Dalamud.Networking.Http;
 using Dalamud.Plugin.Internal.Exceptions;
 using Dalamud.Plugin.Internal.Profiles;
 using Dalamud.Plugin.Internal.Types;
+using Dalamud.Plugin.Internal.Types.Manifest;
 using Dalamud.Plugin.Ipc.Internal;
 using Dalamud.Utility;
 using Dalamud.Utility.Timing;

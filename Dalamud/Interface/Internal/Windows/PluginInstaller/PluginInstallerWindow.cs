@@ -24,6 +24,7 @@ using Dalamud.Plugin.Internal;
 using Dalamud.Plugin.Internal.Exceptions;
 using Dalamud.Plugin.Internal.Profiles;
 using Dalamud.Plugin.Internal.Types;
+using Dalamud.Plugin.Internal.Types.Manifest;
 using Dalamud.Support;
 using Dalamud.Utility;
 using ImGuiNET;
@@ -2036,13 +2037,12 @@ internal class PluginInstallerWindow : Window, IDisposable
             label += Locs.PluginTitleMod_TestingVersion;
         }
 
-        // TODO: check with the repos instead
-        /*
-        if (plugin.Manifest.IsAvailableForTesting && configuration.DoPluginTest && testingOptIn == null)
+        var hasTestingAvailable = this.pluginListAvailable.Any(x => x.InternalName == plugin.InternalName &&
+                                                                               x.IsAvailableForTesting);
+        if (hasTestingAvailable && configuration.DoPluginTest && testingOptIn == null)
         {
             label += Locs.PluginTitleMod_TestingAvailable;
         }
-        */
 
         // Freshly installed
         if (showInstalled)
@@ -2157,12 +2157,15 @@ internal class PluginInstallerWindow : Window, IDisposable
             ImGui.SameLine();
             ImGui.TextColored(ImGuiColors.DalamudGrey3, downloadText);
 
+            var acceptsFeedback =
+                this.pluginListAvailable.Any(x => x.InternalName == plugin.InternalName && x.AcceptsFeedback);
+
             var isThirdParty = plugin.IsThirdParty;
             var canFeedback = !isThirdParty &&
                               !plugin.IsDev &&
                               !plugin.IsOrphaned &&
                               plugin.Manifest.DalamudApiLevel == PluginManager.DalamudApiLevel &&
-                              // plugin.Manifest.AcceptsFeedback && // TODO: check with the repos
+                              acceptsFeedback &&
                               availablePluginUpdate == default;
 
             // Installed from
