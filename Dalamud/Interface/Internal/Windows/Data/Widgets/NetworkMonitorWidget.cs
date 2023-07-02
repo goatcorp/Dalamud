@@ -18,7 +18,9 @@ namespace Dalamud.Interface.Internal.Windows.Data;
 /// </summary>
 internal class NetworkMonitorWidget : IDataWindowWidget
 {
+#pragma warning disable SA1313
     private readonly record struct NetworkPacketData(ushort OpCode, NetworkMessageDirection Direction, uint SourceActorId, uint TargetActorId)
+#pragma warning restore SA1313
     {
         public readonly IReadOnlyList<byte> Data = Array.Empty<byte>();
 

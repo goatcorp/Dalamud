@@ -17,7 +17,7 @@ namespace Dalamud.Game.ClientState.Fates;
 [ServiceManager.BlockingEarlyLoadedService]
 #pragma warning disable SA1015
 [ResolveVia<IFateTable>]
-#pragma warning enable SA1015
+#pragma warning restore SA1015
 public sealed partial class FateTable : IServiceType, IFateTable
 {
     private readonly ClientStateAddressResolver address;

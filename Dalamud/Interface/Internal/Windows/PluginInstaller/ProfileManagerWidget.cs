@@ -87,18 +87,20 @@ internal class ProfileManagerWidget
                 if (scrolling)
                 {
                     ImGuiHelpers.SafeTextWrapped(Locs.TutorialParagraphOne);
-                    ImGuiHelpers.ScaledDummy(3);
+                    ImGuiHelpers.ScaledDummy(5);
                     ImGuiHelpers.SafeTextWrapped(Locs.TutorialParagraphTwo);
-                    ImGuiHelpers.ScaledDummy(3);
+                    ImGuiHelpers.ScaledDummy(5);
                     ImGuiHelpers.SafeTextWrapped(Locs.TutorialParagraphThree);
-                    ImGuiHelpers.ScaledDummy(3);
+                    ImGuiHelpers.ScaledDummy(5);
                     ImGuiHelpers.SafeTextWrapped(Locs.TutorialParagraphFour);
-                    ImGuiHelpers.ScaledDummy(3);
+                    ImGuiHelpers.ScaledDummy(5);
                     ImGuiHelpers.SafeTextWrapped(Locs.TutorialCommands);
                     ImGui.BulletText(Locs.TutorialCommandsEnable);
                     ImGui.BulletText(Locs.TutorialCommandsDisable);
                     ImGui.BulletText(Locs.TutorialCommandsToggle);
                     ImGuiHelpers.SafeTextWrapped(Locs.TutorialCommandsEnd);
+                    
+                    ImGuiHelpers.ScaledDummy(5);
             
                     var buttonWidth = 120f;
                     ImGui.SetCursorPosX((ImGui.GetWindowWidth() - buttonWidth) / 2);
@@ -564,9 +566,6 @@ internal class ProfileManagerWidget
         public static string ErrorCouldNotChangeState =>
             Loc.Localize("ProfileManagerCouldNotChangeState", "Could not change plugin state.");
 
-        public static string NotInstalled(string name) =>
-            Loc.Localize("ProfileManagerNotInstalled", "{0} (Not Installed)").Format(name);
-
         public static string TutorialTitle =>
             Loc.Localize("ProfileManagerTutorial", "About Collections");
         
@@ -596,5 +595,8 @@ internal class ProfileManagerWidget
         
         public static string TutorialCommandsEnd =>
             Loc.Localize("ProfileManagerTutorialCommandsEnd", "If you run multiple of these commands, they will be executed in order.");
+
+        public static string NotInstalled(string name) =>
+            Loc.Localize("ProfileManagerNotInstalled", "{0} (Not Installed)").Format(name);
     }
 }
