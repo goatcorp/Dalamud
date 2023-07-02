@@ -263,7 +263,7 @@ public sealed class EntryPoint
                     {
                         pluginInfo = $"Plugin that caused this:\n{plugin.Name}\n\nClick \"Yes\" and remove it.\n\n";
 
-                        if (plugin.Manifest.IsThirdParty)
+                        if (plugin.IsThirdParty)
                             supportText = string.Empty;
                     }
                 }

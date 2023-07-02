@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 
 using Dalamud.Game;
+using Dalamud.Plugin.Internal.Types.Manifest;
 using Newtonsoft.Json;
 
 namespace Dalamud.Plugin.Internal.Types;
@@ -9,41 +10,29 @@ namespace Dalamud.Plugin.Internal.Types;
 /// <summary>
 /// Information about a plugin, packaged in a json file with the DLL.
 /// </summary>
-internal record PluginManifest
+internal record PluginManifest : IPluginManifest
 {
-    /// <summary>
-    /// Gets the author/s of the plugin.
-    /// </summary>
+    /// <inheritdoc/>
     [JsonProperty]
     public string? Author { get; init; }
 
-    /// <summary>
-    /// Gets or sets the public name of the plugin.
-    /// </summary>
+    /// <inheritdoc/>
     [JsonProperty]
     public string Name { get; set; } = null!;
 
-    /// <summary>
-    /// Gets a punchline of the plugins functions.
-    /// </summary>
+    /// <inheritdoc/>
     [JsonProperty]
     public string? Punchline { get; init; }
 
-    /// <summary>
-    /// Gets a description of the plugins functions.
-    /// </summary>
+    /// <inheritdoc/>
     [JsonProperty]
     public string? Description { get; init; }
 
-    /// <summary>
-    /// Gets a changelog.
-    /// </summary>
+    /// <inheritdoc/>
     [JsonProperty]
     public string? Changelog { get; init; }
 
-    /// <summary>
-    /// Gets a list of tags defined on the plugin.
-    /// </summary>
+    /// <inheritdoc/>
     [JsonProperty]
     public List<string>? Tags { get; init; }
 
@@ -60,33 +49,23 @@ internal record PluginManifest
     [JsonProperty]
     public bool IsHide { get; init; }
 
-    /// <summary>
-    /// Gets the internal name of the plugin, which should match the assembly name of the plugin.
-    /// </summary>
+    /// <inheritdoc/>
     [JsonProperty]
-    public string InternalName { get; init; } = null!;
+    public string InternalName { get; set; } = null!;
 
-    /// <summary>
-    /// Gets the current assembly version of the plugin.
-    /// </summary>
+    /// <inheritdoc/>
     [JsonProperty]
-    public Version AssemblyVersion { get; init; } = null!;
+    public Version AssemblyVersion { get; set; } = null!;
 
-    /// <summary>
-    /// Gets the current testing assembly version of the plugin.
-    /// </summary>
+    /// <inheritdoc/>
     [JsonProperty]
     public Version? TestingAssemblyVersion { get; init; }
 
-    /// <summary>
-    /// Gets a value indicating whether the plugin is only available for testing.
-    /// </summary>
+    /// <inheritdoc/>
     [JsonProperty]
     public bool IsTestingExclusive { get; init; }
 
-    /// <summary>
-    /// Gets an URL to the website or source code of the plugin.
-    /// </summary>
+    /// <inheritdoc/>
     [JsonProperty]
     public string? RepoUrl { get; init; }
 
@@ -97,24 +76,17 @@ internal record PluginManifest
     [JsonConverter(typeof(GameVersionConverter))]
     public GameVersion? ApplicableVersion { get; init; } = GameVersion.Any;
 
-    /// <summary>
-    /// Gets the API level of this plugin. For the current API level, please see <see cref="PluginManager.DalamudApiLevel"/>
-    /// for the currently used API level.
-    /// </summary>
+    /// <inheritdoc/>
     [JsonProperty]
     public int DalamudApiLevel { get; init; } = PluginManager.DalamudApiLevel;
 
-    /// <summary>
-    /// Gets the number of downloads this plugin has.
-    /// </summary>
+    /// <inheritdoc/>
     [JsonProperty]
     public long DownloadCount { get; init; }
 
-    /// <summary>
-    /// Gets the last time this plugin was updated.
-    /// </summary>
+    /// <inheritdoc/>
     [JsonProperty]
-    public long LastUpdate { get; init; }
+    public long LastUpdate { get; set; }
 
     /// <summary>
     /// Gets the download link used to install the plugin.
@@ -156,26 +128,18 @@ internal record PluginManifest
     [JsonProperty]
     public int LoadPriority { get; init; }
 
-    /// <summary>
-    /// Gets a value indicating whether the plugin can be unloaded asynchronously.
-    /// </summary>
+    /// <inheritdoc/>
     [JsonProperty]
-    public bool CanUnloadAsync { get; init; }
+    public bool CanUnloadAsync { get; set; }
 
-    /// <summary>
-    /// Gets a value indicating whether the plugin supports profiles.
-    /// </summary>
+    /// <inheritdoc/>
     [JsonProperty]
     public bool SupportsProfiles { get; init; } = true;
 
-    /// <summary>
-    /// Gets a list of screenshot image URLs to show in the plugin installer.
-    /// </summary>
+    /// <inheritdoc/>
     public List<string>? ImageUrls { get; init; }
 
-    /// <summary>
-    /// Gets an URL for the plugin's icon.
-    /// </summary>
+    /// <inheritdoc/>
     public string? IconUrl { get; init; }
 
     /// <summary>
@@ -183,21 +147,10 @@ internal record PluginManifest
     /// </summary>
     public bool AcceptsFeedback { get; init; } = true;
 
-    /// <summary>
-    /// Gets a message that is shown to users when sending feedback.
-    /// </summary>
+    /// <inheritdoc/>
     public string? FeedbackMessage { get; init; }
 
-    /// <summary>
-    /// Gets a value indicating whether this plugin is DIP17.
-    /// To be removed.
-    /// </summary>
-    [JsonProperty("_isDip17Plugin")]
-    public bool IsDip17Plugin { get; init; } = false;
-
-    /// <summary>
-    /// Gets the DIP17 channel name.
-    /// </summary>
+    /// <inheritdoc/>
     [JsonProperty("_Dip17Channel")]
     public string? Dip17Channel { get; init; }
 }
