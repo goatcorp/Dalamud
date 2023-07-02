@@ -209,10 +209,10 @@ internal sealed class DalamudConfiguration : IServiceType
     public bool IsDocking { get; set; }
     
     /// <summary>
-    /// Gets or sets a value indicating whether or not not plugin user interfaces should trigger sound effects.
+    /// Gets or sets a value indicating whether or not plugin user interfaces should trigger sound effects.
     /// This setting is effected by the in-game "System Sounds" option and volume.
     /// </summary>
-    public bool PluginSoundEffects { get; set; }
+    public bool PluginUISoundEffects { get; set; }
 
     /// <summary>
     /// Gets or sets a value indicating whether viewports should always be disabled.
