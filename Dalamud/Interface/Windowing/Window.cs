@@ -2,6 +2,7 @@ using System.Numerics;
 
 using Dalamud.Configuration.Internal;
 using Dalamud.Game.ClientState.Keys;
+using FFXIVClientStructs.FFXIV.Client.UI;
 using ImGuiNET;
 
 namespace Dalamud.Interface.Windowing;
@@ -55,6 +56,21 @@ public abstract class Window
     /// </summary>
     public bool RespectCloseHotkey { get; set; } = true;
 
+    /// <summary>
+    /// Gets or sets a value indicating whether this window should generate sound effects when opening and closing.
+    /// </summary>
+    public bool EnableWindowSounds { get; set; } = false;
+
+    /// <summary>
+    /// Gets or sets a value representing the sound effect id to be played when the window is opened.
+    /// </summary>
+    public uint OnOpenSfxId { get; set; } = 23u;
+
+    /// <summary>
+    /// Gets or sets a value representing the sound effect id to be played when the window is closed.
+    /// </summary>
+    public uint OnCloseSfxId { get; set; } = 24u;
+    
     /// <summary>
     /// Gets or sets the position of this window.
     /// </summary>
@@ -219,6 +235,8 @@ public abstract class Window
                 this.OnClose();
 
                 this.IsFocused = false;
+                
+                if (this.EnableWindowSounds) UIModule.PlaySound(this.OnCloseSfxId, 0, 0, 0);
             }
 
             return;
@@ -243,6 +261,8 @@ public abstract class Window
         {
             this.internalLastIsOpen = this.internalIsOpen;
             this.OnOpen();
+
+            if (this.EnableWindowSounds) UIModule.PlaySound(this.OnOpenSfxId, 0, 0, 0);
         }
 
         var wasFocused = this.IsFocused;
