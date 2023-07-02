@@ -17,6 +17,7 @@ public abstract class Window
     private bool internalLastIsOpen = false;
     private bool internalIsOpen = false;
     private bool nextFrameBringToFront = false;
+    private DalamudConfiguration Configuration;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="Window"/> class.
@@ -32,6 +33,7 @@ public abstract class Window
         this.WindowName = name;
         this.Flags = flags;
         this.ForceMainWindow = forceMainWindow;
+        this.Configuration = Service<DalamudConfiguration>.Get();
     }
 
     /// <summary>
@@ -57,9 +59,9 @@ public abstract class Window
     public bool RespectCloseHotkey { get; set; } = true;
 
     /// <summary>
-    /// Gets or sets a value indicating whether this window should generate sound effects when opening and closing.
+    /// Gets or sets a value indicating whether this window should not generate sound effects when opening and closing.
     /// </summary>
-    public bool EnableWindowSounds { get; set; } = false;
+    public bool DisableWindowSounds { get; set; } = false;
 
     /// <summary>
     /// Gets or sets a value representing the sound effect id to be played when the window is opened.
@@ -236,7 +238,7 @@ public abstract class Window
 
                 this.IsFocused = false;
                 
-                if (this.EnableWindowSounds) UIModule.PlaySound(this.OnCloseSfxId, 0, 0, 0);
+                if (this.Configuration.PluginSoundEffects && !this.DisableWindowSounds) UIModule.PlaySound(this.OnCloseSfxId, 0, 0, 0);
             }
 
             return;
@@ -262,7 +264,7 @@ public abstract class Window
             this.internalLastIsOpen = this.internalIsOpen;
             this.OnOpen();
 
-            if (this.EnableWindowSounds) UIModule.PlaySound(this.OnOpenSfxId, 0, 0, 0);
+            if (this.Configuration.PluginSoundEffects && !this.DisableWindowSounds) UIModule.PlaySound(this.OnOpenSfxId, 0, 0, 0);
         }
 
         var wasFocused = this.IsFocused;

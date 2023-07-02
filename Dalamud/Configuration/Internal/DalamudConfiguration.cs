@@ -207,6 +207,12 @@ internal sealed class DalamudConfiguration : IServiceType
     /// Gets or sets a value indicating whether or not docking should be globally enabled in ImGui.
     /// </summary>
     public bool IsDocking { get; set; }
+    
+    /// <summary>
+    /// Gets or sets a value indicating whether or not not plugin user interfaces should trigger sound effects.
+    /// This setting is effected by the in-game "System Sounds" option and volume.
+    /// </summary>
+    public bool PluginSoundEffects { get; set; }
 
     /// <summary>
     /// Gets or sets a value indicating whether viewports should always be disabled.
