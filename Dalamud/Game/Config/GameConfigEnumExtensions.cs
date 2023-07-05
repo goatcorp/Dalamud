@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections.Concurrent;
 
 using Dalamud.Utility;
 
@@ -9,9 +9,9 @@ namespace Dalamud.Game.Config;
 /// </summary>
 internal static class GameConfigEnumExtensions
 {
-    private static readonly Dictionary<SystemConfigOption, string> SystemNameCache = new();
-    private static readonly Dictionary<UiConfigOption, string> UIConfigNameCache = new();
-    private static readonly Dictionary<UiControlOption, string> UIControlNameCache = new();
+    private static readonly ConcurrentDictionary<SystemConfigOption, string> SystemNameCache = new();
+    private static readonly ConcurrentDictionary<UiConfigOption, string> UIConfigNameCache = new();
+    private static readonly ConcurrentDictionary<UiControlOption, string> UIControlNameCache = new();
 
     /// <summary>
     /// Gets the name of a SystemConfigOption from it's attribute.
