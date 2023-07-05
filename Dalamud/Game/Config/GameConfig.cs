@@ -44,7 +44,7 @@ public sealed class GameConfig : IServiceType, IGameConfig, IDisposable
     private unsafe delegate nint ConfigChangeDelegate(ConfigBase* configBase, ConfigEntry* configEntry);
     
     /// <inheritdoc/>
-    public event EventHandler<ConfigChangeEvent> ConfigChange;
+    public event EventHandler<ConfigChangeEvent> Changed;
     
     /// <inheritdoc/>
     public GameConfigSection System { get; private set; }
@@ -156,7 +156,7 @@ public sealed class GameConfig : IServiceType, IGameConfig, IDisposable
 
             if (eventArgs == null) return returnValue;
 
-            this.ConfigChange?.InvokeSafely(this, eventArgs);
+            this.Changed?.InvokeSafely(this, eventArgs);
         }
         catch (Exception ex)
         {

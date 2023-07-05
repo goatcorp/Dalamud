@@ -22,7 +22,7 @@ public class GameConfigSection
     /// <summary>
     /// Event which is fired when a game config option is changed within the section.
     /// </summary>
-    public event EventHandler<ConfigChangeEvent> Change; 
+    public event EventHandler<ConfigChangeEvent> Changed; 
 
     /// <summary>
     /// Initializes a new instance of the <see cref="GameConfigSection"/> class.
@@ -415,7 +415,7 @@ public class GameConfigSection
 
         if (enumObject == null) return null;
         var eventArgs = new ConfigChangeEvent<TEnum>((TEnum)enumObject);
-        this.Change?.InvokeSafely(this, eventArgs);
+        this.Changed?.InvokeSafely(this, eventArgs);
         return eventArgs;
     }
     

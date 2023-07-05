@@ -14,7 +14,7 @@ public interface IGameConfig
     /// <summary>
     /// Event which is fired when a game config option is changed.
     /// </summary>
-    public event EventHandler<ConfigChangeEvent> ConfigChange;
+    public event EventHandler<ConfigChangeEvent> Changed;
 
     /// <summary>
     /// Gets the collection of config options that persist between characters.
