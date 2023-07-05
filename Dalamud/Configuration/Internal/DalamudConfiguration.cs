@@ -212,7 +212,7 @@ internal sealed class DalamudConfiguration : IServiceType
     /// Gets or sets a value indicating whether or not plugin user interfaces should trigger sound effects.
     /// This setting is effected by the in-game "System Sounds" option and volume.
     /// </summary>
-    public bool PluginUISoundEffects { get; set; }
+    public bool EnablePluginUISoundEffects { get; set; }
 
     /// <summary>
     /// Gets or sets a value indicating whether viewports should always be disabled.

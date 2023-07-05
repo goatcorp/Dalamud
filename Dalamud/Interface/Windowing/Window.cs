@@ -238,7 +238,7 @@ public abstract class Window
 
                 this.IsFocused = false;
                 
-                if (this.Configuration.PluginUISoundEffects && !this.DisableWindowSounds) UIModule.PlaySound(this.OnCloseSfxId, 0, 0, 0);
+                if (this.Configuration.EnablePluginUISoundEffects && !this.DisableWindowSounds) UIModule.PlaySound(this.OnCloseSfxId, 0, 0, 0);
             }
 
             return;
@@ -264,7 +264,7 @@ public abstract class Window
             this.internalLastIsOpen = this.internalIsOpen;
             this.OnOpen();
 
-            if (this.Configuration.PluginUISoundEffects && !this.DisableWindowSounds) UIModule.PlaySound(this.OnOpenSfxId, 0, 0, 0);
+            if (this.Configuration.EnablePluginUISoundEffects && !this.DisableWindowSounds) UIModule.PlaySound(this.OnOpenSfxId, 0, 0, 0);
         }
 
         var wasFocused = this.IsFocused;
