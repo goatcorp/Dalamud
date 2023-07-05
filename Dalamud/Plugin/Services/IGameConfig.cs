@@ -1,6 +1,8 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 
 using Dalamud.Game.Config;
+using FFXIVClientStructs.FFXIV.Common.Configuration;
 
 namespace Dalamud.Plugin.Services;
 
@@ -9,6 +11,11 @@ namespace Dalamud.Plugin.Services;
 /// </summary>
 public interface IGameConfig
 {
+    /// <summary>
+    /// Event which is fired when a game config option is changed.
+    /// </summary>
+    public event EventHandler<ConfigChangeEvent> ConfigChange;
+
     /// <summary>
     /// Gets the collection of config options that persist between characters.
     /// </summary>

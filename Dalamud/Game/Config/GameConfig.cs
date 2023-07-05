@@ -1,6 +1,10 @@
-﻿using Dalamud.IoC;
+﻿using System;
+using Dalamud.Hooking;
+using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Plugin.Services;
+using Dalamud.Utility;
+using FFXIVClientStructs.FFXIV.Common.Configuration;
 using Serilog;
 
 namespace Dalamud.Game.Config;
@@ -14,10 +18,13 @@ namespace Dalamud.Game.Config;
 #pragma warning disable SA1015
 [ResolveVia<IGameConfig>]
 #pragma warning restore SA1015
-public sealed class GameConfig : IServiceType, IGameConfig
+public sealed class GameConfig : IServiceType, IGameConfig, IDisposable
 {
+    private readonly GameConfigAddressResolver address = new();
+    private Hook<ConfigChangeDelegate>? configChangeHook;
+
     [ServiceManager.ServiceConstructor]
-    private unsafe GameConfig(Framework framework)
+    private unsafe GameConfig(Framework framework, SigScanner sigScanner)
     {
         framework.RunOnTick(() =>
         {
@@ -27,9 +34,18 @@ public sealed class GameConfig : IServiceType, IGameConfig
             this.System = new GameConfigSection("System", framework, &commonConfig->ConfigBase);
             this.UiConfig = new GameConfigSection("UiConfig", framework, &commonConfig->UiConfig);
             this.UiControl = new GameConfigSection("UiControl", framework, () => this.UiConfig.TryGetBool("PadMode", out var padMode) && padMode ? &commonConfig->UiControlGamepadConfig : &commonConfig->UiControlConfig);
+        
+            this.address.Setup(sigScanner);
+            this.configChangeHook = Hook<ConfigChangeDelegate>.FromAddress(this.address.ConfigChangeAddress, this.OnConfigChanged);
+            this.configChangeHook?.Enable();
         });
     }
 
+    private unsafe delegate nint ConfigChangeDelegate(ConfigBase* configBase, ConfigEntry* configEntry);
+    
+    /// <inheritdoc/>
+    public event EventHandler<ConfigChangeEvent> ConfigChange;
+    
     /// <inheritdoc/>
     public GameConfigSection System { get; private set; }
 
@@ -110,4 +126,43 @@ public sealed class GameConfig : IServiceType, IGameConfig
     
     /// <inheritdoc/>
     public void Set(UiControlOption option, string value) => this.UiControl.Set(option.GetName(), value);
+    
+    /// <inheritdoc/>
+    void IDisposable.Dispose()
+    {
+        this.configChangeHook?.Disable();
+        this.configChangeHook?.Dispose();
+    }
+    
+    private unsafe nint OnConfigChanged(ConfigBase* configBase, ConfigEntry* configEntry)
+    {
+        var returnValue = this.configChangeHook!.Original(configBase, configEntry);
+        try
+        {
+            ConfigChangeEvent? eventArgs = null;
+            
+            if (configBase == this.System.GetConfigBase())
+            {
+                eventArgs = this.System.InvokeChange<SystemConfigOption>(configEntry);
+            }
+            else if (configBase == this.UiConfig.GetConfigBase())
+            {
+                eventArgs = this.UiConfig.InvokeChange<UiConfigOption>(configEntry);
+            }
+            else if (configBase == this.UiControl.GetConfigBase())
+            {
+                eventArgs = this.UiControl.InvokeChange<UiControlOption>(configEntry);
+            }
+
+            if (eventArgs == null) return returnValue;
+
+            this.ConfigChange?.InvokeSafely(this, eventArgs);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, $"Exception thrown handing {nameof(this.OnConfigChanged)} events.");
+        }
+        
+        return returnValue;
+    }
 }
