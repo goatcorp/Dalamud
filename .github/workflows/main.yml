@@ -30,7 +30,7 @@ jobs:
       - name: Test Dalamud
         run: .\build.ps1 test
       - name: Sign Dalamud
-        if: ${{ github.repository_owner == 'goatcorp' }}
+        if: ${{ github.repository_owner == 'goatcorp' && github.event_name == 'push' }}
         env:
           CODESIGN_CERT_PFX: ${{ secrets.CODESIGN_CERT_PFX }}
           CODESIGN_CERT_PASSWORD: ${{ secrets.CODESIGN_CERT_PASSWORD }}
