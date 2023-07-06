@@ -6,6 +6,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Numerics;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -35,7 +36,7 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller;
 /// <summary>
 /// Class responsible for drawing the plugin installer.
 /// </summary>
-internal class PluginInstallerWindow : Window, IDisposable
+internal partial class PluginInstallerWindow : Window, IDisposable
 {
     private static readonly ModuleLog Log = new("PLUGINW");
 
@@ -391,7 +392,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         ImGui.SetCursorPos(Vector2.Zero);
 
         var windowSize = ImGui.GetWindowSize();
-        var titleHeight = ImGui.GetFontSize() + (ImGui.GetStyle().FramePadding.Y * 2);
+        var titleHeight = ImGui.GetFontSize() + ImGui.GetStyle().FramePadding.Y * 2;
 
         using var loadingChild = ImRaii.Child("###installerLoadingFrame", new Vector2(-1, -1), false);
         if (loadingChild)
@@ -446,8 +447,8 @@ internal class PluginInstallerWindow : Window, IDisposable
                         var total = 0;
 
                         var pendingRepos = pluginManager.Repos.ToArray()
-                                                        .Where(x => (x.State != PluginRepositoryState.Success &&
-                                                                     x.State != PluginRepositoryState.Fail) &&
+                                                        .Where(x => x.State != PluginRepositoryState.Success &&
+                                                                     x.State != PluginRepositoryState.Fail &&
                                                                     x.IsEnabled)
                                                         .ToArray();
                         var allRepoCount =
@@ -490,7 +491,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         var style = ImGui.GetStyle();
         var windowSize = ImGui.GetWindowContentRegionMax();
 
-        ImGui.SetCursorPosY(ImGui.GetCursorPosY() - (5 * ImGuiHelpers.GlobalScale));
+        ImGui.SetCursorPosY(ImGui.GetCursorPosY() - 5 * ImGuiHelpers.GlobalScale);
 
         var searchInputWidth = 180 * ImGuiHelpers.GlobalScale;
         var searchClearButtonWidth = 25 * ImGuiHelpers.GlobalScale;
@@ -507,7 +508,7 @@ internal class PluginInstallerWindow : Window, IDisposable
             (Locs.SortBy_EnabledDisabled, PluginSortKind.EnabledDisabled),
         };
         var longestSelectableWidth = sortSelectables.Select(t => ImGui.CalcTextSize(t.Localization).X).Max();
-        var selectableWidth = longestSelectableWidth + (style.FramePadding.X * 2);  // This does not include the label
+        var selectableWidth = longestSelectableWidth + style.FramePadding.X * 2;  // This does not include the label
         var sortSelectWidth = selectableWidth + sortByTextWidth + style.ItemInnerSpacing.X;  // Item spacing between the selectable and the label
 
         var headerText = Locs.Header_Hint;
@@ -517,10 +518,10 @@ internal class PluginInstallerWindow : Window, IDisposable
         ImGui.SameLine();
 
         // Shift down a little to align with the middle of the header text
-        var downShift = ImGui.GetCursorPosY() + (headerTextSize.Y / 4) - 2;
+        var downShift = ImGui.GetCursorPosY() + headerTextSize.Y / 4 - 2;
         ImGui.SetCursorPosY(downShift);
 
-        ImGui.SetCursorPosX(windowSize.X - sortSelectWidth - (style.ItemSpacing.X * 2) - searchInputWidth - searchClearButtonWidth);
+        ImGui.SetCursorPosX(windowSize.X - sortSelectWidth - style.ItemSpacing.X * 2 - searchInputWidth - searchClearButtonWidth);
 
         var isProfileManager =
             this.categoryManager.CurrentGroupIdx == 1 && this.categoryManager.CurrentCategoryIdx == 2;
@@ -742,7 +743,7 @@ internal class PluginInstallerWindow : Window, IDisposable
             ImGui.Spacing();
 
             var buttonWidth = 120f;
-            ImGui.SetCursorPosX((ImGui.GetWindowWidth() - ((buttonWidth * 2) - (ImGui.GetStyle().ItemSpacing.Y * 2))) / 2);
+            ImGui.SetCursorPosX((ImGui.GetWindowWidth() - (buttonWidth * 2 - ImGui.GetStyle().ItemSpacing.Y * 2)) / 2);
 
             if (ImGui.Button(Locs.UpdateModal_Yes, new Vector2(buttonWidth, 40)))
             {
@@ -979,8 +980,10 @@ internal class PluginInstallerWindow : Window, IDisposable
             changelogs = this.dalamudChangelogManager.Changelogs.OfType<PluginChangelogEntry>();
         }
 
-        var sortedChangelogs = changelogs?.Where(x => this.searchText.IsNullOrWhitespace() || x.Title.ToLowerInvariant().Contains(this.searchText.ToLowerInvariant()))
-                                                            .OrderByDescending(x => x.Date).ToList();
+        var sortedChangelogs = changelogs?
+                               .Where(x => this.searchText.IsNullOrWhitespace() || StringContains(x.Title, this.searchText))
+                               .OrderByDescending(x => x.Date)
+                               .ToList();
 
         if (sortedChangelogs == null || !sortedChangelogs.Any())
         {
@@ -1163,7 +1166,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         for (var groupIdx = 0; groupIdx < this.categoryManager.GroupList.Length; groupIdx++)
         {
             var groupInfo = this.categoryManager.GroupList[groupIdx];
-            var canShowGroup = (groupInfo.GroupKind != PluginCategoryManager.GroupKind.DevTools) || this.hasDevPlugins;
+            var canShowGroup = groupInfo.GroupKind != PluginCategoryManager.GroupKind.DevTools || this.hasDevPlugins;
             if (!canShowGroup)
             {
                 continue;
@@ -1178,7 +1181,7 @@ internal class PluginInstallerWindow : Window, IDisposable
                 }
 
                 ImGui.Indent();
-                var categoryItemSize = new Vector2(ImGui.GetContentRegionAvail().X - (5 * ImGuiHelpers.GlobalScale), ImGui.GetTextLineHeight());
+                var categoryItemSize = new Vector2(ImGui.GetContentRegionAvail().X - 5 * ImGuiHelpers.GlobalScale, ImGui.GetTextLineHeight());
                 for (var categoryIdx = 0; categoryIdx < groupInfo.Categories.Count; categoryIdx++)
                 {
                     var categoryInfo = Array.Find(this.categoryManager.CategoryList, x => x.CategoryId == groupInfo.Categories[categoryIdx]);
@@ -1344,7 +1347,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         ImGui.PushStyleColor(ImGuiCol.ButtonActive, new Vector4(0.5f, 0.5f, 0.5f, 0.35f));
         ImGui.PushStyleVar(ImGuiStyleVar.FrameRounding, 0);
 
-        ImGui.Button($"###pluginTesterCollapsibleBtn", new Vector2(ImGui.GetWindowWidth() - (ImGuiHelpers.GlobalScale * 35), sectionSize));
+        ImGui.Button($"###pluginTesterCollapsibleBtn", new Vector2(ImGui.GetWindowWidth() - ImGuiHelpers.GlobalScale * 35, sectionSize));
 
         ImGui.PopStyleVar();
 
@@ -1438,7 +1441,7 @@ internal class PluginInstallerWindow : Window, IDisposable
 
             if (ImGui.BeginChild(
                     "pluginTestingImageScrolling",
-                    new Vector2(width - (70 * ImGuiHelpers.GlobalScale), (PluginImageCache.PluginImageHeight / thumbFactor) + scrollBarSize),
+                    new Vector2(width - 70 * ImGuiHelpers.GlobalScale, PluginImageCache.PluginImageHeight / thumbFactor + scrollBarSize),
                     false,
                     ImGuiWindowFlags.HorizontalScrollbar |
                     ImGuiWindowFlags.NoScrollWithMouse |
@@ -1622,7 +1625,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         ImGui.PushStyleColor(ImGuiCol.ButtonActive, new Vector4(0.5f, 0.5f, 0.5f, 0.35f));
         ImGui.PushStyleVar(ImGuiStyleVar.FrameRounding, 0);
 
-        if (ImGui.Button($"###plugin{index}CollapsibleBtn", new Vector2(ImGui.GetWindowWidth() - (ImGuiHelpers.GlobalScale * 35), sectionSize)))
+        if (ImGui.Button($"###plugin{index}CollapsibleBtn", new Vector2(ImGui.GetWindowWidth() - ImGuiHelpers.GlobalScale * 35, sectionSize)))
         {
             if (isOpen)
             {
@@ -1678,7 +1681,7 @@ internal class PluginInstallerWindow : Window, IDisposable
 
         if (updateAvailable)
             ImGui.Image(this.imageCache.UpdateIcon.ImGuiHandle, iconSize);
-        else if ((trouble && !pluginDisabled) || isOrphan)
+        else if (trouble && !pluginDisabled || isOrphan)
             ImGui.Image(this.imageCache.TroubleIcon.ImGuiHandle, iconSize);
         else if (installableOutdated)
             ImGui.Image(this.imageCache.OutdatedInstallableIcon.ImGuiHandle, iconSize);
@@ -1870,7 +1873,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         var isOutdated = manifest.DalamudApiLevel < PluginManager.DalamudApiLevel;
 
         // Check for valid versions
-        if ((useTesting && manifest.TestingAssemblyVersion == null) || manifest.AssemblyVersion == null)
+        if (useTesting && manifest.TestingAssemblyVersion == null || manifest.AssemblyVersion == null)
         {
             // Without a valid version, quit
             return;
@@ -2349,11 +2352,11 @@ internal class PluginInstallerWindow : Window, IDisposable
         var disabled = this.updateStatus == OperationStatus.InProgress || this.installStatus == OperationStatus.InProgress;
 
         // Disable everything if the plugin is outdated
-        disabled = disabled || (plugin.IsOutdated && !pluginManager.LoadAllApiLevels) || plugin.IsBanned;
+        disabled = disabled || plugin.IsOutdated && !pluginManager.LoadAllApiLevels || plugin.IsBanned;
 
         // Disable everything if the plugin is orphaned
         // Control will immediately be disabled once the plugin is disabled
-        disabled = disabled || (plugin.IsOrphaned && !plugin.IsLoaded);
+        disabled = disabled || plugin.IsOrphaned && !plugin.IsLoaded;
 
         // Disable everything if the plugin failed to load
         // Now handled by the first case below
@@ -2816,7 +2819,7 @@ internal class PluginInstallerWindow : Window, IDisposable
 
         var width = ImGui.GetWindowWidth();
 
-        if (ImGui.BeginChild($"plugin{index}ImageScrolling", new Vector2(width - (70 * ImGuiHelpers.GlobalScale), (PluginImageCache.PluginImageHeight / thumbFactor) + scrollBarSize), false, ImGuiWindowFlags.HorizontalScrollbar | ImGuiWindowFlags.NoScrollWithMouse | ImGuiWindowFlags.NoBackground))
+        if (ImGui.BeginChild($"plugin{index}ImageScrolling", new Vector2(width - 70 * ImGuiHelpers.GlobalScale, PluginImageCache.PluginImageHeight / thumbFactor + scrollBarSize), false, ImGuiWindowFlags.HorizontalScrollbar | ImGuiWindowFlags.NoScrollWithMouse | ImGuiWindowFlags.NoBackground))
         {
             for (var i = 0; i < imageTextures.Length; i++)
             {
@@ -2879,8 +2882,7 @@ internal class PluginInstallerWindow : Window, IDisposable
 
     private bool IsManifestFiltered(IPluginManifest manifest)
     {
-        var searchString = this.searchText.ToLowerInvariant();
-        var hasSearchString = !string.IsNullOrWhiteSpace(searchString);
+        var hasSearchString = !string.IsNullOrWhiteSpace(this.searchText);
         var oldApi = manifest.DalamudApiLevel < PluginManager.DalamudApiLevel;
         var installed = this.IsManifestInstalled(manifest).IsInstalled;
 
@@ -2888,11 +2890,11 @@ internal class PluginInstallerWindow : Window, IDisposable
             return true;
 
         return hasSearchString && !(
-                                       (!manifest.Name.IsNullOrEmpty() && manifest.Name.ToLowerInvariant().Contains(searchString)) ||
-                                       (!manifest.InternalName.IsNullOrEmpty() && manifest.InternalName.ToLowerInvariant().Contains(searchString)) ||
-                                       (!manifest.Author.IsNullOrEmpty() && manifest.Author.Equals(this.searchText, StringComparison.InvariantCultureIgnoreCase)) ||
-                                       (!manifest.Punchline.IsNullOrEmpty() && manifest.Punchline.ToLowerInvariant().Contains(searchString)) ||
-                                       (manifest.Tags != null && manifest.Tags.Any(tag => tag.ToLowerInvariant().Contains(searchString))));
+                                       (!manifest.Name.IsNullOrEmpty() && StringContains(manifest.Name, this.searchText)) ||
+                                       (!manifest.InternalName.IsNullOrEmpty() && StringContains(manifest.InternalName, this.searchText)) ||
+                                       (!manifest.Author.IsNullOrEmpty() && StringContains(manifest.Author, this.searchText)) ||
+                                       (!manifest.Punchline.IsNullOrEmpty() && StringContains(manifest.Punchline, this.searchText)) ||
+                                       (manifest.Tags != null && manifest.Tags.Any(tag => StringContains(tag, this.searchText))));
     }
 
     private (bool IsInstalled, LocalPlugin Plugin) IsManifestInstalled(IPluginManifest? manifest)
@@ -3012,6 +3014,20 @@ internal class PluginInstallerWindow : Window, IDisposable
             var pluginsMatchingSearch = this.pluginListAvailable.Where(rm => !this.IsManifestFiltered(rm));
             this.categoryManager.SetCategoryHighlightsForPlugins(pluginsMatchingSearch);
         }
+    }
+
+    [GeneratedRegex("[^\\p{L}\\p{N}]")]
+    private static partial Regex NonAlphanumericRegex();
+    
+    /// <summary>
+    /// Compares strings by removing all non-alpha symbols, then scanning the target string to find if search string is contained.
+    /// </summary>
+    private static bool StringContains(string targetString, string searchString)
+    {
+        var filteredTarget = NonAlphanumericRegex().Replace(targetString, string.Empty).ToLowerInvariant();
+        var filteredSearch = NonAlphanumericRegex().Replace(searchString, string.Empty).ToLowerInvariant();
+
+        return filteredTarget.Contains(filteredSearch);
     }
 
     private void UpdateCategoriesOnPluginsChange()
