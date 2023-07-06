@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 
 using Dalamud.Memory;
+using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Common.Configuration;
 using Serilog;
 
@@ -16,6 +17,12 @@ public class GameConfigSection
     private readonly Framework framework;
     private readonly Dictionary<string, uint> indexMap = new();
     private readonly Dictionary<uint, string> nameMap = new();
+    private readonly Dictionary<uint, object> enumMap = new();
+
+    /// <summary>
+    /// Event which is fired when a game config option is changed within the section.
+    /// </summary>
+    public event EventHandler<ConfigChangeEvent> Changed; 
 
     /// <summary>
     /// Initializes a new instance of the <see cref="GameConfigSection"/> class.
@@ -59,7 +66,10 @@ public class GameConfigSection
     /// </summary>
     public string SectionName { get; }
 
-    private GetConfigBaseDelegate GetConfigBase { get; }
+    /// <summary>
+    /// Gets the pointer to the config section container.
+    /// </summary>
+    internal GetConfigBaseDelegate GetConfigBase { get; }
 
     /// <summary>
     /// Attempts to get a boolean config option.
@@ -380,6 +390,35 @@ public class GameConfigSection
         });
     }
 
+    /// <summary>
+    /// Invokes a change event within the config section.
+    /// </summary>
+    /// <param name="entry">The config entry that was changed.</param>
+    /// <typeparam name="TEnum">SystemConfigOption, UiConfigOption, or UiControlOption.</typeparam>
+    /// <returns>The ConfigChangeEvent record.</returns>
+    internal unsafe ConfigChangeEvent? InvokeChange<TEnum>(ConfigEntry* entry) where TEnum : Enum
+    {
+        if (!this.enumMap.TryGetValue(entry->Index, out var enumObject))
+        {
+            if (entry->Name == null) return null;
+            var name = MemoryHelper.ReadStringNullTerminated(new IntPtr(entry->Name));
+            if (Enum.TryParse(typeof(TEnum), name, out enumObject))
+            {
+                this.enumMap.Add(entry->Index, enumObject);
+            }
+            else
+            {
+                enumObject = null;
+                this.enumMap.Add(entry->Index, null);
+            }
+        }
+
+        if (enumObject == null) return null;
+        var eventArgs = new ConfigChangeEvent<TEnum>((TEnum)enumObject);
+        this.Changed?.InvokeSafely(this, eventArgs);
+        return eventArgs;
+    }
+    
     private unsafe bool TryGetIndex(string name, out uint index)
     {
         if (this.indexMap.TryGetValue(name, out index))
