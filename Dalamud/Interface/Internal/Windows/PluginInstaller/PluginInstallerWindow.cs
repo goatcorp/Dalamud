@@ -6,6 +6,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Numerics;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -35,7 +36,7 @@ namespace Dalamud.Interface.Internal.Windows.PluginInstaller;
 /// <summary>
 /// Class responsible for drawing the plugin installer.
 /// </summary>
-internal class PluginInstallerWindow : Window, IDisposable
+internal partial class PluginInstallerWindow : Window, IDisposable
 {
     private static readonly ModuleLog Log = new("PLUGINW");
 
@@ -979,8 +980,10 @@ internal class PluginInstallerWindow : Window, IDisposable
             changelogs = this.dalamudChangelogManager.Changelogs.OfType<PluginChangelogEntry>();
         }
 
-        var sortedChangelogs = changelogs?.Where(x => this.searchText.IsNullOrWhitespace() || x.Title.ToLowerInvariant().Contains(this.searchText.ToLowerInvariant()))
-                                                            .OrderByDescending(x => x.Date).ToList();
+        var sortedChangelogs = changelogs?
+                               .Where(x => this.searchText.IsNullOrWhitespace() || StringContains(x.Title, this.searchText))
+                               .OrderByDescending(x => x.Date)
+                               .ToList();
 
         if (sortedChangelogs == null || !sortedChangelogs.Any())
         {
@@ -2879,8 +2882,7 @@ internal class PluginInstallerWindow : Window, IDisposable
 
     private bool IsManifestFiltered(IPluginManifest manifest)
     {
-        var searchString = this.searchText.ToLowerInvariant();
-        var hasSearchString = !string.IsNullOrWhiteSpace(searchString);
+        var hasSearchString = !string.IsNullOrWhiteSpace(this.searchText);
         var oldApi = manifest.DalamudApiLevel < PluginManager.DalamudApiLevel;
         var installed = this.IsManifestInstalled(manifest).IsInstalled;
 
@@ -2888,11 +2890,11 @@ internal class PluginInstallerWindow : Window, IDisposable
             return true;
 
         return hasSearchString && !(
-                                       (!manifest.Name.IsNullOrEmpty() && manifest.Name.ToLowerInvariant().Contains(searchString)) ||
-                                       (!manifest.InternalName.IsNullOrEmpty() && manifest.InternalName.ToLowerInvariant().Contains(searchString)) ||
-                                       (!manifest.Author.IsNullOrEmpty() && manifest.Author.Equals(this.searchText, StringComparison.InvariantCultureIgnoreCase)) ||
-                                       (!manifest.Punchline.IsNullOrEmpty() && manifest.Punchline.ToLowerInvariant().Contains(searchString)) ||
-                                       (manifest.Tags != null && manifest.Tags.Any(tag => tag.ToLowerInvariant().Contains(searchString))));
+                                       (!manifest.Name.IsNullOrEmpty() && StringContains(manifest.Name, this.searchText)) ||
+                                       (!manifest.InternalName.IsNullOrEmpty() && StringContains(manifest.InternalName, this.searchText)) ||
+                                       (!manifest.Author.IsNullOrEmpty() && StringContains(manifest.Author, this.searchText)) ||
+                                       (!manifest.Punchline.IsNullOrEmpty() && StringContains(manifest.Punchline, this.searchText)) ||
+                                       (manifest.Tags != null && manifest.Tags.Any(tag => StringContains(tag, this.searchText))));
     }
 
     private (bool IsInstalled, LocalPlugin Plugin) IsManifestInstalled(IPluginManifest? manifest)
@@ -3012,6 +3014,20 @@ internal class PluginInstallerWindow : Window, IDisposable
             var pluginsMatchingSearch = this.pluginListAvailable.Where(rm => !this.IsManifestFiltered(rm));
             this.categoryManager.SetCategoryHighlightsForPlugins(pluginsMatchingSearch);
         }
+    }
+
+    [GeneratedRegex("[^\\p{L}\\p{N}]")]
+    private static partial Regex NonAlphanumericRegex();
+    
+    /// <summary>
+    /// Compares strings by removing all non-alpha symbols, then scanning the target string to find if search string is contained.
+    /// </summary>
+    private static bool StringContains(string targetString, string searchString)
+    {
+        var filteredTarget = NonAlphanumericRegex().Replace(targetString, string.Empty).ToLowerInvariant();
+        var filteredSearch = NonAlphanumericRegex().Replace(searchString, string.Empty).ToLowerInvariant();
+
+        return filteredTarget.Contains(filteredSearch);
     }
 
     private void UpdateCategoriesOnPluginsChange()
