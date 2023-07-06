@@ -13,11 +13,11 @@ namespace Dalamud.Interface.Windowing;
 public abstract class Window
 {
     private static bool wasEscPressedLastFrame = false;
+    private readonly DalamudConfiguration? configuration;
 
     private bool internalLastIsOpen = false;
     private bool internalIsOpen = false;
     private bool nextFrameBringToFront = false;
-    private DalamudConfiguration Configuration;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="Window"/> class.
@@ -33,7 +33,7 @@ public abstract class Window
         this.WindowName = name;
         this.Flags = flags;
         this.ForceMainWindow = forceMainWindow;
-        this.Configuration = Service<DalamudConfiguration>.Get();
+        this.configuration = Service<DalamudConfiguration>.GetNullable();
     }
 
     /// <summary>
@@ -137,6 +137,9 @@ public abstract class Window
         set => this.internalIsOpen = value;
     }
 
+    // Helper property to simplify playing sounds
+    private bool ShouldPlaySounds => (this.configuration?.EnablePluginUISoundEffects ?? false) && !this.DisableWindowSounds;
+    
     /// <summary>
     /// Toggle window is open state.
     /// </summary>
@@ -238,7 +241,7 @@ public abstract class Window
 
                 this.IsFocused = false;
                 
-                if (this.Configuration.EnablePluginUISoundEffects && !this.DisableWindowSounds) UIModule.PlaySound(this.OnCloseSfxId, 0, 0, 0);
+                if (this.ShouldPlaySounds) UIModule.PlaySound(this.OnCloseSfxId, 0, 0, 0);
             }
 
             return;
@@ -264,7 +267,7 @@ public abstract class Window
             this.internalLastIsOpen = this.internalIsOpen;
             this.OnOpen();
 
-            if (this.Configuration.EnablePluginUISoundEffects && !this.DisableWindowSounds) UIModule.PlaySound(this.OnOpenSfxId, 0, 0, 0);
+            if (this.ShouldPlaySounds) UIModule.PlaySound(this.OnOpenSfxId, 0, 0, 0);
         }
 
         var wasFocused = this.IsFocused;
