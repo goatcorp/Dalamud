@@ -17,7 +17,6 @@ public abstract class Window
     private bool internalLastIsOpen = false;
     private bool internalIsOpen = false;
     private bool nextFrameBringToFront = false;
-    private DalamudConfiguration Configuration;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="Window"/> class.
@@ -33,7 +32,6 @@ public abstract class Window
         this.WindowName = name;
         this.Flags = flags;
         this.ForceMainWindow = forceMainWindow;
-        this.Configuration = Service<DalamudConfiguration>.Get();
     }
 
     /// <summary>
@@ -238,7 +236,7 @@ public abstract class Window
 
                 this.IsFocused = false;
                 
-                if (this.Configuration.EnablePluginUISoundEffects && !this.DisableWindowSounds) UIModule.PlaySound(this.OnCloseSfxId, 0, 0, 0);
+                if (Service<DalamudConfiguration>.Get().EnablePluginUISoundEffects && !this.DisableWindowSounds) UIModule.PlaySound(this.OnCloseSfxId, 0, 0, 0);
             }
 
             return;
@@ -264,7 +262,7 @@ public abstract class Window
             this.internalLastIsOpen = this.internalIsOpen;
             this.OnOpen();
 
-            if (this.Configuration.EnablePluginUISoundEffects && !this.DisableWindowSounds) UIModule.PlaySound(this.OnOpenSfxId, 0, 0, 0);
+            if (Service<DalamudConfiguration>.Get().EnablePluginUISoundEffects && !this.DisableWindowSounds) UIModule.PlaySound(this.OnOpenSfxId, 0, 0, 0);
         }
 
         var wasFocused = this.IsFocused;
