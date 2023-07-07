@@ -534,7 +534,8 @@ internal class PluginInstallerWindow : Window, IDisposable
                 "###XlPluginInstaller_Search",
                 Locs.Header_SearchPlaceholder,
                 ref this.searchText,
-                100);
+                100,
+                ImGuiInputTextFlags.AutoSelectAll);
 
             ImGui.SameLine();
             ImGui.SetCursorPosY(downShift);
