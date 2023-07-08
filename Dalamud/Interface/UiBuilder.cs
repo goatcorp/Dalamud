@@ -7,7 +7,6 @@ using Dalamud.Configuration.Internal;
 using Dalamud.Game;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.Gui;
-using Dalamud.Interface.DragDrop;
 using Dalamud.Interface.GameFonts;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Internal.ManagedAsserts;

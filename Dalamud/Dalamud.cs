@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using Dalamud.Configuration.Internal;
 using Dalamud.Game;
 using Dalamud.Game.Gui.Internal;
-using Dalamud.Interface.DragDrop;
 using Dalamud.Interface.Internal;
 using Dalamud.Plugin.Internal;
 using Dalamud.Utility;
