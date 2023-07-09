@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Diagnostics;
 
 using Dalamud.Memory;
@@ -15,9 +15,8 @@ namespace Dalamud.Game.Config;
 public class GameConfigSection
 {
     private readonly Framework framework;
-    private readonly Dictionary<string, uint> indexMap = new();
-    private readonly Dictionary<uint, string> nameMap = new();
-    private readonly Dictionary<uint, object> enumMap = new();
+    private readonly ConcurrentDictionary<string, uint> indexMap = new();
+    private readonly ConcurrentDictionary<uint, object> enumMap = new();
 
     /// <summary>
     /// Event which is fired when a game config option is changed within the section.
@@ -404,12 +403,12 @@ public class GameConfigSection
             var name = MemoryHelper.ReadStringNullTerminated(new IntPtr(entry->Name));
             if (Enum.TryParse(typeof(TEnum), name, out enumObject))
             {
-                this.enumMap.Add(entry->Index, enumObject);
+                this.enumMap.TryAdd(entry->Index, enumObject);
             }
             else
             {
                 enumObject = null;
-                this.enumMap.Add(entry->Index, null);
+                this.enumMap.TryAdd(entry->Index, null);
             }
         }
 
@@ -439,7 +438,6 @@ public class GameConfigSection
             if (eName.Equals(name))
             {
                 this.indexMap.TryAdd(name, i);
-                this.nameMap.TryAdd(i, name);
                 index = i;
                 return true;
             }
