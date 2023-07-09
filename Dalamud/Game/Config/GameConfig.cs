@@ -77,7 +77,7 @@ public sealed class GameConfig : IServiceType, IGameConfig, IDisposable
     public bool TryGet(UiConfigOption option, out float value) => this.UiConfig.TryGet(option.GetName(), out value);
 
     /// <inheritdoc/>
-    public bool TryGet(UiConfigOption option, out string value) => this.UiControl.TryGet(option.GetName(), out value);
+    public bool TryGet(UiConfigOption option, out string value) => this.UiConfig.TryGet(option.GetName(), out value);
 
     /// <inheritdoc/>
     public bool TryGet(UiControlOption option, out bool value) => this.UiControl.TryGet(option.GetName(), out value);
@@ -89,7 +89,7 @@ public sealed class GameConfig : IServiceType, IGameConfig, IDisposable
     public bool TryGet(UiControlOption option, out float value) => this.UiControl.TryGet(option.GetName(), out value);
 
     /// <inheritdoc/>
-    public bool TryGet(UiControlOption option, out string value) => this.System.TryGet(option.GetName(), out value);
+    public bool TryGet(UiControlOption option, out string value) => this.UiControl.TryGet(option.GetName(), out value);
     
     /// <inheritdoc/>
     public void Set(SystemConfigOption option, bool value) => this.System.Set(option.GetName(), value);
