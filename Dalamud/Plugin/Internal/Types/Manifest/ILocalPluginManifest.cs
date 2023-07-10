@@ -1,4 +1,6 @@
-﻿namespace Dalamud.Plugin.Internal.Types.Manifest;
+﻿using System;
+
+namespace Dalamud.Plugin.Internal.Types.Manifest;
 
 /// <summary>
 /// Public interface for the local plugin manifest.
@@ -16,4 +18,9 @@ public interface ILocalPluginManifest : IPluginManifest
     /// Gets a value indicating whether the plugin should be deleted during the next cleanup.
     /// </summary>
     public bool ScheduledForDeletion { get; }
+    
+    /// <summary>
+    /// Gets an ID uniquely identifying this specific installation of a plugin.
+    /// </summary>
+    public Guid WorkingPluginId { get; }
 }

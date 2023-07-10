@@ -158,6 +158,14 @@ internal class LocalPlugin : IDisposable
             needsSaveDueToLegacyFiles = true;
         }
 
+        // Create an installation instance ID for this plugin, if it doesn't have one yet
+        if (this.manifest.WorkingPluginId == Guid.Empty)
+        {
+            this.manifest.WorkingPluginId = Guid.NewGuid();
+
+            needsSaveDueToLegacyFiles = true;
+        }
+
         var pluginManager = Service<PluginManager>.Get();
         this.IsBanned = pluginManager.IsManifestBanned(this.manifest) && !this.IsDev;
         this.BanReason = pluginManager.GetBanReason(this.manifest);

@@ -2186,6 +2186,14 @@ internal class PluginInstallerWindow : Window, IDisposable
                 ImGuiHelpers.SafeTextWrapped(manifest.Description);
             }
 
+            // Working Plugin ID
+            if (this.hasDevPlugins)
+            {
+                ImGuiHelpers.ScaledDummy(3);
+                ImGui.TextColored(ImGuiColors.DalamudGrey, $"WorkingPluginId: {manifest.WorkingPluginId}");
+                ImGuiHelpers.ScaledDummy(3);
+            }
+
             // Available commands (if loaded)
             if (plugin.IsLoaded)
             {

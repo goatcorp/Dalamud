@@ -763,8 +763,9 @@ internal partial class PluginManager : IDisposable, IServiceType
     /// <param name="repoManifest">The plugin definition.</param>
     /// <param name="useTesting">If the testing version should be used.</param>
     /// <param name="reason">The reason this plugin was loaded.</param>
+    /// <param name="inheritedWorkingPluginId">WorkingPluginId this plugin should inherit.</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-    public async Task<LocalPlugin> InstallPluginAsync(RemotePluginManifest repoManifest, bool useTesting, PluginLoadReason reason)
+    public async Task<LocalPlugin> InstallPluginAsync(RemotePluginManifest repoManifest, bool useTesting, PluginLoadReason reason, Guid? inheritedWorkingPluginId = null)
     {
         Log.Debug($"Installing plugin {repoManifest.Name} (testing={useTesting})");
 
@@ -851,12 +852,20 @@ internal partial class PluginManager : IDisposable, IServiceType
         // Reload as a local manifest, add some attributes, and save again.
         var manifest = LocalPluginManifest.Load(manifestFile);
 
+        if (manifest == null)
+            throw new Exception("Plugin had no valid manifest");
+
         if (manifest.InternalName != repoManifest.InternalName)
         {
             Directory.Delete(outputDir.FullName, true);
             throw new Exception(
                 $"Distributed internal name does not match repo internal name: {manifest.InternalName} - {repoManifest.InternalName}");
         }
+
+        if (manifest.WorkingPluginId != Guid.Empty)
+            throw new Exception("Plugin shall not specify a WorkingPluginId");
+
+        manifest.WorkingPluginId = inheritedWorkingPluginId ?? Guid.NewGuid();
 
         if (useTesting)
         {
@@ -1040,6 +1049,10 @@ internal partial class PluginManager : IDisposable, IServiceType
     {
         var plugin = metadata.InstalledPlugin;
 
+        var workingPluginId = metadata.InstalledPlugin.Manifest.WorkingPluginId;
+        if (workingPluginId == Guid.Empty)
+            throw new Exception("Existing plugin had no WorkingPluginId");
+
         var updateStatus = new PluginUpdateStatus
         {
             InternalName = plugin.Manifest.InternalName,
@@ -1099,7 +1112,7 @@ internal partial class PluginManager : IDisposable, IServiceType
 
             try
             {
-                await this.InstallPluginAsync(metadata.UpdateManifest, metadata.UseTesting, PluginLoadReason.Update);
+                await this.InstallPluginAsync(metadata.UpdateManifest, metadata.UseTesting, PluginLoadReason.Update, workingPluginId);
             }
             catch (Exception ex)
             {

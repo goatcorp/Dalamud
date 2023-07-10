@@ -44,6 +44,9 @@ internal record LocalPluginManifest : PluginManifest, ILocalPluginManifest
     /// <inheritdoc/>
     public string InstalledFromUrl { get; set; } = string.Empty;
 
+    /// <inheritdoc/>
+    public Guid WorkingPluginId { get; set; } = Guid.Empty;
+
     /// <summary>
     /// Gets a value indicating whether this manifest is associated with a plugin that was installed from a third party
     /// repo. Unless the manifest has been manually modified, this is determined by the InstalledFromUrl being null.
