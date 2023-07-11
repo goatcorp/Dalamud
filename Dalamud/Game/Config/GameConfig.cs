@@ -68,6 +68,15 @@ public sealed class GameConfig : IServiceType, IGameConfig, IDisposable
     public bool TryGet(SystemConfigOption option, out string value) => this.System.TryGet(option.GetName(), out value);
 
     /// <inheritdoc/>
+    public bool TryGet(SystemConfigOption option, out UIntConfigProperties? properties) => this.System.TryGetProperties(option.GetName(), out properties);
+    
+    /// <inheritdoc/>
+    public bool TryGet(SystemConfigOption option, out FloatConfigProperties? properties) => this.System.TryGetProperties(option.GetName(), out properties);
+    
+    /// <inheritdoc/>
+    public bool TryGet(SystemConfigOption option, out StringConfigProperties? properties) => this.System.TryGetProperties(option.GetName(), out properties);
+    
+    /// <inheritdoc/>
     public bool TryGet(UiConfigOption option, out bool value) => this.UiConfig.TryGet(option.GetName(), out value);
 
     /// <inheritdoc/>
@@ -78,6 +87,15 @@ public sealed class GameConfig : IServiceType, IGameConfig, IDisposable
 
     /// <inheritdoc/>
     public bool TryGet(UiConfigOption option, out string value) => this.UiConfig.TryGet(option.GetName(), out value);
+    
+    /// <inheritdoc/>
+    public bool TryGet(UiConfigOption option, out UIntConfigProperties properties) => this.UiConfig.TryGetProperties(option.GetName(), out properties);
+    
+    /// <inheritdoc/>
+    public bool TryGet(UiConfigOption option, out FloatConfigProperties properties) => this.UiConfig.TryGetProperties(option.GetName(), out properties);
+    
+    /// <inheritdoc/>
+    public bool TryGet(UiConfigOption option, out StringConfigProperties properties) => this.UiConfig.TryGetProperties(option.GetName(), out properties);
 
     /// <inheritdoc/>
     public bool TryGet(UiControlOption option, out bool value) => this.UiControl.TryGet(option.GetName(), out value);
@@ -90,7 +108,16 @@ public sealed class GameConfig : IServiceType, IGameConfig, IDisposable
 
     /// <inheritdoc/>
     public bool TryGet(UiControlOption option, out string value) => this.UiControl.TryGet(option.GetName(), out value);
+
+    /// <inheritdoc/>
+    public bool TryGet(UiControlOption option, out UIntConfigProperties properties) => this.UiControl.TryGetProperties(option.GetName(), out properties);
     
+    /// <inheritdoc/>
+    public bool TryGet(UiControlOption option, out FloatConfigProperties properties) => this.UiControl.TryGetProperties(option.GetName(), out properties);
+    
+    /// <inheritdoc/>
+    public bool TryGet(UiControlOption option, out StringConfigProperties properties) => this.UiControl.TryGetProperties(option.GetName(), out properties);
+
     /// <inheritdoc/>
     public void Set(SystemConfigOption option, bool value) => this.System.Set(option.GetName(), value);
 
