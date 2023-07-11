@@ -17,7 +17,6 @@ public abstract class Window
     private bool internalLastIsOpen = false;
     private bool internalIsOpen = false;
     private bool nextFrameBringToFront = false;
-    private DalamudConfiguration Configuration;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="Window"/> class.
@@ -33,7 +32,6 @@ public abstract class Window
         this.WindowName = name;
         this.Flags = flags;
         this.ForceMainWindow = forceMainWindow;
-        this.Configuration = Service<DalamudConfiguration>.Get();
     }
 
     /// <summary>
@@ -225,9 +223,11 @@ public abstract class Window
     /// <summary>
     /// Draw the window via ImGui.
     /// </summary>
-    internal void DrawInternal()
+    internal void DrawInternal(DalamudConfiguration? configuration)
     {
         this.PreOpenCheck();
+
+        var doSoundEffects = configuration?.EnablePluginUISoundEffects ?? false;
 
         if (!this.IsOpen)
         {
@@ -238,7 +238,7 @@ public abstract class Window
 
                 this.IsFocused = false;
                 
-                if (this.Configuration.EnablePluginUISoundEffects && !this.DisableWindowSounds) UIModule.PlaySound(this.OnCloseSfxId, 0, 0, 0);
+                if (doSoundEffects && !this.DisableWindowSounds) UIModule.PlaySound(this.OnCloseSfxId, 0, 0, 0);
             }
 
             return;
@@ -264,7 +264,7 @@ public abstract class Window
             this.internalLastIsOpen = this.internalIsOpen;
             this.OnOpen();
 
-            if (this.Configuration.EnablePluginUISoundEffects && !this.DisableWindowSounds) UIModule.PlaySound(this.OnOpenSfxId, 0, 0, 0);
+            if (doSoundEffects && !this.DisableWindowSounds) UIModule.PlaySound(this.OnOpenSfxId, 0, 0, 0);
         }
 
         var wasFocused = this.IsFocused;
@@ -294,16 +294,19 @@ public abstract class Window
 
         this.IsFocused = ImGui.IsWindowFocused(ImGuiFocusedFlags.RootAndChildWindows);
 
-        var escapeDown = Service<KeyState>.Get()[VirtualKey.ESCAPE];
-        var isAllowed = Service<DalamudConfiguration>.Get().IsFocusManagementEnabled;
-        if (escapeDown && this.IsFocused && isAllowed && !wasEscPressedLastFrame && this.RespectCloseHotkey)
+        var isAllowed = configuration?.IsFocusManagementEnabled ?? false;
+        if (isAllowed)
         {
-            this.IsOpen = false;
-            wasEscPressedLastFrame = true;
-        }
-        else if (!escapeDown && wasEscPressedLastFrame)
-        {
-            wasEscPressedLastFrame = false;
+            var escapeDown = Service<KeyState>.Get()[VirtualKey.ESCAPE];
+            if (escapeDown && this.IsFocused && !wasEscPressedLastFrame && this.RespectCloseHotkey)
+            {
+                this.IsOpen = false;
+                wasEscPressedLastFrame = true;
+            }
+            else if (!escapeDown && wasEscPressedLastFrame)
+            {
+                wasEscPressedLastFrame = false;
+            }
         }
 
         ImGui.End();
