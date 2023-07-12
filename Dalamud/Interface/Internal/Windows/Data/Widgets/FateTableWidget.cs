@@ -58,7 +58,7 @@ internal class FateTableWidget : IDataWindowWidget
 
                 ImGui.TextUnformatted(fateString);
                 ImGui.SameLine();
-                if (ImGui.Button("C"))
+                if (ImGui.Button($"C##{fate.Address.ToInt64():X}"))
                 {
                     ImGui.SetClipboardText(fate.Address.ToString("X"));
                 }
