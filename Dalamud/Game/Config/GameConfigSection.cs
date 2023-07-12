@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Diagnostics;
 
 using Dalamud.Memory;
@@ -15,9 +15,8 @@ namespace Dalamud.Game.Config;
 public class GameConfigSection
 {
     private readonly Framework framework;
-    private readonly Dictionary<string, uint> indexMap = new();
-    private readonly Dictionary<uint, string> nameMap = new();
-    private readonly Dictionary<uint, object> enumMap = new();
+    private readonly ConcurrentDictionary<string, uint> indexMap = new();
+    private readonly ConcurrentDictionary<uint, object> enumMap = new();
 
     /// <summary>
     /// Event which is fired when a game config option is changed within the section.
@@ -391,6 +390,99 @@ public class GameConfigSection
     }
 
     /// <summary>
+    /// Attempts to get the properties of a UInt option from the config section.
+    /// </summary>
+    /// <param name="name">Name of the option to get the properties of.</param>
+    /// <param name="properties">Details of the option: Minimum, Maximum, and Default values.</param>
+    /// <returns>A value representing the success.</returns>
+    public unsafe bool TryGetProperties(string name, out UIntConfigProperties? properties)
+    {
+        if (!this.TryGetIndex(name, out var index))
+        {
+            properties = null;
+            return false;
+        }
+
+        if (!this.TryGetEntry(index, out var entry))
+        {
+            properties = null;
+            return false;
+        }
+
+        if ((ConfigType)entry->Type != ConfigType.UInt)
+        {
+            properties = null;
+            return false;
+        }
+
+        var prop = &entry->Properties.UInt;
+        properties = new UIntConfigProperties(prop->DefaultValue, prop->MinValue, prop->MaxValue);
+        return true;
+    }
+
+    /// <summary>
+    /// Attempts to get the properties of a Float option from the config section.
+    /// </summary>
+    /// <param name="name">Name of the option to get the properties of.</param>
+    /// <param name="properties">Details of the option: Minimum, Maximum, and Default values.</param>
+    /// <returns>A value representing the success.</returns>
+    public unsafe bool TryGetProperties(string name, out FloatConfigProperties? properties)
+    {
+        if (!this.TryGetIndex(name, out var index))
+        {
+            properties = null;
+            return false;
+        }
+
+        if (!this.TryGetEntry(index, out var entry))
+        {
+            properties = null;
+            return false;
+        }
+
+        if ((ConfigType)entry->Type != ConfigType.Float)
+        {
+            properties = null;
+            return false;
+        }
+
+        var prop = &entry->Properties.Float;
+        properties = new FloatConfigProperties(prop->DefaultValue, prop->MinValue, prop->MaxValue);
+        return true;
+    }
+
+    /// <summary>
+    /// Attempts to get the properties of a String option from the config section.
+    /// </summary>
+    /// <param name="name">Name of the option to get the properties of.</param>
+    /// <param name="properties">Details of the option: Minimum, Maximum, and Default values.</param>
+    /// <returns>A value representing the success.</returns>
+    public unsafe bool TryGetProperties(string name, out StringConfigProperties? properties)
+    {
+        if (!this.TryGetIndex(name, out var index))
+        {
+            properties = null;
+            return false;
+        }
+
+        if (!this.TryGetEntry(index, out var entry))
+        {
+            properties = null;
+            return false;
+        }
+
+        if ((ConfigType)entry->Type != ConfigType.String)
+        {
+            properties = null;
+            return false;
+        }
+
+        var prop = entry->Properties.String;
+        properties = new StringConfigProperties(prop.DefaultValue == null ? null : MemoryHelper.ReadSeString(prop.DefaultValue));
+        return true;
+    }
+
+    /// <summary>
     /// Invokes a change event within the config section.
     /// </summary>
     /// <param name="entry">The config entry that was changed.</param>
@@ -404,12 +496,12 @@ public class GameConfigSection
             var name = MemoryHelper.ReadStringNullTerminated(new IntPtr(entry->Name));
             if (Enum.TryParse(typeof(TEnum), name, out enumObject))
             {
-                this.enumMap.Add(entry->Index, enumObject);
+                this.enumMap.TryAdd(entry->Index, enumObject);
             }
             else
             {
                 enumObject = null;
-                this.enumMap.Add(entry->Index, null);
+                this.enumMap.TryAdd(entry->Index, null);
             }
         }
 
@@ -439,7 +531,6 @@ public class GameConfigSection
             if (eName.Equals(name))
             {
                 this.indexMap.TryAdd(name, i);
-                this.nameMap.TryAdd(i, name);
                 index = i;
                 return true;
             }

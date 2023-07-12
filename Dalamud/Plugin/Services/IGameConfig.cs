@@ -62,6 +62,30 @@ public interface IGameConfig
     /// <param name="value">The returned value of the config option.</param>
     /// <returns>A value representing the success.</returns>
     public bool TryGet(SystemConfigOption option, out string value);
+    
+    /// <summary>
+    /// Attempts to get the properties of a UInt option from the System section.
+    /// </summary>
+    /// <param name="option">Option to get the properties of.</param>
+    /// <param name="properties">Details of the option: Minimum, Maximum, and Default values.</param>
+    /// <returns>A value representing the success.</returns>
+    public bool TryGet(SystemConfigOption option, out UIntConfigProperties? properties);
+    
+    /// <summary>
+    /// Attempts to get the properties of a Float option from the System section.
+    /// </summary>
+    /// <param name="option">Option to get the properties of.</param>
+    /// <param name="properties">Details of the option: Minimum, Maximum, and Default values.</param>
+    /// <returns>A value representing the success.</returns>
+    public bool TryGet(SystemConfigOption option, out FloatConfigProperties? properties);
+    
+    /// <summary>
+    /// Attempts to get the properties of a String option from the System section.
+    /// </summary>
+    /// <param name="option">Option to get the properties of.</param>
+    /// <param name="properties">Details of the option: Default Value</param>
+    /// <returns>A value representing the success.</returns>
+    public bool TryGet(SystemConfigOption option, out StringConfigProperties? properties);
 
     /// <summary>
     /// Attempts to get a boolean config value from the UiConfig section.
@@ -96,6 +120,30 @@ public interface IGameConfig
     public bool TryGet(UiConfigOption option, out string value);
 
     /// <summary>
+    /// Attempts to get the properties of a UInt option from the UiConfig section.
+    /// </summary>
+    /// <param name="option">Option to get the properties of.</param>
+    /// <param name="properties">Details of the option: Minimum, Maximum, and Default values.</param>
+    /// <returns>A value representing the success.</returns>
+    public bool TryGet(UiConfigOption option, out UIntConfigProperties? properties);
+    
+    /// <summary>
+    /// Attempts to get the properties of a Float option from the UiConfig section.
+    /// </summary>
+    /// <param name="option">Option to get the properties of.</param>
+    /// <param name="properties">Details of the option: Minimum, Maximum, and Default values.</param>
+    /// <returns>A value representing the success.</returns>
+    public bool TryGet(UiConfigOption option, out FloatConfigProperties? properties);
+    
+    /// <summary>
+    /// Attempts to get the properties of a String option from the UiConfig section.
+    /// </summary>
+    /// <param name="option">Option to get the properties of.</param>
+    /// <param name="properties">Details of the option: Default Value</param>
+    /// <returns>A value representing the success.</returns>
+    public bool TryGet(UiConfigOption option, out StringConfigProperties? properties);
+    
+    /// <summary>
     /// Attempts to get a boolean config value from the UiControl section.
     /// </summary>
     /// <param name="option">Option to get the value of.</param>
@@ -126,6 +174,30 @@ public interface IGameConfig
     /// <param name="value">The returned value of the config option.</param>
     /// <returns>A value representing the success.</returns>
     public bool TryGet(UiControlOption option, out string value);
+
+    /// <summary>
+    /// Attempts to get the properties of a UInt option from the UiControl section.
+    /// </summary>
+    /// <param name="option">Option to get the properties of.</param>
+    /// <param name="properties">Details of the option: Minimum, Maximum, and Default values.</param>
+    /// <returns>A value representing the success.</returns>
+    public bool TryGet(UiControlOption option, out UIntConfigProperties? properties);
+    
+    /// <summary>
+    /// Attempts to get the properties of a Float option from the UiControl section.
+    /// </summary>
+    /// <param name="option">Option to get the properties of.</param>
+    /// <param name="properties">Details of the option: Minimum, Maximum, and Default values.</param>
+    /// <returns>A value representing the success.</returns>
+    public bool TryGet(UiControlOption option, out FloatConfigProperties? properties);
+    
+    /// <summary>
+    /// Attempts to get the properties of a String option from the UiControl section.
+    /// </summary>
+    /// <param name="option">Option to get the properties of.</param>
+    /// <param name="properties">Details of the option: Default Value</param>
+    /// <returns>A value representing the success.</returns>
+    public bool TryGet(UiControlOption option, out StringConfigProperties? properties);
 
     /// <summary>
     /// Set a boolean config option in the System config section.
