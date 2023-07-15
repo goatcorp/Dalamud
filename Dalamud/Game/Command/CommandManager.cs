@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Text.RegularExpressions;
@@ -24,7 +25,7 @@ namespace Dalamud.Game.Command;
 #pragma warning restore SA1015
 public sealed class CommandManager : IServiceType, IDisposable, ICommandManager
 {
-    private readonly Dictionary<string, CommandInfo> commandMap = new();
+    private readonly ConcurrentDictionary<string, CommandInfo> commandMap = new();
     private readonly Regex commandRegexEn = new(@"^The command (?<command>.+) does not exist\.$", RegexOptions.Compiled);
     private readonly Regex commandRegexJp = new(@"^そのコマンドはありません。： (?<command>.+)$", RegexOptions.Compiled);
     private readonly Regex commandRegexDe = new(@"^„(?<command>.+)“ existiert nicht als Textkommando\.$", RegexOptions.Compiled);
@@ -115,22 +116,19 @@ public sealed class CommandManager : IServiceType, IDisposable, ICommandManager
         if (info == null)
             throw new ArgumentNullException(nameof(info), "Command handler is null.");
 
-        try
-        {
-            this.commandMap.Add(command, info);
-            return true;
-        }
-        catch (ArgumentException)
+        if (!this.commandMap.TryAdd(command, info))
         {
             Log.Error("Command {CommandName} is already registered.", command);
             return false;
         }
+
+        return true;
     }
 
     /// <inheritdoc/>
     public bool RemoveHandler(string command)
     {
-        return this.commandMap.Remove(command);
+        return this.commandMap.Remove(command, out _);
     }
 
     /// <inheritdoc/>
