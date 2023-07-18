@@ -184,6 +184,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         NewOrNot,
         NotInstalled,
         EnabledDisabled,
+        ProfileOrNot,
     }
 
     private bool AnyOperationInProgress => this.installStatus == OperationStatus.InProgress ||
@@ -505,6 +506,7 @@ internal class PluginInstallerWindow : Window, IDisposable
             (Locs.SortBy_NewOrNot, PluginSortKind.NewOrNot),
             (Locs.SortBy_NotInstalled, PluginSortKind.NotInstalled),
             (Locs.SortBy_EnabledDisabled, PluginSortKind.EnabledDisabled),
+            (Locs.SortBy_ProfileOrNot, PluginSortKind.ProfileOrNot),
         };
         var longestSelectableWidth = sortSelectables.Select(t => ImGui.CalcTextSize(t.Localization).X).Max();
         var selectableWidth = longestSelectableWidth + (style.FramePadding.X * 2);  // This does not include the label
@@ -2984,6 +2986,12 @@ internal class PluginInstallerWindow : Window, IDisposable
                 });
                 this.pluginListInstalled.Sort((p1, p2) => (p2.State == PluginState.Loaded).CompareTo(p1.State == PluginState.Loaded));
                 break;
+            case PluginSortKind.ProfileOrNot:
+                this.pluginListAvailable.Sort((p1, p2) => p1.Name.CompareTo(p2.Name));
+                
+                var profman = Service<ProfileManager>.Get();
+                this.pluginListInstalled.Sort((p1, p2) => profman.IsInDefaultProfile(p1.InternalName).CompareTo(profman.IsInDefaultProfile(p2.InternalName)));
+                break;
             default:
                 throw new InvalidEnumArgumentException("Unknown plugin sort type.");
         }
@@ -3061,6 +3069,8 @@ internal class PluginInstallerWindow : Window, IDisposable
         public static string SortBy_NotInstalled => Loc.Localize("InstallerNotInstalled", "Not Installed");
 
         public static string SortBy_EnabledDisabled => Loc.Localize("InstallerEnabledDisabled", "Enabled/Disabled");
+
+        public static string SortBy_ProfileOrNot => Loc.Localize("InstallerProfileOrNot", "In a collection");
 
         public static string SortBy_Label => Loc.Localize("InstallerSortBy", "Sort By");
 
