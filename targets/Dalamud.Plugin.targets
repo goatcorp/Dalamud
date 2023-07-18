@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Project Sdk="Microsoft.NET.Sdk">
+<Project>
     <PropertyGroup>
         <TargetFramework>net7.0-windows</TargetFramework>
         <Platforms>x64</Platforms>
@@ -14,7 +14,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="DalamudPackager" Version="2.1.10" />
+        <PackageReference Include="DalamudPackager" Version="2.1.11" />
         <Reference Include="FFXIVClientStructs" Private="false" />
         <Reference Include="Newtonsoft.Json" Private="false" />
         <Reference Include="Dalamud" Private="false" />
