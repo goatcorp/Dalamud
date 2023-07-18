@@ -282,7 +282,7 @@ internal class ProfileManagerWidget
                 if (ImGui.BeginListBox("###pluginPicker", new Vector2(width, width - 80)))
                 {
                     // TODO: Plugin searching should be abstracted... installer and this should use the same search
-                    foreach (var plugin in pm.InstalledPlugins.Where(x => x.Manifest.SupportsProfiles &&
+                    foreach (var plugin in pm.InstalledPlugins.Where(x => x.Manifest.SupportsProfiles && !x.IsDev &&
                                                                           (this.pickerSearch.IsNullOrWhitespace() || x.Manifest.Name.ToLowerInvariant().Contains(this.pickerSearch.ToLowerInvariant()))))
                     {
                         using var disabled2 =

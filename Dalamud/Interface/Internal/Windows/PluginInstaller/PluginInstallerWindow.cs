@@ -2350,7 +2350,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         var profileManager = Service<ProfileManager>.Get();
         var config = Service<DalamudConfiguration>.Get();
 
-        var applicableForProfiles = plugin.Manifest.SupportsProfiles;
+        var applicableForProfiles = plugin.Manifest.SupportsProfiles && !plugin.IsDev;
         var isDefaultPlugin = profileManager.IsInDefaultProfile(plugin.Manifest.InternalName);
 
         // Disable everything if the updater is running or another plugin is operating
