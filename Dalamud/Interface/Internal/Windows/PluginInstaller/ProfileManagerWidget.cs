@@ -95,11 +95,20 @@ internal class ProfileManagerWidget
                     ImGuiHelpers.SafeTextWrapped(Locs.TutorialParagraphFour);
                     ImGuiHelpers.ScaledDummy(5);
                     ImGuiHelpers.SafeTextWrapped(Locs.TutorialCommands);
-                    ImGui.BulletText(Locs.TutorialCommandsEnable);
-                    ImGui.BulletText(Locs.TutorialCommandsDisable);
-                    ImGui.BulletText(Locs.TutorialCommandsToggle);
-                    ImGuiHelpers.SafeTextWrapped(Locs.TutorialCommandsEnd);
                     
+                    ImGui.Bullet();
+                    ImGui.SameLine();
+                    ImGuiHelpers.SafeTextWrapped(Locs.TutorialCommandsEnable);
+                    
+                    ImGui.Bullet();
+                    ImGui.SameLine();
+                    ImGuiHelpers.SafeTextWrapped(Locs.TutorialCommandsDisable);
+                    
+                    ImGui.Bullet();
+                    ImGui.SameLine();
+                    ImGuiHelpers.SafeTextWrapped(Locs.TutorialCommandsToggle);
+
+                    ImGuiHelpers.SafeTextWrapped(Locs.TutorialCommandsEnd);
                     ImGuiHelpers.ScaledDummy(5);
             
                     var buttonWidth = 120f;
