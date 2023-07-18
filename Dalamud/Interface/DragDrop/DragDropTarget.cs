@@ -78,6 +78,7 @@ internal partial class DragDropManager : DragDropManager.IDropTarget
         this.Files = Array.Empty<string>();
         this.Directories = Array.Empty<string>();
         this.Extensions = new HashSet<string>();
+        MouseDrop(this.lastKeyState);
         Log.Debug("[DragDrop] Leaving external Drag and Drop.");
     }
 
