@@ -45,7 +45,7 @@ internal class TitleScreenMenuWindow : Window, IDisposable
             ImGuiWindowFlags.NoBackground | ImGuiWindowFlags.NoFocusOnAppearing | ImGuiWindowFlags.NoNavFocus)
     {
         this.IsOpen = true;
-
+        this.DisableWindowSounds = true;
         this.ForceMainWindow = true;
 
         this.Position = new Vector2(0, 200);
