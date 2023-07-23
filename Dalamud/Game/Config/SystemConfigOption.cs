@@ -1,6 +1,4 @@
-﻿using FFXIVClientStructs.FFXIV.Common.Configuration;
-
-namespace Dalamud.Game.Config;
+﻿namespace Dalamud.Game.Config;
 
 // ReSharper disable InconsistentNaming
 // ReSharper disable IdentifierTypo
