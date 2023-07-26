@@ -6,7 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
-public readonly ref struct FuzzyMatcher
+internal readonly ref struct FuzzyMatcher
 {
     private static readonly (int, int)[] EmptySegArray = Array.Empty<(int, int)>();
 
