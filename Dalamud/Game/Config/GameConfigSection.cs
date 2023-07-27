@@ -1,8 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Diagnostics;
 
 using Dalamud.Memory;
+using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Common.Configuration;
 using Serilog;
 
@@ -14,8 +15,13 @@ namespace Dalamud.Game.Config;
 public class GameConfigSection
 {
     private readonly Framework framework;
-    private readonly Dictionary<string, uint> indexMap = new();
-    private readonly Dictionary<uint, string> nameMap = new();
+    private readonly ConcurrentDictionary<string, uint> indexMap = new();
+    private readonly ConcurrentDictionary<uint, object> enumMap = new();
+
+    /// <summary>
+    /// Event which is fired when a game config option is changed within the section.
+    /// </summary>
+    public event EventHandler<ConfigChangeEvent> Changed; 
 
     /// <summary>
     /// Initializes a new instance of the <see cref="GameConfigSection"/> class.
@@ -59,7 +65,10 @@ public class GameConfigSection
     /// </summary>
     public string SectionName { get; }
 
-    private GetConfigBaseDelegate GetConfigBase { get; }
+    /// <summary>
+    /// Gets the pointer to the config section container.
+    /// </summary>
+    internal GetConfigBaseDelegate GetConfigBase { get; }
 
     /// <summary>
     /// Attempts to get a boolean config option.
@@ -380,6 +389,128 @@ public class GameConfigSection
         });
     }
 
+    /// <summary>
+    /// Attempts to get the properties of a UInt option from the config section.
+    /// </summary>
+    /// <param name="name">Name of the option to get the properties of.</param>
+    /// <param name="properties">Details of the option: Minimum, Maximum, and Default values.</param>
+    /// <returns>A value representing the success.</returns>
+    public unsafe bool TryGetProperties(string name, out UIntConfigProperties? properties)
+    {
+        if (!this.TryGetIndex(name, out var index))
+        {
+            properties = null;
+            return false;
+        }
+
+        if (!this.TryGetEntry(index, out var entry))
+        {
+            properties = null;
+            return false;
+        }
+
+        if ((ConfigType)entry->Type != ConfigType.UInt)
+        {
+            properties = null;
+            return false;
+        }
+
+        var prop = &entry->Properties.UInt;
+        properties = new UIntConfigProperties(prop->DefaultValue, prop->MinValue, prop->MaxValue);
+        return true;
+    }
+
+    /// <summary>
+    /// Attempts to get the properties of a Float option from the config section.
+    /// </summary>
+    /// <param name="name">Name of the option to get the properties of.</param>
+    /// <param name="properties">Details of the option: Minimum, Maximum, and Default values.</param>
+    /// <returns>A value representing the success.</returns>
+    public unsafe bool TryGetProperties(string name, out FloatConfigProperties? properties)
+    {
+        if (!this.TryGetIndex(name, out var index))
+        {
+            properties = null;
+            return false;
+        }
+
+        if (!this.TryGetEntry(index, out var entry))
+        {
+            properties = null;
+            return false;
+        }
+
+        if ((ConfigType)entry->Type != ConfigType.Float)
+        {
+            properties = null;
+            return false;
+        }
+
+        var prop = &entry->Properties.Float;
+        properties = new FloatConfigProperties(prop->DefaultValue, prop->MinValue, prop->MaxValue);
+        return true;
+    }
+
+    /// <summary>
+    /// Attempts to get the properties of a String option from the config section.
+    /// </summary>
+    /// <param name="name">Name of the option to get the properties of.</param>
+    /// <param name="properties">Details of the option: Minimum, Maximum, and Default values.</param>
+    /// <returns>A value representing the success.</returns>
+    public unsafe bool TryGetProperties(string name, out StringConfigProperties? properties)
+    {
+        if (!this.TryGetIndex(name, out var index))
+        {
+            properties = null;
+            return false;
+        }
+
+        if (!this.TryGetEntry(index, out var entry))
+        {
+            properties = null;
+            return false;
+        }
+
+        if ((ConfigType)entry->Type != ConfigType.String)
+        {
+            properties = null;
+            return false;
+        }
+
+        var prop = entry->Properties.String;
+        properties = new StringConfigProperties(prop.DefaultValue == null ? null : MemoryHelper.ReadSeString(prop.DefaultValue));
+        return true;
+    }
+
+    /// <summary>
+    /// Invokes a change event within the config section.
+    /// </summary>
+    /// <param name="entry">The config entry that was changed.</param>
+    /// <typeparam name="TEnum">SystemConfigOption, UiConfigOption, or UiControlOption.</typeparam>
+    /// <returns>The ConfigChangeEvent record.</returns>
+    internal unsafe ConfigChangeEvent? InvokeChange<TEnum>(ConfigEntry* entry) where TEnum : Enum
+    {
+        if (!this.enumMap.TryGetValue(entry->Index, out var enumObject))
+        {
+            if (entry->Name == null) return null;
+            var name = MemoryHelper.ReadStringNullTerminated(new IntPtr(entry->Name));
+            if (Enum.TryParse(typeof(TEnum), name, out enumObject))
+            {
+                this.enumMap.TryAdd(entry->Index, enumObject);
+            }
+            else
+            {
+                enumObject = null;
+                this.enumMap.TryAdd(entry->Index, null);
+            }
+        }
+
+        if (enumObject == null) return null;
+        var eventArgs = new ConfigChangeEvent<TEnum>((TEnum)enumObject);
+        this.Changed?.InvokeSafely(this, eventArgs);
+        return eventArgs;
+    }
+    
     private unsafe bool TryGetIndex(string name, out uint index)
     {
         if (this.indexMap.TryGetValue(name, out index))
@@ -400,7 +531,6 @@ public class GameConfigSection
             if (eName.Equals(name))
             {
                 this.indexMap.TryAdd(name, i);
-                this.nameMap.TryAdd(i, name);
                 index = i;
                 return true;
             }

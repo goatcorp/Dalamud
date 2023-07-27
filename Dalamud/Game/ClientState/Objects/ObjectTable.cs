@@ -7,6 +7,7 @@ using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
+using Dalamud.Plugin.Services;
 using Serilog;
 
 namespace Dalamud.Game.ClientState.Objects;
@@ -17,7 +18,10 @@ namespace Dalamud.Game.ClientState.Objects;
 [PluginInterface]
 [InterfaceVersion("1.0")]
 [ServiceManager.BlockingEarlyLoadedService]
-public sealed partial class ObjectTable : IServiceType
+#pragma warning disable SA1015
+[ResolveVia<IObjectTable>]
+#pragma warning restore SA1015
+public sealed partial class ObjectTable : IServiceType, IObjectTable
 {
     private const int ObjectTableLength = 596;
 
@@ -31,21 +35,13 @@ public sealed partial class ObjectTable : IServiceType
         Log.Verbose($"Object table address 0x{this.address.ObjectTable.ToInt64():X}");
     }
 
-    /// <summary>
-    /// Gets the address of the object table.
-    /// </summary>
+    /// <inheritdoc/>
     public IntPtr Address => this.address.ObjectTable;
 
-    /// <summary>
-    /// Gets the length of the object table.
-    /// </summary>
+    /// <inheritdoc/>
     public int Length => ObjectTableLength;
 
-    /// <summary>
-    /// Get an object at the specified spawn index.
-    /// </summary>
-    /// <param name="index">Spawn index.</param>
-    /// <returns>An <see cref="GameObject"/> at the specified spawn index.</returns>
+    /// <inheritdoc/>
     public GameObject? this[int index]
     {
         get
@@ -55,11 +51,7 @@ public sealed partial class ObjectTable : IServiceType
         }
     }
 
-    /// <summary>
-    /// Search for a game object by their Object ID.
-    /// </summary>
-    /// <param name="objectId">Object ID to find.</param>
-    /// <returns>A game object or null.</returns>
+    /// <inheritdoc/>
     public GameObject? SearchById(ulong objectId)
     {
         if (objectId is GameObject.InvalidGameObjectId or 0)
@@ -77,11 +69,7 @@ public sealed partial class ObjectTable : IServiceType
         return null;
     }
 
-    /// <summary>
-    /// Gets the address of the game object at the specified index of the object table.
-    /// </summary>
-    /// <param name="index">The index of the object.</param>
-    /// <returns>The memory address of the object.</returns>
+    /// <inheritdoc/>
     public unsafe IntPtr GetObjectAddress(int index)
     {
         if (index < 0 || index >= ObjectTableLength)
@@ -90,11 +78,7 @@ public sealed partial class ObjectTable : IServiceType
         return *(IntPtr*)(this.address.ObjectTable + (8 * index));
     }
 
-    /// <summary>
-    /// Create a reference to an FFXIV game object.
-    /// </summary>
-    /// <param name="address">The address of the object in memory.</param>
-    /// <returns><see cref="GameObject"/> object or inheritor containing the requested data.</returns>
+    /// <inheritdoc/>
     public unsafe GameObject? CreateObjectReference(IntPtr address)
     {
         var clientState = Service<ClientState>.GetNullable();
@@ -125,7 +109,7 @@ public sealed partial class ObjectTable : IServiceType
 /// <summary>
 /// This collection represents the currently spawned FFXIV game objects.
 /// </summary>
-public sealed partial class ObjectTable : IReadOnlyCollection<GameObject>
+public sealed partial class ObjectTable
 {
     /// <inheritdoc/>
     int IReadOnlyCollection<GameObject>.Count => this.Length;

@@ -3,14 +3,15 @@ using System.IO;
 
 using Dalamud.Utility;
 using Newtonsoft.Json;
+using Serilog;
 
-namespace Dalamud.Plugin.Internal.Types;
+namespace Dalamud.Plugin.Internal.Types.Manifest;
 
 /// <summary>
 /// Information about a plugin, packaged in a json file with the DLL. This variant includes additional information such as
 /// if the plugin is disabled and if it was installed from a testing URL. This is designed for use with manifests on disk.
 /// </summary>
-internal record LocalPluginManifest : PluginManifest
+internal record LocalPluginManifest : PluginManifest, ILocalPluginManifest
 {
     /// <summary>
     /// Flag indicating that a plugin was installed from the official repo.
@@ -37,17 +38,14 @@ internal record LocalPluginManifest : PluginManifest
     /// </summary>
     public bool Testing { get; set; }
 
-    /// <summary>
-    /// Gets or sets a value indicating whether the plugin should be deleted during the next cleanup.
-    /// </summary>
+    /// <inheritdoc/>
     public bool ScheduledForDeletion { get; set; }
 
-    /// <summary>
-    /// Gets or sets the 3rd party repo URL that this plugin was installed from. Used to display where the plugin was
-    /// sourced from on the installed plugin view. This should not be included in the plugin master. This value is null
-    /// when installed from the main repo.
-    /// </summary>
+    /// <inheritdoc/>
     public string InstalledFromUrl { get; set; } = string.Empty;
+
+    /// <inheritdoc/>
+    public Guid WorkingPluginId { get; set; } = Guid.Empty;
 
     /// <summary>
     /// Gets a value indicating whether this manifest is associated with a plugin that was installed from a third party
@@ -61,15 +59,24 @@ internal record LocalPluginManifest : PluginManifest
     public Version EffectiveVersion => this.Testing && this.TestingAssemblyVersion != null ? this.TestingAssemblyVersion : this.AssemblyVersion;
 
     /// <summary>
-    /// Gets a value indicating whether this plugin is eligible for testing.
-    /// </summary>
-    public bool IsAvailableForTesting => this.TestingAssemblyVersion != null && this.TestingAssemblyVersion > this.AssemblyVersion;
-
-    /// <summary>
     /// Save a plugin manifest to file.
     /// </summary>
     /// <param name="manifestFile">Path to save at.</param>
-    public void Save(FileInfo manifestFile) => Util.WriteAllTextSafe(manifestFile.FullName, JsonConvert.SerializeObject(this, Formatting.Indented));
+    /// <param name="reason">The reason the manifest was saved.</param>
+    public void Save(FileInfo manifestFile, string reason)
+    {
+        Log.Verbose("Saving manifest for '{PluginName}' because '{Reason}'", this.InternalName, reason);
+
+        try
+        {
+            Util.WriteAllTextSafe(manifestFile.FullName, JsonConvert.SerializeObject(this, Formatting.Indented));
+        }
+        catch
+        {
+            Log.Error("Could not write out manifest for '{PluginName}' because '{Reason}'", this.InternalName, reason);
+            throw;
+        }
+    }
 
     /// <summary>
     /// Loads a plugin manifest from file.

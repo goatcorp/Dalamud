@@ -33,7 +33,7 @@ internal class PluginChangelogEntry : IChangelogEntry
     {
         this.Plugin = plugin;
 
-        this.Version = plugin.Manifest.EffectiveVersion.ToString();
+        this.Version = plugin.EffectiveVersion.ToString();
         this.Text = plugin.Manifest.Changelog ?? Loc.Localize("ChangelogNoText", "No changelog for this version.");
         this.Author = plugin.Manifest.Author;
         this.Date = DateTimeOffset.FromUnixTimeSeconds(this.Plugin.Manifest.LastUpdate).DateTime;

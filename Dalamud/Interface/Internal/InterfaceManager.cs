@@ -1147,10 +1147,10 @@ internal class InterfaceManager : IDisposable, IServiceType
             var dPadRight = gamepadState.Raw(GamepadButtons.DpadRight) != 0;
             var dPadDown = gamepadState.Raw(GamepadButtons.DpadDown) != 0;
             var dPadLeft = gamepadState.Raw(GamepadButtons.DpadLeft) != 0;
-            var leftStickUp = gamepadState.LeftStickUp;
-            var leftStickRight = gamepadState.LeftStickRight;
-            var leftStickDown = gamepadState.LeftStickDown;
-            var leftStickLeft = gamepadState.LeftStickLeft;
+            var leftStickUp = gamepadState.LeftStick.Y > 0 ? gamepadState.LeftStick.Y / 100f : 0;
+            var leftStickRight = gamepadState.LeftStick.X > 0 ? gamepadState.LeftStick.X / 100f : 0;
+            var leftStickDown = gamepadState.LeftStick.Y < 0 ? -gamepadState.LeftStick.Y / 100f : 0;
+            var leftStickLeft = gamepadState.LeftStick.X < 0 ? -gamepadState.LeftStick.X / 100f : 0;
             var l1Button = gamepadState.Raw(GamepadButtons.L1) != 0;
             var l2Button = gamepadState.Raw(GamepadButtons.L2) != 0;
             var r1Button = gamepadState.Raw(GamepadButtons.R1) != 0;
