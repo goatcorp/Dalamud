@@ -207,6 +207,12 @@ internal sealed class DalamudConfiguration : IServiceType
     /// Gets or sets a value indicating whether or not docking should be globally enabled in ImGui.
     /// </summary>
     public bool IsDocking { get; set; }
+    
+    /// <summary>
+    /// Gets or sets a value indicating whether or not plugin user interfaces should trigger sound effects.
+    /// This setting is effected by the in-game "System Sounds" option and volume.
+    /// </summary>
+    public bool EnablePluginUISoundEffects { get; set; }
 
     /// <summary>
     /// Gets or sets a value indicating whether viewports should always be disabled.
@@ -287,6 +293,11 @@ internal sealed class DalamudConfiguration : IServiceType
     /// </summary>
     public bool ProfilesEnabled { get; set; } = false;
 
+    /// <summary>
+    /// Gets or sets a value indicating whether or not the user has seen the profiles tutorial.
+    /// </summary>
+    public bool ProfilesHasSeenTutorial { get; set; } = false;
+    
     /// <summary>
     /// Gets or sets a value indicating whether or not Dalamud RMT filtering should be disabled.
     /// </summary>

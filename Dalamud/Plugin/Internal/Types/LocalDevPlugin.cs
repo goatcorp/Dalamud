@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Dalamud.Configuration.Internal;
 using Dalamud.Interface.Internal.Notifications;
 using Dalamud.Logging.Internal;
+using Dalamud.Plugin.Internal.Types.Manifest;
 
 namespace Dalamud.Plugin.Internal.Types;
 

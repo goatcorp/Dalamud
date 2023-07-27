@@ -2,6 +2,7 @@
 
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
+using Dalamud.Plugin.Services;
 
 namespace Dalamud.Game;
 
@@ -11,7 +12,10 @@ namespace Dalamud.Game;
 [PluginInterface]
 [InterfaceVersion("1.0")]
 [ServiceManager.BlockingEarlyLoadedService]
-public class GameLifecycle : IServiceType
+#pragma warning disable SA1015
+[ResolveVia<IGameLifecycle>]
+#pragma warning restore SA1015
+public class GameLifecycle : IServiceType, IGameLifecycle
 {
     private readonly CancellationTokenSource dalamudUnloadCts = new();
     private readonly CancellationTokenSource gameShutdownCts = new();
@@ -26,19 +30,13 @@ public class GameLifecycle : IServiceType
     {
     }
 
-    /// <summary>
-    /// Gets a token that is cancelled when Dalamud is unloading.
-    /// </summary>
+    /// <inheritdoc/>
     public CancellationToken DalamudUnloadingToken => this.dalamudUnloadCts.Token;
 
-    /// <summary>
-    /// Gets a token that is cancelled when the game is shutting down.
-    /// </summary>
+    /// <inheritdoc/>
     public CancellationToken GameShuttingDownToken => this.gameShutdownCts.Token;
 
-    /// <summary>
-    /// Gets a token that is cancelled when a character is logging out.
-    /// </summary>
+    /// <inheritdoc/>
     public CancellationToken LogoutToken => this.logoutCts.Token;
 
     /// <summary>

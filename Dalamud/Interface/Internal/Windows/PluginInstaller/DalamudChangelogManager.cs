@@ -48,15 +48,12 @@ internal class DalamudChangelogManager
 
         foreach (var plugin in this.manager.InstalledPlugins)
         {
-            if (!plugin.Manifest.IsThirdParty)
+            if (!plugin.IsThirdParty)
             {
-                if (!plugin.Manifest.IsDip17Plugin)
-                    continue;
-
                 var pluginChangelogs = await client.GetFromJsonAsync<PluginHistory>(string.Format(
-                                               PluginChangelogUrl,
-                                               plugin.Manifest.InternalName,
-                                               plugin.Manifest.Dip17Channel));
+                                           PluginChangelogUrl,
+                                           plugin.Manifest.InternalName,
+                                           plugin.Manifest.Dip17Channel));
 
                 changelogs = changelogs.Concat(pluginChangelogs.Versions
                                                                .Where(x => x.Dip17Track == plugin.Manifest.Dip17Channel)

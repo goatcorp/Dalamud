@@ -652,7 +652,7 @@ public static class Util
     }
 
     /// <summary>
-    /// Print formatted GameObject Information to ImGui
+    /// Print formatted GameObject Information to ImGui.
     /// </summary>
     /// <param name="actor">Game Object to Display.</param>
     /// <param name="tag">Display Tag.</param>

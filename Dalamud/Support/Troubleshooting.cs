@@ -7,7 +7,7 @@ using Dalamud.Configuration;
 using Dalamud.Configuration.Internal;
 using Dalamud.Interface.Internal;
 using Dalamud.Plugin.Internal;
-using Dalamud.Plugin.Internal.Types;
+using Dalamud.Plugin.Internal.Types.Manifest;
 using Dalamud.Utility;
 using Newtonsoft.Json;
 using Serilog;
@@ -67,7 +67,7 @@ public static class Troubleshooting
         {
             var payload = new TroubleshootingPayload
             {
-                LoadedPlugins = pluginManager?.InstalledPlugins?.Select(x => x.Manifest)?.OrderByDescending(x => x.InternalName).ToArray(),
+                LoadedPlugins = pluginManager?.InstalledPlugins?.Select(x => x.Manifest as LocalPluginManifest)?.OrderByDescending(x => x.InternalName).ToArray(),
                 PluginStates = pluginManager?.InstalledPlugins?.Where(x => !x.IsDev).ToDictionary(x => x.Manifest.InternalName, x => x.IsBanned ? "Banned" : x.State.ToString()),
                 EverStartedLoadingPlugins = pluginManager?.InstalledPlugins.Where(x => x.HasEverStartedLoad).Select(x => x.InternalName).ToList(),
                 DalamudVersion = Util.AssemblyVersion,
