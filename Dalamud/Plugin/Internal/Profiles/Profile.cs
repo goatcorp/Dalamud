@@ -219,7 +219,7 @@ internal class Profile
         {
             if (!this.IsDefaultProfile)
             {
-                await this.manager.DefaultProfile.AddOrUpdateAsync(internalName, entry.IsEnabled, false);
+                await this.manager.DefaultProfile.AddOrUpdateAsync(internalName, this.IsEnabled && entry.IsEnabled, false);
             }
             else
             {

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Project Sdk="Microsoft.NET.Sdk">
+<Project>
     <PropertyGroup>
         <TargetFramework>net7.0-windows</TargetFramework>
         <Platforms>x64</Platforms>
@@ -10,42 +10,19 @@
         <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
         <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
         <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+        <AssemblySearchPaths>$(AssemblySearchPaths);$(DalamudLibPath)</AssemblySearchPaths>
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="DalamudPackager" Version="2.1.10" />
-        <Reference Include="FFXIVClientStructs">
-            <HintPath>$(DalamudLibPath)FFXIVClientStructs.dll</HintPath>
-            <Private>false</Private>
-        </Reference>
-        <Reference Include="Newtonsoft.Json">
-            <HintPath>$(DalamudLibPath)Newtonsoft.Json.dll</HintPath>
-            <Private>false</Private>
-        </Reference>
-        <Reference Include="Dalamud">
-            <HintPath>$(DalamudLibPath)Dalamud.dll</HintPath>
-            <Private>false</Private>
-        </Reference>
-        <Reference Include="Dalamud.Interface">
-            <HintPath>$(DalamudLibPath)Dalamud.Interface.dll</HintPath>
-            <Private>false</Private>
-        </Reference>
-        <Reference Include="ImGui.NET">
-            <HintPath>$(DalamudLibPath)ImGui.NET.dll</HintPath>
-            <Private>false</Private>
-        </Reference>
-        <Reference Include="ImGuiScene">
-            <HintPath>$(DalamudLibPath)ImGuiScene.dll</HintPath>
-            <Private>false</Private>
-        </Reference>
-        <Reference Include="Lumina">
-            <HintPath>$(DalamudLibPath)Lumina.dll</HintPath>
-            <Private>false</Private>
-        </Reference>
-        <Reference Include="Lumina.Excel">
-            <HintPath>$(DalamudLibPath)Lumina.Excel.dll</HintPath>
-            <Private>false</Private>
-        </Reference>
+        <PackageReference Include="DalamudPackager" Version="2.1.11" />
+        <Reference Include="FFXIVClientStructs" Private="false" />
+        <Reference Include="Newtonsoft.Json" Private="false" />
+        <Reference Include="Dalamud" Private="false" />
+        <Reference Include="Dalamud.Interface" Private="false" />
+        <Reference Include="ImGui.NET" Private="false" />
+        <Reference Include="ImGuiScene" Private="false" />
+        <Reference Include="Lumina" Private="false" />
+        <Reference Include="Lumina.Excel" Private="false" />
     </ItemGroup>
 
     <Target Name="Message" BeforeTargets="BeforeBuild">

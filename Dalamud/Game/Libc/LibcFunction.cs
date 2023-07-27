@@ -4,6 +4,7 @@ using System.Text;
 
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
+using Dalamud.Plugin.Services;
 
 namespace Dalamud.Game.Libc;
 
@@ -13,7 +14,10 @@ namespace Dalamud.Game.Libc;
 [PluginInterface]
 [InterfaceVersion("1.0")]
 [ServiceManager.BlockingEarlyLoadedService]
-public sealed class LibcFunction : IServiceType
+#pragma warning disable SA1015
+[ResolveVia<ILibcFunction>]
+#pragma warning restore SA1015
+public sealed class LibcFunction : IServiceType, ILibcFunction
 {
     private readonly LibcFunctionAddressResolver address;
     private readonly StdStringFromCStringDelegate stdStringCtorCString;
@@ -37,11 +41,7 @@ public sealed class LibcFunction : IServiceType
     [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
     private delegate IntPtr StdStringDeallocateDelegate(IntPtr address);
 
-    /// <summary>
-    /// Create a new string from the given bytes.
-    /// </summary>
-    /// <param name="content">The bytes to convert.</param>
-    /// <returns>An owned std string object.</returns>
+    /// <inheritdoc/>
     public OwnedStdString NewString(byte[] content)
     {
         // While 0x70 bytes in the memory should be enough in DX11 version,
@@ -56,14 +56,9 @@ public sealed class LibcFunction : IServiceType
 
         return new OwnedStdString(pReallocString, this.DeallocateStdString);
     }
-
-    /// <summary>
-    /// Create a new string form the given bytes.
-    /// </summary>
-    /// <param name="content">The bytes to convert.</param>
-    /// <param name="encoding">A non-default encoding.</param>
-    /// <returns>An owned std string object.</returns>
-    public OwnedStdString NewString(string content, Encoding encoding = null)
+    
+    /// <inheritdoc/>
+    public OwnedStdString NewString(string content, Encoding? encoding = null)
     {
         encoding ??= Encoding.UTF8;
 

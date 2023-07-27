@@ -145,6 +145,11 @@ public unsafe partial class GameObject
     public bool IsDead => this.Struct->IsDead();
 
     /// <summary>
+    /// Gets a value indicating whether the object is targetable.
+    /// </summary>
+    public bool IsTargetable => this.Struct->GetIsTargetable();
+
+    /// <summary>
     /// Gets the position of this <see cref="GameObject" />.
     /// </summary>
     public Vector3 Position => new(this.Struct->Position.X, this.Struct->Position.Y, this.Struct->Position.Z);

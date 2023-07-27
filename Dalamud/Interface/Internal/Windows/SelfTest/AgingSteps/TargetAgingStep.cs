@@ -23,8 +23,8 @@ internal class TargetAgingStep : IAgingStep
         switch (this.step)
         {
             case 0:
-                targetManager.ClearTarget();
-                targetManager.ClearFocusTarget();
+                targetManager.Target = null;
+                targetManager.FocusTarget = null;
 
                 this.step++;
 

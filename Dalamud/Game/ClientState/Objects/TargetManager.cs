@@ -3,6 +3,7 @@ using System;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
+#pragma warning disable CS0618
 
 namespace Dalamud.Game.ClientState.Objects;
 
@@ -12,7 +13,10 @@ namespace Dalamud.Game.ClientState.Objects;
 [PluginInterface]
 [InterfaceVersion("1.0")]
 [ServiceManager.BlockingEarlyLoadedService]
-public sealed unsafe class TargetManager : IServiceType
+#pragma warning disable SA1015
+[ResolveVia<ITargetManager>]
+#pragma warning restore SA1015
+public sealed unsafe class TargetManager : IServiceType, ITargetManager
 {
     [ServiceManager.ServiceDependency]
     private readonly ClientState clientState = Service<ClientState>.Get();
@@ -28,50 +32,38 @@ public sealed unsafe class TargetManager : IServiceType
         this.address = this.clientState.AddressResolver;
     }
 
-    /// <summary>
-    /// Gets the address of the target manager.
-    /// </summary>
+    /// <inheritdoc/>
     public IntPtr Address => this.address.TargetManager;
 
-    /// <summary>
-    /// Gets or sets the current target.
-    /// </summary>
+    /// <inheritdoc/>
     public GameObject? Target
     {
         get => this.objectTable.CreateObjectReference((IntPtr)Struct->Target);
         set => this.SetTarget(value);
     }
 
-    /// <summary>
-    /// Gets or sets the mouseover target.
-    /// </summary>
+    /// <inheritdoc/>
     public GameObject? MouseOverTarget
     {
         get => this.objectTable.CreateObjectReference((IntPtr)Struct->MouseOverTarget);
         set => this.SetMouseOverTarget(value);
     }
 
-    /// <summary>
-    /// Gets or sets the focus target.
-    /// </summary>
+    /// <inheritdoc/>
     public GameObject? FocusTarget
     {
         get => this.objectTable.CreateObjectReference((IntPtr)Struct->FocusTarget);
         set => this.SetFocusTarget(value);
     }
 
-    /// <summary>
-    /// Gets or sets the previous target.
-    /// </summary>
+    /// <inheritdoc/>
     public GameObject? PreviousTarget
     {
         get => this.objectTable.CreateObjectReference((IntPtr)Struct->PreviousTarget);
         set => this.SetPreviousTarget(value);
     }
 
-    /// <summary>
-    /// Gets or sets the soft target.
-    /// </summary>
+    /// <inheritdoc/>
     public GameObject? SoftTarget
     {
         get => this.objectTable.CreateObjectReference((IntPtr)Struct->SoftTarget);
@@ -84,84 +76,99 @@ public sealed unsafe class TargetManager : IServiceType
     /// Sets the current target.
     /// </summary>
     /// <param name="actor">Actor to target.</param>
+    [Obsolete("Use Target Property", false)]
     public void SetTarget(GameObject? actor) => this.SetTarget(actor?.Address ?? IntPtr.Zero);
 
     /// <summary>
     /// Sets the mouseover target.
     /// </summary>
     /// <param name="actor">Actor to target.</param>
+    [Obsolete("Use MouseOverTarget Property", false)]
     public void SetMouseOverTarget(GameObject? actor) => this.SetMouseOverTarget(actor?.Address ?? IntPtr.Zero);
 
     /// <summary>
     /// Sets the focus target.
     /// </summary>
     /// <param name="actor">Actor to target.</param>
+    [Obsolete("Use FocusTarget Property", false)]
     public void SetFocusTarget(GameObject? actor) => this.SetFocusTarget(actor?.Address ?? IntPtr.Zero);
 
     /// <summary>
     /// Sets the previous target.
     /// </summary>
     /// <param name="actor">Actor to target.</param>
+    [Obsolete("Use PreviousTarget Property", false)]
     public void SetPreviousTarget(GameObject? actor) => this.SetTarget(actor?.Address ?? IntPtr.Zero);
 
     /// <summary>
     /// Sets the soft target.
     /// </summary>
     /// <param name="actor">Actor to target.</param>
+    [Obsolete("Use SoftTarget Property", false)]
     public void SetSoftTarget(GameObject? actor) => this.SetTarget(actor?.Address ?? IntPtr.Zero);
 
     /// <summary>
     /// Sets the current target.
     /// </summary>
     /// <param name="actorAddress">Actor (address) to target.</param>
+    [Obsolete("Use Target Property", false)]
     public void SetTarget(IntPtr actorAddress) => Struct->Target = (FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject*)actorAddress;
 
     /// <summary>
     /// Sets the mouseover target.
     /// </summary>
     /// <param name="actorAddress">Actor (address) to target.</param>
+    [Obsolete("Use MouseOverTarget Property", false)]
     public void SetMouseOverTarget(IntPtr actorAddress) => Struct->MouseOverTarget = (FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject*)actorAddress;
 
     /// <summary>
     /// Sets the focus target.
     /// </summary>
     /// <param name="actorAddress">Actor (address) to target.</param>
+    [Obsolete("Use FocusTarget Property", false)]
     public void SetFocusTarget(IntPtr actorAddress) => Struct->FocusTarget = (FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject*)actorAddress;
 
     /// <summary>
     /// Sets the previous target.
     /// </summary>
     /// <param name="actorAddress">Actor (address) to target.</param>
+    [Obsolete("Use PreviousTarget Property", false)]
     public void SetPreviousTarget(IntPtr actorAddress) => Struct->PreviousTarget = (FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject*)actorAddress;
 
     /// <summary>
     /// Sets the soft target.
     /// </summary>
     /// <param name="actorAddress">Actor (address) to target.</param>
+    [Obsolete("Use SoftTarget Property", false)]
     public void SetSoftTarget(IntPtr actorAddress) => Struct->SoftTarget = (FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject*)actorAddress;
 
     /// <summary>
     /// Clears the current target.
     /// </summary>
+    [Obsolete("Use Target Property", false)]
     public void ClearTarget() => this.SetTarget(IntPtr.Zero);
 
     /// <summary>
     /// Clears the mouseover target.
     /// </summary>
+    [Obsolete("Use MouseOverTarget Property", false)]
     public void ClearMouseOverTarget() => this.SetMouseOverTarget(IntPtr.Zero);
 
     /// <summary>
     /// Clears the focus target.
     /// </summary>
+    [Obsolete("Use FocusTarget Property", false)]
     public void ClearFocusTarget() => this.SetFocusTarget(IntPtr.Zero);
 
     /// <summary>
     /// Clears the previous target.
     /// </summary>
+    [Obsolete("Use PreviousTarget Property", false)]
     public void ClearPreviousTarget() => this.SetPreviousTarget(IntPtr.Zero);
 
     /// <summary>
     /// Clears the soft target.
     /// </summary>
+    [Obsolete("Use SoftTarget Property", false)]
     public void ClearSoftTarget() => this.SetSoftTarget(IntPtr.Zero);
 }

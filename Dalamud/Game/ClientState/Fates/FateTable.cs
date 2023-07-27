@@ -4,6 +4,7 @@ using System.Collections.Generic;
 
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
+using Dalamud.Plugin.Services;
 using Serilog;
 
 namespace Dalamud.Game.ClientState.Fates;
@@ -14,7 +15,10 @@ namespace Dalamud.Game.ClientState.Fates;
 [PluginInterface]
 [InterfaceVersion("1.0")]
 [ServiceManager.BlockingEarlyLoadedService]
-public sealed partial class FateTable : IServiceType
+#pragma warning disable SA1015
+[ResolveVia<IFateTable>]
+#pragma warning restore SA1015
+public sealed partial class FateTable : IServiceType, IFateTable
 {
     private readonly ClientStateAddressResolver address;
 
@@ -26,14 +30,10 @@ public sealed partial class FateTable : IServiceType
         Log.Verbose($"Fate table address 0x{this.address.FateTablePtr.ToInt64():X}");
     }
 
-    /// <summary>
-    /// Gets the address of the Fate table.
-    /// </summary>
+    /// <inheritdoc/>
     public IntPtr Address => this.address.FateTablePtr;
 
-    /// <summary>
-    /// Gets the amount of currently active Fates.
-    /// </summary>
+    /// <inheritdoc/>
     public unsafe int Length
     {
         get
@@ -69,11 +69,7 @@ public sealed partial class FateTable : IServiceType
 
     private unsafe FFXIVClientStructs.FFXIV.Client.Game.Fate.FateManager* Struct => (FFXIVClientStructs.FFXIV.Client.Game.Fate.FateManager*)this.FateTableAddress;
 
-    /// <summary>
-    /// Get an actor at the specified spawn index.
-    /// </summary>
-    /// <param name="index">Spawn index.</param>
-    /// <returns>A <see cref="Fate"/> at the specified spawn index.</returns>
+    /// <inheritdoc/>
     public Fate? this[int index]
     {
         get
@@ -83,11 +79,7 @@ public sealed partial class FateTable : IServiceType
         }
     }
 
-    /// <summary>
-    /// Gets the address of the Fate at the specified index of the fate table.
-    /// </summary>
-    /// <param name="index">The index of the Fate.</param>
-    /// <returns>The memory address of the Fate.</returns>
+    /// <inheritdoc/>
     public unsafe IntPtr GetFateAddress(int index)
     {
         if (index >= this.Length)
@@ -100,11 +92,7 @@ public sealed partial class FateTable : IServiceType
         return (IntPtr)this.Struct->Fates.Get((ulong)index).Value;
     }
 
-    /// <summary>
-    /// Create a reference to a FFXIV actor.
-    /// </summary>
-    /// <param name="offset">The offset of the actor in memory.</param>
-    /// <returns><see cref="Fate"/> object containing requested data.</returns>
+    /// <inheritdoc/>
     public Fate? CreateFateReference(IntPtr offset)
     {
         var clientState = Service<ClientState>.Get();
@@ -122,7 +110,7 @@ public sealed partial class FateTable : IServiceType
 /// <summary>
 /// This collection represents the currently available Fate events.
 /// </summary>
-public sealed partial class FateTable : IReadOnlyCollection<Fate>
+public sealed partial class FateTable
 {
     /// <inheritdoc/>
     int IReadOnlyCollection<Fate>.Count => this.Length;

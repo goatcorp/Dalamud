@@ -1,7 +1,7 @@
 using JetBrains.Annotations;
 using Newtonsoft.Json;
 
-namespace Dalamud.Plugin.Internal.Types;
+namespace Dalamud.Plugin.Internal.Types.Manifest;
 
 /// <summary>
 /// Information about a plugin, packaged in a json file with the DLL. This variant includes additional information such as
@@ -16,4 +16,9 @@ internal record RemotePluginManifest : PluginManifest
     /// </summary>
     [JsonIgnore]
     public PluginRepository SourceRepo { get; set; } = null!;
+
+    /// <summary>
+    /// Gets a value indicating whether this plugin is eligible for testing.
+    /// </summary>
+    public bool IsAvailableForTesting => this.TestingAssemblyVersion != null && this.TestingAssemblyVersion > this.AssemblyVersion;
 }

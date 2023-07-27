@@ -5,6 +5,7 @@ using System.Runtime.InteropServices;
 
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
+using Dalamud.Plugin.Services;
 using Serilog;
 
 namespace Dalamud.Game.ClientState.Party;
@@ -15,7 +16,10 @@ namespace Dalamud.Game.ClientState.Party;
 [PluginInterface]
 [InterfaceVersion("1.0")]
 [ServiceManager.BlockingEarlyLoadedService]
-public sealed unsafe partial class PartyList : IServiceType
+#pragma warning disable SA1015
+[ResolveVia<IPartyList>]
+#pragma warning restore SA1015
+public sealed unsafe partial class PartyList : IServiceType, IPartyList
 {
     private const int GroupLength = 8;
     private const int AllianceLength = 20;
@@ -33,50 +37,32 @@ public sealed unsafe partial class PartyList : IServiceType
         Log.Verbose($"Group manager address 0x{this.address.GroupManager.ToInt64():X}");
     }
 
-    /// <summary>
-    /// Gets the amount of party members the local player has.
-    /// </summary>
+    /// <inheritdoc/>
     public int Length => this.GroupManagerStruct->MemberCount;
 
-    /// <summary>
-    /// Gets the index of the party leader.
-    /// </summary>
+    /// <inheritdoc/>
     public uint PartyLeaderIndex => this.GroupManagerStruct->PartyLeaderIndex;
 
-    /// <summary>
-    /// Gets a value indicating whether this group is an alliance.
-    /// </summary>
+    /// <inheritdoc/>
     public bool IsAlliance => this.GroupManagerStruct->AllianceFlags > 0;
 
-    /// <summary>
-    /// Gets the address of the Group Manager.
-    /// </summary>
+    /// <inheritdoc/>
     public IntPtr GroupManagerAddress => this.address.GroupManager;
 
-    /// <summary>
-    /// Gets the address of the party list within the group manager.
-    /// </summary>
+    /// <inheritdoc/>
     public IntPtr GroupListAddress => (IntPtr)GroupManagerStruct->PartyMembers;
 
-    /// <summary>
-    /// Gets the address of the alliance member list within the group manager.
-    /// </summary>
+    /// <inheritdoc/>
     public IntPtr AllianceListAddress => (IntPtr)this.GroupManagerStruct->AllianceMembers;
 
-    /// <summary>
-    /// Gets the ID of the party.
-    /// </summary>
+    /// <inheritdoc/>
     public long PartyId => this.GroupManagerStruct->PartyId;
 
     private static int PartyMemberSize { get; } = Marshal.SizeOf<FFXIVClientStructs.FFXIV.Client.Game.Group.PartyMember>();
 
     private FFXIVClientStructs.FFXIV.Client.Game.Group.GroupManager* GroupManagerStruct => (FFXIVClientStructs.FFXIV.Client.Game.Group.GroupManager*)this.GroupManagerAddress;
 
-    /// <summary>
-    /// Get a party member at the specified spawn index.
-    /// </summary>
-    /// <param name="index">Spawn index.</param>
-    /// <returns>A <see cref="PartyMember"/> at the specified spawn index.</returns>
+    /// <inheritdoc/>
     public PartyMember? this[int index]
     {
         get
@@ -98,11 +84,7 @@ public sealed unsafe partial class PartyList : IServiceType
         }
     }
 
-    /// <summary>
-    /// Gets the address of the party member at the specified index of the party list.
-    /// </summary>
-    /// <param name="index">The index of the party member.</param>
-    /// <returns>The memory address of the party member.</returns>
+    /// <inheritdoc/>
     public IntPtr GetPartyMemberAddress(int index)
     {
         if (index < 0 || index >= GroupLength)
@@ -111,11 +93,7 @@ public sealed unsafe partial class PartyList : IServiceType
         return this.GroupListAddress + (index * PartyMemberSize);
     }
 
-    /// <summary>
-    /// Create a reference to an FFXIV party member.
-    /// </summary>
-    /// <param name="address">The address of the party member in memory.</param>
-    /// <returns>The party member object containing the requested data.</returns>
+    /// <inheritdoc/>
     public PartyMember? CreatePartyMemberReference(IntPtr address)
     {
         if (this.clientState.LocalContentId == 0)
@@ -127,11 +105,7 @@ public sealed unsafe partial class PartyList : IServiceType
         return new PartyMember(address);
     }
 
-    /// <summary>
-    /// Gets the address of the alliance member at the specified index of the alliance list.
-    /// </summary>
-    /// <param name="index">The index of the alliance member.</param>
-    /// <returns>The memory address of the alliance member.</returns>
+    /// <inheritdoc/>
     public IntPtr GetAllianceMemberAddress(int index)
     {
         if (index < 0 || index >= AllianceLength)
@@ -140,11 +114,7 @@ public sealed unsafe partial class PartyList : IServiceType
         return this.AllianceListAddress + (index * PartyMemberSize);
     }
 
-    /// <summary>
-    /// Create a reference to an FFXIV alliance member.
-    /// </summary>
-    /// <param name="address">The address of the alliance member in memory.</param>
-    /// <returns>The party member object containing the requested data.</returns>
+    /// <inheritdoc/>
     public PartyMember? CreateAllianceMemberReference(IntPtr address)
     {
         if (this.clientState.LocalContentId == 0)
@@ -160,7 +130,7 @@ public sealed unsafe partial class PartyList : IServiceType
 /// <summary>
 /// This collection represents the party members present in your party or alliance.
 /// </summary>
-public sealed partial class PartyList : IReadOnlyCollection<PartyMember>
+public sealed partial class PartyList
 {
     /// <inheritdoc/>
     int IReadOnlyCollection<PartyMember>.Count => this.Length;

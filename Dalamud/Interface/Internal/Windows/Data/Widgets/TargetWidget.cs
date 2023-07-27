@@ -65,20 +65,20 @@ internal class TargetWidget : IDataWindowWidget
             Util.PrintGameObject(targetMgr.SoftTarget, "SoftTarget", this.resolveGameData);
 
         if (ImGui.Button("Clear CT"))
-            targetMgr.ClearTarget();
+            targetMgr.Target = null;
 
         if (ImGui.Button("Clear FT"))
-            targetMgr.ClearFocusTarget();
+            targetMgr.FocusTarget = null;
 
         var localPlayer = clientState.LocalPlayer;
 
         if (localPlayer != null)
         {
             if (ImGui.Button("Set CT"))
-                targetMgr.SetTarget(localPlayer);
+                targetMgr.Target = localPlayer;
 
             if (ImGui.Button("Set FT"))
-                targetMgr.SetFocusTarget(localPlayer);
+                targetMgr.FocusTarget = localPlayer;
         }
         else
         {

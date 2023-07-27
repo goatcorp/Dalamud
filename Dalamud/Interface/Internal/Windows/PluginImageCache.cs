@@ -11,6 +11,7 @@ using Dalamud.Game;
 using Dalamud.Networking.Http;
 using Dalamud.Plugin.Internal;
 using Dalamud.Plugin.Internal.Types;
+using Dalamud.Plugin.Internal.Types.Manifest;
 using Dalamud.Utility;
 using ImGuiScene;
 using Serilog;
@@ -232,7 +233,7 @@ internal class PluginImageCache : IDisposable, IServiceType
     /// <param name="isThirdParty">If the plugin was third party sourced.</param>
     /// <param name="iconTexture">Cached image textures, or an empty array.</param>
     /// <returns>True if an entry exists, may be null if currently downloading.</returns>
-    public bool TryGetIcon(LocalPlugin? plugin, PluginManifest manifest, bool isThirdParty, out TextureWrap? iconTexture)
+    public bool TryGetIcon(LocalPlugin? plugin, IPluginManifest manifest, bool isThirdParty, out TextureWrap? iconTexture)
     {
         iconTexture = null;
 
@@ -274,7 +275,7 @@ internal class PluginImageCache : IDisposable, IServiceType
     /// <param name="isThirdParty">If the plugin was third party sourced.</param>
     /// <param name="imageTextures">Cached image textures, or an empty array.</param>
     /// <returns>True if the image array exists, may be empty if currently downloading.</returns>
-    public bool TryGetImages(LocalPlugin? plugin, PluginManifest manifest, bool isThirdParty, out TextureWrap?[] imageTextures)
+    public bool TryGetImages(LocalPlugin? plugin, IPluginManifest manifest, bool isThirdParty, out TextureWrap?[] imageTextures)
     {
         if (!this.pluginImagesMap.TryAdd(manifest.InternalName, null))
         {
@@ -307,7 +308,7 @@ internal class PluginImageCache : IDisposable, IServiceType
         byte[]? bytes,
         string name,
         string? loc,
-        PluginManifest manifest,
+        IPluginManifest manifest,
         int maxWidth,
         int maxHeight,
         bool requireSquare)
@@ -491,7 +492,7 @@ internal class PluginImageCache : IDisposable, IServiceType
         Log.Debug("Plugin image loader has shutdown");
     }
 
-    private async Task<TextureWrap?> DownloadPluginIconAsync(LocalPlugin? plugin, PluginManifest manifest, bool isThirdParty, ulong requestedFrame)
+    private async Task<TextureWrap?> DownloadPluginIconAsync(LocalPlugin? plugin, IPluginManifest manifest, bool isThirdParty, ulong requestedFrame)
     {
         if (plugin is { IsDev: true })
         {
@@ -558,7 +559,7 @@ internal class PluginImageCache : IDisposable, IServiceType
         return icon;
     }
 
-    private async Task DownloadPluginImagesAsync(TextureWrap?[] pluginImages, LocalPlugin? plugin, PluginManifest manifest, bool isThirdParty, ulong requestedFrame)
+    private async Task DownloadPluginImagesAsync(TextureWrap?[] pluginImages, LocalPlugin? plugin, IPluginManifest manifest, bool isThirdParty, ulong requestedFrame)
     {
         if (plugin is { IsDev: true })
         {
@@ -671,18 +672,15 @@ internal class PluginImageCache : IDisposable, IServiceType
         }
     }
 
-    private string? GetPluginIconUrl(PluginManifest manifest, bool isThirdParty, bool isTesting)
+    private string? GetPluginIconUrl(IPluginManifest manifest, bool isThirdParty, bool isTesting)
     {
         if (isThirdParty)
             return manifest.IconUrl;
 
-        if (manifest.IsDip17Plugin)
-            return MainRepoDip17ImageUrl.Format(manifest.Dip17Channel!, manifest.InternalName, "icon.png");
-
-        return MainRepoImageUrl.Format(isTesting ? "testing" : "plugins", manifest.InternalName, "icon.png");
+        return MainRepoDip17ImageUrl.Format(manifest.Dip17Channel!, manifest.InternalName, "icon.png");
     }
 
-    private List<string?>? GetPluginImageUrls(PluginManifest manifest, bool isThirdParty, bool isTesting)
+    private List<string?>? GetPluginImageUrls(IPluginManifest manifest, bool isThirdParty, bool isTesting)
     {
         if (isThirdParty)
         {
@@ -698,14 +696,7 @@ internal class PluginImageCache : IDisposable, IServiceType
         var output = new List<string>();
         for (var i = 1; i <= 5; i++)
         {
-            if (manifest.IsDip17Plugin)
-            {
-                output.Add(MainRepoDip17ImageUrl.Format(manifest.Dip17Channel!, manifest.InternalName, $"image{i}.png"));
-            }
-            else
-            {
-                output.Add(MainRepoImageUrl.Format(isTesting ? "testing" : "plugins", manifest.InternalName, $"image{i}.png"));
-            }
+            output.Add(MainRepoDip17ImageUrl.Format(manifest.Dip17Channel!, manifest.InternalName, $"image{i}.png"));
         }
 
         return output;

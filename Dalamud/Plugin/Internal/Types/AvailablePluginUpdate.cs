@@ -1,3 +1,5 @@
+using Dalamud.Plugin.Internal.Types.Manifest;
+
 namespace Dalamud.Plugin.Internal.Types;
 
 /// <summary>

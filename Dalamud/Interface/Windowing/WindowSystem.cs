@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using Dalamud.Configuration.Internal;
 using Dalamud.Interface.Internal.ManagedAsserts;
 using ImGuiNET;
 using Serilog;
@@ -111,6 +112,8 @@ public class WindowSystem
         if (hasNamespace)
             ImGui.PushID(this.Namespace);
 
+        var config = Service<DalamudConfiguration>.GetNullable();
+
         // Shallow clone the list of windows so that we can edit it without modifying it while the loop is iterating
         foreach (var window in this.windows.ToArray())
         {
@@ -119,7 +122,7 @@ public class WindowSystem
 #endif
             var snapshot = ImGuiManagedAsserts.GetSnapshot();
 
-            window.DrawInternal();
+            window.DrawInternal(config);
 
             var source = ($"{this.Namespace}::" ?? string.Empty) + window.WindowName;
             ImGuiManagedAsserts.ReportProblems(source, snapshot);
