@@ -2890,7 +2890,8 @@ internal class PluginInstallerWindow : Window, IDisposable
 
     private bool IsManifestFiltered(IPluginManifest manifest)
     {
-        var matcher = new FuzzyMatcher(this.searchText.ToLowerInvariant(), MatchMode.FuzzyParts);
+        var searchString = this.searchText.ToLowerInvariant();
+        var matcher = new FuzzyMatcher(searchString, MatchMode.FuzzyParts);
         var hasSearchString = !string.IsNullOrWhiteSpace(this.searchText);
         var oldApi = manifest.DalamudApiLevel < PluginManager.DalamudApiLevel;
         var installed = this.IsManifestInstalled(manifest).IsInstalled;
@@ -2902,7 +2903,7 @@ internal class PluginInstallerWindow : Window, IDisposable
                                        (!manifest.Name.IsNullOrEmpty() && matcher.Matches(manifest.Name.ToLowerInvariant()) > 0) ||
                                        (!manifest.InternalName.IsNullOrEmpty() && matcher.Matches(manifest.InternalName.ToLowerInvariant()) > 0) ||
                                        (!manifest.Author.IsNullOrEmpty() && matcher.Matches(manifest.Author.ToLowerInvariant()) > 0) ||
-                                       // (!manifest.Punchline.IsNullOrEmpty() && matcher.Matches(manifest.Punchline.ToLowerInvariant()) > 0) || // Removed because fuzzy match gets a little too excited with lots of random words
+                                       (!manifest.Punchline.IsNullOrEmpty() && manifest.Punchline.ToLowerInvariant().Contains(searchString)) ||
                                        (manifest.Tags != null && matcher.MatchesAny(manifest.Tags.Select(term => term.ToLowerInvariant()).ToArray()) > 0));
     }
 
