@@ -131,6 +131,11 @@ public sealed class DataManager : IDisposable, IServiceType, IDataManager
         }
     }
 
+    /// <summary>
+    /// Gets a value indicating whether Game Data is ready to be read.
+    /// </summary>
+    internal bool IsDataReady { get; private set; }
+
     /// <inheritdoc/>
     public ClientLanguage Language { get; private set; }
 
@@ -146,9 +151,6 @@ public sealed class DataManager : IDisposable, IServiceType, IDataManager
 
     /// <inheritdoc/>
     public ExcelModule Excel => this.GameData.Excel;
-
-    /// <inheritdoc/>
-    public bool IsDataReady { get; private set; }
 
     /// <inheritdoc/>
     public bool HasModifiedGameDataFiles { get; private set; }
