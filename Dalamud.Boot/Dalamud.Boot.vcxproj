@@ -158,6 +158,14 @@
     <ClInclude Include="..\lib\CoreCLR\core\coreclr_delegates.h" />
     <ClInclude Include="..\lib\CoreCLR\core\hostfxr.h" />
     <ClInclude Include="..\lib\CoreCLR\nethost\nethost.h" />
+    <ClInclude Include="..\lib\reshade\include\reshade.hpp" />
+    <ClInclude Include="..\lib\reshade\include\reshade_api.hpp" />
+    <ClInclude Include="..\lib\reshade\include\reshade_api_device.hpp" />
+    <ClInclude Include="..\lib\reshade\include\reshade_api_format.hpp" />
+    <ClInclude Include="..\lib\reshade\include\reshade_api_pipeline.hpp" />
+    <ClInclude Include="..\lib\reshade\include\reshade_api_resource.hpp" />
+    <ClInclude Include="..\lib\reshade\include\reshade_events.hpp" />
+    <ClInclude Include="..\lib\reshade\include\reshade_overlay.hpp" />
     <ClInclude Include="..\lib\TsudaKageyu-minhook\include\MinHook.h" />
     <ClInclude Include="..\lib\TsudaKageyu-minhook\src\buffer.h" />
     <ClInclude Include="..\lib\TsudaKageyu-minhook\src\HDE\hde32.h" />

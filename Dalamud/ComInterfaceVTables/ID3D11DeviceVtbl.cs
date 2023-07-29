@@ -1,8 +1,9 @@
-namespace Dalamud.Game.Internal.DXGI.Definitions;
+namespace Dalamud.ComInterfaceVTables;
 
 /// <summary>
 /// Contains a full list of ID3D11Device functions to be used as an indexer into the DirectX Virtual Function Table entries.
 /// </summary>
+// ReSharper disable once InconsistentNaming
 internal enum ID3D11DeviceVtbl
 {
     // IUnknown

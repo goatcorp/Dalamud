@@ -8,13 +8,12 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 
+using Dalamud.ComInterfaceVTables;
 using Dalamud.Configuration.Internal;
 using Dalamud.Game;
 using Dalamud.Game.ClientState.GamePad;
 using Dalamud.Game.ClientState.Keys;
 using Dalamud.Game.Gui.Internal;
-using Dalamud.Game.Internal.DXGI;
-using Dalamud.Game.Internal.DXGI.Definitions;
 using Dalamud.Hooking;
 using Dalamud.Interface.GameFonts;
 using Dalamud.Interface.Internal.ManagedAsserts;
@@ -25,6 +24,7 @@ using Dalamud.Utility;
 using Dalamud.Utility.Timing;
 using ImGuiNET;
 using ImGuiScene;
+using JetBrains.Annotations;
 using PInvoke;
 using Serilog;
 
@@ -65,18 +65,22 @@ internal class InterfaceManager : IDisposable, IServiceType
     private readonly SigScanner sigScanner = Service<SigScanner>.Get();
 
     private readonly ManualResetEvent fontBuildSignal;
-    private readonly SwapChainVtableResolver address;
     private readonly Hook<DispatchMessageWDelegate> dispatchMessageWHook;
     private readonly Hook<SetCursorDelegate> setCursorHook;
-    private Hook<ProcessMessageDelegate> processMessageHook;
+    private readonly Hook<ProcessMessageDelegate> processMessageHook;
     private RawDX11Scene? scene;
 
-    private ObjectVTableHook? swapChainHook;
+    private ObjectVTableHook<IDXGISwapChainVtbl>? swapChainHook;
+
+    // For handling the case where ReShade is being used.
+    // Marked UsedImplicitly to keep refcount for delegate so that the function pointer remains valid.
+    [UsedImplicitly]
+    private PresentCoreDelegate? presentCoreDelegate;
 
     // Use these instead of querying for functions inside the above,
     // since we behave differently if ReShade or stuff are detected.
-    private PresentDelegate presentOriginal;
-    private ResizeBuffersDelegate resizeBuffersOriginal;
+    private PresentDelegate? presentOriginal;
+    private ResizeBuffersDelegate? resizeBuffersOriginal;
 
     // can't access imgui IO before first present call
     private bool lastWantCapture = false;
@@ -91,11 +95,17 @@ internal class InterfaceManager : IDisposable, IServiceType
         this.setCursorHook = Hook<SetCursorDelegate>.FromImport(
             null, "user32.dll", "SetCursor", 0, this.SetCursorDetour);
 
-        this.fontBuildSignal = new ManualResetEvent(false);
-        this.address = new SwapChainVtableResolver();
+        var wndProcAddress = this.sigScanner.ScanText("E8 ?? ?? ?? ?? 80 7C 24 ?? ?? 74 ?? B8");
+        Log.Information($"WndProc address 0x{wndProcAddress.ToInt64():X}");
+        this.processMessageHook = Hook<ProcessMessageDelegate>.FromAddress(wndProcAddress, this.ProcessMessageDetour);
+
+        this.fontBuildSignal = new(false);
 
         this.QueueHookResolution();
     }
+
+    [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
+    private delegate void PresentCoreDelegate(IntPtr swapChain);
 
     [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
     private delegate IntPtr PresentDelegate(IntPtr swapChain, uint syncInterval, uint presentFlags);
@@ -115,22 +125,22 @@ internal class InterfaceManager : IDisposable, IServiceType
     /// <summary>
     /// This event gets called each frame to facilitate ImGui drawing.
     /// </summary>
-    public event RawDX11Scene.BuildUIDelegate Draw;
+    public event RawDX11Scene.BuildUIDelegate? Draw;
 
     /// <summary>
     /// This event gets called when ResizeBuffers is called.
     /// </summary>
-    public event Action ResizeBuffers;
+    public event Action? ResizeBuffers;
 
     /// <summary>
     /// Gets or sets an action that is executed right before fonts are rebuilt.
     /// </summary>
-    public event Action BuildFonts;
+    public event Action? BuildFonts;
 
     /// <summary>
     /// Gets or sets an action that is executed right after fonts are rebuilt.
     /// </summary>
-    public event Action AfterBuildFonts;
+    public event Action? AfterBuildFonts;
 
     /// <summary>
     /// Gets the default ImGui font.
@@ -230,7 +240,7 @@ internal class InterfaceManager : IDisposable, IServiceType
         {
             this.setCursorHook.Dispose();
             this.dispatchMessageWHook.Dispose();
-            this.processMessageHook?.Dispose();
+            this.processMessageHook.Dispose();
         }).Wait();
 
         this.scene?.Dispose();
@@ -357,9 +367,9 @@ internal class InterfaceManager : IDisposable, IServiceType
         ImFontPtr foundFont = null;
         unsafe
         {
-            for (int i = 0, i_ = fonts.Size; i < i_; i++)
+            for (int i = 0, iTo = fonts.Size; i < iTo; i++)
             {
-                if (!this.glyphRequests.Any(x => x.FontInternal.NativePtr == fonts[i].NativePtr))
+                if (this.glyphRequests.All(x => x.FontInternal.NativePtr != fonts[i].NativePtr))
                     continue;
 
                 allContained = true;
@@ -462,8 +472,8 @@ internal class InterfaceManager : IDisposable, IServiceType
         if (this.GameWindowHandle == nint.Zero)
             return;
 
-        int value = enabled ? 1 : 0;
-        var hr = NativeFunctions.DwmSetWindowAttribute(
+        var value = enabled ? 1 : 0;
+        _ = NativeFunctions.DwmSetWindowAttribute(
             this.GameWindowHandle,
             NativeFunctions.DWMWINDOWATTRIBUTE.DWMWA_USE_IMMERSIVE_DARK_MODE,
             ref value,
@@ -482,14 +492,14 @@ internal class InterfaceManager : IDisposable, IServiceType
         {
             try
             {
-                newScene = new RawDX11Scene(swapChain);
+                newScene = new(swapChain);
             }
             catch (DllNotFoundException ex)
             {
                 Service<InterfaceManagerWithScene>.ProvideException(ex);
                 Log.Error(ex, "Could not load ImGui dependencies.");
 
-                var res = PInvoke.User32.MessageBox(
+                var res = User32.MessageBox(
                     IntPtr.Zero,
                     "Dalamud plugins require the Microsoft Visual C++ Redistributable to be installed.\nPlease install the runtime from the official Microsoft website or disable Dalamud.\n\nDo you want to download the redistributable now?",
                     "Dalamud Error",
@@ -514,14 +524,14 @@ internal class InterfaceManager : IDisposable, IServiceType
             var startInfo = Service<DalamudStartInfo>.Get();
             var configuration = Service<DalamudConfiguration>.Get();
 
-            var iniFileInfo = new FileInfo(Path.Combine(Path.GetDirectoryName(startInfo.ConfigurationPath), "dalamudUI.ini"));
+            var iniFileInfo = new FileInfo(Path.Combine(Path.GetDirectoryName(startInfo.ConfigurationPath)!, "dalamudUI.ini"));
 
             try
             {
                 if (iniFileInfo.Length > 1200000)
                 {
                     Log.Warning("dalamudUI.ini was over 1mb, deleting");
-                    iniFileInfo.CopyTo(Path.Combine(iniFileInfo.DirectoryName, $"dalamudUI-{DateTimeOffset.Now.ToUnixTimeSeconds()}.ini"));
+                    iniFileInfo.CopyTo(Path.Combine(iniFileInfo.DirectoryName!, $"dalamudUI-{DateTimeOffset.Now.ToUnixTimeSeconds()}.ini"));
                     iniFileInfo.Delete();
                 }
             }
@@ -601,28 +611,18 @@ internal class InterfaceManager : IDisposable, IServiceType
         Service<InterfaceManagerWithScene>.Provide(new(this));
     }
 
-    /*
-     * NOTE(goat): When hooking ReShade DXGISwapChain::runtime_present, this is missing the syncInterval arg.
-     *             Seems to work fine regardless, I guess, so whatever.
-     */
-    private IntPtr PresentDetour(IntPtr swapChain, uint syncInterval, uint presentFlags)
+    private void PresentCore(IntPtr swapChain)
     {
         if (this.scene == null)
         {
             this.InitScene(swapChain);
         }
+        else if (swapChain != this.scene.SwapChain.NativePointer)
+        {
+            return;
+        }
 
-        nint res;
-        if (this.address.IsReshade)
-        {
-            res = this.presentOriginal(swapChain, syncInterval, presentFlags);
-            this.RenderImGui();
-        }
-        else
-        {
-            this.RenderImGui();
-            res = this.presentOriginal(swapChain, syncInterval, presentFlags);
-        }
+        this.RenderImGui();
 
         if (this.deferredDisposeTextures.Count > 0)
         {
@@ -634,19 +634,40 @@ internal class InterfaceManager : IDisposable, IServiceType
 
             this.deferredDisposeTextures.Clear();
         }
-
-        return res;
     }
 
-    private void QueueHookResolution()
+    /*
+     * NOTE(goat): When hooking ReShade DXGISwapChain::runtime_present, this is missing the syncInterval arg.
+     *             Seems to work fine regardless, I guess, so whatever.
+     */
+    private IntPtr PresentDetour(IntPtr swapChain, uint syncInterval, uint presentFlags)
     {
-        if (this.GameWindowHandle != 0 && this.address.IsResolved)
+        this.PresentCore(swapChain);
+        return this.presentOriginal!(swapChain, syncInterval, presentFlags);
+    }
+
+    private unsafe void QueueHookResolution()
+    {
+        if (this.GameWindowHandle != 0)
         {
             return;
         }
 
         this.framework.RunOnFrameworkThread(() =>
         {
+            void* dxgiSwapChain;
+            try
+            {
+                var kernelDev = Util.NotNull(FFXIVClientStructs.FFXIV.Client.Graphics.Kernel.Device.Instance());
+                var swapChain = Util.NotNull(kernelDev->SwapChain);
+                dxgiSwapChain = Util.NotNull(swapChain->DXGISwapChain);
+            }
+            catch (ArgumentNullException)
+            {
+                // Try again later
+                return;
+            }
+            
             if (this.GameWindowHandle == 0)
             {
                 while ((this.GameWindowHandle = NativeFunctions.FindWindowEx(IntPtr.Zero, this.GameWindowHandle, "FFXIVGAME", IntPtr.Zero)) != IntPtr.Zero)
@@ -677,52 +698,36 @@ internal class InterfaceManager : IDisposable, IServiceType
                 Log.Error(ex, "Could not enable immersive mode");
             }
 
-            if (!this.address.IsResolved)
+            this.swapChainHook = new(dxgiSwapChain);
+
+            if (EntryPoint.TryRegisterReshadePresentCallback(
+                    Marshal.GetFunctionPointerForDelegate(this.presentCoreDelegate = this.PresentCore)))
             {
-                try
-                {
-                    this.address.Setup();
-                }
-                catch (Exception ex)
-                {
-                    Log.Error(ex, "Could not resolve addresses and set up hooks; trying again later");
-                    return;
-                }
-
-                Log.Information("Resolver setup complete");
-
-                Log.Information("===== S W A P C H A I N =====");
-                Log.Information($"Is ReShade: {this.address.IsReshade}");
-                Log.Information($"Present address 0x{this.address.Present.ToInt64():X}");
-                Log.Information($"ResizeBuffers address 0x{this.address.ResizeBuffers.ToInt64():X}");
-
-                this.presentOriginal =
-                    Marshal.GetDelegateForFunctionPointer<PresentDelegate>(this.address.Present);
-                this.resizeBuffersOriginal =
-                    Marshal.GetDelegateForFunctionPointer<ResizeBuffersDelegate>(this.address.ResizeBuffers);
-
-                this.swapChainHook = new ObjectVTableHook(
-                    this.address.DxgiSwapChain,
-                    SwapChainVtableResolver.NumDxgiSwapChainMethods);
-                this.swapChainHook.SetVtableEntry<PresentDelegate>(
-                    (int)IDXGISwapChainVtbl.Present,
-                    this.PresentDetour);
-                this.swapChainHook.SetVtableEntry<ResizeBuffersDelegate>(
-                    (int)IDXGISwapChainVtbl.ResizeBuffers,
-                    this.ResizeBuffersDetour);
-                this.swapChainHook.Enable();
-                Log.Information("Present and ResizeBuffers hooked");
-
-                var wndProcAddress = this.sigScanner.ScanText("E8 ?? ?? ?? ?? 80 7C 24 ?? ?? 74 ?? B8");
-                Log.Information($"WndProc address 0x{wndProcAddress.ToInt64():X}");
-                this.processMessageHook =
-                    Hook<ProcessMessageDelegate>.FromAddress(wndProcAddress, this.ProcessMessageDetour);
-
-                this.setCursorHook.Enable();
-                this.dispatchMessageWHook.Enable();
-                this.processMessageHook.Enable();
-                Log.Information("Hooks enabled");
+                Log.Information("Using ReShade addon interface to provide implementation for Present.");
             }
+            else
+            {
+                Log.Information("Using IDXGISwapChain VTable forging to provide implementation for Present.");
+                this.swapChainHook.SetVtableEntry(
+                    IDXGISwapChainVtbl.Present,
+                    this.PresentDetour,
+                    out this.presentOriginal);
+            }
+
+            // Use ResizeBuffers, since we're hooking this just to be informed that it happened,
+            // and order does not matter whether we get called before or after ReShade.
+            this.swapChainHook.SetVtableEntry(
+                IDXGISwapChainVtbl.ResizeBuffers,
+                this.ResizeBuffersDetour,
+                out this.resizeBuffersOriginal);
+                
+            this.swapChainHook.Enable();
+            Log.Information("Present and ResizeBuffers hooked");
+
+            this.setCursorHook.Enable();
+            this.dispatchMessageWHook.Enable();
+            this.processMessageHook.Enable();
+            Log.Information("Hooks enabled");
         }).ContinueWith(_ => this.QueueHookResolution());
     }
 
@@ -735,14 +740,14 @@ internal class InterfaceManager : IDisposable, IServiceType
         // Check if we can still enable viewports without any issues.
         this.CheckViewportState();
 
-        this.scene.Render();
+        this.scene!.Render();
     }
 
     private void CheckViewportState()
     {
         var configuration = Service<DalamudConfiguration>.Get();
 
-        if (configuration.IsDisableViewport || this.scene.SwapChain.IsFullScreen || ImGui.GetPlatformIO().Monitors.Size == 1)
+        if (configuration.IsDisableViewport || this.scene!.SwapChain.IsFullScreen || ImGui.GetPlatformIO().Monitors.Size == 1)
         {
             ImGui.GetIO().ConfigFlags &= ~ImGuiConfigFlags.ViewportsEnable;
             return;
@@ -811,7 +816,7 @@ internal class InterfaceManager : IDisposable, IServiceType
                 this.UseAxis ? TargetFontModification.AxisMode.Overwrite : TargetFontModification.AxisMode.GameGlyphsOnly,
                 this.UseAxis ? DefaultFontSizePx : DefaultFontSizePx + 1,
                 io.FontGlobalScale);
-            Log.Verbose("[FONT] SetupFonts - Default corresponding AXIS size: {0}pt ({1}px)", fontInfo.SourceAxis.Style.BaseSizePt, fontInfo.SourceAxis.Style.BaseSizePx);
+            Log.Verbose("[FONT] SetupFonts - Default corresponding AXIS size: {0}pt ({1}px)", fontInfo.SourceAxis?.Style.BaseSizePt, fontInfo.SourceAxis?.Style.BaseSizePx);
             fontConfig.SizePixels = fontInfo.TargetSizePx * io.FontGlobalScale;
             if (this.UseAxis)
             {
@@ -882,13 +887,15 @@ internal class InterfaceManager : IDisposable, IServiceType
 
                 foreach (var (fontSize, requests) in extraFontRequests)
                 {
-                    List<Tuple<ushort, ushort>> codepointRanges = new();
-                    codepointRanges.Add(Tuple.Create(Fallback1Codepoint, Fallback1Codepoint));
-                    codepointRanges.Add(Tuple.Create(Fallback2Codepoint, Fallback2Codepoint));
-
-                    // ImGui default ellipsis characters
-                    codepointRanges.Add(Tuple.Create<ushort, ushort>(0x2026, 0x2026));
-                    codepointRanges.Add(Tuple.Create<ushort, ushort>(0x0085, 0x0085));
+                    List<Tuple<ushort, ushort>> codepointRanges = new()
+                    {
+                        new(Fallback1Codepoint, Fallback1Codepoint),
+                        new(Fallback2Codepoint, Fallback2Codepoint),
+                        
+                        // ImGui default ellipsis characters
+                        new(0x2026, 0x2026),
+                        new(0x0085, 0x0085),
+                    };
 
                     foreach (var request in requests)
                     {
@@ -922,7 +929,7 @@ internal class InterfaceManager : IDisposable, IServiceType
                     if (this.UseAxis)
                     {
                         fontConfig.GlyphRanges = dummyRangeHandle.AddrOfPinnedObject();
-                        fontConfig.SizePixels = fontInfo.SourceAxis.Style.BaseSizePx;
+                        fontConfig.SizePixels = fontInfo.SourceAxis!.Style.BaseSizePx;
                         fontConfig.PixelSnapH = false;
 
                         var sizedFont = ioFonts.AddFontDefault(fontConfig);
@@ -952,7 +959,7 @@ internal class InterfaceManager : IDisposable, IServiceType
             this.BuildFonts?.InvokeSafely();
             Log.Verbose("[FONT] OnBuildFonts OK!");
 
-            for (int i = customFontFirstConfigIndex, i_ = ioFonts.ConfigData.Size; i < i_; i++)
+            for (int i = customFontFirstConfigIndex, iTo = ioFonts.ConfigData.Size; i < iTo; i++)
             {
                 var config = ioFonts.ConfigData[i];
                 if (gameFontManager.OwnsFont(config.DstFont))
@@ -989,7 +996,7 @@ internal class InterfaceManager : IDisposable, IServiceType
                 config.SizePixels = config.SizePixels * io.FontGlobalScale;
             }
 
-            for (int i = 0, i_ = ioFonts.ConfigData.Size; i < i_; i++)
+            for (int i = 0, iTo = ioFonts.ConfigData.Size; i < iTo; i++)
             {
                 var config = ioFonts.ConfigData[i];
                 config.RasterizerGamma *= fontGamma;
@@ -1035,7 +1042,7 @@ internal class InterfaceManager : IDisposable, IServiceType
                 }
                 else if (mod.Axis == TargetFontModification.AxisMode.GameGlyphsOnly)
                 {
-                    Log.Verbose("[FONT] {0}: Overwrite game specific glyphs from AXIS of size {1}px", mod.Name, mod.SourceAxis.ImFont.FontSize, font.FontSize);
+                    Log.Verbose("[FONT] {0}: Overwrite game specific glyphs from AXIS of size {1}px (was {2}px)", mod.Name, mod.SourceAxis.ImFont.FontSize, font.FontSize);
                     if (!this.UseAxis && font.NativePtr == DefaultFont.NativePtr)
                         mod.SourceAxis.ImFont.FontSize -= 1;
                     ImGuiHelpers.CopyGlyphsAcrossFonts(mod.SourceAxis.ImFont, font, true, false, 0xE020, 0xE0DB);
@@ -1050,7 +1057,7 @@ internal class InterfaceManager : IDisposable, IServiceType
             // Fill missing glyphs in MonoFont from DefaultFont
             ImGuiHelpers.CopyGlyphsAcrossFonts(DefaultFont, MonoFont, true, false);
 
-            for (int i = 0, i_ = ioFonts.Fonts.Size; i < i_; i++)
+            for (int i = 0, iTo = ioFonts.Fonts.Size; i < iTo; i++)
             {
                 var font = ioFonts.Fonts[i];
                 if (font.Glyphs.Size == 0)
@@ -1108,7 +1115,7 @@ internal class InterfaceManager : IDisposable, IServiceType
     private unsafe IntPtr ProcessMessageDetour(IntPtr hWnd, uint msg, ulong wParam, ulong lParam, IntPtr handeled)
     {
         var ime = Service<DalamudIME>.GetNullable();
-        var res = ime?.ProcessWndProcW(hWnd, (User32.WindowMessage)msg, (void*)wParam, (void*)lParam);
+        _ = ime?.ProcessWndProcW(hWnd, (User32.WindowMessage)msg, (void*)wParam, (void*)lParam);
         return this.processMessageHook.Original(hWnd, msg, wParam, lParam, handeled);
     }
 
@@ -1134,7 +1141,7 @@ internal class InterfaceManager : IDisposable, IServiceType
 
         this.scene?.OnPreResize();
 
-        var ret = this.resizeBuffersOriginal(swapChain, bufferCount, width, height, newFormat, swapChainFlags);
+        var ret = this.resizeBuffersOriginal!(swapChain, bufferCount, width, height, newFormat, swapChainFlags);
         if (ret.ToInt64() == 0x887A0001)
         {
             Log.Error("invalid call to resizeBuffers");
@@ -1147,7 +1154,7 @@ internal class InterfaceManager : IDisposable, IServiceType
 
     private IntPtr SetCursorDetour(IntPtr hCursor)
     {
-        if (this.lastWantCapture == true && (!this.scene?.IsImGuiCursor(hCursor) ?? false) && this.OverrideGameCursor)
+        if (this.lastWantCapture && (!this.scene?.IsImGuiCursor(hCursor) ?? false) && this.OverrideGameCursor)
             return IntPtr.Zero;
 
         return this.setCursorHook.IsDisposed ? User32.SetCursor(new User32.SafeCursorHandle(hCursor, false)).DangerousGetHandle() : this.setCursorHook.Original(hCursor);

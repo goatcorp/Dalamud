@@ -17,6 +17,9 @@
     <Filter Include="MinHook">
       <UniqueIdentifier>{6ec5597d-e293-4d2a-a307-7444c8fac04b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ReshadePlugin">
+      <UniqueIdentifier>{fff0ec42-beda-42f6-997b-953cc54d3d29}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -140,6 +143,30 @@
     </ClInclude>
     <ClInclude Include="resource.h" />
     <ClInclude Include="crashhandler_shared.h" />
+    <ClInclude Include="..\lib\reshade\include\reshade.hpp">
+      <Filter>ReshadePlugin</Filter>
+    </ClInclude>
+    <ClInclude Include="..\lib\reshade\include\reshade_api.hpp">
+      <Filter>ReshadePlugin</Filter>
+    </ClInclude>
+    <ClInclude Include="..\lib\reshade\include\reshade_api_device.hpp">
+      <Filter>ReshadePlugin</Filter>
+    </ClInclude>
+    <ClInclude Include="..\lib\reshade\include\reshade_api_format.hpp">
+      <Filter>ReshadePlugin</Filter>
+    </ClInclude>
+    <ClInclude Include="..\lib\reshade\include\reshade_api_pipeline.hpp">
+      <Filter>ReshadePlugin</Filter>
+    </ClInclude>
+    <ClInclude Include="..\lib\reshade\include\reshade_api_resource.hpp">
+      <Filter>ReshadePlugin</Filter>
+    </ClInclude>
+    <ClInclude Include="..\lib\reshade\include\reshade_events.hpp">
+      <Filter>ReshadePlugin</Filter>
+    </ClInclude>
+    <ClInclude Include="..\lib\reshade\include\reshade_overlay.hpp">
+      <Filter>ReshadePlugin</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Dalamud.Boot.rc" />

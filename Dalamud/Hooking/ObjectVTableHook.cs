@@ -6,7 +6,7 @@ namespace Dalamud.Hooking;
 /// <summary>
 /// Manages a hook that works by replacing the vtable of target object.
 /// </summary>
-public sealed unsafe class ObjectVTableHook : IDisposable
+public unsafe class ObjectVTableHook : IDisposable
 {
     private readonly nint** ppVtbl;
     private readonly int numMethods;
@@ -31,6 +31,16 @@ public sealed unsafe class ObjectVTableHook : IDisposable
         this.pVtblOriginal = *this.ppVtbl;
         this.pVtblOverriden = (nint*)Marshal.AllocHGlobal(sizeof(void*) * numMethods);
         this.VtblOriginal.CopyTo(this.VtblOverriden);
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ObjectVTableHook"/> class.
+    /// </summary>
+    /// <param name="ppVtbl">Address to vtable. Usually the address of the object itself.</param>
+    /// <param name="numMethods">Number of methods in this vtable.</param>
+    public ObjectVTableHook(void* ppVtbl, int numMethods)
+        : this((nint)ppVtbl, numMethods)
+    {
     }
 
     /// <summary>
@@ -122,6 +132,20 @@ public sealed unsafe class ObjectVTableHook : IDisposable
     public void SetVtableEntry<T>(int methodIndex, T detourDelegate)
         where T : Delegate =>
         this.SetVtableEntry(methodIndex, Marshal.GetFunctionPointerForDelegate(detourDelegate), detourDelegate);
+
+    /// <summary>
+    /// Sets a method in vtable to the given delegate.
+    /// </summary>
+    /// <param name="methodIndex">The method index.</param>
+    /// <param name="detourDelegate">Detour delegate.</param>
+    /// <param name="originalMethodDelegate">Original method delegate.</param>
+    /// <typeparam name="T">Type of delegate.</typeparam>
+    public void SetVtableEntry<T>(int methodIndex, T detourDelegate, out T originalMethodDelegate)
+        where T : Delegate
+    {
+        originalMethodDelegate = this.GetOriginalMethodDelegate<T>(methodIndex);
+        this.SetVtableEntry(methodIndex, Marshal.GetFunctionPointerForDelegate(detourDelegate), detourDelegate);
+    }
 
     private void EnsureMethodIndex(int methodIndex)
     {

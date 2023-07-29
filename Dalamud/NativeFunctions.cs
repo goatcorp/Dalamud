@@ -137,6 +137,7 @@ internal static partial class NativeFunctions
     /// <summary>
     /// MB_* from winuser.
     /// </summary>
+    [Flags]
     public enum MessageBoxType : uint
     {
         /// <summary>

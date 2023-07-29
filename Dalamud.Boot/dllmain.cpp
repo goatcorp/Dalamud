@@ -8,6 +8,14 @@
 
 HMODULE g_hModule;
 HINSTANCE g_hGameInstance = GetModuleHandleW(nullptr);
+bool g_bReshadeAvailable = false;
+
+static void(*s_pfnReshadeOverlayCallback)(void*) = nullptr;
+
+static void OnReshadeOverlay(reshade::api::effect_runtime *runtime) {
+    if (s_pfnReshadeOverlayCallback)
+        s_pfnReshadeOverlayCallback(reinterpret_cast<void*>(runtime->get_native()));
+}
 
 DWORD WINAPI InitializeImpl(LPVOID lpParam, HANDLE hMainThreadContinue) {
     g_startInfo.from_envvars();
@@ -127,7 +135,7 @@ DWORD WINAPI InitializeImpl(LPVOID lpParam, HANDLE hMainThreadContinue) {
     if (result != 0)
         return result;
 
-    using custom_component_entry_point_fn = void (CORECLR_DELEGATE_CALLTYPE*)(LPVOID, HANDLE);
+    using custom_component_entry_point_fn = void (CORECLR_DELEGATE_CALLTYPE*)(LPVOID, HANDLE, LPVOID);
     const auto entrypoint_fn = reinterpret_cast<custom_component_entry_point_fn>(entrypoint_vfn);
 
     // ============================== VEH ======================================== //
@@ -153,7 +161,7 @@ DWORD WINAPI InitializeImpl(LPVOID lpParam, HANDLE hMainThreadContinue) {
     // utils::wait_for_game_window();
 
     logging::I("Initializing Dalamud...");
-    entrypoint_fn(lpParam, hMainThreadContinue);
+    entrypoint_fn(lpParam, hMainThreadContinue, g_bReshadeAvailable ? &s_pfnReshadeOverlayCallback : nullptr);
     logging::I("Done!");
 
     return 0;
@@ -169,6 +177,9 @@ BOOL APIENTRY DllMain(const HMODULE hModule, const DWORD dwReason, LPVOID lpRese
     switch (dwReason) {
         case DLL_PROCESS_ATTACH:
             g_hModule = hModule;
+            g_bReshadeAvailable = reshade::register_addon(hModule);
+            if (g_bReshadeAvailable)
+                reshade::register_event<reshade::addon_event::reshade_overlay>(&OnReshadeOverlay);
             break;
 
         case DLL_PROCESS_DETACH:
@@ -178,7 +189,10 @@ BOOL APIENTRY DllMain(const HMODULE hModule, const DWORD dwReason, LPVOID lpRese
             // process is terminating; don't bother cleaning up
             if (lpReserved)
                 return TRUE;
-        
+
+            if (g_bReshadeAvailable)
+                reshade::unregister_event<reshade::addon_event::reshade_overlay>(&OnReshadeOverlay);
+
             logging::update_dll_load_status(false);
 
             xivfixes::apply_all(false);

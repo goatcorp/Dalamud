@@ -59,6 +59,9 @@
 // https://github.com/nlohmann/json
 #include "../lib/nlohmann-json/json.hpp"
 
+// https://github.com/crosire/reshade/tree/main/include
+#include "../lib/reshade/include/reshade.hpp"
+
 #include "unicode.h"
 
 // Commonly used macros
@@ -67,6 +70,7 @@
 // Global variables
 extern HMODULE g_hModule;
 extern HINSTANCE g_hGameInstance;
+extern bool g_bReshadeAvailable;
 extern std::optional<CoreCLR> g_clr;
 
 #endif //PCH_H
