@@ -39,11 +39,6 @@ public interface IDataManager
     public ExcelModule Excel { get; }
 
     /// <summary>
-    /// Gets a value indicating whether Game Data is ready to be read.
-    /// </summary>
-    public bool IsDataReady { get; }
-
-    /// <summary>
     /// Gets a value indicating whether the game data files have been modified by another third-party tool.
     /// </summary>
     public bool HasModifiedGameDataFiles { get; }
