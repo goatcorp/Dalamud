@@ -15,6 +15,7 @@ using Dalamud.Game.ClientState.GamePad;
 using Dalamud.Game.ClientState.Keys;
 using Dalamud.Game.Gui.Internal;
 using Dalamud.Hooking;
+using Dalamud.Hooking.Internal;
 using Dalamud.Interface.GameFonts;
 using Dalamud.Interface.Internal.ManagedAsserts;
 using Dalamud.Interface.Internal.Notifications;

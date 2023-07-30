@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 
-namespace Dalamud.Hooking;
+namespace Dalamud.Hooking.Internal;
 
 /// <summary>
 /// Manages a hook that works by replacing the vtable of target object.
 /// </summary>
-public unsafe class ObjectVTableHook : IDisposable
+internal unsafe class ObjectVTableHook : IDisposable
 {
     private readonly nint** ppVtbl;
     private readonly int numMethods;

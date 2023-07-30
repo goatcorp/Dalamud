@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 
-namespace Dalamud.Hooking;
+namespace Dalamud.Hooking.Internal;
 
 /// <summary>
 /// Typed version of <see cref="ObjectVTableHook"/>.
 /// </summary>
 /// <typeparam name="TVTableEnum">Type of VTable enum.</typeparam>
-public unsafe class ObjectVTableHook<TVTableEnum> : ObjectVTableHook
+internal unsafe class ObjectVTableHook<TVTableEnum> : ObjectVTableHook
     where TVTableEnum : unmanaged, Enum
 {
     /// <summary>
