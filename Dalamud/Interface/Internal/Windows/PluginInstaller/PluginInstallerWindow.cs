@@ -569,7 +569,12 @@ internal class PluginInstallerWindow : Window, IDisposable
                         this.filterText = selectable.Localization;
 
                         lock (this.listLock)
+                        {
                             this.ResortPlugins();
+                            
+                            // Positions of plugins within the list is likely to change
+                            this.openPluginCollapsibles.Clear();
+                        }
                     }
                 }
 
