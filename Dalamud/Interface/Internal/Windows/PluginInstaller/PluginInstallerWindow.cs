@@ -2968,7 +2968,18 @@ internal class PluginInstallerWindow : Window, IDisposable
                 break;
             case PluginSortKind.LastUpdate:
                 this.pluginListAvailable.Sort((p1, p2) => p2.LastUpdate.CompareTo(p1.LastUpdate));
-                this.pluginListInstalled.Sort((p1, p2) => p2.Manifest.LastUpdate.CompareTo(p1.Manifest.LastUpdate));
+                this.pluginListInstalled.Sort((p1, p2) =>
+                {
+                    // We need to get remote manifests here, as the local manifests will have the time when the current version is installed,
+                    // not the actual time of the last update, as the plugin may be pending an update
+                    IPluginManifest? p2Considered = this.pluginListAvailable.FirstOrDefault(x => x.InternalName == p2.InternalName);
+                    p2Considered ??= p2.Manifest;
+                    
+                    IPluginManifest? p1Considered = this.pluginListAvailable.FirstOrDefault(x => x.InternalName == p1.InternalName);
+                    p1Considered ??= p1.Manifest;
+
+                    return p2Considered.LastUpdate.CompareTo(p1Considered.LastUpdate);
+                });
                 break;
             case PluginSortKind.NewOrNot:
                 this.pluginListAvailable.Sort((p1, p2) => this.WasPluginSeen(p1.InternalName)
