@@ -20,7 +20,7 @@ public abstract class BaseAddressResolver
     /// <summary>
     /// Gets or sets a value indicating whether the resolver has successfully run <see cref="Setup32Bit(SigScanner)"/> or <see cref="Setup64Bit(SigScanner)"/>.
     /// </summary>
-    public bool IsResolved { get; protected set; }
+    protected bool IsResolved { get; set; }
 
     /// <summary>
     /// Setup the resolver, calling the appropriate method based on the process architecture,
