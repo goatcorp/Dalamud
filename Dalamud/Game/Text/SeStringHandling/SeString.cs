@@ -210,10 +210,10 @@ public class SeString
 
         // Note: `SeStringBuilder.AddItemLink` uses this function, so don't call it here!
         return new SeStringBuilder()
-            .Add(new ItemPayload(itemId, kind))
-            .Append(TextArrowPayloads)
             .AddUiForeground(textColor)
             .AddUiGlow(textGlowColor)
+            .Add(new ItemPayload(itemId, kind))
+            .Append(TextArrowPayloads)
             .AddText(displayName)
             .AddUiGlowOff()
             .AddUiForegroundOff()
