@@ -123,7 +123,7 @@ public class SeStringBuilder
     /// <param name="kind">Kind of item to encode.</param>
     /// <param name="itemNameOverride">Override for the item's name.</param>
     /// <returns>The current builder.</returns>
-    public SeStringBuilder AddItemLink(uint itemId, ItemPayload.ItemKind kind, string? itemNameOverride = null) =>
+    public SeStringBuilder AddItemLink(uint itemId, ItemPayload.ItemKind kind = ItemPayload.ItemKind.Normal, string? itemNameOverride = null) =>
         this.Append(SeString.CreateItemLink(itemId, kind, itemNameOverride));
 
     /// <summary>
