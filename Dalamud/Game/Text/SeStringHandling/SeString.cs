@@ -52,14 +52,27 @@ public class SeString
     /// with the appropriate glow and coloring.
     /// </summary>
     /// <returns>A list of all the payloads required to insert the link marker.</returns>
-    public static IEnumerable<Payload> TextArrowPayloads => new List<Payload>(new Payload[]
+    public static IEnumerable<Payload> TextArrowPayloads
     {
-        new UIForegroundPayload(0x01F4),
-        new UIGlowPayload(0x01F5),
-        new TextPayload($"{(char)SeIconChar.LinkMarker}"),
-        UIGlowPayload.UIGlowOff,
-        UIForegroundPayload.UIForegroundOff,
-    });
+        get
+        {
+            var clientState = Service<ClientState.ClientState>.Get();
+            var markerSpace = clientState.ClientLanguage switch
+            {
+                ClientLanguage.German => " ",
+                ClientLanguage.French => " ",
+                _ => string.Empty,
+            };
+            return new List<Payload>
+            {
+                new UIForegroundPayload(500),
+                new UIGlowPayload(501),
+                new TextPayload($"{(char)SeIconChar.LinkMarker}{markerSpace}"),
+                UIGlowPayload.UIGlowOff,
+                UIForegroundPayload.UIForegroundOff,
+            };
+        }
+    }
 
     /// <summary>
     /// Gets an empty SeString.
