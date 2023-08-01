@@ -208,6 +208,7 @@ public class SeString
         var textColor = (ushort)(549 + ((rarity - 1) * 2));
         var textGlowColor = (ushort)(textColor + 1);
 
+        // Note: `SeStringBuilder.AddItemLink` uses this function, so don't call it here!
         return new SeStringBuilder()
             .Add(new ItemPayload(itemId, kind))
             .Append(TextArrowPayloads)

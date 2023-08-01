@@ -114,7 +114,7 @@ public class SeStringBuilder
     /// <param name="itemNameOverride">Override for the item's name.</param>
     /// <returns>The current builder.</returns>
     public SeStringBuilder AddItemLink(uint itemId, bool isHq, string? itemNameOverride = null) =>
-        this.Add(new ItemPayload(itemId, isHq, itemNameOverride));
+        this.Append(SeString.CreateItemLink(itemId, isHq, itemNameOverride));
 
     /// <summary>
     /// Add an item link to the builder.
@@ -124,7 +124,7 @@ public class SeStringBuilder
     /// <param name="itemNameOverride">Override for the item's name.</param>
     /// <returns>The current builder.</returns>
     public SeStringBuilder AddItemLink(uint itemId, ItemPayload.ItemKind kind, string? itemNameOverride = null) =>
-        this.Add(new ItemPayload(itemId, kind, itemNameOverride));
+        this.Append(SeString.CreateItemLink(itemId, kind, itemNameOverride));
 
     /// <summary>
     /// Add an item link to the builder.
