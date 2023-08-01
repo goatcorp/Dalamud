@@ -211,8 +211,8 @@ public class SeString
             // arrow goes here
             new TextPayload(displayName),
             RawPayload.LinkTerminator,
-            // sometimes there is another set of uiglow/foreground off payloads here
-            // might be necessary when including additional text after the item name
+            UIGlowPayload.UIGlowOff,
+            UIForegroundPayload.UIForegroundOff,
         });
         payloads.InsertRange(3, TextArrowPayloads);
 
