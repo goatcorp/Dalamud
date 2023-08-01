@@ -131,6 +131,7 @@ public class SeStringBuilder
     /// </summary>
     /// <param name="rawItemId">The raw item ID.</param>
     /// <returns>The current builder.</returns>
+    /// <remarks>To terminate this item link, add a <see cref="RawPayload.LinkTerminator"/>.</remarks>
     public SeStringBuilder AddItemLinkRaw(uint rawItemId) =>
         this.Add(ItemPayload.FromRaw(rawItemId));
 
