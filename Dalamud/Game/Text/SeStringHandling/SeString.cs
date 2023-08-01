@@ -171,6 +171,7 @@ public class SeString
         var data = Service<DataManager>.Get();
 
         var displayName = displayNameOverride;
+        var rarity = 1; // default: white
         if (displayName == null)
         {
             switch (kind)
@@ -178,7 +179,9 @@ public class SeString
                 case ItemPayload.ItemKind.Normal:
                 case ItemPayload.ItemKind.Collectible:
                 case ItemPayload.ItemKind.Hq:
-                    displayName = data.GetExcelSheet<Item>()?.GetRow(itemId)?.Name;
+                    var item = data.GetExcelSheet<Item>()?.GetRow(itemId);
+                    displayName = item?.Name;
+                    rarity = item.Rarity;
                     break;
                 case ItemPayload.ItemKind.EventItem:
                     displayName = data.GetExcelSheet<EventItem>()?.GetRow(itemId)?.Name;
@@ -202,21 +205,19 @@ public class SeString
             displayName += $" {(char)SeIconChar.Collectible}";
         }
 
-        // TODO: probably a cleaner way to build these than doing the bulk+insert
-        var payloads = new List<Payload>(new Payload[]
-        {
-            new UIForegroundPayload(0x0225),
-            new UIGlowPayload(0x0226),
-            new ItemPayload(itemId, kind),
-            // arrow goes here
-            new TextPayload(displayName),
-            RawPayload.LinkTerminator,
-            UIGlowPayload.UIGlowOff,
-            UIForegroundPayload.UIForegroundOff,
-        });
-        payloads.InsertRange(3, TextArrowPayloads);
+        var textColor = (ushort)(549 + ((rarity - 1) * 2));
+        var textGlowColor = (ushort)(textColor + 1);
 
-        return new SeString(payloads);
+        return new SeStringBuilder()
+            .Add(new ItemPayload(itemId, kind))
+            .Append(TextArrowPayloads)
+            .AddUiForeground(textColor)
+            .AddUiGlow(textGlowColor)
+            .AddText(displayName)
+            .AddUiGlowOff()
+            .AddUiForegroundOff()
+            .Add(RawPayload.LinkTerminator)
+            .Build();
     }
 
     /// <summary>
