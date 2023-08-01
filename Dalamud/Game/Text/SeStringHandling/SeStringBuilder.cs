@@ -1,3 +1,6 @@
+using System.Collections.Generic;
+using System.Linq;
+
 using Dalamud.Game.Text.SeStringHandling.Payloads;
 
 namespace Dalamud.Game.Text.SeStringHandling;
@@ -29,6 +32,13 @@ public class SeStringBuilder
     /// <param name="text">The raw text.</param>
     /// <returns>The current builder.</returns>
     public SeStringBuilder Append(string text) => this.AddText(text);
+
+    /// <summary>
+    /// Append payloads to the builder.
+    /// </summary>
+    /// <param name="payloads">A list of payloads.</param>
+    /// <returns>The current builder.</returns>
+    public SeStringBuilder Append(IEnumerable<Payload> payloads) => this.Append(new SeString(payloads.ToList()));
 
     /// <summary>
     /// Append raw text to the builder.
