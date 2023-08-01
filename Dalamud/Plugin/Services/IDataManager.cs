@@ -1,4 +1,5 @@
 ﻿using System.Collections.ObjectModel;
+using System.Diagnostics.CodeAnalysis;
 
 using ImGuiScene;
 using Lumina;
@@ -139,6 +140,7 @@ public interface IDataManager
     /// </summary>
     /// <param name="tex">The Lumina <see cref="TexFile"/>.</param>
     /// <returns>A <see cref="TextureWrap"/> that can be used to draw the texture.</returns>
+    [return: NotNullIfNotNull(nameof(tex))]
     public TextureWrap? GetImGuiTexture(TexFile? tex);
 
     /// <summary>
