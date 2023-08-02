@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Numerics;
 
-using Dalamud.Data;
 using Dalamud.Plugin.Services;
-using Dalamud.Utility;
 using ImGuiNET;
 using ImGuiScene;
 using Serilog;
@@ -74,7 +73,19 @@ internal class TexWidget : IDataWindowWidget
         {
             try
             {
-                this.addedTextures.Add(texManager.GetTextureFromGamePath(this.inputTexPath, this.keepAlive));
+                this.addedTextures.Add(texManager.GetTextureFromGame(this.inputTexPath, this.keepAlive));
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Could not load tex");
+            }
+        }
+        
+        if (ImGui.Button("Load File"))
+        {
+            try
+            {
+                this.addedTextures.Add(texManager.GetTextureFromFile(new FileInfo(this.inputTexPath), this.keepAlive));
             }
             catch (Exception ex)
             {

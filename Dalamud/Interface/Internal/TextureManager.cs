@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
-using System.Reflection;
 
 using Dalamud.Data;
 using Dalamud.Game;
@@ -11,7 +11,6 @@ using Dalamud.IoC.Internal;
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Services;
 using ImGuiScene;
-using Lumina.Data;
 using Lumina.Data.Files;
 
 namespace Dalamud.Interface.Internal;
@@ -36,6 +35,7 @@ internal class TextureManager : IDisposable, IServiceType, ITextureSubstitutionP
 
     private readonly Framework framework;
     private readonly DataManager dataManager;
+    private readonly InterfaceManager im;
     private readonly DalamudStartInfo startInfo;
     
     private readonly Dictionary<string, TextureInfo> activeTextures = new();
@@ -45,12 +45,14 @@ internal class TextureManager : IDisposable, IServiceType, ITextureSubstitutionP
     /// </summary>
     /// <param name="framework">Framework instance.</param>
     /// <param name="dataManager">DataManager instance.</param>
+    /// <param name="im">InterfaceManager instance.</param>
     /// <param name="startInfo">DalamudStartInfo instance.</param>
     [ServiceManager.ServiceConstructor]
-    public TextureManager(Framework framework, DataManager dataManager, DalamudStartInfo startInfo)
+    public TextureManager(Framework framework, DataManager dataManager, InterfaceManager im, DalamudStartInfo startInfo)
     {
         this.framework = framework;
         this.dataManager = dataManager;
+        this.im = im;
         this.startInfo = startInfo;
 
         this.framework.Update += this.FrameworkOnUpdate;
@@ -145,9 +147,29 @@ internal class TextureManager : IDisposable, IServiceType, ITextureSubstitutionP
     /// <param name="path">The path to the texture in the game's VFS.</param>
     /// <param name="keepAlive">Prevent Dalamud from automatically unloading this texture to save memory. Usually does not need to be set.</param>
     /// <returns>Null, if the icon does not exist, or a texture wrap that can be used to render the texture.</returns>
-    public TextureManagerTextureWrap? GetTextureFromGamePath(string path, bool keepAlive)
+    public TextureManagerTextureWrap? GetTextureFromGame(string path, bool keepAlive)
     {
+        ArgumentException.ThrowIfNullOrEmpty(path);
+
+        if (Path.IsPathRooted(path))
+            throw new ArgumentException("Use GetTextureFromFile() to load textures directly from a file.", nameof(path));
+        
         return !this.dataManager.FileExists(path) ? null : this.CreateWrap(path, keepAlive);
+    }
+
+    /// <summary>
+    /// Get a texture handle for the image or texture, specified by the passed FileInfo.
+    /// You may only specify paths on the native file system.
+    ///
+    /// This API can load .png and .tex files.
+    /// </summary>
+    /// <param name="file">The FileInfo describing the image or texture file.</param>
+    /// <param name="keepAlive">Prevent Dalamud from automatically unloading this texture to save memory. Usually does not need to be set.</param>
+    /// <returns>Null, if the file does not exist, or a texture wrap that can be used to render the texture.</returns>
+    public TextureManagerTextureWrap? GetTextureFromFile(FileInfo file, bool keepAlive)
+    {
+        ArgumentNullException.ThrowIfNull(file);
+        return !file.Exists ? null : this.CreateWrap(file.FullName, keepAlive);
     }
     
     /// <inheritdoc/>
@@ -185,7 +207,7 @@ internal class TextureManager : IDisposable, IServiceType, ITextureSubstitutionP
             lock (this.activeTextures)
             {
                 if (!this.activeTextures.TryAdd(path, info))
-                    Log.Warning("Texture {Path} tracked twice, this might not be an issue", path);
+                    Log.Warning("Texture {Path} tracked twice", path);
             }
         }
         
@@ -197,29 +219,53 @@ internal class TextureManager : IDisposable, IServiceType, ITextureSubstitutionP
 
         if (refresh)
         {
-            byte[]? interceptData = null;
-            this.InterceptTexDataLoad?.Invoke(path, ref interceptData);
-
-            // TODO: Do we also want to support loading from actual fs here? Doesn't seem to be a big deal, collect interest
+            if (!this.im.IsReady)
+                throw new InvalidOperationException("Cannot create textures before scene is ready");
             
-            TexFile? file;
-            if (interceptData != null)
+            string? interceptPath = null;
+            this.InterceptTexDataLoad?.Invoke(path, ref interceptPath);
+
+            if (interceptPath != null)
             {
-                // TODO: upstream to lumina
-                file = Activator.CreateInstance<TexFile>();
-                var type = typeof(TexFile);
-                type.GetProperty("Data", BindingFlags.NonPublic | BindingFlags.Instance)!.GetSetMethod()!
-                    .Invoke(file, new object[] { interceptData });
-                type.GetProperty("Reader", BindingFlags.NonPublic | BindingFlags.Instance)!.GetSetMethod()!
-                    .Invoke(file, new object[] { new LuminaBinaryReader(file.Data) });
-                file.LoadFile();
+                Log.Verbose("Intercept: {OriginalPath} => {ReplacePath}", path, interceptPath);
+                path = interceptPath;
+            }
+
+            TextureWrap? wrap;
+            
+            // TODO: The actual loading here may fail due to circumstances outside of our control.
+            // We should create a fallback texture and return it instead, so that plugins don't crash.
+
+            // We want to load this from the disk, probably, if the path has a root
+            // Not sure if this can cause issues with e.g. network drives, might have to rethink
+            // and add a flag instead if it does.
+            if (Path.IsPathRooted(path))
+            {
+                if (Path.GetExtension(path) == ".tex")
+                {
+                    // Attempt to load via Lumina
+                    var file = this.dataManager.GameData.GetFileFromDisk<TexFile>(path);
+                    wrap = this.dataManager.GetImGuiTexture(file);
+                    Log.Verbose("Texture {Path} loaded FS via Lumina", path);
+                }
+                else
+                {
+                    // Attempt to load image
+                    wrap = this.im.LoadImage(path);
+                    Log.Verbose("Texture {Path} loaded FS via LoadImage", path);
+                }
             }
             else
             {
-                file = this.dataManager.GetFile<TexFile>(path);
+                // Load regularly from dats
+                var file = this.dataManager.GetFile<TexFile>(path);
+                wrap = this.dataManager.GetImGuiTexture(file);
+                Log.Verbose("Texture {Path} loaded from SqPack", path);
             }
-            
-            var wrap = this.dataManager.GetImGuiTexture(file);
+
+            if (wrap == null)
+                throw new Exception("Could not create texture");
+
             info.Wrap = wrap;
         }
 
@@ -377,9 +423,24 @@ internal class TextureManagerPluginScoped : ITextureProvider, IServiceType, IDis
     }
 
     /// <inheritdoc/>
-    public IDalamudTextureWrap? GetTextureFromGamePath(string path, bool keepAlive = false)
+    public IDalamudTextureWrap? GetTextureFromGame(string path, bool keepAlive = false)
     {
-        var wrap = this.textureManager.GetTextureFromGamePath(path, keepAlive);
+        ArgumentException.ThrowIfNullOrEmpty(path);
+        
+        var wrap = this.textureManager.GetTextureFromGame(path, keepAlive);
+        if (wrap == null)
+            return null;
+        
+        this.trackedTextures.Add(wrap);
+        return wrap;
+    }
+
+    /// <inheritdoc/>
+    public IDalamudTextureWrap? GetTextureFromFile(FileInfo file, bool keepAlive)
+    {
+        ArgumentNullException.ThrowIfNull(file);
+        
+        var wrap = this.textureManager.GetTextureFromFile(file, keepAlive);
         if (wrap == null)
             return null;
         

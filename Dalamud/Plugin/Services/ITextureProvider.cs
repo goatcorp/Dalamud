@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 
 using Dalamud.Interface.Internal;
 using Lumina.Data.Files;
@@ -58,7 +59,18 @@ public interface ITextureProvider
     /// <param name="path">The path to the texture in the game's VFS.</param>
     /// <param name="keepAlive">Prevent Dalamud from automatically unloading this texture to save memory. Usually does not need to be set.</param>
     /// <returns>Null, if the icon does not exist, or a texture wrap that can be used to render the texture.</returns>
-    public IDalamudTextureWrap? GetTextureFromGamePath(string path, bool keepAlive = false);
+    public IDalamudTextureWrap? GetTextureFromGame(string path, bool keepAlive = false);
+    
+    /// <summary>
+    /// Get a texture handle for the image or texture, specified by the passed FileInfo.
+    /// You may only specify paths on the native file system.
+    ///
+    /// This API can load .png and .tex files.
+    /// </summary>
+    /// <param name="file">The FileInfo describing the image or texture file.</param>
+    /// <param name="keepAlive">Prevent Dalamud from automatically unloading this texture to save memory. Usually does not need to be set.</param>
+    /// <returns>Null, if the file does not exist, or a texture wrap that can be used to render the texture.</returns>
+    public IDalamudTextureWrap? GetTextureFromFile(FileInfo file, bool keepAlive = false);
     
     /// <summary>
     /// Get a texture handle for the specified Lumina TexFile.
