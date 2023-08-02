@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Numerics;
 
 using Dalamud.Data;
 using Dalamud.Game;
@@ -40,6 +41,8 @@ internal class TextureManager : IDisposable, IServiceType, ITextureSubstitutionP
     
     private readonly Dictionary<string, TextureInfo> activeTextures = new();
 
+    private TextureWrap? fallbackTextureWrap;
+
     /// <summary>
     /// Initializes a new instance of the <see cref="TextureManager"/> class.
     /// </summary>
@@ -56,6 +59,8 @@ internal class TextureManager : IDisposable, IServiceType, ITextureSubstitutionP
         this.startInfo = startInfo;
 
         this.framework.Update += this.FrameworkOnUpdate;
+
+        Service<InterfaceManager.InterfaceManagerWithScene>.GetAsync().ContinueWith(_ => this.CreateFallbackTexture());
     }
 
     /// <inheritdoc/>
@@ -175,6 +180,7 @@ internal class TextureManager : IDisposable, IServiceType, ITextureSubstitutionP
     /// <inheritdoc/>
     public void Dispose()
     {
+        this.fallbackTextureWrap?.Dispose();
         this.framework.Update -= this.FrameworkOnUpdate;
         
         Log.Verbose("Disposing {Num} left behind textures.");
@@ -192,8 +198,12 @@ internal class TextureManager : IDisposable, IServiceType, ITextureSubstitutionP
     /// </summary>
     /// <param name="path">Path to the texture.</param>
     /// <param name="refresh">Whether or not the texture should be reloaded if it was unloaded.</param>
+    /// <param name="rethrow">
+    /// If true, exceptions caused by texture load will not be caught.
+    /// If false, exceptions will be caught and a dummy texture will be returned to prevent plugins from using invalid texture handles.
+    /// </param>
     /// <returns>Info object storing texture metadata.</returns>
-    internal TextureInfo GetInfo(string path, bool refresh = true)
+    internal TextureInfo GetInfo(string path, bool refresh = true, bool rethrow = false)
     {
         TextureInfo? info;
         lock (this.activeTextures)
@@ -232,39 +242,53 @@ internal class TextureManager : IDisposable, IServiceType, ITextureSubstitutionP
             }
 
             TextureWrap? wrap;
-            
-            // TODO: The actual loading here may fail due to circumstances outside of our control.
-            // We should create a fallback texture and return it instead, so that plugins don't crash.
-
-            // We want to load this from the disk, probably, if the path has a root
-            // Not sure if this can cause issues with e.g. network drives, might have to rethink
-            // and add a flag instead if it does.
-            if (Path.IsPathRooted(path))
+            try
             {
-                if (Path.GetExtension(path) == ".tex")
+                // We want to load this from the disk, probably, if the path has a root
+                // Not sure if this can cause issues with e.g. network drives, might have to rethink
+                // and add a flag instead if it does.
+                if (Path.IsPathRooted(path))
                 {
-                    // Attempt to load via Lumina
-                    var file = this.dataManager.GameData.GetFileFromDisk<TexFile>(path);
-                    wrap = this.dataManager.GetImGuiTexture(file);
-                    Log.Verbose("Texture {Path} loaded FS via Lumina", path);
+                    if (Path.GetExtension(path) == ".tex")
+                    {
+                        // Attempt to load via Lumina
+                        var file = this.dataManager.GameData.GetFileFromDisk<TexFile>(path);
+                        wrap = this.dataManager.GetImGuiTexture(file);
+                        Log.Verbose("Texture {Path} loaded FS via Lumina", path);
+                    }
+                    else
+                    {
+                        // Attempt to load image
+                        wrap = this.im.LoadImage(path);
+                        Log.Verbose("Texture {Path} loaded FS via LoadImage", path);
+                    }
                 }
                 else
                 {
-                    // Attempt to load image
-                    wrap = this.im.LoadImage(path);
-                    Log.Verbose("Texture {Path} loaded FS via LoadImage", path);
+                    // Load regularly from dats
+                    var file = this.dataManager.GetFile<TexFile>(path);
+                    wrap = this.dataManager.GetImGuiTexture(file);
+                    Log.Verbose("Texture {Path} loaded from SqPack", path);
                 }
-            }
-            else
-            {
-                // Load regularly from dats
-                var file = this.dataManager.GetFile<TexFile>(path);
-                wrap = this.dataManager.GetImGuiTexture(file);
-                Log.Verbose("Texture {Path} loaded from SqPack", path);
-            }
+                
+                if (wrap == null)
+                    throw new Exception("Could not create texture");
 
-            if (wrap == null)
-                throw new Exception("Could not create texture");
+                info.Extents = new Vector2(wrap.Width, wrap.Height);
+            }
+            catch (Exception e)
+            {
+                Log.Error(e, "Could not load texture from {Path}", path);
+
+                // When creating the texture initially, we want to be able to pass errors back to the plugin
+                if (rethrow)
+                    throw;
+                
+                // This means that the load failed due to circumstances outside of our control,
+                // and we can't do anything about it. Return a dummy texture so that the plugin still
+                // has something to draw.
+                wrap = this.fallbackTextureWrap;
+            }
 
             info.Wrap = wrap;
         }
@@ -306,13 +330,13 @@ internal class TextureManager : IDisposable, IServiceType, ITextureSubstitutionP
     {
         // This will create the texture.
         // That's fine, it's probably used immediately and this will let the plugin catch load errors.
-        var info = this.GetInfo(path, keepAlive);
+        var info = this.GetInfo(path, rethrow: true);
         info.RefCount++;
 
         if (keepAlive)
             info.KeepAliveCount++;
 
-        return new TextureManagerTextureWrap(path, keepAlive, this);
+        return new TextureManagerTextureWrap(path, info.Extents, keepAlive, this);
     }
 
     private void FrameworkOnUpdate(Framework fw)
@@ -353,6 +377,13 @@ internal class TextureManager : IDisposable, IServiceType, ITextureSubstitutionP
         }
     }
 
+    private void CreateFallbackTexture()
+    {
+        var fallbackTexBytes = new byte[] { 0xFF, 0x00, 0xDC, 0xFF };
+        this.fallbackTextureWrap = this.im.LoadImageRaw(fallbackTexBytes, 1, 1, 4);
+        Debug.Assert(this.fallbackTextureWrap != null, "this.fallbackTextureWrap != null");
+    }
+
     /// <summary>
     /// Internal representation of a managed texture.
     /// </summary>
@@ -377,6 +408,11 @@ internal class TextureManager : IDisposable, IServiceType, ITextureSubstitutionP
         /// Gets or sets the number of active holders that want this texture to stay alive forever.
         /// </summary>
         public uint KeepAliveCount { get; set; }
+        
+        /// <summary>
+        /// Gets or sets the extents of the texture.
+        /// </summary>
+        public Vector2 Extents { get; set; }
     }
 }
 
@@ -474,30 +510,30 @@ internal class TextureManagerTextureWrap : IDalamudTextureWrap
     private readonly string path;
     private readonly bool keepAlive;
 
-    private int? width;
-    private int? height;
-
     /// <summary>
     /// Initializes a new instance of the <see cref="TextureManagerTextureWrap"/> class.
     /// </summary>
     /// <param name="path">The path to the texture.</param>
+    /// <param name="extents">The extents of the texture.</param>
     /// <param name="keepAlive">Keep alive or not.</param>
     /// <param name="manager">Manager that we obtained this from.</param>
-    internal TextureManagerTextureWrap(string path, bool keepAlive, TextureManager manager)
+    internal TextureManagerTextureWrap(string path, Vector2 extents, bool keepAlive, TextureManager manager)
     {
         this.path = path;
         this.keepAlive = keepAlive;
         this.manager = manager;
+        this.Width = (int)extents.X;
+        this.Height = (int)extents.Y;
     }
 
     /// <inheritdoc/>
     public IntPtr ImGuiHandle => this.manager.GetInfo(this.path).Wrap!.ImGuiHandle;
 
     /// <inheritdoc/>
-    public int Width => this.width ??= this.manager.GetInfo(this.path).Wrap!.Width;
+    public int Width { get; private set; }
 
     /// <inheritdoc/>
-    public int Height => this.height ??= this.manager.GetInfo(this.path).Wrap!.Height;
+    public int Height { get; private set; }
 
     /// <summary>
     /// Gets a value indicating whether or not this wrap has already been disposed.
