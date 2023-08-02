@@ -239,7 +239,7 @@ internal class TextureManager : IDisposable, IServiceType, ITextureSubstitutionP
         }
         
         if (refresh && info.KeepAliveCount == 0)
-            info.LastAccess = DateTime.Now;
+            info.LastAccess = DateTime.UtcNow;
         
         if (info is { Wrap: not null })
             return info;
@@ -387,7 +387,7 @@ internal class TextureManager : IDisposable, IServiceType, ITextureSubstitutionP
                 if (texInfo.Value.KeepAliveCount > 0 || texInfo.Value.Wrap == null)
                     continue;
 
-                if (DateTime.Now - texInfo.Value.LastAccess > TimeSpan.FromMilliseconds(MillisecondsEvictionTime))
+                if (DateTime.UtcNow - texInfo.Value.LastAccess > TimeSpan.FromMilliseconds(MillisecondsEvictionTime))
                 {
                     Log.Verbose("Evicting {Path} since too old", texInfo.Key);
                     texInfo.Value.Wrap.Dispose();
