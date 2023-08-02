@@ -194,7 +194,7 @@ public class SeString
                 case ItemPayload.ItemKind.Hq:
                     var item = data.GetExcelSheet<Item>()?.GetRow(itemId);
                     displayName = item?.Name;
-                    rarity = item.Rarity;
+                    rarity = item?.Rarity ?? 1;
                     break;
                 case ItemPayload.ItemKind.EventItem:
                     displayName = data.GetExcelSheet<EventItem>()?.GetRow(itemId)?.Name;
