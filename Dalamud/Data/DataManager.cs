@@ -185,15 +185,17 @@ public sealed class DataManager : IDisposable, IServiceType, IDataManager
     /// </summary>
     /// <param name="iconId">The icon ID.</param>
     /// <returns>The <see cref="TexFile"/> containing the icon.</returns>
-    /// TODO(v9): remove in api9 in favor of GetIcon(uint iconId, bool highResolution)
+    [Obsolete("Use ITextureProvider instead")]
     public TexFile? GetIcon(uint iconId) 
         => this.GetIcon(this.Language, iconId, false);
 
     /// <inheritdoc/>
+    [Obsolete("Use ITextureProvider instead")]
     public TexFile? GetIcon(uint iconId, bool highResolution)
         => this.GetIcon(this.Language, iconId, highResolution);
 
     /// <inheritdoc/>
+    [Obsolete("Use ITextureProvider instead")]
     public TexFile? GetIcon(bool isHq, uint iconId)
     {
         var type = isHq ? "hq/" : string.Empty;
@@ -206,11 +208,12 @@ public sealed class DataManager : IDisposable, IServiceType, IDataManager
     /// <param name="iconLanguage">The requested language.</param>
     /// <param name="iconId">The icon ID.</param>
     /// <returns>The <see cref="TexFile"/> containing the icon.</returns>
-    /// TODO(v9): remove in api9 in favor of GetIcon(ClientLanguage iconLanguage, uint iconId, bool highResolution)
+    [Obsolete("Use ITextureProvider instead")]
     public TexFile? GetIcon(ClientLanguage iconLanguage, uint iconId)
         => this.GetIcon(iconLanguage, iconId, false);
 
     /// <inheritdoc/>
+    [Obsolete("Use ITextureProvider instead")]
     public TexFile? GetIcon(ClientLanguage iconLanguage, uint iconId, bool highResolution)
     {
         var type = iconLanguage switch
@@ -231,11 +234,12 @@ public sealed class DataManager : IDisposable, IServiceType, IDataManager
     /// <param name="type">The type of the icon (e.g. 'hq' to get the HQ variant of an item icon).</param>
     /// <param name="iconId">The icon ID.</param>
     /// <returns>The <see cref="TexFile"/> containing the icon.</returns>
-    /// TODO(v9): remove in api9 in favor of GetIcon(string? type, uint iconId, bool highResolution)
+    [Obsolete("Use ITextureProvider instead")]
     public TexFile? GetIcon(string? type, uint iconId)
         => this.GetIcon(type, iconId, false);
 
     /// <inheritdoc/>
+    [Obsolete("Use ITextureProvider instead")]
     public TexFile? GetIcon(string? type, uint iconId, bool highResolution)
     {
         var format = highResolution ? HighResolutionIconFileFormat : IconFileFormat;
@@ -257,14 +261,17 @@ public sealed class DataManager : IDisposable, IServiceType, IDataManager
     }
 
     /// <inheritdoc/>
+    [Obsolete("Use ITextureProvider instead")]
     public TexFile? GetHqIcon(uint iconId)
         => this.GetIcon(true, iconId);
 
     /// <inheritdoc/>
+    [Obsolete("Use ITextureProvider instead")]
     public TextureWrap? GetImGuiTexture(TexFile? tex)
         => tex == null ? null : Service<InterfaceManager>.Get().LoadImageRaw(tex.GetRgbaImageData(), tex.Header.Width, tex.Header.Height, 4);
 
     /// <inheritdoc/>
+    [Obsolete("Use ITextureProvider instead")]
     public TextureWrap? GetImGuiTexture(string path)
         => this.GetImGuiTexture(this.GetFile<TexFile>(path));
 
@@ -274,26 +281,32 @@ public sealed class DataManager : IDisposable, IServiceType, IDataManager
     /// <param name="iconId">The icon ID.</param>
     /// <returns>The <see cref="TextureWrap"/> containing the icon.</returns>
     /// TODO(v9): remove in api9 in favor of GetImGuiTextureIcon(uint iconId, bool highResolution)
+    [Obsolete("Use ITextureProvider instead")]
     public TextureWrap? GetImGuiTextureIcon(uint iconId) 
         => this.GetImGuiTexture(this.GetIcon(iconId, false));
 
     /// <inheritdoc/>
+    [Obsolete("Use ITextureProvider instead")]
     public TextureWrap? GetImGuiTextureIcon(uint iconId, bool highResolution)
         => this.GetImGuiTexture(this.GetIcon(iconId, highResolution));
 
     /// <inheritdoc/>
+    [Obsolete("Use ITextureProvider instead")]
     public TextureWrap? GetImGuiTextureIcon(bool isHq, uint iconId)
         => this.GetImGuiTexture(this.GetIcon(isHq, iconId));
 
     /// <inheritdoc/>
+    [Obsolete("Use ITextureProvider instead")]
     public TextureWrap? GetImGuiTextureIcon(ClientLanguage iconLanguage, uint iconId)
         => this.GetImGuiTexture(this.GetIcon(iconLanguage, iconId));
 
     /// <inheritdoc/>
+    [Obsolete("Use ITextureProvider instead")]
     public TextureWrap? GetImGuiTextureIcon(string type, uint iconId)
         => this.GetImGuiTexture(this.GetIcon(type, iconId));
 
     /// <inheritdoc/>
+    [Obsolete("Use ITextureProvider instead")]
     public TextureWrap? GetImGuiTextureHqIcon(uint iconId)
         => this.GetImGuiTexture(this.GetHqIcon(iconId));
 

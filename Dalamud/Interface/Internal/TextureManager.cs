@@ -176,7 +176,21 @@ internal class TextureManager : IDisposable, IServiceType, ITextureSubstitutionP
         ArgumentNullException.ThrowIfNull(file);
         return !file.Exists ? null : this.CreateWrap(file.FullName, keepAlive);
     }
-    
+
+    /// <summary>
+    /// Get a texture handle for the specified Lumina TexFile.
+    /// </summary>
+    /// <param name="file">The texture to obtain a handle to.</param>
+    /// <returns>A texture wrap that can be used to render the texture.</returns>
+    public IDalamudTextureWrap? GetTexture(TexFile file)
+    {
+        ArgumentNullException.ThrowIfNull(file);
+        
+#pragma warning disable CS0618
+        return this.dataManager.GetImGuiTexture(file) as IDalamudTextureWrap;
+#pragma warning restore CS0618
+    }
+
     /// <inheritdoc/>
     public void Dispose()
     {
@@ -253,7 +267,7 @@ internal class TextureManager : IDisposable, IServiceType, ITextureSubstitutionP
                     {
                         // Attempt to load via Lumina
                         var file = this.dataManager.GameData.GetFileFromDisk<TexFile>(path);
-                        wrap = this.dataManager.GetImGuiTexture(file);
+                        wrap = this.GetTexture(file);
                         Log.Verbose("Texture {Path} loaded FS via Lumina", path);
                     }
                     else
@@ -267,7 +281,10 @@ internal class TextureManager : IDisposable, IServiceType, ITextureSubstitutionP
                 {
                     // Load regularly from dats
                     var file = this.dataManager.GetFile<TexFile>(path);
-                    wrap = this.dataManager.GetImGuiTexture(file);
+                    if (file == null)
+                        throw new Exception("Could not load TexFile from dat.");
+                    
+                    wrap = this.GetTexture(file);
                     Log.Verbose("Texture {Path} loaded from SqPack", path);
                 }
                 
@@ -427,7 +444,6 @@ internal class TextureManager : IDisposable, IServiceType, ITextureSubstitutionP
 #pragma warning restore SA1015
 internal class TextureManagerPluginScoped : ITextureProvider, IServiceType, IDisposable
 {
-    private readonly DataManager dataManager;
     private readonly TextureManager textureManager;
 
     private readonly List<TextureManagerTextureWrap> trackedTextures = new();
@@ -435,11 +451,9 @@ internal class TextureManagerPluginScoped : ITextureProvider, IServiceType, IDis
     /// <summary>
     /// Initializes a new instance of the <see cref="TextureManagerPluginScoped"/> class.
     /// </summary>
-    /// <param name="dataManager">DataManager instance.</param>
     /// <param name="textureManager">TextureManager instance.</param>
-    public TextureManagerPluginScoped(DataManager dataManager, TextureManager textureManager)
+    public TextureManagerPluginScoped(TextureManager textureManager)
     {
-        this.dataManager = dataManager;
         this.textureManager = textureManager;
     }
 
@@ -485,10 +499,8 @@ internal class TextureManagerPluginScoped : ITextureProvider, IServiceType, IDis
     }
 
     /// <inheritdoc/>
-    public IDalamudTextureWrap GetTexture(TexFile file)
-    {
-        return this.dataManager.GetImGuiTexture(file) as DalamudTextureWrap ?? throw new ArgumentException("Could not load texture");
-    }
+    public IDalamudTextureWrap? GetTexture(TexFile file)
+        => this.textureManager.GetTexture(file);
 
     /// <inheritdoc/>
     public void Dispose()
