@@ -152,7 +152,7 @@ internal class TextureManager : IDisposable, IServiceType, ITextureSubstitutionP
     /// <param name="path">The path to the texture in the game's VFS.</param>
     /// <param name="keepAlive">Prevent Dalamud from automatically unloading this texture to save memory. Usually does not need to be set.</param>
     /// <returns>Null, if the icon does not exist, or a texture wrap that can be used to render the texture.</returns>
-    public TextureManagerTextureWrap? GetTextureFromGame(string path, bool keepAlive)
+    public TextureManagerTextureWrap? GetTextureFromGame(string path, bool keepAlive = false)
     {
         ArgumentException.ThrowIfNullOrEmpty(path);
 
@@ -171,7 +171,7 @@ internal class TextureManager : IDisposable, IServiceType, ITextureSubstitutionP
     /// <param name="file">The FileInfo describing the image or texture file.</param>
     /// <param name="keepAlive">Prevent Dalamud from automatically unloading this texture to save memory. Usually does not need to be set.</param>
     /// <returns>Null, if the file does not exist, or a texture wrap that can be used to render the texture.</returns>
-    public TextureManagerTextureWrap? GetTextureFromFile(FileInfo file, bool keepAlive)
+    public TextureManagerTextureWrap? GetTextureFromFile(FileInfo file, bool keepAlive = false)
     {
         ArgumentNullException.ThrowIfNull(file);
         return !file.Exists ? null : this.CreateWrap(file.FullName, keepAlive);
