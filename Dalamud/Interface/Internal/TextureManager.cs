@@ -294,7 +294,12 @@ internal class TextureManager : IDisposable, IServiceType, ITextureSubstitutionP
                 if (wrap == null)
                     throw new Exception("Could not create texture");
 
-                info.Extents = new Vector2(wrap.Width, wrap.Height);
+                // TODO: We could support this, but I don't think it's worth it at the moment.
+                var extents = new Vector2(wrap.Width, wrap.Height);
+                if (info.Extents != Vector2.Zero && info.Extents != extents)
+                    Log.Warning("Texture at {Path} changed size between reloads, this is currently not supported.", path);
+
+                info.Extents = extents;
             }
             catch (Exception e)
             {
