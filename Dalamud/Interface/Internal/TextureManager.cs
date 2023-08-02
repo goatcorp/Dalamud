@@ -75,7 +75,7 @@ internal class TextureManager : IDisposable, IServiceType, ITextureSubstitutionP
     /// Null, if the icon does not exist in the specified configuration, or a texture wrap that can be used
     /// to render the icon.
     /// </returns>
-    public TextureManagerTextureWrap? GetIcon(uint iconId, ITextureProvider.IconFlags flags = ITextureProvider.IconFlags.ItemHighQuality, ClientLanguage? language = null, bool keepAlive = false)
+    public TextureManagerTextureWrap? GetIcon(uint iconId, ITextureProvider.IconFlags flags = ITextureProvider.IconFlags.HiRes, ClientLanguage? language = null, bool keepAlive = false)
     {
         var hiRes = flags.HasFlag(ITextureProvider.IconFlags.HiRes);
         
