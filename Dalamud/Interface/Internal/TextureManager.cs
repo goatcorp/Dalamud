@@ -185,6 +185,9 @@ internal class TextureManager : IDisposable, IServiceType, ITextureSubstitutionP
     public IDalamudTextureWrap? GetTexture(TexFile file)
     {
         ArgumentNullException.ThrowIfNull(file);
+
+        if (!this.im.IsReady)
+            throw new InvalidOperationException("Cannot create textures before scene is ready");
         
 #pragma warning disable CS0618
         return this.dataManager.GetImGuiTexture(file) as IDalamudTextureWrap;
