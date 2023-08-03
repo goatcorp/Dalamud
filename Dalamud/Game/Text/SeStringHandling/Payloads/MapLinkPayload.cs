@@ -130,7 +130,13 @@ public class MapLinkPayload : Payload
             var y = Math.Truncate((this.YCoord + fudge) * 10.0f) / 10.0f;
 
             // the formatting and spacing the game uses
-            return $"( {x:0.0}  , {y:0.0} )";
+            var clientState = Service<ClientState.ClientState>.Get();
+            return clientState.ClientLanguage switch
+            {
+                ClientLanguage.German => $"( {x:0.0}, {y:0.0} )",
+                ClientLanguage.Japanese => $"({x:0.0}, {y:0.0})",
+                _ => $"( {x:0.0}  , {y:0.0} )",
+            };
         }
     }
 
