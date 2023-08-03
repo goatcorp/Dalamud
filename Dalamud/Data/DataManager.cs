@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Threading;
 
@@ -16,9 +17,11 @@ using JetBrains.Annotations;
 using Lumina;
 using Lumina.Data;
 using Lumina.Data.Files;
+using Lumina.Data.Parsing.Tex.Buffers;
 using Lumina.Excel;
 using Newtonsoft.Json;
 using Serilog;
+using SharpDX.DXGI;
 
 namespace Dalamud.Data;
 
@@ -267,9 +270,31 @@ public sealed class DataManager : IDisposable, IServiceType, IDataManager
 
     /// <inheritdoc/>
     [Obsolete("Use ITextureProvider instead")]
+    [return: NotNullIfNotNull(nameof(tex))]
     public TextureWrap? GetImGuiTexture(TexFile? tex)
-        => tex == null ? null : Service<InterfaceManager>.Get().LoadImageRaw(tex.GetRgbaImageData(), tex.Header.Width, tex.Header.Height, 4);
+    {
+        if (tex is null)
+            return null;
 
+        var im = Service<InterfaceManager>.Get();
+        var buffer = tex.TextureBuffer;
+        var bpp = 1 << (((int)tex.Header.Format & (int)TexFile.TextureFormat.BppMask) >>
+                        (int)TexFile.TextureFormat.BppShift);
+
+        var (dxgiFormat, conversion) = TexFile.GetDxgiFormatFromTextureFormat(tex.Header.Format, false);
+        if (conversion != TexFile.DxgiFormatConversion.NoConversion || !im.SupportsDxgiFormat((Format)dxgiFormat))
+        {
+            dxgiFormat = (int)Format.B8G8R8A8_UNorm;
+            buffer = buffer.Filter(0, 0, TexFile.TextureFormat.B8G8R8A8);
+            bpp = 32;
+        }
+
+        var pitch = buffer is BlockCompressionTextureBuffer
+                        ? Math.Max(1, (buffer.Width + 3) / 4) * 2 * bpp
+                        : ((buffer.Width * bpp) + 7) / 8;
+        return im.LoadImageFromDxgiFormat(buffer.RawData, pitch, buffer.Width, buffer.Height, (Format)dxgiFormat);
+    }
+    
     /// <inheritdoc/>
     [Obsolete("Use ITextureProvider instead")]
     public TextureWrap? GetImGuiTexture(string path)
