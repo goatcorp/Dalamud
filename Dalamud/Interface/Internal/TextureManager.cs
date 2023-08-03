@@ -13,6 +13,8 @@ using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Services;
 using ImGuiScene;
 using Lumina.Data.Files;
+using Lumina.Data.Parsing.Tex.Buffers;
+using SharpDX.DXGI;
 
 namespace Dalamud.Interface.Internal;
 
@@ -207,10 +209,24 @@ internal class TextureManager : IDisposable, IServiceType, ITextureSubstitutionP
 
         if (!this.im.IsReady)
             throw new InvalidOperationException("Cannot create textures before scene is ready");
-        
-#pragma warning disable CS0618
-        return this.dataManager.GetImGuiTexture(file) as IDalamudTextureWrap;
-#pragma warning restore CS0618
+
+        var buffer = file.TextureBuffer;
+        var bpp = 1 << (((int)file.Header.Format & (int)TexFile.TextureFormat.BppMask) >>
+                        (int)TexFile.TextureFormat.BppShift);
+
+        var (dxgiFormat, conversion) = TexFile.GetDxgiFormatFromTextureFormat(file.Header.Format, false);
+        if (conversion != TexFile.DxgiFormatConversion.NoConversion || !im.SupportsDxgiFormat((Format)dxgiFormat))
+        {
+            dxgiFormat = (int)Format.B8G8R8A8_UNorm;
+            buffer = buffer.Filter(0, 0, TexFile.TextureFormat.B8G8R8A8);
+            bpp = 32;
+        }
+
+        var pitch = buffer is BlockCompressionTextureBuffer
+                        ? Math.Max(1, (buffer.Width + 3) / 4) * 2 * bpp
+                        : ((buffer.Width * bpp) + 7) / 8;
+
+        return this.im.LoadImageFromDxgiFormat(buffer.RawData, pitch, buffer.Width, buffer.Height, (Format)dxgiFormat);
     }
 
     /// <inheritdoc/>
