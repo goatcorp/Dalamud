@@ -669,12 +669,19 @@ internal class InterfaceManager : IDisposable, IServiceType
             var pRes = this.presentHook.Original(swapChain, syncInterval, presentFlags);
 
             this.RenderImGui();
+            this.DisposeTextures();
 
             return pRes;
         }
 
         this.RenderImGui();
+        this.DisposeTextures();
 
+        return this.presentHook.Original(swapChain, syncInterval, presentFlags);
+    }
+
+    private void DisposeTextures()
+    {
         if (this.deferredDisposeTextures.Count > 0)
         {
             Log.Verbose("[IM] Disposing {Count} textures", this.deferredDisposeTextures.Count);
@@ -685,8 +692,6 @@ internal class InterfaceManager : IDisposable, IServiceType
 
             this.deferredDisposeTextures.Clear();
         }
-
-        return this.presentHook.Original(swapChain, syncInterval, presentFlags);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

@@ -1,4 +1,5 @@
-﻿using System.Collections.ObjectModel;
+using System;
+using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;
 
 using ImGuiScene;
@@ -92,6 +93,7 @@ public interface IDataManager
     /// <param name="iconId">The icon ID.</param>
     /// <param name="highResolution">Return high resolution version.</param>
     /// <returns>The <see cref="TexFile"/> containing the icon.</returns>
+    [Obsolete("Use ITextureProvider instead")]
     public TexFile? GetIcon(uint iconId, bool highResolution = false);
 
     /// <summary>
@@ -101,6 +103,7 @@ public interface IDataManager
     /// <param name="iconId">The icon ID.</param>
     /// <param name="highResolution">Return high resolution version.</param>
     /// <returns>The <see cref="TexFile"/> containing the icon.</returns>
+    [Obsolete("Use ITextureProvider instead")]
     public TexFile? GetIcon(ClientLanguage iconLanguage, uint iconId, bool highResolution = false);
 
     /// <summary>
@@ -110,6 +113,7 @@ public interface IDataManager
     /// <param name="iconId">The icon ID.</param>
     /// <param name="highResolution">Return high resolution version.</param>
     /// <returns>The <see cref="TexFile"/> containing the icon.</returns>
+    [Obsolete("Use ITextureProvider instead")]
     public TexFile? GetIcon(string? type, uint iconId, bool highResolution = false);
     
     /// <summary>
@@ -118,6 +122,7 @@ public interface IDataManager
     /// <param name="iconId">The icon ID.</param>
     /// <param name="highResolution">Return the high resolution version.</param>
     /// <returns>The <see cref="TextureWrap"/> containing the icon.</returns>
+    [Obsolete("Use ITextureProvider instead")]
     public TextureWrap? GetImGuiTextureIcon(uint iconId, bool highResolution = false);
 
     /// <summary>
@@ -126,6 +131,7 @@ public interface IDataManager
     /// <param name="isHq">A value indicating whether the icon should be HQ.</param>
     /// <param name="iconId">The icon ID.</param>
     /// <returns>The <see cref="TexFile"/> containing the icon.</returns>
+    [Obsolete("Use ITextureProvider instead")]
     public TexFile? GetIcon(bool isHq, uint iconId);
     
     /// <summary>
@@ -133,6 +139,7 @@ public interface IDataManager
     /// </summary>
     /// <param name="iconId">The icon ID.</param>
     /// <returns>The <see cref="TexFile"/> containing the icon.</returns>
+    [Obsolete("Use ITextureProvider instead")]
     public TexFile? GetHqIcon(uint iconId);
 
     /// <summary>
@@ -140,6 +147,7 @@ public interface IDataManager
     /// </summary>
     /// <param name="tex">The Lumina <see cref="TexFile"/>.</param>
     /// <returns>A <see cref="TextureWrap"/> that can be used to draw the texture.</returns>
+    [Obsolete("Use ITextureProvider instead")]
     [return: NotNullIfNotNull(nameof(tex))]
     public TextureWrap? GetImGuiTexture(TexFile? tex);
 
@@ -148,6 +156,7 @@ public interface IDataManager
     /// </summary>
     /// <param name="path">The internal path to the texture.</param>
     /// <returns>A <see cref="TextureWrap"/> that can be used to draw the texture.</returns>
+    [Obsolete("Use ITextureProvider instead")]
     public TextureWrap? GetImGuiTexture(string path);
 
     /// <summary>
@@ -156,6 +165,7 @@ public interface IDataManager
     /// <param name="isHq">A value indicating whether the icon should be HQ.</param>
     /// <param name="iconId">The icon ID.</param>
     /// <returns>The <see cref="TextureWrap"/> containing the icon.</returns>
+    [Obsolete("Use ITextureProvider instead")]
     public TextureWrap? GetImGuiTextureIcon(bool isHq, uint iconId);
 
     /// <summary>
@@ -164,6 +174,7 @@ public interface IDataManager
     /// <param name="iconLanguage">The requested language.</param>
     /// <param name="iconId">The icon ID.</param>
     /// <returns>The <see cref="TextureWrap"/> containing the icon.</returns>
+    [Obsolete("Use ITextureProvider instead")]
     public TextureWrap? GetImGuiTextureIcon(ClientLanguage iconLanguage, uint iconId);
 
     /// <summary>
@@ -172,6 +183,7 @@ public interface IDataManager
     /// <param name="type">The type of the icon (e.g. 'hq' to get the HQ variant of an item icon).</param>
     /// <param name="iconId">The icon ID.</param>
     /// <returns>The <see cref="TextureWrap"/> containing the icon.</returns>
+    [Obsolete("Use ITextureProvider instead")]
     public TextureWrap? GetImGuiTextureIcon(string type, uint iconId);
 
     /// <summary>
@@ -179,5 +191,6 @@ public interface IDataManager
     /// </summary>
     /// <param name="iconId">The icon ID.</param>
     /// <returns>The <see cref="TextureWrap"/> containing the icon.</returns>
+    [Obsolete("Use ITextureProvider instead")]
     public TextureWrap? GetImGuiTextureHqIcon(uint iconId);
 }
