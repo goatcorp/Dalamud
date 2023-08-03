@@ -84,6 +84,25 @@ internal class TextureManager : IDisposable, IServiceType, ITextureSubstitutionP
     /// </returns>
     public TextureManagerTextureWrap? GetIcon(uint iconId, ITextureProvider.IconFlags flags = ITextureProvider.IconFlags.HiRes, ClientLanguage? language = null, bool keepAlive = false)
     {
+        var path = this.GetIconPath(iconId, flags, language);
+        return path == null ? null : this.CreateWrap(path, keepAlive);
+    }
+
+    /// <summary>
+    /// Get a path for a specific icon's .tex file.
+    /// </summary>
+    /// <param name="iconId">The ID of the icon to look up.</param>
+    /// <param name="flags">Options to be considered when loading the icon.</param>
+    /// <param name="language">
+    /// The language to be considered when loading the icon, if the icon has versions for multiple languages.
+    /// If null, default to the game's current language.
+    /// </param>
+    /// <returns>
+    /// Null, if the icon does not exist in the specified configuration, or the path to the texture's .tex file,
+    /// which can be loaded via IDataManager.
+    /// </returns>
+    public string? GetIconPath(uint iconId, ITextureProvider.IconFlags flags = ITextureProvider.IconFlags.HiRes, ClientLanguage? language = null)
+    {
         var hiRes = flags.HasFlag(ITextureProvider.IconFlags.HiRes);
         
         // 1. Item
@@ -92,7 +111,7 @@ internal class TextureManager : IDisposable, IServiceType, ITextureSubstitutionP
             flags.HasFlag(ITextureProvider.IconFlags.ItemHighQuality) ? "hq/" : string.Empty,
             hiRes);
         if (this.dataManager.FileExists(path))
-            return this.CreateWrap(path, keepAlive);
+            return path;
         
         language ??= this.startInfo.Language;
         var languageFolder = language switch
@@ -110,7 +129,7 @@ internal class TextureManager : IDisposable, IServiceType, ITextureSubstitutionP
             languageFolder,
             hiRes);
         if (this.dataManager.FileExists(path))
-            return this.CreateWrap(path, keepAlive);
+            return path;
 
         if (hiRes)
         {
@@ -120,7 +139,7 @@ internal class TextureManager : IDisposable, IServiceType, ITextureSubstitutionP
                 languageFolder,
                 false);
             if (this.dataManager.FileExists(path))
-                return this.CreateWrap(path, keepAlive);
+                return path;
         }
 
         // 4. Regular icon, without language, hi-res
@@ -129,7 +148,7 @@ internal class TextureManager : IDisposable, IServiceType, ITextureSubstitutionP
             null,
             hiRes);
         if (this.dataManager.FileExists(path))
-            return this.CreateWrap(path, keepAlive);
+            return path;
         
         // 4. Regular icon, without language, no hi-res
         if (hiRes)
@@ -139,7 +158,7 @@ internal class TextureManager : IDisposable, IServiceType, ITextureSubstitutionP
                 null,
                 false);
             if (this.dataManager.FileExists(path))
-                return this.CreateWrap(path, keepAlive);
+                return path;
         }
 
         return null;
@@ -479,6 +498,10 @@ internal class TextureManagerPluginScoped : ITextureProvider, IServiceType, IDis
         this.trackedTextures.Add(wrap);
         return wrap;
     }
+
+    /// <inheritdoc/>
+    public string? GetIconPath(uint iconId, ITextureProvider.IconFlags flags = ITextureProvider.IconFlags.HiRes, ClientLanguage? language = null)
+        => this.textureManager.GetIconPath(iconId, flags, language);
 
     /// <inheritdoc/>
     public IDalamudTextureWrap? GetTextureFromGame(string path, bool keepAlive = false)

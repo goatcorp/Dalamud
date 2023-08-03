@@ -53,6 +53,21 @@ public interface ITextureProvider
     public IDalamudTextureWrap? GetIcon(uint iconId, IconFlags flags = IconFlags.HiRes, ClientLanguage? language = null, bool keepAlive = false);
 
     /// <summary>
+    /// Get a path for a specific icon's .tex file.
+    /// </summary>
+    /// <param name="iconId">The ID of the icon to look up.</param>
+    /// <param name="flags">Options to be considered when loading the icon.</param>
+    /// <param name="language">
+    /// The language to be considered when loading the icon, if the icon has versions for multiple languages.
+    /// If null, default to the game's current language.
+    /// </param>
+    /// <returns>
+    /// Null, if the icon does not exist in the specified configuration, or the path to the texture's .tex file,
+    /// which can be loaded via IDataManager.
+    /// </returns>
+    public string? GetIconPath(uint iconId, IconFlags flags = IconFlags.HiRes, ClientLanguage? language = null);
+    
+    /// <summary>
     /// Get a texture handle for the texture at the specified path.
     /// You may only specify paths in the game's VFS.
     /// </summary>
