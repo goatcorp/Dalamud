@@ -26,52 +26,52 @@ public unsafe class Character : GameObject
     /// <summary>
     /// Gets the current HP of this Chara.
     /// </summary>
-    public uint CurrentHp => this.Struct->Health;
+    public uint CurrentHp => this.Struct->CharacterData.Health;
 
     /// <summary>
     /// Gets the maximum HP of this Chara.
     /// </summary>
-    public uint MaxHp => this.Struct->MaxHealth;
+    public uint MaxHp => this.Struct->CharacterData.MaxHealth;
 
     /// <summary>
     /// Gets the current MP of this Chara.
     /// </summary>
-    public uint CurrentMp => this.Struct->Mana;
+    public uint CurrentMp => this.Struct->CharacterData.Mana;
 
     /// <summary>
     /// Gets the maximum MP of this Chara.
     /// </summary>
-    public uint MaxMp => this.Struct->MaxMana;
+    public uint MaxMp => this.Struct->CharacterData.MaxMana;
 
     /// <summary>
     /// Gets the current GP of this Chara.
     /// </summary>
-    public uint CurrentGp => this.Struct->GatheringPoints;
+    public uint CurrentGp => this.Struct->CharacterData.GatheringPoints;
 
     /// <summary>
     /// Gets the maximum GP of this Chara.
     /// </summary>
-    public uint MaxGp => this.Struct->MaxGatheringPoints;
+    public uint MaxGp => this.Struct->CharacterData.MaxGatheringPoints;
 
     /// <summary>
     /// Gets the current CP of this Chara.
     /// </summary>
-    public uint CurrentCp => this.Struct->CraftingPoints;
+    public uint CurrentCp => this.Struct->CharacterData.CraftingPoints;
 
     /// <summary>
     /// Gets the maximum CP of this Chara.
     /// </summary>
-    public uint MaxCp => this.Struct->MaxCraftingPoints;
+    public uint MaxCp => this.Struct->CharacterData.MaxCraftingPoints;
 
     /// <summary>
     /// Gets the ClassJob of this Chara.
     /// </summary>
-    public ExcelResolver<ClassJob> ClassJob => new(this.Struct->ClassJob);
+    public ExcelResolver<ClassJob> ClassJob => new(this.Struct->CharacterData.ClassJob);
 
     /// <summary>
     /// Gets the level of this Chara.
     /// </summary>
-    public byte Level => this.Struct->Level;
+    public byte Level => this.Struct->CharacterData.Level;
 
     /// <summary>
     /// Gets a byte array describing the visual appearance of this Chara.
@@ -97,7 +97,7 @@ public unsafe class Character : GameObject
     /// <summary>
     /// Gets the current online status of the character.
     /// </summary>
-    public ExcelResolver<OnlineStatus> OnlineStatus => new(this.Struct->OnlineStatus);
+    public ExcelResolver<OnlineStatus> OnlineStatus => new(this.Struct->CharacterData.OnlineStatus);
 
     /// <summary>
     /// Gets the status flags.
