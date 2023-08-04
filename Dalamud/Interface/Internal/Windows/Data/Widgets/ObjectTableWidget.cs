@@ -1,13 +1,11 @@
-﻿using System;
-using System.Numerics;
-
+﻿using System.Numerics;
 using Dalamud.Game.ClientState;
 using Dalamud.Game.ClientState.Objects;
 using Dalamud.Game.Gui;
 using Dalamud.Utility;
 using ImGuiNET;
 
-namespace Dalamud.Interface.Internal.Windows.Data;
+namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 
 /// <summary>
 /// Widget to display the Object Table.

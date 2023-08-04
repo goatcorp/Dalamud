@@ -2,7 +2,7 @@
 using ImGuiNET;
 using Newtonsoft.Json;
 
-namespace Dalamud.Interface.Internal.Windows.Data;
+namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 
 /// <summary>
 /// Widget to display the currently set server opcodes.

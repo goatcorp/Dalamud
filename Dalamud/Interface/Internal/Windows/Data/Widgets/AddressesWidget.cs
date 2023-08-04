@@ -1,9 +1,8 @@
 ﻿using System.Collections.Generic;
-
 using Dalamud.Game;
 using ImGuiNET;
 
-namespace Dalamud.Interface.Internal.Windows.Data;
+namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 
 /// <summary>
 /// Widget to display resolved .text sigs.

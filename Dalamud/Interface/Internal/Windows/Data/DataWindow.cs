@@ -5,6 +5,7 @@ using System.Numerics;
 
 using Dalamud.Game.Gui;
 using Dalamud.Interface.Components;
+using Dalamud.Interface.Internal.Windows.Data.Widgets;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Windowing;
 using ImGuiNET;

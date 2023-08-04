@@ -1,10 +1,8 @@
-using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using System.Text.RegularExpressions;
-
 using Dalamud.Data;
 using Dalamud.Game.Network;
 using Dalamud.Interface.Utility;
@@ -12,7 +10,7 @@ using Dalamud.Interface.Utility.Raii;
 using Dalamud.Memory;
 using ImGuiNET;
 
-namespace Dalamud.Interface.Internal.Windows.Data;
+namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 
 /// <summary>
 /// Widget to display the current packets.

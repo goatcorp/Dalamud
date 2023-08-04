@@ -1,12 +1,10 @@
-﻿using System;
-
-using Dalamud.Plugin.Ipc;
+﻿using Dalamud.Plugin.Ipc;
 using Dalamud.Plugin.Ipc.Internal;
 using Dalamud.Utility;
 using ImGuiNET;
 using Serilog;
 
-namespace Dalamud.Interface.Internal.Windows.Data;
+namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 
 /// <summary>
 /// Widget for testing plugin IPC systems.

@@ -1,9 +1,8 @@
 ﻿// ReSharper disable MethodSupportsCancellation // Using alternative method of cancelling tasks by throwing exceptions.
-using System;
+
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-
 using Dalamud.Game;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Utility;
@@ -11,7 +10,7 @@ using Dalamud.Logging.Internal;
 using ImGuiNET;
 using Serilog;
 
-namespace Dalamud.Interface.Internal.Windows.Data;
+namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 
 /// <summary>
 /// Widget for displaying task scheduler test.

@@ -1,14 +1,13 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Numerics;
-
 using Dalamud.Interface.Utility;
 using Dalamud.Plugin.Services;
 using ImGuiNET;
 using ImGuiScene;
 using Serilog;
 
-namespace Dalamud.Interface.Internal.Windows.Data;
+namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 
 /// <summary>
 /// Widget for displaying texture test.
