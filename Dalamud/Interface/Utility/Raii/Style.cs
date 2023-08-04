@@ -1,7 +1,10 @@
+using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
+
 using ImGuiNET;
 
-namespace Dalamud.Interface.Raii;
+namespace Dalamud.Interface.Utility.Raii;
 
 // Push an arbitrary amount of styles into an object that are all popped when it is disposed.
 // If condition is false, no style is pushed.
@@ -17,7 +20,7 @@ public static partial class ImRaii
     // Push styles that revert all current style changes made temporarily.
     public static Style DefaultStyle()
     {
-        var ret          = new Style();
+        var ret = new Style();
         var reverseStack = Style.Stack.GroupBy(p => p.Item1).Select(p => (p.Key, p.First().Item2)).ToArray();
         foreach (var (idx, val) in reverseStack)
         {
@@ -34,7 +37,7 @@ public static partial class ImRaii
     {
         internal static readonly List<(ImGuiStyleVar, Vector2)> Stack = new();
 
-        private int _count;
+        private int count;
 
         [System.Diagnostics.Conditional("DEBUG")]
         private static void CheckStyleIdx(ImGuiStyleVar idx, Type type)
@@ -115,7 +118,7 @@ public static partial class ImRaii
             CheckStyleIdx(idx, typeof(float));
             Stack.Add((idx, GetStyle(idx)));
             ImGui.PushStyleVar(idx, value);
-            ++this._count;
+            ++this.count;
 
             return this;
         }
@@ -128,20 +131,20 @@ public static partial class ImRaii
             CheckStyleIdx(idx, typeof(Vector2));
             Stack.Add((idx, GetStyle(idx)));
             ImGui.PushStyleVar(idx, value);
-            ++this._count;
+            ++this.count;
 
             return this;
         }
 
         public void Pop(int num = 1)
         {
-            num    =  Math.Min(num, this._count);
-            this._count -= num;
+            num    =  Math.Min(num, this.count);
+            this.count -= num;
             ImGui.PopStyleVar(num);
             Stack.RemoveRange(Stack.Count - num, num);
         }
 
         public void Dispose()
-            => this.Pop(this._count);
+            => this.Pop(this.count);
     }
 }

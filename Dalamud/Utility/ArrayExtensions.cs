@@ -1,7 +1,13 @@
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 
-namespace Dalamud.Interface;
+namespace Dalamud.Utility;
 
+[SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1618:Generic type parameters should be documented", Justification = "Reviewed,")]
+[SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1600:Elements should be documented", Justification = "Reviewed,")]
+[SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1615:Element return value should be documented", Justification = "Reviewed,")]
+[SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1611:Element parameters should be documented", Justification = "Reviewed,")]
 internal static class ArrayExtensions
 {
     /// <summary> Iterate over enumerables with additional index. </summary>
@@ -15,7 +21,6 @@ internal static class ArrayExtensions
     /// <summary> Remove the value and only keep the index from an indexed enumerable. </summary>
     public static IEnumerable<int> WithoutValue<T>(this IEnumerable<(T Value, int Index)> list)
         => list.Select(x => x.Index);
-
 
     // Find the index of the first object fulfilling predicate's criteria in the given list.
     // Returns -1 if no such object is found.

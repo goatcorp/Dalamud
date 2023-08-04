@@ -2,6 +2,7 @@ using System.Numerics;
 
 using Dalamud.Configuration.Internal;
 using Dalamud.Game.ClientState.Keys;
+using Dalamud.Interface.Utility;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using ImGuiNET;
 
@@ -223,6 +224,7 @@ public abstract class Window
     /// <summary>
     /// Draw the window via ImGui.
     /// </summary>
+    /// <param name="configuration">Configuration instance used to check if certain window management features should be enabled.</param>
     internal void DrawInternal(DalamudConfiguration? configuration)
     {
         this.PreOpenCheck();

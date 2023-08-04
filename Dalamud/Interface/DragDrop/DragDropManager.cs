@@ -16,7 +16,9 @@ namespace Dalamud.Interface.DragDrop;
 /// </summary>
 [PluginInterface]
 [ServiceManager.EarlyLoadedService]
+#pragma warning disable SA1015
 [ResolveVia<IDragDropManager>]
+#pragma warning restore SA1015
 internal partial class DragDropManager : IDisposable, IDragDropManager, IServiceType
 {
     private nint windowHandlePtr = nint.Zero;

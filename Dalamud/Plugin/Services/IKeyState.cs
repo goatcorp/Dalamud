@@ -1,7 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+
 using Dalamud.Game.ClientState.Keys;
-using PInvoke;
 
 namespace Dalamud.Plugin.Services;
 

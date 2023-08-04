@@ -1,7 +1,10 @@
+using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
+
 using ImGuiNET;
 
-namespace Dalamud.Interface.Raii;
+namespace Dalamud.Interface.Utility.Raii;
 
 // Push an arbitrary amount of colors into an object that are all popped when it is disposed.
 // If condition is false, no color is pushed.
@@ -26,7 +29,7 @@ public static partial class ImRaii
     public sealed class Color : IDisposable
     {
         internal static readonly List<(ImGuiCol, uint)> Stack = new();
-        private                  int                    _count;
+        private                  int                    count;
 
         public Color Push(ImGuiCol idx, uint color, bool condition = true)
         {
@@ -34,7 +37,7 @@ public static partial class ImRaii
             {
                 Stack.Add((idx, ImGui.GetColorU32(idx)));
                 ImGui.PushStyleColor(idx, color);
-                ++this._count;
+                ++this.count;
             }
 
             return this;
@@ -46,7 +49,7 @@ public static partial class ImRaii
             {
                 Stack.Add((idx, ImGui.GetColorU32(idx)));
                 ImGui.PushStyleColor(idx, color);
-                ++this._count;
+                ++this.count;
             }
 
             return this;
@@ -54,13 +57,13 @@ public static partial class ImRaii
 
         public void Pop(int num = 1)
         {
-            num    =  Math.Min(num, this._count);
-            this._count -= num;
+            num    =  Math.Min(num, this.count);
+            this.count -= num;
             ImGui.PopStyleColor(num);
             Stack.RemoveRange(Stack.Count - num, num);
         }
 
         public void Dispose()
-            => this.Pop(this._count);
+            => this.Pop(this.count);
     }
 }

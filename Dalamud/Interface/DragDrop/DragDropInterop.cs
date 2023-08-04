@@ -34,9 +34,9 @@ internal partial class DragDropManager
     internal struct POINTL
     {
         [ComAliasName("Microsoft.VisualStudio.OLE.Interop.LONG")]
-        public int x;
+        public int X;
         [ComAliasName("Microsoft.VisualStudio.OLE.Interop.LONG")]
-        public int y;
+        public int Y;
     }
 
     private static class DragDropInterop

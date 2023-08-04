@@ -1,6 +1,6 @@
 using ImGuiNET;
 
-namespace Dalamud.Interface.Raii;
+namespace Dalamud.Interface.Utility.Raii;
 
 public static partial class ImRaii
 {
@@ -19,7 +19,7 @@ public static partial class ImRaii
             if (condition)
             {
                 if (scaled)
-                    indent *= InterfaceHelpers.GlobalScale;
+                    indent *= ImGuiHelpers.GlobalScale;
 
                 IndentInternal(indent);
                 this.Indentation += indent;
@@ -43,7 +43,7 @@ public static partial class ImRaii
         public void Pop(float indent, bool scaled = true)
         {
             if (scaled)
-                indent *= InterfaceHelpers.GlobalScale;
+                indent *= ImGuiHelpers.GlobalScale;
 
             IndentInternal(-indent);
             this.Indentation -= indent;

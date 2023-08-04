@@ -6,6 +6,7 @@ using Dalamud.Configuration.Internal;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Internal.Windows.PluginInstaller;
 using Dalamud.Interface.Internal.Windows.Settings.Widgets;
+using Dalamud.Interface.Utility;
 using Dalamud.Plugin.Internal;
 using Dalamud.Utility;
 

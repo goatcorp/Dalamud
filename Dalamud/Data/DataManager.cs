@@ -1,27 +1,19 @@
-using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Threading;
 
-using Dalamud.Interface.Internal;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Plugin.Services;
-using Dalamud.Utility;
 using Dalamud.Utility.Timing;
-using ImGuiScene;
 using JetBrains.Annotations;
 using Lumina;
 using Lumina.Data;
-using Lumina.Data.Files;
-using Lumina.Data.Parsing.Tex.Buffers;
 using Lumina.Excel;
 using Newtonsoft.Json;
 using Serilog;
-using SharpDX.DXGI;
 
 namespace Dalamud.Data;
 
@@ -131,11 +123,6 @@ public sealed class DataManager : IDisposable, IServiceType, IDataManager
         }
     }
 
-    /// <summary>
-    /// Gets a value indicating whether Game Data is ready to be read.
-    /// </summary>
-    internal bool IsDataReady { get; private set; }
-
     /// <inheritdoc/>
     public ClientLanguage Language { get; private set; }
 
@@ -154,6 +141,11 @@ public sealed class DataManager : IDisposable, IServiceType, IDataManager
 
     /// <inheritdoc/>
     public bool HasModifiedGameDataFiles { get; private set; }
+
+    /// <summary>
+    /// Gets a value indicating whether Game Data is ready to be read.
+    /// </summary>
+    internal bool IsDataReady { get; private set; }
 
     #region Lumina Wrappers
 

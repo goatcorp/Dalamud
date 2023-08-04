@@ -54,12 +54,6 @@ namespace Dalamud.Plugin.Internal;
 internal partial class PluginManager : IDisposable, IServiceType
 {
     /// <summary>
-    /// The current Dalamud API level, used to handle breaking changes. Only plugins with this level will be loaded.
-    /// As of Dalamud 9.x, this always matches the major version number of Dalamud.
-    /// </summary>
-    public static int DalamudApiLevel => Assembly.GetExecutingAssembly().GetName().Version!.Major;
-
-    /// <summary>
     /// Default time to wait between plugin unload and plugin assembly unload.
     /// </summary>
     public const int PluginWaitBeforeFreeDefault = 1000; // upped from 500ms, seems more stable
@@ -87,6 +81,11 @@ internal partial class PluginManager : IDisposable, IServiceType
 
     [ServiceManager.ServiceDependency]
     private readonly HappyHttpClient happyHttpClient = Service<HappyHttpClient>.Get();
+
+    static PluginManager()
+    {
+        DalamudApiLevel = typeof(PluginManager).Assembly.GetName().Version!.Major;
+    }
 
     [ServiceManager.ServiceConstructor]
     private PluginManager()
@@ -148,6 +147,12 @@ internal partial class PluginManager : IDisposable, IServiceType
     /// An event that fires when the available plugins have changed.
     /// </summary>
     public event Action? OnAvailablePluginsChanged;
+
+    /// <summary>
+    /// Gets the current Dalamud API level, used to handle breaking changes. Only plugins with this level will be loaded.
+    /// As of Dalamud 9.x, this always matches the major version number of Dalamud.
+    /// </summary>
+    public static int DalamudApiLevel { get; private set; }
 
     /// <summary>
     /// Gets a copy of the list of all loaded plugins.

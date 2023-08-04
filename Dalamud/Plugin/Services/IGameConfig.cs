@@ -83,7 +83,7 @@ public interface IGameConfig
     /// Attempts to get the properties of a String option from the System section.
     /// </summary>
     /// <param name="option">Option to get the properties of.</param>
-    /// <param name="properties">Details of the option: Default Value</param>
+    /// <param name="properties">Details of the option: Default Value.</param>
     /// <returns>A value representing the success.</returns>
     public bool TryGet(SystemConfigOption option, out StringConfigProperties? properties);
 
@@ -139,7 +139,7 @@ public interface IGameConfig
     /// Attempts to get the properties of a String option from the UiConfig section.
     /// </summary>
     /// <param name="option">Option to get the properties of.</param>
-    /// <param name="properties">Details of the option: Default Value</param>
+    /// <param name="properties">Details of the option: Default Value.</param>
     /// <returns>A value representing the success.</returns>
     public bool TryGet(UiConfigOption option, out StringConfigProperties? properties);
     
@@ -195,7 +195,7 @@ public interface IGameConfig
     /// Attempts to get the properties of a String option from the UiControl section.
     /// </summary>
     /// <param name="option">Option to get the properties of.</param>
-    /// <param name="properties">Details of the option: Default Value</param>
+    /// <param name="properties">Details of the option: Default Value.</param>
     /// <returns>A value representing the success.</returns>
     public bool TryGet(UiControlOption option, out StringConfigProperties? properties);
 

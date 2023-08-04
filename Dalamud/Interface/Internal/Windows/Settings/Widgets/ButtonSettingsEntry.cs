@@ -2,6 +2,7 @@
 using System.Diagnostics.CodeAnalysis;
 
 using Dalamud.Interface.Colors;
+using Dalamud.Interface.Utility;
 using ImGuiNET;
 
 namespace Dalamud.Interface.Internal.Windows.Settings.Widgets;

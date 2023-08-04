@@ -1,7 +1,9 @@
-using ImGuiNET;
-using ImRaii = Dalamud.Interface.Raii.ImRaii;
+using System.Collections.Generic;
 
-namespace Dalamud.Interface.Table;
+using Dalamud.Interface.Utility.Raii;
+using ImGuiNET;
+
+namespace Dalamud.Interface.Utility.Table;
 
 public class ColumnFlags<T, TItem> : Column<TItem> where T : struct, Enum
 {
@@ -17,13 +19,14 @@ public class ColumnFlags<T, TItem> : Column<TItem> where T : struct, Enum
         => default;
 
     protected virtual void SetValue(T value, bool enable)
-    { }
+    {
+    }
 
     public override bool DrawFilter()
     {
         using var id    = ImRaii.PushId(this.FilterLabel);
         using var style = ImRaii.PushStyle(ImGuiStyleVar.FrameRounding, 0);
-        ImGui.SetNextItemWidth(-Table.ArrowWidth * InterfaceHelpers.GlobalScale);
+        ImGui.SetNextItemWidth(-Table.ArrowWidth * ImGuiHelpers.GlobalScale);
         var       all   = this.FilterValue.HasFlag(this.AllFlags);
         using var color = ImRaii.PushColor(ImGuiCol.FrameBg, 0x803030A0, !all);
         using var combo = ImRaii.Combo(string.Empty, this.Label, ImGuiComboFlags.NoArrowButton);

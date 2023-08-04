@@ -1,8 +1,12 @@
+using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
-using ImGuiNET;
-using ImRaii = Dalamud.Interface.Raii.ImRaii;
 
-namespace Dalamud.Interface.Table;
+using Dalamud.Interface.Utility.Raii;
+using Dalamud.Utility;
+using ImGuiNET;
+
+namespace Dalamud.Interface.Utility.Table;
 
 public static class Table
 {
@@ -11,18 +15,20 @@ public static class Table
 
 public class Table<T>
 {
-    protected          bool           FilterDirty = true;
-    protected          bool           SortDirty   = true;
     protected readonly ICollection<T> Items;
-    internal readonly  List<(T, int)> FilteredItems;
+    internal readonly List<(T, int)> FilteredItems;
 
-    protected readonly string      Label;
+    protected readonly string Label;
     protected readonly Column<T>[] Headers;
 
-    protected float ItemHeight  { get; set; }
-    public    float ExtraHeight { get; set; } = 0;
+    protected bool filterDirty = true;
+    protected bool sortDirty = true;
 
-    private int _currentIdx = 0;
+    protected float ItemHeight { get; set; }
+
+    public float ExtraHeight { get; set; } = 0;
+
+    private int currentIdx = 0;
 
     protected bool Sortable
     {
@@ -30,7 +36,7 @@ public class Table<T>
         set => this.Flags = value ? this.Flags | ImGuiTableFlags.Sortable : this.Flags & ~ImGuiTableFlags.Sortable;
     }
 
-    protected int SortIdx = -1;
+    protected int sortIdx = -1;
 
     public ImGuiTableFlags Flags = ImGuiTableFlags.RowBg
       | ImGuiTableFlags.Sortable
@@ -54,10 +60,10 @@ public class Table<T>
 
     public Table(string label, ICollection<T> items, params Column<T>[] headers)
     {
-        this.Label          = label;
-        this.Items          = items;
-        this.Headers        = headers;
-        this.FilteredItems  = new List<(T, int)>(this.Items.Count);
+        this.Label = label;
+        this.Items = items;
+        this.Headers = headers;
+        this.FilteredItems = new List<(T, int)>(this.Items.Count);
         this.VisibleColumns = this.Headers.Length;
     }
 
@@ -73,7 +79,8 @@ public class Table<T>
         => throw new NotImplementedException();
 
     protected virtual void PreDraw()
-    { }
+    {
+    }
 
     private void SortInternal()
     {
@@ -81,29 +88,30 @@ public class Table<T>
             return;
 
         var sortSpecs = ImGui.TableGetSortSpecs();
-        this.SortDirty |= sortSpecs.SpecsDirty;
+        this.sortDirty |= sortSpecs.SpecsDirty;
 
-        if (!this.SortDirty)
+        if (!this.sortDirty)
             return;
 
-            this.SortIdx = sortSpecs.Specs.ColumnIndex;
+        this.sortIdx = sortSpecs.Specs.ColumnIndex;
 
-            if (this.Headers.Length <= this.SortIdx)
-                this.SortIdx = 0;
+        if (this.Headers.Length <= this.sortIdx)
+            this.sortIdx = 0;
 
-            if (sortSpecs.Specs.SortDirection == ImGuiSortDirection.Ascending)
-                this.FilteredItems.StableSort((a, b) => this.Headers[this.SortIdx].Compare(a.Item1, b.Item1));
-            else if (sortSpecs.Specs.SortDirection == ImGuiSortDirection.Descending)
-                this.FilteredItems.StableSort((a, b) => this.Headers[this.SortIdx].CompareInv(a.Item1, b.Item1));
-            else
-                this.SortIdx = -1;
-            this.SortDirty            = false;
-            sortSpecs.SpecsDirty = false;
+        if (sortSpecs.Specs.SortDirection == ImGuiSortDirection.Ascending)
+            this.FilteredItems.StableSort((a, b) => this.Headers[this.sortIdx].Compare(a.Item1, b.Item1));
+        else if (sortSpecs.Specs.SortDirection == ImGuiSortDirection.Descending)
+            this.FilteredItems.StableSort((a, b) => this.Headers[this.sortIdx].CompareInv(a.Item1, b.Item1));
+        else
+            this.sortIdx = -1;
+
+        this.sortDirty = false;
+        sortSpecs.SpecsDirty = false;
     }
 
     private void UpdateFilter()
     {
-        if (!this.FilterDirty)
+        if (!this.filterDirty)
             return;
 
         this.FilteredItems.Clear();
@@ -115,20 +123,20 @@ public class Table<T>
             idx++;
         }
 
-        this.FilterDirty = false;
-        this.SortDirty   = true;
+        this.filterDirty = false;
+        this.sortDirty = true;
     }
 
-    private void DrawItem((T, int) pair)
+    private void DrawItem((T Item, int Index) pair)
     {
-        var       column = 0;
-        using var id     = ImRaii.PushId(this._currentIdx);
-        this._currentIdx = pair.Item2;
+        var column = 0;
+        using var id = ImRaii.PushId(this.currentIdx);
+        this.currentIdx = pair.Index;
         foreach (var header in this.Headers)
         {
             id.Push(column++);
             if (ImGui.TableNextColumn())
-                header.DrawColumn(pair.Item1, pair.Item2);
+                header.DrawColumn(pair.Item, pair.Index);
             id.Pop();
         }
     }
@@ -136,7 +144,7 @@ public class Table<T>
     private void DrawTableInternal()
     {
         using var table = ImRaii.Table("Table", this.Headers.Length, this.Flags,
-            ImGui.GetContentRegionAvail() - this.ExtraHeight * Vector2.UnitY * InterfaceHelpers.GlobalScale);
+            ImGui.GetContentRegionAvail() - this.ExtraHeight * Vector2.UnitY * ImGuiHelpers.GlobalScale);
         if (!table)
             return;
 
@@ -162,11 +170,11 @@ public class Table<T>
             ImGui.SameLine();
             style.Pop();
             if (header.DrawFilter())
-                this.FilterDirty = true;
+                this.filterDirty = true;
         }
 
         this.SortInternal();
-        this._currentIdx = 0;
+        this.currentIdx = 0;
         ImGuiClip.ClippedDraw(this.FilteredItems, this.DrawItem, this.ItemHeight);
     }
 }

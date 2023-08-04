@@ -1,15 +1,14 @@
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 
 using Dalamud.Game.ClientState.Keys;
-using Dalamud.Interface.Raii;
+using Dalamud.Interface.Utility.Raii;
 using ImGuiNET;
 using ImGuiScene;
 
-namespace Dalamud.Interface;
+namespace Dalamud.Interface.Utility;
 
 /// <summary>
 /// Class containing various helper methods for use with ImGui inside Dalamud.
@@ -300,7 +299,6 @@ public static class ImGuiHelpers
     internal static void NewFrame()
     {
         GlobalScale = ImGui.GetIO().FontGlobalScale;
-        InterfaceHelpers.GlobalScale = GlobalScale;
     }
 
     /// <summary>

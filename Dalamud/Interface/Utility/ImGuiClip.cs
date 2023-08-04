@@ -1,8 +1,11 @@
+using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
-using Dalamud.Interface.Raii;
+
+using Dalamud.Interface.Utility.Raii;
 using ImGuiNET;
 
-namespace Dalamud.Interface;
+namespace Dalamud.Interface.Utility;
 
 public static class ImGuiClip
 {
@@ -131,7 +134,6 @@ public static class ImGuiClip
 
         return ~idx;
     }
-
 
     // Draw non-random-access data that gets filtered without storing state.
     // Use GetNecessarySkips first and use its return value for skips.

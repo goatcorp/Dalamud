@@ -1,8 +1,9 @@
 using System.Text.RegularExpressions;
-using Dalamud.Interface.Raii;
+
+using Dalamud.Interface.Utility.Raii;
 using ImGuiNET;
 
-namespace Dalamud.Interface.Table;
+namespace Dalamud.Interface.Utility.Table;
 
 public class ColumnString<TItem> : Column<TItem>
 {
@@ -10,7 +11,7 @@ public class ColumnString<TItem> : Column<TItem>
         => this.Flags &= ~ImGuiTableColumnFlags.NoResize;
 
     public    string FilterValue = string.Empty;
-    protected Regex? FilterRegex;
+    protected Regex? filterRegex;
 
     public virtual string ToName(TItem item)
         => item!.ToString() ?? string.Empty;
@@ -22,7 +23,7 @@ public class ColumnString<TItem> : Column<TItem>
     {
         using var style = ImRaii.PushStyle(ImGuiStyleVar.FrameRounding, 0);
 
-        ImGui.SetNextItemWidth(-Table.ArrowWidth * InterfaceHelpers.GlobalScale);
+        ImGui.SetNextItemWidth(-Table.ArrowWidth * ImGuiHelpers.GlobalScale);
         var tmp = this.FilterValue;
         if (!ImGui.InputTextWithHint(this.FilterLabel, this.Label, ref tmp, 256) || tmp == this.FilterValue)
             return false;
@@ -30,11 +31,11 @@ public class ColumnString<TItem> : Column<TItem>
         this.FilterValue = tmp;
         try
         {
-            this.FilterRegex = new Regex(this.FilterValue, RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+            this.filterRegex = new Regex(this.FilterValue, RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
         }
         catch
         {
-            this.FilterRegex = null;
+            this.filterRegex = null;
         }
 
         return true;
@@ -46,10 +47,10 @@ public class ColumnString<TItem> : Column<TItem>
         if (this.FilterValue.Length == 0)
             return true;
 
-        return this.FilterRegex?.IsMatch(name) ?? name.Contains(this.FilterValue, StringComparison.OrdinalIgnoreCase);
+        return this.filterRegex?.IsMatch(name) ?? name.Contains(this.FilterValue, StringComparison.OrdinalIgnoreCase);
     }
 
-    public override void DrawColumn(TItem item, int _)
+    public override void DrawColumn(TItem item, int idx)
     {
         ImGui.TextUnformatted(this.ToName(item));
     }

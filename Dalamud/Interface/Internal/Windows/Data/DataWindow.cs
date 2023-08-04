@@ -5,6 +5,7 @@ using System.Numerics;
 
 using Dalamud.Game.Gui;
 using Dalamud.Interface.Components;
+using Dalamud.Interface.Utility;
 using Dalamud.Interface.Windowing;
 using ImGuiNET;
 using Serilog;

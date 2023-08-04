@@ -1,7 +1,9 @@
-using ImGuiNET;
-using ImRaii = Dalamud.Interface.Raii.ImRaii;
+using System.Collections.Generic;
 
-namespace Dalamud.Interface.Table;
+using Dalamud.Interface.Utility.Raii;
+using ImGuiNET;
+
+namespace Dalamud.Interface.Utility.Table;
 
 public class ColumnSelect<T, TItem> : Column<TItem> where T : struct, Enum, IEquatable<T>
 {
@@ -18,26 +20,26 @@ public class ColumnSelect<T, TItem> : Column<TItem> where T : struct, Enum, IEqu
         => this.FilterValue = value;
 
     public    T   FilterValue;
-    protected int Idx = -1;
+    protected int idx = -1;
 
     public override bool DrawFilter()
     {
         using var id    = ImRaii.PushId(this.FilterLabel);
         using var style = ImRaii.PushStyle(ImGuiStyleVar.FrameRounding, 0);
-        ImGui.SetNextItemWidth(-Table.ArrowWidth * InterfaceHelpers.GlobalScale);
-        using var combo = ImRaii.Combo(string.Empty, this.Idx < 0 ? this.Label : this.Names[this.Idx]);
-        if(!combo)
+        ImGui.SetNextItemWidth(-Table.ArrowWidth * ImGuiHelpers.GlobalScale);
+        using var combo = ImRaii.Combo(string.Empty, this.idx < 0 ? this.Label : this.Names[this.idx]);
+        if (!combo)
             return false;
 
         var       ret = false;
         for (var i = 0; i < this.Names.Length; ++i)
         {
             if (this.FilterValue.Equals(this.Values[i]))
-                this.Idx = i;
-            if (!ImGui.Selectable(this.Names[i], this.Idx == i) || this.Idx == i)
+                this.idx = i;
+            if (!ImGui.Selectable(this.Names[i], this.idx == i) || this.idx == i)
                 continue;
 
-            this.Idx = i;
+            this.idx = i;
             this.SetValue(this.Values[i]);
             ret = true;
         }

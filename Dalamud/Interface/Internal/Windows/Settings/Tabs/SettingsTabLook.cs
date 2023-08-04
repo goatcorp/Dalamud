@@ -5,6 +5,7 @@ using CheapLoc;
 using Dalamud.Configuration.Internal;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Internal.Windows.Settings.Widgets;
+using Dalamud.Interface.Utility;
 using Dalamud.Utility;
 using ImGuiNET;
 using Serilog;

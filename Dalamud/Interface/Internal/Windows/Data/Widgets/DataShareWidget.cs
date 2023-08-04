@@ -1,4 +1,5 @@
-﻿using Dalamud.Plugin.Ipc.Internal;
+﻿using Dalamud.Interface.Utility;
+using Dalamud.Plugin.Ipc.Internal;
 using ImGuiNET;
 
 namespace Dalamud.Interface.Internal.Windows.Data;

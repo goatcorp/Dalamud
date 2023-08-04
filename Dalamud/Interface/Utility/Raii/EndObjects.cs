@@ -1,13 +1,14 @@
 using System.Numerics;
+
 using ImGuiNET;
 
-namespace Dalamud.Interface.Raii;
+namespace Dalamud.Interface.Utility.Raii;
 
 // Most ImGui widgets with IDisposable interface that automatically destroys them
 // when created with using variables.
 public static partial class ImRaii
 {
-    private static int _disabledCount = 0;
+    private static int disabledCount = 0;
 
     public static IEndObject Child(string strId)
         => new EndUnconditionally(ImGui.EndChild, ImGui.BeginChild(strId));
@@ -120,7 +121,7 @@ public static partial class ImRaii
     public static IEndObject Disabled()
     {
         ImGui.BeginDisabled();
-        ++_disabledCount;
+        ++disabledCount;
         return DisabledEnd();
     }
 
@@ -130,24 +131,24 @@ public static partial class ImRaii
             return new EndConditionally(Nop, false);
 
         ImGui.BeginDisabled();
-        ++_disabledCount;
+        ++disabledCount;
         return DisabledEnd();
     }
 
     public static IEndObject Enabled()
     {
-        var oldCount = _disabledCount;
+        var oldCount = disabledCount;
         if (oldCount == 0)
             return new EndConditionally(Nop, false);
 
         void Restore()
         {
-            _disabledCount += oldCount;
+            disabledCount += oldCount;
             while (--oldCount >= 0)
                 ImGui.BeginDisabled();
         }
 
-        for (; _disabledCount > 0; --_disabledCount)
+        for (; disabledCount > 0; --disabledCount)
             ImGui.EndDisabled();
 
         return new EndUnconditionally(Restore, true);
@@ -156,7 +157,7 @@ public static partial class ImRaii
     private static IEndObject DisabledEnd()
         => new EndUnconditionally(() =>
         {
-            --_disabledCount;
+            --disabledCount;
             ImGui.EndDisabled();
         }, true);
 
@@ -173,6 +174,11 @@ public static partial class ImRaii
         return new EndUnconditionally(Widget.EndFramedGroup, true);
     }
     */
+    
+    // Used to avoid tree pops when flag for no push is set.
+    private static void Nop()
+    {
+    }
 
     // Exported interface for RAII.
     public interface IEndObject : IDisposable
@@ -203,7 +209,9 @@ public static partial class ImRaii
     private struct EndUnconditionally : IEndObject
     {
         private Action EndAction { get; }
+
         public  bool   Success   { get; }
+
         public  bool   Disposed  { get; private set; }
 
         public EndUnconditionally(Action endAction, bool success)
@@ -226,16 +234,18 @@ public static partial class ImRaii
     // Use end-function only on success.
     private struct EndConditionally : IEndObject
     {
-        private Action EndAction { get; }
-        public  bool   Success   { get; }
-        public  bool   Disposed  { get; private set; }
-
         public EndConditionally(Action endAction, bool success)
         {
             this.EndAction = endAction;
-            this.Success   = success;
-            this.Disposed  = false;
+            this.Success = success;
+            this.Disposed = false;
         }
+        
+        public bool Success { get; }
+
+        public bool Disposed { get; private set; }
+        
+        private Action EndAction { get; }
 
         public void Dispose()
         {
@@ -247,8 +257,4 @@ public static partial class ImRaii
             this.Disposed = true;
         }
     }
-
-    // Used to avoid tree pops when flag for no push is set.
-    private static void Nop()
-    { }
 }

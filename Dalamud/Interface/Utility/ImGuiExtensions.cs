@@ -1,10 +1,9 @@
-using System;
 using System.Numerics;
 using System.Text;
 
 using ImGuiNET;
 
-namespace Dalamud.Interface;
+namespace Dalamud.Interface.Utility;
 
 /// <summary>
 /// Class containing various extensions to ImGui, aiding with building custom widgets.

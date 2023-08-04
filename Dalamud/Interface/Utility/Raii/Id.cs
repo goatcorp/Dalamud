@@ -1,6 +1,6 @@
 using ImGuiNET;
 
-namespace Dalamud.Interface.Raii;
+namespace Dalamud.Interface.Utility.Raii;
 
 // Push an arbitrary amount of ids into an object that are all popped when it is disposed.
 // If condition is false, no id is pushed.
@@ -17,14 +17,14 @@ public static partial class ImRaii
 
     public sealed class Id : IDisposable
     {
-        private int _count;
+        private int count;
 
         public Id Push(string id, bool condition = true)
         {
             if (condition)
             {
                 ImGui.PushID(id);
-                ++this._count;
+                ++this.count;
             }
 
             return this;
@@ -35,7 +35,7 @@ public static partial class ImRaii
             if (condition)
             {
                 ImGui.PushID(id);
-                ++this._count;
+                ++this.count;
             }
 
             return this;
@@ -46,7 +46,7 @@ public static partial class ImRaii
             if (condition)
             {
                 ImGui.PushID(id);
-                ++this._count;
+                ++this.count;
             }
 
             return this;
@@ -54,13 +54,13 @@ public static partial class ImRaii
 
         public void Pop(int num = 1)
         {
-            num    =  Math.Min(num, this._count);
-            this._count -= num;
+            num    =  Math.Min(num, this.count);
+            this.count -= num;
             while (num-- > 0)
                 ImGui.PopID();
         }
 
         public void Dispose()
-            => this.Pop(this._count);
+            => this.Pop(this.count);
     }
 }

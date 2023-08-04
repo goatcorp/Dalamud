@@ -215,7 +215,7 @@ internal class TextureManager : IDisposable, IServiceType, ITextureSubstitutionP
                         (int)TexFile.TextureFormat.BppShift);
 
         var (dxgiFormat, conversion) = TexFile.GetDxgiFormatFromTextureFormat(file.Header.Format, false);
-        if (conversion != TexFile.DxgiFormatConversion.NoConversion || !im.SupportsDxgiFormat((Format)dxgiFormat))
+        if (conversion != TexFile.DxgiFormatConversion.NoConversion || !this.im.SupportsDxgiFormat((Format)dxgiFormat))
         {
             dxgiFormat = (int)Format.B8G8R8A8_UNorm;
             buffer = buffer.Filter(0, 0, TexFile.TextureFormat.B8G8R8A8);

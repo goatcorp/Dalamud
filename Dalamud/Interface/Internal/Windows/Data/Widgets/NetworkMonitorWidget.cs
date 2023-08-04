@@ -7,7 +7,8 @@ using System.Text.RegularExpressions;
 
 using Dalamud.Data;
 using Dalamud.Game.Network;
-using Dalamud.Interface.Raii;
+using Dalamud.Interface.Utility;
+using Dalamud.Interface.Utility.Raii;
 using Dalamud.Memory;
 using ImGuiNET;
 

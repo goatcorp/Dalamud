@@ -1,6 +1,6 @@
 using ImGuiNET;
 
-namespace Dalamud.Interface.Raii;
+namespace Dalamud.Interface.Utility.Raii;
 
 // Push an arbitrary amount of fonts into an object that are all popped when it is disposed.
 // If condition is false, no font is pushed.
@@ -18,10 +18,10 @@ public static partial class ImRaii
         internal static int        FontPushCounter = 0;
         internal static ImFontPtr DefaultPushed;
 
-        private int _count;
+        private int count;
 
         public Font()
-            => this._count = 0;
+            => this.count = 0;
 
         public Font Push(ImFontPtr font, bool condition = true)
         {
@@ -30,7 +30,7 @@ public static partial class ImRaii
                 if (FontPushCounter++ == 0)
                     DefaultPushed = ImGui.GetFont();
                 ImGui.PushFont(font);
-                ++this._count;
+                ++this.count;
             }
 
             return this;
@@ -38,14 +38,14 @@ public static partial class ImRaii
 
         public void Pop(int num = 1)
         {
-            num             =  Math.Min(num, this._count);
-            this._count          -= num;
+            num             =  Math.Min(num, this.count);
+            this.count          -= num;
             FontPushCounter -= num;
             while (num-- > 0)
                 ImGui.PopFont();
         }
 
         public void Dispose()
-            => this.Pop(this._count);
+            => this.Pop(this.count);
     }
 }

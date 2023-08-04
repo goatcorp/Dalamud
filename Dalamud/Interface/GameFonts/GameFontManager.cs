@@ -9,12 +9,13 @@ using System.Threading.Tasks;
 using Dalamud.Data;
 using Dalamud.Game;
 using Dalamud.Interface.Internal;
+using Dalamud.Interface.Utility;
 using Dalamud.Utility.Timing;
 using ImGuiNET;
 using Lumina.Data.Files;
 using Serilog;
 
-using static Dalamud.Interface.ImGuiHelpers;
+using static Dalamud.Interface.Utility.ImGuiHelpers;
 
 namespace Dalamud.Interface.GameFonts;
 

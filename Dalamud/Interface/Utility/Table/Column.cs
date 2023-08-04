@@ -1,6 +1,6 @@
 using ImGuiNET;
 
-namespace Dalamud.Interface.Table;
+namespace Dalamud.Interface.Utility.Table;
 
 public class Column<TItem>
 {
@@ -27,7 +27,8 @@ public class Column<TItem>
         => 0;
 
     public virtual void DrawColumn(TItem item, int idx)
-    { }
+    {
+    }
 
     public int CompareInv(TItem lhs, TItem rhs)
         => this.Compare(rhs, lhs);

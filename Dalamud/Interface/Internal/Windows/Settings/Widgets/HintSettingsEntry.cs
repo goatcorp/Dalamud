@@ -2,6 +2,7 @@
 using System.Numerics;
 
 using Dalamud.Interface.Colors;
+using Dalamud.Interface.Utility;
 
 namespace Dalamud.Interface.Internal.Windows.Settings.Widgets;
 
