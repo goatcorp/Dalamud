@@ -1,4 +1,3 @@
-using System;
 using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -13,7 +12,7 @@ namespace Dalamud.Hooking;
 /// This class is basically a thin wrapper around the LocalHook type to provide helper functions.
 /// </summary>
 /// <typeparam name="T">Delegate type to represents a function prototype. This must be the same prototype as original function do.</typeparam>
-public class Hook<T> : IDisposable, IDalamudHook where T : Delegate
+public abstract class Hook<T> : IDisposable, IDalamudHook where T : Delegate
 {
 #pragma warning disable SA1310
     // ReSharper disable once InconsistentNaming
@@ -23,8 +22,6 @@ public class Hook<T> : IDisposable, IDalamudHook where T : Delegate
 #pragma warning restore SA1310
 
     private readonly IntPtr address;
-
-    private readonly Hook<T>? compatHookImpl;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="Hook{T}"/> class.
@@ -52,28 +49,19 @@ public class Hook<T> : IDisposable, IDalamudHook where T : Delegate
     /// Gets a delegate function that can be used to call the actual function as if function is not hooked yet.
     /// </summary>
     /// <exception cref="ObjectDisposedException">Hook is already disposed.</exception>
-    public virtual T Original => this.compatHookImpl != null ? this.compatHookImpl!.Original : throw new NotImplementedException();
+    public virtual T Original => throw new NotImplementedException();
 
     /// <summary>
     /// Gets a delegate function that can be used to call the actual function as if function is not hooked yet.
     /// This can be called even after Dispose.
     /// </summary>
     public T OriginalDisposeSafe
-    {
-        get
-        {
-            if (this.compatHookImpl != null)
-                return this.compatHookImpl!.OriginalDisposeSafe;
-            if (this.IsDisposed)
-                return Marshal.GetDelegateForFunctionPointer<T>(this.address);
-            return this.Original;
-        }
-    }
+        => this.IsDisposed ? Marshal.GetDelegateForFunctionPointer<T>(this.address) : this.Original;
 
     /// <summary>
     /// Gets a value indicating whether or not the hook is enabled.
     /// </summary>
-    public virtual bool IsEnabled => this.compatHookImpl != null ? this.compatHookImpl!.IsEnabled : throw new NotImplementedException();
+    public virtual bool IsEnabled => throw new NotImplementedException();
 
     /// <summary>
     /// Gets a value indicating whether or not the hook has been disposed.
@@ -81,7 +69,7 @@ public class Hook<T> : IDisposable, IDalamudHook where T : Delegate
     public bool IsDisposed { get; private set; }
 
     /// <inheritdoc/>
-    public virtual string BackendName => this.compatHookImpl != null ? this.compatHookImpl!.BackendName : throw new NotImplementedException();
+    public virtual string BackendName => throw new NotImplementedException();
 
     /// <summary>
     /// Creates a hook by rewriting import table address.
@@ -230,32 +218,18 @@ public class Hook<T> : IDisposable, IDalamudHook where T : Delegate
         if (this.IsDisposed)
             return;
 
-        this.compatHookImpl?.Dispose();
-
         this.IsDisposed = true;
     }
 
     /// <summary>
     /// Starts intercepting a call to the function.
     /// </summary>
-    public virtual void Enable()
-    {
-        if (this.compatHookImpl != null)
-            this.compatHookImpl.Enable();
-        else
-            throw new NotImplementedException();
-    }
+    public virtual void Enable() => throw new NotImplementedException();
 
     /// <summary>
     /// Stops intercepting a call to the function.
     /// </summary>
-    public virtual void Disable()
-    {
-        if (this.compatHookImpl != null)
-            this.compatHookImpl.Disable();
-        else
-            throw new NotImplementedException();
-    }
+    public virtual void Disable() => throw new NotImplementedException();
 
     /// <summary>
     /// Check if this object has been disposed already.
