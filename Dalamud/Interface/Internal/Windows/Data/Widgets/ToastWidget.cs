@@ -1,4 +1,5 @@
 ﻿using System.Numerics;
+
 using Dalamud.Game.Gui.Toast;
 using Dalamud.Interface.Utility;
 using ImGuiNET;

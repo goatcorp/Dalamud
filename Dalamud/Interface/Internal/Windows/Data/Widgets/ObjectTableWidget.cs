@@ -1,4 +1,5 @@
 ﻿using System.Numerics;
+
 using Dalamud.Game.ClientState;
 using Dalamud.Game.ClientState.Objects;
 using Dalamud.Game.Gui;

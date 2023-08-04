@@ -1,4 +1,5 @@
 ﻿using System.Runtime.InteropServices;
+
 using Dalamud.Hooking;
 using ImGuiNET;
 using PInvoke;
