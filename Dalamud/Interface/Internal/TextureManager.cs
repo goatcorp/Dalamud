@@ -1,4 +1,4 @@
-﻿using System;
+﻿using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -485,17 +485,17 @@ internal class TextureManager : IDisposable, IServiceType, ITextureSubstitutionP
 #pragma warning disable SA1015
 [ResolveVia<ITextureProvider>]
 #pragma warning restore SA1015
-internal class TextureManagerPluginScoped : ITextureProvider, IServiceType, IDisposable
+internal class TextureProviderPluginScoped : ITextureProvider, IServiceType, IDisposable
 {
     private readonly TextureManager textureManager;
 
-    private readonly List<TextureManagerTextureWrap> trackedTextures = new();
+    private readonly ConcurrentBag<TextureManagerTextureWrap> trackedTextures = new();
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="TextureManagerPluginScoped"/> class.
+    /// Initializes a new instance of the <see cref="TextureProviderPluginScoped"/> class.
     /// </summary>
     /// <param name="textureManager">TextureManager instance.</param>
-    public TextureManagerPluginScoped(TextureManager textureManager)
+    public TextureProviderPluginScoped(TextureManager textureManager)
     {
         this.textureManager = textureManager;
     }
