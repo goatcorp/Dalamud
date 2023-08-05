@@ -25,7 +25,7 @@ public static partial class ImGuiComponents
 
         var text = icon.ToIconString();
         if (id.HasValue)
-            text = $"{text}{id}";
+            text = $"{text}##{id}";
 
         var button = DisabledButton(text, defaultColor, activeColor, hoveredColor, alphaMult);
 
