@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -6,6 +7,7 @@ using System.Runtime.InteropServices;
 using Dalamud.Game;
 using Dalamud.Hooking;
 using Dalamud.Logging;
+using Dalamud.Plugin.Services;
 using Dalamud.Utility.Signatures.Wrappers;
 using Serilog;
 
@@ -14,7 +16,7 @@ namespace Dalamud.Utility.Signatures;
 /// <summary>
 /// A utility class to help reduce signature boilerplate code.
 /// </summary>
-public static class SignatureHelper
+internal static class SignatureHelper
 {
     private const BindingFlags Flags = BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic;
 
@@ -24,7 +26,8 @@ public static class SignatureHelper
     /// </summary>
     /// <param name="self">The object to initialise.</param>
     /// <param name="log">If warnings should be logged using <see cref="PluginLog"/>.</param>
-    public static void Initialise(object self, bool log = true)
+    /// <returns>Collection of created IDalamudHooks.</returns>
+    internal static IEnumerable<IDalamudHook> Initialise(object self, bool log = true)
     {
         var scanner = Service<SigScanner>.Get();
         var selfType = self.GetType();
@@ -32,6 +35,8 @@ public static class SignatureHelper
                              .Concat(selfType.GetProperties(Flags).Select(prop => new PropertyInfoWrapper(prop)))
                              .Select(field => (field, field.GetCustomAttribute<SignatureAttribute>()))
                              .Where(field => field.Item2 != null);
+
+        var createdHooks = new List<IDalamudHook>();
 
         foreach (var (info, sig) in fields)
         {
@@ -149,15 +154,16 @@ public static class SignatureHelper
                         detour = del;
                     }
 
-                    var ctor = actualType.GetConstructor(new[] { typeof(IntPtr), hookDelegateType });
-                    if (ctor == null)
+                    var creator = actualType.GetMethod("FromAddress", BindingFlags.Static | BindingFlags.NonPublic);
+                    if (creator == null)
                     {
-                        Log.Error("Error in SignatureHelper: could not find Hook constructor");
+                        Log.Error("Error in SignatureHelper: could not find Hook creator");
                         continue;
                     }
 
-                    var hook = ctor.Invoke(new object?[] { ptr, detour });
+                    var hook = creator.Invoke(null, new object?[] { ptr, detour, IHookProvider.HookBackend.Automatic }) as IDalamudHook;
                     info.SetValue(self, hook);
+                    createdHooks.Add(hook);
 
                     break;
                 }
@@ -182,5 +188,7 @@ public static class SignatureHelper
                 }
             }
         }
+
+        return createdHooks;
     }
 }

@@ -12,7 +12,7 @@ namespace Dalamud.Hooking;
 /// This class is basically a thin wrapper around the LocalHook type to provide helper functions.
 /// </summary>
 /// <typeparam name="T">Delegate type to represents a function prototype. This must be the same prototype as original function do.</typeparam>
-public abstract class Hook<T> : IDisposable, IDalamudHook where T : Delegate
+public abstract class Hook<T> : IDalamudHook where T : Delegate
 {
 #pragma warning disable SA1310
     // ReSharper disable once InconsistentNaming
@@ -70,6 +70,27 @@ public abstract class Hook<T> : IDisposable, IDalamudHook where T : Delegate
 
     /// <inheritdoc/>
     public virtual string BackendName => throw new NotImplementedException();
+    
+    /// <summary>
+    /// Remove a hook from the current process.
+    /// </summary>
+    public virtual void Dispose()
+    {
+        if (this.IsDisposed)
+            return;
+
+        this.IsDisposed = true;
+    }
+
+    /// <summary>
+    /// Starts intercepting a call to the function.
+    /// </summary>
+    public virtual void Enable() => throw new NotImplementedException();
+
+    /// <summary>
+    /// Stops intercepting a call to the function.
+    /// </summary>
+    public virtual void Disable() => throw new NotImplementedException();
 
     /// <summary>
     /// Creates a hook by rewriting import table address.
@@ -77,7 +98,7 @@ public abstract class Hook<T> : IDisposable, IDalamudHook where T : Delegate
     /// <param name="address">A memory address to install a hook.</param>
     /// <param name="detour">Callback function. Delegate must have a same original function prototype.</param>
     /// <returns>The hook with the supplied parameters.</returns>
-    public static unsafe Hook<T> FromFunctionPointerVariable(IntPtr address, T detour)
+    internal static Hook<T> FromFunctionPointerVariable(IntPtr address, T detour)
     {
         return new FunctionPointerVariableHook<T>(address, detour, Assembly.GetCallingAssembly());
     }
@@ -91,7 +112,7 @@ public abstract class Hook<T> : IDisposable, IDalamudHook where T : Delegate
     /// <param name="hintOrOrdinal">Hint or ordinal. 0 to unspecify.</param>
     /// <param name="detour">Callback function. Delegate must have a same original function prototype.</param>
     /// <returns>The hook with the supplied parameters.</returns>
-    public static unsafe Hook<T> FromImport(ProcessModule? module, string moduleName, string functionName, uint hintOrOrdinal, T detour)
+    internal static unsafe Hook<T> FromImport(ProcessModule? module, string moduleName, string functionName, uint hintOrOrdinal, T detour)
     {
         module ??= Process.GetCurrentProcess().MainModule;
         if (module == null)
@@ -156,7 +177,7 @@ public abstract class Hook<T> : IDisposable, IDalamudHook where T : Delegate
     /// <param name="exportName">A name of the exported function name (e.g. send).</param>
     /// <param name="detour">Callback function. Delegate must have a same original function prototype.</param>
     /// <returns>The hook with the supplied parameters.</returns>
-    public static Hook<T> FromSymbol(string moduleName, string exportName, T detour)
+    internal static Hook<T> FromSymbol(string moduleName, string exportName, T detour)
         => FromSymbol(moduleName, exportName, detour, false);
 
     /// <summary>
@@ -169,7 +190,7 @@ public abstract class Hook<T> : IDisposable, IDalamudHook where T : Delegate
     /// <param name="detour">Callback function. Delegate must have a same original function prototype.</param>
     /// <param name="useMinHook">Use the MinHook hooking library instead of Reloaded.</param>
     /// <returns>The hook with the supplied parameters.</returns>
-    public static Hook<T> FromSymbol(string moduleName, string exportName, T detour, bool useMinHook)
+    internal static Hook<T> FromSymbol(string moduleName, string exportName, T detour, bool useMinHook)
     {
         if (EnvironmentConfiguration.DalamudForceMinHook)
             useMinHook = true;
@@ -198,7 +219,7 @@ public abstract class Hook<T> : IDisposable, IDalamudHook where T : Delegate
     /// <param name="detour">Callback function. Delegate must have a same original function prototype.</param>
     /// <param name="useMinHook">Use the MinHook hooking library instead of Reloaded.</param>
     /// <returns>The hook with the supplied parameters.</returns>
-    public static Hook<T> FromAddress(IntPtr procAddress, T detour, bool useMinHook = false)
+    internal static Hook<T> FromAddress(IntPtr procAddress, T detour, bool useMinHook = false)
     {
         if (EnvironmentConfiguration.DalamudForceMinHook)
             useMinHook = true;
@@ -209,27 +230,6 @@ public abstract class Hook<T> : IDisposable, IDalamudHook where T : Delegate
         else
             return new ReloadedHook<T>(procAddress, detour, Assembly.GetCallingAssembly());
     }
-
-    /// <summary>
-    /// Remove a hook from the current process.
-    /// </summary>
-    public virtual void Dispose()
-    {
-        if (this.IsDisposed)
-            return;
-
-        this.IsDisposed = true;
-    }
-
-    /// <summary>
-    /// Starts intercepting a call to the function.
-    /// </summary>
-    public virtual void Enable() => throw new NotImplementedException();
-
-    /// <summary>
-    /// Stops intercepting a call to the function.
-    /// </summary>
-    public virtual void Disable() => throw new NotImplementedException();
 
     /// <summary>
     /// Check if this object has been disposed already.
