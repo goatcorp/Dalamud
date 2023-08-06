@@ -13,7 +13,7 @@ using Serilog;
 namespace Dalamud.Hooking.Internal;
 
 /// <summary>
-/// Plugin-scoped version of a texture manager.
+/// Plugin-scoped version of service used to create hooks.
 /// </summary>
 [PluginInterface]
 [InterfaceVersion("1.0")]
