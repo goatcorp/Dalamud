@@ -42,7 +42,7 @@ internal class HookProviderPluginScoped : IHookProvider, IServiceType, IDisposab
     /// <inheritdoc/>
     public void InitializeFromAttributes(object self)
     {
-        foreach (var hook in SignatureHelper.Initialise(self))
+        foreach (var hook in SignatureHelper.Initialize(self))
             this.trackedHooks.Add(hook);
     }
 
@@ -80,7 +80,7 @@ internal class HookProviderPluginScoped : IHookProvider, IServiceType, IDisposab
 
     /// <inheritdoc/>
     public Hook<T> FromSignature<T>(string signature, T detour, IHookProvider.HookBackend backend = IHookProvider.HookBackend.Automatic) where T : Delegate
-        => this.FromAddress(this.scanner.ScanText(signature), detour);
+        => this.FromAddress(this.scanner.ScanText(signature), detour, backend);
 
     /// <inheritdoc/>
     public void Dispose()

@@ -27,7 +27,7 @@ internal static class SignatureHelper
     /// <param name="self">The object to initialise.</param>
     /// <param name="log">If warnings should be logged using <see cref="PluginLog"/>.</param>
     /// <returns>Collection of created IDalamudHooks.</returns>
-    internal static IEnumerable<IDalamudHook> Initialise(object self, bool log = true)
+    internal static IEnumerable<IDalamudHook> Initialize(object self, bool log = true)
     {
         var scanner = Service<SigScanner>.Get();
         var selfType = self.GetType();
