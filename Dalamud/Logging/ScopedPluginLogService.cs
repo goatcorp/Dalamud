@@ -32,10 +32,8 @@ public class ScopedPluginLogService : IServiceType, IPluginLog, IDisposable
     internal ScopedPluginLogService(LocalPlugin localPlugin)
     {
         this.localPlugin = localPlugin;
-
-        // For now, plugins are allowed to write to debug freely by default. Plugins need to explicitly opt-in to
-        // sending verbose logs.
-        this.levelSwitch = new LoggingLevelSwitch(LogEventLevel.Debug);
+        
+        this.levelSwitch = new LoggingLevelSwitch(this.GetDefaultLevel());
 
         var loggerConfiguration = new LoggerConfiguration()
                                   .Enrich.WithProperty("Dalamud.PluginName", localPlugin.InternalName)
@@ -117,5 +115,16 @@ public class ScopedPluginLogService : IServiceType, IPluginLog, IDisposable
             exception: exception,
             messageTemplate: $"[{this.localPlugin.InternalName}] {messageTemplate}",
             values);
+    }
+
+    /// <summary>
+    /// Gets the default log level for this plugin.
+    /// </summary>
+    /// <returns>A log level.</returns>
+    private LogEventLevel GetDefaultLevel()
+    {
+        // TODO: Add some way to save log levels to a config. Or let plugins handle it?
+        
+        return this.localPlugin.IsDev ? LogEventLevel.Verbose : LogEventLevel.Debug;
     }
 }

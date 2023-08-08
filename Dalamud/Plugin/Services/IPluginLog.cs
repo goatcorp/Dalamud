@@ -15,7 +15,8 @@ public interface IPluginLog
     /// by either the plugin or by Dalamud itself.
     /// </summary>
     /// <remarks>
-    /// Defaults to <see cref="LogEventLevel.Debug"/> for all plugins.
+    /// Defaults to <see cref="LogEventLevel.Debug"/> for downloaded plugins, and <see cref="LogEventLevel.Verbose"/>
+    /// for dev plugins.
     /// </remarks>
     LogEventLevel MinimumLogLevel { get; set; }
 
@@ -102,10 +103,10 @@ public interface IPluginLog
     /// should not be used to expose information useful for support purposes.
     /// </summary>
     /// <remarks>
-    /// By default, this log level is below the default log level of Dalamud <em>as well as the default PluginLog
-    /// level</em>. In order to use this log level, a user must set their global log level to Verbose <em>and</em> have
-    /// their plugin opt in via <see cref="IPluginLog.MinimumLogLevel"/>. This should <em>not</em> be set for release
-    /// plugins unless specifically requested by the user!
+    /// By default, this log level is below the default log level of Dalamud. Messages logged at this level will not be
+    /// recorded unless the global log level is specifically set to Verbose. Release plugins must also set the
+    /// <see cref="MinimumLogLevel"/> to <see cref="LogEventLevel.Verbose"/> to use this level, and should only do so
+    /// upon specific user request (e.g. a "Enable Troubleshooting Logs" button). 
     /// </remarks>
     /// <param name="messageTemplate">Message template describing the event.</param>
     /// <param name="values">Objects positionally formatted into the message template.</param>
