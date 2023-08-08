@@ -239,24 +239,33 @@ internal class TextureManager : IDisposable, IServiceType, ITextureSubstitutionP
     /// If false, exceptions will be caught and a dummy texture will be returned to prevent plugins from using invalid texture handles.
     /// </param>
     /// <returns>Info object storing texture metadata.</returns>
-    internal TextureInfo GetInfo(string path, bool refresh = true, bool rethrow = false)
+    internal TextureInfo? GetInfo(string path, bool refresh = true, bool rethrow = false)
     {
         TextureInfo? info;
         lock (this.activeTextures)
         {
-            this.activeTextures.TryGetValue(path, out info);
+            if (!this.activeTextures.TryGetValue(path, out info))
+            {
+                Debug.Assert(rethrow, "This should never run when getting outside of creator");
+
+                if (!refresh)
+                    return null;
+                
+                // NOTE: We need to init the refcount here while locking the collection!
+                // Otherwise, if this is loaded from a task, cleanup might already try to delete it
+                // before it can be increased.
+                info = new TextureInfo
+                {
+                    RefCount = 1,
+                };
+
+                this.activeTextures.Add(path, info);
+            }
+
+            if (info == null)
+                throw new Exception("null info in activeTextures");
         }
 
-        if (info == null)
-        {
-            info = new TextureInfo();
-            lock (this.activeTextures)
-            {
-                if (!this.activeTextures.TryAdd(path, info))
-                    Log.Warning("Texture {Path} tracked twice", path);
-            }
-        }
-        
         if (refresh && info.KeepAliveCount == 0)
             info.LastAccess = DateTime.UtcNow;
         
@@ -353,6 +362,14 @@ internal class TextureManager : IDisposable, IServiceType, ITextureSubstitutionP
     internal void NotifyTextureDisposed(string path, bool keepAlive)
     {
         var info = this.GetInfo(path, false);
+        
+        // This texture was already disposed
+        if (info == null)
+        {
+            Log.Warning("Disposing unknown texture {Path}", path);
+            return;
+        }
+        
         info.RefCount--;
 
         if (keepAlive)
@@ -378,8 +395,7 @@ internal class TextureManager : IDisposable, IServiceType, ITextureSubstitutionP
     {
         // This will create the texture.
         // That's fine, it's probably used immediately and this will let the plugin catch load errors.
-        var info = this.GetInfo(path, rethrow: true);
-        info.RefCount++;
+        var info = this.GetInfo(path, rethrow: true)!;
 
         if (keepAlive)
             info.KeepAliveCount++;
@@ -575,7 +591,7 @@ internal class TextureManagerTextureWrap : IDalamudTextureWrap
 
     /// <inheritdoc/>
     public IntPtr ImGuiHandle => !this.IsDisposed ?
-                                     this.manager.GetInfo(this.path).Wrap!.ImGuiHandle :
+                                     this.manager.GetInfo(this.path)!.Wrap!.ImGuiHandle :
                                      throw new InvalidOperationException("Texture already disposed. You may not render it.");
 
     /// <inheritdoc/>
