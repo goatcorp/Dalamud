@@ -209,7 +209,7 @@ internal class TextureManager : IDisposable, IServiceType, ITextureSubstitutionP
             throw new InvalidOperationException("Cannot create textures before scene is ready");
         
 #pragma warning disable CS0618
-        return this.dataManager.GetImGuiTexture(file) as IDalamudTextureWrap;
+        return (IDalamudTextureWrap)this.dataManager.GetImGuiTexture(file);
 #pragma warning restore CS0618
     }
 
@@ -332,6 +332,10 @@ internal class TextureManager : IDisposable, IServiceType, ITextureSubstitutionP
                 // and we can't do anything about it. Return a dummy texture so that the plugin still
                 // has something to draw.
                 wrap = this.fallbackTextureWrap;
+                
+                // Prevent divide-by-zero
+                if (info.Extents == Vector2.Zero)
+                    info.Extents = Vector2.One;
             }
 
             info.Wrap = wrap;

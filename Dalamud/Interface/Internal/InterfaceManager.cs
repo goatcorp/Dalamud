@@ -325,7 +325,7 @@ internal class InterfaceManager : IDisposable, IServiceType
     /// <param name="height">The height in pixels.</param>
     /// <param name="dxgiFormat">Format of the texture.</param>
     /// <returns>A texture, ready to use in ImGui.</returns>
-    public TextureWrap LoadImageFromDxgiFormat(Span<byte> data, int pitch, int width, int height, Format dxgiFormat)
+    public IDalamudTextureWrap LoadImageFromDxgiFormat(Span<byte> data, int pitch, int width, int height, Format dxgiFormat)
     {
         if (this.scene == null)
             throw new InvalidOperationException("Scene isn't ready.");
@@ -360,7 +360,7 @@ internal class InterfaceManager : IDisposable, IServiceType
         }
         
         // no sampler for now because the ImGui implementation we copied doesn't allow for changing it
-        return new D3DTextureWrap(resView, width, height);
+        return new DalamudTextureWrap(new D3DTextureWrap(resView, width, height));
     }
 
 #nullable restore
