@@ -574,7 +574,9 @@ internal class TextureManagerTextureWrap : IDalamudTextureWrap
     }
 
     /// <inheritdoc/>
-    public IntPtr ImGuiHandle => this.manager.GetInfo(this.path).Wrap!.ImGuiHandle;
+    public IntPtr ImGuiHandle => !this.IsDisposed ?
+                                     this.manager.GetInfo(this.path).Wrap!.ImGuiHandle :
+                                     throw new InvalidOperationException("Texture already disposed. You may not render it.");
 
     /// <inheritdoc/>
     public int Width { get; private set; }
