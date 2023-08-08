@@ -250,20 +250,18 @@ internal class TextureManager : IDisposable, IServiceType, ITextureSubstitutionP
 
                 if (!refresh)
                     return null;
-                
-                // NOTE: We need to init the refcount here while locking the collection!
-                // Otherwise, if this is loaded from a task, cleanup might already try to delete it
-                // before it can be increased.
-                info = new TextureInfo
-                {
-                    RefCount = 1,
-                };
 
+                info = new TextureInfo();
                 this.activeTextures.Add(path, info);
             }
 
             if (info == null)
                 throw new Exception("null info in activeTextures");
+            
+            // NOTE: We need to increase the refcount here while locking the collection!
+            // Otherwise, if this is loaded from a task, cleanup might already try to delete it
+            // before it can be increased.
+            info.RefCount++;
         }
 
         if (refresh && info.KeepAliveCount == 0)
