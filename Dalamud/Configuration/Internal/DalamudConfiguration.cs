@@ -70,6 +70,12 @@ internal sealed class DalamudConfiguration : IServiceType
     public string LastVersion { get; set; } = null;
 
     /// <summary>
+    /// Gets or sets a value indicating the last seen FTUE version.
+    /// Unused for now, added to prevent existing users from seeing level 0 FTUE.
+    /// </summary>
+    public int SeenFtueLevel { get; set; } = 1;
+
+    /// <summary>
     /// Gets or sets the last loaded Dalamud version.
     /// </summary>
     public string LastChangelogMajorMinor { get; set; } = null;
