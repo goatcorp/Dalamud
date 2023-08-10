@@ -214,6 +214,39 @@ internal class TextureManager : IDisposable, IServiceType, ITextureSubstitutionP
     }
 
     /// <inheritdoc/>
+    public string GetSubstitutedPath(string originalPath)
+    {
+        if (this.InterceptTexDataLoad == null)
+            return originalPath;
+        
+        string? interceptPath = null;
+        this.InterceptTexDataLoad.Invoke(originalPath, ref interceptPath);
+
+        if (interceptPath != null)
+        {
+            Log.Verbose("Intercept: {OriginalPath} => {ReplacePath}", originalPath, interceptPath);
+            return interceptPath;
+        }
+
+        return originalPath;
+    }
+
+    /// <inheritdoc/>
+    public void InvalidatePaths(IEnumerable<string> paths)
+    {
+        lock (this.activeTextures)
+        {
+            foreach (var path in paths)
+            {
+                if (!this.activeTextures.TryGetValue(path, out var info) || info == null)
+                    continue;
+
+                info.Wrap = null;
+            }
+        }
+    }
+    
+    /// <inheritdoc/>
     public void Dispose()
     {
         this.fallbackTextureWrap?.Dispose();
@@ -263,16 +296,10 @@ internal class TextureManager : IDisposable, IServiceType, ITextureSubstitutionP
 
         if (!this.im.IsReady)
                 throw new InvalidOperationException("Cannot create textures before scene is ready");
-            
-        string? interceptPath = null;
-        this.InterceptTexDataLoad?.Invoke(path, ref interceptPath);
 
-        if (interceptPath != null)
-        {
-            Log.Verbose("Intercept: {OriginalPath} => {ReplacePath}", path, interceptPath);
-            path = interceptPath;
-        }
-
+        // Substitute the path here for loading, instead of when getting the respective TextureInfo
+        path = this.GetSubstitutedPath(path);
+        
         TextureWrap? wrap;
         try
         {
