@@ -967,7 +967,14 @@ internal class PluginInstallerWindow : Window, IDisposable
             {
                 this.dalamudChangelogRefreshTaskCts = new CancellationTokenSource();
                 this.dalamudChangelogRefreshTask =
-                    Task.Run(this.dalamudChangelogManager.ReloadChangelogAsync, this.dalamudChangelogRefreshTaskCts.Token);
+                    Task.Run(this.dalamudChangelogManager.ReloadChangelogAsync, this.dalamudChangelogRefreshTaskCts.Token)
+                        .ContinueWith(t =>
+                        {
+                            if (!t.IsCompletedSuccessfully)
+                            {
+                                Log.Error(t.Exception, "Failed to load changelogs.");
+                            }
+                        });
             }
 
             return;

@@ -241,6 +241,7 @@ internal class TextureManager : IDisposable, IServiceType, ITextureSubstitutionP
                 if (!this.activeTextures.TryGetValue(path, out var info) || info == null)
                     continue;
 
+                info.Wrap?.Dispose();
                 info.Wrap = null;
             }
         }
