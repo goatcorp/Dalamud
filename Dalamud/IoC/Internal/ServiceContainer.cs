@@ -12,6 +12,9 @@ namespace Dalamud.IoC.Internal;
 
 /// <summary>
 /// A simple singleton-only IOC container that provides (optional) version-based dependency resolution.
+/// 
+/// This is only used to resolve dependencies for plugins.
+/// Dalamud services are constructed via Service{T}.ConstructObject at the moment.
 /// </summary>
 internal class ServiceContainer : IServiceProvider, IServiceType
 {
@@ -31,7 +34,7 @@ internal class ServiceContainer : IServiceProvider, IServiceType
     /// Register a singleton object of any type into the current IOC container.
     /// </summary>
     /// <param name="instance">The existing instance to register in the container.</param>
-    /// <typeparam name="T">The interface to register.</typeparam>
+    /// <typeparam name="T">The type to register.</typeparam>
     public void RegisterSingleton<T>(Task<T> instance)
     {
         if (instance == null)
@@ -40,19 +43,27 @@ internal class ServiceContainer : IServiceProvider, IServiceType
         }
 
         this.instances[typeof(T)] = new(instance.ContinueWith(x => new WeakReference(x.Result)), typeof(T));
+        this.RegisterInterfaces(typeof(T));
+    }
 
-        var resolveViaTypes = typeof(T)
-                                                .GetCustomAttributes()
-                                                .OfType<ResolveViaAttribute>()
-                                                .Select(x => x.GetType().GetGenericArguments().First());
+    /// <summary>
+    /// Register the interfaces that can resolve this type.
+    /// </summary>
+    /// <param name="type">The type to register.</param>
+    public void RegisterInterfaces(Type type)
+    {
+        var resolveViaTypes = type
+                              .GetCustomAttributes()
+                              .OfType<ResolveViaAttribute>()
+                              .Select(x => x.GetType().GetGenericArguments().First());
         foreach (var resolvableType in resolveViaTypes)
         {
-            Log.Verbose("=> {InterfaceName} provides for {TName}", resolvableType.FullName ?? "???", typeof(T).FullName ?? "???");
+            Log.Verbose("=> {InterfaceName} provides for {TName}", resolvableType.FullName ?? "???", type.FullName ?? "???");
 
             Debug.Assert(!this.interfaceToTypeMap.ContainsKey(resolvableType), "A service already implements this interface, this is not allowed");
-            Debug.Assert(typeof(T).IsAssignableTo(resolvableType), "Service does not inherit from indicated ResolveVia type");
+            Debug.Assert(type.IsAssignableTo(resolvableType), "Service does not inherit from indicated ResolveVia type");
 
-            this.interfaceToTypeMap[resolvableType] = typeof(T);
+            this.interfaceToTypeMap[resolvableType] = type;
         }
     }
 
@@ -95,18 +106,7 @@ internal class ServiceContainer : IServiceProvider, IServiceType
                 parameters
                     .Select(async p =>
                     {
-                        if (p.parameterType.GetCustomAttribute<ServiceManager.ScopedService>() != null)
-                        {
-                            if (scopeImpl == null)
-                            {
-                                Log.Error("Failed to create {TypeName}, depends on scoped service but no scope", objectType.FullName!);
-                                return null;
-                            }
-
-                            return await scopeImpl.CreatePrivateScopedObject(p.parameterType, scopedObjects);
-                        }
-
-                        var service = await this.GetService(p.parameterType, scopedObjects);
+                        var service = await this.GetService(p.parameterType, scopeImpl, scopedObjects);
 
                         if (service == null)
                         {
@@ -168,22 +168,7 @@ internal class ServiceContainer : IServiceProvider, IServiceType
 
         foreach (var prop in props)
         {
-            object service = null;
-
-            if (prop.propertyInfo.PropertyType.GetCustomAttribute<ServiceManager.ScopedService>() != null)
-            {
-                if (scopeImpl == null)
-                {
-                    Log.Error("Failed to create {TypeName}, depends on scoped service but no scope", objectType.FullName!);
-                }
-                else
-                {
-                    service = await scopeImpl.CreatePrivateScopedObject(prop.propertyInfo.PropertyType, publicScopes);
-                }
-            }
-
-            service ??= await this.GetService(prop.propertyInfo.PropertyType, publicScopes);
-
+            var service = await this.GetService(prop.propertyInfo.PropertyType, scopeImpl, publicScopes);
             if (service == null)
             {
                 Log.Error("Requested service type {TypeName} was not available (null)", prop.propertyInfo.PropertyType.FullName!);
@@ -203,7 +188,7 @@ internal class ServiceContainer : IServiceProvider, IServiceType
     public IServiceScope GetScope() => new ServiceScopeImpl(this);
 
     /// <inheritdoc/>
-    object? IServiceProvider.GetService(Type serviceType) => this.GetService(serviceType);
+    object? IServiceProvider.GetService(Type serviceType) => this.GetSingletonService(serviceType);
 
     private static bool CheckInterfaceVersion(RequiredVersionAttribute? requiredVersion, Type parameterType)
     {
@@ -228,9 +213,23 @@ internal class ServiceContainer : IServiceProvider, IServiceType
         return false;
     }
 
-    private async Task<object?> GetService(Type serviceType, object[] scopedObjects)
+    private async Task<object?> GetService(Type serviceType, ServiceScopeImpl? scope, object[] scopedObjects)
     {
-        var singletonService = await this.GetService(serviceType);
+        if (this.interfaceToTypeMap.TryGetValue(serviceType, out var implementingType))
+            serviceType = implementingType;
+        
+        if (serviceType.GetCustomAttribute<ServiceManager.ScopedService>() != null)
+        {
+            if (scope == null)
+            {
+                Log.Error("Failed to create {TypeName}, is scoped but no scope provided", serviceType.FullName!);
+                return null;
+            }
+
+            return await scope.CreatePrivateScopedObject(serviceType, scopedObjects);
+        }
+
+        var singletonService = await this.GetSingletonService(serviceType, false);
         if (singletonService != null)
         {
             return singletonService;
@@ -246,9 +245,9 @@ internal class ServiceContainer : IServiceProvider, IServiceType
         return scoped;
     }
 
-    private async Task<object?> GetService(Type serviceType)
+    private async Task<object?> GetSingletonService(Type serviceType, bool tryGetInterface = true)
     {
-        if (this.interfaceToTypeMap.TryGetValue(serviceType, out var implementingType))
+        if (tryGetInterface && this.interfaceToTypeMap.TryGetValue(serviceType, out var implementingType))
             serviceType = implementingType;
 
         if (!this.instances.TryGetValue(serviceType, out var service))
@@ -285,13 +284,24 @@ internal class ServiceContainer : IServiceProvider, IServiceType
 
     private bool ValidateCtor(ConstructorInfo ctor, Type[] types)
     {
+        bool IsTypeValid(Type type)
+        {
+            var contains = types.Any(x => x.IsAssignableTo(type));
+
+            // Scoped services are created on-demand
+            return contains || type.GetCustomAttribute<ServiceManager.ScopedService>() != null;
+        }
+        
         var parameters = ctor.GetParameters();
         foreach (var parameter in parameters)
         {
-            var contains = types.Any(x => x.IsAssignableTo(parameter.ParameterType));
+            var valid = IsTypeValid(parameter.ParameterType);
+            
+            // If this service is provided by an interface
+            if (!valid && this.interfaceToTypeMap.TryGetValue(parameter.ParameterType, out var implementationType))
+                valid = IsTypeValid(implementationType);
 
-            // Scoped services are created on-demand
-            if (!contains && parameter.ParameterType.GetCustomAttribute<ServiceManager.ScopedService>() == null)
+            if (!valid)
             {
                 Log.Error("Failed to validate {TypeName}, unable to find any services that satisfy the type", parameter.ParameterType.FullName!);
                 return false;

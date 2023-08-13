@@ -28,6 +28,10 @@ using ImGuiScene;
 using JetBrains.Annotations;
 using PInvoke;
 using Serilog;
+using SharpDX;
+using SharpDX.Direct3D;
+using SharpDX.Direct3D11;
+using SharpDX.DXGI;
 
 // general dev notes, here because it's easiest
 
@@ -321,6 +325,62 @@ internal class InterfaceManager : IDisposable, IServiceType
         }
 
         return null;
+    }
+
+    /// <summary>
+    /// Check whether the current D3D11 Device supports the given DXGI format.
+    /// </summary>
+    /// <param name="dxgiFormat">DXGI format to check.</param>
+    /// <returns>Whether it is supported.</returns>
+    public bool SupportsDxgiFormat(Format dxgiFormat) => this.scene is null
+        ? throw new InvalidOperationException("Scene isn't ready.")
+        : this.scene.Device.CheckFormatSupport(dxgiFormat).HasFlag(FormatSupport.Texture2D);
+
+    /// <summary>
+    /// Load an image from a span of bytes of specified format.
+    /// </summary>
+    /// <param name="data">The data to load.</param>
+    /// <param name="pitch">The pitch(stride) in bytes.</param>
+    /// <param name="width">The width in pixels.</param>
+    /// <param name="height">The height in pixels.</param>
+    /// <param name="dxgiFormat">Format of the texture.</param>
+    /// <returns>A texture, ready to use in ImGui.</returns>
+    public IDalamudTextureWrap LoadImageFromDxgiFormat(Span<byte> data, int pitch, int width, int height, Format dxgiFormat)
+    {
+        if (this.scene == null)
+            throw new InvalidOperationException("Scene isn't ready.");
+
+        ShaderResourceView resView;
+        unsafe
+        {
+            fixed (void* pData = data)
+            {
+                var texDesc = new Texture2DDescription
+                {
+                    Width = width,
+                    Height = height,
+                    MipLevels = 1,
+                    ArraySize = 1,
+                    Format = dxgiFormat,
+                    SampleDescription = new(1, 0),
+                    Usage = ResourceUsage.Immutable,
+                    BindFlags = BindFlags.ShaderResource,
+                    CpuAccessFlags = CpuAccessFlags.None,
+                    OptionFlags = ResourceOptionFlags.None,
+                };
+
+                using var texture = new Texture2D(this.Device, texDesc, new DataRectangle(new(pData), pitch));
+                resView = new(this.Device, texture, new()
+                {
+                    Format = texDesc.Format,
+                    Dimension = ShaderResourceViewDimension.Texture2D,
+                    Texture2D = { MipLevels = texDesc.MipLevels },
+                });
+            }
+        }
+        
+        // no sampler for now because the ImGui implementation we copied doesn't allow for changing it
+        return new DalamudTextureWrap(new D3DTextureWrap(resView, width, height));
     }
 
 #nullable restore
@@ -624,7 +684,11 @@ internal class InterfaceManager : IDisposable, IServiceType
         }
 
         this.RenderImGui();
+        this.DisposeTextures();
+    }
 
+    private void DisposeTextures()
+    {
         if (this.deferredDisposeTextures.Count > 0)
         {
             Log.Verbose("[IM] Disposing {Count} textures", this.deferredDisposeTextures.Count);

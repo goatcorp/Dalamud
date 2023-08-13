@@ -132,11 +132,20 @@ internal static class ServiceManager
         var dependencyServicesMap = new Dictionary<Type, List<Type>>();
         var getAsyncTaskMap = new Dictionary<Type, Task>();
 
+        var serviceContainer = Service<ServiceContainer>.Get();
+
         foreach (var serviceType in Assembly.GetExecutingAssembly().GetTypes())
         {
             var serviceKind = serviceType.GetServiceKind();
-            if (serviceKind is ServiceKind.None or ServiceKind.ScopedService)
+            if (serviceKind is ServiceKind.None)
                 continue;
+
+            // Scoped service do not go through Service<T>, so we must let ServiceContainer know what their interfaces map to
+            if (serviceKind is ServiceKind.ScopedService)
+            {
+                serviceContainer.RegisterInterfaces(serviceType);
+                continue;
+            }
             
             Debug.Assert(
                 !serviceKind.HasFlag(ServiceKind.ManualService) && !serviceKind.HasFlag(ServiceKind.ScopedService),
