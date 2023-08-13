@@ -1,9 +1,10 @@
-namespace Dalamud.Game.Internal.DXGI.Definitions;
+namespace Dalamud.ComInterfaceVTables;
 
 /// <summary>
 /// Contains a full list of IDXGISwapChain functions to be used as an indexer into the SwapChain Virtual Function Table
 /// entries.
 /// </summary>
+// ReSharper disable once InconsistentNaming
 internal enum IDXGISwapChainVtbl
 {
     // IUnknown

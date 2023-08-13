@@ -547,6 +547,44 @@ public static class Util
     public static bool IsWindows11() => Environment.OSVersion.Version.Build >= 22000;
 
     /// <summary>
+    /// Ensures that a pointer is not null, or throw a <see cref="NullReferenceException" />
+    /// </summary>
+    /// <param name="value">Pointer value.</param>
+    /// <param name="what">Help text for exception.</param>
+    /// <typeparam name="T">Backing data type of the pointer.</typeparam>
+    /// <returns>The value, ensured to be not null.</returns>
+    public static unsafe T* NotNull<T>(T* value, string what)
+        where T : unmanaged
+        => value == null ? throw new NullReferenceException($"{what} is null.") : value;
+
+    /// <summary>
+    /// Ensures that a pointer is not null, or throw a <see cref="NullReferenceException" />
+    /// </summary>
+    /// <param name="value">Pointer value.</param>
+    /// <param name="what">Help text for exception.</param>
+    /// <returns>The value, ensured to be not null.</returns>
+    public static unsafe void* NotNull(void* value, string what)
+        => value == null ? throw new NullReferenceException($"{what} is null.") : value;
+
+    /// <summary>
+    /// Ensures that a pointer is not null, or throw a <see cref="NullReferenceException" />
+    /// </summary>
+    /// <param name="value">Pointer value.</param>
+    /// <typeparam name="T">Backing data type of the pointer.</typeparam>
+    /// <returns>The value, ensured to be not null.</returns>
+    public static unsafe T* NotNull<T>(T* value)
+        where T : unmanaged
+        => value == null ? throw new NullReferenceException() : value;
+
+    /// <summary>
+    /// Ensures that a pointer is not null, or throw a <see cref="NullReferenceException" />
+    /// </summary>
+    /// <param name="value">Pointer value.</param>
+    /// <returns>The value, ensured to be not null.</returns>
+    public static unsafe void* NotNull(void* value)
+        => value == null ? throw new NullReferenceException() : value;
+
+    /// <summary>
     /// Open a link in the default browser.
     /// </summary>
     /// <param name="url">The link to open.</param>

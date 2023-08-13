@@ -368,7 +368,8 @@ DllExport void WINAPI RewrittenEntryPoint(RewrittenEntryPointParameters& params)
                 loadInfo = params.pLoadInfo;
             }
 
-            InitializeImpl(&loadInfo[0], params.hMainThreadContinue);
+            if (const auto err = InitializeImpl(&loadInfo[0], params.hMainThreadContinue))
+                throw std::exception(std::format("{:08X}", err).c_str());
             return 0;
         } catch (const std::exception& e) {
             MessageBoxA(nullptr, std::format("Failed to load Dalamud.\n\nError: {}", e.what()).c_str(), "Dalamud.Boot", MB_OK | MB_ICONERROR);

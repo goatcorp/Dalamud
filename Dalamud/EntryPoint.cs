@@ -25,7 +25,7 @@ namespace Dalamud;
 /// <summary>
 /// The main entrypoint for the Dalamud system.
 /// </summary>
-public sealed class EntryPoint
+public static class EntryPoint
 {
     /// <summary>
     /// Log level switch for runtime log level change.
@@ -33,11 +33,18 @@ public sealed class EntryPoint
     public static readonly LoggingLevelSwitch LogLevelSwitch = new(LogEventLevel.Verbose);
 
     /// <summary>
+    /// Pointer to function pointer that will be called upon Reshade's Present callback.
+    /// The value is set to null if Reshade is not detected.
+    /// </summary>
+    private static unsafe void** reshadePresentCallbackPtrPtr;
+
+    /// <summary>
     /// A delegate used during initialization of the CLR from Dalamud.Boot.
     /// </summary>
     /// <param name="infoPtr">Pointer to a serialized <see cref="DalamudStartInfo"/> data.</param>
     /// <param name="mainThreadContinueEvent">Event used to signal the main thread to continue.</param>
-    public delegate void InitDelegate(IntPtr infoPtr, IntPtr mainThreadContinueEvent);
+    /// <param name="externalPresentDetour">Pointer to function pointer that will be called upon Reshade's Present callback.</param>
+    public delegate void InitDelegate(IntPtr infoPtr, IntPtr mainThreadContinueEvent, IntPtr externalPresentDetour);
 
     /// <summary>
     /// A delegate used from VEH handler on exception which CoreCLR will fast fail by default.
@@ -50,15 +57,33 @@ public sealed class EntryPoint
     /// </summary>
     /// <param name="infoPtr">Pointer to a serialized <see cref="DalamudStartInfo"/> data.</param>
     /// <param name="mainThreadContinueEvent">Event used to signal the main thread to continue.</param>
-    public static void Initialize(IntPtr infoPtr, IntPtr mainThreadContinueEvent)
+    /// <param name="externalPresentDetour">Pointer to function pointer that will be called upon Reshade's Present callback.</param>
+    public static void Initialize(IntPtr infoPtr, IntPtr mainThreadContinueEvent, IntPtr externalPresentDetour)
     {
         var infoStr = Marshal.PtrToStringUTF8(infoPtr)!;
         var info = JsonConvert.DeserializeObject<DalamudStartInfo>(infoStr)!;
+        unsafe
+        {
+            reshadePresentCallbackPtrPtr = (void**)externalPresentDetour;
+        }
 
         if ((info.BootWaitMessageBox & 4) != 0)
             MessageBoxW(IntPtr.Zero, "Press OK to continue (BeforeDalamudConstruct)", "Dalamud Boot", MessageBoxType.Ok);
 
         new Thread(() => RunThread(info, mainThreadContinueEvent)).Start();
+    }
+
+    /// <summary>
+    /// Attempt to register a callback for Reshade Present.
+    /// </summary>
+    /// <param name="ptr">Pointer to the callback function.</param>
+    /// <returns>Whether the operation has been successful and Reshade will use this feature.</returns>
+    public static unsafe bool TryRegisterReshadePresentCallback(nint ptr)
+    {
+        if (reshadePresentCallbackPtrPtr == null)
+            return false;
+        *reshadePresentCallbackPtrPtr = (void*)ptr;
+        return true;
     }
 
     /// <summary>
@@ -272,7 +297,7 @@ public sealed class EntryPoint
                     // ignored
                 }
 
-                const MessageBoxType flags = NativeFunctions.MessageBoxType.YesNo | NativeFunctions.MessageBoxType.IconError | NativeFunctions.MessageBoxType.SystemModal;
+                const MessageBoxType flags = MessageBoxType.YesNo | MessageBoxType.IconError | MessageBoxType.SystemModal;
                 var result = MessageBoxW(
                     Process.GetCurrentProcess().MainWindowHandle,
                     $"An internal error in a Dalamud plugin occurred.\nThe game must close.\n\n{ex.GetType().Name}\n{info}\n\n{pluginInfo}More information has been recorded separately{supportText}.\n\nDo you want to disable all plugins the next time you start the game?",
