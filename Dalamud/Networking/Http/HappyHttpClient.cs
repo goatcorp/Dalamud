@@ -25,7 +25,11 @@ internal class HappyHttpClient : IDisposable, IServiceType
         {
             AutomaticDecompression = DecompressionMethods.All,
             ConnectCallback = this.SharedHappyEyeballsCallback.ConnectCallback,
-        });
+        })
+        {
+            DefaultRequestVersion = HttpVersion.Version11,
+            DefaultVersionPolicy = HttpVersionPolicy.RequestVersionOrHigher,
+        };
     }
 
     /// <summary>
