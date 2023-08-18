@@ -27,8 +27,8 @@ internal class HappyHttpClient : IDisposable, IServiceType
             ConnectCallback = this.SharedHappyEyeballsCallback.ConnectCallback,
         })
         {
-            DefaultRequestVersion = HttpVersion.Version11,
-            DefaultVersionPolicy = HttpVersionPolicy.RequestVersionOrHigher,
+            DefaultRequestVersion = HttpVersion.Version20,
+            DefaultVersionPolicy = HttpVersionPolicy.RequestVersionOrLower,
         };
     }
 
