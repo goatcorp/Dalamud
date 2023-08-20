@@ -8,6 +8,7 @@ using System.Net.Http;
 using System.Numerics;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text;
 
 using Dalamud.Configuration.Internal;
@@ -22,7 +23,6 @@ using Dalamud.Logging.Internal;
 using Dalamud.Networking.Http;
 using ImGuiNET;
 using Lumina.Excel.GeneratedSheets;
-using Microsoft.Win32;
 using Serilog;
 
 namespace Dalamud.Utility;
@@ -491,32 +491,30 @@ public static class Util
     }
 
     /// <summary>
-    /// Heuristically determine if Dalamud is running on Linux/WINE.
+    /// Determine if Dalamud is currently running within a Wine context (e.g. either on macOS or Linux). This method
+    /// will not return information about the host operating system.
     /// </summary>
-    /// <returns>Whether or not Dalamud is running on Linux/WINE.</returns>
-    public static bool IsLinux()
+    /// <returns>Returns true if Wine is detected, false otherwise.</returns>
+    public static bool IsWine()
     {
-        bool Check1()
-        {
-            return EnvironmentConfiguration.XlWineOnLinux;
-        }
+        if (EnvironmentConfiguration.XlWineOnLinux) return true;
 
-        bool Check2()
-        {
-            var hModule = NativeFunctions.GetModuleHandleW("ntdll.dll");
-            var proc1 = NativeFunctions.GetProcAddress(hModule, "wine_get_version");
-            var proc2 = NativeFunctions.GetProcAddress(hModule, "wine_get_build_id");
+        var ntdll = NativeFunctions.GetModuleHandleW("ntdll.dll");
 
-            return proc1 != IntPtr.Zero || proc2 != IntPtr.Zero;
-        }
+        // Test to see if any Wine specific exports exist. If they do, then we are running on Wine.
+        // The exports "wine_get_version", "wine_get_build_id", and "wine_get_host_version" will tend to be hidden
+        // by most Linux users (else FFXIV will want a macOS license), so we will additionally check some lesser-known
+        // exports as well.
+        return AnyProcExists(
+            ntdll, 
+            "wine_get_version", 
+            "wine_get_build_id", 
+            "wine_get_host_version",
+            "wine_server_call", 
+            "wine_unix_to_nt_file_name");
 
-        bool Check3()
-        {
-            return Registry.CurrentUser.OpenSubKey(@"Software\Wine") != null ||
-                   Registry.LocalMachine.OpenSubKey(@"Software\Wine") != null;
-        }
-
-        return Check1() || Check2() || Check3();
+        bool AnyProcExists(nint handle, params string[] procs) =>
+            procs.Any(p => NativeFunctions.GetProcAddress(handle, p) != nint.Zero);
     }
 
     /// <summary>
