@@ -2227,6 +2227,8 @@ internal class PluginInstallerWindow : Window, IDisposable
                     {
                         ImGuiHelpers.SafeTextWrapped($"{command.Key} → {command.Value.HelpMessage}");
                     }
+                    
+                    ImGuiHelpers.ScaledDummy(3);
                 }
             }
 
@@ -2573,6 +2575,9 @@ internal class PluginInstallerWindow : Window, IDisposable
         {
             // Only if the plugin isn't broken.
             this.DrawOpenPluginSettingsButton(plugin);
+            
+            ImGui.SameLine();
+            ImGuiHelpers.ScaledDummy(5, 0);
         }
 
         if (applicableForProfiles && config.ProfilesEnabled)
@@ -2637,10 +2642,39 @@ internal class PluginInstallerWindow : Window, IDisposable
 
     private void DrawOpenPluginSettingsButton(LocalPlugin plugin)
     {
-        if (plugin.DalamudInterface?.UiBuilder?.HasConfigUi ?? false)
+        var hasMainUi = plugin.DalamudInterface?.UiBuilder.HasMainUi ?? false;
+        var hasConfig = plugin.DalamudInterface?.UiBuilder.HasConfigUi ?? false;
+        if (hasMainUi)
         {
             ImGui.SameLine();
-            if (ImGuiComponents.IconButton(FontAwesomeIcon.Cog))
+            if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.ArrowUpRightFromSquare, Locs.PluginButton_OpenUi))
+            {
+                try
+                {
+                    plugin.DalamudInterface.UiBuilder.OpenMain();
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex, $"Error during OpenMain(): {plugin.Name}");
+                }
+            }
+
+            if (ImGui.IsItemHovered())
+            {
+                ImGui.SetTooltip(Locs.PluginButtonToolTip_OpenUi);
+            }
+        }
+
+        if (hasConfig)
+        {
+            if (hasMainUi)
+            {
+                ImGui.SameLine();
+                ImGuiHelpers.ScaledDummy(5, 0);
+            }
+            
+            ImGui.SameLine();
+            if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.Cog, Locs.PluginButton_OpenSettings))
             {
                 try
                 {
@@ -2648,7 +2682,7 @@ internal class PluginInstallerWindow : Window, IDisposable
                 }
                 catch (Exception ex)
                 {
-                    Log.Error(ex, $"Error during OpenConfigUi: {plugin.Name}");
+                    Log.Error(ex, $"Error during OpenConfig: {plugin.Name}");
                 }
             }
 
@@ -3236,12 +3270,18 @@ internal class PluginInstallerWindow : Window, IDisposable
         public static string PluginButton_Unload => Loc.Localize("InstallerUnload", "Unload");
 
         public static string PluginButton_SafeMode => Loc.Localize("InstallerSafeModeButton", "Can't change in safe mode");
+        
+        public static string PluginButton_OpenUi => Loc.Localize("InstallerOpenPluginUi", "Open");
+        
+        public static string PluginButton_OpenSettings => Loc.Localize("InstallerOpenPluginSettings", "Settings");
 
         #endregion
 
         #region Plugin button tooltips
+        
+        public static string PluginButtonToolTip_OpenUi => Loc.Localize("InstallerTooltipOpenUi", "Open this plugin's interface");
 
-        public static string PluginButtonToolTip_OpenConfiguration => Loc.Localize("InstallerOpenConfig", "Open Configuration");
+        public static string PluginButtonToolTip_OpenConfiguration => Loc.Localize("InstallerTooltipOpenConfig", "Open this plugin's settings");
 
         public static string PluginButtonToolTip_PickProfiles => Loc.Localize("InstallerPickProfiles", "Pick collections for this plugin");
 

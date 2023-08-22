@@ -7,6 +7,7 @@ using Dalamud.Interface.Windowing;
 using Dalamud.Logging;
 using Dalamud.Plugin;
 using Dalamud.Utility;
+using Serilog;
 
 namespace Dalamud.CorePlugin
 {
@@ -66,6 +67,7 @@ namespace Dalamud.CorePlugin
 
                 this.Interface.UiBuilder.Draw += this.OnDraw;
                 this.Interface.UiBuilder.OpenConfigUi += this.OnOpenConfigUi;
+                this.Interface.UiBuilder.OpenMainUi += this.OnOpenMainUi;
 
                 Service<CommandManager>.Get().AddHandler("/coreplug", new(this.OnCommand) { HelpMessage = $"Access the {this.Name} plugin." });
 
@@ -141,6 +143,11 @@ namespace Dalamud.CorePlugin
         private void OnOpenConfigUi()
         {
             // this.window.IsOpen = true;
+        }
+
+        private void OnOpenMainUi()
+        {
+            Log.Verbose("Opened main UI");
         }
 
 #endif

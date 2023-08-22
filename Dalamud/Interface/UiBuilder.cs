@@ -69,6 +69,11 @@ public sealed class UiBuilder : IDisposable
     /// Event that is fired when the plugin should open its configuration interface.
     /// </summary>
     public event Action OpenConfigUi;
+    
+    /// <summary>
+    /// Event that is fired when the plugin should open its main interface.
+    /// </summary>
+    public event Action OpenMainUi;
 
     /// <summary>
     /// Gets or sets an action that is called any time ImGui fonts need to be rebuilt.<br/>
@@ -211,6 +216,11 @@ public sealed class UiBuilder : IDisposable
     /// Gets a value indicating whether this UiBuilder has a configuration UI registered.
     /// </summary>
     internal bool HasConfigUi => this.OpenConfigUi != null;
+
+    /// <summary>
+    /// Gets a value indicating whether this UiBuilder has a configuration UI registered.
+    /// </summary>
+    internal bool HasMainUi => this.OpenMainUi != null;
 
     /// <summary>
     /// Gets or sets the time this plugin took to draw on the last frame.
@@ -408,6 +418,14 @@ public sealed class UiBuilder : IDisposable
     internal void OpenConfig()
     {
         this.OpenConfigUi?.InvokeSafely();
+    }
+    
+    /// <summary>
+    /// Open the registered configuration UI, if it exists.
+    /// </summary>
+    internal void OpenMain()
+    {
+        this.OpenMainUi?.InvokeSafely();
     }
 
     /// <summary>
