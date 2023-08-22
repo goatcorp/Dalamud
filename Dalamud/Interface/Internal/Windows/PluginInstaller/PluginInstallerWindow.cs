@@ -2149,6 +2149,7 @@ internal class PluginInstallerWindow : Window, IDisposable
 
         ImGui.PushID($"installed{index}{plugin.Manifest.InternalName}");
         var hasChangelog = !plugin.Manifest.Changelog.IsNullOrEmpty();
+        var didDrawChangelogInsideCollapsible = false;
 
         if (this.DrawPluginCollapsingHeader(label, plugin, plugin.Manifest, plugin.IsThirdParty, trouble, availablePluginUpdate != default, false, false, plugin.IsOrphaned, () => this.DrawInstalledPluginContextMenu(plugin, testingOptIn), index))
         {
@@ -2257,6 +2258,7 @@ internal class PluginInstallerWindow : Window, IDisposable
             {
                 if (ImGui.TreeNode(Locs.PluginBody_CurrentChangeLog(plugin.EffectiveVersion)))
                 {
+                    didDrawChangelogInsideCollapsible = true;
                     this.DrawInstalledPluginChangelog(plugin.Manifest);
                     ImGui.TreePop();
                 }
@@ -2273,7 +2275,7 @@ internal class PluginInstallerWindow : Window, IDisposable
             }
         }
 
-        if (thisWasUpdated && hasChangelog)
+        if (thisWasUpdated && hasChangelog && !didDrawChangelogInsideCollapsible)
         {
             this.DrawInstalledPluginChangelog(plugin.Manifest);
         }
