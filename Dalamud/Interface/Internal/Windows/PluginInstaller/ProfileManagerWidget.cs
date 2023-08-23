@@ -78,7 +78,7 @@ internal class ProfileManagerWidget
     private void DrawTutorial(string modalTitle)
     {
         var open = true;
-        ImGui.SetNextWindowSize(new Vector2(450, 350), ImGuiCond.Appearing);
+        ImGui.SetNextWindowSize(new Vector2(650, 550), ImGuiCond.Appearing);
         using (var popup = ImRaii.PopupModal(modalTitle, ref open))
         {
             if (popup)
