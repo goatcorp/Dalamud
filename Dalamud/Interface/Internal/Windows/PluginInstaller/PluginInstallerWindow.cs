@@ -108,7 +108,9 @@ internal class PluginInstallerWindow : Window, IDisposable
 
     private OperationStatus installStatus = OperationStatus.Idle;
     private OperationStatus updateStatus = OperationStatus.Idle;
+
     private OperationStatus enableDisableStatus = OperationStatus.Idle;
+    private Guid enableDisableWorkingPluginId = Guid.Empty;
 
     private LoadingIndicatorKind loadingIndicatorKind = LoadingIndicatorKind.Unknown;
 
@@ -2477,6 +2479,10 @@ internal class PluginInstallerWindow : Window, IDisposable
             if (ImGui.IsItemHovered())
                 ImGui.SetTooltip(Locs.PluginButtonToolTip_UnloadFailed);
         }
+        else if (this.enableDisableStatus == OperationStatus.InProgress && this.enableDisableWorkingPluginId == plugin.Manifest.WorkingPluginId)
+        {
+            ImGuiComponents.DisabledToggleButton(toggleId, this.loadingIndicatorKind == LoadingIndicatorKind.EnablingSingle);
+        }
         else if (disabled || inMultipleProfiles || inSingleNonDefaultProfileWhichIsDisabled)
         {
             ImGuiComponents.DisabledToggleButton(toggleId, isLoadedAndUnloadable);
@@ -2516,6 +2522,7 @@ internal class PluginInstallerWindow : Window, IDisposable
                 {
                     this.enableDisableStatus = OperationStatus.InProgress;
                     this.loadingIndicatorKind = LoadingIndicatorKind.DisablingSingle;
+                    this.enableDisableWorkingPluginId = plugin.Manifest.WorkingPluginId;
 
                     Task.Run(async () =>
                     {
@@ -2536,6 +2543,7 @@ internal class PluginInstallerWindow : Window, IDisposable
                     {
                         this.enableDisableStatus = OperationStatus.InProgress;
                         this.loadingIndicatorKind = LoadingIndicatorKind.EnablingSingle;
+                        this.enableDisableWorkingPluginId = plugin.Manifest.WorkingPluginId;
 
                         await applicableProfile.AddOrUpdateAsync(plugin.Manifest.InternalName, true, false);
                         await plugin.LoadAsync(PluginLoadReason.Installer);
