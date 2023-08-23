@@ -97,16 +97,17 @@ internal class TitleScreenMenuWindow : Window, IDisposable
     public override void Draw()
     {
         var scale = ImGui.GetIO().FontGlobalScale;
-
-        var tsm = Service<TitleScreenMenu>.Get();
+        var entries = Service<TitleScreenMenu>.Get().Entries
+                                              .OrderByDescending(x => x.IsInternal)
+                                              .ToList();
 
         switch (this.state)
         {
             case State.Show:
             {
-                for (var i = 0; i < tsm.Entries.Count; i++)
+                for (var i = 0; i < entries.Count; i++)
                 {
-                    var entry = tsm.Entries[i];
+                    var entry = entries[i];
 
                     if (!this.moveEasings.TryGetValue(entry.Id, out var moveEasing))
                     {
@@ -172,9 +173,9 @@ internal class TitleScreenMenuWindow : Window, IDisposable
 
                 using (ImRaii.PushStyle(ImGuiStyleVar.Alpha, (float)this.fadeOutEasing.Value))
                 {
-                    for (var i = 0; i < tsm.Entries.Count; i++)
+                    for (var i = 0; i < entries.Count; i++)
                     {
-                        var entry = tsm.Entries[i];
+                        var entry = entries[i];
 
                         var finalPos = (i + 1) * this.shadeTexture.Height * scale;
 
@@ -205,7 +206,7 @@ internal class TitleScreenMenuWindow : Window, IDisposable
 
             case State.Hide:
             {
-                if (this.DrawEntry(tsm.Entries[0], true, false, true, true, false))
+                if (this.DrawEntry(entries[0], true, false, true, true, false))
                 {
                     this.state = State.Show;
                 }
@@ -217,7 +218,7 @@ internal class TitleScreenMenuWindow : Window, IDisposable
             }
         }
 
-        var srcText = tsm.Entries.Select(e => e.Name).ToHashSet();
+        var srcText = entries.Select(e => e.Name).ToHashSet();
         var keys = this.specialGlyphRequests.Keys.ToHashSet();
         keys.RemoveWhere(x => srcText.Contains(x));
         foreach (var key in keys)
