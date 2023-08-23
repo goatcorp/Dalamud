@@ -1437,7 +1437,7 @@ internal class PluginInstallerWindow : Window, IDisposable
             ImGui.Button($"{buttonText}##{buttonText}testing");
         }
 
-        this.DrawVisitRepoUrlButton("https://google.com");
+        this.DrawVisitRepoUrlButton("https://google.com", true);
 
         if (this.testerImages != null)
         {
@@ -1954,6 +1954,7 @@ internal class PluginInstallerWindow : Window, IDisposable
             }
             else
             {
+                using var color = ImRaii.PushColor(ImGuiCol.Button, ImGuiColors.DalamudRed.Darken(0.3f).Fade(0.4f));
                 var buttonText = Locs.PluginButton_InstallVersion(versionString);
                 if (ImGui.Button($"{buttonText}##{buttonText}{index}"))
                 {
@@ -1961,11 +1962,19 @@ internal class PluginInstallerWindow : Window, IDisposable
                 }
             }
 
-            this.DrawVisitRepoUrlButton(manifest.RepoUrl);
+            ImGui.SameLine();
+            ImGuiHelpers.ScaledDummy(10);
+            ImGui.SameLine();
+
+            this.DrawVisitRepoUrlButton(manifest.RepoUrl, true);
+            
+            ImGui.SameLine();
+            ImGuiHelpers.ScaledDummy(3);
+            ImGui.SameLine();
 
             if (!manifest.SourceRepo.IsThirdParty && manifest.AcceptsFeedback)
             {
-                this.DrawSendFeedbackButton(manifest, false);
+                this.DrawSendFeedbackButton(manifest, false, true);
             }
 
             ImGuiHelpers.ScaledDummy(5);
@@ -2235,12 +2244,12 @@ internal class PluginInstallerWindow : Window, IDisposable
             // Controls
             this.DrawPluginControlButton(plugin, availablePluginUpdate);
             this.DrawDevPluginButtons(plugin);
+            this.DrawVisitRepoUrlButton(plugin.Manifest.RepoUrl, false);
             this.DrawDeletePluginButton(plugin);
-            this.DrawVisitRepoUrlButton(plugin.Manifest.RepoUrl);
 
             if (canFeedback)
             {
-                this.DrawSendFeedbackButton(plugin.Manifest, plugin.IsTesting);
+                this.DrawSendFeedbackButton(plugin.Manifest, plugin.IsTesting, false);
             }
 
             if (availablePluginUpdate != default && !plugin.IsDev)
@@ -2693,10 +2702,15 @@ internal class PluginInstallerWindow : Window, IDisposable
         }
     }
 
-    private void DrawSendFeedbackButton(IPluginManifest manifest, bool isTesting)
+    private void DrawSendFeedbackButton(IPluginManifest manifest, bool isTesting, bool big)
     {
         ImGui.SameLine();
-        if (ImGuiComponents.IconButton(FontAwesomeIcon.Comment))
+
+        var clicked = big ? 
+                          ImGuiComponents.IconButtonWithText(FontAwesomeIcon.Comment, Locs.FeedbackModal_Title) :
+                          ImGuiComponents.IconButton(FontAwesomeIcon.Comment);
+        
+        if (clicked)
         {
             this.feedbackPlugin = manifest;
             this.feedbackModalOnNextFrame = true;
@@ -2842,12 +2856,16 @@ internal class PluginInstallerWindow : Window, IDisposable
         }
     }
 
-    private void DrawVisitRepoUrlButton(string? repoUrl)
+    private void DrawVisitRepoUrlButton(string? repoUrl, bool big)
     {
         if (!string.IsNullOrEmpty(repoUrl) && repoUrl.StartsWith("https://"))
         {
             ImGui.SameLine();
-            if (ImGuiComponents.IconButton(FontAwesomeIcon.Globe))
+            
+            var clicked = big ?
+                              ImGuiComponents.IconButtonWithText(FontAwesomeIcon.Globe, "Open website") :
+                              ImGuiComponents.IconButton(FontAwesomeIcon.Globe);
+            if (clicked)
             {
                 try
                 {
