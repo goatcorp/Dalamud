@@ -71,7 +71,7 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType, IAddonLifecycl
     {
         try
         {
-            this.AddonPreSetup?.Invoke(new IAddonLifecycle.AddonArgs { Addon = addon });
+            this.AddonPreSetup?.Invoke(new IAddonLifecycle.AddonArgs { Addon = (nint)addon });
         }
         catch (Exception e)
         {
@@ -82,7 +82,7 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType, IAddonLifecycl
 
         try
         {
-            this.AddonPostSetup?.Invoke(new IAddonLifecycle.AddonArgs { Addon = addon });
+            this.AddonPostSetup?.Invoke(new IAddonLifecycle.AddonArgs { Addon = (nint)addon });
         }
         catch (Exception e)
         {
@@ -96,7 +96,7 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType, IAddonLifecycl
     {
         try
         {
-            this.AddonPreFinalize?.Invoke(new IAddonLifecycle.AddonArgs { Addon = atkUnitBase[0] });
+            this.AddonPreFinalize?.Invoke(new IAddonLifecycle.AddonArgs { Addon = (nint)atkUnitBase[0] });
         }
         catch (Exception e)
         {
@@ -107,7 +107,7 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType, IAddonLifecycl
 
         try
         {
-            this.AddonPostFinalize?.Invoke(new IAddonLifecycle.AddonArgs { Addon = atkUnitBase[0] });
+            this.AddonPostFinalize?.Invoke(new IAddonLifecycle.AddonArgs { Addon = (nint)atkUnitBase[0] });
         }
         catch (Exception e)
         {

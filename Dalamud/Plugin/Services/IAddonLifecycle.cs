@@ -40,11 +40,11 @@ public interface IAddonLifecycle
         /// <summary>
         /// Gets the name of the addon this args referrers to.
         /// </summary>
-        public string AddonName => this.addonName ??= MemoryHelper.ReadString(new nint(Addon->Name), 0x20).Split('\0')[0];
+        public string AddonName => this.addonName ??= MemoryHelper.ReadString((nint)((AtkUnitBase*)this.Addon)->Name, 0x20);
 
         /// <summary>
         /// Gets the pointer to the addons AtkUnitBase.
         /// </summary>
-        required public AtkUnitBase* Addon { get; init; }
+        required public nint Addon { get; init; }
     }
 }
