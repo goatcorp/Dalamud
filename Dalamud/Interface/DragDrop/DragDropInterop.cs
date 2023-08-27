@@ -101,7 +101,7 @@ internal partial class DragDropManager
         public static extern int RevokeDragDrop(nint hwnd);
 
         [DllImport("shell32.dll")]
-        public static extern int DragQueryFile(IntPtr hDrop, uint iFile, StringBuilder lpszFile, int cch);
+        public static extern int DragQueryFileW(IntPtr hDrop, uint iFile, [MarshalAs(UnmanagedType.LPWStr)] StringBuilder lpszFile, int cch);
     }
 }
 #pragma warning restore SA1600 // Elements should be documented
