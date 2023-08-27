@@ -19,7 +19,7 @@ namespace Dalamud.Game.AddonLifetime;
 #pragma warning disable SA1015
 [ResolveVia<IAddonLifecycle>]
 #pragma warning restore SA1015
-public unsafe class AddonLifecycle : IDisposable, IServiceType, IAddonLifecycle
+internal unsafe class AddonLifecycle : IDisposable, IServiceType, IAddonLifecycle
 {
     private readonly AddonLifecycleAddressResolver address;
     private readonly Hook<AddonSetupDelegate> onAddonSetupHook;

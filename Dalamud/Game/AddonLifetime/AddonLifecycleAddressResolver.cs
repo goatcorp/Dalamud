@@ -3,7 +3,7 @@
 /// <summary>
 /// AddonLifecycleService memory address resolver.
 /// </summary>
-public class AddonLifecycleAddressResolver : BaseAddressResolver
+internal class AddonLifecycleAddressResolver : BaseAddressResolver
 {
     /// <summary>
     /// Gets the address of the addon setup hook invoked by the atkunitmanager.
