@@ -204,7 +204,7 @@ internal partial class DragDropManager : DragDropManager.IDropTarget
         try
         {
             data.GetData(ref this.formatEtc, out var stgMedium);
-            var numFiles = DragDropInterop.DragQueryFile(stgMedium.unionmember, uint.MaxValue, new StringBuilder(), 0);
+            var numFiles = DragDropInterop.DragQueryFileW(stgMedium.unionmember, uint.MaxValue, new StringBuilder(), 0);
             var files = new string[numFiles];
             var sb = new StringBuilder(1024);
             var directoryCount = 0;
@@ -212,11 +212,11 @@ internal partial class DragDropManager : DragDropManager.IDropTarget
             for (var i = 0u; i < numFiles; ++i)
             {
                 sb.Clear();
-                var ret = DragDropInterop.DragQueryFile(stgMedium.unionmember, i, sb, sb.Capacity);
+                var ret = DragDropInterop.DragQueryFileW(stgMedium.unionmember, i, sb, sb.Capacity);
                 if (ret >= sb.Capacity)
                 {
                     sb.Capacity = ret + 1;
-                    ret = DragDropInterop.DragQueryFile(stgMedium.unionmember, i, sb, sb.Capacity);
+                    ret = DragDropInterop.DragQueryFileW(stgMedium.unionmember, i, sb, sb.Capacity);
                 }
 
                 if (ret > 0 && ret < sb.Capacity)
