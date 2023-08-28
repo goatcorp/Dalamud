@@ -100,7 +100,7 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType, IAddonLifecycl
         }
         catch (Exception e)
         {
-            PluginLog.Error(e, "[AddonLifecycle] Exception in OnAddonSetup pre-setup invoke.");
+            PluginLog.Error(e, "[AddonLifecycle] Exception in OnAddonFinalize pre-finalize invoke.");
         }
 
         this.onAddonFinalizeHook.Original(unitManager, atkUnitBase);
@@ -111,7 +111,7 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType, IAddonLifecycl
         }
         catch (Exception e)
         {
-            PluginLog.Error(e, "[AddonLifecycle] Exception in OnAddonSetup post-setup invoke.");
+            PluginLog.Error(e, "[AddonLifecycle] Exception in OnAddonFinalize post-finalize invoke.");
         }
     }
 }
