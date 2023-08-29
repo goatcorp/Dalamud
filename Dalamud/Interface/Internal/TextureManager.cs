@@ -203,7 +203,9 @@ internal class TextureManager : IDisposable, IServiceType, ITextureSubstitutionP
     /// </summary>
     /// <param name="file">The texture to obtain a handle to.</param>
     /// <returns>A texture wrap that can be used to render the texture.</returns>
-    public IDalamudTextureWrap? GetTexture(TexFile file)
+    /// <exception cref="InvalidOperationException">Thrown when the graphics system is not available yet. Relevant for plugins when LoadRequiredState is set to 0 or 1.</exception>
+    /// <exception cref="NotSupportedException">Thrown when the given <see cref="TexFile"/> is not supported. Most likely is that the file is corrupt.</exception>
+    public IDalamudTextureWrap GetTexture(TexFile file)
     {
         ArgumentNullException.ThrowIfNull(file);
 
