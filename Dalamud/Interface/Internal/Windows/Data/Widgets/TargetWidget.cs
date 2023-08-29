@@ -63,6 +63,12 @@ internal class TargetWidget : IDataWindowWidget
 
         if (targetMgr.SoftTarget != null)
             Util.PrintGameObject(targetMgr.SoftTarget, "SoftTarget", this.resolveGameData);
+        
+        if (targetMgr.GPoseTarget != null)
+            Util.PrintGameObject(targetMgr.GPoseTarget, "GPoseTarget", this.resolveGameData);
+        
+        if (targetMgr.MouseOverNameplateTarget != null)
+            Util.PrintGameObject(targetMgr.MouseOverNameplateTarget, "MouseOverNameplateTarget", this.resolveGameData);
 
         if (ImGui.Button("Clear CT"))
             targetMgr.Target = null;
