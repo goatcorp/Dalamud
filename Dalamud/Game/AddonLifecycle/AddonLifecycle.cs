@@ -13,7 +13,6 @@ namespace Dalamud.Game.AddonLifecycle;
 /// <summary>
 /// This class provides events for in-game addon lifecycles.
 /// </summary>
-[PluginInterface]
 [InterfaceVersion("1.0")]
 [ServiceManager.EarlyLoadedService]
 internal unsafe class AddonLifecycle : IDisposable, IServiceType, IAddonLifecycle
@@ -124,20 +123,18 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType, IAddonLifecycl
 #pragma warning restore SA1015
 internal class AddonLifecyclePluginScoped : IDisposable, IServiceType, IAddonLifecycle
 {
-    private readonly AddonLifecycle addonLifecycleService;
+    [ServiceManager.ServiceDependency]
+    private readonly AddonLifecycle addonLifecycleService = Service<AddonLifecycle>.Get();
 
     /// <summary>
     /// Initializes a new instance of the <see cref="AddonLifecyclePluginScoped"/> class.
     /// </summary>
-    /// <param name="addonLifecycle">AddonLifecycle instance.</param>
-    public AddonLifecyclePluginScoped(AddonLifecycle addonLifecycle)
+    public AddonLifecyclePluginScoped()
     {
-        this.addonLifecycleService = addonLifecycle;
-
-        this.addonLifecycleService.AddonPreSetup += this.AddonPreSetup;
-        this.addonLifecycleService.AddonPostSetup += this.AddonPostSetup;
-        this.addonLifecycleService.AddonPreFinalize += this.AddonPreFinalize;
-        this.addonLifecycleService.AddonPostFinalize += this.AddonPostFinalize;
+        this.addonLifecycleService.AddonPreSetup += this.AddonPreSetupForward;
+        this.addonLifecycleService.AddonPostSetup += this.AddonPostSetupForward;
+        this.addonLifecycleService.AddonPreFinalize += this.AddonPreFinalizeForward;
+        this.addonLifecycleService.AddonPostFinalize += this.AddonPostFinalizeForward;
     }
     
     /// <inheritdoc/>
@@ -155,9 +152,17 @@ internal class AddonLifecyclePluginScoped : IDisposable, IServiceType, IAddonLif
     /// <inheritdoc/>
     public void Dispose()
     {
-        this.addonLifecycleService.AddonPreSetup -= this.AddonPreSetup;
-        this.addonLifecycleService.AddonPostSetup -= this.AddonPostSetup;
-        this.addonLifecycleService.AddonPreFinalize -= this.AddonPreFinalize;
-        this.addonLifecycleService.AddonPostFinalize -= this.AddonPostFinalize;
+        this.addonLifecycleService.AddonPreSetup -= this.AddonPreSetupForward;
+        this.addonLifecycleService.AddonPostSetup -= this.AddonPostSetupForward;
+        this.addonLifecycleService.AddonPreFinalize -= this.AddonPreFinalizeForward;
+        this.addonLifecycleService.AddonPostFinalize -= this.AddonPostFinalizeForward;
     }
+
+    private void AddonPreSetupForward(IAddonLifecycle.AddonArgs args) => this.AddonPreSetup?.Invoke(args);
+    
+    private void AddonPostSetupForward(IAddonLifecycle.AddonArgs args) => this.AddonPostSetup?.Invoke(args);
+    
+    private void AddonPreFinalizeForward(IAddonLifecycle.AddonArgs args) => this.AddonPreFinalize?.Invoke(args);
+    
+    private void AddonPostFinalizeForward(IAddonLifecycle.AddonArgs args) => this.AddonPostFinalize?.Invoke(args);
 }
