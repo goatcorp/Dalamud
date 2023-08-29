@@ -1,4 +1,4 @@
-﻿namespace Dalamud.Game.AddonLifetime;
+﻿namespace Dalamud.Game.AddonLifecycle;
 
 /// <summary>
 /// AddonLifecycleService memory address resolver.

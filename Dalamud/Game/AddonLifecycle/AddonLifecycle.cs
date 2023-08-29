@@ -8,7 +8,7 @@ using Dalamud.Logging;
 using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 
-namespace Dalamud.Game.AddonLifetime;
+namespace Dalamud.Game.AddonLifecycle;
 
 /// <summary>
 /// This class provides events for in-game addon lifecycles.
