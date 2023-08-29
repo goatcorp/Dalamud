@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Runtime.InteropServices;
 
 using Dalamud.Hooking;
 using Dalamud.IoC;
@@ -29,13 +28,11 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType, IAddonLifecycl
         this.address.Setup(sigScanner);
 
         this.onAddonSetupHook = Hook<AddonSetupDelegate>.FromAddress(this.address.AddonSetup, this.OnAddonSetup);
-        this.onAddonFinalizeHook = Hook<AddonFinalizeDelegate>.FromAddress(this.address.AddonSetup, this.OnAddonFinalize);
+        this.onAddonFinalizeHook = Hook<AddonFinalizeDelegate>.FromAddress(this.address.AddonFinalize, this.OnAddonFinalize);
     }
 
-    [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
     private delegate nint AddonSetupDelegate(AtkUnitBase* addon);
 
-    [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
     private delegate void AddonFinalizeDelegate(AtkUnitManager* unitManager, AtkUnitBase** atkUnitBase);
     
     /// <inheritdoc/>
@@ -46,9 +43,6 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType, IAddonLifecycl
     
     /// <inheritdoc/>
     public event Action<IAddonLifecycle.AddonArgs>? AddonPreFinalize;
-    
-    /// <inheritdoc/>
-    public event Action<IAddonLifecycle.AddonArgs>? AddonPostFinalize;
     
     /// <inheritdoc/>
     public void Dispose()
@@ -66,6 +60,9 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType, IAddonLifecycl
 
     private nint OnAddonSetup(AtkUnitBase* addon)
     {
+        if (addon is null)
+            return this.onAddonSetupHook.Original(addon);
+
         try
         {
             this.AddonPreSetup?.Invoke(new IAddonLifecycle.AddonArgs { Addon = (nint)addon });
@@ -91,6 +88,12 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType, IAddonLifecycl
 
     private void OnAddonFinalize(AtkUnitManager* unitManager, AtkUnitBase** atkUnitBase)
     {
+        if (atkUnitBase is null)
+        {
+            this.onAddonFinalizeHook.Original(unitManager, atkUnitBase);
+            return;
+        }
+        
         try
         {
             this.AddonPreFinalize?.Invoke(new IAddonLifecycle.AddonArgs { Addon = (nint)atkUnitBase[0] });
@@ -101,15 +104,6 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType, IAddonLifecycl
         }
 
         this.onAddonFinalizeHook.Original(unitManager, atkUnitBase);
-
-        try
-        {
-            this.AddonPostFinalize?.Invoke(new IAddonLifecycle.AddonArgs { Addon = (nint)atkUnitBase[0] });
-        }
-        catch (Exception e)
-        {
-            Log.Error(e, "Exception in OnAddonFinalize post-finalize invoke.");
-        }
     }
 }
 
@@ -135,7 +129,6 @@ internal class AddonLifecyclePluginScoped : IDisposable, IServiceType, IAddonLif
         this.addonLifecycleService.AddonPreSetup += this.AddonPreSetupForward;
         this.addonLifecycleService.AddonPostSetup += this.AddonPostSetupForward;
         this.addonLifecycleService.AddonPreFinalize += this.AddonPreFinalizeForward;
-        this.addonLifecycleService.AddonPostFinalize += this.AddonPostFinalizeForward;
     }
     
     /// <inheritdoc/>
@@ -148,15 +141,11 @@ internal class AddonLifecyclePluginScoped : IDisposable, IServiceType, IAddonLif
     public event Action<IAddonLifecycle.AddonArgs>? AddonPreFinalize;
     
     /// <inheritdoc/>
-    public event Action<IAddonLifecycle.AddonArgs>? AddonPostFinalize;
-    
-    /// <inheritdoc/>
     public void Dispose()
     {
         this.addonLifecycleService.AddonPreSetup -= this.AddonPreSetupForward;
         this.addonLifecycleService.AddonPostSetup -= this.AddonPostSetupForward;
         this.addonLifecycleService.AddonPreFinalize -= this.AddonPreFinalizeForward;
-        this.addonLifecycleService.AddonPostFinalize -= this.AddonPostFinalizeForward;
     }
 
     private void AddonPreSetupForward(IAddonLifecycle.AddonArgs args) => this.AddonPreSetup?.Invoke(args);
@@ -164,6 +153,4 @@ internal class AddonLifecyclePluginScoped : IDisposable, IServiceType, IAddonLif
     private void AddonPostSetupForward(IAddonLifecycle.AddonArgs args) => this.AddonPostSetup?.Invoke(args);
     
     private void AddonPreFinalizeForward(IAddonLifecycle.AddonArgs args) => this.AddonPreFinalize?.Invoke(args);
-    
-    private void AddonPostFinalizeForward(IAddonLifecycle.AddonArgs args) => this.AddonPostFinalize?.Invoke(args);
 }
