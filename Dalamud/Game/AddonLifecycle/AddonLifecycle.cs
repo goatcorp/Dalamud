@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 using Dalamud.Hooking;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
-using Dalamud.Logging;
+using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 
@@ -17,6 +17,7 @@ namespace Dalamud.Game.AddonLifecycle;
 [ServiceManager.EarlyLoadedService]
 internal unsafe class AddonLifecycle : IDisposable, IServiceType, IAddonLifecycle
 {
+    private static readonly ModuleLog Log = new("AddonLifecycle");
     private readonly AddonLifecycleAddressResolver address;
     private readonly Hook<AddonSetupDelegate> onAddonSetupHook;
     private readonly Hook<AddonFinalizeDelegate> onAddonFinalizeHook;
@@ -71,7 +72,7 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType, IAddonLifecycl
         }
         catch (Exception e)
         {
-            PluginLog.Error(e, "[AddonLifecycle] Exception in OnAddonSetup pre-setup invoke.");
+            Log.Error(e, "Exception in OnAddonSetup pre-setup invoke.");
         }
 
         var result = this.onAddonSetupHook.Original(addon);
@@ -82,7 +83,7 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType, IAddonLifecycl
         }
         catch (Exception e)
         {
-            PluginLog.Error(e, "[AddonLifecycle] Exception in OnAddonSetup post-setup invoke.");
+            Log.Error(e, "Exception in OnAddonSetup post-setup invoke.");
         }
 
         return result;
@@ -96,7 +97,7 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType, IAddonLifecycl
         }
         catch (Exception e)
         {
-            PluginLog.Error(e, "[AddonLifecycle] Exception in OnAddonFinalize pre-finalize invoke.");
+            Log.Error(e, "Exception in OnAddonFinalize pre-finalize invoke.");
         }
 
         this.onAddonFinalizeHook.Original(unitManager, atkUnitBase);
@@ -107,7 +108,7 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType, IAddonLifecycl
         }
         catch (Exception e)
         {
-            PluginLog.Error(e, "[AddonLifecycle] Exception in OnAddonFinalize post-finalize invoke.");
+            Log.Error(e, "Exception in OnAddonFinalize post-finalize invoke.");
         }
     }
 }
