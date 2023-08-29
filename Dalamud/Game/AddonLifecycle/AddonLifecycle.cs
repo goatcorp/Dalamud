@@ -16,9 +16,6 @@ namespace Dalamud.Game.AddonLifecycle;
 [PluginInterface]
 [InterfaceVersion("1.0")]
 [ServiceManager.EarlyLoadedService]
-#pragma warning disable SA1015
-[ResolveVia<IAddonLifecycle>]
-#pragma warning restore SA1015
 internal unsafe class AddonLifecycle : IDisposable, IServiceType, IAddonLifecycle
 {
     private readonly AddonLifecycleAddressResolver address;
@@ -113,5 +110,54 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType, IAddonLifecycl
         {
             PluginLog.Error(e, "[AddonLifecycle] Exception in OnAddonFinalize post-finalize invoke.");
         }
+    }
+}
+
+/// <summary>
+/// Plugin-scoped version of a AddonLifecycle service.
+/// </summary>
+[PluginInterface]
+[InterfaceVersion("1.0")]
+[ServiceManager.ScopedService]
+#pragma warning disable SA1015
+[ResolveVia<IAddonLifecycle>]
+#pragma warning restore SA1015
+internal class AddonLifecyclePluginScoped : IDisposable, IServiceType, IAddonLifecycle
+{
+    private readonly AddonLifecycle addonLifecycleService;
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="AddonLifecyclePluginScoped"/> class.
+    /// </summary>
+    /// <param name="addonLifecycle">AddonLifecycle instance.</param>
+    public AddonLifecyclePluginScoped(AddonLifecycle addonLifecycle)
+    {
+        this.addonLifecycleService = addonLifecycle;
+
+        this.addonLifecycleService.AddonPreSetup += this.AddonPreSetup;
+        this.addonLifecycleService.AddonPostSetup += this.AddonPostSetup;
+        this.addonLifecycleService.AddonPreFinalize += this.AddonPreFinalize;
+        this.addonLifecycleService.AddonPostFinalize += this.AddonPostFinalize;
+    }
+    
+    /// <inheritdoc/>
+    public event Action<IAddonLifecycle.AddonArgs>? AddonPreSetup;
+    
+    /// <inheritdoc/>
+    public event Action<IAddonLifecycle.AddonArgs>? AddonPostSetup;
+    
+    /// <inheritdoc/>
+    public event Action<IAddonLifecycle.AddonArgs>? AddonPreFinalize;
+    
+    /// <inheritdoc/>
+    public event Action<IAddonLifecycle.AddonArgs>? AddonPostFinalize;
+    
+    /// <inheritdoc/>
+    public void Dispose()
+    {
+        this.addonLifecycleService.AddonPreSetup -= this.AddonPreSetup;
+        this.addonLifecycleService.AddonPostSetup -= this.AddonPostSetup;
+        this.addonLifecycleService.AddonPreFinalize -= this.AddonPreFinalize;
+        this.addonLifecycleService.AddonPostFinalize -= this.AddonPostFinalize;
     }
 }
