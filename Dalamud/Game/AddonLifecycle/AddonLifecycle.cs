@@ -88,7 +88,7 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType, IAddonLifecycl
 
     private void OnAddonFinalize(AtkUnitManager* unitManager, AtkUnitBase** atkUnitBase)
     {
-        if (atkUnitBase is null)
+        if (atkUnitBase is null || atkUnitBase[0] is null)
         {
             this.onAddonFinalizeHook.Original(unitManager, atkUnitBase);
             return;
