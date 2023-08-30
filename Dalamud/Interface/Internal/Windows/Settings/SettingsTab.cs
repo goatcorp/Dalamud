@@ -16,7 +16,10 @@ public abstract class SettingsTab : IDisposable
 
     public virtual void OnOpen()
     {
-        // ignored
+        foreach (var settingsEntry in this.Entries)
+        {
+            settingsEntry.OnOpen();
+        }
     }
 
     public virtual void OnClose()

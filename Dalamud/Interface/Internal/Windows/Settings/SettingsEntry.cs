@@ -43,6 +43,14 @@ public abstract class SettingsEntry
     public abstract void Draw();
 
     /// <summary>
+    /// Function to be called when the tab is opened.
+    /// </summary>
+    public virtual void OnOpen()
+    {
+        // ignored
+    }
+    
+    /// <summary>
     /// Function to be called when the tab is closed.
     /// </summary>
     public virtual void OnClose()
