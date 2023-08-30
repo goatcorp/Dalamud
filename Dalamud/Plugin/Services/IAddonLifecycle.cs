@@ -26,11 +26,6 @@ public interface IAddonLifecycle
     public event Action<AddonArgs> AddonPreFinalize;
     
     /// <summary>
-    /// Event that fires after an addon is done being finalized.
-    /// </summary>
-    public event Action<AddonArgs> AddonPostFinalize;
-    
-    /// <summary>
     /// Addon argument data for use in event subscribers.
     /// </summary>
     public unsafe class AddonArgs
@@ -40,7 +35,7 @@ public interface IAddonLifecycle
         /// <summary>
         /// Gets the name of the addon this args referrers to.
         /// </summary>
-        public string AddonName => this.addonName ??= MemoryHelper.ReadString((nint)((AtkUnitBase*)this.Addon)->Name, 0x20);
+        public string AddonName => this.Addon == nint.Zero ? "NullAddon" : this.addonName ??= MemoryHelper.ReadString((nint)((AtkUnitBase*)this.Addon)->Name, 0x20);
 
         /// <summary>
         /// Gets the pointer to the addons AtkUnitBase.
