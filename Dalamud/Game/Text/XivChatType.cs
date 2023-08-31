@@ -13,6 +13,7 @@ public enum XivChatType : ushort
     /// <summary>
     /// The debug chat type.
     /// </summary>
+    [XivChatTypeInfo("Debug", "debug", 0x????????)]
     Debug = 1,
 
     /// <summary>
@@ -42,6 +43,7 @@ public enum XivChatType : ushort
     /// <summary>
     /// The outgoing tell chat type.
     /// </summary>
+    [XivChatTypeInfo("Tell (Outgoing)", "tell_outgoing", 0x ????????)] // Do we want this?
     TellOutgoing = 12,
 
     /// <summary>
@@ -167,31 +169,37 @@ public enum XivChatType : ushort
     /// <summary>
     /// The system error chat type.
     /// </summary>
+    [XivChatTypeInfo("SystemError", "system_error", 0x????????)]
     SystemError = 58,
 
     /// <summary>
     /// The system message chat type.
     /// </summary>
+    [XivChatTypeInfo("SystemError", "system_message", 0x????????)]
     SystemMessage = 57,
 
     /// <summary>
     /// The system message (gathering) chat type.
     /// </summary>
+    [XivChatTypeInfo("SystemError", "gathering", 0x ????????)]
     GatheringSystemMessage = 59,
 
     /// <summary>
     /// The error message chat type.
     /// </summary>
+    [XivChatTypeInfo("SystemError", "error", 0x ????????)]
     ErrorMessage = 60,
 
     /// <summary>
     /// The NPC Dialogue chat type.
     /// </summary>
+    [XivChatTypeInfo("SystemError", "npc", 0x ????????)]
     NPCDialogue = 61,
 
     /// <summary>
     /// The NPC Dialogue (Announcements) chat type.
     /// </summary>
+    [XivChatTypeInfo("SystemError", "npc_dialog", 0x ????????)]
     NPCDialogueAnnouncements = 68,
 
     /// <summary>
@@ -200,6 +208,7 @@ public enum XivChatType : ushort
     /// <remarks>
     /// This might be used for other purposes.
     /// </remarks>
+    [XivChatTypeInfo("SystemError", "retainer", 0x ????????)]
     RetainerSale = 71,
 
     /// <summary>
