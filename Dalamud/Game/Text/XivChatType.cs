@@ -43,13 +43,13 @@ public enum XivChatType : ushort
     /// <summary>
     /// The outgoing tell chat type.
     /// </summary>
-    [XivChatTypeInfo("Tell (Outgoing)", "tell_outgoing", 0x ????????)] // Do we want this?
+    [XivChatTypeInfo("Tell (Outgoing)", "tell_outgoing", 0xFFFF69B4)] // Do we want this?
     TellOutgoing = 12,
 
     /// <summary>
     /// The incoming tell chat type.
     /// </summary>
-    [XivChatTypeInfo("Tell", "tell", 0xFFFF69B4)]
+    [XivChatTypeInfo("Tell (Incoming)", "tell", 0xFFFF69B4)]
     TellIncoming = 13,
 
     /// <summary>
