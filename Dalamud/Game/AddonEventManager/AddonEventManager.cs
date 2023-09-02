@@ -19,23 +19,22 @@ namespace Dalamud.Game.AddonEventManager;
 internal unsafe class AddonEventManager : IDisposable, IServiceType
 {
     // The starting value for param key ranges.
-    // ascii `DD` 0x4444 chosen for the key start, this just has to be larger than anything vanilla makes.
-    private const uint ParamKeyStart = 0x44440000;
+    private const uint ParamKeyStart = 0x0000_0000;
 
     // The range each plugin is allowed to use.
-    // 65,536 per plugin should be reasonable.
-    private const uint ParamKeyPluginRange = 0x10000;
+    // 1,048,576 per plugin should be reasonable.
+    private const uint ParamKeyPluginRange = 0x10_0000;
     
     // The maximum range allowed to be given to a plugin.
-    // 20,560 maximum plugins should be reasonable.
-    // 202,113,024 maximum event handlers should be reasonable.
-    private const uint ParamKeyMax = 0x50500000;
+    // 1,048,576 maximum plugins should be reasonable.
+    private const uint ParamKeyMax = 0xFFF0_0000;
     
     private static readonly ModuleLog Log = new("AddonEventManager");
+    
     private readonly AddonEventManagerAddressResolver address;
-    private readonly Hook<GlobalEventHandlerDelegate> onGlobalEventHook;
     private readonly Hook<UpdateCursorDelegate> onUpdateCursor;
     private readonly Dictionary<uint, IAddonEventManager.AddonEventHandler> eventHandlers;
+    private readonly AddonEventListener eventListener;
 
     private AddonCursorType currentCursor;
     private bool cursorSet;
@@ -48,21 +47,20 @@ internal unsafe class AddonEventManager : IDisposable, IServiceType
         this.address = new AddonEventManagerAddressResolver();
         this.address.Setup(sigScanner);
 
+        this.eventListener = new AddonEventListener(this.OnCustomEvent);
+        
         this.eventHandlers = new Dictionary<uint, IAddonEventManager.AddonEventHandler>();
         this.currentCursor = AddonCursorType.Arrow;
 
-        this.onGlobalEventHook = Hook<GlobalEventHandlerDelegate>.FromAddress(this.address.GlobalEventHandler, this.GlobalEventHandler);
         this.onUpdateCursor = Hook<UpdateCursorDelegate>.FromAddress(this.address.UpdateCursor, this.UpdateCursorDetour);
     }
-
-    private delegate nint GlobalEventHandlerDelegate(AtkUnitBase* atkUnitBase, AtkEventType eventType, uint eventParam, AtkResNode** eventData, nint unknown);
 
     private delegate nint UpdateCursorDelegate(RaptureAtkModule* module);
     
     /// <inheritdoc/>
     public void Dispose()
     {
-        this.onGlobalEventHook.Dispose();
+        this.eventListener.Dispose();
         this.onUpdateCursor.Dispose();
     }
     
@@ -85,17 +83,39 @@ internal unsafe class AddonEventManager : IDisposable, IServiceType
     }
 
     /// <summary>
-    /// Adds a event handler to be triggered when the specified id is received.
+    /// Attaches an event to a node.
     /// </summary>
-    /// <param name="eventId">Unique id for this event handler.</param>
+    /// <param name="addon">Addon that contains the node.</param>
+    /// <param name="node">The node that will trigger the event.</param>
+    /// <param name="eventType">The event type to trigger on.</param>
+    /// <param name="param">The unique id for this event.</param>
     /// <param name="handler">The event handler to be called.</param>
-    public void AddEvent(uint eventId, IAddonEventManager.AddonEventHandler handler) => this.eventHandlers.Add(eventId, handler);
+    public void AddEvent(AtkUnitBase* addon, AtkResNode* node, AtkEventType eventType, uint param, IAddonEventManager.AddonEventHandler handler)
+    {
+        this.eventListener.RegisterEvent(addon, node, eventType, param);
+        this.eventHandlers.TryAdd(param, handler);
+    }
 
     /// <summary>
-    /// Removes the event handler with the specified id.
+    /// Detaches an event from a node.
     /// </summary>
-    /// <param name="eventId">Event id to unregister.</param>
-    public void RemoveEvent(uint eventId) => this.eventHandlers.Remove(eventId);
+    /// <param name="node">The node to remove the event from.</param>
+    /// <param name="eventType">The event type to remove.</param>
+    /// <param name="param">The unique id of the event to remove.</param>
+    public void RemoveEvent(AtkResNode* node, AtkEventType eventType, uint param)
+    {
+        this.eventListener.UnregisterEvent(node, eventType, param);
+        this.eventHandlers.Remove(param);
+    }
+
+    /// <summary>
+    /// Removes a delegate from the managed event handlers.
+    /// </summary>
+    /// <param name="param">Unique id of the delegate to remove.</param>
+    public void RemoveHandler(uint param)
+    {
+        this.eventHandlers.Remove(param);
+    }
 
     /// <summary>
     /// Sets the game cursor.
@@ -119,33 +139,23 @@ internal unsafe class AddonEventManager : IDisposable, IServiceType
     [ServiceManager.CallWhenServicesReady]
     private void ContinueConstruction()
     {
-        this.onGlobalEventHook.Enable();
         this.onUpdateCursor.Enable();
     }
 
-    private nint GlobalEventHandler(AtkUnitBase* atkUnitBase, AtkEventType eventType, uint eventParam, AtkResNode** eventData, nint unknown)
+    private void OnCustomEvent(AtkEventListener* self, AtkEventType eventType, uint eventParam, AtkEvent* eventData, nint unknown)
     {
-        try
+        if (this.eventHandlers.TryGetValue(eventParam, out var handler) && eventData is not null)
         {
-            if (this.eventHandlers.TryGetValue(eventParam, out var handler) && eventData is not null)
+            try
             {
-                try
-                {
-                    handler?.Invoke((AddonEventType)eventType, (nint)atkUnitBase, (nint)eventData[0]);
-                    return nint.Zero;
-                }
-                catch (Exception exception)
-                {
-                    Log.Error(exception, "Exception in GlobalEventHandler custom event invoke.");
-                }
+                // We passed the AtkUnitBase into the EventData.Node field from our AddonEventHandler
+                handler?.Invoke((AddonEventType)eventType, (nint)eventData->Node, (nint)eventData->Target);
+            }
+            catch (Exception exception)
+            {
+                Log.Error(exception, "Exception in OnCustomEvent custom event invoke.");
             }
         }
-        catch (Exception e)
-        {
-            Log.Error(e, "Exception in GlobalEventHandler attempting to retrieve event handler.");
-        }
-
-        return this.onGlobalEventHook!.Original(atkUnitBase, eventType, eventParam, eventData, unknown);
     }
 
     private nint UpdateCursorDetour(RaptureAtkModule* module)
@@ -193,7 +203,7 @@ internal unsafe class AddonEventManagerPluginScoped : IDisposable, IServiceType,
     private readonly uint paramKeyStartRange;
     private readonly List<uint> activeParamKeys;
     private bool isForcingCursor;
-    
+
     /// <summary>
     /// Initializes a new instance of the <see cref="AddonEventManagerPluginScoped"/> class.
     /// </summary>
@@ -208,7 +218,7 @@ internal unsafe class AddonEventManagerPluginScoped : IDisposable, IServiceType,
     {
         foreach (var activeKey in this.activeParamKeys)
         {
-            this.baseEventManager.RemoveEvent(activeKey);
+            this.baseEventManager.RemoveHandler(activeKey);
         }
 
         // if multiple plugins force cursors and dispose without un-forcing them then all forces will be cleared.
@@ -221,18 +231,16 @@ internal unsafe class AddonEventManagerPluginScoped : IDisposable, IServiceType,
     /// <inheritdoc/>
     public void AddEvent(uint eventId, IntPtr atkUnitBase, IntPtr atkResNode, AddonEventType eventType, IAddonEventManager.AddonEventHandler eventHandler)
     {
-        if (eventId < 0x10000)
+        if (eventId < 0x10_000)
         {
             var type = (AtkEventType)eventType;
             var node = (AtkResNode*)atkResNode;
-            var eventListener = (AtkEventListener*)atkUnitBase;
+            var addon = (AtkUnitBase*)atkUnitBase;
             var uniqueId = eventId + this.paramKeyStartRange;
 
             if (!this.activeParamKeys.Contains(uniqueId))
             {
-                node->AddEvent(type, uniqueId, eventListener, node, true);
-                this.baseEventManager.AddEvent(uniqueId, eventHandler);
-        
+                this.baseEventManager.AddEvent(addon, node, type, uniqueId, eventHandler);
                 this.activeParamKeys.Add(uniqueId);
             }
             else
@@ -242,7 +250,7 @@ internal unsafe class AddonEventManagerPluginScoped : IDisposable, IServiceType,
         }
         else
         {
-            Log.Warning($"Attempted to register eventId out of range: {eventId}\nMaximum value: {0x10000}");
+            Log.Warning($"Attempted to register eventId out of range: {eventId}\nMaximum value: {0x10_000}");
         }
     }
     
@@ -251,14 +259,11 @@ internal unsafe class AddonEventManagerPluginScoped : IDisposable, IServiceType,
     {
         var type = (AtkEventType)eventType;
         var node = (AtkResNode*)atkResNode;
-        var eventListener = (AtkEventListener*)atkUnitBase;
         var uniqueId = eventId + this.paramKeyStartRange;
 
         if (this.activeParamKeys.Contains(uniqueId))
         {
-            node->RemoveEvent(type, uniqueId, eventListener, true);
-            this.baseEventManager.RemoveEvent(uniqueId);
-
+            this.baseEventManager.RemoveEvent(node, type, uniqueId);
             this.activeParamKeys.Remove(uniqueId);
         }
         else
