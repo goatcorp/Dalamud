@@ -16,13 +16,16 @@ namespace Dalamud.Game.AddonEventManager;
 /// </summary>
 [InterfaceVersion("1.0")]
 [ServiceManager.EarlyLoadedService]
-internal unsafe class AddonEventManager : IDisposable, IServiceType
+internal unsafe class AddonEventManager : IDisposable, IServiceType, IAddonEventManager
 {
     private static readonly ModuleLog Log = new("AddonEventManager");
     
     private readonly AddonEventManagerAddressResolver address;
     private readonly Hook<UpdateCursorDelegate> onUpdateCursor;
 
+    private readonly AddonEventListener eventListener;
+    private readonly Dictionary<uint, IAddonEventManager.AddonEventHandler> eventHandlers;
+    
     private AddonCursorType? cursorOverride;
     
     [ServiceManager.ServiceConstructor]
@@ -31,28 +34,63 @@ internal unsafe class AddonEventManager : IDisposable, IServiceType
         this.address = new AddonEventManagerAddressResolver();
         this.address.Setup(sigScanner);
 
+        this.eventHandlers = new Dictionary<uint, IAddonEventManager.AddonEventHandler>();
+        this.eventListener = new AddonEventListener(this.DalamudAddonEventHandler);
+        
         this.cursorOverride = null;
 
         this.onUpdateCursor = Hook<UpdateCursorDelegate>.FromAddress(this.address.UpdateCursor, this.UpdateCursorDetour);
     }
 
     private delegate nint UpdateCursorDelegate(RaptureAtkModule* module);
+
+    /// <inheritdoc/>
+    public void AddEvent(uint eventId, IntPtr atkUnitBase, IntPtr atkResNode, AddonEventType eventType, IAddonEventManager.AddonEventHandler eventHandler)
+    {
+        if (!this.eventHandlers.ContainsKey(eventId))
+        {
+            var type = (AtkEventType)eventType;
+            var node = (AtkResNode*)atkResNode;
+            var addon = (AtkUnitBase*)atkUnitBase;
+
+            this.eventHandlers.Add(eventId, eventHandler);
+            this.eventListener.RegisterEvent(addon, node, type, eventId);
+        }
+        else
+        {
+            Log.Warning($"Attempted to register already registered eventId: {eventId}");
+        }
+    }
     
+    /// <inheritdoc/>
+    public void RemoveEvent(uint eventId, IntPtr atkResNode, AddonEventType eventType)
+    {
+        if (this.eventHandlers.ContainsKey(eventId))
+        {
+            var type = (AtkEventType)eventType;
+            var node = (AtkResNode*)atkResNode;
+            
+            this.eventListener.UnregisterEvent(node, type, eventId);
+            this.eventHandlers.Remove(eventId);
+        }
+        else
+        {
+            Log.Warning($"Attempted to unregister already unregistered eventId: {eventId}");
+        }
+    }
+
     /// <inheritdoc/>
     public void Dispose()
     {
         this.onUpdateCursor.Dispose();
+        this.eventListener.Dispose();
+        this.eventHandlers.Clear();
     }
     
-    /// <summary>
-    /// Sets the game cursor.
-    /// </summary>
-    /// <param name="cursor">Cursor type to set.</param>
+    /// <inheritdoc/>
     public void SetCursor(AddonCursorType cursor) => this.cursorOverride = cursor;
 
-    /// <summary>
-    /// Resets and un-forces custom cursor.
-    /// </summary>
+    /// <inheritdoc/>
     public void ResetCursor() => this.cursorOverride = null;
 
     [ServiceManager.CallWhenServicesReady]
@@ -84,6 +122,22 @@ internal unsafe class AddonEventManager : IDisposable, IServiceType
         }
 
         return this.onUpdateCursor!.Original(module);
+    }
+    
+    private void DalamudAddonEventHandler(AtkEventListener* self, AtkEventType eventType, uint eventParam, AtkEvent* eventData, IntPtr unknown)
+    {
+        if (this.eventHandlers.TryGetValue(eventParam, out var handler) && eventData is not null)
+        {
+            try
+            {
+                // We passed the AtkUnitBase into the EventData.Node field from our AddonEventHandler
+                handler?.Invoke((AddonEventType)eventType, (nint)eventData->Node, (nint)eventData->Target);
+            }
+            catch (Exception exception)
+            {
+                Log.Error(exception, "Exception in DalamudAddonEventHandler custom event invoke.");
+            }
+        } 
     }
 }
 
@@ -149,7 +203,7 @@ internal unsafe class AddonEventManagerPluginScoped : IDisposable, IServiceType,
     }
     
     /// <inheritdoc/>
-    public void RemoveEvent(uint eventId, IntPtr atkUnitBase, IntPtr atkResNode, AddonEventType eventType)
+    public void RemoveEvent(uint eventId, IntPtr atkResNode, AddonEventType eventType)
     {
         if (this.eventHandlers.ContainsKey(eventId))
         {
