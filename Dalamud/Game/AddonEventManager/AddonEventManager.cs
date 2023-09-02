@@ -19,7 +19,8 @@ namespace Dalamud.Game.AddonEventManager;
 internal unsafe class AddonEventManager : IDisposable, IServiceType
 {
     // The starting value for param key ranges.
-    private const uint ParamKeyStart = 0x0000_0000;
+    // Reserve the first 0x10_000 for dalamud internal use.
+    private const uint ParamKeyStart = 0x0010_0000;
 
     // The range each plugin is allowed to use.
     // 1,048,576 per plugin should be reasonable.
