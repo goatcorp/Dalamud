@@ -97,7 +97,7 @@ internal unsafe class AddonEventManager : IDisposable, IServiceType
     {
         try
         {
-            if (this.eventHandlers.TryGetValue(eventParam, out var handler))
+            if (this.eventHandlers.TryGetValue(eventParam, out var handler) && eventData is not null)
             {
                 try
                 {
