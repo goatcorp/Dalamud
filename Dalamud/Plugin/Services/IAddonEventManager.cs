@@ -29,10 +29,9 @@ public interface IAddonEventManager
     /// Unregisters an event handler with the specified event id and event type.
     /// </summary>
     /// <param name="eventId">The Unique Id for this event.</param>
-    /// <param name="atkUnitBase">The parent addon for this event.</param>
     /// <param name="atkResNode">The node for this event.</param>
     /// <param name="eventType">The event type for this event.</param>
-    void RemoveEvent(uint eventId, nint atkUnitBase, nint atkResNode, AddonEventType eventType);
+    void RemoveEvent(uint eventId, nint atkResNode, AddonEventType eventType);
 
     /// <summary>
     /// Force the game cursor to be the specified cursor.
