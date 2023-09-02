@@ -6,9 +6,14 @@
 internal class AddonEventManagerAddressResolver : BaseAddressResolver
 {
     /// <summary>
-    /// Gets the address of the global atkevent handler
+    /// Gets the address of the global AtkEvent handler.
     /// </summary>
     public nint GlobalEventHandler { get; private set; }
+    
+    /// <summary>
+    /// Gets the address of the AtkModule UpdateCursor method.
+    /// </summary>
+    public nint UpdateCursor { get; private set; }
 
     /// <summary>
     /// Scan for and setup any configured address pointers.
@@ -17,5 +22,6 @@ internal class AddonEventManagerAddressResolver : BaseAddressResolver
     protected override void Setup64Bit(SigScanner scanner)
     {
         this.GlobalEventHandler = scanner.ScanText("48 89 5C 24 ?? 48 89 7C 24 ?? 55 41 56 41 57 48 8B EC 48 83 EC 50 44 0F B7 F2");
+        this.UpdateCursor = scanner.ScanText("48 89 74 24 ?? 48 89 7C 24 ?? 41 56 48 83 EC 20 4C 8B F1 E8 ?? ?? ?? ?? 49 8B CE");
     }
 }

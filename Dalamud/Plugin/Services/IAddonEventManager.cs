@@ -33,4 +33,15 @@ public interface IAddonEventManager
     /// <param name="atkResNode">The node for this event.</param>
     /// <param name="eventType">The event type for this event.</param>
     void RemoveEvent(uint eventId, nint atkUnitBase, nint atkResNode, AddonEventType eventType);
+
+    /// <summary>
+    /// Force the game cursor to be the specified cursor.
+    /// </summary>
+    /// <param name="cursor">Which cursor to use.</param>
+    void SetCursor(AddonCursorType cursor);
+
+    /// <summary>
+    /// Un-forces the game cursor.
+    /// </summary>
+    void ResetCursor();
 }
