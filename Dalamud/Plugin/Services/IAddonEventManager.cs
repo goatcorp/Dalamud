@@ -18,7 +18,7 @@ public interface IAddonEventManager
     /// <summary>
     /// Registers an event handler for the specified addon, node, and type.
     /// </summary>
-    /// <param name="eventId">Unique Id for this event, maximum 0x10000.</param>
+    /// <param name="eventId">Unique Id for this event.</param>
     /// <param name="atkUnitBase">The parent addon for this event.</param>
     /// <param name="atkResNode">The node that will trigger this event.</param>
     /// <param name="eventType">The event type for this event.</param>
