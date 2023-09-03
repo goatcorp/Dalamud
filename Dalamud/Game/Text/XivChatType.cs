@@ -193,13 +193,13 @@ public enum XivChatType : ushort
     /// <summary>
     /// The NPC Dialogue chat type.
     /// </summary>
-    [XivChatTypeInfo("NPC", "npc", 0x ????????)]
+    [XivChatTypeInfo("NPC Dialogue", "npc_dialogue", 0x ????????)]
     NPCDialogue = 61,
 
     /// <summary>
     /// The NPC Dialogue (Announcements) chat type.
     /// </summary>
-    [XivChatTypeInfo("NPC Dialog", "npc_dialog", 0xFFABD647)]
+    [XivChatTypeInfo("NPC Dialogue Announcements", "npc_dialogue_announcements", 0xFFABD647)]
     NPCDialogueAnnouncements = 68,
 
     /// <summary>
