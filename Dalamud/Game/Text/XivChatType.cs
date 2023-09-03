@@ -43,13 +43,13 @@ public enum XivChatType : ushort
     /// <summary>
     /// The outgoing tell chat type.
     /// </summary>
-    [XivChatTypeInfo("Tell (Outgoing)", "tell_outgoing", 0xFFFF69B4)] // Do we want this?
+    [XivChatTypeInfo("Tell (Outgoing)", "tell_outgoing", 0xFFFF69B4)]
     TellOutgoing = 12,
 
     /// <summary>
     /// The incoming tell chat type.
     /// </summary>
-    [XivChatTypeInfo("Tell (Incoming)", "tell", 0xFFFF69B4)]
+    [XivChatTypeInfo("Tell (Incoming)", "tell_incoming", 0xFFFF69B4)]
     TellIncoming = 13,
 
     /// <summary>
@@ -169,37 +169,37 @@ public enum XivChatType : ushort
     /// <summary>
     /// The system error chat type.
     /// </summary>
-    [XivChatTypeInfo("SystemError", "system_error", 0x????????)]
+    [XivChatTypeInfo("System Error", "system_error", 0xFFFF4A4A)]
     SystemError = 58,
 
     /// <summary>
     /// The system message chat type.
     /// </summary>
-    [XivChatTypeInfo("SystemError", "system_message", 0x????????)]
+    [XivChatTypeInfo("System Message", "system_message", 0xFFCCCCCC)]
     SystemMessage = 57,
 
     /// <summary>
     /// The system message (gathering) chat type.
     /// </summary>
-    [XivChatTypeInfo("SystemError", "gathering", 0x ????????)]
+    [XivChatTypeInfo("Gathering", "gathering", 0xFFCCCCCC)]
     GatheringSystemMessage = 59,
 
     /// <summary>
     /// The error message chat type.
     /// </summary>
-    [XivChatTypeInfo("SystemError", "error", 0x ????????)]
+    [XivChatTypeInfo("Error", "error", 0xFFFF4A4A)]
     ErrorMessage = 60,
 
     /// <summary>
     /// The NPC Dialogue chat type.
     /// </summary>
-    [XivChatTypeInfo("SystemError", "npc", 0x ????????)]
+    [XivChatTypeInfo("NPC", "npc", 0x ????????)]
     NPCDialogue = 61,
 
     /// <summary>
     /// The NPC Dialogue (Announcements) chat type.
     /// </summary>
-    [XivChatTypeInfo("SystemError", "npc_dialog", 0x ????????)]
+    [XivChatTypeInfo("NPC Dialog", "npc_dialog", 0xFFABD647)]
     NPCDialogueAnnouncements = 68,
 
     /// <summary>
@@ -208,7 +208,7 @@ public enum XivChatType : ushort
     /// <remarks>
     /// This might be used for other purposes.
     /// </remarks>
-    [XivChatTypeInfo("SystemError", "retainer", 0x ????????)]
+    [XivChatTypeInfo("Retainer", "retainer", 0x ????????)]
     RetainerSale = 71,
 
     /// <summary>
