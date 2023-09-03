@@ -208,7 +208,7 @@ public enum XivChatType : ushort
     /// <remarks>
     /// This might be used for other purposes.
     /// </remarks>
-    [XivChatTypeInfo("Retainer", "retainer", 0x ????????)]
+    [XivChatTypeInfo("Retainer", "retainer", 0xFF808080)]
     RetainerSale = 71,
 
     /// <summary>
