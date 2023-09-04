@@ -207,13 +207,8 @@ public abstract partial class Payload
                 payload = new IconPayload();
                 break;
             
-            // Known chunk types that are not implemented by dalamud. No reason to spam the log for these.
-            case SeStringChunkType.SeColor:
-            case SeStringChunkType.SeGlow:
-                break;
-
             default:
-                Log.Verbose("Unhandled SeStringChunkType: {0}", chunkType);
+                // Log.Verbose("Unhandled SeStringChunkType: {0}", chunkType);
                 break;
         }
 
@@ -322,16 +317,6 @@ public abstract partial class Payload
         /// </summary>
         Icon = 0x12,
 
-        /// <summary>
-        /// Known but not implemented type.
-        /// </summary>
-        SeColor = 0x13,
-
-        /// <summary>
-        /// Known but not implemented type.
-        /// </summary>
-        SeGlow = 0x14,
-        
         /// <summary>
         /// See the <see cref="EmphasisItalicPayload"/> class.
         /// </summary>
