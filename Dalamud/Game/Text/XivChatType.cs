@@ -13,7 +13,7 @@ public enum XivChatType : ushort
     /// <summary>
     /// The debug chat type.
     /// </summary>
-    [XivChatTypeInfo("Debug", "debug", 0x????????)]
+    [XivChatTypeInfo("Debug", "debug", 0xFF808080)]
     Debug = 1,
 
     /// <summary>
@@ -169,13 +169,13 @@ public enum XivChatType : ushort
     /// <summary>
     /// The system error chat type.
     /// </summary>
-    [XivChatTypeInfo("System Error", "system_error", 0xFFFF4A4A)]
+    [XivChatTypeInfo("System Error", "system_error", 0xFF808080)]
     SystemError = 58,
 
     /// <summary>
     /// The system message chat type.
     /// </summary>
-    [XivChatTypeInfo("System Message", "system_message", 0xFFCCCCCC)]
+    [XivChatTypeInfo("System Message", "system_message", 0xFF808080)]
     SystemMessage = 57,
 
     /// <summary>
@@ -193,7 +193,7 @@ public enum XivChatType : ushort
     /// <summary>
     /// The NPC Dialogue chat type.
     /// </summary>
-    [XivChatTypeInfo("NPC Dialogue", "npc_dialogue", 0x ????????)]
+    [XivChatTypeInfo("NPC Dialogue", "npc_dialogue", 0xFFABD647)]
     NPCDialogue = 61,
 
     /// <summary>
