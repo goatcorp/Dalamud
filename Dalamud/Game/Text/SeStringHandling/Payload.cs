@@ -341,7 +341,7 @@ public abstract partial class Payload
         /// See the <see cref="SeHyphenPayload"/> class.
         /// </summary>
         SeHyphen = 0x1F,
-        
+
         /// <summary>
         /// See any of the link-type classes:
         /// <see cref="PlayerPayload"/>,
