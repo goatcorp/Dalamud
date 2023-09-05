@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -50,6 +51,7 @@ public sealed unsafe class DtrBar : IDisposable, IServiceType, IDtrBar
     private readonly DalamudAddonEventManager uiEventManager = Service<DalamudAddonEventManager>.Get();
 
     private readonly DtrBarAddressResolver address;
+    private readonly ConcurrentBag<DtrBarEntry> newEntries = new();
     private readonly List<DtrBarEntry> entries = new();
     private readonly Hook<AddonDrawDelegate> onAddonDrawHook;
     private readonly Hook<AddonRequestedUpdateDelegate> onAddonRequestedUpdateHook;
@@ -78,18 +80,17 @@ public sealed unsafe class DtrBar : IDisposable, IServiceType, IDtrBar
     /// <inheritdoc/>
     public DtrBarEntry Get(string title, SeString? text = null)
     {
-        if (this.entries.Any(x => x.Title == title))
+        if (this.entries.Any(x => x.Title == title) || this.newEntries.Any(x => x.Title == title))
             throw new ArgumentException("An entry with the same title already exists.");
 
-        var node = this.MakeNode(++this.runningNodeIds);
-        var entry = new DtrBarEntry(title, node);
+        var entry = new DtrBarEntry(title, null);
         entry.Text = text;
 
         // Add the entry to the end of the order list, if it's not there already.
         if (!this.configuration.DtrOrder!.Contains(title))
             this.configuration.DtrOrder!.Add(title);
-        this.entries.Add(entry);
-        this.ApplySort();
+
+        this.newEntries.Add(entry);
 
         return entry;
     }
@@ -173,6 +174,7 @@ public sealed unsafe class DtrBar : IDisposable, IServiceType, IDtrBar
     private void Update(Framework unused)
     {
         this.HandleRemovedNodes();
+        this.HandleAddedNodes();
 
         var dtr = this.GetDtr();
         if (dtr == null) return;
@@ -235,6 +237,21 @@ public sealed unsafe class DtrBar : IDisposable, IServiceType, IDtrBar
                     data.TextNode->AtkResNode.SetPositionFloat(runningXPos, 2);
                 }
             }
+        }
+    }
+
+    private void HandleAddedNodes()
+    {
+        if (this.newEntries.Any())
+        {
+            foreach (var newEntry in this.newEntries)
+            {
+                newEntry.TextNode = this.MakeNode(++this.runningNodeIds);
+                this.entries.Add(newEntry);
+            }
+            
+            this.newEntries.Clear();
+            this.ApplySort();
         }
     }
 
