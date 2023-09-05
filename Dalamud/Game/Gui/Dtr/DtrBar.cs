@@ -249,6 +249,21 @@ public sealed unsafe class DtrBar : IDisposable, IServiceType, IDtrBar
             if (MemoryHelper.ReadString((nint)addon->Name, 0x20) is not "_DTR") return;
 
             this.UpdateNodePositions(addon);
+            
+            if (!this.configuration.DtrSwapDirection)
+            {
+                var targetSize = (ushort)this.CalculateTotalSize();
+                var sizeDelta = targetSize - addon->RootNode->Width;
+                
+                if (addon->RootNode->Width != targetSize)
+                {
+                    addon->RootNode->SetWidth(targetSize);
+                    addon->SetX((short)(addon->GetX() - sizeDelta));
+                    
+                    // force a RequestedUpdate immediately to force the game to right-justify it immediately.
+                    this.onAddonRequestedUpdateHook.Original(addon, AtkStage.GetSingleton()->GetNumberArrayData(), AtkStage.GetSingleton()->GetStringArrayData());
+                }
+            }
         }
         catch (Exception e)
         {
@@ -258,13 +273,12 @@ public sealed unsafe class DtrBar : IDisposable, IServiceType, IDtrBar
     
     private void UpdateNodePositions(AtkUnitBase* addon)
     {
-        var targetSize = (ushort)this.CalculateTotalSize();
-        addon->RootNode->SetWidth(targetSize);
-
         // If we grow to the right, we need to left-justify the original elements.
         // else if we grow to the left, the game right-justifies it for us.
         if (this.configuration.DtrSwapDirection)
         {
+            var targetSize = (ushort)this.CalculateTotalSize();
+            addon->RootNode->SetWidth(targetSize);
             var sizeOffset = addon->GetNodeById(17)->GetX();
             
             var node = addon->RootNode->ChildNode;
@@ -338,7 +352,7 @@ public sealed unsafe class DtrBar : IDisposable, IServiceType, IDtrBar
             if (node->NodeID is 17) totalSize += node->Width;
             
             // Node > 1000, are our custom nodes
-            if (node->NodeID is > 1000) totalSize += node->Width + this.configuration.DtrSpacing;
+            if (node->NodeID is > 1000 && node->IsVisible) totalSize += node->Width + this.configuration.DtrSpacing;
         }
 
         return totalSize;
