@@ -26,9 +26,6 @@ namespace Dalamud.Game.Gui.Dtr;
 [PluginInterface]
 [InterfaceVersion("1.0")]
 [ServiceManager.BlockingEarlyLoadedService]
-#pragma warning disable SA1015
-[ResolveVia<IDtrBar>]
-#pragma warning restore SA1015
 public sealed unsafe class DtrBar : IDisposable, IServiceType, IDtrBar
 {
     private const uint BaseNodeId = 1000;
@@ -93,6 +90,15 @@ public sealed unsafe class DtrBar : IDisposable, IServiceType, IDtrBar
         this.newEntries.Add(entry);
 
         return entry;
+    }
+    
+    /// <inheritdoc/>
+    public void Remove(string title)
+    {
+        if (this.entries.FirstOrDefault(entry => entry.Title == title) is { } dtrBarEntry)
+        {
+            dtrBarEntry.Remove();
+        }
     }
 
     /// <inheritdoc/>
@@ -494,6 +500,53 @@ public sealed unsafe class DtrBar : IDisposable, IServiceType, IDtrBar
                     dtrBarEntry.OnClick.Invoke();
                     break;
             }
+        }
+    }
+}
+
+/// <summary>
+/// Plugin-scoped version of a AddonEventManager service.
+/// </summary>
+[PluginInterface]
+[InterfaceVersion("1.0")]
+[ServiceManager.ScopedService]
+#pragma warning disable SA1015
+[ResolveVia<IDtrBar>]
+#pragma warning restore SA1015
+internal class DtrBarPluginScoped : IDisposable, IServiceType, IDtrBar
+{
+    [ServiceManager.ServiceDependency]
+    private readonly DtrBar dtrBarService = Service<DtrBar>.Get();
+
+    private readonly Dictionary<string, DtrBarEntry> pluginEntries = new();
+
+    /// <inheritdoc/>
+    public void Dispose()
+    {
+        foreach (var entry in this.pluginEntries)
+        {
+            entry.Value.Remove();
+        }
+        
+        this.pluginEntries.Clear();
+    }
+    
+    /// <inheritdoc/>
+    public DtrBarEntry Get(string title, SeString? text = null)
+    {
+        // If we already have a known entry for this plugin, return it.
+        if (this.pluginEntries.TryGetValue(title, out var existingEntry)) return existingEntry;
+
+        return this.pluginEntries[title] = this.dtrBarService.Get(title, text);
+    }
+    
+    /// <inheritdoc/>
+    public void Remove(string title)
+    {
+        if (this.pluginEntries.TryGetValue(title, out var existingEntry))
+        {
+            existingEntry.Remove();
+            this.pluginEntries.Remove(title);
         }
     }
 }
