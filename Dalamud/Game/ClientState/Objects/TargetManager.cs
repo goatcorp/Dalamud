@@ -70,6 +70,20 @@ public sealed unsafe class TargetManager : IServiceType, ITargetManager
         set => this.SetSoftTarget(value);
     }
 
+    /// <inheritdoc/>
+    public GameObject? GPoseTarget
+    {
+        get => this.objectTable.CreateObjectReference((IntPtr)Struct->GPoseTarget);
+        set => Struct->GPoseTarget = (FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject*)value?.Address;
+    }
+    
+    /// <inheritdoc/>
+    public GameObject? MouseOverNameplateTarget
+    {
+        get => this.objectTable.CreateObjectReference((IntPtr)Struct->MouseOverNameplateTarget);
+        set => Struct->MouseOverNameplateTarget = (FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject*)value?.Address;
+    }
+
     private FFXIVClientStructs.FFXIV.Client.Game.Control.TargetSystem* Struct => (FFXIVClientStructs.FFXIV.Client.Game.Control.TargetSystem*)this.Address;
 
     /// <summary>
