@@ -524,7 +524,8 @@ internal class DalamudInterface : IDisposable, IServiceType
 
     private void DrawCreditsDarkeningAnimation()
     {
-        using var style = ImRaii.PushStyle(ImGuiStyleVar.WindowRounding, 0f);
+        using var style = ImRaii.PushStyle(ImGuiStyleVar.WindowRounding | ImGuiStyleVar.WindowBorderSize, 0f);
+        using var color = ImRaii.PushColor(ImGuiCol.WindowBg, new Vector4(0, 0, 0, 0));
 
         ImGui.SetNextWindowPos(new Vector2(0, 0));
         ImGui.SetNextWindowSize(ImGuiHelpers.MainViewport.Size);
