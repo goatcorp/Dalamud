@@ -24,6 +24,11 @@ internal class AddonLifecycleAddressResolver : BaseAddressResolver
     /// Gets the address of the addon update hook invoked by virtual function call.
     /// </summary>
     public nint AddonUpdate { get; private set; }
+    
+    /// <summary>
+    /// Gets the address of the addon onRequestedUpdate hook invoked by virtual function call.
+    /// </summary>
+    public nint AddonOnRequestedUpdate { get; private set; }
 
     /// <summary>
     /// Scan for and setup any configured address pointers.
@@ -35,5 +40,6 @@ internal class AddonLifecycleAddressResolver : BaseAddressResolver
         this.AddonFinalize = sig.ScanText("E8 ?? ?? ?? ?? 48 8B 7C 24 ?? 41 8B C6");
         this.AddonDraw = sig.ScanText("FF 90 ?? ?? ?? ?? 83 EB 01 79 C1");
         this.AddonUpdate = sig.ScanText("FF 90 ?? ?? ?? ?? 40 88 AF");
+        this.AddonOnRequestedUpdate = sig.ScanText("FF 90 90 01 00 00 48 8B 5C 24 30 48 83 C4 20");
     }
 }

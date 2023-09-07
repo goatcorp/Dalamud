@@ -30,6 +30,7 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
     private readonly Hook<AddonFinalizeDelegate> onAddonFinalizeHook;
     private readonly CallHook<AddonDrawDelegate> onAddonDrawHook;
     private readonly CallHook<AddonUpdateDelegate> onAddonUpdateHook;
+    // private readonly CallHook<AddonOnRequestedUpdate> onAddonRequestedUpdateHook; // See Note in Ctor
 
     private readonly ConcurrentBag<AddonLifecycleEventListener> newEventListeners = new();
     private readonly ConcurrentBag<AddonLifecycleEventListener> removeEventListeners = new();
@@ -47,6 +48,9 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
         this.onAddonFinalizeHook = Hook<AddonFinalizeDelegate>.FromAddress(this.address.AddonFinalize, this.OnAddonFinalize);
         this.onAddonDrawHook = new CallHook<AddonDrawDelegate>(this.address.AddonDraw, this.OnAddonDraw);
         this.onAddonUpdateHook = new CallHook<AddonUpdateDelegate>(this.address.AddonUpdate, this.OnAddonUpdate);
+        
+        // todo: reenable this. WARNING: This hook overwrites a system that SimpleTweaks uses, causing SimpleTweaks to report exceptions.
+        // this.onAddonRequestedUpdateHook = new CallHook<AddonOnRequestedUpdate>(this.address.AddonOnRequestedUpdate, this.OnRequestedUpdate);
     }
 
     private delegate nint AddonSetupDelegate(AtkUnitBase* addon);
@@ -57,6 +61,8 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
 
     private delegate void AddonUpdateDelegate(AtkUnitBase* addon, float delta);
 
+    private delegate void AddonOnRequestedUpdate(AtkUnitBase* addon, NumberArrayData** numberArrayData, StringArrayData** stringArrayData);
+
     /// <inheritdoc/>
     public void Dispose()
     {
@@ -66,6 +72,7 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
         this.onAddonFinalizeHook.Dispose();
         this.onAddonDrawHook.Dispose();
         this.onAddonUpdateHook.Dispose();
+        // this.onAddonRequestedUpdateHook.Dispose(); // See Note in Ctor
     }
     
     /// <summary>
@@ -113,6 +120,7 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
         this.onAddonFinalizeHook.Enable();
         this.onAddonDrawHook.Enable();
         this.onAddonUpdateHook.Enable();
+        // this.onAddonRequestedUpdateHook.Enable(); // See Note in Ctor
     }
     
     private void InvokeListeners(AddonEvent eventType, IAddonLifecycle.AddonArgs args)
@@ -215,6 +223,29 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
         catch (Exception e)
         {
             Log.Error(e, "Exception in OnAddonUpdate post-update invoke.");
+        }
+    }
+    
+    private void OnRequestedUpdate(AtkUnitBase* addon, NumberArrayData** numberArrayData, StringArrayData** stringArrayData)
+    {
+        try
+        {
+            this.InvokeListeners(AddonEvent.PreRequestedUpdate, new IAddonLifecycle.AddonArgs { Addon = (nint)addon });
+        }
+        catch (Exception e)
+        {
+            Log.Error(e, "Exception in OnRequestedUpdate pre-requestedUpdate invoke.");
+        }
+
+        addon->OnUpdate(numberArrayData, stringArrayData);
+
+        try
+        {
+            this.InvokeListeners(AddonEvent.PostRequestedUpdate, new IAddonLifecycle.AddonArgs { Addon = (nint)addon });
+        }
+        catch (Exception e)
+        {
+            Log.Error(e, "Exception in OnRequestedUpdate post-requestedUpdate invoke.");
         }
     }
 }

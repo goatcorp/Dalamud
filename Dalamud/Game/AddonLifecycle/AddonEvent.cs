@@ -39,4 +39,14 @@ public enum AddonEvent
     /// Event that is fired before an addon is finalized.
     /// </summary>
     PreFinalize,
+    
+    /// <summary>
+    /// Event that is fired before an addon begins a requested update.
+    /// </summary>
+    PreRequestedUpdate,
+    
+    /// <summary>
+    /// Event that is fired after an addon finishes a requested update.
+    /// </summary>
+    PostRequestedUpdate,
 }
