@@ -6,6 +6,7 @@ using Dalamud.Game.Command;
 using Dalamud.Interface.Windowing;
 using Dalamud.Logging;
 using Dalamud.Plugin;
+using Dalamud.Plugin.Services;
 using Dalamud.Utility;
 using Serilog;
 
@@ -56,7 +57,7 @@ namespace Dalamud.CorePlugin
         /// </summary>
         /// <param name="pluginInterface">Dalamud plugin interface.</param>
         /// <param name="log">Logging service.</param>
-        public PluginImpl(DalamudPluginInterface pluginInterface, PluginLog log)
+        public PluginImpl(DalamudPluginInterface pluginInterface, IPluginLog log)
         {
             try
             {
