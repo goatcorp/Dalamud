@@ -55,7 +55,7 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
 
     private delegate void AddonDrawDelegate(AtkUnitBase* addon);
 
-    private delegate void AddonUpdateDelegate(AtkUnitBase* addon);
+    private delegate void AddonUpdateDelegate(AtkUnitBase* addon, float delta);
 
     /// <inheritdoc/>
     public void Dispose()
@@ -174,8 +174,6 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
     
     private void OnAddonDraw(AtkUnitBase* addon)
     {
-        if (addon is null) return;
-        
         try
         {
             this.InvokeListeners(AddonEvent.PreDraw, new IAddonLifecycle.AddonArgs { Addon = (nint)addon });
@@ -185,7 +183,7 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
             Log.Error(e, "Exception in OnAddonDraw pre-draw invoke.");
         }
         
-        ((delegate* unmanaged<AtkUnitBase*, void>)addon->AtkEventListener.vfunc[42])(addon);
+        addon->Draw();
 
         try
         {
@@ -197,10 +195,8 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
         }
     }
     
-    private void OnAddonUpdate(AtkUnitBase* addon)
+    private void OnAddonUpdate(AtkUnitBase* addon, float delta)
     {
-        if (addon is null) return;
-        
         try
         {
             this.InvokeListeners(AddonEvent.PreUpdate, new IAddonLifecycle.AddonArgs { Addon = (nint)addon });
@@ -209,8 +205,8 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
         {
             Log.Error(e, "Exception in OnAddonUpdate pre-update invoke.");
         }
-        
-        ((delegate* unmanaged<AtkUnitBase*, void>)addon->AtkEventListener.vfunc[41])(addon);
+
+        addon->Update(delta);
 
         try
         {

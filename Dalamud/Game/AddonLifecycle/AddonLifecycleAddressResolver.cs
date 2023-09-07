@@ -33,7 +33,7 @@ internal class AddonLifecycleAddressResolver : BaseAddressResolver
     {
         this.AddonSetup = sig.ScanText("E8 ?? ?? ?? ?? 8B 83 ?? ?? ?? ?? C1 E8 14");
         this.AddonFinalize = sig.ScanText("E8 ?? ?? ?? ?? 48 8B 7C 24 ?? 41 8B C6");
-        this.AddonDraw = sig.ScanText("48 8B 01 FF 90 ?? ?? ?? ?? 83 EB 01 79 C1");
+        this.AddonDraw = sig.ScanText("FF 90 ?? ?? ?? ?? 83 EB 01 79 C1");
         this.AddonUpdate = sig.ScanText("FF 90 ?? ?? ?? ?? 40 88 AF");
     }
 }
