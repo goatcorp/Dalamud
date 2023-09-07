@@ -49,4 +49,14 @@ public enum AddonEvent
     /// Event that is fired after an addon finishes a requested update.
     /// </summary>
     PostRequestedUpdate,
+    
+    /// <summary>
+    /// Event that is fired before an addon begins a refresh.
+    /// </summary>
+    PreRefresh,
+    
+    /// <summary>
+    /// Event that is fired after an addon has finished a refresh.
+    /// </summary>
+    PostRefresh,
 }
