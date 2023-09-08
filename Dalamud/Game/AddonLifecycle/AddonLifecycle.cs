@@ -31,7 +31,7 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
     private readonly CallHook<AddonDrawDelegate> onAddonDrawHook;
     private readonly CallHook<AddonUpdateDelegate> onAddonUpdateHook;
     private readonly Hook<AddonOnRefreshDelegate> onAddonRefreshHook;
-    // private readonly CallHook<AddonOnRequestedUpdate> onAddonRequestedUpdateHook; // See Note in Ctor
+    private readonly CallHook<AddonOnRequestedUpdateDelegate> onAddonRequestedUpdateHook;
 
     private readonly ConcurrentBag<AddonLifecycleEventListener> newEventListeners = new();
     private readonly ConcurrentBag<AddonLifecycleEventListener> removeEventListeners = new();
@@ -50,9 +50,7 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
         this.onAddonDrawHook = new CallHook<AddonDrawDelegate>(this.address.AddonDraw, this.OnAddonDraw);
         this.onAddonUpdateHook = new CallHook<AddonUpdateDelegate>(this.address.AddonUpdate, this.OnAddonUpdate);
         this.onAddonRefreshHook = Hook<AddonOnRefreshDelegate>.FromAddress(this.address.AddonOnRefresh, this.OnAddonRefresh);
-        
-        // todo: reenable this. WARNING: This hook overwrites a system that SimpleTweaks uses, causing SimpleTweaks to report exceptions.
-        // this.onAddonRequestedUpdateHook = new CallHook<AddonOnRequestedUpdate>(this.address.AddonOnRequestedUpdate, this.OnRequestedUpdate);
+        this.onAddonRequestedUpdateHook = new CallHook<AddonOnRequestedUpdateDelegate>(this.address.AddonOnRequestedUpdate, this.OnRequestedUpdate);
     }
 
     private delegate nint AddonSetupDelegate(AtkUnitBase* addon);
@@ -77,7 +75,7 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
         this.onAddonDrawHook.Dispose();
         this.onAddonUpdateHook.Dispose();
         this.onAddonRefreshHook.Dispose();
-        // this.onAddonRequestedUpdateHook.Dispose(); // See Note in Ctor
+        this.onAddonRequestedUpdateHook.Dispose();
     }
     
     /// <summary>
@@ -126,7 +124,7 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
         this.onAddonDrawHook.Enable();
         this.onAddonUpdateHook.Enable();
         this.onAddonRefreshHook.Enable();
-        // this.onAddonRequestedUpdateHook.Enable(); // See Note in Ctor
+        this.onAddonRequestedUpdateHook.Enable();
     }
     
     private void InvokeListeners(AddonEvent eventType, IAddonLifecycle.AddonArgs args)
