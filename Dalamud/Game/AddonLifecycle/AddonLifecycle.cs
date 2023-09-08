@@ -21,10 +21,10 @@ namespace Dalamud.Game.AddonLifecycle;
 internal unsafe class AddonLifecycle : IDisposable, IServiceType
 {
     private static readonly ModuleLog Log = new("AddonLifecycle");
-    
+
     [ServiceManager.ServiceDependency]
     private readonly Framework framework = Service<Framework>.Get();
-    
+
     private readonly AddonLifecycleAddressResolver address;
     private readonly Hook<AddonSetupDelegate> onAddonSetupHook;
     private readonly Hook<AddonFinalizeDelegate> onAddonFinalizeHook;
@@ -36,13 +36,13 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
     private readonly ConcurrentBag<AddonLifecycleEventListener> newEventListeners = new();
     private readonly ConcurrentBag<AddonLifecycleEventListener> removeEventListeners = new();
     private readonly List<AddonLifecycleEventListener> eventListeners = new();
-    
+
     [ServiceManager.ServiceConstructor]
     private AddonLifecycle(SigScanner sigScanner)
     {
         this.address = new AddonLifecycleAddressResolver();
         this.address.Setup(sigScanner);
-        
+
         this.framework.Update += this.OnFrameworkUpdate;
 
         this.onAddonSetupHook = Hook<AddonSetupDelegate>.FromAddress(this.address.AddonSetup, this.OnAddonSetup);
@@ -69,7 +69,7 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
     public void Dispose()
     {
         this.framework.Update -= this.OnFrameworkUpdate;
-        
+
         this.onAddonSetupHook.Dispose();
         this.onAddonFinalizeHook.Dispose();
         this.onAddonDrawHook.Dispose();
@@ -77,7 +77,7 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
         this.onAddonRefreshHook.Dispose();
         this.onAddonRequestedUpdateHook.Dispose();
     }
-    
+
     /// <summary>
     /// Register a listener for the target event and addon.
     /// </summary>
@@ -95,7 +95,7 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
     {
         this.removeEventListeners.Add(listener);
     }
-        
+
     // Used to prevent concurrency issues if plugins try to register during iteration of listeners.
     private void OnFrameworkUpdate(Framework unused)
     {
@@ -111,11 +111,11 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
             {
                 this.eventListeners.Remove(toRemoveListener);
             }
-            
+
             this.removeEventListeners.Clear();
         }
     }
-    
+
     [ServiceManager.CallWhenServicesReady]
     private void ContinueConstruction()
     {
@@ -126,7 +126,7 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
         this.onAddonRefreshHook.Enable();
         this.onAddonRequestedUpdateHook.Enable();
     }
-    
+
     private void InvokeListeners(AddonEvent eventType, IAddonLifecycle.AddonArgs args)
     {
         // Match on string.empty for listeners that want events for all addons.
@@ -174,7 +174,7 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
 
         this.onAddonFinalizeHook.Original(unitManager, atkUnitBase);
     }
-    
+
     private void OnAddonDraw(AtkUnitBase* addon)
     {
         try
@@ -185,7 +185,7 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
         {
             Log.Error(e, "Exception in OnAddonDraw pre-draw invoke.");
         }
-        
+
         addon->Draw();
 
         try
@@ -197,7 +197,7 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
             Log.Error(e, "Exception in OnAddonDraw post-draw invoke.");
         }
     }
-    
+
     private void OnAddonUpdate(AtkUnitBase* addon, float delta)
     {
         try
@@ -220,7 +220,7 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
             Log.Error(e, "Exception in OnAddonUpdate post-update invoke.");
         }
     }
-    
+
     private void OnAddonRefresh(AtkUnitManager* atkUnitManager, AtkUnitBase* addon, uint valueCount, AtkValue* values)
     {
         try
@@ -243,7 +243,7 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
             Log.Error(e, "Exception in OnAddonRefresh post-refresh invoke.");
         }
     }
-    
+
     private void OnRequestedUpdate(AtkUnitBase* addon, NumberArrayData** numberArrayData, StringArrayData** stringArrayData)
     {
         try
@@ -283,7 +283,7 @@ internal class AddonLifecyclePluginScoped : IDisposable, IServiceType, IAddonLif
     private readonly AddonLifecycle addonLifecycleService = Service<AddonLifecycle>.Get();
 
     private readonly List<AddonLifecycleEventListener> eventListeners = new();
-    
+
     /// <inheritdoc/>
     public void Dispose()
     {
@@ -301,7 +301,7 @@ internal class AddonLifecyclePluginScoped : IDisposable, IServiceType, IAddonLif
             this.RegisterListener(eventType, addonName, handler);
         }
     }
-    
+
     /// <inheritdoc/>
     public void RegisterListener(AddonEvent eventType, string addonName, IAddonLifecycle.AddonEventDelegate handler)
     {
@@ -324,31 +324,27 @@ internal class AddonLifecyclePluginScoped : IDisposable, IServiceType, IAddonLif
             this.UnregisterListener(eventType, addonName, handler);
         }
     }
-    
+
     /// <inheritdoc/>
     public void UnregisterListener(AddonEvent eventType, string addonName, IAddonLifecycle.AddonEventDelegate? handler = null)
     {
-        // This style is simpler to read imo. If the handler is null we want all entries,
-        // if they specified a handler then only the specific entries with that handler.
-        var targetListeners = this.eventListeners
-                                  .Where(entry => entry.EventType == eventType)
-                                  .Where(entry => entry.AddonName == addonName)
-                                  .Where(entry => handler is null || entry.FunctionDelegate == handler)
-                                  .ToArray(); // Make a copy so we don't mutate this list while removing entries.
-
-        foreach (var listener in targetListeners)
+        this.eventListeners.RemoveAll(entry =>
         {
-            this.addonLifecycleService.UnregisterListener(listener);
-            this.eventListeners.Remove(listener);
-        }
+            if (entry.EventType != eventType) return false;
+            if (entry.AddonName != addonName) return false;
+            if (handler is not null && entry.FunctionDelegate != handler) return false;
+
+            this.addonLifecycleService.UnregisterListener(entry);
+            return true;
+        });
     }
-    
+
     /// <inheritdoc/>
     public void UnregisterListener(AddonEvent eventType, IAddonLifecycle.AddonEventDelegate? handler = null)
     {
         this.UnregisterListener(eventType, string.Empty, handler);
     }
-    
+
     /// <inheritdoc/>
     public void UnregisterListener(IAddonLifecycle.AddonEventDelegate handler, params IAddonLifecycle.AddonEventDelegate[] handlers)
     {
