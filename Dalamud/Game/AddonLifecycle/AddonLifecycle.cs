@@ -138,9 +138,6 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
 
     private nint OnAddonSetup(AtkUnitBase* addon)
     {
-        if (addon is null)
-            return this.onAddonSetupHook.Original(addon);
-
         try
         {
             this.InvokeListeners(AddonEvent.PreSetup, new IAddonLifecycle.AddonArgs { Addon = (nint)addon });
@@ -166,12 +163,6 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
 
     private void OnAddonFinalize(AtkUnitManager* unitManager, AtkUnitBase** atkUnitBase)
     {
-        if (atkUnitBase is null || atkUnitBase[0] is null)
-        {
-            this.onAddonFinalizeHook.Original(unitManager, atkUnitBase);
-            return;
-        }
-        
         try
         {
             this.InvokeListeners(AddonEvent.PreFinalize, new IAddonLifecycle.AddonArgs { Addon = (nint)atkUnitBase[0] });
@@ -288,8 +279,6 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
 #pragma warning restore SA1015
 internal class AddonLifecyclePluginScoped : IDisposable, IServiceType, IAddonLifecycle
 {
-    private static readonly ModuleLog Log = new("AddonLifecycle:PluginScoped");
-    
     [ServiceManager.ServiceDependency]
     private readonly AddonLifecycle addonLifecycleService = Service<AddonLifecycle>.Get();
 
