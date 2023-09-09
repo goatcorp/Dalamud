@@ -12,6 +12,12 @@ internal class StartInfoWidget : IDataWindowWidget
     public DataKind DataKind { get; init; } = DataKind.StartInfo;
 
     /// <inheritdoc/>
+    public string[]? CommandShortcuts { get; init; } = { "startinfo" };
+    
+    /// <inheritdoc/>
+    public string DisplayName { get; init; } = "Start Info"; 
+
+    /// <inheritdoc/>
     public bool Ready { get; set; }
 
     /// <inheritdoc/>

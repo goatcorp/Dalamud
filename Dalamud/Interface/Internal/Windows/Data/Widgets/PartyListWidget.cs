@@ -15,6 +15,12 @@ internal class PartyListWidget : IDataWindowWidget
     public DataKind DataKind { get; init; } = DataKind.Party_List;
 
     /// <inheritdoc/>
+    public string[]? CommandShortcuts { get; init; } = { "partylist", "party" };
+    
+    /// <inheritdoc/>
+    public string DisplayName { get; init; } = "Party List"; 
+
+    /// <inheritdoc/>
     public bool Ready { get; set; }
 
     /// <inheritdoc/>

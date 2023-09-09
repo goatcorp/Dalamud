@@ -25,6 +25,12 @@ internal class FlyTextWidget : IDataWindowWidget
     public DataKind DataKind { get; init; } = DataKind.FlyText;
 
     /// <inheritdoc/>
+    public string[]? CommandShortcuts { get; init; } = { "flytext" };
+    
+    /// <inheritdoc/>
+    public string DisplayName { get; init; } = "Fly Text"; 
+
+    /// <inheritdoc/>
     public bool Ready { get; set; }
 
     /// <inheritdoc/>

@@ -22,6 +22,12 @@ internal class ObjectTableWidget : IDataWindowWidget
     public DataKind DataKind { get; init; } = DataKind.Object_Table;
     
     /// <inheritdoc/>
+    public string[]? CommandShortcuts { get; init; } = { "ot", "objecttable" };
+    
+    /// <inheritdoc/>
+    public string DisplayName { get; init; } = "Object Table"; 
+
+    /// <inheritdoc/>
     public bool Ready { get; set; }
     
     /// <inheritdoc/>

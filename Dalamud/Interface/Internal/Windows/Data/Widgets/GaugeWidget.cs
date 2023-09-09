@@ -15,6 +15,12 @@ internal class GaugeWidget : IDataWindowWidget
     public DataKind DataKind { get; init; } = DataKind.Gauge;
 
     /// <inheritdoc/>
+    public string[]? CommandShortcuts { get; init; } = { "gauge", "jobgauge", "job" };
+    
+    /// <inheritdoc/>
+    public string DisplayName { get; init; } = "Job Gauge"; 
+
+    /// <inheritdoc/>
     public bool Ready { get; set; }
 
     /// <inheritdoc/>

@@ -12,6 +12,12 @@ internal class CommandWidget : IDataWindowWidget
     public DataKind DataKind { get; init; } = DataKind.Command;
 
     /// <inheritdoc/>
+    public string[]? CommandShortcuts { get; init; } = { "command" };
+    
+    /// <inheritdoc/>
+    public string DisplayName { get; init; } = "Command"; 
+
+    /// <inheritdoc/>
     public bool Ready { get; set; }
 
     /// <inheritdoc/>

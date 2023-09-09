@@ -14,6 +14,12 @@ internal class GamepadWidget : IDataWindowWidget
     public DataKind DataKind { get; init; } = DataKind.Gamepad;
 
     /// <inheritdoc/>
+    public string[]? CommandShortcuts { get; init; } = { "gamepad", "controller" };
+    
+    /// <inheritdoc/>
+    public string DisplayName { get; init; } = "Gamepad"; 
+
+    /// <inheritdoc/>
     public bool Ready { get; set; }
 
     /// <inheritdoc/>

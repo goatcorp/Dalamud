@@ -15,6 +15,12 @@ internal class ImGuiWidget : IDataWindowWidget
     public DataKind DataKind { get; init; } = DataKind.ImGui;
 
     /// <inheritdoc/>
+    public string[]? CommandShortcuts { get; init; } = { "imgui" };
+    
+    /// <inheritdoc/>
+    public string DisplayName { get; init; } = "ImGui"; 
+
+    /// <inheritdoc/>
     public bool Ready { get; set; }
 
     /// <inheritdoc/>

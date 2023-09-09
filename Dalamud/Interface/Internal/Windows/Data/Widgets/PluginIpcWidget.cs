@@ -22,6 +22,12 @@ internal class PluginIpcWidget : IDataWindowWidget
     public DataKind DataKind { get; init; } = DataKind.Plugin_IPC;
 
     /// <inheritdoc/>
+    public string[]? CommandShortcuts { get; init; } = { "ipc" };
+    
+    /// <inheritdoc/>
+    public string DisplayName { get; init; } = "Plugin IPC"; 
+
+    /// <inheritdoc/>
     public bool Ready { get; set; }
 
     /// <inheritdoc/>

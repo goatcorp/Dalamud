@@ -23,6 +23,12 @@ internal class FontAwesomeTestWidget : IDataWindowWidget
     public DataKind DataKind { get; init; } = DataKind.FontAwesome_Test;
 
     /// <inheritdoc/>
+    public string[]? CommandShortcuts { get; init; } = { "fa", "fatest", "fontawesome" };
+    
+    /// <inheritdoc/>
+    public string DisplayName { get; init; } = "Font Awesome Test"; 
+
+    /// <inheritdoc/>
     public bool Ready { get; set; }
 
     /// <inheritdoc/>

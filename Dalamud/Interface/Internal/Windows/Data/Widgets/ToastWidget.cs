@@ -22,6 +22,12 @@ internal class ToastWidget : IDataWindowWidget
     public DataKind DataKind { get; init; } = DataKind.Toast;
 
     /// <inheritdoc/>
+    public string[]? CommandShortcuts { get; init; } = { "toast" };
+    
+    /// <inheritdoc/>
+    public string DisplayName { get; init; } = "Toast"; 
+
+    /// <inheritdoc/>
     public bool Ready { get; set; }
 
     /// <inheritdoc/>

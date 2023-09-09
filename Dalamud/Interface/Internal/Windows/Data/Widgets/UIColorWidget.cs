@@ -15,6 +15,12 @@ internal class UIColorWidget : IDataWindowWidget
     public DataKind DataKind { get; init; } = DataKind.UIColor;
 
     /// <inheritdoc/>
+    public string[]? CommandShortcuts { get; init; } = { "uicolor" };
+    
+    /// <inheritdoc/>
+    public string DisplayName { get; init; } = "UIColor"; 
+
+    /// <inheritdoc/>
     public bool Ready { get; set; }
 
     /// <inheritdoc/>

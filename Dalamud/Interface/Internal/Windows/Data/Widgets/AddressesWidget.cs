@@ -17,6 +17,12 @@ internal class AddressesWidget : IDataWindowWidget
     public DataKind DataKind { get; init; } = DataKind.Address;
 
     /// <inheritdoc/>
+    public string[]? CommandShortcuts { get; init; } = { "address" };
+
+    /// <inheritdoc/>
+    public string DisplayName { get; init; } = "Addresses"; 
+
+    /// <inheritdoc/>
     public bool Ready { get; set; }
 
     /// <inheritdoc/>

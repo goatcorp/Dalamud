@@ -31,6 +31,12 @@ internal class TexWidget : IDataWindowWidget
     public DataKind DataKind { get; init; } = DataKind.Tex;
 
     /// <inheritdoc/>
+    public string[]? CommandShortcuts { get; init; } = { "tex", "texture" };
+    
+    /// <inheritdoc/>
+    public string DisplayName { get; init; } = "Tex"; 
+
+    /// <inheritdoc/>
     public bool Ready { get; set; }
 
     /// <inheritdoc/>

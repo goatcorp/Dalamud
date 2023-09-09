@@ -12,6 +12,12 @@ internal class SeFontTestWidget : IDataWindowWidget
     public DataKind DataKind { get; init; } = DataKind.SE_Font_Test;
 
     /// <inheritdoc/>
+    public string[]? CommandShortcuts { get; init; } = { "sefont", "sefonttest" };
+    
+    /// <inheritdoc/>
+    public string DisplayName { get; init; } = "SeFont Test"; 
+
+    /// <inheritdoc/>
     public bool Ready { get; set; }
 
     /// <inheritdoc/>

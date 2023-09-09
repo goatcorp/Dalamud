@@ -18,6 +18,12 @@ internal unsafe class AddonWidget : IDataWindowWidget
     public DataKind DataKind { get; init; } = DataKind.Addon;
 
     /// <inheritdoc/>
+    public string DisplayName { get; init; } = "Addon"; 
+
+    /// <inheritdoc/>
+    public string[]? CommandShortcuts { get; init; }
+
+    /// <inheritdoc/>
     public bool Ready { get; set; }
 
     /// <inheritdoc/>

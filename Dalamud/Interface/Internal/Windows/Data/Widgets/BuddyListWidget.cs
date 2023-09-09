@@ -18,6 +18,12 @@ internal class BuddyListWidget : IDataWindowWidget
     public bool Ready { get; set; }
 
     /// <inheritdoc/>
+    public string[]? CommandShortcuts { get; init; } = { "buddy", "buddylist" };
+    
+    /// <inheritdoc/>
+    public string DisplayName { get; init; } = "Buddy List"; 
+
+    /// <inheritdoc/>
     public void Load()
     {
         this.Ready = true;

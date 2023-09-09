@@ -26,6 +26,12 @@ internal class HookWidget : IDataWindowWidget
     public DataKind DataKind { get; init; } = DataKind.Hook;
 
     /// <inheritdoc/>
+    public string DisplayName { get; init; } = "Hook"; 
+
+    /// <inheritdoc/>
+    public string[]? CommandShortcuts { get; init; } = { "hook" };
+    
+    /// <inheritdoc/>
     public bool Ready { get; set; }
 
     /// <inheritdoc/>

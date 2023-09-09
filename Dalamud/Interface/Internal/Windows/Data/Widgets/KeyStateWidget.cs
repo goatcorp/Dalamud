@@ -13,6 +13,12 @@ internal class KeyStateWidget : IDataWindowWidget
     public DataKind DataKind { get; init; } = DataKind.KeyState;
 
     /// <inheritdoc/>
+    public string[]? CommandShortcuts { get; init; } = { "keystate" };
+    
+    /// <inheritdoc/>
+    public string DisplayName { get; init; } = "KeyState"; 
+
+    /// <inheritdoc/>
     public bool Ready { get; set; }
 
     /// <inheritdoc/>

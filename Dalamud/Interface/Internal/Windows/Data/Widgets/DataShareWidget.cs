@@ -12,6 +12,12 @@ internal class DataShareWidget : IDataWindowWidget
     public DataKind DataKind { get; init; } = DataKind.Data_Share;
 
     /// <inheritdoc/>
+    public string[]? CommandShortcuts { get; init; } = { "datashare" };
+    
+    /// <inheritdoc/>
+    public string DisplayName { get; init; } = "Data Share"; 
+
+    /// <inheritdoc/>
     public bool Ready { get; set; }
 
     /// <inheritdoc/>

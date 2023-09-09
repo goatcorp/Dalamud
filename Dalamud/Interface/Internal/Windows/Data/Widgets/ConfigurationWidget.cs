@@ -12,6 +12,12 @@ internal class ConfigurationWidget : IDataWindowWidget
     public DataKind DataKind { get; init; } = DataKind.Configuration;
 
     /// <inheritdoc/>
+    public string[]? CommandShortcuts { get; init; } = { "config", "configuration" };
+    
+    /// <inheritdoc/>
+    public string DisplayName { get; init; } = "Configuration"; 
+
+    /// <inheritdoc/>
     public bool Ready { get; set; }
 
     /// <inheritdoc/>
