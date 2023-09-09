@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 
@@ -52,11 +51,11 @@ internal class DataWindow : Window
     };
 
     private readonly IOrderedEnumerable<IDataWindowWidget> orderedModules;
-    
+
     private bool isExcept;
     private bool selectionCollapsed;
     private IDataWindowWidget currentWidget;
-    
+
     /// <summary>
     /// Initializes a new instance of the <see cref="DataWindow"/> class.
     /// </summary>
@@ -69,7 +68,7 @@ internal class DataWindow : Window
         this.RespectCloseHotkey = false;
         this.orderedModules = this.modules.OrderBy(module => module.DisplayName);
         this.currentWidget = this.orderedModules.First();
-        
+
         this.Load();
     }
 
@@ -113,18 +112,18 @@ internal class DataWindow : Window
             this.DrawContents();
             return;
         }
-        
+
         if (ImGui.BeginTable("XlData_Table", 2, ImGuiTableFlags.BordersInnerV | ImGuiTableFlags.Resizable))
         {
             ImGui.TableSetupColumn("##SelectionColumn", ImGuiTableColumnFlags.WidthFixed, 200.0f * ImGuiHelpers.GlobalScale);
             ImGui.TableSetupColumn("##ContentsColumn", ImGuiTableColumnFlags.WidthStretch);
-            
+
             ImGui.TableNextColumn();
             this.DrawSelection();
-            
+
             ImGui.TableNextColumn();
             this.DrawContents();
-            
+
             ImGui.EndTable();
         }
     }
@@ -142,19 +141,19 @@ internal class DataWindow : Window
                         this.currentWidget = widget;
                     }
                 }
-                
+
                 ImGui.EndListBox();
             }
         }
-        
+
         ImGui.EndChild();
     }
-    
+
     private void DrawContents()
     {
         if (ImGui.BeginChild("XlData_ContentsPane", ImGui.GetContentRegionAvail()))
         {
-            if (ImGuiComponents.IconButton("collapse-expand",  this.selectionCollapsed ? FontAwesomeIcon.ArrowRight : FontAwesomeIcon.ArrowLeft))
+            if (ImGuiComponents.IconButton("collapse-expand", this.selectionCollapsed ? FontAwesomeIcon.ArrowRight : FontAwesomeIcon.ArrowLeft))
             {
                 this.selectionCollapsed = !this.selectionCollapsed;
             }
@@ -163,9 +162,9 @@ internal class DataWindow : Window
             {
                 ImGui.SetTooltip($"{(this.selectionCollapsed ? "Expand" : "Collapse")} selection pane");
             }
-            
+
             ImGui.SameLine();
-            
+
             if (ImGuiComponents.IconButton("forceReload", FontAwesomeIcon.Sync))
             {
                 this.Load();
@@ -175,13 +174,13 @@ internal class DataWindow : Window
             {
                 ImGui.SetTooltip("Force Reload");
             }
-        
+
             ImGui.SameLine();
-        
+
             var copy = ImGuiComponents.IconButton("copyAll", FontAwesomeIcon.ClipboardList);
-        
+
             ImGuiHelpers.ScaledDummy(10.0f);
-        
+
             if (ImGui.BeginChild("XlData_WidgetContents", ImGui.GetContentRegionAvail()))
             {
                 if (copy)
@@ -212,10 +211,10 @@ internal class DataWindow : Window
                     ImGui.TextUnformatted(ex.ToString());
                 }
             }
-            
+
             ImGui.EndChild();
         }
-        
+
         ImGui.EndChild();
     }
 
