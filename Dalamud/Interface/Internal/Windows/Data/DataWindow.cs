@@ -161,7 +161,7 @@ internal class DataWindow : Window
 
             if (ImGui.IsItemHovered())
             {
-                ImGui.SetTooltip($"{(this.selectionCollapsed ? "Expand" : "Collapse")} selection pane.");
+                ImGui.SetTooltip($"{(this.selectionCollapsed ? "Expand" : "Collapse")} selection pane");
             }
             
             ImGui.SameLine();
