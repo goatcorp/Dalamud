@@ -12,9 +12,6 @@ internal class BuddyListWidget : IDataWindowWidget
     private bool resolveGameData;
 
     /// <inheritdoc/>
-    public DataKind DataKind { get; init; } = DataKind.Buddy_List;
-
-    /// <inheritdoc/>
     public bool Ready { get; set; }
 
     /// <inheritdoc/>

@@ -9,9 +9,6 @@ namespace Dalamud.Interface.Internal.Windows.Data;
 internal class ConfigurationWidget : IDataWindowWidget
 {
     /// <inheritdoc/>
-    public DataKind DataKind { get; init; } = DataKind.Configuration;
-
-    /// <inheritdoc/>
     public string[]? CommandShortcuts { get; init; } = { "config", "configuration" };
     
     /// <inheritdoc/>

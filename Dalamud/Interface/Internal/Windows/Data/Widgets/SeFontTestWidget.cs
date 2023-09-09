@@ -9,9 +9,6 @@ namespace Dalamud.Interface.Internal.Windows.Data;
 internal class SeFontTestWidget : IDataWindowWidget
 {
     /// <inheritdoc/>
-    public DataKind DataKind { get; init; } = DataKind.SE_Font_Test;
-
-    /// <inheritdoc/>
     public string[]? CommandShortcuts { get; init; } = { "sefont", "sefonttest" };
     
     /// <inheritdoc/>

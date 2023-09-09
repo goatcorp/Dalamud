@@ -12,9 +12,6 @@ namespace Dalamud.Interface.Internal.Windows.Data;
 internal class GaugeWidget : IDataWindowWidget
 {
     /// <inheritdoc/>
-    public DataKind DataKind { get; init; } = DataKind.Gauge;
-
-    /// <inheritdoc/>
     public string[]? CommandShortcuts { get; init; } = { "gauge", "jobgauge", "job" };
     
     /// <inheritdoc/>

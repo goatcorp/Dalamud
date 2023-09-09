@@ -54,9 +54,6 @@ internal class NetworkMonitorWidget : IDataWindowWidget
     }
 
     /// <inheritdoc/>
-    public DataKind DataKind { get; init; } = DataKind.Network_Monitor;
-
-    /// <inheritdoc/>
     public string[]? CommandShortcuts { get; init; } = { "network", "netmon", "networkmonitor" };
     
     /// <inheritdoc/>

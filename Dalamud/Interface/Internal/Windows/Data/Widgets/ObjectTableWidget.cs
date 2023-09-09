@@ -19,9 +19,6 @@ internal class ObjectTableWidget : IDataWindowWidget
     private float maxCharaDrawDistance = 20.0f;
 
     /// <inheritdoc/>
-    public DataKind DataKind { get; init; } = DataKind.Object_Table;
-    
-    /// <inheritdoc/>
     public string[]? CommandShortcuts { get; init; } = { "ot", "objecttable" };
     
     /// <inheritdoc/>

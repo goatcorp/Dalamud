@@ -20,9 +20,6 @@ internal class FontAwesomeTestWidget : IDataWindowWidget
     private bool iconSearchChanged = true;
     
     /// <inheritdoc/>
-    public DataKind DataKind { get; init; } = DataKind.FontAwesome_Test;
-
-    /// <inheritdoc/>
     public string[]? CommandShortcuts { get; init; } = { "fa", "fatest", "fontawesome" };
     
     /// <inheritdoc/>

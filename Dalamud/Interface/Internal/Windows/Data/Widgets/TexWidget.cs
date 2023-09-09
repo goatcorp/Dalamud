@@ -28,9 +28,6 @@ internal class TexWidget : IDataWindowWidget
     private Vector2 inputTexScale = Vector2.Zero;
 
     /// <inheritdoc/>
-    public DataKind DataKind { get; init; } = DataKind.Tex;
-
-    /// <inheritdoc/>
     public string[]? CommandShortcuts { get; init; } = { "tex", "texture" };
     
     /// <inheritdoc/>

@@ -12,9 +12,6 @@ internal class ServerOpcodeWidget : IDataWindowWidget
     private string? serverOpString;
     
     /// <inheritdoc/>
-    public DataKind DataKind { get; init; } = DataKind.Server_OpCode;
-
-    /// <inheritdoc/>
     public string[]? CommandShortcuts { get; init; } = { "opcode", "serveropcode" };
     
     /// <inheritdoc/>

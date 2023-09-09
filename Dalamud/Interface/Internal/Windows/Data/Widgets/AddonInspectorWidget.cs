@@ -8,9 +8,6 @@ internal class AddonInspectorWidget : IDataWindowWidget
     private UiDebug? addonInspector;
     
     /// <inheritdoc/>
-    public DataKind DataKind { get; init; } = DataKind.Addon_Inspector;
-
-    /// <inheritdoc/>
     public string[]? CommandShortcuts { get; init; } = { "ai", "addoninspector" };
 
     /// <inheritdoc/>

@@ -9,9 +9,6 @@ namespace Dalamud.Interface.Internal.Windows.Data;
 internal class StartInfoWidget : IDataWindowWidget
 {
     /// <inheritdoc/>
-    public DataKind DataKind { get; init; } = DataKind.StartInfo;
-
-    /// <inheritdoc/>
     public string[]? CommandShortcuts { get; init; } = { "startinfo" };
     
     /// <inheritdoc/>

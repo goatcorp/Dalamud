@@ -12,9 +12,6 @@ namespace Dalamud.Interface.Internal.Windows.Data;
 internal class UIColorWidget : IDataWindowWidget
 {
     /// <inheritdoc/>
-    public DataKind DataKind { get; init; } = DataKind.UIColor;
-
-    /// <inheritdoc/>
     public string[]? CommandShortcuts { get; init; } = { "uicolor" };
     
     /// <inheritdoc/>

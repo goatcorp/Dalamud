@@ -9,9 +9,6 @@ namespace Dalamud.Interface.Internal.Windows.Data;
 internal class ConditionWidget : IDataWindowWidget
 {
     /// <inheritdoc/>
-    public DataKind DataKind { get; init; } = DataKind.Condition;
-
-    /// <inheritdoc/>
     public bool Ready { get; set; }
 
     /// <inheritdoc/>

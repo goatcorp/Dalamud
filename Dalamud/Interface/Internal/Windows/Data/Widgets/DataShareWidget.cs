@@ -9,9 +9,6 @@ namespace Dalamud.Interface.Internal.Windows.Data;
 internal class DataShareWidget : IDataWindowWidget
 {
     /// <inheritdoc/>
-    public DataKind DataKind { get; init; } = DataKind.Data_Share;
-
-    /// <inheritdoc/>
     public string[]? CommandShortcuts { get; init; } = { "datashare" };
     
     /// <inheritdoc/>

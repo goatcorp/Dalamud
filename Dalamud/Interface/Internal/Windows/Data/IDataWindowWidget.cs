@@ -9,11 +9,6 @@ namespace Dalamud.Interface.Internal.Windows;
 internal interface IDataWindowWidget
 {
     /// <summary>
-    /// Gets the Data Kind for this data window module.
-    /// </summary>
-    DataKind DataKind { get; init; }
-    
-    /// <summary>
     /// Gets the command strings that can be used to open the data window directly to this module.
     /// </summary>
     string[]? CommandShortcuts { get; init; }

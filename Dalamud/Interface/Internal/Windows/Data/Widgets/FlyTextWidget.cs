@@ -22,9 +22,6 @@ internal class FlyTextWidget : IDataWindowWidget
     private Vector4 flyColor = new(1, 0, 0, 1);
     
     /// <inheritdoc/>
-    public DataKind DataKind { get; init; } = DataKind.FlyText;
-
-    /// <inheritdoc/>
     public string[]? CommandShortcuts { get; init; } = { "flytext" };
     
     /// <inheritdoc/>

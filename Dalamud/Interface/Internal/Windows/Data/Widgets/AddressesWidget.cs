@@ -14,9 +14,6 @@ internal class AddressesWidget : IDataWindowWidget
     private nint sigResult = nint.Zero;
 
     /// <inheritdoc/>
-    public DataKind DataKind { get; init; } = DataKind.Address;
-
-    /// <inheritdoc/>
     public string[]? CommandShortcuts { get; init; } = { "address" };
 
     /// <inheritdoc/>

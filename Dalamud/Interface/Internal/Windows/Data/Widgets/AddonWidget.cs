@@ -15,9 +15,6 @@ internal unsafe class AddonWidget : IDataWindowWidget
     private nint findAgentInterfacePtr;
 
     /// <inheritdoc/>
-    public DataKind DataKind { get; init; } = DataKind.Addon;
-
-    /// <inheritdoc/>
     public string DisplayName { get; init; } = "Addon"; 
 
     /// <inheritdoc/>

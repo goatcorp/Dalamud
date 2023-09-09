@@ -20,9 +20,6 @@ internal class TaskSchedulerWidget : IDataWindowWidget
     private CancellationTokenSource taskSchedulerCancelSource = new();
     
     /// <inheritdoc/>
-    public DataKind DataKind { get; init; } = DataKind.TaskSched;
-
-    /// <inheritdoc/>
     public string[]? CommandShortcuts { get; init; } = { "tasksched", "taskscheduler" };
     
     /// <inheritdoc/>

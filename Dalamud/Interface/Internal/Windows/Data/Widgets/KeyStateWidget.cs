@@ -10,9 +10,6 @@ namespace Dalamud.Interface.Internal.Windows.Data;
 internal class KeyStateWidget : IDataWindowWidget
 {
     /// <inheritdoc/>
-    public DataKind DataKind { get; init; } = DataKind.KeyState;
-
-    /// <inheritdoc/>
     public string[]? CommandShortcuts { get; init; } = { "keystate" };
     
     /// <inheritdoc/>

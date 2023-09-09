@@ -12,9 +12,6 @@ namespace Dalamud.Interface.Internal.Windows.Data;
 internal class ImGuiWidget : IDataWindowWidget
 {
     /// <inheritdoc/>
-    public DataKind DataKind { get; init; } = DataKind.ImGui;
-
-    /// <inheritdoc/>
     public string[]? CommandShortcuts { get; init; } = { "imgui" };
     
     /// <inheritdoc/>

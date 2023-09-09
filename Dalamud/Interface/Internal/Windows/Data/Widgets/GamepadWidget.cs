@@ -11,9 +11,6 @@ namespace Dalamud.Interface.Internal.Windows.Data;
 internal class GamepadWidget : IDataWindowWidget
 {
     /// <inheritdoc/>
-    public DataKind DataKind { get; init; } = DataKind.Gamepad;
-
-    /// <inheritdoc/>
     public string[]? CommandShortcuts { get; init; } = { "gamepad", "controller" };
     
     /// <inheritdoc/>

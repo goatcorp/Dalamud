@@ -11,9 +11,6 @@ internal class FateTableWidget : IDataWindowWidget
     private bool resolveGameData;
     
     /// <inheritdoc/>
-    public DataKind DataKind { get; init; } = DataKind.Fate_Table;
-
-    /// <inheritdoc/>
     public string[]? CommandShortcuts { get; init; } = { "fate", "fatetable" };
     
     /// <inheritdoc/>
