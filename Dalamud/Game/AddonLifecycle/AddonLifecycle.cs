@@ -346,21 +346,17 @@ internal class AddonLifecyclePluginScoped : IDisposable, IServiceType, IAddonLif
     }
 
     /// <inheritdoc/>
-    public void UnregisterListener(IAddonLifecycle.AddonEventDelegate handler, params IAddonLifecycle.AddonEventDelegate[] handlers)
+    public void UnregisterListener(params IAddonLifecycle.AddonEventDelegate[] handlers)
     {
-        foreach (var listener in this.eventListeners.Where(entry => entry.FunctionDelegate == handler).ToArray())
+        foreach (var handler in handlers)
         {
-            this.addonLifecycleService.UnregisterListener(listener);
-            this.eventListeners.Remove(listener);
-        }
-
-        foreach (var handlerParma in handlers)
-        {
-            foreach (var listener in this.eventListeners.Where(entry => entry.FunctionDelegate == handlerParma).ToArray())
+            this.eventListeners.RemoveAll(entry =>
             {
-                this.addonLifecycleService.UnregisterListener(listener);
-                this.eventListeners.Remove(listener);
-            }
+                if (entry.FunctionDelegate != handler) return false;
+            
+                this.addonLifecycleService.UnregisterListener(entry);
+                return true;
+            });
         }
     }
 }

@@ -77,9 +77,8 @@ public interface IAddonLifecycle
     /// <summary>
     /// Unregister all events that use the specified handlers.
     /// </summary>
-    /// <param name="handler">Event handler to remove.</param>
-    /// <param name="handlers">Additional handlers to remove.</param>
-    void UnregisterListener(AddonEventDelegate handler, params AddonEventDelegate[] handlers);
+    /// <param name="handlers">Handlers to remove.</param>
+    void UnregisterListener(params AddonEventDelegate[] handlers);
     
     /// <summary>
     /// Addon argument data for use in event subscribers.
