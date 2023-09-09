@@ -16,6 +16,7 @@ namespace Dalamud.Test.Game.Text.Sanitizer
         [InlineData(ClientLanguage.German, "Bienen-Spatha †", "Bienen-Spatha")]
         [InlineData(ClientLanguage.French, "Le Diademe\x02\x1D\x01\x03: terrains de chasse|Le Diademe\x02\x1D\x01\x03: terrains de chasse", "Le Diademe: terrains de chasse|Le Diademe: terrains de chasse")]
         [InlineData(ClientLanguage.French, "Cuir de bœuf", "Cuir de boeuf")]
+        [InlineData(ClientLanguage.Korean, "요정 무명 치유사 두건", "요정 무명 치유사 두건")]
         public void StringsAreSanitizedCorrectly(ClientLanguage clientLanguage, string unsanitizedString, string sanitizedString)
         {
             var sanitizedStrings = new List<string> { unsanitizedString };

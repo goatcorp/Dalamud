@@ -20,6 +20,7 @@ public static class ClientLanguageExtensions
             ClientLanguage.English => Lumina.Data.Language.English,
             ClientLanguage.German => Lumina.Data.Language.German,
             ClientLanguage.French => Lumina.Data.Language.French,
+            ClientLanguage.Korean => Lumina.Data.Language.Korean,
             _ => throw new ArgumentOutOfRangeException(nameof(language)),
         };
     }
