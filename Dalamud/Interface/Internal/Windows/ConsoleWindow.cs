@@ -180,17 +180,20 @@ internal class ConsoleWindow : Window, IDisposable
             }
 
             // Filter by specific plugin(s)
-            var pluginInternalNames = Service<PluginManager>.Get().InstalledPlugins
+            var sourceNames = Service<PluginManager>.Get().InstalledPlugins
                                                             .Select(p => p.Manifest.InternalName)
-                                                            .OrderBy(s => s).ToList();
+                                                            .OrderBy(s => s)
+                                                            .Prepend("DalamudInternal")
+                                                            .ToList();
+            
             var sourcePreviewVal = this.sourceFilters.Count switch
             {
-                0 => "All plugins...",
-                1 => "1 plugin...",
-                _ => $"{this.sourceFilters.Count} plugins...",
+                0 => "All sources...",
+                1 => "1 source...",
+                _ => $"{this.sourceFilters.Count} sources...",
             };
-            var sourceSelectables = pluginInternalNames.Union(this.sourceFilters).ToList();
-            if (ImGui.BeginCombo("Plugins", sourcePreviewVal))
+            var sourceSelectables = sourceNames.Union(this.sourceFilters).ToList();
+            if (ImGui.BeginCombo("Sources", sourcePreviewVal))
             {
                 foreach (var selectable in sourceSelectables)
                 {
@@ -443,7 +446,8 @@ internal class ConsoleWindow : Window, IDisposable
 
                 // TODO: Improve this, add partial completion
                 // https://github.com/ocornut/imgui/blob/master/imgui_demo.cpp#L6443-L6484
-                var candidates = Service<CommandManager>.Get().Commands.Where(x => x.Key.Contains("/" + words[0])).ToList();
+                var candidates = Service<CommandManager>.Get().Commands.Where(x => x.Key.Contains("/" + words[0]))
+                                                        .ToList();
                 if (candidates.Count > 0)
                 {
                     ptr.DeleteChars(0, ptr.BufTextLen);
@@ -499,9 +503,13 @@ internal class ConsoleWindow : Window, IDisposable
             TimeStamp = logEvent.Timestamp,
             HasException = logEvent.Exception != null,
         };
-
-        if (logEvent.Properties.TryGetValue("SourceContext", out var sourceProp) &&
-            sourceProp is ScalarValue { Value: string value })
+        
+        if (logEvent.Properties.ContainsKey("Dalamud.ModuleName"))
+        {
+            entry.Source = "DalamudInternal";
+        }
+        else if (logEvent.Properties.TryGetValue("Dalamud.PluginName", out var sourceProp) &&
+                 sourceProp is ScalarValue { Value: string value })
         {
             entry.Source = value;
         }
@@ -579,6 +587,10 @@ internal class ConsoleWindow : Window, IDisposable
 
         public bool IsMultiline { get; set; }
 
+        /// <summary>
+        /// Gets or sets the system responsible for generating this log entry. Generally will be a plugin's
+        /// InternalName.
+        /// </summary>
         public string? Source { get; set; }
 
         public bool HasException { get; set; }
