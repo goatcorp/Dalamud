@@ -6,7 +6,9 @@ using Dalamud.Game.Command;
 using Dalamud.Interface.Windowing;
 using Dalamud.Logging;
 using Dalamud.Plugin;
+using Dalamud.Plugin.Services;
 using Dalamud.Utility;
+using Serilog;
 
 namespace Dalamud.CorePlugin
 {
@@ -55,7 +57,7 @@ namespace Dalamud.CorePlugin
         /// </summary>
         /// <param name="pluginInterface">Dalamud plugin interface.</param>
         /// <param name="log">Logging service.</param>
-        public PluginImpl(DalamudPluginInterface pluginInterface, PluginLog log)
+        public PluginImpl(DalamudPluginInterface pluginInterface, IPluginLog log)
         {
             try
             {
@@ -66,6 +68,7 @@ namespace Dalamud.CorePlugin
 
                 this.Interface.UiBuilder.Draw += this.OnDraw;
                 this.Interface.UiBuilder.OpenConfigUi += this.OnOpenConfigUi;
+                this.Interface.UiBuilder.OpenMainUi += this.OnOpenMainUi;
 
                 Service<CommandManager>.Get().AddHandler("/coreplug", new(this.OnCommand) { HelpMessage = $"Access the {this.Name} plugin." });
 
@@ -141,6 +144,11 @@ namespace Dalamud.CorePlugin
         private void OnOpenConfigUi()
         {
             // this.window.IsOpen = true;
+        }
+
+        private void OnOpenMainUi()
+        {
+            Log.Verbose("Opened main UI");
         }
 
 #endif
