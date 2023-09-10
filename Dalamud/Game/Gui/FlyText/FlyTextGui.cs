@@ -15,13 +15,9 @@ namespace Dalamud.Game.Gui.FlyText;
 /// <summary>
 /// This class facilitates interacting with and creating native in-game "fly text".
 /// </summary>
-[PluginInterface]
 [InterfaceVersion("1.0")]
 [ServiceManager.BlockingEarlyLoadedService]
-#pragma warning disable SA1015
-[ResolveVia<IFlyTextGui>]
-#pragma warning restore SA1015
-public sealed class FlyTextGui : IDisposable, IServiceType, IFlyTextGui
+internal sealed class FlyTextGui : IDisposable, IServiceType, IFlyTextGui
 {
     /// <summary>
     /// The native function responsible for adding fly text to the UI. See <see cref="FlyTextGuiAddressResolver.AddFlyText"/>.
@@ -42,7 +38,7 @@ public sealed class FlyTextGui : IDisposable, IServiceType, IFlyTextGui
         this.addFlyTextNative = Marshal.GetDelegateForFunctionPointer<AddFlyTextDelegate>(this.Address.AddFlyText);
         this.createFlyTextHook = Hook<CreateFlyTextDelegate>.FromAddress(this.Address.CreateFlyText, this.CreateFlyTextDetour);
     }
-    
+
     /// <summary>
     /// Private delegate for the native CreateFlyText function's hook.
     /// </summary>
@@ -280,4 +276,45 @@ public sealed class FlyTextGui : IDisposable, IServiceType, IFlyTextGui
 
         return retVal;
     }
+}
+
+/// <summary>
+/// Plugin scoped version of FlyTextGui.
+/// </summary>
+[PluginInterface]
+[InterfaceVersion("1.0")]
+[ServiceManager.ScopedService]
+#pragma warning disable SA1015
+[ResolveVia<IFlyTextGui>]
+#pragma warning restore SA1015
+internal class FlyTextGuiPluginScoped : IDisposable, IServiceType, IFlyTextGui
+{
+    [ServiceManager.ServiceDependency]
+    private readonly FlyTextGui flyTextGuiService = Service<FlyTextGui>.Get();
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="FlyTextGuiPluginScoped"/> class.
+    /// </summary>
+    internal FlyTextGuiPluginScoped()
+    {
+        this.flyTextGuiService.FlyTextCreated += this.FlyTextCreatedForward;
+    }
+        
+    /// <inheritdoc/>
+    public event IFlyTextGui.OnFlyTextCreatedDelegate? FlyTextCreated;
+    
+    /// <inheritdoc/>
+    public void Dispose()
+    {
+        this.flyTextGuiService.FlyTextCreated -= this.FlyTextCreatedForward;
+    }
+
+    /// <inheritdoc/>
+    public void AddFlyText(FlyTextKind kind, uint actorIndex, uint val1, uint val2, SeString text1, SeString text2, uint color, uint icon, uint damageTypeIcon)
+    {
+        this.flyTextGuiService.AddFlyText(kind, actorIndex, val1, val2, text1, text2, color, icon, damageTypeIcon);
+    }
+
+    private void FlyTextCreatedForward(ref FlyTextKind kind, ref int val1, ref int val2, ref SeString text1, ref SeString text2, ref uint color, ref uint icon, ref uint damageTypeIcon, ref float yOffset, ref bool handled)
+        => this.FlyTextCreated?.Invoke(ref kind, ref val1, ref val2, ref text1, ref text2, ref color, ref icon, ref damageTypeIcon, ref yOffset, ref handled);
 }
