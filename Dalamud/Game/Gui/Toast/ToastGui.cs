@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -6,16 +5,16 @@ using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Hooking;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
+using Dalamud.Plugin.Services;
 
 namespace Dalamud.Game.Gui.Toast;
 
 /// <summary>
 /// This class facilitates interacting with and creating native toast windows.
 /// </summary>
-[PluginInterface]
 [InterfaceVersion("1.0")]
 [ServiceManager.BlockingEarlyLoadedService]
-public sealed partial class ToastGui : IDisposable, IServiceType
+internal sealed partial class ToastGui : IDisposable, IServiceType, IToastGui
 {
     private const uint QuestToastCheckmarkMagic = 60081;
 
@@ -39,37 +38,10 @@ public sealed partial class ToastGui : IDisposable, IServiceType
         this.address = new ToastGuiAddressResolver();
         this.address.Setup(sigScanner);
 
-        this.showNormalToastHook = Hook<ShowNormalToastDelegate>.FromAddress(this.address.ShowNormalToast, new ShowNormalToastDelegate(this.HandleNormalToastDetour));
-        this.showQuestToastHook = Hook<ShowQuestToastDelegate>.FromAddress(this.address.ShowQuestToast, new ShowQuestToastDelegate(this.HandleQuestToastDetour));
-        this.showErrorToastHook = Hook<ShowErrorToastDelegate>.FromAddress(this.address.ShowErrorToast, new ShowErrorToastDelegate(this.HandleErrorToastDetour));
+        this.showNormalToastHook = Hook<ShowNormalToastDelegate>.FromAddress(this.address.ShowNormalToast, this.HandleNormalToastDetour);
+        this.showQuestToastHook = Hook<ShowQuestToastDelegate>.FromAddress(this.address.ShowQuestToast, this.HandleQuestToastDetour);
+        this.showErrorToastHook = Hook<ShowErrorToastDelegate>.FromAddress(this.address.ShowErrorToast, this.HandleErrorToastDetour);
     }
-
-    #region Event delegates
-
-    /// <summary>
-    /// A delegate type used when a normal toast window appears.
-    /// </summary>
-    /// <param name="message">The message displayed.</param>
-    /// <param name="options">Assorted toast options.</param>
-    /// <param name="isHandled">Whether the toast has been handled or should be propagated.</param>
-    public delegate void OnNormalToastDelegate(ref SeString message, ref ToastOptions options, ref bool isHandled);
-
-    /// <summary>
-    /// A delegate type used when a quest toast window appears.
-    /// </summary>
-    /// <param name="message">The message displayed.</param>
-    /// <param name="options">Assorted toast options.</param>
-    /// <param name="isHandled">Whether the toast has been handled or should be propagated.</param>
-    public delegate void OnQuestToastDelegate(ref SeString message, ref QuestToastOptions options, ref bool isHandled);
-
-    /// <summary>
-    /// A delegate type used when an error toast window appears.
-    /// </summary>
-    /// <param name="message">The message displayed.</param>
-    /// <param name="isHandled">Whether the toast has been handled or should be propagated.</param>
-    public delegate void OnErrorToastDelegate(ref SeString message, ref bool isHandled);
-
-    #endregion
 
     #region Marshal delegates
 
@@ -82,21 +54,15 @@ public sealed partial class ToastGui : IDisposable, IServiceType
     #endregion
 
     #region Events
+    
+    /// <inheritdoc/>
+    public event IToastGui.OnNormalToastDelegate? Toast;
 
-    /// <summary>
-    /// Event that will be fired when a toast is sent by the game or a plugin.
-    /// </summary>
-    public event OnNormalToastDelegate Toast;
+    /// <inheritdoc/>
+    public event IToastGui.OnQuestToastDelegate? QuestToast;
 
-    /// <summary>
-    /// Event that will be fired when a quest toast is sent by the game or a plugin.
-    /// </summary>
-    public event OnQuestToastDelegate QuestToast;
-
-    /// <summary>
-    /// Event that will be fired when an error toast is sent by the game or a plugin.
-    /// </summary>
-    public event OnErrorToastDelegate ErrorToast;
+    /// <inheritdoc/>
+    public event IToastGui.OnErrorToastDelegate? ErrorToast;
 
     #endregion
 
@@ -172,31 +138,23 @@ public sealed partial class ToastGui : IDisposable, IServiceType
 /// <summary>
 /// Handles normal toasts.
 /// </summary>
-public sealed partial class ToastGui
+internal sealed partial class ToastGui
 {
-    /// <summary>
-    /// Show a toast message with the given content.
-    /// </summary>
-    /// <param name="message">The message to be shown.</param>
-    /// <param name="options">Options for the toast.</param>
-    public void ShowNormal(string message, ToastOptions options = null)
+    /// <inheritdoc/>
+    public void ShowNormal(string message, ToastOptions? options = null)
     {
         options ??= new ToastOptions();
         this.normalQueue.Enqueue((Encoding.UTF8.GetBytes(message), options));
     }
-
-    /// <summary>
-    /// Show a toast message with the given content.
-    /// </summary>
-    /// <param name="message">The message to be shown.</param>
-    /// <param name="options">Options for the toast.</param>
-    public void ShowNormal(SeString message, ToastOptions options = null)
+    
+    /// <inheritdoc/>
+    public void ShowNormal(SeString message, ToastOptions? options = null)
     {
         options ??= new ToastOptions();
         this.normalQueue.Enqueue((message.Encode(), options));
     }
 
-    private void ShowNormal(byte[] bytes, ToastOptions options = null)
+    private void ShowNormal(byte[] bytes, ToastOptions? options = null)
     {
         options ??= new ToastOptions();
 
@@ -255,31 +213,23 @@ public sealed partial class ToastGui
 /// <summary>
 /// Handles quest toasts.
 /// </summary>
-public sealed partial class ToastGui
+internal sealed partial class ToastGui
 {
-    /// <summary>
-    /// Show a quest toast message with the given content.
-    /// </summary>
-    /// <param name="message">The message to be shown.</param>
-    /// <param name="options">Options for the toast.</param>
-    public void ShowQuest(string message, QuestToastOptions options = null)
+    /// <inheritdoc/>
+    public void ShowQuest(string message, QuestToastOptions? options = null)
     {
         options ??= new QuestToastOptions();
         this.questQueue.Enqueue((Encoding.UTF8.GetBytes(message), options));
     }
-
-    /// <summary>
-    /// Show a quest toast message with the given content.
-    /// </summary>
-    /// <param name="message">The message to be shown.</param>
-    /// <param name="options">Options for the toast.</param>
-    public void ShowQuest(SeString message, QuestToastOptions options = null)
+    
+    /// <inheritdoc/>
+    public void ShowQuest(SeString message, QuestToastOptions? options = null)
     {
         options ??= new QuestToastOptions();
         this.questQueue.Enqueue((message.Encode(), options));
     }
 
-    private void ShowQuest(byte[] bytes, QuestToastOptions options = null)
+    private void ShowQuest(byte[] bytes, QuestToastOptions? options = null)
     {
         options ??= new QuestToastOptions();
 
@@ -365,21 +315,15 @@ public sealed partial class ToastGui
 /// <summary>
 /// Handles error toasts.
 /// </summary>
-public sealed partial class ToastGui
+internal sealed partial class ToastGui
 {
-    /// <summary>
-    /// Show an error toast message with the given content.
-    /// </summary>
-    /// <param name="message">The message to be shown.</param>
+    /// <inheritdoc/>
     public void ShowError(string message)
     {
         this.errorQueue.Enqueue(Encoding.UTF8.GetBytes(message));
     }
 
-    /// <summary>
-    /// Show an error toast message with the given content.
-    /// </summary>
-    /// <param name="message">The message to be shown.</param>
+    /// <inheritdoc/>
     public void ShowError(SeString message)
     {
         this.errorQueue.Enqueue(message.Encode());
@@ -432,4 +376,73 @@ public sealed partial class ToastGui
             }
         }
     }
+}
+
+/// <summary>
+/// Plugin scoped version of ToastGui.
+/// </summary>
+[PluginInterface]
+[InterfaceVersion("1.0")]
+[ServiceManager.ScopedService]
+#pragma warning disable SA1015
+[ResolveVia<IToastGui>]
+#pragma warning restore SA1015
+internal class ToastGuiPluginScoped : IDisposable, IServiceType, IToastGui
+{
+    [ServiceManager.ServiceDependency]
+    private readonly ToastGui toastGuiService = Service<ToastGui>.Get();
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ToastGuiPluginScoped"/> class.
+    /// </summary>
+    internal ToastGuiPluginScoped()
+    {
+        this.toastGuiService.Toast += this.ToastForward;
+        this.toastGuiService.QuestToast += this.QuestToastForward;
+        this.toastGuiService.ErrorToast += this.ErrorToastForward;
+    }
+    
+    /// <inheritdoc/>
+    public event IToastGui.OnNormalToastDelegate? Toast;
+    
+    /// <inheritdoc/>
+    public event IToastGui.OnQuestToastDelegate? QuestToast;
+    
+    /// <inheritdoc/>
+    public event IToastGui.OnErrorToastDelegate? ErrorToast;
+    
+    /// <inheritdoc/>
+    public void Dispose()
+    {
+        this.toastGuiService.Toast -= this.ToastForward;
+        this.toastGuiService.QuestToast -= this.QuestToastForward;
+        this.toastGuiService.ErrorToast -= this.ErrorToastForward;
+    }
+    
+    /// <inheritdoc/>
+    public void ShowNormal(string message, ToastOptions? options = null) => this.toastGuiService.ShowNormal(message, options);
+
+    /// <inheritdoc/>
+    public void ShowNormal(SeString message, ToastOptions? options = null) => this.toastGuiService.ShowNormal(message, options);
+
+    /// <inheritdoc/>
+    public void ShowQuest(string message, QuestToastOptions? options = null) => this.toastGuiService.ShowQuest(message, options);
+
+    /// <inheritdoc/>
+    public void ShowQuest(SeString message, QuestToastOptions? options = null) => this.toastGuiService.ShowQuest(message, options);
+
+    /// <inheritdoc/>
+    public void ShowError(string message) => this.toastGuiService.ShowError(message);
+
+    /// <inheritdoc/>
+    public void ShowError(SeString message) => this.toastGuiService.ShowError(message);
+
+    private void ToastForward(ref SeString message, ref ToastOptions options, ref bool isHandled)
+        => this.Toast?.Invoke(ref message, ref options, ref isHandled);
+
+    private void QuestToastForward(ref SeString message, ref QuestToastOptions options, ref bool isHandled)
+        => this.QuestToast?.Invoke(ref message, ref options, ref isHandled);
+
+    private void ErrorToastForward(ref SeString message, ref bool isHandled)
+        => this.ErrorToast?.Invoke(ref message, ref isHandled);
 }
