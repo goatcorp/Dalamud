@@ -14,13 +14,9 @@ namespace Dalamud.Game.Gui.PartyFinder;
 /// <summary>
 /// This class handles interacting with the native PartyFinder window.
 /// </summary>
-[PluginInterface]
 [InterfaceVersion("1.0")]
 [ServiceManager.BlockingEarlyLoadedService]
-#pragma warning disable SA1015
-[ResolveVia<IPartyFinderGui>]
-#pragma warning restore SA1015
-public sealed class PartyFinderGui : IDisposable, IServiceType, IPartyFinderGui
+internal sealed class PartyFinderGui : IDisposable, IServiceType, IPartyFinderGui
 {
     private readonly PartyFinderAddressResolver address;
     private readonly IntPtr memory;
@@ -39,14 +35,14 @@ public sealed class PartyFinderGui : IDisposable, IServiceType, IPartyFinderGui
 
         this.memory = Marshal.AllocHGlobal(PartyFinderPacket.PacketSize);
 
-        this.receiveListingHook = Hook<ReceiveListingDelegate>.FromAddress(this.address.ReceiveListing, new ReceiveListingDelegate(this.HandleReceiveListingDetour));
+        this.receiveListingHook = Hook<ReceiveListingDelegate>.FromAddress(this.address.ReceiveListing, this.HandleReceiveListingDetour);
     }
 
     [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
     private delegate void ReceiveListingDelegate(IntPtr managerPtr, IntPtr data);
 
     /// <inheritdoc/>
-    public event IPartyFinderGui.PartyFinderListingEventDelegate ReceiveListing;
+    public event IPartyFinderGui.PartyFinderListingEventDelegate? ReceiveListing;
 
     /// <summary>
     /// Dispose of managed and unmanaged resources.
@@ -130,4 +126,35 @@ public sealed class PartyFinderGui : IDisposable, IServiceType, IPartyFinderGui
             Buffer.MemoryCopy((void*)this.memory, (void*)dataPtr, PartyFinderPacket.PacketSize, PartyFinderPacket.PacketSize);
         }
     }
+}
+
+[PluginInterface]
+[InterfaceVersion("1.0")]
+[ServiceManager.ScopedService]
+#pragma warning disable SA1015
+[ResolveVia<IPartyFinderGui>]
+#pragma warning restore SA1015
+internal class PartyFinderGuiPluginScoped : IDisposable, IServiceType, IPartyFinderGui
+{
+    [ServiceManager.ServiceDependency]
+    private readonly PartyFinderGui partyFinderGuiService = Service<PartyFinderGui>.Get();
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="PartyFinderGuiPluginScoped"/> class.
+    /// </summary>
+    internal PartyFinderGuiPluginScoped()
+    {
+        this.partyFinderGuiService.ReceiveListing += this.ReceiveListingForward;
+    }
+
+    /// <inheritdoc/>
+    public event IPartyFinderGui.PartyFinderListingEventDelegate? ReceiveListing;
+
+    /// <inheritdoc/>
+    public void Dispose()
+    {
+        this.partyFinderGuiService.ReceiveListing -= this.ReceiveListingForward;
+    }
+
+    private void ReceiveListingForward(PartyFinderListing listing, PartyFinderListingEventArgs args) => this.ReceiveListing?.Invoke(listing, args);
 }
