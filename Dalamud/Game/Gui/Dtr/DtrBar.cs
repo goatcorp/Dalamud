@@ -284,7 +284,7 @@ public sealed unsafe class DtrBar : IDisposable, IServiceType, IDtrBar
                     addon->SetX((short)(addon->GetX() - sizeDelta));
                     
                     // force a RequestedUpdate immediately to force the game to right-justify it immediately.
-                    this.onAddonRequestedUpdateHook.Original(addon, AtkStage.GetSingleton()->GetNumberArrayData(), AtkStage.GetSingleton()->GetStringArrayData());
+                    addon->OnUpdate(AtkStage.GetSingleton()->GetNumberArrayData(), AtkStage.GetSingleton()->GetStringArrayData());
                 }
             }
         }
