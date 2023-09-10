@@ -232,4 +232,7 @@ internal class Profile
         if (apply)
             await this.manager.ApplyAllWantStatesAsync();
     }
+
+    /// <inheritdoc/>
+    public override string ToString() => $"{this.Guid} ({this.Name})";
 }

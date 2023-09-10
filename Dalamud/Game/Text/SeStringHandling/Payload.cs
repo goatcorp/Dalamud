@@ -206,9 +206,9 @@ public abstract partial class Payload
             case SeStringChunkType.Icon:
                 payload = new IconPayload();
                 break;
-
+            
             default:
-                Log.Verbose("Unhandled SeStringChunkType: {0}", chunkType);
+                // Log.Verbose("Unhandled SeStringChunkType: {0}", chunkType);
                 break;
         }
 
@@ -308,6 +308,11 @@ public abstract partial class Payload
     protected enum SeStringChunkType
     {
         /// <summary>
+        /// See the <see cref="NewLinePayload"/>.
+        /// </summary>
+        NewLine = 0x10,
+        
+        /// <summary>
         /// See the <see cref="IconPayload"/> class.
         /// </summary>
         Icon = 0x12,
@@ -316,11 +321,6 @@ public abstract partial class Payload
         /// See the <see cref="EmphasisItalicPayload"/> class.
         /// </summary>
         EmphasisItalic = 0x1A,
-
-        /// <summary>
-        /// See the <see cref="NewLinePayload"/>.
-        /// </summary>
-        NewLine = 0x10,
 
         /// <summary>
         /// See the <see cref="SeHyphenPayload"/> class.

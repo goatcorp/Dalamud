@@ -108,7 +108,7 @@ public class ModuleLog
     /// <param name="exception">The exception that caused the error.</param>
     /// <param name="messageTemplate">The message template.</param>
     /// <param name="values">Values to log.</param>
-    public void Error(Exception exception, string messageTemplate, params object[] values)
+    public void Error(Exception? exception, string messageTemplate, params object[] values)
         => this.WriteLog(LogEventLevel.Error, messageTemplate, exception, values);
 
     /// <summary>

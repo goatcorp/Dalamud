@@ -101,6 +101,11 @@ internal sealed class DalamudConfiguration : IServiceType
     public List<ThirdPartyRepoSettings> ThirdRepoList { get; set; } = new();
 
     /// <summary>
+    /// Gets or sets a value indicating whether or not a disclaimer regarding third-party repos has been dismissed.
+    /// </summary>
+    public bool? ThirdRepoSpeedbumpDismissed { get; set; } = null;
+
+    /// <summary>
     /// Gets or sets a list of hidden plugins.
     /// </summary>
     public List<string> HiddenPluginInternalName { get; set; } = new();

@@ -121,7 +121,10 @@ public class TitleScreenMenu : IServiceType
 
         lock (this.entries)
         {
-            var entry = new TitleScreenMenuEntry(null, priority, text, texture, onTriggered);
+            var entry = new TitleScreenMenuEntry(null, priority, text, texture, onTriggered)
+            {
+                IsInternal = true,
+            };
             this.entries.Add(entry);
             return entry;
         }
@@ -148,7 +151,10 @@ public class TitleScreenMenu : IServiceType
             var priority = entriesOfAssembly.Any()
                                ? unchecked(entriesOfAssembly.Select(x => x.Priority).Max() + 1)
                                : 0;
-            var entry = new TitleScreenMenuEntry(null, priority, text, texture, onTriggered);
+            var entry = new TitleScreenMenuEntry(null, priority, text, texture, onTriggered)
+            {
+                IsInternal = true,
+            };
             this.entries.Add(entry);
             return entry;
         }
@@ -192,6 +198,11 @@ public class TitleScreenMenu : IServiceType
         /// Gets or sets the texture of this entry.
         /// </summary>
         public TextureWrap Texture { get; set; }
+        
+        /// <summary>
+        /// Gets or sets a value indicating whether or not this entry is internal.
+        /// </summary>
+        internal bool IsInternal { get; set; }
 
         /// <summary>
         /// Gets the calling assembly of this entry.
