@@ -6,8 +6,14 @@ using Reloaded.Hooks.Definitions;
 namespace Dalamud.Hooking.Internal;
 
 /// <summary>
-/// Hooking class for callsite hooking. This hook does not have capabilities of calling the original function.
-/// The intended use is replacing virtual function calls where you are able to manually invoke the original call using the delegate arguments.
+/// This class represents a callsite hook. Only the specific address's instructions are replaced with this hook.
+/// This is a destructive operation, no other callsite hooks can coexist at the same address.
+///
+/// There's no .Original for this hook type.
+/// This is only intended for be for functions where the parameters provided allow you to invoke the original call.
+///
+/// This class was specifically added for hooking virtual function callsites.
+/// Only the specific callsite hooked is modified, if the game calls the virtual function from other locations this hook will not be triggered.
 /// </summary>
 /// <typeparam name="T">Delegate signature for this hook.</typeparam>
 internal class CallHook<T> : IDisposable where T : Delegate

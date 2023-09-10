@@ -39,6 +39,7 @@ internal class SelfTestWindow : Window
             new ChatAgingStep(),
             new HoverAgingStep(),
             new LuminaAgingStep<TerritoryType>(),
+            new AddonLifecycleAgingStep(),
             new PartyFinderAgingStep(),
             new HandledExceptionAgingStep(),
             new DutyStateAgingStep(),
