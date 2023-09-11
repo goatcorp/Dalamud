@@ -127,7 +127,7 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
         this.onAddonRequestedUpdateHook.Enable();
     }
 
-    private void InvokeListeners(AddonEvent eventType, IAddonLifecycle.AddonArgs args)
+    private void InvokeListeners(AddonEvent eventType, AddonArgs args)
     {
         // Match on string.empty for listeners that want events for all addons.
         foreach (var listener in this.eventListeners.Where(listener => listener.EventType == eventType && (listener.AddonName == args.AddonName || listener.AddonName == string.Empty)))
@@ -140,7 +140,7 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
     {
         try
         {
-            this.InvokeListeners(AddonEvent.PreSetup, new IAddonLifecycle.AddonArgs { Addon = (nint)addon });
+            this.InvokeListeners(AddonEvent.PreSetup, new AddonArgs { Addon = (nint)addon });
         }
         catch (Exception e)
         {
@@ -151,7 +151,7 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
 
         try
         {
-            this.InvokeListeners(AddonEvent.PostSetup, new IAddonLifecycle.AddonArgs { Addon = (nint)addon });
+            this.InvokeListeners(AddonEvent.PostSetup, new AddonArgs { Addon = (nint)addon });
         }
         catch (Exception e)
         {
@@ -165,7 +165,7 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
     {
         try
         {
-            this.InvokeListeners(AddonEvent.PreFinalize, new IAddonLifecycle.AddonArgs { Addon = (nint)atkUnitBase[0] });
+            this.InvokeListeners(AddonEvent.PreFinalize, new AddonArgs { Addon = (nint)atkUnitBase[0] });
         }
         catch (Exception e)
         {
@@ -179,7 +179,7 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
     {
         try
         {
-            this.InvokeListeners(AddonEvent.PreDraw, new IAddonLifecycle.AddonArgs { Addon = (nint)addon });
+            this.InvokeListeners(AddonEvent.PreDraw, new AddonArgs { Addon = (nint)addon });
         }
         catch (Exception e)
         {
@@ -190,7 +190,7 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
 
         try
         {
-            this.InvokeListeners(AddonEvent.PostDraw, new IAddonLifecycle.AddonArgs { Addon = (nint)addon });
+            this.InvokeListeners(AddonEvent.PostDraw, new AddonArgs { Addon = (nint)addon });
         }
         catch (Exception e)
         {
@@ -202,7 +202,7 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
     {
         try
         {
-            this.InvokeListeners(AddonEvent.PreUpdate, new IAddonLifecycle.AddonArgs { Addon = (nint)addon });
+            this.InvokeListeners(AddonEvent.PreUpdate, new AddonArgs { Addon = (nint)addon });
         }
         catch (Exception e)
         {
@@ -213,7 +213,7 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
 
         try
         {
-            this.InvokeListeners(AddonEvent.PostUpdate, new IAddonLifecycle.AddonArgs { Addon = (nint)addon });
+            this.InvokeListeners(AddonEvent.PostUpdate, new AddonArgs { Addon = (nint)addon });
         }
         catch (Exception e)
         {
@@ -225,7 +225,7 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
     {
         try
         {
-            this.InvokeListeners(AddonEvent.PreRefresh, new IAddonLifecycle.AddonArgs { Addon = (nint)addon });
+            this.InvokeListeners(AddonEvent.PreRefresh, new AddonArgs { Addon = (nint)addon });
         }
         catch (Exception e)
         {
@@ -236,7 +236,7 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
 
         try
         {
-            this.InvokeListeners(AddonEvent.PostRefresh, new IAddonLifecycle.AddonArgs { Addon = (nint)addon });
+            this.InvokeListeners(AddonEvent.PostRefresh, new AddonArgs { Addon = (nint)addon });
         }
         catch (Exception e)
         {
@@ -248,7 +248,7 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
     {
         try
         {
-            this.InvokeListeners(AddonEvent.PreRequestedUpdate, new IAddonLifecycle.AddonArgs { Addon = (nint)addon });
+            this.InvokeListeners(AddonEvent.PreRequestedUpdate, new AddonArgs { Addon = (nint)addon });
         }
         catch (Exception e)
         {
@@ -259,7 +259,7 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
 
         try
         {
-            this.InvokeListeners(AddonEvent.PostRequestedUpdate, new IAddonLifecycle.AddonArgs { Addon = (nint)addon });
+            this.InvokeListeners(AddonEvent.PostRequestedUpdate, new AddonArgs { Addon = (nint)addon });
         }
         catch (Exception e)
         {
