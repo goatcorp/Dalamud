@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 
 using Dalamud.Game.AddonLifecycle;
-using Dalamud.Plugin.Services;
 using ImGuiNET;
 
 namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps;
@@ -101,32 +100,32 @@ internal class AddonLifecycleAgingStep : IAgingStep
         }
     }
     
-    private void PostSetup(AddonEvent eventType, IAddonLifecycle.AddonArgs addonInfo)
+    private void PostSetup(AddonEvent eventType, AddonArgs addonInfo)
     {        
         if (this.currentStep is TestStep.CharacterSetup) this.currentStep++;
     }
     
-    private void PostUpdate(AddonEvent eventType, IAddonLifecycle.AddonArgs addonInfo)
+    private void PostUpdate(AddonEvent eventType, AddonArgs addonInfo)
     {
         if (this.currentStep is TestStep.CharacterUpdate) this.currentStep++;
     }
     
-    private void PostDraw(AddonEvent eventType, IAddonLifecycle.AddonArgs addonInfo)
+    private void PostDraw(AddonEvent eventType, AddonArgs addonInfo)
     {
         if (this.currentStep is TestStep.CharacterDraw) this.currentStep++;
     }
     
-    private void PostRefresh(AddonEvent eventType, IAddonLifecycle.AddonArgs addonInfo)
+    private void PostRefresh(AddonEvent eventType, AddonArgs addonInfo)
     {
         if (this.currentStep is TestStep.CharacterRefresh) this.currentStep++;
     }
     
-    private void PostRequestedUpdate(AddonEvent eventType, IAddonLifecycle.AddonArgs addonInfo)
+    private void PostRequestedUpdate(AddonEvent eventType, AddonArgs addonInfo)
     {
         if (this.currentStep is TestStep.CharacterRequestedUpdate) this.currentStep++;
     }
     
-    private void PreFinalize(AddonEvent eventType, IAddonLifecycle.AddonArgs addonInfo)
+    private void PreFinalize(AddonEvent eventType, AddonArgs addonInfo)
     {
         if (this.currentStep is TestStep.CharacterFinalize) this.currentStep++;
     }
