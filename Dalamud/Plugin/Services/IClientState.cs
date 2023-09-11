@@ -12,17 +12,17 @@ public interface IClientState
     /// <summary>
     /// Event that gets fired when the current Territory changes.
     /// </summary>
-    public event EventHandler<ushort> TerritoryChanged;
+    public event Action<ushort> TerritoryChanged;
 
     /// <summary>
     /// Event that fires when a character is logging in, and the local character object is available.
     /// </summary>
-    public event EventHandler Login;
+    public event Action Login;
 
     /// <summary>
     /// Event that fires when a character is logging out.
     /// </summary>
-    public event EventHandler Logout;
+    public event Action Logout;
 
     /// <summary>
     /// Event that fires when a character is entering PvP.
@@ -37,7 +37,7 @@ public interface IClientState
     /// <summary>
     /// Event that gets fired when a duty is ready.
     /// </summary>
-    public event EventHandler<Lumina.Excel.GeneratedSheets.ContentFinderCondition> CfPop;
+    public event Action<Lumina.Excel.GeneratedSheets.ContentFinderCondition> CfPop;
 
     /// <summary>
     /// Gets the language of the client.
