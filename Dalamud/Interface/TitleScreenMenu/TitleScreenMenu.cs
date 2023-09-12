@@ -1,10 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
+using Dalamud.Plugin.Services;
 using ImGuiScene;
 
 namespace Dalamud.Interface;
@@ -12,10 +12,9 @@ namespace Dalamud.Interface;
 /// <summary>
 /// Class responsible for managing elements in the title screen menu.
 /// </summary>
-[PluginInterface]
 [InterfaceVersion("1.0")]
 [ServiceManager.BlockingEarlyLoadedService]
-public class TitleScreenMenu : IServiceType
+internal class TitleScreenMenu : IServiceType, ITitleScreenMenu
 {
     /// <summary>
     /// Gets the texture size needed for title screen menu logos.
@@ -29,19 +28,10 @@ public class TitleScreenMenu : IServiceType
     {
     }
 
-    /// <summary>
-    /// Gets the list of entries in the title screen menu.
-    /// </summary>
+    /// <inheritdoc/>
     public IReadOnlyList<TitleScreenMenuEntry> Entries => this.entries;
 
-    /// <summary>
-    /// Adds a new entry to the title screen menu.
-    /// </summary>
-    /// <param name="text">The text to show.</param>
-    /// <param name="texture">The texture to show.</param>
-    /// <param name="onTriggered">The action to execute when the option is selected.</param>
-    /// <returns>A <see cref="TitleScreenMenu"/> object that can be used to manage the entry.</returns>
-    /// <exception cref="ArgumentException">Thrown when the texture provided does not match the required resolution(64x64).</exception>
+    /// <inheritdoc/>
     public TitleScreenMenuEntry AddEntry(string text, TextureWrap texture, Action onTriggered)
     {
         if (texture.Height != TextureSize || texture.Width != TextureSize)
@@ -64,15 +54,7 @@ public class TitleScreenMenu : IServiceType
         }
     }
 
-    /// <summary>
-    /// Adds a new entry to the title screen menu.
-    /// </summary>
-    /// <param name="priority">Priority of the entry.</param>
-    /// <param name="text">The text to show.</param>
-    /// <param name="texture">The texture to show.</param>
-    /// <param name="onTriggered">The action to execute when the option is selected.</param>
-    /// <returns>A <see cref="TitleScreenMenu"/> object that can be used to manage the entry.</returns>
-    /// <exception cref="ArgumentException">Thrown when the texture provided does not match the required resolution(64x64).</exception>
+    /// <inheritdoc/>
     public TitleScreenMenuEntry AddEntry(ulong priority, string text, TextureWrap texture, Action onTriggered)
     {
         if (texture.Height != TextureSize || texture.Width != TextureSize)
@@ -91,10 +73,7 @@ public class TitleScreenMenu : IServiceType
         }
     }
 
-    /// <summary>
-    /// Remove an entry from the title screen menu.
-    /// </summary>
-    /// <param name="entry">The entry to remove.</param>
+    /// <inheritdoc/>
     public void RemoveEntry(TitleScreenMenuEntry entry)
     {
         lock (this.entries)
@@ -159,93 +138,58 @@ public class TitleScreenMenu : IServiceType
             return entry;
         }
     }
+}
 
-    /// <summary>
-    /// Class representing an entry in the title screen menu.
-    /// </summary>
-    public class TitleScreenMenuEntry : IComparable<TitleScreenMenuEntry>
+/// <summary>
+/// Plugin-scoped version of a TitleScreenMenu service.
+/// </summary>
+[PluginInterface]
+[InterfaceVersion("1.0")]
+[ServiceManager.ScopedService]
+#pragma warning disable SA1015
+[ResolveVia<ITitleScreenMenu>]
+#pragma warning restore SA1015
+internal class TitleScreenMenuPluginScoped : IDisposable, IServiceType, ITitleScreenMenu
+{
+    [ServiceManager.ServiceDependency]
+    private readonly TitleScreenMenu titleScreenMenuService = Service<TitleScreenMenu>.Get();
+    
+    private readonly List<TitleScreenMenuEntry> pluginEntries = new();
+
+    /// <inheritdoc/>
+    public IReadOnlyList<TitleScreenMenuEntry>? Entries => this.titleScreenMenuService.Entries;
+
+    /// <inheritdoc/>
+    public void Dispose()
     {
-        private readonly Action onTriggered;
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="TitleScreenMenuEntry"/> class.
-        /// </summary>
-        /// <param name="callingAssembly">The calling assembly.</param>
-        /// <param name="priority">The priority of this entry.</param>
-        /// <param name="text">The text to show.</param>
-        /// <param name="texture">The texture to show.</param>
-        /// <param name="onTriggered">The action to execute when the option is selected.</param>
-        internal TitleScreenMenuEntry(Assembly? callingAssembly, ulong priority, string text, TextureWrap texture, Action onTriggered)
+        foreach (var entry in this.pluginEntries)
         {
-            this.CallingAssembly = callingAssembly;
-            this.Priority = priority;
-            this.Name = text;
-            this.Texture = texture;
-            this.onTriggered = onTriggered;
+            this.titleScreenMenuService.RemoveEntry(entry);
         }
+    }
+    
+    /// <inheritdoc/>
+    public TitleScreenMenuEntry AddEntry(string text, TextureWrap texture, Action onTriggered)
+    {
+        var entry = this.titleScreenMenuService.AddEntry(text, texture, onTriggered);
+        this.pluginEntries.Add(entry);
 
-        /// <summary>
-        /// Gets the priority of this entry.
-        /// </summary>
-        public ulong Priority { get; init; }
+        return entry;
+    }
+    
+    /// <inheritdoc/>
+    public TitleScreenMenuEntry AddEntry(ulong priority, string text, TextureWrap texture, Action onTriggered)
+    {
+        var entry = this.titleScreenMenuService.AddEntry(priority, text, texture, onTriggered);
+        this.pluginEntries.Add(entry);
 
-        /// <summary>
-        /// Gets or sets the name of this entry.
-        /// </summary>
-        public string Name { get; set; }
-
-        /// <summary>
-        /// Gets or sets the texture of this entry.
-        /// </summary>
-        public TextureWrap Texture { get; set; }
-        
-        /// <summary>
-        /// Gets or sets a value indicating whether or not this entry is internal.
-        /// </summary>
-        internal bool IsInternal { get; set; }
-
-        /// <summary>
-        /// Gets the calling assembly of this entry.
-        /// </summary>
-        internal Assembly? CallingAssembly { get; init; }
-
-        /// <summary>
-        /// Gets the internal ID of this entry.
-        /// </summary>
-        internal Guid Id { get; init; } = Guid.NewGuid();
-
-        /// <inheritdoc/>
-        public int CompareTo(TitleScreenMenuEntry? other)
-        {
-            if (other == null)
-                return 1;
-            if (this.CallingAssembly != other.CallingAssembly)
-            {
-                if (this.CallingAssembly == null && other.CallingAssembly == null)
-                    return 0;
-                if (this.CallingAssembly == null && other.CallingAssembly != null)
-                    return -1;
-                if (this.CallingAssembly != null && other.CallingAssembly == null)
-                    return 1;
-                return string.Compare(
-                    this.CallingAssembly!.FullName!,
-                    other.CallingAssembly!.FullName!,
-                    StringComparison.CurrentCultureIgnoreCase);
-            }
-
-            if (this.Priority != other.Priority)
-                return this.Priority.CompareTo(other.Priority);
-            if (this.Name != other.Name)
-                return string.Compare(this.Name, other.Name, StringComparison.InvariantCultureIgnoreCase);
-            return string.Compare(this.Name, other.Name, StringComparison.InvariantCulture);
-        }
-
-        /// <summary>
-        /// Trigger the action associated with this entry.
-        /// </summary>
-        internal void Trigger()
-        {
-            this.onTriggered();
-        }
+        return entry;
+    }
+    
+    /// <inheritdoc/>
+    public void RemoveEntry(TitleScreenMenuEntry entry)
+    {
+        this.pluginEntries.Remove(entry);
+        this.titleScreenMenuService.RemoveEntry(entry);
     }
 }
