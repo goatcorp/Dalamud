@@ -5,6 +5,7 @@ using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.RegularExpressions;
 
 using Dalamud.Configuration.Internal;
 using Dalamud.Game.Command;
@@ -13,6 +14,7 @@ using Dalamud.Interface.Components;
 using Dalamud.Interface.Windowing;
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Internal;
+using Dalamud.Utility;
 using ImGuiNET;
 using Serilog;
 using Serilog.Events;
@@ -27,26 +29,29 @@ internal class ConsoleWindow : Window, IDisposable
     private readonly List<LogEntry> logText = new();
     private readonly object renderLock = new();
 
-    private readonly string[] logLevelStrings = { "Verbose", "Debug", "Information", "Warning", "Error", "Fatal" };
-    private readonly List<string> sourceFilters = new();
     private readonly List<string> history = new();
+    private readonly List<PluginFilterEntry> pluginFilters = new();
 
     private List<LogEntry> filteredLogText = new();
-    private bool autoScroll;
-    private bool openAtStartup;
 
     private bool? lastCmdSuccess;
 
     private string commandText = string.Empty;
-
     private string textFilter = string.Empty;
-    private int levelFilter;
+    private string selectedSource = "DalamudInternal";
+
+    private bool globalFilterActive;
     private bool filterShowUncaughtExceptions;
-    private bool isFiltered;
+    private bool showFilterToolbar;
+    private bool clearLog;
+    private bool copyLog;
+    private bool copyMode;
 
     private int historyPos;
 
     private bool killGameArmed;
+    private bool autoScroll;
+    private bool autoOpen;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ConsoleWindow"/> class.
@@ -57,17 +62,25 @@ internal class ConsoleWindow : Window, IDisposable
         var configuration = Service<DalamudConfiguration>.Get();
 
         this.autoScroll = configuration.LogAutoScroll;
-        this.openAtStartup = configuration.LogOpenAtStartup;
+        this.autoOpen = configuration.LogOpenAtStartup;
         SerilogEventSink.Instance.LogLine += this.OnLogLine;
 
         this.Size = new Vector2(500, 400);
         this.SizeCondition = ImGuiCond.FirstUseEver;
 
+        this.SizeConstraints = new WindowSizeConstraints
+        {
+            MinimumSize = new Vector2(600.0f, 200.0f),
+            MaximumSize = new Vector2(9999.0f, 9999.0f),
+        };
+
         this.RespectCloseHotkey = false;
     }
 
-    private List<LogEntry> LogEntries => this.isFiltered ? this.filteredLogText : this.logText;
+    private List<LogEntry> LogEntries => this.FiltersActive ? this.filteredLogText : this.logText;
 
+    private bool FiltersActive => this.globalFilterActive || this.pluginFilters.Any();
+    
     /// <inheritdoc/>
     public override void OnOpen()
     {
@@ -92,7 +105,17 @@ internal class ConsoleWindow : Window, IDisposable
         {
             this.logText.Clear();
             this.filteredLogText.Clear();
+            this.clearLog = false;
         }
+    }
+
+    /// <summary>
+    /// Copies the entire log contents to clipboard.
+    /// </summary>
+    public void CopyLog()
+    {
+        ImGui.LogToClipboard();
+        this.copyLog = false;
     }
 
     /// <summary>
@@ -122,160 +145,15 @@ internal class ConsoleWindow : Window, IDisposable
     /// <inheritdoc/>
     public override void Draw()
     {
-        // Options menu
-        if (ImGui.BeginPopup("Options"))
-        {
-            var configuration = Service<DalamudConfiguration>.Get();
+        this.DrawOptionsToolbar();
 
-            if (ImGui.Checkbox("Auto-scroll", ref this.autoScroll))
-            {
-                configuration.LogAutoScroll = this.autoScroll;
-                configuration.QueueSave();
-            }
-
-            if (ImGui.Checkbox("Open at startup", ref this.openAtStartup))
-            {
-                configuration.LogOpenAtStartup = this.openAtStartup;
-                configuration.QueueSave();
-            }
-
-            var prevLevel = (int)EntryPoint.LogLevelSwitch.MinimumLevel;
-            if (ImGui.Combo("Log Level", ref prevLevel, Enum.GetValues(typeof(LogEventLevel)).Cast<LogEventLevel>().Select(x => x.ToString()).ToArray(), 6))
-            {
-                EntryPoint.LogLevelSwitch.MinimumLevel = (LogEventLevel)prevLevel;
-                configuration.LogLevel = (LogEventLevel)prevLevel;
-                configuration.QueueSave();
-            }
-
-            ImGui.EndPopup();
-        }
-
-        // Filter menu
-        if (ImGui.BeginPopup("Filters"))
-        {
-            if (ImGui.Checkbox("Enabled", ref this.isFiltered))
-            {
-                this.Refilter();
-            }
-
-            if (ImGui.InputTextWithHint("##filterText", "Text Filter", ref this.textFilter, 255, ImGuiInputTextFlags.EnterReturnsTrue))
-            {
-                this.Refilter();
-            }
-
-            ImGui.TextColored(ImGuiColors.DalamudGrey, "Enter to confirm.");
-
-            if (ImGui.BeginCombo("Levels", this.levelFilter == 0 ? "All Levels..." : "Selected Levels..."))
-            {
-                for (var i = 0; i < this.logLevelStrings.Length; i++)
-                {
-                    if (ImGui.Selectable(this.logLevelStrings[i], ((this.levelFilter >> i) & 1) == 1))
-                    {
-                        this.levelFilter ^= 1 << i;
-                        this.Refilter();
-                    }
-                }
-
-                ImGui.EndCombo();
-            }
-
-            // Filter by specific plugin(s)
-            var sourceNames = Service<PluginManager>.Get().InstalledPlugins
-                                                            .Select(p => p.Manifest.InternalName)
-                                                            .OrderBy(s => s)
-                                                            .Prepend("DalamudInternal")
-                                                            .ToList();
-            
-            var sourcePreviewVal = this.sourceFilters.Count switch
-            {
-                0 => "All sources...",
-                1 => "1 source...",
-                _ => $"{this.sourceFilters.Count} sources...",
-            };
-            var sourceSelectables = sourceNames.Union(this.sourceFilters).ToList();
-            if (ImGui.BeginCombo("Sources", sourcePreviewVal))
-            {
-                foreach (var selectable in sourceSelectables)
-                {
-                    if (ImGui.Selectable(selectable, this.sourceFilters.Contains(selectable)))
-                    {
-                        if (!this.sourceFilters.Contains(selectable))
-                        {
-                            this.sourceFilters.Add(selectable);
-                        }
-                        else
-                        {
-                            this.sourceFilters.Remove(selectable);
-                        }
-
-                        this.Refilter();
-                    }
-                }
-
-                ImGui.EndCombo();
-            }
-
-            if (ImGui.Checkbox("Always Show Uncaught Exceptions", ref this.filterShowUncaughtExceptions))
-            {
-                this.Refilter();
-            }
-
-            ImGui.EndPopup();
-        }
-
-        ImGui.SameLine();
-
-        if (ImGuiComponents.IconButton(FontAwesomeIcon.Cog))
-            ImGui.OpenPopup("Options");
-
-        if (ImGui.IsItemHovered())
-            ImGui.SetTooltip("Options");
-
-        ImGui.SameLine();
-        if (ImGuiComponents.IconButton(FontAwesomeIcon.Search))
-            ImGui.OpenPopup("Filters");
-
-        if (ImGui.IsItemHovered())
-            ImGui.SetTooltip("Filters");
-
-        ImGui.SameLine();
-        var clear = ImGuiComponents.IconButton(FontAwesomeIcon.Trash);
-
-        if (ImGui.IsItemHovered())
-            ImGui.SetTooltip("Clear Log");
-
-        ImGui.SameLine();
-        var copy = ImGuiComponents.IconButton(FontAwesomeIcon.Copy);
-
-        if (ImGui.IsItemHovered())
-            ImGui.SetTooltip("Copy Log");
-
-        ImGui.SameLine();
-        if (this.killGameArmed)
-        {
-            if (ImGuiComponents.IconButton(FontAwesomeIcon.Flushed))
-                Process.GetCurrentProcess().Kill();
-        }
-        else
-        {
-            if (ImGuiComponents.IconButton(FontAwesomeIcon.Skull))
-                this.killGameArmed = true;
-        }
-
-        if (ImGui.IsItemHovered())
-            ImGui.SetTooltip("Kill game");
-
+        this.DrawFilterToolbar();
+        
         ImGui.BeginChild("scrolling", new Vector2(0, ImGui.GetFrameHeightWithSpacing() - 55), false, ImGuiWindowFlags.AlwaysHorizontalScrollbar | ImGuiWindowFlags.AlwaysVerticalScrollbar);
 
-        if (clear)
-        {
-            this.Clear();
-        }
+        if (this.clearLog) this.Clear();
 
-        if (copy)
-        {
-            ImGui.LogToClipboard();
-        }
+        if (this.copyLog) this.CopyLog();
 
         ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, Vector2.Zero);
 
@@ -291,7 +169,7 @@ internal class ConsoleWindow : Window, IDisposable
         var childDrawList = ImGui.GetWindowDrawList();
         var childSize = ImGui.GetWindowSize();
 
-        var cursorDiv = ImGuiHelpers.GlobalScale * 92;
+        var cursorDiv = ImGuiHelpers.GlobalScale * 93;
         var cursorLogLevel = ImGuiHelpers.GlobalScale * 100;
         var cursorLogLine = ImGuiHelpers.GlobalScale * 135;
 
@@ -304,14 +182,14 @@ internal class ConsoleWindow : Window, IDisposable
                 {
                     var line = this.LogEntries[i];
 
-                    if (!line.IsMultiline && !copy)
+                    if (!line.IsMultiline && !this.copyLog)
                         ImGui.Separator();
 
                     ImGui.PushStyleColor(ImGuiCol.Header, this.GetColorForLogEventLevel(line.Level));
                     ImGui.PushStyleColor(ImGuiCol.HeaderActive, this.GetColorForLogEventLevel(line.Level));
                     ImGui.PushStyleColor(ImGuiCol.HeaderHovered, this.GetColorForLogEventLevel(line.Level));
 
-                    ImGui.Selectable("###consolenull", true, ImGuiSelectableFlags.AllowItemOverlap | ImGuiSelectableFlags.SpanAllColumns);
+                    ImGui.Selectable("###console_null", true, ImGuiSelectableFlags.AllowItemOverlap | ImGuiSelectableFlags.SpanAllColumns);
                     ImGui.SameLine();
 
                     ImGui.PopStyleColor(3);
@@ -371,7 +249,7 @@ internal class ConsoleWindow : Window, IDisposable
         var getFocus = false;
         unsafe
         {
-            if (ImGui.InputText("##commandbox", ref this.commandText, 255, ImGuiInputTextFlags.EnterReturnsTrue | ImGuiInputTextFlags.CallbackCompletion | ImGuiInputTextFlags.CallbackHistory, this.CommandInputCallback))
+            if (ImGui.InputText("##command_box", ref this.commandText, 255, ImGuiInputTextFlags.EnterReturnsTrue | ImGuiInputTextFlags.CallbackCompletion | ImGuiInputTextFlags.CallbackHistory, this.CommandInputCallback))
             {
                 this.ProcessCommand();
                 getFocus = true;
@@ -391,6 +269,207 @@ internal class ConsoleWindow : Window, IDisposable
         {
             this.ProcessCommand();
         }
+    }
+    
+    private void DrawOptionsToolbar()
+    {
+        var configuration = Service<DalamudConfiguration>.Get();
+        
+        ImGui.PushItemWidth(150.0f * ImGuiHelpers.GlobalScale);
+        if (ImGui.BeginCombo("##log_level", $"{EntryPoint.LogLevelSwitch.MinimumLevel}+"))
+        {
+            foreach (var value in Enum.GetValues<LogEventLevel>())
+            {
+                if (ImGui.Selectable(value.ToString(), value == EntryPoint.LogLevelSwitch.MinimumLevel))
+                {
+                    EntryPoint.LogLevelSwitch.MinimumLevel = value;
+                    configuration.LogLevel = value;
+                    configuration.QueueSave();
+                    this.Refilter();
+                }
+            } 
+            
+            ImGui.EndCombo();
+        }
+        
+        ImGui.SameLine();
+
+        this.autoScroll = configuration.LogAutoScroll;
+        if (this.DrawToggleButtonWithTooltip("auto_scroll", "Auto-scroll", FontAwesomeIcon.Sync, ref this.autoScroll))
+        {
+            configuration.LogAutoScroll = !configuration.LogAutoScroll;
+            configuration.QueueSave();
+        }
+        
+        ImGui.SameLine();
+
+        this.autoOpen = configuration.LogOpenAtStartup;
+        if (this.DrawToggleButtonWithTooltip("auto_open", "Open at startup", FontAwesomeIcon.WindowRestore, ref this.autoOpen))
+        {
+            configuration.LogOpenAtStartup = !configuration.LogOpenAtStartup;
+            configuration.QueueSave();
+        }
+
+        ImGui.SameLine();
+        
+        if (this.DrawToggleButtonWithTooltip("show_filters", "Show filter toolbar", FontAwesomeIcon.Search, ref this.showFilterToolbar))
+        {
+            this.showFilterToolbar = !this.showFilterToolbar;
+        }
+        
+        ImGui.SameLine();
+        
+        if (this.DrawToggleButtonWithTooltip("show_uncaught_exceptions", "Show uncaught exception while filtering", FontAwesomeIcon.Bug, ref this.filterShowUncaughtExceptions))
+        {
+            this.filterShowUncaughtExceptions = !this.filterShowUncaughtExceptions;
+        }
+
+        ImGui.SameLine();
+
+        if (ImGuiComponents.IconButton("clear_log", FontAwesomeIcon.Trash))
+        {
+            this.clearLog = true;
+        }
+        
+        if (ImGui.IsItemHovered()) ImGui.SetTooltip("Clear Log");
+        
+        ImGui.SameLine();
+
+        if (ImGuiComponents.IconButton("copy_mode", FontAwesomeIcon.Copy))
+        {
+            this.copyMode = true;
+        }
+
+        if (ImGui.IsItemClicked(ImGuiMouseButton.Right)) this.copyLog = true;
+        
+        if (ImGui.IsItemHovered()) ImGui.SetTooltip("Enable Copy Mode\nRight-click to copy entire log");
+        
+        ImGui.SameLine();
+        if (this.killGameArmed)
+        {
+            if (ImGuiComponents.IconButton(FontAwesomeIcon.ExclamationTriangle))
+                Process.GetCurrentProcess().Kill();
+        }
+        else
+        {
+            if (ImGuiComponents.IconButton(FontAwesomeIcon.Stop))
+                this.killGameArmed = true;
+        }
+        
+        if (ImGui.IsItemHovered()) ImGui.SetTooltip("Kill game");
+        
+        ImGui.SameLine();
+        ImGui.SetCursorPosX(ImGui.GetContentRegionMax().X - (200.0f * ImGuiHelpers.GlobalScale));
+        ImGui.PushItemWidth(200.0f * ImGuiHelpers.GlobalScale);
+        if (ImGui.InputTextWithHint("##global_filter", "regex global filter", ref this.textFilter, 2048, ImGuiInputTextFlags.EnterReturnsTrue))
+        {
+            this.globalFilterActive = !this.textFilter.IsNullOrEmpty(); 
+            this.Refilter();
+        }
+
+        if (ImGui.IsItemDeactivatedAfterEdit())
+        {
+            this.globalFilterActive = !this.textFilter.IsNullOrEmpty(); 
+            this.Refilter();
+        }
+    }
+
+    private void DrawFilterToolbar()
+    {
+        if (!this.showFilterToolbar) return;
+        
+        PluginFilterEntry? removalEntry = null;
+        // Draw each plugin filter
+        if (ImGui.BeginTable("plugin_filter_entries", 4, ImGuiTableFlags.Resizable | ImGuiTableFlags.BordersInnerV))
+        {
+            ImGui.TableSetupColumn("##remove_button", ImGuiTableColumnFlags.WidthFixed, 25.0f * ImGuiHelpers.GlobalScale);
+            ImGui.TableSetupColumn("##source_name", ImGuiTableColumnFlags.WidthFixed, 150.0f * ImGuiHelpers.GlobalScale);
+            ImGui.TableSetupColumn("##log_level", ImGuiTableColumnFlags.WidthFixed, 150.0f * ImGuiHelpers.GlobalScale);
+            ImGui.TableSetupColumn("##filter_text", ImGuiTableColumnFlags.WidthStretch);
+            
+            ImGui.TableNextColumn();
+            if (ImGuiComponents.IconButton("add_entry", FontAwesomeIcon.Plus))
+            {
+                if (this.pluginFilters.All(entry => entry.Souce != this.selectedSource))
+                {
+                    this.pluginFilters.Add(new PluginFilterEntry
+                    {
+                        Souce = this.selectedSource,
+                        Filter = string.Empty,
+                        Level = LogEventLevel.Debug,
+                    });
+                }
+            
+                this.Refilter();
+            }
+            
+            ImGui.TableNextColumn();
+            ImGui.PushItemWidth(150.0f * ImGuiHelpers.GlobalScale);
+            if (ImGui.BeginCombo("##Sources", this.selectedSource))
+            {
+                var sourceNames = Service<PluginManager>.Get().InstalledPlugins
+                                                        .Select(p => p.Manifest.InternalName)
+                                                        .OrderBy(s => s)
+                                                        .Prepend("DalamudInternal")
+                                                        .ToList();
+            
+                foreach (var selectable in sourceNames)
+                {
+                    if (ImGui.Selectable(selectable, this.selectedSource == selectable))
+                    {
+                        this.selectedSource = selectable;
+                    }
+                }
+
+                ImGui.EndCombo();
+            }
+            
+            ImGui.TableNextColumn();
+            ImGui.TableNextColumn();
+            
+            foreach (var entry in this.pluginFilters)
+            {
+                ImGui.TableNextColumn();
+                if (ImGuiComponents.IconButton($"remove{entry.Souce}", FontAwesomeIcon.Trash))
+                {
+                    removalEntry = entry;
+                }
+            
+                ImGui.TableNextColumn();
+                ImGui.Text(entry.Souce);
+                
+                ImGui.TableNextColumn();
+                ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X);
+                if (ImGui.BeginCombo($"##levels{entry.Souce}", $"{entry.Level}+"))
+                {
+                    foreach (var value in Enum.GetValues<LogEventLevel>())
+                    {
+                        if (ImGui.Selectable(value.ToString(), value == entry.Level))
+                        {
+                            entry.Level = value;
+                            this.Refilter();
+                        }
+                    }
+                    
+                    ImGui.EndCombo();
+                }
+
+                ImGui.TableNextColumn();
+                ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X);
+                var entryFilter = entry.Filter;
+                if (ImGui.InputTextWithHint($"##filter{entry.Souce}", $"{entry.Souce} regex filter", ref entryFilter, 2048, ImGuiInputTextFlags.EnterReturnsTrue))
+                {
+                    entry.Filter = entryFilter;
+                    this.Refilter();
+                }
+                
+                if (ImGui.IsItemDeactivatedAfterEdit()) this.Refilter();
+            }
+            
+            ImGui.EndTable();
+        }
+
+        if (removalEntry is { } toRemove) this.pluginFilters.Remove(toRemove);
     }
 
     private void ProcessCommand()
@@ -414,7 +493,7 @@ internal class ConsoleWindow : Window, IDisposable
 
             this.history.Add(this.commandText);
 
-            if (this.commandText == "clear" || this.commandText == "cls")
+            if (this.commandText is "clear" or "cls")
             {
                 this.Clear();
                 return;
@@ -523,7 +602,7 @@ internal class ConsoleWindow : Window, IDisposable
 
         this.logText.Add(entry);
 
-        if (!this.isFiltered)
+        if (!this.FiltersActive)
             return;
 
         if (this.IsFilterApplicable(entry))
@@ -531,22 +610,33 @@ internal class ConsoleWindow : Window, IDisposable
     }
 
     private bool IsFilterApplicable(LogEntry entry)
-    {
-        if (this.levelFilter > 0 && ((this.levelFilter >> (int)entry.Level) & 1) == 0)
-            return false;
-
+    { 
         // Show exceptions that weren't properly tagged with a Source (generally meaning they were uncaught)
         // After log levels because uncaught exceptions should *never* fall below Error.
-        if (this.filterShowUncaughtExceptions && entry.HasException && entry.Source == null)
+        if (this.filterShowUncaughtExceptions && entry.HasException && entry.Source == null) 
             return true;
+        
+        // If we have a global filter, check that first
+        if (!this.textFilter.IsNullOrEmpty())
+        {
+            // Someone will definitely try to just text filter a source without using the actual filters, should allow that.
+            var matchesSource = entry.Source is not null && Regex.IsMatch(entry.Source, this.textFilter, RegexOptions.IgnoreCase);
+            var matchesContent = Regex.IsMatch(entry.Line, this.textFilter, RegexOptions.IgnoreCase);
 
-        if (this.sourceFilters.Count > 0 && !this.sourceFilters.Contains(entry.Source))
-            return false;
+            return matchesSource || matchesContent;
+        }
 
-        if (!string.IsNullOrEmpty(this.textFilter) && !entry.Line.Contains(this.textFilter))
-            return false;
+        // If this entry has a filter, check the filter
+        if (this.pluginFilters.FirstOrDefault(filter => string.Equals(filter.Souce, entry.Source, StringComparison.InvariantCultureIgnoreCase)) is { } filterEntry)
+        {
+            var allowedLevel = filterEntry.Level <= entry.Level;
+            var matchesContent = filterEntry.Filter.IsNullOrEmpty() || Regex.IsMatch(entry.Line, filterEntry.Filter, RegexOptions.IgnoreCase);
 
-        return true;
+            return allowedLevel && matchesContent;
+        }
+
+        // else we couldn't find a filter for this entry, if we have any filters, we need to block this entry.
+        return !this.pluginFilters.Any();
     }
 
     private void Refilter()
@@ -584,6 +674,24 @@ internal class ConsoleWindow : Window, IDisposable
         this.HandleLogLine(logEvent.Line, logEvent.LogEvent);
     }
 
+    private bool DrawToggleButtonWithTooltip(string buttonId, string tooltip, FontAwesomeIcon icon, ref bool enabledState)
+    {
+        var result = false;
+        
+        var buttonEnabled = enabledState;
+        if (buttonEnabled) ImGui.PushStyleColor(ImGuiCol.Button, ImGuiColors.HealerGreen with { W = 0.25f });
+        if (ImGuiComponents.IconButton(buttonId, icon))
+        {
+            result = true;
+        }
+        
+        if (ImGui.IsItemHovered()) ImGui.SetTooltip(tooltip);
+        
+        if (buttonEnabled) ImGui.PopStyleColor();
+
+        return result;
+    }
+
     private class LogEntry
     {
         public string Line { get; set; }
@@ -601,5 +709,14 @@ internal class ConsoleWindow : Window, IDisposable
         public string? Source { get; set; }
 
         public bool HasException { get; set; }
+    }
+
+    private class PluginFilterEntry
+    {
+        public string Souce { get; set; }
+        
+        public string Filter { get; set; }
+        
+        public LogEventLevel Level { get; set; }
     }
 }
