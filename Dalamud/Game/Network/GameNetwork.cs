@@ -1,4 +1,3 @@
-using System;
 using System.Runtime.InteropServices;
 
 using Dalamud.Configuration.Internal;
@@ -14,13 +13,9 @@ namespace Dalamud.Game.Network;
 /// <summary>
 /// This class handles interacting with game network events.
 /// </summary>
-[PluginInterface]
 [InterfaceVersion("1.0")]
 [ServiceManager.BlockingEarlyLoadedService]
-#pragma warning disable SA1015
-[ResolveVia<IGameNetwork>]
-#pragma warning restore SA1015
-public sealed class GameNetwork : IDisposable, IServiceType, IGameNetwork
+internal sealed class GameNetwork : IDisposable, IServiceType, IGameNetwork
 {
     private readonly GameNetworkAddressResolver address;
     private readonly Hook<ProcessZonePacketDownDelegate> processZonePacketDownHook;
@@ -57,14 +52,10 @@ public sealed class GameNetwork : IDisposable, IServiceType, IGameNetwork
     [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
     private delegate byte ProcessZonePacketUpDelegate(IntPtr a1, IntPtr dataPtr, IntPtr a3, byte a4);
 
-    /// <summary>
-    /// Event that is called when a network message is sent/received.
-    /// </summary>
-    public event IGameNetwork.OnNetworkMessageDelegate NetworkMessage;
+    /// <inheritdoc/>
+    public event IGameNetwork.OnNetworkMessageDelegate? NetworkMessage;
 
-    /// <summary>
-    /// Dispose of managed and unmanaged resources.
-    /// </summary>
+    /// <inheritdoc/>
     void IDisposable.Dispose()
     {
         this.processZonePacketDownHook.Dispose();
@@ -147,4 +138,39 @@ public sealed class GameNetwork : IDisposable, IServiceType, IGameNetwork
 
         return this.processZonePacketUpHook.Original(a1, dataPtr, a3, a4);
     }
+}
+
+/// <summary>
+/// Plugin-scoped version of a AddonLifecycle service.
+/// </summary>
+[PluginInterface]
+[InterfaceVersion("1.0")]
+[ServiceManager.ScopedService]
+#pragma warning disable SA1015
+[ResolveVia<IGameNetwork>]
+#pragma warning restore SA1015
+internal class GameNetworkPluginScoped : IDisposable, IServiceType, IGameNetwork
+{
+    [ServiceManager.ServiceDependency]
+    private readonly GameNetwork gameNetworkService = Service<GameNetwork>.Get();
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="GameNetworkPluginScoped"/> class.
+    /// </summary>
+    internal GameNetworkPluginScoped()
+    {
+        this.gameNetworkService.NetworkMessage += this.NetworkMessageForward;
+    }
+    
+    /// <inheritdoc/>
+    public event IGameNetwork.OnNetworkMessageDelegate? NetworkMessage;
+
+    /// <inheritdoc/>
+    public void Dispose()
+    {
+        this.gameNetworkService.NetworkMessage -= this.NetworkMessageForward;
+    }
+
+    private void NetworkMessageForward(nint dataPtr, ushort opCode, uint sourceActorId, uint targetActorId, NetworkMessageDirection direction)
+        => this.NetworkMessage?.Invoke(dataPtr, opCode, sourceActorId, targetActorId, direction);
 }
