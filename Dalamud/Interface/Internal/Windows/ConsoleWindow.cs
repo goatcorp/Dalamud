@@ -27,7 +27,9 @@ internal class ConsoleWindow : Window, IDisposable
     private readonly List<LogEntry> logText = new();
     private readonly object renderLock = new();
 
-    private readonly string[] logLevelStrings = new[] { "Verbose", "Debug", "Information", "Warning", "Error", "Fatal" };
+    private readonly string[] logLevelStrings = { "Verbose", "Debug", "Information", "Warning", "Error", "Fatal" };
+    private readonly List<string> sourceFilters = new();
+    private readonly List<string> history = new();
 
     private List<LogEntry> filteredLogText = new();
     private bool autoScroll;
@@ -39,14 +41,12 @@ internal class ConsoleWindow : Window, IDisposable
 
     private string textFilter = string.Empty;
     private int levelFilter;
-    private List<string> sourceFilters = new();
-    private bool filterShowUncaughtExceptions = false;
-    private bool isFiltered = false;
+    private bool filterShowUncaughtExceptions;
+    private bool isFiltered;
 
     private int historyPos;
-    private List<string> history = new();
 
-    private bool killGameArmed = false;
+    private bool killGameArmed;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ConsoleWindow"/> class.
@@ -397,6 +397,11 @@ internal class ConsoleWindow : Window, IDisposable
     {
         try
         {
+            if (this.commandText is['/', ..])
+            {
+                this.commandText = this.commandText[1..];
+            }
+
             this.historyPos = -1;
             for (var i = this.history.Count - 1; i >= 0; i--)
             {
