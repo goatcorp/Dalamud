@@ -40,7 +40,22 @@ internal sealed class GameConfig : IServiceType, IGameConfig, IDisposable
     
     /// <inheritdoc/>
     public event EventHandler<ConfigChangeEvent>? Changed;
+
+    /// <summary>
+    /// Unused internally, used as a proxy for System.Changed via GameConfigPluginScoped
+    /// </summary>
+    public event EventHandler<ConfigChangeEvent>? SystemChanged;
     
+    /// <summary>
+    /// Unused internally, used as a proxy for UiConfig.Changed via GameConfigPluginScoped
+    /// </summary>
+    public event EventHandler<ConfigChangeEvent>? UiConfigChanged;
+    
+    /// <summary>
+    /// Unused internally, used as a proxy for UiControl.Changed via GameConfigPluginScoped
+    /// </summary>
+    public event EventHandler<ConfigChangeEvent>? UiControlChanged;
+
     /// <inheritdoc/>
     public GameConfigSection System { get; private set; }
 
@@ -209,10 +224,22 @@ internal class GameConfigPluginScoped : IDisposable, IServiceType, IGameConfig
     internal GameConfigPluginScoped()
     {
         this.gameConfigService.Changed += this.ConfigChangedForward;
+        this.gameConfigService.System.Changed += this.SystemConfigChangedForward;
+        this.gameConfigService.UiConfig.Changed += this.UiConfigConfigChangedForward;
+        this.gameConfigService.UiControl.Changed += this.UiControlConfigChangedForward;
     }
     
     /// <inheritdoc/>
     public event EventHandler<ConfigChangeEvent>? Changed;
+    
+    /// <inheritdoc/>
+    public event EventHandler<ConfigChangeEvent>? SystemChanged;
+    
+    /// <inheritdoc/>
+    public event EventHandler<ConfigChangeEvent>? UiConfigChanged;
+    
+    /// <inheritdoc/>
+    public event EventHandler<ConfigChangeEvent>? UiControlChanged;
     
     /// <inheritdoc/>
     public GameConfigSection System => this.gameConfigService.System;
@@ -227,6 +254,9 @@ internal class GameConfigPluginScoped : IDisposable, IServiceType, IGameConfig
     public void Dispose()
     {
         this.gameConfigService.Changed -= this.ConfigChangedForward;
+        this.gameConfigService.System.Changed -= this.SystemConfigChangedForward;
+        this.gameConfigService.UiConfig.Changed -= this.UiConfigConfigChangedForward;
+        this.gameConfigService.UiControl.Changed -= this.UiControlConfigChangedForward;
     }
 
     /// <inheritdoc/>
@@ -362,4 +392,10 @@ internal class GameConfigPluginScoped : IDisposable, IServiceType, IGameConfig
         => this.gameConfigService.Set(option, value);
     
     private void ConfigChangedForward(object sender, ConfigChangeEvent data) => this.Changed?.Invoke(sender, data);
+    
+    private void SystemConfigChangedForward(object sender, ConfigChangeEvent data) => this.SystemChanged?.Invoke(sender, data);
+    
+    private void UiConfigConfigChangedForward(object sender, ConfigChangeEvent data) => this.UiConfigChanged?.Invoke(sender, data);
+    
+    private void UiControlConfigChangedForward(object sender, ConfigChangeEvent data) => this.UiControlChanged?.Invoke(sender, data);
 }
