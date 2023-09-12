@@ -44,7 +44,7 @@ internal class NetworkHandlers : IDisposable, IServiceType
     private NetworkHandlers(GameNetwork gameNetwork)
     {
         this.uploader = new UniversalisMarketBoardUploader();
-        this.CfPop = (_, _) => { };
+        this.CfPop = _ => { };
 
         this.messages = Observable.Create<NetworkMessage>(observer =>
         {
@@ -75,7 +75,7 @@ internal class NetworkHandlers : IDisposable, IServiceType
     /// <summary>
     /// Event which gets fired when a duty is ready.
     /// </summary>
-    public event EventHandler<ContentFinderCondition> CfPop;
+    public event Action<ContentFinderCondition> CfPop;
 
     /// <summary>
     /// Disposes of managed and unmanaged resources.
@@ -430,7 +430,7 @@ internal class NetworkHandlers : IDisposable, IServiceType
                                    Service<ChatGui>.GetNullable()?.Print($"Duty pop: {cfcName}");
                                }
 
-                               this.CfPop.InvokeSafely(this, cfCondition);
+                               this.CfPop.InvokeSafely(cfCondition);
                            }).ContinueWith(
                                task => Log.Error(task.Exception, "CfPop.Invoke failed"),
                                TaskContinuationOptions.OnlyOnFaulted);

@@ -129,7 +129,7 @@ internal sealed class ClientState : IDisposable, IServiceType, IClientState
     private IntPtr SetupTerritoryTypeDetour(IntPtr manager, ushort terriType)
     {
         this.TerritoryType = terriType;
-        this.TerritoryChanged?.Invoke(terriType);
+        this.TerritoryChanged?.InvokeSafely(terriType);
 
         Log.Debug("TerritoryType changed: {0}", terriType);
 
@@ -138,7 +138,7 @@ internal sealed class ClientState : IDisposable, IServiceType, IClientState
 
     private void NetworkHandlersOnCfPop(ContentFinderCondition e)
     {
-        this.CfPop?.Invoke(e);
+        this.CfPop?.InvokeSafely(e);
     }
 
     private void FrameworkOnOnUpdateEvent(IFramework framework1)
