@@ -10,6 +10,7 @@ using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Services;
+using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using Lumina.Excel.GeneratedSheets;
 
@@ -154,7 +155,7 @@ internal sealed class ClientState : IDisposable, IServiceType, IClientState
             Log.Debug("Is login");
             this.lastConditionNone = false;
             this.IsLoggedIn = true;
-            this.Login?.Invoke();
+            this.Login?.InvokeSafely();
             gameGui.ResetUiHideState();
 
             this.lifecycle.ResetLogout();
@@ -165,7 +166,7 @@ internal sealed class ClientState : IDisposable, IServiceType, IClientState
             Log.Debug("Is logout");
             this.lastConditionNone = true;
             this.IsLoggedIn = false;
-            this.Logout?.Invoke();
+            this.Logout?.InvokeSafely();
             gameGui.ResetUiHideState();
 
             this.lifecycle.SetLogout();
@@ -180,11 +181,11 @@ internal sealed class ClientState : IDisposable, IServiceType, IClientState
 
             if (this.IsPvP)
             {
-                this.EnterPvP?.Invoke();
+                this.EnterPvP?.InvokeSafely();
             }
             else
             {
-                this.LeavePvP?.Invoke();
+                this.LeavePvP?.InvokeSafely();
             }
         }
     }
