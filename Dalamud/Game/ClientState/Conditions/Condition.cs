@@ -10,13 +10,9 @@ namespace Dalamud.Game.ClientState.Conditions;
 /// <summary>
 /// Provides access to conditions (generally player state). You can check whether a player is in combat, mounted, etc.
 /// </summary>
-[PluginInterface]
 [InterfaceVersion("1.0")]
 [ServiceManager.BlockingEarlyLoadedService]
-#pragma warning disable SA1015
-[ResolveVia<ICondition>]
-#pragma warning restore SA1015
-public sealed partial class Condition : IServiceType, ICondition
+internal sealed partial class Condition : IServiceType, ICondition
 {
     /// <summary>
     /// Gets the current max number of conditions. You can get this just by looking at the condition sheet and how many rows it has.
@@ -122,7 +118,7 @@ public sealed partial class Condition : IServiceType, ICondition
 /// <summary>
 /// Provides access to conditions (generally player state). You can check whether a player is in combat, mounted, etc.
 /// </summary>
-public sealed partial class Condition : IDisposable
+internal sealed partial class Condition : IDisposable
 {
     private bool isDisposed;
 
@@ -155,4 +151,53 @@ public sealed partial class Condition : IDisposable
 
         this.isDisposed = true;
     }
+}
+
+/// <summary>
+/// Plugin-scoped version of a Condition service.
+/// </summary>
+[PluginInterface]
+[InterfaceVersion("1.0")]
+[ServiceManager.ScopedService]
+#pragma warning disable SA1015
+[ResolveVia<ICondition>]
+#pragma warning restore SA1015
+internal class ConditionPluginScoped : IDisposable, IServiceType, ICondition
+{
+    [ServiceManager.ServiceDependency]
+    private readonly Condition conditionService = Service<Condition>.Get();
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ConditionPluginScoped"/> class.
+    /// </summary>
+    internal ConditionPluginScoped()
+    {
+        this.conditionService.ConditionChange += this.ConditionChangedForward;
+    }
+    
+    /// <inheritdoc/>
+    public event ICondition.ConditionChangeDelegate? ConditionChange;
+
+    /// <inheritdoc/>
+    public int MaxEntries => this.conditionService.MaxEntries;
+
+    /// <inheritdoc/>
+    public IntPtr Address => this.conditionService.Address;
+
+    /// <inheritdoc/>
+    public bool this[int flag] => this.conditionService[flag];
+    
+    /// <inheritdoc/>
+    public void Dispose()
+    {
+        this.conditionService.ConditionChange -= this.ConditionChangedForward;
+    }
+
+    /// <inheritdoc/>
+    public bool Any() => this.conditionService.Any();
+
+    /// <inheritdoc/>
+    public bool Any(params ConditionFlag[] flags) => this.conditionService.Any(flags);
+
+    private void ConditionChangedForward(ConditionFlag flag, bool value) => this.ConditionChange?.Invoke(flag, value);
 }
