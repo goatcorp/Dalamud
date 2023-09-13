@@ -1,10 +1,8 @@
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
-using System.Net.Http;
 using System.Numerics;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -16,11 +14,10 @@ using Dalamud.Data;
 using Dalamud.Game;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
-using Dalamud.Interface;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Utility;
 using Dalamud.Logging.Internal;
-using Dalamud.Networking.Http;
+using Dalamud.Memory;
 using ImGuiNET;
 using Lumina.Excel.GeneratedSheets;
 using Serilog;
@@ -38,7 +35,7 @@ public static class Util
 
     private static ulong moduleStartAddr;
     private static ulong moduleEndAddr;
-    
+
     /// <summary>
     /// Gets the assembly version of Dalamud.
     /// </summary>
@@ -498,6 +495,7 @@ public static class Util
     public static bool IsWine()
     {
         if (EnvironmentConfiguration.XlWineOnLinux) return true;
+        if (Environment.GetEnvironmentVariable("XL_PLATFORM") is not null and not "Windows") return true;
 
         var ntdll = NativeFunctions.GetModuleHandleW("ntdll.dll");
 
@@ -506,15 +504,44 @@ public static class Util
         // by most Linux users (else FFXIV will want a macOS license), so we will additionally check some lesser-known
         // exports as well.
         return AnyProcExists(
-            ntdll, 
-            "wine_get_version", 
-            "wine_get_build_id", 
+            ntdll,
+            "wine_get_version",
+            "wine_get_build_id",
             "wine_get_host_version",
-            "wine_server_call", 
+            "wine_server_call",
             "wine_unix_to_nt_file_name");
 
         bool AnyProcExists(nint handle, params string[] procs) =>
             procs.Any(p => NativeFunctions.GetProcAddress(handle, p) != nint.Zero);
+    }
+
+    /// <summary>
+    /// Gets the best guess for the current host's platform based on the <c>XL_PLATFORM</c> environment variable or
+    /// heuristics.
+    /// </summary>
+    /// <remarks>
+    /// This method is not perfectly reliable if <c>XL_PLATFORM</c> is unset. For example, macOS users running with
+    /// exports hidden will be marked as Linux users. Better heuristic checks for macOS are needed in order to fix this.
+    /// </remarks>
+    /// <returns>Returns the <see cref="OSPlatform"/> that Dalamud is currently running on.</returns>
+    public static OSPlatform GetHostPlatform()
+    {
+        switch (Environment.GetEnvironmentVariable("XL_PLATFORM"))
+        {
+            case "Windows": return OSPlatform.Windows;
+            case "MacOS": return OSPlatform.OSX;
+            case "Linux": return OSPlatform.Linux;
+        }
+
+        if (IsWine())
+        {
+            GetWineHostVersion(out var platform, out _);
+            if (platform == "Darwin") return OSPlatform.OSX; // only happens on macOS without export hides (mac license)
+        
+            return OSPlatform.Linux;
+        }
+        
+        return OSPlatform.Windows;
     }
 
     /// <summary>
@@ -683,7 +710,7 @@ public static class Util
             ImGui.SetClipboardText(actor.Address.ToInt64().ToString("X"));
         }
     }
-    
+
     private static unsafe void ShowValue(ulong addr, IEnumerable<string> path, Type type, object value)
     {
         if (type.IsPointer)
@@ -737,5 +764,26 @@ public static class Util
                 ImGui.Text($"{value}");
             }
         }
+    }
+
+    private static unsafe bool GetWineHostVersion(out string? platform, out string? version)
+    {
+        platform = null;
+        version = null;
+
+        var ntdll = NativeFunctions.GetModuleHandleW("ntdll.dll");
+        var methodPtr = NativeFunctions.GetProcAddress(ntdll, "wine_get_host_version");
+
+        if (methodPtr == nint.Zero) return false;
+
+        var methodDelegate = (delegate* unmanaged[Fastcall]<out char*, out char*, void>)methodPtr;
+        methodDelegate(out var platformPtr, out var versionPtr);
+
+        if (platformPtr == null) return false;
+
+        platform = MemoryHelper.ReadStringNullTerminated((nint)platformPtr);
+        if (versionPtr != null) version = MemoryHelper.ReadStringNullTerminated((nint)versionPtr);
+
+        return true;
     }
 }
