@@ -520,8 +520,8 @@ public static class Util
     /// heuristics.
     /// </summary>
     /// <remarks>
-    /// This method is not perfectly reliable if <c>XL_PLATFORM</c> is unset. For example, macOS users running with
-    /// exports hidden will be marked as Linux users. Better heuristic checks for macOS are needed in order to fix this.
+    /// macOS users running without <c>XL_PLATFORM</c> being set will be reported as Linux users. Due to the way our
+    /// Wines work, there isn't a great (consistent) way to split the two apart if we're not told.
     /// </remarks>
     /// <returns>Returns the <see cref="OSPlatform"/> that Dalamud is currently running on.</returns>
     public static OSPlatform GetHostPlatform()
@@ -532,16 +532,13 @@ public static class Util
             case "MacOS": return OSPlatform.OSX;
             case "Linux": return OSPlatform.Linux;
         }
-
-        if (IsWine())
-        {
-            GetWineHostVersion(out var platform, out _);
-            if (platform == "Darwin") return OSPlatform.OSX; // only happens on macOS without export hides (mac license)
         
-            return OSPlatform.Linux;
-        }
+        // n.b. we had some fancy code here to check if the Wine host version returned "Darwin" but apparently
+        // *all* our Wines report Darwin if exports aren't hidden. As such, it is effectively impossible (without some
+        // (very cursed and inaccurate heuristics) to determine if we're on macOS or Linux unless we're explicitly told
+        // by our launcher. See commit a7aacb15e4603a367e2f980578271a9a639d8852 for the old check.
         
-        return OSPlatform.Windows;
+        return IsWine() ? OSPlatform.Linux : OSPlatform.Windows;
     }
 
     /// <summary>
@@ -764,26 +761,5 @@ public static class Util
                 ImGui.Text($"{value}");
             }
         }
-    }
-
-    private static unsafe bool GetWineHostVersion(out string? platform, out string? version)
-    {
-        platform = null;
-        version = null;
-
-        var ntdll = NativeFunctions.GetModuleHandleW("ntdll.dll");
-        var methodPtr = NativeFunctions.GetProcAddress(ntdll, "wine_get_host_version");
-
-        if (methodPtr == nint.Zero) return false;
-
-        var methodDelegate = (delegate* unmanaged[Fastcall]<out char*, out char*, void>)methodPtr;
-        methodDelegate(out var platformPtr, out var versionPtr);
-
-        if (platformPtr == null) return false;
-
-        platform = MemoryHelper.ReadStringNullTerminated((nint)platformPtr);
-        if (versionPtr != null) version = MemoryHelper.ReadStringNullTerminated((nint)versionPtr);
-
-        return true;
     }
 }
