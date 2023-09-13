@@ -504,14 +504,16 @@ internal class ConsoleWindow : Window, IDisposable
             HasException = logEvent.Exception != null,
         };
         
+        // TODO (v9): Remove SourceContext property check.
         if (logEvent.Properties.ContainsKey("Dalamud.ModuleName"))
         {
             entry.Source = "DalamudInternal";
         }
-        else if (logEvent.Properties.TryGetValue("Dalamud.PluginName", out var sourceProp) &&
-                 sourceProp is ScalarValue { Value: string value })
+        else if ((logEvent.Properties.TryGetValue("Dalamud.PluginName", out var sourceProp) ||
+                  logEvent.Properties.TryGetValue("SourceContext", out sourceProp)) &&
+                 sourceProp is ScalarValue { Value: string sourceValue })
         {
-            entry.Source = value;
+            entry.Source = sourceValue;
         }
 
         this.logText.Add(entry);
