@@ -78,42 +78,40 @@ public interface IChatGui
     public byte LastLinkedItemFlags { get; }
 
     /// <summary>
-    /// Queue a chat message. While method is named as PrintChat, it only add a entry to the queue,
-    /// later to be processed when UpdateQueue() is called.
+    /// Queue a chat message. Dalamud will send queued messages on the next framework event.
     /// </summary>
     /// <param name="chat">A message to send.</param>
-    public void PrintChat(XivChatEntry chat);
+    public void Print(XivChatEntry chat);
 
     /// <summary>
-    /// Queue a chat message. While method is named as PrintChat (it calls it internally), it only add a entry to the queue,
-    /// later to be processed when UpdateQueue() is called.
+    /// Queue a chat message. Dalamud will send queued messages on the next framework event.
     /// </summary>
     /// <param name="message">A message to send.</param>
-    public void Print(string message);
+    /// <param name="messageTag">String to prepend message with "[messageTag] ".</param>
+    /// <param name="tagColor">Color to display the message tag with.</param>
+    public void Print(string message, string? messageTag = null, ushort? tagColor = null);
 
     /// <summary>
-    /// Queue a chat message. While method is named as PrintChat (it calls it internally), it only add a entry to the queue,
-    /// later to be processed when UpdateQueue() is called.
+    /// Queue a chat message. Dalamud will send queued messages on the next framework event.
     /// </summary>
     /// <param name="message">A message to send.</param>
-    public void Print(SeString message);
+    /// <param name="messageTag">String to prepend message with "[messageTag] ".</param>
+    /// <param name="tagColor">Color to display the message tag with.</param>
+    public void Print(SeString message, string? messageTag = null, ushort? tagColor = null);
 
     /// <summary>
-    /// Queue an error chat message. While method is named as PrintChat (it calls it internally), it only add a entry to
-    /// the queue, later to be processed when UpdateQueue() is called.
+    /// Queue a chat message. Dalamud will send queued messages on the next framework event.
     /// </summary>
     /// <param name="message">A message to send.</param>
-    public void PrintError(string message);
+    /// <param name="messageTag">String to prepend message with "[messageTag] ".</param>
+    /// <param name="tagColor">Color to display the message tag with.</param>
+    public void PrintError(string message, string? messageTag = null, ushort? tagColor = null);
 
     /// <summary>
-    /// Queue an error chat message. While method is named as PrintChat (it calls it internally), it only add a entry to
-    /// the queue, later to be processed when UpdateQueue() is called.
+    /// Queue a chat message. Dalamud will send queued messages on the next framework event.
     /// </summary>
     /// <param name="message">A message to send.</param>
-    public void PrintError(SeString message);
-
-    /// <summary>
-    /// Process a chat queue.
-    /// </summary>
-    public void UpdateQueue();
+    /// <param name="messageTag">String to prepend message with "[messageTag] ".</param>
+    /// <param name="tagColor">Color to display the message tag with.</param>
+    public void PrintError(SeString message, string? messageTag = null, ushort? tagColor = null);
 }

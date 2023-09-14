@@ -285,7 +285,7 @@ internal partial class PluginManager : IDisposable, IServiceType
 
         if (updateMetadata is { Count: > 0 })
         {
-            chatGui.PrintChat(new XivChatEntry
+            chatGui.Print(new XivChatEntry
             {
                 Message = new SeString(new List<Payload>()
                 {
@@ -308,7 +308,7 @@ internal partial class PluginManager : IDisposable, IServiceType
                 }
                 else
                 {
-                    chatGui.PrintChat(new XivChatEntry
+                    chatGui.Print(new XivChatEntry
                     {
                         Message = Locs.DalamudPluginUpdateFailed(metadata.Name, metadata.Version),
                         Type = XivChatType.Urgent,

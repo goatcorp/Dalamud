@@ -264,7 +264,7 @@ public class ChatHandlers : IServiceType
 
         if (string.IsNullOrEmpty(this.configuration.LastVersion) || !assemblyVersion.StartsWith(this.configuration.LastVersion))
         {
-            chatGui.PrintChat(new XivChatEntry
+            chatGui.Print(new XivChatEntry
             {
                 Message = Loc.Localize("DalamudUpdated", "Dalamud has been updated successfully! Please check the discord for a full changelog."),
                 Type = XivChatType.Notice,
@@ -321,7 +321,7 @@ public class ChatHandlers : IServiceType
                 }
                 else
                 {
-                    chatGui.PrintChat(new XivChatEntry
+                    chatGui.Print(new XivChatEntry
                     {
                         Message = new SeString(new List<Payload>()
                         {
