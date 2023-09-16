@@ -3,7 +3,6 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
-
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Plugin.Services;
@@ -37,7 +36,8 @@ internal sealed class DataManager : IDisposable, IServiceType, IDataManager
         this.Language = dalamudStartInfo.Language;
 
         // Set up default values so plugins do not null-reference when data is being loaded.
-        this.ClientOpCodes = this.ServerOpCodes = new ReadOnlyDictionary<string, ushort>(new Dictionary<string, ushort>());
+        this.ClientOpCodes =
+            this.ServerOpCodes = new ReadOnlyDictionary<string, ushort>(new Dictionary<string, ushort>());
 
         var baseDir = dalamud.AssetDirectory.FullName;
         try
@@ -73,7 +73,8 @@ internal sealed class DataManager : IDisposable, IServiceType, IDataManager
                 var processModule = Process.GetCurrentProcess().MainModule;
                 if (processModule != null)
                 {
-                    this.GameData = new GameData(Path.Combine(Path.GetDirectoryName(processModule.FileName)!, "sqpack"), luminaOptions);
+                    this.GameData = new GameData(Path.Combine(Path.GetDirectoryName(processModule.FileName)!, "sqpack"),
+                                                 luminaOptions);
                 }
                 else
                 {
@@ -88,7 +89,8 @@ internal sealed class DataManager : IDisposable, IServiceType, IDataManager
                         JsonConvert.DeserializeObject<LauncherTroubleshootingInfo>(
                             dalamudStartInfo.TroubleshootingPackData);
                     this.HasModifiedGameDataFiles =
-                        tsInfo?.IndexIntegrity is LauncherTroubleshootingInfo.IndexIntegrityResult.Failed or LauncherTroubleshootingInfo.IndexIntegrityResult.Exception;
+                        tsInfo?.IndexIntegrity is LauncherTroubleshootingInfo.IndexIntegrityResult.Failed
+                            or LauncherTroubleshootingInfo.IndexIntegrityResult.Exception;
                 }
                 catch
                 {
@@ -127,13 +129,6 @@ internal sealed class DataManager : IDisposable, IServiceType, IDataManager
     public ClientLanguage Language { get; private set; }
 
     /// <inheritdoc/>
-    public ReadOnlyDictionary<string, ushort> ServerOpCodes { get; private set; }
-
-    /// <inheritdoc/>
-    [UsedImplicitly]
-    public ReadOnlyDictionary<string, ushort> ClientOpCodes { get; private set; }
-
-    /// <inheritdoc/>
     public GameData GameData { get; private set; }
 
     /// <inheritdoc/>
@@ -147,18 +142,32 @@ internal sealed class DataManager : IDisposable, IServiceType, IDataManager
     /// </summary>
     internal bool IsDataReady { get; private set; }
 
+    /// <summary>
+    /// Gets a list of server opcodes from DalamudAssets. NOT FOR PLUGIN USE - USE HOOKS INSTEAD!.
+    /// </summary>
+    [Obsolete("Opcodes should no longer be used.")]
+    internal ReadOnlyDictionary<string, ushort> ServerOpCodes { get; private set; }
+
+    /// <summary>
+    /// Gets a list of client opcodes from DalamudAssets. NOT FOR PLUGIN USE - USE HOOKS INSTEAD!.
+    /// </summary>
+    [UsedImplicitly]
+    [Obsolete("Opcodes should no longer be used.")]
+    internal ReadOnlyDictionary<string, ushort> ClientOpCodes { get; private set; }
+
+
     #region Lumina Wrappers
 
     /// <inheritdoc/>
-    public ExcelSheet<T>? GetExcelSheet<T>() where T : ExcelRow 
+    public ExcelSheet<T>? GetExcelSheet<T>() where T : ExcelRow
         => this.Excel.GetSheet<T>();
 
     /// <inheritdoc/>
-    public ExcelSheet<T>? GetExcelSheet<T>(ClientLanguage language) where T : ExcelRow 
+    public ExcelSheet<T>? GetExcelSheet<T>(ClientLanguage language) where T : ExcelRow
         => this.Excel.GetSheet<T>(language.ToLumina());
 
     /// <inheritdoc/>
-    public FileResource? GetFile(string path) 
+    public FileResource? GetFile(string path)
         => this.GetFile<FileResource>(path);
 
     /// <inheritdoc/>
@@ -167,11 +176,13 @@ internal sealed class DataManager : IDisposable, IServiceType, IDataManager
         var filePath = GameData.ParseFilePath(path);
         if (filePath == null)
             return default;
-        return this.GameData.Repositories.TryGetValue(filePath.Repository, out var repository) ? repository.GetFile<T>(filePath.Category, filePath) : default;
+        return this.GameData.Repositories.TryGetValue(filePath.Repository, out var repository)
+                   ? repository.GetFile<T>(filePath.Category, filePath)
+                   : default;
     }
 
     /// <inheritdoc/>
-    public bool FileExists(string path) 
+    public bool FileExists(string path)
         => this.GameData.FileExists(path);
 
     #endregion

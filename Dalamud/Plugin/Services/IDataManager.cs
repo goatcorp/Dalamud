@@ -1,11 +1,5 @@
-using System;
-using System.Collections.ObjectModel;
-using System.Diagnostics.CodeAnalysis;
-
-using ImGuiScene;
 using Lumina;
 using Lumina.Data;
-using Lumina.Data.Files;
 using Lumina.Excel;
 
 namespace Dalamud.Plugin.Services;
@@ -19,7 +13,7 @@ public interface IDataManager
     /// Gets the current game client language.
     /// </summary>
     public ClientLanguage Language { get; }
-    
+
     /// <summary>
     /// Gets a <see cref="Lumina"/> object which gives access to any excel/game data.
     /// </summary>
