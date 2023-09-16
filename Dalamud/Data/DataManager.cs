@@ -130,17 +130,6 @@ internal sealed class DataManager : IDisposable, IServiceType, IDataManager
     /// <inheritdoc/>
     public ClientLanguage Language { get; private set; }
 
-    /// <summary>
-    /// Gets a list of server opcodes.
-    /// </summary>
-    public ReadOnlyDictionary<string, ushort> ServerOpCodes { get; private set; }
-    
-    /// <summary>
-    /// Gets a list of client opcodes.
-    /// </summary>
-    [UsedImplicitly]
-    public ReadOnlyDictionary<string, ushort> ClientOpCodes { get; private set; }
-
     /// <inheritdoc/>
     public GameData GameData { get; private set; }
 
@@ -154,6 +143,20 @@ internal sealed class DataManager : IDisposable, IServiceType, IDataManager
     /// Gets a value indicating whether Game Data is ready to be read.
     /// </summary>
     internal bool IsDataReady { get; private set; }
+
+    /// <summary>
+    /// Gets a list of server opcodes from DalamudAssets. NOT FOR PLUGIN USE - USE HOOKS INSTEAD!.
+    /// </summary>
+    [Obsolete("Opcodes should no longer be used.")]
+    internal ReadOnlyDictionary<string, ushort> ServerOpCodes { get; private set; }
+
+    /// <summary>
+    /// Gets a list of client opcodes from DalamudAssets. NOT FOR PLUGIN USE - USE HOOKS INSTEAD!.
+    /// </summary>
+    [UsedImplicitly]
+    [Obsolete("Opcodes should no longer be used.")]
+    internal ReadOnlyDictionary<string, ushort> ClientOpCodes { get; private set; }
+
 
     #region Lumina Wrappers
 
