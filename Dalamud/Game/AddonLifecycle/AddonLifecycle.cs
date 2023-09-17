@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -97,7 +97,7 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
     }
 
     // Used to prevent concurrency issues if plugins try to register during iteration of listeners.
-    private void OnFrameworkUpdate(Framework unused)
+    private void OnFrameworkUpdate(IFramework unused)
     {
         if (this.newEventListeners.Any())
         {
