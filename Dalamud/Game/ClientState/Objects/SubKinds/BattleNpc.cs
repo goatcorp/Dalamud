@@ -1,5 +1,3 @@
-using System;
-
 using Dalamud.Game.ClientState.Objects.Enums;
 
 namespace Dalamud.Game.ClientState.Objects.Types;
@@ -25,5 +23,5 @@ public unsafe class BattleNpc : BattleChara
     public BattleNpcSubKind BattleNpcKind => (BattleNpcSubKind)this.Struct->Character.GameObject.SubKind;
 
     /// <inheritdoc/>
-    public override ulong TargetObjectId => this.Struct->Character.TargetObjectID;
+    public override ulong TargetObjectId => this.Struct->Character.TargetId;
 }
