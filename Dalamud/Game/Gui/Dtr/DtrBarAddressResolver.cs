@@ -3,7 +3,7 @@
 /// <summary>
 /// DtrBar memory address resolver.
 /// </summary>
-public class DtrBarAddressResolver : BaseAddressResolver
+internal class DtrBarAddressResolver : BaseAddressResolver
 {
     /// <summary>
     /// Gets the address of the AtkUnitBaseDraw method.
