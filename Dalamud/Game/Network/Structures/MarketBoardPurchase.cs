@@ -1,4 +1,3 @@
-using System;
 using System.IO;
 
 namespace Dalamud.Game.Network.Structures;
@@ -9,14 +8,17 @@ namespace Dalamud.Game.Network.Structures;
 /// </summary>
 public class MarketBoardPurchase
 {
-    private MarketBoardPurchase()
-    {
-    }
+    private MarketBoardPurchase() { }
 
     /// <summary>
     /// Gets the item ID of the item that was purchased.
     /// </summary>
     public uint CatalogId { get; private set; }
+
+    /// <summary>
+    /// Gets the status of this marketboard transaction. Zero on success.
+    /// </summary>
+    public uint StatusCode { get; private set; }
 
     /// <summary>
     /// Gets the quantity of the item that was purchased.
@@ -36,7 +38,7 @@ public class MarketBoardPurchase
         var output = new MarketBoardPurchase();
 
         output.CatalogId = reader.ReadUInt32();
-        stream.Position += 4;
+        output.StatusCode = reader.ReadUInt32();
         output.ItemQuantity = reader.ReadUInt32();
 
         return output;

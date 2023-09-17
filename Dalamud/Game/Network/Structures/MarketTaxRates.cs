@@ -1,22 +1,13 @@
-using System;
 using System.IO;
 
 namespace Dalamud.Game.Network.Structures;
 
 /// <summary>
-/// This class represents the "Result Dialog" packet. This is also used e.g. for reduction results, but we only care about tax rates.
-/// We can do that by checking the "Category" field.
+/// This class represents the "Result Dialog" packet.
 /// </summary>
 public class MarketTaxRates
 {
-    private MarketTaxRates()
-    {
-    }
-
-    /// <summary>
-    /// Gets the category of this ResultDialog packet.
-    /// </summary>
-    public uint Category { get; private set; }
+    private MarketTaxRates() { }
 
     /// <summary>
     /// Gets the tax rate in Limsa Lominsa.
@@ -65,8 +56,11 @@ public class MarketTaxRates
 
         var output = new MarketTaxRates();
 
-        output.Category = reader.ReadUInt32();
-        stream.Position += 4;
+        var category = reader.ReadUInt32();
+
+        if (category != 0xb0009)
+            throw new ArgumentException("Category was not valid!");
+
         output.LimsaLominsaTax = reader.ReadUInt32();
         output.GridaniaTax = reader.ReadUInt32();
         output.UldahTax = reader.ReadUInt32();
@@ -76,5 +70,27 @@ public class MarketTaxRates
         output.SharlayanTax = reader.ReadUInt32();
 
         return output;
+    }
+
+    /// <summary>
+    /// Generate a MarketTaxRates wrapper class from information located in a CustomTalk packet.
+    /// </summary>
+    /// <param name="dataPtr">The pointer to the relevant CustomTalk data.</param>
+    /// <returns>Returns a wrapped and ready-to-go MarketTaxRates record.</returns>
+    public static unsafe MarketTaxRates ReadFromCustomTalk(IntPtr dataPtr)
+    {
+        using var stream = new UnmanagedMemoryStream((byte*)dataPtr.ToPointer(), 1544);
+        using var reader = new BinaryReader(stream);
+
+        return new MarketTaxRates
+        {
+            LimsaLominsaTax = reader.ReadUInt32(),
+            GridaniaTax = reader.ReadUInt32(),
+            UldahTax = reader.ReadUInt32(),
+            IshgardTax = reader.ReadUInt32(),
+            KuganeTax = reader.ReadUInt32(),
+            CrystariumTax = reader.ReadUInt32(),
+            SharlayanTax = reader.ReadUInt32(),
+        };
     }
 }

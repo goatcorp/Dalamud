@@ -1,11 +1,7 @@
-using System;
 using System.Linq;
-
 using Dalamud.Game;
 using Dalamud.Plugin.Services;
 using Serilog;
-
-using static Dalamud.Game.Framework;
 
 namespace Dalamud.Utility;
 
@@ -68,6 +64,23 @@ internal static class EventHandlerExtensions
     }
 
     /// <summary>
+    /// Replacement for Invoke() on event Actions to catch exceptions that stop event propagation in case
+    /// of a thrown Exception inside of an invocation.
+    /// </summary>
+    /// <typeparam name="T">The type of argument used by this action.</typeparam>
+    /// <param name="act">The Action in question.</param>
+    /// <param name="arg">The argument to pass to the action.</param>
+    public static void InvokeSafely<T>(this Action<T>? act, T arg)
+    {
+        if (act == null) return;
+
+        foreach (var action in act.GetInvocationList().Cast<Action<T>>())
+        {
+            HandleInvoke(action, arg);
+        }
+    }
+
+    /// <summary>
     /// Replacement for Invoke() on OnUpdateDelegate to catch exceptions that stop event propagation in case
     /// of a thrown Exception inside of an invocation.
     /// </summary>
@@ -93,6 +106,18 @@ internal static class EventHandlerExtensions
         catch (Exception ex)
         {
             Log.Error(ex, "Exception during raise of {handler}", act.Method);
+        }
+    }
+
+    private static void HandleInvoke<T>(Action<T> act, T arg)
+    {
+        try
+        {
+            act(arg);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Exception during raise of {handler}({arg})", act.Method, arg);
         }
     }
 }

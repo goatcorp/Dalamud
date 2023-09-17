@@ -1,4 +1,3 @@
-using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
@@ -14,6 +13,7 @@ internal static partial class NativeFunctions
     /// <summary>
     /// FLASHW_* from winuser.
     /// </summary>
+    [Flags]
     public enum FlashWindow : uint
     {
         /// <summary>
@@ -379,7 +379,8 @@ internal static partial class NativeFunctions
     /// These are spread throughout multiple files, find the documentation manually if you need it.
     /// https://gist.github.com/amgine/2395987.
     /// </summary>
-    [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1602:Enumeration items should be documented", Justification = "No documentation available.")]
+    [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1602:Enumeration items should be documented",
+                     Justification = "No documentation available.")]
     public enum WindowsMessage
     {
         WM_NULL = 0x0000,
@@ -1132,7 +1133,8 @@ internal static partial class NativeFunctions
 /// <summary>
 /// Native kernel32 functions.
 /// </summary>
-[SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1629:Documentation text should end with a period", Justification = "Stupid rule")]
+[SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1629:Documentation text should end with a period",
+                 Justification = "Stupid rule")]
 internal static partial class NativeFunctions
 {
     /// <summary>
@@ -1407,18 +1409,18 @@ internal static partial class NativeFunctions
         /// created with this option cannot be locked.
         /// </summary>
         NoSerialize = 0x00000001,
-        
+
         /// <summary>
         /// The system raises an exception to indicate failure (for example, an out-of-memory condition) for calls to
         /// HeapAlloc and HeapReAlloc instead of returning NULL.
         /// </summary>
         GenerateExceptions = 0x00000004,
-        
+
         /// <summary>
         /// The allocated memory will be initialized to zero. Otherwise, the memory is not initialized to zero.
         /// </summary>
         ZeroMemory = 0x00000008,
-    
+
         /// <summary>
         /// All memory blocks that are allocated from this heap allow code execution, if the hardware enforces data
         /// execution prevention. Use this flag heap in applications that run code from the heap. If
@@ -1491,7 +1493,7 @@ internal static partial class NativeFunctions
     public static extern uint GetModuleFileNameW(
         [In] IntPtr hModule,
         [Out] StringBuilder lpFilename,
-        [In][MarshalAs(UnmanagedType.U4)] int nSize);
+        [In] [MarshalAs(UnmanagedType.U4)] int nSize);
 
     /// <summary>
     /// See https://docs.microsoft.com/en-us/windows/win32/api/libloaderapi/nf-libloaderapi-getmodulehandlew.
@@ -1531,7 +1533,8 @@ internal static partial class NativeFunctions
     /// fails, the return value is NULL.To get extended error information, call GetLastError.
     /// </returns>
     [DllImport("kernel32", CharSet = CharSet.Ansi, ExactSpelling = true, SetLastError = true)]
-    [SuppressMessage("Globalization", "CA2101:Specify marshaling for P/Invoke string arguments", Justification = "Ansi only")]
+    [SuppressMessage("Globalization", "CA2101:Specify marshaling for P/Invoke string arguments",
+                     Justification = "Ansi only")]
     public static extern IntPtr GetProcAddress(IntPtr hModule, string procName);
 
     /// <summary>
@@ -1707,7 +1710,7 @@ internal static partial class NativeFunctions
     /// </returns>
     [DllImport("kernel32.dll", SetLastError = true)]
     public static extern nint HeapCreate(HeapOptions flOptions, nuint dwInitialSize, nuint dwMaximumSize);
-    
+
     /// <summary>
     /// Allocates a block of memory from a heap. The allocated memory is not movable.
     /// </summary>
@@ -1733,9 +1736,9 @@ internal static partial class NativeFunctions
     /// exceptions listed in the following table. The particular exception depends upon the nature of the heap
     /// corruption. For more information, see GetExceptionCode.
     /// </returns>
-    [DllImport("kernel32.dll", SetLastError=false)]
+    [DllImport("kernel32.dll", SetLastError = false)]
     public static extern nint HeapAlloc(nint hHeap, HeapOptions dwFlags, nuint dwBytes);
-    
+
     /// <summary>
     /// See https://docs.microsoft.com/en-us/windows/win32/api/memoryapi/nf-memoryapi-virtualalloc.
     /// Reserves, commits, or changes the state of a region of pages in the virtual address space of the calling process.
@@ -1921,7 +1924,8 @@ internal static partial class NativeFunctions
 /// <summary>
 /// Native dbghelp functions.
 /// </summary>
-[SuppressMessage("StyleCop.CSharp.OrderingRules", "SA1201:Elements should appear in the correct order", Justification = "Native funcs")]
+[SuppressMessage("StyleCop.CSharp.OrderingRules", "SA1201:Elements should appear in the correct order",
+                 Justification = "Native funcs")]
 internal static partial class NativeFunctions
 {
     /// <summary>
@@ -1990,7 +1994,9 @@ internal static partial class NativeFunctions
     /// <param name="callback">Callback.</param>
     /// <returns>Whether or not the minidump succeeded.</returns>
     [DllImport("dbghelp.dll")]
-    public static extern bool MiniDumpWriteDump(IntPtr hProcess, uint processId, IntPtr hFile, int dumpType, ref MinidumpExceptionInformation exceptionInfo, IntPtr userStreamParam, IntPtr callback);
+    public static extern bool MiniDumpWriteDump(
+        IntPtr hProcess, uint processId, IntPtr hFile, int dumpType, ref MinidumpExceptionInformation exceptionInfo,
+        IntPtr userStreamParam, IntPtr callback);
 
     /// <summary>
     /// Structure describing minidump exception information.
@@ -2060,7 +2066,8 @@ internal static partial class NativeFunctions
     /// code can be retrieved by calling WSAGetLastError.
     /// </returns>
     [DllImport("ws2_32.dll", CallingConvention = CallingConvention.Winapi, EntryPoint = "setsockopt")]
-    public static extern int SetSockOpt(IntPtr socket, SocketOptionLevel level, SocketOptionName optName, ref IntPtr optVal, int optLen);
+    public static extern int SetSockOpt(
+        IntPtr socket, SocketOptionLevel level, SocketOptionName optName, ref IntPtr optVal, int optLen);
 }
 
 /// <summary>
@@ -2088,5 +2095,6 @@ internal static partial class NativeFunctions
     /// <param name="attrSize">The size of the attribute.</param>
     /// <returns>HRESULT.</returns>
     [DllImport("dwmapi.dll", PreserveSig = true)]
-    public static extern int DwmSetWindowAttribute(IntPtr hwnd, DWMWINDOWATTRIBUTE attr, ref int attrValue, int attrSize);
+    public static extern int DwmSetWindowAttribute(
+        IntPtr hwnd, DWMWINDOWATTRIBUTE attr, ref int attrValue, int attrSize);
 }
