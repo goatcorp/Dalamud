@@ -12,6 +12,10 @@ public class ModuleLog
 {
     private readonly string moduleName;
     private readonly ILogger moduleLogger;
+    
+    // FIXME (v9): Deprecate this class in favor of using contextualized ILoggers with proper formatting.
+    //             We can keep this class around as a Serilog helper, but ModuleLog should no longer be a returned
+    //             type, instead returning a (prepared) ILogger appropriately.
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ModuleLog"/> class.
@@ -20,10 +24,8 @@ public class ModuleLog
     /// <param name="moduleName">The module name.</param>
     public ModuleLog(string? moduleName)
     {
-        // FIXME: Should be namespaced better, e.g. `Dalamud.PluginLoader`, but that becomes a relatively large
-        //        change.
         this.moduleName = moduleName ?? "DalamudInternal";
-        this.moduleLogger = Log.ForContext("SourceContext", this.moduleName);
+        this.moduleLogger = Log.ForContext("Dalamud.ModuleName", this.moduleName);
     }
 
     /// <summary>
@@ -128,7 +130,8 @@ public class ModuleLog
     public void Fatal(Exception exception, string messageTemplate, params object[] values)
         => this.WriteLog(LogEventLevel.Fatal, messageTemplate, exception, values);
 
-    private void WriteLog(LogEventLevel level, string messageTemplate, Exception? exception = null, params object[] values)
+    private void WriteLog(
+        LogEventLevel level, string messageTemplate, Exception? exception = null, params object[] values)
     {
         // FIXME: Eventually, the `pluginName` tag should be removed from here and moved over to the actual log
         //        formatter.

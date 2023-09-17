@@ -256,7 +256,7 @@ public static class PluginLog
 
     private static ILogger GetPluginLogger(string? pluginName)
     {
-        return Serilog.Log.ForContext("SourceContext", pluginName ?? string.Empty);
+        return Serilog.Log.ForContext("Dalamud.PluginName", pluginName ?? string.Empty);
     }
 
     private static void WriteLog(string? pluginName, LogEventLevel level, string messageTemplate, Exception? exception = null, params object[] values)

@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 
@@ -53,26 +52,24 @@ internal class DataWindow : Window
         new NetworkMonitorWidget(),
     };
 
-    private readonly Dictionary<DataKind, string> dataKindNames = new();
+    private readonly IOrderedEnumerable<IDataWindowWidget> orderedModules;
 
     private bool isExcept;
-    private DataKind currentKind;
-    
+    private bool selectionCollapsed;
+    private IDataWindowWidget currentWidget;
+
     /// <summary>
     /// Initializes a new instance of the <see cref="DataWindow"/> class.
     /// </summary>
     public DataWindow()
-        : base("Dalamud Data")
+        : base("Dalamud Data", ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse)
     {
-        this.Size = new Vector2(500, 500);
+        this.Size = new Vector2(400, 300);
         this.SizeCondition = ImGuiCond.FirstUseEver;
 
         this.RespectCloseHotkey = false;
-
-        foreach (var dataKind in Enum.GetValues<DataKind>())
-        {
-            this.dataKindNames[dataKind] = dataKind.ToString().Replace("_", " ");
-        }
+        this.orderedModules = this.modules.OrderBy(module => module.DisplayName);
+        this.currentWidget = this.orderedModules.First();
 
         this.Load();
     }
@@ -96,24 +93,9 @@ internal class DataWindow : Window
         if (string.IsNullOrEmpty(dataKind))
             return;
 
-        dataKind = dataKind switch
+        if (this.modules.FirstOrDefault(module => module.IsWidgetCommand(dataKind)) is { } targetModule)
         {
-            "ai" => "Addon Inspector",
-            "at" => "Object Table", // Actor Table
-            "ot" => "Object Table",
-            "uic" => "UIColor",
-            _ => dataKind,
-        };
-
-        dataKind = dataKind.Replace(" ", string.Empty).ToLower();
-
-        var matched = Enum
-                      .GetValues<DataKind>()
-                      .FirstOrDefault(kind => Enum.GetName(kind)?.Replace("_", string.Empty).ToLower() == dataKind);
-
-        if (matched != default)
-        {
-            this.currentKind = matched;
+            this.currentWidget = targetModule;
         }
         else
         {
@@ -126,59 +108,113 @@ internal class DataWindow : Window
     /// </summary>
     public override void Draw()
     {
-        if (ImGuiComponents.IconButton("forceReload", FontAwesomeIcon.Sync)) this.Load();
-        if (ImGui.IsItemHovered()) ImGui.SetTooltip("Force Reload");
-        ImGui.SameLine();
-        var copy = ImGuiComponents.IconButton("copyAll", FontAwesomeIcon.ClipboardList);
-        if (ImGui.IsItemHovered()) ImGui.SetTooltip("Copy All");
-        ImGui.SameLine();
-
-        ImGui.SetNextItemWidth(275.0f * ImGuiHelpers.GlobalScale);
-        if (ImGui.BeginCombo("Data Kind", this.dataKindNames[this.currentKind]))
+        // Only draw the widget contents if the selection pane is collapsed.
+        if (this.selectionCollapsed)
         {
-            foreach (var module in this.modules.OrderBy(module => this.dataKindNames[module.DataKind]))
+            this.DrawContents();
+            return;
+        }
+
+        if (ImGui.BeginTable("XlData_Table", 2, ImGuiTableFlags.BordersInnerV | ImGuiTableFlags.Resizable))
+        {
+            ImGui.TableSetupColumn("##SelectionColumn", ImGuiTableColumnFlags.WidthFixed, 200.0f * ImGuiHelpers.GlobalScale);
+            ImGui.TableSetupColumn("##ContentsColumn", ImGuiTableColumnFlags.WidthStretch);
+
+            ImGui.TableNextColumn();
+            this.DrawSelection();
+
+            ImGui.TableNextColumn();
+            this.DrawContents();
+
+            ImGui.EndTable();
+        }
+    }
+
+    private void DrawSelection()
+    {
+        if (ImGui.BeginChild("XlData_SelectionPane", ImGui.GetContentRegionAvail()))
+        {
+            if (ImGui.BeginListBox("WidgetSelectionListbox", ImGui.GetContentRegionAvail()))
             {
-                if (ImGui.Selectable(this.dataKindNames[module.DataKind], this.currentKind == module.DataKind))
+                foreach (var widget in this.orderedModules)
                 {
-                    this.currentKind = module.DataKind;
+                    if (ImGui.Selectable(widget.DisplayName, this.currentWidget == widget))
+                    {
+                        this.currentWidget = widget;
+                    }
+                }
+
+                ImGui.EndListBox();
+            }
+        }
+
+        ImGui.EndChild();
+    }
+
+    private void DrawContents()
+    {
+        if (ImGui.BeginChild("XlData_ContentsPane", ImGui.GetContentRegionAvail()))
+        {
+            if (ImGuiComponents.IconButton("collapse-expand", this.selectionCollapsed ? FontAwesomeIcon.ArrowRight : FontAwesomeIcon.ArrowLeft))
+            {
+                this.selectionCollapsed = !this.selectionCollapsed;
+            }
+
+            if (ImGui.IsItemHovered())
+            {
+                ImGui.SetTooltip($"{(this.selectionCollapsed ? "Expand" : "Collapse")} selection pane");
+            }
+
+            ImGui.SameLine();
+
+            if (ImGuiComponents.IconButton("forceReload", FontAwesomeIcon.Sync))
+            {
+                this.Load();
+            }
+
+            if (ImGui.IsItemHovered())
+            {
+                ImGui.SetTooltip("Force Reload");
+            }
+
+            ImGui.SameLine();
+
+            var copy = ImGuiComponents.IconButton("copyAll", FontAwesomeIcon.ClipboardList);
+
+            ImGuiHelpers.ScaledDummy(10.0f);
+
+            if (ImGui.BeginChild("XlData_WidgetContents", ImGui.GetContentRegionAvail()))
+            {
+                if (copy)
+                    ImGui.LogToClipboard();
+
+                try
+                {
+                    if (this.currentWidget is { Ready: true })
+                    {
+                        this.currentWidget.Draw();
+                    }
+                    else
+                    {
+                        ImGui.TextUnformatted("Data not ready.");
+                    }
+
+                    this.isExcept = false;
+                }
+                catch (Exception ex)
+                {
+                    if (!this.isExcept)
+                    {
+                        Log.Error(ex, "Could not draw data");
+                    }
+
+                    this.isExcept = true;
+
+                    ImGui.TextUnformatted(ex.ToString());
                 }
             }
-            
-            ImGui.EndCombo();
-        }
-        
-        ImGuiHelpers.ScaledDummy(10.0f);
 
-        ImGui.BeginChild("scrolling", Vector2.Zero, false, ImGuiWindowFlags.HorizontalScrollbar);
-
-        if (copy)
-            ImGui.LogToClipboard();
-
-        try
-        {
-            var selectedWidget = this.modules.FirstOrDefault(dataWindowWidget => dataWindowWidget.DataKind == this.currentKind);
-
-            if (selectedWidget is { Ready: true })
-            {
-                selectedWidget.Draw();
-            }
-            else
-            {
-                ImGui.TextUnformatted("Data not ready.");
-            }
-
-            this.isExcept = false;
-        }
-        catch (Exception ex)
-        {
-            if (!this.isExcept)
-            {
-                Log.Error(ex, "Could not draw data");
-            }
-
-            this.isExcept = true;
-
-            ImGui.TextUnformatted(ex.ToString());
+            ImGui.EndChild();
         }
 
         ImGui.EndChild();
