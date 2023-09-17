@@ -19,7 +19,7 @@ internal class DataWindow : Window
 {
     private readonly IDataWindowWidget[] modules =
     {
-        new ServerOpcodeWidget(),
+        new ServicesWidget(),
         new AddressesWidget(),
         new ObjectTableWidget(),
         new FateTableWidget(),
