@@ -11,10 +11,13 @@ namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 internal unsafe class AtkArrayDataBrowserWidget : IDataWindowWidget
 {
     /// <inheritdoc/>
-    public DataKind DataKind { get; init; } = DataKind.AtkArrayData_Browser;
+    public bool Ready { get; set; }
 
     /// <inheritdoc/>
-    public bool Ready { get; set; }
+    public string[]? CommandShortcuts { get; init; } = { "atkarray" };
+    
+    /// <inheritdoc/>
+    public string DisplayName { get; init; } = "Atk Array Data"; 
 
     /// <inheritdoc/>
     public void Load()

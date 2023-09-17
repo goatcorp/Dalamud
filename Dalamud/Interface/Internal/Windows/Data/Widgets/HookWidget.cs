@@ -22,8 +22,11 @@ internal class HookWidget : IDataWindowWidget
         NativeFunctions.MessageBoxType type);
     
     /// <inheritdoc/>
-    public DataKind DataKind { get; init; } = DataKind.Hook;
+    public string DisplayName { get; init; } = "Hook"; 
 
+    /// <inheritdoc/>
+    public string[]? CommandShortcuts { get; init; } = { "hook" };
+    
     /// <inheritdoc/>
     public bool Ready { get; set; }
 
