@@ -25,10 +25,8 @@ namespace Dalamud.Game;
 /// <summary>
 /// Chat events and public helper functions.
 /// </summary>
-[PluginInterface]
-[InterfaceVersion("1.0")]
 [ServiceManager.BlockingEarlyLoadedService]
-public class ChatHandlers : IServiceType
+internal class ChatHandlers : IServiceType
 {
     // private static readonly Dictionary<string, string> UnicodeToDiscordEmojiDict = new()
     // {
@@ -133,22 +131,6 @@ public class ChatHandlers : IServiceType
     /// Gets a value indicating whether or not auto-updates have already completed this session.
     /// </summary>
     public bool IsAutoUpdateComplete { get; private set; }
-
-    /// <summary>
-    /// Convert a TextPayload to SeString and wrap in italics payloads.
-    /// </summary>
-    /// <param name="text">Text to convert.</param>
-    /// <returns>SeString payload of italicized text.</returns>
-    public static SeString MakeItalics(string text)
-        => MakeItalics(new TextPayload(text));
-
-    /// <summary>
-    /// Convert a TextPayload to SeString and wrap in italics payloads.
-    /// </summary>
-    /// <param name="text">Text to convert.</param>
-    /// <returns>SeString payload of italicized text.</returns>
-    public static SeString MakeItalics(TextPayload text)
-        => new(EmphasisItalicPayload.ItalicsOn, text, EmphasisItalicPayload.ItalicsOff);
 
     private void OnCheckMessageHandled(XivChatType type, uint senderid, ref SeString sender, ref SeString message, ref bool isHandled)
     {
