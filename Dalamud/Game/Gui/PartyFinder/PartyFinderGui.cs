@@ -1,4 +1,5 @@
 using System.Runtime.InteropServices;
+
 using Dalamud.Game.Gui.PartyFinder.Internal;
 using Dalamud.Game.Gui.PartyFinder.Types;
 using Dalamud.Hooking;
