@@ -1,5 +1,4 @@
-﻿using System.Collections.Immutable;
-using Dalamud.Game.Network.Internal;
+﻿using Dalamud.Game.Network.Internal;
 using Dalamud.Game.Network.Structures;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
@@ -31,7 +30,7 @@ public class MarketBoardPluginScoped : IMarketBoard, IServiceType, IDisposable
     }
 
     /// <inheritdoc />
-    public event Action<ImmutableList<MarketBoardListing>>? OnListingsReceived;
+    public event Action<MarketBoardSearchResults>? OnListingsReceived;
 
     /// <inheritdoc />
     public event Action<MarketBoardListing>? OnPurchaseCompleted;
@@ -53,8 +52,8 @@ public class MarketBoardPluginScoped : IMarketBoard, IServiceType, IDisposable
         GC.SuppressFinalize(this);
     }
 
-    private void OnListingsReceivedProxy(ImmutableList<MarketBoardListing> listings) =>
-        this.OnListingsReceived?.Invoke(listings);
+    private void OnListingsReceivedProxy(MarketBoardSearchResults results) =>
+        this.OnListingsReceived?.Invoke(results);
 
     private void OnPurchaseCompletedProxy(MarketBoardListing listing) =>
         this.OnPurchaseCompleted?.Invoke(listing);

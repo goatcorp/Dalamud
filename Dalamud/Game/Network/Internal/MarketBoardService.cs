@@ -71,7 +71,7 @@ internal unsafe class MarketBoardService : IServiceType, IDisposable, IMarketBoa
         nuint a1, ushort eventId, byte responseId, uint* args, byte argCount);
 
     /// <inheritdoc />
-    public event Action<ImmutableList<MarketBoardListing>>? OnListingsReceived;
+    public event Action<MarketBoardSearchResults>? OnListingsReceived;
 
     /// <inheritdoc />
     public event Action<MarketBoardListing>? OnPurchaseCompleted;
@@ -108,7 +108,11 @@ internal unsafe class MarketBoardService : IServiceType, IDisposable, IMarketBoa
         Log.Warning($"Marketboard request completed. Retrieved {listings.Count} listings.");
         Log.Warning($"INFOPROXY ADDRESS: {(nint)InfoProxy:X}");
 
-        this.OnListingsReceived?.InvokeSafely(listings.ToImmutableList());
+        this.OnListingsReceived?.InvokeSafely(new MarketBoardSearchResults
+        {
+            ItemId = InfoProxy->SelectedItemId,
+            Listings = listings.ToImmutableList(),
+        });
     }
 
     private nint MarketBoardHistoryPacketDetour(InfoProxy11* self, nint a2, uint a3, char a4)

@@ -1,4 +1,3 @@
-using System.Collections.Immutable;
 using Dalamud.Game.Network.Structures;
 
 namespace Dalamud.Plugin.Services;
@@ -12,7 +11,7 @@ public interface IMarketBoard
     /// An event that fires when the marketboard receives a full new batch of listings. Happens after all listings are
     /// populated.
     /// </summary>
-    public event Action<ImmutableList<MarketBoardListing>> OnListingsReceived;
+    public event Action<MarketBoardSearchResults> OnListingsReceived;
 
     /// <summary>
     /// An event that fires when a purchase from the marketboard is <em>successfully</em> completed. Partial
