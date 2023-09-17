@@ -16,7 +16,7 @@ namespace Dalamud.Game.ClientState.Objects;
 #pragma warning disable SA1015
 [ResolveVia<ITargetManager>]
 #pragma warning restore SA1015
-public sealed unsafe class TargetManager : IServiceType, ITargetManager
+internal sealed unsafe class TargetManager : IServiceType, ITargetManager
 {
     [ServiceManager.ServiceDependency]
     private readonly ClientState clientState = Service<ClientState>.Get();

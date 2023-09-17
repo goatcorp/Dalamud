@@ -1,11 +1,9 @@
-using System;
-
 namespace Dalamud.Game.Network;
 
 /// <summary>
 /// The address resolver for the <see cref="GameNetwork"/> class.
 /// </summary>
-public sealed class GameNetworkAddressResolver : BaseAddressResolver
+internal sealed class GameNetworkAddressResolver : BaseAddressResolver
 {
     /// <summary>
     /// Gets the address of the ProcessZonePacketDown method.

@@ -26,7 +26,7 @@ namespace Dalamud.Data;
 #pragma warning disable SA1015
 [ResolveVia<IDataManager>]
 #pragma warning restore SA1015
-public sealed class DataManager : IDisposable, IServiceType, IDataManager
+internal sealed class DataManager : IDisposable, IServiceType, IDataManager
 {
     private readonly Thread luminaResourceThread;
     private readonly CancellationTokenSource luminaCancellationTokenSource;

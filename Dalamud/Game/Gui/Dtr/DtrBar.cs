@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 
 using Dalamud.Configuration.Internal;
@@ -22,7 +21,7 @@ namespace Dalamud.Game.Gui.Dtr;
 #pragma warning disable SA1015
 [ResolveVia<IDtrBar>]
 #pragma warning restore SA1015
-public sealed unsafe class DtrBar : IDisposable, IServiceType, IDtrBar
+internal sealed unsafe class DtrBar : IDisposable, IServiceType, IDtrBar
 {
     private const uint BaseNodeId = 1000;
 
@@ -133,7 +132,7 @@ public sealed unsafe class DtrBar : IDisposable, IServiceType, IDtrBar
 
     private AtkUnitBase* GetDtr() => (AtkUnitBase*)this.gameGui.GetAddonByName("_DTR").ToPointer();
 
-    private void Update(Framework unused)
+    private void Update(IFramework unused)
     {
         this.HandleRemovedNodes();
 

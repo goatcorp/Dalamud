@@ -135,7 +135,7 @@ internal unsafe class DutyState : IDisposable, IServiceType, IDutyState
     /// Joining a duty in progress, or disconnecting and reconnecting will cause the player to miss the event.
     /// </summary>
     /// <param name="framework1">Framework reference.</param>
-    private void FrameworkOnUpdateEvent(Framework framework1)
+    private void FrameworkOnUpdateEvent(IFramework framework1)
     {
         // If the duty hasn't been started, and has not been completed yet this territory
         if (!this.IsDutyStarted && !this.CompletedThisTerritory)

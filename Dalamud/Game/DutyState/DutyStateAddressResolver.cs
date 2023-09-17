@@ -3,7 +3,7 @@ namespace Dalamud.Game.DutyState;
 /// <summary>
 /// Duty state memory address resolver.
 /// </summary>
-public class DutyStateAddressResolver : BaseAddressResolver
+internal class DutyStateAddressResolver : BaseAddressResolver
 {
     /// <summary>
     /// Gets the address of the method which is called when the client receives a content director update.

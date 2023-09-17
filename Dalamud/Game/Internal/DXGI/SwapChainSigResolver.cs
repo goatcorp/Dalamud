@@ -1,4 +1,3 @@
-using System;
 using System.Diagnostics;
 using System.Linq;
 
@@ -10,7 +9,7 @@ namespace Dalamud.Game.Internal.DXGI;
 /// The address resolver for native D3D11 methods to facilitate displaying the Dalamud UI.
 /// </summary>
 [Obsolete("This has been deprecated in favor of the VTable resolver.")]
-public sealed class SwapChainSigResolver : BaseAddressResolver, ISwapChainAddressResolver
+internal sealed class SwapChainSigResolver : BaseAddressResolver, ISwapChainAddressResolver
 {
     /// <inheritdoc/>
     public IntPtr Present { get; set; }

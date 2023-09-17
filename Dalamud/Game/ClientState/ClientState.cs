@@ -1,4 +1,3 @@
-using System;
 using System.Runtime.InteropServices;
 
 using Dalamud.Data;
@@ -25,7 +24,7 @@ namespace Dalamud.Game.ClientState;
 #pragma warning disable SA1015
 [ResolveVia<IClientState>]
 #pragma warning restore SA1015
-public sealed class ClientState : IDisposable, IServiceType, IClientState
+internal sealed class ClientState : IDisposable, IServiceType, IClientState
 {
     private readonly GameLifecycle lifecycle;
     private readonly ClientStateAddressResolver address;
@@ -141,7 +140,7 @@ public sealed class ClientState : IDisposable, IServiceType, IClientState
         this.CfPop?.InvokeSafely(this, e);
     }
 
-    private void FrameworkOnOnUpdateEvent(Framework framework1)
+    private void FrameworkOnOnUpdateEvent(IFramework framework1)
     {
         var condition = Service<Conditions.Condition>.GetNullable();
         var gameGui = Service<GameGui>.GetNullable();

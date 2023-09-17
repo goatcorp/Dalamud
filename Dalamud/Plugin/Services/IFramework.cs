@@ -15,17 +15,12 @@ public interface IFramework
     /// A delegate type used with the <see cref="Update"/> event.
     /// </summary>
     /// <param name="framework">The Framework instance.</param>
-    public delegate void OnUpdateDelegate(Framework framework);
+    public delegate void OnUpdateDelegate(IFramework framework);
     
     /// <summary>
     /// Event that gets fired every time the game framework updates.
     /// </summary>
     public event OnUpdateDelegate Update;
-    
-    /// <summary>
-    /// Gets a raw pointer to the instance of Client::Framework.
-    /// </summary>
-    public FrameworkAddressResolver Address { get; }
     
     /// <summary>
     /// Gets the last time that the Framework Update event was triggered.

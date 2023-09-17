@@ -1,11 +1,9 @@
-using System;
-
 namespace Dalamud.Game.Gui.FlyText;
 
 /// <summary>
 /// An address resolver for the <see cref="FlyTextGui"/> class.
 /// </summary>
-public class FlyTextGuiAddressResolver : BaseAddressResolver
+internal class FlyTextGuiAddressResolver : BaseAddressResolver
 {
     /// <summary>
     /// Gets the address of the native AddFlyText method, which occurs

@@ -11,6 +11,7 @@ using Dalamud.Interface.Animation.EasingFunctions;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
+using Dalamud.Plugin.Services;
 using ImGuiNET;
 using ImGuiScene;
 
@@ -358,7 +359,7 @@ internal class TitleScreenMenuWindow : Window, IDisposable
         return isHover;
     }
 
-    private void FrameworkOnUpdate(Framework framework)
+    private void FrameworkOnUpdate(IFramework framework)
     {
         var clientState = Service<ClientState>.Get();
         this.IsOpen = !clientState.IsLoggedIn;

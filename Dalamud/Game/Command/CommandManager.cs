@@ -23,7 +23,7 @@ namespace Dalamud.Game.Command;
 #pragma warning disable SA1015
 [ResolveVia<ICommandManager>]
 #pragma warning restore SA1015
-public sealed class CommandManager : IServiceType, IDisposable, ICommandManager
+internal sealed class CommandManager : IServiceType, IDisposable, ICommandManager
 {
     private readonly ConcurrentDictionary<string, CommandInfo> commandMap = new();
     private readonly Regex commandRegexEn = new(@"^The command (?<command>.+) does not exist\.$", RegexOptions.Compiled);

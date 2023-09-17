@@ -1,5 +1,3 @@
-using System;
-
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Plugin.Services;
@@ -92,7 +90,7 @@ internal sealed partial class Condition : IServiceType, ICondition
         framework.Update += this.FrameworkUpdate;
     }
 
-    private void FrameworkUpdate(Framework framework)
+    private void FrameworkUpdate(IFramework framework)
     {
         for (var i = 0; i < MaxConditionEntries; i++)
         {

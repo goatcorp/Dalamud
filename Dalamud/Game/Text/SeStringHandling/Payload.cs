@@ -5,6 +5,7 @@ using System.IO;
 
 using Dalamud.Data;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
+using Dalamud.Plugin.Services;
 using Newtonsoft.Json;
 using Serilog;
 
@@ -28,12 +29,6 @@ public abstract partial class Payload
     private byte[] encodedData;
 
     /// <summary>
-    /// Gets the Lumina instance to use for any necessary data lookups.
-    /// </summary>
-    [JsonIgnore]
-    public DataManager DataResolver => Service<DataManager>.Get();
-
-    /// <summary>
     /// Gets the type of this payload.
     /// </summary>
     public abstract PayloadType Type { get; }
@@ -42,6 +37,13 @@ public abstract partial class Payload
     /// Gets or sets a value indicating whether whether this payload has been modified since the last Encode().
     /// </summary>
     public bool Dirty { get; protected set; } = true;
+
+    /// <summary>
+    /// Gets the Lumina instance to use for any necessary data lookups.
+    /// </summary>
+    [JsonIgnore]
+    // TODO: We should refactor this. It should not be possible to get IDataManager through here.
+    protected IDataManager DataResolver => Service<DataManager>.Get();
 
     /// <summary>
     /// Decodes a binary representation of a payload into its corresponding nice object payload.

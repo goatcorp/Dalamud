@@ -27,7 +27,7 @@ namespace Dalamud.Game;
 #pragma warning disable SA1015
 [ResolveVia<IFramework>]
 #pragma warning restore SA1015
-public sealed class Framework : IDisposable, IServiceType, IFramework
+internal sealed class Framework : IDisposable, IServiceType, IFramework
 {
     private static readonly Stopwatch StatsStopwatch = new();
     
@@ -38,6 +38,8 @@ public sealed class Framework : IDisposable, IServiceType, IFramework
 
     private readonly Hook<OnUpdateDetour> updateHook;
     private readonly Hook<OnRealDestroyDelegate> destroyHook;
+
+    private readonly FrameworkAddressResolver addressResolver;
 
     [ServiceManager.ServiceDependency]
     private readonly DalamudConfiguration configuration = Service<DalamudConfiguration>.Get();
@@ -54,11 +56,11 @@ public sealed class Framework : IDisposable, IServiceType, IFramework
         this.lifecycle = lifecycle;
         this.hitchDetector = new HitchDetector("FrameworkUpdate", this.configuration.FrameworkUpdateHitch);
 
-        this.Address = new FrameworkAddressResolver();
-        this.Address.Setup(sigScanner);
+        this.addressResolver = new FrameworkAddressResolver();
+        this.addressResolver.Setup(sigScanner);
 
-        this.updateHook = Hook<OnUpdateDetour>.FromAddress(this.Address.TickAddress, this.HandleFrameworkUpdate);
-        this.destroyHook = Hook<OnRealDestroyDelegate>.FromAddress(this.Address.DestroyAddress, this.HandleFrameworkDestroy);
+        this.updateHook = Hook<OnUpdateDetour>.FromAddress(this.addressResolver.TickAddress, this.HandleFrameworkUpdate);
+        this.destroyHook = Hook<OnRealDestroyDelegate>.FromAddress(this.addressResolver.DestroyAddress, this.HandleFrameworkDestroy);
     }
 
     /// <summary>
@@ -91,9 +93,6 @@ public sealed class Framework : IDisposable, IServiceType, IFramework
     /// Gets the stats history mapping.
     /// </summary>
     public static Dictionary<string, List<double>> StatsHistory { get; } = new();
-
-    /// <inheritdoc/>
-    public FrameworkAddressResolver Address { get; }
 
     /// <inheritdoc/>
     public DateTime LastUpdate { get; private set; } = DateTime.MinValue;

@@ -442,7 +442,7 @@ internal class TextureManager : IDisposable, IServiceType, ITextureSubstitutionP
         }
     }
 
-    private void FrameworkOnUpdate(Framework fw)
+    private void FrameworkOnUpdate(IFramework fw)
     {
         lock (this.activeTextures)
         {

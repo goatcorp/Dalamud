@@ -17,7 +17,7 @@ namespace Dalamud.Game.Config;
 #pragma warning disable SA1015
 [ResolveVia<IGameConfig>]
 #pragma warning restore SA1015
-public sealed class GameConfig : IServiceType, IGameConfig, IDisposable
+internal sealed class GameConfig : IServiceType, IGameConfig, IDisposable
 {
     private readonly GameConfigAddressResolver address = new();
     private Hook<ConfigChangeDelegate>? configChangeHook;
