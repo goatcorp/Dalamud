@@ -19,4 +19,10 @@ public interface IDtrBar
     /// <returns>The entry object used to update, hide and remove the entry.</returns>
     /// <exception cref="ArgumentException">Thrown when an entry with the specified title exists.</exception>
     public DtrBarEntry Get(string title, SeString? text = null);
+
+    /// <summary>
+    /// Removes a DTR bar entry from the system.
+    /// </summary>
+    /// <param name="title">Title of the entry to remove.</param>
+    public void Remove(string title);
 }
