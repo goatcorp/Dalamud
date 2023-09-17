@@ -19,7 +19,10 @@ internal class ToastWidget : IDataWindowWidget
     private bool questToastCheckmark;
     
     /// <inheritdoc/>
-    public DataKind DataKind { get; init; } = DataKind.Toast;
+    public string[]? CommandShortcuts { get; init; } = { "toast" };
+    
+    /// <inheritdoc/>
+    public string DisplayName { get; init; } = "Toast"; 
 
     /// <inheritdoc/>
     public bool Ready { get; set; }

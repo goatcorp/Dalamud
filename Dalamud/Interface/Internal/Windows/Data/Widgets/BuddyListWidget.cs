@@ -12,10 +12,13 @@ internal class BuddyListWidget : IDataWindowWidget
     private bool resolveGameData;
 
     /// <inheritdoc/>
-    public DataKind DataKind { get; init; } = DataKind.Buddy_List;
+    public bool Ready { get; set; }
 
     /// <inheritdoc/>
-    public bool Ready { get; set; }
+    public string[]? CommandShortcuts { get; init; } = { "buddy", "buddylist" };
+    
+    /// <inheritdoc/>
+    public string DisplayName { get; init; } = "Buddy List"; 
 
     /// <inheritdoc/>
     public void Load()

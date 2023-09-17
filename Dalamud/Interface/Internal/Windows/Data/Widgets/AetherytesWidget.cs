@@ -9,10 +9,13 @@ namespace Dalamud.Interface.Internal.Windows.Data;
 internal class AetherytesWidget : IDataWindowWidget
 {
     /// <inheritdoc/>
-    public DataKind DataKind { get; init; } = DataKind.Aetherytes;
+    public bool Ready { get; set; }
 
     /// <inheritdoc/>
-    public bool Ready { get; set; }
+    public string[]? CommandShortcuts { get; init; } = { "aetherytes" };
+    
+    /// <inheritdoc/>
+    public string DisplayName { get; init; } = "Aetherytes"; 
 
     /// <inheritdoc/>
     public void Load()

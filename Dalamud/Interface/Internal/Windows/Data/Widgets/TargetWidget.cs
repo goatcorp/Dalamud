@@ -13,7 +13,10 @@ internal class TargetWidget : IDataWindowWidget
     private bool resolveGameData;
     
     /// <inheritdoc/>
-    public DataKind DataKind { get; init; } = DataKind.Target;
+    public string[]? CommandShortcuts { get; init; } = { "target" };
+    
+    /// <inheritdoc/>
+    public string DisplayName { get; init; } = "Target"; 
 
     /// <inheritdoc/>
     public bool Ready { get; set; }
