@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 
 using Dalamud.Configuration.Internal;
 using Dalamud.Game;
+using Dalamud.Game.ClientState;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.Gui;
 using Dalamud.Interface.GameFonts;
@@ -176,20 +177,6 @@ public sealed class UiBuilder : IDisposable
                 return false;
             return condition[ConditionFlag.OccupiedInCutSceneEvent]
                    || condition[ConditionFlag.WatchingCutscene78];
-        }
-    }
-
-    /// <summary>
-    /// Gets a value indicating whether or not gpose is active.
-    /// </summary>
-    public bool GposeActive
-    {
-        get
-        {
-            var condition = Service<Condition>.GetNullable();
-            if (condition == null)
-                return false;
-            return condition[ConditionFlag.WatchingCutscene];
         }
     }
 
@@ -448,6 +435,7 @@ public sealed class UiBuilder : IDisposable
     {
         this.hitchDetector.Start();
 
+        var clientState = Service<ClientState>.Get();
         var configuration = Service<DalamudConfiguration>.Get();
         var gameGui = Service<GameGui>.GetNullable();
         if (gameGui == null)
@@ -457,7 +445,7 @@ public sealed class UiBuilder : IDisposable
              !(this.DisableUserUiHide || this.DisableAutomaticUiHide)) ||
             (this.CutsceneActive && configuration.ToggleUiHideDuringCutscenes &&
              !(this.DisableCutsceneUiHide || this.DisableAutomaticUiHide)) ||
-            (this.GposeActive && configuration.ToggleUiHideDuringGpose &&
+            (clientState.IsGPosing && configuration.ToggleUiHideDuringGpose &&
              !(this.DisableGposeUiHide || this.DisableAutomaticUiHide)))
         {
             if (!this.lastFrameUiHideState)

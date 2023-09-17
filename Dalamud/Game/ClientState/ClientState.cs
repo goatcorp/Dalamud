@@ -102,6 +102,9 @@ public sealed class ClientState : IDisposable, IServiceType, IClientState
     /// <inheritdoc/>
     public bool IsPvPExcludingDen { get; private set; }
 
+    /// <inheritdoc />
+    public bool IsGPosing => GameMain.IsInGPose();
+
     /// <summary>
     /// Gets client state address resolver.
     /// </summary>

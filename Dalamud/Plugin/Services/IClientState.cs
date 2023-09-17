@@ -73,4 +73,9 @@ public interface IClientState
     /// Gets a value indicating whether or not the user is playing PvP, excluding the Wolves' Den.
     /// </summary>
     public bool IsPvPExcludingDen { get; }
+    
+    /// <summary>
+    /// Gets a value indicating whether the client is currently in Group Pose (GPose) mode. 
+    /// </summary>
+    public bool IsGPosing { get; }
 }
