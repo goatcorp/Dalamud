@@ -19,17 +19,7 @@ public interface IDataManager
     /// Gets the current game client language.
     /// </summary>
     public ClientLanguage Language { get; }
-
-    /// <summary>
-    /// Gets the OpCodes sent by the server to the client.
-    /// </summary>
-    public ReadOnlyDictionary<string, ushort> ServerOpCodes { get; }
-
-    /// <summary>
-    /// Gets the OpCodes sent by the client to the server.
-    /// </summary>
-    public ReadOnlyDictionary<string, ushort> ClientOpCodes { get; }
-
+    
     /// <summary>
     /// Gets a <see cref="Lumina"/> object which gives access to any excel/game data.
     /// </summary>
