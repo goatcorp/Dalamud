@@ -1,6 +1,4 @@
-using System;
 using System.Runtime.InteropServices;
-
 using Dalamud.Game.Gui.PartyFinder.Internal;
 using Dalamud.Game.Gui.PartyFinder.Types;
 using Dalamud.Hooking;
@@ -128,6 +126,9 @@ internal sealed class PartyFinderGui : IDisposable, IServiceType, IPartyFinderGu
     }
 }
 
+/// <summary>
+/// A scoped variant of the PartyFinderGui service.
+/// </summary>
 [PluginInterface]
 [InterfaceVersion("1.0")]
 [ServiceManager.ScopedService]

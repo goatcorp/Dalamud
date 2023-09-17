@@ -1,7 +1,7 @@
-﻿using System;
-
-using Serilog;
+﻿using Serilog;
 using Serilog.Events;
+
+#pragma warning disable CS1573 // See https://github.com/dotnet/roslyn/issues/40325
 
 namespace Dalamud.Plugin.Services;
 
