@@ -8,7 +8,6 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
-
 using Dalamud.Configuration.Internal;
 using Dalamud.Data;
 using Dalamud.Game;
@@ -39,7 +38,8 @@ public static class Util
     /// <summary>
     /// Gets the assembly version of Dalamud.
     /// </summary>
-    public static string AssemblyVersion { get; } = Assembly.GetAssembly(typeof(ChatHandlers)).GetName().Version.ToString();
+    public static string AssemblyVersion { get; } =
+        Assembly.GetAssembly(typeof(ChatHandlers)).GetName().Version.ToString();
 
     /// <summary>
     /// Check two byte arrays for equality.
@@ -275,14 +275,16 @@ public static class Util
         if (ImGui.TreeNode($"{obj}##print-obj-{addr:X}-{string.Join("-", path)}"))
         {
             ImGui.PopStyleColor();
-            foreach (var f in obj.GetType().GetFields(BindingFlags.Static | BindingFlags.Public | BindingFlags.Instance))
+            foreach (var f in obj.GetType()
+                                 .GetFields(BindingFlags.Static | BindingFlags.Public | BindingFlags.Instance))
             {
                 var fixedBuffer = (FixedBufferAttribute)f.GetCustomAttribute(typeof(FixedBufferAttribute));
                 if (fixedBuffer != null)
                 {
                     ImGui.Text($"fixed");
                     ImGui.SameLine();
-                    ImGui.TextColored(new Vector4(0.2f, 0.9f, 0.9f, 1), $"{fixedBuffer.ElementType.Name}[0x{fixedBuffer.Length:X}]");
+                    ImGui.TextColored(new Vector4(0.2f, 0.9f, 0.9f, 1),
+                                      $"{fixedBuffer.ElementType.Name}[0x{fixedBuffer.Length:X}]");
                 }
                 else
                 {
@@ -293,7 +295,7 @@ public static class Util
                 ImGui.TextColored(new Vector4(0.2f, 0.9f, 0.4f, 1), $"{f.Name}: ");
                 ImGui.SameLine();
 
-                ShowValue(addr, new List<string>(path) { f.Name }, f.FieldType, f.GetValue(obj));
+                ShowValue(addr, new List<string>(path) {f.Name}, f.FieldType, f.GetValue(obj));
             }
 
             foreach (var p in obj.GetType().GetProperties().Where(p => p.GetGetMethod()?.GetParameters().Length == 0))
@@ -303,7 +305,7 @@ public static class Util
                 ImGui.TextColored(new Vector4(0.2f, 0.6f, 0.4f, 1), $"{p.Name}: ");
                 ImGui.SameLine();
 
-                ShowValue(addr, new List<string>(path) { p.Name }, p.PropertyType, p.GetValue(obj));
+                ShowValue(addr, new List<string>(path) {p.Name}, p.PropertyType, p.GetValue(obj));
             }
 
             ImGui.TreePop();
@@ -398,7 +400,8 @@ public static class Util
     /// <param name="exit">Specify whether to exit immediately.</param>
     public static void Fatal(string message, string caption, bool exit = true)
     {
-        var flags = NativeFunctions.MessageBoxType.Ok | NativeFunctions.MessageBoxType.IconError | NativeFunctions.MessageBoxType.Topmost;
+        var flags = NativeFunctions.MessageBoxType.Ok | NativeFunctions.MessageBoxType.IconError |
+                    NativeFunctions.MessageBoxType.Topmost;
         _ = NativeFunctions.MessageBoxW(Process.GetCurrentProcess().MainWindowHandle, message, caption, flags);
 
         if (exit)
@@ -412,7 +415,7 @@ public static class Util
     /// <returns>Human readable version.</returns>
     public static string FormatBytes(long bytes)
     {
-        string[] suffix = { "B", "KB", "MB", "GB", "TB" };
+        string[] suffix = {"B", "KB", "MB", "GB", "TB"};
         int i;
         double dblSByte = bytes;
         for (i = 0; i < suffix.Length && bytes >= 1024; i++, bytes /= 1024)
@@ -600,7 +603,7 @@ public static class Util
                     }
                 }
             }
-        }
+        } 
         finally
         {
             foreach (var enumerator in enumerators)
@@ -608,6 +611,23 @@ public static class Util
                 enumerator?.Dispose();
             }
         }
+    }
+
+    internal static void FlashWindow(bool flashIfOpen = false)
+    {
+        if (NativeFunctions.ApplicationIsActivated() && flashIfOpen)
+            return;
+
+        var flashInfo = new NativeFunctions.FlashWindowInfo
+        {
+            Size = (uint)Marshal.SizeOf<NativeFunctions.FlashWindowInfo>(),
+            Count = uint.MaxValue,
+            Timeout = 0,
+            Flags = NativeFunctions.FlashWindow.All | NativeFunctions.FlashWindow.TimerNoFG,
+            Hwnd = Process.GetCurrentProcess().MainWindowHandle,
+        };
+
+        NativeFunctions.FlashWindowEx(ref flashInfo);
     }
 
     /// <summary>
@@ -627,7 +647,8 @@ public static class Util
     /// <param name="logMessage">Log message to print, if specified and an error occurs.</param>
     /// <param name="moduleLog">Module logger, if any.</param>
     /// <typeparam name="T">The type of object to dispose.</typeparam>
-    internal static void ExplicitDisposeIgnoreExceptions<T>(this T obj, string? logMessage = null, ModuleLog? moduleLog = null) where T : IDisposable
+    internal static void ExplicitDisposeIgnoreExceptions<T>(
+        this T obj, string? logMessage = null, ModuleLog? moduleLog = null) where T : IDisposable
     {
         try
         {

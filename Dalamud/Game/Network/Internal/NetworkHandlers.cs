@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -7,13 +6,13 @@ using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
-
 using Dalamud.Configuration.Internal;
 using Dalamud.Data;
 using Dalamud.Game.Gui;
 using Dalamud.Game.Network.Internal.MarketBoardUploaders;
 using Dalamud.Game.Network.Internal.MarketBoardUploaders.Universalis;
 using Dalamud.Game.Network.Structures;
+using Dalamud.Hooking;
 using Dalamud.Utility;
 using Lumina.Excel.GeneratedSheets;
 using Serilog;
@@ -33,7 +32,12 @@ internal class NetworkHandlers : IDisposable, IServiceType
     private readonly IDisposable handleMarketBoardItemRequest;
     private readonly IDisposable handleMarketTaxRates;
     private readonly IDisposable handleMarketBoardPurchaseHandler;
-    private readonly IDisposable handleCfPop;
+    
+    private delegate nint CfPopDelegate(nint packetData);
+
+    private readonly NetworkHandlersAddressResolver addressResolver;
+
+    private readonly Hook<CfPopDelegate> cfPopHook;
 
     [ServiceManager.ServiceDependency]
     private readonly DalamudConfiguration configuration = Service<DalamudConfiguration>.Get();
@@ -41,9 +45,13 @@ internal class NetworkHandlers : IDisposable, IServiceType
     private bool disposing;
 
     [ServiceManager.ServiceConstructor]
-    private NetworkHandlers(GameNetwork gameNetwork)
+    private NetworkHandlers(GameNetwork gameNetwork, SigScanner sigScanner)
     {
         this.uploader = new UniversalisMarketBoardUploader();
+
+        this.addressResolver = new NetworkHandlersAddressResolver();
+        this.addressResolver.Setup(sigScanner);
+
         this.CfPop = (_, _) => { };
 
         this.messages = Observable.Create<NetworkMessage>(observer =>
@@ -69,7 +77,9 @@ internal class NetworkHandlers : IDisposable, IServiceType
         this.handleMarketBoardItemRequest = this.HandleMarketBoardItemRequest();
         this.handleMarketTaxRates = this.HandleMarketTaxRates();
         this.handleMarketBoardPurchaseHandler = this.HandleMarketBoardPurchaseHandler();
-        this.handleCfPop = this.HandleCfPop();
+
+        this.cfPopHook = Hook<CfPopDelegate>.FromAddress(this.addressResolver.CfPopPacketHandler, this.CfPopDetour);
+        this.cfPopHook.Enable();
     }
 
     /// <summary>
@@ -98,7 +108,55 @@ internal class NetworkHandlers : IDisposable, IServiceType
         this.handleMarketBoardItemRequest.Dispose();
         this.handleMarketTaxRates.Dispose();
         this.handleMarketBoardPurchaseHandler.Dispose();
-        this.handleCfPop.Dispose();
+
+        this.cfPopHook.Dispose();
+    }
+
+    private unsafe nint CfPopDetour(nint packetData)
+    {
+        using var stream = new UnmanagedMemoryStream((byte*)packetData, 64);
+        using var reader = new BinaryReader(stream);
+
+        var notifyType = reader.ReadByte();
+        stream.Position += 0x1B;
+        var conditionId = reader.ReadUInt16();
+
+        if (notifyType != 3)
+            goto ORIGINAL;
+
+        if (this.configuration.DutyFinderTaskbarFlash)
+            Util.FlashWindow();
+
+        var cfConditionSheet = Service<DataManager>.Get().GetExcelSheet<ContentFinderCondition>()!;
+        var cfCondition = cfConditionSheet.GetRow(conditionId);
+
+        if (cfCondition == null)
+        {
+            Log.Error("CFC key {ConditionId} not in Lumina data", conditionId);
+            goto ORIGINAL;
+        }
+
+        var cfcName = cfCondition.Name.ToString();
+        if (cfcName.IsNullOrEmpty())
+        {
+            cfcName = "Duty Roulette";
+            cfCondition.Image = 112324;
+        }
+
+        Task.Run(() =>
+        {
+            if (this.configuration.DutyFinderChatMessage)
+            {
+                Service<ChatGui>.GetNullable()?.Print($"Duty pop: {cfcName}");
+            }
+
+            this.CfPop.InvokeSafely(this, cfCondition);
+        }).ContinueWith(
+            task => Log.Error(task.Exception, "CfPop.Invoke failed"),
+            TaskContinuationOptions.OnlyOnFaulted);
+
+        ORIGINAL:
+        return this.cfPopHook.OriginalDisposeSafe(packetData);
     }
 
     private IObservable<NetworkMessage> OnNetworkMessage()
