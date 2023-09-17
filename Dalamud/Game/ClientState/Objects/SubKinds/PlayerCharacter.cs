@@ -1,5 +1,3 @@
-using System;
-
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Game.ClientState.Resolvers;
 
@@ -33,5 +31,5 @@ public unsafe class PlayerCharacter : BattleChara
     /// <summary>
     /// Gets the target actor ID of the PlayerCharacter.
     /// </summary>
-    public override ulong TargetObjectId => this.Struct->Character.PlayerTargetObjectID;
+    public override ulong TargetObjectId => this.Struct->Character.LookTargetId;
 }
