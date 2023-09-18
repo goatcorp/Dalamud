@@ -8,8 +8,8 @@ using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
+using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Services;
-using Serilog;
 
 namespace Dalamud.Game.Command;
 
@@ -20,6 +20,8 @@ namespace Dalamud.Game.Command;
 [ServiceManager.BlockingEarlyLoadedService]
 internal sealed class CommandManager : IServiceType, IDisposable, ICommandManager
 {
+    private static readonly ModuleLog Log = new("Command");
+
     private readonly ConcurrentDictionary<string, CommandInfo> commandMap = new();
     private readonly Regex commandRegexEn = new(@"^The command (?<command>.+) does not exist\.$", RegexOptions.Compiled);
     private readonly Regex commandRegexJp = new(@"^そのコマンドはありません。： (?<command>.+)$", RegexOptions.Compiled);
@@ -169,6 +171,8 @@ internal sealed class CommandManager : IServiceType, IDisposable, ICommandManage
 #pragma warning restore SA1015
 internal class CommandManagerPluginScoped : IDisposable, IServiceType, ICommandManager
 {
+    private static readonly ModuleLog Log = new("Command");
+    
     [ServiceManager.ServiceDependency]
     private readonly CommandManager commandManagerService = Service<CommandManager>.Get();
 
@@ -207,6 +211,10 @@ internal class CommandManagerPluginScoped : IDisposable, IServiceType, ICommandM
                 return true;
             }
         }
+        else
+        {
+            Log.Error($"Command {command} is already registered.");
+        }
 
         return false;
     }
@@ -221,6 +229,10 @@ internal class CommandManagerPluginScoped : IDisposable, IServiceType, ICommandM
                 this.pluginRegisteredCommands.Remove(command);
                 return true;
             }
+        }
+        else
+        {
+            Log.Error($"Command {command} not found.");
         }
 
         return false;
