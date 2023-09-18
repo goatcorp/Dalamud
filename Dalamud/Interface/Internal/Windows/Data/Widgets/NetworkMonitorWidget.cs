@@ -98,6 +98,11 @@ internal class NetworkMonitorWidget : IDataWindowWidget
             this.trackedPackets = Math.Clamp(this.trackedPackets, 1, 512);
         }
 
+        if (ImGui.Button("Clear Stored Packets"))
+        {
+            this.packets.Clear();
+        }
+
         this.DrawFilterInput();
         this.DrawNegativeFilterInput();
 
