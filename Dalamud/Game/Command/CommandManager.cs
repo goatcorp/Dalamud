@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -17,12 +16,8 @@ namespace Dalamud.Game.Command;
 /// <summary>
 /// This class manages registered in-game slash commands.
 /// </summary>
-[PluginInterface]
 [InterfaceVersion("1.0")]
 [ServiceManager.BlockingEarlyLoadedService]
-#pragma warning disable SA1015
-[ResolveVia<ICommandManager>]
-#pragma warning restore SA1015
 internal sealed class CommandManager : IServiceType, IDisposable, ICommandManager
 {
     private readonly ConcurrentDictionary<string, CommandInfo> commandMap = new();
@@ -84,7 +79,7 @@ internal sealed class CommandManager : IServiceType, IDisposable, ICommandManage
             // => command: 0-12 (12 chars)
             // => argument: 13-17 (4 chars)
             // => content.IndexOf(' ') == 12
-            command = content.Substring(0, separatorPosition);
+            command = content[..separatorPosition];
 
             var argStart = separatorPosition + 1;
             argument = content[argStart..];
@@ -160,5 +155,74 @@ internal sealed class CommandManager : IServiceType, IDisposable, ICommandManage
                 }
             }
         }
+    }
+}
+
+/// <summary>
+/// Plugin-scoped version of a AddonLifecycle service.
+/// </summary>
+[PluginInterface]
+[InterfaceVersion("1.0")]
+[ServiceManager.ScopedService]
+#pragma warning disable SA1015
+[ResolveVia<ICommandManager>]
+#pragma warning restore SA1015
+internal class CommandManagerPluginScoped : IDisposable, IServiceType, ICommandManager
+{
+    [ServiceManager.ServiceDependency]
+    private readonly CommandManager commandManagerService = Service<CommandManager>.Get();
+
+    private readonly List<string> pluginRegisteredCommands = new();
+
+    /// <inheritdoc/>
+    public ReadOnlyDictionary<string, CommandInfo> Commands => this.commandManagerService.Commands;
+    
+    /// <inheritdoc/>
+    public void Dispose()
+    {
+        foreach (var command in this.pluginRegisteredCommands)
+        {
+            this.commandManagerService.RemoveHandler(command);
+        }
+        
+        this.pluginRegisteredCommands.Clear();
+    }
+
+    /// <inheritdoc/>
+    public bool ProcessCommand(string content)
+        => this.commandManagerService.ProcessCommand(content);
+
+    /// <inheritdoc/>
+    public void DispatchCommand(string command, string argument, CommandInfo info)
+        => this.commandManagerService.DispatchCommand(command, argument, info);
+    
+    /// <inheritdoc/>
+    public bool AddHandler(string command, CommandInfo info)
+    {
+        if (!this.pluginRegisteredCommands.Contains(command))
+        {
+            if (this.commandManagerService.AddHandler(command, info))
+            {
+                this.pluginRegisteredCommands.Add(command);
+                return true;
+            }
+        }
+
+        return false;
+    }
+    
+    /// <inheritdoc/>
+    public bool RemoveHandler(string command)
+    {
+        if (this.pluginRegisteredCommands.Contains(command))
+        {
+            if (this.commandManagerService.RemoveHandler(command))
+            {
+                this.pluginRegisteredCommands.Remove(command);
+                return true;
+            }
+        }
+
+        return false;
     }
 }
