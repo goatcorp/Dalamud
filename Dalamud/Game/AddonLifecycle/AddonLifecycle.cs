@@ -63,7 +63,7 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
 
     private delegate void AddonOnRequestedUpdateDelegate(AtkUnitBase* addon, NumberArrayData** numberArrayData, StringArrayData** stringArrayData);
 
-    private delegate void AddonOnRefreshDelegate(AtkUnitManager* unitManager, AtkUnitBase* addon, uint valueCount, AtkValue* values);
+    private delegate byte AddonOnRefreshDelegate(AtkUnitManager* unitManager, AtkUnitBase* addon, uint valueCount, AtkValue* values);
 
     /// <inheritdoc/>
     public void Dispose()
@@ -221,7 +221,7 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
         }
     }
 
-    private void OnAddonRefresh(AtkUnitManager* atkUnitManager, AtkUnitBase* addon, uint valueCount, AtkValue* values)
+    private byte OnAddonRefresh(AtkUnitManager* atkUnitManager, AtkUnitBase* addon, uint valueCount, AtkValue* values)
     {
         try
         {
@@ -232,7 +232,7 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
             Log.Error(e, "Exception in OnAddonRefresh pre-refresh invoke.");
         }
 
-        this.onAddonRefreshHook.Original(atkUnitManager, addon, valueCount, values);
+        var result = this.onAddonRefreshHook.Original(atkUnitManager, addon, valueCount, values);
 
         try
         {
@@ -242,6 +242,8 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
         {
             Log.Error(e, "Exception in OnAddonRefresh post-refresh invoke.");
         }
+
+        return result;
     }
 
     private void OnRequestedUpdate(AtkUnitBase* addon, NumberArrayData** numberArrayData, StringArrayData** stringArrayData)
