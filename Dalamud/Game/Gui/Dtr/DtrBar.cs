@@ -22,12 +22,8 @@ namespace Dalamud.Game.Gui.Dtr;
 /// <summary>
 /// Class used to interface with the server info bar.
 /// </summary>
-[PluginInterface]
 [InterfaceVersion("1.0")]
 [ServiceManager.BlockingEarlyLoadedService]
-#pragma warning disable SA1015
-[ResolveVia<IDtrBar>]
-#pragma warning restore SA1015
 internal sealed unsafe class DtrBar : IDisposable, IServiceType, IDtrBar
 {
     private const uint BaseNodeId = 1000;
