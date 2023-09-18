@@ -5,6 +5,8 @@ using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
 using System.Numerics;
 using System.Threading;
 using System.Threading.Tasks;
@@ -217,6 +219,7 @@ internal class PluginInstallerWindow : Window, IDisposable
     {
         Alphabetical,
         DownloadCount,
+        EndorsementCount,
         LastUpdate,
         NewOrNot,
         NotInstalled,
@@ -565,6 +568,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         {
             (Locs.SortBy_Alphabetical, PluginSortKind.Alphabetical),
             (Locs.SortBy_DownloadCounts, PluginSortKind.DownloadCount),
+            (Locs.SortBy_EndorsementCounts, PluginSortKind.EndorsementCount),
             (Locs.SortBy_LastUpdate, PluginSortKind.LastUpdate),
             (Locs.SortBy_NewOrNot, PluginSortKind.NewOrNot),
             (Locs.SortBy_NotInstalled, PluginSortKind.NotInstalled),
@@ -1506,11 +1510,13 @@ internal class PluginInstallerWindow : Window, IDisposable
         // Name
         ImGui.Text("My Cool Plugin");
 
-        // Download count
-        var downloadCountText = Locs.PluginBody_AuthorWithDownloadCount("Plugin Enjoyer", 69420);
+        // Author, Downloads, Endorsements
+        var authorText = Locs.PluginBody_Author("Plugin Enjoyer");
+        var downloadCountText = Locs.PluginBody_DownloadCount(69420);
+        var endorsementCountText = Locs.PluginBody_EndorsementCount(1337);
 
         ImGui.SameLine();
-        ImGui.TextColored(ImGuiColors.DalamudGrey3, downloadCountText);
+        ImGui.TextColored(ImGuiColors.DalamudGrey3, authorText + downloadCountText + endorsementCountText);
 
         cursor.Y += ImGui.GetTextLineHeightWithSpacing();
         ImGui.SetCursorPos(cursor);
@@ -1851,13 +1857,16 @@ internal class PluginInstallerWindow : Window, IDisposable
             }
         }
 
-        // Download count
-        var downloadCountText = manifest.DownloadCount > 0
-                                    ? Locs.PluginBody_AuthorWithDownloadCount(manifest.Author, manifest.DownloadCount)
-                                    : Locs.PluginBody_AuthorWithDownloadCountUnavailable(manifest.Author);
+        // Author, Downloads, Endorsements
+        var authorText = Locs.PluginBody_Author(manifest.Author);
+        if (manifest.DownloadCount > 0)
+            authorText += Locs.PluginBody_DownloadCount(manifest.DownloadCount);
+
+        if (manifest.EndorsementCount > 0)
+            authorText += Locs.PluginBody_EndorsementCount(manifest.EndorsementCount);
 
         ImGui.SameLine();
-        ImGui.TextColored(ImGuiColors.DalamudGrey3, downloadCountText);
+        ImGui.TextColored(ImGuiColors.DalamudGrey3, authorText);
 
         if (isNew)
         {
@@ -1989,7 +1998,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         if (log.Author != null)
         {
             ImGui.SameLine();
-            ImGui.TextColored(ImGuiColors.DalamudGrey3, Locs.PluginBody_AuthorWithoutDownloadCount(log.Author));
+            ImGui.TextColored(ImGuiColors.DalamudGrey3, Locs.PluginBody_Author(log.Author));
         }
 
         cursor.Y += ImGui.GetTextLineHeightWithSpacing();
@@ -2313,14 +2322,15 @@ internal class PluginInstallerWindow : Window, IDisposable
             ImGui.TextUnformatted(manifest.Name);
 
             // Download count
-            var downloadText = plugin.IsDev
-                                   ? Locs.PluginBody_AuthorWithoutDownloadCount(manifest.Author)
-                                   : manifest.DownloadCount > 0
-                                       ? Locs.PluginBody_AuthorWithDownloadCount(manifest.Author, manifest.DownloadCount)
-                                       : Locs.PluginBody_AuthorWithDownloadCountUnavailable(manifest.Author);
+            var authorText = Locs.PluginBody_Author(manifest.Author);
+            if (manifest.DownloadCount > 0)
+                authorText += Locs.PluginBody_DownloadCount(manifest.DownloadCount);
+
+            if (manifest.EndorsementCount > 0)
+                authorText += Locs.PluginBody_EndorsementCount(manifest.EndorsementCount);
 
             ImGui.SameLine();
-            ImGui.TextColored(ImGuiColors.DalamudGrey3, downloadText);
+            ImGui.TextColored(ImGuiColors.DalamudGrey3, authorText);
 
             var acceptsFeedback =
                 this.pluginListAvailable.Any(x => x.InternalName == plugin.InternalName && x.AcceptsFeedback);
@@ -2385,6 +2395,7 @@ internal class PluginInstallerWindow : Window, IDisposable
             this.DrawDevPluginButtons(plugin);
             this.DrawVisitRepoUrlButton(plugin.Manifest.RepoUrl, false);
             this.DrawDeletePluginButton(plugin);
+            this.DrawEndorsePluginButton(plugin);
 
             if (canFeedback)
             {
@@ -3009,6 +3020,52 @@ internal class PluginInstallerWindow : Window, IDisposable
         }
     }
 
+    private void DrawEndorsePluginButton(LocalPlugin plugin)
+    {
+        var showButton = plugin.IsLoaded && !plugin.IsThirdParty && !plugin.IsDev;
+
+        if (!showButton)
+            return;
+        
+        ImGui.SameLine();
+        if (plugin.Endorsed)
+        {
+            ImGui.PushFont(InterfaceManager.IconFont);
+            ImGuiComponents.DisabledButton(FontAwesomeIcon.ThumbsUp.ToIconString());
+            ImGui.PopFont();
+
+            if (ImGui.IsItemHovered())
+            {
+                ImGui.SetTooltip(Locs.PluginButtonToolTip_PluginAlreadyEndorsed);
+            }
+        }
+        else 
+        {
+            if (ImGuiComponents.IconButton(FontAwesomeIcon.ThumbsUp))
+            {
+                var notifications = Service<NotificationManager>.Get();
+                plugin.EndorsePluginAsync()
+                      .ContinueWith(task =>
+                      {
+                          if (task.Exception != null)
+                          {
+                              Log.Error(task.Exception, $"An exception occurred while trying to endorse {plugin.Name}");
+
+                              var message = Locs.Notifications_EndorsementFailed;
+                              if (task.Exception.InnerExceptions.Any(e => e is HttpRequestException { StatusCode: HttpStatusCode.TooManyRequests }))
+                                  message = Locs.Notifications_TooManyEndorsements;
+                              notifications.AddNotification(message, Locs.Notifications_EndorsementFailedTitle(plugin.Name), NotificationType.Error);
+                          }
+                      });
+            }
+
+            if (ImGui.IsItemHovered())
+            {
+                ImGui.SetTooltip(Locs.PluginButtonToolTip_EndorsePlugin);
+            }
+        }
+    }
+
     private void DrawVisitRepoUrlButton(string? repoUrl, bool big)
     {
         if (!string.IsNullOrEmpty(repoUrl) && repoUrl.StartsWith("https://"))
@@ -3186,6 +3243,10 @@ internal class PluginInstallerWindow : Window, IDisposable
             case PluginSortKind.DownloadCount:
                 this.pluginListAvailable.Sort((p1, p2) => p2.DownloadCount.CompareTo(p1.DownloadCount));
                 this.pluginListInstalled.Sort((p1, p2) => p2.Manifest.DownloadCount.CompareTo(p1.Manifest.DownloadCount));
+                break;
+            case PluginSortKind.EndorsementCount:
+                this.pluginListAvailable.Sort((p1, p2) => p2.EndorsementCount.CompareTo(p1.EndorsementCount));
+                this.pluginListInstalled.Sort((p1, p2) => p2.Manifest.EndorsementCount.CompareTo(p1.Manifest.EndorsementCount));
                 break;
             case PluginSortKind.LastUpdate:
                 this.pluginListAvailable.Sort((p1, p2) => p2.LastUpdate.CompareTo(p1.LastUpdate));
@@ -3367,6 +3428,8 @@ internal class PluginInstallerWindow : Window, IDisposable
         public static string SortBy_Alphabetical => Loc.Localize("InstallerAlphabetical", "Alphabetical");
 
         public static string SortBy_DownloadCounts => Loc.Localize("InstallerDownloadCount", "Download Count");
+        
+        public static string SortBy_EndorsementCounts => Loc.Localize("InstallerEndorsementCount", "Endorsement Count");
 
         public static string SortBy_LastUpdate => Loc.Localize("InstallerLastUpdate", "Last Update");
 
@@ -3462,11 +3525,11 @@ internal class PluginInstallerWindow : Window, IDisposable
 
         #region Plugin body
 
-        public static string PluginBody_AuthorWithoutDownloadCount(string author) => Loc.Localize("InstallerAuthorWithoutDownloadCount", " by {0}").Format(author);
+        public static string PluginBody_Author(string author) => Loc.Localize("InstallerHeaderAuthor", " by {0}").Format(author);
 
-        public static string PluginBody_AuthorWithDownloadCount(string author, long count) => Loc.Localize("InstallerAuthorWithDownloadCount", " by {0} ({1} downloads)").Format(author, count.ToString("N0"));
+        public static string PluginBody_DownloadCount(long count) => Loc.Localize("InstallerHeaderDownloadCount", ", {0} downloads").Format(count.ToString("N0"));
 
-        public static string PluginBody_AuthorWithDownloadCountUnavailable(string author) => Loc.Localize("InstallerAuthorWithDownloadCountUnavailable", " by {0}").Format(author);
+        public static string PluginBody_EndorsementCount(long count) => Loc.Localize("InstallerHeaderEndorsementCount", ", {0} endorsements").Format(count.ToString("N0"));
 
         public static string PluginBody_CurrentChangeLog(Version version) => Loc.Localize("InstallerCurrentChangeLog", "Changelog (v{0})").Format(version);
 
@@ -3551,6 +3614,10 @@ internal class PluginInstallerWindow : Window, IDisposable
         
         public static string PluginButtonToolTip_SingleProfileDisabled(string name) => Loc.Localize("InstallerSingleProfileDisabled", "The collection '{0}' which contains this plugin is disabled.\nPlease enable it in the collections manager to toggle the plugin individually.").Format(name);
 
+        public static string PluginButtonToolTip_EndorsePlugin => Loc.Localize("InstallerEndorsePlugin", "Show your appreciation of this plugin by endorsing it");
+        
+        public static string PluginButtonToolTip_PluginAlreadyEndorsed => Loc.Localize("InstallerPluginAlreadyEndorsed", "You have already endorsed this plugin");
+
         #endregion
 
         #region Notifications
@@ -3579,6 +3646,12 @@ internal class PluginInstallerWindow : Window, IDisposable
 
         public static string Notifications_PluginEnabled(string name) => Loc.Localize("NotificationsPluginEnabled", "'{0}' was enabled.").Format(name);
 
+        public static string Notifications_EndorsementFailedTitle(string name) => Loc.Localize("NotificationsPluginEndorsementFailedTitle", "Failed to endorse '{0}'!").Format(name);
+        
+        public static string Notifications_EndorsementFailed => Loc.Localize("NotificationsPluginEndorsementFailed", "Please try again later.");
+        
+        public static string Notifications_TooManyEndorsements => Loc.Localize("NotificationsPluginTooManyEndorsements", "You have sent too many endorsement requests.");
+        
         #endregion
 
         #region Footer

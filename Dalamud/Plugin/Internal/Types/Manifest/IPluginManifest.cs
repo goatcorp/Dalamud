@@ -75,6 +75,11 @@ public interface IPluginManifest
     public long DownloadCount { get; }
 
     /// <summary>
+    /// Gets the number of endorsements this plugin has.
+    /// </summary>
+    public long EndorsementCount { get; }
+
+    /// <summary>
     /// Gets a value indicating whether the plugin supports profiles.
     /// </summary>
     public bool SupportsProfiles { get; }
