@@ -15,7 +15,6 @@ using Dalamud.Game.Command;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Components;
 using Dalamud.Interface.Internal.Notifications;
-using Dalamud.Interface.Style;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
@@ -2227,8 +2226,7 @@ internal class PluginInstallerWindow : Window, IDisposable
             {
                 var commands = commandManager.Commands
                                              .Where(cInfo => 
-                                                        cInfo.Value != null &&
-                                                        cInfo.Value.ShowInHelp &&
+                                                        cInfo.Value is { ShowInHelp: true } &&
                                                         cInfo.Value.LoaderAssemblyName == plugin.Manifest.InternalName)
                                              .ToArray();
 

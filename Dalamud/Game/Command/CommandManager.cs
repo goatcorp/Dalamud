@@ -9,6 +9,7 @@ using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Logging.Internal;
+using Dalamud.Plugin.Internal.Types;
 using Dalamud.Plugin.Services;
 
 namespace Dalamud.Game.Command;
@@ -177,7 +178,17 @@ internal class CommandManagerPluginScoped : IDisposable, IServiceType, ICommandM
     private readonly CommandManager commandManagerService = Service<CommandManager>.Get();
 
     private readonly List<string> pluginRegisteredCommands = new();
+    private readonly LocalPlugin pluginInfo;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="CommandManagerPluginScoped"/> class.
+    /// </summary>
+    /// <param name="localPlugin">Info for the plugin that requests this service.</param>
+    public CommandManagerPluginScoped(LocalPlugin localPlugin)
+    {
+        this.pluginInfo = localPlugin;
+    }
+    
     /// <inheritdoc/>
     public ReadOnlyDictionary<string, CommandInfo> Commands => this.commandManagerService.Commands;
     
@@ -205,6 +216,7 @@ internal class CommandManagerPluginScoped : IDisposable, IServiceType, ICommandM
     {
         if (!this.pluginRegisteredCommands.Contains(command))
         {
+            info.LoaderAssemblyName = this.pluginInfo.InternalName;
             if (this.commandManagerService.AddHandler(command, info))
             {
                 this.pluginRegisteredCommands.Add(command);
