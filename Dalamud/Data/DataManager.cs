@@ -126,10 +126,14 @@ internal sealed class DataManager : IDisposable, IServiceType, IDataManager
     /// <inheritdoc/>
     public ClientLanguage Language { get; private set; }
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// Gets a list of server opcodes.
+    /// </summary>
     public ReadOnlyDictionary<string, ushort> ServerOpCodes { get; private set; }
-
-    /// <inheritdoc/>
+    
+    /// <summary>
+    /// Gets a list of client opcodes.
+    /// </summary>
     [UsedImplicitly]
     public ReadOnlyDictionary<string, ushort> ClientOpCodes { get; private set; }
 
