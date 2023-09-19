@@ -791,10 +791,10 @@ internal class InterfaceManager : IDisposable, IServiceType
             }
             else
             {
-                var japaneseRangeHandle = GCHandle.Alloc(GlyphRangesJapanese.GlyphRanges, GCHandleType.Pinned);
-                garbageList.Add(japaneseRangeHandle);
+                var rangeHandle = gameFontManager.ToGlyphRanges(GameFontFamilyAndSize.Axis12);
+                garbageList.Add(rangeHandle);
 
-                fontConfig.GlyphRanges = japaneseRangeHandle.AddrOfPinnedObject();
+                fontConfig.GlyphRanges = rangeHandle.AddrOfPinnedObject();
                 fontConfig.PixelSnapH = true;
                 DefaultFont = ioFonts.AddFontFromFileTTF(fontPathJp, fontConfig.SizePixels, fontConfig);
                 this.loadedFontInfo[DefaultFont] = fontInfo;
@@ -851,22 +851,19 @@ internal class InterfaceManager : IDisposable, IServiceType
 
                 foreach (var (fontSize, requests) in extraFontRequests)
                 {
-                    List<Tuple<ushort, ushort>> codepointRanges = new();
-                    codepointRanges.Add(Tuple.Create(Fallback1Codepoint, Fallback1Codepoint));
-                    codepointRanges.Add(Tuple.Create(Fallback2Codepoint, Fallback2Codepoint));
-
-                    // ImGui default ellipsis characters
-                    codepointRanges.Add(Tuple.Create<ushort, ushort>(0x2026, 0x2026));
-                    codepointRanges.Add(Tuple.Create<ushort, ushort>(0x0085, 0x0085));
+                    List<(ushort, ushort)> codepointRanges = new(4 + requests.Sum(x => x.CodepointRanges.Count))
+                    {
+                        new(Fallback1Codepoint, Fallback1Codepoint),
+                        new(Fallback2Codepoint, Fallback2Codepoint),
+                        // ImGui default ellipsis characters
+                        new(0x2026, 0x2026),
+                        new(0x0085, 0x0085),
+                    };
 
                     foreach (var request in requests)
-                    {
-                        foreach (var range in request.CodepointRanges)
-                            codepointRanges.Add(range);
-                    }
+                        codepointRanges.AddRange(request.CodepointRanges.Select(x => (From: x.Item1, To: x.Item2)));
 
-                    codepointRanges.Sort((x, y) => (x.Item1 == y.Item1 ? (x.Item2 < y.Item2 ? -1 : (x.Item2 == y.Item2 ? 0 : 1)) : (x.Item1 < y.Item1 ? -1 : 1)));
-
+                    codepointRanges.Sort();
                     List<ushort> flattenedRanges = new();
                     foreach (var range in codepointRanges)
                     {
