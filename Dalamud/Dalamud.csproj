@@ -13,6 +13,7 @@
         <AssemblyVersion>$(DalamudVersion)</AssemblyVersion>
         <Version>$(DalamudVersion)</Version>
         <FileVersion>$(DalamudVersion)</FileVersion>
+        <PackageLicenseExpression>AGPL-3.0-or-later</PackageLicenseExpression>
     </PropertyGroup>
 
     <PropertyGroup Label="Output">
