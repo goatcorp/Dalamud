@@ -173,6 +173,42 @@ internal class GameFontManager : IServiceType
     }
 
     /// <summary>
+    /// Create a glyph range for use with ImGui AddFont.
+    /// </summary>
+    /// <param name="family">Font family and size.</param>
+    /// <param name="mergeDistance">Merge two ranges into one if distance is below the value specified in this parameter.</param>
+    /// <returns>Glyph ranges.</returns>
+    public GCHandle ToGlyphRanges(GameFontFamilyAndSize family, int mergeDistance = 8)
+    {
+        var fdt = this.fdts[(int)family]!;
+        var ranges = new List<ushort>(fdt.Glyphs.Count)
+        {
+            checked((ushort)fdt.Glyphs[0].CharInt),
+            checked((ushort)fdt.Glyphs[0].CharInt),
+        };
+        
+        foreach (var glyph in fdt.Glyphs.Skip(1))
+        {
+            var c32 = glyph.CharInt;
+            if (c32 >= 0x10000)
+                break;
+
+            var c16 = unchecked((ushort)c32);
+            if (ranges[^1] + mergeDistance >= c16 && c16 > ranges[^1])
+            {
+                ranges[^1] = c16;
+            }
+            else if (ranges[^1] + 1 < c16)
+            {
+                ranges.Add(c16);
+                ranges.Add(c16);
+            }
+        }
+
+        return GCHandle.Alloc(ranges.ToArray(), GCHandleType.Pinned);
+    }
+
+    /// <summary>
     /// Creates a new GameFontHandle, and increases internal font reference counter, and if it's first time use, then the font will be loaded on next font building process.
     /// </summary>
     /// <param name="style">Font to use.</param>
