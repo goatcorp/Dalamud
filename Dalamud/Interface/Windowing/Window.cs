@@ -1,9 +1,11 @@
+using System;
 using System.Numerics;
 
 using Dalamud.Configuration.Internal;
 using Dalamud.Game.ClientState.Keys;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using ImGuiNET;
+using Serilog;
 
 namespace Dalamud.Interface.Windowing;
 
@@ -284,7 +286,14 @@ public abstract class Window
         if (this.ShowCloseButton ? ImGui.Begin(this.WindowName, ref this.internalIsOpen, this.Flags) : ImGui.Begin(this.WindowName, this.Flags))
         {
             // Draw the actual window contents
-            this.Draw();
+            try
+            {
+                this.Draw();
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, $"Error during Draw(): {this.WindowName}");
+            }
         }
 
         if (wasFocused)
