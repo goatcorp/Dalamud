@@ -357,9 +357,6 @@ public sealed unsafe class DtrBar : IDisposable, IServiceType, IDtrBar
         var dtr = this.GetDtr();
         if (dtr == null || dtr->RootNode == null || dtr->UldManager.NodeList == null || node == null) return false;
 
-        this.uiEventManager.AddEvent(AddonEventManager.AddonEventManager.DalamudInternalKey, node->AtkResNode.NodeID + MouseOverEventIdOffset, (nint)dtr, (nint)node, AddonEventType.MouseOver, this.DtrEventHandler);
-        this.uiEventManager.AddEvent(AddonEventManager.AddonEventManager.DalamudInternalKey, node->AtkResNode.NodeID + MouseOutEventIdOffset, (nint)dtr, (nint)node, AddonEventType.MouseOut, this.DtrEventHandler);
-        this.uiEventManager.AddEvent(AddonEventManager.AddonEventManager.DalamudInternalKey, node->AtkResNode.NodeID + MouseClickEventIdOffset, (nint)dtr, (nint)node, AddonEventType.MouseClick, this.DtrEventHandler);
         this.uiEventManager.AddEvent(AddonEventManager.DalamudInternalKey, node->AtkResNode.NodeID + MouseOverEventIdOffset, (nint)dtr, (nint)node, AddonEventType.MouseOver, this.DtrEventHandler);
         this.uiEventManager.AddEvent(AddonEventManager.DalamudInternalKey, node->AtkResNode.NodeID + MouseOutEventIdOffset, (nint)dtr, (nint)node, AddonEventType.MouseOut, this.DtrEventHandler);
         this.uiEventManager.AddEvent(AddonEventManager.DalamudInternalKey, node->AtkResNode.NodeID + MouseClickEventIdOffset, (nint)dtr, (nint)node, AddonEventType.MouseClick, this.DtrEventHandler);
@@ -385,9 +382,6 @@ public sealed unsafe class DtrBar : IDisposable, IServiceType, IDtrBar
         var dtr = this.GetDtr();
         if (dtr == null || dtr->RootNode == null || dtr->UldManager.NodeList == null || node == null) return;
 
-        this.uiEventManager.RemoveEvent(AddonEventManager.AddonEventManager.DalamudInternalKey, node->AtkResNode.NodeID + MouseOverEventIdOffset);
-        this.uiEventManager.RemoveEvent(AddonEventManager.AddonEventManager.DalamudInternalKey, node->AtkResNode.NodeID + MouseOutEventIdOffset);
-        this.uiEventManager.RemoveEvent(AddonEventManager.AddonEventManager.DalamudInternalKey, node->AtkResNode.NodeID + MouseClickEventIdOffset);
         this.uiEventManager.RemoveEvent(AddonEventManager.DalamudInternalKey, node->AtkResNode.NodeID + MouseOverEventIdOffset);
         this.uiEventManager.RemoveEvent(AddonEventManager.DalamudInternalKey, node->AtkResNode.NodeID + MouseOutEventIdOffset);
         this.uiEventManager.RemoveEvent(AddonEventManager.DalamudInternalKey, node->AtkResNode.NodeID + MouseClickEventIdOffset);
