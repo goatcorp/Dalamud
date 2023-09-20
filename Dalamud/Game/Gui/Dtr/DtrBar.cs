@@ -4,8 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 using Dalamud.Configuration.Internal;
-using Dalamud.Game.AddonEventManager;
-using Dalamud.Game.AddonLifecycle;
+using Dalamud.Game.Addon;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
@@ -42,10 +41,10 @@ public sealed unsafe class DtrBar : IDisposable, IServiceType, IDtrBar
     private readonly DalamudConfiguration configuration = Service<DalamudConfiguration>.Get();
 
     [ServiceManager.ServiceDependency]
-    private readonly AddonEventManager.AddonEventManager uiEventManager = Service<AddonEventManager.AddonEventManager>.Get();
+    private readonly AddonEventManager uiEventManager = Service<AddonEventManager>.Get();
 
     [ServiceManager.ServiceDependency]
-    private readonly AddonLifecycle.AddonLifecycle addonLifecycle = Service<AddonLifecycle.AddonLifecycle>.Get();
+    private readonly AddonLifecycle addonLifecycle = Service<AddonLifecycle>.Get();
 
     private readonly AddonLifecycleEventListener dtrPostDrawListener;
     private readonly AddonLifecycleEventListener dtrPostRequestedUpdateListener;
@@ -361,6 +360,9 @@ public sealed unsafe class DtrBar : IDisposable, IServiceType, IDtrBar
         this.uiEventManager.AddEvent(AddonEventManager.AddonEventManager.DalamudInternalKey, node->AtkResNode.NodeID + MouseOverEventIdOffset, (nint)dtr, (nint)node, AddonEventType.MouseOver, this.DtrEventHandler);
         this.uiEventManager.AddEvent(AddonEventManager.AddonEventManager.DalamudInternalKey, node->AtkResNode.NodeID + MouseOutEventIdOffset, (nint)dtr, (nint)node, AddonEventType.MouseOut, this.DtrEventHandler);
         this.uiEventManager.AddEvent(AddonEventManager.AddonEventManager.DalamudInternalKey, node->AtkResNode.NodeID + MouseClickEventIdOffset, (nint)dtr, (nint)node, AddonEventType.MouseClick, this.DtrEventHandler);
+        this.uiEventManager.AddEvent(AddonEventManager.DalamudInternalKey, node->AtkResNode.NodeID + MouseOverEventIdOffset, (nint)dtr, (nint)node, AddonEventType.MouseOver, this.DtrEventHandler);
+        this.uiEventManager.AddEvent(AddonEventManager.DalamudInternalKey, node->AtkResNode.NodeID + MouseOutEventIdOffset, (nint)dtr, (nint)node, AddonEventType.MouseOut, this.DtrEventHandler);
+        this.uiEventManager.AddEvent(AddonEventManager.DalamudInternalKey, node->AtkResNode.NodeID + MouseClickEventIdOffset, (nint)dtr, (nint)node, AddonEventType.MouseClick, this.DtrEventHandler);
 
         var lastChild = dtr->RootNode->ChildNode;
         while (lastChild->PrevSiblingNode != null) lastChild = lastChild->PrevSiblingNode;
@@ -386,6 +388,9 @@ public sealed unsafe class DtrBar : IDisposable, IServiceType, IDtrBar
         this.uiEventManager.RemoveEvent(AddonEventManager.AddonEventManager.DalamudInternalKey, node->AtkResNode.NodeID + MouseOverEventIdOffset);
         this.uiEventManager.RemoveEvent(AddonEventManager.AddonEventManager.DalamudInternalKey, node->AtkResNode.NodeID + MouseOutEventIdOffset);
         this.uiEventManager.RemoveEvent(AddonEventManager.AddonEventManager.DalamudInternalKey, node->AtkResNode.NodeID + MouseClickEventIdOffset);
+        this.uiEventManager.RemoveEvent(AddonEventManager.DalamudInternalKey, node->AtkResNode.NodeID + MouseOverEventIdOffset);
+        this.uiEventManager.RemoveEvent(AddonEventManager.DalamudInternalKey, node->AtkResNode.NodeID + MouseOutEventIdOffset);
+        this.uiEventManager.RemoveEvent(AddonEventManager.DalamudInternalKey, node->AtkResNode.NodeID + MouseClickEventIdOffset);
 
         var tmpPrevNode = node->AtkResNode.PrevSiblingNode;
         var tmpNextNode = node->AtkResNode.NextSiblingNode;

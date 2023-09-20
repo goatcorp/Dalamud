@@ -7,7 +7,7 @@ using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 
-namespace Dalamud.Game.AddonEventManager;
+namespace Dalamud.Game.Addon;
 
 /// <summary>
 /// Class to manage creating and cleaning up events per-plugin.

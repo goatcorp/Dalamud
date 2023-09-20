@@ -1,4 +1,4 @@
-﻿using Dalamud.Game.AddonEventManager;
+﻿using Dalamud.Game.Addon;
 
 namespace Dalamud.Plugin.Services;
 

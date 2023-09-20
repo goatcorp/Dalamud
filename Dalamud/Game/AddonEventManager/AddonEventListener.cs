@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 
 using FFXIVClientStructs.FFXIV.Component.GUI;
 
-namespace Dalamud.Game.AddonEventManager;
+namespace Dalamud.Game.Addon;
 
 /// <summary>
 /// Event listener class for managing custom events.

@@ -2,7 +2,7 @@
 using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 
-namespace Dalamud.Game.AddonEventManager;
+namespace Dalamud.Game.Addon;
 
 /// <summary>
 /// This class represents a registered event that a plugin registers with a native ui node.

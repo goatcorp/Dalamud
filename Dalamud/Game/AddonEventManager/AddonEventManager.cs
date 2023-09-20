@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 
-using Dalamud.Game.AddonLifecycle;
 using Dalamud.Hooking;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
@@ -12,7 +11,7 @@ using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 
-namespace Dalamud.Game.AddonEventManager;
+namespace Dalamud.Game.Addon;
 
 /// <summary>
 /// Service provider for addon event management.
@@ -29,7 +28,7 @@ internal unsafe class AddonEventManager : IDisposable, IServiceType
     private static readonly ModuleLog Log = new("AddonEventManager");
     
     [ServiceManager.ServiceDependency]
-    private readonly AddonLifecycle.AddonLifecycle addonLifecycle = Service<AddonLifecycle.AddonLifecycle>.Get();
+    private readonly AddonLifecycle addonLifecycle = Service<AddonLifecycle>.Get();
 
     private readonly AddonLifecycleEventListener finalizeEventListener;
     

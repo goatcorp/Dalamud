@@ -1,7 +1,7 @@
 ﻿using Dalamud.Memory;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 
-namespace Dalamud.Game.AddonLifecycle;
+namespace Dalamud.Game.Addon;
 
 /// <summary>
 /// Addon argument data for use in event subscribers.
