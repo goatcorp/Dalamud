@@ -235,7 +235,7 @@ public sealed unsafe class DtrBar : IDisposable, IServiceType, IDtrBar
             else
             {
                 // If we want the node hidden, shift it up, to prevent collision conflicts
-                data.TextNode->AtkResNode.SetY(-collisionNode->Height);
+                data.TextNode->AtkResNode.SetY(-collisionNode->Height * dtr->RootNode->ScaleX);
             }
         }
     }
@@ -264,7 +264,7 @@ public sealed unsafe class DtrBar : IDisposable, IServiceType, IDtrBar
         if (!this.configuration.DtrSwapDirection)
         {
             var targetSize = (ushort)this.CalculateTotalSize();
-            var sizeDelta = targetSize - addon->RootNode->Width;
+            var sizeDelta = MathF.Round((targetSize - addon->RootNode->Width) * addon->RootNode->ScaleX);
                 
             if (addon->RootNode->Width != targetSize)
             {
