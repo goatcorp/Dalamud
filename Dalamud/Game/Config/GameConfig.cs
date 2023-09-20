@@ -257,6 +257,11 @@ internal class GameConfigPluginScoped : IDisposable, IServiceType, IGameConfig
         this.gameConfigService.System.Changed -= this.SystemConfigChangedForward;
         this.gameConfigService.UiConfig.Changed -= this.UiConfigConfigChangedForward;
         this.gameConfigService.UiControl.Changed -= this.UiControlConfigChangedForward;
+
+        this.Changed = null;
+        this.SystemChanged = null;
+        this.UiConfigChanged = null;
+        this.UiControlChanged = null;
     }
 
     /// <inheritdoc/>
