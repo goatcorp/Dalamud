@@ -223,7 +223,7 @@ public sealed unsafe class DtrBar : IDisposable, IServiceType, IDtrBar
 
                 if (this.configuration.DtrSwapDirection)
                 {
-                    data.TextNode->AtkResNode.SetPositionFloat(runningXPos, 2);
+                    data.TextNode->AtkResNode.SetPositionFloat(runningXPos + this.configuration.DtrSpacing, 2);
                     runningXPos += elementWidth;
                 }
                 else
