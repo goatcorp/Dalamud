@@ -169,6 +169,8 @@ internal class GameNetworkPluginScoped : IDisposable, IServiceType, IGameNetwork
     public void Dispose()
     {
         this.gameNetworkService.NetworkMessage -= this.NetworkMessageForward;
+
+        this.NetworkMessage = null;
     }
 
     private void NetworkMessageForward(nint dataPtr, ushort opCode, uint sourceActorId, uint targetActorId, NetworkMessageDirection direction)

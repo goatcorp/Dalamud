@@ -307,6 +307,8 @@ internal class FlyTextGuiPluginScoped : IDisposable, IServiceType, IFlyTextGui
     public void Dispose()
     {
         this.flyTextGuiService.FlyTextCreated -= this.FlyTextCreatedForward;
+
+        this.FlyTextCreated = null;
     }
 
     /// <inheritdoc/>

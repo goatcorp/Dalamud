@@ -210,6 +210,11 @@ internal class DutyStatePluginScoped : IDisposable, IServiceType, IDutyState
         this.dutyStateService.DutyWiped -= this.DutyWipedForward;
         this.dutyStateService.DutyRecommenced -= this.DutyRecommencedForward;
         this.dutyStateService.DutyCompleted -= this.DutyCompletedForward;
+
+        this.DutyStarted = null;
+        this.DutyWiped = null;
+        this.DutyRecommenced = null;
+        this.DutyCompleted = null;
     }
 
     private void DutyStartedForward(object sender, ushort territoryId) => this.DutyStarted?.Invoke(sender, territoryId);

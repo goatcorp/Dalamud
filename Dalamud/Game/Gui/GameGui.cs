@@ -566,6 +566,10 @@ internal class GameGuiPluginScoped : IDisposable, IServiceType, IGameGui
         this.gameGuiService.UiHideToggled -= this.UiHideToggledForward;
         this.gameGuiService.HoveredItemChanged -= this.HoveredItemForward;
         this.gameGuiService.HoveredActionChanged -= this.HoveredActionForward;
+
+        this.UiHideToggled = null;
+        this.HoveredItemChanged = null;
+        this.HoveredActionChanged = null;
     }
     
     /// <inheritdoc/>

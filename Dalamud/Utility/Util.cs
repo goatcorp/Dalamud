@@ -651,7 +651,7 @@ public static class Util
     /// </summary>
     /// <param name="path">The path of the file to write to.</param>
     /// <param name="text">The text to write.</param>
-    internal static void WriteAllTextSafe(string path, string text)
+    public static void WriteAllTextSafe(string path, string text)
     {
         var tmpPath = path + ".tmp";
         if (File.Exists(tmpPath))

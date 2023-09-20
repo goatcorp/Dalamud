@@ -417,6 +417,10 @@ internal class ToastGuiPluginScoped : IDisposable, IServiceType, IToastGui
         this.toastGuiService.Toast -= this.ToastForward;
         this.toastGuiService.QuestToast -= this.QuestToastForward;
         this.toastGuiService.ErrorToast -= this.ErrorToastForward;
+
+        this.Toast = null;
+        this.QuestToast = null;
+        this.ErrorToast = null;
     }
     
     /// <inheritdoc/>
