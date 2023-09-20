@@ -266,6 +266,13 @@ internal class ClientStatePluginScoped : IDisposable, IServiceType, IClientState
         this.clientStateService.EnterPvP -= this.EnterPvPForward;
         this.clientStateService.LeavePvP -= this.ExitPvPForward;
         this.clientStateService.CfPop -= this.ContentFinderPopForward;
+
+        this.TerritoryChanged = null;
+        this.Login = null;
+        this.Logout = null;
+        this.EnterPvP = null;
+        this.LeavePvP = null;
+        this.CfPop = null;
     }
 
     private void TerritoryChangedForward(ushort territoryId) => this.TerritoryChanged?.Invoke(territoryId);
