@@ -232,6 +232,11 @@ public sealed unsafe class DtrBar : IDisposable, IServiceType, IDtrBar
                     data.TextNode->AtkResNode.SetPositionFloat(runningXPos, 2);
                 }
             }
+            else
+            {
+                // If we want the node hidden, shift it up, to prevent collision conflicts
+                data.TextNode->AtkResNode.SetY(-collisionNode->Height);
+            }
         }
     }
 
