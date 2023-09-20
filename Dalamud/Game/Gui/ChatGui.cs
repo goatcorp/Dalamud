@@ -460,6 +460,11 @@ internal class ChatGuiPluginScoped : IDisposable, IServiceType, IChatGui
         this.chatGuiService.CheckMessageHandled -= this.OnCheckMessageForward;
         this.chatGuiService.ChatMessageHandled -= this.OnMessageHandledForward;
         this.chatGuiService.ChatMessageUnhandled -= this.OnMessageUnhandledForward;
+
+        this.ChatMessage = null;
+        this.CheckMessageHandled = null;
+        this.ChatMessageHandled = null;
+        this.ChatMessageUnhandled = null;
     }
     
     /// <inheritdoc/>

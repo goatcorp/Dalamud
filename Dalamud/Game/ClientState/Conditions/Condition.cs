@@ -189,6 +189,8 @@ internal class ConditionPluginScoped : IDisposable, IServiceType, ICondition
     public void Dispose()
     {
         this.conditionService.ConditionChange -= this.ConditionChangedForward;
+
+        this.ConditionChange = null;
     }
 
     /// <inheritdoc/>
