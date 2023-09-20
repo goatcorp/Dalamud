@@ -3,9 +3,9 @@ using System.Numerics;
 
 using Dalamud.Configuration.Internal;
 using Dalamud.Game.ClientState.Keys;
+using Dalamud.Logging.Internal;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using ImGuiNET;
-using Serilog;
 
 namespace Dalamud.Interface.Windowing;
 
@@ -14,6 +14,8 @@ namespace Dalamud.Interface.Windowing;
 /// </summary>
 public abstract class Window
 {
+    private static readonly ModuleLog Log = new("WindowSystem");
+
     private static bool wasEscPressedLastFrame = false;
 
     private bool internalLastIsOpen = false;
