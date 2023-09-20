@@ -83,10 +83,14 @@ internal unsafe class PluginEventController : IDisposable
     /// <param name="addonName">Addon name to remove events from.</param>
     public void RemoveForAddon(string addonName)
     {
-        foreach (var registeredEvent in this.Events.Where(entry => entry.AddonName == addonName).ToList())
+        if (this.Events.Where(entry => entry.AddonName == addonName).ToList() is { Count: not 0 } events)
         {
-            Log.Verbose($"Addon: {addonName} is Finalizing, removing event: {registeredEvent.LogString}");
-            this.RemoveEvent(registeredEvent.ParamKey);
+            Log.Verbose($"Addon: {addonName} is Finalizing, removing {events.Count} events.");
+        
+            foreach (var registeredEvent in events)
+            {
+                this.RemoveEvent(registeredEvent.ParamKey);
+            }
         }
     }
     
