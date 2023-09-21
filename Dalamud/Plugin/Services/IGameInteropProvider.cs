@@ -8,7 +8,7 @@ namespace Dalamud.Plugin.Services;
 /// <summary>
 /// Service responsible for the creation of hooks.
 /// </summary>
-public interface IHookProvider
+public interface IGameInteropProvider
 {
     /// <summary>
     /// Available hooking backends.

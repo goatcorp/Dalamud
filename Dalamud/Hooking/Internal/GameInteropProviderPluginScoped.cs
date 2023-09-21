@@ -19,9 +19,9 @@ namespace Dalamud.Hooking.Internal;
 [InterfaceVersion("1.0")]
 [ServiceManager.ScopedService]
 #pragma warning disable SA1015
-[ResolveVia<IHookProvider>]
+[ResolveVia<IGameInteropProvider>]
 #pragma warning restore SA1015
-internal class HookProviderPluginScoped : IHookProvider, IServiceType, IDisposable
+internal class GameInteropProviderPluginScoped : IGameInteropProvider, IServiceType, IDisposable
 {
     private readonly LocalPlugin plugin;
     private readonly SigScanner scanner;
@@ -29,11 +29,11 @@ internal class HookProviderPluginScoped : IHookProvider, IServiceType, IDisposab
     private readonly ConcurrentBag<IDalamudHook> trackedHooks = new();
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="HookProviderPluginScoped"/> class.
+    /// Initializes a new instance of the <see cref="GameInteropProviderPluginScoped"/> class.
     /// </summary>
     /// <param name="plugin">Plugin this instance belongs to.</param>
     /// <param name="scanner">SigScanner instance for target module.</param>
-    public HookProviderPluginScoped(LocalPlugin plugin, SigScanner scanner)
+    public GameInteropProviderPluginScoped(LocalPlugin plugin, SigScanner scanner)
     {
         this.plugin = plugin;
         this.scanner = scanner;
@@ -63,23 +63,23 @@ internal class HookProviderPluginScoped : IHookProvider, IServiceType, IDisposab
     }
 
     /// <inheritdoc/>
-    public Hook<T> FromSymbol<T>(string moduleName, string exportName, T detour, IHookProvider.HookBackend backend = IHookProvider.HookBackend.Automatic) where T : Delegate
+    public Hook<T> FromSymbol<T>(string moduleName, string exportName, T detour, IGameInteropProvider.HookBackend backend = IGameInteropProvider.HookBackend.Automatic) where T : Delegate
     {
-        var hook = Hook<T>.FromSymbol(moduleName, exportName, detour, backend == IHookProvider.HookBackend.MinHook);
+        var hook = Hook<T>.FromSymbol(moduleName, exportName, detour, backend == IGameInteropProvider.HookBackend.MinHook);
         this.trackedHooks.Add(hook);
         return hook;
     }
 
     /// <inheritdoc/>
-    public Hook<T> FromAddress<T>(IntPtr procAddress, T detour, IHookProvider.HookBackend backend = IHookProvider.HookBackend.Automatic) where T : Delegate
+    public Hook<T> FromAddress<T>(IntPtr procAddress, T detour, IGameInteropProvider.HookBackend backend = IGameInteropProvider.HookBackend.Automatic) where T : Delegate
     {
-        var hook = Hook<T>.FromAddress(procAddress, detour, backend == IHookProvider.HookBackend.MinHook);
+        var hook = Hook<T>.FromAddress(procAddress, detour, backend == IGameInteropProvider.HookBackend.MinHook);
         this.trackedHooks.Add(hook);
         return hook;
     }
 
     /// <inheritdoc/>
-    public Hook<T> FromSignature<T>(string signature, T detour, IHookProvider.HookBackend backend = IHookProvider.HookBackend.Automatic) where T : Delegate
+    public Hook<T> FromSignature<T>(string signature, T detour, IGameInteropProvider.HookBackend backend = IGameInteropProvider.HookBackend.Automatic) where T : Delegate
         => this.FromAddress(this.scanner.ScanText(signature), detour, backend);
 
     /// <inheritdoc/>
