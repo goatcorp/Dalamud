@@ -1,11 +1,9 @@
-using System;
-
 namespace Dalamud.Game.Gui.PartyFinder;
 
 /// <summary>
 /// The address resolver for the <see cref="PartyFinderGui"/> class.
 /// </summary>
-public class PartyFinderAddressResolver : BaseAddressResolver
+internal class PartyFinderAddressResolver : BaseAddressResolver
 {
     /// <summary>
     /// Gets the address of the native ReceiveListing method.

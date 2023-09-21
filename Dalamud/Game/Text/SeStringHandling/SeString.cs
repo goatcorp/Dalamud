@@ -421,7 +421,7 @@ public class SeString
     /// </summary>
     /// <param name="payloads">The Payloads to append.</param>
     /// <returns>This object.</returns>
-    public SeString Append(List<Payload> payloads)
+    public SeString Append(IEnumerable<Payload> payloads)
     {
         this.Payloads.AddRange(payloads);
         return this;

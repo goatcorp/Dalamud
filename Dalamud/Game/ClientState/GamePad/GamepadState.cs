@@ -21,7 +21,7 @@ namespace Dalamud.Game.ClientState.GamePad;
 #pragma warning disable SA1015
 [ResolveVia<IGamepadState>]
 #pragma warning restore SA1015
-public unsafe class GamepadState : IDisposable, IServiceType, IGamepadState
+internal unsafe class GamepadState : IDisposable, IServiceType, IGamepadState
 {
     private readonly Hook<ControllerPoll>? gamepadPoll;
 

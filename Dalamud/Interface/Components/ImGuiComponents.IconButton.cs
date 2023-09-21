@@ -1,5 +1,7 @@
+using System;
 using System.Numerics;
 
+using Dalamud.Interface.Utility;
 using ImGuiNET;
 
 namespace Dalamud.Interface.Components;
@@ -113,6 +115,73 @@ public static partial class ImGuiComponents
         var button = ImGui.Button(iconText);
 
         ImGui.PopFont();
+
+        if (numColors > 0)
+            ImGui.PopStyleColor(numColors);
+
+        return button;
+    }
+
+    /// <summary>
+    /// IconButton component to use an icon as a button with color options.
+    /// </summary>
+    /// <param name="icon">Icon to show.</param>
+    /// <param name="text">Text to show.</param>
+    /// <param name="defaultColor">The default color of the button.</param>
+    /// <param name="activeColor">The color of the button when active.</param>
+    /// <param name="hoveredColor">The color of the button when hovered.</param>
+    /// <returns>Indicator if button is clicked.</returns>
+    public static bool IconButtonWithText(FontAwesomeIcon icon, string text, Vector4? defaultColor = null, Vector4? activeColor = null, Vector4? hoveredColor = null)
+    {
+        var numColors = 0;
+
+        if (defaultColor.HasValue)
+        {
+            ImGui.PushStyleColor(ImGuiCol.Button, defaultColor.Value);
+            numColors++;
+        }
+
+        if (activeColor.HasValue)
+        {
+            ImGui.PushStyleColor(ImGuiCol.ButtonActive, activeColor.Value);
+            numColors++;
+        }
+
+        if (hoveredColor.HasValue)
+        {
+            ImGui.PushStyleColor(ImGuiCol.ButtonHovered, hoveredColor.Value);
+            numColors++;
+        }
+
+        ImGui.PushID(text);
+
+        ImGui.PushFont(UiBuilder.IconFont);
+        var iconSize = ImGui.CalcTextSize(icon.ToIconString());
+        ImGui.PopFont();
+        
+        var textSize = ImGui.CalcTextSize(text);
+        var dl = ImGui.GetWindowDrawList();
+        var cursor = ImGui.GetCursorScreenPos();
+
+        var iconPadding = 3 * ImGuiHelpers.GlobalScale;
+        
+        // Draw an ImGui button with the icon and text
+        var buttonWidth = iconSize.X + textSize.X + (ImGui.GetStyle().FramePadding.X * 2) + iconPadding;
+        var buttonHeight = Math.Max(iconSize.Y, textSize.Y) + (ImGui.GetStyle().FramePadding.Y * 2);
+        var button = ImGui.Button(string.Empty, new Vector2(buttonWidth, buttonHeight));
+        
+        // Draw the icon on the window drawlist
+        var iconPos = new Vector2(cursor.X + ImGui.GetStyle().FramePadding.X, cursor.Y + ImGui.GetStyle().FramePadding.Y);
+        
+        ImGui.PushFont(UiBuilder.IconFont);
+        dl.AddText(iconPos, ImGui.GetColorU32(ImGuiCol.Text), icon.ToIconString());
+        ImGui.PopFont();
+        
+        // Draw the text on the window drawlist
+        var textPos = new Vector2(iconPos.X + iconSize.X + iconPadding, cursor.Y + ImGui.GetStyle().FramePadding.Y);
+        dl.AddText(textPos, ImGui.GetColorU32(ImGuiCol.Text), text);
+
+        ImGui.PopID();
 
         if (numColors > 0)
             ImGui.PopStyleColor(numColors);

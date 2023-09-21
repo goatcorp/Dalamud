@@ -14,7 +14,10 @@ internal class TargetWidget : IDataWindowWidget
     private bool resolveGameData;
     
     /// <inheritdoc/>
-    public DataKind DataKind { get; init; } = DataKind.Target;
+    public string[]? CommandShortcuts { get; init; } = { "target" };
+    
+    /// <inheritdoc/>
+    public string DisplayName { get; init; } = "Target"; 
 
     /// <inheritdoc/>
     public bool Ready { get; set; }
@@ -64,6 +67,12 @@ internal class TargetWidget : IDataWindowWidget
 
         if (targetMgr.SoftTarget != null)
             Util.PrintGameObject(targetMgr.SoftTarget, "SoftTarget", this.resolveGameData);
+        
+        if (targetMgr.GPoseTarget != null)
+            Util.PrintGameObject(targetMgr.GPoseTarget, "GPoseTarget", this.resolveGameData);
+        
+        if (targetMgr.MouseOverNameplateTarget != null)
+            Util.PrintGameObject(targetMgr.MouseOverNameplateTarget, "MouseOverNameplateTarget", this.resolveGameData);
 
         if (ImGui.Button("Clear CT"))
             targetMgr.Target = null;

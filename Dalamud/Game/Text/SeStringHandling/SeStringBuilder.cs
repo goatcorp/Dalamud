@@ -38,7 +38,11 @@ public class SeStringBuilder
     /// </summary>
     /// <param name="payloads">A list of payloads.</param>
     /// <returns>The current builder.</returns>
-    public SeStringBuilder Append(IEnumerable<Payload> payloads) => this.Append(new SeString(payloads.ToList()));
+    public SeStringBuilder Append(IEnumerable<Payload> payloads)
+    {
+        this.BuiltString.Payloads.AddRange(payloads);
+        return this;
+    }
 
     /// <summary>
     /// Append raw text to the builder.

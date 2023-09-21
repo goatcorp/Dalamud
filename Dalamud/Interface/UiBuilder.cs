@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 
 using Dalamud.Configuration.Internal;
 using Dalamud.Game;
+using Dalamud.Game.ClientState;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.Gui;
 using Dalamud.Interface.GameFonts;
@@ -69,6 +70,11 @@ public sealed class UiBuilder : IDisposable
     /// Event that is fired when the plugin should open its configuration interface.
     /// </summary>
     public event Action OpenConfigUi;
+    
+    /// <summary>
+    /// Event that is fired when the plugin should open its main interface.
+    /// </summary>
+    public event Action OpenMainUi;
 
     /// <summary>
     /// Gets or sets an action that is called any time ImGui fonts need to be rebuilt.<br/>
@@ -175,20 +181,6 @@ public sealed class UiBuilder : IDisposable
     }
 
     /// <summary>
-    /// Gets a value indicating whether or not gpose is active.
-    /// </summary>
-    public bool GposeActive
-    {
-        get
-        {
-            var condition = Service<Condition>.GetNullable();
-            if (condition == null)
-                return false;
-            return condition[ConditionFlag.WatchingCutscene];
-        }
-    }
-
-    /// <summary>
     /// Gets a value indicating whether this plugin should modify the game's interface at this time.
     /// </summary>
     public bool ShouldModifyUi => this.interfaceManager.IsDispatchingEvents;
@@ -211,6 +203,11 @@ public sealed class UiBuilder : IDisposable
     /// Gets a value indicating whether this UiBuilder has a configuration UI registered.
     /// </summary>
     internal bool HasConfigUi => this.OpenConfigUi != null;
+
+    /// <summary>
+    /// Gets a value indicating whether this UiBuilder has a configuration UI registered.
+    /// </summary>
+    internal bool HasMainUi => this.OpenMainUi != null;
 
     /// <summary>
     /// Gets or sets the time this plugin took to draw on the last frame.
@@ -409,6 +406,14 @@ public sealed class UiBuilder : IDisposable
     {
         this.OpenConfigUi?.InvokeSafely();
     }
+    
+    /// <summary>
+    /// Open the registered configuration UI, if it exists.
+    /// </summary>
+    internal void OpenMain()
+    {
+        this.OpenMainUi?.InvokeSafely();
+    }
 
     /// <summary>
     /// Notify this UiBuilder about plugin UI being hidden.
@@ -430,6 +435,7 @@ public sealed class UiBuilder : IDisposable
     {
         this.hitchDetector.Start();
 
+        var clientState = Service<ClientState>.Get();
         var configuration = Service<DalamudConfiguration>.Get();
         var gameGui = Service<GameGui>.GetNullable();
         if (gameGui == null)
@@ -439,7 +445,7 @@ public sealed class UiBuilder : IDisposable
              !(this.DisableUserUiHide || this.DisableAutomaticUiHide)) ||
             (this.CutsceneActive && configuration.ToggleUiHideDuringCutscenes &&
              !(this.DisableCutsceneUiHide || this.DisableAutomaticUiHide)) ||
-            (this.GposeActive && configuration.ToggleUiHideDuringGpose &&
+            (clientState.IsGPosing && configuration.ToggleUiHideDuringGpose &&
              !(this.DisableGposeUiHide || this.DisableAutomaticUiHide)))
         {
             if (!this.lastFrameUiHideState)

@@ -26,7 +26,7 @@ namespace Dalamud.Data;
 #pragma warning disable SA1015
 [ResolveVia<IDataManager>]
 #pragma warning restore SA1015
-public sealed class DataManager : IDisposable, IServiceType, IDataManager
+internal sealed class DataManager : IDisposable, IServiceType, IDataManager
 {
     private readonly Thread luminaResourceThread;
     private readonly CancellationTokenSource luminaCancellationTokenSource;
@@ -126,10 +126,14 @@ public sealed class DataManager : IDisposable, IServiceType, IDataManager
     /// <inheritdoc/>
     public ClientLanguage Language { get; private set; }
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// Gets a list of server opcodes.
+    /// </summary>
     public ReadOnlyDictionary<string, ushort> ServerOpCodes { get; private set; }
-
-    /// <inheritdoc/>
+    
+    /// <summary>
+    /// Gets a list of client opcodes.
+    /// </summary>
     [UsedImplicitly]
     public ReadOnlyDictionary<string, ushort> ClientOpCodes { get; private set; }
 

@@ -166,7 +166,7 @@ public sealed class EntryPoint
             // This is due to GitHub not supporting TLS 1.0, so we enable all TLS versions globally
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12 | SecurityProtocolType.Tls;
 
-            if (!Util.IsLinux())
+            if (!Util.IsWine())
                 InitSymbolHandler(info);
 
             var dalamud = new Dalamud(info, configuration, mainThreadContinueEvent);

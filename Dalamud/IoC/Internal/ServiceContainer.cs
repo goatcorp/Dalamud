@@ -29,6 +29,16 @@ internal class ServiceContainer : IServiceProvider, IServiceType
     public ServiceContainer()
     {
     }
+    
+    /// <summary>
+    /// Gets a dictionary of all registered instances.
+    /// </summary>
+    public IReadOnlyDictionary<Type, ObjectInstance> Instances => this.instances;
+    
+    /// <summary>
+    /// Gets a dictionary mapping interfaces to their implementations.
+    /// </summary>
+    public IReadOnlyDictionary<Type, Type> InterfaceToTypeMap => this.interfaceToTypeMap;
 
     /// <summary>
     /// Register a singleton object of any type into the current IOC container.

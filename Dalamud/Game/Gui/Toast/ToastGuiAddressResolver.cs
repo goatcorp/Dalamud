@@ -1,11 +1,9 @@
-using System;
-
 namespace Dalamud.Game.Gui.Toast;
 
 /// <summary>
 /// An address resolver for the <see cref="ToastGui"/> class.
 /// </summary>
-public class ToastGuiAddressResolver : BaseAddressResolver
+internal class ToastGuiAddressResolver : BaseAddressResolver
 {
     /// <summary>
     /// Gets the address of the native ShowNormalToast method.

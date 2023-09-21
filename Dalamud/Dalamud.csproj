@@ -13,6 +13,7 @@
         <AssemblyVersion>$(DalamudVersion)</AssemblyVersion>
         <Version>$(DalamudVersion)</Version>
         <FileVersion>$(DalamudVersion)</FileVersion>
+        <PackageLicenseExpression>AGPL-3.0-or-later</PackageLicenseExpression>
     </PropertyGroup>
 
     <PropertyGroup Label="Output">
@@ -67,7 +68,7 @@
         <PackageReference Include="goaaats.Reloaded.Hooks" Version="4.2.0-goat.4" />
         <PackageReference Include="goaaats.Reloaded.Assembler" Version="1.0.14-goat.2" />
         <PackageReference Include="JetBrains.Annotations" Version="2021.2.0" />
-        <PackageReference Include="Lumina" Version="3.10.2" />
+        <PackageReference Include="Lumina" Version="3.11.0" />
         <PackageReference Include="Lumina.Excel" Version="6.4.0" />
         <PackageReference Include="MinSharp" Version="1.0.4" />
         <PackageReference Include="MonoModReorg.RuntimeDetour" Version="23.1.2-prerelease.1" />

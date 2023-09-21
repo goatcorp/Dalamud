@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
@@ -15,7 +14,7 @@ namespace Dalamud.Game.Internal.DXGI;
 /// <remarks>
 /// If the normal signature based method of resolution fails, this is the backup.
 /// </remarks>
-public class SwapChainVtableResolver : BaseAddressResolver, ISwapChainAddressResolver
+internal class SwapChainVtableResolver : BaseAddressResolver, ISwapChainAddressResolver
 {
     /// <inheritdoc/>
     public IntPtr Present { get; set; }

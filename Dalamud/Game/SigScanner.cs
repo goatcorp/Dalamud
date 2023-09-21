@@ -25,7 +25,7 @@ namespace Dalamud.Game;
 #pragma warning disable SA1015
 [ResolveVia<ISigScanner>]
 #pragma warning restore SA1015
-public class SigScanner : IDisposable, IServiceType, ISigScanner
+internal class SigScanner : IDisposable, IServiceType, ISigScanner
 {
     private readonly FileInfo? cacheFile;
 

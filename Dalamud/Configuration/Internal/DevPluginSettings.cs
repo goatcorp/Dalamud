@@ -1,3 +1,5 @@
+using System;
+
 namespace Dalamud.Configuration.Internal;
 
 /// <summary>
@@ -14,4 +16,9 @@ internal sealed class DevPluginSettings
     /// Gets or sets a value indicating whether this plugin should automatically reload on file change.
     /// </summary>
     public bool AutomaticReloading { get; set; } = false;
+    
+    /// <summary>
+    /// Gets or sets an ID uniquely identifying this specific instance of a devPlugin.
+    /// </summary>
+    public Guid WorkingPluginId { get; set; } = Guid.Empty;
 }

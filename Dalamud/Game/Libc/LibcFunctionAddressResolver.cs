@@ -5,7 +5,7 @@ namespace Dalamud.Game.Libc;
 /// <summary>
 /// The address resolver for the <see cref="LibcFunction"/> class.
 /// </summary>
-public sealed class LibcFunctionAddressResolver : BaseAddressResolver
+internal sealed class LibcFunctionAddressResolver : BaseAddressResolver
 {
     private delegate IntPtr StringFromCString();
 
