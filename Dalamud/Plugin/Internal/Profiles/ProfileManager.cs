@@ -172,7 +172,27 @@ internal class ProfileManager : IServiceType
         newModel.Guid = Guid.NewGuid();
         newModel.Name = this.GenerateUniqueProfileName(newModel.Name.IsNullOrEmpty() ? "Unknown Collection" : newModel.Name);
         if (newModel is ProfileModelV1 modelV1)
+        {
+            // Disable it
             modelV1.IsEnabled = false;
+            
+            // Try to find matching plugins for all plugins in the profile
+            var pm = Service<PluginManager>.Get();
+            foreach (var plugin in modelV1.Plugins)
+            {
+                var installedPlugin = pm.InstalledPlugins.FirstOrDefault(x => x.Manifest.InternalName == plugin.InternalName);
+                if (installedPlugin != null)
+                {
+                    Log.Information("Satisfying plugin {InternalName} for profile {Name} with {Guid}", plugin.InternalName, newModel.Name, installedPlugin.Manifest.WorkingPluginId);
+                    plugin.WorkingPluginId = installedPlugin.Manifest.WorkingPluginId;
+                }
+                else
+                {
+                    Log.Warning("Couldn't find plugin {InternalName} for profile {Name}", plugin.InternalName, newModel.Name);
+                    plugin.WorkingPluginId = Guid.Empty;
+                }
+            }
+        }
 
         this.config.SavedProfiles!.Add(newModel);
         this.config.QueueSave();

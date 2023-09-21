@@ -246,6 +246,10 @@ internal class Profile
         {
             foreach (var plugin in this.modelV1.Plugins)
             {
+                // TODO: What should happen if a profile has a GUID locked in, but the plugin
+                // is not installed anymore? That probably means that the user uninstalled the plugin
+                // and is now reinstalling it. We should still satisfy that and update the ID.
+                
                 if (plugin.InternalName == internalName && plugin.WorkingPluginId == Guid.Empty)
                 {
                     plugin.WorkingPluginId = newGuid;

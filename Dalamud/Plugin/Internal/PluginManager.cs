@@ -1299,6 +1299,9 @@ internal partial class PluginManager : IDisposable, IServiceType
         }
         
         // Perform a migration from InternalName to GUIDs. The plugin should definitely have a GUID here.
+        // This will also happen if you are installing a plugin with the installer, and that's intended!
+        // It means that, if you have a profile which has unsatisfied plugins, installing a matching plugin will
+        // enter it into the profiles it can match.
         if (plugin.Manifest.WorkingPluginId == Guid.Empty)
             throw new Exception("Plugin should have a WorkingPluginId at this point");
         this.profileManager.MigrateProfilesToGuidsForPlugin(plugin.Manifest.InternalName, plugin.Manifest.WorkingPluginId);
