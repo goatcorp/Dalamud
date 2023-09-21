@@ -46,7 +46,7 @@ public interface IGameInteropProvider
     /// <param name="detour">Callback function. Delegate must have a same original function prototype.</param>
     /// <returns>The hook with the supplied parameters.</returns>
     /// <typeparam name="T">Delegate of detour.</typeparam>
-    public Hook<T> FromFunctionPointerVariable<T>(IntPtr address, T detour) where T : Delegate;
+    public Hook<T> HookFromFunctionPointerVariable<T>(IntPtr address, T detour) where T : Delegate;
     
     /// <summary>
     /// Creates a hook by rewriting import table address.
@@ -58,7 +58,7 @@ public interface IGameInteropProvider
     /// <param name="detour">Callback function. Delegate must have a same original function prototype.</param>
     /// <returns>The hook with the supplied parameters.</returns>
     /// <typeparam name="T">Delegate of detour.</typeparam>
-    public Hook<T> FromImport<T>(ProcessModule? module, string moduleName, string functionName, uint hintOrOrdinal, T detour) where T : Delegate;
+    public Hook<T> HookFromImport<T>(ProcessModule? module, string moduleName, string functionName, uint hintOrOrdinal, T detour) where T : Delegate;
 
     /// <summary>
     /// Creates a hook. Hooking address is inferred by calling to GetProcAddress() function.
@@ -71,7 +71,7 @@ public interface IGameInteropProvider
     /// <param name="backend">Hooking library to use.</param>
     /// <returns>The hook with the supplied parameters.</returns>
     /// <typeparam name="T">Delegate of detour.</typeparam>
-    Hook<T> FromSymbol<T>(string moduleName, string exportName, T detour, HookBackend backend = HookBackend.Automatic) where T : Delegate;
+    Hook<T> HookFromSymbol<T>(string moduleName, string exportName, T detour, HookBackend backend = HookBackend.Automatic) where T : Delegate;
 
     /// <summary>
     /// Creates a hook. Hooking address is inferred by calling to GetProcAddress() function.
@@ -83,7 +83,7 @@ public interface IGameInteropProvider
     /// <param name="backend">Hooking library to use.</param>
     /// <returns>The hook with the supplied parameters.</returns>
     /// <typeparam name="T">Delegate of detour.</typeparam>
-    Hook<T> FromAddress<T>(IntPtr procAddress, T detour, HookBackend backend = HookBackend.Automatic) where T : Delegate;
+    Hook<T> HookFromAddress<T>(IntPtr procAddress, T detour, HookBackend backend = HookBackend.Automatic) where T : Delegate;
     
     /// <summary>
     /// Creates a hook from a signature into the Dalamud target module.
@@ -93,5 +93,5 @@ public interface IGameInteropProvider
     /// <param name="backend">Hooking library to use.</param>
     /// <returns>The hook with the supplied parameters.</returns>
     /// <typeparam name="T">Delegate of detour.</typeparam>
-    Hook<T> FromSignature<T>(string signature, T detour, HookBackend backend = HookBackend.Automatic) where T : Delegate;
+    Hook<T> HookFromSignature<T>(string signature, T detour, HookBackend backend = HookBackend.Automatic) where T : Delegate;
 }
