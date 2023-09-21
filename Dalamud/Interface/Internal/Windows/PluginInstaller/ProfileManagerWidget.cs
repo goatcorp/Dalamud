@@ -406,7 +406,7 @@ internal class ProfileManagerWidget
             foreach (var plugin in profile.Plugins.ToArray())
             {
                 didAny = true;
-                var pmPlugin = pm.InstalledPlugins.FirstOrDefault(x => x.Manifest.InternalName == plugin.InternalName);
+                var pmPlugin = pm.InstalledPlugins.FirstOrDefault(x => x.Manifest.WorkingPluginId == plugin.WorkingPluginId);
                 var btnOffset = 2;
 
                 if (pmPlugin != null)
@@ -437,26 +437,33 @@ internal class ProfileManagerWidget
 
                     ImGui.SetCursorPosY(ImGui.GetCursorPosY() + (pluginLineHeight / 2) - (textHeight.Y / 2));
                     ImGui.TextUnformatted(text);
-
-                    var available =
+                    
+                    var firstAvailableInstalled = pm.InstalledPlugins.FirstOrDefault(x => x.InternalName == plugin.InternalName);
+                    var installable =
                         pm.AvailablePlugins.FirstOrDefault(
                             x => x.InternalName == plugin.InternalName && !x.SourceRepo.IsThirdParty);
-                    if (available != null)
+                    
+                    if (firstAvailableInstalled != null)
+                    {
+                        // TODO
+                        ImGui.Text("GOAT WAS TOO LAZY TO IMPLEMENT THIS");
+                    }
+                    else if (installable != null)
                     {
                         ImGui.SameLine();
                         ImGui.SetCursorPosX(windowSize.X - (ImGuiHelpers.GlobalScale * 30 * 2) - 2);
                         ImGui.SetCursorPosY(ImGui.GetCursorPosY() + (pluginLineHeight / 2) - (ImGui.GetFrameHeight() / 2));
                         btnOffset = 3;
 
-                        if (ImGuiComponents.IconButton($"###installMissingPlugin{available.InternalName}", FontAwesomeIcon.Download))
+                        if (ImGuiComponents.IconButton($"###installMissingPlugin{installable.InternalName}", FontAwesomeIcon.Download))
                         {
-                            this.installer.StartInstall(available, false);
+                            this.installer.StartInstall(installable, false);
                         }
 
                         if (ImGui.IsItemHovered())
                             ImGui.SetTooltip(Locs.InstallPlugin);
                     }
-
+                    
                     ImGui.SetCursorPos(before);
                 }
 
