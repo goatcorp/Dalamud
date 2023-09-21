@@ -160,7 +160,7 @@ internal unsafe class AddonEventManager : IDisposable, IServiceType
     /// </summary>
     /// <param name="eventType">Event type that triggered this call.</param>
     /// <param name="addonInfo">Addon that triggered this call.</param>
-    private void OnAddonFinalize(AddonEvent eventType, AddonArgs addonInfo)
+    private void OnAddonFinalize(AddonEvent eventType, IAddonArgs addonInfo)
     {
         // It shouldn't be possible for this event to be anything other than PreFinalize.
         if (eventType != AddonEvent.PreFinalize) return;

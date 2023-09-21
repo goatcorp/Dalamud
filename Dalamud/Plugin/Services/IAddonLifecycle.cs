@@ -14,8 +14,8 @@ public interface IAddonLifecycle
     /// Delegate for receiving addon lifecycle event messages.
     /// </summary>
     /// <param name="eventType">The event type that triggered the message.</param>
-    /// <param name="addonInfo">Information about what addon triggered the message.</param>
-    public delegate void AddonEventDelegate(AddonEvent eventType, AddonArgs addonInfo);
+    /// <param name="args">Information about what addon triggered the message.</param>
+    public delegate void AddonEventDelegate(AddonEvent eventType, IAddonArgs args);
     
     /// <summary>
     /// Register a listener that will trigger on the specified event and any of the specified addons.

@@ -1,0 +1,23 @@
+namespace Dalamud.Game.Addon.AddonArgTypes;
+
+/// <summary>
+/// Addon argument data for Finalize events.
+/// </summary>
+public class AddonRefreshArgs : IAddonArgs
+{
+    /// <inheritdoc/>
+    public nint Addon { get; init; }
+
+    /// <inheritdoc/>
+    public AddonArgsType Type => AddonArgsType.Refresh;
+    
+    /// <summary>
+    /// Gets the number of AtkValues.
+    /// </summary>
+    public uint AtkValueCount { get; init; }
+    
+    /// <summary>
+    /// Gets the address of the AtkValue array.
+    /// </summary>
+    public nint AtkValues { get; init; }
+}

@@ -255,7 +255,7 @@ public sealed unsafe class DtrBar : IDisposable, IServiceType, IDtrBar
         }
     }
     
-    private void OnDtrPostDraw(AddonEvent eventType, AddonArgs addonInfo)
+    private void OnDtrPostDraw(AddonEvent eventType, IAddonArgs addonInfo)
     {
         var addon = (AtkUnitBase*)addonInfo.Addon;
 
@@ -300,7 +300,7 @@ public sealed unsafe class DtrBar : IDisposable, IServiceType, IDtrBar
         }
     }
 
-    private void OnAddonRequestedUpdateDetour(AddonEvent eventType, AddonArgs addonInfo)
+    private void OnAddonRequestedUpdateDetour(AddonEvent eventType, IAddonArgs addonInfo)
     {
         var addon = (AtkUnitBase*)addonInfo.Addon;
         
