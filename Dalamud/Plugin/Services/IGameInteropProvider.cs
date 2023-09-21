@@ -36,7 +36,7 @@ public interface IGameInteropProvider
     /// Initialize <see cref="Hook{T}"/> members decorated with the <see cref="SignatureAttribute"/>.
     /// Errors for fallible signatures will be logged.
     /// </summary>
-    /// <param name="self">The object to initialise.</param>
+    /// <param name="self">The object to initialize.</param>
     public void InitializeFromAttributes(object self);
     
     /// <summary>
