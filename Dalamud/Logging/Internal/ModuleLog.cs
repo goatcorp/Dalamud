@@ -33,7 +33,7 @@ public class ModuleLog
     /// </summary>
     /// <param name="messageTemplate">The message template.</param>
     /// <param name="values">Values to log.</param>
-    public void Verbose(string messageTemplate, params object[] values)
+    public void Verbose(string messageTemplate, params object?[] values)
         => this.WriteLog(LogEventLevel.Verbose, messageTemplate, null, values);
 
     /// <summary>
@@ -42,7 +42,7 @@ public class ModuleLog
     /// <param name="exception">The exception that caused the error.</param>
     /// <param name="messageTemplate">The message template.</param>
     /// <param name="values">Values to log.</param>
-    public void Verbose(Exception exception, string messageTemplate, params object[] values)
+    public void Verbose(Exception exception, string messageTemplate, params object?[] values)
         => this.WriteLog(LogEventLevel.Verbose, messageTemplate, exception, values);
 
     /// <summary>
@@ -50,7 +50,7 @@ public class ModuleLog
     /// </summary>
     /// <param name="messageTemplate">The message template.</param>
     /// <param name="values">Values to log.</param>
-    public void Debug(string messageTemplate, params object[] values)
+    public void Debug(string messageTemplate, params object?[] values)
         => this.WriteLog(LogEventLevel.Debug, messageTemplate, null, values);
 
     /// <summary>
@@ -59,7 +59,7 @@ public class ModuleLog
     /// <param name="exception">The exception that caused the error.</param>
     /// <param name="messageTemplate">The message template.</param>
     /// <param name="values">Values to log.</param>
-    public void Debug(Exception exception, string messageTemplate, params object[] values)
+    public void Debug(Exception exception, string messageTemplate, params object?[] values)
         => this.WriteLog(LogEventLevel.Debug, messageTemplate, exception, values);
 
     /// <summary>
@@ -67,7 +67,7 @@ public class ModuleLog
     /// </summary>
     /// <param name="messageTemplate">The message template.</param>
     /// <param name="values">Values to log.</param>
-    public void Information(string messageTemplate, params object[] values)
+    public void Information(string messageTemplate, params object?[] values)
         => this.WriteLog(LogEventLevel.Information, messageTemplate, null, values);
 
     /// <summary>
@@ -76,7 +76,7 @@ public class ModuleLog
     /// <param name="exception">The exception that caused the error.</param>
     /// <param name="messageTemplate">The message template.</param>
     /// <param name="values">Values to log.</param>
-    public void Information(Exception exception, string messageTemplate, params object[] values)
+    public void Information(Exception exception, string messageTemplate, params object?[] values)
         => this.WriteLog(LogEventLevel.Information, messageTemplate, exception, values);
 
     /// <summary>
@@ -84,7 +84,7 @@ public class ModuleLog
     /// </summary>
     /// <param name="messageTemplate">The message template.</param>
     /// <param name="values">Values to log.</param>
-    public void Warning(string messageTemplate, params object[] values)
+    public void Warning(string messageTemplate, params object?[] values)
         => this.WriteLog(LogEventLevel.Warning, messageTemplate, null, values);
 
     /// <summary>
@@ -93,7 +93,7 @@ public class ModuleLog
     /// <param name="exception">The exception that caused the error.</param>
     /// <param name="messageTemplate">The message template.</param>
     /// <param name="values">Values to log.</param>
-    public void Warning(Exception exception, string messageTemplate, params object[] values)
+    public void Warning(Exception exception, string messageTemplate, params object?[] values)
         => this.WriteLog(LogEventLevel.Warning, messageTemplate, exception, values);
 
     /// <summary>
@@ -101,7 +101,7 @@ public class ModuleLog
     /// </summary>
     /// <param name="messageTemplate">The message template.</param>
     /// <param name="values">Values to log.</param>
-    public void Error(string messageTemplate, params object[] values)
+    public void Error(string messageTemplate, params object?[] values)
         => this.WriteLog(LogEventLevel.Error, messageTemplate, null, values);
 
     /// <summary>
@@ -110,7 +110,7 @@ public class ModuleLog
     /// <param name="exception">The exception that caused the error.</param>
     /// <param name="messageTemplate">The message template.</param>
     /// <param name="values">Values to log.</param>
-    public void Error(Exception? exception, string messageTemplate, params object[] values)
+    public void Error(Exception? exception, string messageTemplate, params object?[] values)
         => this.WriteLog(LogEventLevel.Error, messageTemplate, exception, values);
 
     /// <summary>
@@ -118,7 +118,7 @@ public class ModuleLog
     /// </summary>
     /// <param name="messageTemplate">The message template.</param>
     /// <param name="values">Values to log.</param>
-    public void Fatal(string messageTemplate, params object[] values)
+    public void Fatal(string messageTemplate, params object?[] values)
         => this.WriteLog(LogEventLevel.Fatal, messageTemplate, null, values);
 
     /// <summary>
@@ -127,11 +127,11 @@ public class ModuleLog
     /// <param name="exception">The exception that caused the error.</param>
     /// <param name="messageTemplate">The message template.</param>
     /// <param name="values">Values to log.</param>
-    public void Fatal(Exception exception, string messageTemplate, params object[] values)
+    public void Fatal(Exception exception, string messageTemplate, params object?[] values)
         => this.WriteLog(LogEventLevel.Fatal, messageTemplate, exception, values);
 
     private void WriteLog(
-        LogEventLevel level, string messageTemplate, Exception? exception = null, params object[] values)
+        LogEventLevel level, string messageTemplate, Exception? exception = null, params object?[] values)
     {
         // FIXME: Eventually, the `pluginName` tag should be removed from here and moved over to the actual log
         //        formatter.
