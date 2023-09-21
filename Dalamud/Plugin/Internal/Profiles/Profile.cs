@@ -142,7 +142,7 @@ internal class Profile
     /// <summary>
     /// Check if this profile contains a specific plugin, and if it is enabled.
     /// </summary>
-    /// <param name="internalName">The internal name of the plugin.</param>
+    /// <param name="workingPluginId">The ID of the plugin.</param>
     /// <returns>Null if this profile does not declare the plugin, true if the profile declares the plugin and wants it enabled, false if the profile declares the plugin and does not want it enabled.</returns>
     public bool? WantsPlugin(Guid workingPluginId)
     {
@@ -157,7 +157,7 @@ internal class Profile
     /// Add a plugin to this profile with the desired state, or change the state of a plugin in this profile.
     /// This will block until all states have been applied.
     /// </summary>
-    /// <param name="internalName">The internal name of the plugin.</param>
+    /// <param name="workingPluginId">The ID of the plugin.</param>
     /// <param name="state">Whether or not the plugin should be enabled.</param>
     /// <param name="apply">Whether or not the current state should immediately be applied.</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
@@ -198,7 +198,7 @@ internal class Profile
     /// Remove a plugin from this profile.
     /// This will block until all states have been applied.
     /// </summary>
-    /// <param name="internalName">The internal name of the plugin.</param>
+    /// <param name="workingPluginId">The ID of the plugin.</param>
     /// <param name="apply">Whether or not the current state should immediately be applied.</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     public async Task RemoveAsync(Guid workingPluginId, bool apply = true)

@@ -69,7 +69,7 @@ internal class ProfileManager : IServiceType
     /// <summary>
     /// Check if any enabled profile wants a specific plugin enabled.
     /// </summary>
-    /// <param name="internalName">The internal name of the plugin.</param>
+    /// <param name="workingPluginId">The ID of the plugin.</param>
     /// <param name="defaultState">The state the plugin shall be in, if it needs to be added.</param>
     /// <param name="addIfNotDeclared">Whether or not the plugin should be added to the default preset, if it's not present in any preset.</param>
     /// <returns>Whether or not the plugin shall be enabled.</returns>
@@ -105,7 +105,7 @@ internal class ProfileManager : IServiceType
     /// <summary>
     /// Check whether a plugin is declared in any profile.
     /// </summary>
-    /// <param name="internalName">The internal name of the plugin.</param>
+    /// <param name="workingPluginId">The ID of the plugin.</param>
     /// <returns>Whether or not the plugin is in any profile.</returns>
     public bool IsInAnyProfile(Guid workingPluginId)
     {
@@ -117,7 +117,7 @@ internal class ProfileManager : IServiceType
     /// Check whether a plugin is only in the default profile.
     /// A plugin can never be in the default profile if it is in any other profile.
     /// </summary>
-    /// <param name="internalName">The internal name of the plugin.</param>
+    /// <param name="workingPluginId">The ID of the plugin.</param>
     /// <returns>Whether or not the plugin is in the default profile.</returns>
     public bool IsInDefaultProfile(Guid workingPluginId)
         => this.DefaultProfile.WantsPlugin(workingPluginId) != null;
