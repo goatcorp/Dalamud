@@ -1,7 +1,9 @@
+using System;
 using System.Numerics;
 
 using Dalamud.Configuration.Internal;
 using Dalamud.Game.ClientState.Keys;
+using Dalamud.Logging.Internal;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using ImGuiNET;
 
@@ -12,6 +14,8 @@ namespace Dalamud.Interface.Windowing;
 /// </summary>
 public abstract class Window
 {
+    private static readonly ModuleLog Log = new("WindowSystem");
+
     private static bool wasEscPressedLastFrame = false;
 
     private bool internalLastIsOpen = false;
@@ -284,7 +288,14 @@ public abstract class Window
         if (this.ShowCloseButton ? ImGui.Begin(this.WindowName, ref this.internalIsOpen, this.Flags) : ImGui.Begin(this.WindowName, this.Flags))
         {
             // Draw the actual window contents
-            this.Draw();
+            try
+            {
+                this.Draw();
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, $"Error during Draw(): {this.WindowName}");
+            }
         }
 
         if (wasFocused)
