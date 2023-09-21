@@ -80,7 +80,7 @@ internal class HookProviderPluginScoped : IHookProvider, IServiceType, IDisposab
 
     /// <inheritdoc/>
     public Hook<T> FromSignature<T>(string signature, T detour, IHookProvider.HookBackend backend = IHookProvider.HookBackend.Automatic) where T : Delegate
-        => this.FromAddress(this.scanner.ScanText(signature), detour);
+        => this.FromAddress(this.scanner.ScanText(signature), detour, backend);
 
     /// <inheritdoc/>
     public void Dispose()
