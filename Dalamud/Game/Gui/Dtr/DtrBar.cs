@@ -4,19 +4,15 @@ using System.Collections.Generic;
 using System.Linq;
 
 using Dalamud.Configuration.Internal;
-using Dalamud.Game.AddonEventManager;
+using Dalamud.Game.Addon;
 using Dalamud.Game.Text.SeStringHandling;
-using Dalamud.Hooking;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Logging.Internal;
-using Dalamud.Memory;
 using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.Graphics;
 using FFXIVClientStructs.FFXIV.Client.System.Memory;
 using FFXIVClientStructs.FFXIV.Component.GUI;
-
-using DalamudAddonEventManager = Dalamud.Game.AddonEventManager.AddonEventManager;
 
 namespace Dalamud.Game.Gui.Dtr;
 
@@ -45,23 +41,27 @@ public sealed unsafe class DtrBar : IDisposable, IServiceType, IDtrBar
     private readonly DalamudConfiguration configuration = Service<DalamudConfiguration>.Get();
 
     [ServiceManager.ServiceDependency]
-    private readonly DalamudAddonEventManager uiEventManager = Service<DalamudAddonEventManager>.Get();
+    private readonly AddonEventManager uiEventManager = Service<AddonEventManager>.Get();
 
-    private readonly DtrBarAddressResolver address;
+    [ServiceManager.ServiceDependency]
+    private readonly AddonLifecycle addonLifecycle = Service<AddonLifecycle>.Get();
+
+    private readonly AddonLifecycleEventListener dtrPostDrawListener;
+    private readonly AddonLifecycleEventListener dtrPostRequestedUpdateListener;
+    
     private readonly ConcurrentBag<DtrBarEntry> newEntries = new();
     private readonly List<DtrBarEntry> entries = new();
-    private readonly Hook<AddonDrawDelegate> onAddonDrawHook;
-    private readonly Hook<AddonRequestedUpdateDelegate> onAddonRequestedUpdateHook;
+    
     private uint runningNodeIds = BaseNodeId;
 
     [ServiceManager.ServiceConstructor]
-    private DtrBar(SigScanner sigScanner)
+    private DtrBar()
     {
-        this.address = new DtrBarAddressResolver();
-        this.address.Setup(sigScanner);
+        this.dtrPostDrawListener = new AddonLifecycleEventListener(AddonEvent.PostDraw, "_DTR", this.OnDtrPostDraw);
+        this.dtrPostRequestedUpdateListener = new AddonLifecycleEventListener(AddonEvent.PostRequestedUpdate, "_DTR", this.OnAddonRequestedUpdateDetour);
 
-        this.onAddonDrawHook = Hook<AddonDrawDelegate>.FromAddress(this.address.AtkUnitBaseDraw, this.OnAddonDrawDetour);
-        this.onAddonRequestedUpdateHook = Hook<AddonRequestedUpdateDelegate>.FromAddress(this.address.AddonRequestedUpdate, this.OnAddonRequestedUpdateDetour);
+        this.addonLifecycle.RegisterListener(this.dtrPostDrawListener);
+        this.addonLifecycle.RegisterListener(this.dtrPostRequestedUpdateListener);
         
         this.framework.Update += this.Update;
 
@@ -69,10 +69,6 @@ public sealed unsafe class DtrBar : IDisposable, IServiceType, IDtrBar
         this.configuration.DtrIgnore ??= new List<string>();
         this.configuration.QueueSave();
     }
-
-    private delegate void AddonDrawDelegate(AtkUnitBase* addon);
-
-    private delegate void AddonRequestedUpdateDelegate(AtkUnitBase* addon, NumberArrayData** numberArrayData, StringArrayData** stringArrayData);
 
     /// <inheritdoc/>
     public DtrBarEntry Get(string title, SeString? text = null)
@@ -104,8 +100,8 @@ public sealed unsafe class DtrBar : IDisposable, IServiceType, IDtrBar
     /// <inheritdoc/>
     void IDisposable.Dispose()
     {
-        this.onAddonDrawHook.Dispose();
-        this.onAddonRequestedUpdateHook.Dispose();
+        this.addonLifecycle.UnregisterListener(this.dtrPostDrawListener);
+        this.addonLifecycle.UnregisterListener(this.dtrPostRequestedUpdateListener);
 
         foreach (var entry in this.entries)
             this.RemoveNode(entry.TextNode);
@@ -167,13 +163,6 @@ public sealed unsafe class DtrBar : IDisposable, IServiceType, IDtrBar
             return xPos.CompareTo(yPos);
         });
     }
-        
-    [ServiceManager.CallWhenServicesReady]
-    private void ContinueConstruction()
-    {
-        this.onAddonDrawHook.Enable();
-        this.onAddonRequestedUpdateHook.Enable();
-    }
 
     private AtkUnitBase* GetDtr() => (AtkUnitBase*)this.gameGui.GetAddonByName("_DTR").ToPointer();
 
@@ -234,7 +223,7 @@ public sealed unsafe class DtrBar : IDisposable, IServiceType, IDtrBar
 
                 if (this.configuration.DtrSwapDirection)
                 {
-                    data.TextNode->AtkResNode.SetPositionFloat(runningXPos, 2);
+                    data.TextNode->AtkResNode.SetPositionFloat(runningXPos + this.configuration.DtrSpacing, 2);
                     runningXPos += elementWidth;
                 }
                 else
@@ -242,6 +231,11 @@ public sealed unsafe class DtrBar : IDisposable, IServiceType, IDtrBar
                     runningXPos -= elementWidth;
                     data.TextNode->AtkResNode.SetPositionFloat(runningXPos, 2);
                 }
+            }
+            else
+            {
+                // If we want the node hidden, shift it up, to prevent collision conflicts
+                data.TextNode->AtkResNode.SetY(-collisionNode->Height * dtr->RootNode->ScaleX);
             }
         }
     }
@@ -260,37 +254,26 @@ public sealed unsafe class DtrBar : IDisposable, IServiceType, IDtrBar
             this.ApplySort();
         }
     }
-
-    // This hooks all AtkUnitBase.Draw calls, then checks for our specific addon name.
-    // AddonDtr doesn't implement it's own Draw method, would need to replace vtable entry to be more efficient.
-    private void OnAddonDrawDetour(AtkUnitBase* addon)
+    
+    private void OnDtrPostDraw(AddonEvent eventType, AddonArgs addonInfo)
     {
-        this.onAddonDrawHook!.Original(addon);
+        var addon = (AtkUnitBase*)addonInfo.Addon;
 
-        try
-        {
-            if (MemoryHelper.ReadString((nint)addon->Name, 0x20) is not "_DTR") return;
-
-            this.UpdateNodePositions(addon);
+        this.UpdateNodePositions(addon);
             
-            if (!this.configuration.DtrSwapDirection)
-            {
-                var targetSize = (ushort)this.CalculateTotalSize();
-                var sizeDelta = targetSize - addon->RootNode->Width;
-                
-                if (addon->RootNode->Width != targetSize)
-                {
-                    addon->RootNode->SetWidth(targetSize);
-                    addon->SetX((short)(addon->GetX() - sizeDelta));
-                    
-                    // force a RequestedUpdate immediately to force the game to right-justify it immediately.
-                    addon->OnUpdate(AtkStage.GetSingleton()->GetNumberArrayData(), AtkStage.GetSingleton()->GetStringArrayData());
-                }
-            }
-        }
-        catch (Exception e)
+        if (!this.configuration.DtrSwapDirection)
         {
-            Log.Error(e, "Exception in OnAddonDraw.");
+            var targetSize = (ushort)this.CalculateTotalSize();
+            var sizeDelta = MathF.Round((targetSize - addon->RootNode->Width) * addon->RootNode->ScaleX);
+                
+            if (addon->RootNode->Width != targetSize)
+            {
+                addon->RootNode->SetWidth(targetSize);
+                addon->SetX((short)(addon->GetX() - sizeDelta));
+                    
+                // force a RequestedUpdate immediately to force the game to right-justify it immediately.
+                addon->OnUpdate(AtkStage.GetSingleton()->GetNumberArrayData(), AtkStage.GetSingleton()->GetStringArrayData());
+            }
         }
     }
     
@@ -317,18 +300,11 @@ public sealed unsafe class DtrBar : IDisposable, IServiceType, IDtrBar
         }
     }
 
-    private void OnAddonRequestedUpdateDetour(AtkUnitBase* addon, NumberArrayData** numberArrayData, StringArrayData** stringArrayData)
+    private void OnAddonRequestedUpdateDetour(AddonEvent eventType, AddonArgs addonInfo)
     {
-        this.onAddonRequestedUpdateHook.Original(addon, numberArrayData, stringArrayData);
-
-        try
-        {
-            this.UpdateNodePositions(addon);
-        }
-        catch (Exception e)
-        {
-            Log.Error(e, "Exception in OnAddonRequestedUpdate.");
-        }
+        var addon = (AtkUnitBase*)addonInfo.Addon;
+        
+        this.UpdateNodePositions(addon);
     }
 
     /// <summary>
@@ -386,9 +362,9 @@ public sealed unsafe class DtrBar : IDisposable, IServiceType, IDtrBar
         var dtr = this.GetDtr();
         if (dtr == null || dtr->RootNode == null || dtr->UldManager.NodeList == null || node == null) return false;
 
-        this.uiEventManager.AddEvent(node->AtkResNode.NodeID + MouseOverEventIdOffset, (nint)dtr, (nint)node, AddonEventType.MouseOver, this.DtrEventHandler);
-        this.uiEventManager.AddEvent(node->AtkResNode.NodeID + MouseOutEventIdOffset, (nint)dtr, (nint)node, AddonEventType.MouseOut, this.DtrEventHandler);
-        this.uiEventManager.AddEvent(node->AtkResNode.NodeID + MouseClickEventIdOffset, (nint)dtr, (nint)node, AddonEventType.MouseClick, this.DtrEventHandler);
+        this.uiEventManager.AddEvent(AddonEventManager.DalamudInternalKey, node->AtkResNode.NodeID + MouseOverEventIdOffset, (nint)dtr, (nint)node, AddonEventType.MouseOver, this.DtrEventHandler);
+        this.uiEventManager.AddEvent(AddonEventManager.DalamudInternalKey, node->AtkResNode.NodeID + MouseOutEventIdOffset, (nint)dtr, (nint)node, AddonEventType.MouseOut, this.DtrEventHandler);
+        this.uiEventManager.AddEvent(AddonEventManager.DalamudInternalKey, node->AtkResNode.NodeID + MouseClickEventIdOffset, (nint)dtr, (nint)node, AddonEventType.MouseClick, this.DtrEventHandler);
 
         var lastChild = dtr->RootNode->ChildNode;
         while (lastChild->PrevSiblingNode != null) lastChild = lastChild->PrevSiblingNode;
@@ -406,14 +382,14 @@ public sealed unsafe class DtrBar : IDisposable, IServiceType, IDtrBar
         return true;
     }
 
-    private bool RemoveNode(AtkTextNode* node)
+    private void RemoveNode(AtkTextNode* node)
     {
         var dtr = this.GetDtr();
-        if (dtr == null || dtr->RootNode == null || dtr->UldManager.NodeList == null || node == null) return false;
+        if (dtr == null || dtr->RootNode == null || dtr->UldManager.NodeList == null || node == null) return;
 
-        this.uiEventManager.RemoveEvent(node->AtkResNode.NodeID + MouseOverEventIdOffset, (nint)node, AddonEventType.MouseOver);
-        this.uiEventManager.RemoveEvent(node->AtkResNode.NodeID + MouseOutEventIdOffset, (nint)node, AddonEventType.MouseOut);
-        this.uiEventManager.RemoveEvent(node->AtkResNode.NodeID + MouseClickEventIdOffset, (nint)node, AddonEventType.MouseClick);
+        this.uiEventManager.RemoveEvent(AddonEventManager.DalamudInternalKey, node->AtkResNode.NodeID + MouseOverEventIdOffset);
+        this.uiEventManager.RemoveEvent(AddonEventManager.DalamudInternalKey, node->AtkResNode.NodeID + MouseOutEventIdOffset);
+        this.uiEventManager.RemoveEvent(AddonEventManager.DalamudInternalKey, node->AtkResNode.NodeID + MouseClickEventIdOffset);
 
         var tmpPrevNode = node->AtkResNode.PrevSiblingNode;
         var tmpNextNode = node->AtkResNode.NextSiblingNode;
@@ -429,7 +405,6 @@ public sealed unsafe class DtrBar : IDisposable, IServiceType, IDtrBar
         dtr->UldManager.UpdateDrawNodeList();
         dtr->UpdateCollisionNodeList(false);
         Log.Debug("Updated node draw list");
-        return true;
     }
 
     private AtkTextNode* MakeNode(uint nodeId)
