@@ -229,7 +229,7 @@ internal class ProfileManagerWidget
 
                 if (ImGuiComponents.IconButton($"###exportButton{profile.Guid}", FontAwesomeIcon.FileExport))
                 {
-                    ImGui.SetClipboardText(profile.Model.Serialize());
+                    ImGui.SetClipboardText(profile.Model.SerializeForShare());
                     Service<NotificationManager>.Get().AddNotification(Locs.CopyToClipboardNotification, type: NotificationType.Success);
                 }
 
@@ -300,7 +300,7 @@ internal class ProfileManagerWidget
 
                         if (ImGui.Selectable($"{plugin.Manifest.Name}###selector{plugin.Manifest.InternalName}"))
                         {
-                            Task.Run(() => profile.AddOrUpdateAsync(plugin.Manifest.InternalName, true, false))
+                            Task.Run(() => profile.AddOrUpdateAsync(plugin.Manifest.WorkingPluginId, true, false))
                                 .ContinueWith(this.installer.DisplayErrorContinuation, Locs.ErrorCouldNotChangeState);
                         }
                     }
@@ -327,7 +327,7 @@ internal class ProfileManagerWidget
 
         if (ImGuiComponents.IconButton(FontAwesomeIcon.FileExport))
         {
-            ImGui.SetClipboardText(profile.Model.Serialize());
+            ImGui.SetClipboardText(profile.Model.SerializeForShare());
             Service<NotificationManager>.Get().AddNotification(Locs.CopyToClipboardNotification, type: NotificationType.Success);
         }
 
@@ -400,7 +400,7 @@ internal class ProfileManagerWidget
         if (pluginListChild)
         {
             var pluginLineHeight = 32 * ImGuiHelpers.GlobalScale;
-            string? wantRemovePluginInternalName = null;
+            Guid? wantRemovePluginGuid = null;
 
             using var syncScope = profile.GetSyncScope();
             foreach (var plugin in profile.Plugins.ToArray())
@@ -467,7 +467,7 @@ internal class ProfileManagerWidget
                 var enabled = plugin.IsEnabled;
                 if (ImGui.Checkbox($"###{this.editingProfileGuid}-{plugin.InternalName}", ref enabled))
                 {
-                    Task.Run(() => profile.AddOrUpdateAsync(plugin.InternalName, enabled))
+                    Task.Run(() => profile.AddOrUpdateAsync(plugin.WorkingPluginId, enabled))
                         .ContinueWith(this.installer.DisplayErrorContinuation, Locs.ErrorCouldNotChangeState);
                 }
 
@@ -477,17 +477,17 @@ internal class ProfileManagerWidget
 
                 if (ImGuiComponents.IconButton($"###removePlugin{plugin.InternalName}", FontAwesomeIcon.Trash))
                 {
-                    wantRemovePluginInternalName = plugin.InternalName;
+                    wantRemovePluginGuid = plugin.WorkingPluginId;
                 }
 
                 if (ImGui.IsItemHovered())
                     ImGui.SetTooltip(Locs.RemovePlugin);
             }
 
-            if (wantRemovePluginInternalName != null)
+            if (wantRemovePluginGuid != null)
             {
                 // TODO: handle error
-                Task.Run(() => profile.RemoveAsync(wantRemovePluginInternalName, false))
+                Task.Run(() => profile.RemoveAsync(wantRemovePluginGuid.Value, false))
                                 .ContinueWith(this.installer.DisplayErrorContinuation, Locs.ErrorCouldNotRemove);
             }
 

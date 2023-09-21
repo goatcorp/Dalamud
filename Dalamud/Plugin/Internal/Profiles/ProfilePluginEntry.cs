@@ -10,9 +10,10 @@ internal class ProfilePluginEntry
     /// </summary>
     /// <param name="internalName">The internal name of the plugin.</param>
     /// <param name="state">A value indicating whether or not this entry is enabled.</param>
-    public ProfilePluginEntry(string internalName, bool state)
+    public ProfilePluginEntry(string internalName, Guid workingPluginId, bool state)
     {
         this.InternalName = internalName;
+        this.WorkingPluginId = workingPluginId;
         this.IsEnabled = state;
     }
 
@@ -20,6 +21,8 @@ internal class ProfilePluginEntry
     /// Gets the internal name of the plugin.
     /// </summary>
     public string InternalName { get; }
+    
+    public Guid WorkingPluginId { get; set; }
 
     /// <summary>
     /// Gets a value indicating whether or not this entry is enabled.

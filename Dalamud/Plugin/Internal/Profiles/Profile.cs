@@ -102,7 +102,7 @@ internal class Profile
     /// Gets all plugins declared in this profile.
     /// </summary>
     public IEnumerable<ProfilePluginEntry> Plugins =>
-        this.modelV1.Plugins.Select(x => new ProfilePluginEntry(x.InternalName, x.IsEnabled));
+        this.modelV1.Plugins.Select(x => new ProfilePluginEntry(x.InternalName, x.WorkingPluginId, x.IsEnabled));
 
     /// <summary>
     /// Gets this profile's underlying model.
@@ -144,11 +144,11 @@ internal class Profile
     /// </summary>
     /// <param name="internalName">The internal name of the plugin.</param>
     /// <returns>Null if this profile does not declare the plugin, true if the profile declares the plugin and wants it enabled, false if the profile declares the plugin and does not want it enabled.</returns>
-    public bool? WantsPlugin(string internalName)
+    public bool? WantsPlugin(Guid workingPluginId)
     {
         lock (this)
         {
-            var entry = this.modelV1.Plugins.FirstOrDefault(x => x.InternalName == internalName);
+            var entry = this.modelV1.Plugins.FirstOrDefault(x => x.WorkingPluginId == workingPluginId);
             return entry?.IsEnabled;
         }
     }
@@ -161,13 +161,13 @@ internal class Profile
     /// <param name="state">Whether or not the plugin should be enabled.</param>
     /// <param name="apply">Whether or not the current state should immediately be applied.</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-    public async Task AddOrUpdateAsync(string internalName, bool state, bool apply = true)
+    public async Task AddOrUpdateAsync(Guid workingPluginId, bool state, bool apply = true)
     {
-        Debug.Assert(!internalName.IsNullOrEmpty(), "!internalName.IsNullOrEmpty()");
-
+        Debug.Assert(workingPluginId != Guid.Empty, "Trying to add plugin with empty guid");
+        
         lock (this)
         {
-            var existing = this.modelV1.Plugins.FirstOrDefault(x => x.InternalName == internalName);
+            var existing = this.modelV1.Plugins.FirstOrDefault(x => x.WorkingPluginId == workingPluginId);
             if (existing != null)
             {
                 existing.IsEnabled = state;
@@ -176,16 +176,16 @@ internal class Profile
             {
                 this.modelV1.Plugins.Add(new ProfileModelV1.ProfileModelV1Plugin
                 {
-                    InternalName = internalName,
+                    WorkingPluginId = workingPluginId,
                     IsEnabled = state,
                 });
             }
         }
 
         // We need to remove this plugin from the default profile, if it declares it.
-        if (!this.IsDefaultProfile && this.manager.DefaultProfile.WantsPlugin(internalName) != null)
+        if (!this.IsDefaultProfile && this.manager.DefaultProfile.WantsPlugin(workingPluginId) != null)
         {
-            await this.manager.DefaultProfile.RemoveAsync(internalName, false);
+            await this.manager.DefaultProfile.RemoveAsync(workingPluginId, false);
         }
 
         Service<DalamudConfiguration>.Get().QueueSave();
@@ -201,25 +201,25 @@ internal class Profile
     /// <param name="internalName">The internal name of the plugin.</param>
     /// <param name="apply">Whether or not the current state should immediately be applied.</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-    public async Task RemoveAsync(string internalName, bool apply = true)
+    public async Task RemoveAsync(Guid workingPluginId, bool apply = true)
     {
         ProfileModelV1.ProfileModelV1Plugin entry;
         lock (this)
         {
-            entry = this.modelV1.Plugins.FirstOrDefault(x => x.InternalName == internalName);
+            entry = this.modelV1.Plugins.FirstOrDefault(x => x.WorkingPluginId == workingPluginId);
             if (entry == null)
-                throw new ArgumentException($"No plugin \"{internalName}\" in profile \"{this.Guid}\"");
+                throw new ArgumentException($"No plugin \"{workingPluginId}\" in profile \"{this.Guid}\"");
 
             if (!this.modelV1.Plugins.Remove(entry))
                 throw new Exception("Couldn't remove plugin from model collection");
         }
 
         // We need to add this plugin back to the default profile, if we were the last profile to have it.
-        if (!this.manager.IsInAnyProfile(internalName))
+        if (!this.manager.IsInAnyProfile(workingPluginId))
         {
             if (!this.IsDefaultProfile)
             {
-                await this.manager.DefaultProfile.AddOrUpdateAsync(internalName, this.IsEnabled && entry.IsEnabled, false);
+                await this.manager.DefaultProfile.AddOrUpdateAsync(workingPluginId, this.IsEnabled && entry.IsEnabled, false);
             }
             else
             {
@@ -231,6 +231,30 @@ internal class Profile
 
         if (apply)
             await this.manager.ApplyAllWantStatesAsync();
+    }
+
+    /// <summary>
+    /// This function tries to migrate all plugins with this internalName which do not have
+    /// a GUID to the specified GUID.
+    /// This is best-effort and will probably work well for anyone that only uses regular plugins.
+    /// </summary>
+    /// <param name="internalName">InternalName of the plugin to migrate.</param>
+    /// <param name="newGuid">Guid to use.</param>
+    public void MigrateProfilesToGuidsForPlugin(string internalName, Guid newGuid)
+    {
+        lock (this)
+        {
+            foreach (var plugin in this.modelV1.Plugins)
+            {
+                if (plugin.InternalName == internalName && plugin.WorkingPluginId == Guid.Empty)
+                {
+                    plugin.WorkingPluginId = newGuid;
+                    Log.Information("Migrated profile {Profile} plugin {Name} to guid {Guid}", this, internalName, newGuid);
+                }
+            }
+        }
+        
+        Service<DalamudConfiguration>.Get().QueueSave();
     }
 
     /// <inheritdoc/>

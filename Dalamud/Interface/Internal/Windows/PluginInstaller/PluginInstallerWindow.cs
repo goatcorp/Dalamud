@@ -2381,10 +2381,10 @@ internal class PluginInstallerWindow : Window, IDisposable
 
         var applicableForProfiles = plugin.Manifest.SupportsProfiles && !plugin.IsDev;
         var profilesThatWantThisPlugin = profileManager.Profiles
-                                                       .Where(x => x.WantsPlugin(plugin.InternalName) != null)
+                                                       .Where(x => x.WantsPlugin(plugin.Manifest.WorkingPluginId) != null)
                                                        .ToArray();
         var isInSingleProfile = profilesThatWantThisPlugin.Length == 1;
-        var isDefaultPlugin = profileManager.IsInDefaultProfile(plugin.Manifest.InternalName);
+        var isDefaultPlugin = profileManager.IsInDefaultProfile(plugin.Manifest.WorkingPluginId);
 
         // Disable everything if the updater is running or another plugin is operating
         var disabled = this.updateStatus == OperationStatus.InProgress || this.installStatus == OperationStatus.InProgress;
@@ -2419,17 +2419,17 @@ internal class PluginInstallerWindow : Window, IDisposable
 
             foreach (var profile in profileManager.Profiles.Where(x => !x.IsDefaultProfile))
             {
-                var inProfile = profile.WantsPlugin(plugin.Manifest.InternalName) != null;
+                var inProfile = profile.WantsPlugin(plugin.Manifest.WorkingPluginId) != null;
                 if (ImGui.Checkbox($"###profilePick{profile.Guid}{plugin.Manifest.InternalName}", ref inProfile))
                 {
                     if (inProfile)
                     {
-                        Task.Run(() => profile.AddOrUpdateAsync(plugin.Manifest.InternalName, true))
+                        Task.Run(() => profile.AddOrUpdateAsync(plugin.Manifest.WorkingPluginId, true))
                             .ContinueWith(this.DisplayErrorContinuation, Locs.Profiles_CouldNotAdd);
                     }
                     else
                     {
-                        Task.Run(() => profile.RemoveAsync(plugin.Manifest.InternalName))
+                        Task.Run(() => profile.RemoveAsync(plugin.Manifest.WorkingPluginId))
                             .ContinueWith(this.DisplayErrorContinuation, Locs.Profiles_CouldNotRemove);
                     }
                 }
@@ -2449,11 +2449,11 @@ internal class PluginInstallerWindow : Window, IDisposable
             if (ImGuiComponents.IconButton(FontAwesomeIcon.Times))
             {
                 // TODO: Work this out
-                Task.Run(() => profileManager.DefaultProfile.AddOrUpdateAsync(plugin.Manifest.InternalName, plugin.IsLoaded, false))
+                Task.Run(() => profileManager.DefaultProfile.AddOrUpdateAsync(plugin.Manifest.WorkingPluginId, plugin.IsLoaded, false))
                     .GetAwaiter().GetResult();
                 foreach (var profile in profileManager.Profiles.Where(x => !x.IsDefaultProfile && x.Plugins.Any(y => y.InternalName == plugin.Manifest.InternalName)))
                 {
-                    Task.Run(() => profile.RemoveAsync(plugin.Manifest.InternalName, false))
+                    Task.Run(() => profile.RemoveAsync(plugin.Manifest.WorkingPluginId, false))
                         .GetAwaiter().GetResult();
                 }
 
@@ -2527,7 +2527,7 @@ internal class PluginInstallerWindow : Window, IDisposable
                     {
                         await plugin.UnloadAsync();
                         await applicableProfile.AddOrUpdateAsync(
-                            plugin.Manifest.InternalName, false, false);
+                            plugin.Manifest.WorkingPluginId, false, false);
 
                         notifications.AddNotification(Locs.Notifications_PluginDisabled(plugin.Manifest.Name), Locs.Notifications_PluginDisabledTitle, NotificationType.Success);
                     }).ContinueWith(t =>
@@ -2544,7 +2544,7 @@ internal class PluginInstallerWindow : Window, IDisposable
                         this.loadingIndicatorKind = LoadingIndicatorKind.EnablingSingle;
                         this.enableDisableWorkingPluginId = plugin.Manifest.WorkingPluginId;
 
-                        await applicableProfile.AddOrUpdateAsync(plugin.Manifest.InternalName, true, false);
+                        await applicableProfile.AddOrUpdateAsync(plugin.Manifest.WorkingPluginId, true, false);
                         await plugin.LoadAsync(PluginLoadReason.Installer);
 
                         notifications.AddNotification(Locs.Notifications_PluginEnabled(plugin.Manifest.Name), Locs.Notifications_PluginEnabledTitle, NotificationType.Success);
@@ -2565,7 +2565,7 @@ internal class PluginInstallerWindow : Window, IDisposable
                             if (shouldUpdate)
                             {
                                 // We need to update the profile right here, because PM will not enable the plugin otherwise
-                                await applicableProfile.AddOrUpdateAsync(plugin.InternalName, true, false);
+                                await applicableProfile.AddOrUpdateAsync(plugin.Manifest.WorkingPluginId, true, false);
                                 await this.UpdateSinglePlugin(availableUpdate);
                             }
                             else
@@ -2739,7 +2739,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         if (localPlugin is LocalDevPlugin plugin)
         {
             var isInDefaultProfile =
-                Service<ProfileManager>.Get().IsInDefaultProfile(localPlugin.Manifest.InternalName);
+                Service<ProfileManager>.Get().IsInDefaultProfile(localPlugin.Manifest.WorkingPluginId);
 
             // https://colorswall.com/palette/2868/
             var greenColor = new Vector4(0x5C, 0xB8, 0x5C, 0xFF) / 0xFF;
@@ -3083,7 +3083,7 @@ internal class PluginInstallerWindow : Window, IDisposable
                 this.pluginListAvailable.Sort((p1, p2) => p1.Name.CompareTo(p2.Name));
                 
                 var profman = Service<ProfileManager>.Get();
-                this.pluginListInstalled.Sort((p1, p2) => profman.IsInDefaultProfile(p1.InternalName).CompareTo(profman.IsInDefaultProfile(p2.InternalName)));
+                this.pluginListInstalled.Sort((p1, p2) => profman.IsInDefaultProfile(p1.Manifest.WorkingPluginId).CompareTo(profman.IsInDefaultProfile(p2.Manifest.WorkingPluginId)));
                 break;
             default:
                 throw new InvalidEnumArgumentException("Unknown plugin sort type.");
