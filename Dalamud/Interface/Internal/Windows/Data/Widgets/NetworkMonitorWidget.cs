@@ -54,7 +54,10 @@ internal class NetworkMonitorWidget : IDataWindowWidget
     }
 
     /// <inheritdoc/>
-    public DataKind DataKind { get; init; } = DataKind.Network_Monitor;
+    public string[]? CommandShortcuts { get; init; } = { "network", "netmon", "networkmonitor" };
+    
+    /// <inheritdoc/>
+    public string DisplayName { get; init; } = "Network Monitor"; 
 
     /// <inheritdoc/>
     public bool Ready { get; set; }
@@ -93,6 +96,11 @@ internal class NetworkMonitorWidget : IDataWindowWidget
         if (ImGui.DragInt("Stored Number of Packets", ref this.trackedPackets, 0.1f, 1, 512))
         {
             this.trackedPackets = Math.Clamp(this.trackedPackets, 1, 512);
+        }
+
+        if (ImGui.Button("Clear Stored Packets"))
+        {
+            this.packets.Clear();
         }
 
         this.DrawFilterInput();

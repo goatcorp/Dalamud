@@ -14,7 +14,10 @@ internal class DtrBarWidget : IDataWindowWidget
     private DtrBarEntry? dtrTest3;
     
     /// <inheritdoc/>
-    public DataKind DataKind { get; init; } = DataKind.Dtr_Bar;
+    public string[]? CommandShortcuts { get; init; } = { "dtr", "dtrbar" };
+    
+    /// <inheritdoc/>
+    public string DisplayName { get; init; } = "DTR Bar"; 
 
     /// <inheritdoc/>
     public bool Ready { get; set; }

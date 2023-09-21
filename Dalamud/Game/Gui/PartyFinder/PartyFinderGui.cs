@@ -1,4 +1,3 @@
-using System;
 using System.Runtime.InteropServices;
 
 using Dalamud.Game.Gui.PartyFinder.Internal;
@@ -6,6 +5,7 @@ using Dalamud.Game.Gui.PartyFinder.Types;
 using Dalamud.Hooking;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
+using Dalamud.Plugin.Services;
 using Serilog;
 
 namespace Dalamud.Game.Gui.PartyFinder;
@@ -13,10 +13,9 @@ namespace Dalamud.Game.Gui.PartyFinder;
 /// <summary>
 /// This class handles interacting with the native PartyFinder window.
 /// </summary>
-[PluginInterface]
 [InterfaceVersion("1.0")]
 [ServiceManager.BlockingEarlyLoadedService]
-public sealed class PartyFinderGui : IDisposable, IServiceType
+internal sealed class PartyFinderGui : IDisposable, IServiceType, IPartyFinderGui
 {
     private readonly PartyFinderAddressResolver address;
     private readonly IntPtr memory;
@@ -35,25 +34,14 @@ public sealed class PartyFinderGui : IDisposable, IServiceType
 
         this.memory = Marshal.AllocHGlobal(PartyFinderPacket.PacketSize);
 
-        this.receiveListingHook = Hook<ReceiveListingDelegate>.FromAddress(this.address.ReceiveListing, new ReceiveListingDelegate(this.HandleReceiveListingDetour));
+        this.receiveListingHook = Hook<ReceiveListingDelegate>.FromAddress(this.address.ReceiveListing, this.HandleReceiveListingDetour);
     }
-
-    /// <summary>
-    /// Event type fired each time the game receives an individual Party Finder listing.
-    /// Cannot modify listings but can hide them.
-    /// </summary>
-    /// <param name="listing">The listings received.</param>
-    /// <param name="args">Additional arguments passed by the game.</param>
-    public delegate void PartyFinderListingEventDelegate(PartyFinderListing listing, PartyFinderListingEventArgs args);
 
     [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
     private delegate void ReceiveListingDelegate(IntPtr managerPtr, IntPtr data);
 
-    /// <summary>
-    /// Event fired each time the game receives an individual Party Finder listing.
-    /// Cannot modify listings but can hide them.
-    /// </summary>
-    public event PartyFinderListingEventDelegate ReceiveListing;
+    /// <inheritdoc/>
+    public event IPartyFinderGui.PartyFinderListingEventDelegate? ReceiveListing;
 
     /// <summary>
     /// Dispose of managed and unmanaged resources.
@@ -137,4 +125,40 @@ public sealed class PartyFinderGui : IDisposable, IServiceType
             Buffer.MemoryCopy((void*)this.memory, (void*)dataPtr, PartyFinderPacket.PacketSize, PartyFinderPacket.PacketSize);
         }
     }
+}
+
+/// <summary>
+/// A scoped variant of the PartyFinderGui service.
+/// </summary>
+[PluginInterface]
+[InterfaceVersion("1.0")]
+[ServiceManager.ScopedService]
+#pragma warning disable SA1015
+[ResolveVia<IPartyFinderGui>]
+#pragma warning restore SA1015
+internal class PartyFinderGuiPluginScoped : IDisposable, IServiceType, IPartyFinderGui
+{
+    [ServiceManager.ServiceDependency]
+    private readonly PartyFinderGui partyFinderGuiService = Service<PartyFinderGui>.Get();
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="PartyFinderGuiPluginScoped"/> class.
+    /// </summary>
+    internal PartyFinderGuiPluginScoped()
+    {
+        this.partyFinderGuiService.ReceiveListing += this.ReceiveListingForward;
+    }
+
+    /// <inheritdoc/>
+    public event IPartyFinderGui.PartyFinderListingEventDelegate? ReceiveListing;
+
+    /// <inheritdoc/>
+    public void Dispose()
+    {
+        this.partyFinderGuiService.ReceiveListing -= this.ReceiveListingForward;
+
+        this.ReceiveListing = null;
+    }
+
+    private void ReceiveListingForward(PartyFinderListing listing, PartyFinderListingEventArgs args) => this.ReceiveListing?.Invoke(listing, args);
 }

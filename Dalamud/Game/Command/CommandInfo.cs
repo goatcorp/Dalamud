@@ -15,7 +15,6 @@ public sealed class CommandInfo
     public CommandInfo(HandlerDelegate handler)
     {
         this.Handler = handler;
-        this.LoaderAssemblyName = Assembly.GetCallingAssembly()?.GetName()?.Name;
     }
 
     /// <summary>

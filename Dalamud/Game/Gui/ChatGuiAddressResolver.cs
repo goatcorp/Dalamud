@@ -1,11 +1,9 @@
-using System;
-
 namespace Dalamud.Game.Gui;
 
 /// <summary>
 /// The address resolver for the <see cref="ChatGui"/> class.
 /// </summary>
-public sealed class ChatGuiAddressResolver : BaseAddressResolver
+internal sealed class ChatGuiAddressResolver : BaseAddressResolver
 {
     /// <summary>
     /// Gets the address of the native PrintMessage method.

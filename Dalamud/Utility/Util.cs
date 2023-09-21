@@ -1,13 +1,12 @@
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
-using System.Net.Http;
 using System.Numerics;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text;
 
 using Dalamud.Configuration.Internal;
@@ -15,14 +14,12 @@ using Dalamud.Data;
 using Dalamud.Game;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
-using Dalamud.Interface;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Utility;
 using Dalamud.Logging.Internal;
-using Dalamud.Networking.Http;
+using Dalamud.Memory;
 using ImGuiNET;
 using Lumina.Excel.GeneratedSheets;
-using Microsoft.Win32;
 using Serilog;
 
 namespace Dalamud.Utility;
@@ -38,7 +35,7 @@ public static class Util
 
     private static ulong moduleStartAddr;
     private static ulong moduleEndAddr;
-    
+
     /// <summary>
     /// Gets the assembly version of Dalamud.
     /// </summary>
@@ -491,32 +488,57 @@ public static class Util
     }
 
     /// <summary>
-    /// Heuristically determine if Dalamud is running on Linux/WINE.
+    /// Determine if Dalamud is currently running within a Wine context (e.g. either on macOS or Linux). This method
+    /// will not return information about the host operating system.
     /// </summary>
-    /// <returns>Whether or not Dalamud is running on Linux/WINE.</returns>
-    public static bool IsLinux()
+    /// <returns>Returns true if Wine is detected, false otherwise.</returns>
+    public static bool IsWine()
     {
-        bool Check1()
+        if (EnvironmentConfiguration.XlWineOnLinux) return true;
+        if (Environment.GetEnvironmentVariable("XL_PLATFORM") is not null and not "Windows") return true;
+
+        var ntdll = NativeFunctions.GetModuleHandleW("ntdll.dll");
+
+        // Test to see if any Wine specific exports exist. If they do, then we are running on Wine.
+        // The exports "wine_get_version", "wine_get_build_id", and "wine_get_host_version" will tend to be hidden
+        // by most Linux users (else FFXIV will want a macOS license), so we will additionally check some lesser-known
+        // exports as well.
+        return AnyProcExists(
+            ntdll,
+            "wine_get_version",
+            "wine_get_build_id",
+            "wine_get_host_version",
+            "wine_server_call",
+            "wine_unix_to_nt_file_name");
+
+        bool AnyProcExists(nint handle, params string[] procs) =>
+            procs.Any(p => NativeFunctions.GetProcAddress(handle, p) != nint.Zero);
+    }
+
+    /// <summary>
+    /// Gets the best guess for the current host's platform based on the <c>XL_PLATFORM</c> environment variable or
+    /// heuristics.
+    /// </summary>
+    /// <remarks>
+    /// macOS users running without <c>XL_PLATFORM</c> being set will be reported as Linux users. Due to the way our
+    /// Wines work, there isn't a great (consistent) way to split the two apart if we're not told.
+    /// </remarks>
+    /// <returns>Returns the <see cref="OSPlatform"/> that Dalamud is currently running on.</returns>
+    public static OSPlatform GetHostPlatform()
+    {
+        switch (Environment.GetEnvironmentVariable("XL_PLATFORM"))
         {
-            return EnvironmentConfiguration.XlWineOnLinux;
+            case "Windows": return OSPlatform.Windows;
+            case "MacOS": return OSPlatform.OSX;
+            case "Linux": return OSPlatform.Linux;
         }
-
-        bool Check2()
-        {
-            var hModule = NativeFunctions.GetModuleHandleW("ntdll.dll");
-            var proc1 = NativeFunctions.GetProcAddress(hModule, "wine_get_version");
-            var proc2 = NativeFunctions.GetProcAddress(hModule, "wine_get_build_id");
-
-            return proc1 != IntPtr.Zero || proc2 != IntPtr.Zero;
-        }
-
-        bool Check3()
-        {
-            return Registry.CurrentUser.OpenSubKey(@"Software\Wine") != null ||
-                   Registry.LocalMachine.OpenSubKey(@"Software\Wine") != null;
-        }
-
-        return Check1() || Check2() || Check3();
+        
+        // n.b. we had some fancy code here to check if the Wine host version returned "Darwin" but apparently
+        // *all* our Wines report Darwin if exports aren't hidden. As such, it is effectively impossible (without some
+        // (very cursed and inaccurate heuristics) to determine if we're on macOS or Linux unless we're explicitly told
+        // by our launcher. See commit a7aacb15e4603a367e2f980578271a9a639d8852 for the old check.
+        
+        return IsWine() ? OSPlatform.Linux : OSPlatform.Windows;
     }
 
     /// <summary>
@@ -587,7 +609,23 @@ public static class Util
             }
         }
     }
+    
+    /// <summary>
+    /// Overwrite text in a file by first writing it to a temporary file, and then
+    /// moving that file to the path specified.
+    /// </summary>
+    /// <param name="path">The path of the file to write to.</param>
+    /// <param name="text">The text to write.</param>
+    public static void WriteAllTextSafe(string path, string text)
+    {
+        var tmpPath = path + ".tmp";
+        if (File.Exists(tmpPath))
+            File.Delete(tmpPath);
 
+        File.WriteAllText(tmpPath, text);
+        File.Move(tmpPath, path, true);
+    }
+    
     /// <summary>
     /// Dispose this object.
     /// </summary>
@@ -621,22 +659,6 @@ public static class Util
             else
                 Log.Error(e, logMessage);
         }
-    }
-
-    /// <summary>
-    /// Overwrite text in a file by first writing it to a temporary file, and then
-    /// moving that file to the path specified.
-    /// </summary>
-    /// <param name="path">The path of the file to write to.</param>
-    /// <param name="text">The text to write.</param>
-    internal static void WriteAllTextSafe(string path, string text)
-    {
-        var tmpPath = path + ".tmp";
-        if (File.Exists(tmpPath))
-            File.Delete(tmpPath);
-
-        File.WriteAllText(tmpPath, text);
-        File.Move(tmpPath, path, true);
     }
 
     /// <summary>
@@ -685,7 +707,7 @@ public static class Util
             ImGui.SetClipboardText(actor.Address.ToInt64().ToString("X"));
         }
     }
-    
+
     private static unsafe void ShowValue(ulong addr, IEnumerable<string> path, Type type, object value)
     {
         if (type.IsPointer)

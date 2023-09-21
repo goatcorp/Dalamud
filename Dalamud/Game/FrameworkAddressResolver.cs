@@ -5,7 +5,7 @@ namespace Dalamud.Game;
 /// <summary>
 /// The address resolver for the <see cref="Framework"/> class.
 /// </summary>
-public sealed class FrameworkAddressResolver : BaseAddressResolver
+internal sealed class FrameworkAddressResolver : BaseAddressResolver
 {
     /// <summary>
     /// Gets the address for the function that is called once the Framework is destroyed.

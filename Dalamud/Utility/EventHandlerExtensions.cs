@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 
 using Dalamud.Game;
+using Dalamud.Plugin.Services;
 using Serilog;
 
 using static Dalamud.Game.Framework;
@@ -72,12 +73,12 @@ internal static class EventHandlerExtensions
     /// </summary>
     /// <param name="updateDelegate">The OnUpdateDelegate in question.</param>
     /// <param name="framework">Framework to be passed on to OnUpdateDelegate.</param>
-    public static void InvokeSafely(this OnUpdateDelegate updateDelegate, Framework framework)
+    public static void InvokeSafely(this IFramework.OnUpdateDelegate updateDelegate, Framework framework)
     {
         if (updateDelegate == null)
             return;
 
-        foreach (var action in updateDelegate.GetInvocationList().Cast<OnUpdateDelegate>())
+        foreach (var action in updateDelegate.GetInvocationList().Cast<IFramework.OnUpdateDelegate>())
         {
             HandleInvoke(() => action(framework));
         }

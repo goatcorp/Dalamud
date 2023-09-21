@@ -1,25 +1,19 @@
-﻿using System;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Hooking;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Plugin.Services;
-using Dalamud.Utility;
 
 namespace Dalamud.Game.DutyState;
 
 /// <summary>
 /// This class represents the state of the currently occupied duty.
 /// </summary>
-[PluginInterface]
 [InterfaceVersion("1.0")]
 [ServiceManager.EarlyLoadedService]
-#pragma warning disable SA1015
-[ResolveVia<IDutyState>]
-#pragma warning restore SA1015
-public unsafe class DutyState : IDisposable, IServiceType, IDutyState
+internal unsafe class DutyState : IDisposable, IServiceType, IDutyState
 {
     private readonly DutyStateAddressResolver address;
     private readonly Hook<SetupContentDirectNetworkMessageDelegate> contentDirectorNetworkMessageHook;
@@ -49,16 +43,16 @@ public unsafe class DutyState : IDisposable, IServiceType, IDutyState
     private delegate byte SetupContentDirectNetworkMessageDelegate(IntPtr a1, IntPtr a2, ushort* a3);
 
     /// <inheritdoc/>
-    public event EventHandler<ushort> DutyStarted;
+    public event EventHandler<ushort>? DutyStarted;
 
     /// <inheritdoc/>
-    public event EventHandler<ushort> DutyWiped;
+    public event EventHandler<ushort>? DutyWiped;
     
     /// <inheritdoc/>
-    public event EventHandler<ushort> DutyRecommenced;
+    public event EventHandler<ushort>? DutyRecommenced;
     
     /// <inheritdoc/>
-    public event EventHandler<ushort> DutyCompleted;
+    public event EventHandler<ushort>? DutyCompleted;
     
     /// <inheritdoc/>
     public bool IsDutyStarted { get; private set; }
@@ -66,7 +60,7 @@ public unsafe class DutyState : IDisposable, IServiceType, IDutyState
     private bool CompletedThisTerritory { get; set; }
 
     /// <inheritdoc/>
-    void IDisposable.Dispose()
+    public void Dispose()
     {
         this.contentDirectorNetworkMessageHook.Dispose();
         this.framework.Update -= this.FrameworkOnUpdateEvent;
@@ -92,33 +86,33 @@ public unsafe class DutyState : IDisposable, IServiceType, IDutyState
                 // Duty Commenced
                 case 0x4000_0001:
                     this.IsDutyStarted = true;
-                    this.DutyStarted.InvokeSafely(this, this.clientState.TerritoryType);
+                    this.DutyStarted?.Invoke(this, this.clientState.TerritoryType);
                     break;
 
                 // Party Wipe
                 case 0x4000_0005:
                     this.IsDutyStarted = false;
-                    this.DutyWiped.InvokeSafely(this, this.clientState.TerritoryType);
+                    this.DutyWiped?.Invoke(this, this.clientState.TerritoryType);
                     break;
 
                 // Duty Recommence
                 case 0x4000_0006:
                     this.IsDutyStarted = true;
-                    this.DutyRecommenced.InvokeSafely(this, this.clientState.TerritoryType);
+                    this.DutyRecommenced?.Invoke(this, this.clientState.TerritoryType);
                     break;
 
                 // Duty Completed Flytext Shown
                 case 0x4000_0002 when !this.CompletedThisTerritory:
                     this.IsDutyStarted = false;
                     this.CompletedThisTerritory = true;
-                    this.DutyCompleted.InvokeSafely(this, this.clientState.TerritoryType);
+                    this.DutyCompleted?.Invoke(this, this.clientState.TerritoryType);
                     break;
 
                 // Duty Completed
                 case 0x4000_0003 when !this.CompletedThisTerritory:
                     this.IsDutyStarted = false;
                     this.CompletedThisTerritory = true;
-                    this.DutyCompleted.InvokeSafely(this, this.clientState.TerritoryType);
+                    this.DutyCompleted?.Invoke(this, this.clientState.TerritoryType);
                     break;
             }
         }
@@ -141,7 +135,7 @@ public unsafe class DutyState : IDisposable, IServiceType, IDutyState
     /// Joining a duty in progress, or disconnecting and reconnecting will cause the player to miss the event.
     /// </summary>
     /// <param name="framework1">Framework reference.</param>
-    private void FrameworkOnUpdateEvent(Framework framework1)
+    private void FrameworkOnUpdateEvent(IFramework framework1)
     {
         // If the duty hasn't been started, and has not been completed yet this territory
         if (!this.IsDutyStarted && !this.CompletedThisTerritory)
@@ -161,11 +155,73 @@ public unsafe class DutyState : IDisposable, IServiceType, IDutyState
     }
 
     private bool IsBoundByDuty()
+        => this.condition.Any(ConditionFlag.BoundByDuty,
+                              ConditionFlag.BoundByDuty56,
+                              ConditionFlag.BoundByDuty95);
+    
+    private bool IsInCombat()        
+        => this.condition.Any(ConditionFlag.InCombat);
+}
+
+/// <summary>
+/// Plugin scoped version of DutyState.
+/// </summary>
+[PluginInterface]
+[InterfaceVersion("1.0")]
+[ServiceManager.ScopedService]
+#pragma warning disable SA1015
+[ResolveVia<IDutyState>]
+#pragma warning restore SA1015
+internal class DutyStatePluginScoped : IDisposable, IServiceType, IDutyState
+{
+    [ServiceManager.ServiceDependency]
+    private readonly DutyState dutyStateService = Service<DutyState>.Get();
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="DutyStatePluginScoped"/> class.
+    /// </summary>
+    internal DutyStatePluginScoped()
     {
-        return this.condition[ConditionFlag.BoundByDuty] ||
-               this.condition[ConditionFlag.BoundByDuty56] ||
-               this.condition[ConditionFlag.BoundByDuty95];
+        this.dutyStateService.DutyStarted += this.DutyStartedForward;
+        this.dutyStateService.DutyWiped += this.DutyWipedForward;
+        this.dutyStateService.DutyRecommenced += this.DutyRecommencedForward;
+        this.dutyStateService.DutyCompleted += this.DutyCompletedForward;
     }
 
-    private bool IsInCombat() => this.condition[ConditionFlag.InCombat];
+    /// <inheritdoc/>
+    public event EventHandler<ushort>? DutyStarted;
+    
+    /// <inheritdoc/>
+    public event EventHandler<ushort>? DutyWiped;
+    
+    /// <inheritdoc/>
+    public event EventHandler<ushort>? DutyRecommenced;
+    
+    /// <inheritdoc/>
+    public event EventHandler<ushort>? DutyCompleted;
+    
+    /// <inheritdoc/>
+    public bool IsDutyStarted => this.dutyStateService.IsDutyStarted;
+    
+    /// <inheritdoc/>
+    public void Dispose()
+    {
+        this.dutyStateService.DutyStarted -= this.DutyStartedForward;
+        this.dutyStateService.DutyWiped -= this.DutyWipedForward;
+        this.dutyStateService.DutyRecommenced -= this.DutyRecommencedForward;
+        this.dutyStateService.DutyCompleted -= this.DutyCompletedForward;
+
+        this.DutyStarted = null;
+        this.DutyWiped = null;
+        this.DutyRecommenced = null;
+        this.DutyCompleted = null;
+    }
+
+    private void DutyStartedForward(object sender, ushort territoryId) => this.DutyStarted?.Invoke(sender, territoryId);
+    
+    private void DutyWipedForward(object sender, ushort territoryId) => this.DutyWiped?.Invoke(sender, territoryId);
+    
+    private void DutyRecommencedForward(object sender, ushort territoryId) => this.DutyRecommenced?.Invoke(sender, territoryId);
+    
+    private void DutyCompletedForward(object sender, ushort territoryId) => this.DutyCompleted?.Invoke(sender, territoryId);
 }

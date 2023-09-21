@@ -5,7 +5,7 @@ namespace Dalamud.Game.ClientState;
 /// <summary>
 /// Client state memory address resolver.
 /// </summary>
-public sealed class ClientStateAddressResolver : BaseAddressResolver
+internal sealed class ClientStateAddressResolver : BaseAddressResolver
 {
     // Static offsets
 

@@ -3,7 +3,7 @@
 /// <summary>
 /// Game config system address resolver.
 /// </summary>
-public sealed class GameConfigAddressResolver : BaseAddressResolver
+internal sealed class GameConfigAddressResolver : BaseAddressResolver
 {
     /// <summary>
     /// Gets the address of the method called when any config option is changed.

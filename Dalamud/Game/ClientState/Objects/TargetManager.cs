@@ -16,7 +16,7 @@ namespace Dalamud.Game.ClientState.Objects;
 #pragma warning disable SA1015
 [ResolveVia<ITargetManager>]
 #pragma warning restore SA1015
-public sealed unsafe class TargetManager : IServiceType, ITargetManager
+internal sealed unsafe class TargetManager : IServiceType, ITargetManager
 {
     [ServiceManager.ServiceDependency]
     private readonly ClientState clientState = Service<ClientState>.Get();
@@ -68,6 +68,20 @@ public sealed unsafe class TargetManager : IServiceType, ITargetManager
     {
         get => this.objectTable.CreateObjectReference((IntPtr)Struct->SoftTarget);
         set => this.SetSoftTarget(value);
+    }
+
+    /// <inheritdoc/>
+    public GameObject? GPoseTarget
+    {
+        get => this.objectTable.CreateObjectReference((IntPtr)Struct->GPoseTarget);
+        set => Struct->GPoseTarget = (FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject*)value?.Address;
+    }
+    
+    /// <inheritdoc/>
+    public GameObject? MouseOverNameplateTarget
+    {
+        get => this.objectTable.CreateObjectReference((IntPtr)Struct->MouseOverNameplateTarget);
+        set => Struct->MouseOverNameplateTarget = (FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject*)value?.Address;
     }
 
     private FFXIVClientStructs.FFXIV.Client.Game.Control.TargetSystem* Struct => (FFXIVClientStructs.FFXIV.Client.Game.Control.TargetSystem*)this.Address;

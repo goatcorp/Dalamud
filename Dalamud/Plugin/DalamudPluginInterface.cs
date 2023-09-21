@@ -56,7 +56,7 @@ public sealed class DalamudPluginInterface : IDisposable
 
         this.configs = Service<PluginManager>.Get().PluginConfigs;
         this.Reason = reason;
-        this.SourceRepository = this.IsDev ? LocalPluginManifest.FlagDevPlugin : plugin.Manifest.InstalledFromUrl;
+        this.SourceRepository = this.IsDev ? SpecialPluginSource.DevPlugin : plugin.Manifest.InstalledFromUrl;
         this.IsTesting = plugin.IsTesting;
 
         this.LoadTime = DateTime.Now;
@@ -118,8 +118,8 @@ public sealed class DalamudPluginInterface : IDisposable
     /// Gets the repository from which this plugin was installed.
     ///
     /// If a plugin was installed from the official/main repository, this will return the value of
-    /// <see cref="LocalPluginManifest.FlagMainRepo"/>. Developer plugins will return the value of
-    /// <see cref="LocalPluginManifest.FlagDevPlugin"/>.
+    /// <see cref="SpecialPluginSource.MainRepo"/>. Developer plugins will return the value of
+    /// <see cref="SpecialPluginSource.DevPlugin"/>.
     /// </summary>
     public string SourceRepository { get; }
 

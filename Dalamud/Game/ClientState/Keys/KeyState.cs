@@ -28,7 +28,7 @@ namespace Dalamud.Game.ClientState.Keys;
 #pragma warning disable SA1015
 [ResolveVia<IKeyState>]
 #pragma warning restore SA1015
-public class KeyState : IServiceType, IKeyState
+internal class KeyState : IServiceType, IKeyState
 {
     // The array is accessed in a way that this limit doesn't appear to exist
     // but there is other state data past this point, and keys beyond here aren't

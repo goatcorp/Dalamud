@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -12,6 +11,7 @@ using Dalamud.Interface.Animation.EasingFunctions;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
+using Dalamud.Plugin.Services;
 using ImGuiNET;
 using ImGuiScene;
 
@@ -98,16 +98,17 @@ internal class TitleScreenMenuWindow : Window, IDisposable
     public override void Draw()
     {
         var scale = ImGui.GetIO().FontGlobalScale;
-
-        var tsm = Service<TitleScreenMenu>.Get();
+        var entries = Service<TitleScreenMenu>.Get().Entries
+                                              .OrderByDescending(x => x.IsInternal)
+                                              .ToList();
 
         switch (this.state)
         {
             case State.Show:
             {
-                for (var i = 0; i < tsm.Entries.Count; i++)
+                for (var i = 0; i < entries.Count; i++)
                 {
-                    var entry = tsm.Entries[i];
+                    var entry = entries[i];
 
                     if (!this.moveEasings.TryGetValue(entry.Id, out var moveEasing))
                     {
@@ -173,9 +174,9 @@ internal class TitleScreenMenuWindow : Window, IDisposable
 
                 using (ImRaii.PushStyle(ImGuiStyleVar.Alpha, (float)this.fadeOutEasing.Value))
                 {
-                    for (var i = 0; i < tsm.Entries.Count; i++)
+                    for (var i = 0; i < entries.Count; i++)
                     {
-                        var entry = tsm.Entries[i];
+                        var entry = entries[i];
 
                         var finalPos = (i + 1) * this.shadeTexture.Height * scale;
 
@@ -206,7 +207,7 @@ internal class TitleScreenMenuWindow : Window, IDisposable
 
             case State.Hide:
             {
-                if (this.DrawEntry(tsm.Entries[0], true, false, true, true, false))
+                if (this.DrawEntry(entries[0], true, false, true, true, false))
                 {
                     this.state = State.Show;
                 }
@@ -218,7 +219,7 @@ internal class TitleScreenMenuWindow : Window, IDisposable
             }
         }
 
-        var srcText = tsm.Entries.Select(e => e.Name).ToHashSet();
+        var srcText = entries.Select(e => e.Name).ToHashSet();
         var keys = this.specialGlyphRequests.Keys.ToHashSet();
         keys.RemoveWhere(x => srcText.Contains(x));
         foreach (var key in keys)
@@ -229,7 +230,7 @@ internal class TitleScreenMenuWindow : Window, IDisposable
     }
 
     private bool DrawEntry(
-        TitleScreenMenu.TitleScreenMenuEntry entry, bool inhibitFadeout, bool showText, bool isFirst, bool overrideAlpha, bool interactable)
+        TitleScreenMenuEntry entry, bool inhibitFadeout, bool showText, bool isFirst, bool overrideAlpha, bool interactable)
     {
         InterfaceManager.SpecialGlyphRequest fontHandle;
         if (this.specialGlyphRequests.TryGetValue(entry.Name, out fontHandle) && fontHandle.Size != TargetFontSizePx)
@@ -358,7 +359,7 @@ internal class TitleScreenMenuWindow : Window, IDisposable
         return isHover;
     }
 
-    private void FrameworkOnUpdate(Framework framework)
+    private void FrameworkOnUpdate(IFramework framework)
     {
         var clientState = Service<ClientState>.Get();
         this.IsOpen = !clientState.IsLoggedIn;

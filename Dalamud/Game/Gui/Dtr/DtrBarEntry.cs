@@ -41,6 +41,16 @@ public sealed unsafe class DtrBarEntry : IDisposable
             this.Dirty = true;
         }
     }
+    
+    /// <summary>
+    /// Gets or sets a tooltip to be shown when the user mouses over the dtr entry.
+    /// </summary>
+    public SeString? Tooltip { get; set; }
+    
+    /// <summary>
+    /// Gets or sets a action to be invoked when the user clicks on the dtr entry.
+    /// </summary>
+    public Action? OnClick { get; set; }
 
     /// <summary>
     /// Gets or sets a value indicating whether this entry is visible.
