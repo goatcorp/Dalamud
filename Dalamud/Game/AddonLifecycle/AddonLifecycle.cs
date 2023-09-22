@@ -27,7 +27,7 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
     private readonly Framework framework = Service<Framework>.Get();
 
     private readonly AddonLifecycleAddressResolver address;
-    private readonly Hook<AddonSetupDelegate> onAddonSetupHook;
+    private readonly CallHook<AddonSetupDelegate> onAddonSetupHook;
     private readonly Hook<AddonFinalizeDelegate> onAddonFinalizeHook;
     private readonly CallHook<AddonDrawDelegate> onAddonDrawHook;
     private readonly CallHook<AddonUpdateDelegate> onAddonUpdateHook;
@@ -46,7 +46,7 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
 
         this.framework.Update += this.OnFrameworkUpdate;
 
-        this.onAddonSetupHook = Hook<AddonSetupDelegate>.FromAddress(this.address.AddonSetup, this.OnAddonSetup);
+        this.onAddonSetupHook = new CallHook<AddonSetupDelegate>(this.address.AddonSetup, this.OnAddonSetup);
         this.onAddonFinalizeHook = Hook<AddonFinalizeDelegate>.FromAddress(this.address.AddonFinalize, this.OnAddonFinalize);
         this.onAddonDrawHook = new CallHook<AddonDrawDelegate>(this.address.AddonDraw, this.OnAddonDraw);
         this.onAddonUpdateHook = new CallHook<AddonUpdateDelegate>(this.address.AddonUpdate, this.OnAddonUpdate);
@@ -54,7 +54,7 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
         this.onAddonRequestedUpdateHook = new CallHook<AddonOnRequestedUpdateDelegate>(this.address.AddonOnRequestedUpdate, this.OnRequestedUpdate);
     }
 
-    private delegate nint AddonSetupDelegate(AtkUnitBase* addon);
+    private delegate void AddonSetupDelegate(AtkUnitBase* addon, uint valueCount, AtkValue* values);
 
     private delegate void AddonFinalizeDelegate(AtkUnitManager* unitManager, AtkUnitBase** atkUnitBase);
 
@@ -137,29 +137,37 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
         }
     }
 
-    private nint OnAddonSetup(AtkUnitBase* addon)
+    private void OnAddonSetup(AtkUnitBase* addon, uint valueCount, AtkValue* values)
     {
         try
         {
-            this.InvokeListeners(AddonEvent.PreSetup, new AddonSetupArgs { Addon = (nint)addon });
+            this.InvokeListeners(AddonEvent.PreSetup, new AddonSetupArgs()
+            {
+                Addon = (nint)addon, 
+                AtkValueCount = valueCount,
+                AtkValues = (nint)values,
+            });
         }
         catch (Exception e)
         {
             Log.Error(e, "Exception in OnAddonSetup pre-setup invoke.");
         }
 
-        var result = this.onAddonSetupHook.Original(addon);
+        addon->OnSetup(valueCount, values);
 
         try
         {
-            this.InvokeListeners(AddonEvent.PostSetup, new AddonSetupArgs { Addon = (nint)addon });
+            this.InvokeListeners(AddonEvent.PostSetup, new AddonSetupArgs()
+            {
+                Addon = (nint)addon, 
+                AtkValueCount = valueCount,
+                AtkValues = (nint)values,
+            });
         }
         catch (Exception e)
         {
             Log.Error(e, "Exception in OnAddonSetup post-setup invoke.");
         }
-
-        return result;
     }
 
     private void OnAddonFinalize(AtkUnitManager* unitManager, AtkUnitBase** atkUnitBase)

@@ -10,4 +10,14 @@ public class AddonSetupArgs : IAddonArgs
 
     /// <inheritdoc/>
     public AddonArgsType Type => AddonArgsType.Setup;
+    
+    /// <summary>
+    /// Gets the number of AtkValues.
+    /// </summary>
+    public uint AtkValueCount { get; init; }
+    
+    /// <summary>
+    /// Gets the address of the AtkValue array.
+    /// </summary>
+    public nint AtkValues { get; init; }
 }
