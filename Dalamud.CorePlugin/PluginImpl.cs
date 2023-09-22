@@ -4,11 +4,10 @@ using System.IO;
 using Dalamud.Configuration.Internal;
 using Dalamud.Game.Command;
 using Dalamud.Interface.Windowing;
-using Dalamud.Logging;
+using Dalamud.Logging.Internal;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility;
-using Serilog;
 
 namespace Dalamud.CorePlugin
 {
@@ -48,7 +47,7 @@ namespace Dalamud.CorePlugin
         }
 
 #else
-
+        private static readonly ModuleLog Log = new("CorePlugin");
         private readonly WindowSystem windowSystem = new("Dalamud.CorePlugin");
         private Localization localization;
 
@@ -76,7 +75,7 @@ namespace Dalamud.CorePlugin
             }
             catch (Exception ex)
             {
-                PluginLog.Error(ex, "kaboom");
+                Log.Error(ex, "kaboom");
             }
         }
 
@@ -130,13 +129,13 @@ namespace Dalamud.CorePlugin
             }
             catch (Exception ex)
             {
-                PluginLog.Error(ex, "Boom");
+                Log.Error(ex, "Boom");
             }
         }
 
         private void OnCommand(string command, string args)
         {
-            PluginLog.Information("Command called!");
+            Log.Information("Command called!");
 
             // this.window.IsOpen = true;
         }

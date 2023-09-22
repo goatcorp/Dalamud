@@ -1,13 +1,11 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 
 using Dalamud.Game;
 using Dalamud.Hooking;
-using Dalamud.Logging;
+using Dalamud.Logging.Internal;
 using Dalamud.Utility.Signatures.Wrappers;
-using Serilog;
 
 namespace Dalamud.Utility.Signatures;
 
@@ -16,6 +14,8 @@ namespace Dalamud.Utility.Signatures;
 /// </summary>
 public static class SignatureHelper
 {
+    private static readonly ModuleLog Log = new("SignatureHelper");
+    
     private const BindingFlags Flags = BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic;
 
     /// <summary>
@@ -61,7 +61,7 @@ public static class SignatureHelper
                                    : message;
                 if (fallible)
                 {
-                    PluginLog.Warning(errorMsg);
+                    Log.Warning(errorMsg);
                 }
                 else
                 {
