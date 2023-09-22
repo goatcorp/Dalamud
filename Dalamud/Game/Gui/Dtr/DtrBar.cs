@@ -172,7 +172,7 @@ public sealed unsafe class DtrBar : IDisposable, IServiceType, IDtrBar
         this.HandleAddedNodes();
 
         var dtr = this.GetDtr();
-        if (dtr == null) return;
+        if (dtr == null || dtr->RootNode == null || dtr->RootNode->ChildNode == null) return;
 
         // The collision node on the DTR element is always the width of its content
         if (dtr->UldManager.NodeList == null) return;
