@@ -1,4 +1,6 @@
-﻿using Dalamud.Memory;
+﻿using System;
+
+using Dalamud.Memory;
 using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 
@@ -46,9 +48,14 @@ internal unsafe class AddonEventEntry
     /// Gets the event type for this event.
     /// </summary>
     required public AddonEventType EventType { get; init; }
+    
+    /// <summary>
+    /// Gets the event handle for this event.
+    /// </summary>
+    required internal IAddonEventHandle Handle { get; init; }
 
     /// <summary>
     /// Gets the formatted log string for this AddonEventEntry.
     /// </summary>
-    internal string LogString => $"ParamKey: {this.ParamKey}, Addon: {this.AddonName}, Event: {this.EventType}";
+    internal string LogString => $"ParamKey: {this.ParamKey}, Addon: {this.AddonName}, Event: {this.EventType}, GUID: {this.Handle.EventGuid}";
 }
