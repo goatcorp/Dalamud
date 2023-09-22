@@ -258,6 +258,9 @@ internal class ClientStatePluginScoped : IDisposable, IServiceType, IClientState
     public bool IsPvPExcludingDen => this.clientStateService.IsPvPExcludingDen;
 
     /// <inheritdoc/>
+    public bool IsGPosing => this.clientStateService.IsGPosing;
+
+    /// <inheritdoc/>
     public void Dispose()
     {
         this.clientStateService.TerritoryChanged -= this.TerritoryChangedForward;
