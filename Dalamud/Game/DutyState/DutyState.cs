@@ -120,7 +120,7 @@ internal unsafe class DutyState : IDisposable, IServiceType, IDutyState
         return this.contentDirectorNetworkMessageHook.Original(a1, a2, a3);
     }
 
-    private void TerritoryOnChangedEvent(object? sender, ushort e)
+    private void TerritoryOnChangedEvent(ushort territoryId)
     {
         if (this.IsDutyStarted)
         {
