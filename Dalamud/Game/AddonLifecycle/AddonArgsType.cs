@@ -1,7 +1,7 @@
 ﻿namespace Dalamud.Game.Addon;
 
 /// <summary>
-/// Enumeration for available AddonLifecycle arg data
+/// Enumeration for available AddonLifecycle arg data.
 /// </summary>
 public enum AddonArgsType
 {

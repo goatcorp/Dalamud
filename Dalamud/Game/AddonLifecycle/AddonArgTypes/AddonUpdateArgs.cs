@@ -1,15 +1,12 @@
-namespace Dalamud.Game.Addon.AddonArgTypes;
+namespace Dalamud.Game.Addon;
 
 /// <summary>
 /// Addon argument data for Finalize events.
 /// </summary>
-public class AddonUpdateArgs : IAddonArgs
+public class AddonUpdateArgs : AddonArgs
 {
     /// <inheritdoc/>
-    public nint Addon { get; init; }
-
-    /// <inheritdoc/>
-    public AddonArgsType Type => AddonArgsType.Update;
+    public override AddonArgsType Type => AddonArgsType.Update;
     
     /// <summary>
     /// Gets the time since the last update.

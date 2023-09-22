@@ -3,7 +3,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 
-using Dalamud.Game.Addon.AddonArgTypes;
 using Dalamud.Hooking;
 using Dalamud.Hooking.Internal;
 using Dalamud.IoC;
@@ -128,7 +127,7 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
         this.onAddonRequestedUpdateHook.Enable();
     }
 
-    private void InvokeListeners(AddonEvent eventType, IAddonArgs args)
+    private void InvokeListeners(AddonEvent eventType, AddonArgs args)
     {
         // Match on string.empty for listeners that want events for all addons.
         foreach (var listener in this.eventListeners.Where(listener => listener.EventType == eventType && (listener.AddonName == args.AddonName || listener.AddonName == string.Empty)))
@@ -141,7 +140,7 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
     {
         try
         {
-            this.InvokeListeners(AddonEvent.PreSetup, new AddonSetupArgs()
+            this.InvokeListeners(AddonEvent.PreSetup, new AddonSetupArgs
             {
                 Addon = (nint)addon, 
                 AtkValueCount = valueCount,
@@ -157,7 +156,7 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
 
         try
         {
-            this.InvokeListeners(AddonEvent.PostSetup, new AddonSetupArgs()
+            this.InvokeListeners(AddonEvent.PostSetup, new AddonSetupArgs
             {
                 Addon = (nint)addon, 
                 AtkValueCount = valueCount,

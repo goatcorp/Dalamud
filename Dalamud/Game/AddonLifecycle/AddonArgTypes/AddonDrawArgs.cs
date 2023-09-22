@@ -1,13 +1,10 @@
-﻿namespace Dalamud.Game.Addon.AddonArgTypes;
+﻿namespace Dalamud.Game.Addon;
 
 /// <summary>
 /// Addon argument data for Finalize events.
 /// </summary>
-public class AddonDrawArgs : IAddonArgs
+public class AddonDrawArgs : AddonArgs
 {
     /// <inheritdoc/>
-    public nint Addon { get; init; }
-
-    /// <inheritdoc/>
-    public AddonArgsType Type => AddonArgsType.Draw;
+    public override AddonArgsType Type => AddonArgsType.Draw;
 }

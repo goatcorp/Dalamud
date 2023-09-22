@@ -1,15 +1,12 @@
-﻿namespace Dalamud.Game.Addon.AddonArgTypes;
+﻿namespace Dalamud.Game.Addon;
 
 /// <summary>
 /// Addon argument data for Finalize events.
 /// </summary>
-public class AddonRequestedUpdateArgs : IAddonArgs
+public class AddonRequestedUpdateArgs : AddonArgs
 {
     /// <inheritdoc/>
-    public nint Addon { get; init; }
-
-    /// <inheritdoc/>
-    public AddonArgsType Type => AddonArgsType.RequestedUpdate;
+    public override AddonArgsType Type => AddonArgsType.RequestedUpdate;
     
     /// <summary>
     /// Gets the NumberArrayData** for this event.

@@ -100,32 +100,32 @@ internal class AddonLifecycleAgingStep : IAgingStep
         }
     }
     
-    private void PostSetup(AddonEvent eventType, IAddonArgs addonInfo)
+    private void PostSetup(AddonEvent eventType, AddonArgs addonInfo)
     {        
         if (this.currentStep is TestStep.CharacterSetup) this.currentStep++;
     }
     
-    private void PostUpdate(AddonEvent eventType, IAddonArgs addonInfo)
+    private void PostUpdate(AddonEvent eventType, AddonArgs addonInfo)
     {
         if (this.currentStep is TestStep.CharacterUpdate) this.currentStep++;
     }
     
-    private void PostDraw(AddonEvent eventType, IAddonArgs addonInfo)
+    private void PostDraw(AddonEvent eventType, AddonArgs addonInfo)
     {
         if (this.currentStep is TestStep.CharacterDraw) this.currentStep++;
     }
     
-    private void PostRefresh(AddonEvent eventType, IAddonArgs addonInfo)
+    private void PostRefresh(AddonEvent eventType, AddonArgs addonInfo)
     {
         if (this.currentStep is TestStep.CharacterRefresh) this.currentStep++;
     }
     
-    private void PostRequestedUpdate(AddonEvent eventType, IAddonArgs addonInfo)
+    private void PostRequestedUpdate(AddonEvent eventType, AddonArgs addonInfo)
     {
         if (this.currentStep is TestStep.CharacterRequestedUpdate) this.currentStep++;
     }
     
-    private void PreFinalize(AddonEvent eventType, IAddonArgs addonInfo)
+    private void PreFinalize(AddonEvent eventType, AddonArgs addonInfo)
     {
         if (this.currentStep is TestStep.CharacterFinalize) this.currentStep++;
     }

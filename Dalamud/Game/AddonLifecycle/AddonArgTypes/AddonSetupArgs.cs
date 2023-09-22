@@ -1,15 +1,16 @@
-﻿namespace Dalamud.Game.Addon.AddonArgTypes;
+﻿using System;
+
+using FFXIVClientStructs.FFXIV.Component.GUI;
+
+namespace Dalamud.Game.Addon;
 
 /// <summary>
 /// Addon argument data for Setup events.
 /// </summary>
-public class AddonSetupArgs : IAddonArgs
+public class AddonSetupArgs : AddonArgs
 {
     /// <inheritdoc/>
-    public nint Addon { get; init; }
-
-    /// <inheritdoc/>
-    public AddonArgsType Type => AddonArgsType.Setup;
+    public override AddonArgsType Type => AddonArgsType.Setup;
     
     /// <summary>
     /// Gets the number of AtkValues.
@@ -20,4 +21,9 @@ public class AddonSetupArgs : IAddonArgs
     /// Gets the address of the AtkValue array.
     /// </summary>
     public nint AtkValues { get; init; }
+    
+    /// <summary>
+    /// Gets the AtkValues in the form of a span.
+    /// </summary>
+    public unsafe Span<AtkValue> AtkValueSpan => new(this.AtkValues.ToPointer(), (int)this.AtkValueCount);
 }
