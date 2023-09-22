@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -12,23 +11,21 @@ using Dalamud.Game.Gui.Toast;
 using Dalamud.Hooking;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
+using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility;
-using Serilog;
 
 namespace Dalamud.Game;
 
 /// <summary>
 /// This class represents the Framework of the native game client and grants access to various subsystems.
 /// </summary>
-[PluginInterface]
 [InterfaceVersion("1.0")]
 [ServiceManager.BlockingEarlyLoadedService]
-#pragma warning disable SA1015
-[ResolveVia<IFramework>]
-#pragma warning restore SA1015
 internal sealed class Framework : IDisposable, IServiceType, IFramework
 {
+    private static readonly ModuleLog Log = new("Framework");
+    
     private static readonly Stopwatch StatsStopwatch = new();
     
     private readonly GameLifecycle lifecycle;
@@ -70,19 +67,11 @@ internal sealed class Framework : IDisposable, IServiceType, IFramework
     /// <returns>A value indicating if the call was successful.</returns>
     public delegate bool OnRealDestroyDelegate(IntPtr framework);
 
-    /// <summary>
-    /// A delegate type used during the native Framework::free.
-    /// </summary>
-    /// <returns>The native Framework address.</returns>
-    public delegate IntPtr OnDestroyDelegate();
-
     [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
     private delegate bool OnUpdateDetour(IntPtr framework);
 
-    private delegate IntPtr OnDestroyDetour(); // OnDestroyDelegate
-
     /// <inheritdoc/>
-    public event IFramework.OnUpdateDelegate Update;
+    public event IFramework.OnUpdateDelegate? Update;
 
     /// <summary>
     /// Gets or sets a value indicating whether the collection of stats is enabled.
@@ -522,4 +511,87 @@ internal sealed class Framework : IDisposable, IServiceType, IFramework
             this.TaskCompletionSource.SetCanceled();
         }
     }
+}
+
+/// <summary>
+/// Plugin-scoped version of a Framework service.
+/// </summary>
+[PluginInterface]
+[InterfaceVersion("1.0")]
+[ServiceManager.ScopedService]
+#pragma warning disable SA1015
+[ResolveVia<IFramework>]
+#pragma warning restore SA1015
+internal class FrameworkPluginScoped : IDisposable, IServiceType, IFramework
+{
+    [ServiceManager.ServiceDependency]
+    private readonly Framework frameworkService = Service<Framework>.Get();
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="FrameworkPluginScoped"/> class.
+    /// </summary>
+    internal FrameworkPluginScoped()
+    {
+        this.frameworkService.Update += this.OnUpdateForward;
+    }
+
+    /// <inheritdoc/>
+    public event IFramework.OnUpdateDelegate? Update;
+
+    /// <inheritdoc/>
+    public DateTime LastUpdate => this.frameworkService.LastUpdate;
+    
+    /// <inheritdoc/>
+    public DateTime LastUpdateUTC => this.frameworkService.LastUpdateUTC;
+    
+    /// <inheritdoc/>
+    public TimeSpan UpdateDelta => this.frameworkService.UpdateDelta;
+    
+    /// <inheritdoc/>
+    public bool IsInFrameworkUpdateThread => this.frameworkService.IsInFrameworkUpdateThread;
+    
+    /// <inheritdoc/>
+    public bool IsFrameworkUnloading => this.frameworkService.IsFrameworkUnloading;
+    
+    /// <inheritdoc/>
+    public void Dispose()
+    {
+        this.frameworkService.Update -= this.OnUpdateForward;
+
+        this.Update = null;
+    }
+
+    /// <inheritdoc/>
+    public Task<T> RunOnFrameworkThread<T>(Func<T> func)
+        => this.frameworkService.RunOnFrameworkThread(func);
+    
+    /// <inheritdoc/>
+    public Task RunOnFrameworkThread(Action action)
+        => this.frameworkService.RunOnFrameworkThread(action);
+    
+    /// <inheritdoc/>
+    public Task<T> RunOnFrameworkThread<T>(Func<Task<T>> func)
+        => this.frameworkService.RunOnFrameworkThread(func);
+    
+    /// <inheritdoc/>
+    public Task RunOnFrameworkThread(Func<Task> func)
+        => this.frameworkService.RunOnFrameworkThread(func);
+    
+    /// <inheritdoc/>
+    public Task<T> RunOnTick<T>(Func<T> func, TimeSpan delay = default, int delayTicks = default, CancellationToken cancellationToken = default)
+        => this.frameworkService.RunOnTick(func, delay, delayTicks, cancellationToken);
+    
+    /// <inheritdoc/>
+    public Task RunOnTick(Action action, TimeSpan delay = default, int delayTicks = default, CancellationToken cancellationToken = default)
+        => this.frameworkService.RunOnTick(action, delay, delayTicks, cancellationToken);
+    
+    /// <inheritdoc/>
+    public Task<T> RunOnTick<T>(Func<Task<T>> func, TimeSpan delay = default, int delayTicks = default, CancellationToken cancellationToken = default)
+        => this.frameworkService.RunOnTick(func, delay, delayTicks, cancellationToken);
+
+    /// <inheritdoc/>
+    public Task RunOnTick(Func<Task> func, TimeSpan delay = default, int delayTicks = default, CancellationToken cancellationToken = default)
+        => this.frameworkService.RunOnTick(func, delay, delayTicks, cancellationToken);
+
+    private void OnUpdateForward(IFramework framework) => this.Update?.Invoke(framework);
 }
