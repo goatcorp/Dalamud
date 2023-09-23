@@ -76,6 +76,12 @@ public interface IPluginLog
     /// <inheritdoc cref="Information(string,object[])"/>
     /// <param name="exception">An (optional) exception that should be recorded alongside this event.</param>
     void Information(Exception? exception, string messageTemplate, params object[] values);
+
+    /// <inheritdoc cref="Information(string,object[])"/>
+    void Info(string messageTemplate, params object[] values);
+
+    /// <inheritdoc cref="Information(Exception?,string,object[])"/>
+    void Info(Exception? exception, string messageTemplate, params object[] values);
     
     /// <summary>
     /// Log a <see cref="LogEventLevel.Debug" /> message to the Dalamud log for this plugin. This log level should be
