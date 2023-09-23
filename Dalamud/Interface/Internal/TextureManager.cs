@@ -43,7 +43,7 @@ internal class TextureManager : IDisposable, IServiceType, ITextureSubstitutionP
     
     private readonly Dictionary<string, TextureInfo> activeTextures = new();
 
-    private TextureWrap? fallbackTextureWrap;
+    private IDalamudTextureWrap? fallbackTextureWrap;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="TextureManager"/> class.
@@ -319,7 +319,7 @@ internal class TextureManager : IDisposable, IServiceType, ITextureSubstitutionP
         // Substitute the path here for loading, instead of when getting the respective TextureInfo
         path = this.GetSubstitutedPath(path);
         
-        TextureWrap? wrap;
+        IDalamudTextureWrap? wrap;
         try
         {
             // We want to load this from the disk, probably, if the path has a root
@@ -495,7 +495,7 @@ internal class TextureManager : IDisposable, IServiceType, ITextureSubstitutionP
         /// <summary>
         /// Gets or sets the actual texture wrap. May be unpopulated.
         /// </summary>
-        public TextureWrap? Wrap { get; set; }
+        public IDalamudTextureWrap? Wrap { get; set; }
         
         /// <summary>
         /// Gets or sets the time the texture was last accessed.

@@ -241,7 +241,7 @@ internal class InterfaceManager : IDisposable, IServiceType
     /// </summary>
     /// <param name="filePath">The filepath to load.</param>
     /// <returns>A texture, ready to use in ImGui.</returns>
-    public TextureWrap? LoadImage(string filePath)
+    public IDalamudTextureWrap? LoadImage(string filePath)
     {
         if (this.scene == null)
             throw new InvalidOperationException("Scene isn't ready.");
@@ -264,7 +264,7 @@ internal class InterfaceManager : IDisposable, IServiceType
     /// </summary>
     /// <param name="imageData">The data to load.</param>
     /// <returns>A texture, ready to use in ImGui.</returns>
-    public TextureWrap? LoadImage(byte[] imageData)
+    public IDalamudTextureWrap? LoadImage(byte[] imageData)
     {
         if (this.scene == null)
             throw new InvalidOperationException("Scene isn't ready.");
@@ -290,7 +290,7 @@ internal class InterfaceManager : IDisposable, IServiceType
     /// <param name="height">The height in pixels.</param>
     /// <param name="numChannels">The number of channels.</param>
     /// <returns>A texture, ready to use in ImGui.</returns>
-    public TextureWrap? LoadImageRaw(byte[] imageData, int width, int height, int numChannels)
+    public IDalamudTextureWrap? LoadImageRaw(byte[] imageData, int width, int height, int numChannels)
     {
         if (this.scene == null)
             throw new InvalidOperationException("Scene isn't ready.");

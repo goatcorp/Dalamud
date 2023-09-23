@@ -1,4 +1,3 @@
-using System;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 
 namespace Dalamud.Game.Addon;

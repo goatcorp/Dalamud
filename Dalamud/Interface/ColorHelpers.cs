@@ -270,7 +270,7 @@ public static class ColorHelpers
         => RgbaVector4ToUint(Fade(RgbaUintToVector4(color), amount));
 
     /// <summary>
-    /// Convert a KnownColor to a RGBA vector with values between 0.0f and 1.0f
+    /// Convert a KnownColor to a RGBA vector with values between 0.0f and 1.0f.
     /// </summary>
     /// <param name="knownColor">Known Color to convert.</param>
     /// <returns>RGBA Vector with values between 0.0f and 1.0f.</returns>

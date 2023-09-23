@@ -1,6 +1,4 @@
-﻿using System;
-
-using ImGuiScene;
+﻿using ImGuiScene;
 
 namespace Dalamud.Interface.Internal;
 
@@ -8,8 +6,22 @@ namespace Dalamud.Interface.Internal;
 /// Base TextureWrap interface for all Dalamud-owned texture wraps.
 /// Used to avoid referencing ImGuiScene.
 /// </summary>
-public interface IDalamudTextureWrap : TextureWrap
+public interface IDalamudTextureWrap : IDisposable
 {
+    /// <summary>
+    /// Gets a texture handle suitable for direct use with ImGui functions.
+    /// </summary>
+    IntPtr ImGuiHandle { get; }
+
+    /// <summary>
+    /// Gets the width of the texture.
+    /// </summary>
+    int Width { get; }
+
+    /// <summary>
+    /// Gets the height of the texture.
+    /// </summary>
+    int Height { get; }
 }
 
 /// <summary>

@@ -59,24 +59,24 @@ internal class PluginImageCache : IDisposable, IServiceType
     private readonly Task downloadTask;
     private readonly Task loadTask;
 
-    private readonly ConcurrentDictionary<string, TextureWrap?> pluginIconMap = new();
-    private readonly ConcurrentDictionary<string, TextureWrap?[]?> pluginImagesMap = new();
+    private readonly ConcurrentDictionary<string, IDalamudTextureWrap?> pluginIconMap = new();
+    private readonly ConcurrentDictionary<string, IDalamudTextureWrap?[]?> pluginImagesMap = new();
 
-    private readonly Task<TextureWrap> emptyTextureTask;
-    private readonly Task<TextureWrap> disabledIconTask;
-    private readonly Task<TextureWrap> outdatedInstallableIconTask;
-    private readonly Task<TextureWrap> defaultIconTask;
-    private readonly Task<TextureWrap> troubleIconTask;
-    private readonly Task<TextureWrap> updateIconTask;
-    private readonly Task<TextureWrap> installedIconTask;
-    private readonly Task<TextureWrap> thirdIconTask;
-    private readonly Task<TextureWrap> thirdInstalledIconTask;
-    private readonly Task<TextureWrap> corePluginIconTask;
+    private readonly Task<IDalamudTextureWrap> emptyTextureTask;
+    private readonly Task<IDalamudTextureWrap> disabledIconTask;
+    private readonly Task<IDalamudTextureWrap> outdatedInstallableIconTask;
+    private readonly Task<IDalamudTextureWrap> defaultIconTask;
+    private readonly Task<IDalamudTextureWrap> troubleIconTask;
+    private readonly Task<IDalamudTextureWrap> updateIconTask;
+    private readonly Task<IDalamudTextureWrap> installedIconTask;
+    private readonly Task<IDalamudTextureWrap> thirdIconTask;
+    private readonly Task<IDalamudTextureWrap> thirdInstalledIconTask;
+    private readonly Task<IDalamudTextureWrap> corePluginIconTask;
 
     [ServiceManager.ServiceConstructor]
     private PluginImageCache(Dalamud dalamud)
     {
-        Task<TextureWrap>? TaskWrapIfNonNull(TextureWrap? tw) => tw == null ? null : Task.FromResult(tw!);
+        Task<IDalamudTextureWrap>? TaskWrapIfNonNull(IDalamudTextureWrap? tw) => tw == null ? null : Task.FromResult(tw!);
         var imwst = Task.Run(() => this.imWithScene);
 
         this.emptyTextureTask = imwst.ContinueWith(task => task.Result.Manager.LoadImageRaw(new byte[64], 8, 8, 4)!);
@@ -99,70 +99,70 @@ internal class PluginImageCache : IDisposable, IServiceType
     /// <summary>
     /// Gets the fallback empty texture.
     /// </summary>
-    public TextureWrap EmptyTexture => this.emptyTextureTask.IsCompleted
-                                           ? this.emptyTextureTask.Result
-                                           : this.emptyTextureTask.GetAwaiter().GetResult();
+    public IDalamudTextureWrap EmptyTexture => this.emptyTextureTask.IsCompleted
+                                                   ? this.emptyTextureTask.Result
+                                                   : this.emptyTextureTask.GetAwaiter().GetResult();
 
     /// <summary>
     /// Gets the disabled plugin icon.
     /// </summary>
-    public TextureWrap DisabledIcon => this.disabledIconTask.IsCompleted
+    public IDalamudTextureWrap DisabledIcon => this.disabledIconTask.IsCompleted
                                            ? this.disabledIconTask.Result
                                            : this.disabledIconTask.GetAwaiter().GetResult();
 
     /// <summary>
     /// Gets the outdated installable plugin icon.
     /// </summary>
-    public TextureWrap OutdatedInstallableIcon => this.outdatedInstallableIconTask.IsCompleted
+    public IDalamudTextureWrap OutdatedInstallableIcon => this.outdatedInstallableIconTask.IsCompleted
                                                       ? this.outdatedInstallableIconTask.Result
                                                       : this.outdatedInstallableIconTask.GetAwaiter().GetResult();
 
     /// <summary>
     /// Gets the default plugin icon.
     /// </summary>
-    public TextureWrap DefaultIcon => this.defaultIconTask.IsCompleted
+    public IDalamudTextureWrap DefaultIcon => this.defaultIconTask.IsCompleted
                                           ? this.defaultIconTask.Result
                                           : this.defaultIconTask.GetAwaiter().GetResult();
 
     /// <summary>
     /// Gets the plugin trouble icon overlay.
     /// </summary>
-    public TextureWrap TroubleIcon => this.troubleIconTask.IsCompleted
+    public IDalamudTextureWrap TroubleIcon => this.troubleIconTask.IsCompleted
                                           ? this.troubleIconTask.Result
                                           : this.troubleIconTask.GetAwaiter().GetResult();
 
     /// <summary>
     /// Gets the plugin update icon overlay.
     /// </summary>
-    public TextureWrap UpdateIcon => this.updateIconTask.IsCompleted
+    public IDalamudTextureWrap UpdateIcon => this.updateIconTask.IsCompleted
                                          ? this.updateIconTask.Result
                                          : this.updateIconTask.GetAwaiter().GetResult();
 
     /// <summary>
     /// Gets the plugin installed icon overlay.
     /// </summary>
-    public TextureWrap InstalledIcon => this.installedIconTask.IsCompleted
+    public IDalamudTextureWrap InstalledIcon => this.installedIconTask.IsCompleted
                                             ? this.installedIconTask.Result
                                             : this.installedIconTask.GetAwaiter().GetResult();
 
     /// <summary>
     /// Gets the third party plugin icon overlay.
     /// </summary>
-    public TextureWrap ThirdIcon => this.thirdIconTask.IsCompleted
+    public IDalamudTextureWrap ThirdIcon => this.thirdIconTask.IsCompleted
                                         ? this.thirdIconTask.Result
                                         : this.thirdIconTask.GetAwaiter().GetResult();
 
     /// <summary>
     /// Gets the installed third party plugin icon overlay.
     /// </summary>
-    public TextureWrap ThirdInstalledIcon => this.thirdInstalledIconTask.IsCompleted
+    public IDalamudTextureWrap ThirdInstalledIcon => this.thirdInstalledIconTask.IsCompleted
                                                  ? this.thirdInstalledIconTask.Result
                                                  : this.thirdInstalledIconTask.GetAwaiter().GetResult();
 
     /// <summary>
     /// Gets the core plugin icon.
     /// </summary>
-    public TextureWrap CorePluginIcon => this.corePluginIconTask.IsCompleted
+    public IDalamudTextureWrap CorePluginIcon => this.corePluginIconTask.IsCompleted
                                              ? this.corePluginIconTask.Result
                                              : this.corePluginIconTask.GetAwaiter().GetResult();
 
@@ -233,7 +233,7 @@ internal class PluginImageCache : IDisposable, IServiceType
     /// <param name="isThirdParty">If the plugin was third party sourced.</param>
     /// <param name="iconTexture">Cached image textures, or an empty array.</param>
     /// <returns>True if an entry exists, may be null if currently downloading.</returns>
-    public bool TryGetIcon(LocalPlugin? plugin, IPluginManifest manifest, bool isThirdParty, out TextureWrap? iconTexture)
+    public bool TryGetIcon(LocalPlugin? plugin, IPluginManifest manifest, bool isThirdParty, out IDalamudTextureWrap? iconTexture)
     {
         iconTexture = null;
 
@@ -275,16 +275,16 @@ internal class PluginImageCache : IDisposable, IServiceType
     /// <param name="isThirdParty">If the plugin was third party sourced.</param>
     /// <param name="imageTextures">Cached image textures, or an empty array.</param>
     /// <returns>True if the image array exists, may be empty if currently downloading.</returns>
-    public bool TryGetImages(LocalPlugin? plugin, IPluginManifest manifest, bool isThirdParty, out TextureWrap?[] imageTextures)
+    public bool TryGetImages(LocalPlugin? plugin, IPluginManifest manifest, bool isThirdParty, out IDalamudTextureWrap?[] imageTextures)
     {
         if (!this.pluginImagesMap.TryAdd(manifest.InternalName, null))
         {
             var found = this.pluginImagesMap[manifest.InternalName];
-            imageTextures = found ?? Array.Empty<TextureWrap?>();
+            imageTextures = found ?? Array.Empty<IDalamudTextureWrap?>();
             return true;
         }
 
-        var target = new TextureWrap?[5];
+        var target = new IDalamudTextureWrap?[5];
         this.pluginImagesMap[manifest.InternalName] = target;
         imageTextures = target;
 
@@ -304,7 +304,7 @@ internal class PluginImageCache : IDisposable, IServiceType
         return false;
     }
 
-    private async Task<TextureWrap?> TryLoadImage(
+    private async Task<IDalamudTextureWrap?> TryLoadImage(
         byte[]? bytes,
         string name,
         string? loc,
@@ -319,7 +319,7 @@ internal class PluginImageCache : IDisposable, IServiceType
         var interfaceManager = this.imWithScene.Manager;
         var framework = await Service<Framework>.GetAsync();
 
-        TextureWrap? image;
+        IDalamudTextureWrap? image;
         // FIXME(goat): This is a hack around this call failing randomly in certain situations. Might be related to not being called on the main thread.
         try
         {
@@ -492,7 +492,7 @@ internal class PluginImageCache : IDisposable, IServiceType
         Log.Debug("Plugin image loader has shutdown");
     }
 
-    private async Task<TextureWrap?> DownloadPluginIconAsync(LocalPlugin? plugin, IPluginManifest manifest, bool isThirdParty, ulong requestedFrame)
+    private async Task<IDalamudTextureWrap?> DownloadPluginIconAsync(LocalPlugin? plugin, IPluginManifest manifest, bool isThirdParty, ulong requestedFrame)
     {
         if (plugin is { IsDev: true })
         {
@@ -559,7 +559,7 @@ internal class PluginImageCache : IDisposable, IServiceType
         return icon;
     }
 
-    private async Task DownloadPluginImagesAsync(TextureWrap?[] pluginImages, LocalPlugin? plugin, IPluginManifest manifest, bool isThirdParty, ulong requestedFrame)
+    private async Task DownloadPluginImagesAsync(IDalamudTextureWrap?[] pluginImages, LocalPlugin? plugin, IPluginManifest manifest, bool isThirdParty, ulong requestedFrame)
     {
         if (plugin is { IsDev: true })
         {

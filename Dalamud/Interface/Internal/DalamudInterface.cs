@@ -66,8 +66,8 @@ internal class DalamudInterface : IDisposable, IServiceType
     private readonly BranchSwitcherWindow branchSwitcherWindow;
     private readonly HitchSettingsWindow hitchSettingsWindow;
 
-    private readonly TextureWrap logoTexture;
-    private readonly TextureWrap tsmLogoTexture;
+    private readonly IDalamudTextureWrap logoTexture;
+    private readonly IDalamudTextureWrap tsmLogoTexture;
 
     private bool isCreditsDarkening = false;
     private OutCubic creditsDarkeningAnimation = new(TimeSpan.FromSeconds(10));
