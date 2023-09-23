@@ -305,12 +305,12 @@ internal class TextureManager : IDisposable, IServiceType, ITextureProvider, ITe
 
             if (info == null)
                 throw new Exception("null info in activeTextures");
-        }
-
-        info.LastAccess = DateTime.UtcNow;
+            
+            info.LastAccess = DateTime.UtcNow;
         
-        if (info is { Wrap: not null })
-            return info;
+            if (info is { Wrap: not null })
+                return info;
+        }
 
         if (!this.im.IsReady)
                 throw new InvalidOperationException("Cannot create textures before scene is ready");
