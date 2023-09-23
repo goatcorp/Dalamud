@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 
 using Dalamud.Game.Gui;
@@ -8,7 +7,7 @@ using Dalamud.Memory;
 using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 
-namespace Dalamud.Game.Addon;
+namespace Dalamud.Game.Addon.Events;
 
 /// <summary>
 /// Class to manage creating and cleaning up events per-plugin.

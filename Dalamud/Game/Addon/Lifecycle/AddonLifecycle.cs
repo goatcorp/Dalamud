@@ -1,8 +1,8 @@
-using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 
+using Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
 using Dalamud.Hooking;
 using Dalamud.Hooking.Internal;
 using Dalamud.IoC;
@@ -11,7 +11,7 @@ using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 
-namespace Dalamud.Game.Addon;
+namespace Dalamud.Game.Addon.Lifecycle;
 
 /// <summary>
 /// This class provides events for in-game addon lifecycles.

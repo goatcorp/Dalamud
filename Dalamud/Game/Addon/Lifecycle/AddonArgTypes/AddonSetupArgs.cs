@@ -1,14 +1,14 @@
-using FFXIVClientStructs.FFXIV.Component.GUI;
+﻿using FFXIVClientStructs.FFXIV.Component.GUI;
 
-namespace Dalamud.Game.Addon;
+namespace Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
 
 /// <summary>
-/// Addon argument data for Finalize events.
+/// Addon argument data for Setup events.
 /// </summary>
-public class AddonRefreshArgs : AddonArgs
+public class AddonSetupArgs : AddonArgs
 {
     /// <inheritdoc/>
-    public override AddonArgsType Type => AddonArgsType.Refresh;
+    public override AddonArgsType Type => AddonArgsType.Setup;
     
     /// <summary>
     /// Gets the number of AtkValues.
@@ -19,7 +19,7 @@ public class AddonRefreshArgs : AddonArgs
     /// Gets the address of the AtkValue array.
     /// </summary>
     public nint AtkValues { get; init; }
-        
+    
     /// <summary>
     /// Gets the AtkValues in the form of a span.
     /// </summary>

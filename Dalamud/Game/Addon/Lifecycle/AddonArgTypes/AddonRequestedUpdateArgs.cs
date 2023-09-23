@@ -1,4 +1,4 @@
-﻿namespace Dalamud.Game.Addon;
+﻿namespace Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
 
 /// <summary>
 /// Addon argument data for Finalize events.

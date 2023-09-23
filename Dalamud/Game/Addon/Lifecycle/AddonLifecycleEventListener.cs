@@ -1,6 +1,6 @@
 ﻿using Dalamud.Plugin.Services;
 
-namespace Dalamud.Game.Addon;
+namespace Dalamud.Game.Addon.Lifecycle;
 
 /// <summary>
 /// This class is a helper for tracking and invoking listener delegates.

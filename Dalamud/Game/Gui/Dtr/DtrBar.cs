@@ -4,6 +4,9 @@ using System.Linq;
 
 using Dalamud.Configuration.Internal;
 using Dalamud.Game.Addon;
+using Dalamud.Game.Addon.Events;
+using Dalamud.Game.Addon.Lifecycle;
+using Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;

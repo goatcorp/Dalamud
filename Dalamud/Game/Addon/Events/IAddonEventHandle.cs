@@ -1,6 +1,4 @@
-using System;
-
-namespace Dalamud.Game.Addon;
+namespace Dalamud.Game.Addon.Events;
 
 /// <summary>
 /// Interface representing the data used for managing AddonEvents.

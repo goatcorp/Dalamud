@@ -1,7 +1,7 @@
 ﻿using Dalamud.Memory;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 
-namespace Dalamud.Game.Addon;
+namespace Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
 
 /// <summary>
 /// Base class for AddonLifecycle AddonArgTypes.
