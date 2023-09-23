@@ -41,6 +41,7 @@ internal sealed class GameConfig : IServiceType, IGameConfig, IDisposable
     /// <inheritdoc/>
     public event EventHandler<ConfigChangeEvent>? Changed;
 
+#pragma warning disable 67
     /// <summary>
     /// Unused internally, used as a proxy for System.Changed via GameConfigPluginScoped
     /// </summary>
@@ -55,6 +56,7 @@ internal sealed class GameConfig : IServiceType, IGameConfig, IDisposable
     /// Unused internally, used as a proxy for UiControl.Changed via GameConfigPluginScoped
     /// </summary>
     public event EventHandler<ConfigChangeEvent>? UiControlChanged;
+#pragma warning restore 67
 
     /// <inheritdoc/>
     public GameConfigSection System { get; private set; }
