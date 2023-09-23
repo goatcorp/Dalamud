@@ -34,13 +34,15 @@ public interface IGameInteropProvider
     
     /// <summary>
     /// Initialize <see cref="Hook{T}"/> members decorated with the <see cref="SignatureAttribute"/>.
+    /// Initialize any delegate members decorated with the <see cref="SignatureAttribute"/>.
+    /// Fill out any IntPtr members decorated with the <see cref="SignatureAttribute"/> with the resolved address.
     /// Errors for fallible signatures will be logged.
     /// </summary>
     /// <param name="self">The object to initialize.</param>
     public void InitializeFromAttributes(object self);
     
     /// <summary>
-    /// Creates a hook by rewriting import table address.
+    /// Creates a hook by replacing the original address with an address pointing to a newly created jump to the detour.
     /// </summary>
     /// <param name="address">A memory address to install a hook.</param>
     /// <param name="detour">Callback function. Delegate must have a same original function prototype.</param>

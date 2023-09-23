@@ -21,10 +21,10 @@ internal static class SignatureHelper
     private const BindingFlags Flags = BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic;
 
     /// <summary>
-    /// Initialises an object's fields and properties that are annotated with a
+    /// Initializes an object's fields and properties that are annotated with a
     /// <see cref="SignatureAttribute"/>.
     /// </summary>
-    /// <param name="self">The object to initialise.</param>
+    /// <param name="self">The object to initialize.</param>
     /// <param name="log">If warnings should be logged using <see cref="PluginLog"/>.</param>
     /// <returns>Collection of created IDalamudHooks.</returns>
     internal static IEnumerable<IDalamudHook> Initialize(object self, bool log = true)
