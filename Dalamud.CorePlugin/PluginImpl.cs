@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+
 using Dalamud.Configuration.Internal;
 using Dalamud.Game.Command;
 using Dalamud.Interface.Windowing;
@@ -38,9 +39,6 @@ namespace Dalamud.CorePlugin
         }
 
         /// <inheritdoc/>
-        public string Name => "Dalamud.CorePlugin";
-
-        /// <inheritdoc/>
         public void Dispose()
         {
         }
@@ -71,7 +69,7 @@ namespace Dalamud.CorePlugin
                 this.Interface.UiBuilder.OpenConfigUi += this.OnOpenConfigUi;
                 this.Interface.UiBuilder.OpenMainUi += this.OnOpenMainUi;
 
-                Service<CommandManager>.Get().AddHandler("/coreplug", new(this.OnCommand) { HelpMessage = $"Access the {this.Name} plugin." });
+                Service<CommandManager>.Get().AddHandler("/coreplug", new(this.OnCommand) { HelpMessage = "Access the plugin." });
 
                 log.Information("CorePlugin ctor!");
             }
@@ -80,9 +78,6 @@ namespace Dalamud.CorePlugin
                 log.Error(ex, "kaboom");
             }
         }
-
-        /// <inheritdoc/>
-        public string Name => "Dalamud.CorePlugin";
 
         /// <summary>
         /// Gets the plugin interface.

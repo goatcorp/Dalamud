@@ -505,13 +505,6 @@ internal class LocalPlugin : IDisposable
                 return;
             }
 
-            // In-case the manifest name was a placeholder. Can occur when no manifest was included.
-            if (this.manifest.Name.IsNullOrEmpty() && !this.IsDev)
-            {
-                this.manifest.Name = this.instance.Name;
-                this.manifest.Save(this.manifestFile, "manifest name null or empty");
-            }
-
             this.State = PluginState.Loaded;
             Log.Information($"Finished loading {this.DllFile.Name}");
         }
