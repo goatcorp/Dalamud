@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Drawing;
 using System.Numerics;
 
 namespace Dalamud.Interface;
@@ -256,6 +257,34 @@ public static class ColorHelpers
     /// <returns>The faded color.</returns>
     public static uint Fade(uint color, float amount)
         => RgbaVector4ToUint(Fade(RgbaUintToVector4(color), amount));
-    
+
+    /// <summary>
+    /// Convert a KnownColor to a RGBA vector with values between 0.0f and 1.0f
+    /// </summary>
+    /// <param name="knownColor">Known Color to convert.</param>
+    /// <returns>RGBA Vector with values between 0.0f and 1.0f.</returns>
+    public static Vector4 Vector(this KnownColor knownColor)
+    {
+        var rgbColor = Color.FromKnownColor(knownColor);
+        return new Vector4(rgbColor.R, rgbColor.G, rgbColor.B, rgbColor.A) / 255.0f;
+    }
+
+    /// <summary>
+    /// Normalizes a Vector4 with RGBA 255 color values to values between 0.0f and 1.0f
+    /// If values are out of RGBA 255 range, the original value is returned.
+    /// </summary>
+    /// <param name="color">The color vector to convert.</param>
+    /// <returns>A vector with values between 0.0f and 1.0f.</returns>
+    public static Vector4 NormalizeToUnitRange(this Vector4 color) => color switch
+    {
+        // If any components are out of range, return original value.
+        { W: > 255.0f or < 0.0f } or { X: > 255.0f or < 0.0f } or { Y: > 255.0f or < 0.0f } or { Z: > 255.0f or < 0.0f } => color,
+            
+        // If all components are already unit range, return original value.
+        { W: >= 0.0f and <= 1.0f, X: >= 0.0f and <= 1.0f, Y: >= 0.0f and <= 1.0f, Z: >= 0.0f and <= 1.0f } => color,
+            
+        _ => color / 255.0f,
+    };
+
     public record struct HsvaColor(float H, float S, float V, float A);
 }
