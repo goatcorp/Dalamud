@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 
 using FFXIVClientStructs.FFXIV.Component.GUI;
 
-namespace Dalamud.Game.AddonEventManager;
+namespace Dalamud.Game.Addon;
 
 /// <summary>
 /// Event listener class for managing custom events.
@@ -39,6 +39,11 @@ internal unsafe class AddonEventListener : IDisposable
     /// <param name="eventData">Event Data.</param>
     /// <param name="unknown">Unknown Parameter.</param>
     public delegate void ReceiveEventDelegate(AtkEventListener* self, AtkEventType eventType, uint eventParam, AtkEvent* eventData, nint unknown);
+  
+    /// <summary>
+    /// Gets the address of this listener.
+    /// </summary>
+    public nint Address => (nint)this.eventListener;
     
     /// <inheritdoc />
     public void Dispose()
