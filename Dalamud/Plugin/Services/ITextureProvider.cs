@@ -44,7 +44,7 @@ public interface ITextureProvider
     /// If null, default to the game's current language.
     /// </param>
     /// <param name="keepAlive">
-    /// Prevent Dalamud from automatically unloading this icon to save memory. Usually does not need to be set.
+    /// Not used. This parameter is ignored.
     /// </param>
     /// <returns>
     /// Null, if the icon does not exist in the specified configuration, or a texture wrap that can be used
@@ -72,7 +72,7 @@ public interface ITextureProvider
     /// You may only specify paths in the game's VFS.
     /// </summary>
     /// <param name="path">The path to the texture in the game's VFS.</param>
-    /// <param name="keepAlive">Prevent Dalamud from automatically unloading this texture to save memory. Usually does not need to be set.</param>
+    /// <param name="keepAlive">Not used. This parameter is ignored.</param>
     /// <returns>Null, if the icon does not exist, or a texture wrap that can be used to render the texture.</returns>
     public IDalamudTextureWrap? GetTextureFromGame(string path, bool keepAlive = false);
     
@@ -83,7 +83,7 @@ public interface ITextureProvider
     /// This API can load .png and .tex files.
     /// </summary>
     /// <param name="file">The FileInfo describing the image or texture file.</param>
-    /// <param name="keepAlive">Prevent Dalamud from automatically unloading this texture to save memory. Usually does not need to be set.</param>
+    /// <param name="keepAlive">Not used. This parameter is ignored.</param>
     /// <returns>Null, if the file does not exist, or a texture wrap that can be used to render the texture.</returns>
     public IDalamudTextureWrap? GetTextureFromFile(FileInfo file, bool keepAlive = false);
     

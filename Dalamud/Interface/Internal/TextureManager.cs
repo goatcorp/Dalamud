@@ -1,8 +1,6 @@
-﻿using System.Collections.Concurrent;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Numerics;
 
 using Dalamud.Data;
@@ -11,12 +9,13 @@ using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Services;
-using ImGuiScene;
 using Lumina.Data.Files;
 using Lumina.Data.Parsing.Tex.Buffers;
 using SharpDX.DXGI;
 
 namespace Dalamud.Interface.Internal;
+
+// TODO API10: Remove keepAlive from public APIs
 
 /// <summary>
 /// Service responsible for loading and disposing ImGui texture wraps.
@@ -25,9 +24,10 @@ namespace Dalamud.Interface.Internal;
 [InterfaceVersion("1.0")]
 [ServiceManager.BlockingEarlyLoadedService]
 #pragma warning disable SA1015
+[ResolveVia<ITextureProvider>]
 [ResolveVia<ITextureSubstitutionProvider>]
 #pragma warning restore SA1015
-internal class TextureManager : IDisposable, IServiceType, ITextureSubstitutionProvider
+internal class TextureManager : IDisposable, IServiceType, ITextureProvider, ITextureSubstitutionProvider
 {
     private const string IconFileFormat = "ui/icon/{0:D3}000/{1}{2:D6}.tex";
     private const string HighResolutionIconFileFormat = "ui/icon/{0:D3}000/{1}{2:D6}_hr1.tex";
@@ -78,16 +78,16 @@ internal class TextureManager : IDisposable, IServiceType, ITextureSubstitutionP
     /// If null, default to the game's current language.
     /// </param>
     /// <param name="keepAlive">
-    /// Prevent Dalamud from automatically unloading this icon to save memory. Usually does not need to be set.
+    /// Not used. This parameter is ignored.
     /// </param>
     /// <returns>
     /// Null, if the icon does not exist in the specified configuration, or a texture wrap that can be used
     /// to render the icon.
     /// </returns>
-    public TextureManagerTextureWrap? GetIcon(uint iconId, ITextureProvider.IconFlags flags = ITextureProvider.IconFlags.HiRes, ClientLanguage? language = null, bool keepAlive = false)
+    public IDalamudTextureWrap? GetIcon(uint iconId, ITextureProvider.IconFlags flags = ITextureProvider.IconFlags.HiRes, ClientLanguage? language = null, bool keepAlive = false)
     {
         var path = this.GetIconPath(iconId, flags, language);
-        return path == null ? null : this.CreateWrap(path, keepAlive);
+        return path == null ? null : this.CreateWrap(path);
     }
 
     /// <summary>
@@ -171,16 +171,16 @@ internal class TextureManager : IDisposable, IServiceType, ITextureSubstitutionP
     /// You may only specify paths in the game's VFS.
     /// </summary>
     /// <param name="path">The path to the texture in the game's VFS.</param>
-    /// <param name="keepAlive">Prevent Dalamud from automatically unloading this texture to save memory. Usually does not need to be set.</param>
+    /// <param name="keepAlive">Not used. This parameter is ignored.</param>
     /// <returns>Null, if the icon does not exist, or a texture wrap that can be used to render the texture.</returns>
-    public TextureManagerTextureWrap? GetTextureFromGame(string path, bool keepAlive = false)
+    public IDalamudTextureWrap? GetTextureFromGame(string path, bool keepAlive = false)
     {
         ArgumentException.ThrowIfNullOrEmpty(path);
 
         if (Path.IsPathRooted(path))
             throw new ArgumentException("Use GetTextureFromFile() to load textures directly from a file.", nameof(path));
         
-        return !this.dataManager.FileExists(path) ? null : this.CreateWrap(path, keepAlive);
+        return !this.dataManager.FileExists(path) ? null : this.CreateWrap(path);
     }
 
     /// <summary>
@@ -190,12 +190,12 @@ internal class TextureManager : IDisposable, IServiceType, ITextureSubstitutionP
     /// This API can load .png and .tex files.
     /// </summary>
     /// <param name="file">The FileInfo describing the image or texture file.</param>
-    /// <param name="keepAlive">Prevent Dalamud from automatically unloading this texture to save memory. Usually does not need to be set.</param>
+    /// <param name="keepAlive">Not used. This parameter is ignored.</param>
     /// <returns>Null, if the file does not exist, or a texture wrap that can be used to render the texture.</returns>
-    public TextureManagerTextureWrap? GetTextureFromFile(FileInfo file, bool keepAlive = false)
+    public IDalamudTextureWrap? GetTextureFromFile(FileInfo file, bool keepAlive = false)
     {
         ArgumentNullException.ThrowIfNull(file);
-        return !file.Exists ? null : this.CreateWrap(file.FullName, keepAlive);
+        return !file.Exists ? null : this.CreateWrap(file.FullName);
     }
 
     /// <summary>
@@ -307,8 +307,7 @@ internal class TextureManager : IDisposable, IServiceType, ITextureSubstitutionP
                 throw new Exception("null info in activeTextures");
         }
 
-        if (info.KeepAliveCount == 0)
-            info.LastAccess = DateTime.UtcNow;
+        info.LastAccess = DateTime.UtcNow;
         
         if (info is { Wrap: not null })
             return info;
@@ -384,33 +383,6 @@ internal class TextureManager : IDisposable, IServiceType, ITextureSubstitutionP
         return info;
     }
 
-    /// <summary>
-    /// Notify the system about an instance of a texture wrap being disposed.
-    /// If required conditions are met, the texture will be unloaded at the next update.
-    /// </summary>
-    /// <param name="path">The path to the texture.</param>
-    /// <param name="keepAlive">Whether or not this handle was created in keep-alive mode.</param>
-    internal void NotifyTextureDisposed(string path, bool keepAlive)
-    {
-        lock (this.activeTextures)
-        {
-            if (!this.activeTextures.TryGetValue(path, out var info))
-            {
-                Log.Warning("Disposing texture that didn't exist: {Path}", path);
-                return;
-            }
-            
-            info.RefCount--;
-
-            if (keepAlive)
-                info.KeepAliveCount--;
-
-            // Clean it up by the next update. If it's re-requested in-between, we don't reload it.
-            if (info.RefCount <= 0)
-                info.LastAccess = default;
-        }
-    }
-
     private static string FormatIconPath(uint iconId, string? type, bool highResolution)
     {
         var format = highResolution ? HighResolutionIconFileFormat : IconFileFormat;
@@ -422,23 +394,15 @@ internal class TextureManager : IDisposable, IServiceType, ITextureSubstitutionP
         return string.Format(format, iconId / 1000, type, iconId);
     }
     
-    private TextureManagerTextureWrap? CreateWrap(string path, bool keepAlive)
+    private TextureManagerTextureWrap? CreateWrap(string path)
     {
         lock (this.activeTextures)
         {
             // This will create the texture.
             // That's fine, it's probably used immediately and this will let the plugin catch load errors.
             var info = this.GetInfo(path, rethrow: true);
-
-            // We need to increase the refcounts here while locking the collection!
-            // Otherwise, if this is loaded from a task, cleanup might already try to delete it
-            // before it can be increased.
-            info.RefCount++;
-
-            if (keepAlive)
-                info.KeepAliveCount++;
             
-            return new TextureManagerTextureWrap(path, info.Extents, keepAlive, this);
+            return new TextureManagerTextureWrap(path, info.Extents, this);
         }
     }
 
@@ -450,19 +414,7 @@ internal class TextureManager : IDisposable, IServiceType, ITextureSubstitutionP
 
             foreach (var texInfo in this.activeTextures)
             {
-                if (texInfo.Value.RefCount == 0)
-                {
-                    Log.Verbose("Evicting {Path} since no refs", texInfo.Key);
-
-                    Debug.Assert(texInfo.Value.KeepAliveCount == 0, "texInfo.Value.KeepAliveCount == 0");
-                    
-                    texInfo.Value.Wrap?.Dispose();
-                    texInfo.Value.Wrap = null;
-                    toRemove.Add(texInfo.Key);
-                    continue;
-                }
-                
-                if (texInfo.Value.KeepAliveCount > 0 || texInfo.Value.Wrap == null)
+                if (texInfo.Value.Wrap == null)
                     continue;
 
                 if (DateTime.UtcNow - texInfo.Value.LastAccess > TimeSpan.FromMilliseconds(MillisecondsEvictionTime))
@@ -470,6 +422,7 @@ internal class TextureManager : IDisposable, IServiceType, ITextureSubstitutionP
                     Log.Verbose("Evicting {Path} since too old", texInfo.Key);
                     texInfo.Value.Wrap.Dispose();
                     texInfo.Value.Wrap = null;
+                    toRemove.Add(texInfo.Key);
                 }
             }
 
@@ -501,105 +454,11 @@ internal class TextureManager : IDisposable, IServiceType, ITextureSubstitutionP
         /// Gets or sets the time the texture was last accessed.
         /// </summary>
         public DateTime LastAccess { get; set; }
-
-        /// <summary>
-        /// Gets or sets the number of active holders of this texture.
-        /// </summary>
-        public uint RefCount { get; set; }
-        
-        /// <summary>
-        /// Gets or sets the number of active holders that want this texture to stay alive forever.
-        /// </summary>
-        public uint KeepAliveCount { get; set; }
         
         /// <summary>
         /// Gets or sets the extents of the texture.
         /// </summary>
         public Vector2 Extents { get; set; }
-    }
-}
-
-/// <summary>
-/// Plugin-scoped version of a texture manager.
-/// </summary>
-[PluginInterface]
-[InterfaceVersion("1.0")]
-[ServiceManager.ScopedService]
-#pragma warning disable SA1015
-[ResolveVia<ITextureProvider>]
-#pragma warning restore SA1015
-internal class TextureProviderPluginScoped : ITextureProvider, IServiceType, IDisposable
-{
-    private readonly TextureManager textureManager;
-
-    private readonly ConcurrentBag<TextureManagerTextureWrap> trackedTextures = new();
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="TextureProviderPluginScoped"/> class.
-    /// </summary>
-    /// <param name="textureManager">TextureManager instance.</param>
-    public TextureProviderPluginScoped(TextureManager textureManager)
-    {
-        this.textureManager = textureManager;
-    }
-
-    /// <inheritdoc/>
-    public IDalamudTextureWrap? GetIcon(
-        uint iconId,
-        ITextureProvider.IconFlags flags = ITextureProvider.IconFlags.ItemHighQuality,
-        ClientLanguage? language = null,
-        bool keepAlive = false)
-    {
-        var wrap = this.textureManager.GetIcon(iconId, flags, language, keepAlive);
-        if (wrap == null)
-            return null;
-        
-        this.trackedTextures.Add(wrap);
-        return wrap;
-    }
-
-    /// <inheritdoc/>
-    public string? GetIconPath(uint iconId, ITextureProvider.IconFlags flags = ITextureProvider.IconFlags.HiRes, ClientLanguage? language = null)
-        => this.textureManager.GetIconPath(iconId, flags, language);
-
-    /// <inheritdoc/>
-    public IDalamudTextureWrap? GetTextureFromGame(string path, bool keepAlive = false)
-    {
-        ArgumentException.ThrowIfNullOrEmpty(path);
-        
-        var wrap = this.textureManager.GetTextureFromGame(path, keepAlive);
-        if (wrap == null)
-            return null;
-        
-        this.trackedTextures.Add(wrap);
-        return wrap;
-    }
-
-    /// <inheritdoc/>
-    public IDalamudTextureWrap? GetTextureFromFile(FileInfo file, bool keepAlive)
-    {
-        ArgumentNullException.ThrowIfNull(file);
-        
-        var wrap = this.textureManager.GetTextureFromFile(file, keepAlive);
-        if (wrap == null)
-            return null;
-        
-        this.trackedTextures.Add(wrap);
-        return wrap;
-    }
-
-    /// <inheritdoc/>
-    public IDalamudTextureWrap? GetTexture(TexFile file)
-        => this.textureManager.GetTexture(file);
-
-    /// <inheritdoc/>
-    public void Dispose()
-    {
-        // Dispose all leaked textures
-        foreach (var textureWrap in this.trackedTextures.Where(x => !x.IsDisposed))
-        {
-            textureWrap.Dispose();
-        }
     }
 }
 
@@ -610,19 +469,16 @@ internal class TextureManagerTextureWrap : IDalamudTextureWrap
 {
     private readonly TextureManager manager;
     private readonly string path;
-    private readonly bool keepAlive;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="TextureManagerTextureWrap"/> class.
     /// </summary>
     /// <param name="path">The path to the texture.</param>
     /// <param name="extents">The extents of the texture.</param>
-    /// <param name="keepAlive">Keep alive or not.</param>
     /// <param name="manager">Manager that we obtained this from.</param>
-    internal TextureManagerTextureWrap(string path, Vector2 extents, bool keepAlive, TextureManager manager)
+    internal TextureManagerTextureWrap(string path, Vector2 extents, TextureManager manager)
     {
         this.path = path;
-        this.keepAlive = keepAlive;
         this.manager = manager;
         this.Width = (int)extents.X;
         this.Height = (int)extents.Y;
@@ -648,12 +504,7 @@ internal class TextureManagerTextureWrap : IDalamudTextureWrap
     /// <inheritdoc/>
     public void Dispose()
     {
-        lock (this)
-        {
-            if (!this.IsDisposed)
-                this.manager.NotifyTextureDisposed(this.path, this.keepAlive);
-        
-            this.IsDisposed = true;   
-        }
+        this.IsDisposed = true;   
+        // This is a no-op. The manager cleans up textures that are not being drawn.
     }
 }
