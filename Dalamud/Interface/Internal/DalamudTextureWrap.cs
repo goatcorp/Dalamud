@@ -1,4 +1,6 @@
-﻿using ImGuiScene;
+﻿using System.Numerics;
+
+using ImGuiScene;
 
 namespace Dalamud.Interface.Internal;
 
@@ -22,6 +24,11 @@ public interface IDalamudTextureWrap : IDisposable
     /// Gets the height of the texture.
     /// </summary>
     int Height { get; }
+
+    /// <summary>
+    /// Gets the size vector of the texture using Width, Height.
+    /// </summary>
+    Vector2 Size => new(this.Width, this.Height);
 }
 
 /// <summary>
