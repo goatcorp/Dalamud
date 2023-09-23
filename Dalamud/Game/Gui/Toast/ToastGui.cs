@@ -33,7 +33,7 @@ internal sealed partial class ToastGui : IDisposable, IServiceType, IToastGui
     /// </summary>
     /// <param name="sigScanner">Sig scanner to use.</param>
     [ServiceManager.ServiceConstructor]
-    private ToastGui(SigScanner sigScanner)
+    private ToastGui(TargetSigScanner sigScanner)
     {
         this.address = new ToastGuiAddressResolver();
         this.address.Setup(sigScanner);

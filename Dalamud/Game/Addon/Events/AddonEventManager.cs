@@ -41,7 +41,7 @@ internal unsafe class AddonEventManager : IDisposable, IServiceType
     private AddonCursorType? cursorOverride;
     
     [ServiceManager.ServiceConstructor]
-    private AddonEventManager(SigScanner sigScanner)
+    private AddonEventManager(TargetSigScanner sigScanner)
     {
         this.address = new AddonEventManagerAddressResolver();
         this.address.Setup(sigScanner);

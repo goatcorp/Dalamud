@@ -48,7 +48,7 @@ internal sealed unsafe class GameGui : IDisposable, IServiceType, IGameGui
     private OpenMapWithFlagDelegate? openMapWithFlag;
 
     [ServiceManager.ServiceConstructor]
-    private GameGui(SigScanner sigScanner)
+    private GameGui(TargetSigScanner sigScanner)
     {
         this.address = new GameGuiAddressResolver();
         this.address.Setup(sigScanner);

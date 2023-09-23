@@ -42,7 +42,7 @@ internal sealed class ChatGui : IDisposable, IServiceType, IChatGui
     private IntPtr baseAddress = IntPtr.Zero;
 
     [ServiceManager.ServiceConstructor]
-    private ChatGui(SigScanner sigScanner)
+    private ChatGui(TargetSigScanner sigScanner)
     {
         this.address = new ChatGuiAddressResolver();
         this.address.Setup(sigScanner);

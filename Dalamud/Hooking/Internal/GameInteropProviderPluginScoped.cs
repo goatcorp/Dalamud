@@ -33,7 +33,7 @@ internal class GameInteropProviderPluginScoped : IGameInteropProvider, IServiceT
     /// </summary>
     /// <param name="plugin">Plugin this instance belongs to.</param>
     /// <param name="scanner">SigScanner instance for target module.</param>
-    public GameInteropProviderPluginScoped(LocalPlugin plugin, SigScanner scanner)
+    public GameInteropProviderPluginScoped(LocalPlugin plugin, TargetSigScanner scanner)
     {
         this.plugin = plugin;
         this.scanner = scanner;

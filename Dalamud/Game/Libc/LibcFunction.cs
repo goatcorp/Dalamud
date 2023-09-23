@@ -24,7 +24,7 @@ internal sealed class LibcFunction : IServiceType, ILibcFunction
     private readonly StdStringDeallocateDelegate stdStringDeallocate;
 
     [ServiceManager.ServiceConstructor]
-    private LibcFunction(SigScanner sigScanner)
+    private LibcFunction(TargetSigScanner sigScanner)
     {
         this.address = new LibcFunctionAddressResolver();
         this.address.Setup(sigScanner);

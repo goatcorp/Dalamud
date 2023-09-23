@@ -27,7 +27,7 @@ internal sealed class PartyFinderGui : IDisposable, IServiceType, IPartyFinderGu
     /// </summary>
     /// <param name="sigScanner">Sig scanner to use.</param>
     [ServiceManager.ServiceConstructor]
-    private PartyFinderGui(SigScanner sigScanner)
+    private PartyFinderGui(TargetSigScanner sigScanner)
     {
         this.address = new PartyFinderAddressResolver();
         this.address.Setup(sigScanner);

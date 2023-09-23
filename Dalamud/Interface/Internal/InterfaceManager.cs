@@ -1055,7 +1055,7 @@ internal class InterfaceManager : IDisposable, IServiceType
     }
 
     [ServiceManager.CallWhenServicesReady]
-    private void ContinueConstruction(SigScanner sigScanner, Framework framework)
+    private void ContinueConstruction(TargetSigScanner sigScanner, Framework framework)
     {
         this.address.Setup(sigScanner);
         framework.RunOnFrameworkThread(() =>

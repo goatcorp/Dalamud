@@ -623,7 +623,7 @@ internal partial class PluginManager : IDisposable, IServiceType
                     Log.Error(e, "Failed to load at least one plugin");
                 }
 
-                var sigScanner = await Service<SigScanner>.GetAsync().ConfigureAwait(false);
+                var sigScanner = await Service<TargetSigScanner>.GetAsync().ConfigureAwait(false);
                 this.PluginsReady = true;
                 this.NotifyinstalledPluginsListChanged();
                 sigScanner.Save();

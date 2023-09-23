@@ -19,7 +19,7 @@ internal sealed class GameConfig : IServiceType, IGameConfig, IDisposable
     private Hook<ConfigChangeDelegate>? configChangeHook;
 
     [ServiceManager.ServiceConstructor]
-    private unsafe GameConfig(Framework framework, SigScanner sigScanner)
+    private unsafe GameConfig(Framework framework, TargetSigScanner sigScanner)
     {
         framework.RunOnTick(() =>
         {

@@ -41,7 +41,7 @@ internal sealed class ClientState : IDisposable, IServiceType, IClientState
     private bool lastFramePvP;
 
     [ServiceManager.ServiceConstructor]
-    private ClientState(SigScanner sigScanner, DalamudStartInfo startInfo, GameLifecycle lifecycle)
+    private ClientState(TargetSigScanner sigScanner, DalamudStartInfo startInfo, GameLifecycle lifecycle)
     {
         this.lifecycle = lifecycle;
         this.address = new ClientStateAddressResolver();

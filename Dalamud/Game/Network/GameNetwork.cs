@@ -30,7 +30,7 @@ internal sealed class GameNetwork : IDisposable, IServiceType, IGameNetwork
     private IntPtr baseAddress;
 
     [ServiceManager.ServiceConstructor]
-    private GameNetwork(SigScanner sigScanner)
+    private GameNetwork(TargetSigScanner sigScanner)
     {
         this.hitchDetectorUp = new HitchDetector("GameNetworkUp", this.configuration.GameNetworkUpHitch);
         this.hitchDetectorDown = new HitchDetector("GameNetworkDown", this.configuration.GameNetworkDownHitch);

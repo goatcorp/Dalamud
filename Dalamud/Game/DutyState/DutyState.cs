@@ -28,7 +28,7 @@ internal unsafe class DutyState : IDisposable, IServiceType, IDutyState
     private readonly ClientState.ClientState clientState = Service<ClientState.ClientState>.Get();
 
     [ServiceManager.ServiceConstructor]
-    private DutyState(SigScanner sigScanner)
+    private DutyState(TargetSigScanner sigScanner)
     {
         this.address = new DutyStateAddressResolver();
         this.address.Setup(sigScanner);
