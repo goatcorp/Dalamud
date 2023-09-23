@@ -1,4 +1,5 @@
 using System.Reflection;
+
 using Dalamud.Plugin.Services;
 using Serilog;
 using Serilog.Events;

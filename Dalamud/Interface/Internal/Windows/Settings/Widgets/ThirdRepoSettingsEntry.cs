@@ -3,6 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Numerics;
 using System.Threading.Tasks;
+
 using CheapLoc;
 using Dalamud.Configuration;
 using Dalamud.Configuration.Internal;
