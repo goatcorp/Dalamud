@@ -74,7 +74,7 @@ internal class SwapChainVtableResolver : BaseAddressResolver, ISwapChainAddressR
 
                 // DXGISwapChain::handle_device_loss => DXGISwapChain::Present => DXGISwapChain::runtime_present
 
-                var scanner = new SigScanner(processModule);
+                var scanner = new GenericSigScanner(processModule);
                 var runtimePresentSig = "F6 C2 01 0F 85 ?? ?? ?? ??";
 
                 try

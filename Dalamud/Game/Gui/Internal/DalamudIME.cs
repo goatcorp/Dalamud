@@ -259,7 +259,7 @@ internal unsafe class DalamudIME : IDisposable, IServiceType
         try
         {
             var module = Process.GetCurrentProcess().Modules.Cast<ProcessModule>().First(m => m.ModuleName == "cimgui.dll");
-            var scanner = new SigScanner(module);
+            var scanner = new GenericSigScanner(module);
             var cursorDrawingPtr = scanner.ScanModule("F3 0F 11 75 ?? 0F 28 CF");
             Log.Debug($"Found cursorDrawingPtr at {cursorDrawingPtr:X}");
 
