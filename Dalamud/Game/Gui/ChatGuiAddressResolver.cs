@@ -83,10 +83,10 @@ internal sealed class ChatGuiAddressResolver : BaseAddressResolver
      */
 
     /// <inheritdoc/>
-    protected override void Setup64Bit(SigScanner sig)
+    protected override void Setup64Bit(TargetSigScanner targetSig)
     {
         // PrintMessage = sig.ScanText("4055 57 41 ?? 41 ?? 488DAC24D8FEFFFF 4881EC28020000 488B05???????? 4833C4 488985F0000000 4532D2 48894C2448"); LAST PART FOR 5.1???
-        this.PrintMessage = sig.ScanText("40 55 53 56 41 54 41 57 48 8D AC 24 ?? ?? ?? ?? 48 81 EC 20 02 00 00 48 8B 05");
+        this.PrintMessage = targetSig.ScanText("40 55 53 56 41 54 41 57 48 8D AC 24 ?? ?? ?? ?? 48 81 EC 20 02 00 00 48 8B 05");
         // PrintMessage = sig.ScanText("4055 57 41 ?? 41 ?? 488DAC24E8FEFFFF 4881EC18020000 488B05???????? 4833C4 488985E0000000 4532D2 48894C2438"); old
 
         // PrintMessage = sig.ScanText("40 55 57 41 56 41 57 48  8D AC 24 D8 FE FF FF 48 81 EC 28 02 00 00 48 8B  05 63 47 4A 01 48 33 C4 48 89 85 F0 00 00 00 45  32 D2 48 89 4C 24 48 33");
@@ -94,8 +94,8 @@ internal sealed class ChatGuiAddressResolver : BaseAddressResolver
         // PopulateItemLinkObject = sig.ScanText("48 89 5C 24 08 57 48 83  EC 20 80 7A 06 00 48 8B DA 48 8B F9 74 14 48 8B  CA E8 32 03 00 00 48 8B C8 E8 FA F2 B0 FF 8B C8  EB 1D 0F B6 42 14 8B 4A");
 
         // PopulateItemLinkObject = sig.ScanText(      "48 89 5C 24 08 57 48 83  EC 20 80 7A 06 00 48 8B DA 48 8B F9 74 14 48 8B  CA E8 32 03 00 00 48 8B C8 E8 ?? ?? B0 FF 8B C8  EB 1D 0F B6 42 14 8B 4A"); 5.0
-        this.PopulateItemLinkObject = sig.ScanText("48 89 5C 24 08 57 48 83 EC 20 80 7A 06 00 48 8B DA 48 8B F9 74 14 48 8B CA E8 32 03 00 00 48 8B C8 E8 ?? ?? ?? FF 8B C8 EB 1D 0F B6 42 14 8B 4A");
+        this.PopulateItemLinkObject = targetSig.ScanText("48 89 5C 24 08 57 48 83 EC 20 80 7A 06 00 48 8B DA 48 8B F9 74 14 48 8B CA E8 32 03 00 00 48 8B C8 E8 ?? ?? ?? FF 8B C8 EB 1D 0F B6 42 14 8B 4A");
 
-        this.InteractableLinkClicked = sig.ScanText("E8 ?? ?? ?? ?? E9 ?? ?? ?? ?? 80 BB ?? ?? ?? ?? ?? 0F 85 ?? ?? ?? ?? 80 BB") + 9;
+        this.InteractableLinkClicked = targetSig.ScanText("E8 ?? ?? ?? ?? E9 ?? ?? ?? ?? 80 BB ?? ?? ?? ?? ?? 0F 85 ?? ?? ?? ?? 80 BB") + 9;
     }
 }

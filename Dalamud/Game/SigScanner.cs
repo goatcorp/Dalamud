@@ -1,5 +1,4 @@
-using System;
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
@@ -7,25 +6,16 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-using Dalamud.IoC;
-using Dalamud.IoC.Internal;
 using Iced.Intel;
 using Newtonsoft.Json;
 using Serilog;
 
 namespace Dalamud.Game;
 
-// TODO(v9): There are static functions here that we can't keep due to interfaces
-
 /// <summary>
-/// A SigScanner facilitates searching for memory signatures in a given ProcessModule.
+/// A class to provide functionality to scan arbitrary modules for signatures.
 /// </summary>
-[PluginInterface]
-[InterfaceVersion("1.0")]
-#pragma warning disable SA1015
-[ResolveVia<ISigScanner>]
-#pragma warning restore SA1015
-internal class SigScanner : IDisposable, IServiceType, ISigScanner
+public class SigScanner : IDisposable, ISigScanner
 {
     private readonly FileInfo? cacheFile;
 
@@ -33,16 +23,6 @@ internal class SigScanner : IDisposable, IServiceType, ISigScanner
     private long moduleCopyOffset;
 
     private ConcurrentDictionary<string, long>? textCache;
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="SigScanner"/> class using the main module of the current process.
-    /// </summary>
-    /// <param name="doCopy">Whether or not to copy the module upon initialization for search operations to use, as to not get disturbed by possible hooks.</param>
-    /// <param name="cacheFile">File used to cached signatures.</param>
-    public SigScanner(bool doCopy = false, FileInfo? cacheFile = null)
-        : this(Process.GetCurrentProcess().MainModule!, doCopy, cacheFile)
-    {
-    }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="SigScanner"/> class.

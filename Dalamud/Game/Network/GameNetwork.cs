@@ -30,13 +30,13 @@ internal sealed class GameNetwork : IDisposable, IServiceType, IGameNetwork
     private IntPtr baseAddress;
 
     [ServiceManager.ServiceConstructor]
-    private GameNetwork(SigScanner sigScanner)
+    private GameNetwork(TargetSigScanner targetSigScanner)
     {
         this.hitchDetectorUp = new HitchDetector("GameNetworkUp", this.configuration.GameNetworkUpHitch);
         this.hitchDetectorDown = new HitchDetector("GameNetworkDown", this.configuration.GameNetworkDownHitch);
 
         this.address = new GameNetworkAddressResolver();
-        this.address.Setup(sigScanner);
+        this.address.Setup(targetSigScanner);
 
         Log.Verbose("===== G A M E N E T W O R K =====");
         Log.Verbose($"ProcessZonePacketDown address 0x{this.address.ProcessZonePacketDown.ToInt64():X}");

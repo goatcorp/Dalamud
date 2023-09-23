@@ -25,12 +25,12 @@ internal sealed class PartyFinderGui : IDisposable, IServiceType, IPartyFinderGu
     /// <summary>
     /// Initializes a new instance of the <see cref="PartyFinderGui"/> class.
     /// </summary>
-    /// <param name="sigScanner">Sig scanner to use.</param>
+    /// <param name="targetSigScanner">Sig scanner to use.</param>
     [ServiceManager.ServiceConstructor]
-    private PartyFinderGui(SigScanner sigScanner)
+    private PartyFinderGui(TargetSigScanner targetSigScanner)
     {
         this.address = new PartyFinderAddressResolver();
-        this.address.Setup(sigScanner);
+        this.address.Setup(targetSigScanner);
 
         this.memory = Marshal.AllocHGlobal(PartyFinderPacket.PacketSize);
 

@@ -41,11 +41,11 @@ internal sealed class ClientState : IDisposable, IServiceType, IClientState
     private bool lastFramePvP;
 
     [ServiceManager.ServiceConstructor]
-    private ClientState(SigScanner sigScanner, DalamudStartInfo startInfo, GameLifecycle lifecycle)
+    private ClientState(TargetSigScanner targetSigScanner, DalamudStartInfo startInfo, GameLifecycle lifecycle)
     {
         this.lifecycle = lifecycle;
         this.address = new ClientStateAddressResolver();
-        this.address.Setup(sigScanner);
+        this.address.Setup(targetSigScanner);
 
         Log.Verbose("===== C L I E N T  S T A T E =====");
 

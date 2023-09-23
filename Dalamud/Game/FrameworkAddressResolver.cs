@@ -1,5 +1,3 @@
-using System;
-
 namespace Dalamud.Game;
 
 /// <summary>
@@ -23,12 +21,12 @@ internal sealed class FrameworkAddressResolver : BaseAddressResolver
     public IntPtr TickAddress { get; private set; }
 
     /// <inheritdoc/>
-    protected override void Setup64Bit(SigScanner sig)
+    protected override void Setup64Bit(TargetSigScanner targetSig)
     {
-        this.SetupFramework(sig);
+        this.SetupFramework(targetSig);
     }
 
-    private void SetupFramework(SigScanner scanner)
+    private void SetupFramework(TargetSigScanner scanner)
     {
         this.DestroyAddress =
             scanner.ScanText("48 89 5C 24 ?? 48 89 74 24 ?? 57 48 83 EC 20 48 8B 3D ?? ?? ?? ?? 48 8B D9 48 85 FF");

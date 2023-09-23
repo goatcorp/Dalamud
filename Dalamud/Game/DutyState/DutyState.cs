@@ -28,10 +28,10 @@ internal unsafe class DutyState : IDisposable, IServiceType, IDutyState
     private readonly ClientState.ClientState clientState = Service<ClientState.ClientState>.Get();
 
     [ServiceManager.ServiceConstructor]
-    private DutyState(SigScanner sigScanner)
+    private DutyState(TargetSigScanner targetSigScanner)
     {
         this.address = new DutyStateAddressResolver();
-        this.address.Setup(sigScanner);
+        this.address.Setup(targetSigScanner);
 
         this.contentDirectorNetworkMessageHook = Hook<SetupContentDirectNetworkMessageDelegate>.FromAddress(this.address.ContentDirectorNetworkMessage, this.ContentDirectorNetworkMessageDetour);
 

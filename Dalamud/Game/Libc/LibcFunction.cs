@@ -1,4 +1,3 @@
-using System;
 using System.Runtime.InteropServices;
 using System.Text;
 
@@ -24,10 +23,10 @@ internal sealed class LibcFunction : IServiceType, ILibcFunction
     private readonly StdStringDeallocateDelegate stdStringDeallocate;
 
     [ServiceManager.ServiceConstructor]
-    private LibcFunction(SigScanner sigScanner)
+    private LibcFunction(TargetSigScanner targetSigScanner)
     {
         this.address = new LibcFunctionAddressResolver();
-        this.address.Setup(sigScanner);
+        this.address.Setup(targetSigScanner);
 
         this.stdStringCtorCString = Marshal.GetDelegateForFunctionPointer<StdStringFromCStringDelegate>(this.address.StdStringFromCstring);
         this.stdStringDeallocate = Marshal.GetDelegateForFunctionPointer<StdStringDeallocateDelegate>(this.address.StdStringDeallocate);

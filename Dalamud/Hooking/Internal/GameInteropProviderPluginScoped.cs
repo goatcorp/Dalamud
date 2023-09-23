@@ -24,7 +24,7 @@ namespace Dalamud.Hooking.Internal;
 internal class GameInteropProviderPluginScoped : IGameInteropProvider, IServiceType, IDisposable
 {
     private readonly LocalPlugin plugin;
-    private readonly SigScanner scanner;
+    private readonly TargetSigScanner scanner;
 
     private readonly ConcurrentBag<IDalamudHook> trackedHooks = new();
 
@@ -33,7 +33,7 @@ internal class GameInteropProviderPluginScoped : IGameInteropProvider, IServiceT
     /// </summary>
     /// <param name="plugin">Plugin this instance belongs to.</param>
     /// <param name="scanner">SigScanner instance for target module.</param>
-    public GameInteropProviderPluginScoped(LocalPlugin plugin, SigScanner scanner)
+    public GameInteropProviderPluginScoped(LocalPlugin plugin, TargetSigScanner scanner)
     {
         this.plugin = plugin;
         this.scanner = scanner;

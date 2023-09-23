@@ -38,10 +38,10 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
     private readonly List<AddonLifecycleEventListener> eventListeners = new();
 
     [ServiceManager.ServiceConstructor]
-    private AddonLifecycle(SigScanner sigScanner)
+    private AddonLifecycle(TargetSigScanner targetSigScanner)
     {
         this.address = new AddonLifecycleAddressResolver();
-        this.address.Setup(sigScanner);
+        this.address.Setup(targetSigScanner);
 
         this.framework.Update += this.OnFrameworkUpdate;
 

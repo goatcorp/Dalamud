@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -39,9 +38,9 @@ internal class KeyState : IServiceType, IKeyState
     private VirtualKey[]? validVirtualKeyCache;
 
     [ServiceManager.ServiceConstructor]
-    private KeyState(SigScanner sigScanner, ClientState clientState)
+    private KeyState(TargetSigScanner targetSigScanner, ClientState clientState)
     {
-        var moduleBaseAddress = sigScanner.Module.BaseAddress;
+        var moduleBaseAddress = targetSigScanner.Module.BaseAddress;
         var addressResolver = clientState.AddressResolver;
         this.bufferBase = moduleBaseAddress + Marshal.ReadInt32(addressResolver.KeyboardState);
         this.indexBase = moduleBaseAddress + Marshal.ReadInt32(addressResolver.KeyboardStateIndexArray);

@@ -14,7 +14,7 @@ internal class AddonEventManagerAddressResolver : BaseAddressResolver
     /// Scan for and setup any configured address pointers.
     /// </summary>
     /// <param name="scanner">The signature scanner to facilitate setup.</param>
-    protected override void Setup64Bit(SigScanner scanner)
+    protected override void Setup64Bit(TargetSigScanner scanner)
     {
         this.UpdateCursor = scanner.ScanText("48 89 74 24 ?? 48 89 7C 24 ?? 41 56 48 83 EC 20 4C 8B F1 E8 ?? ?? ?? ?? 49 8B CE");
     }

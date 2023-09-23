@@ -1,10 +1,9 @@
-using System;
 using System.Collections.Generic;
 
+using Serilog;
 #if !DEBUG
 using Dalamud.Configuration.Internal;
 #endif
-using Serilog;
 
 namespace Dalamud.Game.Internal;
 
@@ -19,11 +18,11 @@ internal sealed partial class AntiDebug : IServiceType
     private IntPtr debugCheckAddress;
 
     [ServiceManager.ServiceConstructor]
-    private AntiDebug(SigScanner sigScanner)
+    private AntiDebug(TargetSigScanner targetSigScanner)
     {
         try
         {
-            this.debugCheckAddress = sigScanner.ScanText("FF 15 ?? ?? ?? ?? 85 C0 74 11 41");
+            this.debugCheckAddress = targetSigScanner.ScanText("FF 15 ?? ?? ?? ?? 85 C0 74 11 41");
         }
         catch (KeyNotFoundException)
         {

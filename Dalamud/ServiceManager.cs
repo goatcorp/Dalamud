@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -105,15 +104,15 @@ internal static class ServiceManager
             Service<ServiceContainer>.Provide(new ServiceContainer());
             LoadedServices.Add(typeof(ServiceContainer));
 
-            Service<SigScanner>.Provide(
-                new SigScanner(
+            Service<TargetSigScanner>.Provide(
+                new TargetSigScanner(
                     true, new FileInfo(Path.Combine(cacheDir.FullName, $"{startInfo.GameVersion}.json"))));
-            LoadedServices.Add(typeof(SigScanner));
+            LoadedServices.Add(typeof(TargetSigScanner));
         }
 
         using (Timings.Start("CS Resolver Init"))
         {
-            FFXIVClientStructs.Interop.Resolver.GetInstance.SetupSearchSpace(Service<SigScanner>.Get().SearchBase, new FileInfo(Path.Combine(cacheDir.FullName, $"{startInfo.GameVersion}_cs.json")));
+            FFXIVClientStructs.Interop.Resolver.GetInstance.SetupSearchSpace(Service<TargetSigScanner>.Get().SearchBase, new FileInfo(Path.Combine(cacheDir.FullName, $"{startInfo.GameVersion}_cs.json")));
             FFXIVClientStructs.Interop.Resolver.GetInstance.Resolve();
         }
     }

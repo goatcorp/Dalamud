@@ -38,14 +38,14 @@ internal class AddonLifecycleAddressResolver : BaseAddressResolver
     /// <summary>
     /// Scan for and setup any configured address pointers.
     /// </summary>
-    /// <param name="sig">The signature scanner to facilitate setup.</param>
-    protected override void Setup64Bit(SigScanner sig)
+    /// <param name="targetSig">The signature scanner to facilitate setup.</param>
+    protected override void Setup64Bit(TargetSigScanner targetSig)
     {
-        this.AddonSetup = sig.ScanText("FF 90 ?? ?? ?? ?? 48 8B 93 ?? ?? ?? ?? 80 8B");
-        this.AddonFinalize = sig.ScanText("E8 ?? ?? ?? ?? 48 8B 7C 24 ?? 41 8B C6");
-        this.AddonDraw = sig.ScanText("FF 90 ?? ?? ?? ?? 83 EB 01 79 C1");
-        this.AddonUpdate = sig.ScanText("FF 90 ?? ?? ?? ?? 40 88 AF");
-        this.AddonOnRequestedUpdate = sig.ScanText("FF 90 90 01 00 00 48 8B 5C 24 30 48 83 C4 20");
-        this.AddonOnRefresh = sig.ScanText("48 89 5C 24 08 57 48 83 EC 20 41 8B F8 48 8B DA");
+        this.AddonSetup = targetSig.ScanText("FF 90 ?? ?? ?? ?? 48 8B 93 ?? ?? ?? ?? 80 8B");
+        this.AddonFinalize = targetSig.ScanText("E8 ?? ?? ?? ?? 48 8B 7C 24 ?? 41 8B C6");
+        this.AddonDraw = targetSig.ScanText("FF 90 ?? ?? ?? ?? 83 EB 01 79 C1");
+        this.AddonUpdate = targetSig.ScanText("FF 90 ?? ?? ?? ?? 40 88 AF");
+        this.AddonOnRequestedUpdate = targetSig.ScanText("FF 90 90 01 00 00 48 8B 5C 24 30 48 83 C4 20");
+        this.AddonOnRefresh = targetSig.ScanText("48 89 5C 24 08 57 48 83 EC 20 41 8B F8 48 8B DA");
     }
 }

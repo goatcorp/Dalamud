@@ -28,7 +28,7 @@ internal class SwapChainVtableResolver : BaseAddressResolver, ISwapChainAddressR
     public bool IsReshade { get; private set; }
 
     /// <inheritdoc/>
-    protected override unsafe void Setup64Bit(SigScanner sig)
+    protected override unsafe void Setup64Bit(TargetSigScanner targetSig)
     {
         Device* kernelDev;
         SwapChain* swapChain;

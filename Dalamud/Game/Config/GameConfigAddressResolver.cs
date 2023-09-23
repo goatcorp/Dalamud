@@ -11,7 +11,7 @@ internal sealed class GameConfigAddressResolver : BaseAddressResolver
     public nint ConfigChangeAddress { get; private set; }
     
     /// <inheritdoc/>
-    protected override void Setup64Bit(SigScanner scanner)
+    protected override void Setup64Bit(TargetSigScanner scanner)
     {
         this.ConfigChangeAddress = scanner.ScanText("E8 ?? ?? ?? ?? 48 8B 3F 49 3B 3E");
     }

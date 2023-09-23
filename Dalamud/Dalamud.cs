@@ -1,4 +1,3 @@
-using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -167,7 +166,7 @@ internal sealed class Dalamud : IServiceType
     internal void ReplaceExceptionHandler()
     {
         var releaseSig = "40 55 53 56 48 8D AC 24 ?? ?? ?? ?? B8 ?? ?? ?? ?? E8 ?? ?? ?? ?? 48 2B E0 48 8B 05 ?? ?? ?? ?? 48 33 C4 48 89 85 ?? ?? ?? ?? 48 83 3D ?? ?? ?? ?? ??";
-        var releaseFilter = Service<SigScanner>.Get().ScanText(releaseSig);
+        var releaseFilter = Service<TargetSigScanner>.Get().ScanText(releaseSig);
         Log.Debug($"SE debug filter at {releaseFilter.ToInt64():X}");
 
         var oldFilter = NativeFunctions.SetUnhandledExceptionFilter(releaseFilter);

@@ -1,4 +1,3 @@
-using System;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
@@ -30,10 +29,10 @@ internal sealed class FlyTextGui : IDisposable, IServiceType, IFlyTextGui
     private readonly Hook<CreateFlyTextDelegate> createFlyTextHook;
 
     [ServiceManager.ServiceConstructor]
-    private FlyTextGui(SigScanner sigScanner)
+    private FlyTextGui(TargetSigScanner targetSigScanner)
     {
         this.Address = new FlyTextGuiAddressResolver();
-        this.Address.Setup(sigScanner);
+        this.Address.Setup(targetSigScanner);
 
         this.addFlyTextNative = Marshal.GetDelegateForFunctionPointer<AddFlyTextDelegate>(this.Address.AddFlyText);
         this.createFlyTextHook = Hook<CreateFlyTextDelegate>.FromAddress(this.Address.CreateFlyText, this.CreateFlyTextDetour);

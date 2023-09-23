@@ -1,5 +1,4 @@
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -7,7 +6,6 @@ using System.Runtime.InteropServices;
 using Dalamud.Game;
 using Dalamud.Hooking;
 using Dalamud.Logging;
-using Dalamud.Plugin.Services;
 using Dalamud.Utility.Signatures.Wrappers;
 using Serilog;
 
@@ -29,7 +27,7 @@ internal static class SignatureHelper
     /// <returns>Collection of created IDalamudHooks.</returns>
     internal static IEnumerable<IDalamudHook> Initialize(object self, bool log = true)
     {
-        var scanner = Service<SigScanner>.Get();
+        var scanner = Service<TargetSigScanner>.Get();
         var selfType = self.GetType();
         var fields = selfType.GetFields(Flags).Select(field => (IFieldOrPropertyInfo)new FieldInfoWrapper(field))
                              .Concat(selfType.GetProperties(Flags).Select(prop => new PropertyInfoWrapper(prop)))

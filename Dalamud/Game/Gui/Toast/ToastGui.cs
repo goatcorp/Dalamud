@@ -31,12 +31,12 @@ internal sealed partial class ToastGui : IDisposable, IServiceType, IToastGui
     /// <summary>
     /// Initializes a new instance of the <see cref="ToastGui"/> class.
     /// </summary>
-    /// <param name="sigScanner">Sig scanner to use.</param>
+    /// <param name="targetSigScanner">Sig scanner to use.</param>
     [ServiceManager.ServiceConstructor]
-    private ToastGui(SigScanner sigScanner)
+    private ToastGui(TargetSigScanner targetSigScanner)
     {
         this.address = new ToastGuiAddressResolver();
-        this.address.Setup(sigScanner);
+        this.address.Setup(targetSigScanner);
 
         this.showNormalToastHook = Hook<ShowNormalToastDelegate>.FromAddress(this.address.ShowNormalToast, this.HandleNormalToastDetour);
         this.showQuestToastHook = Hook<ShowQuestToastDelegate>.FromAddress(this.address.ShowQuestToast, this.HandleQuestToastDetour);

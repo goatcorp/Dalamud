@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -42,10 +41,10 @@ internal sealed class ChatGui : IDisposable, IServiceType, IChatGui
     private IntPtr baseAddress = IntPtr.Zero;
 
     [ServiceManager.ServiceConstructor]
-    private ChatGui(SigScanner sigScanner)
+    private ChatGui(TargetSigScanner targetSigScanner)
     {
         this.address = new ChatGuiAddressResolver();
-        this.address.Setup(sigScanner);
+        this.address.Setup(targetSigScanner);
 
         this.printMessageHook = Hook<PrintMessageDelegate>.FromAddress(this.address.PrintMessage, this.HandlePrintMessageDetour);
         this.populateItemLinkHook = Hook<PopulateItemLinkDelegate>.FromAddress(this.address.PopulateItemLinkObject, this.HandlePopulateItemLinkDetour);

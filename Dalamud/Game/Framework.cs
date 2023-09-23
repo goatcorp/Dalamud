@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -51,13 +50,13 @@ internal sealed class Framework : IDisposable, IServiceType, IFramework
     private Thread? frameworkUpdateThread;
 
     [ServiceManager.ServiceConstructor]
-    private Framework(SigScanner sigScanner, GameLifecycle lifecycle)
+    private Framework(TargetSigScanner targetSigScanner, GameLifecycle lifecycle)
     {
         this.lifecycle = lifecycle;
         this.hitchDetector = new HitchDetector("FrameworkUpdate", this.configuration.FrameworkUpdateHitch);
 
         this.addressResolver = new FrameworkAddressResolver();
-        this.addressResolver.Setup(sigScanner);
+        this.addressResolver.Setup(targetSigScanner);
 
         this.updateHook = Hook<OnUpdateDetour>.FromAddress(this.addressResolver.TickAddress, this.HandleFrameworkUpdate);
         this.destroyHook = Hook<OnRealDestroyDelegate>.FromAddress(this.addressResolver.DestroyAddress, this.HandleFrameworkDestroy);

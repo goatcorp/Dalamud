@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -1055,9 +1054,9 @@ internal class InterfaceManager : IDisposable, IServiceType
     }
 
     [ServiceManager.CallWhenServicesReady]
-    private void ContinueConstruction(SigScanner sigScanner, Framework framework)
+    private void ContinueConstruction(TargetSigScanner targetSigScanner, Framework framework)
     {
-        this.address.Setup(sigScanner);
+        this.address.Setup(targetSigScanner);
         framework.RunOnFrameworkThread(() =>
         {
             while ((this.GameWindowHandle = NativeFunctions.FindWindowEx(IntPtr.Zero, this.GameWindowHandle, "FFXIVGAME", IntPtr.Zero)) != IntPtr.Zero)
@@ -1085,7 +1084,7 @@ internal class InterfaceManager : IDisposable, IServiceType
             Log.Verbose($"Present address 0x{this.presentHook!.Address.ToInt64():X}");
             Log.Verbose($"ResizeBuffers address 0x{this.resizeBuffersHook!.Address.ToInt64():X}");
 
-            var wndProcAddress = sigScanner.ScanText("E8 ?? ?? ?? ?? 80 7C 24 ?? ?? 74 ?? B8");
+            var wndProcAddress = targetSigScanner.ScanText("E8 ?? ?? ?? ?? 80 7C 24 ?? ?? 74 ?? B8");
             Log.Verbose($"WndProc address 0x{wndProcAddress.ToInt64():X}");
             this.processMessageHook = Hook<ProcessMessageDelegate>.FromAddress(wndProcAddress, this.ProcessMessageDetour);
 

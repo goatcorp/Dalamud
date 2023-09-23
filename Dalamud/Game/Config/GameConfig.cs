@@ -19,7 +19,7 @@ internal sealed class GameConfig : IServiceType, IGameConfig, IDisposable
     private Hook<ConfigChangeDelegate>? configChangeHook;
 
     [ServiceManager.ServiceConstructor]
-    private unsafe GameConfig(Framework framework, SigScanner sigScanner)
+    private unsafe GameConfig(Framework framework, TargetSigScanner targetSigScanner)
     {
         framework.RunOnTick(() =>
         {
@@ -30,7 +30,7 @@ internal sealed class GameConfig : IServiceType, IGameConfig, IDisposable
             this.UiConfig = new GameConfigSection("UiConfig", framework, &commonConfig->UiConfig);
             this.UiControl = new GameConfigSection("UiControl", framework, () => this.UiConfig.TryGetBool("PadMode", out var padMode) && padMode ? &commonConfig->UiControlGamepadConfig : &commonConfig->UiControlConfig);
         
-            this.address.Setup(sigScanner);
+            this.address.Setup(targetSigScanner);
             this.configChangeHook = Hook<ConfigChangeDelegate>.FromAddress(this.address.ConfigChangeAddress, this.OnConfigChanged);
             this.configChangeHook.Enable();
         });
