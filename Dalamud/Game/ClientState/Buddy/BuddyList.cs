@@ -55,18 +55,6 @@ internal sealed partial class BuddyList : IServiceType, IBuddyList
         }
     }
 
-    /// <summary>
-    /// Gets a value indicating whether the local player's companion is present.
-    /// </summary>
-    [Obsolete("Use CompanionBuddy != null", false)]
-    public bool CompanionBuddyPresent => this.CompanionBuddy != null;
-
-    /// <summary>
-    /// Gets a value indicating whether the local player's pet is present.
-    /// </summary>
-    [Obsolete("Use PetBuddy != null", false)]
-    public bool PetBuddyPresent => this.PetBuddy != null;
-
     /// <inheritdoc/>
     public BuddyMember? CompanionBuddy
     {

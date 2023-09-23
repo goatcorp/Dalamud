@@ -126,16 +126,6 @@ public partial class FileDialog
     /// <summary>
     /// Gets the result of the selection.
     /// </summary>
-    /// <returns>The result of the selection (file or folder path). If multiple entries were selected, they are separated with commas.</returns>
-    [Obsolete("Use GetResults() instead.", true)]
-    public string GetResult()
-    {
-        return string.Join(',', this.GetResults());
-    }
-
-    /// <summary>
-    /// Gets the result of the selection.
-    /// </summary>
     /// <returns>The list of selected paths.</returns>
     public List<string> GetResults()
     {
