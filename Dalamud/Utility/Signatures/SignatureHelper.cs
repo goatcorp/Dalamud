@@ -1,11 +1,8 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
-
 using Dalamud.Game;
 using Dalamud.Hooking;
-using Dalamud.Logging;
 using Dalamud.Utility.Signatures.Wrappers;
 using Serilog;
 
@@ -23,7 +20,7 @@ public static class SignatureHelper
     /// <see cref="SignatureAttribute"/>.
     /// </summary>
     /// <param name="self">The object to initialise.</param>
-    /// <param name="log">If warnings should be logged using <see cref="PluginLog"/>.</param>
+    /// <param name="log">If warnings should be logged.</param>
     public static void Initialise(object self, bool log = true)
     {
         var scanner = Service<SigScanner>.Get();
@@ -61,7 +58,7 @@ public static class SignatureHelper
                                    : message;
                 if (fallible)
                 {
-                    PluginLog.Warning(errorMsg);
+                    Log.Warning(errorMsg);
                 }
                 else
                 {
