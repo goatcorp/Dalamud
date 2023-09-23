@@ -52,7 +52,7 @@ internal unsafe class PluginEventController : IDisposable
 
         if ((int)node->Type >= 1000)
         {
-            Log.Error("Wrong node type. Attempted to attach an event to a component node. No event was attached.");
+            Log.Error($"Wrong node type. Attempted to attach an event to a component node. No event was attached.\nAtkUnitBase: {atkUnitBase:X}, AtkResNode: {atkResNode:X}, EventType: {atkEventType}");
             return null;
         }
         
