@@ -77,33 +77,32 @@ internal unsafe class AddonEventManager : IDisposable, IServiceType
     /// Registers an event handler for the specified addon, node, and type.
     /// </summary>
     /// <param name="pluginId">Unique ID for this plugin.</param>
-    /// <param name="eventId">Unique Id for this event, maximum 0x10000.</param>
     /// <param name="atkUnitBase">The parent addon for this event.</param>
     /// <param name="atkResNode">The node that will trigger this event.</param>
     /// <param name="eventType">The event type for this event.</param>
     /// <param name="eventHandler">The handler to call when event is triggered.</param>
-    internal void AddEvent(string pluginId, uint eventId, IntPtr atkUnitBase, IntPtr atkResNode, AddonEventType eventType, IAddonEventManager.AddonEventHandler eventHandler)
+    /// <returns>IAddonEventHandle used to remove the event.</returns>
+    internal IAddonEventHandle? AddEvent(string pluginId, IntPtr atkUnitBase, IntPtr atkResNode, AddonEventType eventType, IAddonEventManager.AddonEventHandler eventHandler)
     {
         if (this.pluginEventControllers.FirstOrDefault(entry => entry.PluginId == pluginId) is { } eventController)
         {
-            eventController.AddEvent(eventId, atkUnitBase, atkResNode, eventType, eventHandler);
+            return eventController.AddEvent(atkUnitBase, atkResNode, eventType, eventHandler);
         }
-        else
-        {
-            Log.Verbose($"Unable to locate controller for {pluginId}. No event was added.");
-        }
+        
+        Log.Verbose($"Unable to locate controller for {pluginId}. No event was added.");
+        return null;
     }
 
     /// <summary>
     /// Unregisters an event handler with the specified event id and event type.
     /// </summary>
     /// <param name="pluginId">Unique ID for this plugin.</param>
-    /// <param name="eventId">The Unique Id for this event.</param>
-    internal void RemoveEvent(string pluginId, uint eventId)
+    /// <param name="eventHandle">The Unique Id for this event.</param>
+    internal void RemoveEvent(string pluginId, IAddonEventHandle eventHandle)
     {
         if (this.pluginEventControllers.FirstOrDefault(entry => entry.PluginId == pluginId) is { } eventController)
         {
-            eventController.RemoveEvent(eventId);
+            eventController.RemoveEvent(eventHandle);
         }
         else
         {
@@ -239,12 +238,12 @@ internal class AddonEventManagerPluginScoped : IDisposable, IServiceType, IAddon
     }
     
     /// <inheritdoc/>
-    public void AddEvent(uint eventId, IntPtr atkUnitBase, IntPtr atkResNode, AddonEventType eventType, IAddonEventManager.AddonEventHandler eventHandler) 
-        => this.eventManagerService.AddEvent(this.plugin.Manifest.WorkingPluginId.ToString(), eventId, atkUnitBase, atkResNode, eventType, eventHandler);
+    public IAddonEventHandle? AddEvent(IntPtr atkUnitBase, IntPtr atkResNode, AddonEventType eventType, IAddonEventManager.AddonEventHandler eventHandler) 
+        => this.eventManagerService.AddEvent(this.plugin.Manifest.WorkingPluginId.ToString(), atkUnitBase, atkResNode, eventType, eventHandler);
 
     /// <inheritdoc/>
-    public void RemoveEvent(uint eventId)
-        => this.eventManagerService.RemoveEvent(this.plugin.Manifest.WorkingPluginId.ToString(), eventId);
+    public void RemoveEvent(IAddonEventHandle eventHandle)
+        => this.eventManagerService.RemoveEvent(this.plugin.Manifest.WorkingPluginId.ToString(), eventHandle);
     
     /// <inheritdoc/>
     public void SetCursor(AddonCursorType cursor)

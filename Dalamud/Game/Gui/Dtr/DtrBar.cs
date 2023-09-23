@@ -25,9 +25,6 @@ namespace Dalamud.Game.Gui.Dtr;
 public sealed unsafe class DtrBar : IDisposable, IServiceType, IDtrBar
 {
     private const uint BaseNodeId = 1000;
-    private const uint MouseOverEventIdOffset = 10000;
-    private const uint MouseOutEventIdOffset = 20000;
-    private const uint MouseClickEventIdOffset = 30000;
 
     private static readonly ModuleLog Log = new("DtrBar");
     
@@ -51,6 +48,8 @@ public sealed unsafe class DtrBar : IDisposable, IServiceType, IDtrBar
     
     private readonly ConcurrentBag<DtrBarEntry> newEntries = new();
     private readonly List<DtrBarEntry> entries = new();
+
+    private readonly Dictionary<uint, List<IAddonEventHandle>> eventHandles = new();
     
     private uint runningNodeIds = BaseNodeId;
 
@@ -172,7 +171,7 @@ public sealed unsafe class DtrBar : IDisposable, IServiceType, IDtrBar
         this.HandleAddedNodes();
 
         var dtr = this.GetDtr();
-        if (dtr == null) return;
+        if (dtr == null || dtr->RootNode == null || dtr->RootNode->ChildNode == null) return;
 
         // The collision node on the DTR element is always the width of its content
         if (dtr->UldManager.NodeList == null) return;
@@ -328,6 +327,11 @@ public sealed unsafe class DtrBar : IDisposable, IServiceType, IDtrBar
     private void RecreateNodes()
     {
         this.runningNodeIds = BaseNodeId;
+        if (this.entries.Any())
+        {
+            this.eventHandles.Clear();
+        }
+        
         foreach (var entry in this.entries)
         {
             entry.TextNode = this.MakeNode(++this.runningNodeIds);
@@ -362,10 +366,14 @@ public sealed unsafe class DtrBar : IDisposable, IServiceType, IDtrBar
         var dtr = this.GetDtr();
         if (dtr == null || dtr->RootNode == null || dtr->UldManager.NodeList == null || node == null) return false;
 
-        this.uiEventManager.AddEvent(AddonEventManager.DalamudInternalKey, node->AtkResNode.NodeID + MouseOverEventIdOffset, (nint)dtr, (nint)node, AddonEventType.MouseOver, this.DtrEventHandler);
-        this.uiEventManager.AddEvent(AddonEventManager.DalamudInternalKey, node->AtkResNode.NodeID + MouseOutEventIdOffset, (nint)dtr, (nint)node, AddonEventType.MouseOut, this.DtrEventHandler);
-        this.uiEventManager.AddEvent(AddonEventManager.DalamudInternalKey, node->AtkResNode.NodeID + MouseClickEventIdOffset, (nint)dtr, (nint)node, AddonEventType.MouseClick, this.DtrEventHandler);
-
+        this.eventHandles.TryAdd(node->AtkResNode.NodeID, new List<IAddonEventHandle>());
+        this.eventHandles[node->AtkResNode.NodeID].AddRange(new List<IAddonEventHandle>
+        {
+            this.uiEventManager.AddEvent(AddonEventManager.DalamudInternalKey, (nint)dtr, (nint)node, AddonEventType.MouseOver, this.DtrEventHandler),
+            this.uiEventManager.AddEvent(AddonEventManager.DalamudInternalKey, (nint)dtr, (nint)node, AddonEventType.MouseOut, this.DtrEventHandler),
+            this.uiEventManager.AddEvent(AddonEventManager.DalamudInternalKey, (nint)dtr, (nint)node, AddonEventType.MouseClick, this.DtrEventHandler),
+        });
+        
         var lastChild = dtr->RootNode->ChildNode;
         while (lastChild->PrevSiblingNode != null) lastChild = lastChild->PrevSiblingNode;
         Log.Debug($"Found last sibling: {(ulong)lastChild:X}");
@@ -387,9 +395,8 @@ public sealed unsafe class DtrBar : IDisposable, IServiceType, IDtrBar
         var dtr = this.GetDtr();
         if (dtr == null || dtr->RootNode == null || dtr->UldManager.NodeList == null || node == null) return;
 
-        this.uiEventManager.RemoveEvent(AddonEventManager.DalamudInternalKey, node->AtkResNode.NodeID + MouseOverEventIdOffset);
-        this.uiEventManager.RemoveEvent(AddonEventManager.DalamudInternalKey, node->AtkResNode.NodeID + MouseOutEventIdOffset);
-        this.uiEventManager.RemoveEvent(AddonEventManager.DalamudInternalKey, node->AtkResNode.NodeID + MouseClickEventIdOffset);
+        this.eventHandles[node->AtkResNode.NodeID].ForEach(handle => this.uiEventManager.RemoveEvent(AddonEventManager.DalamudInternalKey, handle));
+        this.eventHandles[node->AtkResNode.NodeID].Clear();
 
         var tmpPrevNode = node->AtkResNode.PrevSiblingNode;
         var tmpNextNode = node->AtkResNode.NextSiblingNode;

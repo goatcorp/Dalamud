@@ -4,6 +4,7 @@ using System.Linq;
 
 using Dalamud.Game.Gui;
 using Dalamud.Logging.Internal;
+using Dalamud.Memory;
 using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 
@@ -39,17 +40,27 @@ internal unsafe class PluginEventController : IDisposable
     /// <summary>
     /// Adds a tracked event.
     /// </summary>
-    /// <param name="eventId">Unique ID of the event to add.</param>
     /// <param name="atkUnitBase">The Parent addon for the event.</param>
     /// <param name="atkResNode">The Node for the event.</param>
     /// <param name="atkEventType">The Event Type.</param>
     /// <param name="handler">The delegate to call when invoking this event.</param>
-    public void AddEvent(uint eventId, nint atkUnitBase, nint atkResNode, AddonEventType atkEventType, IAddonEventManager.AddonEventHandler handler)
+    /// <returns>IAddonEventHandle used to remove the event.</returns>
+    public IAddonEventHandle AddEvent(nint atkUnitBase, nint atkResNode, AddonEventType atkEventType, IAddonEventManager.AddonEventHandler handler)
     {
         var node = (AtkResNode*)atkResNode;
         var addon = (AtkUnitBase*)atkUnitBase;
         var eventType = (AtkEventType)atkEventType;
-
+        var eventId = this.GetNextParamKey();
+        var eventGuid = Guid.NewGuid();
+        
+        var eventHandle = new AddonEventHandle
+        {
+            AddonName = MemoryHelper.ReadStringNullTerminated((nint)addon->Name),
+            ParamKey = eventId,
+            EventType = atkEventType,
+            EventGuid = eventGuid,
+        };
+        
         var eventEntry = new AddonEventEntry
         {
             Addon = atkUnitBase,
@@ -57,22 +68,25 @@ internal unsafe class PluginEventController : IDisposable
             Node = atkResNode,
             EventType = atkEventType,
             ParamKey = eventId,
+            Handle = eventHandle,
         };
 
-        Log.Verbose($"Adding Event: {eventEntry.LogString}");
+        Log.Verbose($"Adding Event. {eventEntry.LogString}");
         this.EventListener.RegisterEvent(addon, node, eventType, eventId);
         this.Events.Add(eventEntry);
+
+        return eventHandle;
     }
 
     /// <summary>
     /// Removes a tracked event, also attempts to un-attach the event from native.
     /// </summary>
-    /// <param name="eventId">Unique ID of the event to remove.</param>
-    public void RemoveEvent(uint eventId)
+    /// <param name="handle">Unique ID of the event to remove.</param>
+    public void RemoveEvent(IAddonEventHandle handle)
     {
-        if (this.Events.FirstOrDefault(registeredEvent => registeredEvent.ParamKey == eventId) is not { } targetEvent) return;
+        if (this.Events.FirstOrDefault(registeredEvent => registeredEvent.Handle == handle) is not { } targetEvent) return;
 
-        Log.Verbose($"Removing Event: {targetEvent.LogString}");
+        Log.Verbose($"Removing Event. {targetEvent.LogString}");
         this.TryRemoveEventFromNative(targetEvent);
         this.Events.Remove(targetEvent);
     }
@@ -89,7 +103,7 @@ internal unsafe class PluginEventController : IDisposable
         
             foreach (var registeredEvent in events)
             {
-                this.RemoveEvent(registeredEvent.ParamKey);
+                this.RemoveEvent(registeredEvent.Handle);
             }
         }
     }
@@ -99,10 +113,20 @@ internal unsafe class PluginEventController : IDisposable
     {
         foreach (var registeredEvent in this.Events.ToList())
         {
-            this.RemoveEvent(registeredEvent.ParamKey);
+            this.RemoveEvent(registeredEvent.Handle);
         }
         
         this.EventListener.Dispose();
+    }
+
+    private uint GetNextParamKey()
+    {
+        for (var i = 0u; i < uint.MaxValue; ++i)
+        {
+            if (this.Events.All(registeredEvent => registeredEvent.ParamKey != i)) return i;
+        }
+
+        throw new OverflowException($"uint.MaxValue number of ParamKeys used for {this.PluginId}");
     }
     
     /// <summary>
