@@ -44,11 +44,18 @@ internal unsafe class PluginEventController : IDisposable
     /// <param name="atkEventType">The Event Type.</param>
     /// <param name="handler">The delegate to call when invoking this event.</param>
     /// <returns>IAddonEventHandle used to remove the event.</returns>
-    public IAddonEventHandle AddEvent(nint atkUnitBase, nint atkResNode, AddonEventType atkEventType, IAddonEventManager.AddonEventHandler handler)
+    public IAddonEventHandle? AddEvent(nint atkUnitBase, nint atkResNode, AddonEventType atkEventType, IAddonEventManager.AddonEventHandler handler)
     {
         var node = (AtkResNode*)atkResNode;
         var addon = (AtkUnitBase*)atkUnitBase;
         var eventType = (AtkEventType)atkEventType;
+
+        if ((int)node->Type >= 1000)
+        {
+            Log.Error("Wrong node type. Attempted to attach an event to a component node. No event was attached.");
+            return null;
+        }
+        
         var eventId = this.GetNextParamKey();
         var eventGuid = Guid.NewGuid();
         
