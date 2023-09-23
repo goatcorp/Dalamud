@@ -1,11 +1,8 @@
-using System;
 using System.Linq;
 
 using Dalamud.Game;
 using Dalamud.Plugin.Services;
 using Serilog;
-
-using static Dalamud.Game.Framework;
 
 namespace Dalamud.Utility;
 
@@ -21,7 +18,7 @@ internal static class EventHandlerExtensions
     /// <param name="eh">The EventHandler in question.</param>
     /// <param name="sender">Default sender for Invoke equivalent.</param>
     /// <param name="e">Default EventArgs for Invoke equivalent.</param>
-    public static void InvokeSafely(this EventHandler eh, object sender, EventArgs e)
+    public static void InvokeSafely(this EventHandler? eh, object sender, EventArgs e)
     {
         if (eh == null)
             return;
@@ -40,7 +37,7 @@ internal static class EventHandlerExtensions
     /// <param name="sender">Default sender for Invoke equivalent.</param>
     /// <param name="e">Default EventArgs for Invoke equivalent.</param>
     /// <typeparam name="T">Type of EventArgs.</typeparam>
-    public static void InvokeSafely<T>(this EventHandler<T> eh, object sender, T e)
+    public static void InvokeSafely<T>(this EventHandler<T>? eh, object sender, T e)
     {
         if (eh == null)
             return;
@@ -56,7 +53,7 @@ internal static class EventHandlerExtensions
     /// of a thrown Exception inside of an invocation.
     /// </summary>
     /// <param name="act">The Action in question.</param>
-    public static void InvokeSafely(this Action act)
+    public static void InvokeSafely(this Action? act)
     {
         if (act == null)
             return;
@@ -68,12 +65,30 @@ internal static class EventHandlerExtensions
     }
 
     /// <summary>
+    /// Replacement for Invoke() on event Actions to catch exceptions that stop event propagation in case
+    /// of a thrown Exception inside of an invocation.
+    /// </summary>
+    /// <param name="act">The Action in question.</param>
+    /// <param name="argument">Templated argument for Action.</param>
+    /// <typeparam name="T">Type of Action args.</typeparam>
+    public static void InvokeSafely<T>(this Action<T>? act, T argument)
+    {
+        if (act == null)
+            return;
+
+        foreach (var action in act.GetInvocationList().Cast<Action<T>>())
+        {
+            HandleInvoke(action, argument);
+        }
+    }
+
+    /// <summary>
     /// Replacement for Invoke() on OnUpdateDelegate to catch exceptions that stop event propagation in case
     /// of a thrown Exception inside of an invocation.
     /// </summary>
     /// <param name="updateDelegate">The OnUpdateDelegate in question.</param>
     /// <param name="framework">Framework to be passed on to OnUpdateDelegate.</param>
-    public static void InvokeSafely(this IFramework.OnUpdateDelegate updateDelegate, Framework framework)
+    public static void InvokeSafely(this IFramework.OnUpdateDelegate? updateDelegate, Framework framework)
     {
         if (updateDelegate == null)
             return;
@@ -89,6 +104,18 @@ internal static class EventHandlerExtensions
         try
         {
             act();
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Exception during raise of {handler}", act.Method);
+        }
+    }
+
+    private static void HandleInvoke<T>(Action<T> act, T argument)
+    {
+        try
+        {
+            act(argument);
         }
         catch (Exception ex)
         {

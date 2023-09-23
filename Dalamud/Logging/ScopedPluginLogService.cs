@@ -1,6 +1,4 @@
-﻿using System;
-
-using Dalamud.IoC;
+﻿using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Plugin.Services;
@@ -90,6 +88,14 @@ public class ScopedPluginLogService : IServiceType, IPluginLog, IDisposable
     /// <inheritdoc />
     public void Information(Exception? exception, string messageTemplate, params object[] values) =>
         this.Write(LogEventLevel.Information, exception, messageTemplate, values);
+    
+    /// <inheritdoc/>
+    public void Info(string messageTemplate, params object[] values) =>
+        this.Information(messageTemplate, values);
+    
+    /// <inheritdoc/>
+    public void Info(Exception? exception, string messageTemplate, params object[] values) =>
+        this.Information(exception, messageTemplate, values);
 
     /// <inheritdoc />
     public void Debug(string messageTemplate, params object[] values) =>
