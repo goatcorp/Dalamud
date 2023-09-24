@@ -21,6 +21,7 @@ public abstract class Window
     private bool internalLastIsOpen = false;
     private bool internalIsOpen = false;
     private bool nextFrameBringToFront = false;
+    private string? internalNamespace = null;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="Window"/> class.
@@ -41,7 +42,20 @@ public abstract class Window
     /// <summary>
     /// Gets or sets the namespace of the window.
     /// </summary>
-    public string? Namespace { get; set; }
+    public string? Namespace
+    {
+        get => this.internalNamespace;
+        set
+        {
+            if (string.IsNullOrEmpty(value))
+            {
+                this.internalNamespace = value;
+                return;
+            }
+
+            this.internalNamespace = value.TrimStart('#');
+        }
+    }
 
     /// <summary>
     /// Gets or sets the name of the window.
@@ -74,7 +88,7 @@ public abstract class Window
     /// Gets or sets a value representing the sound effect id to be played when the window is closed.
     /// </summary>
     public uint OnCloseSfxId { get; set; } = 24u;
-    
+
     /// <summary>
     /// Gets or sets the position of this window.
     /// </summary>
@@ -227,7 +241,7 @@ public abstract class Window
     /// <summary>
     /// Draw the window via ImGui.
     /// </summary>
-    internal void DrawInternal(DalamudConfiguration? configuration)
+    internal void DrawInternal(DalamudConfiguration? configuration, string pluginNamespace)
     {
         this.PreOpenCheck();
 
@@ -241,7 +255,7 @@ public abstract class Window
                 this.OnClose();
 
                 this.IsFocused = false;
-                
+
                 if (doSoundEffects && !this.DisableWindowSounds) UIModule.PlaySound(this.OnCloseSfxId, 0, 0, 0);
             }
 
@@ -252,10 +266,8 @@ public abstract class Window
         if (!this.DrawConditions())
             return;
 
-        var hasNamespace = !string.IsNullOrEmpty(this.Namespace);
-
-        if (hasNamespace)
-            ImGui.PushID(this.Namespace);
+        var windowNamespace = !string.IsNullOrEmpty(this.Namespace) ? $"##{this.Namespace}" : string.Empty;
+        var windowName = $"{this.WindowName}{pluginNamespace}{windowNamespace}";
 
         this.PreDraw();
         this.ApplyConditionals();
@@ -285,7 +297,7 @@ public abstract class Window
             this.nextFrameBringToFront = false;
         }
 
-        if (this.ShowCloseButton ? ImGui.Begin(this.WindowName, ref this.internalIsOpen, this.Flags) : ImGui.Begin(this.WindowName, this.Flags))
+        if (this.ShowCloseButton ? ImGui.Begin(windowName, ref this.internalIsOpen, this.Flags) : ImGui.Begin(windowName, this.Flags))
         {
             // Draw the actual window contents
             try
@@ -323,9 +335,6 @@ public abstract class Window
         ImGui.End();
 
         this.PostDraw();
-
-        if (hasNamespace)
-            ImGui.PopID();
     }
 
     // private void CheckState()

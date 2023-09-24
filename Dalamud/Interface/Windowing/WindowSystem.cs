@@ -19,6 +19,7 @@ public class WindowSystem
     private readonly List<Window> windows = new();
 
     private string lastFocusedWindowName = string.Empty;
+    private string? internalNamespace = null;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="WindowSystem"/> class.
@@ -59,7 +60,20 @@ public class WindowSystem
     /// <summary>
     /// Gets or sets the name/ID-space of this <see cref="WindowSystem"/>.
     /// </summary>
-    public string? Namespace { get; set; }
+    public string? Namespace
+    {
+        get => this.internalNamespace;
+        set
+        {
+            if (string.IsNullOrEmpty(value))
+            {
+                this.internalNamespace = value;
+                return;
+            }
+
+            this.internalNamespace = value.TrimStart('#');
+        }
+    }
 
     /// <summary>
     /// Add a window to this <see cref="WindowSystem"/>.
@@ -107,10 +121,7 @@ public class WindowSystem
     /// </summary>
     public void Draw()
     {
-        var hasNamespace = !string.IsNullOrEmpty(this.Namespace);
-
-        if (hasNamespace)
-            ImGui.PushID(this.Namespace);
+        var pluginNamespace = !string.IsNullOrEmpty(this.Namespace) ? $"##{this.Namespace}" : string.Empty;
 
         var config = Service<DalamudConfiguration>.GetNullable();
 
@@ -122,7 +133,7 @@ public class WindowSystem
 #endif
             var snapshot = ImGuiManagedAsserts.GetSnapshot();
 
-            window.DrawInternal(config);
+            window.DrawInternal(config, pluginNamespace);
 
             var source = ($"{this.Namespace}::" ?? string.Empty) + window.WindowName;
             ImGuiManagedAsserts.ReportProblems(source, snapshot);
@@ -152,8 +163,5 @@ public class WindowSystem
                 this.lastFocusedWindowName = string.Empty;
             }
         }
-
-        if (hasNamespace)
-            ImGui.PopID();
     }
 }
