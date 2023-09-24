@@ -484,15 +484,16 @@ internal sealed unsafe class GameGui : IDisposable, IServiceType, IGameGui
         return retVal;
     }
 
-    private IntPtr ToggleUiHideDetour(IntPtr thisPtr, bool uiVisible)
+    private IntPtr ToggleUiHideDetour(IntPtr thisPtr, bool unknownByte)
     {
-        this.GameUiHidden = !RaptureAtkModule.Instance()->IsUiVisible;
+        var result = this.toggleUiHideHook.Original(thisPtr, unknownByte);
 
+        this.GameUiHidden = !RaptureAtkModule.Instance()->IsUiVisible;
         this.UiHideToggled?.InvokeSafely(this, this.GameUiHidden);
 
         Log.Debug("UiHide toggled: {0}", this.GameUiHidden);
 
-        return this.toggleUiHideHook.Original(thisPtr, uiVisible);
+        return result;
     }
 
     private char HandleImmDetour(IntPtr framework, char a2, byte a3)
