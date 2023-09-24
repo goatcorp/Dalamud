@@ -41,10 +41,8 @@ Thanks and have fun!";
     /// Initializes a new instance of the <see cref="ChangelogWindow"/> class.
     /// </summary>
     public ChangelogWindow()
-        : base("What's new in Dalamud?", ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoResize)
+        : base("What's new in Dalamud?###DalamudChangelogWindow", ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoResize)
     {
-        this.Namespace = "DalamudChangelogWindow";
-
         this.Size = new Vector2(885, 463);
         this.SizeCondition = ImGuiCond.Appearing;
 

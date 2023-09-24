@@ -39,11 +39,6 @@ public abstract class Window
     }
 
     /// <summary>
-    /// Gets or sets the namespace of the window.
-    /// </summary>
-    public string? Namespace { get; set; }
-
-    /// <summary>
     /// Gets or sets the name of the window.
     /// If you have multiple windows with the same name, you will need to
     /// append an unique ID to it by specifying it after "###" behind the window title.
@@ -74,7 +69,7 @@ public abstract class Window
     /// Gets or sets a value representing the sound effect id to be played when the window is closed.
     /// </summary>
     public uint OnCloseSfxId { get; set; } = 24u;
-    
+
     /// <summary>
     /// Gets or sets the position of this window.
     /// </summary>
@@ -227,7 +222,7 @@ public abstract class Window
     /// <summary>
     /// Draw the window via ImGui.
     /// </summary>
-    internal void DrawInternal(DalamudConfiguration? configuration)
+    internal void DrawInternal(DalamudConfiguration? configuration, string pluginNamespace)
     {
         this.PreOpenCheck();
 
@@ -241,7 +236,7 @@ public abstract class Window
                 this.OnClose();
 
                 this.IsFocused = false;
-                
+
                 if (doSoundEffects && !this.DisableWindowSounds) UIModule.PlaySound(this.OnCloseSfxId, 0, 0, 0);
             }
 
@@ -251,11 +246,6 @@ public abstract class Window
         this.Update();
         if (!this.DrawConditions())
             return;
-
-        var hasNamespace = !string.IsNullOrEmpty(this.Namespace);
-
-        if (hasNamespace)
-            ImGui.PushID(this.Namespace);
 
         this.PreDraw();
         this.ApplyConditionals();
@@ -285,7 +275,7 @@ public abstract class Window
             this.nextFrameBringToFront = false;
         }
 
-        if (this.ShowCloseButton ? ImGui.Begin(this.WindowName, ref this.internalIsOpen, this.Flags) : ImGui.Begin(this.WindowName, this.Flags))
+        if (this.ShowCloseButton ? ImGui.Begin($"{this.WindowName}##{pluginNamespace}", ref this.internalIsOpen, this.Flags) : ImGui.Begin($"{this.WindowName}##{pluginNamespace}", this.Flags))
         {
             // Draw the actual window contents
             try
@@ -323,9 +313,6 @@ public abstract class Window
         ImGui.End();
 
         this.PostDraw();
-
-        if (hasNamespace)
-            ImGui.PopID();
     }
 
     // private void CheckState()
