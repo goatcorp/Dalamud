@@ -21,15 +21,6 @@ public interface IPluginLog
     LogEventLevel MinimumLogLevel { get; set; }
 
     /// <summary>
-    /// Gets an instance of the Serilog <see cref="ILogger"/> for advanced use cases. The provided logger will handle
-    /// tagging all log messages with the appropriate context variables and properties.
-    /// </summary>
-    /// <remarks>
-    /// Not currently part of public API - will be added after some formatter work has been completed.
-    /// </remarks>
-    internal ILogger Logger { get; }
-
-    /// <summary>
     /// Log a <see cref="LogEventLevel.Fatal" /> message to the Dalamud log for this plugin. This log level should be
     /// used primarily for unrecoverable errors or critical faults in a plugin.
     /// </summary>
