@@ -614,7 +614,11 @@ public static class Util
         }
     }
 
-    internal static void FlashWindow(bool flashIfOpen = false)
+    /// <summary>
+    /// Request that Windows flash the game window to grab the user's attention.
+    /// </summary>
+    /// <param name="flashIfOpen">Attempt to flash even if the game is currently focused.</param>
+    public static void FlashWindow(bool flashIfOpen = false)
     {
         if (NativeFunctions.ApplicationIsActivated() && flashIfOpen)
             return;
