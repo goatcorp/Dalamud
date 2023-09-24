@@ -1,4 +1,4 @@
-﻿namespace Dalamud.Game.AddonLifecycle;
+﻿namespace Dalamud.Game.Addon.Lifecycle;
 
 /// <summary>
 /// Enumeration for available AddonLifecycle events.

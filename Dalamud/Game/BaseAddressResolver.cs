@@ -23,15 +23,6 @@ internal abstract class BaseAddressResolver
     protected bool IsResolved { get; set; }
 
     /// <summary>
-    /// Setup the resolver, calling the appropriate method based on the process architecture,
-    /// using the default SigScanner.
-    ///
-    /// For plugins. Not intended to be called from Dalamud Service{T} constructors.
-    /// </summary>
-    [UsedImplicitly]
-    public void Setup() => this.Setup(Service<SigScanner>.Get());
-
-    /// <summary>
     /// Setup the resolver, calling the appropriate method based on the process architecture.
     /// </summary>
     /// <param name="scanner">The SigScanner instance.</param>

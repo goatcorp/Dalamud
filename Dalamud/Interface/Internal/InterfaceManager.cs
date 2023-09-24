@@ -241,7 +241,7 @@ internal class InterfaceManager : IDisposable, IServiceType
     /// </summary>
     /// <param name="filePath">The filepath to load.</param>
     /// <returns>A texture, ready to use in ImGui.</returns>
-    public TextureWrap? LoadImage(string filePath)
+    public IDalamudTextureWrap? LoadImage(string filePath)
     {
         if (this.scene == null)
             throw new InvalidOperationException("Scene isn't ready.");
@@ -264,7 +264,7 @@ internal class InterfaceManager : IDisposable, IServiceType
     /// </summary>
     /// <param name="imageData">The data to load.</param>
     /// <returns>A texture, ready to use in ImGui.</returns>
-    public TextureWrap? LoadImage(byte[] imageData)
+    public IDalamudTextureWrap? LoadImage(byte[] imageData)
     {
         if (this.scene == null)
             throw new InvalidOperationException("Scene isn't ready.");
@@ -290,7 +290,7 @@ internal class InterfaceManager : IDisposable, IServiceType
     /// <param name="height">The height in pixels.</param>
     /// <param name="numChannels">The number of channels.</param>
     /// <returns>A texture, ready to use in ImGui.</returns>
-    public TextureWrap? LoadImageRaw(byte[] imageData, int width, int height, int numChannels)
+    public IDalamudTextureWrap? LoadImageRaw(byte[] imageData, int width, int height, int numChannels)
     {
         if (this.scene == null)
             throw new InvalidOperationException("Scene isn't ready.");
@@ -791,10 +791,10 @@ internal class InterfaceManager : IDisposable, IServiceType
             }
             else
             {
-                var japaneseRangeHandle = GCHandle.Alloc(GlyphRangesJapanese.GlyphRanges, GCHandleType.Pinned);
-                garbageList.Add(japaneseRangeHandle);
+                var rangeHandle = gameFontManager.ToGlyphRanges(GameFontFamilyAndSize.Axis12);
+                garbageList.Add(rangeHandle);
 
-                fontConfig.GlyphRanges = japaneseRangeHandle.AddrOfPinnedObject();
+                fontConfig.GlyphRanges = rangeHandle.AddrOfPinnedObject();
                 fontConfig.PixelSnapH = true;
                 DefaultFont = ioFonts.AddFontFromFileTTF(fontPathJp, fontConfig.SizePixels, fontConfig);
                 this.loadedFontInfo[DefaultFont] = fontInfo;
@@ -851,22 +851,19 @@ internal class InterfaceManager : IDisposable, IServiceType
 
                 foreach (var (fontSize, requests) in extraFontRequests)
                 {
-                    List<Tuple<ushort, ushort>> codepointRanges = new();
-                    codepointRanges.Add(Tuple.Create(Fallback1Codepoint, Fallback1Codepoint));
-                    codepointRanges.Add(Tuple.Create(Fallback2Codepoint, Fallback2Codepoint));
-
-                    // ImGui default ellipsis characters
-                    codepointRanges.Add(Tuple.Create<ushort, ushort>(0x2026, 0x2026));
-                    codepointRanges.Add(Tuple.Create<ushort, ushort>(0x0085, 0x0085));
+                    List<(ushort, ushort)> codepointRanges = new(4 + requests.Sum(x => x.CodepointRanges.Count))
+                    {
+                        new(Fallback1Codepoint, Fallback1Codepoint),
+                        new(Fallback2Codepoint, Fallback2Codepoint),
+                        // ImGui default ellipsis characters
+                        new(0x2026, 0x2026),
+                        new(0x0085, 0x0085),
+                    };
 
                     foreach (var request in requests)
-                    {
-                        foreach (var range in request.CodepointRanges)
-                            codepointRanges.Add(range);
-                    }
+                        codepointRanges.AddRange(request.CodepointRanges.Select(x => (From: x.Item1, To: x.Item2)));
 
-                    codepointRanges.Sort((x, y) => (x.Item1 == y.Item1 ? (x.Item2 < y.Item2 ? -1 : (x.Item2 == y.Item2 ? 0 : 1)) : (x.Item1 < y.Item1 ? -1 : 1)));
-
+                    codepointRanges.Sort();
                     List<ushort> flattenedRanges = new();
                     foreach (var range in codepointRanges)
                     {
@@ -1058,7 +1055,7 @@ internal class InterfaceManager : IDisposable, IServiceType
     }
 
     [ServiceManager.CallWhenServicesReady]
-    private void ContinueConstruction(SigScanner sigScanner, Framework framework)
+    private void ContinueConstruction(TargetSigScanner sigScanner, Framework framework)
     {
         this.address.Setup(sigScanner);
         framework.RunOnFrameworkThread(() =>

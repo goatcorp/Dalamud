@@ -15,7 +15,7 @@ namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 /// </summary>
 internal class TexWidget : IDataWindowWidget
 {
-    private readonly List<TextureWrap> addedTextures = new();
+    private readonly List<IDalamudTextureWrap> addedTextures = new();
     
     private string iconId = "18";
     private bool hiRes = true;
@@ -104,7 +104,7 @@ internal class TexWidget : IDataWindowWidget
 
         ImGuiHelpers.ScaledDummy(10);
 
-        TextureWrap? toRemove = null;
+        IDalamudTextureWrap? toRemove = null;
         for (var i = 0; i < this.addedTextures.Count; i++)
         {
             if (ImGui.CollapsingHeader($"Tex #{i}"))

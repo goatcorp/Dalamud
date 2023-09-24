@@ -39,7 +39,7 @@ internal class KeyState : IServiceType, IKeyState
     private VirtualKey[]? validVirtualKeyCache;
 
     [ServiceManager.ServiceConstructor]
-    private KeyState(SigScanner sigScanner, ClientState clientState)
+    private KeyState(TargetSigScanner sigScanner, ClientState clientState)
     {
         var moduleBaseAddress = sigScanner.Module.BaseAddress;
         var addressResolver = clientState.AddressResolver;

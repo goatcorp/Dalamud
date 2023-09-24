@@ -36,7 +36,7 @@ internal class AddressesWidget : IDataWindowWidget
         {
             try
             {
-                var sigScanner = Service<SigScanner>.Get();
+                var sigScanner = Service<TargetSigScanner>.Get();
                 this.sigResult = sigScanner.ScanText(this.inputSig);
             }
             catch (KeyNotFoundException)

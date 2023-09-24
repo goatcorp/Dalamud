@@ -95,14 +95,6 @@ public class WindowSystem
     public void RemoveAllWindows() => this.windows.Clear();
 
     /// <summary>
-    /// Get a window by name.
-    /// </summary>
-    /// <param name="windowName">The name of the <see cref="Window"/>.</param>
-    /// <returns>The <see cref="Window"/> object with matching name or null.</returns>
-    [Obsolete("WindowSystem does not own your window - you should store a reference to it and use that instead.")]
-    public Window? GetWindow(string windowName) => this.windows.FirstOrDefault(w => w.WindowName == windowName);
-
-    /// <summary>
     /// Draw all registered windows using ImGui.
     /// </summary>
     public void Draw()

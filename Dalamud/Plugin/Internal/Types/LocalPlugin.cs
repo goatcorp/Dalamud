@@ -26,6 +26,13 @@ namespace Dalamud.Plugin.Internal.Types;
 /// </summary>
 internal class LocalPlugin : IDisposable
 {
+    /// <summary>
+    /// The underlying manifest for this plugin.
+    /// </summary>
+#pragma warning disable SA1401
+    protected LocalPluginManifest manifest;
+#pragma warning restore SA1401
+    
     private static readonly ModuleLog Log = new("LOCALPLUGIN");
 
     private readonly FileInfo manifestFile;
@@ -38,8 +45,6 @@ internal class LocalPlugin : IDisposable
     private Assembly? pluginAssembly;
     private Type? pluginType;
     private IDalamudPlugin? instance;
-
-    private LocalPluginManifest manifest;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="LocalPlugin"/> class.
@@ -500,13 +505,6 @@ internal class LocalPlugin : IDisposable
                 return;
             }
 
-            // In-case the manifest name was a placeholder. Can occur when no manifest was included.
-            if (this.manifest.Name.IsNullOrEmpty() && !this.IsDev)
-            {
-                this.manifest.Name = this.instance.Name;
-                this.manifest.Save(this.manifestFile, "manifest name null or empty");
-            }
-
             this.State = PluginState.Loaded;
             Log.Information($"Finished loading {this.DllFile.Name}");
         }
@@ -659,9 +657,11 @@ internal class LocalPlugin : IDisposable
         var manifestPath = LocalPluginManifest.GetManifestFile(this.DllFile);
         if (manifestPath.Exists)
         {
-            // var isDisabled = this.IsDisabled; // saving the internal state because it could have been deleted
+            // Save some state that we do actually want to carry over
+            var guid = this.manifest.WorkingPluginId;
+            
             this.manifest = LocalPluginManifest.Load(manifestPath) ?? throw new Exception("Could not reload manifest.");
-            // this.manifest.Disabled = isDisabled;
+            this.manifest.WorkingPluginId = guid;
 
             this.SaveManifest("dev reload");
         }
@@ -686,6 +686,12 @@ internal class LocalPlugin : IDisposable
         });
     }
 
+    /// <summary>
+    /// Save this plugin manifest.
+    /// </summary>
+    /// <param name="reason">Why it should be saved.</param>
+    protected void SaveManifest(string reason) => this.manifest.Save(this.manifestFile, reason);
+
     private static void SetupLoaderConfig(LoaderConfig config)
     {
         config.IsUnloadable = true;
@@ -694,6 +700,4 @@ internal class LocalPlugin : IDisposable
         config.SharedAssemblies.Add(typeof(Lumina.GameData).Assembly.GetName());
         config.SharedAssemblies.Add(typeof(Lumina.Excel.ExcelSheetImpl).Assembly.GetName());
     }
-
-    private void SaveManifest(string reason) => this.manifest.Save(this.manifestFile, reason);
 }

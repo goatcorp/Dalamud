@@ -12,9 +12,24 @@ namespace Dalamud.Plugin.Services;
 public interface IGameConfig
 {
     /// <summary>
-    /// Event which is fired when a game config option is changed.
+    /// Event which is fired when any game config option is changed.
     /// </summary>
     public event EventHandler<ConfigChangeEvent> Changed;
+
+    /// <summary>
+    /// Event which is fired when a system config option is changed.
+    /// </summary>
+    public event EventHandler<ConfigChangeEvent> SystemChanged; 
+    
+    /// <summary>
+    /// Event which is fired when a UiConfig option is changed.
+    /// </summary>
+    public event EventHandler<ConfigChangeEvent> UiConfigChanged; 
+    
+    /// <summary>
+    /// Event which is fired when a UiControl config option is changed.
+    /// </summary>
+    public event EventHandler<ConfigChangeEvent> UiControlChanged; 
 
     /// <summary>
     /// Gets the collection of config options that persist between characters.

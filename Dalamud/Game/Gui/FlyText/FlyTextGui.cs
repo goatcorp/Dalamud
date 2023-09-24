@@ -30,7 +30,7 @@ internal sealed class FlyTextGui : IDisposable, IServiceType, IFlyTextGui
     private readonly Hook<CreateFlyTextDelegate> createFlyTextHook;
 
     [ServiceManager.ServiceConstructor]
-    private FlyTextGui(SigScanner sigScanner)
+    private FlyTextGui(TargetSigScanner sigScanner)
     {
         this.Address = new FlyTextGuiAddressResolver();
         this.Address.Setup(sigScanner);
@@ -307,6 +307,8 @@ internal class FlyTextGuiPluginScoped : IDisposable, IServiceType, IFlyTextGui
     public void Dispose()
     {
         this.flyTextGuiService.FlyTextCreated -= this.FlyTextCreatedForward;
+
+        this.FlyTextCreated = null;
     }
 
     /// <inheritdoc/>

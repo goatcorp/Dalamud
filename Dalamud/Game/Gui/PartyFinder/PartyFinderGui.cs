@@ -27,7 +27,7 @@ internal sealed class PartyFinderGui : IDisposable, IServiceType, IPartyFinderGu
     /// </summary>
     /// <param name="sigScanner">Sig scanner to use.</param>
     [ServiceManager.ServiceConstructor]
-    private PartyFinderGui(SigScanner sigScanner)
+    private PartyFinderGui(TargetSigScanner sigScanner)
     {
         this.address = new PartyFinderAddressResolver();
         this.address.Setup(sigScanner);
@@ -156,6 +156,8 @@ internal class PartyFinderGuiPluginScoped : IDisposable, IServiceType, IPartyFin
     public void Dispose()
     {
         this.partyFinderGuiService.ReceiveListing -= this.ReceiveListingForward;
+
+        this.ReceiveListing = null;
     }
 
     private void ReceiveListingForward(PartyFinderListing listing, PartyFinderListingEventArgs args) => this.ReceiveListing?.Invoke(listing, args);

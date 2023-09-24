@@ -25,7 +25,7 @@ internal class TitleScreenMenuWindow : Window, IDisposable
     private const float TargetFontSizePt = 18f;
     private const float TargetFontSizePx = TargetFontSizePt * 4 / 3;
 
-    private readonly TextureWrap shadeTexture;
+    private readonly IDalamudTextureWrap shadeTexture;
 
     private readonly Dictionary<Guid, InOutCubic> shadeEasings = new();
     private readonly Dictionary<Guid, InOutQuint> moveEasings = new();

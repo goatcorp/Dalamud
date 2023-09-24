@@ -1,8 +1,8 @@
-﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 
+using Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
 using Dalamud.Hooking;
 using Dalamud.Hooking.Internal;
 using Dalamud.IoC;
@@ -11,7 +11,7 @@ using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 
-namespace Dalamud.Game.AddonLifecycle;
+namespace Dalamud.Game.Addon.Lifecycle;
 
 /// <summary>
 /// This class provides events for in-game addon lifecycles.
@@ -26,7 +26,7 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
     private readonly Framework framework = Service<Framework>.Get();
 
     private readonly AddonLifecycleAddressResolver address;
-    private readonly Hook<AddonSetupDelegate> onAddonSetupHook;
+    private readonly CallHook<AddonSetupDelegate> onAddonSetupHook;
     private readonly Hook<AddonFinalizeDelegate> onAddonFinalizeHook;
     private readonly CallHook<AddonDrawDelegate> onAddonDrawHook;
     private readonly CallHook<AddonUpdateDelegate> onAddonUpdateHook;
@@ -38,14 +38,14 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
     private readonly List<AddonLifecycleEventListener> eventListeners = new();
 
     [ServiceManager.ServiceConstructor]
-    private AddonLifecycle(SigScanner sigScanner)
+    private AddonLifecycle(TargetSigScanner sigScanner)
     {
         this.address = new AddonLifecycleAddressResolver();
         this.address.Setup(sigScanner);
 
         this.framework.Update += this.OnFrameworkUpdate;
 
-        this.onAddonSetupHook = Hook<AddonSetupDelegate>.FromAddress(this.address.AddonSetup, this.OnAddonSetup);
+        this.onAddonSetupHook = new CallHook<AddonSetupDelegate>(this.address.AddonSetup, this.OnAddonSetup);
         this.onAddonFinalizeHook = Hook<AddonFinalizeDelegate>.FromAddress(this.address.AddonFinalize, this.OnAddonFinalize);
         this.onAddonDrawHook = new CallHook<AddonDrawDelegate>(this.address.AddonDraw, this.OnAddonDraw);
         this.onAddonUpdateHook = new CallHook<AddonUpdateDelegate>(this.address.AddonUpdate, this.OnAddonUpdate);
@@ -53,7 +53,7 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
         this.onAddonRequestedUpdateHook = new CallHook<AddonOnRequestedUpdateDelegate>(this.address.AddonOnRequestedUpdate, this.OnRequestedUpdate);
     }
 
-    private delegate nint AddonSetupDelegate(AtkUnitBase* addon);
+    private delegate void AddonSetupDelegate(AtkUnitBase* addon, uint valueCount, AtkValue* values);
 
     private delegate void AddonFinalizeDelegate(AtkUnitManager* unitManager, AtkUnitBase** atkUnitBase);
 
@@ -63,7 +63,7 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
 
     private delegate void AddonOnRequestedUpdateDelegate(AtkUnitBase* addon, NumberArrayData** numberArrayData, StringArrayData** stringArrayData);
 
-    private delegate void AddonOnRefreshDelegate(AtkUnitManager* unitManager, AtkUnitBase* addon, uint valueCount, AtkValue* values);
+    private delegate byte AddonOnRefreshDelegate(AtkUnitManager* unitManager, AtkUnitBase* addon, uint valueCount, AtkValue* values);
 
     /// <inheritdoc/>
     public void Dispose()
@@ -97,7 +97,7 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
     }
 
     // Used to prevent concurrency issues if plugins try to register during iteration of listeners.
-    private void OnFrameworkUpdate(Framework unused)
+    private void OnFrameworkUpdate(IFramework unused)
     {
         if (this.newEventListeners.Any())
         {
@@ -136,36 +136,44 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
         }
     }
 
-    private nint OnAddonSetup(AtkUnitBase* addon)
+    private void OnAddonSetup(AtkUnitBase* addon, uint valueCount, AtkValue* values)
     {
         try
         {
-            this.InvokeListeners(AddonEvent.PreSetup, new AddonArgs { Addon = (nint)addon });
+            this.InvokeListeners(AddonEvent.PreSetup, new AddonSetupArgs
+            {
+                Addon = (nint)addon, 
+                AtkValueCount = valueCount,
+                AtkValues = (nint)values,
+            });
         }
         catch (Exception e)
         {
             Log.Error(e, "Exception in OnAddonSetup pre-setup invoke.");
         }
 
-        var result = this.onAddonSetupHook.Original(addon);
+        addon->OnSetup(valueCount, values);
 
         try
         {
-            this.InvokeListeners(AddonEvent.PostSetup, new AddonArgs { Addon = (nint)addon });
+            this.InvokeListeners(AddonEvent.PostSetup, new AddonSetupArgs
+            {
+                Addon = (nint)addon, 
+                AtkValueCount = valueCount,
+                AtkValues = (nint)values,
+            });
         }
         catch (Exception e)
         {
             Log.Error(e, "Exception in OnAddonSetup post-setup invoke.");
         }
-
-        return result;
     }
 
     private void OnAddonFinalize(AtkUnitManager* unitManager, AtkUnitBase** atkUnitBase)
     {
         try
         {
-            this.InvokeListeners(AddonEvent.PreFinalize, new AddonArgs { Addon = (nint)atkUnitBase[0] });
+            this.InvokeListeners(AddonEvent.PreFinalize, new AddonFinalizeArgs { Addon = (nint)atkUnitBase[0] });
         }
         catch (Exception e)
         {
@@ -179,7 +187,7 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
     {
         try
         {
-            this.InvokeListeners(AddonEvent.PreDraw, new AddonArgs { Addon = (nint)addon });
+            this.InvokeListeners(AddonEvent.PreDraw, new AddonDrawArgs { Addon = (nint)addon });
         }
         catch (Exception e)
         {
@@ -190,7 +198,7 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
 
         try
         {
-            this.InvokeListeners(AddonEvent.PostDraw, new AddonArgs { Addon = (nint)addon });
+            this.InvokeListeners(AddonEvent.PostDraw, new AddonDrawArgs { Addon = (nint)addon });
         }
         catch (Exception e)
         {
@@ -202,7 +210,7 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
     {
         try
         {
-            this.InvokeListeners(AddonEvent.PreUpdate, new AddonArgs { Addon = (nint)addon });
+            this.InvokeListeners(AddonEvent.PreUpdate, new AddonUpdateArgs { Addon = (nint)addon, TimeDelta = delta });
         }
         catch (Exception e)
         {
@@ -213,7 +221,7 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
 
         try
         {
-            this.InvokeListeners(AddonEvent.PostUpdate, new AddonArgs { Addon = (nint)addon });
+            this.InvokeListeners(AddonEvent.PostUpdate, new AddonUpdateArgs { Addon = (nint)addon, TimeDelta = delta });
         }
         catch (Exception e)
         {
@@ -221,34 +229,51 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
         }
     }
 
-    private void OnAddonRefresh(AtkUnitManager* atkUnitManager, AtkUnitBase* addon, uint valueCount, AtkValue* values)
+    private byte OnAddonRefresh(AtkUnitManager* atkUnitManager, AtkUnitBase* addon, uint valueCount, AtkValue* values)
     {
         try
         {
-            this.InvokeListeners(AddonEvent.PreRefresh, new AddonArgs { Addon = (nint)addon });
+            this.InvokeListeners(AddonEvent.PreRefresh, new AddonRefreshArgs
+            {
+                Addon = (nint)addon, 
+                AtkValueCount = valueCount,
+                AtkValues = (nint)values,
+            });
         }
         catch (Exception e)
         {
             Log.Error(e, "Exception in OnAddonRefresh pre-refresh invoke.");
         }
 
-        this.onAddonRefreshHook.Original(atkUnitManager, addon, valueCount, values);
+        var result = this.onAddonRefreshHook.Original(atkUnitManager, addon, valueCount, values);
 
         try
         {
-            this.InvokeListeners(AddonEvent.PostRefresh, new AddonArgs { Addon = (nint)addon });
+            this.InvokeListeners(AddonEvent.PostRefresh, new AddonRefreshArgs
+            {
+                Addon = (nint)addon, 
+                AtkValueCount = valueCount,
+                AtkValues = (nint)values,
+            });
         }
         catch (Exception e)
         {
             Log.Error(e, "Exception in OnAddonRefresh post-refresh invoke.");
         }
+
+        return result;
     }
 
     private void OnRequestedUpdate(AtkUnitBase* addon, NumberArrayData** numberArrayData, StringArrayData** stringArrayData)
     {
         try
         {
-            this.InvokeListeners(AddonEvent.PreRequestedUpdate, new AddonArgs { Addon = (nint)addon });
+            this.InvokeListeners(AddonEvent.PreRequestedUpdate, new AddonRequestedUpdateArgs
+            {
+                Addon = (nint)addon,
+                NumberArrayData = (nint)numberArrayData,
+                StringArrayData = (nint)stringArrayData,
+            });
         }
         catch (Exception e)
         {
@@ -259,7 +284,12 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
 
         try
         {
-            this.InvokeListeners(AddonEvent.PostRequestedUpdate, new AddonArgs { Addon = (nint)addon });
+            this.InvokeListeners(AddonEvent.PostRequestedUpdate, new AddonRequestedUpdateArgs
+            {
+                Addon = (nint)addon,
+                NumberArrayData = (nint)numberArrayData,
+                StringArrayData = (nint)stringArrayData,
+            });
         }
         catch (Exception e)
         {

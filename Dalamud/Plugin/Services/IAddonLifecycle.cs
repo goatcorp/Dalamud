@@ -1,7 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
-using Dalamud.Game.AddonLifecycle;
+using Dalamud.Game.Addon;
+using Dalamud.Game.Addon.Lifecycle;
+using Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
 
 namespace Dalamud.Plugin.Services;
 
@@ -13,9 +15,9 @@ public interface IAddonLifecycle
     /// <summary>
     /// Delegate for receiving addon lifecycle event messages.
     /// </summary>
-    /// <param name="eventType">The event type that triggered the message.</param>
-    /// <param name="addonInfo">Information about what addon triggered the message.</param>
-    public delegate void AddonEventDelegate(AddonEvent eventType, AddonArgs addonInfo);
+    /// <param name="type">The event type that triggered the message.</param>
+    /// <param name="args">Information about what addon triggered the message.</param>
+    public delegate void AddonEventDelegate(AddonEvent type, AddonArgs args);
     
     /// <summary>
     /// Register a listener that will trigger on the specified event and any of the specified addons.

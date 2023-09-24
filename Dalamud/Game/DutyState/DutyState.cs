@@ -28,7 +28,7 @@ internal unsafe class DutyState : IDisposable, IServiceType, IDutyState
     private readonly ClientState.ClientState clientState = Service<ClientState.ClientState>.Get();
 
     [ServiceManager.ServiceConstructor]
-    private DutyState(SigScanner sigScanner)
+    private DutyState(TargetSigScanner sigScanner)
     {
         this.address = new DutyStateAddressResolver();
         this.address.Setup(sigScanner);
@@ -120,7 +120,7 @@ internal unsafe class DutyState : IDisposable, IServiceType, IDutyState
         return this.contentDirectorNetworkMessageHook.Original(a1, a2, a3);
     }
 
-    private void TerritoryOnChangedEvent(object? sender, ushort e)
+    private void TerritoryOnChangedEvent(ushort territoryId)
     {
         if (this.IsDutyStarted)
         {
@@ -210,6 +210,11 @@ internal class DutyStatePluginScoped : IDisposable, IServiceType, IDutyState
         this.dutyStateService.DutyWiped -= this.DutyWipedForward;
         this.dutyStateService.DutyRecommenced -= this.DutyRecommencedForward;
         this.dutyStateService.DutyCompleted -= this.DutyCompletedForward;
+
+        this.DutyStarted = null;
+        this.DutyWiped = null;
+        this.DutyRecommenced = null;
+        this.DutyCompleted = null;
     }
 
     private void DutyStartedForward(object sender, ushort territoryId) => this.DutyStarted?.Invoke(sender, territoryId);

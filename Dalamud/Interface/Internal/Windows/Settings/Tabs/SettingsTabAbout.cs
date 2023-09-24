@@ -171,7 +171,7 @@ Dalamud is licensed under AGPL v3 or later.
 Contribute at: https://github.com/goatcorp/Dalamud
 ";
 
-    private readonly TextureWrap logoTexture;
+    private readonly IDalamudTextureWrap logoTexture;
     private readonly Stopwatch creditsThrottler;
 
     private string creditsText;

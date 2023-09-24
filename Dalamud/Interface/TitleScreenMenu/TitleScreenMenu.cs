@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Reflection;
 
+using Dalamud.Interface.Internal;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Plugin.Services;
@@ -32,7 +33,7 @@ internal class TitleScreenMenu : IServiceType, ITitleScreenMenu
     public IReadOnlyList<TitleScreenMenuEntry> Entries => this.entries;
 
     /// <inheritdoc/>
-    public TitleScreenMenuEntry AddEntry(string text, TextureWrap texture, Action onTriggered)
+    public TitleScreenMenuEntry AddEntry(string text, IDalamudTextureWrap texture, Action onTriggered)
     {
         if (texture.Height != TextureSize || texture.Width != TextureSize)
         {
@@ -55,7 +56,7 @@ internal class TitleScreenMenu : IServiceType, ITitleScreenMenu
     }
 
     /// <inheritdoc/>
-    public TitleScreenMenuEntry AddEntry(ulong priority, string text, TextureWrap texture, Action onTriggered)
+    public TitleScreenMenuEntry AddEntry(ulong priority, string text, IDalamudTextureWrap texture, Action onTriggered)
     {
         if (texture.Height != TextureSize || texture.Width != TextureSize)
         {
@@ -91,7 +92,7 @@ internal class TitleScreenMenu : IServiceType, ITitleScreenMenu
     /// <param name="onTriggered">The action to execute when the option is selected.</param>
     /// <returns>A <see cref="TitleScreenMenu"/> object that can be used to manage the entry.</returns>
     /// <exception cref="ArgumentException">Thrown when the texture provided does not match the required resolution(64x64).</exception>
-    internal TitleScreenMenuEntry AddEntryCore(ulong priority, string text, TextureWrap texture, Action onTriggered)
+    internal TitleScreenMenuEntry AddEntryCore(ulong priority, string text, IDalamudTextureWrap texture, Action onTriggered)
     {
         if (texture.Height != TextureSize || texture.Width != TextureSize)
         {
@@ -117,7 +118,7 @@ internal class TitleScreenMenu : IServiceType, ITitleScreenMenu
     /// <param name="onTriggered">The action to execute when the option is selected.</param>
     /// <returns>A <see cref="TitleScreenMenu"/> object that can be used to manage the entry.</returns>
     /// <exception cref="ArgumentException">Thrown when the texture provided does not match the required resolution(64x64).</exception>
-    internal TitleScreenMenuEntry AddEntryCore(string text, TextureWrap texture, Action onTriggered)
+    internal TitleScreenMenuEntry AddEntryCore(string text, IDalamudTextureWrap texture, Action onTriggered)
     {
         if (texture.Height != TextureSize || texture.Width != TextureSize)
         {
@@ -169,7 +170,7 @@ internal class TitleScreenMenuPluginScoped : IDisposable, IServiceType, ITitleSc
     }
     
     /// <inheritdoc/>
-    public TitleScreenMenuEntry AddEntry(string text, TextureWrap texture, Action onTriggered)
+    public TitleScreenMenuEntry AddEntry(string text, IDalamudTextureWrap texture, Action onTriggered)
     {
         var entry = this.titleScreenMenuService.AddEntry(text, texture, onTriggered);
         this.pluginEntries.Add(entry);
@@ -178,7 +179,7 @@ internal class TitleScreenMenuPluginScoped : IDisposable, IServiceType, ITitleSc
     }
     
     /// <inheritdoc/>
-    public TitleScreenMenuEntry AddEntry(ulong priority, string text, TextureWrap texture, Action onTriggered)
+    public TitleScreenMenuEntry AddEntry(ulong priority, string text, IDalamudTextureWrap texture, Action onTriggered)
     {
         var entry = this.titleScreenMenuService.AddEntry(priority, text, texture, onTriggered);
         this.pluginEntries.Add(entry);

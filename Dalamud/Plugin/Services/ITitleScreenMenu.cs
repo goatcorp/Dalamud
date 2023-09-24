@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 
 using Dalamud.Interface;
+using Dalamud.Interface.Internal;
 using ImGuiScene;
 
 namespace Dalamud.Plugin.Services;
@@ -23,7 +24,7 @@ public interface ITitleScreenMenu
     /// <param name="onTriggered">The action to execute when the option is selected.</param>
     /// <returns>A <see cref="TitleScreenMenu"/> object that can be used to manage the entry.</returns>
     /// <exception cref="ArgumentException">Thrown when the texture provided does not match the required resolution(64x64).</exception>
-    public TitleScreenMenuEntry AddEntry(string text, TextureWrap texture, Action onTriggered);
+    public TitleScreenMenuEntry AddEntry(string text, IDalamudTextureWrap texture, Action onTriggered);
 
     /// <summary>
     /// Adds a new entry to the title screen menu.
@@ -34,7 +35,7 @@ public interface ITitleScreenMenu
     /// <param name="onTriggered">The action to execute when the option is selected.</param>
     /// <returns>A <see cref="TitleScreenMenu"/> object that can be used to manage the entry.</returns>
     /// <exception cref="ArgumentException">Thrown when the texture provided does not match the required resolution(64x64).</exception>
-    public TitleScreenMenuEntry AddEntry(ulong priority, string text, TextureWrap texture, Action onTriggered);
+    public TitleScreenMenuEntry AddEntry(ulong priority, string text, IDalamudTextureWrap texture, Action onTriggered);
 
     /// <summary>
     /// Remove an entry from the title screen menu.

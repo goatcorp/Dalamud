@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
+
 using Dalamud.Configuration.Internal;
 using Dalamud.Data;
 using Dalamud.Game.Gui;
@@ -60,7 +61,7 @@ internal unsafe class NetworkHandlers : IDisposable, IServiceType
         this.addressResolver = new NetworkHandlersAddressResolver();
         this.addressResolver.Setup(sigScanner);
 
-        this.CfPop = (_, _) => { };
+        this.CfPop = (_) => { };
 
         this.mbPurchaseObservable = Observable.Create<MarketBoardPurchase>(observer =>
         {
@@ -175,14 +176,14 @@ internal unsafe class NetworkHandlers : IDisposable, IServiceType
     
     private delegate byte InfoProxyItemSearchAddPage(nint self, nint packetRef);
     
-    private delegate byte MarketBoardSendPurchaseRequestPacket(InfoProxy11* infoProxy);
+    private delegate byte MarketBoardSendPurchaseRequestPacket(InfoProxyItemSearch* infoProxy);
     
     private delegate nint CfPopDelegate(nint packetData);
     
     /// <summary>
     /// Event which gets fired when a duty is ready.
     /// </summary>
-    public event EventHandler<ContentFinderCondition> CfPop;
+    public event Action<ContentFinderCondition> CfPop;
     
     private event Action<nint>? MarketBoardPurchaseReceived;
     
@@ -265,7 +266,7 @@ internal unsafe class NetworkHandlers : IDisposable, IServiceType
                 Service<ChatGui>.GetNullable()?.Print($"Duty pop: {cfcName}");
             }
 
-            this.CfPop.InvokeSafely(this, cfCondition);
+            this.CfPop.InvokeSafely(cfCondition);
         }).ContinueWith(
             task => Log.Error(task.Exception, "CfPop.Invoke failed"),
             TaskContinuationOptions.OnlyOnFaulted);
@@ -520,9 +521,9 @@ internal unsafe class NetworkHandlers : IDisposable, IServiceType
         return this.mbOfferingsHook.OriginalDisposeSafe(a1, packetRef);
     }
 
-    private byte MarketBoardSendPurchaseRequestDetour(InfoProxy11* infoProxy11)
+    private byte MarketBoardSendPurchaseRequestDetour(InfoProxyItemSearch* infoProxy)
     {
-        this.MarketBoardPurchaseRequestSent?.Invoke((nint)infoProxy11 + 0x5680);
-        return this.mbSendPurchaseRequestHook.OriginalDisposeSafe(infoProxy11);
+        this.MarketBoardPurchaseRequestSent?.Invoke((nint)infoProxy + 0x5680);
+        return this.mbSendPurchaseRequestHook.OriginalDisposeSafe(infoProxy);
     }
 }

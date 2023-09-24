@@ -36,7 +36,7 @@ Thanks and have fun!";
 
     private readonly string assemblyVersion = Util.AssemblyVersion;
 
-    private readonly TextureWrap logoTexture;
+    private readonly IDalamudTextureWrap logoTexture;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ChangelogWindow"/> class.

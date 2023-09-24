@@ -30,7 +30,7 @@ internal sealed class GameNetwork : IDisposable, IServiceType, IGameNetwork
     private IntPtr baseAddress;
 
     [ServiceManager.ServiceConstructor]
-    private GameNetwork(SigScanner sigScanner)
+    private GameNetwork(TargetSigScanner sigScanner)
     {
         this.hitchDetectorUp = new HitchDetector("GameNetworkUp", this.configuration.GameNetworkUpHitch);
         this.hitchDetectorDown = new HitchDetector("GameNetworkDown", this.configuration.GameNetworkDownHitch);
@@ -169,6 +169,8 @@ internal class GameNetworkPluginScoped : IDisposable, IServiceType, IGameNetwork
     public void Dispose()
     {
         this.gameNetworkService.NetworkMessage -= this.NetworkMessageForward;
+
+        this.NetworkMessage = null;
     }
 
     private void NetworkMessageForward(nint dataPtr, ushort opCode, uint sourceActorId, uint targetActorId, NetworkMessageDirection direction)

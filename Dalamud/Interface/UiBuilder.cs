@@ -235,7 +235,7 @@ public sealed class UiBuilder : IDisposable
     /// </summary>
     /// <param name="filePath">The full filepath to the image.</param>
     /// <returns>A <see cref="TextureWrap"/> object wrapping the created image.  Use <see cref="TextureWrap.ImGuiHandle"/> inside ImGui.Image().</returns>
-    public TextureWrap LoadImage(string filePath)
+    public IDalamudTextureWrap LoadImage(string filePath)
         => this.InterfaceManagerWithScene?.LoadImage(filePath)
            ?? throw new InvalidOperationException("Load failed.");
 
@@ -244,7 +244,7 @@ public sealed class UiBuilder : IDisposable
     /// </summary>
     /// <param name="imageData">A byte array containing the raw image data.</param>
     /// <returns>A <see cref="TextureWrap"/> object wrapping the created image.  Use <see cref="TextureWrap.ImGuiHandle"/> inside ImGui.Image().</returns>
-    public TextureWrap LoadImage(byte[] imageData)
+    public IDalamudTextureWrap LoadImage(byte[] imageData)
         => this.InterfaceManagerWithScene?.LoadImage(imageData)
            ?? throw new InvalidOperationException("Load failed.");
 
@@ -256,7 +256,7 @@ public sealed class UiBuilder : IDisposable
     /// <param name="height">The height of the image contained in <paramref name="imageData"/>.</param>
     /// <param name="numChannels">The number of channels (bytes per pixel) of the image contained in <paramref name="imageData"/>.  This should usually be 4.</param>
     /// <returns>A <see cref="TextureWrap"/> object wrapping the created image.  Use <see cref="TextureWrap.ImGuiHandle"/> inside ImGui.Image().</returns>
-    public TextureWrap LoadImageRaw(byte[] imageData, int width, int height, int numChannels)
+    public IDalamudTextureWrap LoadImageRaw(byte[] imageData, int width, int height, int numChannels)
         => this.InterfaceManagerWithScene?.LoadImageRaw(imageData, width, height, numChannels)
            ?? throw new InvalidOperationException("Load failed.");
 
@@ -273,7 +273,7 @@ public sealed class UiBuilder : IDisposable
     /// </summary>
     /// <param name="filePath">The full filepath to the image.</param>
     /// <returns>A <see cref="TextureWrap"/> object wrapping the created image.  Use <see cref="TextureWrap.ImGuiHandle"/> inside ImGui.Image().</returns>
-    public Task<TextureWrap> LoadImageAsync(string filePath) => Task.Run(
+    public Task<IDalamudTextureWrap> LoadImageAsync(string filePath) => Task.Run(
         async () =>
             (await this.InterfaceManagerWithSceneAsync).LoadImage(filePath)
             ?? throw new InvalidOperationException("Load failed."));
@@ -283,7 +283,7 @@ public sealed class UiBuilder : IDisposable
     /// </summary>
     /// <param name="imageData">A byte array containing the raw image data.</param>
     /// <returns>A <see cref="TextureWrap"/> object wrapping the created image.  Use <see cref="TextureWrap.ImGuiHandle"/> inside ImGui.Image().</returns>
-    public Task<TextureWrap> LoadImageAsync(byte[] imageData) => Task.Run(
+    public Task<IDalamudTextureWrap> LoadImageAsync(byte[] imageData) => Task.Run(
         async () =>
             (await this.InterfaceManagerWithSceneAsync).LoadImage(imageData)
             ?? throw new InvalidOperationException("Load failed."));
@@ -296,7 +296,7 @@ public sealed class UiBuilder : IDisposable
     /// <param name="height">The height of the image contained in <paramref name="imageData"/>.</param>
     /// <param name="numChannels">The number of channels (bytes per pixel) of the image contained in <paramref name="imageData"/>.  This should usually be 4.</param>
     /// <returns>A <see cref="TextureWrap"/> object wrapping the created image.  Use <see cref="TextureWrap.ImGuiHandle"/> inside ImGui.Image().</returns>
-    public Task<TextureWrap> LoadImageRawAsync(byte[] imageData, int width, int height, int numChannels) => Task.Run(
+    public Task<IDalamudTextureWrap> LoadImageRawAsync(byte[] imageData, int width, int height, int numChannels) => Task.Run(
         async () =>
             (await this.InterfaceManagerWithSceneAsync).LoadImageRaw(imageData, width, height, numChannels)
             ?? throw new InvalidOperationException("Load failed."));

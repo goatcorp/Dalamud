@@ -4,7 +4,6 @@ using System.IO;
 using Dalamud.Configuration.Internal;
 using Dalamud.Game.Command;
 using Dalamud.Interface.Windowing;
-using Dalamud.Logging;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility;
@@ -40,9 +39,6 @@ namespace Dalamud.CorePlugin
         }
 
         /// <inheritdoc/>
-        public string Name => "Dalamud.CorePlugin";
-
-        /// <inheritdoc/>
         public void Dispose()
         {
         }
@@ -51,6 +47,8 @@ namespace Dalamud.CorePlugin
 
         private readonly WindowSystem windowSystem = new("Dalamud.CorePlugin");
         private Localization localization;
+
+        private IPluginLog pluginLog;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PluginImpl"/> class.
@@ -63,6 +61,7 @@ namespace Dalamud.CorePlugin
             {
                 // this.InitLoc();
                 this.Interface = pluginInterface;
+                this.pluginLog = log;
 
                 this.windowSystem.AddWindow(new PluginWindow());
 
@@ -70,18 +69,15 @@ namespace Dalamud.CorePlugin
                 this.Interface.UiBuilder.OpenConfigUi += this.OnOpenConfigUi;
                 this.Interface.UiBuilder.OpenMainUi += this.OnOpenMainUi;
 
-                Service<CommandManager>.Get().AddHandler("/coreplug", new(this.OnCommand) { HelpMessage = $"Access the {this.Name} plugin." });
+                Service<CommandManager>.Get().AddHandler("/coreplug", new(this.OnCommand) { HelpMessage = "Access the plugin." });
 
                 log.Information("CorePlugin ctor!");
             }
             catch (Exception ex)
             {
-                PluginLog.Error(ex, "kaboom");
+                log.Error(ex, "kaboom");
             }
         }
-
-        /// <inheritdoc/>
-        public string Name => "Dalamud.CorePlugin";
 
         /// <summary>
         /// Gets the plugin interface.
@@ -130,13 +126,13 @@ namespace Dalamud.CorePlugin
             }
             catch (Exception ex)
             {
-                PluginLog.Error(ex, "Boom");
+                this.pluginLog.Error(ex, "Boom");
             }
         }
 
         private void OnCommand(string command, string args)
         {
-            PluginLog.Information("Command called!");
+            this.pluginLog.Information("Command called!");
 
             // this.window.IsOpen = true;
         }

@@ -1,6 +1,6 @@
 ﻿using System.Reflection;
 
-using ImGuiScene;
+using Dalamud.Interface.Internal;
 
 namespace Dalamud.Interface;
 
@@ -19,7 +19,7 @@ public class TitleScreenMenuEntry : IComparable<TitleScreenMenuEntry>
     /// <param name="text">The text to show.</param>
     /// <param name="texture">The texture to show.</param>
     /// <param name="onTriggered">The action to execute when the option is selected.</param>
-    internal TitleScreenMenuEntry(Assembly? callingAssembly, ulong priority, string text, TextureWrap texture, Action onTriggered)
+    internal TitleScreenMenuEntry(Assembly? callingAssembly, ulong priority, string text, IDalamudTextureWrap texture, Action onTriggered)
     {
         this.CallingAssembly = callingAssembly;
         this.Priority = priority;
@@ -41,7 +41,7 @@ public class TitleScreenMenuEntry : IComparable<TitleScreenMenuEntry>
     /// <summary>
     /// Gets or sets the texture of this entry.
     /// </summary>
-    public TextureWrap Texture { get; set; }
+    public IDalamudTextureWrap Texture { get; set; }
         
     /// <summary>
     /// Gets or sets a value indicating whether or not this entry is internal.

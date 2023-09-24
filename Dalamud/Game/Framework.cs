@@ -51,7 +51,7 @@ internal sealed class Framework : IDisposable, IServiceType, IFramework
     private Thread? frameworkUpdateThread;
 
     [ServiceManager.ServiceConstructor]
-    private Framework(SigScanner sigScanner, GameLifecycle lifecycle)
+    private Framework(TargetSigScanner sigScanner, GameLifecycle lifecycle)
     {
         this.lifecycle = lifecycle;
         this.hitchDetector = new HitchDetector("FrameworkUpdate", this.configuration.FrameworkUpdateHitch);
