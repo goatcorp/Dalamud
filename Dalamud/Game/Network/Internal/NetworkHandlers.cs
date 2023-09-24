@@ -54,7 +54,7 @@ internal unsafe class NetworkHandlers : IDisposable, IServiceType
     private bool disposing;
 
     [ServiceManager.ServiceConstructor]
-    private NetworkHandlers(GameNetwork gameNetwork, SigScanner sigScanner)
+    private NetworkHandlers(GameNetwork gameNetwork, TargetSigScanner sigScanner)
     {
         this.uploader = new UniversalisMarketBoardUploader();
 
@@ -139,28 +139,34 @@ internal unsafe class NetworkHandlers : IDisposable, IServiceType
             Hook<MarketBoardPurchasePacketHandler>.FromAddress(
                 this.addressResolver.MarketBoardPurchasePacketHandler,
                 this.MarketPurchasePacketDetour);
+        this.mbPurchaseHook.Enable();
 
         this.mbHistoryHook =
             Hook<MarketBoardHistoryPacketHandler>.FromAddress(
                 this.addressResolver.MarketBoardHistoryPacketHandler,
                 this.MarketHistoryPacketDetour);
+        this.mbHistoryHook.Enable();
 
         this.customTalkHook =
             Hook<CustomTalkReceiveResponse>.FromAddress(
                 this.addressResolver.CustomTalkEventResponsePacketHandler,
                 this.CustomTalkReceiveResponseDetour);
+        this.customTalkHook.Enable();
 
         this.mbItemRequestStartHook = Hook<MarketBoardItemRequestStartPacketHandler>.FromAddress(
             this.addressResolver.MarketBoardItemRequestStartPacketHandler,
             this.MarketItemRequestStartDetour);
+        this.mbItemRequestStartHook.Enable();
 
         this.mbOfferingsHook = Hook<InfoProxyItemSearchAddPage>.FromAddress(
             this.addressResolver.InfoProxyItemSearchAddPage,
             this.MarketBoardOfferingsDetour);
+        this.mbOfferingsHook.Enable();
 
         this.mbSendPurchaseRequestHook = Hook<MarketBoardSendPurchaseRequestPacket>.FromAddress(
             this.addressResolver.BuildMarketBoardPurchaseHandlerPacket,
             this.MarketBoardSendPurchaseRequestDetour);
+        this.mbSendPurchaseRequestHook.Enable();
 
         this.cfPopHook = Hook<CfPopDelegate>.FromAddress(this.addressResolver.CfPopPacketHandler, this.CfPopDetour);
         this.cfPopHook.Enable();
