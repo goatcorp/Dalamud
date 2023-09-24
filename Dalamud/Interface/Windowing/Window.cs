@@ -21,7 +21,6 @@ public abstract class Window
     private bool internalLastIsOpen = false;
     private bool internalIsOpen = false;
     private bool nextFrameBringToFront = false;
-    private string? internalNamespace = null;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="Window"/> class.
@@ -37,24 +36,6 @@ public abstract class Window
         this.WindowName = name;
         this.Flags = flags;
         this.ForceMainWindow = forceMainWindow;
-    }
-
-    /// <summary>
-    /// Gets or sets the namespace of the window.
-    /// </summary>
-    public string? Namespace
-    {
-        get => this.internalNamespace;
-        set
-        {
-            if (string.IsNullOrEmpty(value))
-            {
-                this.internalNamespace = value;
-                return;
-            }
-
-            this.internalNamespace = value.TrimStart('#');
-        }
     }
 
     /// <summary>
@@ -266,9 +247,6 @@ public abstract class Window
         if (!this.DrawConditions())
             return;
 
-        var windowNamespace = !string.IsNullOrEmpty(this.Namespace) ? $"##{this.Namespace}" : string.Empty;
-        var windowName = $"{this.WindowName}{pluginNamespace}{windowNamespace}";
-
         this.PreDraw();
         this.ApplyConditionals();
 
@@ -297,7 +275,7 @@ public abstract class Window
             this.nextFrameBringToFront = false;
         }
 
-        if (this.ShowCloseButton ? ImGui.Begin(windowName, ref this.internalIsOpen, this.Flags) : ImGui.Begin(windowName, this.Flags))
+        if (this.ShowCloseButton ? ImGui.Begin($"{this.WindowName}{pluginNamespace}", ref this.internalIsOpen, this.Flags) : ImGui.Begin($"{this.WindowName}{pluginNamespace}", this.Flags))
         {
             // Draw the actual window contents
             try

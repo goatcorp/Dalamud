@@ -4,7 +4,6 @@ using System.Linq;
 
 using Dalamud.Configuration.Internal;
 using Dalamud.Interface.Internal.ManagedAsserts;
-using ImGuiNET;
 using Serilog;
 
 namespace Dalamud.Interface.Windowing;
@@ -19,15 +18,14 @@ public class WindowSystem
     private readonly List<Window> windows = new();
 
     private string lastFocusedWindowName = string.Empty;
-    private string? internalNamespace = null;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="WindowSystem"/> class.
     /// </summary>
     /// <param name="imNamespace">The name/ID-space of this <see cref="WindowSystem"/>.</param>
-    public WindowSystem(string? imNamespace = null)
+    public WindowSystem(string imNamespace)
     {
-        this.Namespace = imNamespace;
+        this.Namespace = imNamespace.TrimStart('#');
     }
 
     /// <summary>
@@ -58,22 +56,9 @@ public class WindowSystem
     public bool HasAnyFocus { get; private set; }
 
     /// <summary>
-    /// Gets or sets the name/ID-space of this <see cref="WindowSystem"/>.
+    /// Gets the name/ID-space of this <see cref="WindowSystem"/>.
     /// </summary>
-    public string? Namespace
-    {
-        get => this.internalNamespace;
-        set
-        {
-            if (string.IsNullOrEmpty(value))
-            {
-                this.internalNamespace = value;
-                return;
-            }
-
-            this.internalNamespace = value.TrimStart('#');
-        }
-    }
+    public string Namespace { get; init; }
 
     /// <summary>
     /// Add a window to this <see cref="WindowSystem"/>.
@@ -121,8 +106,6 @@ public class WindowSystem
     /// </summary>
     public void Draw()
     {
-        var pluginNamespace = !string.IsNullOrEmpty(this.Namespace) ? $"##{this.Namespace}" : string.Empty;
-
         var config = Service<DalamudConfiguration>.GetNullable();
 
         // Shallow clone the list of windows so that we can edit it without modifying it while the loop is iterating
@@ -133,7 +116,7 @@ public class WindowSystem
 #endif
             var snapshot = ImGuiManagedAsserts.GetSnapshot();
 
-            window.DrawInternal(config, pluginNamespace);
+            window.DrawInternal(config, $"##{this.Namespace}");
 
             var source = ($"{this.Namespace}::" ?? string.Empty) + window.WindowName;
             ImGuiManagedAsserts.ReportProblems(source, snapshot);
