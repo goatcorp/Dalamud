@@ -275,7 +275,7 @@ public abstract class Window
             this.nextFrameBringToFront = false;
         }
 
-        if (this.ShowCloseButton ? ImGui.Begin($"{this.WindowName}{pluginNamespace}", ref this.internalIsOpen, this.Flags) : ImGui.Begin($"{this.WindowName}{pluginNamespace}", this.Flags))
+        if (this.ShowCloseButton ? ImGui.Begin($"{this.WindowName}##{pluginNamespace}", ref this.internalIsOpen, this.Flags) : ImGui.Begin($"{this.WindowName}##{pluginNamespace}", this.Flags))
         {
             // Draw the actual window contents
             try

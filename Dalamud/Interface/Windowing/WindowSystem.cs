@@ -116,7 +116,7 @@ public class WindowSystem
 #endif
             var snapshot = ImGuiManagedAsserts.GetSnapshot();
 
-            window.DrawInternal(config, $"##{this.Namespace}");
+            window.DrawInternal(config, this.Namespace);
 
             var source = ($"{this.Namespace}::" ?? string.Empty) + window.WindowName;
             ImGuiManagedAsserts.ReportProblems(source, snapshot);
