@@ -1,5 +1,8 @@
 ﻿namespace Dalamud.Game.Network.Internal;
 
+/// <summary>
+/// Internal address resolver for the network handlers.
+/// </summary>
 internal class NetworkHandlersAddressResolver : BaseAddressResolver
 {
     /// <summary>
@@ -41,6 +44,7 @@ internal class NetworkHandlersAddressResolver : BaseAddressResolver
     /// </summary>
     public nint BuildMarketBoardPurchaseHandlerPacket { get; set; }
 
+    /// <inheritdoc />
     protected override void Setup64Bit(SigScanner scanner)
     {
         this.CfPopPacketHandler = scanner.ScanText("40 53 57 48 83 EC 78 48 8B D9 48 8D 0D");
