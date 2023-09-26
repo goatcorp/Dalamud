@@ -3,6 +3,7 @@
 #include <cstdio>
 #include <filesystem>
 #include <Windows.h>
+#include <Lmcons.h>
 #include <Shlobj.h>
 #include "CoreCLR.h"
 #include "..\..\Dalamud.Boot\logging.h"
@@ -26,6 +27,65 @@ void ConsoleTeardown()
 }
 
 std::optional<CoreCLR> g_clr;
+
+static wchar_t* GetRuntimePath()
+{
+    int result;
+    std::wstring buffer;
+    wchar_t* runtime_path;
+    wchar_t* _appdata;
+    DWORD username_len = UNLEN + 1;
+    wchar_t username[UNLEN + 1];
+
+    buffer.resize(0);
+    result = GetEnvironmentVariableW(L"DALAMUD_RUNTIME", &buffer[0], 0);
+
+    if (result)
+    {
+        buffer.resize(result); // The first pass returns the required length
+        result = GetEnvironmentVariableW(L"DALAMUD_RUNTIME", &buffer[0], result);
+        return _wcsdup(buffer.c_str());
+    }
+    
+    // Detect Windows first
+    result = SHGetKnownFolderPath(FOLDERID_RoamingAppData, KF_FLAG_DEFAULT, nullptr, &_appdata);
+
+    if (result != 0)
+    {
+        logging::E("Unable to get RoamingAppData path (err={})", result);
+        return NULL;
+    }
+
+    std::filesystem::path fs_app_data(_appdata);
+    runtime_path = _wcsdup(fs_app_data.append("XIVLauncher").append("runtime").c_str());
+    if (std::filesystem::exists(runtime_path))
+        return runtime_path;
+    free(runtime_path);
+
+    // Next XLCore on Linux
+    result = GetUserNameW(username, &username_len);
+    if (result != 0)
+    {
+        logging::E("Unable to get user name (err={})", result);
+        return NULL;
+    }
+
+    std::filesystem::path homeDir = L"Z:\\home\\" + std::wstring(username);
+    runtime_path = _wcsdup(homeDir.append(".xlcore").append("runtime").c_str());
+    printf("%ws", runtime_path);
+    if (std::filesystem::exists(runtime_path))
+        return runtime_path;
+    free(runtime_path);
+
+    // Finally XOM
+    homeDir = L"Z:\\Users\\" + std::wstring(username);
+    runtime_path = _wcsdup(homeDir.append("Library").append("Application Suppor").append("XIV on Mac").append("runtime").c_str());
+    if (std::filesystem::exists(runtime_path))
+        return runtime_path;
+    free(runtime_path);
+
+    return NULL;
+}
 
 int InitializeClrAndGetEntryPoint(
     void* calling_module,
@@ -56,31 +116,12 @@ int InitializeClrAndGetEntryPoint(
 
     SetEnvironmentVariable(L"COMPlus_ETWEnabled", enable_etw ? L"1" : L"0");
 
-    wchar_t* dotnet_path;
-    wchar_t* _appdata;
+    wchar_t* dotnet_path = GetRuntimePath();
 
-    std::wstring buffer;
-    buffer.resize(0);
-    result = GetEnvironmentVariableW(L"DALAMUD_RUNTIME", &buffer[0], 0);
-
-    if (result)
+    if (!dotnet_path || !std::filesystem::exists(dotnet_path))
     {
-        buffer.resize(result); // The first pass returns the required length
-        result = GetEnvironmentVariableW(L"DALAMUD_RUNTIME", &buffer[0], result);
-        dotnet_path = _wcsdup(buffer.c_str());
-    }
-    else
-    {
-        result = SHGetKnownFolderPath(FOLDERID_RoamingAppData, KF_FLAG_DEFAULT, nullptr, &_appdata);
-
-        if (result != 0)
-        {
-            logging::E("Unable to get RoamingAppData path (err={})", result);
-            return result;
-        }
-
-        std::filesystem::path fs_app_data(_appdata);
-        dotnet_path = _wcsdup(fs_app_data.append("XIVLauncher").append("runtime").c_str());
+        logging::E("Error: Unable to find .NET runtime path");
+        return 1;
     }
 
     // =========================================================================== //
@@ -88,12 +129,6 @@ int InitializeClrAndGetEntryPoint(
     logging::I("with dotnet_path: {}", dotnet_path);
     logging::I("with config_path: {}", runtimeconfig_path);
     logging::I("with module_path: {}", module_path);
-
-    if (!std::filesystem::exists(dotnet_path))
-    {
-        logging::E("Error: Unable to find .NET runtime path");
-        return 1;
-    }
 
     get_hostfxr_parameters init_parameters
     {

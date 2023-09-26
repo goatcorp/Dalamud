@@ -771,7 +771,7 @@ namespace Dalamud.Injector
                         var config = File.ReadAllLines(launcherConfigPath)
                             .Where(line => line.Contains('='))
                             .ToDictionary(line => line.Split('=')[0], line => line.Split('=')[1]);
-                        gamePath = "Z:" + config["GamePath"].Replace('/', '\\');
+                        gamePath = Path.Combine("Z:" + config["GamePath"].Replace('/', '\\'), "game", "ffxiv_dx11.exe");
                         Log.Information("Using game installation path configuration from from XIVLauncher Core: {0}", gamePath);
                     }
                     else
@@ -779,8 +779,8 @@ namespace Dalamud.Injector
                         var homeDir = $"Z:\\Users\\{Environment.UserName}";
                         var xomlauncherDir = Path.Combine(homeDir, "Library", "Application Support", "XIV on Mac");
                         // we could try to parse the binary plist file here if we really wanted to...
-                        gamePath = Path.Combine(xomlauncherDir, "ffxiv");
-                        Log.Information("Using default game installation path from from XOM: {0}", gamePath);
+                        gamePath = Path.Combine(xomlauncherDir, "ffxiv", "game", "ffxiv_dx11.exe");
+                        Log.Information("Using default game installation path from XOM: {0}", gamePath);
                     }
                 }
                 catch (Exception)
