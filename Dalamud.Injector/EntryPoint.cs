@@ -263,6 +263,7 @@ namespace Dalamud.Injector
             var logName = startInfo.LogName;
             var logPath = startInfo.LogPath;
             var languageStr = startInfo.Language.ToString().ToLowerInvariant();
+            var platformStr = startInfo.Platform.ToString().ToLowerInvariant();
             var troubleshootingData = "{\"empty\": true, \"description\": \"No troubleshooting data supplied.\"}";
 
             for (var i = 2; i < args.Count; i++)
@@ -290,6 +291,10 @@ namespace Dalamud.Injector
                 else if (args[i].StartsWith(key = "--dalamud-client-language="))
                 {
                     languageStr = args[i][key.Length..].ToLowerInvariant();
+                }
+                else if (args[i].StartsWith(key = "--dalamud-platform="))
+                {
+                    platformStr = args[i][key.Length..].ToLowerInvariant();
                 }
                 else if (args[i].StartsWith(key = "--dalamud-tspack-b64="))
                 {
@@ -358,11 +363,65 @@ namespace Dalamud.Injector
                 throw new CommandLineException($"\"{languageStr}\" is not a valid supported language.");
             }
 
+            OSPlatform platform;
+            if (platformStr[0..(len = Math.Min(platformStr.Length, (key = "win").Length))] == key[0..len]) // covers both win32 and Windows
+            {
+                platform = OSPlatform.Windows;
+            }
+            else if (platformStr[0..(len = Math.Min(platformStr.Length, (key = "linux").Length))] == key[0..len])
+            {
+                platform = OSPlatform.Linux;
+            }
+            else if (platformStr[0..(len = Math.Min(platformStr.Length, (key = "macos").Length))] == key[0..len])
+            {
+                platform = OSPlatform.OSX;
+            }
+            else if (platformStr[0..(len = Math.Min(platformStr.Length, (key = "osx").Length))] == key[0..len])
+            {
+                platform = OSPlatform.OSX;
+            }
+            else
+            {
+                var ntdll = NativeFunctions.GetModuleHandleW("ntdll.dll");
+                var wineServerCallPtr = NativeFunctions.GetProcAddress(ntdll, "wine_server_call");
+                var wineGetHostVersionPtr = NativeFunctions.GetProcAddress(ntdll, "wine_get_host_version");
+                var winePlatform = GetWinePlatform(wineGetHostVersionPtr);
+                var isWine = wineServerCallPtr != nint.Zero;
+
+                static unsafe string? GetWinePlatform(nint wineGetHostVersionPtr)
+                {
+                    if (wineGetHostVersionPtr == nint.Zero) return null;
+
+                    var methodDelegate = (delegate* unmanaged[Fastcall]<out char*, out char*, void>)wineGetHostVersionPtr;
+                    methodDelegate(out var platformPtr, out var _);
+
+                    if (platformPtr == null) return null;
+
+                    return Marshal.PtrToStringAnsi((nint)platformPtr);
+                }
+
+                if (!isWine)
+                    platform = OSPlatform.Windows;
+                else if (winePlatform == "Linux")
+                    platform = OSPlatform.Linux;
+                else if (winePlatform == "Darwin")
+                    platform = OSPlatform.OSX;
+                else if (winePlatform is not null) // probably custom Linux kernel or BSD
+                    platform = OSPlatform.Linux;
+                else if (bool.Parse(Environment.GetEnvironmentVariable("XL_WINEONLINUX") ?? "false"))
+                    platform = OSPlatform.Linux;
+                else // this means we have wine with exports hidden, so not a mac license, proabably Linux
+                    platform = OSPlatform.Linux;
+
+                Log.Warning("Heuristically determined host system platform as {platform}", platform);
+            }
+
             startInfo.WorkingDirectory = workingDirectory;
             startInfo.ConfigurationPath = configurationPath;
             startInfo.PluginDirectory = pluginDirectory;
             startInfo.AssetDirectory = assetDirectory;
             startInfo.Language = clientLanguage;
+            startInfo.Platform = platform;
             startInfo.DelayInitializeMs = delayInitializeMs;
             startInfo.GameVersion = null;
             startInfo.TroubleshootingPackData = troubleshootingData;
@@ -426,7 +485,7 @@ namespace Dalamud.Injector
             }
 
             Console.WriteLine("Specifying dalamud start info: [--dalamud-working-directory=path] [--dalamud-configuration-path=path]");
-            Console.WriteLine("                               [--dalamud-plugin-directory=path]");
+            Console.WriteLine("                               [--dalamud-plugin-directory=path] [--dalamud-platform=win32|linux|macOS]");
             Console.WriteLine("                               [--dalamud-asset-directory=path] [--dalamud-delay-initialize=0(ms)]");
             Console.WriteLine("                               [--dalamud-client-language=0-3|j(apanese)|e(nglish)|d|g(erman)|f(rench)]");
 

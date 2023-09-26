@@ -166,7 +166,7 @@ public sealed class EntryPoint
             // This is due to GitHub not supporting TLS 1.0, so we enable all TLS versions globally
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12 | SecurityProtocolType.Tls;
 
-            if (!Util.IsWine())
+            if (info.Platform == OSPlatform.Windows) // Currently VEH is not fully functional on WINE
                 InitSymbolHandler(info);
 
             var dalamud = new Dalamud(info, configuration, mainThreadContinueEvent);

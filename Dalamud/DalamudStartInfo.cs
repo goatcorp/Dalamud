@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-
+using System.Runtime.InteropServices;
 using Dalamud.Game;
 using Newtonsoft.Json;
 
@@ -17,7 +17,7 @@ public record DalamudStartInfo : IServiceType
     /// </summary>
     public DalamudStartInfo()
     {
-        // ignored
+        this.Platform = OSPlatform.Create("UNKNOWN");
     }
 
     /// <summary>
@@ -33,6 +33,7 @@ public record DalamudStartInfo : IServiceType
         this.PluginDirectory = other.PluginDirectory;
         this.AssetDirectory = other.AssetDirectory;
         this.Language = other.Language;
+        this.Platform = other.Platform;
         this.GameVersion = other.GameVersion;
         this.DelayInitializeMs = other.DelayInitializeMs;
         this.TroubleshootingPackData = other.TroubleshootingPackData;
@@ -86,6 +87,12 @@ public record DalamudStartInfo : IServiceType
     /// Gets or sets the language of the game client.
     /// </summary>
     public ClientLanguage Language { get; set; } = ClientLanguage.English;
+
+    /// <summary>
+    /// Gets or sets the underlying platform´Dalamud runs on.
+    /// </summary>
+    [JsonConverter(typeof(OSPlatformConverter))]
+    public OSPlatform Platform { get; set; }
 
     /// <summary>
     /// Gets or sets the current game version code.
