@@ -59,6 +59,56 @@ public static class ImGuiClip
         clipper.Destroy();
     }
 
+    /// <summary>
+    /// Draws the enumerable data with <see cref="itemsPerLine"/> number of items per line.
+    /// </summary>
+    /// <param name="data">Enumerable containing data to draw.</param>
+    /// <param name="draw">The function to draw a single item.</param>
+    /// <param name="itemsPerLine">How many items to draw per line.</param>
+    /// <param name="lineHeight">How tall each line is.</param>
+    /// <typeparam name="T">The type of data to draw.</typeparam>
+    public static void ClippedDraw<T>(IReadOnlyList<T> data, Action<T> draw, int itemsPerLine, float lineHeight)
+    {
+        ImGuiListClipperPtr clipper;
+        unsafe
+        {
+            clipper = new ImGuiListClipperPtr(ImGuiNative.ImGuiListClipper_ImGuiListClipper());
+        }
+        
+        var maxRows = (int)MathF.Ceiling((float)data.Count / itemsPerLine);
+        
+        clipper.Begin(maxRows, lineHeight);
+        while (clipper.Step())
+        {
+            for (var actualRow = clipper.DisplayStart; actualRow < clipper.DisplayEnd; actualRow++)
+            {
+                if (actualRow >= maxRows)
+                    return;
+
+                if (actualRow < 0)
+                    continue;
+
+                var itemsForRow = data
+                                  .Skip(actualRow * itemsPerLine)
+                                  .Take(itemsPerLine);
+                
+                var currentIndex = 0;
+                foreach (var item in itemsForRow)
+                {
+                    if (currentIndex++ != 0 && currentIndex < itemsPerLine + 1)
+                    {
+                        ImGui.SameLine();
+                    }
+                    
+                    draw(item);
+                }
+            }
+        }
+
+        clipper.End();
+        clipper.Destroy();
+    }
+
     // Draw a clipped random-access collection of consistent height lineHeight.
     // Uses ImGuiListClipper and thus handles start- and end-dummies itself, but acts on type and index.
     public static void ClippedDraw<T>(IReadOnlyList<T> data, Action<T, int> draw, float lineHeight)
