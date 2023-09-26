@@ -248,6 +248,35 @@ namespace Dalamud.Injector
             }
         }
 
+        private static OSPlatform DetectPlatformHeuristic()
+        {
+            var ntdll = NativeFunctions.GetModuleHandleW("ntdll.dll");
+            var wineServerCallPtr = NativeFunctions.GetProcAddress(ntdll, "wine_server_call");
+            var wineGetHostVersionPtr = NativeFunctions.GetProcAddress(ntdll, "wine_get_host_version");
+            var winePlatform = GetWinePlatform(wineGetHostVersionPtr);
+            var isWine = wineServerCallPtr != nint.Zero;
+
+            static unsafe string? GetWinePlatform(nint wineGetHostVersionPtr)
+            {
+                if (wineGetHostVersionPtr == nint.Zero) return null;
+
+                var methodDelegate = (delegate* unmanaged[Fastcall]<out char*, out char*, void>)wineGetHostVersionPtr;
+                methodDelegate(out var platformPtr, out var _);
+
+                if (platformPtr == null) return null;
+
+                return Marshal.PtrToStringAnsi((nint)platformPtr);
+            }
+
+            if (!isWine)
+                return OSPlatform.Windows;
+
+            if (winePlatform == "Darwin")
+                return OSPlatform.OSX;
+
+            return OSPlatform.Linux;
+        }
+
         private static DalamudStartInfo ExtractAndInitializeStartInfoFromArguments(DalamudStartInfo? startInfo, List<string> args)
         {
             int len;
@@ -382,37 +411,7 @@ namespace Dalamud.Injector
             }
             else
             {
-                var ntdll = NativeFunctions.GetModuleHandleW("ntdll.dll");
-                var wineServerCallPtr = NativeFunctions.GetProcAddress(ntdll, "wine_server_call");
-                var wineGetHostVersionPtr = NativeFunctions.GetProcAddress(ntdll, "wine_get_host_version");
-                var winePlatform = GetWinePlatform(wineGetHostVersionPtr);
-                var isWine = wineServerCallPtr != nint.Zero;
-
-                static unsafe string? GetWinePlatform(nint wineGetHostVersionPtr)
-                {
-                    if (wineGetHostVersionPtr == nint.Zero) return null;
-
-                    var methodDelegate = (delegate* unmanaged[Fastcall]<out char*, out char*, void>)wineGetHostVersionPtr;
-                    methodDelegate(out var platformPtr, out var _);
-
-                    if (platformPtr == null) return null;
-
-                    return Marshal.PtrToStringAnsi((nint)platformPtr);
-                }
-
-                if (!isWine)
-                    platform = OSPlatform.Windows;
-                else if (winePlatform == "Linux")
-                    platform = OSPlatform.Linux;
-                else if (winePlatform == "Darwin")
-                    platform = OSPlatform.OSX;
-                else if (winePlatform is not null) // probably custom Linux kernel or BSD
-                    platform = OSPlatform.Linux;
-                else if (bool.Parse(Environment.GetEnvironmentVariable("XL_WINEONLINUX") ?? "false"))
-                    platform = OSPlatform.Linux;
-                else // this means we have wine with exports hidden, so not a mac license, proabably Linux
-                    platform = OSPlatform.Linux;
-
+                platform = DetectPlatformHeuristic();
                 Log.Warning("Heuristically determined host system platform as {platform}", platform);
             }
 
@@ -753,17 +752,17 @@ namespace Dalamud.Injector
                 {
                     if (dalamudStartInfo.Platform == OSPlatform.Windows)
                     {
-                    var appDataDir = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-                    var xivlauncherDir = Path.Combine(appDataDir, "XIVLauncher");
-                    var launcherConfigPath = Path.Combine(xivlauncherDir, "launcherConfigV3.json");
+                        var appDataDir = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+                        var xivlauncherDir = Path.Combine(appDataDir, "XIVLauncher");
+                        var launcherConfigPath = Path.Combine(xivlauncherDir, "launcherConfigV3.json");
                         gamePath = Path.Combine(
                             JsonSerializer.CreateDefault()
                                 .Deserialize<Dictionary<string, string>>(
                                     new JsonTextReader(new StringReader(File.ReadAllText(launcherConfigPath))))["GamePath"],
                             "game",
                             "ffxiv_dx11.exe");
-                    Log.Information("Using game installation path configuration from from XIVLauncher: {0}", gamePath);
-                }
+                        Log.Information("Using game installation path configuration from from XIVLauncher: {0}", gamePath);
+                    }
                     else if (dalamudStartInfo.Platform == OSPlatform.Linux)
                     {
                         var homeDir = $"Z:\\home\\{Environment.UserName}";
@@ -773,7 +772,6 @@ namespace Dalamud.Injector
                             .Where(line => line.Contains('='))
                             .ToDictionary(line => line.Split('=')[0], line => line.Split('=')[1]);
                         gamePath = "Z:" + config["GamePath"].Replace('/', '\\');
-                        Environment.SetEnvironmentVariable("MY_VARIABLE", "SomeValue");
                         Log.Information("Using game installation path configuration from from XIVLauncher Core: {0}", gamePath);
                     }
                     else
@@ -842,20 +840,6 @@ namespace Dalamud.Injector
             if (encryptArguments)
             {
                 var rawTickCount = (uint)Environment.TickCount;
-
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-                {
-                    [System.Runtime.InteropServices.DllImport("c")]
-#pragma warning disable SA1300
-                    static extern ulong clock_gettime_nsec_np(int clockId);
-#pragma warning restore SA1300
-
-                    const int CLOCK_MONOTONIC_RAW = 4;
-                    var rawTickCountFixed = clock_gettime_nsec_np(CLOCK_MONOTONIC_RAW) / 1000000;
-                    Log.Information("ArgumentBuilder::DeriveKey() fixing up rawTickCount from {0} to {1} on macOS", rawTickCount, rawTickCountFixed);
-                    rawTickCount = (uint)rawTickCountFixed;
-                }
-
                 var ticks = rawTickCount & 0xFFFF_FFFFu;
                 var key = ticks & 0xFFFF_0000u;
                 gameArguments.Insert(0, $"T={ticks}");
