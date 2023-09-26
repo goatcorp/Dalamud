@@ -751,15 +751,43 @@ namespace Dalamud.Injector
             {
                 try
                 {
+                    if (dalamudStartInfo.Platform == OSPlatform.Windows)
+                    {
                     var appDataDir = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
                     var xivlauncherDir = Path.Combine(appDataDir, "XIVLauncher");
                     var launcherConfigPath = Path.Combine(xivlauncherDir, "launcherConfigV3.json");
-                    gamePath = Path.Combine(JsonSerializer.CreateDefault().Deserialize<Dictionary<string, string>>(new JsonTextReader(new StringReader(File.ReadAllText(launcherConfigPath))))["GamePath"], "game", "ffxiv_dx11.exe");
+                        gamePath = Path.Combine(
+                            JsonSerializer.CreateDefault()
+                                .Deserialize<Dictionary<string, string>>(
+                                    new JsonTextReader(new StringReader(File.ReadAllText(launcherConfigPath))))["GamePath"],
+                            "game",
+                            "ffxiv_dx11.exe");
                     Log.Information("Using game installation path configuration from from XIVLauncher: {0}", gamePath);
+                }
+                    else if (dalamudStartInfo.Platform == OSPlatform.Linux)
+                    {
+                        var homeDir = $"Z:\\home\\{Environment.UserName}";
+                        var xivlauncherDir = Path.Combine(homeDir, ".xlcore");
+                        var launcherConfigPath = Path.Combine(xivlauncherDir, "launcher.ini");
+                        var config = File.ReadAllLines(launcherConfigPath)
+                            .Where(line => line.Contains('='))
+                            .ToDictionary(line => line.Split('=')[0], line => line.Split('=')[1]);
+                        gamePath = "Z:" + config["GamePath"].Replace('/', '\\');
+                        Environment.SetEnvironmentVariable("MY_VARIABLE", "SomeValue");
+                        Log.Information("Using game installation path configuration from from XIVLauncher Core: {0}", gamePath);
+                    }
+                    else
+                    {
+                        var homeDir = $"Z:\\Users\\{Environment.UserName}";
+                        var xomlauncherDir = Path.Combine(homeDir, "Library", "Application Support", "XIV on Mac");
+                        // we could try to parse the binary plist file here if we really wanted to...
+                        gamePath = Path.Combine(xomlauncherDir, "ffxiv");
+                        Log.Information("Using default game installation path from from XOM: {0}", gamePath);
+                    }
                 }
                 catch (Exception)
                 {
-                    Log.Error("Failed to read launcherConfigV3.json to get the set-up game path, please specify one using -g");
+                    Log.Error("Failed to read launcher config to get the set-up game path, please specify one using -g");
                     return -1;
                 }
 
