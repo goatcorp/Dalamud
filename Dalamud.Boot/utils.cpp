@@ -581,6 +581,11 @@ std::vector<std::string> utils::get_env_list(const wchar_t* pcszName) {
 bool utils::is_running_on_wine() {
     if (get_env<bool>(L"XL_WINEONLINUX"))
         return true;
+
+    const auto platform_env = get_env<std::string>("XL_PLATFORM");
+    if (!platform_env.empty() && platform_env != "Windows")
+        return true;
+    
     HMODULE hntdll = GetModuleHandleW(L"ntdll.dll");
     if (!hntdll)
         return true;
