@@ -495,7 +495,12 @@ public static class Util
     public static bool IsWine()
     {
         if (EnvironmentConfiguration.XlWineOnLinux) return true;
-        if (Environment.GetEnvironmentVariable("XL_PLATFORM") is not null and not "Windows") return true;
+
+        // Respect XL_PLATFORM if set. This will allow Wine users to lie but if they're doing that, they're probably
+        // doing something very intentional.
+        var platformEnv = Environment.GetEnvironmentVariable("XL_PLATFORM");
+        if (platformEnv == "Windows") return false;
+        if (platformEnv != null) return true;
 
         var ntdll = NativeFunctions.GetModuleHandleW("ntdll.dll");
 

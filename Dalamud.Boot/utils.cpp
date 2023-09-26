@@ -582,6 +582,8 @@ bool utils::is_running_on_wine() {
     if (get_env<bool>(L"XL_WINEONLINUX"))
         return true;
 
+    // Note: We're diverging from the Dalamud strategy here - even if the launcher is lying to us, we want to
+    // find wine to kill VEH. Anyone who has good reason to bypass this can patch this method :) 
     const auto platform_env = get_env<std::string>("XL_PLATFORM");
     if (!platform_env.empty() && platform_env != "Windows")
         return true;
