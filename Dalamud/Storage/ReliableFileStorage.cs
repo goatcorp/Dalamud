@@ -95,25 +95,28 @@ public class ReliableFileStorage : IServiceType, IDisposable
     {
         ArgumentException.ThrowIfNullOrEmpty(path);
         
-        var normalizedPath = NormalizePath(path);
-        var file = this.db.Table<DbFile>().FirstOrDefault(f => f.Path == normalizedPath && f.ContainerId == containerId);
-        if (file == null)
+        this.db.RunInTransaction(() =>
         {
-            file = new DbFile
+            var normalizedPath = NormalizePath(path);
+            var file = this.db.Table<DbFile>().FirstOrDefault(f => f.Path == normalizedPath && f.ContainerId == containerId);
+            if (file == null)
             {
-                ContainerId = containerId,
-                Path = normalizedPath,
-                Data = bytes,
-            };
-            this.db.Insert(file);
-        }
-        else
-        {
-            file.Data = bytes;
-            this.db.Update(file);
-        }
+                file = new DbFile
+                {
+                    ContainerId = containerId,
+                    Path = normalizedPath,
+                    Data = bytes,
+                };
+                this.db.Insert(file);
+            }
+            else
+            {
+                file.Data = bytes;
+                this.db.Update(file);
+            }
         
-        Util.WriteAllBytesSafe(path, bytes);
+            Util.WriteAllBytesSafe(path, bytes);
+        });
     }
 
     /// <summary>
