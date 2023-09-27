@@ -31,10 +31,11 @@ public sealed class PluginConfigurations
     /// </summary>
     /// <param name="config">Plugin configuration.</param>
     /// <param name="pluginName">Plugin name.</param>
-    public void Save(IPluginConfiguration config, string pluginName)
+    /// <param name="workingPluginId">WorkingPluginId of the plugin.</param>
+    public void Save(IPluginConfiguration config, string pluginName, Guid workingPluginId)
     {
         Service<ReliableFileStorage>.Get()
-                                    .WriteAllText(this.GetConfigFile(pluginName).FullName, SerializeConfig(config));
+                                    .WriteAllText(this.GetConfigFile(pluginName).FullName, SerializeConfig(config), workingPluginId);
     }
 
     /// <summary>
