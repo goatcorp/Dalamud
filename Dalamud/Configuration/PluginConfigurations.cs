@@ -1,6 +1,6 @@
 using System.IO;
 
-using Dalamud.Utility;
+using Dalamud.Storage;
 using Newtonsoft.Json;
 
 namespace Dalamud.Configuration;
@@ -33,22 +33,36 @@ public sealed class PluginConfigurations
     /// <param name="pluginName">Plugin name.</param>
     public void Save(IPluginConfiguration config, string pluginName)
     {
-        Util.WriteAllTextSafe(this.GetConfigFile(pluginName).FullName, SerializeConfig(config));
+        Service<ReliableFileStorage>.Get()
+                                    .WriteAllText(this.GetConfigFile(pluginName).FullName, SerializeConfig(config));
     }
 
     /// <summary>
     /// Load plugin configuration.
     /// </summary>
     /// <param name="pluginName">Plugin name.</param>
+    /// <param name="workingPluginId">WorkingPluginID of the plugin.</param>
     /// <returns>Plugin configuration.</returns>
-    public IPluginConfiguration? Load(string pluginName)
+    public IPluginConfiguration? Load(string pluginName, Guid workingPluginId)
     {
         var path = this.GetConfigFile(pluginName);
 
-        if (!path.Exists)
-            return null;
+        IPluginConfiguration? config = null;
+        try
+        {
+            Service<ReliableFileStorage>.Get().ReadAllText(path.FullName, text =>
+            {
+                config = DeserializeConfig(text);
+                if (config == null)
+                    throw new Exception("Read config was null.");
+            }, workingPluginId);
+        }
+        catch (FileNotFoundException)
+        {
+            // ignored
+        }
 
-        return DeserializeConfig(File.ReadAllText(path.FullName));
+        return config;
     }
 
     /// <summary>

@@ -370,7 +370,7 @@ public sealed class DalamudPluginInterface : IDisposable
         }
 
         // this shouldn't be a thing, I think, but just in case
-        return this.configs.Load(this.plugin.InternalName);
+        return this.configs.Load(this.plugin.InternalName, this.plugin.Manifest.WorkingPluginId);
     }
 
     /// <summary>

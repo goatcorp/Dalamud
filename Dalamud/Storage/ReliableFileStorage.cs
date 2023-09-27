@@ -3,6 +3,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 
 using Dalamud.Logging.Internal;
+using Dalamud.Utility;
 using PInvoke;
 using SQLite;
 
@@ -32,7 +33,6 @@ public class ReliableFileStorage : IServiceType, IDisposable
     /// Initializes a new instance of the <see cref="ReliableFileStorage"/> class.
     /// </summary>
     /// <param name="vfsDbPath">Path to the VFS.</param>
-    [ServiceManager.ServiceConstructor]
     public ReliableFileStorage(string vfsDbPath)
     {
         var databasePath = Path.Combine(vfsDbPath, "dalamudVfs.db");
@@ -113,7 +113,7 @@ public class ReliableFileStorage : IServiceType, IDisposable
             this.db.Update(file);
         }
         
-        WriteFileReliably(path, bytes);
+        Util.WriteAllBytesSafe(path, bytes);
     }
 
     /// <summary>
@@ -252,39 +252,6 @@ public class ReliableFileStorage : IServiceType, IDisposable
     {
         this.db.Dispose();
     }
-    
-    private static void WriteFileReliably(string path, byte[] bytes)
-    {
-        ArgumentException.ThrowIfNullOrEmpty(path);
-        
-        // Open the temp file
-        var tempPath = path + ".tmp";
-
-        using var tempFile = Kernel32
-            .CreateFile(tempPath.AsSpan(),
-                        new Kernel32.ACCESS_MASK(Kernel32.FileAccess.FILE_GENERIC_READ | Kernel32.FileAccess.FILE_GENERIC_WRITE),
-                        Kernel32.FileShare.None,
-                        null,
-                        Kernel32.CreationDisposition.CREATE_ALWAYS,
-                        Kernel32.CreateFileFlags.FILE_ATTRIBUTE_NORMAL,
-                        Kernel32.SafeObjectHandle.Null);
-
-        if (tempFile.IsInvalid)
-            throw new Win32Exception();
-        
-        // Write the data
-        var bytesWritten = Kernel32.WriteFile(tempFile, new ArraySegment<byte>(bytes));
-        if (bytesWritten != bytes.Length)
-            throw new Exception($"Could not write all bytes to temp file ({bytesWritten} of {bytes.Length})");
-
-        if (!Kernel32.FlushFileBuffers(tempFile))
-            throw new Win32Exception();
-        
-        tempFile.Close();
-
-        if (!MoveFileEx(tempPath, path, MoveFileFlags.MovefileReplaceExisting | MoveFileFlags.MovefileWriteThrough))
-            throw new Win32Exception();
-    }
 
     /// <summary>
     /// Replace possible non-portable parts of a path with portable versions.
@@ -299,20 +266,6 @@ public class ReliableFileStorage : IServiceType, IDisposable
         
         return path;
     }
-    
-    [Flags]
-#pragma warning disable SA1201
-    private enum MoveFileFlags
-#pragma warning restore SA1201
-    {
-        MovefileReplaceExisting = 0x00000001,
-        MovefileWriteThrough = 0x00000008,
-    }
-    
-    [return: MarshalAs(UnmanagedType.Bool)]
-    [DllImport("kernel32.dll", SetLastError=true, CharSet=CharSet.Unicode)]
-    private static extern bool MoveFileEx(string lpExistingFileName, string lpNewFileName,
-                                  MoveFileFlags dwFlags);
 
     private class DbFile
     {
