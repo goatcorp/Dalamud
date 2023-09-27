@@ -84,7 +84,7 @@ internal static class ServiceManager
     /// </summary>
     /// <param name="dalamud">Instance of <see cref="Dalamud"/>.</param>
     /// <param name="startInfo">Instance of <see cref="DalamudStartInfo"/>.</param>
-    /// <param name="fs">Instance of <see cref="ReliableFileStorage"/></param>
+    /// <param name="fs">Instance of <see cref="ReliableFileStorage"/>.</param>
     /// <param name="configuration">Instance of <see cref="DalamudConfiguration"/>.</param>
     public static void InitializeProvidedServicesAndClientStructs(Dalamud dalamud, DalamudStartInfo startInfo, ReliableFileStorage fs, DalamudConfiguration configuration)
     {

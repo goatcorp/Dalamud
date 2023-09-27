@@ -280,11 +280,3 @@ public class ReliableFileStorage : IServiceType, IDisposable
         public byte[] Data { get; set; } = null!;
     }
 }
-
-public class FileReadException : Exception
-{
-    public FileReadException(Exception inner)
-        : base("Failed to read file", inner)
-    {
-    }
-}
