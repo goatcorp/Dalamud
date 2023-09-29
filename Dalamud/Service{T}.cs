@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -133,8 +134,8 @@ internal static class Service<T> where T : IServiceType
         
         res.AddRange(typeof(T)
                          .GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
-                         .Select(x => x.FieldType)
-                         .Where(x => x.GetCustomAttribute<ServiceManager.ServiceDependency>(true) != null));
+                         .Where(x => x.GetCustomAttribute<ServiceManager.ServiceDependency>(true) != null)
+                         .Select(x => x.FieldType));
         
         res.AddRange(typeof(T)
                      .GetCustomAttributes()
@@ -148,13 +149,32 @@ internal static class Service<T> where T : IServiceType
             {
                 if (!serviceType.IsAssignableTo(typeof(IServiceType)))
                     continue;
-
-                var attr = serviceType.GetCustomAttribute<PluginInterfaceAttribute>(true);
-                if (attr == null)
+                
+                if (serviceType == typeof(PluginManager))
                     continue;
-
+                
                 // Scoped plugin services lifetime is tied to their scopes. They go away when LocalPlugin goes away.
+                // Nonetheless, their direct dependencies must be considered.
                 if (serviceType.GetServiceKind() == ServiceManager.ServiceKind.ScopedService)
+                {
+                    var typeAsServiceT = ServiceHelpers.GetAsService(serviceType);
+                    var dependencies = ServiceHelpers.GetDependencies(typeAsServiceT);
+                    ServiceManager.Log.Verbose("Found dependencies of scoped plugin service {Type} ({Cnt})", serviceType.FullName!, dependencies!.Count);
+                    
+                    foreach (var scopedDep in dependencies)
+                    {
+                        if (scopedDep == typeof(PluginManager))
+                            throw new Exception("Scoped plugin services cannot depend on PluginManager.");
+                        
+                        ServiceManager.Log.Verbose("PluginManager MUST depend on {Type} via {BaseType}", scopedDep.FullName!, serviceType.FullName!);
+                        res.Add(scopedDep);
+                    }
+
+                    continue;
+                }
+                
+                var pluginInterfaceAttribute = serviceType.GetCustomAttribute<PluginInterfaceAttribute>(true);
+                if (pluginInterfaceAttribute == null)
                     continue;
 
                 ServiceManager.Log.Verbose("PluginManager MUST depend on {Type}", serviceType.FullName!);
@@ -164,7 +184,6 @@ internal static class Service<T> where T : IServiceType
 
         return res
                .Distinct()
-               .Select(x => typeof(Service<>).MakeGenericType(x))
                .ToList();
     }
 
@@ -293,5 +312,39 @@ internal static class Service<T> where T : IServiceType
             : base("Service is unloaded.")
         {
         }
+    }
+}
+
+/// <summary>
+/// Helper functions for services.
+/// </summary>
+internal static class ServiceHelpers
+{
+    /// <summary>
+    /// Get a list of dependencies for a service. Only accepts Service&lt;T&gt; types.
+    /// These are returned as Service&lt;T&gt; types.
+    /// </summary>
+    /// <param name="serviceType">The dependencies for this service.</param>
+    /// <returns>A list of dependencies.</returns>
+    public static List<Type> GetDependencies(Type serviceType)
+    {
+        return (List<Type>)serviceType.InvokeMember(
+                               "GetDependencyServices",
+                               BindingFlags.InvokeMethod | BindingFlags.Static | BindingFlags.Public,
+                               null,
+                               null,
+                               null) ?? new List<Type>();
+    }
+
+    /// <summary>
+    /// Get the Service&lt;T&gt; type for a given service type.
+    /// This will throw if the service type is not a valid service.
+    /// </summary>
+    /// <param name="type">The type to obtain a Service&lt;T&gt; for.</param>
+    /// <returns>The Service&lt;T&gt;.</returns>
+    public static Type GetAsService(Type type)
+    {
+        return typeof(Service<>)
+            .MakeGenericType(type);
     }
 }

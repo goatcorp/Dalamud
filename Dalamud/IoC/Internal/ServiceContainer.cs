@@ -53,7 +53,6 @@ internal class ServiceContainer : IServiceProvider, IServiceType
         }
 
         this.instances[typeof(T)] = new(instance.ContinueWith(x => new WeakReference(x.Result)), typeof(T));
-        this.RegisterInterfaces(typeof(T));
     }
 
     /// <summary>
@@ -69,7 +68,7 @@ internal class ServiceContainer : IServiceProvider, IServiceType
         foreach (var resolvableType in resolveViaTypes)
         {
             Log.Verbose("=> {InterfaceName} provides for {TName}", resolvableType.FullName ?? "???", type.FullName ?? "???");
-
+            
             Debug.Assert(!this.interfaceToTypeMap.ContainsKey(resolvableType), "A service already implements this interface, this is not allowed");
             Debug.Assert(type.IsAssignableTo(resolvableType), "Service does not inherit from indicated ResolveVia type");
 

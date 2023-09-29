@@ -145,12 +145,12 @@ internal static class ServiceManager
             if (serviceKind is ServiceKind.None)
                 continue;
 
-            // Scoped service do not go through Service<T>, so we must let ServiceContainer know what their interfaces map to
-            if (serviceKind is ServiceKind.ScopedService)
-            {
-                serviceContainer.RegisterInterfaces(serviceType);
+            // Let IoC know about the interfaces this service implements
+            serviceContainer.RegisterInterfaces(serviceType);
+            
+            // Scoped service do not go through Service<T> and are never early loaded
+            if (serviceKind.HasFlag(ServiceKind.ScopedService))
                 continue;
-            }
             
             Debug.Assert(
                 !serviceKind.HasFlag(ServiceKind.ManualService) && !serviceKind.HasFlag(ServiceKind.ScopedService),
@@ -176,15 +176,10 @@ internal static class ServiceManager
                 earlyLoadingServices.Add(serviceType);
             }
 
-            dependencyServicesMap[serviceType] =
-                (List<Type>)typeof(Service<>)
-                            .MakeGenericType(serviceType)
-                            .InvokeMember(
-                                "GetDependencyServices",
-                                BindingFlags.InvokeMethod | BindingFlags.Static | BindingFlags.Public,
-                                null,
-                                null,
-                                null);
+            var typeAsServiceT = ServiceHelpers.GetAsService(serviceType);
+            dependencyServicesMap[serviceType] = ServiceHelpers.GetDependencies(typeAsServiceT)
+                                                               .Select(x => typeof(Service<>).MakeGenericType(x))
+                                                               .ToList();
         }
 
         _ = Task.Run(async () =>
@@ -327,16 +322,8 @@ internal static class ServiceManager
 
             Log.Verbose("Calling GetDependencyServices for '{ServiceName}'", serviceType.FullName!);
 
-            dependencyServicesMap[serviceType] =
-                ((List<Type>)typeof(Service<>)
-                            .MakeGenericType(serviceType)
-                            .InvokeMember(
-                                "GetDependencyServices",
-                                BindingFlags.InvokeMethod | BindingFlags.Static | BindingFlags.Public,
-                                null,
-                                null,
-                                null))!
-                .Select(x => x.GetGenericArguments()[0]).ToList();
+            var typeAsServiceT = ServiceHelpers.GetAsService(serviceType);
+            dependencyServicesMap[serviceType] = ServiceHelpers.GetDependencies(typeAsServiceT);
 
             allToUnload.Add(serviceType);
         }
