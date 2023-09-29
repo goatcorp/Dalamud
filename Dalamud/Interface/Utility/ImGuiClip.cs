@@ -60,7 +60,7 @@ public static class ImGuiClip
     }
 
     /// <summary>
-    /// Draws the enumerable data with <see cref="itemsPerLine"/> number of items per line.
+    /// Draws the enumerable data with <paramref name="itemsPerLine"/> number of items per line.
     /// </summary>
     /// <param name="data">Enumerable containing data to draw.</param>
     /// <param name="draw">The function to draw a single item.</param>

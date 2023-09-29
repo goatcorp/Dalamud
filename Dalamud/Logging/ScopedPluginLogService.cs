@@ -48,7 +48,9 @@ public class ScopedPluginLogService : IServiceType, IPluginLog, IDisposable
         set => this.levelSwitch.MinimumLevel = value;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// Gets a logger that may be exposed to plugins some day.
+    /// </summary>
     public ILogger Logger { get; }
 
     /// <inheritdoc />

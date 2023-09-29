@@ -41,7 +41,7 @@ public class ReliableFileStorage : IServiceType, IDisposable
 
         try
         {
-            this.SetupDb(vfsDbPath);
+            this.SetupDb(databasePath);
         }
         catch (Exception ex)
         {
@@ -49,15 +49,15 @@ public class ReliableFileStorage : IServiceType, IDisposable
 
             try
             {
-                if (File.Exists(vfsDbPath))
-                    File.Delete(vfsDbPath);
+                if (File.Exists(databasePath))
+                    File.Delete(databasePath);
+                
+                this.SetupDb(databasePath);
             }
             catch (Exception)
             {
-                // ignored
+                // ignored, we can run without one
             }
-            
-            this.SetupDb(vfsDbPath);
         }
     }
     
