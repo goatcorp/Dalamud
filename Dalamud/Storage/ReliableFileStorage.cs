@@ -27,7 +27,7 @@ public class ReliableFileStorage : IServiceType, IDisposable
 {
     private static readonly ModuleLog Log = new("VFS");
 
-    private SQLiteConnection db;
+    private SQLiteConnection? db;
     
     /// <summary>
     /// Initializes a new instance of the <see cref="ReliableFileStorage"/> class.
@@ -38,8 +38,27 @@ public class ReliableFileStorage : IServiceType, IDisposable
         var databasePath = Path.Combine(vfsDbPath, "dalamudVfs.db");
         
         Log.Verbose("Initializing VFS database at {Path}", databasePath);
-        this.db = new SQLiteConnection(databasePath, SQLiteOpenFlags.ReadWrite | SQLiteOpenFlags.Create | SQLiteOpenFlags.FullMutex);
-        this.db.CreateTable<DbFile>();
+
+        try
+        {
+            this.SetupDb(vfsDbPath);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Failed to load VFS database, starting fresh");
+
+            try
+            {
+                if (File.Exists(vfsDbPath))
+                    File.Delete(vfsDbPath);
+            }
+            catch (Exception)
+            {
+                // ignored
+            }
+            
+            this.SetupDb(vfsDbPath);
+        }
     }
     
     /// <summary>
@@ -56,6 +75,9 @@ public class ReliableFileStorage : IServiceType, IDisposable
 
         if (File.Exists(path))
             return true;
+
+        if (this.db == null)
+            return false;
         
         // If the file doesn't actually exist on the FS, but it does in the DB, we can say YES and read operations will read from the DB instead
         var normalizedPath = NormalizePath(path);
@@ -94,6 +116,12 @@ public class ReliableFileStorage : IServiceType, IDisposable
     public void WriteAllBytes(string path, byte[] bytes, Guid containerId = default)
     {
         ArgumentException.ThrowIfNullOrEmpty(path);
+
+        if (this.db == null)
+        {
+            Util.WriteAllBytesSafe(path, bytes);
+            return;
+        }
         
         this.db.RunInTransaction(() =>
         {
@@ -227,6 +255,10 @@ public class ReliableFileStorage : IServiceType, IDisposable
         
         if (forceBackup)
         {
+            // If the db failed to load, act as if the file does not exist
+            if (this.db == null)
+                throw new FileNotFoundException("Backup database was not available");
+                
             var normalizedPath = NormalizePath(path);
             var file = this.db.Table<DbFile>().FirstOrDefault(f => f.Path == normalizedPath && f.ContainerId == containerId);
             if (file == null)
@@ -253,7 +285,7 @@ public class ReliableFileStorage : IServiceType, IDisposable
     /// <inheritdoc/>
     public void Dispose()
     {
-        this.db.Dispose();
+        this.db?.Dispose();
     }
 
     /// <summary>
@@ -268,6 +300,13 @@ public class ReliableFileStorage : IServiceType, IDisposable
         path = path.Replace(usersFolder, "%USERPROFILE%");
         
         return path;
+    }
+    
+    private void SetupDb(string path)
+    {
+        this.db = new SQLiteConnection(path,
+                                       SQLiteOpenFlags.ReadWrite | SQLiteOpenFlags.Create | SQLiteOpenFlags.FullMutex);
+        this.db.CreateTable<DbFile>();
     }
 
     private class DbFile
