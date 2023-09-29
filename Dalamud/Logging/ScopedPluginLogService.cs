@@ -17,7 +17,7 @@ namespace Dalamud.Logging;
 #pragma warning disable SA1015
 [ResolveVia<IPluginLog>]
 #pragma warning restore SA1015
-public class ScopedPluginLogService : IServiceType, IPluginLog, IDisposable
+internal class ScopedPluginLogService : IServiceType, IPluginLog, IDisposable
 {
     private readonly LocalPlugin localPlugin;
 
