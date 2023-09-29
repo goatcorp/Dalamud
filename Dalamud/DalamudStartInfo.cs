@@ -10,6 +10,7 @@ namespace Dalamud;
 /// Struct containing information needed to initialize Dalamud.
 /// </summary>
 [Serializable]
+[ServiceManager.Service]
 public record DalamudStartInfo : IServiceType
 {
     /// <summary>

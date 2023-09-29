@@ -2,6 +2,7 @@ using System;
 using System.IO;
 
 using Dalamud.Configuration.Internal;
+using Dalamud.Game;
 using Dalamud.Game.Command;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin;
@@ -55,7 +56,7 @@ namespace Dalamud.CorePlugin
         /// </summary>
         /// <param name="pluginInterface">Dalamud plugin interface.</param>
         /// <param name="log">Logging service.</param>
-        public PluginImpl(DalamudPluginInterface pluginInterface, IPluginLog log)
+        public PluginImpl(DalamudPluginInterface pluginInterface, IPluginLog log, ISigScanner scanner)
         {
             try
             {
@@ -64,6 +65,8 @@ namespace Dalamud.CorePlugin
                 this.pluginLog = log;
 
                 this.windowSystem.AddWindow(new PluginWindow());
+
+                this.pluginLog.Information(scanner.ToString());
 
                 this.Interface.UiBuilder.Draw += this.OnDraw;
                 this.Interface.UiBuilder.OpenConfigUi += this.OnOpenConfigUi;

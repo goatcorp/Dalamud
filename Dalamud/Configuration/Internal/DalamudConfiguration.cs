@@ -19,6 +19,7 @@ namespace Dalamud.Configuration.Internal;
 /// Class containing Dalamud settings.
 /// </summary>
 [Serializable]
+[ServiceManager.Service]
 internal sealed class DalamudConfiguration : IServiceType, IDisposable
 {
     private static readonly JsonSerializerSettings SerializerSettings = new()

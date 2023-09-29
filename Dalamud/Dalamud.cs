@@ -29,6 +29,7 @@ namespace Dalamud;
 /// <summary>
 /// The main Dalamud class containing all subsystems.
 /// </summary>
+[ServiceManager.Service]
 internal sealed class Dalamud : IServiceType
 {
     #region Internals

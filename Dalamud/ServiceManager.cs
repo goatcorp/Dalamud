@@ -92,28 +92,24 @@ internal static class ServiceManager
         var cacheDir = new DirectoryInfo(Path.Combine(startInfo.WorkingDirectory!, "cachedSigs"));
         if (!cacheDir.Exists)
             cacheDir.Create();
-
+        
         lock (LoadedServices)
         {
-            Service<Dalamud>.Provide(dalamud);
-            LoadedServices.Add(typeof(Dalamud));
-
-            Service<DalamudStartInfo>.Provide(startInfo);
-            LoadedServices.Add(typeof(DalamudStartInfo));
+            void ProvideService<T>(T service) where T : IServiceType
+            {
+                Debug.Assert(typeof(T).GetServiceKind().HasFlag(ServiceKind.ManualService), "Provided service must have Service attribute");
+                Service<T>.Provide(service);
+                LoadedServices.Add(typeof(T));
+            }
             
-            Service<ReliableFileStorage>.Provide(fs);
-            LoadedServices.Add(typeof(ReliableFileStorage));
-
-            Service<DalamudConfiguration>.Provide(configuration);
-            LoadedServices.Add(typeof(DalamudConfiguration));
-
-            Service<ServiceContainer>.Provide(new ServiceContainer());
-            LoadedServices.Add(typeof(ServiceContainer));
-
-            Service<TargetSigScanner>.Provide(
+            ProvideService(dalamud);
+            ProvideService(startInfo);
+            ProvideService(fs);
+            ProvideService(configuration);
+            ProvideService(new ServiceContainer());
+            ProvideService(
                 new TargetSigScanner(
-                    true, new FileInfo(Path.Combine(cacheDir.FullName, $"{startInfo.GameVersion}.json"))));
-            LoadedServices.Add(typeof(TargetSigScanner));
+                               true, new FileInfo(Path.Combine(cacheDir.FullName, $"{startInfo.GameVersion}.json"))));
         }
 
         using (Timings.Start("CS Resolver Init"))
@@ -149,7 +145,8 @@ internal static class ServiceManager
             serviceContainer.RegisterInterfaces(serviceType);
             
             // Scoped service do not go through Service<T> and are never early loaded
-            if (serviceKind.HasFlag(ServiceKind.ScopedService))
+            // Manual services are provided
+            if (serviceKind.HasFlag(ServiceKind.ScopedService) || serviceKind.HasFlag(ServiceKind.ManualService))
                 continue;
             
             Debug.Assert(

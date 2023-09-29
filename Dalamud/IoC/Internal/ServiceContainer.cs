@@ -16,6 +16,7 @@ namespace Dalamud.IoC.Internal;
 /// This is only used to resolve dependencies for plugins.
 /// Dalamud services are constructed via Service{T}.ConstructObject at the moment.
 /// </summary>
+[ServiceManager.Service]
 internal class ServiceContainer : IServiceProvider, IServiceType
 {
     private static readonly ModuleLog Log = new("SERVICECONTAINER");
