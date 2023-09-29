@@ -10,6 +10,7 @@ using Dalamud.Configuration.Internal;
 using Dalamud.Logging.Internal;
 using Dalamud.Logging.Retention;
 using Dalamud.Plugin.Internal;
+using Dalamud.Storage;
 using Dalamud.Support;
 using Dalamud.Utility;
 using Newtonsoft.Json;
@@ -137,7 +138,8 @@ public sealed class EntryPoint
         SerilogEventSink.Instance.LogLine += SerilogOnLogLine;
 
         // Load configuration first to get some early persistent state, like log level
-        var configuration = DalamudConfiguration.Load(info.ConfigurationPath!);
+        var fs = new ReliableFileStorage(Path.GetDirectoryName(info.ConfigurationPath)!);
+        var configuration = DalamudConfiguration.Load(info.ConfigurationPath!, fs);
 
         // Set the appropriate logging level from the configuration
         if (!configuration.LogSynchronously)
@@ -169,7 +171,7 @@ public sealed class EntryPoint
             if (!Util.IsWine())
                 InitSymbolHandler(info);
 
-            var dalamud = new Dalamud(info, configuration, mainThreadContinueEvent);
+            var dalamud = new Dalamud(info, fs, configuration, mainThreadContinueEvent);
             Log.Information("This is Dalamud - Core: {GitHash}, CS: {CsGitHash} [{CsVersion}]", Util.GetGitHash(), Util.GetGitHashClientStructs(), FFXIVClientStructs.Interop.Resolver.Version);
 
             dalamud.WaitForUnload();

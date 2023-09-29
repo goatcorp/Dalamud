@@ -12,6 +12,7 @@ using Dalamud.Game;
 using Dalamud.Game.Gui.Internal;
 using Dalamud.Interface.Internal;
 using Dalamud.Plugin.Internal;
+using Dalamud.Storage;
 using Dalamud.Utility;
 using PInvoke;
 using Serilog;
@@ -40,14 +41,15 @@ internal sealed class Dalamud : IServiceType
     /// Initializes a new instance of the <see cref="Dalamud"/> class.
     /// </summary>
     /// <param name="info">DalamudStartInfo instance.</param>
+    /// <param name="fs">ReliableFileStorage instance.</param>
     /// <param name="configuration">The Dalamud configuration.</param>
     /// <param name="mainThreadContinueEvent">Event used to signal the main thread to continue.</param>
-    public Dalamud(DalamudStartInfo info, DalamudConfiguration configuration, IntPtr mainThreadContinueEvent)
+    public Dalamud(DalamudStartInfo info, ReliableFileStorage fs, DalamudConfiguration configuration, IntPtr mainThreadContinueEvent)
     {
         this.unloadSignal = new ManualResetEvent(false);
         this.unloadSignal.Reset();
 
-        ServiceManager.InitializeProvidedServicesAndClientStructs(this, info, configuration);
+        ServiceManager.InitializeProvidedServicesAndClientStructs(this, info, fs, configuration);
 
         if (!configuration.IsResumeGameAfterPluginLoad)
         {

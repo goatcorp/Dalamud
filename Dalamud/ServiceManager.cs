@@ -11,6 +11,7 @@ using Dalamud.Configuration.Internal;
 using Dalamud.Game;
 using Dalamud.IoC.Internal;
 using Dalamud.Logging.Internal;
+using Dalamud.Storage;
 using Dalamud.Utility.Timing;
 using JetBrains.Annotations;
 
@@ -83,8 +84,9 @@ internal static class ServiceManager
     /// </summary>
     /// <param name="dalamud">Instance of <see cref="Dalamud"/>.</param>
     /// <param name="startInfo">Instance of <see cref="DalamudStartInfo"/>.</param>
+    /// <param name="fs">Instance of <see cref="ReliableFileStorage"/>.</param>
     /// <param name="configuration">Instance of <see cref="DalamudConfiguration"/>.</param>
-    public static void InitializeProvidedServicesAndClientStructs(Dalamud dalamud, DalamudStartInfo startInfo, DalamudConfiguration configuration)
+    public static void InitializeProvidedServicesAndClientStructs(Dalamud dalamud, DalamudStartInfo startInfo, ReliableFileStorage fs, DalamudConfiguration configuration)
     {
         // Initialize the process information.
         var cacheDir = new DirectoryInfo(Path.Combine(startInfo.WorkingDirectory!, "cachedSigs"));
@@ -98,6 +100,9 @@ internal static class ServiceManager
 
             Service<DalamudStartInfo>.Provide(startInfo);
             LoadedServices.Add(typeof(DalamudStartInfo));
+            
+            Service<ReliableFileStorage>.Provide(fs);
+            LoadedServices.Add(typeof(ReliableFileStorage));
 
             Service<DalamudConfiguration>.Provide(configuration);
             LoadedServices.Add(typeof(DalamudConfiguration));

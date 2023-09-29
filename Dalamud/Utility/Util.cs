@@ -20,6 +20,7 @@ using Dalamud.Logging.Internal;
 using Dalamud.Memory;
 using ImGuiNET;
 using Lumina.Excel.GeneratedSheets;
+using PInvoke;
 using Serilog;
 
 namespace Dalamud.Utility;
@@ -609,7 +610,7 @@ public static class Util
             }
         }
     }
-    
+
     /// <summary>
     /// Overwrite text in a file by first writing it to a temporary file, and then
     /// moving that file to the path specified.
@@ -618,12 +619,58 @@ public static class Util
     /// <param name="text">The text to write.</param>
     public static void WriteAllTextSafe(string path, string text)
     {
-        var tmpPath = path + ".tmp";
-        if (File.Exists(tmpPath))
-            File.Delete(tmpPath);
+        WriteAllTextSafe(path, text, Encoding.UTF8);
+    }
+    
+    /// <summary>
+    /// Overwrite text in a file by first writing it to a temporary file, and then
+    /// moving that file to the path specified.
+    /// </summary>
+    /// <param name="path">The path of the file to write to.</param>
+    /// <param name="text">The text to write.</param>
+    /// <param name="encoding">Encoding to use.</param>
+    public static void WriteAllTextSafe(string path, string text, Encoding encoding)
+    {
+        WriteAllBytesSafe(path, encoding.GetBytes(text));
+    }
+    
+    /// <summary>
+    /// Overwrite data in a file by first writing it to a temporary file, and then
+    /// moving that file to the path specified.
+    /// </summary>
+    /// <param name="path">The path of the file to write to.</param>
+    /// <param name="bytes">The data to write.</param>
+    public static void WriteAllBytesSafe(string path, byte[] bytes)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(path);
+        
+        // Open the temp file
+        var tempPath = path + ".tmp";
 
-        File.WriteAllText(tmpPath, text);
-        File.Move(tmpPath, path, true);
+        using var tempFile = Kernel32
+            .CreateFile(tempPath.AsSpan(),
+                        new Kernel32.ACCESS_MASK(Kernel32.FileAccess.FILE_GENERIC_READ | Kernel32.FileAccess.FILE_GENERIC_WRITE),
+                        Kernel32.FileShare.None,
+                        null,
+                        Kernel32.CreationDisposition.CREATE_ALWAYS,
+                        Kernel32.CreateFileFlags.FILE_ATTRIBUTE_NORMAL,
+                        Kernel32.SafeObjectHandle.Null);
+
+        if (tempFile.IsInvalid)
+            throw new Win32Exception();
+        
+        // Write the data
+        var bytesWritten = Kernel32.WriteFile(tempFile, new ArraySegment<byte>(bytes));
+        if (bytesWritten != bytes.Length)
+            throw new Exception($"Could not write all bytes to temp file ({bytesWritten} of {bytes.Length})");
+
+        if (!Kernel32.FlushFileBuffers(tempFile))
+            throw new Win32Exception();
+        
+        tempFile.Close();
+
+        if (!MoveFileEx(tempPath, path, MoveFileFlags.MovefileReplaceExisting | MoveFileFlags.MovefileWriteThrough))
+            throw new Win32Exception();
     }
     
     /// <summary>
@@ -762,4 +809,18 @@ public static class Util
             }
         }
     }
+    
+    [Flags]
+#pragma warning disable SA1201
+    private enum MoveFileFlags
+#pragma warning restore SA1201
+    {
+        MovefileReplaceExisting = 0x00000001,
+        MovefileWriteThrough = 0x00000008,
+    }
+    
+    [return: MarshalAs(UnmanagedType.Bool)]
+    [DllImport("kernel32.dll", SetLastError=true, CharSet=CharSet.Unicode)]
+    private static extern bool MoveFileEx(string lpExistingFileName, string lpNewFileName,
+                                          MoveFileFlags dwFlags);
 }
