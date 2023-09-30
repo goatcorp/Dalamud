@@ -1,7 +1,5 @@
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
@@ -83,16 +81,11 @@ internal static class ServiceManager
     /// Initializes Provided Services and FFXIVClientStructs.
     /// </summary>
     /// <param name="dalamud">Instance of <see cref="Dalamud"/>.</param>
-    /// <param name="startInfo">Instance of <see cref="DalamudStartInfo"/>.</param>
     /// <param name="fs">Instance of <see cref="ReliableFileStorage"/>.</param>
     /// <param name="configuration">Instance of <see cref="DalamudConfiguration"/>.</param>
-    public static void InitializeProvidedServicesAndClientStructs(Dalamud dalamud, DalamudStartInfo startInfo, ReliableFileStorage fs, DalamudConfiguration configuration)
+    /// <param name="scanner">Instance of <see cref="TargetSigScanner"/>.</param>
+    public static void InitializeProvidedServices(Dalamud dalamud, ReliableFileStorage fs, DalamudConfiguration configuration, TargetSigScanner scanner)
     {
-        // Initialize the process information.
-        var cacheDir = new DirectoryInfo(Path.Combine(startInfo.WorkingDirectory!, "cachedSigs"));
-        if (!cacheDir.Exists)
-            cacheDir.Create();
-        
         lock (LoadedServices)
         {
             void ProvideService<T>(T service) where T : IServiceType
@@ -103,19 +96,10 @@ internal static class ServiceManager
             }
             
             ProvideService(dalamud);
-            ProvideService(startInfo);
             ProvideService(fs);
             ProvideService(configuration);
             ProvideService(new ServiceContainer());
-            ProvideService(
-                new TargetSigScanner(
-                               true, new FileInfo(Path.Combine(cacheDir.FullName, $"{startInfo.GameVersion}.json"))));
-        }
-
-        using (Timings.Start("CS Resolver Init"))
-        {
-            FFXIVClientStructs.Interop.Resolver.GetInstance.SetupSearchSpace(Service<TargetSigScanner>.Get().SearchBase, new FileInfo(Path.Combine(cacheDir.FullName, $"{startInfo.GameVersion}_cs.json")));
-            FFXIVClientStructs.Interop.Resolver.GetInstance.Resolve();
+            ProvideService(scanner);
         }
     }
 

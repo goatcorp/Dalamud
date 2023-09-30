@@ -1,11 +1,9 @@
-using System;
 using System.Globalization;
-using System.Linq;
 using System.Text;
 
 using Newtonsoft.Json;
 
-namespace Dalamud.Game;
+namespace Dalamud.Common.Game;
 
 /// <summary>
 /// A GameVersion object contains give hierarchical numeric components: year, month,
@@ -168,14 +166,14 @@ public sealed class GameVersion : ICloneable, IComparable, IComparable<GameVersi
         return Parse(ver);
     }
 
-    public static bool operator ==(GameVersion v1, GameVersion v2)
+    public static bool operator ==(GameVersion? v1, GameVersion? v2)
     {
         if (v1 is null)
         {
             return v2 is null;
         }
 
-        return v1.Equals(v2);
+        return v2 is not null && v1.Equals(v2);
     }
 
     public static bool operator !=(GameVersion v1, GameVersion v2)
@@ -290,7 +288,7 @@ public sealed class GameVersion : ICloneable, IComparable, IComparable<GameVersi
         }
         catch
         {
-            result = null;
+            result = null!;
             return false;
         }
     }
@@ -299,7 +297,7 @@ public sealed class GameVersion : ICloneable, IComparable, IComparable<GameVersi
     public object Clone() => new GameVersion(this.Year, this.Month, this.Day, this.Major, this.Minor);
 
     /// <inheritdoc/>
-    public int CompareTo(object obj)
+    public int CompareTo(object? obj)
     {
         if (obj == null)
             return 1;
@@ -315,7 +313,7 @@ public sealed class GameVersion : ICloneable, IComparable, IComparable<GameVersi
     }
 
     /// <inheritdoc/>
-    public int CompareTo(GameVersion value)
+    public int CompareTo(GameVersion? value)
     {
         if (value == null)
             return 1;
@@ -348,7 +346,7 @@ public sealed class GameVersion : ICloneable, IComparable, IComparable<GameVersi
     }
 
     /// <inheritdoc/>
-    public override bool Equals(object obj)
+    public override bool Equals(object? obj)
     {
         if (obj is not GameVersion value)
             return false;
@@ -357,7 +355,7 @@ public sealed class GameVersion : ICloneable, IComparable, IComparable<GameVersi
     }
 
     /// <inheritdoc/>
-    public bool Equals(GameVersion value)
+    public bool Equals(GameVersion? value)
     {
         if (value == null)
         {

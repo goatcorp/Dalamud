@@ -1994,7 +1994,6 @@ internal class PluginInstallerWindow : Window, IDisposable
     {
         var configuration = Service<DalamudConfiguration>.Get();
         var pluginManager = Service<PluginManager>.Get();
-        var startInfo = Service<DalamudStartInfo>.Get();
 
         if (ImGui.BeginPopupContextItem("ItemContextMenu"))
         {
@@ -2022,10 +2021,10 @@ internal class PluginInstallerWindow : Window, IDisposable
                 Task.Run(() =>
                     {
                         pluginManager.PluginConfigs.Delete(manifest.InternalName);
+                        var dir = pluginManager.PluginConfigs.GetDirectory(manifest.InternalName);
 
-                        var path = Path.Combine(startInfo.PluginDirectory, manifest.InternalName);
-                        if (Directory.Exists(path))
-                            Directory.Delete(path, true);
+                        if (Directory.Exists(dir))
+                            Directory.Delete(dir, true);
                     })
                     .ContinueWith(task =>
                     {

@@ -1,4 +1,3 @@
-using System;
 using System.Diagnostics;
 using System.IO;
 using System.Net;
@@ -6,6 +5,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 
+using Dalamud.Common;
 using Dalamud.Configuration.Internal;
 using Dalamud.Logging.Internal;
 using Dalamud.Logging.Retention;
@@ -162,6 +162,9 @@ public sealed class EntryPoint
 
             Log.Information(new string('-', 80));
             Log.Information("Initializing a session..");
+
+            if (string.IsNullOrEmpty(info.WorkingDirectory))
+                throw new Exception("Working directory was invalid");
 
             Reloaded.Hooks.Tools.Utilities.FasmBasePath = new DirectoryInfo(info.WorkingDirectory);
 

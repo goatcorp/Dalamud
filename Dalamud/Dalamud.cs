@@ -1,4 +1,3 @@
-using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -7,6 +6,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 
+using Dalamud.Common;
 using Dalamud.Configuration.Internal;
 using Dalamud.Game;
 using Dalamud.Game.Gui.Internal;
@@ -14,6 +14,7 @@ using Dalamud.Interface.Internal;
 using Dalamud.Plugin.Internal;
 using Dalamud.Storage;
 using Dalamud.Utility;
+using Dalamud.Utility.Timing;
 using PInvoke;
 using Serilog;
 
@@ -47,10 +48,28 @@ internal sealed class Dalamud : IServiceType
     /// <param name="mainThreadContinueEvent">Event used to signal the main thread to continue.</param>
     public Dalamud(DalamudStartInfo info, ReliableFileStorage fs, DalamudConfiguration configuration, IntPtr mainThreadContinueEvent)
     {
+        this.StartInfo = info;
+        
         this.unloadSignal = new ManualResetEvent(false);
         this.unloadSignal.Reset();
+        
+        // Directory resolved signatures(CS, our own) will be cached in
+        var cacheDir = new DirectoryInfo(Path.Combine(this.StartInfo.WorkingDirectory!, "cachedSigs"));
+        if (!cacheDir.Exists)
+            cacheDir.Create();
+        
+        // Set up the SigScanner for our target module
+        TargetSigScanner scanner;
+        using (Timings.Start("SigScanner Init"))
+        {
+            scanner = new TargetSigScanner(
+                true, new FileInfo(Path.Combine(cacheDir.FullName, $"{this.StartInfo.GameVersion}.json")));
+        }
 
-        ServiceManager.InitializeProvidedServicesAndClientStructs(this, info, fs, configuration);
+        ServiceManager.InitializeProvidedServices(this, fs, configuration, scanner);
+        
+        // Set up FFXIVClientStructs
+        this.SetupClientStructsResolver(cacheDir);
 
         if (!configuration.IsResumeGameAfterPluginLoad)
         {
@@ -97,11 +116,16 @@ internal sealed class Dalamud : IServiceType
             });
         }
     }
+    
+    /// <summary>
+    /// Gets the start information for this Dalamud instance.
+    /// </summary>
+    internal DalamudStartInfo StartInfo { get; private set; }
 
     /// <summary>
     /// Gets location of stored assets.
     /// </summary>
-    internal DirectoryInfo AssetDirectory => new(Service<DalamudStartInfo>.Get().AssetDirectory!);
+    internal DirectoryInfo AssetDirectory => new(this.StartInfo.AssetDirectory!);
     
     /// <summary>
     /// Signal to the crash handler process that we should restart the game.
@@ -175,5 +199,14 @@ internal sealed class Dalamud : IServiceType
 
         var oldFilter = NativeFunctions.SetUnhandledExceptionFilter(releaseFilter);
         Log.Debug("Reset ExceptionFilter, old: {0}", oldFilter);
+    }
+    
+    private void SetupClientStructsResolver(DirectoryInfo cacheDir)
+    {
+        using (Timings.Start("CS Resolver Init"))
+        {
+            FFXIVClientStructs.Interop.Resolver.GetInstance.SetupSearchSpace(Service<TargetSigScanner>.Get().SearchBase, new FileInfo(Path.Combine(cacheDir.FullName, $"{this.StartInfo.GameVersion}_cs.json")));
+            FFXIVClientStructs.Interop.Resolver.GetInstance.Resolve();
+        }
     }
 }

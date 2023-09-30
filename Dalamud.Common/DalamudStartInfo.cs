@@ -1,17 +1,13 @@
-using System;
-using System.Collections.Generic;
-
-using Dalamud.Game;
+using Dalamud.Common.Game;
 using Newtonsoft.Json;
 
-namespace Dalamud;
+namespace Dalamud.Common;
 
 /// <summary>
 /// Struct containing information needed to initialize Dalamud.
 /// </summary>
 [Serializable]
-[ServiceManager.Service]
-public record DalamudStartInfo : IServiceType
+public record DalamudStartInfo
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="DalamudStartInfo"/> class.
@@ -97,7 +93,7 @@ public record DalamudStartInfo : IServiceType
     /// <summary>
     /// Gets or sets troubleshooting information to attach when generating a tspack file.
     /// </summary>
-    public string TroubleshootingPackData { get; set; }
+    public string? TroubleshootingPackData { get; set; }
 
     /// <summary>
     /// Gets or sets a value that specifies how much to wait before a new Dalamud session.

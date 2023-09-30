@@ -74,7 +74,7 @@ internal partial class PluginManager : IDisposable, IServiceType
     private readonly DalamudConfiguration configuration = Service<DalamudConfiguration>.Get();
 
     [ServiceManager.ServiceDependency]
-    private readonly DalamudStartInfo startInfo = Service<DalamudStartInfo>.Get();
+    private readonly Dalamud dalamud = Service<Dalamud>.Get();
 
     [ServiceManager.ServiceDependency]
     private readonly ProfileManager profileManager = Service<ProfileManager>.Get();
@@ -90,12 +90,12 @@ internal partial class PluginManager : IDisposable, IServiceType
     [ServiceManager.ServiceConstructor]
     private PluginManager()
     {
-        this.pluginDirectory = new DirectoryInfo(this.startInfo.PluginDirectory!);
+        this.pluginDirectory = new DirectoryInfo(this.dalamud.StartInfo.PluginDirectory!);
 
         if (!this.pluginDirectory.Exists)
             this.pluginDirectory.Create();
 
-        this.SafeMode = EnvironmentConfiguration.DalamudNoPlugins || this.configuration.PluginSafeMode || this.startInfo.NoLoadPlugins;
+        this.SafeMode = EnvironmentConfiguration.DalamudNoPlugins || this.configuration.PluginSafeMode || this.dalamud.StartInfo.NoLoadPlugins;
 
         try
         {
@@ -119,9 +119,9 @@ internal partial class PluginManager : IDisposable, IServiceType
             this.configuration.QueueSave();
         }
 
-        this.PluginConfigs = new PluginConfigurations(Path.Combine(Path.GetDirectoryName(this.startInfo.ConfigurationPath) ?? string.Empty, "pluginConfigs"));
+        this.PluginConfigs = new PluginConfigurations(Path.Combine(Path.GetDirectoryName(this.dalamud.StartInfo.ConfigurationPath) ?? string.Empty, "pluginConfigs"));
 
-        var bannedPluginsJson = File.ReadAllText(Path.Combine(this.startInfo.AssetDirectory!, "UIRes", "bannedplugin.json"));
+        var bannedPluginsJson = File.ReadAllText(Path.Combine(this.dalamud.StartInfo.AssetDirectory!, "UIRes", "bannedplugin.json"));
         this.bannedPlugins = JsonConvert.DeserializeObject<BannedPlugin[]>(bannedPluginsJson);
         if (this.bannedPlugins == null)
         {
@@ -1168,7 +1168,7 @@ internal partial class PluginManager : IDisposable, IServiceType
         }
 
         // Applicable version
-        if (manifest.ApplicableVersion < this.startInfo.GameVersion)
+        if (manifest.ApplicableVersion < this.dalamud.StartInfo.GameVersion)
         {
             Log.Verbose($"Game version: {manifest.InternalName} - {manifest.AssemblyVersion} - {manifest.TestingAssemblyVersion}");
             return false;

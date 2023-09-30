@@ -41,7 +41,7 @@ internal sealed class ClientState : IDisposable, IServiceType, IClientState
     private bool lastFramePvP;
 
     [ServiceManager.ServiceConstructor]
-    private ClientState(TargetSigScanner sigScanner, DalamudStartInfo startInfo, GameLifecycle lifecycle)
+    private ClientState(TargetSigScanner sigScanner, Dalamud dalamud, GameLifecycle lifecycle)
     {
         this.lifecycle = lifecycle;
         this.address = new ClientStateAddressResolver();
@@ -49,7 +49,7 @@ internal sealed class ClientState : IDisposable, IServiceType, IClientState
 
         Log.Verbose("===== C L I E N T  S T A T E =====");
 
-        this.ClientLanguage = startInfo.Language;
+        this.ClientLanguage = (ClientLanguage)dalamud.StartInfo.Language;
 
         Log.Verbose($"SetupTerritoryType address 0x{this.address.SetupTerritoryType.ToInt64():X}");
 
