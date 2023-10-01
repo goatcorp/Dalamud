@@ -3188,7 +3188,7 @@ internal class PluginInstallerWindow : Window, IDisposable
     private void VerifiedCheckmarkFadeTooltip(string source, string tooltip)
     {
         const float fadeInStartDelay = 500.0f;
-        const float fadeInTime = 750.0f;
+        const float fadeInTime = 250.0f;
         
         var isHoveringSameItem = this.verifiedCheckmarkHoveredPlugin == source;
         
