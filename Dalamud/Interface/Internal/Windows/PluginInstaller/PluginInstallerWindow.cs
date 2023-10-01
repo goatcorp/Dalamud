@@ -1,8 +1,8 @@
-using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Numerics;
@@ -28,7 +28,6 @@ using Dalamud.Plugin.Internal.Types.Manifest;
 using Dalamud.Support;
 using Dalamud.Utility;
 using ImGuiNET;
-using ImGuiScene;
 
 namespace Dalamud.Interface.Internal.Windows.PluginInstaller;
 
@@ -52,6 +51,8 @@ internal class PluginInstallerWindow : Window, IDisposable
     private readonly object listLock = new();
 
     private readonly ProfileManagerWidget profileManagerWidget;
+
+    private readonly Stopwatch tooltipFadeInStopwatch = new();
 
     private DalamudChangelogManager? dalamudChangelogManager;
     private Task? dalamudChangelogRefreshTask;
@@ -113,6 +114,8 @@ internal class PluginInstallerWindow : Window, IDisposable
     private Guid enableDisableWorkingPluginId = Guid.Empty;
 
     private LoadingIndicatorKind loadingIndicatorKind = LoadingIndicatorKind.Unknown;
+
+    private string verifiedCheckmarkHoveredPlugin = string.Empty;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="PluginInstallerWindow"/> class.
@@ -1718,6 +1721,26 @@ internal class PluginInstallerWindow : Window, IDisposable
 
         // Name
         ImGui.TextUnformatted(label);
+        
+        // Verified Checkmark
+        ImGui.SameLine();
+        ImGui.Text(" ");
+        ImGui.SameLine();
+
+        var verifiedOutlineColor = KnownColor.White.Vector() with { W = 0.75f };
+        var verifiedIconColor = KnownColor.RoyalBlue.Vector() with { W = 0.75f };
+        var unverifiedIconColor = KnownColor.Orange.Vector() with { W = 0.75f };
+        
+        if (!isThirdParty)
+        {
+            this.DrawFontawesomeIconOutlined(FontAwesomeIcon.CheckCircle, verifiedOutlineColor, verifiedIconColor);
+            this.VerifiedCheckmarkFadeTooltip(label, Locs.VerifiedCheckmark_VerifiedTooltip);
+        }
+        else
+        {
+            this.DrawFontawesomeIconOutlined(FontAwesomeIcon.Circle, verifiedOutlineColor, unverifiedIconColor);
+            this.VerifiedCheckmarkFadeTooltip(label, Locs.VerifiedCheckmark_UnverifiedTooltip);
+        }
 
         // Download count
         var downloadCountText = manifest.DownloadCount > 0
@@ -3128,6 +3151,70 @@ internal class PluginInstallerWindow : Window, IDisposable
         this.UpdateCategoriesOnSearchChange();
     }
 
+    private void DrawFontawesomeIconOutlined(FontAwesomeIcon icon, Vector4 outline, Vector4 iconColor)
+    {
+        var positionOffset = ImGuiHelpers.ScaledVector2(0.0f, 1.0f);
+        var cursorStart = ImGui.GetCursorPos() + positionOffset;
+        ImGui.PushFont(UiBuilder.IconFont);
+
+        ImGui.PushStyleColor(ImGuiCol.Text, outline);
+        foreach (var x in Enumerable.Range(-1, 3))
+        {
+            foreach (var y in Enumerable.Range(-1, 3))
+            {
+                if (x is 0 && y is 0) continue;
+                
+                ImGui.SetCursorPos(cursorStart + new Vector2(x, y));
+                ImGui.Text(icon.ToIconString());
+            }
+        }
+        
+        ImGui.PopStyleColor();
+        
+        ImGui.PushStyleColor(ImGuiCol.Text, iconColor);
+        ImGui.SetCursorPos(cursorStart);
+        ImGui.Text(icon.ToIconString());
+        ImGui.PopStyleColor();
+        
+        ImGui.PopFont();
+        
+        ImGui.SetCursorPos(ImGui.GetCursorPos() - positionOffset);
+    }
+    
+    // Animates a tooltip when hovering over the ImGui Item before this call.
+    private void VerifiedCheckmarkFadeTooltip(string source, string tooltip)
+    {
+        const float fadeInStartDelay = 500.0f;
+        const float fadeInTime = 750.0f;
+        
+        var isHoveringSameItem = this.verifiedCheckmarkHoveredPlugin == source;
+        
+        // If we just started a hover, start the timer
+        if (ImGui.IsItemHovered() && !this.tooltipFadeInStopwatch.IsRunning)
+        {
+            this.verifiedCheckmarkHoveredPlugin = source;
+            this.tooltipFadeInStopwatch.Restart();
+        }
+        
+        // If we were last hovering this plugins item, reset the timer
+        if (!ImGui.IsItemHovered() && isHoveringSameItem)
+        {
+            this.verifiedCheckmarkHoveredPlugin = string.Empty;
+            this.tooltipFadeInStopwatch.Stop();
+        }
+        
+        // If we have been hovering this item for > 1s, show tooltip
+        if (ImGui.IsItemHovered() && isHoveringSameItem && this.tooltipFadeInStopwatch.ElapsedMilliseconds >= fadeInStartDelay)
+        {
+            var fadePercent = Math.Clamp((this.tooltipFadeInStopwatch.ElapsedMilliseconds - fadeInStartDelay) / fadeInTime, 0.0f, 1.0f);
+            
+            ImGui.PushStyleColor(ImGuiCol.Text, ImGui.GetStyle().Colors[(int)ImGuiCol.Text] with { W = fadePercent });
+            ImGui.PushStyleColor(ImGuiCol.FrameBg, ImGui.GetStyle().Colors[(int)ImGuiCol.FrameBg] with { W = fadePercent });
+            ImGui.SetTooltip(tooltip);
+            ImGui.PopStyleColor(2);
+        }
+    }
+
     [SuppressMessage("StyleCop.CSharp.OrderingRules", "SA1201:Elements should appear in the correct order", Justification = "Disregard here")]
     [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1600:Elements should be documented", Justification = "Locs")]
     internal static class Locs
@@ -3511,6 +3598,19 @@ internal class PluginInstallerWindow : Window, IDisposable
 
         public static string Profiles_RemoveFromAll =>
             Loc.Localize("InstallerProfilesRemoveFromAll", "Remove from all collections");
+
+        #endregion
+        
+        #region VerifiedCheckmark
+
+        public static string VerifiedCheckmark_VerifiedTooltip =>
+            Loc.Localize("VerifiedCheckmarkVerifiedTooltip", "This plugin has been reviewed by the Dalamud team.\n" +
+                                                             "It follows our technical and safety criteria, and adheres to our guidelines.");
+
+        public static string VerifiedCheckmark_UnverifiedTooltip =>
+            Loc.Localize("VerifiedCheckmarkUnverifiedTooltip", "This plugin has not been reviewed by the Dalamud team.\n" +
+                                                               "We cannot take any responsibility for custom plugins and repositories.\n" +
+                                                               "Please make absolutely sure that you only install plugins from developers you trust.");
 
         #endregion
     }
