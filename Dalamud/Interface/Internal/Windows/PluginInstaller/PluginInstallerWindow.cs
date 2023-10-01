@@ -1722,24 +1722,27 @@ internal class PluginInstallerWindow : Window, IDisposable
         // Name
         ImGui.TextUnformatted(label);
         
-        // Verified Checkmark
-        ImGui.SameLine();
-        ImGui.Text(" ");
-        ImGui.SameLine();
+        // Verified Checkmark, don't show for devplugins
+        if (plugin is { IsDev: false })
+        {
+            ImGui.SameLine();
+            ImGui.Text(" ");
+            ImGui.SameLine();
 
-        var verifiedOutlineColor = KnownColor.White.Vector() with { W = 0.75f };
-        var verifiedIconColor = KnownColor.RoyalBlue.Vector() with { W = 0.75f };
-        var unverifiedIconColor = KnownColor.Orange.Vector() with { W = 0.75f };
+            var verifiedOutlineColor = KnownColor.White.Vector() with { W = 0.75f };
+            var verifiedIconColor = KnownColor.RoyalBlue.Vector() with { W = 0.75f };
+            var unverifiedIconColor = KnownColor.Orange.Vector() with { W = 0.75f };
         
-        if (!isThirdParty)
-        {
-            this.DrawFontawesomeIconOutlined(FontAwesomeIcon.CheckCircle, verifiedOutlineColor, verifiedIconColor);
-            this.VerifiedCheckmarkFadeTooltip(label, Locs.VerifiedCheckmark_VerifiedTooltip);
-        }
-        else
-        {
-            this.DrawFontawesomeIconOutlined(FontAwesomeIcon.Circle, verifiedOutlineColor, unverifiedIconColor);
-            this.VerifiedCheckmarkFadeTooltip(label, Locs.VerifiedCheckmark_UnverifiedTooltip);
+            if (!isThirdParty)
+            {
+                this.DrawFontawesomeIconOutlined(FontAwesomeIcon.CheckCircle, verifiedOutlineColor, verifiedIconColor);
+                this.VerifiedCheckmarkFadeTooltip(label, Locs.VerifiedCheckmark_VerifiedTooltip);
+            }
+            else
+            {
+                this.DrawFontawesomeIconOutlined(FontAwesomeIcon.Circle, verifiedOutlineColor, unverifiedIconColor);
+                this.VerifiedCheckmarkFadeTooltip(label, Locs.VerifiedCheckmark_UnverifiedTooltip);
+            }
         }
 
         // Download count
