@@ -31,9 +31,10 @@ public sealed class PluginConfigurations
     /// </summary>
     /// <param name="config">Plugin configuration.</param>
     /// <param name="pluginName">Plugin name.</param>
-    public void Save(IPluginConfiguration config, string pluginName)
+    /// <param name="variant">The variant to load.</param>
+    public void Save(IPluginConfiguration config, string pluginName, string? variant = null)
     {
-        Util.WriteAllTextSafe(this.GetConfigFile(pluginName).FullName, SerializeConfig(config));
+        Util.WriteAllTextSafe(this.GetConfigFile(pluginName, variant).FullName, SerializeConfig(config));
     }
 
     /// <summary>
@@ -97,9 +98,10 @@ public sealed class PluginConfigurations
     /// without reflection - for now this is in support of the existing plugin api.
     /// </summary>
     /// <param name="pluginName">Plugin Name.</param>
+    /// <param name="variant">The variant to load.</param>
     /// <typeparam name="T">Configuration Type.</typeparam>
     /// <returns>Plugin Configuration.</returns>
-    public T LoadForType<T>(string pluginName) where T : IPluginConfiguration
+    public T LoadForType<T>(string pluginName, string? variant = null) where T : IPluginConfiguration
     {
         var path = this.GetConfigFile(pluginName);
 
@@ -113,8 +115,12 @@ public sealed class PluginConfigurations
     /// Get FileInfo to plugin config file.
     /// </summary>
     /// <param name="pluginName">InternalName of the plugin.</param>
+    /// <param name="variant">The variant to load.</param>
     /// <returns>FileInfo of the config file.</returns>
-    public FileInfo GetConfigFile(string pluginName) => new(Path.Combine(this.configDirectory.FullName, $"{pluginName}.json"));
+    public FileInfo GetConfigFile(string pluginName, string? variant = null)
+        => new(Path.Combine(
+                   this.configDirectory.FullName,
+                   variant.IsNullOrWhitespace() ? $"{pluginName}.json" : $"{pluginName}-{variant}.json"));
 
     /// <summary>
     /// Serializes a plugin configuration object.
