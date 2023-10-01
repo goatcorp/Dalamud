@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -6,6 +5,7 @@ using System.Linq;
 
 using Dalamud.Game.Text;
 using Dalamud.Interface.Style;
+using Dalamud.IoC.Internal;
 using Dalamud.Plugin.Internal.Profiles;
 using Dalamud.Storage;
 using Dalamud.Utility;
@@ -20,6 +20,9 @@ namespace Dalamud.Configuration.Internal;
 /// </summary>
 [Serializable]
 [ServiceManager.Service]
+#pragma warning disable SA1015
+[InherentDependency<ReliableFileStorage>] // We must still have this when unloading
+#pragma warning restore SA1015
 internal sealed class DalamudConfiguration : IServiceType, IDisposable
 {
     private static readonly JsonSerializerSettings SerializerSettings = new()
