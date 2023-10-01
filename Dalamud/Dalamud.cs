@@ -74,14 +74,17 @@ internal sealed class Dalamud : IServiceType
         if (!configuration.IsResumeGameAfterPluginLoad)
         {
             NativeFunctions.SetEvent(mainThreadContinueEvent);
-            try
-            {
-                _ = ServiceManager.InitializeEarlyLoadableServices();
-            }
-            catch (Exception e)
-            {
-                Log.Error(e, "Service initialization failure");
-            }
+            ServiceManager.InitializeEarlyLoadableServices()
+                          .ContinueWith(t =>
+                          {
+                              if (t.IsCompletedSuccessfully)
+                                  return;
+                                  
+                              Log.Error(t.Exception!, "Service initialization failure");
+                              Util.Fatal(
+                                  "Dalamud failed to load all necessary services.\n\nThe game will continue, but you may not be able to use plugins.",
+                                  "Dalamud", false);
+                          });
         }
         else
         {

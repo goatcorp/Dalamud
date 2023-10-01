@@ -1276,6 +1276,7 @@ internal class InterfaceManager : IDisposable, IServiceType
     /// <summary>
     /// Represents an instance of InstanceManager with scene ready for use.
     /// </summary>
+    [ServiceManager.Service]
     public class InterfaceManagerWithScene : IServiceType
     {
         /// <summary>

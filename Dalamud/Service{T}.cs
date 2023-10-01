@@ -123,6 +123,8 @@ internal static class Service<T> where T : IServiceType
     public static List<Type> GetDependencyServices()
     {
         var res = new List<Type>();
+        
+        ServiceManager.Log.Verbose("Service<{0}>: Getting dependencies", typeof(T).Name);
 
         var ctor = GetServiceConstructor();
         if (ctor != null)
@@ -180,6 +182,11 @@ internal static class Service<T> where T : IServiceType
                 ServiceManager.Log.Verbose("PluginManager MUST depend on {Type}", serviceType.FullName!);
                 res.Add(serviceType);
             }
+        }
+        
+        foreach (var type in res)
+        {
+            ServiceManager.Log.Verbose("Service<{0}>: => Dependency: {1}", typeof(T).Name, type.Name);
         }
 
         return res

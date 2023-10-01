@@ -47,9 +47,9 @@ internal static class ServiceManager
         None = 0,
         
         /// <summary>
-        /// Regular service.
+        /// Service that is loaded manually.
         /// </summary>
-        ManualService = 1 << 0,
+        ProvidedService = 1 << 0,
         
         /// <summary>
         /// Service that is loaded asynchronously while the game starts.
@@ -90,7 +90,7 @@ internal static class ServiceManager
         {
             void ProvideService<T>(T service) where T : IServiceType
             {
-                Debug.Assert(typeof(T).GetServiceKind().HasFlag(ServiceKind.ManualService), "Provided service must have Service attribute");
+                Debug.Assert(typeof(T).GetServiceKind().HasFlag(ServiceKind.ProvidedService), "Provided service must have Service attribute");
                 Service<T>.Provide(service);
                 LoadedServices.Add(typeof(T));
             }
@@ -119,23 +119,18 @@ internal static class ServiceManager
 
         var serviceContainer = Service<ServiceContainer>.Get();
 
-        foreach (var serviceType in Assembly.GetExecutingAssembly().GetTypes())
+        foreach (var serviceType in Assembly.GetExecutingAssembly().GetTypes().Where(x => x.IsAssignableTo(typeof(IServiceType)) && !x.IsInterface && !x.IsAbstract))
         {
             var serviceKind = serviceType.GetServiceKind();
             if (serviceKind is ServiceKind.None)
-                continue;
+                throw new Exception($"Service<{serviceType.FullName}> did not specify a kind");
 
             // Let IoC know about the interfaces this service implements
             serviceContainer.RegisterInterfaces(serviceType);
             
             // Scoped service do not go through Service<T> and are never early loaded
-            // Manual services are provided
-            if (serviceKind.HasFlag(ServiceKind.ScopedService) || serviceKind.HasFlag(ServiceKind.ManualService))
+            if (serviceKind.HasFlag(ServiceKind.ScopedService))
                 continue;
-            
-            Debug.Assert(
-                !serviceKind.HasFlag(ServiceKind.ManualService) && !serviceKind.HasFlag(ServiceKind.ScopedService),
-                "Regular and scoped services should never be loaded early");
 
             var genericWrappedServiceType = typeof(Service<>).MakeGenericType(serviceType);
             
@@ -147,9 +142,14 @@ internal static class ServiceManager
                                     null,
                                     null);
 
+            getAsyncTaskMap[serviceType] = getTask;
+
+            // We don't actually need to load provided services, something else does
+            if (serviceKind.HasFlag(ServiceKind.ProvidedService))
+                continue;
+
             if (serviceKind.HasFlag(ServiceKind.BlockingEarlyLoadedService))
             {
-                getAsyncTaskMap[serviceType] = getTask;
                 blockingEarlyLoadingServices.Add(serviceType);
             }
             else
@@ -191,13 +191,13 @@ internal static class ServiceManager
                     var hasDeps = true;
                     foreach (var dependency in dependencyServicesMap[serviceType])
                     {
-                        var depServiceKind = dependency.GetServiceKind();
-                        var depResolveTask = getAsyncTaskMap.GetValueOrDefault(dependency);
+                        var depUnderlyingServiceType = dependency.GetGenericArguments().First();
+                        var depResolveTask = getAsyncTaskMap.GetValueOrDefault(depUnderlyingServiceType);
 
-                        if (depResolveTask == null && (depServiceKind.HasFlag(ServiceKind.EarlyLoadedService) || depServiceKind.HasFlag(ServiceKind.BlockingEarlyLoadedService)))
+                        if (depResolveTask == null)
                         {
-                            Log.Error("{Type}: {Dependency} has no resolver task, is it early loaded or blocking early loaded?", serviceType.FullName!, dependency.FullName!);
-                            Debug.Assert(false, $"No resolver for dependent service {dependency.FullName}");
+                            Log.Error("{Type}: {Dependency} has no resolver task", serviceType.FullName!, dependency.FullName!);
+                            Debug.Assert(false, $"No resolver for dependent service {depUnderlyingServiceType.FullName}");
                         }
                         else if (depResolveTask is { IsCompleted: false })
                         {
@@ -386,7 +386,7 @@ internal static class ServiceManager
         if (attr.IsAssignableTo(typeof(ScopedService)))
             return ServiceKind.ScopedService;
 
-        return ServiceKind.ManualService;
+        return ServiceKind.ProvidedService;
     }
 
     /// <summary>
