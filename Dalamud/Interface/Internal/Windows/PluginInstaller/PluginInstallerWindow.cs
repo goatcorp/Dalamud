@@ -1722,7 +1722,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         // Name
         ImGui.TextUnformatted(label);
         
-        // Verified Checkmark, don't show for devplugins
+        // Verified Checkmark, don't show for dev plugins
         if (plugin is { IsDev: false })
         {
             ImGui.SameLine();
@@ -3199,14 +3199,14 @@ internal class PluginInstallerWindow : Window, IDisposable
             this.tooltipFadeInStopwatch.Restart();
         }
         
-        // If we were last hovering this plugins item, reset the timer
+        // If we were last hovering this plugins item and are no longer hovered over that item, reset the timer
         if (!ImGui.IsItemHovered() && isHoveringSameItem)
         {
             this.verifiedCheckmarkHoveredPlugin = string.Empty;
             this.tooltipFadeInStopwatch.Stop();
         }
         
-        // If we have been hovering this item for > 1s, show tooltip
+        // If we have been hovering this item for > fadeInStartDelay milliseconds, fade in tooltip over fadeInTime milliseconds
         if (ImGui.IsItemHovered() && isHoveringSameItem && this.tooltipFadeInStopwatch.ElapsedMilliseconds >= fadeInStartDelay)
         {
             var fadePercent = Math.Clamp((this.tooltipFadeInStopwatch.ElapsedMilliseconds - fadeInStartDelay) / fadeInTime, 0.0f, 1.0f);
