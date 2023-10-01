@@ -16,7 +16,7 @@ namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 public class IconBrowserWidget : IDataWindowWidget
 {
     // Remove range 170,000 -> 180,000 by default, this specific range causes exceptions.
-    private readonly HashSet<int> nullValues = Enumerable.Range(170000, 10000).ToHashSet(); 
+    private readonly HashSet<int> nullValues = Enumerable.Range(170000, 9999).ToHashSet(); 
     
     private Vector2 iconSize = new(64.0f, 64.0f);
     private Vector2 editIconSize = new(64.0f, 64.0f);
