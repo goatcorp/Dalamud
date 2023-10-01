@@ -16,7 +16,7 @@ using JetBrains.Annotations;
 namespace Dalamud;
 
 // TODO:
-// - Unify dependency walking code(load/unload
+// - Unify dependency walking code(load/unload)
 // - Visualize/output .dot or imgui thing
 
 /// <summary>
@@ -122,8 +122,7 @@ internal static class ServiceManager
         foreach (var serviceType in Assembly.GetExecutingAssembly().GetTypes().Where(x => x.IsAssignableTo(typeof(IServiceType)) && !x.IsInterface && !x.IsAbstract))
         {
             var serviceKind = serviceType.GetServiceKind();
-            if (serviceKind is ServiceKind.None)
-                throw new Exception($"Service<{serviceType.FullName}> did not specify a kind");
+            Debug.Assert(serviceKind != ServiceKind.None, $"Service<{serviceType.FullName}> did not specify a kind");
 
             // Let IoC know about the interfaces this service implements
             serviceContainer.RegisterInterfaces(serviceType);
@@ -147,6 +146,11 @@ internal static class ServiceManager
             // We don't actually need to load provided services, something else does
             if (serviceKind.HasFlag(ServiceKind.ProvidedService))
                 continue;
+
+            Debug.Assert(
+                serviceKind.HasFlag(ServiceKind.EarlyLoadedService) ||
+                serviceKind.HasFlag(ServiceKind.BlockingEarlyLoadedService),
+                "At this point, service must be either early loaded or blocking early loaded");
 
             if (serviceKind.HasFlag(ServiceKind.BlockingEarlyLoadedService))
             {

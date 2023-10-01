@@ -51,6 +51,9 @@ internal class PluginImageCache : IDisposable, IServiceType
     private readonly InterfaceManager.InterfaceManagerWithScene imWithScene = Service<InterfaceManager.InterfaceManagerWithScene>.Get();
 
     [ServiceManager.ServiceDependency]
+    private readonly Branding branding = Service<Branding>.Get();
+    
+    [ServiceManager.ServiceDependency]
     private readonly HappyHttpClient happyHttpClient = Service<HappyHttpClient>.Get();
 
     private readonly BlockingCollection<Tuple<ulong, Func<Task>>> downloadQueue = new();
@@ -88,7 +91,7 @@ internal class PluginImageCache : IDisposable, IServiceType
         this.installedIconTask = imwst.ContinueWith(task => TaskWrapIfNonNull(task.Result.Manager.LoadImage(Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "installedIcon.png"))) ?? this.emptyTextureTask).Unwrap();
         this.thirdIconTask = imwst.ContinueWith(task => TaskWrapIfNonNull(task.Result.Manager.LoadImage(Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "thirdIcon.png"))) ?? this.emptyTextureTask).Unwrap();
         this.thirdInstalledIconTask = imwst.ContinueWith(task => TaskWrapIfNonNull(task.Result.Manager.LoadImage(Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "thirdInstalledIcon.png"))) ?? this.emptyTextureTask).Unwrap();
-        this.corePluginIconTask = imwst.ContinueWith(task => TaskWrapIfNonNull(task.Result.Manager.LoadImage(Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "tsmLogo.png"))) ?? this.emptyTextureTask).Unwrap();
+        this.corePluginIconTask = imwst.ContinueWith(task => TaskWrapIfNonNull(this.branding.LogoSmall)).Unwrap();
 
         this.downloadTask = Task.Factory.StartNew(
             () => this.DownloadTask(8), TaskCreationOptions.LongRunning);

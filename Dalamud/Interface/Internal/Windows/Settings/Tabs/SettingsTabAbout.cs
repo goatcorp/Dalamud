@@ -181,10 +181,9 @@ Contribute at: https://github.com/goatcorp/Dalamud
 
     public SettingsTabAbout()
     {
-        var dalamud = Service<Dalamud>.Get();
-        var interfaceManager = Service<InterfaceManager>.Get();
+        var branding = Service<Branding>.Get();
 
-        this.logoTexture = interfaceManager.LoadImage(Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "logo.png"))!;
+        this.logoTexture = branding.Logo;
         this.creditsThrottler = new();
     }
 

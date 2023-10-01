@@ -49,11 +49,7 @@ Thanks and have fun!";
         this.Size = new Vector2(885, 463);
         this.SizeCondition = ImGuiCond.Appearing;
 
-        var interfaceManager = Service<InterfaceManager>.Get();
-        var dalamud = Service<Dalamud>.Get();
-
-        this.logoTexture =
-            interfaceManager.LoadImage(Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "logo.png"))!;
+        this.logoTexture = Service<Branding>.Get().Logo;
     }
 
     /// <inheritdoc/>
