@@ -1,4 +1,3 @@
-using System;
 using System.Linq;
 using System.Numerics;
 
@@ -50,6 +49,7 @@ internal class DataWindow : Window
         new UIColorWidget(),
         new DataShareWidget(),
         new NetworkMonitorWidget(),
+        new IconBrowserWidget(),
     };
 
     private readonly IOrderedEnumerable<IDataWindowWidget> orderedModules;
