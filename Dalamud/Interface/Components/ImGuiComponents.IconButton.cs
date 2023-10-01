@@ -110,11 +110,32 @@ public static partial class ImGuiComponents
             numColors++;
         }
 
+        var icon = iconText;
+        if (icon.Contains("#"))
+            icon = icon[..icon.IndexOf("#", StringComparison.Ordinal)];
+
+        ImGui.PushID(iconText);
+
         ImGui.PushFont(UiBuilder.IconFont);
-
-        var button = ImGui.Button(iconText);
-
+        var iconSize = ImGui.CalcTextSize(icon);
         ImGui.PopFont();
+        
+        var dl = ImGui.GetWindowDrawList();
+        var cursor = ImGui.GetCursorScreenPos();
+        
+        // Draw an ImGui button with the icon and text
+        var buttonWidth = iconSize.X + (ImGui.GetStyle().FramePadding.X * 2);
+        var buttonHeight = ImGui.GetFrameHeight();
+        var button = ImGui.Button(string.Empty, new Vector2(buttonWidth, buttonHeight));
+        
+        // Draw the icon on the window drawlist
+        var iconPos = new Vector2(cursor.X + ImGui.GetStyle().FramePadding.X, cursor.Y + ImGui.GetStyle().FramePadding.Y);
+        
+        ImGui.PushFont(UiBuilder.IconFont);
+        dl.AddText(iconPos, ImGui.GetColorU32(ImGuiCol.Text), icon);
+        ImGui.PopFont();
+
+        ImGui.PopID();
 
         if (numColors > 0)
             ImGui.PopStyleColor(numColors);
@@ -167,7 +188,7 @@ public static partial class ImGuiComponents
         
         // Draw an ImGui button with the icon and text
         var buttonWidth = iconSize.X + textSize.X + (ImGui.GetStyle().FramePadding.X * 2) + iconPadding;
-        var buttonHeight = Math.Max(iconSize.Y, textSize.Y) + (ImGui.GetStyle().FramePadding.Y * 2);
+        var buttonHeight = ImGui.GetFrameHeight();
         var button = ImGui.Button(string.Empty, new Vector2(buttonWidth, buttonHeight));
         
         // Draw the icon on the window drawlist
