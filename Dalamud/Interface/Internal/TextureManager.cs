@@ -297,10 +297,9 @@ internal class TextureManager : IDisposable, IServiceType, ITextureProvider, ITe
         TextureInfo? info;
         lock (this.activeTextures)
         {
+            // This either is a new texture, or it had been evicted and now wants to be drawn again.
             if (!this.activeTextures.TryGetValue(path, out info))
             {
-                Debug.Assert(rethrow, "This should never run when getting outside of creator");
-
                 info = new TextureInfo();
                 this.activeTextures.Add(path, info);
             }
