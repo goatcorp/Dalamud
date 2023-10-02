@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -14,8 +13,6 @@ using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Internal.Notifications;
 using Dalamud.Interface.Internal.Windows;
-using Dalamud.IoC;
-using Dalamud.IoC.Internal;
 using Dalamud.Plugin.Internal;
 using Dalamud.Utility;
 using Serilog;
@@ -25,10 +22,8 @@ namespace Dalamud.Game;
 /// <summary>
 /// Chat events and public helper functions.
 /// </summary>
-[PluginInterface]
-[InterfaceVersion("1.0")]
 [ServiceManager.BlockingEarlyLoadedService]
-public class ChatHandlers : IServiceType
+internal class ChatHandlers : IServiceType
 {
     // private static readonly Dictionary<string, string> UnicodeToDiscordEmojiDict = new()
     // {
@@ -107,6 +102,9 @@ public class ChatHandlers : IServiceType
     private readonly DalamudLinkPayload openInstallerWindowLink;
 
     [ServiceManager.ServiceDependency]
+    private readonly Dalamud dalamud = Service<Dalamud>.Get();
+    
+    [ServiceManager.ServiceDependency]
     private readonly DalamudConfiguration configuration = Service<DalamudConfiguration>.Get();
 
     private bool hasSeenLoadingMsg;
@@ -133,22 +131,6 @@ public class ChatHandlers : IServiceType
     /// Gets a value indicating whether or not auto-updates have already completed this session.
     /// </summary>
     public bool IsAutoUpdateComplete { get; private set; }
-
-    /// <summary>
-    /// Convert a TextPayload to SeString and wrap in italics payloads.
-    /// </summary>
-    /// <param name="text">Text to convert.</param>
-    /// <returns>SeString payload of italicized text.</returns>
-    public static SeString MakeItalics(string text)
-        => MakeItalics(new TextPayload(text));
-
-    /// <summary>
-    /// Convert a TextPayload to SeString and wrap in italics payloads.
-    /// </summary>
-    /// <param name="text">Text to convert.</param>
-    /// <returns>SeString payload of italicized text.</returns>
-    public static SeString MakeItalics(TextPayload text)
-        => new(EmphasisItalicPayload.ItalicsOn, text, EmphasisItalicPayload.ItalicsOff);
 
     private void OnCheckMessageHandled(XivChatType type, uint senderid, ref SeString sender, ref SeString message, ref bool isHandled)
     {
@@ -178,7 +160,6 @@ public class ChatHandlers : IServiceType
 
     private void OnChatMessage(XivChatType type, uint senderId, ref SeString sender, ref SeString message, ref bool isHandled)
     {
-        var startInfo = Service<DalamudStartInfo>.Get();
         var clientState = Service<ClientState.ClientState>.GetNullable();
         if (clientState == null)
             return;
@@ -200,7 +181,7 @@ public class ChatHandlers : IServiceType
 
         if (type == XivChatType.RetainerSale)
         {
-            foreach (var regex in this.retainerSaleRegexes[startInfo.Language])
+            foreach (var regex in this.retainerSaleRegexes[(ClientLanguage)this.dalamud.StartInfo.Language])
             {
                 var matchInfo = regex.Match(message.TextValue);
 
@@ -264,7 +245,7 @@ public class ChatHandlers : IServiceType
 
         if (string.IsNullOrEmpty(this.configuration.LastVersion) || !assemblyVersion.StartsWith(this.configuration.LastVersion))
         {
-            chatGui.PrintChat(new XivChatEntry
+            chatGui.Print(new XivChatEntry
             {
                 Message = Loc.Localize("DalamudUpdated", "Dalamud has been updated successfully! Please check the discord for a full changelog."),
                 Type = XivChatType.Notice,
@@ -321,7 +302,7 @@ public class ChatHandlers : IServiceType
                 }
                 else
                 {
-                    chatGui.PrintChat(new XivChatEntry
+                    chatGui.Print(new XivChatEntry
                     {
                         Message = new SeString(new List<Payload>()
                         {

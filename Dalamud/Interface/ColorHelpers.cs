@@ -1,4 +1,4 @@
-﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.Numerics;
 
@@ -9,6 +9,17 @@ namespace Dalamud.Interface;
 /// </summary>
 public static class ColorHelpers
 {
+    /// <summary>
+    /// A struct representing a color using HSVA coordinates.
+    /// </summary>
+    /// <param name="H">The hue represented by this struct.</param>
+    /// <param name="S">The saturation represented by this struct.</param>
+    /// <param name="V">The value represented by this struct.</param>
+    /// <param name="A">The alpha represented by this struct.</param>
+    [SuppressMessage("StyleCop.CSharp.NamingRules", "SA1313:Parameter names should begin with lower-case letter",
+                     Justification = "I don't like it.")]
+    public record struct HsvaColor(float H, float S, float V, float A);
+
     /// <summary>
     /// Pack a vector4 color into a uint for use in ImGui APIs.
     /// </summary>
@@ -23,7 +34,7 @@ public static class ColorHelpers
 
         return (uint)((a << 24) | (b << 16) | (g << 8) | r);
     }
-    
+
     /// <summary>
     /// Convert a RGBA color in the range of 0.f to 1.f to a uint.
     /// </summary>
@@ -38,7 +49,7 @@ public static class ColorHelpers
 
         return new Vector4(r, g, b, a);
     }
-    
+
     /// <summary>
     /// Convert a RGBA color in the range of 0.f to 1.f to a HSV color.
     /// </summary>
@@ -147,7 +158,7 @@ public static class ColorHelpers
 
         return new Vector4(r, g, b, hsv.A);
     }
-    
+
     /// <summary>
     /// Lighten a color.
     /// </summary>
@@ -160,7 +171,7 @@ public static class ColorHelpers
         hsv.V += amount;
         return HsvToRgb(hsv);
     }
-    
+
     /// <summary>
     /// Lighten a color.
     /// </summary>
@@ -169,7 +180,7 @@ public static class ColorHelpers
     /// <returns>The lightened color.</returns>
     public static uint Lighten(uint color, float amount)
         => RgbaVector4ToUint(Lighten(RgbaUintToVector4(color), amount));
-    
+
     /// <summary>
     /// Darken a color.
     /// </summary>
@@ -182,7 +193,7 @@ public static class ColorHelpers
         hsv.V -= amount;
         return HsvToRgb(hsv);
     }
-    
+
     /// <summary>
     /// Darken a color.
     /// </summary>
@@ -191,7 +202,7 @@ public static class ColorHelpers
     /// <returns>The darkened color.</returns>
     public static uint Darken(uint color, float amount)
         => RgbaVector4ToUint(Darken(RgbaUintToVector4(color), amount));
-    
+
     /// <summary>
     /// Saturate a color.
     /// </summary>
@@ -204,7 +215,7 @@ public static class ColorHelpers
         hsv.S += amount;
         return HsvToRgb(hsv);
     }
-    
+
     /// <summary>
     /// Saturate a color.
     /// </summary>
@@ -213,7 +224,7 @@ public static class ColorHelpers
     /// <returns>The saturated color.</returns>
     public static uint Saturate(uint color, float amount)
         => RgbaVector4ToUint(Saturate(RgbaUintToVector4(color), amount));
-    
+
     /// <summary>
     /// Desaturate a color.
     /// </summary>
@@ -226,7 +237,7 @@ public static class ColorHelpers
         hsv.S -= amount;
         return HsvToRgb(hsv);
     }
-    
+
     /// <summary>
     /// Desaturate a color.
     /// </summary>
@@ -235,7 +246,7 @@ public static class ColorHelpers
     /// <returns>The desaturated color.</returns>
     public static uint Desaturate(uint color, float amount)
         => RgbaVector4ToUint(Desaturate(RgbaUintToVector4(color), amount));
-    
+
     /// <summary>
     /// Fade a color.
     /// </summary>
@@ -248,7 +259,7 @@ public static class ColorHelpers
         hsv.A -= amount;
         return HsvToRgb(hsv);
     }
-    
+
     /// <summary>
     /// Fade a color.
     /// </summary>
@@ -259,7 +270,7 @@ public static class ColorHelpers
         => RgbaVector4ToUint(Fade(RgbaUintToVector4(color), amount));
 
     /// <summary>
-    /// Convert a KnownColor to a RGBA vector with values between 0.0f and 1.0f
+    /// Convert a KnownColor to a RGBA vector with values between 0.0f and 1.0f.
     /// </summary>
     /// <param name="knownColor">Known Color to convert.</param>
     /// <returns>RGBA Vector with values between 0.0f and 1.0f.</returns>
@@ -285,6 +296,4 @@ public static class ColorHelpers
             
         _ => color / 255.0f,
     };
-
-    public record struct HsvaColor(float H, float S, float V, float A);
 }

@@ -8,7 +8,8 @@ using System.Numerics;
 using CheapLoc;
 using Dalamud.Game.Gui;
 using Dalamud.Interface.GameFonts;
-using Dalamud.Interface.Raii;
+using Dalamud.Interface.Utility;
+using Dalamud.Interface.Utility.Raii;
 using Dalamud.Plugin.Internal;
 using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
@@ -170,7 +171,7 @@ Dalamud is licensed under AGPL v3 or later.
 Contribute at: https://github.com/goatcorp/Dalamud
 ";
 
-    private readonly TextureWrap logoTexture;
+    private readonly IDalamudTextureWrap logoTexture;
     private readonly Stopwatch creditsThrottler;
 
     private string creditsText;
@@ -180,10 +181,9 @@ Contribute at: https://github.com/goatcorp/Dalamud
 
     public SettingsTabAbout()
     {
-        var dalamud = Service<Dalamud>.Get();
-        var interfaceManager = Service<InterfaceManager>.Get();
+        var branding = Service<Branding>.Get();
 
-        this.logoTexture = interfaceManager.LoadImage(Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "logo.png"))!;
+        this.logoTexture = branding.Logo;
         this.creditsThrottler = new();
     }
 

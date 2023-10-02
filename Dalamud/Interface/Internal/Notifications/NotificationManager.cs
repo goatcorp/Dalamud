@@ -4,6 +4,7 @@ using System.Linq;
 using System.Numerics;
 
 using Dalamud.Interface.Colors;
+using Dalamud.Interface.Utility;
 using Dalamud.Utility;
 using ImGuiNET;
 
@@ -105,7 +106,7 @@ internal class NotificationManager : IServiceType
 
             ImGuiHelpers.ForceNextWindowMainViewport();
             ImGui.SetNextWindowBgAlpha(opacity);
-            ImGui.SetNextWindowPos(new Vector2(viewportSize.X - NotifyPaddingX, viewportSize.Y - NotifyPaddingY - height), ImGuiCond.Always, Vector2.One);
+            ImGui.SetNextWindowPos(ImGuiHelpers.MainViewport.Pos + new Vector2(viewportSize.X - NotifyPaddingX, viewportSize.Y - NotifyPaddingY - height), ImGuiCond.Always, Vector2.One);
             ImGui.Begin(windowName, NotifyToastFlags);
 
             ImGui.PushTextWrapPos(viewportSize.X / 3.0f);

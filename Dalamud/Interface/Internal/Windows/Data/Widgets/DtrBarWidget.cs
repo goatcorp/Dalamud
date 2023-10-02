@@ -2,7 +2,7 @@
 using Dalamud.Game.Gui.Dtr;
 using ImGuiNET;
 
-namespace Dalamud.Interface.Internal.Windows.Data;
+namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 
 /// <summary>
 /// Widget for displaying dtr test.

@@ -12,6 +12,7 @@ using Dalamud.Game.Gui.Toast;
 using Dalamud.Hooking;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
+using Dalamud.Plugin.Services;
 using Dalamud.Utility;
 using Serilog;
 
@@ -23,7 +24,10 @@ namespace Dalamud.Game;
 [PluginInterface]
 [InterfaceVersion("1.0")]
 [ServiceManager.BlockingEarlyLoadedService]
-public sealed class Framework : IDisposable, IServiceType
+#pragma warning disable SA1015
+[ResolveVia<IFramework>]
+#pragma warning restore SA1015
+internal sealed class Framework : IDisposable, IServiceType, IFramework
 {
     private static readonly Stopwatch StatsStopwatch = new();
     
@@ -35,6 +39,8 @@ public sealed class Framework : IDisposable, IServiceType
     private readonly Hook<OnUpdateDetour> updateHook;
     private readonly Hook<OnRealDestroyDelegate> destroyHook;
 
+    private readonly FrameworkAddressResolver addressResolver;
+
     [ServiceManager.ServiceDependency]
     private readonly DalamudConfiguration configuration = Service<DalamudConfiguration>.Get();
 
@@ -45,23 +51,17 @@ public sealed class Framework : IDisposable, IServiceType
     private Thread? frameworkUpdateThread;
 
     [ServiceManager.ServiceConstructor]
-    private Framework(SigScanner sigScanner, GameLifecycle lifecycle)
+    private Framework(TargetSigScanner sigScanner, GameLifecycle lifecycle)
     {
         this.lifecycle = lifecycle;
         this.hitchDetector = new HitchDetector("FrameworkUpdate", this.configuration.FrameworkUpdateHitch);
 
-        this.Address = new FrameworkAddressResolver();
-        this.Address.Setup(sigScanner);
+        this.addressResolver = new FrameworkAddressResolver();
+        this.addressResolver.Setup(sigScanner);
 
-        this.updateHook = Hook<OnUpdateDetour>.FromAddress(this.Address.TickAddress, this.HandleFrameworkUpdate);
-        this.destroyHook = Hook<OnRealDestroyDelegate>.FromAddress(this.Address.DestroyAddress, this.HandleFrameworkDestroy);
+        this.updateHook = Hook<OnUpdateDetour>.FromAddress(this.addressResolver.TickAddress, this.HandleFrameworkUpdate);
+        this.destroyHook = Hook<OnRealDestroyDelegate>.FromAddress(this.addressResolver.DestroyAddress, this.HandleFrameworkDestroy);
     }
-
-    /// <summary>
-    /// A delegate type used with the <see cref="Update"/> event.
-    /// </summary>
-    /// <param name="framework">The Framework instance.</param>
-    public delegate void OnUpdateDelegate(Framework framework);
 
     /// <summary>
     /// A delegate type used during the native Framework::destroy.
@@ -81,10 +81,8 @@ public sealed class Framework : IDisposable, IServiceType
 
     private delegate IntPtr OnDestroyDetour(); // OnDestroyDelegate
 
-    /// <summary>
-    /// Event that gets fired every time the game framework updates.
-    /// </summary>
-    public event OnUpdateDelegate Update;
+    /// <inheritdoc/>
+    public event IFramework.OnUpdateDelegate Update;
 
     /// <summary>
     /// Gets or sets a value indicating whether the collection of stats is enabled.
@@ -96,34 +94,19 @@ public sealed class Framework : IDisposable, IServiceType
     /// </summary>
     public static Dictionary<string, List<double>> StatsHistory { get; } = new();
 
-    /// <summary>
-    /// Gets a raw pointer to the instance of Client::Framework.
-    /// </summary>
-    public FrameworkAddressResolver Address { get; }
-
-    /// <summary>
-    /// Gets the last time that the Framework Update event was triggered.
-    /// </summary>
+    /// <inheritdoc/>
     public DateTime LastUpdate { get; private set; } = DateTime.MinValue;
 
-    /// <summary>
-    /// Gets the last time in UTC that the Framework Update event was triggered.
-    /// </summary>
+    /// <inheritdoc/>
     public DateTime LastUpdateUTC { get; private set; } = DateTime.MinValue;
 
-    /// <summary>
-    /// Gets the delta between the last Framework Update and the currently executing one.
-    /// </summary>
+    /// <inheritdoc/>
     public TimeSpan UpdateDelta { get; private set; } = TimeSpan.Zero;
 
-    /// <summary>
-    /// Gets a value indicating whether currently executing code is running in the game's framework update thread.
-    /// </summary>
+    /// <inheritdoc/>
     public bool IsInFrameworkUpdateThread => Thread.CurrentThread == this.frameworkUpdateThread;
 
-    /// <summary>
-    /// Gets a value indicating whether game Framework is unloading.
-    /// </summary>
+    /// <inheritdoc/>
     public bool IsFrameworkUnloading { get; internal set; }
 
     /// <summary>
@@ -131,20 +114,11 @@ public sealed class Framework : IDisposable, IServiceType
     /// </summary>
     internal bool DispatchUpdateEvents { get; set; } = true;
 
-    /// <summary>
-    /// Run given function right away if this function has been called from game's Framework.Update thread, or otherwise run on next Framework.Update call.
-    /// </summary>
-    /// <typeparam name="T">Return type.</typeparam>
-    /// <param name="func">Function to call.</param>
-    /// <returns>Task representing the pending or already completed function.</returns>
+    /// <inheritdoc/>
     public Task<T> RunOnFrameworkThread<T>(Func<T> func) =>
         this.IsInFrameworkUpdateThread || this.IsFrameworkUnloading ? Task.FromResult(func()) : this.RunOnTick(func);
 
-    /// <summary>
-    /// Run given function right away if this function has been called from game's Framework.Update thread, or otherwise run on next Framework.Update call.
-    /// </summary>
-    /// <param name="action">Function to call.</param>
-    /// <returns>Task representing the pending or already completed function.</returns>
+    /// <inheritdoc/>
     public Task RunOnFrameworkThread(Action action)
     {
         if (this.IsInFrameworkUpdateThread || this.IsFrameworkUnloading)
@@ -165,32 +139,15 @@ public sealed class Framework : IDisposable, IServiceType
         }
     }
 
-    /// <summary>
-    /// Run given function right away if this function has been called from game's Framework.Update thread, or otherwise run on next Framework.Update call.
-    /// </summary>
-    /// <typeparam name="T">Return type.</typeparam>
-    /// <param name="func">Function to call.</param>
-    /// <returns>Task representing the pending or already completed function.</returns>
+    /// <inheritdoc/>
     public Task<T> RunOnFrameworkThread<T>(Func<Task<T>> func) =>
         this.IsInFrameworkUpdateThread || this.IsFrameworkUnloading ? func() : this.RunOnTick(func);
 
-    /// <summary>
-    /// Run given function right away if this function has been called from game's Framework.Update thread, or otherwise run on next Framework.Update call.
-    /// </summary>
-    /// <param name="func">Function to call.</param>
-    /// <returns>Task representing the pending or already completed function.</returns>
+    /// <inheritdoc/>
     public Task RunOnFrameworkThread(Func<Task> func) =>
         this.IsInFrameworkUpdateThread || this.IsFrameworkUnloading ? func() : this.RunOnTick(func);
 
-    /// <summary>
-    /// Run given function in upcoming Framework.Tick call.
-    /// </summary>
-    /// <typeparam name="T">Return type.</typeparam>
-    /// <param name="func">Function to call.</param>
-    /// <param name="delay">Wait for given timespan before calling this function.</param>
-    /// <param name="delayTicks">Count given number of Framework.Tick calls before calling this function. This takes precedence over delay parameter.</param>
-    /// <param name="cancellationToken">Cancellation token which will prevent the execution of this function if wait conditions are not met.</param>
-    /// <returns>Task representing the pending function.</returns>
+    /// <inheritdoc/>
     public Task<T> RunOnTick<T>(Func<T> func, TimeSpan delay = default, int delayTicks = default, CancellationToken cancellationToken = default)
     {
         if (this.IsFrameworkUnloading)
@@ -219,14 +176,7 @@ public sealed class Framework : IDisposable, IServiceType
         return tcs.Task;
     }
 
-    /// <summary>
-    /// Run given function in upcoming Framework.Tick call.
-    /// </summary>
-    /// <param name="action">Function to call.</param>
-    /// <param name="delay">Wait for given timespan before calling this function.</param>
-    /// <param name="delayTicks">Count given number of Framework.Tick calls before calling this function. This takes precedence over delay parameter.</param>
-    /// <param name="cancellationToken">Cancellation token which will prevent the execution of this function if wait conditions are not met.</param>
-    /// <returns>Task representing the pending function.</returns>
+    /// <inheritdoc/>
     public Task RunOnTick(Action action, TimeSpan delay = default, int delayTicks = default, CancellationToken cancellationToken = default)
     {
         if (this.IsFrameworkUnloading)
@@ -255,15 +205,7 @@ public sealed class Framework : IDisposable, IServiceType
         return tcs.Task;
     }
 
-    /// <summary>
-    /// Run given function in upcoming Framework.Tick call.
-    /// </summary>
-    /// <typeparam name="T">Return type.</typeparam>
-    /// <param name="func">Function to call.</param>
-    /// <param name="delay">Wait for given timespan before calling this function.</param>
-    /// <param name="delayTicks">Count given number of Framework.Tick calls before calling this function. This takes precedence over delay parameter.</param>
-    /// <param name="cancellationToken">Cancellation token which will prevent the execution of this function if wait conditions are not met.</param>
-    /// <returns>Task representing the pending function.</returns>
+    /// <inheritdoc/>
     public Task<T> RunOnTick<T>(Func<Task<T>> func, TimeSpan delay = default, int delayTicks = default, CancellationToken cancellationToken = default)
     {
         if (this.IsFrameworkUnloading)
@@ -292,14 +234,7 @@ public sealed class Framework : IDisposable, IServiceType
         return tcs.Task.ContinueWith(x => x.Result, cancellationToken).Unwrap();
     }
 
-    /// <summary>
-    /// Run given function in upcoming Framework.Tick call.
-    /// </summary>
-    /// <param name="func">Function to call.</param>
-    /// <param name="delay">Wait for given timespan before calling this function.</param>
-    /// <param name="delayTicks">Count given number of Framework.Tick calls before calling this function. This takes precedence over delay parameter.</param>
-    /// <param name="cancellationToken">Cancellation token which will prevent the execution of this function if wait conditions are not met.</param>
-    /// <returns>Task representing the pending function.</returns>
+    /// <inheritdoc/>
     public Task RunOnTick(Func<Task> func, TimeSpan delay = default, int delayTicks = default, CancellationToken cancellationToken = default)
     {
         if (this.IsFrameworkUnloading)

@@ -1,4 +1,5 @@
 ﻿using Dalamud.Game.Addon;
+using Dalamud.Game.Addon.Events;
 
 namespace Dalamud.Plugin.Services;
 

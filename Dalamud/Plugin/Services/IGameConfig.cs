@@ -12,9 +12,24 @@ namespace Dalamud.Plugin.Services;
 public interface IGameConfig
 {
     /// <summary>
-    /// Event which is fired when a game config option is changed.
+    /// Event which is fired when any game config option is changed.
     /// </summary>
     public event EventHandler<ConfigChangeEvent> Changed;
+
+    /// <summary>
+    /// Event which is fired when a system config option is changed.
+    /// </summary>
+    public event EventHandler<ConfigChangeEvent> SystemChanged; 
+    
+    /// <summary>
+    /// Event which is fired when a UiConfig option is changed.
+    /// </summary>
+    public event EventHandler<ConfigChangeEvent> UiConfigChanged; 
+    
+    /// <summary>
+    /// Event which is fired when a UiControl config option is changed.
+    /// </summary>
+    public event EventHandler<ConfigChangeEvent> UiControlChanged; 
 
     /// <summary>
     /// Gets the collection of config options that persist between characters.
@@ -83,7 +98,7 @@ public interface IGameConfig
     /// Attempts to get the properties of a String option from the System section.
     /// </summary>
     /// <param name="option">Option to get the properties of.</param>
-    /// <param name="properties">Details of the option: Default Value</param>
+    /// <param name="properties">Details of the option: Default Value.</param>
     /// <returns>A value representing the success.</returns>
     public bool TryGet(SystemConfigOption option, out StringConfigProperties? properties);
 
@@ -139,7 +154,7 @@ public interface IGameConfig
     /// Attempts to get the properties of a String option from the UiConfig section.
     /// </summary>
     /// <param name="option">Option to get the properties of.</param>
-    /// <param name="properties">Details of the option: Default Value</param>
+    /// <param name="properties">Details of the option: Default Value.</param>
     /// <returns>A value representing the success.</returns>
     public bool TryGet(UiConfigOption option, out StringConfigProperties? properties);
     
@@ -195,7 +210,7 @@ public interface IGameConfig
     /// Attempts to get the properties of a String option from the UiControl section.
     /// </summary>
     /// <param name="option">Option to get the properties of.</param>
-    /// <param name="properties">Details of the option: Default Value</param>
+    /// <param name="properties">Details of the option: Default Value.</param>
     /// <returns>A value representing the success.</returns>
     public bool TryGet(UiControlOption option, out StringConfigProperties? properties);
 

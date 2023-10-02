@@ -51,7 +51,7 @@ internal class LogoutEventAgingStep : IAgingStep
         }
     }
 
-    private void ClientStateOnOnLogout(object sender, EventArgs e)
+    private void ClientStateOnOnLogout()
     {
         this.hasPassed = true;
     }

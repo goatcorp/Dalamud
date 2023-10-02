@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Dalamud.Plugin.Services;
+﻿namespace Dalamud.Plugin.Services;
 
 /// <summary>
 /// This class represents the state of the currently occupied duty.

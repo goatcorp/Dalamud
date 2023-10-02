@@ -1,9 +1,11 @@
 using System;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 using Dalamud.Game;
 using Dalamud.Game.Gui;
+using Dalamud.Interface.Utility;
 using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using ImGuiNET;
@@ -415,7 +417,7 @@ internal unsafe class UiDebug
             $"MultiplyRGB: {node->MultiplyRed} {node->MultiplyGreen} {node->MultiplyBlue}");
     }
 
-    private bool DrawUnitListHeader(int index, uint count, ulong ptr, bool highlight)
+    private bool DrawUnitListHeader(int index, ushort count, ulong ptr, bool highlight)
     {
         ImGui.PushStyleColor(ImGuiCol.Text, highlight ? 0xFFAAAA00 : 0xFFFFFFFF);
         if (!string.IsNullOrEmpty(this.searchInput) && !this.doingSearch)
@@ -454,8 +456,6 @@ internal unsafe class UiDebug
             this.selectedInList[i] = false;
             var unitManager = &unitManagers[i];
 
-            var unitBaseArray = &unitManager->AtkUnitEntries;
-
             var headerOpen = true;
 
             if (!searching)
@@ -467,7 +467,7 @@ internal unsafe class UiDebug
 
             for (var j = 0; j < unitManager->Count && headerOpen; j++)
             {
-                var unitBase = unitBaseArray[j];
+                var unitBase = *(AtkUnitBase**)Unsafe.AsPointer(ref unitManager->EntriesSpan[j]);
                 if (this.selectedUnitBase != null && unitBase == this.selectedUnitBase)
                 {
                     this.selectedInList[i] = true;
@@ -512,7 +512,8 @@ internal unsafe class UiDebug
             {
                 for (var j = 0; j < unitManager->Count; j++)
                 {
-                    if (this.selectedUnitBase == null || unitBaseArray[j] != this.selectedUnitBase) continue;
+                    var unitBase = *(AtkUnitBase**)Unsafe.AsPointer(ref unitManager->EntriesSpan[j]);
+                    if (this.selectedUnitBase == null || unitBase != this.selectedUnitBase) continue;
                     this.selectedInList[i] = true;
                     foundSelected = true;
                 }

@@ -11,6 +11,7 @@ using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Hooking;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
+using Dalamud.Plugin.Services;
 using Dalamud.Utility;
 using Serilog;
 
@@ -19,10 +20,9 @@ namespace Dalamud.Game.Gui;
 /// <summary>
 /// This class handles interacting with the native chat UI.
 /// </summary>
-[PluginInterface]
 [InterfaceVersion("1.0")]
 [ServiceManager.BlockingEarlyLoadedService]
-public sealed class ChatGui : IDisposable, IServiceType
+internal sealed class ChatGui : IDisposable, IServiceType, IChatGui
 {
     private readonly ChatGuiAddressResolver address;
 
@@ -42,7 +42,7 @@ public sealed class ChatGui : IDisposable, IServiceType
     private IntPtr baseAddress = IntPtr.Zero;
 
     [ServiceManager.ServiceConstructor]
-    private ChatGui(SigScanner sigScanner)
+    private ChatGui(TargetSigScanner sigScanner)
     {
         this.address = new ChatGuiAddressResolver();
         this.address.Setup(sigScanner);
@@ -51,45 +51,7 @@ public sealed class ChatGui : IDisposable, IServiceType
         this.populateItemLinkHook = Hook<PopulateItemLinkDelegate>.FromAddress(this.address.PopulateItemLinkObject, this.HandlePopulateItemLinkDetour);
         this.interactableLinkClickedHook = Hook<InteractableLinkClickedDelegate>.FromAddress(this.address.InteractableLinkClicked, this.InteractableLinkClickedDetour);
     }
-
-    /// <summary>
-    /// A delegate type used with the <see cref="ChatGui.ChatMessage"/> event.
-    /// </summary>
-    /// <param name="type">The type of chat.</param>
-    /// <param name="senderId">The sender ID.</param>
-    /// <param name="sender">The sender name.</param>
-    /// <param name="message">The message sent.</param>
-    /// <param name="isHandled">A value indicating whether the message was handled or should be propagated.</param>
-    public delegate void OnMessageDelegate(XivChatType type, uint senderId, ref SeString sender, ref SeString message, ref bool isHandled);
-
-    /// <summary>
-    /// A delegate type used with the <see cref="ChatGui.CheckMessageHandled"/> event.
-    /// </summary>
-    /// <param name="type">The type of chat.</param>
-    /// <param name="senderId">The sender ID.</param>
-    /// <param name="sender">The sender name.</param>
-    /// <param name="message">The message sent.</param>
-    /// <param name="isHandled">A value indicating whether the message was handled or should be propagated.</param>
-    public delegate void OnCheckMessageHandledDelegate(XivChatType type, uint senderId, ref SeString sender, ref SeString message, ref bool isHandled);
-
-    /// <summary>
-    /// A delegate type used with the <see cref="ChatGui.ChatMessageHandled"/> event.
-    /// </summary>
-    /// <param name="type">The type of chat.</param>
-    /// <param name="senderId">The sender ID.</param>
-    /// <param name="sender">The sender name.</param>
-    /// <param name="message">The message sent.</param>
-    public delegate void OnMessageHandledDelegate(XivChatType type, uint senderId, SeString sender, SeString message);
-
-    /// <summary>
-    /// A delegate type used with the <see cref="ChatGui.ChatMessageUnhandled"/> event.
-    /// </summary>
-    /// <param name="type">The type of chat.</param>
-    /// <param name="senderId">The sender ID.</param>
-    /// <param name="sender">The sender name.</param>
-    /// <param name="message">The message sent.</param>
-    public delegate void OnMessageUnhandledDelegate(XivChatType type, uint senderId, SeString sender, SeString message);
-
+    
     [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
     private delegate IntPtr PrintMessageDelegate(IntPtr manager, XivChatType chatType, IntPtr senderName, IntPtr message, uint senderId, IntPtr parameter);
 
@@ -99,34 +61,22 @@ public sealed class ChatGui : IDisposable, IServiceType
     [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
     private delegate void InteractableLinkClickedDelegate(IntPtr managerPtr, IntPtr messagePtr);
 
-    /// <summary>
-    /// Event that will be fired when a chat message is sent to chat by the game.
-    /// </summary>
-    public event OnMessageDelegate ChatMessage;
+    /// <inheritdoc/>
+    public event IChatGui.OnMessageDelegate? ChatMessage;
 
-    /// <summary>
-    /// Event that allows you to stop messages from appearing in chat by setting the isHandled parameter to true.
-    /// </summary>
-    public event OnCheckMessageHandledDelegate CheckMessageHandled;
+    /// <inheritdoc/>
+    public event IChatGui.OnCheckMessageHandledDelegate? CheckMessageHandled;
 
-    /// <summary>
-    /// Event that will be fired when a chat message is handled by Dalamud or a Plugin.
-    /// </summary>
-    public event OnMessageHandledDelegate ChatMessageHandled;
+    /// <inheritdoc/>
+    public event IChatGui.OnMessageHandledDelegate? ChatMessageHandled;
 
-    /// <summary>
-    /// Event that will be fired when a chat message is not handled by Dalamud or a Plugin.
-    /// </summary>
-    public event OnMessageUnhandledDelegate ChatMessageUnhandled;
+    /// <inheritdoc/>
+    public event IChatGui.OnMessageUnhandledDelegate? ChatMessageUnhandled;
 
-    /// <summary>
-    /// Gets the ID of the last linked item.
-    /// </summary>
+    /// <inheritdoc/>
     public int LastLinkedItemId { get; private set; }
 
-    /// <summary>
-    /// Gets the flags of the last linked item.
-    /// </summary>
+    /// <inheritdoc/>
     public byte LastLinkedItemFlags { get; private set; }
 
     /// <summary>
@@ -139,76 +89,36 @@ public sealed class ChatGui : IDisposable, IServiceType
         this.interactableLinkClickedHook.Dispose();
     }
 
-    /// <summary>
-    /// Queue a chat message. While method is named as PrintChat, it only add a entry to the queue,
-    /// later to be processed when UpdateQueue() is called.
-    /// </summary>
-    /// <param name="chat">A message to send.</param>
-    public void PrintChat(XivChatEntry chat)
+    /// <inheritdoc/>
+    public void Print(XivChatEntry chat)
     {
         this.chatQueue.Enqueue(chat);
     }
-
-    /// <summary>
-    /// Queue a chat message. While method is named as PrintChat (it calls it internally), it only add a entry to the queue,
-    /// later to be processed when UpdateQueue() is called.
-    /// </summary>
-    /// <param name="message">A message to send.</param>
-    public void Print(string message)
+    
+    /// <inheritdoc/>
+    public void Print(string message, string? messageTag = null, ushort? tagColor = null)
     {
-        // Log.Verbose("[CHATGUI PRINT REGULAR]{0}", message);
-        this.PrintChat(new XivChatEntry
-        {
-            Message = message,
-            Type = this.configuration.GeneralChatType,
-        });
+        this.PrintTagged(message, this.configuration.GeneralChatType, messageTag, tagColor);
     }
-
-    /// <summary>
-    /// Queue a chat message. While method is named as PrintChat (it calls it internally), it only add a entry to the queue,
-    /// later to be processed when UpdateQueue() is called.
-    /// </summary>
-    /// <param name="message">A message to send.</param>
-    public void Print(SeString message)
+    
+    /// <inheritdoc/>
+    public void Print(SeString message, string? messageTag = null, ushort? tagColor = null)
     {
-        // Log.Verbose("[CHATGUI PRINT SESTRING]{0}", message.TextValue);
-        this.PrintChat(new XivChatEntry
-        {
-            Message = message,
-            Type = this.configuration.GeneralChatType,
-        });
+        this.PrintTagged(message, this.configuration.GeneralChatType, messageTag, tagColor);
     }
-
-    /// <summary>
-    /// Queue an error chat message. While method is named as PrintChat (it calls it internally), it only add a entry to
-    /// the queue, later to be processed when UpdateQueue() is called.
-    /// </summary>
-    /// <param name="message">A message to send.</param>
-    public void PrintError(string message)
+    
+    /// <inheritdoc/>
+    public void PrintError(string message, string? messageTag = null, ushort? tagColor = null)
     {
-        // Log.Verbose("[CHATGUI PRINT REGULAR ERROR]{0}", message);
-        this.PrintChat(new XivChatEntry
-        {
-            Message = message,
-            Type = XivChatType.Urgent,
-        });
+        this.PrintTagged(message, XivChatType.Urgent, messageTag, tagColor);
     }
-
-    /// <summary>
-    /// Queue an error chat message. While method is named as PrintChat (it calls it internally), it only add a entry to
-    /// the queue, later to be processed when UpdateQueue() is called.
-    /// </summary>
-    /// <param name="message">A message to send.</param>
-    public void PrintError(SeString message)
+    
+    /// <inheritdoc/>
+    public void PrintError(SeString message, string? messageTag = null, ushort? tagColor = null)
     {
-        // Log.Verbose("[CHATGUI PRINT SESTRING ERROR]{0}", message.TextValue);
-        this.PrintChat(new XivChatEntry
-        {
-            Message = message,
-            Type = XivChatType.Urgent,
-        });
+        this.PrintTagged(message, XivChatType.Urgent, messageTag, tagColor);
     }
-
+    
     /// <summary>
     /// Process a chat queue.
     /// </summary>
@@ -242,7 +152,7 @@ public sealed class ChatGui : IDisposable, IServiceType
     /// <returns>A payload for handling.</returns>
     internal DalamudLinkPayload AddChatLinkHandler(string pluginName, uint commandId, Action<uint, SeString> commandAction)
     {
-        var payload = new DalamudLinkPayload() { Plugin = pluginName, CommandId = commandId };
+        var payload = new DalamudLinkPayload { Plugin = pluginName, CommandId = commandId };
         this.dalamudLinkHandlers.Add((pluginName, commandId), commandAction);
         return payload;
     }
@@ -266,18 +176,61 @@ public sealed class ChatGui : IDisposable, IServiceType
     /// <param name="commandId">The ID of the command to be removed.</param>
     internal void RemoveChatLinkHandler(string pluginName, uint commandId)
     {
-        if (this.dalamudLinkHandlers.ContainsKey((pluginName, commandId)))
-        {
-            this.dalamudLinkHandlers.Remove((pluginName, commandId));
-        }
+        this.dalamudLinkHandlers.Remove((pluginName, commandId));
     }
 
     [ServiceManager.CallWhenServicesReady]
-    private void ContinueConstruction(GameGui gameGui, LibcFunction libcFunction)
+    private void ContinueConstruction()
     {
         this.printMessageHook.Enable();
         this.populateItemLinkHook.Enable();
         this.interactableLinkClickedHook.Enable();
+    }
+
+    private void PrintTagged(string message, XivChatType channel, string? tag, ushort? color)
+    {
+        var builder = new SeStringBuilder();
+
+        if (!tag.IsNullOrEmpty())
+        {
+            if (color is not null)
+            {
+                builder.AddUiForeground($"[{tag}] ", color.Value);
+            }
+            else
+            {
+                builder.AddText($"[{tag}] ");
+            }
+        }
+        
+        this.Print(new XivChatEntry
+        {
+            Message = builder.AddText(message).Build(),
+            Type = channel,
+        });
+    }
+    
+    private void PrintTagged(SeString message, XivChatType channel, string? tag, ushort? color)
+    {
+        var builder = new SeStringBuilder();
+        
+        if (!tag.IsNullOrEmpty())
+        {
+            if (color is not null)
+            {
+                builder.AddUiForeground($"[{tag}] ", color.Value);
+            }
+            else
+            {
+                builder.AddText($"[{tag}] ");
+            }
+        }
+        
+        this.Print(new XivChatEntry
+        {
+            Message = builder.Build().Append(message),
+            Type = channel,
+        });
     }
 
     private void HandlePopulateItemLinkDetour(IntPtr linkObjectPtr, IntPtr itemInfoPtr)
@@ -298,7 +251,7 @@ public sealed class ChatGui : IDisposable, IServiceType
         }
     }
 
-    private IntPtr HandlePrintMessageDetour(IntPtr manager, XivChatType chattype, IntPtr pSenderName, IntPtr pMessage, uint senderid, IntPtr parameter)
+    private IntPtr HandlePrintMessageDetour(IntPtr manager, XivChatType chatType, IntPtr pSenderName, IntPtr pMessage, uint senderId, IntPtr parameter)
     {
         var retVal = IntPtr.Zero;
 
@@ -325,13 +278,13 @@ public sealed class ChatGui : IDisposable, IServiceType
             // Call events
             var isHandled = false;
 
-            var invocationList = this.CheckMessageHandled.GetInvocationList();
+            var invocationList = this.CheckMessageHandled!.GetInvocationList();
             foreach (var @delegate in invocationList)
             {
                 try
                 {
-                    var messageHandledDelegate = @delegate as OnCheckMessageHandledDelegate;
-                    messageHandledDelegate!.Invoke(chattype, senderid, ref parsedSender, ref parsedMessage, ref isHandled);
+                    var messageHandledDelegate = @delegate as IChatGui.OnCheckMessageHandledDelegate;
+                    messageHandledDelegate!.Invoke(chatType, senderId, ref parsedSender, ref parsedMessage, ref isHandled);
                 }
                 catch (Exception e)
                 {
@@ -341,13 +294,13 @@ public sealed class ChatGui : IDisposable, IServiceType
 
             if (!isHandled)
             {
-                invocationList = this.ChatMessage.GetInvocationList();
+                invocationList = this.ChatMessage!.GetInvocationList();
                 foreach (var @delegate in invocationList)
                 {
                     try
                     {
-                        var messageHandledDelegate = @delegate as OnMessageDelegate;
-                        messageHandledDelegate!.Invoke(chattype, senderid, ref parsedSender, ref parsedMessage, ref isHandled);
+                        var messageHandledDelegate = @delegate as IChatGui.OnMessageDelegate;
+                        messageHandledDelegate!.Invoke(chatType, senderId, ref parsedSender, ref parsedMessage, ref isHandled);
                     }
                     catch (Exception e)
                     {
@@ -390,12 +343,12 @@ public sealed class ChatGui : IDisposable, IServiceType
             // Print the original chat if it's handled.
             if (isHandled)
             {
-                this.ChatMessageHandled?.Invoke(chattype, senderid, parsedSender, parsedMessage);
+                this.ChatMessageHandled?.Invoke(chatType, senderId, parsedSender, parsedMessage);
             }
             else
             {
-                retVal = this.printMessageHook.Original(manager, chattype, senderPtr, messagePtr, senderid, parameter);
-                this.ChatMessageUnhandled?.Invoke(chattype, senderid, parsedSender, parsedMessage);
+                retVal = this.printMessageHook.Original(manager, chatType, senderPtr, messagePtr, senderId, parameter);
+                this.ChatMessageUnhandled?.Invoke(chatType, senderId, parsedSender, parsedMessage);
             }
 
             if (this.baseAddress == IntPtr.Zero)
@@ -407,7 +360,7 @@ public sealed class ChatGui : IDisposable, IServiceType
         catch (Exception ex)
         {
             Log.Error(ex, "Exception on OnChatMessage hook.");
-            retVal = this.printMessageHook.Original(manager, chattype, pSenderName, pMessage, senderid, parameter);
+            retVal = this.printMessageHook.Original(manager, chatType, pSenderName, pMessage, senderId, parameter);
         }
 
         return retVal;
@@ -439,10 +392,10 @@ public sealed class ChatGui : IDisposable, IServiceType
             var linkPayload = payloads[0];
             if (linkPayload is DalamudLinkPayload link)
             {
-                if (this.dalamudLinkHandlers.ContainsKey((link.Plugin, link.CommandId)))
+                if (this.dalamudLinkHandlers.TryGetValue((link.Plugin, link.CommandId), out var value))
                 {
                     Log.Verbose($"Sending DalamudLink to {link.Plugin}: {link.CommandId}");
-                    this.dalamudLinkHandlers[(link.Plugin, link.CommandId)].Invoke(link.CommandId, new SeString(payloads));
+                    value.Invoke(link.CommandId, new SeString(payloads));
                 }
                 else
                 {
@@ -455,4 +408,94 @@ public sealed class ChatGui : IDisposable, IServiceType
             Log.Error(ex, "Exception on InteractableLinkClicked hook");
         }
     }
+}
+
+/// <summary>
+/// Plugin scoped version of ChatGui.
+/// </summary>
+[PluginInterface]
+[InterfaceVersion("1.0")]
+[ServiceManager.ScopedService]
+#pragma warning disable SA1015
+[ResolveVia<IChatGui>]
+#pragma warning restore SA1015
+internal class ChatGuiPluginScoped : IDisposable, IServiceType, IChatGui
+{
+    [ServiceManager.ServiceDependency]
+    private readonly ChatGui chatGuiService = Service<ChatGui>.Get();
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ChatGuiPluginScoped"/> class.
+    /// </summary>
+    internal ChatGuiPluginScoped()
+    {
+        this.chatGuiService.ChatMessage += this.OnMessageForward;
+        this.chatGuiService.CheckMessageHandled += this.OnCheckMessageForward;
+        this.chatGuiService.ChatMessageHandled += this.OnMessageHandledForward;
+        this.chatGuiService.ChatMessageUnhandled += this.OnMessageUnhandledForward;
+    }
+    
+    /// <inheritdoc/>
+    public event IChatGui.OnMessageDelegate? ChatMessage;
+    
+    /// <inheritdoc/>
+    public event IChatGui.OnCheckMessageHandledDelegate? CheckMessageHandled;
+    
+    /// <inheritdoc/>
+    public event IChatGui.OnMessageHandledDelegate? ChatMessageHandled;
+    
+    /// <inheritdoc/>
+    public event IChatGui.OnMessageUnhandledDelegate? ChatMessageUnhandled;
+
+    /// <inheritdoc/>
+    public int LastLinkedItemId => this.chatGuiService.LastLinkedItemId;
+
+    /// <inheritdoc/>
+    public byte LastLinkedItemFlags => this.chatGuiService.LastLinkedItemFlags;
+
+    /// <inheritdoc/>
+    public void Dispose()
+    {
+        this.chatGuiService.ChatMessage -= this.OnMessageForward;
+        this.chatGuiService.CheckMessageHandled -= this.OnCheckMessageForward;
+        this.chatGuiService.ChatMessageHandled -= this.OnMessageHandledForward;
+        this.chatGuiService.ChatMessageUnhandled -= this.OnMessageUnhandledForward;
+
+        this.ChatMessage = null;
+        this.CheckMessageHandled = null;
+        this.ChatMessageHandled = null;
+        this.ChatMessageUnhandled = null;
+    }
+    
+    /// <inheritdoc/>
+    public void Print(XivChatEntry chat)
+        => this.chatGuiService.Print(chat);
+    
+    /// <inheritdoc/>
+    public void Print(string message, string? messageTag = null, ushort? tagColor = null) 
+        => this.chatGuiService.Print(message, messageTag, tagColor);
+
+    /// <inheritdoc/>
+    public void Print(SeString message, string? messageTag = null, ushort? tagColor = null)
+        => this.chatGuiService.Print(message, messageTag, tagColor);
+    
+    /// <inheritdoc/>
+    public void PrintError(string message, string? messageTag = null, ushort? tagColor = null)
+        => this.chatGuiService.PrintError(message, messageTag, tagColor);
+    
+    /// <inheritdoc/>
+    public void PrintError(SeString message, string? messageTag = null, ushort? tagColor = null)
+        => this.chatGuiService.PrintError(message, messageTag, tagColor);
+
+    private void OnMessageForward(XivChatType type, uint senderId, ref SeString sender, ref SeString message, ref bool isHandled)
+        => this.ChatMessage?.Invoke(type, senderId, ref sender, ref message, ref isHandled);
+
+    private void OnCheckMessageForward(XivChatType type, uint senderId, ref SeString sender, ref SeString message, ref bool isHandled)
+        => this.CheckMessageHandled?.Invoke(type, senderId, ref sender, ref message, ref isHandled);
+
+    private void OnMessageHandledForward(XivChatType type, uint senderId, SeString sender, SeString message)
+        => this.ChatMessageHandled?.Invoke(type, senderId, sender, message);
+
+    private void OnMessageUnhandledForward(XivChatType type, uint senderId, SeString sender, SeString message)
+        => this.ChatMessageUnhandled?.Invoke(type, senderId, sender, message);
 }

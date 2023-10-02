@@ -54,11 +54,6 @@ namespace Dalamud.Plugin.Internal;
 internal partial class PluginManager : IDisposable, IServiceType
 {
     /// <summary>
-    /// The current Dalamud API level, used to handle breaking changes. Only plugins with this level will be loaded.
-    /// </summary>
-    public const int DalamudApiLevel = 8;
-
-    /// <summary>
     /// Default time to wait between plugin unload and plugin assembly unload.
     /// </summary>
     public const int PluginWaitBeforeFreeDefault = 1000; // upped from 500ms, seems more stable
@@ -79,7 +74,7 @@ internal partial class PluginManager : IDisposable, IServiceType
     private readonly DalamudConfiguration configuration = Service<DalamudConfiguration>.Get();
 
     [ServiceManager.ServiceDependency]
-    private readonly DalamudStartInfo startInfo = Service<DalamudStartInfo>.Get();
+    private readonly Dalamud dalamud = Service<Dalamud>.Get();
 
     [ServiceManager.ServiceDependency]
     private readonly ProfileManager profileManager = Service<ProfileManager>.Get();
@@ -87,15 +82,20 @@ internal partial class PluginManager : IDisposable, IServiceType
     [ServiceManager.ServiceDependency]
     private readonly HappyHttpClient happyHttpClient = Service<HappyHttpClient>.Get();
 
+    static PluginManager()
+    {
+        DalamudApiLevel = typeof(PluginManager).Assembly.GetName().Version!.Major;
+    }
+
     [ServiceManager.ServiceConstructor]
     private PluginManager()
     {
-        this.pluginDirectory = new DirectoryInfo(this.startInfo.PluginDirectory!);
+        this.pluginDirectory = new DirectoryInfo(this.dalamud.StartInfo.PluginDirectory!);
 
         if (!this.pluginDirectory.Exists)
             this.pluginDirectory.Create();
 
-        this.SafeMode = EnvironmentConfiguration.DalamudNoPlugins || this.configuration.PluginSafeMode || this.startInfo.NoLoadPlugins;
+        this.SafeMode = EnvironmentConfiguration.DalamudNoPlugins || this.configuration.PluginSafeMode || this.dalamud.StartInfo.NoLoadPlugins;
 
         try
         {
@@ -119,9 +119,9 @@ internal partial class PluginManager : IDisposable, IServiceType
             this.configuration.QueueSave();
         }
 
-        this.PluginConfigs = new PluginConfigurations(Path.Combine(Path.GetDirectoryName(this.startInfo.ConfigurationPath) ?? string.Empty, "pluginConfigs"));
+        this.PluginConfigs = new PluginConfigurations(Path.Combine(Path.GetDirectoryName(this.dalamud.StartInfo.ConfigurationPath) ?? string.Empty, "pluginConfigs"));
 
-        var bannedPluginsJson = File.ReadAllText(Path.Combine(this.startInfo.AssetDirectory!, "UIRes", "bannedplugin.json"));
+        var bannedPluginsJson = File.ReadAllText(Path.Combine(this.dalamud.StartInfo.AssetDirectory!, "UIRes", "bannedplugin.json"));
         this.bannedPlugins = JsonConvert.DeserializeObject<BannedPlugin[]>(bannedPluginsJson);
         if (this.bannedPlugins == null)
         {
@@ -147,6 +147,12 @@ internal partial class PluginManager : IDisposable, IServiceType
     /// An event that fires when the available plugins have changed.
     /// </summary>
     public event Action? OnAvailablePluginsChanged;
+
+    /// <summary>
+    /// Gets the current Dalamud API level, used to handle breaking changes. Only plugins with this level will be loaded.
+    /// As of Dalamud 9.x, this always matches the major version number of Dalamud.
+    /// </summary>
+    public static int DalamudApiLevel { get; private set; }
 
     /// <summary>
     /// Gets a copy of the list of all loaded plugins.
@@ -279,7 +285,7 @@ internal partial class PluginManager : IDisposable, IServiceType
 
         if (updateMetadata is { Count: > 0 })
         {
-            chatGui.PrintChat(new XivChatEntry
+            chatGui.Print(new XivChatEntry
             {
                 Message = new SeString(new List<Payload>()
                 {
@@ -302,7 +308,7 @@ internal partial class PluginManager : IDisposable, IServiceType
                 }
                 else
                 {
-                    chatGui.PrintChat(new XivChatEntry
+                    chatGui.Print(new XivChatEntry
                     {
                         Message = Locs.DalamudPluginUpdateFailed(metadata.Name, metadata.Version),
                         Type = XivChatType.Urgent,
@@ -617,29 +623,12 @@ internal partial class PluginManager : IDisposable, IServiceType
                     Log.Error(e, "Failed to load at least one plugin");
                 }
 
-                var sigScanner = await Service<SigScanner>.GetAsync().ConfigureAwait(false);
+                var sigScanner = await Service<TargetSigScanner>.GetAsync().ConfigureAwait(false);
                 this.PluginsReady = true;
                 this.NotifyinstalledPluginsListChanged();
                 sigScanner.Save();
             },
             tokenSource.Token);
-    }
-
-    /// <summary>
-    /// Reload all loaded plugins.
-    /// </summary>
-    /// <returns>A task.</returns>
-    [Obsolete("This method should no longer be used and will be removed in a future release.")]
-    public Task ReloadAllPluginsAsync()
-    {
-        lock (this.pluginListLock)
-        {
-            return Task.WhenAll(this.installedPluginsList
-                                    .Where(x => x.IsLoaded)
-                                    .ToList()
-                                    .Select(x => Task.Run(async () => await x.ReloadAsync()))
-                                    .ToList());
-        }
     }
 
     /// <summary>
@@ -847,7 +836,7 @@ internal partial class PluginManager : IDisposable, IServiceType
         var manifestFile = LocalPluginManifest.GetManifestFile(dllFile);
 
         // We need to save the repoManifest due to how the repo fills in some fields that authors are not expected to use.
-        File.WriteAllText(manifestFile.FullName, JsonConvert.SerializeObject(repoManifest, Formatting.Indented));
+        Util.WriteAllTextSafe(manifestFile.FullName, JsonConvert.SerializeObject(repoManifest, Formatting.Indented));
 
         // Reload as a local manifest, add some attributes, and save again.
         var manifest = LocalPluginManifest.Load(manifestFile);
@@ -1179,7 +1168,7 @@ internal partial class PluginManager : IDisposable, IServiceType
         }
 
         // Applicable version
-        if (manifest.ApplicableVersion < this.startInfo.GameVersion)
+        if (manifest.ApplicableVersion < this.dalamud.StartInfo.GameVersion)
         {
             Log.Verbose($"Game version: {manifest.InternalName} - {manifest.AssemblyVersion} - {manifest.TestingAssemblyVersion}");
             return false;

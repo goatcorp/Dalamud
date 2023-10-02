@@ -10,7 +10,7 @@ namespace Dalamud.Game;
 /// <summary>
 /// Base memory address resolver.
 /// </summary>
-public abstract class BaseAddressResolver
+internal abstract class BaseAddressResolver
 {
     /// <summary>
     /// Gets a list of memory addresses that were found, to list in /xldata.
@@ -21,15 +21,6 @@ public abstract class BaseAddressResolver
     /// Gets or sets a value indicating whether the resolver has successfully run <see cref="Setup32Bit(SigScanner)"/> or <see cref="Setup64Bit(SigScanner)"/>.
     /// </summary>
     protected bool IsResolved { get; set; }
-
-    /// <summary>
-    /// Setup the resolver, calling the appropriate method based on the process architecture,
-    /// using the default SigScanner.
-    ///
-    /// For plugins. Not intended to be called from Dalamud Service{T} constructors.
-    /// </summary>
-    [UsedImplicitly]
-    public void Setup() => this.Setup(Service<SigScanner>.Get());
 
     /// <summary>
     /// Setup the resolver, calling the appropriate method based on the process architecture.

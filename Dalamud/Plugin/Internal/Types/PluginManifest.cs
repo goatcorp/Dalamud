@@ -1,7 +1,6 @@
-using System;
 using System.Collections.Generic;
 
-using Dalamud.Game;
+using Dalamud.Common.Game;
 using Dalamud.Plugin.Internal.Types.Manifest;
 using Newtonsoft.Json;
 

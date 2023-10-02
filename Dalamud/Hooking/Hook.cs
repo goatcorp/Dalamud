@@ -1,4 +1,3 @@
-using System;
 using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -13,7 +12,7 @@ namespace Dalamud.Hooking;
 /// This class is basically a thin wrapper around the LocalHook type to provide helper functions.
 /// </summary>
 /// <typeparam name="T">Delegate type to represents a function prototype. This must be the same prototype as original function do.</typeparam>
-public class Hook<T> : IDisposable, IDalamudHook where T : Delegate
+public abstract class Hook<T> : IDalamudHook where T : Delegate
 {
 #pragma warning disable SA1310
     // ReSharper disable once InconsistentNaming
@@ -24,34 +23,6 @@ public class Hook<T> : IDisposable, IDalamudHook where T : Delegate
 
     private readonly IntPtr address;
 
-    private readonly Hook<T>? compatHookImpl;
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="Hook{T}"/> class.
-    /// Hook is not activated until Enable() method is called.
-    /// </summary>
-    /// <param name="address">A memory address to install a hook.</param>
-    /// <param name="detour">Callback function. Delegate must have a same original function prototype.</param>
-    [Obsolete("Use Hook<T>.FromAddress instead.")]
-    public Hook(IntPtr address, T detour)
-        : this(address, detour, false, Assembly.GetCallingAssembly())
-    {
-    }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="Hook{T}"/> class.
-    /// Hook is not activated until Enable() method is called.
-    /// Please do not use MinHook unless you have thoroughly troubleshot why Reloaded does not work.
-    /// </summary>
-    /// <param name="address">A memory address to install a hook.</param>
-    /// <param name="detour">Callback function. Delegate must have a same original function prototype.</param>
-    /// <param name="useMinHook">Use the MinHook hooking library instead of Reloaded.</param>
-    [Obsolete("Use Hook<T>.FromAddress instead.")]
-    public Hook(IntPtr address, T detour, bool useMinHook)
-        : this(address, detour, useMinHook, Assembly.GetCallingAssembly())
-    {
-    }
-
     /// <summary>
     /// Initializes a new instance of the <see cref="Hook{T}"/> class.
     /// </summary>
@@ -59,19 +30,6 @@ public class Hook<T> : IDisposable, IDalamudHook where T : Delegate
     internal Hook(IntPtr address)
     {
         this.address = address;
-    }
-
-    [Obsolete("Use Hook<T>.FromAddress instead.")]
-    private Hook(IntPtr address, T detour, bool useMinHook, Assembly callingAssembly)
-    {
-        if (EnvironmentConfiguration.DalamudForceMinHook)
-            useMinHook = true;
-
-        this.address = address = HookManager.FollowJmp(address);
-        if (useMinHook)
-            this.compatHookImpl = new MinHookHook<T>(address, detour, callingAssembly);
-        else
-            this.compatHookImpl = new ReloadedHook<T>(address, detour, callingAssembly);
     }
 
     /// <summary>
@@ -91,28 +49,19 @@ public class Hook<T> : IDisposable, IDalamudHook where T : Delegate
     /// Gets a delegate function that can be used to call the actual function as if function is not hooked yet.
     /// </summary>
     /// <exception cref="ObjectDisposedException">Hook is already disposed.</exception>
-    public virtual T Original => this.compatHookImpl != null ? this.compatHookImpl!.Original : throw new NotImplementedException();
+    public virtual T Original => throw new NotImplementedException();
 
     /// <summary>
     /// Gets a delegate function that can be used to call the actual function as if function is not hooked yet.
     /// This can be called even after Dispose.
     /// </summary>
     public T OriginalDisposeSafe
-    {
-        get
-        {
-            if (this.compatHookImpl != null)
-                return this.compatHookImpl!.OriginalDisposeSafe;
-            if (this.IsDisposed)
-                return Marshal.GetDelegateForFunctionPointer<T>(this.address);
-            return this.Original;
-        }
-    }
+        => this.IsDisposed ? Marshal.GetDelegateForFunctionPointer<T>(this.address) : this.Original;
 
     /// <summary>
     /// Gets a value indicating whether or not the hook is enabled.
     /// </summary>
-    public virtual bool IsEnabled => this.compatHookImpl != null ? this.compatHookImpl!.IsEnabled : throw new NotImplementedException();
+    public virtual bool IsEnabled => throw new NotImplementedException();
 
     /// <summary>
     /// Gets a value indicating whether or not the hook has been disposed.
@@ -120,7 +69,28 @@ public class Hook<T> : IDisposable, IDalamudHook where T : Delegate
     public bool IsDisposed { get; private set; }
 
     /// <inheritdoc/>
-    public virtual string BackendName => this.compatHookImpl != null ? this.compatHookImpl!.BackendName : throw new NotImplementedException();
+    public virtual string BackendName => throw new NotImplementedException();
+    
+    /// <summary>
+    /// Remove a hook from the current process.
+    /// </summary>
+    public virtual void Dispose()
+    {
+        if (this.IsDisposed)
+            return;
+
+        this.IsDisposed = true;
+    }
+
+    /// <summary>
+    /// Starts intercepting a call to the function.
+    /// </summary>
+    public virtual void Enable() => throw new NotImplementedException();
+
+    /// <summary>
+    /// Stops intercepting a call to the function.
+    /// </summary>
+    public virtual void Disable() => throw new NotImplementedException();
 
     /// <summary>
     /// Creates a hook by rewriting import table address.
@@ -128,7 +98,7 @@ public class Hook<T> : IDisposable, IDalamudHook where T : Delegate
     /// <param name="address">A memory address to install a hook.</param>
     /// <param name="detour">Callback function. Delegate must have a same original function prototype.</param>
     /// <returns>The hook with the supplied parameters.</returns>
-    public static unsafe Hook<T> FromFunctionPointerVariable(IntPtr address, T detour)
+    internal static Hook<T> FromFunctionPointerVariable(IntPtr address, T detour)
     {
         return new FunctionPointerVariableHook<T>(address, detour, Assembly.GetCallingAssembly());
     }
@@ -142,7 +112,7 @@ public class Hook<T> : IDisposable, IDalamudHook where T : Delegate
     /// <param name="hintOrOrdinal">Hint or ordinal. 0 to unspecify.</param>
     /// <param name="detour">Callback function. Delegate must have a same original function prototype.</param>
     /// <returns>The hook with the supplied parameters.</returns>
-    public static unsafe Hook<T> FromImport(ProcessModule? module, string moduleName, string functionName, uint hintOrOrdinal, T detour)
+    internal static unsafe Hook<T> FromImport(ProcessModule? module, string moduleName, string functionName, uint hintOrOrdinal, T detour)
     {
         module ??= Process.GetCurrentProcess().MainModule;
         if (module == null)
@@ -207,7 +177,7 @@ public class Hook<T> : IDisposable, IDalamudHook where T : Delegate
     /// <param name="exportName">A name of the exported function name (e.g. send).</param>
     /// <param name="detour">Callback function. Delegate must have a same original function prototype.</param>
     /// <returns>The hook with the supplied parameters.</returns>
-    public static Hook<T> FromSymbol(string moduleName, string exportName, T detour)
+    internal static Hook<T> FromSymbol(string moduleName, string exportName, T detour)
         => FromSymbol(moduleName, exportName, detour, false);
 
     /// <summary>
@@ -220,7 +190,7 @@ public class Hook<T> : IDisposable, IDalamudHook where T : Delegate
     /// <param name="detour">Callback function. Delegate must have a same original function prototype.</param>
     /// <param name="useMinHook">Use the MinHook hooking library instead of Reloaded.</param>
     /// <returns>The hook with the supplied parameters.</returns>
-    public static Hook<T> FromSymbol(string moduleName, string exportName, T detour, bool useMinHook)
+    internal static Hook<T> FromSymbol(string moduleName, string exportName, T detour, bool useMinHook)
     {
         if (EnvironmentConfiguration.DalamudForceMinHook)
             useMinHook = true;
@@ -249,7 +219,7 @@ public class Hook<T> : IDisposable, IDalamudHook where T : Delegate
     /// <param name="detour">Callback function. Delegate must have a same original function prototype.</param>
     /// <param name="useMinHook">Use the MinHook hooking library instead of Reloaded.</param>
     /// <returns>The hook with the supplied parameters.</returns>
-    public static Hook<T> FromAddress(IntPtr procAddress, T detour, bool useMinHook = false)
+    internal static Hook<T> FromAddress(IntPtr procAddress, T detour, bool useMinHook = false)
     {
         if (EnvironmentConfiguration.DalamudForceMinHook)
             useMinHook = true;
@@ -259,41 +229,6 @@ public class Hook<T> : IDisposable, IDalamudHook where T : Delegate
             return new MinHookHook<T>(procAddress, detour, Assembly.GetCallingAssembly());
         else
             return new ReloadedHook<T>(procAddress, detour, Assembly.GetCallingAssembly());
-    }
-
-    /// <summary>
-    /// Remove a hook from the current process.
-    /// </summary>
-    public virtual void Dispose()
-    {
-        if (this.IsDisposed)
-            return;
-
-        this.compatHookImpl?.Dispose();
-
-        this.IsDisposed = true;
-    }
-
-    /// <summary>
-    /// Starts intercepting a call to the function.
-    /// </summary>
-    public virtual void Enable()
-    {
-        if (this.compatHookImpl != null)
-            this.compatHookImpl.Enable();
-        else
-            throw new NotImplementedException();
-    }
-
-    /// <summary>
-    /// Stops intercepting a call to the function.
-    /// </summary>
-    public virtual void Disable()
-    {
-        if (this.compatHookImpl != null)
-            this.compatHookImpl.Disable();
-        else
-            throw new NotImplementedException();
     }
 
     /// <summary>

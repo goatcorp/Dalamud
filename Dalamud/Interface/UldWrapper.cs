@@ -1,8 +1,8 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 
 using Dalamud.Data;
+using Dalamud.Interface.Internal;
 using Dalamud.Utility;
 using ImGuiScene;
 using Lumina.Data.Files;
@@ -38,7 +38,7 @@ public class UldWrapper : IDisposable
     /// <param name="texturePath">The path of the requested texture.</param>
     /// <param name="part">The index of the desired icon.</param>
     /// <returns>A TextureWrap containing the requested part if it exists and null otherwise.</returns>
-    public TextureWrap? LoadTexturePart(string texturePath, int part)
+    public IDalamudTextureWrap? LoadTexturePart(string texturePath, int part)
     {
         if (!this.Valid)
         {
@@ -67,7 +67,7 @@ public class UldWrapper : IDisposable
         this.Uld = null;
     }
 
-    private TextureWrap? CreateTexture(uint id, int width, int height, bool hd, byte[] rgbaData, int partIdx)
+    private IDalamudTextureWrap? CreateTexture(uint id, int width, int height, bool hd, byte[] rgbaData, int partIdx)
     {
         var idx = 0;
         UldRoot.PartData? partData = null;
@@ -105,7 +105,7 @@ public class UldWrapper : IDisposable
         return this.CopyRect(width, height, rgbaData, d);
     }
 
-    private TextureWrap? CopyRect(int width, int height, byte[] rgbaData, UldRoot.PartData part)
+    private IDalamudTextureWrap? CopyRect(int width, int height, byte[] rgbaData, UldRoot.PartData part)
     {
         if (part.V + part.W > width || part.U + part.H > height)
         {

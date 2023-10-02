@@ -1,10 +1,10 @@
-using System;
 using System.Runtime.InteropServices;
 
 using Dalamud.Configuration.Internal;
 using Dalamud.Hooking;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
+using Dalamud.Plugin.Services;
 using Dalamud.Utility;
 using Serilog;
 
@@ -13,10 +13,9 @@ namespace Dalamud.Game.Network;
 /// <summary>
 /// This class handles interacting with game network events.
 /// </summary>
-[PluginInterface]
 [InterfaceVersion("1.0")]
 [ServiceManager.BlockingEarlyLoadedService]
-public sealed class GameNetwork : IDisposable, IServiceType
+internal sealed class GameNetwork : IDisposable, IServiceType, IGameNetwork
 {
     private readonly GameNetworkAddressResolver address;
     private readonly Hook<ProcessZonePacketDownDelegate> processZonePacketDownHook;
@@ -31,7 +30,7 @@ public sealed class GameNetwork : IDisposable, IServiceType
     private IntPtr baseAddress;
 
     [ServiceManager.ServiceConstructor]
-    private GameNetwork(SigScanner sigScanner)
+    private GameNetwork(TargetSigScanner sigScanner)
     {
         this.hitchDetectorUp = new HitchDetector("GameNetworkUp", this.configuration.GameNetworkUpHitch);
         this.hitchDetectorDown = new HitchDetector("GameNetworkDown", this.configuration.GameNetworkDownHitch);
@@ -47,30 +46,16 @@ public sealed class GameNetwork : IDisposable, IServiceType
         this.processZonePacketUpHook = Hook<ProcessZonePacketUpDelegate>.FromAddress(this.address.ProcessZonePacketUp, this.ProcessZonePacketUpDetour);
     }
 
-    /// <summary>
-    /// The delegate type of a network message event.
-    /// </summary>
-    /// <param name="dataPtr">The pointer to the raw data.</param>
-    /// <param name="opCode">The operation ID code.</param>
-    /// <param name="sourceActorId">The source actor ID.</param>
-    /// <param name="targetActorId">The taret actor ID.</param>
-    /// <param name="direction">The direction of the packed.</param>
-    public delegate void OnNetworkMessageDelegate(IntPtr dataPtr, ushort opCode, uint sourceActorId, uint targetActorId, NetworkMessageDirection direction);
-
     [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
     private delegate void ProcessZonePacketDownDelegate(IntPtr a, uint targetId, IntPtr dataPtr);
 
     [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
     private delegate byte ProcessZonePacketUpDelegate(IntPtr a1, IntPtr dataPtr, IntPtr a3, byte a4);
 
-    /// <summary>
-    /// Event that is called when a network message is sent/received.
-    /// </summary>
-    public event OnNetworkMessageDelegate NetworkMessage;
+    /// <inheritdoc/>
+    public event IGameNetwork.OnNetworkMessageDelegate? NetworkMessage;
 
-    /// <summary>
-    /// Dispose of managed and unmanaged resources.
-    /// </summary>
+    /// <inheritdoc/>
     void IDisposable.Dispose()
     {
         this.processZonePacketDownHook.Dispose();
@@ -153,4 +138,41 @@ public sealed class GameNetwork : IDisposable, IServiceType
 
         return this.processZonePacketUpHook.Original(a1, dataPtr, a3, a4);
     }
+}
+
+/// <summary>
+/// Plugin-scoped version of a AddonLifecycle service.
+/// </summary>
+[PluginInterface]
+[InterfaceVersion("1.0")]
+[ServiceManager.ScopedService]
+#pragma warning disable SA1015
+[ResolveVia<IGameNetwork>]
+#pragma warning restore SA1015
+internal class GameNetworkPluginScoped : IDisposable, IServiceType, IGameNetwork
+{
+    [ServiceManager.ServiceDependency]
+    private readonly GameNetwork gameNetworkService = Service<GameNetwork>.Get();
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="GameNetworkPluginScoped"/> class.
+    /// </summary>
+    internal GameNetworkPluginScoped()
+    {
+        this.gameNetworkService.NetworkMessage += this.NetworkMessageForward;
+    }
+    
+    /// <inheritdoc/>
+    public event IGameNetwork.OnNetworkMessageDelegate? NetworkMessage;
+
+    /// <inheritdoc/>
+    public void Dispose()
+    {
+        this.gameNetworkService.NetworkMessage -= this.NetworkMessageForward;
+
+        this.NetworkMessage = null;
+    }
+
+    private void NetworkMessageForward(nint dataPtr, ushort opCode, uint sourceActorId, uint targetActorId, NetworkMessageDirection direction)
+        => this.NetworkMessage?.Invoke(dataPtr, opCode, sourceActorId, targetActorId, direction);
 }

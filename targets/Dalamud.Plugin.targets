@@ -18,7 +18,6 @@
         <Reference Include="FFXIVClientStructs" Private="false" />
         <Reference Include="Newtonsoft.Json" Private="false" />
         <Reference Include="Dalamud" Private="false" />
-        <Reference Include="Dalamud.Interface" Private="false" />
         <Reference Include="ImGui.NET" Private="false" />
         <Reference Include="ImGuiScene" Private="false" />
         <Reference Include="Lumina" Private="false" />

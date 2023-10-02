@@ -207,18 +207,6 @@ public sealed class DalamudPluginInterface : IDisposable
     public XivChatType GeneralChatType { get; private set; }
 
     /// <summary>
-    /// Gets a list of installed plugin names.
-    /// </summary>
-    [Obsolete($"This property is obsolete. Use {nameof(InstalledPlugins)} instead.")]
-    public List<string> PluginNames => Service<PluginManager>.Get().InstalledPlugins.Select(p => p.Manifest.Name).ToList();
-
-    /// <summary>
-    /// Gets a list of installed plugin internal names.
-    /// </summary>
-    [Obsolete($"This property is obsolete. Use {nameof(InstalledPlugins)} instead.")]
-    public List<string> PluginInternalNames => Service<PluginManager>.Get().InstalledPlugins.Select(p => p.Manifest.InternalName).ToList();
-
-    /// <summary>
     /// Gets a list of installed plugins along with their current state.
     /// </summary>
     public IEnumerable<InstalledPluginState> InstalledPlugins => Service<PluginManager>.Get().InstalledPlugins.Select(p => new InstalledPluginState(p.Name, p.Manifest.InternalName, p.IsLoaded, p.EffectiveVersion));
@@ -355,7 +343,7 @@ public sealed class DalamudPluginInterface : IDisposable
         if (currentConfig == null)
             return;
 
-        this.configs.Save(currentConfig, this.plugin.InternalName);
+        this.configs.Save(currentConfig, this.plugin.InternalName, this.plugin.Manifest.WorkingPluginId);
     }
 
     /// <summary>
@@ -382,7 +370,7 @@ public sealed class DalamudPluginInterface : IDisposable
         }
 
         // this shouldn't be a thing, I think, but just in case
-        return this.configs.Load(this.plugin.InternalName);
+        return this.configs.Load(this.plugin.InternalName, this.plugin.Manifest.WorkingPluginId);
     }
 
     /// <summary>

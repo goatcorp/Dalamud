@@ -2,6 +2,8 @@
 using System.Runtime.InteropServices;
 
 using Dalamud.Game.Addon;
+using Dalamud.Game.Addon.Lifecycle;
+using Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
 
 namespace Dalamud.Plugin.Services;
 

@@ -1,4 +1,3 @@
-using System;
 using System.Runtime.InteropServices;
 
 using Dalamud.Data;
@@ -9,24 +8,25 @@ using Dalamud.Game.Network.Internal;
 using Dalamud.Hooking;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
+using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Client.Game;
-using Serilog;
+using Lumina.Excel.GeneratedSheets;
+
+using Action = System.Action;
 
 namespace Dalamud.Game.ClientState;
 
 /// <summary>
 /// This class represents the state of the game client at the time of access.
 /// </summary>
-[PluginInterface]
 [InterfaceVersion("1.0")]
 [ServiceManager.BlockingEarlyLoadedService]
-#pragma warning disable SA1015
-[ResolveVia<IClientState>]
-#pragma warning restore SA1015
-public sealed class ClientState : IDisposable, IServiceType, IClientState
+internal sealed class ClientState : IDisposable, IServiceType, IClientState
 {
+    private static readonly ModuleLog Log = new("ClientState");
+    
     private readonly GameLifecycle lifecycle;
     private readonly ClientStateAddressResolver address;
     private readonly Hook<SetupTerritoryTypeDelegate> setupTerritoryTypeHook;
@@ -38,10 +38,10 @@ public sealed class ClientState : IDisposable, IServiceType, IClientState
     private readonly NetworkHandlers networkHandlers = Service<NetworkHandlers>.Get();
 
     private bool lastConditionNone = true;
-    private bool lastFramePvP = false;
+    private bool lastFramePvP;
 
     [ServiceManager.ServiceConstructor]
-    private ClientState(SigScanner sigScanner, DalamudStartInfo startInfo, GameLifecycle lifecycle)
+    private ClientState(TargetSigScanner sigScanner, Dalamud dalamud, GameLifecycle lifecycle)
     {
         this.lifecycle = lifecycle;
         this.address = new ClientStateAddressResolver();
@@ -49,7 +49,7 @@ public sealed class ClientState : IDisposable, IServiceType, IClientState
 
         Log.Verbose("===== C L I E N T  S T A T E =====");
 
-        this.ClientLanguage = startInfo.Language;
+        this.ClientLanguage = (ClientLanguage)dalamud.StartInfo.Language;
 
         Log.Verbose($"SetupTerritoryType address 0x{this.address.SetupTerritoryType.ToInt64():X}");
 
@@ -64,22 +64,22 @@ public sealed class ClientState : IDisposable, IServiceType, IClientState
     private delegate IntPtr SetupTerritoryTypeDelegate(IntPtr manager, ushort terriType);
 
     /// <inheritdoc/>
-    public event EventHandler<ushort> TerritoryChanged;
+    public event Action<ushort>? TerritoryChanged;
 
     /// <inheritdoc/>
-    public event EventHandler Login;
+    public event Action? Login;
 
     /// <inheritdoc/>
-    public event EventHandler Logout;
+    public event Action? Logout;
 
     /// <inheritdoc/>
-    public event Action EnterPvP;
+    public event Action? EnterPvP;
 
     /// <inheritdoc/>
-    public event Action LeavePvP;
+    public event Action? LeavePvP;
 
     /// <inheritdoc/>
-    public event EventHandler<Lumina.Excel.GeneratedSheets.ContentFinderCondition> CfPop;
+    public event Action<ContentFinderCondition>? CfPop;
 
     /// <inheritdoc/>
     public ClientLanguage ClientLanguage { get; }
@@ -101,6 +101,9 @@ public sealed class ClientState : IDisposable, IServiceType, IClientState
 
     /// <inheritdoc/>
     public bool IsPvPExcludingDen { get; private set; }
+
+    /// <inheritdoc />
+    public bool IsGPosing => GameMain.IsInGPose();
 
     /// <summary>
     /// Gets client state address resolver.
@@ -126,19 +129,19 @@ public sealed class ClientState : IDisposable, IServiceType, IClientState
     private IntPtr SetupTerritoryTypeDetour(IntPtr manager, ushort terriType)
     {
         this.TerritoryType = terriType;
-        this.TerritoryChanged?.InvokeSafely(this, terriType);
+        this.TerritoryChanged?.InvokeSafely(terriType);
 
         Log.Debug("TerritoryType changed: {0}", terriType);
 
         return this.setupTerritoryTypeHook.Original(manager, terriType);
     }
 
-    private void NetworkHandlersOnCfPop(object sender, Lumina.Excel.GeneratedSheets.ContentFinderCondition e)
+    private void NetworkHandlersOnCfPop(ContentFinderCondition e)
     {
-        this.CfPop?.InvokeSafely(this, e);
+        this.CfPop?.InvokeSafely(e);
     }
 
-    private void FrameworkOnOnUpdateEvent(Framework framework1)
+    private void FrameworkOnOnUpdateEvent(IFramework framework1)
     {
         var condition = Service<Conditions.Condition>.GetNullable();
         var gameGui = Service<GameGui>.GetNullable();
@@ -147,12 +150,12 @@ public sealed class ClientState : IDisposable, IServiceType, IClientState
         if (condition == null || gameGui == null || data == null)
             return;
 
-        if (condition.Any() && this.lastConditionNone == true && this.LocalPlayer != null)
+        if (condition.Any() && this.lastConditionNone && this.LocalPlayer != null)
         {
             Log.Debug("Is login");
             this.lastConditionNone = false;
             this.IsLoggedIn = true;
-            this.Login?.InvokeSafely(this, null);
+            this.Login?.InvokeSafely();
             gameGui.ResetUiHideState();
 
             this.lifecycle.ResetLogout();
@@ -163,7 +166,7 @@ public sealed class ClientState : IDisposable, IServiceType, IClientState
             Log.Debug("Is logout");
             this.lastConditionNone = true;
             this.IsLoggedIn = false;
-            this.Logout?.InvokeSafely(this, null);
+            this.Logout?.InvokeSafely();
             gameGui.ResetUiHideState();
 
             this.lifecycle.SetLogout();
@@ -186,4 +189,104 @@ public sealed class ClientState : IDisposable, IServiceType, IClientState
             }
         }
     }
+}
+
+/// <summary>
+/// Plugin-scoped version of a GameConfig service.
+/// </summary>
+[PluginInterface]
+[InterfaceVersion("1.0")]
+[ServiceManager.ScopedService]
+#pragma warning disable SA1015
+[ResolveVia<IClientState>]
+#pragma warning restore SA1015
+internal class ClientStatePluginScoped : IDisposable, IServiceType, IClientState
+{
+    [ServiceManager.ServiceDependency]
+    private readonly ClientState clientStateService = Service<ClientState>.Get();
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ClientStatePluginScoped"/> class.
+    /// </summary>
+    internal ClientStatePluginScoped()
+    {
+        this.clientStateService.TerritoryChanged += this.TerritoryChangedForward;
+        this.clientStateService.Login += this.LoginForward;
+        this.clientStateService.Logout += this.LogoutForward;
+        this.clientStateService.EnterPvP += this.EnterPvPForward;
+        this.clientStateService.LeavePvP += this.ExitPvPForward;
+        this.clientStateService.CfPop += this.ContentFinderPopForward;
+    }
+    
+    /// <inheritdoc/>
+    public event Action<ushort>? TerritoryChanged;
+    
+    /// <inheritdoc/>
+    public event Action? Login;
+    
+    /// <inheritdoc/>
+    public event Action? Logout;
+    
+    /// <inheritdoc/>
+    public event Action? EnterPvP;
+    
+    /// <inheritdoc/>
+    public event Action? LeavePvP;
+    
+    /// <inheritdoc/>
+    public event Action<ContentFinderCondition>? CfPop;
+
+    /// <inheritdoc/>
+    public ClientLanguage ClientLanguage => this.clientStateService.ClientLanguage;
+
+    /// <inheritdoc/>
+    public ushort TerritoryType => this.clientStateService.TerritoryType;
+
+    /// <inheritdoc/>
+    public PlayerCharacter? LocalPlayer => this.clientStateService.LocalPlayer;
+
+    /// <inheritdoc/>
+    public ulong LocalContentId => this.clientStateService.LocalContentId;
+
+    /// <inheritdoc/>
+    public bool IsLoggedIn => this.clientStateService.IsLoggedIn;
+
+    /// <inheritdoc/>
+    public bool IsPvP => this.clientStateService.IsPvP;
+
+    /// <inheritdoc/>
+    public bool IsPvPExcludingDen => this.clientStateService.IsPvPExcludingDen;
+
+    /// <inheritdoc/>
+    public bool IsGPosing => this.clientStateService.IsGPosing;
+
+    /// <inheritdoc/>
+    public void Dispose()
+    {
+        this.clientStateService.TerritoryChanged -= this.TerritoryChangedForward;
+        this.clientStateService.Login -= this.LoginForward;
+        this.clientStateService.Logout -= this.LogoutForward;
+        this.clientStateService.EnterPvP -= this.EnterPvPForward;
+        this.clientStateService.LeavePvP -= this.ExitPvPForward;
+        this.clientStateService.CfPop -= this.ContentFinderPopForward;
+
+        this.TerritoryChanged = null;
+        this.Login = null;
+        this.Logout = null;
+        this.EnterPvP = null;
+        this.LeavePvP = null;
+        this.CfPop = null;
+    }
+
+    private void TerritoryChangedForward(ushort territoryId) => this.TerritoryChanged?.Invoke(territoryId);
+    
+    private void LoginForward() => this.Login?.Invoke();
+    
+    private void LogoutForward() => this.Logout?.Invoke();
+    
+    private void EnterPvPForward() => this.EnterPvP?.Invoke();
+    
+    private void ExitPvPForward() => this.LeavePvP?.Invoke();
+
+    private void ContentFinderPopForward(ContentFinderCondition cfc) => this.CfPop?.Invoke(cfc);
 }

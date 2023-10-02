@@ -1,10 +1,10 @@
-using System;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
+using Dalamud.Common.Game;
 using Dalamud.Configuration.Internal;
 using Dalamud.Game;
 using Dalamud.Game.Gui.Dtr;
@@ -336,7 +336,7 @@ internal class LocalPlugin : IDisposable
         var framework = await Service<Framework>.GetAsync();
         var ioc = await Service<ServiceContainer>.GetAsync();
         var pluginManager = await Service<PluginManager>.GetAsync();
-        var startInfo = await Service<DalamudStartInfo>.GetAsync();
+        var dalamud = await Service<Dalamud>.GetAsync();
 
         // UiBuilder constructor requires the following two.
         await Service<InterfaceManager>.GetAsync();
@@ -392,7 +392,7 @@ internal class LocalPlugin : IDisposable
             if (pluginManager.IsManifestBanned(this.manifest) && !this.IsDev)
                 throw new BannedPluginException($"Unable to load {this.Name}, banned");
 
-            if (this.manifest.ApplicableVersion < startInfo.GameVersion)
+            if (this.manifest.ApplicableVersion < dalamud.StartInfo.GameVersion)
                 throw new InvalidPluginOperationException($"Unable to load {this.Name}, no applicable version");
 
             if (this.manifest.DalamudApiLevel < PluginManager.DalamudApiLevel && !pluginManager.LoadAllApiLevels)
@@ -503,13 +503,6 @@ internal class LocalPlugin : IDisposable
                 Log.Error(
                     $"Error while loading {this.Name}, failed to bind and call the plugin constructor");
                 return;
-            }
-
-            // In-case the manifest name was a placeholder. Can occur when no manifest was included.
-            if (this.manifest.Name.IsNullOrEmpty() && !this.IsDev)
-            {
-                this.manifest.Name = this.instance.Name;
-                this.manifest.Save(this.manifestFile, "manifest name null or empty");
             }
 
             this.State = PluginState.Loaded;
@@ -631,7 +624,7 @@ internal class LocalPlugin : IDisposable
     /// <returns>Whether or not this plugin shouldn't load.</returns>
     public bool CheckPolicy()
     {
-        var startInfo = Service<DalamudStartInfo>.Get();
+        var startInfo = Service<Dalamud>.Get().StartInfo;
         var manager = Service<PluginManager>.Get();
 
         if (startInfo.NoLoadPlugins)

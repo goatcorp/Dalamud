@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 
 using Dalamud.Configuration.Internal;
 using Dalamud.Game;
+using Dalamud.Game.ClientState;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.Gui;
 using Dalamud.Interface.GameFonts;
@@ -180,20 +181,6 @@ public sealed class UiBuilder : IDisposable
     }
 
     /// <summary>
-    /// Gets a value indicating whether or not gpose is active.
-    /// </summary>
-    public bool GposeActive
-    {
-        get
-        {
-            var condition = Service<Condition>.GetNullable();
-            if (condition == null)
-                return false;
-            return condition[ConditionFlag.WatchingCutscene];
-        }
-    }
-
-    /// <summary>
     /// Gets a value indicating whether this plugin should modify the game's interface at this time.
     /// </summary>
     public bool ShouldModifyUi => this.interfaceManager.IsDispatchingEvents;
@@ -248,7 +235,7 @@ public sealed class UiBuilder : IDisposable
     /// </summary>
     /// <param name="filePath">The full filepath to the image.</param>
     /// <returns>A <see cref="TextureWrap"/> object wrapping the created image.  Use <see cref="TextureWrap.ImGuiHandle"/> inside ImGui.Image().</returns>
-    public TextureWrap LoadImage(string filePath)
+    public IDalamudTextureWrap LoadImage(string filePath)
         => this.InterfaceManagerWithScene?.LoadImage(filePath)
            ?? throw new InvalidOperationException("Load failed.");
 
@@ -257,7 +244,7 @@ public sealed class UiBuilder : IDisposable
     /// </summary>
     /// <param name="imageData">A byte array containing the raw image data.</param>
     /// <returns>A <see cref="TextureWrap"/> object wrapping the created image.  Use <see cref="TextureWrap.ImGuiHandle"/> inside ImGui.Image().</returns>
-    public TextureWrap LoadImage(byte[] imageData)
+    public IDalamudTextureWrap LoadImage(byte[] imageData)
         => this.InterfaceManagerWithScene?.LoadImage(imageData)
            ?? throw new InvalidOperationException("Load failed.");
 
@@ -269,7 +256,7 @@ public sealed class UiBuilder : IDisposable
     /// <param name="height">The height of the image contained in <paramref name="imageData"/>.</param>
     /// <param name="numChannels">The number of channels (bytes per pixel) of the image contained in <paramref name="imageData"/>.  This should usually be 4.</param>
     /// <returns>A <see cref="TextureWrap"/> object wrapping the created image.  Use <see cref="TextureWrap.ImGuiHandle"/> inside ImGui.Image().</returns>
-    public TextureWrap LoadImageRaw(byte[] imageData, int width, int height, int numChannels)
+    public IDalamudTextureWrap LoadImageRaw(byte[] imageData, int width, int height, int numChannels)
         => this.InterfaceManagerWithScene?.LoadImageRaw(imageData, width, height, numChannels)
            ?? throw new InvalidOperationException("Load failed.");
 
@@ -286,7 +273,7 @@ public sealed class UiBuilder : IDisposable
     /// </summary>
     /// <param name="filePath">The full filepath to the image.</param>
     /// <returns>A <see cref="TextureWrap"/> object wrapping the created image.  Use <see cref="TextureWrap.ImGuiHandle"/> inside ImGui.Image().</returns>
-    public Task<TextureWrap> LoadImageAsync(string filePath) => Task.Run(
+    public Task<IDalamudTextureWrap> LoadImageAsync(string filePath) => Task.Run(
         async () =>
             (await this.InterfaceManagerWithSceneAsync).LoadImage(filePath)
             ?? throw new InvalidOperationException("Load failed."));
@@ -296,7 +283,7 @@ public sealed class UiBuilder : IDisposable
     /// </summary>
     /// <param name="imageData">A byte array containing the raw image data.</param>
     /// <returns>A <see cref="TextureWrap"/> object wrapping the created image.  Use <see cref="TextureWrap.ImGuiHandle"/> inside ImGui.Image().</returns>
-    public Task<TextureWrap> LoadImageAsync(byte[] imageData) => Task.Run(
+    public Task<IDalamudTextureWrap> LoadImageAsync(byte[] imageData) => Task.Run(
         async () =>
             (await this.InterfaceManagerWithSceneAsync).LoadImage(imageData)
             ?? throw new InvalidOperationException("Load failed."));
@@ -309,7 +296,7 @@ public sealed class UiBuilder : IDisposable
     /// <param name="height">The height of the image contained in <paramref name="imageData"/>.</param>
     /// <param name="numChannels">The number of channels (bytes per pixel) of the image contained in <paramref name="imageData"/>.  This should usually be 4.</param>
     /// <returns>A <see cref="TextureWrap"/> object wrapping the created image.  Use <see cref="TextureWrap.ImGuiHandle"/> inside ImGui.Image().</returns>
-    public Task<TextureWrap> LoadImageRawAsync(byte[] imageData, int width, int height, int numChannels) => Task.Run(
+    public Task<IDalamudTextureWrap> LoadImageRawAsync(byte[] imageData, int width, int height, int numChannels) => Task.Run(
         async () =>
             (await this.InterfaceManagerWithSceneAsync).LoadImageRaw(imageData, width, height, numChannels)
             ?? throw new InvalidOperationException("Load failed."));
@@ -448,6 +435,7 @@ public sealed class UiBuilder : IDisposable
     {
         this.hitchDetector.Start();
 
+        var clientState = Service<ClientState>.Get();
         var configuration = Service<DalamudConfiguration>.Get();
         var gameGui = Service<GameGui>.GetNullable();
         if (gameGui == null)
@@ -457,7 +445,7 @@ public sealed class UiBuilder : IDisposable
              !(this.DisableUserUiHide || this.DisableAutomaticUiHide)) ||
             (this.CutsceneActive && configuration.ToggleUiHideDuringCutscenes &&
              !(this.DisableCutsceneUiHide || this.DisableAutomaticUiHide)) ||
-            (this.GposeActive && configuration.ToggleUiHideDuringGpose &&
+            (clientState.IsGPosing && configuration.ToggleUiHideDuringGpose &&
              !(this.DisableGposeUiHide || this.DisableAutomaticUiHide)))
         {
             if (!this.lastFrameUiHideState)

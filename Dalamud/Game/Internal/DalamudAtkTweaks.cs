@@ -41,7 +41,7 @@ internal sealed unsafe partial class DalamudAtkTweaks : IServiceType
     private readonly string locDalamudSettings;
 
     [ServiceManager.ServiceConstructor]
-    private DalamudAtkTweaks(SigScanner sigScanner)
+    private DalamudAtkTweaks(TargetSigScanner sigScanner)
     {
         var openSystemMenuAddress = sigScanner.ScanText("E8 ?? ?? ?? ?? 32 C0 4C 8B AC 24 ?? ?? ?? ?? 48 8B 8D ?? ?? ?? ??");
 

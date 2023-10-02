@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -7,6 +6,7 @@ using CheapLoc;
 using Dalamud.Game;
 using Dalamud.Game.Command;
 using Dalamud.Game.Gui;
+using Dalamud.Plugin.Services;
 using Dalamud.Utility;
 using Serilog;
 
@@ -78,7 +78,7 @@ internal class ProfileCommandHandler : IServiceType, IDisposable
         this.framework.Update += this.FrameworkOnUpdate;
     }
 
-    private void FrameworkOnUpdate(Framework framework1)
+    private void FrameworkOnUpdate(IFramework framework1)
     {
         if (this.profileManager.IsBusy)
             return;

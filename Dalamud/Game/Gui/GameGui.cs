@@ -1,12 +1,12 @@
-using System;
 using System.Numerics;
 using System.Runtime.InteropServices;
 
 using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Hooking;
-using Dalamud.Interface;
+using Dalamud.Interface.Utility;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
+using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Client.Graphics.Kernel;
@@ -15,7 +15,6 @@ using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Common.Component.BGCollision;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using ImGuiNET;
-using Serilog;
 using SharpDX;
 
 using Vector2 = System.Numerics.Vector2;
@@ -26,14 +25,12 @@ namespace Dalamud.Game.Gui;
 /// <summary>
 /// A class handling many aspects of the in-game UI.
 /// </summary>
-[PluginInterface]
 [InterfaceVersion("1.0")]
 [ServiceManager.BlockingEarlyLoadedService]
-#pragma warning disable SA1015
-[ResolveVia<IGameGui>]
-#pragma warning restore SA1015
-public sealed unsafe class GameGui : IDisposable, IServiceType, IGameGui
+internal sealed unsafe class GameGui : IDisposable, IServiceType, IGameGui
 {
+    private static readonly ModuleLog Log = new("GameGui");
+    
     private readonly GameGuiAddressResolver address;
 
     private readonly GetMatrixSingletonDelegate getMatrixSingleton;
@@ -47,11 +44,11 @@ public sealed unsafe class GameGui : IDisposable, IServiceType, IGameGui
     private readonly Hook<ToggleUiHideDelegate> toggleUiHideHook;
     private readonly Hook<Utf8StringFromSequenceDelegate> utf8StringFromSequenceHook;
 
-    private GetUIMapObjectDelegate getUIMapObject;
-    private OpenMapWithFlagDelegate openMapWithFlag;
+    private GetUIMapObjectDelegate? getUIMapObject;
+    private OpenMapWithFlagDelegate? openMapWithFlag;
 
     [ServiceManager.ServiceConstructor]
-    private GameGui(SigScanner sigScanner)
+    private GameGui(TargetSigScanner sigScanner)
     {
         this.address = new GameGuiAddressResolver();
         this.address.Setup(sigScanner);
@@ -115,16 +112,16 @@ public sealed unsafe class GameGui : IDisposable, IServiceType, IGameGui
     private delegate char HandleImmDelegate(IntPtr framework, char a2, byte a3);
 
     [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
-    private delegate IntPtr ToggleUiHideDelegate(IntPtr thisPtr, byte unknownByte);
+    private delegate IntPtr ToggleUiHideDelegate(IntPtr thisPtr, bool uiVisible);
     
     /// <inheritdoc/>
-    public event EventHandler<bool> UiHideToggled;
+    public event EventHandler<bool>? UiHideToggled;
 
     /// <inheritdoc/>
-    public event EventHandler<ulong> HoveredItemChanged;
+    public event EventHandler<ulong>? HoveredItemChanged;
 
     /// <inheritdoc/>
-    public event EventHandler<HoveredAction> HoveredActionChanged;
+    public event EventHandler<HoveredAction>? HoveredActionChanged;
 
     /// <inheritdoc/>
     public bool GameUiHidden { get; private set; }
@@ -146,7 +143,7 @@ public sealed unsafe class GameGui : IDisposable, IServiceType, IGameGui
             return false;
         }
 
-        this.getUIMapObject = this.address.GetVirtualFunction<GetUIMapObjectDelegate>(uiModule, 0, 8);
+        this.getUIMapObject ??= this.address.GetVirtualFunction<GetUIMapObjectDelegate>(uiModule, 0, 8);
 
         var uiMapObjectPtr = this.getUIMapObject(uiModule);
 
@@ -156,7 +153,7 @@ public sealed unsafe class GameGui : IDisposable, IServiceType, IGameGui
             return false;
         }
 
-        this.openMapWithFlag = this.address.GetVirtualFunction<OpenMapWithFlagDelegate>(uiMapObjectPtr, 0, 63);
+        this.openMapWithFlag ??= this.address.GetVirtualFunction<OpenMapWithFlagDelegate>(uiMapObjectPtr, 0, 63);
 
         var mapLinkString = mapLink.DataString;
 
@@ -216,14 +213,13 @@ public sealed unsafe class GameGui : IDisposable, IServiceType, IGameGui
 
         // Read current ViewProjectionMatrix plus game window size
         var viewProjectionMatrix = default(Matrix);
-        float width, height;
         var rawMatrix = (float*)(matrixSingleton + 0x1b4).ToPointer();
 
         for (var i = 0; i < 16; i++, rawMatrix++)
             viewProjectionMatrix[i] = *rawMatrix;
 
-        width = *rawMatrix;
-        height = *(rawMatrix + 1);
+        var width = *rawMatrix;
+        var height = *(rawMatrix + 1);
 
         viewProjectionMatrix.Invert();
 
@@ -413,7 +409,7 @@ public sealed unsafe class GameGui : IDisposable, IServiceType, IGameGui
 
             this.HoveredItemChanged?.InvokeSafely(this, itemId);
 
-            Log.Verbose("HoverItemId:{0} this:{1}", itemId, hoverState.ToInt64().ToString("X"));
+            Log.Verbose($"HoverItemId:{itemId} this:{hoverState.ToInt64()}");
         }
 
         return retVal;
@@ -455,7 +451,7 @@ public sealed unsafe class GameGui : IDisposable, IServiceType, IGameGui
         this.HoveredAction.ActionID = (uint)Marshal.ReadInt32(hoverState, 0x3C);
         this.HoveredActionChanged?.InvokeSafely(this, this.HoveredAction);
 
-        Log.Verbose("HoverActionId: {0}/{1} this:{2}", actionKind, actionId, hoverState.ToInt64().ToString("X"));
+        Log.Verbose($"HoverActionId: {actionKind}/{actionId} this:{hoverState.ToInt64():X}");
     }
 
     private IntPtr HandleActionOutDetour(IntPtr agentActionDetail, IntPtr a2, IntPtr a3, int a4)
@@ -488,16 +484,16 @@ public sealed unsafe class GameGui : IDisposable, IServiceType, IGameGui
         return retVal;
     }
 
-    private IntPtr ToggleUiHideDetour(IntPtr thisPtr, byte unknownByte)
+    private IntPtr ToggleUiHideDetour(IntPtr thisPtr, bool unknownByte)
     {
-        // TODO(goat): We should read this from memory directly, instead of relying on catching every toggle.
-        this.GameUiHidden = !this.GameUiHidden;
+        var result = this.toggleUiHideHook.Original(thisPtr, unknownByte);
 
+        this.GameUiHidden = !RaptureAtkModule.Instance()->IsUiVisible;
         this.UiHideToggled?.InvokeSafely(this, this.GameUiHidden);
 
         Log.Debug("UiHide toggled: {0}", this.GameUiHidden);
 
-        return this.toggleUiHideHook.Original(thisPtr, unknownByte);
+        return result;
     }
 
     private char HandleImmDetour(IntPtr framework, char a2, byte a3)
@@ -513,8 +509,109 @@ public sealed unsafe class GameGui : IDisposable, IServiceType, IGameGui
         if (sourcePtr != null)
             this.utf8StringFromSequenceHook.Original(thisPtr, sourcePtr, sourceLen);
         else
-            thisPtr->Ctor(); // this is in clientstructs but you could do it manually too
+            thisPtr->Ctor(); // this is in ClientStructs but you could do it manually too
 
         return thisPtr; // this function shouldn't need to return but the original asm moves this into rax before returning so be safe?
     }
+}
+
+/// <summary>
+/// Plugin-scoped version of a AddonLifecycle service.
+/// </summary>
+[PluginInterface]
+[InterfaceVersion("1.0")]
+[ServiceManager.ScopedService]
+#pragma warning disable SA1015
+[ResolveVia<IGameGui>]
+#pragma warning restore SA1015
+internal class GameGuiPluginScoped : IDisposable, IServiceType, IGameGui
+{
+    [ServiceManager.ServiceDependency]
+    private readonly GameGui gameGuiService = Service<GameGui>.Get();
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="GameGuiPluginScoped"/> class.
+    /// </summary>
+    internal GameGuiPluginScoped()
+    {
+        this.gameGuiService.UiHideToggled += this.UiHideToggledForward;
+        this.gameGuiService.HoveredItemChanged += this.HoveredItemForward;
+        this.gameGuiService.HoveredActionChanged += this.HoveredActionForward;
+    }
+    
+    /// <inheritdoc/>
+    public event EventHandler<bool>? UiHideToggled;
+    
+    /// <inheritdoc/>
+    public event EventHandler<ulong>? HoveredItemChanged;
+    
+    /// <inheritdoc/>
+    public event EventHandler<HoveredAction>? HoveredActionChanged;
+
+    /// <inheritdoc/>
+    public bool GameUiHidden => this.gameGuiService.GameUiHidden;
+
+    /// <inheritdoc/>
+    public ulong HoveredItem
+    {
+        get => this.gameGuiService.HoveredItem;
+        set => this.gameGuiService.HoveredItem = value;
+    }
+
+    /// <inheritdoc/>
+    public HoveredAction HoveredAction => this.gameGuiService.HoveredAction;
+    
+    /// <inheritdoc/>
+    public void Dispose()
+    {
+        this.gameGuiService.UiHideToggled -= this.UiHideToggledForward;
+        this.gameGuiService.HoveredItemChanged -= this.HoveredItemForward;
+        this.gameGuiService.HoveredActionChanged -= this.HoveredActionForward;
+
+        this.UiHideToggled = null;
+        this.HoveredItemChanged = null;
+        this.HoveredActionChanged = null;
+    }
+    
+    /// <inheritdoc/>
+    public bool OpenMapWithMapLink(MapLinkPayload mapLink)
+        => this.gameGuiService.OpenMapWithMapLink(mapLink);
+
+    /// <inheritdoc/>
+    public bool WorldToScreen(Vector3 worldPos, out Vector2 screenPos)
+        => this.gameGuiService.WorldToScreen(worldPos, out screenPos);
+    
+    /// <inheritdoc/>
+    public bool WorldToScreen(Vector3 worldPos, out Vector2 screenPos, out bool inView)
+        => this.gameGuiService.WorldToScreen(worldPos, out screenPos, out inView);
+
+    /// <inheritdoc/>
+    public bool ScreenToWorld(Vector2 screenPos, out Vector3 worldPos, float rayDistance = 100000)
+        => this.gameGuiService.ScreenToWorld(screenPos, out worldPos, rayDistance);
+
+    /// <inheritdoc/>
+    public IntPtr GetUIModule()
+        => this.gameGuiService.GetUIModule();
+    
+    /// <inheritdoc/>
+    public IntPtr GetAddonByName(string name, int index = 1)
+        => this.gameGuiService.GetAddonByName(name, index);
+    
+    /// <inheritdoc/>
+    public IntPtr FindAgentInterface(string addonName)
+        => this.gameGuiService.FindAgentInterface(addonName);
+    
+    /// <inheritdoc/>
+    public unsafe IntPtr FindAgentInterface(void* addon) 
+        => this.gameGuiService.FindAgentInterface(addon);
+
+    /// <inheritdoc/>
+    public IntPtr FindAgentInterface(IntPtr addonPtr) 
+        => this.gameGuiService.FindAgentInterface(addonPtr);
+
+    private void UiHideToggledForward(object sender, bool toggled) => this.UiHideToggled?.Invoke(sender, toggled);
+    
+    private void HoveredItemForward(object sender, ulong itemId) => this.HoveredItemChanged?.Invoke(sender, itemId);
+    
+    private void HoveredActionForward(object sender, HoveredAction hoverAction) => this.HoveredActionChanged?.Invoke(sender, hoverAction);
 }

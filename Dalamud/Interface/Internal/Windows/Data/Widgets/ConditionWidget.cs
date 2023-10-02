@@ -1,7 +1,7 @@
 ﻿using Dalamud.Game.ClientState.Conditions;
 using ImGuiNET;
 
-namespace Dalamud.Interface.Internal.Windows.Data;
+namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 
 /// <summary>
 /// Widget for displaying current character condition flags.

@@ -19,7 +19,7 @@ internal sealed partial class AntiDebug : IServiceType
     private IntPtr debugCheckAddress;
 
     [ServiceManager.ServiceConstructor]
-    private AntiDebug(SigScanner sigScanner)
+    private AntiDebug(TargetSigScanner sigScanner)
     {
         try
         {

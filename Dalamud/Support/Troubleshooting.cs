@@ -58,7 +58,7 @@ public static class Troubleshooting
     /// </summary>
     internal static void LogTroubleshooting()
     {
-        var startInfo = Service<DalamudStartInfo>.Get();
+        var startInfo = Service<Dalamud>.Get().StartInfo;
         var configuration = Service<DalamudConfiguration>.Get();
         var interfaceManager = Service<InterfaceManager>.GetNullable();
         var pluginManager = Service<PluginManager>.GetNullable();
@@ -72,7 +72,7 @@ public static class Troubleshooting
                 EverStartedLoadingPlugins = pluginManager?.InstalledPlugins.Where(x => x.HasEverStartedLoad).Select(x => x.InternalName).ToList(),
                 DalamudVersion = Util.AssemblyVersion,
                 DalamudGitHash = Util.GetGitHash(),
-                GameVersion = startInfo.GameVersion.ToString(),
+                GameVersion = startInfo.GameVersion?.ToString() ?? "Unknown",
                 Language = startInfo.Language.ToString(),
                 BetaKey = configuration.DalamudBetaKey,
                 DoPluginTest = configuration.DoPluginTest,

@@ -1,10 +1,12 @@
-﻿using System;
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 
 using Dalamud.Configuration.Internal;
 using Dalamud.Game.Addon;
+using Dalamud.Game.Addon.Events;
+using Dalamud.Game.Addon.Lifecycle;
+using Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
@@ -19,10 +21,9 @@ namespace Dalamud.Game.Gui.Dtr;
 /// <summary>
 /// Class used to interface with the server info bar.
 /// </summary>
-[PluginInterface]
 [InterfaceVersion("1.0")]
 [ServiceManager.BlockingEarlyLoadedService]
-public sealed unsafe class DtrBar : IDisposable, IServiceType, IDtrBar
+internal sealed unsafe class DtrBar : IDisposable, IServiceType, IDtrBar
 {
     private const uint BaseNodeId = 1000;
 
@@ -165,7 +166,7 @@ public sealed unsafe class DtrBar : IDisposable, IServiceType, IDtrBar
 
     private AtkUnitBase* GetDtr() => (AtkUnitBase*)this.gameGui.GetAddonByName("_DTR").ToPointer();
 
-    private void Update(Framework unused)
+    private void Update(IFramework unused)
     {
         this.HandleRemovedNodes();
         this.HandleAddedNodes();

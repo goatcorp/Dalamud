@@ -1,9 +1,7 @@
-﻿using System;
-
-using Dalamud.Game.ClientState.GamePad;
+﻿using Dalamud.Game.ClientState.GamePad;
 using ImGuiNET;
 
-namespace Dalamud.Interface.Internal.Windows.Data;
+namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 
 /// <summary>
 /// Widget for displaying gamepad info.

@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -6,6 +5,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 
 using Dalamud.Game;
+using Dalamud.Plugin.Services;
 
 namespace Dalamud.Logging.Internal;
 
@@ -141,7 +141,7 @@ internal class TaskTracker : IDisposable, IServiceType
         return true;
     }
 
-    private void FrameworkOnUpdate(Framework framework)
+    private void FrameworkOnUpdate(IFramework framework)
     {
         UpdateData();
     }

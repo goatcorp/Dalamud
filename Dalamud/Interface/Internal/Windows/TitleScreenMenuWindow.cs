@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -9,8 +8,10 @@ using Dalamud.Game;
 using Dalamud.Game.ClientState;
 using Dalamud.Game.Gui;
 using Dalamud.Interface.Animation.EasingFunctions;
-using Dalamud.Interface.Raii;
+using Dalamud.Interface.Utility;
+using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
+using Dalamud.Plugin.Services;
 using ImGuiNET;
 using ImGuiScene;
 
@@ -24,7 +25,7 @@ internal class TitleScreenMenuWindow : Window, IDisposable
     private const float TargetFontSizePt = 18f;
     private const float TargetFontSizePx = TargetFontSizePt * 4 / 3;
 
-    private readonly TextureWrap shadeTexture;
+    private readonly IDalamudTextureWrap shadeTexture;
 
     private readonly Dictionary<Guid, InOutCubic> shadeEasings = new();
     private readonly Dictionary<Guid, InOutQuint> moveEasings = new();
@@ -229,7 +230,7 @@ internal class TitleScreenMenuWindow : Window, IDisposable
     }
 
     private bool DrawEntry(
-        TitleScreenMenu.TitleScreenMenuEntry entry, bool inhibitFadeout, bool showText, bool isFirst, bool overrideAlpha, bool interactable)
+        TitleScreenMenuEntry entry, bool inhibitFadeout, bool showText, bool isFirst, bool overrideAlpha, bool interactable)
     {
         InterfaceManager.SpecialGlyphRequest fontHandle;
         if (this.specialGlyphRequests.TryGetValue(entry.Name, out fontHandle) && fontHandle.Size != TargetFontSizePx)
@@ -358,7 +359,7 @@ internal class TitleScreenMenuWindow : Window, IDisposable
         return isHover;
     }
 
-    private void FrameworkOnUpdate(Framework framework)
+    private void FrameworkOnUpdate(IFramework framework)
     {
         var clientState = Service<ClientState>.Get();
         this.IsOpen = !clientState.IsLoggedIn;

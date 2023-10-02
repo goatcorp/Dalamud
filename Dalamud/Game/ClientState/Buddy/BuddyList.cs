@@ -20,7 +20,7 @@ namespace Dalamud.Game.ClientState.Buddy;
 #pragma warning disable SA1015
 [ResolveVia<IBuddyList>]
 #pragma warning restore SA1015
-public sealed partial class BuddyList : IServiceType, IBuddyList
+internal sealed partial class BuddyList : IServiceType, IBuddyList
 {
     private const uint InvalidObjectID = 0xE0000000;
 
@@ -54,18 +54,6 @@ public sealed partial class BuddyList : IServiceType, IBuddyList
             return i;
         }
     }
-
-    /// <summary>
-    /// Gets a value indicating whether the local player's companion is present.
-    /// </summary>
-    [Obsolete("Use CompanionBuddy != null", false)]
-    public bool CompanionBuddyPresent => this.CompanionBuddy != null;
-
-    /// <summary>
-    /// Gets a value indicating whether the local player's pet is present.
-    /// </summary>
-    [Obsolete("Use PetBuddy != null", false)]
-    public bool PetBuddyPresent => this.PetBuddy != null;
 
     /// <inheritdoc/>
     public BuddyMember? CompanionBuddy
@@ -147,7 +135,7 @@ public sealed partial class BuddyList : IServiceType, IBuddyList
 /// <summary>
 /// This collection represents the buddies present in your squadron or trust party.
 /// </summary>
-public sealed partial class BuddyList
+internal sealed partial class BuddyList
 {
     /// <inheritdoc/>
     int IReadOnlyCollection<BuddyMember>.Count => this.Length;

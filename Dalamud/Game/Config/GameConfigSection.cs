@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Diagnostics;
 
 using Dalamud.Memory;
@@ -17,11 +16,6 @@ public class GameConfigSection
     private readonly Framework framework;
     private readonly ConcurrentDictionary<string, uint> indexMap = new();
     private readonly ConcurrentDictionary<uint, object> enumMap = new();
-
-    /// <summary>
-    /// Event which is fired when a game config option is changed within the section.
-    /// </summary>
-    public event EventHandler<ConfigChangeEvent> Changed; 
 
     /// <summary>
     /// Initializes a new instance of the <see cref="GameConfigSection"/> class.
@@ -53,6 +47,11 @@ public class GameConfigSection
     /// </summary>
     /// <returns>Pointer to unmanaged ConfigBase.</returns>
     internal unsafe delegate ConfigBase* GetConfigBaseDelegate();
+
+    /// <summary>
+    /// Event which is fired when a game config option is changed within the section.
+    /// </summary>
+    internal event EventHandler<ConfigChangeEvent>? Changed; 
 
     /// <summary>
     /// Gets the number of config entries contained within the section.

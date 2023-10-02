@@ -3,6 +3,7 @@ using System.IO;
 using System.Numerics;
 
 using Dalamud.Interface.Colors;
+using Dalamud.Interface.Utility;
 using Dalamud.Interface.Windowing;
 using Dalamud.Utility;
 using ImGuiNET;
@@ -35,7 +36,7 @@ Thanks and have fun!";
 
     private readonly string assemblyVersion = Util.AssemblyVersion;
 
-    private readonly TextureWrap logoTexture;
+    private readonly IDalamudTextureWrap logoTexture;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ChangelogWindow"/> class.
@@ -48,11 +49,7 @@ Thanks and have fun!";
         this.Size = new Vector2(885, 463);
         this.SizeCondition = ImGuiCond.Appearing;
 
-        var interfaceManager = Service<InterfaceManager>.Get();
-        var dalamud = Service<Dalamud>.Get();
-
-        this.logoTexture =
-            interfaceManager.LoadImage(Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "logo.png"))!;
+        this.logoTexture = Service<Branding>.Get().Logo;
     }
 
     /// <inheritdoc/>

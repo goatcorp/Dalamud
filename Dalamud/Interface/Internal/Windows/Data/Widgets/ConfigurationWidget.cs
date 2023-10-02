@@ -1,7 +1,7 @@
 ﻿using Dalamud.Configuration.Internal;
 using Dalamud.Utility;
 
-namespace Dalamud.Interface.Internal.Windows.Data;
+namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 
 /// <summary>
 /// Widget for displaying configuration info.

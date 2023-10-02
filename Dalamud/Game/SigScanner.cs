@@ -20,12 +20,7 @@ namespace Dalamud.Game;
 /// <summary>
 /// A SigScanner facilitates searching for memory signatures in a given ProcessModule.
 /// </summary>
-[PluginInterface]
-[InterfaceVersion("1.0")]
-#pragma warning disable SA1015
-[ResolveVia<ISigScanner>]
-#pragma warning restore SA1015
-public class SigScanner : IDisposable, IServiceType, ISigScanner
+public class SigScanner : IDisposable, ISigScanner
 {
     private readonly FileInfo? cacheFile;
 

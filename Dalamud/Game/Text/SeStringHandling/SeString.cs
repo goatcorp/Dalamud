@@ -52,14 +52,27 @@ public class SeString
     /// with the appropriate glow and coloring.
     /// </summary>
     /// <returns>A list of all the payloads required to insert the link marker.</returns>
-    public static IEnumerable<Payload> TextArrowPayloads => new List<Payload>(new Payload[]
+    public static IEnumerable<Payload> TextArrowPayloads
     {
-        new UIForegroundPayload(0x01F4),
-        new UIGlowPayload(0x01F5),
-        new TextPayload($"{(char)SeIconChar.LinkMarker}"),
-        UIGlowPayload.UIGlowOff,
-        UIForegroundPayload.UIForegroundOff,
-    });
+        get
+        {
+            var clientState = Service<ClientState.ClientState>.Get();
+            var markerSpace = clientState.ClientLanguage switch
+            {
+                ClientLanguage.German => " ",
+                ClientLanguage.French => " ",
+                _ => string.Empty,
+            };
+            return new List<Payload>
+            {
+                new UIForegroundPayload(500),
+                new UIGlowPayload(501),
+                new TextPayload($"{(char)SeIconChar.LinkMarker}{markerSpace}"),
+                UIGlowPayload.UIGlowOff,
+                UIForegroundPayload.UIForegroundOff,
+            };
+        }
+    }
 
     /// <summary>
     /// Gets an empty SeString.
@@ -171,6 +184,7 @@ public class SeString
         var data = Service<DataManager>.Get();
 
         var displayName = displayNameOverride;
+        var rarity = 1; // default: white
         if (displayName == null)
         {
             switch (kind)
@@ -178,7 +192,9 @@ public class SeString
                 case ItemPayload.ItemKind.Normal:
                 case ItemPayload.ItemKind.Collectible:
                 case ItemPayload.ItemKind.Hq:
-                    displayName = data.GetExcelSheet<Item>()?.GetRow(itemId)?.Name;
+                    var item = data.GetExcelSheet<Item>()?.GetRow(itemId);
+                    displayName = item?.Name;
+                    rarity = item?.Rarity ?? 1;
                     break;
                 case ItemPayload.ItemKind.EventItem:
                     displayName = data.GetExcelSheet<EventItem>()?.GetRow(itemId)?.Name;
@@ -202,21 +218,20 @@ public class SeString
             displayName += $" {(char)SeIconChar.Collectible}";
         }
 
-        // TODO: probably a cleaner way to build these than doing the bulk+insert
-        var payloads = new List<Payload>(new Payload[]
-        {
-            new UIForegroundPayload(0x0225),
-            new UIGlowPayload(0x0226),
-            new ItemPayload(itemId, kind),
-            // arrow goes here
-            new TextPayload(displayName),
-            RawPayload.LinkTerminator,
-            // sometimes there is another set of uiglow/foreground off payloads here
-            // might be necessary when including additional text after the item name
-        });
-        payloads.InsertRange(3, TextArrowPayloads);
+        var textColor = (ushort)(549 + ((rarity - 1) * 2));
+        var textGlowColor = (ushort)(textColor + 1);
 
-        return new SeString(payloads);
+        // Note: `SeStringBuilder.AddItemLink` uses this function, so don't call it here!
+        return new SeStringBuilder()
+            .AddUiForeground(textColor)
+            .AddUiGlow(textGlowColor)
+            .Add(new ItemPayload(itemId, kind))
+            .Append(TextArrowPayloads)
+            .AddText(displayName)
+            .AddUiGlowOff()
+            .AddUiForegroundOff()
+            .Add(RawPayload.LinkTerminator)
+            .Build();
     }
 
     /// <summary>
@@ -406,7 +421,7 @@ public class SeString
     /// </summary>
     /// <param name="payloads">The Payloads to append.</param>
     /// <returns>This object.</returns>
-    public SeString Append(List<Payload> payloads)
+    public SeString Append(IEnumerable<Payload> payloads)
     {
         this.Payloads.AddRange(payloads);
         return this;

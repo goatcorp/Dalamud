@@ -15,8 +15,8 @@ using Dalamud.Game.Command;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Components;
 using Dalamud.Interface.Internal.Notifications;
-using Dalamud.Interface.Raii;
-using Dalamud.Interface.Style;
+using Dalamud.Interface.Utility;
+using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin;
@@ -62,8 +62,8 @@ internal class PluginInstallerWindow : Window, IDisposable
     private string[] testerImagePaths = new string[5];
     private string testerIconPath = string.Empty;
 
-    private TextureWrap?[] testerImages;
-    private TextureWrap? testerIcon;
+    private IDalamudTextureWrap?[] testerImages;
+    private IDalamudTextureWrap? testerIcon;
 
     private bool testerError = false;
     private bool testerUpdateAvailable = false;
@@ -1525,7 +1525,7 @@ internal class PluginInstallerWindow : Window, IDisposable
 
         ImGuiHelpers.ScaledDummy(20);
 
-        static void CheckImageSize(TextureWrap? image, int maxWidth, int maxHeight, bool requireSquare)
+        static void CheckImageSize(IDalamudTextureWrap? image, int maxWidth, int maxHeight, bool requireSquare)
         {
             if (image == null)
                 return;
@@ -1570,7 +1570,7 @@ internal class PluginInstallerWindow : Window, IDisposable
                     this.testerIcon = im.LoadImage(this.testerIconPath);
                 }
 
-                this.testerImages = new TextureWrap[this.testerImagePaths.Length];
+                this.testerImages = new IDalamudTextureWrap[this.testerImagePaths.Length];
 
                 for (var i = 0; i < this.testerImagePaths.Length; i++)
                 {
@@ -1822,7 +1822,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         var rectOffset = ImGui.GetWindowContentRegionMin() + ImGui.GetWindowPos();
         if (ImGui.IsRectVisible(rectOffset + cursorBeforeImage, rectOffset + cursorBeforeImage + iconSize))
         {
-            TextureWrap icon;
+            IDalamudTextureWrap icon;
             if (log is PluginChangelogEntry pluginLog)
             {
                 icon = this.imageCache.DefaultIcon;
@@ -1994,7 +1994,6 @@ internal class PluginInstallerWindow : Window, IDisposable
     {
         var configuration = Service<DalamudConfiguration>.Get();
         var pluginManager = Service<PluginManager>.Get();
-        var startInfo = Service<DalamudStartInfo>.Get();
 
         if (ImGui.BeginPopupContextItem("ItemContextMenu"))
         {
@@ -2022,10 +2021,10 @@ internal class PluginInstallerWindow : Window, IDisposable
                 Task.Run(() =>
                     {
                         pluginManager.PluginConfigs.Delete(manifest.InternalName);
+                        var dir = pluginManager.PluginConfigs.GetDirectory(manifest.InternalName);
 
-                        var path = Path.Combine(startInfo.PluginDirectory, manifest.InternalName);
-                        if (Directory.Exists(path))
-                            Directory.Delete(path, true);
+                        if (Directory.Exists(dir))
+                            Directory.Delete(dir, true);
                     })
                     .ContinueWith(task =>
                     {
@@ -2226,8 +2225,7 @@ internal class PluginInstallerWindow : Window, IDisposable
             {
                 var commands = commandManager.Commands
                                              .Where(cInfo => 
-                                                        cInfo.Value != null &&
-                                                        cInfo.Value.ShowInHelp &&
+                                                        cInfo.Value is { ShowInHelp: true } &&
                                                         cInfo.Value.LoaderAssemblyName == plugin.Manifest.InternalName)
                                              .ToArray();
 

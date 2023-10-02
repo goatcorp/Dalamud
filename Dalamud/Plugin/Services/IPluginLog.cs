@@ -1,7 +1,7 @@
-﻿using System;
-
-using Serilog;
+﻿using Serilog;
 using Serilog.Events;
+
+#pragma warning disable CS1573 // See https://github.com/dotnet/roslyn/issues/40325
 
 namespace Dalamud.Plugin.Services;
 
@@ -19,15 +19,6 @@ public interface IPluginLog
     /// for dev plugins.
     /// </remarks>
     LogEventLevel MinimumLogLevel { get; set; }
-
-    /// <summary>
-    /// Gets an instance of the Serilog <see cref="ILogger"/> for advanced use cases. The provided logger will handle
-    /// tagging all log messages with the appropriate context variables and properties.
-    /// </summary>
-    /// <remarks>
-    /// Not currently part of public API - will be added after some formatter work has been completed.
-    /// </remarks>
-    internal ILogger Logger { get; }
 
     /// <summary>
     /// Log a <see cref="LogEventLevel.Fatal" /> message to the Dalamud log for this plugin. This log level should be
@@ -76,6 +67,12 @@ public interface IPluginLog
     /// <inheritdoc cref="Information(string,object[])"/>
     /// <param name="exception">An (optional) exception that should be recorded alongside this event.</param>
     void Information(Exception? exception, string messageTemplate, params object[] values);
+
+    /// <inheritdoc cref="Information(string,object[])"/>
+    void Info(string messageTemplate, params object[] values);
+
+    /// <inheritdoc cref="Information(Exception?,string,object[])"/>
+    void Info(Exception? exception, string messageTemplate, params object[] values);
     
     /// <summary>
     /// Log a <see cref="LogEventLevel.Debug" /> message to the Dalamud log for this plugin. This log level should be

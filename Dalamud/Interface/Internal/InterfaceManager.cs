@@ -19,6 +19,7 @@ using Dalamud.Interface.GameFonts;
 using Dalamud.Interface.Internal.ManagedAsserts;
 using Dalamud.Interface.Internal.Notifications;
 using Dalamud.Interface.Style;
+using Dalamud.Interface.Utility;
 using Dalamud.Interface.Windowing;
 using Dalamud.Utility;
 using Dalamud.Utility.Timing;
@@ -240,7 +241,7 @@ internal class InterfaceManager : IDisposable, IServiceType
     /// </summary>
     /// <param name="filePath">The filepath to load.</param>
     /// <returns>A texture, ready to use in ImGui.</returns>
-    public TextureWrap? LoadImage(string filePath)
+    public IDalamudTextureWrap? LoadImage(string filePath)
     {
         if (this.scene == null)
             throw new InvalidOperationException("Scene isn't ready.");
@@ -263,7 +264,7 @@ internal class InterfaceManager : IDisposable, IServiceType
     /// </summary>
     /// <param name="imageData">The data to load.</param>
     /// <returns>A texture, ready to use in ImGui.</returns>
-    public TextureWrap? LoadImage(byte[] imageData)
+    public IDalamudTextureWrap? LoadImage(byte[] imageData)
     {
         if (this.scene == null)
             throw new InvalidOperationException("Scene isn't ready.");
@@ -289,7 +290,7 @@ internal class InterfaceManager : IDisposable, IServiceType
     /// <param name="height">The height in pixels.</param>
     /// <param name="numChannels">The number of channels.</param>
     /// <returns>A texture, ready to use in ImGui.</returns>
-    public TextureWrap? LoadImageRaw(byte[] imageData, int width, int height, int numChannels)
+    public IDalamudTextureWrap? LoadImageRaw(byte[] imageData, int width, int height, int numChannels)
     {
         if (this.scene == null)
             throw new InvalidOperationException("Scene isn't ready.");
@@ -325,7 +326,7 @@ internal class InterfaceManager : IDisposable, IServiceType
     /// <param name="height">The height in pixels.</param>
     /// <param name="dxgiFormat">Format of the texture.</param>
     /// <returns>A texture, ready to use in ImGui.</returns>
-    public IDalamudTextureWrap LoadImageFromDxgiFormat(Span<byte> data, int pitch, int width, int height, Format dxgiFormat)
+    public DalamudTextureWrap LoadImageFromDxgiFormat(Span<byte> data, int pitch, int width, int height, Format dxgiFormat)
     {
         if (this.scene == null)
             throw new InvalidOperationException("Scene isn't ready.");
@@ -562,10 +563,10 @@ internal class InterfaceManager : IDisposable, IServiceType
                 return;
             }
 
-            var startInfo = Service<DalamudStartInfo>.Get();
+            var startInfo = Service<Dalamud>.Get().StartInfo;
             var configuration = Service<DalamudConfiguration>.Get();
 
-            var iniFileInfo = new FileInfo(Path.Combine(Path.GetDirectoryName(startInfo.ConfigurationPath), "dalamudUI.ini"));
+            var iniFileInfo = new FileInfo(Path.Combine(Path.GetDirectoryName(startInfo.ConfigurationPath)!, "dalamudUI.ini"));
 
             try
             {
@@ -1054,7 +1055,7 @@ internal class InterfaceManager : IDisposable, IServiceType
     }
 
     [ServiceManager.CallWhenServicesReady]
-    private void ContinueConstruction(SigScanner sigScanner, Framework framework)
+    private void ContinueConstruction(TargetSigScanner sigScanner, Framework framework)
     {
         this.address.Setup(sigScanner);
         framework.RunOnFrameworkThread(() =>
@@ -1275,6 +1276,7 @@ internal class InterfaceManager : IDisposable, IServiceType
     /// <summary>
     /// Represents an instance of InstanceManager with scene ready for use.
     /// </summary>
+    [ServiceManager.Service]
     public class InterfaceManagerWithScene : IServiceType
     {
         /// <summary>
