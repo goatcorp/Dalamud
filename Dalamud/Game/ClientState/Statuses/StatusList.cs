@@ -10,8 +10,6 @@ namespace Dalamud.Game.ClientState.Statuses;
 /// </summary>
 public sealed unsafe partial class StatusList
 {
-    private const int StatusListLength = 30;
-
     /// <summary>
     /// Initializes a new instance of the <see cref="StatusList"/> class.
     /// </summary>
@@ -38,7 +36,7 @@ public sealed unsafe partial class StatusList
     /// <summary>
     /// Gets the amount of status effect slots the actor has.
     /// </summary>
-    public int Length => StatusListLength;
+    public int Length => Struct->NumValidStatuses;
 
     private static int StatusSize { get; } = Marshal.SizeOf<FFXIVClientStructs.FFXIV.Client.Game.Status>();
 
@@ -53,7 +51,7 @@ public sealed unsafe partial class StatusList
     {
         get
         {
-            if (index < 0 || index > StatusListLength)
+            if (index < 0 || index > this.Length)
                 return null;
 
             var addr = this.GetStatusAddress(index);
@@ -107,7 +105,7 @@ public sealed unsafe partial class StatusList
     /// <returns>The memory address of the party member.</returns>
     public IntPtr GetStatusAddress(int index)
     {
-        if (index < 0 || index >= StatusListLength)
+        if (index < 0 || index >= this.Length)
             return IntPtr.Zero;
 
         return (IntPtr)(this.Struct->Status + (index * StatusSize));
@@ -134,7 +132,7 @@ public sealed partial class StatusList : IReadOnlyCollection<Status>, ICollectio
     /// <inheritdoc/>
     public IEnumerator<Status> GetEnumerator()
     {
-        for (var i = 0; i < StatusListLength; i++)
+        for (var i = 0; i < this.Length; i++)
         {
             var status = this[i];
 
