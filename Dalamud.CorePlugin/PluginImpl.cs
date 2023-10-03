@@ -56,7 +56,7 @@ namespace Dalamud.CorePlugin
         /// </summary>
         /// <param name="pluginInterface">Dalamud plugin interface.</param>
         /// <param name="log">Logging service.</param>
-        public PluginImpl(DalamudPluginInterface pluginInterface, IPluginLog log, ISigScanner scanner)
+        public PluginImpl(DalamudPluginInterface pluginInterface, IPluginLog log)
         {
             try
             {
@@ -65,8 +65,6 @@ namespace Dalamud.CorePlugin
                 this.pluginLog = log;
 
                 this.windowSystem.AddWindow(new PluginWindow());
-
-                this.pluginLog.Information(scanner.ToString());
 
                 this.Interface.UiBuilder.Draw += this.OnDraw;
                 this.Interface.UiBuilder.OpenConfigUi += this.OnOpenConfigUi;
