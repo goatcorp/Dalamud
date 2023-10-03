@@ -51,7 +51,7 @@ internal class LocalPlugin : IDisposable
     /// </summary>
     /// <param name="dllFile">Path to the DLL file.</param>
     /// <param name="manifest">The plugin manifest.</param>
-    public LocalPlugin(FileInfo dllFile, LocalPluginManifest? manifest)
+    public LocalPlugin(FileInfo dllFile, LocalPluginManifest manifest)
     {
         if (dllFile.Name == "FFXIVClientStructs.Generators.dll")
         {
@@ -66,30 +66,7 @@ internal class LocalPlugin : IDisposable
 
         // Although it is conditionally used here, we need to set the initial value regardless.
         this.manifestFile = LocalPluginManifest.GetManifestFile(this.DllFile);
-
-        // If the parameter manifest was null
-        if (manifest == null)
-        {
-            this.manifest = new LocalPluginManifest()
-            {
-                Author = "developer",
-                Name = Path.GetFileNameWithoutExtension(this.DllFile.Name),
-                InternalName = Path.GetFileNameWithoutExtension(this.DllFile.Name),
-                AssemblyVersion = new Version("1.0.0.0"),
-                Description = string.Empty,
-                ApplicableVersion = GameVersion.Any,
-                DalamudApiLevel = PluginManager.DalamudApiLevel,
-                IsHide = false,
-            };
-
-            // Save the manifest to disk so there won't be any problems later.
-            // We'll update the name property after it can be retrieved from the instance.
-            this.manifest.Save(this.manifestFile, "manifest was null");
-        }
-        else
-        {
-            this.manifest = manifest;
-        }
+        this.manifest = manifest;
 
         var needsSaveDueToLegacyFiles = false;
 

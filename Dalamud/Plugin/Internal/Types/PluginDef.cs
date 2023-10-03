@@ -15,7 +15,7 @@ internal struct PluginDef
     /// <param name="dllFile">plugin dll file.</param>
     /// <param name="manifest">plugin manifest.</param>
     /// <param name="isDev">plugin dev indicator.</param>
-    public PluginDef(FileInfo dllFile, LocalPluginManifest? manifest, bool isDev)
+    public PluginDef(FileInfo dllFile, LocalPluginManifest manifest, bool isDev)
     {
         this.DllFile = dllFile;
         this.Manifest = manifest;
@@ -30,7 +30,7 @@ internal struct PluginDef
     /// <summary>
     /// Gets plugin manifest.
     /// </summary>
-    public LocalPluginManifest? Manifest { get; init; }
+    public LocalPluginManifest Manifest { get; init; }
 
     /// <summary>
     /// Gets a value indicating whether plugin is a dev plugin.
