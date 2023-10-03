@@ -1,8 +1,6 @@
-using System;
-
 using Newtonsoft.Json;
 
-namespace Dalamud.Game;
+namespace Dalamud.Common.Game;
 
 /// <summary>
 /// Converts a <see cref="GameVersion"/> to and from a string (e.g. <c>"2010.01.01.1234.5678"</c>).

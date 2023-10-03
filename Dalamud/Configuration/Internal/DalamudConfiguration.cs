@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -6,7 +5,9 @@ using System.Linq;
 
 using Dalamud.Game.Text;
 using Dalamud.Interface.Style;
+using Dalamud.IoC.Internal;
 using Dalamud.Plugin.Internal.Profiles;
+using Dalamud.Storage;
 using Dalamud.Utility;
 using Newtonsoft.Json;
 using Serilog;
@@ -18,7 +19,11 @@ namespace Dalamud.Configuration.Internal;
 /// Class containing Dalamud settings.
 /// </summary>
 [Serializable]
-internal sealed class DalamudConfiguration : IServiceType
+[ServiceManager.Service]
+#pragma warning disable SA1015
+[InherentDependency<ReliableFileStorage>] // We must still have this when unloading
+#pragma warning restore SA1015
+internal sealed class DalamudConfiguration : IServiceType, IDisposable
 {
     private static readonly JsonSerializerSettings SerializerSettings = new()
     {
@@ -422,23 +427,37 @@ internal sealed class DalamudConfiguration : IServiceType
     /// <summary>
     /// Load a configuration from the provided path.
     /// </summary>
-    /// <param name="path">The path to load the configuration file from.</param>
+    /// <param name="path">Path to read from.</param>
+    /// <param name="fs">File storage.</param>
     /// <returns>The deserialized configuration file.</returns>
-    public static DalamudConfiguration Load(string path)
+    public static DalamudConfiguration Load(string path, ReliableFileStorage fs)
     {
         DalamudConfiguration deserialized = null;
+
         try
         {
-            deserialized = JsonConvert.DeserializeObject<DalamudConfiguration>(File.ReadAllText(path), SerializerSettings);
+            fs.ReadAllText(path, text =>
+            {
+                deserialized =
+                    JsonConvert.DeserializeObject<DalamudConfiguration>(text, SerializerSettings);
+                
+                // If this reads as null, the file was empty, that's no good
+                if (deserialized == null)
+                    throw new Exception("Read config was null.");
+            });
         }
-        catch (Exception ex)
+        catch (FileNotFoundException)
         {
-            Log.Warning(ex, "Failed to load DalamudConfiguration at {0}", path);
+            // ignored
+        }
+        catch (Exception e)
+        {
+            Log.Error(e, "Could not load DalamudConfiguration at {Path}, creating new", path);
         }
 
         deserialized ??= new DalamudConfiguration();
         deserialized.configPath = path;
-
+        
         return deserialized;
     }
 
@@ -456,6 +475,13 @@ internal sealed class DalamudConfiguration : IServiceType
     public void ForceSave()
     {
         this.Save();
+    }
+    
+    /// <inheritdoc/>
+    public void Dispose()
+    {
+        // Make sure that we save, if a save is queued while we are shutting down
+        this.Update();
     }
 
     /// <summary>
@@ -476,7 +502,8 @@ internal sealed class DalamudConfiguration : IServiceType
     {
         ThreadSafety.AssertMainThread();
 
-        Util.WriteAllTextSafe(this.configPath, JsonConvert.SerializeObject(this, SerializerSettings));
+        Service<ReliableFileStorage>.Get().WriteAllText(
+            this.configPath, JsonConvert.SerializeObject(this, SerializerSettings));
         this.DalamudConfigurationSaved?.Invoke(this);
     }
 }

@@ -1,9 +1,7 @@
-using System;
 using System.Runtime.InteropServices;
-
 using Newtonsoft.Json;
 
-namespace Dalamud;
+namespace Dalamud.Common;
 
 /// <summary>
 /// Converts a <see cref="OSPlatform"/> to and from a string (e.g. <c>"FreeBSD"</c>).

@@ -81,13 +81,6 @@
     </ItemGroup>
 
     <ItemGroup>
-        <!-- This prevents us from having to include Dalamud itself as a dependency -->
-        <!-- If the files move just update the paths here -->
-        <Compile Include="..\Dalamud\ClientLanguage.cs" Link="Included\%(Filename)%(Extension)" />
-        <Compile Include="..\Dalamud\IServiceType.cs" Link="Included\%(Filename)%(Extension)" />
-        <Compile Include="..\Dalamud\DalamudStartInfo.cs" Link="Included\%(Filename)%(Extension)" />
-        <Compile Include="..\Dalamud\OSPlatformConverter.cs" Link="Included\%(Filename)%(Extension)" />
-        <Compile Include="..\Dalamud\Game\GameVersion.cs" Link="Included\Game\%(Filename)%(Extension)" />
-        <Compile Include="..\Dalamud\Game\GameVersionConverter.cs" Link="Included\Game\%(Filename)%(Extension)" />
+      <ProjectReference Include="..\Dalamud.Common\Dalamud.Common.csproj" />
     </ItemGroup>
 </Project>

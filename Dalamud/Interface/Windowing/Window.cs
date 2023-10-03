@@ -257,13 +257,7 @@ public abstract class Window
 
         if (hasNamespace)
             ImGui.PushID(this.Namespace);
-
-        this.PreDraw();
-        this.ApplyConditionals();
-
-        if (this.ForceMainWindow)
-            ImGuiHelpers.ForceNextWindowMainViewport();
-
+        
         if (this.internalLastIsOpen != this.internalIsOpen && this.internalIsOpen)
         {
             this.internalLastIsOpen = this.internalIsOpen;
@@ -271,6 +265,12 @@ public abstract class Window
 
             if (doSoundEffects && !this.DisableWindowSounds) UIModule.PlaySound(this.OnOpenSfxId, 0, 0, 0);
         }
+
+        this.PreDraw();
+        this.ApplyConditionals();
+
+        if (this.ForceMainWindow)
+            ImGuiHelpers.ForceNextWindowMainViewport();
 
         var wasFocused = this.IsFocused;
         if (wasFocused)

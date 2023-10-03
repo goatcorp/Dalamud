@@ -10,7 +10,7 @@ namespace Dalamud.Game;
 /// <summary>
 /// Base memory address resolver.
 /// </summary>
-internal abstract class BaseAddressResolver
+public abstract class BaseAddressResolver
 {
     /// <summary>
     /// Gets a list of memory addresses that were found, to list in /xldata.

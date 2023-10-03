@@ -72,7 +72,6 @@ static wchar_t* GetRuntimePath()
 
     std::filesystem::path homeDir = L"Z:\\home\\" + std::wstring(username);
     runtime_path = _wcsdup(homeDir.append(".xlcore").append("runtime").c_str());
-    printf("%ws", runtime_path);
     if (std::filesystem::exists(runtime_path))
         return runtime_path;
     free(runtime_path);

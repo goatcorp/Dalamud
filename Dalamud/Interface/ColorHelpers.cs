@@ -259,6 +259,15 @@ public static class ColorHelpers
         hsv.A -= amount;
         return HsvToRgb(hsv);
     }
+    
+    /// <summary>
+    /// Set alpha of a color.
+    /// </summary>
+    /// <param name="color">The color.</param>
+    /// <param name="alpha">The alpha value to set.</param>
+    /// <returns>The color with the set alpha value.</returns>
+    public static Vector4 WithAlpha(this Vector4 color, float alpha)
+        => color with { W = alpha };
 
     /// <summary>
     /// Fade a color.

@@ -66,9 +66,6 @@ internal class DalamudInterface : IDisposable, IServiceType
     private readonly BranchSwitcherWindow branchSwitcherWindow;
     private readonly HitchSettingsWindow hitchSettingsWindow;
 
-    private readonly IDalamudTextureWrap logoTexture;
-    private readonly IDalamudTextureWrap tsmLogoTexture;
-
     private bool isCreditsDarkening = false;
     private OutCubic creditsDarkeningAnimation = new(TimeSpan.FromSeconds(10));
 
@@ -92,12 +89,12 @@ internal class DalamudInterface : IDisposable, IServiceType
         Dalamud dalamud,
         DalamudConfiguration configuration,
         InterfaceManager.InterfaceManagerWithScene interfaceManagerWithScene,
-        PluginImageCache pluginImageCache)
+        PluginImageCache pluginImageCache,
+        Branding branding)
     {
         var interfaceManager = interfaceManagerWithScene.Manager;
         this.WindowSystem = new WindowSystem("DalamudCore");
-
-        this.changelogWindow = new ChangelogWindow() { IsOpen = false };
+        
         this.colorDemoWindow = new ColorDemoWindow() { IsOpen = false };
         this.componentDemoWindow = new ComponentDemoWindow() { IsOpen = false };
         this.dataWindow = new DataWindow() { IsOpen = false };
@@ -110,6 +107,7 @@ internal class DalamudInterface : IDisposable, IServiceType
         this.selfTestWindow = new SelfTestWindow() { IsOpen = false };
         this.styleEditorWindow = new StyleEditorWindow() { IsOpen = false };
         this.titleScreenMenuWindow = new TitleScreenMenuWindow() { IsOpen = false };
+        this.changelogWindow = new ChangelogWindow(this.titleScreenMenuWindow) { IsOpen = false };
         this.profilerWindow = new ProfilerWindow() { IsOpen = false };
         this.branchSwitcherWindow = new BranchSwitcherWindow() { IsOpen = false };
         this.hitchSettingsWindow = new HitchSettingsWindow() { IsOpen = false };
@@ -136,26 +134,13 @@ internal class DalamudInterface : IDisposable, IServiceType
 
         interfaceManager.Draw += this.OnDraw;
 
-        var logoTex =
-            interfaceManager.LoadImage(Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "logo.png"));
-        var tsmLogoTex =
-            interfaceManager.LoadImage(Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "tsmLogo.png"));
-
-        if (logoTex == null || tsmLogoTex == null)
-        {
-            throw new Exception("Failed to load logo textures");
-        }
-
-        this.logoTexture = logoTex;
-        this.tsmLogoTexture = tsmLogoTex;
-
         var tsm = Service<TitleScreenMenu>.Get();
-        tsm.AddEntryCore(Loc.Localize("TSMDalamudPlugins", "Plugin Installer"), this.tsmLogoTexture, this.OpenPluginInstaller);
-        tsm.AddEntryCore(Loc.Localize("TSMDalamudSettings", "Dalamud Settings"), this.tsmLogoTexture, this.OpenSettings);
+        tsm.AddEntryCore(Loc.Localize("TSMDalamudPlugins", "Plugin Installer"), branding.LogoSmall, this.OpenPluginInstaller);
+        tsm.AddEntryCore(Loc.Localize("TSMDalamudSettings", "Dalamud Settings"), branding.LogoSmall, this.OpenSettings);
 
         if (!configuration.DalamudBetaKind.IsNullOrEmpty())
         {
-            tsm.AddEntryCore(Loc.Localize("TSMDalamudDevMenu", "Developer Menu"), this.tsmLogoTexture, () => this.isImGuiDrawDevMenu = true);
+            tsm.AddEntryCore(Loc.Localize("TSMDalamudDevMenu", "Developer Menu"), branding.LogoSmall, () => this.isImGuiDrawDevMenu = true);
         }
 
         this.creditsDarkeningAnimation.Point1 = Vector2.Zero;
@@ -192,9 +177,6 @@ internal class DalamudInterface : IDisposable, IServiceType
         this.consoleWindow.Dispose();
         this.pluginWindow.Dispose();
         this.titleScreenMenuWindow.Dispose();
-
-        this.logoTexture.Dispose();
-        this.tsmLogoTexture.Dispose();
     }
 
     #region Open
@@ -635,9 +617,7 @@ internal class DalamudInterface : IDisposable, IServiceType
 
                         ImGui.EndMenu();
                     }
-
-                    var startInfo = Service<DalamudStartInfo>.Get();
-
+                    
                     var logSynchronously = configuration.LogSynchronously;
                     if (ImGui.MenuItem("Log Synchronously", null, ref logSynchronously))
                     {
@@ -645,10 +625,10 @@ internal class DalamudInterface : IDisposable, IServiceType
                         configuration.QueueSave();
 
                         EntryPoint.InitLogging(
-                            startInfo.LogPath!,
-                            startInfo.BootShowConsole,
+                            dalamud.StartInfo.LogPath!,
+                            dalamud.StartInfo.BootShowConsole,
                             configuration.LogSynchronously,
-                            startInfo.LogName);
+                            dalamud.StartInfo.LogName);
                     }
 
                     var antiDebug = Service<AntiDebug>.Get();
@@ -767,7 +747,7 @@ internal class DalamudInterface : IDisposable, IServiceType
                     }
 
                     ImGui.MenuItem(Util.AssemblyVersion, false);
-                    ImGui.MenuItem(startInfo.GameVersion?.ToString() ?? "Unknown version", false);
+                    ImGui.MenuItem(dalamud.StartInfo.GameVersion?.ToString() ?? "Unknown version", false);
                     ImGui.MenuItem($"D: {Util.GetGitHash()}[{Util.GetGitCommitCount()}] CS: {Util.GetGitHashClientStructs()}[{FFXIVClientStructs.Interop.Resolver.Version}]", false);
                     ImGui.MenuItem($"CLR: {Environment.Version}", false);
 

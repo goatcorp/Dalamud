@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -14,8 +13,6 @@ using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Internal.Notifications;
 using Dalamud.Interface.Internal.Windows;
-using Dalamud.IoC;
-using Dalamud.IoC.Internal;
 using Dalamud.Plugin.Internal;
 using Dalamud.Utility;
 using Serilog;
@@ -105,6 +102,9 @@ internal class ChatHandlers : IServiceType
     private readonly DalamudLinkPayload openInstallerWindowLink;
 
     [ServiceManager.ServiceDependency]
+    private readonly Dalamud dalamud = Service<Dalamud>.Get();
+    
+    [ServiceManager.ServiceDependency]
     private readonly DalamudConfiguration configuration = Service<DalamudConfiguration>.Get();
 
     private bool hasSeenLoadingMsg;
@@ -160,7 +160,6 @@ internal class ChatHandlers : IServiceType
 
     private void OnChatMessage(XivChatType type, uint senderId, ref SeString sender, ref SeString message, ref bool isHandled)
     {
-        var startInfo = Service<DalamudStartInfo>.Get();
         var clientState = Service<ClientState.ClientState>.GetNullable();
         if (clientState == null)
             return;
@@ -182,7 +181,7 @@ internal class ChatHandlers : IServiceType
 
         if (type == XivChatType.RetainerSale)
         {
-            foreach (var regex in this.retainerSaleRegexes[startInfo.Language])
+            foreach (var regex in this.retainerSaleRegexes[(ClientLanguage)this.dalamud.StartInfo.Language])
             {
                 var matchInfo = regex.Match(message.TextValue);
 
@@ -252,10 +251,9 @@ internal class ChatHandlers : IServiceType
                 Type = XivChatType.Notice,
             });
 
-            if (string.IsNullOrEmpty(this.configuration.LastChangelogMajorMinor) || (!ChangelogWindow.WarrantsChangelogForMajorMinor.StartsWith(this.configuration.LastChangelogMajorMinor) && assemblyVersion.StartsWith(ChangelogWindow.WarrantsChangelogForMajorMinor)))
+            if (ChangelogWindow.WarrantsChangelog())
             {
                 dalamudInterface.OpenChangelogWindow();
-                this.configuration.LastChangelogMajorMinor = ChangelogWindow.WarrantsChangelogForMajorMinor;
             }
 
             this.configuration.LastVersion = assemblyVersion;

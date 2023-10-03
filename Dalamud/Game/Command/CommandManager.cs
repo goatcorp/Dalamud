@@ -35,15 +35,15 @@ internal sealed class CommandManager : IServiceType, IDisposable, ICommandManage
     private readonly ChatGui chatGui = Service<ChatGui>.Get();
 
     [ServiceManager.ServiceConstructor]
-    private CommandManager(DalamudStartInfo startInfo)
+    private CommandManager(Dalamud dalamud)
     {
-        this.currentLangCommandRegex = startInfo.Language switch
+        this.currentLangCommandRegex = (ClientLanguage)dalamud.StartInfo.Language switch
         {
             ClientLanguage.Japanese => this.commandRegexJp,
             ClientLanguage.English => this.commandRegexEn,
             ClientLanguage.German => this.commandRegexDe,
             ClientLanguage.French => this.commandRegexFr,
-            _ => this.currentLangCommandRegex,
+            _ => this.commandRegexEn,
         };
 
         this.chatGui.CheckMessageHandled += this.OnCheckMessageHandled;

@@ -23,7 +23,7 @@ namespace Dalamud.Game.ClientState.Objects;
 #pragma warning restore SA1015
 internal sealed partial class ObjectTable : IServiceType, IObjectTable
 {
-    private const int ObjectTableLength = 596;
+    private const int ObjectTableLength = 599;
 
     private readonly ClientStateAddressResolver address;
 

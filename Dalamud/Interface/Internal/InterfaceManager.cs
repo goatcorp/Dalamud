@@ -563,10 +563,10 @@ internal class InterfaceManager : IDisposable, IServiceType
                 return;
             }
 
-            var startInfo = Service<DalamudStartInfo>.Get();
+            var startInfo = Service<Dalamud>.Get().StartInfo;
             var configuration = Service<DalamudConfiguration>.Get();
 
-            var iniFileInfo = new FileInfo(Path.Combine(Path.GetDirectoryName(startInfo.ConfigurationPath), "dalamudUI.ini"));
+            var iniFileInfo = new FileInfo(Path.Combine(Path.GetDirectoryName(startInfo.ConfigurationPath)!, "dalamudUI.ini"));
 
             try
             {
@@ -1276,6 +1276,7 @@ internal class InterfaceManager : IDisposable, IServiceType
     /// <summary>
     /// Represents an instance of InstanceManager with scene ready for use.
     /// </summary>
+    [ServiceManager.Service]
     public class InterfaceManagerWithScene : IServiceType
     {
         /// <summary>

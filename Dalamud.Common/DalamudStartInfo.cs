@@ -1,16 +1,14 @@
-using System;
-using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using Dalamud.Game;
+using Dalamud.Common.Game;
 using Newtonsoft.Json;
 
-namespace Dalamud;
+namespace Dalamud.Common;
 
 /// <summary>
 /// Struct containing information needed to initialize Dalamud.
 /// </summary>
 [Serializable]
-public record DalamudStartInfo : IServiceType
+public record DalamudStartInfo
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="DalamudStartInfo"/> class.
@@ -89,7 +87,7 @@ public record DalamudStartInfo : IServiceType
     public ClientLanguage Language { get; set; } = ClientLanguage.English;
 
     /// <summary>
-    /// Gets or sets the underlying platform´Dalamud runs on.
+    /// Gets or sets the underlying platform�Dalamud runs on.
     /// </summary>
     [JsonConverter(typeof(OSPlatformConverter))]
     public OSPlatform Platform { get; set; }
@@ -103,7 +101,7 @@ public record DalamudStartInfo : IServiceType
     /// <summary>
     /// Gets or sets troubleshooting information to attach when generating a tspack file.
     /// </summary>
-    public string TroubleshootingPackData { get; set; }
+    public string? TroubleshootingPackData { get; set; }
 
     /// <summary>
     /// Gets or sets a value that specifies how much to wait before a new Dalamud session.

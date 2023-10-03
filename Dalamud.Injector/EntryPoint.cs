@@ -9,7 +9,8 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
 
-using Dalamud.Game;
+using Dalamud.Common;
+using Dalamud.Common.Game;
 using Newtonsoft.Json;
 using Reloaded.Memory.Buffers;
 using Serilog;

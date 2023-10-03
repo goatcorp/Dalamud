@@ -7,6 +7,7 @@ using System.Threading;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Plugin.Services;
+using Dalamud.Utility;
 using Dalamud.Utility.Timing;
 using JetBrains.Annotations;
 using Lumina;
@@ -32,9 +33,9 @@ internal sealed class DataManager : IDisposable, IServiceType, IDataManager
     private readonly CancellationTokenSource luminaCancellationTokenSource;
 
     [ServiceManager.ServiceConstructor]
-    private DataManager(DalamudStartInfo dalamudStartInfo, Dalamud dalamud)
+    private DataManager(Dalamud dalamud)
     {
-        this.Language = dalamudStartInfo.Language;
+        this.Language = (ClientLanguage)dalamud.StartInfo.Language;
 
         // Set up default values so plugins do not null-reference when data is being loaded.
         this.ClientOpCodes = this.ServerOpCodes = new ReadOnlyDictionary<string, ushort>(new Dictionary<string, ushort>());
@@ -82,17 +83,20 @@ internal sealed class DataManager : IDisposable, IServiceType, IDataManager
 
                 Log.Information("Lumina is ready: {0}", this.GameData.DataPath);
 
-                try
+                if (!dalamud.StartInfo.TroubleshootingPackData.IsNullOrEmpty())
                 {
-                    var tsInfo =
-                        JsonConvert.DeserializeObject<LauncherTroubleshootingInfo>(
-                            dalamudStartInfo.TroubleshootingPackData);
-                    this.HasModifiedGameDataFiles =
-                        tsInfo?.IndexIntegrity is LauncherTroubleshootingInfo.IndexIntegrityResult.Failed or LauncherTroubleshootingInfo.IndexIntegrityResult.Exception;
-                }
-                catch
-                {
-                    // ignored
+                    try
+                    {
+                        var tsInfo =
+                            JsonConvert.DeserializeObject<LauncherTroubleshootingInfo>(
+                                dalamud.StartInfo.TroubleshootingPackData);
+                        this.HasModifiedGameDataFiles =
+                            tsInfo?.IndexIntegrity is LauncherTroubleshootingInfo.IndexIntegrityResult.Failed or LauncherTroubleshootingInfo.IndexIntegrityResult.Exception;
+                    }
+                    catch
+                    {
+                        // ignored
+                    }
                 }
             }
 

@@ -39,7 +39,8 @@ internal class TextureManager : IDisposable, IServiceType, ITextureProvider, ITe
     private readonly Framework framework;
     private readonly DataManager dataManager;
     private readonly InterfaceManager im;
-    private readonly DalamudStartInfo startInfo;
+
+    private readonly ClientLanguage language;
     
     private readonly Dictionary<string, TextureInfo> activeTextures = new();
 
@@ -48,17 +49,18 @@ internal class TextureManager : IDisposable, IServiceType, ITextureProvider, ITe
     /// <summary>
     /// Initializes a new instance of the <see cref="TextureManager"/> class.
     /// </summary>
+    /// <param name="dalamud">Dalamud instance.</param>
     /// <param name="framework">Framework instance.</param>
     /// <param name="dataManager">DataManager instance.</param>
     /// <param name="im">InterfaceManager instance.</param>
-    /// <param name="startInfo">DalamudStartInfo instance.</param>
     [ServiceManager.ServiceConstructor]
-    public TextureManager(Framework framework, DataManager dataManager, InterfaceManager im, DalamudStartInfo startInfo)
+    public TextureManager(Dalamud dalamud, Framework framework, DataManager dataManager, InterfaceManager im)
     {
         this.framework = framework;
         this.dataManager = dataManager;
         this.im = im;
-        this.startInfo = startInfo;
+
+        this.language = (ClientLanguage)dalamud.StartInfo.Language;
 
         this.framework.Update += this.FrameworkOnUpdate;
 
@@ -115,7 +117,7 @@ internal class TextureManager : IDisposable, IServiceType, ITextureProvider, ITe
         if (this.dataManager.FileExists(path))
             return path;
         
-        language ??= this.startInfo.Language;
+        language ??= this.language;
         var languageFolder = language switch
         {
             ClientLanguage.Japanese => "ja/",
@@ -295,10 +297,9 @@ internal class TextureManager : IDisposable, IServiceType, ITextureProvider, ITe
         TextureInfo? info;
         lock (this.activeTextures)
         {
+            // This either is a new texture, or it had been evicted and now wants to be drawn again.
             if (!this.activeTextures.TryGetValue(path, out info))
             {
-                Debug.Assert(rethrow, "This should never run when getting outside of creator");
-
                 info = new TextureInfo();
                 this.activeTextures.Add(path, info);
             }
