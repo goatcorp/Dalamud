@@ -209,4 +209,25 @@ public static partial class ImGuiComponents
 
         return button;
     }
+
+    /// <summary>
+    /// Get width of IconButtonWithText component.
+    /// </summary>
+    /// <param name="icon">Icon to use.</param>
+    /// <param name="text">Text to use.</param>
+    /// <returns>Width.</returns>
+    internal static float GetIconButtonWithTextWidth(FontAwesomeIcon icon, string text)
+    {
+        ImGui.PushFont(UiBuilder.IconFont);
+        var iconSize = ImGui.CalcTextSize(icon.ToIconString());
+        ImGui.PopFont();
+        
+        var textSize = ImGui.CalcTextSize(text);
+        var dl = ImGui.GetWindowDrawList();
+        var cursor = ImGui.GetCursorScreenPos();
+
+        var iconPadding = 3 * ImGuiHelpers.GlobalScale;
+        
+        return iconSize.X + textSize.X + (ImGui.GetStyle().FramePadding.X * 2) + iconPadding;
+    }
 }
