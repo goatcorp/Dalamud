@@ -417,7 +417,7 @@ internal sealed unsafe class DtrBar : IDisposable, IServiceType, IDtrBar
 
     private AtkTextNode* MakeNode(uint nodeId)
     {
-        var newTextNode = IMemorySpace.GetUISpace()->Create<AtkTextNode>();
+        var newTextNode = AtkUldManager.CreateAtkTextNode();
         if (newTextNode == null)
         {
             Log.Debug("Failed to allocate memory for AtkTextNode");
@@ -442,6 +442,16 @@ internal sealed unsafe class DtrBar : IDisposable, IServiceType, IDtrBar
 
         newTextNode->TextColor = new ByteColor { R = 255, G = 255, B = 255, A = 255 };
         newTextNode->EdgeColor = new ByteColor { R = 142, G = 106, B = 12, A = 255 };
+
+        // Memory is filled with random data after being created, zero out some things to avoid issues.
+        newTextNode->UnkPtr_1 = null;
+        newTextNode->SelectStart = 0;
+        newTextNode->SelectEnd = 0;
+        newTextNode->FontCacheHandle = 0;
+        newTextNode->CharSpacing = 0;
+        newTextNode->BackgroundColor = new ByteColor { R = 0, G = 0, B = 0, A = 0 };
+        newTextNode->TextId = 0;
+        newTextNode->SheetType = 0;
 
         return newTextNode;
     }
