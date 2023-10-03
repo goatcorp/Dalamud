@@ -417,7 +417,7 @@ internal sealed unsafe class DtrBar : IDisposable, IServiceType, IDtrBar
 
     private AtkTextNode* MakeNode(uint nodeId)
     {
-        var newTextNode = IMemorySpace.GetUISpace()->Create<AtkTextNode>();
+        var newTextNode = AtkUldManager.CreateAtkTextNode();
         if (newTextNode == null)
         {
             Log.Debug("Failed to allocate memory for AtkTextNode");
