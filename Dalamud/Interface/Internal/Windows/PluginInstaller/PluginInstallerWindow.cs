@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using CheapLoc;
 using Dalamud.Configuration.Internal;
 using Dalamud.Game.Command;
+using Dalamud.Interface.Animation.EasingFunctions;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Components;
 using Dalamud.Interface.Internal.Notifications;
@@ -53,6 +54,11 @@ internal class PluginInstallerWindow : Window, IDisposable
     private readonly ProfileManagerWidget profileManagerWidget;
 
     private readonly Stopwatch tooltipFadeInStopwatch = new();
+    private readonly InOutCubic tooltipFadeEasing = new(TimeSpan.FromSeconds(0.2f))
+    {
+        Point1 = Vector2.Zero,
+        Point2 = Vector2.One,
+    };
 
     private DalamudChangelogManager? dalamudChangelogManager;
     private Task? dalamudChangelogRefreshTask;
@@ -1704,10 +1710,12 @@ internal class PluginInstallerWindow : Window, IDisposable
             ImGui.Image(this.imageCache.OutdatedInstallableIcon.ImGuiHandle, iconSize);
         else if (pluginDisabled)
             ImGui.Image(this.imageCache.DisabledIcon.ImGuiHandle, iconSize);
+        /* NOTE: Replaced by the checkmarks for now, let's see if that is fine
         else if (isLoaded && isThirdParty)
             ImGui.Image(this.imageCache.ThirdInstalledIcon.ImGuiHandle, iconSize);
         else if (isThirdParty)
             ImGui.Image(this.imageCache.ThirdIcon.ImGuiHandle, iconSize);
+        */
         else if (isLoaded)
             ImGui.Image(this.imageCache.InstalledIcon.ImGuiHandle, iconSize);
         else
@@ -1723,7 +1731,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         ImGui.TextUnformatted(label);
         
         // Verified Checkmark, don't show for dev plugins
-        if (plugin is { IsDev: false })
+        if (plugin is null or { IsDev: false })
         {
             ImGui.SameLine();
             ImGui.Text(" ");
@@ -1740,7 +1748,7 @@ internal class PluginInstallerWindow : Window, IDisposable
             }
             else
             {
-                this.DrawFontawesomeIconOutlined(FontAwesomeIcon.Circle, verifiedOutlineColor, unverifiedIconColor);
+                this.DrawFontawesomeIconOutlined(FontAwesomeIcon.ExclamationCircle, verifiedOutlineColor, unverifiedIconColor);
                 this.VerifiedCheckmarkFadeTooltip(label, Locs.VerifiedCheckmark_UnverifiedTooltip);
             }
         }
@@ -3187,8 +3195,7 @@ internal class PluginInstallerWindow : Window, IDisposable
     // Animates a tooltip when hovering over the ImGui Item before this call.
     private void VerifiedCheckmarkFadeTooltip(string source, string tooltip)
     {
-        const float fadeInStartDelay = 500.0f;
-        const float fadeInTime = 250.0f;
+        const float fadeInStartDelay = 250.0f;
         
         var isHoveringSameItem = this.verifiedCheckmarkHoveredPlugin == source;
         
@@ -3204,13 +3211,17 @@ internal class PluginInstallerWindow : Window, IDisposable
         {
             this.verifiedCheckmarkHoveredPlugin = string.Empty;
             this.tooltipFadeInStopwatch.Stop();
+            this.tooltipFadeEasing.Reset();
         }
         
         // If we have been hovering this item for > fadeInStartDelay milliseconds, fade in tooltip over fadeInTime milliseconds
         if (ImGui.IsItemHovered() && isHoveringSameItem && this.tooltipFadeInStopwatch.ElapsedMilliseconds >= fadeInStartDelay)
         {
-            var fadePercent = Math.Clamp((this.tooltipFadeInStopwatch.ElapsedMilliseconds - fadeInStartDelay) / fadeInTime, 0.0f, 1.0f);
+            if (!this.tooltipFadeEasing.IsRunning)
+                this.tooltipFadeEasing.Start();
             
+            this.tooltipFadeEasing.Update();
+            var fadePercent = this.tooltipFadeEasing.EasedPoint.X;
             ImGui.PushStyleColor(ImGuiCol.Text, ImGui.GetStyle().Colors[(int)ImGuiCol.Text] with { W = fadePercent });
             ImGui.PushStyleColor(ImGuiCol.FrameBg, ImGui.GetStyle().Colors[(int)ImGuiCol.FrameBg] with { W = fadePercent });
             ImGui.SetTooltip(tooltip);
