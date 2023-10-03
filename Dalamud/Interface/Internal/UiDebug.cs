@@ -215,7 +215,7 @@ internal unsafe class UiDebug
                         while (b > byte.MaxValue) b -= byte.MaxValue;
                         while (b < byte.MinValue) b += byte.MaxValue;
                         textNode->AlignmentFontType = (byte)b;
-                        textNode->AtkResNode.Flags_2 |= 0x1;
+                        textNode->AtkResNode.DrawFlags |= 0x1;
                     }
 
                     ImGui.Text($"Color: #{textNode->TextColor.R:X2}{textNode->TextColor.G:X2}{textNode->TextColor.B:X2}{textNode->TextColor.A:X2}");
