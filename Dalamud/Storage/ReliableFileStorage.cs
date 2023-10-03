@@ -1,10 +1,8 @@
 ﻿using System.IO;
-using System.Runtime.InteropServices;
 using System.Text;
 
 using Dalamud.Logging.Internal;
 using Dalamud.Utility;
-using PInvoke;
 using SQLite;
 
 namespace Dalamud.Storage;
@@ -28,6 +26,7 @@ public class ReliableFileStorage : IServiceType, IDisposable
 {
     private static readonly ModuleLog Log = new("VFS");
 
+    private readonly object syncRoot = new();
     private SQLiteConnection? db;
     
     /// <summary>
@@ -118,34 +117,37 @@ public class ReliableFileStorage : IServiceType, IDisposable
     {
         ArgumentException.ThrowIfNullOrEmpty(path);
 
-        if (this.db == null)
+        lock (this.syncRoot)
         {
-            Util.WriteAllBytesSafe(path, bytes);
-            return;
-        }
-        
-        this.db.RunInTransaction(() =>
-        {
-            var normalizedPath = NormalizePath(path);
-            var file = this.db.Table<DbFile>().FirstOrDefault(f => f.Path == normalizedPath && f.ContainerId == containerId);
-            if (file == null)
+            if (this.db == null)
             {
-                file = new DbFile
+                Util.WriteAllBytesSafe(path, bytes);
+                return;
+            }
+        
+            this.db.RunInTransaction(() =>
+            {
+                var normalizedPath = NormalizePath(path);
+                var file = this.db.Table<DbFile>().FirstOrDefault(f => f.Path == normalizedPath && f.ContainerId == containerId);
+                if (file == null)
                 {
-                    ContainerId = containerId,
-                    Path = normalizedPath,
-                    Data = bytes,
-                };
-                this.db.Insert(file);
-            }
-            else
-            {
-                file.Data = bytes;
-                this.db.Update(file);
-            }
+                    file = new DbFile
+                    {
+                        ContainerId = containerId,
+                        Path = normalizedPath,
+                        Data = bytes,
+                    };
+                    this.db.Insert(file);
+                }
+                else
+                {
+                    file.Data = bytes;
+                    this.db.Update(file);
+                }
         
-            Util.WriteAllBytesSafe(path, bytes);
-        });
+                Util.WriteAllBytesSafe(path, bytes);
+            });
+        }
     }
 
     /// <summary>
