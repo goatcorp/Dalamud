@@ -175,7 +175,7 @@ internal sealed class ChangelogWindow : Window, IDisposable
         ImGui.Dummy(new Vector2(dummySize));
         ImGui.SameLine();
         
-        var logoContainerSize = new Vector2(this.Size!.Value.X * 0.2f - dummySize, this.Size!.Value.Y);
+        var logoContainerSize = new Vector2(windowSize.X * 0.2f - dummySize, windowSize.Y);
         using (var child = ImRaii.Child("###logoContainer", logoContainerSize, false))
         {
             if (!child)
@@ -196,7 +196,7 @@ internal sealed class ChangelogWindow : Window, IDisposable
         ImGui.Dummy(new Vector2(dummySize));
         ImGui.SameLine();
         
-        using (var child = ImRaii.Child("###textContainer", new Vector2((this.Size!.Value.X * 0.8f) - dummySize * 4, this.Size!.Value.Y), false))
+        using (var child = ImRaii.Child("###textContainer", new Vector2((windowSize.X * 0.8f) - dummySize * 4, windowSize.Y), false))
         {
             if (!child)
                 return;
@@ -351,7 +351,7 @@ internal sealed class ChangelogWindow : Window, IDisposable
             
             var childSize = ImGui.GetWindowSize();
             var closeButtonSize = 15 * ImGuiHelpers.GlobalScale;
-            ImGui.SetCursorPos(new Vector2(childSize.X - closeButtonSize - (5 * ImGuiHelpers.GlobalScale), 10 * ImGuiHelpers.GlobalScale));
+            ImGui.SetCursorPos(new Vector2(childSize.X - closeButtonSize - 5, 10 * ImGuiHelpers.GlobalScale));
             if (ImGuiComponents.IconButton(FontAwesomeIcon.Times))
             {
                 Dismiss();
@@ -360,9 +360,11 @@ internal sealed class ChangelogWindow : Window, IDisposable
 
             ImGui.PopStyleColor(2);
             ImGui.PopStyleVar();
-            
+
             if (ImGui.IsItemHovered())
+            {
                 ImGui.SetTooltip("I don't care about this");
+            }
         }
     }
 
