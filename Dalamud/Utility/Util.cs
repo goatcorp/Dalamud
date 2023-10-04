@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
@@ -17,11 +18,10 @@ using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Utility;
 using Dalamud.Logging.Internal;
-using Dalamud.Memory;
 using ImGuiNET;
 using Lumina.Excel.GeneratedSheets;
-using PInvoke;
 using Serilog;
+using Windows.Win32.Storage.FileSystem;
 
 namespace Dalamud.Utility;
 
@@ -640,36 +640,39 @@ public static class Util
     /// </summary>
     /// <param name="path">The path of the file to write to.</param>
     /// <param name="bytes">The data to write.</param>
-    public static void WriteAllBytesSafe(string path, byte[] bytes)
+    public static unsafe void WriteAllBytesSafe(string path, byte[] bytes)
     {
         ArgumentException.ThrowIfNullOrEmpty(path);
         
         // Open the temp file
         var tempPath = path + ".tmp";
 
-        using var tempFile = Kernel32
-            .CreateFile(tempPath.AsSpan(),
-                        new Kernel32.ACCESS_MASK(Kernel32.FileAccess.FILE_GENERIC_READ | Kernel32.FileAccess.FILE_GENERIC_WRITE),
-                        Kernel32.FileShare.None,
-                        null,
-                        Kernel32.CreationDisposition.CREATE_ALWAYS,
-                        Kernel32.CreateFileFlags.FILE_ATTRIBUTE_NORMAL,
-                        Kernel32.SafeObjectHandle.Null);
+        using var tempFile = Windows.Win32.PInvoke.CreateFile(
+            tempPath, 
+            (uint)(FILE_ACCESS_RIGHTS.FILE_GENERIC_READ | FILE_ACCESS_RIGHTS.FILE_GENERIC_WRITE), 
+            FILE_SHARE_MODE.FILE_SHARE_NONE,
+            null,
+            FILE_CREATION_DISPOSITION.CREATE_ALWAYS,
+            FILE_FLAGS_AND_ATTRIBUTES.FILE_ATTRIBUTE_NORMAL,
+            null);
 
         if (tempFile.IsInvalid)
             throw new Win32Exception();
         
         // Write the data
-        var bytesWritten = Kernel32.WriteFile(tempFile, new ArraySegment<byte>(bytes));
+        uint bytesWritten = 0;
+        if (!Windows.Win32.PInvoke.WriteFile(tempFile, new ReadOnlySpan<byte>(bytes), &bytesWritten, null))
+            throw new Win32Exception();
+
         if (bytesWritten != bytes.Length)
             throw new Exception($"Could not write all bytes to temp file ({bytesWritten} of {bytes.Length})");
 
-        if (!Kernel32.FlushFileBuffers(tempFile))
+        if (!Windows.Win32.PInvoke.FlushFileBuffers(tempFile))
             throw new Win32Exception();
         
         tempFile.Close();
 
-        if (!MoveFileEx(tempPath, path, MoveFileFlags.MovefileReplaceExisting | MoveFileFlags.MovefileWriteThrough))
+        if (!Windows.Win32.PInvoke.MoveFileEx(tempPath, path, MOVE_FILE_FLAGS.MOVEFILE_REPLACE_EXISTING | MOVE_FILE_FLAGS.MOVEFILE_WRITE_THROUGH))
             throw new Win32Exception();
     }
     
