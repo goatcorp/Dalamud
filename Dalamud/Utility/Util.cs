@@ -812,18 +812,4 @@ public static class Util
             }
         }
     }
-    
-    [Flags]
-#pragma warning disable SA1201
-    private enum MoveFileFlags
-#pragma warning restore SA1201
-    {
-        MovefileReplaceExisting = 0x00000001,
-        MovefileWriteThrough = 0x00000008,
-    }
-    
-    [return: MarshalAs(UnmanagedType.Bool)]
-    [DllImport("kernel32.dll", SetLastError=true, CharSet=CharSet.Unicode)]
-    private static extern bool MoveFileEx(string lpExistingFileName, string lpNewFileName,
-                                          MoveFileFlags dwFlags);
 }
