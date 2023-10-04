@@ -27,6 +27,7 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
 
     private readonly AddonLifecycleAddressResolver address;
     private readonly CallHook<AddonSetupDelegate> onAddonSetupHook;
+    private readonly CallHook<AddonSetupDelegate> onAddonSetup2Hook;
     private readonly Hook<AddonFinalizeDelegate> onAddonFinalizeHook;
     private readonly CallHook<AddonDrawDelegate> onAddonDrawHook;
     private readonly CallHook<AddonUpdateDelegate> onAddonUpdateHook;
@@ -46,6 +47,7 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
         this.framework.Update += this.OnFrameworkUpdate;
 
         this.onAddonSetupHook = new CallHook<AddonSetupDelegate>(this.address.AddonSetup, this.OnAddonSetup);
+        this.onAddonSetup2Hook = new CallHook<AddonSetupDelegate>(this.address.AddonSetup2, this.OnAddonSetup);
         this.onAddonFinalizeHook = Hook<AddonFinalizeDelegate>.FromAddress(this.address.AddonFinalize, this.OnAddonFinalize);
         this.onAddonDrawHook = new CallHook<AddonDrawDelegate>(this.address.AddonDraw, this.OnAddonDraw);
         this.onAddonUpdateHook = new CallHook<AddonUpdateDelegate>(this.address.AddonUpdate, this.OnAddonUpdate);
@@ -71,6 +73,7 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
         this.framework.Update -= this.OnFrameworkUpdate;
 
         this.onAddonSetupHook.Dispose();
+        this.onAddonSetup2Hook.Dispose();
         this.onAddonFinalizeHook.Dispose();
         this.onAddonDrawHook.Dispose();
         this.onAddonUpdateHook.Dispose();
@@ -120,6 +123,7 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
     private void ContinueConstruction()
     {
         this.onAddonSetupHook.Enable();
+        this.onAddonSetup2Hook.Enable();
         this.onAddonFinalizeHook.Enable();
         this.onAddonDrawHook.Enable();
         this.onAddonUpdateHook.Enable();
