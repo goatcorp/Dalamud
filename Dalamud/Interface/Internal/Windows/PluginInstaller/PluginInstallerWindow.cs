@@ -1738,8 +1738,9 @@ internal class PluginInstallerWindow : Window, IDisposable
             ImGui.SameLine();
 
             var verifiedOutlineColor = KnownColor.White.Vector() with { W = 0.75f };
+            var unverifiedOutlineColor = KnownColor.Black.Vector();
             var verifiedIconColor = KnownColor.RoyalBlue.Vector() with { W = 0.75f };
-            var unverifiedIconColor = KnownColor.Orange.Vector() with { W = 0.75f };
+            var unverifiedIconColor = KnownColor.Orange.Vector();
         
             if (!isThirdParty)
             {
@@ -1748,7 +1749,7 @@ internal class PluginInstallerWindow : Window, IDisposable
             }
             else
             {
-                this.DrawFontawesomeIconOutlined(FontAwesomeIcon.ExclamationCircle, verifiedOutlineColor, unverifiedIconColor);
+                this.DrawFontawesomeIconOutlined(FontAwesomeIcon.ExclamationCircle, unverifiedOutlineColor, unverifiedIconColor);
                 this.VerifiedCheckmarkFadeTooltip(label, Locs.VerifiedCheckmark_UnverifiedTooltip);
             }
         }
