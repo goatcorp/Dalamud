@@ -7,11 +7,15 @@ internal class AddonLifecycleAddressResolver : BaseAddressResolver
 {
     /// <summary>
     /// Gets the address of the addon setup hook invoked by the AtkUnitManager.
+    /// There are two callsites for this vFunc, we need to hook both of them to catch both normal UI and special UI cases like dialogue.
+    /// This is called for a majority of all addon OnSetup's.
     /// </summary>
     public nint AddonSetup { get; private set; }
     
     /// <summary>
     /// Gets the address of the other addon setup hook invoked by the AtkUnitManager.
+    /// There are two callsites for this vFunc, we need to hook both of them to catch both normal UI and special UI cases like dialogue.
+    /// This seems to be called rarely for specific addons.
     /// </summary>
     public nint AddonSetup2 { get; private set; }
     
