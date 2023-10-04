@@ -145,7 +145,7 @@ internal class ConsoleWindow : Window, IDisposable
 
         this.DrawFilterToolbar();
 
-        ImGui.BeginChild("scrolling", new Vector2(0, ImGui.GetFrameHeightWithSpacing() - 55), false, ImGuiWindowFlags.AlwaysHorizontalScrollbar | ImGuiWindowFlags.AlwaysVerticalScrollbar);
+        ImGui.BeginChild("scrolling", new Vector2(0, ImGui.GetFrameHeightWithSpacing() - 55 * ImGuiHelpers.GlobalScale), false, ImGuiWindowFlags.AlwaysHorizontalScrollbar | ImGuiWindowFlags.AlwaysVerticalScrollbar);
 
         if (this.clearLog) this.Clear();
 
@@ -268,11 +268,9 @@ internal class ConsoleWindow : Window, IDisposable
         }
 
         ImGui.SetItemDefaultFocus();
-        if (getFocus)
-            ImGui.SetKeyboardFocusHere(-1); // Auto focus previous widget
+        if (getFocus) ImGui.SetKeyboardFocusHere(-1); // Auto focus previous widget
 
-        if (hadColor)
-            ImGui.PopStyleColor();
+        if (hadColor) ImGui.PopStyleColor();
 
         if (ImGui.Button("Send", ImGuiHelpers.ScaledVector2(80.0f, 23.0f)))
         {
