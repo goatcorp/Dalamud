@@ -444,6 +444,11 @@ internal partial class PluginManager : IDisposable, IServiceType
                         continue;
 
                     var manifest = LocalPluginManifest.Load(manifestFile);
+                    if (manifest == null)
+                    {
+                        Log.Error("Manifest for plugin at {Path} was null", dllFile.FullName);
+                        continue;
+                    }
 
                     if (manifest.IsTestingExclusive && this.configuration.PluginTestingOptIns!.All(x => x.InternalName != manifest.InternalName))
                         this.configuration.PluginTestingOptIns.Add(new PluginTestingOptIn(manifest.InternalName));
@@ -490,9 +495,20 @@ internal partial class PluginManager : IDisposable, IServiceType
         {
             try
             {
-                // Manifests are not required for devPlugins. the Plugin type will handle any null manifests.
+                // Manifests are now required for devPlugins
                 var manifestFile = LocalPluginManifest.GetManifestFile(dllFile);
-                var manifest = manifestFile.Exists ? LocalPluginManifest.Load(manifestFile) : null;
+                if (!manifestFile.Exists)
+                {
+                    Log.Information("DLL at {DllPath} has no manifest, this is no longer valid", dllFile.FullName);
+                    continue;
+                }
+            
+                var manifest = LocalPluginManifest.Load(manifestFile);
+                if (manifest == null)
+                {
+                    Log.Information("Could not deserialize manifest for DLL at {DllPath}", dllFile.FullName);
+                    continue;
+                }
 
                 if (manifest != null && manifest.InternalName.IsNullOrEmpty())
                 {
@@ -721,9 +737,20 @@ internal partial class PluginManager : IDisposable, IServiceType
                     continue;
             }
 
-            // Manifests are not required for devPlugins. the Plugin type will handle any null manifests.
+            // Manifests are now required for devPlugins
             var manifestFile = LocalPluginManifest.GetManifestFile(dllFile);
-            var manifest = manifestFile.Exists ? LocalPluginManifest.Load(manifestFile) : null;
+            if (!manifestFile.Exists)
+            {
+                Log.Information("DLL at {DllPath} has no manifest, this is no longer valid", dllFile.FullName);
+                continue;
+            }
+            
+            var manifest = LocalPluginManifest.Load(manifestFile);
+            if (manifest == null)
+            {
+                Log.Information("Could not deserialize manifest for DLL at {DllPath}", dllFile.FullName);
+                continue;
+            }
 
             try
             {
@@ -738,7 +765,7 @@ internal partial class PluginManager : IDisposable, IServiceType
             }
             catch (Exception ex)
             {
-                Log.Error(ex, $"During devPlugin scan, an unexpected error occurred");
+                Log.Error(ex, "During devPlugin scan, an unexpected error occurred");
             }
         }
 
@@ -1274,7 +1301,7 @@ internal partial class PluginManager : IDisposable, IServiceType
     /// <param name="isBoot">If this plugin is being loaded at boot.</param>
     /// <param name="doNotLoad">Don't load the plugin, just don't do it.</param>
     /// <returns>The loaded plugin.</returns>
-    private async Task<LocalPlugin> LoadPluginAsync(FileInfo dllFile, LocalPluginManifest? manifest, PluginLoadReason reason, bool isDev = false, bool isBoot = false, bool doNotLoad = false)
+    private async Task<LocalPlugin> LoadPluginAsync(FileInfo dllFile, LocalPluginManifest manifest, PluginLoadReason reason, bool isDev = false, bool isBoot = false, bool doNotLoad = false)
     {
         var name = manifest?.Name ?? dllFile.Name;
         var loadPlugin = !doNotLoad;

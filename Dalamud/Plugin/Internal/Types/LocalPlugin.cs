@@ -51,7 +51,7 @@ internal class LocalPlugin : IDisposable
     /// </summary>
     /// <param name="dllFile">Path to the DLL file.</param>
     /// <param name="manifest">The plugin manifest.</param>
-    public LocalPlugin(FileInfo dllFile, LocalPluginManifest? manifest)
+    public LocalPlugin(FileInfo dllFile, LocalPluginManifest manifest)
     {
         if (dllFile.Name == "FFXIVClientStructs.Generators.dll")
         {
@@ -64,80 +64,9 @@ internal class LocalPlugin : IDisposable
         this.DllFile = dllFile;
         this.State = PluginState.Unloaded;
 
-        try
-        {
-            this.loader = PluginLoader.CreateFromAssemblyFile(this.DllFile.FullName, SetupLoaderConfig);
-        }
-        catch (InvalidOperationException ex)
-        {
-            Log.Error(ex, "Loader.CreateFromAssemblyFile() failed");
-            this.State = PluginState.DependencyResolutionFailed;
-            throw;
-        }
-
-        try
-        {
-            this.pluginAssembly = this.loader.LoadDefaultAssembly();
-        }
-        catch (Exception ex)
-        {
-            this.pluginAssembly = null;
-            this.pluginType = null;
-            this.loader.Dispose();
-
-            Log.Error(ex, $"Not a plugin: {this.DllFile.FullName}");
-            throw new InvalidPluginException(this.DllFile);
-        }
-
-        try
-        {
-            this.pluginType = this.pluginAssembly.GetTypes().FirstOrDefault(type => type.IsAssignableTo(typeof(IDalamudPlugin)));
-        }
-        catch (ReflectionTypeLoadException ex)
-        {
-            Log.Error(ex, $"Could not load one or more types when searching for IDalamudPlugin: {this.DllFile.FullName}");
-            // Something blew up when parsing types, but we still want to look for IDalamudPlugin. Let Load() handle the error.
-            this.pluginType = ex.Types.FirstOrDefault(type => type != null && type.IsAssignableTo(typeof(IDalamudPlugin)));
-        }
-
-        if (this.pluginType == default)
-        {
-            this.pluginAssembly = null;
-            this.pluginType = null;
-            this.loader.Dispose();
-
-            Log.Error($"Nothing inherits from IDalamudPlugin: {this.DllFile.FullName}");
-            throw new InvalidPluginException(this.DllFile);
-        }
-
-        var assemblyVersion = this.pluginAssembly.GetName().Version;
-
         // Although it is conditionally used here, we need to set the initial value regardless.
         this.manifestFile = LocalPluginManifest.GetManifestFile(this.DllFile);
-
-        // If the parameter manifest was null
-        if (manifest == null)
-        {
-            this.manifest = new LocalPluginManifest()
-            {
-                Author = "developer",
-                Name = Path.GetFileNameWithoutExtension(this.DllFile.Name),
-                InternalName = Path.GetFileNameWithoutExtension(this.DllFile.Name),
-                AssemblyVersion = assemblyVersion ?? new Version("1.0.0.0"),
-                Description = string.Empty,
-                ApplicableVersion = GameVersion.Any,
-                DalamudApiLevel = PluginManager.DalamudApiLevel,
-                IsHide = false,
-            };
-
-            // Save the manifest to disk so there won't be any problems later.
-            // We'll update the name property after it can be retrieved from the instance.
-            this.manifest.Save(this.manifestFile, "manifest was null");
-        }
-        else
-        {
-            this.manifest = manifest;
-        }
+        this.manifest = manifest;
 
         var needsSaveDueToLegacyFiles = false;
 
@@ -410,6 +339,8 @@ internal class LocalPlugin : IDisposable
 
             this.State = PluginState.Loading;
             Log.Information($"Loading {this.DllFile.Name}");
+            
+            this.EnsureLoader();
 
             if (this.DllFile.DirectoryName != null &&
                 File.Exists(Path.Combine(this.DllFile.DirectoryName, "Dalamud.dll")))
@@ -699,5 +630,57 @@ internal class LocalPlugin : IDisposable
         config.PreferSharedTypes = false;
         config.SharedAssemblies.Add(typeof(Lumina.GameData).Assembly.GetName());
         config.SharedAssemblies.Add(typeof(Lumina.Excel.ExcelSheetImpl).Assembly.GetName());
+    }
+
+    private void EnsureLoader()
+    {
+        if (this.loader != null)
+            return;
+        
+        try
+        {
+            this.loader = PluginLoader.CreateFromAssemblyFile(this.DllFile.FullName, SetupLoaderConfig);
+        }
+        catch (InvalidOperationException ex)
+        {
+            Log.Error(ex, "Loader.CreateFromAssemblyFile() failed");
+            this.State = PluginState.DependencyResolutionFailed;
+            throw;
+        }
+
+        try
+        {
+            this.pluginAssembly = this.loader.LoadDefaultAssembly();
+        }
+        catch (Exception ex)
+        {
+            this.pluginAssembly = null;
+            this.pluginType = null;
+            this.loader.Dispose();
+
+            Log.Error(ex, $"Not a plugin: {this.DllFile.FullName}");
+            throw new InvalidPluginException(this.DllFile);
+        }
+
+        try
+        {
+            this.pluginType = this.pluginAssembly.GetTypes().FirstOrDefault(type => type.IsAssignableTo(typeof(IDalamudPlugin)));
+        }
+        catch (ReflectionTypeLoadException ex)
+        {
+            Log.Error(ex, $"Could not load one or more types when searching for IDalamudPlugin: {this.DllFile.FullName}");
+            // Something blew up when parsing types, but we still want to look for IDalamudPlugin. Let Load() handle the error.
+            this.pluginType = ex.Types.FirstOrDefault(type => type != null && type.IsAssignableTo(typeof(IDalamudPlugin)));
+        }
+
+        if (this.pluginType == default)
+        {
+            this.pluginAssembly = null;
+            this.pluginType = null;
+            this.loader.Dispose();
+
+            Log.Error($"Nothing inherits from IDalamudPlugin: {this.DllFile.FullName}");
+            throw new InvalidPluginException(this.DllFile);
+        }
     }
 }

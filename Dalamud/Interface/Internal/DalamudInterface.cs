@@ -94,8 +94,7 @@ internal class DalamudInterface : IDisposable, IServiceType
     {
         var interfaceManager = interfaceManagerWithScene.Manager;
         this.WindowSystem = new WindowSystem("DalamudCore");
-
-        this.changelogWindow = new ChangelogWindow() { IsOpen = false };
+        
         this.colorDemoWindow = new ColorDemoWindow() { IsOpen = false };
         this.componentDemoWindow = new ComponentDemoWindow() { IsOpen = false };
         this.dataWindow = new DataWindow() { IsOpen = false };
@@ -108,6 +107,7 @@ internal class DalamudInterface : IDisposable, IServiceType
         this.selfTestWindow = new SelfTestWindow() { IsOpen = false };
         this.styleEditorWindow = new StyleEditorWindow() { IsOpen = false };
         this.titleScreenMenuWindow = new TitleScreenMenuWindow() { IsOpen = false };
+        this.changelogWindow = new ChangelogWindow(this.titleScreenMenuWindow) { IsOpen = false };
         this.profilerWindow = new ProfilerWindow() { IsOpen = false };
         this.branchSwitcherWindow = new BranchSwitcherWindow() { IsOpen = false };
         this.hitchSettingsWindow = new HitchSettingsWindow() { IsOpen = false };

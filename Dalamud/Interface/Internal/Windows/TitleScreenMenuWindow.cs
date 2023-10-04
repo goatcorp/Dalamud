@@ -63,13 +63,18 @@ internal class TitleScreenMenuWindow : Window, IDisposable
         var framework = Service<Framework>.Get();
         framework.Update += this.FrameworkOnUpdate;
     }
-
+    
     private enum State
     {
         Hide,
         Show,
         FadeOut,
     }
+    
+    /// <summary>
+    /// Gets or sets a value indicating whether drawing is allowed.
+    /// </summary>
+    public bool AllowDrawing { get; set; } = true;
 
     /// <inheritdoc/>
     public override void PreDraw()
@@ -97,6 +102,9 @@ internal class TitleScreenMenuWindow : Window, IDisposable
     /// <inheritdoc/>
     public override void Draw()
     {
+        if (!this.AllowDrawing)
+            return;
+        
         var scale = ImGui.GetIO().FontGlobalScale;
         var entries = Service<TitleScreenMenu>.Get().Entries
                                               .OrderByDescending(x => x.IsInternal)
