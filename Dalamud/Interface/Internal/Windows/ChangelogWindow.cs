@@ -258,6 +258,9 @@ internal sealed class ChangelogWindow : Window, IDisposable
                         ImGui.TextWrapped($"Welcome to Dalamud v{Util.AssemblyVersion}!");
                         ImGuiHelpers.ScaledDummy(5);
                         ImGui.TextWrapped(ChangeLog);
+                        ImGuiHelpers.ScaledDummy(5);
+                        ImGui.TextWrapped("This changelog is a quick overview of the most important changes in this version.");
+                        ImGui.TextWrapped("Please click next to see a quick guide to updating your plugins.");
                         
                         DrawNextButton(State.ExplainerApiBump);
                         break;
