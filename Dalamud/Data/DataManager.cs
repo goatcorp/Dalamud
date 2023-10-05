@@ -37,26 +37,10 @@ internal sealed class DataManager : IDisposable, IServiceType, IDataManager
     {
         this.Language = (ClientLanguage)dalamud.StartInfo.Language;
 
-        // Set up default values so plugins do not null-reference when data is being loaded.
-        this.ClientOpCodes = this.ServerOpCodes = new ReadOnlyDictionary<string, ushort>(new Dictionary<string, ushort>());
-
-        var baseDir = dalamud.AssetDirectory.FullName;
         try
         {
             Log.Verbose("Starting data load...");
-
-            var zoneOpCodeDict = JsonConvert.DeserializeObject<Dictionary<string, ushort>>(
-                File.ReadAllText(Path.Combine(baseDir, "UIRes", "serveropcode.json")))!;
-            this.ServerOpCodes = new ReadOnlyDictionary<string, ushort>(zoneOpCodeDict);
-
-            Log.Verbose("Loaded {0} ServerOpCodes.", zoneOpCodeDict.Count);
-
-            var clientOpCodeDict = JsonConvert.DeserializeObject<Dictionary<string, ushort>>(
-                File.ReadAllText(Path.Combine(baseDir, "UIRes", "clientopcode.json")))!;
-            this.ClientOpCodes = new ReadOnlyDictionary<string, ushort>(clientOpCodeDict);
-
-            Log.Verbose("Loaded {0} ClientOpCodes.", clientOpCodeDict.Count);
-
+            
             using (Timings.Start("Lumina Init"))
             {
                 var luminaOptions = new LuminaOptions
@@ -129,17 +113,6 @@ internal sealed class DataManager : IDisposable, IServiceType, IDataManager
 
     /// <inheritdoc/>
     public ClientLanguage Language { get; private set; }
-
-    /// <summary>
-    /// Gets a list of server opcodes.
-    /// </summary>
-    public ReadOnlyDictionary<string, ushort> ServerOpCodes { get; private set; }
-    
-    /// <summary>
-    /// Gets a list of client opcodes.
-    /// </summary>
-    [UsedImplicitly]
-    public ReadOnlyDictionary<string, ushort> ClientOpCodes { get; private set; }
 
     /// <inheritdoc/>
     public GameData GameData { get; private set; }
