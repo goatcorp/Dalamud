@@ -1909,7 +1909,6 @@ internal class PluginInstallerWindow : Window, IDisposable
     private void DrawAvailablePlugin(RemotePluginManifest manifest, int index)
     {
         var configuration = Service<DalamudConfiguration>.Get();
-        var notifications = Service<NotificationManager>.Get();
         var pluginManager = Service<PluginManager>.Get();
 
         var useTesting = pluginManager.UseTesting(manifest);

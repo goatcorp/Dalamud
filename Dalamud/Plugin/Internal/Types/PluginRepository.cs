@@ -148,6 +148,15 @@ internal class PluginRepository
             }
 
             this.PluginMaster = pluginMaster.Where(this.IsValidManifest).ToList().AsReadOnly();
+            
+            // API9 HACK: Force IsHide to false, we should remove that
+            if (!this.IsThirdParty)
+            {
+                foreach (var manifest in this.PluginMaster)
+                {
+                    manifest.IsHide = false;
+                }
+            }
 
             Log.Information($"Successfully fetched repo: {this.PluginMasterUrl}");
             this.State = PluginRepositoryState.Success;
