@@ -238,49 +238,57 @@ internal unsafe class NetworkHandlers : IDisposable, IServiceType
 
     private unsafe nint CfPopDetour(nint packetData)
     {
-        using var stream = new UnmanagedMemoryStream((byte*)packetData, 64);
-        using var reader = new BinaryReader(stream);
+        var result = this.cfPopHook.OriginalDisposeSafe(packetData);
 
-        var notifyType = reader.ReadByte();
-        stream.Position += 0x1B;
-        var conditionId = reader.ReadUInt16();
-
-        if (notifyType != 3)
-            goto ORIGINAL;
-
-        if (this.configuration.DutyFinderTaskbarFlash)
-            Util.FlashWindow();
-
-        var cfConditionSheet = Service<DataManager>.Get().GetExcelSheet<ContentFinderCondition>()!;
-        var cfCondition = cfConditionSheet.GetRow(conditionId);
-
-        if (cfCondition == null)
+        try
         {
-            Log.Error("CFC key {ConditionId} not in Lumina data", conditionId);
-            goto ORIGINAL;
-        }
+            using var stream = new UnmanagedMemoryStream((byte*)packetData, 64);
+            using var reader = new BinaryReader(stream);
 
-        var cfcName = cfCondition.Name.ToString();
-        if (cfcName.IsNullOrEmpty())
-        {
-            cfcName = "Duty Roulette";
-            cfCondition.Image = 112324;
-        }
+            var notifyType = reader.ReadByte();
+            stream.Position += 0x1B;
+            var conditionId = reader.ReadUInt16();
 
-        Task.Run(() =>
-        {
-            if (this.configuration.DutyFinderChatMessage)
+            if (notifyType != 3)
+                return result;
+
+            if (this.configuration.DutyFinderTaskbarFlash)
+                Util.FlashWindow();
+
+            var cfConditionSheet = Service<DataManager>.Get().GetExcelSheet<ContentFinderCondition>()!;
+            var cfCondition = cfConditionSheet.GetRow(conditionId);
+
+            if (cfCondition == null)
             {
-                Service<ChatGui>.GetNullable()?.Print($"Duty pop: {cfcName}");
+                Log.Error("CFC key {ConditionId} not in Lumina data", conditionId);
+                return result;
             }
 
-            this.CfPop.InvokeSafely(cfCondition);
-        }).ContinueWith(
-            task => Log.Error(task.Exception, "CfPop.Invoke failed"),
-            TaskContinuationOptions.OnlyOnFaulted);
+            var cfcName = cfCondition.Name.ToString();
+            if (cfcName.IsNullOrEmpty())
+            {
+                cfcName = "Duty Roulette";
+                cfCondition.Image = 112324;
+            }
 
-        ORIGINAL:
-        return this.cfPopHook.OriginalDisposeSafe(packetData);
+            Task.Run(() =>
+            {
+                if (this.configuration.DutyFinderChatMessage)
+                {
+                    Service<ChatGui>.GetNullable()?.Print($"Duty pop: {cfcName}");
+                }
+
+                this.CfPop.InvokeSafely(cfCondition);
+            }).ContinueWith(
+                task => Log.Error(task.Exception, "CfPop.Invoke failed"),
+                TaskContinuationOptions.OnlyOnFaulted);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "CfPopDetour threw an exception");   
+        }
+
+        return result;
     }
 
     private IObservable<List<MarketBoardCurrentOfferings.MarketBoardItemListing>> OnMarketBoardListingsBatch(
@@ -499,39 +507,86 @@ internal unsafe class NetworkHandlers : IDisposable, IServiceType
 
     private nint MarketPurchasePacketDetour(nint a1, nint packetData)
     {
-        this.MarketBoardPurchaseReceived?.Invoke(packetData);
+        try
+        {
+            this.MarketBoardPurchaseReceived?.InvokeSafely(packetData);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "MarketPurchasePacketHandler threw an exception");
+        }
+        
         return this.mbPurchaseHook.OriginalDisposeSafe(a1, packetData);
     }
 
     private nint MarketHistoryPacketDetour(nint a1, nint packetData, uint a3, char a4)
     {
-        this.MarketBoardHistoryReceived?.Invoke(packetData);
+        try
+        {
+            this.MarketBoardHistoryReceived?.InvokeSafely(packetData);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "MarketHistoryPacketDetour threw an exception");
+        }
+        
         return this.mbHistoryHook.OriginalDisposeSafe(a1, packetData, a3, a4);
     }
 
     private void CustomTalkReceiveResponseDetour(nuint a1, ushort eventId, byte responseId, uint* args, byte argCount)
     {
-        if (eventId == 7 && responseId == 8)
-            this.MarketBoardTaxesReceived?.Invoke((nint)args);
+        try
+        {
+            if (eventId == 7 && responseId == 8)
+                this.MarketBoardTaxesReceived?.InvokeSafely((nint)args);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "CustomTalkReceiveResponseDetour threw an exception");
+        }
 
         this.customTalkHook.OriginalDisposeSafe(a1, eventId, responseId, args, argCount);
     }
 
     private nint MarketItemRequestStartDetour(nint a1, nint packetRef)
     {
-        this.MarketBoardItemRequestStartReceived?.Invoke(packetRef);
+        try
+        {
+            this.MarketBoardItemRequestStartReceived?.InvokeSafely(packetRef);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "MarketItemRequestStartDetour threw an exception");
+        }
+        
         return this.mbItemRequestStartHook.OriginalDisposeSafe(a1, packetRef);
     }
 
     private byte MarketBoardOfferingsDetour(nint a1, nint packetRef)
     {
-        this.MarketBoardOfferingsReceived?.Invoke(packetRef);
+        try
+        {
+            this.MarketBoardOfferingsReceived?.InvokeSafely(packetRef);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "MarketBoardOfferingsDetour threw an exception");
+        }
+        
         return this.mbOfferingsHook.OriginalDisposeSafe(a1, packetRef);
     }
 
     private byte MarketBoardSendPurchaseRequestDetour(InfoProxyItemSearch* infoProxyItemSearch)
     {
-        this.MarketBoardPurchaseRequestSent?.Invoke((nint)infoProxyItemSearch + 0x5680);
+        try
+        {
+            this.MarketBoardPurchaseRequestSent?.InvokeSafely((nint)infoProxyItemSearch + 0x5680);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "MarketBoardSendPurchaseRequestDetour threw an exception");
+        }
+        
         return this.mbSendPurchaseRequestHook.OriginalDisposeSafe(infoProxyItemSearch);
     }
 }
