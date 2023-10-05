@@ -38,7 +38,7 @@ internal unsafe class NetworkHandlers : IDisposable, IServiceType
     private readonly IDisposable handleMarketBoardItemRequest;
     private readonly IDisposable handleMarketTaxRates;
     private readonly IDisposable handleMarketBoardPurchaseHandler;
-    
+
     private readonly NetworkHandlersAddressResolver addressResolver;
 
     private readonly Hook<CfPopDelegate> cfPopHook;
@@ -97,7 +97,7 @@ internal unsafe class NetworkHandlers : IDisposable, IServiceType
                 observer.OnNext(MarketTaxRates.ReadFromCustomTalk(dataPtr));
             }
         });
-        
+
         this.mbItemRequestObservable = Observable.Create<MarketBoardItemRequest>(observer =>
         {
             this.MarketBoardItemRequestStartReceived += Observe;
@@ -172,37 +172,38 @@ internal unsafe class NetworkHandlers : IDisposable, IServiceType
         this.cfPopHook = Hook<CfPopDelegate>.FromAddress(this.addressResolver.CfPopPacketHandler, this.CfPopDetour);
         this.cfPopHook.Enable();
     }
-    
+
     private delegate nint MarketBoardPurchasePacketHandler(nint a1, nint packetRef);
-    
+
     private delegate nint MarketBoardHistoryPacketHandler(nint self, nint packetData, uint a3, char a4);
-    
-    private delegate void CustomTalkReceiveResponse(nuint a1, ushort eventId, byte responseId, uint* args, byte argCount);
-    
+
+    private delegate void CustomTalkReceiveResponse(
+        nuint a1, ushort eventId, byte responseId, uint* args, byte argCount);
+
     private delegate nint MarketBoardItemRequestStartPacketHandler(nint a1, nint packetRef);
-    
+
     private delegate byte InfoProxyItemSearchAddPage(nint self, nint packetRef);
-    
-    private delegate byte MarketBoardSendPurchaseRequestPacket(InfoProxy11* infoProxy);
-    
+
+    private delegate byte MarketBoardSendPurchaseRequestPacket(InfoProxyItemSearch* infoProxy);
+
     private delegate nint CfPopDelegate(nint packetData);
-    
+
     /// <summary>
     /// Event which gets fired when a duty is ready.
     /// </summary>
     public event Action<ContentFinderCondition> CfPop;
-    
+
     private event Action<nint>? MarketBoardPurchaseReceived;
-    
+
     private event Action<nint>? MarketBoardHistoryReceived;
-    
+
     private event Action<nint>? MarketBoardTaxesReceived;
-    
+
     private event Action<nint>? MarketBoardItemRequestStartReceived;
-    
+
     private event Action<nint>? MarketBoardOfferingsReceived;
-    
-    private event Action<nint>? MarketBoardPurchaseRequestSent; 
+
+    private event Action<nint>? MarketBoardPurchaseRequestSent;
 
     /// <summary>
     /// Disposes of managed and unmanaged resources.
@@ -273,7 +274,7 @@ internal unsafe class NetworkHandlers : IDisposable, IServiceType
                 Service<ChatGui>.GetNullable()?.Print($"Duty pop: {cfcName}");
             }
 
-            this.CfPop.InvokeSafely(this, cfCondition);
+            this.CfPop.InvokeSafely(cfCondition);
         }).ContinueWith(
             task => Log.Error(task.Exception, "CfPop.Invoke failed"),
             TaskContinuationOptions.OnlyOnFaulted);
@@ -510,12 +511,12 @@ internal unsafe class NetworkHandlers : IDisposable, IServiceType
 
     private void CustomTalkReceiveResponseDetour(nuint a1, ushort eventId, byte responseId, uint* args, byte argCount)
     {
-        if (eventId == 7 && responseId == 8) 
+        if (eventId == 7 && responseId == 8)
             this.MarketBoardTaxesReceived?.Invoke((nint)args);
-        
+
         this.customTalkHook.OriginalDisposeSafe(a1, eventId, responseId, args, argCount);
     }
-    
+
     private nint MarketItemRequestStartDetour(nint a1, nint packetRef)
     {
         this.MarketBoardItemRequestStartReceived?.Invoke(packetRef);
@@ -528,9 +529,9 @@ internal unsafe class NetworkHandlers : IDisposable, IServiceType
         return this.mbOfferingsHook.OriginalDisposeSafe(a1, packetRef);
     }
 
-    private byte MarketBoardSendPurchaseRequestDetour(InfoProxy11* infoProxy11)
+    private byte MarketBoardSendPurchaseRequestDetour(InfoProxyItemSearch* infoProxyItemSearch)
     {
-        this.MarketBoardPurchaseRequestSent?.Invoke((nint)infoProxy11 + 0x5680);
-        return this.mbSendPurchaseRequestHook.OriginalDisposeSafe(infoProxy11);
+        this.MarketBoardPurchaseRequestSent?.Invoke((nint)infoProxyItemSearch + 0x5680);
+        return this.mbSendPurchaseRequestHook.OriginalDisposeSafe(infoProxyItemSearch);
     }
 }
