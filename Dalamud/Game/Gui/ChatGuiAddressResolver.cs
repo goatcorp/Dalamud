@@ -83,7 +83,7 @@ internal sealed class ChatGuiAddressResolver : BaseAddressResolver
      */
 
     /// <inheritdoc/>
-    protected override void Setup64Bit(SigScanner sig)
+    protected override void Setup64Bit(ISigScanner sig)
     {
         // PrintMessage = sig.ScanText("4055 57 41 ?? 41 ?? 488DAC24D8FEFFFF 4881EC28020000 488B05???????? 4833C4 488985F0000000 4532D2 48894C2448"); LAST PART FOR 5.1???
         this.PrintMessage = sig.ScanText("40 55 53 56 41 54 41 57 48 8D AC 24 ?? ?? ?? ?? 48 81 EC 20 02 00 00 48 8B 05");

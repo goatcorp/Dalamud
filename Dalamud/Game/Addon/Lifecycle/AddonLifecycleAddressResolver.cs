@@ -48,7 +48,7 @@ internal class AddonLifecycleAddressResolver : BaseAddressResolver
     /// Scan for and setup any configured address pointers.
     /// </summary>
     /// <param name="sig">The signature scanner to facilitate setup.</param>
-    protected override void Setup64Bit(SigScanner sig)
+    protected override void Setup64Bit(ISigScanner sig)
     {
         this.AddonSetup = sig.ScanText("FF 90 ?? ?? ?? ?? 48 8B 93 ?? ?? ?? ?? 80 8B");
         this.AddonSetup2 = sig.ScanText("FF 90 ?? ?? ?? ?? 48 8B 03 48 8B CB 80 8B");

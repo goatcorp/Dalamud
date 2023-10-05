@@ -58,7 +58,7 @@ internal sealed class GameGuiAddressResolver : BaseAddressResolver
     public IntPtr Utf8StringFromSequence { get; private set; }
 
     /// <inheritdoc/>
-    protected override void Setup64Bit(SigScanner sig)
+    protected override void Setup64Bit(ISigScanner sig)
     {
         this.SetGlobalBgm = sig.ScanText("4C 8B 15 ?? ?? ?? ?? 4D 85 D2 74 58");
         this.HandleItemHover = sig.ScanText("E8 ?? ?? ?? ?? 48 8B 5C 24 ?? 48 89 AE ?? ?? ?? ?? 48 89 AE ?? ?? ?? ??");

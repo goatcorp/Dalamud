@@ -45,7 +45,7 @@ internal class NetworkHandlersAddressResolver : BaseAddressResolver
     public nint BuildMarketBoardPurchaseHandlerPacket { get; set; }
 
     /// <inheritdoc />
-    protected override void Setup64Bit(SigScanner scanner)
+    protected override void Setup64Bit(ISigScanner scanner)
     {
         this.CfPopPacketHandler = scanner.ScanText("40 53 57 48 83 EC 78 48 8B D9 48 8D 0D");
         this.MarketBoardHistoryPacketHandler = scanner.ScanText(
