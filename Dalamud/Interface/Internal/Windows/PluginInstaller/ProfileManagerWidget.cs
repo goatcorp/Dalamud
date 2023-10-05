@@ -50,6 +50,12 @@ internal class ProfileManagerWidget
     /// </summary>
     public void Draw()
     {
+        if (!Service<DalamudConfiguration>.Get().ProfilesEnabled)
+        {
+            this.DrawChoice();
+            return;
+        }
+        
         var tutorialTitle = Locs.TutorialTitle + "###collectionsTutorWindow";
         var tutorialId = ImGui.GetID(tutorialTitle);
         this.DrawTutorial(tutorialTitle);
@@ -74,6 +80,23 @@ internal class ProfileManagerWidget
         this.mode = Mode.Overview;
         this.editingProfileGuid = null;
         this.pickerSearch = string.Empty;
+    }
+
+    private void DrawChoice()
+    {
+        ImGuiHelpers.ScaledDummy(60);
+        ImGuiHelpers.CenteredText(Locs.Choice1);
+        ImGuiHelpers.CenteredText(Locs.Choice2);
+        ImGuiHelpers.ScaledDummy(20);
+
+        var buttonWidth = ImGui.GetWindowWidth() / 3;
+        ImGuiHelpers.CenterCursorFor((int)buttonWidth);
+        if (ImGui.Button(Locs.ChoiceConfirmation, new Vector2(buttonWidth, 40 * ImGuiHelpers.GlobalScale)))
+        {
+            var config = Service<DalamudConfiguration>.Get();
+            config.ProfilesEnabled = true;
+            config.QueueSave();
+        }
     }
 
     private void DrawTutorial(string modalTitle)
@@ -605,6 +628,15 @@ internal class ProfileManagerWidget
         
         public static string TutorialCommandsEnd =>
             Loc.Localize("ProfileManagerTutorialCommandsEnd", "If you run multiple of these commands, they will be executed in order.");
+
+        public static string Choice1 =>
+            Loc.Localize("ProfileManagerChoice1", "Plugin collections are a new feature that allow you to group plugins into collections which can be toggled and shared.");
+        
+        public static string Choice2 =>
+            Loc.Localize("ProfileManagerChoice2", "They are experimental and may still contain bugs. Do you want to enable them now?");
+       
+        public static string ChoiceConfirmation =>
+            Loc.Localize("ProfileManagerChoiceConfirmation", "Yes, enable Plugin Collections");
 
         public static string NotInstalled(string name) =>
             Loc.Localize("ProfileManagerNotInstalled", "{0} (Not Installed)").Format(name);

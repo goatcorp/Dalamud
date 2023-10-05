@@ -1218,10 +1218,6 @@ internal class PluginInstallerWindow : Window, IDisposable
                             if (!Service<DalamudConfiguration>.Get().DoPluginTest)
                                 continue;
                             break;
-                        case PluginCategoryManager.CategoryInfo.AppearCondition.ProfilesEnabled:
-                            if (!Service<DalamudConfiguration>.Get().ProfilesEnabled)
-                                continue;
-                            break;
                         default:
                             throw new ArgumentOutOfRangeException();
                     }
