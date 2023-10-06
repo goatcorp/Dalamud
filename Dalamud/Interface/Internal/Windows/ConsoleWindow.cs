@@ -324,7 +324,7 @@ internal class ConsoleWindow : Window, IDisposable
         {
             var allSelectedLines = this.FilteredLogEntries
                                        .Where(entry => entry.SelectedForCopy)
-                                       .Select(entry => $"{line.TimeStamp:HH:mm:ss.fff} {this.GetTextForLogEventLevel(entry.Level)} | {entry.Line}");
+                                       .Select(entry => $"{entry.TimeStamp:HH:mm:ss.fff} {this.GetTextForLogEventLevel(entry.Level)} | {entry.Line}");
 
             ImGui.SetClipboardText(string.Join("\n", allSelectedLines));
         }
