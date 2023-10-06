@@ -1,7 +1,7 @@
 namespace Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
 
 /// <summary>
-/// Addon argument data for Finalize events.
+/// Addon argument data for Update events.
 /// </summary>
 public class AddonUpdateArgs : AddonArgs
 {
