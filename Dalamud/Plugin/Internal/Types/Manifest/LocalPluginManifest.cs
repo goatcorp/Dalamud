@@ -47,6 +47,11 @@ internal record LocalPluginManifest : PluginManifest, ILocalPluginManifest
     public Version EffectiveVersion => this.Testing && this.TestingAssemblyVersion != null ? this.TestingAssemblyVersion : this.AssemblyVersion;
 
     /// <summary>
+    /// Gets the effective API level of this plugin.
+    /// </summary>
+    public int EffectiveApiLevel => this.Testing && this.TestingDalamudApiLevel != null ? this.TestingDalamudApiLevel.Value : this.DalamudApiLevel;
+
+    /// <summary>
     /// Save a plugin manifest to file.
     /// </summary>
     /// <param name="manifestFile">Path to save at.</param>
