@@ -842,7 +842,6 @@ internal class PluginInstallerWindow : Window, IDisposable
     private void DrawDeletePluginConfigWarningModal()
     {
         var modalTitle = Locs.DeletePluginConfigWarningModal_Title;
-        var pluginManager = Service<PluginManager>.Get();
 
         if (ImGui.BeginPopupModal(modalTitle, ref this.deletePluginConfigWarningModalDrawing, ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoScrollbar))
         {
