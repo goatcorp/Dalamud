@@ -1,6 +1,6 @@
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Drawing;
 using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices;
@@ -12,6 +12,7 @@ using Dalamud.Game.Command;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Components;
 using Dalamud.Interface.Utility;
+using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Internal;
@@ -47,6 +48,7 @@ internal class ConsoleWindow : Window, IDisposable
     private bool killGameArmed;
     private bool autoScroll;
     private bool autoOpen;
+    private bool regexError;
 
     private int historyPos;
     private int copyStart = -1;
@@ -145,6 +147,13 @@ internal class ConsoleWindow : Window, IDisposable
 
         this.DrawFilterToolbar();
 
+        if (this.regexError)
+        {
+            const string regexErrorString = "Regex Filter Error";
+            ImGui.SetCursorPosX(ImGui.GetContentRegionMax().X / 2.0f - ImGui.CalcTextSize(regexErrorString).X / 2.0f);
+            ImGui.TextColored(KnownColor.OrangeRed.Vector(), regexErrorString);
+        }
+        
         ImGui.BeginChild("scrolling", new Vector2(0, ImGui.GetFrameHeightWithSpacing() - 55 * ImGuiHelpers.GlobalScale), false, ImGuiWindowFlags.AlwaysHorizontalScrollbar | ImGuiWindowFlags.AlwaysVerticalScrollbar);
 
         if (this.clearLog) this.Clear();
@@ -440,44 +449,75 @@ internal class ConsoleWindow : Window, IDisposable
         if (!this.showFilterToolbar) return;
 
         PluginFilterEntry? removalEntry = null;
-        if (ImGui.BeginTable("plugin_filter_entries", 4, ImGuiTableFlags.Resizable | ImGuiTableFlags.BordersInnerV))
+        using var table = ImRaii.Table("plugin_filter_entries", 4, ImGuiTableFlags.Resizable | ImGuiTableFlags.BordersInnerV);
+        if (!table) return;
+        
+        ImGui.TableSetupColumn("##remove_button", ImGuiTableColumnFlags.WidthFixed, 25.0f * ImGuiHelpers.GlobalScale);
+        ImGui.TableSetupColumn("##source_name", ImGuiTableColumnFlags.WidthFixed, 150.0f * ImGuiHelpers.GlobalScale);
+        ImGui.TableSetupColumn("##log_level", ImGuiTableColumnFlags.WidthFixed, 150.0f * ImGuiHelpers.GlobalScale);
+        ImGui.TableSetupColumn("##filter_text", ImGuiTableColumnFlags.WidthStretch);
+
+        ImGui.TableNextColumn();
+        if (ImGuiComponents.IconButton("add_entry", FontAwesomeIcon.Plus))
         {
-            ImGui.TableSetupColumn("##remove_button", ImGuiTableColumnFlags.WidthFixed, 25.0f * ImGuiHelpers.GlobalScale);
-            ImGui.TableSetupColumn("##source_name", ImGuiTableColumnFlags.WidthFixed, 150.0f * ImGuiHelpers.GlobalScale);
-            ImGui.TableSetupColumn("##log_level", ImGuiTableColumnFlags.WidthFixed, 150.0f * ImGuiHelpers.GlobalScale);
-            ImGui.TableSetupColumn("##filter_text", ImGuiTableColumnFlags.WidthStretch);
-
-            ImGui.TableNextColumn();
-            if (ImGuiComponents.IconButton("add_entry", FontAwesomeIcon.Plus))
+            if (this.pluginFilters.All(entry => entry.Source != this.selectedSource))
             {
-                if (this.pluginFilters.All(entry => entry.Source != this.selectedSource))
+                this.pluginFilters.Add(new PluginFilterEntry
                 {
-                    this.pluginFilters.Add(new PluginFilterEntry
-                    {
-                        Source = this.selectedSource,
-                        Filter = string.Empty,
-                        Level = LogEventLevel.Debug,
-                    });
-                }
+                    Source = this.selectedSource,
+                    Filter = string.Empty,
+                    Level = LogEventLevel.Debug,
+                });
+            }
 
-                this.Refilter();
+            this.Refilter();
+        }
+
+        ImGui.TableNextColumn();
+        ImGui.PushItemWidth(ImGui.GetContentRegionAvail().X);
+        if (ImGui.BeginCombo("##Sources", this.selectedSource))
+        {
+            var sourceNames = Service<PluginManager>.Get().InstalledPlugins
+                                                    .Select(p => p.Manifest.InternalName)
+                                                    .OrderBy(s => s)
+                                                    .Prepend("DalamudInternal")
+                                                    .ToList();
+
+            foreach (var selectable in sourceNames)
+            {
+                if (ImGui.Selectable(selectable, this.selectedSource == selectable))
+                {
+                    this.selectedSource = selectable;
+                }
+            }
+
+            ImGui.EndCombo();
+        }
+
+        ImGui.TableNextColumn();
+        ImGui.TableNextColumn();
+
+        foreach (var entry in this.pluginFilters)
+        {
+            ImGui.TableNextColumn();
+            if (ImGuiComponents.IconButton($"remove{entry.Source}", FontAwesomeIcon.Trash))
+            {
+                removalEntry = entry;
             }
 
             ImGui.TableNextColumn();
-            ImGui.PushItemWidth(ImGui.GetContentRegionAvail().X);
-            if (ImGui.BeginCombo("##Sources", this.selectedSource))
+            ImGui.Text(entry.Source);
+                
+            ImGui.TableNextColumn();
+            ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X);
+            if (ImGui.BeginCombo($"##levels{entry.Source}", $"{entry.Level}+"))
             {
-                var sourceNames = Service<PluginManager>.Get().InstalledPlugins
-                                                        .Select(p => p.Manifest.InternalName)
-                                                        .OrderBy(s => s)
-                                                        .Prepend("DalamudInternal")
-                                                        .ToList();
-
-                foreach (var selectable in sourceNames)
+                foreach (var value in Enum.GetValues<LogEventLevel>())
                 {
-                    if (ImGui.Selectable(selectable, this.selectedSource == selectable))
+                    if (ImGui.Selectable(value.ToString(), value == entry.Level))
                     {
-                        this.selectedSource = selectable;
+                        entry.Level = value;
+                        this.Refilter();
                     }
                 }
 
@@ -485,48 +525,15 @@ internal class ConsoleWindow : Window, IDisposable
             }
 
             ImGui.TableNextColumn();
-            ImGui.TableNextColumn();
-
-            foreach (var entry in this.pluginFilters)
+            ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X);
+            var entryFilter = entry.Filter;
+            if (ImGui.InputTextWithHint($"##filter{entry.Source}", $"{entry.Source} regex filter", ref entryFilter, 2048, ImGuiInputTextFlags.EnterReturnsTrue | ImGuiInputTextFlags.AutoSelectAll))
             {
-                ImGui.TableNextColumn();
-                if (ImGuiComponents.IconButton($"remove{entry.Source}", FontAwesomeIcon.Trash))
-                {
-                    removalEntry = entry;
-                }
-
-                ImGui.TableNextColumn();
-                ImGui.Text(entry.Source);
-                
-                ImGui.TableNextColumn();
-                ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X);
-                if (ImGui.BeginCombo($"##levels{entry.Source}", $"{entry.Level}+"))
-                {
-                    foreach (var value in Enum.GetValues<LogEventLevel>())
-                    {
-                        if (ImGui.Selectable(value.ToString(), value == entry.Level))
-                        {
-                            entry.Level = value;
-                            this.Refilter();
-                        }
-                    }
-
-                    ImGui.EndCombo();
-                }
-
-                ImGui.TableNextColumn();
-                ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X);
-                var entryFilter = entry.Filter;
-                if (ImGui.InputTextWithHint($"##filter{entry.Source}", $"{entry.Source} regex filter", ref entryFilter, 2048, ImGuiInputTextFlags.EnterReturnsTrue | ImGuiInputTextFlags.AutoSelectAll))
-                {
-                    entry.Filter = entryFilter;
-                    this.Refilter();
-                }
-
-                if (ImGui.IsItemDeactivatedAfterEdit()) this.Refilter();
+                entry.Filter = entryFilter;
+                this.Refilter();
             }
 
-            ImGui.EndTable();
+            if (ImGui.IsItemDeactivatedAfterEdit()) this.Refilter();
         }
 
         if (removalEntry is { } toRemove)
@@ -540,7 +547,7 @@ internal class ConsoleWindow : Window, IDisposable
     {
         try
         {
-            if (this.commandText is['/', ..])
+            if (this.commandText.StartsWith('/'))
             {
                 this.commandText = this.commandText[1..];
             }
@@ -654,13 +661,11 @@ internal class ConsoleWindow : Window, IDisposable
             HasException = logEvent.Exception != null,
         };
 
-        // TODO (v9): Remove SourceContext property check.
         if (logEvent.Properties.ContainsKey("Dalamud.ModuleName"))
         {
             entry.Source = "DalamudInternal";
         }
-        else if ((logEvent.Properties.TryGetValue("Dalamud.PluginName", out var sourceProp) ||
-                  logEvent.Properties.TryGetValue("SourceContext", out sourceProp)) &&
+        else if (logEvent.Properties.TryGetValue("Dalamud.PluginName", out var sourceProp) &&
                  sourceProp is ScalarValue { Value: string sourceValue })
         {
             entry.Source = sourceValue;
@@ -674,34 +679,44 @@ internal class ConsoleWindow : Window, IDisposable
 
     private bool IsFilterApplicable(LogEntry entry)
     {
-        // If this entry is below a newly set minimum level, fail it
-        if (EntryPoint.LogLevelSwitch.MinimumLevel > entry.Level)
-            return false;
+        try
+        {
+            // If this entry is below a newly set minimum level, fail it
+            if (EntryPoint.LogLevelSwitch.MinimumLevel > entry.Level)
+                return false;
         
-        // Show exceptions that weren't properly tagged with a Source (generally meaning they were uncaught)
-        // After log levels because uncaught exceptions should *never* fall below Error.
-        if (this.filterShowUncaughtExceptions && entry.HasException && entry.Source == null)
-            return true;
+            // Show exceptions that weren't properly tagged with a Source (generally meaning they were uncaught)
+            // After log levels because uncaught exceptions should *never* fall below Error.
+            if (this.filterShowUncaughtExceptions && entry.HasException && entry.Source == null)
+                return true;
 
-        // If we have a global filter, check that first
-        if (!this.textFilter.IsNullOrEmpty())
+            // If we have a global filter, check that first
+            if (!this.textFilter.IsNullOrEmpty())
+            {
+                // Someone will definitely try to just text filter a source without using the actual filters, should allow that.
+                var matchesSource = entry.Source is not null && Regex.IsMatch(entry.Source, this.textFilter, RegexOptions.IgnoreCase);
+                var matchesContent = Regex.IsMatch(entry.Line, this.textFilter, RegexOptions.IgnoreCase);
+
+                return matchesSource || matchesContent;
+            }
+
+            // If this entry has a filter, check the filter
+            if (this.pluginFilters.FirstOrDefault(filter => string.Equals(filter.Source, entry.Source, StringComparison.InvariantCultureIgnoreCase)) is { } filterEntry)
+            {
+                var allowedLevel = filterEntry.Level <= entry.Level;
+                var matchesContent = filterEntry.Filter.IsNullOrEmpty() || Regex.IsMatch(entry.Line, filterEntry.Filter, RegexOptions.IgnoreCase);
+
+                return allowedLevel && matchesContent;
+            }
+        }
+        catch (Exception)
         {
-            // Someone will definitely try to just text filter a source without using the actual filters, should allow that.
-            var matchesSource = entry.Source is not null && Regex.IsMatch(entry.Source, this.textFilter, RegexOptions.IgnoreCase);
-            var matchesContent = Regex.IsMatch(entry.Line, this.textFilter, RegexOptions.IgnoreCase);
-
-            return matchesSource || matchesContent;
+            this.regexError = true;
+            return false;
         }
 
-        // If this entry has a filter, check the filter
-        if (this.pluginFilters.FirstOrDefault(filter => string.Equals(filter.Source, entry.Source, StringComparison.InvariantCultureIgnoreCase)) is { } filterEntry)
-        {
-            var allowedLevel = filterEntry.Level <= entry.Level;
-            var matchesContent = filterEntry.Filter.IsNullOrEmpty() || Regex.IsMatch(entry.Line, filterEntry.Filter, RegexOptions.IgnoreCase);
-
-            return allowedLevel && matchesContent;
-        }
-
+        this.regexError = false;
+        
         // else we couldn't find a filter for this entry, if we have any filters, we need to block this entry.
         return !this.pluginFilters.Any();
     }
