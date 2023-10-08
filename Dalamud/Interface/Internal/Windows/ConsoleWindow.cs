@@ -113,7 +113,6 @@ internal class ConsoleWindow : Window, IDisposable
     public void CopyLog()
     {
         ImGui.LogToClipboard();
-        this.copyLog = false;
     }
 
     /// <summary>
@@ -285,6 +284,8 @@ internal class ConsoleWindow : Window, IDisposable
         {
             this.ProcessCommand();
         }
+        
+        this.copyLog = false;
     }
     
     private void HandleCopyMode(int i, LogEntry line)
