@@ -29,6 +29,7 @@ namespace Dalamud.Utility;
 /// </summary>
 public static class Util
 {
+    private static readonly Type GenericSpanType = typeof(Span<>);
     private static string? gitHashInternal;
     private static int? gitCommitCountInternal;
     private static string? gitHashClientStructsInternal;
@@ -296,7 +297,10 @@ public static class Util
                 ImGui.TextColored(new Vector4(0.2f, 0.9f, 0.4f, 1), $"{f.Name}: ");
                 ImGui.SameLine();
 
-                ShowValue(addr, new List<string>(path) {f.Name}, f.FieldType, f.GetValue(obj));
+                if (f.FieldType.IsGenericType && f.FieldType.GetGenericTypeDefinition() == GenericSpanType)
+                    ImGui.Text("Span preview is currently not supported.");
+                else
+                    ShowValue(addr, new List<string>(path) {f.Name}, f.FieldType, f.GetValue(obj));
             }
 
             foreach (var p in obj.GetType().GetProperties().Where(p => p.GetGetMethod()?.GetParameters().Length == 0))
@@ -306,7 +310,10 @@ public static class Util
                 ImGui.TextColored(new Vector4(0.2f, 0.6f, 0.4f, 1), $"{p.Name}: ");
                 ImGui.SameLine();
 
-                ShowValue(addr, new List<string>(path) {p.Name}, p.PropertyType, p.GetValue(obj));
+                if (p.PropertyType.IsGenericType && p.PropertyType.GetGenericTypeDefinition() == GenericSpanType)
+                    ImGui.Text("Span preview is currently not supported.");
+                else
+                    ShowValue(addr, new List<string>(path) {p.Name}, p.PropertyType, p.GetValue(obj));
             }
 
             ImGui.TreePop();
@@ -369,6 +376,13 @@ public static class Util
 
         foreach (var propertyInfo in type.GetProperties().Where(p => p.GetGetMethod()?.GetParameters().Length == 0))
         {
+            if (propertyInfo.PropertyType.IsGenericType &&
+                propertyInfo.PropertyType.GetGenericTypeDefinition() == GenericSpanType)
+            {
+                ImGui.TextColored(ImGuiColors.DalamudOrange, $"    {propertyInfo.Name}: Span preview is currently not supported.");
+                continue;
+            }
+
             var value = propertyInfo.GetValue(obj);
             var valueType = value?.GetType();
             if (valueType == typeof(IntPtr))
