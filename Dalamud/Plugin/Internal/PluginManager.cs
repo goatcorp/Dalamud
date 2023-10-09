@@ -784,6 +784,19 @@ internal partial class PluginManager : IDisposable, IServiceType
     public async Task<LocalPlugin> InstallPluginAsync(RemotePluginManifest repoManifest, bool useTesting, PluginLoadReason reason, Guid? inheritedWorkingPluginId = null)
     {
         Log.Debug($"Installing plugin {repoManifest.Name} (testing={useTesting})");
+        
+        // If this plugin is in the default profile for whatever reason, delete the state
+        // If it was in multiple profiles and is still, the user uninstalled it and chose to keep it in there,
+        // or the user removed the plugin manually in which case we don't care
+        var defaultProfile = this.profileManager.DefaultProfile;
+        using (defaultProfile.GetSyncScope())
+        {
+            if (defaultProfile.WantsPlugin(repoManifest.InternalName).HasValue)
+            {
+                // We don't need to apply, it doesn't matter
+                await defaultProfile.RemoveAsync(repoManifest.InternalName, false);
+            }
+        }
 
         // Ensure that we have a testing opt-in for this plugin if we are installing a testing version
         if (useTesting && this.configuration.PluginTestingOptIns!.All(x => x.InternalName != repoManifest.InternalName))
