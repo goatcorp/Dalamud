@@ -3703,7 +3703,8 @@ internal class PluginInstallerWindow : Window, IDisposable
         public static string VerifiedCheckmark_UnverifiedTooltip =>
             Loc.Localize("VerifiedCheckmarkUnverifiedTooltip", "This plugin has not been reviewed by the Dalamud team.\n" +
                                                                "We cannot take any responsibility for custom plugins and repositories.\n" +
-                                                               "Please make absolutely sure that you only install plugins from developers you trust.");
+                                                               "Please make absolutely sure that you only install plugins from developers you trust.\n\n" +
+                                                               "You will not receive support for plugins installed from custom repositories on the XIVLauncher & Dalamud server.");
 
         #endregion
     }
