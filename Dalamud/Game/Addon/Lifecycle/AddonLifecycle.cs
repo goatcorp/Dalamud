@@ -173,7 +173,7 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
             var receiveEventHook = Hook<AddonReceiveEventDelegate>.FromAddress((nint)addon->VTable->ReceiveEvent, this.OnReceiveEvent);
             this.receiveEventHooks.TryAdd(addonName, receiveEventHook);
 
-            if (this.eventListeners.Any(listener => listener.EventType is AddonEvent.PostReceiveEvent or AddonEvent.PreReceiveEvent))
+            if (this.eventListeners.Any(listener => (listener.EventType is AddonEvent.PostReceiveEvent or AddonEvent.PreReceiveEvent) && listener.AddonName == addonName))
             {
                 receiveEventHook.Enable();
             }
