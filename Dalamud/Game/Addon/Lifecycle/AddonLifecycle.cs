@@ -49,7 +49,8 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
         this.address = new AddonLifecycleAddressResolver();
         this.address.Setup(sigScanner);
 
-        this.disallowedReceiveEventAddress = (nint)((AtkEventListener*)this.address.AtkEventListener)->vfunc[2];
+        // We want value of the function pointer at vFunc[2]
+        this.disallowedReceiveEventAddress = ((nint*)this.address.AtkEventListener)![2];
         
         this.framework.Update += this.OnFrameworkUpdate;
 
@@ -176,6 +177,7 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
             // Disallows hooking the core internal event handler.
             var addonName = MemoryHelper.ReadStringNullTerminated((nint)addon->Name);
             var receiveEventAddress = (nint)addon->VTable->ReceiveEvent;
+            Log.Debug($"{receiveEventAddress:X} - {this.disallowedReceiveEventAddress:X}");
             if (receiveEventAddress != this.disallowedReceiveEventAddress)
             {
                 var receiveEventHook = Hook<AddonReceiveEventDelegate>.FromAddress(receiveEventAddress, this.OnReceiveEvent);
