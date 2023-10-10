@@ -785,6 +785,20 @@ internal partial class PluginManager : IDisposable, IServiceType
     {
         Log.Debug($"Installing plugin {repoManifest.Name} (testing={useTesting})");
 
+        // If this plugin is in the default profile for whatever reason, delete the state
+        // If it was in multiple profiles and is still, the user uninstalled it and chose to keep it in there,
+        // or the user removed the plugin manually in which case we don't care
+        if (reason == PluginLoadReason.Installer)
+        {
+            // We don't need to apply, it doesn't matter
+            await this.profileManager.DefaultProfile.RemoveAsync(repoManifest.InternalName, false, false);
+        }
+        else
+        {
+            // If we are doing anything other than a fresh install, not having a workingPluginId is an error that must be fixed
+            Debug.Assert(inheritedWorkingPluginId != null, "inheritedWorkingPluginId != null");
+        }
+        
         // Ensure that we have a testing opt-in for this plugin if we are installing a testing version
         if (useTesting && this.configuration.PluginTestingOptIns!.All(x => x.InternalName != repoManifest.InternalName))
         {

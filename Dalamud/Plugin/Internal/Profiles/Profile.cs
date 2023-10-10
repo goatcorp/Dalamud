@@ -200,17 +200,22 @@ internal class Profile
     /// </summary>
     /// <param name="internalName">The internal name of the plugin.</param>
     /// <param name="apply">Whether or not the current state should immediately be applied.</param>
+    /// <param name="guardrails">
+    /// Throw if certain operations are invalid.
+    /// * Throw if the plugin is not in this profile.
+    /// * If this is the default profile, check if we are in any other, then throw if we aren't.
+    /// </param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-    public async Task RemoveAsync(string internalName, bool apply = true)
+    public async Task RemoveAsync(string internalName, bool apply = true, bool guardrails = true)
     {
         ProfileModelV1.ProfileModelV1Plugin entry;
         lock (this)
         {
             entry = this.modelV1.Plugins.FirstOrDefault(x => x.InternalName == internalName);
-            if (entry == null)
+            if (entry == null && guardrails)
                 throw new ArgumentException($"No plugin \"{internalName}\" in profile \"{this.Guid}\"");
 
-            if (!this.modelV1.Plugins.Remove(entry))
+            if (!this.modelV1.Plugins.Remove(entry) && guardrails)
                 throw new Exception("Couldn't remove plugin from model collection");
         }
 
@@ -221,7 +226,7 @@ internal class Profile
             {
                 await this.manager.DefaultProfile.AddOrUpdateAsync(internalName, this.IsEnabled && entry.IsEnabled, false);
             }
-            else
+            else if (guardrails)
             {
                 throw new Exception("Removed plugin from default profile, but wasn't in any other profile");
             }
