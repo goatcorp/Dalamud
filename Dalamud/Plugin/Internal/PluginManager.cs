@@ -790,8 +790,15 @@ internal partial class PluginManager : IDisposable, IServiceType
         // or the user removed the plugin manually in which case we don't care
         if (reason == PluginLoadReason.Installer)
         {
-            // We don't need to apply, it doesn't matter
-            await this.profileManager.DefaultProfile.RemoveAsync(repoManifest.InternalName, false, false);
+            try
+            {
+                // We don't need to apply, it doesn't matter
+                await this.profileManager.DefaultProfile.RemoveAsync(repoManifest.InternalName, false);
+            }
+            catch (ProfileOperationException)
+            {
+                // ignored
+            }
         }
         else
         {
