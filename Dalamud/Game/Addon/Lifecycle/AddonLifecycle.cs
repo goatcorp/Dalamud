@@ -26,6 +26,8 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
     [ServiceManager.ServiceDependency]
     private readonly Framework framework = Service<Framework>.Get();
 
+    private readonly nint disallowedReceiveEventAddress;
+    
     private readonly AddonLifecycleAddressResolver address;
     private readonly CallHook<AddonSetupDelegate> onAddonSetupHook;
     private readonly CallHook<AddonSetupDelegate> onAddonSetup2Hook;
@@ -47,6 +49,8 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
         this.address = new AddonLifecycleAddressResolver();
         this.address.Setup(sigScanner);
 
+        this.disallowedReceiveEventAddress = (nint)((AtkEventListener*)this.address.AtkEventListener)->vfunc[2];
+        
         this.framework.Update += this.OnFrameworkUpdate;
 
         this.onAddonSetupHook = new CallHook<AddonSetupDelegate>(this.address.AddonSetup, this.OnAddonSetup);
@@ -169,13 +173,18 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
         try
         {
             // Hook the addon's ReceiveEvent function here, but only enable the hook if we have an active listener.
+            // Disallows hooking the core internal event handler.
             var addonName = MemoryHelper.ReadStringNullTerminated((nint)addon->Name);
-            var receiveEventHook = Hook<AddonReceiveEventDelegate>.FromAddress((nint)addon->VTable->ReceiveEvent, this.OnReceiveEvent);
-            this.receiveEventHooks.TryAdd(addonName, receiveEventHook);
-
-            if (this.eventListeners.Any(listener => (listener.EventType is AddonEvent.PostReceiveEvent or AddonEvent.PreReceiveEvent) && listener.AddonName == addonName))
+            var receiveEventAddress = (nint)addon->VTable->ReceiveEvent;
+            if (receiveEventAddress != this.disallowedReceiveEventAddress)
             {
-                receiveEventHook.Enable();
+                var receiveEventHook = Hook<AddonReceiveEventDelegate>.FromAddress(receiveEventAddress, this.OnReceiveEvent);
+                this.receiveEventHooks.TryAdd(addonName, receiveEventHook);
+
+                if (this.eventListeners.Any(listener => (listener.EventType is AddonEvent.PostReceiveEvent or AddonEvent.PreReceiveEvent) && listener.AddonName == addonName))
+                {
+                    receiveEventHook.Enable();
+                }
             }
         }
         catch (Exception e)
