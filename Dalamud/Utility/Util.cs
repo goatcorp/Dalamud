@@ -6,9 +6,11 @@ using System.IO.Compression;
 using System.Linq;
 using System.Numerics;
 using System.Reflection;
+using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
+
 using Dalamud.Configuration.Internal;
 using Dalamud.Data;
 using Dalamud.Game;
@@ -242,10 +244,12 @@ public static class Util
     /// <param name="addr">The address to the structure.</param>
     /// <param name="autoExpand">Whether or not this structure should start out expanded.</param>
     /// <param name="path">The already followed path.</param>
-    public static void ShowStruct(object obj, ulong addr, bool autoExpand = false, IEnumerable<string>? path = null)
+    /// <param name="hideAddress">Do not print addresses. Use when displaying a copied value.</param>
+    public static void ShowStruct(object obj, ulong addr, bool autoExpand = false, IEnumerable<string>? path = null, bool hideAddress = false)
     {
         ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(3, 2));
         path ??= new List<string>();
+        var pathList = path is List<string> ? (List<string>)path : path.ToList();
 
         if (moduleEndAddr == 0 && moduleStartAddr == 0)
         {
@@ -274,7 +278,7 @@ public static class Util
             ImGui.SetNextItemOpen(true, ImGuiCond.Appearing);
         }
 
-        if (ImGui.TreeNode($"{obj}##print-obj-{addr:X}-{string.Join("-", path)}"))
+        if (ImGui.TreeNode($"{obj}##print-obj-{addr:X}-{string.Join("-", pathList)}"))
         {
             ImGui.PopStyleColor();
             foreach (var f in obj.GetType()
@@ -297,10 +301,24 @@ public static class Util
                 ImGui.TextColored(new Vector4(0.2f, 0.9f, 0.4f, 1), $"{f.Name}: ");
                 ImGui.SameLine();
 
-                if (f.FieldType.IsGenericType && f.FieldType.GetGenericTypeDefinition() == GenericSpanType)
-                    ImGui.Text("Span preview is currently not supported.");
-                else
-                    ShowValue(addr, new List<string>(path) {f.Name}, f.FieldType, f.GetValue(obj));
+                pathList.Add(f.Name);
+                try
+                {
+                    if (f.FieldType.IsGenericType && (f.FieldType.IsByRef || f.FieldType.IsByRefLike))
+                        ImGui.Text("Cannot preview ref typed fields."); // object never contains ref struct
+                    else
+                        ShowValue(addr, pathList, f.FieldType, f.GetValue(obj), hideAddress);
+                }
+                catch (Exception ex)
+                {
+                    ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(1f, 0.4f, 0.4f, 1f));
+                    ImGui.TextUnformatted($"Error: {ex.GetType().Name}: {ex.Message}");
+                    ImGui.PopStyleColor();
+                }
+                finally
+                {
+                    pathList.RemoveAt(pathList.Count - 1);
+                }
             }
 
             foreach (var p in obj.GetType().GetProperties().Where(p => p.GetGetMethod()?.GetParameters().Length == 0))
@@ -310,10 +328,26 @@ public static class Util
                 ImGui.TextColored(new Vector4(0.2f, 0.6f, 0.4f, 1), $"{p.Name}: ");
                 ImGui.SameLine();
 
-                if (p.PropertyType.IsGenericType && p.PropertyType.GetGenericTypeDefinition() == GenericSpanType)
-                    ImGui.Text("Span preview is currently not supported.");
-                else
-                    ShowValue(addr, new List<string>(path) {p.Name}, p.PropertyType, p.GetValue(obj));
+                pathList.Add(p.Name);
+                try
+                {
+                    if (p.PropertyType.IsGenericType && p.PropertyType.GetGenericTypeDefinition() == GenericSpanType)
+                        ShowSpanProperty(addr, pathList, p, obj);
+                    else if (p.PropertyType.IsGenericType && (p.PropertyType.IsByRef || p.PropertyType.IsByRefLike))
+                        ImGui.Text("Cannot preview ref typed properties.");
+                    else
+                        ShowValue(addr, pathList, p.PropertyType, p.GetValue(obj), hideAddress);
+                }
+                catch (Exception ex)
+                {
+                    ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(1f, 0.4f, 0.4f, 1f));
+                    ImGui.TextUnformatted($"Error: {ex.GetType().Name}: {ex.Message}");
+                    ImGui.PopStyleColor();
+                }
+                finally
+                {
+                    pathList.RemoveAt(pathList.Count - 1);
+                }
             }
 
             ImGui.TreePop();
@@ -374,21 +408,21 @@ public static class Util
 
         ImGui.Indent();
 
-        foreach (var propertyInfo in type.GetProperties().Where(p => p.GetGetMethod()?.GetParameters().Length == 0))
+        foreach (var p in type.GetProperties().Where(p => p.GetGetMethod()?.GetParameters().Length == 0))
         {
-            if (propertyInfo.PropertyType.IsGenericType &&
-                propertyInfo.PropertyType.GetGenericTypeDefinition() == GenericSpanType)
+            if (p.PropertyType.IsGenericType && (p.PropertyType.IsByRef || p.PropertyType.IsByRefLike))
             {
-                ImGui.TextColored(ImGuiColors.DalamudOrange, $"    {propertyInfo.Name}: Span preview is currently not supported.");
-                continue;
+                ImGui.TextColored(ImGuiColors.DalamudOrange, $"    {p.Name}: (ref typed property)");
             }
-
-            var value = propertyInfo.GetValue(obj);
-            var valueType = value?.GetType();
-            if (valueType == typeof(IntPtr))
-                ImGui.TextColored(ImGuiColors.DalamudOrange, $"    {propertyInfo.Name}: 0x{value:X}");
             else
-                ImGui.TextColored(ImGuiColors.DalamudOrange, $"    {propertyInfo.Name}: {value}");
+            {
+                var value = p.GetValue(obj);
+                var valueType = value?.GetType();
+                if (valueType == typeof(IntPtr))
+                    ImGui.TextColored(ImGuiColors.DalamudOrange, $"    {p.Name}: 0x{value:X}");
+                else
+                    ImGui.TextColored(ImGuiColors.DalamudOrange, $"    {p.Name}: {value}");
+            }
         }
 
         ImGui.Unindent();
@@ -797,7 +831,120 @@ public static class Util
         }
     }
 
-    private static unsafe void ShowValue(ulong addr, IEnumerable<string> path, Type type, object value)
+    private static void ShowSpanProperty(ulong addr, IList<string> path, PropertyInfo p, object obj)
+    {
+        var objType = obj.GetType();
+        var propType = p.PropertyType;
+        if (p.GetGetMethod() is not { } getMethod)
+        {
+            ImGui.Text("(No getter available)");
+            return;
+        }
+
+        var dm = new DynamicMethod(
+            "-",
+            MethodAttributes.Public | MethodAttributes.Static,
+            CallingConventions.Standard,
+            null, 
+            new[] { typeof(object), typeof(IList<string>), typeof(ulong) },
+            obj.GetType(),
+            true);
+
+        var ilg = dm.GetILGenerator();
+        var objLocalIndex = unchecked((byte)ilg.DeclareLocal(objType, true).LocalIndex);
+        var propLocalIndex = unchecked((byte)ilg.DeclareLocal(propType, true).LocalIndex);
+        ilg.Emit(OpCodes.Ldarg_0);
+        if (objType.IsValueType)
+        {
+            ilg.Emit(OpCodes.Unbox_Any, objType);
+            ilg.Emit(OpCodes.Stloc_S, objLocalIndex);
+            ilg.Emit(OpCodes.Ldloca_S, objLocalIndex);
+        }
+
+        ilg.Emit(OpCodes.Call, getMethod);
+        var mm = typeof(Util).GetMethod(nameof(ShowSpanPrivate), BindingFlags.Static | BindingFlags.NonPublic)!
+                             .MakeGenericMethod(p.PropertyType.GetGenericArguments());
+        ilg.Emit(OpCodes.Stloc_S, propLocalIndex);
+        ilg.Emit(OpCodes.Ldarg_2); // addr = arg2
+        ilg.Emit(OpCodes.Ldarg_1); // path = arg1
+        ilg.Emit(OpCodes.Ldc_I4_0); // offset = 0
+        ilg.Emit(OpCodes.Ldc_I4_1); // isTop = true
+        ilg.Emit(OpCodes.Ldloca_S, propLocalIndex); // spanobj
+        ilg.Emit(OpCodes.Call, mm);
+        ilg.Emit(OpCodes.Ret);
+
+        dm.Invoke(null, new[] { obj, path, addr });
+    }
+
+    private static unsafe void ShowSpanPrivate<T>(ulong addr, IList<string> path, int offset, bool isTop, in Span<T> spanobj)
+    {
+#pragma warning disable CS8500 // This takes the address of, gets the size of, or declares a pointer to a managed type
+        if (isTop)
+        {
+            fixed (void* p = spanobj)
+            {
+                if (!ImGui.TreeNode(
+                    $"Span<{typeof(T).Name}> of length {spanobj.Length:n0} (0x{spanobj.Length:X})" +
+                    $"##print-obj-{addr:X}-{string.Join("-", path)}-head"))
+                {
+                    return;
+                }
+            }
+        }
+
+        try
+        {
+            const int batchSize = 20;
+            if (spanobj.Length > batchSize)
+            {
+                var skip = batchSize;
+                while ((spanobj.Length + skip - 1) / skip > batchSize)
+                    skip *= batchSize;
+                for (var i = 0; i < spanobj.Length; i += skip)
+                {
+                    var next = Math.Min(i + skip, spanobj.Length);
+                    path.Add($"{offset + i:X}_{skip}");
+                    if (ImGui.TreeNode(
+                        $"{offset + i:n0} ~ {offset + next - 1:n0} (0x{offset + i:X} ~ 0x{offset + next - 1:X})" +
+                        $"##print-obj-{addr:X}-{string.Join("-", path)}"))
+                    {
+                        try
+                        {
+                            ShowSpanPrivate(addr, path, offset + i, false, spanobj[i..next]);
+                        }
+                        finally
+                        {
+                            ImGui.TreePop();
+                        }
+                    }
+
+                    path.RemoveAt(path.Count - 1);
+                }
+            }
+            else
+            {
+                fixed (T* p = spanobj)
+                {
+                    var pointerType = typeof(T*);
+                    for (var i = 0; i < spanobj.Length; i++)
+                    {
+                        ImGui.TextUnformatted($"[{offset + i:n0} (0x{offset + i:X})] ");
+                        ImGui.SameLine();
+                        path.Add($"{offset + i}");
+                        ShowValue(addr, path, pointerType, Pointer.Box(p + i, pointerType), true);
+                    }
+                }
+            }
+        }
+        finally
+        {
+            if (isTop)
+                ImGui.TreePop();
+        }
+#pragma warning restore CS8500 // This takes the address of, gets the size of, or declares a pointer to a managed type
+    }
+
+    private static unsafe void ShowValue(ulong addr, IList<string> path, Type type, object value, bool hideAddress)
     {
         if (type.IsPointer)
         {
@@ -805,28 +952,32 @@ public static class Util
             var unboxed = Pointer.Unbox(val);
             if (unboxed != null)
             {
-                var unboxedAddr = (ulong)unboxed;
-                ImGuiHelpers.ClickToCopyText($"{(ulong)unboxed:X}");
-                if (moduleStartAddr > 0 && unboxedAddr >= moduleStartAddr && unboxedAddr <= moduleEndAddr)
+                if (!hideAddress)
                 {
+                    var unboxedAddr = (ulong)unboxed;
+                    ImGuiHelpers.ClickToCopyText($"{(ulong)unboxed:X}");
+                    if (moduleStartAddr > 0 && unboxedAddr >= moduleStartAddr && unboxedAddr <= moduleEndAddr)
+                    {
+                        ImGui.SameLine();
+                        ImGui.PushStyleColor(ImGuiCol.Text, 0xffcbc0ff);
+                        ImGuiHelpers.ClickToCopyText($"ffxiv_dx11.exe+{unboxedAddr - moduleStartAddr:X}");
+                        ImGui.PopStyleColor();
+                    }
+
                     ImGui.SameLine();
-                    ImGui.PushStyleColor(ImGuiCol.Text, 0xffcbc0ff);
-                    ImGuiHelpers.ClickToCopyText($"ffxiv_dx11.exe+{unboxedAddr - moduleStartAddr:X}");
-                    ImGui.PopStyleColor();
                 }
 
                 try
                 {
                     var eType = type.GetElementType();
                     var ptrObj = SafeMemory.PtrToStructure(new IntPtr(unboxed), eType);
-                    ImGui.SameLine();
                     if (ptrObj == null)
                     {
                         ImGui.Text("null or invalid");
                     }
                     else
                     {
-                        ShowStruct(ptrObj, (ulong)unboxed, path: new List<string>(path));
+                        ShowStruct(ptrObj, addr, path: path, hideAddress: hideAddress);
                     }
                 }
                 catch
@@ -843,7 +994,7 @@ public static class Util
         {
             if (!type.IsPrimitive)
             {
-                ShowStruct(value, addr, path: new List<string>(path));
+                ShowStruct(value, addr, path: path, hideAddress: hideAddress);
             }
             else
             {
