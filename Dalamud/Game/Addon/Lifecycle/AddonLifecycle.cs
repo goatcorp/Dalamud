@@ -177,7 +177,6 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
             // Disallows hooking the core internal event handler.
             var addonName = MemoryHelper.ReadStringNullTerminated((nint)addon->Name);
             var receiveEventAddress = (nint)addon->VTable->ReceiveEvent;
-            Log.Debug($"{receiveEventAddress:X} - {this.disallowedReceiveEventAddress:X}");
             if (receiveEventAddress != this.disallowedReceiveEventAddress)
             {
                 var receiveEventHook = Hook<AddonReceiveEventDelegate>.FromAddress(receiveEventAddress, this.OnReceiveEvent);
