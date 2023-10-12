@@ -37,9 +37,17 @@ internal class PluginRepository
         Timeout = TimeSpan.FromSeconds(20),
         DefaultRequestHeaders =
         {
+            Accept =
+            {
+                new MediaTypeWithQualityHeaderValue("application/json"),
+            },
             CacheControl = new CacheControlHeaderValue
             {
                 NoCache = true,
+            },
+            UserAgent =
+            {
+                new ProductInfoHeaderValue("Dalamud", $"{Util.GetGitHash()}[{Util.GetGitCommitCount()}]"),
             },
         },
     };
