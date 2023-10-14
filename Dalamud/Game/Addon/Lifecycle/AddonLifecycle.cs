@@ -26,6 +26,8 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
     [ServiceManager.ServiceDependency]
     private readonly Framework framework = Service<Framework>.Get();
 
+    private readonly nint disallowedReceiveEventAddress;
+    
     private readonly AddonLifecycleAddressResolver address;
     private readonly CallHook<AddonSetupDelegate> onAddonSetupHook;
     private readonly CallHook<AddonSetupDelegate> onAddonSetup2Hook;
@@ -47,6 +49,9 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
         this.address = new AddonLifecycleAddressResolver();
         this.address.Setup(sigScanner);
 
+        // We want value of the function pointer at vFunc[2]
+        this.disallowedReceiveEventAddress = ((nint*)this.address.AtkEventListener)![2];
+        
         this.framework.Update += this.OnFrameworkUpdate;
 
         this.onAddonSetupHook = new CallHook<AddonSetupDelegate>(this.address.AddonSetup, this.OnAddonSetup);
@@ -169,13 +174,18 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
         try
         {
             // Hook the addon's ReceiveEvent function here, but only enable the hook if we have an active listener.
+            // Disallows hooking the core internal event handler.
             var addonName = MemoryHelper.ReadStringNullTerminated((nint)addon->Name);
-            var receiveEventHook = Hook<AddonReceiveEventDelegate>.FromAddress((nint)addon->VTable->ReceiveEvent, this.OnReceiveEvent);
-            this.receiveEventHooks.TryAdd(addonName, receiveEventHook);
-
-            if (this.eventListeners.Any(listener => (listener.EventType is AddonEvent.PostReceiveEvent or AddonEvent.PreReceiveEvent) && listener.AddonName == addonName))
+            var receiveEventAddress = (nint)addon->VTable->ReceiveEvent;
+            if (receiveEventAddress != this.disallowedReceiveEventAddress)
             {
-                receiveEventHook.Enable();
+                var receiveEventHook = Hook<AddonReceiveEventDelegate>.FromAddress(receiveEventAddress, this.OnReceiveEvent);
+                this.receiveEventHooks.TryAdd(addonName, receiveEventHook);
+
+                if (this.eventListeners.Any(listener => (listener.EventType is AddonEvent.PostReceiveEvent or AddonEvent.PreReceiveEvent) && listener.AddonName == addonName))
+                {
+                    receiveEventHook.Enable();
+                }
             }
         }
         catch (Exception e)
@@ -197,7 +207,14 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
             Log.Error(e, "Exception in OnAddonSetup pre-setup invoke.");
         }
 
-        addon->OnSetup(valueCount, values);
+        try
+        {
+            addon->OnSetup(valueCount, values);
+        }
+        catch (Exception e)
+        {
+            Log.Error(e, "Caught exception when calling original AddonSetup. This may be a bug in the game or another plugin hooking this method.");
+        }
 
         try
         {
@@ -240,7 +257,14 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
             Log.Error(e, "Exception in OnAddonFinalize pre-finalize invoke.");
         }
 
-        this.onAddonFinalizeHook.Original(unitManager, atkUnitBase);
+        try
+        {
+            this.onAddonFinalizeHook.Original(unitManager, atkUnitBase);
+        }
+        catch (Exception e)
+        {
+            Log.Error(e, "Caught exception when calling original AddonFinalize. This may be a bug in the game or another plugin hooking this method.");
+        }
     }
 
     private void OnAddonDraw(AtkUnitBase* addon)
@@ -254,7 +278,14 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
             Log.Error(e, "Exception in OnAddonDraw pre-draw invoke.");
         }
 
-        addon->Draw();
+        try
+        {
+            addon->Draw();
+        }
+        catch (Exception e)
+        {
+            Log.Error(e, "Caught exception when calling original AddonDraw. This may be a bug in the game or another plugin hooking this method.");
+        }
 
         try
         {
@@ -277,7 +308,14 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
             Log.Error(e, "Exception in OnAddonUpdate pre-update invoke.");
         }
 
-        addon->Update(delta);
+        try
+        {
+            addon->Update(delta);
+        }
+        catch (Exception e)
+        {
+            Log.Error(e, "Caught exception when calling original AddonUpdate. This may be a bug in the game or another plugin hooking this method.");
+        }
 
         try
         {
@@ -291,6 +329,8 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
 
     private byte OnAddonRefresh(AtkUnitManager* atkUnitManager, AtkUnitBase* addon, uint valueCount, AtkValue* values)
     {
+        byte result = 0;
+        
         try
         {
             this.InvokeListeners(AddonEvent.PreRefresh, new AddonRefreshArgs
@@ -305,7 +345,14 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
             Log.Error(e, "Exception in OnAddonRefresh pre-refresh invoke.");
         }
 
-        var result = this.onAddonRefreshHook.Original(atkUnitManager, addon, valueCount, values);
+        try
+        {
+            result = this.onAddonRefreshHook.Original(atkUnitManager, addon, valueCount, values);
+        }
+        catch (Exception e)
+        {
+            Log.Error(e, "Caught exception when calling original AddonRefresh. This may be a bug in the game or another plugin hooking this method.");
+        }
 
         try
         {
@@ -340,7 +387,14 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
             Log.Error(e, "Exception in OnRequestedUpdate pre-requestedUpdate invoke.");
         }
 
-        addon->OnUpdate(numberArrayData, stringArrayData);
+        try
+        {
+            addon->OnUpdate(numberArrayData, stringArrayData);
+        }
+        catch (Exception e)
+        {
+            Log.Error(e, "Caught exception when calling original AddonRequestedUpdate. This may be a bug in the game or another plugin hooking this method.");
+        }
 
         try
         {
@@ -375,8 +429,15 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
             Log.Error(e, "Exception in OnReceiveEvent pre-receiveEvent invoke.");
         }
 
-        var addonName = MemoryHelper.ReadStringNullTerminated((nint)addon->Name);
-        this.receiveEventHooks[addonName].Original(addon, eventType, eventParam, atkEvent, data);
+        try
+        {
+            var addonName = MemoryHelper.ReadStringNullTerminated((nint)addon->Name);
+            this.receiveEventHooks[addonName].Original(addon, eventType, eventParam, atkEvent, data);
+        }
+        catch (Exception e)
+        {
+            Log.Error(e, "Caught exception when calling original AddonReceiveEvent. This may be a bug in the game or another plugin hooking this method.");
+        }
         
         try
         {
