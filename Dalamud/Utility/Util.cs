@@ -244,121 +244,8 @@ public static class Util
     /// <param name="addr">The address to the structure.</param>
     /// <param name="autoExpand">Whether or not this structure should start out expanded.</param>
     /// <param name="path">The already followed path.</param>
-    /// <param name="hideAddress">Do not print addresses. Use when displaying a copied value.</param>
-    public static void ShowStruct(object obj, ulong addr, bool autoExpand = false, IEnumerable<string>? path = null, bool hideAddress = false)
-    {
-        ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(3, 2));
-        path ??= new List<string>();
-        var pathList = path is List<string> ? (List<string>)path : path.ToList();
-
-        if (moduleEndAddr == 0 && moduleStartAddr == 0)
-        {
-            try
-            {
-                var processModule = Process.GetCurrentProcess().MainModule;
-                if (processModule != null)
-                {
-                    moduleStartAddr = (ulong)processModule.BaseAddress.ToInt64();
-                    moduleEndAddr = moduleStartAddr + (ulong)processModule.ModuleMemorySize;
-                }
-                else
-                {
-                    moduleEndAddr = 1;
-                }
-            }
-            catch
-            {
-                moduleEndAddr = 1;
-            }
-        }
-
-        ImGui.PushStyleColor(ImGuiCol.Text, 0xFF00FFFF);
-        if (autoExpand)
-        {
-            ImGui.SetNextItemOpen(true, ImGuiCond.Appearing);
-        }
-
-        if (ImGui.TreeNode($"{obj}##print-obj-{addr:X}-{string.Join("-", pathList)}"))
-        {
-            ImGui.PopStyleColor();
-            foreach (var f in obj.GetType()
-                                 .GetFields(BindingFlags.Static | BindingFlags.Public | BindingFlags.Instance))
-            {
-                var fixedBuffer = (FixedBufferAttribute)f.GetCustomAttribute(typeof(FixedBufferAttribute));
-                if (fixedBuffer != null)
-                {
-                    ImGui.Text($"fixed");
-                    ImGui.SameLine();
-                    ImGui.TextColored(new Vector4(0.2f, 0.9f, 0.9f, 1),
-                                      $"{fixedBuffer.ElementType.Name}[0x{fixedBuffer.Length:X}]");
-                }
-                else
-                {
-                    ImGui.TextColored(new Vector4(0.2f, 0.9f, 0.9f, 1), $"{f.FieldType.Name}");
-                }
-
-                ImGui.SameLine();
-                ImGui.TextColored(new Vector4(0.2f, 0.9f, 0.4f, 1), $"{f.Name}: ");
-                ImGui.SameLine();
-
-                pathList.Add(f.Name);
-                try
-                {
-                    if (f.FieldType.IsGenericType && (f.FieldType.IsByRef || f.FieldType.IsByRefLike))
-                        ImGui.Text("Cannot preview ref typed fields."); // object never contains ref struct
-                    else
-                        ShowValue(addr, pathList, f.FieldType, f.GetValue(obj), hideAddress);
-                }
-                catch (Exception ex)
-                {
-                    ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(1f, 0.4f, 0.4f, 1f));
-                    ImGui.TextUnformatted($"Error: {ex.GetType().Name}: {ex.Message}");
-                    ImGui.PopStyleColor();
-                }
-                finally
-                {
-                    pathList.RemoveAt(pathList.Count - 1);
-                }
-            }
-
-            foreach (var p in obj.GetType().GetProperties().Where(p => p.GetGetMethod()?.GetParameters().Length == 0))
-            {
-                ImGui.TextColored(new Vector4(0.2f, 0.9f, 0.9f, 1), $"{p.PropertyType.Name}");
-                ImGui.SameLine();
-                ImGui.TextColored(new Vector4(0.2f, 0.6f, 0.4f, 1), $"{p.Name}: ");
-                ImGui.SameLine();
-
-                pathList.Add(p.Name);
-                try
-                {
-                    if (p.PropertyType.IsGenericType && p.PropertyType.GetGenericTypeDefinition() == GenericSpanType)
-                        ShowSpanProperty(addr, pathList, p, obj);
-                    else if (p.PropertyType.IsGenericType && (p.PropertyType.IsByRef || p.PropertyType.IsByRefLike))
-                        ImGui.Text("Cannot preview ref typed properties.");
-                    else
-                        ShowValue(addr, pathList, p.PropertyType, p.GetValue(obj), hideAddress);
-                }
-                catch (Exception ex)
-                {
-                    ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(1f, 0.4f, 0.4f, 1f));
-                    ImGui.TextUnformatted($"Error: {ex.GetType().Name}: {ex.Message}");
-                    ImGui.PopStyleColor();
-                }
-                finally
-                {
-                    pathList.RemoveAt(pathList.Count - 1);
-                }
-            }
-
-            ImGui.TreePop();
-        }
-        else
-        {
-            ImGui.PopStyleColor();
-        }
-
-        ImGui.PopStyleVar();
-    }
+    public static void ShowStruct(object obj, ulong addr, bool autoExpand = false, IEnumerable<string>? path = null)
+        => ShowStructInternal(obj, addr, autoExpand, path);
 
     /// <summary>
     /// Show a structure in an ImGui context.
@@ -464,7 +351,7 @@ public static class Util
     /// <returns>Human readable version.</returns>
     public static string FormatBytes(long bytes)
     {
-        string[] suffix = {"B", "KB", "MB", "GB", "TB"};
+        string[] suffix = { "B", "KB", "MB", "GB", "TB" };
         int i;
         double dblSByte = bytes;
         for (i = 0; i < suffix.Length && bytes >= 1024; i++, bytes /= 1024)
@@ -977,7 +864,7 @@ public static class Util
                     }
                     else
                     {
-                        ShowStruct(ptrObj, addr, path: path, hideAddress: hideAddress);
+                        ShowStructInternal(ptrObj, addr, path: path, hideAddress: hideAddress);
                     }
                 }
                 catch
@@ -994,12 +881,135 @@ public static class Util
         {
             if (!type.IsPrimitive)
             {
-                ShowStruct(value, addr, path: path, hideAddress: hideAddress);
+                ShowStructInternal(value, addr, path: path, hideAddress: hideAddress);
             }
             else
             {
                 ImGui.Text($"{value}");
             }
         }
+    }
+    
+    /// <summary>
+    /// Show a structure in an ImGui context.
+    /// </summary>
+    /// <param name="obj">The structure to show.</param>
+    /// <param name="addr">The address to the structure.</param>
+    /// <param name="autoExpand">Whether or not this structure should start out expanded.</param>
+    /// <param name="path">The already followed path.</param>
+    /// <param name="hideAddress">Do not print addresses. Use when displaying a copied value.</param>
+    private static void ShowStructInternal(object obj, ulong addr, bool autoExpand = false, IEnumerable<string>? path = null, bool hideAddress = false)
+    {
+        ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(3, 2));
+        path ??= new List<string>();
+        var pathList = path is List<string> ? (List<string>)path : path.ToList();
+
+        if (moduleEndAddr == 0 && moduleStartAddr == 0)
+        {
+            try
+            {
+                var processModule = Process.GetCurrentProcess().MainModule;
+                if (processModule != null)
+                {
+                    moduleStartAddr = (ulong)processModule.BaseAddress.ToInt64();
+                    moduleEndAddr = moduleStartAddr + (ulong)processModule.ModuleMemorySize;
+                }
+                else
+                {
+                    moduleEndAddr = 1;
+                }
+            }
+            catch
+            {
+                moduleEndAddr = 1;
+            }
+        }
+
+        ImGui.PushStyleColor(ImGuiCol.Text, 0xFF00FFFF);
+        if (autoExpand)
+        {
+            ImGui.SetNextItemOpen(true, ImGuiCond.Appearing);
+        }
+
+        if (ImGui.TreeNode($"{obj}##print-obj-{addr:X}-{string.Join("-", pathList)}"))
+        {
+            ImGui.PopStyleColor();
+            foreach (var f in obj.GetType()
+                                 .GetFields(BindingFlags.Static | BindingFlags.Public | BindingFlags.Instance))
+            {
+                var fixedBuffer = (FixedBufferAttribute)f.GetCustomAttribute(typeof(FixedBufferAttribute));
+                if (fixedBuffer != null)
+                {
+                    ImGui.Text($"fixed");
+                    ImGui.SameLine();
+                    ImGui.TextColored(new Vector4(0.2f, 0.9f, 0.9f, 1),
+                                      $"{fixedBuffer.ElementType.Name}[0x{fixedBuffer.Length:X}]");
+                }
+                else
+                {
+                    ImGui.TextColored(new Vector4(0.2f, 0.9f, 0.9f, 1), $"{f.FieldType.Name}");
+                }
+
+                ImGui.SameLine();
+                ImGui.TextColored(new Vector4(0.2f, 0.9f, 0.4f, 1), $"{f.Name}: ");
+                ImGui.SameLine();
+
+                pathList.Add(f.Name);
+                try
+                {
+                    if (f.FieldType.IsGenericType && (f.FieldType.IsByRef || f.FieldType.IsByRefLike))
+                        ImGui.Text("Cannot preview ref typed fields."); // object never contains ref struct
+                    else
+                        ShowValue(addr, pathList, f.FieldType, f.GetValue(obj), hideAddress);
+                }
+                catch (Exception ex)
+                {
+                    ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(1f, 0.4f, 0.4f, 1f));
+                    ImGui.TextUnformatted($"Error: {ex.GetType().Name}: {ex.Message}");
+                    ImGui.PopStyleColor();
+                }
+                finally
+                {
+                    pathList.RemoveAt(pathList.Count - 1);
+                }
+            }
+
+            foreach (var p in obj.GetType().GetProperties().Where(p => p.GetGetMethod()?.GetParameters().Length == 0))
+            {
+                ImGui.TextColored(new Vector4(0.2f, 0.9f, 0.9f, 1), $"{p.PropertyType.Name}");
+                ImGui.SameLine();
+                ImGui.TextColored(new Vector4(0.2f, 0.6f, 0.4f, 1), $"{p.Name}: ");
+                ImGui.SameLine();
+
+                pathList.Add(p.Name);
+                try
+                {
+                    if (p.PropertyType.IsGenericType && p.PropertyType.GetGenericTypeDefinition() == GenericSpanType)
+                        ShowSpanProperty(addr, pathList, p, obj);
+                    else if (p.PropertyType.IsGenericType && (p.PropertyType.IsByRef || p.PropertyType.IsByRefLike))
+                        ImGui.Text("Cannot preview ref typed properties.");
+                    else
+                        ShowValue(addr, pathList, p.PropertyType, p.GetValue(obj), hideAddress);
+                }
+                catch (Exception ex)
+                {
+                    ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(1f, 0.4f, 0.4f, 1f));
+                    ImGui.TextUnformatted($"Error: {ex.GetType().Name}: {ex.Message}");
+                    ImGui.PopStyleColor();
+                }
+                finally
+                {
+                    pathList.RemoveAt(pathList.Count - 1);
+                }
+            }
+
+            ImGui.TreePop();
+        }
+        else
+        {
+            ImGui.PopStyleColor();
+        }
+
+        ImGui.PopStyleVar();
     }
 }
