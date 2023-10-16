@@ -254,10 +254,10 @@ public class SeString
     /// <param name="rawX">The raw x-coordinate for this link.</param>
     /// <param name="rawY">The raw y-coordinate for this link..</param>
     /// <returns>An SeString containing all of the payloads necessary to display a map link in the chat log.</returns>
-    public static SeString CreateMapLink(uint territoryId, uint mapId, int rawX, int rawY)
+    public static SeString CreateMapLink(uint territoryId, uint mapId, int rawX, int rawY, int? instance = null)
     {
         var mapPayload = new MapLinkPayload(territoryId, mapId, rawX, rawY);
-        var nameString = $"{mapPayload.PlaceName} {mapPayload.CoordinateString}";
+        var nameString = GetMapLinkNameString(mapPayload.PlaceName, mapPayload.CoordinateString, instance);
 
         var payloads = new List<Payload>(new Payload[]
         {
@@ -280,10 +280,10 @@ public class SeString
     /// <param name="yCoord">The human-readable y-coordinate for this link.</param>
     /// <param name="fudgeFactor">An optional offset to account for rounding and truncation errors; it is best to leave this untouched in most cases.</param>
     /// <returns>An SeString containing all of the payloads necessary to display a map link in the chat log.</returns>
-    public static SeString CreateMapLink(uint territoryId, uint mapId, float xCoord, float yCoord, float fudgeFactor = 0.05f)
+    public static SeString CreateMapLink(uint territoryId, uint mapId, float xCoord, float yCoord, float fudgeFactor = 0.05f, int? instance = null)
     {
         var mapPayload = new MapLinkPayload(territoryId, mapId, xCoord, yCoord, fudgeFactor);
-        var nameString = $"{mapPayload.PlaceName} {mapPayload.CoordinateString}";
+        var nameString = GetMapLinkNameString(mapPayload.PlaceName, mapPayload.CoordinateString, instance);
 
         var payloads = new List<Payload>(new Payload[]
         {
@@ -306,7 +306,7 @@ public class SeString
     /// <param name="yCoord">The human-readable y-coordinate for this link.</param>
     /// <param name="fudgeFactor">An optional offset to account for rounding and truncation errors; it is best to leave this untouched in most cases.</param>
     /// <returns>An SeString containing all of the payloads necessary to display a map link in the chat log.</returns>
-    public static SeString? CreateMapLink(string placeName, float xCoord, float yCoord, float fudgeFactor = 0.05f)
+    public static SeString? CreateMapLink(string placeName, float xCoord, float yCoord, float fudgeFactor = 0.05f, int? instance = null)
     {
         var data = Service<DataManager>.Get();
 
@@ -321,12 +321,23 @@ public class SeString
             var map = mapSheet.FirstOrDefault(row => row.PlaceName.Row == place.RowId);
             if (map != null && map.TerritoryType.Row != 0)
             {
-                return CreateMapLink(map.TerritoryType.Row, map.RowId, xCoord, yCoord, fudgeFactor);
+                return CreateMapLink(map.TerritoryType.Row, map.RowId, xCoord, yCoord, fudgeFactor, instance);
             }
         }
 
         // TODO: empty? throw?
         return null;
+    }
+
+    private static string GetMapLinkNameString(string placeName, string coordinateString, int? instance = null)
+    {
+        var instanceString = string.Empty;
+        if (instance is > 0 and < 10)
+        {
+            instanceString = (SeIconChar.Instance1 + instance.Value - 1).ToIconString();
+        }
+        
+        return $"{placeName}{instanceString} {coordinateString}";
     }
 
     /// <summary>
