@@ -1,8 +1,5 @@
-﻿using System;
-using System.Threading;
+﻿using System.Threading;
 using System.Threading.Tasks;
-
-using Dalamud.Game;
 
 namespace Dalamud.Plugin.Services;
 
