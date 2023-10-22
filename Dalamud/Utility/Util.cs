@@ -1,10 +1,12 @@
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Numerics;
 using System.Reflection;
+using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -17,11 +19,10 @@ using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Utility;
 using Dalamud.Logging.Internal;
-using Dalamud.Memory;
 using ImGuiNET;
 using Lumina.Excel.GeneratedSheets;
-using PInvoke;
 using Serilog;
+using Windows.Win32.Storage.FileSystem;
 
 namespace Dalamud.Utility;
 
@@ -30,6 +31,7 @@ namespace Dalamud.Utility;
 /// </summary>
 public static class Util
 {
+    private static readonly Type GenericSpanType = typeof(Span<>);
     private static string? gitHashInternal;
     private static int? gitCommitCountInternal;
     private static string? gitHashClientStructsInternal;
@@ -40,7 +42,8 @@ public static class Util
     /// <summary>
     /// Gets the assembly version of Dalamud.
     /// </summary>
-    public static string AssemblyVersion { get; } = Assembly.GetAssembly(typeof(ChatHandlers)).GetName().Version.ToString();
+    public static string AssemblyVersion { get; } =
+        Assembly.GetAssembly(typeof(ChatHandlers)).GetName().Version.ToString();
 
     /// <summary>
     /// Check two byte arrays for equality.
@@ -242,80 +245,7 @@ public static class Util
     /// <param name="autoExpand">Whether or not this structure should start out expanded.</param>
     /// <param name="path">The already followed path.</param>
     public static void ShowStruct(object obj, ulong addr, bool autoExpand = false, IEnumerable<string>? path = null)
-    {
-        ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(3, 2));
-        path ??= new List<string>();
-
-        if (moduleEndAddr == 0 && moduleStartAddr == 0)
-        {
-            try
-            {
-                var processModule = Process.GetCurrentProcess().MainModule;
-                if (processModule != null)
-                {
-                    moduleStartAddr = (ulong)processModule.BaseAddress.ToInt64();
-                    moduleEndAddr = moduleStartAddr + (ulong)processModule.ModuleMemorySize;
-                }
-                else
-                {
-                    moduleEndAddr = 1;
-                }
-            }
-            catch
-            {
-                moduleEndAddr = 1;
-            }
-        }
-
-        ImGui.PushStyleColor(ImGuiCol.Text, 0xFF00FFFF);
-        if (autoExpand)
-        {
-            ImGui.SetNextItemOpen(true, ImGuiCond.Appearing);
-        }
-
-        if (ImGui.TreeNode($"{obj}##print-obj-{addr:X}-{string.Join("-", path)}"))
-        {
-            ImGui.PopStyleColor();
-            foreach (var f in obj.GetType().GetFields(BindingFlags.Static | BindingFlags.Public | BindingFlags.Instance))
-            {
-                var fixedBuffer = (FixedBufferAttribute)f.GetCustomAttribute(typeof(FixedBufferAttribute));
-                if (fixedBuffer != null)
-                {
-                    ImGui.Text($"fixed");
-                    ImGui.SameLine();
-                    ImGui.TextColored(new Vector4(0.2f, 0.9f, 0.9f, 1), $"{fixedBuffer.ElementType.Name}[0x{fixedBuffer.Length:X}]");
-                }
-                else
-                {
-                    ImGui.TextColored(new Vector4(0.2f, 0.9f, 0.9f, 1), $"{f.FieldType.Name}");
-                }
-
-                ImGui.SameLine();
-                ImGui.TextColored(new Vector4(0.2f, 0.9f, 0.4f, 1), $"{f.Name}: ");
-                ImGui.SameLine();
-
-                ShowValue(addr, new List<string>(path) { f.Name }, f.FieldType, f.GetValue(obj));
-            }
-
-            foreach (var p in obj.GetType().GetProperties().Where(p => p.GetGetMethod()?.GetParameters().Length == 0))
-            {
-                ImGui.TextColored(new Vector4(0.2f, 0.9f, 0.9f, 1), $"{p.PropertyType.Name}");
-                ImGui.SameLine();
-                ImGui.TextColored(new Vector4(0.2f, 0.6f, 0.4f, 1), $"{p.Name}: ");
-                ImGui.SameLine();
-
-                ShowValue(addr, new List<string>(path) { p.Name }, p.PropertyType, p.GetValue(obj));
-            }
-
-            ImGui.TreePop();
-        }
-        else
-        {
-            ImGui.PopStyleColor();
-        }
-
-        ImGui.PopStyleVar();
-    }
+        => ShowStructInternal(obj, addr, autoExpand, path);
 
     /// <summary>
     /// Show a structure in an ImGui context.
@@ -365,14 +295,21 @@ public static class Util
 
         ImGui.Indent();
 
-        foreach (var propertyInfo in type.GetProperties().Where(p => p.GetGetMethod()?.GetParameters().Length == 0))
+        foreach (var p in type.GetProperties().Where(p => p.GetGetMethod()?.GetParameters().Length == 0))
         {
-            var value = propertyInfo.GetValue(obj);
-            var valueType = value?.GetType();
-            if (valueType == typeof(IntPtr))
-                ImGui.TextColored(ImGuiColors.DalamudOrange, $"    {propertyInfo.Name}: 0x{value:X}");
+            if (p.PropertyType.IsGenericType && (p.PropertyType.IsByRef || p.PropertyType.IsByRefLike))
+            {
+                ImGui.TextColored(ImGuiColors.DalamudOrange, $"    {p.Name}: (ref typed property)");
+            }
             else
-                ImGui.TextColored(ImGuiColors.DalamudOrange, $"    {propertyInfo.Name}: {value}");
+            {
+                var value = p.GetValue(obj);
+                var valueType = value?.GetType();
+                if (valueType == typeof(IntPtr))
+                    ImGui.TextColored(ImGuiColors.DalamudOrange, $"    {p.Name}: 0x{value:X}");
+                else
+                    ImGui.TextColored(ImGuiColors.DalamudOrange, $"    {p.Name}: {value}");
+            }
         }
 
         ImGui.Unindent();
@@ -399,7 +336,8 @@ public static class Util
     /// <param name="exit">Specify whether to exit immediately.</param>
     public static void Fatal(string message, string caption, bool exit = true)
     {
-        var flags = NativeFunctions.MessageBoxType.Ok | NativeFunctions.MessageBoxType.IconError | NativeFunctions.MessageBoxType.Topmost;
+        var flags = NativeFunctions.MessageBoxType.Ok | NativeFunctions.MessageBoxType.IconError |
+                    NativeFunctions.MessageBoxType.Topmost;
         _ = NativeFunctions.MessageBoxW(Process.GetCurrentProcess().MainWindowHandle, message, caption, flags);
 
         if (exit)
@@ -601,7 +539,7 @@ public static class Util
                     }
                 }
             }
-        }
+        } 
         finally
         {
             foreach (var enumerator in enumerators)
@@ -609,6 +547,27 @@ public static class Util
                 enumerator?.Dispose();
             }
         }
+    }
+
+    /// <summary>
+    /// Request that Windows flash the game window to grab the user's attention.
+    /// </summary>
+    /// <param name="flashIfOpen">Attempt to flash even if the game is currently focused.</param>
+    public static void FlashWindow(bool flashIfOpen = false)
+    {
+        if (NativeFunctions.ApplicationIsActivated() && !flashIfOpen)
+            return;
+
+        var flashInfo = new NativeFunctions.FlashWindowInfo
+        {
+            Size = (uint)Marshal.SizeOf<NativeFunctions.FlashWindowInfo>(),
+            Count = uint.MaxValue,
+            Timeout = 0,
+            Flags = NativeFunctions.FlashWindow.All | NativeFunctions.FlashWindow.TimerNoFG,
+            Hwnd = Process.GetCurrentProcess().MainWindowHandle,
+        };
+
+        NativeFunctions.FlashWindowEx(ref flashInfo);
     }
 
     /// <summary>
@@ -640,36 +599,39 @@ public static class Util
     /// </summary>
     /// <param name="path">The path of the file to write to.</param>
     /// <param name="bytes">The data to write.</param>
-    public static void WriteAllBytesSafe(string path, byte[] bytes)
+    public static unsafe void WriteAllBytesSafe(string path, byte[] bytes)
     {
         ArgumentException.ThrowIfNullOrEmpty(path);
         
         // Open the temp file
         var tempPath = path + ".tmp";
 
-        using var tempFile = Kernel32
-            .CreateFile(tempPath.AsSpan(),
-                        new Kernel32.ACCESS_MASK(Kernel32.FileAccess.FILE_GENERIC_READ | Kernel32.FileAccess.FILE_GENERIC_WRITE),
-                        Kernel32.FileShare.None,
-                        null,
-                        Kernel32.CreationDisposition.CREATE_ALWAYS,
-                        Kernel32.CreateFileFlags.FILE_ATTRIBUTE_NORMAL,
-                        Kernel32.SafeObjectHandle.Null);
+        using var tempFile = Windows.Win32.PInvoke.CreateFile(
+            tempPath, 
+            (uint)(FILE_ACCESS_RIGHTS.FILE_GENERIC_READ | FILE_ACCESS_RIGHTS.FILE_GENERIC_WRITE), 
+            FILE_SHARE_MODE.FILE_SHARE_NONE,
+            null,
+            FILE_CREATION_DISPOSITION.CREATE_ALWAYS,
+            FILE_FLAGS_AND_ATTRIBUTES.FILE_ATTRIBUTE_NORMAL,
+            null);
 
         if (tempFile.IsInvalid)
             throw new Win32Exception();
         
         // Write the data
-        var bytesWritten = Kernel32.WriteFile(tempFile, new ArraySegment<byte>(bytes));
+        uint bytesWritten = 0;
+        if (!Windows.Win32.PInvoke.WriteFile(tempFile, new ReadOnlySpan<byte>(bytes), &bytesWritten, null))
+            throw new Win32Exception();
+
         if (bytesWritten != bytes.Length)
             throw new Exception($"Could not write all bytes to temp file ({bytesWritten} of {bytes.Length})");
 
-        if (!Kernel32.FlushFileBuffers(tempFile))
+        if (!Windows.Win32.PInvoke.FlushFileBuffers(tempFile))
             throw new Win32Exception();
         
         tempFile.Close();
 
-        if (!MoveFileEx(tempPath, path, MoveFileFlags.MovefileReplaceExisting | MoveFileFlags.MovefileWriteThrough))
+        if (!Windows.Win32.PInvoke.MoveFileEx(tempPath, path, MOVE_FILE_FLAGS.MOVEFILE_REPLACE_EXISTING | MOVE_FILE_FLAGS.MOVEFILE_WRITE_THROUGH))
             throw new Win32Exception();
     }
     
@@ -690,7 +652,8 @@ public static class Util
     /// <param name="logMessage">Log message to print, if specified and an error occurs.</param>
     /// <param name="moduleLog">Module logger, if any.</param>
     /// <typeparam name="T">The type of object to dispose.</typeparam>
-    internal static void ExplicitDisposeIgnoreExceptions<T>(this T obj, string? logMessage = null, ModuleLog? moduleLog = null) where T : IDisposable
+    internal static void ExplicitDisposeIgnoreExceptions<T>(
+        this T obj, string? logMessage = null, ModuleLog? moduleLog = null) where T : IDisposable
     {
         try
         {
@@ -755,7 +718,120 @@ public static class Util
         }
     }
 
-    private static unsafe void ShowValue(ulong addr, IEnumerable<string> path, Type type, object value)
+    private static void ShowSpanProperty(ulong addr, IList<string> path, PropertyInfo p, object obj)
+    {
+        var objType = obj.GetType();
+        var propType = p.PropertyType;
+        if (p.GetGetMethod() is not { } getMethod)
+        {
+            ImGui.Text("(No getter available)");
+            return;
+        }
+
+        var dm = new DynamicMethod(
+            "-",
+            MethodAttributes.Public | MethodAttributes.Static,
+            CallingConventions.Standard,
+            null, 
+            new[] { typeof(object), typeof(IList<string>), typeof(ulong) },
+            obj.GetType(),
+            true);
+
+        var ilg = dm.GetILGenerator();
+        var objLocalIndex = unchecked((byte)ilg.DeclareLocal(objType, true).LocalIndex);
+        var propLocalIndex = unchecked((byte)ilg.DeclareLocal(propType, true).LocalIndex);
+        ilg.Emit(OpCodes.Ldarg_0);
+        if (objType.IsValueType)
+        {
+            ilg.Emit(OpCodes.Unbox_Any, objType);
+            ilg.Emit(OpCodes.Stloc_S, objLocalIndex);
+            ilg.Emit(OpCodes.Ldloca_S, objLocalIndex);
+        }
+
+        ilg.Emit(OpCodes.Call, getMethod);
+        var mm = typeof(Util).GetMethod(nameof(ShowSpanPrivate), BindingFlags.Static | BindingFlags.NonPublic)!
+                             .MakeGenericMethod(p.PropertyType.GetGenericArguments());
+        ilg.Emit(OpCodes.Stloc_S, propLocalIndex);
+        ilg.Emit(OpCodes.Ldarg_2); // addr = arg2
+        ilg.Emit(OpCodes.Ldarg_1); // path = arg1
+        ilg.Emit(OpCodes.Ldc_I4_0); // offset = 0
+        ilg.Emit(OpCodes.Ldc_I4_1); // isTop = true
+        ilg.Emit(OpCodes.Ldloca_S, propLocalIndex); // spanobj
+        ilg.Emit(OpCodes.Call, mm);
+        ilg.Emit(OpCodes.Ret);
+
+        dm.Invoke(null, new[] { obj, path, addr });
+    }
+
+    private static unsafe void ShowSpanPrivate<T>(ulong addr, IList<string> path, int offset, bool isTop, in Span<T> spanobj)
+    {
+#pragma warning disable CS8500 // This takes the address of, gets the size of, or declares a pointer to a managed type
+        if (isTop)
+        {
+            fixed (void* p = spanobj)
+            {
+                if (!ImGui.TreeNode(
+                    $"Span<{typeof(T).Name}> of length {spanobj.Length:n0} (0x{spanobj.Length:X})" +
+                    $"##print-obj-{addr:X}-{string.Join("-", path)}-head"))
+                {
+                    return;
+                }
+            }
+        }
+
+        try
+        {
+            const int batchSize = 20;
+            if (spanobj.Length > batchSize)
+            {
+                var skip = batchSize;
+                while ((spanobj.Length + skip - 1) / skip > batchSize)
+                    skip *= batchSize;
+                for (var i = 0; i < spanobj.Length; i += skip)
+                {
+                    var next = Math.Min(i + skip, spanobj.Length);
+                    path.Add($"{offset + i:X}_{skip}");
+                    if (ImGui.TreeNode(
+                        $"{offset + i:n0} ~ {offset + next - 1:n0} (0x{offset + i:X} ~ 0x{offset + next - 1:X})" +
+                        $"##print-obj-{addr:X}-{string.Join("-", path)}"))
+                    {
+                        try
+                        {
+                            ShowSpanPrivate(addr, path, offset + i, false, spanobj[i..next]);
+                        }
+                        finally
+                        {
+                            ImGui.TreePop();
+                        }
+                    }
+
+                    path.RemoveAt(path.Count - 1);
+                }
+            }
+            else
+            {
+                fixed (T* p = spanobj)
+                {
+                    var pointerType = typeof(T*);
+                    for (var i = 0; i < spanobj.Length; i++)
+                    {
+                        ImGui.TextUnformatted($"[{offset + i:n0} (0x{offset + i:X})] ");
+                        ImGui.SameLine();
+                        path.Add($"{offset + i}");
+                        ShowValue(addr, path, pointerType, Pointer.Box(p + i, pointerType), true);
+                    }
+                }
+            }
+        }
+        finally
+        {
+            if (isTop)
+                ImGui.TreePop();
+        }
+#pragma warning restore CS8500 // This takes the address of, gets the size of, or declares a pointer to a managed type
+    }
+
+    private static unsafe void ShowValue(ulong addr, IList<string> path, Type type, object value, bool hideAddress)
     {
         if (type.IsPointer)
         {
@@ -763,28 +839,32 @@ public static class Util
             var unboxed = Pointer.Unbox(val);
             if (unboxed != null)
             {
-                var unboxedAddr = (ulong)unboxed;
-                ImGuiHelpers.ClickToCopyText($"{(ulong)unboxed:X}");
-                if (moduleStartAddr > 0 && unboxedAddr >= moduleStartAddr && unboxedAddr <= moduleEndAddr)
+                if (!hideAddress)
                 {
+                    var unboxedAddr = (ulong)unboxed;
+                    ImGuiHelpers.ClickToCopyText($"{(ulong)unboxed:X}");
+                    if (moduleStartAddr > 0 && unboxedAddr >= moduleStartAddr && unboxedAddr <= moduleEndAddr)
+                    {
+                        ImGui.SameLine();
+                        ImGui.PushStyleColor(ImGuiCol.Text, 0xffcbc0ff);
+                        ImGuiHelpers.ClickToCopyText($"ffxiv_dx11.exe+{unboxedAddr - moduleStartAddr:X}");
+                        ImGui.PopStyleColor();
+                    }
+
                     ImGui.SameLine();
-                    ImGui.PushStyleColor(ImGuiCol.Text, 0xffcbc0ff);
-                    ImGuiHelpers.ClickToCopyText($"ffxiv_dx11.exe+{unboxedAddr - moduleStartAddr:X}");
-                    ImGui.PopStyleColor();
                 }
 
                 try
                 {
                     var eType = type.GetElementType();
                     var ptrObj = SafeMemory.PtrToStructure(new IntPtr(unboxed), eType);
-                    ImGui.SameLine();
                     if (ptrObj == null)
                     {
                         ImGui.Text("null or invalid");
                     }
                     else
                     {
-                        ShowStruct(ptrObj, (ulong)unboxed, path: new List<string>(path));
+                        ShowStructInternal(ptrObj, addr, path: path, hideAddress: hideAddress);
                     }
                 }
                 catch
@@ -801,7 +881,7 @@ public static class Util
         {
             if (!type.IsPrimitive)
             {
-                ShowStruct(value, addr, path: new List<string>(path));
+                ShowStructInternal(value, addr, path: path, hideAddress: hideAddress);
             }
             else
             {
@@ -810,17 +890,126 @@ public static class Util
         }
     }
     
-    [Flags]
-#pragma warning disable SA1201
-    private enum MoveFileFlags
-#pragma warning restore SA1201
+    /// <summary>
+    /// Show a structure in an ImGui context.
+    /// </summary>
+    /// <param name="obj">The structure to show.</param>
+    /// <param name="addr">The address to the structure.</param>
+    /// <param name="autoExpand">Whether or not this structure should start out expanded.</param>
+    /// <param name="path">The already followed path.</param>
+    /// <param name="hideAddress">Do not print addresses. Use when displaying a copied value.</param>
+    private static void ShowStructInternal(object obj, ulong addr, bool autoExpand = false, IEnumerable<string>? path = null, bool hideAddress = false)
     {
-        MovefileReplaceExisting = 0x00000001,
-        MovefileWriteThrough = 0x00000008,
+        ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(3, 2));
+        path ??= new List<string>();
+        var pathList = path is List<string> ? (List<string>)path : path.ToList();
+
+        if (moduleEndAddr == 0 && moduleStartAddr == 0)
+        {
+            try
+            {
+                var processModule = Process.GetCurrentProcess().MainModule;
+                if (processModule != null)
+                {
+                    moduleStartAddr = (ulong)processModule.BaseAddress.ToInt64();
+                    moduleEndAddr = moduleStartAddr + (ulong)processModule.ModuleMemorySize;
+                }
+                else
+                {
+                    moduleEndAddr = 1;
+                }
+            }
+            catch
+            {
+                moduleEndAddr = 1;
+            }
+        }
+
+        ImGui.PushStyleColor(ImGuiCol.Text, 0xFF00FFFF);
+        if (autoExpand)
+        {
+            ImGui.SetNextItemOpen(true, ImGuiCond.Appearing);
+        }
+
+        if (ImGui.TreeNode($"{obj}##print-obj-{addr:X}-{string.Join("-", pathList)}"))
+        {
+            ImGui.PopStyleColor();
+            foreach (var f in obj.GetType()
+                                 .GetFields(BindingFlags.Static | BindingFlags.Public | BindingFlags.Instance))
+            {
+                var fixedBuffer = (FixedBufferAttribute)f.GetCustomAttribute(typeof(FixedBufferAttribute));
+                if (fixedBuffer != null)
+                {
+                    ImGui.Text($"fixed");
+                    ImGui.SameLine();
+                    ImGui.TextColored(new Vector4(0.2f, 0.9f, 0.9f, 1),
+                                      $"{fixedBuffer.ElementType.Name}[0x{fixedBuffer.Length:X}]");
+                }
+                else
+                {
+                    ImGui.TextColored(new Vector4(0.2f, 0.9f, 0.9f, 1), $"{f.FieldType.Name}");
+                }
+
+                ImGui.SameLine();
+                ImGui.TextColored(new Vector4(0.2f, 0.9f, 0.4f, 1), $"{f.Name}: ");
+                ImGui.SameLine();
+
+                pathList.Add(f.Name);
+                try
+                {
+                    if (f.FieldType.IsGenericType && (f.FieldType.IsByRef || f.FieldType.IsByRefLike))
+                        ImGui.Text("Cannot preview ref typed fields."); // object never contains ref struct
+                    else
+                        ShowValue(addr, pathList, f.FieldType, f.GetValue(obj), hideAddress);
+                }
+                catch (Exception ex)
+                {
+                    ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(1f, 0.4f, 0.4f, 1f));
+                    ImGui.TextUnformatted($"Error: {ex.GetType().Name}: {ex.Message}");
+                    ImGui.PopStyleColor();
+                }
+                finally
+                {
+                    pathList.RemoveAt(pathList.Count - 1);
+                }
+            }
+
+            foreach (var p in obj.GetType().GetProperties().Where(p => p.GetGetMethod()?.GetParameters().Length == 0))
+            {
+                ImGui.TextColored(new Vector4(0.2f, 0.9f, 0.9f, 1), $"{p.PropertyType.Name}");
+                ImGui.SameLine();
+                ImGui.TextColored(new Vector4(0.2f, 0.6f, 0.4f, 1), $"{p.Name}: ");
+                ImGui.SameLine();
+
+                pathList.Add(p.Name);
+                try
+                {
+                    if (p.PropertyType.IsGenericType && p.PropertyType.GetGenericTypeDefinition() == GenericSpanType)
+                        ShowSpanProperty(addr, pathList, p, obj);
+                    else if (p.PropertyType.IsGenericType && (p.PropertyType.IsByRef || p.PropertyType.IsByRefLike))
+                        ImGui.Text("Cannot preview ref typed properties.");
+                    else
+                        ShowValue(addr, pathList, p.PropertyType, p.GetValue(obj), hideAddress);
+                }
+                catch (Exception ex)
+                {
+                    ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(1f, 0.4f, 0.4f, 1f));
+                    ImGui.TextUnformatted($"Error: {ex.GetType().Name}: {ex.Message}");
+                    ImGui.PopStyleColor();
+                }
+                finally
+                {
+                    pathList.RemoveAt(pathList.Count - 1);
+                }
+            }
+
+            ImGui.TreePop();
+        }
+        else
+        {
+            ImGui.PopStyleColor();
+        }
+
+        ImGui.PopStyleVar();
     }
-    
-    [return: MarshalAs(UnmanagedType.Bool)]
-    [DllImport("kernel32.dll", SetLastError=true, CharSet=CharSet.Unicode)]
-    private static extern bool MoveFileEx(string lpExistingFileName, string lpNewFileName,
-                                          MoveFileFlags dwFlags);
 }

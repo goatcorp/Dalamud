@@ -1,4 +1,6 @@
-﻿using Dalamud.Game.Gui;
+﻿using System.Collections.Generic;
+
+using Dalamud.Game.Gui;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
 
@@ -76,6 +78,11 @@ public interface IChatGui
     /// Gets the flags of the last linked item.
     /// </summary>
     public byte LastLinkedItemFlags { get; }
+    
+    /// <summary>
+    /// Gets the dictionary of Dalamud Link Handlers.
+    /// </summary>
+    public IReadOnlyDictionary<(string PluginName, uint CommandId), Action<uint, SeString>> RegisteredLinkHandlers { get; }
 
     /// <summary>
     /// Queue a chat message. Dalamud will send queued messages on the next framework event.

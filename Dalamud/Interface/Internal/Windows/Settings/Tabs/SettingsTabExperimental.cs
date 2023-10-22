@@ -48,6 +48,7 @@ public class SettingsTabExperimental : SettingsTab
 
         new ThirdRepoSettingsEntry(),
 
+        /* Disabling profiles after they've been enabled doesn't make much sense, at least not if the user has already created profiles.
         new GapSettingsEntry(5, true),
 
         new SettingsEntry<bool>(
@@ -55,6 +56,7 @@ public class SettingsTabExperimental : SettingsTab
             Loc.Localize("DalamudSettingsEnableProfilesHint", "Enables plugin collections, which lets you create toggleable lists of plugins."),
             c => c.ProfilesEnabled,
             (v, c) => c.ProfilesEnabled = v),
+            */
     };
 
     public override string Title => Loc.Localize("DalamudSettingsExperimental", "Experimental");

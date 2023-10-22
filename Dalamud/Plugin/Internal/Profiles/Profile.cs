@@ -208,7 +208,7 @@ internal class Profile
         {
             entry = this.modelV1.Plugins.FirstOrDefault(x => x.InternalName == internalName);
             if (entry == null)
-                throw new ArgumentException($"No plugin \"{internalName}\" in profile \"{this.Guid}\"");
+                throw new PluginNotFoundException(internalName);
 
             if (!this.modelV1.Plugins.Remove(entry))
                 throw new Exception("Couldn't remove plugin from model collection");
@@ -223,7 +223,7 @@ internal class Profile
             }
             else
             {
-                throw new Exception("Removed plugin from default profile, but wasn't in any other profile");
+                throw new PluginNotInDefaultProfileException(internalName);
             }
         }
 
@@ -235,4 +235,49 @@ internal class Profile
 
     /// <inheritdoc/>
     public override string ToString() => $"{this.Guid} ({this.Name})";
+}
+
+/// <summary>
+/// Exception indicating an issue during a profile operation.
+/// </summary>
+internal abstract class ProfileOperationException : Exception
+{
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ProfileOperationException"/> class.
+    /// </summary>
+    /// <param name="message">Message to pass on.</param>
+    protected ProfileOperationException(string message)
+        : base(message)
+    {
+    }
+}
+
+/// <summary>
+/// Exception indicating that a plugin was not found in the default profile.
+/// </summary>
+internal sealed class PluginNotInDefaultProfileException : ProfileOperationException
+{
+    /// <summary>
+    /// Initializes a new instance of the <see cref="PluginNotInDefaultProfileException"/> class.
+    /// </summary>
+    /// <param name="internalName">The internal name of the plugin causing the error.</param>
+    public PluginNotInDefaultProfileException(string internalName)
+        : base($"The plugin '{internalName}' is not in the default profile, and cannot be removed")
+    {
+    }
+}
+
+/// <summary>
+/// Exception indicating that the plugin was not found.
+/// </summary>
+internal sealed class PluginNotFoundException : ProfileOperationException
+{
+    /// <summary>
+    /// Initializes a new instance of the <see cref="PluginNotFoundException"/> class.
+    /// </summary>
+    /// <param name="internalName">The internal name of the plugin causing the error.</param>
+    public PluginNotFoundException(string internalName)
+        : base($"The plugin '{internalName}' was not found in the profile")
+    {
+    }
 }

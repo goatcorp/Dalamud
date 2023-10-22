@@ -79,6 +79,9 @@ internal sealed class ChatGui : IDisposable, IServiceType, IChatGui
     /// <inheritdoc/>
     public byte LastLinkedItemFlags { get; private set; }
 
+    /// <inheritdoc/>
+    public IReadOnlyDictionary<(string PluginName, uint CommandId), Action<uint, SeString>> RegisteredLinkHandlers => this.dalamudLinkHandlers;
+
     /// <summary>
     /// Dispose of managed and unmanaged resources.
     /// </summary>
@@ -452,6 +455,9 @@ internal class ChatGuiPluginScoped : IDisposable, IServiceType, IChatGui
 
     /// <inheritdoc/>
     public byte LastLinkedItemFlags => this.chatGuiService.LastLinkedItemFlags;
+
+    /// <inheritdoc/>
+    public IReadOnlyDictionary<(string PluginName, uint CommandId), Action<uint, SeString>> RegisteredLinkHandlers => this.chatGuiService.RegisteredLinkHandlers;
 
     /// <inheritdoc/>
     public void Dispose()

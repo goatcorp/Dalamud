@@ -1,4 +1,3 @@
-using System;
 using System.IO;
 
 namespace Dalamud.Game.Network.Structures;
@@ -76,5 +75,28 @@ public class MarketTaxRates
         output.SharlayanTax = reader.ReadUInt32();
 
         return output;
+    }
+    
+    /// <summary>
+    /// Generate a MarketTaxRates wrapper class from information located in a CustomTalk packet.
+    /// </summary>
+    /// <param name="dataPtr">The pointer to the relevant CustomTalk data.</param>
+    /// <returns>Returns a wrapped and ready-to-go MarketTaxRates record.</returns>
+    public static unsafe MarketTaxRates ReadFromCustomTalk(IntPtr dataPtr)
+    {
+        using var stream = new UnmanagedMemoryStream((byte*)dataPtr.ToPointer(), 1544);
+        using var reader = new BinaryReader(stream);
+
+        return new MarketTaxRates
+        {
+            Category = 0xb0009, // shim
+            LimsaLominsaTax = reader.ReadUInt32(),
+            GridaniaTax = reader.ReadUInt32(),
+            UldahTax = reader.ReadUInt32(),
+            IshgardTax = reader.ReadUInt32(),
+            KuganeTax = reader.ReadUInt32(),
+            CrystariumTax = reader.ReadUInt32(),
+            SharlayanTax = reader.ReadUInt32(),
+        };
     }
 }

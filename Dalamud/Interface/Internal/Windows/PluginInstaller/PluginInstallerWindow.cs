@@ -90,6 +90,11 @@ internal class PluginInstallerWindow : Window, IDisposable
     private bool testingWarningModalDrawing = true;
     private bool testingWarningModalOnNextFrame = false;
 
+    private bool deletePluginConfigWarningModalDrawing = true;
+    private bool deletePluginConfigWarningModalOnNextFrame = false;
+    private string deletePluginConfigWarningModalPluginName = string.Empty;
+    private TaskCompletionSource<bool>? deletePluginConfigWarningModalTaskCompletionSource;
+
     private bool feedbackModalDrawing = true;
     private bool feedbackModalOnNextFrame = false;
     private bool feedbackModalOnNextFrameDontClear = false;
@@ -259,6 +264,7 @@ internal class PluginInstallerWindow : Window, IDisposable
             this.DrawErrorModal();
             this.DrawUpdateModal();
             this.DrawTestingWarningModal();
+            this.DrawDeletePluginConfigWarningModal();
             this.DrawFeedbackModal();
             this.DrawProgressOverlay();
         }
@@ -825,6 +831,55 @@ internal class PluginInstallerWindow : Window, IDisposable
         }
     }
 
+    private Task<bool> ShowDeletePluginConfigWarningModal(string pluginName)
+    {
+        this.deletePluginConfigWarningModalOnNextFrame = true;
+        this.deletePluginConfigWarningModalPluginName = pluginName;
+        this.deletePluginConfigWarningModalTaskCompletionSource = new TaskCompletionSource<bool>();
+        return this.deletePluginConfigWarningModalTaskCompletionSource.Task;
+    }
+    
+    private void DrawDeletePluginConfigWarningModal()
+    {
+        var modalTitle = Locs.DeletePluginConfigWarningModal_Title;
+
+        if (ImGui.BeginPopupModal(modalTitle, ref this.deletePluginConfigWarningModalDrawing, ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoScrollbar))
+        {
+            ImGui.Text(Locs.DeletePluginConfigWarningModal_Body(this.deletePluginConfigWarningModalPluginName));
+            ImGui.Spacing();
+
+            var buttonWidth = 120f;
+            ImGui.SetCursorPosX((ImGui.GetWindowWidth() - ((buttonWidth * 2) - (ImGui.GetStyle().ItemSpacing.Y * 2))) / 2);
+
+            if (ImGui.Button(Locs.DeletePluginConfirmWarningModal_Yes, new Vector2(buttonWidth, 40)))
+            {
+                ImGui.CloseCurrentPopup();
+                this.deletePluginConfigWarningModalTaskCompletionSource?.SetResult(true);
+            }
+
+            ImGui.SameLine();
+
+            if (ImGui.Button(Locs.DeletePluginConfirmWarningModal_No, new Vector2(buttonWidth, 40)))
+            {
+                ImGui.CloseCurrentPopup();
+                this.deletePluginConfigWarningModalTaskCompletionSource?.SetResult(false);
+            }
+            
+            ImGui.EndPopup();
+        }
+
+        if (this.deletePluginConfigWarningModalOnNextFrame)
+        {
+            // NOTE(goat): ImGui cannot open a modal if no window is focused, at the moment.
+            // If people click out of the installer into the game while a plugin is installing, we won't be able to show a modal if we don't grab focus.
+            ImGui.SetWindowFocus(this.WindowName);
+
+            ImGui.OpenPopup(modalTitle);
+            this.deletePluginConfigWarningModalOnNextFrame = false;
+            this.deletePluginConfigWarningModalDrawing = true;
+        }
+    }
+
     private void DrawFeedbackModal()
     {
         var modalTitle = Locs.FeedbackModal_Title;
@@ -1216,10 +1271,6 @@ internal class PluginInstallerWindow : Window, IDisposable
                             break;
                         case PluginCategoryManager.CategoryInfo.AppearCondition.DoPluginTest:
                             if (!Service<DalamudConfiguration>.Get().DoPluginTest)
-                                continue;
-                            break;
-                        case PluginCategoryManager.CategoryInfo.AppearCondition.ProfilesEnabled:
-                            if (!Service<DalamudConfiguration>.Get().ProfilesEnabled)
                                 continue;
                             break;
                         default:
@@ -1913,7 +1964,6 @@ internal class PluginInstallerWindow : Window, IDisposable
     private void DrawAvailablePlugin(RemotePluginManifest manifest, int index)
     {
         var configuration = Service<DalamudConfiguration>.Get();
-        var notifications = Service<NotificationManager>.Get();
         var pluginManager = Service<PluginManager>.Get();
 
         var useTesting = pluginManager.UseTesting(manifest);
@@ -2049,24 +2099,32 @@ internal class PluginInstallerWindow : Window, IDisposable
 
             if (ImGui.Selectable(Locs.PluginContext_DeletePluginConfig))
             {
-                Log.Debug($"Deleting config for {manifest.InternalName}");
+                this.ShowDeletePluginConfigWarningModal(manifest.Name).ContinueWith(t =>
+                {
+                    var shouldDelete = t.Result;
 
-                this.installStatus = OperationStatus.InProgress;
-
-                Task.Run(() =>
+                    if (shouldDelete)
                     {
-                        pluginManager.PluginConfigs.Delete(manifest.InternalName);
-                        var dir = pluginManager.PluginConfigs.GetDirectory(manifest.InternalName);
+                        Log.Debug($"Deleting config for {manifest.InternalName}");
 
-                        if (Directory.Exists(dir))
-                            Directory.Delete(dir, true);
-                    })
-                    .ContinueWith(task =>
-                    {
-                        this.installStatus = OperationStatus.Idle;
+                        this.installStatus = OperationStatus.InProgress;
 
-                        this.DisplayErrorContinuation(task, Locs.ErrorModal_DeleteConfigFail(manifest.InternalName));
-                    });
+                        Task.Run(() =>
+                            {
+                                pluginManager.PluginConfigs.Delete(manifest.InternalName);
+                                var dir = pluginManager.PluginConfigs.GetDirectory(manifest.InternalName);
+
+                                if (Directory.Exists(dir))
+                                    Directory.Delete(dir, true);
+                            })
+                            .ContinueWith(task =>
+                            {
+                                this.installStatus = OperationStatus.Idle;
+
+                                this.DisplayErrorContinuation(task, Locs.ErrorModal_DeleteConfigFail(manifest.InternalName));
+                            });
+                    }
+                });
             }
 
             ImGui.EndPopup();
@@ -2389,17 +2447,25 @@ internal class PluginInstallerWindow : Window, IDisposable
 
             if (ImGui.MenuItem(Locs.PluginContext_DeletePluginConfigReload))
             {
-                Log.Debug($"Deleting config for {plugin.Manifest.InternalName}");
+                this.ShowDeletePluginConfigWarningModal(plugin.Name).ContinueWith(t =>
+                {
+                    var shouldDelete = t.Result;
 
-                this.installStatus = OperationStatus.InProgress;
-
-                Task.Run(() => pluginManager.DeleteConfigurationAsync(plugin))
-                    .ContinueWith(task =>
+                    if (shouldDelete)
                     {
-                        this.installStatus = OperationStatus.Idle;
+                        Log.Debug($"Deleting config for {plugin.Manifest.InternalName}");
 
-                        this.DisplayErrorContinuation(task, Locs.ErrorModal_DeleteConfigFail(plugin.Name));
-                    });
+                        this.installStatus = OperationStatus.InProgress;
+
+                        Task.Run(() => pluginManager.DeleteConfigurationAsync(plugin))
+                            .ContinueWith(task =>
+                            {
+                                this.installStatus = OperationStatus.Idle;
+
+                                this.DisplayErrorContinuation(task, Locs.ErrorModal_DeleteConfigFail(plugin.Name));
+                            });
+                    }
+                });
             }
 
             ImGui.EndPopup();
@@ -3583,6 +3649,18 @@ internal class PluginInstallerWindow : Window, IDisposable
 
         #endregion
 
+        #region Delete Plugin Config Warning Modal
+
+        public static string DeletePluginConfigWarningModal_Title => Loc.Localize("InstallerDeletePluginConfigWarning", "Warning###InstallerDeletePluginConfigWarning");
+
+        public static string DeletePluginConfigWarningModal_Body(string pluginName) => Loc.Localize("InstallerDeletePluginConfigWarningBody", "Are you sure you want to delete all data and configuration for v{0}?").Format(pluginName);
+
+        public static string DeletePluginConfirmWarningModal_Yes => Loc.Localize("InstallerDeletePluginConfigWarningYes", "Yes");
+
+        public static string DeletePluginConfirmWarningModal_No => Loc.Localize("InstallerDeletePluginConfigWarningNo", "No");
+
+        #endregion
+        
         #region Plugin Update chatbox
 
         public static string PluginUpdateHeader_Chatbox => Loc.Localize("DalamudPluginUpdates", "Updates:");
@@ -3625,7 +3703,8 @@ internal class PluginInstallerWindow : Window, IDisposable
         public static string VerifiedCheckmark_UnverifiedTooltip =>
             Loc.Localize("VerifiedCheckmarkUnverifiedTooltip", "This plugin has not been reviewed by the Dalamud team.\n" +
                                                                "We cannot take any responsibility for custom plugins and repositories.\n" +
-                                                               "Please make absolutely sure that you only install plugins from developers you trust.");
+                                                               "Please make absolutely sure that you only install plugins from developers you trust.\n\n" +
+                                                               "You will not receive support for plugins installed from custom repositories on the XIVLauncher & Dalamud server.");
 
         #endregion
     }

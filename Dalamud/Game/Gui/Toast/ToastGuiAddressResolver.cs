@@ -21,7 +21,7 @@ internal class ToastGuiAddressResolver : BaseAddressResolver
     public IntPtr ShowErrorToast { get; private set; }
 
     /// <inheritdoc/>
-    protected override void Setup64Bit(SigScanner sig)
+    protected override void Setup64Bit(ISigScanner sig)
     {
         this.ShowNormalToast = sig.ScanText("48 89 5C 24 ?? 48 89 6C 24 ?? 48 89 74 24 ?? 57 48 83 EC 30 83 3D ?? ?? ?? ?? ??");
         this.ShowQuestToast = sig.ScanText("48 89 5C 24 ?? 48 89 6C 24 ?? 48 89 74 24 ?? 48 89 7C 24 ?? 41 56 48 83 EC 40 83 3D ?? ?? ?? ?? ??");

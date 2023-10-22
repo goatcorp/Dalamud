@@ -3,7 +3,7 @@ using FFXIVClientStructs.FFXIV.Component.GUI;
 namespace Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
 
 /// <summary>
-/// Addon argument data for Finalize events.
+/// Addon argument data for Refresh events.
 /// </summary>
 public class AddonRefreshArgs : AddonArgs
 {

@@ -37,9 +37,17 @@ internal class PluginRepository
         Timeout = TimeSpan.FromSeconds(20),
         DefaultRequestHeaders =
         {
+            Accept =
+            {
+                new MediaTypeWithQualityHeaderValue("application/json"),
+            },
             CacheControl = new CacheControlHeaderValue
             {
                 NoCache = true,
+            },
+            UserAgent =
+            {
+                new ProductInfoHeaderValue("Dalamud", Util.AssemblyVersion),
             },
         },
     };
@@ -148,6 +156,15 @@ internal class PluginRepository
             }
 
             this.PluginMaster = pluginMaster.Where(this.IsValidManifest).ToList().AsReadOnly();
+            
+            // API9 HACK: Force IsHide to false, we should remove that
+            if (!this.IsThirdParty)
+            {
+                foreach (var manifest in this.PluginMaster)
+                {
+                    manifest.IsHide = false;
+                }
+            }
 
             Log.Information($"Successfully fetched repo: {this.PluginMasterUrl}");
             this.State = PluginRepositoryState.Success;

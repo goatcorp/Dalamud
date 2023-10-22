@@ -42,10 +42,17 @@ public class MarketBoardHistory
         using var stream = new UnmanagedMemoryStream((byte*)dataPtr.ToPointer(), 1544);
         using var reader = new BinaryReader(stream);
 
-        var output = new MarketBoardHistory();
+        var output = new MarketBoardHistory
+        {
+            CatalogId = reader.ReadUInt32(),
+            CatalogId2 = reader.ReadUInt32(),
+        };
 
-        output.CatalogId = reader.ReadUInt32();
-        output.CatalogId2 = reader.ReadUInt32();
+        if (output.CatalogId2 == 0)
+        {
+            // No items found in the resulting packet - just return the empty history.
+            return output;
+        }
 
         for (var i = 0; i < 20; i++)
         {
