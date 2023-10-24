@@ -255,7 +255,7 @@ public class SeString
     /// <param name="rawY">The raw y-coordinate for this link..</param>
     /// <returns>An SeString containing all of the payloads necessary to display a map link in the chat log.</returns>
     public static SeString CreateMapLink(uint territoryId, uint mapId, int rawX, int rawY) =>
-        CreateMapLink(territoryId, mapId, null, rawX, rawY);
+        CreateMapLinkWithInstance(territoryId, mapId, null, rawX, rawY);
 
     /// <summary>
     /// Creates an SeString representing an entire Payload chain that can be used to link a map position in the chat log.
@@ -266,7 +266,7 @@ public class SeString
     /// <param name="rawX">The raw x-coordinate for this link.</param>
     /// <param name="rawY">The raw y-coordinate for this link..</param>
     /// <returns>An SeString containing all of the payloads necessary to display a map link in the chat log.</returns>
-    public static SeString CreateMapLink(uint territoryId, uint mapId, int? instance, int rawX, int rawY)
+    public static SeString CreateMapLinkWithInstance(uint territoryId, uint mapId, int? instance, int rawX, int rawY)
     {
         var mapPayload = new MapLinkPayload(territoryId, mapId, rawX, rawY);
         var nameString = GetMapLinkNameString(mapPayload.PlaceName, instance, mapPayload.CoordinateString);
@@ -294,7 +294,7 @@ public class SeString
     /// <returns>An SeString containing all of the payloads necessary to display a map link in the chat log.</returns>
     public static SeString CreateMapLink(
         uint territoryId, uint mapId, float xCoord, float yCoord, float fudgeFactor = 0.05f) =>
-        CreateMapLink(territoryId, mapId, null, xCoord, yCoord, fudgeFactor);
+        CreateMapLinkWithInstance(territoryId, mapId, null, xCoord, yCoord, fudgeFactor);
     
     /// <summary>
     /// Creates an SeString representing an entire Payload chain that can be used to link a map position in the chat log.
@@ -306,7 +306,7 @@ public class SeString
     /// <param name="yCoord">The human-readable y-coordinate for this link.</param>
     /// <param name="fudgeFactor">An optional offset to account for rounding and truncation errors; it is best to leave this untouched in most cases.</param>
     /// <returns>An SeString containing all of the payloads necessary to display a map link in the chat log.</returns>
-    public static SeString CreateMapLink(uint territoryId, uint mapId, int? instance, float xCoord, float yCoord, float fudgeFactor = 0.05f)
+    public static SeString CreateMapLinkWithInstance(uint territoryId, uint mapId, int? instance, float xCoord, float yCoord, float fudgeFactor = 0.05f)
     {
         var mapPayload = new MapLinkPayload(territoryId, mapId, xCoord, yCoord, fudgeFactor);
         var nameString = GetMapLinkNameString(mapPayload.PlaceName, instance, mapPayload.CoordinateString);
@@ -333,7 +333,7 @@ public class SeString
     /// <param name="fudgeFactor">An optional offset to account for rounding and truncation errors; it is best to leave this untouched in most cases.</param>
     /// <returns>An SeString containing all of the payloads necessary to display a map link in the chat log.</returns>
     public static SeString? CreateMapLink(string placeName, float xCoord, float yCoord, float fudgeFactor = 0.05f) =>
-        CreateMapLink(placeName, null, xCoord, yCoord, fudgeFactor);
+        CreateMapLinkWithInstance(placeName, null, xCoord, yCoord, fudgeFactor);
     
     /// <summary>
     /// Creates an SeString representing an entire Payload chain that can be used to link a map position in the chat log, matching a specified zone name.
@@ -345,7 +345,7 @@ public class SeString
     /// <param name="yCoord">The human-readable y-coordinate for this link.</param>
     /// <param name="fudgeFactor">An optional offset to account for rounding and truncation errors; it is best to leave this untouched in most cases.</param>
     /// <returns>An SeString containing all of the payloads necessary to display a map link in the chat log.</returns>
-    public static SeString? CreateMapLink(string placeName, int? instance, float xCoord, float yCoord, float fudgeFactor = 0.05f)
+    public static SeString? CreateMapLinkWithInstance(string placeName, int? instance, float xCoord, float yCoord, float fudgeFactor = 0.05f)
     {
         var data = Service<DataManager>.Get();
 
@@ -360,7 +360,7 @@ public class SeString
             var map = mapSheet.FirstOrDefault(row => row.PlaceName.Row == place.RowId);
             if (map != null && map.TerritoryType.Row != 0)
             {
-                return CreateMapLink(map.TerritoryType.Row, map.RowId, instance, xCoord, yCoord, fudgeFactor);
+                return CreateMapLinkWithInstance(map.TerritoryType.Row, map.RowId, instance, xCoord, yCoord, fudgeFactor);
             }
         }
 
