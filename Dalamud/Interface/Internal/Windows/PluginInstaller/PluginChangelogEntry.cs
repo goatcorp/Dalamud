@@ -40,9 +40,10 @@ internal class PluginChangelogEntry : IChangelogEntry
         {
             this.Date = DateTimeOffset.FromUnixTimeSeconds(this.Plugin.Manifest.LastUpdate).DateTime;
         }
-        catch (ArgumentOutOfRangeException)
+        catch (ArgumentOutOfRangeException ex)
         {
-            Log.Verbose("Manifest included improper timestamp, e.g. wrong unit: {PluginName}", plugin.Manifest.Name);
+            Log.Warning(ex, "Manifest included improper timestamp, e.g. wrong unit: {PluginName}",
+                        plugin.Manifest.Name);
             // Create a Date from 0 as with a manifest that does not include a LastUpdate field
             this.Date = DateTimeOffset.FromUnixTimeSeconds(0).DateTime;
         }
