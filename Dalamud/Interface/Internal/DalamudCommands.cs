@@ -351,7 +351,8 @@ internal class DalamudCommands : IServiceType
 
     private void OnOpenInstallerCommand(string command, string arguments)
     {
-        Service<DalamudInterface>.Get().TogglePluginInstallerWindow();
+        var configuration = Service<DalamudConfiguration>.Get();
+        Service<DalamudInterface>.Get().TogglePluginInstallerWindowTo(configuration.PluginInstallerOpen);
     }
 
     private void OnSetLanguageCommand(string command, string arguments)

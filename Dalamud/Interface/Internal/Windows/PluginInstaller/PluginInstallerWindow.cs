@@ -173,6 +173,27 @@ internal class PluginInstallerWindow : Window, IDisposable
         this.profileManagerWidget = new(this);
     }
 
+    /// <summary>
+    /// Enum describing pages the plugin installer can be opened to.
+    /// </summary>
+    public enum PluginInstallerOpenKind
+    {
+        /// <summary>
+        /// Open to the "All Plugins" page.
+        /// </summary>
+        AllPlugins,
+
+        /// <summary>
+        /// Open to the "Installed Plugins" page.
+        /// </summary>
+        InstalledPlugins,
+        
+        /// <summary>
+        /// Open to the "Changelogs" page.
+        /// </summary>
+        Changelogs,
+    }
+    
     private enum OperationStatus
     {
         Idle,
@@ -218,6 +239,28 @@ internal class PluginInstallerWindow : Window, IDisposable
             pluginManager.OnAvailablePluginsChanged -= this.OnAvailablePluginsChanged;
             pluginManager.OnInstalledPluginsChanged -= this.OnInstalledPluginsChanged;
         }
+    }
+
+    /// <summary>
+    /// Open to the installer to the page specified by <paramref name="kind"/>.
+    /// </summary>
+    /// <param name="kind">The page of the installer to open.</param>
+    public void OpenTo(PluginInstallerOpenKind kind)
+    {
+        this.IsOpen = true;
+        this.SetOpenPage(kind);
+    }
+
+    /// <summary>
+    /// Toggle to the installer to the page specified by <paramref name="kind"/>.
+    /// </summary>
+    /// <param name="kind">The page of the installer to open.</param>
+    public void ToggleTo(PluginInstallerOpenKind kind)
+    {
+        this.Toggle();
+
+        if (this.IsOpen)
+            this.SetOpenPage(kind);
     }
 
     /// <inheritdoc/>
@@ -276,30 +319,6 @@ internal class PluginInstallerWindow : Window, IDisposable
     public void ClearIconCache()
     {
         this.imageCache.ClearIconCache();
-    }
-
-    /// <summary>
-    /// Open the window on the plugin changelogs.
-    /// </summary>
-    public void OpenInstalledPlugins()
-    {
-        // Installed group
-        this.categoryManager.CurrentGroupIdx = 1;
-        // All category
-        this.categoryManager.CurrentCategoryIdx = 0;
-        this.IsOpen = true;
-    }
-
-    /// <summary>
-    /// Open the window on the plugin changelogs.
-    /// </summary>
-    public void OpenPluginChangelogs()
-    {
-        // Changelog group
-        this.categoryManager.CurrentGroupIdx = 3;
-        // Plugins category
-        this.categoryManager.CurrentCategoryIdx = 2;
-        this.IsOpen = true;
     }
 
     /// <summary>
@@ -384,6 +403,33 @@ internal class PluginInstallerWindow : Window, IDisposable
         }
 
         return true;
+    }
+
+    private void SetOpenPage(PluginInstallerOpenKind kind)
+    {
+        switch (kind)
+        {
+            case PluginInstallerOpenKind.AllPlugins:
+                // Plugins group
+                this.categoryManager.CurrentGroupIdx = 0;
+                // All category
+                this.categoryManager.CurrentCategoryIdx = 0;
+                break;
+            case PluginInstallerOpenKind.InstalledPlugins:
+                // Installed group
+                this.categoryManager.CurrentGroupIdx = 2;
+                // All category
+                this.categoryManager.CurrentCategoryIdx = 0;
+                break;
+            case PluginInstallerOpenKind.Changelogs:
+                // Changelog group
+                this.categoryManager.CurrentGroupIdx = 3;
+                // Plugins category
+                this.categoryManager.CurrentCategoryIdx = 2;
+                break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(kind), kind, null);
+        }
     }
 
     private void DrawProgressOverlay()

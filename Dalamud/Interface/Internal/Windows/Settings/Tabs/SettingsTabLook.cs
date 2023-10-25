@@ -4,6 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using CheapLoc;
 using Dalamud.Configuration.Internal;
 using Dalamud.Interface.Colors;
+using Dalamud.Interface.Internal.Windows.PluginInstaller;
 using Dalamud.Interface.Internal.Windows.Settings.Widgets;
 using Dalamud.Interface.Utility;
 using Dalamud.Utility;
@@ -120,6 +121,12 @@ public class SettingsTabLook : SettingsTab
             Loc.Localize("DalamudSettingToggleTsmHint", "This will allow you to access certain Dalamud and Plugin functionality from the title screen."),
             c => c.ShowTsm,
             (v, c) => c.ShowTsm = v),
+        
+        new SettingsEntry<bool>(
+            Loc.Localize("DalamudSettingInstallerOpenDefault", "Open the Plugin Installer to the \"Installed Plugins\" tab by default"),
+            Loc.Localize("DalamudSettingInstallerOpenDefaultHint", "This will allow you to open the Plugin Installer to the \"Installed Plugins\" tab by default, instead of the \"Available Plugins\" tab."),
+            c => c.PluginInstallerOpen == PluginInstallerWindow.PluginInstallerOpenKind.InstalledPlugins,
+            (v, c) => c.PluginInstallerOpen = v ? PluginInstallerWindow.PluginInstallerOpenKind.InstalledPlugins : PluginInstallerWindow.PluginInstallerOpenKind.AllPlugins),
     };
 
     public override string Title => Loc.Localize("DalamudSettingsVisual", "Look & Feel");

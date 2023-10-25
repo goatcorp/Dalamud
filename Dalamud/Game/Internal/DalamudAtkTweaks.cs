@@ -222,7 +222,7 @@ internal sealed unsafe partial class DalamudAtkTweaks : IServiceType
         switch (commandId)
         {
             case 69420:
-                dalamudInterface?.TogglePluginInstallerWindow();
+                dalamudInterface?.TogglePluginInstallerWindowTo(this.configuration.PluginInstallerOpen);
                 break;
             case 69421:
                 dalamudInterface?.ToggleSettingsWindow();

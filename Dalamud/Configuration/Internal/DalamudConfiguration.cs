@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 
 using Dalamud.Game.Text;
+using Dalamud.Interface.Internal.Windows.PluginInstaller;
 using Dalamud.Interface.Style;
 using Dalamud.IoC.Internal;
 using Dalamud.Plugin.Internal.Profiles;
@@ -423,6 +424,11 @@ internal sealed class DalamudConfiguration : IServiceType, IDisposable
     /// Gets or sets hitch threshold for ui builder in milliseconds.
     /// </summary>
     public double UiBuilderHitch { get; set; } = 100;
+
+    /// <summary>
+    /// Gets or sets the page of the plugin installer that is shown by default when opened.
+    /// </summary>
+    public PluginInstallerWindow.PluginInstallerOpenKind PluginInstallerOpen { get; set; } = PluginInstallerWindow.PluginInstallerOpenKind.AllPlugins;
 
     /// <summary>
     /// Load a configuration from the provided path.

@@ -254,18 +254,10 @@ internal class DalamudInterface : IDisposable, IServiceType
     /// <summary>
     /// Opens the <see cref="PluginInstallerWindow"/> on the plugin installed.
     /// </summary>
-    public void OpenPluginInstallerPluginInstalled()
+    /// <param name="kind">The page of the installer to open.</param>
+    public void OpenPluginInstallerTo(PluginInstallerWindow.PluginInstallerOpenKind kind)
     {
-        this.pluginWindow.OpenInstalledPlugins();
-        this.pluginWindow.BringToFront();
-    }
-
-    /// <summary>
-    /// Opens the <see cref="PluginInstallerWindow"/> on the plugin changelogs.
-    /// </summary>
-    public void OpenPluginInstallerPluginChangelogs()
-    {
-        this.pluginWindow.OpenPluginChangelogs();
+        this.pluginWindow.OpenTo(kind);
         this.pluginWindow.BringToFront();
     }
 
@@ -397,7 +389,7 @@ internal class DalamudInterface : IDisposable, IServiceType
     /// <summary>
     /// Toggles the <see cref="PluginInstallerWindow"/>.
     /// </summary>
-    public void TogglePluginInstallerWindow() => this.pluginWindow.Toggle();
+    public void TogglePluginInstallerWindowTo(PluginInstallerWindow.PluginInstallerOpenKind kind) => this.pluginWindow.ToggleTo(kind);
 
     /// <summary>
     /// Toggles the <see cref="SettingsWindow"/>.

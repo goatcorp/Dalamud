@@ -223,7 +223,7 @@ public sealed class DalamudPluginInterface : IDisposable
             return false;
         }
 
-        dalamudInterface.OpenPluginInstallerPluginInstalled();
+        dalamudInterface.OpenPluginInstallerTo(PluginInstallerWindow.PluginInstallerOpenKind.InstalledPlugins);
         dalamudInterface.SetPluginInstallerSearchText(this.plugin.InternalName);
 
         return true;

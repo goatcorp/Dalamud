@@ -1242,7 +1242,8 @@ internal class InterfaceManager : IDisposable, IServiceType
 
             if (gamepadState.Pressed(GamepadButtons.R3) > 0)
             {
-                dalamudInterface.TogglePluginInstallerWindow();
+                var configuration = Service<DalamudConfiguration>.Get();
+                dalamudInterface.TogglePluginInstallerWindowTo(configuration.PluginInstallerOpen);
             }
         }
     }

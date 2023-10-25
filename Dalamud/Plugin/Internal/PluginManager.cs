@@ -19,6 +19,7 @@ using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Interface.Internal;
+using Dalamud.Interface.Internal.Windows.PluginInstaller;
 using Dalamud.IoC.Internal;
 using Dalamud.Logging.Internal;
 using Dalamud.Networking.Http;
@@ -130,7 +131,7 @@ internal partial class PluginManager : IDisposable, IServiceType
 
         this.openInstallerWindowPluginChangelogsLink = Service<ChatGui>.Get().AddChatLinkHandler("Dalamud", 1003, (_, _) =>
         {
-            Service<DalamudInterface>.GetNullable()?.OpenPluginInstallerPluginChangelogs();
+            Service<DalamudInterface>.GetNullable()?.OpenPluginInstallerTo(PluginInstallerWindow.PluginInstallerOpenKind.Changelogs);
         });
 
         this.configuration.PluginTestingOptIns ??= new List<PluginTestingOptIn>();
