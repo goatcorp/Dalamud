@@ -101,7 +101,7 @@ public unsafe partial class GameObject
     /// <summary>
     /// Gets the object ID of this <see cref="GameObject" />.
     /// </summary>
-    public uint ObjectId => this.Struct->ObjectID;
+    public uint ObjectId => this.Struct->GetObjectID().ObjectID;
 
     /// <summary>
     /// Gets the data ID for linking to other respective game data.
