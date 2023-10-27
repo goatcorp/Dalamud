@@ -222,10 +222,10 @@ internal sealed unsafe partial class DalamudAtkTweaks : IServiceType
         switch (commandId)
         {
             case 69420:
-                dalamudInterface?.TogglePluginInstallerWindowTo(this.configuration.PluginInstallerOpen);
+                dalamudInterface?.OpenPluginInstaller();
                 break;
             case 69421:
-                dalamudInterface?.ToggleSettingsWindow();
+                dalamudInterface?.OpenSettings();
                 break;
             default:
                 this.hookUiModuleRequestMainCommand.Original(thisPtr, commandId);

@@ -48,7 +48,9 @@ internal class DalamudInterface : IDisposable, IServiceType
     private const float CreditsDarkeningMaxAlpha = 0.8f;
 
     private static readonly ModuleLog Log = new("DUI");
-
+    
+    private readonly DalamudConfiguration configuration;
+    
     private readonly ChangelogWindow changelogWindow;
     private readonly ColorDemoWindow colorDemoWindow;
     private readonly ComponentDemoWindow componentDemoWindow;
@@ -92,6 +94,8 @@ internal class DalamudInterface : IDisposable, IServiceType
         PluginImageCache pluginImageCache,
         Branding branding)
     {
+        this.configuration = configuration;
+
         var interfaceManager = interfaceManagerWithScene.Manager;
         this.WindowSystem = new WindowSystem("DalamudCore");
         
@@ -135,7 +139,7 @@ internal class DalamudInterface : IDisposable, IServiceType
         interfaceManager.Draw += this.OnDraw;
 
         var tsm = Service<TitleScreenMenu>.Get();
-        tsm.AddEntryCore(Loc.Localize("TSMDalamudPlugins", "Plugin Installer"), branding.LogoSmall, this.OpenPluginInstaller);
+        tsm.AddEntryCore(Loc.Localize("TSMDalamudPlugins", "Plugin Installer"), branding.LogoSmall, () => this.OpenPluginInstaller());
         tsm.AddEntryCore(Loc.Localize("TSMDalamudSettings", "Dalamud Settings"), branding.LogoSmall, this.OpenSettings);
 
         if (!configuration.DalamudBetaKind.IsNullOrEmpty())
@@ -241,13 +245,14 @@ internal class DalamudInterface : IDisposable, IServiceType
         this.pluginStatWindow.IsOpen = true;
         this.pluginStatWindow.BringToFront();
     }
-
+    
     /// <summary>
-    /// Opens the <see cref="PluginInstallerWindow"/>.
+    /// Opens the <see cref="PluginInstallerWindow"/> on the plugin installed.
     /// </summary>
+    /// <param name="kind">The page of the installer to open.</param>
     public void OpenPluginInstaller()
     {
-        this.pluginWindow.IsOpen = true;
+        this.pluginWindow.OpenTo(this.configuration.PluginInstallerOpen);
         this.pluginWindow.BringToFront();
     }
 

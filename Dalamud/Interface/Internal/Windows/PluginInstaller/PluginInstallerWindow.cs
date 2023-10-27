@@ -411,13 +411,13 @@ internal class PluginInstallerWindow : Window, IDisposable
         {
             case PluginInstallerOpenKind.AllPlugins:
                 // Plugins group
-                this.categoryManager.CurrentGroupIdx = 0;
+                this.categoryManager.CurrentGroupIdx = 2;
                 // All category
                 this.categoryManager.CurrentCategoryIdx = 0;
                 break;
             case PluginInstallerOpenKind.InstalledPlugins:
                 // Installed group
-                this.categoryManager.CurrentGroupIdx = 2;
+                this.categoryManager.CurrentGroupIdx = 1;
                 // All category
                 this.categoryManager.CurrentCategoryIdx = 0;
                 break;
