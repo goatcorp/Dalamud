@@ -99,6 +99,11 @@ internal sealed class Framework : IDisposable, IServiceType, IFramework
     public bool IsFrameworkUnloading { get; internal set; }
 
     /// <summary>
+    /// Gets the list of update sub-delegates that didn't get updated this frame.
+    /// </summary>
+    internal List<string> NonUpdatedSubDelegates { get; private set; } = new();
+
+    /// <summary>
     /// Gets or sets a value indicating whether to dispatch update events.
     /// </summary>
     internal bool DispatchUpdateEvents { get; set; } = true;
@@ -272,6 +277,24 @@ internal sealed class Framework : IDisposable, IServiceType, IFramework
         this.updateStopwatch.Reset();
         StatsStopwatch.Reset();
     }
+            
+    /// <summary>
+    /// Adds a update time to the stats history.
+    /// </summary>
+    /// <param name="key">Delegate Name.</param>
+    /// <param name="ms">Runtime.</param>
+    internal static void AddToStats(string key, double ms)
+    {
+        if (!StatsHistory.ContainsKey(key))
+            StatsHistory.Add(key, new List<double>());
+
+        StatsHistory[key].Add(ms);
+
+        if (StatsHistory[key].Count > 1000)
+        {
+            StatsHistory[key].RemoveRange(0, StatsHistory[key].Count - 1000);
+        }
+    }
 
     [ServiceManager.CallWhenServicesReady]
     private void ContinueConstruction()
@@ -329,19 +352,6 @@ internal sealed class Framework : IDisposable, IServiceType, IFramework
             this.LastUpdate = DateTime.Now;
             this.LastUpdateUTC = DateTime.UtcNow;
 
-            void AddToStats(string key, double ms)
-            {
-                if (!StatsHistory.ContainsKey(key))
-                    StatsHistory.Add(key, new List<double>());
-
-                StatsHistory[key].Add(ms);
-
-                if (StatsHistory[key].Count > 1000)
-                {
-                    StatsHistory[key].RemoveRange(0, StatsHistory[key].Count - 1000);
-                }
-            }
-
             if (StatsEnabled)
             {
                 StatsStopwatch.Restart();
@@ -359,7 +369,7 @@ internal sealed class Framework : IDisposable, IServiceType, IFramework
             {
                 // Stat Tracking for Framework Updates
                 var invokeList = this.Update.GetInvocationList();
-                var notUpdated = StatsHistory.Keys.ToList();
+                this.NonUpdatedSubDelegates = StatsHistory.Keys.ToList();
 
                 // Individually invoke OnUpdate handlers and time them.
                 foreach (var d in invokeList)
@@ -377,14 +387,14 @@ internal sealed class Framework : IDisposable, IServiceType, IFramework
                     StatsStopwatch.Stop();
 
                     var key = $"{d.Target}::{d.Method.Name}";
-                    if (notUpdated.Contains(key))
-                        notUpdated.Remove(key);
+                    if (this.NonUpdatedSubDelegates.Contains(key))
+                        this.NonUpdatedSubDelegates.Remove(key);
 
                     AddToStats(key, StatsStopwatch.Elapsed.TotalMilliseconds);
                 }
 
                 // Cleanup handlers that are no longer being called
-                foreach (var key in notUpdated)
+                foreach (var key in this.NonUpdatedSubDelegates)
                 {
                     if (key == nameof(this.RunPendingTickTasks))
                         continue;
@@ -524,6 +534,8 @@ internal sealed class Framework : IDisposable, IServiceType, IFramework
 #pragma warning restore SA1015
 internal class FrameworkPluginScoped : IDisposable, IServiceType, IFramework
 {
+    private static readonly ModuleLog Log = new("Framework");
+    
     [ServiceManager.ServiceDependency]
     private readonly Framework frameworkService = Service<Framework>.Get();
 
@@ -593,5 +605,38 @@ internal class FrameworkPluginScoped : IDisposable, IServiceType, IFramework
     public Task RunOnTick(Func<Task> func, TimeSpan delay = default, int delayTicks = default, CancellationToken cancellationToken = default)
         => this.frameworkService.RunOnTick(func, delay, delayTicks, cancellationToken);
 
-    private void OnUpdateForward(IFramework framework) => this.Update?.Invoke(framework);
+    private void OnUpdateForward(IFramework framework)
+    {
+        if (Framework.StatsEnabled && this.Update != null)
+        {
+            // Stat Tracking for Framework Updates
+            var invokeList = this.Update.GetInvocationList();
+            
+            // Individually invoke OnUpdate handlers and time them.
+            foreach (var d in invokeList)
+            {
+                var stopwatch = Stopwatch.StartNew();
+                try
+                {
+                    d.Method.Invoke(d.Target, new object[] { framework });
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex, "Exception while dispatching FrameworkPluginScoped::Update event.");
+                }
+
+                stopwatch.Stop();
+
+                var key = $"{d.Target}::{d.Method.Name}";
+                if (this.frameworkService.NonUpdatedSubDelegates.Contains(key))
+                    this.frameworkService.NonUpdatedSubDelegates.Remove(key);
+
+                Framework.AddToStats(key, stopwatch.Elapsed.TotalMilliseconds);
+            }
+        }
+        else
+        {
+            this.Update?.Invoke(framework);
+        }
+    }
 }
