@@ -1028,7 +1028,7 @@ internal class InterfaceManager : IDisposable, IServiceType
                 if (font.FindGlyphNoFallback(Fallback1Codepoint).NativePtr != null)
                     font.FallbackChar = Fallback1Codepoint;
 
-                font.BuildLookupTable();
+                font.BuildLookupTableNonstandard();
             }
 
             Log.Verbose("[FONT] Invoke OnAfterBuildFonts");

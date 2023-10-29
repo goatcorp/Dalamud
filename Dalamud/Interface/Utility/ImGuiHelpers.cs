@@ -240,7 +240,25 @@ public static class ImGuiHelpers
         }
 
         if (rebuildLookupTable && target.Value!.Glyphs.Size > 0)
-            target.Value!.BuildLookupTable();
+            target.Value!.BuildLookupTableNonstandard();
+    }
+
+    /// <summary>
+    /// Call ImFont::BuildLookupTable, after attempting to fulfill some preconditions.
+    /// </summary>
+    /// <param name="font">The font.</param>
+    public static unsafe void BuildLookupTableNonstandard(this ImFontPtr font)
+    {
+        // ImGui resolves ' ' with FindGlyph, which uses FallbackGlyph.
+        // FallbackGlyph is resolved after resolving ' '.
+        // On the first call of BuildLookupTable, called from BuildFonts, FallbackGlyph is set to null,
+        // making FindGlyph return nullptr.
+        // On our secondary calls of BuildLookupTable, FallbackGlyph is set to some value that is not null,
+        // making ImGui attempt to treat whatever was there as a ' '.
+        // This may cause random glyphs to be sized randomly, if not an access violation exception.
+        font.NativePtr->FallbackGlyph = null;
+
+        font.BuildLookupTable();
     }
 
     /// <summary>
