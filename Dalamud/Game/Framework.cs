@@ -99,6 +99,11 @@ internal sealed class Framework : IDisposable, IServiceType, IFramework
     public bool IsFrameworkUnloading { get; internal set; }
 
     /// <summary>
+    /// Gets the list of update sub-delegates that didn't get updated this frame.
+    /// </summary>
+    internal List<string> NonUpdatedSubDelegates { get; private set; } = new();
+
+    /// <summary>
     /// Gets or sets a value indicating whether to dispatch update events.
     /// </summary>
     internal bool DispatchUpdateEvents { get; set; } = true;
@@ -272,6 +277,58 @@ internal sealed class Framework : IDisposable, IServiceType, IFramework
         this.updateStopwatch.Reset();
         StatsStopwatch.Reset();
     }
+            
+    /// <summary>
+    /// Adds a update time to the stats history.
+    /// </summary>
+    /// <param name="key">Delegate Name.</param>
+    /// <param name="ms">Runtime.</param>
+    internal static void AddToStats(string key, double ms)
+    {
+        if (!StatsHistory.ContainsKey(key))
+            StatsHistory.Add(key, new List<double>());
+
+        StatsHistory[key].Add(ms);
+
+        if (StatsHistory[key].Count > 1000)
+        {
+            StatsHistory[key].RemoveRange(0, StatsHistory[key].Count - 1000);
+        }
+    }
+
+    /// <summary>
+    /// Profiles each sub-delegate in the eventDelegate and logs to StatsHistory.
+    /// </summary>
+    /// <param name="eventDelegate">The Delegate to Profile.</param>
+    /// <param name="frameworkInstance">The Framework Instance to pass to delegate.</param>
+    internal void ProfileAndInvoke(IFramework.OnUpdateDelegate? eventDelegate, IFramework frameworkInstance)
+    {
+        if (eventDelegate is null) return;
+        
+        var invokeList = eventDelegate.GetInvocationList();
+
+        // Individually invoke OnUpdate handlers and time them.
+        foreach (var d in invokeList)
+        {
+            var stopwatch = Stopwatch.StartNew();
+            try
+            {
+                d.Method.Invoke(d.Target, new object[] { frameworkInstance });
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Exception while dispatching Framework::Update event.");
+            }
+
+            stopwatch.Stop();
+
+            var key = $"{d.Target}::{d.Method.Name}";
+            if (this.NonUpdatedSubDelegates.Contains(key))
+                this.NonUpdatedSubDelegates.Remove(key);
+
+            AddToStats(key, stopwatch.Elapsed.TotalMilliseconds);
+        }
+    }
 
     [ServiceManager.CallWhenServicesReady]
     private void ContinueConstruction()
@@ -329,19 +386,6 @@ internal sealed class Framework : IDisposable, IServiceType, IFramework
             this.LastUpdate = DateTime.Now;
             this.LastUpdateUTC = DateTime.UtcNow;
 
-            void AddToStats(string key, double ms)
-            {
-                if (!StatsHistory.ContainsKey(key))
-                    StatsHistory.Add(key, new List<double>());
-
-                StatsHistory[key].Add(ms);
-
-                if (StatsHistory[key].Count > 1000)
-                {
-                    StatsHistory[key].RemoveRange(0, StatsHistory[key].Count - 1000);
-                }
-            }
-
             if (StatsEnabled)
             {
                 StatsStopwatch.Restart();
@@ -358,33 +402,11 @@ internal sealed class Framework : IDisposable, IServiceType, IFramework
             if (StatsEnabled && this.Update != null)
             {
                 // Stat Tracking for Framework Updates
-                var invokeList = this.Update.GetInvocationList();
-                var notUpdated = StatsHistory.Keys.ToList();
-
-                // Individually invoke OnUpdate handlers and time them.
-                foreach (var d in invokeList)
-                {
-                    StatsStopwatch.Restart();
-                    try
-                    {
-                        d.Method.Invoke(d.Target, new object[] { this });
-                    }
-                    catch (Exception ex)
-                    {
-                        Log.Error(ex, "Exception while dispatching Framework::Update event.");
-                    }
-
-                    StatsStopwatch.Stop();
-
-                    var key = $"{d.Target}::{d.Method.Name}";
-                    if (notUpdated.Contains(key))
-                        notUpdated.Remove(key);
-
-                    AddToStats(key, StatsStopwatch.Elapsed.TotalMilliseconds);
-                }
+                this.NonUpdatedSubDelegates = StatsHistory.Keys.ToList();
+                this.ProfileAndInvoke(this.Update, this);
 
                 // Cleanup handlers that are no longer being called
-                foreach (var key in notUpdated)
+                foreach (var key in this.NonUpdatedSubDelegates)
                 {
                     if (key == nameof(this.RunPendingTickTasks))
                         continue;
@@ -593,5 +615,15 @@ internal class FrameworkPluginScoped : IDisposable, IServiceType, IFramework
     public Task RunOnTick(Func<Task> func, TimeSpan delay = default, int delayTicks = default, CancellationToken cancellationToken = default)
         => this.frameworkService.RunOnTick(func, delay, delayTicks, cancellationToken);
 
-    private void OnUpdateForward(IFramework framework) => this.Update?.Invoke(framework);
+    private void OnUpdateForward(IFramework framework)
+    {
+        if (Framework.StatsEnabled && this.Update != null)
+        {
+            this.frameworkService.ProfileAndInvoke(this.Update, framework);
+        }
+        else
+        {
+            this.Update?.Invoke(framework);
+        }
+    }
 }
