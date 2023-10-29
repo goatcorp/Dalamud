@@ -169,7 +169,7 @@ internal class GameFontManager : IServiceType
         }
 
         if (rebuildLookupTable && fontPtr.Glyphs.Size > 0)
-            fontPtr.BuildLookupTable();
+            fontPtr.BuildLookupTableNonstandard();
     }
 
     /// <summary>
