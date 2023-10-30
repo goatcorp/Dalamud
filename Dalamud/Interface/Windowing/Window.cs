@@ -1,7 +1,10 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
-
+using System.Runtime.InteropServices;
+using CheapLoc;
 using Dalamud.Configuration.Internal;
 using Dalamud.Game.ClientState.Keys;
+using Dalamud.Interface.Colors;
 using Dalamud.Interface.Utility;
 using Dalamud.Logging.Internal;
 using FFXIVClientStructs.FFXIV.Client.UI;
@@ -20,6 +23,11 @@ public abstract class Window
 
     private bool internalLastIsOpen = false;
     private bool internalIsOpen = false;
+    private bool internalIsPinned = false;
+    private bool internalIsClickthrough = false;
+    private DateTimeOffset internalLastDisableClick = DateTimeOffset.MinValue;
+    private bool didPushInternalAlpha = false;
+    private float? internalAlpha = null;
     private bool nextFrameBringToFront = false;
 
     /// <summary>
@@ -131,6 +139,16 @@ public abstract class Window
     public bool ShowCloseButton { get; set; } = true;
 
     /// <summary>
+    /// Gets or sets a value indicating whether or not this window should offer to be pinned via the window's titlebar context menu.
+    /// </summary>
+    public bool AllowPinning { get; set; } = true;
+
+    /// <summary>
+    /// Gets or sets a value indicating whether or not this window should offer to be made click-through via the window's titlebar context menu.
+    /// </summary>
+    public bool AllowClickthrough { get; set; } = true;
+
+    /// <summary>
     /// Gets or sets a value indicating whether or not this window will stay open.
     /// </summary>
     public bool IsOpen
@@ -185,6 +203,11 @@ public abstract class Window
     /// </summary>
     public virtual void PreDraw()
     {
+        if (this.internalAlpha.HasValue)
+        {
+            ImGui.PushStyleVar(ImGuiStyleVar.Alpha, this.internalAlpha.Value);
+            this.didPushInternalAlpha = true;
+        }
     }
 
     /// <summary>
@@ -192,6 +215,11 @@ public abstract class Window
     /// </summary>
     public virtual void PostDraw()
     {
+        if (this.didPushInternalAlpha)
+        {
+            ImGui.PopStyleVar();
+            this.didPushInternalAlpha = false;
+        }
     }
 
     /// <summary>
@@ -286,7 +314,15 @@ public abstract class Window
             this.nextFrameBringToFront = false;
         }
 
-        if (this.ShowCloseButton ? ImGui.Begin(this.WindowName, ref this.internalIsOpen, this.Flags) : ImGui.Begin(this.WindowName, this.Flags))
+        var flags = this.Flags;
+
+        if (this.internalIsPinned)
+            flags |= ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoResize;
+
+        if (this.internalIsClickthrough)
+            flags |= ImGuiWindowFlags.NoInputs | ImGuiWindowFlags.NoNav | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoScrollWithMouse | ImGuiWindowFlags.NoMouseInputs;
+
+        if (this.ShowCloseButton ? ImGui.Begin(this.WindowName, ref this.internalIsOpen, flags) : ImGui.Begin(this.WindowName, flags))
         {
             // Draw the actual window contents
             try
@@ -296,6 +332,80 @@ public abstract class Window
             catch (Exception ex)
             {
                 Log.Error(ex, $"Error during Draw(): {this.WindowName}");
+            }
+
+            if (this.AllowPinning || this.AllowClickthrough)
+            {
+                ImGui.PushStyleVar(ImGuiStyleVar.Alpha, 1f);
+
+                var popupName = "WindowSystemContextActions";
+                if (ImGui.BeginPopup(popupName))
+                {
+                    if (this.internalIsClickthrough)
+                        ImGui.BeginDisabled();
+                    
+                    if (this.AllowPinning)
+                        ImGui.Checkbox(Loc.Localize("WindowSystemContextActionPin", "Pin Window"), ref this.internalIsPinned);
+                    
+                    if (this.internalIsClickthrough)
+                        ImGui.EndDisabled();
+
+                    if (this.AllowClickthrough)
+                    {
+                        if (ImGui.Checkbox(Loc.Localize("WindowSystemContextActionClickthrough", "Make clickthrough"),
+                                           ref this.internalIsClickthrough))
+                        {
+                            if (this.internalIsClickthrough)
+                                this.internalIsPinned = true;
+                        }
+                    }
+
+                    var alpha = (this.internalAlpha ?? ImGui.GetStyle().Alpha) * 100f;
+                    if (ImGui.SliderFloat(Loc.Localize("WindowSystemContextActionAlpha", "Opacity"), ref alpha, 20f,
+                                          100f))
+                    {
+                        this.internalAlpha = alpha / 100f;
+                    }
+                    
+                    ImGui.SameLine();
+                    if (ImGui.Button(Loc.Localize("WindowSystemContextActionReset", "Reset")))
+                    {
+                        this.internalAlpha = null;
+                    }
+                    
+                    ImGui.TextColored(ImGuiColors.DalamudGrey, Loc.Localize("WindowSystemContextActionDoubleClick", "Double click the title bar to disable clickthrough."));
+                    ImGui.TextColored(ImGuiColors.DalamudGrey, Loc.Localize("WindowSystemContextActionDisclaimer", "These options may not work for all plugins at the moment."));
+                    
+                    ImGui.EndPopup();
+                }
+
+                ImGui.PopStyleVar();
+                
+                var titleBarRect = Vector4.Zero;
+                unsafe
+                {
+                    var window = ImGuiNativeAdditions.igGetCurrentWindow();
+                    ImGuiNativeAdditions.ImGuiWindow_TitleBarRect(&titleBarRect, window);
+                }
+
+                if (ImGui.IsMouseHoveringRect(new Vector2(titleBarRect.X, titleBarRect.Y), new Vector2(titleBarRect.Z, titleBarRect.W), false))
+                {
+                    if (ImGui.IsWindowHovered() && ImGui.IsMouseClicked(ImGuiMouseButton.Right))
+                    {
+                        ImGui.OpenPopup(popupName);
+                    }
+                    
+                    if (ImGui.IsMouseDown(ImGuiMouseButton.Left))
+                    {
+                        if (DateTime.Now - this.internalLastDisableClick < TimeSpan.FromMilliseconds(100))
+                        {
+                            this.internalIsPinned = false;
+                            this.internalIsClickthrough = false;
+                        }
+
+                        this.internalLastDisableClick = DateTime.Now;
+                    }
+                }
             }
         }
 
@@ -375,6 +485,12 @@ public abstract class Window
         {
             ImGui.SetNextWindowBgAlpha(this.BgAlpha.Value);
         }
+        
+        // Manually set alpha takes precedence, if devs don't want that, they should turn it off
+        if (this.internalAlpha.HasValue)
+        {
+            ImGui.SetNextWindowBgAlpha(this.internalAlpha.Value);
+        }
     }
 
     /// <summary>
@@ -391,5 +507,15 @@ public abstract class Window
         /// Gets or sets the maximum size of the window.
         /// </summary>
         public Vector2 MaximumSize { get; set; }
+    }
+    
+    [SuppressMessage("StyleCop.CSharp.NamingRules", "SA1300:Element should begin with upper-case letter", Justification = "imports")]
+    private static unsafe class ImGuiNativeAdditions
+    {
+        [DllImport("cimgui", CallingConvention = CallingConvention.Cdecl)]
+        public static extern unsafe void* igGetCurrentWindow();
+    
+        [DllImport("cimgui", CallingConvention = CallingConvention.Cdecl)]
+        public static extern unsafe void ImGuiWindow_TitleBarRect(Vector4* pOut, void* window);
     }
 }
