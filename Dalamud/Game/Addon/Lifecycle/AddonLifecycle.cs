@@ -21,6 +21,16 @@ namespace Dalamud.Game.Addon.Lifecycle;
 [ServiceManager.EarlyLoadedService]
 internal unsafe class AddonLifecycle : IDisposable, IServiceType
 {
+    /// <summary>
+    /// List of all AddonLifecycle ReceiveEvent Listener Hooks.
+    /// </summary>
+    internal readonly List<AddonLifecycleReceiveEventListener> ReceiveEventListeners = new();
+    
+    /// <summary>
+    /// List of all AddonLifecycle Event Listeners.
+    /// </summary>
+    internal readonly List<AddonLifecycleEventListener> EventListeners = new();
+    
     private static readonly ModuleLog Log = new("AddonLifecycle");
 
     [ServiceManager.ServiceDependency]
@@ -39,10 +49,6 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
 
     private readonly ConcurrentBag<AddonLifecycleEventListener> newEventListeners = new();
     private readonly ConcurrentBag<AddonLifecycleEventListener> removeEventListeners = new();
-    private readonly List<AddonLifecycleEventListener> eventListeners = new();
-
-    // Name might not be the best, this is the list for Addon_ReceiveEvent listeners specifically.
-    private readonly List<AddonLifecycleReceiveEventListener> receiveEventListeners = new();
 
     [ServiceManager.ServiceConstructor]
     private AddonLifecycle(TargetSigScanner sigScanner)
@@ -89,7 +95,7 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
         this.onAddonRefreshHook.Dispose();
         this.onAddonRequestedUpdateHook.Dispose();
 
-        foreach (var receiveEventListener in this.receiveEventListeners)
+        foreach (var receiveEventListener in this.ReceiveEventListeners)
         {
             receiveEventListener.Dispose();
         }
@@ -112,7 +118,7 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
     {
         this.removeEventListeners.Add(listener);
     }
-    
+
     /// <summary>
     /// Invoke listeners for the specified event type.
     /// </summary>
@@ -121,7 +127,7 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
     internal void InvokeListeners(AddonEvent eventType, AddonArgs args)
     {
         // Match on string.empty for listeners that want events for all addons.
-        foreach (var listener in this.eventListeners.Where(listener => listener.EventType == eventType && (listener.AddonName == args.AddonName || listener.AddonName == string.Empty)))
+        foreach (var listener in this.EventListeners.Where(listener => listener.EventType == eventType && (listener.AddonName == args.AddonName || listener.AddonName == string.Empty)))
         {
             listener.FunctionDelegate.Invoke(eventType, args);
         }
@@ -134,15 +140,15 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
         {
             foreach (var toAddListener in this.newEventListeners)
             {
-                this.eventListeners.Add(toAddListener);
+                this.EventListeners.Add(toAddListener);
 
                 // If we want receive event messages have an already active addon, enable the receive event hook.
                 // If the addon isn't active yet, we'll grab the hook when it sets up.
                 if (toAddListener is { EventType: AddonEvent.PreReceiveEvent or AddonEvent.PostReceiveEvent })
                 {
-                    if (this.receiveEventListeners.FirstOrDefault(listener => listener.AddonNames.Contains(toAddListener.AddonName)) is { } receiveEventListener)
+                    if (this.ReceiveEventListeners.FirstOrDefault(listener => listener.AddonNames.Contains(toAddListener.AddonName)) is { } receiveEventListener)
                     {
-                        receiveEventListener.Hook.Enable();
+                        receiveEventListener.Hook?.Enable();
                     }
                 }
             }
@@ -154,7 +160,21 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
         {
             foreach (var toRemoveListener in this.removeEventListeners)
             {
-                this.eventListeners.Remove(toRemoveListener);
+                this.EventListeners.Remove(toRemoveListener);
+                
+                // If we are disabling an ReceiveEvent listener, check if we should disable the hook.
+                if (toRemoveListener is { EventType: AddonEvent.PreReceiveEvent or AddonEvent.PostReceiveEvent })
+                {
+                    // Get the ReceiveEvent Listener for this addon
+                    if (this.ReceiveEventListeners.FirstOrDefault(listener => listener.AddonNames.Contains(toRemoveListener.AddonName)) is { } receiveEventListener)
+                    {
+                        // If there are no other listeners listening for this event, disable the hook.
+                        if (!this.EventListeners.Any(listener => listener.AddonName.Contains(toRemoveListener.AddonName) && listener.EventType is AddonEvent.PreReceiveEvent or AddonEvent.PostReceiveEvent))
+                        {
+                            receiveEventListener.Hook?.Disable();
+                        }
+                    }
+                }
             }
 
             this.removeEventListeners.Clear();
@@ -182,7 +202,7 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
         if (receiveEventAddress != this.disallowedReceiveEventAddress)
         {
             // If we have a ReceiveEvent listener already made for this hook address, add this addon's name to that handler.
-            if (this.receiveEventListeners.FirstOrDefault(listener => listener.HookAddress == receiveEventAddress) is { } existingListener)
+            if (this.ReceiveEventListeners.FirstOrDefault(listener => listener.HookAddress == receiveEventAddress) is { } existingListener)
             {
                 if (!existingListener.AddonNames.Contains(addonName))
                 {
@@ -199,16 +219,16 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
             else
             {
                 Log.Verbose($"[{addonName}] Adding new ReceiveEventListener");
-                this.receiveEventListeners.Add(new AddonLifecycleReceiveEventListener(this, addonName, receiveEventAddress));
+                this.ReceiveEventListeners.Add(new AddonLifecycleReceiveEventListener(this, addonName, receiveEventAddress));
             }
 
             // If we have an active listener for this addon already, we need to activate this hook.
-            if (this.eventListeners.Any(listener => (listener.EventType is AddonEvent.PostReceiveEvent or AddonEvent.PreReceiveEvent) && listener.AddonName == addonName))
+            if (this.EventListeners.Any(listener => (listener.EventType is AddonEvent.PostReceiveEvent or AddonEvent.PreReceiveEvent) && listener.AddonName == addonName))
             {
-                if (this.receiveEventListeners.FirstOrDefault(listener => listener.AddonNames.Contains(addonName)) is { } receiveEventListener)
+                if (this.ReceiveEventListeners.FirstOrDefault(listener => listener.AddonNames.Contains(addonName)) is { } receiveEventListener)
                 {
                     Log.Verbose($"[{addonName}] Enabling Hook, Plugin has requested events.");
-                    receiveEventListener.Hook.Enable();
+                    receiveEventListener.Hook?.Enable();
                 }
             }
         }
@@ -218,11 +238,10 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
         }
     }
 
-    private void UnregisterReceiveEventHook(AtkUnitBase** atkUnitBase)
+    private void UnregisterReceiveEventHook(string addonName)
     {
         // Remove this addons ReceiveEvent Registration
-        var addonName = MemoryHelper.ReadStringNullTerminated((nint)atkUnitBase[0]->Name);
-        if (this.receiveEventListeners.FirstOrDefault(listener => listener.AddonNames.Contains(addonName)) is { } eventListener)
+        if (this.ReceiveEventListeners.FirstOrDefault(listener => listener.AddonNames.Contains(addonName)) is { } eventListener)
         {
             Log.Verbose($"[{addonName}] Removing from ReceiveEvent list.");
             eventListener.AddonNames.Remove(addonName);
@@ -231,7 +250,7 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
             if (eventListener.AddonNames.Count is 0)
             {
                 Log.Verbose($"[{addonName}] No listeners remain, disabling hook. Disposing Listener object.");
-                this.receiveEventListeners.Remove(eventListener);
+                this.ReceiveEventListeners.Remove(eventListener);
                 eventListener.Dispose();
             }
         }
@@ -290,7 +309,8 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
     {
         try
         {
-            this.UnregisterReceiveEventHook(atkUnitBase);
+            var addonName = MemoryHelper.ReadStringNullTerminated((nint)atkUnitBase[0]->Name);
+            this.UnregisterReceiveEventHook(addonName);
         }
         catch (Exception e)
         {
