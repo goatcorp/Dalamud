@@ -50,6 +50,7 @@ internal class DataWindow : Window
         new DataShareWidget(),
         new NetworkMonitorWidget(),
         new IconBrowserWidget(),
+        new VfsWidget(),
     };
 
     private readonly IOrderedEnumerable<IDataWindowWidget> orderedModules;
