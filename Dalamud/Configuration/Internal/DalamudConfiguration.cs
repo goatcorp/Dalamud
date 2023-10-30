@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 
 using Dalamud.Game.Text;
 using Dalamud.Interface.Internal.Windows.PluginInstaller;
@@ -38,6 +39,8 @@ internal sealed class DalamudConfiguration : IServiceType, IDisposable
 
     [JsonIgnore]
     private bool isSaveQueued;
+
+    private Task? writeTask;
 
     /// <summary>
     /// Delegate for the <see cref="DalamudConfiguration.DalamudConfigurationSaved"/> event that occurs when the dalamud configuration is saved.
@@ -488,6 +491,9 @@ internal sealed class DalamudConfiguration : IServiceType, IDisposable
     {
         // Make sure that we save, if a save is queued while we are shutting down
         this.Update();
+        
+        // Wait for the write to finish
+        this.writeTask?.Wait();
     }
 
     /// <summary>
@@ -508,7 +514,8 @@ internal sealed class DalamudConfiguration : IServiceType, IDisposable
     {
         ThreadSafety.AssertMainThread();
 
-        Service<ReliableFileStorage>.Get().WriteAllText(
+        this.writeTask?.Wait();
+        this.writeTask = Service<ReliableFileStorage>.Get().WriteAllTextAsync(
             this.configPath, JsonConvert.SerializeObject(this, SerializerSettings));
         this.DalamudConfigurationSaved?.Invoke(this);
     }

@@ -1,4 +1,5 @@
 using System.IO;
+using System.Threading.Tasks;
 
 using Dalamud.Storage;
 using Newtonsoft.Json;
@@ -11,6 +12,7 @@ namespace Dalamud.Configuration;
 public sealed class PluginConfigurations
 {
     private readonly DirectoryInfo configDirectory;
+    private Task? currentWriteTask;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="PluginConfigurations"/> class.
@@ -32,10 +34,32 @@ public sealed class PluginConfigurations
     /// <param name="config">Plugin configuration.</param>
     /// <param name="pluginName">Plugin name.</param>
     /// <param name="workingPluginId">WorkingPluginId of the plugin.</param>
+    [Obsolete("Use SaveAsync instead.")]
     public void Save(IPluginConfiguration config, string pluginName, Guid workingPluginId)
     {
-        Service<ReliableFileStorage>.Get()
-                                    .WriteAllText(this.GetConfigFile(pluginName).FullName, SerializeConfig(config), workingPluginId);
+        // TODO(api10): This API should be async-only. Remove the sync version!
+        // Yes, this means that all plugins will be blocking each other when writing configs for now, but that's fine until
+        // we can make this API async
+        this.currentWriteTask?.Wait();
+        this.currentWriteTask = Service<ReliableFileStorage>.Get()
+                                    .WriteAllTextAsync(this.GetConfigFile(pluginName).FullName, SerializeConfig(config), workingPluginId);
+    }
+
+    /// <summary>
+    /// Save/Load plugin configuration.
+    /// NOTE: Save/Load are still using Type information for now,
+    /// despite LoadForType superseding Load and not requiring or using it.
+    /// It might be worth removing the Type info from Save, to strip it from all future saved configs,
+    /// and then Load() can probably be removed entirely.
+    /// </summary>
+    /// <param name="config">Plugin configuration.</param>
+    /// <param name="pluginName">Plugin name.</param>
+    /// <param name="workingPluginId">WorkingPluginId of the plugin.</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    public async Task SaveAsync(IPluginConfiguration config, string pluginName, Guid workingPluginId)
+    {
+        await Service<ReliableFileStorage>.Get()
+                                          .WriteAllTextAsync(this.GetConfigFile(pluginName).FullName, SerializeConfig(config), workingPluginId);
     }
 
     /// <summary>

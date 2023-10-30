@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using System.Text;
+using System.Threading.Tasks;
 
 using Dalamud.Logging.Internal;
 using Dalamud.Utility;
@@ -91,8 +92,9 @@ public class ReliableFileStorage : IServiceType, IDisposable
     /// <param name="path">Path to write to.</param>
     /// <param name="contents">The contents of the file.</param>
     /// <param name="containerId">Container to write to.</param>
-    public void WriteAllText(string path, string? contents, Guid containerId = default)
-        => this.WriteAllText(path, contents, Encoding.UTF8, containerId);
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    public async Task WriteAllTextAsync(string path, string? contents, Guid containerId = default)
+        => await this.WriteAllTextAsync(path, contents, Encoding.UTF8, containerId);
     
     /// <summary>
     /// Write all text to a file.
@@ -101,19 +103,21 @@ public class ReliableFileStorage : IServiceType, IDisposable
     /// <param name="contents">The contents of the file.</param>
     /// <param name="encoding">The encoding to write with.</param>
     /// <param name="containerId">Container to write to.</param>
-    public void WriteAllText(string path, string? contents, Encoding encoding, Guid containerId = default)
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    public async Task WriteAllTextAsync(string path, string? contents, Encoding encoding, Guid containerId = default)
     {
         var bytes = encoding.GetBytes(contents ?? string.Empty);
-        this.WriteAllBytes(path, bytes, containerId);
+        await this.WriteAllBytesAsync(path, bytes, containerId);
     }
-    
+
     /// <summary>
     /// Write all bytes to a file.
     /// </summary>
     /// <param name="path">Path to write to.</param>
     /// <param name="bytes">The contents of the file.</param>
     /// <param name="containerId">Container to write to.</param>
-    public void WriteAllBytes(string path, byte[] bytes, Guid containerId = default)
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    public Task WriteAllBytesAsync(string path, byte[] bytes, Guid containerId = default)
     {
         ArgumentException.ThrowIfNullOrEmpty(path);
 
@@ -122,7 +126,7 @@ public class ReliableFileStorage : IServiceType, IDisposable
             if (this.db == null)
             {
                 Util.WriteAllBytesSafe(path, bytes);
-                return;
+                return Task.CompletedTask;
             }
         
             this.db.RunInTransaction(() =>
@@ -148,6 +152,8 @@ public class ReliableFileStorage : IServiceType, IDisposable
                 Util.WriteAllBytesSafe(path, bytes);
             });
         }
+        
+        return Task.CompletedTask;
     }
 
     /// <summary>
@@ -258,6 +264,8 @@ public class ReliableFileStorage : IServiceType, IDisposable
         
         if (forceBackup)
         {
+            Log.Information("Reading from db");
+            
             // If the db failed to load, act as if the file does not exist
             if (this.db == null)
                 throw new FileNotFoundException("Backup database was not available");

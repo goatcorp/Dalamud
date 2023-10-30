@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -6,6 +5,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 
 using Dalamud.Configuration;
 using Dalamud.Configuration.Internal;
@@ -338,12 +338,30 @@ public sealed class DalamudPluginInterface : IDisposable
     /// Save a plugin configuration(inheriting IPluginConfiguration).
     /// </summary>
     /// <param name="currentConfig">The current configuration.</param>
+    [Obsolete("Prefer SavePluginConfigAsync() to avoid blocking the main thread.")]
     public void SavePluginConfig(IPluginConfiguration? currentConfig)
     {
         if (currentConfig == null)
             return;
 
+#pragma warning disable CS0618 // Type or member is obsolete
         this.configs.Save(currentConfig, this.plugin.InternalName, this.plugin.Manifest.WorkingPluginId);
+#pragma warning restore CS0618 // Type or member is obsolete
+    }
+
+    /// <summary>
+    /// Save a plugin configuration(inheriting IPluginConfiguration).
+    /// </summary>
+    /// <param name="currentConfig">The current configuration.</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    public async Task SavePluginConfigAsync(IPluginConfiguration? currentConfig)
+    {
+        if (currentConfig == null)
+            return;
+
+#pragma warning disable CS0618 // Type or member is obsolete
+        await this.configs.SaveAsync(currentConfig, this.plugin.InternalName, this.plugin.Manifest.WorkingPluginId);
+#pragma warning restore CS0618 // Type or member is obsolete
     }
 
     /// <summary>
