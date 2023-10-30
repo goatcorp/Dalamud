@@ -3,6 +3,7 @@
 using Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
 using Dalamud.Hooking;
 using Dalamud.Logging.Internal;
+using Dalamud.Memory;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 
 namespace Dalamud.Game.Addon.Lifecycle;
@@ -46,12 +47,12 @@ internal unsafe class AddonLifecycleReceiveEventListener : IDisposable
     /// <summary>
     /// Gets the address of the registered hook.
     /// </summary>
-    public nint HookAddress => this.Hook.Address;
+    public nint HookAddress => this.Hook?.Address ?? nint.Zero;
     
     /// <summary>
     /// Gets the contained hook for these addons.
     /// </summary>
-    public Hook<AddonReceiveEventDelegate> Hook { get; init; }
+    public Hook<AddonReceiveEventDelegate>? Hook { get; init; }
     
     /// <summary>
     /// Gets or sets the Reference to AddonLifecycle service instance.
@@ -61,11 +62,19 @@ internal unsafe class AddonLifecycleReceiveEventListener : IDisposable
     /// <inheritdoc/>
     public void Dispose()
     {
-        this.Hook.Dispose();
+        this.Hook?.Dispose();
     }
 
     private void OnReceiveEvent(AtkUnitBase* addon, AtkEventType eventType, int eventParam, AtkEvent* atkEvent, nint data)
     {
+        // Check that we didn't get here through a call to another addons handler.
+        var addonName = MemoryHelper.ReadString((nint)addon->Name, 0x20);
+        if (!this.AddonNames.Contains(addonName))
+        {
+            this.Hook!.Original(addon, eventType, eventParam, atkEvent, data);
+            return;
+        }
+        
         try
         {
             this.AddonLifecycle.InvokeListeners(AddonEvent.PreReceiveEvent, new AddonReceiveEventArgs
@@ -84,7 +93,7 @@ internal unsafe class AddonLifecycleReceiveEventListener : IDisposable
         
         try
         {
-            this.Hook.Original(addon, eventType, eventParam, atkEvent, data);
+            this.Hook!.Original(addon, eventType, eventParam, atkEvent, data);
         }
         catch (Exception e)
         {
