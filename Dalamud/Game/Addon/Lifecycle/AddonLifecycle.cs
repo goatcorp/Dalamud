@@ -206,19 +206,13 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
             {
                 if (!existingListener.AddonNames.Contains(addonName))
                 {
-                    Log.Verbose($"[{addonName}] Duplicate address found, adding to addon list: [{string.Join(",", existingListener.AddonNames)}]");
                     existingListener.AddonNames.Add(addonName);
-                }
-                else
-                {
-                    Log.Verbose($"[{addonName}] Listener already contains addon. Skipping.");
                 }
             }
 
             // Else, we have an addon that we don't have the ReceiveEvent for yet, make it.
             else
             {
-                Log.Verbose($"[{addonName}] Adding new ReceiveEventListener");
                 this.ReceiveEventListeners.Add(new AddonLifecycleReceiveEventListener(this, addonName, receiveEventAddress));
             }
 
@@ -227,14 +221,9 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
             {
                 if (this.ReceiveEventListeners.FirstOrDefault(listener => listener.AddonNames.Contains(addonName)) is { } receiveEventListener)
                 {
-                    Log.Verbose($"[{addonName}] Enabling Hook, Plugin has requested events.");
                     receiveEventListener.Hook?.Enable();
                 }
             }
-        }
-        else
-        {
-            Log.Verbose($"[{addonName}] Tried to register global event handler. Disallowed safely.");
         }
     }
 
@@ -243,13 +232,11 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
         // Remove this addons ReceiveEvent Registration
         if (this.ReceiveEventListeners.FirstOrDefault(listener => listener.AddonNames.Contains(addonName)) is { } eventListener)
         {
-            Log.Verbose($"[{addonName}] Removing from ReceiveEvent list.");
             eventListener.AddonNames.Remove(addonName);
 
             // If there are no more listeners let's remove and dispose.
             if (eventListener.AddonNames.Count is 0)
             {
-                Log.Verbose($"[{addonName}] No listeners remain, disabling hook. Disposing Listener object.");
                 this.ReceiveEventListeners.Remove(eventListener);
                 eventListener.Dispose();
             }
