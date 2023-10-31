@@ -21,16 +21,6 @@ namespace Dalamud.Game.Addon.Lifecycle;
 [ServiceManager.EarlyLoadedService]
 internal unsafe class AddonLifecycle : IDisposable, IServiceType
 {
-    /// <summary>
-    /// List of all AddonLifecycle ReceiveEvent Listener Hooks.
-    /// </summary>
-    internal readonly List<AddonLifecycleReceiveEventListener> ReceiveEventListeners = new();
-    
-    /// <summary>
-    /// List of all AddonLifecycle Event Listeners.
-    /// </summary>
-    internal readonly List<AddonLifecycleEventListener> EventListeners = new();
-    
     private static readonly ModuleLog Log = new("AddonLifecycle");
 
     [ServiceManager.ServiceDependency]
@@ -81,6 +71,16 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
     private delegate void AddonOnRequestedUpdateDelegate(AtkUnitBase* addon, NumberArrayData** numberArrayData, StringArrayData** stringArrayData);
 
     private delegate byte AddonOnRefreshDelegate(AtkUnitManager* unitManager, AtkUnitBase* addon, uint valueCount, AtkValue* values);
+    
+    /// <summary>
+    /// Gets a list of all AddonLifecycle ReceiveEvent Listener Hooks.
+    /// </summary>
+    internal List<AddonLifecycleReceiveEventListener> ReceiveEventListeners { get; } = new();
+    
+    /// <summary>
+    /// Gets a list of all AddonLifecycle Event Listeners.
+    /// </summary>
+    internal List<AddonLifecycleEventListener> EventListeners { get; } = new();
 
     /// <inheritdoc/>
     public void Dispose()
