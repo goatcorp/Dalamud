@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.Linq;
+
 using Dalamud.Game.Addon.Lifecycle;
 using Dalamud.Interface.Utility;
 using ImGuiNET;

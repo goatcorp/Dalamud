@@ -1,6 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using System.Runtime.InteropServices;
+
 using CheapLoc;
 using Dalamud.Configuration.Internal;
 using Dalamud.Game.ClientState.Keys;

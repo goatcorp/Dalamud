@@ -413,7 +413,7 @@ internal sealed unsafe class DtrBar : IDisposable, IServiceType, IDtrBar
         newTextNode->AtkResNode.NodeID = nodeId;
         newTextNode->AtkResNode.Type = NodeType.Text;
         newTextNode->AtkResNode.NodeFlags = NodeFlags.AnchorLeft | NodeFlags.AnchorTop | NodeFlags.Enabled | NodeFlags.RespondToMouse | NodeFlags.HasCollision | NodeFlags.EmitsEvents;
-        newTextNode->AtkResNode.DrawFlags = 12;
+        newTextNode->AtkResNode.ViewFlags = (NodeViewFlags)12;
         newTextNode->AtkResNode.SetWidth(22);
         newTextNode->AtkResNode.SetHeight(22);
         newTextNode->AtkResNode.SetPositionFloat(-200, 2);
