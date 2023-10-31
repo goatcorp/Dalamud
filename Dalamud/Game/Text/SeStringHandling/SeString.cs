@@ -368,17 +368,6 @@ public class SeString
         return null;
     }
 
-    private static string GetMapLinkNameString(string placeName, int? instance, string coordinateString)
-    {
-        var instanceString = string.Empty;
-        if (instance is > 0 and < 10)
-        {
-            instanceString = (SeIconChar.Instance1 + instance.Value - 1).ToIconString();
-        }
-        
-        return $"{placeName}{instanceString} {coordinateString}";
-    }
-
     /// <summary>
     /// Creates an SeString representing an entire payload chain that can be used to link party finder listings in the chat log.
     /// </summary>
@@ -511,5 +500,16 @@ public class SeString
     public override string ToString()
     {
         return this.TextValue;
+    }
+    
+    private static string GetMapLinkNameString(string placeName, int? instance, string coordinateString)
+    {
+        var instanceString = string.Empty;
+        if (instance is > 0 and < 10)
+        {
+            instanceString = (SeIconChar.Instance1 + instance.Value - 1).ToIconString();
+        }
+        
+        return $"{placeName}{instanceString} {coordinateString}";
     }
 }
