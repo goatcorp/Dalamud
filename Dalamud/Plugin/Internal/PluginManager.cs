@@ -303,7 +303,7 @@ internal partial class PluginManager : IDisposable, IServiceType
 
             foreach (var metadata in updateMetadata)
             {
-                if (metadata.WasUpdated)
+                if (metadata.Status == PluginUpdateStatus.StatusKind.Success)
                 {
                     chatGui.Print(Locs.DalamudPluginUpdateSuccessful(metadata.Name, metadata.Version));
                 }
@@ -311,7 +311,7 @@ internal partial class PluginManager : IDisposable, IServiceType
                 {
                     chatGui.Print(new XivChatEntry
                     {
-                        Message = Locs.DalamudPluginUpdateFailed(metadata.Name, metadata.Version),
+                        Message = Locs.DalamudPluginUpdateFailed(metadata.Name, metadata.Version, PluginUpdateStatus.LocalizeUpdateStatusKind(metadata.Status)),
                         Type = XivChatType.Urgent,
                     });
                 }
@@ -782,147 +782,14 @@ internal partial class PluginManager : IDisposable, IServiceType
     /// <param name="reason">The reason this plugin was loaded.</param>
     /// <param name="inheritedWorkingPluginId">WorkingPluginId this plugin should inherit.</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-    public async Task<LocalPlugin> InstallPluginAsync(RemotePluginManifest repoManifest, bool useTesting, PluginLoadReason reason, Guid? inheritedWorkingPluginId = null)
+    public async Task<LocalPlugin> InstallPluginAsync(
+        RemotePluginManifest repoManifest, bool useTesting, PluginLoadReason reason,
+        Guid? inheritedWorkingPluginId = null)
     {
-        Log.Debug($"Installing plugin {repoManifest.Name} (testing={useTesting})");
-
-        // If this plugin is in the default profile for whatever reason, delete the state
-        // If it was in multiple profiles and is still, the user uninstalled it and chose to keep it in there,
-        // or the user removed the plugin manually in which case we don't care
-        if (reason == PluginLoadReason.Installer)
-        {
-            try
-            {
-                // We don't need to apply, it doesn't matter
-                await this.profileManager.DefaultProfile.RemoveAsync(repoManifest.InternalName, false);
-            }
-            catch (ProfileOperationException)
-            {
-                // ignored
-            }
-        }
-        else
-        {
-            // If we are doing anything other than a fresh install, not having a workingPluginId is an error that must be fixed
-            Debug.Assert(inheritedWorkingPluginId != null, "inheritedWorkingPluginId != null");
-        }
-        
-        // Ensure that we have a testing opt-in for this plugin if we are installing a testing version
-        if (useTesting && this.configuration.PluginTestingOptIns!.All(x => x.InternalName != repoManifest.InternalName))
-        {
-            // TODO: this isn't safe
-            this.configuration.PluginTestingOptIns.Add(new PluginTestingOptIn(repoManifest.InternalName));
-            this.configuration.QueueSave();
-        }
-
-        var downloadUrl = useTesting ? repoManifest.DownloadLinkTesting : repoManifest.DownloadLinkInstall;
-        var version = useTesting ? repoManifest.TestingAssemblyVersion : repoManifest.AssemblyVersion;
-
-        var response = await this.happyHttpClient.SharedHttpClient.GetAsync(downloadUrl);
-        response.EnsureSuccessStatusCode();
-
-        var outputDir = new DirectoryInfo(Path.Combine(this.pluginDirectory.FullName, repoManifest.InternalName, version?.ToString() ?? string.Empty));
-
-        try
-        {
-            if (outputDir.Exists)
-                outputDir.Delete(true);
-
-            outputDir.Create();
-        }
-        catch
-        {
-            // ignored, since the plugin may be loaded already
-        }
-
-        Log.Debug($"Extracting to {outputDir}");
-        // This throws an error, even with overwrite=false
-        // ZipFile.ExtractToDirectory(tempZip.FullName, outputDir.FullName, false);
-        using (var archive = new ZipArchive(await response.Content.ReadAsStreamAsync()))
-        {
-            foreach (var zipFile in archive.Entries)
-            {
-                var outputFile = new FileInfo(Path.GetFullPath(Path.Combine(outputDir.FullName, zipFile.FullName)));
-
-                if (!outputFile.FullName.StartsWith(outputDir.FullName, StringComparison.OrdinalIgnoreCase))
-                {
-                    throw new IOException("Trying to extract file outside of destination directory. See this link for more info: https://snyk.io/research/zip-slip-vulnerability");
-                }
-
-                if (outputFile.Directory == null)
-                {
-                    throw new IOException("Output directory invalid.");
-                }
-
-                if (zipFile.Name.IsNullOrEmpty())
-                {
-                    // Assuming Empty for Directory
-                    Log.Verbose($"ZipFile name is null or empty, treating as a directory: {outputFile.Directory.FullName}");
-                    Directory.CreateDirectory(outputFile.Directory.FullName);
-                    continue;
-                }
-
-                // Ensure directory is created
-                Directory.CreateDirectory(outputFile.Directory.FullName);
-
-                try
-                {
-                    zipFile.ExtractToFile(outputFile.FullName, true);
-                }
-                catch (Exception ex)
-                {
-                    if (outputFile.Extension.EndsWith("dll"))
-                    {
-                        throw new IOException($"Could not overwrite {zipFile.Name}: {ex.Message}");
-                    }
-
-                    Log.Error($"Could not overwrite {zipFile.Name}: {ex.Message}");
-                }
-            }
-        }
-
-        var dllFile = LocalPluginManifest.GetPluginFile(outputDir, repoManifest);
-        var manifestFile = LocalPluginManifest.GetManifestFile(dllFile);
-
-        // We need to save the repoManifest due to how the repo fills in some fields that authors are not expected to use.
-        Util.WriteAllTextSafe(manifestFile.FullName, JsonConvert.SerializeObject(repoManifest, Formatting.Indented));
-
-        // Reload as a local manifest, add some attributes, and save again.
-        var manifest = LocalPluginManifest.Load(manifestFile);
-
-        if (manifest == null)
-            throw new Exception("Plugin had no valid manifest");
-
-        if (manifest.InternalName != repoManifest.InternalName)
-        {
-            Directory.Delete(outputDir.FullName, true);
-            throw new Exception(
-                $"Distributed internal name does not match repo internal name: {manifest.InternalName} - {repoManifest.InternalName}");
-        }
-
-        if (manifest.WorkingPluginId != Guid.Empty)
-            throw new Exception("Plugin shall not specify a WorkingPluginId");
-
-        manifest.WorkingPluginId = inheritedWorkingPluginId ?? Guid.NewGuid();
-
-        if (useTesting)
-        {
-            manifest.Testing = true;
-        }
-
-        // Document the url the plugin was installed from
-        manifest.InstalledFromUrl = repoManifest.SourceRepo.IsThirdParty ? repoManifest.SourceRepo.PluginMasterUrl : SpecialPluginSource.MainRepo;
-
-        manifest.Save(manifestFile, "installation");
-
-        Log.Information($"Installed plugin {manifest.Name} (testing={useTesting})");
-
-        var plugin = await this.LoadPluginAsync(dllFile, manifest, reason);
-
-        this.NotifyinstalledPluginsListChanged();
-        return plugin;
+        var stream = await this.DownloadPluginAsync(repoManifest, useTesting);
+        return await this.InstallPluginInternalAsync(repoManifest, useTesting, reason, stream, inheritedWorkingPluginId);
     }
-
+    
     /// <summary>
     /// Remove a plugin.
     /// </summary>
@@ -1098,12 +965,25 @@ internal partial class PluginManager : IDisposable, IServiceType
             Version = (metadata.UseTesting
                            ? metadata.UpdateManifest.TestingAssemblyVersion
                            : metadata.UpdateManifest.AssemblyVersion)!,
-            WasUpdated = true,
+            Status = PluginUpdateStatus.StatusKind.Success,
             HasChangelog = !metadata.UpdateManifest.Changelog.IsNullOrWhitespace(),
         };
 
         if (!dryRun)
         {
+            // Download the update before unloading
+            Stream updateStream;
+            try
+            {
+                updateStream = await this.DownloadPluginAsync(metadata.UpdateManifest, metadata.UseTesting);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Error during download (update)");
+                updateStatus.Status = PluginUpdateStatus.StatusKind.FailedDownload;
+                return updateStatus;
+            }
+            
             // Unload if loaded
             if (plugin.State is PluginState.Loaded or PluginState.LoadError or PluginState.DependencyResolutionFailed)
             {
@@ -1114,7 +994,7 @@ internal partial class PluginManager : IDisposable, IServiceType
                 catch (Exception ex)
                 {
                     Log.Error(ex, "Error during unload (update)");
-                    updateStatus.WasUpdated = false;
+                    updateStatus.Status = PluginUpdateStatus.StatusKind.FailedUnload;
                     return updateStatus;
                 }
             }
@@ -1139,8 +1019,8 @@ internal partial class PluginManager : IDisposable, IServiceType
             }
             catch (Exception ex)
             {
-                Log.Error(ex, "Error during disable (update)");
-                updateStatus.WasUpdated = false;
+                Log.Error(ex, "Error during remove from plugin list (update)");
+                updateStatus.Status = PluginUpdateStatus.StatusKind.FailedUnload;
                 return updateStatus;
             }
 
@@ -1150,17 +1030,17 @@ internal partial class PluginManager : IDisposable, IServiceType
 
             try
             {
-                await this.InstallPluginAsync(metadata.UpdateManifest, metadata.UseTesting, PluginLoadReason.Update, workingPluginId);
+                await this.InstallPluginInternalAsync(metadata.UpdateManifest, metadata.UseTesting, PluginLoadReason.Update, updateStream, workingPluginId);
             }
             catch (Exception ex)
             {
                 Log.Error(ex, "Error during install (update)");
-                updateStatus.WasUpdated = false;
+                updateStatus.Status = PluginUpdateStatus.StatusKind.FailedLoad;
                 return updateStatus;
             }
         }
 
-        if (notify && updateStatus.WasUpdated)
+        if (notify && updateStatus.Status == PluginUpdateStatus.StatusKind.Success)
             this.NotifyinstalledPluginsListChanged();
 
         return updateStatus;
@@ -1313,6 +1193,158 @@ internal partial class PluginManager : IDisposable, IServiceType
     /// <returns>The calling plugin, or null.</returns>
     public LocalPlugin? FindCallingPlugin() => this.FindCallingPlugin(new StackTrace());
 
+    private async Task<Stream> DownloadPluginAsync(RemotePluginManifest repoManifest, bool useTesting)
+    {
+        var downloadUrl = useTesting ? repoManifest.DownloadLinkTesting : repoManifest.DownloadLinkInstall;
+        var response = await this.happyHttpClient.SharedHttpClient.GetAsync(downloadUrl);
+        response.EnsureSuccessStatusCode();
+
+        return await response.Content.ReadAsStreamAsync();
+    }
+    
+    /// <summary>
+    /// Install a plugin from a repository and load it.
+    /// </summary>
+    /// <param name="repoManifest">The plugin definition.</param>
+    /// <param name="useTesting">If the testing version should be used.</param>
+    /// <param name="reason">The reason this plugin was loaded.</param>
+    /// <param name="inheritedWorkingPluginId">WorkingPluginId this plugin should inherit.</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    private async Task<LocalPlugin> InstallPluginInternalAsync(RemotePluginManifest repoManifest, bool useTesting, PluginLoadReason reason, Stream zipStream, Guid? inheritedWorkingPluginId = null)
+    {
+        var version = useTesting ? repoManifest.TestingAssemblyVersion : repoManifest.AssemblyVersion;
+        Log.Debug($"Installing plugin {repoManifest.Name} (testing={useTesting}, version={version}, reason={reason})");
+        
+        // If this plugin is in the default profile for whatever reason, delete the state
+        // If it was in multiple profiles and is still, the user uninstalled it and chose to keep it in there,
+        // or the user removed the plugin manually in which case we don't care
+        if (reason == PluginLoadReason.Installer)
+        {
+            try
+            {
+                // We don't need to apply, it doesn't matter
+                await this.profileManager.DefaultProfile.RemoveAsync(repoManifest.InternalName, false);
+            }
+            catch (ProfileOperationException)
+            {
+                // ignored
+            }
+        }
+        else
+        {
+            // If we are doing anything other than a fresh install, not having a workingPluginId is an error that must be fixed
+            Debug.Assert(inheritedWorkingPluginId != null, "inheritedWorkingPluginId != null");
+        }
+        
+        // Ensure that we have a testing opt-in for this plugin if we are installing a testing version
+        if (useTesting && this.configuration.PluginTestingOptIns!.All(x => x.InternalName != repoManifest.InternalName))
+        {
+            // TODO: this isn't safe
+            this.configuration.PluginTestingOptIns.Add(new PluginTestingOptIn(repoManifest.InternalName));
+            this.configuration.QueueSave();
+        }
+
+        var outputDir = new DirectoryInfo(Path.Combine(this.pluginDirectory.FullName, repoManifest.InternalName, version?.ToString() ?? string.Empty));
+
+        try
+        {
+            if (outputDir.Exists)
+                outputDir.Delete(true);
+
+            outputDir.Create();
+        }
+        catch
+        {
+            // ignored, since the plugin may be loaded already
+        }
+
+        Log.Debug($"Extracting to {outputDir}");
+
+        using (var archive = new ZipArchive(zipStream))
+        {
+            foreach (var zipFile in archive.Entries)
+            {
+                var outputFile = new FileInfo(Path.GetFullPath(Path.Combine(outputDir.FullName, zipFile.FullName)));
+
+                if (!outputFile.FullName.StartsWith(outputDir.FullName, StringComparison.OrdinalIgnoreCase))
+                {
+                    throw new IOException("Trying to extract file outside of destination directory. See this link for more info: https://snyk.io/research/zip-slip-vulnerability");
+                }
+
+                if (outputFile.Directory == null)
+                {
+                    throw new IOException("Output directory invalid.");
+                }
+
+                if (zipFile.Name.IsNullOrEmpty())
+                {
+                    // Assuming Empty for Directory
+                    Log.Verbose($"ZipFile name is null or empty, treating as a directory: {outputFile.Directory.FullName}");
+                    Directory.CreateDirectory(outputFile.Directory.FullName);
+                    continue;
+                }
+
+                // Ensure directory is created
+                Directory.CreateDirectory(outputFile.Directory.FullName);
+
+                try
+                {
+                    zipFile.ExtractToFile(outputFile.FullName, true);
+                }
+                catch (Exception ex)
+                {
+                    if (outputFile.Extension.EndsWith("dll"))
+                    {
+                        throw new IOException($"Could not overwrite {zipFile.Name}: {ex.Message}");
+                    }
+
+                    Log.Error($"Could not overwrite {zipFile.Name}: {ex.Message}");
+                }
+            }
+        }
+
+        var dllFile = LocalPluginManifest.GetPluginFile(outputDir, repoManifest);
+        var manifestFile = LocalPluginManifest.GetManifestFile(dllFile);
+
+        // We need to save the repoManifest due to how the repo fills in some fields that authors are not expected to use.
+        Util.WriteAllTextSafe(manifestFile.FullName, JsonConvert.SerializeObject(repoManifest, Formatting.Indented));
+
+        // Reload as a local manifest, add some attributes, and save again.
+        var manifest = LocalPluginManifest.Load(manifestFile);
+
+        if (manifest == null)
+            throw new Exception("Plugin had no valid manifest");
+
+        if (manifest.InternalName != repoManifest.InternalName)
+        {
+            Directory.Delete(outputDir.FullName, true);
+            throw new Exception(
+                $"Distributed internal name does not match repo internal name: {manifest.InternalName} - {repoManifest.InternalName}");
+        }
+
+        if (manifest.WorkingPluginId != Guid.Empty)
+            throw new Exception("Plugin shall not specify a WorkingPluginId");
+
+        manifest.WorkingPluginId = inheritedWorkingPluginId ?? Guid.NewGuid();
+
+        if (useTesting)
+        {
+            manifest.Testing = true;
+        }
+
+        // Document the url the plugin was installed from
+        manifest.InstalledFromUrl = repoManifest.SourceRepo.IsThirdParty ? repoManifest.SourceRepo.PluginMasterUrl : SpecialPluginSource.MainRepo;
+
+        manifest.Save(manifestFile, "installation");
+
+        Log.Information($"Installed plugin {manifest.Name} (testing={useTesting})");
+
+        var plugin = await this.LoadPluginAsync(dllFile, manifest, reason);
+
+        this.NotifyinstalledPluginsListChanged();
+        return plugin;
+    }
+    
     /// <summary>
     /// Load a plugin.
     /// </summary>
@@ -1543,7 +1575,7 @@ internal partial class PluginManager : IDisposable, IServiceType
     {
         public static string DalamudPluginUpdateSuccessful(string name, Version version) => Loc.Localize("DalamudPluginUpdateSuccessful", "    》 {0} updated to v{1}.").Format(name, version);
 
-        public static string DalamudPluginUpdateFailed(string name, Version version) => Loc.Localize("DalamudPluginUpdateFailed", "    》 {0} update to v{1} failed.").Format(name, version);
+        public static string DalamudPluginUpdateFailed(string name, Version version, string why) => Loc.Localize("DalamudPluginUpdateFailed", "    》 {0} update to v{1} failed ({2}).").Format(name, version, why);
     }
 }
 

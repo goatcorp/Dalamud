@@ -728,10 +728,10 @@ internal class PluginInstallerWindow : Window, IDisposable
                         }
                         else
                         {
-                            this.updatedPlugins = task.Result.Where(res => res.WasUpdated).ToList();
+                            this.updatedPlugins = task.Result.Where(res => res.Status == PluginUpdateStatus.StatusKind.Success).ToList();
                             this.updatePluginCount = this.updatedPlugins.Count;
 
-                            var errorPlugins = task.Result.Where(res => !res.WasUpdated).ToList();
+                            var errorPlugins = task.Result.Where(res => res.Status != PluginUpdateStatus.StatusKind.Success).ToList();
                             var errorPluginCount = errorPlugins.Count;
 
                             if (errorPluginCount > 0)
@@ -739,9 +739,9 @@ internal class PluginInstallerWindow : Window, IDisposable
                                 var errorMessage = this.updatePluginCount > 0
                                                        ? Locs.ErrorModal_UpdaterFailPartial(this.updatePluginCount, errorPluginCount)
                                                        : Locs.ErrorModal_UpdaterFail(errorPluginCount);
-
+                                    
                                 var hintInsert = errorPlugins
-                                                 .Aggregate(string.Empty, (current, pluginUpdateStatus) => $"{current}* {pluginUpdateStatus.InternalName}\n")
+                                                 .Aggregate(string.Empty, (current, pluginUpdateStatus) => $"{current}* {pluginUpdateStatus.InternalName} ({PluginUpdateStatus.LocalizeUpdateStatusKind(pluginUpdateStatus.Status)})\n")
                                                  .TrimEnd();
                                 errorMessage += Locs.ErrorModal_HintBlame(hintInsert);
 
@@ -2250,7 +2250,7 @@ internal class PluginInstallerWindow : Window, IDisposable
             var update = this.updatedPlugins.FirstOrDefault(update => update.InternalName == plugin.Manifest.InternalName);
             if (update != default)
             {
-                if (update.WasUpdated)
+                if (update.Status == PluginUpdateStatus.StatusKind.Success)
                 {
                     thisWasUpdated = true;
                     label += Locs.PluginTitleMod_Updated;
