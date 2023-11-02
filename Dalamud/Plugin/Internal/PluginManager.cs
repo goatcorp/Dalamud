@@ -1201,13 +1201,14 @@ internal partial class PluginManager : IDisposable, IServiceType
 
         return await response.Content.ReadAsStreamAsync();
     }
-    
+
     /// <summary>
     /// Install a plugin from a repository and load it.
     /// </summary>
     /// <param name="repoManifest">The plugin definition.</param>
     /// <param name="useTesting">If the testing version should be used.</param>
     /// <param name="reason">The reason this plugin was loaded.</param>
+    /// <param name="zipStream">Stream of the ZIP archive containing the plugin that is about to be installed.</param>
     /// <param name="inheritedWorkingPluginId">WorkingPluginId this plugin should inherit.</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     private async Task<LocalPlugin> InstallPluginInternalAsync(RemotePluginManifest repoManifest, bool useTesting, PluginLoadReason reason, Stream zipStream, Guid? inheritedWorkingPluginId = null)

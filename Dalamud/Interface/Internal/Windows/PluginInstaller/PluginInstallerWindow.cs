@@ -2779,8 +2779,15 @@ internal class PluginInstallerWindow : Window, IDisposable
                              // There is no need to set as Complete for an individual plugin installation
                              this.installStatus = OperationStatus.Idle;
 
-                             var errorMessage = Locs.ErrorModal_SingleUpdateFail(update.UpdateManifest.Name);
-                             return this.DisplayErrorContinuation(task, errorMessage);
+                             if (task.IsCompletedSuccessfully &&
+                                 task.Result.Status != PluginUpdateStatus.StatusKind.Success)
+                             {
+                                 this.ShowErrorModal(
+                                     Locs.ErrorModal_SingleUpdateFail(update.UpdateManifest.Name, PluginUpdateStatus.LocalizeUpdateStatusKind(task.Result.Status)));
+                                 return false;
+                             }
+                                 
+                             return this.DisplayErrorContinuation(task, Locs.ErrorModal_SingleUpdateFail(update.UpdateManifest.Name, "Exception"));
                          });
     }
 
@@ -3623,7 +3630,7 @@ internal class PluginInstallerWindow : Window, IDisposable
 
         public static string ErrorModal_InstallFail(string name) => Loc.Localize("InstallerInstallFail", "Failed to install plugin {0}.\n{1}").Format(name, ErrorModal_InstallContactAuthor);
 
-        public static string ErrorModal_SingleUpdateFail(string name) => Loc.Localize("InstallerSingleUpdateFail", "Failed to update plugin {0}.\n{1}").Format(name, ErrorModal_InstallContactAuthor);
+        public static string ErrorModal_SingleUpdateFail(string name, string why) => Loc.Localize("InstallerSingleUpdateFail", "Failed to update plugin {0} ({1}).\n{2}").Format(name, why, ErrorModal_InstallContactAuthor);
 
         public static string ErrorModal_DeleteConfigFail(string name) => Loc.Localize("InstallerDeleteConfigFail", "Failed to reset the plugin {0}.\n\nThe plugin may not support this action. You can try deleting the configuration manually while the game is shut down - please see the FAQ.").Format(name);
 

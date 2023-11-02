@@ -1,4 +1,3 @@
-using System;
 using CheapLoc;
 
 namespace Dalamud.Plugin.Internal.Types;
