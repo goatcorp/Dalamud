@@ -238,7 +238,10 @@ public class SettingsTabLook : SettingsTab
                         familyIndex = 0;
 
                     if (ImGui.Combo($"##DalamudSettingsFontFamilyCombo{chainIndex}", ref familyIndex, imguiNames))
+                    {
                         chainChanged = true;
+                        variantIndex = -1;
+                    }
 
                     string variantNames;
                     FontFamilyAndVariant[] variants;
@@ -320,8 +323,15 @@ public class SettingsTabLook : SettingsTab
             {
                 var zero = 0;
                 ImGui.BeginDisabled();
-                ImGui.Combo("##DalamudSettingsFontFamilyCombo", ref zero, Array.Empty<string>(), 0);
-                ImGui.Combo("##DalamudSettingsFontVariantCombo", ref zero, Array.Empty<string>(), 0);
+                foreach (var chainIndex in Enumerable.Range(0, this.fontChain.Count + 1))
+                {
+                    if (chainIndex > 0)
+                        ImGui.TextUnformatted("+");
+
+                    ImGui.Combo("##DalamudSettingsFontFamilyCombo", ref zero, Array.Empty<string>(), 0);
+                    ImGui.Combo("##DalamudSettingsFontVariantCombo", ref zero, Array.Empty<string>(), 0);
+                }
+
                 ImGui.EndDisabled();
                 break;
             }
