@@ -717,10 +717,10 @@ internal class InterfaceManager : IDisposable, IServiceType
         var gameFontManager = Service<GameFontManager>.Get();
         var dalamud = Service<Dalamud>.Get();
         var dconf = Service<DalamudConfiguration>.Get();
+        var rangeHandles = Service<ImGuiRangeHandles>.Get();
+
         var io = ImGui.GetIO();
         var ioFonts = io.Fonts;
-
-        var fontGamma = this.Font.Gamma;
 
         this.fontBuildSignal.Reset();
         ioFonts.Clear();
@@ -740,83 +740,16 @@ internal class InterfaceManager : IDisposable, IServiceType
 
         try
         {
-            var dummyRangeHandle = GCHandle.Alloc(new ushort[] { ' ', ' ', 0 }, GCHandleType.Pinned);
-            garbageList.Add(dummyRangeHandle);
-            
-            var fullRangeHandle = GCHandle.Alloc(new ushort[] { 0x0001, 0xFFFF, 0 }, GCHandleType.Pinned);
-            garbageList.Add(fullRangeHandle);
-            
-            var koreanRangeHandle = GCHandle.Alloc(new ushort[]
-            {
-                (ushort)UnicodeRanges.HangulJamo.FirstCodePoint,
-                (ushort)(UnicodeRanges.HangulJamo.FirstCodePoint +
-                         UnicodeRanges.HangulJamo.Length - 1),
-
-                (ushort)UnicodeRanges.HangulSyllables.FirstCodePoint,
-                (ushort)(UnicodeRanges.HangulSyllables.FirstCodePoint +
-                         UnicodeRanges.HangulSyllables.Length - 1),
-
-                (ushort)UnicodeRanges.HangulCompatibilityJamo.FirstCodePoint,
-                (ushort)(UnicodeRanges.HangulCompatibilityJamo.FirstCodePoint +
-                         UnicodeRanges.HangulCompatibilityJamo.Length - 1),
-                
-                (ushort)UnicodeRanges.HangulJamoExtendedA.FirstCodePoint,
-                (ushort)(UnicodeRanges.HangulJamoExtendedA.FirstCodePoint +
-                         UnicodeRanges.HangulJamoExtendedA.Length - 1),
-                
-                (ushort)UnicodeRanges.HangulJamoExtendedB.FirstCodePoint,
-                (ushort)(UnicodeRanges.HangulJamoExtendedB.FirstCodePoint +
-                         UnicodeRanges.HangulJamoExtendedB.Length - 1),
-                
-                0,
-            }, GCHandleType.Pinned);
-            garbageList.Add(koreanRangeHandle);
-
-            var cjkUnifiedIdeographsRangeHandle = GCHandle.Alloc(new ushort[]
-            {
-                // If adding Chinese characters, those fonts usually have Kanas with them.
-                // Mixing Kanas from one font and Chinese character from another looks messy,
-                // so we just overwrite Kanas from Chinese font.
-                (ushort)UnicodeRanges.Hiragana.FirstCodePoint,
-                (ushort)(UnicodeRanges.Hiragana.FirstCodePoint +
-                         UnicodeRanges.Hiragana.Length - 1),
-
-                (ushort)UnicodeRanges.Katakana.FirstCodePoint,
-                (ushort)(UnicodeRanges.Katakana.FirstCodePoint +
-                         UnicodeRanges.Katakana.Length - 1),
-
-                (ushort)UnicodeRanges.CjkUnifiedIdeographs.FirstCodePoint,
-                (ushort)(UnicodeRanges.CjkUnifiedIdeographs.FirstCodePoint +
-                         UnicodeRanges.CjkUnifiedIdeographs.Length - 1),
-                
-                (ushort)UnicodeRanges.CjkUnifiedIdeographsExtensionA.FirstCodePoint,
-                (ushort)(UnicodeRanges.CjkUnifiedIdeographsExtensionA.FirstCodePoint +
-                         UnicodeRanges.CjkUnifiedIdeographsExtensionA.Length - 1),
-                
-                0,
-            }, GCHandleType.Pinned);
-            garbageList.Add(cjkUnifiedIdeographsRangeHandle);
-
             var ensureCharactersK = dconf.EnsureKoreanCharacters || dconf.EffectiveLanguage == "ko";
             var ensureCharactersSc = dconf.EnsureSimplifiedChineseCharacters || dconf.EffectiveLanguage == "zh";
             var ensureCharactersTc = dconf.EnsureTraditionalChineseCharacters || dconf.EffectiveLanguage == "tw";
-
-            var axisExclusions =
-                ensureCharactersSc || ensureCharactersTc
-                    ? new[]
-                    {
-                        UnicodeRanges.Hiragana,
-                        UnicodeRanges.Katakana,
-                        UnicodeRanges.CjkUnifiedIdeographs,
-                        UnicodeRanges.CjkUnifiedIdeographsExtensionA,
-                    }
-                    : Array.Empty<UnicodeRange>();
-            var axisRangeHandle = gameFontManager.ToGlyphRanges(GameFontFamilyAndSize.Axis12, axisExclusions);
-            garbageList.Add(axisRangeHandle);
+            var ensureChinese = ensureCharactersSc || ensureCharactersTc;
+            var axisRangeHandle = ensureChinese ? rangeHandles.Axis12WithoutJapanese : rangeHandles.Axis12;
 
             fontConfig = ImGuiNative.ImFontConfig_ImFontConfig();
             fontConfig.OversampleH = 1;
             fontConfig.OversampleV = 1;
+            fontConfig.PixelSnapH = true;
 
             var fontPathJp = Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "NotoSansCJKjp-Regular.otf");
             if (!File.Exists(fontPathJp))
@@ -844,11 +777,7 @@ internal class InterfaceManager : IDisposable, IServiceType
                 if (!File.Exists(fontPathIcon))
                     ShowFontError(fontPathIcon);
 
-                var iconRangeHandle = GCHandle.Alloc(new ushort[] { 0xE000, 0xF8FF, 0, }, GCHandleType.Pinned);
-                garbageList.Add(iconRangeHandle);
-
-                fontConfig.GlyphRanges = iconRangeHandle.AddrOfPinnedObject();
-                fontConfig.PixelSnapH = true;
+                fontConfig.GlyphRanges = rangeHandles.FontAwesome.AddrOfPinnedObject();
                 IconFont = ioFonts.AddFontFromFileTTF(fontPathIcon, DefaultFontSizePx * io.FontGlobalScale, fontConfig);
                 this.loadedFontInfo[IconFont] = new("Icon", TargetFontModification.AxisMode.GameGlyphsOnly, DefaultFontSizePx, io.FontGlobalScale);
             }
@@ -861,7 +790,6 @@ internal class InterfaceManager : IDisposable, IServiceType
                     ShowFontError(fontPathMono);
 
                 fontConfig.GlyphRanges = IntPtr.Zero;
-                fontConfig.PixelSnapH = true;
                 MonoFont = ioFonts.AddFontFromFileTTF(fontPathMono, DefaultFontSizePx * io.FontGlobalScale, fontConfig);
                 this.loadedFontInfo[MonoFont] = new("Mono", TargetFontModification.AxisMode.GameGlyphsOnly, DefaultFontSizePx, io.FontGlobalScale);
             }
@@ -877,50 +805,25 @@ internal class InterfaceManager : IDisposable, IServiceType
                     extraFontRequests[extraFontRequest.Size].Add(extraFontRequest);
                 }
 
-                List<(ushort, ushort)> codepointRanges = new();
-                List<ushort> flattenedRanges = new();
+                var rangeBuilder = new ImGuiRangeBuilder();
                 foreach (var (fontSize, requests) in extraFontRequests)
                 {
-                    codepointRanges.Clear();
-                    flattenedRanges.Clear();
-
-                    codepointRanges.EnsureCapacity(4 + requests.Sum(x => x.CodepointRanges.Count));
-                    codepointRanges.Add(new(Fallback1Codepoint, Fallback1Codepoint));
-                    codepointRanges.Add(new(Fallback2Codepoint, Fallback2Codepoint));
-                    // ImGui default ellipsis characters
-                    codepointRanges.Add(new(0x2026, 0x2026));
-                    codepointRanges.Add(new(0x0085, 0x0085));
-
-                    foreach (var request in requests)
-                        codepointRanges.AddRange(request.CodepointRanges.Select(x => (From: x.Item1, To: x.Item2)));
-
-                    codepointRanges.Sort();
-                    foreach (var range in codepointRanges)
-                    {
-                        if (flattenedRanges.Any() && flattenedRanges[^1] >= range.Item1 - 1)
-                        {
-                            flattenedRanges[^1] = Math.Max(flattenedRanges[^1], range.Item2);
-                        }
-                        else
-                        {
-                            flattenedRanges.Add(range.Item1);
-                            flattenedRanges.Add(range.Item2);
-                        }
-                    }
-
-                    flattenedRanges.Add(0);
-
                     var sizedFont = MakeFromFontChain(
                         $"Requested({fontSize}px)",
                         this.Font.UseAxis ? TargetFontModification.AxisMode.Overwrite : TargetFontModification.AxisMode.GameGlyphsOnly,
                         fontSize,
-                        flattenedRanges.ToArray());
+                        rangeBuilder
+                            .WithClear()
+                            .WithEnsureCapacity(4 + requests.Sum(x => x.CodepointRanges.Count))
+                            .With(Fallback1Codepoint, Fallback2Codepoint, 0x2026, 0x0085)
+                            .WithRanges(requests.SelectMany(y => y.CodepointRanges.Select(x => (x.Item1, x.Item2))))
+                            .Build());
                     foreach (var request in requests)
                         request.FontInternal = sizedFont;
                 }
             }
 
-            gameFontManager.BuildFonts(axisExclusions);
+            gameFontManager.BuildFonts(ensureChinese ? ImGuiRangeHandles.ChineseRanges : Array.Empty<UnicodeRange>());
 
             var customFontFirstConfigIndex = ioFonts.ConfigData.Size;
 
@@ -928,9 +831,8 @@ internal class InterfaceManager : IDisposable, IServiceType
             this.BuildFonts?.InvokeSafely();
             Log.Verbose("[FONT] OnBuildFonts OK!");
 
-            for (int i = customFontFirstConfigIndex, i_ = ioFonts.ConfigData.Size; i < i_; i++)
+            foreach (var config in ioFonts.ConfigData.AsEnumerable().Skip(customFontFirstConfigIndex))
             {
-                var config = ioFonts.ConfigData[i];
                 if (gameFontManager.OwnsFont(config.DstFont))
                     continue;
 
@@ -962,14 +864,11 @@ internal class InterfaceManager : IDisposable, IServiceType
                     this.loadedFontInfo[config.DstFont.NativePtr] = new($"PlReq({name})", config.SizePixels);
                 }
 
-                config.SizePixels = config.SizePixels * io.FontGlobalScale;
+                config.SizePixels *= io.FontGlobalScale;
             }
 
-            for (int i = 0, i_ = ioFonts.ConfigData.Size; i < i_; i++)
-            {
-                var config = ioFonts.ConfigData[i];
-                config.RasterizerGamma *= fontGamma;
-            }
+            foreach (var config in ioFonts.ConfigData.AsEnumerable())
+                config.RasterizerGamma *= this.Font.Gamma;
 
             Log.Verbose("[FONT] ImGui.IO.Build will be called.");
             if (!ioFonts.Build())
@@ -1028,9 +927,8 @@ internal class InterfaceManager : IDisposable, IServiceType
             // Fill missing glyphs in MonoFont from DefaultFont
             ImGuiHelpers.CopyGlyphsAcrossFonts(DefaultFont, MonoFont, true, false);
 
-            for (int i = 0, i_ = ioFonts.Fonts.Size; i < i_; i++)
+            foreach (ref var font in ioFonts.Fonts.AsSpan())
             {
-                var font = ioFonts.Fonts[i];
                 if (font.Glyphs.Size == 0)
                 {
                     Log.Warning("[FONT] Font has no glyph: {0}", font.GetDebugName());
@@ -1085,8 +983,7 @@ internal class InterfaceManager : IDisposable, IServiceType
                     {
                         if (this.Font.UseAxis)
                         {
-                            fontConfig.GlyphRanges = dummyRangeHandle.AddrOfPinnedObject();
-                            fontConfig.PixelSnapH = false;
+                            fontConfig.GlyphRanges = rangeHandles.Dummy.AddrOfPinnedObject();
                             result = ioFonts.AddFontDefault(fontConfig);
                         }
                         else
@@ -1094,7 +991,6 @@ internal class InterfaceManager : IDisposable, IServiceType
                             fontConfig.GlyphRanges = customRangeHandle != default
                                                          ? customRangeHandle.AddrOfPinnedObject()
                                                          : axisRangeHandle.AddrOfPinnedObject();
-                            fontConfig.PixelSnapH = true;
                             result = ioFonts.AddFontFromFileTTF(fontPathJp, fontConfig.SizePixels, fontConfig);
                         }
 
@@ -1105,7 +1001,6 @@ internal class InterfaceManager : IDisposable, IServiceType
                         continue;
                     }
 
-                    fontConfig.PixelSnapH = true;
                     if (customRangeHandle != default)
                         fontConfig.GlyphRanges = customRangeHandle.AddrOfPinnedObject();
                     AddSystemFont(fav);
@@ -1116,8 +1011,7 @@ internal class InterfaceManager : IDisposable, IServiceType
                 {
                     if (this.Font.UseAxis)
                     {
-                        fontConfig.GlyphRanges = dummyRangeHandle.AddrOfPinnedObject();
-                        fontConfig.PixelSnapH = false;
+                        fontConfig.GlyphRanges = rangeHandles.Dummy.AddrOfPinnedObject();
                         result = ioFonts.AddFontDefault(fontConfig);
                     }
                     else
@@ -1125,7 +1019,6 @@ internal class InterfaceManager : IDisposable, IServiceType
                         fontConfig.GlyphRanges = customRangeHandle != default
                                                      ? customRangeHandle.AddrOfPinnedObject()
                                                      : axisRangeHandle.AddrOfPinnedObject();
-                        fontConfig.PixelSnapH = true;
                         result = ioFonts.AddFontFromFileTTF(fontPathJp, fontConfig.SizePixels, fontConfig);
                     }
 
@@ -1135,9 +1028,8 @@ internal class InterfaceManager : IDisposable, IServiceType
                 if (!glyphAvailK && ensureCharactersK)
                 {
                     fontConfig.GlyphRanges = customRangeHandle == default
-                                                 ? koreanRangeHandle.AddrOfPinnedObject()
+                                                 ? rangeHandles.Korean.AddrOfPinnedObject()
                                                  : customRangeHandle.AddrOfPinnedObject();
-                    fontConfig.PixelSnapH = true;
                     _ = AddSystemFont(new("Source Han Sans K"))
                         || AddSystemFont(new("Noto Sans KR"))
                         || AddSystemFont(new("Malgun Gothic"))
@@ -1147,9 +1039,8 @@ internal class InterfaceManager : IDisposable, IServiceType
                 if (!glyphAvailSc && ensureCharactersSc)
                 {
                     fontConfig.GlyphRanges = customRangeHandle == default
-                                                 ? cjkUnifiedIdeographsRangeHandle.AddrOfPinnedObject()
+                                                 ? rangeHandles.Chinese.AddrOfPinnedObject()
                                                  : customRangeHandle.AddrOfPinnedObject();
-                    fontConfig.PixelSnapH = true;
                     _ = AddSystemFont(new("Microsoft YaHei UI"))
                         || AddSystemFont(new("Microsoft YaHei"));
                 }
@@ -1157,9 +1048,8 @@ internal class InterfaceManager : IDisposable, IServiceType
                 if (!glyphAvailTc && ensureCharactersTc)
                 {
                     fontConfig.GlyphRanges = customRangeHandle == default
-                                                 ? cjkUnifiedIdeographsRangeHandle.AddrOfPinnedObject()
+                                                 ? rangeHandles.Chinese.AddrOfPinnedObject()
                                                  : customRangeHandle.AddrOfPinnedObject();
-                    fontConfig.PixelSnapH = true;
                     _ = AddSystemFont(new("Microsoft JhengHei UI"))
                         || AddSystemFont(new("Microsoft JhengHei"));
                 }
@@ -1185,7 +1075,7 @@ internal class InterfaceManager : IDisposable, IServiceType
 
                         fontConfig.GlyphRanges = customRangeHandle != default
                                                      ? customRangeHandle.AddrOfPinnedObject()
-                                                     : fullRangeHandle.AddrOfPinnedObject();
+                                                     : rangeHandles.Full.AddrOfPinnedObject();
 
                         foreach (var file in files)
                         {
