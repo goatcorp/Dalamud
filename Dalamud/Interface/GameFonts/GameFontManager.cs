@@ -323,7 +323,7 @@ internal class GameFontManager : IServiceType
     {
         var interfaceManager = Service<InterfaceManager>.Get();
         var ioFonts = ImGui.GetIO().Fonts;
-        var fontGamma = interfaceManager.FontGamma;
+        var fontGamma = interfaceManager.Font.Gamma;
 
         var pixels8s = new byte*[ioFonts.Textures.Size];
         var pixels32s = new uint*[ioFonts.Textures.Size];

@@ -147,6 +147,26 @@ internal sealed class DalamudConfiguration : IServiceType, IDisposable
     public bool UseAxisFontsFromGame { get; set; } = false;
 
     /// <summary>
+    /// Gets or sets the name of default font from the system. Set to "" to use the default font shipped with Dalamud.
+    /// </summary>
+    public string DefaultFontFamilyName { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Gets or sets the weight of default font from the system.
+    /// </summary>
+    public int DefaultFontWeight { get; set; } = 400; // = FontWeight.Normal = FontWeight.Regular
+
+    /// <summary>
+    /// Gets or sets the stretch of default font from the system.
+    /// </summary>
+    public int DefaultFontStretch { get; set; } = 5; // = FontStretch.Medium = FontStretch.Normal
+
+    /// <summary>
+    /// Gets or sets the style of default font from the system.
+    /// </summary>
+    public int DefaultFontStyle { get; set; } = 0; // = FontStyle.Normal
+
+    /// <summary>
     /// Gets or sets the gamma value to apply for Dalamud fonts. Effects text thickness.
     ///
     /// Before gamma is applied...

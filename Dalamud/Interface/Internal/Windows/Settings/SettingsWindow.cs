@@ -8,7 +8,6 @@ using Dalamud.Interface.Internal.Windows.Settings.Tabs;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
-using Dalamud.Plugin.Internal;
 using Dalamud.Utility;
 using ImGuiNET;
 
@@ -66,13 +65,11 @@ internal class SettingsWindow : Window
         var interfaceManager = Service<InterfaceManager>.Get();
 
         var rebuildFont =
-            ImGui.GetIO().FontGlobalScale != configuration.GlobalUiScale ||
-            interfaceManager.FontGamma != configuration.FontGammaLevel ||
-            interfaceManager.UseAxis != configuration.UseAxisFontsFromGame;
+            Math.Abs(ImGui.GetIO().FontGlobalScale - configuration.GlobalUiScale) > float.Epsilon ||
+            interfaceManager.Font.HasDifferentConfigurationValues;
 
         ImGui.GetIO().FontGlobalScale = configuration.GlobalUiScale;
-        interfaceManager.FontGammaOverride = null;
-        interfaceManager.UseAxisOverride = null;
+        interfaceManager.Font.ResetOverrides();
 
         if (rebuildFont)
             interfaceManager.RebuildFonts();
