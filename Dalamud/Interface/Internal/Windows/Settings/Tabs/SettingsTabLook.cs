@@ -493,15 +493,19 @@ public class SettingsTabLook : SettingsTab
                                   .Select(x => familyNames.GetLocaleName(x).ToLowerInvariant()));
 
                     languageNamePrefixes[0] = Service<DalamudConfiguration>.Get().EffectiveLanguage.ToLowerInvariant();
+                    string? name = null;
                     foreach (var languageNamePrefix in languageNamePrefixes)
                     {
                         var localeNameIndex = languageNames.IndexOf(x => x.StartsWith(languageNamePrefix));
                         if (localeNameIndex != -1)
                         {
-                            names.Add(familyNames.GetString(localeNameIndex));
+                            name = tempLocalizedNames[localeNameIndex];
                             break;
                         }
                     }
+
+                    if (name is null)
+                        continue;
 
                     tempVariantNames.Clear();
                     tempVariants.Clear();
@@ -512,10 +516,18 @@ public class SettingsTabLook : SettingsTab
                         cancellationToken.ThrowIfCancellationRequested();
 
                         using var font = family.GetFont(fontIndex);
+                        // imgui trips on some fonts; unsure about the conditions
+                        if (!font.HasCharacter('A') || !font.HasCharacter('0') || !font.HasCharacter('?'))
+                            continue;
+
                         tempVariants.Add(new(font.Weight, font.Stretch, font.Style));
                         tempVariantNames.Add($"{font.Weight}, {font.Stretch}, {font.Style}");
                     }
 
+                    if (!tempVariants.Any())
+                        continue;
+
+                    names.Add(name);
                     localizedNames.Add(tempLocalizedNames.ToArray());
                     variants.Add(tempVariants.ToArray());
                     variantNames.Add(tempVariantNames.ToArray());
