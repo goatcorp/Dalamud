@@ -739,8 +739,14 @@ internal class InterfaceManager : IDisposable, IServiceType
 
         try
         {
-            var dummyRangeHandle = GCHandle.Alloc(new ushort[] { '0', '0', 0 }, GCHandleType.Pinned);
+            var dummyRangeHandle = GCHandle.Alloc(new ushort[] { ' ', ' ', 0 }, GCHandleType.Pinned);
             garbageList.Add(dummyRangeHandle);
+            
+            var fullRangeHandle = GCHandle.Alloc(new ushort[] { 0x0001, 0xFFFF, 0 }, GCHandleType.Pinned);
+            garbageList.Add(fullRangeHandle);
+
+            var axisRangeHandle = gameFontManager.ToGlyphRanges(GameFontFamilyAndSize.Axis12);
+            garbageList.Add(axisRangeHandle);
 
             fontConfig = ImGuiNative.ImFontConfig_ImFontConfig();
             fontConfig.OversampleH = 1;
@@ -760,123 +766,17 @@ internal class InterfaceManager : IDisposable, IServiceType
                 fontPathKr = null;
             Log.Verbose("[FONT] fontPathKr = {0}", fontPathKr);
 
+            using var factory = new SharpDX.DirectWrite.Factory();
+            using var fontCollection = factory.GetSystemFontCollection(false);
+
             // Default font
             Log.Verbose("[FONT] SetupFonts - Default font");
-            var fontInfo = new TargetFontModification(
+            DefaultFont = MakeFromFontChain(
                 "Default",
-                this.Font.UseAxis ? TargetFontModification.AxisMode.Overwrite : TargetFontModification.AxisMode.GameGlyphsOnly,
-                this.Font.UseAxis ? DefaultFontSizePx : DefaultFontSizePx + 1,
-                io.FontGlobalScale);
-            Log.Verbose("[FONT] SetupFonts - Default corresponding AXIS size: {0}pt ({1}px)", fontInfo.SourceAxis.Style.BaseSizePt, fontInfo.SourceAxis.Style.BaseSizePx);
-            fontConfig.SizePixels = fontInfo.TargetSizePx * io.FontGlobalScale;
-            if (this.Font.UseAxis || ignoreCustomDefaultFont)
-            {
-                fontConfig.GlyphRanges = dummyRangeHandle.AddrOfPinnedObject();
-                fontConfig.PixelSnapH = false;
-                DefaultFont = ioFonts.AddFontDefault(fontConfig);
-                this.loadedFontInfo[DefaultFont] = fontInfo;
-            }
-            else
-            {
-                if (!string.IsNullOrEmpty(this.Font.FamilyName))
-                {
-                    try
-                    {
-                        using var factory = new SharpDX.DirectWrite.Factory();
-                        using var fontCollection = factory.GetSystemFontCollection(false);
-                        if (!fontCollection.FindFamilyName(this.Font.FamilyName, out var fontFamilyIndex))
-                        {
-                            throw new FileNotFoundException(
-                                $"Corresponding font family not found: {this.Font.FamilyName}");
-                        }
-
-                        using var fontFamily = fontCollection.GetFontFamily(fontFamilyIndex);
-                        using var font = fontFamily.GetFirstMatchingFont(
-                            this.Font.Weight,
-                            this.Font.Stretch,
-                            this.Font.Style);
-                        using var fontFace = new SharpDX.DirectWrite.FontFace(font);
-                        using var files = fontFace.GetFiles().WrapDisposableElements();
-                        var localFontFileLoaderGuid = typeof(SharpDX.DirectWrite.LocalFontFileLoader).GUID;
-
-                        try
-                        {
-                            using var font1 = font.QueryInterface<SharpDX.DirectWrite.Font1>();
-                            var rc = 0;
-                            try
-                            {
-                                font1.GetUnicodeRanges(0, Array.Empty<SharpDX.DirectWrite.UnicodeRange>(), out rc);
-                            }
-                            catch (SharpDXException sdxe) when (sdxe.HResult == unchecked((int)0x8007007a) && rc > 0)
-                            {
-                                // HRESULT_FROM_WIN32(ERROR_INSUFFICIENT_BUFFER); expected error
-                            }
-
-                            var unicodeRanges = new SharpDX.DirectWrite.UnicodeRange[rc];
-                            font1.GetUnicodeRanges(unicodeRanges.Length, unicodeRanges, out _);
-
-                            var imguiRanges = new ushort[(unicodeRanges.Length * 2) + 1];
-                            for (int i = 0, j = 0; i < rc; i++)
-                            {
-                                var (l, r) = (unicodeRanges[i].First, unicodeRanges[i].Last);
-                                l = Math.Clamp(l, 1, 0xFFFF);
-                                if (l > r)
-                                    continue;
-                                r = Math.Clamp(r, 1, 0xFFFF);
-                                if (l > r)
-                                    continue;
-                                imguiRanges[j++] = (ushort)l;
-                                imguiRanges[j++] = (ushort)r;
-                            }
-
-                            var rangeHandle2 = GCHandle.Alloc(imguiRanges, GCHandleType.Pinned);
-                            garbageList.Add(rangeHandle2);
-                            fontConfig.GlyphRanges = rangeHandle2.AddrOfPinnedObject();
-                        }
-                        catch (SharpDXException sdex) when (sdex.HResult == unchecked((int)0x80004002))
-                        {
-                            // E_NOINTERFACE; before Platform Update for Windows 7
-                            var rangeHandle2 = GCHandle.Alloc(new ushort[] { 0x0001, 0xFFFF, 0 }, GCHandleType.Pinned);
-                            garbageList.Add(rangeHandle2);
-                            fontConfig.GlyphRanges = rangeHandle2.AddrOfPinnedObject();
-                        }
-
-                        fontConfig.PixelSnapH = true;
-                        fontConfig.MergeMode = false;
-                        foreach (var file in files)
-                        {
-                            using var loader = file.Loader;
-                            loader.QueryInterface(ref localFontFileLoaderGuid, out var loaderIntPtr).CheckError();
-                            using var fontFileLoader = new SharpDX.DirectWrite.LocalFontFileLoader(loaderIntPtr);
-                            var path = fontFileLoader.GetFilePath(file.GetReferenceKey());
-                            ioFonts.AddFontFromFileTTF(path, fontConfig.SizePixels, fontConfig);
-                            fontConfig.MergeMode = true;
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        Log.Error(e, "[FONT] Failed to find relevant font files for {name}.", this.Font.FamilyName);
-                    }
-                }
-
-                var rangeHandle = gameFontManager.ToGlyphRanges(GameFontFamilyAndSize.Axis12);
-                garbageList.Add(rangeHandle);
-
-                fontConfig.GlyphRanges = rangeHandle.AddrOfPinnedObject();
-                fontConfig.PixelSnapH = true;
-                DefaultFont = ioFonts.AddFontFromFileTTF(fontPathJp, fontConfig.SizePixels, fontConfig);
-                this.loadedFontInfo[DefaultFont] = fontInfo;
-                fontConfig.MergeMode = false;
-            }
-
-            if (fontPathKr != null && Service<DalamudConfiguration>.Get().EffectiveLanguage == "ko")
-            {
-                fontConfig.MergeMode = true;
-                fontConfig.GlyphRanges = ioFonts.GetGlyphRangesKorean();
-                fontConfig.PixelSnapH = true;
-                ioFonts.AddFontFromFileTTF(fontPathKr, fontConfig.SizePixels, fontConfig);
-                fontConfig.MergeMode = false;
-            }
+                this.Font.UseAxis
+                    ? TargetFontModification.AxisMode.Overwrite
+                    : TargetFontModification.AxisMode.GameGlyphsOnly,
+                DefaultFontSizePx);
 
             // FontAwesome icon font
             Log.Verbose("[FONT] SetupFonts - FontAwesome icon font");
@@ -918,22 +818,24 @@ internal class InterfaceManager : IDisposable, IServiceType
                     extraFontRequests[extraFontRequest.Size].Add(extraFontRequest);
                 }
 
+                List<(ushort, ushort)> codepointRanges = new();
+                List<ushort> flattenedRanges = new();
                 foreach (var (fontSize, requests) in extraFontRequests)
                 {
-                    List<(ushort, ushort)> codepointRanges = new(4 + requests.Sum(x => x.CodepointRanges.Count))
-                    {
-                        new(Fallback1Codepoint, Fallback1Codepoint),
-                        new(Fallback2Codepoint, Fallback2Codepoint),
-                        // ImGui default ellipsis characters
-                        new(0x2026, 0x2026),
-                        new(0x0085, 0x0085),
-                    };
+                    codepointRanges.Clear();
+                    flattenedRanges.Clear();
+
+                    codepointRanges.EnsureCapacity(4 + requests.Sum(x => x.CodepointRanges.Count));
+                    codepointRanges.Add(new(Fallback1Codepoint, Fallback1Codepoint));
+                    codepointRanges.Add(new(Fallback2Codepoint, Fallback2Codepoint));
+                    // ImGui default ellipsis characters
+                    codepointRanges.Add(new(0x2026, 0x2026));
+                    codepointRanges.Add(new(0x0085, 0x0085));
 
                     foreach (var request in requests)
                         codepointRanges.AddRange(request.CodepointRanges.Select(x => (From: x.Item1, To: x.Item2)));
 
                     codepointRanges.Sort();
-                    List<ushort> flattenedRanges = new();
                     foreach (var range in codepointRanges)
                     {
                         if (flattenedRanges.Any() && flattenedRanges[^1] >= range.Item1 - 1)
@@ -949,33 +851,13 @@ internal class InterfaceManager : IDisposable, IServiceType
 
                     flattenedRanges.Add(0);
 
-                    fontInfo = new(
+                    var sizedFont = MakeFromFontChain(
                         $"Requested({fontSize}px)",
                         this.Font.UseAxis ? TargetFontModification.AxisMode.Overwrite : TargetFontModification.AxisMode.GameGlyphsOnly,
                         fontSize,
-                        io.FontGlobalScale);
-                    if (this.Font.UseAxis)
-                    {
-                        fontConfig.GlyphRanges = dummyRangeHandle.AddrOfPinnedObject();
-                        fontConfig.SizePixels = fontInfo.SourceAxis.Style.BaseSizePx;
-                        fontConfig.PixelSnapH = false;
-
-                        var sizedFont = ioFonts.AddFontDefault(fontConfig);
-                        this.loadedFontInfo[sizedFont] = fontInfo;
-                        foreach (var request in requests)
-                            request.FontInternal = sizedFont;
-                    }
-                    else
-                    {
-                        var rangeHandle = GCHandle.Alloc(flattenedRanges.ToArray(), GCHandleType.Pinned);
-                        garbageList.Add(rangeHandle);
-                        fontConfig.PixelSnapH = true;
-
-                        var sizedFont = ioFonts.AddFontFromFileTTF(fontPathJp, fontSize * io.FontGlobalScale, fontConfig, rangeHandle.AddrOfPinnedObject());
-                        this.loadedFontInfo[sizedFont] = fontInfo;
-                        foreach (var request in requests)
-                            request.FontInternal = sizedFont;
-                    }
+                        flattenedRanges.ToArray());
+                    foreach (var request in requests)
+                        request.FontInternal = sizedFont;
                 }
             }
 
@@ -1114,6 +996,167 @@ internal class InterfaceManager : IDisposable, IServiceType
             this.fontBuildSignal.Set();
 
             this.FontsReady = true;
+
+            ImFontPtr MakeFromFontChain(
+                string name,
+                TargetFontModification.AxisMode axis,
+                float sizePx,
+                ushort[]? customRanges = null)
+            {
+                TargetFontModification tfm = new(name, axis, sizePx, io.FontGlobalScale);
+                ImFontPtr result;
+
+                fontConfig.SizePixels = tfm.TargetSizePx * io.FontGlobalScale;
+                fontConfig.MergeMode = false;
+                
+                var customRangeHandle = customRanges == null
+                                            ? default
+                                            : GCHandle.Alloc(customRanges, GCHandleType.Pinned);
+                if (customRangeHandle != default)
+                    garbageList.Add(customRangeHandle);
+
+                foreach (var fav in this.Font.FontChain)
+                {
+                    if (fav == FontFamilyAndVariant.Empty || ignoreCustomDefaultFont)
+                    {
+                        if (this.Font.UseAxis)
+                        {
+                            fontConfig.GlyphRanges = dummyRangeHandle.AddrOfPinnedObject();
+                            fontConfig.PixelSnapH = false;
+                            result = ioFonts.AddFontDefault(fontConfig);
+                        }
+                        else
+                        {
+                            fontConfig.GlyphRanges = customRangeHandle != default
+                                                         ? customRangeHandle.AddrOfPinnedObject()
+                                                         : axisRangeHandle.AddrOfPinnedObject();
+                            fontConfig.PixelSnapH = true;
+                            result = ioFonts.AddFontFromFileTTF(fontPathJp, fontConfig.SizePixels, fontConfig);
+                        }
+
+                        fontConfig.MergeMode = true;
+                        
+                        if (ignoreCustomDefaultFont)
+                            break;
+                        continue;
+                    }
+
+                    fontConfig.PixelSnapH = true;
+                    if (customRangeHandle != default)
+                        fontConfig.GlyphRanges = customRangeHandle.AddrOfPinnedObject();
+                    try
+                    {
+                        if (!fontCollection.FindFamilyName(fav.Name, out var fontFamilyIndex))
+                            throw new FileNotFoundException($"Corresponding font family not found");
+
+                        using var fontFamily = fontCollection.GetFontFamily(fontFamilyIndex);
+                        using var font = fontFamily.GetFirstMatchingFont(fav.Weight, fav.Stretch, fav.Style);
+                        using var fontFace = new SharpDX.DirectWrite.FontFace(font);
+                        using var files = fontFace.GetFiles().WrapDisposableElements();
+                        var localFontFileLoaderGuid = typeof(SharpDX.DirectWrite.LocalFontFileLoader).GUID;
+
+                        if (customRangeHandle != default)
+                        {
+                            fontConfig.GlyphRanges = customRangeHandle.AddrOfPinnedObject();
+                        }
+                        else
+                        {
+                            fontConfig.GlyphRanges = fullRangeHandle.AddrOfPinnedObject();
+                            // try
+                            // {
+                            //     using var font1 = font.QueryInterface<SharpDX.DirectWrite.Font1>();
+                            //     var rc = 0;
+                            //     try
+                            //     {
+                            //         font1.GetUnicodeRanges(0, Array.Empty<SharpDX.DirectWrite.UnicodeRange>(), out rc);
+                            //     }
+                            //     catch (SharpDXException sdxe) when
+                            //         (sdxe.HResult == unchecked((int)0x8007007a) && rc > 0)
+                            //     {
+                            //         // HRESULT_FROM_WIN32(ERROR_INSUFFICIENT_BUFFER); expected error
+                            //     }
+                            //
+                            //     var unicodeRanges = new SharpDX.DirectWrite.UnicodeRange[rc];
+                            //     font1.GetUnicodeRanges(unicodeRanges.Length, unicodeRanges, out _);
+                            //
+                            //     var imguiRanges = new ushort[(unicodeRanges.Length * 2) + 1];
+                            //     for (int i = 0, j = 0; i < rc; i++)
+                            //     {
+                            //         var (l, r) = (unicodeRanges[i].First, unicodeRanges[i].Last);
+                            //         l = Math.Clamp(l, 1, 0xFFFF);
+                            //         if (l > r)
+                            //             continue;
+                            //         r = Math.Clamp(r, 1, 0xFFFF);
+                            //         if (l > r)
+                            //             continue;
+                            //         imguiRanges[j++] = (ushort)l;
+                            //         imguiRanges[j++] = (ushort)r;
+                            //     }
+                            //
+                            //     var rangeHandle2 = GCHandle.Alloc(imguiRanges, GCHandleType.Pinned);
+                            //     garbageList.Add(rangeHandle2);
+                            //     fontConfig.GlyphRanges = rangeHandle2.AddrOfPinnedObject();
+                            // }
+                            // catch (SharpDXException sdex) when (sdex.HResult == unchecked((int)0x80004002))
+                            // {
+                            //     // E_NOINTERFACE; before Platform Update for Windows 7
+                            //     fontConfig.GlyphRanges = fullRangeHandle.AddrOfPinnedObject();
+                            // }
+                        }
+
+                        foreach (var file in files)
+                        {
+                            using var loader = file.Loader;
+                            loader.QueryInterface(ref localFontFileLoaderGuid, out var loaderIntPtr).CheckError();
+                            using var fontFileLoader = new SharpDX.DirectWrite.LocalFontFileLoader(loaderIntPtr);
+                            var path = fontFileLoader.GetFilePath(file.GetReferenceKey());
+                            fontConfig.FontNo = fontFace.Index;
+                            result = ioFonts.AddFontFromFileTTF(path, fontConfig.SizePixels, fontConfig);
+                            fontConfig.FontNo = 0;
+                            fontConfig.MergeMode = true;
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        Log.Error(e, "[FONT] Failed to load font: {font}.", fav);
+                    }
+                }
+
+                if (customRangeHandle == default &&
+                    fontPathKr != null &&
+                    Service<DalamudConfiguration>.Get().EffectiveLanguage == "ko")
+                {
+                    fontConfig.GlyphRanges = ioFonts.GetGlyphRangesKorean();
+                    fontConfig.PixelSnapH = true;
+                    ioFonts.AddFontFromFileTTF(fontPathKr, fontConfig.SizePixels, fontConfig);
+                    fontConfig.MergeMode = true;
+                }
+
+                // failed to add any font so far; add the default font as fallback
+                if (!fontConfig.MergeMode)
+                {
+                    if (this.Font.UseAxis)
+                    {
+                        fontConfig.GlyphRanges = dummyRangeHandle.AddrOfPinnedObject();
+                        fontConfig.PixelSnapH = false;
+                        result = ioFonts.AddFontDefault(fontConfig);
+                    }
+                    else
+                    {
+                        fontConfig.GlyphRanges = customRangeHandle != default
+                                                     ? customRangeHandle.AddrOfPinnedObject()
+                                                     : axisRangeHandle.AddrOfPinnedObject();
+                        fontConfig.PixelSnapH = true;
+                        result = ioFonts.AddFontFromFileTTF(fontPathJp, fontConfig.SizePixels, fontConfig);
+                    }
+                }
+
+                fontConfig.MergeMode = false;
+
+                Debug.Assert(result.NativePtr != null, "result.NativePtr != null");
+                this.loadedFontInfo[result] = tfm;
+                return result;
+            }
         }
         finally
         {
@@ -1370,47 +1413,21 @@ internal class InterfaceManager : IDisposable, IServiceType
         public bool UseAxis => this.UseAxisOverride ?? Configuration.UseAxisFontsFromGame;
  
         /// <summary>
-        /// Gets or sets the overrided font family name, instead of using the value from configuration.
+        /// Gets or sets the overrided font family and variant chain, instead of using the value from configuration.
         /// </summary>
-        public string? FamilyNameOverride { get; set; } = null;
+        public List<FontFamilyAndVariant>? FontChainOverride { get; set; } = null;
 
         /// <summary>
-        /// Gets the font family name to use.
+        /// Gets the font family and variant chain to use.
         /// </summary>
-        public string FamilyName => this.FamilyNameOverride ?? Configuration.DefaultFontFamilyName;
-
-        /// <summary>
-        /// Gets or sets the overrided font style, instead of using the value from configuration.
-        /// </summary>
-        public SharpDX.DirectWrite.FontStyle? StyleOverride { get; set; } = null;
-
-        /// <summary>
-        /// Gets the font style value to use.
-        /// </summary>
-        public SharpDX.DirectWrite.FontStyle Style =>
-            this.StyleOverride ?? (SharpDX.DirectWrite.FontStyle)Configuration.DefaultFontStyle;
-
-        /// <summary>
-        /// Gets or sets the overrided font stretch, instead of using the value from configuration.
-        /// </summary>
-        public SharpDX.DirectWrite.FontStretch? StretchOverride { get; set; } = null;
-
-        /// <summary>
-        /// Gets the font stretch value to use.
-        /// </summary>
-        public SharpDX.DirectWrite.FontStretch Stretch =>
-            this.StretchOverride ?? (SharpDX.DirectWrite.FontStretch)Configuration.DefaultFontStretch;
-
-        /// <summary>
-        /// Gets or sets the overrided font weight, instead of using the value from configuration.
-        /// </summary>
-        public SharpDX.DirectWrite.FontWeight? WeightOverride { get; set; } = null;
-
-        /// <summary>
-        /// Gets the font weight value to use.
-        /// </summary>
-        public SharpDX.DirectWrite.FontWeight Weight =>
-            this.WeightOverride ?? (SharpDX.DirectWrite.FontWeight)Configuration.DefaultFontWeight;
+        public IList<FontFamilyAndVariant> FontChain
+        {
+            get
+            {
+                var r = this.FontChainOverride ?? Configuration.DefaultFontChain;
+                return r.Any() ? r : FontFamilyAndVariant.EmptySingleItem;
+            }
+        }
 
         /// <summary>
         /// Gets or sets the overrided font gamma value, instead of using the value from configuration.
@@ -1420,7 +1437,7 @@ internal class InterfaceManager : IDisposable, IServiceType
         /// <summary>
         /// Gets the font gamma value to use.
         /// </summary>
-        public float Gamma => Math.Max(0.1f, this.GammaOverride.GetValueOrDefault(Service<DalamudConfiguration>.Get().FontGammaLevel));
+        public float Gamma => Math.Max(0.1f, this.GammaOverride.GetValueOrDefault(Configuration.FontGammaLevel));
 
         /// <summary>
         /// Gets a value indicating whether the values set into this class is different from Dalamud Configuration.
@@ -1431,11 +1448,8 @@ internal class InterfaceManager : IDisposable, IServiceType
             {
                 var conf = Configuration;
                 return this.UseAxis != conf.UseAxisFontsFromGame ||
-                    this.FamilyName != conf.DefaultFontFamilyName ||
-                    (int)this.Style != conf.DefaultFontStyle ||
-                    (int)this.Stretch != conf.DefaultFontStretch ||
-                    (int)this.Weight != conf.DefaultFontWeight ||
-                    Math.Abs(this.Gamma - conf.FontGammaLevel) > float.Epsilon;
+                       Math.Abs(this.Gamma - conf.FontGammaLevel) > float.Epsilon ||
+                       !this.FontChain.SequenceEqual(conf.DefaultFontChain);
             }
         }
 
@@ -1447,11 +1461,8 @@ internal class InterfaceManager : IDisposable, IServiceType
         public void ResetOverrides()
         {
             this.UseAxisOverride = false;
-            this.FamilyNameOverride = null;
-            this.StyleOverride = null;
-            this.StretchOverride = null;
-            this.WeightOverride = null;
             this.GammaOverride = null;
+            this.FontChainOverride = null;
         }
     }
 
