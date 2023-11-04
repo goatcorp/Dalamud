@@ -37,8 +37,8 @@ public class SettingsTabLook : SettingsTab
     private CancellationTokenSource? cancellationTokenSource;
     private Task<(
         string[] Names,
-        string[][] LocalizedNames,
-        string[][] VariantNames,
+        string[] LocalizedNames,
+        string[] VariantNames,
         FontVariant[][] Variants)> fontListTask = null!;
 
     private int fontFamilyIndex = -1;
@@ -210,8 +210,8 @@ public class SettingsTabLook : SettingsTab
                     this.fontFamilyIndex = names.IndexOf(x => string.Equals(x, this.fontFamilyName, ccic));
                 if (this.fontFamilyIndex == -1)
                 {
-                    this.fontFamilyIndex =
-                        localizedNames.IndexOf(x => x.Any(y => string.Equals(y, this.fontFamilyName, ccic)));
+                    var needle = $"\0{this.fontFamilyName}\0";
+                    this.fontFamilyIndex = localizedNames.IndexOf(x => $"\0{x}\0".Contains(needle, ccic));
                 }
 
                 if (this.fontFamilyIndex == -1)
@@ -454,8 +454,8 @@ public class SettingsTabLook : SettingsTab
             () =>
             {
                 var names = new List<string>();
-                var localizedNames = new List<string[]>();
-                var variantNames = new List<string[]>();
+                var localizedNames = new List<string>();
+                var variantNames = new List<string>();
                 var variants = new List<FontVariant[]>();
                 var tempLocalizedNames = new List<string>();
                 var tempVariantNames = new List<string>();
@@ -471,14 +471,14 @@ public class SettingsTabLook : SettingsTab
 
                 Debug.Assert(names.Count == FontIndexAxis, "names.Count == FontIndexAxis");
                 names.Add("(AXIS)");
-                localizedNames.Add(new[] { names.Last() });
-                variantNames.Add(new[] { "Default" });
+                localizedNames.Add(names.Last());
+                variantNames.Add("Default");
                 variants.Add(new[] { new FontVariant() });
 
                 Debug.Assert(names.Count == FontIndexNotoSans, "names.Count == FontIndexNotoSans");
                 names.Add("(Noto Sans)");
-                localizedNames.Add(new[] { names.Last() });
-                variantNames.Add(new[] { "Default" });
+                localizedNames.Add(names.Last());
+                variantNames.Add("Default");
                 variants.Add(new[] { new FontVariant() });
 
                 var languageNamePrefixes = new[] { string.Empty, "en", string.Empty };
@@ -539,9 +539,9 @@ public class SettingsTabLook : SettingsTab
                         continue;
 
                     names.Add(name);
-                    localizedNames.Add(tempLocalizedNames.ToArray());
+                    localizedNames.Add(string.Join("\0", tempLocalizedNames));
                     variants.Add(tempVariants.ToArray());
-                    variantNames.Add(tempVariantNames.ToArray());
+                    variantNames.Add(string.Join("\0", tempVariantNames));
                 }
 
                 var newFontFamilyIndices =
