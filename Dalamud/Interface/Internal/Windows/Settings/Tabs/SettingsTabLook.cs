@@ -237,7 +237,18 @@ public class SettingsTabLook : SettingsTab
                 if (this.variantIndex == -1)
                     this.variantIndex = variants.IndexOf(new FontVariant());
                 if (this.variantIndex == -1)
-                    this.variantIndex = 0;
+                {
+                    // Note: numeric operation on "FontStyle" makes no sense, but it has only 3 values and we want
+                    //       the lowest valid value of Normal = 0.
+                    this.variantIndex = 
+                        variants
+                            .Select((x, i) => (x, i))
+                            .OrderBy(x => Math.Abs((int)x.x.Weight - (int)FontWeight.Normal))
+                            .ThenBy(x => Math.Abs((int)x.x.Stretch - (int)FontStretch.Normal))
+                            .ThenBy(x => Math.Abs((int)x.x.Style - (int)FontStyle.Normal))
+                            .First()
+                            .i;
+                }
 
                 if (variantNames.Length < 2)
                     ImGui.BeginDisabled();
@@ -559,21 +570,26 @@ public class SettingsTabLook : SettingsTab
 
     private static class EnumTranslations
     {
-        internal static string Localize(FontWeight v) => v switch
+        internal static string Localize(FontWeight v)
         {
-            FontWeight.Thin => Loc.Localize("FontWeightThin", "Thin"),
-            FontWeight.ExtraLight => Loc.Localize("FontWeightExtraLight", "Extra Light"),
-            FontWeight.Light => Loc.Localize("FontWeightLight", "Light"),
-            FontWeight.SemiLight => Loc.Localize("FontWeightSemiLight", "Semi Light"),
-            FontWeight.Normal => Loc.Localize("FontWeightNormal", "Normal"),
-            FontWeight.Medium => Loc.Localize("FontWeightMedium", "Medium"),
-            FontWeight.DemiBold => Loc.Localize("FontWeightDemiBold", "Demi Bold"),
-            FontWeight.Bold => Loc.Localize("FontWeightBold", "Bold"),
-            FontWeight.ExtraBold => Loc.Localize("FontWeightExtraBold", "Extra Bold"),
-            FontWeight.Black => Loc.Localize("FontWeightBlack", "Black"),
-            FontWeight.ExtraBlack => Loc.Localize("FontWeightExtraBlack", "Extra Black"),
-            _ => throw new ArgumentOutOfRangeException(nameof(v), v, null),
-        };
+            var weightName = Enum.GetValues<FontWeight>().MinBy(x => Math.Abs((int)v - (int)x)) switch
+            {
+                FontWeight.Thin => Loc.Localize("FontWeightThin", "Thin"),
+                FontWeight.ExtraLight => Loc.Localize("FontWeightExtraLight", "Extra Light"),
+                FontWeight.Light => Loc.Localize("FontWeightLight", "Light"),
+                FontWeight.SemiLight => Loc.Localize("FontWeightSemiLight", "Semi Light"),
+                FontWeight.Normal => Loc.Localize("FontWeightNormal", "Normal"),
+                FontWeight.Medium => Loc.Localize("FontWeightMedium", "Medium"),
+                FontWeight.DemiBold => Loc.Localize("FontWeightDemiBold", "Demi Bold"),
+                FontWeight.Bold => Loc.Localize("FontWeightBold", "Bold"),
+                FontWeight.ExtraBold => Loc.Localize("FontWeightExtraBold", "Extra Bold"),
+                FontWeight.Black => Loc.Localize("FontWeightBlack", "Black"),
+                FontWeight.ExtraBlack => Loc.Localize("FontWeightExtraBlack", "Extra Black"),
+                _ => throw new ArgumentOutOfRangeException(nameof(v), v, null),
+            };
+
+            return weightName + $" ({(int)v})";
+        }
 
         internal static string Localize(FontStretch v) => v switch
         {
