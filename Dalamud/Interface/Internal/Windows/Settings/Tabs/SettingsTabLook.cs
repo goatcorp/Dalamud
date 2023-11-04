@@ -516,12 +516,12 @@ public class SettingsTabLook : SettingsTab
                         cancellationToken.ThrowIfCancellationRequested();
 
                         using var font = family.GetFont(fontIndex);
-                        // imgui trips on some fonts; unsure about the conditions
+                        // imgui crashes on some fonts; following is NOT an exhaustive check of causes
                         if (!font.HasCharacter('A') || !font.HasCharacter('0') || !font.HasCharacter('?'))
                             continue;
 
                         tempVariants.Add(new(font.Weight, font.Stretch, font.Style));
-                        tempVariantNames.Add($"{font.Weight}, {font.Stretch}, {font.Style}");
+                        tempVariantNames.Add($"{EnumTranslations.Localize(font.Weight)}, {EnumTranslations.Localize(font.Stretch)}, {EnumTranslations.Localize(font.Style)}");
                     }
 
                     if (!tempVariants.Any())
@@ -556,4 +556,46 @@ public class SettingsTabLook : SettingsTab
         FontWeight Weight = FontWeight.Normal,
         FontStretch Stretch = FontStretch.Normal,
         FontStyle Style = FontStyle.Normal);
+
+    private static class EnumTranslations
+    {
+        internal static string Localize(FontWeight v) => v switch
+        {
+            FontWeight.Thin => Loc.Localize("FontWeightThin", "Thin"),
+            FontWeight.ExtraLight => Loc.Localize("FontWeightExtraLight", "Extra Light"),
+            FontWeight.Light => Loc.Localize("FontWeightLight", "Light"),
+            FontWeight.SemiLight => Loc.Localize("FontWeightSemiLight", "Semi Light"),
+            FontWeight.Normal => Loc.Localize("FontWeightNormal", "Normal"),
+            FontWeight.Medium => Loc.Localize("FontWeightMedium", "Medium"),
+            FontWeight.DemiBold => Loc.Localize("FontWeightDemiBold", "Demi Bold"),
+            FontWeight.Bold => Loc.Localize("FontWeightBold", "Bold"),
+            FontWeight.ExtraBold => Loc.Localize("FontWeightExtraBold", "Extra Bold"),
+            FontWeight.Black => Loc.Localize("FontWeightBlack", "Black"),
+            FontWeight.ExtraBlack => Loc.Localize("FontWeightExtraBlack", "Extra Black"),
+            _ => throw new ArgumentOutOfRangeException(nameof(v), v, null),
+        };
+
+        internal static string Localize(FontStretch v) => v switch
+        {
+            FontStretch.Undefined => Loc.Localize("FontStretchUndefined", "Undefined"),
+            FontStretch.UltraCondensed => Loc.Localize("FontStretchUltraCondensed", "Ultra Condensed"),
+            FontStretch.ExtraCondensed => Loc.Localize("FontStretchExtraCondensed", "Extra Condensed"),
+            FontStretch.Condensed => Loc.Localize("FontStretchCondensed", "Condensed"),
+            FontStretch.SemiCondensed => Loc.Localize("FontStretchSemiCondensed", "Semi Condensed"),
+            FontStretch.Normal => Loc.Localize("FontStretchNormal", "Normal"),
+            FontStretch.SemiExpanded => Loc.Localize("FontStretchSemiExpanded", "Semi Expanded"),
+            FontStretch.Expanded => Loc.Localize("FontStretchExpanded", "Expanded"),
+            FontStretch.ExtraExpanded => Loc.Localize("FontStretchExtraExpanded", "Extra Expanded"),
+            FontStretch.UltraExpanded => Loc.Localize("FontStretchUltraExpanded", "Ultra Expanded"),
+            _ => throw new ArgumentOutOfRangeException(nameof(v), v, null),
+        };
+
+        internal static string Localize(FontStyle v) => v switch
+        {
+            FontStyle.Normal => Loc.Localize("FontStyleNormal", "Normal"),
+            FontStyle.Oblique => Loc.Localize("FontStyleOblique", "Oblique"),
+            FontStyle.Italic => Loc.Localize("FontStyleItalic", "Italic"),
+            _ => throw new ArgumentOutOfRangeException(nameof(v), v, null),
+        };
+    }
 }
