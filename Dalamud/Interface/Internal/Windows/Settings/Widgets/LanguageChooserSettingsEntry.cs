@@ -64,6 +64,7 @@ public sealed class LanguageChooserSettingsEntry : SettingsEntry
     {
         Service<Localization>.Get().SetupWithLangCode(this.languages[this.langIndex]);
         Service<DalamudConfiguration>.Get().LanguageOverride = this.languages[this.langIndex];
+        Service<InterfaceManager>.Get().RebuildFonts();
     }
 
     public override void Draw()

@@ -152,6 +152,21 @@ internal sealed class DalamudConfiguration : IServiceType, IDisposable
     public List<FontFamilyAndVariant> DefaultFontChain { get; set; } = new();
 
     /// <summary>
+    /// Gets or sets a value indicating whether to ensure that Simplified Chinese characters can be displayed.
+    /// </summary>
+    public bool EnsureSimplifiedChineseCharacters { get; set; } = false;
+    
+    /// <summary>
+    /// Gets or sets a value indicating whether to ensure that Traditional Chinese characters can be displayed.
+    /// </summary>
+    public bool EnsureTraditionalChineseCharacters { get; set; } = false;
+    
+    /// <summary>
+    /// Gets or sets a value indicating whether to ensure that Korean characters can be displayed.
+    /// </summary>
+    public bool EnsureKoreanCharacters { get; set; } = false;
+
+    /// <summary>
     /// Gets or sets the gamma value to apply for Dalamud fonts. Effects text thickness.
     ///
     /// Before gamma is applied...

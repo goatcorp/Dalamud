@@ -84,4 +84,12 @@ public static class ImGuiExtensions
             ImGuiNative.ImDrawList_AddText_FontPtr(drawListPtr.NativePtr, nativeFont, fontSize, pos, col, nativeTextBegin, nativeTextEnd, wrapWidth, nativeCpuFineClipRect);
         }
     }
+
+    /// <summary>
+    /// Convert given <see cref="ImVector{T}"/> into a <see cref="Span{T}"/>.
+    /// </summary>
+    /// <param name="vec">The vector.</param>
+    /// <typeparam name="T">The type.</typeparam>
+    /// <returns>Span view of the vector.</returns>
+    public static unsafe Span<T> AsSpan<T>(this ImVector vec) where T : unmanaged => new((void*)vec.Data, vec.Size);
 }

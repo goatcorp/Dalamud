@@ -1,9 +1,9 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.Unicode;
 using System.Threading.Tasks;
 
 using Dalamud.Data;
@@ -132,56 +132,63 @@ internal class GameFontManager : IServiceType
     /// <param name="fontPtr">Font to unscale.</param>
     /// <param name="fontScale">Scale factor.</param>
     /// <param name="rebuildLookupTable">Whether to call target.BuildLookupTable().</param>
-    public static void UnscaleFont(ImFontPtr fontPtr, float fontScale, bool rebuildLookupTable = true)
+    public static unsafe void UnscaleFont(ImFontPtr fontPtr, float fontScale, bool rebuildLookupTable = true)
     {
-        if (fontScale == 1)
+        if (Math.Abs(fontScale - 1) <= float.Epsilon)
             return;
 
-        unsafe
+        var font = fontPtr.NativePtr;
+        foreach (ref var d in font->IndexedHotData.AsSpan<ImFontGlyphHotDataReal>())
         {
-            var font = fontPtr.NativePtr;
-            for (int i = 0, i_ = font->IndexedHotData.Size; i < i_; ++i)
-            {
-                font->IndexedHotData.Ref<ImFontGlyphHotDataReal>(i).AdvanceX /= fontScale;
-                font->IndexedHotData.Ref<ImFontGlyphHotDataReal>(i).OccupiedWidth /= fontScale;
-            }
-
-            font->FontSize /= fontScale;
-            font->Ascent /= fontScale;
-            font->Descent /= fontScale;
-            if (font->ConfigData != null)
-                font->ConfigData->SizePixels /= fontScale;
-            var glyphs = (ImFontGlyphReal*)font->Glyphs.Data;
-            for (int i = 0, i_ = font->Glyphs.Size; i < i_; i++)
-            {
-                var glyph = &glyphs[i];
-                glyph->X0 /= fontScale;
-                glyph->X1 /= fontScale;
-                glyph->Y0 /= fontScale;
-                glyph->Y1 /= fontScale;
-                glyph->AdvanceX /= fontScale;
-            }
-
-            for (int i = 0, i_ = font->KerningPairs.Size; i < i_; i++)
-                font->KerningPairs.Ref<ImFontKerningPair>(i).AdvanceXAdjustment /= fontScale;
-            for (int i = 0, i_ = font->FrequentKerningPairs.Size; i < i_; i++)
-                font->FrequentKerningPairs.Ref<float>(i) /= fontScale;
+            d.AdvanceX /= fontScale;
+            d.OccupiedWidth /= fontScale;
         }
+
+        font->FontSize /= fontScale;
+        font->Ascent /= fontScale;
+        font->Descent /= fontScale;
+        if (font->ConfigData != null)
+            font->ConfigData->SizePixels /= fontScale;
+        foreach (ref var glyph in font->Glyphs.AsSpan<ImFontGlyphReal>())
+        {
+            glyph.X0 /= fontScale;
+            glyph.X1 /= fontScale;
+            glyph.Y0 /= fontScale;
+            glyph.Y1 /= fontScale;
+            glyph.AdvanceX /= fontScale;
+        }
+
+        foreach (ref var pair in fontPtr.NativePtr->KerningPairs.AsSpan<ImFontKerningPair>())
+            pair.AdvanceXAdjustment /= fontScale;
+        foreach (ref var distance in fontPtr.NativePtr->FrequentKerningPairs.AsSpan<float>())
+            distance /= fontScale;
 
         if (rebuildLookupTable && fontPtr.Glyphs.Size > 0)
             fontPtr.BuildLookupTableNonstandard();
     }
 
     /// <summary>
+    /// Round given font's kerning information into integers.
+    /// </summary>
+    /// <param name="fontPtr">The font.</param>
+    public static unsafe void SnapFontKerningPixels(ImFontPtr fontPtr)
+    {
+        foreach (ref var pair in fontPtr.NativePtr->KerningPairs.AsSpan<ImFontKerningPair>())
+            pair.AdvanceXAdjustment = MathF.Round(pair.AdvanceXAdjustment);
+        foreach (ref var distance in fontPtr.NativePtr->FrequentKerningPairs.AsSpan<float>())
+            distance = MathF.Round(distance);
+    }
+
+    /// <summary>
     /// Create a glyph range for use with ImGui AddFont.
     /// </summary>
     /// <param name="family">Font family and size.</param>
-    /// <param name="mergeDistance">Merge two ranges into one if distance is below the value specified in this parameter.</param>
+    /// <param name="excludeRanges">Unicode ranges to exclude.</param>
     /// <returns>Glyph ranges.</returns>
-    public GCHandle ToGlyphRanges(GameFontFamilyAndSize family, int mergeDistance = 8)
+    public GCHandle ToGlyphRanges(GameFontFamilyAndSize family, params UnicodeRange[] excludeRanges)
     {
         var fdt = this.fdts[(int)family]!;
-        var ranges = new List<ushort>(fdt.Glyphs.Count)
+        var ranges = new List<ushort>(fdt.Glyphs.Count * 2)
         {
             checked((ushort)fdt.Glyphs[0].CharInt),
             checked((ushort)fdt.Glyphs[0].CharInt),
@@ -192,9 +199,11 @@ internal class GameFontManager : IServiceType
             var c32 = glyph.CharInt;
             if (c32 >= 0x10000)
                 break;
+            if (excludeRanges.Any(x => x.FirstCodePoint <= c32 && c32 < x.FirstCodePoint + x.Length))
+                continue;
 
             var c16 = unchecked((ushort)c32);
-            if (ranges[^1] + mergeDistance >= c16 && c16 > ranges[^1])
+            if (ranges[^1] + 1 == c16)
             {
                 ranges[^1] = c16;
             }
@@ -287,7 +296,8 @@ internal class GameFontManager : IServiceType
     /// <summary>
     /// Build fonts before plugins do something more. To be called from InterfaceManager.
     /// </summary>
-    public void BuildFonts()
+    /// <param name="excludeRanges">Unicode ranges to exclude.</param>
+    public void BuildFonts(params UnicodeRange[] excludeRanges)
     {
         this.isBetweenBuildFontsAndRightAfterImGuiIoFontsBuild = true;
 
@@ -297,7 +307,7 @@ internal class GameFontManager : IServiceType
         lock (this.syncRoot)
         {
             foreach (var style in this.fontUseCounter.Keys)
-                this.EnsureFont(style);
+                this.EnsureFont(style, excludeRanges);
         }
     }
 
@@ -464,7 +474,7 @@ internal class GameFontManager : IServiceType
         }
     }
 
-    private unsafe void EnsureFont(GameFontStyle style)
+    private unsafe void EnsureFont(GameFontStyle style, params UnicodeRange[] excludeRanges)
     {
         var rectIds = this.glyphRectIds[style] = new();
 
@@ -487,6 +497,8 @@ internal class GameFontManager : IServiceType
         {
             var c = glyph.Char;
             if (c < 32 || c >= 0xFFFF)
+                continue;
+            if (excludeRanges.Any(x => x.FirstCodePoint <= c && c < x.FirstCodePoint + x.Length))
                 continue;
 
             var widthAdjustment = style.CalculateBaseWidthAdjustment(fdt, glyph);

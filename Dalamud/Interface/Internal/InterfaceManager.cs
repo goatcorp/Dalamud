@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -6,6 +5,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.Unicode;
 using System.Threading;
 
 using Dalamud.Configuration.Internal;
@@ -716,6 +716,7 @@ internal class InterfaceManager : IDisposable, IServiceType
 
         var gameFontManager = Service<GameFontManager>.Get();
         var dalamud = Service<Dalamud>.Get();
+        var dconf = Service<DalamudConfiguration>.Get();
         var io = ImGui.GetIO();
         var ioFonts = io.Fonts;
 
@@ -744,8 +745,73 @@ internal class InterfaceManager : IDisposable, IServiceType
             
             var fullRangeHandle = GCHandle.Alloc(new ushort[] { 0x0001, 0xFFFF, 0 }, GCHandleType.Pinned);
             garbageList.Add(fullRangeHandle);
+            
+            var koreanRangeHandle = GCHandle.Alloc(new ushort[]
+            {
+                (ushort)UnicodeRanges.HangulJamo.FirstCodePoint,
+                (ushort)(UnicodeRanges.HangulJamo.FirstCodePoint +
+                         UnicodeRanges.HangulJamo.Length - 1),
 
-            var axisRangeHandle = gameFontManager.ToGlyphRanges(GameFontFamilyAndSize.Axis12);
+                (ushort)UnicodeRanges.HangulSyllables.FirstCodePoint,
+                (ushort)(UnicodeRanges.HangulSyllables.FirstCodePoint +
+                         UnicodeRanges.HangulSyllables.Length - 1),
+
+                (ushort)UnicodeRanges.HangulCompatibilityJamo.FirstCodePoint,
+                (ushort)(UnicodeRanges.HangulCompatibilityJamo.FirstCodePoint +
+                         UnicodeRanges.HangulCompatibilityJamo.Length - 1),
+                
+                (ushort)UnicodeRanges.HangulJamoExtendedA.FirstCodePoint,
+                (ushort)(UnicodeRanges.HangulJamoExtendedA.FirstCodePoint +
+                         UnicodeRanges.HangulJamoExtendedA.Length - 1),
+                
+                (ushort)UnicodeRanges.HangulJamoExtendedB.FirstCodePoint,
+                (ushort)(UnicodeRanges.HangulJamoExtendedB.FirstCodePoint +
+                         UnicodeRanges.HangulJamoExtendedB.Length - 1),
+                
+                0,
+            }, GCHandleType.Pinned);
+            garbageList.Add(koreanRangeHandle);
+
+            var cjkUnifiedIdeographsRangeHandle = GCHandle.Alloc(new ushort[]
+            {
+                // If adding Chinese characters, those fonts usually have Kanas with them.
+                // Mixing Kanas from one font and Chinese character from another looks messy,
+                // so we just overwrite Kanas from Chinese font.
+                (ushort)UnicodeRanges.Hiragana.FirstCodePoint,
+                (ushort)(UnicodeRanges.Hiragana.FirstCodePoint +
+                         UnicodeRanges.Hiragana.Length - 1),
+
+                (ushort)UnicodeRanges.Katakana.FirstCodePoint,
+                (ushort)(UnicodeRanges.Katakana.FirstCodePoint +
+                         UnicodeRanges.Katakana.Length - 1),
+
+                (ushort)UnicodeRanges.CjkUnifiedIdeographs.FirstCodePoint,
+                (ushort)(UnicodeRanges.CjkUnifiedIdeographs.FirstCodePoint +
+                         UnicodeRanges.CjkUnifiedIdeographs.Length - 1),
+                
+                (ushort)UnicodeRanges.CjkUnifiedIdeographsExtensionA.FirstCodePoint,
+                (ushort)(UnicodeRanges.CjkUnifiedIdeographsExtensionA.FirstCodePoint +
+                         UnicodeRanges.CjkUnifiedIdeographsExtensionA.Length - 1),
+                
+                0,
+            }, GCHandleType.Pinned);
+            garbageList.Add(cjkUnifiedIdeographsRangeHandle);
+
+            var ensureCharactersK = dconf.EnsureKoreanCharacters || dconf.EffectiveLanguage == "ko";
+            var ensureCharactersSc = dconf.EnsureSimplifiedChineseCharacters || dconf.EffectiveLanguage == "zh";
+            var ensureCharactersTc = dconf.EnsureTraditionalChineseCharacters || dconf.EffectiveLanguage == "tw";
+
+            var axisExclusions =
+                ensureCharactersSc || ensureCharactersTc
+                    ? new[]
+                    {
+                        UnicodeRanges.Hiragana,
+                        UnicodeRanges.Katakana,
+                        UnicodeRanges.CjkUnifiedIdeographs,
+                        UnicodeRanges.CjkUnifiedIdeographsExtensionA,
+                    }
+                    : Array.Empty<UnicodeRange>();
+            var axisRangeHandle = gameFontManager.ToGlyphRanges(GameFontFamilyAndSize.Axis12, axisExclusions);
             garbageList.Add(axisRangeHandle);
 
             fontConfig = ImGuiNative.ImFontConfig_ImFontConfig();
@@ -758,13 +824,6 @@ internal class InterfaceManager : IDisposable, IServiceType
             if (!File.Exists(fontPathJp))
                 ShowFontError(fontPathJp);
             Log.Verbose("[FONT] fontPathJp = {0}", fontPathJp);
-
-            var fontPathKr = Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "NotoSansCJKkr-Regular.otf");
-            if (!File.Exists(fontPathKr))
-                fontPathKr = Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "NotoSansKR-Regular.otf");
-            if (!File.Exists(fontPathKr))
-                fontPathKr = null;
-            Log.Verbose("[FONT] fontPathKr = {0}", fontPathKr);
 
             using var factory = new SharpDX.DirectWrite.Factory();
             using var fontCollection = factory.GetSystemFontCollection(false);
@@ -861,7 +920,7 @@ internal class InterfaceManager : IDisposable, IServiceType
                 }
             }
 
-            gameFontManager.BuildFonts();
+            gameFontManager.BuildFonts(axisExclusions);
 
             var customFontFirstConfigIndex = ioFonts.ConfigData.Size;
 
@@ -981,6 +1040,7 @@ internal class InterfaceManager : IDisposable, IServiceType
                 if (font.FindGlyphNoFallback(Fallback1Codepoint).NativePtr != null)
                     font.FallbackChar = Fallback1Codepoint;
 
+                GameFontManager.SnapFontKerningPixels(font);
                 font.BuildLookupTableNonstandard();
             }
 
@@ -1015,6 +1075,10 @@ internal class InterfaceManager : IDisposable, IServiceType
                 if (customRangeHandle != default)
                     garbageList.Add(customRangeHandle);
 
+                var glyphAvailK = false;
+                var glyphAvailSc = false;
+                var glyphAvailTc = false;
+
                 foreach (var fav in this.Font.FontChain)
                 {
                     if (fav == FontFamilyAndVariant.Empty || ignoreCustomDefaultFont)
@@ -1044,92 +1108,7 @@ internal class InterfaceManager : IDisposable, IServiceType
                     fontConfig.PixelSnapH = true;
                     if (customRangeHandle != default)
                         fontConfig.GlyphRanges = customRangeHandle.AddrOfPinnedObject();
-                    try
-                    {
-                        if (!fontCollection.FindFamilyName(fav.Name, out var fontFamilyIndex))
-                            throw new FileNotFoundException($"Corresponding font family not found");
-
-                        using var fontFamily = fontCollection.GetFontFamily(fontFamilyIndex);
-                        using var font = fontFamily.GetFirstMatchingFont(fav.Weight, fav.Stretch, fav.Style);
-                        using var fontFace = new SharpDX.DirectWrite.FontFace(font);
-                        using var files = fontFace.GetFiles().WrapDisposableElements();
-                        var localFontFileLoaderGuid = typeof(SharpDX.DirectWrite.LocalFontFileLoader).GUID;
-
-                        if (customRangeHandle != default)
-                        {
-                            fontConfig.GlyphRanges = customRangeHandle.AddrOfPinnedObject();
-                        }
-                        else
-                        {
-                            fontConfig.GlyphRanges = fullRangeHandle.AddrOfPinnedObject();
-                            // try
-                            // {
-                            //     using var font1 = font.QueryInterface<SharpDX.DirectWrite.Font1>();
-                            //     var rc = 0;
-                            //     try
-                            //     {
-                            //         font1.GetUnicodeRanges(0, Array.Empty<SharpDX.DirectWrite.UnicodeRange>(), out rc);
-                            //     }
-                            //     catch (SharpDXException sdxe) when
-                            //         (sdxe.HResult == unchecked((int)0x8007007a) && rc > 0)
-                            //     {
-                            //         // HRESULT_FROM_WIN32(ERROR_INSUFFICIENT_BUFFER); expected error
-                            //     }
-                            //
-                            //     var unicodeRanges = new SharpDX.DirectWrite.UnicodeRange[rc];
-                            //     font1.GetUnicodeRanges(unicodeRanges.Length, unicodeRanges, out _);
-                            //
-                            //     var imguiRanges = new ushort[(unicodeRanges.Length * 2) + 1];
-                            //     for (int i = 0, j = 0; i < rc; i++)
-                            //     {
-                            //         var (l, r) = (unicodeRanges[i].First, unicodeRanges[i].Last);
-                            //         l = Math.Clamp(l, 1, 0xFFFF);
-                            //         if (l > r)
-                            //             continue;
-                            //         r = Math.Clamp(r, 1, 0xFFFF);
-                            //         if (l > r)
-                            //             continue;
-                            //         imguiRanges[j++] = (ushort)l;
-                            //         imguiRanges[j++] = (ushort)r;
-                            //     }
-                            //
-                            //     var rangeHandle2 = GCHandle.Alloc(imguiRanges, GCHandleType.Pinned);
-                            //     garbageList.Add(rangeHandle2);
-                            //     fontConfig.GlyphRanges = rangeHandle2.AddrOfPinnedObject();
-                            // }
-                            // catch (SharpDXException sdex) when (sdex.HResult == unchecked((int)0x80004002))
-                            // {
-                            //     // E_NOINTERFACE; before Platform Update for Windows 7
-                            //     fontConfig.GlyphRanges = fullRangeHandle.AddrOfPinnedObject();
-                            // }
-                        }
-
-                        foreach (var file in files)
-                        {
-                            using var loader = file.Loader;
-                            loader.QueryInterface(ref localFontFileLoaderGuid, out var loaderIntPtr).CheckError();
-                            using var fontFileLoader = new SharpDX.DirectWrite.LocalFontFileLoader(loaderIntPtr);
-                            var path = fontFileLoader.GetFilePath(file.GetReferenceKey());
-                            fontConfig.FontNo = fontFace.Index;
-                            result = ioFonts.AddFontFromFileTTF(path, fontConfig.SizePixels, fontConfig);
-                            fontConfig.FontNo = 0;
-                            fontConfig.MergeMode = true;
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        Log.Error(e, "[FONT] Failed to load font: {font}.", fav);
-                    }
-                }
-
-                if (customRangeHandle == default &&
-                    fontPathKr != null &&
-                    Service<DalamudConfiguration>.Get().EffectiveLanguage == "ko")
-                {
-                    fontConfig.GlyphRanges = ioFonts.GetGlyphRangesKorean();
-                    fontConfig.PixelSnapH = true;
-                    ioFonts.AddFontFromFileTTF(fontPathKr, fontConfig.SizePixels, fontConfig);
-                    fontConfig.MergeMode = true;
+                    AddSystemFont(fav);
                 }
 
                 // failed to add any font so far; add the default font as fallback
@@ -1149,6 +1128,40 @@ internal class InterfaceManager : IDisposable, IServiceType
                         fontConfig.PixelSnapH = true;
                         result = ioFonts.AddFontFromFileTTF(fontPathJp, fontConfig.SizePixels, fontConfig);
                     }
+
+                    fontConfig.MergeMode = true;
+                }
+
+                if (!glyphAvailK && ensureCharactersK)
+                {
+                    fontConfig.GlyphRanges = customRangeHandle == default
+                                                 ? koreanRangeHandle.AddrOfPinnedObject()
+                                                 : customRangeHandle.AddrOfPinnedObject();
+                    fontConfig.PixelSnapH = true;
+                    _ = AddSystemFont(new("Source Han Sans K"))
+                        || AddSystemFont(new("Noto Sans KR"))
+                        || AddSystemFont(new("Malgun Gothic"))
+                        || AddSystemFont(new("Gulim"));
+                }
+
+                if (!glyphAvailSc && ensureCharactersSc)
+                {
+                    fontConfig.GlyphRanges = customRangeHandle == default
+                                                 ? cjkUnifiedIdeographsRangeHandle.AddrOfPinnedObject()
+                                                 : customRangeHandle.AddrOfPinnedObject();
+                    fontConfig.PixelSnapH = true;
+                    _ = AddSystemFont(new("Microsoft YaHei UI"))
+                        || AddSystemFont(new("Microsoft YaHei"));
+                }
+
+                if (!glyphAvailTc && ensureCharactersTc)
+                {
+                    fontConfig.GlyphRanges = customRangeHandle == default
+                                                 ? cjkUnifiedIdeographsRangeHandle.AddrOfPinnedObject()
+                                                 : customRangeHandle.AddrOfPinnedObject();
+                    fontConfig.PixelSnapH = true;
+                    _ = AddSystemFont(new("Microsoft JhengHei UI"))
+                        || AddSystemFont(new("Microsoft JhengHei"));
                 }
 
                 fontConfig.MergeMode = false;
@@ -1156,6 +1169,47 @@ internal class InterfaceManager : IDisposable, IServiceType
                 Debug.Assert(result.NativePtr != null, "result.NativePtr != null");
                 this.loadedFontInfo[result] = tfm;
                 return result;
+
+                bool AddSystemFont(FontFamilyAndVariant fav)
+                {
+                    try
+                    {
+                        if (!fontCollection.FindFamilyName(fav.Name, out var fontFamilyIndex))
+                            throw new FileNotFoundException($"Corresponding font family not found");
+
+                        using var fontFamily = fontCollection.GetFontFamily(fontFamilyIndex);
+                        using var font = fontFamily.GetFirstMatchingFont(fav.Weight, fav.Stretch, fav.Style);
+                        using var fontFace = new SharpDX.DirectWrite.FontFace(font);
+                        using var files = fontFace.GetFiles().WrapDisposableElements();
+                        var localFontFileLoaderGuid = typeof(SharpDX.DirectWrite.LocalFontFileLoader).GUID;
+
+                        fontConfig.GlyphRanges = customRangeHandle != default
+                                                     ? customRangeHandle.AddrOfPinnedObject()
+                                                     : fullRangeHandle.AddrOfPinnedObject();
+
+                        foreach (var file in files)
+                        {
+                            using var loader = file.Loader;
+                            loader.QueryInterface(ref localFontFileLoaderGuid, out var loaderIntPtr).CheckError();
+                            using var fontFileLoader = new SharpDX.DirectWrite.LocalFontFileLoader(loaderIntPtr);
+                            var path = fontFileLoader.GetFilePath(file.GetReferenceKey());
+                            fontConfig.FontNo = fontFace.Index;
+                            result = ioFonts.AddFontFromFileTTF(path, fontConfig.SizePixels, fontConfig);
+                            fontConfig.FontNo = 0;
+                            fontConfig.MergeMode = true;
+                        }
+
+                        glyphAvailK |= font.HasCharacter('기');
+                        glyphAvailSc |= font.HasCharacter('气');
+                        glyphAvailTc |= font.HasCharacter('氣');
+                        return true;
+                    }
+                    catch (Exception e)
+                    {
+                        Log.Error(e, "[FONT] Failed to load font: {font}.", fav);
+                        return false;
+                    }
+                }
             }
         }
         finally
@@ -1460,7 +1514,7 @@ internal class InterfaceManager : IDisposable, IServiceType
         /// </summary>
         public void ResetOverrides()
         {
-            this.UseAxisOverride = false;
+            this.UseAxisOverride = null;
             this.GammaOverride = null;
             this.FontChainOverride = null;
         }

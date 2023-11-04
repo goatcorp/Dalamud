@@ -147,6 +147,29 @@ public class SettingsTabLook : SettingsTab
                           v
                               ? PluginInstallerWindow.PluginInstallerOpenKind.InstalledPlugins
                               : PluginInstallerWindow.PluginInstallerOpenKind.AllPlugins),
+
+        new GapSettingsEntry(5, true),
+
+        new SettingsEntry<bool>(
+            Loc.Localize("DalamudSettingEnsureSimplifiedChinese", "Ensure Simplified Chinese (简体字始终显示)"),
+            Loc.Localize("DalamudSettingEnsureSimplifiedChineseHint",
+                         "Use default Windows fonts to ensure that Simplified Chinese characters are displayed."),
+            c => c.EnsureSimplifiedChineseCharacters,
+            (v, c) => c.EnsureSimplifiedChineseCharacters = v),
+
+        new SettingsEntry<bool>(
+            Loc.Localize("DalamudSettingEnsureTraditionalChinese", "Ensure Traditional Chinese (繁體字始終顯示)"),
+            Loc.Localize("DalamudSettingEnsureTraditionalChineseHint",
+                         "Use default Windows fonts to ensure that Traditional Chinese characters are displayed."),
+            c => c.EnsureTraditionalChineseCharacters,
+            (v, c) => c.EnsureTraditionalChineseCharacters = v),
+
+        new SettingsEntry<bool>(
+            Loc.Localize("DalamudSettingEnsureKorean", "Ensure Korean (한글 항상 표시)"),
+            Loc.Localize("DalamudSettingEnsureKoreanHint",
+                         "Use default Windows fonts to ensure that Korean characters are displayed."),
+            c => c.EnsureKoreanCharacters,
+            (v, c) => c.EnsureKoreanCharacters = v),
     };
 
     public override string Title => Loc.Localize("DalamudSettingsVisual", "Look & Feel");
