@@ -98,6 +98,27 @@ public static class Util
     }
 
     /// <summary>
+    /// Evaluates a function and turn exceptions into default value.
+    /// </summary>
+    /// <param name="fn">The function to call.</param>
+    /// <param name="log">Whether to log on error.</param>
+    /// <typeparam name="T">Return type.</typeparam>
+    /// <returns>Return value, or default.</returns>
+    public static T? DefaultIfError<T>(Func<T> fn, bool log = true)
+    {
+        try
+        {
+            return fn();
+        }
+        catch (Exception ex)
+        {
+            if (log)
+                Log.Error(ex, nameof(DefaultIfError));
+            return default;
+        }
+    }
+
+    /// <summary>
     /// Gets the git hash value from the assembly
     /// or null if it cannot be found.
     /// </summary>

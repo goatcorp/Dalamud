@@ -3,6 +3,7 @@ using System.Runtime.InteropServices;
 using System.Text.Unicode;
 
 using Dalamud.Interface.GameFonts;
+using Dalamud.Utility;
 
 namespace Dalamud.Interface.Utility;
 
@@ -27,81 +28,87 @@ internal sealed class ImGuiRangeHandles : IDisposable, IServiceType
         UnicodeRanges.CjkUnifiedIdeographsExtensionA,
     };
 
+    private readonly DisposeStack disposeStack = new();
+
     [ServiceManager.ServiceConstructor]
     private ImGuiRangeHandles(GameFontManager gameFontManager)
     {
-        this.Axis12 = gameFontManager.ToGlyphRanges(GameFontFamilyAndSize.Axis12);
-        this.Axis12WithoutJapanese = gameFontManager.ToGlyphRanges(GameFontFamilyAndSize.Axis12, ChineseRanges);
+        this.Dummy = this.disposeStack.Add(GCHandle.Alloc(new ushort[]
+        {
+            ' ', ' ',
+            0,
+        }, GCHandleType.Pinned));
+        this.Full = this.disposeStack.Add(GCHandle.Alloc(new ushort[]
+        {
+            0x0001, 0xFFFF,
+            0,
+        }, GCHandleType.Pinned));
+        this.FontAwesome = this.disposeStack.Add(GCHandle.Alloc(new ushort[]
+        {
+            0xE000, 0xF8FF,
+            0,
+        }, GCHandleType.Pinned));
+        this.Korean = this.disposeStack.Add(GCHandle.Alloc(new ushort[]
+        {
+            (ushort)UnicodeRanges.HangulJamo.FirstCodePoint,
+            (ushort)(UnicodeRanges.HangulJamo.FirstCodePoint +
+                     UnicodeRanges.HangulJamo.Length - 1),
+
+            (ushort)UnicodeRanges.HangulSyllables.FirstCodePoint,
+            (ushort)(UnicodeRanges.HangulSyllables.FirstCodePoint +
+                     UnicodeRanges.HangulSyllables.Length - 1),
+
+            (ushort)UnicodeRanges.HangulCompatibilityJamo.FirstCodePoint,
+            (ushort)(UnicodeRanges.HangulCompatibilityJamo.FirstCodePoint +
+                     UnicodeRanges.HangulCompatibilityJamo.Length - 1),
+
+            (ushort)UnicodeRanges.HangulJamoExtendedA.FirstCodePoint,
+            (ushort)(UnicodeRanges.HangulJamoExtendedA.FirstCodePoint +
+                     UnicodeRanges.HangulJamoExtendedA.Length - 1),
+
+            (ushort)UnicodeRanges.HangulJamoExtendedB.FirstCodePoint,
+            (ushort)(UnicodeRanges.HangulJamoExtendedB.FirstCodePoint +
+                     UnicodeRanges.HangulJamoExtendedB.Length - 1),
+
+            0,
+        }, GCHandleType.Pinned));
+        this.Chinese = this.disposeStack.Add(
+            GCHandle.Alloc(
+                ChineseRanges
+                    .SelectMany(x => new[] { (ushort)x.FirstCodePoint, (ushort)(x.FirstCodePoint + x.Length - 1) })
+                    .Append((ushort)0)
+                    .ToArray(),
+                GCHandleType.Pinned));
+        this.Axis12 =
+            this.disposeStack.Add(gameFontManager.ToGlyphRanges(GameFontFamilyAndSize.Axis12));
+        this.Axis12WithoutJapanese =
+            this.disposeStack.Add(gameFontManager.ToGlyphRanges(GameFontFamilyAndSize.Axis12, ChineseRanges));
     }
 
     /// <summary>
     /// Gets a rangle handle only containing a single space.
     /// </summary>
-    public GCHandle Dummy { get; } = GCHandle.Alloc(new ushort[]
-    {
-        ' ', ' ',
-        0,
-    }, GCHandleType.Pinned);
+    public GCHandle Dummy { get; }
 
     /// <summary>
     /// Gets a rangle handle containing all UCS-2 characters. 
     /// </summary>
-    public GCHandle Full { get; } = GCHandle.Alloc(new ushort[]
-    {
-        0x0001, 0xFFFF,
-        0,
-    }, GCHandleType.Pinned);
+    public GCHandle Full { get; }
 
     /// <summary>
     /// Gets a rangle handle containing range for FontAwesome.
     /// </summary>
-    public GCHandle FontAwesome { get; } = GCHandle.Alloc(new ushort[]
-    {
-        0xE000, 0xF8FF,
-        0,
-    }, GCHandleType.Pinned);
+    public GCHandle FontAwesome { get; }
 
     /// <summary>
     /// Gets a rangle handle containing all Korean characters. 
     /// </summary>
-    public GCHandle Korean { get; } = GCHandle.Alloc(new ushort[]
-    {
-        (ushort)UnicodeRanges.HangulJamo.FirstCodePoint,
-        (ushort)(UnicodeRanges.HangulJamo.FirstCodePoint +
-                 UnicodeRanges.HangulJamo.Length - 1),
-
-        (ushort)UnicodeRanges.HangulSyllables.FirstCodePoint,
-        (ushort)(UnicodeRanges.HangulSyllables.FirstCodePoint +
-                 UnicodeRanges.HangulSyllables.Length - 1),
-
-        (ushort)UnicodeRanges.HangulCompatibilityJamo.FirstCodePoint,
-        (ushort)(UnicodeRanges.HangulCompatibilityJamo.FirstCodePoint +
-                 UnicodeRanges.HangulCompatibilityJamo.Length - 1),
-
-        (ushort)UnicodeRanges.HangulJamoExtendedA.FirstCodePoint,
-        (ushort)(UnicodeRanges.HangulJamoExtendedA.FirstCodePoint +
-                 UnicodeRanges.HangulJamoExtendedA.Length - 1),
-
-        (ushort)UnicodeRanges.HangulJamoExtendedB.FirstCodePoint,
-        (ushort)(UnicodeRanges.HangulJamoExtendedB.FirstCodePoint +
-                 UnicodeRanges.HangulJamoExtendedB.Length - 1),
-
-        0,
-    }, GCHandleType.Pinned);
+    public GCHandle Korean { get; }
 
     /// <summary>
     /// Gets a rangle handle containing all Chinese characters and Kana. 
     /// </summary>
-    public GCHandle Chinese { get; } = GCHandle.Alloc(
-        ChineseRanges
-            .SelectMany(x => new[]
-            {
-                (ushort)x.FirstCodePoint,
-                (ushort)(x.FirstCodePoint + x.Length - 1),
-            })
-            .Append((ushort)0)
-            .ToArray(),
-        GCHandleType.Pinned);
+    public GCHandle Chinese { get; }
 
     /// <summary>
     /// Gets a rangle handle containing all default game characters. 
@@ -114,11 +121,5 @@ internal sealed class ImGuiRangeHandles : IDisposable, IServiceType
     public GCHandle Axis12WithoutJapanese { get; }
 
     /// <inheritdoc/>
-    public void Dispose()
-    {
-        this.Dummy.Free();
-        this.Full.Free();
-        this.Korean.Free();
-        this.Chinese.Free();
-    }
+    public void Dispose() => this.disposeStack.Dispose();
 }

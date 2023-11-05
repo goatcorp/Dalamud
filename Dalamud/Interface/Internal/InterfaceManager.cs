@@ -713,195 +713,208 @@ internal class InterfaceManager : IDisposable, IServiceType
     private unsafe bool SetupFonts(bool ignoreCustomDefaultFont)
     {
         using var setupFontsTimings = Timings.Start("IM SetupFonts");
+        var io = ImGui.GetIO();
+        var ioFonts = io.Fonts;
+
+        this.fontBuildSignal.Reset();
+
+        Log.Verbose("[FONT] SetupFonts - Clear Previous");
+        ioFonts.Clear();
+        ioFonts.TexDesiredWidth = 4096;
+        this.loadedFontInfo.Values.DisposeItems();
+        this.loadedFontInfo.Clear();
+
+        Log.Verbose("[FONT] SetupFonts - Start");
+        using var waste = new DisposeStack();
+
+        var factory = waste.Add(Util.DefaultIfError(() => new SharpDX.DirectWrite.Factory()));
+        var fontCollection = waste.Add(Util.DefaultIfError(() => factory?.GetSystemFontCollection(false)));
+        var resolvedFonts = new Dictionary<
+            FontFamilyAndVariant,
+            (SharpDX.DirectWrite.Font Font, string Path, int No)>();
 
         var gameFontManager = Service<GameFontManager>.Get();
         var dalamud = Service<Dalamud>.Get();
         var dconf = Service<DalamudConfiguration>.Get();
         var rangeHandles = Service<ImGuiRangeHandles>.Get();
 
-        var io = ImGui.GetIO();
-        var ioFonts = io.Fonts;
-
-        this.fontBuildSignal.Reset();
-        ioFonts.Clear();
-        ioFonts.TexDesiredWidth = 4096;
-
-        Log.Verbose("[FONT] SetupFonts - 1");
-
-        foreach (var v in this.loadedFontInfo)
-            v.Value.Dispose();
-
-        this.loadedFontInfo.Clear();
-
-        Log.Verbose("[FONT] SetupFonts - 2");
-
-        ImFontConfigPtr fontConfig = null;
-        List<GCHandle> garbageList = new();
-
-        try
+        var fontConfigStorage = new ImFontConfig
         {
-            var ensureCharactersK = dconf.EnsureKoreanCharacters || dconf.EffectiveLanguage == "ko";
-            var ensureCharactersSc = dconf.EnsureSimplifiedChineseCharacters || dconf.EffectiveLanguage == "zh";
-            var ensureCharactersTc = dconf.EnsureTraditionalChineseCharacters || dconf.EffectiveLanguage == "tw";
-            var ensureChinese = ensureCharactersSc || ensureCharactersTc;
-            var axisRangeHandle = ensureChinese ? rangeHandles.Axis12WithoutJapanese : rangeHandles.Axis12;
+            FontDataOwnedByAtlas = 1,
+            OversampleH = 1,
+            OversampleV = 1,
+            PixelSnapH = 1,
+            GlyphMaxAdvanceX = float.MaxValue,
+            RasterizerMultiply = 1,
+            RasterizerGamma = this.Font.Gamma,
+            EllipsisChar = ushort.MaxValue,
+        };
+        var fontConfig = new ImFontConfigPtr(&fontConfigStorage);
+        var ensureCharactersK = dconf.EnsureKoreanCharacters || dconf.EffectiveLanguage == "ko";
+        var ensureCharactersSc = dconf.EnsureSimplifiedChineseCharacters || dconf.EffectiveLanguage == "zh";
+        var ensureCharactersTc = dconf.EnsureTraditionalChineseCharacters || dconf.EffectiveLanguage == "tw";
+        var ensureChinese = ensureCharactersSc || ensureCharactersTc;
+        var axisRangeHandle = ensureChinese ? rangeHandles.Axis12WithoutJapanese : rangeHandles.Axis12;
 
-            fontConfig = ImGuiNative.ImFontConfig_ImFontConfig();
-            fontConfig.OversampleH = 1;
-            fontConfig.OversampleV = 1;
-            fontConfig.PixelSnapH = true;
+        var fontPathJp = Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "NotoSansCJKjp-Regular.otf");
+        if (!File.Exists(fontPathJp))
+            fontPathJp = Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "NotoSansCJKjp-Medium.otf");
+        if (!File.Exists(fontPathJp))
+            ShowFontError(fontPathJp);
+        Log.Verbose("[FONT] fontPathJp = {0}", fontPathJp);
 
-            var fontPathJp = Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "NotoSansCJKjp-Regular.otf");
-            if (!File.Exists(fontPathJp))
-                fontPathJp = Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "NotoSansCJKjp-Medium.otf");
-            if (!File.Exists(fontPathJp))
-                ShowFontError(fontPathJp);
-            Log.Verbose("[FONT] fontPathJp = {0}", fontPathJp);
+        // Default font
+        Log.Verbose("[FONT] SetupFonts - Default font");
+        DefaultFont = MakeFromFontChain(
+            "Default",
+            this.Font.UseAxis
+                ? TargetFontModification.AxisMode.Overwrite
+                : TargetFontModification.AxisMode.GameGlyphsOnly,
+            DefaultFontSizePx);
 
-            using var factory = new SharpDX.DirectWrite.Factory();
-            using var fontCollection = factory.GetSystemFontCollection(false);
+        // FontAwesome icon font
+        Log.Verbose("[FONT] SetupFonts - FontAwesome icon font");
+        {
+            var fontPathIcon = Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "FontAwesomeFreeSolid.otf");
+            if (!File.Exists(fontPathIcon))
+                ShowFontError(fontPathIcon);
 
-            // Default font
-            Log.Verbose("[FONT] SetupFonts - Default font");
-            DefaultFont = MakeFromFontChain(
-                "Default",
-                this.Font.UseAxis
-                    ? TargetFontModification.AxisMode.Overwrite
-                    : TargetFontModification.AxisMode.GameGlyphsOnly,
-                DefaultFontSizePx);
+            fontConfig.GlyphRanges = rangeHandles.FontAwesome.AddrOfPinnedObject();
+            fontConfig.FontNo = 0;
+            IconFont = ioFonts.AddFontFromFileTTF(fontPathIcon, DefaultFontSizePx * io.FontGlobalScale, fontConfig);
+            this.loadedFontInfo[IconFont] = new("Icon", TargetFontModification.AxisMode.GameGlyphsOnly,
+                                                DefaultFontSizePx, io.FontGlobalScale);
+        }
 
-            // FontAwesome icon font
-            Log.Verbose("[FONT] SetupFonts - FontAwesome icon font");
+        // Monospace font
+        Log.Verbose("[FONT] SetupFonts - Monospace font");
+        {
+            var fontPathMono = Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "Inconsolata-Regular.ttf");
+            if (!File.Exists(fontPathMono))
+                ShowFontError(fontPathMono);
+
+            fontConfig.GlyphRanges = IntPtr.Zero;
+            fontConfig.FontNo = 0;
+            MonoFont = ioFonts.AddFontFromFileTTF(fontPathMono, DefaultFontSizePx * io.FontGlobalScale, fontConfig);
+            this.loadedFontInfo[MonoFont] = new("Mono", TargetFontModification.AxisMode.GameGlyphsOnly,
+                                                DefaultFontSizePx, io.FontGlobalScale);
+        }
+
+        // Default font but in requested size for requested glyphs
+        Log.Verbose("[FONT] SetupFonts - Default font but in requested size for requested glyphs");
+        {
+            Dictionary<float, List<SpecialGlyphRequest>> extraFontRequests = new();
+            foreach (var extraFontRequest in this.glyphRequests)
             {
-                var fontPathIcon = Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "FontAwesomeFreeSolid.otf");
-                if (!File.Exists(fontPathIcon))
-                    ShowFontError(fontPathIcon);
-
-                fontConfig.GlyphRanges = rangeHandles.FontAwesome.AddrOfPinnedObject();
-                IconFont = ioFonts.AddFontFromFileTTF(fontPathIcon, DefaultFontSizePx * io.FontGlobalScale, fontConfig);
-                this.loadedFontInfo[IconFont] = new("Icon", TargetFontModification.AxisMode.GameGlyphsOnly, DefaultFontSizePx, io.FontGlobalScale);
+                if (!extraFontRequests.ContainsKey(extraFontRequest.Size))
+                    extraFontRequests[extraFontRequest.Size] = new();
+                extraFontRequests[extraFontRequest.Size].Add(extraFontRequest);
             }
 
-            // Monospace font
-            Log.Verbose("[FONT] SetupFonts - Monospace font");
+            var rangeBuilder = new ImGuiRangeBuilder();
+            foreach (var (fontSize, requests) in extraFontRequests)
             {
-                var fontPathMono = Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "Inconsolata-Regular.ttf");
-                if (!File.Exists(fontPathMono))
-                    ShowFontError(fontPathMono);
-
-                fontConfig.GlyphRanges = IntPtr.Zero;
-                MonoFont = ioFonts.AddFontFromFileTTF(fontPathMono, DefaultFontSizePx * io.FontGlobalScale, fontConfig);
-                this.loadedFontInfo[MonoFont] = new("Mono", TargetFontModification.AxisMode.GameGlyphsOnly, DefaultFontSizePx, io.FontGlobalScale);
+                var sizedFont = MakeFromFontChain(
+                    $"Requested({fontSize}px)",
+                    this.Font.UseAxis
+                        ? TargetFontModification.AxisMode.Overwrite
+                        : TargetFontModification.AxisMode.GameGlyphsOnly,
+                    fontSize,
+                    rangeBuilder
+                        .WithClear()
+                        .WithEnsureCapacity(4 + requests.Sum(x => x.CodepointRanges.Count))
+                        .With(Fallback1Codepoint, Fallback2Codepoint, 0x2026, 0x0085)
+                        .WithRanges(requests.SelectMany(y => y.CodepointRanges.Select(x => (x.Item1, x.Item2))))
+                        .Build());
+                foreach (var request in requests)
+                    request.FontInternal = sizedFont;
             }
+        }
 
-            // Default font but in requested size for requested glyphs
-            Log.Verbose("[FONT] SetupFonts - Default font but in requested size for requested glyphs");
+        gameFontManager.BuildFonts(ensureChinese ? ImGuiRangeHandles.ChineseRanges : Array.Empty<UnicodeRange>());
+
+        var customFontFirstConfigIndex = ioFonts.ConfigData.Size;
+
+        Log.Verbose("[FONT] Invoke OnBuildFonts");
+        this.BuildFonts?.InvokeSafely();
+        Log.Verbose("[FONT] OnBuildFonts OK!");
+
+        foreach (var config in ioFonts.ConfigData.AsEnumerable().Skip(customFontFirstConfigIndex))
+        {
+            if (gameFontManager.OwnsFont(config.DstFont))
+                continue;
+
+            config.OversampleH = 1;
+            config.OversampleV = 1;
+
+            var name = Encoding.UTF8.GetString((byte*)config.Name.Data, config.Name.Count).TrimEnd('\0');
+            if (name.IsNullOrEmpty())
+                name = $"{config.SizePixels}px";
+
+            // ImFont information is reflected only if corresponding ImFontConfig has MergeMode not set.
+            if (config.MergeMode)
             {
-                Dictionary<float, List<SpecialGlyphRequest>> extraFontRequests = new();
-                foreach (var extraFontRequest in this.glyphRequests)
+                if (!this.loadedFontInfo.ContainsKey(config.DstFont.NativePtr))
                 {
-                    if (!extraFontRequests.ContainsKey(extraFontRequest.Size))
-                        extraFontRequests[extraFontRequest.Size] = new();
-                    extraFontRequests[extraFontRequest.Size].Add(extraFontRequest);
-                }
-
-                var rangeBuilder = new ImGuiRangeBuilder();
-                foreach (var (fontSize, requests) in extraFontRequests)
-                {
-                    var sizedFont = MakeFromFontChain(
-                        $"Requested({fontSize}px)",
-                        this.Font.UseAxis ? TargetFontModification.AxisMode.Overwrite : TargetFontModification.AxisMode.GameGlyphsOnly,
-                        fontSize,
-                        rangeBuilder
-                            .WithClear()
-                            .WithEnsureCapacity(4 + requests.Sum(x => x.CodepointRanges.Count))
-                            .With(Fallback1Codepoint, Fallback2Codepoint, 0x2026, 0x0085)
-                            .WithRanges(requests.SelectMany(y => y.CodepointRanges.Select(x => (x.Item1, x.Item2))))
-                            .Build());
-                    foreach (var request in requests)
-                        request.FontInternal = sizedFont;
-                }
-            }
-
-            gameFontManager.BuildFonts(ensureChinese ? ImGuiRangeHandles.ChineseRanges : Array.Empty<UnicodeRange>());
-
-            var customFontFirstConfigIndex = ioFonts.ConfigData.Size;
-
-            Log.Verbose("[FONT] Invoke OnBuildFonts");
-            this.BuildFonts?.InvokeSafely();
-            Log.Verbose("[FONT] OnBuildFonts OK!");
-
-            foreach (var config in ioFonts.ConfigData.AsEnumerable().Skip(customFontFirstConfigIndex))
-            {
-                if (gameFontManager.OwnsFont(config.DstFont))
+                    Log.Warning("MergeMode specified for {0} but not found in loadedFontInfo. Skipping.", name);
                     continue;
-
-                config.OversampleH = 1;
-                config.OversampleV = 1;
-
-                var name = Encoding.UTF8.GetString((byte*)config.Name.Data, config.Name.Count).TrimEnd('\0');
-                if (name.IsNullOrEmpty())
-                    name = $"{config.SizePixels}px";
-
-                // ImFont information is reflected only if corresponding ImFontConfig has MergeMode not set.
-                if (config.MergeMode)
-                {
-                    if (!this.loadedFontInfo.ContainsKey(config.DstFont.NativePtr))
-                    {
-                        Log.Warning("MergeMode specified for {0} but not found in loadedFontInfo. Skipping.", name);
-                        continue;
-                    }
                 }
-                else
+            }
+            else
+            {
+                if (this.loadedFontInfo.ContainsKey(config.DstFont.NativePtr))
                 {
-                    if (this.loadedFontInfo.ContainsKey(config.DstFont.NativePtr))
-                    {
-                        Log.Warning("MergeMode not specified for {0} but found in loadedFontInfo. Skipping.", name);
-                        continue;
-                    }
-
-                    // While the font will be loaded in the scaled size after FontScale is applied, the font will be treated as having the requested size when used from plugins.
-                    this.loadedFontInfo[config.DstFont.NativePtr] = new($"PlReq({name})", config.SizePixels);
+                    Log.Warning("MergeMode not specified for {0} but found in loadedFontInfo. Skipping.", name);
+                    continue;
                 }
 
-                config.SizePixels *= io.FontGlobalScale;
+                // While the font will be loaded in the scaled size after FontScale is applied, the font will be treated as having the requested size when used from plugins.
+                this.loadedFontInfo[config.DstFont.NativePtr] = new($"PlReq({name})", config.SizePixels);
             }
 
-            foreach (var config in ioFonts.ConfigData.AsEnumerable())
-                config.RasterizerGamma *= this.Font.Gamma;
+            config.SizePixels *= io.FontGlobalScale;
+        }
 
-            Log.Verbose("[FONT] ImGui.IO.Build will be called.");
-            if (!ioFonts.Build())
-                return false;
+        // TODO: Remove
+        // foreach (var config in ioFonts.ConfigData.AsEnumerable())
+        //     config.RasterizerGamma *= this.Font.Gamma;
 
-            gameFontManager.AfterIoFontsBuild();
-            this.ClearStacks();
-            Log.Verbose("[FONT] ImGui.IO.Build OK!");
+        Log.Verbose("[FONT] ImGui.IO.Build will be called.");
+        if (!ioFonts.Build())
+            return false;
 
-            gameFontManager.AfterBuildFonts();
+        gameFontManager.AfterIoFontsBuild();
+        this.ClearStacks();
+        Log.Verbose("[FONT] ImGui.IO.Build OK!");
 
-            foreach (var (font, mod) in this.loadedFontInfo)
+        gameFontManager.AfterBuildFonts();
+
+        foreach (var (font, mod) in this.loadedFontInfo)
+        {
+            // I have no idea what's causing NPE, so just to be safe
+            try
             {
-                // I have no idea what's causing NPE, so just to be safe
-                try
+                if (font.NativePtr != null && font.NativePtr->ConfigData != null)
                 {
-                    if (font.NativePtr != null && font.NativePtr->ConfigData != null)
-                    {
-                        var nameBytes = Encoding.UTF8.GetBytes($"{mod.Name}\0");
-                        Marshal.Copy(nameBytes, 0, (IntPtr)font.ConfigData.Name.Data, Math.Min(nameBytes.Length, font.ConfigData.Name.Count));
-                    }
+                    var nameBytes = Encoding.UTF8.GetBytes($"{mod.Name}\0");
+                    Marshal.Copy(nameBytes, 0, (IntPtr)font.ConfigData.Name.Data,
+                                 Math.Min(nameBytes.Length, font.ConfigData.Name.Count));
                 }
-                catch (NullReferenceException)
-                {
-                    // do nothing
-                }
+            }
+            catch (NullReferenceException)
+            {
+                // do nothing
+            }
 
-                Log.Verbose("[FONT] {0}: Unscale with scale value of {1}", mod.Name, mod.Scale);
-                GameFontManager.UnscaleFont(font, mod.Scale, false);
+            Log.Verbose("[FONT] {0}: Unscale with scale value of {1}", mod.Name, mod.Scale);
+            GameFontManager.UnscaleFont(font, mod.Scale, false);
 
-                if (mod.Axis == TargetFontModification.AxisMode.Overwrite)
+            switch (mod.Axis)
+            {
+                case TargetFontModification.AxisMode.Overwrite:
                 {
-                    Log.Verbose("[FONT] {0}: Overwrite from AXIS of size {1}px (was {2}px)", mod.Name, mod.SourceAxis.ImFont.FontSize, font.FontSize);
+                    Log.Verbose("[FONT] {0}: Overwrite from AXIS of size {1}px (was {2}px)",
+                                mod.Name, mod.SourceAxis.ImFont.FontSize, font.FontSize);
                     GameFontManager.UnscaleFont(font, font.FontSize / mod.SourceAxis.ImFont.FontSize, false);
                     var ascentDiff = mod.SourceAxis.ImFont.Ascent - font.Ascent;
                     font.Ascent += ascentDiff;
@@ -909,105 +922,81 @@ internal class InterfaceManager : IDisposable, IServiceType
                     font.FallbackChar = mod.SourceAxis.ImFont.FallbackChar;
                     font.EllipsisChar = mod.SourceAxis.ImFont.EllipsisChar;
                     ImGuiHelpers.CopyGlyphsAcrossFonts(mod.SourceAxis.ImFont, font, false, false);
+                    break;
                 }
-                else if (mod.Axis == TargetFontModification.AxisMode.GameGlyphsOnly)
+
+                case TargetFontModification.AxisMode.GameGlyphsOnly:
                 {
-                    Log.Verbose("[FONT] {0}: Overwrite game specific glyphs from AXIS of size {1}px", mod.Name, mod.SourceAxis.ImFont.FontSize, font.FontSize);
+                    Log.Verbose("[FONT] {0}: Overwrite game specific glyphs from AXIS of size {1}px",
+                                mod.Name, mod.SourceAxis.ImFont.FontSize);
                     if (!this.Font.UseAxis && font.NativePtr == DefaultFont.NativePtr)
                         mod.SourceAxis.ImFont.FontSize -= 1;
                     ImGuiHelpers.CopyGlyphsAcrossFonts(mod.SourceAxis.ImFont, font, true, false, 0xE020, 0xE0DB);
                     if (!this.Font.UseAxis && font.NativePtr == DefaultFont.NativePtr)
                         mod.SourceAxis.ImFont.FontSize += 1;
+                    break;
                 }
-
-                Log.Verbose("[FONT] {0}: Resize from {1}px to {2}px", mod.Name, font.FontSize, mod.TargetSizePx);
-                GameFontManager.UnscaleFont(font, font.FontSize / mod.TargetSizePx, false);
             }
 
-            // Fill missing glyphs in MonoFont from DefaultFont
-            ImGuiHelpers.CopyGlyphsAcrossFonts(DefaultFont, MonoFont, true, false);
+            Log.Verbose("[FONT] {0}: Resize from {1}px to {2}px", mod.Name, font.FontSize, mod.TargetSizePx);
+            GameFontManager.UnscaleFont(font, font.FontSize / mod.TargetSizePx, false);
+        }
 
-            foreach (ref var font in ioFonts.Fonts.AsSpan())
+        // Fill missing glyphs in MonoFont from DefaultFont
+        ImGuiHelpers.CopyGlyphsAcrossFonts(DefaultFont, MonoFont, true, false);
+
+        foreach (ref var font in ioFonts.Fonts.AsSpan())
+        {
+            if (font.Glyphs.Size == 0)
             {
-                if (font.Glyphs.Size == 0)
-                {
-                    Log.Warning("[FONT] Font has no glyph: {0}", font.GetDebugName());
-                    continue;
-                }
-
-                if (font.FindGlyphNoFallback(Fallback1Codepoint).NativePtr != null)
-                    font.FallbackChar = Fallback1Codepoint;
-
-                GameFontManager.SnapFontKerningPixels(font);
-                font.BuildLookupTableNonstandard();
+                Log.Warning("[FONT] Font has no glyph: {0}", font.GetDebugName());
+                continue;
             }
 
-            Log.Verbose("[FONT] Invoke OnAfterBuildFonts");
-            this.AfterBuildFonts?.InvokeSafely();
-            Log.Verbose("[FONT] OnAfterBuildFonts OK!");
+            if (font.FindGlyphNoFallback(Fallback1Codepoint).NativePtr != null)
+                font.FallbackChar = Fallback1Codepoint;
 
-            if (ioFonts.Fonts[0].NativePtr != DefaultFont.NativePtr)
-                Log.Warning("[FONT] First font is not DefaultFont");
+            GameFontManager.SnapFontKerningPixels(font);
+            font.BuildLookupTableNonstandard();
+        }
 
-            Log.Verbose("[FONT] Fonts built!");
+        Log.Verbose("[FONT] Invoke OnAfterBuildFonts");
+        this.AfterBuildFonts?.InvokeSafely();
+        Log.Verbose("[FONT] OnAfterBuildFonts OK!");
 
-            this.fontBuildSignal.Set();
+        if (ioFonts.Fonts[0].NativePtr != DefaultFont.NativePtr)
+            Log.Warning("[FONT] First font is not DefaultFont");
 
-            this.FontsReady = true;
+        Log.Verbose("[FONT] Fonts built!");
 
-            ImFontPtr MakeFromFontChain(
-                string name,
-                TargetFontModification.AxisMode axis,
-                float sizePx,
-                ushort[]? customRanges = null)
+        this.fontBuildSignal.Set();
+
+        this.FontsReady = true;
+
+        ImFontPtr MakeFromFontChain(
+            string name,
+            TargetFontModification.AxisMode axis,
+            float sizePx,
+            ushort[]? customRanges = null)
+        {
+            TargetFontModification tfm = new(name, axis, sizePx, io.FontGlobalScale);
+            ImFontPtr result = default;
+
+            fontConfig.SizePixels = tfm.TargetSizePx * io.FontGlobalScale;
+            fontConfig.MergeMode = false;
+
+            var customRangeHandle = waste.Add(
+                customRanges == null
+                    ? default
+                    : GCHandle.Alloc(customRanges, GCHandleType.Pinned));
+
+            var glyphAvailK = false;
+            var glyphAvailSc = false;
+            var glyphAvailTc = false;
+
+            foreach (var fav in this.Font.FontChain)
             {
-                TargetFontModification tfm = new(name, axis, sizePx, io.FontGlobalScale);
-                ImFontPtr result;
-
-                fontConfig.SizePixels = tfm.TargetSizePx * io.FontGlobalScale;
-                fontConfig.MergeMode = false;
-                
-                var customRangeHandle = customRanges == null
-                                            ? default
-                                            : GCHandle.Alloc(customRanges, GCHandleType.Pinned);
-                if (customRangeHandle != default)
-                    garbageList.Add(customRangeHandle);
-
-                var glyphAvailK = false;
-                var glyphAvailSc = false;
-                var glyphAvailTc = false;
-
-                foreach (var fav in this.Font.FontChain)
-                {
-                    if (fav == FontFamilyAndVariant.Empty || ignoreCustomDefaultFont)
-                    {
-                        if (this.Font.UseAxis)
-                        {
-                            fontConfig.GlyphRanges = rangeHandles.Dummy.AddrOfPinnedObject();
-                            result = ioFonts.AddFontDefault(fontConfig);
-                        }
-                        else
-                        {
-                            fontConfig.GlyphRanges = customRangeHandle != default
-                                                         ? customRangeHandle.AddrOfPinnedObject()
-                                                         : axisRangeHandle.AddrOfPinnedObject();
-                            result = ioFonts.AddFontFromFileTTF(fontPathJp, fontConfig.SizePixels, fontConfig);
-                        }
-
-                        fontConfig.MergeMode = true;
-                        
-                        if (ignoreCustomDefaultFont)
-                            break;
-                        continue;
-                    }
-
-                    if (customRangeHandle != default)
-                        fontConfig.GlyphRanges = customRangeHandle.AddrOfPinnedObject();
-                    AddSystemFont(fav);
-                }
-
-                // failed to add any font so far; add the default font as fallback
-                if (!fontConfig.MergeMode)
+                if (fav == FontFamilyAndVariant.Empty || ignoreCustomDefaultFont)
                 {
                     if (this.Font.UseAxis)
                     {
@@ -1019,96 +1008,128 @@ internal class InterfaceManager : IDisposable, IServiceType
                         fontConfig.GlyphRanges = customRangeHandle != default
                                                      ? customRangeHandle.AddrOfPinnedObject()
                                                      : axisRangeHandle.AddrOfPinnedObject();
+                        fontConfig.FontNo = 0;
                         result = ioFonts.AddFontFromFileTTF(fontPathJp, fontConfig.SizePixels, fontConfig);
                     }
 
                     fontConfig.MergeMode = true;
+
+                    if (ignoreCustomDefaultFont)
+                        break;
+                    continue;
                 }
 
-                if (!glyphAvailK && ensureCharactersK)
+                if (customRangeHandle != default)
+                    fontConfig.GlyphRanges = customRangeHandle.AddrOfPinnedObject();
+                AddSystemFont(fav);
+                fontConfig.MergeMode = true;
+            }
+
+            // failed to add any font so far; add the default font as fallback
+            if (!fontConfig.MergeMode)
+            {
+                if (this.Font.UseAxis)
                 {
-                    fontConfig.GlyphRanges = customRangeHandle == default
-                                                 ? rangeHandles.Korean.AddrOfPinnedObject()
-                                                 : customRangeHandle.AddrOfPinnedObject();
-                    _ = AddSystemFont(new("Source Han Sans K"))
-                        || AddSystemFont(new("Noto Sans KR"))
-                        || AddSystemFont(new("Malgun Gothic"))
-                        || AddSystemFont(new("Gulim"));
+                    fontConfig.GlyphRanges = rangeHandles.Dummy.AddrOfPinnedObject();
+                    result = ioFonts.AddFontDefault(fontConfig);
+                }
+                else
+                {
+                    fontConfig.GlyphRanges = customRangeHandle != default
+                                                 ? customRangeHandle.AddrOfPinnedObject()
+                                                 : axisRangeHandle.AddrOfPinnedObject();
+                    fontConfig.FontNo = 0;
+                    result = ioFonts.AddFontFromFileTTF(fontPathJp, fontConfig.SizePixels, fontConfig);
                 }
 
-                if (!glyphAvailSc && ensureCharactersSc)
+                fontConfig.MergeMode = true;
+            }
+
+            if (!glyphAvailK && ensureCharactersK)
+            {
+                fontConfig.GlyphRanges = customRangeHandle == default
+                                             ? rangeHandles.Korean.AddrOfPinnedObject()
+                                             : customRangeHandle.AddrOfPinnedObject();
+                _ = AddSystemFont(new("Source Han Sans K"))
+                    || AddSystemFont(new("Noto Sans KR"))
+                    || AddSystemFont(new("Malgun Gothic"))
+                    || AddSystemFont(new("Gulim"));
+            }
+
+            if (!glyphAvailSc && ensureCharactersSc)
+            {
+                fontConfig.GlyphRanges = customRangeHandle == default
+                                             ? rangeHandles.Chinese.AddrOfPinnedObject()
+                                             : customRangeHandle.AddrOfPinnedObject();
+                _ = AddSystemFont(new("Microsoft YaHei UI"))
+                    || AddSystemFont(new("Microsoft YaHei"));
+            }
+
+            if (!glyphAvailTc && ensureCharactersTc)
+            {
+                fontConfig.GlyphRanges = customRangeHandle == default
+                                             ? rangeHandles.Chinese.AddrOfPinnedObject()
+                                             : customRangeHandle.AddrOfPinnedObject();
+                _ = AddSystemFont(new("Microsoft JhengHei UI"))
+                    || AddSystemFont(new("Microsoft JhengHei"));
+            }
+
+            fontConfig.MergeMode = false;
+
+            Debug.Assert(result.NativePtr != null, "result.NativePtr != null");
+            this.loadedFontInfo[result] = tfm;
+            return result;
+
+            bool AddSystemFont(FontFamilyAndVariant fav)
+            {
+                if (fontCollection is null)
+                    return false;
+                if (!resolvedFonts.TryGetValue(fav, out var resolved))
                 {
-                    fontConfig.GlyphRanges = customRangeHandle == default
-                                                 ? rangeHandles.Chinese.AddrOfPinnedObject()
-                                                 : customRangeHandle.AddrOfPinnedObject();
-                    _ = AddSystemFont(new("Microsoft YaHei UI"))
-                        || AddSystemFont(new("Microsoft YaHei"));
-                }
-
-                if (!glyphAvailTc && ensureCharactersTc)
-                {
-                    fontConfig.GlyphRanges = customRangeHandle == default
-                                                 ? rangeHandles.Chinese.AddrOfPinnedObject()
-                                                 : customRangeHandle.AddrOfPinnedObject();
-                    _ = AddSystemFont(new("Microsoft JhengHei UI"))
-                        || AddSystemFont(new("Microsoft JhengHei"));
-                }
-
-                fontConfig.MergeMode = false;
-
-                Debug.Assert(result.NativePtr != null, "result.NativePtr != null");
-                this.loadedFontInfo[result] = tfm;
-                return result;
-
-                bool AddSystemFont(FontFamilyAndVariant fav)
-                {
+                    resolved = default;
                     try
                     {
                         if (!fontCollection.FindFamilyName(fav.Name, out var fontFamilyIndex))
                             throw new FileNotFoundException($"Corresponding font family not found");
 
                         using var fontFamily = fontCollection.GetFontFamily(fontFamilyIndex);
-                        using var font = fontFamily.GetFirstMatchingFont(fav.Weight, fav.Stretch, fav.Style);
-                        using var fontFace = new SharpDX.DirectWrite.FontFace(font);
+                        resolved.Font = waste.Add(
+                            fontFamily.GetFirstMatchingFont(fav.Weight, fav.Stretch, fav.Style));
+
+                        using var fontFace = new SharpDX.DirectWrite.FontFace(resolved.Font);
+                        resolved.No = fontFace.Index;
+
                         using var files = fontFace.GetFiles().WrapDisposableElements();
                         var localFontFileLoaderGuid = typeof(SharpDX.DirectWrite.LocalFontFileLoader).GUID;
-
-                        fontConfig.GlyphRanges = customRangeHandle != default
-                                                     ? customRangeHandle.AddrOfPinnedObject()
-                                                     : rangeHandles.Full.AddrOfPinnedObject();
-
-                        foreach (var file in files)
-                        {
-                            using var loader = file.Loader;
-                            loader.QueryInterface(ref localFontFileLoaderGuid, out var loaderIntPtr).CheckError();
-                            using var fontFileLoader = new SharpDX.DirectWrite.LocalFontFileLoader(loaderIntPtr);
-                            var path = fontFileLoader.GetFilePath(file.GetReferenceKey());
-                            fontConfig.FontNo = fontFace.Index;
-                            result = ioFonts.AddFontFromFileTTF(path, fontConfig.SizePixels, fontConfig);
-                            fontConfig.FontNo = 0;
-                            fontConfig.MergeMode = true;
-                        }
-
-                        glyphAvailK |= font.HasCharacter('기');
-                        glyphAvailSc |= font.HasCharacter('气');
-                        glyphAvailTc |= font.HasCharacter('氣');
-                        return true;
+                        
+                        var file = files.Single();
+                        using var loader = file.Loader;
+                        loader.QueryInterface(ref localFontFileLoaderGuid, out var loaderIntPtr).CheckError();
+                        using var fontFileLoader = new SharpDX.DirectWrite.LocalFontFileLoader(loaderIntPtr);
+                        resolved.Path = fontFileLoader.GetFilePath(file.GetReferenceKey());
+                        resolvedFonts.Add(fav, resolved);
                     }
                     catch (Exception e)
                     {
                         Log.Error(e, "[FONT] Failed to load font: {font}.", fav);
-                        return false;
+                        resolved.No = -1;
                     }
                 }
-            }
-        }
-        finally
-        {
-            if (fontConfig.NativePtr != null)
-                fontConfig.Destroy();
+            
+                if (resolved.No == -1)
+                    return false;
 
-            foreach (var garbage in garbageList)
-                garbage.Free();
+                fontConfig.GlyphRanges = customRangeHandle != default
+                                             ? customRangeHandle.AddrOfPinnedObject()
+                                             : rangeHandles.Full.AddrOfPinnedObject();
+                fontConfig.FontNo = resolved.No;
+                result = ioFonts.AddFontFromFileTTF(resolved.Path, fontConfig.SizePixels, fontConfig);
+
+                glyphAvailK |= resolved.Font.HasCharacter('기');
+                glyphAvailSc |= resolved.Font.HasCharacter('气');
+                glyphAvailTc |= resolved.Font.HasCharacter('氣');
+                return true;
+            }
         }
 
         return true;

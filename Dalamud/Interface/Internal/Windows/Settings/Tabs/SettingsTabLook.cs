@@ -15,6 +15,7 @@ using Dalamud.Utility;
 using ImGuiNET;
 using Serilog;
 using SharpDX.DirectWrite;
+
 using FontStretch = SharpDX.DirectWrite.FontStretch;
 using FontStyle = SharpDX.DirectWrite.FontStyle;
 using FontWeight = SharpDX.DirectWrite.FontWeight;

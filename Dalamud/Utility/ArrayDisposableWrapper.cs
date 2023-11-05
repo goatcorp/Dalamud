@@ -5,7 +5,7 @@ using System.Linq;
 namespace Dalamud.Utility;
 
 /// <summary>
-/// Wrapper for an array of <see cref="T"/> where <see cref="T"/> is an <see cref="IDisposable"/>.
+/// Wrapper for an array of T where T is an <see cref="IDisposable"/>.
 /// </summary>
 /// <typeparam name="T">The inner type.</typeparam>
 public sealed class ArrayDisposableWrapper<T> : IReadOnlyList<T>, IDisposable where T : IDisposable
@@ -34,10 +34,10 @@ public sealed class ArrayDisposableWrapper<T> : IReadOnlyList<T>, IDisposable wh
             x.Dispose();
     }
 
-    /// <inheritdoc/>
+    /// <inheritdoc cref="IEnumerable.GetEnumerator"/>
     public IEnumerator<T> GetEnumerator() => this.Backing.AsEnumerable().GetEnumerator();
 
-    /// <inheritdoc/>
+    /// <inheritdoc cref="IEnumerable.GetEnumerator"/>
     IEnumerator IEnumerable.GetEnumerator() => this.Backing.GetEnumerator();
 }
 
@@ -47,7 +47,7 @@ public sealed class ArrayDisposableWrapper<T> : IReadOnlyList<T>, IDisposable wh
 public static class ArrayDisposableWrapper
 {
     /// <summary>
-    /// Wrap an array with disposable elements with a new <see cref="ArrayDisposableWrapper{T}"/>
+    /// Wrap an array with disposable elements with a new <see cref="ArrayDisposableWrapper{T}"/>.
     /// </summary>
     /// <param name="array">The underlying array.</param>
     /// <typeparam name="T">Type of element.</typeparam>

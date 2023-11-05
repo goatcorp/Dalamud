@@ -22,6 +22,31 @@ internal static class ArrayExtensions
     public static IEnumerable<int> WithoutValue<T>(this IEnumerable<(T Value, int Index)> list)
         => list.Select(x => x.Index);
 
+    /// <summary>
+    /// Dispose all items in the given enumerable.
+    /// </summary>
+    /// <param name="array">The enumerable.</param>
+    /// <typeparam name="T">Disposable type.</typeparam>
+    public static void DisposeItems<T>(this IEnumerable<T> array)
+        where T : IDisposable 
+    {
+        List<Exception>? excs = null;
+        foreach (var x in array)
+        {
+            try
+            {
+                x.Dispose();
+            }
+            catch (Exception ex)
+            {
+                (excs ??= new()).Add(ex);
+            }
+        }
+
+        if (excs is not null)
+            throw excs.Count == 1 ? excs[0] : new AggregateException(excs);
+    }
+
     // Find the index of the first object fulfilling predicate's criteria in the given list.
     // Returns -1 if no such object is found.
     public static int IndexOf<T>(this IEnumerable<T> array, Predicate<T> predicate)
