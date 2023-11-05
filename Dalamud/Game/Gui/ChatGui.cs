@@ -1,29 +1,36 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 
 using Dalamud.Configuration.Internal;
-using Dalamud.Game.Libc;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Hooking;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
+using Dalamud.Logging.Internal;
+using Dalamud.Memory;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility;
-using Serilog;
+using FFXIVClientStructs.FFXIV.Client.System.String;
+using FFXIVClientStructs.FFXIV.Client.UI.Misc;
 
 namespace Dalamud.Game.Gui;
+
+// TODO(api10): Update IChatGui, ChatGui and XivChatEntry to use correct types and names:
+//  "uint SenderId" should be "int Timestamp".
+//  "IntPtr Parameters" should be something like "bool Silent". It suppresses new message sounds in certain channels.
 
 /// <summary>
 /// This class handles interacting with the native chat UI.
 /// </summary>
 [InterfaceVersion("1.0")]
 [ServiceManager.BlockingEarlyLoadedService]
-internal sealed class ChatGui : IDisposable, IServiceType, IChatGui
+internal sealed unsafe class ChatGui : IDisposable, IServiceType, IChatGui
 {
+    private static readonly ModuleLog Log = new("ChatGui");
+
     private readonly ChatGuiAddressResolver address;
 
     private readonly Queue<XivChatEntry> chatQueue = new();
@@ -36,24 +43,19 @@ internal sealed class ChatGui : IDisposable, IServiceType, IChatGui
     [ServiceManager.ServiceDependency]
     private readonly DalamudConfiguration configuration = Service<DalamudConfiguration>.Get();
 
-    [ServiceManager.ServiceDependency]
-    private readonly LibcFunction libcFunction = Service<LibcFunction>.Get();
-
-    private IntPtr baseAddress = IntPtr.Zero;
-
     [ServiceManager.ServiceConstructor]
     private ChatGui(TargetSigScanner sigScanner)
     {
         this.address = new ChatGuiAddressResolver();
         this.address.Setup(sigScanner);
 
-        this.printMessageHook = Hook<PrintMessageDelegate>.FromAddress(this.address.PrintMessage, this.HandlePrintMessageDetour);
+        this.printMessageHook = Hook<PrintMessageDelegate>.FromAddress((nint)RaptureLogModule.Addresses.PrintMessage.Value, this.HandlePrintMessageDetour);
         this.populateItemLinkHook = Hook<PopulateItemLinkDelegate>.FromAddress(this.address.PopulateItemLinkObject, this.HandlePopulateItemLinkDetour);
         this.interactableLinkClickedHook = Hook<InteractableLinkClickedDelegate>.FromAddress(this.address.InteractableLinkClicked, this.InteractableLinkClickedDetour);
     }
     
     [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
-    private delegate IntPtr PrintMessageDelegate(IntPtr manager, XivChatType chatType, IntPtr senderName, IntPtr message, uint senderId, IntPtr parameter);
+    private delegate uint PrintMessageDelegate(RaptureLogModule* manager, XivChatType chatType, Utf8String* sender, Utf8String* message, int timestamp, bool silent);
 
     [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
     private delegate void PopulateItemLinkDelegate(IntPtr linkObjectPtr, IntPtr itemInfoPtr);
@@ -131,18 +133,13 @@ internal sealed class ChatGui : IDisposable, IServiceType, IChatGui
         {
             var chat = this.chatQueue.Dequeue();
 
-            if (this.baseAddress == IntPtr.Zero)
-            {
-                continue;
-            }
+            var sender = Utf8String.FromSequence(chat.Name.Encode());
+            var message = Utf8String.FromSequence(chat.Message.Encode());
 
-            var senderRaw = (chat.Name ?? string.Empty).Encode();
-            using var senderOwned = this.libcFunction.NewString(senderRaw);
+            this.HandlePrintMessageDetour(RaptureLogModule.Instance(), chat.Type, sender, message, (int)chat.SenderId, chat.Parameters != 0);
 
-            var messageRaw = (chat.Message ?? string.Empty).Encode();
-            using var messageOwned = this.libcFunction.NewString(messageRaw);
-
-            this.HandlePrintMessageDetour(this.baseAddress, chat.Type, senderOwned.Address, messageOwned.Address, chat.SenderId, chat.Parameters);
+            sender->Dtor(true);
+            message->Dtor(true);
         }
     }
 
@@ -254,29 +251,17 @@ internal sealed class ChatGui : IDisposable, IServiceType, IChatGui
         }
     }
 
-    private IntPtr HandlePrintMessageDetour(IntPtr manager, XivChatType chatType, IntPtr pSenderName, IntPtr pMessage, uint senderId, IntPtr parameter)
+    private uint HandlePrintMessageDetour(RaptureLogModule* manager, XivChatType chatType, Utf8String* sender, Utf8String* message, int timestamp, bool silent)
     {
-        var retVal = IntPtr.Zero;
+        var messageId = 0u;
 
         try
         {
-            var sender = StdString.ReadFromPointer(pSenderName);
-            var parsedSender = SeString.Parse(sender.RawData);
-            var originalSenderData = (byte[])sender.RawData.Clone();
-            var oldEditedSender = parsedSender.Encode();
-            var senderPtr = pSenderName;
-            OwnedStdString allocatedString = null;
+            var originalSenderData = sender->Span.ToArray();
+            var originalMessageData = message->Span.ToArray();
 
-            var message = StdString.ReadFromPointer(pMessage);
-            var parsedMessage = SeString.Parse(message.RawData);
-            var originalMessageData = (byte[])message.RawData.Clone();
-            var oldEdited = parsedMessage.Encode();
-            var messagePtr = pMessage;
-            OwnedStdString allocatedStringSender = null;
-
-            // Log.Verbose("[CHATGUI][{0}][{1}]", parsedSender.TextValue, parsedMessage.TextValue);
-
-            // Log.Debug($"HandlePrintMessageDetour {manager} - [{chattype}] [{BitConverter.ToString(message.RawData).Replace("-", " ")}] {message.Value} from {senderName.Value}");
+            var parsedSender = SeString.Parse(originalSenderData);
+            var parsedMessage = SeString.Parse(originalMessageData);
 
             // Call events
             var isHandled = false;
@@ -287,7 +272,7 @@ internal sealed class ChatGui : IDisposable, IServiceType, IChatGui
                 try
                 {
                     var messageHandledDelegate = @delegate as IChatGui.OnCheckMessageHandledDelegate;
-                    messageHandledDelegate!.Invoke(chatType, senderId, ref parsedSender, ref parsedMessage, ref isHandled);
+                    messageHandledDelegate!.Invoke(chatType, (uint)timestamp, ref parsedSender, ref parsedMessage, ref isHandled);
                 }
                 catch (Exception e)
                 {
@@ -303,7 +288,7 @@ internal sealed class ChatGui : IDisposable, IServiceType, IChatGui
                     try
                     {
                         var messageHandledDelegate = @delegate as IChatGui.OnMessageDelegate;
-                        messageHandledDelegate!.Invoke(chatType, senderId, ref parsedSender, ref parsedMessage, ref isHandled);
+                        messageHandledDelegate!.Invoke(chatType, (uint)timestamp, ref parsedSender, ref parsedMessage, ref isHandled);
                     }
                     catch (Exception e)
                     {
@@ -312,61 +297,39 @@ internal sealed class ChatGui : IDisposable, IServiceType, IChatGui
                 }
             }
 
-            var newEdited = parsedMessage.Encode();
-            if (!Util.FastByteArrayCompare(oldEdited, newEdited))
+            var possiblyModifiedSenderData = parsedSender.Encode();
+            var possiblyModifiedMessageData = parsedMessage.Encode();
+
+            if (!Util.FastByteArrayCompare(originalSenderData, possiblyModifiedSenderData))
             {
-                Log.Verbose("SeString was edited, taking precedence over StdString edit.");
-                message.RawData = newEdited;
-                // Log.Debug($"\nOLD: {BitConverter.ToString(originalMessageData)}\nNEW: {BitConverter.ToString(newEdited)}");
+                Log.Verbose($"HandlePrintMessageDetour Sender modified: {SeString.Parse(originalSenderData)} -> {parsedSender}");
+                sender->SetString(possiblyModifiedSenderData);
             }
 
-            if (!Util.FastByteArrayCompare(originalMessageData, message.RawData))
+            if (!Util.FastByteArrayCompare(originalMessageData, possiblyModifiedMessageData))
             {
-                allocatedString = this.libcFunction.NewString(message.RawData);
-                Log.Debug($"HandlePrintMessageDetour String modified: {originalMessageData}({messagePtr}) -> {message}({allocatedString.Address})");
-                messagePtr = allocatedString.Address;
-            }
-
-            var newEditedSender = parsedSender.Encode();
-            if (!Util.FastByteArrayCompare(oldEditedSender, newEditedSender))
-            {
-                Log.Verbose("SeString was edited, taking precedence over StdString edit.");
-                sender.RawData = newEditedSender;
-                // Log.Debug($"\nOLD: {BitConverter.ToString(originalMessageData)}\nNEW: {BitConverter.ToString(newEdited)}");
-            }
-
-            if (!Util.FastByteArrayCompare(originalSenderData, sender.RawData))
-            {
-                allocatedStringSender = this.libcFunction.NewString(sender.RawData);
-                Log.Debug(
-                    $"HandlePrintMessageDetour Sender modified: {originalSenderData}({senderPtr}) -> {sender}({allocatedStringSender.Address})");
-                senderPtr = allocatedStringSender.Address;
+                Log.Verbose($"HandlePrintMessageDetour Message modified: {SeString.Parse(originalMessageData)} -> {parsedMessage}");
+                message->SetString(possiblyModifiedMessageData);
             }
 
             // Print the original chat if it's handled.
             if (isHandled)
             {
-                this.ChatMessageHandled?.Invoke(chatType, senderId, parsedSender, parsedMessage);
+                this.ChatMessageHandled?.Invoke(chatType, (uint)timestamp, parsedSender, parsedMessage);
             }
             else
             {
-                retVal = this.printMessageHook.Original(manager, chatType, senderPtr, messagePtr, senderId, parameter);
-                this.ChatMessageUnhandled?.Invoke(chatType, senderId, parsedSender, parsedMessage);
+                messageId = this.printMessageHook.Original(manager, chatType, sender, message, timestamp, silent);
+                this.ChatMessageUnhandled?.Invoke(chatType, (uint)timestamp, parsedSender, parsedMessage);
             }
-
-            if (this.baseAddress == IntPtr.Zero)
-                this.baseAddress = manager;
-
-            allocatedString?.Dispose();
-            allocatedStringSender?.Dispose();
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Exception on OnChatMessage hook.");
-            retVal = this.printMessageHook.Original(manager, chatType, pSenderName, pMessage, senderId, parameter);
+            messageId = this.printMessageHook.Original(manager, chatType, sender, message, timestamp, silent);
         }
 
-        return retVal;
+        return messageId;
     }
 
     private void InteractableLinkClickedDetour(IntPtr managerPtr, IntPtr messagePtr)
@@ -384,11 +347,7 @@ internal sealed class ChatGui : IDisposable, IServiceType, IChatGui
             Log.Verbose($"InteractableLinkClicked: {Payload.EmbeddedInfoType.DalamudLink}");
 
             var payloadPtr = Marshal.ReadIntPtr(messagePtr, 0x10);
-            var messageSize = 0;
-            while (Marshal.ReadByte(payloadPtr, messageSize) != 0) messageSize++;
-            var payloadBytes = new byte[messageSize];
-            Marshal.Copy(payloadPtr, payloadBytes, 0, messageSize);
-            var seStr = SeString.Parse(payloadBytes);
+            var seStr = MemoryHelper.ReadSeStringNullTerminated(messagePtr);
             var terminatorIndex = seStr.Payloads.IndexOf(RawPayload.LinkTerminator);
             var payloads = terminatorIndex >= 0 ? seStr.Payloads.Take(terminatorIndex + 1).ToList() : seStr.Payloads;
             if (payloads.Count == 0) return;
