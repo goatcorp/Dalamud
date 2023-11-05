@@ -2,7 +2,6 @@
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Numerics;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -15,11 +14,10 @@ using Dalamud.Interface.Utility;
 using Dalamud.Utility;
 using ImGuiNET;
 using Serilog;
+using SharpDX;
 using SharpDX.DirectWrite;
 
-using FontStretch = SharpDX.DirectWrite.FontStretch;
-using FontStyle = SharpDX.DirectWrite.FontStyle;
-using FontWeight = SharpDX.DirectWrite.FontWeight;
+using Vector2 = System.Numerics.Vector2;
 
 namespace Dalamud.Interface.Internal.Windows.Settings.Tabs;
 
@@ -490,6 +488,7 @@ public class SettingsTabLook : SettingsTab
         this.fontListTask = Task.Run(
             () =>
             {
+                var unicodeRanges = new UnicodeRange[128];
                 var names = new List<string>();
                 var localizedNames = new List<string[]>();
                 var variants = new List<FontFamilyAndVariant[]>();
@@ -497,7 +496,7 @@ public class SettingsTabLook : SettingsTab
                 var tempVariantNames = new List<string>();
                 var tempVariants = new List<FontFamilyAndVariant>();
 
-                using var factory = new SharpDX.DirectWrite.Factory();
+                using var factory = new Factory();
                 using var collection = factory.GetSystemFontCollection(refreshSystem);
 
                 names.EnsureCapacity(collection.FontFamilyCount);
@@ -555,9 +554,39 @@ public class SettingsTabLook : SettingsTab
                         if (font.Simulations != FontSimulations.None)
                             continue;
 
-                        // imgui crashes on some fonts; following is NOT an exhaustive check of causes
-                        if (!font.HasCharacter('A') || !font.HasCharacter('0') || !font.HasCharacter('?'))
+                        // Wingdings and some symbol fonts fail because they do not have CMAP formats supported by
+                        // stb_truetype; this is not a correct check but it still works
+                        if (font.IsSymbolFont)
                             continue;
+
+                        // imgui crashes if the font does not result in any rendered glyphs.
+                        // Need to check if it's the case.
+                        // This interface is available starting from Platform Update for Windows 7.
+                        using var font1 = font.QueryInterfaceOrNull<Font1>();
+                        if (font1 is not null)
+                        {
+                            var rc = 0;
+                            try
+                            {
+                                font1.GetUnicodeRanges(unicodeRanges.Length, unicodeRanges, out rc);
+                            }
+                            catch (SharpDXException sdxe) when (sdxe.HResult == unchecked((int)0x8007007a))
+                            {
+                                // expected exception: HRESULT_FROM_WIN32(ERROR_INSUFFICIENT_BUFFER)
+                                if (rc <= 0) continue;
+                                unicodeRanges = new UnicodeRange[rc + 128];
+                                font1.GetUnicodeRanges(unicodeRanges.Length, unicodeRanges, out _);
+                            }
+
+                            if (!unicodeRanges.Take(rc).Any(x => x.Last <= 0xFFFF))
+                                continue;
+                        }
+                        else
+                        {
+                            // ReSharper disable once AccessToDisposedClosure
+                            if (!" Aa0_!,字가あアㄱ●≤ㅥ㎘㉠Γⓐⅸ⅓─\uFFFE".Any(x => font.HasCharacter(x)))
+                                continue;
+                        }
 
                         tempVariants.Add(new(name, font.Weight, font.Stretch, font.Style));
                         tempVariantNames.Add(tempVariants.Last().GetLocalizedVariantDescription());
