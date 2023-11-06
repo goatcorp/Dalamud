@@ -48,6 +48,8 @@ public class SettingsTabLook : SettingsTab
     private float globalUiScale;
     private float fontGamma;
 
+    private string scratch = string.Empty;
+
     private CancellationTokenSource? cancellationTokenSource;
     private Task<ParsedFontCollection> fontListTask = null!;
 
@@ -220,6 +222,14 @@ public class SettingsTabLook : SettingsTab
         {
             this.RefreshFontList(true);
         }
+
+        ImGui.SameLine();
+        ImGui.SetCursorPosY(ImGui.GetCursorPosY() - pad.Y);
+        ImGui.InputTextWithHint(
+            "##DalamudSettingsFontFamilyAndVariantScratchpad",
+            Loc.Localize("DalamudSettingsFontFamilyAndVariantTestHereHint", "Test Here"),
+            ref this.scratch,
+            1024);
 
         switch (this.fontListTask.Status)
         {
