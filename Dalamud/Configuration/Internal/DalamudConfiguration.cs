@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 
 using Dalamud.Game.Text;
+using Dalamud.Interface.EasyFonts;
 using Dalamud.Interface.Internal.Windows.PluginInstaller;
 using Dalamud.Interface.Style;
 using Dalamud.IoC.Internal;
@@ -142,14 +143,9 @@ internal sealed class DalamudConfiguration : IServiceType, IDisposable
     public float GlobalUiScale { get; set; } = 1.0f;
 
     /// <summary>
-    /// Gets or sets a value indicating whether to use AXIS fonts from the game.
-    /// </summary>
-    public bool UseAxisFontsFromGame { get; set; } = false;
-
-    /// <summary>
     /// Gets or sets the default font from the system. Set to empty to use the default font shipped with Dalamud.
     /// </summary>
-    public List<FontFamilyAndVariant> DefaultFontChain { get; set; } = new();
+    public FontChain DefaultFontChain { get; set; } = default;
 
     /// <summary>
     /// Gets or sets a value indicating whether to ensure that Simplified Chinese characters can be displayed.

@@ -2,6 +2,7 @@
 using System.Linq;
 
 using Dalamud.Configuration.Internal;
+using Dalamud.Interface.EasyFonts;
 using Dalamud.Interface.GameFonts;
 using Dalamud.Interface.Utility;
 using Dalamud.Utility.Timing;
@@ -15,8 +16,16 @@ namespace Dalamud.Interface.Internal;
 /// </summary>
 internal partial class InterfaceManager
 {
+    /// <summary>
+    /// Base font size of Dalamud and plugins' text, in points.
+    /// </summary>
     internal const float DefaultFontSizePt = 12.0f;
-    private const float DefaultFontSizePx = DefaultFontSizePt * 4.0f / 3.0f;
+
+    /// <summary>
+    /// Base font size of Dalamud and plugins' text, in pixels.
+    /// </summary>
+    internal const float DefaultFontSizePx = DefaultFontSizePt * 4.0f / 3.0f;
+
     private const ushort Fallback1Codepoint = 0x3013; // Geta mark; FFXIV uses this to indicate that a glyph is missing.
     private const ushort Fallback2Codepoint = '-';    // FFXIV uses dash if Geta mark is unavailable.
 
@@ -169,34 +178,30 @@ internal partial class InterfaceManager
     public class FontProperties
     {
         /// <summary>
+        /// Fallback font chain to use, if font chain is effectively empty.
+        /// </summary>
+        public static readonly FontChain FallbackFontChain = new(
+            new FontChainEntry(new(GameFontFamily.Axis), DefaultFontSizePx));
+
+        /// <summary>
         /// Gets or sets a value indicating whether the last attempt at loading custom default font has failed.
         /// </summary>
         public bool CustomDefaultFontLoadFailed { get; internal set; } = false;
 
         /// <summary>
-        /// Gets or sets a value indicating whether to override configuration for UseAxis.
-        /// </summary>
-        public bool? UseAxisOverride { get; set; } = null;
-
-        /// <summary>
-        /// Gets a value indicating whether to use AXIS fonts.
-        /// </summary>
-        public bool UseAxis => this.UseAxisOverride ?? Configuration.UseAxisFontsFromGame;
-
-        /// <summary>
         /// Gets or sets the overrided font family and variant chain, instead of using the value from configuration.
         /// </summary>
-        public List<FontFamilyAndVariant>? FontChainOverride { get; set; } = null;
+        public FontChain? FontChainOverride { get; set; } = null;
 
         /// <summary>
         /// Gets the font family and variant chain to use.
         /// </summary>
-        public IList<FontFamilyAndVariant> FontChain
+        public FontChain FontChain
         {
             get
             {
                 var r = this.FontChainOverride ?? Configuration.DefaultFontChain;
-                return r.Any() ? r : FontFamilyAndVariant.EmptySingleItem;
+                return r.Fonts.Any(x => x.Ident != default) ? r : FallbackFontChain;
             }
         }
 
@@ -218,9 +223,8 @@ internal partial class InterfaceManager
             get
             {
                 var conf = Configuration;
-                return this.UseAxis != conf.UseAxisFontsFromGame ||
-                       Math.Abs(this.Gamma - conf.FontGammaLevel) > float.Epsilon ||
-                       !this.FontChain.SequenceEqual(conf.DefaultFontChain);
+                return Math.Abs(this.Gamma - conf.FontGammaLevel) > float.Epsilon ||
+                       !this.FontChain.Equals(conf.DefaultFontChain);
             }
         }
 
@@ -231,7 +235,6 @@ internal partial class InterfaceManager
         /// </summary>
         public void ResetOverrides()
         {
-            this.UseAxisOverride = null;
             this.GammaOverride = null;
             this.FontChainOverride = null;
         }
@@ -297,7 +300,7 @@ internal partial class InterfaceManager
         }
     }
 
-    private unsafe class TargetFontModification : IDisposable
+    private class TargetFontModification : IDisposable
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="TargetFontModification"/> class.
@@ -318,19 +321,46 @@ internal partial class InterfaceManager
         /// Initializes a new instance of the <see cref="TargetFontModification"/> class.
         /// Constructs new target font modification information.
         /// </summary>
+        /// <param name="gfm">An instance of <see cref="GameFontManager"/>.</param>
         /// <param name="name">Name of the font to write to ImGui font information.</param>
         /// <param name="axis">Whether and how to use AXIS fonts.</param>
+        /// <param name="gameFontFamily">Game font family to use.</param>
         /// <param name="sizePx">Target font size in pixels, which will not be considered for further scaling.</param>
+        /// <param name="lineHeightPx">Target font line height in pixels.</param>
         /// <param name="globalFontScale">Font scale to be referred for loading AXIS font of appropriate size.</param>
-        internal TargetFontModification(string name, AxisMode axis, float sizePx, float globalFontScale)
+        /// <param name="axisOffsetX">Target font offset X.</param>
+        /// <param name="axisOffsetY">Target font offset Y.</param>
+        /// <param name="axisLetterSpacing">Target font letter spacing.</param>
+        internal TargetFontModification(
+            GameFontManager gfm,
+            string name,
+            AxisMode axis,
+            GameFontFamily gameFontFamily,
+            float sizePx,
+            float lineHeightPx,
+            float globalFontScale,
+            float axisOffsetX,
+            float axisOffsetY,
+            float axisLetterSpacing)
         {
+            if (!Enum.IsDefined(gameFontFamily) || gameFontFamily == GameFontFamily.Undefined)
+            {
+                throw new ArgumentOutOfRangeException(
+                    nameof(gameFontFamily),
+                    gameFontFamily,
+                    $"{nameof(GameFontFamily.Undefined)} is not a valid parameter value.");
+            }
+
             this.Name = name;
             this.Axis = axis;
+            this.GameFontFamily = gameFontFamily;
             this.TargetSizePx = sizePx;
+            this.LineHeightPx = lineHeightPx;
             this.Scale = globalFontScale;
-            this.SourceAxis = Service<GameFontManager>.Get()
-                                                      .NewFontRef(new(GameFontFamily.Axis,
-                                                                      this.TargetSizePx * this.Scale));
+            this.AxisOffsetX = axisOffsetX;
+            this.AxisOffsetY = axisOffsetY;
+            this.AxisLetterSpacing = axisLetterSpacing;
+            this.SourceAxis = gfm.NewFontRef(new(gameFontFamily, this.TargetSizePx * this.Scale));
         }
 
         internal enum AxisMode
@@ -340,21 +370,26 @@ internal partial class InterfaceManager
             Overwrite,
         }
 
-        internal string Name { get; private init; }
+        internal string Name { get; }
 
-        internal AxisMode Axis { get; private init; }
+        internal AxisMode Axis { get; }
 
-        internal float TargetSizePx { get; private init; }
+        internal GameFontFamily GameFontFamily { get; }
 
-        internal float Scale { get; private init; }
+        internal float TargetSizePx { get; }
 
-        internal GameFontHandle? SourceAxis { get; private init; }
+        internal float LineHeightPx { get; }
 
-        internal bool SourceAxisAvailable => this.SourceAxis != null && this.SourceAxis.ImFont.NativePtr != null;
+        internal float AxisOffsetX { get; }
 
-        public void Dispose()
-        {
-            this.SourceAxis?.Dispose();
-        }
+        internal float AxisOffsetY { get; }
+
+        internal float AxisLetterSpacing { get; }
+
+        internal float Scale { get; }
+
+        internal GameFontHandle? SourceAxis { get; }
+
+        public void Dispose() => this.SourceAxis?.Dispose();
     }
 }

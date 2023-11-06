@@ -171,12 +171,15 @@ internal class GameFontManager : IServiceType
     /// Round given font's kerning information into integers.
     /// </summary>
     /// <param name="fontPtr">The font.</param>
-    public static unsafe void SnapFontKerningPixels(ImFontPtr fontPtr)
+    /// <param name="snapUnit">Snap unit.</param>
+    public static unsafe void SnapFontKerningPixels(ImFontPtr fontPtr, float snapUnit)
     {
+        if (snapUnit <= 0f)
+            throw new ArgumentOutOfRangeException(nameof(snapUnit), snapUnit, "Must be a positive number.");
         foreach (ref var pair in fontPtr.NativePtr->KerningPairs.AsSpan<ImFontKerningPair>())
-            pair.AdvanceXAdjustment = MathF.Round(pair.AdvanceXAdjustment);
+            pair.AdvanceXAdjustment = MathF.Round(pair.AdvanceXAdjustment / snapUnit) * snapUnit;
         foreach (ref var distance in fontPtr.NativePtr->FrequentKerningPairs.AsSpan<float>())
-            distance = MathF.Round(distance);
+            distance = MathF.Round(distance / snapUnit) * snapUnit;
     }
 
     /// <summary>

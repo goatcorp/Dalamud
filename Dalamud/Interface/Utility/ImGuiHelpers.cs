@@ -177,6 +177,21 @@ public static class ImGuiHelpers
     /// <param name="rangeLow">Low codepoint range to copy.</param>
     /// <param name="rangeHigh">High codepoing range to copy.</param>
     public static void CopyGlyphsAcrossFonts(ImFontPtr? source, ImFontPtr? target, bool missingOnly, bool rebuildLookupTable, int rangeLow = 32, int rangeHigh = 0xFFFE)
+        => CopyGlyphsAcrossFonts(source, target, missingOnly, rebuildLookupTable, rangeLow, rangeHigh, 0, 0, 0);
+
+    /// <summary>
+    /// Fills missing glyphs in target font from source font, if both are not null.
+    /// </summary>
+    /// <param name="source">Source font.</param>
+    /// <param name="target">Target font.</param>
+    /// <param name="missingOnly">Whether to copy missing glyphs only.</param>
+    /// <param name="rebuildLookupTable">Whether to call target.BuildLookupTable().</param>
+    /// <param name="rangeLow">Low codepoint range to copy.</param>
+    /// <param name="rangeHigh">High codepoing range to copy.</param>
+    /// <param name="offsetX">Additional offset X of each glyph.</param>
+    /// <param name="offsetY">Additional offset Y of each glyph.</param>
+    /// <param name="letterSpacing">Additional letter spacing of each glyph.</param>
+    public static void CopyGlyphsAcrossFonts(ImFontPtr? source, ImFontPtr? target, bool missingOnly, bool rebuildLookupTable, int rangeLow, int rangeHigh, float offsetX, float offsetY, float letterSpacing)
     {
         if (!source.HasValue || !target.HasValue)
             return;
@@ -202,29 +217,29 @@ public static class ImGuiHelpers
                         target.Value!.ConfigData,
                         (ushort)glyph->Codepoint,
                         glyph->TextureIndex,
-                        glyph->X0 * scale,
-                        ((glyph->Y0 - source.Value!.Ascent) * scale) + target.Value!.Ascent,
-                        glyph->X1 * scale,
-                        ((glyph->Y1 - source.Value!.Ascent) * scale) + target.Value!.Ascent,
+                        (glyph->X0 * scale) + offsetX,
+                        ((glyph->Y0 - source.Value!.Ascent) * scale) + target.Value!.Ascent + offsetY,
+                        (glyph->X1 * scale) + offsetX,
+                        ((glyph->Y1 - source.Value!.Ascent) * scale) + target.Value!.Ascent + offsetY,
                         glyph->U0,
                         glyph->V0,
                         glyph->U1,
                         glyph->V1,
-                        glyph->AdvanceX * scale);
+                        (glyph->AdvanceX * scale) + letterSpacing);
                 }
                 else if (!missingOnly)
                 {
                     addedCodepoints.Add(glyph->Codepoint);
                     prevGlyphPtr->TextureIndex = glyph->TextureIndex;
-                    prevGlyphPtr->X0 = glyph->X0 * scale;
-                    prevGlyphPtr->Y0 = ((glyph->Y0 - source.Value!.Ascent) * scale) + target.Value!.Ascent;
-                    prevGlyphPtr->X1 = glyph->X1 * scale;
-                    prevGlyphPtr->Y1 = ((glyph->Y1 - source.Value!.Ascent) * scale) + target.Value!.Ascent;
+                    prevGlyphPtr->X0 = (glyph->X0 * scale) + offsetX;
+                    prevGlyphPtr->Y0 = ((glyph->Y0 - source.Value!.Ascent) * scale) + target.Value!.Ascent + offsetY;
+                    prevGlyphPtr->X1 = (glyph->X1 * scale) + offsetX;
+                    prevGlyphPtr->Y1 = ((glyph->Y1 - source.Value!.Ascent) * scale) + target.Value!.Ascent + offsetY;
                     prevGlyphPtr->U0 = glyph->U0;
                     prevGlyphPtr->V0 = glyph->V0;
                     prevGlyphPtr->U1 = glyph->U1;
                     prevGlyphPtr->V1 = glyph->V1;
-                    prevGlyphPtr->AdvanceX = glyph->AdvanceX * scale;
+                    prevGlyphPtr->AdvanceX = (glyph->AdvanceX * scale) + letterSpacing;
                 }
             }
 

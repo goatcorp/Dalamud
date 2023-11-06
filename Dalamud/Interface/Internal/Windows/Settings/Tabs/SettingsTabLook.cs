@@ -8,13 +8,14 @@ using System.Threading.Tasks;
 using CheapLoc;
 using Dalamud.Configuration.Internal;
 using Dalamud.Interface.Colors;
+using Dalamud.Interface.EasyFonts;
+using Dalamud.Interface.GameFonts;
 using Dalamud.Interface.Internal.Windows.PluginInstaller;
 using Dalamud.Interface.Internal.Windows.Settings.Widgets;
 using Dalamud.Interface.Utility;
 using Dalamud.Utility;
 using ImGuiNET;
 using Serilog;
-using SharpDX;
 using SharpDX.DirectWrite;
 
 using Vector2 = System.Numerics.Vector2;
@@ -40,8 +41,10 @@ public class SettingsTabLook : SettingsTab
     };
 
     private readonly List<(int FamilyIndex, int VariantIndex)> fontIndices = new();
-    private List<FontFamilyAndVariant> fontChain = null!;
-    private bool useAxis;
+
+    private readonly List<FontChainEntry> fontChainEntries = new();
+    private float fontChainLineHeight = 1f;
+    
     private float globalUiScale;
     private float fontGamma;
 
@@ -184,6 +187,8 @@ public class SettingsTabLook : SettingsTab
 
     public override string Title => Loc.Localize("DalamudSettingsVisual", "Look & Feel");
 
+    private FontChain ChainBeingConfigured => new(this.fontChainEntries, this.fontChainLineHeight);
+
     public override void Draw()
     {
         var interfaceManager = Service<InterfaceManager>.Get();
@@ -197,11 +202,11 @@ public class SettingsTabLook : SettingsTab
         if (ImGui.Button(Loc.Localize("DalamudSettingsIndividualConfigResetToDefaultValue", "Reset") +
                          "##DalamudSettingsFontFamilyAndVariantReset"))
         {
-            this.useAxis = true;
-            this.fontChain.Clear();
+            this.fontChainEntries.Clear();
+            this.fontChainEntries.AddRange(InterfaceManager.FontProperties.FallbackFontChain.Fonts);
+            this.fontChainLineHeight = InterfaceManager.FontProperties.FallbackFontChain.LineHeight;
             this.fontIndices.Clear();
-            interfaceManager.Font.UseAxisOverride = true;
-            interfaceManager.Font.FontChainOverride = this.fontChain;
+            interfaceManager.Font.FontChainOverride = InterfaceManager.FontProperties.FallbackFontChain;
             interfaceManager.RebuildFonts();
         }
 
@@ -225,11 +230,12 @@ public class SettingsTabLook : SettingsTab
                 var fonts = this.fontListTask.Result;
                 
                 // sanity check
-                if (!this.fontChain.Any())
-                    this.fontChain.Add(FontFamilyAndVariant.Empty);
+                if (!this.fontChainEntries.Any())
+                    this.fontChainEntries.AddRange(InterfaceManager.FontProperties.FallbackFontChain.Fonts);
 
                 var chainChanged = false;
-                foreach (var chainIndex in Enumerable.Range(0, this.fontChain.Count + 1))
+                Debug.Assert(this.fontChainEntries.Count > 0, "this.fontChainEntries.Count > 0");
+                foreach (var chainIndex in Enumerable.Range(0, this.fontChainEntries.Count + 1))
                 {
                     if (chainIndex > 0)
                         ImGui.TextUnformatted("+");
@@ -238,34 +244,38 @@ public class SettingsTabLook : SettingsTab
                         this.fontIndices.Add(new(-1, -1));
 
                     var (familyIndex, variantIndex) = this.fontIndices[chainIndex];
-                    var chainItem = this.fontChain.Count <= chainIndex
-                                        ? FontFamilyAndVariant.Empty
-                                        : this.fontChain[chainIndex];
+                    var chainItem = this.fontChainEntries.Count <= chainIndex
+                                        ? default
+                                        : this.fontChainEntries[chainIndex].Ident;
 
                     var familyOffset = chainIndex == 0 ? SpecialFontCount : 1;
                     var imguiNames = chainIndex == 0 ? fonts.NamesForImGui : fonts.OptionalNamesForImGui;
 
                     familyIndex = chainIndex switch
                     {
-                        0 when this.useAxis => FontIndexAxis,
-                        0 when string.IsNullOrWhiteSpace(chainItem.Name) => FontIndexNotoSans,
-                        > 0 when string.IsNullOrWhiteSpace(chainItem.Name) => 0,
+                        // Note: non-axis default game fonts are not supported in this settings page
+                        0 when chainItem.Game is GameFontFamily.Axis => FontIndexAxis,
+                        0 when chainItem.NotoSansJ => FontIndexNotoSans,
+                        _ when string.IsNullOrWhiteSpace(chainItem.System?.Name) => 0,
                         _ => familyIndex,
                     };
 
-                    if (familyIndex == -1)
+                    if (chainItem.System?.Name is { } name)
                     {
-                        familyIndex = fonts.Names.IndexOf(x => string.Equals(x, chainItem.Name, ccic));
-                        if (familyIndex != -1)
-                            familyIndex += familyOffset;
-                    }
+                        if (familyIndex == -1)
+                        {
+                            familyIndex = fonts.Names.IndexOf(x => string.Equals(x, name, ccic));
+                            if (familyIndex != -1)
+                                familyIndex += familyOffset;
+                        }
 
-                    if (familyIndex == -1)
-                    {
-                        familyIndex = fonts.LocalizedNames
-                                           .IndexOf(x => x.Any(y => string.Equals(y, chainItem.Name, ccic)));
-                        if (familyIndex != -1)
-                            familyIndex += familyOffset;
+                        if (familyIndex == -1)
+                        {
+                            familyIndex = fonts.LocalizedNames
+                                               .IndexOf(x => x.Any(y => string.Equals(y, name, ccic)));
+                            if (familyIndex != -1)
+                                familyIndex += familyOffset;
+                        }
                     }
 
                     if (familyIndex == -1)
@@ -278,57 +288,132 @@ public class SettingsTabLook : SettingsTab
                     }
 
                     string variantNames;
-                    FontFamilyAndVariant[] variants;
-                    if (familyIndex >= familyOffset)
+                    FontIdent[] idents;
+                    switch (familyIndex)
                     {
-                        variantNames = fonts.VariantsForImGui[familyIndex - familyOffset];
-                        variants = fonts.Variants[familyIndex - familyOffset];
-                        if (variantIndex == -1 || variantIndex >= variants.Length)
-                            variantIndex = variants.IndexOf(x => chainItem.VariantEquals(x));
-                        if (variantIndex == -1)
+                        case FontIndexAxis when chainIndex == 0:
+                            idents = new[] { new FontIdent(GameFontFamily.Axis) };
+                            variantNames = "-\0";
+                            variantIndex = 0;
+                            break;
+                        case FontIndexNotoSans when chainIndex == 0:
+                            idents = new[] { new FontIdent(true) };
+                            variantNames = "-\0";
+                            variantIndex = 0;
+                            break;
+                        case var _ when familyIndex >= familyOffset:
                         {
-                            // Note: numeric operation on "FontStyle" makes no sense, but it has only 3 values and we want
-                            //       the lowest valid value of Normal = 0.
-                            variantIndex =
-                                variants
-                                    .Select((x, i) => (x, i))
-                                    .OrderBy(x => Math.Abs((int)x.x.Weight - (int)FontWeight.Normal))
-                                    .ThenBy(x => Math.Abs((int)x.x.Stretch - (int)FontStretch.Normal))
-                                    .ThenBy(x => Math.Abs((int)x.x.Style - (int)FontStyle.Normal))
-                                    .First()
-                                    .i;
+                            var variant = chainItem.System?.Variant ?? default(FontVariant);
+                            variantNames = fonts.VariantsForImGui[familyIndex - familyOffset];
+                            idents = fonts.Variants[familyIndex - familyOffset];
+                            if (variantIndex == -1 || variantIndex >= idents.Length)
+                            {
+                                variantIndex = idents
+                                               .Select(x => x.System.GetValueOrDefault().Variant)
+                                               .IndexOf(x => variant.Equals(x));
+                            }
+
+                            if (variantIndex == -1)
+                            {
+                                // Note: numeric operation on "FontStyle" makes no sense,
+                                // but it has only 3 values and we want the lowest valid value of Normal = 0.
+                                variantIndex =
+                                    idents
+                                        .Select(x => x.System.GetValueOrDefault().Variant)
+                                        .Select((x, i) => (x, i))
+                                        .OrderBy(x => Math.Abs((int)x.x.Weight - (int)FontWeight.Normal))
+                                        .ThenBy(x => Math.Abs((int)x.x.Stretch - (int)FontStretch.Normal))
+                                        .ThenBy(x => Math.Abs((int)x.x.Style - (int)FontStyle.Normal))
+                                        .First()
+                                        .i;
+                            }
+                            
+                            break;
                         }
-                    }
-                    else
-                    {
-                        variantNames = "-";
-                        variants = new[] { FontFamilyAndVariant.Empty };
-                        variantIndex = 0;
+
+                        default:
+                            idents = Array.Empty<FontIdent>();
+                            variantNames = "\0";
+                            variantIndex = 0;
+                            break;
                     }
 
-                    if (variants.Length < 2)
+                    if (idents.Length < 2)
                         ImGui.BeginDisabled();
                     if (ImGui.Combo($"##DalamudSettingsFontVariantCombo{chainIndex}", ref variantIndex, variantNames))
                         chainChanged = true;
-                    if (variants.Length < 2)
+                    if (idents.Length < 2)
                         ImGui.EndDisabled();
 
-                    if (chainIndex < this.fontChain.Count)
-                        this.fontChain[chainIndex] = variants[variantIndex];
-                    else if (variants[variantIndex] != FontFamilyAndVariant.Empty)
-                        this.fontChain.Add(variants[variantIndex]);
+                    if (chainIndex < this.fontChainEntries.Count)
+                    {
+                        this.fontChainEntries[chainIndex] = this.fontChainEntries[chainIndex] with
+                        {
+                            Ident = idents.ElementAtOrDefault(variantIndex),
+                        };
+                    }
+                    else if (idents.ElementAtOrDefault(variantIndex) != default)
+                    {
+                        this.fontChainEntries.Add(new(idents[variantIndex], InterfaceManager.DefaultFontSizePx));
+                    }
                     else
-                        Debug.Assert(chainIndex == this.fontChain.Count, "chainIndex == this.fontChain.Count");
+                    {
+                        variantIndex = 0;
+                    }
+
                     this.fontIndices[chainIndex] = (familyIndex, variantIndex);
+
+                    if (chainIndex == 0 || familyIndex > 0)
+                    {
+                        var sizePt = MathF.Round(this.fontChainEntries[chainIndex].SizePx * 3 / 4 * 10) / 10;
+                        if (ImGui.InputFloat($"Size##DalamudSettingsFontChainSize{chainIndex}", ref sizePt, 1f))
+                        {
+                            sizePt = Math.Clamp(6f, sizePt, 18f);
+                            this.fontChainEntries[chainIndex] = this.fontChainEntries[chainIndex] with
+                            {
+                                SizePx = sizePt * 4 / 3,
+                            };
+                            chainChanged = true;
+                        }
+
+                        var letterSpacing = this.fontChainEntries[chainIndex].LetterSpacing;
+                        if (ImGui.InputFloat($"Letter Spacing##DalamudSettingsFontChainLetterSpacing{chainIndex}", ref letterSpacing, 1f))
+                        {
+                            this.fontChainEntries[chainIndex] = this.fontChainEntries[chainIndex] with
+                            {
+                                LetterSpacing = letterSpacing,
+                            };
+                            chainChanged = true;
+                        }
+
+                        var offsetX = this.fontChainEntries[chainIndex].OffsetX;
+                        if (ImGui.InputFloat($"Offset X##DalamudSettingsFontChainOffsetX{chainIndex}", ref offsetX, 1f))
+                        {
+                            this.fontChainEntries[chainIndex] = this.fontChainEntries[chainIndex] with
+                            {
+                                OffsetX = offsetX,
+                            };
+                            chainChanged = true;
+                        }
+
+                        var offsetY = this.fontChainEntries[chainIndex].OffsetY;
+                        if (ImGui.InputFloat($"Offset Y##DalamudSettingsFontChainOffsetY{chainIndex}", ref offsetY, 1f))
+                        {
+                            this.fontChainEntries[chainIndex] = this.fontChainEntries[chainIndex] with
+                            {
+                                OffsetY = offsetY,
+                            };
+                            chainChanged = true;
+                        }
+                    }
                 }
 
-                this.useAxis = this.fontIndices[0].FamilyIndex == FontIndexAxis;
-                for (var i = 1; i < this.fontChain.Count; i++)
+                for (var i = 1; i < this.fontChainEntries.Count; i++)
                 {
-                    if (string.IsNullOrWhiteSpace(this.fontChain[i].Name))
+                    if (this.fontChainEntries[i].Ident == default)
                     {
                         chainChanged = true;
-                        this.fontChain.RemoveAt(i);
+                        this.fontChainEntries.RemoveAt(i);
                         this.fontIndices.RemoveAt(i);
                         --i;
                     }
@@ -336,9 +421,7 @@ public class SettingsTabLook : SettingsTab
 
                 if (chainChanged)
                 {
-                    // TODO: override
-                    interfaceManager.Font.FontChainOverride = this.fontChain;
-                    interfaceManager.Font.UseAxisOverride = this.useAxis;
+                    interfaceManager.Font.FontChainOverride = this.ChainBeingConfigured;
                     interfaceManager.RebuildFonts();
                 }
 
@@ -357,7 +440,7 @@ public class SettingsTabLook : SettingsTab
             {
                 var zero = 0;
                 ImGui.BeginDisabled();
-                foreach (var chainIndex in Enumerable.Range(0, this.fontChain.Count + 1))
+                foreach (var chainIndex in Enumerable.Range(0, this.fontChainEntries.Count + 1))
                 {
                     if (chainIndex > 0)
                         ImGui.TextUnformatted("+");
@@ -388,7 +471,31 @@ public class SettingsTabLook : SettingsTab
 
         ImGuiHelpers.ScaledDummy(5);
 
+        ImGui.SetCursorPosY(ImGui.GetCursorPosY() + pad.Y);
+        ImGui.Text(Loc.Localize("DalamudSettingsDefaultLineHeight", "Line Height"));
+        ImGui.SameLine();
         ImGui.SetCursorPosY(ImGui.GetCursorPosY() - pad.Y);
+        if (ImGui.Button(Loc.Localize("DalamudSettingsIndividualConfigResetToDefaultValue", "Reset") +
+                         "##DalamudSettingsLineHeightReset")
+            && Math.Abs(this.fontChainLineHeight - 1f) > float.Epsilon)
+        {
+            this.fontChainLineHeight = 1f;
+            interfaceManager.Font.FontChainOverride = this.ChainBeingConfigured;
+            interfaceManager.RebuildFonts();
+        }
+
+        var lineHeightPercent = (int)Math.Clamp(Math.Round(this.fontChainLineHeight * 100), 100, 200);
+        if (ImGui.DragInt("##DalamudSettingsDefaultLineHeightDrag", ref lineHeightPercent, 10, 100, 200, "%d%%",
+                            ImGuiSliderFlags.AlwaysClamp))
+        {
+            this.fontChainLineHeight = lineHeightPercent / 100f;
+            interfaceManager.Font.FontChainOverride = this.ChainBeingConfigured;
+            interfaceManager.RebuildFonts();
+        }
+
+        ImGuiHelpers.ScaledDummy(5);
+
+        ImGui.SetCursorPosY(ImGui.GetCursorPosY() + pad.Y);
         ImGui.Text(Loc.Localize("DalamudSettingsGlobalUiScale", "Global Font Scale"));
 
         var buttonSize = GlobalUiScalePresets
@@ -450,10 +557,11 @@ public class SettingsTabLook : SettingsTab
     {
         var dconf = Service<DalamudConfiguration>.Get();
         this.globalUiScale = dconf.GlobalUiScale;
-        this.fontChain = dconf.DefaultFontChain.ToList(); // cloning
+        this.fontChainEntries.Clear();
+        this.fontChainEntries.AddRange(dconf.DefaultFontChain.Fonts);
+        this.fontChainLineHeight = dconf.DefaultFontChain.LineHeight;
         this.fontIndices.Clear();
         this.fontGamma = dconf.FontGammaLevel;
-        this.useAxis = dconf.UseAxisFontsFromGame;
 
         base.Load();
     }
@@ -462,9 +570,8 @@ public class SettingsTabLook : SettingsTab
     {
         var dconf = Service<DalamudConfiguration>.Get();
         dconf.GlobalUiScale = this.globalUiScale;
-        dconf.DefaultFontChain = this.fontChain.ToList(); // cloning
+        dconf.DefaultFontChain = this.ChainBeingConfigured;
         dconf.FontGammaLevel = this.fontGamma;
-        dconf.UseAxisFontsFromGame = this.useAxis;
         base.Save();
     }
 
@@ -485,139 +592,19 @@ public class SettingsTabLook : SettingsTab
         this.cancellationTokenSource?.Cancel();
         this.cancellationTokenSource = new();
         var cancellationToken = this.cancellationTokenSource.Token;
-        this.fontListTask = Task.Run(
-            () =>
-            {
-                var unicodeRanges = new UnicodeRange[128];
-                var names = new List<string>();
-                var localizedNames = new List<string[]>();
-                var variants = new List<FontFamilyAndVariant[]>();
-                var tempLocalizedNames = new List<string>();
-                var tempVariantNames = new List<string>();
-                var tempVariants = new List<FontFamilyAndVariant>();
-
-                using var factory = new Factory();
-                using var collection = factory.GetSystemFontCollection(refreshSystem);
-
-                names.EnsureCapacity(collection.FontFamilyCount);
-                localizedNames.EnsureCapacity(collection.FontFamilyCount);
-                variants.EnsureCapacity(collection.FontFamilyCount);
-
-                var languageNamePrefixes = new[] { string.Empty, "en", string.Empty };
-                var languageNames = new List<string>();
-                foreach (var familyIndex in Enumerable.Range(0, collection.FontFamilyCount))
-                {
-                    cancellationToken.ThrowIfCancellationRequested();
-
-                    using var family = collection.GetFontFamily(familyIndex);
-                    if (family.FontCount == 0)
-                        continue;
-
-                    using var familyNames = family.FamilyNames;
-                    tempLocalizedNames.EnsureCapacity(familyNames.Count);
-                    tempLocalizedNames.Clear();
-                    tempLocalizedNames.AddRange(
-                        Enumerable.Range(0, familyNames.Count)
-                                  .Select(x => familyNames.GetString(x)));
-                    languageNames.EnsureCapacity(familyNames.Count);
-                    languageNames.Clear();
-                    languageNames.AddRange(
-                        Enumerable.Range(0, familyNames.Count)
-                                  .Select(x => familyNames.GetLocaleName(x).ToLowerInvariant()));
-
-                    languageNamePrefixes[0] = Service<DalamudConfiguration>.Get().EffectiveLanguage.ToLowerInvariant();
-                    string? name = null;
-                    foreach (var languageNamePrefix in languageNamePrefixes)
-                    {
-                        var localeNameIndex = languageNames.IndexOf(x => x.StartsWith(languageNamePrefix));
-                        if (localeNameIndex != -1)
-                        {
-                            name = tempLocalizedNames[localeNameIndex];
-                            break;
-                        }
-                    }
-
-                    if (name is null)
-                        continue;
-
-                    tempVariantNames.Clear();
-                    tempVariants.Clear();
-                    tempVariantNames.EnsureCapacity(family.FontCount);
-                    tempVariants.EnsureCapacity(family.FontCount);
-                    foreach (var fontIndex in Enumerable.Range(0, family.FontCount))
-                    {
-                        cancellationToken.ThrowIfCancellationRequested();
-
-                        using var font = family.GetFont(fontIndex);
-
-                        // we can't handle faux italic/bold at the moment; skip them
-                        if (font.Simulations != FontSimulations.None)
-                            continue;
-
-                        // Wingdings and some symbol fonts fail because they do not have CMAP formats supported by
-                        // stb_truetype; this is not a correct check but it still works
-                        if (font.IsSymbolFont)
-                            continue;
-
-                        // imgui crashes if the font does not result in any rendered glyphs.
-                        // Need to check if it's the case.
-                        // This interface is available starting from Platform Update for Windows 7.
-                        using var font1 = font.QueryInterfaceOrNull<Font1>();
-                        if (font1 is not null)
-                        {
-                            var rc = 0;
-                            try
-                            {
-                                font1.GetUnicodeRanges(unicodeRanges.Length, unicodeRanges, out rc);
-                            }
-                            catch (SharpDXException sdxe) when (sdxe.HResult == unchecked((int)0x8007007a))
-                            {
-                                // expected exception: HRESULT_FROM_WIN32(ERROR_INSUFFICIENT_BUFFER)
-                                if (rc <= 0) continue;
-                                unicodeRanges = new UnicodeRange[rc + 128];
-                                font1.GetUnicodeRanges(unicodeRanges.Length, unicodeRanges, out _);
-                            }
-
-                            if (!unicodeRanges.Take(rc).Any(x => x.Last <= 0xFFFF))
-                                continue;
-                        }
-                        else
-                        {
-                            // ReSharper disable once AccessToDisposedClosure
-                            if (!" Aa0_!,字가あアㄱ●≤ㅥ㎘㉠Γⓐⅸ⅓─\uFFFE".Any(x => font.HasCharacter(x)))
-                                continue;
-                        }
-
-                        tempVariants.Add(new(name, font.Weight, font.Stretch, font.Style));
-                        tempVariantNames.Add(tempVariants.Last().GetLocalizedVariantDescription());
-                    }
-
-                    if (!tempVariants.Any())
-                        continue;
-
-                    names.Add(name);
-                    localizedNames.Add(tempLocalizedNames.ToArray());
-                    variants.Add(tempVariants.ToArray());
-                }
-
-                var newFontFamilyIndices =
-                    names
-                        .Select((x, i) => (x, i))
-                        .OrderBy(x => x.x, StringComparer.CurrentCultureIgnoreCase)
-                        .Select(x => x.i)
-                        .ToArray();
-
-                return new ParsedFontCollection(
-                           newFontFamilyIndices.Select(x => names[x]).ToArray(),
-                           newFontFamilyIndices.Select(x => localizedNames[x]).ToArray(),
-                           newFontFamilyIndices.Select(x => variants[x]).ToArray());
-            },
+        this.fontListTask =
+            EasyFontUtils.GetSystemFontsAsync(refreshSystem: refreshSystem, cancellationToken: cancellationToken)
+            .ContinueWith(
+            r => new ParsedFontCollection(
+                r.Result.Select(x => x.Name).ToArray(),
+                r.Result.Select(x => x.LocalizedNames.Values.ToArray()).ToArray(),
+                r.Result.Select(x => x.Variants).ToArray()),
             this.cancellationTokenSource.Token);
     }
     
     private class ParsedFontCollection
     {
-        public ParsedFontCollection(string[] names, string[][] localizedNames, FontFamilyAndVariant[][] variants)
+        public ParsedFontCollection(string[] names, string[][] localizedNames, FontIdent[][] variants)
         {
             this.Names = names;
             this.LocalizedNames = localizedNames;
@@ -629,7 +616,9 @@ public class SettingsTabLook : SettingsTab
                     "(choose a font, if additional scripts are desired)")
                 + "\0" + string.Join("\0", this.Names) + "\0";
             this.VariantsForImGui =
-                variants.Select(x => string.Join("\0", x.Select(y => y.GetLocalizedVariantDescription())) + "\0")
+                variants.Select(x => string.Join(
+                                         "\0",
+                                         x.Select(y => y.System.GetValueOrDefault().Variant.ToStringLocalized())) + "\0")
                         .ToArray();
         }
 
@@ -637,7 +626,7 @@ public class SettingsTabLook : SettingsTab
 
         public string[][] LocalizedNames { get; }
 
-        public FontFamilyAndVariant[][] Variants { get; }
+        public FontIdent[][] Variants { get; }
 
         public string NamesForImGui { get; }
 
