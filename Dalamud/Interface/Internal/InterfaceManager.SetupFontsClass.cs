@@ -252,9 +252,10 @@ internal partial class InterfaceManager
                             false,
                             0x20,
                             0xFFFD,
-                            mod.AxisOffsetX,
-                            mod.AxisOffsetY + ((mod.LineHeightPx - mod.TargetSizePx) / 2),
-                            mod.AxisLetterSpacing);
+                            MathF.Round(mod.AxisOffsetX / this.io.FontGlobalScale) * this.io.FontGlobalScale,
+                            MathF.Round((mod.AxisOffsetY + ((mod.LineHeightPx - mod.TargetSizePx) / 2))
+                                        / this.io.FontGlobalScale) * this.io.FontGlobalScale,
+                            MathF.Round(mod.AxisLetterSpacing / this.io.FontGlobalScale) * this.io.FontGlobalScale);
                         break;
                     }
 
@@ -269,9 +270,10 @@ internal partial class InterfaceManager
                             false,
                             0xE020,
                             0xE0DB,
-                            mod.AxisOffsetX,
-                            mod.AxisOffsetY + ((mod.LineHeightPx - mod.TargetSizePx) / 2),
-                            mod.AxisLetterSpacing);
+                            MathF.Round(mod.AxisOffsetX / this.io.FontGlobalScale) * this.io.FontGlobalScale,
+                            MathF.Round((mod.AxisOffsetY + ((mod.LineHeightPx - mod.TargetSizePx) / 2))
+                                        / this.io.FontGlobalScale) * this.io.FontGlobalScale,
+                            MathF.Round(mod.AxisLetterSpacing / this.io.FontGlobalScale) * this.io.FontGlobalScale);
                         break;
                     }
                 }
@@ -390,12 +392,14 @@ internal partial class InterfaceManager
 
             foreach (var fav in fontChain.Fonts.Where(x => x != default).Append(default))
             {
-                this.fontConfig.SizePixels = fav.SizePx * this.io.FontGlobalScale;
-                this.fontConfig.GlyphExtraSpacing = new Vector2(fav.LetterSpacing, 0) * this.io.FontGlobalScale;
-                this.fontConfig.GlyphOffset = new Vector2(
-                                                  fav.OffsetX,
-                                                  fav.OffsetY + (fav.SizePx * (fontChain.LineHeight - 1f) / 2))
-                                              * this.io.FontGlobalScale;
+                this.fontConfig.SizePixels = MathF.Round(fav.SizePx * this.io.FontGlobalScale);
+                this.fontConfig.GlyphExtraSpacing = new(
+                    MathF.Round(fav.LetterSpacing * this.io.FontGlobalScale),
+                    0);
+                this.fontConfig.GlyphOffset = new(
+                    MathF.Round(fav.OffsetX * this.io.FontGlobalScale),
+                    MathF.Round(fav.OffsetY + (fav.SizePx * (fontChain.LineHeight - 1f) / 2)) *
+                    this.io.FontGlobalScale);
 
                 switch (fav.Ident)
                 {
