@@ -232,6 +232,12 @@ internal sealed class DalamudConfiguration : IServiceType, IDisposable
     public bool EnablePluginUISoundEffects { get; set; }
 
     /// <summary>
+    /// Gets or sets a value indicating whether or not an additional button allowing pinning and clickthrough options should be shown
+    /// on plugin title bars when using the Window System.
+    /// </summary>
+    public bool EnablePluginUiAdditionalOptions { get; set; } = true;
+
+    /// <summary>
     /// Gets or sets a value indicating whether viewports should always be disabled.
     /// </summary>
     public bool IsDisableViewport { get; set; } = true;
