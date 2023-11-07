@@ -1,8 +1,15 @@
 using System;
-using System.Numerics;
+using System.Collections;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 
 using Dalamud.Interface.Windowing;
+
 using ImGuiNET;
+
+using JetBrains.Annotations;
+
+using Vector2 = System.Numerics.Vector2;
 
 namespace Dalamud.CorePlugin
 {
@@ -11,6 +18,9 @@ namespace Dalamud.CorePlugin
     /// </summary>
     internal class PluginWindow : Window, IDisposable
     {
+        [CanBeNull]
+        private FontChainAtlas fontChainAtlas;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="PluginWindow"/> class.
         /// </summary>
@@ -26,6 +36,7 @@ namespace Dalamud.CorePlugin
         /// <inheritdoc/>
         public void Dispose()
         {
+            this.fontChainAtlas?.Dispose();
         }
 
         /// <inheritdoc/>
@@ -36,6 +47,21 @@ namespace Dalamud.CorePlugin
         /// <inheritdoc/>
         public override void Draw()
         {
+            if (ImGui.Button("Test"))
+            {
+                this.fontChainAtlas?.Dispose();
+                this.fontChainAtlas = new();
+            }
+
+            if (this.fontChainAtlas is null)
+                return;
+
+            ImGui.TextUnformatted("=====================");
+            ImGui.PushFont(this.fontChainAtlas[0]);
+            ImGui.TextUnformatted("Testing 12345");
+            ImGui.PopFont();
+            ImGui.TextUnformatted("=====================");
         }
+
     }
 }

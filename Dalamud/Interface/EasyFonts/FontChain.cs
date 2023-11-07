@@ -63,4 +63,8 @@ public record struct FontChain
     [SuppressMessage("ReSharper", "CompareOfFloatsByEqualityOperator", Justification = "It's an Equals function")]
     public bool Equals(FontChain? other) =>
         other is { } o && this.Fonts.SequenceEqual(o.Fonts) && this.LineHeight == o.LineHeight;
+
+    /// <inheritdoc/>
+    public override int GetHashCode() =>
+        this.Fonts.Aggregate(this.LineHeight.GetHashCode(), (p, e) => HashCode.Combine(p, e.GetHashCode()));
 }

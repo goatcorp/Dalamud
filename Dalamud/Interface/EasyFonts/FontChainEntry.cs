@@ -54,4 +54,8 @@ public record struct FontChainEntry
     /// Gets or sets the vertical offset.
     /// </summary>
     public float OffsetY { get; set; }
+
+    /// <inheritdoc/>
+    public override int GetHashCode() => 
+        HashCode.Combine(this.Ident.GetHashCode(), this.SizePx, this.LetterSpacing, this.OffsetX, this.OffsetY);
 }

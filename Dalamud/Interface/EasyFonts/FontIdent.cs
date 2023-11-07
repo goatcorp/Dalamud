@@ -77,4 +77,7 @@ public record struct FontIdent
     /// Gets or sets the name and variant of a font.
     /// </summary>
     public (string Name, FontVariant Variant)? System { get; set; }
+
+    /// <inheritdoc/>
+    public override int GetHashCode() => HashCode.Combine(this.NotoSansJ, this.Game, this.File, this.System);
 }
