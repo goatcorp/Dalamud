@@ -87,6 +87,12 @@ public sealed class DisposeStack : IDisposable, IAsyncDisposable
             this.stack.Push(d);
     }
 
+    /// <summary>
+    /// Cancel all pending disposals.
+    /// </summary>
+    /// <remarks>Use this after successful initialization of multiple disposables.</remarks>
+    public void Cancel() => this.stack.Clear();
+
     /// <inheritdoc cref="Stack{T}.EnsureCapacity"/>
     /// <returns>This for method chaining.</returns>
     public DisposeStack WithEnsureCapacity(int capacity)

@@ -1,4 +1,5 @@
 ﻿#nullable enable
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -7,7 +8,7 @@ using System.Numerics;
 
 using ImGuiNET;
 
-namespace Dalamud.CorePlugin;
+namespace Dalamud.CorePlugin.MyFonts;
 
 /// <summary>
 /// Wrapper for ImVector.
@@ -128,6 +129,23 @@ public unsafe class ImVectorWrapper<T> : IList<T>, IList, IReadOnlyList<T>
         this.Data[this.Length++] = item;
     }
 
+    /// <inheritdoc cref="List{T}.AddRange"/>
+    public void AddRange(IEnumerable<T> items)
+    {
+        if (items is ICollection { Count: var count })
+            this.EnsureCapacity(this.Length + count);
+        foreach (var item in items)
+            this.Add(item);
+    }
+
+    /// <inheritdoc cref="List{T}.AddRange"/>
+    public void AddRange(Span<T> items)
+    {
+        this.EnsureCapacity(this.Length + items.Length);
+        foreach (var item in items)
+            this.Add(item);
+    }
+
     /// <inheritdoc cref="ICollection{T}.Clear"/>
     public void Clear()
     {
@@ -242,6 +260,34 @@ public unsafe class ImVectorWrapper<T> : IList<T>, IList, IReadOnlyList<T>
         var num = this.Length - index;
         Buffer.MemoryCopy(this.Data + index, this.Data + index + 1, num * sizeof(T), num * sizeof(T));
         this.Data[index] = item;
+    }
+
+    /// <inheritdoc cref="List{T}.InsertRange"/>
+    public void InsertRange(int index, IEnumerable<T> items)
+    {
+        if (items is ICollection { Count: var count })
+        {
+            this.EnsureCapacity(this.Length + count);
+            var num = this.Length - index;
+            Buffer.MemoryCopy(this.Data + index, this.Data + index + count, num * sizeof(T), num * sizeof(T));
+            foreach (var item in items)
+                this.Data[index++] = item;
+        }
+        else
+        {
+            foreach (var item in items)
+                this.Insert(index++, item);
+        }
+    }
+
+    /// <inheritdoc cref="List{T}.AddRange"/>
+    public void InsertRange(int index, Span<T> items)
+    {
+        this.EnsureCapacity(this.Length + items.Length);
+        var num = this.Length - index;
+        Buffer.MemoryCopy(this.Data + index, this.Data + index + items.Length, num * sizeof(T), num * sizeof(T));
+        foreach (var item in items)
+            this.Data[index++] = item;
     }
 
     /// <inheritdoc cref="IList{T}.RemoveAt"/>

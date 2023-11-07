@@ -1,8 +1,9 @@
 using System;
-using System.Collections;
-using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics;
 using System.Linq;
 
+using Dalamud.CorePlugin.MyFonts;
+using Dalamud.Interface.GameFonts;
 using Dalamud.Interface.Windowing;
 
 using ImGuiNET;
@@ -18,6 +19,10 @@ namespace Dalamud.CorePlugin
     /// </summary>
     internal class PluginWindow : Window, IDisposable
     {
+        private readonly Stopwatch stopwatchLoad = new();
+
+        private string buffer = "Testing 12345 테스트 可能";
+
         [CanBeNull]
         private FontChainAtlas fontChainAtlas;
 
@@ -50,6 +55,7 @@ namespace Dalamud.CorePlugin
             if (ImGui.Button("Test"))
             {
                 this.fontChainAtlas?.Dispose();
+                this.stopwatchLoad.Restart();
                 this.fontChainAtlas = new();
             }
 
@@ -57,11 +63,23 @@ namespace Dalamud.CorePlugin
                 return;
 
             ImGui.TextUnformatted("=====================");
-            ImGui.PushFont(this.fontChainAtlas[0]);
-            ImGui.TextUnformatted("Testing 12345");
+            ImGui.PushFont(this.fontChainAtlas[new(GameFontFamily.Axis), 12f * 4 / 3]);
+            ImGui.InputTextMultiline(
+                "Test Here",
+                ref this.buffer,
+                1024,
+                new(ImGui.GetContentRegionAvail().X, 80));
             ImGui.PopFont();
-            ImGui.TextUnformatted("=====================");
-        }
+            foreach (var gffas in Enum.GetValues<GameFontFamilyAndSize>().Where(x => x != GameFontFamilyAndSize.Undefined))
+            {
+                var gfs = new GameFontStyle(gffas);
+                ImGui.PushFont(this.fontChainAtlas[new(gfs.Family), gfs.SizePx]);
+                ImGui.TextUnformatted(this.buffer);
+                ImGui.PopFont();
+            }
 
+            this.stopwatchLoad.Stop();
+            ImGui.TextUnformatted($"Took {this.stopwatchLoad.ElapsedMilliseconds}ms");
+        }
     }
 }

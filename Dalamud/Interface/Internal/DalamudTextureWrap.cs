@@ -35,7 +35,7 @@ public interface IDalamudTextureWrap : IDisposable
 /// Safety harness for ImGuiScene textures that will defer destruction until
 /// the end of the frame.
 /// </summary>
-public class DalamudTextureWrap : IDalamudTextureWrap
+public class DalamudTextureWrap : IDalamudTextureWrap, InterfaceManager.IDeferredDisposable
 {
     private readonly TextureWrap wrappedWrap;
 
@@ -83,7 +83,7 @@ public class DalamudTextureWrap : IDalamudTextureWrap
     /// <summary>
     /// Actually dispose the wrapped texture.
     /// </summary>
-    internal void RealDispose()
+    void InterfaceManager.IDeferredDisposable.RealDispose()
     {
         this.wrappedWrap.Dispose();
     }

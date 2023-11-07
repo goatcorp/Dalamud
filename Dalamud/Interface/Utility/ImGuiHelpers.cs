@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
+using System.Runtime.InteropServices;
 
 using Dalamud.Game.ClientState.Keys;
 using Dalamud.Interface.Utility.Raii;
@@ -338,18 +339,56 @@ public static class ImGuiHelpers
     /// ImFontGlyph the correct version.
     /// </summary>
     [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1600:Elements should be documented", Justification = "ImGui internals")]
+    [StructLayout(LayoutKind.Explicit, Size = 40)]
     public struct ImFontGlyphReal
     {
+        [FieldOffset(0)]
         public uint ColoredVisibleTextureIndexCodepoint;
+
+        [FieldOffset(4)]
         public float AdvanceX;
+
+        [FieldOffset(8)]
         public float X0;
+
+        [FieldOffset(12)]
         public float Y0;
+
+        [FieldOffset(16)]
         public float X1;
+
+        [FieldOffset(20)]
         public float Y1;
+
+        [FieldOffset(24)]
         public float U0;
+
+        [FieldOffset(28)]
         public float V0;
+
+        [FieldOffset(32)]
         public float U1;
+
+        [FieldOffset(36)]
         public float V1;
+
+        [FieldOffset(8)]
+        public Vector2 XY0;
+
+        [FieldOffset(16)]
+        public Vector2 XY1;
+
+        [FieldOffset(24)]
+        public Vector2 UV0;
+
+        [FieldOffset(32)]
+        public Vector2 UV1;
+
+        [FieldOffset(8)]
+        public Vector4 XY;
+
+        [FieldOffset(24)]
+        public Vector4 UV;
 
         private const uint ColoredMask /*****/ = 0b_00000000_00000000_00000000_00000001u;
         private const uint VisibleMask /*****/ = 0b_00000000_00000000_00000000_00000010u;
@@ -410,10 +449,10 @@ public static class ImGuiHelpers
             set => this.KerningPairInfo = (this.KerningPairInfo & ~UseBisectMask) | (value ? 1u << UseBisectShift : 0u);
         }
 
-        public bool Offset
+        public int Offset
         {
-            get => (int)((this.KerningPairInfo & OffsetMask) >> OffsetShift) != 0;
-            set => this.KerningPairInfo = (this.KerningPairInfo & ~OffsetMask) | (value ? 1u << OffsetShift : 0u);
+            get => (int)((this.KerningPairInfo & OffsetMask) >> OffsetShift);
+            set => this.KerningPairInfo = (this.KerningPairInfo & ~OffsetMask) | ((uint)value << OffsetShift);
         }
 
         public int Count

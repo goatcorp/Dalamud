@@ -26,8 +26,17 @@ internal partial class InterfaceManager
     /// </summary>
     internal const float DefaultFontSizePx = DefaultFontSizePt * 4.0f / 3.0f;
 
-    private const ushort Fallback1Codepoint = 0x3013; // Geta mark; FFXIV uses this to indicate that a glyph is missing.
-    private const ushort Fallback2Codepoint = '-';    // FFXIV uses dash if Geta mark is unavailable.
+    /// <summary>
+    /// Primary fallback codepoint.
+    /// Geta mark; FFXIV uses this to indicate that a glyph is missing.
+    /// </summary>
+    internal const ushort Fallback1Codepoint = 0x3013;
+
+    /// <summary>
+    /// Secondary fallback codepoint.
+    /// FFXIV uses dash if Geta mark is unavailable.
+    /// </summary>
+    internal const ushort Fallback2Codepoint = '-'; 
 
     private readonly HashSet<SpecialGlyphRequest> glyphRequests = new();
     private readonly Dictionary<ImFontPtr, TargetFontModification> loadedFontInfo = new();

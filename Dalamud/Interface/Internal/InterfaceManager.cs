@@ -48,7 +48,7 @@ namespace Dalamud.Interface.Internal;
 [ServiceManager.BlockingEarlyLoadedService]
 internal partial class InterfaceManager : IDisposable, IServiceType
 {
-    private readonly List<DalamudTextureWrap> deferredDisposeTextures = new();
+    private readonly List<IDeferredDisposable> deferredDisposeTextures = new();
 
     [ServiceManager.ServiceDependency]
     private readonly Framework framework = Service<Framework>.Get();
@@ -111,6 +111,14 @@ internal partial class InterfaceManager : IDisposable, IServiceType
     /// Gets or sets an action that is executed right after fonts are rebuilt.
     /// </summary>
     public event Action? AfterBuildFonts;
+
+    /// <summary>
+    /// To be disposed at some later time. 
+    /// </summary>
+    public interface IDeferredDisposable
+    {
+        void RealDispose();
+    }
 
     /// <summary>
     /// Gets the default ImGui font.
@@ -334,7 +342,7 @@ internal partial class InterfaceManager : IDisposable, IServiceType
     /// Enqueue a texture to be disposed at the end of the frame.
     /// </summary>
     /// <param name="wrap">The texture.</param>
-    public void EnqueueDeferredDispose(DalamudTextureWrap wrap)
+    public void EnqueueDeferredDispose(IDeferredDisposable wrap)
     {
         this.deferredDisposeTextures.Add(wrap);
     }
