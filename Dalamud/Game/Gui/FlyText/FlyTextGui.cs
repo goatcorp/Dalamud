@@ -132,7 +132,7 @@ internal sealed class FlyTextGui : IDisposable, IServiceType, IFlyTextGui
                     1,
                     (IntPtr)numArray,
                     numOffset,
-                    9,
+                    10,
                     (IntPtr)strArray,
                     strOffset,
                     2,
