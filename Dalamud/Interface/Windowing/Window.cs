@@ -362,6 +362,11 @@ public abstract class Window
 
             if (ImGui.BeginPopup(additionsPopupName, ImGuiWindowFlags.NoMove))
             {
+                var isAvailable = ImGuiHelpers.CheckIsWindowOnMainViewport();
+                
+                if (!isAvailable)
+                    ImGui.BeginDisabled();
+                
                 if (this.internalIsClickthrough)
                     ImGui.BeginDisabled();
 
@@ -391,13 +396,25 @@ public abstract class Window
                     this.internalAlpha = null;
                 }
 
-                ImGui.TextColored(ImGuiColors.DalamudGrey,
-                                  Loc.Localize("WindowSystemContextActionClickthroughDisclaimer",
-                                               "Open this menu again to disable clickthrough."));
-                ImGui.TextColored(ImGuiColors.DalamudGrey,
-                                  Loc.Localize("WindowSystemContextActionDisclaimer",
-                                               "These options may not work for all plugins at the moment."));
+                if (isAvailable)
+                {
+                    ImGui.TextColored(ImGuiColors.DalamudGrey,
+                                      Loc.Localize("WindowSystemContextActionClickthroughDisclaimer",
+                                                   "Open this menu again to disable clickthrough."));
+                    ImGui.TextColored(ImGuiColors.DalamudGrey,
+                                      Loc.Localize("WindowSystemContextActionDisclaimer",
+                                                   "These options may not work for all plugins at the moment."));
+                }
+                else
+                {
+                    ImGui.TextColored(ImGuiColors.DalamudGrey,
+                                      Loc.Localize("WindowSystemContextActionViewportDisclaimer",
+                                                   "These features are only available if this window is inside the game window."));
+                }
 
+                if (!isAvailable)
+                    ImGui.EndDisabled();
+                
                 ImGui.EndPopup();
             }
 

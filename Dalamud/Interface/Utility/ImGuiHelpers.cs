@@ -26,6 +26,13 @@ public static class ImGuiHelpers
     public static float GlobalScale { get; private set; }
 
     /// <summary>
+    /// Check if the current ImGui window is on the main viewport.
+    /// Only valid within a window.
+    /// </summary>
+    /// <returns>Whether the window is on the main viewport.</returns>
+    public static bool CheckIsWindowOnMainViewport() => MainViewport.ID == ImGui.GetWindowViewport().ID;
+
+    /// <summary>
     /// Gets a <see cref="Vector2"/> that is pre-scaled with the <see cref="GlobalScale"/> multiplier.
     /// </summary>
     /// <param name="x">Vector2 X/Y parameter.</param>
