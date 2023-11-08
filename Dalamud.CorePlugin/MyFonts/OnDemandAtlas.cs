@@ -198,7 +198,7 @@ public sealed unsafe class OnDemandAtlas : IDisposable
                 throw new ObjectDisposedException(nameof(OnDemandAtlas));
 
             if (this.failedChains.TryGetValue(chain, out var previousException))
-                throw previousException;
+                throw new AggregateException(previousException);
 
             try
             {
@@ -211,7 +211,7 @@ public sealed unsafe class OnDemandAtlas : IDisposable
                 wrapper = new ChainedOnDemandFont(
                     this,
                     chain,
-                    chain.Fonts.Select(entry => this.GetWrapper(entry.Ident, entry.SizePx)));
+                    chain.Fonts.Select(entry => this.GetWrapper(entry.Ident, (int)MathF.Round(entry.SizePx))));
 
                 this.fontChains[chain] = wrapper;
                 this.fontPtrToFont[(nint)wrapper.FontPtr.NativePtr] = wrapper;
@@ -399,18 +399,16 @@ public sealed unsafe class OnDemandAtlas : IDisposable
     /// <param name="ident">Font identifier.</param>
     /// <param name="sizePx">Size in pixels. Note that it will be rounded to nearest integers.</param>
     /// <returns>Found font wrapper.</returns>
-    internal OnDemandFont GetWrapper(in FontIdent ident, float sizePx)
+    internal OnDemandFont GetWrapper(in FontIdent ident, int sizePx)
     {
         if (this.IsDisposed)
             throw new ObjectDisposedException(nameof(OnDemandAtlas));
 
-        var sizeInt = (int)MathF.Round(sizePx);
-
-        if (this.fontEntries.TryGetValue((ident, sizeInt), out var wrapper))
+        if (this.fontEntries.TryGetValue((ident, sizePx), out var wrapper))
             return wrapper;
 
-        if (this.failedIdents.TryGetValue((ident, sizeInt), out var previousException))
-            throw previousException;
+        if (this.failedIdents.TryGetValue((ident, sizePx), out var previousException))
+            throw new AggregateException(previousException);
 
         try
         {
@@ -421,8 +419,8 @@ public sealed unsafe class OnDemandAtlas : IDisposable
                     var gfm = Service<GameFontManager>.Get();
                     var tm = Service<TextureManager>.Get();
 
-                    var gfs = new GameFontStyle(new GameFontStyle(ident.Game, sizeInt).FamilyAndSize);
-                    if ((int)MathF.Round(gfs.SizePx) == sizeInt)
+                    var gfs = new GameFontStyle(new GameFontStyle(ident.Game, sizePx).FamilyAndSize);
+                    if ((int)MathF.Round(gfs.SizePx) == sizePx)
                     {
                         const string filename = "font{}.tex";
                         var fdt = gfm.GetFdtReader(gfs.FamilyAndSize)
@@ -482,15 +480,15 @@ public sealed unsafe class OnDemandAtlas : IDisposable
                         var baseFontIdent = this[ident, gfs.SizePx].NativePtr;
                         wrapper = new ScaledOnDemandFont(
                             this,
-                            this.fontEntries.Single(x => x.Value.FontPtr.NativePtr == baseFontIdent).Value,
-                            sizeInt / gfs.SizePx);
+                            this.fontPtrToFont[(nint)baseFontIdent],
+                            sizePx / gfs.SizePx);
                     }
 
                     break;
                 }
 
                 case { System: { Name: { } name, Variant: { } variant } }:
-                    wrapper = DirectWriteOnDemandFont.FromSystem(this, name, variant, sizeInt);
+                    wrapper = DirectWriteOnDemandFont.FromSystem(this, name, variant, sizePx);
                     break;
 
                 case { File: { Path: { } path, Index: { } index } }:
@@ -501,7 +499,7 @@ public sealed unsafe class OnDemandAtlas : IDisposable
                     throw new ArgumentException("Invalid identifier specification", nameof(ident));
             }
 
-            this.fontEntries[(ident, sizeInt)] = wrapper;
+            this.fontEntries[(ident, sizePx)] = wrapper;
             this.fontPtrToFont[(nint)wrapper.FontPtr.NativePtr] = wrapper;
             this.Fonts.Add(wrapper.FontPtr);
             wrapper.Font.ContainerAtlas = this.AtlasPtr;
@@ -510,7 +508,7 @@ public sealed unsafe class OnDemandAtlas : IDisposable
         }
         catch (Exception e)
         {
-            this.failedIdents[(ident, sizeInt)] = e;
+            this.failedIdents[(ident, sizePx)] = e;
             throw;
         }
     }

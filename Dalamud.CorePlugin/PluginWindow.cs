@@ -181,7 +181,7 @@ namespace Dalamud.CorePlugin
                             ImGui.TextUnformatted(s);
                         }
 
-                        this.atlas.GetWrapper(entry.Ident, entry.SizePx).SanityCheck();
+                        this.atlas.GetWrapper(entry.Ident, (int)MathF.Round(entry.SizePx)).SanityCheck();
                     }
                 }
 
