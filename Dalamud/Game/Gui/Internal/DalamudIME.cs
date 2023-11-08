@@ -9,6 +9,8 @@ using System.Text;
 using Dalamud.Hooking;
 using Dalamud.Interface.Internal;
 using Dalamud.Logging.Internal;
+using Dalamud.Utility;
+
 using ImGuiNET;
 using PInvoke;
 
@@ -67,7 +69,7 @@ internal unsafe class DalamudIME : IDisposable, IServiceType
     /// <param name="wParamPtr">wParam or the pointer to it.</param>
     /// <param name="lParamPtr">lParam or the pointer to it.</param>
     /// <returns>Return value, if not doing further processing.</returns>
-    public unsafe IntPtr? ProcessWndProcW(IntPtr hWnd, User32.WindowMessage msg, nint wParam, nint lParam)
+    public unsafe IntPtr? ProcessWndProcW(IntPtr hWnd, User32.WindowMessage msg, nint wParamPtr, nint lParamPtr)
     {
         try
         {
@@ -75,6 +77,15 @@ internal unsafe class DalamudIME : IDisposable, IServiceType
             {
                 var io = ImGui.GetIO();
                 var wmsg = (WindowsMessage)msg;
+
+                // Only attempt to read address if there is any chance of the value being a pointer
+                // Otherwise this makes ImGui InputText variants to be extremely slow when debugger is attached
+                var wParam = wParamPtr >= 0x10000
+                                 ? Util.DefaultIfError(() => Marshal.ReadIntPtr(wParamPtr), wParamPtr, false)
+                                 : wParamPtr;
+                var lParam = lParamPtr >= 0x10000
+                                 ? Util.DefaultIfError(() => Marshal.ReadIntPtr(lParamPtr), lParamPtr, false)
+                                 : lParamPtr;
 
                 switch (wmsg)
                 {

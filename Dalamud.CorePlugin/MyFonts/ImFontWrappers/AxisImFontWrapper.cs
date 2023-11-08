@@ -121,10 +121,7 @@ internal unsafe class AxisImFontWrapper : ImFontWrapper
         this.Font.Scale = 1f;
         this.Font.Ascent = fdt.FontHeader.Ascent;
         this.Font.Descent = fdt.FontHeader.Descent;
-        this.Font.FallbackGlyph = (ImFontGlyph*)this.FindLoadedGlyphNoFallback(this.Font.FallbackChar);
-        this.Font.FallbackHotData = (ImFontGlyphHotData*)(this.IndexedHotData.Data + this.Font.FallbackChar);
-
-        this.RepairHotData();
+        this.UpdateReferencesToVectorItems();
     }
 
     /// <inheritdoc/>

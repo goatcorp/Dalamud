@@ -80,4 +80,13 @@ public record struct FontIdent
 
     /// <inheritdoc/>
     public override int GetHashCode() => HashCode.Combine(this.NotoSansJ, this.Game, this.File, this.System);
+
+    /// <inheritdoc/>
+    public override string ToString() => this switch
+    {
+        { Game: not GameFontFamily.Undefined and var g } => g.ToString(),
+        { File: ({ } path, var index) } => $"{path}:{index}",
+        { System: ({ } name, var variant) } => $"{name}({variant})",
+        _ => "-",
+    };
 }

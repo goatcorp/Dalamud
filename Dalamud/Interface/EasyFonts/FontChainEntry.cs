@@ -75,4 +75,12 @@ public record struct FontChainEntry
     public readonly bool RangeContainsCharacter(int c) =>
         this.Ranges is not { } ranges
         || ranges.Any(x => x.FirstCodePoint <= c && c < x.FirstCodePoint + x.Length);
+
+    /// <inheritdoc/>
+    public override string ToString() =>
+        $"{this.Ident} ({this.SizePx}px"
+        + (this.OffsetX != 0 || this.OffsetY != 0 ? $", off=({this.OffsetX}, {this.OffsetY})" : string.Empty)
+        + (this.LetterSpacing != 0 ? $", ls={this.LetterSpacing}" : string.Empty)
+        + (this.Ranges is { } ranges ? $", ranges={ranges.Length}" : string.Empty)
+        + ")";
 }

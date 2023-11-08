@@ -414,13 +414,13 @@ public static class ImGuiHelpers
 
         public int TextureIndex
         {
-            get => (int)(this.ColoredVisibleTextureIndexCodepoint & TextureMask) >> TextureShift;
+            get => (int)((this.ColoredVisibleTextureIndexCodepoint & TextureMask) >> TextureShift);
             set => this.ColoredVisibleTextureIndexCodepoint = (this.ColoredVisibleTextureIndexCodepoint & ~TextureMask) | ((uint)value << TextureShift);
         }
 
         public int Codepoint
         {
-            get => (int)(this.ColoredVisibleTextureIndexCodepoint & CodepointMask) >> CodepointShift;
+            get => (int)((this.ColoredVisibleTextureIndexCodepoint & CodepointMask) >> CodepointShift);
             set => this.ColoredVisibleTextureIndexCodepoint = (this.ColoredVisibleTextureIndexCodepoint & ~CodepointMask) | ((uint)value << CodepointShift);
         }
     }

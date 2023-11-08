@@ -30,7 +30,10 @@ internal unsafe class ScaledImFontWrapper : ImFontWrapper
         this.Font.Ascent = src.Font.Ascent * scale;
         this.Font.Descent = src.Font.Descent * scale;
         this.Font.FallbackGlyph = (ImFontGlyph*)this.FindLoadedGlyphNoFallback(this.Font.FallbackChar);
-        this.Font.FallbackHotData = (ImFontGlyphHotData*)(this.IndexedHotData.Data + this.Font.FallbackChar);
+        this.Font.FallbackHotData =
+            this.Font.FallbackChar == ushort.MaxValue
+                ? null
+                : (ImFontGlyphHotData*)(this.IndexedHotData.Data + this.Font.FallbackChar);
 
         foreach (var c in Enumerable.Range(0, this.IndexLookup.Length))
         {
@@ -39,7 +42,7 @@ internal unsafe class ScaledImFontWrapper : ImFontWrapper
                 this.Glyphs[glyphIndex].XY *= scale;
         }
 
-        this.RepairHotData();
+        this.UpdateReferencesToVectorItems();
     }
 
     /// <inheritdoc/>

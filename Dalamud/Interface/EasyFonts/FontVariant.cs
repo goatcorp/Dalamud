@@ -15,11 +15,21 @@ public record struct FontVariant
     /// <summary>
     /// Initializes a new instance of the <see cref="FontVariant"/> class.
     /// </summary>
+    public FontVariant()
+    {
+        this.Weight = FontWeight.Normal;
+        this.Stretch = FontStretch.Normal;
+        this.Style = FontStyle.Normal;
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="FontVariant"/> class.
+    /// </summary>
     /// <param name="weight">Weight of the font.</param>
     /// <param name="stretch">Stretch of the font.</param>
     /// <param name="style">Style of the font.</param>
     public FontVariant(
-        FontWeight weight = FontWeight.Normal,
+        FontWeight weight,
         FontStretch stretch = FontStretch.Normal,
         FontStyle style = FontStyle.Normal)
     {

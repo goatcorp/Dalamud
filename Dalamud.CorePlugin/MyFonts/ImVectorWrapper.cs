@@ -1,4 +1,4 @@
-﻿#nullable enable
+#nullable enable
 
 using System;
 using System.Collections;
@@ -313,22 +313,28 @@ public unsafe class ImVectorWrapper<T> : IList<T>, IList, IReadOnlyList<T>
         if (capacity == this.Length)
             return false;
 
-        var newData = (T*)(capacity == 0
-                               ? null
-                               : ImGuiNative.igMemAlloc(checked((uint)(capacity * sizeof(T)))));
-        if (newData is null && capacity > 0)
-            throw new OutOfMemoryException();
+        var oldAlloc = this.Data;
+        var oldSpan = new Span<T>(oldAlloc, this.Capacity);
 
-        var oldData = this.Data;
-        if (oldData is not null && newData is not null)
-            Buffer.MemoryCopy(oldData, newData, this.Length * sizeof(T), this.Length * sizeof(T));
-        if (oldData is not null)
-            ImGuiNative.igMemFree(oldData);
-        this.Data = newData;
-        this.Capacity = capacity;
+        var newAlloc = (T*)(capacity == 0
+                                ? null
+                                : ImGuiNative.igMemAlloc(checked((uint)(capacity * sizeof(T)))));
+        if (newAlloc is null && capacity > 0)
+            throw new OutOfMemoryException();
+        var newSpan = new Span<T>(newAlloc, capacity);
+
+        if (!oldSpan.IsEmpty && !newSpan.IsEmpty)
+            oldSpan[..this.Length].CopyTo(newSpan);
 #if DEBUG
-        new Span<byte>(this.Data + this.Length, sizeof(T) * (capacity - this.Length)).Fill(0xCC);
+        new Span<byte>(newAlloc + this.Length, sizeof(T) * (capacity - this.Length)).Fill(0xCC);
 #endif
+
+        if (oldAlloc != null)
+            ImGuiNative.igMemFree(oldAlloc);
+
+        this.Data = newAlloc;
+        this.Capacity = capacity;
+
         return true;
     }
 
@@ -391,6 +397,5 @@ public unsafe class ImVectorWrapper<T> : IList<T>, IList, IReadOnlyList<T>
     /// <inheritdoc/>
     void IList<T>.Insert(int index, T item) => this.Insert(index, in item);
 
-    private int EnsureIndex(int index) =>
-        index >= 0 && index < this.Length ? index : throw new IndexOutOfRangeException();
+    private int EnsureIndex(int i) => i >= 0 && i < this.Length ? i : throw new IndexOutOfRangeException();
 }

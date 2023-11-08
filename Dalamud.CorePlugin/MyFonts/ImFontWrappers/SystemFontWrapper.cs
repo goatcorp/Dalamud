@@ -60,9 +60,6 @@ internal unsafe class DirectWriteFontWrapper : ImFontWrapper
             this.Font.Ascent = MathF.Ceiling(this.Metrics.Ascent * this.multiplier);
             this.Font.Descent = MathF.Ceiling(this.Metrics.Descent * this.multiplier);
             this.LoadGlyphs(' ', (char)this.Font.FallbackChar, (char)this.Font.EllipsisChar, (char)this.Font.DotChar);
-            this.Font.FallbackGlyph = (ImFontGlyph*)this.FindLoadedGlyphNoFallback(this.Font.FallbackChar);
-            this.Font.FallbackHotData = (ImFontGlyphHotData*)(this.IndexedHotData.Data + this.Font.FallbackChar);
-            this.RepairHotData();
         }
         catch (Exception)
         {
@@ -114,7 +111,8 @@ internal unsafe class DirectWriteFontWrapper : ImFontWrapper
         var tmpAdvances = new float[1];
         var tmpOffsets = new GlyphOffset[1];
         var tmpBuffer = Array.Empty<byte>();
-        HashSet<int>? changedTextures = null;
+        var changed = false;
+        Span<bool> changedTextures = new bool[256];
         try
         {
             foreach (var (i, c) in Enumerable.Range(0, coll.Count).Zip(coll))
@@ -175,7 +173,7 @@ internal unsafe class DirectWriteFontWrapper : ImFontWrapper
 
             var baseGlyphIndex = this.Glyphs.Length;
             var validCount = analyses.Count(x => x is not null);
-            this.Glyphs.EnsureCapacity(this.Glyphs.Length + validCount);
+            changed |= this.Glyphs.EnsureCapacity(this.Glyphs.Length + validCount);
 
             var maxArea = 0;
             foreach (var (i, c) in Enumerable.Range(0, coll.Count).Zip(coll))
@@ -204,6 +202,7 @@ internal unsafe class DirectWriteFontWrapper : ImFontWrapper
                 this.IndexLookup[c] = unchecked((ushort)this.Glyphs.Length);
                 this.Glyphs.Add(glyph);
                 this.Mark4KPageUsed(glyph);
+                changed = true;
 
                 ref var indexedHotData = ref this.IndexedHotData[glyph.Codepoint];
                 indexedHotData.AdvanceX = glyph.AdvanceX;
@@ -265,7 +264,7 @@ internal unsafe class DirectWriteFontWrapper : ImFontWrapper
                     }
                 }
 
-                (changedTextures ??= new()).Add(glyph.TextureIndex);
+                changedTextures[glyph.TextureIndex] = true;
             }
         }
         finally
@@ -273,15 +272,14 @@ internal unsafe class DirectWriteFontWrapper : ImFontWrapper
             ArrayPool<byte>.Shared.Return(tmpBuffer);
             analyses.DisposeItems();
 
-            if (changedTextures is not null)
+            foreach (var i in Enumerable.Range(0, changedTextures.Length))
             {
-                this.RepairHotData();
-                foreach (var ct in changedTextures)
-                {
-                    var wrap = (UpdateableTextureWrap)this.Atlas.TextureWraps[ct];
-                    wrap.ApplyChanges();
-                }
+                if (changedTextures[i])
+                    ((UpdateableTextureWrap)this.Atlas.TextureWraps[i]).ApplyChanges();
             }
+
+            if (changed)
+                this.UpdateReferencesToVectorItems();
         }
     }
 

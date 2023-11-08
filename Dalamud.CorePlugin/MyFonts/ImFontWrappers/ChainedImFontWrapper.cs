@@ -40,9 +40,6 @@ internal unsafe class ChainedImFontWrapper : ImFontWrapper
         this.Font.Descent = this.Subfonts[0].Font.Descent
                             + MathF.Floor((chain.Fonts[0].SizePx * (chain.LineHeight - 1f)) / 2);
         this.LoadGlyphs(' ', (char)this.Font.FallbackChar, (char)this.Font.EllipsisChar, (char)this.Font.DotChar);
-        this.Font.FallbackGlyph = (ImFontGlyph*)this.FindLoadedGlyphNoFallback(this.Font.FallbackChar);
-        this.Font.FallbackHotData = (ImFontGlyphHotData*)(this.IndexedHotData.Data + this.Font.FallbackChar);
-        this.RepairHotData();
     }
 
     public FontChain Chain { get; set; }
@@ -63,15 +60,19 @@ internal unsafe class ChainedImFontWrapper : ImFontWrapper
             return;
         this.EnsureIndex(coll.Max());
 
+        var changed = false;
         foreach (var (entry, font) in this.Chain.Fonts.Zip(this.Subfonts))
         {
             font.LoadGlyphs(coll);
             foreach (var c in coll)
-                this.EnsureCharacter(c, entry, font);
+                changed |= this.EnsureCharacter(c, entry, font);
         }
 
         foreach (var c in coll)
             this.LoadAttemptedGlyphs[c] = true;
+
+        if (changed)
+            this.UpdateReferencesToVectorItems();
     }
 
     /// <inheritdoc/>
@@ -84,13 +85,14 @@ internal unsafe class ChainedImFontWrapper : ImFontWrapper
             return;
         this.EnsureIndex(coll.Max(x => x.FirstCodePoint + (x.Length - 1)));
 
+        var changed = false;
         foreach (var (entry, font) in this.Chain.Fonts.Zip(this.Subfonts))
         {
             font.LoadGlyphs(coll);
             foreach (var c in coll)
             {
                 foreach (var cc in Enumerable.Range(c.FirstCodePoint, c.Length))
-                    this.EnsureCharacter(cc, entry, font);
+                    changed |= this.EnsureCharacter(cc, entry, font);
             }
         }
 
@@ -99,19 +101,22 @@ internal unsafe class ChainedImFontWrapper : ImFontWrapper
             foreach (var cc in Enumerable.Range(c.FirstCodePoint, c.Length))
                 this.LoadAttemptedGlyphs[cc] = true;
         }
+
+        if (changed)
+            this.UpdateReferencesToVectorItems();
     }
 
-    private void EnsureCharacter(int c, in FontChainEntry entry, in ImFontWrapper font)
+    private bool EnsureCharacter(int c, in FontChainEntry entry, in ImFontWrapper font)
     {
         if (this.LoadAttemptedGlyphs[c])
-            return;
+            return false;
 
         if (!entry.RangeContainsCharacter(c))
-            return;
+            return false;
 
         var sourceGlyph = font.FindLoadedGlyphNoFallback(c);
         if (sourceGlyph is null)
-            return;
+            return false;
 
         var offsetVector2 = new Vector2(
             MathF.Round(entry.OffsetX),
@@ -137,5 +142,6 @@ internal unsafe class ChainedImFontWrapper : ImFontWrapper
         ref var indexedHotData = ref this.IndexedHotData[glyph.Codepoint];
         indexedHotData.AdvanceX = glyph.AdvanceX;
         indexedHotData.OccupiedWidth = Math.Max(glyph.AdvanceX, glyph.X1);
+        return true;
     }
 }

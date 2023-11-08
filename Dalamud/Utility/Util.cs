@@ -101,10 +101,11 @@ public static class Util
     /// Evaluates a function and turn exceptions into default value.
     /// </summary>
     /// <param name="fn">The function to call.</param>
+    /// <param name="defaultValue">Default value.</param>
     /// <param name="log">Whether to log on error.</param>
     /// <typeparam name="T">Return type.</typeparam>
     /// <returns>Return value, or default.</returns>
-    public static T? DefaultIfError<T>(Func<T> fn, bool log = true)
+    public static T? DefaultIfError<T>(Func<T> fn, in T defaultValue = default, bool log = true)
     {
         try
         {
@@ -114,7 +115,7 @@ public static class Util
         {
             if (log)
                 Log.Error(ex, nameof(DefaultIfError));
-            return default;
+            return defaultValue;
         }
     }
 

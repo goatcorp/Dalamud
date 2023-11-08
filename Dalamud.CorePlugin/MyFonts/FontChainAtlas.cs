@@ -202,7 +202,7 @@ public sealed unsafe class FontChainAtlas : IDisposable
         }
     }
 
-    private ImFontWrapper GetWrapper(in FontIdent ident, float sizePx)
+    internal ImFontWrapper GetWrapper(in FontIdent ident, float sizePx)
     {
         if (this.IsDisposed)
             throw new ObjectDisposedException(nameof(FontChainAtlas));

@@ -1,4 +1,4 @@
-﻿#nullable enable
+#nullable enable
 #pragma warning disable SA1600
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 
@@ -6,6 +6,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text.Unicode;
 
 using Dalamud.Interface.Utility;
@@ -104,6 +105,17 @@ internal abstract unsafe class ImFontWrapper : IDisposable
         this.IndexLookup.Resize(maxCodepoint + 1, ushort.MaxValue);
     }
 
+    internal void SanityCheck()
+    {
+        _ = Marshal.ReadIntPtr((nint)this.FontNative->ContainerAtlas);
+        _ = Marshal.ReadIntPtr((nint)this.FontNative->FallbackGlyph);
+        var texIndex = ((ImGuiHelpers.ImFontGlyphReal*)this.FontNative->FallbackGlyph)->TextureIndex;
+        var textures = new ImVectorWrapper<ImFontAtlasTexture>(&this.FontNative->ContainerAtlas->Textures, null);
+        var texId = textures[texIndex].TexID;
+        if (texId != 0)
+            _ = Marshal.ReadIntPtr(texId);
+    }
+
     protected void AllocateGlyphSpaces(int startIndex, int count)
     {
         var textureIndex = 0;
@@ -165,14 +177,20 @@ internal abstract unsafe class ImFontWrapper : IDisposable
     }
 
     /// <summary>
-    /// Repairs IndexedHotData, so that &quot;InputTextCalcTextSizeW&quot; does not trip.
+    /// Updates references stored in ImFont.
     /// </summary>
     /// <remarks>
     /// Need to fix our custom ImGui, so that imgui_widgets.cpp:3656 stops thinking
     /// Codepoint &lt; FallbackHotData.size always means it's not fallback char.
     /// </remarks>
-    protected void RepairHotData()
+    protected void UpdateReferencesToVectorItems()
     {
+        this.Font.FallbackGlyph = (ImFontGlyph*)this.FindLoadedGlyphNoFallback(this.Font.FallbackChar);
+        this.Font.FallbackHotData =
+            this.Font.FallbackChar == ushort.MaxValue
+                ? null
+                : (ImFontGlyphHotData*)(this.IndexedHotData.Data + this.Font.FallbackChar);
+
         var fallbackHotData = this.IndexedHotData[this.Font.FallbackChar];
         foreach (var codepoint in Enumerable.Range(0, this.IndexedHotData.Length))
         {
