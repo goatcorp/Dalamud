@@ -1,6 +1,4 @@
 #nullable enable
-#pragma warning disable SA1600
-#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 
 using System;
 using System.Collections.Generic;
@@ -8,6 +6,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reactive.Disposables;
+using System.Text.Unicode;
 
 using Dalamud.Configuration.Internal;
 using Dalamud.CorePlugin.MyFonts.ImFontWrappers;
@@ -24,13 +23,20 @@ using Lumina.Data.Files;
 
 namespace Dalamud.CorePlugin.MyFonts;
 
+/// <summary>
+/// A wrapper for <see cref="ImFontAtlas"/> for managing fonts in a easy way.
+/// </summary>
 public sealed unsafe class FontChainAtlas : IDisposable
 {
     private readonly ImFontAtlas* pAtlas;
     private readonly byte[] gammaTable = new byte[256];
     private float lastGamma = float.NaN;
 
-    public FontChainAtlas()
+    /// <summary>
+    /// Initializes a new instance of the <see cref="FontChainAtlas"/> class.
+    /// </summary>
+    // TODO: add function into InterfaceManager for plugins or smth
+    internal FontChainAtlas()
     {
         this.pAtlas = ImGuiNative.ImFontAtlas_ImFontAtlas();
         this.pAtlas->TexWidth = this.pAtlas->TexDesiredWidth = 1024;
@@ -63,29 +69,60 @@ public sealed unsafe class FontChainAtlas : IDisposable
         this.UpdateTextures();
     }
 
+    /// <summary>
+    /// Finalizes an instance of the <see cref="FontChainAtlas"/> class.
+    /// </summary>
     ~FontChainAtlas() => this.ReleaseUnmanagedResources();
 
+    /// <summary>
+    /// Gets a value indicating whether it is disposed.
+    /// </summary>
     public bool IsDisposed { get; private set; }
 
-    public int SuppressTextureUpdate { get; set; }
-
+    /// <summary>
+    /// Gets the reasons why <see cref="FontChain"/>s have failed to load.
+    /// </summary>
     public IReadOnlyDictionary<FontChain, Exception> FailedChains => this.FailedChainsPrivate;
 
+    /// <summary>
+    /// Gets the reasons why <see cref="FontIdent"/>s have failed to load.
+    /// </summary>
     public IReadOnlyDictionary<(FontIdent Ident, float SizePx), Exception> FailedIdents => this.FailedIdentsPrivate;
 
+    /// <summary>
+    /// Gets the list of associated <see cref="IDalamudTextureWrap"/>.
+    /// </summary>
     internal List<IDalamudTextureWrap> TextureWraps { get; }
 
+    /// <summary>
+    /// Gets the wrapped vector of <see cref="ImFontAtlasTexture"/>.
+    /// </summary>
     internal ImVectorWrapper<ImFontAtlasTexture> ImTextures { get; }
 
+    /// <summary>
+    /// Gets the wrapped vector of <see cref="ImFontPtr"/>.
+    /// </summary>
     internal ImVectorWrapper<ImFontPtr> Fonts { get; }
 
+    /// <summary>
+    /// Gets the wrapped vector of <see cref="ImGuiHelpers.ImFontAtlasCustomRectReal"/>.
+    /// </summary>
     internal ImVectorWrapper<ImGuiHelpers.ImFontAtlasCustomRectReal> CustomRects { get; }
 
+    /// <summary>
+    /// Gets the wrapped vector of <see cref="ImFontConfig"/>.
+    /// </summary>
     internal ImVectorWrapper<ImFontConfig> FontConfigs { get; }
 
+    /// <summary>
+    /// Gets the wrapped <see cref="ImFontAtlasPtr"/>.
+    /// </summary>
     internal ImFontAtlasPtr AtlasPtr => new(this.pAtlas);
 
-    internal byte[] GammaMultiplicationTable
+    /// <summary>
+    /// Gets the gamma mapping table.
+    /// </summary>
+    internal byte[] GammaMappingTable
     {
         get
         {
@@ -100,6 +137,8 @@ public sealed unsafe class FontChainAtlas : IDisposable
         }
     }
 
+    private int SuppressTextureUpdate { get; set; }
+
     private Dictionary<(FontIdent Ident, float Size), ImFontWrapper> FontEntries { get; } = new();
 
     private Dictionary<FontChain, ImFontWrapper> FontChains { get; } = new();
@@ -112,9 +151,18 @@ public sealed unsafe class FontChainAtlas : IDisposable
 
     private Dictionary<(FontIdent Ident, float SizePx), Exception> FailedIdentsPrivate { get; } = new();
 
+    /// <summary>
+    /// Gets the font corresponding to the given specifications.
+    /// </summary>
+    /// <param name="ident">Font identifier.</param>
+    /// <param name="sizePx">Size in pixels.</param>
     public ImFontPtr this[in FontIdent ident, float sizePx] =>
         this.Fonts[this.ImFontWrapperIndices[this.GetWrapper(ident, sizePx)]];
 
+    /// <summary>
+    /// Gets the font corresponding to the given specifications.
+    /// </summary>
+    /// <param name="chain">Font chain.</param>
     public ImFontPtr this[in FontChain chain]
     {
         get
@@ -152,6 +200,16 @@ public sealed unsafe class FontChainAtlas : IDisposable
         }
     }
 
+    /// <summary>
+    /// Reset recorded font load errors, so that on next access, font will be attempted for load again.
+    /// </summary>
+    public void ClearLoadErrorHistory()
+    {
+        this.FailedChainsPrivate.Clear();
+        this.FailedIdentsPrivate.Clear();
+    }
+
+    /// <inheritdoc/>
     public void Dispose()
     {
         if (this.IsDisposed)
@@ -171,22 +229,58 @@ public sealed unsafe class FontChainAtlas : IDisposable
     /// <summary>
     /// Load the glyphs corresponding to the given chars into currently active ImGui font, if it is managed by this.
     /// </summary>
-    /// <param name="str">Chars.</param>
-    public void LoadGlyphs(IEnumerable<char> str) => this.LoadGlyphs(ImGui.GetFont(), str);
+    /// <param name="chars">Chars.</param>
+    public void LoadGlyphs(params char[] chars) => this.LoadGlyphs(ImGui.GetFont(), chars);
+
+    /// <summary>
+    /// Load the glyphs corresponding to the given chars into currently active ImGui font, if it is managed by this.
+    /// </summary>
+    /// <param name="chars">Chars.</param>
+    public void LoadGlyphs(IEnumerable<char> chars) => this.LoadGlyphs(ImGui.GetFont(), chars);
 
     /// <summary>
     /// Load the glyphs corresponding to the given chars into <paramref name="font"/>, if it is managed by this.
     /// </summary>
     /// <param name="font">Relevant font.</param>
-    /// <param name="str">Chars.</param>
-    public void LoadGlyphs(ImFontPtr font, IEnumerable<char> str) =>
+    /// <param name="chars">Chars.</param>
+    public void LoadGlyphs(ImFontPtr font, IEnumerable<char> chars) =>
         this.FontChains.Values
             .Concat(this.FontEntries.Values)
             .FirstOrDefault(x => x.FontPtr.NativePtr == font.NativePtr)
-            ?.LoadGlyphs(str);
+            ?.LoadGlyphs(chars);
 
-    public IDisposable SuppressTextureUpdatesScoped()
+    /// <summary>
+    /// Load the glyphs corresponding to the given chars into currently active ImGui font, if it is managed by this.
+    /// </summary>
+    /// <param name="ranges">Ranges.</param>
+    public void LoadGlyphs(params UnicodeRange[] ranges) => this.LoadGlyphs(ImGui.GetFont(), ranges);
+
+    /// <summary>
+    /// Load the glyphs corresponding to the given chars into currently active ImGui font, if it is managed by this.
+    /// </summary>
+    /// <param name="ranges">Ranges.</param>
+    public void LoadGlyphs(IEnumerable<UnicodeRange> ranges) => this.LoadGlyphs(ImGui.GetFont(), ranges);
+
+    /// <summary>
+    /// Load the glyphs corresponding to the given chars into <paramref name="font"/>, if it is managed by this.
+    /// </summary>
+    /// <param name="font">Relevant font.</param>
+    /// <param name="ranges">Ranges.</param>
+    public void LoadGlyphs(ImFontPtr font, IEnumerable<UnicodeRange> ranges) =>
+        this.FontChains.Values
+            .Concat(this.FontEntries.Values)
+            .FirstOrDefault(x => x.FontPtr.NativePtr == font.NativePtr)
+            ?.LoadGlyphs(ranges);
+
+    /// <summary>
+    /// Suppress uploading updated texture onto GPU for the scope.
+    /// </summary>
+    /// <returns>An <see cref="IDisposable"/> that will make it update the texture on dispose.</returns>
+    public IDisposable? SuppressTextureUpdatesScoped()
     {
+        if (this.IsDisposed)
+            return null;
+
         this.SuppressTextureUpdate++;
         return Disposable.Create(
             () =>
@@ -196,6 +290,13 @@ public sealed unsafe class FontChainAtlas : IDisposable
             });
     }
 
+    /// <summary>
+    /// Fetch a font, and if it succeeds, push it onto the stack.
+    /// </summary>
+    /// <param name="ident">Font identifier.</param>
+    /// <param name="sizePx">Font size in pixels.</param>
+    /// <returns>An <see cref="IDisposable"/> that will make it pop the font on dispose.</returns>
+    /// <remarks>It will return null on failure, and exception will be stored in <see cref="FailedIdents"/>.</remarks>
     public IDisposable? PushFontScoped(in FontIdent ident, float sizePx)
     {
         if (this.IsDisposed)
@@ -223,6 +324,12 @@ public sealed unsafe class FontChainAtlas : IDisposable
             });
     }
 
+    /// <summary>
+    /// Fetch a font, and if it succeeds, push it onto the stack.
+    /// </summary>
+    /// <param name="chain">Font chain.</param>
+    /// <returns>An <see cref="IDisposable"/> that will make it pop the font on dispose.</returns>
+    /// <remarks>It will return null on failure, and exception will be stored in <see cref="FailedChains"/>.</remarks>
     public IDisposable? PushFontScoped(in FontChain chain)
     {
         if (this.IsDisposed)
@@ -250,6 +357,9 @@ public sealed unsafe class FontChainAtlas : IDisposable
             });
     }
 
+    /// <summary>
+    /// Upload updated textures onto GPU, if not suppressed.
+    /// </summary>
     public void UpdateTextures()
     {
         var im = Service<InterfaceManager>.Get();
@@ -295,6 +405,12 @@ public sealed unsafe class FontChainAtlas : IDisposable
         }
     }
 
+    /// <summary>
+    /// Get the font wrapper.
+    /// </summary>
+    /// <param name="ident">Font identifier.</param>
+    /// <param name="sizePx">Size in pixels.</param>
+    /// <returns>Found font wrapper.</returns>
     internal ImFontWrapper GetWrapper(in FontIdent ident, float sizePx)
     {
         if (this.IsDisposed)
@@ -393,9 +509,11 @@ public sealed unsafe class FontChainAtlas : IDisposable
                     break;
 
                 case { File: { Path: { } path, Index: { } index } }:
+                    // TODO
                     throw new NotImplementedException();
 
                 default:
+                    // TODO: ArgumentException?
                     throw new NotSupportedException();
             }
 

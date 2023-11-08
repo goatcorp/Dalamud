@@ -212,7 +212,7 @@ internal unsafe class DirectWriteFontWrapper : ImFontWrapper
             this.AllocateGlyphSpaces(baseGlyphIndex, validCount);
 
             tmpBuffer = ArrayPool<byte>.Shared.Rent(maxArea * 4);
-            var multTable = this.Atlas.GammaMultiplicationTable;
+            var multTable = this.Atlas.GammaMappingTable;
             foreach (var analysis in analyses)
             {
                 if (analysis is null)
