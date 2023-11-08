@@ -110,7 +110,7 @@ internal abstract unsafe class ImFontWrapper : IDisposable
         _ = Marshal.ReadIntPtr((nint)this.FontNative->ContainerAtlas);
         _ = Marshal.ReadIntPtr((nint)this.FontNative->FallbackGlyph);
         var texIndex = ((ImGuiHelpers.ImFontGlyphReal*)this.FontNative->FallbackGlyph)->TextureIndex;
-        var textures = new ImVectorWrapper<ImFontAtlasTexture>(&this.FontNative->ContainerAtlas->Textures, null);
+        var textures = this.FontNative->ContainerAtlas->Textures.Wrap<ImFontAtlasTexture>();
         var texId = textures[texIndex].TexID;
         if (texId != 0)
             _ = Marshal.ReadIntPtr(texId);

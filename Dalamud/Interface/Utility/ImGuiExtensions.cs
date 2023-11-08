@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Numerics;
 using System.Text;
 
@@ -9,7 +8,7 @@ namespace Dalamud.Interface.Utility;
 /// <summary>
 /// Class containing various extensions to ImGui, aiding with building custom widgets.
 /// </summary>
-public static class ImGuiExtensions
+public static partial class ImGuiExtensions
 {
     /// <summary>
     /// Draw clipped text.
@@ -84,34 +83,5 @@ public static class ImGuiExtensions
         {
             ImGuiNative.ImDrawList_AddText_FontPtr(drawListPtr.NativePtr, nativeFont, fontSize, pos, col, nativeTextBegin, nativeTextEnd, wrapWidth, nativeCpuFineClipRect);
         }
-    }
-
-    /// <summary>
-    /// Convert given <see cref="ImVector"/> into a <see cref="Span{T}"/>.
-    /// </summary>
-    /// <param name="vec">The vector.</param>
-    /// <typeparam name="T">The type.</typeparam>
-    /// <returns>Span view of the vector.</returns>
-    public static unsafe Span<T> AsSpan<T>(this ImVector vec) where T : unmanaged => new((void*)vec.Data, vec.Size);
-
-    /// <summary>
-    /// Convert given <see cref="ImVector{T}"/> into a <see cref="Span{T}"/>.
-    /// </summary>
-    /// <param name="vec">The vector.</param>
-    /// <typeparam name="T">The type.</typeparam>
-    /// <returns>Span view of the vector.</returns>
-    public static unsafe Span<T> AsSpan<T>(this ImVector<T> vec) where T : unmanaged =>
-        new((void*)vec.Data, vec.Size);
-
-    /// <summary>
-    /// Interpret given <see cref="ImPtrVector{T}"/> as a <see cref="IEnumerable{T}"/>.
-    /// </summary>
-    /// <param name="vec">The vector.</param>
-    /// <typeparam name="T">The type.</typeparam>
-    /// <returns>Enumerable of the vector.</returns>
-    public static IEnumerable<T> AsEnumerable<T>(this ImPtrVector<T> vec) where T : unmanaged
-    {
-        for (var i = 0; i < vec.Size; i++)
-            yield return vec[i];
     }
 }
