@@ -13,6 +13,7 @@ using Dalamud.Interface.Internal;
 using Dalamud.Interface.Utility;
 using Dalamud.Utility;
 
+using SharpDX;
 using SharpDX.Direct2D1;
 using SharpDX.DirectWrite;
 
@@ -23,7 +24,7 @@ using UnicodeRange = System.Text.Unicode.UnicodeRange;
 
 namespace Dalamud.CorePlugin.MyFonts.OnDemandFonts;
 
-internal unsafe class DirectWriteOnDemandFont : OnDemandFont
+internal class DirectWriteOnDemandFont : OnDemandFont
 {
     private readonly DisposeStack disposeStack = new();
     private readonly Factory factory;
@@ -33,7 +34,7 @@ internal unsafe class DirectWriteOnDemandFont : OnDemandFont
     private readonly float sizePt;
     private readonly float multiplier;
 
-    public DirectWriteOnDemandFont(OnDemandAtlas atlas, Factory factory, Font font, float sizePx)
+    public DirectWriteOnDemandFont(OnDemandAtlas atlas, ComObject factory, ComObject font, float sizePx)
         : base(atlas, null)
     {
         try

@@ -29,7 +29,15 @@ public sealed unsafe class OnDemandAtlas : IDisposable
     private readonly InterfaceManager interfaceManager;
     private readonly ImFontAtlas* pAtlas;
     private readonly byte[] gammaTable = new byte[256];
+    private readonly Dictionary<(FontIdent Ident, int SizePx), OnDemandFont> fontEntries = new();
+    private readonly Dictionary<FontChain, OnDemandFont> fontChains = new();
+    private readonly Dictionary<nint, OnDemandFont> fontPtrToFont = new();
+    private readonly Dictionary<string, int[]> gameFontTextures = new();
+    private readonly Dictionary<FontChain, Exception> failedChains = new();
+    private readonly Dictionary<(FontIdent Ident, int SizePx), Exception> failedIdents = new();
+
     private float lastGamma = float.NaN;
+    private int suppressTextureUpdateCounter;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="OnDemandAtlas"/> class.
@@ -116,12 +124,12 @@ public sealed unsafe class OnDemandAtlas : IDisposable
     /// <summary>
     /// Gets the reasons why <see cref="FontChain"/>s have failed to load.
     /// </summary>
-    public IReadOnlyDictionary<FontChain, Exception> FailedChains => this.FailedChainsPrivate;
+    public IReadOnlyDictionary<FontChain, Exception> FailedChains => this.failedChains;
 
     /// <summary>
     /// Gets the reasons why <see cref="FontIdent"/>s have failed to load.
     /// </summary>
-    public IReadOnlyDictionary<(FontIdent Ident, float SizePx), Exception> FailedIdents => this.FailedIdentsPrivate;
+    public IReadOnlyDictionary<(FontIdent Ident, int SizePx), Exception> FailedIdents => this.failedIdents;
 
     /// <summary>
     /// Gets the list of associated <see cref="IDalamudTextureWrap"/>.
@@ -171,25 +179,12 @@ public sealed unsafe class OnDemandAtlas : IDisposable
         }
     }
 
-    private int SuppressTextureUpdate { get; set; }
-
-    private Dictionary<(FontIdent Ident, float Size), OnDemandFont> FontEntries { get; } = new();
-
-    private Dictionary<FontChain, OnDemandFont> FontChains { get; } = new();
-
-    private Dictionary<string, int[]> GameFontTextures { get; } = new();
-
-    private Dictionary<FontChain, Exception> FailedChainsPrivate { get; } = new();
-
-    private Dictionary<(FontIdent Ident, float SizePx), Exception> FailedIdentsPrivate { get; } = new();
-
     /// <summary>
     /// Gets the font corresponding to the given specifications.
     /// </summary>
     /// <param name="ident">Font identifier.</param>
     /// <param name="sizePx">Size in pixels.</param>
-    public ImFontPtr this[in FontIdent ident, float sizePx] =>
-        this.GetWrapper(ident, sizePx).FontPtr;
+    public ImFontPtr this[in FontIdent ident, float sizePx] => this[new(new FontChainEntry(ident, sizePx))];
 
     /// <summary>
     /// Gets the font corresponding to the given specifications.
@@ -202,7 +197,7 @@ public sealed unsafe class OnDemandAtlas : IDisposable
             if (this.IsDisposed)
                 throw new ObjectDisposedException(nameof(OnDemandAtlas));
 
-            if (this.FailedChainsPrivate.TryGetValue(chain, out var previousException))
+            if (this.failedChains.TryGetValue(chain, out var previousException))
                 throw previousException;
 
             try
@@ -210,7 +205,7 @@ public sealed unsafe class OnDemandAtlas : IDisposable
                 if (chain.Fonts.All(x => x.Ident == default))
                     throw new ArgumentException("Font chain cannot be empty", nameof(chain));
 
-                if (this.FontChains.TryGetValue(chain, out var wrapper))
+                if (this.fontChains.TryGetValue(chain, out var wrapper))
                     return wrapper.FontPtr;
 
                 wrapper = new ChainedOnDemandFont(
@@ -218,14 +213,15 @@ public sealed unsafe class OnDemandAtlas : IDisposable
                     chain,
                     chain.Fonts.Select(entry => this.GetWrapper(entry.Ident, entry.SizePx)));
 
-                this.FontChains[chain] = wrapper;
+                this.fontChains[chain] = wrapper;
+                this.fontPtrToFont[(nint)wrapper.FontPtr.NativePtr] = wrapper;
                 this.Fonts.Add(wrapper.FontPtr);
                 wrapper.Font.ContainerAtlas = this.AtlasPtr;
                 return wrapper.FontPtr;
             }
             catch (Exception e)
             {
-                this.FailedChainsPrivate[chain] = e;
+                this.failedChains[chain] = e;
                 throw;
             }
         }
@@ -236,8 +232,8 @@ public sealed unsafe class OnDemandAtlas : IDisposable
     /// </summary>
     public void ClearLoadErrorHistory()
     {
-        this.FailedChainsPrivate.Clear();
-        this.FailedIdentsPrivate.Clear();
+        this.failedChains.Clear();
+        this.failedIdents.Clear();
     }
 
     /// <inheritdoc/>
@@ -249,8 +245,9 @@ public sealed unsafe class OnDemandAtlas : IDisposable
         this.ReleaseUnmanagedResources();
         this.TextureWraps.DisposeItems();
         this.TextureWraps.Clear();
-        this.FontEntries.Clear();
-        this.FontChains.Clear();
+        this.fontEntries.Clear();
+        this.fontChains.Clear();
+        this.fontPtrToFont.Clear();
 
         this.IsDisposed = true;
         GC.SuppressFinalize(this);
@@ -274,10 +271,7 @@ public sealed unsafe class OnDemandAtlas : IDisposable
     /// <param name="font">Relevant font.</param>
     /// <param name="chars">Chars.</param>
     public void LoadGlyphs(ImFontPtr font, IEnumerable<char> chars) =>
-        this.FontChains.Values
-            .Concat(this.FontEntries.Values)
-            .FirstOrDefault(x => x.FontPtr.NativePtr == font.NativePtr)
-            ?.LoadGlyphs(chars);
+        this.fontPtrToFont.GetValueOrDefault((nint)font.NativePtr)?.LoadGlyphs(chars);
 
     /// <summary>
     /// Load the glyphs corresponding to the given chars into currently active ImGui font, if it is managed by this.
@@ -297,10 +291,7 @@ public sealed unsafe class OnDemandAtlas : IDisposable
     /// <param name="font">Relevant font.</param>
     /// <param name="ranges">Ranges.</param>
     public void LoadGlyphs(ImFontPtr font, IEnumerable<UnicodeRange> ranges) =>
-        this.FontChains.Values
-            .Concat(this.FontEntries.Values)
-            .FirstOrDefault(x => x.FontPtr.NativePtr == font.NativePtr)
-            ?.LoadGlyphs(ranges);
+        this.fontPtrToFont.GetValueOrDefault((nint)font.NativePtr)?.LoadGlyphs(ranges);
 
     /// <summary>
     /// Suppress uploading updated texture onto GPU for the scope.
@@ -311,11 +302,11 @@ public sealed unsafe class OnDemandAtlas : IDisposable
         if (this.IsDisposed)
             return null;
 
-        this.SuppressTextureUpdate++;
+        this.suppressTextureUpdateCounter++;
         return Disposable.Create(
             () =>
             {
-                if (--this.SuppressTextureUpdate == 0)
+                if (--this.suppressTextureUpdateCounter == 0)
                     this.UpdateTextures();
             });
     }
@@ -332,7 +323,10 @@ public sealed unsafe class OnDemandAtlas : IDisposable
         if (this.IsDisposed)
             return null;
 
-        if (this.FailedIdentsPrivate.TryGetValue((ident, sizePx), out _))
+        if (!(sizePx > 0))
+            return null;
+
+        if (this.failedIdents.TryGetValue((ident, (int)MathF.Round(sizePx)), out _))
             return null;
 
         try
@@ -344,12 +338,12 @@ public sealed unsafe class OnDemandAtlas : IDisposable
             return null;
         }
 
-        this.SuppressTextureUpdate++;
+        this.suppressTextureUpdateCounter++;
         return Disposable.Create(
             () =>
             {
                 ImGui.PopFont();
-                if (--this.SuppressTextureUpdate == 0)
+                if (--this.suppressTextureUpdateCounter == 0)
                     this.UpdateTextures();
             });
     }
@@ -365,7 +359,7 @@ public sealed unsafe class OnDemandAtlas : IDisposable
         if (this.IsDisposed)
             return null;
 
-        if (this.FailedChainsPrivate.TryGetValue(chain, out _))
+        if (this.failedChains.TryGetValue(chain, out _))
             return null;
 
         try
@@ -377,12 +371,12 @@ public sealed unsafe class OnDemandAtlas : IDisposable
             return null;
         }
 
-        this.SuppressTextureUpdate++;
+        this.suppressTextureUpdateCounter++;
         return Disposable.Create(
             () =>
             {
                 ImGui.PopFont();
-                if (--this.SuppressTextureUpdate == 0)
+                if (--this.suppressTextureUpdateCounter == 0)
                     this.UpdateTextures();
             });
     }
@@ -394,7 +388,7 @@ public sealed unsafe class OnDemandAtlas : IDisposable
     {
         foreach (var tw in this.TextureWraps)
         {
-            if (this.SuppressTextureUpdate <= 0 && tw is FontChainAtlasTextureWrap utw)
+            if (this.suppressTextureUpdateCounter <= 0 && tw is FontChainAtlasTextureWrap utw)
                 utw.ApplyChanges();
         }
     }
@@ -403,17 +397,19 @@ public sealed unsafe class OnDemandAtlas : IDisposable
     /// Get the font wrapper.
     /// </summary>
     /// <param name="ident">Font identifier.</param>
-    /// <param name="sizePx">Size in pixels.</param>
+    /// <param name="sizePx">Size in pixels. Note that it will be rounded to nearest integers.</param>
     /// <returns>Found font wrapper.</returns>
     internal OnDemandFont GetWrapper(in FontIdent ident, float sizePx)
     {
         if (this.IsDisposed)
             throw new ObjectDisposedException(nameof(OnDemandAtlas));
 
-        if (this.FontEntries.TryGetValue((ident, sizePx), out var wrapper))
+        var sizeInt = (int)MathF.Round(sizePx);
+
+        if (this.fontEntries.TryGetValue((ident, sizeInt), out var wrapper))
             return wrapper;
 
-        if (this.FailedIdentsPrivate.TryGetValue((ident, sizePx), out var previousException))
+        if (this.failedIdents.TryGetValue((ident, sizeInt), out var previousException))
             throw previousException;
 
         try
@@ -425,14 +421,14 @@ public sealed unsafe class OnDemandAtlas : IDisposable
                     var gfm = Service<GameFontManager>.Get();
                     var tm = Service<TextureManager>.Get();
 
-                    var gfs = new GameFontStyle(new GameFontStyle(ident.Game, sizePx).FamilyAndSize);
-                    if (Math.Abs(gfs.SizePx - sizePx) < 0.0001)
+                    var gfs = new GameFontStyle(new GameFontStyle(ident.Game, sizeInt).FamilyAndSize);
+                    if ((int)MathF.Round(gfs.SizePx) == sizeInt)
                     {
                         const string filename = "font{}.tex";
                         var fdt = gfm.GetFdtReader(gfs.FamilyAndSize)
                                   ?? throw new FileNotFoundException($"{gfs} not found");
                         var numExpectedTex = fdt.Glyphs.Max(x => x.TextureFileIndex) + 1;
-                        if (!this.GameFontTextures.TryGetValue(filename, out var textureIndices)
+                        if (!this.gameFontTextures.TryGetValue(filename, out var textureIndices)
                             || textureIndices.Length < numExpectedTex)
                         {
                             this.UpdateTextures();
@@ -463,7 +459,7 @@ public sealed unsafe class OnDemandAtlas : IDisposable
                                 errorDispose.Cancel();
                             }
 
-                            this.GameFontTextures[filename] = textureIndices = newTextureIndices;
+                            this.gameFontTextures[filename] = textureIndices = newTextureIndices;
 
                             foreach (var i in Enumerable.Range(0, numExpectedTex))
                             {
@@ -486,15 +482,15 @@ public sealed unsafe class OnDemandAtlas : IDisposable
                         var baseFontIdent = this[ident, gfs.SizePx].NativePtr;
                         wrapper = new ScaledOnDemandFont(
                             this,
-                            this.FontEntries.Single(x => x.Value.FontPtr.NativePtr == baseFontIdent).Value,
-                            sizePx / gfs.SizePx);
+                            this.fontEntries.Single(x => x.Value.FontPtr.NativePtr == baseFontIdent).Value,
+                            sizeInt / gfs.SizePx);
                     }
 
                     break;
                 }
 
                 case { System: { Name: { } name, Variant: { } variant } }:
-                    wrapper = DirectWriteOnDemandFont.FromSystem(this, name, variant, sizePx);
+                    wrapper = DirectWriteOnDemandFont.FromSystem(this, name, variant, sizeInt);
                     break;
 
                 case { File: { Path: { } path, Index: { } index } }:
@@ -505,7 +501,8 @@ public sealed unsafe class OnDemandAtlas : IDisposable
                     throw new ArgumentException("Invalid identifier specification", nameof(ident));
             }
 
-            this.FontEntries[(ident, sizePx)] = wrapper;
+            this.fontEntries[(ident, sizeInt)] = wrapper;
+            this.fontPtrToFont[(nint)wrapper.FontPtr.NativePtr] = wrapper;
             this.Fonts.Add(wrapper.FontPtr);
             wrapper.Font.ContainerAtlas = this.AtlasPtr;
 
@@ -513,7 +510,7 @@ public sealed unsafe class OnDemandAtlas : IDisposable
         }
         catch (Exception e)
         {
-            this.FailedIdentsPrivate[(ident, sizePx)] = e;
+            this.failedIdents[(ident, sizeInt)] = e;
             throw;
         }
     }

@@ -197,7 +197,7 @@ public struct GameFontStyle
                 return GameFontFamilyAndSize.Undefined;
 
             case GameFontFamily.Axis:
-                if (size <= 9.601)
+                if (size <= 10.001)
                     return GameFontFamilyAndSize.Axis96;
                 else if (size <= 12.001)
                     return GameFontFamilyAndSize.Axis12;
@@ -211,9 +211,9 @@ public struct GameFontStyle
             case GameFontFamily.Jupiter:
                 if (size <= 16.001)
                     return GameFontFamilyAndSize.Jupiter16;
-                else if (size <= 20.001)
+                else if (size <= 20.301)
                     return GameFontFamilyAndSize.Jupiter20;
-                else if (size <= 23.001)
+                else if (size <= 23.301)
                     return GameFontFamilyAndSize.Jupiter23;
                 else
                     return GameFontFamilyAndSize.Jupiter46;
@@ -227,7 +227,7 @@ public struct GameFontStyle
             case GameFontFamily.Meidinger:
                 if (size <= 16.001)
                     return GameFontFamilyAndSize.Meidinger16;
-                else if (size <= 20.001)
+                else if (size <= 20.301)
                     return GameFontFamilyAndSize.Meidinger20;
                 else
                     return GameFontFamilyAndSize.Meidinger40;
@@ -247,7 +247,7 @@ public struct GameFontStyle
             case GameFontFamily.TrumpGothic:
                 if (size <= 18.401)
                     return GameFontFamilyAndSize.TrumpGothic184;
-                else if (size <= 23.001)
+                else if (size <= 23.301)
                     return GameFontFamilyAndSize.TrumpGothic23;
                 else if (size <= 34.001)
                     return GameFontFamilyAndSize.TrumpGothic34;
