@@ -69,6 +69,10 @@ public sealed unsafe class FontChainAtlas : IDisposable
 
     public int SuppressTextureUpdate { get; set; }
 
+    public IReadOnlyDictionary<FontChain, Exception> FailedChains => this.FailedChainsPrivate;
+
+    public IReadOnlyDictionary<(FontIdent Ident, float SizePx), Exception> FailedIdents => this.FailedIdentsPrivate;
+
     internal List<IDalamudTextureWrap> TextureWraps { get; }
 
     internal ImVectorWrapper<ImFontAtlasTexture> ImTextures { get; }
@@ -104,6 +108,10 @@ public sealed unsafe class FontChainAtlas : IDisposable
 
     private Dictionary<string, int[]> GameFontTextures { get; } = new();
 
+    private Dictionary<FontChain, Exception> FailedChainsPrivate { get; } = new();
+
+    private Dictionary<(FontIdent Ident, float SizePx), Exception> FailedIdentsPrivate { get; } = new();
+
     public ImFontPtr this[in FontIdent ident, float sizePx] =>
         this.Fonts[this.ImFontWrapperIndices[this.GetWrapper(ident, sizePx)]];
 
@@ -114,22 +122,33 @@ public sealed unsafe class FontChainAtlas : IDisposable
             if (this.IsDisposed)
                 throw new ObjectDisposedException(nameof(FontChainAtlas));
 
-            if (chain.Fonts.All(x => x.Ident == default))
-                throw new ArgumentException("Font chain cannot be empty", nameof(chain));
+            if (this.FailedChainsPrivate.TryGetValue(chain, out var previousException))
+                throw previousException;
 
-            if (this.FontChains.TryGetValue(chain, out var wrapper))
-                return this.Fonts[this.ImFontWrapperIndices[wrapper]];
+            try
+            {
+                if (chain.Fonts.All(x => x.Ident == default))
+                    throw new ArgumentException("Font chain cannot be empty", nameof(chain));
 
-            wrapper = new ChainedImFontWrapper(
-                this,
-                chain,
-                chain.Fonts.Select(entry => this.GetWrapper(entry.Ident, entry.SizePx)));
+                if (this.FontChains.TryGetValue(chain, out var wrapper))
+                    return this.Fonts[this.ImFontWrapperIndices[wrapper]];
 
-            this.FontChains[chain] = wrapper;
-            this.ImFontWrapperIndices[wrapper] = this.Fonts.Length;
-            this.Fonts.Add(wrapper.FontPtr);
-            wrapper.Font.ContainerAtlas = this.AtlasPtr;
-            return wrapper.FontPtr;
+                wrapper = new ChainedImFontWrapper(
+                    this,
+                    chain,
+                    chain.Fonts.Select(entry => this.GetWrapper(entry.Ident, entry.SizePx)));
+
+                this.FontChains[chain] = wrapper;
+                this.ImFontWrapperIndices[wrapper] = this.Fonts.Length;
+                this.Fonts.Add(wrapper.FontPtr);
+                wrapper.Font.ContainerAtlas = this.AtlasPtr;
+                return wrapper.FontPtr;
+            }
+            catch (Exception e)
+            {
+                this.FailedChainsPrivate[chain] = e;
+                throw;
+            }
         }
     }
 
@@ -169,11 +188,66 @@ public sealed unsafe class FontChainAtlas : IDisposable
     public IDisposable SuppressTextureUpdatesScoped()
     {
         this.SuppressTextureUpdate++;
-        return Disposable.Create(() =>
+        return Disposable.Create(
+            () =>
+            {
+                if (--this.SuppressTextureUpdate == 0)
+                    this.UpdateTextures();
+            });
+    }
+
+    public IDisposable? PushFontScoped(in FontIdent ident, float sizePx)
+    {
+        if (this.IsDisposed)
+            return null;
+
+        if (this.FailedIdentsPrivate.TryGetValue((ident, sizePx), out _))
+            return null;
+
+        try
         {
-            this.SuppressTextureUpdate--;
-            this.UpdateTextures();
-        });
+            ImGui.PushFont(this[ident, sizePx]);
+        }
+        catch
+        {
+            return null;
+        }
+
+        this.SuppressTextureUpdate++;
+        return Disposable.Create(
+            () =>
+            {
+                ImGui.PopFont();
+                if (--this.SuppressTextureUpdate == 0)
+                    this.UpdateTextures();
+            });
+    }
+
+    public IDisposable? PushFontScoped(in FontChain chain)
+    {
+        if (this.IsDisposed)
+            return null;
+
+        if (this.FailedChainsPrivate.TryGetValue(chain, out _))
+            return null;
+
+        try
+        {
+            ImGui.PushFont(this[chain]);
+        }
+        catch
+        {
+            return null;
+        }
+
+        this.SuppressTextureUpdate++;
+        return Disposable.Create(
+            () =>
+            {
+                ImGui.PopFont();
+                if (--this.SuppressTextureUpdate == 0)
+                    this.UpdateTextures();
+            });
     }
 
     public void UpdateTextures()
@@ -229,103 +303,114 @@ public sealed unsafe class FontChainAtlas : IDisposable
         if (this.FontEntries.TryGetValue((ident, sizePx), out var wrapper))
             return wrapper;
 
-        switch (ident)
+        if (this.FailedIdentsPrivate.TryGetValue((ident, sizePx), out var previousException))
+            throw previousException;
+
+        try
         {
-            case { Game: not GameFontFamily.Undefined }:
+            switch (ident)
             {
-                var dm = Service<DataManager>.Get();
-                var gfm = Service<GameFontManager>.Get();
-                var tm = Service<TextureManager>.Get();
-
-                var gfs = new GameFontStyle(new GameFontStyle(ident.Game, sizePx).FamilyAndSize);
-                if (Math.Abs(gfs.SizePx - sizePx) < 0.0001)
+                case { Game: not GameFontFamily.Undefined }:
                 {
-                    const string filename = "font{}.tex";
-                    var fdt = gfm.GetFdtReader(gfs.FamilyAndSize)
-                              ?? throw new FileNotFoundException($"{gfs} not found");
-                    var numExpectedTex = fdt.Glyphs.Max(x => x.TextureFileIndex) + 1;
-                    if (!this.GameFontTextures.TryGetValue(filename, out var textureIndices)
-                        || textureIndices.Length < numExpectedTex)
-                    {
-                        this.UpdateTextures();
+                    var dm = Service<DataManager>.Get();
+                    var gfm = Service<GameFontManager>.Get();
+                    var tm = Service<TextureManager>.Get();
 
-                        var newTextureWraps = new IDalamudTextureWrap?[numExpectedTex];
-                        var newTextureIndices = new int[numExpectedTex];
-                        using (var errorDispose = new DisposeStack())
+                    var gfs = new GameFontStyle(new GameFontStyle(ident.Game, sizePx).FamilyAndSize);
+                    if (Math.Abs(gfs.SizePx - sizePx) < 0.0001)
+                    {
+                        const string filename = "font{}.tex";
+                        var fdt = gfm.GetFdtReader(gfs.FamilyAndSize)
+                                  ?? throw new FileNotFoundException($"{gfs} not found");
+                        var numExpectedTex = fdt.Glyphs.Max(x => x.TextureFileIndex) + 1;
+                        if (!this.GameFontTextures.TryGetValue(filename, out var textureIndices)
+                            || textureIndices.Length < numExpectedTex)
                         {
-                            var addCounter = 0;
-                            for (var i = 0; i < numExpectedTex; i++)
+                            this.UpdateTextures();
+
+                            var newTextureWraps = new IDalamudTextureWrap?[numExpectedTex];
+                            var newTextureIndices = new int[numExpectedTex];
+                            using (var errorDispose = new DisposeStack())
                             {
-                                // Note: texture index for these cannot be 0, since it is occupied by ImGui.
-                                if (textureIndices is not null && i < textureIndices.Length)
+                                var addCounter = 0;
+                                for (var i = 0; i < numExpectedTex; i++)
                                 {
-                                    newTextureIndices[i] = textureIndices[i];
-                                    Debug.Assert(
-                                        this.TextureWraps[i] is not null,
-                                        "textureIndices[i] != 0 but this.TextureWraps[i] is null");
-                                    continue;
+                                    // Note: texture index for these cannot be 0, since it is occupied by ImGui.
+                                    if (textureIndices is not null && i < textureIndices.Length)
+                                    {
+                                        newTextureIndices[i] = textureIndices[i];
+                                        Debug.Assert(
+                                            this.TextureWraps[i] is not null,
+                                            "textureIndices[i] != 0 but this.TextureWraps[i] is null");
+                                        continue;
+                                    }
+
+                                    var path = $"common/font/font{i + 1}.tex";
+                                    newTextureWraps[i] = errorDispose.Add(
+                                        tm.GetTexture(
+                                            dm.GetFile<TexFile>(path)
+                                            ?? throw new FileNotFoundException("File not found", path)));
+                                    newTextureIndices[i] = this.TextureWraps.Count + addCounter++;
                                 }
 
-                                var path = $"common/font/font{i + 1}.tex";
-                                newTextureWraps[i] = errorDispose.Add(
-                                    tm.GetTexture(
-                                        dm.GetFile<TexFile>(path)
-                                        ?? throw new FileNotFoundException("File not found", path)));
-                                newTextureIndices[i] = this.TextureWraps.Count + addCounter++;
+                                this.ImTextures.EnsureCapacity(this.ImTextures.Length + addCounter);
+                                this.TextureWraps.EnsureCapacity(this.TextureWraps.Count + addCounter);
+                                errorDispose.Cancel();
                             }
 
-                            this.ImTextures.EnsureCapacity(this.ImTextures.Length + addCounter);
-                            this.TextureWraps.EnsureCapacity(this.TextureWraps.Count + addCounter);
-                            errorDispose.Cancel();
+                            this.GameFontTextures[filename] = textureIndices = newTextureIndices;
+
+                            foreach (var i in Enumerable.Range(0, numExpectedTex))
+                            {
+                                if (newTextureWraps[i] is not { } wrap)
+                                    continue;
+
+                                Debug.Assert(
+                                    textureIndices[i] == this.ImTextures.Length
+                                    && textureIndices[i] == this.TextureWraps.Count,
+                                    "Counts must be same");
+                                this.ImTextures.Add(new() { TexID = wrap.ImGuiHandle });
+                                this.TextureWraps.Add(wrap);
+                            }
                         }
 
-                        this.GameFontTextures[filename] = textureIndices = newTextureIndices;
-
-                        foreach (var i in Enumerable.Range(0, numExpectedTex))
-                        {
-                            if (newTextureWraps[i] is not { } wrap)
-                                continue;
-
-                            Debug.Assert(
-                                textureIndices[i] == this.ImTextures.Length
-                                && textureIndices[i] == this.TextureWraps.Count,
-                                "Counts must be same");
-                            this.ImTextures.Add(new() { TexID = wrap.ImGuiHandle });
-                            this.TextureWraps.Add(wrap);
-                        }
+                        wrapper = new AxisImFontWrapper(this, fdt, textureIndices);
+                    }
+                    else
+                    {
+                        var baseFontIdent = this[ident, gfs.SizePx].NativePtr;
+                        wrapper = new ScaledImFontWrapper(
+                            this,
+                            this.FontEntries.Single(x => x.Value.FontPtr.NativePtr == baseFontIdent).Value,
+                            sizePx / gfs.SizePx);
                     }
 
-                    wrapper = new AxisImFontWrapper(this, fdt, textureIndices);
-                }
-                else
-                {
-                    var baseFontIdent = this[ident, gfs.SizePx].NativePtr;
-                    wrapper = new ScaledImFontWrapper(
-                        this,
-                        this.FontEntries.Single(x => x.Value.FontPtr.NativePtr == baseFontIdent).Value,
-                        sizePx / gfs.SizePx);
+                    break;
                 }
 
-                break;
+                case { System: { Name: { } name, Variant: { } variant } }:
+                    wrapper = DirectWriteFontWrapper.FromSystem(this, name, variant, sizePx);
+                    break;
+
+                case { File: { Path: { } path, Index: { } index } }:
+                    throw new NotImplementedException();
+
+                default:
+                    throw new NotSupportedException();
             }
 
-            case { System: { Name: { } name, Variant: { } variant } }:
-                wrapper = DirectWriteFontWrapper.FromSystem(this, name, variant, sizePx);
-                break;
+            this.FontEntries[(ident, sizePx)] = wrapper;
+            this.ImFontWrapperIndices[wrapper] = this.Fonts.Length;
+            this.Fonts.Add(wrapper.FontPtr);
+            wrapper.Font.ContainerAtlas = this.AtlasPtr;
 
-            case { File: { Path: { } path, Index: { } index } }:
-                throw new NotImplementedException();
-
-            default:
-                throw new NotSupportedException();
+            return wrapper;
         }
-
-        this.FontEntries[(ident, sizePx)] = wrapper;
-        this.ImFontWrapperIndices[wrapper] = this.Fonts.Length;
-        this.Fonts.Add(wrapper.FontPtr);
-        wrapper.Font.ContainerAtlas = this.AtlasPtr;
-
-        return wrapper;
+        catch (Exception e)
+        {
+            this.FailedIdentsPrivate[(ident, sizePx)] = e;
+            throw;
+        }
     }
 
     private void ReleaseUnmanagedResources()

@@ -8,11 +8,9 @@ using System.Threading.Tasks;
 
 using Dalamud.CorePlugin.MyFonts;
 using Dalamud.Hooking;
-using Dalamud.Hooking.Internal;
 using Dalamud.Interface.EasyFonts;
 using Dalamud.Interface.GameFonts;
 using Dalamud.Interface.Utility;
-using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
 
 using ImGuiNET;
@@ -207,7 +205,7 @@ namespace Dalamud.CorePlugin
             using var dispose1 = this.fontChainAtlas.SuppressTextureUpdatesScoped();
 
             ImGui.TextUnformatted("=====================");
-            using (ImRaii.PushFont(this.fontChainAtlas[new(GameFontFamily.Axis), 12f * 4 / 3]))
+            using (this.fontChainAtlas.PushFontScoped(new(GameFontFamily.Axis), 12f * 4 / 3))
             {
                 this.fontChainAtlas.LoadGlyphs(this.buffer);
                 ImGui.InputTextMultiline(
@@ -218,7 +216,7 @@ namespace Dalamud.CorePlugin
             }
 
             ImGui.TextUnformatted("=====================");
-            using (ImRaii.PushFont(this.fontChainAtlas[this.chain]))
+            using (this.fontChainAtlas.PushFontScoped(this.chain))
             {
                 this.fontChainAtlas.LoadGlyphs(this.buffer);
                 ImGui.TextUnformatted(this.buffer);
@@ -237,7 +235,7 @@ namespace Dalamud.CorePlugin
                             continue;
 
                         var entry = r[i];
-                        using (ImRaii.PushFont(this.fontChainAtlas[entry.Ident, entry.SizePx]))
+                        using (this.fontChainAtlas.PushFontScoped(entry.Ident, entry.SizePx))
                         {
                             var s = $"{entry}: {this.buffer}";
                             this.fontChainAtlas.LoadGlyphs(s);
