@@ -13,13 +13,11 @@ using Dalamud.Interface.GameFonts;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Utility;
 
-using ImGuiNET;
+namespace Dalamud.CorePlugin.MyFonts.OnDemandFonts;
 
-namespace Dalamud.CorePlugin.MyFonts.ImFontWrappers;
-
-internal unsafe class AxisImFontWrapper : ImFontWrapper
+internal unsafe class AxisOnDemandFont : OnDemandFont
 {
-    public AxisImFontWrapper(FontChainAtlas atlas, FdtReader fdt, IReadOnlyList<int> textureIndices)
+    public AxisOnDemandFont(OnDemandAtlas atlas, FdtReader fdt, IReadOnlyList<int> textureIndices)
         : base(atlas, new(0x10000, true))
     {
         var fdtTexSize = new Vector4(

@@ -1,10 +1,10 @@
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Unicode;
-using System.Threading.Tasks;
 
 using Dalamud.Data;
 using Dalamud.Game;
@@ -36,9 +36,6 @@ internal class GameFontManager : IServiceType
     };
 
     private readonly object syncRoot = new();
-
-    private readonly FdtReader?[] fdts;
-    private readonly List<byte[]> texturePixels;
     private readonly Dictionary<GameFontStyle, ImFontPtr> fonts = new();
     private readonly Dictionary<GameFontStyle, int> fontUseCounter = new();
     private readonly Dictionary<GameFontStyle, Dictionary<char, Tuple<int, FdtReader.FontTableEntry>>> glyphRectIds = new();
@@ -52,24 +49,34 @@ internal class GameFontManager : IServiceType
     {
         using (Timings.Start("Getting fdt data"))
         {
-            this.fdts = FontNames.Select(fontName => fontName == null ? null : new FdtReader(dataManager.GetFile($"common/font/{fontName}.fdt")!.Data)).ToArray();
+            this.Fdts = FontNames.Select(
+                fontName => fontName == null
+                                ? null
+                                : new FdtReader(dataManager.GetFile($"common/font/{fontName}.fdt")!.Data))
+                                 .ToImmutableList();
         }
 
+        var maxTextureIndex = this.Fdts
+                                  .Where(x => x != null)
+                                  .Max(x => x.Glyphs.Select(y => y.TextureFileIndex).Max());
         using (Timings.Start("Getting texture data"))
         {
-            var texTasks = Enumerable
-                           .Range(1, 1 + this.fdts
-                                             .Where(x => x != null)
-                                             .Select(x => x.Glyphs.Select(y => y.TextureFileIndex).Max())
-                                             .Max())
-                           .Select(x => dataManager.GetFile<TexFile>($"common/font/font{x}.tex")!)
-                           .Select(x => new Task<byte[]>(Timings.AttachTimingHandle(() => x.ImageData!)))
-                           .ToArray();
-            foreach (var task in texTasks)
-                task.Start();
-            this.texturePixels = texTasks.Select(x => x.GetAwaiter().GetResult()).ToList();
+            this.TexFiles = Enumerable
+                            .Range(1, 1 + maxTextureIndex)
+                            .Select(x => dataManager.GetFile<TexFile>($"common/font/font{x}.tex")!)
+                            .ToImmutableList();
         }
     }
+
+    /// <summary>
+    /// Gets all the relevant .fdt files.
+    /// </summary>
+    internal IReadOnlyList<FdtReader?> Fdts { get; }
+
+    /// <summary>
+    /// Gets all the relevant .tex files.
+    /// </summary>
+    internal IReadOnlyList<TexFile> TexFiles { get; }
 
     /// <summary>
     /// Describe font into a string.
@@ -190,7 +197,7 @@ internal class GameFontManager : IServiceType
     /// <returns>Glyph ranges.</returns>
     public GCHandle ToGlyphRanges(GameFontFamilyAndSize family, params UnicodeRange[] excludeRanges)
     {
-        var fdt = this.fdts[(int)family]!;
+        var fdt = this.Fdts[(int)family]!;
         var ranges = new List<ushort>(fdt.Glyphs.Count * 2)
         {
             checked((ushort)fdt.Glyphs[0].CharInt),
@@ -258,7 +265,7 @@ internal class GameFontManager : IServiceType
     /// </summary>
     /// <param name="family">Font to get.</param>
     /// <returns>Corresponding FdtReader or null.</returns>
-    public FdtReader? GetFdtReader(GameFontFamilyAndSize family) => this.fdts[(int)family];
+    public FdtReader? GetFdtReader(GameFontFamilyAndSize family) => this.Fdts[(int)family];
 
     /// <summary>
     /// Fills missing glyphs in target font from source font, if both are not null.
@@ -350,7 +357,7 @@ internal class GameFontManager : IServiceType
 
         foreach (var (style, font) in this.fonts)
         {
-            var fdt = this.fdts[(int)style.FamilyAndSize];
+            var fdt = this.Fdts[(int)style.FamilyAndSize];
             var scale = style.SizePt / fdt.FontHeader.Size;
             var fontPtr = font.NativePtr;
 
@@ -396,7 +403,7 @@ internal class GameFontManager : IServiceType
                 var pixels32 = pixels32s[rc->TextureIndex];
                 var width = widths[rc->TextureIndex];
                 var height = heights[rc->TextureIndex];
-                var sourceBuffer = this.texturePixels[glyph.TextureFileIndex];
+                var sourceBuffer = this.TexFiles[glyph.TextureFileIndex].ImageData;
                 var sourceBufferDelta = glyph.TextureChannelByteIndex;
                 var widthAdjustment = style.CalculateBaseWidthAdjustment(fdt, glyph);
                 if (widthAdjustment == 0)
@@ -481,7 +488,7 @@ internal class GameFontManager : IServiceType
     {
         var rectIds = this.glyphRectIds[style] = new();
 
-        var fdt = this.fdts[(int)style.FamilyAndSize];
+        var fdt = this.Fdts[(int)style.FamilyAndSize];
         if (fdt == null)
             return;
 

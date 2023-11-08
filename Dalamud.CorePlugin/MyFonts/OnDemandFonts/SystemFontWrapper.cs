@@ -13,8 +13,6 @@ using Dalamud.Interface.Internal;
 using Dalamud.Interface.Utility;
 using Dalamud.Utility;
 
-using ImGuiNET;
-
 using SharpDX.Direct2D1;
 using SharpDX.DirectWrite;
 
@@ -23,9 +21,9 @@ using Factory3 = SharpDX.DirectWrite.Factory3;
 using TextAntialiasMode = SharpDX.DirectWrite.TextAntialiasMode;
 using UnicodeRange = System.Text.Unicode.UnicodeRange;
 
-namespace Dalamud.CorePlugin.MyFonts.ImFontWrappers;
+namespace Dalamud.CorePlugin.MyFonts.OnDemandFonts;
 
-internal unsafe class DirectWriteFontWrapper : ImFontWrapper
+internal unsafe class DirectWriteOnDemandFont : OnDemandFont
 {
     private readonly DisposeStack disposeStack = new();
     private readonly Factory factory;
@@ -35,7 +33,7 @@ internal unsafe class DirectWriteFontWrapper : ImFontWrapper
     private readonly float sizePt;
     private readonly float multiplier;
 
-    public DirectWriteFontWrapper(FontChainAtlas atlas, Factory factory, Font font, float sizePx)
+    public DirectWriteOnDemandFont(OnDemandAtlas atlas, Factory factory, Font font, float sizePx)
         : base(atlas, null)
     {
         try
@@ -70,8 +68,8 @@ internal unsafe class DirectWriteFontWrapper : ImFontWrapper
 
     public FontMetrics Metrics { get; }
 
-    public static DirectWriteFontWrapper FromSystem(
-        FontChainAtlas atlas,
+    public static DirectWriteOnDemandFont FromSystem(
+        OnDemandAtlas atlas,
         string name,
         FontVariant variant,
         float sizePx)
@@ -233,7 +231,7 @@ internal unsafe class DirectWriteFontWrapper : ImFontWrapper
                 glyph.Y0 += this.Font.Ascent;
                 glyph.Y1 += this.Font.Ascent;
 
-                var wrap = (UpdateableTextureWrap)this.Atlas.TextureWraps[glyph.TextureIndex];
+                var wrap = (FontChainAtlasTextureWrap)this.Atlas.TextureWraps[glyph.TextureIndex];
                 var u0 = (int)MathF.Round((glyph.U0 % 1) * wrap.Width);
                 var v0 = (int)MathF.Round((glyph.V0 % 1) * wrap.Height);
                 var channel = (int)Math.Floor(glyph.U0) - 1;
@@ -275,7 +273,7 @@ internal unsafe class DirectWriteFontWrapper : ImFontWrapper
             foreach (var i in Enumerable.Range(0, changedTextures.Length))
             {
                 if (changedTextures[i])
-                    ((UpdateableTextureWrap)this.Atlas.TextureWraps[i]).Changed = true;
+                    ((FontChainAtlasTextureWrap)this.Atlas.TextureWraps[i]).MarkChanged();
             }
 
             if (changed)

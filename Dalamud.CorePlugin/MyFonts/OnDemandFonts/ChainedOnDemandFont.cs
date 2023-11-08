@@ -1,6 +1,7 @@
 #nullable enable
 #pragma warning disable SA1600
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -12,14 +13,12 @@ using Dalamud.Interface.EasyFonts;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Utility;
 
-using ImGuiNET;
-
-namespace Dalamud.CorePlugin.MyFonts.ImFontWrappers;
+namespace Dalamud.CorePlugin.MyFonts.OnDemandFonts;
 
 #pragma warning disable CS1591
-internal unsafe class ChainedImFontWrapper : ImFontWrapper
+internal unsafe class ChainedOnDemandFont : OnDemandFont
 {
-    public ChainedImFontWrapper(FontChainAtlas atlas, in FontChain chain, IEnumerable<ImFontWrapper> subfonts)
+    public ChainedOnDemandFont(OnDemandAtlas atlas, in FontChain chain, IEnumerable<OnDemandFont> subfonts)
         : base(atlas, null)
     {
         this.Chain = chain;
@@ -44,7 +43,7 @@ internal unsafe class ChainedImFontWrapper : ImFontWrapper
 
     public FontChain Chain { get; set; }
 
-    public IReadOnlyList<ImFontWrapper> Subfonts { get; set; }
+    public IReadOnlyList<OnDemandFont> Subfonts { get; set; }
 
     /// <inheritdoc/>
     public override bool IsCharAvailable(char c) =>
@@ -106,7 +105,7 @@ internal unsafe class ChainedImFontWrapper : ImFontWrapper
             this.UpdateReferencesToVectorItems();
     }
 
-    private bool EnsureCharacter(int c, in FontChainEntry entry, in ImFontWrapper font)
+    private bool EnsureCharacter(int c, in FontChainEntry entry, in OnDemandFont font)
     {
         if (this.LoadAttemptedGlyphs[c])
             return false;

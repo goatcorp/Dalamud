@@ -9,11 +9,11 @@ using System.Text.Unicode;
 
 using ImGuiNET;
 
-namespace Dalamud.CorePlugin.MyFonts.ImFontWrappers;
+namespace Dalamud.CorePlugin.MyFonts.OnDemandFonts;
 
-internal unsafe class ScaledImFontWrapper : ImFontWrapper
+internal unsafe class ScaledOnDemandFont : OnDemandFont
 {
-    public ScaledImFontWrapper(FontChainAtlas atlas, ImFontWrapper src, float scale)
+    public ScaledOnDemandFont(OnDemandAtlas atlas, OnDemandFont src, float scale)
         : base(atlas, (BitArray)src.LoadAttemptedGlyphs.Clone())
     {
         this.IndexedHotData.AddRange(src.IndexedHotData);

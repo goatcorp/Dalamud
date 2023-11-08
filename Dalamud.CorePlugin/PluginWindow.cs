@@ -10,6 +10,7 @@ using Dalamud.CorePlugin.MyFonts;
 using Dalamud.Hooking;
 using Dalamud.Interface.EasyFonts;
 using Dalamud.Interface.GameFonts;
+using Dalamud.Interface.Internal;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Windowing;
 
@@ -35,7 +36,7 @@ namespace Dalamud.CorePlugin
         private FontChain chain = default;
 
         [CanBeNull]
-        private FontChainAtlas fontChainAtlas;
+        private OnDemandAtlas atlas;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PluginWindow"/> class.
@@ -49,14 +50,14 @@ namespace Dalamud.CorePlugin
             this.SizeCondition = ImGuiCond.FirstUseEver;
         }
 
-        private Hook<OnChangedTextureIdDelegate> OnChangedTextureIdHook { get; set; }
-
         private delegate void OnChangedTextureIdDelegate(ImDrawListPtr idlm);
+
+        private Hook<OnChangedTextureIdDelegate> OnChangedTextureIdHook { get; set; }
 
         /// <inheritdoc/>
         public void Dispose()
         {
-            this.fontChainAtlas?.Dispose();
+            this.atlas?.Dispose();
             this.OnChangedTextureIdHook?.Dispose();
             this.entryClipper.Destroy();
             this.entryClipper = default;
@@ -73,16 +74,16 @@ namespace Dalamud.CorePlugin
             const float entrySize = 14f * 4 / 3;
             if (ImGui.Button("Dispose"))
             {
-                this.fontChainAtlas?.Dispose();
-                this.fontChainAtlas = null;
+                this.atlas?.Dispose();
+                this.atlas = null;
             }
 
             ImGui.SameLine();
             if (ImGui.Button("New"))
             {
-                this.fontChainAtlas?.Dispose();
+                this.atlas?.Dispose();
                 this.stopwatchLoad.Restart();
-                this.fontChainAtlas = new();
+                this.atlas = new(Service<InterfaceManager>.Get());
                 this.entries =
                     EasyFontUtils
                         .GetSystemFontsAsync("ko", excludeSimulated: false)
@@ -91,7 +92,6 @@ namespace Dalamud.CorePlugin
                                        .Where(x => x != GameFontFamilyAndSize.Undefined)
                                        .Select(x => new GameFontStyle(x))
                                        .Select(x => new FontChainEntry(new(x.Family), x.SizePx))
-                                       .Prepend(new(new(GameFontFamily.Axis), 24f * 4 / 3))
                                        .Concat(
                                            res.Result
                                               .SelectMany(
@@ -136,78 +136,17 @@ namespace Dalamud.CorePlugin
             }
 
             ImGui.SameLine();
-            if (ImGui.Button("Debug"))
-            {
-                var addr = Process.GetCurrentProcess().Modules.Cast<ProcessModule>()
-                                  .Single(x => x.ModuleName == "cimgui.dll").BaseAddress + 0x66B10;
-                this.OnChangedTextureIdHook?.Dispose();
-                this.OnChangedTextureIdHook = Hook<OnChangedTextureIdDelegate>.FromAddress(
-                    addr,
-                    ptr =>
-                    {
-                        unsafe
-                        {
-                            foreach (ref var v in new ImVectorWrapper<ImDrawCmd>(&ptr.NativePtr->CmdBuffer, null)
-                                         .AsSpan)
-                            {
-                                if (v.TextureId == 0)
-                                    continue;
-                                try
-                                {
-                                    Marshal.ReadIntPtr(v.TextureId);
-                                }
-                                catch (Exception)
-                                {
-                                    _ = NativeFunctions.MessageBoxW(
-                                        Process.GetCurrentProcess().MainWindowHandle,
-                                        "aaa",
-                                        "aaa",
-                                        NativeFunctions.MessageBoxType.Ok);
-                                    Debugger.Break();
-                                }
-                            }
-
-                            var prevBuffer = new ImVectorWrapper<ImDrawCmd>(&ptr.NativePtr->CmdBuffer, null).AsSpan
-                                .ToArray();
-
-                            this.OnChangedTextureIdHook!.Original(ptr);
-
-                            foreach (ref var v in new ImVectorWrapper<ImDrawCmd>(&ptr.NativePtr->CmdBuffer, null)
-                                         .AsSpan)
-                            {
-                                if (v.TextureId == 0)
-                                    continue;
-                                try
-                                {
-                                    Marshal.ReadIntPtr(v.TextureId);
-                                }
-                                catch (Exception)
-                                {
-                                    _ = NativeFunctions.MessageBoxW(
-                                        Process.GetCurrentProcess().MainWindowHandle,
-                                        "bbb",
-                                        "bbb",
-                                        NativeFunctions.MessageBoxType.Ok);
-                                    Debugger.Break();
-                                }
-                            }
-                        }
-                    });
-                this.OnChangedTextureIdHook.Enable();
-            }
-
-            ImGui.SameLine();
             ImGui.TextUnformatted($"Took {this.stopwatchLoad.ElapsedMilliseconds}ms");
 
-            if (this.fontChainAtlas is null)
+            if (this.atlas is null)
                 return;
 
-            using var dispose1 = this.fontChainAtlas.SuppressTextureUpdatesScoped();
+            using var dispose1 = this.atlas.SuppressTextureUpdatesScoped();
 
             ImGui.TextUnformatted("=====================");
-            using (this.fontChainAtlas.PushFontScoped(new(GameFontFamily.Axis), 12f * 4 / 3))
+            using (this.atlas.PushFontScoped(new(GameFontFamily.Axis), 12f * 4 / 3))
             {
-                this.fontChainAtlas.LoadGlyphs(this.buffer);
+                this.atlas.LoadGlyphs(this.buffer);
                 ImGui.InputTextMultiline(
                     "Test Here",
                     ref this.buffer,
@@ -216,9 +155,9 @@ namespace Dalamud.CorePlugin
             }
 
             ImGui.TextUnformatted("=====================");
-            using (this.fontChainAtlas.PushFontScoped(this.chain))
+            using (this.atlas.PushFontScoped(this.chain))
             {
-                this.fontChainAtlas.LoadGlyphs(this.buffer);
+                this.atlas.LoadGlyphs(this.buffer);
                 ImGui.TextUnformatted(this.buffer);
             }
 
@@ -235,14 +174,14 @@ namespace Dalamud.CorePlugin
                             continue;
 
                         var entry = r[i];
-                        using (this.fontChainAtlas.PushFontScoped(entry.Ident, entry.SizePx))
+                        using (this.atlas.PushFontScoped(entry.Ident, entry.SizePx))
                         {
                             var s = $"{entry}: {this.buffer}";
-                            this.fontChainAtlas.LoadGlyphs(s);
+                            this.atlas.LoadGlyphs(s);
                             ImGui.TextUnformatted(s);
                         }
 
-                        this.fontChainAtlas.GetWrapper(entry.Ident, entry.SizePx).SanityCheck();
+                        this.atlas.GetWrapper(entry.Ident, entry.SizePx).SanityCheck();
                     }
                 }
 
@@ -250,14 +189,14 @@ namespace Dalamud.CorePlugin
             }
 
             ImGui.TextUnformatted("=====================");
-            var ts = this.fontChainAtlas.AtlasPtr.Textures;
+            var ts = this.atlas.AtlasPtr.Textures;
             foreach (var t in Enumerable.Range(0, ts.Size))
             {
                 ImGui.Image(
                     ts[t].TexID,
                     new(
-                        this.fontChainAtlas.AtlasPtr.TexWidth,
-                        this.fontChainAtlas.AtlasPtr.TexHeight));
+                        this.atlas.AtlasPtr.TexWidth,
+                        this.atlas.AtlasPtr.TexHeight));
             }
 
             ImGui.TextUnformatted("=====================");

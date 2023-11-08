@@ -5,12 +5,12 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Numerics;
 using System.Reactive.Disposables;
 using System.Text.Unicode;
 
 using Dalamud.Configuration.Internal;
-using Dalamud.CorePlugin.MyFonts.ImFontWrappers;
-using Dalamud.Data;
+using Dalamud.CorePlugin.MyFonts.OnDemandFonts;
 using Dalamud.Interface.EasyFonts;
 using Dalamud.Interface.GameFonts;
 using Dalamud.Interface.Internal;
@@ -19,26 +19,31 @@ using Dalamud.Utility;
 
 using ImGuiNET;
 
-using Lumina.Data.Files;
-
 namespace Dalamud.CorePlugin.MyFonts;
 
 /// <summary>
-/// A wrapper for <see cref="ImFontAtlas"/> for managing fonts in a easy way.
+/// A wrapper for <see cref="ImFontAtlas"/> for managing fonts in an easy way.
 /// </summary>
-public sealed unsafe class FontChainAtlas : IDisposable
+public sealed unsafe class OnDemandAtlas : IDisposable
 {
+    private readonly InterfaceManager interfaceManager;
     private readonly ImFontAtlas* pAtlas;
     private readonly byte[] gammaTable = new byte[256];
     private float lastGamma = float.NaN;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="FontChainAtlas"/> class.
+    /// Initializes a new instance of the <see cref="OnDemandAtlas"/> class.
     /// </summary>
+    /// <param name="interfaceManager">An instance of InterfaceManager.</param>
     // TODO: add function into InterfaceManager for plugins or smth
-    internal FontChainAtlas()
+    internal OnDemandAtlas(InterfaceManager interfaceManager)
     {
+        this.interfaceManager = interfaceManager;
+        using var errorDispose = new DisposeStack();
+
         this.pAtlas = ImGuiNative.ImFontAtlas_ImFontAtlas();
+        errorDispose.Add(() => ImGuiNative.ImFontAtlas_destroy(this.pAtlas));
+
         this.pAtlas->TexWidth = this.pAtlas->TexDesiredWidth = 1024;
         this.pAtlas->TexHeight = this.pAtlas->TexDesiredHeight = 1024;
         this.pAtlas->TexGlyphPadding = 1;
@@ -66,13 +71,42 @@ public sealed unsafe class FontChainAtlas : IDisposable
             conf.Destroy();
         }
 
-        this.UpdateTextures();
+        Debug.Assert(this.ImTextures.Length == 1, "this.ImTextures.Length == 1");
+
+        // Note: pixels expect BGRA32, but we feed it RGBA32, and that's fine; R=G=B
+        this.AtlasPtr.GetTexDataAsRGBA32(0, out nint pixels, out var width, out var height);
+        var wrap = errorDispose.Add(
+            new FontChainAtlasTextureWrap(
+                this.interfaceManager.Device!,
+                pixels,
+                width,
+                height,
+                false));
+
+        // We don't need to have ImGui keep the buffer.
+        this.AtlasPtr.ClearTexData();
+
+        // We rely on the implementation detail that default custom rects stick to top left,
+        // and the rectpack we're using will stick the first item to the top left.
+        wrap.Packers[0].PackRect(
+            this.CustomRects.Aggregate(0, (a, x) => Math.Max(a, x.X + x.Width)) + 1,
+            this.CustomRects.Aggregate(0, (a, x) => Math.Max(a, x.Y + x.Height)) + 1,
+            null!);
+
+        this.TextureWraps.Add(wrap);
+        this.ImTextures[0].TexID = this.TextureWraps[^1].ImGuiHandle;
+
+        // Mark them to use the first channel.
+        foreach (ref var v4 in new Span<Vector4>(&this.pAtlas->TexUvLines_0, 64))
+            v4 += new Vector4(1, 0, 1, 0);
+
+        errorDispose.Cancel();
     }
 
     /// <summary>
-    /// Finalizes an instance of the <see cref="FontChainAtlas"/> class.
+    /// Finalizes an instance of the <see cref="OnDemandAtlas"/> class.
     /// </summary>
-    ~FontChainAtlas() => this.ReleaseUnmanagedResources();
+    ~OnDemandAtlas() => this.ReleaseUnmanagedResources();
 
     /// <summary>
     /// Gets a value indicating whether it is disposed.
@@ -139,11 +173,9 @@ public sealed unsafe class FontChainAtlas : IDisposable
 
     private int SuppressTextureUpdate { get; set; }
 
-    private Dictionary<(FontIdent Ident, float Size), ImFontWrapper> FontEntries { get; } = new();
+    private Dictionary<(FontIdent Ident, float Size), OnDemandFont> FontEntries { get; } = new();
 
-    private Dictionary<FontChain, ImFontWrapper> FontChains { get; } = new();
-
-    private Dictionary<ImFontWrapper, int> ImFontWrapperIndices { get; } = new();
+    private Dictionary<FontChain, OnDemandFont> FontChains { get; } = new();
 
     private Dictionary<string, int[]> GameFontTextures { get; } = new();
 
@@ -157,7 +189,7 @@ public sealed unsafe class FontChainAtlas : IDisposable
     /// <param name="ident">Font identifier.</param>
     /// <param name="sizePx">Size in pixels.</param>
     public ImFontPtr this[in FontIdent ident, float sizePx] =>
-        this.Fonts[this.ImFontWrapperIndices[this.GetWrapper(ident, sizePx)]];
+        this.GetWrapper(ident, sizePx).FontPtr;
 
     /// <summary>
     /// Gets the font corresponding to the given specifications.
@@ -168,7 +200,7 @@ public sealed unsafe class FontChainAtlas : IDisposable
         get
         {
             if (this.IsDisposed)
-                throw new ObjectDisposedException(nameof(FontChainAtlas));
+                throw new ObjectDisposedException(nameof(OnDemandAtlas));
 
             if (this.FailedChainsPrivate.TryGetValue(chain, out var previousException))
                 throw previousException;
@@ -179,15 +211,14 @@ public sealed unsafe class FontChainAtlas : IDisposable
                     throw new ArgumentException("Font chain cannot be empty", nameof(chain));
 
                 if (this.FontChains.TryGetValue(chain, out var wrapper))
-                    return this.Fonts[this.ImFontWrapperIndices[wrapper]];
+                    return wrapper.FontPtr;
 
-                wrapper = new ChainedImFontWrapper(
+                wrapper = new ChainedOnDemandFont(
                     this,
                     chain,
                     chain.Fonts.Select(entry => this.GetWrapper(entry.Ident, entry.SizePx)));
 
                 this.FontChains[chain] = wrapper;
-                this.ImFontWrapperIndices[wrapper] = this.Fonts.Length;
                 this.Fonts.Add(wrapper.FontPtr);
                 wrapper.Font.ContainerAtlas = this.AtlasPtr;
                 return wrapper.FontPtr;
@@ -220,7 +251,6 @@ public sealed unsafe class FontChainAtlas : IDisposable
         this.TextureWraps.Clear();
         this.FontEntries.Clear();
         this.FontChains.Clear();
-        this.ImFontWrapperIndices.Clear();
 
         this.IsDisposed = true;
         GC.SuppressFinalize(this);
@@ -362,46 +392,10 @@ public sealed unsafe class FontChainAtlas : IDisposable
     /// </summary>
     public void UpdateTextures()
     {
-        var im = Service<InterfaceManager>.Get();
-        foreach (var textureIndex in Enumerable.Range(0, this.ImTextures.Length))
+        foreach (var tw in this.TextureWraps)
         {
-            if (textureIndex < this.TextureWraps.Count)
-            {
-                if (this.SuppressTextureUpdate <= 0 && this.TextureWraps[textureIndex] is UpdateableTextureWrap utw)
-                    utw.ApplyChanges();
-                continue;
-            }
-
-            ref var imTexture = ref this.ImTextures[textureIndex];
-            UpdateableTextureWrap wrap;
-            if (imTexture.TexPixelsAlpha8 is null && imTexture.TexPixelsRGBA32 is null)
-            {
-                var width = this.AtlasPtr.TexWidth;
-                var height = this.AtlasPtr.TexHeight;
-                wrap = new(im.Device!, 0, width, height);
-            }
-            else
-            {
-                // Note: pixels expect BGRA32, but we feed it RGBA32, and that's fine; R=G=B
-                this.AtlasPtr.GetTexDataAsRGBA32(textureIndex, out nint pixels, out var width, out var height);
-                wrap = new(im.Device!, pixels, width, height);
-
-                // We rely on the implementation detail that default custom rects stick to top left.
-                var occupiedWidth = this.CustomRects.Aggregate(0, (a, x) => Math.Max(a, x.X + x.Width)) + 1;
-                var occupiedHeight = this.CustomRects.Aggregate(0, (a, x) => Math.Max(a, x.Y + x.Height)) + 1;
-                foreach (var p in wrap.Packers)
-                    p.PackRect(occupiedWidth, occupiedHeight, null!);
-            }
-
-            this.TextureWraps.Add(wrap);
-            imTexture.TexID = this.TextureWraps[^1].ImGuiHandle;
-
-            if (imTexture.TexPixelsAlpha8 is not null)
-                ImGuiNative.igMemFree(imTexture.TexPixelsAlpha8);
-            imTexture.TexPixelsAlpha8 = null;
-            if (imTexture.TexPixelsRGBA32 is not null)
-                ImGuiNative.igMemFree(imTexture.TexPixelsRGBA32);
-            imTexture.TexPixelsRGBA32 = null;
+            if (this.SuppressTextureUpdate <= 0 && tw is FontChainAtlasTextureWrap utw)
+                utw.ApplyChanges();
         }
     }
 
@@ -411,10 +405,10 @@ public sealed unsafe class FontChainAtlas : IDisposable
     /// <param name="ident">Font identifier.</param>
     /// <param name="sizePx">Size in pixels.</param>
     /// <returns>Found font wrapper.</returns>
-    internal ImFontWrapper GetWrapper(in FontIdent ident, float sizePx)
+    internal OnDemandFont GetWrapper(in FontIdent ident, float sizePx)
     {
         if (this.IsDisposed)
-            throw new ObjectDisposedException(nameof(FontChainAtlas));
+            throw new ObjectDisposedException(nameof(OnDemandAtlas));
 
         if (this.FontEntries.TryGetValue((ident, sizePx), out var wrapper))
             return wrapper;
@@ -428,7 +422,6 @@ public sealed unsafe class FontChainAtlas : IDisposable
             {
                 case { Game: not GameFontFamily.Undefined }:
                 {
-                    var dm = Service<DataManager>.Get();
                     var gfm = Service<GameFontManager>.Get();
                     var tm = Service<TextureManager>.Get();
 
@@ -461,11 +454,7 @@ public sealed unsafe class FontChainAtlas : IDisposable
                                         continue;
                                     }
 
-                                    var path = $"common/font/font{i + 1}.tex";
-                                    newTextureWraps[i] = errorDispose.Add(
-                                        tm.GetTexture(
-                                            dm.GetFile<TexFile>(path)
-                                            ?? throw new FileNotFoundException("File not found", path)));
+                                    newTextureWraps[i] = errorDispose.Add(tm.GetTexture(gfm.TexFiles[i]));
                                     newTextureIndices[i] = this.TextureWraps.Count + addCounter++;
                                 }
 
@@ -490,12 +479,12 @@ public sealed unsafe class FontChainAtlas : IDisposable
                             }
                         }
 
-                        wrapper = new AxisImFontWrapper(this, fdt, textureIndices);
+                        wrapper = new AxisOnDemandFont(this, fdt, textureIndices);
                     }
                     else
                     {
                         var baseFontIdent = this[ident, gfs.SizePx].NativePtr;
-                        wrapper = new ScaledImFontWrapper(
+                        wrapper = new ScaledOnDemandFont(
                             this,
                             this.FontEntries.Single(x => x.Value.FontPtr.NativePtr == baseFontIdent).Value,
                             sizePx / gfs.SizePx);
@@ -505,7 +494,7 @@ public sealed unsafe class FontChainAtlas : IDisposable
                 }
 
                 case { System: { Name: { } name, Variant: { } variant } }:
-                    wrapper = DirectWriteFontWrapper.FromSystem(this, name, variant, sizePx);
+                    wrapper = DirectWriteOnDemandFont.FromSystem(this, name, variant, sizePx);
                     break;
 
                 case { File: { Path: { } path, Index: { } index } }:
@@ -513,12 +502,10 @@ public sealed unsafe class FontChainAtlas : IDisposable
                     throw new NotImplementedException();
 
                 default:
-                    // TODO: ArgumentException?
-                    throw new NotSupportedException();
+                    throw new ArgumentException("Invalid identifier specification", nameof(ident));
             }
 
             this.FontEntries[(ident, sizePx)] = wrapper;
-            this.ImFontWrapperIndices[wrapper] = this.Fonts.Length;
             this.Fonts.Add(wrapper.FontPtr);
             wrapper.Font.ContainerAtlas = this.AtlasPtr;
 
@@ -528,6 +515,58 @@ public sealed unsafe class FontChainAtlas : IDisposable
         {
             this.FailedIdentsPrivate[(ident, sizePx)] = e;
             throw;
+        }
+    }
+
+    /// <summary>
+    /// Allocate a space for the given glyph.
+    /// </summary>
+    /// <param name="glyph">The glyph.</param>
+    internal void AllocateGlyphSpace(ref ImGuiHelpers.ImFontGlyphReal glyph)
+    {
+        if (!glyph.Visible)
+            return;
+
+        foreach (var i in Enumerable.Range(0, this.TextureWraps.Count + 1))
+        {
+            FontChainAtlasTextureWrap wrap;
+            if (i < this.TextureWraps.Count)
+            {
+                if (this.TextureWraps[i] is not FontChainAtlasTextureWrap w
+                    || w.UseColor != glyph.Colored)
+                    continue;
+                wrap = w;
+            }
+            else
+            {
+                if (i == 256)
+                    throw new OutOfMemoryException();
+
+                wrap = new(
+                    this.interfaceManager.Device!,
+                    0,
+                    this.AtlasPtr.TexWidth,
+                    this.AtlasPtr.TexHeight,
+                    glyph.Colored);
+                this.ImTextures.Add(new() { TexID = wrap.ImGuiHandle });
+                this.TextureWraps.Add(wrap);
+            }
+
+            for (var j = 0; j < wrap.Packers.Length; j++)
+            {
+                var packer = wrap.Packers[j];
+                var rc = packer.PackRect((int)((glyph.X1 - glyph.X0) + 1), (int)((glyph.Y1 - glyph.Y0) + 1), null!);
+                if (rc is null)
+                    continue;
+
+                glyph.TextureIndex = i;
+                var du = glyph.Colored ? 0 : 1 + j;
+                glyph.U0 = du + ((float)(rc.X + 1) / wrap.Width);
+                glyph.U1 = du + ((float)(rc.X + rc.Width) / wrap.Width);
+                glyph.V0 = (float)(rc.Y + 1) / wrap.Height;
+                glyph.V1 = (float)(rc.Y + rc.Height) / wrap.Height;
+                return;
+            }
         }
     }
 

@@ -13,13 +13,13 @@ using Dalamud.Interface.Utility;
 
 using ImGuiNET;
 
-namespace Dalamud.CorePlugin.MyFonts.ImFontWrappers;
+namespace Dalamud.CorePlugin.MyFonts.OnDemandFonts;
 
-internal abstract unsafe class ImFontWrapper : IDisposable
+internal abstract unsafe class OnDemandFont : IDisposable
 {
     protected const int FrequentKerningPairsMaxCodepoint = 128;
 
-    protected ImFontWrapper(FontChainAtlas atlas, BitArray? loadAttemptedGlyphs)
+    protected OnDemandFont(OnDemandAtlas atlas, BitArray? loadAttemptedGlyphs)
     {
         this.Atlas = atlas;
         this.FontNative = ImGuiNative.ImFont_ImFont();
@@ -30,14 +30,14 @@ internal abstract unsafe class ImFontWrapper : IDisposable
         this.KerningPairs = new(&this.FontNative->KerningPairs, null);
         this.LoadAttemptedGlyphs = loadAttemptedGlyphs ?? new(0x10000, false);
 
-        this.FrequentKerningPairs.Resize(128 * 128);
+        this.FrequentKerningPairs.Resize(FrequentKerningPairsMaxCodepoint * FrequentKerningPairsMaxCodepoint);
     }
 
-    ~ImFontWrapper() => this.Dispose(false);
+    ~OnDemandFont() => this.Dispose(false);
 
     public bool IsDisposed { get; private set; }
 
-    public FontChainAtlas Atlas { get; }
+    public OnDemandAtlas Atlas { get; }
 
     public ref ImFont Font => ref *this.FontNative;
 
@@ -122,54 +122,8 @@ internal abstract unsafe class ImFontWrapper : IDisposable
 
     protected void AllocateGlyphSpaces(int startIndex, int count)
     {
-        var textureIndex = 0;
         foreach (ref var glyph in this.Glyphs.AsSpan.Slice(startIndex, count))
-        {
-            if (!glyph.Visible)
-                continue;
-
-            while (true)
-            {
-                if (this.Atlas.TextureWraps.Count <= textureIndex)
-                {
-                    if (textureIndex == 0xFF)
-                        throw new NotSupportedException();
-
-                    this.Atlas.ImTextures.Add(default);
-                    this.Atlas.UpdateTextures();
-                    continue;
-                }
-
-                if (this.Atlas.TextureWraps[textureIndex] is not UpdateableTextureWrap wrap)
-                {
-                    textureIndex++;
-                    continue;
-                }
-
-                var success = false;
-                for (var i = 0; i < wrap.Packers.Length; i++)
-                {
-                    var packer = wrap.Packers[i];
-                    var rc = packer.PackRect((int)((glyph.X1 - glyph.X0) + 1), (int)((glyph.Y1 - glyph.Y0) + 1), null!);
-                    if (rc is null)
-                        continue;
-
-                    glyph.TextureIndex = textureIndex;
-                    var du = 1 + i;
-                    glyph.U0 = du + ((float)(rc.X + 1) / wrap.Width);
-                    glyph.U1 = du + ((float)(rc.X + rc.Width) / wrap.Width);
-                    glyph.V0 = (float)(rc.Y + 1) / wrap.Height;
-                    glyph.V1 = (float)(rc.Y + rc.Height) / wrap.Height;
-                    success = true;
-                    break;
-                }
-
-                if (success)
-                    break;
-
-                textureIndex++;
-            }
-        }
+            this.Atlas.AllocateGlyphSpace(ref glyph);
     }
 
     protected virtual void Dispose(bool disposing)
