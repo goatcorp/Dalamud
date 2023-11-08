@@ -275,7 +275,7 @@ internal unsafe class DirectWriteFontWrapper : ImFontWrapper
             foreach (var i in Enumerable.Range(0, changedTextures.Length))
             {
                 if (changedTextures[i])
-                    ((UpdateableTextureWrap)this.Atlas.TextureWraps[i]).ApplyChanges();
+                    ((UpdateableTextureWrap)this.Atlas.TextureWraps[i]).Changed = true;
             }
 
             if (changed)

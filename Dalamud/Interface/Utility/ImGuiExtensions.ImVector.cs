@@ -67,7 +67,7 @@ public static partial class ImGuiExtensions
         in this ImVector<T> vec,
         ImVectorWrapper<T>.ImGuiNativeDestroyDelegate? destroyer = null) where T : unmanaged
     {
-        fixed (ImVector* pVec = &vec)
-            return new(pVec, destroyer);
+        fixed (void* pVec = &vec)
+            return new((ImVector*)pVec, destroyer);
     }
 }

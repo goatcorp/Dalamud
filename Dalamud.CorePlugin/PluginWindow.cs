@@ -69,13 +69,18 @@ namespace Dalamud.CorePlugin
         {
         }
 
-        private int dle;
-
         /// <inheritdoc/>
         public override void Draw()
         {
             const float entrySize = 14f * 4 / 3;
-            if (ImGui.Button("Test"))
+            if (ImGui.Button("Dispose"))
+            {
+                this.fontChainAtlas?.Dispose();
+                this.fontChainAtlas = null;
+            }
+
+            ImGui.SameLine();
+            if (ImGui.Button("New"))
             {
                 this.fontChainAtlas?.Dispose();
                 this.stopwatchLoad.Restart();
@@ -87,7 +92,9 @@ namespace Dalamud.CorePlugin
                             res => Enum.GetValues<GameFontFamilyAndSize>()
                                        .Where(x => x != GameFontFamilyAndSize.Undefined)
                                        .Select(x => new GameFontStyle(x))
-                                       .Select(x => new FontChainEntry(new(x.Family), x.SizePx)).Concat(
+                                       .Select(x => new FontChainEntry(new(x.Family), x.SizePx))
+                                       .Prepend(new(new(GameFontFamily.Axis), 24f * 4 / 3))
+                                       .Concat(
                                            res.Result
                                               .SelectMany(
                                                   x => x.Variants.Select(y => new FontChainEntry(y, entrySize))))
@@ -197,7 +204,8 @@ namespace Dalamud.CorePlugin
             if (this.fontChainAtlas is null)
                 return;
 
-            this.dle = ImGui.GetWindowDrawList().CmdBuffer.Size;
+            using var dispose1 = this.fontChainAtlas.SuppressTextureUpdatesScoped();
+
             ImGui.TextUnformatted("=====================");
             using (ImRaii.PushFont(this.fontChainAtlas[new(GameFontFamily.Axis), 12f * 4 / 3]))
             {
@@ -259,3 +267,34 @@ namespace Dalamud.CorePlugin
         }
     }
 }
+
+/*
+ *
+// This is an IDisposable
+private FontChainAtlas? privateAtlas;
+
+...
+
+void OnDraw() {
+    // new privateAtlas can be done from any thread
+    privateAtlas ??= new();  // or obtain one from UiBuilder? idk
+
+    // These are POD structs
+    var font1 = new FontChainEntry("Comic Sans MS", default(FontVariant)), 18f * 4 / 3)
+    var font2 = new FontChainEntry(GameFontFamilyAndSize.Axis18);
+    var font3 = new FontChainEntry("C:/somepath.ttf", 0);
+    var fontCombined = new FontChain(new[] { font1, font2, font3 }) { LineHeight = 1.4f };
+
+    // Use these to use only 1 font at a time
+    // * ImRaii.PushFont(privateAtlas[font1.Ident, font1.Size])
+    // * ImRaii.PushFont(privateAtlas[font2.Ident, font2.Size])
+    // * ImRaii.PushFont(privateAtlas[font3.Ident, font3.Size])
+
+    // Use this to use a font chain
+    using (ImRaii.PushFont(privateAtlas[fontCombined])) {
+        var text = "Test";
+        privateAtlas.LoadGlyphs(text);
+        ImGui.TextUnformatted(text);
+    }
+}
+*/

@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reactive.Disposables;
 
 using Dalamud.Configuration.Internal;
 using Dalamud.CorePlugin.MyFonts.ImFontWrappers;
@@ -59,12 +60,14 @@ public sealed unsafe class FontChainAtlas : IDisposable
             conf.Destroy();
         }
 
-        this.EnsureTextures();
+        this.UpdateTextures();
     }
 
     ~FontChainAtlas() => this.ReleaseUnmanagedResources();
 
     public bool IsDisposed { get; private set; }
+
+    public int SuppressTextureUpdate { get; set; }
 
     internal List<IDalamudTextureWrap> TextureWraps { get; }
 
@@ -163,12 +166,28 @@ public sealed unsafe class FontChainAtlas : IDisposable
             .FirstOrDefault(x => x.FontPtr.NativePtr == font.NativePtr)
             ?.LoadGlyphs(str);
 
-    internal void EnsureTextures()
+    public IDisposable SuppressTextureUpdatesScoped()
+    {
+        this.SuppressTextureUpdate++;
+        return Disposable.Create(() =>
+        {
+            this.SuppressTextureUpdate--;
+            this.UpdateTextures();
+        });
+    }
+
+    public void UpdateTextures()
     {
         var im = Service<InterfaceManager>.Get();
-        while (this.TextureWraps.Count < this.ImTextures.Length)
+        foreach (var textureIndex in Enumerable.Range(0, this.ImTextures.Length))
         {
-            var textureIndex = this.TextureWraps.Count;
+            if (textureIndex < this.TextureWraps.Count)
+            {
+                if (this.SuppressTextureUpdate <= 0 && this.TextureWraps[textureIndex] is UpdateableTextureWrap utw)
+                    utw.ApplyChanges();
+                continue;
+            }
+
             ref var imTexture = ref this.ImTextures[textureIndex];
             UpdateableTextureWrap wrap;
             if (imTexture.TexPixelsAlpha8 is null && imTexture.TexPixelsRGBA32 is null)
@@ -218,7 +237,7 @@ public sealed unsafe class FontChainAtlas : IDisposable
                 var gfm = Service<GameFontManager>.Get();
                 var tm = Service<TextureManager>.Get();
 
-                var gfs = new GameFontStyle(ident.Game, sizePx);
+                var gfs = new GameFontStyle(new GameFontStyle(ident.Game, sizePx).FamilyAndSize);
                 if (Math.Abs(gfs.SizePx - sizePx) < 0.0001)
                 {
                     const string filename = "font{}.tex";
@@ -228,7 +247,7 @@ public sealed unsafe class FontChainAtlas : IDisposable
                     if (!this.GameFontTextures.TryGetValue(filename, out var textureIndices)
                         || textureIndices.Length < numExpectedTex)
                     {
-                        this.EnsureTextures();
+                        this.UpdateTextures();
 
                         var newTextureWraps = new IDalamudTextureWrap?[numExpectedTex];
                         var newTextureIndices = new int[numExpectedTex];

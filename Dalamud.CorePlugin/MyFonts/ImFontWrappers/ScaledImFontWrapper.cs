@@ -2,9 +2,9 @@
 #pragma warning disable SA1600
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 
+using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text.Unicode;
 
 using ImGuiNET;
@@ -17,6 +17,7 @@ internal unsafe class ScaledImFontWrapper : ImFontWrapper
         : base(atlas, (BitArray)src.LoadAttemptedGlyphs.Clone())
     {
         this.IndexedHotData.AddRange(src.IndexedHotData);
+        this.FrequentKerningPairs.Clear();
         this.FrequentKerningPairs.AddRange(src.FrequentKerningPairs);
         this.IndexLookup.AddRange(src.IndexLookup);
         this.Glyphs.AddRange(src.Glyphs);
@@ -35,11 +36,25 @@ internal unsafe class ScaledImFontWrapper : ImFontWrapper
                 ? null
                 : (ImFontGlyphHotData*)(this.IndexedHotData.Data + this.Font.FallbackChar);
 
-        foreach (var c in Enumerable.Range(0, this.IndexLookup.Length))
+        foreach (ref var glyph in this.Glyphs.AsSpan)
         {
-            var glyphIndex = this.IndexLookup[c];
-            if (glyphIndex != ushort.MaxValue)
-                this.Glyphs[glyphIndex].XY *= scale;
+            glyph.XY *= scale;
+            glyph.AdvanceX = MathF.Round(glyph.AdvanceX * scale);
+        }
+
+        foreach (ref var hd in this.IndexedHotData.AsSpan)
+        {
+            hd.AdvanceX = MathF.Round(hd.AdvanceX * scale);
+            hd.OccupiedWidth = MathF.Ceiling(hd.OccupiedWidth * scale);
+        }
+
+        foreach (ref var k in this.KerningPairs.AsSpan)
+        {
+            if (k is not { Left: < FrequentKerningPairsMaxCodepoint, Right: < FrequentKerningPairsMaxCodepoint })
+                continue;
+
+            ref var d = ref this.FrequentKerningPairs[(k.Left * FrequentKerningPairsMaxCodepoint) + k.Right];
+            d = MathF.Round(d * scale);
         }
 
         this.UpdateReferencesToVectorItems();

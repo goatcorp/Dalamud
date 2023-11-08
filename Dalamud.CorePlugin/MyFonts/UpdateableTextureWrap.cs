@@ -78,6 +78,8 @@ internal sealed unsafe class UpdateableTextureWrap : IDalamudTextureWrap, Interf
         }
     }
 
+    public bool Changed { get; set; }
+
     public bool Immutable => !this.Data.Any();
 
     public byte[] Data { get; }
@@ -101,6 +103,9 @@ internal sealed unsafe class UpdateableTextureWrap : IDalamudTextureWrap, Interf
 
     public void ApplyChanges()
     {
+        if (!this.Changed)
+            return;
+
         var box = this.Device.ImmediateContext.MapSubresource(
             this.Texture,
             0,
@@ -108,6 +113,7 @@ internal sealed unsafe class UpdateableTextureWrap : IDalamudTextureWrap, Interf
             MapFlags.None);
         this.Data.AsSpan().CopyTo(new((void*)box.DataPointer, this.Data.Length));
         this.Device.ImmediateContext.UnmapSubresource(this.Texture, 0);
+        this.Changed = false;
     }
 
     /// <inheritdoc/>

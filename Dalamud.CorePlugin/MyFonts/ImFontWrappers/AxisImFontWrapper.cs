@@ -85,6 +85,8 @@ internal unsafe class AxisImFontWrapper : ImFontWrapper
             if (d == 0)
                 continue;
 
+            if (l < FrequentKerningPairsMaxCodepoint && r < FrequentKerningPairsMaxCodepoint)
+                this.FrequentKerningPairs[(l * FrequentKerningPairsMaxCodepoint) + r] = d;
             this.KerningPairs.Add(
                 new()
                 {

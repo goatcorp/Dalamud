@@ -17,6 +17,8 @@ namespace Dalamud.CorePlugin.MyFonts.ImFontWrappers;
 
 internal abstract unsafe class ImFontWrapper : IDisposable
 {
+    protected const int FrequentKerningPairsMaxCodepoint = 128;
+
     protected ImFontWrapper(FontChainAtlas atlas, BitArray? loadAttemptedGlyphs)
     {
         this.Atlas = atlas;
@@ -27,6 +29,8 @@ internal abstract unsafe class ImFontWrapper : IDisposable
         this.Glyphs = new(&this.FontNative->Glyphs, null);
         this.KerningPairs = new(&this.FontNative->KerningPairs, null);
         this.LoadAttemptedGlyphs = loadAttemptedGlyphs ?? new(0x10000, false);
+
+        this.FrequentKerningPairs.Resize(128 * 128);
     }
 
     ~ImFontWrapper() => this.Dispose(false);
@@ -132,7 +136,7 @@ internal abstract unsafe class ImFontWrapper : IDisposable
                         throw new NotSupportedException();
 
                     this.Atlas.ImTextures.Add(default);
-                    this.Atlas.EnsureTextures();
+                    this.Atlas.UpdateTextures();
                     continue;
                 }
 
