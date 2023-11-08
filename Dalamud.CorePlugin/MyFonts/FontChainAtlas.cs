@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 
+using Dalamud.Configuration.Internal;
 using Dalamud.CorePlugin.MyFonts.ImFontWrappers;
 using Dalamud.Data;
 using Dalamud.Interface.EasyFonts;
@@ -25,16 +26,16 @@ namespace Dalamud.CorePlugin.MyFonts;
 public sealed unsafe class FontChainAtlas : IDisposable
 {
     private readonly ImFontAtlas* pAtlas;
+    private readonly byte[] gammaTable = new byte[256];
+    private float lastGamma = float.NaN;
 
     public FontChainAtlas()
     {
         this.pAtlas = ImGuiNative.ImFontAtlas_ImFontAtlas();
-        this.pAtlas->TexDesiredWidth = 1024;
-        this.pAtlas->TexDesiredWidth = 1024;
+        this.pAtlas->TexWidth = this.pAtlas->TexDesiredWidth = 1024;
+        this.pAtlas->TexHeight = this.pAtlas->TexDesiredHeight = 1024;
         this.pAtlas->TexGlyphPadding = 1;
         this.pAtlas->TexReady = 0;
-        this.pAtlas->TexWidth = 1024;
-        this.pAtlas->TexWidth = 1024;
         this.ImTextures = new(&this.pAtlas->Textures, null);
         this.TextureWraps = new();
         this.Fonts = new(&this.pAtlas->Fonts, x => x->Destroy());
@@ -43,8 +44,21 @@ public sealed unsafe class FontChainAtlas : IDisposable
 
         // need a space for shapes, so need to call Build
         // calling Build does AddFontDefault anyway if no font is configured
-        this.AtlasPtr.AddFontDefault();
-        this.AtlasPtr.Build();
+        var conf = new ImFontConfigPtr(ImGuiNative.ImFontConfig_ImFontConfig())
+        {
+            GlyphRanges = Service<ImGuiRangeHandles>.Get().Dummy.AddrOfPinnedObject(),
+        };
+        try
+        {
+            this.AtlasPtr.AddFontDefault(conf);
+            this.AtlasPtr.Build();
+            this.Fonts.Clear();
+        }
+        finally
+        {
+            conf.Destroy();
+        }
+
         this.EnsureTextures();
     }
 
@@ -52,7 +66,32 @@ public sealed unsafe class FontChainAtlas : IDisposable
 
     public bool IsDisposed { get; private set; }
 
-    private ImFontAtlasPtr AtlasPtr => new(this.pAtlas);
+    internal List<IDalamudTextureWrap> TextureWraps { get; }
+
+    internal ImVectorWrapper<ImFontAtlasTexture> ImTextures { get; }
+
+    internal ImVectorWrapper<ImFontPtr> Fonts { get; }
+
+    internal ImVectorWrapper<ImGuiHelpers.ImFontAtlasCustomRectReal> CustomRects { get; }
+
+    internal ImVectorWrapper<ImFontConfig> FontConfigs { get; }
+
+    internal ImFontAtlasPtr AtlasPtr => new(this.pAtlas);
+
+    internal byte[] GammaMultiplicationTable
+    {
+        get
+        {
+            var gamma = Service<DalamudConfiguration>.Get().FontGammaLevel;
+            if (Math.Abs(this.lastGamma - gamma) >= 0.0001)
+                return this.gammaTable;
+
+            for (var i = 0; i < 256; i++)
+                this.gammaTable[i] = (byte)(MathF.Pow(Math.Clamp(i / 255.0f, 0.0f, 1.0f), 1.0f / gamma) * 255.0f);
+            this.lastGamma = gamma;
+            return this.gammaTable;
+        }
+    }
 
     private Dictionary<(FontIdent Ident, float Size), ImFontWrapper> FontEntries { get; } = new();
 
@@ -60,17 +99,7 @@ public sealed unsafe class FontChainAtlas : IDisposable
 
     private Dictionary<ImFontWrapper, int> ImFontWrapperIndices { get; } = new();
 
-    private List<IDalamudTextureWrap> TextureWraps { get; }
-
     private Dictionary<string, int[]> GameFontTextures { get; } = new();
-
-    private ImVectorWrapper<ImFontAtlasTexture> ImTextures { get; }
-
-    private ImVectorWrapper<ImFontPtr> Fonts { get; }
-
-    private ImVectorWrapper<ImGuiHelpers.ImFontAtlasCustomRectReal> CustomRects { get; }
-
-    private ImVectorWrapper<ImFontConfig> FontConfigs { get; }
 
     public ImFontPtr this[in FontIdent ident, float sizePx] =>
         this.Fonts[this.ImFontWrapperIndices[this.GetWrapper(ident, sizePx)]];
@@ -96,6 +125,7 @@ public sealed unsafe class FontChainAtlas : IDisposable
             this.FontChains[chain] = wrapper;
             this.ImFontWrapperIndices[wrapper] = this.Fonts.Length;
             this.Fonts.Add(wrapper.FontPtr);
+            wrapper.Font.ContainerAtlas = this.AtlasPtr;
             return wrapper.FontPtr;
         }
     }
@@ -132,6 +162,45 @@ public sealed unsafe class FontChainAtlas : IDisposable
             .Concat(this.FontEntries.Values)
             .FirstOrDefault(x => x.FontPtr.NativePtr == font.NativePtr)
             ?.LoadGlyphs(str);
+
+    internal void EnsureTextures()
+    {
+        var im = Service<InterfaceManager>.Get();
+        while (this.TextureWraps.Count < this.ImTextures.Length)
+        {
+            var textureIndex = this.TextureWraps.Count;
+            ref var imTexture = ref this.ImTextures[textureIndex];
+            UpdateableTextureWrap wrap;
+            if (imTexture.TexPixelsAlpha8 is null && imTexture.TexPixelsRGBA32 is null)
+            {
+                var width = this.AtlasPtr.TexWidth;
+                var height = this.AtlasPtr.TexHeight;
+                wrap = new(im.Device!, 0, width, height);
+            }
+            else
+            {
+                // Note: pixels expect BGRA32, but we feed it RGBA32, and that's fine; R=G=B
+                this.AtlasPtr.GetTexDataAsRGBA32(textureIndex, out nint pixels, out var width, out var height);
+                wrap = new(im.Device!, pixels, width, height);
+
+                // We rely on the implementation detail that default custom rects stick to top left.
+                var occupiedWidth = this.CustomRects.Aggregate(0, (a, x) => Math.Max(a, x.X + x.Width)) + 1;
+                var occupiedHeight = this.CustomRects.Aggregate(0, (a, x) => Math.Max(a, x.Y + x.Height)) + 1;
+                foreach (var p in wrap.Packers)
+                    p.PackRect(occupiedWidth, occupiedHeight, null!);
+            }
+
+            this.TextureWraps.Add(wrap);
+            imTexture.TexID = this.TextureWraps[^1].ImGuiHandle;
+
+            if (imTexture.TexPixelsAlpha8 is not null)
+                ImGuiNative.igMemFree(imTexture.TexPixelsAlpha8);
+            imTexture.TexPixelsAlpha8 = null;
+            if (imTexture.TexPixelsRGBA32 is not null)
+                ImGuiNative.igMemFree(imTexture.TexPixelsRGBA32);
+            imTexture.TexPixelsRGBA32 = null;
+        }
+    }
 
     private ImFontWrapper GetWrapper(in FontIdent ident, float sizePx)
     {
@@ -222,7 +291,8 @@ public sealed unsafe class FontChainAtlas : IDisposable
             }
 
             case { System: { Name: { } name, Variant: { } variant } }:
-                throw new NotImplementedException();
+                wrapper = DirectWriteFontWrapper.FromSystem(this, name, variant, sizePx);
+                break;
 
             case { File: { Path: { } path, Index: { } index } }:
                 throw new NotImplementedException();
@@ -237,27 +307,6 @@ public sealed unsafe class FontChainAtlas : IDisposable
         wrapper.Font.ContainerAtlas = this.AtlasPtr;
 
         return wrapper;
-    }
-
-    private void EnsureTextures()
-    {
-        var im = Service<InterfaceManager>.Get();
-        while (this.TextureWraps.Count < this.ImTextures.Length)
-        {
-            var textureIndex = this.TextureWraps.Count;
-            ref var imTexture = ref this.ImTextures[textureIndex];
-            this.AtlasPtr.GetTexDataAsRGBA32(textureIndex, out nint pixels, out var width, out var height);
-
-            this.TextureWraps.Add(new UpdateableTextureWrap(im.Device!, pixels, width, height));
-            imTexture.TexID = this.TextureWraps[^1].ImGuiHandle;
-
-            if (imTexture.TexPixelsAlpha8 is not null)
-                ImGuiNative.igMemFree(imTexture.TexPixelsAlpha8);
-            imTexture.TexPixelsAlpha8 = null;
-            if (imTexture.TexPixelsRGBA32 is not null)
-                ImGuiNative.igMemFree(imTexture.TexPixelsRGBA32);
-            imTexture.TexPixelsRGBA32 = null;
-        }
     }
 
     private void ReleaseUnmanagedResources()

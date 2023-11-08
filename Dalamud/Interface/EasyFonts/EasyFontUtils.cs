@@ -26,6 +26,7 @@ public static class EasyFontUtils
     /// <param name="preferredLanguageName">Preferred language name prefix, in "en-us" format.</param>
     /// <param name="nameSortComparison">Comparison method for names for sorting the result.</param>
     /// <param name="refreshSystem">Whether to refresh installed font lists.</param>
+    /// <param name="excludeSimulated">Exclude simulated fonts.</param>
     /// <param name="requiredChars">Characters required for every font in the return.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>List of found fonts.</returns>
@@ -36,6 +37,7 @@ public static class EasyFontUtils
         string? preferredLanguageName = null,
         StringComparison nameSortComparison = StringComparison.CurrentCultureIgnoreCase,
         bool refreshSystem = false,
+        bool excludeSimulated = true,
         IEnumerable<char>? requiredChars = null,
         CancellationToken cancellationToken = default) => Task.Run(() =>
     {
@@ -104,7 +106,7 @@ public static class EasyFontUtils
                     using var font = family.GetFont(fontIndex);
 
                     // we can't handle faux italic/bold at the moment; skip them
-                    if (font.Simulations != SDXFontSimulations.None)
+                    if (font.Simulations != SDXFontSimulations.None && excludeSimulated)
                         continue;
 
                     // Wingdings and some symbol fonts fail because they do not have CMAP formats supported by

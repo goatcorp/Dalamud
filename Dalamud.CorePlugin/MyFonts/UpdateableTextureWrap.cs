@@ -10,6 +10,8 @@ using SharpDX.Direct3D;
 using SharpDX.Direct3D11;
 using SharpDX.DXGI;
 
+using StbRectPackSharp;
+
 using Device = SharpDX.Direct3D11.Device;
 using MapFlags = SharpDX.Direct3D11.MapFlags;
 
@@ -25,27 +27,32 @@ internal sealed unsafe class UpdateableTextureWrap : IDalamudTextureWrap, Interf
         this.Height = height;
         try
         {
-            this.Data = new Span<byte>((void*)pixels, width * height * 4).ToArray();
+            this.Data = new byte[width * height * 4];
+            if (pixels != 0)
+                new Span<byte>((void*)pixels, width * height * 4).CopyTo(this.Data);
 
             this.Device = this.waste.Add(device.QueryInterface<Device>());
 
-            this.Texture = this.waste.Add(
-                new Texture2D(
-                    device,
-                    new()
-                    {
-                        Width = width,
-                        Height = height,
-                        MipLevels = 1,
-                        ArraySize = 1,
-                        Format = Format.B8G8R8A8_UNorm,
-                        SampleDescription = new(1, 0),
-                        Usage = ResourceUsage.Dynamic,
-                        BindFlags = BindFlags.ShaderResource,
-                        CpuAccessFlags = CpuAccessFlags.Write,
-                        OptionFlags = ResourceOptionFlags.None,
-                    },
-                    new DataRectangle(pixels, width * 4)));
+            fixed (void* d = this.Data)
+            {
+                this.Texture = this.waste.Add(
+                    new Texture2D(
+                        device,
+                        new()
+                        {
+                            Width = width,
+                            Height = height,
+                            MipLevels = 1,
+                            ArraySize = 1,
+                            Format = Format.B8G8R8A8_UNorm,
+                            SampleDescription = new(1, 0),
+                            Usage = ResourceUsage.Dynamic,
+                            BindFlags = BindFlags.ShaderResource,
+                            CpuAccessFlags = CpuAccessFlags.Write,
+                            OptionFlags = ResourceOptionFlags.None,
+                        },
+                        new DataRectangle((nint)d, width * 4)));
+            }
 
             this.View = this.waste.Add(
                 new ShaderResourceView(
@@ -57,6 +64,14 @@ internal sealed unsafe class UpdateableTextureWrap : IDalamudTextureWrap, Interf
                         Dimension = ShaderResourceViewDimension.Texture2D,
                         Texture2D = { MipLevels = 1 },
                     }));
+
+            this.Packers = new[]
+            {
+                new Packer(width - 1, height - 1),
+                new Packer(width - 1, height - 1),
+                new Packer(width - 1, height - 1),
+                new Packer(width - 1, height - 1),
+            };
         }
         catch (Exception)
         {
@@ -72,6 +87,8 @@ internal sealed unsafe class UpdateableTextureWrap : IDalamudTextureWrap, Interf
     public ShaderResourceView View { get; }
 
     public Texture2D Texture { get; }
+
+    public Packer[] Packers { get; }
 
     /// <inheritdoc/>
     public IntPtr ImGuiHandle => this.View.NativePointer;

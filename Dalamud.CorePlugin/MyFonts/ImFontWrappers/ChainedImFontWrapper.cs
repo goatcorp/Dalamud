@@ -5,9 +5,12 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Numerics;
+using System.Text.Unicode;
 
 using Dalamud.Interface.EasyFonts;
 using Dalamud.Interface.Internal;
+using Dalamud.Interface.Utility;
 
 using ImGuiNET;
 
@@ -36,8 +39,10 @@ internal unsafe class ChainedImFontWrapper : ImFontWrapper
                            + MathF.Ceiling((chain.Fonts[0].SizePx * (chain.LineHeight - 1f)) / 2);
         this.Font.Descent = this.Subfonts[0].Font.Descent
                             + MathF.Floor((chain.Fonts[0].SizePx * (chain.LineHeight - 1f)) / 2);
-        this.Font.FallbackGlyph = (ImFontGlyph*)(this.Glyphs.Data + this.Font.FallbackChar);
+        this.LoadGlyphs(' ', (char)this.Font.FallbackChar, (char)this.Font.EllipsisChar, (char)this.Font.DotChar);
+        this.Font.FallbackGlyph = (ImFontGlyph*)this.FindLoadedGlyphNoFallback(this.Font.FallbackChar);
         this.Font.FallbackHotData = (ImFontGlyphHotData*)(this.IndexedHotData.Data + this.Font.FallbackChar);
+        this.RepairHotData();
     }
 
     public FontChain Chain { get; set; }
@@ -45,20 +50,92 @@ internal unsafe class ChainedImFontWrapper : ImFontWrapper
     public IReadOnlyList<ImFontWrapper> Subfonts { get; set; }
 
     /// <inheritdoc/>
+    public override bool IsCharAvailable(char c) =>
+        this.Chain.Fonts.Zip(this.Subfonts).Any(x => x.First.RangeContainsCharacter(c) && x.Second.IsCharAvailable(c));
+
+    /// <inheritdoc/>
     public override void LoadGlyphs(IEnumerable<char> chars)
     {
-        if (chars is ICollection<char> coll)
+        if (chars is not ICollection<char> coll)
+            coll = chars.ToArray();
+
+        if (!coll.Any())
+            return;
+        this.EnsureIndex(coll.Max());
+
+        foreach (var (entry, font) in this.Chain.Fonts.Zip(this.Subfonts))
         {
-            this.GrowIndex(coll.Max());
+            font.LoadGlyphs(coll);
+            foreach (var c in coll)
+                this.EnsureCharacter(c, entry, font);
         }
-        else
+
+        foreach (var c in coll)
+            this.LoadAttemptedGlyphs[c] = true;
+    }
+
+    /// <inheritdoc/>
+    public override void LoadGlyphs(IEnumerable<UnicodeRange> ranges)
+    {
+        if (ranges is not ICollection<UnicodeRange> coll)
+            coll = ranges.ToArray();
+
+        if (!coll.Any())
+            return;
+        this.EnsureIndex(coll.Max(x => x.FirstCodePoint + (x.Length - 1)));
+
+        foreach (var (entry, font) in this.Chain.Fonts.Zip(this.Subfonts))
         {
-            foreach (var c in chars)
+            font.LoadGlyphs(coll);
+            foreach (var c in coll)
             {
-                this.GrowIndex(c);
+                foreach (var cc in Enumerable.Range(c.FirstCodePoint, c.Length))
+                    this.EnsureCharacter(cc, entry, font);
             }
         }
 
-        throw new NotImplementedException();
+        foreach (var c in coll)
+        {
+            foreach (var cc in Enumerable.Range(c.FirstCodePoint, c.Length))
+                this.LoadAttemptedGlyphs[cc] = true;
+        }
+    }
+
+    private void EnsureCharacter(int c, in FontChainEntry entry, in ImFontWrapper font)
+    {
+        if (this.LoadAttemptedGlyphs[c])
+            return;
+
+        if (!entry.RangeContainsCharacter(c))
+            return;
+
+        var sourceGlyph = font.FindLoadedGlyphNoFallback(c);
+        if (sourceGlyph is null)
+            return;
+
+        var offsetVector2 = new Vector2(
+            MathF.Round(entry.OffsetX),
+            MathF.Round(entry.OffsetY + ((entry.SizePx * (this.Chain.LineHeight - 1f)) / 2)));
+
+        var glyph = new ImGuiHelpers.ImFontGlyphReal
+        {
+            AdvanceX = sourceGlyph->AdvanceX + entry.LetterSpacing,
+            Codepoint = c,
+            Colored = sourceGlyph->Colored,
+            TextureIndex = sourceGlyph->TextureIndex,
+            Visible = sourceGlyph->Visible,
+            UV = sourceGlyph->UV,
+            XY0 = sourceGlyph->XY0 + offsetVector2,
+            XY1 = sourceGlyph->XY1 + offsetVector2,
+        };
+
+        this.IndexLookup[c] = unchecked((ushort)this.Glyphs.Length);
+        this.Glyphs.Add(glyph);
+        this.Mark4KPageUsed(glyph);
+        this.LoadAttemptedGlyphs[c] = true;
+
+        ref var indexedHotData = ref this.IndexedHotData[glyph.Codepoint];
+        indexedHotData.AdvanceX = glyph.AdvanceX;
+        indexedHotData.OccupiedWidth = Math.Max(glyph.AdvanceX, glyph.X1);
     }
 }

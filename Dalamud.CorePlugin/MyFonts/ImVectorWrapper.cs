@@ -322,9 +322,13 @@ public unsafe class ImVectorWrapper<T> : IList<T>, IList, IReadOnlyList<T>
         var oldData = this.Data;
         if (oldData is not null && newData is not null)
             Buffer.MemoryCopy(oldData, newData, this.Length * sizeof(T), this.Length * sizeof(T));
-        this.Data = newData;
         if (oldData is not null)
             ImGuiNative.igMemFree(oldData);
+        this.Data = newData;
+        this.Capacity = capacity;
+#if DEBUG
+        new Span<byte>(this.Data + this.Length, sizeof(T) * (capacity - this.Length)).Fill(0xCC);
+#endif
         return true;
     }
 

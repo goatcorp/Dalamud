@@ -67,7 +67,7 @@ internal unsafe class DalamudIME : IDisposable, IServiceType
     /// <param name="wParamPtr">wParam or the pointer to it.</param>
     /// <param name="lParamPtr">lParam or the pointer to it.</param>
     /// <returns>Return value, if not doing further processing.</returns>
-    public unsafe IntPtr? ProcessWndProcW(IntPtr hWnd, User32.WindowMessage msg, void* wParamPtr, void* lParamPtr)
+    public unsafe IntPtr? ProcessWndProcW(IntPtr hWnd, User32.WindowMessage msg, nint wParam, nint lParam)
     {
         try
         {
@@ -75,29 +75,11 @@ internal unsafe class DalamudIME : IDisposable, IServiceType
             {
                 var io = ImGui.GetIO();
                 var wmsg = (WindowsMessage)msg;
-                long wParam = (long)wParamPtr, lParam = (long)lParamPtr;
-                try
-                {
-                    wParam = Marshal.ReadInt32((IntPtr)wParamPtr);
-                }
-                catch
-                {
-                    // ignored
-                }
-
-                try
-                {
-                    lParam = Marshal.ReadInt32((IntPtr)lParamPtr);
-                }
-                catch
-                {
-                    // ignored
-                }
 
                 switch (wmsg)
                 {
                     case WindowsMessage.WM_IME_NOTIFY:
-                        switch ((IMECommand)(IntPtr)wParam)
+                        switch ((IMECommand)wParam)
                         {
                             case IMECommand.ChangeCandidate:
                                 this.ToggleWindow(true);
@@ -122,7 +104,7 @@ internal unsafe class DalamudIME : IDisposable, IServiceType
                         break;
                     case WindowsMessage.WM_IME_COMPOSITION:
                         if (((long)(IMEComposition.CompStr | IMEComposition.CompAttr | IMEComposition.CompClause |
-                                    IMEComposition.CompReadAttr | IMEComposition.CompReadClause | IMEComposition.CompReadStr) & (long)(IntPtr)lParam) > 0)
+                                    IMEComposition.CompReadAttr | IMEComposition.CompReadClause | IMEComposition.CompReadStr) & lParam) > 0)
                         {
                             var hIMC = ImmGetContext(hWnd);
                             if (hIMC == IntPtr.Zero)
@@ -148,7 +130,7 @@ internal unsafe class DalamudIME : IDisposable, IServiceType
                             }
                         }
 
-                        if (((long)(IntPtr)lParam & (long)IMEComposition.ResultStr) > 0)
+                        if ((lParam & (long)IMEComposition.ResultStr) > 0)
                         {
                             var hIMC = ImmGetContext(hWnd);
                             if (hIMC == IntPtr.Zero)

@@ -5,6 +5,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Unicode;
 
 using ImGuiNET;
 
@@ -28,7 +29,7 @@ internal unsafe class ScaledImFontWrapper : ImFontWrapper
         this.Font.Scale = src.Font.Scale;
         this.Font.Ascent = src.Font.Ascent * scale;
         this.Font.Descent = src.Font.Descent * scale;
-        this.Font.FallbackGlyph = (ImFontGlyph*)(this.Glyphs.Data + this.Font.FallbackChar);
+        this.Font.FallbackGlyph = (ImFontGlyph*)this.FindLoadedGlyphNoFallback(this.Font.FallbackChar);
         this.Font.FallbackHotData = (ImFontGlyphHotData*)(this.IndexedHotData.Data + this.Font.FallbackChar);
 
         foreach (var c in Enumerable.Range(0, this.IndexLookup.Length))
@@ -42,7 +43,15 @@ internal unsafe class ScaledImFontWrapper : ImFontWrapper
     }
 
     /// <inheritdoc/>
+    public override bool IsCharAvailable(char c) => this.FindLoadedGlyphNoFallback(c) != null;
+
+    /// <inheritdoc/>
     public override void LoadGlyphs(IEnumerable<char> chars)
+    {
+    }
+
+    /// <inheritdoc/>
+    public override void LoadGlyphs(IEnumerable<UnicodeRange> ranges)
     {
     }
 }

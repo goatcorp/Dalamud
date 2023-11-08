@@ -90,7 +90,7 @@ internal partial class InterfaceManager : IDisposable, IServiceType
     private delegate IntPtr DispatchMessageWDelegate(ref User32.MSG msg);
 
     [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
-    private delegate IntPtr ProcessMessageDelegate(IntPtr hWnd, uint msg, ulong wParam, ulong lParam, IntPtr handeled);
+    private delegate IntPtr ProcessMessageDelegate(IntPtr hWnd, uint msg, nint wParam, nint lParam, IntPtr handeled);
 
     /// <summary>
     /// This event gets called each frame to facilitate ImGui drawing.
@@ -117,6 +117,9 @@ internal partial class InterfaceManager : IDisposable, IServiceType
     /// </summary>
     public interface IDeferredDisposable
     {
+        /// <summary>
+        /// Dispose actually.
+        /// </summary>
         void RealDispose();
     }
 
@@ -636,10 +639,10 @@ internal partial class InterfaceManager : IDisposable, IServiceType
         });
     }
 
-    private unsafe IntPtr ProcessMessageDetour(IntPtr hWnd, uint msg, ulong wParam, ulong lParam, IntPtr handeled)
+    private unsafe IntPtr ProcessMessageDetour(IntPtr hWnd, uint msg, nint wParam, nint lParam, IntPtr handeled)
     {
         var ime = Service<DalamudIME>.GetNullable();
-        var res = ime?.ProcessWndProcW(hWnd, (User32.WindowMessage)msg, (void*)wParam, (void*)lParam);
+        var res = ime?.ProcessWndProcW(hWnd, (User32.WindowMessage)msg, wParam, lParam);
         Debug.Assert(this.processMessageHook is not null, "this.processMessageHook is null");
         return this.processMessageHook.Original(hWnd, msg, wParam, lParam, handeled);
     }

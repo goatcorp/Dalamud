@@ -27,7 +27,7 @@ internal static class ArrayExtensions
     /// </summary>
     /// <param name="array">The enumerable.</param>
     /// <typeparam name="T">Disposable type.</typeparam>
-    public static void DisposeItems<T>(this IEnumerable<T> array)
+    public static void DisposeItems<T>(this IEnumerable<T?> array)
         where T : IDisposable 
     {
         List<Exception>? excs = null;
@@ -35,7 +35,7 @@ internal static class ArrayExtensions
         {
             try
             {
-                x.Dispose();
+                x?.Dispose();
             }
             catch (Exception ex)
             {

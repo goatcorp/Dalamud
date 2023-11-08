@@ -1,4 +1,7 @@
-﻿namespace Dalamud.Interface.EasyFonts;
+﻿using System.Linq;
+using System.Text.Unicode;
+
+namespace Dalamud.Interface.EasyFonts;
 
 /// <summary>
 /// Indicates an entry in a font chain.
@@ -55,7 +58,21 @@ public record struct FontChainEntry
     /// </summary>
     public float OffsetY { get; set; }
 
+    /// <summary>
+    /// Gets or sets the unicode ranges to take from this font. Null means full range.
+    /// </summary>
+    public UnicodeRange[]? Ranges { get; set; }
+
     /// <inheritdoc/>
     public override int GetHashCode() => 
         HashCode.Combine(this.Ident.GetHashCode(), this.SizePx, this.LetterSpacing, this.OffsetX, this.OffsetY);
+
+    /// <summary>
+    /// Determines if <see cref="Ranges"/> contains <paramref name="c"/>.
+    /// </summary>
+    /// <param name="c">Character to test.</param>
+    /// <returns>Whether it's contained.</returns>
+    public readonly bool RangeContainsCharacter(int c) =>
+        this.Ranges is not { } ranges
+        || ranges.Any(x => x.FirstCodePoint <= c && c < x.FirstCodePoint + x.Length);
 }
