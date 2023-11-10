@@ -86,9 +86,9 @@ internal sealed class FlyTextGui : IDisposable, IServiceType, IFlyTextGui
     public unsafe void AddFlyText(FlyTextKind kind, uint actorIndex, uint val1, uint val2, SeString text1, SeString text2, uint color, uint icon, uint damageTypeIcon)
     {
         // Known valid flytext region within the atk arrays
-        var numIndex = 28;
-        var strIndex = 25;
-        var numOffset = 147u;
+        var numIndex = 30;
+        var strIndex = 27;
+        var numOffset = 161u;
         var strOffset = 28u;
 
         // Get the UI module and flytext addon pointers
@@ -132,7 +132,7 @@ internal sealed class FlyTextGui : IDisposable, IServiceType, IFlyTextGui
                     1,
                     (IntPtr)numArray,
                     numOffset,
-                    9,
+                    10,
                     (IntPtr)strArray,
                     strOffset,
                     2,
