@@ -231,6 +231,7 @@ internal class InterfaceManager : IDisposable, IServiceType
             this.processMessageHook?.Dispose();
         }).Wait();
 
+        ImGuiClipboardConfig.Unapply();
         this.scene?.Dispose();
     }
 
@@ -619,6 +620,7 @@ internal class InterfaceManager : IDisposable, IServiceType
             ImGui.GetIO().FontGlobalScale = configuration.GlobalUiScale;
 
             this.SetupFonts();
+            ImGuiClipboardConfig.Apply();
 
             if (!configuration.IsDocking)
             {
