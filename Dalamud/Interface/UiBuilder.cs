@@ -31,6 +31,8 @@ public sealed class UiBuilder : IDisposable
     private readonly InterfaceManager interfaceManager = Service<InterfaceManager>.Get();
     private readonly GameFontManager gameFontManager = Service<GameFontManager>.Get();
 
+    private readonly Dictionary<IImGuiRenderer.DrawCmdUserCallbackDelegate, nint> drawCmdUserCallbackDelegates = new();
+
     [ServiceManager.ServiceDependency]
     private readonly DalamudConfiguration configuration = Service<DalamudConfiguration>.Get();
 
@@ -143,6 +145,14 @@ public sealed class UiBuilder : IDisposable
     public nint DeviceContextNativePointer => this.DeviceContext?.NativePointer ?? nint.Zero;
 
     /// <summary>
+    /// Gets the ImGui DrawCmd callback for resetting the render parameters.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">When UI is not yet ready.</exception>
+    public nint ImGuiResetDrawCmdUserCallback =>
+        this.interfaceManager.ImGuiRenderer?.ResetDrawCmdUserCallback
+        ?? throw new InvalidOperationException("Renderer is not yet ready.");
+
+    /// <summary>
     /// Gets the game's main window handle.
     /// </summary>
     public IntPtr WindowHandlePtr => this.InterfaceManagerWithScene.WindowHandlePtr;
@@ -245,6 +255,36 @@ public sealed class UiBuilder : IDisposable
 
     private Task<InterfaceManager> InterfaceManagerWithSceneAsync =>
         Service<InterfaceManager.InterfaceManagerWithScene>.GetAsync().ContinueWith(task => task.Result.Manager);
+
+    /// <summary>
+    /// Adds a callback that will be called on rendering a texture with <see cref="ImDrawCmd.UserCallback"/> set.
+    /// </summary>
+    /// <param name="cb">The callback.</param>
+    /// <returns>The value to use for <see cref="ImDrawCmd.UserCallback"/>.</returns>
+    /// <exception cref="InvalidOperationException">If UI is not yet ready.</exception>
+    public nint AddImGuiDrawCmdUserCallback(IImGuiRenderer.DrawCmdUserCallbackDelegate cb)
+    {
+        if (this.drawCmdUserCallbackDelegates.TryGetValue(cb, out var p))
+            return p;
+
+        if (this.interfaceManager.ImGuiRenderer is not { } renderer)
+            throw new InvalidOperationException("Renderer is not yet ready.");
+
+        this.drawCmdUserCallbackDelegates.Add(cb, p = renderer.AddDrawCmdUserCallback(cb));
+        return p;
+    }
+
+    /// <summary>
+    /// Removes a callback that will be called on rendering a texture with <see cref="ImDrawCmd.UserCallback"/> set.
+    /// </summary>
+    /// <param name="cb">The callback.</param>
+    public void RemoveImGuiDrawCmdUserCallback(IImGuiRenderer.DrawCmdUserCallbackDelegate cb)
+    {
+        // Either it's not ready and nothing could have been already added yet,
+        // or it's destructing down and we don't care anymore
+        this.drawCmdUserCallbackDelegates.Remove(cb);
+        this.interfaceManager.ImGuiRenderer?.RemoveDrawCmdUserCallback(cb);
+    }
 
     /// <summary>
     /// Loads an image from the specified file.
@@ -413,6 +453,8 @@ public sealed class UiBuilder : IDisposable
         this.interfaceManager.Draw -= this.OnDraw;
         this.interfaceManager.BuildFonts -= this.OnBuildFonts;
         this.interfaceManager.ResizeBuffers -= this.OnResizeBuffers;
+        foreach (var cb in this.drawCmdUserCallbackDelegates.Keys)
+            this.interfaceManager.ImGuiRenderer?.RemoveDrawCmdUserCallback(cb);
     }
 
     /// <summary>
