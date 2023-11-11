@@ -56,7 +56,7 @@ namespace Dalamud.CorePlugin
         /// </summary>
         /// <param name="pluginInterface">Dalamud plugin interface.</param>
         /// <param name="log">Logging service.</param>
-        public PluginImpl(DalamudPluginInterface pluginInterface, IPluginLog log)
+        public PluginImpl(DalamudPluginInterface pluginInterface, IDataManager dataManager, ITextureProvider textureProvider, IPluginLog log)
         {
             try
             {
@@ -64,7 +64,7 @@ namespace Dalamud.CorePlugin
                 this.Interface = pluginInterface;
                 this.pluginLog = log;
 
-                this.windowSystem.AddWindow(new PluginWindow());
+                this.windowSystem.AddWindow(new PluginWindow(pluginInterface.UiBuilder, dataManager, textureProvider));
 
                 this.Interface.UiBuilder.Draw += this.OnDraw;
                 this.Interface.UiBuilder.OpenConfigUi += this.OnOpenConfigUi;
