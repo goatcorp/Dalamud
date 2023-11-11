@@ -149,9 +149,14 @@ internal class InterfaceManager : IDisposable, IServiceType
     public ImGuiIOPtr LastImGuiIoPtr { get; set; }
 
     /// <summary>
-    /// Gets the D3D11 device instance.
+    /// Gets the D3D11 device instance. Note that the reference count is not increased.
     /// </summary>
     public SharpDX.Direct3D11.Device? Device => this.scene?.Device;
+
+    /// <summary>
+    /// Gets the D3D11 device context. Note that the reference count is not increased.
+    /// </summary>
+    public DeviceContext? DeviceContext => this.scene?.DeviceContext;
 
     /// <summary>
     /// Gets the address handle to the main process window.

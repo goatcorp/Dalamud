@@ -16,7 +16,6 @@ using Dalamud.Utility;
 using ImGuiNET;
 using ImGuiScene;
 using Serilog;
-using SharpDX.Direct3D11;
 
 namespace Dalamud.Interface;
 
@@ -122,9 +121,26 @@ public sealed class UiBuilder : IDisposable
     public static ImFontPtr MonoFont => InterfaceManager.MonoFont;
 
     /// <summary>
-    /// Gets the game's active Direct3D device.
+    /// Gets the game's active D3D11 device instance. Note that the reference count is not increased.
     /// </summary>
-    public Device Device => this.InterfaceManagerWithScene.Device!;
+    public SharpDX.Direct3D11.Device? Device => this.InterfaceManagerWithScene?.Device;
+
+    /// <summary>
+    /// Gets the game's active D3D11 device context. Note that the reference count is not increased.
+    /// </summary>
+    public SharpDX.Direct3D11.DeviceContext? DeviceContext => this.InterfaceManagerWithScene?.DeviceContext;
+
+    /// <summary>
+    /// Gets the native pointer of the game's active D3D11 device instance.
+    /// Note that the reference count is not increased.
+    /// </summary>
+    public nint DeviceNativePointer => this.Device?.NativePointer ?? nint.Zero;
+
+    /// <summary>
+    /// Gets the native pointer of the game's active D3D11 device context.
+    /// Note that the reference count is not increased.
+    /// </summary>
+    public nint DeviceContextNativePointer => this.DeviceContext?.NativePointer ?? nint.Zero;
 
     /// <summary>
     /// Gets the game's main window handle.
