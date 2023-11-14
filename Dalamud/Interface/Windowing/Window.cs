@@ -637,7 +637,7 @@ public abstract class Window
     /// <summary>
     /// Structure describing a title bar button.
     /// </summary>
-    public struct TitleBarButton
+    public class TitleBarButton
     {
         /// <summary>
         /// Gets or sets the icon of the button.
