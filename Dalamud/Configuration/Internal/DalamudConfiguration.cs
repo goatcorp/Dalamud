@@ -235,6 +235,7 @@ internal sealed class DalamudConfiguration : IServiceType, IDisposable
     /// Gets or sets a value indicating whether or not an additional button allowing pinning and clickthrough options should be shown
     /// on plugin title bars when using the Window System.
     /// </summary>
+    [JsonProperty("EnablePluginUiAdditionalOptionsExperimental")]
     public bool EnablePluginUiAdditionalOptions { get; set; } = false;
 
     /// <summary>
