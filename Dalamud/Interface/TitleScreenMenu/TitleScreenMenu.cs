@@ -2,11 +2,12 @@
 using System.Linq;
 using System.Reflection;
 
+using Dalamud.Game.ClientState.Keys;
 using Dalamud.Interface.Internal;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Plugin.Services;
-using ImGuiScene;
+using Dalamud.Utility;
 
 namespace Dalamud.Interface;
 
@@ -23,14 +24,32 @@ internal class TitleScreenMenu : IServiceType, ITitleScreenMenu
     internal const uint TextureSize = 64;
 
     private readonly List<TitleScreenMenuEntry> entries = new();
+    private TitleScreenMenuEntry[]? entriesView;
 
     [ServiceManager.ServiceConstructor]
     private TitleScreenMenu()
     {
     }
 
+    /// <summary>
+    /// Event to be called when the entry list has been changed.
+    /// </summary>
+    internal event Action? EntryListChange;
+
     /// <inheritdoc/>
-    public IReadOnlyList<TitleScreenMenuEntry> Entries => this.entries;
+    public IReadOnlyList<TitleScreenMenuEntry> Entries
+    {
+        get
+        {
+            lock (this.entries)
+            {
+                if (!this.entries.Any())
+                    return Array.Empty<TitleScreenMenuEntry>();
+
+                return this.entriesView ??= this.entries.OrderByDescending(x => x.IsInternal).ToArray();
+            }
+        }
+    }
 
     /// <inheritdoc/>
     public TitleScreenMenuEntry AddEntry(string text, IDalamudTextureWrap texture, Action onTriggered)
@@ -40,19 +59,23 @@ internal class TitleScreenMenu : IServiceType, ITitleScreenMenu
             throw new ArgumentException("Texture must be 64x64");
         }
 
+        TitleScreenMenuEntry entry;
         lock (this.entries)
         {
             var entriesOfAssembly = this.entries.Where(x => x.CallingAssembly == Assembly.GetCallingAssembly()).ToList();
             var priority = entriesOfAssembly.Any()
                                ? unchecked(entriesOfAssembly.Select(x => x.Priority).Max() + 1)
                                : 0;
-            var entry = new TitleScreenMenuEntry(Assembly.GetCallingAssembly(), priority, text, texture, onTriggered);
+            entry = new(Assembly.GetCallingAssembly(), priority, text, texture, onTriggered);
             var i = this.entries.BinarySearch(entry);
             if (i < 0)
                 i = ~i;
             this.entries.Insert(i, entry);
-            return entry;
+            this.entriesView = null;
         }
+
+        this.EntryListChange?.InvokeSafely();
+        return entry;
     }
 
     /// <inheritdoc/>
@@ -63,15 +86,19 @@ internal class TitleScreenMenu : IServiceType, ITitleScreenMenu
             throw new ArgumentException("Texture must be 64x64");
         }
 
+        TitleScreenMenuEntry entry;
         lock (this.entries)
         {
-            var entry = new TitleScreenMenuEntry(Assembly.GetCallingAssembly(), priority, text, texture, onTriggered);
+            entry = new(Assembly.GetCallingAssembly(), priority, text, texture, onTriggered);
             var i = this.entries.BinarySearch(entry);
             if (i < 0)
                 i = ~i;
             this.entries.Insert(i, entry);
-            return entry;
+            this.entriesView = null;
         }
+
+        this.EntryListChange?.InvokeSafely();
+        return entry;
     }
 
     /// <inheritdoc/>
@@ -80,7 +107,10 @@ internal class TitleScreenMenu : IServiceType, ITitleScreenMenu
         lock (this.entries)
         {
             this.entries.Remove(entry);
+            this.entriesView = null;
         }
+
+        this.EntryListChange?.InvokeSafely();
     }
 
     /// <summary>
@@ -99,15 +129,19 @@ internal class TitleScreenMenu : IServiceType, ITitleScreenMenu
             throw new ArgumentException("Texture must be 64x64");
         }
 
+        TitleScreenMenuEntry entry;
         lock (this.entries)
         {
-            var entry = new TitleScreenMenuEntry(null, priority, text, texture, onTriggered)
+            entry = new(null, priority, text, texture, onTriggered)
             {
                 IsInternal = true,
             };
             this.entries.Add(entry);
-            return entry;
+            this.entriesView = null;
         }
+
+        this.EntryListChange?.InvokeSafely();
+        return entry;
     }
 
     /// <summary>
@@ -116,28 +150,37 @@ internal class TitleScreenMenu : IServiceType, ITitleScreenMenu
     /// <param name="text">The text to show.</param>
     /// <param name="texture">The texture to show.</param>
     /// <param name="onTriggered">The action to execute when the option is selected.</param>
+    /// <param name="showConditionKeys">The keys that have to be held to display the menu.</param>
     /// <returns>A <see cref="TitleScreenMenu"/> object that can be used to manage the entry.</returns>
     /// <exception cref="ArgumentException">Thrown when the texture provided does not match the required resolution(64x64).</exception>
-    internal TitleScreenMenuEntry AddEntryCore(string text, IDalamudTextureWrap texture, Action onTriggered)
+    internal TitleScreenMenuEntry AddEntryCore(
+        string text,
+        IDalamudTextureWrap texture,
+        Action onTriggered,
+        params VirtualKey[] showConditionKeys)
     {
         if (texture.Height != TextureSize || texture.Width != TextureSize)
         {
             throw new ArgumentException("Texture must be 64x64");
         }
 
+        TitleScreenMenuEntry entry;
         lock (this.entries)
         {
             var entriesOfAssembly = this.entries.Where(x => x.CallingAssembly == null).ToList();
             var priority = entriesOfAssembly.Any()
                                ? unchecked(entriesOfAssembly.Select(x => x.Priority).Max() + 1)
                                : 0;
-            var entry = new TitleScreenMenuEntry(null, priority, text, texture, onTriggered)
+            entry = new(null, priority, text, texture, onTriggered, showConditionKeys)
             {
                 IsInternal = true,
             };
             this.entries.Add(entry);
-            return entry;
+            this.entriesView = null;
         }
+
+        this.EntryListChange?.InvokeSafely();
+        return entry;
     }
 }
 

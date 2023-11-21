@@ -31,7 +31,7 @@ internal class TitleScreenMenuWindow : Window, IDisposable
     private readonly GameGui gameGui;
     private readonly TitleScreenMenu titleScreenMenu;
 
-    private readonly IDalamudTextureWrap shadeTexture;
+    private readonly Lazy<IDalamudTextureWrap> shadeTexture;
 
     private readonly Dictionary<Guid, InOutCubic> shadeEasings = new();
     private readonly Dictionary<Guid, InOutQuint> moveEasings = new();
@@ -77,7 +77,7 @@ internal class TitleScreenMenuWindow : Window, IDisposable
         this.PositionCondition = ImGuiCond.Always;
         this.RespectCloseHotkey = false;
 
-        this.shadeTexture = dalamudAssetManager.GetDalamudTextureWrap(DalamudAsset.TitleScreenMenuShade);
+        this.shadeTexture = new(() => dalamudAssetManager.GetDalamudTextureWrap(DalamudAsset.TitleScreenMenuShade));
 
         framework.Update += this.FrameworkOnUpdate;
     }
@@ -122,15 +122,17 @@ internal class TitleScreenMenuWindow : Window, IDisposable
             return;
         
         var scale = ImGui.GetIO().FontGlobalScale;
-        var entries = this.titleScreenMenu.Entries.OrderByDescending(x => x.IsInternal).ToList();
+        var entries = this.titleScreenMenu.Entries;
 
         switch (this.state)
         {
             case State.Show:
             {
-                for (var i = 0; i < entries.Count; i++)
+                var i = 0;
+                foreach (var entry in entries)
                 {
-                    var entry = entries[i];
+                    if (!entry.IsShowConditionSatisfied())
+                        continue;
 
                     if (!this.moveEasings.TryGetValue(entry.Id, out var moveEasing))
                     {
@@ -150,7 +152,7 @@ internal class TitleScreenMenuWindow : Window, IDisposable
 
                     moveEasing.Update();
 
-                    var finalPos = (i + 1) * this.shadeTexture.Height * scale;
+                    var finalPos = (i + 1) * this.shadeTexture.Value.Height * scale;
                     var pos = moveEasing.Value * finalPos;
 
                     // FIXME(goat): Sometimes, easings can overshoot and bring things out of alignment.
@@ -164,6 +166,7 @@ internal class TitleScreenMenuWindow : Window, IDisposable
                     var cursor = ImGui.GetCursorPos();
                     cursor.Y = (float)pos;
                     ImGui.SetCursorPos(cursor);
+                    i++;
                 }
 
                 if (!ImGui.IsWindowHovered(ImGuiHoveredFlags.RootAndChildWindows |
@@ -196,17 +199,20 @@ internal class TitleScreenMenuWindow : Window, IDisposable
 
                 using (ImRaii.PushStyle(ImGuiStyleVar.Alpha, (float)this.fadeOutEasing.Value))
                 {
-                    for (var i = 0; i < entries.Count; i++)
+                    var i = 0;
+                    foreach (var entry in entries)
                     {
-                        var entry = entries[i];
+                        if (!entry.IsShowConditionSatisfied())
+                            continue;
 
-                        var finalPos = (i + 1) * this.shadeTexture.Height * scale;
+                        var finalPos = (i + 1) * this.shadeTexture.Value.Height * scale;
 
                         this.DrawEntry(entry, i != 0, true, i == 0, false, false);
 
                         var cursor = ImGui.GetCursorPos();
                         cursor.Y = finalPos;
                         ImGui.SetCursorPos(cursor);
+                        i++;
                     }
                 }
 
@@ -280,7 +286,8 @@ internal class TitleScreenMenuWindow : Window, IDisposable
 
         using (ImRaii.PushStyle(ImGuiStyleVar.Alpha, (float)shadeEasing.Value))
         {
-            ImGui.Image(this.shadeTexture.ImGuiHandle, new Vector2(this.shadeTexture.Width * scale, this.shadeTexture.Height * scale));
+            var texture = this.shadeTexture.Value;
+            ImGui.Image(texture.ImGuiHandle, new Vector2(texture.Width, texture.Height) * scale);
         }
 
         var isHover = ImGui.IsItemHovered();
@@ -358,7 +365,7 @@ internal class TitleScreenMenuWindow : Window, IDisposable
         // Drop shadow
         using (ImRaii.PushColor(ImGuiCol.Text, 0xFF000000))
         {
-            for (int i = 0, i_ = (int)Math.Ceiling(1 * scale); i < i_; i++)
+            for (int i = 0, to = (int)Math.Ceiling(1 * scale); i < to; i++)
             {
                 ImGui.SetCursorPos(new Vector2(cursor.X, cursor.Y + i));
                 ImGui.Text(entry.Name);
