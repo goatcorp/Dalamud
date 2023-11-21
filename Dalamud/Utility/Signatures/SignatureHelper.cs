@@ -90,7 +90,7 @@ internal static class SignatureHelper
 
             switch (sig.UseFlags)
             {
-                case SignatureUseFlags.Auto when actualType == typeof(IntPtr) || actualType.IsPointer || actualType.IsAssignableTo(typeof(Delegate)):
+                case SignatureUseFlags.Auto when actualType == typeof(IntPtr) || actualType.IsFunctionPointer || actualType.IsUnmanagedFunctionPointer || actualType.IsPointer || actualType.IsAssignableTo(typeof(Delegate)):
                 case SignatureUseFlags.Pointer:
                 {
                     if (actualType.IsAssignableTo(typeof(Delegate)))
