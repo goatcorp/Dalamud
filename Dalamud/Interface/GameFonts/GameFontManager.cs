@@ -22,7 +22,7 @@ namespace Dalamud.Interface.GameFonts;
 /// <summary>
 /// Loads game font for use in ImGui.
 /// </summary>
-[ServiceManager.EarlyLoadedService]
+[ServiceManager.BlockingEarlyLoadedService]
 internal class GameFontManager : IServiceType
 {
     private static readonly string?[] FontNames =

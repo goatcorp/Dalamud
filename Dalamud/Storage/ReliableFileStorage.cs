@@ -21,7 +21,7 @@ namespace Dalamud.Storage;
 /// <remarks>
 /// This is not an early-loaded service, as it is needed before they are initialized.
 /// </remarks>
-[ServiceManager.Service]
+[ServiceManager.ProvidedService]
 public class ReliableFileStorage : IServiceType, IDisposable
 {
     private static readonly ModuleLog Log = new("VFS");

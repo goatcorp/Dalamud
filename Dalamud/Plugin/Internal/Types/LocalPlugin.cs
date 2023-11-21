@@ -267,10 +267,6 @@ internal class LocalPlugin : IDisposable
         var pluginManager = await Service<PluginManager>.GetAsync();
         var dalamud = await Service<Dalamud>.GetAsync();
 
-        // UiBuilder constructor requires the following two.
-        await Service<InterfaceManager>.GetAsync();
-        await Service<GameFontManager>.GetAsync();
-
         if (this.manifest.LoadRequiredState == 0)
             _ = await Service<InterfaceManager.InterfaceManagerWithScene>.GetAsync();
 

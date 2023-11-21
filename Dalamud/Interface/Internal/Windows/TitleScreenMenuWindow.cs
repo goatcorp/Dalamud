@@ -12,8 +12,8 @@ using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin.Services;
+
 using ImGuiNET;
-using ImGuiScene;
 
 namespace Dalamud.Interface.Internal.Windows;
 
@@ -24,6 +24,12 @@ internal class TitleScreenMenuWindow : Window, IDisposable
 {
     private const float TargetFontSizePt = 18f;
     private const float TargetFontSizePx = TargetFontSizePt * 4 / 3;
+
+    private readonly ClientState clientState;
+    private readonly DalamudConfiguration configuration;
+    private readonly Framework framework;
+    private readonly GameGui gameGui;
+    private readonly TitleScreenMenu titleScreenMenu;
 
     private readonly IDalamudTextureWrap shadeTexture;
 
@@ -39,12 +45,32 @@ internal class TitleScreenMenuWindow : Window, IDisposable
     /// <summary>
     /// Initializes a new instance of the <see cref="TitleScreenMenuWindow"/> class.
     /// </summary>
-    public TitleScreenMenuWindow()
+    /// <param name="clientState">An instance of <see cref="ClientState"/>.</param>
+    /// <param name="dalamud">An instance of <see cref="Dalamud"/>.</param>
+    /// <param name="configuration">An instance of <see cref="DalamudConfiguration"/>.</param>
+    /// <param name="framework">An instance of <see cref="Framework"/>.</param>
+    /// <param name="interfaceManager">An instance of <see cref="InterfaceManager"/>.</param>
+    /// <param name="titleScreenMenu">An instance of <see cref="TitleScreenMenu"/>.</param>
+    /// <param name="gameGui">An instance of <see cref="gameGui"/>.</param>
+    public TitleScreenMenuWindow(
+        ClientState clientState,
+        Dalamud dalamud,
+        DalamudConfiguration configuration,
+        Framework framework,
+        GameGui gameGui,
+        InterfaceManager interfaceManager,
+        TitleScreenMenu titleScreenMenu)
         : base(
             "TitleScreenMenuOverlay",
             ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoScrollbar |
             ImGuiWindowFlags.NoBackground | ImGuiWindowFlags.NoFocusOnAppearing | ImGuiWindowFlags.NoNavFocus)
     {
+        this.clientState = clientState;
+        this.configuration = configuration;
+        this.framework = framework;
+        this.gameGui = gameGui;
+        this.titleScreenMenu = titleScreenMenu;
+
         this.IsOpen = true;
         this.DisableWindowSounds = true;
         this.ForceMainWindow = true;
@@ -53,17 +79,13 @@ internal class TitleScreenMenuWindow : Window, IDisposable
         this.PositionCondition = ImGuiCond.Always;
         this.RespectCloseHotkey = false;
 
-        var dalamud = Service<Dalamud>.Get();
-        var interfaceManager = Service<InterfaceManager>.Get();
-
         var shadeTex =
             interfaceManager.LoadImage(Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "tsmShade.png"));
         this.shadeTexture = shadeTex ?? throw new Exception("Could not load TSM background texture.");
 
-        var framework = Service<Framework>.Get();
         framework.Update += this.FrameworkOnUpdate;
     }
-    
+
     private enum State
     {
         Hide,
@@ -95,8 +117,7 @@ internal class TitleScreenMenuWindow : Window, IDisposable
     public void Dispose()
     {
         this.shadeTexture.Dispose();
-        var framework = Service<Framework>.Get();
-        framework.Update -= this.FrameworkOnUpdate;
+        this.framework.Update -= this.FrameworkOnUpdate;
     }
 
     /// <inheritdoc/>
@@ -106,9 +127,7 @@ internal class TitleScreenMenuWindow : Window, IDisposable
             return;
         
         var scale = ImGui.GetIO().FontGlobalScale;
-        var entries = Service<TitleScreenMenu>.Get().Entries
-                                              .OrderByDescending(x => x.IsInternal)
-                                              .ToList();
+        var entries = this.titleScreenMenu.Entries.OrderByDescending(x => x.IsInternal).ToList();
 
         switch (this.state)
         {
@@ -369,17 +388,14 @@ internal class TitleScreenMenuWindow : Window, IDisposable
 
     private void FrameworkOnUpdate(IFramework framework)
     {
-        var clientState = Service<ClientState>.Get();
-        this.IsOpen = !clientState.IsLoggedIn;
+        this.IsOpen = !this.clientState.IsLoggedIn;
 
-        var configuration = Service<DalamudConfiguration>.Get();
-        if (!configuration.ShowTsm)
+        if (!this.configuration.ShowTsm)
             this.IsOpen = false;
 
-        var gameGui = Service<GameGui>.Get();
-        var charaSelect = gameGui.GetAddonByName("CharaSelect", 1);
-        var charaMake = gameGui.GetAddonByName("CharaMake", 1);
-        var titleDcWorldMap = gameGui.GetAddonByName("TitleDCWorldMap", 1);
+        var charaSelect = this.gameGui.GetAddonByName("CharaSelect", 1);
+        var charaMake = this.gameGui.GetAddonByName("CharaMake", 1);
+        var titleDcWorldMap = this.gameGui.GetAddonByName("TitleDCWorldMap", 1);
         if (charaMake != IntPtr.Zero || charaSelect != IntPtr.Zero || titleDcWorldMap != IntPtr.Zero)
             this.IsOpen = false;
     }

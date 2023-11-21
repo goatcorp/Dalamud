@@ -1,6 +1,5 @@
-using System;
 using System.Collections.Generic;
-using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -20,17 +19,26 @@ namespace Dalamud;
 /// Only used internally within Dalamud, if plugins need access to things it should be _only_ via DI.
 /// </remarks>
 /// <typeparam name="T">The class you want to store in the service locator.</typeparam>
+[SuppressMessage("ReSharper", "StaticMemberInGenericType", Justification = "Service container static type")]
 internal static class Service<T> where T : IServiceType
 {
+    private static readonly ServiceManager.ServiceAttribute ServiceAttribute;
     private static TaskCompletionSource<T> instanceTcs = new();
+    private static List<Type>? dependencyServices;
 
     static Service()
     {
-        var exposeToPlugins = typeof(T).GetCustomAttribute<PluginInterfaceAttribute>() != null;
+        var type = typeof(T);
+        ServiceAttribute =
+            type.GetCustomAttribute<ServiceManager.ServiceAttribute>(true)
+            ?? throw new InvalidOperationException(
+                $"{nameof(T)} is missing {nameof(ServiceManager.ServiceAttribute)} annotations.");
+
+        var exposeToPlugins = type.GetCustomAttribute<PluginInterfaceAttribute>() != null;
         if (exposeToPlugins)
-            ServiceManager.Log.Debug("Service<{0}>: Static ctor called; will be exposed to plugins", typeof(T).Name);
+            ServiceManager.Log.Debug("Service<{0}>: Static ctor called; will be exposed to plugins", type.Name);
         else
-            ServiceManager.Log.Debug("Service<{0}>: Static ctor called", typeof(T).Name);
+            ServiceManager.Log.Debug("Service<{0}>: Static ctor called", type.Name);
 
         if (exposeToPlugins)
             Service<ServiceContainer>.Get().RegisterSingleton(instanceTcs.Task);
@@ -63,8 +71,8 @@ internal static class Service<T> where T : IServiceType
     /// <param name="obj">Object to set.</param>
     public static void Provide(T obj)
     {
-        instanceTcs.SetResult(obj);
         ServiceManager.Log.Debug("Service<{0}>: Provided", typeof(T).Name);
+        instanceTcs.SetResult(obj);
     }
 
     /// <summary>
@@ -83,6 +91,21 @@ internal static class Service<T> where T : IServiceType
     /// <returns>The object.</returns>
     public static T Get()
     {
+#if DEBUG
+        if (ServiceAttribute.Kind != ServiceManager.ServiceKind.ProvidedService
+            && ServiceManager.CurrentConstructorServiceType.Value is { } currentServiceType)
+        {
+            var deps = ServiceHelpers.GetDependencies(currentServiceType);
+            if (!deps.Contains(typeof(T)))
+            {
+                throw new InvalidOperationException(
+                    $"Calling {nameof(Service<IServiceType>)}<{typeof(T)}>.{nameof(Get)} which is not one of the" +
+                    $" dependency services is forbidden from the service constructor of {currentServiceType}." +
+                    $" This has a high chance of introducing hard-to-debug hangs.");
+            }
+        }
+#endif
+
         if (!instanceTcs.Task.IsCompleted)
             instanceTcs.Task.Wait();
         return instanceTcs.Task.Result;
@@ -116,12 +139,16 @@ internal static class Service<T> where T : IServiceType
     }
 
     /// <summary>
-    /// Gets an enumerable containing Service&lt;T&gt;s that are required for this Service to initialize without blocking.
+    /// Gets an enumerable containing <see cref="Service{T}"/>s that are required for this Service to initialize
+    /// without blocking.
     /// </summary>
     /// <returns>List of dependency services.</returns>
     [UsedImplicitly]
     public static List<Type> GetDependencyServices()
     {
+        if (dependencyServices is not null)
+            return dependencyServices;
+
         var res = new List<Type>();
         
         ServiceManager.Log.Verbose("Service<{0}>: Getting dependencies", typeof(T).Name);
@@ -189,19 +216,42 @@ internal static class Service<T> where T : IServiceType
             ServiceManager.Log.Verbose("Service<{0}>: => Dependency: {1}", typeof(T).Name, type.Name);
         }
 
-        return res
-               .Distinct()
-               .ToList();
+        var deps = res
+                   .Distinct()
+                   .ToList();
+        if (typeof(T).GetCustomAttribute<ServiceManager.BlockingEarlyLoadedServiceAttribute>() is not null)
+        {
+            var offenders = deps.Where(
+                                    x => x.GetCustomAttribute<ServiceManager.ServiceAttribute>(true)!.Kind
+                                             is not ServiceManager.ServiceKind.BlockingEarlyLoadedService
+                                             and not ServiceManager.ServiceKind.ProvidedService)
+                                .ToArray();
+            if (offenders.Any())
+            {
+                ServiceManager.Log.Error(
+                    "{me} is a {bels}; it can only depend on {bels} and {ps}.\nOffending dependencies:\n{offenders}",
+                    typeof(T),
+                    nameof(ServiceManager.BlockingEarlyLoadedServiceAttribute),
+                    nameof(ServiceManager.BlockingEarlyLoadedServiceAttribute),
+                    nameof(ServiceManager.ProvidedServiceAttribute),
+                    string.Join("\n", offenders.Select(x => $"\t* {x.Name}")));
+            }
+        }
+
+        return dependencyServices = deps;
     }
 
-    [UsedImplicitly]
-    private static Task<T> StartLoader()
+    /// <summary>
+    /// Starts the service loader. Only to be called from <see cref="ServiceManager"/>.
+    /// </summary>
+    /// <returns>The loader task.</returns>
+    internal static Task<T> StartLoader()
     {
         if (instanceTcs.Task.IsCompleted)
             throw new InvalidOperationException($"{typeof(T).Name} is already loaded or disposed.");
 
-        var attr = typeof(T).GetCustomAttribute<ServiceManager.Service>(true)?.GetType();
-        if (attr?.IsAssignableTo(typeof(ServiceManager.EarlyLoadedService)) != true)
+        var attr = ServiceAttribute.GetType();
+        if (attr.IsAssignableTo(typeof(ServiceManager.EarlyLoadedServiceAttribute)) != true)
             throw new InvalidOperationException($"{typeof(T).Name} is not an EarlyLoadedService");
 
         return Task.Run(Timings.AttachTimingHandle(async () =>
@@ -212,6 +262,7 @@ internal static class Service<T> where T : IServiceType
                 var instance = await ConstructObject();
                 instanceTcs.SetResult(instance);
 
+                List<Task>? tasks = null;
                 foreach (var method in typeof(T).GetMethods(
                              BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
                 {
@@ -221,8 +272,23 @@ internal static class Service<T> where T : IServiceType
                     ServiceManager.Log.Debug("Service<{0}>: Calling {1}", typeof(T).Name, method.Name);
                     var args = await Task.WhenAll(method.GetParameters().Select(
                                                       x => ResolveServiceFromTypeAsync(x.ParameterType)));
-                    method.Invoke(instance, args);
+                    try
+                    {
+                        if (method.Invoke(instance, args) is Task task)
+                        {
+                            tasks ??= new();
+                            tasks.Add(task);
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        tasks ??= new();
+                        tasks.Add(Task.FromException(e));
+                    }
                 }
+
+                if (tasks is not null)
+                    await Task.WhenAll(tasks);
 
                 ServiceManager.Log.Debug("Service<{0}>: Construction complete", typeof(T).Name);
                 return instance;
@@ -303,7 +369,19 @@ internal static class Service<T> where T : IServiceType
                        ctor.GetParameters().Select(x => ResolveServiceFromTypeAsync(x.ParameterType)));
         using (Timings.Start($"{typeof(T).Name} Construct"))
         {
+#if DEBUG
+            ServiceManager.CurrentConstructorServiceType.Value = typeof(Service<T>);
+            try
+            {
+                return (T)ctor.Invoke(args)!;
+            }
+            finally
+            {
+                ServiceManager.CurrentConstructorServiceType.Value = null;
+            }
+#else
             return (T)ctor.Invoke(args)!;
+#endif
         }
     }
 
@@ -328,30 +406,43 @@ internal static class Service<T> where T : IServiceType
 internal static class ServiceHelpers
 {
     /// <summary>
-    /// Get a list of dependencies for a service. Only accepts Service&lt;T&gt; types.
-    /// These are returned as Service&lt;T&gt; types.
+    /// Get a list of dependencies for a service. Only accepts <see cref="Service{T}"/> types.
+    /// These are returned as <see cref="Service{T}"/> types.
     /// </summary>
     /// <param name="serviceType">The dependencies for this service.</param>
     /// <returns>A list of dependencies.</returns>
     public static List<Type> GetDependencies(Type serviceType)
     {
+#if DEBUG
+        if (!serviceType.IsGenericType || serviceType.GetGenericTypeDefinition() != typeof(Service<>))
+        {
+            throw new ArgumentException(
+                $"Expected an instance of {nameof(Service<IServiceType>)}<>",
+                nameof(serviceType));
+        }
+#endif
+
         return (List<Type>)serviceType.InvokeMember(
-                               "GetDependencyServices",
-                               BindingFlags.InvokeMethod | BindingFlags.Static | BindingFlags.Public,
-                               null,
-                               null,
-                               null) ?? new List<Type>();
+                   nameof(Service<IServiceType>.GetDependencyServices),
+                   BindingFlags.InvokeMethod | BindingFlags.Static | BindingFlags.Public,
+                   null,
+                   null,
+                   null) ?? new List<Type>();
     }
 
     /// <summary>
-    /// Get the Service&lt;T&gt; type for a given service type.
+    /// Get the <see cref="Service{T}"/> type for a given service type.
     /// This will throw if the service type is not a valid service.
     /// </summary>
-    /// <param name="type">The type to obtain a Service&lt;T&gt; for.</param>
-    /// <returns>The Service&lt;T&gt;.</returns>
+    /// <param name="type">The type to obtain a <see cref="Service{T}"/> for.</param>
+    /// <returns>The <see cref="Service{T}"/>.</returns>
     public static Type GetAsService(Type type)
     {
-        return typeof(Service<>)
-            .MakeGenericType(type);
+#if DEBUG
+        if (!type.IsAssignableTo(typeof(IServiceType)))
+            throw new ArgumentException($"Expected an instance of {nameof(IServiceType)}", nameof(type));
+#endif
+
+        return typeof(Service<>).MakeGenericType(type);
     }
 }
