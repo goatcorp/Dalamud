@@ -175,7 +175,7 @@ public struct GameFontStyle
     public bool Italic
     {
         get => this.SkewStrength != 0;
-        set => this.SkewStrength = value ? this.SizePx / 7 : 0;
+        set => this.SkewStrength = value ? this.SizePx / 6 : 0;
     }
 
     /// <summary>

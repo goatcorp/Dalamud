@@ -8,7 +8,6 @@ using Dalamud.Interface.Internal.Windows.Settings.Tabs;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
-using Dalamud.Plugin.Internal;
 using Dalamud.Utility;
 using ImGuiNET;
 
@@ -19,14 +18,7 @@ namespace Dalamud.Interface.Internal.Windows.Settings;
 /// </summary>
 internal class SettingsWindow : Window
 {
-    private readonly SettingsTab[] tabs =
-    {
-        new SettingsTabGeneral(),
-        new SettingsTabLook(),
-        new SettingsTabDtr(),
-        new SettingsTabExperimental(),
-        new SettingsTabAbout(),
-    };
+    private SettingsTab[]? tabs;
 
     private string searchInput = string.Empty;
 
@@ -49,6 +41,15 @@ internal class SettingsWindow : Window
     /// <inheritdoc/>
     public override void OnOpen()
     {
+        this.tabs ??= new SettingsTab[]
+        {
+            new SettingsTabGeneral(),
+            new SettingsTabLook(),
+            new SettingsTabDtr(),
+            new SettingsTabExperimental(),
+            new SettingsTabAbout(),
+        };
+
         foreach (var settingsTab in this.tabs)
         {
             settingsTab.Load();

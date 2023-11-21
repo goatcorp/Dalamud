@@ -1,4 +1,3 @@
-using System.IO;
 using System.Linq;
 using System.Numerics;
 
@@ -7,6 +6,8 @@ using Dalamud.Interface.Animation.EasingFunctions;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Components;
 using Dalamud.Interface.GameFonts;
+using Dalamud.Interface.ManagedFontAtlas;
+using Dalamud.Interface.ManagedFontAtlas.Internals;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
@@ -31,8 +32,14 @@ internal sealed class ChangelogWindow : Window, IDisposable
 • Plugins can now add tooltips and interaction to the server info bar
 • The Dalamud/plugin installer UI has been refreshed
 ";
-    
+
     private readonly TitleScreenMenuWindow tsmWindow;
+
+    private readonly DisposeSafety.ScopedFinalizer scopedFinalizer = new();
+    private readonly IFontAtlas privateAtlas;
+    private readonly Lazy<IFontHandle> bannerFont;
+    private readonly Lazy<IDalamudTextureWrap> apiBumpExplainerTexture;
+    private readonly Lazy<IDalamudTextureWrap> logoTexture;
     
     private readonly InOutCubic windowFade = new(TimeSpan.FromSeconds(2.5f))
     {
@@ -46,27 +53,36 @@ internal sealed class ChangelogWindow : Window, IDisposable
         Point2 = Vector2.One,
     };
     
-    private IDalamudTextureWrap? apiBumpExplainerTexture;
-    private IDalamudTextureWrap? logoTexture;
-    private GameFontHandle? bannerFont;
-    
     private State state = State.WindowFadeIn;
 
     private bool needFadeRestart = false;
-    
+
     /// <summary>
     /// Initializes a new instance of the <see cref="ChangelogWindow"/> class.
     /// </summary>
     /// <param name="tsmWindow">TSM window.</param>
-    public ChangelogWindow(TitleScreenMenuWindow tsmWindow)
+    /// <param name="fontAtlasFactory">An instance of <see cref="FontAtlasFactory"/>.</param>
+    /// <param name="assets">An instance of <see cref="DalamudAssetManager"/>.</param>
+    public ChangelogWindow(
+        TitleScreenMenuWindow tsmWindow,
+        FontAtlasFactory fontAtlasFactory,
+        DalamudAssetManager assets)
         : base("What's new in Dalamud?##ChangelogWindow", ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse, true)
     {
         this.tsmWindow = tsmWindow;
         this.Namespace = "DalamudChangelogWindow";
+        this.privateAtlas = this.scopedFinalizer.Add(
+            fontAtlasFactory.CreateFontAtlas(this.Namespace, FontAtlasAutoRebuildMode.Async));
+        this.bannerFont = new(
+            () => this.scopedFinalizer.Add(
+                this.privateAtlas.NewGameFontHandle(new(GameFontFamilyAndSize.MiedingerMid18))));
+
+        this.apiBumpExplainerTexture = new(() => assets.GetDalamudTextureWrap(DalamudAsset.ChangelogApiBumpIcon));
+        this.logoTexture = new(() => assets.GetDalamudTextureWrap(DalamudAsset.Logo));
 
         // If we are going to show a changelog, make sure we have the font ready, otherwise it will hitch
         if (WarrantsChangelog())
-            Service<GameFontManager>.GetAsync().ContinueWith(t => this.MakeFont(t.Result));
+            _ = this.bannerFont;
     }
 
     private enum State
@@ -97,20 +113,12 @@ internal sealed class ChangelogWindow : Window, IDisposable
         Service<DalamudInterface>.Get().SetCreditsDarkeningAnimation(true);
         this.tsmWindow.AllowDrawing = false;
 
-        this.MakeFont(Service<GameFontManager>.Get());
+        _ = this.bannerFont;
         
         this.state = State.WindowFadeIn;
         this.windowFade.Reset();
         this.bodyFade.Reset();
         this.needFadeRestart = true;
-
-        if (this.apiBumpExplainerTexture == null)
-        {
-            var dalamud = Service<Dalamud>.Get();
-            var tm = Service<TextureManager>.Get();
-            this.apiBumpExplainerTexture = tm.GetTextureFromFile(new FileInfo(Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "changelogApiBump.png"))) 
-                        ?? throw new Exception("Could not load api bump explainer.");
-        }
         
         base.OnOpen();
     }
@@ -186,10 +194,7 @@ internal sealed class ChangelogWindow : Window, IDisposable
             ImGui.SetCursorPos(new Vector2(logoContainerSize.X / 2 - logoSize.X / 2, logoContainerSize.Y / 2 - logoSize.Y / 2));
             
             using (ImRaii.PushStyle(ImGuiStyleVar.Alpha, Math.Clamp(this.windowFade.EasedPoint.X - 0.5f, 0f, 1f)))
-            {
-                this.logoTexture ??= Service<DalamudAssetManager>.Get().GetDalamudTextureWrap(DalamudAsset.Logo);
-                ImGui.Image(this.logoTexture.ImGuiHandle, logoSize);
-            }
+                ImGui.Image(this.logoTexture.Value.ImGuiHandle, logoSize);
         }
         
         ImGui.SameLine();
@@ -205,7 +210,7 @@ internal sealed class ChangelogWindow : Window, IDisposable
             
             using (ImRaii.PushStyle(ImGuiStyleVar.Alpha, Math.Clamp(this.windowFade.EasedPoint.X - 1f, 0f, 1f)))
             {
-                using var font = ImRaii.PushFont(this.bannerFont!.ImFont);
+                using var font = this.bannerFont.Value.Push();
 
                 switch (this.state)
                 {
@@ -275,9 +280,11 @@ internal sealed class ChangelogWindow : Window, IDisposable
                         ImGui.TextWrapped("If some plugins are displayed with a red cross in the 'Installed Plugins' tab, they may not yet be available.");
                         
                         ImGuiHelpers.ScaledDummy(15);
-                        
-                        ImGuiHelpers.CenterCursorFor(this.apiBumpExplainerTexture!.Width);
-                        ImGui.Image(this.apiBumpExplainerTexture.ImGuiHandle, this.apiBumpExplainerTexture.Size);
+
+                        ImGuiHelpers.CenterCursorFor(this.apiBumpExplainerTexture.Value.Width);
+                        ImGui.Image(
+                            this.apiBumpExplainerTexture.Value.ImGuiHandle,
+                            this.apiBumpExplainerTexture.Value.Size);
                         
                         DrawNextButton(State.Links);
                         break;
@@ -377,7 +384,4 @@ internal sealed class ChangelogWindow : Window, IDisposable
     public void Dispose()
     {
     }
-
-    private void MakeFont(GameFontManager gfm) =>
-        this.bannerFont ??= gfm.NewFontRef(new GameFontStyle(GameFontFamilyAndSize.MiedingerMid18));
 }
