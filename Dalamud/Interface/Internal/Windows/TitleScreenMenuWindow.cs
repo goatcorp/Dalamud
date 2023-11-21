@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Numerics;
 
@@ -12,6 +11,7 @@ using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin.Services;
+using Dalamud.Storage.Assets;
 
 using ImGuiNET;
 
@@ -46,19 +46,17 @@ internal class TitleScreenMenuWindow : Window, IDisposable
     /// Initializes a new instance of the <see cref="TitleScreenMenuWindow"/> class.
     /// </summary>
     /// <param name="clientState">An instance of <see cref="ClientState"/>.</param>
-    /// <param name="dalamud">An instance of <see cref="Dalamud"/>.</param>
     /// <param name="configuration">An instance of <see cref="DalamudConfiguration"/>.</param>
+    /// <param name="dalamudAssetManager">An instance of <see cref="DalamudAssetManager"/>.</param>
     /// <param name="framework">An instance of <see cref="Framework"/>.</param>
-    /// <param name="interfaceManager">An instance of <see cref="InterfaceManager"/>.</param>
     /// <param name="titleScreenMenu">An instance of <see cref="TitleScreenMenu"/>.</param>
     /// <param name="gameGui">An instance of <see cref="gameGui"/>.</param>
     public TitleScreenMenuWindow(
         ClientState clientState,
-        Dalamud dalamud,
         DalamudConfiguration configuration,
+        DalamudAssetManager dalamudAssetManager,
         Framework framework,
         GameGui gameGui,
-        InterfaceManager interfaceManager,
         TitleScreenMenu titleScreenMenu)
         : base(
             "TitleScreenMenuOverlay",
@@ -79,9 +77,7 @@ internal class TitleScreenMenuWindow : Window, IDisposable
         this.PositionCondition = ImGuiCond.Always;
         this.RespectCloseHotkey = false;
 
-        var shadeTex =
-            interfaceManager.LoadImage(Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "tsmShade.png"));
-        this.shadeTexture = shadeTex ?? throw new Exception("Could not load TSM background texture.");
+        this.shadeTexture = dalamudAssetManager.GetDalamudTextureWrap(DalamudAsset.TitleScreenMenuShade);
 
         framework.Update += this.FrameworkOnUpdate;
     }
@@ -116,7 +112,6 @@ internal class TitleScreenMenuWindow : Window, IDisposable
     /// <inheritdoc/>
     public void Dispose()
     {
-        this.shadeTexture.Dispose();
         this.framework.Update -= this.FrameworkOnUpdate;
     }
 
@@ -386,7 +381,7 @@ internal class TitleScreenMenuWindow : Window, IDisposable
         return isHover;
     }
 
-    private void FrameworkOnUpdate(IFramework framework)
+    private void FrameworkOnUpdate(IFramework unused)
     {
         this.IsOpen = !this.clientState.IsLoggedIn;
 

@@ -21,6 +21,7 @@ using Dalamud.Interface.Internal.Notifications;
 using Dalamud.Interface.Style;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Windowing;
+using Dalamud.Storage.Assets;
 using Dalamud.Utility;
 using Dalamud.Utility.Timing;
 using ImGuiNET;
@@ -1055,10 +1056,15 @@ internal class InterfaceManager : IDisposable, IServiceType
     }
 
     [ServiceManager.CallWhenServicesReady]
-    private void ContinueConstruction(TargetSigScanner sigScanner, Framework framework)
+    private void ContinueConstruction(
+        TargetSigScanner sigScanner,
+        DalamudAssetManager dalamudAssetManager,
+        DalamudConfiguration configuration)
     {
+        dalamudAssetManager.WaitForAllRequiredAssets().Wait();
+
         this.address.Setup(sigScanner);
-        framework.RunOnFrameworkThread(() =>
+        this.framework.RunOnFrameworkThread(() =>
         {
             while ((this.GameWindowHandle = NativeFunctions.FindWindowEx(IntPtr.Zero, this.GameWindowHandle, "FFXIVGAME", IntPtr.Zero)) != IntPtr.Zero)
             {
@@ -1070,7 +1076,7 @@ internal class InterfaceManager : IDisposable, IServiceType
 
             try
             {
-                if (Service<DalamudConfiguration>.Get().WindowIsImmersive)
+                if (configuration.WindowIsImmersive)
                     this.SetImmersiveMode(true);
             }
             catch (Exception ex)
