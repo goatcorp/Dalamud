@@ -1,5 +1,6 @@
-﻿using System;
-using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Linq;
+using System.Numerics;
 
 using CheapLoc;
 using Dalamud.Configuration.Internal;
@@ -16,6 +17,16 @@ namespace Dalamud.Interface.Internal.Windows.Settings.Tabs;
 [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1600:Elements should be documented", Justification = "Internals")]
 public class SettingsTabLook : SettingsTab
 {
+    private static readonly (string, float)[] GlobalUiScalePresets = 
+    {
+        ("9.6pt##DalamudSettingsGlobalUiScaleReset96", 9.6f / InterfaceManager.DefaultFontSizePt),
+        ("12pt##DalamudSettingsGlobalUiScaleReset12", 12f / InterfaceManager.DefaultFontSizePt),
+        ("14pt##DalamudSettingsGlobalUiScaleReset14", 14f / InterfaceManager.DefaultFontSizePt),
+        ("18pt##DalamudSettingsGlobalUiScaleReset18", 18f / InterfaceManager.DefaultFontSizePt),
+        ("24pt##DalamudSettingsGlobalUiScaleReset24", 24f / InterfaceManager.DefaultFontSizePt),
+        ("36pt##DalamudSettingsGlobalUiScaleReset36", 36f / InterfaceManager.DefaultFontSizePt),
+    };
+
     private float globalUiScale;
     private float fontGamma;
 
@@ -135,55 +146,22 @@ public class SettingsTabLook : SettingsTab
     {
         var interfaceManager = Service<InterfaceManager>.Get();
 
-        ImGui.SetCursorPosY(ImGui.GetCursorPosY() + 3);
+        ImGui.AlignTextToFramePadding();
         ImGui.Text(Loc.Localize("DalamudSettingsGlobalUiScale", "Global Font Scale"));
-        ImGui.SameLine();
-        ImGui.SetCursorPosY(ImGui.GetCursorPosY() - 3);
-        if (ImGui.Button("9.6pt##DalamudSettingsGlobalUiScaleReset96"))
-        {
-            this.globalUiScale = 9.6f / 12.0f;
-            ImGui.GetIO().FontGlobalScale = this.globalUiScale;
-            interfaceManager.RebuildFonts();
-        }
 
-        ImGui.SameLine();
-        if (ImGui.Button("12pt##DalamudSettingsGlobalUiScaleReset12"))
+        var buttonSize =
+            GlobalUiScalePresets
+                .Select(x => ImGui.CalcTextSize(x.Item1, 0, x.Item1.IndexOf('#')))
+                .Aggregate(Vector2.Zero, Vector2.Max)
+            + (ImGui.GetStyle().FramePadding * 2);
+        foreach (var (buttonLabel, scale) in GlobalUiScalePresets)
         {
-            this.globalUiScale = 1.0f;
-            ImGui.GetIO().FontGlobalScale = this.globalUiScale;
-            interfaceManager.RebuildFonts();
-        }
-
-        ImGui.SameLine();
-        if (ImGui.Button("14pt##DalamudSettingsGlobalUiScaleReset14"))
-        {
-            this.globalUiScale = 14.0f / 12.0f;
-            ImGui.GetIO().FontGlobalScale = this.globalUiScale;
-            interfaceManager.RebuildFonts();
-        }
-
-        ImGui.SameLine();
-        if (ImGui.Button("18pt##DalamudSettingsGlobalUiScaleReset18"))
-        {
-            this.globalUiScale = 18.0f / 12.0f;
-            ImGui.GetIO().FontGlobalScale = this.globalUiScale;
-            interfaceManager.RebuildFonts();
-        }
-
-        ImGui.SameLine();
-        if (ImGui.Button("24pt##DalamudSettingsGlobalUiScaleReset24"))
-        {
-            this.globalUiScale = 24.0f / 12.0f;
-            ImGui.GetIO().FontGlobalScale = this.globalUiScale;
-            interfaceManager.RebuildFonts();
-        }
-
-        ImGui.SameLine();
-        if (ImGui.Button("36pt##DalamudSettingsGlobalUiScaleReset36"))
-        {
-            this.globalUiScale = 36.0f / 12.0f;
-            ImGui.GetIO().FontGlobalScale = this.globalUiScale;
-            interfaceManager.RebuildFonts();
+            ImGui.SameLine();
+            if (ImGui.Button(buttonLabel, buttonSize) && Math.Abs(this.globalUiScale - scale) > float.Epsilon)
+            {
+                ImGui.GetIO().FontGlobalScale = this.globalUiScale = scale;
+                interfaceManager.RebuildFonts();
+            }
         }
 
         var globalUiScaleInPt = 12f * this.globalUiScale;
@@ -198,10 +176,9 @@ public class SettingsTabLook : SettingsTab
 
         ImGuiHelpers.ScaledDummy(5);
 
-        ImGui.SetCursorPosY(ImGui.GetCursorPosY() + 3);
+        ImGui.AlignTextToFramePadding();
         ImGui.Text(Loc.Localize("DalamudSettingsFontGamma", "Font Gamma"));
         ImGui.SameLine();
-        ImGui.SetCursorPosY(ImGui.GetCursorPosY() - 3);
         if (ImGui.Button(Loc.Localize("DalamudSettingsIndividualConfigResetToDefaultValue", "Reset") + "##DalamudSettingsFontGammaReset"))
         {
             this.fontGamma = 1.4f;
