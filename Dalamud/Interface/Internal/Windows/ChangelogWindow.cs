@@ -67,7 +67,7 @@ internal sealed class ChangelogWindow : Window, IDisposable
         
         // If we are going to show a changelog, make sure we have the font ready, otherwise it will hitch
         if (WarrantsChangelog())
-            this.MakeFont();
+            Service<GameFontManager>.GetAsync().ContinueWith(t => this.MakeFont(t.Result));
     }
 
     private enum State
@@ -98,7 +98,7 @@ internal sealed class ChangelogWindow : Window, IDisposable
         Service<DalamudInterface>.Get().SetCreditsDarkeningAnimation(true);
         this.tsmWindow.AllowDrawing = false;
 
-        this.MakeFont();
+        this.MakeFont(Service<GameFontManager>.Get());
         
         this.state = State.WindowFadeIn;
         this.windowFade.Reset();
@@ -379,12 +379,6 @@ internal sealed class ChangelogWindow : Window, IDisposable
         this.logoTexture.Dispose();
     }
 
-    private void MakeFont()
-    {
-        if (this.bannerFont == null)
-        {
-            var gfm = Service<GameFontManager>.Get();
-            this.bannerFont = gfm.NewFontRef(new GameFontStyle(GameFontFamilyAndSize.MiedingerMid18));
-        }
-    }
+    private void MakeFont(GameFontManager gfm) =>
+        this.bannerFont ??= gfm.NewFontRef(new GameFontStyle(GameFontFamilyAndSize.MiedingerMid18));
 }

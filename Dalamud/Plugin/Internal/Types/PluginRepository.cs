@@ -28,46 +28,43 @@ internal class PluginRepository
 
     private static readonly ModuleLog Log = new("PLUGINR");
 
-    private static readonly HttpClient HttpClient = new(new SocketsHttpHandler
-    {
-        AutomaticDecompression = DecompressionMethods.All,
-        ConnectCallback = Service<HappyHttpClient>.Get().SharedHappyEyeballsCallback.ConnectCallback,
-    })
-    {
-        Timeout = TimeSpan.FromSeconds(20),
-        DefaultRequestHeaders =
-        {
-            Accept =
-            {
-                new MediaTypeWithQualityHeaderValue("application/json"),
-            },
-            CacheControl = new CacheControlHeaderValue
-            {
-                NoCache = true,
-            },
-            UserAgent =
-            {
-                new ProductInfoHeaderValue("Dalamud", Util.AssemblyVersion),
-            },
-        },
-    };
+    private readonly HttpClient httpClient;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="PluginRepository"/> class.
     /// </summary>
+    /// <param name="happyHttpClient">An instance of <see cref="HappyHttpClient"/>.</param>
     /// <param name="pluginMasterUrl">The plugin master URL.</param>
     /// <param name="isEnabled">Whether the plugin repo is enabled.</param>
-    public PluginRepository(string pluginMasterUrl, bool isEnabled)
+    public PluginRepository(HappyHttpClient happyHttpClient, string pluginMasterUrl, bool isEnabled)
     {
+        this.httpClient = new(new SocketsHttpHandler
+        {
+            AutomaticDecompression = DecompressionMethods.All,
+            ConnectCallback = happyHttpClient.SharedHappyEyeballsCallback.ConnectCallback,
+        })
+        {
+            Timeout = TimeSpan.FromSeconds(20),
+            DefaultRequestHeaders =
+            {
+                Accept =
+                {
+                    new MediaTypeWithQualityHeaderValue("application/json"),
+                },
+                CacheControl = new CacheControlHeaderValue
+                {
+                    NoCache = true,
+                },
+                UserAgent =
+                {
+                    new ProductInfoHeaderValue("Dalamud", Util.AssemblyVersion),
+                },
+            },
+        };
         this.PluginMasterUrl = pluginMasterUrl;
         this.IsThirdParty = pluginMasterUrl != MainRepoUrl;
         this.IsEnabled = isEnabled;
     }
-
-    /// <summary>
-    /// Gets a new instance of the <see cref="PluginRepository"/> class for the main repo.
-    /// </summary>
-    public static PluginRepository MainRepo => new(MainRepoUrl, true);
 
     /// <summary>
     /// Gets the pluginmaster.json URL.
@@ -95,6 +92,14 @@ internal class PluginRepository
     public PluginRepositoryState State { get; private set; }
 
     /// <summary>
+    /// Gets a new instance of the <see cref="PluginRepository"/> class for the main repo.
+    /// </summary>
+    /// <param name="happyHttpClient">An instance of <see cref="HappyHttpClient"/>.</param>
+    /// <returns>The new instance of main repository.</returns>
+    public static PluginRepository CreateMainRepo(HappyHttpClient happyHttpClient) =>
+        new(happyHttpClient, MainRepoUrl, true);
+
+    /// <summary>
     /// Reload the plugin master asynchronously in a task.
     /// </summary>
     /// <returns>The new state.</returns>
@@ -107,7 +112,7 @@ internal class PluginRepository
         {
             Log.Information($"Fetching repo: {this.PluginMasterUrl}");
 
-            using var response = await HttpClient.GetAsync(this.PluginMasterUrl);
+            using var response = await this.httpClient.GetAsync(this.PluginMasterUrl);
             response.EnsureSuccessStatusCode();
 
             var data = await response.Content.ReadAsStringAsync();
