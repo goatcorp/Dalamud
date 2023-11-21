@@ -11,6 +11,7 @@ using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin.Internal;
+using Dalamud.Storage.Assets;
 using Dalamud.Utility;
 using ImGuiNET;
 
@@ -32,7 +33,6 @@ internal sealed class ChangelogWindow : Window, IDisposable
 ";
     
     private readonly TitleScreenMenuWindow tsmWindow;
-    private readonly IDalamudTextureWrap logoTexture;
     
     private readonly InOutCubic windowFade = new(TimeSpan.FromSeconds(2.5f))
     {
@@ -47,6 +47,7 @@ internal sealed class ChangelogWindow : Window, IDisposable
     };
     
     private IDalamudTextureWrap? apiBumpExplainerTexture;
+    private IDalamudTextureWrap? logoTexture;
     private GameFontHandle? bannerFont;
     
     private State state = State.WindowFadeIn;
@@ -63,8 +64,6 @@ internal sealed class ChangelogWindow : Window, IDisposable
         this.tsmWindow = tsmWindow;
         this.Namespace = "DalamudChangelogWindow";
 
-        this.logoTexture = Service<Branding>.Get().Logo;
-        
         // If we are going to show a changelog, make sure we have the font ready, otherwise it will hitch
         if (WarrantsChangelog())
             Service<GameFontManager>.GetAsync().ContinueWith(t => this.MakeFont(t.Result));
@@ -188,6 +187,7 @@ internal sealed class ChangelogWindow : Window, IDisposable
             
             using (ImRaii.PushStyle(ImGuiStyleVar.Alpha, Math.Clamp(this.windowFade.EasedPoint.X - 0.5f, 0f, 1f)))
             {
+                this.logoTexture ??= Service<DalamudAssetManager>.Get().GetDalamudTextureWrap(DalamudAsset.Logo);
                 ImGui.Image(this.logoTexture.ImGuiHandle, logoSize);
             }
         }
@@ -376,7 +376,6 @@ internal sealed class ChangelogWindow : Window, IDisposable
     /// </summary>
     public void Dispose()
     {
-        this.logoTexture.Dispose();
     }
 
     private void MakeFont(GameFontManager gfm) =>

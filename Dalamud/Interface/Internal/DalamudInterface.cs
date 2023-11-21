@@ -26,6 +26,7 @@ using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Internal;
+using Dalamud.Storage.Assets;
 using Dalamud.Utility;
 
 using FFXIVClientStructs.FFXIV.Client.System.Framework;
@@ -93,7 +94,7 @@ internal class DalamudInterface : IDisposable, IServiceType
         DalamudConfiguration configuration,
         InterfaceManager.InterfaceManagerWithScene interfaceManagerWithScene,
         PluginImageCache pluginImageCache,
-        Branding branding,
+        DalamudAssetManager dalamudAssetManager,
         Game.Framework framework,
         ClientState clientState,
         TitleScreenMenu titleScreenMenu,
@@ -118,11 +119,10 @@ internal class DalamudInterface : IDisposable, IServiceType
         this.styleEditorWindow = new StyleEditorWindow() { IsOpen = false };
         this.titleScreenMenuWindow = new TitleScreenMenuWindow(
             clientState,
-            dalamud,
             configuration,
+            dalamudAssetManager,
             framework,
             gameGui,
-            this.interfaceManager,
             titleScreenMenu) { IsOpen = false };
         this.changelogWindow = new ChangelogWindow(this.titleScreenMenuWindow) { IsOpen = false };
         this.profilerWindow = new ProfilerWindow() { IsOpen = false };
@@ -152,12 +152,21 @@ internal class DalamudInterface : IDisposable, IServiceType
         this.interfaceManager.Draw += this.OnDraw;
 
         var tsm = Service<TitleScreenMenu>.Get();
-        tsm.AddEntryCore(Loc.Localize("TSMDalamudPlugins", "Plugin Installer"), branding.LogoSmall, () => this.OpenPluginInstaller());
-        tsm.AddEntryCore(Loc.Localize("TSMDalamudSettings", "Dalamud Settings"), branding.LogoSmall, this.OpenSettings);
+        tsm.AddEntryCore(
+            Loc.Localize("TSMDalamudPlugins", "Plugin Installer"),
+            dalamudAssetManager.GetDalamudTextureWrap(DalamudAsset.LogoSmall),
+            this.OpenPluginInstaller);
+        tsm.AddEntryCore(
+            Loc.Localize("TSMDalamudSettings", "Dalamud Settings"),
+            dalamudAssetManager.GetDalamudTextureWrap(DalamudAsset.LogoSmall),
+            this.OpenSettings);
 
         if (!configuration.DalamudBetaKind.IsNullOrEmpty())
         {
-            tsm.AddEntryCore(Loc.Localize("TSMDalamudDevMenu", "Developer Menu"), branding.LogoSmall, () => this.isImGuiDrawDevMenu = true);
+            tsm.AddEntryCore(
+                Loc.Localize("TSMDalamudDevMenu", "Developer Menu"),
+                dalamudAssetManager.GetDalamudTextureWrap(DalamudAsset.LogoSmall),
+                () => this.isImGuiDrawDevMenu = true);
         }
 
         this.creditsDarkeningAnimation.Point1 = Vector2.Zero;
