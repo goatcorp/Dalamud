@@ -3,6 +3,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 
+using Dalamud.Configuration.Internal.Types;
 using Dalamud.Game.Text;
 using Dalamud.Interface.Internal.Windows.PluginInstaller;
 using Dalamud.Interface.Style;
@@ -436,6 +437,16 @@ internal sealed class DalamudConfiguration : IServiceType, IDisposable
     /// Gets or sets the page of the plugin installer that is shown by default when opened.
     /// </summary>
     public PluginInstallerWindow.PluginInstallerOpenKind PluginInstallerOpen { get; set; } = PluginInstallerWindow.PluginInstallerOpenKind.AllPlugins;
+
+    /// <summary>
+    /// Gets or sets the user's preference towards plugin analytics. 
+    /// </summary>
+    public PluginAnalyticsConsent PluginAnalyticsConsent { get; set; } = PluginAnalyticsConsent.Ask;
+
+    /// <summary>
+    /// Gets or sets the installation's current Plugin Analytics ID. This can be reset by the user at any time.
+    /// </summary>
+    public string PluginAnalyticsId { get; set; } = Guid.NewGuid().ToString();
 
     /// <summary>
     /// Load a configuration from the provided path.
