@@ -66,4 +66,7 @@ internal class DalamudConfigReader : IServiceType, IDalamudConfigReader
 
     /// <inheritdoc/>
     public bool DoButtonsSystemMenu => this.dalamudConfiguration.DoButtonsSystemMenu;
+
+    /// <inheritdoc/>
+    public bool IsResumeGameAfterPluginLoad => this.dalamudConfiguration.IsResumeGameAfterPluginLoad;
 }

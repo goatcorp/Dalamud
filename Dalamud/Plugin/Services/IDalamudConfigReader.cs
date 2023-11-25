@@ -42,4 +42,7 @@ public interface IDalamudConfigReader
     
     /// <inheritdoc cref="DalamudConfiguration.DoButtonsSystemMenu"/>
     public bool DoButtonsSystemMenu { get; }
+    
+    /// <inheritdoc cref="DalamudConfiguration.IsResumeGameAfterPluginLoad"/>
+    public bool IsResumeGameAfterPluginLoad { get; }
 }
