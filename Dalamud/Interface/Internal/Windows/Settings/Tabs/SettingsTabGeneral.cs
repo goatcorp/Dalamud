@@ -100,8 +100,8 @@ public class SettingsTabGeneral : SettingsTab
             (v, c) => { c.PluginAnalyticsConsent = v; }),
         
         new ButtonSettingsEntry(
-            Loc.Localize("DalamudSettingResetAnalyticsId", "Reset Analytics ID"),
-            Loc.Localize("DalamudSettingResetAnalyticsIdHint", "Resets your Analytics ID to a new randomized value."),
+            Loc.Localize("DalamudSettingResetPluginAnalyticsId", "Reset Analytics ID"),
+            Loc.Localize("DalamudSettingResetPluginAnalyticsIdHint", "Resets your Analytics ID to a new randomized value."),
             () =>
             {
                 var cfg = Service<DalamudConfiguration>.Get();
@@ -117,7 +117,7 @@ public class SettingsTabGeneral : SettingsTab
                               analyticsId);
             
             ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudGrey, rendered);
-            ImGuiComponents.HelpMarker(Loc.Localize("DalamudSettingAnalyticsIdDetails", "This analytics ID is never directly shared with plugins. Every installed plugin receives a unique analytics ID based on this value."));
+            ImGuiComponents.HelpMarker(Loc.Localize("DalamudSettingPluginAnalyticsIdDetails", "This analytics ID is never directly shared with plugins. Every installed plugin receives a unique analytics ID based on this value."));
         }),
     };
 
