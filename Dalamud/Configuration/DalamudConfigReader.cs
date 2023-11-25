@@ -1,8 +1,10 @@
 ﻿using Dalamud.Configuration.Internal;
+using Dalamud.Configuration.Internal.Types;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Plugin.Services;
+using Dalamud.Utility;
 
 namespace Dalamud.Configuration;
 
@@ -29,6 +31,22 @@ internal class DalamudConfigReader : IServiceType, IDalamudConfigReader
     internal DalamudConfigReader(LocalPlugin plugin)
     {
         this.plugin = plugin;
+    }
+    
+    /// <inheritdoc />
+    public PluginAnalyticsConsent PluginAnalyticsConsent => this.dalamudConfiguration.PluginAnalyticsConsent;
+
+    /// <inheritdoc />
+    public string PluginAnalyticsId
+    {
+        get
+        {
+            var analyticsId = this.PluginAnalyticsConsent == PluginAnalyticsConsent.OptedOut
+                                  ? null
+                                  : this.dalamudConfiguration.PluginAnalyticsId;
+            
+            return Hash.GetSha256Base64Hash($"{this.plugin.InternalName}#{analyticsId}");
+        }
     }
     
     /// <inheritdoc/>

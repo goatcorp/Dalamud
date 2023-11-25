@@ -1,8 +1,13 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 
 using CheapLoc;
+using Dalamud.Configuration.Internal;
+using Dalamud.Configuration.Internal.Types;
 using Dalamud.Game.Text;
+using Dalamud.Interface.Colors;
+using Dalamud.Interface.Components;
 using Dalamud.Interface.Internal.Windows.Settings.Widgets;
+using Dalamud.Interface.Utility;
 
 namespace Dalamud.Interface.Internal.Windows.Settings.Tabs;
 
@@ -87,6 +92,33 @@ public class SettingsTabGeneral : SettingsTab
             Loc.Localize("DalamudSettingDoMbCollectHint", "Anonymously provide data about in-game economics to Universalis when browsing the market board. This data can't be tied to you in any way and everyone benefits!"),
             c => c.IsMbCollect,
             (v, c) => c.IsMbCollect = v),
+        
+        new SettingsEntry<PluginAnalyticsConsent>(
+            Loc.Localize("DalamudSettingPluginAnalyticsConsent", "Contribute Data to Plugin Analytics Systems"),
+            Loc.Localize("DalamudSettingPluginAnalyticsConsentHint", "This setting will allow certain plugins to collect analytics info on you, your playstyle, and how you use them. Certain plugins (e.g. custom repository plugins, those that provide crowdsourced information) may not respect this setting."),
+            c => c.PluginAnalyticsConsent,
+            (v, c) => { c.PluginAnalyticsConsent = v; }),
+        
+        new ButtonSettingsEntry(
+            Loc.Localize("DalamudSettingResetAnalyticsId", "Reset Analytics ID"),
+            Loc.Localize("DalamudSettingResetAnalyticsIdHint", "Resets your Analytics ID to a new randomized value."),
+            () =>
+            {
+                var cfg = Service<DalamudConfiguration>.Get();
+                cfg.PluginAnalyticsId = Guid.NewGuid().ToString();
+            }),
+        
+        new DynamicSettingsEntry(() =>
+        {
+            var analyticsId = Service<DalamudConfiguration>.Get().PluginAnalyticsId;
+            
+            var rendered =
+                string.Format(Loc.Localize("DalamudSettingPluginAnalyticsId", "Your current Plugin Analytics ID: {0}"),
+                              analyticsId);
+            
+            ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudGrey, rendered);
+            ImGuiComponents.HelpMarker(Loc.Localize("DalamudSettingAnalyticsIdDetails", "This analytics ID is never directly shared with plugins. Every installed plugin receives a unique analytics ID based on this value."));
+        }),
     };
 
     public override string Title => Loc.Localize("DalamudSettingsGeneral", "General");

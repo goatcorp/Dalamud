@@ -29,5 +29,18 @@ public static class Hash
         return ByteArrayToString(hash);
     }
 
+    /// <summary>
+    /// Get the SHA-256 hash (as Base64) of a string of text.
+    /// </summary>
+    /// <param name="text">The text to hash.</param>
+    /// <returns>The computed hash, in Base64.</returns>
+    internal static string GetSha256Base64Hash(string text)
+    {
+        var bytes = System.Text.Encoding.UTF8.GetBytes(text);
+        var hash = SHA256.HashData(bytes);
+
+        return Convert.ToBase64String(hash);
+    }
+
     private static string ByteArrayToString(byte[] ba) => BitConverter.ToString(ba).Replace("-", string.Empty);
 }
