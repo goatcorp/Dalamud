@@ -15,7 +15,6 @@ using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Common.Component.BGCollision;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using ImGuiNET;
-using SharpDX;
 
 using Vector2 = System.Numerics.Vector2;
 using Vector3 = System.Numerics.Vector3;
@@ -221,32 +220,28 @@ internal sealed unsafe class GameGui : IDisposable, IServiceType, IGameGui
         var matrixSingleton = this.getMatrixSingleton();
 
         // Read current ViewProjectionMatrix plus game window size
-        var viewProjectionMatrix = default(Matrix);
-        var rawMatrix = (float*)(matrixSingleton + 0x1b4).ToPointer();
+        var rawMatrix = (float*)(matrixSingleton + 0x1b4);
+        var inverseViewProjectionMatrix = *(Matrix4x4*)rawMatrix;
+        var width = *(rawMatrix + 16);
+        var height = *(rawMatrix + 17);
 
-        for (var i = 0; i < 16; i++, rawMatrix++)
-            viewProjectionMatrix[i] = *rawMatrix;
+        if (!Matrix4x4.Invert(inverseViewProjectionMatrix, out var viewProjectionMatrix))
+            viewProjectionMatrix = Matrix4x4.Identity;
 
-        var width = *rawMatrix;
-        var height = *(rawMatrix + 1);
-
-        viewProjectionMatrix.Invert();
-
-        var localScreenPos = new SharpDX.Vector2(screenPos.X - windowPos.X, screenPos.Y - windowPos.Y);
-        var screenPos3D = new SharpDX.Vector3
+        var localScreenPos = new Vector2(screenPos.X - windowPos.X, screenPos.Y - windowPos.Y);
+        var screenPos3D = new Vector3
         {
             X = (localScreenPos.X / width * 2.0f) - 1.0f,
             Y = -((localScreenPos.Y / height * 2.0f) - 1.0f),
             Z = 0,
         };
 
-        SharpDX.Vector3.TransformCoordinate(ref screenPos3D, ref viewProjectionMatrix, out var camPos);
+        var camPos = Vector3.Transform(screenPos3D, viewProjectionMatrix);
 
         screenPos3D.Z = 1;
-        SharpDX.Vector3.TransformCoordinate(ref screenPos3D, ref viewProjectionMatrix, out var camPosOne);
+        var camPosOne = Vector3.Transform(screenPos3D, viewProjectionMatrix);
 
-        var clipPos = camPosOne - camPos;
-        clipPos.Normalize();
+        var clipPos = Vector3.Normalize(camPosOne - camPos);
 
         // This array is larger than necessary because it contains more info than we currently use
         var worldPosArray = default(RaycastHit);
@@ -259,7 +254,7 @@ internal sealed unsafe class GameGui : IDisposable, IServiceType, IGameGui
             0x0,
         };
 
-        var isSuccess = BGCollisionModule.Raycast2(camPos.ToSystem(), clipPos.ToSystem(), rayDistance, &worldPosArray, unknown);
+        var isSuccess = BGCollisionModule.Raycast2(camPos, clipPos, rayDistance, &worldPosArray, unknown);
         worldPos = worldPosArray.Point;
 
         return isSuccess;

@@ -1674,7 +1674,9 @@ internal class PluginInstallerWindow : Window, IDisposable
 
                 if (!this.testerIconPath.IsNullOrEmpty())
                 {
-                    this.testerIcon = im.LoadImage(this.testerIconPath);
+                    this.testerIcon = im.CreateTexture2DFromFile(
+                        this.testerIconPath,
+                        $"{nameof(PluginInstallerWindow)}.{nameof(this.testerIconPath)}");
                 }
 
                 this.testerImages = new IDalamudTextureWrap[this.testerImagePaths.Length];
@@ -1690,7 +1692,9 @@ internal class PluginInstallerWindow : Window, IDisposable
                         this.testerImages[i] = null;
                     }
 
-                    this.testerImages[i] = im.LoadImage(this.testerImagePaths[i]);
+                    this.testerImages[i] = im.CreateTexture2DFromFile(
+                        this.testerImagePaths[i],
+                        $"{nameof(PluginInstallerWindow)}.{nameof(this.testerImagePaths)}[{i}]");
                 }
             }
             catch (Exception ex)

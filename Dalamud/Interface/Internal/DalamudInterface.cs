@@ -774,6 +774,12 @@ internal class DalamudInterface : IDisposable, IServiceType
                         this.OpenBranchSwitcher();
                     }
 
+                    if (ImGui.MenuItem("Use DX12 on DX11 (experimental, restart required)", null, this.configuration.UseDx12Preview))
+                    {
+                        this.configuration.UseDx12Preview = !this.configuration.UseDx12Preview;
+                        this.configuration.QueueSave();
+                    }
+
                     ImGui.MenuItem(Util.AssemblyVersion, false);
                     ImGui.MenuItem(this.dalamud.StartInfo.GameVersion?.ToString() ?? "Unknown version", false);
                     ImGui.MenuItem($"D: {Util.GetGitHash()}[{Util.GetGitCommitCount()}] CS: {Util.GetGitHashClientStructs()}[{FFXIVClientStructs.Interop.Resolver.Version}]", false);
@@ -849,6 +855,7 @@ internal class DalamudInterface : IDisposable, IServiceType
                     if (ImGui.MenuItem("Show dev bar info", null, this.configuration.ShowDevBarInfo))
                     {
                         this.configuration.ShowDevBarInfo = !this.configuration.ShowDevBarInfo;
+                        this.configuration.QueueSave();
                     }
 
                     ImGui.EndMenu();

@@ -19,7 +19,6 @@
         <Reference Include="Newtonsoft.Json" Private="false" />
         <Reference Include="Dalamud" Private="false" />
         <Reference Include="ImGui.NET" Private="false" />
-        <Reference Include="ImGuiScene" Private="false" />
         <Reference Include="Lumina" Private="false" />
         <Reference Include="Lumina.Excel" Private="false" />
     </ItemGroup>

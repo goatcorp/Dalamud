@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Numerics;
 
@@ -9,9 +8,12 @@ using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Services;
+using Dalamud.Storage.Assets;
+
 using Lumina.Data.Files;
 using Lumina.Data.Parsing.Tex.Buffers;
-using SharpDX.DXGI;
+
+using TerraFX.Interop.DirectX;
 
 namespace Dalamud.Interface.Internal;
 
@@ -44,8 +46,6 @@ internal class TextureManager : IDisposable, IServiceType, ITextureProvider, ITe
     
     private readonly Dictionary<string, TextureInfo> activeTextures = new();
 
-    private IDalamudTextureWrap? fallbackTextureWrap;
-
     /// <summary>
     /// Initializes a new instance of the <see cref="TextureManager"/> class.
     /// </summary>
@@ -63,8 +63,6 @@ internal class TextureManager : IDisposable, IServiceType, ITextureProvider, ITe
         this.language = (ClientLanguage)dalamud.StartInfo.Language;
 
         this.framework.Update += this.FrameworkOnUpdate;
-
-        Service<InterfaceManager.InterfaceManagerWithScene>.GetAsync().ContinueWith(_ => this.CreateFallbackTexture());
     }
 
     /// <inheritdoc/>
@@ -219,9 +217,9 @@ internal class TextureManager : IDisposable, IServiceType, ITextureProvider, ITe
                         (int)TexFile.TextureFormat.BppShift);
 
         var (dxgiFormat, conversion) = TexFile.GetDxgiFormatFromTextureFormat(file.Header.Format, false);
-        if (conversion != TexFile.DxgiFormatConversion.NoConversion || !this.im.SupportsDxgiFormat((Format)dxgiFormat))
+        if (conversion != TexFile.DxgiFormatConversion.NoConversion || !this.im.SupportsTextureFormat(dxgiFormat))
         {
-            dxgiFormat = (int)Format.B8G8R8A8_UNorm;
+            dxgiFormat = (int)DXGI_FORMAT.DXGI_FORMAT_B8G8R8A8_UNORM;
             buffer = buffer.Filter(0, 0, TexFile.TextureFormat.B8G8R8A8);
             bpp = 32;
         }
@@ -230,7 +228,13 @@ internal class TextureManager : IDisposable, IServiceType, ITextureProvider, ITe
                         ? Math.Max(1, (buffer.Width + 3) / 4) * 2 * bpp
                         : ((buffer.Width * bpp) + 7) / 8;
 
-        return this.im.LoadImageFromDxgiFormat(buffer.RawData, pitch, buffer.Width, buffer.Height, (Format)dxgiFormat);
+        return this.im.CreateTexture2DFromRaw(
+            buffer.RawData,
+            pitch,
+            buffer.Width,
+            buffer.Height,
+            dxgiFormat,
+            $"{nameof(TextureManager)}.{nameof(this.GetTexture)}({nameof(TexFile)}: {file.FilePath.Path})");
     }
 
     /// <inheritdoc/>
@@ -270,7 +274,6 @@ internal class TextureManager : IDisposable, IServiceType, ITextureProvider, ITe
     /// <inheritdoc/>
     public void Dispose()
     {
-        this.fallbackTextureWrap?.Dispose();
         this.framework.Update -= this.FrameworkOnUpdate;
         
         Log.Verbose("Disposing {Num} left behind textures.");
@@ -337,7 +340,9 @@ internal class TextureManager : IDisposable, IServiceType, ITextureProvider, ITe
                 else
                 {
                     // Attempt to load image
-                    wrap = this.im.LoadImage(path);
+                    wrap = this.im.CreateTexture2DFromFile(
+                        path,
+                        $"{nameof(TextureManager)}.{nameof(this.GetInfo)}({path})");
                     Log.Verbose("Texture {Path} loaded FS via LoadImage", path);
                 }
             }
@@ -373,7 +378,7 @@ internal class TextureManager : IDisposable, IServiceType, ITextureProvider, ITe
             // This means that the load failed due to circumstances outside of our control,
             // and we can't do anything about it. Return a dummy texture so that the plugin still
             // has something to draw.
-            wrap = this.fallbackTextureWrap;
+            wrap = Service<DalamudAssetManager>.Get().Empty4X4;
                 
             // Prevent divide-by-zero
             if (info.Extents == Vector2.Zero)
@@ -432,13 +437,6 @@ internal class TextureManager : IDisposable, IServiceType, ITextureProvider, ITe
                 this.activeTextures.Remove(path);
             }
         }
-    }
-
-    private void CreateFallbackTexture()
-    {
-        var fallbackTexBytes = new byte[] { 0xFF, 0x00, 0xDC, 0xFF };
-        this.fallbackTextureWrap = this.im.LoadImageRaw(fallbackTexBytes, 1, 1, 4);
-        Debug.Assert(this.fallbackTextureWrap != null, "this.fallbackTextureWrap != null");
     }
 
     /// <summary>
@@ -500,7 +498,7 @@ internal class TextureManagerTextureWrap : IDalamudTextureWrap
     /// Gets a value indicating whether or not this wrap has already been disposed.
     /// If true, the handle may be invalid.
     /// </summary>
-    internal bool IsDisposed { get; private set; }
+    public bool IsDisposed { get; private set; }
 
     /// <inheritdoc/>
     public void Dispose()

@@ -13,6 +13,7 @@ using Dalamud.Plugin.Internal.Types;
 using Dalamud.Plugin.Internal.Types.Manifest;
 using Dalamud.Storage.Assets;
 using Dalamud.Utility;
+
 using Serilog;
 
 namespace Dalamud.Interface.Internal.Windows;
@@ -270,7 +271,7 @@ internal class PluginImageCache : IDisposable, IServiceType
         // FIXME(goat): This is a hack around this call failing randomly in certain situations. Might be related to not being called on the main thread.
         try
         {
-            image = interfaceManager.LoadImage(bytes);
+            image = interfaceManager.CreateTexture2DFromBytes(bytes, name);
         }
         catch (Exception ex)
         {
@@ -278,7 +279,8 @@ internal class PluginImageCache : IDisposable, IServiceType
 
             try
             {
-                image = await framework.RunOnFrameworkThread(() => interfaceManager.LoadImage(bytes));
+                image = await framework.RunOnFrameworkThread(
+                            () => interfaceManager.CreateTexture2DFromBytes(bytes, name));
             }
             catch (Exception ex2)
             {

@@ -435,6 +435,11 @@ internal sealed class DalamudConfiguration : IServiceType, IDisposable
     public double UiBuilderHitch { get; set; } = 100;
 
     /// <summary>
+    /// Gets or sets a value indicating whether to use the DX12 renderer for testing purposes.
+    /// </summary>
+    public bool UseDx12Preview { get; set; }
+
+    /// <summary>
     /// Gets or sets the page of the plugin installer that is shown by default when opened.
     /// </summary>
     public PluginInstallerWindow.PluginInstallerOpenKind PluginInstallerOpen { get; set; } = PluginInstallerWindow.PluginInstallerOpenKind.AllPlugins;

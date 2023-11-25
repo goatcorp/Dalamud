@@ -15,7 +15,6 @@ using Dalamud.Storage.Assets;
 using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using ImGuiNET;
-using ImGuiScene;
 
 namespace Dalamud.Interface.Internal.Windows.Settings.Tabs;
 

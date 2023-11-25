@@ -5,16 +5,18 @@ using System.Runtime.InteropServices;
 
 using Dalamud.Configuration.Internal;
 using Dalamud.Game.ClientState.Keys;
+using Dalamud.ImGuiScene;
+using Dalamud.ImGuiScene.Implementations;
 using Dalamud.Interface.Utility.Raii;
+
 using ImGuiNET;
-using ImGuiScene;
 
 namespace Dalamud.Interface.Utility;
 
 /// <summary>
 /// Class containing various helper methods for use with ImGui inside Dalamud.
 /// </summary>
-public static class ImGuiHelpers
+public static partial class ImGuiHelpers
 {
     /// <summary>
     /// Gets the main viewport.
@@ -370,7 +372,7 @@ public static class ImGuiHelpers
     /// <returns>The ImGuiKey that corresponds to this VirtualKey, or <c>ImGuiKey.None</c> otherwise.</returns>
     public static ImGuiKey VirtualKeyToImGuiKey(VirtualKey key)
     {
-        return ImGui_Input_Impl_Direct.VirtualKeyToImGuiKey((int)key);
+        return Win32InputHandler.VirtualKeyToImGuiKey((int)key);
     }
 
     /// <summary>
@@ -380,7 +382,7 @@ public static class ImGuiHelpers
     /// <returns>The VirtualKey that corresponds to this ImGuiKey, or <c>VirtualKey.NO_KEY</c> otherwise.</returns>
     public static VirtualKey ImGuiKeyToVirtualKey(ImGuiKey key)
     {
-        return (VirtualKey)ImGui_Input_Impl_Direct.ImGuiKeyToVirtualKey(key);
+        return (VirtualKey)Win32InputHandler.ImGuiKeyToVirtualKey(key);
     }
 
     /// <summary>
@@ -446,6 +448,12 @@ public static class ImGuiHelpers
 
         return -1;
     }
+
+    /// <summary>
+    /// Clears the stack in the current ImGui context.
+    /// </summary>
+    [LibraryImport("cimgui", EntryPoint = "igCustom_ClearStacks")]
+    internal static partial void ClearStacksOnContext();
 
     /// <summary>
     /// Get data needed for each new frame.

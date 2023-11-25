@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 
 using ImGuiNET;
 
@@ -16,6 +17,33 @@ namespace Dalamud.Interface.Utility;
 public static class ImVectorWrapper
 {
     /// <summary>
+    /// Flags for <see cref="ImVectorWrapper{T}"/>.
+    /// </summary>
+    [Flags]
+    public enum Flags
+    {
+        /// <summary>
+        /// No flag is specified.
+        /// </summary>
+        None = 0,
+        
+        /// <summary>
+        /// Has ownership to the memory address of <see cref="ImVector"/> itself.
+        /// </summary>
+        HasVectorOwnership = 1 << 0,
+        
+        /// <summary>
+        /// Has ownership to the memory address pointed by <see cref="ImVector.Data"/>.
+        /// </summary>
+        HasDataOwnership = 1 << 1,
+        
+        /// <summary>
+        /// Fixed capacity.
+        /// </summary>
+        FixedCapacity = 1 << 2,
+    }
+    
+    /// <summary>
     /// Creates a new instance of the <see cref="ImVectorWrapper{T}"/> struct, initialized with
     /// <paramref name="sourceEnumerable"/>.<br />
     /// You must call <see cref="ImVectorWrapper{T}.Dispose"/> after use.
@@ -25,9 +53,9 @@ public static class ImVectorWrapper
     /// <param name="destroyer">The destroyer function to call on item removal.</param>
     /// <param name="minCapacity">The minimum capacity of the new vector.</param>
     /// <returns>The new wrapped vector, that has to be disposed after use.</returns>
-    public static ImVectorWrapper<T> CreateFromEnumerable<T>(
+    public static unsafe ImVectorWrapper<T> CreateFromEnumerable<T>(
         IEnumerable<T> sourceEnumerable,
-        ImVectorWrapper<T>.ImGuiNativeDestroyDelegate? destroyer = null,
+        delegate*<T*, void> destroyer = null,
         int minCapacity = 0)
         where T : unmanaged
     {
@@ -79,9 +107,9 @@ public static class ImVectorWrapper
     /// <param name="destroyer">The destroyer function to call on item removal.</param>
     /// <param name="minCapacity">The minimum capacity of the new vector.</param>
     /// <returns>The new wrapped vector, that has to be disposed after use.</returns>
-    public static ImVectorWrapper<T> CreateFromSpan<T>(
+    public static unsafe ImVectorWrapper<T> CreateFromSpan<T>(
         ReadOnlySpan<T> sourceSpan,
-        ImVectorWrapper<T>.ImGuiNativeDestroyDelegate? destroyer = null,
+        delegate*<T*, void> destroyer = null,
         int minCapacity = 0)
         where T : unmanaged
     {
@@ -112,8 +140,8 @@ public static class ImVectorWrapper
     public static unsafe ImVectorWrapper<ImFontConfig> ConfigDataWrapped(this ImFontAtlasPtr obj) =>
         obj.NativePtr is null
             ? throw new NullReferenceException()
-            : new(&obj.NativePtr->ConfigData, ImGuiNative.ImFontConfig_destroy);
-
+            : new(&obj.NativePtr->ConfigData, &ImGuiNative.ImFontConfig_destroy);
+    
     /// <summary>
     /// Wraps <see cref="ImFontAtlas.Fonts"/> into a <see cref="ImVectorWrapper{T}"/>.<br />
     /// This does not need to be disposed.
@@ -123,7 +151,7 @@ public static class ImVectorWrapper
     public static unsafe ImVectorWrapper<ImFontPtr> FontsWrapped(this ImFontAtlasPtr obj) =>
         obj.NativePtr is null
             ? throw new NullReferenceException()
-            : new(&obj.NativePtr->Fonts, x => ImGuiNative.ImFont_destroy(x->NativePtr));
+            : new(&obj.NativePtr->Fonts, &ImFontPtrDestroy);
 
     /// <summary>
     /// Wraps <see cref="ImFontAtlas.Textures"/> into a <see cref="ImVectorWrapper{T}"/>.<br />
@@ -168,6 +196,8 @@ public static class ImVectorWrapper
         obj.NativePtr is null
             ? throw new NullReferenceException()
             : new(&obj.NativePtr->IndexLookup);
+
+    private static unsafe void ImFontPtrDestroy(ImFontPtr* p) => p->Destroy();
 }
 
 /// <summary>
@@ -178,28 +208,41 @@ public unsafe struct ImVectorWrapper<T> : IList<T>, IList, IReadOnlyList<T>, IDi
     where T : unmanaged
 {
     private ImVector* vector;
-    private ImGuiNativeDestroyDelegate? destroyer;
+    private delegate*<T*, void> destroyer;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ImVectorWrapper{T}"/> struct.<br />
-    /// If <paramref name="ownership"/> is set to true, you must call <see cref="Dispose"/> after use,
+    /// If <paramref name="flags"/> is set to have any ownership, you must call <see cref="Dispose"/> after use,
     /// and the underlying memory for <see cref="ImVector"/> must have been allocated using
     /// <see cref="ImGuiNative.igMemAlloc"/>. Otherwise, it will crash.
     /// </summary>
     /// <param name="vector">The underlying vector.</param>
     /// <param name="destroyer">The destroyer function to call on item removal.</param>
-    /// <param name="ownership">Whether this wrapper owns the vector.</param>
+    /// <param name="flags">Flags of this wrapper.</param>
     public ImVectorWrapper(
         [NotNull] ImVector* vector,
-        ImGuiNativeDestroyDelegate? destroyer = null,
-        bool ownership = false)
+        delegate*<T*, void> destroyer = null,
+        ImVectorWrapper.Flags flags = ImVectorWrapper.Flags.None)
     {
         if (vector is null)
             throw new ArgumentException($"{nameof(vector)} cannot be null.", nameof(this.vector));
 
         this.vector = vector;
         this.destroyer = destroyer;
-        this.HasOwnership = ownership;
+        this.Flags = flags;
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ImVectorWrapper{T}"/> struct.<br />
+    /// Ownership is not taken. <paramref name="vector"/> must be fixed during the usage of this struct.
+    /// </summary>
+    /// <param name="vector">The underlying vector.</param>
+    /// <param name="destroyer">The destroyer function to call on item removal.</param>
+    public ImVectorWrapper(ref ImVector vector, delegate*<T*, void> destroyer = null)
+    {
+        this.vector = (ImVector*)Unsafe.AsPointer(ref vector);
+        this.destroyer = destroyer;
+        this.Flags = ImVectorWrapper.Flags.None;
     }
 
     /// <summary>
@@ -208,7 +251,7 @@ public unsafe struct ImVectorWrapper<T> : IList<T>, IList, IReadOnlyList<T>, IDi
     /// </summary>
     /// <param name="initialCapacity">The initial capacity.</param>
     /// <param name="destroyer">The destroyer function to call on item removal.</param>
-    public ImVectorWrapper(int initialCapacity, ImGuiNativeDestroyDelegate? destroyer = null)
+    public ImVectorWrapper(int initialCapacity = 0, delegate*<T*, void> destroyer = null)
     {
         if (initialCapacity < 0)
         {
@@ -222,7 +265,7 @@ public unsafe struct ImVectorWrapper<T> : IList<T>, IList, IReadOnlyList<T>, IDi
         if (this.vector is null)
             throw new OutOfMemoryException();
         *this.vector = default;
-        this.HasOwnership = true;
+        this.Flags = ImVectorWrapper.Flags.HasVectorOwnership | ImVectorWrapper.Flags.HasDataOwnership;
         this.destroyer = destroyer;
 
         try
@@ -233,8 +276,68 @@ public unsafe struct ImVectorWrapper<T> : IList<T>, IList, IReadOnlyList<T>, IDi
         {
             ImGuiNative.igMemFree(this.vector);
             this.vector = null;
-            this.HasOwnership = false;
+            this.Flags = ImVectorWrapper.Flags.None;
             this.destroyer = null;
+            throw;
+        }
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ImVectorWrapper{T}"/> struct.
+    /// </summary>
+    /// <param name="capacity">The fixed capacity to assume or allocate.</param>
+    /// <param name="initialLength">The initial length.</param>
+    /// <param name="backingStorage">The data backing storage.</param>
+    /// <param name="vectorStorage">The storage.</param>
+    /// <param name="destroyer">The destoryer function.</param>
+    public ImVectorWrapper(
+        int capacity,
+        int initialLength = 0,
+        T* backingStorage = null,
+        ImVector* vectorStorage = null,
+        delegate*<T*, void> destroyer = null)
+    {
+        try
+        {
+            this.Flags = ImVectorWrapper.Flags.FixedCapacity;
+            if (vectorStorage is null)
+            {
+                this.vector = (ImVector*)ImGuiNative.igMemAlloc((uint)sizeof(ImVector));
+                if (this.vector is null)
+                    throw new OutOfMemoryException();
+                this.Flags |= ImVectorWrapper.Flags.HasVectorOwnership;
+            }
+            else
+            {
+                this.vector = vectorStorage;
+            }
+            
+            if (backingStorage is null)
+            {
+                *&this.vector->Data = (nint)ImGuiNative.igMemAlloc((uint)sizeof(ImVector));
+                if (this.vector->Data == default)
+                    throw new OutOfMemoryException();
+                this.Flags |= ImVectorWrapper.Flags.HasDataOwnership;
+            }
+            else
+            {
+                *&this.vector->Data = (nint)backingStorage;
+            }
+
+            *&this.vector->Data = (nint)backingStorage;
+            *&this.vector->Capacity = capacity;
+            *&this.vector->Size = initialLength;
+            this.destroyer = destroyer;
+        }
+        catch
+        {
+            if (backingStorage is null && this.vector is not null)
+                ImGuiNative.igMemFree((void*)this.vector->Data);
+            if (vectorStorage is null)
+                ImGuiNative.igMemFree(this.vector);
+            this.destroyer = null;
+            this.Flags = ImVectorWrapper.Flags.None;
+            this.vector = null;
             throw;
         }
     }
@@ -266,10 +369,9 @@ public unsafe struct ImVectorWrapper<T> : IList<T>, IList, IReadOnlyList<T>, IDi
     public bool IsDisposed => this.vector is null;
 
     /// <summary>
-    /// Gets a value indicating whether this <see cref="ImVectorWrapper{T}"/> has the ownership of the underlying
-    /// <see cref="ImVector"/>.
+    /// Gets the flags of this <see cref="ImVectorWrapper{T}"/>.
     /// </summary>
-    public bool HasOwnership { get; private set; }
+    public ImVectorWrapper.Flags Flags { get; private set; }
 
     /// <summary>
     /// Gets the underlying <see cref="ImVector"/>.
@@ -356,7 +458,7 @@ public unsafe struct ImVectorWrapper<T> : IList<T>, IList, IReadOnlyList<T>, IDi
     /// <inheritdoc/>
     public void Dispose()
     {
-        if (this.HasOwnership)
+        if ((this.Flags & ImVectorWrapper.Flags.HasVectorOwnership) != 0)
         {
             this.Clear();
             this.SetCapacity(0);
@@ -365,7 +467,7 @@ public unsafe struct ImVectorWrapper<T> : IList<T>, IList, IReadOnlyList<T>, IDi
         }
 
         this.vector = null;
-        this.HasOwnership = false;
+        this.Flags = ImVectorWrapper.Flags.None;
         this.destroyer = null;
     }
 
@@ -444,6 +546,20 @@ public unsafe struct ImVectorWrapper<T> : IList<T>, IList, IReadOnlyList<T>, IDi
         {
             throw new ArgumentException(
                 "The number of elements in the source ImVectorWrapper<T> is greater than the available space from arrayIndex to the end of the destination array.",
+                nameof(array));
+        }
+
+        fixed (void* p = array)
+            Buffer.MemoryCopy(this.DataUnsafe, p, this.LengthUnsafe * sizeof(T), this.LengthUnsafe * sizeof(T));
+    }
+
+    /// <inheritdoc cref="Span{T}.CopyTo"/>
+    public void CopyTo(Span<T> array)
+    {
+        if (array.Length < this.LengthUnsafe)
+        {
+            throw new ArgumentException(
+                "The number of elements in the source ImVectorWrapper<T> is greater than the available space of the destination span.",
                 nameof(array));
         }
 
@@ -645,6 +761,9 @@ public unsafe struct ImVectorWrapper<T> : IList<T>, IList, IReadOnlyList<T>, IDi
     /// <exception cref="OutOfMemoryException">If memory for the requested capacity cannot be allocated.</exception>
     public bool SetCapacity(int capacity)
     {
+        if ((this.Flags & ImVectorWrapper.Flags.FixedCapacity) != 0)
+            throw new NotSupportedException($"{nameof(ImVectorWrapper.Flags.FixedCapacity)} is set.");
+
         if (capacity < this.LengthUnsafe)
             throw new ArgumentOutOfRangeException(nameof(capacity), capacity, null);
 
