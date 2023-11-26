@@ -91,6 +91,7 @@ internal class GameInteropProviderPluginScoped : IGameInteropProvider, IServiceT
 
         foreach (var hook in notDisposed)
         {
+            Log.Warning("\t\t\tLeaked hook at +0x{Address:X}", hook.Address.ToInt64() - this.scanner.Module.BaseAddress.ToInt64());
             hook.Dispose();
         }
         
