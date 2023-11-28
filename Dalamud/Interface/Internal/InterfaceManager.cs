@@ -53,8 +53,16 @@ namespace Dalamud.Interface.Internal;
 [ServiceManager.BlockingEarlyLoadedService]
 internal class InterfaceManager : IDisposable, IServiceType
 {
-    private const float DefaultFontSizePt = 12.0f;
-    private const float DefaultFontSizePx = DefaultFontSizePt * 4.0f / 3.0f;
+    /// <summary>
+    /// The default font size, in points.
+    /// </summary>
+    public const float DefaultFontSizePt = 12.0f;
+
+    /// <summary>
+    /// The default font size, in pixels.
+    /// </summary>
+    public const float DefaultFontSizePx = (DefaultFontSizePt * 4.0f) / 3.0f;
+
     private const ushort Fallback1Codepoint = 0x3013; // Geta mark; FFXIV uses this to indicate that a glyph is missing.
     private const ushort Fallback2Codepoint = '-';    // FFXIV uses dash if Geta mark is unavailable.
 

@@ -155,6 +155,8 @@ internal class SettingsWindow : Window
                     ImGui.EndTabItem();
                 }
             }
+
+            ImGui.EndTabBar();
         }
 
         ImGui.SetCursorPos(windowSize - ImGuiHelpers.ScaledVector2(70));

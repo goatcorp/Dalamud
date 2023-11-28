@@ -38,12 +38,30 @@ internal class FontAwesomeTestWidget : IDataWindowWidget
     public void Draw()
     {
         ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, Vector2.Zero);
-        
-        this.iconCategories ??= FontAwesomeHelpers.GetCategories();
+
+        this.iconCategories ??= new[] { "(Show All)", "(Undefined)" }
+                                .Concat(FontAwesomeHelpers.GetCategories().Skip(1))
+                                .ToArray();
 
         if (this.iconSearchChanged)
         {
-            this.icons = FontAwesomeHelpers.SearchIcons(this.iconSearchInput, this.iconCategories[this.selectedIconCategory]);
+            if (this.iconSearchInput == string.Empty && this.selectedIconCategory <= 1)
+            {
+                var en = InterfaceManager.IconFont.GlyphsWrapped()
+                                         .Select(x => (FontAwesomeIcon)x.Codepoint)
+                                         .Where(x => (ushort)x is >= 0xE000 and < 0xF000);
+                en = this.selectedIconCategory == 0
+                         ? en.Concat(FontAwesomeHelpers.SearchIcons(string.Empty, string.Empty))
+                         : en.Except(FontAwesomeHelpers.SearchIcons(string.Empty, string.Empty));
+                this.icons = en.Distinct().Order().ToList();
+            }
+            else
+            {
+                this.icons = FontAwesomeHelpers.SearchIcons(
+                    this.iconSearchInput,
+                    this.selectedIconCategory <= 1 ? string.Empty : this.iconCategories[this.selectedIconCategory]);
+            }
+
             this.iconNames = this.icons.Select(icon => Enum.GetName(icon)!).ToList();
             this.iconSearchChanged = false;
         }
