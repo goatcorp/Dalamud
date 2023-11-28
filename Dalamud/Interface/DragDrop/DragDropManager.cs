@@ -15,7 +15,7 @@ namespace Dalamud.Interface.DragDrop;
 /// and can be used to create ImGui drag and drop sources and targets for those external events.
 /// </summary>
 [PluginInterface]
-[ServiceManager.EarlyLoadedService]
+[ServiceManager.BlockingEarlyLoadedService]
 #pragma warning disable SA1015
 [ResolveVia<IDragDropManager>]
 #pragma warning restore SA1015

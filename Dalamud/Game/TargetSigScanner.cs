@@ -11,7 +11,7 @@ namespace Dalamud.Game;
 /// </summary>
 [PluginInterface]
 [InterfaceVersion("1.0")]
-[ServiceManager.Service]
+[ServiceManager.ProvidedService]
 #pragma warning disable SA1015
 [ResolveVia<ISigScanner>]
 #pragma warning restore SA1015
