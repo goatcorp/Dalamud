@@ -6,12 +6,14 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Threading;
 using System.Threading.Tasks;
 
 using Dalamud.Logging.Internal;
 using Dalamud.Networking.Http;
 using Dalamud.Plugin.Internal.Types.Manifest;
 using Dalamud.Utility;
+
 using Newtonsoft.Json;
 
 namespace Dalamud.Plugin.Internal.Types;
@@ -26,8 +28,9 @@ internal class PluginRepository
     /// </summary>
     public const string MainRepoUrl = "https://kamori.goats.dev/Plugin/PluginMaster";
 
-    private static readonly ModuleLog Log = new("PLUGINR");
+    private const int HttpRequestTimeoutSeconds = 20;
 
+    private static readonly ModuleLog Log = new("PLUGINR");
     private readonly HttpClient httpClient;
 
     /// <summary>
@@ -112,7 +115,8 @@ internal class PluginRepository
         {
             Log.Information($"Fetching repo: {this.PluginMasterUrl}");
 
-            using var response = await this.httpClient.GetAsync(this.PluginMasterUrl);
+            using var response = await this.GetPluginMaster(this.PluginMasterUrl);
+
             response.EnsureSuccessStatusCode();
 
             var data = await response.Content.ReadAsStringAsync();
@@ -203,5 +207,18 @@ internal class PluginRepository
         }
 
         return true;
+    }
+
+    private async Task<HttpResponseMessage> GetPluginMaster(string url, int timeout = HttpRequestTimeoutSeconds)
+    {
+        var httpClient = Service<HappyHttpClient>.Get().SharedHttpClient;
+
+        var request = new HttpRequestMessage(HttpMethod.Get, url);
+        request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+        request.Headers.CacheControl = new CacheControlHeaderValue { NoCache = true };
+
+        using var requestCts = new CancellationTokenSource(TimeSpan.FromSeconds(timeout));
+       
+        return await httpClient.SendAsync(request, requestCts.Token);
     }
 }
