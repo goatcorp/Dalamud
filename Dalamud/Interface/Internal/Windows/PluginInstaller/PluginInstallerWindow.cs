@@ -69,7 +69,7 @@ internal class PluginInstallerWindow : Window, IDisposable
     private string[] testerImagePaths = new string[5];
     private string testerIconPath = string.Empty;
 
-    private IDalamudTextureWrap?[] testerImages;
+    private IDalamudTextureWrap?[]? testerImages;
     private IDalamudTextureWrap? testerIcon;
 
     private bool testerError = false;
@@ -132,9 +132,10 @@ internal class PluginInstallerWindow : Window, IDisposable
     /// Initializes a new instance of the <see cref="PluginInstallerWindow"/> class.
     /// </summary>
     /// <param name="imageCache">An instance of <see cref="PluginImageCache"/> class.</param>
-    public PluginInstallerWindow(PluginImageCache imageCache)
+    /// <param name="configuration">An instance of <see cref="DalamudConfiguration"/>.</param>
+    public PluginInstallerWindow(PluginImageCache imageCache, DalamudConfiguration configuration)
         : base(
-            Locs.WindowTitle + (Service<DalamudConfiguration>.Get().DoPluginTest ? Locs.WindowTitleMod_Testing : string.Empty) + "###XlPluginInstaller",
+            Locs.WindowTitle + (configuration.DoPluginTest ? Locs.WindowTitleMod_Testing : string.Empty) + "###XlPluginInstaller",
             ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoScrollbar)
     {
         this.IsOpen = true;

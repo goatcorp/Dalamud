@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
+
+using Dalamud.Utility;
 
 namespace Dalamud.Networking.Http;
 
@@ -25,7 +28,16 @@ internal class HappyHttpClient : IDisposable, IServiceType
         {
             AutomaticDecompression = DecompressionMethods.All,
             ConnectCallback = this.SharedHappyEyeballsCallback.ConnectCallback,
-        });
+        })
+        {
+            DefaultRequestHeaders =
+            {
+                UserAgent =
+                {
+                    new ProductInfoHeaderValue("Dalamud", Util.AssemblyVersion),
+                },
+            },
+        };
     }
 
     /// <summary>

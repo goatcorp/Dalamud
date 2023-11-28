@@ -11,6 +11,7 @@ using Dalamud.Interface.GameFonts;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Plugin.Internal;
+using Dalamud.Storage.Assets;
 using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using ImGuiNET;
@@ -171,19 +172,16 @@ Dalamud is licensed under AGPL v3 or later.
 Contribute at: https://github.com/goatcorp/Dalamud
 ";
 
-    private readonly IDalamudTextureWrap logoTexture;
     private readonly Stopwatch creditsThrottler;
 
     private string creditsText;
 
     private bool resetNow = false;
+    private IDalamudTextureWrap? logoTexture;
     private GameFontHandle? thankYouFont;
 
     public SettingsTabAbout()
     {
-        var branding = Service<Branding>.Get();
-
-        this.logoTexture = branding.Logo;
         this.creditsThrottler = new();
     }
 
@@ -251,6 +249,7 @@ Contribute at: https://github.com/goatcorp/Dalamud
 
             const float imageSize = 190f;
             ImGui.SameLine((ImGui.GetWindowWidth() / 2) - (imageSize / 2));
+            this.logoTexture ??= Service<DalamudAssetManager>.Get().GetDalamudTextureWrap(DalamudAsset.Logo);
             ImGui.Image(this.logoTexture.ImGuiHandle, ImGuiHelpers.ScaledVector2(imageSize));
 
             ImGuiHelpers.ScaledDummy(0, 20f);

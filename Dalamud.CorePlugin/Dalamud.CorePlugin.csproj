@@ -50,4 +50,10 @@
             <Private>false</Private>
         </ProjectReference>
     </ItemGroup>
+
+    <ItemGroup>
+        <None Update="Dalamud.CorePlugin.json">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
+    </ItemGroup>
 </Project>

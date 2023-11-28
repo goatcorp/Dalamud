@@ -22,7 +22,7 @@ namespace Dalamud.Interface.GameFonts;
 /// <summary>
 /// Loads game font for use in ImGui.
 /// </summary>
-[ServiceManager.EarlyLoadedService]
+[ServiceManager.BlockingEarlyLoadedService]
 internal class GameFontManager : IServiceType
 {
     private static readonly string?[] FontNames =
@@ -257,7 +257,7 @@ internal class GameFontManager : IServiceType
     /// <param name="rebuildLookupTable">Whether to call target.BuildLookupTable().</param>
     public void CopyGlyphsAcrossFonts(ImFontPtr? source, GameFontStyle target, bool missingOnly, bool rebuildLookupTable)
     {
-        ImGuiHelpers.CopyGlyphsAcrossFonts(source, this.fonts[target], missingOnly, rebuildLookupTable);
+        ImGuiHelpers.CopyGlyphsAcrossFonts(source ?? default, this.fonts[target], missingOnly, rebuildLookupTable);
     }
 
     /// <summary>
@@ -269,7 +269,7 @@ internal class GameFontManager : IServiceType
     /// <param name="rebuildLookupTable">Whether to call target.BuildLookupTable().</param>
     public void CopyGlyphsAcrossFonts(GameFontStyle source, ImFontPtr? target, bool missingOnly, bool rebuildLookupTable)
     {
-        ImGuiHelpers.CopyGlyphsAcrossFonts(this.fonts[source], target, missingOnly, rebuildLookupTable);
+        ImGuiHelpers.CopyGlyphsAcrossFonts(this.fonts[source], target ?? default, missingOnly, rebuildLookupTable);
     }
 
     /// <summary>

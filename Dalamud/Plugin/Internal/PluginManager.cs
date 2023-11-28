@@ -1,10 +1,11 @@
-using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
@@ -38,7 +39,7 @@ namespace Dalamud.Plugin.Internal;
 /// Class responsible for loading and unloading plugins.
 /// NOTE: ALL plugin exposed services are marked as dependencies for PluginManager in Service{T}.
 /// </summary>
-[ServiceManager.EarlyLoadedService]
+[ServiceManager.BlockingEarlyLoadedService]
 #pragma warning disable SA1015
 
 // DalamudTextureWrap registers textures to dispose with IM
@@ -82,6 +83,9 @@ internal partial class PluginManager : IDisposable, IServiceType
 
     [ServiceManager.ServiceDependency]
     private readonly HappyHttpClient happyHttpClient = Service<HappyHttpClient>.Get();
+
+    [ServiceManager.ServiceDependency]
+    private readonly ChatGui chatGui = Service<ChatGui>.Get();
 
     static PluginManager()
     {
@@ -129,12 +133,13 @@ internal partial class PluginManager : IDisposable, IServiceType
             throw new InvalidDataException("Couldn't deserialize banned plugins manifest.");
         }
 
-        this.openInstallerWindowPluginChangelogsLink = Service<ChatGui>.Get().AddChatLinkHandler("Dalamud", 1003, (_, _) =>
+        this.openInstallerWindowPluginChangelogsLink = this.chatGui.AddChatLinkHandler("Dalamud", 1003, (_, _) =>
         {
             Service<DalamudInterface>.GetNullable()?.OpenPluginInstallerTo(PluginInstallerWindow.PluginInstallerOpenKind.Changelogs);
         });
 
-        this.configuration.PluginTestingOptIns ??= new List<PluginTestingOptIn>();
+        this.configuration.PluginTestingOptIns ??= new();
+        this.MainRepo = PluginRepository.CreateMainRepo(this.happyHttpClient);
 
         // NET8 CHORE
         //this.ApplyPatches();
@@ -197,6 +202,11 @@ internal partial class PluginManager : IDisposable, IServiceType
             }
         }
     }
+
+    /// <summary>
+    /// Gets the main repository.
+    /// </summary>
+    public PluginRepository MainRepo { get; }
 
     /// <summary>
     /// Gets a list of all plugin repositories. The main repo should always be first.
@@ -283,11 +293,9 @@ internal partial class PluginManager : IDisposable, IServiceType
     /// <param name="header">The header text to send to chat prior to any update info.</param>
     public void PrintUpdatedPlugins(List<PluginUpdateStatus>? updateMetadata, string header)
     {
-        var chatGui = Service<ChatGui>.Get();
-
         if (updateMetadata is { Count: > 0 })
         {
-            chatGui.Print(new XivChatEntry
+            this.chatGui.Print(new XivChatEntry
             {
                 Message = new SeString(new List<Payload>()
                 {
@@ -306,11 +314,11 @@ internal partial class PluginManager : IDisposable, IServiceType
             {
                 if (metadata.Status == PluginUpdateStatus.StatusKind.Success)
                 {
-                    chatGui.Print(Locs.DalamudPluginUpdateSuccessful(metadata.Name, metadata.Version));
+                    this.chatGui.Print(Locs.DalamudPluginUpdateSuccessful(metadata.Name, metadata.Version));
                 }
                 else
                 {
-                    chatGui.Print(new XivChatEntry
+                    this.chatGui.Print(new XivChatEntry
                     {
                         Message = Locs.DalamudPluginUpdateFailed(metadata.Name, metadata.Version, PluginUpdateStatus.LocalizeUpdateStatusKind(metadata.Status)),
                         Type = XivChatType.Urgent,
@@ -407,10 +415,10 @@ internal partial class PluginManager : IDisposable, IServiceType
     /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     public async Task SetPluginReposFromConfigAsync(bool notify)
     {
-        var repos = new List<PluginRepository>() { PluginRepository.MainRepo };
+        var repos = new List<PluginRepository> { this.MainRepo };
         repos.AddRange(this.configuration.ThirdRepoList
                            .Where(repo => repo.IsEnabled)
-                           .Select(repo => new PluginRepository(repo.Url, repo.IsEnabled)));
+                           .Select(repo => new PluginRepository(this.happyHttpClient, repo.Url, repo.IsEnabled)));
 
         this.Repos = repos;
         await this.ReloadPluginMastersAsync(notify);
@@ -1199,7 +1207,17 @@ internal partial class PluginManager : IDisposable, IServiceType
     private async Task<Stream> DownloadPluginAsync(RemotePluginManifest repoManifest, bool useTesting)
     {
         var downloadUrl = useTesting ? repoManifest.DownloadLinkTesting : repoManifest.DownloadLinkInstall;
-        var response = await this.happyHttpClient.SharedHttpClient.GetAsync(downloadUrl);
+        var request = new HttpRequestMessage(HttpMethod.Get, downloadUrl)
+        {
+            Headers =
+            {
+                Accept =
+                {
+                    new MediaTypeWithQualityHeaderValue("application/zip"),
+                },
+            },
+        };
+        var response = await this.happyHttpClient.SharedHttpClient.SendAsync(request);
         response.EnsureSuccessStatusCode();
 
         return await response.Content.ReadAsStreamAsync();
