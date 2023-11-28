@@ -9,6 +9,7 @@ using CheapLoc;
 using Dalamud.Configuration.Internal;
 using Dalamud.Game.ClientState;
 using Dalamud.Game.ClientState.Conditions;
+using Dalamud.Game.ClientState.Keys;
 using Dalamud.Game.Gui;
 using Dalamud.Game.Internal;
 using Dalamud.Interface.Animation.EasingFunctions;
@@ -151,23 +152,32 @@ internal class DalamudInterface : IDisposable, IServiceType
 
         this.interfaceManager.Draw += this.OnDraw;
 
-        var tsm = Service<TitleScreenMenu>.Get();
-        tsm.AddEntryCore(
-            Loc.Localize("TSMDalamudPlugins", "Plugin Installer"),
-            dalamudAssetManager.GetDalamudTextureWrap(DalamudAsset.LogoSmall),
-            this.OpenPluginInstaller);
-        tsm.AddEntryCore(
-            Loc.Localize("TSMDalamudSettings", "Dalamud Settings"),
-            dalamudAssetManager.GetDalamudTextureWrap(DalamudAsset.LogoSmall),
-            this.OpenSettings);
+        Service<InterfaceManager.InterfaceManagerWithScene>.GetAsync().ContinueWith(
+            _ =>
+            {
+                titleScreenMenu.AddEntryCore(
+                    Loc.Localize("TSMDalamudPlugins", "Plugin Installer"),
+                    dalamudAssetManager.GetDalamudTextureWrap(DalamudAsset.LogoSmall),
+                    this.OpenPluginInstaller);
+                titleScreenMenu.AddEntryCore(
+                    Loc.Localize("TSMDalamudSettings", "Dalamud Settings"),
+                    dalamudAssetManager.GetDalamudTextureWrap(DalamudAsset.LogoSmall),
+                    this.OpenSettings);
 
-        if (!configuration.DalamudBetaKind.IsNullOrEmpty())
-        {
-            tsm.AddEntryCore(
-                Loc.Localize("TSMDalamudDevMenu", "Developer Menu"),
-                dalamudAssetManager.GetDalamudTextureWrap(DalamudAsset.LogoSmall),
-                () => this.isImGuiDrawDevMenu = true);
-        }
+                titleScreenMenu.AddEntryCore(
+                    "Toggle Dev Menu",
+                    dalamudAssetManager.GetDalamudTextureWrap(DalamudAsset.LogoSmall),
+                    () => Service<DalamudInterface>.GetNullable()?.ToggleDevMenu(),
+                    VirtualKey.SHIFT);
+
+                if (!configuration.DalamudBetaKind.IsNullOrEmpty())
+                {
+                    titleScreenMenu.AddEntryCore(
+                        Loc.Localize("TSMDalamudDevMenu", "Developer Menu"),
+                        dalamudAssetManager.GetDalamudTextureWrap(DalamudAsset.LogoSmall),
+                        () => this.isImGuiDrawDevMenu = true);
+                }
+            });
 
         this.creditsDarkeningAnimation.Point1 = Vector2.Zero;
         this.creditsDarkeningAnimation.Point2 = new Vector2(CreditsDarkeningMaxAlpha);
