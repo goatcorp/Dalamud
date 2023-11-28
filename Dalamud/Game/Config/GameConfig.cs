@@ -12,7 +12,7 @@ namespace Dalamud.Game.Config;
 /// This class represents the game's configuration.
 /// </summary>
 [InterfaceVersion("1.0")]
-[ServiceManager.EarlyLoadedService]
+[ServiceManager.BlockingEarlyLoadedService]
 internal sealed class GameConfig : IServiceType, IGameConfig, IDisposable
 {
     private readonly GameConfigAddressResolver address = new();

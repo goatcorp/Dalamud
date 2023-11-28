@@ -21,7 +21,7 @@ namespace Dalamud.Configuration.Internal;
 /// Class containing Dalamud settings.
 /// </summary>
 [Serializable]
-[ServiceManager.Service]
+[ServiceManager.ProvidedService]
 #pragma warning disable SA1015
 [InherentDependency<ReliableFileStorage>] // We must still have this when unloading
 #pragma warning restore SA1015
