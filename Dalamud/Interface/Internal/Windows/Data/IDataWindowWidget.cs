@@ -1,7 +1,6 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 
-namespace Dalamud.Interface.Internal.Windows;
+namespace Dalamud.Interface.Internal.Windows.Data;
 
 /// <summary>
 /// Class representing a date window entry.

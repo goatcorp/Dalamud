@@ -28,8 +28,14 @@ public class AddonLifecycleWidget : IDataWindowWidget
     /// <inheritdoc/>
     public void Load()
     {
-        this.AddonLifecycle = Service<AddonLifecycle>.GetNullable();
-        if (this.AddonLifecycle is not null) this.Ready = true;
+        Service<AddonLifecycle>
+            .GetAsync()
+            .ContinueWith(
+                r =>
+                {
+                    this.AddonLifecycle = r.Result;
+                    this.Ready = true;
+                });
     }
     
     /// <inheritdoc/>

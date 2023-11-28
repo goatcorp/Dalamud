@@ -1,4 +1,3 @@
-using System;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
@@ -86,9 +85,9 @@ internal sealed class FlyTextGui : IDisposable, IServiceType, IFlyTextGui
     public unsafe void AddFlyText(FlyTextKind kind, uint actorIndex, uint val1, uint val2, SeString text1, SeString text2, uint color, uint icon, uint damageTypeIcon)
     {
         // Known valid flytext region within the atk arrays
-        var numIndex = 28;
-        var strIndex = 25;
-        var numOffset = 147u;
+        var numIndex = 30;
+        var strIndex = 27;
+        var numOffset = 161u;
         var strOffset = 28u;
 
         // Get the UI module and flytext addon pointers
@@ -113,32 +112,26 @@ internal sealed class FlyTextGui : IDisposable, IServiceType, IFlyTextGui
         numArray->IntArray[numOffset + 2] = unchecked((int)val1);
         numArray->IntArray[numOffset + 3] = unchecked((int)val2);
         numArray->IntArray[numOffset + 4] = unchecked((int)damageTypeIcon); // Icons for damage type
-        numArray->IntArray[numOffset + 5] = 5; // Unknown
+        numArray->IntArray[numOffset + 5] = 5;                              // Unknown
         numArray->IntArray[numOffset + 6] = unchecked((int)color);
         numArray->IntArray[numOffset + 7] = unchecked((int)icon);
         numArray->IntArray[numOffset + 8] = 0; // Unknown
         numArray->IntArray[numOffset + 9] = 0; // Unknown, has something to do with yOffset
 
-        fixed (byte* pText1 = text1.Encode())
-        {
-            fixed (byte* pText2 = text2.Encode())
-            {
-                strArray->StringArray[strOffset + 0] = pText1;
-                strArray->StringArray[strOffset + 1] = pText2;
+        strArray->SetValue((int)strOffset + 0, text1.Encode(), false, true, false);
+        strArray->SetValue((int)strOffset + 1, text2.Encode(), false, true, false);
 
-                this.addFlyTextNative(
-                    flytext,
-                    actorIndex,
-                    1,
-                    (IntPtr)numArray,
-                    numOffset,
-                    9,
-                    (IntPtr)strArray,
-                    strOffset,
-                    2,
-                    0);
-            }
-        }
+        this.addFlyTextNative(
+            flytext,
+            actorIndex,
+            1,
+            (IntPtr)numArray,
+            numOffset,
+            10,
+            (IntPtr)strArray,
+            strOffset,
+            2,
+            0);
     }
 
     private static byte[] Terminate(byte[] source)
@@ -230,7 +223,8 @@ internal sealed class FlyTextGui : IDisposable, IServiceType, IFlyTextGui
             if (!dirty)
             {
                 Log.Verbose("[FlyText] Calling flytext with original args.");
-                return this.createFlyTextHook.Original(addonFlyText, kind, val1, val2, text2, color, icon, damageTypeIcon, text1, yOffset);
+                return this.createFlyTextHook.Original(addonFlyText, kind, val1, val2, text2, color, icon,
+                                                       damageTypeIcon, text1, yOffset);
             }
 
             var terminated1 = Terminate(tmpText1.Encode());
@@ -299,10 +293,10 @@ internal class FlyTextGuiPluginScoped : IDisposable, IServiceType, IFlyTextGui
     {
         this.flyTextGuiService.FlyTextCreated += this.FlyTextCreatedForward;
     }
-        
+
     /// <inheritdoc/>
     public event IFlyTextGui.OnFlyTextCreatedDelegate? FlyTextCreated;
-    
+
     /// <inheritdoc/>
     public void Dispose()
     {

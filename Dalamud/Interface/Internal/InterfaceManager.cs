@@ -21,6 +21,7 @@ using Dalamud.Interface.Internal.Notifications;
 using Dalamud.Interface.Style;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Windowing;
+using Dalamud.Storage.Assets;
 using Dalamud.Utility;
 using Dalamud.Utility.Timing;
 using ImGuiNET;
@@ -52,8 +53,16 @@ namespace Dalamud.Interface.Internal;
 [ServiceManager.BlockingEarlyLoadedService]
 internal class InterfaceManager : IDisposable, IServiceType
 {
-    private const float DefaultFontSizePt = 12.0f;
-    private const float DefaultFontSizePx = DefaultFontSizePt * 4.0f / 3.0f;
+    /// <summary>
+    /// The default font size, in points.
+    /// </summary>
+    public const float DefaultFontSizePt = 12.0f;
+
+    /// <summary>
+    /// The default font size, in pixels.
+    /// </summary>
+    public const float DefaultFontSizePx = (DefaultFontSizePt * 4.0f) / 3.0f;
+
     private const ushort Fallback1Codepoint = 0x3013; // Geta mark; FFXIV uses this to indicate that a glyph is missing.
     private const ushort Fallback2Codepoint = '-';    // FFXIV uses dash if Geta mark is unavailable.
 
@@ -1055,10 +1064,15 @@ internal class InterfaceManager : IDisposable, IServiceType
     }
 
     [ServiceManager.CallWhenServicesReady]
-    private void ContinueConstruction(TargetSigScanner sigScanner, Framework framework)
+    private void ContinueConstruction(
+        TargetSigScanner sigScanner,
+        DalamudAssetManager dalamudAssetManager,
+        DalamudConfiguration configuration)
     {
+        dalamudAssetManager.WaitForAllRequiredAssets().Wait();
+
         this.address.Setup(sigScanner);
-        framework.RunOnFrameworkThread(() =>
+        this.framework.RunOnFrameworkThread(() =>
         {
             while ((this.GameWindowHandle = NativeFunctions.FindWindowEx(IntPtr.Zero, this.GameWindowHandle, "FFXIVGAME", IntPtr.Zero)) != IntPtr.Zero)
             {
@@ -1070,7 +1084,7 @@ internal class InterfaceManager : IDisposable, IServiceType
 
             try
             {
-                if (Service<DalamudConfiguration>.Get().WindowIsImmersive)
+                if (configuration.WindowIsImmersive)
                     this.SetImmersiveMode(true);
             }
             catch (Exception ex)
@@ -1277,7 +1291,7 @@ internal class InterfaceManager : IDisposable, IServiceType
     /// <summary>
     /// Represents an instance of InstanceManager with scene ready for use.
     /// </summary>
-    [ServiceManager.Service]
+    [ServiceManager.ProvidedService]
     public class InterfaceManagerWithScene : IServiceType
     {
         /// <summary>

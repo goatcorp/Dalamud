@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -20,7 +21,7 @@ namespace Dalamud.Configuration.Internal;
 /// Class containing Dalamud settings.
 /// </summary>
 [Serializable]
-[ServiceManager.Service]
+[ServiceManager.ProvidedService]
 #pragma warning disable SA1015
 [InherentDependency<ReliableFileStorage>] // We must still have this when unloading
 #pragma warning restore SA1015
@@ -34,7 +35,7 @@ internal sealed class DalamudConfiguration : IServiceType, IDisposable
     };
 
     [JsonIgnore]
-    private string configPath;
+    private string? configPath;
 
     [JsonIgnore]
     private bool isSaveQueued;
@@ -48,12 +49,12 @@ internal sealed class DalamudConfiguration : IServiceType, IDisposable
     /// <summary>
     /// Event that occurs when dalamud configuration is saved.
     /// </summary>
-    public event DalamudConfigurationSavedDelegate DalamudConfigurationSaved;
+    public event DalamudConfigurationSavedDelegate? DalamudConfigurationSaved;
 
     /// <summary>
     /// Gets or sets a list of muted works.
     /// </summary>
-    public List<string> BadWords { get; set; }
+    public List<string>? BadWords { get; set; }
 
     /// <summary>
     /// Gets or sets a value indicating whether or not the taskbar should flash once a duty is found.
@@ -68,12 +69,12 @@ internal sealed class DalamudConfiguration : IServiceType, IDisposable
     /// <summary>
     /// Gets or sets the language code to load Dalamud localization with.
     /// </summary>
-    public string LanguageOverride { get; set; } = null;
+    public string? LanguageOverride { get; set; } = null;
 
     /// <summary>
     /// Gets or sets the last loaded Dalamud version.
     /// </summary>
-    public string LastVersion { get; set; } = null;
+    public string? LastVersion { get; set; } = null;
 
     /// <summary>
     /// Gets or sets a value indicating the last seen FTUE version.
@@ -84,7 +85,7 @@ internal sealed class DalamudConfiguration : IServiceType, IDisposable
     /// <summary>
     /// Gets or sets the last loaded Dalamud version.
     /// </summary>
-    public string LastChangelogMajorMinor { get; set; } = null;
+    public string? LastChangelogMajorMinor { get; set; } = null;
 
     /// <summary>
     /// Gets or sets the chat type used by default for plugin messages.
@@ -229,7 +230,15 @@ internal sealed class DalamudConfiguration : IServiceType, IDisposable
     /// Gets or sets a value indicating whether or not plugin user interfaces should trigger sound effects.
     /// This setting is effected by the in-game "System Sounds" option and volume.
     /// </summary>
+    [SuppressMessage("ReSharper", "InconsistentNaming", Justification = "ABI")]
     public bool EnablePluginUISoundEffects { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether or not an additional button allowing pinning and clickthrough options should be shown
+    /// on plugin title bars when using the Window System.
+    /// </summary>
+    [JsonProperty("EnablePluginUiAdditionalOptionsExperimental")]
+    public bool EnablePluginUiAdditionalOptions { get; set; } = false;
 
     /// <summary>
     /// Gets or sets a value indicating whether viewports should always be disabled.
@@ -259,7 +268,7 @@ internal sealed class DalamudConfiguration : IServiceType, IDisposable
     /// <summary>
     /// Gets or sets the kind of beta to download when <see cref="DalamudBetaKey"/> matches the server value.
     /// </summary>
-    public string DalamudBetaKind { get; set; }
+    public string? DalamudBetaKind { get; set; }
 
     /// <summary>
     /// Gets or sets a value indicating whether or not any plugin should be loaded when the game is started.
@@ -507,6 +516,8 @@ internal sealed class DalamudConfiguration : IServiceType, IDisposable
     private void Save()
     {
         ThreadSafety.AssertMainThread();
+        if (this.configPath is null)
+            throw new InvalidOperationException("configPath is not set.");
 
         Service<ReliableFileStorage>.Get().WriteAllText(
             this.configPath, JsonConvert.SerializeObject(this, SerializerSettings));

@@ -1,8 +1,9 @@
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
+using System.Runtime.InteropServices;
 
+using Dalamud.Configuration.Internal;
 using Dalamud.Game.ClientState.Keys;
 using Dalamud.Interface.Utility.Raii;
 using ImGuiNET;
@@ -24,6 +25,27 @@ public static class ImGuiHelpers
     /// Gets the global Dalamud scale.
     /// </summary>
     public static float GlobalScale { get; private set; }
+
+    /// <summary>
+    /// Gets a value indicating whether ImGui is initialized and ready for use.<br />
+    /// This does not necessarily mean you can call drawing functions.
+    /// </summary>
+    public static unsafe bool IsImGuiInitialized =>
+        ImGui.GetCurrentContext() is not 0 && ImGui.GetIO().NativePtr is not null;
+
+    /// <summary>
+    /// Gets the global Dalamud scale; even available before drawing is ready.<br />
+    /// If you are sure that drawing is ready, at the point of using this, use <see cref="GlobalScale"/> instead.
+    /// </summary>
+    public static float GlobalScaleSafe =>
+        IsImGuiInitialized ? ImGui.GetIO().FontGlobalScale : Service<DalamudConfiguration>.Get().GlobalUiScale;
+
+    /// <summary>
+    /// Check if the current ImGui window is on the main viewport.
+    /// Only valid within a window.
+    /// </summary>
+    /// <returns>Whether the window is on the main viewport.</returns>
+    public static bool CheckIsWindowOnMainViewport() => MainViewport.ID == ImGui.GetWindowViewport().ID;
 
     /// <summary>
     /// Gets a <see cref="Vector2"/> that is pre-scaled with the <see cref="GlobalScale"/> multiplier.
@@ -168,6 +190,47 @@ public static class ImGuiHelpers
     }
 
     /// <summary>
+    /// Unscales fonts after they have been rendered onto atlas.
+    /// </summary>
+    /// <param name="fontPtr">Font to scale.</param>
+    /// <param name="scale">Scale.</param>
+    /// <param name="round">If a positive number is given, numbers will be rounded to this.</param>
+    public static unsafe void AdjustGlyphMetrics(this ImFontPtr fontPtr, float scale, float round = 0f)
+    {
+        Func<float, float> rounder = round > 0 ? x => MathF.Round(x * round) / round : x => x;
+
+        var font = fontPtr.NativePtr;
+        font->FontSize = rounder(font->FontSize * scale);
+        font->Ascent = rounder(font->Ascent * scale);
+        font->Descent = font->FontSize - font->Ascent;
+        if (font->ConfigData != null)
+            font->ConfigData->SizePixels = rounder(font->ConfigData->SizePixels * scale);
+
+        foreach (ref var glyphHotDataReal in new Span<ImFontGlyphHotDataReal>(
+                     (void*)font->IndexedHotData.Data,
+                     font->IndexedHotData.Size))
+        {
+            glyphHotDataReal.AdvanceX = rounder(glyphHotDataReal.AdvanceX * scale);
+            glyphHotDataReal.OccupiedWidth = rounder(glyphHotDataReal.OccupiedWidth * scale);
+        }
+
+        foreach (ref var glyphReal in new Span<ImFontGlyphReal>((void*)font->Glyphs.Data, font->Glyphs.Size))
+        {
+            glyphReal.X0 *= scale;
+            glyphReal.X1 *= scale;
+            glyphReal.Y0 *= scale;
+            glyphReal.Y1 *= scale;
+            glyphReal.AdvanceX = rounder(glyphReal.AdvanceX * scale);
+        }
+
+        foreach (ref var kp in new Span<ImFontKerningPair>((void*)font->KerningPairs.Data, font->KerningPairs.Size))
+            kp.AdvanceXAdjustment = rounder(kp.AdvanceXAdjustment * scale);
+        
+        foreach (ref var fkp in new Span<float>((void*)font->FrequentKerningPairs.Data, font->FrequentKerningPairs.Size))
+            fkp = rounder(fkp * scale);
+    }
+
+    /// <summary>
     /// Fills missing glyphs in target font from source font, if both are not null.
     /// </summary>
     /// <param name="source">Source font.</param>
@@ -176,71 +239,110 @@ public static class ImGuiHelpers
     /// <param name="rebuildLookupTable">Whether to call target.BuildLookupTable().</param>
     /// <param name="rangeLow">Low codepoint range to copy.</param>
     /// <param name="rangeHigh">High codepoing range to copy.</param>
-    public static void CopyGlyphsAcrossFonts(ImFontPtr? source, ImFontPtr? target, bool missingOnly, bool rebuildLookupTable, int rangeLow = 32, int rangeHigh = 0xFFFE)
+    [Obsolete("Use the non-nullable variant.", true)]
+    public static void CopyGlyphsAcrossFonts(
+        ImFontPtr? source,
+        ImFontPtr? target,
+        bool missingOnly,
+        bool rebuildLookupTable = true,
+        int rangeLow = 32,
+        int rangeHigh = 0xFFFE) =>
+        CopyGlyphsAcrossFonts(
+            source ?? default,
+            target ?? default,
+            missingOnly,
+            rebuildLookupTable,
+            rangeLow,
+            rangeHigh);
+
+    /// <summary>
+    /// Fills missing glyphs in target font from source font, if both are not null.
+    /// </summary>
+    /// <param name="source">Source font.</param>
+    /// <param name="target">Target font.</param>
+    /// <param name="missingOnly">Whether to copy missing glyphs only.</param>
+    /// <param name="rebuildLookupTable">Whether to call target.BuildLookupTable().</param>
+    /// <param name="rangeLow">Low codepoint range to copy.</param>
+    /// <param name="rangeHigh">High codepoing range to copy.</param>
+    public static unsafe void CopyGlyphsAcrossFonts(
+        ImFontPtr source,
+        ImFontPtr target,
+        bool missingOnly,
+        bool rebuildLookupTable = true,
+        int rangeLow = 32,
+        int rangeHigh = 0xFFFE)
     {
-        if (!source.HasValue || !target.HasValue)
+        if (!source.IsNotNullAndLoaded() || !target.IsNotNullAndLoaded())
             return;
 
-        var scale = target.Value!.FontSize / source.Value!.FontSize;
+        var changed = false;
+        var scale = target.FontSize / source.FontSize;
         var addedCodepoints = new HashSet<int>();
-        unsafe
+
+        if (source.Glyphs.Size == 0)
+            return;
+
+        var glyphs = (ImFontGlyphReal*)source.Glyphs.Data;
+        if (glyphs is null)
+            throw new InvalidOperationException("Glyphs data is empty but size is >0?");
+
+        for (int j = 0, k = source.Glyphs.Size; j < k; j++)
         {
-            var glyphs = (ImFontGlyphReal*)source.Value!.Glyphs.Data;
-            for (int j = 0, k = source.Value!.Glyphs.Size; j < k; j++)
+            var glyph = &glyphs![j];
+            if (glyph->Codepoint < rangeLow || glyph->Codepoint > rangeHigh)
+                continue;
+
+            var prevGlyphPtr = (ImFontGlyphReal*)target.FindGlyphNoFallback((ushort)glyph->Codepoint).NativePtr;
+            if ((IntPtr)prevGlyphPtr == IntPtr.Zero)
             {
-                Debug.Assert(glyphs != null, nameof(glyphs) + " != null");
-
-                var glyph = &glyphs[j];
-                if (glyph->Codepoint < rangeLow || glyph->Codepoint > rangeHigh)
-                    continue;
-
-                var prevGlyphPtr = (ImFontGlyphReal*)target.Value!.FindGlyphNoFallback((ushort)glyph->Codepoint).NativePtr;
-                if ((IntPtr)prevGlyphPtr == IntPtr.Zero)
-                {
-                    addedCodepoints.Add(glyph->Codepoint);
-                    target.Value!.AddGlyph(
-                        target.Value!.ConfigData,
-                        (ushort)glyph->Codepoint,
-                        glyph->TextureIndex,
-                        glyph->X0 * scale,
-                        ((glyph->Y0 - source.Value!.Ascent) * scale) + target.Value!.Ascent,
-                        glyph->X1 * scale,
-                        ((glyph->Y1 - source.Value!.Ascent) * scale) + target.Value!.Ascent,
-                        glyph->U0,
-                        glyph->V0,
-                        glyph->U1,
-                        glyph->V1,
-                        glyph->AdvanceX * scale);
-                }
-                else if (!missingOnly)
-                {
-                    addedCodepoints.Add(glyph->Codepoint);
-                    prevGlyphPtr->TextureIndex = glyph->TextureIndex;
-                    prevGlyphPtr->X0 = glyph->X0 * scale;
-                    prevGlyphPtr->Y0 = ((glyph->Y0 - source.Value!.Ascent) * scale) + target.Value!.Ascent;
-                    prevGlyphPtr->X1 = glyph->X1 * scale;
-                    prevGlyphPtr->Y1 = ((glyph->Y1 - source.Value!.Ascent) * scale) + target.Value!.Ascent;
-                    prevGlyphPtr->U0 = glyph->U0;
-                    prevGlyphPtr->V0 = glyph->V0;
-                    prevGlyphPtr->U1 = glyph->U1;
-                    prevGlyphPtr->V1 = glyph->V1;
-                    prevGlyphPtr->AdvanceX = glyph->AdvanceX * scale;
-                }
+                addedCodepoints.Add(glyph->Codepoint);
+                target.AddGlyph(
+                    target.ConfigData,
+                    (ushort)glyph->Codepoint,
+                    glyph->TextureIndex,
+                    glyph->X0 * scale,
+                    ((glyph->Y0 - source.Ascent) * scale) + target.Ascent,
+                    glyph->X1 * scale,
+                    ((glyph->Y1 - source.Ascent) * scale) + target.Ascent,
+                    glyph->U0,
+                    glyph->V0,
+                    glyph->U1,
+                    glyph->V1,
+                    glyph->AdvanceX * scale);
+                changed = true;
             }
-
-            var kernPairs = source.Value!.KerningPairs;
-            for (int j = 0, k = kernPairs.Size; j < k; j++)
+            else if (!missingOnly)
             {
-                if (!addedCodepoints.Contains(kernPairs[j].Left))
-                    continue;
-                if (!addedCodepoints.Contains(kernPairs[j].Right))
-                    continue;
-                target.Value.AddKerningPair(kernPairs[j].Left, kernPairs[j].Right, kernPairs[j].AdvanceXAdjustment);
+                addedCodepoints.Add(glyph->Codepoint);
+                prevGlyphPtr->TextureIndex = glyph->TextureIndex;
+                prevGlyphPtr->X0 = glyph->X0 * scale;
+                prevGlyphPtr->Y0 = ((glyph->Y0 - source.Ascent) * scale) + target.Ascent;
+                prevGlyphPtr->X1 = glyph->X1 * scale;
+                prevGlyphPtr->Y1 = ((glyph->Y1 - source.Ascent) * scale) + target.Ascent;
+                prevGlyphPtr->U0 = glyph->U0;
+                prevGlyphPtr->V0 = glyph->V0;
+                prevGlyphPtr->U1 = glyph->U1;
+                prevGlyphPtr->V1 = glyph->V1;
+                prevGlyphPtr->AdvanceX = glyph->AdvanceX * scale;
             }
         }
 
-        if (rebuildLookupTable && target.Value!.Glyphs.Size > 0)
-            target.Value!.BuildLookupTableNonstandard();
+        if (target.Glyphs.Size == 0)
+            return;
+
+        var kernPairs = source.KerningPairs;
+        for (int j = 0, k = kernPairs.Size; j < k; j++)
+        {
+            if (!addedCodepoints.Contains(kernPairs[j].Left))
+                continue;
+            if (!addedCodepoints.Contains(kernPairs[j].Right))
+                continue;
+            target.AddKerningPair(kernPairs[j].Left, kernPairs[j].Right, kernPairs[j].AdvanceXAdjustment);
+            changed = true;
+        }
+
+        if (changed && rebuildLookupTable)
+            target.BuildLookupTableNonstandard();
     }
 
     /// <summary>
@@ -295,21 +397,35 @@ public static class ImGuiHelpers
     /// Center the ImGui cursor for a certain text.
     /// </summary>
     /// <param name="text">The text to center for.</param>
-    public static void CenterCursorForText(string text)
-    {
-        var textWidth = ImGui.CalcTextSize(text).X;
-        CenterCursorFor((int)textWidth);
-    }
+    public static void CenterCursorForText(string text) => CenterCursorFor(ImGui.CalcTextSize(text).X);
 
     /// <summary>
     /// Center the ImGui cursor for an item with a certain width.
     /// </summary>
     /// <param name="itemWidth">The width to center for.</param>
-    public static void CenterCursorFor(int itemWidth)
-    {
-        var window = (int)ImGui.GetWindowWidth();
-        ImGui.SetCursorPosX((window / 2) - (itemWidth / 2));
-    }
+    public static void CenterCursorFor(float itemWidth) =>
+        ImGui.SetCursorPosX((int)((ImGui.GetWindowWidth() - itemWidth) / 2));
+
+    /// <summary>
+    /// Determines whether <paramref name="ptr"/> is empty.
+    /// </summary>
+    /// <param name="ptr">The pointer.</param>
+    /// <returns>Whether it is empty.</returns>
+    public static unsafe bool IsNull(this ImFontPtr ptr) => ptr.NativePtr == null;
+
+    /// <summary>
+    /// Determines whether <paramref name="ptr"/> is not null and loaded.
+    /// </summary>
+    /// <param name="ptr">The pointer.</param>
+    /// <returns>Whether it is empty.</returns>
+    public static unsafe bool IsNotNullAndLoaded(this ImFontPtr ptr) => ptr.NativePtr != null && ptr.IsLoaded();
+
+    /// <summary>
+    /// Determines whether <paramref name="ptr"/> is empty.
+    /// </summary>
+    /// <param name="ptr">The pointer.</param>
+    /// <returns>Whether it is empty.</returns>
+    public static unsafe bool IsNull(this ImFontAtlasPtr ptr) => ptr.NativePtr == null;
 
     /// <summary>
     /// Get data needed for each new frame.
@@ -323,18 +439,56 @@ public static class ImGuiHelpers
     /// ImFontGlyph the correct version.
     /// </summary>
     [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1600:Elements should be documented", Justification = "ImGui internals")]
+    [StructLayout(LayoutKind.Explicit, Size = 40)]
     public struct ImFontGlyphReal
     {
+        [FieldOffset(0)]
         public uint ColoredVisibleTextureIndexCodepoint;
+
+        [FieldOffset(4)]
         public float AdvanceX;
+
+        [FieldOffset(8)]
         public float X0;
+
+        [FieldOffset(12)]
         public float Y0;
+
+        [FieldOffset(16)]
         public float X1;
+
+        [FieldOffset(20)]
         public float Y1;
+
+        [FieldOffset(24)]
         public float U0;
+
+        [FieldOffset(28)]
         public float V0;
+
+        [FieldOffset(32)]
         public float U1;
+
+        [FieldOffset(36)]
         public float V1;
+
+        [FieldOffset(8)]
+        public Vector2 XY0;
+
+        [FieldOffset(16)]
+        public Vector2 XY1;
+
+        [FieldOffset(24)]
+        public Vector2 UV0;
+
+        [FieldOffset(32)]
+        public Vector2 UV1;
+
+        [FieldOffset(8)]
+        public Vector4 XY;
+
+        [FieldOffset(24)]
+        public Vector4 UV;
 
         private const uint ColoredMask /*****/ = 0b_00000000_00000000_00000000_00000001u;
         private const uint VisibleMask /*****/ = 0b_00000000_00000000_00000000_00000010u;
@@ -383,7 +537,7 @@ public static class ImGuiHelpers
 
         private const uint UseBisectMask /***/ = 0b_00000000_00000000_00000000_00000001u;
         private const uint OffsetMask /******/ = 0b_00000000_00001111_11111111_11111110u;
-        private const uint CountMask /*******/ = 0b_11111111_11110000_00000111_11111100u;
+        private const uint CountMask /*******/ = 0b_11111111_11110000_00000000_00000000u;
 
         private const int UseBisectShift = 0;
         private const int OffsetShift = 1;
@@ -412,6 +566,7 @@ public static class ImGuiHelpers
     /// ImFontAtlasCustomRect the correct version.
     /// </summary>
     [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1600:Elements should be documented", Justification = "ImGui internals")]
+    [StructLayout(LayoutKind.Sequential)]
     public unsafe struct ImFontAtlasCustomRectReal
     {
         public ushort Width;
@@ -424,10 +579,10 @@ public static class ImGuiHelpers
         public ImFont* Font;
 
         private const uint TextureIndexMask /***/ = 0b_00000000_00000000_00000111_11111100u;
-        private const uint GlyphIDMask /********/ = 0b_11111111_11111111_11111000_00000000u;
+        private const uint GlyphIdMask /********/ = 0b_11111111_11111111_11111000_00000000u;
 
         private const int TextureIndexShift = 2;
-        private const int GlyphIDShift = 11;
+        private const int GlyphIdShift = 11;
 
         public int TextureIndex
         {
@@ -437,8 +592,8 @@ public static class ImGuiHelpers
 
         public int GlyphId
         {
-            get => (int)(this.TextureIndexAndGlyphId & GlyphIDMask) >> GlyphIDShift;
-            set => this.TextureIndexAndGlyphId = (this.TextureIndexAndGlyphId & ~GlyphIDMask) | ((uint)value << GlyphIDShift);
+            get => (int)(this.TextureIndexAndGlyphId & GlyphIdMask) >> GlyphIdShift;
+            set => this.TextureIndexAndGlyphId = (this.TextureIndexAndGlyphId & ~GlyphIdMask) | ((uint)value << GlyphIdShift);
         }
     }
 }

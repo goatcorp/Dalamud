@@ -18,7 +18,7 @@ namespace Dalamud.Game.Addon.Lifecycle;
 /// This class provides events for in-game addon lifecycles.
 /// </summary>
 [InterfaceVersion("1.0")]
-[ServiceManager.EarlyLoadedService]
+[ServiceManager.BlockingEarlyLoadedService]
 internal unsafe class AddonLifecycle : IDisposable, IServiceType
 {
     private static readonly ModuleLog Log = new("AddonLifecycle");

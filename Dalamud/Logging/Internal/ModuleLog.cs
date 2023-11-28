@@ -1,6 +1,5 @@
-using System;
-
 using Serilog;
+using Serilog.Core;
 using Serilog.Events;
 
 namespace Dalamud.Logging.Internal;
@@ -33,6 +32,7 @@ public class ModuleLog
     /// </summary>
     /// <param name="messageTemplate">The message template.</param>
     /// <param name="values">Values to log.</param>
+    [MessageTemplateFormatMethod("messageTemplate")]
     public void Verbose(string messageTemplate, params object[] values)
         => this.WriteLog(LogEventLevel.Verbose, messageTemplate, null, values);
 
@@ -42,6 +42,7 @@ public class ModuleLog
     /// <param name="exception">The exception that caused the error.</param>
     /// <param name="messageTemplate">The message template.</param>
     /// <param name="values">Values to log.</param>
+    [MessageTemplateFormatMethod("messageTemplate")]
     public void Verbose(Exception exception, string messageTemplate, params object[] values)
         => this.WriteLog(LogEventLevel.Verbose, messageTemplate, exception, values);
 
@@ -50,6 +51,7 @@ public class ModuleLog
     /// </summary>
     /// <param name="messageTemplate">The message template.</param>
     /// <param name="values">Values to log.</param>
+    [MessageTemplateFormatMethod("messageTemplate")]
     public void Debug(string messageTemplate, params object[] values)
         => this.WriteLog(LogEventLevel.Debug, messageTemplate, null, values);
 
@@ -59,6 +61,7 @@ public class ModuleLog
     /// <param name="exception">The exception that caused the error.</param>
     /// <param name="messageTemplate">The message template.</param>
     /// <param name="values">Values to log.</param>
+    [MessageTemplateFormatMethod("messageTemplate")]
     public void Debug(Exception exception, string messageTemplate, params object[] values)
         => this.WriteLog(LogEventLevel.Debug, messageTemplate, exception, values);
 
@@ -67,6 +70,7 @@ public class ModuleLog
     /// </summary>
     /// <param name="messageTemplate">The message template.</param>
     /// <param name="values">Values to log.</param>
+    [MessageTemplateFormatMethod("messageTemplate")]
     public void Information(string messageTemplate, params object[] values)
         => this.WriteLog(LogEventLevel.Information, messageTemplate, null, values);
 
@@ -76,6 +80,7 @@ public class ModuleLog
     /// <param name="exception">The exception that caused the error.</param>
     /// <param name="messageTemplate">The message template.</param>
     /// <param name="values">Values to log.</param>
+    [MessageTemplateFormatMethod("messageTemplate")]
     public void Information(Exception exception, string messageTemplate, params object[] values)
         => this.WriteLog(LogEventLevel.Information, messageTemplate, exception, values);
 
@@ -84,6 +89,7 @@ public class ModuleLog
     /// </summary>
     /// <param name="messageTemplate">The message template.</param>
     /// <param name="values">Values to log.</param>
+    [MessageTemplateFormatMethod("messageTemplate")]
     public void Warning(string messageTemplate, params object[] values)
         => this.WriteLog(LogEventLevel.Warning, messageTemplate, null, values);
 
@@ -93,6 +99,7 @@ public class ModuleLog
     /// <param name="exception">The exception that caused the error.</param>
     /// <param name="messageTemplate">The message template.</param>
     /// <param name="values">Values to log.</param>
+    [MessageTemplateFormatMethod("messageTemplate")]
     public void Warning(Exception exception, string messageTemplate, params object[] values)
         => this.WriteLog(LogEventLevel.Warning, messageTemplate, exception, values);
 
@@ -101,6 +108,7 @@ public class ModuleLog
     /// </summary>
     /// <param name="messageTemplate">The message template.</param>
     /// <param name="values">Values to log.</param>
+    [MessageTemplateFormatMethod("messageTemplate")]
     public void Error(string messageTemplate, params object[] values)
         => this.WriteLog(LogEventLevel.Error, messageTemplate, null, values);
 
@@ -110,6 +118,7 @@ public class ModuleLog
     /// <param name="exception">The exception that caused the error.</param>
     /// <param name="messageTemplate">The message template.</param>
     /// <param name="values">Values to log.</param>
+    [MessageTemplateFormatMethod("messageTemplate")]
     public void Error(Exception? exception, string messageTemplate, params object[] values)
         => this.WriteLog(LogEventLevel.Error, messageTemplate, exception, values);
 
@@ -118,6 +127,7 @@ public class ModuleLog
     /// </summary>
     /// <param name="messageTemplate">The message template.</param>
     /// <param name="values">Values to log.</param>
+    [MessageTemplateFormatMethod("messageTemplate")]
     public void Fatal(string messageTemplate, params object[] values)
         => this.WriteLog(LogEventLevel.Fatal, messageTemplate, null, values);
 
@@ -127,9 +137,11 @@ public class ModuleLog
     /// <param name="exception">The exception that caused the error.</param>
     /// <param name="messageTemplate">The message template.</param>
     /// <param name="values">Values to log.</param>
+    [MessageTemplateFormatMethod("messageTemplate")]
     public void Fatal(Exception exception, string messageTemplate, params object[] values)
         => this.WriteLog(LogEventLevel.Fatal, messageTemplate, exception, values);
 
+    [MessageTemplateFormatMethod("messageTemplate")]
     private void WriteLog(
         LogEventLevel level, string messageTemplate, Exception? exception = null, params object[] values)
     {

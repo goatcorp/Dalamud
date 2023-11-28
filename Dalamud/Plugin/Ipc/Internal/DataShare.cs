@@ -13,7 +13,7 @@ namespace Dalamud.Plugin.Ipc.Internal;
 /// <summary>
 /// This class facilitates sharing data-references of standard types between plugins without using more expensive IPC.
 /// </summary>
-[ServiceManager.EarlyLoadedService]
+[ServiceManager.BlockingEarlyLoadedService]
 internal class DataShare : IServiceType
 {
     private readonly Dictionary<string, DataCache> caches = new();

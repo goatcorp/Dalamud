@@ -13,6 +13,7 @@ using Dalamud.Game.Network.Internal.MarketBoardUploaders;
 using Dalamud.Game.Network.Internal.MarketBoardUploaders.Universalis;
 using Dalamud.Game.Network.Structures;
 using Dalamud.Hooking;
+using Dalamud.Networking.Http;
 using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Client.UI.Info;
 using Lumina.Excel.GeneratedSheets;
@@ -23,7 +24,7 @@ namespace Dalamud.Game.Network.Internal;
 /// <summary>
 /// This class handles network notifications and uploading market board data.
 /// </summary>
-[ServiceManager.EarlyLoadedService]
+[ServiceManager.BlockingEarlyLoadedService]
 internal unsafe class NetworkHandlers : IDisposable, IServiceType
 {
     private readonly IMarketBoardUploader uploader;
@@ -55,9 +56,12 @@ internal unsafe class NetworkHandlers : IDisposable, IServiceType
     private bool disposing;
 
     [ServiceManager.ServiceConstructor]
-    private NetworkHandlers(GameNetwork gameNetwork, TargetSigScanner sigScanner)
+    private NetworkHandlers(
+        GameNetwork gameNetwork,
+        TargetSigScanner sigScanner,
+        HappyHttpClient happyHttpClient)
     {
-        this.uploader = new UniversalisMarketBoardUploader();
+        this.uploader = new UniversalisMarketBoardUploader(happyHttpClient);
 
         this.addressResolver = new NetworkHandlersAddressResolver();
         this.addressResolver.Setup(sigScanner);
