@@ -5,6 +5,8 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
@@ -1196,7 +1198,17 @@ internal partial class PluginManager : IDisposable, IServiceType
     private async Task<Stream> DownloadPluginAsync(RemotePluginManifest repoManifest, bool useTesting)
     {
         var downloadUrl = useTesting ? repoManifest.DownloadLinkTesting : repoManifest.DownloadLinkInstall;
-        var response = await this.happyHttpClient.SharedHttpClient.GetAsync(downloadUrl);
+        var request = new HttpRequestMessage(HttpMethod.Get, downloadUrl)
+        {
+            Headers =
+            {
+                Accept =
+                {
+                    new MediaTypeWithQualityHeaderValue("application/zip"),
+                },
+            },
+        };
+        var response = await this.happyHttpClient.SharedHttpClient.SendAsync(request);
         response.EnsureSuccessStatusCode();
 
         return await response.Content.ReadAsStreamAsync();

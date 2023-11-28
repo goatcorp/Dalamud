@@ -32,10 +32,6 @@ internal class HappyHttpClient : IDisposable, IServiceType
         {
             DefaultRequestHeaders =
             {
-                Accept =
-                {
-                    new MediaTypeWithQualityHeaderValue("application/zip"),
-                },
                 UserAgent =
                 {
                     new ProductInfoHeaderValue("Dalamud", Util.AssemblyVersion),
