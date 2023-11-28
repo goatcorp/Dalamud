@@ -96,6 +96,7 @@ internal sealed class DalamudAssetManager : IServiceType, IDisposable, IDalamudA
             return Task.WhenAll(
                 Enum.GetValues<DalamudAsset>()
                     .Where(x => x is not DalamudAsset.Empty4X4)
+                    .Where(x => x.GetAttribute<DalamudAssetAttribute>()?.Required is true)
                     .Select(this.CreateStreamAsync)
                     .Select(x => x.ToContentDisposedTask()));
         }
