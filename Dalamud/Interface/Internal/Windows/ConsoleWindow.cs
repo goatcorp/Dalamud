@@ -56,11 +56,10 @@ internal class ConsoleWindow : Window, IDisposable
     /// <summary>
     /// Initializes a new instance of the <see cref="ConsoleWindow"/> class.
     /// </summary>
-    public ConsoleWindow()
+    /// <param name="configuration">An instance of <see cref="DalamudConfiguration"/>.</param>
+    public ConsoleWindow(DalamudConfiguration configuration)
         : base("Dalamud Console", ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse)
     {
-        var configuration = Service<DalamudConfiguration>.Get();
-
         this.autoScroll = configuration.LogAutoScroll;
         this.autoOpen = configuration.LogOpenAtStartup;
         SerilogEventSink.Instance.LogLine += this.OnLogLine;

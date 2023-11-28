@@ -44,7 +44,8 @@ internal class PluginStatWindow : Window
     {
         var pluginManager = Service<PluginManager>.Get();
 
-        ImGui.BeginTabBar("Stat Tabs");
+        if (!ImGui.BeginTabBar("Stat Tabs"))
+            return;
 
         if (ImGui.BeginTabItem("Draw times"))
         {
