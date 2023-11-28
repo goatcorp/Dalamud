@@ -194,7 +194,7 @@ internal static class ServiceManager
             try
             {
                 var whenBlockingComplete = Task.WhenAll(blockingEarlyLoadingServices.Select(x => getAsyncTaskMap[x]));
-                while (await Task.WhenAny(whenBlockingComplete, Task.Delay(30000)) != whenBlockingComplete)
+                while (await Task.WhenAny(whenBlockingComplete, Task.Delay(120000)) != whenBlockingComplete)
                 {
                     if (NativeFunctions.MessageBoxW(
                             IntPtr.Zero,
