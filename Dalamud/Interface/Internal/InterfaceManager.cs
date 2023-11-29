@@ -4,9 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Text.Unicode;
-using System.Threading;
+using System.Threading.Tasks;
 
 using Dalamud.Configuration.Internal;
 using Dalamud.Game;
@@ -235,6 +233,11 @@ internal class InterfaceManager : IDisposable, IServiceType
             return this.gameWindowHandle;
         }
     }
+
+    /// <summary>
+    /// Gets the font build task.
+    /// </summary>
+    public Task FontBuildTask => WhenFontsReady().dalamudAtlas!.BuildTask;
 
     /// <summary>
     /// Dispose of managed and unmanaged resources.

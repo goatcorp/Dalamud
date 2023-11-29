@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Numerics;
+using System.Text;
 
 using CheapLoc;
 using Dalamud.Configuration.Internal;
@@ -145,6 +146,7 @@ public class SettingsTabLook : SettingsTab
     public override void Draw()
     {
         var interfaceManager = Service<InterfaceManager>.Get();
+        var fontBuildTask = interfaceManager.FontBuildTask;
 
         ImGui.AlignTextToFramePadding();
         ImGui.Text(Loc.Localize("DalamudSettingsGlobalUiScale", "Global Font Scale"));
@@ -164,6 +166,19 @@ public class SettingsTabLook : SettingsTab
             }
         }
 
+        if (!fontBuildTask.IsCompleted)
+        {
+            ImGui.SameLine();
+            var buildingFonts = Loc.Localize("DalamudSettingsFontBuildInProgressWithEndingThreeDots", "Building fonts...");
+            unsafe
+            {
+                var len = Encoding.UTF8.GetByteCount(buildingFonts);
+                var p = stackalloc byte[len];
+                Encoding.UTF8.GetBytes(buildingFonts, new(p, len));
+                ImGuiNative.igTextUnformatted(p, (p + len + ((Environment.TickCount / 200) % 3)) - 2);
+            }
+        }
+
         var globalUiScaleInPt = 12f * this.globalUiScale;
         if (ImGui.DragFloat("##DalamudSettingsGlobalUiScaleDrag", ref globalUiScaleInPt, 0.1f, 9.6f, 36f, "%.1fpt", ImGuiSliderFlags.AlwaysClamp))
         {
@@ -173,6 +188,19 @@ public class SettingsTabLook : SettingsTab
         }
 
         ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingsGlobalUiScaleHint", "Scale text in all XIVLauncher UI elements - this is useful for 4K displays."));
+
+        if (fontBuildTask.IsFaulted || fontBuildTask.IsCanceled)
+        {
+            ImGui.TextColored(
+                ImGuiColors.DalamudRed,
+                Loc.Localize("DalamudSettingsFontBuildFaulted", "Failed to load fonts as requested."));
+            if (fontBuildTask.Exception is not null
+                && ImGui.CollapsingHeader("##DalamudSetingsFontBuildFaultReason"))
+            {
+                foreach (var e in fontBuildTask.Exception.InnerExceptions)
+                    ImGui.TextUnformatted(e.ToString());
+            }
+        }
 
         ImGuiHelpers.ScaledDummy(5);
 
@@ -208,6 +236,7 @@ public class SettingsTabLook : SettingsTab
     public override void Save()
     {
         Service<DalamudConfiguration>.Get().GlobalUiScale = this.globalUiScale;
+        Service<DalamudConfiguration>.Get().FontGammaLevel = this.fontGamma;
 
         base.Save();
     }
