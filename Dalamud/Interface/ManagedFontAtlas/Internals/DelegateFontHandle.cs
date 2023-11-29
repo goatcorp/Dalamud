@@ -211,7 +211,8 @@ internal class DelegateFontHandle : IFontHandle.IInternal
                     {
                         Log.Warning(
                             "[{name}:Substance] {n} fonts added from {delegate} PreBuild call; " +
-                            "did you mean to use {sfd}.{sfdprop} or {ifcp}.{ifcpprop}?",
+                            "Using the most recently added font. " +
+                            "Did you mean to use {sfd}.{sfdprop} or {ifcp}.{ifcpprop}?",
                             this.Manager.Name,
                             fontsVector.Length - fontCountPrevious,
                             nameof(FontAtlasBuildStepDelegate),
@@ -262,7 +263,7 @@ internal class DelegateFontHandle : IFontHandle.IInternal
                     {
                         var distinct =
                             fontsVector
-                                .DistinctBy(x => (nint)x.NativePtr)     // Remove duplicates
+                                .DistinctBy(x => (nint)x.NativePtr) // Remove duplicates
                                 .Where(x => x.ValidateUnsafe() is null) // Remove invalid entries without freeing them
                                 .ToArray();
 

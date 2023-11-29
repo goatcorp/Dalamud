@@ -291,6 +291,8 @@ internal sealed partial class FontAtlasFactory
             var font = this.AddDalamudAssetFont(DalamudAsset.NotoSansJpMedium, fontConfig);
             this.AddExtraGlyphsForDalamudLanguage(fontConfig with { MergeFont = font });
             this.AddGameSymbol(fontConfig with { MergeFont = font });
+            if (this.Font.IsNull())
+                this.Font = font;
             return font;
         }
 
@@ -316,7 +318,8 @@ internal sealed partial class FontAtlasFactory
                     return this.gameFontHandleSubstance.AttachGameSymbols(
                         this,
                         fontConfig.MergeFont,
-                        fontConfig.SizePx);
+                        fontConfig.SizePx,
+                        fontConfig.GlyphRanges);
 
                 default:
                     return this.factory.AddFont(

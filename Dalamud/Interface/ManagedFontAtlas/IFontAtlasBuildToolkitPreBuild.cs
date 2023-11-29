@@ -120,7 +120,9 @@ public interface IFontAtlasBuildToolkitPreBuild : IFontAtlasBuildToolkit
     /// <summary>
     /// Adds the default font known to the current font atlas.<br />
     /// <br />
-    /// Default font includes <see cref="AddFontAwesomeIconFont"/> and <see cref="AddExtraGlyphsForDalamudLanguage"/>.
+    /// Includes <see cref="AddFontAwesomeIconFont"/> and <see cref="AddExtraGlyphsForDalamudLanguage"/>.<br />
+    /// As this involves adding multiple fonts, calling this function will set <see cref="IFontAtlasBuildToolkit.Font"/>
+    /// as the return value of this function, if it was empty before.
     /// </summary>
     /// <param name="sizePx">Font size in pixels.</param>
     /// <param name="glyphRanges">The glyph ranges. Use <see cref="FontAtlasBuildToolkitUtilities"/>.ToGlyphRange to build.</param>
@@ -132,7 +134,8 @@ public interface IFontAtlasBuildToolkitPreBuild : IFontAtlasBuildToolkit
     /// <br />
     /// Note: if game symbols font file is requested but is unavailable,
     /// then it will take the glyphs from game's built-in fonts, and everything in <paramref name="fontConfig"/>
-    /// will be ignored but <see cref="SafeFontConfig.SizePx"/> and <see cref="SafeFontConfig.MergeFont"/>.
+    /// will be ignored but <see cref="SafeFontConfig.SizePx"/>, <see cref="SafeFontConfig.MergeFont"/>,
+    /// and <see cref="SafeFontConfig.GlyphRanges"/>.
     /// </summary>
     /// <param name="asset">The font type.</param>
     /// <param name="fontConfig">The font config.</param>

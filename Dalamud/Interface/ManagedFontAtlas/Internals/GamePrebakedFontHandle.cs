@@ -214,9 +214,7 @@ internal class GamePrebakedFontHandle : IFontHandle.IInternal
         // Owned by this class, but ImFontPtr values still do not belong to this.
         private readonly Dictionary<GameFontStyle, ImFontPtr> fonts = new();
         private readonly Dictionary<GameFontStyle, Exception?> buildExceptions = new();
-
-        private readonly Dictionary<GameFontStyle, ImFontPtr> fontsSymbolsOnly = new();
-        private readonly Dictionary<ImFontPtr, HashSet<ImFontPtr>> symbolsCopyTargets = new();
+        private readonly Dictionary<ImFontPtr, List<(ImFontPtr Font, ushort[]? Ranges)>> fontCopyTargets = new();
 
         private readonly HashSet<ImFontPtr> templatedFonts = new();
         private readonly Dictionary<ImFontPtr, List<(char From, char To)>> lateBuildRanges = new();
@@ -250,23 +248,24 @@ internal class GamePrebakedFontHandle : IFontHandle.IInternal
         /// <param name="toolkitPreBuild">The toolkitPostBuild.</param>
         /// <param name="font">The font to attach to.</param>
         /// <param name="sizePx">The font size in pixels.</param>
+        /// <param name="glyphRanges">The intended glyph ranges.</param>
         /// <returns><paramref name="font"/> if it is not empty; otherwise a new font.</returns>
-        public ImFontPtr AttachGameSymbols(IFontAtlasBuildToolkitPreBuild toolkitPreBuild, ImFontPtr font, float sizePx)
+        public ImFontPtr AttachGameSymbols(
+            IFontAtlasBuildToolkitPreBuild toolkitPreBuild,
+            ImFontPtr font,
+            float sizePx,
+            ushort[]? glyphRanges)
         {
             var style = new GameFontStyle(GameFontFamily.Axis, sizePx);
-            if (!this.fontsSymbolsOnly.TryGetValue(style, out var symbolFont))
-            {
-                symbolFont = this.CreateFontPrivate(style, toolkitPreBuild, ' ', '\uFFFE', true);
-                this.fontsSymbolsOnly.Add(style, symbolFont);
-            }
+            var referenceFont = this.GetOrCreateFont(style, toolkitPreBuild);
 
             if (font.IsNull())
                 font = this.CreateTemplateFont(style, toolkitPreBuild);
 
-            if (!this.symbolsCopyTargets.TryGetValue(symbolFont, out var set))
-                this.symbolsCopyTargets[symbolFont] = set = new();
+            if (!this.fontCopyTargets.TryGetValue(referenceFont, out var copyTargets))
+                this.fontCopyTargets[referenceFont] = copyTargets = new();
 
-            set.Add(font);
+            copyTargets.Add((font, glyphRanges));
             return font;
         }
 
@@ -342,7 +341,7 @@ internal class GamePrebakedFontHandle : IFontHandle.IInternal
             for (var i = 0; i < pixels8Array.Length; i++)
                 toolkitPostBuild.NewImAtlas.GetTexDataAsAlpha8(i, out pixels8Array[i], out widths[i], out heights[i]);
 
-            foreach (var (style, font) in this.fonts.Concat(this.fontsSymbolsOnly))
+            foreach (var (style, font) in this.fonts)
             {
                 try
                 {
@@ -585,10 +584,30 @@ internal class GamePrebakedFontHandle : IFontHandle.IInternal
                 }
             }
 
-            foreach (var (source, targets) in this.symbolsCopyTargets)
+            foreach (var (source, targets) in this.fontCopyTargets)
             {
                 foreach (var target in targets)
-                    ImGuiHelpers.CopyGlyphsAcrossFonts(source, target, true, true, SeIconCharMin, SeIconCharMax);
+                {
+                    if (target.Ranges is null)
+                    {
+                        ImGuiHelpers.CopyGlyphsAcrossFonts(source, target.Font, missingOnly: true);
+                    }
+                    else
+                    {
+                        for (var i = 0; i < target.Ranges.Length; i += 2)
+                        {
+                            if (target.Ranges[i] == 0)
+                                break;
+                            ImGuiHelpers.CopyGlyphsAcrossFonts(
+                                source,
+                                target.Font,
+                                true,
+                                true,
+                                target.Ranges[i],
+                                target.Ranges[i + 1]);
+                        }
+                    }
+                }
             }
         }
 
