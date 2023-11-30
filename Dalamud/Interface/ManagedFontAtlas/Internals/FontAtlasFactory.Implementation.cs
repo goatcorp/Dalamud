@@ -360,8 +360,8 @@ internal sealed partial class FontAtlasFactory
         public IFontHandle NewGameFontHandle(GameFontStyle style) => this.gameFontHandleManager.NewFontHandle(style);
 
         /// <inheritdoc/>
-        public IFontHandle NewDelegateFontHandle(FontAtlasBuildStepDelegate @delegate) =>
-            this.delegateFontHandleManager.NewFontHandle(@delegate);
+        public IFontHandle NewDelegateFontHandle(FontAtlasBuildStepDelegate buildStepDelegate) =>
+            this.delegateFontHandleManager.NewFontHandle(buildStepDelegate);
 
         /// <inheritdoc/>
         public void FreeFontHandle(IFontHandle handle)

@@ -428,18 +428,22 @@ public sealed class UiBuilder : IDisposable
 
     /// <inheritdoc cref="IFontAtlas.NewDelegateFontHandle"/>
     /// <example>
-    /// On initialization:
+    /// <b>On initialization</b>:
     /// <code>
     /// this.fontHandle = uiBuilder.NewDelegateFontHandle(e => e.OnPreBuild(tk => {
     ///     var config = new SafeFontConfig { SizePx = 16 };
     ///     config.MergeFont = tk.AddFontFromFile(@"C:\Windows\Fonts\comic.ttf", config);
     ///     tk.AddGameSymbol(config);
     ///     tk.AddExtraGlyphsForDalamudLanguage(config);
-    ///     // optional: tk.Font = config.MergeFont;
+    ///     // optionally do the following if you have to add more than one font here,
+    ///     // to specify which font added during this delegate is the final font to use.
+    ///     tk.Font = config.MergeFont;
     /// }));
+    /// // or
+    /// this.fontHandle = uiBuilder.NewDelegateFontHandle(e =&gt; e.OnPreBuild(tk =&gt; tk.AddDalamudDefaultFont(36)));
     /// </code>
-    ///
-    /// On use:
+    /// <br />
+    /// <b>On use</b>:
     /// <code>
     /// using (this.fontHandle.Push())
     ///     ImGui.TextUnformatted("Example");

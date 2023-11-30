@@ -58,7 +58,7 @@ public interface IFontAtlas : IDisposable
     public IFontHandle NewGameFontHandle(GameFontStyle style);
 
     /// <inheritdoc cref="DelegateFontHandle.HandleManager.NewFontHandle"/>
-    public IFontHandle NewDelegateFontHandle(FontAtlasBuildStepDelegate @delegate);
+    public IFontHandle NewDelegateFontHandle(FontAtlasBuildStepDelegate buildStepDelegate);
 
     /// <inheritdoc cref="IFontHandleManager.FreeFontHandle"/>
     public void FreeFontHandle(IFontHandle handle);

@@ -91,11 +91,11 @@ internal class DelegateFontHandle : IFontHandle.IInternal
         /// <summary>
         /// Creates a new IFontHandle using your own callbacks.
         /// </summary>
-        /// <param name="callOnBuildStepChange">Callback for <see cref="IFontAtlas.BuildStepChange"/>.</param>
+        /// <param name="buildStepDelegate">Callback for <see cref="IFontAtlas.BuildStepChange"/>.</param>
         /// <returns>Handle to a font that may or may not be ready yet.</returns>
-        public IFontHandle NewFontHandle(FontAtlasBuildStepDelegate callOnBuildStepChange)
+        public IFontHandle NewFontHandle(FontAtlasBuildStepDelegate buildStepDelegate)
         {
-            var key = new DelegateFontHandle(this, callOnBuildStepChange);
+            var key = new DelegateFontHandle(this, buildStepDelegate);
             lock (this.syncRoot)
                 this.handles.Add(key);
             this.RebuildRecommend?.Invoke();
