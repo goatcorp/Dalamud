@@ -197,10 +197,10 @@ internal class GameInventory : IDisposable, IServiceType, IGameInventory
     }
 
     private unsafe bool IsMateriaChanged(InventoryItem a, InventoryItem b)
-        => new ReadOnlySpan<ushort>(a.Materia, 5) == new ReadOnlySpan<ushort>(b.Materia, 5);
+        => new ReadOnlySpan<ushort>(a.Materia, 5) != new ReadOnlySpan<ushort>(b.Materia, 5);
 
     private unsafe bool IsMateriaGradeChanged(InventoryItem a, InventoryItem b) 
-        => new ReadOnlySpan<byte>(a.MateriaGrade, 5) == new ReadOnlySpan<byte>(b.MateriaGrade, 5);
+        => new ReadOnlySpan<byte>(a.MateriaGrade, 5) != new ReadOnlySpan<byte>(b.MateriaGrade, 5);
 }
 
 /// <summary>
