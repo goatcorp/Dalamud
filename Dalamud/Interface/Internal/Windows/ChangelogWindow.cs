@@ -82,7 +82,7 @@ internal sealed class ChangelogWindow : Window, IDisposable
 
         // If we are going to show a changelog, make sure we have the font ready, otherwise it will hitch
         if (WarrantsChangelog())
-            _ = this.bannerFont;
+            _ = this.bannerFont.Value;
     }
 
     private enum State
