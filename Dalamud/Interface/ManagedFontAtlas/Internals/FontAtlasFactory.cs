@@ -39,8 +39,6 @@ internal sealed partial class FontAtlasFactory
     private readonly Task<ushort[]> defaultGlyphRanges;
     private readonly DalamudAssetManager dalamudAssetManager;
 
-    private float lastBuildGamma = -1f;
-
     [ServiceManager.ServiceConstructor]
     private FontAtlasFactory(
         DataManager dataManager,
@@ -210,18 +208,10 @@ internal sealed partial class FontAtlasFactory
     {
         lock (this.prebakedTextureWraps[texPathFormat])
         {
-            var gamma = this.InterfaceManager.FontGamma;
             var wraps = ExtractResult(this.prebakedTextureWraps[texPathFormat]);
-            if (Math.Abs(this.lastBuildGamma - gamma) > 0.0001f)
-            {
-                this.lastBuildGamma = gamma;
-                wraps.AggregateToDisposable().Dispose();
-                wraps.AsSpan().Clear();
-            }
-
             var fileIndex = textureIndex / 4;
             var channelIndex = FdtReader.FontTableEntry.TextureChannelOrder[textureIndex % 4];
-            wraps[textureIndex] ??= this.GetChannelTexture(texPathFormat, fileIndex, channelIndex, gamma);
+            wraps[textureIndex] ??= this.GetChannelTexture(texPathFormat, fileIndex, channelIndex);
             return CloneTextureWrap(wraps[textureIndex]);
         }
     }
@@ -232,13 +222,9 @@ internal sealed partial class FontAtlasFactory
         Span<byte> target,
         ReadOnlySpan<byte> source,
         int channelIndex,
-        bool targetIsB4G4R4A4,
-        float gamma)
+        bool targetIsB4G4R4A4)
     {
         var numPixels = Math.Min(source.Length / 4, target.Length / (targetIsB4G4R4A4 ? 2 : 4));
-        var gammaTable = stackalloc byte[256];
-        for (var i = 0; i < 256; i++)
-            gammaTable[i] = (byte)(MathF.Pow(Math.Clamp(i / 255f, 0, 1), 1.4f / gamma) * 255);
 
         fixed (byte* sourcePtrImmutable = source)
         {
@@ -250,7 +236,7 @@ internal sealed partial class FontAtlasFactory
                     var wptr = (ushort*)targetPtr;
                     while (numPixels-- > 0)
                     {
-                        *wptr = (ushort)((gammaTable[*rptr] << 8) | 0x0FFF);
+                        *wptr = (ushort)((*rptr << 8) | 0x0FFF);
                         wptr++;
                         rptr += 4;
                     }
@@ -260,7 +246,7 @@ internal sealed partial class FontAtlasFactory
                     var wptr = (uint*)targetPtr;
                     while (numPixels-- > 0)
                     {
-                        *wptr = (uint)((gammaTable[*rptr] << 24) | 0x00FFFFFF);
+                        *wptr = (uint)((*rptr << 24) | 0x00FFFFFF);
                         wptr++;
                         rptr += 4;
                     }
@@ -292,41 +278,33 @@ internal sealed partial class FontAtlasFactory
         Span<byte> target,
         ReadOnlySpan<byte> source,
         int channelIndex,
-        bool targetIsB4G4R4A4,
-        float gamma)
+        bool targetIsB4G4R4A4)
     {
         var numPixels = Math.Min(source.Length / 2, target.Length / (targetIsB4G4R4A4 ? 2 : 4));
         fixed (byte* sourcePtrImmutable = source)
         {
             var rptr = sourcePtrImmutable + (channelIndex / 2);
             var rshift = (channelIndex & 1) == 0 ? 0 : 4;
-            var gammaTable = stackalloc byte[256];
             fixed (void* targetPtr = target)
             {
                 if (targetIsB4G4R4A4)
                 {
-                    for (var i = 0; i < 16; i++)
-                        gammaTable[i] = (byte)(MathF.Pow(Math.Clamp(i / 15f, 0, 1), 1.4f / gamma) * 15);
-
                     var wptr = (ushort*)targetPtr;
                     while (numPixels-- > 0)
                     {
-                        *wptr = (ushort)((gammaTable[(*rptr >> rshift) & 0xF] << 12) | 0x0FFF);
+                        *wptr = (ushort)(((*rptr >> rshift) << 12) | 0x0FFF);
                         wptr++;
                         rptr += 2;
                     }
                 }
                 else
                 {
-                    for (var i = 0; i < 256; i++)
-                        gammaTable[i] = (byte)(MathF.Pow(Math.Clamp(i / 255f, 0, 1), 1.4f / gamma) * 255);
-
                     var wptr = (uint*)targetPtr;
                     while (numPixels-- > 0)
                     {
                         var v = (*rptr >> rshift) & 0xF;
                         v |= v << 4;
-                        *wptr = (uint)((gammaTable[v] << 24) | 0x00FFFFFF);
+                        *wptr = (uint)((v << 24) | 0x00FFFFFF);
                         wptr++;
                         rptr += 4;
                     }
@@ -335,7 +313,7 @@ internal sealed partial class FontAtlasFactory
         }
     }
 
-    private IDalamudTextureWrap GetChannelTexture(string texPathFormat, int fileIndex, int channelIndex, float gamma)
+    private IDalamudTextureWrap GetChannelTexture(string texPathFormat, int fileIndex, int channelIndex)
     {
         var texFile = ExtractResult(ExtractResult(this.texFiles[texPathFormat])[fileIndex]);
         var numPixels = texFile.Header.Width * texFile.Header.Height;
@@ -351,15 +329,15 @@ internal sealed partial class FontAtlasFactory
             {
                 case TexFile.TextureFormat.B4G4R4A4:
                     // Game ships with this format.
-                    ExtractChannelFromB4G4R4A4(buffer, sliceSpan, channelIndex, targetIsB4G4R4A4, gamma);
+                    ExtractChannelFromB4G4R4A4(buffer, sliceSpan, channelIndex, targetIsB4G4R4A4);
                     break;
                 case TexFile.TextureFormat.B8G8R8A8:
                     // In case of modded font textures.
-                    ExtractChannelFromB8G8R8A8(buffer, sliceSpan, channelIndex, targetIsB4G4R4A4, gamma);
+                    ExtractChannelFromB8G8R8A8(buffer, sliceSpan, channelIndex, targetIsB4G4R4A4);
                     break;
                 default:
                     // Unlikely.
-                    ExtractChannelFromB8G8R8A8(buffer, texFile.ImageData, channelIndex, targetIsB4G4R4A4, gamma);
+                    ExtractChannelFromB8G8R8A8(buffer, texFile.ImageData, channelIndex, targetIsB4G4R4A4);
                     break;
             }
 

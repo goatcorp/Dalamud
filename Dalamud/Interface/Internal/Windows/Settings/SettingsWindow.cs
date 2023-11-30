@@ -66,13 +66,9 @@ internal class SettingsWindow : Window
         var configuration = Service<DalamudConfiguration>.Get();
         var interfaceManager = Service<InterfaceManager>.Get();
 
-        var rebuildFont =
-            ImGui.GetIO().FontGlobalScale != configuration.GlobalUiScale ||
-            interfaceManager.FontGamma != configuration.FontGammaLevel ||
-            interfaceManager.UseAxis != configuration.UseAxisFontsFromGame;
+        var rebuildFont = interfaceManager.UseAxis != configuration.UseAxisFontsFromGame;
 
         ImGui.GetIO().FontGlobalScale = configuration.GlobalUiScale;
-        interfaceManager.FontGammaOverride = null;
         interfaceManager.UseAxisOverride = null;
 
         if (rebuildFont)

@@ -29,7 +29,6 @@ public class SettingsTabLook : SettingsTab
     };
 
     private float globalUiScale;
-    private float fontGamma;
 
     public override SettingsEntry[] Entries { get; } =
     {
@@ -202,33 +201,12 @@ public class SettingsTabLook : SettingsTab
             }
         }
 
-        ImGuiHelpers.ScaledDummy(5);
-
-        ImGui.AlignTextToFramePadding();
-        ImGui.Text(Loc.Localize("DalamudSettingsFontGamma", "Font Gamma"));
-        ImGui.SameLine();
-        if (ImGui.Button(Loc.Localize("DalamudSettingsIndividualConfigResetToDefaultValue", "Reset") + "##DalamudSettingsFontGammaReset"))
-        {
-            this.fontGamma = 1.4f;
-            interfaceManager.FontGammaOverride = this.fontGamma;
-            interfaceManager.RebuildFonts();
-        }
-
-        if (ImGui.DragFloat("##DalamudSettingsFontGammaDrag", ref this.fontGamma, 0.005f, 0.3f, 3f, "%.2f", ImGuiSliderFlags.AlwaysClamp))
-        {
-            interfaceManager.FontGammaOverride = this.fontGamma;
-            interfaceManager.RebuildFonts();
-        }
-
-        ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingsFontGammaHint", "Changes the thickness of text."));
-
         base.Draw();
     }
 
     public override void Load()
     {
         this.globalUiScale = Service<DalamudConfiguration>.Get().GlobalUiScale;
-        this.fontGamma = Service<DalamudConfiguration>.Get().FontGammaLevel;
 
         base.Load();
     }
@@ -236,7 +214,6 @@ public class SettingsTabLook : SettingsTab
     public override void Save()
     {
         Service<DalamudConfiguration>.Get().GlobalUiScale = this.globalUiScale;
-        Service<DalamudConfiguration>.Get().FontGammaLevel = this.fontGamma;
 
         base.Save();
     }

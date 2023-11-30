@@ -200,16 +200,6 @@ internal class InterfaceManager : IDisposable, IServiceType
     public bool UseAxis => this.UseAxisOverride ?? Service<DalamudConfiguration>.Get().UseAxisFontsFromGame;
 
     /// <summary>
-    /// Gets or sets the overrided font gamma value, instead of using the value from configuration.
-    /// </summary>
-    public float? FontGammaOverride { get; set; } = null;
-
-    /// <summary>
-    /// Gets the font gamma value to use.
-    /// </summary>
-    public float FontGamma => Math.Max(0.1f, this.FontGammaOverride.GetValueOrDefault(Service<DalamudConfiguration>.Get().FontGammaLevel));
-
-    /// <summary>
     /// Gets a value indicating the native handle of the game main window.
     /// </summary>
     public IntPtr GameWindowHandle

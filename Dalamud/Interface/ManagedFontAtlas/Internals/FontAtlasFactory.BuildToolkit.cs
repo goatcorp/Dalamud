@@ -381,7 +381,6 @@ internal sealed partial class FontAtlasFactory
 
         public unsafe void PreBuild()
         {
-            var gamma = this.factory.InterfaceManager.FontGamma;
             var configData = this.data.ConfigData;
             foreach (ref var config in configData.DataSpan)
             {
@@ -400,7 +399,7 @@ internal sealed partial class FontAtlasFactory
 
                 config.GlyphOffset *= this.Scale;
 
-                config.RasterizerGamma *= gamma;
+                config.RasterizerGamma *= 1.4f;
             }
         }
 

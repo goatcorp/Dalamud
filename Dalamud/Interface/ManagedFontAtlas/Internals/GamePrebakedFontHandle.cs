@@ -334,7 +334,6 @@ internal class GamePrebakedFontHandle : IFontHandle.IInternal
                         ArrayPool<TexFile>.Shared.Return(x);
                 });
 
-            var fontGamma = this.interfaceManager.FontGamma;
             var pixels8Array = new byte*[toolkitPostBuild.NewImAtlas.Textures.Size];
             var widths = new int[toolkitPostBuild.NewImAtlas.Textures.Size];
             var heights = new int[toolkitPostBuild.NewImAtlas.Textures.Size];
@@ -444,21 +443,6 @@ internal class GamePrebakedFontHandle : IFontHandle.IInternal
                                             pixels8[targetOffset] =
                                                 Math.Max(pixels8[targetOffset], (byte)(boldStrength * n));
                                         }
-                                    }
-                                }
-                            }
-
-                            if (Math.Abs(fontGamma - 1.4f) >= 0.001)
-                            {
-                                // Gamma correction (stbtt/FreeType would output in linear space whereas most real world usages will apply 1.4 or 1.8 gamma; Windows/XIV prebaked uses 1.4)
-                                var xTo = rc->X + rc->Width;
-                                var yTo = rc->Y + rc->Height;
-                                for (int y = rc->Y; y < yTo; y++)
-                                {
-                                    for (int x = rc->X; x < xTo; x++)
-                                    {
-                                        var i = (y * width) + x;
-                                        pixels8[i] = (byte)(Math.Pow(pixels8[i] / 255.0f, 1.4f / fontGamma) * 255.0f);
                                     }
                                 }
                             }
