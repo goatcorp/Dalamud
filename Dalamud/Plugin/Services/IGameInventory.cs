@@ -8,62 +8,83 @@ namespace Dalamud.Plugin.Services;
 public interface IGameInventory
 {
     /// <summary>
-    /// Delegate function for when an item is moved from one inventory to the next.
+    /// Delegate function to be called when inventories have been changed.
     /// </summary>
-    /// <param name="source">Which inventory the item was moved from.</param>
-    /// <param name="sourceSlot">The slot this item was moved from.</param>
-    /// <param name="destination">Which inventory the item was moved to.</param>
-    /// <param name="destinationSlot">The slot this item was moved to.</param>
-    /// <param name="item">The item moved.</param>
-    public delegate void OnItemMovedDelegate(GameInventoryType source, uint sourceSlot, GameInventoryType destination, uint destinationSlot, GameInventoryItem item);
-
-    /// <summary>
-    /// Delegate function for when an item is removed from an inventory.
-    /// </summary>
-    /// <param name="source">Which inventory the item was removed from.</param>
-    /// <param name="sourceSlot">The slot this item was removed from.</param>
-    /// <param name="item">The item removed.</param>
-    public delegate void OnItemRemovedDelegate(GameInventoryType source, uint sourceSlot, GameInventoryItem item);
-
-    /// <summary>
-    /// Delegate function for when an item is added to an inventory.
-    /// </summary>
-    /// <param name="destination">Which inventory the item was added to.</param>
-    /// <param name="destinationSlot">The slot this item was added to.</param>
-    /// <param name="item">The item added.</param>
-    public delegate void OnItemAddedDelegate(GameInventoryType destination, uint destinationSlot, GameInventoryItem item);
-
-    /// <summary>
-    /// Delegate function for when an items properties are changed.
-    /// </summary>
-    /// <param name="inventory">Which inventory the item that was changed is in.</param>
-    /// <param name="slot">The slot the item that was changed is in.</param>
-    /// <param name="item">The item changed.</param>
-    public delegate void OnItemChangedDelegate(GameInventoryType inventory, uint slot, GameInventoryItem item);
-
-    /// <summary>
-    /// Event that is fired when an item is moved from one inventory to another.
-    /// </summary>
-    public event OnItemMovedDelegate ItemMoved;
+    /// <param name="events">The events.</param>
+    public delegate void InventoryChangeDelegate(ReadOnlySpan<GameInventoryEventArgs> events);
     
     /// <summary>
-    /// Event that is fired when an item is removed from one inventory.
+    /// Event that is fired when the inventory has been changed.
     /// </summary>
-    /// <remarks>
-    /// This event will also be fired when an item is moved from one inventory to another.
-    /// </remarks>
-    public event OnItemRemovedDelegate ItemRemoved;
+    public event InventoryChangeDelegate InventoryChanged;
     
     /// <summary>
-    /// Event that is fired when an item is added to one inventory.
+    /// Argument for <see cref="InventoryChangeDelegate"/>.
     /// </summary>
-    /// <remarks>
-    /// This event will also be fired when an item is moved from one inventory to another.
-    /// </remarks>
-    public event OnItemAddedDelegate ItemAdded;
-    
-    /// <summary>
-    /// Event that is fired when an items properties are changed.
-    /// </summary>
-    public event OnItemChangedDelegate ItemChanged;
+    public readonly struct GameInventoryEventArgs
+    {
+        /// <summary>
+        /// The type of the event.
+        /// </summary>
+        public readonly GameInventoryEvent Type;
+
+        /// <summary>
+        /// The content of the item in the source inventory.<br />
+        /// Relevant if <see cref="Type"/> is <see cref="GameInventoryEvent.Moved"/>, <see cref="GameInventoryEvent.Changed"/>, or <see cref="GameInventoryEvent.Removed"/>.
+        /// </summary>
+        public readonly GameInventoryItem Source;
+        
+        /// <summary>
+        /// The content of the item in the target inventory<br />
+        /// Relevant if <see cref="Type"/> is <see cref="GameInventoryEvent.Moved"/>, <see cref="GameInventoryEvent.Changed"/>, or <see cref="GameInventoryEvent.Added"/>.
+        /// </summary>
+        public readonly GameInventoryItem Target;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="GameInventoryEventArgs"/> struct.
+        /// </summary>
+        /// <param name="type">The type of the event.</param>
+        /// <param name="source">The source inventory item.</param>
+        /// <param name="target">The target inventory item.</param>
+        public GameInventoryEventArgs(GameInventoryEvent type, GameInventoryItem source, GameInventoryItem target)
+        {
+            this.Type = type;
+            this.Source = source;
+            this.Target = target;
+        }
+
+        /// <summary>
+        /// Gets a value indicating whether this instance of <see cref="GameInventoryEventArgs"/> contains no information.
+        /// </summary>
+        public bool IsEmpty => this.Type == GameInventoryEvent.Empty;
+
+        // TODO: are the following two aliases useful?
+        
+        /// <summary>
+        /// Gets the type of the source inventory.<br />
+        /// Relevant for <see cref="GameInventoryEvent.Moved"/> and <see cref="GameInventoryEvent.Removed"/>.
+        /// </summary>
+        public GameInventoryType SourceType => this.Source.ContainerType;
+
+        /// <summary>
+        /// Gets the type of the target inventory.<br />
+        /// Relevant for <see cref="GameInventoryEvent.Moved"/>, <see cref="GameInventoryEvent.Changed"/>, and
+        /// <see cref="GameInventoryEvent.Added"/>.
+        /// </summary>
+        public GameInventoryType TargetType => this.Target.ContainerType;
+
+        /// <inheritdoc/>
+        public override string ToString() => this.Type switch
+        {
+            GameInventoryEvent.Empty =>
+                $"<{this.Type}>",
+            GameInventoryEvent.Added =>
+                $"<{this.Type}> ({this.Target})",
+            GameInventoryEvent.Removed =>
+                $"<{this.Type}> ({this.Source})",
+            GameInventoryEvent.Changed or GameInventoryEvent.Moved =>
+                $"<{this.Type}> ({this.Source}) to ({this.Target})",
+            _ => $"<Type={this.Type}> {this.Source} => {this.Target}",
+        };
+    }
 }

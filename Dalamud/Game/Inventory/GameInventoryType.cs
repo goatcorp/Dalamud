@@ -3,7 +3,7 @@
 /// <summary>
 /// Enum representing various player inventories.
 /// </summary>
-public enum GameInventoryType : uint
+public enum GameInventoryType : ushort
 {
     /// <summary>
     /// First panel of main player inventory.
@@ -348,4 +348,9 @@ public enum GameInventoryType : uint
     /// Eighth panel of housing interior storeroom inventory.
     /// </summary>
     HousingInteriorStoreroom8 = 27008,
+    
+    /// <summary>
+    /// An invalid value.
+    /// </summary>
+    Invalid = ushort.MaxValue,
 }
