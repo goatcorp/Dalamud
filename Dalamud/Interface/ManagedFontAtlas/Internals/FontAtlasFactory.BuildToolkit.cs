@@ -426,7 +426,9 @@ internal sealed partial class FontAtlasFactory
             var scale = this.Scale;
             foreach (ref var font in this.Fonts.DataSpan)
             {
-                if (!this.GlobalScaleExclusions.Contains(font) && Math.Abs(scale - 1f) > 0f)
+                if (this.GlobalScaleExclusions.Contains(font))
+                    font.AdjustGlyphMetrics(1f, 1f);  // we still need to round advanceX and kerning
+                else
                     font.AdjustGlyphMetrics(1 / scale, scale);
 
                 foreach (var c in FallbackCodepoints)
