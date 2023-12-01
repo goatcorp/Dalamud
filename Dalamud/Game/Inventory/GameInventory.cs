@@ -22,7 +22,7 @@ namespace Dalamud.Game.Inventory;
 [ServiceManager.BlockingEarlyLoadedService]
 internal class GameInventory : IDisposable, IServiceType, IGameInventory
 {
-    private static readonly ModuleLog Log = new("GameInventory");
+    private static readonly ModuleLog Log = new(nameof(GameInventory));
 
     private readonly List<InventoryItemAddedArgs> addedEvents = new();
     private readonly List<InventoryItemRemovedArgs> removedEvents = new();
@@ -195,20 +195,23 @@ internal class GameInventory : IDisposable, IServiceType, IGameInventory
             for (var j = i - 1; j >= 0; --j)
             {
                 var e2 = this.changedEvents[j];
-                if (e1.Item.ItemId != e2.Item.ItemId || e1.Item.ItemId != e2.Item.ItemId)
+                if (e1.Item.ItemId != e2.OldItemState.ItemId || e1.OldItemState.ItemId != e2.Item.ItemId)
                     continue;
 
-                // move happened, and e2 has an item
+                // Move happened, and e2 has an item.
                 if (!e2.Item.IsEmpty)
                     this.movedEvents.Add(new(e1, e2));
 
-                // move happened, and e1 has an item
+                // Move happened, and e1 has an item.
                 if (!e1.Item.IsEmpty)
                     this.movedEvents.Add(new(e2, e1));
 
                 // Remove the reinterpreted entries. Note that i > j.
                 this.changedEvents.RemoveAt(i);
                 this.changedEvents.RemoveAt(j);
+                
+                // We've removed two. Adjust the outer counter.
+                --i;
                 break;
             }
         }
