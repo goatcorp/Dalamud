@@ -50,7 +50,7 @@ internal class GameInventory : IDisposable, IServiceType, IGameInventory
     /// </summary>
     /// <param name="type">The inventory type.</param>
     /// <returns>The span.</returns>
-    private static unsafe Span<GameInventoryItem> GetItemsForInventory(GameInventoryType type)
+    private static unsafe ReadOnlySpan<GameInventoryItem> GetItemsForInventory(GameInventoryType type)
     {
         var inventoryManager = InventoryManager.Instance();
         if (inventoryManager is null) return default;
@@ -58,15 +58,11 @@ internal class GameInventory : IDisposable, IServiceType, IGameInventory
         var inventory = inventoryManager->GetInventoryContainer((InventoryType)type);
         if (inventory is null) return default;
 
-        return new(inventory->Items, (int)inventory->Size);
+        return new ReadOnlySpan<GameInventoryItem>(inventory->Items, (int)inventory->Size);
     }
     
     private void OnFrameworkUpdate(IFramework framework1)
     {
-        // TODO: Uncomment this
-        // // If no one is listening for event's then we don't need to track anything.
-        // if (this.InventoryChanged is null) return;
-        
         for (var i = 0; i < this.inventoryTypes.Length; i++)
         {
             var newItems = GetItemsForInventory(this.inventoryTypes[i]);
@@ -76,7 +72,7 @@ internal class GameInventory : IDisposable, IServiceType, IGameInventory
             // Assumption: newItems is sorted by slots, and the last item has the highest slot number.
             var oldItems = this.inventoryItems[i] ??= new GameInventoryItem[newItems[^1].InternalItem.Slot + 1];
 
-            foreach (ref var newItem in newItems)
+            foreach (ref readonly var newItem in newItems)
             {
                 ref var oldItem = ref oldItems[newItem.InternalItem.Slot];
 
@@ -84,14 +80,14 @@ internal class GameInventory : IDisposable, IServiceType, IGameInventory
                 {
                     if (newItem.IsEmpty)
                         continue;
-                    this.changelog.Add(new(GameInventoryEvent.Added, default, newItem));
+                    this.changelog.Add(new IGameInventory.GameInventoryEventArgs(GameInventoryEvent.Added, default, newItem));
                 }
                 else
                 {
                     if (newItem.IsEmpty)
-                        this.changelog.Add(new(GameInventoryEvent.Removed, oldItem, default));
+                        this.changelog.Add(new IGameInventory.GameInventoryEventArgs(GameInventoryEvent.Removed, oldItem, default));
                     else if (!oldItem.Equals(newItem))
-                        this.changelog.Add(new(GameInventoryEvent.Changed, oldItem, newItem));
+                        this.changelog.Add(new IGameInventory.GameInventoryEventArgs(GameInventoryEvent.Changed, oldItem, newItem));
                     else
                         continue;
                 }
@@ -133,7 +129,7 @@ internal class GameInventory : IDisposable, IServiceType, IGameInventory
                     if (added.Target.ItemId == removed.Source.ItemId)
                     {
                         Log.Verbose($"Move: reinterpreting {removed} + {added}");
-                        added = new(GameInventoryEvent.Moved, removed.Source, added.Target);
+                        added = new IGameInventory.GameInventoryEventArgs(GameInventoryEvent.Moved, removed.Source, added.Target);
                         removed = default;
                         break;
                     }
@@ -156,22 +152,22 @@ internal class GameInventory : IDisposable, IServiceType, IGameInventory
                         {
                             // e1 got moved to e2
                             Log.Verbose($"Move: reinterpreting {e1} + {e2}");
-                            e1 = new(GameInventoryEvent.Moved, e1.Source, e2.Target);
+                            e1 = new IGameInventory.GameInventoryEventArgs(GameInventoryEvent.Moved, e1.Source, e2.Target);
                             e2 = default;
                         }
                         else if (e2.Target.IsEmpty)
                         {
                             // e2 got moved to e1
                             Log.Verbose($"Move: reinterpreting {e2} + {e1}");
-                            e1 = new(GameInventoryEvent.Moved, e2.Source, e1.Target);
+                            e1 = new IGameInventory.GameInventoryEventArgs(GameInventoryEvent.Moved, e2.Source, e1.Target);
                             e2 = default;
                         }
                         else
                         {
                             // e1 and e2 got swapped
                             Log.Verbose($"Move(Swap): reinterpreting {e1} + {e2}");
-                            (e1, e2) = (new(GameInventoryEvent.Moved, e1.Target, e2.Target),
-                                           new(GameInventoryEvent.Moved, e2.Target, e1.Target));
+                            (e1, e2) = (new IGameInventory.GameInventoryEventArgs(GameInventoryEvent.Moved, e1.Target, e2.Target),
+                                           new IGameInventory.GameInventoryEventArgs(GameInventoryEvent.Moved, e2.Target, e1.Target));
                         }
                     }
                 }
