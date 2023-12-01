@@ -33,5 +33,5 @@ public abstract class InventoryEventArgs
     public ref readonly GameInventoryItem Item => ref this.item;
 
     /// <inheritdoc/>
-    public override string ToString() => $"<{this.Type}> ({this.Item})";
+    public override string ToString() => $"{this.Type}({this.Item})";
 }

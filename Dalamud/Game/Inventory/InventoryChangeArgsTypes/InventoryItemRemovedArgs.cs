@@ -3,7 +3,7 @@
 /// <summary>
 /// Represents the data associated with an item being removed from an inventory.
 /// </summary>
-public class InventoryItemRemovedArgs : InventoryEventArgs
+public sealed class InventoryItemRemovedArgs : InventoryEventArgs
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="InventoryItemRemovedArgs"/> class.

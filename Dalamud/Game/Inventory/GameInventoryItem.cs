@@ -158,6 +158,6 @@ public unsafe struct GameInventoryItem : IEquatable<GameInventoryItem>
     /// <inheritdoc cref="object.ToString"/>
     public override string ToString() =>
         this.IsEmpty
-            ? "no item"
-            : $"item #{this.ItemId} at slot {this.InventorySlot} in {this.ContainerType}";
+            ? "empty"
+            : $"item({this.ItemId}@{this.ContainerType}#{this.InventorySlot})";
 }

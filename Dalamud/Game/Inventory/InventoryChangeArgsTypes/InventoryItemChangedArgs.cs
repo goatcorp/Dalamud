@@ -4,7 +4,7 @@
 /// Represents the data associated with an items properties being changed.
 /// This also includes an items stack count changing.
 /// </summary>
-public class InventoryItemChangedArgs : InventoryEventArgs
+public sealed class InventoryItemChangedArgs : InventoryEventArgs
 {
     private readonly GameInventoryItem oldItemState;
 

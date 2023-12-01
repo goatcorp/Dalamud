@@ -30,4 +30,14 @@ public enum GameInventoryEvent
     /// Item has been moved, possibly across different inventories.
     /// </summary>
     Moved = 4,
+
+    /// <summary>
+    /// Item has been split into two stacks from one, possibly across different inventories.
+    /// </summary>
+    Split = 5,
+
+    /// <summary>
+    /// Item has been merged into one stack from two, possibly across different inventories.
+    /// </summary>
+    Merged = 6,
 }

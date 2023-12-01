@@ -33,27 +33,28 @@ public interface IGameInventory
     /// <summary>
     /// Event that is fired when the inventory has been changed, without trying to interpret two inventory slot changes
     /// as a move event as appropriate.<br />
-    /// In other words, <see cref="GameInventoryEvent.Moved"/> does not fire in this event.
+    /// In other words, <see cref="GameInventoryEvent.Moved"/>, <see cref="GameInventoryEvent.Merged"/>, and
+    /// <see cref="GameInventoryEvent.Split"/> do not fire in this event.
     /// </summary>
     public event InventoryChangelogDelegate InventoryChangedRaw;
 
     /// <summary>
     /// Event that is fired when an item is added to an inventory.<br />
-    /// If an accompanying item remove event happens, then <see cref="ItemMoved"/> will be called instead.<br />
+    /// If this event is a part of multi-step event, then this event will not be called.<br />
     /// Use <see cref="InventoryChangedRaw"/> if you do not want such reinterpretation. 
     /// </summary>
     public event InventoryChangedDelegate ItemAdded;
 
     /// <summary>
     /// Event that is fired when an item is removed from an inventory.<br />
-    /// If an accompanying item add event happens, then <see cref="ItemMoved"/> will be called instead.<br />
+    /// If this event is a part of multi-step event, then this event will not be called.<br />
     /// Use <see cref="InventoryChangedRaw"/> if you do not want such reinterpretation.
     /// </summary>
     public event InventoryChangedDelegate ItemRemoved;
 
     /// <summary>
     /// Event that is fired when an items properties are changed.<br />
-    /// If an accompanying item change event happens, then <see cref="ItemMoved"/> will be called instead.<br />
+    /// If this event is a part of multi-step event, then this event will not be called.<br />
     /// Use <see cref="InventoryChangedRaw"/> if you do not want such reinterpretation.
     /// </summary>
     public event InventoryChangedDelegate ItemChanged;
@@ -62,4 +63,14 @@ public interface IGameInventory
     /// Event that is fired when an item is moved from one inventory into another.
     /// </summary>
     public event InventoryChangedDelegate ItemMoved;
+
+    /// <summary>
+    /// Event that is fired when an item is split from one stack into two.
+    /// </summary>
+    public event InventoryChangedDelegate ItemSplit;
+
+    /// <summary>
+    /// Event that is fired when an item is merged from two stacks into one.
+    /// </summary>
+    public event InventoryChangedDelegate ItemMerged;
 }

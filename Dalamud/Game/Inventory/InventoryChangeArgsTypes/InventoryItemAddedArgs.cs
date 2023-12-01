@@ -3,7 +3,7 @@
 /// <summary>
 /// Represents the data associated with an item being added to an inventory.
 /// </summary>
-public class InventoryItemAddedArgs : InventoryEventArgs
+public sealed class InventoryItemAddedArgs : InventoryEventArgs
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="InventoryItemAddedArgs"/> class.

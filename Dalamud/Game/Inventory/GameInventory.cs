@@ -28,6 +28,8 @@ internal class GameInventory : IDisposable, IServiceType, IGameInventory
     private readonly List<InventoryItemRemovedArgs> removedEvents = new();
     private readonly List<InventoryItemChangedArgs> changedEvents = new();
     private readonly List<InventoryItemMovedArgs> movedEvents = new();
+    private readonly List<InventoryItemSplitArgs> splitEvents = new();
+    private readonly List<InventoryItemMergedArgs> mergedEvents = new();
 
     [ServiceManager.ServiceDependency]
     private readonly Framework framework = Service<Framework>.Get();
@@ -45,6 +47,21 @@ internal class GameInventory : IDisposable, IServiceType, IGameInventory
         this.inventoryItems = new GameInventoryItem[this.inventoryTypes.Length][];
 
         this.framework.Update += this.OnFrameworkUpdate;
+
+        // Separate log logic as an event handler.
+        this.InventoryChanged += events =>
+        {
+            if (this.dalamudConfiguration.LogLevel > LogEventLevel.Verbose)
+                return;
+
+            foreach (var e in events)
+            {
+                if (e is InventoryComplexEventArgs icea)
+                    Log.Verbose($"{icea}\n\t├ {icea.SourceEvent}\n\t└ {icea.TargetEvent}");
+                else
+                    Log.Verbose($"{e}");
+            }
+        };
     }
 
     /// <inheritdoc/>
@@ -64,6 +81,12 @@ internal class GameInventory : IDisposable, IServiceType, IGameInventory
 
     /// <inheritdoc/>
     public event IGameInventory.InventoryChangedDelegate? ItemMoved;
+
+    /// <inheritdoc/>
+    public event IGameInventory.InventoryChangedDelegate? ItemSplit;
+
+    /// <inheritdoc/>
+    public event IGameInventory.InventoryChangedDelegate? ItemMerged;
 
     /// <inheritdoc/>
     public void Dispose()
@@ -153,11 +176,12 @@ internal class GameInventory : IDisposable, IServiceType, IGameInventory
         }
 
         // Was there any change? If not, stop further processing.
-        // Note that this.movedEvents is not checked; it will be populated after this check.
+        // Note that only these three are checked; the rest will be populated after this check.
         if (this.addedEvents.Count == 0 && this.removedEvents.Count == 0 && this.changedEvents.Count == 0)
             return;
 
         // Broadcast InventoryChangedRaw.
+        // Same reason with the above on why are there 3 lists of events involved.
         InvokeSafely(
             this.InventoryChangedRaw,
             new DeferredReadOnlyCollection<InventoryEventArgs>(
@@ -169,7 +193,7 @@ internal class GameInventory : IDisposable, IServiceType, IGameInventory
                            .Concat(this.removedEvents)
                            .Concat(this.changedEvents)));
 
-        // Resolve changelog for item moved, from 1 added + 1 removed event.
+        // Resolve moved items, from 1 added + 1 removed event.
         for (var iAdded = this.addedEvents.Count - 1; iAdded >= 0; --iAdded)
         {
             var added = this.addedEvents[iAdded];
@@ -188,7 +212,7 @@ internal class GameInventory : IDisposable, IServiceType, IGameInventory
             }
         }
 
-        // Resolve changelog for item moved, from 2 changed events.
+        // Resolve moved items, from 2 changed events.
         for (var i = this.changedEvents.Count - 1; i >= 0; --i)
         {
             var e1 = this.changedEvents[i];
@@ -209,27 +233,49 @@ internal class GameInventory : IDisposable, IServiceType, IGameInventory
                 // Remove the reinterpreted entries. Note that i > j.
                 this.changedEvents.RemoveAt(i);
                 this.changedEvents.RemoveAt(j);
-                
+
                 // We've removed two. Adjust the outer counter.
                 --i;
                 break;
             }
         }
 
-        // Log only if it matters.
-        if (this.dalamudConfiguration.LogLevel <= LogEventLevel.Verbose)
+        // Resolve split items, from 1 added + 1 changed event.
+        for (var iAdded = this.addedEvents.Count - 1; iAdded >= 0; --iAdded)
         {
-            foreach (var x in this.addedEvents)
-                Log.Verbose($"{x}");
+            var added = this.addedEvents[iAdded];
+            for (var iChanged = this.changedEvents.Count - 1; iChanged >= 0; --iChanged)
+            {
+                var changed = this.changedEvents[iChanged];
+                if (added.Item.ItemId != changed.Item.ItemId || added.Item.ItemId != changed.OldItemState.ItemId)
+                    continue;
 
-            foreach (var x in this.removedEvents)
-                Log.Verbose($"{x}");
+                this.splitEvents.Add(new(changed, added));
 
-            foreach (var x in this.changedEvents)
-                Log.Verbose($"{x}");
+                // Remove the reinterpreted entries.
+                this.addedEvents.RemoveAt(iAdded);
+                this.changedEvents.RemoveAt(iChanged);
+                break;
+            }
+        }
 
-            foreach (var x in this.movedEvents)
-                Log.Verbose($"{x} (({x.SourceEvent}) + ({x.TargetEvent}))");
+        // Resolve merged items, from 1 removed + 1 changed event.
+        for (var iRemoved = this.removedEvents.Count - 1; iRemoved >= 0; --iRemoved)
+        {
+            var removed = this.removedEvents[iRemoved];
+            for (var iChanged = this.changedEvents.Count - 1; iChanged >= 0; --iChanged)
+            {
+                var changed = this.changedEvents[iChanged];
+                if (removed.Item.ItemId != changed.Item.ItemId || removed.Item.ItemId != changed.OldItemState.ItemId)
+                    continue;
+
+                this.mergedEvents.Add(new(removed, changed));
+
+                // Remove the reinterpreted entries.
+                this.removedEvents.RemoveAt(iRemoved);
+                this.changedEvents.RemoveAt(iChanged);
+                break;
+            }
         }
 
         // Broadcast the rest.
@@ -239,12 +285,16 @@ internal class GameInventory : IDisposable, IServiceType, IGameInventory
                 this.addedEvents.Count +
                 this.removedEvents.Count +
                 this.changedEvents.Count +
-                this.movedEvents.Count,
+                this.movedEvents.Count +
+                this.splitEvents.Count +
+                this.mergedEvents.Count,
                 () => Array.Empty<InventoryEventArgs>()
                            .Concat(this.addedEvents)
                            .Concat(this.removedEvents)
                            .Concat(this.changedEvents)
-                           .Concat(this.movedEvents)));
+                           .Concat(this.movedEvents)
+                           .Concat(this.splitEvents)
+                           .Concat(this.mergedEvents)));
 
         foreach (var x in this.addedEvents)
             InvokeSafely(this.ItemAdded, x);
@@ -258,11 +308,19 @@ internal class GameInventory : IDisposable, IServiceType, IGameInventory
         foreach (var x in this.movedEvents)
             InvokeSafely(this.ItemMoved, x);
 
+        foreach (var x in this.splitEvents)
+            InvokeSafely(this.ItemSplit, x);
+
+        foreach (var x in this.mergedEvents)
+            InvokeSafely(this.ItemMerged, x);
+
         // We're done using the lists. Clean them up.
         this.addedEvents.Clear();
         this.removedEvents.Clear();
         this.changedEvents.Clear();
         this.movedEvents.Clear();
+        this.splitEvents.Clear();
+        this.mergedEvents.Clear();
     }
 
     /// <summary>
@@ -313,6 +371,8 @@ internal class GameInventoryPluginScoped : IDisposable, IServiceType, IGameInven
         this.gameInventoryService.ItemRemoved += this.OnInventoryItemRemovedForward;
         this.gameInventoryService.ItemMoved += this.OnInventoryItemMovedForward;
         this.gameInventoryService.ItemChanged += this.OnInventoryItemChangedForward;
+        this.gameInventoryService.ItemSplit += this.OnInventoryItemSplitForward;
+        this.gameInventoryService.ItemMerged += this.OnInventoryItemMergedForward;
     }
 
     /// <inheritdoc/>
@@ -334,6 +394,12 @@ internal class GameInventoryPluginScoped : IDisposable, IServiceType, IGameInven
     public event IGameInventory.InventoryChangedDelegate? ItemMoved;
 
     /// <inheritdoc/>
+    public event IGameInventory.InventoryChangedDelegate? ItemSplit;
+
+    /// <inheritdoc/>
+    public event IGameInventory.InventoryChangedDelegate? ItemMerged;
+
+    /// <inheritdoc/>
     public void Dispose()
     {
         this.gameInventoryService.InventoryChanged -= this.OnInventoryChangedForward;
@@ -342,6 +408,8 @@ internal class GameInventoryPluginScoped : IDisposable, IServiceType, IGameInven
         this.gameInventoryService.ItemRemoved -= this.OnInventoryItemRemovedForward;
         this.gameInventoryService.ItemChanged -= this.OnInventoryItemChangedForward;
         this.gameInventoryService.ItemMoved -= this.OnInventoryItemMovedForward;
+        this.gameInventoryService.ItemSplit -= this.OnInventoryItemSplitForward;
+        this.gameInventoryService.ItemMerged -= this.OnInventoryItemMergedForward;
 
         this.InventoryChanged = null;
         this.InventoryChangedRaw = null;
@@ -349,6 +417,8 @@ internal class GameInventoryPluginScoped : IDisposable, IServiceType, IGameInven
         this.ItemRemoved = null;
         this.ItemChanged = null;
         this.ItemMoved = null;
+        this.ItemSplit = null;
+        this.ItemMerged = null;
     }
 
     private void OnInventoryChangedForward(IReadOnlyCollection<InventoryEventArgs> events)
@@ -368,4 +438,10 @@ internal class GameInventoryPluginScoped : IDisposable, IServiceType, IGameInven
 
     private void OnInventoryItemMovedForward(GameInventoryEvent type, InventoryEventArgs data)
         => this.ItemMoved?.Invoke(type, data);
+
+    private void OnInventoryItemSplitForward(GameInventoryEvent type, InventoryEventArgs data)
+        => this.ItemSplit?.Invoke(type, data);
+
+    private void OnInventoryItemMergedForward(GameInventoryEvent type, InventoryEventArgs data)
+        => this.ItemMerged?.Invoke(type, data);
 }
