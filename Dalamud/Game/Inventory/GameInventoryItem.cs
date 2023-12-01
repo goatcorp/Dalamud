@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 
 using FFXIVClientStructs.FFXIV.Client.Game;
 
-namespace Dalamud.Game.Inventory;
+namespace Dalamud.Game.GameInventory;
 
 /// <summary>
 /// Dalamud wrapper around a ClientStructs InventoryItem.
