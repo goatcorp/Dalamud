@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 using Dalamud.IoC;
@@ -26,22 +25,13 @@ internal class GameInventory : IDisposable, IServiceType, IGameInventory
     private readonly Framework framework = Service<Framework>.Get();
 
     private readonly GameInventoryType[] inventoryTypes;
-    private readonly GameInventoryItem[][] inventoryItems;
-    private readonly unsafe GameInventoryItem*[] inventoryItemsPointers;
+    private readonly GameInventoryItem[]?[] inventoryItems;
     
     [ServiceManager.ServiceConstructor]
-    private unsafe GameInventory()
+    private GameInventory()
     {
         this.inventoryTypes = Enum.GetValues<GameInventoryType>();
-        
-        // Using GC.AllocateArray(pinned: true), so that Unsafe.AsPointer(ref array[0]) does not fail.
         this.inventoryItems = new GameInventoryItem[this.inventoryTypes.Length][];
-        this.inventoryItemsPointers = new GameInventoryItem*[this.inventoryTypes.Length];
-        for (var i = 0; i < this.inventoryItems.Length; i++)
-        {
-            this.inventoryItems[i] = GC.AllocateArray<GameInventoryItem>(1, true);
-            this.inventoryItemsPointers[i] = (GameInventoryItem*)Unsafe.AsPointer(ref this.inventoryItems[i][0]);
-        }
 
         this.framework.Update += this.OnFrameworkUpdate;
     }
@@ -70,69 +60,25 @@ internal class GameInventory : IDisposable, IServiceType, IGameInventory
 
         return new(inventory->Items, (int)inventory->Size);
     }
-
-    /// <summary>
-    /// Looks for the first index of <paramref name="type"/>, or the supposed position one should be if none could be found.
-    /// </summary>
-    /// <param name="span">The span to look in.</param>
-    /// <param name="type">The type.</param>
-    /// <returns>The index.</returns>
-    private static int FindTypeIndex(Span<IGameInventory.GameInventoryEventArgs> span, GameInventoryEvent type)
-    {
-        // Use linear lookup if span size is small enough
-        if (span.Length < 64)
-        {
-            var i = 0;
-            for (; i < span.Length; i++)
-            {
-                if (type <= span[i].Type)
-                    break;
-            }
-        
-            return i;
-        }
-
-        var lo = 0;
-        var hi = span.Length - 1;
-        while (lo <= hi)
-        {
-            var i = lo + ((hi - lo) >> 1);
-            var type2 = span[i].Type;
-            if (type == type2)
-                return i;
-            if (type < type2)
-                lo = i + 1;
-            else
-                hi = i - 1;
-        }
-        
-        return lo;
-    }
     
-    private unsafe void OnFrameworkUpdate(IFramework framework1)
+    private void OnFrameworkUpdate(IFramework framework1)
     {
         // TODO: Uncomment this
         // // If no one is listening for event's then we don't need to track anything.
         // if (this.InventoryChanged is null) return;
         
-        for (var i = 0; i < this.inventoryTypes.Length;)
+        for (var i = 0; i < this.inventoryTypes.Length; i++)
         {
-            var oldItemsArray = this.inventoryItems[i];
-            var oldItemsLength = oldItemsArray.Length;
-            var oldItemsPointer = this.inventoryItemsPointers[i];
+            var newItems = GetItemsForInventory(this.inventoryTypes[i]);
+            if (newItems.IsEmpty)
+                continue;
 
-            var resizeRequired = 0;
-            foreach (ref var newItem in GetItemsForInventory(this.inventoryTypes[i]))
+            // Assumption: newItems is sorted by slots, and the last item has the highest slot number.
+            var oldItems = this.inventoryItems[i] ??= new GameInventoryItem[newItems[^1].InternalItem.Slot + 1];
+
+            foreach (ref var newItem in newItems)
             {
-                var slot = newItem.InternalItem.Slot;
-                if (slot >= oldItemsLength)
-                {
-                    resizeRequired = Math.Max(resizeRequired, slot + 1);
-                    continue;
-                }
-
-                // We already checked the range above. Go raw.
-                ref var oldItem = ref oldItemsPointer[slot];
+                ref var oldItem = ref oldItems[newItem.InternalItem.Slot];
 
                 if (oldItem.IsEmpty)
                 {
@@ -153,21 +99,6 @@ internal class GameInventory : IDisposable, IServiceType, IGameInventory
                 Log.Verbose($"[{this.changelog.Count - 1}] {this.changelog[^1]}");
                 oldItem = newItem;
             }
-
-            // Did the max slot number get changed?
-            if (resizeRequired != 0)
-            {
-                // Resize our buffer, and then try again.
-                var oldItemsExpanded = GC.AllocateArray<GameInventoryItem>(resizeRequired, true);
-                oldItemsArray.CopyTo(oldItemsExpanded, 0);
-                this.inventoryItems[i] = oldItemsExpanded;
-                this.inventoryItemsPointers[i] = (GameInventoryItem*)Unsafe.AsPointer(ref oldItemsExpanded[0]);
-            }
-            else
-            {
-                // Proceed to the next inventory.
-                i++;
-            }
         }
 
         // Was there any change? If not, stop further processing.
@@ -179,65 +110,68 @@ internal class GameInventory : IDisposable, IServiceType, IGameInventory
             // From this point, the size of changelog shall not change.
             var span = CollectionsMarshal.AsSpan(this.changelog);
 
+            // Ensure that changelog is in order of Added, Removed, and then Changed.
             span.Sort((a, b) => a.Type.CompareTo(b.Type));
-            var addedFrom = FindTypeIndex(span, GameInventoryEvent.Added);
-            var removedFrom = FindTypeIndex(span, GameInventoryEvent.Removed);
-            var changedFrom = FindTypeIndex(span, GameInventoryEvent.Changed);
+            
+            var removedFrom = 0;
+            while (removedFrom < span.Length && span[removedFrom].Type != GameInventoryEvent.Removed)
+                removedFrom++;
+            
+            var changedFrom = removedFrom;
+            while (changedFrom < span.Length && span[changedFrom].Type != GameInventoryEvent.Changed)
+                changedFrom++;
+
+            var addedSpan = span[..removedFrom];
+            var removedSpan = span[removedFrom..changedFrom];
+            var changedSpan = span[changedFrom..];
 
             // Resolve changelog for item moved, from 1 added + 1 removed
-            for (var iAdded = addedFrom; iAdded < removedFrom; iAdded++)
+            foreach (ref var added in addedSpan)
             {
-                ref var added = ref span[iAdded];
-                for (var iRemoved = removedFrom; iRemoved < changedFrom; iRemoved++)
+                foreach (ref var removed in removedSpan)
                 {
-                    ref var removed = ref span[iRemoved];
                     if (added.Target.ItemId == removed.Source.ItemId)
                     {
-                        span[iAdded] = new(GameInventoryEvent.Moved, span[iRemoved].Source, span[iAdded].Target);
-                        span[iRemoved] = default;
-                        Log.Verbose($"[{iAdded}] Interpreting instead as: {span[iAdded]}");
-                        Log.Verbose($"[{iRemoved}] Discarding");
+                        Log.Verbose($"Move: reinterpreting {removed} + {added}");
+                        added = new(GameInventoryEvent.Moved, removed.Source, added.Target);
+                        removed = default;
                         break;
                     }
                 }
             }
 
             // Resolve changelog for item moved, from 2 changeds
-            for (var i = changedFrom; i < this.changelog.Count; i++)
+            for (var i = 0; i < changedSpan.Length; i++)
             {
                 if (span[i].IsEmpty)
                     continue;
 
-                ref var e1 = ref span[i];
-                for (var j = i + 1; j < this.changelog.Count; j++)
+                ref var e1 = ref changedSpan[i];
+                for (var j = i + 1; j < changedSpan.Length; j++)
                 {
-                    ref var e2 = ref span[j];
+                    ref var e2 = ref changedSpan[j];
                     if (e1.Target.ItemId == e2.Source.ItemId && e1.Source.ItemId == e2.Target.ItemId)
                     {
                         if (e1.Target.IsEmpty)
                         {
                             // e1 got moved to e2
+                            Log.Verbose($"Move: reinterpreting {e1} + {e2}");
                             e1 = new(GameInventoryEvent.Moved, e1.Source, e2.Target);
                             e2 = default;
-                            Log.Verbose($"[{i}] Interpreting instead as: {e1}");
-                            Log.Verbose($"[{j}] Discarding");
                         }
                         else if (e2.Target.IsEmpty)
                         {
                             // e2 got moved to e1
+                            Log.Verbose($"Move: reinterpreting {e2} + {e1}");
                             e1 = new(GameInventoryEvent.Moved, e2.Source, e1.Target);
                             e2 = default;
-                            Log.Verbose($"[{i}] Interpreting instead as: {e1}");
-                            Log.Verbose($"[{j}] Discarding");
                         }
                         else
                         {
                             // e1 and e2 got swapped
+                            Log.Verbose($"Move(Swap): reinterpreting {e1} + {e2}");
                             (e1, e2) = (new(GameInventoryEvent.Moved, e1.Target, e2.Target),
                                            new(GameInventoryEvent.Moved, e2.Target, e1.Target));
-
-                            Log.Verbose($"[{i}] Interpreting instead as: {e1}");
-                            Log.Verbose($"[{j}] Interpreting instead as: {e2}");
                         }
                     }
                 }
