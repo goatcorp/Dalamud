@@ -1,20 +1,26 @@
-﻿namespace Dalamud.Game.GameInventory;
+﻿namespace Dalamud.Game.Inventory.InventoryChangeArgsTypes;
 
 /// <summary>
 /// Represents the data associated with an item being added to an inventory.
 /// </summary>
 public class InventoryItemAddedArgs : InventoryEventArgs
 {
-    /// <inheritdoc/>
-    public override GameInventoryEvent Type => GameInventoryEvent.Added;
-    
+    /// <summary>
+    /// Initializes a new instance of the <see cref="InventoryItemAddedArgs"/> class.
+    /// </summary>
+    /// <param name="item">The item.</param>
+    internal InventoryItemAddedArgs(in GameInventoryItem item)
+        : base(GameInventoryEvent.Added, item)
+    {
+    }
+
     /// <summary>
     /// Gets the inventory this item was added to.
     /// </summary>
-    required public GameInventoryType Inventory { get; init; }
-    
+    public GameInventoryType Inventory => this.Item.ContainerType;
+
     /// <summary>
     /// Gets the slot this item was added to.
     /// </summary>
-    required public uint Slot { get; init; }
+    public uint Slot => this.Item.InventorySlot;
 }

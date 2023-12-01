@@ -1,4 +1,4 @@
-﻿namespace Dalamud.Game.GameInventory;
+﻿namespace Dalamud.Game.Inventory;
 
 /// <summary>
 /// Enum representing various player inventories.

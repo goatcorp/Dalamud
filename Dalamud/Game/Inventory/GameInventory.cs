@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
-using System.Runtime.InteropServices;
 
+using Dalamud.Configuration.Internal;
+using Dalamud.Game.Inventory.InventoryChangeArgsTypes;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Logging.Internal;
@@ -8,7 +9,9 @@ using Dalamud.Plugin.Services;
 
 using FFXIVClientStructs.FFXIV.Client.Game;
 
-namespace Dalamud.Game.GameInventory;
+using Serilog.Events;
+
+namespace Dalamud.Game.Inventory;
 
 /// <summary>
 /// This class provides events for the players in-game inventory.
@@ -19,10 +22,17 @@ internal class GameInventory : IDisposable, IServiceType, IGameInventory
 {
     private static readonly ModuleLog Log = new("GameInventory");
 
-    private readonly List<InventoryEventArgs> changelog = new();
+    private readonly List<InventoryEventArgs> allEvents = new();
+    private readonly List<InventoryItemAddedArgs> addedEvents = new();
+    private readonly List<InventoryItemRemovedArgs> removedEvents = new();
+    private readonly List<InventoryItemChangedArgs> changedEvents = new();
+    private readonly List<InventoryItemMovedArgs> movedEvents = new();
     
     [ServiceManager.ServiceDependency]
     private readonly Framework framework = Service<Framework>.Get();
+    
+    [ServiceManager.ServiceDependency]
+    private readonly DalamudConfiguration dalamudConfiguration = Service<DalamudConfiguration>.Get();
 
     private readonly GameInventoryType[] inventoryTypes;
     private readonly GameInventoryItem[]?[] inventoryItems;
@@ -38,6 +48,9 @@ internal class GameInventory : IDisposable, IServiceType, IGameInventory
 
     /// <inheritdoc/>
     public event IGameInventory.InventoryChangelogDelegate? InventoryChanged;
+
+    /// <inheritdoc/>
+    public event IGameInventory.InventoryChangelogDelegate? InventoryChangedRaw;
 
     /// <inheritdoc/>
     public event IGameInventory.InventoryChangedDelegate? ItemAdded;
@@ -72,6 +85,32 @@ internal class GameInventory : IDisposable, IServiceType, IGameInventory
 
         return new ReadOnlySpan<GameInventoryItem>(inventory->Items, (int)inventory->Size);
     }
+
+    private static void InvokeSafely(
+        IGameInventory.InventoryChangelogDelegate? cb,
+        IReadOnlyCollection<InventoryEventArgs> data)
+    {
+        try
+        {
+            cb?.Invoke(data);
+        }
+        catch (Exception e)
+        {
+            Log.Error(e, "Exception during batch callback");
+        }
+    }
+
+    private static void InvokeSafely(IGameInventory.InventoryChangedDelegate? cb, InventoryEventArgs arg)
+    {
+        try
+        {
+            cb?.Invoke(arg.Type, arg);
+        }
+        catch (Exception e)
+        {
+            Log.Error(e, "Exception during {argType} callback", arg.Type);
+        }
+    }
     
     private void OnFrameworkUpdate(IFramework framework1)
     {
@@ -90,208 +129,146 @@ internal class GameInventory : IDisposable, IServiceType, IGameInventory
 
                 if (oldItem.IsEmpty)
                 {
-                    if (newItem.IsEmpty)
-                        continue;
-
-                    this.changelog.Add(new InventoryItemAddedArgs 
+                    if (!newItem.IsEmpty)
                     {
-                        Item = newItem,
-                        Inventory = newItem.ContainerType,
-                        Slot = newItem.InventorySlot,
-                    });
+                        this.addedEvents.Add(new(newItem));
+                        oldItem = newItem;
+                    }
                 }
                 else
                 {
                     if (newItem.IsEmpty)
                     {
-                        this.changelog.Add(new InventoryItemRemovedArgs
-                        {
-                            Item = oldItem,
-                            Inventory = oldItem.ContainerType,
-                            Slot = oldItem.InventorySlot,
-                        });
+                        this.removedEvents.Add(new(oldItem));
+                        oldItem = newItem;
                     }
                     else if (!oldItem.Equals(newItem))
                     {
-                        this.changelog.Add(new InventoryItemChangedArgs
-                        {
-                            OldItemState = oldItem,
-                            Item = newItem,
-                            Inventory = newItem.ContainerType,
-                            Slot = newItem.InventorySlot,
-                        });
-                    }
-                    else
-                    {
-                        continue;
+                        this.changedEvents.Add(new(oldItem, newItem));
+                        oldItem = newItem;
                     }
                 }
-
-                Log.Verbose($"[{this.changelog.Count - 1}] {this.changelog[^1]}");
-                oldItem = newItem;
             }
         }
 
         // Was there any change? If not, stop further processing.
-        if (this.changelog.Count == 0)
+        // Note that...
+        // * this.movedEvents is not checked; it will be populated after this check.
+        // * this.allEvents is not checked; it is a temporary list to be used after this check.
+        if (this.addedEvents.Count == 0 && this.removedEvents.Count == 0 && this.changedEvents.Count == 0)
             return;
 
         try
         {
-            // From this point, the size of changelog shall not change.
-            var span = CollectionsMarshal.AsSpan(this.changelog);
+            // Broadcast InventoryChangedRaw, if necessary.
+            if (this.InventoryChangedRaw is not null)
+            {
+                this.allEvents.Clear();
+                this.allEvents.EnsureCapacity(
+                    this.addedEvents.Count
+                    + this.removedEvents.Count
+                    + this.changedEvents.Count);
+                this.allEvents.AddRange(this.addedEvents);
+                this.allEvents.AddRange(this.removedEvents);
+                this.allEvents.AddRange(this.changedEvents);
+                InvokeSafely(this.InventoryChangedRaw, this.allEvents);
+            }
 
-            // Ensure that changelog is in order of Added, Removed, and then Changed.
-            span.Sort((a, b) => a.Type.CompareTo(b.Type));
+            // Resolve changelog for item moved, from 1 added + 1 removed event.
+            for (var iAdded = this.addedEvents.Count - 1; iAdded >= 0; --iAdded)
+            {
+                var added = this.addedEvents[iAdded];
+                for (var iRemoved = this.removedEvents.Count - 1; iRemoved >= 0; --iRemoved)
+                {
+                    var removed = this.removedEvents[iRemoved];
+                    if (added.Item.ItemId != removed.Item.ItemId)
+                        continue;
+
+                    this.movedEvents.Add(new(removed, added));
+                        
+                    // Remove the reinterpreted entries.
+                    this.addedEvents.RemoveAt(iAdded);
+                    this.removedEvents.RemoveAt(iRemoved);
+                    break;
+                }
+            }
+
+            // Resolve changelog for item moved, from 2 changed events.
+            for (var i = this.changedEvents.Count - 1; i >= 0; --i)
+            {
+                var e1 = this.changedEvents[i];
+                for (var j = i - 1; j >= 0; --j)
+                {
+                    var e2 = this.changedEvents[j];
+                    if (e1.Item.ItemId != e2.Item.ItemId || e1.Item.ItemId != e2.Item.ItemId)
+                        continue;
+
+                    // move happened, and e2 has an item
+                    if (!e2.Item.IsEmpty)
+                        this.movedEvents.Add(new(e1, e2));
+
+                    // move happened, and e1 has an item
+                    if (!e1.Item.IsEmpty)
+                        this.movedEvents.Add(new(e2, e1));
+                        
+                    // Remove the reinterpreted entries. Note that i > j.
+                    this.changedEvents.RemoveAt(i);
+                    this.changedEvents.RemoveAt(j);
+                    break;
+                }
+            }
+
+            // Log only if it matters.
+            if (this.dalamudConfiguration.LogLevel >= LogEventLevel.Verbose)
+            {
+                foreach (var x in this.addedEvents)
+                    Log.Verbose($"{x}");
             
-            var removedFrom = 0;
-            while (removedFrom < span.Length && span[removedFrom].Type != GameInventoryEvent.Removed)
-                removedFrom++;
+                foreach (var x in this.removedEvents)
+                    Log.Verbose($"{x}");
             
-            var changedFrom = removedFrom;
-            while (changedFrom < span.Length && span[changedFrom].Type != GameInventoryEvent.Changed)
-                changedFrom++;
-
-            var addedSpan = span[..removedFrom];
-            var removedSpan = span[removedFrom..changedFrom];
-            var changedSpan = span[changedFrom..];
-
-            // Resolve changelog for item moved, from 1 added + 1 removed
-            foreach (ref var added in addedSpan)
-            {
-                foreach (ref var removed in removedSpan)
-                {
-                    if (added.Item.ItemId == removed.Item.ItemId)
-                    {
-                        Log.Verbose($"Move: reinterpreting {removed} + {added}");
-                        added = new InventoryItemMovedArgs
-                        {
-                            Item = removed.Item,
-                            SourceInventory = removed.Item.ContainerType,
-                            SourceSlot = removed.Item.InventorySlot,
-                            TargetInventory = added.Item.ContainerType,
-                            TargetSlot = added.Item.InventorySlot,
-                        };
-                        removed = default;
-                        break;
-                    }
-                }
+                foreach (var x in this.changedEvents)
+                    Log.Verbose($"{x}");
+            
+                foreach (var x in this.movedEvents)
+                    Log.Verbose($"{x} (({x.SourceEvent}) + ({x.TargetEvent}))");
             }
 
-            // Resolve changelog for item moved, from 2 changes
-            for (var i = 0; i < changedSpan.Length; i++)
+            // Broadcast InventoryChanged, if necessary.
+            if (this.InventoryChanged is not null)
             {
-                if (span[i].Type is GameInventoryEvent.Empty)
-                    continue;
-
-                ref var e1 = ref changedSpan[i];
-                for (var j = i + 1; j < changedSpan.Length; j++)
-                {
-                    ref var e2 = ref changedSpan[j];
-                    if (e1.Item.ItemId == e2.Item.ItemId && e1.Item.ItemId == e2.Item.ItemId)
-                    {
-                        if (e1.Item.IsEmpty)
-                        {
-                            // e1 got moved to e2
-                            Log.Verbose($"Move: reinterpreting {e1} + {e2}");
-                            e1 = new InventoryItemMovedArgs
-                            {
-                                Item = e2.Item,
-                                SourceInventory = e1.Item.ContainerType,
-                                SourceSlot = e1.Item.InventorySlot,
-                                TargetInventory = e2.Item.ContainerType,
-                                TargetSlot = e2.Item.InventorySlot,
-                            };
-                            e2 = default;
-                        }
-                        else if (e2.Item.IsEmpty)
-                        {
-                            // e2 got moved to e1
-                            Log.Verbose($"Move: reinterpreting {e2} + {e1}");
-                            e1 = new InventoryItemMovedArgs
-                            {
-                                Item = e1.Item,
-                                SourceInventory = e2.Item.ContainerType,
-                                SourceSlot = e2.Item.InventorySlot,
-                                TargetInventory = e1.Item.ContainerType,
-                                TargetSlot = e1.Item.InventorySlot,
-                            };
-                            e2 = default;
-                        }
-                        else
-                        {
-                            // e1 and e2 got swapped
-                            Log.Verbose($"Move(Swap): reinterpreting {e1} + {e2}");
-                            var newEvent1 = new InventoryItemMovedArgs
-                            {
-                                Item = e2.Item,
-                                SourceInventory = e1.Item.ContainerType,
-                                SourceSlot = e1.Item.InventorySlot,
-                                TargetInventory = e2.Item.ContainerType,
-                                TargetSlot = e2.Item.InventorySlot,
-                            };
-
-                            var newEvent2 = new InventoryItemMovedArgs
-                            {
-                                Item = e1.Item,
-                                SourceInventory = e2.Item.ContainerType,
-                                SourceSlot = e2.Item.InventorySlot,
-                                TargetInventory = e1.Item.ContainerType,
-                                TargetSlot = e1.Item.InventorySlot,
-                            };
-                            
-                            (e1, e2) = (newEvent1, newEvent2);
-                        }
-                    }
-                }
+                this.allEvents.Clear();
+                this.allEvents.EnsureCapacity(
+                    this.addedEvents.Count
+                    + this.removedEvents.Count
+                    + this.changedEvents.Count
+                    + this.movedEvents.Count);
+                this.allEvents.AddRange(this.addedEvents);
+                this.allEvents.AddRange(this.removedEvents);
+                this.allEvents.AddRange(this.changedEvents);
+                this.allEvents.AddRange(this.movedEvents);
+                InvokeSafely(this.InventoryChanged, this.allEvents);
             }
 
-            // Filter out the emptied out entries.
-            // We do not care about the order of items in the changelog anymore.
-            for (var i = 0; i < span.Length;)
-            {
-                if (span[i] is null || span[i].Type is GameInventoryEvent.Empty)
-                {
-                    span[i] = span[^1];
-                    span = span[..^1];
-                }
-                else
-                {
-                    i++;
-                }
-            }
-
-            // Actually broadcast the changes to subscribers.
-            if (!span.IsEmpty)
-            {
-                this.InventoryChanged?.Invoke(span);
-
-                foreach (var change in span)
-                {
-                    switch (change)
-                    {
-                        case InventoryItemAddedArgs:
-                            this.ItemAdded?.Invoke(GameInventoryEvent.Added, change);
-                            break;
-                        
-                        case InventoryItemRemovedArgs:
-                            this.ItemRemoved?.Invoke(GameInventoryEvent.Removed, change);
-                            break;
-                        
-                        case InventoryItemMovedArgs:
-                            this.ItemMoved?.Invoke(GameInventoryEvent.Moved, change);
-                            break;
-                        
-                        case InventoryItemChangedArgs:
-                            this.ItemChanged?.Invoke(GameInventoryEvent.Changed, change);
-                            break;
-                    }
-                }
-            }
+            // Broadcast the rest.
+            foreach (var x in this.addedEvents)
+                InvokeSafely(this.ItemAdded, x);
+            
+            foreach (var x in this.removedEvents)
+                InvokeSafely(this.ItemRemoved, x);
+            
+            foreach (var x in this.changedEvents)
+                InvokeSafely(this.ItemChanged, x);
+            
+            foreach (var x in this.movedEvents)
+                InvokeSafely(this.ItemMoved, x);
         }
         finally
         {
-            this.changelog.Clear();
+            this.addedEvents.Clear();
+            this.removedEvents.Clear();
+            this.changedEvents.Clear();
+            this.movedEvents.Clear();
         }
     }
 }
@@ -316,6 +293,7 @@ internal class GameInventoryPluginScoped : IDisposable, IServiceType, IGameInven
     public GameInventoryPluginScoped()
     {
         this.gameInventoryService.InventoryChanged += this.OnInventoryChangedForward;
+        this.gameInventoryService.InventoryChangedRaw += this.OnInventoryChangedRawForward;
         this.gameInventoryService.ItemAdded += this.OnInventoryItemAddedForward;
         this.gameInventoryService.ItemRemoved += this.OnInventoryItemRemovedForward;
         this.gameInventoryService.ItemMoved += this.OnInventoryItemMovedForward;
@@ -324,6 +302,9 @@ internal class GameInventoryPluginScoped : IDisposable, IServiceType, IGameInven
 
     /// <inheritdoc/>
     public event IGameInventory.InventoryChangelogDelegate? InventoryChanged;
+
+    /// <inheritdoc/>
+    public event IGameInventory.InventoryChangelogDelegate? InventoryChangedRaw;
 
     /// <inheritdoc/>
     public event IGameInventory.InventoryChangedDelegate? ItemAdded;
@@ -341,20 +322,25 @@ internal class GameInventoryPluginScoped : IDisposable, IServiceType, IGameInven
     public void Dispose()
     {
         this.gameInventoryService.InventoryChanged -= this.OnInventoryChangedForward;
+        this.gameInventoryService.InventoryChangedRaw -= this.OnInventoryChangedRawForward;
         this.gameInventoryService.ItemAdded -= this.OnInventoryItemAddedForward;
         this.gameInventoryService.ItemRemoved -= this.OnInventoryItemRemovedForward;
         this.gameInventoryService.ItemMoved -= this.OnInventoryItemMovedForward;
         this.gameInventoryService.ItemChanged -= this.OnInventoryItemChangedForward;
         
         this.InventoryChanged = null;
+        this.InventoryChangedRaw = null;
         this.ItemAdded = null;
         this.ItemRemoved = null;
         this.ItemMoved = null;
         this.ItemChanged = null;
     }
 
-    private void OnInventoryChangedForward(ReadOnlySpan<InventoryEventArgs> events)
+    private void OnInventoryChangedForward(IReadOnlyCollection<InventoryEventArgs> events)
         => this.InventoryChanged?.Invoke(events);
+
+    private void OnInventoryChangedRawForward(IReadOnlyCollection<InventoryEventArgs> events)
+        => this.InventoryChangedRaw?.Invoke(events);
     
     private void OnInventoryItemAddedForward(GameInventoryEvent type, InventoryEventArgs data)
         => this.ItemAdded?.Invoke(type, data);

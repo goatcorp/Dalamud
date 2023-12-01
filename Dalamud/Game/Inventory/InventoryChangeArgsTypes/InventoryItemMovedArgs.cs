@@ -1,30 +1,56 @@
-﻿namespace Dalamud.Game.GameInventory;
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace Dalamud.Game.Inventory.InventoryChangeArgsTypes;
 
 /// <summary>
 /// Represents the data associated with an item being moved from one inventory and added to another.
 /// </summary>
+[SuppressMessage("StyleCop.CSharp.OrderingRules", "SA1206:Declaration keywords should follow order", Justification = "It literally says <access modifiers>, <static>, and then <all other keywords>. required is not an access modifier.")]
 public class InventoryItemMovedArgs : InventoryEventArgs
 {
-    /// <inheritdoc/>
-    public override GameInventoryEvent Type => GameInventoryEvent.Moved;
-    
+    /// <summary>
+    /// Initializes a new instance of the <see cref="InventoryItemMovedArgs"/> class.
+    /// </summary>
+    /// <param name="sourceEvent">The item at before slot.</param>
+    /// <param name="targetEvent">The item at after slot.</param>
+    internal InventoryItemMovedArgs(InventoryEventArgs sourceEvent, InventoryEventArgs targetEvent)
+        : base(GameInventoryEvent.Moved, targetEvent.Item)
+    {
+        this.SourceEvent = sourceEvent;
+        this.TargetEvent = targetEvent;
+    }
+
     /// <summary>
     /// Gets the inventory this item was moved from.
     /// </summary>
-    required public GameInventoryType SourceInventory { get; init; }
-    
+    public GameInventoryType SourceInventory => this.SourceEvent.Item.ContainerType;
+
     /// <summary>
     /// Gets the inventory this item was moved to.
     /// </summary>
-    required public GameInventoryType TargetInventory { get; init; }
+    public GameInventoryType TargetInventory => this.Item.ContainerType;
     
     /// <summary>
     /// Gets the slot this item was moved from.
     /// </summary>
-    required public uint SourceSlot { get; init; }
-    
+    public uint SourceSlot => this.SourceEvent.Item.InventorySlot;
+
     /// <summary>
     /// Gets the slot this item was moved to.
     /// </summary>
-    required public uint TargetSlot { get; init; }
+    public uint TargetSlot => this.Item.InventorySlot;
+
+    /// <summary>
+    /// Gets the associated source event.
+    /// </summary>
+    internal InventoryEventArgs SourceEvent { get; }
+
+    /// <summary>
+    /// Gets the associated target event.
+    /// </summary>
+    internal InventoryEventArgs TargetEvent { get; }
+    
+    /// <inheritdoc/>
+    public override string ToString() =>
+        $"<{this.Type}> (Item #{this.Item.ItemId}) from (slot {this.SourceSlot} in {this.SourceInventory}) to (slot {this.TargetSlot} in {this.TargetInventory})";
 }

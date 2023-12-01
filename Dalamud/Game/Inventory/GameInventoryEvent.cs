@@ -1,4 +1,4 @@
-﻿namespace Dalamud.Game.GameInventory;
+﻿namespace Dalamud.Game.Inventory;
 
 /// <summary>
 /// Class representing a item's changelog state.
