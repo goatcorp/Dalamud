@@ -6,6 +6,8 @@
 /// </summary>
 public class InventoryItemChangedArgs : InventoryEventArgs
 {
+    private readonly GameInventoryItem oldItemState;
+
     /// <summary>
     /// Initializes a new instance of the <see cref="InventoryItemChangedArgs"/> class.
     /// </summary>
@@ -14,7 +16,7 @@ public class InventoryItemChangedArgs : InventoryEventArgs
     internal InventoryItemChangedArgs(in GameInventoryItem oldItem, in GameInventoryItem newItem)
         : base(GameInventoryEvent.Changed, newItem)
     {
-        this.OldItemState = oldItem;
+        this.oldItemState = oldItem;
     }
 
     /// <summary>
@@ -29,6 +31,8 @@ public class InventoryItemChangedArgs : InventoryEventArgs
 
     /// <summary>
     /// Gets the state of the item from before it was changed.
+    /// <remarks><em>This is a copy of the item data.</em></remarks>
     /// </summary>
-    public GameInventoryItem OldItemState { get; init; }
+    // impl note: see InventoryEventArgs.Item.
+    public ref readonly GameInventoryItem OldItemState => ref this.oldItemState;
 }

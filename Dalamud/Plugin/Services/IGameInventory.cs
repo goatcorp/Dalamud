@@ -24,12 +24,12 @@ public interface IGameInventory
     /// <param name="type">The event try that triggered this message.</param>
     /// <param name="data">Data for the triggered event.</param>
     public delegate void InventoryChangedDelegate(GameInventoryEvent type, InventoryEventArgs data);
-    
+
     /// <summary>
     /// Event that is fired when the inventory has been changed.
     /// </summary>
     public event InventoryChangelogDelegate InventoryChanged;
-    
+
     /// <summary>
     /// Event that is fired when the inventory has been changed, without trying to interpret two inventory slot changes
     /// as a move event as appropriate.<br />

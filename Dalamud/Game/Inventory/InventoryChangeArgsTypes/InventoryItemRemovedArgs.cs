@@ -13,12 +13,12 @@ public class InventoryItemRemovedArgs : InventoryEventArgs
         : base(GameInventoryEvent.Removed, item)
     {
     }
-    
+
     /// <summary>
     /// Gets the inventory this item was removed from.
     /// </summary>
     public GameInventoryType Inventory => this.Item.ContainerType;
-    
+
     /// <summary>
     /// Gets the slot this item was removed from.
     /// </summary>

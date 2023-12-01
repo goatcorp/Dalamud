@@ -1,11 +1,8 @@
-﻿using System.Diagnostics.CodeAnalysis;
-
-namespace Dalamud.Game.Inventory.InventoryChangeArgsTypes;
+﻿namespace Dalamud.Game.Inventory.InventoryChangeArgsTypes;
 
 /// <summary>
 /// Represents the data associated with an item being moved from one inventory and added to another.
 /// </summary>
-[SuppressMessage("StyleCop.CSharp.OrderingRules", "SA1206:Declaration keywords should follow order", Justification = "It literally says <access modifiers>, <static>, and then <all other keywords>. required is not an access modifier.")]
 public class InventoryItemMovedArgs : InventoryEventArgs
 {
     /// <summary>
@@ -29,7 +26,7 @@ public class InventoryItemMovedArgs : InventoryEventArgs
     /// Gets the inventory this item was moved to.
     /// </summary>
     public GameInventoryType TargetInventory => this.Item.ContainerType;
-    
+
     /// <summary>
     /// Gets the slot this item was moved from.
     /// </summary>
@@ -49,7 +46,7 @@ public class InventoryItemMovedArgs : InventoryEventArgs
     /// Gets the associated target event.
     /// </summary>
     internal InventoryEventArgs TargetEvent { get; }
-    
+
     /// <inheritdoc/>
     public override string ToString() =>
         $"<{this.Type}> (Item #{this.Item.ItemId}) from (slot {this.SourceSlot} in {this.SourceInventory}) to (slot {this.TargetSlot} in {this.TargetInventory})";

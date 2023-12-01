@@ -13,11 +13,6 @@ namespace Dalamud.Game.Inventory;
 public unsafe struct GameInventoryItem : IEquatable<GameInventoryItem>
 {
     /// <summary>
-    /// An empty instance of <see cref="GameInventoryItem"/>.
-    /// </summary>
-    internal static readonly GameInventoryItem Empty = default;
-
-    /// <summary>
     /// The actual data.
     /// </summary>
     [FieldOffset(0)]
@@ -104,7 +99,7 @@ public unsafe struct GameInventoryItem : IEquatable<GameInventoryItem>
     /// Gets the array of materia types.
     /// </summary>
     public ReadOnlySpan<ushort> Materia => new(Unsafe.AsPointer(ref Unsafe.AsRef(in this.InternalItem.Materia[0])), 5);
-    
+
     /// <summary>
     /// Gets the array of materia grades.
     /// </summary>
@@ -119,8 +114,8 @@ public unsafe struct GameInventoryItem : IEquatable<GameInventoryItem>
     /// <summary>
     /// Gets the glamour id for this item.
     /// </summary>
-    public uint GlmaourId => this.InternalItem.GlamourID;
-    
+    public uint GlamourId => this.InternalItem.GlamourID;
+
     /// <summary>
     /// Gets the items crafter's content id.
     /// NOTE: I'm not sure if this is a good idea to include or not in the dalamud api. Marked internal for now.
@@ -163,6 +158,6 @@ public unsafe struct GameInventoryItem : IEquatable<GameInventoryItem>
     /// <inheritdoc cref="object.ToString"/>
     public override string ToString() =>
         this.IsEmpty
-            ? "<Empty>"
-            : $"Item #{this.ItemId} at slot {this.InventorySlot} in {this.ContainerType}";
+            ? "no item"
+            : $"item #{this.ItemId} at slot {this.InventorySlot} in {this.ContainerType}";
 }

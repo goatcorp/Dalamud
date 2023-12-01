@@ -1,13 +1,12 @@
-﻿using System.Diagnostics.CodeAnalysis;
-
-namespace Dalamud.Game.Inventory.InventoryChangeArgsTypes;
+﻿namespace Dalamud.Game.Inventory.InventoryChangeArgsTypes;
 
 /// <summary>
 /// Abstract base class representing inventory changed events.
 /// </summary>
-[SuppressMessage("StyleCop.CSharp.OrderingRules", "SA1206:Declaration keywords should follow order", Justification = "It literally says <access modifiers>, <static>, and then <all other keywords>. required is not an access modifier.")]
 public abstract class InventoryEventArgs
 {
+    private readonly GameInventoryItem item;
+
     /// <summary>
     /// Initializes a new instance of the <see cref="InventoryEventArgs"/> class.
     /// </summary>
@@ -16,7 +15,7 @@ public abstract class InventoryEventArgs
     protected InventoryEventArgs(GameInventoryEvent type, in GameInventoryItem item)
     {
         this.Type = type;
-        this.Item = item;
+        this.item = item;
     }
 
     /// <summary>
@@ -28,8 +27,11 @@ public abstract class InventoryEventArgs
     /// Gets the item associated with this event.
     /// <remarks><em>This is a copy of the item data.</em></remarks>
     /// </summary>
-    public GameInventoryItem Item { get; }
-    
+    // impl note: we return a ref readonly view, to avoid making copies every time this property is accessed.
+    // see: https://devblogs.microsoft.com/premier-developer/avoiding-struct-and-readonly-reference-performance-pitfalls-with-errorprone-net/
+    // "Consider using ref readonly locals and ref return for library code"
+    public ref readonly GameInventoryItem Item => ref this.item;
+
     /// <inheritdoc/>
     public override string ToString() => $"<{this.Type}> ({this.Item})";
 }
