@@ -3,11 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 
 using Dalamud.Game.Inventory.InventoryEventArgTypes;
+using Dalamud.Hooking;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Internal;
 using Dalamud.Plugin.Services;
+
+using FFXIVClientStructs.FFXIV.Client.UI;
 
 namespace Dalamud.Game.Inventory;
 
@@ -31,17 +34,29 @@ internal class GameInventory : IDisposable, IServiceType
     [ServiceManager.ServiceDependency]
     private readonly Framework framework = Service<Framework>.Get();
 
+    private readonly Hook<RaptureAtkModuleUpdateDelegate> raptureAtkModuleUpdateHook;
+
     private readonly GameInventoryType[] inventoryTypes;
     private readonly GameInventoryItem[]?[] inventoryItems;
 
     private bool subscribersChanged;
+    private bool inventoriesMightBeChanged;
 
     [ServiceManager.ServiceConstructor]
     private GameInventory()
     {
         this.inventoryTypes = Enum.GetValues<GameInventoryType>();
         this.inventoryItems = new GameInventoryItem[this.inventoryTypes.Length][];
+
+        unsafe
+        {
+            this.raptureAtkModuleUpdateHook = Hook<RaptureAtkModuleUpdateDelegate>.FromFunctionPointerVariable(
+                new(&((RaptureAtkModule.RaptureAtkModuleVTable*)RaptureAtkModule.StaticAddressPointers.VTable)->Update),
+                this.RaptureAtkModuleUpdateDetour);
+        }
     }
+
+    private unsafe delegate void RaptureAtkModuleUpdateDelegate(RaptureAtkModule* ram, float f1);
 
     /// <inheritdoc/>
     public void Dispose()
@@ -52,6 +67,7 @@ internal class GameInventory : IDisposable, IServiceType
             this.subscribersPendingChange.Clear();
             this.subscribersChanged = false;
             this.framework.Update -= this.OnFrameworkUpdate;
+            this.raptureAtkModuleUpdateHook.Dispose();
         }
     }
 
@@ -66,7 +82,11 @@ internal class GameInventory : IDisposable, IServiceType
             this.subscribersPendingChange.Add(s);
             this.subscribersChanged = true;
             if (this.subscribersPendingChange.Count == 1)
+            {
+                this.inventoriesMightBeChanged = true;
                 this.framework.Update += this.OnFrameworkUpdate;
+                this.raptureAtkModuleUpdateHook.Enable();
+            }
         }
     }
 
@@ -82,12 +102,20 @@ internal class GameInventory : IDisposable, IServiceType
                 return;
             this.subscribersChanged = true;
             if (this.subscribersPendingChange.Count == 0)
+            {
                 this.framework.Update -= this.OnFrameworkUpdate;
+                this.raptureAtkModuleUpdateHook.Disable();
+            }
         }
     }
 
     private void OnFrameworkUpdate(IFramework framework1)
     {
+        if (!this.inventoriesMightBeChanged)
+            return;
+
+        this.inventoriesMightBeChanged = false;
+
         for (var i = 0; i < this.inventoryTypes.Length; i++)
         {
             var newItems = GameInventoryItem.GetReadOnlySpanOfInventory(this.inventoryTypes[i]);
@@ -285,6 +313,12 @@ internal class GameInventory : IDisposable, IServiceType
         this.movedEvents.Clear();
         this.splitEvents.Clear();
         this.mergedEvents.Clear();
+    }
+
+    private unsafe void RaptureAtkModuleUpdateDetour(RaptureAtkModule* ram, float f1)
+    {
+        this.inventoriesMightBeChanged |= ram->AgentUpdateFlag != 0;
+        this.raptureAtkModuleUpdateHook.Original(ram, f1);
     }
 
     /// <summary>
