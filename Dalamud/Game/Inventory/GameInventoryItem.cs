@@ -108,7 +108,9 @@ public unsafe struct GameInventoryItem : IEquatable<GameInventoryItem>
 
     /// <summary>
     /// Gets the address of native inventory item in the game.<br />
-    /// Can be 0 if this instance of <see cref="GameInventoryItem"/> does not point to a valid set of container type and slot.
+    /// Can be 0 if this instance of <see cref="GameInventoryItem"/> does not point to a valid set of container type and slot.<br />
+    /// Note that this instance of <see cref="GameInventoryItem"/> can be a snapshot; it may not necessarily match the
+    /// data you can query from the game using this address value.
     /// </summary>
     public nint NativeAddress
     {
