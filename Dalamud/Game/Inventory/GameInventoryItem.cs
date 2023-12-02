@@ -107,6 +107,28 @@ public unsafe struct GameInventoryItem : IEquatable<GameInventoryItem>
         new(Unsafe.AsPointer(ref Unsafe.AsRef(in this.InternalItem.MateriaGrade[0])), 5);
 
     /// <summary>
+    /// Gets the address of native inventory item in the game.<br />
+    /// Can be 0 if this instance of <see cref="GameInventoryItem"/> does not point to a valid set of container type and slot.
+    /// </summary>
+    public nint NativeAddress
+    {
+        get
+        {
+            var s = GetReadOnlySpanOfInventory(this.ContainerType);
+            if (s.IsEmpty)
+                return 0;
+
+            foreach (ref readonly var i in s)
+            {
+                if (i.InventorySlot == this.InventorySlot)
+                    return (nint)Unsafe.AsPointer(ref Unsafe.AsRef(in i));
+            }
+
+            return 0;
+        }
+    }
+
+    /// <summary>
     /// Gets the color used for this item.
     /// </summary>
     public byte Stain => this.InternalItem.Stain;
@@ -160,4 +182,20 @@ public unsafe struct GameInventoryItem : IEquatable<GameInventoryItem>
         this.IsEmpty
             ? "empty"
             : $"item({this.ItemId}@{this.ContainerType}#{this.InventorySlot})";
+
+    /// <summary>
+    /// Gets a <see cref="Span{T}"/> view of <see cref="InventoryItem"/>s, wrapped as <see cref="GameInventoryItem"/>.
+    /// </summary>
+    /// <param name="type">The inventory type.</param>
+    /// <returns>The span.</returns>
+    internal static ReadOnlySpan<GameInventoryItem> GetReadOnlySpanOfInventory(GameInventoryType type)
+    {
+        var inventoryManager = InventoryManager.Instance();
+        if (inventoryManager is null) return default;
+
+        var inventory = inventoryManager->GetInventoryContainer((InventoryType)type);
+        if (inventory is null) return default;
+
+        return new ReadOnlySpan<GameInventoryItem>(inventory->Items, (int)inventory->Size);
+    }
 }

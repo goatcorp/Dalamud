@@ -9,8 +9,6 @@ using Dalamud.IoC.Internal;
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Services;
 
-using FFXIVClientStructs.FFXIV.Client.Game;
-
 using Serilog.Events;
 
 namespace Dalamud.Game.Inventory;
@@ -94,22 +92,6 @@ internal class GameInventory : IDisposable, IServiceType, IGameInventory
         this.framework.Update -= this.OnFrameworkUpdate;
     }
 
-    /// <summary>
-    /// Gets a <see cref="Span{T}"/> view of <see cref="InventoryItem"/>s, wrapped as <see cref="GameInventoryItem"/>.
-    /// </summary>
-    /// <param name="type">The inventory type.</param>
-    /// <returns>The span.</returns>
-    private static unsafe ReadOnlySpan<GameInventoryItem> GetItemsForInventory(GameInventoryType type)
-    {
-        var inventoryManager = InventoryManager.Instance();
-        if (inventoryManager is null) return default;
-
-        var inventory = inventoryManager->GetInventoryContainer((InventoryType)type);
-        if (inventory is null) return default;
-
-        return new ReadOnlySpan<GameInventoryItem>(inventory->Items, (int)inventory->Size);
-    }
-
     private static void InvokeSafely(
         IGameInventory.InventoryChangelogDelegate? cb,
         IReadOnlyCollection<InventoryEventArgs> data)
@@ -140,7 +122,7 @@ internal class GameInventory : IDisposable, IServiceType, IGameInventory
     {
         for (var i = 0; i < this.inventoryTypes.Length; i++)
         {
-            var newItems = GetItemsForInventory(this.inventoryTypes[i]);
+            var newItems = GameInventoryItem.GetReadOnlySpanOfInventory(this.inventoryTypes[i]);
             if (newItems.IsEmpty)
                 continue;
 

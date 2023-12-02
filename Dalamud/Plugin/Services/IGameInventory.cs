@@ -26,7 +26,11 @@ public interface IGameInventory
     public delegate void InventoryChangedDelegate(GameInventoryEvent type, InventoryEventArgs data);
 
     /// <summary>
-    /// Event that is fired when the inventory has been changed.
+    /// Event that is fired when the inventory has been changed.<br />
+    /// Note that some events, such as <see cref="ItemAdded"/>, <see cref="ItemRemoved"/>, and <see cref="ItemChanged"/>
+    /// currently is subject to reinterpretation as <see cref="ItemMoved"/>, <see cref="ItemMerged"/>, and
+    /// <see cref="ItemSplit"/>.<br />
+    /// Use <see cref="InventoryChangedRaw"/> if you do not want such reinterpretation.
     /// </summary>
     public event InventoryChangelogDelegate InventoryChanged;
 
@@ -34,7 +38,7 @@ public interface IGameInventory
     /// Event that is fired when the inventory has been changed, without trying to interpret two inventory slot changes
     /// as a move event as appropriate.<br />
     /// In other words, <see cref="GameInventoryEvent.Moved"/>, <see cref="GameInventoryEvent.Merged"/>, and
-    /// <see cref="GameInventoryEvent.Split"/> do not fire in this event.
+    /// <see cref="GameInventoryEvent.Split"/> currently do not fire in this event.
     /// </summary>
     public event InventoryChangelogDelegate InventoryChangedRaw;
 

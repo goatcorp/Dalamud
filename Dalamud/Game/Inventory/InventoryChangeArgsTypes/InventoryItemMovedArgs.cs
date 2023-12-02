@@ -15,9 +15,6 @@ public sealed class InventoryItemMovedArgs : InventoryComplexEventArgs
     {
     }
 
-    // /// <inheritdoc/>
-    // public override string ToString() => $"{this.Type}({this.SourceEvent}, {this.TargetEvent})";
-
     /// <inheritdoc/>
     public override string ToString() =>
         $"{this.Type}(item({this.Item.ItemId}) from {this.SourceInventory}#{this.SourceSlot} to {this.TargetInventory}#{this.TargetSlot})";
