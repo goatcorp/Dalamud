@@ -14,17 +14,29 @@ public abstract unsafe class AddonArgs
     public const string InvalidAddon = "NullAddon";
     
     private string? addonName;
+    private IntPtr addon;
 
     /// <summary>
     /// Gets the name of the addon this args referrers to.
     /// </summary>
     public string AddonName => this.GetAddonName();
-    
+
     /// <summary>
     /// Gets the pointer to the addons AtkUnitBase.
     /// </summary>
-    public nint Addon { get; init; }
-    
+    public nint Addon
+    {
+        get => this.addon;
+        internal set
+        {
+            if (this.addon == value)
+                return;
+
+            this.addon = value;
+            this.addonName = null;
+        }
+    }
+
     /// <summary>
     /// Gets the type of these args.
     /// </summary>
