@@ -112,7 +112,7 @@ public unsafe struct GameInventoryItem : IEquatable<GameInventoryItem>
     /// Note that this instance of <see cref="GameInventoryItem"/> can be a snapshot; it may not necessarily match the
     /// data you can query from the game using this address value.
     /// </summary>
-    public nint NativeAddress
+    public nint Address
     {
         get
         {
