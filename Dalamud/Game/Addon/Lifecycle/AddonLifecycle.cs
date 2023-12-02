@@ -144,7 +144,7 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
                 continue;
 
             // Match on string.empty for listeners that want events for all addons.
-            if (!string.IsNullOrWhiteSpace(listener.AddonName) && listener.AddonName != args.AddonName)
+            if (!string.IsNullOrWhiteSpace(listener.AddonName) && !args.IsAddon(listener.AddonName))
                 continue;
 
             try

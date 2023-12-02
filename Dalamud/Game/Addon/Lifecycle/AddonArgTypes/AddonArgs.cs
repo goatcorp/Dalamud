@@ -43,6 +43,23 @@ public abstract unsafe class AddonArgs
     public abstract AddonArgsType Type { get; }
 
     /// <summary>
+    /// Checks if addon name matches the given span of char.
+    /// </summary>
+    /// <param name="name">The name to check.</param>
+    /// <returns>Whether it is the case.</returns>
+    internal bool IsAddon(ReadOnlySpan<char> name)
+    {
+        if (this.Addon == nint.Zero) return false;
+        if (name.Length is 0 or > 0x20)
+            return false;
+
+        var addonPointer = (AtkUnitBase*)this.Addon;
+        if (addonPointer->Name is null) return false;
+        
+        return MemoryHelper.EqualsZeroTerminatedString(name, (nint)addonPointer->Name, null, 0x20);
+    }
+
+    /// <summary>
     /// Helper method for ensuring the name of the addon is valid.
     /// </summary>
     /// <returns>The name of the addon for this object. <see cref="InvalidAddon"/> when invalid.</returns>
