@@ -54,6 +54,8 @@ internal class GameInventory : IDisposable, IServiceType
                 new(&((RaptureAtkModule.RaptureAtkModuleVTable*)RaptureAtkModule.StaticAddressPointers.VTable)->Update),
                 this.RaptureAtkModuleUpdateDetour);
         }
+
+        this.raptureAtkModuleUpdateHook.Enable();
     }
 
     private unsafe delegate void RaptureAtkModuleUpdateDelegate(RaptureAtkModule* ram, float f1);
@@ -85,7 +87,6 @@ internal class GameInventory : IDisposable, IServiceType
             {
                 this.inventoriesMightBeChanged = true;
                 this.framework.Update += this.OnFrameworkUpdate;
-                this.raptureAtkModuleUpdateHook.Enable();
             }
         }
     }
@@ -102,10 +103,7 @@ internal class GameInventory : IDisposable, IServiceType
                 return;
             this.subscribersChanged = true;
             if (this.subscribersPendingChange.Count == 0)
-            {
                 this.framework.Update -= this.OnFrameworkUpdate;
-                this.raptureAtkModuleUpdateHook.Disable();
-            }
         }
     }
 
