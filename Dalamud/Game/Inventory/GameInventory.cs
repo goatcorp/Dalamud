@@ -87,6 +87,24 @@ internal class GameInventory : IDisposable, IServiceType, IGameInventory
     public event IGameInventory.InventoryChangedDelegate? ItemMerged;
 
     /// <inheritdoc/>
+    public event IGameInventory.InventoryChangedDelegate<InventoryItemAddedArgs>? ItemAddedExplicit;
+
+    /// <inheritdoc/>
+    public event IGameInventory.InventoryChangedDelegate<InventoryItemRemovedArgs>? ItemRemovedExplicit;
+
+    /// <inheritdoc/>
+    public event IGameInventory.InventoryChangedDelegate<InventoryItemChangedArgs>? ItemChangedExplicit;
+
+    /// <inheritdoc/>
+    public event IGameInventory.InventoryChangedDelegate<InventoryItemMovedArgs>? ItemMovedExplicit;
+
+    /// <inheritdoc/>
+    public event IGameInventory.InventoryChangedDelegate<InventoryItemSplitArgs>? ItemSplitExplicit;
+
+    /// <inheritdoc/>
+    public event IGameInventory.InventoryChangedDelegate<InventoryItemMergedArgs>? ItemMergedExplicit;
+
+    /// <inheritdoc/>
     public void Dispose()
     {
         this.framework.Update -= this.OnFrameworkUpdate;
@@ -111,6 +129,19 @@ internal class GameInventory : IDisposable, IServiceType, IGameInventory
         try
         {
             cb?.Invoke(arg.Type, arg);
+        }
+        catch (Exception e)
+        {
+            Log.Error(e, "Exception during {argType} callback", arg.Type);
+        }
+    }
+
+    private static void InvokeSafely<T>(IGameInventory.InventoryChangedDelegate<T>? cb, T arg)
+        where T : InventoryEventArgs
+    {
+        try
+        {
+            cb?.Invoke(arg);
         }
         catch (Exception e)
         {
@@ -279,22 +310,40 @@ internal class GameInventory : IDisposable, IServiceType, IGameInventory
                            .Concat(this.mergedEvents)));
 
         foreach (var x in this.addedEvents)
+        {
             InvokeSafely(this.ItemAdded, x);
+            InvokeSafely(this.ItemAddedExplicit, x);
+        }
 
         foreach (var x in this.removedEvents)
+        {
             InvokeSafely(this.ItemRemoved, x);
+            InvokeSafely(this.ItemRemovedExplicit, x);
+        }
 
         foreach (var x in this.changedEvents)
+        {
             InvokeSafely(this.ItemChanged, x);
+            InvokeSafely(this.ItemChangedExplicit, x);
+        }
 
         foreach (var x in this.movedEvents)
+        {
             InvokeSafely(this.ItemMoved, x);
+            InvokeSafely(this.ItemMovedExplicit, x);
+        }
 
         foreach (var x in this.splitEvents)
+        {
             InvokeSafely(this.ItemSplit, x);
+            InvokeSafely(this.ItemSplitExplicit, x);
+        }
 
         foreach (var x in this.mergedEvents)
+        {
             InvokeSafely(this.ItemMerged, x);
+            InvokeSafely(this.ItemMergedExplicit, x);
+        }
 
         // We're done using the lists. Clean them up.
         this.addedEvents.Clear();
@@ -382,6 +431,24 @@ internal class GameInventoryPluginScoped : IDisposable, IServiceType, IGameInven
     public event IGameInventory.InventoryChangedDelegate? ItemMerged;
 
     /// <inheritdoc/>
+    public event IGameInventory.InventoryChangedDelegate<InventoryItemAddedArgs>? ItemAddedExplicit;
+
+    /// <inheritdoc/>
+    public event IGameInventory.InventoryChangedDelegate<InventoryItemRemovedArgs>? ItemRemovedExplicit;
+
+    /// <inheritdoc/>
+    public event IGameInventory.InventoryChangedDelegate<InventoryItemChangedArgs>? ItemChangedExplicit;
+
+    /// <inheritdoc/>
+    public event IGameInventory.InventoryChangedDelegate<InventoryItemMovedArgs>? ItemMovedExplicit;
+
+    /// <inheritdoc/>
+    public event IGameInventory.InventoryChangedDelegate<InventoryItemSplitArgs>? ItemSplitExplicit;
+
+    /// <inheritdoc/>
+    public event IGameInventory.InventoryChangedDelegate<InventoryItemMergedArgs>? ItemMergedExplicit;
+
+    /// <inheritdoc/>
     public void Dispose()
     {
         this.gameInventoryService.InventoryChanged -= this.OnInventoryChangedForward;
@@ -392,6 +459,12 @@ internal class GameInventoryPluginScoped : IDisposable, IServiceType, IGameInven
         this.gameInventoryService.ItemMoved -= this.OnInventoryItemMovedForward;
         this.gameInventoryService.ItemSplit -= this.OnInventoryItemSplitForward;
         this.gameInventoryService.ItemMerged -= this.OnInventoryItemMergedForward;
+        this.gameInventoryService.ItemAddedExplicit -= this.OnInventoryItemAddedExplicitForward;
+        this.gameInventoryService.ItemRemovedExplicit -= this.OnInventoryItemRemovedExplicitForward;
+        this.gameInventoryService.ItemChangedExplicit -= this.OnInventoryItemChangedExplicitForward;
+        this.gameInventoryService.ItemMovedExplicit -= this.OnInventoryItemMovedExplicitForward;
+        this.gameInventoryService.ItemSplitExplicit -= this.OnInventoryItemSplitExplicitForward;
+        this.gameInventoryService.ItemMergedExplicit -= this.OnInventoryItemMergedExplicitForward;
 
         this.InventoryChanged = null;
         this.InventoryChangedRaw = null;
@@ -401,6 +474,12 @@ internal class GameInventoryPluginScoped : IDisposable, IServiceType, IGameInven
         this.ItemMoved = null;
         this.ItemSplit = null;
         this.ItemMerged = null;
+        this.ItemAddedExplicit = null;
+        this.ItemRemovedExplicit = null;
+        this.ItemChangedExplicit = null;
+        this.ItemMovedExplicit = null;
+        this.ItemSplitExplicit = null;
+        this.ItemMergedExplicit = null;
     }
 
     private void OnInventoryChangedForward(IReadOnlyCollection<InventoryEventArgs> events)
@@ -426,4 +505,22 @@ internal class GameInventoryPluginScoped : IDisposable, IServiceType, IGameInven
 
     private void OnInventoryItemMergedForward(GameInventoryEvent type, InventoryEventArgs data)
         => this.ItemMerged?.Invoke(type, data);
+
+    private void OnInventoryItemAddedExplicitForward(InventoryItemAddedArgs data)
+        => this.ItemAddedExplicit?.Invoke(data);
+
+    private void OnInventoryItemRemovedExplicitForward(InventoryItemRemovedArgs data)
+        => this.ItemRemovedExplicit?.Invoke(data);
+
+    private void OnInventoryItemChangedExplicitForward(InventoryItemChangedArgs data)
+        => this.ItemChangedExplicit?.Invoke(data);
+
+    private void OnInventoryItemMovedExplicitForward(InventoryItemMovedArgs data)
+        => this.ItemMovedExplicit?.Invoke(data);
+
+    private void OnInventoryItemSplitExplicitForward(InventoryItemSplitArgs data)
+        => this.ItemSplitExplicit?.Invoke(data);
+
+    private void OnInventoryItemMergedExplicitForward(InventoryItemMergedArgs data)
+        => this.ItemMergedExplicit?.Invoke(data);
 }

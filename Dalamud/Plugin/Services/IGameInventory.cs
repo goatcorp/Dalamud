@@ -26,6 +26,14 @@ public interface IGameInventory
     public delegate void InventoryChangedDelegate(GameInventoryEvent type, InventoryEventArgs data);
 
     /// <summary>
+    /// Delegate function to be called for each change to inventories.
+    /// This delegate sends individual events for changes.
+    /// </summary>
+    /// <typeparam name="T">The event arg type.</typeparam>
+    /// <param name="data">Data for the triggered event.</param>
+    public delegate void InventoryChangedDelegate<in T>(T data) where T : InventoryEventArgs;
+
+    /// <summary>
     /// Event that is fired when the inventory has been changed.<br />
     /// Note that some events, such as <see cref="ItemAdded"/>, <see cref="ItemRemoved"/>, and <see cref="ItemChanged"/>
     /// currently is subject to reinterpretation as <see cref="ItemMoved"/>, <see cref="ItemMerged"/>, and
@@ -77,4 +85,22 @@ public interface IGameInventory
     /// Event that is fired when an item is merged from two stacks into one.
     /// </summary>
     public event InventoryChangedDelegate ItemMerged;
+
+    /// <inheritdoc cref="ItemAdded"/>
+    public event InventoryChangedDelegate<InventoryItemAddedArgs> ItemAddedExplicit;
+
+    /// <inheritdoc cref="ItemRemoved"/>
+    public event InventoryChangedDelegate<InventoryItemRemovedArgs> ItemRemovedExplicit;
+
+    /// <inheritdoc cref="ItemChanged"/>
+    public event InventoryChangedDelegate<InventoryItemChangedArgs> ItemChangedExplicit;
+
+    /// <inheritdoc cref="ItemMoved"/>
+    public event InventoryChangedDelegate<InventoryItemMovedArgs> ItemMovedExplicit;
+
+    /// <inheritdoc cref="ItemSplit"/>
+    public event InventoryChangedDelegate<InventoryItemSplitArgs> ItemSplitExplicit;
+
+    /// <inheritdoc cref="ItemMerged"/>
+    public event InventoryChangedDelegate<InventoryItemMergedArgs> ItemMergedExplicit;
 }
