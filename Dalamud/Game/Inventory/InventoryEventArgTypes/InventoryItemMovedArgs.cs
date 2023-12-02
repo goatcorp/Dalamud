@@ -1,4 +1,4 @@
-﻿namespace Dalamud.Game.Inventory.InventoryChangeArgsTypes;
+﻿namespace Dalamud.Game.Inventory.InventoryEventArgTypes;
 
 /// <summary>
 /// Represents the data associated with an item being moved from one inventory and added to another.

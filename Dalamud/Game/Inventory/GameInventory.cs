@@ -2,14 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 
-using Dalamud.Configuration.Internal;
-using Dalamud.Game.Inventory.InventoryChangeArgsTypes;
+using Dalamud.Game.Inventory.InventoryEventArgTypes;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Logging.Internal;
+using Dalamud.Plugin.Internal;
 using Dalamud.Plugin.Services;
-
-using Serilog.Events;
 
 namespace Dalamud.Game.Inventory;
 
@@ -18,9 +16,10 @@ namespace Dalamud.Game.Inventory;
 /// </summary>
 [InterfaceVersion("1.0")]
 [ServiceManager.BlockingEarlyLoadedService]
-internal class GameInventory : IDisposable, IServiceType, IGameInventory
+internal class GameInventory : IDisposable, IServiceType
 {
-    private static readonly ModuleLog Log = new(nameof(GameInventory));
+    private readonly List<GameInventoryPluginScoped> subscribersPendingChange = new();
+    private readonly List<GameInventoryPluginScoped> subscribers = new();
 
     private readonly List<InventoryItemAddedArgs> addedEvents = new();
     private readonly List<InventoryItemRemovedArgs> removedEvents = new();
@@ -32,120 +31,58 @@ internal class GameInventory : IDisposable, IServiceType, IGameInventory
     [ServiceManager.ServiceDependency]
     private readonly Framework framework = Service<Framework>.Get();
 
-    [ServiceManager.ServiceDependency]
-    private readonly DalamudConfiguration dalamudConfiguration = Service<DalamudConfiguration>.Get();
-
     private readonly GameInventoryType[] inventoryTypes;
     private readonly GameInventoryItem[]?[] inventoryItems;
+
+    private bool subscribersChanged;
 
     [ServiceManager.ServiceConstructor]
     private GameInventory()
     {
         this.inventoryTypes = Enum.GetValues<GameInventoryType>();
         this.inventoryItems = new GameInventoryItem[this.inventoryTypes.Length][];
-
-        this.framework.Update += this.OnFrameworkUpdate;
-
-        // Separate log logic as an event handler.
-        this.InventoryChanged += events =>
-        {
-            if (this.dalamudConfiguration.LogLevel > LogEventLevel.Verbose)
-                return;
-
-            foreach (var e in events)
-            {
-                if (e is InventoryComplexEventArgs icea)
-                    Log.Verbose($"{icea}\n\t├ {icea.SourceEvent}\n\t└ {icea.TargetEvent}");
-                else
-                    Log.Verbose($"{e}");
-            }
-        };
     }
-
-    /// <inheritdoc/>
-    public event IGameInventory.InventoryChangelogDelegate? InventoryChanged;
-
-    /// <inheritdoc/>
-    public event IGameInventory.InventoryChangelogDelegate? InventoryChangedRaw;
-
-    /// <inheritdoc/>
-    public event IGameInventory.InventoryChangedDelegate? ItemAdded;
-
-    /// <inheritdoc/>
-    public event IGameInventory.InventoryChangedDelegate? ItemRemoved;
-
-    /// <inheritdoc/>
-    public event IGameInventory.InventoryChangedDelegate? ItemChanged;
-
-    /// <inheritdoc/>
-    public event IGameInventory.InventoryChangedDelegate? ItemMoved;
-
-    /// <inheritdoc/>
-    public event IGameInventory.InventoryChangedDelegate? ItemSplit;
-
-    /// <inheritdoc/>
-    public event IGameInventory.InventoryChangedDelegate? ItemMerged;
-
-    /// <inheritdoc/>
-    public event IGameInventory.InventoryChangedDelegate<InventoryItemAddedArgs>? ItemAddedExplicit;
-
-    /// <inheritdoc/>
-    public event IGameInventory.InventoryChangedDelegate<InventoryItemRemovedArgs>? ItemRemovedExplicit;
-
-    /// <inheritdoc/>
-    public event IGameInventory.InventoryChangedDelegate<InventoryItemChangedArgs>? ItemChangedExplicit;
-
-    /// <inheritdoc/>
-    public event IGameInventory.InventoryChangedDelegate<InventoryItemMovedArgs>? ItemMovedExplicit;
-
-    /// <inheritdoc/>
-    public event IGameInventory.InventoryChangedDelegate<InventoryItemSplitArgs>? ItemSplitExplicit;
-
-    /// <inheritdoc/>
-    public event IGameInventory.InventoryChangedDelegate<InventoryItemMergedArgs>? ItemMergedExplicit;
 
     /// <inheritdoc/>
     public void Dispose()
     {
-        this.framework.Update -= this.OnFrameworkUpdate;
-    }
-
-    private static void InvokeSafely(
-        IGameInventory.InventoryChangelogDelegate? cb,
-        IReadOnlyCollection<InventoryEventArgs> data)
-    {
-        try
+        lock (this.subscribersPendingChange)
         {
-            cb?.Invoke(data);
-        }
-        catch (Exception e)
-        {
-            Log.Error(e, "Exception during batch callback");
+            this.subscribers.Clear();
+            this.subscribersPendingChange.Clear();
+            this.subscribersChanged = false;
+            this.framework.Update -= this.OnFrameworkUpdate;
         }
     }
 
-    private static void InvokeSafely(IGameInventory.InventoryChangedDelegate? cb, InventoryEventArgs arg)
+    /// <summary>
+    /// Subscribe to events.
+    /// </summary>
+    /// <param name="s">The event target.</param>
+    public void Subscribe(GameInventoryPluginScoped s)
     {
-        try
+        lock (this.subscribersPendingChange)
         {
-            cb?.Invoke(arg.Type, arg);
-        }
-        catch (Exception e)
-        {
-            Log.Error(e, "Exception during {argType} callback", arg.Type);
+            this.subscribersPendingChange.Add(s);
+            this.subscribersChanged = true;
+            if (this.subscribersPendingChange.Count == 1)
+                this.framework.Update += this.OnFrameworkUpdate;
         }
     }
 
-    private static void InvokeSafely<T>(IGameInventory.InventoryChangedDelegate<T>? cb, T arg)
-        where T : InventoryEventArgs
+    /// <summary>
+    /// Unsubscribe from events.
+    /// </summary>
+    /// <param name="s">The event target.</param>
+    public void Unsubscribe(GameInventoryPluginScoped s)
     {
-        try
+        lock (this.subscribersPendingChange)
         {
-            cb?.Invoke(arg);
-        }
-        catch (Exception e)
-        {
-            Log.Error(e, "Exception during {argType} callback", arg.Type);
+            if (!this.subscribersPendingChange.Remove(s))
+                return;
+            this.subscribersChanged = true;
+            if (this.subscribersPendingChange.Count == 0)
+                this.framework.Update -= this.OnFrameworkUpdate;
         }
     }
 
@@ -193,18 +130,40 @@ internal class GameInventory : IDisposable, IServiceType, IGameInventory
         if (this.addedEvents.Count == 0 && this.removedEvents.Count == 0 && this.changedEvents.Count == 0)
             return;
 
+        // Make a copy of subscribers, to accommodate self removal during the loop.
+        if (this.subscribersChanged)
+        {
+            bool isNew;
+            lock (this.subscribersPendingChange)
+            {
+                isNew = this.subscribersPendingChange.Any() && !this.subscribers.Any();
+                this.subscribers.Clear();
+                this.subscribers.AddRange(this.subscribersPendingChange);
+                this.subscribersChanged = false;
+            }
+
+            // Is this the first time (resuming) scanning for changes? Then discard the "changes".
+            if (isNew)
+            {
+                this.addedEvents.Clear();
+                this.removedEvents.Clear();
+                this.changedEvents.Clear();
+                return;
+            }
+        }
+
         // Broadcast InventoryChangedRaw.
         // Same reason with the above on why are there 3 lists of events involved.
-        InvokeSafely(
-            this.InventoryChangedRaw,
-            new DeferredReadOnlyCollection<InventoryEventArgs>(
-                this.addedEvents.Count +
-                this.removedEvents.Count +
-                this.changedEvents.Count,
-                () => Array.Empty<InventoryEventArgs>()
-                           .Concat(this.addedEvents)
-                           .Concat(this.removedEvents)
-                           .Concat(this.changedEvents)));
+        var allRawEventsCollection = new DeferredReadOnlyCollection<InventoryEventArgs>(
+            this.addedEvents.Count +
+            this.removedEvents.Count +
+            this.changedEvents.Count,
+            () => Array.Empty<InventoryEventArgs>()
+                       .Concat(this.addedEvents)
+                       .Concat(this.removedEvents)
+                       .Concat(this.changedEvents));
+        foreach (var s in this.subscribers)
+            s.InvokeChangedRaw(allRawEventsCollection);
 
         // Resolve moved items, from 1 added + 1 removed event.
         for (var iAdded = this.addedEvents.Count - 1; iAdded >= 0; --iAdded)
@@ -291,58 +250,32 @@ internal class GameInventory : IDisposable, IServiceType, IGameInventory
             }
         }
 
+        // Create a collection view of all events.
+        var allEventsCollection = new DeferredReadOnlyCollection<InventoryEventArgs>(
+            this.addedEvents.Count +
+            this.removedEvents.Count +
+            this.changedEvents.Count +
+            this.movedEvents.Count +
+            this.splitEvents.Count +
+            this.mergedEvents.Count,
+            () => Array.Empty<InventoryEventArgs>()
+                       .Concat(this.addedEvents)
+                       .Concat(this.removedEvents)
+                       .Concat(this.changedEvents)
+                       .Concat(this.movedEvents)
+                       .Concat(this.splitEvents)
+                       .Concat(this.mergedEvents));
+
         // Broadcast the rest.
-        InvokeSafely(
-            this.InventoryChanged,
-            new DeferredReadOnlyCollection<InventoryEventArgs>(
-                this.addedEvents.Count +
-                this.removedEvents.Count +
-                this.changedEvents.Count +
-                this.movedEvents.Count +
-                this.splitEvents.Count +
-                this.mergedEvents.Count,
-                () => Array.Empty<InventoryEventArgs>()
-                           .Concat(this.addedEvents)
-                           .Concat(this.removedEvents)
-                           .Concat(this.changedEvents)
-                           .Concat(this.movedEvents)
-                           .Concat(this.splitEvents)
-                           .Concat(this.mergedEvents)));
-
-        foreach (var x in this.addedEvents)
+        foreach (var s in this.subscribers)
         {
-            InvokeSafely(this.ItemAdded, x);
-            InvokeSafely(this.ItemAddedExplicit, x);
-        }
-
-        foreach (var x in this.removedEvents)
-        {
-            InvokeSafely(this.ItemRemoved, x);
-            InvokeSafely(this.ItemRemovedExplicit, x);
-        }
-
-        foreach (var x in this.changedEvents)
-        {
-            InvokeSafely(this.ItemChanged, x);
-            InvokeSafely(this.ItemChangedExplicit, x);
-        }
-
-        foreach (var x in this.movedEvents)
-        {
-            InvokeSafely(this.ItemMoved, x);
-            InvokeSafely(this.ItemMovedExplicit, x);
-        }
-
-        foreach (var x in this.splitEvents)
-        {
-            InvokeSafely(this.ItemSplit, x);
-            InvokeSafely(this.ItemSplitExplicit, x);
-        }
-
-        foreach (var x in this.mergedEvents)
-        {
-            InvokeSafely(this.ItemMerged, x);
-            InvokeSafely(this.ItemMergedExplicit, x);
+            s.InvokeChanged(allEventsCollection);
+            s.Invoke(this.addedEvents);
+            s.Invoke(this.removedEvents);
+            s.Invoke(this.changedEvents);
+            s.Invoke(this.movedEvents);
+            s.Invoke(this.splitEvents);
+            s.Invoke(this.mergedEvents);
         }
 
         // We're done using the lists. Clean them up.
@@ -388,29 +321,15 @@ internal class GameInventory : IDisposable, IServiceType, IGameInventory
 #pragma warning restore SA1015
 internal class GameInventoryPluginScoped : IDisposable, IServiceType, IGameInventory
 {
+    private static readonly ModuleLog Log = new(nameof(GameInventoryPluginScoped));
+
     [ServiceManager.ServiceDependency]
     private readonly GameInventory gameInventoryService = Service<GameInventory>.Get();
 
     /// <summary>
     /// Initializes a new instance of the <see cref="GameInventoryPluginScoped"/> class.
     /// </summary>
-    public GameInventoryPluginScoped()
-    {
-        this.gameInventoryService.InventoryChanged += this.OnInventoryChangedForward;
-        this.gameInventoryService.InventoryChangedRaw += this.OnInventoryChangedRawForward;
-        this.gameInventoryService.ItemAdded += this.OnInventoryItemAddedForward;
-        this.gameInventoryService.ItemRemoved += this.OnInventoryItemRemovedForward;
-        this.gameInventoryService.ItemMoved += this.OnInventoryItemMovedForward;
-        this.gameInventoryService.ItemChanged += this.OnInventoryItemChangedForward;
-        this.gameInventoryService.ItemSplit += this.OnInventoryItemSplitForward;
-        this.gameInventoryService.ItemMerged += this.OnInventoryItemMergedForward;
-        this.gameInventoryService.ItemAddedExplicit += this.OnInventoryItemAddedExplicitForward;
-        this.gameInventoryService.ItemRemovedExplicit += this.OnInventoryItemRemovedExplicitForward;
-        this.gameInventoryService.ItemChangedExplicit += this.OnInventoryItemChangedExplicitForward;
-        this.gameInventoryService.ItemMovedExplicit += this.OnInventoryItemMovedExplicitForward;
-        this.gameInventoryService.ItemSplitExplicit += this.OnInventoryItemSplitExplicitForward;
-        this.gameInventoryService.ItemMergedExplicit += this.OnInventoryItemMergedExplicitForward;
-    }
+    public GameInventoryPluginScoped() => this.gameInventoryService.Subscribe(this);
 
     /// <inheritdoc/>
     public event IGameInventory.InventoryChangelogDelegate? InventoryChanged;
@@ -457,20 +376,7 @@ internal class GameInventoryPluginScoped : IDisposable, IServiceType, IGameInven
     /// <inheritdoc/>
     public void Dispose()
     {
-        this.gameInventoryService.InventoryChanged -= this.OnInventoryChangedForward;
-        this.gameInventoryService.InventoryChangedRaw -= this.OnInventoryChangedRawForward;
-        this.gameInventoryService.ItemAdded -= this.OnInventoryItemAddedForward;
-        this.gameInventoryService.ItemRemoved -= this.OnInventoryItemRemovedForward;
-        this.gameInventoryService.ItemChanged -= this.OnInventoryItemChangedForward;
-        this.gameInventoryService.ItemMoved -= this.OnInventoryItemMovedForward;
-        this.gameInventoryService.ItemSplit -= this.OnInventoryItemSplitForward;
-        this.gameInventoryService.ItemMerged -= this.OnInventoryItemMergedForward;
-        this.gameInventoryService.ItemAddedExplicit -= this.OnInventoryItemAddedExplicitForward;
-        this.gameInventoryService.ItemRemovedExplicit -= this.OnInventoryItemRemovedExplicitForward;
-        this.gameInventoryService.ItemChangedExplicit -= this.OnInventoryItemChangedExplicitForward;
-        this.gameInventoryService.ItemMovedExplicit -= this.OnInventoryItemMovedExplicitForward;
-        this.gameInventoryService.ItemSplitExplicit -= this.OnInventoryItemSplitExplicitForward;
-        this.gameInventoryService.ItemMergedExplicit -= this.OnInventoryItemMergedExplicitForward;
+        this.gameInventoryService.Unsubscribe(this);
 
         this.InventoryChanged = null;
         this.InventoryChangedRaw = null;
@@ -488,45 +394,122 @@ internal class GameInventoryPluginScoped : IDisposable, IServiceType, IGameInven
         this.ItemMergedExplicit = null;
     }
 
-    private void OnInventoryChangedForward(IReadOnlyCollection<InventoryEventArgs> events)
-        => this.InventoryChanged?.Invoke(events);
+    /// <summary>
+    /// Invoke <see cref="InventoryChanged"/>.
+    /// </summary>
+    /// <param name="data">The data.</param>
+    internal void InvokeChanged(IReadOnlyCollection<InventoryEventArgs> data)
+    {
+        try
+        {
+            this.InventoryChanged?.Invoke(data);
+        }
+        catch (Exception e)
+        {
+            Log.Error(
+                e,
+                "[{plugin}] Exception during {argType} callback",
+                Service<PluginManager>.GetNullable()?.FindCallingPlugin(new(e))?.Name ?? "(unknown plugin)",
+                nameof(this.InventoryChanged));
+        }
+    }
 
-    private void OnInventoryChangedRawForward(IReadOnlyCollection<InventoryEventArgs> events)
-        => this.InventoryChangedRaw?.Invoke(events);
+    /// <summary>
+    /// Invoke <see cref="InventoryChangedRaw"/>.
+    /// </summary>
+    /// <param name="data">The data.</param>
+    internal void InvokeChangedRaw(IReadOnlyCollection<InventoryEventArgs> data)
+    {
+        try
+        {
+            this.InventoryChangedRaw?.Invoke(data);
+        }
+        catch (Exception e)
+        {
+            Log.Error(
+                e,
+                "[{plugin}] Exception during {argType} callback",
+                Service<PluginManager>.GetNullable()?.FindCallingPlugin(new(e))?.Name ?? "(unknown plugin)",
+                nameof(this.InventoryChangedRaw));
+        }
+    }
+    
+    // Note below: using List<T> instead of IEnumerable<T>, since List<T> has a specialized lightweight enumerator.
 
-    private void OnInventoryItemAddedForward(GameInventoryEvent type, InventoryEventArgs data)
-        => this.ItemAdded?.Invoke(type, data);
+    /// <summary>
+    /// Invoke the appropriate event handler.
+    /// </summary>
+    /// <param name="events">The data.</param>
+    internal void Invoke(List<InventoryItemAddedArgs> events) =>
+        Invoke(this.ItemAdded, this.ItemAddedExplicit, events);
+    
+    /// <summary>
+    /// Invoke the appropriate event handler.
+    /// </summary>
+    /// <param name="events">The data.</param>
+    internal void Invoke(List<InventoryItemRemovedArgs> events) =>
+        Invoke(this.ItemRemoved, this.ItemRemovedExplicit, events);
+    
+    /// <summary>
+    /// Invoke the appropriate event handler.
+    /// </summary>
+    /// <param name="events">The data.</param>
+    internal void Invoke(List<InventoryItemChangedArgs> events) =>
+        Invoke(this.ItemChanged, this.ItemChangedExplicit, events);
+    
+    /// <summary>
+    /// Invoke the appropriate event handler.
+    /// </summary>
+    /// <param name="events">The data.</param>
+    internal void Invoke(List<InventoryItemMovedArgs> events) =>
+        Invoke(this.ItemMoved, this.ItemMovedExplicit, events);
+    
+    /// <summary>
+    /// Invoke the appropriate event handler.
+    /// </summary>
+    /// <param name="events">The data.</param>
+    internal void Invoke(List<InventoryItemSplitArgs> events) =>
+        Invoke(this.ItemSplit, this.ItemSplitExplicit, events);
+    
+    /// <summary>
+    /// Invoke the appropriate event handler.
+    /// </summary>
+    /// <param name="events">The data.</param>
+    internal void Invoke(List<InventoryItemMergedArgs> events) =>
+        Invoke(this.ItemMerged, this.ItemMergedExplicit, events);
+    
+    private static void Invoke<T>(
+        IGameInventory.InventoryChangedDelegate? cb,
+        IGameInventory.InventoryChangedDelegate<T>? cbt,
+        List<T> events) where T : InventoryEventArgs
+    {
+        foreach (var evt in events)
+        {
+            try
+            {
+                cb?.Invoke(evt.Type, evt);
+            }
+            catch (Exception e)
+            {
+                Log.Error(
+                    e,
+                    "[{plugin}] Exception during untyped callback for {evt}",
+                    Service<PluginManager>.GetNullable()?.FindCallingPlugin(new(e))?.Name ?? "(unknown plugin)",
+                    evt);
+            }
 
-    private void OnInventoryItemRemovedForward(GameInventoryEvent type, InventoryEventArgs data)
-        => this.ItemRemoved?.Invoke(type, data);
-
-    private void OnInventoryItemChangedForward(GameInventoryEvent type, InventoryEventArgs data)
-        => this.ItemChanged?.Invoke(type, data);
-
-    private void OnInventoryItemMovedForward(GameInventoryEvent type, InventoryEventArgs data)
-        => this.ItemMoved?.Invoke(type, data);
-
-    private void OnInventoryItemSplitForward(GameInventoryEvent type, InventoryEventArgs data)
-        => this.ItemSplit?.Invoke(type, data);
-
-    private void OnInventoryItemMergedForward(GameInventoryEvent type, InventoryEventArgs data)
-        => this.ItemMerged?.Invoke(type, data);
-
-    private void OnInventoryItemAddedExplicitForward(InventoryItemAddedArgs data)
-        => this.ItemAddedExplicit?.Invoke(data);
-
-    private void OnInventoryItemRemovedExplicitForward(InventoryItemRemovedArgs data)
-        => this.ItemRemovedExplicit?.Invoke(data);
-
-    private void OnInventoryItemChangedExplicitForward(InventoryItemChangedArgs data)
-        => this.ItemChangedExplicit?.Invoke(data);
-
-    private void OnInventoryItemMovedExplicitForward(InventoryItemMovedArgs data)
-        => this.ItemMovedExplicit?.Invoke(data);
-
-    private void OnInventoryItemSplitExplicitForward(InventoryItemSplitArgs data)
-        => this.ItemSplitExplicit?.Invoke(data);
-
-    private void OnInventoryItemMergedExplicitForward(InventoryItemMergedArgs data)
-        => this.ItemMergedExplicit?.Invoke(data);
+            try
+            {
+                cbt?.Invoke(evt);
+            }
+            catch (Exception e)
+            {
+                Log.Error(
+                    e,
+                    "[{plugin}] Exception during typed callback for {evt}",
+                    Service<PluginManager>.GetNullable()?.FindCallingPlugin(new(e))?.Name ?? "(unknown plugin)",
+                    evt);
+            }
+        }
+    }
 }

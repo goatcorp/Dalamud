@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 
 using Dalamud.Game.Inventory;
-using Dalamud.Game.Inventory.InventoryChangeArgsTypes;
+using Dalamud.Game.Inventory.InventoryEventArgTypes;
 
 namespace Dalamud.Plugin.Services;
 

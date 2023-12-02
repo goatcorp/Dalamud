@@ -1,4 +1,4 @@
-namespace Dalamud.Game.Inventory.InventoryChangeArgsTypes;
+namespace Dalamud.Game.Inventory.InventoryEventArgTypes;
 
 /// <summary>
 /// Represents the data associated with an item being split from one stack into two.

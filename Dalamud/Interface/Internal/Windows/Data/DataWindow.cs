@@ -33,6 +33,7 @@ internal class DataWindow : Window
         new FateTableWidget(),
         new FlyTextWidget(),
         new FontAwesomeTestWidget(),
+        new GameInventoryTestWidget(),
         new GamepadWidget(),
         new GaugeWidget(),
         new HookWidget(),
