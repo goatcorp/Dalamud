@@ -404,6 +404,12 @@ internal class GameInventoryPluginScoped : IDisposable, IServiceType, IGameInven
         this.gameInventoryService.ItemChanged += this.OnInventoryItemChangedForward;
         this.gameInventoryService.ItemSplit += this.OnInventoryItemSplitForward;
         this.gameInventoryService.ItemMerged += this.OnInventoryItemMergedForward;
+        this.gameInventoryService.ItemAddedExplicit += this.OnInventoryItemAddedExplicitForward;
+        this.gameInventoryService.ItemRemovedExplicit += this.OnInventoryItemRemovedExplicitForward;
+        this.gameInventoryService.ItemChangedExplicit += this.OnInventoryItemChangedExplicitForward;
+        this.gameInventoryService.ItemMovedExplicit += this.OnInventoryItemMovedExplicitForward;
+        this.gameInventoryService.ItemSplitExplicit += this.OnInventoryItemSplitExplicitForward;
+        this.gameInventoryService.ItemMergedExplicit += this.OnInventoryItemMergedExplicitForward;
     }
 
     /// <inheritdoc/>
