@@ -49,8 +49,9 @@ internal static class ServiceManager
     /// Do not use this delegate outside the constructor.
     /// </summary>
     /// <param name="t">The blocker task.</param>
+    /// <param name="justification">The justification for using this feature.</param>
     [InjectableType]
-    public delegate void RegisterStartupBlockerDelegate(Task t);
+    public delegate void RegisterStartupBlockerDelegate(Task t, string justification);
 
     /// <summary>
     /// Delegate for registering services that should be unloaded before self.<br />
@@ -59,8 +60,9 @@ internal static class ServiceManager
     /// Do not use this delegate outside the constructor.
     /// </summary>
     /// <param name="unloadAfter">Services that should be unloaded first.</param>
+    /// <param name="justification">The justification for using this feature.</param>
     [InjectableType]
-    public delegate void RegisterUnloadAfterDelegate(IEnumerable<Type> unloadAfter);
+    public delegate void RegisterUnloadAfterDelegate(IEnumerable<Type> unloadAfter, string justification);
     
     /// <summary>
     /// Kinds of services.
@@ -300,13 +302,16 @@ internal static class ServiceManager
                     {
                         startLoaderArgs.Add(
                             new RegisterStartupBlockerDelegate(
-                                task =>
+                                (task, justification) =>
                                 {
 #if DEBUG
                                     if (CurrentConstructorServiceType.Value != serviceType)
                                         throw new InvalidOperationException("Forbidden.");
 #endif
                                     blockerTasks.Add(task);
+
+                                    // No need to store the justification; the fact that the reason is specified is good enough.
+                                    _ = justification;
                                 }));
                     }
 
@@ -610,6 +615,15 @@ internal static class ServiceManager
     [MeansImplicitUse]
     public class CallWhenServicesReady : Attribute
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="CallWhenServicesReady"/> class.
+        /// </summary>
+        /// <param name="justification">Specify the reason here.</param>
+        public CallWhenServicesReady(string justification)
+        {
+            // No need to store the justification; the fact that the reason is specified is good enough.
+            _ = justification;
+        }
     }
 
     /// <summary>

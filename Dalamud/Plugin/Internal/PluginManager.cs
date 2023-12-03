@@ -147,8 +147,13 @@ internal partial class PluginManager : IDisposable, IServiceType
 
         this.ApplyPatches();
 
-        registerStartupBlocker(Task.Run(this.LoadAndStartLoadSyncPlugins));
-        registerUnloadAfter(ResolvePossiblePluginDependencyServices());
+        registerStartupBlocker(
+            Task.Run(this.LoadAndStartLoadSyncPlugins),
+            "Waiting for plugins that asked to be loaded before the game.");
+
+        registerUnloadAfter(
+            ResolvePossiblePluginDependencyServices(),
+            "See the attached comment for the called function.");
     }
 
     /// <summary>

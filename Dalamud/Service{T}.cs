@@ -217,14 +217,17 @@ internal static class Service<T> where T : IServiceType
             ctorArgs.AddRange(additionalProvidedTypedObjects);
             ctorArgs.Add(
                 new ServiceManager.RegisterUnloadAfterDelegate(
-                    e =>
+                    (additionalDependencies, justification) =>
                     {
 #if DEBUG
                         if (ServiceManager.CurrentConstructorServiceType.Value != typeof(T))
                             throw new InvalidOperationException("Forbidden.");
 #endif
                         _ = GetDependencyServices();
-                        dependencyServices!.AddRange(e);
+                        dependencyServices!.AddRange(additionalDependencies);
+
+                        // No need to store the justification; the fact that the reason is specified is good enough.
+                        _ = justification;
                     }));
 
             ServiceManager.Log.Debug("Service<{0}>: Begin construction", typeof(T).Name);

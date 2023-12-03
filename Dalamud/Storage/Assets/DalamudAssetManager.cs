@@ -62,12 +62,13 @@ internal sealed class DalamudAssetManager : IServiceType, IDisposable, IDalamudA
         var loadTimings = Timings.Start("DAM LoadAll");
         registerStartupBlocker(
             Task.WhenAll(
-                Enum.GetValues<DalamudAsset>()
-                    .Where(x => x is not DalamudAsset.Empty4X4)
-                    .Where(x => x.GetAttribute<DalamudAssetAttribute>()?.Required is true)
-                    .Select(this.CreateStreamAsync)
-                    .Select(x => x.ToContentDisposedTask()))
-                .ContinueWith(_ => loadTimings.Dispose()));
+                    Enum.GetValues<DalamudAsset>()
+                        .Where(x => x is not DalamudAsset.Empty4X4)
+                        .Where(x => x.GetAttribute<DalamudAssetAttribute>()?.Required is true)
+                        .Select(this.CreateStreamAsync)
+                        .Select(x => x.ToContentDisposedTask()))
+                .ContinueWith(_ => loadTimings.Dispose()),
+            "Prevent Dalamud from loading more stuff, until we've ensured that all required assets are available.");
     }
 
     /// <inheritdoc/>
