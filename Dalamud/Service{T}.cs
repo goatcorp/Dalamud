@@ -24,6 +24,7 @@ internal static class Service<T> where T : IServiceType
     private static readonly ServiceManager.ServiceAttribute ServiceAttribute;
     private static TaskCompletionSource<T> instanceTcs = new();
     private static List<Type>? dependencyServices;
+    private static List<Type>? dependencyServicesForUnload;
 
     static Service()
     {
@@ -140,9 +141,13 @@ internal static class Service<T> where T : IServiceType
     /// Gets an enumerable containing <see cref="Service{T}"/>s that are required for this Service to initialize
     /// without blocking.
     /// </summary>
+    /// <param name="includeUnloadDependencies">Whether to include the unload dependencies.</param>
     /// <returns>List of dependency services.</returns>
-    public static IReadOnlyCollection<Type> GetDependencyServices()
+    public static IReadOnlyCollection<Type> GetDependencyServices(bool includeUnloadDependencies)
     {
+        if (includeUnloadDependencies && dependencyServicesForUnload is not null)
+            return dependencyServicesForUnload;
+
         if (dependencyServices is not null)
             return dependencyServices;
 
@@ -223,8 +228,8 @@ internal static class Service<T> where T : IServiceType
                         if (ServiceManager.CurrentConstructorServiceType.Value != typeof(T))
                             throw new InvalidOperationException("Forbidden.");
 #endif
-                        _ = GetDependencyServices();
-                        dependencyServices!.AddRange(additionalDependencies);
+                        dependencyServicesForUnload ??= new(GetDependencyServices(false));
+                        dependencyServicesForUnload.AddRange(additionalDependencies);
 
                         // No need to store the justification; the fact that the reason is specified is good enough.
                         _ = justification;
@@ -412,8 +417,9 @@ internal static class ServiceHelpers
     /// These are returned as <see cref="Service{T}"/> types.
     /// </summary>
     /// <param name="serviceType">The dependencies for this service.</param>
+    /// <param name="includeUnloadDependencies">Whether to include the unload dependencies.</param>
     /// <returns>A list of dependencies.</returns>
-    public static IReadOnlyCollection<Type> GetDependencies(Type serviceType)
+    public static IReadOnlyCollection<Type> GetDependencies(Type serviceType, bool includeUnloadDependencies)
     {
 #if DEBUG
         if (!serviceType.IsGenericType || serviceType.GetGenericTypeDefinition() != typeof(Service<>))
@@ -429,7 +435,7 @@ internal static class ServiceHelpers
                    BindingFlags.InvokeMethod | BindingFlags.Static | BindingFlags.Public,
                    null,
                    null,
-                   null) ?? new List<Type>();
+                   new object?[] { includeUnloadDependencies }) ?? new List<Type>();
     }
 
     /// <summary>

@@ -214,7 +214,7 @@ internal static class ServiceManager
             }
 
             var typeAsServiceT = ServiceHelpers.GetAsService(serviceType);
-            dependencyServicesMap[serviceType] = ServiceHelpers.GetDependencies(typeAsServiceT)
+            dependencyServicesMap[serviceType] = ServiceHelpers.GetDependencies(typeAsServiceT, false)
                                                                .Select(x => typeof(Service<>).MakeGenericType(x))
                                                                .ToList();
         }
@@ -414,7 +414,7 @@ internal static class ServiceManager
             Log.Verbose("Calling GetDependencyServices for '{ServiceName}'", serviceType.FullName!);
 
             var typeAsServiceT = ServiceHelpers.GetAsService(serviceType);
-            dependencyServicesMap[serviceType] = ServiceHelpers.GetDependencies(typeAsServiceT);
+            dependencyServicesMap[serviceType] = ServiceHelpers.GetDependencies(typeAsServiceT, true);
 
             allToUnload.Add(serviceType);
         }

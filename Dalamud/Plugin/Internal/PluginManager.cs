@@ -1232,7 +1232,7 @@ internal partial class PluginManager : IDisposable, IServiceType
             if (serviceType.GetServiceKind() == ServiceManager.ServiceKind.ScopedService)
             {
                 var typeAsServiceT = ServiceHelpers.GetAsService(serviceType);
-                var dependencies = ServiceHelpers.GetDependencies(typeAsServiceT);
+                var dependencies = ServiceHelpers.GetDependencies(typeAsServiceT, false);
                 ServiceManager.Log.Verbose("Found dependencies of scoped plugin service {Type} ({Cnt})", serviceType.FullName!, dependencies!.Count);
                     
                 foreach (var scopedDep in dependencies)
