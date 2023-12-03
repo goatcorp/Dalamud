@@ -187,7 +187,7 @@ internal static class ServiceManager
             
             var getTask = (Task)genericWrappedServiceType
                                 .InvokeMember(
-                                    "GetAsync",
+                                    nameof(Service<IServiceType>.GetAsync),
                                     BindingFlags.InvokeMethod | BindingFlags.Static | BindingFlags.Public,
                                     null,
                                     null,
