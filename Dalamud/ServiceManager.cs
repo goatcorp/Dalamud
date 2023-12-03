@@ -336,7 +336,7 @@ internal static class ServiceManager
         
         foreach (var serviceType in Assembly.GetExecutingAssembly().GetTypes())
         {
-            if (serviceType.IsAbstract || !serviceType.IsAssignableTo(typeof(IServiceType)))
+            if (!serviceType.IsAssignableTo(typeof(IServiceType)))
                 continue;
             
             // Scoped services shall never be unloaded here.
