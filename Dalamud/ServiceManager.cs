@@ -11,6 +11,7 @@ using Dalamud.Game;
 using Dalamud.IoC.Internal;
 using Dalamud.Logging.Internal;
 using Dalamud.Storage;
+using Dalamud.Utility;
 using Dalamud.Utility.Timing;
 using JetBrains.Annotations;
 
@@ -241,14 +242,14 @@ internal static class ServiceManager
 
             return;
 
-            async Task WaitWithTimeoutConsent(IEnumerable<Task> waitFor)
+            async Task WaitWithTimeoutConsent(IEnumerable<Task> tasksEnumerable)
             {
-                var tasksArray = waitFor.ToArray();
-                if (tasksArray.Length == 0)
+                var tasks = tasksEnumerable.AsReadOnlyCollection();
+                if (tasks.Count == 0)
                     return;
 
-                var tasks = Task.WhenAll(tasksArray);
-                while (await Task.WhenAny(tasks, Task.Delay(120000)) != tasks)
+                var aggregatedTask = Task.WhenAll(tasks);
+                while (await Task.WhenAny(aggregatedTask, Task.Delay(120000)) != aggregatedTask)
                 {
                     if (NativeFunctions.MessageBoxW(
                             IntPtr.Zero,
