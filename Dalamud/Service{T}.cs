@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
-using Dalamud.Plugin.Internal;
 using Dalamud.Utility.Timing;
 using JetBrains.Annotations;
 
@@ -95,7 +94,7 @@ internal static class Service<T> where T : IServiceType
         if (ServiceAttribute.Kind != ServiceManager.ServiceKind.ProvidedService
             && ServiceManager.CurrentConstructorServiceType.Value is { } currentServiceType)
         {
-            var deps = ServiceHelpers.GetDependencies(currentServiceType);
+            var deps = ServiceHelpers.GetDependencies(typeof(Service<>).MakeGenericType(currentServiceType));
             if (!deps.Contains(typeof(T)))
             {
                 throw new InvalidOperationException(
@@ -115,7 +114,6 @@ internal static class Service<T> where T : IServiceType
     /// Pull the instance out of the service locator, waiting if necessary.
     /// </summary>
     /// <returns>The object.</returns>
-    [UsedImplicitly]
     public static Task<T> GetAsync() => instanceTcs.Task;
 
     /// <summary>
@@ -143,8 +141,7 @@ internal static class Service<T> where T : IServiceType
     /// without blocking.
     /// </summary>
     /// <returns>List of dependency services.</returns>
-    [UsedImplicitly]
-    public static List<Type> GetDependencyServices()
+    public static IReadOnlyCollection<Type> GetDependencyServices()
     {
         if (dependencyServices is not null)
             return dependencyServices;
@@ -158,7 +155,8 @@ internal static class Service<T> where T : IServiceType
         {
             res.AddRange(ctor
                .GetParameters()
-               .Select(x => x.ParameterType));
+               .Select(x => x.ParameterType)
+               .Where(x => x.GetServiceKind() != ServiceManager.ServiceKind.None));
         }
         
         res.AddRange(typeof(T)
@@ -171,50 +169,8 @@ internal static class Service<T> where T : IServiceType
                      .OfType<InherentDependencyAttribute>()
                      .Select(x => x.GetType().GetGenericArguments().First()));
 
-        // HACK: PluginManager needs to depend on ALL plugin exposed services
-        if (typeof(T) == typeof(PluginManager))
-        {
-            foreach (var serviceType in Assembly.GetExecutingAssembly().GetTypes())
-            {
-                if (!serviceType.IsAssignableTo(typeof(IServiceType)))
-                    continue;
-                
-                if (serviceType == typeof(PluginManager))
-                    continue;
-                
-                // Scoped plugin services lifetime is tied to their scopes. They go away when LocalPlugin goes away.
-                // Nonetheless, their direct dependencies must be considered.
-                if (serviceType.GetServiceKind() == ServiceManager.ServiceKind.ScopedService)
-                {
-                    var typeAsServiceT = ServiceHelpers.GetAsService(serviceType);
-                    var dependencies = ServiceHelpers.GetDependencies(typeAsServiceT);
-                    ServiceManager.Log.Verbose("Found dependencies of scoped plugin service {Type} ({Cnt})", serviceType.FullName!, dependencies!.Count);
-                    
-                    foreach (var scopedDep in dependencies)
-                    {
-                        if (scopedDep == typeof(PluginManager))
-                            throw new Exception("Scoped plugin services cannot depend on PluginManager.");
-                        
-                        ServiceManager.Log.Verbose("PluginManager MUST depend on {Type} via {BaseType}", scopedDep.FullName!, serviceType.FullName!);
-                        res.Add(scopedDep);
-                    }
-
-                    continue;
-                }
-                
-                var pluginInterfaceAttribute = serviceType.GetCustomAttribute<PluginInterfaceAttribute>(true);
-                if (pluginInterfaceAttribute == null)
-                    continue;
-
-                ServiceManager.Log.Verbose("PluginManager MUST depend on {Type}", serviceType.FullName!);
-                res.Add(serviceType);
-            }
-        }
-        
         foreach (var type in res)
-        {
             ServiceManager.Log.Verbose("Service<{0}>: => Dependency: {1}", typeof(T).Name, type.Name);
-        }
 
         var deps = res
                    .Distinct()
@@ -244,8 +200,9 @@ internal static class Service<T> where T : IServiceType
     /// <summary>
     /// Starts the service loader. Only to be called from <see cref="ServiceManager"/>.
     /// </summary>
+    /// <param name="additionalProvidedTypedObjects">Additional objects available to constructors.</param>
     /// <returns>The loader task.</returns>
-    internal static Task<T> StartLoader()
+    internal static Task<T> StartLoader(IReadOnlyCollection<object> additionalProvidedTypedObjects)
     {
         if (instanceTcs.Task.IsCompleted)
             throw new InvalidOperationException($"{typeof(T).Name} is already loaded or disposed.");
@@ -256,10 +213,23 @@ internal static class Service<T> where T : IServiceType
 
         return Task.Run(Timings.AttachTimingHandle(async () =>
         {
+            var ctorArgs = new List<object>(additionalProvidedTypedObjects.Count + 1);
+            ctorArgs.AddRange(additionalProvidedTypedObjects);
+            ctorArgs.Add(
+                new ServiceManager.RegisterUnloadAfterDelegate(
+                    e =>
+                    {
+                        if (ServiceManager.CurrentConstructorServiceType.Value != typeof(T))
+                            throw new InvalidOperationException("Forbidden.");
+
+                        _ = GetDependencyServices();
+                        dependencyServices!.AddRange(e);
+                    }));
+
             ServiceManager.Log.Debug("Service<{0}>: Begin construction", typeof(T).Name);
             try
             {
-                var instance = await ConstructObject();
+                var instance = await ConstructObject(ctorArgs).ConfigureAwait(false);
                 instanceTcs.SetResult(instance);
 
                 List<Task>? tasks = null;
@@ -270,8 +240,17 @@ internal static class Service<T> where T : IServiceType
                         continue;
 
                     ServiceManager.Log.Debug("Service<{0}>: Calling {1}", typeof(T).Name, method.Name);
-                    var args = await Task.WhenAll(method.GetParameters().Select(
-                                                      x => ResolveServiceFromTypeAsync(x.ParameterType)));
+                    var args = await ResolveInjectedParameters(
+                                   method.GetParameters(),
+                                   Array.Empty<object>()).ConfigureAwait(false);
+                    if (args.Length == 0)
+                    {
+                        ServiceManager.Log.Warning(
+                            "Service<{0}>: Method {1} does not have any arguments. Consider merging it with the ctor.",
+                            typeof(T).Name,
+                            method.Name);
+                    }
+
                     try
                     {
                         if (method.Invoke(instance, args) is Task task)
@@ -331,24 +310,6 @@ internal static class Service<T> where T : IServiceType
         instanceTcs.SetException(new UnloadedException());
     }
 
-    private static async Task<object?> ResolveServiceFromTypeAsync(Type type)
-    {
-        var task = (Task)typeof(Service<>)
-                         .MakeGenericType(type)
-                         .InvokeMember(
-                             "GetAsync",
-                             BindingFlags.InvokeMethod |
-                             BindingFlags.Static |
-                             BindingFlags.Public,
-                             null,
-                             null,
-                             null)!;
-        await task;
-        return typeof(Task<>).MakeGenericType(type)
-                             .GetProperty("Result", BindingFlags.Instance | BindingFlags.Public)!
-                             .GetValue(task);
-    }
-
     private static ConstructorInfo? GetServiceConstructor()
     {
         const BindingFlags ctorBindingFlags =
@@ -359,18 +320,18 @@ internal static class Service<T> where T : IServiceType
                .SingleOrDefault(x => x.GetCustomAttributes(typeof(ServiceManager.ServiceConstructor), true).Any());
     }
 
-    private static async Task<T> ConstructObject()
+    private static async Task<T> ConstructObject(IReadOnlyCollection<object> additionalProvidedTypedObjects)
     {
         var ctor = GetServiceConstructor();
         if (ctor == null)
             throw new Exception($"Service \"{typeof(T).FullName}\" had no applicable constructor");
         
-        var args = await Task.WhenAll(
-                       ctor.GetParameters().Select(x => ResolveServiceFromTypeAsync(x.ParameterType)));
+        var args = await ResolveInjectedParameters(ctor.GetParameters(), additionalProvidedTypedObjects)
+                       .ConfigureAwait(false);
         using (Timings.Start($"{typeof(T).Name} Construct"))
         {
 #if DEBUG
-            ServiceManager.CurrentConstructorServiceType.Value = typeof(Service<T>);
+            ServiceManager.CurrentConstructorServiceType.Value = typeof(T);
             try
             {
                 return (T)ctor.Invoke(args)!;
@@ -384,6 +345,43 @@ internal static class Service<T> where T : IServiceType
 #endif
         }
     }
+
+    private static Task<object[]> ResolveInjectedParameters(
+        IReadOnlyList<ParameterInfo> argDefs,
+        IReadOnlyCollection<object> additionalProvidedTypedObjects)
+    {
+        var argTasks = new Task<object>[argDefs.Count];
+        for (var i = 0; i < argDefs.Count; i++)
+        {
+            var argType = argDefs[i].ParameterType;
+            ref var argTask = ref argTasks[i];
+
+            if (argType.GetCustomAttribute<ServiceManager.InjectableTypeAttribute>() is not null)
+            {
+                argTask = Task.FromResult(additionalProvidedTypedObjects.Single(x => x.GetType() == argType));
+                continue;
+            }
+            
+            argTask = (Task<object>)typeof(Service<>)
+                             .MakeGenericType(argType)
+                             .InvokeMember(
+                                 nameof(GetAsyncAsObject),
+                                 BindingFlags.InvokeMethod |
+                                 BindingFlags.Static |
+                                 BindingFlags.NonPublic,
+                                 null,
+                                 null,
+                                 null)!;
+        }
+
+        return Task.WhenAll(argTasks);
+    }
+
+    /// <summary>
+    /// Pull the instance out of the service locator, waiting if necessary.
+    /// </summary>
+    /// <returns>The object.</returns>
+    private static Task<object> GetAsyncAsObject() => instanceTcs.Task.ContinueWith(r => (object)r.Result);
 
     /// <summary>
     /// Exception thrown when service is attempted to be retrieved when it's unloaded.
@@ -411,7 +409,7 @@ internal static class ServiceHelpers
     /// </summary>
     /// <param name="serviceType">The dependencies for this service.</param>
     /// <returns>A list of dependencies.</returns>
-    public static List<Type> GetDependencies(Type serviceType)
+    public static IReadOnlyCollection<Type> GetDependencies(Type serviceType)
     {
 #if DEBUG
         if (!serviceType.IsGenericType || serviceType.GetGenericTypeDefinition() != typeof(Service<>))
@@ -422,7 +420,7 @@ internal static class ServiceHelpers
         }
 #endif
 
-        return (List<Type>)serviceType.InvokeMember(
+        return (IReadOnlyCollection<Type>)serviceType.InvokeMember(
                    nameof(Service<IServiceType>.GetDependencyServices),
                    BindingFlags.InvokeMethod | BindingFlags.Static | BindingFlags.Public,
                    null,
