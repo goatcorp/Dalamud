@@ -58,6 +58,9 @@ internal sealed class Framework : IDisposable, IServiceType, IFramework
 
         this.updateHook = Hook<OnUpdateDetour>.FromAddress(this.addressResolver.TickAddress, this.HandleFrameworkUpdate);
         this.destroyHook = Hook<OnRealDestroyDelegate>.FromAddress(this.addressResolver.DestroyAddress, this.HandleFrameworkDestroy);
+
+        this.updateHook.Enable();
+        this.destroyHook.Enable();
     }
 
     /// <summary>
@@ -328,13 +331,6 @@ internal sealed class Framework : IDisposable, IServiceType, IFramework
 
             AddToStats(key, stopwatch.Elapsed.TotalMilliseconds);
         }
-    }
-
-    [ServiceManager.CallWhenServicesReady]
-    private void ContinueConstruction()
-    {
-        this.updateHook.Enable();
-        this.destroyHook.Enable();
     }
 
     private void RunPendingTickTasks()

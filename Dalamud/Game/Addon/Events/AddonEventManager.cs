@@ -57,6 +57,8 @@ internal unsafe class AddonEventManager : IDisposable, IServiceType
 
         this.finalizeEventListener = new AddonLifecycleEventListener(AddonEvent.PreFinalize, string.Empty, this.OnAddonFinalize);
         this.addonLifecycle.RegisterListener(this.finalizeEventListener);
+
+        this.onUpdateCursor.Enable();
     }
 
     private delegate nint UpdateCursorDelegate(RaptureAtkModule* module);
@@ -147,12 +149,6 @@ internal unsafe class AddonEventManager : IDisposable, IServiceType
             this.pluginEventControllers.Remove(controller);
             controller.Dispose();
         }
-    }
-
-    [ServiceManager.CallWhenServicesReady]
-    private void ContinueConstruction()
-    {
-        this.onUpdateCursor.Enable();
     }
 
     /// <summary>
