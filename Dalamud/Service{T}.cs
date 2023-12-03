@@ -95,7 +95,7 @@ internal static class Service<T> where T : IServiceType
         if (ServiceAttribute.Kind != ServiceManager.ServiceKind.ProvidedService
             && ServiceManager.CurrentConstructorServiceType.Value is { } currentServiceType)
         {
-            var deps = ServiceHelpers.GetDependencies(typeof(Service<>).MakeGenericType(currentServiceType));
+            var deps = ServiceHelpers.GetDependencies(typeof(Service<>).MakeGenericType(currentServiceType), false);
             if (!deps.Contains(typeof(T)))
             {
                 throw new InvalidOperationException(
@@ -140,6 +140,7 @@ internal static class Service<T> where T : IServiceType
     /// <summary>
     /// Gets an enumerable containing <see cref="Service{T}"/>s that are required for this Service to initialize
     /// without blocking.
+    /// These are NOT returned as <see cref="Service{T}"/> types; raw types will be returned.
     /// </summary>
     /// <param name="includeUnloadDependencies">Whether to include the unload dependencies.</param>
     /// <returns>List of dependency services.</returns>
@@ -414,7 +415,7 @@ internal static class ServiceHelpers
 {
     /// <summary>
     /// Get a list of dependencies for a service. Only accepts <see cref="Service{T}"/> types.
-    /// These are returned as <see cref="Service{T}"/> types.
+    /// These are NOT returned as <see cref="Service{T}"/> types; raw types will be returned.
     /// </summary>
     /// <param name="serviceType">The dependencies for this service.</param>
     /// <param name="includeUnloadDependencies">Whether to include the unload dependencies.</param>
