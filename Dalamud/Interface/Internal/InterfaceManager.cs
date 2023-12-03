@@ -1064,13 +1064,8 @@ internal class InterfaceManager : IDisposable, IServiceType
     }
 
     [ServiceManager.CallWhenServicesReady]
-    private void ContinueConstruction(
-        TargetSigScanner sigScanner,
-        DalamudAssetManager dalamudAssetManager,
-        DalamudConfiguration configuration)
+    private void ContinueConstruction(TargetSigScanner sigScanner, DalamudConfiguration configuration)
     {
-        dalamudAssetManager.WaitForAllRequiredAssets().Wait();
-
         this.address.Setup(sigScanner);
         this.framework.RunOnFrameworkThread(() =>
         {

@@ -602,7 +602,9 @@ internal static class ServiceManager
     }
 
     /// <summary>
-    /// Indicates that the method should be called when the services given in the constructor are ready.
+    /// Indicates that the method should be called when the services given in the marked method's parameters are ready.
+    /// This will be executed immediately after the constructor has run, if all services specified as its parameters
+    /// are already ready, or no parameter is given.
     /// </summary>
     [AttributeUsage(AttributeTargets.Method)]
     [MeansImplicitUse]

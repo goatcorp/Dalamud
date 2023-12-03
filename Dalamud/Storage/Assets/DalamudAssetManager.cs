@@ -44,7 +44,10 @@ internal sealed class DalamudAssetManager : IServiceType, IDisposable, IDalamudA
     private bool isDisposed;
 
     [ServiceManager.ServiceConstructor]
-    private DalamudAssetManager(Dalamud dalamud, HappyHttpClient httpClient)
+    private DalamudAssetManager(
+        Dalamud dalamud,
+        HappyHttpClient httpClient,
+        ServiceManager.RegisterStartupBlockerDelegate registerStartupBlocker)
     {
         this.dalamud = dalamud;
         this.httpClient = httpClient;
@@ -55,8 +58,16 @@ internal sealed class DalamudAssetManager : IServiceType, IDisposable, IDalamudA
         this.fileStreams = Enum.GetValues<DalamudAsset>().ToDictionary(x => x, _ => (Task<FileStream>?)null);
         this.textureWraps = Enum.GetValues<DalamudAsset>().ToDictionary(x => x, _ => (Task<IDalamudTextureWrap>?)null);
         
+        // Block until all the required assets to be ready.
         var loadTimings = Timings.Start("DAM LoadAll");
-        this.WaitForAllRequiredAssets().ContinueWith(_ => loadTimings.Dispose());
+        registerStartupBlocker(
+            Task.WhenAll(
+                Enum.GetValues<DalamudAsset>()
+                    .Where(x => x is not DalamudAsset.Empty4X4)
+                    .Where(x => x.GetAttribute<DalamudAssetAttribute>()?.Required is true)
+                    .Select(this.CreateStreamAsync)
+                    .Select(x => x.ToContentDisposedTask()))
+                .ContinueWith(_ => loadTimings.Dispose()));
     }
 
     /// <inheritdoc/>
@@ -81,25 +92,6 @@ internal sealed class DalamudAssetManager : IServiceType, IDisposable, IDalamudA
                  .Where(x => x is not null)
                  .ToArray());
         this.scopedFinalizer.Dispose();
-    }
-
-    /// <summary>
-    /// Waits for all the required assets to be ready. Will result in a faulted task, if any of the required assets
-    /// has failed to load.
-    /// </summary>
-    /// <returns>The task.</returns>
-    [Pure]
-    public Task WaitForAllRequiredAssets()
-    {
-        lock (this.syncRoot)
-        {
-            return Task.WhenAll(
-                Enum.GetValues<DalamudAsset>()
-                    .Where(x => x is not DalamudAsset.Empty4X4)
-                    .Where(x => x.GetAttribute<DalamudAssetAttribute>()?.Required is true)
-                    .Select(this.CreateStreamAsync)
-                    .Select(x => x.ToContentDisposedTask()));
-        }
     }
 
     /// <inheritdoc/>

@@ -16,6 +16,9 @@ internal sealed partial class Condition : IServiceType, ICondition
     /// Gets the current max number of conditions. You can get this just by looking at the condition sheet and how many rows it has.
     /// </summary>
     internal const int MaxConditionEntries = 104;
+
+    [ServiceManager.ServiceDependency]
+    private readonly Framework framework = Service<Framework>.Get();
     
     private readonly bool[] cache = new bool[MaxConditionEntries];
 
@@ -24,6 +27,12 @@ internal sealed partial class Condition : IServiceType, ICondition
     {
         var resolver = clientState.AddressResolver;
         this.Address = resolver.ConditionFlags;
+
+        // Initialization
+        for (var i = 0; i < MaxConditionEntries; i++)
+            this.cache[i] = this[i];
+
+        this.framework.Update += this.FrameworkUpdate;
     }
     
     /// <inheritdoc/>
@@ -80,17 +89,7 @@ internal sealed partial class Condition : IServiceType, ICondition
         return false;
     }
 
-    [ServiceManager.CallWhenServicesReady]
-    private void ContinueConstruction(Framework framework)
-    {
-        // Initialization
-        for (var i = 0; i < MaxConditionEntries; i++)
-            this.cache[i] = this[i];
-
-        framework.Update += this.FrameworkUpdate;
-    }
-
-    private void FrameworkUpdate(IFramework framework)
+    private void FrameworkUpdate(IFramework unused)
     {
         for (var i = 0; i < MaxConditionEntries; i++)
         {
@@ -144,7 +143,7 @@ internal sealed partial class Condition : IDisposable
 
         if (disposing)
         {
-            Service<Framework>.Get().Update -= this.FrameworkUpdate;
+            this.framework.Update -= this.FrameworkUpdate;
         }
 
         this.isDisposed = true;
