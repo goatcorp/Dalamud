@@ -176,7 +176,7 @@ internal static class Service<T> where T : IServiceType
         {
             foreach (var serviceType in Assembly.GetExecutingAssembly().GetTypes())
             {
-                if (serviceType.IsAbstract || !serviceType.IsAssignableTo(typeof(IServiceType)))
+                if (!serviceType.IsAssignableTo(typeof(IServiceType)))
                     continue;
                 
                 if (serviceType == typeof(PluginManager))
