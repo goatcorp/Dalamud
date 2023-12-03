@@ -270,8 +270,6 @@ internal static class ServiceManager
             servicesToLoad.UnionWith(earlyLoadingServices);
             servicesToLoad.UnionWith(blockingEarlyLoadingServices);
 
-            var startLoaderArgs = new List<object>();
-
             while (servicesToLoad.Any())
             {
                 foreach (var serviceType in servicesToLoad)
@@ -296,15 +294,15 @@ internal static class ServiceManager
                     if (!hasDeps)
                         continue;
 
-                    startLoaderArgs.Clear();
+                    // This object will be used in a task. Each task must receive a new object.
+                    var startLoaderArgs = new List<object>();
                     if (serviceType.GetCustomAttribute<BlockingEarlyLoadedServiceAttribute>() is not null)
                     {
-                        var serviceTypeCopy = serviceType;
                         startLoaderArgs.Add(
                             new RegisterStartupBlockerDelegate(
                                 task =>
                                 {
-                                    if (CurrentConstructorServiceType.Value != serviceTypeCopy)
+                                    if (CurrentConstructorServiceType.Value != serviceType)
                                         throw new InvalidOperationException("Forbidden.");
                                     blockerTasks.Add(task);
                                 }));
