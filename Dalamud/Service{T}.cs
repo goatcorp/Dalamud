@@ -219,9 +219,10 @@ internal static class Service<T> where T : IServiceType
                 new ServiceManager.RegisterUnloadAfterDelegate(
                     e =>
                     {
+#if DEBUG
                         if (ServiceManager.CurrentConstructorServiceType.Value != typeof(T))
                             throw new InvalidOperationException("Forbidden.");
-
+#endif
                         _ = GetDependencyServices();
                         dependencyServices!.AddRange(e);
                     }));

@@ -302,8 +302,10 @@ internal static class ServiceManager
                             new RegisterStartupBlockerDelegate(
                                 task =>
                                 {
+#if DEBUG
                                     if (CurrentConstructorServiceType.Value != serviceType)
                                         throw new InvalidOperationException("Forbidden.");
+#endif
                                     blockerTasks.Add(task);
                                 }));
                     }
