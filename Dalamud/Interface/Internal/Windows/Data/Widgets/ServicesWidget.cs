@@ -17,6 +17,7 @@ internal class ServicesWidget : IDataWindowWidget
 {
     private readonly Dictionary<ServiceDependencyNode, Vector4> nodeRects = new();
     private readonly HashSet<Type> selectedNodes = new();
+    private readonly HashSet<Type> tempRelatedNodes = new();
 
     private bool includeUnloadDependencies;
     private List<List<ServiceDependencyNode>>? dependencyNodes;
@@ -72,7 +73,9 @@ internal class ServicesWidget : IDataWindowWidget
             {
                 const uint rectBaseBorderColor = 0xFFFFFFFF;
                 const uint rectHoverFillColor = 0xFF404040;
-                const uint rectSelectedFillColor = 0xFF208020;
+                const uint rectHoverRelatedFillColor = 0xFF802020;
+                const uint rectSelectedFillColor = 0xFF20A020;
+                const uint rectSelectedRelatedFillColor = 0xFF204020;
                 const uint lineBaseColor = 0xFF808080;
                 const uint lineHoverColor = 0xFFFF8080;
                 const uint lineHoverNotColor = 0xFF404040;
@@ -179,6 +182,10 @@ internal class ServicesWidget : IDataWindowWidget
                             dl.AddRectFilled(new(rc.X, rc.Y), new(rc.Z, rc.W), rectHoverFillColor);
                         else if (this.selectedNodes.Contains(node.Type))
                             dl.AddRectFilled(new(rc.X, rc.Y), new(rc.Z, rc.W), rectSelectedFillColor);
+                        else if (node.Relatives.Any(x => this.selectedNodes.Contains(x.Type)))
+                            dl.AddRectFilled(new(rc.X, rc.Y), new(rc.Z, rc.W), rectSelectedRelatedFillColor);
+                        else if (hoveredNode?.Relatives.Select(x => x.Type).Contains(node.Type) is true)
+                            dl.AddRectFilled(new(rc.X, rc.Y), new(rc.Z, rc.W), rectHoverRelatedFillColor);
 
                         dl.AddRect(new(rc.X, rc.Y), new(rc.Z, rc.W), rectBaseBorderColor);
                         ImGui.SetCursorPos((new Vector2(rc.X, rc.Y) - pos) + ((cellSize - textSize) / 2));
@@ -263,6 +270,9 @@ internal class ServicesWidget : IDataWindowWidget
         public IReadOnlyList<ServiceDependencyNode> Children => this.children;
 
         public IReadOnlyList<ServiceDependencyNode> InvalidParents => this.invalidParents;
+
+        public IEnumerable<ServiceDependencyNode> Relatives =>
+            this.parents.Concat(this.children).Concat(this.invalidParents);
         
         public int Level { get; private set; }
 
