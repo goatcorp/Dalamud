@@ -201,7 +201,7 @@ internal unsafe partial class Dx12Renderer
                     Layout = D3D12_TEXTURE_LAYOUT.D3D12_TEXTURE_LAYOUT_ROW_MAJOR,
                     Flags = D3D12_RESOURCE_FLAGS.D3D12_RESOURCE_FLAG_NONE,
                 },
-                D3D12_RESOURCE_STATES.D3D12_RESOURCE_STATE_COPY_SOURCE,
+                D3D12_RESOURCE_STATES.D3D12_RESOURCE_STATE_GENERIC_READ,
                 debugName: debugName).Swap(&uploadBuffer);
             
             try
