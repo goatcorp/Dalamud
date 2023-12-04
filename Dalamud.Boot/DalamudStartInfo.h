@@ -32,6 +32,7 @@ struct DalamudStartInfo {
     std::string DefaultPluginDirectory;
     std::string AssetDirectory;
     ClientLanguage Language = ClientLanguage::English;
+    std::string Platform;
     std::string GameVersion;
     int DelayInitializeMs = 0;
     std::string TroubleshootingPackData;

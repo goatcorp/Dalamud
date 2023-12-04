@@ -78,6 +78,7 @@ void from_json(const nlohmann::json& json, DalamudStartInfo& config) {
     config.DefaultPluginDirectory = json.value("DefaultPluginDirectory", config.DefaultPluginDirectory);
     config.AssetDirectory = json.value("AssetDirectory", config.AssetDirectory);
     config.Language = json.value("Language", config.Language);
+    config.Platform = json.value("Platform", config.Platform);
     config.GameVersion = json.value("GameVersion", config.GameVersion);
     config.DelayInitializeMs = json.value("DelayInitializeMs", config.DelayInitializeMs);
     config.TroubleshootingPackData = json.value("TroubleshootingPackData", std::string{});
