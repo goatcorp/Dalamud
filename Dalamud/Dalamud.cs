@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using Dalamud.Common;
 using Dalamud.Configuration.Internal;
 using Dalamud.Game;
-using Dalamud.Game.Gui.Internal;
 using Dalamud.Interface.Internal;
 using Dalamud.Plugin.Internal;
 using Dalamud.Storage;
@@ -178,7 +177,7 @@ internal sealed class Dalamud : IServiceType
         // this must be done before unloading interface manager, in order to do rebuild
         // the correct cascaded WndProc (IME -> RawDX11Scene -> Game). Otherwise the game
         // will not receive any windows messages
-        Service<DalamudIME>.GetNullable()?.Dispose();
+        Service<DalamudIme>.GetNullable()?.Dispose();
 
         // this must be done before unloading plugins, or it can cause a race condition
         // due to rendering happening on another thread, where a plugin might receive
