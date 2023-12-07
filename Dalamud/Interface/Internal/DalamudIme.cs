@@ -184,6 +184,13 @@ internal sealed unsafe class DalamudIme : IDisposable, IServiceType
                 case WM.WM_IME_NOTIFY:
                     // Log.Verbose($"{nameof(WM.WM_IME_NOTIFY)}({(nint)args.WParam:X}): {this.ImmComp}");
                     break;
+
+                case WM.WM_LBUTTONDOWN:
+                case WM.WM_RBUTTONDOWN:
+                case WM.WM_MBUTTONDOWN:
+                case WM.WM_XBUTTONDOWN:
+                    ImmNotifyIME(hImc, NI.NI_COMPOSITIONSTR, CPS_COMPLETE, 0);
+                    break;
             }
             
             this.UpdateInputLanguage(hImc);
@@ -299,9 +306,11 @@ internal sealed unsafe class DalamudIme : IDisposable, IServiceType
         
         if (finalCommit)
         {
-            this.PartialConversionFrom = this.PartialConversionTo = 0;
+            this.ClearState(hImc);
+            return;
         }
-        else if ((comp & GCS.GCS_COMPATTR) != 0)
+        
+        if ((comp & GCS.GCS_COMPATTR) != 0)
         {
             var attrLength = ImmGetCompositionStringW(hImc, GCS.GCS_COMPATTR, null, 0);
             var attrPtr = stackalloc byte[attrLength];
@@ -331,14 +340,17 @@ internal sealed unsafe class DalamudIme : IDisposable, IServiceType
         this.UpdateImeWindowStatus(hImc);
     }
 
-    private void ClearState()
+    private void ClearState(HIMC hImc)
     {
         this.ImmComp = string.Empty;
         this.PartialConversionFrom = this.PartialConversionTo = 0;
+        this.CompositionCursorOffset = 0;
         this.UpdateImeWindowStatus(default);
 
         ref var textState = ref TextState;
         textState.Stb.Cursor = textState.Stb.SelectStart = textState.Stb.SelectEnd;
+        
+        Log.Information($"{nameof(this.ClearState)}");
     }
 
     private void LoadCand(HIMC hImc)
@@ -386,15 +398,7 @@ internal sealed unsafe class DalamudIme : IDisposable, IServiceType
     private void ImGuiSetPlatformImeData(ImGuiViewportPtr viewport, ImGuiPlatformImeDataPtr data)
     {
         this.CursorPos = data.InputPos;
-        if (data.WantVisible)
-        {
-            this.AssociatedViewport = viewport;
-        }
-        else
-        {
-            this.AssociatedViewport = default;
-            this.ClearState();
-        }
+        this.AssociatedViewport = data.WantVisible ? viewport : default;
     }
 
     [ServiceManager.CallWhenServicesReady("Effectively waiting for cimgui.dll to become available.")]
