@@ -200,8 +200,7 @@ internal sealed unsafe class DalamudIme : IDisposable, IServiceType
                                         or VK.VK_RETURN:
                     if (this.ImmCand.Count != 0)
                     {
-                        TextState.Stb.SelectStart = TextState.Stb.Cursor = TextState.Stb.SelectEnd;
-                        ImmNotifyIME(hImc, NI.NI_COMPOSITIONSTR, CPS_CANCEL, 0);
+                        this.ClearState(hImc);
                         args.WParam = VK.VK_PROCESSKEY;
                     }
 
@@ -367,6 +366,8 @@ internal sealed unsafe class DalamudIme : IDisposable, IServiceType
         this.ImmComp = string.Empty;
         this.PartialConversionFrom = this.PartialConversionTo = 0;
         this.CompositionCursorOffset = 0;
+        TextState.Stb.SelectStart = TextState.Stb.Cursor = TextState.Stb.SelectEnd;
+        ImmNotifyIME(hImc, NI.NI_COMPOSITIONSTR, CPS_CANCEL, 0);
         this.UpdateImeWindowStatus(default);
 
         ref var textState = ref TextState;
