@@ -55,12 +55,12 @@ internal sealed unsafe class DalamudIme : IDisposable, IServiceType
             return textState.CursorAnim % 1.2f <= 0.8f;
         }
     }
-    
+
     /// <summary>
     /// Gets the cursor position, in screen coordinates.
     /// </summary>
     internal Vector2 CursorPos { get; private set; }
-    
+
     /// <summary>
     /// Gets the associated viewport.
     /// </summary>
@@ -101,7 +101,7 @@ internal sealed unsafe class DalamudIme : IDisposable, IServiceType
     /// </summary>
     internal bool ShowPartialConversion => this.PartialConversionFrom != 0 ||
                                            this.PartialConversionTo != this.ImmComp.Length;
-    
+
     /// <summary>
     /// Gets the input mode icon from <see cref="SeIconChar"/>.
     /// </summary>
@@ -139,15 +139,17 @@ internal sealed unsafe class DalamudIme : IDisposable, IServiceType
 
             switch (args.Message)
             {
-                case WM.WM_IME_NOTIFY when (nint)args.WParam is IMN.IMN_OPENCANDIDATE or IMN.IMN_CLOSECANDIDATE or IMN.IMN_CHANGECANDIDATE:
+                case WM.WM_IME_NOTIFY
+                    when (nint)args.WParam is IMN.IMN_OPENCANDIDATE or IMN.IMN_CLOSECANDIDATE
+                         or IMN.IMN_CHANGECANDIDATE:
                     this.UpdateImeWindowStatus(hImc);
                     args.SuppressAndReturn(0);
                     break;
-                
+
                 case WM.WM_IME_STARTCOMPOSITION:
                     args.SuppressAndReturn(0);
                     break;
-                
+
                 case WM.WM_IME_COMPOSITION:
                     if (invalidTarget)
                         ImmNotifyIME(hImc, NI.NI_COMPOSITIONSTR, CPS_CANCEL, 0);
@@ -162,12 +164,12 @@ internal sealed unsafe class DalamudIme : IDisposable, IServiceType
                     // Log.Verbose($"{nameof(WM.WM_IME_ENDCOMPOSITION)}({(nint)args.WParam:X}, {(nint)args.LParam:X}): {this.ImmComp}");
                     args.SuppressAndReturn(0);
                     break;
-                
+
                 case WM.WM_IME_CONTROL:
                     // Log.Verbose($"{nameof(WM.WM_IME_CONTROL)}({(nint)args.WParam:X}, {(nint)args.LParam:X}): {this.ImmComp}");
                     args.SuppressAndReturn(0);
                     break;
-                
+
                 case WM.WM_IME_REQUEST:
                     // Log.Verbose($"{nameof(WM.WM_IME_REQUEST)}({(nint)args.WParam:X}, {(nint)args.LParam:X}): {this.ImmComp}");
                     args.SuppressAndReturn(0);
@@ -180,9 +182,29 @@ internal sealed unsafe class DalamudIme : IDisposable, IServiceType
                     // Log.Verbose($"{nameof(WM.WM_IME_SETCONTEXT)}({(nint)args.WParam:X}, {(nint)args.LParam:X}): {this.ImmComp}");
                     args.SuppressWithDefault();
                     break;
-                
+
                 case WM.WM_IME_NOTIFY:
                     // Log.Verbose($"{nameof(WM.WM_IME_NOTIFY)}({(nint)args.WParam:X}): {this.ImmComp}");
+                    break;
+
+                case WM.WM_KEYDOWN when (int)args.WParam is
+                                        VK.VK_TAB
+                                        or VK.VK_PRIOR
+                                        or VK.VK_NEXT
+                                        or VK.VK_END
+                                        or VK.VK_HOME
+                                        or VK.VK_LEFT
+                                        or VK.VK_UP
+                                        or VK.VK_RIGHT
+                                        or VK.VK_DOWN
+                                        or VK.VK_RETURN:
+                    if (this.ImmCand.Count != 0)
+                    {
+                        TextState.Stb.SelectStart = TextState.Stb.Cursor = TextState.Stb.SelectEnd;
+                        ImmNotifyIME(hImc, NI.NI_COMPOSITIONSTR, CPS_CANCEL, 0);
+                        args.WParam = VK.VK_PROCESSKEY;
+                    }
+
                     break;
 
                 case WM.WM_LBUTTONDOWN:
@@ -192,7 +214,7 @@ internal sealed unsafe class DalamudIme : IDisposable, IServiceType
                     ImmNotifyIME(hImc, NI.NI_COMPOSITIONSTR, CPS_COMPLETE, 0);
                     break;
             }
-            
+
             this.UpdateInputLanguage(hImc);
         }
         finally
@@ -220,7 +242,7 @@ internal sealed unsafe class DalamudIme : IDisposable, IServiceType
         ImmGetConversionStatus(hImc, &conv, &sent);
         var lang = GetKeyboardLayout(0);
         var open = ImmGetOpenStatus(hImc) != false;
-        
+
         // Log.Verbose($"{nameof(this.UpdateInputLanguage)}: conv={conv:X} sent={sent:X} open={open} lang={lang:X}");
 
         var native = (conv & 1) != 0;
@@ -285,8 +307,8 @@ internal sealed unsafe class DalamudIme : IDisposable, IServiceType
             (s, e) = (e, s);
 
         var newString = finalCommit
-                                ? ImmGetCompositionString(hImc, GCS.GCS_RESULTSTR)
-                                : ImmGetCompositionString(hImc, GCS.GCS_COMPSTR);
+                            ? ImmGetCompositionString(hImc, GCS.GCS_RESULTSTR)
+                            : ImmGetCompositionString(hImc, GCS.GCS_COMPSTR);
 
         if (s != e)
             textState.DeleteChars(s, e - s);
@@ -303,13 +325,13 @@ internal sealed unsafe class DalamudIme : IDisposable, IServiceType
             finalCommit
                 ? 0
                 : ImmGetCompositionStringW(hImc, GCS.GCS_CURSORPOS, null, 0);
-        
+
         if (finalCommit)
         {
             this.ClearState(hImc);
             return;
         }
-        
+
         if ((comp & GCS.GCS_COMPATTR) != 0)
         {
             var attrLength = ImmGetCompositionStringW(hImc, GCS.GCS_COMPATTR, null, 0);
@@ -349,7 +371,7 @@ internal sealed unsafe class DalamudIme : IDisposable, IServiceType
 
         ref var textState = ref TextState;
         textState.Stb.Cursor = textState.Stb.SelectStart = textState.Stb.SelectEnd;
-        
+
         Log.Information($"{nameof(this.ClearState)}");
     }
 
