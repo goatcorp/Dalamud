@@ -164,6 +164,38 @@ public static unsafe class MemoryHelper
     #region ReadString
 
     /// <summary>
+    /// Compares if the given char span equals to the null-terminated string at <paramref name="memoryAddress"/>.
+    /// </summary>
+    /// <param name="charSpan">The character span.</param>
+    /// <param name="memoryAddress">The address of null-terminated string.</param>
+    /// <param name="encoding">The encoding of the null-terminated string.</param>
+    /// <param name="maxLength">The maximum length of the null-terminated string.</param>
+    /// <returns>Whether they are equal.</returns>
+    public static bool EqualsZeroTerminatedString(
+        ReadOnlySpan<char> charSpan,
+        nint memoryAddress,
+        Encoding? encoding = null,
+        int maxLength = int.MaxValue)
+    {
+        encoding ??= Encoding.UTF8;
+        maxLength = Math.Min(maxLength, charSpan.Length + 4);
+
+        var pmem = ((byte*)memoryAddress)!;
+        var length = 0;
+        while (length < maxLength && pmem[length] != 0)
+            length++;
+        
+        var mem = new Span<byte>(pmem, length);
+        var memCharCount = encoding.GetCharCount(mem);
+        if (memCharCount != charSpan.Length)
+            return false;
+
+        Span<char> chars = stackalloc char[memCharCount];
+        encoding.GetChars(mem, chars);
+        return charSpan.SequenceEqual(chars);
+    }
+
+    /// <summary>
     /// Read a UTF-8 encoded string from a specified memory address.
     /// </summary>
     /// <remarks>
