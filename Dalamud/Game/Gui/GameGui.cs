@@ -75,6 +75,15 @@ internal sealed unsafe class GameGui : IDisposable, IServiceType, IGameGui
         this.toggleUiHideHook = Hook<ToggleUiHideDelegate>.FromAddress(this.address.ToggleUiHide, this.ToggleUiHideDetour);
 
         this.utf8StringFromSequenceHook = Hook<Utf8StringFromSequenceDelegate>.FromAddress(this.address.Utf8StringFromSequence, this.Utf8StringFromSequenceDetour);
+
+        this.setGlobalBgmHook.Enable();
+        this.handleItemHoverHook.Enable();
+        this.handleItemOutHook.Enable();
+        this.handleImmHook.Enable();
+        this.toggleUiHideHook.Enable();
+        this.handleActionHoverHook.Enable();
+        this.handleActionOutHook.Enable();
+        this.utf8StringFromSequenceHook.Enable();
     }
 
     // Marshaled delegates
@@ -374,19 +383,6 @@ internal sealed unsafe class GameGui : IDisposable, IServiceType, IGameGui
     internal void ResetUiHideState()
     {
         this.GameUiHidden = false;
-    }
-
-    [ServiceManager.CallWhenServicesReady]
-    private void ContinueConstruction()
-    {
-        this.setGlobalBgmHook.Enable();
-        this.handleItemHoverHook.Enable();
-        this.handleItemOutHook.Enable();
-        this.handleImmHook.Enable();
-        this.toggleUiHideHook.Enable();
-        this.handleActionHoverHook.Enable();
-        this.handleActionOutHook.Enable();
-        this.utf8StringFromSequenceHook.Enable();
     }
 
     private IntPtr HandleSetGlobalBgmDetour(ushort bgmKey, byte a2, uint a3, uint a4, uint a5, byte a6)

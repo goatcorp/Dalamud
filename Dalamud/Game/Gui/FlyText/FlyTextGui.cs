@@ -36,6 +36,8 @@ internal sealed class FlyTextGui : IDisposable, IServiceType, IFlyTextGui
 
         this.addFlyTextNative = Marshal.GetDelegateForFunctionPointer<AddFlyTextDelegate>(this.Address.AddFlyText);
         this.createFlyTextHook = Hook<CreateFlyTextDelegate>.FromAddress(this.Address.CreateFlyText, this.CreateFlyTextDetour);
+
+        this.createFlyTextHook.Enable();
     }
 
     /// <summary>
@@ -141,12 +143,6 @@ internal sealed class FlyTextGui : IDisposable, IServiceType, IFlyTextGui
         terminated[^1] = 0;
 
         return terminated;
-    }
-
-    [ServiceManager.CallWhenServicesReady]
-    private void ContinueConstruction(GameGui gameGui)
-    {
-        this.createFlyTextHook.Enable();
     }
 
     private IntPtr CreateFlyTextDetour(

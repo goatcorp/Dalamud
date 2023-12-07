@@ -147,7 +147,8 @@ public sealed class EntryPoint
         LogLevelSwitch.MinimumLevel = configuration.LogLevel;
 
         // Log any unhandled exception.
-        AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
+        if (!info.NoExceptionHandlers)
+            AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
         TaskScheduler.UnobservedTaskException += OnUnobservedTaskException;
 
         var unloadFailed = false;
@@ -196,7 +197,8 @@ public sealed class EntryPoint
         finally
         {
             TaskScheduler.UnobservedTaskException -= OnUnobservedTaskException;
-            AppDomain.CurrentDomain.UnhandledException -= OnUnhandledException;
+            if (!info.NoExceptionHandlers)
+                AppDomain.CurrentDomain.UnhandledException -= OnUnhandledException;
 
             Log.Information("Session has ended.");
             Log.CloseAndFlush();

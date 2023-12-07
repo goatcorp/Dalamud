@@ -38,6 +38,7 @@ internal unsafe class GamepadState : IDisposable, IServiceType, IGamepadState
         var resolver = clientState.AddressResolver;
         Log.Verbose($"GamepadPoll address 0x{resolver.GamepadPoll.ToInt64():X}");
         this.gamepadPoll = Hook<ControllerPoll>.FromAddress(resolver.GamepadPoll, this.GamepadPollDetour);
+        this.gamepadPoll?.Enable();
     }
 
     private delegate int ControllerPoll(IntPtr controllerInput);
@@ -112,12 +113,6 @@ internal unsafe class GamepadState : IDisposable, IServiceType, IGamepadState
     {
         this.Dispose(true);
         GC.SuppressFinalize(this);
-    }
-
-    [ServiceManager.CallWhenServicesReady]
-    private void ContinueConstruction()
-    {
-        this.gamepadPoll?.Enable();
     }
 
     private int GamepadPollDetour(IntPtr gamepadInput)

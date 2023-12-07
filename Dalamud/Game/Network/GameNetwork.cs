@@ -44,6 +44,9 @@ internal sealed class GameNetwork : IDisposable, IServiceType, IGameNetwork
 
         this.processZonePacketDownHook = Hook<ProcessZonePacketDownDelegate>.FromAddress(this.address.ProcessZonePacketDown, this.ProcessZonePacketDownDetour);
         this.processZonePacketUpHook = Hook<ProcessZonePacketUpDelegate>.FromAddress(this.address.ProcessZonePacketUp, this.ProcessZonePacketUpDetour);
+
+        this.processZonePacketDownHook.Enable();
+        this.processZonePacketUpHook.Enable();
     }
 
     [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
@@ -60,13 +63,6 @@ internal sealed class GameNetwork : IDisposable, IServiceType, IGameNetwork
     {
         this.processZonePacketDownHook.Dispose();
         this.processZonePacketUpHook.Dispose();
-    }
-
-    [ServiceManager.CallWhenServicesReady]
-    private void ContinueConstruction()
-    {
-        this.processZonePacketDownHook.Enable();
-        this.processZonePacketUpHook.Enable();
     }
 
     private void ProcessZonePacketDownDetour(IntPtr a, uint targetId, IntPtr dataPtr)

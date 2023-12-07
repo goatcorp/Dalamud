@@ -58,6 +58,8 @@ internal sealed class ClientState : IDisposable, IServiceType, IClientState
         this.framework.Update += this.FrameworkOnOnUpdateEvent;
 
         this.networkHandlers.CfPop += this.NetworkHandlersOnCfPop;
+
+        this.setupTerritoryTypeHook.Enable();
     }
 
     [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
@@ -118,12 +120,6 @@ internal sealed class ClientState : IDisposable, IServiceType, IClientState
         this.setupTerritoryTypeHook.Dispose();
         this.framework.Update -= this.FrameworkOnOnUpdateEvent;
         this.networkHandlers.CfPop -= this.NetworkHandlersOnCfPop;
-    }
-
-    [ServiceManager.CallWhenServicesReady]
-    private void ContinueConstruction()
-    {
-        this.setupTerritoryTypeHook.Enable();
     }
 
     private IntPtr SetupTerritoryTypeDetour(IntPtr manager, ushort terriType)
