@@ -134,7 +134,7 @@ DWORD WINAPI InitializeImpl(LPVOID lpParam, HANDLE hMainThreadContinue) {
 
     logging::I("Initializing VEH...");
     if (g_startInfo.NoExceptionHandlers) {
-        logging::I("=> Exception handlers are disabled from DalamudStartInfo.");
+        logging::W("=> Exception handlers are disabled from DalamudStartInfo.");
     } else if (utils::is_running_on_wine()) {
         logging::I("=> VEH was disabled, running on wine");
     } else if (g_startInfo.BootVehEnabled) {
