@@ -1,5 +1,5 @@
-using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.InteropServices;
 
@@ -40,6 +40,7 @@ internal sealed class ChatGui : IDisposable, IServiceType, IChatGui
     private readonly LibcFunction libcFunction = Service<LibcFunction>.Get();
 
     private IntPtr baseAddress = IntPtr.Zero;
+    private ImmutableDictionary<(string PluginName, uint CommandId), Action<uint, SeString>>? dalamudLinkHandlersCopy;
 
     [ServiceManager.ServiceConstructor]
     private ChatGui(TargetSigScanner sigScanner)
@@ -84,7 +85,21 @@ internal sealed class ChatGui : IDisposable, IServiceType, IChatGui
     public byte LastLinkedItemFlags { get; private set; }
 
     /// <inheritdoc/>
-    public IReadOnlyDictionary<(string PluginName, uint CommandId), Action<uint, SeString>> RegisteredLinkHandlers => this.dalamudLinkHandlers;
+    public IReadOnlyDictionary<(string PluginName, uint CommandId), Action<uint, SeString>> RegisteredLinkHandlers
+    {
+        get
+        {
+            var copy = this.dalamudLinkHandlersCopy;
+            if (copy is not null)
+                return copy;
+
+            lock (this.dalamudLinkHandlers)
+            {
+                return this.dalamudLinkHandlersCopy ??=
+                           this.dalamudLinkHandlers.ToImmutableDictionary(x => x.Key, x => x.Value);
+            }
+        }
+    }
 
     /// <summary>
     /// Dispose of managed and unmanaged resources.
@@ -160,7 +175,12 @@ internal sealed class ChatGui : IDisposable, IServiceType, IChatGui
     internal DalamudLinkPayload AddChatLinkHandler(string pluginName, uint commandId, Action<uint, SeString> commandAction)
     {
         var payload = new DalamudLinkPayload { Plugin = pluginName, CommandId = commandId };
-        this.dalamudLinkHandlers.Add((pluginName, commandId), commandAction);
+        lock (this.dalamudLinkHandlers)
+        {
+            this.dalamudLinkHandlers.Add((pluginName, commandId), commandAction);
+            this.dalamudLinkHandlersCopy = null;
+        }
+
         return payload;
     }
 
@@ -170,9 +190,14 @@ internal sealed class ChatGui : IDisposable, IServiceType, IChatGui
     /// <param name="pluginName">The name of the plugin handling the links.</param>
     internal void RemoveChatLinkHandler(string pluginName)
     {
-        foreach (var handler in this.dalamudLinkHandlers.Keys.ToList().Where(k => k.PluginName == pluginName))
+        lock (this.dalamudLinkHandlers)
         {
-            this.dalamudLinkHandlers.Remove(handler);
+            var changed = false;
+            
+            foreach (var handler in this.RegisteredLinkHandlers.Keys.Where(k => k.PluginName == pluginName))
+                changed |= this.dalamudLinkHandlers.Remove(handler);
+            if (changed)
+                this.dalamudLinkHandlersCopy = null;
         }
     }
 
@@ -183,7 +208,11 @@ internal sealed class ChatGui : IDisposable, IServiceType, IChatGui
     /// <param name="commandId">The ID of the command to be removed.</param>
     internal void RemoveChatLinkHandler(string pluginName, uint commandId)
     {
-        this.dalamudLinkHandlers.Remove((pluginName, commandId));
+        lock (this.dalamudLinkHandlers)
+        {
+            if (this.dalamudLinkHandlers.Remove((pluginName, commandId)))
+                this.dalamudLinkHandlersCopy = null;
+        }
     }
 
     private void PrintTagged(string message, XivChatType channel, string? tag, ushort? color)
@@ -391,7 +420,7 @@ internal sealed class ChatGui : IDisposable, IServiceType, IChatGui
             var linkPayload = payloads[0];
             if (linkPayload is DalamudLinkPayload link)
             {
-                if (this.dalamudLinkHandlers.TryGetValue((link.Plugin, link.CommandId), out var value))
+                if (this.RegisteredLinkHandlers.TryGetValue((link.Plugin, link.CommandId), out var value))
                 {
                     Log.Verbose($"Sending DalamudLink to {link.Plugin}: {link.CommandId}");
                     value.Invoke(link.CommandId, new SeString(payloads));
