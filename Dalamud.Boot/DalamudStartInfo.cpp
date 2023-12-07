@@ -103,6 +103,7 @@ void from_json(const nlohmann::json& json, DalamudStartInfo& config) {
     }
 
     config.CrashHandlerShow = json.value("CrashHandlerShow", config.CrashHandlerShow);
+    config.NoExceptionHandlers = json.value("NoExceptionHandlers", config.NoExceptionHandlers);
 }
 
 void DalamudStartInfo::from_envvars() {

@@ -49,6 +49,7 @@ struct DalamudStartInfo {
     std::set<std::string> BootUnhookDlls{};
 
     bool CrashHandlerShow = false;
+    bool NoExceptionHandlers = false;
 
     friend void from_json(const nlohmann::json&, DalamudStartInfo&);
     void from_envvars();
