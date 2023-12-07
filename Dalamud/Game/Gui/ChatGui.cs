@@ -50,6 +50,10 @@ internal sealed class ChatGui : IDisposable, IServiceType, IChatGui
         this.printMessageHook = Hook<PrintMessageDelegate>.FromAddress(this.address.PrintMessage, this.HandlePrintMessageDetour);
         this.populateItemLinkHook = Hook<PopulateItemLinkDelegate>.FromAddress(this.address.PopulateItemLinkObject, this.HandlePopulateItemLinkDetour);
         this.interactableLinkClickedHook = Hook<InteractableLinkClickedDelegate>.FromAddress(this.address.InteractableLinkClicked, this.InteractableLinkClickedDetour);
+
+        this.printMessageHook.Enable();
+        this.populateItemLinkHook.Enable();
+        this.interactableLinkClickedHook.Enable();
     }
     
     [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
@@ -180,14 +184,6 @@ internal sealed class ChatGui : IDisposable, IServiceType, IChatGui
     internal void RemoveChatLinkHandler(string pluginName, uint commandId)
     {
         this.dalamudLinkHandlers.Remove((pluginName, commandId));
-    }
-
-    [ServiceManager.CallWhenServicesReady]
-    private void ContinueConstruction()
-    {
-        this.printMessageHook.Enable();
-        this.populateItemLinkHook.Enable();
-        this.interactableLinkClickedHook.Enable();
     }
 
     private void PrintTagged(string message, XivChatType channel, string? tag, ushort? color)

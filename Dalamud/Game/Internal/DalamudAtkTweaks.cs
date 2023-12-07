@@ -63,6 +63,10 @@ internal sealed unsafe partial class DalamudAtkTweaks : IServiceType
         this.locDalamudSettings = Loc.Localize("SystemMenuSettings", "Dalamud Settings");
 
         // this.contextMenu.ContextMenuOpened += this.ContextMenuOnContextMenuOpened;
+        
+        this.hookAgentHudOpenSystemMenu.Enable();
+        this.hookUiModuleRequestMainCommand.Enable();
+        this.hookAtkUnitBaseReceiveGlobalEvent.Enable();
     }
 
     private delegate void AgentHudOpenSystemMenuPrototype(void* thisPtr, AtkValue* atkValueArgs, uint menuSize);
@@ -74,14 +78,6 @@ internal sealed unsafe partial class DalamudAtkTweaks : IServiceType
     private delegate void UiModuleRequestMainCommand(void* thisPtr, int commandId);
 
     private delegate IntPtr AtkUnitBaseReceiveGlobalEvent(AtkUnitBase* thisPtr, ushort cmd, uint a3, IntPtr a4, uint* a5);
-
-    [ServiceManager.CallWhenServicesReady]
-    private void ContinueConstruction(DalamudInterface dalamudInterface)
-    {
-        this.hookAgentHudOpenSystemMenu.Enable();
-        this.hookUiModuleRequestMainCommand.Enable();
-        this.hookAtkUnitBaseReceiveGlobalEvent.Enable();
-    }
 
     /*
     private void ContextMenuOnContextMenuOpened(ContextMenuOpenedArgs args)

@@ -58,6 +58,14 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
         this.onAddonUpdateHook = new CallHook<AddonUpdateDelegate>(this.address.AddonUpdate, this.OnAddonUpdate);
         this.onAddonRefreshHook = Hook<AddonOnRefreshDelegate>.FromAddress(this.address.AddonOnRefresh, this.OnAddonRefresh);
         this.onAddonRequestedUpdateHook = new CallHook<AddonOnRequestedUpdateDelegate>(this.address.AddonOnRequestedUpdate, this.OnRequestedUpdate);
+
+        this.onAddonSetupHook.Enable();
+        this.onAddonSetup2Hook.Enable();
+        this.onAddonFinalizeHook.Enable();
+        this.onAddonDrawHook.Enable();
+        this.onAddonUpdateHook.Enable();
+        this.onAddonRefreshHook.Enable();
+        this.onAddonRequestedUpdateHook.Enable();
     }
 
     private delegate void AddonSetupDelegate(AtkUnitBase* addon, uint valueCount, AtkValue* values);
@@ -179,18 +187,6 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
 
             this.removeEventListeners.Clear();
         }
-    }
-
-    [ServiceManager.CallWhenServicesReady]
-    private void ContinueConstruction()
-    {
-        this.onAddonSetupHook.Enable();
-        this.onAddonSetup2Hook.Enable();
-        this.onAddonFinalizeHook.Enable();
-        this.onAddonDrawHook.Enable();
-        this.onAddonUpdateHook.Enable();
-        this.onAddonRefreshHook.Enable();
-        this.onAddonRequestedUpdateHook.Enable();
     }
 
     private void RegisterReceiveEventHook(AtkUnitBase* addon)

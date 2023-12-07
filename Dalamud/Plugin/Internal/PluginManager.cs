@@ -21,6 +21,7 @@ using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Internal.Windows.PluginInstaller;
+using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Logging.Internal;
 using Dalamud.Networking.Http;
@@ -29,6 +30,7 @@ using Dalamud.Plugin.Internal.Profiles;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Plugin.Internal.Types.Manifest;
 using Dalamud.Plugin.Ipc.Internal;
+using Dalamud.Support;
 using Dalamud.Utility;
 using Dalamud.Utility.Timing;
 using Newtonsoft.Json;
@@ -93,7 +95,9 @@ internal partial class PluginManager : IDisposable, IServiceType
     }
 
     [ServiceManager.ServiceConstructor]
-    private PluginManager()
+    private PluginManager(
+        ServiceManager.RegisterStartupBlockerDelegate registerStartupBlocker,
+        ServiceManager.RegisterUnloadAfterDelegate registerUnloadAfter)
     {
         this.pluginDirectory = new DirectoryInfo(this.dalamud.StartInfo.PluginDirectory!);
 
@@ -142,6 +146,14 @@ internal partial class PluginManager : IDisposable, IServiceType
         this.MainRepo = PluginRepository.CreateMainRepo(this.happyHttpClient);
 
         this.ApplyPatches();
+
+        registerStartupBlocker(
+            Task.Run(this.LoadAndStartLoadSyncPlugins),
+            "Waiting for plugins that asked to be loaded before the game.");
+
+        registerUnloadAfter(
+            ResolvePossiblePluginDependencyServices(),
+            "See the attached comment for the called function.");
     }
 
     /// <summary>
@@ -1201,6 +1213,49 @@ internal partial class PluginManager : IDisposable, IServiceType
     /// <returns>The calling plugin, or null.</returns>
     public LocalPlugin? FindCallingPlugin() => this.FindCallingPlugin(new StackTrace());
 
+    /// <summary>
+    /// Resolves the services that a plugin may have a dependency on.<br />
+    /// This is required, as the lifetime of a plugin cannot be longer than PluginManager,
+    /// and we want to ensure that dependency services to be kept alive at least until all the plugins, and thus
+    /// PluginManager to be gone.
+    /// </summary>
+    /// <returns>The dependency services.</returns>
+    private static IEnumerable<Type> ResolvePossiblePluginDependencyServices()
+    {
+        foreach (var serviceType in ServiceManager.GetConcreteServiceTypes())
+        {
+            if (serviceType == typeof(PluginManager))
+                continue;
+                
+            // Scoped plugin services lifetime is tied to their scopes. They go away when LocalPlugin goes away.
+            // Nonetheless, their direct dependencies must be considered.
+            if (serviceType.GetServiceKind() == ServiceManager.ServiceKind.ScopedService)
+            {
+                var typeAsServiceT = ServiceHelpers.GetAsService(serviceType);
+                var dependencies = ServiceHelpers.GetDependencies(typeAsServiceT, false);
+                ServiceManager.Log.Verbose("Found dependencies of scoped plugin service {Type} ({Cnt})", serviceType.FullName!, dependencies!.Count);
+                    
+                foreach (var scopedDep in dependencies)
+                {
+                    if (scopedDep == typeof(PluginManager))
+                        throw new Exception("Scoped plugin services cannot depend on PluginManager.");
+                        
+                    ServiceManager.Log.Verbose("PluginManager MUST depend on {Type} via {BaseType}", scopedDep.FullName!, serviceType.FullName!);
+                    yield return scopedDep;
+                }
+
+                continue;
+            }
+                
+            var pluginInterfaceAttribute = serviceType.GetCustomAttribute<PluginInterfaceAttribute>(true);
+            if (pluginInterfaceAttribute == null)
+                continue;
+
+            ServiceManager.Log.Verbose("PluginManager MUST depend on {Type}", serviceType.FullName!);
+            yield return serviceType;
+        }
+    }
+
     private async Task<Stream> DownloadPluginAsync(RemotePluginManifest repoManifest, bool useTesting)
     {
         var downloadUrl = useTesting ? repoManifest.DownloadLinkTesting : repoManifest.DownloadLinkInstall;
@@ -1587,6 +1642,38 @@ internal partial class PluginManager : IDisposable, IServiceType
                 kind,
                 // ReSharper disable once PossibleMultipleEnumeration
                 affectedInternalNames.Contains(installedPlugin.Manifest.InternalName));
+        }
+    }
+
+    private void LoadAndStartLoadSyncPlugins()
+    {
+        try
+        {
+            using (Timings.Start("PM Load Plugin Repos"))
+            {
+                _ = this.SetPluginReposFromConfigAsync(false);
+                this.OnInstalledPluginsChanged += () => Task.Run(Troubleshooting.LogTroubleshooting);
+
+                Log.Information("[T3] PM repos OK!");
+            }
+
+            using (Timings.Start("PM Cleanup Plugins"))
+            {
+                this.CleanupPlugins();
+                Log.Information("[T3] PMC OK!");
+            }
+
+            using (Timings.Start("PM Load Sync Plugins"))
+            {
+                this.LoadAllPlugins().Wait();
+                Log.Information("[T3] PML OK!");
+            }
+
+            _ = Task.Run(Troubleshooting.LogTroubleshooting);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Plugin load failed");
         }
     }
 

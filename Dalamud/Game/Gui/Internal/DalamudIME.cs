@@ -253,7 +253,7 @@ internal unsafe class DalamudIME : IDisposable, IServiceType
         }
     }
 
-    [ServiceManager.CallWhenServicesReady]
+    [ServiceManager.CallWhenServicesReady("Effectively waiting for cimgui.dll to become available.")]
     private void ContinueConstruction(InterfaceManager.InterfaceManagerWithScene interfaceManagerWithScene)
     {
         try
