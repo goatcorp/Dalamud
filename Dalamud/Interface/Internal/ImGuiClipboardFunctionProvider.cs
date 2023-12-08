@@ -42,12 +42,12 @@ internal sealed unsafe class ImGuiClipboardFunctionProvider : IServiceType, IDis
         Debug.Assert(ImGuiHelpers.IsImGuiInitialized, "IMWS initialized but IsImGuiInitialized is false?");
 
         var io = ImGui.GetIO();
+        this.clipboardUserDataOriginal = io.ClipboardUserData;
         this.setTextOriginal = (delegate* unmanaged<nint, byte*, void>)io.SetClipboardTextFn;
         this.getTextOriginal = (delegate* unmanaged<nint, byte*>)io.GetClipboardTextFn;
-        this.clipboardUserDataOriginal = io.ClipboardUserData;
-        io.SetClipboardTextFn = (nint)(delegate* unmanaged<nint, byte*, void>)(&StaticSetClipboardTextImpl);
-        io.GetClipboardTextFn = (nint)(delegate* unmanaged<nint, byte*>)&StaticGetClipboardTextImpl;
         io.ClipboardUserData = GCHandle.ToIntPtr(this.clipboardUserData = GCHandle.Alloc(this));
+        io.SetClipboardTextFn = (nint)(delegate* unmanaged<nint, byte*, void>)&StaticSetClipboardTextImpl;
+        io.GetClipboardTextFn = (nint)(delegate* unmanaged<nint, byte*>)&StaticGetClipboardTextImpl;
         return;
 
         [UnmanagedCallersOnly]
