@@ -22,6 +22,7 @@ namespace Dalamud.Game.Gui;
 // TODO(api10): Update IChatGui, ChatGui and XivChatEntry to use correct types and names:
 //  "uint SenderId" should be "int Timestamp".
 //  "IntPtr Parameters" should be something like "bool Silent". It suppresses new message sounds in certain channels.
+//    This has to be a 1 byte boolean, so only change it to bool if marshalling is disabled.
 
 /// <summary>
 /// This class handles interacting with the native chat UI.
@@ -62,7 +63,7 @@ internal sealed unsafe class ChatGui : IDisposable, IServiceType, IChatGui
     }
     
     [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
-    private delegate uint PrintMessageDelegate(RaptureLogModule* manager, XivChatType chatType, Utf8String* sender, Utf8String* message, int timestamp, bool silent);
+    private delegate uint PrintMessageDelegate(RaptureLogModule* manager, XivChatType chatType, Utf8String* sender, Utf8String* message, int timestamp, byte silent);
 
     [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
     private delegate void PopulateItemLinkDelegate(IntPtr linkObjectPtr, IntPtr itemInfoPtr);
@@ -157,7 +158,7 @@ internal sealed unsafe class ChatGui : IDisposable, IServiceType, IChatGui
             var sender = Utf8String.FromSequence(chat.Name.Encode());
             var message = Utf8String.FromSequence(chat.Message.Encode());
 
-            this.HandlePrintMessageDetour(RaptureLogModule.Instance(), chat.Type, sender, message, (int)chat.SenderId, chat.Parameters != 0);
+            this.HandlePrintMessageDetour(RaptureLogModule.Instance(), chat.Type, sender, message, (int)chat.SenderId, (byte)(chat.Parameters != 0 ? 1 : 0));
 
             sender->Dtor(true);
             message->Dtor(true);
@@ -278,7 +279,7 @@ internal sealed unsafe class ChatGui : IDisposable, IServiceType, IChatGui
         }
     }
 
-    private uint HandlePrintMessageDetour(RaptureLogModule* manager, XivChatType chatType, Utf8String* sender, Utf8String* message, int timestamp, bool silent)
+    private uint HandlePrintMessageDetour(RaptureLogModule* manager, XivChatType chatType, Utf8String* sender, Utf8String* message, int timestamp, byte silent)
     {
         var messageId = 0u;
 
