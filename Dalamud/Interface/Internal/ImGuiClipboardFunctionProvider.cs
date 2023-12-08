@@ -172,42 +172,60 @@ internal sealed unsafe class ImGuiClipboardFunctionProvider : IServiceType, IDis
         };
 
         /// <summary>
+        /// Replaces a sequence with another.
+        /// </summary>
+        /// <param name="buf">The buffer.</param>
+        /// <param name="offset">Offset of the sequence to be replaced.</param>
+        /// <param name="length">Length of the sequence to be replaced.</param>
+        /// <param name="replacement">The replacement sequence.</param>
+        /// <returns>The length of <paramref name="replacement"/>.</returns>
+        public static int ReplaceSequence(
+            ref ImVectorWrapper<byte> buf,
+            int offset,
+            int length,
+            ReadOnlySpan<byte> replacement)
+        {
+            var i = 0;
+            for (; i < replacement.Length; i++)
+            {
+                if (length >= i + 1)
+                    buf[offset++] = replacement[i];
+                else
+                    buf.Insert(offset++, replacement[i]);
+            }
+
+            for (; i < length; i++)
+                buf.RemoveAt(offset);
+
+            return replacement.Length;
+        }
+
+        /// <summary>
         /// Normalize the given text for our use case.
         /// </summary>
         /// <param name="buf">The buffer.</param>
         public static void Normalize(ref ImVectorWrapper<byte> buf)
         {
+            // Ensure an implicit null after the end of the string.
+            buf.EnsureCapacity(buf.Length + 1);
+            buf.StorageSpan[buf.Length] = 0;
+
             for (var i = 0; i < buf.Length;)
             {
-                // Already correct?
-                if (buf[i] is 0x0D && buf[i + 1] is 0x0A)
-                {
-                    i += 2;
-                    continue;
-                }
-
                 var cb = CountBytes(buf.Data + i, buf.Length - i);
                 var currInt = GetCodepoint(buf.Data + i, cb);
                 switch (currInt)
                 {
-                    case 0xFFFF: // Simply invalid
+                    // Note that buf.Data[i + 1] is always defined. See the beginning of the function.
+                    case '\r' when buf.Data[i + 1] == '\n': // Already CR LF?
+                        i += 2;
+                        continue;
+
+                    case 0xFFFE or 0xFFFF: // Simply invalid
                     case > char.MaxValue: // ImWchar is same size with char; does not support
                     case >= 0xD800 and <= 0xDBFF: // UTF-16 surrogate; does not support
                         // Replace with \uFFFD in UTF-8: EF BF BD
-                        buf[i++] = 0xEF;
-
-                        if (cb >= 2)
-                            buf[i++] = 0xBF;
-                        else
-                            buf.Insert(i++, 0xBF);
-
-                        if (cb >= 3)
-                            buf[i++] = 0xBD;
-                        else
-                            buf.Insert(i++, 0xBD);
-
-                        if (cb >= 4)
-                            buf.RemoveAt(i);
+                        i += ReplaceSequence(ref buf, i, cb, "\uFFFD"u8);
                         break;
 
                     // See String.Manipulation.cs: IndexOfNewlineChar.
@@ -217,18 +235,7 @@ internal sealed unsafe class ImGuiClipboardFunctionProvider : IServiceType, IDis
                     case '\u0085': // NEL; Next Line
                     case '\u2028': // LS; Line Separator
                     case '\u2029': // PS; Paragraph Separator
-                        buf[i++] = 0x0D;
-                        
-                        if (cb >= 2)
-                            buf[i++] = 0x0A;
-                        else
-                            buf.Insert(i++, 0x0A);
-                        
-                        if (cb >= 3)
-                            buf.RemoveAt(i);
-                        
-                        if (cb >= 4)
-                            buf.RemoveAt(i);
+                        i += ReplaceSequence(ref buf, i, cb, "\r\n"u8);
                         break;
 
                     default:
