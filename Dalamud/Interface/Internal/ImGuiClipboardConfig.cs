@@ -206,23 +206,40 @@ internal sealed unsafe class ImGuiClipboardConfig : IServiceType, IDisposable
                     case >= 0xD800 and <= 0xDBFF: // UTF-16 surrogate; does not support
                         // Replace with \uFFFD in UTF-8: EF BF BD
                         buf[i++] = 0xEF;
-                        buf.Insert(i++, 0xBF);
-                        buf.Insert(i++, 0xBD);
+
+                        if (cb >= 2)
+                            buf[i++] = 0xBF;
+                        else
+                            buf.Insert(i++, 0xBF);
+
+                        if (cb >= 3)
+                            buf[i++] = 0xBD;
+                        else
+                            buf.Insert(i++, 0xBD);
+
+                        if (cb >= 4)
+                            buf.RemoveAt(i);
                         break;
 
                     // See String.Manipulation.cs: IndexOfNewlineChar.
                     case '\r': // CR; Carriage Return
                     case '\n': // LF; Line Feed
                     case '\f': // FF; Form Feed
-                        buf[i++] = 0x0D;
-                        buf.Insert(i++, 0x0A);
-                        break;
-
                     case '\u0085': // NEL; Next Line
                     case '\u2028': // LS; Line Separator
                     case '\u2029': // PS; Paragraph Separator
                         buf[i++] = 0x0D;
-                        buf[i++] = 0x0A;
+                        
+                        if (cb >= 2)
+                            buf[i++] = 0x0A;
+                        else
+                            buf.Insert(i++, 0x0A);
+                        
+                        if (cb >= 3)
+                            buf.RemoveAt(i);
+                        
+                        if (cb >= 4)
+                            buf.RemoveAt(i);
                         break;
 
                     default:
