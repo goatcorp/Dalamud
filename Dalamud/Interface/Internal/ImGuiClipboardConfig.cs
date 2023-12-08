@@ -32,6 +32,7 @@ internal sealed unsafe class ImGuiClipboardConfig : IServiceType, IDisposable
     private readonly nint clipboardUserDataOriginal;
     private readonly delegate* unmanaged<nint, byte*, void> setTextOriginal;
     private readonly delegate* unmanaged<nint, byte*> getTextOriginal;
+    private GCHandle clipboardUserData;
 
     [ServiceManager.ServiceConstructor]
     private ImGuiClipboardConfig(InterfaceManager.InterfaceManagerWithScene imws)
@@ -46,7 +47,7 @@ internal sealed unsafe class ImGuiClipboardConfig : IServiceType, IDisposable
         this.clipboardUserDataOriginal = io.ClipboardUserData;
         io.SetClipboardTextFn = (nint)(delegate* unmanaged<nint, byte*, void>)(&StaticSetClipboardTextImpl);
         io.GetClipboardTextFn = (nint)(delegate* unmanaged<nint, byte*>)&StaticGetClipboardTextImpl;
-        io.ClipboardUserData = GCHandle.ToIntPtr(GCHandle.Alloc(this));
+        io.ClipboardUserData = GCHandle.ToIntPtr(this.clipboardUserData = GCHandle.Alloc(this));
         return;
 
         [UnmanagedCallersOnly]
@@ -76,14 +77,15 @@ internal sealed unsafe class ImGuiClipboardConfig : IServiceType, IDisposable
 
     private void ReleaseUnmanagedResources()
     {
-        var io = ImGui.GetIO();
-        if (io.ClipboardUserData == default)
+        if (!this.clipboardUserData.IsAllocated)
             return;
 
-        GCHandle.FromIntPtr(io.ClipboardUserData).Free();
+        var io = ImGui.GetIO();
         io.SetClipboardTextFn = (nint)this.setTextOriginal;
         io.GetClipboardTextFn = (nint)this.getTextOriginal;
         io.ClipboardUserData = this.clipboardUserDataOriginal;
+
+        this.clipboardUserData.Free();
     }
 
     private void SetClipboardTextImpl(byte* text)
