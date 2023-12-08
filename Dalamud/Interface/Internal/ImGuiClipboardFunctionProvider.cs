@@ -165,9 +165,9 @@ internal sealed unsafe class ImGuiClipboardFunctionProvider : IServiceType, IDis
         public static int GetCodepoint(byte* b, int cb) => cb switch
         {
             1 => b[0],
-            2 => ((b[0] & 0x8F) << 6) | (b[1] & 0x3F),
+            2 => ((b[0] & 0x1F) << 6) | (b[1] & 0x3F),
             3 => ((b[0] & 0x0F) << 12) | ((b[1] & 0x3F) << 6) | (b[2] & 0x3F),
-            4 => ((b[0] & 0x0F) << 18) | ((b[1] & 0x3F) << 12) | ((b[2] & 0x3F) << 6) | (b[3] & 0x3F),
+            4 => ((b[0] & 0x07) << 18) | ((b[1] & 0x3F) << 12) | ((b[2] & 0x3F) << 6) | (b[3] & 0x3F),
             _ => 0xFFFD,
         };
 
