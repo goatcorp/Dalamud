@@ -375,7 +375,7 @@ internal sealed unsafe class ChatGui : IDisposable, IServiceType, IChatGui
             Log.Verbose($"InteractableLinkClicked: {Payload.EmbeddedInfoType.DalamudLink}");
 
             var payloadPtr = Marshal.ReadIntPtr(messagePtr, 0x10);
-            var seStr = MemoryHelper.ReadSeStringNullTerminated(messagePtr);
+            var seStr = MemoryHelper.ReadSeStringNullTerminated(payloadPtr);
             var terminatorIndex = seStr.Payloads.IndexOf(RawPayload.LinkTerminator);
             var payloads = terminatorIndex >= 0 ? seStr.Payloads.Take(terminatorIndex + 1).ToList() : seStr.Payloads;
             if (payloads.Count == 0) return;
