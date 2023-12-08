@@ -133,6 +133,20 @@ internal unsafe class DalamudImeWindow : Window
 
         if (!expandUpward && drawIme)
         {
+            for (var dx = -2; dx <= 2; dx++)
+            {
+                for (var dy = -2; dy <= 2; dy++)
+                {
+                    if (dx != 0 || dy != 0)
+                    {
+                        drawList.AddText(
+                            cursor + new Vector2(dx, dy),
+                            ImGui.GetColorU32(ImGuiCol.WindowBg),
+                            ime.InputModeIcon);
+                    }
+                }
+            }
+
             drawList.AddText(cursor, ImGui.GetColorU32(ImGuiCol.Text), ime.InputModeIcon);
             cursor.Y += candTextSize.Y + spaceY;
         }
@@ -179,6 +193,20 @@ internal unsafe class DalamudImeWindow : Window
 
         if (expandUpward && drawIme)
         {
+            for (var dx = -2; dx <= 2; dx++)
+            {
+                for (var dy = -2; dy <= 2; dy++)
+                {
+                    if (dx != 0 || dy != 0)
+                    {
+                        drawList.AddText(
+                            cursor + new Vector2(dx, dy),
+                            ImGui.GetColorU32(ImGuiCol.WindowBg),
+                            ime.InputModeIcon);
+                    }
+                }
+            }
+
             drawList.AddText(cursor, ImGui.GetColorU32(ImGuiCol.Text), ime.InputModeIcon);
         }
 

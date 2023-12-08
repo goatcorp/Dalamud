@@ -19,7 +19,7 @@ using static TerraFX.Interop.Windows.Windows;
 namespace Dalamud.Interface.Internal;
 
 /// <summary>
-/// This class handles IME for non-English users.
+/// This class handles CJK IME.
 /// </summary>
 [ServiceManager.EarlyLoadedService]
 internal sealed unsafe class DalamudIme : IDisposable, IServiceType
@@ -251,7 +251,7 @@ internal sealed unsafe class DalamudIme : IDisposable, IServiceType
         {
             case LANG.LANG_KOREAN:
                 if (native)
-                    this.InputModeIcon = "\uE025";
+                    this.InputModeIcon = $"{(char)SeIconChar.ImeKoreanHangul}";
                 else if (fullwidth)
                     this.InputModeIcon = $"{(char)SeIconChar.ImeAlphanumeric}";
                 else
@@ -274,11 +274,10 @@ internal sealed unsafe class DalamudIme : IDisposable, IServiceType
                 break;
 
             case LANG.LANG_CHINESE:
-                // TODO: does Chinese IME also need "open" check?
                 if (native)
-                    this.InputModeIcon = "\uE026";
+                    this.InputModeIcon = $"{(char)SeIconChar.ImeChineseHan}";
                 else
-                    this.InputModeIcon = "\uE027";
+                    this.InputModeIcon = $"{(char)SeIconChar.ImeChineseLatin}";
                 break;
 
             default:
