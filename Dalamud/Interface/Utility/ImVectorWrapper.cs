@@ -519,10 +519,11 @@ public unsafe struct ImVectorWrapper<T> : IList<T>, IList, IReadOnlyList<T>, IDi
         if (index < 0 || index > this.LengthUnsafe)
             throw new IndexOutOfRangeException();
 
-        this.EnsureCapacityExponential(this.CapacityUnsafe + 1);
+        this.EnsureCapacityExponential(this.LengthUnsafe + 1);
         var num = this.LengthUnsafe - index;
         Buffer.MemoryCopy(this.DataUnsafe + index, this.DataUnsafe + index + 1, num * sizeof(T), num * sizeof(T));
         this.DataUnsafe[index] = item;
+        this.LengthUnsafe += 1;
     }
 
     /// <inheritdoc cref="List{T}.InsertRange"/>
@@ -535,6 +536,7 @@ public unsafe struct ImVectorWrapper<T> : IList<T>, IList, IReadOnlyList<T>, IDi
             Buffer.MemoryCopy(this.DataUnsafe + index, this.DataUnsafe + index + count, num * sizeof(T), num * sizeof(T));
             foreach (var item in items)
                 this.DataUnsafe[index++] = item;
+            this.LengthUnsafe += count;
         }
         else
         {
@@ -551,6 +553,7 @@ public unsafe struct ImVectorWrapper<T> : IList<T>, IList, IReadOnlyList<T>, IDi
         Buffer.MemoryCopy(this.DataUnsafe + index, this.DataUnsafe + index + items.Length, num * sizeof(T), num * sizeof(T));
         foreach (var item in items)
             this.DataUnsafe[index++] = item;
+        this.LengthUnsafe += items.Length;
     }
 
     /// <summary>
@@ -566,6 +569,7 @@ public unsafe struct ImVectorWrapper<T> : IList<T>, IList, IReadOnlyList<T>, IDi
             this.destroyer?.Invoke(&this.DataUnsafe[index]);
 
         Buffer.MemoryCopy(this.DataUnsafe + index + 1, this.DataUnsafe + index, num * sizeof(T), num * sizeof(T));
+        this.LengthUnsafe -= 1;
     }
 
     /// <inheritdoc/>
