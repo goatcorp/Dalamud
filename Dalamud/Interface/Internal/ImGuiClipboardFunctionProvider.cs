@@ -27,7 +27,7 @@ namespace Dalamud.Interface.Internal;
 /// </para>
 /// </remarks>
 [ServiceManager.EarlyLoadedService]
-internal sealed unsafe class ImGuiClipboardConfig : IServiceType, IDisposable
+internal sealed unsafe class ImGuiClipboardFunctionProvider : IServiceType, IDisposable
 {
     private readonly nint clipboardUserDataOriginal;
     private readonly delegate* unmanaged<nint, byte*, void> setTextOriginal;
@@ -35,7 +35,7 @@ internal sealed unsafe class ImGuiClipboardConfig : IServiceType, IDisposable
     private GCHandle clipboardUserData;
 
     [ServiceManager.ServiceConstructor]
-    private ImGuiClipboardConfig(InterfaceManager.InterfaceManagerWithScene imws)
+    private ImGuiClipboardFunctionProvider(InterfaceManager.InterfaceManagerWithScene imws)
     {
         // Effectively waiting for ImGui to become available.
         _ = imws;
@@ -52,11 +52,11 @@ internal sealed unsafe class ImGuiClipboardConfig : IServiceType, IDisposable
 
         [UnmanagedCallersOnly]
         static void StaticSetClipboardTextImpl(nint userData, byte* text) =>
-            ((ImGuiClipboardConfig)GCHandle.FromIntPtr(userData).Target)!.SetClipboardTextImpl(text);
+            ((ImGuiClipboardFunctionProvider)GCHandle.FromIntPtr(userData).Target)!.SetClipboardTextImpl(text);
 
         [UnmanagedCallersOnly]
         static byte* StaticGetClipboardTextImpl(nint userData) =>
-            ((ImGuiClipboardConfig)GCHandle.FromIntPtr(userData).Target)!.GetClipboardTextImpl();
+            ((ImGuiClipboardFunctionProvider)GCHandle.FromIntPtr(userData).Target)!.GetClipboardTextImpl();
     }
 
     [SuppressMessage("ReSharper", "AssignNullToNotNullAttribute", Justification = "If it's null, it's crashworthy")]
