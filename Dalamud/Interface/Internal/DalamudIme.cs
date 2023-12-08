@@ -105,7 +105,7 @@ internal sealed unsafe class DalamudIme : IDisposable, IServiceType
     /// <summary>
     /// Gets the input mode icon from <see cref="SeIconChar"/>.
     /// </summary>
-    internal string? InputModeIcon { get; private set; }
+    internal char InputModeIcon { get; private set; }
 
     private static ref ImGuiInputTextState TextState => ref *(ImGuiInputTextState*)(ImGui.GetCurrentContext() + 0x4588);
 
@@ -251,37 +251,37 @@ internal sealed unsafe class DalamudIme : IDisposable, IServiceType
         {
             case LANG.LANG_KOREAN:
                 if (native)
-                    this.InputModeIcon = $"{(char)SeIconChar.ImeKoreanHangul}";
+                    this.InputModeIcon = (char)SeIconChar.ImeKoreanHangul;
                 else if (fullwidth)
-                    this.InputModeIcon = $"{(char)SeIconChar.ImeAlphanumeric}";
+                    this.InputModeIcon = (char)SeIconChar.ImeAlphanumeric;
                 else
-                    this.InputModeIcon = $"{(char)SeIconChar.ImeAlphanumericHalfWidth}";
+                    this.InputModeIcon = (char)SeIconChar.ImeAlphanumericHalfWidth;
                 break;
 
             case LANG.LANG_JAPANESE:
                 // wtf
                 // see the function called from: 48 8b 0d ?? ?? ?? ?? e8 ?? ?? ?? ?? 8b d8 e9 ?? 00 00 0
                 if (open && native && katakana && fullwidth)
-                    this.InputModeIcon = $"{(char)SeIconChar.ImeKatakana}";
+                    this.InputModeIcon = (char)SeIconChar.ImeKatakana;
                 else if (open && native && katakana)
-                    this.InputModeIcon = $"{(char)SeIconChar.ImeKatakanaHalfWidth}";
+                    this.InputModeIcon = (char)SeIconChar.ImeKatakanaHalfWidth;
                 else if (open && native)
-                    this.InputModeIcon = $"{(char)SeIconChar.ImeHiragana}";
+                    this.InputModeIcon = (char)SeIconChar.ImeHiragana;
                 else if (open && fullwidth)
-                    this.InputModeIcon = $"{(char)SeIconChar.ImeAlphanumeric}";
+                    this.InputModeIcon = (char)SeIconChar.ImeAlphanumeric;
                 else
-                    this.InputModeIcon = $"{(char)SeIconChar.ImeAlphanumericHalfWidth}";
+                    this.InputModeIcon = (char)SeIconChar.ImeAlphanumericHalfWidth;
                 break;
 
             case LANG.LANG_CHINESE:
                 if (native)
-                    this.InputModeIcon = $"{(char)SeIconChar.ImeChineseHan}";
+                    this.InputModeIcon = (char)SeIconChar.ImeChineseHan;
                 else
-                    this.InputModeIcon = $"{(char)SeIconChar.ImeChineseLatin}";
+                    this.InputModeIcon = (char)SeIconChar.ImeChineseLatin;
                 break;
 
             default:
-                this.InputModeIcon = null;
+                this.InputModeIcon = default;
                 break;
         }
 

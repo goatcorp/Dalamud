@@ -43,7 +43,8 @@ internal unsafe class DalamudImeWindow : Window
 
         var drawCand = ime.ImmCand.Count != 0;
         var drawConv = drawCand || ime.ShowPartialConversion;
-        var drawIme = ime.InputModeIcon != null;
+        var drawIme = ime.InputModeIcon != 0;
+        var imeIconFont = InterfaceManager.DefaultFont;
 
         var pad = ImGui.GetStyle().WindowPadding;
         var candTextSize = ImGui.CalcTextSize(ime.ImmComp == string.Empty ? " " : ime.ImmComp);
@@ -139,7 +140,9 @@ internal unsafe class DalamudImeWindow : Window
                 {
                     if (dx != 0 || dy != 0)
                     {
-                        drawList.AddText(
+                        imeIconFont.RenderChar(
+                            drawList,
+                            imeIconFont.FontSize,
                             cursor + new Vector2(dx, dy),
                             ImGui.GetColorU32(ImGuiCol.WindowBg),
                             ime.InputModeIcon);
@@ -147,7 +150,12 @@ internal unsafe class DalamudImeWindow : Window
                 }
             }
 
-            drawList.AddText(cursor, ImGui.GetColorU32(ImGuiCol.Text), ime.InputModeIcon);
+            imeIconFont.RenderChar(
+                drawList,
+                imeIconFont.FontSize,
+                cursor,
+                ImGui.GetColorU32(ImGuiCol.Text),
+                ime.InputModeIcon);
             cursor.Y += candTextSize.Y + spaceY;
         }
 
@@ -199,7 +207,9 @@ internal unsafe class DalamudImeWindow : Window
                 {
                     if (dx != 0 || dy != 0)
                     {
-                        drawList.AddText(
+                        imeIconFont.RenderChar(
+                            drawList,
+                            imeIconFont.FontSize,
                             cursor + new Vector2(dx, dy),
                             ImGui.GetColorU32(ImGuiCol.WindowBg),
                             ime.InputModeIcon);
@@ -207,7 +217,12 @@ internal unsafe class DalamudImeWindow : Window
                 }
             }
 
-            drawList.AddText(cursor, ImGui.GetColorU32(ImGuiCol.Text), ime.InputModeIcon);
+            imeIconFont.RenderChar(
+                drawList,
+                imeIconFont.FontSize,
+                cursor,
+                ImGui.GetColorU32(ImGuiCol.Text),
+                ime.InputModeIcon);
         }
 
         return;
