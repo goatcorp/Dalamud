@@ -59,23 +59,12 @@ internal sealed unsafe class ImGuiClipboardConfig : IServiceType, IDisposable
             ((ImGuiClipboardConfig)GCHandle.FromIntPtr(userData).Target)!.GetClipboardTextImpl();
     }
 
-    /// <summary>
-    /// Finalizes an instance of the <see cref="ImGuiClipboardConfig"/> class.
-    /// </summary>
-    ~ImGuiClipboardConfig() => this.ReleaseUnmanagedResources();
-    
     [SuppressMessage("ReSharper", "AssignNullToNotNullAttribute", Justification = "If it's null, it's crashworthy")]
     private static ImVectorWrapper<byte> ImGuiCurrentContextClipboardHandlerData =>
         new((ImVector*)(ImGui.GetCurrentContext() + 0x5520));
 
     /// <inheritdoc/>
     public void Dispose()
-    {
-        this.ReleaseUnmanagedResources();
-        GC.SuppressFinalize(this);
-    }
-
-    private void ReleaseUnmanagedResources()
     {
         if (!this.clipboardUserData.IsAllocated)
             return;
