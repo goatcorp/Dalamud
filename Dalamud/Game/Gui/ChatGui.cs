@@ -285,8 +285,8 @@ internal sealed unsafe class ChatGui : IDisposable, IServiceType, IChatGui
 
         try
         {
-            var originalSenderData = sender->Span.ToArray();
-            var originalMessageData = message->Span.ToArray();
+            var originalSenderData = sender->AsSpan().ToArray();
+            var originalMessageData = message->AsSpan().ToArray();
 
             var parsedSender = SeString.Parse(originalSenderData);
             var parsedMessage = SeString.Parse(originalMessageData);
