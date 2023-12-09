@@ -208,7 +208,7 @@ public unsafe struct ImVectorWrapper<T> : IList<T>, IList, IReadOnlyList<T>, IDi
     /// </summary>
     /// <param name="initialCapacity">The initial capacity.</param>
     /// <param name="destroyer">The destroyer function to call on item removal.</param>
-    public ImVectorWrapper(int initialCapacity = 0, ImGuiNativeDestroyDelegate? destroyer = null)
+    public ImVectorWrapper(int initialCapacity, ImGuiNativeDestroyDelegate? destroyer = null)
     {
         if (initialCapacity < 0)
         {
@@ -394,7 +394,7 @@ public unsafe struct ImVectorWrapper<T> : IList<T>, IList, IReadOnlyList<T>, IDi
     }
 
     /// <inheritdoc cref="List{T}.AddRange"/>
-    public void AddRange(Span<T> items)
+    public void AddRange(ReadOnlySpan<T> items)
     {
         this.EnsureCapacityExponential(this.LengthUnsafe + items.Length);
         foreach (var item in items)
@@ -466,7 +466,7 @@ public unsafe struct ImVectorWrapper<T> : IList<T>, IList, IReadOnlyList<T>, IDi
     /// <param name="capacity">The minimum capacity to ensure.</param>
     /// <returns>Whether the capacity has been changed.</returns>
     public bool EnsureCapacityExponential(int capacity)
-        => this.EnsureCapacity(1 << ((sizeof(int) * 8) - BitOperations.LeadingZeroCount((uint)this.LengthUnsafe)));
+        => this.EnsureCapacity(1 << ((sizeof(int) * 8) - BitOperations.LeadingZeroCount((uint)capacity)));
 
     /// <summary>
     /// Resizes the underlying array and fills with zeroes if grown.
@@ -519,10 +519,11 @@ public unsafe struct ImVectorWrapper<T> : IList<T>, IList, IReadOnlyList<T>, IDi
         if (index < 0 || index > this.LengthUnsafe)
             throw new IndexOutOfRangeException();
 
-        this.EnsureCapacityExponential(this.CapacityUnsafe + 1);
+        this.EnsureCapacityExponential(this.LengthUnsafe + 1);
         var num = this.LengthUnsafe - index;
         Buffer.MemoryCopy(this.DataUnsafe + index, this.DataUnsafe + index + 1, num * sizeof(T), num * sizeof(T));
         this.DataUnsafe[index] = item;
+        this.LengthUnsafe += 1;
     }
 
     /// <inheritdoc cref="List{T}.InsertRange"/>
@@ -535,6 +536,7 @@ public unsafe struct ImVectorWrapper<T> : IList<T>, IList, IReadOnlyList<T>, IDi
             Buffer.MemoryCopy(this.DataUnsafe + index, this.DataUnsafe + index + count, num * sizeof(T), num * sizeof(T));
             foreach (var item in items)
                 this.DataUnsafe[index++] = item;
+            this.LengthUnsafe += count;
         }
         else
         {
@@ -543,14 +545,15 @@ public unsafe struct ImVectorWrapper<T> : IList<T>, IList, IReadOnlyList<T>, IDi
         }
     }
 
-    /// <inheritdoc cref="List{T}.AddRange"/>
-    public void InsertRange(int index, Span<T> items)
+    /// <inheritdoc cref="List{T}.InsertRange"/>
+    public void InsertRange(int index, ReadOnlySpan<T> items)
     {
         this.EnsureCapacityExponential(this.LengthUnsafe + items.Length);
         var num = this.LengthUnsafe - index;
         Buffer.MemoryCopy(this.DataUnsafe + index, this.DataUnsafe + index + items.Length, num * sizeof(T), num * sizeof(T));
         foreach (var item in items)
             this.DataUnsafe[index++] = item;
+        this.LengthUnsafe += items.Length;
     }
 
     /// <summary>
@@ -558,21 +561,80 @@ public unsafe struct ImVectorWrapper<T> : IList<T>, IList, IReadOnlyList<T>, IDi
     /// </summary>
     /// <param name="index">The index.</param>
     /// <param name="skipDestroyer">Whether to skip calling the destroyer function.</param>
-    public void RemoveAt(int index, bool skipDestroyer = false)
-    {
-        this.EnsureIndex(index);
-        var num = this.LengthUnsafe - index - 1;
-        if (!skipDestroyer)
-            this.destroyer?.Invoke(&this.DataUnsafe[index]);
-
-        Buffer.MemoryCopy(this.DataUnsafe + index + 1, this.DataUnsafe + index, num * sizeof(T), num * sizeof(T));
-    }
+    public void RemoveAt(int index, bool skipDestroyer = false) => this.RemoveRange(index, 1, skipDestroyer);
 
     /// <inheritdoc/>
     void IList<T>.RemoveAt(int index) => this.RemoveAt(index);
 
     /// <inheritdoc/>
     void IList.RemoveAt(int index) => this.RemoveAt(index);
+
+    /// <summary>
+    /// Removes <paramref name="count"/> elements at the given index.
+    /// </summary>
+    /// <param name="index">The index of the first item to remove.</param>
+    /// <param name="count">Number of items to remove.</param>
+    /// <param name="skipDestroyer">Whether to skip calling the destroyer function.</param>
+    public void RemoveRange(int index, int count, bool skipDestroyer = false)
+    {
+        this.EnsureIndex(index);
+        if (count < 0)
+            throw new ArgumentOutOfRangeException(nameof(count), count, "Must be positive.");
+        if (count == 0)
+            return;
+
+        if (!skipDestroyer && this.destroyer is { } d)
+        {
+            for (var i = 0; i < count; i++)
+                d(this.DataUnsafe + index + i);
+        }
+
+        var numItemsToMove = this.LengthUnsafe - index - count;
+        var numBytesToMove = numItemsToMove * sizeof(T);
+        Buffer.MemoryCopy(this.DataUnsafe + index + count, this.DataUnsafe + index, numBytesToMove, numBytesToMove);
+        this.LengthUnsafe -= count;
+    }
+
+    /// <summary>
+    /// Replaces a sequence at given offset <paramref name="index"/> of <paramref name="count"/> items with
+    /// <paramref name="replacement"/>.
+    /// </summary>
+    /// <param name="index">The index of the first item to be replaced.</param>
+    /// <param name="count">The number of items to be replaced.</param>
+    /// <param name="replacement">The replacement.</param>
+    /// <param name="skipDestroyer">Whether to skip calling the destroyer function.</param>
+    public void ReplaceRange(int index, int count, ReadOnlySpan<T> replacement, bool skipDestroyer = false)
+    {
+        this.EnsureIndex(index);
+        if (count < 0)
+            throw new ArgumentOutOfRangeException(nameof(count), count, "Must be positive.");
+        if (count == 0)
+            return;
+
+        // Ensure the capacity first, so that we can safely destroy the items first.
+        this.EnsureCapacityExponential((this.LengthUnsafe + replacement.Length) - count);
+
+        if (!skipDestroyer && this.destroyer is { } d)
+        {
+            for (var i = 0; i < count; i++)
+                d(this.DataUnsafe + index + i);
+        }
+
+        if (count == replacement.Length)
+        {
+            replacement.CopyTo(this.DataSpan[index..]);
+        }
+        else if (count > replacement.Length)
+        {
+            replacement.CopyTo(this.DataSpan[index..]);
+            this.RemoveRange(index + replacement.Length, count - replacement.Length);
+        }
+        else
+        {
+            replacement[..count].CopyTo(this.DataSpan[index..]);
+            this.InsertRange(index + count, replacement[count..]);
+        }
+    }
 
     /// <summary>
     /// Sets the capacity exactly as requested.
@@ -611,9 +673,6 @@ public unsafe struct ImVectorWrapper<T> : IList<T>, IList, IReadOnlyList<T>, IDi
 
         if (!oldSpan.IsEmpty && !newSpan.IsEmpty)
             oldSpan[..this.LengthUnsafe].CopyTo(newSpan);
-// #if DEBUG
-//         new Span<byte>(newAlloc + this.LengthUnsafe, sizeof(T) * (capacity - this.LengthUnsafe)).Fill(0xCC);
-// #endif
 
         if (oldAlloc != null)
             ImGuiNative.igMemFree(oldAlloc);
