@@ -1,10 +1,18 @@
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
+using System.Text;
 
+using CheapLoc;
+
+using Dalamud.Game.Gui.Toast;
 using Dalamud.Interface.Utility;
+using Dalamud.Logging.Internal;
 
 using ImGuiNET;
+
+using TerraFX.Interop.Windows;
+
+using static TerraFX.Interop.Windows.Windows;
 
 namespace Dalamud.Interface.Internal;
 
@@ -29,9 +37,15 @@ namespace Dalamud.Interface.Internal;
 [ServiceManager.EarlyLoadedService]
 internal sealed unsafe class ImGuiClipboardFunctionProvider : IServiceType, IDisposable
 {
+    private static readonly ModuleLog Log = new(nameof(ImGuiClipboardFunctionProvider));
     private readonly nint clipboardUserDataOriginal;
-    private readonly delegate* unmanaged<nint, byte*, void> setTextOriginal;
-    private readonly delegate* unmanaged<nint, byte*> getTextOriginal;
+    private readonly nint setTextOriginal;
+    private readonly nint getTextOriginal;
+
+    [ServiceManager.ServiceDependency]
+    private readonly ToastGui toastGui = Service<ToastGui>.Get();
+    
+    private ImVectorWrapper<byte> clipboardData;
     private GCHandle clipboardUserData;
 
     [ServiceManager.ServiceConstructor]
@@ -43,11 +57,13 @@ internal sealed unsafe class ImGuiClipboardFunctionProvider : IServiceType, IDis
 
         var io = ImGui.GetIO();
         this.clipboardUserDataOriginal = io.ClipboardUserData;
-        this.setTextOriginal = (delegate* unmanaged<nint, byte*, void>)io.SetClipboardTextFn;
-        this.getTextOriginal = (delegate* unmanaged<nint, byte*>)io.GetClipboardTextFn;
+        this.setTextOriginal = io.SetClipboardTextFn;
+        this.getTextOriginal = io.GetClipboardTextFn;
         io.ClipboardUserData = GCHandle.ToIntPtr(this.clipboardUserData = GCHandle.Alloc(this));
         io.SetClipboardTextFn = (nint)(delegate* unmanaged<nint, byte*, void>)&StaticSetClipboardTextImpl;
         io.GetClipboardTextFn = (nint)(delegate* unmanaged<nint, byte*>)&StaticGetClipboardTextImpl;
+
+        this.clipboardData = new(0);
         return;
 
         [UnmanagedCallersOnly]
@@ -59,10 +75,6 @@ internal sealed unsafe class ImGuiClipboardFunctionProvider : IServiceType, IDis
             ((ImGuiClipboardFunctionProvider)GCHandle.FromIntPtr(userData).Target)!.GetClipboardTextImpl();
     }
 
-    [SuppressMessage("ReSharper", "AssignNullToNotNullAttribute", Justification = "If it's null, it's crashworthy")]
-    private static ImVectorWrapper<byte> ImGuiCurrentContextClipboardHandlerData =>
-        new((ImVector*)(ImGui.GetCurrentContext() + 0x5520));
-
     /// <inheritdoc/>
     public void Dispose()
     {
@@ -70,30 +82,118 @@ internal sealed unsafe class ImGuiClipboardFunctionProvider : IServiceType, IDis
             return;
 
         var io = ImGui.GetIO();
-        io.SetClipboardTextFn = (nint)this.setTextOriginal;
-        io.GetClipboardTextFn = (nint)this.getTextOriginal;
+        io.SetClipboardTextFn = this.setTextOriginal;
+        io.GetClipboardTextFn = this.getTextOriginal;
         io.ClipboardUserData = this.clipboardUserDataOriginal;
 
         this.clipboardUserData.Free();
+        this.clipboardData.Dispose();
+    }
+
+    private bool OpenClipboardOrShowError()
+    {
+        if (!OpenClipboard(default))
+        {
+            this.toastGui.ShowError(
+                Loc.Localize(
+                    "ImGuiClipboardFunctionProviderClipboardInUse",
+                    "Some other application is using the clipboard. Try again later."));
+            return false;
+        }
+
+        return true;
     }
 
     private void SetClipboardTextImpl(byte* text)
     {
-        var buffer = ImGuiCurrentContextClipboardHandlerData;
-        buffer.SetFromZeroTerminatedSequence(text);
-        buffer.Utf8Normalize();
-        buffer.AddZeroTerminatorIfMissing();
-        this.setTextOriginal(this.clipboardUserDataOriginal, buffer.Data);
+        if (!this.OpenClipboardOrShowError())
+            return;
+
+        try
+        {
+            var len = 0;
+            while (text[len] != 0)
+                len++;
+            var str = Encoding.UTF8.GetString(text, len);
+            str = str.ReplaceLineEndings("\r\n");
+            var hMem = GlobalAlloc(GMEM.GMEM_MOVEABLE, (nuint)((str.Length + 1) * 2));
+            if (hMem == 0)
+                throw new OutOfMemoryException();
+            
+            var ptr = (char*)GlobalLock(hMem);
+            if (ptr == null)
+            {
+                throw Marshal.GetExceptionForHR(Marshal.GetHRForLastWin32Error())
+                      ?? throw new InvalidOperationException($"{nameof(GlobalLock)} failed.");
+            }
+
+            str.AsSpan().CopyTo(new(ptr, str.Length));
+            ptr[str.Length] = default;
+            GlobalUnlock(hMem);
+
+            SetClipboardData(CF.CF_UNICODETEXT, hMem);
+        }
+        catch (Exception e)
+        {
+            Log.Error(e, $"Error in {nameof(this.SetClipboardTextImpl)}");
+            this.toastGui.ShowError(
+                Loc.Localize(
+                    "ImGuiClipboardFunctionProviderErrorCopy",
+                    "Failed to copy. See logs for details."));
+        }
+        finally
+        {
+            CloseClipboard();
+        }
     }
 
     private byte* GetClipboardTextImpl()
     {
-        _ = this.getTextOriginal(this.clipboardUserDataOriginal);
+        this.clipboardData.Clear();
+        
+        var formats = stackalloc uint[] { CF.CF_UNICODETEXT, CF.CF_TEXT };
+        if (GetPriorityClipboardFormat(formats, 2) < 1 || !this.OpenClipboardOrShowError())
+        {
+            this.clipboardData.Add(0);
+            return this.clipboardData.Data;
+        }
 
-        var buffer = ImGuiCurrentContextClipboardHandlerData;
-        buffer.TrimZeroTerminator();
-        buffer.Utf8Normalize();
-        buffer.AddZeroTerminatorIfMissing();
-        return buffer.Data;
+        try
+        {
+            var hMem = (HGLOBAL)GetClipboardData(CF.CF_UNICODETEXT);
+            if (hMem != default)
+            {
+                var ptr = (char*)GlobalLock(hMem);
+                if (ptr == null)
+                {
+                    throw Marshal.GetExceptionForHR(Marshal.GetHRForLastWin32Error())
+                          ?? throw new InvalidOperationException($"{nameof(GlobalLock)} failed.");
+                }
+
+                var str = new string(ptr);
+                str = str.ReplaceLineEndings("\r\n");
+                this.clipboardData.Resize(Encoding.UTF8.GetByteCount(str) + 1);
+                Encoding.UTF8.GetBytes(str, this.clipboardData.DataSpan);
+                this.clipboardData[^1] = 0;
+            }
+            else
+            {
+                this.clipboardData.Add(0);
+            }
+        }
+        catch (Exception e)
+        {
+            Log.Error(e, $"Error in {nameof(this.GetClipboardTextImpl)}");
+            this.toastGui.ShowError(
+                Loc.Localize(
+                    "ImGuiClipboardFunctionProviderErrorPaste",
+                    "Failed to paste. See logs for details."));
+        }
+        finally
+        {
+            CloseClipboard();
+        }
+
+        return this.clipboardData.Data;
     }
 }

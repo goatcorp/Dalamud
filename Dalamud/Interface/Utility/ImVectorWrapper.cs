@@ -13,7 +13,7 @@ namespace Dalamud.Interface.Utility;
 /// <summary>
 /// Utility methods for <see cref="ImVectorWrapper{T}"/>.
 /// </summary>
-public static partial class ImVectorWrapper
+public static class ImVectorWrapper
 {
     /// <summary>
     /// Creates a new instance of the <see cref="ImVectorWrapper{T}"/> struct, initialized with
@@ -208,7 +208,7 @@ public unsafe struct ImVectorWrapper<T> : IList<T>, IList, IReadOnlyList<T>, IDi
     /// </summary>
     /// <param name="initialCapacity">The initial capacity.</param>
     /// <param name="destroyer">The destroyer function to call on item removal.</param>
-    public ImVectorWrapper(int initialCapacity = 0, ImGuiNativeDestroyDelegate? destroyer = null)
+    public ImVectorWrapper(int initialCapacity, ImGuiNativeDestroyDelegate? destroyer = null)
     {
         if (initialCapacity < 0)
         {
