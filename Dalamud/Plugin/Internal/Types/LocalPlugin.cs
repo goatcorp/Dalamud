@@ -624,8 +624,6 @@ internal class LocalPlugin : IDisposable
         config.IsUnloadable = true;
         config.LoadInMemory = true;
         config.PreferSharedTypes = false;
-        config.SharedAssemblies.Add(typeof(Lumina.GameData).Assembly.GetName());
-        config.SharedAssemblies.Add(typeof(Lumina.Excel.ExcelSheetImpl).Assembly.GetName());
     }
 
     private void EnsureLoader()
