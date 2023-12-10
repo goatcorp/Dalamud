@@ -1,6 +1,7 @@
 ﻿using System.IO;
 using System.Runtime.InteropServices;
 
+using Dalamud.Interface.GameFonts;
 using Dalamud.Interface.Utility;
 
 using ImGuiNET;
@@ -43,6 +44,13 @@ public interface IFontAtlasBuildToolkitPreBuild : IFontAtlasBuildToolkit
     /// <param name="fontPtr">The font.</param>
     /// <returns>Same <see cref="ImFontPtr"/> with <paramref name="fontPtr"/>.</returns>
     ImFontPtr IgnoreGlobalScale(ImFontPtr fontPtr);
+
+    /// <summary>
+    /// Gets whether global scaling is ignored for the given font.
+    /// </summary>
+    /// <param name="fontPtr">The font.</param>
+    /// <returns>True if ignored.</returns>
+    bool IsGlobalScaleIgnored(ImFontPtr fontPtr);
 
     /// <summary>
     /// Adds a font from memory region allocated using <see cref="ImGuiHelpers.AllocateMemory"/>.<br />
@@ -120,7 +128,7 @@ public interface IFontAtlasBuildToolkitPreBuild : IFontAtlasBuildToolkit
     /// <summary>
     /// Adds the default font known to the current font atlas.<br />
     /// <br />
-    /// Includes <see cref="AddFontAwesomeIconFont"/> and <see cref="AddExtraGlyphsForDalamudLanguage"/>.<br />
+    /// Includes <see cref="AddFontAwesomeIconFont"/> and <see cref="AttachExtraGlyphsForDalamudLanguage"/>.<br />
     /// As this involves adding multiple fonts, calling this function will set <see cref="IFontAtlasBuildToolkit.Font"/>
     /// as the return value of this function, if it was empty before.
     /// </summary>
@@ -153,15 +161,26 @@ public interface IFontAtlasBuildToolkitPreBuild : IFontAtlasBuildToolkit
 
     /// <summary>
     /// Adds the game's symbols into the provided font.<br />
-    /// <see cref="SafeFontConfig.GlyphRanges"/> will be ignored.
+    /// <see cref="SafeFontConfig.GlyphRanges"/> will be ignored.<br />
+    /// If the game symbol font file is unavailable, only <see cref="SafeFontConfig.SizePx"/> will be honored.
     /// </summary>
     /// <param name="fontConfig">The font config.</param>
-    void AddGameSymbol(in SafeFontConfig fontConfig);
+    /// <returns>The added font.</returns>
+    ImFontPtr AddGameSymbol(in SafeFontConfig fontConfig);
+
+    /// <summary>
+    /// Adds the game glyphs to the font.
+    /// </summary>
+    /// <param name="gameFontStyle">The font style.</param>
+    /// <param name="glyphRanges">The glyph ranges.</param>
+    /// <param name="mergeFont">The font to merge to. If empty, then a new font will be created.</param>
+    /// <returns>The added font.</returns>
+    ImFontPtr AddGameGlyphs(GameFontStyle gameFontStyle, ushort[]? glyphRanges, ImFontPtr mergeFont);
 
     /// <summary>
     /// Adds glyphs of extra languages into the provided font, depending on Dalamud Configuration.<br />
     /// <see cref="SafeFontConfig.GlyphRanges"/> will be ignored.
     /// </summary>
     /// <param name="fontConfig">The font config.</param>
-    void AddExtraGlyphsForDalamudLanguage(in SafeFontConfig fontConfig);
+    void AttachExtraGlyphsForDalamudLanguage(in SafeFontConfig fontConfig);
 }

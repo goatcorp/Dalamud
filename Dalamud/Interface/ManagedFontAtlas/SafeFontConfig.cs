@@ -37,9 +37,13 @@ public struct SafeFontConfig
     /// </summary>
     /// <param name="config">Config to copy from.</param>
     public unsafe SafeFontConfig(ImFontConfigPtr config)
+        : this()
     {
-        this.Raw = *config.NativePtr;
-        this.Raw.GlyphRanges = null;
+        if (config.NativePtr is not null)
+        {
+            this.Raw = *config.NativePtr;
+            this.Raw.GlyphRanges = null;
+        }
     }
 
     /// <summary>

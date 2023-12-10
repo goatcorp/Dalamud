@@ -31,6 +31,13 @@ internal interface IFontHandleSubstance : IDisposable
     /// </summary>
     /// <param name="toolkitPreBuild">The toolkit.</param>
     void OnPreBuild(IFontAtlasBuildToolkitPreBuild toolkitPreBuild);
+    
+    /// <summary>
+    /// Called between <see cref="OnPreBuild"/> and <see cref="ImFontAtlasPtr.Build"/> calls.<br />
+    /// Any further modification to <see cref="IFontAtlasBuildToolkit.Fonts"/> will result in undefined behavior.
+    /// </summary>
+    /// <param name="toolkitPreBuild">The toolkit.</param>
+    void OnPreBuildCleanup(IFontAtlasBuildToolkitPreBuild toolkitPreBuild);
 
     /// <summary>
     /// Called after <see cref="ImFontAtlasPtr.Build"/> call.

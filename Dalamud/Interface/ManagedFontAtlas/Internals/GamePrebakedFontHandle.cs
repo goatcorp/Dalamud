@@ -1,5 +1,7 @@
 ﻿using System.Buffers;
+using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reactive.Disposables;
 
@@ -207,15 +209,11 @@ internal class GamePrebakedFontHandle : IFontHandle.IInternal
         private readonly HashSet<GameFontStyle> gameFontStyles;
 
         // Owned by this class, but ImFontPtr values still do not belong to this.
-        private readonly Dictionary<GameFontStyle, ImFontPtr> fonts = new();
+        private readonly Dictionary<GameFontStyle, FontDrawPlan> fonts = new();
         private readonly Dictionary<GameFontStyle, Exception?> buildExceptions = new();
-        private readonly Dictionary<ImFontPtr, List<(ImFontPtr Font, ushort[]? Ranges)>> fontCopyTargets = new();
+        private readonly List<(ImFontPtr Font, GameFontStyle Style, ushort[]? Ranges)> attachments = new();
 
         private readonly HashSet<ImFontPtr> templatedFonts = new();
-        private readonly Dictionary<ImFontPtr, List<(char From, char To)>> lateBuildRanges = new();
-
-        private readonly Dictionary<GameFontStyle, Dictionary<char, (int RectId, int FdtGlyphIndex)>> glyphRectIds =
-            new();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="HandleSubstance"/> class.
@@ -238,29 +236,22 @@ internal class GamePrebakedFontHandle : IFontHandle.IInternal
         }
 
         /// <summary>
-        /// Attaches game symbols to the given font.
+        /// Attaches game symbols to the given font. If font is null, it will be created.
         /// </summary>
         /// <param name="toolkitPreBuild">The toolkitPostBuild.</param>
         /// <param name="font">The font to attach to.</param>
-        /// <param name="sizePx">The font size in pixels.</param>
+        /// <param name="style">The game font style.</param>
         /// <param name="glyphRanges">The intended glyph ranges.</param>
         /// <returns><paramref name="font"/> if it is not empty; otherwise a new font.</returns>
-        public ImFontPtr AttachGameSymbols(
+        public ImFontPtr AttachGameGlyphs(
             IFontAtlasBuildToolkitPreBuild toolkitPreBuild,
             ImFontPtr font,
-            float sizePx,
-            ushort[]? glyphRanges)
+            GameFontStyle style,
+            ushort[]? glyphRanges = null)
         {
-            var style = new GameFontStyle(GameFontFamily.Axis, sizePx);
-            var referenceFont = this.GetOrCreateFont(style, toolkitPreBuild);
-
             if (font.IsNull())
-                font = this.CreateTemplateFont(style, toolkitPreBuild);
-
-            if (!this.fontCopyTargets.TryGetValue(referenceFont, out var copyTargets))
-                this.fontCopyTargets[referenceFont] = copyTargets = new();
-
-            copyTargets.Add((font, glyphRanges));
+                font = this.CreateTemplateFont(toolkitPreBuild, style.SizePx);
+            this.attachments.Add((font, style, glyphRanges));
             return font;
         }
 
@@ -272,14 +263,20 @@ internal class GamePrebakedFontHandle : IFontHandle.IInternal
         /// <returns>The font.</returns>
         public ImFontPtr GetOrCreateFont(GameFontStyle style, IFontAtlasBuildToolkitPreBuild toolkitPreBuild)
         {
-            if (this.fonts.TryGetValue(style, out var font))
-                return font;
-
             try
             {
-                font = this.CreateFontPrivate(style, toolkitPreBuild, ' ', '\uFFFE', true);
-                this.fonts.Add(style, font);
-                return font;
+                if (!this.fonts.TryGetValue(style, out var plan))
+                {
+                    plan = new(
+                        style,
+                        toolkitPreBuild.Scale,
+                        this.handleManager.GameFontTextureProvider,
+                        this.CreateTemplateFont(toolkitPreBuild, style.SizePx));
+                    this.fonts[style] = plan;
+                }
+
+                plan.AttachFont(plan.FullRangeFont);
+                return plan.FullRangeFont;
             }
             catch (Exception e)
             {
@@ -290,7 +287,9 @@ internal class GamePrebakedFontHandle : IFontHandle.IInternal
 
         /// <inheritdoc/>
         public ImFontPtr GetFontPtr(IFontHandle handle) =>
-            handle is GamePrebakedFontHandle ggfh ? this.fonts.GetValueOrDefault(ggfh.FontStyle) : default;
+            handle is GamePrebakedFontHandle ggfh
+                ? this.fonts.GetValueOrDefault(ggfh.FontStyle)?.FullRangeFont ?? default
+                : default;
 
         /// <inheritdoc/>
         public Exception? GetBuildException(IFontHandle handle) =>
@@ -316,6 +315,34 @@ internal class GamePrebakedFontHandle : IFontHandle.IInternal
         }
 
         /// <inheritdoc/>
+        public void OnPreBuildCleanup(IFontAtlasBuildToolkitPreBuild toolkitPreBuild)
+        {
+            foreach (var (font, style, ranges) in this.attachments)
+            {
+                var effectiveStyle =
+                    toolkitPreBuild.IsGlobalScaleIgnored(font)
+                        ? style.Scale(1 / toolkitPreBuild.Scale)
+                        : style;
+                if (!this.fonts.TryGetValue(style, out var plan))
+                {
+                    plan = new(
+                        effectiveStyle,
+                        toolkitPreBuild.Scale,
+                        this.handleManager.GameFontTextureProvider,
+                        this.CreateTemplateFont(toolkitPreBuild, style.SizePx));
+                    this.fonts[style] = plan;
+                }
+
+                plan.AttachFont(font, ranges);
+            }
+
+            foreach (var plan in this.fonts.Values)
+            {
+                plan.EnsureGlyphs(toolkitPreBuild.NewImAtlas);
+            }
+        }
+
+        /// <inheritdoc/>
         public unsafe void OnPostBuild(IFontAtlasBuildToolkitPostBuild toolkitPostBuild)
         {
             var allTextureIndices = new Dictionary<string, int[]>();
@@ -331,266 +358,24 @@ internal class GamePrebakedFontHandle : IFontHandle.IInternal
 
             var pixels8Array = new byte*[toolkitPostBuild.NewImAtlas.Textures.Size];
             var widths = new int[toolkitPostBuild.NewImAtlas.Textures.Size];
-            var heights = new int[toolkitPostBuild.NewImAtlas.Textures.Size];
             for (var i = 0; i < pixels8Array.Length; i++)
-                toolkitPostBuild.NewImAtlas.GetTexDataAsAlpha8(i, out pixels8Array[i], out widths[i], out heights[i]);
+                toolkitPostBuild.NewImAtlas.GetTexDataAsAlpha8(i, out pixels8Array[i], out widths[i], out _);
 
-            foreach (var (style, font) in this.fonts)
+            foreach (var (style, plan) in this.fonts)
             {
                 try
                 {
-                    var fas = GameFontStyle.GetRecommendedFamilyAndSize(
-                        style.Family,
-                        style.SizePt * toolkitPostBuild.Scale);
-                    var attr = fas.GetAttribute<GameFontFamilyAndSizeAttribute>();
-                    var horizontalOffset = attr?.HorizontalOffset ?? 0;
-                    var texCount = this.handleManager.GameFontTextureProvider.GetFontTextureCount(attr.TexPathFormat);
-                    using var handle = this.handleManager.GameFontTextureProvider.CreateFdtFileView(fas, out var fdt);
-                    ref var fdtFontHeader = ref fdt.FontHeader;
-                    var fdtGlyphs = fdt.Glyphs;
-                    var fontPtr = font.NativePtr;
+                    foreach (var font in plan.Ranges.Keys)
+                        this.PatchFontMetricsIfNecessary(style, font, toolkitPostBuild.Scale);
 
-                    var glyphs = font.GlyphsWrapped();
-                    var scale = toolkitPostBuild.Scale * (style.SizePt / fdtFontHeader.Size);
-
-                    fontPtr->FontSize = toolkitPostBuild.Scale * style.SizePx;
-                    if (fontPtr->ConfigData != null)
-                        fontPtr->ConfigData->SizePixels = fontPtr->FontSize;
-                    fontPtr->Ascent = fdtFontHeader.Ascent * scale;
-                    fontPtr->Descent = fdtFontHeader.Descent * scale;
-                    fontPtr->EllipsisChar = '…';
-
-                    if (!allTexFiles.TryGetValue(attr.TexPathFormat, out var texFiles))
-                        allTexFiles.Add(attr.TexPathFormat, texFiles = ArrayPool<TexFile>.Shared.Rent(texCount));
-                    
-                    if (this.glyphRectIds.TryGetValue(style, out var rectIdToGlyphs))
-                    {
-                        foreach (var (rectId, fdtGlyphIndex) in rectIdToGlyphs.Values)
-                        {
-                            ref var glyph = ref fdtGlyphs[fdtGlyphIndex];
-                            var rc = (ImGuiHelpers.ImFontAtlasCustomRectReal*)toolkitPostBuild.NewImAtlas
-                                .GetCustomRectByIndex(rectId)
-                                .NativePtr;
-                            var pixels8 = pixels8Array[rc->TextureIndex];
-                            var width = widths[rc->TextureIndex];
-                            texFiles[glyph.TextureFileIndex] ??=
-                                this.handleManager
-                                    .GameFontTextureProvider
-                                    .GetTexFile(attr.TexPathFormat, glyph.TextureFileIndex);
-                            var sourceBuffer = texFiles[glyph.TextureFileIndex].ImageData;
-                            var sourceBufferDelta = glyph.TextureChannelByteIndex;
-                            var widthAdjustment = style.CalculateBaseWidthAdjustment(fdtFontHeader, glyph);
-                            if (widthAdjustment == 0)
-                            {
-                                for (var y = 0; y < glyph.BoundingHeight; y++)
-                                {
-                                    for (var x = 0; x < glyph.BoundingWidth; x++)
-                                    {
-                                        var a = sourceBuffer[
-                                            sourceBufferDelta +
-                                            (4 * (((glyph.TextureOffsetY + y) * fdtFontHeader.TextureWidth) +
-                                                  glyph.TextureOffsetX + x))];
-                                        pixels8[((rc->Y + y) * width) + rc->X + x] = a;
-                                    }
-                                }
-                            }
-                            else
-                            {
-                                for (var y = 0; y < glyph.BoundingHeight; y++)
-                                {
-                                    for (var x = 0; x < glyph.BoundingWidth + widthAdjustment; x++)
-                                        pixels8[((rc->Y + y) * width) + rc->X + x] = 0;
-                                }
-
-                                for (int xbold = 0, xboldTo = Math.Max(1, (int)Math.Ceiling(style.Weight + 1));
-                                     xbold < xboldTo;
-                                     xbold++)
-                                {
-                                    var boldStrength = Math.Min(1f, style.Weight + 1 - xbold);
-                                    for (var y = 0; y < glyph.BoundingHeight; y++)
-                                    {
-                                        float xDelta = xbold;
-                                        if (style.BaseSkewStrength > 0)
-                                        {
-                                            xDelta += style.BaseSkewStrength *
-                                                      (fdtFontHeader.LineHeight - glyph.CurrentOffsetY - y) /
-                                                      fdtFontHeader.LineHeight;
-                                        }
-                                        else if (style.BaseSkewStrength < 0)
-                                        {
-                                            xDelta -= style.BaseSkewStrength * (glyph.CurrentOffsetY + y) /
-                                                      fdtFontHeader.LineHeight;
-                                        }
-
-                                        var xDeltaInt = (int)Math.Floor(xDelta);
-                                        var xness = xDelta - xDeltaInt;
-                                        for (var x = 0; x < glyph.BoundingWidth; x++)
-                                        {
-                                            var sourcePixelIndex =
-                                                ((glyph.TextureOffsetY + y) * fdtFontHeader.TextureWidth) +
-                                                glyph.TextureOffsetX + x;
-                                            var a1 = sourceBuffer[sourceBufferDelta + (4 * sourcePixelIndex)];
-                                            var a2 = x == glyph.BoundingWidth - 1
-                                                         ? 0
-                                                         : sourceBuffer[sourceBufferDelta
-                                                                        + (4 * (sourcePixelIndex + 1))];
-                                            var n = (a1 * xness) + (a2 * (1 - xness));
-                                            var targetOffset = ((rc->Y + y) * width) + rc->X + x + xDeltaInt;
-                                            pixels8[targetOffset] =
-                                                Math.Max(pixels8[targetOffset], (byte)(boldStrength * n));
-                                        }
-                                    }
-                                }
-                            }
-
-                            glyphs[rc->GlyphId].XY *= scale;
-                            glyphs[rc->GlyphId].AdvanceX *= scale;
-                        }
-                    }
-                    else if (this.lateBuildRanges.TryGetValue(font, out var buildRanges))
-                    {
-                        buildRanges.Sort();
-                        for (var i = 0; i < buildRanges.Count; i++)
-                        {
-                            var current = buildRanges[i];
-                            if (current.From > current.To)
-                                buildRanges[i] = (From: current.To, To: current.From);
-                        }
-
-                        for (var i = 0; i < buildRanges.Count - 1; i++)
-                        {
-                            var current = buildRanges[i];
-                            var next = buildRanges[i + 1];
-                            if (next.From <= current.To)
-                            {
-                                buildRanges[i] = current with { To = next.To };
-                                buildRanges.RemoveAt(i + 1);
-                                i--;
-                            }
-                        }
-
-                        var fdtTexSize = new Vector4(
-                            fdtFontHeader.TextureWidth,
-                            fdtFontHeader.TextureHeight,
-                            fdtFontHeader.TextureWidth,
-                            fdtFontHeader.TextureHeight);
-
-                        if (!allTextureIndices.TryGetValue(attr.TexPathFormat, out var textureIndices))
-                        {
-                            allTextureIndices.Add(
-                                attr.TexPathFormat,
-                                textureIndices = ArrayPool<int>.Shared.Rent(texCount));
-                            textureIndices.AsSpan(0, texCount).Fill(-1);
-                        }
-
-                        glyphs.EnsureCapacity(glyphs.Length + buildRanges.Sum(x => (x.To - x.From) + 1));
-                        foreach (var (rangeMin, rangeMax) in buildRanges)
-                        {
-                            var glyphIndex = fdt.FindGlyphIndex(rangeMin);
-                            if (glyphIndex < 0)
-                                glyphIndex = ~glyphIndex;
-                            var endIndex = fdt.FindGlyphIndex(rangeMax);
-                            if (endIndex < 0)
-                                endIndex = ~endIndex - 1;
-                            for (; glyphIndex <= endIndex; glyphIndex++)
-                            {
-                                var fdtg = fdtGlyphs[glyphIndex];
-
-                                // If the glyph already exists in the target font, we do not overwrite.
-                                if (
-                                    !(fdtg.Char == ' ' && this.templatedFonts.Contains(font))
-                                    && font.FindGlyphNoFallback(fdtg.Char).NativePtr is not null)
-                                {
-                                    continue;
-                                }
-
-                                ref var textureIndex = ref textureIndices[fdtg.TextureIndex];
-                                if (textureIndex == -1)
-                                {
-                                    textureIndex = toolkitPostBuild.StoreTexture(
-                                        this.handleManager
-                                            .GameFontTextureProvider
-                                            .NewFontTextureRef(attr.TexPathFormat, fdtg.TextureIndex),
-                                        true);
-                                }
-
-                                var glyph = new ImGuiHelpers.ImFontGlyphReal
-                                {
-                                    AdvanceX = fdtg.AdvanceWidth,
-                                    Codepoint = fdtg.Char,
-                                    Colored = false,
-                                    TextureIndex = textureIndex,
-                                    Visible = true,
-                                    X0 = horizontalOffset,
-                                    Y0 = fdtg.CurrentOffsetY,
-                                    U0 = fdtg.TextureOffsetX,
-                                    V0 = fdtg.TextureOffsetY,
-                                    U1 = fdtg.BoundingWidth,
-                                    V1 = fdtg.BoundingHeight,
-                                };
-
-                                glyph.XY1 = glyph.XY0 + glyph.UV1;
-                                glyph.UV1 += glyph.UV0;
-                                glyph.UV /= fdtTexSize;
-                                glyph.XY *= scale;
-                                glyph.AdvanceX *= scale;
-
-                                glyphs.Add(glyph);
-                            }
-                        }
-
-                        font.NativePtr->FallbackGlyph = null;
-
-                        font.BuildLookupTable();
-                    }
-
-                    foreach (var fallbackCharCandidate in FontAtlasFactory.FallbackCodepoints)
-                    {
-                        var glyph = font.FindGlyphNoFallback(fallbackCharCandidate);
-                        if ((IntPtr)glyph.NativePtr != IntPtr.Zero)
-                        {
-                            var ptr = font.NativePtr;
-                            ptr->FallbackChar = fallbackCharCandidate;
-                            ptr->FallbackGlyph = glyph.NativePtr;
-                            ptr->FallbackHotData =
-                                (ImFontGlyphHotData*)ptr->IndexedHotData.Address<ImGuiHelpers.ImFontGlyphHotDataReal>(
-                                    fallbackCharCandidate);
-                            break;
-                        }
-                    }
-
-                    font.AdjustGlyphMetrics(1 / toolkitPostBuild.Scale, toolkitPostBuild.Scale);
+                    plan.SetFullRangeFontGlyphs(toolkitPostBuild, allTexFiles, allTextureIndices, pixels8Array, widths);
+                    plan.PostProcessFullRangeFont();
+                    plan.CopyGlyphsToRanges();
                 }
                 catch (Exception e)
                 {
                     this.buildExceptions[style] = e;
                     this.fonts[style] = default;
-                }
-            }
-
-            foreach (var (source, targets) in this.fontCopyTargets)
-            {
-                foreach (var target in targets)
-                {
-                    if (target.Ranges is null)
-                    {
-                        ImGuiHelpers.CopyGlyphsAcrossFonts(source, target.Font, missingOnly: true);
-                    }
-                    else
-                    {
-                        for (var i = 0; i < target.Ranges.Length; i += 2)
-                        {
-                            if (target.Ranges[i] == 0)
-                                break;
-                            ImGuiHelpers.CopyGlyphsAcrossFonts(
-                                source,
-                                target.Font,
-                                true,
-                                true,
-                                target.Ranges[i],
-                                target.Ranges[i + 1]);
-                        }
-                    }
                 }
             }
         }
@@ -602,102 +387,400 @@ internal class GamePrebakedFontHandle : IFontHandle.IInternal
         }
 
         /// <summary>
-        /// Creates a relevant <see cref="ImFontPtr"/> for the given <see cref="GameFontStyle"/>.
-        /// </summary>
-        /// <param name="style">The game font style.</param>
-        /// <param name="toolkitPreBuild">The toolkitPostBuild.</param>
-        /// <param name="minRange">Min range.</param>
-        /// <param name="maxRange">Max range.</param>
-        /// <param name="addExtraLanguageGlyphs">Add extra language glyphs.</param>
-        /// <returns>The font.</returns>
-        private ImFontPtr CreateFontPrivate(
-            GameFontStyle style,
-            IFontAtlasBuildToolkitPreBuild toolkitPreBuild,
-            char minRange,
-            char maxRange,
-            bool addExtraLanguageGlyphs)
-        {
-            var font = toolkitPreBuild.IgnoreGlobalScale(this.CreateTemplateFont(style, toolkitPreBuild));
-
-            if (addExtraLanguageGlyphs)
-            {
-                var cfg = toolkitPreBuild.FindConfigPtr(font);
-                toolkitPreBuild.AddExtraGlyphsForDalamudLanguage(new()
-                {
-                    MergeFont = cfg.DstFont,
-                    SizePx = cfg.SizePixels,
-                });
-            }
-
-            var fas = GameFontStyle.GetRecommendedFamilyAndSize(style.Family, style.SizePt * toolkitPreBuild.Scale);
-            var horizontalOffset = fas.GetAttribute<GameFontFamilyAndSizeAttribute>()?.HorizontalOffset ?? 0;
-            using var handle = this.handleManager.GameFontTextureProvider.CreateFdtFileView(fas, out var fdt);
-            ref var fdtFontHeader = ref fdt.FontHeader;
-            var existing = new SortedSet<char>();
-
-            if (style is { Bold: false, Italic: false })
-            {
-                if (!this.lateBuildRanges.TryGetValue(font, out var ranges))
-                    this.lateBuildRanges[font] = ranges = new();
-
-                ranges.Add((minRange, maxRange));
-            }
-            else
-            {
-                if (this.glyphRectIds.TryGetValue(style, out var rectIds))
-                    existing.UnionWith(rectIds.Keys);
-                else
-                    rectIds = this.glyphRectIds[style] = new();
-
-                var glyphs = fdt.Glyphs;
-                for (var fdtGlyphIndex = 0; fdtGlyphIndex < glyphs.Length; fdtGlyphIndex++)
-                {
-                    ref var glyph = ref glyphs[fdtGlyphIndex];
-                    var cint = glyph.CharInt;
-                    if (cint < minRange || cint > maxRange)
-                        continue;
-
-                    var c = (char)cint;
-                    if (existing.Contains(c))
-                        continue;
-
-                    var widthAdjustment = style.CalculateBaseWidthAdjustment(fdtFontHeader, glyph);
-                    rectIds[c] = (
-                                     toolkitPreBuild.NewImAtlas.AddCustomRectFontGlyph(
-                                         font,
-                                         c,
-                                         glyph.BoundingWidth + widthAdjustment,
-                                         glyph.BoundingHeight,
-                                         glyph.AdvanceWidth,
-                                         new(horizontalOffset, glyph.CurrentOffsetY)),
-                                     fdtGlyphIndex);
-                }
-            }
-            
-            var scale = toolkitPreBuild.Scale * (style.SizePt / fdt.FontHeader.Size);
-            foreach (ref var kernPair in fdt.PairAdjustments)
-                font.AddKerningPair(kernPair.Left, kernPair.Right, kernPair.RightOffset * scale);
-
-            return font;
-        }
-
-        /// <summary>
         /// Creates a new template font.
         /// </summary>
-        /// <param name="style">The game font style.</param>
         /// <param name="toolkitPreBuild">The toolkitPostBuild.</param>
+        /// <param name="sizePx">The size of the font.</param>
         /// <returns>The font.</returns>
-        private ImFontPtr CreateTemplateFont(GameFontStyle style, IFontAtlasBuildToolkitPreBuild toolkitPreBuild)
+        private ImFontPtr CreateTemplateFont(IFontAtlasBuildToolkitPreBuild toolkitPreBuild, float sizePx)
         {
             var font = toolkitPreBuild.AddDalamudAssetFont(
                 DalamudAsset.NotoSansJpMedium,
                 new()
                 {
                     GlyphRanges = new ushort[] { ' ', ' ', '\0' },
-                    SizePx = style.SizePx * toolkitPreBuild.Scale,
+                    SizePx = sizePx,
                 });
             this.templatedFonts.Add(font);
             return font;
+        }
+
+        private unsafe void PatchFontMetricsIfNecessary(GameFontStyle style, ImFontPtr font, float atlasScale)
+        {
+            if (!this.templatedFonts.Contains(font))
+                return;
+
+            var fas = style.Scale(atlasScale).FamilyAndSize;
+            using var handle = this.handleManager.GameFontTextureProvider.CreateFdtFileView(fas, out var fdt);
+            ref var fdtFontHeader = ref fdt.FontHeader;
+            var fontPtr = font.NativePtr;
+
+            var scale = style.SizePt / fdtFontHeader.Size;
+            fontPtr->Ascent = fdtFontHeader.Ascent * scale;
+            fontPtr->Descent = fdtFontHeader.Descent * scale;
+            fontPtr->EllipsisChar = '…';
+        }
+    }
+
+    [SuppressMessage(
+        "StyleCop.CSharp.MaintainabilityRules",
+        "SA1401:Fields should be private",
+        Justification = "Internal")]
+    private sealed class FontDrawPlan : IDisposable
+    {
+        public readonly GameFontStyle Style;
+        public readonly GameFontStyle BaseStyle;
+        public readonly GameFontFamilyAndSizeAttribute BaseAttr;
+        public readonly int TexCount;
+        public readonly Dictionary<ImFontPtr, BitArray> Ranges = new();
+        public readonly List<(int RectId, int FdtGlyphIndex)> Rects = new();
+        public readonly ushort[] RectLookup = new ushort[0x10000];
+        public readonly FdtFileView Fdt;
+        public readonly ImFontPtr FullRangeFont;
+
+        private readonly IDisposable fdtHandle;
+        private readonly IGameFontTextureProvider gftp;
+
+        public FontDrawPlan(
+            GameFontStyle style,
+            float scale,
+            IGameFontTextureProvider gameFontTextureProvider,
+            ImFontPtr fullRangeFont)
+        {
+            this.Style = style;
+            this.BaseStyle = style.Scale(scale);
+            this.BaseAttr = this.BaseStyle.FamilyAndSize.GetAttribute<GameFontFamilyAndSizeAttribute>()!;
+            this.gftp = gameFontTextureProvider;
+            this.TexCount = this.gftp.GetFontTextureCount(this.BaseAttr.TexPathFormat);
+            this.fdtHandle = this.gftp.CreateFdtFileView(this.BaseStyle.FamilyAndSize, out this.Fdt);
+            this.RectLookup.AsSpan().Fill(ushort.MaxValue);
+            this.FullRangeFont = fullRangeFont;
+            this.Ranges[fullRangeFont] = new(0x10000);
+        }
+
+        public void Dispose()
+        {
+            this.fdtHandle.Dispose();
+        }
+
+        public void AttachFont(ImFontPtr font, ushort[]? glyphRanges = null)
+        {
+            if (!this.Ranges.TryGetValue(font, out var rangeBitArray))
+                rangeBitArray = this.Ranges[font] = new(0x10000);
+
+            if (glyphRanges is null)
+            {
+                foreach (ref var g in this.Fdt.Glyphs)
+                {
+                    var c = g.CharInt;
+                    if (c is >= 0x20 and <= 0xFFFE)
+                        rangeBitArray[c] = true;
+                }
+
+                return;
+            }
+
+            for (var i = 0; i < glyphRanges.Length - 1; i += 2)
+            {
+                if (glyphRanges[i] == 0)
+                    break;
+                var from = (int)glyphRanges[i];
+                var to = (int)glyphRanges[i + 1];
+                for (var j = from; j <= to; j++)
+                    rangeBitArray[j] = true;
+            }
+        }
+
+        public unsafe void EnsureGlyphs(ImFontAtlasPtr atlas)
+        {
+            var glyphs = this.Fdt.Glyphs;
+            var ranges = this.Ranges[this.FullRangeFont];
+            foreach (var (font, extraRange) in this.Ranges)
+            {
+                if (font.NativePtr != this.FullRangeFont.NativePtr)
+                    ranges.Or(extraRange);
+            }
+
+            if (this.Style is not { Weight: 0, SkewStrength: 0 })
+            {
+                for (var fdtGlyphIndex = 0; fdtGlyphIndex < glyphs.Length; fdtGlyphIndex++)
+                {
+                    ref var glyph = ref glyphs[fdtGlyphIndex];
+                    var cint = glyph.CharInt;
+                    if (cint > char.MaxValue)
+                        continue;
+                    if (!ranges[cint] || this.RectLookup[cint] != ushort.MaxValue)
+                        continue;
+
+                    var widthAdjustment = this.BaseStyle.CalculateBaseWidthAdjustment(this.Fdt.FontHeader, glyph);
+                    this.RectLookup[cint] = (ushort)this.Rects.Count;
+                    this.Rects.Add(
+                        (
+                            atlas.AddCustomRectFontGlyph(
+                                this.FullRangeFont,
+                                (char)cint,
+                                glyph.BoundingWidth + widthAdjustment,
+                                glyph.BoundingHeight,
+                                glyph.AdvanceWidth,
+                                new(this.BaseAttr.HorizontalOffset, glyph.CurrentOffsetY)),
+                            fdtGlyphIndex));
+                }
+            }
+            else
+            {
+                for (var fdtGlyphIndex = 0; fdtGlyphIndex < glyphs.Length; fdtGlyphIndex++)
+                {
+                    ref var glyph = ref glyphs[fdtGlyphIndex];
+                    var cint = glyph.CharInt;
+                    if (cint > char.MaxValue)
+                        continue;
+                    if (!ranges[cint] || this.RectLookup[cint] != ushort.MaxValue)
+                        continue;
+
+                    this.RectLookup[cint] = (ushort)this.Rects.Count;
+                    this.Rects.Add((-1, fdtGlyphIndex));
+                }
+            }
+        }
+
+        public unsafe void PostProcessFullRangeFont()
+        {
+            var scale = this.Style.SizePt / this.Fdt.FontHeader.Size;
+            foreach (ref var g in this.FullRangeFont.GlyphsWrapped().DataSpan)
+            {
+                g.XY *= scale;
+                g.AdvanceX *= scale;
+            }
+
+            var pfrf = this.FullRangeFont.NativePtr;
+            ref var frf = ref *pfrf;
+            pfrf->FallbackGlyph = null;
+            ImGuiNative.ImFont_BuildLookupTable(pfrf);
+
+            foreach (var fallbackCharCandidate in FontAtlasFactory.FallbackCodepoints)
+            {
+                var glyph = ImGuiNative.ImFont_FindGlyphNoFallback(pfrf, fallbackCharCandidate);
+                if ((nint)glyph == IntPtr.Zero)
+                    continue;
+                frf.FallbackChar = fallbackCharCandidate;
+                frf.FallbackGlyph = glyph;
+                frf.FallbackHotData =
+                    (ImFontGlyphHotData*)frf.IndexedHotData.Address<ImGuiHelpers.ImFontGlyphHotDataReal>(
+                        fallbackCharCandidate);
+                break;
+            }
+        }
+
+        public unsafe void CopyGlyphsToRanges()
+        {
+            foreach (var (font, rangeBits) in this.Ranges)
+            {
+                if (font.NativePtr == this.FullRangeFont.NativePtr)
+                    continue;
+
+                var lookup = font.IndexLookupWrapped();
+                var glyphs = font.GlyphsWrapped();
+                foreach (ref var sourceGlyph in this.FullRangeFont.GlyphsWrapped().DataSpan)
+                {
+                    if (!rangeBits[sourceGlyph.Codepoint])
+                        continue;
+
+                    var glyphIndex = ushort.MaxValue;
+                    if (sourceGlyph.Codepoint < lookup.Length)
+                        glyphIndex = lookup[sourceGlyph.Codepoint];
+
+                    if (glyphIndex == ushort.MaxValue)
+                        glyphs.Add(sourceGlyph);
+                    else
+                        glyphs[glyphIndex] = sourceGlyph;
+                }
+
+                font.NativePtr->FallbackGlyph = null;
+                font.BuildLookupTable();
+
+                foreach (var fallbackCharCandidate in FontAtlasFactory.FallbackCodepoints)
+                {
+                    var glyph = font.FindGlyphNoFallback(fallbackCharCandidate).NativePtr;
+                    if ((nint)glyph == IntPtr.Zero)
+                        continue;
+
+                    ref var frf = ref *font.NativePtr;
+                    frf.FallbackChar = fallbackCharCandidate;
+                    frf.FallbackGlyph = glyph;
+                    frf.FallbackHotData =
+                        (ImFontGlyphHotData*)frf.IndexedHotData.Address<ImGuiHelpers.ImFontGlyphHotDataReal>(
+                            fallbackCharCandidate);
+                    break;
+                }
+            }
+        }
+
+        public unsafe void SetFullRangeFontGlyphs(
+            IFontAtlasBuildToolkitPostBuild toolkitPostBuild,
+            Dictionary<string, TexFile[]> allTexFiles,
+            Dictionary<string, int[]> allTextureIndices,
+            byte*[] pixels8Array,
+            int[] widths)
+        {
+            var glyphs = this.FullRangeFont.GlyphsWrapped();
+            var lookups = this.FullRangeFont.IndexLookupWrapped();
+
+            ref var fdtFontHeader = ref this.Fdt.FontHeader;
+            var fdtGlyphs = this.Fdt.Glyphs;
+            var fdtTexSize = new Vector4(
+                this.Fdt.FontHeader.TextureWidth,
+                this.Fdt.FontHeader.TextureHeight,
+                this.Fdt.FontHeader.TextureWidth,
+                this.Fdt.FontHeader.TextureHeight);
+
+            if (!allTexFiles.TryGetValue(this.BaseAttr.TexPathFormat, out var texFiles))
+            {
+                allTexFiles.Add(
+                    this.BaseAttr.TexPathFormat,
+                    texFiles = ArrayPool<TexFile>.Shared.Rent(this.TexCount));
+            }
+
+            if (!allTextureIndices.TryGetValue(this.BaseAttr.TexPathFormat, out var textureIndices))
+            {
+                allTextureIndices.Add(
+                    this.BaseAttr.TexPathFormat,
+                    textureIndices = ArrayPool<int>.Shared.Rent(this.TexCount));
+                textureIndices.AsSpan(0, this.TexCount).Fill(-1);
+            }
+
+            var pixelWidth = Math.Max(1, (int)MathF.Ceiling(this.BaseStyle.Weight + 1));
+            var pixelStrength = stackalloc byte[pixelWidth];
+            for (var i = 0; i < pixelWidth; i++)
+                pixelStrength[i] = (byte)(255 * Math.Min(1f, (this.BaseStyle.Weight + 1) - i));
+
+            var minGlyphY = 0;
+            var maxGlyphY = 0;
+            foreach (ref var g in fdtGlyphs)
+            {
+                minGlyphY = Math.Min(g.CurrentOffsetY, minGlyphY);
+                maxGlyphY = Math.Max(g.BoundingHeight + g.CurrentOffsetY, maxGlyphY);
+            }
+
+            var horzShift = stackalloc int[maxGlyphY - minGlyphY];
+            var horzBlend = stackalloc byte[maxGlyphY - minGlyphY];
+            horzShift -= minGlyphY;
+            horzBlend -= minGlyphY;
+            if (this.BaseStyle.BaseSkewStrength != 0)
+            {
+                for (var i = minGlyphY; i < maxGlyphY; i++)
+                {
+                    float blend = this.BaseStyle.BaseSkewStrength switch
+                    {
+                        > 0 => fdtFontHeader.LineHeight - i,
+                        < 0 => -i,
+                        _ => throw new InvalidOperationException(),
+                    };
+                    blend *= this.BaseStyle.BaseSkewStrength / fdtFontHeader.LineHeight;
+                    horzShift[i] = (int)MathF.Floor(blend);
+                    horzBlend[i] = (byte)(255 * (blend - horzShift[i]));
+                }
+            }
+
+            foreach (var (rectId, fdtGlyphIndex) in this.Rects)
+            {
+                ref var fdtGlyph = ref fdtGlyphs[fdtGlyphIndex];
+                if (rectId == -1)
+                {
+                    ref var textureIndex = ref textureIndices[fdtGlyph.TextureIndex];
+                    if (textureIndex == -1)
+                    {
+                        textureIndex = toolkitPostBuild.StoreTexture(
+                            this.gftp.NewFontTextureRef(this.BaseAttr.TexPathFormat, fdtGlyph.TextureIndex),
+                            true);
+                    }
+
+                    var glyph = new ImGuiHelpers.ImFontGlyphReal
+                    {
+                        AdvanceX = fdtGlyph.AdvanceWidth,
+                        Codepoint = fdtGlyph.Char,
+                        Colored = false,
+                        TextureIndex = textureIndex,
+                        Visible = true,
+                        X0 = this.BaseAttr.HorizontalOffset,
+                        Y0 = fdtGlyph.CurrentOffsetY,
+                        U0 = fdtGlyph.TextureOffsetX,
+                        V0 = fdtGlyph.TextureOffsetY,
+                        U1 = fdtGlyph.BoundingWidth,
+                        V1 = fdtGlyph.BoundingHeight,
+                    };
+
+                    glyph.XY1 = glyph.XY0 + glyph.UV1;
+                    glyph.UV1 += glyph.UV0;
+                    glyph.UV /= fdtTexSize;
+
+                    glyphs.Add(glyph);
+                }
+                else
+                {
+                    ref var rc = ref *(ImGuiHelpers.ImFontAtlasCustomRectReal*)toolkitPostBuild.NewImAtlas
+                                         .GetCustomRectByIndex(rectId)
+                                         .NativePtr;
+                    var widthAdjustment = this.BaseStyle.CalculateBaseWidthAdjustment(fdtFontHeader, fdtGlyph);
+                    
+                    // Glyph is scaled at this point; undo that.
+                    ref var glyph = ref glyphs[lookups[rc.GlyphId]];
+                    glyph.X0 = this.BaseAttr.HorizontalOffset;
+                    glyph.Y0 = fdtGlyph.CurrentOffsetY;
+                    glyph.X1 = glyph.X0 + fdtGlyph.BoundingWidth + widthAdjustment;
+                    glyph.Y1 = glyph.Y0 + fdtGlyph.BoundingHeight;
+                    glyph.AdvanceX = fdtGlyph.AdvanceWidth;
+
+                    var pixels8 = pixels8Array[rc.TextureIndex];
+                    var width = widths[rc.TextureIndex];
+                    texFiles[fdtGlyph.TextureFileIndex] ??=
+                        this.gftp.GetTexFile(this.BaseAttr.TexPathFormat, fdtGlyph.TextureFileIndex);
+                    var sourceBuffer = texFiles[fdtGlyph.TextureFileIndex].ImageData;
+                    var sourceBufferDelta = fdtGlyph.TextureChannelByteIndex;
+                    
+                    for (var y = 0; y < fdtGlyph.BoundingHeight; y++)
+                    {
+                        var sourcePixelIndex =
+                            ((fdtGlyph.TextureOffsetY + y) * fdtFontHeader.TextureWidth) + fdtGlyph.TextureOffsetX;
+                        sourcePixelIndex *= 4;
+                        sourcePixelIndex += sourceBufferDelta;
+                        var blend1 = horzBlend[fdtGlyph.CurrentOffsetY + y];
+                        
+                        var targetOffset = ((rc.Y + y) * width) + rc.X;
+                        for (var x = 0; x < rc.Width; x++)
+                            pixels8[targetOffset + x] = 0;
+                        
+                        targetOffset += horzShift[fdtGlyph.CurrentOffsetY + y];
+                        if (blend1 == 0)
+                        {
+                            for (var x = 0; x < fdtGlyph.BoundingWidth; x++, sourcePixelIndex += 4, targetOffset++)
+                            {
+                                var n = sourceBuffer[sourcePixelIndex + 4];
+                                for (var boldOffset = 0; boldOffset < pixelWidth; boldOffset++)
+                                {
+                                    ref var p = ref pixels8[targetOffset + boldOffset];
+                                    p = Math.Max(p, (byte)((pixelStrength[boldOffset] * n) / 255));
+                                }
+                            }
+                        }
+                        else
+                        {
+                            var blend2 = 255 - blend1;
+                            for (var x = 0; x < fdtGlyph.BoundingWidth; x++, sourcePixelIndex += 4, targetOffset++)
+                            {
+                                var a1 = sourceBuffer[sourcePixelIndex];
+                                var a2 = x == fdtGlyph.BoundingWidth - 1 ? 0 : sourceBuffer[sourcePixelIndex + 4];
+                                var n = (a1 * blend1) + (a2 * blend2);
+
+                                for (var boldOffset = 0; boldOffset < pixelWidth; boldOffset++)
+                                {
+                                    ref var p = ref pixels8[targetOffset + boldOffset];
+                                    p = Math.Max(p, (byte)((pixelStrength[boldOffset] * n) / 255 / 255));
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }

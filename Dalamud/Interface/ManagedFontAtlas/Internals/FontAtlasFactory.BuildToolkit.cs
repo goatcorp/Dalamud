@@ -273,24 +273,21 @@ internal sealed partial class FontAtlasFactory
         /// <inheritdoc/>
         public ImFontPtr AddDalamudDefaultFont(float sizePx, ushort[]? glyphRanges)
         {
+            ImFontPtr font;
+            glyphRanges ??= this.factory.DefaultGlyphRanges;
             if (Service<InterfaceManager>.Get().UseAxis)
             {
-                return this.gameFontHandleSubstance.GetOrCreateFont(
-                    new(GameFontFamily.Axis, sizePx),
-                    this);
+                font = this.AddGameGlyphs(new(GameFontFamily.Axis, sizePx), glyphRanges, default);
+            }
+            else
+            {
+                font = this.AddDalamudAssetFont(
+                    DalamudAsset.NotoSansJpMedium,
+                    new() { SizePx = sizePx, GlyphRanges = glyphRanges });
+                this.AddGameSymbol(new() { SizePx = sizePx, MergeFont = font });
             }
 
-            glyphRanges ??= this.factory.DefaultGlyphRanges;
-
-            var fontConfig = new SafeFontConfig
-            {
-                SizePx = sizePx,
-                GlyphRanges = glyphRanges,
-            };
-
-            var font = this.AddDalamudAssetFont(DalamudAsset.NotoSansJpMedium, fontConfig);
-            this.AddExtraGlyphsForDalamudLanguage(fontConfig with { MergeFont = font });
-            this.AddGameSymbol(fontConfig with { MergeFont = font });
+            this.AttachExtraGlyphsForDalamudLanguage(new() { SizePx = sizePx, MergeFont = font });
             if (this.Font.IsNull())
                 this.Font = font;
             return font;
@@ -315,11 +312,12 @@ internal sealed partial class FontAtlasFactory
                         });
 
                 case DalamudAsset.LodestoneGameSymbol when !this.factory.HasGameSymbolsFontFile:
-                    return this.gameFontHandleSubstance.AttachGameSymbols(
-                        this,
-                        fontConfig.MergeFont,
-                        fontConfig.SizePx,
-                        fontConfig.GlyphRanges);
+                {
+                    return this.AddGameGlyphs(
+                        new(GameFontFamily.Axis, fontConfig.SizePx),
+                        fontConfig.GlyphRanges,
+                        fontConfig.MergeFont);
+                }
 
                 default:
                     return this.factory.AddFont(
@@ -341,20 +339,25 @@ internal sealed partial class FontAtlasFactory
             });
 
         /// <inheritdoc/>
-        public void AddGameSymbol(in SafeFontConfig fontConfig) => this.AddDalamudAssetFont(
-            DalamudAsset.LodestoneGameSymbol,
-            fontConfig with
-            {
-                GlyphRanges = new ushort[]
+        public ImFontPtr AddGameSymbol(in SafeFontConfig fontConfig) =>
+            this.AddDalamudAssetFont(
+                DalamudAsset.LodestoneGameSymbol,
+                fontConfig with
                 {
-                    GamePrebakedFontHandle.SeIconCharMin,
-                    GamePrebakedFontHandle.SeIconCharMax,
-                    0,
-                },
-            });
+                    GlyphRanges = new ushort[]
+                    {
+                        GamePrebakedFontHandle.SeIconCharMin,
+                        GamePrebakedFontHandle.SeIconCharMax,
+                        0,
+                    },
+                });
 
         /// <inheritdoc/>
-        public void AddExtraGlyphsForDalamudLanguage(in SafeFontConfig fontConfig)
+        public ImFontPtr AddGameGlyphs(GameFontStyle gameFontStyle, ushort[]? glyphRanges, ImFontPtr mergeFont) =>
+            this.gameFontHandleSubstance.AttachGameGlyphs(this, mergeFont, gameFontStyle, glyphRanges);
+
+        /// <inheritdoc/>
+        public void AttachExtraGlyphsForDalamudLanguage(in SafeFontConfig fontConfig)
         {
             var dalamudConfiguration = Service<DalamudConfiguration>.Get();
             if (dalamudConfiguration.EffectiveLanguage == "ko")
@@ -377,6 +380,8 @@ internal sealed partial class FontAtlasFactory
         {
             foreach (var substance in this.data.Substances)
                 substance.OnPreBuild(this);
+            foreach (var substance in this.data.Substances)
+                substance.OnPreBuildCleanup(this);
         }
 
         public unsafe void PreBuild()

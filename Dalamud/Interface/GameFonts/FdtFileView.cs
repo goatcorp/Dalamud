@@ -6,7 +6,7 @@ namespace Dalamud.Interface.GameFonts;
 /// <summary>
 /// Reference member view of a .fdt file data.
 /// </summary>
-internal readonly unsafe ref struct FdtFileView
+internal readonly unsafe struct FdtFileView
 {
     private readonly byte* ptr;
 

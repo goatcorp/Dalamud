@@ -271,6 +271,12 @@ internal class DelegateFontHandle : IFontHandle.IInternal
             }
         }
 
+        /// <inheritdoc/>        
+        public void OnPreBuildCleanup(IFontAtlasBuildToolkitPreBuild toolkitPreBuild)
+        {
+            // irrelevant
+        }
+
         /// <inheritdoc/>
         public void OnPostBuild(IFontAtlasBuildToolkitPostBuild toolkitPostBuild)
         {
