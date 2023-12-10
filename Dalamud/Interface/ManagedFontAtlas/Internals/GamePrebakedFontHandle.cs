@@ -204,7 +204,6 @@ internal class GamePrebakedFontHandle : IFontHandle.IInternal
     internal sealed class HandleSubstance : IFontHandleSubstance
     {
         private readonly HandleManager handleManager;
-        private readonly InterfaceManager interfaceManager;
         private readonly HashSet<GameFontStyle> gameFontStyles;
 
         // Owned by this class, but ImFontPtr values still do not belong to this.
@@ -226,7 +225,7 @@ internal class GamePrebakedFontHandle : IFontHandle.IInternal
         public HandleSubstance(HandleManager manager, IEnumerable<GameFontStyle> gameFontStyles)
         {
             this.handleManager = manager;
-            this.interfaceManager = Service<InterfaceManager>.Get();
+            Service<InterfaceManager>.Get();
             this.gameFontStyles = new(gameFontStyles);
         }
 
@@ -351,20 +350,21 @@ internal class GamePrebakedFontHandle : IFontHandle.IInternal
                     var fdtGlyphs = fdt.Glyphs;
                     var fontPtr = font.NativePtr;
 
-                    fontPtr->FontSize = (fdtFontHeader.Size * 4) / 3;
+                    var glyphs = font.GlyphsWrapped();
+                    var scale = toolkitPostBuild.Scale * (style.SizePt / fdtFontHeader.Size);
+
+                    fontPtr->FontSize = toolkitPostBuild.Scale * style.SizePx;
                     if (fontPtr->ConfigData != null)
                         fontPtr->ConfigData->SizePixels = fontPtr->FontSize;
-                    fontPtr->Ascent = fdtFontHeader.Ascent;
-                    fontPtr->Descent = fdtFontHeader.Descent;
+                    fontPtr->Ascent = fdtFontHeader.Ascent * scale;
+                    fontPtr->Descent = fdtFontHeader.Descent * scale;
                     fontPtr->EllipsisChar = '…';
 
                     if (!allTexFiles.TryGetValue(attr.TexPathFormat, out var texFiles))
                         allTexFiles.Add(attr.TexPathFormat, texFiles = ArrayPool<TexFile>.Shared.Rent(texCount));
-
+                    
                     if (this.glyphRectIds.TryGetValue(style, out var rectIdToGlyphs))
                     {
-                        this.glyphRectIds.Remove(style);
-
                         foreach (var (rectId, fdtGlyphIndex) in rectIdToGlyphs.Values)
                         {
                             ref var glyph = ref fdtGlyphs[fdtGlyphIndex];
@@ -442,6 +442,9 @@ internal class GamePrebakedFontHandle : IFontHandle.IInternal
                                     }
                                 }
                             }
+
+                            glyphs[rc->GlyphId].XY *= scale;
+                            glyphs[rc->GlyphId].AdvanceX *= scale;
                         }
                     }
                     else if (this.lateBuildRanges.TryGetValue(font, out var buildRanges))
@@ -480,7 +483,6 @@ internal class GamePrebakedFontHandle : IFontHandle.IInternal
                             textureIndices.AsSpan(0, texCount).Fill(-1);
                         }
 
-                        var glyphs = font.GlyphsWrapped();
                         glyphs.EnsureCapacity(glyphs.Length + buildRanges.Sum(x => (x.To - x.From) + 1));
                         foreach (var (rangeMin, rangeMax) in buildRanges)
                         {
@@ -530,6 +532,8 @@ internal class GamePrebakedFontHandle : IFontHandle.IInternal
                                 glyph.XY1 = glyph.XY0 + glyph.UV1;
                                 glyph.UV1 += glyph.UV0;
                                 glyph.UV /= fdtTexSize;
+                                glyph.XY *= scale;
+                                glyph.AdvanceX *= scale;
 
                                 glyphs.Add(glyph);
                             }
@@ -555,7 +559,7 @@ internal class GamePrebakedFontHandle : IFontHandle.IInternal
                         }
                     }
 
-                    font.AdjustGlyphMetrics(style.SizePt / fdtFontHeader.Size, toolkitPostBuild.Scale);
+                    font.AdjustGlyphMetrics(1 / toolkitPostBuild.Scale, toolkitPostBuild.Scale);
                 }
                 catch (Exception e)
                 {
@@ -616,7 +620,10 @@ internal class GamePrebakedFontHandle : IFontHandle.IInternal
             var font = toolkitPreBuild.IgnoreGlobalScale(this.CreateTemplateFont(style, toolkitPreBuild));
 
             if (addExtraLanguageGlyphs)
-                toolkitPreBuild.AddExtraGlyphsForDalamudLanguage(new() { MergeFont = font });
+            {
+                toolkitPreBuild.AddExtraGlyphsForDalamudLanguage(
+                    new(toolkitPreBuild.FindConfigPtr(font)) { MergeFont = font });
+            }
 
             var fas = GameFontStyle.GetRecommendedFamilyAndSize(style.Family, style.SizePt * toolkitPreBuild.Scale);
             var horizontalOffset = fas.GetAttribute<GameFontFamilyAndSizeAttribute>()?.HorizontalOffset ?? 0;
@@ -662,9 +669,10 @@ internal class GamePrebakedFontHandle : IFontHandle.IInternal
                                      fdtGlyphIndex);
                 }
             }
-
+            
+            var scale = toolkitPreBuild.Scale * (style.SizePt / fdt.FontHeader.Size);
             foreach (ref var kernPair in fdt.PairAdjustments)
-                font.AddKerningPair(kernPair.Left, kernPair.Right, kernPair.RightOffset);
+                font.AddKerningPair(kernPair.Left, kernPair.Right, kernPair.RightOffset * scale);
 
             return font;
         }

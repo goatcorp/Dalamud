@@ -525,6 +525,7 @@ public static class ImGuiHelpers
                     (ushort)Math.Min(x.FirstCodePoint, ushort.MaxValue),
                     (ushort)Math.Min(x.FirstCodePoint + x.Length, ushort.MaxValue),
                 })
+            .Append((ushort)0)
             .ToArray();
 
     /// <summary>

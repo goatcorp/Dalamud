@@ -32,6 +32,17 @@ public struct SafeFontConfig
     }
 
     /// <summary>
+    /// Initializes a new instance of the <see cref="SafeFontConfig"/> struct,
+    /// copying applicable values from an existing instance of <see cref="ImFontConfigPtr"/>.
+    /// </summary>
+    /// <param name="config">Config to copy from.</param>
+    public unsafe SafeFontConfig(ImFontConfigPtr config)
+    {
+        this.Raw = *config.NativePtr;
+        this.Raw.GlyphRanges = null;
+    }
+
+    /// <summary>
     /// Gets or sets the index of font within a TTF/OTF file.
     /// </summary>
     public int FontNo

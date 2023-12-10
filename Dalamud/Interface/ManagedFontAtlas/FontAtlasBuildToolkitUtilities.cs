@@ -1,6 +1,9 @@
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 
 using Dalamud.Interface.Utility;
+
+using ImGuiNET;
 
 namespace Dalamud.Interface.ManagedFontAtlas;
 
@@ -57,6 +60,25 @@ public static class FontAtlasBuildToolkitUtilities
         bool addFallbackCodepoints = true,
         bool addEllipsisCodepoints = true) =>
         @string.AsSpan().ToGlyphRange(addFallbackCodepoints, addEllipsisCodepoints);
+
+    /// <summary>
+    /// Finds the corresponding <see cref="ImFontConfigPtr"/> in
+    /// <see cref="IFontAtlasBuildToolkit.NewImAtlas"/>.<see cref="ImFontAtlasPtr.ConfigData"/> that corresponds to the
+    /// specified font <paramref name="fontPtr"/>.
+    /// </summary>
+    /// <param name="toolkit">The toolkit.</param>
+    /// <param name="fontPtr">The font.</param>
+    /// <returns>The relevant config pointer, or empty config pointer if not found.</returns>
+    public static unsafe ImFontConfigPtr FindConfigPtr(this IFontAtlasBuildToolkit toolkit, ImFontPtr fontPtr)
+    {
+        foreach (ref var c in toolkit.NewImAtlas.ConfigDataWrapped().DataSpan)
+        {
+            if (c.DstFont == fontPtr.NativePtr)
+                return new((nint)Unsafe.AsPointer(ref c));
+        }
+
+        return default;
+    }
 
     /// <summary>
     /// Invokes <paramref name="action"/>
