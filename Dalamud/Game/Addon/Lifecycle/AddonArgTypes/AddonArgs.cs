@@ -1,4 +1,5 @@
 ﻿using Dalamud.Memory;
+
 using FFXIVClientStructs.FFXIV.Component.GUI;
 
 namespace Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
@@ -12,7 +13,7 @@ public abstract unsafe class AddonArgs
     /// Constant string representing the name of an addon that is invalid.
     /// </summary>
     public const string InvalidAddon = "NullAddon";
-    
+
     private string? addonName;
     private IntPtr addon;
 
@@ -26,8 +27,22 @@ public abstract unsafe class AddonArgs
     /// </summary>
     public nint Addon
     {
-        get => this.addon;
-        internal set
+        get => this.AddonInternal;
+        init => this.AddonInternal = value;
+    }
+
+    /// <summary>
+    /// Gets the type of these args.
+    /// </summary>
+    public abstract AddonArgsType Type { get; }
+
+    /// <summary>
+    /// Gets or sets the pointer to the addons AtkUnitBase.
+    /// </summary>
+    internal nint AddonInternal
+    {
+        get => this.Addon;
+        set
         {
             if (this.addon == value)
                 return;
@@ -36,11 +51,6 @@ public abstract unsafe class AddonArgs
             this.addonName = null;
         }
     }
-
-    /// <summary>
-    /// Gets the type of these args.
-    /// </summary>
-    public abstract AddonArgsType Type { get; }
 
     /// <summary>
     /// Checks if addon name matches the given span of char.
@@ -55,7 +65,7 @@ public abstract unsafe class AddonArgs
 
         var addonPointer = (AtkUnitBase*)this.Addon;
         if (addonPointer->Name is null) return false;
-        
+
         return MemoryHelper.EqualsZeroTerminatedString(name, (nint)addonPointer->Name, null, 0x20);
     }
 
