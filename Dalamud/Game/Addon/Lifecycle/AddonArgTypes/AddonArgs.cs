@@ -41,7 +41,7 @@ public abstract unsafe class AddonArgs
     /// </summary>
     internal nint AddonInternal
     {
-        get => this.Addon;
+        get => this.addon;
         set
         {
             if (this.addon == value)
