@@ -18,7 +18,10 @@ internal unsafe class AddonLifecycleReceiveEventListener : IDisposable
 
     // Note: these can be sourced from ObjectPool of appropriate types instead, but since we don't import that NuGet
     // package, and these events are always called from the main thread, this is fine.
+#pragma warning disable CS0618 // Type or member is obsolete
+    // TODO: turn constructors of these internal
     private readonly AddonReceiveEventArgs recyclingReceiveEventArgs = new();
+#pragma warning restore CS0618 // Type or member is obsolete
 
     /// <summary>
     /// Initializes a new instance of the <see cref="AddonLifecycleReceiveEventListener"/> class.
@@ -79,7 +82,7 @@ internal unsafe class AddonLifecycleReceiveEventListener : IDisposable
             return;
         }
 
-        this.recyclingReceiveEventArgs.Addon = (nint)addon;
+        this.recyclingReceiveEventArgs.AddonInternal = (nint)addon;
         this.recyclingReceiveEventArgs.AtkEventType = (byte)eventType;
         this.recyclingReceiveEventArgs.EventParam = eventParam;
         this.recyclingReceiveEventArgs.AtkEvent = (IntPtr)atkEvent;

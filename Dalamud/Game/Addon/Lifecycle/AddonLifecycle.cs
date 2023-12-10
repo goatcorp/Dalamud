@@ -43,12 +43,15 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
 
     // Note: these can be sourced from ObjectPool of appropriate types instead, but since we don't import that NuGet
     // package, and these events are always called from the main thread, this is fine.
+#pragma warning disable CS0618 // Type or member is obsolete
+    // TODO: turn constructors of these internal
     private readonly AddonSetupArgs recyclingSetupArgs = new();
     private readonly AddonFinalizeArgs recyclingFinalizeArgs = new();
     private readonly AddonDrawArgs recyclingDrawArgs = new();
     private readonly AddonUpdateArgs recyclingUpdateArgs = new();
     private readonly AddonRefreshArgs recyclingRefreshArgs = new();
     private readonly AddonRequestedUpdateArgs recyclingRequestedUpdateArgs = new();
+#pragma warning restore CS0618 // Type or member is obsolete
 
     [ServiceManager.ServiceConstructor]
     private AddonLifecycle(TargetSigScanner sigScanner)
@@ -275,7 +278,7 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
             Log.Error(e, "Exception in OnAddonSetup ReceiveEvent Registration.");
         }
 
-        this.recyclingSetupArgs.Addon = (nint)addon;
+        this.recyclingSetupArgs.AddonInternal = (nint)addon;
         this.recyclingSetupArgs.AtkValueCount = valueCount;
         this.recyclingSetupArgs.AtkValues = (nint)values;
         this.InvokeListenersSafely(AddonEvent.PreSetup, this.recyclingSetupArgs);
@@ -306,7 +309,7 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
             Log.Error(e, "Exception in OnAddonFinalize ReceiveEvent Removal.");
         }
 
-        this.recyclingFinalizeArgs.Addon = (nint)atkUnitBase[0];
+        this.recyclingFinalizeArgs.AddonInternal = (nint)atkUnitBase[0];
         this.InvokeListenersSafely(AddonEvent.PreFinalize, this.recyclingFinalizeArgs);
 
         try
@@ -321,7 +324,7 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
 
     private void OnAddonDraw(AtkUnitBase* addon)
     {
-        this.recyclingDrawArgs.Addon = (nint)addon;
+        this.recyclingDrawArgs.AddonInternal = (nint)addon;
         this.InvokeListenersSafely(AddonEvent.PreDraw, this.recyclingDrawArgs);
 
         try
@@ -338,8 +341,8 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
 
     private void OnAddonUpdate(AtkUnitBase* addon, float delta)
     {
-        this.recyclingUpdateArgs.Addon = (nint)addon;
-        this.recyclingUpdateArgs.TimeDelta = delta;
+        this.recyclingUpdateArgs.AddonInternal = (nint)addon;
+        this.recyclingUpdateArgs.TimeDeltaInternal = delta;
         this.InvokeListenersSafely(AddonEvent.PreUpdate, this.recyclingUpdateArgs);
 
         try
@@ -358,7 +361,7 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
     {
         byte result = 0;
 
-        this.recyclingRefreshArgs.Addon = (nint)addon;
+        this.recyclingRefreshArgs.AddonInternal = (nint)addon;
         this.recyclingRefreshArgs.AtkValueCount = valueCount;
         this.recyclingRefreshArgs.AtkValues = (nint)values;
         this.InvokeListenersSafely(AddonEvent.PreRefresh, this.recyclingRefreshArgs);
@@ -380,7 +383,7 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
 
     private void OnRequestedUpdate(AtkUnitBase* addon, NumberArrayData** numberArrayData, StringArrayData** stringArrayData)
     {
-        this.recyclingRequestedUpdateArgs.Addon = (nint)addon;
+        this.recyclingRequestedUpdateArgs.AddonInternal = (nint)addon;
         this.recyclingRequestedUpdateArgs.NumberArrayData = (nint)numberArrayData;
         this.recyclingRequestedUpdateArgs.StringArrayData = (nint)stringArrayData;
         this.InvokeListenersSafely(AddonEvent.PreRequestedUpdate, this.recyclingRequestedUpdateArgs);
