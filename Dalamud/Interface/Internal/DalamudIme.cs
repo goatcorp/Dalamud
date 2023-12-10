@@ -5,8 +5,10 @@ using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.Unicode;
 
 using Dalamud.Game.Text;
+using Dalamud.Interface.GameFonts;
 using Dalamud.Interface.Utility;
 using Dalamud.Logging.Internal;
 
@@ -26,6 +28,26 @@ internal sealed unsafe class DalamudIme : IDisposable, IServiceType
 {
     private static readonly ModuleLog Log = new("IME");
 
+    private static readonly UnicodeRange[] HanRange =
+    {
+        UnicodeRanges.CjkRadicalsSupplement,
+        UnicodeRanges.CjkSymbolsandPunctuation,
+        UnicodeRanges.CjkUnifiedIdeographsExtensionA,
+        UnicodeRanges.CjkUnifiedIdeographs,
+        UnicodeRanges.CjkCompatibilityIdeographs,
+        UnicodeRanges.CjkCompatibilityForms,
+        // No more; Extension B~ are outside BMP range
+    };
+
+    private static readonly UnicodeRange[] HangulRange =
+    {
+        UnicodeRanges.HangulJamo,
+        UnicodeRanges.HangulSyllables,
+        UnicodeRanges.HangulCompatibilityJamo,
+        UnicodeRanges.HangulJamoExtendedA,
+        UnicodeRanges.HangulJamoExtendedB,
+    };
+
     private readonly ImGuiSetPlatformImeDataDelegate setPlatformImeDataDelegate;
 
     [ServiceManager.ServiceConstructor]
@@ -37,6 +59,16 @@ internal sealed unsafe class DalamudIme : IDisposable, IServiceType
     ~DalamudIme() => this.ReleaseUnmanagedResources();
 
     private delegate void ImGuiSetPlatformImeDataDelegate(ImGuiViewportPtr viewport, ImGuiPlatformImeDataPtr data);
+
+    /// <summary>
+    /// Gets a value indicating whether Han(Chinese) input has been detected.
+    /// </summary>
+    public bool EncounteredHan { get; private set; }
+
+    /// <summary>
+    /// Gets a value indicating whether Hangul(Korean) input has been detected.
+    /// </summary>
+    public bool EncounteredHangul { get; private set; }
 
     /// <summary>
     /// Gets a value indicating whether to display the cursor in input text. This also deals with blinking.
@@ -114,6 +146,39 @@ internal sealed unsafe class DalamudIme : IDisposable, IServiceType
     {
         this.ReleaseUnmanagedResources();
         GC.SuppressFinalize(this);
+    }
+
+    /// <summary>
+    /// Looks for the characters inside <paramref name="str"/> and enables fonts accordingly.
+    /// </summary>
+    /// <param name="str">The string.</param>
+    public void ReflectCharacterEncounters(string str)
+    {
+        foreach (var chr in str)
+        {
+            if (HanRange.Any(x => x.FirstCodePoint <= chr && chr < x.FirstCodePoint + x.Length))
+            {
+                if (Service<GameFontManager>.Get()
+                                            .GetFdtReader(GameFontFamilyAndSize.Axis12)
+                                            ?.FindGlyph(chr) is null)
+                {
+                    if (!this.EncounteredHan)
+                    {
+                        this.EncounteredHan = true;
+                        Service<InterfaceManager>.Get().RebuildFonts();
+                    }
+                }
+            }
+
+            if (HangulRange.Any(x => x.FirstCodePoint <= chr && chr < x.FirstCodePoint + x.Length))
+            {
+                if (!this.EncounteredHangul)
+                {
+                    this.EncounteredHangul = true;
+                    Service<InterfaceManager>.Get().RebuildFonts();
+                }
+            }
+        }
     }
 
     /// <summary>
@@ -308,6 +373,8 @@ internal sealed unsafe class DalamudIme : IDisposable, IServiceType
                             ? ImmGetCompositionString(hImc, GCS.GCS_RESULTSTR)
                             : ImmGetCompositionString(hImc, GCS.GCS_COMPSTR);
 
+        this.ReflectCharacterEncounters(newString);
+
         if (s != e)
             textState.DeleteChars(s, e - s);
         textState.InsertChars(s, newString);
@@ -402,6 +469,7 @@ internal sealed unsafe class DalamudIme : IDisposable, IServiceType
                      (int)Math.Min(candlist.dwCount - candlist.dwPageStart, candlist.dwPageSize)))
         {
             this.ImmCand.Add(new((char*)(pStorage + candlist.dwOffset[i])));
+            this.ReflectCharacterEncounters(this.ImmCand[^1]);
         }
     }
 

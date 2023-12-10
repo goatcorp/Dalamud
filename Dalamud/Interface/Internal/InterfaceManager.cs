@@ -6,6 +6,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.Unicode;
 using System.Threading;
 
 using Dalamud.Configuration.Internal;
@@ -787,8 +788,20 @@ internal class InterfaceManager : IDisposable, IServiceType
             if (!File.Exists(fontPathKr))
                 fontPathKr = Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "NotoSansKR-Regular.otf");
             if (!File.Exists(fontPathKr))
+                fontPathKr = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "Fonts", "malgun.ttf");
+            if (!File.Exists(fontPathKr))
                 fontPathKr = null;
             Log.Verbose("[FONT] fontPathKr = {0}", fontPathKr);
+
+            var fontPathChs = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "Fonts", "msyh.ttc");
+            if (!File.Exists(fontPathChs))
+                fontPathChs = null;
+            Log.Verbose("[FONT] fontPathChs = {0}", fontPathChs);
+
+            var fontPathCht = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "Fonts", "msjh.ttc");
+            if (!File.Exists(fontPathCht))
+                fontPathCht = null;
+            Log.Verbose("[FONT] fontPathChs = {0}", fontPathCht);
 
             // Default font
             Log.Verbose("[FONT] SetupFonts - Default font");
@@ -817,12 +830,53 @@ internal class InterfaceManager : IDisposable, IServiceType
                 this.loadedFontInfo[DefaultFont] = fontInfo;
             }
 
-            if (fontPathKr != null && Service<DalamudConfiguration>.Get().EffectiveLanguage == "ko")
+            if (fontPathKr != null
+                && (Service<DalamudConfiguration>.Get().EffectiveLanguage == "ko" || this.dalamudIme.EncounteredHangul))
             {
                 fontConfig.MergeMode = true;
                 fontConfig.GlyphRanges = ioFonts.GetGlyphRangesKorean();
                 fontConfig.PixelSnapH = true;
                 ioFonts.AddFontFromFileTTF(fontPathKr, fontConfig.SizePixels, fontConfig);
+                fontConfig.MergeMode = false;
+            }
+
+            if (fontPathCht != null && Service<DalamudConfiguration>.Get().EffectiveLanguage == "tw")
+            {
+                fontConfig.MergeMode = true;
+                var rangeHandle = GCHandle.Alloc(new ushort[]
+                {
+                    (ushort)UnicodeRanges.CjkUnifiedIdeographs.FirstCodePoint,
+                    (ushort)(UnicodeRanges.CjkUnifiedIdeographs.FirstCodePoint +
+                             (UnicodeRanges.CjkUnifiedIdeographs.Length - 1)),
+                    (ushort)UnicodeRanges.CjkUnifiedIdeographsExtensionA.FirstCodePoint,
+                    (ushort)(UnicodeRanges.CjkUnifiedIdeographsExtensionA.FirstCodePoint +
+                             (UnicodeRanges.CjkUnifiedIdeographsExtensionA.Length - 1)),
+                    0,
+                }, GCHandleType.Pinned);
+                garbageList.Add(rangeHandle);
+                fontConfig.GlyphRanges = rangeHandle.AddrOfPinnedObject();
+                fontConfig.PixelSnapH = true;
+                ioFonts.AddFontFromFileTTF(fontPathCht, fontConfig.SizePixels, fontConfig);
+                fontConfig.MergeMode = false;
+            }
+            else if (fontPathChs != null && (Service<DalamudConfiguration>.Get().EffectiveLanguage == "zh"
+                                               || this.dalamudIme.EncounteredHan))
+            {
+                fontConfig.MergeMode = true;
+                var rangeHandle = GCHandle.Alloc(new ushort[]
+                {
+                    (ushort)UnicodeRanges.CjkUnifiedIdeographs.FirstCodePoint,
+                    (ushort)(UnicodeRanges.CjkUnifiedIdeographs.FirstCodePoint +
+                             (UnicodeRanges.CjkUnifiedIdeographs.Length - 1)),
+                    (ushort)UnicodeRanges.CjkUnifiedIdeographsExtensionA.FirstCodePoint,
+                    (ushort)(UnicodeRanges.CjkUnifiedIdeographsExtensionA.FirstCodePoint +
+                             (UnicodeRanges.CjkUnifiedIdeographsExtensionA.Length - 1)),
+                    0,
+                }, GCHandleType.Pinned);
+                garbageList.Add(rangeHandle);
+                fontConfig.GlyphRanges = rangeHandle.AddrOfPinnedObject();
+                fontConfig.PixelSnapH = true;
+                ioFonts.AddFontFromFileTTF(fontPathChs, fontConfig.SizePixels, fontConfig);
                 fontConfig.MergeMode = false;
             }
 
