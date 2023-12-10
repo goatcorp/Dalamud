@@ -621,8 +621,12 @@ internal class GamePrebakedFontHandle : IFontHandle.IInternal
 
             if (addExtraLanguageGlyphs)
             {
-                toolkitPreBuild.AddExtraGlyphsForDalamudLanguage(
-                    new(toolkitPreBuild.FindConfigPtr(font)) { MergeFont = font });
+                var cfg = toolkitPreBuild.FindConfigPtr(font);
+                toolkitPreBuild.AddExtraGlyphsForDalamudLanguage(new()
+                {
+                    MergeFont = cfg.DstFont,
+                    SizePx = cfg.SizePixels,
+                });
             }
 
             var fas = GameFontStyle.GetRecommendedFamilyAndSize(style.Family, style.SizePt * toolkitPreBuild.Scale);

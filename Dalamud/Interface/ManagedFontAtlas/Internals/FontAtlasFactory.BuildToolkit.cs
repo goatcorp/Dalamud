@@ -398,8 +398,6 @@ internal sealed partial class FontAtlasFactory
                     config.GlyphMinAdvanceX = config.GlyphMinAdvanceX > 0 ? float.MaxValue : -float.MaxValue;
 
                 config.GlyphOffset *= this.Scale;
-
-                config.RasterizerGamma *= 1.4f;
             }
         }
 
@@ -426,9 +424,7 @@ internal sealed partial class FontAtlasFactory
             var scale = this.Scale;
             foreach (ref var font in this.Fonts.DataSpan)
             {
-                if (this.GlobalScaleExclusions.Contains(font))
-                    font.AdjustGlyphMetrics(1f, 1f);  // we still need to round advanceX and kerning
-                else
+                if (!this.GlobalScaleExclusions.Contains(font))
                     font.AdjustGlyphMetrics(1 / scale, scale);
 
                 foreach (var c in FallbackCodepoints)
