@@ -202,7 +202,7 @@ public static class ImGuiHelpers
     /// <param name="round">If a positive number is given, numbers will be rounded to this.</param>
     public static unsafe void AdjustGlyphMetrics(this ImFontPtr fontPtr, float scale, float round = 0f)
     {
-        Func<float, float> rounder = round > 0 ? x => MathF.Round(x * round) / round : x => x;
+        Func<float, float> rounder = round > 0 ? x => MathF.Round(x / round) * round : x => x;
 
         var font = fontPtr.NativePtr;
         font->FontSize = rounder(font->FontSize * scale);

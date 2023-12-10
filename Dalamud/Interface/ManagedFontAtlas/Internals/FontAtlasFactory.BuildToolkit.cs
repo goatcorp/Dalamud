@@ -430,7 +430,7 @@ internal sealed partial class FontAtlasFactory
             foreach (ref var font in this.Fonts.DataSpan)
             {
                 if (!this.GlobalScaleExclusions.Contains(font))
-                    font.AdjustGlyphMetrics(1 / scale, scale);
+                    font.AdjustGlyphMetrics(1 / scale, 1 / scale);
 
                 foreach (var c in FallbackCodepoints)
                 {

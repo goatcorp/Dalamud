@@ -369,8 +369,8 @@ internal class GamePrebakedFontHandle : IFontHandle.IInternal
                         this.PatchFontMetricsIfNecessary(style, font, toolkitPostBuild.Scale);
 
                     plan.SetFullRangeFontGlyphs(toolkitPostBuild, allTexFiles, allTextureIndices, pixels8Array, widths);
-                    plan.PostProcessFullRangeFont();
-                    plan.CopyGlyphsToRanges();
+                    plan.CopyGlyphsToRanges(toolkitPostBuild);
+                    plan.PostProcessFullRangeFont(toolkitPostBuild.Scale);
                 }
                 catch (Exception e)
                 {
@@ -543,17 +543,43 @@ internal class GamePrebakedFontHandle : IFontHandle.IInternal
             }
         }
 
-        public unsafe void PostProcessFullRangeFont()
+        public unsafe void PostProcessFullRangeFont(float atlasScale)
         {
+            var round = 1 / atlasScale;
+            var pfrf = this.FullRangeFont.NativePtr;
+            ref var frf = ref *pfrf;
+
+            frf.FontSize = MathF.Round(frf.FontSize / round) * round;
+            frf.Ascent = MathF.Round(frf.Ascent / round) * round;
+            frf.Descent = MathF.Round(frf.Descent / round) * round;
+
             var scale = this.Style.SizePt / this.Fdt.FontHeader.Size;
             foreach (ref var g in this.FullRangeFont.GlyphsWrapped().DataSpan)
             {
-                g.XY *= scale;
-                g.AdvanceX *= scale;
+                var w = (g.X1 - g.X0) * scale;
+                var h = (g.Y1 - g.Y0) * scale;
+                g.X0 = MathF.Round((g.X0 * scale) / round) * round;
+                g.Y0 = MathF.Round((g.Y0 * scale) / round) * round;
+                g.X1 = g.X0 + w;
+                g.Y1 = g.Y0 + h;
+                g.AdvanceX = MathF.Round((g.AdvanceX * scale) / round) * round;
             }
 
-            var pfrf = this.FullRangeFont.NativePtr;
-            ref var frf = ref *pfrf;
+            var fullRange = this.Ranges[this.FullRangeFont];
+            foreach (ref var k in this.Fdt.PairAdjustments)
+            {
+                var (leftInt, rightInt) = (k.LeftInt, k.RightInt);
+                if (leftInt > char.MaxValue || rightInt > char.MaxValue)
+                    continue;
+                if (!fullRange[leftInt] || !fullRange[rightInt])
+                    continue;
+                ImGuiNative.ImFont_AddKerningPair(
+                    pfrf,
+                    (ushort)leftInt,
+                    (ushort)rightInt,
+                    MathF.Round((k.RightOffset * scale) / round) * round);
+            }
+
             pfrf->FallbackGlyph = null;
             ImGuiNative.ImFont_BuildLookupTable(pfrf);
 
@@ -571,12 +597,18 @@ internal class GamePrebakedFontHandle : IFontHandle.IInternal
             }
         }
 
-        public unsafe void CopyGlyphsToRanges()
+        public unsafe void CopyGlyphsToRanges(IFontAtlasBuildToolkitPostBuild toolkitPostBuild)
         {
+            var scale = this.Style.SizePt / this.Fdt.FontHeader.Size;
+            var atlasScale = toolkitPostBuild.Scale;
+            var round = 1 / atlasScale;
+
             foreach (var (font, rangeBits) in this.Ranges)
             {
                 if (font.NativePtr == this.FullRangeFont.NativePtr)
                     continue;
+
+                var noGlobalScale = toolkitPostBuild.IsGlobalScaleIgnored(font);
 
                 var lookup = font.IndexLookupWrapped();
                 var glyphs = font.GlyphsWrapped();
@@ -590,9 +622,48 @@ internal class GamePrebakedFontHandle : IFontHandle.IInternal
                         glyphIndex = lookup[sourceGlyph.Codepoint];
 
                     if (glyphIndex == ushort.MaxValue)
-                        glyphs.Add(sourceGlyph);
+                    {
+                        glyphIndex = (ushort)glyphs.Length;
+                        glyphs.Add(default);
+                    }
+                    
+                    ref var g = ref glyphs[glyphIndex];
+                    g = sourceGlyph;
+                    if (noGlobalScale)
+                    {
+                        g.XY *= scale;
+                        g.AdvanceX *= scale;
+                    }
                     else
-                        glyphs[glyphIndex] = sourceGlyph;
+                    {
+                        var w = (g.X1 - g.X0) * scale;
+                        var h = (g.Y1 - g.Y0) * scale;
+                        g.X0 = MathF.Round((g.X0 * scale) / round) * round;
+                        g.Y0 = MathF.Round((g.Y0 * scale) / round) * round;
+                        g.X1 = g.X0 + w;
+                        g.Y1 = g.Y0 + h;
+                        g.AdvanceX = MathF.Round((g.AdvanceX * scale) / round) * round;
+                    }
+                }
+
+                foreach (ref var k in this.Fdt.PairAdjustments)
+                {
+                    var (leftInt, rightInt) = (k.LeftInt, k.RightInt);
+                    if (leftInt > char.MaxValue || rightInt > char.MaxValue)
+                        continue;
+                    if (!rangeBits[leftInt] || !rangeBits[rightInt])
+                        continue;
+                    if (noGlobalScale)
+                    {
+                        font.AddKerningPair((ushort)leftInt, (ushort)rightInt, k.RightOffset * scale);
+                    }
+                    else
+                    {
+                        font.AddKerningPair(
+                            (ushort)leftInt,
+                            (ushort)rightInt,
+                            MathF.Round((k.RightOffset * scale) / round) * round);
+                    }
                 }
 
                 font.NativePtr->FallbackGlyph = null;
