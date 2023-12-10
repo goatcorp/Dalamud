@@ -190,16 +190,6 @@ internal class InterfaceManager : IDisposable, IServiceType
     public bool IsDispatchingEvents { get; set; } = true;
 
     /// <summary>
-    /// Gets or sets a value indicating whether to override configuration for UseAxis.
-    /// </summary>
-    public bool? UseAxisOverride { get; set; } = null;
-
-    /// <summary>
-    /// Gets a value indicating whether to use AXIS fonts.
-    /// </summary>
-    public bool UseAxis => this.UseAxisOverride ?? Service<DalamudConfiguration>.Get().UseAxisFontsFromGame;
-
-    /// <summary>
     /// Gets a value indicating the native handle of the game main window.
     /// </summary>
     public IntPtr GameWindowHandle

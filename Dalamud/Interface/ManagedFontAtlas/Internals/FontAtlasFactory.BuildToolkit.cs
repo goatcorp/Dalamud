@@ -114,7 +114,7 @@ internal sealed partial class FontAtlasFactory
             return fontPtr;
         }
 
-        /// <inheritdoc/>
+        /// <inheritdoc cref="IFontAtlasBuildToolkitPreBuild.IsGlobalScaleIgnored"/>
         public bool IsGlobalScaleIgnored(ImFontPtr fontPtr) =>
             this.GlobalScaleExclusions.Contains(fontPtr);
 
@@ -275,7 +275,7 @@ internal sealed partial class FontAtlasFactory
         {
             ImFontPtr font;
             glyphRanges ??= this.factory.DefaultGlyphRanges;
-            if (Service<InterfaceManager>.Get().UseAxis)
+            if (this.factory.UseAxis)
             {
                 font = this.AddGameGlyphs(new(GameFontFamily.Axis, sizePx), glyphRanges, default);
             }
@@ -360,7 +360,8 @@ internal sealed partial class FontAtlasFactory
         public void AttachExtraGlyphsForDalamudLanguage(in SafeFontConfig fontConfig)
         {
             var dalamudConfiguration = Service<DalamudConfiguration>.Get();
-            if (dalamudConfiguration.EffectiveLanguage == "ko")
+            if (dalamudConfiguration.EffectiveLanguage == "ko"
+                || Service<DalamudIme>.GetNullable()?.EncounteredHangul is true)
             {
                 this.AddDalamudAssetFont(
                     DalamudAsset.NotoSansKrRegular,
@@ -373,6 +374,35 @@ internal sealed partial class FontAtlasFactory
                             UnicodeRanges.HangulJamoExtendedA,
                             UnicodeRanges.HangulJamoExtendedB),
                     });
+            }
+
+            var windowsDir = Environment.GetFolderPath(Environment.SpecialFolder.Windows);
+            var fontPathChs = Path.Combine(windowsDir, "Fonts", "msyh.ttc");
+            if (!File.Exists(fontPathChs))
+                fontPathChs = null;
+
+            var fontPathCht = Path.Combine(windowsDir, "Fonts", "msjh.ttc");
+            if (!File.Exists(fontPathCht))
+                fontPathCht = null;
+
+            if (fontPathCht != null && Service<DalamudConfiguration>.Get().EffectiveLanguage == "tw")
+            {
+                this.AddFontFromFile(fontPathCht, fontConfig with
+                {
+                    GlyphRanges = ImGuiHelpers.CreateImGuiRangesFrom(
+                        UnicodeRanges.CjkUnifiedIdeographs,
+                        UnicodeRanges.CjkUnifiedIdeographsExtensionA),
+                });
+            }
+            else if (fontPathChs != null && (Service<DalamudConfiguration>.Get().EffectiveLanguage == "zh"
+                                               || Service<DalamudIme>.GetNullable()?.EncounteredHan is true))
+            {
+                this.AddFontFromFile(fontPathChs, fontConfig with
+                {
+                    GlyphRanges = ImGuiHelpers.CreateImGuiRangesFrom(
+                        UnicodeRanges.CjkUnifiedIdeographs,
+                        UnicodeRanges.CjkUnifiedIdeographsExtensionA),
+                });
             }
         }
 

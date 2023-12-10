@@ -5,6 +5,7 @@ using CheapLoc;
 using Dalamud.Configuration.Internal;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Internal.Windows.Settings.Tabs;
+using Dalamud.Interface.ManagedFontAtlas.Internals;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
@@ -65,11 +66,12 @@ internal class SettingsWindow : Window
     {
         var configuration = Service<DalamudConfiguration>.Get();
         var interfaceManager = Service<InterfaceManager>.Get();
+        var fontAtlasFactory = Service<FontAtlasFactory>.Get();
 
-        var rebuildFont = interfaceManager.UseAxis != configuration.UseAxisFontsFromGame;
+        var rebuildFont = fontAtlasFactory.UseAxis != configuration.UseAxisFontsFromGame;
 
         ImGui.GetIO().FontGlobalScale = configuration.GlobalUiScale;
-        interfaceManager.UseAxisOverride = null;
+        fontAtlasFactory.UseAxisOverride = null;
 
         if (rebuildFont)
             interfaceManager.RebuildFonts();

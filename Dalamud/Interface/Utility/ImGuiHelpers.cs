@@ -548,6 +548,15 @@ public static class ImGuiHelpers
     /// <param name="ptr">The pointer.</param>
     /// <returns>Whether it is empty.</returns>
     public static unsafe bool IsNull(this ImFontAtlasPtr ptr) => ptr.NativePtr == null;
+
+    /// <summary>
+    /// If <paramref name="self"/> is default, then returns <paramref name="other"/>.
+    /// </summary>
+    /// <param name="self">The self.</param>
+    /// <param name="other">The other.</param>
+    /// <returns><paramref name="self"/> if it is not default; otherwise, <paramref name="other"/>.</returns>
+    public static unsafe ImFontPtr OrElse(this ImFontPtr self, ImFontPtr other) =>
+        self.NativePtr is null ? other : self;
     
     /// <summary>
     /// Finds the corresponding ImGui viewport ID for the given window handle.
@@ -568,15 +577,6 @@ public static class ImGuiHelpers
 
         return -1;
     }
-
-    /// <summary>
-    /// If <paramref name="self"/> is default, then returns <paramref name="other"/>.
-    /// </summary>
-    /// <param name="self">The self.</param>
-    /// <param name="other">The other.</param>
-    /// <returns><paramref name="self"/> if it is not default; otherwise, <paramref name="other"/>.</returns>
-    public static unsafe ImFontPtr OrElse(this ImFontPtr self, ImFontPtr other) =>
-        self.NativePtr is null ? other : self;
 
     /// <summary>
     /// Attempts to validate that <paramref name="fontPtr"/> is valid.

@@ -8,6 +8,7 @@ using Dalamud.Configuration.Internal;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Internal.Windows.PluginInstaller;
 using Dalamud.Interface.Internal.Windows.Settings.Widgets;
+using Dalamud.Interface.ManagedFontAtlas.Internals;
 using Dalamud.Interface.Utility;
 using Dalamud.Utility;
 using ImGuiNET;
@@ -41,9 +42,8 @@ public class SettingsTabLook : SettingsTab
             (v, c) => c.UseAxisFontsFromGame = v,
             v =>
             {
-                var im = Service<InterfaceManager>.Get();
-                im.UseAxisOverride = v;
-                im.RebuildFonts();
+                Service<FontAtlasFactory>.Get().UseAxisOverride = v;
+                Service<InterfaceManager>.Get().RebuildFonts();
             }),
 
         new GapSettingsEntry(5, true),
