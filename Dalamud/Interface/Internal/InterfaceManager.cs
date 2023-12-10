@@ -699,35 +699,38 @@ internal class InterfaceManager : IDisposable, IServiceType
     {
         this.dalamudAtlas = fontAtlasFactory
             .CreateFontAtlas(nameof(InterfaceManager), FontAtlasAutoRebuildMode.Disable);
-        this.defaultFontHandle = (IFontHandle.IInternal)this.dalamudAtlas.NewDelegateFontHandle(
-            e => e.OnPreBuild(tk => tk.AddDalamudDefaultFont(DefaultFontSizePx)));
-        this.iconFontHandle = (IFontHandle.IInternal)this.dalamudAtlas.NewDelegateFontHandle(
-            e => e.OnPreBuild(
-                tk => tk.AddFontAwesomeIconFont(
-                    new()
-                    {
-                        SizePx = DefaultFontSizePx,
-                        GlyphMinAdvanceX = DefaultFontSizePx,
-                        GlyphMaxAdvanceX = DefaultFontSizePx,
-                    })));
-        this.monoFontHandle = (IFontHandle.IInternal)this.dalamudAtlas.NewDelegateFontHandle(
-            e => e.OnPreBuild(
-                tk => tk.AddDalamudAssetFont(
-                    DalamudAsset.InconsolataRegular,
-                    new() { SizePx = DefaultFontSizePx })));
-        this.dalamudAtlas.BuildStepChange += e => e.OnPostPromotion(
-            tk =>
-            {
-                // Note: the first call of this function is done outside the main thread; this is expected.
-                // Do not use DefaultFont, IconFont, and MonoFont.
-                // Use font handles directly.
+        using (this.dalamudAtlas.SuppressAutoRebuild())
+        {
+            this.defaultFontHandle = (IFontHandle.IInternal)this.dalamudAtlas.NewDelegateFontHandle(
+                e => e.OnPreBuild(tk => tk.AddDalamudDefaultFont(DefaultFontSizePx)));
+            this.iconFontHandle = (IFontHandle.IInternal)this.dalamudAtlas.NewDelegateFontHandle(
+                e => e.OnPreBuild(
+                    tk => tk.AddFontAwesomeIconFont(
+                        new()
+                        {
+                            SizePx = DefaultFontSizePx,
+                            GlyphMinAdvanceX = DefaultFontSizePx,
+                            GlyphMaxAdvanceX = DefaultFontSizePx,
+                        })));
+            this.monoFontHandle = (IFontHandle.IInternal)this.dalamudAtlas.NewDelegateFontHandle(
+                e => e.OnPreBuild(
+                    tk => tk.AddDalamudAssetFont(
+                        DalamudAsset.InconsolataRegular,
+                        new() { SizePx = DefaultFontSizePx })));
+            this.dalamudAtlas.BuildStepChange += e => e.OnPostPromotion(
+                tk =>
+                {
+                    // Note: the first call of this function is done outside the main thread; this is expected.
+                    // Do not use DefaultFont, IconFont, and MonoFont.
+                    // Use font handles directly.
 
-                // Fill missing glyphs in MonoFont from DefaultFont
-                tk.CopyGlyphsAcrossFonts(this.defaultFontHandle.ImFont, this.monoFontHandle.ImFont, true);
+                    // Fill missing glyphs in MonoFont from DefaultFont
+                    tk.CopyGlyphsAcrossFonts(this.defaultFontHandle.ImFont, this.monoFontHandle.ImFont, true);
 
-                // Broadcast to auto-rebuilding instances
-                this.AfterBuildFonts?.Invoke();
-            });
+                    // Broadcast to auto-rebuilding instances
+                    this.AfterBuildFonts?.Invoke();
+                });
+        }
 
         // This will wait for scene on its own. We just wait for this.dalamudAtlas.BuildTask in this.InitScene.
         _ = this.dalamudAtlas.BuildFontsAsync(false);

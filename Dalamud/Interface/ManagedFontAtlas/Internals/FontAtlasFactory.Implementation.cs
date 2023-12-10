@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Reactive.Disposables;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -203,6 +204,9 @@ internal sealed partial class FontAtlasFactory
         private Task<FontAtlasBuiltData> buildTask = EmptyTask;
         private FontAtlasBuiltData builtData;
 
+        private int buildSuppressionCounter;
+        private bool buildSuppressionSuppressed;
+
         private int buildIndex;
         private bool buildQueued;
         private bool disposed = false;
@@ -357,20 +361,24 @@ internal sealed partial class FontAtlasFactory
         }
 
         /// <inheritdoc/>
+        public IDisposable SuppressAutoRebuild()
+        {
+            this.buildSuppressionCounter++;
+            return Disposable.Create(
+                () =>
+                {
+                    this.buildSuppressionCounter--;
+                    if (this.buildSuppressionSuppressed)
+                        this.OnRebuildRecommend();
+                });
+        }
+
+        /// <inheritdoc/>
         public IFontHandle NewGameFontHandle(GameFontStyle style) => this.gameFontHandleManager.NewFontHandle(style);
 
         /// <inheritdoc/>
         public IFontHandle NewDelegateFontHandle(FontAtlasBuildStepDelegate buildStepDelegate) =>
             this.delegateFontHandleManager.NewFontHandle(buildStepDelegate);
-
-        /// <inheritdoc/>
-        public void FreeFontHandle(IFontHandle handle)
-        {
-            foreach (var manager in this.fontHandleManagers)
-            {
-                manager.FreeFontHandle(handle);
-            }
-        }
 
         /// <inheritdoc/>
         public void BuildFontsOnNextFrame()
@@ -688,6 +696,13 @@ internal sealed partial class FontAtlasFactory
             if (this.disposed)
                 return;
 
+            if (this.buildSuppressionCounter > 0)
+            {
+                this.buildSuppressionSuppressed = true;
+                return;
+            }
+
+            this.buildSuppressionSuppressed = false;
             this.factory.Framework.RunOnFrameworkThread(
                 () =>
                 {

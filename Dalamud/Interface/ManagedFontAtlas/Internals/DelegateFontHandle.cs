@@ -88,11 +88,7 @@ internal class DelegateFontHandle : IFontHandle.IInternal
             }
         }
 
-        /// <summary>
-        /// Creates a new IFontHandle using your own callbacks.
-        /// </summary>
-        /// <param name="buildStepDelegate">Callback for <see cref="IFontAtlas.BuildStepChange"/>.</param>
-        /// <returns>Handle to a font that may or may not be ready yet.</returns>
+        /// <inheritdoc cref="IFontAtlas.NewDelegateFontHandle"/>
         public IFontHandle NewFontHandle(FontAtlasBuildStepDelegate buildStepDelegate)
         {
             var key = new DelegateFontHandle(this, buildStepDelegate);

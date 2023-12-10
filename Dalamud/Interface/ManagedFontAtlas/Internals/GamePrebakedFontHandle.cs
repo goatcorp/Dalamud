@@ -157,11 +157,7 @@ internal class GamePrebakedFontHandle : IFontHandle.IInternal
             this.Substance = null;
         }
 
-        /// <summary>
-        /// Creates a new <see cref="IFontHandle"/> from game's built-in fonts.
-        /// </summary>
-        /// <param name="style">Font to use.</param>
-        /// <returns>Handle to a font that may or may not be ready yet.</returns>
+        /// <inheritdoc cref="IFontAtlas.NewGameFontHandle"/>
         public IFontHandle NewFontHandle(GameFontStyle style)
         {
             var handle = new GamePrebakedFontHandle(this, style);

@@ -37,7 +37,6 @@ public sealed class UiBuilder : IDisposable
     private readonly DalamudConfiguration configuration = Service<DalamudConfiguration>.Get();
 
     private readonly DisposeSafety.ScopedFinalizer scopedFinalizer = new();
-    private readonly IFontAtlas privateAtlas;
 
     private bool hasErrorWindow = false;
     private bool lastFrameUiHideState = false;
@@ -61,14 +60,14 @@ public sealed class UiBuilder : IDisposable
             this.interfaceManager.ResizeBuffers += this.OnResizeBuffers;
             this.scopedFinalizer.Add(() => this.interfaceManager.ResizeBuffers -= this.OnResizeBuffers);
 
-            this.privateAtlas =
+            this.FontAtlas =
                 this.scopedFinalizer
                     .Add(
                         Service<FontAtlasFactory>
                             .Get()
                             .CreateFontAtlas(namespaceName, FontAtlasAutoRebuildMode.Disable));
-            this.privateAtlas.BuildStepChange += this.PrivateAtlasOnBuildStepChange;
-            this.privateAtlas.RebuildRecommend += this.RebuildFonts;
+            this.FontAtlas.BuildStepChange += this.PrivateAtlasOnBuildStepChange;
+            this.FontAtlas.RebuildRecommend += this.RebuildFonts;
         }
         catch
         {
@@ -104,7 +103,7 @@ public sealed class UiBuilder : IDisposable
     /// (at any time), so you should both reload your custom fonts and restore those
     /// pointers inside this handler.
     /// </summary>
-    [Obsolete($"Use {nameof(NewDelegateFontHandle)} instead.", false)]
+    [Obsolete($"Use {nameof(this.FontAtlas)} instead.", false)]
     public event Action? BuildFonts;
 
     /// <summary>
@@ -113,7 +112,7 @@ public sealed class UiBuilder : IDisposable
     /// (at any time), so you should both reload your custom fonts and restore those
     /// pointers inside this handler.
     /// </summary>
-    [Obsolete($"Use {nameof(NewDelegateFontHandle)} instead.", false)]
+    [Obsolete($"Use {nameof(this.FontAtlas)} instead.", false)]
     public event Action? AfterBuildFonts;
 
     /// <summary>
@@ -145,7 +144,7 @@ public sealed class UiBuilder : IDisposable
     /// <remarks>
     /// A font handle corresponding to this font can be obtained with:
     /// <code>
-    /// uiBuilderOrFontAtlas.NewDelegateFontHandle(
+    /// fontAtlas.NewDelegateFontHandle(
     ///     e => e.OnPreBuild(
     ///         tk => tk.AddDalamudDefaultFont(UiBuilder.DefaultFontSizePt)));
     /// </code>
@@ -159,7 +158,7 @@ public sealed class UiBuilder : IDisposable
     /// <remarks>
     /// A font handle corresponding to this font can be obtained with:
     /// <code>
-    /// uiBuilderOrFontAtlas.NewDelegateFontHandle(
+    /// fontAtlas.NewDelegateFontHandle(
     ///     e => e.OnPreBuild(
     ///         tk => tk.AddFontAwesomeIconFont(new() { SizePt = UiBuilder.DefaultFontSizePt })));
     /// </code>
@@ -173,7 +172,7 @@ public sealed class UiBuilder : IDisposable
     /// <remarks>
     /// A font handle corresponding to this font can be obtained with:
     /// <code>
-    /// uiBuilderOrFontAtlas.NewDelegateFontHandle(
+    /// fontAtlas.NewDelegateFontHandle(
     ///     e => e.OnPreBuild(
     ///         tk => tk.AddDalamudAssetFont(
     ///             DalamudAsset.InconsolataRegular,
@@ -250,6 +249,11 @@ public sealed class UiBuilder : IDisposable
     /// Gets a value indicating whether UI functions can be used.
     /// </summary>
     public bool UiPrepared => Service<InterfaceManager.InterfaceManagerWithScene>.GetNullable() != null;
+
+    /// <summary>
+    /// Gets the plugin-private font atlas.
+    /// </summary>
+    public IFontAtlas FontAtlas { get; }
 
     /// <summary>
     /// Gets or sets a value indicating whether statistics about UI draw time should be collected.
@@ -418,39 +422,10 @@ public sealed class UiBuilder : IDisposable
     /// </summary>
     /// <param name="style">Font to get.</param>
     /// <returns>Handle to the game font which may or may not be available for use yet.</returns>
-    [Obsolete($"Use {nameof(NewGameFontHandle)} instead.", false)]
+    [Obsolete($"Use {nameof(this.FontAtlas)}.{nameof(IFontAtlas.NewGameFontHandle)} instead.", false)]
     public GameFontHandle GetGameFontHandle(GameFontStyle style) => new(
-        (IFontHandle.IInternal)this.NewGameFontHandle(style),
+        (IFontHandle.IInternal)this.FontAtlas.NewGameFontHandle(style),
         Service<FontAtlasFactory>.Get());
-
-    /// <inheritdoc cref="IFontAtlas.NewGameFontHandle"/>
-    public IFontHandle NewGameFontHandle(GameFontStyle style) => this.privateAtlas.NewGameFontHandle(style);
-
-    /// <inheritdoc cref="IFontAtlas.NewDelegateFontHandle"/>
-    /// <example>
-    /// <b>On initialization</b>:
-    /// <code>
-    /// this.fontHandle = uiBuilder.NewDelegateFontHandle(e => e.OnPreBuild(tk => {
-    ///     var config = new SafeFontConfig { SizePx = 16 };
-    ///     config.MergeFont = tk.AddFontFromFile(@"C:\Windows\Fonts\comic.ttf", config);
-    ///     tk.AddGameSymbol(config);
-    ///     tk.AddExtraGlyphsForDalamudLanguage(config);
-    ///     // optionally do the following if you have to add more than one font here,
-    ///     // to specify which font added during this delegate is the final font to use.
-    ///     tk.Font = config.MergeFont;
-    /// }));
-    /// // or
-    /// this.fontHandle = uiBuilder.NewDelegateFontHandle(e =&gt; e.OnPreBuild(tk =&gt; tk.AddDalamudDefaultFont(36)));
-    /// </code>
-    /// <br />
-    /// <b>On use</b>:
-    /// <code>
-    /// using (this.fontHandle.Push())
-    ///     ImGui.TextUnformatted("Example");
-    /// </code>
-    /// </example>
-    public IFontHandle NewDelegateFontHandle(FontAtlasBuildStepDelegate buildStepDelegate) =>
-        this.privateAtlas.NewDelegateFontHandle(buildStepDelegate);
 
     /// <summary>
     /// Call this to queue a rebuild of the font atlas.<br/>
@@ -461,9 +436,9 @@ public sealed class UiBuilder : IDisposable
     {
         Log.Verbose("[FONT] {0} plugin is initiating FONT REBUILD", this.namespaceName);
         if (this.AfterBuildFonts is null && this.BuildFonts is null)
-            this.privateAtlas.BuildFontsAsync();
+            this.FontAtlas.BuildFontsAsync();
         else
-            this.privateAtlas.BuildFontsOnNextFrame();
+            this.FontAtlas.BuildFontsOnNextFrame();
     }
 
     /// <summary>
@@ -579,7 +554,7 @@ public sealed class UiBuilder : IDisposable
         }
 
         // just in case, if something goes wrong, prevent drawing; otherwise it probably will crash.
-        if (!this.privateAtlas.BuildTask.IsCompletedSuccessfully
+        if (!this.FontAtlas.BuildTask.IsCompletedSuccessfully
             && (this.BuildFonts is not null || this.AfterBuildFonts is not null))
         {
             return;
