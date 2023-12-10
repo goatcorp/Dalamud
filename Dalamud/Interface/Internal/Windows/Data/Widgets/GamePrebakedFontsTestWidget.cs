@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Text;
 
 using Dalamud.Interface.GameFonts;
 using Dalamud.Interface.ManagedFontAtlas;
@@ -24,6 +25,7 @@ internal class GamePrebakedFontsTestWidget : IDataWindowWidget, IDisposable
     private bool useWordWrap;
     private bool useItalic;
     private bool useBold;
+    private bool useMinimumBuild;
 
     /// <inheritdoc/>
     public string[]? CommandShortcuts { get; init; }
@@ -80,6 +82,17 @@ internal class GamePrebakedFontsTestWidget : IDataWindowWidget, IDisposable
                 this.ClearAtlas();
             }
         }
+        
+        ImGui.SameLine();
+        fixed (byte* labelPtr = "Minimum Range"u8)
+        {
+            var v = (byte)(this.useMinimumBuild ? 1 : 0);
+            if (ImGuiNative.igCheckbox(labelPtr, &v) != 0)
+            {
+                this.useMinimumBuild = v != 0;
+                this.ClearAtlas();
+            }
+        }
 
         ImGui.SameLine();
         if (ImGui.Button("Reset Text") || this.testStringBuffer.IsDisposed)
@@ -89,21 +102,6 @@ internal class GamePrebakedFontsTestWidget : IDataWindowWidget, IDisposable
                 "(Game)-[Font] {Test}. 0123456789!! <氣気气きキ기>。"u8,
                 minCapacity: 1024);
         }
-
-        this.privateAtlas ??=
-            Service<FontAtlasFactory>.Get().CreateFontAtlas(
-                nameof(GamePrebakedFontsTestWidget),
-                FontAtlasAutoRebuildMode.Async,
-                this.useGlobalScale);
-        this.fontHandles ??=
-            Enum.GetValues<GameFontFamilyAndSize>()
-                .Where(x => x.GetAttribute<GameFontFamilyAndSizeAttribute>() is not null)
-                .Select(x => new GameFontStyle(x) { Italic = this.useItalic, Bold = this.useBold })
-                .GroupBy(x => x.Family)
-                .ToImmutableDictionary(
-                    x => x.Key,
-                    x => x.Select(y => (y, new Lazy<IFontHandle>(() => this.privateAtlas.NewGameFontHandle(y))))
-                          .ToArray());
 
         fixed (byte* labelPtr = "Test Input"u8)
         {
@@ -124,8 +122,37 @@ internal class GamePrebakedFontsTestWidget : IDataWindowWidget, IDisposable
                     this.testStringBuffer.LengthUnsafe = len;
                     this.testStringBuffer.StorageSpan[len] = default;
                 }
+
+                if (this.useMinimumBuild)
+                    _ = this.privateAtlas?.BuildFontsAsync();
             }
         }
+
+        this.privateAtlas ??=
+            Service<FontAtlasFactory>.Get().CreateFontAtlas(
+                nameof(GamePrebakedFontsTestWidget),
+                FontAtlasAutoRebuildMode.Async,
+                this.useGlobalScale);
+        this.fontHandles ??=
+            Enum.GetValues<GameFontFamilyAndSize>()
+                .Where(x => x.GetAttribute<GameFontFamilyAndSizeAttribute>() is not null)
+                .Select(x => new GameFontStyle(x) { Italic = this.useItalic, Bold = this.useBold })
+                .GroupBy(x => x.Family)
+                .ToImmutableDictionary(
+                    x => x.Key,
+                    x => x.Select(
+                              y => (y, new Lazy<IFontHandle>(
+                                           () => this.useMinimumBuild
+                                                     ? this.privateAtlas.NewDelegateFontHandle(
+                                                         e =>
+                                                             e.OnPreBuild(
+                                                                 tk => tk.AddGameGlyphs(
+                                                                     y,
+                                                                     Encoding.UTF8.GetString(
+                                                                         this.testStringBuffer.DataSpan).ToGlyphRange(),
+                                                                     default)))
+                                                     : this.privateAtlas.NewGameFontHandle(y))))
+                          .ToArray());
 
         var offsetX = ImGui.CalcTextSize("99.9pt").X + (ImGui.GetStyle().FramePadding.X * 2);
         foreach (var (family, items) in this.fontHandles)
