@@ -12,6 +12,8 @@ using TerraFX.Interop;
 using TerraFX.Interop.DirectX;
 using TerraFX.Interop.Windows;
 
+using static TerraFX.Interop.Windows.Windows;
+
 namespace Dalamud.ImGuiScene.Implementations;
 
 /// <summary>
@@ -78,7 +80,7 @@ internal unsafe partial class Dx11Renderer
         [UnmanagedCallersOnly]
         private static void OnRenderWindow(ImGuiViewportPtr viewport, nint v) =>
             ViewportData.AttachFromAddress(viewport.RendererUserData)
-                        .Draw(viewport.DrawData, (viewport.Flags & ImGuiViewportFlags.NoRendererClear) == 0);
+                        .Draw(viewport.DrawData, true);
 
         [UnmanagedCallersOnly]
         private static void OnSwapBuffers(ImGuiViewportPtr viewport, nint v) =>
@@ -92,7 +94,14 @@ internal unsafe partial class Dx11Renderer
             var hWnd = viewport.PlatformHandleRaw;
             if (hWnd == 0)
                 hWnd = viewport.PlatformHandle;
-            viewport.RendererUserData = ViewportData.Create(this.renderer, (HWND)hWnd).AsHandle();
+            try
+            {
+                viewport.RendererUserData = ViewportData.CreateDComposition(this.renderer, (HWND)hWnd).AsHandle();
+            }
+            catch
+            {
+                viewport.RendererUserData = ViewportData.Create(this.renderer, (HWND)hWnd).AsHandle();
+            }
         }
     }
 
@@ -106,6 +115,8 @@ internal unsafe partial class Dx11Renderer
         private ComPtr<IDXGISwapChain> swapChain;
         private ComPtr<ID3D11Texture2D> renderTarget;
         private ComPtr<ID3D11RenderTargetView> renderTargetView;
+        private ComPtr<IDCompositionVisual> dcompVisual;
+        private ComPtr<IDCompositionTarget> dcompTarget;
 
         private int width;
         private int height;
@@ -114,12 +125,18 @@ internal unsafe partial class Dx11Renderer
             Dx11Renderer parent,
             IDXGISwapChain* swapChain,
             int width,
-            int height)
+            int height,
+            IDCompositionVisual* dcompVisual,
+            IDCompositionTarget* dcompTarget)
         {
             this.parent = parent;
             this.swapChain = new(swapChain);
             this.width = width;
             this.height = height;
+            if (dcompVisual is not null)
+                this.dcompVisual = new(dcompVisual);
+            if (dcompTarget is not null)
+                this.dcompTarget = new(dcompTarget);
         }
 
         public static Guid* NativeGuid => (Guid*)Unsafe.AsPointer(ref Unsafe.AsRef(in MyGuid));
@@ -130,11 +147,82 @@ internal unsafe partial class Dx11Renderer
 
         private DXGI_FORMAT RtvFormat => this.parent.rtvFormat;
 
-        public static ViewportData Create(Dx11Renderer renderer, IDXGISwapChain* swapChain)
+        public static ViewportData Create(
+            Dx11Renderer renderer,
+            IDXGISwapChain* swapChain,
+            IDCompositionVisual* dcompVisual,
+            IDCompositionTarget* dcompTarget)
         {
             DXGI_SWAP_CHAIN_DESC desc;
             swapChain->GetDesc(&desc).ThrowHr();
-            return new(renderer, swapChain, (int)desc.BufferDesc.Width, (int)desc.BufferDesc.Height);
+            return new(
+                renderer,
+                swapChain,
+                (int)desc.BufferDesc.Width,
+                (int)desc.BufferDesc.Height,
+                dcompVisual,
+                dcompTarget);
+        }
+
+        public static ViewportData CreateDComposition(Dx11Renderer renderer, HWND hWnd)
+        {
+            if (renderer.dcompDevice.IsEmpty())
+                throw new NotSupportedException();
+
+            var mvsd = default(DXGI_SWAP_CHAIN_DESC);
+            renderer.mainViewport.SwapChain->GetDesc(&mvsd).ThrowHr();
+
+            using var dxgiFactory = default(ComPtr<IDXGIFactory4>);
+            fixed (Guid* piidFactory = &IID.IID_IDXGIFactory4)
+            {
+#if DEBUG
+                DirectX.CreateDXGIFactory2(
+                    DXGI.DXGI_CREATE_FACTORY_DEBUG,
+                    piidFactory,
+                    (void**)dxgiFactory.GetAddressOf()).ThrowHr();
+#else
+                DirectX.CreateDXGIFactory1(piidFactory, (void**)dxgiFactory.GetAddressOf()).ThrowHr();
+#endif
+            }
+
+            RECT rc;
+            if (!GetWindowRect(hWnd, &rc) || rc.right == rc.left || rc.bottom == rc.top)
+                rc = new(0, 0, 4, 4);
+
+            using var swapChain1 = default(ComPtr<IDXGISwapChain1>);
+            var sd1 = new DXGI_SWAP_CHAIN_DESC1
+            {
+                Width = (uint)(rc.right - rc.left),
+                Height = (uint)(rc.bottom - rc.top),
+                Format = renderer.rtvFormat,
+                Stereo = false,
+                SampleDesc = new(1, 0),
+                BufferUsage = DXGI.DXGI_USAGE_RENDER_TARGET_OUTPUT,
+                BufferCount = Math.Max(2u, mvsd.BufferCount),
+                Scaling = DXGI_SCALING.DXGI_SCALING_STRETCH,
+                SwapEffect = DXGI_SWAP_EFFECT.DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL,
+                AlphaMode = DXGI_ALPHA_MODE.DXGI_ALPHA_MODE_PREMULTIPLIED,
+                Flags = 0,
+            };
+            dxgiFactory.Get()->CreateSwapChainForComposition(
+                (IUnknown*)renderer.device.Get(),
+                &sd1,
+                null,
+                swapChain1.GetAddressOf()).ThrowHr();
+
+            using var dcTarget = default(ComPtr<IDCompositionTarget>);
+            renderer.dcompDevice.Get()->CreateTargetForHwnd(hWnd, BOOL.TRUE, dcTarget.GetAddressOf());
+
+            using var dcVisual = default(ComPtr<IDCompositionVisual>);
+            renderer.dcompDevice.Get()->CreateVisual(dcVisual.GetAddressOf()).ThrowHr();
+
+            dcVisual.Get()->SetContent((IUnknown*)swapChain1.Get()).ThrowHr();
+            dcTarget.Get()->SetRoot(dcVisual).ThrowHr();
+            renderer.dcompDevice.Get()->Commit().ThrowHr();
+            
+            using var swapChain = default(ComPtr<IDXGISwapChain>);
+            swapChain1.As(&swapChain).ThrowHr();
+            return Create(renderer, swapChain, dcVisual, dcTarget);
         }
 
         public static ViewportData Create(Dx11Renderer renderer, HWND hWnd)
@@ -170,7 +258,7 @@ internal unsafe partial class Dx11Renderer
             dxgiFactory.Get()->CreateSwapChain((IUnknown*)renderer.device.Get(), &desc, swapChain.GetAddressOf())
                 .ThrowHr();
 
-            return Create(renderer, swapChain);
+            return Create(renderer, swapChain, null, null);
         }
 
         public void Draw(ImDrawDataPtr drawData, bool clearRenderTarget)
@@ -221,9 +309,10 @@ internal unsafe partial class Dx11Renderer
 
         protected override void FinalRelease()
         {
+            this.ResetBuffers();
+            this.dcompVisual.Reset();
+            this.dcompTarget.Reset();
             this.swapChain.Reset();
-            this.renderTarget.Reset();
-            this.renderTargetView.Reset();
         }
 
         private void EnsureRenderTarget()
@@ -231,8 +320,7 @@ internal unsafe partial class Dx11Renderer
             if (!this.renderTarget.IsEmpty() && !this.renderTargetView.IsEmpty())
                 return;
 
-            this.renderTarget.Reset();
-            this.renderTargetView.Reset();
+            this.ResetBuffers();
 
             fixed (ID3D11Texture2D** pprt = &this.renderTarget.GetPinnableReference())
             fixed (ID3D11RenderTargetView** pprtv = &this.renderTargetView.GetPinnableReference())
@@ -258,7 +346,7 @@ internal unsafe partial class Dx11Renderer
                 {
                     fixed (Guid* piid = &IID.IID_ID3D11Texture2D)
                     {
-                        this.swapChain.Get()->GetBuffer(0, piid, (void**)pprt)
+                        this.swapChain.Get()->GetBuffer(0u, piid, (void**)pprt)
                             .ThrowHr();
                     }
                 }

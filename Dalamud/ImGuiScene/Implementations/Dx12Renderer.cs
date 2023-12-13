@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
+using Dalamud.ImGuiScene.Helpers;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Utility;
 using Dalamud.Utility;
@@ -15,8 +16,6 @@ using ImGuiNET;
 
 using TerraFX.Interop.DirectX;
 using TerraFX.Interop.Windows;
-
-using Win32 = TerraFX.Interop.Windows.Windows;
 
 namespace Dalamud.ImGuiScene.Implementations;
 
@@ -44,6 +43,7 @@ internal unsafe partial class Dx12Renderer : IImGuiRenderer
     private bool releaseUnmanagedResourceCalled;
 
     private ComPtr<ID3D12Device> device;
+    private ComPtr<IDCompositionDevice> dcompDevice;
 
     private TexturePipeline? defaultPipeline;
 
@@ -67,23 +67,38 @@ internal unsafe partial class Dx12Renderer : IImGuiRenderer
         if (ImGui.GetIO().NativePtr->BackendRendererName is not null)
             throw new InvalidOperationException("ImGui backend renderer seems to be have been already attached.");
 
+        DXGI_SWAP_CHAIN_DESC desc;
+        swapChain->GetDesc(&desc).ThrowHr();
+        this.NumBackBuffers = (int)desc.BufferCount;
+        this.rtvFormat = desc.BufferDesc.Format;
+        this.device = new(device);
+
+        io.BackendFlags |= ImGuiBackendFlags.RendererHasVtxOffset | ImGuiBackendFlags.RendererHasViewports;
+
+        this.renderNamePtr = Marshal.StringToHGlobalAnsi("imgui_impl_dx12_c#");
+        io.NativePtr->BackendRendererName = (byte*)this.renderNamePtr;
+
         try
         {
-            DXGI_SWAP_CHAIN_DESC desc;
-            swapChain->GetDesc(&desc).ThrowHr();
-            this.NumBackBuffers = (int)desc.BufferCount;
-            this.rtvFormat = desc.BufferDesc.Format;
-            this.device = new(device);
-
-            io.BackendFlags |= ImGuiBackendFlags.RendererHasVtxOffset | ImGuiBackendFlags.RendererHasViewports;
-
-            this.renderNamePtr = Marshal.StringToHGlobalAnsi("imgui_impl_dx12_c#");
-            io.NativePtr->BackendRendererName = (byte*)this.renderNamePtr;
-
             if (io.ConfigFlags.HasFlag(ImGuiConfigFlags.ViewportsEnable))
-                this.viewportHandler = new(this);
+            {
+                try
+                {
+                    fixed (IDCompositionDevice** pp = &this.dcompDevice.GetPinnableReference())
+                    fixed (Guid* piidDCompositionDevice = &IID.IID_IDCompositionDevice)
+                        DirectX.DCompositionCreateDevice(null, piidDCompositionDevice, (void**)pp).ThrowHr();
 
-            this.mainViewport = ViewportData.Create(this, swapChain, commandQueue, nameof(this.mainViewport));
+                    ImGuiViewportHelpers.EnableViewportWindowBackgroundAlpha();
+                }
+                catch
+                {
+                    // don't care; not using DComposition then
+                }
+
+                this.viewportHandler = new(this);
+            }
+            
+            this.mainViewport = ViewportData.Create(this, swapChain, commandQueue, nameof(this.mainViewport), null, null);
             ImGui.GetPlatformIO().Viewports[0].RendererUserData = this.mainViewport.AsHandle();
             this.textureManager = new(this.device);
         }
@@ -122,19 +137,34 @@ internal unsafe partial class Dx12Renderer : IImGuiRenderer
         if (ImGui.GetIO().NativePtr->BackendRendererName is not null)
             throw new InvalidOperationException("ImGui backend renderer seems to be have been already attached.");
 
+        this.NumBackBuffers = numBackBuffers;
+        this.rtvFormat = rtvFormat;
+        this.device = new(device);
+
+        io.BackendFlags |= ImGuiBackendFlags.RendererHasVtxOffset | ImGuiBackendFlags.RendererHasViewports;
+
+        this.renderNamePtr = Marshal.StringToHGlobalAnsi("imgui_impl_dx12_c#");
+        io.NativePtr->BackendRendererName = (byte*)this.renderNamePtr;
+
         try
         {
-            this.NumBackBuffers = numBackBuffers;
-            this.rtvFormat = rtvFormat;
-            this.device = new(device);
-
-            io.BackendFlags |= ImGuiBackendFlags.RendererHasVtxOffset | ImGuiBackendFlags.RendererHasViewports;
-
-            this.renderNamePtr = Marshal.StringToHGlobalAnsi("imgui_impl_dx12_c#");
-            io.NativePtr->BackendRendererName = (byte*)this.renderNamePtr;
-
             if (io.ConfigFlags.HasFlag(ImGuiConfigFlags.ViewportsEnable))
+            {
+                try
+                {
+                    fixed (IDCompositionDevice** pp = &this.dcompDevice.GetPinnableReference())
+                    fixed (Guid* piidDCompositionDevice = &IID.IID_IDCompositionDevice)
+                        DirectX.DCompositionCreateDevice(null, piidDCompositionDevice, (void**)pp).ThrowHr();
+
+                    ImGuiViewportHelpers.EnableViewportWindowBackgroundAlpha();
+                }
+                catch
+                {
+                    // don't care; not using DComposition then
+                }
+
                 this.viewportHandler = new(this);
+            }
 
             this.mainViewport = ViewportData.Create(this, width, height, nameof(this.mainViewport));
             ImGui.GetPlatformIO().Viewports[0].RendererUserData = this.mainViewport.AsHandle();
@@ -489,5 +519,6 @@ internal unsafe partial class Dx12Renderer : IImGuiRenderer
             io.Fonts.SetTexID(i, nint.Zero);
 
         this.device.Reset();
+        this.dcompDevice.Reset();
     }
 }

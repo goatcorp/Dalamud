@@ -6,8 +6,6 @@ using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
 
-using Dalamud.Utility;
-
 using ImGuiNET;
 
 using TerraFX.Interop.Windows;
@@ -797,24 +795,6 @@ internal sealed unsafe partial class Win32InputHandler : IImGuiInputHandler
                 default);
         }
 
-        // TODO Alpha when it's no longer forced
-        private static void EnableAlphaCompositing(HWND hwnd)
-        {
-            BOOL composition;
-            Win32.DwmIsCompositionEnabled(&composition).ThrowHr();
-
-            if (!composition) return;
-            uint color;
-            BOOL opaque;
-            if (Win32.DwmGetColorizationColor(&color, &opaque).SUCCEEDED && !opaque)
-            {
-                var bb = default(DWM_BLURBEHIND);
-                bb.fEnable = true;
-                bb.dwFlags = DWM.DWM_BB_ENABLE;
-                Win32.DwmEnableBlurBehindWindow(hwnd, &bb).ThrowHr();
-            }
-        }
-
         private nint RegisterFunctionPointer<T>(T obj)
         {
             this.delegateReferences.Add(obj);
@@ -828,7 +808,6 @@ internal sealed unsafe partial class Win32InputHandler : IImGuiInputHandler
             viewport.Flags =
                 ImGuiViewportFlags.NoTaskBarIcon |
                 ImGuiViewportFlags.NoFocusOnClick |
-                ImGuiViewportFlags.NoRendererClear |
                 ImGuiViewportFlags.NoFocusOnAppearing |
                 viewport.Flags;
             ViewportFlagsToWin32Styles(viewport.Flags, out data->DwStyle, out data->DwExStyle);
@@ -866,14 +845,6 @@ internal sealed unsafe partial class Win32InputHandler : IImGuiInputHandler
                     Win32.GetModuleHandleW(null),
                     default);
             }
-
-            // Win32.GetWindowThreadProcessId(data->Hwnd, out var windowProcessId);
-            // var currentThreadId = Win32.GetCurrentThreadId();
-            // var currentProcessId = Win32.GetCurrentProcessId();
-
-            // Allow transparent windows
-            // TODO: Eventually...
-            EnableAlphaCompositing(data->Hwnd);
 
             data->HwndOwned = true;
             viewport.PlatformRequestResize = false;
@@ -929,7 +900,6 @@ internal sealed unsafe partial class Win32InputHandler : IImGuiInputHandler
             viewport.Flags =
                 ImGuiViewportFlags.NoTaskBarIcon |
                 ImGuiViewportFlags.NoFocusOnClick |
-                ImGuiViewportFlags.NoRendererClear |
                 ImGuiViewportFlags.NoFocusOnAppearing |
                 viewport.Flags;
             ViewportFlagsToWin32Styles(viewport.Flags, out var newStyle, out var newExStyle);

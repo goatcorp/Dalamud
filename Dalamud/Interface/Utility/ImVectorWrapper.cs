@@ -699,10 +699,10 @@ public unsafe struct ImVectorWrapper<T> : IList<T>, IList, IReadOnlyList<T>, IDi
         if (count == 0)
             return;
 
-        if (!skipDestroyer && this.destroyer is { } d)
+        if (!skipDestroyer && this.destroyer is not null)
         {
             for (var i = 0; i < count; i++)
-                d(this.DataUnsafe + index + i);
+                this.destroyer(this.DataUnsafe + index + i);
         }
 
         var numItemsToMove = this.LengthUnsafe - index - count;
@@ -730,10 +730,10 @@ public unsafe struct ImVectorWrapper<T> : IList<T>, IList, IReadOnlyList<T>, IDi
         // Ensure the capacity first, so that we can safely destroy the items first.
         this.EnsureCapacityExponential((this.LengthUnsafe + replacement.Length) - count);
 
-        if (!skipDestroyer && this.destroyer is { } d)
+        if (!skipDestroyer && this.destroyer is not null)
         {
             for (var i = 0; i < count; i++)
-                d(this.DataUnsafe + index + i);
+                this.destroyer(this.DataUnsafe + index + i);
         }
 
         if (count == replacement.Length)

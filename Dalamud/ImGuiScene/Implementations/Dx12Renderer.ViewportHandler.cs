@@ -14,7 +14,7 @@ using TerraFX.Interop;
 using TerraFX.Interop.DirectX;
 using TerraFX.Interop.Windows;
 
-using Win32 = TerraFX.Interop.Windows.Windows;
+using static TerraFX.Interop.Windows.Windows;
 
 namespace Dalamud.ImGuiScene.Implementations;
 
@@ -88,7 +88,7 @@ internal unsafe partial class Dx12Renderer
         [UnmanagedCallersOnly]
         private static void OnRenderWindow(ImGuiViewportPtr viewport, nint unused) =>
             ViewportData.AttachFromAddress(viewport.RendererUserData)
-                        .Draw(viewport.DrawData, (viewport.Flags & ImGuiViewportFlags.NoRendererClear) == 0);
+                        .Draw(viewport.DrawData, true);
 
         [UnmanagedCallersOnly]
         private static void OnSwapBuffers(ImGuiViewportPtr viewport, nint v)
@@ -105,7 +105,16 @@ internal unsafe partial class Dx12Renderer
             var hWnd = viewport.PlatformHandleRaw;
             if (hWnd == 0)
                 hWnd = viewport.PlatformHandle;
-            viewport.RendererUserData = ViewportData.Create(this.renderer, (HWND)hWnd, $"ID#{viewport.ID}").AsHandle();
+            try
+            {
+                viewport.RendererUserData =
+                    ViewportData.CreateDComposition(this.renderer, (HWND)hWnd, $"ID#{viewport.ID}").AsHandle();
+            }
+            catch
+            {
+                viewport.RendererUserData =
+                    ViewportData.Create(this.renderer, (HWND)hWnd, $"ID#{viewport.ID}").AsHandle();                
+            }
         }
     }
 
@@ -127,6 +136,8 @@ internal unsafe partial class Dx12Renderer
 
         private ComPtr<ID3D12DescriptorHeap> rtvDescHeap;
         private ComPtr<IDXGISwapChain3> swapChain;
+        private ComPtr<IDCompositionVisual> dcompVisual;
+        private ComPtr<IDCompositionTarget> dcompTarget;
 
         private int width;
         private int height;
@@ -138,7 +149,9 @@ internal unsafe partial class Dx12Renderer
             int width,
             int height,
             int numBackBuffers,
-            string debugName)
+            string debugName,
+            IDCompositionVisual* dcompVisual,
+            IDCompositionTarget* dcompTarget)
         {
             try
             {
@@ -152,6 +165,10 @@ internal unsafe partial class Dx12Renderer
                 this.swapChain = swapChain3 != null ? new(swapChain3) : default;
                 this.queue = queue;
                 this.frames = new ViewportFrame[numBackBuffers];
+                if (dcompVisual is not null)
+                    this.dcompVisual = new(dcompVisual);
+                if (dcompTarget is not null)
+                    this.dcompTarget = new(dcompTarget);
                 
                 // Create the descriptor heap to store the render targets.
                 fixed (Guid* piidDescHeap = &IID.IID_ID3D12DescriptorHeap)
@@ -208,7 +225,9 @@ internal unsafe partial class Dx12Renderer
             Dx12Renderer renderer,
             IDXGISwapChain3* swapChain3,
             ID3D12CommandQueue* commandQueue,
-            string debugName)
+            string debugName,
+            IDCompositionVisual* dcompVisual,
+            IDCompositionTarget* dcompTarget)
         {
             DXGI_SWAP_CHAIN_DESC desc;
             swapChain3->GetDesc(&desc).ThrowHr();
@@ -219,7 +238,80 @@ internal unsafe partial class Dx12Renderer
                 (int)desc.BufferDesc.Width,
                 (int)desc.BufferDesc.Height,
                 (int)desc.BufferCount,
-                debugName);
+                debugName,
+                dcompVisual,
+                dcompTarget);
+        }
+
+        public static ViewportData CreateDComposition(Dx12Renderer renderer, HWND hWnd, string debugName)
+        {
+            if (renderer.dcompDevice.IsEmpty())
+                throw new NotSupportedException();
+
+            // Create command queue.
+            using var queue = default(ComPtr<ID3D12CommandQueue>);
+            fixed (Guid* piid = &IID.IID_ID3D12CommandQueue)
+            {
+                var queueDesc = new D3D12_COMMAND_QUEUE_DESC
+                {
+                    Flags = D3D12_COMMAND_QUEUE_FLAGS.D3D12_COMMAND_QUEUE_FLAG_NONE,
+                    Type = D3D12_COMMAND_LIST_TYPE.D3D12_COMMAND_LIST_TYPE_DIRECT,
+                };
+
+                renderer.device.Get()->CreateCommandQueue(&queueDesc, piid, (void**)queue.GetAddressOf()).ThrowHr();
+            }
+
+            using var dxgiFactory = default(ComPtr<IDXGIFactory4>);
+            fixed (Guid* piidFactory = &IID.IID_IDXGIFactory4)
+            {
+#if DEBUG
+                DirectX.CreateDXGIFactory2(
+                    DXGI.DXGI_CREATE_FACTORY_DEBUG,
+                    piidFactory,
+                    (void**)dxgiFactory.GetAddressOf()).ThrowHr();
+#else
+                DirectX.CreateDXGIFactory1(piidFactory, (void**)dxgiFactory.GetAddressOf()).ThrowHr();
+#endif
+            }
+
+            RECT rc;
+            if (!GetWindowRect(hWnd, &rc) || rc.right == rc.left || rc.bottom == rc.top)
+                rc = new(0, 0, 4, 4);
+
+            using var swapChain1 = default(ComPtr<IDXGISwapChain1>);
+            var sd1 = new DXGI_SWAP_CHAIN_DESC1
+            {
+                Width = (uint)(rc.right - rc.left),
+                Height = (uint)(rc.bottom - rc.top),
+                Format = renderer.rtvFormat,
+                Stereo = false,
+                SampleDesc = new(1, 0),
+                BufferUsage = DXGI.DXGI_USAGE_RENDER_TARGET_OUTPUT,
+                BufferCount = (uint)renderer.NumBackBuffers,
+                Scaling = DXGI_SCALING.DXGI_SCALING_STRETCH,
+                SwapEffect = DXGI_SWAP_EFFECT.DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL,
+                AlphaMode = DXGI_ALPHA_MODE.DXGI_ALPHA_MODE_PREMULTIPLIED,
+                Flags = 0,
+            };
+            dxgiFactory.Get()->CreateSwapChainForComposition(
+                (IUnknown*)queue.Get(),
+                &sd1,
+                null,
+                swapChain1.GetAddressOf()).ThrowHr();
+
+            using var dcTarget = default(ComPtr<IDCompositionTarget>);
+            renderer.dcompDevice.Get()->CreateTargetForHwnd(hWnd, BOOL.TRUE, dcTarget.GetAddressOf());
+
+            using var dcVisual = default(ComPtr<IDCompositionVisual>);
+            renderer.dcompDevice.Get()->CreateVisual(dcVisual.GetAddressOf()).ThrowHr();
+
+            dcVisual.Get()->SetContent((IUnknown*)swapChain1.Get()).ThrowHr();
+            dcTarget.Get()->SetRoot(dcVisual).ThrowHr();
+            renderer.dcompDevice.Get()->Commit().ThrowHr();
+            
+            using var swapChain3 = default(ComPtr<IDXGISwapChain3>);
+            swapChain1.As(&swapChain3).ThrowHr();
+            return Create(renderer, swapChain3, queue, debugName, dcVisual, dcTarget);
         }
 
         public static ViewportData Create(
@@ -281,7 +373,7 @@ internal unsafe partial class Dx12Renderer
                 swapChainTmp.Get()->QueryInterface(piidSwapChain3, (void**)swapChain3.GetAddressOf()).ThrowHr();
             }
 
-            return Create(renderer, swapChain3, queue, debugName);
+            return Create(renderer, swapChain3, queue, debugName, null, null);
         }
 
         public static ViewportData Create(
@@ -303,7 +395,9 @@ internal unsafe partial class Dx12Renderer
                 width,
                 height,
                 renderer.NumBackBuffers,
-                debugName);
+                debugName,
+                null,
+                null);
 
         public void Draw(ImDrawDataPtr drawData, bool clearRenderTarget)
         {
@@ -391,6 +485,8 @@ internal unsafe partial class Dx12Renderer
                 f?.Dispose();
 
             this.rtvDescHeap.Reset();
+            this.dcompVisual.Reset();
+            this.dcompTarget.Reset();
             this.swapChain.Reset();
         }
 

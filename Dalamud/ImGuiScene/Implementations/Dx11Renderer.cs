@@ -53,6 +53,8 @@ internal unsafe partial class Dx11Renderer : IImGuiRenderer
     private int vertexBufferSize;
     private int indexBufferSize;
 
+    private ComPtr<IDCompositionDevice> dcompDevice;
+
     private TexturePipeline? defaultPipeline;
 
     /// <summary>
@@ -81,9 +83,24 @@ internal unsafe partial class Dx11Renderer : IImGuiRenderer
             io.NativePtr->BackendRendererName = (byte*)this.renderNamePtr;
 
             if (io.ConfigFlags.HasFlag(ImGuiConfigFlags.ViewportsEnable))
+            {
+                try
+                {
+                    fixed (IDCompositionDevice** pp = &this.dcompDevice.GetPinnableReference())
+                    fixed (Guid* piidDCompositionDevice = &IID.IID_IDCompositionDevice)
+                        DirectX.DCompositionCreateDevice(null, piidDCompositionDevice, (void**)pp).ThrowHr();
+
+                    ImGuiViewportHelpers.EnableViewportWindowBackgroundAlpha();
+                }
+                catch
+                {
+                    // don't care; not using DComposition then
+                }
+
                 this.viewportHandler = new(this);
-            
-            this.mainViewport = ViewportData.Create(this, swapChain);
+            }
+
+            this.mainViewport = ViewportData.Create(this, swapChain, null, null);
             ImGui.GetPlatformIO().Viewports[0].RendererUserData = this.mainViewport.AsHandle();
         }
         catch
@@ -568,8 +585,8 @@ internal unsafe partial class Dx11Renderer : IImGuiRenderer
                         SrcBlend = D3D11_BLEND.D3D11_BLEND_SRC_ALPHA,
                         DestBlend = D3D11_BLEND.D3D11_BLEND_INV_SRC_ALPHA,
                         BlendOp = D3D11_BLEND_OP.D3D11_BLEND_OP_ADD,
-                        SrcBlendAlpha = D3D11_BLEND.D3D11_BLEND_INV_SRC_ALPHA,
-                        DestBlendAlpha = D3D11_BLEND.D3D11_BLEND_ZERO,
+                        SrcBlendAlpha = D3D11_BLEND.D3D11_BLEND_INV_DEST_ALPHA,
+                        DestBlendAlpha = D3D11_BLEND.D3D11_BLEND_ONE,
                         BlendOpAlpha = D3D11_BLEND_OP.D3D11_BLEND_OP_ADD,
                         RenderTargetWriteMask = (byte)D3D11_COLOR_WRITE_ENABLE.D3D11_COLOR_WRITE_ENABLE_ALL,
                     },
@@ -661,5 +678,6 @@ internal unsafe partial class Dx11Renderer : IImGuiRenderer
         this.depthStencilState.Reset();
         this.vertexBuffer.Reset();
         this.indexBuffer.Reset();
+        this.dcompDevice.Reset();
     }
 }

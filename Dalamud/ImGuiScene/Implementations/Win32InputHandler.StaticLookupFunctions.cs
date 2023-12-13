@@ -298,6 +298,7 @@ internal sealed partial class Win32InputHandler
         style = (int)(flags.HasFlag(ImGuiViewportFlags.NoDecoration) ? WS.WS_POPUP : WS.WS_OVERLAPPEDWINDOW);
         exStyle =
             (int)(flags.HasFlag(ImGuiViewportFlags.NoTaskBarIcon) ? WS.WS_EX_TOOLWINDOW : (uint)WS.WS_EX_APPWINDOW);
+        exStyle |= WS.WS_EX_NOREDIRECTIONBITMAP;
         if (flags.HasFlag(ImGuiViewportFlags.TopMost))
             exStyle |= WS.WS_EX_TOPMOST;
     }
