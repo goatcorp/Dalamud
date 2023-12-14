@@ -2,6 +2,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Numerics;
+using System.Reflection;
 using System.Text;
 
 using Dalamud.Interface.Internal.Notifications;
@@ -12,6 +13,8 @@ using Dalamud.Plugin.Ipc.Internal;
 using ImGuiNET;
 
 using Newtonsoft.Json;
+
+using Formatting = Newtonsoft.Json.Formatting;
 
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 
@@ -140,7 +143,83 @@ internal class DataShareWidget : IDataWindowWidget
         this.nextTab = -1;
     }
 
-    private void DrawTextCell(string s, bool framepad = false)
+    private static string ReprMethod(MethodInfo? mi, bool withParams)
+    {
+        if (mi is null)
+            return "-";
+        
+        var sb = new StringBuilder();
+        sb.Append(ReprType(mi.DeclaringType))
+          .Append("::")
+          .Append(mi.Name);
+        if (!withParams)
+            return sb.ToString();
+        sb.Append('(');
+        var parfirst = true;
+        foreach (var par in mi.GetParameters())
+        {
+            if (!parfirst)
+                sb.Append(", ");
+            else
+                parfirst = false;
+            sb.AppendLine()
+              .Append('\t')
+              .Append(ReprType(par.ParameterType))
+              .Append(' ')
+              .Append(par.Name);
+        }
+
+        if (!parfirst)
+            sb.AppendLine();
+        sb.Append(')');
+        if (mi.ReturnType != typeof(void))
+            sb.Append(" -> ").Append(ReprType(mi.ReturnType));
+        return sb.ToString();
+
+        static string WithoutGeneric(string s)
+        {
+            var i = s.IndexOf('`');
+            return i != -1 ? s[..i] : s;
+        }
+
+        static string ReprType(Type? t) =>
+            t switch
+            {
+                null => "null",
+                _ when t == typeof(string) => "string",
+                _ when t == typeof(object) => "object",
+                _ when t == typeof(void) => "void",
+                _ when t == typeof(decimal) => "decimal",
+                _ when t == typeof(bool) => "bool",
+                _ when t == typeof(double) => "double",
+                _ when t == typeof(float) => "float",
+                _ when t == typeof(char) => "char",
+                _ when t == typeof(ulong) => "ulong",
+                _ when t == typeof(long) => "long",
+                _ when t == typeof(uint) => "uint",
+                _ when t == typeof(int) => "int",
+                _ when t == typeof(ushort) => "ushort",
+                _ when t == typeof(short) => "short",
+                _ when t == typeof(byte) => "byte",
+                _ when t == typeof(sbyte) => "sbyte",
+                _ when t == typeof(nint) => "nint",
+                _ when t == typeof(nuint) => "nuint",
+                _ when t.IsArray && t.HasElementType => ReprType(t.GetElementType()) + "[]",
+                _ when t.IsPointer && t.HasElementType => ReprType(t.GetElementType()) + "*",
+                _ when t.IsGenericTypeDefinition =>
+                    t.Assembly == typeof(object).Assembly
+                        ? t.Name + "<>"
+                        : (t.FullName ?? t.Name) + "<>",
+                _ when t.IsGenericType && t.GetGenericTypeDefinition() == typeof(Nullable<>) =>
+                    ReprType(t.GetGenericArguments()[0]) + "?",
+                _ when t.IsGenericType =>
+                    WithoutGeneric(ReprType(t.GetGenericTypeDefinition())) +
+                    "<" + string.Join(", ", t.GetGenericArguments().Select(ReprType)) + ">",
+                _ => t.Assembly == typeof(object).Assembly ? t.Name : t.FullName ?? t.Name,
+            };
+    }
+
+    private void DrawTextCell(string s, Func<string>? tooltip = null, bool framepad = false)
     {
         ImGui.TableNextColumn();
         var offset = ImGui.GetCursorScreenPos() + new Vector2(0, framepad ? ImGui.GetStyle().FramePadding.Y : 0);
@@ -149,15 +228,21 @@ internal class DataShareWidget : IDataWindowWidget
         ImGui.TextUnformatted(s);
         if (ImGui.IsItemHovered())
         {
-            var pad = ImGui.GetStyle().CellPadding;
-            ImGui.SetNextWindowPos(offset - pad);
-            using (ImRaii.PushStyle(ImGuiStyleVar.WindowPadding, pad))
-                ImGui.SetTooltip(s.Replace("%", "%%"));
+            ImGui.SetNextWindowPos(offset - ImGui.GetStyle().WindowPadding);
+            var vp = ImGui.GetWindowViewport();
+            var wrx = (vp.WorkPos.X + vp.WorkSize.X) - offset.X;
+            ImGui.SetNextWindowSizeConstraints(Vector2.One, new(wrx, float.MaxValue));
+            using (ImRaii.Tooltip())
+            {
+                ImGui.PushTextWrapPos(wrx);
+                ImGui.TextWrapped((tooltip?.Invoke() ?? s).Replace("%", "%%"));
+                ImGui.PopTextWrapPos();
+            }
         }
 
         if (ImGui.IsItemClicked())
         {
-            ImGui.SetClipboardText(s);
+            ImGui.SetClipboardText(tooltip?.Invoke() ?? s);
             Service<NotificationManager>.Get().AddNotification(
                 $"Copied {ImGui.TableGetColumnName()} to clipboard.",
                 this.DisplayName,
@@ -193,8 +278,12 @@ internal class DataShareWidget : IDataWindowWidget
             {
                 ImGui.TableNextRow();
                 this.DrawTextCell(item.Name);
-                this.DrawTextCell(item.Action?.Method is { } a ? $"{a.DeclaringType}::{a.Name}" : "-");
-                this.DrawTextCell(item.Func?.Method is { } f ? $"{f.DeclaringType}::{f.Name}" : "-");
+                this.DrawTextCell(
+                    ReprMethod(item.Action?.Method, false),
+                    () => ReprMethod(item.Action?.Method, true));
+                this.DrawTextCell(
+                    ReprMethod(item.Func?.Method, false),
+                    () => ReprMethod(item.Func?.Method, true));
                 if (subs.Count == 0)
                 {
                     this.DrawTextCell("0");
@@ -223,7 +312,7 @@ internal class DataShareWidget : IDataWindowWidget
             foreach (var share in Service<DataShare>.Get().GetAllShares())
             {
                 ImGui.TableNextRow();
-                this.DrawTextCell(share.Tag, true);
+                this.DrawTextCell(share.Tag, null, true);
 
                 ImGui.TableNextColumn();
                 if (ImGui.Button($"Show##datasharetable-show-{share.Tag}"))
@@ -242,9 +331,9 @@ internal class DataShareWidget : IDataWindowWidget
                     this.nextTab = 2 + index;
                 }
 
-                this.DrawTextCell(share.CreatorAssembly, true);
-                this.DrawTextCell(share.Users.Length.ToString(), true);
-                this.DrawTextCell(string.Join(", ", share.Users), true);
+                this.DrawTextCell(share.CreatorAssembly, null, true);
+                this.DrawTextCell(share.Users.Length.ToString(), null, true);
+                this.DrawTextCell(string.Join(", ", share.Users), null, true);
             }
         }
         finally
