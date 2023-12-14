@@ -64,6 +64,11 @@ internal class CallGateChannel
     /// </summary>
     public Delegate? Func { get; set; }
 
+    /// <summary>
+    /// Gets a value indicating whether this <see cref="CallGateChannel"/> is not being used.
+    /// </summary>
+    public bool IsEmpty => this.Action is null && this.Func is null && this.Subscriptions.Count == 0;
+
     /// <inheritdoc cref="CallGatePubSubBase.Subscribe"/>
     internal void Subscribe(Delegate action)
     {
@@ -90,9 +95,6 @@ internal class CallGateChannel
     /// <param name="args">Message arguments.</param>
     internal void SendMessage(object?[]? args)
     {
-        if (this.Subscriptions.Count == 0)
-            return;
-
         foreach (var subscription in this.Subscriptions)
         {
             var methodInfo = subscription.GetMethodInfo();
