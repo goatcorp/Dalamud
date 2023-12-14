@@ -1,5 +1,5 @@
-using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
 
@@ -14,6 +14,17 @@ namespace Dalamud.Plugin.Ipc.Internal;
 /// </summary>
 internal class CallGateChannel
 {
+    /// <summary>
+    /// The actual storage.
+    /// </summary>
+    private readonly HashSet<Delegate> subscriptions = new();
+
+    /// <summary>
+    /// A copy of the actual storage, that will be cleared and populated depending on changes made to
+    /// <see cref="subscriptions"/>.
+    /// </summary>
+    private ImmutableList<Delegate>? subscriptionsCopy;
+
     /// <summary>
     /// Initializes a new instance of the <see cref="CallGateChannel"/> class.
     /// </summary>
@@ -31,17 +42,47 @@ internal class CallGateChannel
     /// <summary>
     /// Gets a list of delegate subscriptions for when SendMessage is called.
     /// </summary>
-    public List<Delegate> Subscriptions { get; } = new();
+    public IReadOnlyList<Delegate> Subscriptions
+    {
+        get
+        {
+            var copy = this.subscriptionsCopy;
+            if (copy is not null)
+                return copy;
+            lock (this.subscriptions)
+                return this.subscriptionsCopy ??= this.subscriptions.ToImmutableList();
+        }
+    }
 
     /// <summary>
     /// Gets or sets an action for when InvokeAction is called.
     /// </summary>
-    public Delegate Action { get; set; }
+    public Delegate? Action { get; set; }
 
     /// <summary>
     /// Gets or sets a func for when InvokeFunc is called.
     /// </summary>
-    public Delegate Func { get; set; }
+    public Delegate? Func { get; set; }
+
+    /// <inheritdoc cref="CallGatePubSubBase.Subscribe"/>
+    internal void Subscribe(Delegate action)
+    {
+        lock (this.subscriptions)
+        {
+            this.subscriptionsCopy = null;
+            this.subscriptions.Add(action);
+        }
+    }
+
+    /// <inheritdoc cref="CallGatePubSubBase.Unsubscribe"/>
+    internal void Unsubscribe(Delegate action)
+    {
+        lock (this.subscriptions)
+        {
+            this.subscriptionsCopy = null;
+            this.subscriptions.Remove(action);
+        }
+    }
 
     /// <summary>
     /// Invoke all actions that have subscribed to this IPC.
@@ -105,7 +146,14 @@ internal class CallGateChannel
         var paramTypes = methodInfo.GetParameters()
                                    .Select(pi => pi.ParameterType).ToArray();
 
-        if (args?.Length != paramTypes.Length)
+        if (args is null)
+        {
+            if (paramTypes.Length == 0)
+                return;
+            throw new IpcLengthMismatchError(this.Name, 0, paramTypes.Length);
+        }
+
+        if (args.Length != paramTypes.Length)
             throw new IpcLengthMismatchError(this.Name, args.Length, paramTypes.Length);
 
         for (var i = 0; i < args.Length; i++)
@@ -137,7 +185,7 @@ internal class CallGateChannel
         }
     }
 
-    private IEnumerable<Type> GenerateTypes(Type type)
+    private IEnumerable<Type> GenerateTypes(Type? type)
     {
         while (type != null && type != typeof(object))
         {
@@ -148,6 +196,9 @@ internal class CallGateChannel
 
     private object? ConvertObject(object? obj, Type type)
     {
+        if (obj is null)
+            return null;
+
         var json = JsonConvert.SerializeObject(obj);
 
         try

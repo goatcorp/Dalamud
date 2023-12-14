@@ -22,8 +22,11 @@ internal class CallGate : IServiceType
     /// <returns>A CallGate registered under the given name.</returns>
     public CallGateChannel GetOrCreateChannel(string name)
     {
-        if (!this.gates.TryGetValue(name, out var gate))
-            gate = this.gates[name] = new CallGateChannel(name);
-        return gate;
+        lock (this.gates)
+        {
+            if (!this.gates.TryGetValue(name, out var gate))
+                gate = this.gates[name] = new(name);
+            return gate;
+        }
     }
 }
