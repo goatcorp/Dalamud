@@ -110,7 +110,11 @@ public abstract class Window
     /// <summary>
     /// Gets or sets the size constraints of the window. The size constraints provided will be scaled by the global scale.
     /// </summary>
-    public WindowSizeConstraints? SizeConstraints { get; set; }
+    public WindowSizeConstraints SizeConstraints { get; set; } = new()
+    {
+        MinimumSize = Vector2.Zero,
+        MaximumSize = new Vector2(float.PositiveInfinity),
+    };
 
     /// <summary>
     /// Gets or sets a value indicating whether or not this window is collapsed.
@@ -286,7 +290,7 @@ public abstract class Window
 
                 this.IsFocused = false;
                 
-                if (doSoundEffects && !this.DisableWindowSounds) UIModule.PlaySound(this.OnCloseSfxId, 0, 0, 0);
+                if (doSoundEffects && !this.DisableWindowSounds) UIModule.PlaySound(this.OnCloseSfxId);
             }
 
             return;
@@ -306,7 +310,7 @@ public abstract class Window
             this.internalLastIsOpen = this.internalIsOpen;
             this.OnOpen();
 
-            if (doSoundEffects && !this.DisableWindowSounds) UIModule.PlaySound(this.OnOpenSfxId, 0, 0, 0);
+            if (doSoundEffects && !this.DisableWindowSounds) UIModule.PlaySound(this.OnOpenSfxId);
         }
 
         this.PreDraw();
@@ -501,9 +505,9 @@ public abstract class Window
             ImGui.SetNextWindowCollapsed(this.Collapsed.Value, this.CollapsedCondition);
         }
 
-        if (this.SizeConstraints.HasValue)
+        if (this.SizeConstraints.MinimumSize != Vector2.Zero || this.SizeConstraints.MaximumSize != new Vector2(float.PositiveInfinity))
         {
-            ImGui.SetNextWindowSizeConstraints(this.SizeConstraints.Value.MinimumSize * ImGuiHelpers.GlobalScale, this.SizeConstraints.Value.MaximumSize * ImGuiHelpers.GlobalScale);
+            ImGui.SetNextWindowSizeConstraints(this.SizeConstraints.MinimumSize * ImGuiHelpers.GlobalScale, this.SizeConstraints.MaximumSize * ImGuiHelpers.GlobalScale);
         }
 
         if (this.BgAlpha.HasValue)
