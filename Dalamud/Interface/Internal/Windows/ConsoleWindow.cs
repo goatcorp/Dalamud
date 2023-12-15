@@ -71,7 +71,6 @@ internal class ConsoleWindow : Window, IDisposable
         this.SizeConstraints = new WindowSizeConstraints
         {
             MinimumSize = new Vector2(600.0f, 200.0f),
-            MaximumSize = new Vector2(9999.0f, 9999.0f),
         };
 
         this.RespectCloseHotkey = false;
