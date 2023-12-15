@@ -624,14 +624,21 @@ public abstract class Window
     public struct WindowSizeConstraints
     {
         /// <summary>
+        /// Initializes a new instance of the <see cref="WindowSizeConstraints"/> struct.
+        /// </summary>
+        public WindowSizeConstraints()
+        {
+        }
+
+        /// <summary>
         /// Gets or sets the minimum size of the window.
         /// </summary>
-        public Vector2 MinimumSize { get; set; }
+        public Vector2 MinimumSize { get; set; } = new(0);
 
         /// <summary>
         /// Gets or sets the maximum size of the window.
         /// </summary>
-        public Vector2 MaximumSize { get; set; }
+        public Vector2 MaximumSize { get; set; } = new(float.PositiveInfinity);
     }
 
     /// <summary>
