@@ -92,7 +92,7 @@ internal unsafe class AddonEventManager : IDisposable, IServiceType
     /// <returns>IAddonEventHandle used to remove the event.</returns>
     internal IAddonEventHandle? AddEvent(string pluginId, IntPtr atkUnitBase, IntPtr atkResNode, AddonEventType eventType, IAddonEventManager.AddonEventHandler eventHandler)
     {
-        if (!ThreadSafety.IsMainThread) throw new NotSupportedException("This should be done only from the main thread. Modifying active native code on non-main thread is not supported.");
+        if (!ThreadSafety.IsMainThread) throw new InvalidOperationException("This should be done only from the main thread. Modifying active native code on non-main thread is not supported.");
         
         if (this.pluginEventControllers.FirstOrDefault(entry => entry.PluginId == pluginId) is { } eventController)
         {
@@ -110,7 +110,7 @@ internal unsafe class AddonEventManager : IDisposable, IServiceType
     /// <param name="eventHandle">The Unique Id for this event.</param>
     internal void RemoveEvent(string pluginId, IAddonEventHandle eventHandle)
     {
-        if (!ThreadSafety.IsMainThread) throw new NotSupportedException("This should be done only from the main thread. Modifying active native code on non-main thread is not supported.");
+        if (!ThreadSafety.IsMainThread) throw new InvalidOperationException("This should be done only from the main thread. Modifying active native code on non-main thread is not supported.");
         
         if (this.pluginEventControllers.FirstOrDefault(entry => entry.PluginId == pluginId) is { } eventController)
         {
