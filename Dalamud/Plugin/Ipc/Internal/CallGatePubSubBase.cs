@@ -1,5 +1,3 @@
-using System;
-
 using Dalamud.Plugin.Ipc.Exceptions;
 
 namespace Dalamud.Plugin.Ipc.Internal;
@@ -13,7 +11,7 @@ internal abstract class CallGatePubSubBase
     /// Initializes a new instance of the <see cref="CallGatePubSubBase"/> class.
     /// </summary>
     /// <param name="name">The name of the IPC registration.</param>
-    public CallGatePubSubBase(string name)
+    protected CallGatePubSubBase(string name)
     {
         this.Channel = Service<CallGate>.Get().GetOrCreateChannel(name);
     }
@@ -54,14 +52,14 @@ internal abstract class CallGatePubSubBase
     /// </summary>
     /// <param name="action">Action to subscribe.</param>
     private protected void Subscribe(Delegate action)
-        => this.Channel.Subscriptions.Add(action);
+        => this.Channel.Subscribe(action);
 
     /// <summary>
     /// Unsubscribe an expression from this registration.
     /// </summary>
     /// <param name="action">Action to unsubscribe.</param>
     private protected void Unsubscribe(Delegate action)
-        => this.Channel.Subscriptions.Remove(action);
+        => this.Channel.Unsubscribe(action);
 
     /// <summary>
     /// Invoke an action registered for inter-plugin communication.
