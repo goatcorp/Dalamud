@@ -124,6 +124,16 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
         this.framework.RunOnFrameworkThread(() =>
         {
             this.EventListeners.Add(listener);
+            
+            // If we want receive event messages have an already active addon, enable the receive event hook.
+            // If the addon isn't active yet, we'll grab the hook when it sets up.
+            if (listener is { EventType: AddonEvent.PreReceiveEvent or AddonEvent.PostReceiveEvent })
+            {
+                if (this.ReceiveEventListeners.FirstOrDefault(listeners => listeners.AddonNames.Contains(listener.AddonName)) is { } receiveEventListener)
+                {
+                    receiveEventListener.Hook?.Enable();
+                }
+            }
         });
     }
 
@@ -136,6 +146,20 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
         this.framework.RunOnFrameworkThread(() =>
         {
             this.EventListeners.Remove(listener);
+            
+            // If we are disabling an ReceiveEvent listener, check if we should disable the hook.
+            if (listener is { EventType: AddonEvent.PreReceiveEvent or AddonEvent.PostReceiveEvent })
+            {
+                // Get the ReceiveEvent Listener for this addon
+                if (this.ReceiveEventListeners.FirstOrDefault(listeners => listeners.AddonNames.Contains(listener.AddonName)) is { } receiveEventListener)
+                {
+                    // If there are no other listeners listening for this event, disable the hook.
+                    if (!this.EventListeners.Any(listeners => listeners.AddonName.Contains(listener.AddonName) && listener.EventType is AddonEvent.PreReceiveEvent or AddonEvent.PostReceiveEvent))
+                    {
+                        receiveEventListener.Hook?.Disable();
+                    }
+                }
+            }
         });
     }
 
