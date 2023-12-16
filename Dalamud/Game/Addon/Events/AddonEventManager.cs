@@ -1,5 +1,4 @@
-﻿using System.Collections.Concurrent;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 
 using Dalamud.Game.Addon.Lifecycle;
@@ -10,6 +9,8 @@ using Dalamud.IoC.Internal;
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Plugin.Services;
+using Dalamud.Utility;
+
 using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 
@@ -41,8 +42,6 @@ internal unsafe class AddonEventManager : IDisposable, IServiceType
     private readonly Hook<UpdateCursorDelegate> onUpdateCursor;
 
     private readonly List<PluginEventController> pluginEventControllers;
-    private readonly ConcurrentBag<PluginEventController> newEventControllers = new();
-    private readonly ConcurrentBag<PluginEventController> oldEventControllers = new();
     
     private AddonCursorType? cursorOverride;
     
@@ -65,8 +64,6 @@ internal unsafe class AddonEventManager : IDisposable, IServiceType
         this.addonLifecycle.RegisterListener(this.finalizeEventListener);
 
         this.onUpdateCursor.Enable();
-        
-        this.framework.Update += this.OnFrameworkUpdate;
     }
 
     private delegate nint UpdateCursorDelegate(RaptureAtkModule* module);
@@ -74,8 +71,6 @@ internal unsafe class AddonEventManager : IDisposable, IServiceType
     /// <inheritdoc/>
     public void Dispose()
     {
-        this.framework.Update -= this.OnFrameworkUpdate;
-        
         this.onUpdateCursor.Dispose();
 
         foreach (var pluginEventController in this.pluginEventControllers)
@@ -97,6 +92,8 @@ internal unsafe class AddonEventManager : IDisposable, IServiceType
     /// <returns>IAddonEventHandle used to remove the event.</returns>
     internal IAddonEventHandle? AddEvent(string pluginId, IntPtr atkUnitBase, IntPtr atkResNode, AddonEventType eventType, IAddonEventManager.AddonEventHandler eventHandler)
     {
+        if (!ThreadSafety.IsMainThread) throw new NotSupportedException("This should be done only from the main thread. Modifying active native code on non-main thread is not supported.");
+        
         if (this.pluginEventControllers.FirstOrDefault(entry => entry.PluginId == pluginId) is { } eventController)
         {
             return eventController.AddEvent(atkUnitBase, atkResNode, eventType, eventHandler);
@@ -113,6 +110,8 @@ internal unsafe class AddonEventManager : IDisposable, IServiceType
     /// <param name="eventHandle">The Unique Id for this event.</param>
     internal void RemoveEvent(string pluginId, IAddonEventHandle eventHandle)
     {
+        if (!ThreadSafety.IsMainThread) throw new NotSupportedException("This should be done only from the main thread. Modifying active native code on non-main thread is not supported.");
+        
         if (this.pluginEventControllers.FirstOrDefault(entry => entry.PluginId == pluginId) is { } eventController)
         {
             eventController.RemoveEvent(eventHandle);
@@ -140,11 +139,14 @@ internal unsafe class AddonEventManager : IDisposable, IServiceType
     /// <param name="pluginId">Unique ID for this plugin.</param>
     internal void AddPluginEventController(string pluginId)
     {
-        if (this.pluginEventControllers.All(entry => entry.PluginId != pluginId))
+        this.framework.RunOnFrameworkThread(() =>
         {
-            Log.Verbose($"Creating new PluginEventController for: {pluginId}");
-            this.newEventControllers.Add(new PluginEventController(pluginId));
-        }
+            if (this.pluginEventControllers.All(entry => entry.PluginId != pluginId))
+            {
+                Log.Verbose($"Creating new PluginEventController for: {pluginId}");
+                this.pluginEventControllers.Add(new PluginEventController(pluginId));
+            }
+        });
     }
 
     /// <summary>
@@ -153,37 +155,17 @@ internal unsafe class AddonEventManager : IDisposable, IServiceType
     /// <param name="pluginId">Unique ID for this plugin.</param>
     internal void RemovePluginEventController(string pluginId)
     {
-        if (this.pluginEventControllers.FirstOrDefault(entry => entry.PluginId == pluginId) is { } controller)
+        this.framework.RunOnFrameworkThread(() =>
         {
-            Log.Verbose($"Removing PluginEventController for: {pluginId}");
-            this.oldEventControllers.Add(controller);
-        }
-    }
-    
-    private void OnFrameworkUpdate(IFramework framework1)
-    {
-        if (this.newEventControllers.Any())
-        {
-            foreach (var toAdd in this.newEventControllers)
+            if (this.pluginEventControllers.FirstOrDefault(entry => entry.PluginId == pluginId) is { } controller)
             {
-                this.pluginEventControllers.Add(toAdd);
+                Log.Verbose($"Removing PluginEventController for: {pluginId}");
+                this.pluginEventControllers.Remove(controller);
+                controller.Dispose();
             }
-        
-            this.newEventControllers.Clear();  
-        }
+        });
+    }
 
-        if (this.oldEventControllers.Any())
-        {
-            foreach (var toRemove in this.oldEventControllers)
-            {
-                this.pluginEventControllers.Remove(toRemove);
-                toRemove.Dispose();
-            }
-        
-            this.oldEventControllers.Clear();
-        }
-    }
-    
     /// <summary>
     /// When an addon finalizes, check it for any registered events, and unregister them.
     /// </summary>
