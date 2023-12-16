@@ -679,6 +679,9 @@ internal class ConsoleWindow : Window, IDisposable
 
     private bool IsFilterApplicable(LogEntry entry)
     {
+        if (this.regexError)
+            return false;
+
         try
         {
             // If this entry is below a newly set minimum level, fail it

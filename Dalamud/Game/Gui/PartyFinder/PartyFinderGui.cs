@@ -35,6 +35,7 @@ internal sealed class PartyFinderGui : IDisposable, IServiceType, IPartyFinderGu
         this.memory = Marshal.AllocHGlobal(PartyFinderPacket.PacketSize);
 
         this.receiveListingHook = Hook<ReceiveListingDelegate>.FromAddress(this.address.ReceiveListing, this.HandleReceiveListingDetour);
+        this.receiveListingHook.Enable();
     }
 
     [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
@@ -58,12 +59,6 @@ internal sealed class PartyFinderGui : IDisposable, IServiceType, IPartyFinderGu
         {
             Log.Warning("Could not free PartyFinderGui memory.");
         }
-    }
-
-    [ServiceManager.CallWhenServicesReady]
-    private void ContinueConstruction(GameGui gameGui)
-    {
-        this.receiveListingHook.Enable();
     }
 
     private void HandleReceiveListingDetour(IntPtr managerPtr, IntPtr data)

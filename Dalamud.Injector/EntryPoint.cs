@@ -96,6 +96,7 @@ namespace Dalamud.Injector
             args.Remove("--no-plugin");
             args.Remove("--no-3rd-plugin");
             args.Remove("--crash-handler-console");
+            args.Remove("--no-exception-handlers");
 
             var mainCommand = args[1].ToLowerInvariant();
             if (mainCommand.Length > 0 && mainCommand.Length <= 6 && "inject"[..mainCommand.Length] == mainCommand)
@@ -393,6 +394,7 @@ namespace Dalamud.Injector
             startInfo.NoLoadThirdPartyPlugins = args.Contains("--no-3rd-plugin");
             // startInfo.BootUnhookDlls = new List<string>() { "kernel32.dll", "ntdll.dll", "user32.dll" };
             startInfo.CrashHandlerShow = args.Contains("--crash-handler-console");
+            startInfo.NoExceptionHandlers = args.Contains("--no-exception-handlers");
 
             return startInfo;
         }
@@ -434,7 +436,7 @@ namespace Dalamud.Injector
             Console.WriteLine("Verbose logging:\t[-v]");
             Console.WriteLine("Show Console:\t[--console] [--crash-handler-console]");
             Console.WriteLine("Enable ETW:\t[--etw]");
-            Console.WriteLine("Enable VEH:\t[--veh], [--veh-full]");
+            Console.WriteLine("Enable VEH:\t[--veh], [--veh-full], [--no-exception-handlers]");
             Console.WriteLine("Show messagebox:\t[--msgbox1], [--msgbox2], [--msgbox3]");
             Console.WriteLine("No plugins:\t[--no-plugin] [--no-3rd-plugin]");
             Console.WriteLine("Logging:\t[--logname=<logfile suffix>] [--logpath=<log base directory>]");
@@ -889,7 +891,7 @@ namespace Dalamud.Injector
             var gameVerStr = File.ReadAllText(Path.Combine(ffxivDir, "ffxivgame.ver"));
             var gameVer = GameVersion.Parse(gameVerStr);
 
-            return new DalamudStartInfo(startInfo)
+            return startInfo with
             {
                 GameVersion = gameVer,
             };

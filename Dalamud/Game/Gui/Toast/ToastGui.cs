@@ -41,6 +41,10 @@ internal sealed partial class ToastGui : IDisposable, IServiceType, IToastGui
         this.showNormalToastHook = Hook<ShowNormalToastDelegate>.FromAddress(this.address.ShowNormalToast, this.HandleNormalToastDetour);
         this.showQuestToastHook = Hook<ShowQuestToastDelegate>.FromAddress(this.address.ShowQuestToast, this.HandleQuestToastDetour);
         this.showErrorToastHook = Hook<ShowErrorToastDelegate>.FromAddress(this.address.ShowErrorToast, this.HandleErrorToastDetour);
+
+        this.showNormalToastHook.Enable();
+        this.showQuestToastHook.Enable();
+        this.showErrorToastHook.Enable();
     }
 
     #region Marshal delegates
@@ -107,14 +111,6 @@ internal sealed partial class ToastGui : IDisposable, IServiceType, IToastGui
         terminated[^1] = 0;
 
         return terminated;
-    }
-
-    [ServiceManager.CallWhenServicesReady]
-    private void ContinueConstruction(GameGui gameGui)
-    {
-        this.showNormalToastHook.Enable();
-        this.showQuestToastHook.Enable();
-        this.showErrorToastHook.Enable();
     }
 
     private SeString ParseString(IntPtr text)

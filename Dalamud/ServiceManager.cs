@@ -11,6 +11,7 @@ using Dalamud.Game;
 using Dalamud.IoC.Internal;
 using Dalamud.Logging.Internal;
 using Dalamud.Storage;
+using Dalamud.Utility;
 using Dalamud.Utility.Timing;
 using JetBrains.Annotations;
 
@@ -21,7 +22,7 @@ namespace Dalamud;
 // - Visualize/output .dot or imgui thing
 
 /// <summary>
-/// Class to initialize Service&lt;T&gt;s.
+/// Class to initialize <see cref="Service{T}"/>.
 /// </summary>
 internal static class ServiceManager
 {
@@ -43,6 +44,26 @@ internal static class ServiceManager
     private static readonly TaskCompletionSource BlockingServicesLoadedTaskCompletionSource = new();
 
     private static ManualResetEvent unloadResetEvent = new(false);
+
+    /// <summary>
+    /// Delegate for registering startup blocker task.<br />
+    /// Do not use this delegate outside the constructor.
+    /// </summary>
+    /// <param name="t">The blocker task.</param>
+    /// <param name="justification">The justification for using this feature.</param>
+    [InjectableType]
+    public delegate void RegisterStartupBlockerDelegate(Task t, string justification);
+
+    /// <summary>
+    /// Delegate for registering services that should be unloaded before self.<br />
+    /// Intended for use with <see cref="Plugin.Internal.PluginManager"/>. If you think you need to use this outside
+    /// of that, consider having a discussion first.<br />
+    /// Do not use this delegate outside the constructor.
+    /// </summary>
+    /// <param name="unloadAfter">Services that should be unloaded first.</param>
+    /// <param name="justification">The justification for using this feature.</param>
+    [InjectableType]
+    public delegate void RegisterUnloadAfterDelegate(IEnumerable<Type> unloadAfter, string justification);
     
     /// <summary>
     /// Kinds of services.
@@ -126,6 +147,15 @@ internal static class ServiceManager
     }
 
     /// <summary>
+    /// Gets the concrete types of services, i.e. the non-abstract non-interface types.
+    /// </summary>
+    /// <returns>The enumerable of service types, that may be enumerated only once per call.</returns>
+    public static IEnumerable<Type> GetConcreteServiceTypes() =>
+        Assembly.GetExecutingAssembly()
+                .GetTypes()
+                .Where(x => x.IsAssignableTo(typeof(IServiceType)) && !x.IsInterface && !x.IsAbstract);
+
+    /// <summary>
     /// Kicks off construction of services that can handle early loading.
     /// </summary>
     /// <returns>Task for initializing all services.</returns>
@@ -141,7 +171,7 @@ internal static class ServiceManager
 
         var serviceContainer = Service<ServiceContainer>.Get();
 
-        foreach (var serviceType in Assembly.GetExecutingAssembly().GetTypes().Where(x => x.IsAssignableTo(typeof(IServiceType)) && !x.IsInterface && !x.IsAbstract))
+        foreach (var serviceType in GetConcreteServiceTypes())
         {
             var serviceKind = serviceType.GetServiceKind();
             Debug.Assert(serviceKind != ServiceKind.None, $"Service<{serviceType.FullName}> did not specify a kind");
@@ -157,7 +187,7 @@ internal static class ServiceManager
             
             var getTask = (Task)genericWrappedServiceType
                                 .InvokeMember(
-                                    "GetAsync",
+                                    nameof(Service<IServiceType>.GetAsync),
                                     BindingFlags.InvokeMethod | BindingFlags.Static | BindingFlags.Public,
                                     null,
                                     null,
@@ -184,17 +214,42 @@ internal static class ServiceManager
             }
 
             var typeAsServiceT = ServiceHelpers.GetAsService(serviceType);
-            dependencyServicesMap[serviceType] = ServiceHelpers.GetDependencies(typeAsServiceT)
+            dependencyServicesMap[serviceType] = ServiceHelpers.GetDependencies(typeAsServiceT, false)
                                                                .Select(x => typeof(Service<>).MakeGenericType(x))
                                                                .ToList();
         }
 
+        var blockerTasks = new List<Task>();
         _ = Task.Run(async () =>
         {
             try
             {
-                var whenBlockingComplete = Task.WhenAll(blockingEarlyLoadingServices.Select(x => getAsyncTaskMap[x]));
-                while (await Task.WhenAny(whenBlockingComplete, Task.Delay(30000)) != whenBlockingComplete)
+                // Wait for all blocking constructors to complete first.
+                await WaitWithTimeoutConsent(blockingEarlyLoadingServices.Select(x => getAsyncTaskMap[x]));
+
+                // All the BlockingEarlyLoadedService constructors have been run,
+                // and blockerTasks now will not change. Now wait for them.
+                // Note that ServiceManager.CallWhenServicesReady does not get to register a blocker.
+                await WaitWithTimeoutConsent(blockerTasks);
+
+                BlockingServicesLoadedTaskCompletionSource.SetResult();
+                Timings.Event("BlockingServices Initialized");
+            }
+            catch (Exception e)
+            {
+                BlockingServicesLoadedTaskCompletionSource.SetException(e);
+            }
+
+            return;
+
+            async Task WaitWithTimeoutConsent(IEnumerable<Task> tasksEnumerable)
+            {
+                var tasks = tasksEnumerable.AsReadOnlyCollection();
+                if (tasks.Count == 0)
+                    return;
+
+                var aggregatedTask = Task.WhenAll(tasks);
+                while (await Task.WhenAny(aggregatedTask, Task.Delay(120000)) != aggregatedTask)
                 {
                     if (NativeFunctions.MessageBoxW(
                             IntPtr.Zero,
@@ -208,13 +263,6 @@ internal static class ServiceManager
                             "and the user chose to continue without Dalamud.");                        
                     }
                 }
-
-                BlockingServicesLoadedTaskCompletionSource.SetResult();
-                Timings.Event("BlockingServices Initialized");
-            }
-            catch (Exception e)
-            {
-                BlockingServicesLoadedTaskCompletionSource.SetException(e);
             }
         }).ConfigureAwait(false);
 
@@ -249,6 +297,25 @@ internal static class ServiceManager
                     if (!hasDeps)
                         continue;
 
+                    // This object will be used in a task. Each task must receive a new object.
+                    var startLoaderArgs = new List<object>();
+                    if (serviceType.GetCustomAttribute<BlockingEarlyLoadedServiceAttribute>() is not null)
+                    {
+                        startLoaderArgs.Add(
+                            new RegisterStartupBlockerDelegate(
+                                (task, justification) =>
+                                {
+#if DEBUG
+                                    if (CurrentConstructorServiceType.Value != serviceType)
+                                        throw new InvalidOperationException("Forbidden.");
+#endif
+                                    blockerTasks.Add(task);
+
+                                    // No need to store the justification; the fact that the reason is specified is good enough.
+                                    _ = justification;
+                                }));
+                    }
+
                     tasks.Add((Task)typeof(Service<>)
                                     .MakeGenericType(serviceType)
                                     .InvokeMember(
@@ -256,7 +323,7 @@ internal static class ServiceManager
                                         BindingFlags.InvokeMethod | BindingFlags.Static | BindingFlags.NonPublic,
                                         null,
                                         null,
-                                        null));
+                                        new object[] { startLoaderArgs }));
                     servicesToLoad.Remove(serviceType);
 
 #if DEBUG
@@ -328,13 +395,13 @@ internal static class ServiceManager
 
         unloadResetEvent.Reset();
 
-        var dependencyServicesMap = new Dictionary<Type, List<Type>>();
+        var dependencyServicesMap = new Dictionary<Type, IReadOnlyCollection<Type>>();
         var allToUnload = new HashSet<Type>();
         var unloadOrder = new List<Type>();
         
         Log.Information("==== COLLECTING SERVICES TO UNLOAD ====");
         
-        foreach (var serviceType in Assembly.GetExecutingAssembly().GetTypes())
+        foreach (var serviceType in GetConcreteServiceTypes())
         {
             if (!serviceType.IsAssignableTo(typeof(IServiceType)))
                 continue;
@@ -347,7 +414,7 @@ internal static class ServiceManager
             Log.Verbose("Calling GetDependencyServices for '{ServiceName}'", serviceType.FullName!);
 
             var typeAsServiceT = ServiceHelpers.GetAsService(serviceType);
-            dependencyServicesMap[serviceType] = ServiceHelpers.GetDependencies(typeAsServiceT);
+            dependencyServicesMap[serviceType] = ServiceHelpers.GetDependencies(typeAsServiceT, true);
 
             allToUnload.Add(serviceType);
         }
@@ -541,11 +608,35 @@ internal static class ServiceManager
     }
 
     /// <summary>
-    /// Indicates that the method should be called when the services given in the constructor are ready.
+    /// Indicates that the method should be called when the services given in the marked method's parameters are ready.
+    /// This will be executed immediately after the constructor has run, if all services specified as its parameters
+    /// are already ready, or no parameter is given.
     /// </summary>
     [AttributeUsage(AttributeTargets.Method)]
     [MeansImplicitUse]
     public class CallWhenServicesReady : Attribute
+    {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="CallWhenServicesReady"/> class.
+        /// </summary>
+        /// <param name="justification">Specify the reason here.</param>
+        public CallWhenServicesReady(string justification)
+        {
+            // No need to store the justification; the fact that the reason is specified is good enough.
+            _ = justification;
+        }
+    }
+
+    /// <summary>
+    /// Indicates that something is a candidate for being considered as an injected parameter for constructors.
+    /// </summary>
+    [AttributeUsage(
+        AttributeTargets.Delegate
+        | AttributeTargets.Class
+        | AttributeTargets.Struct
+        | AttributeTargets.Enum
+        | AttributeTargets.Interface)]
+    public class InjectableTypeAttribute : Attribute
     {
     }
 }

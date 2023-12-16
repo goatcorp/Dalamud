@@ -37,6 +37,8 @@ internal unsafe class DutyState : IDisposable, IServiceType, IDutyState
 
         this.framework.Update += this.FrameworkOnUpdateEvent;
         this.clientState.TerritoryChanged += this.TerritoryOnChangedEvent;
+
+        this.contentDirectorNetworkMessageHook.Enable();
     }
 
     [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
@@ -65,12 +67,6 @@ internal unsafe class DutyState : IDisposable, IServiceType, IDutyState
         this.contentDirectorNetworkMessageHook.Dispose();
         this.framework.Update -= this.FrameworkOnUpdateEvent;
         this.clientState.TerritoryChanged -= this.TerritoryOnChangedEvent;
-    }
-
-    [ServiceManager.CallWhenServicesReady]
-    private void ContinueConstruction()
-    {
-        this.contentDirectorNetworkMessageHook.Enable();
     }
 
     private byte ContentDirectorNetworkMessageDetour(IntPtr a1, IntPtr a2, ushort* a3)
