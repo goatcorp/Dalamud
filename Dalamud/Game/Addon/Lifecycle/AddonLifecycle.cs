@@ -38,9 +38,6 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
     private readonly Hook<AddonOnRefreshDelegate> onAddonRefreshHook;
     private readonly CallHook<AddonOnRequestedUpdateDelegate> onAddonRequestedUpdateHook;
 
-    private readonly ConcurrentBag<AddonLifecycleEventListener> newEventListeners = new();
-    private readonly ConcurrentBag<AddonLifecycleEventListener> removeEventListeners = new();
-
     // Note: these can be sourced from ObjectPool of appropriate types instead, but since we don't import that NuGet
     // package, and these events are always called from the main thread, this is fine.
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -61,8 +58,6 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
 
         // We want value of the function pointer at vFunc[2]
         this.disallowedReceiveEventAddress = ((nint*)this.address.AtkEventListener)![2];
-        
-        this.framework.Update += this.OnFrameworkUpdate;
 
         this.onAddonSetupHook = new CallHook<AddonSetupDelegate>(this.address.AddonSetup, this.OnAddonSetup);
         this.onAddonSetup2Hook = new CallHook<AddonSetupDelegate>(this.address.AddonSetup2, this.OnAddonSetup);
@@ -106,8 +101,6 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
     /// <inheritdoc/>
     public void Dispose()
     {
-        this.framework.Update -= this.OnFrameworkUpdate;
-
         this.onAddonSetupHook.Dispose();
         this.onAddonSetup2Hook.Dispose();
         this.onAddonFinalizeHook.Dispose();
@@ -128,7 +121,10 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
     /// <param name="listener">The listener to register.</param>
     internal void RegisterListener(AddonLifecycleEventListener listener)
     {
-        this.newEventListeners.Add(listener);
+        this.framework.RunOnFrameworkThread(() =>
+        {
+            this.EventListeners.Add(listener);
+        });
     }
 
     /// <summary>
@@ -137,7 +133,10 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
     /// <param name="listener">The listener to unregister.</param>
     internal void UnregisterListener(AddonLifecycleEventListener listener)
     {
-        this.removeEventListeners.Add(listener);
+        this.framework.RunOnFrameworkThread(() =>
+        {
+            this.EventListeners.Remove(listener);
+        });
     }
 
     /// <summary>
@@ -166,54 +165,6 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
             {
                 Log.Error(e, $"Exception in {blame} during {eventType} invoke.");
             }
-        }
-    }
-
-    // Used to prevent concurrency issues if plugins try to register during iteration of listeners.
-    private void OnFrameworkUpdate(IFramework unused)
-    {
-        if (this.newEventListeners.Any())
-        {
-            foreach (var toAddListener in this.newEventListeners)
-            {
-                this.EventListeners.Add(toAddListener);
-
-                // If we want receive event messages have an already active addon, enable the receive event hook.
-                // If the addon isn't active yet, we'll grab the hook when it sets up.
-                if (toAddListener is { EventType: AddonEvent.PreReceiveEvent or AddonEvent.PostReceiveEvent })
-                {
-                    if (this.ReceiveEventListeners.FirstOrDefault(listener => listener.AddonNames.Contains(toAddListener.AddonName)) is { } receiveEventListener)
-                    {
-                        receiveEventListener.Hook?.Enable();
-                    }
-                }
-            }
-            
-            this.newEventListeners.Clear();
-        }
-
-        if (this.removeEventListeners.Any())
-        {
-            foreach (var toRemoveListener in this.removeEventListeners)
-            {
-                this.EventListeners.Remove(toRemoveListener);
-                
-                // If we are disabling an ReceiveEvent listener, check if we should disable the hook.
-                if (toRemoveListener is { EventType: AddonEvent.PreReceiveEvent or AddonEvent.PostReceiveEvent })
-                {
-                    // Get the ReceiveEvent Listener for this addon
-                    if (this.ReceiveEventListeners.FirstOrDefault(listener => listener.AddonNames.Contains(toRemoveListener.AddonName)) is { } receiveEventListener)
-                    {
-                        // If there are no other listeners listening for this event, disable the hook.
-                        if (!this.EventListeners.Any(listener => listener.AddonName.Contains(toRemoveListener.AddonName) && listener.EventType is AddonEvent.PreReceiveEvent or AddonEvent.PostReceiveEvent))
-                        {
-                            receiveEventListener.Hook?.Disable();
-                        }
-                    }
-                }
-            }
-
-            this.removeEventListeners.Clear();
         }
     }
 
