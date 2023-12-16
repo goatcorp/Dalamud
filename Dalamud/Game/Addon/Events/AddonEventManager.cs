@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Linq;
 
 using Dalamud.Game.Addon.Lifecycle;
@@ -31,12 +32,17 @@ internal unsafe class AddonEventManager : IDisposable, IServiceType
     [ServiceManager.ServiceDependency]
     private readonly AddonLifecycle addonLifecycle = Service<AddonLifecycle>.Get();
 
+    [ServiceManager.ServiceDependency]
+    private readonly Framework framework = Service<Framework>.Get();
+    
     private readonly AddonLifecycleEventListener finalizeEventListener;
     
     private readonly AddonEventManagerAddressResolver address;
     private readonly Hook<UpdateCursorDelegate> onUpdateCursor;
 
     private readonly List<PluginEventController> pluginEventControllers;
+    private readonly ConcurrentBag<PluginEventController> newEventControllers = new();
+    private readonly ConcurrentBag<PluginEventController> oldEventControllers = new();
     
     private AddonCursorType? cursorOverride;
     
@@ -59,6 +65,8 @@ internal unsafe class AddonEventManager : IDisposable, IServiceType
         this.addonLifecycle.RegisterListener(this.finalizeEventListener);
 
         this.onUpdateCursor.Enable();
+        
+        this.framework.Update += this.OnFrameworkUpdate;
     }
 
     private delegate nint UpdateCursorDelegate(RaptureAtkModule* module);
@@ -66,6 +74,8 @@ internal unsafe class AddonEventManager : IDisposable, IServiceType
     /// <inheritdoc/>
     public void Dispose()
     {
+        this.framework.Update -= this.OnFrameworkUpdate;
+        
         this.onUpdateCursor.Dispose();
 
         foreach (var pluginEventController in this.pluginEventControllers)
@@ -133,7 +143,7 @@ internal unsafe class AddonEventManager : IDisposable, IServiceType
         if (this.pluginEventControllers.All(entry => entry.PluginId != pluginId))
         {
             Log.Verbose($"Creating new PluginEventController for: {pluginId}");
-            this.pluginEventControllers.Add(new PluginEventController(pluginId));
+            this.newEventControllers.Add(new PluginEventController(pluginId));
         }
     }
 
@@ -146,11 +156,34 @@ internal unsafe class AddonEventManager : IDisposable, IServiceType
         if (this.pluginEventControllers.FirstOrDefault(entry => entry.PluginId == pluginId) is { } controller)
         {
             Log.Verbose($"Removing PluginEventController for: {pluginId}");
-            this.pluginEventControllers.Remove(controller);
+            this.oldEventControllers.Add(controller);
             controller.Dispose();
         }
     }
+    
+    private void OnFrameworkUpdate(IFramework framework1)
+    {
+        if (this.newEventControllers.Any())
+        {
+            foreach (var toAdd in this.newEventControllers)
+            {
+                this.pluginEventControllers.Add(toAdd);
+            }
+        
+            this.newEventControllers.Clear();  
+        }
 
+        if (this.oldEventControllers.Any())
+        {
+            foreach (var toRemove in this.oldEventControllers)
+            {
+                this.pluginEventControllers.Remove(toRemove);
+            }
+        
+            this.oldEventControllers.Clear();
+        }
+    }
+    
     /// <summary>
     /// When an addon finalizes, check it for any registered events, and unregister them.
     /// </summary>
