@@ -157,7 +157,6 @@ internal unsafe class AddonEventManager : IDisposable, IServiceType
         {
             Log.Verbose($"Removing PluginEventController for: {pluginId}");
             this.oldEventControllers.Add(controller);
-            controller.Dispose();
         }
     }
     
@@ -178,6 +177,7 @@ internal unsafe class AddonEventManager : IDisposable, IServiceType
             foreach (var toRemove in this.oldEventControllers)
             {
                 this.pluginEventControllers.Remove(toRemove);
+                toRemove.Dispose();
             }
         
             this.oldEventControllers.Clear();
