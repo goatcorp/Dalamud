@@ -121,7 +121,7 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
     /// <param name="listener">The listener to register.</param>
     internal void RegisterListener(AddonLifecycleEventListener listener)
     {
-        this.framework.RunOnFrameworkThread(() =>
+        this.framework.RunOnTick(() =>
         {
             this.EventListeners.Add(listener);
             
@@ -143,7 +143,7 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
     /// <param name="listener">The listener to unregister.</param>
     internal void UnregisterListener(AddonLifecycleEventListener listener)
     {
-        this.framework.RunOnFrameworkThread(() =>
+        this.framework.RunOnTick(() =>
         {
             this.EventListeners.Remove(listener);
             
