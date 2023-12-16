@@ -4,7 +4,7 @@
         <TargetFramework>net8.0-windows</TargetFramework>
         <PlatformTarget>x64</PlatformTarget>
         <Platforms>x64;AnyCPU</Platforms>
-        <LangVersion>11.0</LangVersion>
+        <LangVersion>12.0</LangVersion>
     </PropertyGroup>
 
     <PropertyGroup Label="Feature">
