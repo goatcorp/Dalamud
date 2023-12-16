@@ -9,6 +9,8 @@ using Dalamud.IoC.Internal;
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Plugin.Services;
+using Dalamud.Utility;
+
 using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 
@@ -31,6 +33,9 @@ internal unsafe class AddonEventManager : IDisposable, IServiceType
     [ServiceManager.ServiceDependency]
     private readonly AddonLifecycle addonLifecycle = Service<AddonLifecycle>.Get();
 
+    [ServiceManager.ServiceDependency]
+    private readonly Framework framework = Service<Framework>.Get();
+    
     private readonly AddonLifecycleEventListener finalizeEventListener;
     
     private readonly AddonEventManagerAddressResolver address;
@@ -87,6 +92,8 @@ internal unsafe class AddonEventManager : IDisposable, IServiceType
     /// <returns>IAddonEventHandle used to remove the event.</returns>
     internal IAddonEventHandle? AddEvent(string pluginId, IntPtr atkUnitBase, IntPtr atkResNode, AddonEventType eventType, IAddonEventManager.AddonEventHandler eventHandler)
     {
+        if (!ThreadSafety.IsMainThread) throw new InvalidOperationException("This should be done only from the main thread. Modifying active native code on non-main thread is not supported.");
+        
         if (this.pluginEventControllers.FirstOrDefault(entry => entry.PluginId == pluginId) is { } eventController)
         {
             return eventController.AddEvent(atkUnitBase, atkResNode, eventType, eventHandler);
@@ -103,6 +110,8 @@ internal unsafe class AddonEventManager : IDisposable, IServiceType
     /// <param name="eventHandle">The Unique Id for this event.</param>
     internal void RemoveEvent(string pluginId, IAddonEventHandle eventHandle)
     {
+        if (!ThreadSafety.IsMainThread) throw new InvalidOperationException("This should be done only from the main thread. Modifying active native code on non-main thread is not supported.");
+        
         if (this.pluginEventControllers.FirstOrDefault(entry => entry.PluginId == pluginId) is { } eventController)
         {
             eventController.RemoveEvent(eventHandle);
@@ -130,11 +139,14 @@ internal unsafe class AddonEventManager : IDisposable, IServiceType
     /// <param name="pluginId">Unique ID for this plugin.</param>
     internal void AddPluginEventController(string pluginId)
     {
-        if (this.pluginEventControllers.All(entry => entry.PluginId != pluginId))
+        this.framework.RunOnFrameworkThread(() =>
         {
-            Log.Verbose($"Creating new PluginEventController for: {pluginId}");
-            this.pluginEventControllers.Add(new PluginEventController(pluginId));
-        }
+            if (this.pluginEventControllers.All(entry => entry.PluginId != pluginId))
+            {
+                Log.Verbose($"Creating new PluginEventController for: {pluginId}");
+                this.pluginEventControllers.Add(new PluginEventController(pluginId));
+            }
+        });
     }
 
     /// <summary>
@@ -143,12 +155,15 @@ internal unsafe class AddonEventManager : IDisposable, IServiceType
     /// <param name="pluginId">Unique ID for this plugin.</param>
     internal void RemovePluginEventController(string pluginId)
     {
-        if (this.pluginEventControllers.FirstOrDefault(entry => entry.PluginId == pluginId) is { } controller)
+        this.framework.RunOnFrameworkThread(() =>
         {
-            Log.Verbose($"Removing PluginEventController for: {pluginId}");
-            this.pluginEventControllers.Remove(controller);
-            controller.Dispose();
-        }
+            if (this.pluginEventControllers.FirstOrDefault(entry => entry.PluginId == pluginId) is { } controller)
+            {
+                Log.Verbose($"Removing PluginEventController for: {pluginId}");
+                this.pluginEventControllers.Remove(controller);
+                controller.Dispose();
+            }
+        });
     }
 
     /// <summary>
