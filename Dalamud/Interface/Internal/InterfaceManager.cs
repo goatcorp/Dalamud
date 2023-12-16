@@ -1063,14 +1063,10 @@ internal class InterfaceManager : IDisposable, IServiceType
         }
     }
 
-    [ServiceManager.CallWhenServicesReady]
-    private void ContinueConstruction(
-        TargetSigScanner sigScanner,
-        DalamudAssetManager dalamudAssetManager,
-        DalamudConfiguration configuration)
+    [ServiceManager.CallWhenServicesReady(
+        "InterfaceManager accepts event registration and stuff even when the game window is not ready.")]
+    private void ContinueConstruction(TargetSigScanner sigScanner, DalamudConfiguration configuration)
     {
-        dalamudAssetManager.WaitForAllRequiredAssets().Wait();
-
         this.address.Setup(sigScanner);
         this.framework.RunOnFrameworkThread(() =>
         {

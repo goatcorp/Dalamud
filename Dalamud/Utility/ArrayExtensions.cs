@@ -87,4 +87,14 @@ internal static class ArrayExtensions
         result = default;
         return false;
     }
+
+    /// <summary>
+    /// Interprets the given array as an <see cref="IReadOnlyCollection{T}"/>, so that you can enumerate it multiple
+    /// times, and know the number of elements within.
+    /// </summary>
+    /// <param name="array">The enumerable.</param>
+    /// <typeparam name="T">The element type.</typeparam>
+    /// <returns><paramref name="array"/> casted as a <see cref="IReadOnlyCollection{T}"/> if it is one; otherwise the result of <see cref="Enumerable.ToArray{TSource}"/>.</returns>
+    public static IReadOnlyCollection<T> AsReadOnlyCollection<T>(this IEnumerable<T> array) =>
+        array as IReadOnlyCollection<T> ?? array.ToArray();
 }

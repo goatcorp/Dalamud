@@ -1,9 +1,7 @@
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Reflection;
 
 using Dalamud.Plugin.Ipc.Exceptions;
 using Serilog;
@@ -16,7 +14,11 @@ namespace Dalamud.Plugin.Ipc.Internal;
 [ServiceManager.BlockingEarlyLoadedService]
 internal class DataShare : IServiceType
 {
-    private readonly Dictionary<string, DataCache> caches = new();
+    /// <summary>
+    /// Dictionary of cached values. Note that <see cref="Lazy{T}"/> is being used, as it does its own locking,
+    /// effectively preventing calling the data generator multiple times concurrently.
+    /// </summary>
+    private readonly Dictionary<string, Lazy<DataCache>> caches = new();
 
     [ServiceManager.ServiceConstructor]
     private DataShare()
@@ -39,38 +41,15 @@ internal class DataShare : IServiceType
         where T : class
     {
         var callerName = GetCallerName();
+
+        Lazy<DataCache> cacheLazy;
         lock (this.caches)
         {
-            if (this.caches.TryGetValue(tag, out var cache))
-            {
-                if (!cache.Type.IsAssignableTo(typeof(T)))
-                {
-                    throw new DataCacheTypeMismatchError(tag, cache.CreatorAssemblyName, typeof(T), cache.Type);
-                }
-
-                cache.UserAssemblyNames.Add(callerName);
-                return cache.Data as T ?? throw new DataCacheValueNullError(tag, cache.Type);
-            }
-
-            try
-            {
-                var obj = dataGenerator.Invoke();
-                if (obj == null)
-                {
-                    throw new Exception("Returned data was null.");
-                }
-
-                cache = new DataCache(callerName, obj, typeof(T));
-                this.caches[tag] = cache;
-
-                Log.Verbose("[DataShare] Created new data for [{Tag:l}] for creator {Creator:l}.", tag, callerName);
-                return obj;
-            }
-            catch (Exception e)
-            {
-                throw new DataCacheCreationError(tag, callerName, typeof(T), e);
-            }
+            if (!this.caches.TryGetValue(tag, out cacheLazy))
+                this.caches[tag] = cacheLazy = new(() => DataCache.From(tag, callerName, dataGenerator));
         }
+
+        return cacheLazy.Value.TryGetData<T>(callerName, out var value, out var ex) ? value : throw ex;
     }
 
     /// <summary>
@@ -80,34 +59,36 @@ internal class DataShare : IServiceType
     /// <param name="tag">The name for the data cache.</param>
     public void RelinquishData(string tag)
     {
+        DataCache cache;
         lock (this.caches)
         {
-            if (!this.caches.TryGetValue(tag, out var cache))
-            {
+            if (!this.caches.TryGetValue(tag, out var cacheLazy))
                 return;
-            }
 
             var callerName = GetCallerName();
-            lock (this.caches)
-            {
-                if (!cache.UserAssemblyNames.Remove(callerName) || cache.UserAssemblyNames.Count > 0)
-                {
-                    return;
-                }
 
-                if (this.caches.Remove(tag))
-                {
-                    if (cache.Data is IDisposable disposable)
-                    {
-                        disposable.Dispose();
-                        Log.Verbose("[DataShare] Disposed [{Tag:l}] after it was removed from all shares.", tag);
-                    }
-                    else
-                    {
-                        Log.Verbose("[DataShare] Removed [{Tag:l}] from all shares.", tag);
-                    }
-                }
+            cache = cacheLazy.Value;
+            if (!cache.UserAssemblyNames.Remove(callerName) || cache.UserAssemblyNames.Count > 0)
+                return;
+            if (!this.caches.Remove(tag))
+                return;
+        }
+
+        if (cache.Data is IDisposable disposable)
+        {
+            try
+            {
+                disposable.Dispose();
+                Log.Verbose("[DataShare] Disposed [{Tag:l}] after it was removed from all shares.", tag);
             }
+            catch (Exception e)
+            {
+                Log.Error(e, "[DataShare] Failed to dispose [{Tag:l}] after it was removed from all shares.", tag);                
+            }
+        }
+        else
+        {
+            Log.Verbose("[DataShare] Removed [{Tag:l}] from all shares.", tag);
         }
     }
 
@@ -123,23 +104,14 @@ internal class DataShare : IServiceType
         where T : class
     {
         data = null;
+        Lazy<DataCache> cacheLazy;
         lock (this.caches)
         {
-            if (!this.caches.TryGetValue(tag, out var cache) || !cache.Type.IsAssignableTo(typeof(T)))
-            {
+            if (!this.caches.TryGetValue(tag, out cacheLazy))
                 return false;
-            }
-
-            var callerName = GetCallerName();
-            data = cache.Data as T;
-            if (data == null)
-            {
-                return false;
-            }
-
-            cache.UserAssemblyNames.Add(callerName);
-            return true;
         }
+
+        return cacheLazy.Value.TryGetData(GetCallerName(), out data, out _);
     }
 
     /// <summary>
@@ -155,27 +127,14 @@ internal class DataShare : IServiceType
     public T GetData<T>(string tag)
         where T : class
     {
+        Lazy<DataCache> cacheLazy;
         lock (this.caches)
         {
-            if (!this.caches.TryGetValue(tag, out var cache))
-            {
+            if (!this.caches.TryGetValue(tag, out cacheLazy))
                 throw new KeyNotFoundException($"The data cache [{tag}] is not registered.");
-            }
-
-            var callerName = Assembly.GetCallingAssembly().GetName().Name ?? string.Empty;
-            if (!cache.Type.IsAssignableTo(typeof(T)))
-            {
-                throw new DataCacheTypeMismatchError(tag, callerName, typeof(T), cache.Type);
-            }
-
-            if (cache.Data is not T data)
-            {
-                throw new DataCacheValueNullError(tag, typeof(T));
-            }
-
-            cache.UserAssemblyNames.Add(callerName);
-            return data;
         }
+
+        return cacheLazy.Value.TryGetData<T>(GetCallerName(), out var value, out var ex) ? value : throw ex;
     }
 
     /// <summary>
@@ -186,7 +145,8 @@ internal class DataShare : IServiceType
     {
         lock (this.caches)
         {
-            return this.caches.Select(kvp => (kvp.Key, kvp.Value.CreatorAssemblyName, kvp.Value.UserAssemblyNames.ToArray()));
+            return this.caches.Select(
+                kvp => (kvp.Key, kvp.Value.Value.CreatorAssemblyName, kvp.Value.Value.UserAssemblyNames.ToArray()));
         }
     }
 
