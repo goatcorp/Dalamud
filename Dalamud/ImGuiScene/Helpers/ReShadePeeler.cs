@@ -115,12 +115,12 @@ internal static unsafe class ReShadePeeler
     private static bool IsReShadedComObject<T>(T* obj)
         where T : unmanaged, IUnknown.Interface
     {
-        var vtbl = (nint*)((IUnknown*)obj)->lpVtbl;
         try
         {
+            var vtbl = (nint**)Marshal.ReadIntPtr((nint)obj);
             for (var i = 0; i < 3; i++)
             {
-                if (!BelongsInReShadeDll(Marshal.ReadIntPtr((nint)(&vtbl[i]))))
+                if (!BelongsInReShadeDll(Marshal.ReadIntPtr((nint)(vtbl + i))))
                     return false;
             }
 
