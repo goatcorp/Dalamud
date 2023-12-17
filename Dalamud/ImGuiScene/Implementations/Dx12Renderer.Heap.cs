@@ -10,8 +10,6 @@ using TerraFX.Interop;
 using TerraFX.Interop.DirectX;
 using TerraFX.Interop.Windows;
 
-using Win32 = TerraFX.Interop.Windows.Windows;
-
 namespace Dalamud.ImGuiScene.Implementations;
 
 /// <summary>
@@ -198,9 +196,10 @@ internal unsafe partial class Dx12Renderer
 
                     fixed (Guid* piid = &IID.IID_ID3D12Heap)
                     fixed (D3D12_HEAP_DESC* pDesc = &desc)
+                    fixed (ID3D12Heap** ppHeap = &this.heap.GetPinnableReference())
                     fixed (void* pName = $"{debugName} ({Util.FormatBytes((long)desc.SizeInBytes)})")
                     {
-                        device->CreateHeap(pDesc, piid, (void**)this.heap.GetAddressOf()).ThrowHr();
+                        device->CreateHeap(pDesc, piid, (void**)ppHeap).ThrowHr();
                         this.heap.Get()->SetName((ushort*)pName).ThrowHr();
                     }
 

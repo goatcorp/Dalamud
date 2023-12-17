@@ -24,7 +24,7 @@ namespace Dalamud.Interface.Internal;
 /// <summary>
 /// This class handles CJK IME.
 /// </summary>
-[ServiceManager.EarlyLoadedService]
+[ServiceManager.BlockingEarlyLoadedService]
 internal sealed unsafe class DalamudIme : IDisposable, IServiceType
 {
     private static readonly ModuleLog Log = new("IME");
@@ -142,6 +142,7 @@ internal sealed unsafe class DalamudIme : IDisposable, IServiceType
     /// </summary>
     internal char InputModeIcon { get; private set; }
 
+    // TODO: include imgui_internal.h in ImGui.NET code generator
     private static ref ImGuiInputTextState TextState => ref *(ImGuiInputTextState*)(ImGui.GetCurrentContext() + 0x4588);
 
     /// <inheritdoc/>

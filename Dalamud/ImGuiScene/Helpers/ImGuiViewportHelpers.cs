@@ -143,6 +143,7 @@ internal static class ImGuiViewportHelpers
     /// </summary>
     public static unsafe void EnableViewportWindowBackgroundAlpha()
     {
+        // TODO: patch imgui.cpp:6126, which disables background transparency for extra viewport windows
         var offset = 0x00007FFB6ADA632C - 0x00007FFB6AD60000;
         offset += Process.GetCurrentProcess().Modules.Cast<ProcessModule>().First(x => x.ModuleName == "cimgui.dll")
                          .BaseAddress;

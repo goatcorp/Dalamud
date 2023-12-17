@@ -26,9 +26,11 @@ using Dalamud.Interface.Windowing;
 using Dalamud.Storage.Assets;
 using Dalamud.Utility;
 using Dalamud.Utility.Timing;
+
 using ImGuiNET;
-using PInvoke;
+
 using Serilog;
+
 using TerraFX.Interop.DirectX;
 using TerraFX.Interop.Windows;
 
@@ -106,10 +108,10 @@ internal class InterfaceManager : IDisposable, IServiceType
         this.address = new SwapChainVtableResolver();
     }
 
-    [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
+    [UnmanagedFunctionPointer(CallingConvention.StdCall)]
     private unsafe delegate HRESULT PresentDelegate(IDXGISwapChain* swapChain, uint syncInterval, uint presentFlags);
 
-    [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
+    [UnmanagedFunctionPointer(CallingConvention.StdCall)]
     private unsafe delegate HRESULT ResizeBuffersDelegate(IDXGISwapChain* swapChain, uint bufferCount, uint width, uint height, uint newFormat, uint swapChainFlags);
 
     [UnmanagedFunctionPointer(CallingConvention.StdCall)]
