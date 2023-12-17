@@ -439,7 +439,7 @@ internal sealed unsafe class DalamudIme : IDisposable, IServiceType
         ref var textState = ref TextState;
         textState.Stb.Cursor = textState.Stb.SelectStart = textState.Stb.SelectEnd;
 
-        Log.Information($"{nameof(this.ClearState)}");
+        // Log.Information($"{nameof(this.ClearState)}");
     }
 
     private void LoadCand(HIMC hImc)

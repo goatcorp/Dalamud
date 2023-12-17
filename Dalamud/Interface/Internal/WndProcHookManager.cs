@@ -112,19 +112,21 @@ internal sealed class WndProcHookManager : IServiceType, IDisposable
 
         if (uMsg == this.unhookSelfMessage)
         {
-            // Remove self from the chain.
-            SetWindowLongPtrW(hwnd, GWLP.GWLP_WNDPROC, nextProc);
-            lock (this.wndProcNextDict)
-                this.wndProcNextDict.Remove(hwnd);
-
             // Even though this message is dedicated for our processing,
             // satisfy the expectations by calling the next window procedure.
-            return CallWindowProcW(
+            var rv = CallWindowProcW(
                 (delegate* unmanaged<HWND, uint, WPARAM, LPARAM, LRESULT>)nextProc,
                 hwnd,
                 uMsg,
                 wParam,
                 lParam);
+
+            // Remove self from the chain.
+            SetWindowLongPtrW(hwnd, GWLP.GWLP_WNDPROC, nextProc);
+            lock (this.wndProcNextDict)
+                this.wndProcNextDict.Remove(hwnd);
+
+            return rv;
         }
 
         var arg = new WndProcOverrideEventArgs(hwnd, ref uMsg, ref wParam, ref lParam);
