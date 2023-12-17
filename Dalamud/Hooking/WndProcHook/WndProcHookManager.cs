@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
+using Dalamud.Interface.Internal;
 using Dalamud.Interface.Utility;
 using Dalamud.Logging.Internal;
 
@@ -21,6 +22,8 @@ internal sealed class WndProcHookManager : IServiceType, IDisposable
     private readonly Hook<DispatchMessageWDelegate> dispatchMessageWHook;
     private readonly Dictionary<HWND, WndProcEventArgs> wndProcOverrides = new();
 
+    private HWND mainWindowHwnd;
+
     [ServiceManager.ServiceConstructor]
     private unsafe WndProcHookManager()
     {
@@ -31,6 +34,12 @@ internal sealed class WndProcHookManager : IServiceType, IDisposable
             0,
             this.DispatchMessageWDetour);
         this.dispatchMessageWHook.Enable();
+
+        // Capture the game main window handle,
+        // so that no guarantees would have to be made on the service dispose order. 
+        Service<InterfaceManager.InterfaceManagerWithScene>
+            .GetAsync()
+            .ContinueWith(r => this.mainWindowHwnd = (HWND)r.Result.Manager.GameWindowHandle);
     }
 
     [UnmanagedFunctionPointer(CallingConvention.StdCall)]
@@ -49,7 +58,19 @@ internal sealed class WndProcHookManager : IServiceType, IDisposable
     /// <inheritdoc/>
     public void Dispose()
     {
+        if (this.dispatchMessageWHook.IsDisposed)
+            return;
+
         this.dispatchMessageWHook.Dispose();
+
+        // Ensure that either we're on the main thread, or DispatchMessage is executed at least once.
+        // The game calls DispatchMessageW only from its main thread, so if we're already on one,
+        // this line does nothing; if not, it will require a cycle of GetMessage ... DispatchMessageW,
+        // which at the point of returning from DispatchMessageW(=point of returning from SendMessageW),
+        // the hook would be guaranteed to be fully disabled and detour delegate would be safe to be released.
+        SendMessageW(this.mainWindowHwnd, WM.WM_NULL, 0, 0);
+
+        // Now this.wndProcOverrides cannot be touched from other thread.
         foreach (var v in this.wndProcOverrides.Values)
             v.InternalRelease();
         this.wndProcOverrides.Clear();
