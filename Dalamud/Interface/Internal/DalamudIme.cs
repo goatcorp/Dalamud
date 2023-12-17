@@ -8,6 +8,7 @@ using System.Text;
 using System.Text.Unicode;
 
 using Dalamud.Game.Text;
+using Dalamud.Hooking.WndProcHook;
 using Dalamud.Interface.GameFonts;
 using Dalamud.Interface.Utility;
 using Dalamud.Logging.Internal;
@@ -77,6 +78,8 @@ internal sealed unsafe class DalamudIme : IDisposable, IServiceType
     {
         get
         {
+            if (!ImGuiHelpers.IsImGuiInitialized)
+                return true;
             if (!ImGui.GetIO().ConfigInputTextCursorBlink)
                 return true;
             ref var textState = ref TextState;
@@ -185,7 +188,7 @@ internal sealed unsafe class DalamudIme : IDisposable, IServiceType
     /// Processes window messages.
     /// </summary>
     /// <param name="args">The arguments.</param>
-    public void ProcessImeMessage(ref WndProcHookManager.WndProcOverrideEventArgs args)
+    public void ProcessImeMessage(WndProcEventArgs args)
     {
         if (!ImGuiHelpers.IsImGuiInitialized)
             return;
@@ -208,11 +211,11 @@ internal sealed unsafe class DalamudIme : IDisposable, IServiceType
                     when (nint)args.WParam is IMN.IMN_OPENCANDIDATE or IMN.IMN_CLOSECANDIDATE
                          or IMN.IMN_CHANGECANDIDATE:
                     this.UpdateImeWindowStatus(hImc);
-                    args.SuppressAndReturn(0);
+                    args.SuppressWithValue(0);
                     break;
 
                 case WM.WM_IME_STARTCOMPOSITION:
-                    args.SuppressAndReturn(0);
+                    args.SuppressWithValue(0);
                     break;
 
                 case WM.WM_IME_COMPOSITION:
@@ -222,22 +225,22 @@ internal sealed unsafe class DalamudIme : IDisposable, IServiceType
                         this.ReplaceCompositionString(hImc, (uint)args.LParam);
 
                     // Log.Verbose($"{nameof(WM.WM_IME_COMPOSITION)}({(nint)args.LParam:X}): {this.ImmComp}");
-                    args.SuppressAndReturn(0);
+                    args.SuppressWithValue(0);
                     break;
 
                 case WM.WM_IME_ENDCOMPOSITION:
                     // Log.Verbose($"{nameof(WM.WM_IME_ENDCOMPOSITION)}({(nint)args.WParam:X}, {(nint)args.LParam:X}): {this.ImmComp}");
-                    args.SuppressAndReturn(0);
+                    args.SuppressWithValue(0);
                     break;
 
                 case WM.WM_IME_CONTROL:
                     // Log.Verbose($"{nameof(WM.WM_IME_CONTROL)}({(nint)args.WParam:X}, {(nint)args.LParam:X}): {this.ImmComp}");
-                    args.SuppressAndReturn(0);
+                    args.SuppressWithValue(0);
                     break;
 
                 case WM.WM_IME_REQUEST:
                     // Log.Verbose($"{nameof(WM.WM_IME_REQUEST)}({(nint)args.WParam:X}, {(nint)args.LParam:X}): {this.ImmComp}");
-                    args.SuppressAndReturn(0);
+                    args.SuppressWithValue(0);
                     break;
 
                 case WM.WM_IME_SETCONTEXT:
@@ -298,7 +301,11 @@ internal sealed unsafe class DalamudIme : IDisposable, IServiceType
         return new(data, 0, numBytes / 2);
     }
 
-    private void ReleaseUnmanagedResources() => ImGui.GetIO().SetPlatformImeDataFn = nint.Zero;
+    private void ReleaseUnmanagedResources()
+    {
+        if (ImGuiHelpers.IsImGuiInitialized)
+            ImGui.GetIO().SetPlatformImeDataFn = nint.Zero;
+    }
 
     private void UpdateInputLanguage(HIMC hImc)
     {
@@ -492,8 +499,16 @@ internal sealed unsafe class DalamudIme : IDisposable, IServiceType
     }
 
     [ServiceManager.CallWhenServicesReady("Effectively waiting for cimgui.dll to become available.")]
-    private void ContinueConstruction(InterfaceManager.InterfaceManagerWithScene interfaceManagerWithScene) =>
+    private void ContinueConstruction(InterfaceManager.InterfaceManagerWithScene interfaceManagerWithScene)
+    {
+        if (!ImGuiHelpers.IsImGuiInitialized)
+        {
+            throw new InvalidOperationException(
+                $"Expected {nameof(InterfaceManager.InterfaceManagerWithScene)} to have initialized ImGui.");
+        }
+
         ImGui.GetIO().SetPlatformImeDataFn = Marshal.GetFunctionPointerForDelegate(this.setPlatformImeDataDelegate);
+    }
 
     /// <summary>
     /// Ported from imstb_textedit.h.

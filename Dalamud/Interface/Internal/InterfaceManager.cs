@@ -15,6 +15,7 @@ using Dalamud.Game.ClientState.GamePad;
 using Dalamud.Game.ClientState.Keys;
 using Dalamud.Game.Internal.DXGI;
 using Dalamud.Hooking;
+using Dalamud.Hooking.WndProcHook;
 using Dalamud.Interface.GameFonts;
 using Dalamud.Interface.Internal.ManagedAsserts;
 using Dalamud.Interface.Internal.Notifications;
@@ -659,16 +660,13 @@ internal class InterfaceManager : IDisposable, IServiceType
         this.wndProcHookManager.PreWndProc += this.WndProcHookManagerOnPreWndProc;
     }
 
-    private unsafe void WndProcHookManagerOnPreWndProc(ref WndProcHookManager.WndProcOverrideEventArgs args)
+    private unsafe void WndProcHookManagerOnPreWndProc(WndProcEventArgs args)
     {
         var r = this.scene?.ProcessWndProcW(args.Hwnd, (User32.WindowMessage)args.Message, args.WParam, args.LParam);
         if (r is not null)
-        {
-            args.ReturnValue = r.Value;
-            args.SuppressCall = true;
-        }
+            args.SuppressWithValue(r.Value);
 
-        this.dalamudIme.ProcessImeMessage(ref args);
+        this.dalamudIme.ProcessImeMessage(args);
     }
 
     /*
