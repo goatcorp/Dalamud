@@ -5,35 +5,12 @@
 #include "utils.h"
 #include "veh.h"
 #include "xivfixes.h"
-//
-// #include <d3d11.h>
-//
-// #include "hooks.h"
 
 HMODULE g_hModule;
 HINSTANCE g_hGameInstance = GetModuleHandleW(nullptr);
 
 DWORD WINAPI InitializeImpl(LPVOID lpParam, HANDLE hMainThreadContinue) {
     g_startInfo.from_envvars();
-    //
-    // static std::optional<hooks::import_hook<decltype(D3D11CreateDevice)>> s_hookD3D11CreateDevice;
-    // s_hookD3D11CreateDevice.emplace("d3d11.dll!D3D11CreateDevice", "d3d11.dll", "D3D11CreateDevice", 0);
-    // s_hookD3D11CreateDevice->set_detour(
-    // [](
-    //     _In_opt_ IDXGIAdapter* pAdapter,
-    //     D3D_DRIVER_TYPE DriverType,
-    //     HMODULE Software,
-    //     UINT Flags,
-    //     _In_reads_opt_( FeatureLevels ) CONST D3D_FEATURE_LEVEL* pFeatureLevels,
-    //     UINT FeatureLevels,
-    //     UINT SDKVersion,
-    //     _COM_Outptr_opt_ ID3D11Device** ppDevice,
-    //     _Out_opt_ D3D_FEATURE_LEVEL* pFeatureLevel,
-    //     _COM_Outptr_opt_ ID3D11DeviceContext** ppImmediateContext) -> HRESULT {
-    //         Flags |= D3D11_CREATE_DEVICE_DEBUG;
-    //         return s_hookD3D11CreateDevice->call_original(pAdapter, DriverType, Software, Flags, pFeatureLevels, FeatureLevels, SDKVersion, ppDevice, pFeatureLevel, ppImmediateContext);
-    //     }
-    // );
     
     std::string jsonParseError;
     try {
