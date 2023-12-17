@@ -30,6 +30,7 @@ internal sealed unsafe class Dx12Win32Scene : IWin32Scene
     private readonly Win32InputHandler imguiInput;
     private readonly WicEasy wicEasy;
 
+    private ComPtr<IDXGISwapChain3> swapChainPossiblyWrapped;
     private ComPtr<IDXGISwapChain3> swapChain;
     private ComPtr<ID3D12Device> device;
 
@@ -46,15 +47,17 @@ internal sealed unsafe class Dx12Win32Scene : IWin32Scene
     {
         if (device is null || swapChain is null)
             throw new NullReferenceException();
-        
+
         this.wicEasy = new();
         try
         {
-            device->AddRef();
-            this.device.Attach(device);
-
-            swapChain->AddRef();
-            this.swapChain.Attach(swapChain);
+            this.device = new(device);
+            this.swapChainPossiblyWrapped = new(swapChain);
+            this.swapChain = new(swapChain);
+            fixed (ComPtr<IDXGISwapChain3>* ppSwapChain = &this.swapChain)
+                ReShadePeeler.PeelSwapChain(ppSwapChain);
+            fixed (ComPtr<ID3D12Device>* ppDevice = &this.device)
+                ReShadePeeler.PeelD3D12Device(ppDevice);
 
             var desc = default(DXGI_SWAP_CHAIN_DESC);
             swapChain->GetDesc(&desc).ThrowHr();
@@ -94,8 +97,9 @@ internal sealed unsafe class Dx12Win32Scene : IWin32Scene
         this.wicEasy = new();
         try
         {
-            device->AddRef();
-            this.device.Attach(device);
+            this.device = new(device);
+            fixed (ComPtr<ID3D12Device>* ppDevice = &this.device)
+                ReShadePeeler.PeelD3D12Device(ppDevice);
 
             this.targetWidth = targetWidth;
             this.targetHeight = targetHeight;
@@ -281,7 +285,9 @@ internal sealed unsafe class Dx12Win32Scene : IWin32Scene
     public bool IsImGuiCursor(nint cursorHandle) => this.imguiInput.IsImGuiCursor(cursorHandle);
 
     /// <inheritdoc/>
-    public bool IsAttachedToPresentationTarget(nint targetHandle) => this.swapChain.Get() == (void*)targetHandle;
+    public bool IsAttachedToPresentationTarget(nint targetHandle) =>
+        this.swapChain.Get() == (void*)targetHandle
+        || this.swapChainPossiblyWrapped.Get() == (void*)targetHandle;
 
     /// <inheritdoc/>
     public bool IsMainViewportFullScreen()
@@ -374,5 +380,6 @@ internal sealed unsafe class Dx12Win32Scene : IWin32Scene
 
         this.swapChain.Dispose();
         this.device.Dispose();
+        this.swapChainPossiblyWrapped.Dispose();
     }
 }

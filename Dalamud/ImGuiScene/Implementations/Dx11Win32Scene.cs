@@ -29,6 +29,7 @@ internal sealed unsafe class Dx11Win32Scene : IWin32Scene
     private readonly Win32InputHandler imguiInput;
     private readonly WicEasy wicEasy;
 
+    private ComPtr<IDXGISwapChain> swapChainPossiblyWrapped;
     private ComPtr<IDXGISwapChain> swapChain;
     private ComPtr<ID3D11Device> device;
     private ComPtr<ID3D11DeviceContext> deviceContext;
@@ -45,8 +46,10 @@ internal sealed unsafe class Dx11Win32Scene : IWin32Scene
         this.wicEasy = new();
         try
         {
-            swapChain->AddRef();
-            this.swapChain.Attach(swapChain);
+            this.swapChainPossiblyWrapped = new(swapChain);
+            this.swapChain = new(swapChain);
+            fixed (ComPtr<IDXGISwapChain>* ppSwapChain = &this.swapChain)
+                ReShadePeeler.PeelSwapChain(ppSwapChain);
 
             fixed (Guid* guid = &IID.IID_ID3D11Device)
             fixed (ID3D11Device** pp = &this.device.GetPinnableReference())
@@ -232,7 +235,9 @@ internal sealed unsafe class Dx11Win32Scene : IWin32Scene
     public bool IsImGuiCursor(nint cursorHandle) => this.imguiInput.IsImGuiCursor(cursorHandle);
 
     /// <inheritdoc/>
-    public bool IsAttachedToPresentationTarget(nint targetHandle) => this.swapChain.Get() == (void*)targetHandle;
+    public bool IsAttachedToPresentationTarget(nint targetHandle) =>
+        this.swapChain.Get() == (void*)targetHandle
+        || this.swapChainPossiblyWrapped.Get() == (void*)targetHandle;
 
     /// <inheritdoc/>
     public bool IsMainViewportFullScreen()
@@ -319,5 +324,6 @@ internal sealed unsafe class Dx11Win32Scene : IWin32Scene
         this.swapChain.Dispose();
         this.deviceContext.Dispose();
         this.device.Dispose();
+        this.swapChainPossiblyWrapped.Dispose();
     }
 }

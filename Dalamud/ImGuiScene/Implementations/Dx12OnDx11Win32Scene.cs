@@ -13,8 +13,6 @@ using ImGuiNET;
 using TerraFX.Interop.DirectX;
 using TerraFX.Interop.Windows;
 
-using Win32 = TerraFX.Interop.Windows.Windows;
-
 namespace Dalamud.ImGuiScene.Implementations;
 
 /// <summary>
@@ -28,6 +26,7 @@ internal unsafe class Dx12OnDx11Win32Scene : IWin32Scene
 {
     private readonly Dx12Win32Scene scene12;
     private readonly ComPtr<ID3D11ShaderResourceView>[] shaderResourceViewsD3D11;
+    private ComPtr<IDXGISwapChain> swapChainPossiblyWrapped;
     private ComPtr<IDXGISwapChain> swapChain;
     private ComPtr<ID3D11Device1> device11;
     private ComPtr<ID3D11DeviceContext> deviceContext;
@@ -46,8 +45,10 @@ internal unsafe class Dx12OnDx11Win32Scene : IWin32Scene
     {
         try
         {
-            swapChain->AddRef();
-            this.swapChain.Attach(swapChain);
+            this.swapChainPossiblyWrapped = new(swapChain);
+            this.swapChain = new(swapChain);
+            fixed (ComPtr<IDXGISwapChain>* ppSwapChain = &this.swapChain)
+                ReShadePeeler.PeelSwapChain(ppSwapChain);
 
             fixed (Guid* guid = &IID.IID_ID3D11Device1)
             fixed (ID3D11Device1** pp = &this.device11.GetPinnableReference())
@@ -235,7 +236,9 @@ internal unsafe class Dx12OnDx11Win32Scene : IWin32Scene
     public bool IsImGuiCursor(nint cursorHandle) => this.scene12.IsImGuiCursor(cursorHandle);
 
     /// <inheritdoc/>
-    public bool IsAttachedToPresentationTarget(nint targetHandle) => this.swapChain.Get() == (void*)targetHandle;
+    public bool IsAttachedToPresentationTarget(nint targetHandle) =>
+        this.swapChain.Get() == (void*)targetHandle
+        || this.swapChainPossiblyWrapped.Get() == (void*)targetHandle;
 
     /// <inheritdoc/>
     public bool IsMainViewportFullScreen()
@@ -293,6 +296,7 @@ internal unsafe class Dx12OnDx11Win32Scene : IWin32Scene
             s.Reset();
         this.device12.Reset();
         this.drawsOneSquare.Dispose();
+        this.swapChainPossiblyWrapped.Dispose();
     }
 
     private struct DrawsOneSquare : IDisposable

@@ -2,6 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using System.Threading;
 
+using Dalamud.ImGuiScene.Helpers;
 using Dalamud.Utility;
 
 using TerraFX.Interop.DirectX;
@@ -133,6 +134,8 @@ internal unsafe partial class Dx12Renderer
             try
             {
                 this.queue = new(queue);
+                fixed (ComPtr<ID3D12CommandQueue>* ppQueue = &this.queue)
+                    ReShadePeeler.PeelD3D12CommandQueue(ppQueue);
                 fixed (void* pName = $"{debugName}:{nameof(this.queue)}")
                     this.queue.Get()->SetName((ushort*)pName).ThrowHr();
 

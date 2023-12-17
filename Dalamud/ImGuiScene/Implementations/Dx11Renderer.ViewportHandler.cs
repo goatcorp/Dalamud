@@ -210,6 +210,12 @@ internal unsafe partial class Dx11Renderer
                 null,
                 swapChain1.GetAddressOf()).ThrowHr();
 
+            if (ReShadePeeler.PeelSwapChain(&swapChain1))
+            {
+                swapChain1.Get()->ResizeBuffers(sd1.BufferCount, sd1.Width, sd1.Height, sd1.Format, sd1.Flags)
+                    .ThrowHr();
+            }
+
             using var dcTarget = default(ComPtr<IDCompositionTarget>);
             renderer.dcompDevice.Get()->CreateTargetForHwnd(hWnd, BOOL.TRUE, dcTarget.GetAddressOf());
 
@@ -257,6 +263,17 @@ internal unsafe partial class Dx11Renderer
             };
             dxgiFactory.Get()->CreateSwapChain((IUnknown*)renderer.device.Get(), &desc, swapChain.GetAddressOf())
                 .ThrowHr();
+
+            if (ReShadePeeler.PeelSwapChain(&swapChain))
+            {
+                swapChain.Get()->ResizeBuffers(
+                        desc.BufferCount,
+                        desc.BufferDesc.Width,
+                        desc.BufferDesc.Height,
+                        desc.BufferDesc.Format,
+                        desc.Flags)
+                    .ThrowHr();
+            }
 
             return Create(renderer, swapChain, null, null);
         }

@@ -589,16 +589,6 @@ internal class InterfaceManager : IDisposable, IServiceType
         if (!this.scene.IsAttachedToPresentationTarget((nint)swapChain))
             return this.presentHook!.Original(swapChain, syncInterval, presentFlags);
 
-        if (this.address.IsReshade)
-        {
-            var pRes = this.presentHook.Original(swapChain, syncInterval, presentFlags);
-
-            this.RenderImGui();
-            this.DisposeTextures();
-
-            return pRes;
-        }
-
         this.RenderImGui();
         this.DisposeTextures();
 

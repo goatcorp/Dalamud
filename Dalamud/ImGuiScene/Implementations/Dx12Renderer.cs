@@ -63,15 +63,22 @@ internal unsafe partial class Dx12Renderer : IImGuiRenderer
         if (commandQueue is null)
             throw new NullReferenceException($"{nameof(commandQueue)} cannot be null.");
 
+        using var mySwapChain = new ComPtr<IDXGISwapChain3>(swapChain);
+        using var myDevice = new ComPtr<ID3D12Device>(device);
+        using var myCommandQueue = new ComPtr<ID3D12CommandQueue>(commandQueue);
+        ReShadePeeler.PeelSwapChain(&mySwapChain);
+        ReShadePeeler.PeelD3D12Device(&myDevice);
+        ReShadePeeler.PeelD3D12CommandQueue(&myCommandQueue);
+
         var io = ImGui.GetIO();
         if (ImGui.GetIO().NativePtr->BackendRendererName is not null)
             throw new InvalidOperationException("ImGui backend renderer seems to be have been already attached.");
 
         DXGI_SWAP_CHAIN_DESC desc;
-        swapChain->GetDesc(&desc).ThrowHr();
+        mySwapChain.Get()->GetDesc(&desc).ThrowHr();
         this.NumBackBuffers = (int)desc.BufferCount;
         this.rtvFormat = desc.BufferDesc.Format;
-        this.device = new(device);
+        myDevice.Swap(ref this.device);
 
         io.BackendFlags |= ImGuiBackendFlags.RendererHasVtxOffset | ImGuiBackendFlags.RendererHasViewports;
 
@@ -97,8 +104,14 @@ internal unsafe partial class Dx12Renderer : IImGuiRenderer
 
                 this.viewportHandler = new(this);
             }
-            
-            this.mainViewport = ViewportData.Create(this, swapChain, commandQueue, nameof(this.mainViewport), null, null);
+
+            this.mainViewport = ViewportData.Create(
+                this,
+                mySwapChain,
+                myCommandQueue,
+                nameof(this.mainViewport),
+                null,
+                null);
             ImGui.GetPlatformIO().Viewports[0].RendererUserData = this.mainViewport.AsHandle();
             this.textureManager = new(this.device);
         }
@@ -133,13 +146,16 @@ internal unsafe partial class Dx12Renderer : IImGuiRenderer
         if (height <= 0)
             throw new ArgumentOutOfRangeException(nameof(height), height, "Must be a positive number.");
 
+        using var myDevice = new ComPtr<ID3D12Device>(device);
+        ReShadePeeler.PeelD3D12Device(&myDevice);
+
         var io = ImGui.GetIO();
         if (ImGui.GetIO().NativePtr->BackendRendererName is not null)
             throw new InvalidOperationException("ImGui backend renderer seems to be have been already attached.");
 
         this.NumBackBuffers = numBackBuffers;
         this.rtvFormat = rtvFormat;
-        this.device = new(device);
+        myDevice.Swap(ref this.device);
 
         io.BackendFlags |= ImGuiBackendFlags.RendererHasVtxOffset | ImGuiBackendFlags.RendererHasViewports;
 

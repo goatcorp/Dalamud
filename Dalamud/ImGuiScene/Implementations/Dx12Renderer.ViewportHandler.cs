@@ -299,6 +299,12 @@ internal unsafe partial class Dx12Renderer
                 null,
                 swapChain1.GetAddressOf()).ThrowHr();
 
+            if (ReShadePeeler.PeelSwapChain(&swapChain1))
+            {
+                swapChain1.Get()->ResizeBuffers(sd1.BufferCount, sd1.Width, sd1.Height, sd1.Format, sd1.Flags)
+                    .ThrowHr();
+            }
+
             using var dcTarget = default(ComPtr<IDCompositionTarget>);
             renderer.dcompDevice.Get()->CreateTargetForHwnd(hWnd, BOOL.TRUE, dcTarget.GetAddressOf());
 
@@ -370,6 +376,13 @@ internal unsafe partial class Dx12Renderer
                     null,
                     null,
                     swapChainTmp.GetAddressOf()).ThrowHr();
+
+                if (ReShadePeeler.PeelSwapChain(&swapChainTmp))
+                {
+                    swapChainTmp.Get()->ResizeBuffers(sd1.BufferCount, sd1.Width, sd1.Height, sd1.Format, sd1.Flags)
+                        .ThrowHr();
+                }
+
                 swapChainTmp.Get()->QueryInterface(piidSwapChain3, (void**)swapChain3.GetAddressOf()).ThrowHr();
             }
 
