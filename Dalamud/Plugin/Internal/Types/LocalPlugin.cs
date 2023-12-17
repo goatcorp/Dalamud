@@ -626,6 +626,19 @@ internal class LocalPlugin : IDisposable
         config.PreferSharedTypes = false;
         config.SharedAssemblies.Add(typeof(Lumina.GameData).Assembly.GetName());
         config.SharedAssemblies.Add(typeof(Lumina.Excel.ExcelSheetImpl).Assembly.GetName());
+
+        AppDomain.CurrentDomain.AssemblyResolve += (_, args) =>
+        {
+            try
+            {
+                return Assembly.Load(args.Name);
+            }
+            catch (Exception e)
+            {
+                Log.Error(e, "AssemblyResolve fail");
+                return null;
+            }
+        };
     }
 
     private void EnsureLoader()

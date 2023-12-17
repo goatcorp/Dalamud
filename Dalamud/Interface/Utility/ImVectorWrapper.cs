@@ -251,7 +251,7 @@ public unsafe struct ImVectorWrapper<T> : IList<T>, IList, IReadOnlyList<T>, IDi
     /// </summary>
     /// <param name="initialCapacity">The initial capacity.</param>
     /// <param name="destroyer">The destroyer function to call on item removal.</param>
-    public ImVectorWrapper(int initialCapacity = 0, delegate*<T*, void> destroyer = null)
+    public ImVectorWrapper(int initialCapacity, delegate*<T*, void> destroyer = null)
     {
         if (initialCapacity < 0)
         {
@@ -292,7 +292,7 @@ public unsafe struct ImVectorWrapper<T> : IList<T>, IList, IReadOnlyList<T>, IDi
     /// <param name="destroyer">The destoryer function.</param>
     public ImVectorWrapper(
         int capacity,
-        int initialLength = 0,
+        int initialLength,
         T* backingStorage = null,
         ImVector* vectorStorage = null,
         delegate*<T*, void> destroyer = null)

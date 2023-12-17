@@ -63,7 +63,7 @@ internal sealed unsafe class ImGuiClipboardFunctionProvider : IServiceType, IDis
         io.SetClipboardTextFn = (nint)(delegate* unmanaged<nint, byte*, void>)&StaticSetClipboardTextImpl;
         io.GetClipboardTextFn = (nint)(delegate* unmanaged<nint, byte*>)&StaticGetClipboardTextImpl;
 
-        this.clipboardData = new(0, 0);
+        this.clipboardData = new(0, null);
         return;
 
         [UnmanagedCallersOnly]
