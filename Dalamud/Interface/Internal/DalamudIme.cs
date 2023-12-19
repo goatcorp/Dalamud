@@ -24,7 +24,7 @@ namespace Dalamud.Interface.Internal;
 /// <summary>
 /// This class handles CJK IME.
 /// </summary>
-[ServiceManager.EarlyLoadedService]
+[ServiceManager.BlockingEarlyLoadedService]
 internal sealed unsafe class DalamudIme : IDisposable, IServiceType
 {
     private static readonly ModuleLog Log = new("IME");
