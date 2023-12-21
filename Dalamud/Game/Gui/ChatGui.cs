@@ -29,9 +29,7 @@ namespace Dalamud.Game.Gui;
 /// This class handles interacting with the native chat UI.
 /// </summary>
 [InterfaceVersion("1.0")]
-[ServiceManager.BlockingEarlyLoadedService($"{nameof(PluginManager)} currently uses this.")]
-// ^ TODO: This seems unnecessary, remove the hard dependency at a later time.
-//         Otherwise, if PM eventually marks this class as required, note that in the comment above.
+[ServiceManager.EarlyLoadedService]
 internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
 {
     private static readonly ModuleLog Log = new("ChatGui");

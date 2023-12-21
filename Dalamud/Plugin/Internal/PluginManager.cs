@@ -60,7 +60,7 @@ internal partial class PluginManager : IInternalDisposableService
     private readonly List<RemotePluginManifest> availablePluginsList = new();
     private readonly List<AvailablePluginUpdate> updatablePluginsList = new();
 
-    private readonly DalamudLinkPayload openInstallerWindowPluginChangelogsLink;
+    private readonly Task<DalamudLinkPayload> openInstallerWindowPluginChangelogsLink;
 
     [ServiceManager.ServiceDependency]
     private readonly DalamudConfiguration configuration = Service<DalamudConfiguration>.Get();
@@ -73,9 +73,6 @@ internal partial class PluginManager : IInternalDisposableService
 
     [ServiceManager.ServiceDependency]
     private readonly HappyHttpClient happyHttpClient = Service<HappyHttpClient>.Get();
-
-    [ServiceManager.ServiceDependency]
-    private readonly ChatGui chatGui = Service<ChatGui>.Get();
 
     static PluginManager()
     {
@@ -125,10 +122,16 @@ internal partial class PluginManager : IInternalDisposableService
             throw new InvalidDataException("Couldn't deserialize banned plugins manifest.");
         }
 
-        this.openInstallerWindowPluginChangelogsLink = this.chatGui.AddChatLinkHandler("Dalamud", 1003, (_, _) =>
-        {
-            Service<DalamudInterface>.GetNullable()?.OpenPluginInstallerTo(PluginInstallerWindow.PluginInstallerOpenKind.Changelogs);
-        });
+        this.openInstallerWindowPluginChangelogsLink =
+            Service<ChatGui>.GetAsync().ContinueWith(
+                chatGuiTask => chatGuiTask.Result.AddChatLinkHandler(
+                    "Dalamud",
+                    1003,
+                    (_, _) =>
+                    {
+                        Service<DalamudInterface>.GetNullable()?.OpenPluginInstallerTo(
+                            PluginInstallerWindow.PluginInstallerOpenKind.Changelogs);
+                    }));
 
         this.configuration.PluginTestingOptIns ??= new();
         this.MainRepo = PluginRepository.CreateMainRepo(this.happyHttpClient);
@@ -292,41 +295,54 @@ internal partial class PluginManager : IInternalDisposableService
     /// <param name="updateMetadata">The list of updated plugin metadata.</param>
     /// <param name="header">The header text to send to chat prior to any update info.</param>
     public void PrintUpdatedPlugins(List<PluginUpdateStatus>? updateMetadata, string header)
-    {
-        if (updateMetadata is { Count: > 0 })
-        {
-            this.chatGui.Print(new XivChatEntry
+        => Service<ChatGui>.GetAsync().ContinueWith(
+            chatGuiTask =>
             {
-                Message = new SeString(new List<Payload>()
-                {
-                    new TextPayload(header),
-                    new TextPayload("  ["),
-                    new UIForegroundPayload(500),
-                    this.openInstallerWindowPluginChangelogsLink,
-                    new TextPayload(Loc.Localize("DalamudInstallerPluginChangelogHelp", "Open plugin changelogs")),
-                    RawPayload.LinkTerminator,
-                    new UIForegroundPayload(0),
-                    new TextPayload("]"),
-                }),
-            });
+                if (!chatGuiTask.IsCompletedSuccessfully)
+                    return;
 
-            foreach (var metadata in updateMetadata)
-            {
-                if (metadata.Status == PluginUpdateStatus.StatusKind.Success)
+                var chatGui = chatGuiTask.Result;
+                if (updateMetadata is { Count: > 0 })
                 {
-                    this.chatGui.Print(Locs.DalamudPluginUpdateSuccessful(metadata.Name, metadata.Version));
-                }
-                else
-                {
-                    this.chatGui.Print(new XivChatEntry
+                    chatGui.Print(
+                        new XivChatEntry
+                        {
+                            Message = new SeString(
+                                new List<Payload>()
+                                {
+                                    new TextPayload(header),
+                                    new TextPayload("  ["),
+                                    new UIForegroundPayload(500),
+                                    this.openInstallerWindowPluginChangelogsLink.Result,
+                                    new TextPayload(
+                                        Loc.Localize("DalamudInstallerPluginChangelogHelp", "Open plugin changelogs")),
+                                    RawPayload.LinkTerminator,
+                                    new UIForegroundPayload(0),
+                                    new TextPayload("]"),
+                                }),
+                        });
+
+                    foreach (var metadata in updateMetadata)
                     {
-                        Message = Locs.DalamudPluginUpdateFailed(metadata.Name, metadata.Version, PluginUpdateStatus.LocalizeUpdateStatusKind(metadata.Status)),
-                        Type = XivChatType.Urgent,
-                    });
+                        if (metadata.Status == PluginUpdateStatus.StatusKind.Success)
+                        {
+                            chatGui.Print(Locs.DalamudPluginUpdateSuccessful(metadata.Name, metadata.Version));
+                        }
+                        else
+                        {
+                            chatGui.Print(
+                                new XivChatEntry
+                                {
+                                    Message = Locs.DalamudPluginUpdateFailed(
+                                        metadata.Name,
+                                        metadata.Version,
+                                        PluginUpdateStatus.LocalizeUpdateStatusKind(metadata.Status)),
+                                    Type = XivChatType.Urgent,
+                                });
+                        }
+                    }
                 }
-            }
-        }
-    }
+            });
 
     /// <summary>
     /// For a given manifest, determine if the user opted into testing this plugin.
