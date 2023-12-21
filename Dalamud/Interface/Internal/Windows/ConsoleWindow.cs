@@ -487,6 +487,12 @@ internal class ConsoleWindow : Window, IDisposable
 
             ImGui.PushItemWidth(ImGui.GetContentRegionAvail().X);
             ImGui.InputTextWithHint("##PluginSearchFilter", "Filter Plugin List", ref this.pluginFilter, 2048);
+            ImGui.Separator();
+            
+            if (!sourceNames.Any())
+            {
+                ImGui.TextColored(KnownColor.OrangeRed.Vector(), "No Results");
+            }
 
             foreach (var selectable in sourceNames)
             {
