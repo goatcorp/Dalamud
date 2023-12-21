@@ -28,7 +28,7 @@ namespace Dalamud.Game.Gui;
 /// This class handles interacting with the native chat UI.
 /// </summary>
 [InterfaceVersion("1.0")]
-[ServiceManager.BlockingEarlyLoadedService]
+[ServiceManager.EarlyLoadedService]
 internal sealed unsafe class ChatGui : IDisposable, IServiceType, IChatGui
 {
     private static readonly ModuleLog Log = new("ChatGui");
