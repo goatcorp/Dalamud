@@ -131,6 +131,7 @@ internal sealed unsafe class ImGuiClipboardFunctionProvider : IServiceType, IDis
             ptr[str.Length] = default;
             GlobalUnlock(hMem);
 
+            EmptyClipboard();
             SetClipboardData(CF.CF_UNICODETEXT, hMem);
         }
         catch (Exception e)
