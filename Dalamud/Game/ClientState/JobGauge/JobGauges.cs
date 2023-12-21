@@ -15,7 +15,7 @@ namespace Dalamud.Game.ClientState.JobGauge;
 /// </summary>
 [PluginInterface]
 [InterfaceVersion("1.0")]
-[ServiceManager.BlockingEarlyLoadedService]
+[ServiceManager.EarlyLoadedService]
 #pragma warning disable SA1015
 [ResolveVia<IJobGauges>]
 #pragma warning restore SA1015

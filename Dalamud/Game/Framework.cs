@@ -21,14 +21,12 @@ namespace Dalamud.Game;
 /// This class represents the Framework of the native game client and grants access to various subsystems.
 /// </summary>
 [InterfaceVersion("1.0")]
-[ServiceManager.BlockingEarlyLoadedService]
+[ServiceManager.EarlyLoadedService]
 internal sealed class Framework : IDisposable, IServiceType, IFramework
 {
     private static readonly ModuleLog Log = new("Framework");
     
     private static readonly Stopwatch StatsStopwatch = new();
-    
-    private readonly GameLifecycle lifecycle;
 
     private readonly Stopwatch updateStopwatch = new();
     private readonly HitchDetector hitchDetector;
@@ -37,6 +35,9 @@ internal sealed class Framework : IDisposable, IServiceType, IFramework
     private readonly Hook<OnRealDestroyDelegate> destroyHook;
 
     private readonly FrameworkAddressResolver addressResolver;
+    
+    [ServiceManager.ServiceDependency]
+    private readonly GameLifecycle lifecycle = Service<GameLifecycle>.Get();
 
     [ServiceManager.ServiceDependency]
     private readonly DalamudConfiguration configuration = Service<DalamudConfiguration>.Get();
@@ -48,9 +49,8 @@ internal sealed class Framework : IDisposable, IServiceType, IFramework
     private Thread? frameworkUpdateThread;
 
     [ServiceManager.ServiceConstructor]
-    private Framework(TargetSigScanner sigScanner, GameLifecycle lifecycle)
+    private Framework(TargetSigScanner sigScanner)
     {
-        this.lifecycle = lifecycle;
         this.hitchDetector = new HitchDetector("FrameworkUpdate", this.configuration.FrameworkUpdateHitch);
 
         this.addressResolver = new FrameworkAddressResolver();

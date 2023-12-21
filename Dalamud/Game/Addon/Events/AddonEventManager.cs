@@ -18,7 +18,7 @@ namespace Dalamud.Game.Addon.Events;
 /// Service provider for addon event management.
 /// </summary>
 [InterfaceVersion("1.0")]
-[ServiceManager.BlockingEarlyLoadedService]
+[ServiceManager.EarlyLoadedService]
 internal unsafe class AddonEventManager : IDisposable, IServiceType
 {
     /// <summary>
