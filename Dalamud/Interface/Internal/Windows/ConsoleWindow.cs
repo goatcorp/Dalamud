@@ -39,6 +39,7 @@ internal class ConsoleWindow : Window, IDisposable
     private string commandText = string.Empty;
     private string textFilter = string.Empty;
     private string selectedSource = "DalamudInternal";
+    private string pluginFilter = string.Empty;
 
     private bool filterShowUncaughtExceptions;
     private bool showFilterToolbar;
@@ -475,13 +476,17 @@ internal class ConsoleWindow : Window, IDisposable
 
         ImGui.TableNextColumn();
         ImGui.PushItemWidth(ImGui.GetContentRegionAvail().X);
-        if (ImGui.BeginCombo("##Sources", this.selectedSource))
+        if (ImGui.BeginCombo("##Sources", this.selectedSource, ImGuiComboFlags.HeightLarge))
         {
             var sourceNames = Service<PluginManager>.Get().InstalledPlugins
                                                     .Select(p => p.Manifest.InternalName)
                                                     .OrderBy(s => s)
                                                     .Prepend("DalamudInternal")
+                                                    .Where(name => this.pluginFilter is "" || new FuzzyMatcher(this.pluginFilter.ToLowerInvariant(), MatchMode.Fuzzy).Matches(name.ToLowerInvariant()) != 0)
                                                     .ToList();
+
+            ImGui.PushItemWidth(ImGui.GetContentRegionAvail().X);
+            ImGui.InputTextWithHint("##PluginSearchFilter", "Filter Plugin List", ref this.pluginFilter, 2048);
 
             foreach (var selectable in sourceNames)
             {
