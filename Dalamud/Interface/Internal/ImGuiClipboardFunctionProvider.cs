@@ -159,9 +159,9 @@ internal sealed unsafe class ImGuiClipboardFunctionProvider : IServiceType, IDis
             return this.clipboardData.Data;
         }
 
+        var hMem = (HGLOBAL)GetClipboardData(CF.CF_UNICODETEXT);
         try
         {
-            var hMem = (HGLOBAL)GetClipboardData(CF.CF_UNICODETEXT);
             if (hMem != default)
             {
                 var ptr = (char*)GlobalLock(hMem);
@@ -192,6 +192,8 @@ internal sealed unsafe class ImGuiClipboardFunctionProvider : IServiceType, IDis
         }
         finally
         {
+            if (hMem != default)
+                GlobalUnlock(hMem);
             CloseClipboard();
         }
 
