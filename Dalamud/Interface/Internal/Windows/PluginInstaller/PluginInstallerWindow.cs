@@ -1252,7 +1252,7 @@ internal class PluginInstallerWindow : Window, IDisposable
             return;
         }
 
-        IEnumerable<IChangelogEntry> changelogs = null;
+        IEnumerable<IChangelogEntry>? changelogs = null;
         if (displayDalamud && displayPlugins && this.dalamudChangelogManager.Changelogs != null)
         {
             changelogs = this.dalamudChangelogManager.Changelogs;
@@ -1266,10 +1266,15 @@ internal class PluginInstallerWindow : Window, IDisposable
             changelogs = this.dalamudChangelogManager.Changelogs.OfType<PluginChangelogEntry>();
         }
 
-        var sortedChangelogs = changelogs?.Where(x => this.searchText.IsNullOrWhitespace() || new FuzzyMatcher(this.searchText.ToLowerInvariant(), MatchMode.FuzzyParts).Matches(x.Title.ToLowerInvariant()) > 0)
-                                                            .OrderByDescending(x => x.Date).ToList();
+        changelogs ??= Array.Empty<IChangelogEntry>();
+        var sortedChangelogs =
+            this.searchText.IsNullOrWhitespace()
+                ? changelogs.ToList()
+                : changelogs.Where(x => x.Title.FuzzyMatchesParts(this.searchText))
+                            .OrderByDescending(x => x.Date)
+                            .ToList();
 
-        if (sortedChangelogs == null || sortedChangelogs.Count == 0)
+        if (sortedChangelogs.Count == 0)
         {
             ImGui.TextColored(
                 ImGuiColors.DalamudGrey2,
@@ -3793,22 +3798,24 @@ internal class PluginInstallerWindow : Window, IDisposable
 
     private int GetManifestSearchScore(IPluginManifest manifest)
     {
-        var searchString = this.searchText.ToLowerInvariant();
-        var matcher = new FuzzyMatcher(searchString, MatchMode.FuzzyParts);
-        var scores = new List<int> { 0 };
+        var loc = Localization.GetCultureInfoFromLangCode(Service<DalamudConfiguration>.Get().EffectiveLanguage);
+        var maxScore = 0;
 
-        if (!manifest.Name.IsNullOrEmpty())
-            scores.Add(matcher.Matches(manifest.Name.ToLowerInvariant()) * 110);
-        if (!manifest.InternalName.IsNullOrEmpty())
-            scores.Add(matcher.Matches(manifest.InternalName.ToLowerInvariant()) * 105);
-        if (!manifest.Author.IsNullOrEmpty())
-            scores.Add(matcher.Matches(manifest.Author.ToLowerInvariant()) * 100);
-        if (!manifest.Punchline.IsNullOrEmpty())
-            scores.Add(matcher.Matches(manifest.Punchline.ToLowerInvariant()) * 100);
-        if (manifest.Tags != null)
-            scores.Add(matcher.MatchesAny(manifest.Tags.ToArray()) * 100);
+        if (manifest.Name.FuzzyMatches(this.searchText, FuzzyMatcher.Mode.FuzzyParts, loc, out var score))
+            maxScore = Math.Max(maxScore, score * 110);
+        if (manifest.InternalName.FuzzyMatches(this.searchText, FuzzyMatcher.Mode.FuzzyParts, loc, out score))
+            maxScore = Math.Max(maxScore, score * 105);
+        if (manifest.Author.FuzzyMatches(this.searchText, FuzzyMatcher.Mode.FuzzyParts, loc, out score))
+            maxScore = Math.Max(maxScore, score * 100);
+        if (manifest.Punchline.FuzzyMatches(this.searchText, FuzzyMatcher.Mode.FuzzyParts, loc, out score))
+            maxScore = Math.Max(maxScore, score * 100);
+        foreach (var tag in manifest.Tags ?? [])
+        {
+            if (tag.FuzzyMatches(this.searchText, FuzzyMatcher.Mode.FuzzyParts, loc, out score))
+                maxScore = Math.Max(maxScore, score * 100);
+        }
 
-        return scores.Max();
+        return maxScore;
     }
 
     private (bool IsInstalled, LocalPlugin Plugin) IsManifestInstalled(IPluginManifest? manifest)
