@@ -150,7 +150,7 @@ internal class ConsoleWindow : Window, IDisposable
         {
             const string regexErrorString = "Regex Filter Error";
             ImGui.SetCursorPosX(ImGui.GetContentRegionMax().X / 2.0f - ImGui.CalcTextSize(regexErrorString).X / 2.0f);
-            ImGui.TextColored(KnownColor.OrangeRed.Vector(), regexErrorString);
+            ImGui.TextColored(ImGuiColors.DalamudRed, regexErrorString);
         }
         
         ImGui.BeginChild("scrolling", new Vector2(0, ImGui.GetFrameHeightWithSpacing() - 55 * ImGuiHelpers.GlobalScale), false, ImGuiWindowFlags.AlwaysHorizontalScrollbar | ImGuiWindowFlags.AlwaysVerticalScrollbar);
@@ -491,7 +491,7 @@ internal class ConsoleWindow : Window, IDisposable
             
             if (!sourceNames.Any())
             {
-                ImGui.TextColored(KnownColor.OrangeRed.Vector(), "No Results");
+                ImGui.TextColored(ImGuiColors.DalamudRed, "No Results");
             }
 
             foreach (var selectable in sourceNames)
