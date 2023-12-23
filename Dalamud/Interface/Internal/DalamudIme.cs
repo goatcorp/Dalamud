@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Numerics;
 using System.Runtime.CompilerServices;
@@ -11,7 +12,6 @@ using Dalamud.Game.Text;
 using Dalamud.Hooking.WndProcHook;
 using Dalamud.Interface.GameFonts;
 using Dalamud.Interface.Utility;
-using Dalamud.Logging.Internal;
 
 using ImGuiNET;
 
@@ -27,7 +27,9 @@ namespace Dalamud.Interface.Internal;
 [ServiceManager.EarlyLoadedService]
 internal sealed unsafe class DalamudIme : IDisposable, IServiceType
 {
-    private static readonly ModuleLog Log = new("IME");
+    private const int ImGuiContextTextStateOffset = 0x4588;
+    private const int CImGuiStbTextCreateUndoOffset = 0xB57A0;
+    private const int CImGuiStbTextUndoOffset = 0xB59C0;
 
     private static readonly UnicodeRange[] HanRange =
     {
@@ -49,7 +51,39 @@ internal sealed unsafe class DalamudIme : IDisposable, IServiceType
         UnicodeRanges.HangulJamoExtendedB,
     };
 
+    private static readonly delegate* unmanaged<ImGuiInputTextState*, StbTextEditState*, int, int, int, void>
+        StbTextMakeUndoReplace;
+
+    private static readonly delegate* unmanaged<ImGuiInputTextState*, StbTextEditState*, void> StbTextUndo;
+
     private readonly ImGuiSetPlatformImeDataDelegate setPlatformImeDataDelegate;
+
+    private (int Start, int End, int Cursor)? temporaryUndoSelection;
+
+    [SuppressMessage("StyleCop.CSharp.SpacingRules", "SA1003:Symbols should be spaced correctly", Justification = ".")]
+    static DalamudIme()
+    {
+        nint cimgui;
+        try
+        {
+            _ = ImGui.GetCurrentContext();
+
+            cimgui = Process.GetCurrentProcess().Modules.Cast<ProcessModule>()
+                            .First(x => x.ModuleName == "cimgui.dll")
+                            .BaseAddress;
+        }
+        catch
+        {
+            return;
+        }
+
+        StbTextMakeUndoReplace =
+            (delegate* unmanaged<ImGuiInputTextState*, StbTextEditState*, int, int, int, void>)
+            (cimgui + CImGuiStbTextCreateUndoOffset);
+        StbTextUndo =
+            (delegate* unmanaged<ImGuiInputTextState*, StbTextEditState*, void>)
+            (cimgui + CImGuiStbTextUndoOffset);
+    }
 
     [ServiceManager.ServiceConstructor]
     private DalamudIme() => this.setPlatformImeDataDelegate = this.ImGuiSetPlatformImeData;
@@ -82,12 +116,12 @@ internal sealed unsafe class DalamudIme : IDisposable, IServiceType
                 return true;
             if (!ImGui.GetIO().ConfigInputTextCursorBlink)
                 return true;
-            ref var textState = ref TextState;
-            if (textState.Id == 0 || (textState.Flags & ImGuiInputTextFlags.ReadOnly) != 0)
+            var textState = TextState;
+            if (textState->Id == 0 || (textState->Flags & ImGuiInputTextFlags.ReadOnly) != 0)
                 return true;
-            if (textState.CursorAnim <= 0)
+            if (textState->CursorAnim <= 0)
                 return true;
-            return textState.CursorAnim % 1.2f <= 0.8f;
+            return textState->CursorAnim % 1.2f <= 0.8f;
         }
     }
 
@@ -142,7 +176,8 @@ internal sealed unsafe class DalamudIme : IDisposable, IServiceType
     /// </summary>
     internal char InputModeIcon { get; private set; }
 
-    private static ref ImGuiInputTextState TextState => ref *(ImGuiInputTextState*)(ImGui.GetCurrentContext() + 0x4588);
+    private static ImGuiInputTextState* TextState =>
+        (ImGuiInputTextState*)(ImGui.GetCurrentContext() + ImGuiContextTextStateOffset);
 
     /// <inheritdoc/>
     public void Dispose()
@@ -203,7 +238,7 @@ internal sealed unsafe class DalamudIme : IDisposable, IServiceType
 
         try
         {
-            var invalidTarget = TextState.Id == 0 || (TextState.Flags & ImGuiInputTextFlags.ReadOnly) != 0;
+            var invalidTarget = TextState->Id == 0 || (TextState->Flags & ImGuiInputTextFlags.ReadOnly) != 0;
 
             switch (args.Message)
             {
@@ -362,47 +397,35 @@ internal sealed unsafe class DalamudIme : IDisposable, IServiceType
 
     private void ReplaceCompositionString(HIMC hImc, uint comp)
     {
-        ref var textState = ref TextState;
         var finalCommit = (comp & GCS.GCS_RESULTSTR) != 0;
-
-        ref var s = ref textState.Stb.SelectStart;
-        ref var e = ref textState.Stb.SelectEnd;
-        ref var c = ref textState.Stb.Cursor;
-        s = Math.Clamp(s, 0, textState.CurLenW);
-        e = Math.Clamp(e, 0, textState.CurLenW);
-        c = Math.Clamp(c, 0, textState.CurLenW);
-        if (s == e)
-            s = e = c;
-        if (s > e)
-            (s, e) = (e, s);
-
         var newString = finalCommit
                             ? ImmGetCompositionString(hImc, GCS.GCS_RESULTSTR)
                             : ImmGetCompositionString(hImc, GCS.GCS_COMPSTR);
 
         this.ReflectCharacterEncounters(newString);
 
-        if (s != e)
-            textState.DeleteChars(s, e - s);
-        textState.InsertChars(s, newString);
+        if (this.temporaryUndoSelection is not null)
+        {
+            TextState->Undo();
+            TextState->SelectionTuple = this.temporaryUndoSelection.Value;
+            this.temporaryUndoSelection = null;
+        }
 
-        if (finalCommit)
-            s = e = s + newString.Length;
-        else
-            e = s + newString.Length;
+        TextState->SanitizeSelectionRange();
+        if (TextState->ReplaceSelectionAndPushUndo(newString))
+            this.temporaryUndoSelection = TextState->SelectionTuple;
 
-        this.ImmComp = finalCommit ? string.Empty : newString;
-
-        this.CompositionCursorOffset =
-            finalCommit
-                ? 0
-                : ImmGetCompositionStringW(hImc, GCS.GCS_CURSORPOS, null, 0);
+        // Put the cursor at the beginning, so that the candidate window appears aligned with the text.
+        TextState->SetSelectionRange(TextState->SelectionTuple.Start, newString.Length, 0);
 
         if (finalCommit)
         {
             this.ClearState(hImc);
             return;
         }
+
+        this.ImmComp = newString;
+        this.CompositionCursorOffset = ImmGetCompositionStringW(hImc, GCS.GCS_CURSORPOS, null, 0);
 
         if ((comp & GCS.GCS_COMPATTR) != 0)
         {
@@ -429,8 +452,6 @@ internal sealed unsafe class DalamudIme : IDisposable, IServiceType
             this.PartialConversionTo = this.ImmComp.Length;
         }
 
-        // Put the cursor at the beginning, so that the candidate window appears aligned with the text.
-        c = s;
         this.UpdateImeWindowStatus(hImc);
     }
 
@@ -439,12 +460,10 @@ internal sealed unsafe class DalamudIme : IDisposable, IServiceType
         this.ImmComp = string.Empty;
         this.PartialConversionFrom = this.PartialConversionTo = 0;
         this.CompositionCursorOffset = 0;
-        TextState.Stb.SelectStart = TextState.Stb.Cursor = TextState.Stb.SelectEnd;
+        this.temporaryUndoSelection = null;
+        TextState->Stb.SelectStart = TextState->Stb.Cursor = TextState->Stb.SelectEnd;
         ImmNotifyIME(hImc, NI.NI_COMPOSITIONSTR, CPS_CANCEL, 0);
         this.UpdateImeWindowStatus(default);
-
-        ref var textState = ref TextState;
-        textState.Stb.Cursor = textState.Stb.SelectStart = textState.Stb.SelectEnd;
 
         // Log.Information($"{nameof(this.ClearState)}");
     }
@@ -498,7 +517,7 @@ internal sealed unsafe class DalamudIme : IDisposable, IServiceType
         this.AssociatedViewport = data.WantVisible ? viewport : default;
     }
 
-    [ServiceManager.CallWhenServicesReady("Effectively waiting for cimgui.dll to become available.")]
+    [ServiceManager.CallWhenServicesReady("Effectively waiting for cimgui context initialization.")]
     private void ContinueConstruction(InterfaceManager.InterfaceManagerWithScene interfaceManagerWithScene)
     {
         if (!ImGuiHelpers.IsImGuiInitialized)
@@ -569,15 +588,71 @@ internal sealed unsafe class DalamudIme : IDisposable, IServiceType
         public bool Edited;
         public ImGuiInputTextFlags Flags;
 
-        public ImVectorWrapper<char> TextW => new((ImVector*)Unsafe.AsPointer(ref this.TextWRaw));
+        public ImVectorWrapper<char> TextW => new((ImVector*)&this.ThisPtr->TextWRaw);
 
-        public ImVectorWrapper<byte> TextA => new((ImVector*)Unsafe.AsPointer(ref this.TextWRaw));
+        public (int Start, int End, int Cursor) SelectionTuple
+        {
+            get => (this.Stb.SelectStart, this.Stb.SelectEnd, this.Stb.Cursor);
+            set => (this.Stb.SelectStart, this.Stb.SelectEnd, this.Stb.Cursor) = value;
+        }
 
-        public ImVectorWrapper<byte> InitialTextA => new((ImVector*)Unsafe.AsPointer(ref this.TextWRaw));
+        private ImGuiInputTextState* ThisPtr => (ImGuiInputTextState*)Unsafe.AsPointer(ref this);
+
+        public void SetSelectionRange(int offset, int length, int relativeCursorOffset)
+        {
+            this.Stb.SelectStart = offset;
+            this.Stb.SelectEnd = offset + length;
+            if (relativeCursorOffset >= 0)
+                this.Stb.Cursor = this.Stb.SelectStart + relativeCursorOffset;
+            else
+                this.Stb.Cursor = this.Stb.SelectEnd + 1 + relativeCursorOffset;
+            this.SanitizeSelectionRange();
+        }
+
+        public void SanitizeSelectionRange()
+        {
+            ref var s = ref this.Stb.SelectStart;
+            ref var e = ref this.Stb.SelectEnd;
+            ref var c = ref this.Stb.Cursor;
+            s = Math.Clamp(s, 0, this.CurLenW);
+            e = Math.Clamp(e, 0, this.CurLenW);
+            c = Math.Clamp(c, 0, this.CurLenW);
+            if (s == e)
+                s = e = c;
+            if (s > e)
+                (s, e) = (e, s);
+        }
+
+        public void Undo() => StbTextUndo(this.ThisPtr, &this.ThisPtr->Stb);
+
+        public bool MakeUndoReplace(int offset, int oldLength, int newLength)
+        {
+            if (oldLength == 0 && newLength == 0)
+                return false;
+
+            StbTextMakeUndoReplace(this.ThisPtr, &this.ThisPtr->Stb, offset, oldLength, newLength);
+            return true;
+        }
+
+        public bool ReplaceSelectionAndPushUndo(ReadOnlySpan<char> newText)
+        {
+            var off = this.Stb.SelectStart;
+            var len = this.Stb.SelectEnd - this.Stb.SelectStart;
+            return this.MakeUndoReplace(off, len, newText.Length) && this.ReplaceChars(off, len, newText);
+        }
+
+        public bool ReplaceChars(int pos, int len, ReadOnlySpan<char> newText)
+        {
+            this.DeleteChars(pos, len);
+            return this.InsertChars(pos, newText);
+        }
 
         // See imgui_widgets.cpp: STB_TEXTEDIT_DELETECHARS
         public void DeleteChars(int pos, int n)
         {
+            if (n == 0)
+                return;
+
             var dst = this.TextW.Data + pos;
 
             // We maintain our buffer length in both UTF-8 and wchar formats
@@ -596,6 +671,9 @@ internal sealed unsafe class DalamudIme : IDisposable, IServiceType
         // See imgui_widgets.cpp: STB_TEXTEDIT_INSERTCHARS
         public bool InsertChars(int pos, ReadOnlySpan<char> newText)
         {
+            if (newText.Length == 0)
+                return true;
+
             var isResizable = (this.Flags & ImGuiInputTextFlags.CallbackResize) != 0;
             var textLen = this.CurLenW;
             Debug.Assert(pos <= textLen, "pos <= text_len");
