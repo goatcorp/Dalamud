@@ -20,7 +20,7 @@ internal unsafe class PluginEventController : IDisposable
     /// Initializes a new instance of the <see cref="PluginEventController"/> class.
     /// </summary>
     /// <param name="pluginId">The Unique ID for this plugin.</param>
-    public PluginEventController(string pluginId)
+    public PluginEventController(Guid pluginId)
     {
         this.PluginId = pluginId;
 
@@ -30,7 +30,7 @@ internal unsafe class PluginEventController : IDisposable
     /// <summary>
     /// Gets the unique ID for this PluginEventList.
     /// </summary>
-    public string PluginId { get; init; }
+    public Guid PluginId { get; init; }
     
     private AddonEventListener EventListener { get; init; }
     
