@@ -25,7 +25,7 @@ internal unsafe class AddonEventManager : IDisposable, IServiceType
     /// <summary>
     /// PluginName for Dalamud Internal use.
     /// </summary>
-    public static Guid DalamudInternalKey = new("Dalamud.Internal");
+    public static readonly Guid DalamudInternalKey = new("Dalamud.Internal");
     
     private static readonly ModuleLog Log = new("AddonEventManager");
     
