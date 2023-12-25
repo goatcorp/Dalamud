@@ -1,5 +1,4 @@
 ﻿using System.Collections.Concurrent;
-using System.Linq;
 
 using Dalamud.Game.Addon.Lifecycle;
 using Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
@@ -25,7 +24,7 @@ internal unsafe class AddonEventManager : IDisposable, IServiceType
     /// <summary>
     /// PluginName for Dalamud Internal use.
     /// </summary>
-    public static readonly Guid DalamudInternalKey = new("Dalamud.Internal");
+    public static readonly Guid DalamudInternalKey = Guid.NewGuid();
     
     private static readonly ModuleLog Log = new("AddonEventManager");
     
@@ -48,7 +47,7 @@ internal unsafe class AddonEventManager : IDisposable, IServiceType
         this.address.Setup(sigScanner);
 
         this.pluginEventControllers = new ConcurrentDictionary<Guid, PluginEventController>();
-        this.pluginEventControllers.TryAdd(DalamudInternalKey, new PluginEventController(DalamudInternalKey));
+        this.pluginEventControllers.TryAdd(DalamudInternalKey, new PluginEventController());
         
         this.cursorOverride = null;
 
@@ -86,12 +85,15 @@ internal unsafe class AddonEventManager : IDisposable, IServiceType
     /// <returns>IAddonEventHandle used to remove the event.</returns>
     internal IAddonEventHandle? AddEvent(Guid pluginId, IntPtr atkUnitBase, IntPtr atkResNode, AddonEventType eventType, IAddonEventManager.AddonEventHandler eventHandler)
     {
-        if (this.pluginEventControllers.FirstOrDefault(entry => entry.Value.PluginId == pluginId) is { Value: { } eventController })
+        if (this.pluginEventControllers.TryGetValue(pluginId, out var controller))
         {
-            return eventController.AddEvent(atkUnitBase, atkResNode, eventType, eventHandler);
+            return controller.AddEvent(atkUnitBase, atkResNode, eventType, eventHandler);
+        }
+        else
+        {
+            Log.Verbose($"Unable to locate controller for {pluginId}. No event was added.");
         }
         
-        Log.Verbose($"Unable to locate controller for {pluginId}. No event was added.");
         return null;
     }
 
@@ -102,9 +104,9 @@ internal unsafe class AddonEventManager : IDisposable, IServiceType
     /// <param name="eventHandle">The Unique Id for this event.</param>
     internal void RemoveEvent(Guid pluginId, IAddonEventHandle eventHandle)
     {
-        if (this.pluginEventControllers.FirstOrDefault(entry => entry.Value.PluginId == pluginId) is { Value: { } eventController })
+        if (this.pluginEventControllers.TryGetValue(pluginId, out var controller))
         {
-            eventController.RemoveEvent(eventHandle);
+            controller.RemoveEvent(eventHandle);
         }
         else
         {
@@ -134,7 +136,7 @@ internal unsafe class AddonEventManager : IDisposable, IServiceType
             key =>
             {
                 Log.Verbose($"Creating new PluginEventController for: {key}");
-                return new PluginEventController(key);
+                return new PluginEventController();
             });
     }
 
