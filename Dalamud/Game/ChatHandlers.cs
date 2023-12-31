@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 using CheapLoc;
 using Dalamud.Configuration.Internal;
+using Dalamud.Game.ClientState.JobGauge.Enums;
 using Dalamud.Game.Gui;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
@@ -14,7 +15,10 @@ using Dalamud.Interface.Internal;
 using Dalamud.Interface.Internal.Notifications;
 using Dalamud.Interface.Internal.Windows;
 using Dalamud.Interface.Internal.Windows.PluginInstaller;
+using Dalamud.Logging;
+using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Internal;
+using Dalamud.Plugin.Internal.Loader;
 using Dalamud.Utility;
 using Serilog;
 
@@ -59,6 +63,8 @@ internal class ChatHandlers : IServiceType
     //     { XivChatType.NoviceNetwork, Color.SaddleBrown },
     //     { XivChatType.Echo, Color.Gray },
     // };
+
+    private static readonly ModuleLog Log = new("CHATHANDLER");
 
     private readonly Regex rmtRegex = new(
         @"4KGOLD|We have sufficient stock|VPK\.OM|[Gg]il for free|[Gg]il [Cc]heap|5GOLD|www\.so9\.com|Fast & Convenient|Cheap & Safety Guarantee|【Code|A O A U E|igfans|4KGOLD\.COM|Cheapest Gil with|pvp and bank on google|Selling Cheap GIL|ff14mogstation\.com|Cheap Gil 1000k|gilsforyou|server 1000K =|gils_selling|E A S Y\.C O M|bonus code|mins delivery guarantee|Sell cheap|Salegm\.com|cheap Mog|Off Code:|FF14Mog.com|使用する5％オ|[Oo][Ff][Ff] [Cc]ode( *)[:;]|offers Fantasia",
@@ -165,15 +171,24 @@ internal class ChatHandlers : IServiceType
         if (clientState == null)
             return;
 
+        if (type == XivChatType.Notice)
+        {
+            if (!this.hasSeenLoadingMsg)
+                this.PrintWelcomeMessage();
+            
+            // FIXME (kazwolfe): This will only run on the first Notice received, meaning auto-updates won't happen
+            // until the character is logged in. Ideally, this should move earlier into the process (after all repos
+            // are loaded) with just the update summary posted here. 
+            if (!this.startedAutoUpdatingPlugins)
+                this.AutoUpdatePlugins();
+        }
+
         if (type == XivChatType.Notice && !this.hasSeenLoadingMsg)
             this.PrintWelcomeMessage();
 
         // For injections while logged in
         if (clientState.LocalPlayer != null && clientState.TerritoryType == 0 && !this.hasSeenLoadingMsg)
             this.PrintWelcomeMessage();
-
-        if (!this.startedAutoUpdatingPlugins)
-            this.AutoUpdatePlugins();
 
 #if !DEBUG && false
             if (!this.hasSeenLoadingMsg)
@@ -271,17 +286,22 @@ internal class ChatHandlers : IServiceType
         var notifications = Service<NotificationManager>.GetNullable();
 
         if (chatGui == null || pluginManager == null || notifications == null)
+        {
+            Log.Warning("Aborting auto-update because a required service was not loaded.");
             return;
+        }
 
         if (!pluginManager.ReposReady || !pluginManager.InstalledPlugins.Any() || !pluginManager.AvailablePlugins.Any())
         {
             // Plugins aren't ready yet.
             // TODO: We should retry. This sucks, because it means we won't ever get here again until another notice.
+            Log.Warning("Aborting auto-update because plugins weren't loaded or ready.");
             return;
         }
 
         this.startedAutoUpdatingPlugins = true;
 
+        Log.Debug("Beginning plugin auto-update process...");
         Task.Run(() => pluginManager.UpdatePluginsAsync(true, !this.configuration.AutoUpdatePlugins, true)).ContinueWith(task =>
         {
             this.IsAutoUpdateComplete = true;
