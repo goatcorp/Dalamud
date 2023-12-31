@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -19,8 +20,12 @@ using Dalamud.Game.Gui.Dtr;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
+using Dalamud.Interface.Components;
 using Dalamud.Interface.Internal;
+using Dalamud.Interface.Internal.Notifications;
 using Dalamud.Interface.Internal.Windows.PluginInstaller;
+using Dalamud.Interface.Utility;
+using Dalamud.Interface.Utility.Raii;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Logging.Internal;
@@ -33,6 +38,9 @@ using Dalamud.Plugin.Ipc.Internal;
 using Dalamud.Support;
 using Dalamud.Utility;
 using Dalamud.Utility.Timing;
+
+using ImGuiNET;
+
 using Newtonsoft.Json;
 
 namespace Dalamud.Plugin.Internal;
@@ -73,6 +81,7 @@ internal partial class PluginManager : IDisposable, IServiceType
     private readonly List<AvailablePluginUpdate> updatablePluginsList = new();
 
     private readonly DalamudLinkPayload openInstallerWindowPluginChangelogsLink;
+    private readonly DalamudLinkPayload openInstallerWindowLink;
 
     [ServiceManager.ServiceDependency]
     private readonly DalamudConfiguration configuration = Service<DalamudConfiguration>.Get();
@@ -140,6 +149,11 @@ internal partial class PluginManager : IDisposable, IServiceType
         this.openInstallerWindowPluginChangelogsLink = this.chatGui.AddChatLinkHandler("Dalamud", 1003, (_, _) =>
         {
             Service<DalamudInterface>.GetNullable()?.OpenPluginInstallerTo(PluginInstallerWindow.PluginInstallerOpenKind.Changelogs);
+        });
+
+        this.openInstallerWindowLink = this.chatGui.AddChatLinkHandler("Dalamud", 1001, (i, m) =>
+        {
+            Service<DalamudInterface>.GetNullable()?.OpenPluginInstallerTo(PluginInstallerWindow.PluginInstallerOpenKind.InstalledPlugins);
         });
 
         this.configuration.PluginTestingOptIns ??= new();
@@ -255,6 +269,11 @@ internal partial class PluginManager : IDisposable, IServiceType
     public bool LoadBannedPlugins { get; set; }
 
     /// <summary>
+    /// Gets a task indicating the state of <see cref="AutoUpdate"/> process.
+    /// </summary>
+    public Task? AutoUpdateTask { get; private set; }
+
+    /// <summary>
     /// Gets a value indicating whether the given repo manifest should be visible to the user.
     /// </summary>
     /// <param name="manifest">Repo manifest.</param>
@@ -302,7 +321,7 @@ internal partial class PluginManager : IDisposable, IServiceType
     /// </summary>
     /// <param name="updateMetadata">The list of updated plugin metadata.</param>
     /// <param name="header">The header text to send to chat prior to any update info.</param>
-    public void PrintUpdatedPlugins(List<PluginUpdateStatus>? updateMetadata, string header)
+    public void PrintUpdatedPlugins(ICollection<PluginUpdateStatus>? updateMetadata, string header)
     {
         if (updateMetadata is { Count: > 0 })
         {
@@ -438,11 +457,12 @@ internal partial class PluginManager : IDisposable, IServiceType
     /// Load all plugins, sorted by priority. Any plugins with no explicit definition file or a negative priority
     /// are loaded asynchronously.
     /// </summary>
+    /// <param name="cancellationToken">The cancellation token.</param>
     /// <remarks>
     /// This should only be called during Dalamud startup.
     /// </remarks>
     /// <returns>The task.</returns>
-    public async Task LoadAllPlugins()
+    public async Task LoadAllPlugins(CancellationToken cancellationToken)
     {
         var pluginDefs = new List<PluginDef>();
         var devPluginDefs = new List<PluginDef>();
@@ -607,34 +627,88 @@ internal partial class PluginManager : IDisposable, IServiceType
         var asyncPlugins = pluginDefs.Where(def => def.Manifest?.LoadSync != true).ToList();
         var loadTasks = new List<Task>();
 
-        var tokenSource = new CancellationTokenSource(TimeSpan.FromMinutes(5));
-
         // Load plugins that can be loaded anytime
         await LoadPluginsSync(
             "AnytimeSync",
             syncPlugins.Where(def => def.Manifest?.LoadRequiredState == 2),
-            tokenSource.Token);
+            cancellationToken);
         loadTasks.Add(LoadPluginsAsync(
                           "AnytimeAsync",
                           asyncPlugins.Where(def => def.Manifest?.LoadRequiredState == 2),
-                          tokenSource.Token));
+                          cancellationToken));
 
         // Pass the rest of plugin loading to another thread(task)
         _ = Task.Run(
             async () =>
             {
+                // Auto-update first.
+                var notificationManager = await Service<NotificationManager>.GetAsync();
+                if (!this.configuration.AutoUpdatePlugins)
+                {
+                    // No need to wait for this one; read-only operation.
+                    this.AutoUpdateTask = this.AutoUpdate(null, cancellationToken);
+                }
+                else
+                {
+                    var updateCancelToken = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                    using var autoUpdateNotification = notificationManager.AddNotification(
+                        Locs.DalamudPluginAutoUpdateInProgress(),
+                        Locs.DalamudPluginAutoUpdateNotificationTitle(),
+                        NotificationType.Info,
+                        persistent: true,
+                        interactible: true);
+
+                    var tcs = new TaskCompletionSource();
+                    autoUpdateNotification.Draw += n =>
+                    {
+                        if (tcs.Task.IsCompleted)
+                            return;
+
+                        if (ImGui.Button(Locs.DalamudPluginAutoUpdateSkip()))
+                        {
+                            n.Dismiss();
+                            tcs.TrySetResult();
+                        }
+
+                        ImGuiComponents.HelpMarker(Locs.DalamudPluginAutoUpdateSkipHelp());
+
+                        using (ImRaii.Disabled(updateCancelToken.IsCancellationRequested))
+                        {
+                            if (ImGui.Button(Locs.DalamudPluginAutoUpdateCancel()))
+                                updateCancelToken.Cancel();
+                        }
+
+                        ImGuiComponents.HelpMarker(Locs.DalamudPluginAutoUpdateCancelHelp());
+                    };
+
+                    this.AutoUpdateTask = this.AutoUpdate(autoUpdateNotification, updateCancelToken.Token);
+                    _ = this.AutoUpdateTask
+                            .ContinueWith(
+                                _ =>
+                                {
+                                    updateCancelToken.Dispose();
+                                    tcs.TrySetResult();
+                                },
+                                cancellationToken: default);
+                    await tcs.Task;
+                }
+
+                cancellationToken.ThrowIfCancellationRequested();
+
                 // Load plugins that want to be loaded during Framework.Tick
                 var framework = await Service<Framework>.GetAsync().ConfigureAwait(false);
                 await framework.RunOnTick(
                     () => LoadPluginsSync(
                         "FrameworkTickSync",
                         syncPlugins.Where(def => def.Manifest?.LoadRequiredState == 1),
-                        tokenSource.Token),
-                    cancellationToken: tokenSource.Token).ConfigureAwait(false);
+                        cancellationToken),
+                    cancellationToken: cancellationToken).ConfigureAwait(false);
                 loadTasks.Add(LoadPluginsAsync(
                                   "FrameworkTickAsync",
                                   asyncPlugins.Where(def => def.Manifest?.LoadRequiredState == 1),
-                                  tokenSource.Token));
+                                  cancellationToken));
+
+                cancellationToken.ThrowIfCancellationRequested();
 
                 // Load plugins that want to be loaded during Framework.Tick, when drawing facilities are available
                 _ = await Service<InterfaceManager.InterfaceManagerWithScene>.GetAsync().ConfigureAwait(false);
@@ -642,12 +716,14 @@ internal partial class PluginManager : IDisposable, IServiceType
                     () => LoadPluginsSync(
                         "DrawAvailableSync",
                         syncPlugins.Where(def => def.Manifest?.LoadRequiredState is 0 or null),
-                        tokenSource.Token),
-                    cancellationToken: tokenSource.Token);
+                        cancellationToken),
+                    cancellationToken: cancellationToken);
                 loadTasks.Add(LoadPluginsAsync(
                                   "DrawAvailableAsync",
                                   asyncPlugins.Where(def => def.Manifest?.LoadRequiredState is 0 or null),
-                                  tokenSource.Token));
+                                  cancellationToken));
+
+                cancellationToken.ThrowIfCancellationRequested();
 
                 // Save signatures when all plugins are done loading, successful or not.
                 try
@@ -665,7 +741,7 @@ internal partial class PluginManager : IDisposable, IServiceType
                 this.NotifyinstalledPluginsListChanged();
                 sigScanner.Save();
             },
-            tokenSource.Token);
+            cancellationToken);
     }
 
     /// <summary>
@@ -925,8 +1001,13 @@ internal partial class PluginManager : IDisposable, IServiceType
     /// <param name="ignoreDisabled">Ignore disabled plugins.</param>
     /// <param name="dryRun">Perform a dry run, don't install anything.</param>
     /// <param name="autoUpdate">If this action was performed as part of an auto-update.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>Success or failure and a list of updated plugin metadata.</returns>
-    public async Task<IEnumerable<PluginUpdateStatus>> UpdatePluginsAsync(bool ignoreDisabled, bool dryRun, bool autoUpdate = false)
+    public async Task<ICollection<PluginUpdateStatus>> UpdatePluginsAsync(
+        bool ignoreDisabled,
+        bool dryRun,
+        bool autoUpdate = false,
+        CancellationToken cancellationToken = default)
     {
         Log.Information("Starting plugin update");
 
@@ -937,6 +1018,9 @@ internal partial class PluginManager : IDisposable, IServiceType
         {
             foreach (var plugin in this.updatablePluginsList)
             {
+                if (cancellationToken.IsCancellationRequested)
+                    break;
+
                 // Can't update that!
                 if (plugin.InstalledPlugin.IsDev)
                     continue;
@@ -947,7 +1031,7 @@ internal partial class PluginManager : IDisposable, IServiceType
                 if (plugin.InstalledPlugin.Manifest.ScheduledForDeletion)
                     continue;
 
-                updateTasks.Add(this.UpdateSinglePluginAsync(plugin, false, dryRun));
+                updateTasks.Add(this.UpdateSinglePluginAsync(plugin, false, dryRun, cancellationToken));
             }
         }
 
@@ -969,8 +1053,13 @@ internal partial class PluginManager : IDisposable, IServiceType
     /// <param name="metadata">The available plugin update.</param>
     /// <param name="notify">Whether to notify that installed plugins have changed afterwards.</param>
     /// <param name="dryRun">Whether or not to actually perform the update, or just indicate success.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>The status of the update.</returns>
-    public async Task<PluginUpdateStatus> UpdateSinglePluginAsync(AvailablePluginUpdate metadata, bool notify, bool dryRun)
+    public async Task<PluginUpdateStatus> UpdateSinglePluginAsync(
+        AvailablePluginUpdate metadata,
+        bool notify,
+        bool dryRun,
+        CancellationToken cancellationToken = default)
     {
         var plugin = metadata.InstalledPlugin;
 
@@ -995,7 +1084,10 @@ internal partial class PluginManager : IDisposable, IServiceType
             Stream updateStream;
             try
             {
-                updateStream = await this.DownloadPluginAsync(metadata.UpdateManifest, metadata.UseTesting);
+                updateStream = await this.DownloadPluginAsync(
+                                   metadata.UpdateManifest,
+                                   metadata.UseTesting,
+                                   cancellationToken);
             }
             catch (Exception ex)
             {
@@ -1003,7 +1095,9 @@ internal partial class PluginManager : IDisposable, IServiceType
                 updateStatus.Status = PluginUpdateStatus.StatusKind.FailedDownload;
                 return updateStatus;
             }
-            
+
+            cancellationToken.ThrowIfCancellationRequested();
+
             // Unload if loaded
             if (plugin.State is PluginState.Loaded or PluginState.LoadError or PluginState.DependencyResolutionFailed)
             {
@@ -1256,7 +1350,73 @@ internal partial class PluginManager : IDisposable, IServiceType
         }
     }
 
-    private async Task<Stream> DownloadPluginAsync(RemotePluginManifest repoManifest, bool useTesting)
+    /// <summary>
+    /// Performs auto update. If <paramref name="notification"/> is <c>null</c>, only checking is done.
+    /// </summary>
+    /// <param name="notification">The relevant notification displaying the update progress.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    private async Task AutoUpdate(NotificationManager.Notification? notification, CancellationToken cancellationToken)
+    {
+        // Note: this function should not throw.
+
+        var dryRun = notification is null;
+        ICollection<PluginUpdateStatus> updatedPlugins;
+        try
+        {
+            updatedPlugins = await this.UpdatePluginsAsync(true, dryRun, true, cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            if (cancellationToken.IsCancellationRequested)
+            {
+                if (notification is not null)
+                    notification.Content = Locs.DalamudPluginAutoUpdateCancelled();
+                Log.Information(ex, Locs.DalamudPluginAutoUpdateCancelled());
+            }
+            else
+            {
+                if (notification is not null)
+                    notification.Content = Locs.DalamudPluginAutoUpdateFailed();
+                Log.Error(ex, Locs.DalamudPluginAutoUpdateFailed());
+            }
+
+            return;
+        }
+
+        if (dryRun)
+        {
+            if (updatedPlugins.Any())
+            {
+                this.chatGui.Print(new()
+                {
+                    Message = new(new List<Payload>
+                    {
+                        new TextPayload(Locs.DalamudPluginUpdateRequired()),
+                        new TextPayload("  ["),
+                        new UIForegroundPayload(500),
+                        this.openInstallerWindowLink,
+                        new TextPayload(Loc.Localize("DalamudInstallerHelp", "Open the plugin installer")),
+                        RawPayload.LinkTerminator,
+                        new UIForegroundPayload(0),
+                        new TextPayload("]"),
+                    }),
+                    Type = XivChatType.Urgent,
+                });
+            }
+        }
+        else 
+        {
+            if (updatedPlugins.Any())
+                this.PrintUpdatedPlugins(updatedPlugins, Locs.DalamudPluginAutoUpdateChatHeader());
+
+            notification.Content = Locs.DalamudPluginAutoUpdateResult(updatedPlugins.Count);
+        }
+    }
+
+    private async Task<Stream> DownloadPluginAsync(
+        RemotePluginManifest repoManifest,
+        bool useTesting,
+        CancellationToken cancellationToken = default)
     {
         var downloadUrl = useTesting ? repoManifest.DownloadLinkTesting : repoManifest.DownloadLinkInstall;
         var request = new HttpRequestMessage(HttpMethod.Get, downloadUrl)
@@ -1269,10 +1429,10 @@ internal partial class PluginManager : IDisposable, IServiceType
                 },
             },
         };
-        var response = await this.happyHttpClient.SharedHttpClient.SendAsync(request);
+        var response = await this.happyHttpClient.SharedHttpClient.SendAsync(request, cancellationToken);
         response.EnsureSuccessStatusCode();
 
-        return await response.Content.ReadAsStreamAsync();
+        return await response.Content.ReadAsStreamAsync(cancellationToken);
     }
 
     /// <summary>
@@ -1645,7 +1805,7 @@ internal partial class PluginManager : IDisposable, IServiceType
         }
     }
 
-    private void LoadAndStartLoadSyncPlugins()
+    private async ValueTask LoadAndStartLoadSyncPlugins()
     {
         try
         {
@@ -1665,7 +1825,8 @@ internal partial class PluginManager : IDisposable, IServiceType
 
             using (Timings.Start("PM Load Sync Plugins"))
             {
-                this.LoadAllPlugins().Wait();
+                var tokenSource = new CancellationTokenSource(TimeSpan.FromMinutes(5));
+                await this.LoadAllPlugins(tokenSource.Token);
                 Log.Information("[T3] PML OK!");
             }
 
@@ -1682,6 +1843,32 @@ internal partial class PluginManager : IDisposable, IServiceType
         public static string DalamudPluginUpdateSuccessful(string name, Version version) => Loc.Localize("DalamudPluginUpdateSuccessful", "    》 {0} updated to v{1}.").Format(name, version);
 
         public static string DalamudPluginUpdateFailed(string name, Version version, string why) => Loc.Localize("DalamudPluginUpdateFailed", "    》 {0} update to v{1} failed ({2}).").Format(name, version, why);
+
+        public static string DalamudPluginUpdateRequired() => Loc.Localize("DalamudPluginUpdateRequired", "One or more of your plugins needs to be updated. Please use the /xlplugins command in-game to update them!");
+
+        public static string DalamudPluginAutoUpdateChatHeader() => Loc.Localize("DalamudPluginAutoUpdate", "Auto-update:");
+
+        public static string DalamudPluginAutoUpdateNotificationTitle() => Loc.Localize("DalamudPluginAutoUpdateNotificationTitle", "Plugin Auto-Update");
+
+        public static string DalamudPluginAutoUpdateFailed() => Loc.Localize("DalamudPluginAutoUpdateFailed", "Could not check for plugin updates.");
+
+        public static string DalamudPluginAutoUpdateCancelled() => Loc.Localize("DalamudPluginUpdateCheckCancelled", "Automatic plugin update has been cancelled.");
+
+        public static string DalamudPluginAutoUpdateInProgress() => Loc.Localize("NotificationAutoUpdateInProgress", "Updating plugins...");
+
+        public static string DalamudPluginAutoUpdateResult(int n) => n switch
+        {
+            > 0 => Loc.Localize("NotificationUpdatedPlugins", "{0} of your plugins were updated.").Format(n),
+            _ => Loc.Localize("NotificationUpdatedPlugins0", "No updates were available."),
+        };
+
+        public static string DalamudPluginAutoUpdateSkip() => Loc.Localize("NotificationAutoUpdateSkip", "Skip");
+
+        public static string DalamudPluginAutoUpdateSkipHelp() => Loc.Localize("NotificationAutoUpdateSkipHelp", "Load the rest of enabled plugins, while updating them in background.");
+
+        public static string DalamudPluginAutoUpdateCancel() => Loc.Localize("NotificationAutoUpdateCancel", "Cancel");
+
+        public static string DalamudPluginAutoUpdateCancelHelp() => Loc.Localize("NotificationAutoUpdateCancelHelp", "Cancel the remainder of the update process.");
     }
 }
 

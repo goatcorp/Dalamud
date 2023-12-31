@@ -100,38 +100,28 @@ internal class ChatHandlers : IServiceType
 
     private readonly Regex urlRegex = new(@"(http|ftp|https)://([\w_-]+(?:(?:\.[\w_-]+)+))([\w.,@?^=%&:/~+#-]*[\w@?^=%&/~+#-])?", RegexOptions.Compiled);
 
-    private readonly DalamudLinkPayload openInstallerWindowLink;
-
     [ServiceManager.ServiceDependency]
     private readonly Dalamud dalamud = Service<Dalamud>.Get();
     
     [ServiceManager.ServiceDependency]
     private readonly DalamudConfiguration configuration = Service<DalamudConfiguration>.Get();
+    
+    [ServiceManager.ServiceDependency]
+    private readonly ChatGui chatGui = Service<ChatGui>.Get();
 
     private bool hasSeenLoadingMsg;
-    private bool startedAutoUpdatingPlugins;
 
     [ServiceManager.ServiceConstructor]
-    private ChatHandlers(ChatGui chatGui)
+    private ChatHandlers()
     {
-        chatGui.CheckMessageHandled += this.OnCheckMessageHandled;
-        chatGui.ChatMessage += this.OnChatMessage;
-
-        this.openInstallerWindowLink = chatGui.AddChatLinkHandler("Dalamud", 1001, (i, m) =>
-        {
-            Service<DalamudInterface>.GetNullable()?.OpenPluginInstallerTo(PluginInstallerWindow.PluginInstallerOpenKind.InstalledPlugins);
-        });
+        this.chatGui.CheckMessageHandled += this.OnCheckMessageHandled;
+        this.chatGui.ChatMessage += this.OnChatMessage;
     }
 
     /// <summary>
     /// Gets the last URL seen in chat.
     /// </summary>
     public string? LastLink { get; private set; }
-
-    /// <summary>
-    /// Gets a value indicating whether or not auto-updates have already completed this session.
-    /// </summary>
-    public bool IsAutoUpdateComplete { get; private set; }
 
     private void OnCheckMessageHandled(XivChatType type, uint senderid, ref SeString sender, ref SeString message, ref bool isHandled)
     {
@@ -171,9 +161,6 @@ internal class ChatHandlers : IServiceType
         // For injections while logged in
         if (clientState.LocalPlayer != null && clientState.TerritoryType == 0 && !this.hasSeenLoadingMsg)
             this.PrintWelcomeMessage();
-
-        if (!this.startedAutoUpdatingPlugins)
-            this.AutoUpdatePlugins();
 
 #if !DEBUG && false
             if (!this.hasSeenLoadingMsg)
@@ -221,18 +208,17 @@ internal class ChatHandlers : IServiceType
 
     private void PrintWelcomeMessage()
     {
-        var chatGui = Service<ChatGui>.GetNullable();
         var pluginManager = Service<PluginManager>.GetNullable();
         var dalamudInterface = Service<DalamudInterface>.GetNullable();
 
-        if (chatGui == null || pluginManager == null || dalamudInterface == null)
+        if (this.chatGui == null || pluginManager == null || dalamudInterface == null)
             return;
 
-        var assemblyVersion = Assembly.GetAssembly(typeof(ChatHandlers)).GetName().Version.ToString();
+        var assemblyVersion = Assembly.GetAssembly(typeof(ChatHandlers))!.GetName().Version.ToString();
 
         if (this.configuration.PrintDalamudWelcomeMsg)
         {
-            chatGui.Print(string.Format(Loc.Localize("DalamudWelcome", "Dalamud vD{0} loaded."), assemblyVersion)
+            this.chatGui.Print(string.Format(Loc.Localize("DalamudWelcome", "Dalamud vD{0} loaded."), assemblyVersion)
                           + string.Format(Loc.Localize("PluginsWelcome", " {0} plugin(s) loaded."), pluginManager.InstalledPlugins.Count(x => x.IsLoaded)));
         }
 
@@ -240,13 +226,13 @@ internal class ChatHandlers : IServiceType
         {
             foreach (var plugin in pluginManager.InstalledPlugins.OrderBy(plugin => plugin.Name).Where(x => x.IsLoaded))
             {
-                chatGui.Print(string.Format(Loc.Localize("DalamudPluginLoaded", "    》 {0} v{1} loaded."), plugin.Name, plugin.EffectiveVersion));
+                this.chatGui.Print(string.Format(Loc.Localize("DalamudPluginLoaded", "    》 {0} v{1} loaded."), plugin.Name, plugin.EffectiveVersion));
             }
         }
 
         if (string.IsNullOrEmpty(this.configuration.LastVersion) || !assemblyVersion.StartsWith(this.configuration.LastVersion))
         {
-            chatGui.Print(new XivChatEntry
+            this.chatGui.Print(new XivChatEntry
             {
                 Message = Loc.Localize("DalamudUpdated", "Dalamud has been updated successfully! Please check the discord for a full changelog."),
                 Type = XivChatType.Notice,
@@ -262,63 +248,5 @@ internal class ChatHandlers : IServiceType
         }
 
         this.hasSeenLoadingMsg = true;
-    }
-
-    private void AutoUpdatePlugins()
-    {
-        var chatGui = Service<ChatGui>.GetNullable();
-        var pluginManager = Service<PluginManager>.GetNullable();
-        var notifications = Service<NotificationManager>.GetNullable();
-
-        if (chatGui == null || pluginManager == null || notifications == null)
-            return;
-
-        if (!pluginManager.ReposReady || !pluginManager.InstalledPlugins.Any() || !pluginManager.AvailablePlugins.Any())
-        {
-            // Plugins aren't ready yet.
-            // TODO: We should retry. This sucks, because it means we won't ever get here again until another notice.
-            return;
-        }
-
-        this.startedAutoUpdatingPlugins = true;
-
-        Task.Run(() => pluginManager.UpdatePluginsAsync(true, !this.configuration.AutoUpdatePlugins, true)).ContinueWith(task =>
-        {
-            this.IsAutoUpdateComplete = true;
-
-            if (task.IsFaulted)
-            {
-                Log.Error(task.Exception, Loc.Localize("DalamudPluginUpdateCheckFail", "Could not check for plugin updates."));
-                return;
-            }
-
-            var updatedPlugins = task.Result.ToList();
-            if (updatedPlugins.Any())
-            {
-                if (this.configuration.AutoUpdatePlugins)
-                {
-                    Service<PluginManager>.Get().PrintUpdatedPlugins(updatedPlugins, Loc.Localize("DalamudPluginAutoUpdate", "Auto-update:"));
-                    notifications.AddNotification(Loc.Localize("NotificationUpdatedPlugins", "{0} of your plugins were updated.").Format(updatedPlugins.Count), Loc.Localize("NotificationAutoUpdate", "Auto-Update"), NotificationType.Info);
-                }
-                else
-                {
-                    chatGui.Print(new XivChatEntry
-                    {
-                        Message = new SeString(new List<Payload>()
-                        {
-                            new TextPayload(Loc.Localize("DalamudPluginUpdateRequired", "One or more of your plugins needs to be updated. Please use the /xlplugins command in-game to update them!")),
-                            new TextPayload("  ["),
-                            new UIForegroundPayload(500),
-                            this.openInstallerWindowLink,
-                            new TextPayload(Loc.Localize("DalamudInstallerHelp", "Open the plugin installer")),
-                            RawPayload.LinkTerminator,
-                            new UIForegroundPayload(0),
-                            new TextPayload("]"),
-                        }),
-                        Type = XivChatType.Urgent,
-                    });
-                }
-            }
-        });
     }
 }

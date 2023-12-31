@@ -64,7 +64,7 @@ public class SettingsTabGeneral : SettingsTab
 
         new SettingsEntry<bool>(
             Loc.Localize("DalamudSettingsAutoUpdatePlugins", "Auto-update plugins"),
-            Loc.Localize("DalamudSettingsAutoUpdatePluginsMsgHint", "Automatically update plugins when logging in with a character."),
+            Loc.Localize("DalamudSettingsAutoUpdatePluginsMsgHint", "Automatically update plugins on startup."),
             c => c.AutoUpdatePlugins,
             (v, c) => c.AutoUpdatePlugins = v),
 

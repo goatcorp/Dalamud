@@ -1,11 +1,12 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 
+using Dalamud.Game;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Utility;
 using Dalamud.Utility;
+
 using ImGuiNET;
 
 namespace Dalamud.Interface.Internal.Notifications;
@@ -54,6 +55,13 @@ internal class NotificationManager : IServiceType
         ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.NoInputs |
         ImGuiWindowFlags.NoNav | ImGuiWindowFlags.NoBringToFrontOnFocus | ImGuiWindowFlags.NoFocusOnAppearing;
 
+    /// <summary>
+    /// Value indicating interactible window flags for the notifications.
+    /// </summary>
+    internal const ImGuiWindowFlags NotifyToastFlagsInteractible =
+        ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoDecoration |
+        ImGuiWindowFlags.NoBringToFrontOnFocus | ImGuiWindowFlags.NoFocusOnAppearing;
+
     private readonly List<Notification> notifications = new();
 
     [ServiceManager.ServiceConstructor]
@@ -68,15 +76,29 @@ internal class NotificationManager : IServiceType
     /// <param name="title">The title of the notification.</param>
     /// <param name="type">The type of the notification.</param>
     /// <param name="msDelay">The time the notification should be displayed for.</param>
-    public void AddNotification(string content, string? title = null, NotificationType type = NotificationType.None, uint msDelay = NotifyDefaultDismiss)
+    /// <param name="persistent">Whether the notification is persistent.</param>
+    /// <param name="interactible">Whether the notification is interactible.</param>
+    /// <returns>The new notification.</returns>
+    public Notification AddNotification(
+        string content,
+        string? title = null,
+        NotificationType type = NotificationType.None,
+        uint msDelay = NotifyDefaultDismiss,
+        bool persistent = false,
+        bool interactible = false)
     {
-        this.notifications.Add(new Notification
+        var n = new Notification
         {
             Content = content,
             Title = title,
             NotificationType = type,
             DurationMs = msDelay,
-        });
+            Persistent = persistent,
+            Interactible = interactible,
+        };
+
+        Service<Framework>.GetAsync().ContinueWith(_ => this.notifications.Add(n));
+        return n;
     }
 
     /// <summary>
@@ -94,6 +116,7 @@ internal class NotificationManager : IServiceType
             if (tn.GetPhase() == Notification.Phase.Expired)
             {
                 this.notifications.RemoveAt(i);
+                i--;
                 continue;
             }
 
@@ -107,7 +130,7 @@ internal class NotificationManager : IServiceType
             ImGuiHelpers.ForceNextWindowMainViewport();
             ImGui.SetNextWindowBgAlpha(opacity);
             ImGui.SetNextWindowPos(ImGuiHelpers.MainViewport.Pos + new Vector2(viewportSize.X - NotifyPaddingX, viewportSize.Y - NotifyPaddingY - height), ImGuiCond.Always, Vector2.One);
-            ImGui.Begin(windowName, NotifyToastFlags);
+            ImGui.Begin(windowName, tn.Interactible ? NotifyToastFlagsInteractible : NotifyToastFlags);
 
             ImGui.PushTextWrapPos(viewportSize.X / 3.0f);
 
@@ -162,6 +185,10 @@ internal class NotificationManager : IServiceType
                 ImGui.TextUnformatted(tn.Content);
             }
 
+            ImGui.PushID(i);
+            tn.InvokeDraw();
+            ImGui.PopID();
+
             ImGui.PopStyleColor();
 
             ImGui.PopTextWrapPos();
@@ -175,8 +202,13 @@ internal class NotificationManager : IServiceType
     /// <summary>
     /// Container class for notifications.
     /// </summary>
-    internal class Notification
+    internal sealed class Notification : IDisposable
     {
+        /// <summary>
+        /// Called upon drawing the notification entry.
+        /// </summary>
+        internal event Action<Notification>? Draw;
+
         /// <summary>
         /// Possible notification phases.
         /// </summary>
@@ -214,14 +246,29 @@ internal class NotificationManager : IServiceType
         internal string? Title { get; init; }
 
         /// <summary>
-        /// Gets the content of the notification.
+        /// Gets or sets the content of the notification.
         /// </summary>
-        internal string Content { get; init; }
+        internal string Content { get; set; } = string.Empty;
 
         /// <summary>
-        /// Gets the duration of the notification in milliseconds.
+        /// Gets a value indicating whether the notification is interactible.
         /// </summary>
-        internal uint DurationMs { get; init; }
+        internal bool Interactible { get; init; }
+
+        /// <summary>
+        /// Gets or sets the duration of the notification in milliseconds.
+        /// </summary>
+        internal uint DurationMs { get; set; }
+
+        /// <summary>
+        /// Gets a value indicating whether this notification is persistent.
+        /// </summary>
+        internal bool Persistent { get; init; }
+
+        /// <summary>
+        /// Gets the manual dismissal time of the notification.
+        /// </summary>
+        internal DateTime ForceDismissOn { get; private set; } = DateTime.MaxValue;
 
         /// <summary>
         /// Gets the creation time of the notification.
@@ -275,22 +322,53 @@ internal class NotificationManager : IServiceType
         /// </summary>
         internal TimeSpan ElapsedTime => DateTime.Now - this.CreationTime;
 
+        /// <inheritdoc/>
+        void IDisposable.Dispose() => this.Dismiss(TimeSpan.FromMilliseconds(this.DurationMs));
+
+        /// <summary>
+        /// Dismisses this notification.
+        /// </summary>
+        /// <param name="wait">The wait time before starting dismissal fade-out.</param>
+        internal void Dismiss(TimeSpan wait = default)
+        {
+            if (this.ForceDismissOn != DateTime.MaxValue)
+                return;
+            this.ForceDismissOn = DateTime.Now + wait;
+        }
+
         /// <summary>
         /// Gets the phase of the notification.
         /// </summary>
         /// <returns>The phase of the notification.</returns>
         internal Phase GetPhase()
         {
-            var elapsed = (int)this.ElapsedTime.TotalMilliseconds;
+            if (this.ForceDismissOn != DateTime.MaxValue)
+            {
+                var elapsed = (int)(DateTime.Now - this.ForceDismissOn).TotalMilliseconds;
 
-            if (elapsed > NotifyFadeInOutTime + this.DurationMs + NotifyFadeInOutTime)
-                return Phase.Expired;
-            else if (elapsed > NotifyFadeInOutTime + this.DurationMs)
-                return Phase.FadeOut;
-            else if (elapsed > NotifyFadeInOutTime)
-                return Phase.Wait;
+                return elapsed switch
+                {
+                    > NotifyFadeInOutTime => Phase.Expired,
+                    > 0 => Phase.FadeOut,
+                    _ => Phase.Wait,
+                };
+            }
             else
+            {
+                var elapsed = (int)this.ElapsedTime.TotalMilliseconds;
+
+                if (!this.Persistent)
+                {
+                    if (elapsed > NotifyFadeInOutTime + this.DurationMs + NotifyFadeInOutTime)
+                        return Phase.Expired;
+                    if (elapsed > NotifyFadeInOutTime + this.DurationMs)
+                        return Phase.FadeOut;
+                }
+
+                if (elapsed > NotifyFadeInOutTime)
+                    return Phase.Wait;
                 return Phase.FadeIn;
+            }
         }
 
         /// <summary>
@@ -299,20 +377,36 @@ internal class NotificationManager : IServiceType
         /// <returns>The opacity, in a range from 0 to 1.</returns>
         internal float GetFadePercent()
         {
-            var phase = this.GetPhase();
-            var elapsed = this.ElapsedTime.TotalMilliseconds;
-
-            if (phase == Phase.FadeIn)
+            if (this.ForceDismissOn != DateTime.MaxValue)
             {
-                return (float)elapsed / NotifyFadeInOutTime * NotifyOpacity;
+                var elapsedSinceDismiss = (int)(DateTime.Now - this.ForceDismissOn).TotalMilliseconds;
+                var fadeOutProgress = Math.Clamp(1f - ((float)elapsedSinceDismiss / NotifyFadeInOutTime), 0f, 1f);
+                var elapsedSinceCreate = this.ElapsedTime.TotalMilliseconds;
+                var fadeInProgress = Math.Clamp((float)elapsedSinceCreate / NotifyFadeInOutTime, 0f, 1f);
+                return Math.Min(fadeOutProgress, fadeInProgress) * NotifyOpacity;
             }
-            else if (phase == Phase.FadeOut)
+            else
             {
-                return (1.0f - (((float)elapsed - NotifyFadeInOutTime - this.DurationMs) /
-                                NotifyFadeInOutTime)) * NotifyOpacity;
-            }
+                var phase = this.GetPhase();
+                var elapsed = this.ElapsedTime.TotalMilliseconds;
 
-            return 1.0f * NotifyOpacity;
+                if (phase == Phase.FadeIn)
+                {
+                    return (float)elapsed / NotifyFadeInOutTime * NotifyOpacity;
+                }
+                else if (phase == Phase.FadeOut)
+                {
+                    return (1.0f - (((float)elapsed - NotifyFadeInOutTime - this.DurationMs) /
+                                    NotifyFadeInOutTime)) * NotifyOpacity;
+                }
+
+                return 1.0f * NotifyOpacity;
+            }
         }
+
+        /// <summary>
+        /// Invokes <see cref="Draw"/>.
+        /// </summary>
+        internal void InvokeDraw() => this.Draw?.Invoke(this);
     }
 }

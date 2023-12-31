@@ -112,7 +112,7 @@ public sealed class DalamudPluginInterface : IDisposable
     /// <summary>
     /// Gets a value indicating whether or not auto-updates have already completed this session.
     /// </summary>
-    public bool IsAutoUpdateComplete => Service<ChatHandlers>.Get().IsAutoUpdateComplete;
+    public bool IsAutoUpdateComplete => Service<PluginManager>.Get().AutoUpdateTask?.IsCompleted ?? false;
 
     /// <summary>
     /// Gets the repository from which this plugin was installed.
