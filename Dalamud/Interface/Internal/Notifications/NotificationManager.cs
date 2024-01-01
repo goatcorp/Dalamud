@@ -323,7 +323,7 @@ internal class NotificationManager : IServiceType
         internal TimeSpan ElapsedTime => DateTime.Now - this.CreationTime;
 
         /// <inheritdoc/>
-        void IDisposable.Dispose() => this.Dismiss(TimeSpan.FromMilliseconds(this.DurationMs));
+        public void Dispose() => this.Dismiss(TimeSpan.FromMilliseconds(this.DurationMs));
 
         /// <summary>
         /// Dismisses this notification.

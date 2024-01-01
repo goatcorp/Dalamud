@@ -687,17 +687,15 @@ internal partial class PluginManager : IDisposable, IServiceType
                 this.PluginsReady = true;
                 this.NotifyinstalledPluginsListChanged();
                 sigScanner.Save();
-                
+
+                await repoLoadTask;
                 // Now we auto-update; we currently need instances of LocalPlugin to be loaded.
                 // Note that the previous cancellationToken is no longer used.
-                // Operations past this point is opportunistic.
+                // Operations past this point are opportunistic.
                 var notificationManager = await Service<NotificationManager>.GetAsync();
                 if (!this.configuration.AutoUpdatePlugins)
                 {
-                    // No need to wait for this one; read-only operation.
-                    this.AutoUpdateTask = repoLoadTask.ContinueWith(
-                        _ => this.AutoUpdate(null, cancellationToken: default),
-                        cancellationToken: default);
+                    this.AutoUpdateTask = this.AutoUpdate(null, cancellationToken: default);
                 }
                 else
                 {
@@ -708,33 +706,32 @@ internal partial class PluginManager : IDisposable, IServiceType
                         NotificationType.Info,
                         persistent: true,
                         interactible: true);
-                    using var autoUpdateNotificationScopedDispose = autoUpdateNotification; 
 
-                    var tcs = new TaskCompletionSource();
-                    autoUpdateNotification.Draw += _ =>
+                    var task = this.AutoUpdateTask = this.AutoUpdate(autoUpdateNotification, updateCancelToken.Token);
+
+                    autoUpdateNotification.Draw += DrawNotificationActions;
+
+                    void DrawNotificationActions(NotificationManager.Notification notification)
                     {
-                        if (tcs.Task.IsCompleted)
+                        if (task.IsCompletedSuccessfully)
+                        {
+                            notification.Dispose();
                             return;
+                        }
 
                         using (ImRaii.Disabled(updateCancelToken.IsCancellationRequested))
                         {
+                            var size = ImGui.CalcTextSize(Locs.DalamudPluginAutoUpdateCancel());
+                            size += ImGui.GetStyle().FramePadding * 2;
+                            ImGui.SetCursorPosX(ImGui.GetContentRegionMax().X - size.X);
                             if (ImGui.Button(Locs.DalamudPluginAutoUpdateCancel()))
+                            {
+                                notification.Draw -= DrawNotificationActions;
+                                notification.Dismiss();
                                 updateCancelToken.Cancel();
+                            }
                         }
-                    };
-
-                    this.AutoUpdateTask = repoLoadTask.ContinueWith(
-                        _ => this.AutoUpdate(autoUpdateNotification, updateCancelToken.Token),
-                        updateCancelToken.Token);
-                    _ = this.AutoUpdateTask
-                            .ContinueWith(
-                                _ =>
-                                {
-                                    updateCancelToken.Dispose();
-                                    tcs.TrySetResult();
-                                },
-                                cancellationToken: default);
-                    await tcs.Task;
+                    }
                 }
             },
             cancellationToken);
