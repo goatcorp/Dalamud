@@ -457,12 +457,13 @@ internal partial class PluginManager : IDisposable, IServiceType
     /// Load all plugins, sorted by priority. Any plugins with no explicit definition file or a negative priority
     /// are loaded asynchronously.
     /// </summary>
+    /// <param name="repoLoadTask">A task representing the repo load state.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <remarks>
     /// This should only be called during Dalamud startup.
     /// </remarks>
     /// <returns>The task.</returns>
-    public async Task LoadAllPlugins(CancellationToken cancellationToken)
+    public async Task LoadAllPlugins(Task repoLoadTask, CancellationToken cancellationToken)
     {
         var pluginDefs = new List<PluginDef>();
         var devPluginDefs = new List<PluginDef>();
@@ -641,60 +642,6 @@ internal partial class PluginManager : IDisposable, IServiceType
         _ = Task.Run(
             async () =>
             {
-                // Auto-update first.
-                var notificationManager = await Service<NotificationManager>.GetAsync();
-                if (!this.configuration.AutoUpdatePlugins)
-                {
-                    // No need to wait for this one; read-only operation.
-                    this.AutoUpdateTask = this.AutoUpdate(null, cancellationToken);
-                }
-                else
-                {
-                    var updateCancelToken = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-                    using var autoUpdateNotification = notificationManager.AddNotification(
-                        Locs.DalamudPluginAutoUpdateInProgress(),
-                        Locs.DalamudPluginAutoUpdateNotificationTitle(),
-                        NotificationType.Info,
-                        persistent: true,
-                        interactible: true);
-
-                    var tcs = new TaskCompletionSource();
-                    autoUpdateNotification.Draw += n =>
-                    {
-                        if (tcs.Task.IsCompleted)
-                            return;
-
-                        if (ImGui.Button(Locs.DalamudPluginAutoUpdateSkip()))
-                        {
-                            n.Dismiss();
-                            tcs.TrySetResult();
-                        }
-
-                        ImGuiComponents.HelpMarker(Locs.DalamudPluginAutoUpdateSkipHelp());
-
-                        using (ImRaii.Disabled(updateCancelToken.IsCancellationRequested))
-                        {
-                            if (ImGui.Button(Locs.DalamudPluginAutoUpdateCancel()))
-                                updateCancelToken.Cancel();
-                        }
-
-                        ImGuiComponents.HelpMarker(Locs.DalamudPluginAutoUpdateCancelHelp());
-                    };
-
-                    this.AutoUpdateTask = this.AutoUpdate(autoUpdateNotification, updateCancelToken.Token);
-                    _ = this.AutoUpdateTask
-                            .ContinueWith(
-                                _ =>
-                                {
-                                    updateCancelToken.Dispose();
-                                    tcs.TrySetResult();
-                                },
-                                cancellationToken: default);
-                    await tcs.Task;
-                }
-
-                cancellationToken.ThrowIfCancellationRequested();
-
                 // Load plugins that want to be loaded during Framework.Tick
                 var framework = await Service<Framework>.GetAsync().ConfigureAwait(false);
                 await framework.RunOnTick(
@@ -740,6 +687,55 @@ internal partial class PluginManager : IDisposable, IServiceType
                 this.PluginsReady = true;
                 this.NotifyinstalledPluginsListChanged();
                 sigScanner.Save();
+                
+                // Now we auto-update; we currently need instances of LocalPlugin to be loaded.
+                // Note that the previous cancellationToken is no longer used.
+                // Operations past this point is opportunistic.
+                var notificationManager = await Service<NotificationManager>.GetAsync();
+                if (!this.configuration.AutoUpdatePlugins)
+                {
+                    // No need to wait for this one; read-only operation.
+                    this.AutoUpdateTask = repoLoadTask.ContinueWith(
+                        _ => this.AutoUpdate(null, cancellationToken: default),
+                        cancellationToken: default);
+                }
+                else
+                {
+                    var updateCancelToken = new CancellationTokenSource();
+                    var autoUpdateNotification = notificationManager.AddNotification(
+                        Locs.DalamudPluginAutoUpdateInProgress(),
+                        Locs.DalamudPluginAutoUpdateNotificationTitle(),
+                        NotificationType.Info,
+                        persistent: true,
+                        interactible: true);
+                    using var autoUpdateNotificationScopedDispose = autoUpdateNotification; 
+
+                    var tcs = new TaskCompletionSource();
+                    autoUpdateNotification.Draw += _ =>
+                    {
+                        if (tcs.Task.IsCompleted)
+                            return;
+
+                        using (ImRaii.Disabled(updateCancelToken.IsCancellationRequested))
+                        {
+                            if (ImGui.Button(Locs.DalamudPluginAutoUpdateCancel()))
+                                updateCancelToken.Cancel();
+                        }
+                    };
+
+                    this.AutoUpdateTask = repoLoadTask.ContinueWith(
+                        _ => this.AutoUpdate(autoUpdateNotification, updateCancelToken.Token),
+                        updateCancelToken.Token);
+                    _ = this.AutoUpdateTask
+                            .ContinueWith(
+                                _ =>
+                                {
+                                    updateCancelToken.Dispose();
+                                    tcs.TrySetResult();
+                                },
+                                cancellationToken: default);
+                    await tcs.Task;
+                }
             },
             cancellationToken);
     }
@@ -1809,9 +1805,10 @@ internal partial class PluginManager : IDisposable, IServiceType
     {
         try
         {
+            Task repoLoadTask;
             using (Timings.Start("PM Load Plugin Repos"))
             {
-                _ = this.SetPluginReposFromConfigAsync(false);
+                repoLoadTask = this.SetPluginReposFromConfigAsync(false);
                 this.OnInstalledPluginsChanged += () => Task.Run(Troubleshooting.LogTroubleshooting);
 
                 Log.Information("[T3] PM repos OK!");
@@ -1826,7 +1823,7 @@ internal partial class PluginManager : IDisposable, IServiceType
             using (Timings.Start("PM Load Sync Plugins"))
             {
                 var tokenSource = new CancellationTokenSource(TimeSpan.FromMinutes(5));
-                await this.LoadAllPlugins(tokenSource.Token);
+                await this.LoadAllPlugins(repoLoadTask, tokenSource.Token);
                 Log.Information("[T3] PML OK!");
             }
 
@@ -1862,13 +1859,7 @@ internal partial class PluginManager : IDisposable, IServiceType
             _ => Loc.Localize("NotificationUpdatedPlugins0", "No updates were available."),
         };
 
-        public static string DalamudPluginAutoUpdateSkip() => Loc.Localize("NotificationAutoUpdateSkip", "Skip");
-
-        public static string DalamudPluginAutoUpdateSkipHelp() => Loc.Localize("NotificationAutoUpdateSkipHelp", "Load the rest of enabled plugins, while updating them in background.");
-
         public static string DalamudPluginAutoUpdateCancel() => Loc.Localize("NotificationAutoUpdateCancel", "Cancel");
-
-        public static string DalamudPluginAutoUpdateCancelHelp() => Loc.Localize("NotificationAutoUpdateCancelHelp", "Cancel the remainder of the update process.");
     }
 }
 
