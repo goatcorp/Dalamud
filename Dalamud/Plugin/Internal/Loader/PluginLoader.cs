@@ -1,7 +1,7 @@
 // Copyright (c) Nate McMaster, Dalamud team.
 // Licensed under the Apache License, Version 2.0. See License.txt in the Loader root for license information.
 
-using System;
+using System.IO;
 using System.Reflection;
 using System.Runtime.Loader;
 
@@ -150,6 +150,14 @@ internal class PluginLoader : IDisposable
         {
             builder.PreferDefaultLoadContextAssembly(assemblyName);
         }
+
+        // This allows plugins to search for dependencies in the Dalamud directory when their assembly
+        // load would otherwise fail, allowing them to resolve assemblies not already loaded by Dalamud
+        // itself yet.
+        builder.AddProbingPath(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location));
+
+        // Also make sure that plugins do not load their own Dalamud assembly.
+        builder.PreferDefaultLoadContextAssembly(Assembly.GetExecutingAssembly().GetName());
 
         return builder;
     }
