@@ -146,18 +146,14 @@ internal class PluginLoader : IDisposable
             builder.ShadowCopyNativeLibraries();
         }
 
-        foreach (var assemblyName in config.SharedAssemblies)
+        foreach (var (assemblyName, recursive) in config.SharedAssemblies)
         {
-            builder.PreferDefaultLoadContextAssembly(assemblyName);
+            builder.PreferDefaultLoadContextAssembly(assemblyName, recursive);
         }
 
-        // This allows plugins to search for dependencies in the Dalamud directory when their assembly
-        // load would otherwise fail, allowing them to resolve assemblies not already loaded by Dalamud
-        // itself yet.
-        builder.AddProbingPath(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location));
-
-        // Also make sure that plugins do not load their own Dalamud assembly.
-        builder.PreferDefaultLoadContextAssembly(Assembly.GetExecutingAssembly().GetName());
+        // Note: not adding Dalamud path here as a probing path.
+        // It will be dealt as the last resort from ManagedLoadContext.Load.
+        // See there for more details.
 
         return builder;
     }
