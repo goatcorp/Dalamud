@@ -630,6 +630,7 @@ internal class LocalPlugin : IDisposable
 
         // Pin Lumina and its dependencies recursively (compatibility behavior).
         // It currently only pulls in System.* anyway.
+        // TODO(api10): Remove this. We don't want to pin Lumina anymore, plugins should be able to provide their own.
         config.SharedAssemblies.Add((typeof(Lumina.GameData).Assembly.GetName(), true));
         config.SharedAssemblies.Add((typeof(Lumina.Excel.ExcelSheetImpl).Assembly.GetName(), true));
 
