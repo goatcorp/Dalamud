@@ -4,6 +4,7 @@ using System.Linq;
 using System.Numerics;
 
 using Dalamud.Data;
+using Dalamud.Interface.Colors;
 using Dalamud.Interface.Utility;
 using Dalamud.Utility;
 using ImGuiNET;
@@ -154,7 +155,7 @@ public class IconBrowserWidget : IDataWindowWidget
                 this.nullValues.Add(iconId);
             }
 
-            ImGui.GetWindowDrawList().AddRect(cursor, cursor + this.iconSize, ImGui.GetColorU32(KnownColor.White.Vector()));
+            ImGui.GetWindowDrawList().AddRect(cursor, cursor + this.iconSize, ImGui.GetColorU32(ImGuiColors.DalamudWhite));
         }
         catch (Exception)
         {

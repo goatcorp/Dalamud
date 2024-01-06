@@ -315,23 +315,23 @@ internal class LocalPlugin : IDisposable
             }
 
             if (pluginManager.IsManifestBanned(this.manifest) && !this.IsDev)
-                throw new BannedPluginException($"Unable to load {this.Name}, banned");
+                throw new BannedPluginException($"Unable to load {this.Name} as it was banned");
 
             if (this.manifest.ApplicableVersion < dalamud.StartInfo.GameVersion)
-                throw new InvalidPluginOperationException($"Unable to load {this.Name}, no applicable version");
+                throw new PluginPreconditionFailedException($"Unable to load {this.Name}, game is newer than applicable version {this.manifest.ApplicableVersion}");
 
             if (this.manifest.DalamudApiLevel < PluginManager.DalamudApiLevel && !pluginManager.LoadAllApiLevels)
-                throw new InvalidPluginOperationException($"Unable to load {this.Name}, incompatible API level");
+                throw new PluginPreconditionFailedException($"Unable to load {this.Name}, incompatible API level {this.manifest.DalamudApiLevel}");
 
             // We might want to throw here?
             if (!this.IsWantedByAnyProfile)
                 Log.Warning("{Name} is loading, but isn't wanted by any profile", this.Name);
 
             if (this.IsOrphaned)
-                throw new InvalidPluginOperationException($"Plugin {this.Name} had no associated repo.");
+                throw new PluginPreconditionFailedException($"Plugin {this.Name} had no associated repo");
 
             if (!this.CheckPolicy())
-                throw new InvalidPluginOperationException("Plugin was not loaded as per policy");
+                throw new PluginPreconditionFailedException($"Unable to load {this.Name} as a load policy forbids it");
 
             this.State = PluginState.Loading;
             Log.Information($"Loading {this.DllFile.Name}");
@@ -440,7 +440,10 @@ internal class LocalPlugin : IDisposable
         {
             this.State = PluginState.LoadError;
 
-            if (ex is not BannedPluginException)
+            // If a precondition fails, don't record it as an error, as it isn't really. 
+            if (ex is PluginPreconditionFailedException)
+                Log.Warning(ex.Message);
+            else
                 Log.Error(ex, $"Error while loading {this.Name}");
 
             throw;
@@ -625,8 +628,18 @@ internal class LocalPlugin : IDisposable
         config.IsUnloadable = true;
         config.LoadInMemory = true;
         config.PreferSharedTypes = false;
-        config.SharedAssemblies.Add(typeof(Lumina.GameData).Assembly.GetName());
-        config.SharedAssemblies.Add(typeof(Lumina.Excel.ExcelSheetImpl).Assembly.GetName());
+
+        // Pin Lumina and its dependencies recursively (compatibility behavior).
+        // It currently only pulls in System.* anyway.
+        // TODO(api10): Remove this. We don't want to pin Lumina anymore, plugins should be able to provide their own.
+        config.SharedAssemblies.Add((typeof(Lumina.GameData).Assembly.GetName(), true));
+        config.SharedAssemblies.Add((typeof(Lumina.Excel.ExcelSheetImpl).Assembly.GetName(), true));
+
+        // Make sure that plugins do not load their own Dalamud assembly.
+        // We do not pin this recursively; if a plugin loads its own assembly of Dalamud, it is always wrong,
+        // but plugins may load other versions of assemblies that Dalamud depends on.
+        config.SharedAssemblies.Add((typeof(EntryPoint).Assembly.GetName(), false));
+        config.SharedAssemblies.Add((typeof(Common.DalamudStartInfo).Assembly.GetName(), false));
     }
 
     private void EnsureLoader()

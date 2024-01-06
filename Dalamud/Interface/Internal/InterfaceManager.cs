@@ -6,15 +6,16 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.Unicode;
 using System.Threading;
 
 using Dalamud.Configuration.Internal;
 using Dalamud.Game;
 using Dalamud.Game.ClientState.GamePad;
 using Dalamud.Game.ClientState.Keys;
-using Dalamud.Game.Gui.Internal;
 using Dalamud.Game.Internal.DXGI;
 using Dalamud.Hooking;
+using Dalamud.Hooking.WndProcHook;
 using Dalamud.Interface.GameFonts;
 using Dalamud.Interface.Internal.ManagedAsserts;
 using Dalamud.Interface.Internal.Notifications;
@@ -73,12 +74,16 @@ internal class InterfaceManager : IDisposable, IServiceType
 
     [ServiceManager.ServiceDependency]
     private readonly Framework framework = Service<Framework>.Get();
+    
+    [ServiceManager.ServiceDependency]
+    private readonly WndProcHookManager wndProcHookManager = Service<WndProcHookManager>.Get();
+    
+    [ServiceManager.ServiceDependency]
+    private readonly DalamudIme dalamudIme = Service<DalamudIme>.Get();
 
     private readonly ManualResetEvent fontBuildSignal;
     private readonly SwapChainVtableResolver address;
-    private readonly Hook<DispatchMessageWDelegate> dispatchMessageWHook;
     private readonly Hook<SetCursorDelegate> setCursorHook;
-    private Hook<ProcessMessageDelegate> processMessageHook;
     private RawDX11Scene? scene;
 
     private Hook<PresentDelegate>? presentHook;
@@ -92,8 +97,6 @@ internal class InterfaceManager : IDisposable, IServiceType
     [ServiceManager.ServiceConstructor]
     private InterfaceManager()
     {
-        this.dispatchMessageWHook = Hook<DispatchMessageWDelegate>.FromImport(
-            null, "user32.dll", "DispatchMessageW", 0, this.DispatchMessageWDetour);
         this.setCursorHook = Hook<SetCursorDelegate>.FromImport(
             null, "user32.dll", "SetCursor", 0, this.SetCursorDetour);
 
@@ -110,12 +113,6 @@ internal class InterfaceManager : IDisposable, IServiceType
 
     [UnmanagedFunctionPointer(CallingConvention.StdCall)]
     private delegate IntPtr SetCursorDelegate(IntPtr hCursor);
-
-    [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-    private delegate IntPtr DispatchMessageWDelegate(ref User32.MSG msg);
-
-    [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
-    private delegate IntPtr ProcessMessageDelegate(IntPtr hWnd, uint msg, ulong wParam, ulong lParam, IntPtr handeled);
 
     /// <summary>
     /// This event gets called each frame to facilitate ImGui drawing.
@@ -236,10 +233,9 @@ internal class InterfaceManager : IDisposable, IServiceType
             this.setCursorHook.Dispose();
             this.presentHook?.Dispose();
             this.resizeBuffersHook?.Dispose();
-            this.dispatchMessageWHook.Dispose();
-            this.processMessageHook?.Dispose();
         }).Wait();
 
+        this.wndProcHookManager.PreWndProc -= this.WndProcHookManagerOnPreWndProc;
         this.scene?.Dispose();
     }
 
@@ -660,6 +656,17 @@ internal class InterfaceManager : IDisposable, IServiceType
 
         this.scene = newScene;
         Service<InterfaceManagerWithScene>.Provide(new(this));
+
+        this.wndProcHookManager.PreWndProc += this.WndProcHookManagerOnPreWndProc;
+    }
+
+    private unsafe void WndProcHookManagerOnPreWndProc(WndProcEventArgs args)
+    {
+        var r = this.scene?.ProcessWndProcW(args.Hwnd, (User32.WindowMessage)args.Message, args.WParam, args.LParam);
+        if (r is not null)
+            args.SuppressWithValue(r.Value);
+
+        this.dalamudIme.ProcessImeMessage(args);
     }
 
     /*
@@ -779,8 +786,20 @@ internal class InterfaceManager : IDisposable, IServiceType
             if (!File.Exists(fontPathKr))
                 fontPathKr = Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "NotoSansKR-Regular.otf");
             if (!File.Exists(fontPathKr))
+                fontPathKr = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "Fonts", "malgun.ttf");
+            if (!File.Exists(fontPathKr))
                 fontPathKr = null;
             Log.Verbose("[FONT] fontPathKr = {0}", fontPathKr);
+
+            var fontPathChs = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "Fonts", "msyh.ttc");
+            if (!File.Exists(fontPathChs))
+                fontPathChs = null;
+            Log.Verbose("[FONT] fontPathChs = {0}", fontPathChs);
+
+            var fontPathCht = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "Fonts", "msjh.ttc");
+            if (!File.Exists(fontPathCht))
+                fontPathCht = null;
+            Log.Verbose("[FONT] fontPathChs = {0}", fontPathCht);
 
             // Default font
             Log.Verbose("[FONT] SetupFonts - Default font");
@@ -809,12 +828,53 @@ internal class InterfaceManager : IDisposable, IServiceType
                 this.loadedFontInfo[DefaultFont] = fontInfo;
             }
 
-            if (fontPathKr != null && Service<DalamudConfiguration>.Get().EffectiveLanguage == "ko")
+            if (fontPathKr != null
+                && (Service<DalamudConfiguration>.Get().EffectiveLanguage == "ko" || this.dalamudIme.EncounteredHangul))
             {
                 fontConfig.MergeMode = true;
                 fontConfig.GlyphRanges = ioFonts.GetGlyphRangesKorean();
                 fontConfig.PixelSnapH = true;
                 ioFonts.AddFontFromFileTTF(fontPathKr, fontConfig.SizePixels, fontConfig);
+                fontConfig.MergeMode = false;
+            }
+
+            if (fontPathCht != null && Service<DalamudConfiguration>.Get().EffectiveLanguage == "tw")
+            {
+                fontConfig.MergeMode = true;
+                var rangeHandle = GCHandle.Alloc(new ushort[]
+                {
+                    (ushort)UnicodeRanges.CjkUnifiedIdeographs.FirstCodePoint,
+                    (ushort)(UnicodeRanges.CjkUnifiedIdeographs.FirstCodePoint +
+                             (UnicodeRanges.CjkUnifiedIdeographs.Length - 1)),
+                    (ushort)UnicodeRanges.CjkUnifiedIdeographsExtensionA.FirstCodePoint,
+                    (ushort)(UnicodeRanges.CjkUnifiedIdeographsExtensionA.FirstCodePoint +
+                             (UnicodeRanges.CjkUnifiedIdeographsExtensionA.Length - 1)),
+                    0,
+                }, GCHandleType.Pinned);
+                garbageList.Add(rangeHandle);
+                fontConfig.GlyphRanges = rangeHandle.AddrOfPinnedObject();
+                fontConfig.PixelSnapH = true;
+                ioFonts.AddFontFromFileTTF(fontPathCht, fontConfig.SizePixels, fontConfig);
+                fontConfig.MergeMode = false;
+            }
+            else if (fontPathChs != null && (Service<DalamudConfiguration>.Get().EffectiveLanguage == "zh"
+                                               || this.dalamudIme.EncounteredHan))
+            {
+                fontConfig.MergeMode = true;
+                var rangeHandle = GCHandle.Alloc(new ushort[]
+                {
+                    (ushort)UnicodeRanges.CjkUnifiedIdeographs.FirstCodePoint,
+                    (ushort)(UnicodeRanges.CjkUnifiedIdeographs.FirstCodePoint +
+                             (UnicodeRanges.CjkUnifiedIdeographs.Length - 1)),
+                    (ushort)UnicodeRanges.CjkUnifiedIdeographsExtensionA.FirstCodePoint,
+                    (ushort)(UnicodeRanges.CjkUnifiedIdeographsExtensionA.FirstCodePoint +
+                             (UnicodeRanges.CjkUnifiedIdeographsExtensionA.Length - 1)),
+                    0,
+                }, GCHandleType.Pinned);
+                garbageList.Add(rangeHandle);
+                fontConfig.GlyphRanges = rangeHandle.AddrOfPinnedObject();
+                fontConfig.PixelSnapH = true;
+                ioFonts.AddFontFromFileTTF(fontPathChs, fontConfig.SizePixels, fontConfig);
                 fontConfig.MergeMode = false;
             }
 
@@ -1095,15 +1155,9 @@ internal class InterfaceManager : IDisposable, IServiceType
             Log.Verbose($"Present address 0x{this.presentHook!.Address.ToInt64():X}");
             Log.Verbose($"ResizeBuffers address 0x{this.resizeBuffersHook!.Address.ToInt64():X}");
 
-            var wndProcAddress = sigScanner.ScanText("E8 ?? ?? ?? ?? 80 7C 24 ?? ?? 74 ?? B8");
-            Log.Verbose($"WndProc address 0x{wndProcAddress.ToInt64():X}");
-            this.processMessageHook = Hook<ProcessMessageDelegate>.FromAddress(wndProcAddress, this.ProcessMessageDetour);
-
             this.setCursorHook.Enable();
             this.presentHook.Enable();
             this.resizeBuffersHook.Enable();
-            this.dispatchMessageWHook.Enable();
-            this.processMessageHook.Enable();
         });
     }
 
@@ -1122,25 +1176,6 @@ internal class InterfaceManager : IDisposable, IServiceType
         Log.Verbose("[FONT] Font Rebuild OK!");
 
         this.isRebuildingFonts = false;
-    }
-
-    private unsafe IntPtr ProcessMessageDetour(IntPtr hWnd, uint msg, ulong wParam, ulong lParam, IntPtr handeled)
-    {
-        var ime = Service<DalamudIME>.GetNullable();
-        var res = ime?.ProcessWndProcW(hWnd, (User32.WindowMessage)msg, (void*)wParam, (void*)lParam);
-        return this.processMessageHook.Original(hWnd, msg, wParam, lParam, handeled);
-    }
-
-    private unsafe IntPtr DispatchMessageWDetour(ref User32.MSG msg)
-    {
-        if (msg.hwnd == this.GameWindowHandle && this.scene != null)
-        {
-            var res = this.scene.ProcessWndProcW(msg.hwnd, msg.message, (void*)msg.wParam, (void*)msg.lParam);
-            if (res != null)
-                return res.Value;
-        }
-
-        return this.dispatchMessageWHook.IsDisposed ? User32.DispatchMessage(ref msg) : this.dispatchMessageWHook.Original(ref msg);
     }
 
     private IntPtr ResizeBuffersDetour(IntPtr swapChain, uint bufferCount, uint width, uint height, uint newFormat, uint swapChainFlags)

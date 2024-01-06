@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Concurrent;
 
 using Dalamud.Game.Addon.Lifecycle;
 using Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
@@ -9,7 +8,6 @@ using Dalamud.IoC.Internal;
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Plugin.Services;
-using Dalamud.Utility;
 
 using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Component.GUI;
@@ -26,22 +24,19 @@ internal unsafe class AddonEventManager : IDisposable, IServiceType
     /// <summary>
     /// PluginName for Dalamud Internal use.
     /// </summary>
-    public const string DalamudInternalKey = "Dalamud.Internal";
+    public static readonly Guid DalamudInternalKey = Guid.NewGuid();
     
     private static readonly ModuleLog Log = new("AddonEventManager");
     
     [ServiceManager.ServiceDependency]
     private readonly AddonLifecycle addonLifecycle = Service<AddonLifecycle>.Get();
 
-    [ServiceManager.ServiceDependency]
-    private readonly Framework framework = Service<Framework>.Get();
-    
     private readonly AddonLifecycleEventListener finalizeEventListener;
     
     private readonly AddonEventManagerAddressResolver address;
     private readonly Hook<UpdateCursorDelegate> onUpdateCursor;
 
-    private readonly List<PluginEventController> pluginEventControllers;
+    private readonly ConcurrentDictionary<Guid, PluginEventController> pluginEventControllers;
     
     private AddonCursorType? cursorOverride;
     
@@ -51,10 +46,8 @@ internal unsafe class AddonEventManager : IDisposable, IServiceType
         this.address = new AddonEventManagerAddressResolver();
         this.address.Setup(sigScanner);
 
-        this.pluginEventControllers = new List<PluginEventController>
-        {
-            new(DalamudInternalKey), // Create entry for Dalamud's Internal Use.
-        };
+        this.pluginEventControllers = new ConcurrentDictionary<Guid, PluginEventController>();
+        this.pluginEventControllers.TryAdd(DalamudInternalKey, new PluginEventController());
         
         this.cursorOverride = null;
 
@@ -73,7 +66,7 @@ internal unsafe class AddonEventManager : IDisposable, IServiceType
     {
         this.onUpdateCursor.Dispose();
 
-        foreach (var pluginEventController in this.pluginEventControllers)
+        foreach (var (_, pluginEventController) in this.pluginEventControllers)
         {
             pluginEventController.Dispose();
         }
@@ -90,16 +83,17 @@ internal unsafe class AddonEventManager : IDisposable, IServiceType
     /// <param name="eventType">The event type for this event.</param>
     /// <param name="eventHandler">The handler to call when event is triggered.</param>
     /// <returns>IAddonEventHandle used to remove the event.</returns>
-    internal IAddonEventHandle? AddEvent(string pluginId, IntPtr atkUnitBase, IntPtr atkResNode, AddonEventType eventType, IAddonEventManager.AddonEventHandler eventHandler)
+    internal IAddonEventHandle? AddEvent(Guid pluginId, IntPtr atkUnitBase, IntPtr atkResNode, AddonEventType eventType, IAddonEventManager.AddonEventHandler eventHandler)
     {
-        if (!ThreadSafety.IsMainThread) throw new InvalidOperationException("This should be done only from the main thread. Modifying active native code on non-main thread is not supported.");
-        
-        if (this.pluginEventControllers.FirstOrDefault(entry => entry.PluginId == pluginId) is { } eventController)
+        if (this.pluginEventControllers.TryGetValue(pluginId, out var controller))
         {
-            return eventController.AddEvent(atkUnitBase, atkResNode, eventType, eventHandler);
+            return controller.AddEvent(atkUnitBase, atkResNode, eventType, eventHandler);
+        }
+        else
+        {
+            Log.Verbose($"Unable to locate controller for {pluginId}. No event was added.");
         }
         
-        Log.Verbose($"Unable to locate controller for {pluginId}. No event was added.");
         return null;
     }
 
@@ -108,13 +102,11 @@ internal unsafe class AddonEventManager : IDisposable, IServiceType
     /// </summary>
     /// <param name="pluginId">Unique ID for this plugin.</param>
     /// <param name="eventHandle">The Unique Id for this event.</param>
-    internal void RemoveEvent(string pluginId, IAddonEventHandle eventHandle)
+    internal void RemoveEvent(Guid pluginId, IAddonEventHandle eventHandle)
     {
-        if (!ThreadSafety.IsMainThread) throw new InvalidOperationException("This should be done only from the main thread. Modifying active native code on non-main thread is not supported.");
-        
-        if (this.pluginEventControllers.FirstOrDefault(entry => entry.PluginId == pluginId) is { } eventController)
+        if (this.pluginEventControllers.TryGetValue(pluginId, out var controller))
         {
-            eventController.RemoveEvent(eventHandle);
+            controller.RemoveEvent(eventHandle);
         }
         else
         {
@@ -137,33 +129,28 @@ internal unsafe class AddonEventManager : IDisposable, IServiceType
     /// Adds a new managed event controller if one doesn't already exist for this pluginId.
     /// </summary>
     /// <param name="pluginId">Unique ID for this plugin.</param>
-    internal void AddPluginEventController(string pluginId)
+    internal void AddPluginEventController(Guid pluginId)
     {
-        this.framework.RunOnFrameworkThread(() =>
-        {
-            if (this.pluginEventControllers.All(entry => entry.PluginId != pluginId))
+        this.pluginEventControllers.GetOrAdd(
+            pluginId,
+            key =>
             {
-                Log.Verbose($"Creating new PluginEventController for: {pluginId}");
-                this.pluginEventControllers.Add(new PluginEventController(pluginId));
-            }
-        });
+                Log.Verbose($"Creating new PluginEventController for: {key}");
+                return new PluginEventController();
+            });
     }
 
     /// <summary>
     /// Removes an existing managed event controller for the specified plugin.
     /// </summary>
     /// <param name="pluginId">Unique ID for this plugin.</param>
-    internal void RemovePluginEventController(string pluginId)
+    internal void RemovePluginEventController(Guid pluginId)
     {
-        this.framework.RunOnFrameworkThread(() =>
+        if (this.pluginEventControllers.TryRemove(pluginId, out var controller))
         {
-            if (this.pluginEventControllers.FirstOrDefault(entry => entry.PluginId == pluginId) is { } controller)
-            {
-                Log.Verbose($"Removing PluginEventController for: {pluginId}");
-                this.pluginEventControllers.Remove(controller);
-                controller.Dispose();
-            }
-        });
+            Log.Verbose($"Removing PluginEventController for: {pluginId}");
+            controller.Dispose();
+        }
     }
 
     /// <summary>
@@ -178,7 +165,7 @@ internal unsafe class AddonEventManager : IDisposable, IServiceType
 
         foreach (var pluginList in this.pluginEventControllers)
         {
-            pluginList.RemoveForAddon(addonInfo.AddonName);
+            pluginList.Value.RemoveForAddon(addonInfo.AddonName);
         }
     }
     
@@ -234,7 +221,7 @@ internal class AddonEventManagerPluginScoped : IDisposable, IServiceType, IAddon
     {
         this.plugin = plugin;
         
-        this.eventManagerService.AddPluginEventController(plugin.Manifest.WorkingPluginId.ToString());
+        this.eventManagerService.AddPluginEventController(plugin.Manifest.WorkingPluginId);
     }
 
     /// <inheritdoc/>
@@ -246,16 +233,16 @@ internal class AddonEventManagerPluginScoped : IDisposable, IServiceType, IAddon
             this.eventManagerService.ResetCursor();
         }
         
-        this.eventManagerService.RemovePluginEventController(this.plugin.Manifest.WorkingPluginId.ToString());
+        this.eventManagerService.RemovePluginEventController(this.plugin.Manifest.WorkingPluginId);
     }
     
     /// <inheritdoc/>
     public IAddonEventHandle? AddEvent(IntPtr atkUnitBase, IntPtr atkResNode, AddonEventType eventType, IAddonEventManager.AddonEventHandler eventHandler) 
-        => this.eventManagerService.AddEvent(this.plugin.Manifest.WorkingPluginId.ToString(), atkUnitBase, atkResNode, eventType, eventHandler);
+        => this.eventManagerService.AddEvent(this.plugin.Manifest.WorkingPluginId, atkUnitBase, atkResNode, eventType, eventHandler);
 
     /// <inheritdoc/>
     public void RemoveEvent(IAddonEventHandle eventHandle)
-        => this.eventManagerService.RemoveEvent(this.plugin.Manifest.WorkingPluginId.ToString(), eventHandle);
+        => this.eventManagerService.RemoveEvent(this.plugin.Manifest.WorkingPluginId, eventHandle);
     
     /// <inheritdoc/>
     public void SetCursor(AddonCursorType cursor)
