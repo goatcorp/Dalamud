@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 
 using CheapLoc;
 using Dalamud.Configuration.Internal;
-using Dalamud.Game.ClientState.JobGauge.Enums;
 using Dalamud.Game.Gui;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
@@ -15,12 +14,9 @@ using Dalamud.Interface.Internal;
 using Dalamud.Interface.Internal.Notifications;
 using Dalamud.Interface.Internal.Windows;
 using Dalamud.Interface.Internal.Windows.PluginInstaller;
-using Dalamud.Logging;
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Internal;
-using Dalamud.Plugin.Internal.Loader;
 using Dalamud.Utility;
-using Serilog;
 
 namespace Dalamud.Game;
 
@@ -176,15 +172,9 @@ internal class ChatHandlers : IServiceType
             if (!this.hasSeenLoadingMsg)
                 this.PrintWelcomeMessage();
             
-            // FIXME (kazwolfe): This will only run on the first Notice received, meaning auto-updates won't happen
-            // until the character is logged in. Ideally, this should move earlier into the process (after all repos
-            // are loaded) with just the update summary posted here. 
             if (!this.startedAutoUpdatingPlugins)
                 this.AutoUpdatePlugins();
         }
-
-        if (type == XivChatType.Notice && !this.hasSeenLoadingMsg)
-            this.PrintWelcomeMessage();
 
         // For injections while logged in
         if (clientState.LocalPlayer != null && clientState.TerritoryType == 0 && !this.hasSeenLoadingMsg)
