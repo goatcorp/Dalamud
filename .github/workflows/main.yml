@@ -67,10 +67,10 @@ jobs:
           Expand-Archive -Force latest.zip "left"
     - name: "Verify Compatibility"
       run: |
-          Microsoft.DotNet.ApiCompat.Tool -l .\left\Dalamud.dll -r .\right\Dalamud.dll
-          Microsoft.DotNet.ApiCompat.Tool -l .\left\Lumina.dll -r .\right\Lumina.dll
-          Microsoft.DotNet.ApiCompat.Tool -l .\left\Lumina.Excel.dll -r .\right\Lumina.Excel.dll
-          Microsoft.DotNet.ApiCompat.Tool -l .\left\FFXIVClientStructs.dll -r .\right\FFXIVClientStructs.dll
+          dotnet apicompat -l .\left\Dalamud.dll -r .\right\Dalamud.dll
+          dotnet apicompat -l .\left\Lumina.dll -r .\right\Lumina.dll
+          dotnet apicompat -l .\left\Lumina.Excel.dll -r .\right\Lumina.Excel.dll
+          dotnet apicompat -l .\left\FFXIVClientStructs.dll -r .\right\FFXIVClientStructs.dll
   
   deploy_stg:
     name: Deploy dalamud-distrib staging
