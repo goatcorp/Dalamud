@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 
 using Dalamud.Interface.GameFonts;
+using Dalamud.Interface.Utility;
 
 using ImGuiNET;
 
@@ -18,9 +19,17 @@ public interface IFontAtlas : IDisposable
     event FontAtlasBuildStepDelegate? BuildStepChange;
 
     /// <summary>
-    /// Event fired when a font rebuild operation is suggested.<br />
-    /// This will be invoked from the main thread.
+    /// Event fired when a font rebuild operation is recommended.<br />
+    /// This event will be invoked from the main thread.<br />
+    /// <br />
+    /// Reasons for the event include changes in <see cref="ImGuiHelpers.GlobalScale"/> and
+    /// initialization of new associated font handles.
     /// </summary>
+    /// <remarks>
+    /// You should call <see cref="BuildFontsAsync"/> or <see cref="BuildFontsOnNextFrame"/>
+    /// if <see cref="AutoRebuildMode"/> is not set to <c>true</c>.<br />
+    /// Avoid calling <see cref="BuildFontsImmediately"/> here; it will block the main thread.
+    /// </remarks>
     event Action? RebuildRecommend;
 
     /// <summary>

@@ -5,9 +5,7 @@ namespace Dalamud.Interface.ManagedFontAtlas.Internals;
 /// </summary>
 internal interface IFontHandleManager : IDisposable
 {
-    /// <summary>
-    /// Event fired when a font rebuild operation is suggested.
-    /// </summary>
+    /// <inheritdoc cref="IFontAtlas.RebuildRecommend"/>
     event Action? RebuildRecommend;
 
     /// <summary>
