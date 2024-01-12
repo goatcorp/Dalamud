@@ -314,6 +314,7 @@ public static class ImGuiHelpers
                     glyph->U1,
                     glyph->V1,
                     glyph->AdvanceX * scale);
+                target.Mark4KPageUsedAfterGlyphAdd((ushort)glyph->Codepoint);
                 changed = true;
             }
             else if (!missingOnly)
@@ -415,6 +416,8 @@ public static class ImGuiHelpers
     /// <exception cref="OutOfMemoryException">If <see cref="ImGuiNative.igMemAlloc"/> returns null.</exception>
     public static unsafe void* AllocateMemory(int length)
     {
+        // TODO: igMemAlloc takes size_t, which is nint; ImGui.NET apparently interpreted that as uint.
+        // fix that in ImGui.NET.
         switch (length)
         {
             case 0:
@@ -434,35 +437,6 @@ public static class ImGuiHelpers
 
                 return memory;
         }
-    }
-
-    /// <summary>
-    /// Mark 4K page as used, after adding a codepoint to a font.
-    /// </summary>
-    /// <param name="font">The font.</param>
-    /// <param name="codepoint">The codepoint.</param>
-    public static unsafe void Mark4KPageUsedAfterGlyphAdd(this ImFontPtr font, ushort codepoint)
-    {
-        // Mark 4K page as used
-        var pageIndex = unchecked((ushort)(codepoint / 4096));
-        font.NativePtr->Used4kPagesMap[pageIndex >> 3] |= unchecked((byte)(1 << (pageIndex & 7)));
-    }
-    
-    /// <summary>
-    /// Creates a new instance of <see cref="ImFontAtlasPtr"/> with a natively backed memory.
-    /// </summary>
-    /// <param name="font">The created instance.</param>
-    /// <returns>Disposable you can call.</returns>
-    public static unsafe IDisposable NewFontAtlasPtrScoped(out ImFontAtlasPtr font)
-    {
-        font = new(ImGuiNative.ImFontAtlas_ImFontAtlas());
-        var ptr = font.NativePtr;
-        return Disposable.Create(() =>
-        {
-            if (ptr != null)
-                ImGuiNative.ImFontAtlas_destroy(ptr);
-            ptr = null;
-        });
     }
 
     /// <summary>
@@ -557,6 +531,18 @@ public static class ImGuiHelpers
     /// <returns><paramref name="self"/> if it is not default; otherwise, <paramref name="other"/>.</returns>
     public static unsafe ImFontPtr OrElse(this ImFontPtr self, ImFontPtr other) =>
         self.NativePtr is null ? other : self;
+
+    /// <summary>
+    /// Mark 4K page as used, after adding a codepoint to a font.
+    /// </summary>
+    /// <param name="font">The font.</param>
+    /// <param name="codepoint">The codepoint.</param>
+    internal static unsafe void Mark4KPageUsedAfterGlyphAdd(this ImFontPtr font, ushort codepoint)
+    {
+        // Mark 4K page as used
+        var pageIndex = unchecked((ushort)(codepoint / 4096));
+        font.NativePtr->Used4kPagesMap[pageIndex >> 3] |= unchecked((byte)(1 << (pageIndex & 7)));
+    }
     
     /// <summary>
     /// Finds the corresponding ImGui viewport ID for the given window handle.
