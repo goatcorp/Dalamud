@@ -42,6 +42,35 @@ jobs:
         with:
           name: dalamud-artifact
           path: bin\Release
+
+  check_api_compat:
+    name: "Check API Compatibility"
+    if: ${{ github.event_name == 'pull_request' }}
+    needs: build
+    runs-on: windows-latest
+    steps:
+    - name: "Install .NET SDK"
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: 7
+    - name: "Install ApiCompat"
+      run: |
+        dotnet tool install --global Microsoft.DotNet.ApiCompat.Tool
+    - name: "Download Proposed Artifacts"
+      uses: actions/download-artifact@v2
+      with:
+        name: dalamud-artifact
+        path: .\right
+    - name: "Download Live (Stg) Artifacts"
+      run: |
+          Invoke-WebRequest -Uri https://goatcorp.github.io/dalamud-distrib/stg/latest.zip -OutFile latest.zip
+          Expand-Archive -Force latest.zip "right"
+    - name: "Verify Compatibility"
+      run: |
+          Microsoft.DotNet.ApiCompat.Tool -l .\left\Dalamud.dll -r .\right\Dalamud.dll
+          Microsoft.DotNet.ApiCompat.Tool -l .\left\Lumina.dll -r .\right\Lumina.dll
+          Microsoft.DotNet.ApiCompat.Tool -l .\left\Lumina.Excel.dll -r .\right\Lumina.Excel.dll
+          Microsoft.DotNet.ApiCompat.Tool -l .\left\FFXIVClientStructs.dll -r .\right\FFXIVClientStructs.dll
   
   deploy_stg:
     name: Deploy dalamud-distrib staging
