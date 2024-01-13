@@ -31,7 +31,8 @@ public static class ImGuiHelpers
     /// This does not necessarily mean you can call drawing functions.
     /// </summary>
     public static unsafe bool IsImGuiInitialized =>
-        ImGui.GetCurrentContext() is not 0 && ImGui.GetIO().NativePtr is not null;
+        ImGui.GetCurrentContext() is not (nint)0  // KW: IDEs get mad without the cast, despite being unnecessary
+        && ImGui.GetIO().NativePtr is not null; 
 
     /// <summary>
     /// Gets the global Dalamud scale; even available before drawing is ready.<br />
