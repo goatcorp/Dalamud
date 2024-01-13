@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 
 using CheapLoc;
@@ -112,6 +113,7 @@ internal class ChatHandlers : IServiceType
 
     private bool hasSeenLoadingMsg;
     private bool startedAutoUpdatingPlugins;
+    private CancellationTokenSource deferredAutoUpdateCts = new();
 
     [ServiceManager.ServiceConstructor]
     private ChatHandlers(ChatGui chatGui)
@@ -173,7 +175,7 @@ internal class ChatHandlers : IServiceType
                 this.PrintWelcomeMessage();
             
             if (!this.startedAutoUpdatingPlugins)
-                this.AutoUpdatePlugins();
+                this.AutoUpdatePluginsWithRetry();
         }
 
         // For injections while logged in
@@ -269,7 +271,20 @@ internal class ChatHandlers : IServiceType
         this.hasSeenLoadingMsg = true;
     }
 
-    private void AutoUpdatePlugins()
+    private void AutoUpdatePluginsWithRetry()
+    {
+        var firstAttempt = this.AutoUpdatePlugins();
+        if (!firstAttempt)
+        {
+            Task.Run(() =>
+            {
+                Task.Delay(30_000, this.deferredAutoUpdateCts.Token);
+                this.AutoUpdatePlugins();
+            });
+        }
+    }
+
+    private bool AutoUpdatePlugins()
     {
         var chatGui = Service<ChatGui>.GetNullable();
         var pluginManager = Service<PluginManager>.GetNullable();
@@ -278,7 +293,7 @@ internal class ChatHandlers : IServiceType
         if (chatGui == null || pluginManager == null || notifications == null)
         {
             Log.Warning("Aborting auto-update because a required service was not loaded.");
-            return;
+            return false;
         }
 
         if (!pluginManager.ReposReady || !pluginManager.InstalledPlugins.Any() || !pluginManager.AvailablePlugins.Any())
@@ -286,7 +301,7 @@ internal class ChatHandlers : IServiceType
             // Plugins aren't ready yet.
             // TODO: We should retry. This sucks, because it means we won't ever get here again until another notice.
             Log.Warning("Aborting auto-update because plugins weren't loaded or ready.");
-            return;
+            return false;
         }
 
         this.startedAutoUpdatingPlugins = true;
@@ -330,5 +345,7 @@ internal class ChatHandlers : IServiceType
                 }
             }
         });
+
+        return true;
     }
 }
