@@ -18,7 +18,7 @@ public class WindowSystem
 
     private readonly List<Window> windows = new();
 
-    private string lastFocusedWindowName = string.Empty;
+    private Window? lastFocusedWindow;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="WindowSystem"/> class.
@@ -33,7 +33,7 @@ public class WindowSystem
     /// Gets a value indicating whether any <see cref="WindowSystem"/> contains any <see cref="Window"/>
     /// that has focus and is not marked to be excluded from consideration.
     /// </summary>
-    public static bool HasAnyWindowSystemFocus { get; internal set; } = false;
+    public static bool HasAnyWindowSystemFocus { get; internal set; }
 
     /// <summary>
     /// Gets the name of the currently focused window system that is redirecting normal escape functionality.
@@ -116,7 +116,7 @@ public class WindowSystem
 
             window.DrawInternal(config);
 
-            var source = ($"{this.Namespace}::" ?? string.Empty) + window.WindowName;
+            var source = $"{this.Namespace ?? "NullNamespace"}::" + window.WindowName;
             ImGuiManagedAsserts.ReportProblems(source, snapshot);
         }
 
@@ -125,23 +125,23 @@ public class WindowSystem
 
         if (this.HasAnyFocus)
         {
-            if (this.lastFocusedWindowName != focusedWindow.WindowName)
+            if (this.lastFocusedWindow != focusedWindow && focusedWindow is not null)
             {
                 Log.Verbose($"WindowSystem \"{this.Namespace}\" Window \"{focusedWindow.WindowName}\" has focus now");
-                this.lastFocusedWindowName = focusedWindow.WindowName;
+                this.lastFocusedWindow = focusedWindow;
             }
 
             HasAnyWindowSystemFocus = true;
-            FocusedWindowSystemNamespace = this.Namespace;
+            FocusedWindowSystemNamespace = this.Namespace ?? "NullNamespace";
 
             lastAnyFocus = DateTimeOffset.Now;
         }
         else
         {
-            if (this.lastFocusedWindowName != string.Empty)
+            if (this.lastFocusedWindow is not null)
             {
-                Log.Verbose($"WindowSystem \"{this.Namespace}\" Window \"{this.lastFocusedWindowName}\" lost focus");
-                this.lastFocusedWindowName = string.Empty;
+                Log.Verbose($"WindowSystem \"{this.Namespace}\" Window \"{this.lastFocusedWindow.WindowName}\" lost focus");
+                this.lastFocusedWindow = default;
             }
         }
 
