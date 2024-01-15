@@ -8,7 +8,7 @@
     </PropertyGroup>
 
     <PropertyGroup Label="Feature">
-        <DalamudVersion>9.0.0.14</DalamudVersion>
+        <DalamudVersion>9.0.0.16</DalamudVersion>
         <Description>XIV Launcher addon framework</Description>
         <AssemblyVersion>$(DalamudVersion)</AssemblyVersion>
         <Version>$(DalamudVersion)</Version>
