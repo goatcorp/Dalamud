@@ -15,7 +15,7 @@ namespace Dalamud.Interface;
 /// Class responsible for managing elements in the title screen menu.
 /// </summary>
 [InterfaceVersion("1.0")]
-[ServiceManager.BlockingEarlyLoadedService]
+[ServiceManager.EarlyLoadedService]
 internal class TitleScreenMenu : IServiceType, ITitleScreenMenu
 {
     /// <summary>
