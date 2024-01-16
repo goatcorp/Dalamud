@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Numerics;
@@ -273,7 +273,10 @@ internal class TextureManager : IDisposable, IServiceType, ITextureProvider, ITe
         this.fallbackTextureWrap?.Dispose();
         this.framework.Update -= this.FrameworkOnUpdate;
         
-        Log.Verbose("Disposing {Num} left behind textures.");
+        if (this.activeTextures.Count == 0)
+            return;
+
+        Log.Verbose("Disposing {Num} left behind textures.", this.activeTextures.Count);
         
         foreach (var activeTexture in this.activeTextures)
         {

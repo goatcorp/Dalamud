@@ -39,6 +39,7 @@ internal class ConsoleWindow : Window, IDisposable
     private string commandText = string.Empty;
     private string textFilter = string.Empty;
     private string selectedSource = "DalamudInternal";
+    private string pluginFilter = string.Empty;
 
     private bool filterShowUncaughtExceptions;
     private bool showFilterToolbar;
@@ -149,7 +150,7 @@ internal class ConsoleWindow : Window, IDisposable
         {
             const string regexErrorString = "Regex Filter Error";
             ImGui.SetCursorPosX(ImGui.GetContentRegionMax().X / 2.0f - ImGui.CalcTextSize(regexErrorString).X / 2.0f);
-            ImGui.TextColored(KnownColor.OrangeRed.Vector(), regexErrorString);
+            ImGui.TextColored(ImGuiColors.DalamudRed, regexErrorString);
         }
         
         ImGui.BeginChild("scrolling", new Vector2(0, ImGui.GetFrameHeightWithSpacing() - 55 * ImGuiHelpers.GlobalScale), false, ImGuiWindowFlags.AlwaysHorizontalScrollbar | ImGuiWindowFlags.AlwaysVerticalScrollbar);
@@ -475,13 +476,23 @@ internal class ConsoleWindow : Window, IDisposable
 
         ImGui.TableNextColumn();
         ImGui.PushItemWidth(ImGui.GetContentRegionAvail().X);
-        if (ImGui.BeginCombo("##Sources", this.selectedSource))
+        if (ImGui.BeginCombo("##Sources", this.selectedSource, ImGuiComboFlags.HeightLarge))
         {
             var sourceNames = Service<PluginManager>.Get().InstalledPlugins
                                                     .Select(p => p.Manifest.InternalName)
                                                     .OrderBy(s => s)
                                                     .Prepend("DalamudInternal")
+                                                    .Where(name => this.pluginFilter is "" || new FuzzyMatcher(this.pluginFilter.ToLowerInvariant(), MatchMode.Fuzzy).Matches(name.ToLowerInvariant()) != 0)
                                                     .ToList();
+
+            ImGui.PushItemWidth(ImGui.GetContentRegionAvail().X);
+            ImGui.InputTextWithHint("##PluginSearchFilter", "Filter Plugin List", ref this.pluginFilter, 2048);
+            ImGui.Separator();
+            
+            if (!sourceNames.Any())
+            {
+                ImGui.TextColored(ImGuiColors.DalamudRed, "No Results");
+            }
 
             foreach (var selectable in sourceNames)
             {

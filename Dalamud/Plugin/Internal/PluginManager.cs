@@ -953,7 +953,7 @@ internal partial class PluginManager : IDisposable, IServiceType
             autoUpdate ? PluginListInvalidationKind.AutoUpdate : PluginListInvalidationKind.Update,
             updatedList.Select(x => x.InternalName));
 
-        Log.Information("Plugin update OK.");
+        Log.Information("Plugin update OK. {updateCount} plugins updated.", updatedList.Length);
 
         return updatedList;
     }
@@ -1578,6 +1578,8 @@ internal partial class PluginManager : IDisposable, IServiceType
 
     private void DetectAvailablePluginUpdates()
     {
+        Log.Debug("Starting plugin update check...");
+        
         lock (this.pluginListLock)
         {
             this.updatablePluginsList.Clear();
@@ -1612,10 +1614,12 @@ internal partial class PluginManager : IDisposable, IServiceType
                 }
             }
         }
+        
+        Log.Debug("Update check found {updateCount} available updates.", this.updatablePluginsList.Count);
     }
 
     private void NotifyAvailablePluginsChanged()
-    {
+    { 
         this.DetectAvailablePluginUpdates();
 
         this.OnAvailablePluginsChanged?.InvokeSafely();

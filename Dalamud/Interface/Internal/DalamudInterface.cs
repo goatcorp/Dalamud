@@ -59,7 +59,7 @@ internal class DalamudInterface : IDisposable, IServiceType
     private readonly ComponentDemoWindow componentDemoWindow;
     private readonly DataWindow dataWindow;
     private readonly GamepadModeNotifierWindow gamepadModeNotifierWindow;
-    private readonly ImeWindow imeWindow;
+    private readonly DalamudImeWindow imeWindow;
     private readonly ConsoleWindow consoleWindow;
     private readonly PluginStatWindow pluginStatWindow;
     private readonly PluginInstallerWindow pluginWindow;
@@ -111,7 +111,7 @@ internal class DalamudInterface : IDisposable, IServiceType
         this.componentDemoWindow = new ComponentDemoWindow() { IsOpen = false };
         this.dataWindow = new DataWindow() { IsOpen = false };
         this.gamepadModeNotifierWindow = new GamepadModeNotifierWindow() { IsOpen = false };
-        this.imeWindow = new ImeWindow() { IsOpen = false };
+        this.imeWindow = new DalamudImeWindow() { IsOpen = false };
         this.consoleWindow = new ConsoleWindow(configuration) { IsOpen = configuration.LogOpenAtStartup };
         this.pluginStatWindow = new PluginStatWindow() { IsOpen = false };
         this.pluginWindow = new PluginInstallerWindow(pluginImageCache, configuration) { IsOpen = false };
@@ -256,7 +256,7 @@ internal class DalamudInterface : IDisposable, IServiceType
     public void OpenGamepadModeNotifierWindow() => this.gamepadModeNotifierWindow.IsOpen = true;
 
     /// <summary>
-    /// Opens the <see cref="ImeWindow"/>.
+    /// Opens the <see cref="DalamudImeWindow"/>.
     /// </summary>
     public void OpenImeWindow() => this.imeWindow.IsOpen = true;
 
@@ -356,7 +356,7 @@ internal class DalamudInterface : IDisposable, IServiceType
     #region Close
 
     /// <summary>
-    /// Closes the <see cref="ImeWindow"/>.
+    /// Closes the <see cref="DalamudImeWindow"/>.
     /// </summary>
     public void CloseImeWindow() => this.imeWindow.IsOpen = false;
 
@@ -408,7 +408,7 @@ internal class DalamudInterface : IDisposable, IServiceType
     public void ToggleGamepadModeNotifierWindow() => this.gamepadModeNotifierWindow.Toggle();
 
     /// <summary>
-    /// Toggles the <see cref="ImeWindow"/>.
+    /// Toggles the <see cref="DalamudImeWindow"/>.
     /// </summary>
     public void ToggleImeWindow() => this.imeWindow.Toggle();
 

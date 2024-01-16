@@ -31,7 +31,8 @@ public static class ImGuiHelpers
     /// This does not necessarily mean you can call drawing functions.
     /// </summary>
     public static unsafe bool IsImGuiInitialized =>
-        ImGui.GetCurrentContext() is not 0 && ImGui.GetIO().NativePtr is not null;
+        ImGui.GetCurrentContext() is not (nint)0  // KW: IDEs get mad without the cast, despite being unnecessary
+        && ImGui.GetIO().NativePtr is not null; 
 
     /// <summary>
     /// Gets the global Dalamud scale; even available before drawing is ready.<br />
@@ -426,6 +427,26 @@ public static class ImGuiHelpers
     /// <param name="ptr">The pointer.</param>
     /// <returns>Whether it is empty.</returns>
     public static unsafe bool IsNull(this ImFontAtlasPtr ptr) => ptr.NativePtr == null;
+    
+    /// <summary>
+    /// Finds the corresponding ImGui viewport ID for the given window handle.
+    /// </summary>
+    /// <param name="hwnd">The window handle.</param>
+    /// <returns>The viewport ID, or -1 if not found.</returns>
+    internal static unsafe int FindViewportId(nint hwnd)
+    {
+        if (!IsImGuiInitialized)
+            return -1;
+
+        var viewports = new ImVectorWrapper<ImGuiViewportPtr>(&ImGui.GetPlatformIO().NativePtr->Viewports);
+        for (var i = 0; i < viewports.LengthUnsafe; i++)
+        {
+            if (viewports.DataUnsafe[i].PlatformHandle == hwnd)
+                return i;
+        }
+
+        return -1;
+    }
 
     /// <summary>
     /// Get data needed for each new frame.

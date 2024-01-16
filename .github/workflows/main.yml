@@ -45,7 +45,48 @@ jobs:
         with:
           name: dalamud-artifact
           path: bin\Release
-  
+
+  check_api_compat:
+    name: "Check API Compatibility"
+    if: ${{ github.event_name == 'pull_request' }}
+    needs: build
+    runs-on: windows-latest
+    steps:
+    - name: "Install .NET SDK"
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: 7
+    - name: "Install ApiCompat"
+      run: |
+        dotnet tool install -g Microsoft.DotNet.ApiCompat.Tool
+    - name: "Download Proposed Artifacts"
+      uses: actions/download-artifact@v2
+      with:
+        name: dalamud-artifact
+        path: .\right
+    - name: "Download Live (Stg) Artifacts"
+      run: |
+          Invoke-WebRequest -Uri https://goatcorp.github.io/dalamud-distrib/stg/latest.zip -OutFile latest.zip
+          Expand-Archive -Force latest.zip "left"
+    - name: "Verify Compatibility"
+      run: |
+        $FILES_TO_VALIDATE = "Dalamud.dll","FFXIVClientStructs.dll","Lumina.dll","Lumina.Excel.dll"
+        
+        $retcode = 0
+        
+        foreach ($file in $FILES_TO_VALIDATE) {
+            $testout = ""
+            Write-Output "::group::=== API COMPATIBILITY CHECK: ${file} ==="
+            apicompat -l "left\${file}" -r "right\${file}" | Tee-Object -Variable testout
+            Write-Output "::endgroup::"
+            if ($testout -ne "APICompat ran successfully without finding any breaking changes.") {
+                Write-Output "::error::${file} did not pass. Please review it for problems."
+                $retcode = 1
+            }
+        }
+        
+        exit $retcode
+
   deploy_stg:
     name: Deploy dalamud-distrib staging
     if: ${{ github.repository_owner == 'goatcorp' && github.event_name == 'push' }}
