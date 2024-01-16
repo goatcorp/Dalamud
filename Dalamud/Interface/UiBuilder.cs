@@ -16,7 +16,6 @@ using Dalamud.Utility;
 using ImGuiNET;
 using ImGuiScene;
 using Serilog;
-using SharpDX.Direct3D11;
 
 namespace Dalamud.Interface;
 
@@ -31,6 +30,8 @@ public sealed class UiBuilder : IDisposable
     private readonly string namespaceName;
     private readonly InterfaceManager interfaceManager = Service<InterfaceManager>.Get();
     private readonly GameFontManager gameFontManager = Service<GameFontManager>.Get();
+
+    private readonly Dictionary<IImGuiRenderer.DrawCmdUserCallbackDelegate, nint> drawCmdUserCallbackDelegates = new();
 
     [ServiceManager.ServiceDependency]
     private readonly DalamudConfiguration configuration = Service<DalamudConfiguration>.Get();
@@ -122,9 +123,34 @@ public sealed class UiBuilder : IDisposable
     public static ImFontPtr MonoFont => InterfaceManager.MonoFont;
 
     /// <summary>
-    /// Gets the game's active Direct3D device.
+    /// Gets the game's active D3D11 device instance. Note that the reference count is not increased.
     /// </summary>
-    public Device Device => this.InterfaceManagerWithScene.Device!;
+    public SharpDX.Direct3D11.Device? Device => this.InterfaceManagerWithScene?.Device;
+
+    /// <summary>
+    /// Gets the game's active D3D11 device context. Note that the reference count is not increased.
+    /// </summary>
+    public SharpDX.Direct3D11.DeviceContext? DeviceContext => this.InterfaceManagerWithScene?.DeviceContext;
+
+    /// <summary>
+    /// Gets the native pointer of the game's active D3D11 device instance.
+    /// Note that the reference count is not increased.
+    /// </summary>
+    public nint DeviceNativePointer => this.Device?.NativePointer ?? nint.Zero;
+
+    /// <summary>
+    /// Gets the native pointer of the game's active D3D11 device context.
+    /// Note that the reference count is not increased.
+    /// </summary>
+    public nint DeviceContextNativePointer => this.DeviceContext?.NativePointer ?? nint.Zero;
+
+    /// <summary>
+    /// Gets the ImGui DrawCmd callback for resetting the render parameters.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">When UI is not yet ready.</exception>
+    public nint ImGuiResetDrawCmdUserCallback =>
+        this.interfaceManager.ImGuiRenderer?.ResetDrawCmdUserCallback
+        ?? throw new InvalidOperationException("Renderer is not yet ready.");
 
     /// <summary>
     /// Gets the game's main window handle.
@@ -229,6 +255,36 @@ public sealed class UiBuilder : IDisposable
 
     private Task<InterfaceManager> InterfaceManagerWithSceneAsync =>
         Service<InterfaceManager.InterfaceManagerWithScene>.GetAsync().ContinueWith(task => task.Result.Manager);
+
+    /// <summary>
+    /// Adds a callback that will be called on rendering a texture with <see cref="ImDrawCmd.UserCallback"/> set.
+    /// </summary>
+    /// <param name="cb">The callback.</param>
+    /// <returns>The value to use for <see cref="ImDrawCmd.UserCallback"/>.</returns>
+    /// <exception cref="InvalidOperationException">If UI is not yet ready.</exception>
+    public nint AddImGuiDrawCmdUserCallback(IImGuiRenderer.DrawCmdUserCallbackDelegate cb)
+    {
+        if (this.drawCmdUserCallbackDelegates.TryGetValue(cb, out var p))
+            return p;
+
+        if (this.interfaceManager.ImGuiRenderer is not { } renderer)
+            throw new InvalidOperationException("Renderer is not yet ready.");
+
+        this.drawCmdUserCallbackDelegates.Add(cb, p = renderer.AddDrawCmdUserCallback(cb));
+        return p;
+    }
+
+    /// <summary>
+    /// Removes a callback that will be called on rendering a texture with <see cref="ImDrawCmd.UserCallback"/> set.
+    /// </summary>
+    /// <param name="cb">The callback.</param>
+    public void RemoveImGuiDrawCmdUserCallback(IImGuiRenderer.DrawCmdUserCallbackDelegate cb)
+    {
+        // Either it's not ready and nothing could have been already added yet,
+        // or it's destructing down and we don't care anymore
+        this.drawCmdUserCallbackDelegates.Remove(cb);
+        this.interfaceManager.ImGuiRenderer?.RemoveDrawCmdUserCallback(cb);
+    }
 
     /// <summary>
     /// Loads an image from the specified file.
@@ -397,6 +453,8 @@ public sealed class UiBuilder : IDisposable
         this.interfaceManager.Draw -= this.OnDraw;
         this.interfaceManager.BuildFonts -= this.OnBuildFonts;
         this.interfaceManager.ResizeBuffers -= this.OnResizeBuffers;
+        foreach (var cb in this.drawCmdUserCallbackDelegates.Keys)
+            this.interfaceManager.ImGuiRenderer?.RemoveDrawCmdUserCallback(cb);
     }
 
     /// <summary>
