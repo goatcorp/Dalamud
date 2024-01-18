@@ -1,14 +1,12 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Numerics;
-using System.Text;
 
 using CheapLoc;
 using Dalamud.Configuration.Internal;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Internal.Windows.PluginInstaller;
 using Dalamud.Interface.Internal.Windows.Settings.Widgets;
-using Dalamud.Interface.ManagedFontAtlas.Internals;
 using Dalamud.Interface.Utility;
 using Dalamud.Utility;
 using ImGuiNET;
@@ -30,6 +28,7 @@ public class SettingsTabLook : SettingsTab
     };
 
     private float globalUiScale;
+    private float fontGamma;
 
     public override SettingsEntry[] Entries { get; } =
     {
@@ -42,8 +41,9 @@ public class SettingsTabLook : SettingsTab
             (v, c) => c.UseAxisFontsFromGame = v,
             v =>
             {
-                Service<FontAtlasFactory>.Get().UseAxisOverride = v;
-                Service<InterfaceManager>.Get().RebuildFonts();
+                var im = Service<InterfaceManager>.Get();
+                im.UseAxisOverride = v;
+                im.RebuildFonts();
             }),
 
         new GapSettingsEntry(5, true),
@@ -145,7 +145,6 @@ public class SettingsTabLook : SettingsTab
     public override void Draw()
     {
         var interfaceManager = Service<InterfaceManager>.Get();
-        var fontBuildTask = interfaceManager.FontBuildTask;
 
         ImGui.AlignTextToFramePadding();
         ImGui.Text(Loc.Localize("DalamudSettingsGlobalUiScale", "Global Font Scale"));
@@ -165,19 +164,6 @@ public class SettingsTabLook : SettingsTab
             }
         }
 
-        if (!fontBuildTask.IsCompleted)
-        {
-            ImGui.SameLine();
-            var buildingFonts = Loc.Localize("DalamudSettingsFontBuildInProgressWithEndingThreeDots", "Building fonts...");
-            unsafe
-            {
-                var len = Encoding.UTF8.GetByteCount(buildingFonts);
-                var p = stackalloc byte[len];
-                Encoding.UTF8.GetBytes(buildingFonts, new(p, len));
-                ImGuiNative.igTextUnformatted(p, (p + len + ((Environment.TickCount / 200) % 3)) - 2);
-            }
-        }
-
         var globalUiScaleInPt = 12f * this.globalUiScale;
         if (ImGui.DragFloat("##DalamudSettingsGlobalUiScaleDrag", ref globalUiScaleInPt, 0.1f, 9.6f, 36f, "%.1fpt", ImGuiSliderFlags.AlwaysClamp))
         {
@@ -188,18 +174,25 @@ public class SettingsTabLook : SettingsTab
 
         ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingsGlobalUiScaleHint", "Scale text in all XIVLauncher UI elements - this is useful for 4K displays."));
 
-        if (fontBuildTask.IsFaulted || fontBuildTask.IsCanceled)
+        ImGuiHelpers.ScaledDummy(5);
+
+        ImGui.AlignTextToFramePadding();
+        ImGui.Text(Loc.Localize("DalamudSettingsFontGamma", "Font Gamma"));
+        ImGui.SameLine();
+        if (ImGui.Button(Loc.Localize("DalamudSettingsIndividualConfigResetToDefaultValue", "Reset") + "##DalamudSettingsFontGammaReset"))
         {
-            ImGui.TextColored(
-                ImGuiColors.DalamudRed,
-                Loc.Localize("DalamudSettingsFontBuildFaulted", "Failed to load fonts as requested."));
-            if (fontBuildTask.Exception is not null
-                && ImGui.CollapsingHeader("##DalamudSetingsFontBuildFaultReason"))
-            {
-                foreach (var e in fontBuildTask.Exception.InnerExceptions)
-                    ImGui.TextUnformatted(e.ToString());
-            }
+            this.fontGamma = 1.4f;
+            interfaceManager.FontGammaOverride = this.fontGamma;
+            interfaceManager.RebuildFonts();
         }
+
+        if (ImGui.DragFloat("##DalamudSettingsFontGammaDrag", ref this.fontGamma, 0.005f, 0.3f, 3f, "%.2f", ImGuiSliderFlags.AlwaysClamp))
+        {
+            interfaceManager.FontGammaOverride = this.fontGamma;
+            interfaceManager.RebuildFonts();
+        }
+
+        ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingsFontGammaHint", "Changes the thickness of text."));
 
         base.Draw();
     }
@@ -207,6 +200,7 @@ public class SettingsTabLook : SettingsTab
     public override void Load()
     {
         this.globalUiScale = Service<DalamudConfiguration>.Get().GlobalUiScale;
+        this.fontGamma = Service<DalamudConfiguration>.Get().FontGammaLevel;
 
         base.Load();
     }
