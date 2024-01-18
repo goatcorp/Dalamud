@@ -890,12 +890,13 @@ internal class InterfaceManager : IDisposable, IServiceType
         if (this.IsDispatchingEvents)
         {
             using (this.defaultFontHandle?.Push())
+            {
                 this.Draw?.Invoke();
+                Service<NotificationManager>.Get().Draw();
+            }
         }
 
         ImGuiManagedAsserts.ReportProblems("Dalamud Core", snap);
-
-        Service<NotificationManager>.Get().Draw();
     }
 
     /// <summary>
