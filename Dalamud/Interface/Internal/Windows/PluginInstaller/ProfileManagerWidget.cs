@@ -324,7 +324,7 @@ internal class ProfileManagerWidget
 
                         if (ImGui.Selectable($"{plugin.Manifest.Name}{(plugin is LocalDevPlugin ? "(dev plugin)" : string.Empty)}###selector{plugin.Manifest.InternalName}"))
                         {
-                            Task.Run(() => profile.AddOrUpdateAsync(plugin.Manifest.WorkingPluginId, true, false))
+                            Task.Run(() => profile.AddOrUpdateAsync(plugin.Manifest.WorkingPluginId, plugin.Manifest.InternalName, true, false))
                                 .ContinueWith(this.installer.DisplayErrorContinuation, Locs.ErrorCouldNotChangeState);
                         }
                     }
@@ -508,7 +508,7 @@ internal class ProfileManagerWidget
                 var enabled = profileEntry.IsEnabled;
                 if (ImGui.Checkbox($"###{this.editingProfileGuid}-{profileEntry.InternalName}", ref enabled))
                 {
-                    Task.Run(() => profile.AddOrUpdateAsync(profileEntry.WorkingPluginId, enabled))
+                    Task.Run(() => profile.AddOrUpdateAsync(profileEntry.WorkingPluginId, profileEntry.InternalName, enabled))
                         .ContinueWith(this.installer.DisplayErrorContinuation, Locs.ErrorCouldNotChangeState);
                 }
 

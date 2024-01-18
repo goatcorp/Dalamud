@@ -158,10 +158,11 @@ internal class Profile
     /// This will block until all states have been applied.
     /// </summary>
     /// <param name="workingPluginId">The ID of the plugin.</param>
+    /// <param name="internalName">The internal name of the plugin, if available.</param>
     /// <param name="state">Whether or not the plugin should be enabled.</param>
     /// <param name="apply">Whether or not the current state should immediately be applied.</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-    public async Task AddOrUpdateAsync(Guid workingPluginId, bool state, bool apply = true)
+    public async Task AddOrUpdateAsync(Guid workingPluginId, string? internalName, bool state, bool apply = true)
     {
         Debug.Assert(workingPluginId != Guid.Empty, "Trying to add plugin with empty guid");
         
@@ -176,6 +177,7 @@ internal class Profile
             {
                 this.modelV1.Plugins.Add(new ProfileModelV1.ProfileModelV1Plugin
                 {
+                    InternalName = internalName,
                     WorkingPluginId = workingPluginId,
                     IsEnabled = state,
                 });
@@ -219,7 +221,7 @@ internal class Profile
         {
             if (!this.IsDefaultProfile)
             {
-                await this.manager.DefaultProfile.AddOrUpdateAsync(workingPluginId, this.IsEnabled && entry.IsEnabled, false);
+                await this.manager.DefaultProfile.AddOrUpdateAsync(workingPluginId, entry.InternalName, this.IsEnabled && entry.IsEnabled, false);
             }
             else
             {

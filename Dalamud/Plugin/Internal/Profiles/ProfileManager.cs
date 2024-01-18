@@ -70,10 +70,11 @@ internal class ProfileManager : IServiceType
     /// Check if any enabled profile wants a specific plugin enabled.
     /// </summary>
     /// <param name="workingPluginId">The ID of the plugin.</param>
+    /// <param name="internalName">The internal name of the plugin, if available.</param>
     /// <param name="defaultState">The state the plugin shall be in, if it needs to be added.</param>
     /// <param name="addIfNotDeclared">Whether or not the plugin should be added to the default preset, if it's not present in any preset.</param>
     /// <returns>Whether or not the plugin shall be enabled.</returns>
-    public async Task<bool> GetWantStateAsync(Guid workingPluginId, bool defaultState, bool addIfNotDeclared = true)
+    public async Task<bool> GetWantStateAsync(Guid workingPluginId, string? internalName, bool defaultState, bool addIfNotDeclared = true)
     {
         var want = false;
         var wasInAnyProfile = false;
@@ -93,8 +94,8 @@ internal class ProfileManager : IServiceType
 
         if (!wasInAnyProfile && addIfNotDeclared)
         {
-            Log.Warning("{Guid} was not in any profile, adding to default with {Default}", workingPluginId, defaultState);
-            await this.DefaultProfile.AddOrUpdateAsync(workingPluginId, defaultState, false);
+            Log.Warning("'{Guid}'('{InternalName}') was not in any profile, adding to default with {Default}", workingPluginId, internalName, defaultState);
+            await this.DefaultProfile.AddOrUpdateAsync(workingPluginId, internalName, defaultState, false);
 
             return defaultState;
         }
