@@ -209,7 +209,7 @@ internal sealed partial class FontAtlasFactory
 
         private int buildIndex;
         private bool buildQueued;
-        private bool disposed = false;
+        private bool disposed;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DalamudFontAtlas"/> class.
@@ -612,6 +612,7 @@ internal sealed partial class FontAtlasFactory
 
             var res = default(FontAtlasBuiltData);
             nint atlasPtr = 0;
+            BuildToolkit? toolkit = null;
             try
             {
                 res = new(this, this.fontHandleManagers.Select(x => x.NewSubstance()), scale);
@@ -627,10 +628,43 @@ internal sealed partial class FontAtlasFactory
                     atlasPtr,
                     sw.ElapsedMilliseconds);
 
-                using var toolkit = res.CreateToolkit(this.factory, isAsync);
+                toolkit = res.CreateToolkit(this.factory, isAsync);
                 this.BuildStepChange?.Invoke(toolkit);
                 toolkit.PreBuildSubstances();
                 toolkit.PreBuild();
+
+                // Prevent NewImAtlas.ConfigData[].DstFont pointing to a font not owned by the new atlas,
+                // by making it add a font with default configuration first instead.
+                if (!ValidateMergeFontReferences(default))
+                {
+                    Log.Warning(
+                        "[{name}:{functionname}] 0x{ptr:X}: refering to fonts outside the new atlas; " +
+                        "adding a default font, and using that as the merge target.",
+                        this.Name,
+                        nameof(this.RebuildFontsPrivateReal),
+                        atlasPtr);
+
+                    res.IsBuildInProgress = false;
+                    toolkit.Dispose();
+                    res.Dispose();
+
+                    res = new(this, this.fontHandleManagers.Select(x => x.NewSubstance()), scale);
+                    unsafe
+                    {
+                        atlasPtr = (nint)res.Atlas.NativePtr;
+                    }
+
+                    toolkit = res.CreateToolkit(this.factory, isAsync);
+
+                    // PreBuildSubstances deals with toolkit.Add... function family. Do this first.
+                    var defaultFont = toolkit.AddDalamudDefaultFont(InterfaceManager.DefaultFontSizePx, null);
+
+                    this.BuildStepChange?.Invoke(toolkit);
+                    toolkit.PreBuildSubstances();
+                    toolkit.PreBuild();
+
+                    _ = ValidateMergeFontReferences(defaultFont);
+                }
 
 #if VeryVerboseLog
                 Log.Verbose("[{name}:{functionname}] 0x{ptr:X}: Build (at {sw}ms)", this.Name, nameof(this.RebuildFontsPrivateReal), atlasPtr, sw.ElapsedMilliseconds);
@@ -687,7 +721,33 @@ internal sealed partial class FontAtlasFactory
             }
             finally
             {
+                toolkit?.Dispose();
                 this.buildQueued = false;
+            }
+
+            unsafe bool ValidateMergeFontReferences(ImFontPtr replacementDstFont)
+            {
+                var correct = true;
+                foreach (ref var configData in toolkit.NewImAtlas.ConfigDataWrapped().DataSpan)
+                {
+                    var found = false;
+                    foreach (ref var font in toolkit.Fonts.DataSpan)
+                    {
+                        if (configData.DstFont == font)
+                        {
+                            found = true;
+                            break;
+                        }
+                    }
+
+                    if (!found)
+                    {
+                        correct = false;
+                        configData.DstFont = replacementDstFont;
+                    }
+                }
+
+                return correct;
             }
         }
 
