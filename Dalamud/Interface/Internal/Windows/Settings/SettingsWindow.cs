@@ -5,10 +5,10 @@ using CheapLoc;
 using Dalamud.Configuration.Internal;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Internal.Windows.Settings.Tabs;
+using Dalamud.Interface.ManagedFontAtlas.Internals;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
-using Dalamud.Plugin.Internal;
 using Dalamud.Utility;
 using ImGuiNET;
 
@@ -19,14 +19,7 @@ namespace Dalamud.Interface.Internal.Windows.Settings;
 /// </summary>
 internal class SettingsWindow : Window
 {
-    private readonly SettingsTab[] tabs =
-    {
-        new SettingsTabGeneral(),
-        new SettingsTabLook(),
-        new SettingsTabDtr(),
-        new SettingsTabExperimental(),
-        new SettingsTabAbout(),
-    };
+    private SettingsTab[]? tabs;
 
     private string searchInput = string.Empty;
 
@@ -49,6 +42,15 @@ internal class SettingsWindow : Window
     /// <inheritdoc/>
     public override void OnOpen()
     {
+        this.tabs ??= new SettingsTab[]
+        {
+            new SettingsTabGeneral(),
+            new SettingsTabLook(),
+            new SettingsTabDtr(),
+            new SettingsTabExperimental(),
+            new SettingsTabAbout(),
+        };
+
         foreach (var settingsTab in this.tabs)
         {
             settingsTab.Load();
@@ -64,15 +66,12 @@ internal class SettingsWindow : Window
     {
         var configuration = Service<DalamudConfiguration>.Get();
         var interfaceManager = Service<InterfaceManager>.Get();
+        var fontAtlasFactory = Service<FontAtlasFactory>.Get();
 
-        var rebuildFont =
-            ImGui.GetIO().FontGlobalScale != configuration.GlobalUiScale ||
-            interfaceManager.FontGamma != configuration.FontGammaLevel ||
-            interfaceManager.UseAxis != configuration.UseAxisFontsFromGame;
+        var rebuildFont = fontAtlasFactory.UseAxis != configuration.UseAxisFontsFromGame;
 
         ImGui.GetIO().FontGlobalScale = configuration.GlobalUiScale;
-        interfaceManager.FontGammaOverride = null;
-        interfaceManager.UseAxisOverride = null;
+        fontAtlasFactory.UseAxisOverride = null;
 
         if (rebuildFont)
             interfaceManager.RebuildFonts();
