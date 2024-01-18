@@ -12,6 +12,7 @@ using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Plugin.Internal;
 using Dalamud.Plugin.Internal.Profiles;
+using Dalamud.Plugin.Internal.Types;
 using Dalamud.Utility;
 using ImGuiNET;
 using Serilog;
@@ -315,13 +316,13 @@ internal class ProfileManagerWidget
                 if (ImGui.BeginListBox("###pluginPicker", new Vector2(width, width - 80)))
                 {
                     // TODO: Plugin searching should be abstracted... installer and this should use the same search
-                    foreach (var plugin in pm.InstalledPlugins.Where(x => x.Manifest.SupportsProfiles && !x.IsDev &&
+                    foreach (var plugin in pm.InstalledPlugins.Where(x => x.Manifest.SupportsProfiles &&
                                                                           (this.pickerSearch.IsNullOrWhitespace() || x.Manifest.Name.ToLowerInvariant().Contains(this.pickerSearch.ToLowerInvariant()))))
                     {
                         using var disabled2 =
                             ImRaii.Disabled(profile.Plugins.Any(y => y.InternalName == plugin.Manifest.InternalName));
 
-                        if (ImGui.Selectable($"{plugin.Manifest.Name}###selector{plugin.Manifest.InternalName}"))
+                        if (ImGui.Selectable($"{plugin.Manifest.Name}{(plugin is LocalDevPlugin ? "(dev plugin)" : string.Empty)}###selector{plugin.Manifest.InternalName}"))
                         {
                             Task.Run(() => profile.AddOrUpdateAsync(plugin.Manifest.WorkingPluginId, true, false))
                                 .ContinueWith(this.installer.DisplayErrorContinuation, Locs.ErrorCouldNotChangeState);
@@ -426,18 +427,28 @@ internal class ProfileManagerWidget
             Guid? wantRemovePluginGuid = null;
 
             using var syncScope = profile.GetSyncScope();
-            foreach (var plugin in profile.Plugins.ToArray())
+            foreach (var profileEntry in profile.Plugins.ToArray())
             {
                 didAny = true;
-                var pmPlugin = pm.InstalledPlugins.FirstOrDefault(x => x.Manifest.WorkingPluginId == plugin.WorkingPluginId);
+                var pmPlugin = pm.InstalledPlugins.FirstOrDefault(x => x.Manifest.WorkingPluginId == profileEntry.WorkingPluginId);
                 var btnOffset = 2;
 
                 if (pmPlugin != null)
                 {
+                    var cursorBeforeIcon = ImGui.GetCursorPos();
                     pic.TryGetIcon(pmPlugin, pmPlugin.Manifest, pmPlugin.IsThirdParty, out var icon);
                     icon ??= pic.DefaultIcon;
 
                     ImGui.Image(icon.ImGuiHandle, new Vector2(pluginLineHeight));
+
+                    if (pmPlugin is LocalDevPlugin)
+                    {
+                        ImGui.SetCursorPos(cursorBeforeIcon);
+                        ImGui.PushStyleVar(ImGuiStyleVar.Alpha, 0.4f);
+                        ImGui.Image(pic.DevPluginIcon.ImGuiHandle, new Vector2(pluginLineHeight));
+                        ImGui.PopStyleVar();
+                    }
+                    
                     ImGui.SameLine();
 
                     var text = $"{pmPlugin.Name}";
@@ -454,17 +465,17 @@ internal class ProfileManagerWidget
                     ImGui.Image(pic.DefaultIcon.ImGuiHandle, new Vector2(pluginLineHeight));
                     ImGui.SameLine();
 
-                    var text = Locs.NotInstalled(plugin.InternalName);
+                    var text = Locs.NotInstalled(profileEntry.InternalName);
                     var textHeight = ImGui.CalcTextSize(text);
                     var before = ImGui.GetCursorPos();
 
                     ImGui.SetCursorPosY(ImGui.GetCursorPosY() + (pluginLineHeight / 2) - (textHeight.Y / 2));
                     ImGui.TextUnformatted(text);
                     
-                    var firstAvailableInstalled = pm.InstalledPlugins.FirstOrDefault(x => x.InternalName == plugin.InternalName);
+                    var firstAvailableInstalled = pm.InstalledPlugins.FirstOrDefault(x => x.InternalName == profileEntry.InternalName);
                     var installable =
                         pm.AvailablePlugins.FirstOrDefault(
-                            x => x.InternalName == plugin.InternalName && !x.SourceRepo.IsThirdParty);
+                            x => x.InternalName == profileEntry.InternalName && !x.SourceRepo.IsThirdParty);
                     
                     if (firstAvailableInstalled != null)
                     {
@@ -494,10 +505,10 @@ internal class ProfileManagerWidget
                 ImGui.SetCursorPosX(windowSize.X - (ImGuiHelpers.GlobalScale * 30));
                 ImGui.SetCursorPosY(ImGui.GetCursorPosY() + (pluginLineHeight / 2) - (ImGui.GetFrameHeight() / 2));
 
-                var enabled = plugin.IsEnabled;
-                if (ImGui.Checkbox($"###{this.editingProfileGuid}-{plugin.InternalName}", ref enabled))
+                var enabled = profileEntry.IsEnabled;
+                if (ImGui.Checkbox($"###{this.editingProfileGuid}-{profileEntry.InternalName}", ref enabled))
                 {
-                    Task.Run(() => profile.AddOrUpdateAsync(plugin.WorkingPluginId, enabled))
+                    Task.Run(() => profile.AddOrUpdateAsync(profileEntry.WorkingPluginId, enabled))
                         .ContinueWith(this.installer.DisplayErrorContinuation, Locs.ErrorCouldNotChangeState);
                 }
 
@@ -505,9 +516,9 @@ internal class ProfileManagerWidget
                 ImGui.SetCursorPosX(windowSize.X - (ImGuiHelpers.GlobalScale * 30 * btnOffset) - 5);
                 ImGui.SetCursorPosY(ImGui.GetCursorPosY() + (pluginLineHeight / 2) - (ImGui.GetFrameHeight() / 2));
 
-                if (ImGuiComponents.IconButton($"###removePlugin{plugin.InternalName}", FontAwesomeIcon.Trash))
+                if (ImGuiComponents.IconButton($"###removePlugin{profileEntry.InternalName}", FontAwesomeIcon.Trash))
                 {
-                    wantRemovePluginGuid = plugin.WorkingPluginId;
+                    wantRemovePluginGuid = profileEntry.WorkingPluginId;
                 }
 
                 if (ImGui.IsItemHovered())

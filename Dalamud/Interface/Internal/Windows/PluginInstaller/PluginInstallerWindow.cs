@@ -1800,6 +1800,14 @@ internal class PluginInstallerWindow : Window, IDisposable
 
         var isLoaded = plugin is { IsLoaded: true };
 
+        if (plugin is LocalDevPlugin)
+        {
+            ImGui.PushStyleVar(ImGuiStyleVar.Alpha, 0.4f);
+            ImGui.Image(this.imageCache.DevPluginIcon.ImGuiHandle, iconSize);
+            ImGui.PopStyleVar();
+            ImGui.SetCursorPos(cursorBeforeImage);
+        }
+
         if (updateAvailable)
             ImGui.Image(this.imageCache.UpdateIcon.ImGuiHandle, iconSize);
         else if ((trouble && !pluginDisabled) || isOrphan)
