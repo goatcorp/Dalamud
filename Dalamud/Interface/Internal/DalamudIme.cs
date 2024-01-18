@@ -11,7 +11,6 @@ using System.Text.Unicode;
 using Dalamud.Game.Text;
 using Dalamud.Hooking.WndProcHook;
 using Dalamud.Interface.GameFonts;
-using Dalamud.Interface.ManagedFontAtlas.Internals;
 using Dalamud.Interface.Utility;
 
 using ImGuiNET;
@@ -197,9 +196,9 @@ internal sealed unsafe class DalamudIme : IDisposable, IServiceType
         {
             if (HanRange.Any(x => x.FirstCodePoint <= chr && chr < x.FirstCodePoint + x.Length))
             {
-                if (Service<FontAtlasFactory>.Get()
-                                            ?.GetFdtReader(GameFontFamilyAndSize.Axis12)
-                                            .FindGlyph(chr) is null)
+                if (Service<GameFontManager>.Get()
+                                            .GetFdtReader(GameFontFamilyAndSize.Axis12)
+                                            ?.FindGlyph(chr) is null)
                 {
                     if (!this.EncounteredHan)
                     {

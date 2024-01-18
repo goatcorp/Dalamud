@@ -7,14 +7,11 @@ using Dalamud.Game;
 using Dalamud.Game.ClientState;
 using Dalamud.Game.Gui;
 using Dalamud.Interface.Animation.EasingFunctions;
-using Dalamud.Interface.ManagedFontAtlas;
-using Dalamud.Interface.ManagedFontAtlas.Internals;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin.Services;
 using Dalamud.Storage.Assets;
-using Dalamud.Utility;
 
 using ImGuiNET;
 
@@ -30,17 +27,16 @@ internal class TitleScreenMenuWindow : Window, IDisposable
 
     private readonly ClientState clientState;
     private readonly DalamudConfiguration configuration;
+    private readonly Framework framework;
     private readonly GameGui gameGui;
     private readonly TitleScreenMenu titleScreenMenu;
 
-    private readonly DisposeSafety.ScopedFinalizer scopedFinalizer = new();
-    private readonly IFontAtlas privateAtlas;
-    private readonly Lazy<IFontHandle> myFontHandle;
     private readonly Lazy<IDalamudTextureWrap> shadeTexture;
 
     private readonly Dictionary<Guid, InOutCubic> shadeEasings = new();
     private readonly Dictionary<Guid, InOutQuint> moveEasings = new();
     private readonly Dictionary<Guid, InOutCubic> logoEasings = new();
+    private readonly Dictionary<string, InterfaceManager.SpecialGlyphRequest> specialGlyphRequests = new();
 
     private InOutCubic? fadeOutEasing;
 
@@ -52,7 +48,6 @@ internal class TitleScreenMenuWindow : Window, IDisposable
     /// <param name="clientState">An instance of <see cref="ClientState"/>.</param>
     /// <param name="configuration">An instance of <see cref="DalamudConfiguration"/>.</param>
     /// <param name="dalamudAssetManager">An instance of <see cref="DalamudAssetManager"/>.</param>
-    /// <param name="fontAtlasFactory">An instance of <see cref="FontAtlasFactory"/>.</param>
     /// <param name="framework">An instance of <see cref="Framework"/>.</param>
     /// <param name="titleScreenMenu">An instance of <see cref="TitleScreenMenu"/>.</param>
     /// <param name="gameGui">An instance of <see cref="gameGui"/>.</param>
@@ -60,7 +55,6 @@ internal class TitleScreenMenuWindow : Window, IDisposable
         ClientState clientState,
         DalamudConfiguration configuration,
         DalamudAssetManager dalamudAssetManager,
-        FontAtlasFactory fontAtlasFactory,
         Framework framework,
         GameGui gameGui,
         TitleScreenMenu titleScreenMenu)
@@ -71,6 +65,7 @@ internal class TitleScreenMenuWindow : Window, IDisposable
     {
         this.clientState = clientState;
         this.configuration = configuration;
+        this.framework = framework;
         this.gameGui = gameGui;
         this.titleScreenMenu = titleScreenMenu;
 
@@ -83,24 +78,8 @@ internal class TitleScreenMenuWindow : Window, IDisposable
         this.RespectCloseHotkey = false;
 
         this.shadeTexture = new(() => dalamudAssetManager.GetDalamudTextureWrap(DalamudAsset.TitleScreenMenuShade));
-        this.privateAtlas = fontAtlasFactory.CreateFontAtlas(this.WindowName, FontAtlasAutoRebuildMode.Async);
-        this.scopedFinalizer.Add(this.privateAtlas);
-
-        this.myFontHandle = new(
-            () => this.scopedFinalizer.Add(
-                this.privateAtlas.NewDelegateFontHandle(
-                    e => e.OnPreBuild(
-                        toolkit => toolkit.AddDalamudDefaultFont(
-                            TargetFontSizePx,
-                            titleScreenMenu.Entries.SelectMany(x => x.Name).ToGlyphRange())))));
-
-        titleScreenMenu.EntryListChange += this.TitleScreenMenuEntryListChange;
-        this.scopedFinalizer.Add(() => titleScreenMenu.EntryListChange -= this.TitleScreenMenuEntryListChange);
-
-        this.shadeTexture = new(() => dalamudAssetManager.GetDalamudTextureWrap(DalamudAsset.TitleScreenMenuShade));
 
         framework.Update += this.FrameworkOnUpdate;
-        this.scopedFinalizer.Add(() => framework.Update -= this.FrameworkOnUpdate);
     }
 
     private enum State
@@ -116,9 +95,6 @@ internal class TitleScreenMenuWindow : Window, IDisposable
     public bool AllowDrawing { get; set; } = true;
 
     /// <inheritdoc/>
-    public void Dispose() => this.scopedFinalizer.Dispose();
-
-    /// <inheritdoc/>
     public override void PreDraw()
     {
         ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(0, 0));
@@ -131,6 +107,12 @@ internal class TitleScreenMenuWindow : Window, IDisposable
     {
         ImGui.PopStyleVar(2);
         base.PostDraw();
+    }
+
+    /// <inheritdoc/>
+    public void Dispose()
+    {
+        this.framework.Update -= this.FrameworkOnUpdate;
     }
 
     /// <inheritdoc/>
@@ -264,12 +246,33 @@ internal class TitleScreenMenuWindow : Window, IDisposable
                 break;
             }
         }
+
+        var srcText = entries.Select(e => e.Name).ToHashSet();
+        var keys = this.specialGlyphRequests.Keys.ToHashSet();
+        keys.RemoveWhere(x => srcText.Contains(x));
+        foreach (var key in keys)
+        {
+            this.specialGlyphRequests[key].Dispose();
+            this.specialGlyphRequests.Remove(key);
+        }
     }
 
     private bool DrawEntry(
         TitleScreenMenuEntry entry, bool inhibitFadeout, bool showText, bool isFirst, bool overrideAlpha, bool interactable)
     {
-        using var fontScopeDispose = this.myFontHandle.Value.Push();
+        InterfaceManager.SpecialGlyphRequest fontHandle;
+        if (this.specialGlyphRequests.TryGetValue(entry.Name, out fontHandle) && fontHandle.Size != TargetFontSizePx)
+        {
+            fontHandle.Dispose();
+            this.specialGlyphRequests.Remove(entry.Name);
+            fontHandle = null;
+        }
+
+        if (fontHandle == null)
+            this.specialGlyphRequests[entry.Name] = fontHandle = Service<InterfaceManager>.Get().NewFontSizeRef(TargetFontSizePx, entry.Name);
+
+        ImGui.PushFont(fontHandle.Font);
+        ImGui.SetWindowFontScale(TargetFontSizePx / fontHandle.Size);
 
         var scale = ImGui.GetIO().FontGlobalScale;
 
@@ -380,6 +383,8 @@ internal class TitleScreenMenuWindow : Window, IDisposable
         initialCursor.Y += entry.Texture.Height * scale;
         ImGui.SetCursorPos(initialCursor);
 
+        ImGui.PopFont();
+
         return isHover;
     }
 
@@ -396,6 +401,4 @@ internal class TitleScreenMenuWindow : Window, IDisposable
         if (charaMake != IntPtr.Zero || charaSelect != IntPtr.Zero || titleDcWorldMap != IntPtr.Zero)
             this.IsOpen = false;
     }
-
-    private void TitleScreenMenuEntryListChange() => this.privateAtlas.BuildFontsAsync();
 }

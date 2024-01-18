@@ -6,8 +6,6 @@ using Dalamud.Interface.Components;
 using Dalamud.Interface.Internal.Windows.Data.Widgets;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Windowing;
-using Dalamud.Utility;
-
 using ImGuiNET;
 using Serilog;
 
@@ -16,7 +14,7 @@ namespace Dalamud.Interface.Internal.Windows.Data;
 /// <summary>
 /// Class responsible for drawing the data/debug window.
 /// </summary>
-internal class DataWindow : Window, IDisposable
+internal class DataWindow : Window
 {
     private readonly IDataWindowWidget[] modules =
     {
@@ -36,7 +34,6 @@ internal class DataWindow : Window, IDisposable
         new FlyTextWidget(),
         new FontAwesomeTestWidget(),
         new GameInventoryTestWidget(),
-        new GamePrebakedFontsTestWidget(),
         new GamepadWidget(),
         new GaugeWidget(),
         new HookWidget(),
@@ -78,9 +75,6 @@ internal class DataWindow : Window, IDisposable
 
         this.Load();
     }
-
-    /// <inheritdoc/>
-    public void Dispose() => this.modules.OfType<IDisposable>().AggregateToDisposable().Dispose();
 
     /// <inheritdoc/>
     public override void OnOpen()

@@ -1,15 +1,10 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Numerics;
-using System.Reactive.Disposables;
 using System.Runtime.InteropServices;
-using System.Text.Unicode;
 
 using Dalamud.Configuration.Internal;
 using Dalamud.Game.ClientState.Keys;
-using Dalamud.Interface.ManagedFontAtlas;
-using Dalamud.Interface.ManagedFontAtlas.Internals;
 using Dalamud.Interface.Utility.Raii;
 using ImGuiNET;
 using ImGuiScene;
@@ -36,7 +31,8 @@ public static class ImGuiHelpers
     /// This does not necessarily mean you can call drawing functions.
     /// </summary>
     public static unsafe bool IsImGuiInitialized =>
-        ImGui.GetCurrentContext() != nint.Zero && ImGui.GetIO().NativePtr is not null;
+        ImGui.GetCurrentContext() is not (nint)0  // KW: IDEs get mad without the cast, despite being unnecessary
+        && ImGui.GetIO().NativePtr is not null; 
 
     /// <summary>
     /// Gets the global Dalamud scale; even available before drawing is ready.<br />
@@ -202,7 +198,7 @@ public static class ImGuiHelpers
     /// <param name="round">If a positive number is given, numbers will be rounded to this.</param>
     public static unsafe void AdjustGlyphMetrics(this ImFontPtr fontPtr, float scale, float round = 0f)
     {
-        Func<float, float> rounder = round > 0 ? x => MathF.Round(x / round) * round : x => x;
+        Func<float, float> rounder = round > 0 ? x => MathF.Round(x * round) / round : x => x;
 
         var font = fontPtr.NativePtr;
         font->FontSize = rounder(font->FontSize * scale);
@@ -314,7 +310,6 @@ public static class ImGuiHelpers
                     glyph->U1,
                     glyph->V1,
                     glyph->AdvanceX * scale);
-                target.Mark4KPageUsedAfterGlyphAdd((ushort)glyph->Codepoint);
                 changed = true;
             }
             else if (!missingOnly)
@@ -348,18 +343,25 @@ public static class ImGuiHelpers
         }
 
         if (changed && rebuildLookupTable)
-        {
-            // ImGui resolves ' ' with FindGlyph, which uses FallbackGlyph.
-            // FallbackGlyph is resolved after resolving ' '.
-            // On the first call of BuildLookupTable, called from BuildFonts, FallbackGlyph is set to null,
-            // making FindGlyph return nullptr.
-            // On our secondary calls of BuildLookupTable, FallbackGlyph is set to some value that is not null,
-            // making ImGui attempt to treat whatever was there as a ' '.
-            // This may cause random glyphs to be sized randomly, if not an access violation exception.
-            target.NativePtr->FallbackGlyph = null;
+            target.BuildLookupTableNonstandard();
+    }
 
-            target.BuildLookupTable();
-        }
+    /// <summary>
+    /// Call ImFont::BuildLookupTable, after attempting to fulfill some preconditions.
+    /// </summary>
+    /// <param name="font">The font.</param>
+    public static unsafe void BuildLookupTableNonstandard(this ImFontPtr font)
+    {
+        // ImGui resolves ' ' with FindGlyph, which uses FallbackGlyph.
+        // FallbackGlyph is resolved after resolving ' '.
+        // On the first call of BuildLookupTable, called from BuildFonts, FallbackGlyph is set to null,
+        // making FindGlyph return nullptr.
+        // On our secondary calls of BuildLookupTable, FallbackGlyph is set to some value that is not null,
+        // making ImGui attempt to treat whatever was there as a ' '.
+        // This may cause random glyphs to be sized randomly, if not an access violation exception.
+        font.NativePtr->FallbackGlyph = null;
+
+        font.BuildLookupTable();
     }
 
     /// <summary>
@@ -406,103 +408,6 @@ public static class ImGuiHelpers
         ImGui.SetCursorPosX((int)((ImGui.GetWindowWidth() - itemWidth) / 2));
 
     /// <summary>
-    /// Allocates memory on the heap using <see cref="ImGuiNative.igMemAlloc"/><br />
-    /// Memory must be freed using <see cref="ImGuiNative.igMemFree"/>.
-    /// <br />
-    /// Note that null is a valid return value when <paramref name="length"/> is 0.
-    /// </summary>
-    /// <param name="length">The length of allocated memory.</param>
-    /// <returns>The allocated memory.</returns>
-    /// <exception cref="OutOfMemoryException">If <see cref="ImGuiNative.igMemAlloc"/> returns null.</exception>
-    public static unsafe void* AllocateMemory(int length)
-    {
-        // TODO: igMemAlloc takes size_t, which is nint; ImGui.NET apparently interpreted that as uint.
-        // fix that in ImGui.NET.
-        switch (length)
-        {
-            case 0:
-                return null;
-            case < 0:
-                throw new ArgumentOutOfRangeException(
-                    nameof(length),
-                    length,
-                    $"{nameof(length)} cannot be a negative number.");
-            default:
-                var memory = ImGuiNative.igMemAlloc((uint)length);
-                if (memory is null)
-                {
-                    throw new OutOfMemoryException(
-                        $"Failed to allocate {length} bytes using {nameof(ImGuiNative.igMemAlloc)}");
-                }
-
-                return memory;
-        }
-    }
-
-    /// <summary>
-    /// Creates a new instance of <see cref="ImFontGlyphRangesBuilderPtr"/> with a natively backed memory.
-    /// </summary>
-    /// <param name="builder">The created instance.</param>
-    /// <returns>Disposable you can call.</returns>
-    public static unsafe IDisposable NewFontGlyphRangeBuilderPtrScoped(out ImFontGlyphRangesBuilderPtr builder)
-    {
-        builder = new(ImGuiNative.ImFontGlyphRangesBuilder_ImFontGlyphRangesBuilder());
-        var ptr = builder.NativePtr;
-        return Disposable.Create(() =>
-        {
-            if (ptr != null)
-                ImGuiNative.ImFontGlyphRangesBuilder_destroy(ptr);
-            ptr = null;
-        });
-    }
-
-    /// <summary>
-    /// Builds ImGui Glyph Ranges for use with <see cref="SafeFontConfig.GlyphRanges"/>.
-    /// </summary>
-    /// <param name="builder">The builder.</param>
-    /// <param name="addFallbackCodepoints">Add fallback codepoints to the range.</param>
-    /// <param name="addEllipsisCodepoints">Add ellipsis codepoints to the range.</param>
-    /// <returns>When disposed, the resource allocated for the range will be freed.</returns>
-    public static unsafe ushort[] BuildRangesToArray(
-        this ImFontGlyphRangesBuilderPtr builder,
-        bool addFallbackCodepoints = true,
-        bool addEllipsisCodepoints = true)
-    {
-        if (addFallbackCodepoints)
-            builder.AddText(FontAtlasFactory.FallbackCodepoints);
-        if (addEllipsisCodepoints)
-        {
-            builder.AddText(FontAtlasFactory.EllipsisCodepoints);
-            builder.AddChar('.');
-        }
-
-        builder.BuildRanges(out var vec);
-        return new ReadOnlySpan<ushort>((void*)vec.Data, vec.Size).ToArray();
-    }
-    
-    /// <inheritdoc cref="CreateImGuiRangesFrom(IEnumerable{UnicodeRange})"/>
-    public static ushort[] CreateImGuiRangesFrom(params UnicodeRange[] ranges)
-        => CreateImGuiRangesFrom((IEnumerable<UnicodeRange>)ranges);
-
-    /// <summary>
-    /// Creates glyph ranges from <see cref="UnicodeRange"/>.<br />
-    /// Use values from <see cref="UnicodeRanges"/>.
-    /// </summary>
-    /// <param name="ranges">The unicode ranges.</param>
-    /// <returns>The range array that can be used for <see cref="SafeFontConfig.GlyphRanges"/>.</returns>
-    public static ushort[] CreateImGuiRangesFrom(IEnumerable<UnicodeRange> ranges) =>
-        ranges
-            .Where(x => x.FirstCodePoint <= ushort.MaxValue)
-            .SelectMany(
-                x => new[]
-                {
-                    (ushort)Math.Min(x.FirstCodePoint, ushort.MaxValue),
-                    (ushort)Math.Min(x.FirstCodePoint + x.Length, ushort.MaxValue),
-                })
-            .Append((ushort)0)
-            .ToArray();
-
-    /// <summary>
     /// Determines whether <paramref name="ptr"/> is empty.
     /// </summary>
     /// <param name="ptr">The pointer.</param>
@@ -510,7 +415,7 @@ public static class ImGuiHelpers
     public static unsafe bool IsNull(this ImFontPtr ptr) => ptr.NativePtr == null;
 
     /// <summary>
-    /// Determines whether <paramref name="ptr"/> is empty.
+    /// Determines whether <paramref name="ptr"/> is not null and loaded.
     /// </summary>
     /// <param name="ptr">The pointer.</param>
     /// <returns>Whether it is empty.</returns>
@@ -522,27 +427,6 @@ public static class ImGuiHelpers
     /// <param name="ptr">The pointer.</param>
     /// <returns>Whether it is empty.</returns>
     public static unsafe bool IsNull(this ImFontAtlasPtr ptr) => ptr.NativePtr == null;
-
-    /// <summary>
-    /// If <paramref name="self"/> is default, then returns <paramref name="other"/>.
-    /// </summary>
-    /// <param name="self">The self.</param>
-    /// <param name="other">The other.</param>
-    /// <returns><paramref name="self"/> if it is not default; otherwise, <paramref name="other"/>.</returns>
-    public static unsafe ImFontPtr OrElse(this ImFontPtr self, ImFontPtr other) =>
-        self.NativePtr is null ? other : self;
-
-    /// <summary>
-    /// Mark 4K page as used, after adding a codepoint to a font.
-    /// </summary>
-    /// <param name="font">The font.</param>
-    /// <param name="codepoint">The codepoint.</param>
-    internal static unsafe void Mark4KPageUsedAfterGlyphAdd(this ImFontPtr font, ushort codepoint)
-    {
-        // Mark 4K page as used
-        var pageIndex = unchecked((ushort)(codepoint / 4096));
-        font.NativePtr->Used4kPagesMap[pageIndex >> 3] |= unchecked((byte)(1 << (pageIndex & 7)));
-    }
     
     /// <summary>
     /// Finds the corresponding ImGui viewport ID for the given window handle.
@@ -562,89 +446,6 @@ public static class ImGuiHelpers
         }
 
         return -1;
-    }
-
-    /// <summary>
-    /// Attempts to validate that <paramref name="fontPtr"/> is valid.
-    /// </summary>
-    /// <param name="fontPtr">The font pointer.</param>
-    /// <returns>The exception, if any occurred during validation.</returns>
-    internal static unsafe Exception? ValidateUnsafe(this ImFontPtr fontPtr)
-    {
-        try
-        {
-            var font = fontPtr.NativePtr;
-            if (font is null)
-                throw new NullReferenceException("The font is null.");
-
-            _ = Marshal.ReadIntPtr((nint)font);
-            if (font->IndexedHotData.Data != 0)
-                _ = Marshal.ReadIntPtr(font->IndexedHotData.Data);
-            if (font->FrequentKerningPairs.Data != 0)
-                _ = Marshal.ReadIntPtr(font->FrequentKerningPairs.Data);
-            if (font->IndexLookup.Data != 0)
-                _ = Marshal.ReadIntPtr(font->IndexLookup.Data);
-            if (font->Glyphs.Data != 0)
-                _ = Marshal.ReadIntPtr(font->Glyphs.Data);
-            if (font->KerningPairs.Data != 0)
-                _ = Marshal.ReadIntPtr(font->KerningPairs.Data);
-            if (font->ConfigDataCount == 0 && font->ConfigData is not null)
-                throw new InvalidOperationException("ConfigDataCount == 0 but ConfigData is not null?");
-            if (font->ConfigDataCount != 0 && font->ConfigData is null)
-                throw new InvalidOperationException("ConfigDataCount != 0 but ConfigData is null?");
-            if (font->ConfigData is not null)
-                _ = Marshal.ReadIntPtr((nint)font->ConfigData);
-            if (font->FallbackGlyph is not null
-                && ((nint)font->FallbackGlyph < font->Glyphs.Data || (nint)font->FallbackGlyph >= font->Glyphs.Data))
-                throw new InvalidOperationException("FallbackGlyph is not in range of Glyphs.Data");
-            if (font->FallbackHotData is not null
-                && ((nint)font->FallbackHotData < font->IndexedHotData.Data
-                    || (nint)font->FallbackHotData >= font->IndexedHotData.Data))
-                throw new InvalidOperationException("FallbackGlyph is not in range of Glyphs.Data");
-            if (font->ContainerAtlas is not null)
-                _ = Marshal.ReadIntPtr((nint)font->ContainerAtlas);
-        }
-        catch (Exception e)
-        {
-            return e;
-        }
-
-        return null;
-    }
-
-    /// <summary>
-    /// Updates the fallback char of <paramref name="font"/>.
-    /// </summary>
-    /// <param name="font">The font.</param>
-    /// <param name="c">The fallback character.</param>
-    internal static unsafe void UpdateFallbackChar(this ImFontPtr font, char c)
-    {
-        font.FallbackChar = c;
-        font.NativePtr->FallbackHotData =
-            (ImFontGlyphHotData*)((ImFontGlyphHotDataReal*)font.IndexedHotData.Data + font.FallbackChar);
-    }
-
-    /// <summary>
-    /// Determines if the supplied codepoint is inside the given range,
-    /// in format of <see cref="ImFontConfig.GlyphRanges"/>.
-    /// </summary>
-    /// <param name="codepoint">The codepoint.</param>
-    /// <param name="rangePtr">The ranges.</param>
-    /// <returns>Whether it is the case.</returns>
-    internal static unsafe bool IsCodepointInSuppliedGlyphRangesUnsafe(int codepoint, ushort* rangePtr)
-    {
-        if (codepoint is <= 0 or >= ushort.MaxValue)
-            return false;
-
-        while (*rangePtr != 0)
-        {
-            var from = *rangePtr++;
-            var to = *rangePtr++;
-            if (from <= codepoint && codepoint <= to)
-                return true;
-        }
-
-        return false;
     }
 
     /// <summary>
