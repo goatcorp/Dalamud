@@ -147,6 +147,14 @@ internal partial class PluginManager : IDisposable, IServiceType
 
         // NET8 CHORE
         //this.ApplyPatches();
+
+        registerStartupBlocker(
+            Task.Run(this.LoadAndStartLoadSyncPlugins),
+            "Waiting for plugins that asked to be loaded before the game.");
+
+        registerUnloadAfter(
+            ResolvePossiblePluginDependencyServices(),
+            "See the attached comment for the called function.");
     }
 
     /// <summary>
