@@ -208,7 +208,7 @@ internal class Profile
         {
             entry = this.modelV1.Plugins.FirstOrDefault(x => x.WorkingPluginId == workingPluginId);
             if (entry == null)
-                throw new PluginNotFoundException(workingPluginId.ToString());
+                throw new PluginNotFoundException(workingPluginId);
 
             if (!this.modelV1.Plugins.Remove(entry))
                 throw new Exception("Couldn't remove plugin from model collection");
@@ -231,6 +231,31 @@ internal class Profile
 
         if (apply)
             await this.manager.ApplyAllWantStatesAsync();
+    }
+
+    /// <summary>
+    /// Remove a plugin from this profile.
+    /// This will block until all states have been applied.
+    /// </summary>
+    /// <param name="internalName">The internal name of the plugin.</param>
+    /// <param name="apply">Whether or not the current state should immediately be applied.</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    public async Task RemoveByInternalNameAsync(string internalName, bool apply = true)
+    {
+        Guid? pluginToRemove = null;
+        lock (this)
+        {
+            foreach (var plugin in this.Plugins)
+            {
+                if (plugin.InternalName.Equals(internalName, StringComparison.Ordinal))
+                {
+                    pluginToRemove = plugin.WorkingPluginId;
+                    break;
+                }
+            }
+        }
+
+        await this.RemoveAsync(pluginToRemove ?? throw new PluginNotFoundException(internalName), apply);
     }
 
     /// <summary>
@@ -306,6 +331,15 @@ internal sealed class PluginNotFoundException : ProfileOperationException
     /// <param name="internalName">The internal name of the plugin causing the error.</param>
     public PluginNotFoundException(string internalName)
         : base($"The plugin '{internalName}' was not found in the profile")
+    {
+    }
+    
+    /// <summary>
+    /// Initializes a new instance of the <see cref="PluginNotFoundException"/> class.
+    /// </summary>
+    /// <param name="workingPluginId">The ID of the plugin causing the error.</param>
+    public PluginNotFoundException(Guid workingPluginId)
+        : base($"The plugin '{workingPluginId}' was not found in the profile")
     {
     }
 }

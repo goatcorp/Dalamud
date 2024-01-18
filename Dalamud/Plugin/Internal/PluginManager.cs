@@ -1297,7 +1297,7 @@ internal partial class PluginManager : IDisposable, IServiceType
             try
             {
                 // We don't need to apply, it doesn't matter
-                await this.profileManager.DefaultProfile.RemoveAsync(repoManifest.InternalName, false);
+                await this.profileManager.DefaultProfile.RemoveByInternalNameAsync(repoManifest.InternalName, false);
             }
             catch (ProfileOperationException)
             {
