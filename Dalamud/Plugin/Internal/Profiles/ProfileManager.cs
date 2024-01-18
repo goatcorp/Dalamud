@@ -216,19 +216,18 @@ internal class ProfileManager : IServiceType
         this.isBusy = true;
         Log.Information("Getting want states...");
 
-        List<Guid> wantActive;
+        List<ProfilePluginEntry> wantActive;
         lock (this.profiles)
         {
             wantActive = this.profiles
                              .Where(x => x.IsEnabled)
-                             .SelectMany(profile => profile.Plugins.Where(plugin => plugin.IsEnabled)
-                                                           .Select(plugin => plugin.WorkingPluginId))
+                             .SelectMany(profile => profile.Plugins.Where(plugin => plugin.IsEnabled))
                              .Distinct().ToList();
         }
 
-        foreach (var internalName in wantActive)
+        foreach (var profilePluginEntry in wantActive)
         {
-            Log.Information("\t=> Want {Name}", internalName);
+            Log.Information("\t=> Want {Name}({WorkingPluginId})", profilePluginEntry.InternalName, profilePluginEntry.WorkingPluginId);
         }
 
         Log.Information("Applying want states...");
@@ -238,7 +237,7 @@ internal class ProfileManager : IServiceType
         var pm = Service<PluginManager>.Get();
         foreach (var installedPlugin in pm.InstalledPlugins)
         {
-            var wantThis = wantActive.Contains(installedPlugin.Manifest.WorkingPluginId);
+            var wantThis = wantActive.Any(x => x.WorkingPluginId == installedPlugin.Manifest.WorkingPluginId);
             switch (wantThis)
             {
                 case true when !installedPlugin.IsLoaded:
@@ -312,6 +311,26 @@ internal class ProfileManager : IServiceType
         {
             foreach (var profile in this.profiles)
                 profile.MigrateProfilesToGuidsForPlugin(internalName, newGuid);
+        }
+    }
+    
+    /// <summary>
+    /// Validate profiles for errors.
+    /// </summary>
+    /// <exception cref="Exception">Thrown when a profile is not sane.</exception>
+    public void ParanoiaValidateProfiles()
+    {
+        foreach (var profile in this.profiles)
+        {
+            var seenIds = new List<Guid>();
+
+            foreach (var pluginEntry in profile.Plugins)
+            {
+                if (seenIds.Contains(pluginEntry.WorkingPluginId))
+                    throw new Exception($"Plugin '{pluginEntry.WorkingPluginId}'('{pluginEntry.InternalName}') is twice in profile '{profile.Guid}'('{profile.Name}')");
+                
+                seenIds.Add(pluginEntry.WorkingPluginId);
+            }
         }
     }
 

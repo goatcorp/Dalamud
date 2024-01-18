@@ -664,6 +664,15 @@ internal partial class PluginManager : IDisposable, IServiceType
                 this.PluginsReady = true;
                 this.NotifyinstalledPluginsListChanged();
                 sigScanner.Save();
+
+                try
+                {
+                    this.ParanoiaValidatePluginsAndProfiles();
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex, "Plugin and profile validation failed!");
+                }
             },
             tokenSource.Token);
     }
@@ -1256,6 +1265,30 @@ internal partial class PluginManager : IDisposable, IServiceType
         }
     }
 
+    /// <summary>
+    /// Check if there are any inconsistencies with our plugins, their IDs, and our profiles. 
+    /// </summary>
+    private void ParanoiaValidatePluginsAndProfiles()
+    {
+        var seenIds = new List<Guid>();
+        
+        foreach (var installedPlugin in this.InstalledPlugins)
+        {
+            if (installedPlugin.Manifest.WorkingPluginId == Guid.Empty)
+                throw new Exception($"{(installedPlugin is LocalDevPlugin ? "DevPlugin" : "Plugin")} '{installedPlugin.Manifest.InternalName}' has an empty WorkingPluginId.");
+
+            if (seenIds.Contains(installedPlugin.Manifest.WorkingPluginId))
+            {
+                throw new Exception(
+                    $"{(installedPlugin is LocalDevPlugin ? "DevPlugin" : "Plugin")} '{installedPlugin.Manifest.InternalName}' has a duplicate WorkingPluginId '{installedPlugin.Manifest.WorkingPluginId}'");
+            }
+            
+            seenIds.Add(installedPlugin.Manifest.WorkingPluginId);
+        }
+        
+        this.profileManager.ParanoiaValidateProfiles();
+    }
+    
     private async Task<Stream> DownloadPluginAsync(RemotePluginManifest repoManifest, bool useTesting)
     {
         var downloadUrl = useTesting ? repoManifest.DownloadLinkTesting : repoManifest.DownloadLinkInstall;
