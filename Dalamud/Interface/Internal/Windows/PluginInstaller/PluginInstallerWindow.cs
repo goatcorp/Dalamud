@@ -337,7 +337,8 @@ internal class PluginInstallerWindow : Window, IDisposable
     /// </summary>
     /// <param name="manifest">The manifest to install.</param>
     /// <param name="useTesting">Install the testing version.</param>
-    public void StartInstall(RemotePluginManifest manifest, bool useTesting)
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    public Task StartInstall(RemotePluginManifest manifest, bool useTesting)
     {
         var pluginManager = Service<PluginManager>.Get();
         var notifications = Service<NotificationManager>.Get();
@@ -345,7 +346,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         this.installStatus = OperationStatus.InProgress;
         this.loadingIndicatorKind = LoadingIndicatorKind.Installing;
 
-        Task.Run(() => pluginManager.InstallPluginAsync(manifest, useTesting || manifest.IsTestingExclusive, PluginLoadReason.Installer))
+        return Task.Run(() => pluginManager.InstallPluginAsync(manifest, useTesting || manifest.IsTestingExclusive, PluginLoadReason.Installer))
             .ContinueWith(task =>
             {
                 // There is no need to set as Complete for an individual plugin installation
@@ -676,6 +677,32 @@ internal class PluginInstallerWindow : Window, IDisposable
                 pluginManager.ScanDevPlugins();
             }
         }
+
+#if DEBUG
+        if (!pluginManager.SafeMode)
+        {
+            ImGui.SameLine();
+            if (ImGui.Button("DEV: Install All Plugins (see /xllog for progress)"))
+            {
+                async void DoInstall()
+                {
+                    var manifests = this.categoryManager.GetCurrentCategoryContent(
+                                            this.pluginListAvailable.Where(rm => !this.IsManifestFiltered(rm)))
+                                        .OfType<RemotePluginManifest>()
+                                        .Where(rm => !this.IsManifestInstalled(rm).IsInstalled)
+                                        .ToList();
+
+                    for (var i = 0; i < manifests.Count; i++)
+                    {
+                        Log.Information("Installing plugin {i} of {count}...", i + 1, manifests.Count);
+                        await this.StartInstall(manifests[i], pluginManager.UseTesting(manifests[i]));
+                    }
+                }
+
+                _ = Task.Run(DoInstall);
+            }
+        }
+#endif
 
         var closeText = Locs.FooterButton_Close;
         var closeButtonSize = ImGuiHelpers.GetButtonSize(closeText);
