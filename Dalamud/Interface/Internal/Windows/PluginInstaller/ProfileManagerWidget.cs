@@ -479,8 +479,22 @@ internal class ProfileManagerWidget
                     
                     if (firstAvailableInstalled != null)
                     {
-                        // TODO
-                        ImGui.Text("GOAT WAS TOO LAZY TO IMPLEMENT THIS");
+                        ImGui.Text($"Match to plugin '{firstAvailableInstalled.Name}'?");
+                        ImGui.SameLine();
+                        if (ImGuiComponents.IconButtonWithText(
+                                FontAwesomeIcon.Check,
+                                "Yes, use this one"))
+                        {
+                            profileEntry.WorkingPluginId = firstAvailableInstalled.Manifest.WorkingPluginId;
+                            Task.Run(async () =>
+                                {
+                                    await profman.ApplyAllWantStatesAsync();
+                                })
+                                .ContinueWith(t =>
+                                {
+                                    this.installer.DisplayErrorContinuation(t, Locs.ErrorCouldNotChangeState);
+                                });
+                        }
                     }
                     else if (installable != null)
                     {
