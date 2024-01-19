@@ -1,13 +1,13 @@
-﻿using System;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.IO;
 using System.Linq;
 using System.Numerics;
 
 using CheapLoc;
 using Dalamud.Game.Gui;
 using Dalamud.Interface.GameFonts;
+using Dalamud.Interface.ManagedFontAtlas;
+using Dalamud.Interface.ManagedFontAtlas.Internals;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Plugin.Internal;
@@ -15,7 +15,6 @@ using Dalamud.Storage.Assets;
 using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using ImGuiNET;
-using ImGuiScene;
 
 namespace Dalamud.Interface.Internal.Windows.Settings.Tabs;
 
@@ -173,16 +172,21 @@ Contribute at: https://github.com/goatcorp/Dalamud
 ";
 
     private readonly Stopwatch creditsThrottler;
+    private readonly IFontAtlas privateAtlas;
 
     private string creditsText;
 
     private bool resetNow = false;
     private IDalamudTextureWrap? logoTexture;
-    private GameFontHandle? thankYouFont;
+    private IFontHandle? thankYouFont;
 
     public SettingsTabAbout()
     {
         this.creditsThrottler = new();
+
+        this.privateAtlas = Service<FontAtlasFactory>
+                            .Get()
+                            .CreateFontAtlas(nameof(SettingsTabAbout), FontAtlasAutoRebuildMode.Async);
     }
 
     public override SettingsEntry[] Entries { get; } = { };
@@ -207,11 +211,7 @@ Contribute at: https://github.com/goatcorp/Dalamud
 
         this.creditsThrottler.Restart();
 
-        if (this.thankYouFont == null)
-        {
-            var gfm = Service<GameFontManager>.Get();
-            this.thankYouFont = gfm.NewFontRef(new GameFontStyle(GameFontFamilyAndSize.TrumpGothic34));
-        }
+        this.thankYouFont ??= this.privateAtlas.NewGameFontHandle(new(GameFontFamilyAndSize.TrumpGothic34));
 
         this.resetNow = true;
 
@@ -269,14 +269,12 @@ Contribute at: https://github.com/goatcorp/Dalamud
 
             if (this.thankYouFont != null)
             {
-                ImGui.PushFont(this.thankYouFont.ImFont);
+                using var fontPush = this.thankYouFont.Push();
                 var thankYouLenX = ImGui.CalcTextSize(ThankYouText).X;
 
                 ImGui.Dummy(new Vector2((windowX / 2) - (thankYouLenX / 2), 0f));
                 ImGui.SameLine();
                 ImGui.TextUnformatted(ThankYouText);
-
-                ImGui.PopFont();
             }
 
             ImGuiHelpers.ScaledDummy(0, windowSize.Y + 50f);
@@ -305,9 +303,5 @@ Contribute at: https://github.com/goatcorp/Dalamud
     /// <summary>
     /// Disposes of managed and unmanaged resources.
     /// </summary>
-    public override void Dispose()
-    {
-        this.logoTexture?.Dispose();
-        this.thankYouFont?.Dispose();
-    }
+    public override void Dispose() => this.privateAtlas.Dispose();
 }
