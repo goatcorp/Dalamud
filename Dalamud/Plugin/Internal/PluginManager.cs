@@ -1493,6 +1493,8 @@ internal partial class PluginManager : IDisposable, IServiceType
         if (plugin.Manifest.WorkingPluginId == Guid.Empty)
             throw new Exception("Plugin should have a WorkingPluginId at this point");
         this.profileManager.MigrateProfilesToGuidsForPlugin(plugin.Manifest.InternalName, plugin.Manifest.WorkingPluginId);
+        
+        var wantedByAnyProfile = false;
 
         // Now, if this is a devPlugin, figure out if we want to load it
         if (isDev)
@@ -1508,13 +1510,12 @@ internal partial class PluginManager : IDisposable, IServiceType
                 // The code below will take care of it and add it with the default value.
                 Log.Verbose("DevPlugin {Name} not wanted in default plugin", plugin.Manifest.InternalName);
                 
-                // If it is wanted by any other plugin, we do want to load it. This means we are looking it up twice, but I don't care right now.
-                // I am putting a TODO so that goat will clean it up some day soon.
-                if (await this.profileManager.GetWantStateAsync(
-                        plugin.Manifest.WorkingPluginId,
-                        plugin.Manifest.InternalName,
-                        false,
-                        false))
+                // Check if any profile wants this plugin. We need to do this here, since we want to allow loading a dev plugin if a non-default profile wants it active.
+                // Note that this will not add the plugin to the default profile. That's done below in any other case.
+                wantedByAnyProfile = await this.profileManager.GetWantStateAsync(plugin.Manifest.WorkingPluginId, plugin.Manifest.InternalName, false, false);
+                
+                // If it is wanted by any other profile, we do want to load it.
+                if (wantedByAnyProfile)
                     loadPlugin = true;
             }
             else if (wantsInDefaultProfile == false && devPlugin.StartOnBoot)
@@ -1553,8 +1554,9 @@ internal partial class PluginManager : IDisposable, IServiceType
         var defaultState = manifest?.Disabled != true && loadPlugin;
 #pragma warning restore CS0618
         
-        // Need to do this here, so plugins that don't load are still added to the default profile
-        var wantedByAnyProfile = await this.profileManager.GetWantStateAsync(plugin.Manifest.WorkingPluginId, plugin.Manifest.InternalName, defaultState);
+        // Plugins that aren't in any profile will be added to the default profile with this call.
+        // We are skipping a double-lookup for dev plugins that are wanted by non-default profiles, as noted above.
+        wantedByAnyProfile = wantedByAnyProfile || await this.profileManager.GetWantStateAsync(plugin.Manifest.WorkingPluginId, plugin.Manifest.InternalName, defaultState);
         Log.Information("{Name} defaultState: {State} wantedByAnyProfile: {WantedByAny} loadPlugin: {LoadPlugin}", plugin.Manifest.InternalName, defaultState, wantedByAnyProfile, loadPlugin);
         
         if (loadPlugin)
