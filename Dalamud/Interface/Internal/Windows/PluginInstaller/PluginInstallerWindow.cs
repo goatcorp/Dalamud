@@ -2555,7 +2555,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         var profileManager = Service<ProfileManager>.Get();
         var config = Service<DalamudConfiguration>.Get();
 
-        var applicableForProfiles = plugin.Manifest.SupportsProfiles && !plugin.IsDev;
+        var applicableForProfiles = plugin.Manifest.SupportsProfiles /*&& !plugin.IsDev*/;
         var profilesThatWantThisPlugin = profileManager.Profiles
                                                        .Where(x => x.WantsPlugin(plugin.Manifest.WorkingPluginId) != null)
                                                        .ToArray();
