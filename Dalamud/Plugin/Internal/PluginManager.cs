@@ -1506,6 +1506,16 @@ internal partial class PluginManager : IDisposable, IServiceType
             {
                 // We don't know about this plugin, so we don't want to do anything here.
                 // The code below will take care of it and add it with the default value.
+                Log.Verbose("DevPlugin {Name} not wanted in default plugin", plugin.Manifest.InternalName);
+                
+                // If it is wanted by any other plugin, we do want to load it. This means we are looking it up twice, but I don't care right now.
+                // I am putting a TODO so that goat will clean it up some day soon.
+                if (await this.profileManager.GetWantStateAsync(
+                        plugin.Manifest.WorkingPluginId,
+                        plugin.Manifest.InternalName,
+                        false,
+                        false))
+                    loadPlugin = true;
             }
             else if (wantsInDefaultProfile == false && devPlugin.StartOnBoot)
             {
@@ -1544,19 +1554,20 @@ internal partial class PluginManager : IDisposable, IServiceType
 #pragma warning restore CS0618
         
         // Need to do this here, so plugins that don't load are still added to the default profile
-        var wantToLoad = await this.profileManager.GetWantStateAsync(plugin.Manifest.WorkingPluginId, plugin.Manifest.InternalName, defaultState);
-
+        var wantedByAnyProfile = await this.profileManager.GetWantStateAsync(plugin.Manifest.WorkingPluginId, plugin.Manifest.InternalName, defaultState);
+        Log.Information("{Name} defaultState: {State} wantedByAnyProfile: {WantedByAny} loadPlugin: {LoadPlugin}", plugin.Manifest.InternalName, defaultState, wantedByAnyProfile, loadPlugin);
+        
         if (loadPlugin)
         {
             try
             {
-                if (wantToLoad && !plugin.IsOrphaned)
+                if (wantedByAnyProfile && !plugin.IsOrphaned)
                 {
                     await plugin.LoadAsync(reason);
                 }
                 else
                 {
-                    Log.Verbose($"{name} not loaded, wantToLoad:{wantToLoad} orphaned:{plugin.IsOrphaned}");
+                    Log.Verbose($"{name} not loaded, wantToLoad:{wantedByAnyProfile} orphaned:{plugin.IsOrphaned}");
                 }
             }
             catch (InvalidPluginException)
