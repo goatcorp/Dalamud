@@ -1881,16 +1881,32 @@ internal class PluginInstallerWindow : Window, IDisposable
         if (plugin is { IsOutdated: true, IsBanned: false } || installableOutdated)
         {
             ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudRed);
-            ImGui.TextWrapped(Locs.PluginBody_Outdated);
+
+            var bodyText = Locs.PluginBody_Outdated + " ";
+            if (updateAvailable)
+                bodyText += Locs.PluginBody_Outdated_CanNowUpdate;
+            else
+                bodyText += Locs.PluginBody_Outdated_WaitForUpdate;
+            
+            ImGui.TextWrapped(bodyText);
             ImGui.PopStyleColor();
         }
         else if (plugin is { IsBanned: true })
         {
             // Banned warning
             ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudRed);
-            ImGuiHelpers.SafeTextWrapped(plugin.BanReason.IsNullOrEmpty()
-                                             ? Locs.PluginBody_Banned
-                                             : Locs.PluginBody_BannedReason(plugin.BanReason));
+            
+            var bodyText = plugin.BanReason.IsNullOrEmpty()
+                               ? Locs.PluginBody_Banned
+                               : Locs.PluginBody_BannedReason(plugin.BanReason);
+            bodyText += " ";
+            
+            if (updateAvailable)
+                bodyText += Locs.PluginBody_Outdated_CanNowUpdate;
+            else
+                bodyText += Locs.PluginBody_Outdated_WaitForUpdate;
+            
+            ImGuiHelpers.SafeTextWrapped(bodyText);
 
             ImGui.PopStyleColor();
         }
@@ -3497,7 +3513,11 @@ internal class PluginInstallerWindow : Window, IDisposable
 
         public static string PluginBody_Plugin3rdPartyRepo(string url) => Loc.Localize("InstallerPlugin3rdPartyRepo", "From custom plugin repository {0}").Format(url);
 
-        public static string PluginBody_Outdated => Loc.Localize("InstallerOutdatedPluginBody ", "This plugin is outdated and incompatible at the moment. Please wait for it to be updated by its author.");
+        public static string PluginBody_Outdated => Loc.Localize("InstallerOutdatedPluginBody ", "This plugin is outdated and incompatible.");
+        
+        public static string PluginBody_Outdated_WaitForUpdate => Loc.Localize("InstallerOutdatedWaitForUpdate", "Please wait for it to be updated by its author.");
+        
+        public static string PluginBody_Outdated_CanNowUpdate => Loc.Localize("InstallerOutdatedCanNowUpdate", "An update is available for installation.");
 
         public static string PluginBody_Orphaned => Loc.Localize("InstallerOrphanedPluginBody ", "This plugin's source repository is no longer available. You may need to reinstall it from its repository, or re-add the repository.");
 
@@ -3507,7 +3527,7 @@ internal class PluginInstallerWindow : Window, IDisposable
 
         public static string PluginBody_LoadFailed => Loc.Localize("InstallerLoadFailedPluginBody ", "This plugin failed to load. Please contact the author for more information.");
 
-        public static string PluginBody_Banned => Loc.Localize("InstallerBannedPluginBody ", "This plugin was automatically disabled due to incompatibilities and is not available at the moment. Please wait for it to be updated by its author.");
+        public static string PluginBody_Banned => Loc.Localize("InstallerBannedPluginBody ", "This plugin was automatically disabled due to incompatibilities and is not available.");
 
         public static string PluginBody_Policy => Loc.Localize("InstallerPolicyPluginBody ", "Plugin loads for this type of plugin were manually disabled.");
 
