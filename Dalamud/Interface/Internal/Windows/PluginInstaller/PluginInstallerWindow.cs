@@ -2246,6 +2246,11 @@ internal class PluginInstallerWindow : Window, IDisposable
         }
 
         var availablePluginUpdate = this.pluginListUpdatable.FirstOrDefault(up => up.InstalledPlugin == plugin);
+        
+        // Dev plugins can never update
+        if (plugin.IsDev)
+            availablePluginUpdate = null;
+        
         // Update available
         if (availablePluginUpdate != default)
         {
