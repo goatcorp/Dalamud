@@ -107,6 +107,7 @@ internal class PluginInstallerWindow : Window, IDisposable
     private int updatePluginCount = 0;
     private List<PluginUpdateStatus>? updatedPlugins;
 
+    [SuppressMessage("StyleCop.CSharp.OrderingRules", "SA1201:Elements should appear in the correct order", Justification = "Makes sense like this")]
     private List<RemotePluginManifest> pluginListAvailable = new();
     private List<LocalPlugin> pluginListInstalled = new();
     private List<AvailablePluginUpdate> pluginListUpdatable = new();
@@ -1126,45 +1127,79 @@ internal class PluginInstallerWindow : Window, IDisposable
             this.DrawChangelog(logEntry);
         }
     }
-
+    
+    private record PluginInstallerAvailablePluginProxy(RemotePluginManifest? RemoteManifest, LocalPlugin? LocalPlugin);
+    
+#pragma warning disable SA1201
     private void DrawAvailablePluginList()
+#pragma warning restore SA1201
     {
-        var pluginList = this.pluginListAvailable;
+        var availableManifests = this.pluginListAvailable;
+        var installedPlugins = this.pluginListInstalled.ToList(); // Copy intended
 
-        if (pluginList.Count == 0)
+        if (availableManifests.Count == 0)
         {
             ImGui.TextColored(ImGuiColors.DalamudGrey, Locs.TabBody_SearchNoCompatible);
             return;
         }
 
-        var filteredManifests = pluginList
+        var filteredAvailableManifests = availableManifests
                                 .Where(rm => !this.IsManifestFiltered(rm))
                                 .ToList();
 
-        if (filteredManifests.Count == 0)
+        if (filteredAvailableManifests.Count == 0)
         {
             ImGui.TextColored(ImGuiColors.DalamudGrey2, Locs.TabBody_SearchNoMatching);
             return;
         }
 
-        // get list to show and reset category dirty flag
-        var categoryManifestsList = this.categoryManager.GetCurrentCategoryContent(filteredManifests);
+        var proxies = new List<PluginInstallerAvailablePluginProxy>();
+        
+        // Go through all AVAILABLE manifests, associate them with a NON-DEV local plugin, if one is available, and remove it from the pile
+        foreach (var availableManifest in this.categoryManager.GetCurrentCategoryContent(filteredAvailableManifests).Cast<RemotePluginManifest>())
+        {
+            var plugin = this.pluginListInstalled.FirstOrDefault(plugin => plugin.Manifest.InternalName == availableManifest.InternalName && plugin.Manifest.RepoUrl == availableManifest.RepoUrl);
+            
+            // We "consumed" this plugin from the pile and remove it. 
+            if (plugin != null && !plugin.IsDev)
+            {
+                installedPlugins.Remove(plugin);
+                proxies.Add(new PluginInstallerAvailablePluginProxy(null, plugin));
+                
+                continue;
+            }
+            
+            proxies.Add(new PluginInstallerAvailablePluginProxy(availableManifest, null));
+        }
+        
+        // Now, add all applicable local plugins that haven't been "used up", in most cases either dev or orphaned plugins.
+        foreach (var installedPlugin in installedPlugins)
+        {
+            if (this.IsManifestFiltered(installedPlugin.Manifest))
+                continue;
+            
+            // TODO: We should also check categories here, for good measure
+            
+            proxies.Add(new PluginInstallerAvailablePluginProxy(null, installedPlugin));
+        }
 
         var i = 0;
-        foreach (var manifest in categoryManifestsList)
+        foreach (var proxy in proxies)
         {
-            if (manifest is not RemotePluginManifest remoteManifest)
-                continue;
-            var (isInstalled, plugin) = this.IsManifestInstalled(remoteManifest);
+            IPluginManifest applicableManifest = proxy.LocalPlugin != null ? proxy.LocalPlugin.Manifest : proxy.RemoteManifest;
 
-            ImGui.PushID($"{manifest.InternalName}{manifest.AssemblyVersion}");
-            if (isInstalled)
+            if (applicableManifest == null)
+                throw new Exception("Could not determine manifest for available plugin");
+            
+            ImGui.PushID($"{applicableManifest.InternalName}{applicableManifest.AssemblyVersion}");
+
+            if (proxy.LocalPlugin != null)
             {
-                this.DrawInstalledPlugin(plugin, i++, true);
+                this.DrawInstalledPlugin(proxy.LocalPlugin, i++, true);
             }
-            else
+            else if (proxy.RemoteManifest != null)
             {
-                this.DrawAvailablePlugin(remoteManifest, i++);
+                this.DrawAvailablePlugin(proxy.RemoteManifest, i++);
             }
 
             ImGui.PopID();
@@ -1800,14 +1835,6 @@ internal class PluginInstallerWindow : Window, IDisposable
 
         var isLoaded = plugin is { IsLoaded: true };
 
-        if (plugin is LocalDevPlugin)
-        {
-            ImGui.PushStyleVar(ImGuiStyleVar.Alpha, 0.4f);
-            ImGui.Image(this.imageCache.DevPluginIcon.ImGuiHandle, iconSize);
-            ImGui.PopStyleVar();
-            ImGui.SetCursorPos(cursorBeforeImage);
-        }
-
         if (updateAvailable)
             ImGui.Image(this.imageCache.UpdateIcon.ImGuiHandle, iconSize);
         else if ((trouble && !pluginDisabled) || isOrphan)
@@ -1836,8 +1863,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         // Name
         ImGui.TextUnformatted(label);
         
-        // Verified Checkmark, don't show for dev plugins
-        if (plugin is null or { IsDev: false })
+        // Verified Checkmark or dev plugin wrench
         {
             ImGui.SameLine();
             ImGui.Text(" ");
@@ -1847,8 +1873,15 @@ internal class PluginInstallerWindow : Window, IDisposable
             var unverifiedOutlineColor = KnownColor.Black.Vector();
             var verifiedIconColor = KnownColor.RoyalBlue.Vector() with { W = 0.75f };
             var unverifiedIconColor = KnownColor.Orange.Vector();
-        
-            if (!isThirdParty)
+            var devIconOutlineColor = KnownColor.White.Vector();
+            var devIconColor = KnownColor.MediumOrchid.Vector();
+
+            if (plugin is LocalDevPlugin)
+            {
+                this.DrawFontawesomeIconOutlined(FontAwesomeIcon.Wrench, devIconOutlineColor, devIconColor);
+                this.VerifiedCheckmarkFadeTooltip(label, "This is a dev plugin. You added it.");
+            }
+            else if (!isThirdParty)
             {
                 this.DrawFontawesomeIconOutlined(FontAwesomeIcon.CheckCircle, verifiedOutlineColor, verifiedIconColor);
                 this.VerifiedCheckmarkFadeTooltip(label, Locs.VerifiedCheckmark_VerifiedTooltip);

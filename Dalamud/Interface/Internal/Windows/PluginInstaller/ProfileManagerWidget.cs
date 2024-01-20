@@ -441,17 +441,17 @@ internal class ProfileManagerWidget
 
                     ImGui.Image(icon.ImGuiHandle, new Vector2(pluginLineHeight));
 
-                    if (pmPlugin is LocalDevPlugin)
+                    if (pmPlugin.IsDev)
                     {
                         ImGui.SetCursorPos(cursorBeforeIcon);
-                        ImGui.PushStyleVar(ImGuiStyleVar.Alpha, 0.4f);
+                        ImGui.PushStyleVar(ImGuiStyleVar.Alpha, 0.7f);
                         ImGui.Image(pic.DevPluginIcon.ImGuiHandle, new Vector2(pluginLineHeight));
                         ImGui.PopStyleVar();
                     }
                     
                     ImGui.SameLine();
 
-                    var text = $"{pmPlugin.Name}";
+                    var text = $"{pmPlugin.Name}{(pmPlugin.IsDev ? " (dev plugin" : string.Empty)}";
                     var textHeight = ImGui.CalcTextSize(text);
                     var before = ImGui.GetCursorPos();
 
