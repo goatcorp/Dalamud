@@ -53,7 +53,8 @@ public interface IFontHandle : IDisposable
 
     /// <summary>
     /// Locks the fully constructed instance of <see cref="ImFontPtr"/> corresponding to the this
-    /// <see cref="IFontHandle"/>, for <b>read-only</b> use in any thread.
+    /// <see cref="IFontHandle"/>, for use in any thread.<br />
+    /// Modification of the font will exhibit undefined behavior if some other thread also uses the font.
     /// </summary>
     /// <returns>An instance of <see cref="ImFontLocked"/> that <b>must</b> be disposed after use.</returns>
     /// <remarks>
