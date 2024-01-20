@@ -717,6 +717,12 @@ internal class InterfaceManager : IDisposable, IServiceType
                     // Fill missing glyphs in MonoFont from DefaultFont
                     tk.CopyGlyphsAcrossFonts(this.defaultFontHandle.ImFont, this.monoFontHandle.ImFont, true);
 
+                    // Update default font
+                    unsafe
+                    {
+                        ImGui.GetIO().NativePtr->FontDefault = this.defaultFontHandle.ImFont;
+                    }
+
                     // Broadcast to auto-rebuilding instances
                     this.AfterBuildFonts?.Invoke();
                 });
@@ -889,11 +895,8 @@ internal class InterfaceManager : IDisposable, IServiceType
 
         if (this.IsDispatchingEvents)
         {
-            using (this.defaultFontHandle?.Push())
-            {
-                this.Draw?.Invoke();
-                Service<NotificationManager>.Get().Draw();
-            }
+            this.Draw?.Invoke();
+            Service<NotificationManager>.Get().Draw();
         }
 
         ImGuiManagedAsserts.ReportProblems("Dalamud Core", snap);
