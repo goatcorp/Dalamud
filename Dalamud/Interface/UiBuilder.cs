@@ -13,6 +13,7 @@ using Dalamud.Interface.Internal.ManagedAsserts;
 using Dalamud.Interface.Internal.Notifications;
 using Dalamud.Interface.ManagedFontAtlas;
 using Dalamud.Interface.ManagedFontAtlas.Internals;
+using Dalamud.Plugin.Internal.Types;
 using Dalamud.Utility;
 using ImGuiNET;
 using ImGuiScene;
@@ -103,7 +104,7 @@ public sealed class UiBuilder : IDisposable
 
     /// <summary>
     /// Gets or sets an action that is called any time ImGui fonts need to be rebuilt.<br/>
-    /// Any ImFontPtr objects that you store <strong>can be invalidated</strong> when fonts are rebuilt
+    /// Any ImFontPtr objects that you store <b>can be invalidated</b> when fonts are rebuilt
     /// (at any time), so you should both reload your custom fonts and restore those
     /// pointers inside this handler.
     /// </summary>
@@ -112,7 +113,36 @@ public sealed class UiBuilder : IDisposable
     /// <see cref="IFontAtlas.NewGameFontHandle"/>.<br />
     /// To be notified on font changes after fonts are built, use
     /// <see cref="DefaultFontHandle"/>.<see cref="IFontHandle.ImFontChanged"/>.<br />
-    /// For all other purposes, use <see cref="FontAtlas"/>.<see cref="IFontAtlas.BuildStepChange"/>.
+    /// For all other purposes, use <see cref="FontAtlas"/>.<see cref="IFontAtlas.BuildStepChange"/>.<br />
+    /// <br />
+    /// Note that you will be calling above functions once, instead of every time inside a build step change callback.
+    /// For example, you can make all font handles from your plugin constructor, and then use the created handles during
+    /// <see cref="Draw"/> event, by using <see cref="IFontHandle.Push"/> in a scope.<br />
+    /// You may dispose your font handle anytime, as long as it's not in use in <see cref="Draw"/>.
+    /// Font handles may be constructed anytime, as long as the owner <see cref="IFontAtlas"/> or
+    /// <see cref="UiBuilder"/> is not disposed.<br />
+    /// <br />
+    /// If you were storing <see cref="ImFontPtr"/>, consider if the job can be achieved solely by using
+    /// <see cref="IFontHandle"/> without directly using an instance of <see cref="ImFontPtr"/>.<br />
+    /// If you do need it, evaluate if you need to access fonts outside the main thread.<br />
+    /// If it is the case, use <see cref="IFontHandle.Lock"/> to obtain a safe-to-access instance of
+    /// <see cref="ImFontPtr"/>, once <see cref="IFontHandle.WaitAsync"/> resolves.<br />
+    /// Otherwise, use <see cref="IFontHandle.Push"/>, and obtain the instance of <see cref="ImFontPtr"/> via
+    /// <see cref="ImGui.GetFont"/>. Do not let the <see cref="ImFontPtr"/> escape the <c>using</c> scope.<br />
+    /// <br />
+    /// If your plugin sets <see cref="PluginManifest.LoadRequiredState"/> to a non-default value, then
+    /// <see cref="DefaultFontHandle"/> should be accessed using
+    /// <see cref="RunWhenUiPrepared{T}(System.Func{T},bool)"/>, as the font handle member variables are only available
+    /// once drawing facilities are available.<br />
+    /// <br />
+    /// <b>Examples:</b><br />
+    /// * <see cref="InterfaceManager.ContinueConstruction"/>.<br />
+    /// * <see cref="Interface.Internal.Windows.Data.Widgets.GamePrebakedFontsTestWidget"/>.<br />
+    /// * <see cref="Interface.Internal.Windows.TitleScreenMenuWindow"/> ctor.<br />
+    /// * <see cref="Interface.Internal.Windows.Settings.Tabs.SettingsTabAbout"/>:
+    /// note how a new instance of <see cref="IFontAtlas"/> is constructed, and
+    /// <see cref="IFontAtlas.NewGameFontHandle"/> is called from another function, without having to manually
+    /// initialize font rebuild process.
     /// </remarks>
     [Obsolete("See remarks.", false)]
     [Api10ToDo(Api10ToDoAttribute.DeleteCompatBehavior)]
@@ -120,18 +150,11 @@ public sealed class UiBuilder : IDisposable
 
     /// <summary>
     /// Gets or sets an action that is called any time right after ImGui fonts are rebuilt.<br/>
-    /// Any ImFontPtr objects that you store <strong>can be invalidated</strong> when fonts are rebuilt
+    /// Any ImFontPtr objects that you store <b>can be invalidated</b> when fonts are rebuilt
     /// (at any time), so you should both reload your custom fonts and restore those
     /// pointers inside this handler.
     /// </summary>
-    /// <remarks>
-    /// To add your custom font, use <see cref="FontAtlas"/>.<see cref="IFontAtlas.NewDelegateFontHandle"/> or
-    /// <see cref="IFontAtlas.NewGameFontHandle"/>.<br />
-    /// To be notified on font changes after fonts are built, use
-    /// <see cref="DefaultFontHandle"/>.<see cref="IFontHandle.ImFontChanged"/>.<br />
-    /// For all other purposes, use <see cref="FontAtlas"/>.<see cref="IFontAtlas.BuildStepChange"/>.
-    /// </remarks>
-    [Obsolete($"Use {nameof(this.FontAtlas)} instead.", false)]
+    [Obsolete($"See remarks for {nameof(BuildFonts)}.", false)]
     [Api10ToDo(Api10ToDoAttribute.DeleteCompatBehavior)]
     public event Action? AfterBuildFonts;
 
