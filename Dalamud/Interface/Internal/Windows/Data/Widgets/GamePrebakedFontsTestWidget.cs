@@ -1,7 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Numerics;
 using System.Text;
+using System.Threading.Tasks;
 
 using Dalamud.Interface.GameFonts;
 using Dalamud.Interface.ManagedFontAtlas;
@@ -10,6 +12,8 @@ using Dalamud.Interface.Utility;
 using Dalamud.Utility;
 
 using ImGuiNET;
+
+using Serilog;
 
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 
@@ -102,6 +106,10 @@ internal class GamePrebakedFontsTestWidget : IDataWindowWidget, IDisposable
                 "(Game)-[Font] {Test}. 0123456789!! <氣気气きキ기>。"u8,
                 minCapacity: 1024);
         }
+
+        ImGui.SameLine();
+        if (ImGui.Button("Test Lock"))
+            Task.Run(this.TestLock);
 
         fixed (byte* labelPtr = "Test Input"u8)
         {
@@ -209,5 +217,50 @@ internal class GamePrebakedFontsTestWidget : IDataWindowWidget, IDisposable
         this.fontHandles = null;
         this.privateAtlas?.Dispose();
         this.privateAtlas = null;
+    }
+
+    private async void TestLock()
+    {
+        if (this.fontHandles is not { } fontHandlesCopy)
+            return;
+
+        Log.Information($"{nameof(GamePrebakedFontsTestWidget)}: {nameof(this.TestLock)} waiting for build");
+
+        await using var garbage = new DisposeSafety.ScopedFinalizer();
+        var fonts = new List<ImFontPtr>();
+        IFontHandle[] handles;
+        try
+        {
+            handles = fontHandlesCopy.Values.SelectMany(x => x).Select(x => x.Handle.Value).ToArray();
+            foreach (var handle in handles)
+            {
+                await handle.WaitAsync();
+                var locked = handle.Lock();
+                garbage.Add(locked);
+                fonts.Add(locked);
+            }
+        }
+        catch (ObjectDisposedException)
+        {
+            Log.Information($"{nameof(GamePrebakedFontsTestWidget)}: {nameof(this.TestLock)} cancelled");
+            return;
+        }
+
+        Log.Information($"{nameof(GamePrebakedFontsTestWidget)}: {nameof(this.TestLock)} waiting in lock");
+        await Task.Delay(5000);
+
+        foreach (var (font, handle) in fonts.Zip(handles))
+            TestSingle(font, handle);
+
+        return;
+
+        unsafe void TestSingle(ImFontPtr fontPtr, IFontHandle handle)
+        {
+            var dim = default(Vector2);
+            var test = "Test string"u8;
+            fixed (byte* pTest = test)
+                ImGuiNative.ImFont_CalcTextSizeA(&dim, fontPtr, fontPtr.FontSize, float.MaxValue, 0, pTest, null, null);
+            Log.Information($"{nameof(GamePrebakedFontsTestWidget)}: {handle} => {dim}");
+        }
     }
 }

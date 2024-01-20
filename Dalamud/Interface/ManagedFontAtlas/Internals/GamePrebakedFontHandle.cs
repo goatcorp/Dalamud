@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reactive.Disposables;
+using System.Threading.Tasks;
 
 using Dalamud.Game.Text;
 using Dalamud.Interface.GameFonts;
@@ -52,6 +53,11 @@ internal class GamePrebakedFontHandle : IFontHandle.IInternal
         this.manager = manager;
         this.FontStyle = style;
     }
+
+    /// <inheritdoc/>
+    public event Action<IFontHandle>? ImFontChanged;
+
+    private event Action<IFontHandle>? Disposed;
 
     /// <summary>
     /// Provider for <see cref="IDalamudTextureWrap"/> for `common/font/fontNN.tex`.
@@ -113,10 +119,78 @@ internal class GamePrebakedFontHandle : IFontHandle.IInternal
     {
         this.manager?.FreeFontHandle(this);
         this.manager = null;
+        this.Disposed?.InvokeSafely(this);
+        this.ImFontChanged = null;
+    }
+
+    /// <inheritdoc/>
+    public IFontHandle.ImFontLocked Lock()
+    {
+        IFontHandleSubstance? prevSubstance = default;
+        while (true)
+        {
+            var substance = this.ManagerNotDisposed.Substance;
+            if (substance is null)
+                throw new InvalidOperationException();
+            if (substance == prevSubstance)
+                throw new ObjectDisposedException(nameof(DelegateFontHandle));
+
+            prevSubstance = substance;
+            try
+            {
+                substance.DataRoot.AddRef();
+            }
+            catch (ObjectDisposedException)
+            {
+                continue;
+            }
+
+            try
+            {
+                var fontPtr = substance.GetFontPtr(this);
+                if (fontPtr.IsNull())
+                    continue;
+                return new(fontPtr, substance.DataRoot);
+            }
+            finally
+            {
+                substance.DataRoot.Release();
+            }
+        }
     }
 
     /// <inheritdoc/>
     public IFontHandle.FontPopper Push() => new(this.ImFont, this.Available);
+
+    /// <inheritdoc/>
+    public Task<IFontHandle> WaitAsync()
+    {
+        if (this.Available)
+            return Task.FromResult<IFontHandle>(this);
+
+        var tcs = new TaskCompletionSource<IFontHandle>();
+        this.ImFontChanged += OnImFontChanged;
+        this.Disposed += OnImFontChanged;
+        if (this.Available)
+            OnImFontChanged(this);
+        return tcs.Task;
+
+        void OnImFontChanged(IFontHandle unused)
+        {
+            if (tcs.Task.IsCompletedSuccessfully)
+                return;
+
+            this.ImFontChanged -= OnImFontChanged;
+            this.Disposed -= OnImFontChanged;
+            if (this.manager is null)
+                tcs.SetException(new ObjectDisposedException(nameof(GamePrebakedFontHandle)));
+            else
+                tcs.SetResult(this);
+        }
+    }
+
+    /// <inheritdoc/>
+    public override string ToString() => $"{nameof(GamePrebakedFontHandle)}({this.FontStyle})";
 
     /// <summary>
     /// Manager for <see cref="GamePrebakedFontHandle"/>s.
@@ -124,6 +198,7 @@ internal class GamePrebakedFontHandle : IFontHandle.IInternal
     internal sealed class HandleManager : IFontHandleManager
     {
         private readonly Dictionary<GameFontStyle, int> gameFontsRc = new();
+        private readonly HashSet<GamePrebakedFontHandle> handles = new();
         private readonly object syncRoot = new();
 
         /// <summary>
@@ -154,8 +229,7 @@ internal class GamePrebakedFontHandle : IFontHandle.IInternal
         /// <inheritdoc/>
         public void Dispose()
         {
-            this.Substance?.Dispose();
-            this.Substance = null;
+            // empty
         }
 
         /// <inheritdoc cref="IFontAtlas.NewGameFontHandle"/>
@@ -165,6 +239,7 @@ internal class GamePrebakedFontHandle : IFontHandle.IInternal
             bool suggestRebuild;
             lock (this.syncRoot)
             {
+                this.handles.Add(handle);
                 this.gameFontsRc[style] = this.gameFontsRc.GetValueOrDefault(style, 0) + 1;
                 suggestRebuild = this.Substance?.GetFontPtr(handle).IsNotNullAndLoaded() is not true;
             }
@@ -183,6 +258,7 @@ internal class GamePrebakedFontHandle : IFontHandle.IInternal
 
             lock (this.syncRoot)
             {
+                this.handles.Remove(ggfh);
                 if (!this.gameFontsRc.ContainsKey(ggfh.FontStyle))
                     return;
 
@@ -192,10 +268,20 @@ internal class GamePrebakedFontHandle : IFontHandle.IInternal
         }
 
         /// <inheritdoc/>
-        public IFontHandleSubstance NewSubstance()
+        public void InvokeFontHandleImFontChanged()
+        {
+            if (this.Substance is not HandleSubstance hs)
+                return;
+
+            foreach (var handle in hs.RelevantHandles)
+                handle.ImFontChanged?.InvokeSafely(handle);
+        }
+
+        /// <inheritdoc/>
+        public IFontHandleSubstance NewSubstance(IRefCountable dataRoot)
         {
             lock (this.syncRoot)
-                return new HandleSubstance(this, this.gameFontsRc.Keys);
+                return new HandleSubstance(this, dataRoot, this.handles.ToArray(), this.gameFontsRc.Keys);
         }
     }
 
@@ -218,13 +304,31 @@ internal class GamePrebakedFontHandle : IFontHandle.IInternal
         /// Initializes a new instance of the <see cref="HandleSubstance"/> class.
         /// </summary>
         /// <param name="manager">The manager.</param>
+        /// <param name="dataRoot">The data root.</param>
+        /// <param name="relevantHandles">The relevant handles.</param>
         /// <param name="gameFontStyles">The game font styles.</param>
-        public HandleSubstance(HandleManager manager, IEnumerable<GameFontStyle> gameFontStyles)
+        public HandleSubstance(
+            HandleManager manager,
+            IRefCountable dataRoot,
+            GamePrebakedFontHandle[] relevantHandles,
+            IEnumerable<GameFontStyle> gameFontStyles)
         {
+            // We do not call dataRoot.AddRef; this object is dependant on lifetime of dataRoot.
+
             this.handleManager = manager;
-            Service<InterfaceManager>.Get();
+            this.DataRoot = dataRoot;
+            this.RelevantHandles = relevantHandles;
             this.gameFontStyles = new(gameFontStyles);
         }
+
+        /// <summary>
+        /// Gets the relevant handles.
+        /// </summary>
+        // Not owned by this class. Do not dispose.
+        public GamePrebakedFontHandle[] RelevantHandles { get; }
+
+        /// <inheritdoc/>
+        public IRefCountable DataRoot { get; }
 
         /// <inheritdoc/>
         public IFontHandleManager Manager => this.handleManager;
@@ -240,6 +344,7 @@ internal class GamePrebakedFontHandle : IFontHandle.IInternal
         /// <inheritdoc/>
         public void Dispose()
         {
+            // empty
         }
 
         /// <summary>

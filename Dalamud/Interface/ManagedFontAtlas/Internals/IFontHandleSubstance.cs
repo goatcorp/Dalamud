@@ -10,6 +10,11 @@ namespace Dalamud.Interface.ManagedFontAtlas.Internals;
 internal interface IFontHandleSubstance : IDisposable
 {
     /// <summary>
+    /// Gets the data root relevant to this instance of <see cref="IFontHandleSubstance"/>.
+    /// </summary>
+    IRefCountable DataRoot { get; }
+
+    /// <summary>
     /// Gets the manager relevant to this instance of <see cref="IFontHandleSubstance"/>.
     /// </summary>
     IFontHandleManager Manager { get; }
