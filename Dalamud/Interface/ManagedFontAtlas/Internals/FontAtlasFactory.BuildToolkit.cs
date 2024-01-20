@@ -30,7 +30,7 @@ internal sealed partial class FontAtlasFactory
     /// Implementations for <see cref="IFontAtlasBuildToolkitPreBuild"/> and
     /// <see cref="IFontAtlasBuildToolkitPostBuild"/>.
     /// </summary>
-    private class BuildToolkit : IFontAtlasBuildToolkitPreBuild, IFontAtlasBuildToolkitPostBuild, IDisposable
+    private class BuildToolkit : IFontAtlasBuildToolkit.IApi9Compat, IFontAtlasBuildToolkitPreBuild, IFontAtlasBuildToolkitPostBuild, IDisposable
     {
         private static readonly ushort FontAwesomeIconMin =
             (ushort)Enum.GetValues<FontAwesomeIcon>().Where(x => x > 0).Min();
@@ -106,6 +106,34 @@ internal sealed partial class FontAtlasFactory
 
         /// <inheritdoc/>
         public void DisposeWithAtlas(Action action) => this.data.Garbage.Add(action);
+
+        /// <inheritdoc/>
+        [Api10ToDo(Api10ToDoAttribute.DeleteCompatBehavior)]
+        public void FromUiBuilderObsoleteEventHandlers(Action action)
+        {
+            var previousSubstances = new IFontHandleSubstance[this.data.Substances.Count];
+            for (var i = 0; i < previousSubstances.Length; i++)
+            {
+                previousSubstances[i] = this.data.Substances[i].Manager.Substance;
+                this.data.Substances[i].Manager.Substance = this.data.Substances[i];
+                this.data.Substances[i].CreateFontOnAccess = true;
+                this.data.Substances[i].PreBuildToolkitForApi9Compat = this;
+            }
+
+            try
+            {
+                action();
+            }
+            finally
+            {
+                for (var i = 0; i < previousSubstances.Length; i++)
+                {
+                    this.data.Substances[i].Manager.Substance = previousSubstances[i];
+                    this.data.Substances[i].CreateFontOnAccess = false;
+                    this.data.Substances[i].PreBuildToolkitForApi9Compat = null;
+                }
+            }
+        }
 
         /// <inheritdoc/>
         public ImFontPtr IgnoreGlobalScale(ImFontPtr fontPtr)

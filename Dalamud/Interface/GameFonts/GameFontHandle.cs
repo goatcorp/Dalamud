@@ -2,6 +2,7 @@ using System.Numerics;
 
 using Dalamud.Interface.ManagedFontAtlas;
 using Dalamud.Interface.ManagedFontAtlas.Internals;
+using Dalamud.Utility;
 
 using ImGuiNET;
 
@@ -10,6 +11,7 @@ namespace Dalamud.Interface.GameFonts;
 /// <summary>
 /// ABI-compatible wrapper for <see cref="IFontHandle"/>.
 /// </summary>
+[Api10ToDo(Api10ToDoAttribute.DeleteCompatBehavior)]
 public sealed class GameFontHandle : IFontHandle
 {
     private readonly IFontHandle.IInternal fontHandle;
@@ -53,8 +55,14 @@ public sealed class GameFontHandle : IFontHandle
     /// <inheritdoc />
     public void Dispose() => this.fontHandle.Dispose();
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// Pushes the font.
+    /// </summary>
+    /// <returns>An <see cref="IDisposable"/> that can be used to pop the font on dispose.</returns>
     public IDisposable Push() => this.fontHandle.Push();
+    
+    /// <inheritdoc/>
+    IFontHandle.FontPopper IFontHandle.Push() => this.fontHandle.Push();
 
     /// <summary>
     /// Creates a new <see cref="GameFontLayoutPlan.Builder"/>.<br />

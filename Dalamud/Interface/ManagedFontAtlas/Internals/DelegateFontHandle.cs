@@ -2,8 +2,8 @@
 using System.Linq;
 
 using Dalamud.Interface.Utility;
-using Dalamud.Interface.Utility.Raii;
 using Dalamud.Logging.Internal;
+using Dalamud.Utility;
 
 using ImGuiNET;
 
@@ -52,7 +52,7 @@ internal class DelegateFontHandle : IFontHandle.IInternal
     }
 
     /// <inheritdoc/>
-    public IDisposable Push() => ImRaii.PushFont(this.ImFont, this.Available);
+    public IFontHandle.FontPopper Push() => new(this.ImFont, this.Available);
 
     /// <summary>
     /// Manager for <see cref="DelegateFontHandle"/>s.
@@ -143,6 +143,14 @@ internal class DelegateFontHandle : IFontHandle.IInternal
 
         /// <inheritdoc/>
         public IFontHandleManager Manager { get; }
+
+        /// <inheritdoc/>
+        [Api10ToDo(Api10ToDoAttribute.DeleteCompatBehavior)]
+        public IFontAtlasBuildToolkitPreBuild? PreBuildToolkitForApi9Compat { get; set; }
+
+        /// <inheritdoc/>
+        [Api10ToDo(Api10ToDoAttribute.DeleteCompatBehavior)]
+        public bool CreateFontOnAccess { get; set; }
 
         /// <inheritdoc/>
         public void Dispose()
