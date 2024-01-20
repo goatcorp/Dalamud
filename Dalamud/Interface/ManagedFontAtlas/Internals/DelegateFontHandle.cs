@@ -2,7 +2,6 @@
 using System.Linq;
 
 using Dalamud.Interface.Utility;
-using Dalamud.Interface.Utility.Raii;
 using Dalamud.Logging.Internal;
 using Dalamud.Utility;
 
@@ -53,7 +52,7 @@ internal class DelegateFontHandle : IFontHandle.IInternal
     }
 
     /// <inheritdoc/>
-    public IDisposable Push() => ImRaii.PushFont(this.ImFont, this.Available);
+    public IFontHandle.FontPopper Push() => new(this.ImFont, this.Available);
 
     /// <summary>
     /// Manager for <see cref="DelegateFontHandle"/>s.

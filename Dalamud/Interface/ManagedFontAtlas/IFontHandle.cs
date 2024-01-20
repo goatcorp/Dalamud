@@ -1,4 +1,6 @@
-﻿using ImGuiNET;
+﻿using Dalamud.Utility;
+
+using ImGuiNET;
 
 namespace Dalamud.Interface.ManagedFontAtlas;
 
@@ -38,5 +40,39 @@ public interface IFontHandle : IDisposable
     /// You may not access the font once you dispose this object.
     /// </summary>
     /// <returns>A disposable object that will call <see cref="ImGui.PopFont"/>(1) on dispose.</returns>
-    IDisposable Push();
+    /// <exception cref="InvalidOperationException">If called outside of the main thread.</exception>
+    FontPopper Push();
+
+    /// <summary>
+    /// The wrapper for popping fonts.
+    /// </summary>
+    public struct FontPopper : IDisposable
+    {
+        private int count;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="FontPopper"/> struct.
+        /// </summary>
+        /// <param name="fontPtr">The font to push.</param>
+        /// <param name="push">Whether to push.</param>
+        internal FontPopper(ImFontPtr fontPtr, bool push)
+        {
+            if (!push)
+                return;
+
+            ThreadSafety.AssertMainThread();
+
+            this.count = 1;
+            ImGui.PushFont(fontPtr);
+        }
+
+        /// <inheritdoc />
+        public void Dispose()
+        {
+            ThreadSafety.AssertMainThread();
+
+            while (this.count-- > 0)
+                ImGui.PopFont();
+        }
+    }
 }

@@ -9,7 +9,6 @@ using Dalamud.Game.Text;
 using Dalamud.Interface.GameFonts;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Utility;
-using Dalamud.Interface.Utility.Raii;
 using Dalamud.Utility;
 
 using ImGuiNET;
@@ -117,7 +116,7 @@ internal class GamePrebakedFontHandle : IFontHandle.IInternal
     }
 
     /// <inheritdoc/>
-    public IDisposable Push() => ImRaii.PushFont(this.ImFont, this.Available);
+    public IFontHandle.FontPopper Push() => new(this.ImFont, this.Available);
 
     /// <summary>
     /// Manager for <see cref="GamePrebakedFontHandle"/>s.
