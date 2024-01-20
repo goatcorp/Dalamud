@@ -122,6 +122,10 @@ public interface IFontAtlas : IDisposable
     /// Note that <see cref="BuildTask"/> would not necessarily get changed from calling this function.
     /// </summary>
     /// <exception cref="InvalidOperationException">If <see cref="AutoRebuildMode"/> is <see cref="FontAtlasAutoRebuildMode.Async"/>.</exception>
+    /// <remarks>
+    /// Using this method will block the main thread on rebuilding fonts, effectively calling
+    /// <see cref="BuildFontsImmediately"/> from the main thread. Consider migrating to <see cref="BuildFontsAsync"/>.
+    /// </remarks>
     void BuildFontsOnNextFrame();
 
     /// <summary>

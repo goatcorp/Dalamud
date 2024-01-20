@@ -12,7 +12,12 @@ namespace Dalamud.Interface.ManagedFontAtlas;
 public interface IFontHandle : IDisposable
 {
     /// <summary>
-    /// Called when the built instance of <see cref="ImFontPtr"/> has been changed.
+    /// Called when the built instance of <see cref="ImFontPtr"/> has been changed.<br />
+    /// This event will be invoked on the same thread with
+    /// <see cref="IFontAtlas"/>.<see cref="IFontAtlas.BuildStepChange"/>,
+    /// when the build step is <see cref="FontAtlasBuildStep.PostPromotion"/>.<br />
+    /// See <see cref="IFontAtlas.BuildFontsOnNextFrame"/>, <see cref="IFontAtlas.BuildFontsImmediately"/>, and
+    /// <see cref="IFontAtlas.BuildFontsAsync"/>.
     /// </summary>
     event Action<IFontHandle> ImFontChanged;
 
