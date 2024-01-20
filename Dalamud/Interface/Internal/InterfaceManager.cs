@@ -725,13 +725,16 @@ internal class InterfaceManager : IDisposable, IServiceType
                     // Do not use DefaultFont, IconFont, and MonoFont.
                     // Use font handles directly.
 
+                    using var defaultFont = this.DefaultFontHandle.Lock();
+                    using var monoFont = this.MonoFontHandle.Lock();
+
                     // Fill missing glyphs in MonoFont from DefaultFont
-                    tk.CopyGlyphsAcrossFonts(this.DefaultFontHandle.ImFont, this.MonoFontHandle.ImFont, true);
+                    tk.CopyGlyphsAcrossFonts(defaultFont, monoFont, true);
 
                     // Update default font
                     unsafe
                     {
-                        ImGui.GetIO().NativePtr->FontDefault = this.DefaultFontHandle.ImFont;
+                        ImGui.GetIO().NativePtr->FontDefault = defaultFont;
                     }
 
                     // Broadcast to auto-rebuilding instances
