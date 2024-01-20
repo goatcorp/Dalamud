@@ -41,6 +41,10 @@ public interface IFontHandle : IDisposable
     /// </summary>
     /// <returns>A disposable object that will call <see cref="ImGui.PopFont"/>(1) on dispose.</returns>
     /// <exception cref="InvalidOperationException">If called outside of the main thread.</exception>
+    /// <remarks>
+    /// Only intended for use with <c>using</c> keywords, such as <c>using (handle.Push())</c>.<br />
+    /// Should you store or transfer the return value to somewhere else, use <see cref="IDisposable"/> as the type.
+    /// </remarks>
     FontPopper Push();
 
     /// <summary>
