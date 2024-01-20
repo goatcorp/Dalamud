@@ -140,9 +140,9 @@ public sealed class UiBuilder : IDisposable
     /// * <see cref="Interface.Internal.Windows.Data.Widgets.GamePrebakedFontsTestWidget"/>.<br />
     /// * <see cref="Interface.Internal.Windows.TitleScreenMenuWindow"/> ctor.<br />
     /// * <see cref="Interface.Internal.Windows.Settings.Tabs.SettingsTabAbout"/>:
-    /// note how a new instance of <see cref="IFontAtlas"/> is constructed, and
-    /// <see cref="IFontAtlas.NewGameFontHandle"/> is called from another function, without having to manually
-    /// initialize font rebuild process.
+    /// note how the construction of a new instance of <see cref="IFontAtlas"/> and
+    /// call of <see cref="IFontAtlas.NewGameFontHandle"/> are done in different functions,
+    /// without having to manually initiate font rebuild process.
     /// </remarks>
     [Obsolete("See remarks.", false)]
     [Api10ToDo(Api10ToDoAttribute.DeleteCompatBehavior)]
