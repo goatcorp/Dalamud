@@ -1,4 +1,6 @@
-﻿using ImGuiNET;
+﻿using Dalamud.Utility;
+
+using ImGuiNET;
 
 namespace Dalamud.Interface.ManagedFontAtlas.Internals;
 
@@ -11,6 +13,19 @@ internal interface IFontHandleSubstance : IDisposable
     /// Gets the manager relevant to this instance of <see cref="IFontHandleSubstance"/>.
     /// </summary>
     IFontHandleManager Manager { get; }
+
+    /// <summary>
+    /// Gets or sets the relevant <see cref="IFontAtlasBuildToolkitPreBuild"/> for this.
+    /// </summary>
+    [Api10ToDo(Api10ToDoAttribute.DeleteCompatBehavior)]
+    IFontAtlasBuildToolkitPreBuild? PreBuildToolkitForApi9Compat { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether to create a new instance of <see cref="ImGuiNET.ImFontPtr"/> on first
+    /// access, for compatibility with API 9.
+    /// </summary>
+    [Api10ToDo(Api10ToDoAttribute.DeleteCompatBehavior)]
+    bool CreateFontOnAccess { get; set; }
 
     /// <summary>
     /// Gets the font.

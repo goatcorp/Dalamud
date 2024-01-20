@@ -104,6 +104,7 @@ public sealed class UiBuilder : IDisposable
     /// pointers inside this handler.
     /// </summary>
     [Obsolete($"Use {nameof(this.FontAtlas)} instead.", false)]
+    [Api10ToDo(Api10ToDoAttribute.DeleteCompatBehavior)]
     public event Action? BuildFonts;
 
     /// <summary>
@@ -113,6 +114,7 @@ public sealed class UiBuilder : IDisposable
     /// pointers inside this handler.
     /// </summary>
     [Obsolete($"Use {nameof(this.FontAtlas)} instead.", false)]
+    [Api10ToDo(Api10ToDoAttribute.DeleteCompatBehavior)]
     public event Action? AfterBuildFonts;
 
     /// <summary>
@@ -423,6 +425,7 @@ public sealed class UiBuilder : IDisposable
     /// <param name="style">Font to get.</param>
     /// <returns>Handle to the game font which may or may not be available for use yet.</returns>
     [Obsolete($"Use {nameof(this.FontAtlas)}.{nameof(IFontAtlas.NewGameFontHandle)} instead.", false)]
+    [Api10ToDo(Api10ToDoAttribute.DeleteCompatBehavior)]
     public GameFontHandle GetGameFontHandle(GameFontStyle style) => new(
         (IFontHandle.IInternal)this.FontAtlas.NewGameFontHandle(style),
         Service<FontAtlasFactory>.Get());
@@ -620,28 +623,37 @@ public sealed class UiBuilder : IDisposable
         this.hitchDetector.Stop();
     }
 
+    [Api10ToDo(Api10ToDoAttribute.DeleteCompatBehavior)]
     private unsafe void PrivateAtlasOnBuildStepChange(IFontAtlasBuildToolkit e)
     {
         if (e.IsAsyncBuildOperation)
             return;
 
-        e.OnPreBuild(
-             _ =>
-             {
-                 var prev = ImGui.GetIO().NativePtr->Fonts;
-                 ImGui.GetIO().NativePtr->Fonts = e.NewImAtlas.NativePtr;
-                 this.BuildFonts?.InvokeSafely();
-                 ImGui.GetIO().NativePtr->Fonts = prev;
-             });
+        if (this.BuildFonts is not null)
+        {
+            e.OnPreBuild(
+                _ =>
+                {
+                    var prev = ImGui.GetIO().NativePtr->Fonts;
+                    ImGui.GetIO().NativePtr->Fonts = e.NewImAtlas.NativePtr;
+                    ((IFontAtlasBuildToolkit.IApi9Compat)e)
+                        .FromUiBuilderObsoleteEventHandlers(() => this.BuildFonts?.InvokeSafely());
+                    ImGui.GetIO().NativePtr->Fonts = prev;
+                });
+        }
 
-        e.OnPostBuild(
-             _ =>
-             {
-                 var prev = ImGui.GetIO().NativePtr->Fonts;
-                 ImGui.GetIO().NativePtr->Fonts = e.NewImAtlas.NativePtr;
-                 this.AfterBuildFonts?.InvokeSafely();
-                 ImGui.GetIO().NativePtr->Fonts = prev;
-             });
+        if (this.AfterBuildFonts is not null)
+        {
+            e.OnPostBuild(
+                _ =>
+                {
+                    var prev = ImGui.GetIO().NativePtr->Fonts;
+                    ImGui.GetIO().NativePtr->Fonts = e.NewImAtlas.NativePtr;
+                    ((IFontAtlasBuildToolkit.IApi9Compat)e)
+                        .FromUiBuilderObsoleteEventHandlers(() => this.AfterBuildFonts?.InvokeSafely());
+                    ImGui.GetIO().NativePtr->Fonts = prev;
+                });
+        }
     }
 
     private void OnResizeBuffers()
