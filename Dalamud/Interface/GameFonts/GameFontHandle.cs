@@ -72,8 +72,8 @@ public sealed class GameFontHandle : IFontHandle
     /// <returns>An <see cref="IDisposable"/> that can be used to pop the font on dispose.</returns>
     public IDisposable Push() => this.fontHandle.Push();
 
-    /// <inheritdoc/>
-    IFontHandle.FontPopper IFontHandle.Push() => this.fontHandle.Push();
+    /// <inheritdoc />
+    public void Pop() => this.fontHandle.Pop();
 
     /// <inheritdoc />
     public Task<IFontHandle> WaitAsync() => this.fontHandle.WaitAsync();

@@ -231,6 +231,11 @@ internal class InterfaceManager : IDisposable, IServiceType
     public Task FontBuildTask => WhenFontsReady().dalamudAtlas!.BuildTask;
 
     /// <summary>
+    /// Gets the number of calls to <see cref="PresentDetour"/> so far.
+    /// </summary>
+    public long CumulativePresentCalls { get; private set; }
+
+    /// <summary>
     /// Dispose of managed and unmanaged resources.
     /// </summary>
     public void Dispose()
@@ -647,6 +652,8 @@ internal class InterfaceManager : IDisposable, IServiceType
      */
     private IntPtr PresentDetour(IntPtr swapChain, uint syncInterval, uint presentFlags)
     {
+        this.CumulativePresentCalls++;
+
         Debug.Assert(this.presentHook is not null, "How did PresentDetour get called when presentHook is null?");
         Debug.Assert(this.dalamudAtlas is not null, "dalamudAtlas should have been set already");
 

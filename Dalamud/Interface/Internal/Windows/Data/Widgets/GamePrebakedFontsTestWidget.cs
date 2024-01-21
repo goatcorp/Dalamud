@@ -163,6 +163,7 @@ internal class GamePrebakedFontsTestWidget : IDataWindowWidget, IDisposable
                           .ToArray());
 
         var offsetX = ImGui.CalcTextSize("99.9pt").X + (ImGui.GetStyle().FramePadding.X * 2);
+        var counter = 0;
         foreach (var (family, items) in this.fontHandles)
         {
             if (!ImGui.CollapsingHeader($"{family} Family"))
@@ -188,10 +189,21 @@ internal class GamePrebakedFontsTestWidget : IDataWindowWidget, IDisposable
                     {
                         if (!this.useGlobalScale)
                             ImGuiNative.igSetWindowFontScale(1 / ImGuiHelpers.GlobalScale);
-                        using var pushPop = handle.Value.Push();
-                        ImGuiNative.igTextUnformatted(
-                            this.testStringBuffer.Data,
-                            this.testStringBuffer.Data + this.testStringBuffer.Length);
+                        if (counter++ % 2 == 0)
+                        {
+                            using var pushPop = handle.Value.Push();
+                            ImGuiNative.igTextUnformatted(
+                                this.testStringBuffer.Data,
+                                this.testStringBuffer.Data + this.testStringBuffer.Length);
+                        }
+                        else
+                        {
+                            handle.Value.Push();
+                            ImGuiNative.igTextUnformatted(
+                                this.testStringBuffer.Data,
+                                this.testStringBuffer.Data + this.testStringBuffer.Length);
+                            handle.Value.Pop();
+                        }
                     }
                 }
                 finally

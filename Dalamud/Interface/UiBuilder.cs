@@ -762,8 +762,10 @@ public sealed class UiBuilder : IDisposable
         public IFontHandle.ImFontLocked Lock() =>
             this.wrapped?.Lock() ?? throw new ObjectDisposedException(nameof(FontHandleWrapper));
 
-        public IFontHandle.FontPopper Push() => 
+        public IDisposable Push() => 
             this.wrapped?.Push() ?? throw new ObjectDisposedException(nameof(FontHandleWrapper));
+
+        public void Pop() => this.wrapped?.Pop();
 
         public Task<IFontHandle> WaitAsync() =>
             this.wrapped?.WaitAsync().ContinueWith(_ => (IFontHandle)this) ??

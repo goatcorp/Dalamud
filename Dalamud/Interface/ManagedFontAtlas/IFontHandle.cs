@@ -65,17 +65,23 @@ public interface IFontHandle : IDisposable
     ImFontLocked Lock();
 
     /// <summary>
-    /// Pushes the current font into ImGui font stack using <see cref="ImGui.PushFont"/>, if available.<br />
+    /// Pushes the current font into ImGui font stack, if available.<br />
     /// Use <see cref="ImGui.GetFont"/> to access the current font.<br />
     /// You may not access the font once you dispose this object.
     /// </summary>
-    /// <returns>A disposable object that will call <see cref="ImGui.PopFont"/>(1) on dispose.</returns>
+    /// <returns>A disposable object that will pop the font on dispose.</returns>
     /// <exception cref="InvalidOperationException">If called outside of the main thread.</exception>
     /// <remarks>
-    /// Only intended for use with <c>using</c> keywords, such as <c>using (handle.Push())</c>.<br />
-    /// Should you store or transfer the return value to somewhere else, use <see cref="IDisposable"/> as the type.
+    /// This function uses <see cref="ImGui.PushFont"/>, and may do extra things.
+    /// Use <see cref="IDisposable.Dispose"/> or <see cref="Pop"/> to undo this operation.
+    /// Do not use <see cref="ImGui.PopFont"/>.
     /// </remarks>
-    FontPopper Push();
+    IDisposable Push();
+
+    /// <summary>
+    /// Pops the font pushed to ImGui using <see cref="Push"/>, cleaning up any extra information as needed.
+    /// </summary>
+    void Pop();
 
     /// <summary>
     /// Waits for <see cref="Available"/> to become <c>true</c>.
@@ -122,39 +128,6 @@ public interface IFontHandle : IDisposable
             this.owner.Release();
             this.owner = null;
             this.ImFont = default;
-        }
-    }
-
-    /// <summary>
-    /// The wrapper for popping fonts.
-    /// </summary>
-    public struct FontPopper : IDisposable
-    {
-        private int count;
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="FontPopper"/> struct.
-        /// </summary>
-        /// <param name="fontPtr">The font to push.</param>
-        /// <param name="push">Whether to push.</param>
-        internal FontPopper(ImFontPtr fontPtr, bool push)
-        {
-            if (!push)
-                return;
-
-            ThreadSafety.AssertMainThread();
-
-            this.count = 1;
-            ImGui.PushFont(fontPtr);
-        }
-
-        /// <inheritdoc />
-        public void Dispose()
-        {
-            ThreadSafety.AssertMainThread();
-
-            while (this.count-- > 0)
-                ImGui.PopFont();
         }
     }
 }

@@ -16,6 +16,8 @@ using ImGuiNET;
 
 using Lumina.Data.Files;
 
+using Serilog;
+
 using Vector4 = System.Numerics.Vector4;
 
 namespace Dalamud.Interface.ManagedFontAtlas.Internals;
@@ -35,7 +37,10 @@ internal class GamePrebakedFontHandle : IFontHandle.IInternal
     /// </summary>
     public static readonly char SeIconCharMax = (char)Enum.GetValues<SeIconChar>().Max();
 
+    private readonly List<IDisposable> pushedFonts = new(8);
+
     private IFontHandleManager? manager;
+    private long lastCumulativePresentCalls;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="GamePrebakedFontHandle"/> class.
@@ -160,7 +165,33 @@ internal class GamePrebakedFontHandle : IFontHandle.IInternal
     }
 
     /// <inheritdoc/>
-    public IFontHandle.FontPopper Push() => new(this.ImFont, this.Available);
+    public IDisposable Push()
+    {
+        ThreadSafety.AssertMainThread();
+        var cumulativePresentCalls = Service<InterfaceManager>.GetNullable()?.CumulativePresentCalls ?? 0L;
+        if (this.lastCumulativePresentCalls != cumulativePresentCalls)
+        {
+            this.lastCumulativePresentCalls = cumulativePresentCalls;
+            if (this.pushedFonts.Count > 0)
+            {
+                Log.Warning(
+                    $"{nameof(this.Push)} has been called, but the handle-private stack was not empty. " +
+                    $"You might be missing a call to {nameof(this.Pop)}.");
+                this.pushedFonts.Clear();
+            }
+        }
+
+        var rented = SimplePushedFont.Rent(this.pushedFonts, this.ImFont, this.Available);
+        this.pushedFonts.Add(rented);
+        return rented;
+    }
+
+    /// <inheritdoc/>
+    public void Pop()
+    {
+        ThreadSafety.AssertMainThread();
+        this.pushedFonts[^1].Dispose();
+    }
 
     /// <inheritdoc/>
     public Task<IFontHandle> WaitAsync()
