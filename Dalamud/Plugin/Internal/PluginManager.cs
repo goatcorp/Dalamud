@@ -664,6 +664,15 @@ internal partial class PluginManager : IDisposable, IServiceType
                 this.PluginsReady = true;
                 this.NotifyinstalledPluginsListChanged();
                 sigScanner.Save();
+
+                try
+                {
+                    this.ParanoiaValidatePluginsAndProfiles();
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex, "Plugin and profile validation failed!");
+                }
             },
             tokenSource.Token);
     }
@@ -1256,6 +1265,30 @@ internal partial class PluginManager : IDisposable, IServiceType
         }
     }
 
+    /// <summary>
+    /// Check if there are any inconsistencies with our plugins, their IDs, and our profiles. 
+    /// </summary>
+    private void ParanoiaValidatePluginsAndProfiles()
+    {
+        var seenIds = new List<Guid>();
+        
+        foreach (var installedPlugin in this.InstalledPlugins)
+        {
+            if (installedPlugin.Manifest.WorkingPluginId == Guid.Empty)
+                throw new Exception($"{(installedPlugin is LocalDevPlugin ? "DevPlugin" : "Plugin")} '{installedPlugin.Manifest.InternalName}' has an empty WorkingPluginId.");
+
+            if (seenIds.Contains(installedPlugin.Manifest.WorkingPluginId))
+            {
+                throw new Exception(
+                    $"{(installedPlugin is LocalDevPlugin ? "DevPlugin" : "Plugin")} '{installedPlugin.Manifest.InternalName}' has a duplicate WorkingPluginId '{installedPlugin.Manifest.WorkingPluginId}'");
+            }
+            
+            seenIds.Add(installedPlugin.Manifest.WorkingPluginId);
+        }
+        
+        this.profileManager.ParanoiaValidateProfiles();
+    }
+    
     private async Task<Stream> DownloadPluginAsync(RemotePluginManifest repoManifest, bool useTesting)
     {
         var downloadUrl = useTesting ? repoManifest.DownloadLinkTesting : repoManifest.DownloadLinkInstall;
@@ -1297,7 +1330,7 @@ internal partial class PluginManager : IDisposable, IServiceType
             try
             {
                 // We don't need to apply, it doesn't matter
-                await this.profileManager.DefaultProfile.RemoveAsync(repoManifest.InternalName, false);
+                await this.profileManager.DefaultProfile.RemoveByInternalNameAsync(repoManifest.InternalName, false);
             }
             catch (ProfileOperationException)
             {
@@ -1445,73 +1478,98 @@ internal partial class PluginManager : IDisposable, IServiceType
         if (isDev)
         {
             Log.Information($"Loading dev plugin {name}");
-            var devPlugin = new LocalDevPlugin(dllFile, manifest);
-            loadPlugin &= !isBoot;
-
-            var probablyInternalNameForThisPurpose = manifest?.InternalName ?? dllFile.Name;
-
-            var wantsInDefaultProfile =
-                this.profileManager.DefaultProfile.WantsPlugin(probablyInternalNameForThisPurpose);
-            if (wantsInDefaultProfile == null)
-            {
-                // We don't know about this plugin, so we don't want to do anything here.
-                // The code below will take care of it and add it with the default value.
-            }
-            else if (wantsInDefaultProfile == false && devPlugin.StartOnBoot)
-            {
-                // We didn't want this plugin, and StartOnBoot is on. That means we don't want it and it should stay off until manually enabled.
-                Log.Verbose("DevPlugin {Name} disabled and StartOnBoot => disable", probablyInternalNameForThisPurpose);
-                await this.profileManager.DefaultProfile.AddOrUpdateAsync(probablyInternalNameForThisPurpose, false, false);
-                loadPlugin = false;
-            }
-            else if (wantsInDefaultProfile == true && devPlugin.StartOnBoot)
-            {
-                // We wanted this plugin, and StartOnBoot is on. That means we actually do want it.
-                Log.Verbose("DevPlugin {Name} enabled and StartOnBoot => enable", probablyInternalNameForThisPurpose);
-                await this.profileManager.DefaultProfile.AddOrUpdateAsync(probablyInternalNameForThisPurpose, true, false);
-                loadPlugin = !doNotLoad;
-            }
-            else if (wantsInDefaultProfile == true && !devPlugin.StartOnBoot)
-            {
-                // We wanted this plugin, but StartOnBoot is off. This means we don't want it anymore.
-                Log.Verbose("DevPlugin {Name} enabled and !StartOnBoot => disable", probablyInternalNameForThisPurpose);
-                await this.profileManager.DefaultProfile.AddOrUpdateAsync(probablyInternalNameForThisPurpose, false, false);
-                loadPlugin = false;
-            }
-            else if (wantsInDefaultProfile == false && !devPlugin.StartOnBoot)
-            {
-                // We didn't want this plugin, and StartOnBoot is off. We don't want it.
-                Log.Verbose("DevPlugin {Name} disabled and !StartOnBoot => disable", probablyInternalNameForThisPurpose);
-                await this.profileManager.DefaultProfile.AddOrUpdateAsync(probablyInternalNameForThisPurpose, false, false);
-                loadPlugin = false;
-            }
-
-            plugin = devPlugin;
+            plugin = new LocalDevPlugin(dllFile, manifest);
         }
         else
         {
             Log.Information($"Loading plugin {name}");
             plugin = new LocalPlugin(dllFile, manifest);
         }
+        
+        // Perform a migration from InternalName to GUIDs. The plugin should definitely have a GUID here.
+        // This will also happen if you are installing a plugin with the installer, and that's intended!
+        // It means that, if you have a profile which has unsatisfied plugins, installing a matching plugin will
+        // enter it into the profiles it can match.
+        if (plugin.Manifest.WorkingPluginId == Guid.Empty)
+            throw new Exception("Plugin should have a WorkingPluginId at this point");
+        this.profileManager.MigrateProfilesToGuidsForPlugin(plugin.Manifest.InternalName, plugin.Manifest.WorkingPluginId);
+        
+        var wantedByAnyProfile = false;
+
+        // Now, if this is a devPlugin, figure out if we want to load it
+        if (isDev)
+        {
+            var devPlugin = (LocalDevPlugin)plugin;
+            loadPlugin &= !isBoot;
+
+            var wantsInDefaultProfile =
+                this.profileManager.DefaultProfile.WantsPlugin(plugin.Manifest.WorkingPluginId);
+            if (wantsInDefaultProfile == null)
+            {
+                // We don't know about this plugin, so we don't want to do anything here.
+                // The code below will take care of it and add it with the default value.
+                Log.Verbose("DevPlugin {Name} not wanted in default plugin", plugin.Manifest.InternalName);
+                
+                // Check if any profile wants this plugin. We need to do this here, since we want to allow loading a dev plugin if a non-default profile wants it active.
+                // Note that this will not add the plugin to the default profile. That's done below in any other case.
+                wantedByAnyProfile = await this.profileManager.GetWantStateAsync(plugin.Manifest.WorkingPluginId, plugin.Manifest.InternalName, false, false);
+                
+                // If it is wanted by any other profile, we do want to load it.
+                if (wantedByAnyProfile)
+                    loadPlugin = true;
+            }
+            else if (wantsInDefaultProfile == false && devPlugin.StartOnBoot)
+            {
+                // We didn't want this plugin, and StartOnBoot is on. That means we don't want it and it should stay off until manually enabled.
+                Log.Verbose("DevPlugin {Name} disabled and StartOnBoot => disable", plugin.Manifest.InternalName);
+                await this.profileManager.DefaultProfile.AddOrUpdateAsync(plugin.Manifest.WorkingPluginId, plugin.Manifest.InternalName, false, false);
+                loadPlugin = false;
+            }
+            else if (wantsInDefaultProfile == true && devPlugin.StartOnBoot)
+            {
+                // We wanted this plugin, and StartOnBoot is on. That means we actually do want it.
+                Log.Verbose("DevPlugin {Name} enabled and StartOnBoot => enable", plugin.Manifest.InternalName);
+                await this.profileManager.DefaultProfile.AddOrUpdateAsync(plugin.Manifest.WorkingPluginId, plugin.Manifest.InternalName, true, false);
+                loadPlugin = !doNotLoad;
+            }
+            else if (wantsInDefaultProfile == true && !devPlugin.StartOnBoot)
+            {
+                // We wanted this plugin, but StartOnBoot is off. This means we don't want it anymore.
+                Log.Verbose("DevPlugin {Name} enabled and !StartOnBoot => disable", plugin.Manifest.InternalName);
+                await this.profileManager.DefaultProfile.AddOrUpdateAsync(plugin.Manifest.WorkingPluginId, plugin.Manifest.InternalName, false, false);
+                loadPlugin = false;
+            }
+            else if (wantsInDefaultProfile == false && !devPlugin.StartOnBoot)
+            {
+                // We didn't want this plugin, and StartOnBoot is off. We don't want it.
+                Log.Verbose("DevPlugin {Name} disabled and !StartOnBoot => disable", plugin.Manifest.InternalName);
+                await this.profileManager.DefaultProfile.AddOrUpdateAsync(plugin.Manifest.WorkingPluginId, plugin.Manifest.InternalName, false, false);
+                loadPlugin = false;
+            }
+
+            plugin = devPlugin;
+        }
 
 #pragma warning disable CS0618
         var defaultState = manifest?.Disabled != true && loadPlugin;
 #pragma warning restore CS0618
-
-        // Need to do this here, so plugins that don't load are still added to the default profile
-        var wantToLoad = await this.profileManager.GetWantStateAsync(plugin.Manifest.InternalName, defaultState);
-
+        
+        // Plugins that aren't in any profile will be added to the default profile with this call.
+        // We are skipping a double-lookup for dev plugins that are wanted by non-default profiles, as noted above.
+        wantedByAnyProfile = wantedByAnyProfile || await this.profileManager.GetWantStateAsync(plugin.Manifest.WorkingPluginId, plugin.Manifest.InternalName, defaultState);
+        Log.Information("{Name} defaultState: {State} wantedByAnyProfile: {WantedByAny} loadPlugin: {LoadPlugin}", plugin.Manifest.InternalName, defaultState, wantedByAnyProfile, loadPlugin);
+        
         if (loadPlugin)
         {
             try
             {
-                if (wantToLoad && !plugin.IsOrphaned)
+                if (wantedByAnyProfile && !plugin.IsOrphaned)
                 {
                     await plugin.LoadAsync(reason);
                 }
                 else
                 {
-                    Log.Verbose($"{name} not loaded, wantToLoad:{wantToLoad} orphaned:{plugin.IsOrphaned}");
+                    Log.Verbose($"{name} not loaded, wantToLoad:{wantedByAnyProfile} orphaned:{plugin.IsOrphaned}");
                 }
             }
             catch (InvalidPluginException)
