@@ -81,16 +81,6 @@ internal sealed class DelegateFontHandle : FontHandle
         }
 
         /// <inheritdoc/>
-        public void InvokeFontHandleImFontChanged()
-        {
-            if (this.Substance is not HandleSubstance hs)
-                return;
-
-            foreach (var handle in hs.RelevantHandles)
-                handle.InvokeImFontChanged();
-        }
-
-        /// <inheritdoc/>
         public IFontHandleSubstance NewSubstance(IRefCountable dataRoot)
         {
             lock (this.syncRoot)
@@ -132,6 +122,9 @@ internal sealed class DelegateFontHandle : FontHandle
         /// </summary>
         // Not owned by this class. Do not dispose.
         public DelegateFontHandle[] RelevantHandles { get; }
+
+        /// <inheritdoc/>
+        ICollection<FontHandle> IFontHandleSubstance.RelevantHandles => this.RelevantHandles;
 
         /// <inheritdoc/>
         public IRefCountable DataRoot { get; }
@@ -301,33 +294,6 @@ internal sealed class DelegateFontHandle : FontHandle
                     Log.Error(
                         e,
                         "[{name}] An error has occurred while during {delegate} PostBuild call.",
-                        this.Manager.Name,
-                        nameof(FontAtlasBuildStepDelegate));
-                }
-            }
-        }
-
-        /// <inheritdoc/>
-        public void OnPostPromotion(IFontAtlasBuildToolkitPostPromotion toolkitPostPromotion)
-        {
-            foreach (var k in this.RelevantHandles)
-            {
-                if (!this.fonts[k].IsNotNullAndLoaded())
-                    continue;
-
-                try
-                {
-                    toolkitPostPromotion.Font = this.fonts[k];
-                    k.CallOnBuildStepChange.Invoke(toolkitPostPromotion);
-                }
-                catch (Exception e)
-                {
-                    this.fonts[k] = default;
-                    this.buildExceptions[k] = e;
-
-                    Log.Error(
-                        e,
-                        "[{name}:Substance] An error has occurred while during {delegate} PostPromotion call.",
                         this.Manager.Name,
                         nameof(FontAtlasBuildStepDelegate));
                 }

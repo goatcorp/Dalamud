@@ -129,8 +129,7 @@ public interface IFontAtlas : IDisposable
     void BuildFontsOnNextFrame();
 
     /// <summary>
-    /// Rebuilds fonts immediately, on the current thread.<br />
-    /// Even the callback for <see cref="FontAtlasBuildStep.PostPromotion"/> will be called on the same thread.
+    /// Rebuilds fonts immediately, on the current thread.
     /// </summary>
     /// <exception cref="InvalidOperationException">If <see cref="AutoRebuildMode"/> is <see cref="FontAtlasAutoRebuildMode.Async"/>.</exception>
     void BuildFontsImmediately();
@@ -138,8 +137,7 @@ public interface IFontAtlas : IDisposable
     /// <summary>
     /// Rebuilds fonts asynchronously, on any thread. 
     /// </summary>
-    /// <param name="callPostPromotionOnMainThread">Call <see cref="FontAtlasBuildStep.PostPromotion"/> on the main thread.</param>
     /// <returns>The task.</returns>
     /// <exception cref="InvalidOperationException">If <see cref="AutoRebuildMode"/> is <see cref="FontAtlasAutoRebuildMode.OnNewFrame"/>.</exception>
-    Task BuildFontsAsync(bool callPostPromotionOnMainThread = true);
+    Task BuildFontsAsync();
 }

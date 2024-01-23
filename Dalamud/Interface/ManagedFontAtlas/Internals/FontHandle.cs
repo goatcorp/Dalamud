@@ -41,12 +41,12 @@ internal abstract class FontHandle : IFontHandle
     }
 
     /// <inheritdoc/>
-    public event Action<IFontHandle>? ImFontChanged;
+    public event IFontHandle.ImFontChangedDelegate? ImFontChanged;
 
     /// <summary>
     /// Event to be called on the first <see cref="IDisposable.Dispose"/> call.
     /// </summary>
-    protected event Action<IFontHandle>? Disposed;
+    protected event Action? Disposed;
 
     /// <inheritdoc/>
     public Exception? LoadException => this.Manager.Substance?.GetBuildException(this);
@@ -68,6 +68,22 @@ internal abstract class FontHandle : IFontHandle
 
         this.Dispose(true);
         GC.SuppressFinalize(this);
+    }
+
+    /// <summary>
+    /// Invokes <see cref="IFontHandle.ImFontChanged"/>.
+    /// </summary>
+    /// <param name="font">The font, locked during the call of <see cref="ImFontChanged"/>.</param>
+    public void InvokeImFontChanged(IFontHandle.ImFontLocked font)
+    {
+        try
+        {
+            this.ImFontChanged?.Invoke(this, font);
+        }
+        catch (Exception e)
+        {
+            Log.Error(e, $"{nameof(this.InvokeImFontChanged)}: error");
+        }
     }
 
     /// <summary>
@@ -220,35 +236,51 @@ internal abstract class FontHandle : IFontHandle
 
         var tcs = new TaskCompletionSource<IFontHandle>();
         this.ImFontChanged += OnImFontChanged;
-        this.Disposed += OnImFontChanged;
+        this.Disposed += OnDisposed;
         if (this.Available)
-            OnImFontChanged(this);
+            OnImFontChanged(this, default);
         return tcs.Task;
 
-        void OnImFontChanged(IFontHandle unused)
+        void OnImFontChanged(IFontHandle unused, IFontHandle.ImFontLocked unused2)
         {
             if (tcs.Task.IsCompletedSuccessfully)
                 return;
 
             this.ImFontChanged -= OnImFontChanged;
-            this.Disposed -= OnImFontChanged;
-            if (this.manager is null)
-                tcs.SetException(new ObjectDisposedException(nameof(GamePrebakedFontHandle)));
-            else
+            this.Disposed -= OnDisposed;
+            try
+            {
                 tcs.SetResult(this);
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
+        void OnDisposed()
+        {
+            if (tcs.Task.IsCompletedSuccessfully)
+                return;
+
+            this.ImFontChanged -= OnImFontChanged;
+            this.Disposed -= OnDisposed;
+            try
+            {
+                tcs.SetException(new ObjectDisposedException(nameof(GamePrebakedFontHandle)));
+            }
+            catch
+            {
+                // ignore
+            }
         }
     }
 
     /// <summary>
-    /// Invokes <see cref="IFontHandle.ImFontChanged"/>.
-    /// </summary>
-    protected void InvokeImFontChanged() => this.ImFontChanged.InvokeSafely(this);
-
-    /// <summary>
-    /// Overrideable implementation for <see cref="IDisposable.Dispose"/>.
+    /// Implementation for <see cref="IDisposable.Dispose"/>.
     /// </summary>
     /// <param name="disposing">If <c>true</c>, then the function is being called from <see cref="IDisposable.Dispose"/>.</param>
-    protected virtual void Dispose(bool disposing)
+    protected void Dispose(bool disposing)
     {
         if (disposing)
         {
@@ -256,7 +288,7 @@ internal abstract class FontHandle : IFontHandle
                 Log.Warning($"{nameof(IFontHandle)}.{nameof(IDisposable.Dispose)}: fonts were still in a stack.");
             this.Manager.FreeFontHandle(this);
             this.manager = null;
-            this.Disposed?.InvokeSafely(this);
+            this.Disposed?.InvokeSafely();
             this.ImFontChanged = null;
         }
     }

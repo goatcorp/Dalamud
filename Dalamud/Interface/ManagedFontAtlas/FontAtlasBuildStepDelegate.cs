@@ -6,10 +6,9 @@ namespace Dalamud.Interface.ManagedFontAtlas;
 /// <param name="toolkit">A toolkit that may help you for font building steps.</param>
 /// <remarks>
 /// An implementation of <see cref="IFontAtlasBuildToolkit"/> may implement all of
-/// <see cref="IFontAtlasBuildToolkitPreBuild"/>, <see cref="IFontAtlasBuildToolkitPostBuild"/>, and
-/// <see cref="IFontAtlasBuildToolkitPostPromotion"/>.<br />
+/// <see cref="IFontAtlasBuildToolkitPreBuild"/> and <see cref="IFontAtlasBuildToolkitPostBuild"/>.<br />
 /// Either use <see cref="IFontAtlasBuildToolkit.BuildStep"/> to identify the build step, or use
-/// <see cref="FontAtlasBuildToolkitUtilities.OnPreBuild"/>, <see cref="FontAtlasBuildToolkitUtilities.OnPostBuild"/>,
-/// and <see cref="FontAtlasBuildToolkitUtilities.OnPostPromotion"/> for routing.
+/// <see cref="FontAtlasBuildToolkitUtilities.OnPreBuild"/> and <see cref="FontAtlasBuildToolkitUtilities.OnPostBuild"/>
+/// for routing.
 /// </remarks>
 public delegate void FontAtlasBuildStepDelegate(IFontAtlasBuildToolkit toolkit);

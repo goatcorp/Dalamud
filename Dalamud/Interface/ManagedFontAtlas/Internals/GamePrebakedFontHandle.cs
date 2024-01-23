@@ -173,16 +173,6 @@ internal class GamePrebakedFontHandle : FontHandle
         }
 
         /// <inheritdoc/>
-        public void InvokeFontHandleImFontChanged()
-        {
-            if (this.Substance is not HandleSubstance hs)
-                return;
-
-            foreach (var handle in hs.RelevantHandles)
-                handle.InvokeImFontChanged();
-        }
-
-        /// <inheritdoc/>
         public IFontHandleSubstance NewSubstance(IRefCountable dataRoot)
         {
             lock (this.syncRoot)
@@ -231,6 +221,9 @@ internal class GamePrebakedFontHandle : FontHandle
         /// </summary>
         // Not owned by this class. Do not dispose.
         public GamePrebakedFontHandle[] RelevantHandles { get; }
+
+        /// <inheritdoc/>
+        ICollection<FontHandle> IFontHandleSubstance.RelevantHandles => this.RelevantHandles;
 
         /// <inheritdoc/>
         public IRefCountable DataRoot { get; }
@@ -411,12 +404,6 @@ internal class GamePrebakedFontHandle : FontHandle
                     this.fonts[style] = default;
                 }
             }
-        }
-
-        /// <inheritdoc/>
-        public void OnPostPromotion(IFontAtlasBuildToolkitPostPromotion toolkitPostPromotion)
-        {
-            // Irrelevant
         }
 
         /// <summary>

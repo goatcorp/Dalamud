@@ -12,14 +12,17 @@ namespace Dalamud.Interface.ManagedFontAtlas;
 public interface IFontHandle : IDisposable
 {
     /// <summary>
-    /// Called when the built instance of <see cref="ImFontPtr"/> has been changed.<br />
-    /// This event will be invoked on the same thread with
-    /// <see cref="IFontAtlas"/>.<see cref="IFontAtlas.BuildStepChange"/>,
-    /// when the build step is <see cref="FontAtlasBuildStep.PostPromotion"/>.<br />
-    /// See <see cref="IFontAtlas.BuildFontsOnNextFrame"/>, <see cref="IFontAtlas.BuildFontsImmediately"/>, and
-    /// <see cref="IFontAtlas.BuildFontsAsync"/>.
+    /// Delegate for <see cref="IFontHandle.ImFontChanged"/>.
     /// </summary>
-    event Action<IFontHandle> ImFontChanged;
+    /// <param name="fontHandle">The relevant font handle.</param>
+    /// <param name="lockedFont">The locked font for this font handle, locked during the call of this delegate.</param>
+    public delegate void ImFontChangedDelegate(IFontHandle fontHandle, ImFontLocked lockedFont);
+
+    /// <summary>
+    /// Called when the built instance of <see cref="ImFontPtr"/> has been changed.<br />
+    /// This event can be invoked outside the main thread.
+    /// </summary>
+    event ImFontChangedDelegate ImFontChanged;
 
     /// <summary>
     /// Gets the load exception, if it failed to load. Otherwise, it is null.
@@ -101,6 +104,18 @@ public interface IFontHandle : IDisposable
         public static implicit operator ImFontPtr(ImFontLocked l) => l.ImFont;
 
         public static unsafe implicit operator ImFont*(ImFontLocked l) => l.ImFont.NativePtr;
+
+        /// <summary>
+        /// Creates a new instance of <see cref="ImFontLocked"/> with an additional reference to the owner.
+        /// </summary>
+        /// <returns>The new locked instance.</returns>
+        public readonly ImFontLocked NewRef()
+        {
+            if (this.owner is null)
+                throw new ObjectDisposedException(nameof(ImFontLocked));
+            this.owner.AddRef();
+            return new(this.ImFont, this.owner);
+        }
 
         /// <inheritdoc/>
         public void Dispose()

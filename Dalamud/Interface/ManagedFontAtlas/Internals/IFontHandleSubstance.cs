@@ -1,4 +1,6 @@
-﻿using Dalamud.Utility;
+﻿using System.Collections.Generic;
+
+using Dalamud.Utility;
 
 using ImGuiNET;
 
@@ -33,6 +35,11 @@ internal interface IFontHandleSubstance : IDisposable
     bool CreateFontOnAccess { get; set; }
 
     /// <summary>
+    /// Gets the relevant handles.
+    /// </summary>
+    public ICollection<FontHandle> RelevantHandles { get; }
+
+    /// <summary>
     /// Gets the font.
     /// </summary>
     /// <param name="handle">The handle to get from.</param>
@@ -64,11 +71,4 @@ internal interface IFontHandleSubstance : IDisposable
     /// </summary>
     /// <param name="toolkitPostBuild">The toolkit.</param>
     void OnPostBuild(IFontAtlasBuildToolkitPostBuild toolkitPostBuild);
-
-    /// <summary>
-    /// Called on the specific thread depending on <see cref="IFontAtlasBuildToolkit.IsAsyncBuildOperation"/> after
-    /// promoting the staging atlas to direct use with <see cref="IFontAtlas"/>.
-    /// </summary>
-    /// <param name="toolkitPostPromotion">The toolkit.</param>
-    void OnPostPromotion(IFontAtlasBuildToolkitPostPromotion toolkitPostPromotion);
 }

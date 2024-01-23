@@ -69,7 +69,7 @@ namespace Dalamud.CorePlugin
                 this.Interface.UiBuilder.Draw += this.OnDraw;
                 this.Interface.UiBuilder.OpenConfigUi += this.OnOpenConfigUi;
                 this.Interface.UiBuilder.OpenMainUi += this.OnOpenMainUi;
-                this.Interface.UiBuilder.DefaultFontHandle.ImFontChanged += fc =>
+                this.Interface.UiBuilder.DefaultFontHandle.ImFontChanged += (fc, _) =>
                 {
                     Log.Information($"CorePlugin : DefaultFontHandle.ImFontChanged called {fc}");
                 };

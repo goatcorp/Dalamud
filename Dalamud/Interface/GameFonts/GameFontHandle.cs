@@ -31,7 +31,7 @@ public sealed class GameFontHandle : IFontHandle
     }
 
     /// <inheritdoc />
-    public event Action<IFontHandle> ImFontChanged
+    public event IFontHandle.ImFontChangedDelegate ImFontChanged
     {
         add => this.fontHandle.ImFontChanged += value;
         remove => this.fontHandle.ImFontChanged -= value;

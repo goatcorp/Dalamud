@@ -79,6 +79,7 @@ internal class InterfaceManager : IDisposable, IServiceType
     private Hook<ResizeBuffersDelegate>? resizeBuffersHook;
 
     private IFontAtlas? dalamudAtlas;
+    private IFontHandle.ImFontLocked defaultFontResourceLock;
 
     // can't access imgui IO before first present call
     private bool lastWantCapture = false;
@@ -717,32 +718,35 @@ internal class InterfaceManager : IDisposable, IServiceType
                     tk => tk.AddDalamudAssetFont(
                         DalamudAsset.InconsolataRegular,
                         new() { SizePx = DefaultFontSizePx })));
-            this.dalamudAtlas.BuildStepChange += e => e
-                .OnPostBuild(
-                    tk =>
+            this.dalamudAtlas.BuildStepChange += e => e.OnPostBuild(
+                tk =>
+                {
+                    // Fill missing glyphs in MonoFont from DefaultFont.
+                    tk.CopyGlyphsAcrossFonts(
+                        tk.GetFont(this.DefaultFontHandle),
+                        tk.GetFont(this.MonoFontHandle),
+                        missingOnly: true);
+                });
+            this.DefaultFontHandle.ImFontChanged += (_, font) => Service<Framework>.Get().RunOnFrameworkThread(
+                () =>
+                {
+                    // Update the ImGui default font.
+                    unsafe
                     {
-                        // Fill missing glyphs in MonoFont from DefaultFont.
-                        tk.CopyGlyphsAcrossFonts(
-                            tk.GetFont(this.DefaultFontHandle),
-                            tk.GetFont(this.MonoFontHandle),
-                            missingOnly: true);
-                    })
-                .OnPostPromotion(
-                    tk =>
-                    {
-                        // Update the ImGui default font.
-                        unsafe
-                        {
-                            ImGui.GetIO().NativePtr->FontDefault = tk.GetFont(this.DefaultFontHandle);
-                        }
+                        ImGui.GetIO().NativePtr->FontDefault = font;
+                    }
 
-                        // Broadcast to auto-rebuilding instances.
-                        this.AfterBuildFonts?.Invoke();
-                    });
+                    // Update the reference to the resources of the default font.
+                    this.defaultFontResourceLock.Dispose();
+                    this.defaultFontResourceLock = font.NewRef();
+
+                    // Broadcast to auto-rebuilding instances.
+                    this.AfterBuildFonts?.Invoke();
+                });
         }
 
         // This will wait for scene on its own. We just wait for this.dalamudAtlas.BuildTask in this.InitScene.
-        _ = this.dalamudAtlas.BuildFontsAsync(false);
+        _ = this.dalamudAtlas.BuildFontsAsync();
 
         this.address.Setup(sigScanner);
 

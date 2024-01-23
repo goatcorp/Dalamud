@@ -486,7 +486,7 @@ internal sealed partial class FontAtlasFactory
         }
 
         /// <inheritdoc/>
-        public Task BuildFontsAsync(bool callPostPromotionOnMainThread = true)
+        public Task BuildFontsAsync()
         {
 #if VeryVerboseLog
             Log.Verbose("[{name}] Called: {source}.", this.Name, nameof(this.BuildFontsAsync));
@@ -519,15 +519,7 @@ internal sealed partial class FontAtlasFactory
                     if (res.Atlas.IsNull())
                         return res;
 
-                    if (callPostPromotionOnMainThread)
-                    {
-                        await this.factory.Framework.RunOnFrameworkThread(
-                            () => this.InvokePostPromotion(rebuildIndex, res, nameof(this.BuildFontsAsync)));
-                    }
-                    else
-                    {
-                        this.InvokePostPromotion(rebuildIndex, res, nameof(this.BuildFontsAsync));
-                    }
+                    this.InvokePostPromotion(rebuildIndex, res, nameof(this.BuildFontsAsync));
 
                     return res;
                 }
@@ -536,6 +528,10 @@ internal sealed partial class FontAtlasFactory
 
         private void InvokePostPromotion(int rebuildIndex, FontAtlasBuiltData data, [UsedImplicitly] string source)
         {
+            // Capture the locks inside the lock block, so that the fonts are guaranteed to be the ones just built.
+            var fontsAndLocks = new List<(FontHandle FontHandle, IFontHandle.ImFontLocked Lock)>();
+            using var garbage = new DisposeSafety.ScopedFinalizer();
+
             lock (this.syncRoot)
             {
                 if (this.buildIndex != rebuildIndex)
@@ -549,56 +545,25 @@ internal sealed partial class FontAtlasFactory
                 prevBuiltData.ExplicitDisposeIgnoreExceptions();
 
                 this.buildTask = EmptyTask;
+                fontsAndLocks.EnsureCapacity(data.Substances.Sum(x => x.RelevantHandles.Count));
                 foreach (var substance in data.Substances)
+                {
                     substance.Manager.Substance = substance;
+                    foreach (var fontHandle in substance.RelevantHandles)
+                    {
+                        substance.DataRoot.AddRef();
+                        var locked = new IFontHandle.ImFontLocked(substance.GetFontPtr(fontHandle), substance.DataRoot);
+                        fontsAndLocks.Add((fontHandle, garbage.Add(locked)));
+                    }
+                }
             }
 
-            lock (this.syncRootPostPromotion)
-            {
-                if (this.buildIndex != rebuildIndex)
-                {
-                    data.ExplicitDisposeIgnoreExceptions();
-                    return;
-                }
-
-                foreach (var substance in data.Substances)
-                    substance.Manager.InvokeFontHandleImFontChanged();
-
-                var toolkit = new BuildToolkitPostPromotion(data);
-
-                foreach (var substance in data.Substances)
-                {
-                    try
-                    {
-                        substance.OnPostPromotion(toolkit);
-                    }
-                    catch (Exception e)
-                    {
-                        Log.Error(
-                            e,
-                            "[{name}] {substance} PostPromotion error",
-                            this.Name,
-                            substance.GetType().FullName ?? substance.GetType().Name);
-                    }
-                }
-
-                try
-                {
-                    this.BuildStepChange?.Invoke(toolkit);
-                }
-                catch (Exception e)
-                {
-                    Log.Error(
-                        e,
-                        "[{name}] {delegateName} PostPromotion error",
-                        this.Name,
-                        nameof(FontAtlasBuildStepDelegate));
-                }
+            foreach (var (fontHandle, lockedFont) in fontsAndLocks)
+                fontHandle.InvokeImFontChanged(lockedFont);
 
 #if VeryVerboseLog
-                Log.Verbose("[{name}] Built from {source}.", this.Name, source);
+            Log.Verbose("[{name}] Built from {source}.", this.Name, source);
 #endif
-            }
         }
 
         private void ImGuiSceneOnNewRenderFrame()

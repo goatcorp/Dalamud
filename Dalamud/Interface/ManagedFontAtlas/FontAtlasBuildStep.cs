@@ -27,15 +27,4 @@ public enum FontAtlasBuildStep
     /// but it will never happen on its own.
     /// </summary>
     PostBuild = 2,
-
-    /// <summary>
-    /// Called after promoting staging font atlas to the actual atlas for <see cref="IFontAtlas"/>.<br />
-    /// Expect <see cref="PostBuild"/> to be passed.<br />
-    /// When called from <see cref="IFontAtlas.BuildStepChange"/>, this will be called <b>after</b> the delegates
-    /// passed to <see cref="IFontAtlas.NewDelegateFontHandle"/>; you should not make modifications to fonts.<br />
-    /// <br />
-    /// This callback is not guaranteed to happen after <see cref="IFontAtlasBuildToolkitPostPromotion"/>,
-    /// but it will never happen on its own.
-    /// </summary>
-    PostPromotion = 3,
 }

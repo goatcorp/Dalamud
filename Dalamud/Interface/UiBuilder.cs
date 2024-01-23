@@ -744,7 +744,7 @@ public sealed class UiBuilder : IDisposable
             this.wrapped.ImFontChanged += this.WrappedOnImFontChanged;
         }
 
-        public event Action<IFontHandle>? ImFontChanged;
+        public event IFontHandle.ImFontChangedDelegate? ImFontChanged;
 
         public Exception? LoadException =>
             this.wrapped!.LoadException ?? new ObjectDisposedException(nameof(FontHandleWrapper));
@@ -775,6 +775,7 @@ public sealed class UiBuilder : IDisposable
 
         public override string ToString() => $"{nameof(FontHandleWrapper)}({this.wrapped})";
 
-        private void WrappedOnImFontChanged(IFontHandle obj) => this.ImFontChanged.InvokeSafely(this);
+        private void WrappedOnImFontChanged(IFontHandle obj, IFontHandle.ImFontLocked lockedFont) =>
+            this.ImFontChanged?.Invoke(obj, lockedFont);
     } 
 }

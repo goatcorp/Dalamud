@@ -113,21 +113,4 @@ public static class FontAtlasBuildToolkitUtilities
             action.Invoke((IFontAtlasBuildToolkitPostBuild)toolkit);
         return toolkit;
     }
-
-    /// <summary>
-    /// Invokes <paramref name="action"/>
-    /// if <see cref="IFontAtlasBuildToolkit.BuildStep"/> of <paramref name="toolkit"/>
-    /// is <see cref="FontAtlasBuildStep.PostPromotion"/>.
-    /// </summary>
-    /// <param name="toolkit">The toolkit.</param>
-    /// <param name="action">The action.</param>
-    /// <returns>toolkit, for method chaining.</returns>
-    public static IFontAtlasBuildToolkit OnPostPromotion(
-        this IFontAtlasBuildToolkit toolkit,
-        Action<IFontAtlasBuildToolkitPostPromotion> action)
-    {
-        if (toolkit.BuildStep is FontAtlasBuildStep.PostPromotion)
-            action.Invoke((IFontAtlasBuildToolkitPostPromotion)toolkit);
-        return toolkit;
-    }
 }
