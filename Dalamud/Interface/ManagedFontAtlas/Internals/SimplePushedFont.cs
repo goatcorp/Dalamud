@@ -28,7 +28,7 @@ internal sealed class SimplePushedFont : IDisposable
     /// </summary>
     /// <param name="stack">The <see cref="IFontHandle"/>-private stack.</param>
     /// <param name="fontPtr">The font pointer being pushed.</param>
-    /// <returns><c>this</c>.</returns>
+    /// <returns>The rented instance of <see cref="SimplePushedFont"/>.</returns>
     public static SimplePushedFont Rent(List<IDisposable> stack, ImFontPtr fontPtr)
     {
         var rented = Pool.Get();

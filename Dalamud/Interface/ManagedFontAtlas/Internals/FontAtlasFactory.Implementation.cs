@@ -557,7 +557,9 @@ internal sealed partial class FontAtlasFactory
                     foreach (var fontHandle in substance.RelevantHandles)
                     {
                         substance.DataRoot.AddRef();
-                        var locked = new IFontHandle.ImFontLocked(substance.GetFontPtr(fontHandle), substance.DataRoot);
+                        var locked = IFontHandle.ImFontLocked.Rent(
+                            substance.GetFontPtr(fontHandle),
+                            substance.DataRoot);
                         fontsAndLocks.Add((fontHandle, garbage.Add(locked)));
                     }
                 }

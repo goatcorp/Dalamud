@@ -79,7 +79,7 @@ internal class InterfaceManager : IDisposable, IServiceType
     private Hook<ResizeBuffersDelegate>? resizeBuffersHook;
 
     private IFontAtlas? dalamudAtlas;
-    private IFontHandle.ImFontLocked defaultFontResourceLock;
+    private IFontHandle.ImFontLocked? defaultFontResourceLock;
 
     // can't access imgui IO before first present call
     private bool lastWantCapture = false;
@@ -243,6 +243,8 @@ internal class InterfaceManager : IDisposable, IServiceType
             Disposer();
 
         this.wndProcHookManager.PreWndProc -= this.WndProcHookManagerOnPreWndProc;
+        this.defaultFontResourceLock?.Dispose(); // lock outlives handle and atlas
+        this.defaultFontResourceLock = null;
         this.dalamudAtlas?.Dispose();
         this.scene?.Dispose();
         return;
@@ -727,22 +729,26 @@ internal class InterfaceManager : IDisposable, IServiceType
                         tk.GetFont(this.MonoFontHandle),
                         missingOnly: true);
                 });
-            this.DefaultFontHandle.ImFontChanged += (_, font) => Service<Framework>.Get().RunOnFrameworkThread(
-                () =>
-                {
-                    // Update the ImGui default font.
-                    unsafe
+            this.DefaultFontHandle.ImFontChanged += (_, font) =>
+            {
+                var fontLocked = font.NewRef();
+                Service<Framework>.Get().RunOnFrameworkThread(
+                    () =>
                     {
-                        ImGui.GetIO().NativePtr->FontDefault = font;
-                    }
+                        // Update the ImGui default font.
+                        unsafe
+                        {
+                            ImGui.GetIO().NativePtr->FontDefault = fontLocked;
+                        }
 
-                    // Update the reference to the resources of the default font.
-                    this.defaultFontResourceLock.Dispose();
-                    this.defaultFontResourceLock = font.NewRef();
+                        // Update the reference to the resources of the default font.
+                        this.defaultFontResourceLock?.Dispose();
+                        this.defaultFontResourceLock = fontLocked;
 
-                    // Broadcast to auto-rebuilding instances.
-                    this.AfterBuildFonts?.Invoke();
-                });
+                        // Broadcast to auto-rebuilding instances.
+                        this.AfterBuildFonts?.Invoke();
+                    });
+            };
         }
 
         // This will wait for scene on its own. We just wait for this.dalamudAtlas.BuildTask in this.InitScene.

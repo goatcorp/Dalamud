@@ -182,7 +182,7 @@ internal abstract class FontHandle : IFontHandle
 
             // Transfer the ownership of reference.
             errorMessage = null;
-            return new(fontPtr, substance.DataRoot);
+            return IFontHandle.ImFontLocked.Rent(fontPtr, substance.DataRoot);
         }
     }
 

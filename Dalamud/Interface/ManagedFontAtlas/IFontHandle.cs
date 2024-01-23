@@ -1,8 +1,13 @@
-﻿using System.Threading.Tasks;
+﻿using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Threading.Tasks;
 
+using Dalamud.Interface.Utility;
 using Dalamud.Utility;
 
 using ImGuiNET;
+
+using Microsoft.Extensions.ObjectPool;
 
 namespace Dalamud.Interface.ManagedFontAtlas;
 
@@ -80,26 +85,23 @@ public interface IFontHandle : IDisposable
     /// The wrapper for <see cref="ImFontPtr"/>, guaranteeing that the associated data will be available as long as
     /// this struct is not disposed.
     /// </summary>
-    public struct ImFontLocked : IDisposable
+    public class ImFontLocked : IDisposable
     {
-        /// <summary>
-        /// The associated <see cref="ImFontPtr"/>.
-        /// </summary>
-        public ImFontPtr ImFont;
+        // Using constructor instead of DefaultObjectPoolProvider, since we do not want the pool to call Dispose.
+        private static readonly ObjectPool<ImFontLocked> Pool =
+            new DefaultObjectPool<ImFontLocked>(new DefaultPooledObjectPolicy<ImFontLocked>());
 
         private IRefCountable? owner;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ImFontLocked"/> struct.
-        /// Ownership of reference of <paramref name="owner"/> is transferred.
+        /// Finalizes an instance of the <see cref="ImFontLocked"/> class.
         /// </summary>
-        /// <param name="imFont">The contained font.</param>
-        /// <param name="owner">The owner.</param>
-        internal ImFontLocked(ImFontPtr imFont, IRefCountable owner)
-        {
-            this.ImFont = imFont;
-            this.owner = owner;
-        }
+        ~ImFontLocked() => this.FreeOwner();
+
+        /// <summary>
+        /// Gets the associated <see cref="ImFontPtr"/>.
+        /// </summary>
+        public ImFontPtr ImFont { get; private set; }
 
         public static implicit operator ImFontPtr(ImFontLocked l) => l.ImFont;
 
@@ -109,16 +111,47 @@ public interface IFontHandle : IDisposable
         /// Creates a new instance of <see cref="ImFontLocked"/> with an additional reference to the owner.
         /// </summary>
         /// <returns>The new locked instance.</returns>
-        public readonly ImFontLocked NewRef()
+        public ImFontLocked NewRef()
         {
             if (this.owner is null)
                 throw new ObjectDisposedException(nameof(ImFontLocked));
+
+            var rented = Pool.Get();
+            rented.owner = this.owner;
+            rented.ImFont = this.ImFont;
+
             this.owner.AddRef();
-            return new(this.ImFont, this.owner);
+            return rented;
         }
 
         /// <inheritdoc/>
+        [SuppressMessage(
+            "Usage",
+            "CA1816:Dispose methods should call SuppressFinalize",
+            Justification = "Dispose returns this object to the pool.")]
         public void Dispose()
+        {
+            this.FreeOwner();
+            Pool.Return(this);
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ImFontLocked"/> class.
+        /// Ownership of reference of <paramref name="owner"/> is transferred.
+        /// </summary>
+        /// <param name="font">The contained font.</param>
+        /// <param name="owner">The owner.</param>
+        /// <returns>The rented instance of <see cref="ImFontLocked"/>.</returns>
+        internal static ImFontLocked Rent(ImFontPtr font, IRefCountable owner)
+        {
+            var rented = Pool.Get();
+            Debug.Assert(rented.ImFont.IsNull(), "Rented object must not have its font set");
+            rented.ImFont = font;
+            rented.owner = owner;
+            return rented;
+        }
+
+        private void FreeOwner()
         {
             if (this.owner is null)
                 return;
