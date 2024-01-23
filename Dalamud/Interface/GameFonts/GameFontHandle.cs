@@ -71,7 +71,7 @@ public sealed class GameFontHandle : IFontHandle
     public void Dispose() => this.fontHandle.Dispose();
 
     /// <inheritdoc />
-    public IFontHandle.ImFontLocked Lock() => this.fontHandle.Lock();
+    public ILockedImFont Lock() => this.fontHandle.Lock();
 
     /// <inheritdoc />
     public IDisposable Push() => this.fontHandle.Push();

@@ -74,7 +74,7 @@ internal abstract class FontHandle : IFontHandle
     /// Invokes <see cref="IFontHandle.ImFontChanged"/>.
     /// </summary>
     /// <param name="font">The font, locked during the call of <see cref="ImFontChanged"/>.</param>
-    public void InvokeImFontChanged(IFontHandle.ImFontLocked font)
+    public void InvokeImFontChanged(ILockedImFont font)
     {
         try
         {
@@ -133,11 +133,11 @@ internal abstract class FontHandle : IFontHandle
     /// </summary>
     /// <param name="errorMessage">The error message, if any.</param>
     /// <returns>
-    /// An instance of <see cref="IFontHandle.ImFontLocked"/> that <b>must</b> be disposed after use on success;
+    /// An instance of <see cref="ILockedImFont"/> that <b>must</b> be disposed after use on success;
     /// <c>null</c> with <paramref name="errorMessage"/> populated on failure.
     /// </returns>
     /// <exception cref="ObjectDisposedException">Still may be thrown.</exception>
-    public IFontHandle.ImFontLocked? TryLock(out string? errorMessage)
+    public ILockedImFont? TryLock(out string? errorMessage)
     {
         IFontHandleSubstance? prevSubstance = default;
         while (true)
@@ -182,12 +182,12 @@ internal abstract class FontHandle : IFontHandle
 
             // Transfer the ownership of reference.
             errorMessage = null;
-            return IFontHandle.ImFontLocked.Rent(fontPtr, substance.DataRoot);
+            return new LockedImFont(fontPtr, substance.DataRoot);
         }
     }
 
     /// <inheritdoc/>
-    public IFontHandle.ImFontLocked Lock() =>
+    public ILockedImFont Lock() =>
         this.TryLock(out var errorMessage) ?? throw new InvalidOperationException(errorMessage);
 
     /// <inheritdoc/>
@@ -238,10 +238,10 @@ internal abstract class FontHandle : IFontHandle
         this.ImFontChanged += OnImFontChanged;
         this.Disposed += OnDisposed;
         if (this.Available)
-            OnImFontChanged(this, default);
+            OnImFontChanged(this, null);
         return tcs.Task;
 
-        void OnImFontChanged(IFontHandle unused, IFontHandle.ImFontLocked unused2)
+        void OnImFontChanged(IFontHandle unused, ILockedImFont? unused2)
         {
             if (tcs.Task.IsCompletedSuccessfully)
                 return;

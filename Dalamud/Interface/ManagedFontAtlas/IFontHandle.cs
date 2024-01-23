@@ -1,13 +1,6 @@
-﻿using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
-using System.Threading.Tasks;
-
-using Dalamud.Interface.Utility;
-using Dalamud.Utility;
+﻿using System.Threading.Tasks;
 
 using ImGuiNET;
-
-using Microsoft.Extensions.ObjectPool;
 
 namespace Dalamud.Interface.ManagedFontAtlas;
 
@@ -21,7 +14,7 @@ public interface IFontHandle : IDisposable
     /// </summary>
     /// <param name="fontHandle">The relevant font handle.</param>
     /// <param name="lockedFont">The locked font for this font handle, locked during the call of this delegate.</param>
-    public delegate void ImFontChangedDelegate(IFontHandle fontHandle, ImFontLocked lockedFont);
+    public delegate void ImFontChangedDelegate(IFontHandle fontHandle, ILockedImFont lockedFont);
 
     /// <summary>
     /// Called when the built instance of <see cref="ImFontPtr"/> has been changed.<br />
@@ -48,13 +41,13 @@ public interface IFontHandle : IDisposable
     /// <see cref="IFontHandle"/>, for use in any thread.<br />
     /// Modification of the font will exhibit undefined behavior if some other thread also uses the font.
     /// </summary>
-    /// <returns>An instance of <see cref="ImFontLocked"/> that <b>must</b> be disposed after use.</returns>
+    /// <returns>An instance of <see cref="ILockedImFont"/> that <b>must</b> be disposed after use.</returns>
     /// <remarks>
     /// Calling <see cref="IFontHandle"/>.<see cref="IDisposable.Dispose"/> will not unlock the <see cref="ImFontPtr"/>
     /// locked by this function.
     /// </remarks>
     /// <exception cref="InvalidOperationException">If <see cref="Available"/> is <c>false</c>.</exception>
-    ImFontLocked Lock();
+    ILockedImFont Lock();
 
     /// <summary>
     /// Pushes the current font into ImGui font stack, if available.<br />
@@ -80,85 +73,4 @@ public interface IFontHandle : IDisposable
     /// </summary>
     /// <returns>A task containing this <see cref="IFontHandle"/>.</returns>
     Task<IFontHandle> WaitAsync();
-
-    /// <summary>
-    /// The wrapper for <see cref="ImFontPtr"/>, guaranteeing that the associated data will be available as long as
-    /// this struct is not disposed.
-    /// </summary>
-    public class ImFontLocked : IDisposable
-    {
-        // Using constructor instead of DefaultObjectPoolProvider, since we do not want the pool to call Dispose.
-        private static readonly ObjectPool<ImFontLocked> Pool =
-            new DefaultObjectPool<ImFontLocked>(new DefaultPooledObjectPolicy<ImFontLocked>());
-
-        private IRefCountable? owner;
-
-        /// <summary>
-        /// Finalizes an instance of the <see cref="ImFontLocked"/> class.
-        /// </summary>
-        ~ImFontLocked() => this.FreeOwner();
-
-        /// <summary>
-        /// Gets the associated <see cref="ImFontPtr"/>.
-        /// </summary>
-        public ImFontPtr ImFont { get; private set; }
-
-        public static implicit operator ImFontPtr(ImFontLocked l) => l.ImFont;
-
-        public static unsafe implicit operator ImFont*(ImFontLocked l) => l.ImFont.NativePtr;
-
-        /// <summary>
-        /// Creates a new instance of <see cref="ImFontLocked"/> with an additional reference to the owner.
-        /// </summary>
-        /// <returns>The new locked instance.</returns>
-        public ImFontLocked NewRef()
-        {
-            if (this.owner is null)
-                throw new ObjectDisposedException(nameof(ImFontLocked));
-
-            var rented = Pool.Get();
-            rented.owner = this.owner;
-            rented.ImFont = this.ImFont;
-
-            this.owner.AddRef();
-            return rented;
-        }
-
-        /// <inheritdoc/>
-        [SuppressMessage(
-            "Usage",
-            "CA1816:Dispose methods should call SuppressFinalize",
-            Justification = "Dispose returns this object to the pool.")]
-        public void Dispose()
-        {
-            this.FreeOwner();
-            Pool.Return(this);
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="ImFontLocked"/> class.
-        /// Ownership of reference of <paramref name="owner"/> is transferred.
-        /// </summary>
-        /// <param name="font">The contained font.</param>
-        /// <param name="owner">The owner.</param>
-        /// <returns>The rented instance of <see cref="ImFontLocked"/>.</returns>
-        internal static ImFontLocked Rent(ImFontPtr font, IRefCountable owner)
-        {
-            var rented = Pool.Get();
-            Debug.Assert(rented.ImFont.IsNull(), "Rented object must not have its font set");
-            rented.ImFont = font;
-            rented.owner = owner;
-            return rented;
-        }
-
-        private void FreeOwner()
-        {
-            if (this.owner is null)
-                return;
-
-            this.owner.Release();
-            this.owner = null;
-            this.ImFont = default;
-        }
-    }
 }

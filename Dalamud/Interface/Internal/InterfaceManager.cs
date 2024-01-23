@@ -63,7 +63,7 @@ internal class InterfaceManager : IDisposable, IServiceType
     public const float DefaultFontSizePx = (DefaultFontSizePt * 4.0f) / 3.0f;
 
     private readonly ConcurrentBag<DalamudTextureWrap> deferredDisposeTextures = new();
-    private readonly ConcurrentBag<IFontHandle.ImFontLocked> deferredDisposeImFontLockeds = new();
+    private readonly ConcurrentBag<ILockedImFont> deferredDisposeImFontLockeds = new();
 
     [ServiceManager.ServiceDependency]
     private readonly WndProcHookManager wndProcHookManager = Service<WndProcHookManager>.Get();
@@ -79,7 +79,7 @@ internal class InterfaceManager : IDisposable, IServiceType
     private Hook<ResizeBuffersDelegate>? resizeBuffersHook;
 
     private IFontAtlas? dalamudAtlas;
-    private IFontHandle.ImFontLocked? defaultFontResourceLock;
+    private ILockedImFont? defaultFontResourceLock;
 
     // can't access imgui IO before first present call
     private bool lastWantCapture = false;
@@ -408,10 +408,10 @@ internal class InterfaceManager : IDisposable, IServiceType
     }
 
     /// <summary>
-    /// Enqueue an <see cref="IFontHandle.ImFontLocked"/> to be disposed at the end of the frame.
+    /// Enqueue an <see cref="ILockedImFont"/> to be disposed at the end of the frame.
     /// </summary>
     /// <param name="locked">The disposable.</param>
-    public void EnqueueDeferredDispose(in IFontHandle.ImFontLocked locked)
+    public void EnqueueDeferredDispose(in ILockedImFont locked)
     {
         this.deferredDisposeImFontLockeds.Add(locked);
     }
@@ -738,7 +738,7 @@ internal class InterfaceManager : IDisposable, IServiceType
                         // Update the ImGui default font.
                         unsafe
                         {
-                            ImGui.GetIO().NativePtr->FontDefault = fontLocked;
+                            ImGui.GetIO().NativePtr->FontDefault = fontLocked.ImFont;
                         }
 
                         // Update the reference to the resources of the default font.

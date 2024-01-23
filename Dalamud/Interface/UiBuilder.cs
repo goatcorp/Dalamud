@@ -761,7 +761,7 @@ public sealed class UiBuilder : IDisposable
             // Note: do not dispose w; we do not own it
         }
 
-        public IFontHandle.ImFontLocked Lock() =>
+        public ILockedImFont Lock() =>
             this.wrapped?.Lock() ?? throw new ObjectDisposedException(nameof(FontHandleWrapper));
 
         public IDisposable Push() => 
@@ -775,7 +775,7 @@ public sealed class UiBuilder : IDisposable
 
         public override string ToString() => $"{nameof(FontHandleWrapper)}({this.wrapped})";
 
-        private void WrappedOnImFontChanged(IFontHandle obj, IFontHandle.ImFontLocked lockedFont) =>
+        private void WrappedOnImFontChanged(IFontHandle obj, ILockedImFont lockedFont) =>
             this.ImFontChanged?.Invoke(obj, lockedFont);
     } 
 }

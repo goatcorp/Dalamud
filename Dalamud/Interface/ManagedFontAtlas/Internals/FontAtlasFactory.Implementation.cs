@@ -534,7 +534,7 @@ internal sealed partial class FontAtlasFactory
         private void PromoteBuiltData(int rebuildIndex, FontAtlasBuiltData data, [UsedImplicitly] string source)
         {
             // Capture the locks inside the lock block, so that the fonts are guaranteed to be the ones just built.
-            var fontsAndLocks = new List<(FontHandle FontHandle, IFontHandle.ImFontLocked Lock)>();
+            var fontsAndLocks = new List<(FontHandle FontHandle, ILockedImFont Lock)>();
             using var garbage = new DisposeSafety.ScopedFinalizer();
 
             lock (this.syncRoot)
@@ -557,7 +557,7 @@ internal sealed partial class FontAtlasFactory
                     foreach (var fontHandle in substance.RelevantHandles)
                     {
                         substance.DataRoot.AddRef();
-                        var locked = IFontHandle.ImFontLocked.Rent(
+                        var locked = new LockedImFont(
                             substance.GetFontPtr(fontHandle),
                             substance.DataRoot);
                         fontsAndLocks.Add((fontHandle, garbage.Add(locked)));
