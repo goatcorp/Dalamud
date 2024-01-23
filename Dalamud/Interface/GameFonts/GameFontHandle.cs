@@ -15,15 +15,16 @@ namespace Dalamud.Interface.GameFonts;
 [Api10ToDo(Api10ToDoAttribute.DeleteCompatBehavior)]
 public sealed class GameFontHandle : IFontHandle
 {
-    private readonly IFontHandle.IInternal fontHandle;
+    private readonly GamePrebakedFontHandle fontHandle;
     private readonly FontAtlasFactory fontAtlasFactory;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="GameFontHandle"/> class.
+    /// Initializes a new instance of the <see cref="GameFontHandle"/> class.<br />
+    /// Ownership of <paramref name="fontHandle"/> is transferred.
     /// </summary>
-    /// <param name="fontHandle">The wrapped <see cref="IFontHandle"/>.</param>
+    /// <param name="fontHandle">The wrapped <see cref="GamePrebakedFontHandle"/>.</param>
     /// <param name="fontAtlasFactory">An instance of <see cref="FontAtlasFactory"/>.</param>
-    internal GameFontHandle(IFontHandle.IInternal fontHandle, FontAtlasFactory fontAtlasFactory)
+    internal GameFontHandle(GamePrebakedFontHandle fontHandle, FontAtlasFactory fontAtlasFactory)
     {
         this.fontHandle = fontHandle;
         this.fontAtlasFactory = fontAtlasFactory;
@@ -42,9 +43,15 @@ public sealed class GameFontHandle : IFontHandle
     /// <inheritdoc />
     public bool Available => this.fontHandle.Available;
 
-    /// <inheritdoc cref="IFontHandle.IInternal.ImFont"/>
-    [Obsolete($"Use {nameof(Push)}, and then use {nameof(ImGui.GetFont)} instead.", false)]
-    public ImFontPtr ImFont => this.fontHandle.ImFont;
+    /// <summary>
+    /// Gets the font.<br />
+    /// Use of this properly is safe only from the UI thread.<br />
+    /// Use <see cref="IFontHandle.Push"/> if the intended purpose of this property is <see cref="ImGui.PushFont"/>.<br />
+    /// Futures changes may make simple <see cref="ImGui.PushFont"/> not enough.<br />
+    /// If you need to access a font outside the UI thread, use <see cref="IFontHandle.Lock"/>.
+    /// </summary>
+    [Obsolete($"Use {nameof(Push)}-{nameof(ImGui.GetFont)} or {nameof(Lock)} instead.", false)]
+    public ImFontPtr ImFont => this.fontHandle.LockUntilPostFrame();
 
     /// <summary>
     /// Gets the font style. Only applicable for <see cref="GameFontHandle"/>.
@@ -66,10 +73,7 @@ public sealed class GameFontHandle : IFontHandle
     /// <inheritdoc />
     public IFontHandle.ImFontLocked Lock() => this.fontHandle.Lock();
 
-    /// <summary>
-    /// Pushes the font.
-    /// </summary>
-    /// <returns>An <see cref="IDisposable"/> that can be used to pop the font on dispose.</returns>
+    /// <inheritdoc />
     public IDisposable Push() => this.fontHandle.Push();
 
     /// <inheritdoc />

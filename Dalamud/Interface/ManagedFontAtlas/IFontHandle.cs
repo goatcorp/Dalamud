@@ -22,21 +22,6 @@ public interface IFontHandle : IDisposable
     event Action<IFontHandle> ImFontChanged;
 
     /// <summary>
-    /// Represents a reference counting handle for fonts. Dalamud internal use only.
-    /// </summary>
-    internal interface IInternal : IFontHandle
-    {
-        /// <summary>
-        /// Gets the font.<br />
-        /// Use of this properly is safe only from the UI thread.<br />
-        /// Use <see cref="IFontHandle.Push"/> if the intended purpose of this property is <see cref="ImGui.PushFont"/>.<br />
-        /// Futures changes may make simple <see cref="ImGui.PushFont"/> not enough.<br />
-        /// If you need to access a font outside the UI thread, consider using <see cref="IFontHandle.Lock"/>.
-        /// </summary>
-        ImFontPtr ImFont { get; }
-    }
-
-    /// <summary>
     /// Gets the load exception, if it failed to load. Otherwise, it is null.
     /// </summary>
     Exception? LoadException { get; }
@@ -45,7 +30,6 @@ public interface IFontHandle : IDisposable
     /// Gets a value indicating whether this font is ready for use.
     /// </summary>
     /// <remarks>
-    /// Once set to <c>true</c>, it will remain <c>true</c>.<br />
     /// Use <see cref="Push"/> directly if you want to keep the current ImGui font if the font is not ready.<br />
     /// Alternatively, use <see cref="WaitAsync"/> to wait for this property to become <c>true</c>.
     /// </remarks>
@@ -103,14 +87,13 @@ public interface IFontHandle : IDisposable
         private IRefCountable? owner;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ImFontLocked"/> struct,
-        /// and incrase the reference count of <paramref name="owner"/>.
+        /// Initializes a new instance of the <see cref="ImFontLocked"/> struct.
+        /// Ownership of reference of <paramref name="owner"/> is transferred.
         /// </summary>
         /// <param name="imFont">The contained font.</param>
         /// <param name="owner">The owner.</param>
         internal ImFontLocked(ImFontPtr imFont, IRefCountable owner)
         {
-            owner.AddRef();
             this.ImFont = imFont;
             this.owner = owner;
         }

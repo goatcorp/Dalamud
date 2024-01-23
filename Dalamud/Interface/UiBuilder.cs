@@ -498,7 +498,7 @@ public sealed class UiBuilder : IDisposable
     [Obsolete($"Use {nameof(this.FontAtlas)}.{nameof(IFontAtlas.NewGameFontHandle)} instead.", false)]
     [Api10ToDo(Api10ToDoAttribute.DeleteCompatBehavior)]
     public GameFontHandle GetGameFontHandle(GameFontStyle style) => new(
-        (IFontHandle.IInternal)this.FontAtlas.NewGameFontHandle(style),
+        (GamePrebakedFontHandle)this.FontAtlas.NewGameFontHandle(style),
         Service<FontAtlasFactory>.Get());
 
     /// <summary>
