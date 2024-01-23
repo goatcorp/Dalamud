@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reactive.Disposables;
-using System.Threading;
 using System.Threading.Tasks;
 
 using Dalamud.Interface.GameFonts;
@@ -168,7 +167,7 @@ internal sealed partial class FontAtlasFactory
             _ => throw new InvalidOperationException(),
         };
 
-        public unsafe int Release()
+        public int Release()
         {
             switch (IRefCountable.AlterRefCount(-1, ref this.refCount, out var newRefCount))
             {
@@ -176,22 +175,35 @@ internal sealed partial class FontAtlasFactory
                     return newRefCount;
 
                 case IRefCountable.RefCountResult.FinalRelease:
-                    if (this.IsBuildInProgress)
-                    {
-                        Log.Error(
-                            "[{name}] 0x{ptr:X}: Trying to dispose while build is in progress; waiting for build.\n" +
-                            "Stack:\n{trace}",
-                            this.Owner?.Name ?? "<?>",
-                            (nint)this.Atlas.NativePtr,
-                            new StackTrace());
-                        while (this.IsBuildInProgress)
-                            Thread.Sleep(100);
-                    }
-
 #if VeryVerboseLog
                     Log.Verbose("[{name}] 0x{ptr:X}: Disposing", this.Owner?.Name ?? "<?>", (nint)this.Atlas.NativePtr);
 #endif
-                    this.Garbage.Dispose();
+
+                    if (this.IsBuildInProgress)
+                    {
+                        unsafe
+                        {
+                            Log.Error(
+                                "[{name}] 0x{ptr:X}: Trying to dispose while build is in progress; disposing later.\n" +
+                                "Stack:\n{trace}",
+                                this.Owner?.Name ?? "<?>",
+                                (nint)this.Atlas.NativePtr,
+                                new StackTrace());
+                        }
+
+                        Task.Run(
+                            async () =>
+                            {
+                                while (this.IsBuildInProgress)
+                                    await Task.Delay(100);
+                                this.Garbage.Dispose();
+                            });
+                    }
+                    else
+                    {
+                        this.Garbage.Dispose();
+                    }
+
                     return newRefCount;
 
                 case IRefCountable.RefCountResult.AlreadyDisposed:
@@ -549,20 +561,10 @@ internal sealed partial class FontAtlasFactory
                     return;
                 }
 
-                var toolkit = new BuildToolkitPostPromotion(data);
+                foreach (var substance in data.Substances)
+                    substance.Manager.InvokeFontHandleImFontChanged();
 
-                try
-                {
-                    this.BuildStepChange?.Invoke(toolkit);
-                }
-                catch (Exception e)
-                {
-                    Log.Error(
-                        e,
-                        "[{name}] {delegateName} PostPromotion error",
-                        this.Name,
-                        nameof(FontAtlasBuildStepDelegate));
-                }
+                var toolkit = new BuildToolkitPostPromotion(data);
 
                 foreach (var substance in data.Substances)
                 {
@@ -580,20 +582,18 @@ internal sealed partial class FontAtlasFactory
                     }
                 }
 
-                foreach (var font in toolkit.Fonts)
+                try
                 {
-                    try
-                    {
-                        toolkit.BuildLookupTable(font);
-                    }
-                    catch (Exception e)
-                    {
-                        Log.Error(e, "[{name}] BuildLookupTable error", this.Name);
-                    }
+                    this.BuildStepChange?.Invoke(toolkit);
                 }
-
-                foreach (var substance in data.Substances)
-                    substance.Manager.InvokeFontHandleImFontChanged();
+                catch (Exception e)
+                {
+                    Log.Error(
+                        e,
+                        "[{name}] {delegateName} PostPromotion error",
+                        this.Name,
+                        nameof(FontAtlasBuildStepDelegate));
+                }
 
 #if VeryVerboseLog
                 Log.Verbose("[{name}] Built from {source}.", this.Name, source);
@@ -709,6 +709,9 @@ internal sealed partial class FontAtlasFactory
                 toolkit.PostBuildSubstances();
                 this.BuildStepChange?.Invoke(toolkit);
 
+                foreach (var font in toolkit.Fonts)
+                    toolkit.BuildLookupTable(font);
+
                 if (this.factory.SceneTask is { IsCompleted: false } sceneTask)
                 {
                     Log.Verbose(
@@ -754,6 +757,8 @@ internal sealed partial class FontAtlasFactory
             }
             finally
             {
+                // RS is being dumb
+                // ReSharper disable once ConstantConditionalAccessQualifier
                 toolkit?.Dispose();
                 this.buildQueued = false;
             }

@@ -717,28 +717,28 @@ internal class InterfaceManager : IDisposable, IServiceType
                     tk => tk.AddDalamudAssetFont(
                         DalamudAsset.InconsolataRegular,
                         new() { SizePx = DefaultFontSizePx })));
-            this.dalamudAtlas.BuildStepChange += e => e.OnPostPromotion(
-                tk =>
-                {
-                    // Note: the first call of this function is done outside the main thread; this is expected.
-                    // Do not use DefaultFont, IconFont, and MonoFont.
-                    // Use font handles directly.
-
-                    using var defaultFont = this.DefaultFontHandle.Lock();
-                    using var monoFont = this.MonoFontHandle.Lock();
-
-                    // Fill missing glyphs in MonoFont from DefaultFont
-                    tk.CopyGlyphsAcrossFonts(defaultFont, monoFont, true);
-
-                    // Update default font
-                    unsafe
+            this.dalamudAtlas.BuildStepChange += e => e
+                .OnPostBuild(
+                    tk =>
                     {
-                        ImGui.GetIO().NativePtr->FontDefault = defaultFont;
-                    }
+                        // Fill missing glyphs in MonoFont from DefaultFont.
+                        tk.CopyGlyphsAcrossFonts(
+                            tk.GetFont(this.DefaultFontHandle),
+                            tk.GetFont(this.MonoFontHandle),
+                            missingOnly: true);
+                    })
+                .OnPostPromotion(
+                    tk =>
+                    {
+                        // Update the ImGui default font.
+                        unsafe
+                        {
+                            ImGui.GetIO().NativePtr->FontDefault = tk.GetFont(this.DefaultFontHandle);
+                        }
 
-                    // Broadcast to auto-rebuilding instances
-                    this.AfterBuildFonts?.Invoke();
-                });
+                        // Broadcast to auto-rebuilding instances.
+                        this.AfterBuildFonts?.Invoke();
+                    });
         }
 
         // This will wait for scene on its own. We just wait for this.dalamudAtlas.BuildTask in this.InitScene.

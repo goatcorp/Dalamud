@@ -136,6 +136,19 @@ internal sealed partial class FontAtlasFactory
         }
 
         /// <inheritdoc/>
+        public ImFontPtr GetFont(IFontHandle fontHandle)
+        {
+            foreach (var s in this.data.Substances)
+            {
+                var f = s.GetFontPtr(fontHandle);
+                if (!f.IsNull())
+                    return f;
+            }
+
+            return default;
+        }
+
+        /// <inheritdoc/>
         public ImFontPtr IgnoreGlobalScale(ImFontPtr fontPtr)
         {
             this.GlobalScaleExclusions.Add(fontPtr);
@@ -608,49 +621,6 @@ internal sealed partial class FontAtlasFactory
                 ArrayPool<byte>.Shared.Return(buf);
             }
         }
-    }
-
-    /// <summary>
-    /// Implementations for <see cref="IFontAtlasBuildToolkitPostPromotion"/>.
-    /// </summary>
-    private class BuildToolkitPostPromotion : IFontAtlasBuildToolkitPostPromotion
-    {
-        private readonly FontAtlasBuiltData builtData;
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="BuildToolkitPostPromotion"/> class.
-        /// </summary>
-        /// <param name="builtData">The built data.</param>
-        public BuildToolkitPostPromotion(FontAtlasBuiltData builtData) => this.builtData = builtData;
-
-        /// <inheritdoc/>
-        public ImFontPtr Font { get; set; }
-
-        /// <inheritdoc/>
-        public float Scale => this.builtData.Scale;
-
-        /// <inheritdoc/>
-        public bool IsAsyncBuildOperation => true;
-
-        /// <inheritdoc/>
-        public FontAtlasBuildStep BuildStep => FontAtlasBuildStep.PostPromotion;
-
-        /// <inheritdoc/>
-        public ImFontAtlasPtr NewImAtlas => this.builtData.Atlas;
-
-        /// <inheritdoc/>
-        public unsafe ImVectorWrapper<ImFontPtr> Fonts => new(
-            &this.NewImAtlas.NativePtr->Fonts,
-            x => ImGuiNative.ImFont_destroy(x->NativePtr));
-
-        /// <inheritdoc/>
-        public T DisposeWithAtlas<T>(T disposable) where T : IDisposable => this.builtData.Garbage.Add(disposable);
-
-        /// <inheritdoc/>
-        public GCHandle DisposeWithAtlas(GCHandle gcHandle) => this.builtData.Garbage.Add(gcHandle);
-
-        /// <inheritdoc/>
-        public void DisposeWithAtlas(Action action) => this.builtData.Garbage.Add(action);
 
         /// <inheritdoc/>
         public unsafe void CopyGlyphsAcrossFonts(
@@ -705,6 +675,62 @@ internal sealed partial class FontAtlasFactory
                     indexedHotData[codepoint].OccupiedWidth = fallbackHotData.OccupiedWidth;
                 }
             }
+        }
+    }
+
+    /// <summary>
+    /// Implementations for <see cref="IFontAtlasBuildToolkitPostPromotion"/>.
+    /// </summary>
+    private class BuildToolkitPostPromotion : IFontAtlasBuildToolkitPostPromotion
+    {
+        private readonly FontAtlasBuiltData builtData;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="BuildToolkitPostPromotion"/> class.
+        /// </summary>
+        /// <param name="builtData">The built data.</param>
+        public BuildToolkitPostPromotion(FontAtlasBuiltData builtData) => this.builtData = builtData;
+
+        /// <inheritdoc/>
+        public ImFontPtr Font { get; set; }
+
+        /// <inheritdoc/>
+        public float Scale => this.builtData.Scale;
+
+        /// <inheritdoc/>
+        public bool IsAsyncBuildOperation => true;
+
+        /// <inheritdoc/>
+        public FontAtlasBuildStep BuildStep => FontAtlasBuildStep.PostPromotion;
+
+        /// <inheritdoc/>
+        public ImFontAtlasPtr NewImAtlas => this.builtData.Atlas;
+
+        /// <inheritdoc/>
+        public unsafe ImVectorWrapper<ImFontPtr> Fonts => new(
+            &this.NewImAtlas.NativePtr->Fonts,
+            x => ImGuiNative.ImFont_destroy(x->NativePtr));
+
+        /// <inheritdoc/>
+        public T DisposeWithAtlas<T>(T disposable) where T : IDisposable => this.builtData.Garbage.Add(disposable);
+
+        /// <inheritdoc/>
+        public GCHandle DisposeWithAtlas(GCHandle gcHandle) => this.builtData.Garbage.Add(gcHandle);
+
+        /// <inheritdoc/>
+        public void DisposeWithAtlas(Action action) => this.builtData.Garbage.Add(action);
+
+        /// <inheritdoc/>
+        public ImFontPtr GetFont(IFontHandle fontHandle)
+        {
+            foreach (var s in this.builtData.Substances)
+            {
+                var f = s.GetFontPtr(fontHandle);
+                if (!f.IsNull())
+                    return f;
+            }
+
+            return default;
         }
     }
 }

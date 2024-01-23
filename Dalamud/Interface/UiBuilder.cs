@@ -700,6 +700,8 @@ public sealed class UiBuilder : IDisposable
         if (e.IsAsyncBuildOperation)
             return;
 
+        ThreadSafety.AssertMainThread();
+
         if (this.BuildFonts is not null)
         {
             e.OnPreBuild(
