@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reactive.Disposables;
+using System.Runtime.ExceptionServices;
+using System.Threading;
 using System.Threading.Tasks;
 
 using Dalamud.Interface.GameFonts;
@@ -229,7 +231,6 @@ internal sealed partial class FontAtlasFactory
         private readonly GamePrebakedFontHandle.HandleManager gameFontHandleManager;
         private readonly IFontHandleManager[] fontHandleManagers;
 
-        private readonly object syncRootPostPromotion = new();
         private readonly object syncRoot = new();
 
         private Task<FontAtlasBuiltData?> buildTask = EmptyTask;
@@ -449,10 +450,9 @@ internal sealed partial class FontAtlasFactory
             }
 
             var tcs = new TaskCompletionSource<FontAtlasBuiltData>();
-            int rebuildIndex;
             try
             {
-                rebuildIndex = ++this.buildIndex;
+                var rebuildIndex = Interlocked.Increment(ref this.buildIndex);
                 lock (this.syncRoot)
                 {
                     if (!this.buildTask.IsCompleted)
@@ -469,11 +469,18 @@ internal sealed partial class FontAtlasFactory
                 var r = this.RebuildFontsPrivate(false, scale);
                 r.Wait();
                 if (r.IsCompletedSuccessfully)
+                {
+                    this.PromoteBuiltData(rebuildIndex, r.Result, nameof(this.BuildFontsImmediately));
                     tcs.SetResult(r.Result);
-                else if (r.Exception is not null)
-                    tcs.SetException(r.Exception);
+                }
+                else if ((r.Exception?.InnerException ?? r.Exception) is { } taskException)
+                {
+                    ExceptionDispatchInfo.Capture(taskException).Throw();
+                }
                 else
-                    tcs.SetCanceled();
+                {
+                    throw new OperationCanceledException();
+                }
             }
             catch (Exception e)
             {
@@ -481,8 +488,6 @@ internal sealed partial class FontAtlasFactory
                 Log.Error(e, "[{name}] Failed to build fonts.", this.Name);
                 throw;
             }
-
-            this.InvokePostPromotion(rebuildIndex, tcs.Task.Result, nameof(this.BuildFontsImmediately));
         }
 
         /// <inheritdoc/>
@@ -503,7 +508,7 @@ internal sealed partial class FontAtlasFactory
             lock (this.syncRoot)
             {
                 var scale = this.IsGlobalScaled ? ImGuiHelpers.GlobalScaleSafe : 1f;
-                var rebuildIndex = ++this.buildIndex;
+                var rebuildIndex = Interlocked.Increment(ref this.buildIndex);
                 return this.buildTask = this.buildTask.ContinueWith(BuildInner).Unwrap();
 
                 async Task<FontAtlasBuiltData?> BuildInner(Task<FontAtlasBuiltData> unused)
@@ -519,14 +524,14 @@ internal sealed partial class FontAtlasFactory
                     if (res.Atlas.IsNull())
                         return res;
 
-                    this.InvokePostPromotion(rebuildIndex, res, nameof(this.BuildFontsAsync));
+                    this.PromoteBuiltData(rebuildIndex, res, nameof(this.BuildFontsAsync));
 
                     return res;
                 }
             }
         }
 
-        private void InvokePostPromotion(int rebuildIndex, FontAtlasBuiltData data, [UsedImplicitly] string source)
+        private void PromoteBuiltData(int rebuildIndex, FontAtlasBuiltData data, [UsedImplicitly] string source)
         {
             // Capture the locks inside the lock block, so that the fonts are guaranteed to be the ones just built.
             var fontsAndLocks = new List<(FontHandle FontHandle, IFontHandle.ImFontLocked Lock)>();
