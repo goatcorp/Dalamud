@@ -43,68 +43,67 @@ internal sealed partial class FontAtlasFactory
 
     private static readonly Task<FontAtlasBuiltData> EmptyTask = Task.FromResult(default(FontAtlasBuiltData));
 
-    private struct FontAtlasBuiltData : IDisposable
+    private class FontAtlasBuiltData : IRefCountable
     {
-        public readonly DalamudFontAtlas? Owner;
-        public readonly ImFontAtlasPtr Atlas;
-        public readonly float Scale;
+        private readonly List<IDalamudTextureWrap> wraps;
+        private readonly List<IFontHandleSubstance> substances;
 
-        public bool IsBuildInProgress;
+        private int refCount;
 
-        private readonly List<IDalamudTextureWrap>? wraps;
-        private readonly List<IFontHandleSubstance>? substances;
-        private readonly DisposeSafety.ScopedFinalizer? garbage;
-
-        public unsafe FontAtlasBuiltData(
-            DalamudFontAtlas owner,
-            IEnumerable<IFontHandleSubstance> substances,
-            float scale)
+        public unsafe FontAtlasBuiltData(DalamudFontAtlas owner, float scale)
         {
             this.Owner = owner;
             this.Scale = scale;
-            this.garbage = new();
+            this.Garbage = new();
+            this.refCount = 1;
 
             try
             {
                 var substancesList = this.substances = new();
-                foreach (var s in substances)
-                    substancesList.Add(this.garbage.Add(s));
-                this.garbage.Add(() => substancesList.Clear());
+                this.Garbage.Add(() => substancesList.Clear());
 
                 var wrapsCopy = this.wraps = new();
-                this.garbage.Add(() => wrapsCopy.Clear());
+                this.Garbage.Add(() => wrapsCopy.Clear());
 
                 var atlasPtr = ImGuiNative.ImFontAtlas_ImFontAtlas();
                 this.Atlas = atlasPtr;
                 if (this.Atlas.NativePtr is null)
                     throw new OutOfMemoryException($"Failed to allocate a new {nameof(ImFontAtlas)}.");
 
-                this.garbage.Add(() => ImGuiNative.ImFontAtlas_destroy(atlasPtr));
+                this.Garbage.Add(() => ImGuiNative.ImFontAtlas_destroy(atlasPtr));
                 this.IsBuildInProgress = true;
             }
             catch
             {
-                this.garbage.Dispose();
+                this.Garbage.Dispose();
                 throw;
             }
         }
 
-        public readonly DisposeSafety.ScopedFinalizer Garbage =>
-            this.garbage ?? throw new ObjectDisposedException(nameof(FontAtlasBuiltData));
+        public DalamudFontAtlas? Owner { get; }
 
-        public readonly ImVectorWrapper<ImFontPtr> Fonts => this.Atlas.FontsWrapped();
+        public ImFontAtlasPtr Atlas { get; }
 
-        public readonly ImVectorWrapper<ImFontConfig> ConfigData => this.Atlas.ConfigDataWrapped();
+        public float Scale { get; }
 
-        public readonly ImVectorWrapper<ImFontAtlasTexture> ImTextures => this.Atlas.TexturesWrapped();
+        public bool IsBuildInProgress { get; set; }
 
-        public readonly IReadOnlyList<IDalamudTextureWrap> Wraps =>
-            (IReadOnlyList<IDalamudTextureWrap>?)this.wraps ?? Array.Empty<IDalamudTextureWrap>();
+        public DisposeSafety.ScopedFinalizer Garbage { get; }
 
-        public readonly IReadOnlyList<IFontHandleSubstance> Substances =>
-            (IReadOnlyList<IFontHandleSubstance>?)this.substances ?? Array.Empty<IFontHandleSubstance>();
+        public ImVectorWrapper<ImFontPtr> Fonts => this.Atlas.FontsWrapped();
 
-        public readonly void AddExistingTexture(IDalamudTextureWrap wrap)
+        public ImVectorWrapper<ImFontConfig> ConfigData => this.Atlas.ConfigDataWrapped();
+
+        public ImVectorWrapper<ImFontAtlasTexture> ImTextures => this.Atlas.TexturesWrapped();
+
+        public IReadOnlyList<IDalamudTextureWrap> Wraps => this.wraps;
+
+        public IReadOnlyList<IFontHandleSubstance> Substances => this.substances;
+
+        public void InitialAddSubstance(IFontHandleSubstance substance) =>
+            this.substances.Add(this.Garbage.Add(substance));
+
+        public void AddExistingTexture(IDalamudTextureWrap wrap)
         {
             if (this.wraps is null)
                 throw new ObjectDisposedException(nameof(FontAtlasBuiltData));
@@ -112,7 +111,7 @@ internal sealed partial class FontAtlasFactory
             this.wraps.Add(this.Garbage.Add(wrap));
         }
 
-        public readonly int AddNewTexture(IDalamudTextureWrap wrap, bool disposeOnError)
+        public int AddNewTexture(IDalamudTextureWrap wrap, bool disposeOnError)
         {
             if (this.wraps is null)
                 throw new ObjectDisposedException(nameof(FontAtlasBuiltData));
@@ -160,27 +159,47 @@ internal sealed partial class FontAtlasFactory
             return index;
         }
 
-        public unsafe void Dispose()
+        public int AddRef() => IRefCountable.AlterRefCount(1, ref this.refCount, out var newRefCount) switch
         {
-            if (this.garbage is null)
-                return;
+            IRefCountable.RefCountResult.StillAlive => newRefCount,
+            IRefCountable.RefCountResult.AlreadyDisposed =>
+                throw new ObjectDisposedException(nameof(FontAtlasBuiltData)),
+            IRefCountable.RefCountResult.FinalRelease => throw new InvalidOperationException(),
+            _ => throw new InvalidOperationException(),
+        };
 
-            if (this.IsBuildInProgress)
+        public unsafe int Release()
+        {
+            switch (IRefCountable.AlterRefCount(-1, ref this.refCount, out var newRefCount))
             {
-                Log.Error(
-                    "[{name}] 0x{ptr:X}: Trying to dispose while build is in progress; waiting for build.\n" +
-                    "Stack:\n{trace}",
-                    this.Owner?.Name ?? "<?>",
-                    (nint)this.Atlas.NativePtr,
-                    new StackTrace());
-                while (this.IsBuildInProgress)
-                    Thread.Sleep(100);
-            }
+                case IRefCountable.RefCountResult.StillAlive:
+                    return newRefCount;
+
+                case IRefCountable.RefCountResult.FinalRelease:
+                    if (this.IsBuildInProgress)
+                    {
+                        Log.Error(
+                            "[{name}] 0x{ptr:X}: Trying to dispose while build is in progress; waiting for build.\n" +
+                            "Stack:\n{trace}",
+                            this.Owner?.Name ?? "<?>",
+                            (nint)this.Atlas.NativePtr,
+                            new StackTrace());
+                        while (this.IsBuildInProgress)
+                            Thread.Sleep(100);
+                    }
 
 #if VeryVerboseLog
-            Log.Verbose("[{name}] 0x{ptr:X}: Disposing", this.Owner?.Name ?? "<?>", (nint)this.Atlas.NativePtr);
+                    Log.Verbose("[{name}] 0x{ptr:X}: Disposing", this.Owner?.Name ?? "<?>", (nint)this.Atlas.NativePtr);
 #endif
-            this.garbage.Dispose();
+                    this.Garbage.Dispose();
+                    return newRefCount;
+
+                case IRefCountable.RefCountResult.AlreadyDisposed:
+                    throw new ObjectDisposedException(nameof(FontAtlasBuiltData));
+
+                default:
+                    throw new InvalidOperationException();
+            }
         }
 
         public BuildToolkit CreateToolkit(FontAtlasFactory factory, bool isAsync)
@@ -201,8 +220,8 @@ internal sealed partial class FontAtlasFactory
         private readonly object syncRootPostPromotion = new();
         private readonly object syncRoot = new();
 
-        private Task<FontAtlasBuiltData> buildTask = EmptyTask;
-        private FontAtlasBuiltData builtData;
+        private Task<FontAtlasBuiltData?> buildTask = EmptyTask;
+        private FontAtlasBuiltData? builtData;
 
         private int buildSuppressionCounter;
         private bool buildSuppressionSuppressed;
@@ -275,7 +294,8 @@ internal sealed partial class FontAtlasFactory
             lock (this.syncRoot)
             {
                 this.buildTask.ToDisposableIgnoreExceptions().Dispose();
-                this.builtData.Dispose();
+                this.builtData?.Release();
+                this.builtData = null;
             }
         }
 
@@ -303,7 +323,7 @@ internal sealed partial class FontAtlasFactory
             get
             {
                 lock (this.syncRoot)
-                    return this.builtData.Atlas;
+                    return this.builtData?.Atlas ?? default;
             }
         }
 
@@ -311,7 +331,7 @@ internal sealed partial class FontAtlasFactory
         public Task BuildTask => this.buildTask;
 
         /// <inheritdoc/>
-        public bool HasBuiltAtlas => !this.builtData.Atlas.IsNull();
+        public bool HasBuiltAtlas => !(this.builtData?.Atlas.IsNull() ?? true);
 
         /// <inheritdoc/>
         public bool IsGlobalScaled { get; }
@@ -474,13 +494,13 @@ internal sealed partial class FontAtlasFactory
                 var rebuildIndex = ++this.buildIndex;
                 return this.buildTask = this.buildTask.ContinueWith(BuildInner).Unwrap();
 
-                async Task<FontAtlasBuiltData> BuildInner(Task<FontAtlasBuiltData> unused)
+                async Task<FontAtlasBuiltData?> BuildInner(Task<FontAtlasBuiltData> unused)
                 {
                     Log.Verbose("[{name}] Building from {source}.", this.Name, nameof(this.BuildFontsAsync));
                     lock (this.syncRoot)
                     {
                         if (this.buildIndex != rebuildIndex)
-                            return default;
+                            return null;
                     }
 
                     var res = await this.RebuildFontsPrivate(true, scale);
@@ -512,8 +532,10 @@ internal sealed partial class FontAtlasFactory
                     return;
                 }
 
-                this.builtData.ExplicitDisposeIgnoreExceptions();
+                var prevBuiltData = this.builtData;
                 this.builtData = data;
+                prevBuiltData.ExplicitDisposeIgnoreExceptions();
+
                 this.buildTask = EmptyTask;
                 foreach (var substance in data.Substances)
                     substance.Manager.Substance = substance;
@@ -570,6 +592,9 @@ internal sealed partial class FontAtlasFactory
                     }
                 }
 
+                foreach (var substance in data.Substances)
+                    substance.Manager.InvokeFontHandleImFontChanged();
+
 #if VeryVerboseLog
                 Log.Verbose("[{name}] Built from {source}.", this.Name, source);
 #endif
@@ -610,12 +635,14 @@ internal sealed partial class FontAtlasFactory
             var sw = new Stopwatch();
             sw.Start();
 
-            var res = default(FontAtlasBuiltData);
+            FontAtlasBuiltData? res = null;
             nint atlasPtr = 0;
             BuildToolkit? toolkit = null;
             try
             {
-                res = new(this, this.fontHandleManagers.Select(x => x.NewSubstance()), scale);
+                res = new(this, scale);
+                foreach (var fhm in this.fontHandleManagers)
+                    res.InitialAddSubstance(fhm.NewSubstance(res)); 
                 unsafe
                 {
                     atlasPtr = (nint)res.Atlas.NativePtr;
@@ -646,9 +673,11 @@ internal sealed partial class FontAtlasFactory
 
                     res.IsBuildInProgress = false;
                     toolkit.Dispose();
-                    res.Dispose();
+                    res.Release();
 
-                    res = new(this, this.fontHandleManagers.Select(x => x.NewSubstance()), scale);
+                    res = new(this, scale);
+                    foreach (var fhm in this.fontHandleManagers)
+                        res.InitialAddSubstance(fhm.NewSubstance(res)); 
                     unsafe
                     {
                         atlasPtr = (nint)res.Atlas.NativePtr;
@@ -715,8 +744,12 @@ internal sealed partial class FontAtlasFactory
                     nameof(this.RebuildFontsPrivateReal),
                     atlasPtr,
                     sw.ElapsedMilliseconds);
-                res.IsBuildInProgress = false;
-                res.Dispose();
+                if (res is not null)
+                {
+                    res.IsBuildInProgress = false;
+                    res.Release();
+                }
+
                 throw;
             }
             finally

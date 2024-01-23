@@ -13,7 +13,6 @@ using Dalamud.Game.ClientState.Keys;
 using Dalamud.Game.Internal.DXGI;
 using Dalamud.Hooking;
 using Dalamud.Hooking.WndProcHook;
-using Dalamud.Interface.GameFonts;
 using Dalamud.Interface.Internal.ManagedAsserts;
 using Dalamud.Interface.Internal.Notifications;
 using Dalamud.Interface.ManagedFontAtlas;
@@ -87,9 +86,6 @@ internal class InterfaceManager : IDisposable, IServiceType
     private Hook<ResizeBuffersDelegate>? resizeBuffersHook;
 
     private IFontAtlas? dalamudAtlas;
-    private IFontHandle.IInternal? defaultFontHandle;
-    private IFontHandle.IInternal? iconFontHandle;
-    private IFontHandle.IInternal? monoFontHandle;
 
     // can't access imgui IO before first present call
     private bool lastWantCapture = false;
@@ -131,19 +127,34 @@ internal class InterfaceManager : IDisposable, IServiceType
     /// Gets the default ImGui font.<br />
     /// <strong>Accessing this static property outside of the main thread is dangerous and not supported.</strong>
     /// </summary>
-    public static ImFontPtr DefaultFont => WhenFontsReady().defaultFontHandle!.ImFont.OrElse(ImGui.GetIO().FontDefault);
+    public static ImFontPtr DefaultFont => WhenFontsReady().DefaultFontHandle!.ImFont.OrElse(ImGui.GetIO().FontDefault);
 
     /// <summary>
     /// Gets an included FontAwesome icon font.<br />
     /// <strong>Accessing this static property outside of the main thread is dangerous and not supported.</strong>
     /// </summary>
-    public static ImFontPtr IconFont => WhenFontsReady().iconFontHandle!.ImFont.OrElse(ImGui.GetIO().FontDefault);
+    public static ImFontPtr IconFont => WhenFontsReady().IconFontHandle!.ImFont.OrElse(ImGui.GetIO().FontDefault);
 
     /// <summary>
     /// Gets an included monospaced font.<br />
     /// <strong>Accessing this static property outside of the main thread is dangerous and not supported.</strong>
     /// </summary>
-    public static ImFontPtr MonoFont => WhenFontsReady().monoFontHandle!.ImFont.OrElse(ImGui.GetIO().FontDefault);
+    public static ImFontPtr MonoFont => WhenFontsReady().MonoFontHandle!.ImFont.OrElse(ImGui.GetIO().FontDefault);
+
+    /// <summary>
+    /// Gets the default font handle.
+    /// </summary>
+    public IFontHandle.IInternal? DefaultFontHandle { get; private set; }
+
+    /// <summary>
+    /// Gets the icon font handle.
+    /// </summary>
+    public IFontHandle.IInternal? IconFontHandle { get; private set; }
+
+    /// <summary>
+    /// Gets the mono font handle.
+    /// </summary>
+    public IFontHandle.IInternal? MonoFontHandle { get; private set; }
 
     /// <summary>
     /// Gets or sets the pointer to ImGui.IO(), when it was last used.
@@ -218,6 +229,11 @@ internal class InterfaceManager : IDisposable, IServiceType
     /// Gets the font build task.
     /// </summary>
     public Task FontBuildTask => WhenFontsReady().dalamudAtlas!.BuildTask;
+
+    /// <summary>
+    /// Gets the number of calls to <see cref="PresentDetour"/> so far.
+    /// </summary>
+    public long CumulativePresentCalls { get; private set; }
 
     /// <summary>
     /// Dispose of managed and unmanaged resources.
@@ -636,6 +652,8 @@ internal class InterfaceManager : IDisposable, IServiceType
      */
     private IntPtr PresentDetour(IntPtr swapChain, uint syncInterval, uint presentFlags)
     {
+        this.CumulativePresentCalls++;
+
         Debug.Assert(this.presentHook is not null, "How did PresentDetour get called when presentHook is null?");
         Debug.Assert(this.dalamudAtlas is not null, "dalamudAtlas should have been set already");
 
@@ -691,9 +709,9 @@ internal class InterfaceManager : IDisposable, IServiceType
             .CreateFontAtlas(nameof(InterfaceManager), FontAtlasAutoRebuildMode.Disable);
         using (this.dalamudAtlas.SuppressAutoRebuild())
         {
-            this.defaultFontHandle = (IFontHandle.IInternal)this.dalamudAtlas.NewDelegateFontHandle(
+            this.DefaultFontHandle = (IFontHandle.IInternal)this.dalamudAtlas.NewDelegateFontHandle(
                 e => e.OnPreBuild(tk => tk.AddDalamudDefaultFont(DefaultFontSizePx)));
-            this.iconFontHandle = (IFontHandle.IInternal)this.dalamudAtlas.NewDelegateFontHandle(
+            this.IconFontHandle = (IFontHandle.IInternal)this.dalamudAtlas.NewDelegateFontHandle(
                 e => e.OnPreBuild(
                     tk => tk.AddFontAwesomeIconFont(
                         new()
@@ -702,7 +720,7 @@ internal class InterfaceManager : IDisposable, IServiceType
                             GlyphMinAdvanceX = DefaultFontSizePx,
                             GlyphMaxAdvanceX = DefaultFontSizePx,
                         })));
-            this.monoFontHandle = (IFontHandle.IInternal)this.dalamudAtlas.NewDelegateFontHandle(
+            this.MonoFontHandle = (IFontHandle.IInternal)this.dalamudAtlas.NewDelegateFontHandle(
                 e => e.OnPreBuild(
                     tk => tk.AddDalamudAssetFont(
                         DalamudAsset.InconsolataRegular,
@@ -714,13 +732,16 @@ internal class InterfaceManager : IDisposable, IServiceType
                     // Do not use DefaultFont, IconFont, and MonoFont.
                     // Use font handles directly.
 
+                    using var defaultFont = this.DefaultFontHandle.Lock();
+                    using var monoFont = this.MonoFontHandle.Lock();
+
                     // Fill missing glyphs in MonoFont from DefaultFont
-                    tk.CopyGlyphsAcrossFonts(this.defaultFontHandle.ImFont, this.monoFontHandle.ImFont, true);
+                    tk.CopyGlyphsAcrossFonts(defaultFont, monoFont, true);
 
                     // Update default font
                     unsafe
                     {
-                        ImGui.GetIO().NativePtr->FontDefault = this.defaultFontHandle.ImFont;
+                        ImGui.GetIO().NativePtr->FontDefault = defaultFont;
                     }
 
                     // Broadcast to auto-rebuilding instances

@@ -1,3 +1,5 @@
+using Dalamud.Utility;
+
 namespace Dalamud.Interface.ManagedFontAtlas.Internals;
 
 /// <summary>
@@ -27,6 +29,12 @@ internal interface IFontHandleManager : IDisposable
     /// <summary>
     /// Creates a new substance of the font atlas.
     /// </summary>
+    /// <param name="dataRoot">The data root.</param>
     /// <returns>The new substance.</returns>
-    IFontHandleSubstance NewSubstance();
+    IFontHandleSubstance NewSubstance(IRefCountable dataRoot);
+
+    /// <summary>
+    /// Invokes <see cref="IFontHandle.ImFontChanged"/>.
+    /// </summary>
+    void InvokeFontHandleImFontChanged();
 }

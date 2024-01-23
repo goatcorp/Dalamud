@@ -69,6 +69,7 @@ internal class SettingsWindow : Window
         var fontAtlasFactory = Service<FontAtlasFactory>.Get();
 
         var rebuildFont = fontAtlasFactory.UseAxis != configuration.UseAxisFontsFromGame;
+        rebuildFont |= !Equals(ImGui.GetIO().FontGlobalScale, configuration.GlobalUiScale);
 
         ImGui.GetIO().FontGlobalScale = configuration.GlobalUiScale;
         fontAtlasFactory.UseAxisOverride = null;

@@ -54,11 +54,11 @@ public interface IFontAtlasBuildToolkitPreBuild : IFontAtlasBuildToolkit
 
     /// <summary>
     /// Adds a font from memory region allocated using <see cref="ImGuiHelpers.AllocateMemory"/>.<br />
-    /// <strong>It WILL crash if you try to use a memory pointer allocated in some other way.</strong><br />
-    /// <strong>
+    /// <b>It WILL crash if you try to use a memory pointer allocated in some other way.</b><br />
+    /// <b>
     /// Do NOT call <see cref="ImGuiNative.igMemFree"/> on the <paramref name="dataPointer"/> once this function has
     /// been called, unless <paramref name="freeOnException"/> is set and the function has thrown an error.
-    /// </strong>
+    /// </b>
     /// </summary>
     /// <param name="dataPointer">Memory address for the data allocated using <see cref="ImGuiHelpers.AllocateMemory"/>.</param>
     /// <param name="dataSize">The size of the font file..</param>
@@ -81,9 +81,11 @@ public interface IFontAtlasBuildToolkitPreBuild : IFontAtlasBuildToolkit
 
     /// <summary>
     /// Adds a font from memory region allocated using <see cref="ImGuiHelpers.AllocateMemory"/>.<br />
-    /// <strong>It WILL crash if you try to use a memory pointer allocated in some other way.</strong><br />
-    /// <strong>Do NOT call <see cref="ImGuiNative.igMemFree"/> on the <paramref name="dataPointer"/> once this
-    /// function has been called.</strong>
+    /// <b>It WILL crash if you try to use a memory pointer allocated in some other way.</b><br />
+    /// <b>
+    /// Do NOT call <see cref="ImGuiNative.igMemFree"/> on the <paramref name="dataPointer"/> once this function has
+    /// been called, unless <paramref name="freeOnException"/> is set and the function has thrown an error.
+    /// </b>
     /// </summary>
     /// <param name="dataPointer">Memory address for the data allocated using <see cref="ImGuiHelpers.AllocateMemory"/>.</param>
     /// <param name="dataSize">The size of the font file..</param>

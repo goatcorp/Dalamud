@@ -1,4 +1,5 @@
 using System.Numerics;
+using System.Threading.Tasks;
 
 using Dalamud.Interface.ManagedFontAtlas;
 using Dalamud.Interface.ManagedFontAtlas.Internals;
@@ -29,6 +30,13 @@ public sealed class GameFontHandle : IFontHandle
     }
 
     /// <inheritdoc />
+    public event Action<IFontHandle> ImFontChanged
+    {
+        add => this.fontHandle.ImFontChanged += value;
+        remove => this.fontHandle.ImFontChanged -= value;
+    }
+
+    /// <inheritdoc />
     public Exception? LoadException => this.fontHandle.LoadException;
 
     /// <inheritdoc />
@@ -55,14 +63,20 @@ public sealed class GameFontHandle : IFontHandle
     /// <inheritdoc />
     public void Dispose() => this.fontHandle.Dispose();
 
+    /// <inheritdoc />
+    public IFontHandle.ImFontLocked Lock() => this.fontHandle.Lock();
+
     /// <summary>
     /// Pushes the font.
     /// </summary>
     /// <returns>An <see cref="IDisposable"/> that can be used to pop the font on dispose.</returns>
     public IDisposable Push() => this.fontHandle.Push();
-    
-    /// <inheritdoc/>
-    IFontHandle.FontPopper IFontHandle.Push() => this.fontHandle.Push();
+
+    /// <inheritdoc />
+    public void Pop() => this.fontHandle.Pop();
+
+    /// <inheritdoc />
+    public Task<IFontHandle> WaitAsync() => this.fontHandle.WaitAsync();
 
     /// <summary>
     /// Creates a new <see cref="GameFontLayoutPlan.Builder"/>.<br />
