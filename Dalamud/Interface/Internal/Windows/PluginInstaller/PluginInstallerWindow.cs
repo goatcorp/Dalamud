@@ -2556,7 +2556,7 @@ internal class PluginInstallerWindow : Window, IDisposable
 
             if (ImGui.MenuItem(Locs.PluginContext_DeletePluginConfigReload))
             {
-                this.ShowDeletePluginConfigWarningModal(plugin.Manifest.InternalName).ContinueWith(t =>
+                this.ShowDeletePluginConfigWarningModal(plugin.Manifest.Name).ContinueWith(t =>
                 {
                     var shouldDelete = t.Result;
 
