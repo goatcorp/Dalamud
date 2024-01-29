@@ -67,6 +67,11 @@ public unsafe class Character : GameObject
     public byte ShieldPercentage => this.Struct->CharacterData.ShieldValue;
 
     /// <summary>
+    /// Gets the ClassJobID of this Chara.
+    /// </summary>
+    public byte ClassJobId => this.Struct->CharacterData.ClassJob;
+
+    /// <summary>
     /// Gets the ClassJob of this Chara.
     /// </summary>
     public ExcelResolver<ClassJob> ClassJob => new(this.Struct->CharacterData.ClassJob);
