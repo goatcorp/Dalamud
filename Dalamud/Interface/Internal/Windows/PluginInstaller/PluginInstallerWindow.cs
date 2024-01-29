@@ -2556,7 +2556,7 @@ internal class PluginInstallerWindow : Window, IDisposable
 
             if (ImGui.MenuItem(Locs.PluginContext_DeletePluginConfigReload))
             {
-                this.ShowDeletePluginConfigWarningModal(plugin.Name).ContinueWith(t =>
+                this.ShowDeletePluginConfigWarningModal(plugin.Manifest.InternalName).ContinueWith(t =>
                 {
                     var shouldDelete = t.Result;
 
@@ -2571,7 +2571,7 @@ internal class PluginInstallerWindow : Window, IDisposable
                             {
                                 this.installStatus = OperationStatus.Idle;
 
-                                this.DisplayErrorContinuation(task, Locs.ErrorModal_DeleteConfigFail(plugin.Name));
+                                this.DisplayErrorContinuation(task, Locs.ErrorModal_DeleteConfigFail(plugin.Manifest.InternalName));
                             });
                     }
                 });
