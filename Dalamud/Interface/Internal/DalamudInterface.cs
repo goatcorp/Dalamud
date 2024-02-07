@@ -667,7 +667,7 @@ internal class DalamudInterface : IDisposable, IServiceType
                     }
 
                     var antiDebug = Service<AntiDebug>.Get();
-                    if (ImGui.MenuItem("Enable AntiDebug", null, antiDebug.IsEnabled))
+                    if (ImGui.MenuItem("Disable Debugging Protections", null, antiDebug.IsEnabled))
                     {
                         var newEnabled = !antiDebug.IsEnabled;
                         if (newEnabled)
