@@ -1,7 +1,5 @@
 ﻿using System.Threading.Tasks;
 
-using Dalamud.Utility;
-
 using ImGuiNET;
 
 namespace Dalamud.Interface.ManagedFontAtlas;
@@ -12,29 +10,17 @@ namespace Dalamud.Interface.ManagedFontAtlas;
 public interface IFontHandle : IDisposable
 {
     /// <summary>
-    /// Called when the built instance of <see cref="ImFontPtr"/> has been changed.<br />
-    /// This event will be invoked on the same thread with
-    /// <see cref="IFontAtlas"/>.<see cref="IFontAtlas.BuildStepChange"/>,
-    /// when the build step is <see cref="FontAtlasBuildStep.PostPromotion"/>.<br />
-    /// See <see cref="IFontAtlas.BuildFontsOnNextFrame"/>, <see cref="IFontAtlas.BuildFontsImmediately"/>, and
-    /// <see cref="IFontAtlas.BuildFontsAsync"/>.
+    /// Delegate for <see cref="IFontHandle.ImFontChanged"/>.
     /// </summary>
-    event Action<IFontHandle> ImFontChanged;
+    /// <param name="fontHandle">The relevant font handle.</param>
+    /// <param name="lockedFont">The locked font for this font handle, locked during the call of this delegate.</param>
+    public delegate void ImFontChangedDelegate(IFontHandle fontHandle, ILockedImFont lockedFont);
 
     /// <summary>
-    /// Represents a reference counting handle for fonts. Dalamud internal use only.
+    /// Called when the built instance of <see cref="ImFontPtr"/> has been changed.<br />
+    /// This event can be invoked outside the main thread.
     /// </summary>
-    internal interface IInternal : IFontHandle
-    {
-        /// <summary>
-        /// Gets the font.<br />
-        /// Use of this properly is safe only from the UI thread.<br />
-        /// Use <see cref="IFontHandle.Push"/> if the intended purpose of this property is <see cref="ImGui.PushFont"/>.<br />
-        /// Futures changes may make simple <see cref="ImGui.PushFont"/> not enough.<br />
-        /// If you need to access a font outside the UI thread, consider using <see cref="IFontHandle.Lock"/>.
-        /// </summary>
-        ImFontPtr ImFont { get; }
-    }
+    event ImFontChangedDelegate ImFontChanged;
 
     /// <summary>
     /// Gets the load exception, if it failed to load. Otherwise, it is null.
@@ -45,7 +31,6 @@ public interface IFontHandle : IDisposable
     /// Gets a value indicating whether this font is ready for use.
     /// </summary>
     /// <remarks>
-    /// Once set to <c>true</c>, it will remain <c>true</c>.<br />
     /// Use <see cref="Push"/> directly if you want to keep the current ImGui font if the font is not ready.<br />
     /// Alternatively, use <see cref="WaitAsync"/> to wait for this property to become <c>true</c>.
     /// </remarks>
@@ -56,13 +41,13 @@ public interface IFontHandle : IDisposable
     /// <see cref="IFontHandle"/>, for use in any thread.<br />
     /// Modification of the font will exhibit undefined behavior if some other thread also uses the font.
     /// </summary>
-    /// <returns>An instance of <see cref="ImFontLocked"/> that <b>must</b> be disposed after use.</returns>
+    /// <returns>An instance of <see cref="ILockedImFont"/> that <b>must</b> be disposed after use.</returns>
     /// <remarks>
     /// Calling <see cref="IFontHandle"/>.<see cref="IDisposable.Dispose"/> will not unlock the <see cref="ImFontPtr"/>
     /// locked by this function.
     /// </remarks>
     /// <exception cref="InvalidOperationException">If <see cref="Available"/> is <c>false</c>.</exception>
-    ImFontLocked Lock();
+    ILockedImFont Lock();
 
     /// <summary>
     /// Pushes the current font into ImGui font stack, if available.<br />
@@ -88,46 +73,4 @@ public interface IFontHandle : IDisposable
     /// </summary>
     /// <returns>A task containing this <see cref="IFontHandle"/>.</returns>
     Task<IFontHandle> WaitAsync();
-
-    /// <summary>
-    /// The wrapper for <see cref="ImFontPtr"/>, guaranteeing that the associated data will be available as long as
-    /// this struct is not disposed.
-    /// </summary>
-    public struct ImFontLocked : IDisposable
-    {
-        /// <summary>
-        /// The associated <see cref="ImFontPtr"/>.
-        /// </summary>
-        public ImFontPtr ImFont;
-
-        private IRefCountable? owner;
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="ImFontLocked"/> struct,
-        /// and incrase the reference count of <paramref name="owner"/>.
-        /// </summary>
-        /// <param name="imFont">The contained font.</param>
-        /// <param name="owner">The owner.</param>
-        internal ImFontLocked(ImFontPtr imFont, IRefCountable owner)
-        {
-            owner.AddRef();
-            this.ImFont = imFont;
-            this.owner = owner;
-        }
-
-        public static implicit operator ImFontPtr(ImFontLocked l) => l.ImFont;
-
-        public static unsafe implicit operator ImFont*(ImFontLocked l) => l.ImFont.NativePtr;
-
-        /// <inheritdoc/>
-        public void Dispose()
-        {
-            if (this.owner is null)
-                return;
-
-            this.owner.Release();
-            this.owner = null;
-            this.ImFont = default;
-        }
-    }
 }

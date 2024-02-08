@@ -1,163 +1,34 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 
-using Dalamud.Interface.Internal;
 using Dalamud.Interface.Utility;
 using Dalamud.Logging.Internal;
 using Dalamud.Utility;
 
 using ImGuiNET;
 
-using Serilog;
-
 namespace Dalamud.Interface.ManagedFontAtlas.Internals;
 
 /// <summary>
 /// A font handle representing a user-callback generated font.
 /// </summary>
-internal class DelegateFontHandle : IFontHandle.IInternal
+internal sealed class DelegateFontHandle : FontHandle
 {
-    private readonly List<IDisposable> pushedFonts = new(8);
-
-    private IFontHandleManager? manager;
-    private long lastCumulativePresentCalls;
-
     /// <summary>
     /// Initializes a new instance of the <see cref="DelegateFontHandle"/> class.
     /// </summary>
     /// <param name="manager">An instance of <see cref="IFontHandleManager"/>.</param>
     /// <param name="callOnBuildStepChange">Callback for <see cref="IFontAtlas.BuildStepChange"/>.</param>
     public DelegateFontHandle(IFontHandleManager manager, FontAtlasBuildStepDelegate callOnBuildStepChange)
+        : base(manager)
     {
-        this.manager = manager;
         this.CallOnBuildStepChange = callOnBuildStepChange;
     }
-
-    /// <inheritdoc/>
-    public event Action<IFontHandle>? ImFontChanged;
-
-    private event Action<IFontHandle>? Disposed;
 
     /// <summary>
     /// Gets the function to be called on build step changes.
     /// </summary>
     public FontAtlasBuildStepDelegate CallOnBuildStepChange { get; }
-
-    /// <inheritdoc/>
-    public Exception? LoadException => this.ManagerNotDisposed.Substance?.GetBuildException(this);
-
-    /// <inheritdoc/>
-    public bool Available => this.ImFont.IsNotNullAndLoaded();
-
-    /// <inheritdoc/>
-    public ImFontPtr ImFont => this.ManagerNotDisposed.Substance?.GetFontPtr(this) ?? default;
-
-    private IFontHandleManager ManagerNotDisposed =>
-        this.manager ?? throw new ObjectDisposedException(nameof(GamePrebakedFontHandle));
-
-    /// <inheritdoc/>
-    public void Dispose()
-    {
-        if (this.pushedFonts.Count > 0)
-            Log.Warning($"{nameof(IFontHandle)}.{nameof(IDisposable.Dispose)}: fonts were still in a stack.");
-        this.manager?.FreeFontHandle(this);
-        this.manager = null;
-        this.Disposed?.InvokeSafely(this);
-        this.ImFontChanged = null;
-    }
-
-    /// <inheritdoc/>
-    public IFontHandle.ImFontLocked Lock()
-    {
-        IFontHandleSubstance? prevSubstance = default;
-        while (true)
-        {
-            var substance = this.ManagerNotDisposed.Substance;
-            if (substance is null)
-                throw new InvalidOperationException();
-            if (substance == prevSubstance)
-                throw new ObjectDisposedException(nameof(DelegateFontHandle));
-
-            prevSubstance = substance;
-            try
-            {
-                substance.DataRoot.AddRef();
-            }
-            catch (ObjectDisposedException)
-            {
-                continue;
-            }
-
-            try
-            {
-                var fontPtr = substance.GetFontPtr(this);
-                if (fontPtr.IsNull())
-                    continue;
-                return new(fontPtr, substance.DataRoot);
-            }
-            finally
-            {
-                substance.DataRoot.Release();
-            }
-        }
-    }
-
-    /// <inheritdoc/>
-    public IDisposable Push()
-    {
-        ThreadSafety.AssertMainThread();
-        var cumulativePresentCalls = Service<InterfaceManager>.GetNullable()?.CumulativePresentCalls ?? 0L;
-        if (this.lastCumulativePresentCalls != cumulativePresentCalls)
-        {
-            this.lastCumulativePresentCalls = cumulativePresentCalls;
-            if (this.pushedFonts.Count > 0)
-            {
-                Log.Warning(
-                    $"{nameof(this.Push)} has been called, but the handle-private stack was not empty. " +
-                    $"You might be missing a call to {nameof(this.Pop)}.");
-                this.pushedFonts.Clear();
-            }
-        }
-
-        var rented = SimplePushedFont.Rent(this.pushedFonts, this.ImFont, this.Available);
-        this.pushedFonts.Add(rented);
-        return rented;
-    }
-
-    /// <inheritdoc/>
-    public void Pop()
-    {
-        ThreadSafety.AssertMainThread();
-        this.pushedFonts[^1].Dispose();
-    }
-
-    /// <inheritdoc/>
-    public Task<IFontHandle> WaitAsync()
-    {
-        if (this.Available)
-            return Task.FromResult<IFontHandle>(this);
-
-        var tcs = new TaskCompletionSource<IFontHandle>();
-        this.ImFontChanged += OnImFontChanged;
-        this.Disposed += OnImFontChanged;
-        if (this.Available)
-            OnImFontChanged(this);
-        return tcs.Task;
-
-        void OnImFontChanged(IFontHandle unused)
-        {
-            if (tcs.Task.IsCompletedSuccessfully)
-                return;
-
-            this.ImFontChanged -= OnImFontChanged;
-            this.Disposed -= OnImFontChanged;
-            if (this.manager is null)
-                tcs.SetException(new ObjectDisposedException(nameof(GamePrebakedFontHandle)));
-            else
-                tcs.SetResult(this);
-        }
-    }
 
     /// <summary>
     /// Manager for <see cref="DelegateFontHandle"/>s.
@@ -210,16 +81,6 @@ internal class DelegateFontHandle : IFontHandle.IInternal
         }
 
         /// <inheritdoc/>
-        public void InvokeFontHandleImFontChanged()
-        {
-            if (this.Substance is not HandleSubstance hs)
-                return;
-
-            foreach (var handle in hs.RelevantHandles)
-                handle.ImFontChanged?.InvokeSafely(handle);
-        }
-
-        /// <inheritdoc/>
         public IFontHandleSubstance NewSubstance(IRefCountable dataRoot)
         {
             lock (this.syncRoot)
@@ -261,6 +122,9 @@ internal class DelegateFontHandle : IFontHandle.IInternal
         /// </summary>
         // Not owned by this class. Do not dispose.
         public DelegateFontHandle[] RelevantHandles { get; }
+
+        /// <inheritdoc/>
+        ICollection<FontHandle> IFontHandleSubstance.RelevantHandles => this.RelevantHandles;
 
         /// <inheritdoc/>
         public IRefCountable DataRoot { get; }
@@ -430,33 +294,6 @@ internal class DelegateFontHandle : IFontHandle.IInternal
                     Log.Error(
                         e,
                         "[{name}] An error has occurred while during {delegate} PostBuild call.",
-                        this.Manager.Name,
-                        nameof(FontAtlasBuildStepDelegate));
-                }
-            }
-        }
-
-        /// <inheritdoc/>
-        public void OnPostPromotion(IFontAtlasBuildToolkitPostPromotion toolkitPostPromotion)
-        {
-            foreach (var k in this.RelevantHandles)
-            {
-                if (!this.fonts[k].IsNotNullAndLoaded())
-                    continue;
-
-                try
-                {
-                    toolkitPostPromotion.Font = this.fonts[k];
-                    k.CallOnBuildStepChange.Invoke(toolkitPostPromotion);
-                }
-                catch (Exception e)
-                {
-                    this.fonts[k] = default;
-                    this.buildExceptions[k] = e;
-
-                    Log.Error(
-                        e,
-                        "[{name}:Substance] An error has occurred while during {delegate} PostPromotion call.",
                         this.Manager.Name,
                         nameof(FontAtlasBuildStepDelegate));
                 }

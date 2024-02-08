@@ -28,17 +28,14 @@ internal sealed class SimplePushedFont : IDisposable
     /// </summary>
     /// <param name="stack">The <see cref="IFontHandle"/>-private stack.</param>
     /// <param name="fontPtr">The font pointer being pushed.</param>
-    /// <param name="push">Whether to push.</param>
-    /// <returns><c>this</c>.</returns>
-    public static SimplePushedFont Rent(List<IDisposable> stack, ImFontPtr fontPtr, bool push)
+    /// <returns>The rented instance of <see cref="SimplePushedFont"/>.</returns>
+    public static SimplePushedFont Rent(List<IDisposable> stack, ImFontPtr fontPtr)
     {
-        push &= !fontPtr.IsNull();
-
         var rented = Pool.Get();
         Debug.Assert(rented.font.IsNull(), "Rented object must not have its font set");
         rented.stack = stack;
 
-        if (push)
+        if (fontPtr.IsNotNullAndLoaded())
         {
             rented.font = fontPtr;
             ImGui.PushFont(fontPtr);

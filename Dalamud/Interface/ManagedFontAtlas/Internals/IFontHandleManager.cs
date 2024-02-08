@@ -32,9 +32,4 @@ internal interface IFontHandleManager : IDisposable
     /// <param name="dataRoot">The data root.</param>
     /// <returns>The new substance.</returns>
     IFontHandleSubstance NewSubstance(IRefCountable dataRoot);
-
-    /// <summary>
-    /// Invokes <see cref="IFontHandle.ImFontChanged"/>.
-    /// </summary>
-    void InvokeFontHandleImFontChanged();
 }

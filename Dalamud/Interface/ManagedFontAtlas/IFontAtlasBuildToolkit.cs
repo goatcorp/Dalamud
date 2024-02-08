@@ -80,4 +80,12 @@ public interface IFontAtlasBuildToolkit
     /// </summary>
     /// <param name="action">The action to run on dispose.</param>
     void DisposeWithAtlas(Action action);
+
+    /// <summary>
+    /// Gets the instance of <see cref="ImFontPtr"/> corresponding to <paramref name="fontHandle"/>
+    /// from <see cref="NewImAtlas"/>.
+    /// </summary>
+    /// <param name="fontHandle">The font handle.</param>
+    /// <returns>The corresonding <see cref="ImFontPtr"/>, or default if not found.</returns>
+    ImFontPtr GetFont(IFontHandle fontHandle);
 }

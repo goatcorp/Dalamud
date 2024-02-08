@@ -498,7 +498,7 @@ public sealed class UiBuilder : IDisposable
     [Obsolete($"Use {nameof(this.FontAtlas)}.{nameof(IFontAtlas.NewGameFontHandle)} instead.", false)]
     [Api10ToDo(Api10ToDoAttribute.DeleteCompatBehavior)]
     public GameFontHandle GetGameFontHandle(GameFontStyle style) => new(
-        (IFontHandle.IInternal)this.FontAtlas.NewGameFontHandle(style),
+        (GamePrebakedFontHandle)this.FontAtlas.NewGameFontHandle(style),
         Service<FontAtlasFactory>.Get());
 
     /// <summary>
@@ -700,6 +700,8 @@ public sealed class UiBuilder : IDisposable
         if (e.IsAsyncBuildOperation)
             return;
 
+        ThreadSafety.AssertMainThread();
+
         if (this.BuildFonts is not null)
         {
             e.OnPreBuild(
@@ -742,7 +744,7 @@ public sealed class UiBuilder : IDisposable
             this.wrapped.ImFontChanged += this.WrappedOnImFontChanged;
         }
 
-        public event Action<IFontHandle>? ImFontChanged;
+        public event IFontHandle.ImFontChangedDelegate? ImFontChanged;
 
         public Exception? LoadException => this.WrappedNotDisposed.LoadException;
 
@@ -761,7 +763,8 @@ public sealed class UiBuilder : IDisposable
             // Note: do not dispose w; we do not own it
         }
 
-        public IFontHandle.ImFontLocked Lock() => this.WrappedNotDisposed.Lock();
+        public ILockedImFont Lock() =>
+            this.wrapped?.Lock() ?? throw new ObjectDisposedException(nameof(FontHandleWrapper));
 
         public IDisposable Push() => this.WrappedNotDisposed.Push();
 
@@ -773,6 +776,7 @@ public sealed class UiBuilder : IDisposable
         public override string ToString() =>
             $"{nameof(FontHandleWrapper)}({this.wrapped?.ToString() ?? "disposed"})";
 
-        private void WrappedOnImFontChanged(IFontHandle obj) => this.ImFontChanged.InvokeSafely(this);
+        private void WrappedOnImFontChanged(IFontHandle obj, ILockedImFont lockedFont) =>
+            this.ImFontChanged?.Invoke(obj, lockedFont);
     } 
 }

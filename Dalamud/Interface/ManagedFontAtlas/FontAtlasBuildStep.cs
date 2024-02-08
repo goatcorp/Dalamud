@@ -7,32 +7,24 @@ namespace Dalamud.Interface.ManagedFontAtlas;
 /// </summary>
 public enum FontAtlasBuildStep
 {
-    /// <summary>
-    /// An invalid value. This should never be passed through event callbacks.
-    /// </summary>
-    Invalid,
+    // Note: leave 0 alone; make default(FontAtlasBuildStep) not have a valid value
 
     /// <summary>
     /// Called before calling <see cref="ImFontAtlasPtr.Build"/>.<br />
-    /// Expect <see cref="IFontAtlasBuildToolkitPreBuild"/> to be passed.
+    /// Expect <see cref="IFontAtlasBuildToolkitPreBuild"/> to be passed.<br />
+    /// When called from <see cref="IFontAtlas.BuildStepChange"/>, this will be called <b>before</b> the delegates
+    /// passed to <see cref="IFontAtlas.NewDelegateFontHandle"/>.
     /// </summary>
-    PreBuild,
+    PreBuild = 1,
 
     /// <summary>
     /// Called after calling <see cref="ImFontAtlasPtr.Build"/>.<br />
     /// Expect <see cref="IFontAtlasBuildToolkitPostBuild"/> to be passed.<br />
+    /// When called from <see cref="IFontAtlas.BuildStepChange"/>, this will be called <b>after</b> the delegates
+    /// passed to <see cref="IFontAtlas.NewDelegateFontHandle"/>; you can do cross-font operations here.<br />
     /// <br />
     /// This callback is not guaranteed to happen after <see cref="PreBuild"/>,
     /// but it will never happen on its own.
     /// </summary>
-    PostBuild,
-
-    /// <summary>
-    /// Called after promoting staging font atlas to the actual atlas for <see cref="IFontAtlas"/>.<br />
-    /// Expect <see cref="PostBuild"/> to be passed.<br />
-    /// <br />
-    /// This callback is not guaranteed to happen after <see cref="IFontAtlasBuildToolkitPostPromotion"/>,
-    /// but it will never happen on its own.
-    /// </summary>
-    PostPromotion,
+    PostBuild = 2,
 }

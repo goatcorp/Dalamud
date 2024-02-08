@@ -249,7 +249,7 @@ internal class GamePrebakedFontsTestWidget : IDataWindowWidget, IDisposable
                 await handle.WaitAsync();
                 var locked = handle.Lock();
                 garbage.Add(locked);
-                fonts.Add(locked);
+                fonts.Add(locked.ImFont);
             }
         }
         catch (ObjectDisposedException)
