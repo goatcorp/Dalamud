@@ -2556,7 +2556,7 @@ internal class PluginInstallerWindow : Window, IDisposable
 
             if (ImGui.MenuItem(Locs.PluginContext_DeletePluginConfigReload))
             {
-                this.ShowDeletePluginConfigWarningModal(plugin.Name).ContinueWith(t =>
+                this.ShowDeletePluginConfigWarningModal(plugin.Manifest.Name).ContinueWith(t =>
                 {
                     var shouldDelete = t.Result;
 
@@ -2571,7 +2571,7 @@ internal class PluginInstallerWindow : Window, IDisposable
                             {
                                 this.installStatus = OperationStatus.Idle;
 
-                                this.DisplayErrorContinuation(task, Locs.ErrorModal_DeleteConfigFail(plugin.Name));
+                                this.DisplayErrorContinuation(task, Locs.ErrorModal_DeleteConfigFail(plugin.Manifest.InternalName));
                             });
                     }
                 });
@@ -3773,7 +3773,7 @@ internal class PluginInstallerWindow : Window, IDisposable
 
         public static string DeletePluginConfigWarningModal_Title => Loc.Localize("InstallerDeletePluginConfigWarning", "Warning###InstallerDeletePluginConfigWarning");
 
-        public static string DeletePluginConfigWarningModal_Body(string pluginName) => Loc.Localize("InstallerDeletePluginConfigWarningBody", "Are you sure you want to delete all data and configuration for v{0}?").Format(pluginName);
+        public static string DeletePluginConfigWarningModal_Body(string pluginName) => Loc.Localize("InstallerDeletePluginConfigWarningBody", "Are you sure you want to delete all data and configuration for {0}?").Format(pluginName);
 
         public static string DeletePluginConfirmWarningModal_Yes => Loc.Localize("InstallerDeletePluginConfigWarningYes", "Yes");
 

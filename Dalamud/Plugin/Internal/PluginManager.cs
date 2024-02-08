@@ -1094,7 +1094,7 @@ internal partial class PluginManager : IDisposable, IServiceType
         {
             try
             {
-                this.PluginConfigs.Delete(plugin.Name);
+                this.PluginConfigs.Delete(plugin.Manifest.InternalName);
                 break;
             }
             catch (IOException)

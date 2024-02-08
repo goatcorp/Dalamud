@@ -746,10 +746,12 @@ public sealed class UiBuilder : IDisposable
 
         public event IFontHandle.ImFontChangedDelegate? ImFontChanged;
 
-        public Exception? LoadException =>
-            this.wrapped!.LoadException ?? new ObjectDisposedException(nameof(FontHandleWrapper));
+        public Exception? LoadException => this.WrappedNotDisposed.LoadException;
 
-        public bool Available => this.wrapped?.Available ?? false;
+        public bool Available => this.WrappedNotDisposed.Available;
+
+        private IFontHandle WrappedNotDisposed =>
+            this.wrapped ?? throw new ObjectDisposedException(nameof(FontHandleWrapper));
 
         public void Dispose()
         {
@@ -764,16 +766,15 @@ public sealed class UiBuilder : IDisposable
         public ILockedImFont Lock() =>
             this.wrapped?.Lock() ?? throw new ObjectDisposedException(nameof(FontHandleWrapper));
 
-        public IDisposable Push() => 
-            this.wrapped?.Push() ?? throw new ObjectDisposedException(nameof(FontHandleWrapper));
+        public IDisposable Push() => this.WrappedNotDisposed.Push();
 
-        public void Pop() => this.wrapped?.Pop();
+        public void Pop() => this.WrappedNotDisposed.Pop();
 
         public Task<IFontHandle> WaitAsync() =>
-            this.wrapped?.WaitAsync().ContinueWith(_ => (IFontHandle)this) ??
-            throw new ObjectDisposedException(nameof(FontHandleWrapper));
+            this.WrappedNotDisposed.WaitAsync().ContinueWith(_ => (IFontHandle)this);
 
-        public override string ToString() => $"{nameof(FontHandleWrapper)}({this.wrapped})";
+        public override string ToString() =>
+            $"{nameof(FontHandleWrapper)}({this.wrapped?.ToString() ?? "disposed"})";
 
         private void WrappedOnImFontChanged(IFontHandle obj, ILockedImFont lockedFont) =>
             this.ImFontChanged?.Invoke(obj, lockedFont);
