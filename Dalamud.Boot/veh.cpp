@@ -101,8 +101,21 @@ bool is_ffxiv_address(const wchar_t* module_name, const DWORD64 address)
 
 static void append_injector_launch_args(std::vector<std::wstring>& args)
 {
-    args.emplace_back(L"-g");
-    args.emplace_back(utils::loaded_module::current_process().path().wstring());
+    args.emplace_back(L"--game=\"" + utils::loaded_module::current_process().path().wstring() + L"\"");
+    switch (g_startInfo.DalamudLoadMethod) {
+    case DalamudStartInfo::LoadMethod::Entrypoint:
+        args.emplace_back(L"--mode=entrypoint");
+        break;
+    case DalamudStartInfo::LoadMethod::DllInject:
+        args.emplace_back(L"--mode=inject");
+    }
+    args.emplace_back(L"--logpath=\"" + utils::to_wstring(g_startInfo.BootLogPath) + L"\"");
+    args.emplace_back(L"--dalamud-working-directory=\"" + utils::to_wstring(g_startInfo.WorkingDirectory) + L"\"");
+    args.emplace_back(L"--dalamud-configuration-path=\"" + utils::to_wstring(g_startInfo.ConfigurationPath) + L"\"");
+    args.emplace_back(L"--dalamud-plugin-directory=\"" + utils::to_wstring(g_startInfo.PluginDirectory) + L"\"");
+    args.emplace_back(L"--dalamud-asset-directory=\"" + utils::to_wstring(g_startInfo.AssetDirectory) + L"\"");
+    args.emplace_back(L"--dalamud-client-language=" + std::to_wstring(static_cast<int>(g_startInfo.Language)));
+    args.emplace_back(L"--dalamud-delay-initialize=" + std::to_wstring(g_startInfo.DelayInitializeMs));
     if (g_startInfo.BootShowConsole)
         args.emplace_back(L"--console");
     if (g_startInfo.BootEnableEtw)
