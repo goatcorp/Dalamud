@@ -595,6 +595,16 @@ bool utils::is_running_on_wine() {
     return false;
 }
 
+std::wstring utils::to_wstring(const std::string& str) {
+    if (str.empty()) return std::wstring();
+    size_t convertedChars = 0;
+    size_t newStrSize = str.size() + 1;
+    std::wstring wstr(newStrSize, L'\0');
+    mbstowcs_s(&convertedChars, &wstr[0], newStrSize, str.c_str(), _TRUNCATE);
+    wstr.resize(convertedChars - 1);
+    return wstr;
+}
+
 std::filesystem::path utils::get_module_path(HMODULE hModule) {
     std::wstring buf(MAX_PATH, L'\0');
     while (true) {

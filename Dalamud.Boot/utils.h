@@ -266,6 +266,8 @@ namespace utils {
 
     bool is_running_on_wine();
 
+    std::wstring to_wstring(const std::string& str);
+
     std::filesystem::path get_module_path(HMODULE hModule);
 
     /// @brief Find the game main window.
