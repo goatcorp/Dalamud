@@ -840,7 +840,7 @@ int main() {
             log << std::format(L"Dump at: {}", dumpPath.wstring()) << std::endl;
         else
             log << std::format(L"Dump error: {}", dumpError) << std::endl;
-        log << L"Time: " << std::chrono::zoned_time{ std::chrono::current_zone(), std::chrono::system_clock::now() } << std::endl;
+        log << L"System Time: " << std::chrono::system_clock::now() << std::endl;
         log << L"\n" << stackTrace << std::endl;
 
         SymRefreshModuleList(GetCurrentProcess());
