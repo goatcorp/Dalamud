@@ -117,6 +117,14 @@ internal sealed class Dalamud : IServiceType
                 }
             });
         }
+
+        this.DefaultExceptionFilter = NativeFunctions.SetUnhandledExceptionFilter(nint.Zero);
+        NativeFunctions.SetUnhandledExceptionFilter(this.DefaultExceptionFilter);
+        Log.Debug($"SE default exception filter at {this.DefaultExceptionFilter.ToInt64():X}");
+
+        var debugSig = "40 55 53 56 48 8D AC 24 ?? ?? ?? ?? B8 ?? ?? ?? ?? E8 ?? ?? ?? ?? 48 2B E0 48 8B 05 ?? ?? ?? ?? 48 33 C4 48 89 85 ?? ?? ?? ?? 48 83 3D ?? ?? ?? ?? ??";
+        this.DebugExceptionFilter = Service<TargetSigScanner>.Get().ScanText(debugSig);
+        Log.Debug($"SE debug exception filter at {this.DebugExceptionFilter.ToInt64():X}");
     }
     
     /// <summary>
@@ -128,7 +136,17 @@ internal sealed class Dalamud : IServiceType
     /// Gets location of stored assets.
     /// </summary>
     internal DirectoryInfo AssetDirectory => new(this.StartInfo.AssetDirectory!);
-    
+
+    /// <summary>
+    /// Gets the in-game default exception filter.
+    /// </summary>
+    private nint DefaultExceptionFilter { get; }
+
+    /// <summary>
+    /// Gets the in-game debug exception filter.
+    /// </summary>
+    private nint DebugExceptionFilter { get; }
+
     /// <summary>
     /// Signal to the crash handler process that we should restart the game.
     /// </summary>
@@ -191,18 +209,32 @@ internal sealed class Dalamud : IServiceType
     }
 
     /// <summary>
-    /// Replace the built-in exception handler with a debug one.
+    /// Replace the current exception handler with the default one.
     /// </summary>
-    internal void ReplaceExceptionHandler()
-    {
-        var releaseSig = "40 55 53 56 48 8D AC 24 ?? ?? ?? ?? B8 ?? ?? ?? ?? E8 ?? ?? ?? ?? 48 2B E0 48 8B 05 ?? ?? ?? ?? 48 33 C4 48 89 85 ?? ?? ?? ?? 48 83 3D ?? ?? ?? ?? ??";
-        var releaseFilter = Service<TargetSigScanner>.Get().ScanText(releaseSig);
-        Log.Debug($"SE debug filter at {releaseFilter.ToInt64():X}");
+    internal void UseDefaultExceptionHandler() => 
+        this.SetExceptionHandler(this.DefaultExceptionFilter);
 
-        var oldFilter = NativeFunctions.SetUnhandledExceptionFilter(releaseFilter);
-        Log.Debug("Reset ExceptionFilter, old: {0}", oldFilter);
+    /// <summary>
+    /// Replace the current exception handler with a debug one.
+    /// </summary>
+    internal void UseDebugExceptionHandler() =>
+        this.SetExceptionHandler(this.DebugExceptionFilter);
+
+    /// <summary>
+    /// Disable the current exception handler.
+    /// </summary>
+    internal void UseNoExceptionHandler() =>
+        this.SetExceptionHandler(nint.Zero);
+
+    /// <summary>
+    /// Helper function to set the exception handler.
+    /// </summary>
+    private void SetExceptionHandler(nint newFilter)
+    {
+        var oldFilter = NativeFunctions.SetUnhandledExceptionFilter(newFilter);
+        Log.Debug("Set ExceptionFilter to {0}, old: {1}", newFilter, oldFilter);
     }
-    
+
     private void SetupClientStructsResolver(DirectoryInfo cacheDir)
     {
         using (Timings.Start("CS Resolver Init"))
