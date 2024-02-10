@@ -612,7 +612,8 @@ void restart_game_using_injector(int nRadioButton, const std::vector<std::wstrin
     pathStr.resize(GetModuleFileNameExW(GetCurrentProcess(), GetModuleHandleW(nullptr), &pathStr[0], PATHCCH_MAX_CCH));
 
     std::vector<std::wstring> args;
-    args.emplace_back((std::filesystem::path(pathStr).parent_path() / L"Dalamud.Injector.exe").wstring());
+    std::wstring injectorPath = (std::filesystem::path(pathStr).parent_path() / L"Dalamud.Injector.exe").wstring();
+    args.emplace_back(L'\"' + injectorPath + L'\"');
     args.emplace_back(L"launch");
     switch (nRadioButton) {
         case IdRadioRestartWithout3pPlugins:
@@ -625,12 +626,11 @@ void restart_game_using_injector(int nRadioButton, const std::vector<std::wstrin
             args.emplace_back(L"--without-dalamud");
         break;
     }
-    args.emplace_back(L"--");
     args.insert(args.end(), launcherArgs.begin(), launcherArgs.end());
 
     std::wstring argstr;
     for (const auto& arg : args) {
-        argstr.append(escape_shell_arg(arg));
+        argstr.append(arg);
         argstr.push_back(L' ');
     }
     argstr.pop_back();
@@ -644,7 +644,7 @@ void restart_game_using_injector(int nRadioButton, const std::vector<std::wstrin
     si.wShowWindow = SW_SHOW;
 #endif
     PROCESS_INFORMATION pi{};
-    if (CreateProcessW(args[0].c_str(), &argstr[0], nullptr, nullptr, FALSE, 0, nullptr, nullptr, &si, &pi)) {
+    if (CreateProcessW(injectorPath.c_str(), &argstr[0], nullptr, nullptr, FALSE, 0, nullptr, nullptr, &si, &pi)) {
         CloseHandle(pi.hProcess);
         CloseHandle(pi.hThread);
     } else {
