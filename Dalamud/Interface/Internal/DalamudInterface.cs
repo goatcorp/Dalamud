@@ -863,9 +863,19 @@ internal class DalamudInterface : IDisposable, IServiceType
 
                 if (ImGui.BeginMenu("Game"))
                 {
-                    if (ImGui.MenuItem("Replace ExceptionHandler"))
+                    if (ImGui.MenuItem("Use in-game default ExceptionHandler"))
                     {
-                        this.dalamud.ReplaceExceptionHandler();
+                        this.dalamud.UseDefaultExceptionHandler();
+                    }
+
+                    if (ImGui.MenuItem("Use in-game debug ExceptionHandler"))
+                    {
+                        this.dalamud.UseDebugExceptionHandler();
+                    }
+
+                    if (ImGui.MenuItem("Disable in-game ExceptionHandler"))
+                    {
+                        this.dalamud.UseNoExceptionHandler();
                     }
 
                     ImGui.EndMenu();
