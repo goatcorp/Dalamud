@@ -264,8 +264,6 @@ namespace utils {
         return get_env_list<T>(unicode::convert<std::wstring>(pcszName).c_str());
     }
 
-    bool is_running_on_wine();
-
     std::wstring to_wstring(const std::string& str);
 
     std::filesystem::path get_module_path(HMODULE hModule);
