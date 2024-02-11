@@ -992,7 +992,7 @@ int main() {
 
         int nButtonPressed = 0, nRadioButton = 0;
         if (FAILED(TaskDialogIndirect(&config, &nButtonPressed, &nRadioButton, nullptr))) {
-            ResumeThread(exinfo.hThreadHandle);
+            SetEvent(exinfo.hEventHandle);
         } else {
             switch (nButtonPressed) {
                 case IdButtonRestart:
@@ -1003,7 +1003,7 @@ int main() {
                 }
                 default:
                     if (attemptResume)
-                        ResumeThread(exinfo.hThreadHandle);
+                        SetEvent(exinfo.hEventHandle);
                     else
                         TerminateProcess(g_hProcess, exinfo.ExceptionRecord.ExceptionCode);
             }
