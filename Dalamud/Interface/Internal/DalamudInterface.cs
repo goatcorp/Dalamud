@@ -21,6 +21,7 @@ using Dalamud.Interface.Internal.Windows.PluginInstaller;
 using Dalamud.Interface.Internal.Windows.SelfTest;
 using Dalamud.Interface.Internal.Windows.Settings;
 using Dalamud.Interface.Internal.Windows.StyleEditor;
+using Dalamud.Interface.ManagedFontAtlas.Internals;
 using Dalamud.Interface.Style;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
@@ -93,7 +94,8 @@ internal class DalamudInterface : IDisposable, IServiceType
     private DalamudInterface(
         Dalamud dalamud,
         DalamudConfiguration configuration,
-        InterfaceManager.InterfaceManagerWithScene interfaceManagerWithScene,
+        FontAtlasFactory fontAtlasFactory,
+        InterfaceManager interfaceManager,
         PluginImageCache pluginImageCache,
         DalamudAssetManager dalamudAssetManager,
         Game.Framework framework,
@@ -103,7 +105,7 @@ internal class DalamudInterface : IDisposable, IServiceType
     {
         this.dalamud = dalamud;
         this.configuration = configuration;
-        this.interfaceManager = interfaceManagerWithScene.Manager;
+        this.interfaceManager = interfaceManager;
 
         this.WindowSystem = new WindowSystem("DalamudCore");
         
@@ -122,10 +124,14 @@ internal class DalamudInterface : IDisposable, IServiceType
             clientState,
             configuration,
             dalamudAssetManager,
+            fontAtlasFactory,
             framework,
             gameGui,
             titleScreenMenu) { IsOpen = false };
-        this.changelogWindow = new ChangelogWindow(this.titleScreenMenuWindow) { IsOpen = false };
+        this.changelogWindow = new ChangelogWindow(
+            this.titleScreenMenuWindow,
+            fontAtlasFactory,
+            dalamudAssetManager) { IsOpen = false };
         this.profilerWindow = new ProfilerWindow() { IsOpen = false };
         this.branchSwitcherWindow = new BranchSwitcherWindow() { IsOpen = false };
         this.hitchSettingsWindow = new HitchSettingsWindow() { IsOpen = false };
@@ -207,6 +213,7 @@ internal class DalamudInterface : IDisposable, IServiceType
     {
         this.interfaceManager.Draw -= this.OnDraw;
 
+        this.WindowSystem.Windows.OfType<IDisposable>().AggregateToDisposable().Dispose();
         this.WindowSystem.RemoveAllWindows();
 
         this.changelogWindow.Dispose();
@@ -660,7 +667,7 @@ internal class DalamudInterface : IDisposable, IServiceType
                     }
 
                     var antiDebug = Service<AntiDebug>.Get();
-                    if (ImGui.MenuItem("Enable AntiDebug", null, antiDebug.IsEnabled))
+                    if (ImGui.MenuItem("Disable Debugging Protections", null, antiDebug.IsEnabled))
                     {
                         var newEnabled = !antiDebug.IsEnabled;
                         if (newEnabled)
@@ -856,9 +863,19 @@ internal class DalamudInterface : IDisposable, IServiceType
 
                 if (ImGui.BeginMenu("Game"))
                 {
-                    if (ImGui.MenuItem("Replace ExceptionHandler"))
+                    if (ImGui.MenuItem("Use in-game default ExceptionHandler"))
                     {
-                        this.dalamud.ReplaceExceptionHandler();
+                        this.dalamud.UseDefaultExceptionHandler();
+                    }
+
+                    if (ImGui.MenuItem("Use in-game debug ExceptionHandler"))
+                    {
+                        this.dalamud.UseDebugExceptionHandler();
+                    }
+
+                    if (ImGui.MenuItem("Disable in-game ExceptionHandler"))
+                    {
+                        this.dalamud.UseNoExceptionHandler();
                     }
 
                     ImGui.EndMenu();

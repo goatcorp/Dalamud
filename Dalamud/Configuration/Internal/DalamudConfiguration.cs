@@ -148,12 +148,9 @@ internal sealed class DalamudConfiguration : IServiceType, IDisposable
     public bool UseAxisFontsFromGame { get; set; } = false;
 
     /// <summary>
-    /// Gets or sets the gamma value to apply for Dalamud fonts. Effects text thickness.
-    ///
-    /// Before gamma is applied...
-    /// * ...TTF fonts loaded with stb or FreeType are in linear space.
-    /// * ...the game's prebaked AXIS fonts are in gamma space with gamma value of 1.4.
+    /// Gets or sets the gamma value to apply for Dalamud fonts. Do not use.
     /// </summary>
+    [Obsolete("It happens that nobody touched this setting", true)]
     public float FontGammaLevel { get; set; } = 1.4f;
 
     /// <summary>

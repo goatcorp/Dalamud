@@ -1,75 +1,102 @@
-using System;
 using System.Numerics;
+using System.Threading.Tasks;
+
+using Dalamud.Interface.ManagedFontAtlas;
+using Dalamud.Interface.ManagedFontAtlas.Internals;
+using Dalamud.Utility;
 
 using ImGuiNET;
 
 namespace Dalamud.Interface.GameFonts;
 
 /// <summary>
-/// Prepare and keep game font loaded for use in OnDraw.
+/// ABI-compatible wrapper for <see cref="IFontHandle"/>.
 /// </summary>
-public class GameFontHandle : IDisposable
+[Api10ToDo(Api10ToDoAttribute.DeleteCompatBehavior)]
+public sealed class GameFontHandle : IFontHandle
 {
-    private readonly GameFontManager manager;
-    private readonly GameFontStyle fontStyle;
+    private readonly GamePrebakedFontHandle fontHandle;
+    private readonly FontAtlasFactory fontAtlasFactory;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="GameFontHandle"/> class.
+    /// Initializes a new instance of the <see cref="GameFontHandle"/> class.<br />
+    /// Ownership of <paramref name="fontHandle"/> is transferred.
     /// </summary>
-    /// <param name="manager">GameFontManager instance.</param>
-    /// <param name="font">Font to use.</param>
-    internal GameFontHandle(GameFontManager manager, GameFontStyle font)
+    /// <param name="fontHandle">The wrapped <see cref="GamePrebakedFontHandle"/>.</param>
+    /// <param name="fontAtlasFactory">An instance of <see cref="FontAtlasFactory"/>.</param>
+    internal GameFontHandle(GamePrebakedFontHandle fontHandle, FontAtlasFactory fontAtlasFactory)
     {
-        this.manager = manager;
-        this.fontStyle = font;
+        this.fontHandle = fontHandle;
+        this.fontAtlasFactory = fontAtlasFactory;
     }
 
-    /// <summary>
-    /// Gets the font style.
-    /// </summary>
-    public GameFontStyle Style => this.fontStyle;
-
-    /// <summary>
-    /// Gets a value indicating whether this font is ready for use.
-    /// </summary>
-    public bool Available
+    /// <inheritdoc />
+    public event IFontHandle.ImFontChangedDelegate ImFontChanged
     {
-        get
-        {
-            unsafe
-            {
-                return this.manager.GetFont(this.fontStyle).GetValueOrDefault(null).NativePtr != null;
-            }
-        }
+        add => this.fontHandle.ImFontChanged += value;
+        remove => this.fontHandle.ImFontChanged -= value;
     }
 
-    /// <summary>
-    /// Gets the font.
-    /// </summary>
-    public ImFontPtr ImFont => this.manager.GetFont(this.fontStyle).Value;
+    /// <inheritdoc />
+    public Exception? LoadException => this.fontHandle.LoadException;
+
+    /// <inheritdoc />
+    public bool Available => this.fontHandle.Available;
 
     /// <summary>
-    /// Gets the FdtReader.
+    /// Gets the font.<br />
+    /// Use of this properly is safe only from the UI thread.<br />
+    /// Use <see cref="IFontHandle.Push"/> if the intended purpose of this property is <see cref="ImGui.PushFont"/>.<br />
+    /// Futures changes may make simple <see cref="ImGui.PushFont"/> not enough.<br />
+    /// If you need to access a font outside the UI thread, use <see cref="IFontHandle.Lock"/>.
     /// </summary>
-    public FdtReader FdtReader => this.manager.GetFdtReader(this.fontStyle.FamilyAndSize);
+    [Obsolete($"Use {nameof(Push)}-{nameof(ImGui.GetFont)} or {nameof(Lock)} instead.", false)]
+    public ImFontPtr ImFont => this.fontHandle.LockUntilPostFrame();
 
     /// <summary>
-    /// Creates a new GameFontLayoutPlan.Builder.
+    /// Gets the font style. Only applicable for <see cref="GameFontHandle"/>.
+    /// </summary>
+    [Obsolete("If you use this, let the fact that you use this be known at Dalamud Discord.", false)]
+    public GameFontStyle Style => ((GamePrebakedFontHandle)this.fontHandle).FontStyle;
+
+    /// <summary>
+    /// Gets the relevant <see cref="FdtReader"/>.<br />
+    /// <br />
+    /// Only applicable for game fonts. Otherwise it will throw.
+    /// </summary>
+    [Obsolete("If you use this, let the fact that you use this be known at Dalamud Discord.", false)]
+    public FdtReader FdtReader => this.fontAtlasFactory.GetFdtReader(this.Style.FamilyAndSize)!;
+
+    /// <inheritdoc />
+    public void Dispose() => this.fontHandle.Dispose();
+
+    /// <inheritdoc />
+    public ILockedImFont Lock() => this.fontHandle.Lock();
+
+    /// <inheritdoc />
+    public IDisposable Push() => this.fontHandle.Push();
+
+    /// <inheritdoc />
+    public void Pop() => this.fontHandle.Pop();
+
+    /// <inheritdoc />
+    public Task<IFontHandle> WaitAsync() => this.fontHandle.WaitAsync();
+
+    /// <summary>
+    /// Creates a new <see cref="GameFontLayoutPlan.Builder"/>.<br />
+    /// <br />
+    /// Only applicable for game fonts. Otherwise it will throw.
     /// </summary>
     /// <param name="text">Text.</param>
     /// <returns>A new builder for GameFontLayoutPlan.</returns>
-    public GameFontLayoutPlan.Builder LayoutBuilder(string text)
-    {
-        return new GameFontLayoutPlan.Builder(this.ImFont, this.FdtReader, text);
-    }
-
-    /// <inheritdoc/>
-    public void Dispose() => this.manager.DecreaseFontRef(this.fontStyle);
+    [Obsolete("If you use this, let the fact that you use this be known at Dalamud Discord.", false)]
+    public GameFontLayoutPlan.Builder LayoutBuilder(string text) => new(this.ImFont, this.FdtReader, text);
 
     /// <summary>
     /// Draws text.
     /// </summary>
     /// <param name="text">Text to draw.</param>
+    [Obsolete("If you use this, let the fact that you use this be known at Dalamud Discord.", false)]
     public void Text(string text)
     {
         if (!this.Available)
@@ -93,6 +120,7 @@ public class GameFontHandle : IDisposable
     /// </summary>
     /// <param name="col">Color.</param>
     /// <param name="text">Text to draw.</param>
+    [Obsolete("If you use this, let the fact that you use this be known at Dalamud Discord.", false)]
     public void TextColored(Vector4 col, string text)
     {
         ImGui.PushStyleColor(ImGuiCol.Text, col);
@@ -104,6 +132,7 @@ public class GameFontHandle : IDisposable
     /// Draws disabled text.
     /// </summary>
     /// <param name="text">Text to draw.</param>
+    [Obsolete("If you use this, let the fact that you use this be known at Dalamud Discord.", false)]
     public void TextDisabled(string text)
     {
         unsafe
