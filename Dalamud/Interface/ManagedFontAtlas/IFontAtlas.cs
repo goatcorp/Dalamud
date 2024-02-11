@@ -93,6 +93,10 @@ public interface IFontAtlas : IDisposable
     /// </summary>
     /// <param name="buildStepDelegate">Callback for <see cref="IFontAtlas.BuildStepChange"/>.</param>
     /// <returns>Handle to a font that may or may not be ready yet.</returns>
+    /// <remarks>
+    /// Consider calling <see cref="IFontAtlasBuildToolkitPreBuild.AttachExtraGlyphsForDalamudLanguage"/> to support
+    /// glyphs that are not supplied by the game by default; this mostly affects Chinese and Korean language users.
+    /// </remarks>
     /// <example>
     /// <b>On initialization</b>:
     /// <code>
