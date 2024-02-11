@@ -26,6 +26,7 @@ PVOID g_veh_handle = nullptr;
 bool g_veh_do_full_dump = false;
 
 HANDLE g_crashhandler_process = nullptr;
+HANDLE g_crashhandler_event = nullptr;
 HANDLE g_crashhandler_pipe_write = nullptr;
 
 std::recursive_mutex g_exception_handler_mutex;
@@ -101,8 +102,21 @@ bool is_ffxiv_address(const wchar_t* module_name, const DWORD64 address)
 
 static void append_injector_launch_args(std::vector<std::wstring>& args)
 {
-    args.emplace_back(L"-g");
-    args.emplace_back(utils::loaded_module::current_process().path().wstring());
+    args.emplace_back(L"--game=\"" + utils::loaded_module::current_process().path().wstring() + L"\"");
+    switch (g_startInfo.DalamudLoadMethod) {
+    case DalamudStartInfo::LoadMethod::Entrypoint:
+        args.emplace_back(L"--mode=entrypoint");
+        break;
+    case DalamudStartInfo::LoadMethod::DllInject:
+        args.emplace_back(L"--mode=inject");
+    }
+    args.emplace_back(L"--logpath=\"" + utils::to_wstring(g_startInfo.BootLogPath) + L"\"");
+    args.emplace_back(L"--dalamud-working-directory=\"" + utils::to_wstring(g_startInfo.WorkingDirectory) + L"\"");
+    args.emplace_back(L"--dalamud-configuration-path=\"" + utils::to_wstring(g_startInfo.ConfigurationPath) + L"\"");
+    args.emplace_back(L"--dalamud-plugin-directory=\"" + utils::to_wstring(g_startInfo.PluginDirectory) + L"\"");
+    args.emplace_back(L"--dalamud-asset-directory=\"" + utils::to_wstring(g_startInfo.AssetDirectory) + L"\"");
+    args.emplace_back(L"--dalamud-client-language=" + std::to_wstring(static_cast<int>(g_startInfo.Language)));
+    args.emplace_back(L"--dalamud-delay-initialize=" + std::to_wstring(g_startInfo.DelayInitializeMs));
     if (g_startInfo.BootShowConsole)
         args.emplace_back(L"--console");
     if (g_startInfo.BootEnableEtw)
@@ -158,6 +172,7 @@ LONG exception_handler(EXCEPTION_POINTERS* ex)
             g_time_start.time_since_epoch()).count();
     exinfo.nLifetime = lifetime;
     DuplicateHandle(GetCurrentProcess(), GetCurrentThread(), g_crashhandler_process, &exinfo.hThreadHandle, 0, TRUE, DUPLICATE_SAME_ACCESS);
+    DuplicateHandle(GetCurrentProcess(), g_crashhandler_event, g_crashhandler_process, &exinfo.hEventHandle, 0, TRUE, DUPLICATE_SAME_ACCESS);
 
     std::wstring stackTrace;
     if (void* fn; const auto err = static_cast<DWORD>(g_clr->get_function_pointer(
@@ -185,7 +200,20 @@ LONG exception_handler(EXCEPTION_POINTERS* ex)
     if (DWORD written; !WriteFile(g_crashhandler_pipe_write, &g_startInfo.TroubleshootingPackData[0], static_cast<DWORD>(std::span(g_startInfo.TroubleshootingPackData).size_bytes()), &written, nullptr) || std::span(g_startInfo.TroubleshootingPackData).size_bytes() != written)
         return EXCEPTION_CONTINUE_SEARCH;
 
-    SuspendThread(GetCurrentThread());
+    HANDLE waitHandles[] = { g_crashhandler_process, g_crashhandler_event };
+    DWORD waitResult = WaitForMultipleObjects(2, waitHandles, FALSE, INFINITE);
+
+    switch (waitResult) {
+    case WAIT_OBJECT_0:
+        logging::E("DalamudCrashHandler.exe exited unexpectedly");
+        break;
+    case WAIT_OBJECT_0 + 1:
+        logging::I("Crashing thread was resumed");
+        break;
+    default:
+        logging::E("Unexpected WaitForMultipleObjects return code 0x{:x}", waitResult);
+    }
+
     return EXCEPTION_CONTINUE_SEARCH;
 }
 
@@ -305,6 +333,12 @@ bool veh::add_handler(bool doFullDump, const std::string& workingDirectory)
         ))
     {
         logging::W("Failed to launch DalamudCrashHandler.exe: CreateProcessW error 0x{:x}", GetLastError());
+        return false;
+    }
+
+    if (!(g_crashhandler_event = CreateEventW(NULL, FALSE, FALSE, NULL)))
+    {
+        logging::W("Failed to create crash synchronization event: CreateEventW error 0x{:x}", GetLastError());
         return false;
     }
 

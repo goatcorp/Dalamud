@@ -680,11 +680,11 @@ namespace Dalamud.Injector
             mode = mode == null ? "entrypoint" : mode.ToLowerInvariant();
             if (mode.Length > 0 && mode.Length <= 10 && "entrypoint"[0..mode.Length] == mode)
             {
-                mode = "entrypoint";
+                dalamudStartInfo.LoadMethod = LoadMethod.Entrypoint;
             }
             else if (mode.Length > 0 && mode.Length <= 6 && "inject"[0..mode.Length] == mode)
             {
-                mode = "inject";
+                dalamudStartInfo.LoadMethod = LoadMethod.DllInject;
             }
             else
             {
@@ -796,7 +796,7 @@ namespace Dalamud.Injector
                 noFixAcl,
                 p =>
                 {
-                    if (!withoutDalamud && mode == "entrypoint")
+                    if (!withoutDalamud && dalamudStartInfo.LoadMethod == LoadMethod.Entrypoint)
                     {
                         var startInfo = AdjustStartInfo(dalamudStartInfo, gamePath);
                         Log.Information("Using start info: {0}", JsonConvert.SerializeObject(startInfo));
@@ -813,7 +813,7 @@ namespace Dalamud.Injector
 
             Log.Verbose("Game process started with PID {0}", process.Id);
 
-            if (!withoutDalamud && mode == "inject")
+            if (!withoutDalamud && dalamudStartInfo.LoadMethod == LoadMethod.DllInject)
             {
                 var startInfo = AdjustStartInfo(dalamudStartInfo, gamePath);
                 Log.Information("Using start info: {0}", JsonConvert.SerializeObject(startInfo));

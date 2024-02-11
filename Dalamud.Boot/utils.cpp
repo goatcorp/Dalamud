@@ -578,21 +578,14 @@ std::vector<std::string> utils::get_env_list(const wchar_t* pcszName) {
     return res;
 }
 
-bool utils::is_running_on_wine() {
-    if (get_env<bool>(L"XL_WINEONLINUX"))
-        return true;
-    HMODULE hntdll = GetModuleHandleW(L"ntdll.dll");
-    if (!hntdll)
-        return true;
-    if (GetProcAddress(hntdll, "wine_get_version"))
-        return true;
-    if (GetProcAddress(hntdll, "wine_get_host_version"))
-        return true;
-    if (GetProcAddress(hntdll, "wine_server_call"))
-        return true;
-    if (GetProcAddress(hntdll, "wine_unix_to_nt_file_name"))
-        return true;
-    return false;
+std::wstring utils::to_wstring(const std::string& str) {
+    if (str.empty()) return std::wstring();
+    size_t convertedChars = 0;
+    size_t newStrSize = str.size() + 1;
+    std::wstring wstr(newStrSize, L'\0');
+    mbstowcs_s(&convertedChars, &wstr[0], newStrSize, str.c_str(), _TRUNCATE);
+    wstr.resize(convertedChars - 1);
+    return wstr;
 }
 
 std::filesystem::path utils::get_module_path(HMODULE hModule) {

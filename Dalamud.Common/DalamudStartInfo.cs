@@ -18,6 +18,11 @@ public record DalamudStartInfo
     }
 
     /// <summary>
+    /// Gets or sets the Dalamud load method.
+    /// </summary>
+    public LoadMethod LoadMethod { get; set; }
+
+    /// <summary>
     /// Gets or sets the working directory of the XIVLauncher installations.
     /// </summary>
     public string? WorkingDirectory { get; set; }

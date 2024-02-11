@@ -68,10 +68,25 @@ void from_json(const nlohmann::json& json, DalamudStartInfo::ClientLanguage& val
     }
 }
 
+void from_json(const nlohmann::json& json, DalamudStartInfo::LoadMethod& value) {
+    if (json.is_number_integer()) {
+        value = static_cast<DalamudStartInfo::LoadMethod>(json.get<int>());
+
+    }
+    else if (json.is_string()) {
+        const auto langstr = unicode::convert<std::string>(json.get<std::string>(), &unicode::lower);
+        if (langstr == "entrypoint")
+            value = DalamudStartInfo::LoadMethod::Entrypoint;
+        else if (langstr == "inject")
+            value = DalamudStartInfo::LoadMethod::DllInject;
+    }
+}
+
 void from_json(const nlohmann::json& json, DalamudStartInfo& config) {
     if (!json.is_object())
         return;
 
+    config.DalamudLoadMethod = json.value("LoadMethod", config.DalamudLoadMethod);
     config.WorkingDirectory = json.value("WorkingDirectory", config.WorkingDirectory);
     config.ConfigurationPath = json.value("ConfigurationPath", config.ConfigurationPath);
     config.PluginDirectory = json.value("PluginDirectory", config.PluginDirectory);
