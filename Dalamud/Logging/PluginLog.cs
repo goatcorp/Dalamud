@@ -1,6 +1,8 @@
 using System.Reflection;
 
 using Dalamud.Plugin.Services;
+using Dalamud.Utility;
+
 using Serilog;
 using Serilog.Events;
 
@@ -14,6 +16,7 @@ namespace Dalamud.Logging;
 /// move over as soon as reasonably possible for performance reasons.
 /// </remarks>
 [Obsolete("Static PluginLog will be removed in API 10. Developers should use IPluginLog.")]
+[Api10ToDo(Api10ToDoAttribute.DeleteCompatBehavior)]
 public static class PluginLog
 {
     #region "Log" prefixed Serilog style methods

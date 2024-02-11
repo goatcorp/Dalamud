@@ -1,4 +1,5 @@
-﻿using System.Diagnostics.Contracts;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics.Contracts;
 using System.IO;
 using System.Threading.Tasks;
 
@@ -64,8 +65,9 @@ internal interface IDalamudAssetManager
     /// </summary>
     /// <param name="asset">The texture asset.</param>
     /// <param name="defaultWrap">The default return value, if the asset is not ready for whatever reason.</param>
-    /// <returns>The texture wrap.</returns>
+    /// <returns>The texture wrap. Can be <c>null</c> only if <paramref name="defaultWrap"/> is <c>null</c>.</returns>
     [Pure]
+    [return: NotNullIfNotNull(nameof(defaultWrap))]
     IDalamudTextureWrap? GetDalamudTextureWrap(DalamudAsset asset, IDalamudTextureWrap? defaultWrap);
 
     /// <summary>

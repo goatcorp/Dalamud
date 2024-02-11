@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading.Tasks;
@@ -12,6 +11,9 @@ using Dalamud.Interface.GameFonts;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Internal.ManagedAsserts;
 using Dalamud.Interface.Internal.Notifications;
+using Dalamud.Interface.ManagedFontAtlas;
+using Dalamud.Interface.ManagedFontAtlas.Internals;
+using Dalamud.Plugin.Internal.Types;
 using Dalamud.Utility;
 using ImGuiNET;
 using ImGuiScene;
@@ -30,13 +32,19 @@ public sealed class UiBuilder : IDisposable
     private readonly HitchDetector hitchDetector;
     private readonly string namespaceName;
     private readonly InterfaceManager interfaceManager = Service<InterfaceManager>.Get();
-    private readonly GameFontManager gameFontManager = Service<GameFontManager>.Get();
+    private readonly Framework framework = Service<Framework>.Get();
 
     [ServiceManager.ServiceDependency]
     private readonly DalamudConfiguration configuration = Service<DalamudConfiguration>.Get();
 
+    private readonly DisposeSafety.ScopedFinalizer scopedFinalizer = new();
+
     private bool hasErrorWindow = false;
     private bool lastFrameUiHideState = false;
+
+    private IFontHandle? defaultFontHandle;
+    private IFontHandle? iconFontHandle;
+    private IFontHandle? monoFontHandle;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="UiBuilder"/> class and registers it.
@@ -45,14 +53,32 @@ public sealed class UiBuilder : IDisposable
     /// <param name="namespaceName">The plugin namespace.</param>
     internal UiBuilder(string namespaceName)
     {
-        this.stopwatch = new Stopwatch();
-        this.hitchDetector = new HitchDetector($"UiBuilder({namespaceName})", this.configuration.UiBuilderHitch);
-        this.namespaceName = namespaceName;
+        try
+        {
+            this.stopwatch = new Stopwatch();
+            this.hitchDetector = new HitchDetector($"UiBuilder({namespaceName})", this.configuration.UiBuilderHitch);
+            this.namespaceName = namespaceName;
 
-        this.interfaceManager.Draw += this.OnDraw;
-        this.interfaceManager.BuildFonts += this.OnBuildFonts;
-        this.interfaceManager.AfterBuildFonts += this.OnAfterBuildFonts;
-        this.interfaceManager.ResizeBuffers += this.OnResizeBuffers;
+            this.interfaceManager.Draw += this.OnDraw;
+            this.scopedFinalizer.Add(() => this.interfaceManager.Draw -= this.OnDraw);
+
+            this.interfaceManager.ResizeBuffers += this.OnResizeBuffers;
+            this.scopedFinalizer.Add(() => this.interfaceManager.ResizeBuffers -= this.OnResizeBuffers);
+
+            this.FontAtlas =
+                this.scopedFinalizer
+                    .Add(
+                        Service<FontAtlasFactory>
+                            .Get()
+                            .CreateFontAtlas(namespaceName, FontAtlasAutoRebuildMode.Disable));
+            this.FontAtlas.BuildStepChange += this.PrivateAtlasOnBuildStepChange;
+            this.FontAtlas.RebuildRecommend += this.RebuildFonts;
+        }
+        catch
+        {
+            this.scopedFinalizer.Dispose();
+            throw;
+        }
     }
 
     /// <summary>
@@ -78,21 +104,59 @@ public sealed class UiBuilder : IDisposable
 
     /// <summary>
     /// Gets or sets an action that is called any time ImGui fonts need to be rebuilt.<br/>
-    /// Any ImFontPtr objects that you store <strong>can be invalidated</strong> when fonts are rebuilt
+    /// Any ImFontPtr objects that you store <b>can be invalidated</b> when fonts are rebuilt
     /// (at any time), so you should both reload your custom fonts and restore those
-    /// pointers inside this handler.<br/>
-    /// <strong>PLEASE remove this handler inside Dispose, or when you no longer need your fonts!</strong>
+    /// pointers inside this handler.
     /// </summary>
-    public event Action BuildFonts;
+    /// <remarks>
+    /// To add your custom font, use <see cref="FontAtlas"/>.<see cref="IFontAtlas.NewDelegateFontHandle"/> or
+    /// <see cref="IFontAtlas.NewGameFontHandle"/>.<br />
+    /// To be notified on font changes after fonts are built, use
+    /// <see cref="DefaultFontHandle"/>.<see cref="IFontHandle.ImFontChanged"/>.<br />
+    /// For all other purposes, use <see cref="FontAtlas"/>.<see cref="IFontAtlas.BuildStepChange"/>.<br />
+    /// <br />
+    /// Note that you will be calling above functions once, instead of every time inside a build step change callback.
+    /// For example, you can make all font handles from your plugin constructor, and then use the created handles during
+    /// <see cref="Draw"/> event, by using <see cref="IFontHandle.Push"/> in a scope.<br />
+    /// You may dispose your font handle anytime, as long as it's not in use in <see cref="Draw"/>.
+    /// Font handles may be constructed anytime, as long as the owner <see cref="IFontAtlas"/> or
+    /// <see cref="UiBuilder"/> is not disposed.<br />
+    /// <br />
+    /// If you were storing <see cref="ImFontPtr"/>, consider if the job can be achieved solely by using
+    /// <see cref="IFontHandle"/> without directly using an instance of <see cref="ImFontPtr"/>.<br />
+    /// If you do need it, evaluate if you need to access fonts outside the main thread.<br />
+    /// If it is the case, use <see cref="IFontHandle.Lock"/> to obtain a safe-to-access instance of
+    /// <see cref="ImFontPtr"/>, once <see cref="IFontHandle.WaitAsync"/> resolves.<br />
+    /// Otherwise, use <see cref="IFontHandle.Push"/>, and obtain the instance of <see cref="ImFontPtr"/> via
+    /// <see cref="ImGui.GetFont"/>. Do not let the <see cref="ImFontPtr"/> escape the <c>using</c> scope.<br />
+    /// <br />
+    /// If your plugin sets <see cref="PluginManifest.LoadRequiredState"/> to a non-default value, then
+    /// <see cref="DefaultFontHandle"/> should be accessed using
+    /// <see cref="RunWhenUiPrepared{T}(System.Func{T},bool)"/>, as the font handle member variables are only available
+    /// once drawing facilities are available.<br />
+    /// <br />
+    /// <b>Examples:</b><br />
+    /// * <see cref="InterfaceManager.ContinueConstruction"/>.<br />
+    /// * <see cref="Interface.Internal.Windows.Data.Widgets.GamePrebakedFontsTestWidget"/>.<br />
+    /// * <see cref="Interface.Internal.Windows.TitleScreenMenuWindow"/> ctor.<br />
+    /// * <see cref="Interface.Internal.Windows.Settings.Tabs.SettingsTabAbout"/>:
+    /// note how the construction of a new instance of <see cref="IFontAtlas"/> and
+    /// call of <see cref="IFontAtlas.NewGameFontHandle"/> are done in different functions,
+    /// without having to manually initiate font rebuild process.
+    /// </remarks>
+    [Obsolete("See remarks.", false)]
+    [Api10ToDo(Api10ToDoAttribute.DeleteCompatBehavior)]
+    public event Action? BuildFonts;
 
     /// <summary>
     /// Gets or sets an action that is called any time right after ImGui fonts are rebuilt.<br/>
-    /// Any ImFontPtr objects that you store <strong>can be invalidated</strong> when fonts are rebuilt
+    /// Any ImFontPtr objects that you store <b>can be invalidated</b> when fonts are rebuilt
     /// (at any time), so you should both reload your custom fonts and restore those
-    /// pointers inside this handler.<br/>
-    /// <strong>PLEASE remove this handler inside Dispose, or when you no longer need your fonts!</strong>
+    /// pointers inside this handler.
     /// </summary>
-    public event Action AfterBuildFonts;
+    [Obsolete($"See remarks for {nameof(BuildFonts)}.", false)]
+    [Api10ToDo(Api10ToDoAttribute.DeleteCompatBehavior)]
+    public event Action? AfterBuildFonts;
 
     /// <summary>
     /// Gets or sets an action that is called when plugin UI or interface modifications are supposed to be shown.
@@ -107,19 +171,88 @@ public sealed class UiBuilder : IDisposable
     public event Action HideUi;
 
     /// <summary>
-    /// Gets the default Dalamud font based on Noto Sans CJK Medium in 17pt - supporting all game languages and icons.
+    /// Gets the default Dalamud font size in points.
+    /// </summary>
+    public static float DefaultFontSizePt => InterfaceManager.DefaultFontSizePt;
+
+    /// <summary>
+    /// Gets the default Dalamud font size in pixels.
+    /// </summary>
+    public static float DefaultFontSizePx => InterfaceManager.DefaultFontSizePx;
+
+    /// <summary>
+    /// Gets the default Dalamud font - supporting all game languages and icons.<br />
+    /// <strong>Accessing this static property outside of <see cref="Draw"/> is dangerous and not supported.</strong>
     /// </summary>
     public static ImFontPtr DefaultFont => InterfaceManager.DefaultFont;
 
     /// <summary>
-    /// Gets the default Dalamud icon font based on FontAwesome 5 Free solid in 17pt.
+    /// Gets the default Dalamud icon font based on FontAwesome 5 Free solid.<br />
+    /// <strong>Accessing this static property outside of <see cref="Draw"/> is dangerous and not supported.</strong>
     /// </summary>
     public static ImFontPtr IconFont => InterfaceManager.IconFont;
 
     /// <summary>
-    /// Gets the default Dalamud monospaced font based on Inconsolata Regular in 16pt.
+    /// Gets the default Dalamud monospaced font based on Inconsolata Regular.<br />
+    /// <strong>Accessing this static property outside of <see cref="Draw"/> is dangerous and not supported.</strong>
     /// </summary>
     public static ImFontPtr MonoFont => InterfaceManager.MonoFont;
+
+    /// <summary>
+    /// Gets the handle to the default Dalamud font - supporting all game languages and icons.
+    /// </summary>
+    /// <remarks>
+    /// A font handle corresponding to this font can be obtained with:
+    /// <code>
+    /// fontAtlas.NewDelegateFontHandle(
+    ///     e => e.OnPreBuild(
+    ///         tk => tk.AddDalamudDefaultFont(UiBuilder.DefaultFontSizePt)));
+    /// </code>
+    /// </remarks>
+    public IFontHandle DefaultFontHandle =>
+        this.defaultFontHandle ??=
+            this.scopedFinalizer.Add(
+                new FontHandleWrapper(
+                    this.InterfaceManagerWithScene?.DefaultFontHandle
+                    ?? throw new InvalidOperationException("Scene is not yet ready.")));
+
+    /// <summary>
+    /// Gets the default Dalamud icon font based on FontAwesome 5 Free solid.
+    /// </summary>
+    /// <remarks>
+    /// A font handle corresponding to this font can be obtained with:
+    /// <code>
+    /// fontAtlas.NewDelegateFontHandle(
+    ///     e => e.OnPreBuild(
+    ///         tk => tk.AddFontAwesomeIconFont(new() { SizePt = UiBuilder.DefaultFontSizePt })));
+    /// </code>
+    /// </remarks>
+    public IFontHandle IconFontHandle =>
+        this.iconFontHandle ??=
+            this.scopedFinalizer.Add(
+                new FontHandleWrapper(
+                    this.InterfaceManagerWithScene?.IconFontHandle
+                    ?? throw new InvalidOperationException("Scene is not yet ready.")));
+
+    /// <summary>
+    /// Gets the default Dalamud monospaced font based on Inconsolata Regular.
+    /// </summary>
+    /// <remarks>
+    /// A font handle corresponding to this font can be obtained with:
+    /// <code>
+    /// fontAtlas.NewDelegateFontHandle(
+    ///     e => e.OnPreBuild(
+    ///         tk => tk.AddDalamudAssetFont(
+    ///             DalamudAsset.InconsolataRegular,
+    ///             new() { SizePt = UiBuilder.DefaultFontSizePt })));
+    /// </code>
+    /// </remarks>
+    public IFontHandle MonoFontHandle => 
+        this.monoFontHandle ??=
+            this.scopedFinalizer.Add(
+                new FontHandleWrapper(
+                    this.InterfaceManagerWithScene?.MonoFontHandle
+                    ?? throw new InvalidOperationException("Scene is not yet ready.")));
 
     /// <summary>
     /// Gets the game's active Direct3D device.
@@ -189,6 +322,11 @@ public sealed class UiBuilder : IDisposable
     /// Gets a value indicating whether UI functions can be used.
     /// </summary>
     public bool UiPrepared => Service<InterfaceManager.InterfaceManagerWithScene>.GetNullable() != null;
+
+    /// <summary>
+    /// Gets the plugin-private font atlas.
+    /// </summary>
+    public IFontAtlas FontAtlas { get; }
 
     /// <summary>
     /// Gets or sets a value indicating whether statistics about UI draw time should be collected.
@@ -319,7 +457,7 @@ public sealed class UiBuilder : IDisposable
         if (runInFrameworkThread)
         {
             return this.InterfaceManagerWithSceneAsync
-                       .ContinueWith(_ => Service<Framework>.Get().RunOnFrameworkThread(func))
+                       .ContinueWith(_ => this.framework.RunOnFrameworkThread(func))
                        .Unwrap();
         }
         else
@@ -341,7 +479,7 @@ public sealed class UiBuilder : IDisposable
         if (runInFrameworkThread)
         {
             return this.InterfaceManagerWithSceneAsync
-                       .ContinueWith(_ => Service<Framework>.Get().RunOnFrameworkThread(func))
+                       .ContinueWith(_ => this.framework.RunOnFrameworkThread(func))
                        .Unwrap();
         }
         else
@@ -357,18 +495,49 @@ public sealed class UiBuilder : IDisposable
     /// </summary>
     /// <param name="style">Font to get.</param>
     /// <returns>Handle to the game font which may or may not be available for use yet.</returns>
-    public GameFontHandle GetGameFontHandle(GameFontStyle style) => this.gameFontManager.NewFontRef(style);
+    [Obsolete($"Use {nameof(this.FontAtlas)}.{nameof(IFontAtlas.NewGameFontHandle)} instead.", false)]
+    [Api10ToDo(Api10ToDoAttribute.DeleteCompatBehavior)]
+    public GameFontHandle GetGameFontHandle(GameFontStyle style) => new(
+        (GamePrebakedFontHandle)this.FontAtlas.NewGameFontHandle(style),
+        Service<FontAtlasFactory>.Get());
 
     /// <summary>
     /// Call this to queue a rebuild of the font atlas.<br/>
-    /// This will invoke any <see cref="OnBuildFonts"/> handlers and ensure that any loaded fonts are
-    /// ready to be used on the next UI frame.
+    /// This will invoke any <see cref="BuildFonts"/> and <see cref="AfterBuildFonts"/> handlers and ensure that any
+    /// loaded fonts are ready to be used on the next UI frame.
     /// </summary>
     public void RebuildFonts()
     {
         Log.Verbose("[FONT] {0} plugin is initiating FONT REBUILD", this.namespaceName);
-        this.interfaceManager.RebuildFonts();
+        if (this.AfterBuildFonts is null && this.BuildFonts is null)
+            this.FontAtlas.BuildFontsAsync();
+        else
+            this.FontAtlas.BuildFontsOnNextFrame();
     }
+
+    /// <summary>
+    /// Creates an isolated <see cref="IFontAtlas"/>.
+    /// </summary>
+    /// <param name="autoRebuildMode">Specify when and how to rebuild this atlas.</param>
+    /// <param name="isGlobalScaled">Whether the fonts in the atlas is global scaled.</param>
+    /// <param name="debugName">Name for debugging purposes.</param>
+    /// <returns>A new instance of <see cref="IFontAtlas"/>.</returns>
+    /// <remarks>
+    /// Use this to create extra font atlases, if you want to create and dispose fonts without having to rebuild all
+    /// other fonts together.<br />
+    /// If <paramref name="autoRebuildMode"/> is not <see cref="FontAtlasAutoRebuildMode.OnNewFrame"/>,
+    /// the font rebuilding functions must be called manually.
+    /// </remarks>
+    public IFontAtlas CreateFontAtlas(
+        FontAtlasAutoRebuildMode autoRebuildMode,
+        bool isGlobalScaled = true,
+        string? debugName = null) =>
+        this.scopedFinalizer.Add(Service<FontAtlasFactory>
+                                 .Get()
+                                 .CreateFontAtlas(
+                                     this.namespaceName + ":" + (debugName ?? "custom"),
+                                     autoRebuildMode,
+                                     isGlobalScaled));
 
     /// <summary>
     /// Add a notification to the notification queue.
@@ -392,12 +561,7 @@ public sealed class UiBuilder : IDisposable
     /// <summary>
     /// Unregister the UiBuilder. Do not call this in plugin code.
     /// </summary>
-    void IDisposable.Dispose()
-    {
-        this.interfaceManager.Draw -= this.OnDraw;
-        this.interfaceManager.BuildFonts -= this.OnBuildFonts;
-        this.interfaceManager.ResizeBuffers -= this.OnResizeBuffers;
-    }
+    void IDisposable.Dispose() => this.scopedFinalizer.Dispose();
 
     /// <summary>
     /// Open the registered configuration UI, if it exists.
@@ -463,8 +627,12 @@ public sealed class UiBuilder : IDisposable
             this.ShowUi?.InvokeSafely();
         }
 
-        if (!this.interfaceManager.FontsReady)
+        // just in case, if something goes wrong, prevent drawing; otherwise it probably will crash.
+        if (!this.FontAtlas.BuildTask.IsCompletedSuccessfully
+            && (this.BuildFonts is not null || this.AfterBuildFonts is not null))
+        {
             return;
+        }
 
         ImGui.PushID(this.namespaceName);
         if (DoStats)
@@ -526,18 +694,89 @@ public sealed class UiBuilder : IDisposable
         this.hitchDetector.Stop();
     }
 
-    private void OnBuildFonts()
+    [Api10ToDo(Api10ToDoAttribute.DeleteCompatBehavior)]
+    private unsafe void PrivateAtlasOnBuildStepChange(IFontAtlasBuildToolkit e)
     {
-        this.BuildFonts?.InvokeSafely();
-    }
+        if (e.IsAsyncBuildOperation)
+            return;
 
-    private void OnAfterBuildFonts()
-    {
-        this.AfterBuildFonts?.InvokeSafely();
+        ThreadSafety.AssertMainThread();
+
+        if (this.BuildFonts is not null)
+        {
+            e.OnPreBuild(
+                _ =>
+                {
+                    var prev = ImGui.GetIO().NativePtr->Fonts;
+                    ImGui.GetIO().NativePtr->Fonts = e.NewImAtlas.NativePtr;
+                    ((IFontAtlasBuildToolkit.IApi9Compat)e)
+                        .FromUiBuilderObsoleteEventHandlers(() => this.BuildFonts?.InvokeSafely());
+                    ImGui.GetIO().NativePtr->Fonts = prev;
+                });
+        }
+
+        if (this.AfterBuildFonts is not null)
+        {
+            e.OnPostBuild(
+                _ =>
+                {
+                    var prev = ImGui.GetIO().NativePtr->Fonts;
+                    ImGui.GetIO().NativePtr->Fonts = e.NewImAtlas.NativePtr;
+                    ((IFontAtlasBuildToolkit.IApi9Compat)e)
+                        .FromUiBuilderObsoleteEventHandlers(() => this.AfterBuildFonts?.InvokeSafely());
+                    ImGui.GetIO().NativePtr->Fonts = prev;
+                });
+        }
     }
 
     private void OnResizeBuffers()
     {
         this.ResizeBuffers?.InvokeSafely();
     }
+
+    private class FontHandleWrapper : IFontHandle
+    {
+        private IFontHandle? wrapped;
+
+        public FontHandleWrapper(IFontHandle wrapped)
+        {
+            this.wrapped = wrapped;
+            this.wrapped.ImFontChanged += this.WrappedOnImFontChanged;
+        }
+
+        public event IFontHandle.ImFontChangedDelegate? ImFontChanged;
+
+        public Exception? LoadException => this.WrappedNotDisposed.LoadException;
+
+        public bool Available => this.WrappedNotDisposed.Available;
+
+        private IFontHandle WrappedNotDisposed =>
+            this.wrapped ?? throw new ObjectDisposedException(nameof(FontHandleWrapper));
+
+        public void Dispose()
+        {
+            if (this.wrapped is not { } w)
+                return;
+
+            this.wrapped = null;
+            w.ImFontChanged -= this.WrappedOnImFontChanged;
+            // Note: do not dispose w; we do not own it
+        }
+
+        public ILockedImFont Lock() =>
+            this.wrapped?.Lock() ?? throw new ObjectDisposedException(nameof(FontHandleWrapper));
+
+        public IDisposable Push() => this.WrappedNotDisposed.Push();
+
+        public void Pop() => this.WrappedNotDisposed.Pop();
+
+        public Task<IFontHandle> WaitAsync() =>
+            this.WrappedNotDisposed.WaitAsync().ContinueWith(_ => (IFontHandle)this);
+
+        public override string ToString() =>
+            $"{nameof(FontHandleWrapper)}({this.wrapped?.ToString() ?? "disposed"})";
+
+        private void WrappedOnImFontChanged(IFontHandle obj, ILockedImFont lockedFont) =>
+            this.ImFontChanged?.Invoke(obj, lockedFont);
+    } 
 }

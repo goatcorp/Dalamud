@@ -31,17 +31,20 @@ public sealed class LanguageChooserSettingsEntry : SettingsEntry
         try
         {
             var locLanguagesList = new List<string>();
-            string locLanguage;
             foreach (var language in this.languages)
             {
-                if (language != "ko")
+                switch (language)
                 {
-                    locLanguage = CultureInfo.GetCultureInfo(language).NativeName;
-                    locLanguagesList.Add(char.ToUpper(locLanguage[0]) + locLanguage[1..]);
-                }
-                else
-                {
-                    locLanguagesList.Add("Korean");
+                    case "ko":
+                        locLanguagesList.Add("Korean");
+                        break;
+                    case "tw":
+                        locLanguagesList.Add("中華民國國語");
+                        break;
+                    default:
+                        string locLanguage = CultureInfo.GetCultureInfo(language).NativeName;
+                        locLanguagesList.Add(char.ToUpper(locLanguage[0]) + locLanguage[1..]);
+                        break;
                 }
             }
 
