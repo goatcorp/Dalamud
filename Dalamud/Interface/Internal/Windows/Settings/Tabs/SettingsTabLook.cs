@@ -199,7 +199,7 @@ public class SettingsTabLook : SettingsTab
         {
             var faf = Service<FontAtlasFactory>.Get();
             var fcd = new FontChooserDialog(
-                faf.CreateFontAtlas($"{nameof(SettingsTabLook)}:Default", FontAtlasAutoRebuildMode.Async, false));
+                faf.CreateFontAtlas($"{nameof(SettingsTabLook)}:Default", FontAtlasAutoRebuildMode.Async));
             fcd.SelectedFontId = this.defaultFontId;
             fcd.FontSizePx = InterfaceManager.DefaultFontSizePx * this.globalUiScale;
             fcd.FontFamilyExcludeFilter = x => x is DalamudDefaultFontAndFamilyId;

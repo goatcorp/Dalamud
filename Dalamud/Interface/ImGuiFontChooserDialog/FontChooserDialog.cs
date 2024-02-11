@@ -301,7 +301,20 @@ public sealed class FontChooserDialog : IDisposable
             {
                 this.fontHandle?.Dispose();
                 this.fontHandle = this.atlas.NewDelegateFontHandle(
-                    tk => tk.OnPreBuild(e => { e.Font = fontId.AddToBuildToolkit(e, this.FontSizePt * 4 / 3); }));
+                    tk =>
+                        tk.OnPreBuild(
+                              e =>
+                              {
+                                  e.Font = fontId.AddToBuildToolkit(e, this.FontSizePt * 4 / 3);
+                                  if (this.IgnorePreviewGlobalScale)
+                                    e.IgnoreGlobalScale(e.Font);
+                              })
+                          .OnPostBuild(
+                              e =>
+                              {
+                                  if (this.IgnorePreviewGlobalScale)
+                                      e.Font.AdjustGlyphMetrics(1f / e.Scale);
+                              }));
             }
 
             ImGui.PopStyleVar();
@@ -333,12 +346,10 @@ public sealed class FontChooserDialog : IDisposable
         else
         {
             ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X);
-            var pfgs = ImGui.GetIO().FontGlobalScale;
-            if (this.IgnorePreviewGlobalScale)
-                ImGui.GetIO().FontGlobalScale = 1;
             using (this.fontHandle?.Push())
+            {
                 ImGui.InputText("##fontPreviewText", this.fontPreviewText, (uint)this.fontPreviewText.Length);
-            ImGui.GetIO().FontGlobalScale = pfgs;
+            }
         }
     }
 
