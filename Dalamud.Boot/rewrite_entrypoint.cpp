@@ -81,8 +81,8 @@ namespace thunks {
             /* nNethostOffset = */ 0,
             /* nDalamudOffset = */ nethost_path_view.size_bytes()
         );
-        buffer.append_range(nethost_path_view);
-        buffer.append_range(dalamud_path_view);
+        buffer.insert(buffer.end(), nethost_path_view.begin(), nethost_path_view.end());
+        buffer.insert(buffer.end(), dalamud_path_view.begin(), dalamud_path_view.end());
         return buffer;
     }
 }

@@ -14,10 +14,14 @@ PLACEHOLDER = 00606060606060606h
 
 EntryPointReplacement PROC
     start:
-        ; stack is aligned to 0x10 and then +8
+        ; rsp % 0x10 = 0x08
         lea rax, [start]
         push rax
+        
+        ; rsp % 0x10 = 0x00
         mov rax, PLACEHOLDER
+
+        ; this calls RewrittenEntryPoint_Standalone
         jmp rax
 
     dq TERMINATOR
@@ -25,7 +29,7 @@ EntryPointReplacement ENDP
 
 RewrittenEntryPoint_Standalone PROC
     start:
-        ; stack is aligned to 0x10
+        ; stack is aligned to 0x10; see above
         sub rsp, 20h
         lea rcx, [embeddedData]
         add rcx, qword ptr [nNethostOffset]
@@ -40,6 +44,7 @@ RewrittenEntryPoint_Standalone PROC
         call qword ptr [pfnGetProcAddress]
         
         mov rcx, qword ptr [pRewrittenEntryPointParameters]
+        ; this calls RewrittenEntryPoint
         jmp rax
 
     pfnLoadLibraryW:
@@ -68,7 +73,7 @@ RewrittenEntryPoint_Standalone ENDP
 EXTERN RewrittenEntryPoint_AdjustedStack :PROC
 
 RewrittenEntryPoint PROC
-    ; stack is aligned to 0x10
+    ; stack is aligned to 0x10; see above
     call RewrittenEntryPoint_AdjustedStack
     add rsp, 20h
     ret
