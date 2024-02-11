@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 using System.Text.Unicode;
 
 using Dalamud.Configuration.Internal;
+using Dalamud.Interface.FontIdentifier;
 using Dalamud.Interface.GameFonts;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Utility;
@@ -316,17 +317,11 @@ internal sealed partial class FontAtlasFactory
         {
             ImFontPtr font;
             glyphRanges ??= this.factory.DefaultGlyphRanges;
-            if (this.factory.UseAxis)
-            {
-                font = this.AddGameGlyphs(new(GameFontFamily.Axis, sizePx), glyphRanges, default);
-            }
-            else
-            {
-                font = this.AddDalamudAssetFont(
-                    DalamudAsset.NotoSansJpMedium,
-                    new() { SizePx = sizePx, GlyphRanges = glyphRanges });
+
+            var dfid = this.factory.DefaultFontId;
+            font = dfid.AddToBuildToolkit(this, sizePx, glyphRanges);
+            if (dfid is not GameFontAndFamilyId { GameFontFamily: GameFontFamily.Axis })
                 this.AddGameSymbol(new() { SizePx = sizePx, MergeFont = font });
-            }
 
             this.AttachExtraGlyphsForDalamudLanguage(new() { SizePx = sizePx, MergeFont = font });
             if (this.Font.IsNull())

@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Dalamud.Configuration.Internal;
 using Dalamud.Data;
 using Dalamud.Game;
+using Dalamud.Interface.FontIdentifier;
 using Dalamud.Interface.GameFonts;
 using Dalamud.Interface.Internal;
 using Dalamud.Storage.Assets;
@@ -108,14 +109,21 @@ internal sealed partial class FontAtlasFactory
     }
 
     /// <summary>
-    /// Gets or sets a value indicating whether to override configuration for UseAxis.
+    /// Gets or sets a value indicating whether to override configuration for <see cref="DefaultFontId"/>.
     /// </summary>
-    public bool? UseAxisOverride { get; set; } = null;
+    public IFontId? DefaultFontIdOverride { get; set; } = null;
 
     /// <summary>
-    /// Gets a value indicating whether to use AXIS fonts.
+    /// Gets the default font ID.
     /// </summary>
-    public bool UseAxis => this.UseAxisOverride ?? Service<DalamudConfiguration>.Get().UseAxisFontsFromGame;
+    public IFontId DefaultFontId =>
+        this.DefaultFontIdOverride
+        ?? Service<DalamudConfiguration>.Get().DefaultFontId
+#pragma warning disable CS0618 // Type or member is obsolete
+        ?? (Service<DalamudConfiguration>.Get().UseAxisFontsFromGame
+#pragma warning restore CS0618 // Type or member is obsolete
+                ? new GameFontAndFamilyId(GameFontFamily.Axis)
+                : new DalamudAssetFontAndFamilyId(DalamudAsset.NotoSansJpMedium));
 
     /// <summary>
     /// Gets the service instance of <see cref="Framework"/>.

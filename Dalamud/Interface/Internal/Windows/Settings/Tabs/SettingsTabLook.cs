@@ -5,9 +5,13 @@ using System.Text;
 
 using CheapLoc;
 using Dalamud.Configuration.Internal;
+using Dalamud.Game;
 using Dalamud.Interface.Colors;
+using Dalamud.Interface.FontIdentifier;
+using Dalamud.Interface.ImGuiFontChooserDialog;
 using Dalamud.Interface.Internal.Windows.PluginInstaller;
 using Dalamud.Interface.Internal.Windows.Settings.Widgets;
+using Dalamud.Interface.ManagedFontAtlas;
 using Dalamud.Interface.ManagedFontAtlas.Internals;
 using Dalamud.Interface.Utility;
 using Dalamud.Utility;
@@ -30,22 +34,10 @@ public class SettingsTabLook : SettingsTab
     };
 
     private float globalUiScale;
+    private IFontId? defaultFontId;
 
     public override SettingsEntry[] Entries { get; } =
     {
-        new GapSettingsEntry(5),
-
-        new SettingsEntry<bool>(
-            Loc.Localize("DalamudSettingToggleAxisFonts", "Use AXIS fonts as default Dalamud font"),
-            Loc.Localize("DalamudSettingToggleUiAxisFontsHint", "Use AXIS fonts (the game's main UI fonts) as default Dalamud font."),
-            c => c.UseAxisFontsFromGame,
-            (v, c) => c.UseAxisFontsFromGame = v,
-            v =>
-            {
-                Service<FontAtlasFactory>.Get().UseAxisOverride = v;
-                Service<InterfaceManager>.Get().RebuildFonts();
-            }),
-
         new GapSettingsEntry(5, true),
 
         new ButtonSettingsEntry(
@@ -200,6 +192,34 @@ public class SettingsTabLook : SettingsTab
                     ImGui.TextUnformatted(e.ToString());
             }
         }
+        
+        ImGuiHelpers.ScaledDummy(5);
+
+        if (ImGui.Button(Loc.Localize("DalamudSettingChooseDefaultFont", "Choose Default Font")))
+        {
+            var faf = Service<FontAtlasFactory>.Get();
+            var fcd = new FontChooserDialog(
+                faf.CreateFontAtlas($"{nameof(SettingsTabLook)}:Default", FontAtlasAutoRebuildMode.Async, false));
+            fcd.SelectedFontId = this.defaultFontId;
+            fcd.FontSizePx = InterfaceManager.DefaultFontSizePx * this.globalUiScale;
+            fcd.FontFamilyExcludeFilter = x => x is DalamudDefaultFontAndFamilyId;
+            fcd.IgnorePreviewGlobalScale = true;
+            interfaceManager.Draw += fcd.Draw;
+            fcd.ResultTask.ContinueWith(r => Service<Framework>.Get().RunOnFrameworkThread(() =>
+            {
+                interfaceManager.Draw -= fcd.Draw;
+                fcd.Dispose();
+
+                _ = r.Exception;
+                if (!r.IsCompletedSuccessfully)
+                    return;
+                    
+                faf.DefaultFontIdOverride = this.defaultFontId = r.Result.Font;
+                ImGui.GetIO().FontGlobalScale =
+                    this.globalUiScale = r.Result.SizePx / InterfaceManager.DefaultFontSizePx;
+                interfaceManager.RebuildFonts();
+            }));
+        }
 
         base.Draw();
     }
@@ -207,6 +227,7 @@ public class SettingsTabLook : SettingsTab
     public override void Load()
     {
         this.globalUiScale = Service<DalamudConfiguration>.Get().GlobalUiScale;
+        this.defaultFontId = Service<FontAtlasFactory>.Get().DefaultFontId;
 
         base.Load();
     }
@@ -214,6 +235,7 @@ public class SettingsTabLook : SettingsTab
     public override void Save()
     {
         Service<DalamudConfiguration>.Get().GlobalUiScale = this.globalUiScale;
+        Service<DalamudConfiguration>.Get().DefaultFontId = this.defaultFontId;
 
         base.Save();
     }
