@@ -181,8 +181,9 @@ public sealed class FontChooserDialog : IDisposable
         var fcd = new FontChooserDialog(uiBuilder.CreateFontAtlas(FontAtlasAutoRebuildMode.Async));
         uiBuilder.Draw += fcd.Draw;
         fcd.tcs.Task.ContinueWith(
-            _ =>
+            r =>
             {
+                _ = r.Exception;
                 uiBuilder.Draw -= fcd.Draw;
                 fcd.Dispose();
             });
