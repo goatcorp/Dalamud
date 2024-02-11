@@ -319,9 +319,18 @@ internal sealed partial class FontAtlasFactory
             glyphRanges ??= this.factory.DefaultGlyphRanges;
 
             var dfid = this.factory.DefaultFontId;
-            font = dfid.AddToBuildToolkit(this, sizePx, glyphRanges);
-            if (dfid is not GameFontAndFamilyId { GameFontFamily: GameFontFamily.Axis })
-                this.AddGameSymbol(new() { SizePx = sizePx, MergeFont = font });
+            if (dfid is DalamudDefaultFontAndFamilyId)
+            {
+                // invalid; calling dfid.AddToBuildToolkit calls this function, causing infinite recursion
+                // fall back to AXIS fonts
+                font = this.AddGameGlyphs(new(GameFontFamily.Axis, sizePx), glyphRanges, default);
+            }
+            else
+            {
+                font = dfid.AddToBuildToolkit(this, sizePx, glyphRanges);
+                if (dfid is not GameFontAndFamilyId { GameFontFamily: GameFontFamily.Axis })
+                    this.AddGameSymbol(new() { SizePx = sizePx, MergeFont = font });
+            }
 
             this.AttachExtraGlyphsForDalamudLanguage(new() { SizePx = sizePx, MergeFont = font });
             if (this.Font.IsNull())
