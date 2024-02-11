@@ -8,6 +8,7 @@ using Dalamud.Configuration.Internal;
 using Dalamud.Game;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.FontIdentifier;
+using Dalamud.Interface.GameFonts;
 using Dalamud.Interface.ImGuiFontChooserDialog;
 using Dalamud.Interface.Internal.Windows.PluginInstaller;
 using Dalamud.Interface.Internal.Windows.Settings.Widgets;
@@ -192,7 +193,7 @@ public class SettingsTabLook : SettingsTab
                     ImGui.TextUnformatted(e.ToString());
             }
         }
-        
+
         ImGuiHelpers.ScaledDummy(5);
 
         if (ImGui.Button(Loc.Localize("DalamudSettingChooseDefaultFont", "Choose Default Font")))
@@ -205,20 +206,34 @@ public class SettingsTabLook : SettingsTab
             fcd.FontFamilyExcludeFilter = x => x is DalamudDefaultFontAndFamilyId;
             fcd.IgnorePreviewGlobalScale = true;
             interfaceManager.Draw += fcd.Draw;
-            fcd.ResultTask.ContinueWith(r => Service<Framework>.Get().RunOnFrameworkThread(() =>
-            {
-                interfaceManager.Draw -= fcd.Draw;
-                fcd.Dispose();
+            fcd.ResultTask.ContinueWith(
+                r => Service<Framework>.Get().RunOnFrameworkThread(
+                    () =>
+                    {
+                        interfaceManager.Draw -= fcd.Draw;
+                        fcd.Dispose();
 
-                _ = r.Exception;
-                if (!r.IsCompletedSuccessfully)
-                    return;
-                    
-                faf.DefaultFontIdOverride = this.defaultFontId = r.Result.Font;
-                ImGui.GetIO().FontGlobalScale =
-                    this.globalUiScale = r.Result.SizePx / InterfaceManager.DefaultFontSizePx;
+                        _ = r.Exception;
+                        if (!r.IsCompletedSuccessfully)
+                            return;
+
+                        faf.DefaultFontIdOverride = this.defaultFontId = r.Result.Font;
+                        ImGui.GetIO().FontGlobalScale =
+                            this.globalUiScale = r.Result.SizePx / InterfaceManager.DefaultFontSizePx;
+                        interfaceManager.RebuildFonts();
+                    }));
+        }
+
+        ImGui.SameLine();
+
+        using (interfaceManager.MonoFontHandle?.Push())
+        {
+            if (ImGui.Button(Loc.Localize("DalamudSettingResetDefaultFont", "Reset Default Font")))
+            {
+                var faf = Service<FontAtlasFactory>.Get();
+                faf.DefaultFontIdOverride = this.defaultFontId = new GameFontAndFamilyId(GameFontFamily.Axis);
                 interfaceManager.RebuildFonts();
-            }));
+            }
         }
 
         base.Draw();
