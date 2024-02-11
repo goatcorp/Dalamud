@@ -58,7 +58,7 @@ std::wstring u8_to_ws(const std::string& s) {
 }
 
 std::wstring get_window_string(HWND hWnd) {
-    std::wstring buf(GetWindowTextLengthW(hWnd), L'\0');
+    std::wstring buf(GetWindowTextLengthW(hWnd) + 1, L'\0');
     GetWindowTextW(hWnd, &buf[0], static_cast<int>(buf.size()));
     return buf;
 }
