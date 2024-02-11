@@ -295,7 +295,7 @@ public sealed class FontChooserDialog : IDisposable
             changed |= this.DrawFontListColumn(changed);
 
             ImGui.TableNextColumn();
-            changed |= this.DrawSystemSizeListColumn();
+            changed |= this.DrawSizeListColumn();
 
             if ((changed || this.fontHandle is null) && this.SelectedFontId is { } fontId)
             {
@@ -445,7 +445,7 @@ public sealed class FontChooserDialog : IDisposable
                     return 0;
                 }))
         {
-            if (!string.IsNullOrWhiteSpace(this.familySearch))
+            if (!string.IsNullOrWhiteSpace(this.familySearch) && !changed)
             {
                 this.selectedFamilyIndex = families.FindIndex(x => this.TestName(x, this.familySearch));
                 changed = true;
@@ -612,7 +612,7 @@ public sealed class FontChooserDialog : IDisposable
                     return 0;
                 }))
         {
-            if (!string.IsNullOrWhiteSpace(this.fontSearch))
+            if (!string.IsNullOrWhiteSpace(this.fontSearch) && !changed)
             {
                 this.selectedFontIndex = fonts.FindIndex(x => this.TestName(x, this.fontSearch));
                 changed = true;
@@ -673,7 +673,7 @@ public sealed class FontChooserDialog : IDisposable
         return changed;
     }
 
-    private unsafe bool DrawSystemSizeListColumn()
+    private unsafe bool DrawSizeListColumn()
     {
         var changed = false;
         ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X);
