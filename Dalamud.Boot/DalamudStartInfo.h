@@ -26,6 +26,13 @@ struct DalamudStartInfo {
     };
     friend void from_json(const nlohmann::json&, ClientLanguage&);
 
+    enum class LoadMethod : int {
+        Entrypoint,
+        DllInject,
+    };
+    friend void from_json(const nlohmann::json&, LoadMethod&);
+
+    LoadMethod DalamudLoadMethod = LoadMethod::Entrypoint;
     std::string WorkingDirectory;
     std::string ConfigurationPath;
     std::string PluginDirectory;

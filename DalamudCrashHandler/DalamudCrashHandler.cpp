@@ -58,7 +58,7 @@ std::wstring u8_to_ws(const std::string& s) {
 }
 
 std::wstring get_window_string(HWND hWnd) {
-    std::wstring buf(GetWindowTextLengthW(hWnd), L'\0');
+    std::wstring buf(GetWindowTextLengthW(hWnd) + 1, L'\0');
     GetWindowTextW(hWnd, &buf[0], static_cast<int>(buf.size()));
     return buf;
 }
@@ -456,8 +456,10 @@ void export_tspack(HWND hWndParent, const std::filesystem::path& logDir, const s
         { L"All files (*.*)", L"*" },
     }};
 
-    IShellItemPtr pItem;
+    std::optional<std::wstring> filePath;
+    std::fstream fileStream;
     try {
+        IShellItemPtr pItem;
         SYSTEMTIME st;
         GetLocalTime(&st);
         IFileSaveDialogPtr pDialog;
@@ -474,33 +476,39 @@ void export_tspack(HWND hWndParent, const std::filesystem::path& logDir, const s
         }
 
         throw_if_failed(pDialog->GetResult(&pItem), {}, "pDialog->GetResult");
-        
-        IBindCtxPtr pBindCtx;
-        throw_if_failed(CreateBindCtx(0, &pBindCtx), {}, "CreateBindCtx");
 
-        auto options = BIND_OPTS{.cbStruct = sizeof(BIND_OPTS), .grfMode = STGM_READWRITE | STGM_SHARE_EXCLUSIVE | STGM_CREATE};
-        throw_if_failed(pBindCtx->SetBindOptions(&options), {}, "pBindCtx->SetBindOptions");
+        PWSTR pFilePath = nullptr;
+        throw_if_failed(pItem->GetDisplayName(SIGDN_FILESYSPATH, &pFilePath), {}, "pItem->GetDisplayName");
+        pItem.Release();
+        filePath.emplace(pFilePath);
 
-        IStreamPtr pStream;
-        throw_if_failed(pItem->BindToHandler(pBindCtx, BHID_Stream, IID_PPV_ARGS(&pStream)), {}, "pItem->BindToHandler");
-
-        throw_if_failed(pStream->SetSize({}), {}, "pStream->SetSize");
+        fileStream.open(*filePath, std::ios::binary | std::ios::in | std::ios::out | std::ios::trunc);
         
         mz_zip_archive zipa{};
-        zipa.m_pIO_opaque = &*pStream;
+        zipa.m_pIO_opaque = &fileStream;
         zipa.m_pRead = [](void* pOpaque, mz_uint64 file_ofs, void* pBuf, size_t n) -> size_t {
-            const auto pStream = static_cast<IStream*>(pOpaque);
-            throw_if_failed(pStream->Seek({ .QuadPart = static_cast<int64_t>(file_ofs) }, STREAM_SEEK_SET, nullptr), {}, "pStream->Seek");
-            ULONG read;
-            throw_if_failed(pStream->Read(pBuf, static_cast<ULONG>(n), &read), {}, "pStream->Read");
-            return read;
+            const auto pStream = static_cast<std::fstream*>(pOpaque);
+            if (!pStream || !pStream->is_open())
+                throw std::runtime_error("Read operation failed: Stream is not open");
+            pStream->seekg(file_ofs, std::ios::beg);
+            if (pStream->fail())
+                throw std::runtime_error("Read operation failed: Error seeking in stream");
+            pStream->read(static_cast<char*>(pBuf), n);
+            if (pStream->fail())
+                throw std::runtime_error("Read operation failed: Error reading from stream");
+            return pStream->gcount();
         };
         zipa.m_pWrite = [](void* pOpaque, mz_uint64 file_ofs, const void* pBuf, size_t n) -> size_t {
-            const auto pStream = static_cast<IStream*>(pOpaque);
-            throw_if_failed(pStream->Seek({ .QuadPart = static_cast<int64_t>(file_ofs) }, STREAM_SEEK_SET, nullptr), {}, "pStream->Seek");
-            ULONG written;
-            throw_if_failed(pStream->Write(pBuf, static_cast<ULONG>(n), &written), {}, "pStream->Write");
-            return written;
+            const auto pStream = static_cast<std::fstream*>(pOpaque);
+            if (!pStream || !pStream->is_open())
+                throw std::runtime_error("Write operation failed: Stream is not open");
+            pStream->seekp(file_ofs, std::ios::beg);
+            if (pStream->fail())
+                throw std::runtime_error("Write operation failed: Error seeking in stream");
+            pStream->write(static_cast<const char*>(pBuf), n);
+            if (pStream->fail())
+                throw std::runtime_error("Write operation failed: Error writing to stream");
+            return n;
         };
         const auto mz_throw_if_failed = [&zipa](mz_bool res, const std::string& clue) {
             if (!res)
@@ -545,7 +553,14 @@ void export_tspack(HWND hWndParent, const std::filesystem::path& logDir, const s
             }
 
             auto handleInfo = HandleAndBaseOffset{.h = hLogFile, .off = baseOffset.QuadPart};
-            const auto modt = std::chrono::system_clock::to_time_t(std::chrono::clock_cast<std::chrono::system_clock>(last_write_time(logFilePath))); 
+            WIN32_FILE_ATTRIBUTE_DATA fileInfo = { 0 };
+            time_t modt = time(nullptr);
+            if (GetFileAttributesExW(logFilePath.c_str(), GetFileExInfoStandard, &fileInfo)) {
+                ULARGE_INTEGER ull = { 0 };
+                ull.LowPart = fileInfo.ftLastWriteTime.dwLowDateTime;
+                ull.HighPart = fileInfo.ftLastWriteTime.dwHighDateTime;
+                modt = ull.QuadPart / 10000000ULL - 11644473600ULL;
+            }
             mz_throw_if_failed(mz_zip_writer_add_read_buf_callback(
                 &zipa,
                 pcszLogFileName,
@@ -564,34 +579,20 @@ void export_tspack(HWND hWndParent, const std::filesystem::path& logDir, const s
 
     } catch (const std::exception& e) {
         MessageBoxW(hWndParent, std::format(L"Failed to save file: {}", u8_to_ws(e.what())).c_str(), get_window_string(hWndParent).c_str(), MB_OK | MB_ICONERROR);
-
-        if (pItem) {
+        fileStream.close();
+        if (filePath) {
             try {
-                IFileOperationPtr pFileOps;
-                throw_if_failed(pFileOps.CreateInstance(__uuidof(FileOperation), nullptr, CLSCTX_ALL));
-                throw_if_failed(pFileOps->SetOperationFlags(FOF_NO_UI));
-                throw_if_failed(pFileOps->DeleteItem(pItem, nullptr));
-                throw_if_failed(pFileOps->PerformOperations());
-            } catch (const std::exception& e2) {
+                std::filesystem::remove(*filePath);
+            } catch (const std::filesystem::filesystem_error& e2) {
                 std::wcerr << std::format(L"Failed to remove temporary file: {}", u8_to_ws(e2.what())) << std::endl;
             }
-            pItem.Release();
         }
+        return;
     }
 
-    if (pItem) {
-        PWSTR pwszFileName;
-        if (FAILED(pItem->GetDisplayName(SIGDN_FILESYSPATH, &pwszFileName))) {
-            if (FAILED(pItem->GetDisplayName(SIGDN_DESKTOPABSOLUTEEDITING, &pwszFileName))) {
-                MessageBoxW(hWndParent, L"The file has been saved to the specified path.", get_window_string(hWndParent).c_str(), MB_OK | MB_ICONINFORMATION);
-            } else {
-                std::unique_ptr<std::remove_pointer<PWSTR>::type, decltype(CoTaskMemFree)*> pszFileNamePtr(pwszFileName, CoTaskMemFree);
-                MessageBoxW(hWndParent, std::format(L"The file has been saved to: {}", pwszFileName).c_str(), get_window_string(hWndParent).c_str(), MB_OK | MB_ICONINFORMATION);
-            }
-        } else {
-            std::unique_ptr<std::remove_pointer<PWSTR>::type, decltype(CoTaskMemFree)*> pszFileNamePtr(pwszFileName, CoTaskMemFree);
-            ShellExecuteW(hWndParent, nullptr, L"explorer.exe", escape_shell_arg(std::format(L"/select,{}", pwszFileName)).c_str(), nullptr, SW_SHOW);
-        }
+    fileStream.close();
+    if (filePath) {
+        ShellExecuteW(hWndParent, nullptr, L"explorer.exe", escape_shell_arg(std::format(L"/select,{}", *filePath)).c_str(), nullptr, SW_SHOW);
     }
 }
 
@@ -612,7 +613,8 @@ void restart_game_using_injector(int nRadioButton, const std::vector<std::wstrin
     pathStr.resize(GetModuleFileNameExW(GetCurrentProcess(), GetModuleHandleW(nullptr), &pathStr[0], PATHCCH_MAX_CCH));
 
     std::vector<std::wstring> args;
-    args.emplace_back((std::filesystem::path(pathStr).parent_path() / L"Dalamud.Injector.exe").wstring());
+    std::wstring injectorPath = (std::filesystem::path(pathStr).parent_path() / L"Dalamud.Injector.exe").wstring();
+    args.emplace_back(L'\"' + injectorPath + L'\"');
     args.emplace_back(L"launch");
     switch (nRadioButton) {
         case IdRadioRestartWithout3pPlugins:
@@ -625,12 +627,11 @@ void restart_game_using_injector(int nRadioButton, const std::vector<std::wstrin
             args.emplace_back(L"--without-dalamud");
         break;
     }
-    args.emplace_back(L"--");
     args.insert(args.end(), launcherArgs.begin(), launcherArgs.end());
 
     std::wstring argstr;
     for (const auto& arg : args) {
-        argstr.append(escape_shell_arg(arg));
+        argstr.append(arg);
         argstr.push_back(L' ');
     }
     argstr.pop_back();
@@ -644,7 +645,7 @@ void restart_game_using_injector(int nRadioButton, const std::vector<std::wstrin
     si.wShowWindow = SW_SHOW;
 #endif
     PROCESS_INFORMATION pi{};
-    if (CreateProcessW(args[0].c_str(), &argstr[0], nullptr, nullptr, FALSE, 0, nullptr, nullptr, &si, &pi)) {
+    if (CreateProcessW(injectorPath.c_str(), &argstr[0], nullptr, nullptr, FALSE, 0, nullptr, nullptr, &si, &pi)) {
         CloseHandle(pi.hProcess);
         CloseHandle(pi.hThread);
     } else {
@@ -840,7 +841,7 @@ int main() {
             log << std::format(L"Dump at: {}", dumpPath.wstring()) << std::endl;
         else
             log << std::format(L"Dump error: {}", dumpError) << std::endl;
-        log << L"Time: " << std::chrono::zoned_time{ std::chrono::current_zone(), std::chrono::system_clock::now() } << std::endl;
+        log << L"System Time: " << std::chrono::system_clock::now() << std::endl;
         log << L"\n" << stackTrace << std::endl;
 
         SymRefreshModuleList(GetCurrentProcess());
@@ -991,7 +992,7 @@ int main() {
 
         int nButtonPressed = 0, nRadioButton = 0;
         if (FAILED(TaskDialogIndirect(&config, &nButtonPressed, &nRadioButton, nullptr))) {
-            ResumeThread(exinfo.hThreadHandle);
+            SetEvent(exinfo.hEventHandle);
         } else {
             switch (nButtonPressed) {
                 case IdButtonRestart:
@@ -1002,7 +1003,7 @@ int main() {
                 }
                 default:
                     if (attemptResume)
-                        ResumeThread(exinfo.hThreadHandle);
+                        SetEvent(exinfo.hEventHandle);
                     else
                         TerminateProcess(g_hProcess, exinfo.ExceptionRecord.ExceptionCode);
             }
