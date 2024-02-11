@@ -553,7 +553,14 @@ void export_tspack(HWND hWndParent, const std::filesystem::path& logDir, const s
             }
 
             auto handleInfo = HandleAndBaseOffset{.h = hLogFile, .off = baseOffset.QuadPart};
-            const auto modt = std::chrono::system_clock::to_time_t(std::chrono::clock_cast<std::chrono::system_clock>(last_write_time(logFilePath))); 
+            WIN32_FILE_ATTRIBUTE_DATA fileInfo = { 0 };
+            time_t modt = time(nullptr);
+            if (GetFileAttributesExW(logFilePath.c_str(), GetFileExInfoStandard, &fileInfo)) {
+                ULARGE_INTEGER ull = { 0 };
+                ull.LowPart = fileInfo.ftLastWriteTime.dwLowDateTime;
+                ull.HighPart = fileInfo.ftLastWriteTime.dwHighDateTime;
+                modt = ull.QuadPart / 10000000ULL - 11644473600ULL;
+            }
             mz_throw_if_failed(mz_zip_writer_add_read_buf_callback(
                 &zipa,
                 pcszLogFileName,
