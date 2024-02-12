@@ -61,9 +61,6 @@
 
 #include "unicode.h"
 
-// Commonly used macros
-#define DllExport extern "C" __declspec(dllexport)
-
 // Global variables
 extern HMODULE g_hModule;
 extern HINSTANCE g_hGameInstance;

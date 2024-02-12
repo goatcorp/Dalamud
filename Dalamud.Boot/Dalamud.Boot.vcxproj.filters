@@ -147,4 +147,14 @@
   <ItemGroup>
     <Image Include="dalamud.ico" />
   </ItemGroup>
+  <ItemGroup>
+    <MASM Include="rewrite_entrypoint_thunks.asm">
+      <Filter>Dalamud.Boot DLL</Filter>
+    </MASM>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="module.def">
+      <Filter>Dalamud.Boot DLL</Filter>
+    </None>
+  </ItemGroup>
 </Project>

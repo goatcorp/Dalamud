@@ -159,7 +159,7 @@ DWORD WINAPI InitializeImpl(LPVOID lpParam, HANDLE hMainThreadContinue) {
     return 0;
 }
 
-DllExport DWORD WINAPI Initialize(LPVOID lpParam) {
+extern "C" DWORD WINAPI Initialize(LPVOID lpParam) {
     return InitializeImpl(lpParam, CreateEvent(nullptr, TRUE, FALSE, nullptr));
 }
 
