@@ -146,13 +146,13 @@ internal sealed class DalamudConfiguration : IServiceType, IDisposable
     /// <summary>
     /// Gets or sets a value indicating whether to use AXIS fonts from the game.
     /// </summary>
-    [Obsolete($"See {nameof(DefaultFontId)}")]
+    [Obsolete($"See {nameof(DefaultFontSpec)}")]
     public bool UseAxisFontsFromGame { get; set; } = true;
 
     /// <summary>
-    /// Gets or sets the default font ID.
+    /// Gets or sets the default font spec.
     /// </summary>
-    public IFontId? DefaultFontId { get; set; }
+    public IFontSpec? DefaultFontSpec { get; set; }
 
     /// <summary>
     /// Gets or sets the gamma value to apply for Dalamud fonts. Do not use.

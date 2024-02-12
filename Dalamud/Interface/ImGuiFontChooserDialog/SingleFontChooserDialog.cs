@@ -1061,7 +1061,7 @@ public sealed class SingleFontChooserDialog : IDisposable
 
         if (this.useAdvancedOptions)
         {
-            if (ImGui.Button("Reset"))
+            if (ImGui.Button("Reset", buttonSize))
             {
                 this.selectedFont = this.selectedFont with
                 {
