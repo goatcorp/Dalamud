@@ -160,7 +160,7 @@ internal class GamePrebakedFontsTestWidget : IDataWindowWidget, IDisposable
                         labelPtr,
                         this.testStringBuffer.Data,
                         (uint)this.testStringBuffer.Capacity,
-                        new(ImGui.GetContentRegionAvail().X, 32 * ImGuiHelpers.GlobalScale),
+                        new(ImGui.GetContentRegionAvail().X, ImGui.GetTextLineHeight() * 3),
                         0,
                         null,
                         null) != 0)

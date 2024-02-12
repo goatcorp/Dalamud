@@ -539,16 +539,19 @@ internal sealed partial class FontAtlasFactory
                     break;
                 }
             }
-
-            foreach (var ac in this.registeredPostBuildActions)
-                ac.InvokeSafely();
-            this.registeredPostBuildActions.Clear();
         }
 
         public void PostBuildSubstances()
         {
             foreach (var substance in this.data.Substances)
                 substance.OnPostBuild(this);
+        }
+
+        public void PostBuildCallbacks()
+        {
+            foreach (var ac in this.registeredPostBuildActions)
+                ac.InvokeSafely();
+            this.registeredPostBuildActions.Clear();
         }
 
         public unsafe void UploadTextures()

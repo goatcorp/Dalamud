@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 
@@ -82,8 +83,6 @@ public record SingleFontSpec : IFontSpec
             {
                 SizePx = this.SizePx,
                 GlyphRanges = this.GlyphRanges,
-                GlyphOffset = this.GlyphOffset,
-                GlyphExtraSpacing = this.GlyphExtraSpacing,
                 MergeFont = mergeFont,
             });
 
@@ -98,13 +97,36 @@ public record SingleFontSpec : IFontSpec
                 font.Ascent = newAscent;
                 font.FontSize = newFontSize;
                 font.Descent = newFontSize - font.Ascent;
-                if (shiftDown != 0f)
+
+                var lookup = new BitArray(ushort.MaxValue + 1, this.GlyphRanges is null);
+                if (this.GlyphRanges is not null)
                 {
-                    foreach (ref var glyphReal in font.GlyphsWrapped().DataSpan)
+                    for (var i = 0; i < this.GlyphRanges.Length && this.GlyphRanges[i] != 0; i += 2)
                     {
-                        glyphReal.Y0 += shiftDown;
-                        glyphReal.Y1 += shiftDown;
+                        var to = (int)this.GlyphRanges[i + 1];
+                        for (var j = this.GlyphRanges[i]; j <= to; j++)
+                            lookup[j] = true;
                     }
+                }
+
+                // `/ roundUnit` = `* scale`
+                var dax = MathF.Round(this.GlyphExtraSpacing.X / roundUnit / roundUnit) * roundUnit;
+                var dxy0 = this.GlyphOffset / roundUnit;
+
+                dxy0 /= roundUnit;
+                dxy0.X = MathF.Round(dxy0.X);
+                dxy0.Y = MathF.Round(dxy0.Y);
+                dxy0 *= roundUnit;
+
+                dxy0.Y += shiftDown;
+                var dxy = new Vector4(dxy0, dxy0.X, dxy0.Y);
+                foreach (ref var glyphReal in font.GlyphsWrapped().DataSpan)
+                {
+                    if (!lookup[glyphReal.Codepoint])
+                        continue;
+
+                    glyphReal.XY += dxy;
+                    glyphReal.AdvanceX += dax;
                 }
             });
 

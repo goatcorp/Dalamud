@@ -679,6 +679,7 @@ internal sealed partial class FontAtlasFactory
 
                 toolkit.PostBuild();
                 toolkit.PostBuildSubstances();
+                toolkit.PostBuildCallbacks();
                 this.BuildStepChange?.Invoke(toolkit);
 
                 foreach (var font in toolkit.Fonts)

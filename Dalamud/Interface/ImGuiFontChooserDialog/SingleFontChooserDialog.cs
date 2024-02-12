@@ -922,17 +922,18 @@ public sealed class SingleFontChooserDialog : IDisposable
             };
         }
 
-        if (FloatInputText(
-                "##glyphExtraSpacingYInput",
-                ref this.advUiState.ExtraSpacingYText,
-                this.selectedFont.GlyphExtraSpacing.Y) is { } newGlyphExtraSpacingY)
-        {
-            changed = true;
-            this.selectedFont = this.selectedFont with
-            {
-                GlyphExtraSpacing = this.selectedFont.GlyphExtraSpacing with { Y = newGlyphExtraSpacingY },
-            };
-        }
+        // This value currently does nothing
+        // if (FloatInputText(
+        //         "##glyphExtraSpacingYInput",
+        //         ref this.advUiState.ExtraSpacingYText,
+        //         this.selectedFont.GlyphExtraSpacing.Y) is { } newGlyphExtraSpacingY)
+        // {
+        //     changed = true;
+        //     this.selectedFont = this.selectedFont with
+        //     {
+        //         GlyphExtraSpacing = this.selectedFont.GlyphExtraSpacing with { Y = newGlyphExtraSpacingY },
+        //     };
+        // }
 
         ImGui.PopStyleVar();
         ImGui.EndTable();
