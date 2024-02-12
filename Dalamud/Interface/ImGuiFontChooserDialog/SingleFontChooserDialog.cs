@@ -273,12 +273,7 @@ public sealed class SingleFontChooserDialog : IDisposable
         var previewHeight = (ImGui.GetFrameHeightWithSpacing() - lineHeight) +
                             Math.Max(lineHeight, this.selectedFont.LineHeightPx * 2);
 
-        ImGui.Checkbox("Show advanced options", ref this.useAdvancedOptions);
-
-        var advancedOptionsHeight =
-            this.useAdvancedOptions
-                ? ImGui.GetFrameHeightWithSpacing() * 3
-                : 0;
+        var advancedOptionsHeight = ImGui.GetFrameHeightWithSpacing() * (this.useAdvancedOptions ? 4 : 1);
 
         var tableSize = ImGui.GetContentRegionAvail() -
                         new Vector2(0, ImGui.GetStyle().WindowPadding.Y + previewHeight + advancedOptionsHeight);
@@ -333,9 +328,7 @@ public sealed class SingleFontChooserDialog : IDisposable
 
         ImGui.EndChild();
 
-        ImGui.SetCursorPosY(
-            ImGui.GetCursorPosY() + (ImGui.GetStyle().WindowPadding.Y - ImGui.GetStyle().ItemSpacing.Y));
-
+        ImGui.Checkbox("Show advanced options", ref this.useAdvancedOptions);
         if (this.useAdvancedOptions)
         {
             if (this.DrawAdvancedOptions())
