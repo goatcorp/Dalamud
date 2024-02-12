@@ -1,8 +1,9 @@
 #include "pch.h"
 
 #include "logging.h"
+#include "utils.h"
 
-DWORD WINAPI InitializeImpl(LPVOID lpParam, HANDLE hMainThreadContinue);
+HRESULT WINAPI InitializeImpl(LPVOID lpParam, HANDLE hMainThreadContinue);
 
 struct RewrittenEntryPointParameters {
     char* pEntrypoint;
@@ -102,6 +103,7 @@ void read_process_memory_or_throw(HANDLE hProcess, void* pAddress, T& data) {
 
 void write_process_memory_or_throw(HANDLE hProcess, void* pAddress, const void* data, size_t len) {
     SIZE_T written = 0;
+    const utils::memory_tenderizer tenderizer(hProcess, pAddress, len, PAGE_EXECUTE_READWRITE);
     if (!WriteProcessMemory(hProcess, pAddress, data, len, &written))
         throw std::runtime_error("WriteProcessMemory failure");
     if (written != len)
@@ -227,15 +229,18 @@ void* get_mapped_image_base_address(HANDLE hProcess, const std::filesystem::path
 /// @brief Rewrite target process' entry point so that this DLL can be loaded and executed first.
 /// @param hProcess Process handle.
 /// @param pcwzPath Path to target process.
-/// @param pcszLoadInfo JSON string to be passed to Initialize.
-/// @return 0 if successful; nonzero if unsuccessful
+/// @param pcwzLoadInfo JSON string to be passed to Initialize.
+/// @return null if successful; memory containing wide string allocated via GlobalAlloc if unsuccessful
 /// 
 /// When the process has just been started up via CreateProcess (CREATE_SUSPENDED), GetModuleFileName and alikes result in an error.
 /// Instead, we have to enumerate through all the files mapped into target process' virtual address space and find the base address
 /// of memory region corresponding to the path given.
 /// 
-extern "C" DWORD WINAPI RewriteRemoteEntryPointW(HANDLE hProcess, const wchar_t* pcwzPath, const wchar_t* pcwzLoadInfo) {
+extern "C" HRESULT WINAPI RewriteRemoteEntryPointW(HANDLE hProcess, const wchar_t* pcwzPath, const wchar_t* pcwzLoadInfo) {
+    std::wstring last_operation;
+    SetLastError(ERROR_SUCCESS);
     try {
+        last_operation = L"get_mapped_image_base_address";
         const auto base_address = static_cast<char*>(get_mapped_image_base_address(hProcess, pcwzPath));
 
         IMAGE_DOS_HEADER dos_header{};
@@ -244,21 +249,34 @@ extern "C" DWORD WINAPI RewriteRemoteEntryPointW(HANDLE hProcess, const wchar_t*
             IMAGE_NT_HEADERS64 nt_header64{};
         };
 
+        last_operation = L"read_process_memory_or_throw(base_address)";
         read_process_memory_or_throw(hProcess, base_address, dos_header);
+
+        last_operation = L"read_process_memory_or_throw(base_address + dos_header.e_lfanew)";
         read_process_memory_or_throw(hProcess, base_address + dos_header.e_lfanew, nt_header64);
         const auto entrypoint = base_address + (nt_header32.OptionalHeader.Magic == IMAGE_NT_OPTIONAL_HDR32_MAGIC
             ? nt_header32.OptionalHeader.AddressOfEntryPoint
             : nt_header64.OptionalHeader.AddressOfEntryPoint);
 
-        auto standalone_rewrittenentrypoint = thunks::create_standalone_rewrittenentrypoint(get_path_from_local_module(g_hModule));
+        last_operation = L"get_path_from_local_module(g_hModule)";
+        auto local_module_path = get_path_from_local_module(g_hModule);
+        
+        last_operation = L"thunks::create_standalone_rewrittenentrypoint(local_module_path)";
+        auto standalone_rewrittenentrypoint = thunks::create_standalone_rewrittenentrypoint(local_module_path);
+
+        last_operation = L"thunks::create_entrypointreplacement()";
         auto entrypoint_replacement = thunks::create_entrypointreplacement();
 
+        last_operation = L"unicode::convert<std::string>(pcwzLoadInfo)";
         auto load_info = unicode::convert<std::string>(pcwzLoadInfo);
         load_info.resize(load_info.size() + 1);  //ensure null termination
 
-        std::vector<uint8_t> buffer(sizeof(RewrittenEntryPointParameters) + entrypoint_replacement.size() + load_info.size() + standalone_rewrittenentrypoint.size());
+        const auto bufferSize = sizeof(RewrittenEntryPointParameters) + entrypoint_replacement.size() + load_info.size() + standalone_rewrittenentrypoint.size();
+        last_operation = std::format(L"std::vector alloc({}b)", bufferSize);
+        std::vector<uint8_t> buffer(bufferSize);
 
         // Allocate buffer in remote process, which will be used to fill addresses in the local buffer.
+        last_operation = std::format(L"VirtualAllocEx({}b)", bufferSize);
         const auto remote_buffer = static_cast<char*>(VirtualAllocEx(hProcess, nullptr, buffer.size(), MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE));
         
         auto& params = *reinterpret_cast<RewrittenEntryPointParameters*>(buffer.data());
@@ -266,24 +284,51 @@ extern "C" DWORD WINAPI RewriteRemoteEntryPointW(HANDLE hProcess, const wchar_t*
         params.pEntrypoint = entrypoint;
 
         // Backup original entry point.
+        last_operation = std::format(L"read_process_memory_or_throw(entrypoint, {}b)", entrypoint_replacement.size());
         read_process_memory_or_throw(hProcess, entrypoint, &buffer[sizeof params], entrypoint_replacement.size());
 
         memcpy(&buffer[sizeof params + entrypoint_replacement.size()], load_info.data(), load_info.size());
 
+        last_operation = L"thunks::fill_placeholders(EntryPointReplacement)";
         thunks::fill_placeholders(standalone_rewrittenentrypoint.data(), remote_buffer);
         memcpy(&buffer[sizeof params + entrypoint_replacement.size() + load_info.size()], standalone_rewrittenentrypoint.data(), standalone_rewrittenentrypoint.size());
 
         // Write the local buffer into the buffer in remote process.
+        last_operation = std::format(L"write_process_memory_or_throw(remote_buffer, {}b)", buffer.size());
         write_process_memory_or_throw(hProcess, remote_buffer, buffer.data(), buffer.size());
 
+        last_operation = L"thunks::fill_placeholders(RewrittenEntryPoint_Standalone::pRewrittenEntryPointParameters)";
         thunks::fill_placeholders(entrypoint_replacement.data(), remote_buffer + sizeof params + entrypoint_replacement.size() + load_info.size());
+
         // Overwrite remote process' entry point with a thunk that will load our DLLs and call our trampoline function.
+        last_operation = std::format(L"write_process_memory_or_throw(entrypoint={:X}, {}b)", reinterpret_cast<uintptr_t>(entrypoint), buffer.size());
         write_process_memory_or_throw(hProcess, entrypoint, entrypoint_replacement.data(), entrypoint_replacement.size());
 
-        return 0;
+        return S_OK;
     } catch (const std::exception& e) {
-        OutputDebugStringA(std::format("RewriteRemoteEntryPoint failure: {} (GetLastError: {})\n", e.what(), GetLastError()).c_str());
-        return 1;
+        const auto err = GetLastError();
+        const auto hr = err == ERROR_SUCCESS ? E_FAIL : HRESULT_FROM_WIN32(err);
+        auto formatted = std::format(
+            L"{}: {} ({})",
+            last_operation,
+            unicode::convert<std::wstring>(e.what()),
+            utils::format_win32_error(err));
+        OutputDebugStringW((formatted + L"\r\n").c_str());
+
+        ICreateErrorInfoPtr cei;
+        if (FAILED(CreateErrorInfo(&cei)))
+            return hr;
+        if (FAILED(cei->SetSource(const_cast<LPOLESTR>(L"Dalamud.Boot"))))
+            return hr;
+        if (FAILED(cei->SetDescription(const_cast<LPOLESTR>(formatted.c_str()))))
+            return hr;
+
+        IErrorInfoPtr ei;
+        if (FAILED(cei.QueryInterface(IID_PPV_ARGS(&ei))))
+            return hr;
+
+        (void)SetErrorInfo(0, ei);
+        return hr;
     }
 }
 
@@ -300,8 +345,9 @@ static void AbortRewrittenEntryPoint(DWORD err, const std::wstring& clue) {
         nullptr);
 
     if (MessageBoxW(nullptr, std::format(
-        L"Failed to load Dalamud. Load game without Dalamud(yes) or abort(no)?\n\nError: 0x{:08X} {}\n\n{}",
-        err, pwszMsg ? pwszMsg : L"", clue).c_str(),
+        L"Failed to load Dalamud. Load game without Dalamud(yes) or abort(no)?\n\n{}\n\n{}",
+        utils::format_win32_error(err),
+        clue).c_str(),
         L"Dalamud.Boot", MB_OK | MB_YESNO) == IDNO)
         ExitProcess(-1);
 }
@@ -309,21 +355,62 @@ static void AbortRewrittenEntryPoint(DWORD err, const std::wstring& clue) {
 /// @brief Entry point function "called" instead of game's original main entry point.
 /// @param params Parameters set up from RewriteRemoteEntryPoint.
 extern "C" void WINAPI RewrittenEntryPoint_AdjustedStack(RewrittenEntryPointParameters & params) {
-    const auto pOriginalEntryPointBytes = reinterpret_cast<char*>(&params) + sizeof(params);
-    const auto pLoadInfo = pOriginalEntryPointBytes + params.entrypointLength;
+    HANDLE hMainThreadContinue = nullptr;
+    auto hr = S_OK;
+    std::wstring last_operation;
+    std::wstring exc_msg;
+    SetLastError(ERROR_SUCCESS);
 
-    // Restore original entry point.
-    // Use WriteProcessMemory instead of memcpy to avoid having to fiddle with VirtualProtect.
-    if (SIZE_T written; !WriteProcessMemory(GetCurrentProcess(), params.pEntrypoint, pOriginalEntryPointBytes, params.entrypointLength, &written))
-        return AbortRewrittenEntryPoint(GetLastError(), L"WriteProcessMemory(entrypoint restoration)");
+    try {
+        const auto pOriginalEntryPointBytes = reinterpret_cast<char*>(&params) + sizeof(params);
+        const auto pLoadInfo = pOriginalEntryPointBytes + params.entrypointLength;
 
-    const auto hMainThreadContinue = CreateEventW(nullptr, true, false, nullptr);
-    if (!hMainThreadContinue)
-        return AbortRewrittenEntryPoint(GetLastError(), L"CreateEventW");
+        // Restore original entry point.
+        // Use WriteProcessMemory instead of memcpy to avoid having to fiddle with VirtualProtect.
+        last_operation = L"restore original entry point";
+        write_process_memory_or_throw(GetCurrentProcess(), params.pEntrypoint, pOriginalEntryPointBytes, params.entrypointLength);
 
-    if (const auto result = InitializeImpl(pLoadInfo, hMainThreadContinue))
-        return AbortRewrittenEntryPoint(result, L"InitializeImpl");
+        hMainThreadContinue = CreateEventW(nullptr, true, false, nullptr);
+        last_operation = L"hMainThreadContinue = CreateEventW";
+        if (!hMainThreadContinue)
+            throw std::runtime_error("CreateEventW");
 
-    WaitForSingleObject(hMainThreadContinue, INFINITE);
+        last_operation = L"InitializeImpl";
+        hr = InitializeImpl(pLoadInfo, hMainThreadContinue);
+    } catch (const std::exception& e) {
+        if (hr == S_OK) {
+            const auto err = GetLastError();
+            hr = err == ERROR_SUCCESS ? E_FAIL : HRESULT_FROM_WIN32(err);
+        }
+
+        ICreateErrorInfoPtr cei;
+        IErrorInfoPtr ei;
+        if (SUCCEEDED(CreateErrorInfo(&cei))
+            && SUCCEEDED(cei->SetDescription(const_cast<wchar_t*>(unicode::convert<std::wstring>(e.what()).c_str())))
+            && SUCCEEDED(cei.QueryInterface(IID_PPV_ARGS(&ei)))) {
+            (void)SetErrorInfo(0, ei);
+        }
+    }
+
+    if (FAILED(hr)) {
+        const _com_error err(hr);
+        auto desc = err.Description();
+        if (desc.length() == 0)
+            desc = err.ErrorMessage();
+        if (MessageBoxW(nullptr, std::format(
+            L"Failed to load Dalamud. Load game without Dalamud(yes) or abort(no)?\n\n{}\n{}",
+            last_operation,
+            desc.GetBSTR()).c_str(),
+            L"Dalamud.Boot", MB_OK | MB_YESNO) == IDNO)
+            ExitProcess(-1);
+        if (hMainThreadContinue) {
+            CloseHandle(hMainThreadContinue);
+            hMainThreadContinue = nullptr;
+        }
+    }
+
+    if (hMainThreadContinue)
+        WaitForSingleObject(hMainThreadContinue, INFINITE);
+
     VirtualFree(&params, 0, MEM_RELEASE);
 }

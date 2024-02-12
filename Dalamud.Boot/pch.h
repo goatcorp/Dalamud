@@ -26,6 +26,9 @@
 // MSVC Compiler Intrinsic
 #include <intrin.h>
 
+// COM
+#include <comdef.h>
+
 // C++ Standard Libraries
 #include <cassert>
 #include <chrono>

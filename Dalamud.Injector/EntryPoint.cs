@@ -31,89 +31,100 @@ namespace Dalamud.Injector
         /// </summary>
         /// <param name="argc">Count of arguments.</param>
         /// <param name="argvPtr">char** string arguments.</param>
-        public delegate void MainDelegate(int argc, IntPtr argvPtr);
+        /// <returns>Return value (HRESULT).</returns>
+        public delegate int MainDelegate(int argc, IntPtr argvPtr);
 
         /// <summary>
         /// Start the Dalamud injector.
         /// </summary>
         /// <param name="argc">Count of arguments.</param>
         /// <param name="argvPtr">byte** string arguments.</param>
-        public static void Main(int argc, IntPtr argvPtr)
+        /// <returns>Return value (HRESULT).</returns>
+        public static int Main(int argc, IntPtr argvPtr)
         {
-            List<string> args = new(argc);
-
-            unsafe
+            try
             {
-                var argv = (IntPtr*)argvPtr;
-                for (var i = 0; i < argc; i++)
-                    args.Add(Marshal.PtrToStringUni(argv[i]));
-            }
+                List<string> args = new(argc);
 
-            Init(args);
-            args.Remove("-v"); // Remove "verbose" flag
-
-            if (args.Count >= 2 && args[1].ToLowerInvariant() == "launch-test")
-            {
-                Environment.Exit(ProcessLaunchTestCommand(args));
-                return;
-            }
-
-            DalamudStartInfo startInfo = null;
-            if (args.Count == 1)
-            {
-                // No command defaults to inject
-                args.Add("inject");
-                args.Add("--all");
-
-#if !DEBUG
-                args.Add("--warn");
-#endif
-
-            }
-            else if (int.TryParse(args[1], out var _))
-            {
-                // Assume that PID has been passed.
-                args.Insert(1, "inject");
-
-                // If originally second parameter exists, then assume that it's a base64 encoded start info.
-                // Dalamud.Injector.exe inject [pid] [base64]
-                if (args.Count == 4)
+                unsafe
                 {
-                    startInfo = JsonConvert.DeserializeObject<DalamudStartInfo>(Encoding.UTF8.GetString(Convert.FromBase64String(args[3])));
-                    args.RemoveAt(3);
+                    var argv = (IntPtr*)argvPtr;
+                    for (var i = 0; i < argc; i++)
+                        args.Add(Marshal.PtrToStringUni(argv[i]));
+                }
+
+                Init(args);
+                args.Remove("-v"); // Remove "verbose" flag
+
+                if (args.Count >= 2 && args[1].ToLowerInvariant() == "launch-test")
+                {
+                    return ProcessLaunchTestCommand(args);
+                }
+
+                DalamudStartInfo startInfo = null;
+                if (args.Count == 1)
+                {
+                    // No command defaults to inject
+                    args.Add("inject");
+                    args.Add("--all");
+
+    #if !DEBUG
+                    args.Add("--warn");
+    #endif
+
+                }
+                else if (int.TryParse(args[1], out var _))
+                {
+                    // Assume that PID has been passed.
+                    args.Insert(1, "inject");
+
+                    // If originally second parameter exists, then assume that it's a base64 encoded start info.
+                    // Dalamud.Injector.exe inject [pid] [base64]
+                    if (args.Count == 4)
+                    {
+                        startInfo = JsonConvert.DeserializeObject<DalamudStartInfo>(Encoding.UTF8.GetString(Convert.FromBase64String(args[3])));
+                        args.RemoveAt(3);
+                    }
+                }
+
+                startInfo = ExtractAndInitializeStartInfoFromArguments(startInfo, args);
+                // Remove already handled arguments
+                args.Remove("--console");
+                args.Remove("--msgbox1");
+                args.Remove("--msgbox2");
+                args.Remove("--msgbox3");
+                args.Remove("--etw");
+                args.Remove("--veh");
+                args.Remove("--veh-full");
+                args.Remove("--no-plugin");
+                args.Remove("--no-3rd-plugin");
+                args.Remove("--crash-handler-console");
+                args.Remove("--no-exception-handlers");
+
+                var mainCommand = args[1].ToLowerInvariant();
+                if (mainCommand.Length > 0 && mainCommand.Length <= 6 && "inject"[..mainCommand.Length] == mainCommand)
+                {
+                    return ProcessInjectCommand(args, startInfo);
+                }
+                else if (mainCommand.Length > 0 && mainCommand.Length <= 6 &&
+                         "launch"[..mainCommand.Length] == mainCommand)
+                {
+                    return ProcessLaunchCommand(args, startInfo);
+                }
+                else if (mainCommand.Length > 0 && mainCommand.Length <= 4 &&
+                         "help"[..mainCommand.Length] == mainCommand)
+                {
+                    return ProcessHelpCommand(args, args.Count >= 3 ? args[2] : null);
+                }
+                else
+                {
+                    throw new CommandLineException($"\"{mainCommand}\" is not a valid command.");
                 }
             }
-
-            startInfo = ExtractAndInitializeStartInfoFromArguments(startInfo, args);
-            // Remove already handled arguments
-            args.Remove("--console");
-            args.Remove("--msgbox1");
-            args.Remove("--msgbox2");
-            args.Remove("--msgbox3");
-            args.Remove("--etw");
-            args.Remove("--veh");
-            args.Remove("--veh-full");
-            args.Remove("--no-plugin");
-            args.Remove("--no-3rd-plugin");
-            args.Remove("--crash-handler-console");
-            args.Remove("--no-exception-handlers");
-
-            var mainCommand = args[1].ToLowerInvariant();
-            if (mainCommand.Length > 0 && mainCommand.Length <= 6 && "inject"[..mainCommand.Length] == mainCommand)
+            catch (Exception e)
             {
-                Environment.Exit(ProcessInjectCommand(args, startInfo));
-            }
-            else if (mainCommand.Length > 0 && mainCommand.Length <= 6 && "launch"[..mainCommand.Length] == mainCommand)
-            {
-                Environment.Exit(ProcessLaunchCommand(args, startInfo));
-            }
-            else if (mainCommand.Length > 0 && mainCommand.Length <= 4 && "help"[..mainCommand.Length] == mainCommand)
-            {
-                Environment.Exit(ProcessHelpCommand(args, args.Count >= 3 ? args[2] : null));
-            }
-            else
-            {
-                throw new CommandLineException($"\"{mainCommand}\" is not a valid command.");
+                Log.Error(e, "Operation failed.");
+                return e.HResult;
             }
         }
 
@@ -189,6 +200,7 @@ namespace Dalamud.Injector
             CullLogFile(logPath, 1 * 1024 * 1024);
 
             Log.Logger = new LoggerConfiguration()
+                         .WriteTo.Console(standardErrorFromLevel: LogEventLevel.Debug)
                          .WriteTo.File(logPath, fileSizeLimitBytes: null)
                          .MinimumLevel.ControlledBy(levelSwitch)
                          .CreateLogger();
@@ -800,12 +812,8 @@ namespace Dalamud.Injector
                     {
                         var startInfo = AdjustStartInfo(dalamudStartInfo, gamePath);
                         Log.Information("Using start info: {0}", JsonConvert.SerializeObject(startInfo));
-                        if (RewriteRemoteEntryPointW(p.Handle, gamePath, JsonConvert.SerializeObject(startInfo)) != 0)
-                        {
-                            Log.Error("[HOOKS] RewriteRemoteEntryPointW failed");
-                            throw new Exception("RewriteRemoteEntryPointW failed");
-                        }
-
+                        Marshal.ThrowExceptionForHR(
+                            RewriteRemoteEntryPointW(p.Handle, gamePath, JsonConvert.SerializeObject(startInfo)));
                         Log.Verbose("RewriteRemoteEntryPointW called!");
                     }
                 },
