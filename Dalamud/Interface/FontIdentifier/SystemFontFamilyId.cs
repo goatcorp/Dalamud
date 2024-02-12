@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 
@@ -24,16 +23,28 @@ public sealed class SystemFontFamilyId : IFontFamilyId
     /// Initializes a new instance of the <see cref="SystemFontFamilyId"/> class.
     /// </summary>
     /// <param name="englishName">The font name in English.</param>
-    /// <param name="localizedName">The localized font name for display purposes.</param>
-    public SystemFontFamilyId(string englishName, string localizedName)
+    /// <param name="localeNames">The localized font name for display purposes.</param>
+    [JsonConstructor]
+    internal SystemFontFamilyId(string englishName, IReadOnlyDictionary<string, string> localeNames)
     {
         this.EnglishName = englishName;
-        this.LocalizedName = localizedName;
+        this.LocaleNames = localeNames;
     }
 
-    /// <inheritdoc/>
-    [JsonProperty]
-    public string TypeName => nameof(SystemFontFamilyId);
+    /// <summary>
+    /// Initializes a new instance of the <see cref="SystemFontFamilyId"/> class.
+    /// </summary>
+    /// <param name="localeNames">The localized font name for display purposes.</param>
+    internal SystemFontFamilyId(IReadOnlyDictionary<string, string> localeNames)
+    {
+        if (localeNames.TryGetValue("en-us", out var name))
+            this.EnglishName = name;
+        else if (localeNames.TryGetValue("en", out name))
+            this.EnglishName = name;
+        else 
+            this.EnglishName = localeNames.Values.First();
+        this.LocaleNames = localeNames;
+    }
 
     /// <inheritdoc/>
     [JsonProperty]
@@ -41,7 +52,7 @@ public sealed class SystemFontFamilyId : IFontFamilyId
 
     /// <inheritdoc/>
     [JsonProperty]
-    public string LocalizedName { get; init; }
+    public IReadOnlyDictionary<string, string>? LocaleNames { get; }
 
     /// <inheritdoc/>
     [JsonIgnore]
@@ -103,12 +114,7 @@ public sealed class SystemFontFamilyId : IFontFamilyId
     {
         using var fn = default(ComPtr<IDWriteLocalizedStrings>);
         family.Get()->GetFamilyNames(fn.GetAddressOf()).ThrowOnError();
-        var en = IObjectWithLocalizableName.GetLocalizedNameOrFirst(fn, "en-us", "en");
-        var loc = IObjectWithLocalizableName.GetLocalizedNameOrFirst(
-            fn,
-            CultureInfo.CurrentUICulture.Name,
-            CultureInfo.CurrentUICulture.TwoLetterISOLanguageName);
-        return new(en, loc);
+        return new(IObjectWithLocalizableName.GetLocaleNames(fn));
     }
 
     private unsafe IReadOnlyList<IFontId> GetFonts()
@@ -170,6 +176,6 @@ public sealed class SystemFontFamilyId : IFontFamilyId
             });
         return fonts;
     }
-    
+
     private bool Equals(SystemFontFamilyId other) => this.EnglishName == other.EnglishName;
 }

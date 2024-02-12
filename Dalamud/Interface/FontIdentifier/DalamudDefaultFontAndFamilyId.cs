@@ -24,17 +24,13 @@ public sealed class DalamudDefaultFontAndFamilyId : IFontId, IFontFamilyId
     {
     }
 
-    /// <inheritdoc cref="IFontId.TypeName"/>
-    [JsonProperty]
-    public string TypeName => nameof(DalamudDefaultFontAndFamilyId);
-
     /// <inheritdoc/>
     [JsonIgnore]
     public string EnglishName => "(Default)";
 
     /// <inheritdoc/>
     [JsonIgnore]
-    public string LocalizedName => "(Default)";
+    public IReadOnlyDictionary<string, string>? LocaleNames => null;
 
     /// <inheritdoc/>
     [JsonIgnore]
@@ -72,12 +68,8 @@ public sealed class DalamudDefaultFontAndFamilyId : IFontId, IFontFamilyId
     public override string ToString() => nameof(DalamudDefaultFontAndFamilyId);
 
     /// <inheritdoc/>
-    public ImFontPtr AddToBuildToolkit(
-        IFontAtlasBuildToolkitPreBuild tk,
-        float sizePx,
-        ushort[]? glyphRanges,
-        ImFontPtr mergeFont)
-        => tk.AddDalamudDefaultFont(sizePx, glyphRanges);
+    public ImFontPtr AddToBuildToolkit(IFontAtlasBuildToolkitPreBuild tk, in SafeFontConfig config)
+        => tk.AddDalamudDefaultFont(config.SizePx, config.GlyphRanges);
     // TODO: mergeFont
 
     /// <inheritdoc/>

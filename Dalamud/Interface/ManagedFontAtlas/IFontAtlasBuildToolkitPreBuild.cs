@@ -53,6 +53,12 @@ public interface IFontAtlasBuildToolkitPreBuild : IFontAtlasBuildToolkit
     bool IsGlobalScaleIgnored(ImFontPtr fontPtr);
 
     /// <summary>
+    /// Registers a function to be run after build.
+    /// </summary>
+    /// <param name="action">The action to run.</param>
+    void RegisterPostBuild(Action action);
+
+    /// <summary>
     /// Adds a font from memory region allocated using <see cref="ImGuiHelpers.AllocateMemory"/>.<br />
     /// <b>It WILL crash if you try to use a memory pointer allocated in some other way.</b><br />
     /// <b>

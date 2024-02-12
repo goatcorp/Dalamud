@@ -109,21 +109,21 @@ internal sealed partial class FontAtlasFactory
     }
 
     /// <summary>
-    /// Gets or sets a value indicating whether to override configuration for <see cref="DefaultFontId"/>.
+    /// Gets or sets a value indicating whether to override configuration for <see cref="DefaultFontSpec"/>.
     /// </summary>
-    public IFontId? DefaultFontIdOverride { get; set; } = null;
+    public IFontSpec? DefaultFontSpecOverride { get; set; } = null;
 
     /// <summary>
     /// Gets the default font ID.
     /// </summary>
-    public IFontId DefaultFontId =>
-        this.DefaultFontIdOverride
-        ?? Service<DalamudConfiguration>.Get().DefaultFontId
+    public IFontSpec DefaultFontSpec =>
+        this.DefaultFontSpecOverride
+        ?? Service<DalamudConfiguration>.Get().DefaultFontSpec
 #pragma warning disable CS0618 // Type or member is obsolete
         ?? (Service<DalamudConfiguration>.Get().UseAxisFontsFromGame
 #pragma warning restore CS0618 // Type or member is obsolete
-                ? new GameFontAndFamilyId(GameFontFamily.Axis)
-                : new DalamudAssetFontAndFamilyId(DalamudAsset.NotoSansJpMedium));
+                ? new() { FontId = new GameFontAndFamilyId(GameFontFamily.Axis) }
+                : new SingleFontSpec { FontId = new DalamudAssetFontAndFamilyId(DalamudAsset.NotoSansJpMedium) });
 
     /// <summary>
     /// Gets the service instance of <see cref="Framework"/>.

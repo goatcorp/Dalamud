@@ -1,9 +1,11 @@
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
+using Dalamud.Configuration.Internal;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.FontIdentifier;
 using Dalamud.Interface.ManagedFontAtlas;
@@ -20,8 +22,16 @@ namespace Dalamud.Interface.ImGuiFontChooserDialog;
 /// <summary>
 /// A dialog for choosing a font and its size.
 /// </summary>
-public sealed class FontChooserDialog : IDisposable
+[SuppressMessage(
+    "StyleCop.CSharp.LayoutRules",
+    "SA1519:Braces should not be omitted from multi-line child statement",
+    Justification = "Multiple fixed blocks")]
+public sealed class SingleFontChooserDialog : IDisposable
 {
+    private const float MinFontSizePt = 1;
+
+    private const float MaxFontSizePt = 127;
+
     private static readonly List<IFontId> EmptyIFontList = new();
 
     private static readonly (string Name, float Value)[] FontSizeList =
@@ -48,7 +58,7 @@ public sealed class FontChooserDialog : IDisposable
 
     private readonly int counter;
     private readonly byte[] fontPreviewText = new byte[2048];
-    private readonly TaskCompletionSource<(IFontId Font, float SizePx)> tcs = new();
+    private readonly TaskCompletionSource<SingleFontSpec> tcs = new();
     private readonly IFontAtlas atlas;
 
     private string popupImGuiName;
@@ -57,6 +67,9 @@ public sealed class FontChooserDialog : IDisposable
     private bool firstDraw = true;
     private bool firstDrawAfterRefresh;
     private int setFocusOn = -1;
+
+    private bool useAdvancedOptions;
+    private AdvancedOptionsUiState advUiState;
 
     private Task<List<IFontFamilyId>>? fontFamilies;
     private int selectedFamilyIndex = -1;
@@ -69,21 +82,21 @@ public sealed class FontChooserDialog : IDisposable
     private string fontSearch = string.Empty;
     private string fontSizeSearch = "12";
     private IFontHandle? fontHandle;
-    private IFontId? selectedFontId;
-    private float fontSizePt = 12;
+    private SingleFontSpec selectedFont;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="FontChooserDialog"/> class.
+    /// Initializes a new instance of the <see cref="SingleFontChooserDialog"/> class.
     /// </summary>
     /// <param name="newAsyncAtlas">A new instance of <see cref="IFontAtlas"/> created using
     /// <see cref="FontAtlasAutoRebuildMode.Async"/> as its auto-rebuild mode.</param>
-    public FontChooserDialog(IFontAtlas newAsyncAtlas)
+    public SingleFontChooserDialog(IFontAtlas newAsyncAtlas)
     {
         this.counter = Interlocked.Increment(ref counterStatic);
         this.title = "Choose a font...";
-        this.popupImGuiName = $"{this.title}##{nameof(FontChooserDialog)}[{this.counter}]";
+        this.popupImGuiName = $"{this.title}##{nameof(SingleFontChooserDialog)}[{this.counter}]";
         this.atlas = newAsyncAtlas;
-        Encoding.UTF8.GetBytes("Font preview. 0123456789", this.fontPreviewText);
+        this.selectedFont = new() { FontId = DalamudDefaultFontAndFamilyId.Instance };
+        Encoding.UTF8.GetBytes("Font preview.\n0123456789!", this.fontPreviewText);
     }
 
     /// <summary>
@@ -95,7 +108,7 @@ public sealed class FontChooserDialog : IDisposable
         set
         {
             this.title = value;
-            this.popupImGuiName = $"{this.title}##{nameof(FontChooserDialog)}[{this.counter}]";
+            this.popupImGuiName = $"{this.title}##{nameof(SingleFontChooserDialog)}[{this.counter}]";
         }
     }
 
@@ -117,47 +130,30 @@ public sealed class FontChooserDialog : IDisposable
     /// <summary>
     /// Gets the task that resolves upon choosing a font or cancellation.
     /// </summary>
-    public Task<(IFontId Font, float SizePx)> ResultTask => this.tcs.Task;
+    public Task<SingleFontSpec> ResultTask => this.tcs.Task;
 
     /// <summary>
     /// Gets or sets the selected family and font.
     /// </summary>
-    public IFontId? SelectedFontId
+    public SingleFontSpec SelectedFont
     {
-        get => this.selectedFontId;
+        get => this.selectedFont;
         set
         {
-            this.selectedFontId = value;
+            this.selectedFont = value;
 
-            var familyName = value?.Family.ToString() ?? string.Empty;
-            var fontName = value?.ToString() ?? string.Empty;
-            this.familySearch = value is null ? string.Empty : this.ExtractName(value.Family);
-            this.fontSearch = value is null ? string.Empty : this.ExtractName(value);
+            var familyName = value.FontId.Family.ToString() ?? string.Empty;
+            var fontName = value.FontId.ToString() ?? string.Empty;
+            this.familySearch = this.ExtractName(value.FontId.Family);
+            this.fontSearch = this.ExtractName(value.FontId);
             if (this.fontFamilies?.IsCompletedSuccessfully is true)
                 this.UpdateSelectedFamilyAndFontIndices(this.fontFamilies.Result, familyName, fontName);
+            this.fontSizeSearch = $"{value.SizePt:0.##}";
+            this.advUiState = new(value);
+            this.useAdvancedOptions |= Math.Abs(value.LineHeight - 1f) > 0.000001;
+            this.useAdvancedOptions |= value.GlyphOffset != default;
+            this.useAdvancedOptions |= value.GlyphExtraSpacing != default;
         }
-    }
-
-    /// <summary>
-    /// Gets or sets the font size in points.
-    /// </summary>
-    public float FontSizePt
-    {
-        get => this.fontSizePt;
-        set
-        {
-            this.fontSizePt = value;
-            this.fontSizeSearch = $"{this.fontSizePt:##.###}";
-        }
-    }
-
-    /// <summary>
-    /// Gets or sets the font size in pixels.
-    /// </summary>
-    public float FontSizePx
-    {
-        get => (this.FontSizePt * 4) / 3;
-        set => this.FontSizePt = (value * 3) / 4;
     }
 
     /// <summary>
@@ -171,14 +167,14 @@ public sealed class FontChooserDialog : IDisposable
     public bool IgnorePreviewGlobalScale { get; set; }
 
     /// <summary>
-    /// Creates a new instance of <see cref="FontChooserDialog"/> that will automatically draw and dispose itself as
+    /// Creates a new instance of <see cref="SingleFontChooserDialog"/> that will automatically draw and dispose itself as
     /// needed.
     /// </summary>
     /// <param name="uiBuilder">An instance of <see cref="UiBuilder"/>.</param>
-    /// <returns>The new instance of <see cref="FontChooserDialog"/>.</returns>
-    public static FontChooserDialog CreateAuto(UiBuilder uiBuilder)
+    /// <returns>The new instance of <see cref="SingleFontChooserDialog"/>.</returns>
+    public static SingleFontChooserDialog CreateAuto(UiBuilder uiBuilder)
     {
-        var fcd = new FontChooserDialog(uiBuilder.CreateFontAtlas(FontAtlasAutoRebuildMode.Async));
+        var fcd = new SingleFontChooserDialog(uiBuilder.CreateFontAtlas(FontAtlasAutoRebuildMode.Async));
         uiBuilder.Draw += fcd.Draw;
         fcd.tcs.Task.ContinueWith(
             r =>
@@ -199,6 +195,16 @@ public sealed class FontChooserDialog : IDisposable
     }
 
     /// <summary>
+    /// Cancels this dialog.
+    /// </summary>
+    public void Cancel()
+    {
+        this.tcs.SetCanceled();
+        ImGui.GetIO().WantCaptureKeyboard = false;
+        ImGui.GetIO().WantTextInput = false;
+    }
+
+    /// <summary>
     /// Draws this dialog.
     /// </summary>
     public void Draw()
@@ -206,11 +212,19 @@ public sealed class FontChooserDialog : IDisposable
         if (this.firstDraw)
             ImGui.OpenPopup(this.popupImGuiName);
 
-        ImGui.SetNextWindowSize(new(640, 480), ImGuiCond.Appearing);
+        ImGui.GetIO().WantCaptureKeyboard = true;
+        ImGui.GetIO().WantTextInput = true;
+        if (ImGui.IsKeyPressed(ImGuiKey.Escape))
+        {
+            this.Cancel();
+            return;
+        }
+
         var open = true;
+        ImGui.SetNextWindowSize(new(640, 480), ImGuiCond.Appearing);
         if (!ImGui.BeginPopupModal(this.popupImGuiName, ref open) || !open)
         {
-            this.tcs.SetCanceled();
+            this.Cancel();
             return;
         }
 
@@ -222,6 +236,7 @@ public sealed class FontChooserDialog : IDisposable
         actionSize = Vector2.Max(actionSize, ImGui.CalcTextSize("OK"));
         actionSize = Vector2.Max(actionSize, ImGui.CalcTextSize("Cancel"));
         actionSize = Vector2.Max(actionSize, ImGui.CalcTextSize("Refresh"));
+        actionSize = Vector2.Max(actionSize, ImGui.CalcTextSize("Reset"));
         actionSize += framePad * 2;
 
         var bodySize = ImGui.GetContentRegionAvail();
@@ -256,10 +271,17 @@ public sealed class FontChooserDialog : IDisposable
     {
         var lineHeight = ImGui.GetTextLineHeight();
         var previewHeight = (ImGui.GetFrameHeightWithSpacing() - lineHeight) +
-                            Math.Max(lineHeight, (this.FontSizePt * 4) / 3);
+                            Math.Max(lineHeight, this.selectedFont.LineHeightPx * 2);
+
+        ImGui.Checkbox("Show advanced options", ref this.useAdvancedOptions);
+
+        var advancedOptionsHeight =
+            this.useAdvancedOptions
+                ? ImGui.GetFrameHeightWithSpacing() * 3
+                : 0;
 
         var tableSize = ImGui.GetContentRegionAvail() -
-                        new Vector2(0, ImGui.GetStyle().WindowPadding.Y + previewHeight);
+                        new Vector2(0, ImGui.GetStyle().WindowPadding.Y + previewHeight + advancedOptionsHeight);
         if (ImGui.BeginChild(
                 "##tableContainer",
                 tableSize,
@@ -298,24 +320,10 @@ public sealed class FontChooserDialog : IDisposable
             ImGui.TableNextColumn();
             changed |= this.DrawSizeListColumn();
 
-            if ((changed || this.fontHandle is null) && this.SelectedFontId is { } fontId)
+            if (changed)
             {
                 this.fontHandle?.Dispose();
-                this.fontHandle = this.atlas.NewDelegateFontHandle(
-                    tk =>
-                        tk.OnPreBuild(
-                              e =>
-                              {
-                                  e.Font = fontId.AddToBuildToolkit(e, this.FontSizePt * 4 / 3);
-                                  if (this.IgnorePreviewGlobalScale)
-                                    e.IgnoreGlobalScale(e.Font);
-                              })
-                          .OnPostBuild(
-                              e =>
-                              {
-                                  if (this.IgnorePreviewGlobalScale)
-                                      e.Font.AdjustGlyphMetrics(1f / e.Scale);
-                              }));
+                this.fontHandle = null;
             }
 
             ImGui.PopStyleVar();
@@ -325,7 +333,30 @@ public sealed class FontChooserDialog : IDisposable
 
         ImGui.EndChild();
 
-        ImGui.SetCursorPosY(ImGui.GetCursorPosY() + ImGui.GetStyle().WindowPadding.Y - ImGui.GetStyle().ItemSpacing.Y);
+        ImGui.SetCursorPosY(
+            ImGui.GetCursorPosY() + (ImGui.GetStyle().WindowPadding.Y - ImGui.GetStyle().ItemSpacing.Y));
+
+        if (this.useAdvancedOptions)
+        {
+            if (this.DrawAdvancedOptions())
+            {
+                this.fontHandle?.Dispose();
+                this.fontHandle = null;
+            }
+        }
+
+        if (this.IgnorePreviewGlobalScale)
+        {
+            this.fontHandle ??= this.selectedFont.CreateFontHandle(
+                this.atlas,
+                tk =>
+                    tk.OnPreBuild(e => e.IgnoreGlobalScale(e.Font))
+                      .OnPostBuild(e => e.Font.AdjustGlyphMetrics(1f / e.Scale)));
+        }
+        else
+        {
+            this.fontHandle ??= this.selectedFont.CreateFontHandle(this.atlas);
+        }
 
         if (this.fontHandle is null)
         {
@@ -349,7 +380,21 @@ public sealed class FontChooserDialog : IDisposable
             ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X);
             using (this.fontHandle?.Push())
             {
-                ImGui.InputText("##fontPreviewText", this.fontPreviewText, (uint)this.fontPreviewText.Length);
+                unsafe
+                {
+                    fixed (byte* buf = this.fontPreviewText)
+                    fixed (byte* label = "##fontPreviewText"u8)
+                    {
+                        ImGuiNative.igInputTextMultiline(
+                            label,
+                            buf,
+                            (uint)this.fontPreviewText.Length,
+                            ImGui.GetContentRegionAvail(),
+                            ImGuiInputTextFlags.None,
+                            null,
+                            null);
+                    }
+                }
             }
         }
     }
@@ -512,7 +557,7 @@ public sealed class FontChooserDialog : IDisposable
                 this.selectedFontWeight,
                 this.selectedFontStretch,
                 this.selectedFontStyle);
-            this.selectedFontId = family.Fonts[this.selectedFontIndex];
+            this.selectedFont = this.selectedFont with { FontId = family.Fonts[this.selectedFontIndex] };
         }
 
         ImGui.EndChild();
@@ -679,7 +724,7 @@ public sealed class FontChooserDialog : IDisposable
             this.selectedFontWeight = font.Weight;
             this.selectedFontStretch = font.Stretch;
             this.selectedFontStyle = font.Style;
-            this.selectedFontId = font;
+            this.selectedFont = this.selectedFont with { FontId = font };
         }
 
         return changed;
@@ -707,24 +752,30 @@ public sealed class FontChooserDialog : IDisposable
                     switch (data->EventKey)
                     {
                         case ImGuiKey.DownArrow:
-                            this.fontSizePt = Math.Min(127, MathF.Floor(this.FontSizePt) + 1);
+                            this.selectedFont = this.selectedFont with
+                            {
+                                SizePt = Math.Min(MaxFontSizePt, MathF.Floor(this.selectedFont.SizePt) + 1),
+                            };
                             changed = true;
                             break;
                         case ImGuiKey.UpArrow:
-                            this.fontSizePt = Math.Max(1, MathF.Ceiling(this.FontSizePt) - 1);
+                            this.selectedFont = this.selectedFont with
+                            {
+                                SizePt = Math.Max(MinFontSizePt, MathF.Ceiling(this.selectedFont.SizePt) - 1),
+                            };
                             changed = true;
                             break;
                     }
 
                     if (changed)
-                        ImGuiHelpers.SetTextFromCallback(data, $"{this.FontSizePt:##.###}");
+                        ImGuiHelpers.SetTextFromCallback(data, $"{this.selectedFont.SizePt:0.##}");
 
                     return 0;
                 }))
         {
             if (float.TryParse(this.fontSizeSearch, out var fontSizePt1))
             {
-                this.fontSizePt = fontSizePt1;
+                this.selectedFont = this.selectedFont with { SizePt = fontSizePt1 };
                 changed = true;
             }
         }
@@ -752,13 +803,13 @@ public sealed class FontChooserDialog : IDisposable
                         continue;
                     }
 
-                    var selected = Equals(FontSizeList[i].Value, this.FontSizePt);
+                    var selected = Equals(FontSizeList[i].Value, this.selectedFont.SizePt);
                     if (ImGui.Selectable(
                             FontSizeList[i].Name,
                             ref selected,
                             ImGuiSelectableFlags.DontClosePopups))
                     {
-                        this.fontSizePt = FontSizeList[i].Value;
+                        this.selectedFont = this.selectedFont with { SizePt = FontSizeList[i].Value };
                         this.setFocusOn = 2;
                         changed = true;
                     }
@@ -770,27 +821,185 @@ public sealed class FontChooserDialog : IDisposable
 
         ImGui.EndChild();
 
-        if (this.FontSizePt < 1)
+        if (this.selectedFont.SizePt < MinFontSizePt)
         {
-            this.fontSizePt = 1;
+            this.selectedFont = this.selectedFont with { SizePt = MinFontSizePt };
             changed = true;
         }
 
-        if (this.FontSizePt > 127)
+        if (this.selectedFont.SizePt > MaxFontSizePt)
         {
-            this.fontSizePt = 127;
+            this.selectedFont = this.selectedFont with { SizePt = MaxFontSizePt };
             changed = true;
         }
 
         if (changed)
-            this.fontSizeSearch = $"{this.FontSizePt:##.###}";
+            this.fontSizeSearch = $"{this.selectedFont.SizePt:0.##}";
 
         return changed;
     }
 
+    private bool DrawAdvancedOptions()
+    {
+        var changed = false;
+        if (!ImGui.BeginTable("##advancedOptionsTable", 4))
+            return false;
+
+        ImGui.PushStyleColor(ImGuiCol.TableHeaderBg, Vector4.Zero);
+        ImGui.PushStyleColor(ImGuiCol.HeaderHovered, Vector4.Zero);
+        ImGui.PushStyleColor(ImGuiCol.HeaderActive, Vector4.Zero);
+        ImGui.TableSetupColumn(
+            "##legendsColumn",
+            ImGuiTableColumnFlags.WidthStretch,
+            0.1f);
+        ImGui.TableSetupColumn(
+            "Line Height:##lineHeightColumn",
+            ImGuiTableColumnFlags.WidthStretch,
+            0.3f);
+        ImGui.TableSetupColumn(
+            "Offset:##glyphOffsetColumn",
+            ImGuiTableColumnFlags.WidthStretch,
+            0.3f);
+        ImGui.TableSetupColumn(
+            "Spacing:##glyphExtraSpacingColumn",
+            ImGuiTableColumnFlags.WidthStretch,
+            0.3f);
+        ImGui.TableHeadersRow();
+        ImGui.PopStyleColor(3);
+
+        ImGui.TableNextRow();
+
+        var pad = (int)MathF.Round(8 * ImGuiHelpers.GlobalScale);
+        ImGui.PushStyleVar(ImGuiStyleVar.CellPadding, new Vector2(pad));
+
+        ImGui.TableNextColumn();
+        ImGui.AlignTextToFramePadding();
+        ImGui.TextUnformatted("X");
+        ImGui.AlignTextToFramePadding();
+        ImGui.TextUnformatted("Y");
+
+        ImGui.TableNextColumn();
+        if (FloatInputText(
+                "##lineHeightInput",
+                ref this.advUiState.LineHeightText,
+                this.selectedFont.LineHeight,
+                0.05f,
+                0.1f,
+                3f) is { } newLineHeight)
+        {
+            changed = true;
+            this.selectedFont = this.selectedFont with { LineHeight = newLineHeight };
+        }
+
+        ImGui.TableNextColumn();
+        if (FloatInputText(
+                "##glyphOffsetXInput",
+                ref this.advUiState.OffsetXText,
+                this.selectedFont.GlyphOffset.X) is { } newGlyphOffsetX)
+        {
+            changed = true;
+            this.selectedFont = this.selectedFont with
+            {
+                GlyphOffset = this.selectedFont.GlyphOffset with { X = newGlyphOffsetX },
+            };
+        }
+
+        if (FloatInputText(
+                "##glyphOffsetYInput",
+                ref this.advUiState.OffsetYText,
+                this.selectedFont.GlyphOffset.Y) is { } newGlyphOffsetY)
+        {
+            changed = true;
+            this.selectedFont = this.selectedFont with
+            {
+                GlyphOffset = this.selectedFont.GlyphOffset with { Y = newGlyphOffsetY },
+            };
+        }
+
+        ImGui.TableNextColumn();
+        if (FloatInputText(
+                "##glyphExtraSpacingXInput",
+                ref this.advUiState.ExtraSpacingXText,
+                this.selectedFont.GlyphExtraSpacing.X) is { } newGlyphExtraSpacingX)
+        {
+            changed = true;
+            this.selectedFont = this.selectedFont with
+            {
+                GlyphExtraSpacing = this.selectedFont.GlyphExtraSpacing with { X = newGlyphExtraSpacingX },
+            };
+        }
+
+        if (FloatInputText(
+                "##glyphExtraSpacingYInput",
+                ref this.advUiState.ExtraSpacingYText,
+                this.selectedFont.GlyphExtraSpacing.Y) is { } newGlyphExtraSpacingY)
+        {
+            changed = true;
+            this.selectedFont = this.selectedFont with
+            {
+                GlyphExtraSpacing = this.selectedFont.GlyphExtraSpacing with { Y = newGlyphExtraSpacingY },
+            };
+        }
+
+        ImGui.PopStyleVar();
+        ImGui.EndTable();
+
+        return changed;
+
+        static unsafe float? FloatInputText(
+            string label, ref string buf, float value, float step = 1f, float min = -127, float max = 127)
+        {
+            var stylePushed = value < min || value > max || !float.TryParse(buf, out _);
+            if (stylePushed)
+                ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudRed);
+
+            var changed2 = false;
+            ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X);
+            var changed1 = ImGui.InputText(
+                label,
+                ref buf,
+                255,
+                ImGuiInputTextFlags.AutoSelectAll | ImGuiInputTextFlags.CallbackHistory |
+                ImGuiInputTextFlags.CharsDecimal,
+                data =>
+                {
+                    switch (data->EventKey)
+                    {
+                        case ImGuiKey.DownArrow:
+                            changed2 = true;
+                            value = Math.Min(max, (MathF.Round(value / step) * step) + step);
+                            ImGuiHelpers.SetTextFromCallback(data, $"{value:0.##}");
+                            break;
+                        case ImGuiKey.UpArrow:
+                            changed2 = true;
+                            value = Math.Max(min, (MathF.Round(value / step) * step) - step);
+                            ImGuiHelpers.SetTextFromCallback(data, $"{value:0.##}");
+                            break;
+                    }
+
+                    return 0;
+                });
+            
+            if (stylePushed)
+                ImGui.PopStyleColor();
+
+            if (!changed1 && !changed2)
+                return null;
+
+            if (!float.TryParse(buf, out var parsed))
+                return null;
+
+            if (min > parsed || parsed > max)
+                return null;
+
+            return parsed;
+        }
+    }
+
     private void DrawActionButtons(Vector2 buttonSize)
     {
-        if (this.fontHandle?.Available is not true || this.SelectedFontId is null)
+        if (this.fontHandle?.Available is not true
+            || this.FontFamilyExcludeFilter?.Invoke(this.selectedFont.FontId.Family) is true)
         {
             ImGui.BeginDisabled();
             ImGui.Button("OK", buttonSize);
@@ -798,12 +1007,12 @@ public sealed class FontChooserDialog : IDisposable
         }
         else if (ImGui.Button("OK", buttonSize))
         {
-            this.tcs.SetResult((this.SelectedFontId, this.FontSizePt * 4 / 3));
+            this.tcs.SetResult(this.selectedFont);
         }
 
         if (ImGui.Button("Cancel", buttonSize))
         {
-            this.tcs.SetCanceled();
+            this.Cancel();
         }
 
         var doRefresh = false;
@@ -829,8 +1038,8 @@ public sealed class FontChooserDialog : IDisposable
 
             List<IFontFamilyId> RefreshBody()
             {
-                var familyName = this.SelectedFontId?.Family.ToString() ?? string.Empty;
-                var fontName = this.SelectedFontId?.ToString() ?? string.Empty;
+                var familyName = this.selectedFont.FontId.Family.ToString() ?? string.Empty;
+                var fontName = this.selectedFont.FontId.ToString() ?? string.Empty;
 
                 var newFonts = new List<IFontFamilyId> { DalamudDefaultFontAndFamilyId.Instance };
                 newFonts.AddRange(IFontFamilyId.ListDalamudFonts());
@@ -849,6 +1058,21 @@ public sealed class FontChooserDialog : IDisposable
                 return newFonts;
             }
         }
+
+        if (this.useAdvancedOptions)
+        {
+            if (ImGui.Button("Reset"))
+            {
+                this.selectedFont = this.selectedFont with
+                {
+                    LineHeight = 1f,
+                    GlyphOffset = default,
+                    GlyphExtraSpacing = default,
+                };
+
+                this.advUiState = new(this.selectedFont);
+            }
+        }
     }
 
     private void UpdateSelectedFamilyAndFontIndices(
@@ -860,7 +1084,6 @@ public sealed class FontChooserDialog : IDisposable
         if (this.selectedFamilyIndex == -1)
         {
             this.selectedFontIndex = -1;
-            this.selectedFontId = null;
         }
         else
         {
@@ -877,12 +1100,35 @@ public sealed class FontChooserDialog : IDisposable
 
             if (this.selectedFontIndex == -1)
                 this.selectedFontIndex = 0;
-            this.selectedFontId = fonts[this.selectedFamilyIndex].Fonts[this.selectedFontIndex];
+            this.selectedFont = this.selectedFont with
+            {
+                FontId = fonts[this.selectedFamilyIndex].Fonts[this.selectedFontIndex],
+            };
         }
     }
 
-    private string ExtractName(IObjectWithLocalizableName what) => what.LocalizedName;
+    private string ExtractName(IObjectWithLocalizableName what) =>
+        what.GetLocaleName(Service<DalamudConfiguration>.Get().EffectiveLanguage);
+    // Note: EffectiveLanguage can be incorrect but close enough for now
 
     private bool TestName(IObjectWithLocalizableName what, string search) =>
         this.ExtractName(what).Contains(search, StringComparison.CurrentCultureIgnoreCase);
+
+    private struct AdvancedOptionsUiState
+    {
+        public string OffsetXText;
+        public string OffsetYText;
+        public string ExtraSpacingXText;
+        public string ExtraSpacingYText;
+        public string LineHeightText;
+
+        public AdvancedOptionsUiState(SingleFontSpec spec)
+        {
+            this.OffsetXText = $"{spec.GlyphOffset.X:0.##}";
+            this.OffsetYText = $"{spec.GlyphOffset.Y:0.##}";
+            this.ExtraSpacingXText = $"{spec.GlyphExtraSpacing.X:0.##}";
+            this.ExtraSpacingYText = $"{spec.GlyphExtraSpacing.Y:0.##}";
+            this.LineHeightText = $"{spec.LineHeight:0.##}";
+        }
+    }
 }

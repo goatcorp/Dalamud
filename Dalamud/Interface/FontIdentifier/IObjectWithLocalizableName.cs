@@ -1,7 +1,8 @@
+using System.Collections.Generic;
+
 using Dalamud.Utility;
 
 using TerraFX.Interop.DirectX;
-using TerraFX.Interop.Windows;
 
 namespace Dalamud.Interface.FontIdentifier;
 
@@ -11,40 +12,65 @@ namespace Dalamud.Interface.FontIdentifier;
 public interface IObjectWithLocalizableName
 {
     /// <summary>
-    /// Gets the name in English.
+    /// Gets the name, preferrably in English.
     /// </summary>
     string EnglishName { get; }
 
     /// <summary>
-    /// Gets the name in the system language.
+    /// Gets the names per locales.
     /// </summary>
-    string LocalizedName { get; }
+    IReadOnlyDictionary<string, string>? LocaleNames { get; }
 
     /// <summary>
-    /// Gets the localized name, or the first name if unavailable.
+    /// Gets the name in the requested locale if available; otherwise, <see cref="EnglishName"/>.
     /// </summary>
-    /// <param name="fn">The names.</param>
-    /// <param name="locales">The locales.</param>
-    /// <returns>The string in the first-matching locale, or the first string.</returns>
-    internal static unsafe string GetLocalizedNameOrFirst(IDWriteLocalizedStrings* fn, params string[] locales)
+    /// <param name="localeCode">The locale code. Must be in lowercase(invariant).</param>
+    /// <returns>The value.</returns>
+    string GetLocaleName(string localeCode)
     {
-        var index = 0u;
-        BOOL exists = false;
-        foreach (var locale in locales)
+        if (this.LocaleNames is null)
+            return this.EnglishName;
+        if (this.LocaleNames.TryGetValue(localeCode, out var v))
+            return v;
+        foreach (var (a, b) in this.LocaleNames)
         {
-            fixed (void* pName = locale)
-                fn->FindLocaleName((ushort*)pName, &index, &exists).ThrowOnError();
-            if (exists)
-                break;
+            if (a.StartsWith(localeCode))
+                return b;
         }
 
-        if (!exists)
-            index = 0u;
+        return this.EnglishName;
+    }
 
-        var length = 0;
-        fn->GetStringLength(index, (uint*)&length).ThrowOnError();
-        var name = stackalloc char[length + 1];
-        fn->GetString(index, (ushort*)name, (uint)length + 1u).ThrowOnError();
-        return new(name, 0, length);
+    /// <summary>
+    /// Resolves all names per locales.
+    /// </summary>
+    /// <param name="fn">The names.</param>
+    /// <returns>A new dictionary mapping from locale code to localized names.</returns>
+    internal static unsafe IReadOnlyDictionary<string, string> GetLocaleNames(IDWriteLocalizedStrings* fn)
+    {
+        var count = fn->GetCount();
+        var maxStrLen = 0u;
+        for (var i = 0u; i < count; i++)
+        {
+            var length = 0u;
+            fn->GetStringLength(i, &length).ThrowOnError();
+            maxStrLen = Math.Max(maxStrLen, length);
+            fn->GetLocaleNameLength(i, &length).ThrowOnError();
+            maxStrLen = Math.Max(maxStrLen, length);
+        }
+
+        maxStrLen++;
+        var buf = stackalloc char[(int)maxStrLen];
+        var result = new Dictionary<string, string>((int)count);
+        for (var i = 0u; i < count; i++)
+        {
+            fn->GetLocaleName(i, (ushort*)buf, maxStrLen).ThrowOnError();
+            var key = new string(buf);
+            fn->GetString(i, (ushort*)buf, maxStrLen).ThrowOnError();
+            var value = new string(buf);
+            result[key.ToLowerInvariant()] = value;
+        }
+
+        return result;
     }
 }

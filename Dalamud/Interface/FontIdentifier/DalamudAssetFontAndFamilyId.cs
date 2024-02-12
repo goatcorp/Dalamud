@@ -27,10 +27,6 @@ public sealed class DalamudAssetFontAndFamilyId : IFontFamilyId, IFontId
         this.Asset = asset;
     }
 
-    /// <inheritdoc cref="IFontId.TypeName"/>
-    [JsonProperty]
-    public string TypeName => nameof(DalamudAssetFontAndFamilyId);
-
     /// <summary>
     /// Gets the font asset.
     /// </summary>
@@ -43,7 +39,7 @@ public sealed class DalamudAssetFontAndFamilyId : IFontFamilyId, IFontId
 
     /// <inheritdoc/>
     [JsonIgnore]
-    public string LocalizedName => $"Dalamud: {this.Asset}";
+    public IReadOnlyDictionary<string, string>? LocaleNames => null;
 
     /// <inheritdoc/>
     [JsonIgnore]
@@ -84,19 +80,8 @@ public sealed class DalamudAssetFontAndFamilyId : IFontFamilyId, IFontId
     public int FindBestMatch(int weight, int stretch, int style) => 0;
 
     /// <inheritdoc/>
-    public ImFontPtr AddToBuildToolkit(
-        IFontAtlasBuildToolkitPreBuild tk,
-        float sizePx,
-        ushort[]? glyphRanges,
-        ImFontPtr mergeFont) =>
-        tk.AddDalamudAssetFont(
-            this.Asset,
-            new()
-            {
-                SizePx = sizePx,
-                GlyphRanges = glyphRanges,
-                MergeFont = mergeFont,
-            });
+    public ImFontPtr AddToBuildToolkit(IFontAtlasBuildToolkitPreBuild tk, in SafeFontConfig config) =>
+        tk.AddDalamudAssetFont(this.Asset, config);
 
     private bool Equals(DalamudAssetFontAndFamilyId other) => this.Asset == other.Asset;
 }

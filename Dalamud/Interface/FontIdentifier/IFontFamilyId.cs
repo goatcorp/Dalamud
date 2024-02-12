@@ -1,11 +1,9 @@
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 
 using Dalamud.Interface.GameFonts;
 using Dalamud.Utility;
 
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 using TerraFX.Interop.DirectX;
 using TerraFX.Interop.Windows;
@@ -15,15 +13,8 @@ namespace Dalamud.Interface.FontIdentifier;
 /// <summary>
 /// Represents a font family identifier.
 /// </summary>
-[JsonConverter(typeof(FontFamilyIdConverter))]
 public interface IFontFamilyId : IObjectWithLocalizableName
 {
-    /// <summary>
-    /// Gets the type name of the current object.
-    /// </summary>
-    [JsonProperty]
-    public string TypeName { get; }
-
     /// <summary>
     /// Gets the list of fonts under this family.
     /// </summary>
@@ -106,41 +97,5 @@ public interface IFontFamilyId : IObjectWithLocalizableName
         }
 
         return result;
-    }
-
-    /// <summary>
-    /// A class for properly de/serializing the outer class.
-    /// </summary>
-    private class FontFamilyIdConverter : JsonConverter<IFontFamilyId>
-    {
-        public override bool CanWrite => false;
-
-        public override bool CanRead => true;
-
-        public override void WriteJson(JsonWriter writer, IFontFamilyId? value, JsonSerializer serializer) =>
-            throw new NotSupportedException();
-
-        public override IFontFamilyId? ReadJson(
-            JsonReader reader, Type objectType, IFontFamilyId? existingValue, bool hasExistingValue,
-            JsonSerializer serializer)
-        {
-            var jsonObject = JObject.Load(reader);
-            existingValue = jsonObject["TypeName"]?.Value<string>() switch
-            {
-                nameof(SystemFontFamilyId) =>
-                    (IFontFamilyId)RuntimeHelpers.GetUninitializedObject(typeof(SystemFontFamilyId)),
-                nameof(GameFontAndFamilyId) =>
-                    (IFontFamilyId)RuntimeHelpers.GetUninitializedObject(typeof(GameFontAndFamilyId)),
-                nameof(DalamudDefaultFontAndFamilyId) =>
-                    (IFontFamilyId)RuntimeHelpers.GetUninitializedObject(typeof(DalamudDefaultFontAndFamilyId)),
-                nameof(DalamudAssetFontAndFamilyId) =>
-                    (IFontFamilyId)RuntimeHelpers.GetUninitializedObject(typeof(DalamudAssetFontAndFamilyId)),
-                _ => null,
-            };
-
-            if (existingValue is not null)
-                serializer.Populate(jsonObject.CreateReader(), existingValue);
-            return existingValue;
-        }
     }
 }

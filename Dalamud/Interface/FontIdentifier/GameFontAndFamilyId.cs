@@ -22,10 +22,6 @@ public sealed class GameFontAndFamilyId : IFontId, IFontFamilyId
     /// <param name="family">The game font family.</param>
     public GameFontAndFamilyId(GameFontFamily family) => this.GameFontFamily = family;
 
-    /// <inheritdoc cref="IFontId.TypeName"/>
-    [JsonProperty]
-    public string TypeName => nameof(GameFontAndFamilyId);
-
     /// <summary>
     /// Gets the game font family.
     /// </summary>
@@ -38,7 +34,7 @@ public sealed class GameFontAndFamilyId : IFontId, IFontFamilyId
 
     /// <inheritdoc/>
     [JsonIgnore]
-    public string LocalizedName => this.EnglishName;
+    public IReadOnlyDictionary<string, string>? LocaleNames => null;
 
     /// <inheritdoc/>
     [JsonIgnore]
@@ -78,11 +74,8 @@ public sealed class GameFontAndFamilyId : IFontId, IFontFamilyId
     public override string ToString() => $"{nameof(GameFontAndFamilyId)}:{this.GameFontFamily}";
 
     /// <inheritdoc/>
-    public ImFontPtr AddToBuildToolkit(
-        IFontAtlasBuildToolkitPreBuild tk,
-        float sizePx,
-        ushort[]? glyphRanges, ImFontPtr mergeFont) =>
-        tk.AddGameGlyphs(new(this.GameFontFamily, sizePx), glyphRanges, mergeFont);
-    
+    public ImFontPtr AddToBuildToolkit(IFontAtlasBuildToolkitPreBuild tk, in SafeFontConfig config) =>
+        tk.AddGameGlyphs(new(this.GameFontFamily, config.SizePx), config.GlyphRanges, config.MergeFont);
+
     private bool Equals(GameFontAndFamilyId other) => this.GameFontFamily == other.GameFontFamily;
 }

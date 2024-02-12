@@ -35,7 +35,7 @@ public class SettingsTabLook : SettingsTab
     };
 
     private float globalUiScale;
-    private IFontId? defaultFontId;
+    private IFontSpec defaultFontSpec = null!;
 
     public override SettingsEntry[] Entries { get; } =
     {
@@ -199,10 +199,12 @@ public class SettingsTabLook : SettingsTab
         if (ImGui.Button(Loc.Localize("DalamudSettingChooseDefaultFont", "Choose Default Font")))
         {
             var faf = Service<FontAtlasFactory>.Get();
-            var fcd = new FontChooserDialog(
+            var fcd = new SingleFontChooserDialog(
                 faf.CreateFontAtlas($"{nameof(SettingsTabLook)}:Default", FontAtlasAutoRebuildMode.Async));
-            fcd.SelectedFontId = this.defaultFontId;
-            fcd.FontSizePx = InterfaceManager.DefaultFontSizePx * this.globalUiScale;
+            fcd.SelectedFont = (SingleFontSpec)this.defaultFontSpec with
+            {
+                SizePx = InterfaceManager.DefaultFontSizePx * this.globalUiScale,
+            };
             fcd.FontFamilyExcludeFilter = x => x is DalamudDefaultFontAndFamilyId;
             fcd.IgnorePreviewGlobalScale = true;
             interfaceManager.Draw += fcd.Draw;
@@ -217,7 +219,7 @@ public class SettingsTabLook : SettingsTab
                         if (!r.IsCompletedSuccessfully)
                             return;
 
-                        faf.DefaultFontIdOverride = this.defaultFontId = r.Result.Font;
+                        faf.DefaultFontSpecOverride = this.defaultFontSpec = r.Result;
                         ImGui.GetIO().FontGlobalScale =
                             this.globalUiScale = r.Result.SizePx / InterfaceManager.DefaultFontSizePx;
                         interfaceManager.RebuildFonts();
@@ -231,7 +233,9 @@ public class SettingsTabLook : SettingsTab
             if (ImGui.Button(Loc.Localize("DalamudSettingResetDefaultFont", "Reset Default Font")))
             {
                 var faf = Service<FontAtlasFactory>.Get();
-                faf.DefaultFontIdOverride = this.defaultFontId = new GameFontAndFamilyId(GameFontFamily.Axis);
+                faf.DefaultFontSpecOverride =
+                    this.defaultFontSpec =
+                        new SingleFontSpec { FontId = new GameFontAndFamilyId(GameFontFamily.Axis) };
                 interfaceManager.RebuildFonts();
             }
         }
@@ -242,7 +246,7 @@ public class SettingsTabLook : SettingsTab
     public override void Load()
     {
         this.globalUiScale = Service<DalamudConfiguration>.Get().GlobalUiScale;
-        this.defaultFontId = Service<FontAtlasFactory>.Get().DefaultFontId;
+        this.defaultFontSpec = Service<FontAtlasFactory>.Get().DefaultFontSpec;
 
         base.Load();
     }
@@ -250,7 +254,7 @@ public class SettingsTabLook : SettingsTab
     public override void Save()
     {
         Service<DalamudConfiguration>.Get().GlobalUiScale = this.globalUiScale;
-        Service<DalamudConfiguration>.Get().DefaultFontId = this.defaultFontId;
+        Service<DalamudConfiguration>.Get().DefaultFontSpec = this.defaultFontSpec;
 
         base.Save();
     }

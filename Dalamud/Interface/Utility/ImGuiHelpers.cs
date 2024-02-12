@@ -552,7 +552,9 @@ public static class ImGuiHelpers
     /// <param name="s">The new text.</param>
     internal static unsafe void SetTextFromCallback(ImGuiInputTextCallbackData* data, string s)
     {
-        ImGuiNative.ImGuiInputTextCallbackData_DeleteChars(data, 0, data->BufTextLen);
+        if (data->BufTextLen != 0)
+            ImGuiNative.ImGuiInputTextCallbackData_DeleteChars(data, 0, data->BufTextLen);
+
         var len = Encoding.UTF8.GetByteCount(s);
         var buf = len < 1024 ? stackalloc byte[len] : new byte[len];
         Encoding.UTF8.GetBytes(s, buf);

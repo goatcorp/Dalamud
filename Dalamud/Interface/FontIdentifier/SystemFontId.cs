@@ -1,5 +1,6 @@
-using System.Globalization;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 using Dalamud.Interface.ManagedFontAtlas;
 using Dalamud.Utility;
@@ -32,16 +33,22 @@ public sealed class SystemFontId : IFontId
 
         using var fn = default(ComPtr<IDWriteLocalizedStrings>);
         font.Get()->GetFaceNames(fn.GetAddressOf()).ThrowOnError();
-        this.EnglishName = IObjectWithLocalizableName.GetLocalizedNameOrFirst(fn, "en-us", "en");
-        this.LocalizedName = IObjectWithLocalizableName.GetLocalizedNameOrFirst(
-            fn,
-            CultureInfo.CurrentUICulture.Name,
-            CultureInfo.CurrentUICulture.TwoLetterISOLanguageName);
+        this.LocaleNames = IObjectWithLocalizableName.GetLocaleNames(fn);
+        if (this.LocaleNames.TryGetValue("en-us", out var name))
+            this.EnglishName = name;
+        else if (this.LocaleNames.TryGetValue("en", out name))
+            this.EnglishName = name;
+        else 
+            this.EnglishName = this.LocaleNames.Values.First();
     }
 
-    /// <inheritdoc/>
-    [JsonProperty]
-    public string TypeName => nameof(SystemFontId);
+    [JsonConstructor]
+    private SystemFontId(string englishName, IReadOnlyDictionary<string, string> localeNames, IFontFamilyId family)
+    {
+        this.EnglishName = englishName;
+        this.LocaleNames = localeNames;
+        this.Family = family;
+    }
 
     /// <inheritdoc/>
     [JsonProperty]
@@ -49,7 +56,7 @@ public sealed class SystemFontId : IFontId
 
     /// <inheritdoc/>
     [JsonProperty]
-    public string LocalizedName { get; init; }
+    public IReadOnlyDictionary<string, string>? LocaleNames { get; }
 
     /// <inheritdoc/>
     [JsonProperty]
@@ -57,15 +64,15 @@ public sealed class SystemFontId : IFontId
 
     /// <inheritdoc/>
     [JsonProperty]
-    public int Weight { get; init; }
+    public int Weight { get; init; } = (int)DWRITE_FONT_WEIGHT.DWRITE_FONT_WEIGHT_NORMAL;
 
     /// <inheritdoc/>
     [JsonProperty]
-    public int Stretch { get; init; }
+    public int Stretch { get; init; } = (int)DWRITE_FONT_STRETCH.DWRITE_FONT_STRETCH_NORMAL;
 
     /// <inheritdoc/>
     [JsonProperty]
-    public int Style { get; init; }
+    public int Style { get; init; } = (int)DWRITE_FONT_STYLE.DWRITE_FONT_STYLE_NORMAL;
 
     public static bool operator ==(SystemFontId? left, SystemFontId? right) => Equals(left, right);
 
@@ -83,19 +90,10 @@ public sealed class SystemFontId : IFontId
         $"{nameof(SystemFontId)}:{this.Weight}:{this.Stretch}:{this.Style}:{this.Family}";
 
     /// <inheritdoc/>
-    public ImFontPtr AddToBuildToolkit(
-        IFontAtlasBuildToolkitPreBuild tk, float sizePx, ushort[]? glyphRanges, ImFontPtr mergeFont)
+    public ImFontPtr AddToBuildToolkit(IFontAtlasBuildToolkitPreBuild tk, in SafeFontConfig config)
     {
         var (path, index) = this.GetFileAndIndex();
-        return tk.AddFontFromFile(
-            path,
-            new()
-            {
-                FontNo = index,
-                SizePx = sizePx,
-                GlyphRanges = glyphRanges,
-                MergeFont = mergeFont,
-            });
+        return tk.AddFontFromFile(path, config with { FontNo = index });
     }
 
     /// <summary>
@@ -159,6 +157,7 @@ public sealed class SystemFontId : IFontId
         flocal.Get()->GetFilePathFromKey(refKey, refKeySize, (ushort*)path, pathSize + 1).ThrowOnError();
         return (new(path, 0, (int)pathSize), (int)fface.Get()->GetIndex());
     }
-    
-    private bool Equals(SystemFontId other) => this.Family.Equals(other.Family) && this.Weight == other.Weight && this.Stretch == other.Stretch && this.Style == other.Style;
+
+    private bool Equals(SystemFontId other) => this.Family.Equals(other.Family) && this.Weight == other.Weight &&
+                                               this.Stretch == other.Stretch && this.Style == other.Style;
 }

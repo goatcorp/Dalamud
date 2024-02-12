@@ -68,11 +68,11 @@ internal class SettingsWindow : Window
         var interfaceManager = Service<InterfaceManager>.Get();
         var fontAtlasFactory = Service<FontAtlasFactory>.Get();
 
-        var rebuildFont = !Equals(fontAtlasFactory.DefaultFontId, configuration.DefaultFontId);
+        var rebuildFont = !Equals(fontAtlasFactory.DefaultFontSpec, configuration.DefaultFontSpec);
         rebuildFont |= !Equals(ImGui.GetIO().FontGlobalScale, configuration.GlobalUiScale);
 
         ImGui.GetIO().FontGlobalScale = configuration.GlobalUiScale;
-        fontAtlasFactory.DefaultFontIdOverride = null;
+        fontAtlasFactory.DefaultFontSpecOverride = null;
 
         if (rebuildFont)
             interfaceManager.RebuildFonts();
