@@ -26,7 +26,7 @@ public interface IObjectWithLocalizableName
     /// </summary>
     /// <param name="localeCode">The locale code. Must be in lowercase(invariant).</param>
     /// <returns>The value.</returns>
-    string GetLocaleName(string localeCode)
+    string GetLocalizedName(string localeCode)
     {
         if (this.LocaleNames is null)
             return this.EnglishName;

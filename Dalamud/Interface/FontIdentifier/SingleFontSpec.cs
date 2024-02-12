@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
+using System.Text;
 
 using Dalamud.Interface.ManagedFontAtlas;
 using Dalamud.Interface.Utility;
@@ -65,6 +66,25 @@ public record SingleFontSpec : IFontSpec
     /// </summary>
     [JsonProperty]
     public ushort[]? GlyphRanges { get; init; }
+
+    /// <inheritdoc/>
+    public string ToLocalizedString(string localeCode)
+    {
+        var sb = new StringBuilder();
+        sb.Append(this.FontId.Family.GetLocalizedName(localeCode));
+        sb.Append($"({this.FontId.GetLocalizedName(localeCode)}, {this.SizePt}pt");
+        if (Math.Abs(this.LineHeight - 1f) > 0.000001f)
+            sb.Append($", L={this.LineHeight:0.##}");
+        if (this.GlyphOffset != default)
+            sb.Append($", O={this.GlyphOffset.X:0.##},{this.GlyphOffset.Y:0.##}");
+        if (this.GlyphExtraSpacing != default)
+            sb.Append($", S={this.GlyphExtraSpacing.X:0.##},{this.GlyphExtraSpacing.Y:0.##}");
+        sb.Append(')');
+        return sb.ToString();
+    }
+
+    /// <inheritdoc/>
+    public override string ToString() => this.ToLocalizedString("en");
 
     /// <inheritdoc/>
     public IFontHandle CreateFontHandle(IFontAtlas atlas, FontAtlasBuildStepDelegate? callback = null) =>

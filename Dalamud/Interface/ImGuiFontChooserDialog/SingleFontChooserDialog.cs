@@ -1102,7 +1102,7 @@ public sealed class SingleFontChooserDialog : IDisposable
     }
 
     private string ExtractName(IObjectWithLocalizableName what) =>
-        what.GetLocaleName(Service<DalamudConfiguration>.Get().EffectiveLanguage);
+        what.GetLocalizedName(Service<DalamudConfiguration>.Get().EffectiveLanguage);
     // Note: EffectiveLanguage can be incorrect but close enough for now
 
     private bool TestName(IObjectWithLocalizableName what, string search) =>

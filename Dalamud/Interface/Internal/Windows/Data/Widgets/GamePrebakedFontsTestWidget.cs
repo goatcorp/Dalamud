@@ -138,6 +138,7 @@ internal class GamePrebakedFontsTestWidget : IDataWindowWidget, IDisposable
                             return;
 
                         this.fontSpec = r.Result;
+                        Log.Information("Selected font: {font}", this.fontSpec);
                         this.fontDialogHandle?.Dispose();
                         this.fontDialogHandle = null;
                     }));
