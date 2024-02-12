@@ -106,6 +106,23 @@ HRESULT throw_if_failed(HRESULT hr, std::initializer_list<HRESULT> acceptables =
     throw_hresult(hr, clue);
 }
 
+bool try_init_symbols(PCWSTR symbol_search_path) {
+    __try {
+        return SymInitializeW(g_hProcess, symbol_search_path, true);
+    }
+    __except (EXCEPTION_EXECUTE_HANDLER) {
+        if (!symbol_search_path) return FALSE;
+        std::wcerr << L"Failed to init symbols with PDB; retrying without workdir" << std::endl;
+        __try {
+            return SymInitializeW(g_hProcess, symbol_search_path + 2, true);
+        }
+        __except (EXCEPTION_EXECUTE_HANDLER) {
+            std::wcerr << L"Failed to init symbols with PDB; init without UserSearchPath" << std::endl;
+            return SymInitializeW(g_hProcess, nullptr, true);
+        }
+    }
+}
+
 std::wstring describe_module(const std::filesystem::path& path) {
     DWORD verHandle = 0;
     std::vector<uint8_t> block;
@@ -762,15 +779,14 @@ int main() {
         else if(!assetDir.empty())
         {
             auto symbol_search_path = std::format(L".;{}", (assetDir / "UIRes" / "pdb").wstring());
-            
-            g_bSymbolsAvailable = SymInitializeW(g_hProcess, symbol_search_path.c_str(), true);
-            std::wcout << std::format(L"Init symbols with PDB at {}", symbol_search_path) << std::endl;
 
+            g_bSymbolsAvailable = try_init_symbols(symbol_search_path.c_str());
+            std::wcout << std::format(L"Init symbols with PDB at {}", symbol_search_path) << std::endl;
             SymRefreshModuleList(g_hProcess);
         }
         else
         {
-            g_bSymbolsAvailable = SymInitializeW(g_hProcess, nullptr, true);
+            g_bSymbolsAvailable = try_init_symbols(nullptr);
             std::cout << "Init symbols without PDB" << std::endl;
         }
         
