@@ -152,7 +152,7 @@ public sealed class SingleFontChooserDialog : IDisposable
             this.advUiState = new(value);
             this.useAdvancedOptions |= Math.Abs(value.LineHeight - 1f) > 0.000001;
             this.useAdvancedOptions |= value.GlyphOffset != default;
-            this.useAdvancedOptions |= value.GlyphExtraSpacing != default;
+            this.useAdvancedOptions |= value.LetterSpacing != 0f;
         }
     }
 
@@ -835,54 +835,37 @@ public sealed class SingleFontChooserDialog : IDisposable
     private bool DrawAdvancedOptions()
     {
         var changed = false;
-        if (!ImGui.BeginTable("##advancedOptionsTable", 4))
-            return false;
 
-        ImGui.PushStyleColor(ImGuiCol.TableHeaderBg, Vector4.Zero);
-        ImGui.PushStyleColor(ImGuiCol.HeaderHovered, Vector4.Zero);
-        ImGui.PushStyleColor(ImGuiCol.HeaderActive, Vector4.Zero);
+        if (!ImGui.BeginTable("##advancedOptions", 4))
+            return changed;
+
+        var labelWidth = ImGui.CalcTextSize("Letter Spacing:").X;
+        labelWidth = Math.Max(labelWidth, ImGui.CalcTextSize("Offset:").X);
+        labelWidth = Math.Max(labelWidth, ImGui.CalcTextSize("Line Height:").X);
+        labelWidth += ImGui.GetStyle().FramePadding.X;
+
+        var inputWidth = ImGui.CalcTextSize("000.000").X + (ImGui.GetStyle().FramePadding.X * 2);
         ImGui.TableSetupColumn(
-            "##legendsColumn",
-            ImGuiTableColumnFlags.WidthStretch,
-            0.1f);
+            "##inputLabelColumn",
+            ImGuiTableColumnFlags.WidthFixed,
+            labelWidth);
         ImGui.TableSetupColumn(
-            "Line Height:##lineHeightColumn",
-            ImGuiTableColumnFlags.WidthStretch,
-            0.3f);
+            "##input1Column",
+            ImGuiTableColumnFlags.WidthFixed,
+            inputWidth);
         ImGui.TableSetupColumn(
-            "Offset:##glyphOffsetColumn",
-            ImGuiTableColumnFlags.WidthStretch,
-            0.3f);
+            "##input2Column",
+            ImGuiTableColumnFlags.WidthFixed,
+            inputWidth);
         ImGui.TableSetupColumn(
-            "Spacing:##glyphExtraSpacingColumn",
+            "##fillerColumn",
             ImGuiTableColumnFlags.WidthStretch,
-            0.3f);
-        ImGui.TableHeadersRow();
-        ImGui.PopStyleColor(3);
+            1f);
 
         ImGui.TableNextRow();
-
-        var pad = (int)MathF.Round(8 * ImGuiHelpers.GlobalScale);
-        ImGui.PushStyleVar(ImGuiStyleVar.CellPadding, new Vector2(pad));
-
         ImGui.TableNextColumn();
         ImGui.AlignTextToFramePadding();
-        ImGui.TextUnformatted("X");
-        ImGui.AlignTextToFramePadding();
-        ImGui.TextUnformatted("Y");
-
-        ImGui.TableNextColumn();
-        if (FloatInputText(
-                "##lineHeightInput",
-                ref this.advUiState.LineHeightText,
-                this.selectedFont.LineHeight,
-                0.05f,
-                0.1f,
-                3f) is { } newLineHeight)
-        {
-            changed = true;
-            this.selectedFont = this.selectedFont with { LineHeight = newLineHeight };
-        }
+        ImGui.TextUnformatted("Offset:");
 
         ImGui.TableNextColumn();
         if (FloatInputText(
@@ -897,6 +880,7 @@ public sealed class SingleFontChooserDialog : IDisposable
             };
         }
 
+        ImGui.TableNextColumn();
         if (FloatInputText(
                 "##glyphOffsetYInput",
                 ref this.advUiState.OffsetYText,
@@ -909,35 +893,40 @@ public sealed class SingleFontChooserDialog : IDisposable
             };
         }
 
+        ImGui.TableNextRow();
+        ImGui.TableNextColumn();
+        ImGui.AlignTextToFramePadding();
+        ImGui.TextUnformatted("Letter Spacing:");
+
         ImGui.TableNextColumn();
         if (FloatInputText(
-                "##glyphExtraSpacingXInput",
-                ref this.advUiState.ExtraSpacingXText,
-                this.selectedFont.GlyphExtraSpacing.X) is { } newGlyphExtraSpacingX)
+                "##letterSpacingXInput",
+                ref this.advUiState.LetterSpacingText,
+                this.selectedFont.LetterSpacing) is { } newLetterSpacing)
         {
             changed = true;
-            this.selectedFont = this.selectedFont with
-            {
-                GlyphExtraSpacing = this.selectedFont.GlyphExtraSpacing with { X = newGlyphExtraSpacingX },
-            };
+            this.selectedFont = this.selectedFont with { LetterSpacing = newLetterSpacing };
         }
 
-        // This value currently does nothing
-        // if (FloatInputText(
-        //         "##glyphExtraSpacingYInput",
-        //         ref this.advUiState.ExtraSpacingYText,
-        //         this.selectedFont.GlyphExtraSpacing.Y) is { } newGlyphExtraSpacingY)
-        // {
-        //     changed = true;
-        //     this.selectedFont = this.selectedFont with
-        //     {
-        //         GlyphExtraSpacing = this.selectedFont.GlyphExtraSpacing with { Y = newGlyphExtraSpacingY },
-        //     };
-        // }
+        ImGui.TableNextRow();
+        ImGui.TableNextColumn();
+        ImGui.AlignTextToFramePadding();
+        ImGui.TextUnformatted("Line Height:");
 
-        ImGui.PopStyleVar();
+        ImGui.TableNextColumn();
+        if (FloatInputText(
+                "##lineHeightInput",
+                ref this.advUiState.LineHeightText,
+                this.selectedFont.LineHeight,
+                0.05f,
+                0.1f,
+                3f) is { } newLineHeight)
+        {
+            changed = true;
+            this.selectedFont = this.selectedFont with { LineHeight = newLineHeight };
+        }
+
         ImGui.EndTable();
-
         return changed;
 
         static unsafe float? FloatInputText(
@@ -1061,10 +1050,12 @@ public sealed class SingleFontChooserDialog : IDisposable
                 {
                     LineHeight = 1f,
                     GlyphOffset = default,
-                    GlyphExtraSpacing = default,
+                    LetterSpacing = default,
                 };
 
                 this.advUiState = new(this.selectedFont);
+                this.fontHandle?.Dispose();
+                this.fontHandle = null;
             }
         }
     }
@@ -1112,16 +1103,14 @@ public sealed class SingleFontChooserDialog : IDisposable
     {
         public string OffsetXText;
         public string OffsetYText;
-        public string ExtraSpacingXText;
-        public string ExtraSpacingYText;
+        public string LetterSpacingText;
         public string LineHeightText;
 
         public AdvancedOptionsUiState(SingleFontSpec spec)
         {
             this.OffsetXText = $"{spec.GlyphOffset.X:0.##}";
             this.OffsetYText = $"{spec.GlyphOffset.Y:0.##}";
-            this.ExtraSpacingXText = $"{spec.GlyphExtraSpacing.X:0.##}";
-            this.ExtraSpacingYText = $"{spec.GlyphExtraSpacing.Y:0.##}";
+            this.LetterSpacingText = $"{spec.LetterSpacing:0.##}";
             this.LineHeightText = $"{spec.LineHeight:0.##}";
         }
     }

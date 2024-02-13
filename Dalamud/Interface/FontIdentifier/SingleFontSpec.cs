@@ -56,10 +56,10 @@ public record SingleFontSpec : IFontSpec
     public Vector2 GlyphOffset { get; init; }
 
     /// <summary>
-    /// Gets the glyph extra spacing in pixels.
+    /// Gets the letter spacing in pixels.
     /// </summary>
     [JsonProperty]
-    public Vector2 GlyphExtraSpacing { get; init; }
+    public float LetterSpacing { get; init; }
 
     /// <summary>
     /// Gets the glyph ranges.
@@ -74,11 +74,11 @@ public record SingleFontSpec : IFontSpec
         sb.Append(this.FontId.Family.GetLocalizedName(localeCode));
         sb.Append($"({this.FontId.GetLocalizedName(localeCode)}, {this.SizePt}pt");
         if (Math.Abs(this.LineHeight - 1f) > 0.000001f)
-            sb.Append($", L={this.LineHeight:0.##}");
+            sb.Append($", LH={this.LineHeight:0.##}");
         if (this.GlyphOffset != default)
             sb.Append($", O={this.GlyphOffset.X:0.##},{this.GlyphOffset.Y:0.##}");
-        if (this.GlyphExtraSpacing != default)
-            sb.Append($", S={this.GlyphExtraSpacing.X:0.##},{this.GlyphExtraSpacing.Y:0.##}");
+        if (this.LetterSpacing != 0f)
+            sb.Append($", LS={this.LetterSpacing:0.##}");
         sb.Append(')');
         return sb.ToString();
     }
@@ -130,7 +130,7 @@ public record SingleFontSpec : IFontSpec
                 }
 
                 // `/ roundUnit` = `* scale`
-                var dax = MathF.Round(this.GlyphExtraSpacing.X / roundUnit / roundUnit) * roundUnit;
+                var dax = MathF.Round(this.LetterSpacing / roundUnit / roundUnit) * roundUnit;
                 var dxy0 = this.GlyphOffset / roundUnit;
 
                 dxy0 /= roundUnit;
