@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 using System.Text.Unicode;
 
 using Dalamud.Configuration.Internal;
+using Dalamud.Interface.FontIdentifier;
 using Dalamud.Interface.GameFonts;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Utility;
@@ -42,6 +43,7 @@ internal sealed partial class FontAtlasFactory
         private readonly GamePrebakedFontHandle.HandleSubstance gameFontHandleSubstance;
         private readonly FontAtlasFactory factory;
         private readonly FontAtlasBuiltData data;
+        private readonly List<Action> registeredPostBuildActions = new();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="BuildToolkit"/> class.
@@ -162,6 +164,9 @@ internal sealed partial class FontAtlasFactory
         /// <inheritdoc/>
         public int StoreTexture(IDalamudTextureWrap textureWrap, bool disposeOnError) =>
             this.data.AddNewTexture(textureWrap, disposeOnError);
+        
+        /// <inheritdoc/>
+        public void RegisterPostBuild(Action action) => this.registeredPostBuildActions.Add(action);
 
         /// <inheritdoc/>
         public unsafe ImFontPtr AddFontFromImGuiHeapAllocatedMemory(
@@ -314,18 +319,32 @@ internal sealed partial class FontAtlasFactory
         /// <inheritdoc/>
         public ImFontPtr AddDalamudDefaultFont(float sizePx, ushort[]? glyphRanges)
         {
-            ImFontPtr font;
+            ImFontPtr font = default;
             glyphRanges ??= this.factory.DefaultGlyphRanges;
-            if (this.factory.UseAxis)
+
+            var dfid = this.factory.DefaultFontSpec;
+            if (sizePx < 0f)
+                sizePx *= -dfid.SizePx;
+
+            if (dfid is SingleFontSpec sfs)
             {
-                font = this.AddGameGlyphs(new(GameFontFamily.Axis, sizePx), glyphRanges, default);
+                if (sfs.FontId is DalamudDefaultFontAndFamilyId)
+                {
+                    // invalid; calling sfs.AddToBuildToolkit calls this function, causing infinite recursion
+                }
+                else
+                {
+                    sfs = sfs with { SizePx = sizePx };
+                    font = sfs.AddToBuildToolkit(this);
+                    if (sfs.FontId is not GameFontAndFamilyId { GameFontFamily: GameFontFamily.Axis })
+                        this.AddGameSymbol(new() { SizePx = sizePx, MergeFont = font });
+                }
             }
-            else
+
+            if (font.IsNull())
             {
-                font = this.AddDalamudAssetFont(
-                    DalamudAsset.NotoSansJpMedium,
-                    new() { SizePx = sizePx, GlyphRanges = glyphRanges });
-                this.AddGameSymbol(new() { SizePx = sizePx, MergeFont = font });
+                // fall back to AXIS fonts
+                font = this.AddGameGlyphs(new(GameFontFamily.Axis, sizePx), glyphRanges, default);
             }
 
             this.AttachExtraGlyphsForDalamudLanguage(new() { SizePx = sizePx, MergeFont = font });
@@ -529,6 +548,13 @@ internal sealed partial class FontAtlasFactory
         {
             foreach (var substance in this.data.Substances)
                 substance.OnPostBuild(this);
+        }
+
+        public void PostBuildCallbacks()
+        {
+            foreach (var ac in this.registeredPostBuildActions)
+                ac.InvokeSafely();
+            this.registeredPostBuildActions.Clear();
         }
 
         public unsafe void UploadTextures()

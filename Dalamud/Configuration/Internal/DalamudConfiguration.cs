@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 
 using Dalamud.Game.Text;
+using Dalamud.Interface.FontIdentifier;
 using Dalamud.Interface.Internal.Windows.PluginInstaller;
 using Dalamud.Interface.Style;
 using Dalamud.IoC.Internal;
@@ -145,7 +146,13 @@ internal sealed class DalamudConfiguration : IServiceType, IDisposable
     /// <summary>
     /// Gets or sets a value indicating whether to use AXIS fonts from the game.
     /// </summary>
-    public bool UseAxisFontsFromGame { get; set; } = false;
+    [Obsolete($"See {nameof(DefaultFontSpec)}")]
+    public bool UseAxisFontsFromGame { get; set; } = true;
+
+    /// <summary>
+    /// Gets or sets the default font spec.
+    /// </summary>
+    public IFontSpec? DefaultFontSpec { get; set; }
 
     /// <summary>
     /// Gets or sets the gamma value to apply for Dalamud fonts. Do not use.

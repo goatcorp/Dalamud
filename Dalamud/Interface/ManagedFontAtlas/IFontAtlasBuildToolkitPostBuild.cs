@@ -5,7 +5,8 @@ using ImGuiNET;
 namespace Dalamud.Interface.ManagedFontAtlas;
 
 /// <summary>
-/// Toolkit for use when the build state is <see cref="FontAtlasBuildStep.PostBuild"/>.
+/// Toolkit for use when the build state is <see cref="FontAtlasBuildStep.PostBuild"/>.<br />
+/// Not intended for plugins to implement.
 /// </summary>
 public interface IFontAtlasBuildToolkitPostBuild : IFontAtlasBuildToolkit
 {

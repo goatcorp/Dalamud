@@ -8,7 +8,8 @@ using ImGuiNET;
 namespace Dalamud.Interface.ManagedFontAtlas;
 
 /// <summary>
-/// Wrapper for <see cref="ImFontAtlasPtr"/>.
+/// Wrapper for <see cref="ImFontAtlasPtr"/>.<br />
+/// Not intended for plugins to implement.
 /// </summary>
 public interface IFontAtlas : IDisposable
 {
@@ -93,11 +94,15 @@ public interface IFontAtlas : IDisposable
     /// </summary>
     /// <param name="buildStepDelegate">Callback for <see cref="IFontAtlas.BuildStepChange"/>.</param>
     /// <returns>Handle to a font that may or may not be ready yet.</returns>
+    /// <remarks>
+    /// Consider calling <see cref="IFontAtlasBuildToolkitPreBuild.AttachExtraGlyphsForDalamudLanguage"/> to support
+    /// glyphs that are not supplied by the game by default; this mostly affects Chinese and Korean language users.
+    /// </remarks>
     /// <example>
     /// <b>On initialization</b>:
     /// <code>
     /// this.fontHandle = atlas.NewDelegateFontHandle(e => e.OnPreBuild(tk => {
-    ///     var config = new SafeFontConfig { SizePx = 16 };
+    ///     var config = new SafeFontConfig { SizePx = UiBuilder.DefaultFontSizePx };
     ///     config.MergeFont = tk.AddFontFromFile(@"C:\Windows\Fonts\comic.ttf", config);
     ///     tk.AddGameSymbol(config);
     ///     tk.AddExtraGlyphsForDalamudLanguage(config);
