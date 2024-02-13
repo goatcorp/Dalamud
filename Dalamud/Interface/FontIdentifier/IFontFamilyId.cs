@@ -11,7 +11,8 @@ using TerraFX.Interop.Windows;
 namespace Dalamud.Interface.FontIdentifier;
 
 /// <summary>
-/// Represents a font family identifier.
+/// Represents a font family identifier.<br />
+/// Not intended for plugins to implement.
 /// </summary>
 public interface IFontFamilyId : IObjectWithLocalizableName
 {

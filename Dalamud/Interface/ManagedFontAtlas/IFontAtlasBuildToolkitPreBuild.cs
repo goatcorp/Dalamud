@@ -11,6 +11,7 @@ namespace Dalamud.Interface.ManagedFontAtlas;
 
 /// <summary>
 /// Toolkit for use when the build state is <see cref="FontAtlasBuildStep.PreBuild"/>.<br />
+/// Not intended for plugins to implement.<br />
 /// <br />
 /// After <see cref="FontAtlasBuildStepDelegate"/> returns,
 /// either <see cref="IFontAtlasBuildToolkit.Font"/> must be set,

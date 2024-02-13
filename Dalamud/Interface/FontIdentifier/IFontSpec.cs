@@ -5,7 +5,8 @@ using ImGuiNET;
 namespace Dalamud.Interface.FontIdentifier;
 
 /// <summary>
-/// Represents a user's choice of font(s).
+/// Represents a user's choice of font(s).<br />
+/// Not intended for plugins to implement.
 /// </summary>
 public interface IFontSpec
 {

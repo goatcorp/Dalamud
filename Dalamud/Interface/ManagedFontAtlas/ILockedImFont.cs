@@ -4,7 +4,8 @@ namespace Dalamud.Interface.ManagedFontAtlas;
 
 /// <summary>
 /// The wrapper for <see cref="ImFontPtr"/>, guaranteeing that the associated data will be available as long as
-/// this struct is not disposed.
+/// this struct is not disposed.<br />
+/// Not intended for plugins to implement.
 /// </summary>
 public interface ILockedImFont : IDisposable
 {

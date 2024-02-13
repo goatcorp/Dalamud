@@ -5,7 +5,8 @@ using ImGuiNET;
 namespace Dalamud.Interface.FontIdentifier;
 
 /// <summary>
-/// Represents a font identifier.
+/// Represents a font identifier.<br />
+/// Not intended for plugins to implement.
 /// </summary>
 public interface IFontId : IObjectWithLocalizableName
 {

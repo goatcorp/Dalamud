@@ -8,7 +8,8 @@ using ImGuiNET;
 namespace Dalamud.Interface.ManagedFontAtlas;
 
 /// <summary>
-/// Wrapper for <see cref="ImFontAtlasPtr"/>.
+/// Wrapper for <see cref="ImFontAtlasPtr"/>.<br />
+/// Not intended for plugins to implement.
 /// </summary>
 public interface IFontAtlas : IDisposable
 {
