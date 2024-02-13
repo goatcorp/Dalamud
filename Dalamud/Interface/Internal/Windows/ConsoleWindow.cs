@@ -152,8 +152,11 @@ internal class ConsoleWindow : Window, IDisposable
             ImGui.SetCursorPosX(ImGui.GetContentRegionMax().X / 2.0f - ImGui.CalcTextSize(regexErrorString).X / 2.0f);
             ImGui.TextColored(ImGuiColors.DalamudRed, regexErrorString);
         }
-        
-        ImGui.BeginChild("scrolling", new Vector2(0, ImGui.GetFrameHeightWithSpacing() - 55 * ImGuiHelpers.GlobalScale), false, ImGuiWindowFlags.AlwaysHorizontalScrollbar | ImGuiWindowFlags.AlwaysVerticalScrollbar);
+
+        var sendButtonSize = ImGui.CalcTextSize("Send") +
+                             ((new Vector2(16, 0) + (ImGui.GetStyle().FramePadding * 2)) * ImGuiHelpers.GlobalScale);
+        var scrollingHeight = ImGui.GetContentRegionAvail().Y - sendButtonSize.Y;
+        ImGui.BeginChild("scrolling", new Vector2(0, scrollingHeight), false, ImGuiWindowFlags.AlwaysHorizontalScrollbar | ImGuiWindowFlags.AlwaysVerticalScrollbar);
 
         if (this.clearLog) this.Clear();
 
@@ -173,9 +176,10 @@ internal class ConsoleWindow : Window, IDisposable
         var childDrawList = ImGui.GetWindowDrawList();
         var childSize = ImGui.GetWindowSize();
 
-        var cursorDiv = ImGuiHelpers.GlobalScale * 93;
-        var cursorLogLevel = ImGuiHelpers.GlobalScale * 100;
-        var cursorLogLine = ImGuiHelpers.GlobalScale * 135;
+        var cursorDiv = ImGui.CalcTextSize("00:00:00.000 ").X;
+        var cursorLogLevel = ImGui.CalcTextSize("00:00:00.000 | ").X;
+        var dividerOffset = ImGui.CalcTextSize("00:00:00.000 | AAA ").X + (ImGui.CalcTextSize(" ").X / 2);
+        var cursorLogLine = ImGui.CalcTextSize("00:00:00.000 | AAA | ").X;
 
         lock (this.renderLock)
         {
@@ -242,8 +246,7 @@ internal class ConsoleWindow : Window, IDisposable
         }
 
         // Draw dividing line
-        var offset = ImGuiHelpers.GlobalScale * 127;
-        childDrawList.AddLine(new Vector2(childPos.X + offset, childPos.Y), new Vector2(childPos.X + offset, childPos.Y + childSize.Y), 0x4FFFFFFF, 1.0f);
+        childDrawList.AddLine(new Vector2(childPos.X + dividerOffset, childPos.Y), new Vector2(childPos.X + dividerOffset, childPos.Y + childSize.Y), 0x4FFFFFFF, 1.0f);
 
         ImGui.EndChild();
 
@@ -261,7 +264,7 @@ internal class ConsoleWindow : Window, IDisposable
             }
         }
 
-        ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X - (80.0f * ImGuiHelpers.GlobalScale) - (ImGui.GetStyle().ItemSpacing.X * ImGuiHelpers.GlobalScale));
+        ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X - sendButtonSize.X - (ImGui.GetStyle().ItemSpacing.X * ImGuiHelpers.GlobalScale));
 
         var getFocus = false;
         unsafe
@@ -280,7 +283,7 @@ internal class ConsoleWindow : Window, IDisposable
 
         if (hadColor) ImGui.PopStyleColor();
 
-        if (ImGui.Button("Send", ImGuiHelpers.ScaledVector2(80.0f, 23.0f)))
+        if (ImGui.Button("Send", sendButtonSize))
         {
             this.ProcessCommand();
         }
