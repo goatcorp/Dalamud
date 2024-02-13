@@ -174,12 +174,12 @@ public sealed class UiBuilder : IDisposable
     /// <summary>
     /// Gets the default Dalamud font size in points.
     /// </summary>
-    public static float DefaultFontSizePt => InterfaceManager.DefaultFontSizePt;
+    public static float DefaultFontSizePt => Service<FontAtlasFactory>.Get().DefaultFontSpec.SizePt;
 
     /// <summary>
     /// Gets the default Dalamud font size in pixels.
     /// </summary>
-    public static float DefaultFontSizePx => InterfaceManager.DefaultFontSizePx;
+    public static float DefaultFontSizePx => Service<FontAtlasFactory>.Get().DefaultFontSpec.SizePx;
 
     /// <summary>
     /// Gets the default Dalamud font - supporting all game languages and icons.<br />
