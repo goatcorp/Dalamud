@@ -101,7 +101,7 @@ public interface IFontAtlas : IDisposable
     /// <b>On initialization</b>:
     /// <code>
     /// this.fontHandle = atlas.NewDelegateFontHandle(e => e.OnPreBuild(tk => {
-    ///     var config = new SafeFontConfig { SizePx = 16 };
+    ///     var config = new SafeFontConfig { SizePx = UiBuilder.DefaultFontSizePx };
     ///     config.MergeFont = tk.AddFontFromFile(@"C:\Windows\Fonts\comic.ttf", config);
     ///     tk.AddGameSymbol(config);
     ///     tk.AddExtraGlyphsForDalamudLanguage(config);
