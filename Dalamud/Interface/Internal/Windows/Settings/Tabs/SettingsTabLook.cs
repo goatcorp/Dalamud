@@ -26,12 +26,12 @@ public class SettingsTabLook : SettingsTab
 {
     private static readonly (string, float)[] GlobalUiScalePresets = 
     {
-        ("9.6pt##DalamudSettingsGlobalUiScaleReset96", 9.6f / InterfaceManager.DefaultFontSizePt),
-        ("12pt##DalamudSettingsGlobalUiScaleReset12", 12f / InterfaceManager.DefaultFontSizePt),
-        ("14pt##DalamudSettingsGlobalUiScaleReset14", 14f / InterfaceManager.DefaultFontSizePt),
-        ("18pt##DalamudSettingsGlobalUiScaleReset18", 18f / InterfaceManager.DefaultFontSizePt),
-        ("24pt##DalamudSettingsGlobalUiScaleReset24", 24f / InterfaceManager.DefaultFontSizePt),
-        ("36pt##DalamudSettingsGlobalUiScaleReset36", 36f / InterfaceManager.DefaultFontSizePt),
+        ("80%##DalamudSettingsGlobalUiScaleReset96", 0.8f),
+        ("100%##DalamudSettingsGlobalUiScaleReset12", 1f),
+        ("117%##DalamudSettingsGlobalUiScaleReset14", 14 / 12f),
+        ("150%##DalamudSettingsGlobalUiScaleReset18", 1.5f),
+        ("200%##DalamudSettingsGlobalUiScaleReset24", 2f),
+        ("300%##DalamudSettingsGlobalUiScaleReset36", 3f),
     };
 
     private float globalUiScale;
@@ -171,10 +171,10 @@ public class SettingsTabLook : SettingsTab
             }
         }
 
-        var globalUiScaleInPt = 12f * this.globalUiScale;
-        if (ImGui.DragFloat("##DalamudSettingsGlobalUiScaleDrag", ref globalUiScaleInPt, 0.1f, 9.6f, 36f, "%.1fpt", ImGuiSliderFlags.AlwaysClamp))
+        var globalUiScaleInPct = 100f * this.globalUiScale;
+        if (ImGui.DragFloat("##DalamudSettingsGlobalUiScaleDrag", ref globalUiScaleInPct, 1f, 80f, 300f, "%.0f%%", ImGuiSliderFlags.AlwaysClamp))
         {
-            this.globalUiScale = globalUiScaleInPt / 12f;
+            this.globalUiScale = globalUiScaleInPct / 100f;
             ImGui.GetIO().FontGlobalScale = this.globalUiScale;
             interfaceManager.RebuildFonts();
         }
@@ -201,12 +201,8 @@ public class SettingsTabLook : SettingsTab
             var faf = Service<FontAtlasFactory>.Get();
             var fcd = new SingleFontChooserDialog(
                 faf.CreateFontAtlas($"{nameof(SettingsTabLook)}:Default", FontAtlasAutoRebuildMode.Async));
-            fcd.SelectedFont = (SingleFontSpec)this.defaultFontSpec with
-            {
-                SizePx = InterfaceManager.DefaultFontSizePx * this.globalUiScale,
-            };
+            fcd.SelectedFont = (SingleFontSpec)this.defaultFontSpec;
             fcd.FontFamilyExcludeFilter = x => x is DalamudDefaultFontAndFamilyId;
-            fcd.IgnorePreviewGlobalScale = true;
             interfaceManager.Draw += fcd.Draw;
             fcd.ResultTask.ContinueWith(
                 r => Service<Framework>.Get().RunOnFrameworkThread(
@@ -220,8 +216,6 @@ public class SettingsTabLook : SettingsTab
                             return;
 
                         faf.DefaultFontSpecOverride = this.defaultFontSpec = r.Result;
-                        ImGui.GetIO().FontGlobalScale =
-                            this.globalUiScale = r.Result.SizePx / InterfaceManager.DefaultFontSizePx;
                         interfaceManager.RebuildFonts();
                     }));
         }

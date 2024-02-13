@@ -323,6 +323,9 @@ internal sealed partial class FontAtlasFactory
             glyphRanges ??= this.factory.DefaultGlyphRanges;
 
             var dfid = this.factory.DefaultFontSpec;
+            if (sizePx < 0f)
+                sizePx *= -dfid.SizePx;
+
             if (dfid is SingleFontSpec sfs)
             {
                 if (sfs.FontId is DalamudDefaultFontAndFamilyId)

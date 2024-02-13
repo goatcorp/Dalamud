@@ -658,7 +658,7 @@ internal sealed partial class FontAtlasFactory
                     toolkit = res.CreateToolkit(this.factory, isAsync);
 
                     // PreBuildSubstances deals with toolkit.Add... function family. Do this first.
-                    var defaultFont = toolkit.AddDalamudDefaultFont(InterfaceManager.DefaultFontSizePx, null);
+                    var defaultFont = toolkit.AddDalamudDefaultFont(-1, null);
 
                     this.BuildStepChange?.Invoke(toolkit);
                     toolkit.PreBuildSubstances();

@@ -122,8 +122,16 @@ internal sealed partial class FontAtlasFactory
 #pragma warning disable CS0618 // Type or member is obsolete
         ?? (Service<DalamudConfiguration>.Get().UseAxisFontsFromGame
 #pragma warning restore CS0618 // Type or member is obsolete
-                ? new() { FontId = new GameFontAndFamilyId(GameFontFamily.Axis) }
-                : new SingleFontSpec { FontId = new DalamudAssetFontAndFamilyId(DalamudAsset.NotoSansJpMedium) });
+                ? new()
+                {
+                    FontId = new GameFontAndFamilyId(GameFontFamily.Axis),
+                    SizePx = InterfaceManager.DefaultFontSizePx,
+                }
+                : new SingleFontSpec
+                {
+                    FontId = new DalamudAssetFontAndFamilyId(DalamudAsset.NotoSansJpMedium),
+                    SizePx = InterfaceManager.DefaultFontSizePx + 1,
+                });
 
     /// <summary>
     /// Gets the service instance of <see cref="Framework"/>.

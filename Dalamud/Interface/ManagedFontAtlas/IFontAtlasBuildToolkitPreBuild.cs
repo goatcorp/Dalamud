@@ -1,6 +1,7 @@
 ﻿using System.IO;
 using System.Runtime.InteropServices;
 
+using Dalamud.Interface.FontIdentifier;
 using Dalamud.Interface.GameFonts;
 using Dalamud.Interface.Utility;
 
@@ -140,7 +141,12 @@ public interface IFontAtlasBuildToolkitPreBuild : IFontAtlasBuildToolkit
     /// As this involves adding multiple fonts, calling this function will set <see cref="IFontAtlasBuildToolkit.Font"/>
     /// as the return value of this function, if it was empty before.
     /// </summary>
-    /// <param name="sizePx">Font size in pixels.</param>
+    /// <param name="sizePx">
+    /// Font size in pixels.
+    /// If a negative value is supplied,
+    /// (<see cref="UiBuilder.DefaultFontSpec"/>.<see cref="IFontSpec.SizePx"/> * <paramref name="sizePx"/>) will be
+    /// used as the font size. Specify -1 to use the default font size.
+    /// </param>
     /// <param name="glyphRanges">The glyph ranges. Use <see cref="FontAtlasBuildToolkitUtilities"/>.ToGlyphRange to build.</param>
     /// <returns>A font returned from <see cref="ImFontAtlasPtr.AddFont"/>.</returns>
     ImFontPtr AddDalamudDefaultFont(float sizePx, ushort[]? glyphRanges = null);

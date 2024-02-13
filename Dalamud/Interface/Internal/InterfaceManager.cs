@@ -705,13 +705,13 @@ internal class InterfaceManager : IDisposable, IServiceType
         using (this.dalamudAtlas.SuppressAutoRebuild())
         {
             this.DefaultFontHandle = (FontHandle)this.dalamudAtlas.NewDelegateFontHandle(
-                e => e.OnPreBuild(tk => tk.AddDalamudDefaultFont(DefaultFontSizePx)));
+                e => e.OnPreBuild(tk => tk.AddDalamudDefaultFont(-1)));
             this.IconFontHandle = (FontHandle)this.dalamudAtlas.NewDelegateFontHandle(
                 e => e.OnPreBuild(
                     tk => tk.AddFontAwesomeIconFont(
                         new()
                         {
-                            SizePx = DefaultFontSizePx,
+                            SizePx = Service<FontAtlasFactory>.Get().DefaultFontSpec.SizePx,
                             GlyphMinAdvanceX = DefaultFontSizePx,
                             GlyphMaxAdvanceX = DefaultFontSizePx,
                         })));
@@ -719,7 +719,10 @@ internal class InterfaceManager : IDisposable, IServiceType
                 e => e.OnPreBuild(
                     tk => tk.AddDalamudAssetFont(
                         DalamudAsset.InconsolataRegular,
-                        new() { SizePx = DefaultFontSizePx })));
+                        new()
+                        {
+                            SizePx = Service<FontAtlasFactory>.Get().DefaultFontSpec.SizePx,
+                        })));
             this.dalamudAtlas.BuildStepChange += e => e.OnPostBuild(
                 tk =>
                 {
