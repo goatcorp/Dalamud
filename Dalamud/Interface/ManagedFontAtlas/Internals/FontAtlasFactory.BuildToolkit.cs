@@ -324,7 +324,7 @@ internal sealed partial class FontAtlasFactory
             {
                 font = this.AddDalamudAssetFont(
                     DalamudAsset.NotoSansJpMedium,
-                    new() { SizePx = sizePx, GlyphRanges = glyphRanges });
+                    new() { SizePx = sizePx + 1, GlyphRanges = glyphRanges });
                 this.AddGameSymbol(new() { SizePx = sizePx, MergeFont = font });
             }
 
