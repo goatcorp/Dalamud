@@ -16,7 +16,7 @@ namespace Dalamud.Storage.Assets;
 /// Think of C++ [[nodiscard]]. Also, like the intended meaning of the attribute, such methods will not have
 /// externally visible state changes.
 /// </summary>
-internal interface IDalamudAssetManager
+public interface IDalamudAssetManager
 {
     /// <summary>
     /// Gets the shared texture wrap for <see cref="DalamudAsset.Empty4X4"/>.
