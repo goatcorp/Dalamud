@@ -46,6 +46,9 @@ internal sealed partial class FontAtlasFactory
 
     private class FontAtlasBuiltData : IRefCountable
     {
+        // Field for debugging.
+        private static int numActiveInstances;
+
         private readonly List<IDalamudTextureWrap> wraps;
         private readonly List<IFontHandleSubstance> substances;
 
@@ -73,6 +76,9 @@ internal sealed partial class FontAtlasFactory
 
                 this.Garbage.Add(() => ImGuiNative.ImFontAtlas_destroy(atlasPtr));
                 this.IsBuildInProgress = true;
+
+                Interlocked.Increment(ref numActiveInstances);
+                this.Garbage.Add(() => Interlocked.Decrement(ref numActiveInstances));
             }
             catch
             {
