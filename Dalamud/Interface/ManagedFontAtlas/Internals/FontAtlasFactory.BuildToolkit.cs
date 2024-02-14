@@ -185,6 +185,7 @@ internal sealed partial class FontAtlasFactory
                 dataSize,
                 debugTag);
 
+            var font = default(ImFontPtr);
             try
             {
                 fontConfig.ThrowOnInvalidValues();
@@ -192,6 +193,7 @@ internal sealed partial class FontAtlasFactory
                 var raw = fontConfig.Raw with
                 {
                     FontData = dataPointer,
+                    FontDataOwnedByAtlas = 1,
                     FontDataSize = dataSize,
                 };
 
@@ -203,7 +205,7 @@ internal sealed partial class FontAtlasFactory
 
                 TrueTypeUtils.CheckImGuiCompatibleOrThrow(raw);
 
-                var font = this.NewImAtlas.AddFont(&raw);
+                font = this.NewImAtlas.AddFont(&raw);
 
                 var dataHash = default(HashCode);
                 dataHash.AddBytes(new(dataPointer, dataSize));
@@ -240,8 +242,23 @@ internal sealed partial class FontAtlasFactory
             }
             catch
             {
+                if (!font.IsNull())
+                {
+                    // Note that for both RemoveAt calls, corresponding destructors will be called.
+
+                    var configIndex = this.data.ConfigData.FindIndex(x => x.DstFont == font.NativePtr);
+                    if (configIndex >= 0)
+                        this.data.ConfigData.RemoveAt(configIndex);
+
+                    var index = this.Fonts.IndexOf(font);
+                    if (index >= 0)
+                        this.Fonts.RemoveAt(index);
+                }
+
+                // ImFontConfig has no destructor, and does not free the data.
                 if (freeOnException)
                     ImGuiNative.igMemFree(dataPointer);
+
                 throw;
             }
         }
