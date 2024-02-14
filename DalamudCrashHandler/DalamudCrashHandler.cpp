@@ -518,6 +518,7 @@ void export_tspack(HWND hWndParent, const std::filesystem::path& logDir, const s
         mz_throw_if_failed(mz_zip_writer_init_v2(&zipa, 0, 0), "mz_zip_writer_init_v2");
         mz_throw_if_failed(mz_zip_writer_add_mem(&zipa, "trouble.json", troubleshootingPackData.data(), troubleshootingPackData.size(), MZ_ZIP_FLAG_WRITE_HEADER_SET_SIZE | MZ_BEST_COMPRESSION), "mz_zip_writer_add_mem: trouble.json");
         mz_throw_if_failed(mz_zip_writer_add_mem(&zipa, "crash.log", crashLog.data(), crashLog.size(), MZ_ZIP_FLAG_WRITE_HEADER_SET_SIZE | MZ_BEST_COMPRESSION), "mz_zip_writer_add_mem: crash.log");
+        std::string logExportLog;
 
         struct HandleAndBaseOffset {
             HANDLE h;
@@ -534,8 +535,12 @@ void export_tspack(HWND hWndParent, const std::filesystem::path& logDir, const s
         };
         for (const auto& pcszLogFileName : SourceLogFiles) {
             const auto logFilePath = logDir / pcszLogFileName;
-            if (!exists(logFilePath))
+            if (!exists(logFilePath)) {
+                logExportLog += std::format("File does not exist: {}\n", ws_to_u8(logFilePath.wstring()));
                 continue;
+            } else {
+                logExportLog += std::format("Including: {}\n", ws_to_u8(logFilePath.wstring()));
+            }
 
             const auto hLogFile = CreateFileW(logFilePath.c_str(), GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, nullptr);
             if (hLogFile == INVALID_HANDLE_VALUE)
@@ -574,6 +579,7 @@ void export_tspack(HWND hWndParent, const std::filesystem::path& logDir, const s
                 ), std::format("mz_zip_writer_add_read_buf_callback({})", ws_to_u8(logFilePath.wstring())));
         }
 
+        mz_throw_if_failed(mz_zip_writer_add_mem(&zipa, "logexport.log", logExportLog.data(), logExportLog.size(), MZ_ZIP_FLAG_WRITE_HEADER_SET_SIZE | MZ_BEST_COMPRESSION), "mz_zip_writer_add_mem: logexport.log");
         mz_throw_if_failed(mz_zip_writer_finalize_archive(&zipa), "mz_zip_writer_finalize_archive");
         mz_throw_if_failed(mz_zip_writer_end(&zipa), "mz_zip_writer_end");
 
@@ -708,6 +714,13 @@ int main() {
     if (!dwProcessId){
         std::wcerr << L"Target process not specified" << std::endl;
         return InvalidParameter;
+    }
+
+    if (logDir.filename().wstring().ends_with(L".log")) {
+        std::wcout << L"logDir seems to be pointing to a file; stripping the last path component.\n" << std::endl;
+        std::wcout << L"Previous: " << logDir.wstring() << std::endl;
+        logDir = logDir.parent_path();
+        std::wcout << L"Stripped: " << logDir.wstring() << std::endl;
     }
 
     while (true) {
