@@ -303,6 +303,7 @@ extern "C" HRESULT WINAPI RewriteRemoteEntryPointW(HANDLE hProcess, const wchar_
         // Overwrite remote process' entry point with a thunk that will load our DLLs and call our trampoline function.
         last_operation = std::format(L"write_process_memory_or_throw(entrypoint={:X}, {}b)", reinterpret_cast<uintptr_t>(entrypoint), buffer.size());
         write_process_memory_or_throw(hProcess, entrypoint, entrypoint_replacement.data(), entrypoint_replacement.size());
+        FlushInstructionCache(hProcess, entrypoint, entrypoint_replacement.size());
 
         return S_OK;
     } catch (const std::exception& e) {
@@ -332,26 +333,6 @@ extern "C" HRESULT WINAPI RewriteRemoteEntryPointW(HANDLE hProcess, const wchar_
     }
 }
 
-static void AbortRewrittenEntryPoint(DWORD err, const std::wstring& clue) {
-    wchar_t* pwszMsg = nullptr;
-    FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER |
-        FORMAT_MESSAGE_FROM_SYSTEM |
-        FORMAT_MESSAGE_IGNORE_INSERTS,
-        nullptr,
-        err,
-        MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US),
-        reinterpret_cast<LPWSTR>(&pwszMsg),
-        0,
-        nullptr);
-
-    if (MessageBoxW(nullptr, std::format(
-        L"Failed to load Dalamud. Load game without Dalamud(yes) or abort(no)?\n\n{}\n\n{}",
-        utils::format_win32_error(err),
-        clue).c_str(),
-        L"Dalamud.Boot", MB_OK | MB_YESNO) == IDNO)
-        ExitProcess(-1);
-}
-
 /// @brief Entry point function "called" instead of game's original main entry point.
 /// @param params Parameters set up from RewriteRemoteEntryPoint.
 extern "C" void WINAPI RewrittenEntryPoint_AdjustedStack(RewrittenEntryPointParameters & params) {
@@ -369,6 +350,7 @@ extern "C" void WINAPI RewrittenEntryPoint_AdjustedStack(RewrittenEntryPointPara
         // Use WriteProcessMemory instead of memcpy to avoid having to fiddle with VirtualProtect.
         last_operation = L"restore original entry point";
         write_process_memory_or_throw(GetCurrentProcess(), params.pEntrypoint, pOriginalEntryPointBytes, params.entrypointLength);
+        FlushInstructionCache(GetCurrentProcess(), params.pEntrypoint, params.entrypointLength);
 
         hMainThreadContinue = CreateEventW(nullptr, true, false, nullptr);
         last_operation = L"hMainThreadContinue = CreateEventW";
