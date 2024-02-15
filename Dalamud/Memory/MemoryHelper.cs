@@ -405,7 +405,7 @@ public static unsafe class MemoryHelper
 
         var pin = (byte*)memoryAddress;
         containsNonRepresentedPayload = false;
-        for (; *pin != 0 && maxLength > 0; --maxLength)
+        while (*pin != 0 && maxLength > 0)
         {
             if (*pin != LSeString.StartByte)
             {
@@ -423,11 +423,13 @@ public static unsafe class MemoryHelper
                 var numChars = Encoding.UTF8.GetChars(new(pin, len), tmp);
                 sb.Append(tmp[..numChars]);
                 pin += len;
+                maxLength -= len;
                 continue;
             }
 
             // Start byte
             ++pin;
+            --maxLength;
 
             // Payload type
             var payloadType = (LPayloadType)(*pin++);
@@ -443,6 +445,7 @@ public static unsafe class MemoryHelper
             // End byte
             if (*pin++ != LSeString.EndByte)
                 break;
+            --maxLength;
 
             switch (payloadType)
             {
