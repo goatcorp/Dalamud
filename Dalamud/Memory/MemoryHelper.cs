@@ -9,6 +9,8 @@ using Dalamud.Memory.Exceptions;
 using FFXIVClientStructs.FFXIV.Client.System.Memory;
 using FFXIVClientStructs.FFXIV.Client.System.String;
 
+using Microsoft.Extensions.ObjectPool;
+
 using static Dalamud.NativeFunctions;
 
 using LPayloadType = Lumina.Text.Payloads.PayloadType;
@@ -23,6 +25,9 @@ namespace Dalamud.Memory;
 /// </summary>
 public static unsafe class MemoryHelper
 {
+    private static readonly ObjectPool<StringBuilder> StringBuilderPool =
+        ObjectPool.Create(new StringBuilderPooledObjectPolicy());
+
     #region Cast
 
     /// <summary>Casts the given memory address as the reference to the live object.</summary>
@@ -51,7 +56,7 @@ public static unsafe class MemoryHelper
     {
         var typedPointer = (T*)memoryAddress;
         var length = 0;
-        while (length < maxLength && default(T).Equals(*typedPointer++))
+        while (length < maxLength && !default(T).Equals(*typedPointer++))
             length++;
         return new((void*)memoryAddress, length);
     }
@@ -392,7 +397,8 @@ public static unsafe class MemoryHelper
         bool stopOnFirstNonRepresentedPayload = false,
         string nonRepresentedPayloadReplacement = "*")
     {
-        var sb = new StringBuilder(CastNullTerminated<byte>(memoryAddress, maxLength).Length);
+        var sb = StringBuilderPool.Get();
+        sb.EnsureCapacity(maxLength = CastNullTerminated<byte>(memoryAddress, maxLength).Length);
 
         // 1 utf-8 codepoint can spill up to 2 characters.
         Span<char> tmp = stackalloc char[2];
@@ -453,12 +459,14 @@ public static unsafe class MemoryHelper
                     sb.Append(nonRepresentedPayloadReplacement);
                     containsNonRepresentedPayload = true;
                     if (stopOnFirstNonRepresentedPayload)
-                        return sb.ToString();
+                        maxLength = 0;
                     break;
             }
         }
 
-        return sb.ToString();
+        var res = sb.ToString();
+        StringBuilderPool.Return(sb);
+        return res;
 
         static bool ReadIntExpression(ref byte* p, ref int maxLength, out uint value)
         {
