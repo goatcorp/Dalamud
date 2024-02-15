@@ -513,50 +513,6 @@ void xivfixes::backup_userdata_save(bool bApply) {
     }
 }
 
-void xivfixes::clr_failfast_hijack(bool bApply)
-{
-    static const char* LogTag = "[xivfixes:clr_failfast_hijack]";
-    static std::optional<hooks::import_hook<decltype(RaiseFailFastException)>> s_HookClrFatalError;
-    static std::optional<hooks::import_hook<decltype(SetUnhandledExceptionFilter)>> s_HookSetUnhandledExceptionFilter;
-
-    if (bApply)
-    {
-        if (!g_startInfo.BootEnabledGameFixes.contains("clr_failfast_hijack")) {
-            logging::I("{} Turned off via environment variable.", LogTag);
-            return;
-        }
-
-        s_HookClrFatalError.emplace("kernel32.dll!RaiseFailFastException (import, backup_userdata_save)", "kernel32.dll", "RaiseFailFastException", 0);
-        s_HookSetUnhandledExceptionFilter.emplace("kernel32.dll!SetUnhandledExceptionFilter (lpTopLevelExceptionFilter)", "kernel32.dll", "SetUnhandledExceptionFilter", 0);
-        
-        s_HookClrFatalError->set_detour([](PEXCEPTION_RECORD pExceptionRecord,
-                                           _In_opt_ PCONTEXT pContextRecord,
-                                           _In_ DWORD dwFlags)
-        {
-            MessageBoxW(nullptr, L"An error in a Dalamud plugin was detected and the game cannot continue.\n\nPlease take a screenshot of this error message and let us know about it.", L"Dalamud", MB_OK | MB_ICONERROR);
-            
-            return s_HookClrFatalError->call_original(pExceptionRecord, pContextRecord, dwFlags);
-        });
-
-        s_HookSetUnhandledExceptionFilter->set_detour([](LPTOP_LEVEL_EXCEPTION_FILTER lpTopLevelExceptionFilter) -> LPTOP_LEVEL_EXCEPTION_FILTER
-        {
-            logging::I("{} SetUnhandledExceptionFilter", LogTag);
-            return nullptr;
-        });
-
-        logging::I("{} Enable", LogTag);
-    }
-    else
-    {
-        if (s_HookClrFatalError) {
-            logging::I("{} Disable ClrFatalError", LogTag);
-            s_HookClrFatalError.reset();
-            s_HookSetUnhandledExceptionFilter.reset();
-        }
-    }
-}
-
-
 void xivfixes::prevent_icmphandle_crashes(bool bApply) {
     static const char* LogTag = "[xivfixes:prevent_icmphandle_crashes]";
 
@@ -598,7 +554,6 @@ void xivfixes::apply_all(bool bApply) {
             { "disable_game_openprocess_access_check", &disable_game_openprocess_access_check },
             { "redirect_openprocess", &redirect_openprocess },
             { "backup_userdata_save", &backup_userdata_save },
-            { "clr_failfast_hijack", &clr_failfast_hijack },
             { "prevent_icmphandle_crashes", &prevent_icmphandle_crashes }
         }
         ) {

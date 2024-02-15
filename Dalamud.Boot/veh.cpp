@@ -6,6 +6,7 @@
 
 #include "logging.h"
 #include "utils.h"
+#include "hooks.h"
 
 #include "crashhandler_shared.h"
 #include "DalamudStartInfo.h"
@@ -24,6 +25,7 @@
 
 PVOID g_veh_handle = nullptr;
 bool g_veh_do_full_dump = false;
+std::optional<hooks::import_hook<decltype(SetUnhandledExceptionFilter)>> g_HookSetUnhandledExceptionFilter;
 
 HANDLE g_crashhandler_process = nullptr;
 HANDLE g_crashhandler_event = nullptr;
@@ -143,21 +145,7 @@ static void append_injector_launch_args(std::vector<std::wstring>& args)
 
 LONG exception_handler(EXCEPTION_POINTERS* ex)
 {
-    if (ex->ExceptionRecord->ExceptionCode == 0x12345678)
-    {
-        // pass
-    }
-    else
-    {
-        if (!is_whitelist_exception(ex->ExceptionRecord->ExceptionCode))
-            return EXCEPTION_CONTINUE_SEARCH;
-
-        if (!is_ffxiv_address(L"ffxiv_dx11.exe", ex->ContextRecord->Rip) &&
-            !is_ffxiv_address(L"cimgui.dll", ex->ContextRecord->Rip))
-            return EXCEPTION_CONTINUE_SEARCH;   
-    }
-
-    // block any other exceptions hitting the veh while the messagebox is open
+    // block any other exceptions hitting the handler while the messagebox is open
     const auto lock = std::lock_guard(g_exception_handler_mutex);
 
     exception_info exinfo{};
@@ -167,7 +155,7 @@ LONG exception_handler(EXCEPTION_POINTERS* ex)
     exinfo.ExceptionRecord = ex->ExceptionRecord ? *ex->ExceptionRecord : EXCEPTION_RECORD{};
     const auto time_now = std::chrono::system_clock::now();
     auto lifetime = std::chrono::duration_cast<std::chrono::seconds>(
-            time_now.time_since_epoch()).count()
+        time_now.time_since_epoch()).count()
         - std::chrono::duration_cast<std::chrono::seconds>(
             g_time_start.time_since_epoch()).count();
     exinfo.nLifetime = lifetime;
@@ -178,7 +166,7 @@ LONG exception_handler(EXCEPTION_POINTERS* ex)
     if (void* fn; const auto err = static_cast<DWORD>(g_clr->get_function_pointer(
         L"Dalamud.EntryPoint, Dalamud",
         L"VehCallback",
-        L"Dalamud.EntryPoint+VehDelegate, Dalamud", 
+        L"Dalamud.EntryPoint+VehDelegate, Dalamud",
         nullptr, nullptr, &fn)))
     {
         stackTrace = std::format(L"Failed to read stack trace: 0x{:08x}", err);
@@ -188,7 +176,7 @@ LONG exception_handler(EXCEPTION_POINTERS* ex)
         stackTrace = static_cast<wchar_t*(*)()>(fn)();
         // Don't free it, as the program's going to be quit anyway
     }
-    
+
     exinfo.dwStackTraceLength = static_cast<DWORD>(stackTrace.size());
     exinfo.dwTroubleshootingPackDataLength = static_cast<DWORD>(g_startInfo.TroubleshootingPackData.size());
     if (DWORD written; !WriteFile(g_crashhandler_pipe_write, &exinfo, static_cast<DWORD>(sizeof exinfo), &written, nullptr) || sizeof exinfo != written)
@@ -217,13 +205,44 @@ LONG exception_handler(EXCEPTION_POINTERS* ex)
     return EXCEPTION_CONTINUE_SEARCH;
 }
 
+LONG WINAPI structured_exception_handler(EXCEPTION_POINTERS* ex)
+{
+    return exception_handler(ex);
+}
+
+LONG WINAPI vectored_exception_handler(EXCEPTION_POINTERS* ex)
+{
+    if (ex->ExceptionRecord->ExceptionCode == 0x12345678)
+    {
+        // pass
+    }
+    else
+    {
+        if (!is_whitelist_exception(ex->ExceptionRecord->ExceptionCode))
+            return EXCEPTION_CONTINUE_SEARCH;
+
+        if (!is_ffxiv_address(L"ffxiv_dx11.exe", ex->ContextRecord->Rip) &&
+            !is_ffxiv_address(L"cimgui.dll", ex->ContextRecord->Rip))
+            return EXCEPTION_CONTINUE_SEARCH;   
+    }
+
+    return exception_handler(ex);
+}
+
 bool veh::add_handler(bool doFullDump, const std::string& workingDirectory)
 {
     if (g_veh_handle)
         return false;
 
-    g_veh_handle = AddVectoredExceptionHandler(1, exception_handler);
-    SetUnhandledExceptionFilter(nullptr);
+    g_veh_handle = AddVectoredExceptionHandler(TRUE, vectored_exception_handler);
+
+    g_HookSetUnhandledExceptionFilter.emplace("kernel32.dll!SetUnhandledExceptionFilter (lpTopLevelExceptionFilter)", "kernel32.dll", "SetUnhandledExceptionFilter", 0);
+    g_HookSetUnhandledExceptionFilter->set_detour([](LPTOP_LEVEL_EXCEPTION_FILTER lpTopLevelExceptionFilter) -> LPTOP_LEVEL_EXCEPTION_FILTER
+    {
+        logging::I("Overwriting UnhandledExceptionFilter from {} to {}", reinterpret_cast<ULONG_PTR>(lpTopLevelExceptionFilter), reinterpret_cast<ULONG_PTR>(structured_exception_handler));
+        return g_HookSetUnhandledExceptionFilter->call_original(structured_exception_handler);
+    });
+    SetUnhandledExceptionFilter(structured_exception_handler);
 
     g_veh_do_full_dump = doFullDump;
     g_time_start = std::chrono::system_clock::now();
@@ -355,6 +374,8 @@ bool veh::remove_handler()
     if (g_veh_handle && RemoveVectoredExceptionHandler(g_veh_handle) != 0)
     {
         g_veh_handle = nullptr;
+        g_HookSetUnhandledExceptionFilter.reset();
+        SetUnhandledExceptionFilter(nullptr);
         return true;
     }
     return false;
