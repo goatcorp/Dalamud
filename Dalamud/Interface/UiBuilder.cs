@@ -10,6 +10,7 @@ using Dalamud.Game.Gui;
 using Dalamud.Interface.FontIdentifier;
 using Dalamud.Interface.GameFonts;
 using Dalamud.Interface.Internal;
+using Dalamud.Interface.Internal.ImGuiInternalStructs;
 using Dalamud.Interface.Internal.ManagedAsserts;
 using Dalamud.Interface.Internal.Notifications;
 using Dalamud.Interface.ManagedFontAtlas;
@@ -86,22 +87,22 @@ public sealed class UiBuilder : IDisposable
     /// The event that gets called when Dalamud is ready to draw your windows or overlays.
     /// When it is called, you can use static ImGui calls.
     /// </summary>
-    public event Action Draw;
+    public event Action? Draw;
 
     /// <summary>
     /// The event that is called when the game's DirectX device is requesting you to resize your buffers.
     /// </summary>
-    public event Action ResizeBuffers;
+    public event Action? ResizeBuffers;
 
     /// <summary>
     /// Event that is fired when the plugin should open its configuration interface.
     /// </summary>
-    public event Action OpenConfigUi;
+    public event Action? OpenConfigUi;
     
     /// <summary>
     /// Event that is fired when the plugin should open its main interface.
     /// </summary>
-    public event Action OpenMainUi;
+    public event Action? OpenMainUi;
 
     /// <summary>
     /// Gets or sets an action that is called any time ImGui fonts need to be rebuilt.<br/>
@@ -659,29 +660,24 @@ public sealed class UiBuilder : IDisposable
             ImGui.End();
         }
 
-        ImGuiManagedAsserts.ImGuiContextSnapshot snapshot = null;
-        if (this.Draw != null)
+        using (var problemReporter = new ImGuiManagedAsserts.ScopedSnapshotProblemReporter(this.namespaceName))
         {
-            snapshot = ImGuiManagedAsserts.GetSnapshot();
-        }
+            try
+            {
+                this.Draw?.InvokeSafely();
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "[{0}] UiBuilder OnBuildUi caught exception", this.namespaceName);
+                this.Draw = null;
+                this.OpenConfigUi = null;
 
-        try
-        {
-            this.Draw?.InvokeSafely();
-        }
-        catch (Exception ex)
-        {
-            Log.Error(ex, "[{0}] UiBuilder OnBuildUi caught exception", this.namespaceName);
-            this.Draw = null;
-            this.OpenConfigUi = null;
+                this.hasErrorWindow = true;
+            }
 
-            this.hasErrorWindow = true;
-        }
-
-        // Only if Draw was successful
-        if (this.Draw != null)
-        {
-            ImGuiManagedAsserts.ReportProblems(this.namespaceName, snapshot);
+            // Only if Draw was successful
+            if (this.Draw is null)
+                problemReporter.Cancel();
         }
 
         this.FrameCount++;

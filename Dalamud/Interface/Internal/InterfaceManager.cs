@@ -917,15 +917,14 @@ internal class InterfaceManager : IDisposable, IServiceType
         WindowSystem.HasAnyWindowSystemFocus = false;
         WindowSystem.FocusedWindowSystemNamespace = string.Empty;
 
-        var snap = ImGuiManagedAsserts.GetSnapshot();
-
         if (this.IsDispatchingEvents)
         {
-            this.Draw?.Invoke();
-            Service<NotificationManager>.Get().Draw();
+            using (new ImGuiManagedAsserts.ScopedSnapshotProblemReporter("Dalamud Core"))
+            {
+                this.Draw?.Invoke();
+                Service<NotificationManager>.Get().Draw();
+            }
         }
-
-        ImGuiManagedAsserts.ReportProblems("Dalamud Core", snap);
     }
 
     /// <summary>
