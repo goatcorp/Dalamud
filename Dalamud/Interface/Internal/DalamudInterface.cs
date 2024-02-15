@@ -12,6 +12,7 @@ using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.ClientState.Keys;
 using Dalamud.Game.Gui;
 using Dalamud.Game.Internal;
+using Dalamud.Hooking;
 using Dalamud.Interface.Animation.EasingFunctions;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Internal.ManagedAsserts;
@@ -89,7 +90,7 @@ internal class DalamudInterface : IDisposable, IServiceType
     private bool isImPlotDrawDemoWindow = false;
     private bool isImGuiTestWindowsInMonospace = false;
     private bool isImGuiDrawMetricsWindow = false;
-
+    
     [ServiceManager.ServiceConstructor]
     private DalamudInterface(
         Dalamud dalamud,
@@ -188,7 +189,9 @@ internal class DalamudInterface : IDisposable, IServiceType
         this.creditsDarkeningAnimation.Point1 = Vector2.Zero;
         this.creditsDarkeningAnimation.Point2 = new Vector2(CreditsDarkeningMaxAlpha);
     }
-
+    
+    private delegate nint CrashDebugDelegate(nint self);
+    
     /// <summary>
     /// Gets the number of frames since Dalamud has loaded.
     /// </summary>
@@ -744,28 +747,48 @@ internal class DalamudInterface : IDisposable, IServiceType
                     }
 
                     ImGui.Separator();
-
-                    if (ImGui.MenuItem("Access Violation"))
+                    
+                    if (ImGui.BeginMenu("Crash game"))
                     {
-                        Marshal.ReadByte(IntPtr.Zero);
-                    }
-
-                    if (ImGui.MenuItem("Crash game (nullptr)"))
-                    {
-                        unsafe
+                        if (ImGui.MenuItem("Access Violation"))
                         {
-                            var framework = Framework.Instance();
-                            framework->UIModule = (UIModule*)0;
-                        }
-                    }
-
-                    if (ImGui.MenuItem("Crash game (non-nullptr)"))
-                    {
-                        unsafe
+                            Marshal.ReadByte(IntPtr.Zero);
+                        }                    
+                        
+                        if (ImGui.MenuItem("Set UiModule to NULL"))
                         {
-                            var framework = Framework.Instance();
-                            framework->UIModule = (UIModule*)0x12345678;
+                            unsafe
+                            {
+                                var framework = Framework.Instance();
+                                framework->UIModule = (UIModule*)0;
+                            }
                         }
+                        
+                        if (ImGui.MenuItem("Set UiModule to invalid ptr"))
+                        {
+                            unsafe
+                            {
+                                var framework = Framework.Instance();
+                                framework->UIModule = (UIModule*)0x12345678;
+                            }
+                        }
+                        
+                        if (ImGui.MenuItem("Deref nullptr in Hook"))
+                        {
+                            unsafe
+                            {
+                                var hook = Hook<CrashDebugDelegate>.FromAddress(
+                                    (nint)UIModule.StaticVTable.GetUIInputData,
+                                    self =>
+                                    {
+                                        _ = *(byte*)0;
+                                        return (nint)UIModule.Instance()->GetUIInputData();
+                                    });
+                                hook.Enable();
+                            }
+                        }
+                        
+                        ImGui.EndMenu();
                     }
 
                     if (ImGui.MenuItem("Report crashes at shutdown", null, this.configuration.ReportShutdownCrashes))
