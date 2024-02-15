@@ -25,6 +25,7 @@
 #include <shellapi.h>
 #include <ShlGuid.h>
 #include <ShObjIdl.h>
+#include <shlobj_core.h>
 #include <winhttp.h>
 
 #pragma comment(lib, "comctl32.lib")
@@ -670,6 +671,7 @@ int main() {
     std::filesystem::path assetDir, logDir;
     std::optional<std::vector<std::wstring>> launcherArgs;
     auto fullDump = false;
+    CoInitializeEx(nullptr, COINIT_MULTITHREADED);
     
     std::vector<std::wstring> args;
     if (int argc = 0; const auto argv = CommandLineToArgvW(GetCommandLineW(), &argc)) {
@@ -753,6 +755,35 @@ int main() {
 
         std::cout << "Crash triggered" << std::endl;
 
+        std::cout << "Creating progress window" << std::endl;
+        IProgressDialog* pProgressDialog = NULL;
+        if (SUCCEEDED(CoCreateInstance(CLSID_ProgressDialog, NULL, CLSCTX_ALL, IID_IProgressDialog, (void**)&pProgressDialog)) && pProgressDialog) {
+            pProgressDialog->SetTitle(L"Dalamud");
+            pProgressDialog->SetLine(1, L"The game has crashed", FALSE, NULL);
+            pProgressDialog->SetLine(2, L"Dalamud is collecting further information", FALSE, NULL);
+            pProgressDialog->SetLine(3, L"Refreshing Game Module List", FALSE, NULL);
+            pProgressDialog->StartProgressDialog(NULL, NULL, PROGDLG_MARQUEEPROGRESS | PROGDLG_NOCANCEL | PROGDLG_NOMINIMIZE, NULL);
+            IOleWindow* pOleWindow;
+            HRESULT hr = pProgressDialog->QueryInterface(IID_IOleWindow, (LPVOID*)&pOleWindow);
+            if (SUCCEEDED(hr))
+            {
+                HWND hwndProgressDialog = NULL;
+                hr = pOleWindow->GetWindow(&hwndProgressDialog);
+                if (SUCCEEDED(hr))
+                {
+                    SetWindowPos(hwndProgressDialog, HWND_TOPMOST, 0, 0, 0, 0, 
+                        SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
+                }
+                
+                pOleWindow->Release();
+            }
+        
+        }
+        else {
+            std::cerr << "Failed to create progress window" << std::endl;
+            pProgressDialog = NULL;
+        }
+
         auto shutup_mutex = CreateMutex(NULL, false, L"DALAMUD_CRASHES_NO_MORE");
         bool shutup = false;
         if (shutup_mutex == NULL && GetLastError() == ERROR_ALREADY_EXISTS)
@@ -791,6 +822,9 @@ int main() {
             std::wcerr << std::format(L"SymInitialize error: 0x{:x}", GetLastError()) << std::endl;
         }
 
+        if (pProgressDialog) 
+            pProgressDialog->SetLine(3, L"Reading troubleshooting data", FALSE, NULL);
+
         std::wstring stackTrace(exinfo.dwStackTraceLength, L'\0');
         if (exinfo.dwStackTraceLength) {
             if (DWORD read; !ReadFile(hPipeRead, &stackTrace[0], 2 * exinfo.dwStackTraceLength, &read, nullptr)) {
@@ -804,6 +838,9 @@ int main() {
                 std::cout << std::format("Failed to read troubleshooting pack data: error 0x{:x}", GetLastError()) << std::endl;
             }
         }
+
+        if (pProgressDialog)
+            pProgressDialog->SetLine(3, fullDump ? L"Creating full dump" : L"Creating minidump", FALSE, NULL);
 
         SYSTEMTIME st;
         GetLocalTime(&st);
@@ -856,6 +893,9 @@ int main() {
             log << std::format(L"Dump error: {}", dumpError) << std::endl;
         log << L"System Time: " << std::chrono::system_clock::now() << std::endl;
         log << L"\n" << stackTrace << std::endl;
+
+        if (pProgressDialog)
+            pProgressDialog->SetLine(3, L"Refreshing Module List", FALSE, NULL);
 
         SymRefreshModuleList(GetCurrentProcess());
         print_exception_info(exinfo.hThreadHandle, exinfo.ExceptionPointers, exinfo.ContextRecord, log);
@@ -993,9 +1033,18 @@ int main() {
         };
         config.lpCallbackData = reinterpret_cast<LONG_PTR>(&callback);
 
+        if (pProgressDialog)
+            pProgressDialog->SetLine(3, L"Submitting Metrics", FALSE, NULL);
+
         if (submitThread.joinable()) {
             submitThread.join();
             submitThread = {};
+        }
+
+        if (pProgressDialog) {
+            pProgressDialog->StopProgressDialog();
+            pProgressDialog->Release();
+            pProgressDialog = NULL;
         }
 
         if (shutup) {
