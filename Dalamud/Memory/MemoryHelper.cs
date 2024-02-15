@@ -51,6 +51,9 @@ public static unsafe class MemoryHelper
     /// <param name="maxLength">The maximum number of items.</param>
     /// <typeparam name="T">The unmanaged type.</typeparam>
     /// <returns>The span containing reference to the live object(s).</returns>
+    /// <remarks>If <typeparamref name="T"/> is <c>byte</c> or <c>char</c> and <paramref name="maxLength"/> is not
+    /// specified, consider using <see cref="MemoryMarshal.CreateReadOnlySpanFromNullTerminated(byte*)"/> or
+    /// <see cref="MemoryMarshal.CreateReadOnlySpanFromNullTerminated(char*)"/>.</remarks>
     public static Span<T> CastNullTerminated<T>(nint memoryAddress, int maxLength = int.MaxValue)
         where T : unmanaged, IEquatable<T>
     {
@@ -146,7 +149,7 @@ public static unsafe class MemoryHelper
     /// <remarks>If you do not need to make a copy, use <see cref="CastNullTerminated{T}(nint,int)"/> instead.</remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static byte[] ReadRawNullTerminated(nint memoryAddress) =>
-        CastNullTerminated<byte>(memoryAddress).ToArray();
+        MemoryMarshal.CreateReadOnlySpanFromNullTerminated((byte*)memoryAddress).ToArray();
 
     #endregion
 
@@ -271,7 +274,7 @@ public static unsafe class MemoryHelper
     /// <returns>The read in string.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static string ReadStringNullTerminated(nint memoryAddress)
-        => Encoding.UTF8.GetString(CastNullTerminated<byte>(memoryAddress));
+        => Encoding.UTF8.GetString(MemoryMarshal.CreateReadOnlySpanFromNullTerminated((byte*)memoryAddress));
 
     /// <summary>
     /// Read a string with the given encoding from a specified memory address.
@@ -288,9 +291,12 @@ public static unsafe class MemoryHelper
         {
             case UTF8Encoding:
             case var _ when encoding.IsSingleByte:
-                return encoding.GetString(CastNullTerminated<byte>(memoryAddress));
+                return encoding.GetString(MemoryMarshal.CreateReadOnlySpanFromNullTerminated((byte*)memoryAddress));
             case UnicodeEncoding:
-                return encoding.GetString(MemoryMarshal.Cast<char, byte>(CastNullTerminated<char>(memoryAddress)));
+                // Note that it may be in little or big endian, so using `new string(...)` is not always correct.
+                return encoding.GetString(
+                    MemoryMarshal.Cast<char, byte>(
+                        MemoryMarshal.CreateReadOnlySpanFromNullTerminated((char*)memoryAddress)));
             case UTF32Encoding:
                 return encoding.GetString(MemoryMarshal.Cast<int, byte>(CastNullTerminated<int>(memoryAddress)));
             default:
@@ -357,7 +363,7 @@ public static unsafe class MemoryHelper
     /// <returns>The read in string.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static SeString ReadSeStringNullTerminated(nint memoryAddress) =>
-        SeString.Parse(CastNullTerminated<byte>(memoryAddress));
+        SeString.Parse(MemoryMarshal.CreateReadOnlySpanFromNullTerminated((byte*)memoryAddress));
 
     /// <summary>
     /// Read an SeString from a specified memory address.
