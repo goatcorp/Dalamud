@@ -916,7 +916,7 @@ int main() {
 
         const TASKDIALOG_BUTTON buttons[]{
             {IdButtonRestart, L"Restart\nRestart the game with the above-selected option."},
-            {IdButtonSaveTsPack, L"Save Troubleshooting Pack\nSave a .tspack file containing information about this crash for analysis."},
+            {IdButtonSaveTsPack, L"Save Troubleshooting Info\nSave a .tspack file containing information about this crash for analysis."},
             {IdButtonExit, L"Exit\nExit the game."},
         };
 
