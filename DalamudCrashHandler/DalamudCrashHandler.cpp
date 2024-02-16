@@ -610,6 +610,7 @@ enum {
     IdRadioRestartWithoutDalamud,
 
     IdButtonRestart = 201,
+    IdButtonSaveTsPack = 202,
     IdButtonHelp = IDHELP,
     IdButtonExit = IDCANCEL,
 };
@@ -907,20 +908,21 @@ int main() {
         TASKDIALOGCONFIG config = { 0 };
 
         const TASKDIALOG_BUTTON radios[]{
-            {IdRadioRestartNormal, L"Restart"},
-            {IdRadioRestartWithout3pPlugins, L"Restart without 3rd party plugins"},
+            {IdRadioRestartNormal, L"Restart normally"},
+            {IdRadioRestartWithout3pPlugins, L"Restart without custom repository plugins"},
             {IdRadioRestartWithoutPlugins, L"Restart without any plugins"},
             {IdRadioRestartWithoutDalamud, L"Restart without Dalamud"},
         };
 
         const TASKDIALOG_BUTTON buttons[]{
-            {IdButtonRestart, L"Restart\nRestart the game, optionally without plugins or Dalamud."},
+            {IdButtonRestart, L"Restart\nRestart the game with the above-selected option."},
+            {IdButtonSaveTsPack, L"Save Troubleshooting Pack\nSave a .tspack file containing information about this crash for analysis."},
             {IdButtonExit, L"Exit\nExit the game."},
         };
 
         config.cbSize = sizeof(config);
         config.hInstance = GetModuleHandleW(nullptr);
-        config.dwFlags = TDF_ENABLE_HYPERLINKS | TDF_CAN_BE_MINIMIZED | TDF_ALLOW_DIALOG_CANCELLATION | TDF_USE_COMMAND_LINKS;
+        config.dwFlags = TDF_ENABLE_HYPERLINKS | TDF_CAN_BE_MINIMIZED | TDF_ALLOW_DIALOG_CANCELLATION | TDF_USE_COMMAND_LINKS | TDF_NO_DEFAULT_RADIO_BUTTON;
         config.pszMainIcon = MAKEINTRESOURCE(IDI_ICON1);
         config.pszMainInstruction = L"An error in the game occurred";
         config.pszContent = (L""
@@ -928,7 +930,7 @@ int main() {
             "\n"
             R"aa(Try running a game repair in XIVLauncher by right clicking the login button, and disabling plugins you don't need. Please also check your antivirus, see our <a href="help">help site</a> for more information.)aa" "\n"
             "\n"
-            R"aa(Upload <a href="exporttspack">this file (click here)</a> if you want to ask for help in our <a href="discord">Discord server</a>.)aa" "\n"
+            R"aa(For further assistance, please upload <a href="exporttspack">a troubleshooting pack</a> to our <a href="discord">Discord server</a>.)aa" "\n"
 
         );
         config.pButtons = buttons;
@@ -937,10 +939,9 @@ int main() {
         config.pszExpandedControlText = L"Hide stack trace";
         config.pszCollapsedControlText = L"Stack trace for plugin developers";
         config.pszExpandedInformation = window_log_str.c_str();
-        config.pszWindowTitle = L"Dalamud Error";
+        config.pszWindowTitle = L"Dalamud Crash Handler";
         config.pRadioButtons = radios;
         config.cRadioButtons = ARRAYSIZE(radios);
-        config.nDefaultRadioButton = IdRadioRestartNormal;
         config.cxWidth = 300;
 
 #if _DEBUG
@@ -962,6 +963,7 @@ int main() {
                 case TDN_CREATED:
                 {
                     SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
+                    SendMessage(hwnd, TDM_ENABLE_BUTTON, IdButtonRestart, 0);
                     return S_OK;
                 }
                 case TDN_HYPERLINK_CLICKED:
@@ -983,6 +985,18 @@ int main() {
                     }
                     return S_OK;
                 }
+                case TDN_RADIO_BUTTON_CLICKED:
+                    SendMessage(hwnd, TDM_ENABLE_BUTTON, IdButtonRestart, 1);
+                    return S_OK;
+                case TDN_BUTTON_CLICKED:
+                    const auto button = static_cast<int>(wParam);
+                    if (button == IdButtonSaveTsPack)
+                    {
+                        export_tspack(hwnd, logDir, ws_to_u8(log.str()), troubleshootingPackData);
+                        return S_FALSE; // keep the dialog open
+                    }
+
+                    return S_OK;
             }
 
             return S_OK;
