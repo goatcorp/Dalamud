@@ -1,6 +1,7 @@
 ﻿using System.Buffers;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -8,9 +9,13 @@ using System.Threading.Tasks;
 using Dalamud.Configuration.Internal;
 using Dalamud.Data;
 using Dalamud.Game;
+using Dalamud.Game.ClientState;
+using Dalamud.Game.Gui;
 using Dalamud.Interface.FontIdentifier;
 using Dalamud.Interface.GameFonts;
 using Dalamud.Interface.Internal;
+using Dalamud.Interface.Internal.Notifications;
+using Dalamud.Plugin.Services;
 using Dalamud.Storage.Assets;
 using Dalamud.Utility;
 
@@ -18,7 +23,11 @@ using ImGuiNET;
 
 using ImGuiScene;
 
+using Lumina.Data;
 using Lumina.Data.Files;
+using Lumina.Misc;
+
+using Newtonsoft.Json;
 
 using SharpDX;
 using SharpDX.Direct3D11;
@@ -33,9 +42,43 @@ namespace Dalamud.Interface.ManagedFontAtlas.Internals;
 internal sealed partial class FontAtlasFactory
     : IServiceType, GamePrebakedFontHandle.IGameFontTextureProvider, IDisposable
 {
+    private static readonly Dictionary<string, uint> KnownFontFileDataHashes = new()
+    {
+        ["common/font/AXIS_96.fdt"] = 1486212503,
+        ["common/font/AXIS_12.fdt"] = 1370045105,
+        ["common/font/AXIS_14.fdt"] = 645957730,
+        ["common/font/AXIS_18.fdt"] = 899094094,
+        ["common/font/AXIS_36.fdt"] = 2537048938,
+        ["common/font/Jupiter_16.fdt"] = 1642196098,
+        ["common/font/Jupiter_20.fdt"] = 3053628263,
+        ["common/font/Jupiter_23.fdt"] = 1536194944,
+        ["common/font/Jupiter_45.fdt"] = 3473589216,
+        ["common/font/Jupiter_46.fdt"] = 1370962087,
+        ["common/font/Jupiter_90.fdt"] = 3661420529,
+        ["common/font/Meidinger_16.fdt"] = 3700692128,
+        ["common/font/Meidinger_20.fdt"] = 441419856,
+        ["common/font/Meidinger_40.fdt"] = 203848091,
+        ["common/font/MiedingerMid_10.fdt"] = 499375313,
+        ["common/font/MiedingerMid_12.fdt"] = 1925552591,
+        ["common/font/MiedingerMid_14.fdt"] = 1919733827,
+        ["common/font/MiedingerMid_18.fdt"] = 1635778987,
+        ["common/font/MiedingerMid_36.fdt"] = 1190559864,
+        ["common/font/TrumpGothic_184.fdt"] = 973994576,
+        ["common/font/TrumpGothic_23.fdt"] = 1967289381,
+        ["common/font/TrumpGothic_34.fdt"] = 1777971886,
+        ["common/font/TrumpGothic_68.fdt"] = 1170173741,
+        ["common/font/font0.tex"] = 514269927,
+        ["common/font/font1.tex"] = 3616607606,
+        ["common/font/font2.tex"] = 4166651000,
+        ["common/font/font3.tex"] = 1264942640,
+        ["common/font/font4.tex"] = 3534300885,
+        ["common/font/font5.tex"] = 1041916216,
+        ["common/font/font6.tex"] = 1247097672,
+    };
+
     private readonly DisposeSafety.ScopedFinalizer scopedFinalizer = new();
     private readonly CancellationTokenSource cancellationTokenSource = new();
-    private readonly IReadOnlyDictionary<GameFontFamilyAndSize, Task<byte[]>> fdtFiles;
+    private readonly IReadOnlyDictionary<GameFontFamilyAndSize, Task<FileResource>> fdtFiles;
     private readonly IReadOnlyDictionary<string, Task<Task<TexFile>[]>> texFiles;
     private readonly IReadOnlyDictionary<string, Task<IDalamudTextureWrap?[]>> prebakedTextureWraps;
     private readonly Task<ushort[]> defaultGlyphRanges;
@@ -67,7 +110,7 @@ internal sealed partial class FontAtlasFactory
 
         this.fdtFiles = gffasInfo.ToImmutableDictionary(
             x => x.Font,
-            x => Task.Run(() => dataManager.GetFile(x.Attr.Path)!.Data));
+            x => Task.Run(() => dataManager.GetFile(x.Attr.Path)!));
         var channelCountsTask = texPaths.ToImmutableDictionary(
             x => x,
             x => Task.WhenAll(
@@ -79,8 +122,8 @@ internal sealed partial class FontAtlasFactory
                                       {
                                           unsafe
                                           {
-                                              using var pin = file.AsMemory().Pin();
-                                              var fdt = new FdtFileView(pin.Pointer, file.Length);
+                                              using var pin = file.Data.AsMemory().Pin();
+                                              var fdt = new FdtFileView(pin.Pointer, file.Data.Length);
                                               return fdt.MaxTextureIndex;
                                           }
                                       })));
@@ -101,11 +144,13 @@ internal sealed partial class FontAtlasFactory
                     {
                         unsafe
                         {
-                            using var pin = file.Result.AsMemory().Pin();
-                            var fdt = new FdtFileView(pin.Pointer, file.Result.Length);
+                            using var pin = file.Result.Data.AsMemory().Pin();
+                            var fdt = new FdtFileView(pin.Pointer, file.Result.Data.Length);
                             return fdt.ToGlyphRanges();
                         }
                     });
+
+        Task.Run(this.CheckSanity);
     }
 
     /// <summary>
@@ -203,12 +248,12 @@ internal sealed partial class FontAtlasFactory
     /// </summary>
     /// <param name="gffas">The font family and size.</param>
     /// <returns>The <see cref="FdtReader"/>.</returns>
-    public FdtReader GetFdtReader(GameFontFamilyAndSize gffas) => new(ExtractResult(this.fdtFiles[gffas]));
+    public FdtReader GetFdtReader(GameFontFamilyAndSize gffas) => new(ExtractResult(this.fdtFiles[gffas]).Data);
 
     /// <inheritdoc/>
     public unsafe MemoryHandle CreateFdtFileView(GameFontFamilyAndSize gffas, out FdtFileView fdtFileView)
     {
-        var arr = ExtractResult(this.fdtFiles[gffas]);
+        var arr = ExtractResult(this.fdtFiles[gffas]).Data;
         var handle = arr.AsMemory().Pin();
         try
         {
@@ -336,6 +381,110 @@ internal sealed partial class FontAtlasFactory
                         rptr += 4;
                     }
                 }
+            }
+        }
+    }
+
+    private async Task CheckSanity()
+    {
+        var invalidFiles = new Dictionary<string, Exception>();
+        var texFileTasks = new Dictionary<string, Task<TexFile>>();
+        var foundHashes = new Dictionary<string, uint>();
+        foreach (var (gffas, fdtTask) in this.fdtFiles)
+        {
+            var fontAttr = gffas.GetAttribute<GameFontFamilyAndSizeAttribute>()!;
+            try
+            {
+                foundHashes[fontAttr.Path] = Crc32.Get((await fdtTask).Data);
+
+                foreach (var (task, index) in
+                         (await this.texFiles[fontAttr.TexPathFormat]).Select((x, i) => (x, i)))
+                    texFileTasks[fontAttr.TexPathFormat.Format(index)] = task;
+            }
+            catch (Exception e)
+            {
+                invalidFiles[fontAttr.Path] = e;
+            }
+        }
+
+        foreach (var (path, texTask) in texFileTasks)
+        {
+            try
+            {
+                var hc = default(HashCode);
+                hc.AddBytes((await texTask).Data);
+                foundHashes[path] = Crc32.Get((await texTask).Data);
+            }
+            catch (Exception e)
+            {
+                invalidFiles[path] = e;
+            }
+        }
+
+        foreach (var (path, hashCode) in foundHashes)
+        {
+            if (!KnownFontFileDataHashes.TryGetValue(path, out var expectedHashCode))
+                continue;
+            if (expectedHashCode != hashCode)
+            {
+                invalidFiles[path] = new InvalidDataException(
+                    $"Expected 0x{expectedHashCode:X08}; got 0x{hashCode:X08}");
+            }
+        }
+
+        var dconf = await Service<DalamudConfiguration>.GetAsync();
+        var nm = await Service<NotificationManager>.GetAsync();
+        var intm = (await Service<InterfaceManager.InterfaceManagerWithScene>.GetAsync()).Manager;
+        var ggui = await Service<GameGui>.GetAsync();
+        var cstate = await Service<ClientState>.GetAsync();
+
+        if (invalidFiles.Any())
+        {
+            Log.Warning("Found {n} font related file(s) with unexpected hash code values.", invalidFiles.Count);
+            foreach (var (path, ex) in invalidFiles)
+                Log.Warning(ex, "\t=> {path}", path);
+            Log.Verbose(JsonConvert.SerializeObject(foundHashes));
+            if (this.DefaultFontSpec is not SingleFontSpec { FontId: GameFontAndFamilyId })
+                return;
+
+            this.Framework.Update += FrameworkOnUpdate;
+
+            void FrameworkOnUpdate(IFramework framework)
+            {
+                var charaSelect = ggui.GetAddonByName("CharaSelect", 1);
+                var charaMake = ggui.GetAddonByName("CharaMake", 1);
+                var titleDcWorldMap = ggui.GetAddonByName("TitleDCWorldMap", 1);
+
+                // Show notification when TSM is visible, so that user can check whether a font looks bad
+                if (cstate.IsLoggedIn
+                    || charaMake != IntPtr.Zero
+                    || charaSelect != IntPtr.Zero
+                    || titleDcWorldMap != IntPtr.Zero)
+                    return;
+
+                this.Framework.Update -= FrameworkOnUpdate;
+
+                var n = nm.AddNotification(
+                    "Non-default game fonts detected. If things do not look right, you can use a different font. Running repairs from XIVLauncher is recommended.",
+                    "Modded font warning",
+                    NotificationType.Warning,
+                    10000);
+                n.UseMonospaceFont = true;
+                n.Actions.Add(
+                    (
+                        "Use Noto Sans",
+                        () =>
+                        {
+                            dconf.DefaultFontSpec =
+                                new SingleFontSpec
+                                {
+                                    FontId = new DalamudAssetFontAndFamilyId(DalamudAsset.NotoSansJpMedium),
+                                    SizePx = 17,
+                                };
+                            dconf.QueueSave();
+                            intm.RebuildFonts();
+                        }));
+                n.Actions.Add(("Dismiss", () => n.Dismissed = true));
             }
         }
     }
