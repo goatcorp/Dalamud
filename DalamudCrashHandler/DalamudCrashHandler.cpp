@@ -773,6 +773,7 @@ int main() {
                 {
                     SetWindowPos(hwndProgressDialog, HWND_TOPMOST, 0, 0, 0, 0, 
                         SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
+                    SetForegroundWindow(hwndProgressDialog);
                 }
                 
                 pOleWindow->Release();

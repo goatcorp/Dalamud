@@ -200,6 +200,8 @@ LONG exception_handler(EXCEPTION_POINTERS* ex)
     if (DWORD written; !WriteFile(g_crashhandler_pipe_write, &g_startInfo.TroubleshootingPackData[0], static_cast<DWORD>(std::span(g_startInfo.TroubleshootingPackData).size_bytes()), &written, nullptr) || std::span(g_startInfo.TroubleshootingPackData).size_bytes() != written)
         return EXCEPTION_CONTINUE_SEARCH;
 
+    AllowSetForegroundWindow(GetProcessId(g_crashhandler_process));
+
     HANDLE waitHandles[] = { g_crashhandler_process, g_crashhandler_event };
     DWORD waitResult = WaitForMultipleObjects(2, waitHandles, FALSE, INFINITE);
 
