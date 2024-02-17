@@ -746,6 +746,35 @@ int main() {
         std::wcout << L"Stripped: " << logDir.wstring() << std::endl;
     }
 
+    // Only keep the last 3 minidumps
+    if (!logDir.empty())
+    {
+        std::vector<std::pair<std::filesystem::path, std::filesystem::file_time_type>> minidumps;
+        for (const auto& entry : std::filesystem::directory_iterator(logDir)) {
+            if (entry.path().filename().wstring().ends_with(L".dmp")) {
+                minidumps.emplace_back(entry.path(), std::filesystem::last_write_time(entry));
+            }
+        }
+
+        if (minidumps.size() > 3)
+        {
+            std::sort(minidumps.begin(), minidumps.end(), [](const auto& a, const auto& b) { return a.second < b.second; });
+            for (size_t i = 0; i < minidumps.size() - 3; i++) {
+                if (std::filesystem::exists(minidumps[i].first))
+                {
+                    std::wcout << std::format(L"Removing old minidump: {}", minidumps[i].first.wstring()) << std::endl;
+                    std::filesystem::remove(minidumps[i].first);
+                }
+
+                // Also remove corresponding .log, if it exists
+                if (const auto logPath = minidumps[i].first.replace_extension(L".log"); std::filesystem::exists(logPath)) {
+                    std::wcout << std::format(L"Removing corresponding log: {}", logPath.wstring()) << std::endl;
+                    std::filesystem::remove(logPath);
+                }
+            }
+        }
+    }
+
     while (true) {
         std::cout << "Waiting for crash...\n";
 
