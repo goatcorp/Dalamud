@@ -26,7 +26,6 @@
 #include <ShlGuid.h>
 #include <ShObjIdl.h>
 #include <shlobj_core.h>
-#include <winhttp.h>
 
 #pragma comment(lib, "comctl32.lib")
 #pragma comment(linker, "/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
@@ -153,7 +152,7 @@ std::wstring describe_module(const std::filesystem::path& path) {
             WORD wLanguage;
             WORD wCodePage;
         };
-        const auto langs = std::span(reinterpret_cast<const LANGANDCODEPAGE*>(lpBuffer), size / sizeof(LANGANDCODEPAGE));
+        const auto langs = std::span(static_cast<const LANGANDCODEPAGE*>(lpBuffer), size / sizeof(LANGANDCODEPAGE));
         for (const auto& lang : langs) {
             if (!VerQueryValueW(block.data(), std::format(L"\\StringFileInfo\\{:04x}{:04x}\\FileDescription", lang.wLanguage, lang.wCodePage).c_str(), &lpBuffer, &size))
                 continue;
@@ -442,6 +441,26 @@ std::wstring escape_shell_arg(const std::wstring& arg) {
     return res;
 }
 
+void open_folder_and_select_items(HWND hwndOpener, const std::wstring& path) {
+    const auto piid = ILCreateFromPathW(path.c_str());
+    if (!piid
+        || FAILED(SHOpenFolderAndSelectItems(piid, 0, nullptr, 0))) {
+        const auto args = std::format(L"/select,{}", escape_shell_arg(path));
+        SHELLEXECUTEINFOW seiw{
+            .cbSize = sizeof seiw,
+            .hwnd = hwndOpener,
+            .lpFile = L"explorer.exe",
+            .lpParameters = args.c_str(),
+            .nShow = SW_SHOW,
+        };
+        if (!ShellExecuteExW(&seiw))
+            throw_last_error("ShellExecuteExW");
+    }
+
+    if (piid)
+        ILFree(piid);
+}
+
 void export_tspack(HWND hWndParent, const std::filesystem::path& logDir, const std::string& crashLog, const std::string& troubleshootingPackData) {
     static const char* SourceLogFiles[] = {
         "output.log",
@@ -458,7 +477,6 @@ void export_tspack(HWND hWndParent, const std::filesystem::path& logDir, const s
     }};
 
     std::optional<std::wstring> filePath;
-    std::fstream fileStream;
     try {
         IShellItemPtr pItem;
         SYSTEMTIME st;
@@ -483,7 +501,7 @@ void export_tspack(HWND hWndParent, const std::filesystem::path& logDir, const s
         pItem.Release();
         filePath.emplace(pFilePath);
 
-        fileStream.open(*filePath, std::ios::binary | std::ios::in | std::ios::out | std::ios::trunc);
+        std::fstream fileStream(*filePath, std::ios::binary | std::ios::in | std::ios::out | std::ios::trunc);
         
         mz_zip_archive zipa{};
         zipa.m_pIO_opaque = &fileStream;
@@ -526,7 +544,7 @@ void export_tspack(HWND hWndParent, const std::filesystem::path& logDir, const s
             int64_t off;
         };
         const auto fnHandleReader = [](void* pOpaque, mz_uint64 file_ofs, void* pBuf, size_t n) -> size_t {
-            const auto& info = *reinterpret_cast<const HandleAndBaseOffset*>(pOpaque);
+            const auto& info = *static_cast<const HandleAndBaseOffset*>(pOpaque);
             if (!SetFilePointerEx(info.h, { .QuadPart = static_cast<int64_t>(info.off + file_ofs) }, nullptr, SEEK_SET))
                 throw_last_error("fnHandleReader: SetFilePointerEx");
             if (DWORD read; !ReadFile(info.h, pBuf, static_cast<DWORD>(n), &read, nullptr))
@@ -586,7 +604,6 @@ void export_tspack(HWND hWndParent, const std::filesystem::path& logDir, const s
 
     } catch (const std::exception& e) {
         MessageBoxW(hWndParent, std::format(L"Failed to save file: {}", u8_to_ws(e.what())).c_str(), get_window_string(hWndParent).c_str(), MB_OK | MB_ICONERROR);
-        fileStream.close();
         if (filePath) {
             try {
                 std::filesystem::remove(*filePath);
@@ -597,9 +614,10 @@ void export_tspack(HWND hWndParent, const std::filesystem::path& logDir, const s
         return;
     }
 
-    fileStream.close();
     if (filePath) {
-        ShellExecuteW(hWndParent, nullptr, L"explorer.exe", escape_shell_arg(std::format(L"/select,{}", *filePath)).c_str(), nullptr, SW_SHOW);
+        // Not sure why, but without the wait, the selected file momentarily disappears and reappears
+        Sleep(1000);
+        open_folder_and_select_items(hWndParent, *filePath);
     }
 }
 
@@ -672,7 +690,9 @@ int main() {
     std::filesystem::path assetDir, logDir;
     std::optional<std::vector<std::wstring>> launcherArgs;
     auto fullDump = false;
-    CoInitializeEx(nullptr, COINIT_MULTITHREADED);
+
+    // IFileSaveDialog only works on STA
+    CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
     
     std::vector<std::wstring> args;
     if (int argc = 0; const auto argv = CommandLineToArgvW(GetCommandLineW(), &argc)) {
@@ -972,7 +992,7 @@ int main() {
                     if (link == L"help") {
                         ShellExecuteW(hwnd, nullptr, L"https://goatcorp.github.io/faq?utm_source=vectored", nullptr, nullptr, SW_SHOW);
                     } else if (link == L"logdir") {
-                        ShellExecuteW(hwnd, nullptr, L"explorer.exe", escape_shell_arg(std::format(L"/select,{}", logPath.wstring())).c_str(), nullptr, SW_SHOW);
+                        open_folder_and_select_items(hwnd, logPath.wstring());
                     } else if (link == L"logfile") {
                         ShellExecuteW(hwnd, nullptr, logPath.c_str(), nullptr, nullptr, SW_SHOW);
                     } else if (link == L"exporttspack") {
