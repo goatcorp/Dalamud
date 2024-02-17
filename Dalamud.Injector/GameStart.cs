@@ -25,10 +25,10 @@ namespace Dalamud.Injector
         /// <param name="dontFixAcl">Don't actually fix the ACL.</param>
         /// <param name="beforeResume">Action to execute before the process is started.</param>
         /// <param name="waitForGameWindow">Wait for the game window to be ready before proceeding.</param>
-        /// <returns>The started process.</returns>
+        /// <returns>The started process and handle to the started main thread.</returns>
         /// <exception cref="Win32Exception">Thrown when a win32 error occurs.</exception>
         /// <exception cref="GameStartException">Thrown when the process did not start correctly.</exception>
-        public static Process LaunchGame(string workingDir, string exePath, string arguments, bool dontFixAcl, Action<Process> beforeResume, bool waitForGameWindow = true)
+        public static (Process GameProcess, nint MainThreadHandle) LaunchGame(string workingDir, string exePath, string arguments, bool dontFixAcl, Action<Process> beforeResume, bool waitForGameWindow = true)
         {
             Process process = null;
 
@@ -172,10 +172,12 @@ namespace Dalamud.Injector
             {
                 if (psecDesc != IntPtr.Zero)
                     Marshal.FreeHGlobal(psecDesc);
-                PInvoke.CloseHandle(lpProcessInformation.hThread);
             }
 
-            return process;
+            NativeFunctions.DuplicateHandle(PInvoke.GetCurrentProcess(), lpProcessInformation.hThread, lpProcessInformation.hProcess, out var mainThreadHandle, 0, false, NativeFunctions.DuplicateOptions.SameAccess);
+            PInvoke.CloseHandle(lpProcessInformation.hThread);
+
+            return (process, mainThreadHandle);
         }
 
         /// <summary>
