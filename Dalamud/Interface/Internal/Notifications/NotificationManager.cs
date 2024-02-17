@@ -4,7 +4,6 @@ using System.Linq;
 using System.Numerics;
 
 using Dalamud.Interface.Colors;
-using Dalamud.Interface.ManagedFontAtlas;
 using Dalamud.Interface.Utility;
 using Dalamud.Utility;
 using ImGuiNET;
@@ -69,22 +68,15 @@ internal class NotificationManager : IServiceType
     /// <param name="title">The title of the notification.</param>
     /// <param name="type">The type of the notification.</param>
     /// <param name="msDelay">The time the notification should be displayed for.</param>
-    /// <returns>The added notification.</returns>
-    public Notification AddNotification(
-        string content,
-        string? title = null,
-        NotificationType type = NotificationType.None,
-        uint msDelay = NotifyDefaultDismiss)
+    public void AddNotification(string content, string? title = null, NotificationType type = NotificationType.None, uint msDelay = NotifyDefaultDismiss)
     {
-        var n = new Notification
+        this.notifications.Add(new Notification
         {
             Content = content,
             Title = title,
             NotificationType = type,
             DurationMs = msDelay,
-        };
-        this.notifications.Add(n);
-        return n;
+        });
     }
 
     /// <summary>
@@ -105,10 +97,6 @@ internal class NotificationManager : IServiceType
                 continue;
             }
 
-            using var pushedFont = tn.UseMonospaceFont
-                                       ? Service<InterfaceManager>.Get().MonoFontHandle?.Push()
-                                       : null;
-
             var opacity = tn.GetFadePercent();
 
             var iconColor = tn.Color;
@@ -119,12 +107,8 @@ internal class NotificationManager : IServiceType
             ImGuiHelpers.ForceNextWindowMainViewport();
             ImGui.SetNextWindowBgAlpha(opacity);
             ImGui.SetNextWindowPos(ImGuiHelpers.MainViewport.Pos + new Vector2(viewportSize.X - NotifyPaddingX, viewportSize.Y - NotifyPaddingY - height), ImGuiCond.Always, Vector2.One);
-            if (tn.Actions.Count == 0)
-                ImGui.Begin(windowName, NotifyToastFlags);
-            else
-                ImGui.Begin(windowName, NotifyToastFlags & ~ImGuiWindowFlags.NoInputs);
+            ImGui.Begin(windowName, NotifyToastFlags);
 
-            ImGui.PushID(tn.NotificationId);
             ImGui.PushTextWrapPos(viewportSize.X / 3.0f);
 
             var wasTitleRendered = false;
@@ -178,21 +162,9 @@ internal class NotificationManager : IServiceType
                 ImGui.TextUnformatted(tn.Content);
             }
 
-            foreach (var (caption, action) in tn.Actions)
-            {
-                if (ImGui.Button(caption))
-                    action.InvokeSafely();
-                ImGui.SameLine();
-            }
-
-            // break ImGui.SameLine();
-            ImGui.TextUnformatted(string.Empty);
-
             ImGui.PopStyleColor();
 
             ImGui.PopTextWrapPos();
-
-            ImGui.PopID();
 
             height += ImGui.GetWindowHeight() + NotifyPaddingMessageY;
 
@@ -205,8 +177,6 @@ internal class NotificationManager : IServiceType
     /// </summary>
     internal class Notification
     {
-        private static int notificationIdCounter;
-
         /// <summary>
         /// Possible notification phases.
         /// </summary>
@@ -234,39 +204,19 @@ internal class NotificationManager : IServiceType
         }
 
         /// <summary>
-        /// Gets the notification ID.
-        /// </summary>
-        internal int NotificationId { get; } = notificationIdCounter++;
-
-        /// <summary>
         /// Gets the type of the notification.
         /// </summary>
         internal NotificationType NotificationType { get; init; }
 
         /// <summary>
-        /// Gets or sets a value indicating whether to force the use of monospace font.
+        /// Gets the title of the notification.
         /// </summary>
-        internal bool UseMonospaceFont { get; set; }
+        internal string? Title { get; init; }
 
         /// <summary>
-        /// Gets the action buttons to attach to this notification.
+        /// Gets the content of the notification.
         /// </summary>
-        internal List<(string Text, Action ClickCallback)> Actions { get; } = new();
-
-        /// <summary>
-        /// Gets or sets a value indicating whether this notification has been dismissed.
-        /// </summary>
-        internal bool Dismissed { get; set; }
-
-        /// <summary>
-        /// Gets or sets the title of the notification.
-        /// </summary>
-        internal string? Title { get; set; }
-
-        /// <summary>
-        /// Gets or sets the content of the notification.
-        /// </summary>
-        internal string? Content { get; set; }
+        internal string Content { get; init; }
 
         /// <summary>
         /// Gets the duration of the notification in milliseconds.
@@ -333,7 +283,7 @@ internal class NotificationManager : IServiceType
         {
             var elapsed = (int)this.ElapsedTime.TotalMilliseconds;
 
-            if (elapsed > NotifyFadeInOutTime + this.DurationMs + NotifyFadeInOutTime || this.Dismissed)
+            if (elapsed > NotifyFadeInOutTime + this.DurationMs + NotifyFadeInOutTime)
                 return Phase.Expired;
             else if (elapsed > NotifyFadeInOutTime + this.DurationMs)
                 return Phase.FadeOut;
