@@ -163,7 +163,11 @@ LONG exception_handler(EXCEPTION_POINTERS* ex)
     DuplicateHandle(GetCurrentProcess(), g_crashhandler_event, g_crashhandler_process, &exinfo.hEventHandle, 0, TRUE, DUPLICATE_SAME_ACCESS);
 
     std::wstring stackTrace;
-    if (void* fn; const auto err = static_cast<DWORD>(g_clr->get_function_pointer(
+    if (!g_clr)
+    {
+        stackTrace = L"(no CLR stack trace available)";
+    }
+    else if (void* fn; const auto err = static_cast<DWORD>(g_clr->get_function_pointer(
         L"Dalamud.EntryPoint, Dalamud",
         L"VehCallback",
         L"Dalamud.EntryPoint+VehDelegate, Dalamud",
@@ -182,11 +186,17 @@ LONG exception_handler(EXCEPTION_POINTERS* ex)
     if (DWORD written; !WriteFile(g_crashhandler_pipe_write, &exinfo, static_cast<DWORD>(sizeof exinfo), &written, nullptr) || sizeof exinfo != written)
         return EXCEPTION_CONTINUE_SEARCH;
 
-    if (DWORD written; !WriteFile(g_crashhandler_pipe_write, &stackTrace[0], static_cast<DWORD>(std::span(stackTrace).size_bytes()), &written, nullptr) || std::span(stackTrace).size_bytes() != written)
-        return EXCEPTION_CONTINUE_SEARCH;
+    if (const auto nb = static_cast<DWORD>(std::span(stackTrace).size_bytes()))
+    {
+        if (DWORD written; !WriteFile(g_crashhandler_pipe_write, stackTrace.data(), nb, &written, nullptr) || nb != written)
+            return EXCEPTION_CONTINUE_SEARCH;
+    }
 
-    if (DWORD written; !WriteFile(g_crashhandler_pipe_write, &g_startInfo.TroubleshootingPackData[0], static_cast<DWORD>(std::span(g_startInfo.TroubleshootingPackData).size_bytes()), &written, nullptr) || std::span(g_startInfo.TroubleshootingPackData).size_bytes() != written)
-        return EXCEPTION_CONTINUE_SEARCH;
+    if (const auto nb = static_cast<DWORD>(std::span(g_startInfo.TroubleshootingPackData).size_bytes()))
+    {
+        if (DWORD written; !WriteFile(g_crashhandler_pipe_write, g_startInfo.TroubleshootingPackData.data(), nb, &written, nullptr) || nb != written)
+            return EXCEPTION_CONTINUE_SEARCH;
+    }
 
     AllowSetForegroundWindow(GetProcessId(g_crashhandler_process));
 
