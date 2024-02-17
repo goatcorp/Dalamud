@@ -1917,6 +1917,40 @@ internal static partial class NativeFunctions
     /// <returns>The thread ID.</returns>
     [DllImport("kernel32.dll")]
     public static extern uint GetCurrentThreadId();
+
+    /// <summary>
+    /// Suspends a thread.
+    /// </summary>
+    /// <param name="hThread">Handle to the thread to be suspended.</param>
+    /// <returns>If the function succeeds, the return value is the thread's previous suspend count.
+    /// If the function fails, the return value is (DWORD) -1.</returns>
+    [DllImport("kernel32.dll", SetLastError = true)]
+    public static extern uint SuspendThread(IntPtr hThread);
+
+    /// <summary>
+    /// Resumes a thread that was suspended.
+    /// </summary>
+    /// <param name="hThread">Handle to the thread to be resumed.</param>
+    /// <returns>If the function succeeds, the return value is the thread's previous suspend count.
+    /// If the function fails, the return value is (DWORD) -1.</returns>
+    [DllImport("kernel32.dll", SetLastError = true)]
+    public static extern uint ResumeThread(IntPtr hThread);
+
+    /// <summary>
+    /// Closes an open object handle.
+    /// </summary>
+    /// <param name="hObject">
+    /// A valid handle to an open object.
+    /// </param>
+    /// <returns>
+    /// If the function succeeds, the return value is nonzero. If the function fails, the return value is zero. To get extended error
+    /// information, call GetLastError. If the application is running under a debugger, the function will throw an exception if it receives
+    /// either a handle value that is not valid or a pseudo-handle value. This can happen if you close a handle twice, or if you call
+    /// CloseHandle on a handle returned by the FindFirstFile function instead of calling the FindClose function.
+    /// </returns>
+    [DllImport("kernel32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    public static extern bool CloseHandle(IntPtr hObject);
 }
 
 /// <summary>

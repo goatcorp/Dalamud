@@ -555,7 +555,7 @@ namespace Dalamud.Injector
             }
 
             foreach (var process in processes)
-                Inject(process, AdjustStartInfo(dalamudStartInfo, process.MainModule.FileName), tryFixAcl);
+                Inject(process, AdjustStartInfo(dalamudStartInfo, process.MainModule.FileName), nint.Zero, tryFixAcl);
 
             Log.CloseAndFlush();
             return 0;
@@ -804,7 +804,7 @@ namespace Dalamud.Injector
                 gameArgumentString = string.Join(" ", gameArguments.Select(x => EncodeParameterArgument(x)));
             }
 
-            var process = GameStart.LaunchGame(
+            var (process, mainThreadHandle) = GameStart.LaunchGame(
                 Path.GetDirectoryName(gamePath),
                 gamePath,
                 gameArgumentString,
@@ -822,13 +822,18 @@ namespace Dalamud.Injector
                 },
                 waitForGameWindow);
 
+            if (withoutDalamud || dalamudStartInfo.LoadMethod == LoadMethod.Entrypoint)
+            {
+                CloseHandle(mainThreadHandle);
+            }
+
             Log.Verbose("Game process started with PID {0}", process.Id);
 
             if (!withoutDalamud && dalamudStartInfo.LoadMethod == LoadMethod.DllInject)
             {
                 var startInfo = AdjustStartInfo(dalamudStartInfo, gamePath);
                 Log.Information("Using start info: {0}", JsonConvert.SerializeObject(startInfo));
-                Inject(process, startInfo, false);
+                Inject(process, startInfo, mainThreadHandle, false);
             }
 
             var processHandleForOwner = IntPtr.Zero;
@@ -908,7 +913,14 @@ namespace Dalamud.Injector
             };
         }
 
-        private static void Inject(Process process, DalamudStartInfo startInfo, bool tryFixAcl = false)
+        [StructLayout(LayoutKind.Sequential)]
+        private struct InitializeParams
+        {
+            public nuint LoadInfo;
+            public nint MainThread;
+        }
+
+        private static void Inject(Process process, DalamudStartInfo startInfo, nint mainThreadHandle, bool tryFixAcl = false)
         {
             if (tryFixAcl)
             {
@@ -944,8 +956,18 @@ namespace Dalamud.Injector
                 throw new Exception("Unable to allocate start info JSON");
             }
 
+            using var initParamsBuffer = new MemoryBufferHelper(process).CreatePrivateMemoryBuffer(Marshal.SizeOf(typeof(InitializeParams)) + 0x8);
+
+            var initParams = new InitializeParams
+            {
+                LoadInfo = startInfoAddress,
+                MainThread = mainThreadHandle,
+            };
+
+            var initParamsAddress = initParamsBuffer.Add(ref initParams);
+
             injector.GetFunctionAddress(bootModule, "Initialize", out var initAddress);
-            injector.CallRemoteFunction(initAddress, startInfoAddress, out var exitCode);
+            injector.CallRemoteFunction(initAddress, initParamsAddress, out var exitCode);
 
             // ======================================================
 

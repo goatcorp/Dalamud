@@ -50,8 +50,8 @@ public sealed class EntryPoint
     /// Initialize Dalamud.
     /// </summary>
     /// <param name="infoPtr">Pointer to a serialized <see cref="DalamudStartInfo"/> data.</param>
-    /// <param name="mainThreadContinueEvent">Event used to signal the main thread to continue.</param>
-    public static void Initialize(IntPtr infoPtr, IntPtr mainThreadContinueEvent)
+    /// <param name="mainThreadHandle">Handle to the (suspended) main thread.</param>
+    public static void Initialize(IntPtr infoPtr, IntPtr mainThreadHandle)
     {
         var infoStr = Marshal.PtrToStringUTF8(infoPtr)!;
         var info = JsonConvert.DeserializeObject<DalamudStartInfo>(infoStr)!;
@@ -59,7 +59,12 @@ public sealed class EntryPoint
         if ((info.BootWaitMessageBox & 4) != 0)
             MessageBoxW(IntPtr.Zero, "Press OK to continue (BeforeDalamudConstruct)", "Dalamud Boot", MessageBoxType.Ok);
 
-        new Thread(() => RunThread(info, mainThreadContinueEvent)).Start();
+        var suspendSignal = new ManualResetEvent(false);
+        suspendSignal.Reset();
+
+        new Thread(() => RunThread(info, mainThreadHandle, suspendSignal)).Start();
+
+        suspendSignal.WaitOne();
     }
 
     /// <summary>
@@ -130,8 +135,9 @@ public sealed class EntryPoint
     /// Initialize all Dalamud subsystems and start running on the main thread.
     /// </summary>
     /// <param name="info">The <see cref="DalamudStartInfo"/> containing information needed to initialize Dalamud.</param>
-    /// <param name="mainThreadContinueEvent">Event used to signal the main thread to continue.</param>
-    private static void RunThread(DalamudStartInfo info, IntPtr mainThreadContinueEvent)
+    /// <param name="mainThreadHandle">Handle to the (suspended) main thread.</param>
+    /// <param name="suspendSignal">Signal to notifiy the initiliazing thread once the main thread has been suspended.</param>
+    private static void RunThread(DalamudStartInfo info, IntPtr mainThreadHandle, ManualResetEvent suspendSignal)
     {
         // Setup logger
         InitLogging(info.LogPath!, info.BootShowConsole, true, info.LogName);
@@ -161,6 +167,25 @@ public sealed class EntryPoint
                 Thread.Sleep(info.DelayInitializeMs);
             }
 
+            var currentSuspendCount = (int)NativeFunctions.SuspendThread(mainThreadHandle) + 1;
+            Log.Verbose("Current main thread suspend count {0}", currentSuspendCount);
+            suspendSignal.Set();
+
+            switch (info.LoadMethod)
+            {
+                case LoadMethod.Entrypoint:
+                    if (currentSuspendCount != 1)
+                        Log.Warning("Unexpected suspend count {0} for main thread with Entrypoint", currentSuspendCount);
+                    break;
+                case LoadMethod.DllInject:
+                    if (currentSuspendCount != 1)
+                        Log.Warning("Unexpected suspend count {0} for main thread with DllInject", currentSuspendCount);
+                    break;
+                default:
+                    Log.Warning("Unknown LoadMethod {0}", info.LoadMethod);
+                    break;
+            }
+
             Log.Information(new string('-', 80));
             Log.Information("Initializing a session..");
 
@@ -175,7 +200,7 @@ public sealed class EntryPoint
             if (!Util.IsWine())
                 InitSymbolHandler(info);
 
-            var dalamud = new Dalamud(info, fs, configuration, mainThreadContinueEvent);
+            var dalamud = new Dalamud(info, fs, configuration, mainThreadHandle);
             Log.Information("This is Dalamud - Core: {GitHash}, CS: {CsGitHash} [{CsVersion}]", Util.GetGitHash(), Util.GetGitHashClientStructs(), FFXIVClientStructs.Interop.Resolver.Version);
 
             dalamud.WaitForUnload();
@@ -192,7 +217,9 @@ public sealed class EntryPoint
         }
         catch (Exception ex)
         {
-            Log.Fatal(ex, "Unhandled exception on main thread.");
+            suspendSignal.Set();
+            NativeFunctions.ResumeThread(mainThreadHandle);
+            Log.Fatal(ex, "Unhandled exception on Dalamuds initialization thread.");
         }
         finally
         {
