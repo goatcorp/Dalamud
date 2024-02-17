@@ -290,6 +290,25 @@ internal sealed partial class FontAtlasFactory
 
     private static T ExtractResult<T>(Task<T> t) => t.IsCompleted ? t.Result : t.GetAwaiter().GetResult();
 
+    /// <summary>
+    /// Clones a texture wrap, by getting a new reference to the underlying <see cref="ShaderResourceView"/> and the
+    /// texture behind.
+    /// </summary>
+    /// <param name="wrap">The <see cref="IDalamudTextureWrap"/> to clone from.</param>
+    /// <returns>The cloned <see cref="IDalamudTextureWrap"/>.</returns>
+    private static IDalamudTextureWrap CloneTextureWrap(IDalamudTextureWrap wrap)
+    {
+        var srv = CppObject.FromPointer<ShaderResourceView>(wrap.ImGuiHandle);
+        using var res = srv.Resource;
+        using var tex2D = res.QueryInterface<Texture2D>();
+        var description = tex2D.Description;
+        return new DalamudTextureWrap(
+            new D3DTextureWrap(
+                srv.QueryInterface<ShaderResourceView>(),
+                description.Width,
+                description.Height));
+    }
+
     private static unsafe void ExtractChannelFromB8G8R8A8(
         Span<byte> target,
         ReadOnlySpan<byte> source,
@@ -327,25 +346,6 @@ internal sealed partial class FontAtlasFactory
         }
     }
 
-    /// <summary>
-    /// Clones a texture wrap, by getting a new reference to the underlying <see cref="ShaderResourceView"/> and the
-    /// texture behind.
-    /// </summary>
-    /// <param name="wrap">The <see cref="IDalamudTextureWrap"/> to clone from.</param>
-    /// <returns>The cloned <see cref="IDalamudTextureWrap"/>.</returns>
-    private static IDalamudTextureWrap CloneTextureWrap(IDalamudTextureWrap wrap)
-    {
-        var srv = CppObject.FromPointer<ShaderResourceView>(wrap.ImGuiHandle);
-        using var res = srv.Resource;
-        using var tex2D = res.QueryInterface<Texture2D>();
-        var description = tex2D.Description;
-        return new DalamudTextureWrap(
-            new D3DTextureWrap(
-                srv.QueryInterface<ShaderResourceView>(),
-                description.Width,
-                description.Height));
-    }
-
     private static unsafe void ExtractChannelFromB4G4R4A4(
         Span<byte> target,
         ReadOnlySpan<byte> source,
@@ -378,7 +378,7 @@ internal sealed partial class FontAtlasFactory
                         v |= v << 4;
                         *wptr = (uint)((v << 24) | 0x00FFFFFF);
                         wptr++;
-                        rptr += 4;
+                        rptr += 2;
                     }
                 }
             }
