@@ -109,6 +109,8 @@ public record SingleFontSpec : IFontSpec
         tk.RegisterPostBuild(
             () =>
             {
+                // Multiplication by scale will be done with global scale, outside of this handling.
+                var scale = tk.GetFontScaleMode(font) == FontScaleMode.UndoGlobalScale ? 1 / tk.Scale : 1;
                 var roundUnit = tk.GetFontScaleMode(font) == FontScaleMode.SkipHandling ? 1 : 1 / tk.Scale;
                 var newAscent = MathF.Round((font.Ascent * this.LineHeight) / roundUnit) * roundUnit;
                 var newFontSize = MathF.Round((font.FontSize * this.LineHeight) / roundUnit) * roundUnit;
@@ -129,13 +131,10 @@ public record SingleFontSpec : IFontSpec
                     }
                 }
 
-                // `/ roundUnit` = `* scale`
-                var dax = MathF.Round(this.LetterSpacing / roundUnit / roundUnit) * roundUnit;
-                var dxy0 = this.GlyphOffset / roundUnit;
-
+                var dax = MathF.Round((this.LetterSpacing * scale) / roundUnit) * roundUnit;
+                var dxy0 = this.GlyphOffset * scale;
                 dxy0 /= roundUnit;
-                dxy0.X = MathF.Round(dxy0.X);
-                dxy0.Y = MathF.Round(dxy0.Y);
+                dxy0 = new(MathF.Round(dxy0.X), MathF.Round(dxy0.Y));
                 dxy0 *= roundUnit;
 
                 dxy0.Y += shiftDown;
