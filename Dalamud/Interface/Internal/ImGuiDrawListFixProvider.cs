@@ -83,7 +83,7 @@ internal sealed unsafe class ImGuiDrawListFixProvider : IServiceType, IDisposabl
         float rounding,
         ImDrawFlags flags)
     {
-        if (rounding < 0 || (flags & ImDrawFlags.RoundCornersMask) == ImDrawFlags.RoundCornersMask)
+        if (rounding < 0.5f || (flags & ImDrawFlags.RoundCornersMask) == ImDrawFlags.RoundCornersMask)
         {
             var texIdCommon = *(nint*)(drawListPtr._Data + CImGuiImDrawListSharedDataTexIdCommonOffset);
             var pushTextureId = texIdCommon != drawListPtr._CmdHeader.TextureId;
