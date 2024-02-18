@@ -83,8 +83,14 @@ internal sealed unsafe class ImGuiDrawListFixProvider : IServiceType, IDisposabl
         float rounding,
         ImDrawFlags flags)
     {
+        // Skip drawing if we're drawing something with alpha value of 0.
+        if ((col & 0xFF000000) == 0)
+            return;
+
         if (rounding < 0.5f || (flags & ImDrawFlags.RoundCornersMask) == ImDrawFlags.RoundCornersMask)
         {
+            // Take the fast path of drawing two triangles if no rounded corners are required.
+
             var texIdCommon = *(nint*)(drawListPtr._Data + CImGuiImDrawListSharedDataTexIdCommonOffset);
             var pushTextureId = texIdCommon != drawListPtr._CmdHeader.TextureId;
             if (pushTextureId)
@@ -98,6 +104,9 @@ internal sealed unsafe class ImGuiDrawListFixProvider : IServiceType, IDisposabl
         }
         else
         {
+            // Defer drawing rectangle with rounded corners to path drawing operations.
+            // Note that this may have a slightly different extent behaviors from the above if case.
+            // This is how it is in imgui_draw.cpp.
             drawListPtr.PathRect(min, max, rounding, flags);
             drawListPtr.PathFillConvex(col);
         }
