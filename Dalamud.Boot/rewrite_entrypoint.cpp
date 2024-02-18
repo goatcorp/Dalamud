@@ -229,9 +229,9 @@ void* get_mapped_image_base_address(HANDLE hProcess, const std::filesystem::path
 /// @brief Get the target process' entry point.
 /// @param hProcess Process handle.
 /// @param pcwzPath Path to target process.
-/// @return address to entry point; null if successful.
+/// @return address to entry point; null if unsuccessful.
 /// 
-extern "C" void* WINAPI GetRemoteEntryPointW(HANDLE hProcess, const wchar_t* pcwzPath) {
+extern "C" char* WINAPI GetRemoteEntryPointW(HANDLE hProcess, const wchar_t* pcwzPath) {
     try {
         const auto base_address = static_cast<char*>(get_mapped_image_base_address(hProcess, pcwzPath));
 
@@ -246,7 +246,7 @@ extern "C" void* WINAPI GetRemoteEntryPointW(HANDLE hProcess, const wchar_t* pcw
         const auto entrypoint = base_address + (nt_header32.OptionalHeader.Magic == IMAGE_NT_OPTIONAL_HDR32_MAGIC
             ? nt_header32.OptionalHeader.AddressOfEntryPoint
             : nt_header64.OptionalHeader.AddressOfEntryPoint);
-        return static_cast<void*>(entrypoint);
+        return entrypoint;
     }
     catch (const std::exception& e) {
         logging::E("Failed to retrieve entry point for 0x{:X}: {}", hProcess, e.what());
@@ -295,7 +295,7 @@ extern "C" HRESULT WINAPI RewriteRemoteEntryPointW(HANDLE hProcess, const wchar_
         
         auto& params = *reinterpret_cast<RewrittenEntryPointParameters*>(buffer.data());
         params.entrypointLength = entrypoint_replacement.size();
-        params.pEntrypoint = static_cast<char*>(entrypoint);
+        params.pEntrypoint = entrypoint;
 
         // Backup original entry point.
         last_operation = std::format(L"read_process_memory_or_throw(entrypoint, {}b)", entrypoint_replacement.size());

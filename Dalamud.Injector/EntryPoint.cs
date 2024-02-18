@@ -701,6 +701,10 @@ namespace Dalamud.Injector
             {
                 dalamudStartInfo.LoadMethod = LoadMethod.DllInject;
             }
+            else if (mode.Length > 0 && mode.Length <= 6 && "hybrid"[0..mode.Length] == mode)
+            {
+                dalamudStartInfo.LoadMethod = LoadMethod.Hybrid;
+            }
             else
             {
                 throw new CommandLineException($"\"{mode}\" is not a valid Dalamud load mode.");
@@ -804,6 +808,12 @@ namespace Dalamud.Injector
                 gameArgumentString = string.Join(" ", gameArguments.Select(x => EncodeParameterArgument(x)));
             }
 
+            var entryPoint = nint.Zero;
+            var entryPointInstruction = new byte[1];
+
+            // waiting with a suspended main thread will always deadlock
+            waitForGameWindow = (dalamudStartInfo.LoadMethod != LoadMethod.Hybrid) && waitForGameWindow;
+
             var (process, mainThreadHandle) = GameStart.LaunchGame(
                 Path.GetDirectoryName(gamePath),
                 gamePath,
@@ -819,12 +829,54 @@ namespace Dalamud.Injector
                             RewriteRemoteEntryPointW(p.Handle, gamePath, JsonConvert.SerializeObject(startInfo)));
                         Log.Verbose("RewriteRemoteEntryPointW called!");
                     }
+
+                    if (!withoutDalamud && dalamudStartInfo.LoadMethod == LoadMethod.Hybrid)
+                    {
+                        DebugSetProcessKillOnExit(false);
+                        entryPoint = GetRemoteEntryPointW(p.Handle, gamePath);
+                        if (entryPoint == nint.Zero)
+                            throw new EntryPointNotFoundException("Couldn't get game process entry point");
+                        Log.Verbose("Got remote entry point {0}", entryPoint);
+                        var int3 = new byte[] { 0xCC };
+                        VirtualProtectEx(p.Handle, entryPoint, 1, MemoryProtection.ExecuteReadWrite, out var entryPointProtection);
+                        Log.Verbose("Original entry point protection {0}", entryPointProtection);
+                        ReadProcessMemory(p.Handle, entryPoint, entryPointInstruction, 1, out var numberOfBytesRead);
+                        Log.Verbose("Original entry point instruction {0}", entryPointInstruction[0]);
+                        WriteProcessMemory(p.Handle, entryPoint, int3, 1, out var numberOfBytesWritten);
+                        if (numberOfBytesWritten != 1)
+                            throw new Exception("Failed to set breakpoint at entry point");
+                        VirtualProtectEx(p.Handle, entryPoint, 1, entryPointProtection, out _);
+                        FlushInstructionCache(p.Handle, entryPoint, 1);
+                    }
                 },
-                waitForGameWindow);
+                (p, mt) =>
+                {
+                    if (!withoutDalamud && dalamudStartInfo.LoadMethod == LoadMethod.Hybrid)
+                    {
+                        var dwThreadId = WaitForBreakpointDebugEvent(entryPoint);
+                        DecrementRip(mt);
+                        VirtualProtectEx(p.Handle, entryPoint, 1, MemoryProtection.ExecuteReadWrite, out var entryPointProtection);
+                        WriteProcessMemory(p.Handle, entryPoint, entryPointInstruction, 1, out var numberOfBytesWritten);
+                        if (numberOfBytesWritten != 1)
+                            throw new Exception("Failed to restore entry point instruction");
+                        VirtualProtectEx(p.Handle, entryPoint, 1, entryPointProtection, out _);
+                        FlushInstructionCache(p.Handle, entryPoint, 1);
+                        SuspendThread(mt);
+                        if (!ContinueDebugEvent((uint)p.Id, dwThreadId, DBG_CONTINUE))
+                            throw new Exception("ContinueDebugEvent failed");
+                        if (DbgUiStopDebugging(p.Handle) != 0)
+                        {
+                            throw new Exception("Couldn't detach from target");
+                        }
+                    }
+                },
+                waitForGameWindow,
+                !withoutDalamud && dalamudStartInfo.LoadMethod == LoadMethod.Hybrid);
 
             Log.Verbose("Game process started with PID {0}", process.Id);
 
-            if (!withoutDalamud && dalamudStartInfo.LoadMethod == LoadMethod.DllInject)
+            if (!withoutDalamud && (dalamudStartInfo.LoadMethod == LoadMethod.DllInject ||
+                                    dalamudStartInfo.LoadMethod == LoadMethod.Hybrid))
             {
                 var startInfo = AdjustStartInfo(dalamudStartInfo, gamePath);
                 Log.Information("Using start info: {0}", JsonConvert.SerializeObject(startInfo));
@@ -844,6 +896,79 @@ namespace Dalamud.Injector
 
             Log.CloseAndFlush();
             return 0;
+        }
+
+        private static uint WaitForBreakpointDebugEvent(nint exceptionAddress)
+        {
+            var dwThreadId = 0U;
+            var debugEventPtr = Marshal.AllocHGlobal(188);
+
+            Log.Verbose("Waiting for debug breakpoint event...");
+
+            while (WaitForDebugEvent(debugEventPtr, uint.MaxValue))
+            {
+                var debugEvent = Marshal.PtrToStructure<DebugEvent>(debugEventPtr);
+
+                Log.Verbose("Got debug event code: {0}", debugEvent.dwDebugEventCode);
+
+                if (debugEvent.dwDebugEventCode != EXCEPTION_DEBUG_EVENT)
+                {
+                    ContinueDebugEvent(debugEvent.dwProcessId, debugEvent.dwThreadId, DBG_CONTINUE);
+                    continue;
+                }
+
+                if (debugEvent.ExceptionDebugInfo.ExceptionRecord.ExceptionCode != EXCEPTION_BREAKPOINT)
+                {
+                    ContinueDebugEvent(debugEvent.dwProcessId, debugEvent.dwThreadId, DBG_CONTINUE);
+                    continue;
+                }
+
+                Log.Debug("Got debug breakpoint event with adress {0}", debugEvent.ExceptionDebugInfo.ExceptionRecord.ExceptionAddress);
+
+                if (debugEvent.ExceptionDebugInfo.ExceptionRecord.ExceptionAddress != exceptionAddress)
+                {
+                    ContinueDebugEvent(debugEvent.dwProcessId, debugEvent.dwThreadId, DBG_CONTINUE);
+                    continue;
+                }
+
+                dwThreadId = debugEvent.dwThreadId;
+                Log.Information("Got entry point debug breakpoint event for TID {0}", dwThreadId);
+                break;
+            }
+
+            Marshal.FreeHGlobal(debugEventPtr);
+            if (dwThreadId == 0)
+            {
+                Log.Error("Failed to wait for debug event");
+                throw new Win32Exception(Marshal.GetLastWin32Error());
+            }
+
+            return dwThreadId;
+        }
+
+        private static void DecrementRip(nint threadHandle)
+        {
+            // Similar to the debug event struct above, instead of fully defining every union and all
+            // structs, just allocate the size of the struct and then marshall into our partial one.
+            var context64Ptr = Marshal.AllocHGlobal(1232);
+
+            try
+            {
+                var emptyContext64 = Marshal.PtrToStructure<Context64>(context64Ptr);
+                emptyContext64.ContextFlags = ContextFlags.CONTEXT_CONTROL;
+                Marshal.StructureToPtr(emptyContext64, context64Ptr, false);
+                if (!GetThreadContext(threadHandle, context64Ptr))
+                    throw new Win32Exception(Marshal.GetLastWin32Error());
+                var context64 = Marshal.PtrToStructure<Context64>(context64Ptr);
+                context64.Rip--;
+                Marshal.StructureToPtr(context64, context64Ptr, false);
+                if (!SetThreadContext(threadHandle, context64Ptr))
+                    throw new Win32Exception(Marshal.GetLastWin32Error());
+            }
+            finally
+            {
+                Marshal.FreeHGlobal(context64Ptr);
+            }
         }
 
         private static Process GetInheritableCurrentProcessHandle()
@@ -974,6 +1099,9 @@ namespace Dalamud.Injector
 
             Log.Information("Done");
         }
+
+        [DllImport("Dalamud.Boot.dll")]
+        private static extern nint GetRemoteEntryPointW(IntPtr hProcess, [MarshalAs(UnmanagedType.LPWStr)] string gamePath);
 
         [DllImport("Dalamud.Boot.dll")]
         private static extern int RewriteRemoteEntryPointW(IntPtr hProcess, [MarshalAs(UnmanagedType.LPWStr)] string gamePath, [MarshalAs(UnmanagedType.LPWStr)] string loadInfoJson);

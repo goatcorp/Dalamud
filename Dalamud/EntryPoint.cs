@@ -168,19 +168,25 @@ public sealed class EntryPoint
             }
 
             var currentSuspendCount = (int)NativeFunctions.SuspendThread(mainThreadHandle) + 1;
+            Log.Verbose("Current main thread suspend count {0}", currentSuspendCount);
             suspendSignal.Set();
 
             switch (info.LoadMethod)
             {
                 case LoadMethod.Entrypoint:
                     if (currentSuspendCount != 1)
-                        Log.Warning("Unexpected suspend count {} for main thread with Entrypoint", currentSuspendCount);
+                        Log.Warning("Unexpected suspend count {0} for main thread with Entrypoint", currentSuspendCount);
                     break;
                 case LoadMethod.DllInject:
                     if (currentSuspendCount != 1)
-                        Log.Warning("Unexpected suspend count {} for main thread with DllInject", currentSuspendCount);
+                        Log.Warning("Unexpected suspend count {0} for main thread with DllInject", currentSuspendCount);
+                    break;
+                case LoadMethod.Hybrid:
+                    if (currentSuspendCount != 2)
+                        Log.Warning("Unexpected suspend count {0} for main thread with Hybrid injection", currentSuspendCount);
                     break;
                 default:
+                    Log.Warning("Unknown LoadMethod {0}", info.LoadMethod);
                     break;
             }
 

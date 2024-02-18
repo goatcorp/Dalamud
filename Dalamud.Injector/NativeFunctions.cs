@@ -759,6 +759,47 @@ namespace Dalamud.Injector
             MemoryProtection flProtect);
 
         /// <summary>
+        /// Changes the protection on a region of committed pages in the virtual address space of a specified process.
+        /// For more information, see https://docs.microsoft.com/en-us/windows/win32/api/memoryapi/nf-memoryapi-virtualprotectex.
+        /// </summary>
+        /// <param name="hProcess">
+        /// The handle to the process whose memory protection is to be changed. The handle must have the PROCESS_VM_OPERATION access
+        /// right.
+        /// </param>
+        /// <param name="lpAddress">
+        /// A pointer to the base address of the region of pages whose access protection attributes are to be changed. All pages in
+        /// the specified region must be within the same reserved region allocated when calling the VirtualAlloc or VirtualAllocEx
+        /// function using MEM_RESERVE. The pages cannot span reserved regions that were allocated by separate calls to VirtualAlloc
+        /// or VirtualAllocEx using MEM_RESERVE.
+        /// </param>
+        /// <param name="dwSize">
+        /// The size of the region whose access protection attributes are changed, in bytes. The region of affected pages includes
+        /// all pages containing one or more bytes in the range from the lpAddress parameter to (lpAddress+dwSize). This means that
+        /// a 2-byte range straddling a page boundary causes the protection attributes of both pages to be changed.
+        /// </param>
+        /// <param name="flNewProtect">
+        /// The memory protection option. This parameter can be one of the memory protection constants. For the most common use, to
+        /// execute code in the region, the memory must be marked as PAGE_EXECUTE, PAGE_EXECUTE_READ, PAGE_EXECUTE_READWRITE or
+        /// PAGE_EXECUTE_WRITECOPY.
+        /// </param>
+        /// <param name="lpflOldProtect">
+        /// A pointer to a variable that receives the previous access protection value of the first page in the specified region of
+        /// pages. If this parameter is NULL or does not point to a valid variable, the function fails.
+        /// </param>
+        /// <returns>
+        /// If the function succeeds, the return value is nonzero. If the function fails, the return value is zero. To get extended
+        /// error information, call GetLastError.
+        /// </returns>
+        [DllImport("kernel32.dll", SetLastError = true)]
+        public static extern bool VirtualProtectEx(
+            IntPtr hProcess,
+            IntPtr lpAddress,
+            UIntPtr dwSize,
+            MemoryProtection flNewProtect,
+            out MemoryProtection lpflOldProtect);
+
+
+        /// <summary>
         /// See https://docs.microsoft.com/en-us/windows/win32/api/memoryapi/nf-memoryapi-virtualfreeex.
         /// Releases, decommits, or releases and decommits a region of memory within the virtual address space of a specified
         /// process.
@@ -815,6 +856,255 @@ namespace Dalamud.Injector
         [DllImport("kernel32.dll", SetLastError = true)]
         public static extern uint WaitForSingleObject(IntPtr hHandle, uint dwMilliseconds);
 
+        public const uint EXCEPTION_DEBUG_EVENT = 1;
+        public const uint EXCEPTION_BREAKPOINT = 0x80000003;
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct ExceptionRecord
+        {
+            public uint ExceptionCode;
+            public uint ExceptionFlags;
+            public IntPtr NextExceptionRecord;
+            public IntPtr ExceptionAddress;
+            public uint NumberParameters;
+            [MarshalAs(UnmanagedType.ByValArray, SizeConst = 15, ArraySubType = UnmanagedType.U4)]
+            public uint[] ExceptionInformation;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct ExceptionDebugInfo
+        {
+            public ExceptionRecord ExceptionRecord;
+            public uint dwFirstChance;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct DebugEvent
+        {
+            public uint dwDebugEventCode;
+            public uint dwProcessId;
+            public uint dwThreadId;
+            public uint dw64PlatformPadding;
+            public ExceptionDebugInfo ExceptionDebugInfo;
+        }
+
+        /// <summary>
+        /// Waits for a debugging event to occur in a debugged process.
+        /// </summary>
+        /// <param name="lpDebugEvent">
+        /// Out parameter that receives information about the debugging event.
+        /// </param>
+        /// <param name="dwMilliseconds">
+        /// The time-out interval, in milliseconds. If this parameter is zero, the function tests for a debugging event and returns
+        /// immediately. If the parameter is INFINITE, the function does not return until a debugging event
+        /// has occurred.
+        /// </param>
+        /// <returns>
+        /// If the function succeeds, the return value is nonzero. If the function fails, the return value is zero. To get extended
+        /// error information, call GetLastError.
+        /// </returns>
+        [DllImport("kernel32.dll", SetLastError = true)]
+        public static extern bool WaitForDebugEvent(nint lpDebugEvent, uint dwMilliseconds);
+
+        /// <summary>
+        /// If the thread specified by the dwThreadId parameter previously reported an EXCEPTION_DEBUG_EVENT debugging event, the function
+        /// stops all exception processing and continues the thread and the exception is marked as handled. For any other debugging event,
+        /// this flag simply continues the thread.
+        /// </summary>
+        public const uint DBG_CONTINUE = 0x00010002;
+
+        /// <summary>
+        /// Enables a debugger to continue a thread that previously reported a debugging event.
+        /// </summary>
+        /// <param name="dwProcessId">
+        /// The identifier of the process in which the debug event occurred.
+        /// </param>
+        /// <param name="dwThreadId">
+        /// The identifier of the thread that generated the debug event.
+        /// </param>
+        /// <param name="dwContinueStatus">
+        /// The flags that control how the debugging continues. Use DBG_CONTINUE for most debug events, including EXCEPTION_DEBUG_EVENT.
+        /// For exceptions, you can also use DBG_EXCEPTION_NOT_HANDLED to indicate the debugger did not handle the exception.
+        /// </param>
+        /// <returns>
+        /// If the function succeeds, the return value is nonzero. If the function fails, the return value is zero. To get extended error
+        /// information, call GetLastError
+        /// .</returns>
+        [DllImport("kernel32.dll", SetLastError = true)]
+        public static extern bool ContinueDebugEvent(
+            uint dwProcessId,
+            uint dwThreadId,
+            uint dwContinueStatus);
+
+        /// <summary>
+        /// Sets a flag indicating whether a debugged process is to be terminated when the debugger exits.
+        /// </summary>
+        /// <param name="killOnExit">
+        /// If this parameter is TRUE, the debugged process is terminated when the debugger exits. If it is FALSE, the debugged process
+        /// continues to run after the debugger exits.
+        /// </param>
+        /// <returns>
+        /// If the function succeeds, the return value is nonzero. If the function fails, the return value is zero. To get extended error
+        /// information, call GetLastError.
+        /// </returns>
+        [DllImport("kernel32.dll", SetLastError = true)]
+        public static extern bool DebugSetProcessKillOnExit(bool killOnExit);
+
+        /// <summary>
+        /// Stops the debugger from debugging the specified process.
+        /// </summary>
+        /// <param name="hProcess">
+        /// The handle of the process from which the debugger will detach.
+        /// </param>
+        /// <returns>
+        /// The function returns an NTSTATUS.
+        /// </returns>
+        [DllImport("ntdll.dll")]
+        public static extern uint DbgUiStopDebugging(IntPtr hProcess);
+
+        /// <summary>
+        /// Suspends a thread.
+        /// </summary>
+        /// <param name="hThread">Handle to the thread to be suspended.</param>
+        /// <returns>If the function succeeds, the return value is the thread's previous suspend count.
+        /// If the function fails, the return value is (DWORD) -1.</returns>
+        [DllImport("kernel32.dll", SetLastError = true)]
+        public static extern uint SuspendThread(IntPtr hThread);
+
+        public enum ContextFlags : uint
+        {
+            CONTEXT_i386 = 0x10000,
+
+            /// <summary>
+            /// SS:SP, CS:IP, FLAGS, BP.
+            /// </summary>
+            CONTEXT_CONTROL = CONTEXT_i386 | 0x01,
+        }
+
+        /// <summary>
+        /// Beginning of the CONTEXT64 struct.
+        /// Only useable on handles for x64 threads.
+        /// </summary>
+        [StructLayout(LayoutKind.Sequential, Pack = 16)]
+        public struct Context64
+        {
+            public ulong P1Home;
+            public ulong P2Home;
+            public ulong P3Home;
+            public ulong P4Home;
+            public ulong P5Home;
+            public ulong P6Home;
+
+            public ContextFlags ContextFlags;
+            public uint MxCsr;
+
+            public ushort SegCs;
+            public ushort SegDs;
+            public ushort SegEs;
+            public ushort SegFs;
+            public ushort SegGs;
+            public ushort SegSs;
+            public uint EFlags;
+
+            public ulong Dr0;
+            public ulong Dr1;
+            public ulong Dr2;
+            public ulong Dr3;
+            public ulong Dr6;
+            public ulong Dr7;
+
+            public ulong Rax;
+            public ulong Rcx;
+            public ulong Rdx;
+            public ulong Rbx;
+            public ulong Rsp;
+            public ulong Rbp;
+            public ulong Rsi;
+            public ulong Rdi;
+            public ulong R8;
+            public ulong R9;
+            public ulong R10;
+            public ulong R11;
+            public ulong R12;
+            public ulong R13;
+            public ulong R14;
+            public ulong R15;
+            public ulong Rip;
+        }
+
+        /// <summary>
+        /// Retrieves the context of the specified thread.
+        /// </summary>
+        /// <param name="hThread">A
+        /// handle to the thread whose context is to be retrieved. The handle must have THREAD_GET_CONTEXT access to the thread.
+        /// </param>
+        /// <param name="lpContext">
+        /// A pointer to a CONTEXT structure that receives the context of the thread. The caller must initialize the ContextFlags member
+        /// of this structure to indicate which portions of a thread's context are requested.
+        /// </param>
+        /// <returns>
+        /// If the function succeeds, the return value is true. If the function fails, the return value is false. To get extended error
+        /// information, call GetLastError.</returns>
+        /// <remarks>
+        /// The GetThreadContext function is used to retrieve the context of the specified thread. A 64-bit application can retrieve the
+        /// context of a WOW64 thread using the Wow64GetThreadContext function.
+        /// </remarks>
+        [DllImport("kernel32.dll", SetLastError = true)]
+        public static extern bool GetThreadContext(IntPtr hThread, IntPtr lpContext);
+
+        /// <summary>
+        /// Sets the context for the specified thread.
+        /// </summary>
+        /// <param name="hThread">
+        /// A handle to the thread whose context is to be set. The handle must have THREAD_SET_CONTEXT access to the thread.
+        /// </param>
+        /// <param name="lpContext">
+        /// A pointer to a CONTEXT structure that contains the context to be set in the specified thread. The value of the ContextFlags
+        /// member of this structure specifies which portions of a thread's context to set.
+        /// </param>
+        /// <returns>
+        /// If the function succeeds, the return value is true. If the function fails, the return value is false. To get extended error
+        /// information, call GetLastError.
+        /// </returns>
+        /// <remarks>
+        /// The SetThreadContext function is used to set the context of the specified thread. A 64-bit application can set the context of
+        /// a WOW64 thread using the Wow64SetThreadContext function.
+        /// </remarks>
+        [DllImport("kernel32.dll", SetLastError = true)]
+        public static extern bool SetThreadContext(IntPtr hThread, IntPtr lpContext);
+
+        /// <summary>
+        /// Reads data from an area of memory in a specified process. The entire area to be read must be accessible, or the operation fails.
+        /// </summary>
+        /// <param name="hProcess">
+        /// A handle to the process with memory that is being read. The handle must have PROCESS_VM_READ access to the process.
+        /// </param>
+        /// <param name="lpBaseAddress">
+        /// A pointer to the base address in the specified process from which to read. Before the data transfer occurs, the system verifies
+        /// that all data in the specified memory range is accessible for read access, and if it is not accessible, the function fails.
+        /// </param>
+        /// <param name="lpBuffer">
+        /// A pointer to a buffer that receives the data read from the address space of the specified process.
+        /// </param>
+        /// <param name="dwSize">
+        /// The number of bytes to be read from the specified process.
+        /// </param>
+        /// <param name="lpNumberOfBytesRead">
+        /// A pointer to a variable that receives the number of bytes transferred into the specified buffer. This parameter is optional.
+        /// If lpNumberOfBytesRead is NULL, the parameter is ignored.
+        /// </param>
+        /// <returns>
+        /// If the function succeeds, the return value is nonzero. If the function fails, the return value is 0 (zero). To get extended error
+        /// information, call GetLastError. The function fails if the requested read operation crosses into an area of the process that is inaccessible.
+        /// </returns>
+        [DllImport("kernel32.dll", SetLastError = true)]
+        public static extern bool ReadProcessMemory(
+            IntPtr hProcess,
+            IntPtr lpBaseAddress,
+            [Out] byte[] lpBuffer,
+            int dwSize,
+            out IntPtr lpNumberOfBytesRead);
+
         /// <summary>
         /// Writes data to an area of memory in a specified process. The entire area to be written to must be accessible or
         /// the operation fails.
@@ -850,6 +1140,33 @@ namespace Dalamud.Injector
             byte[] lpBuffer,
             int dwSize,
             out IntPtr lpNumberOfBytesWritten);
+
+        /// <summary>
+        /// Flushes the instruction cache for the specified process. This function is necessary if you are generating or
+        /// modifying code in memory for a process that is currently running.
+        /// For more information, see https://docs.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-flushinstructioncache.
+        /// </summary>
+        /// <param name="hProcess">
+        /// A handle to a process whose instruction cache is to be flushed. This handle must have the PROCESS_VM_OPERATION
+        /// access right. For more information, see Process Security and Access Rights.
+        /// </param>
+        /// <param name="lpBaseAddress">
+        /// A pointer to the base of the region to be flushed. This parameter can be NULL.
+        /// </param>
+        /// <param name="dwSize">
+        /// The size of the region to be flushed if the lpBaseAddress parameter is not NULL, in bytes. If lpBaseAddress is NULL,
+        /// dwSize is ignored.
+        /// </param>
+        /// <returns>
+        /// If the function succeeds, the return value is nonzero. If the function fails, the return value is zero. To get extended
+        /// error information, call GetLastError.
+        /// </returns>
+        [DllImport("kernel32.dll", SetLastError = true)]
+        public static extern bool FlushInstructionCache(
+            IntPtr hProcess,
+            IntPtr lpBaseAddress,
+            int dwSize);
+
 
         /// <summary>
         /// Duplicates an object handle.
