@@ -83,9 +83,9 @@ internal sealed partial class FontAtlasFactory
         public ImVectorWrapper<ImFontPtr> Fonts => this.data.Fonts;
 
         /// <summary>
-        /// Gets the list of fonts to ignore global scale.
+        /// Gets the font scale modes.
         /// </summary>
-        public List<ImFontPtr> GlobalScaleExclusions { get; } = new();
+        private Dictionary<ImFontPtr, FontScaleMode> FontScaleModes { get; } = new();
 
         /// <inheritdoc/>
         public void Dispose() => this.disposeAfterBuild.Dispose();
@@ -151,15 +151,15 @@ internal sealed partial class FontAtlasFactory
         }
 
         /// <inheritdoc/>
-        public ImFontPtr IgnoreGlobalScale(ImFontPtr fontPtr)
+        public ImFontPtr SetFontScaleMode(ImFontPtr fontPtr, FontScaleMode scaleMode)
         {
-            this.GlobalScaleExclusions.Add(fontPtr);
+            this.FontScaleModes[fontPtr] = scaleMode;
             return fontPtr;
         }
 
-        /// <inheritdoc cref="IFontAtlasBuildToolkitPreBuild.IsGlobalScaleIgnored"/>
-        public bool IsGlobalScaleIgnored(ImFontPtr fontPtr) =>
-            this.GlobalScaleExclusions.Contains(fontPtr);
+        /// <inheritdoc cref="IFontAtlasBuildToolkitPreBuild.GetFontScaleMode"/>
+        public FontScaleMode GetFontScaleMode(ImFontPtr fontPtr) =>
+            this.FontScaleModes.GetValueOrDefault(fontPtr, FontScaleMode.Default);
 
         /// <inheritdoc/>
         public int StoreTexture(IDalamudTextureWrap textureWrap, bool disposeOnError) =>
@@ -496,17 +496,17 @@ internal sealed partial class FontAtlasFactory
             var configData = this.data.ConfigData;
             foreach (ref var config in configData.DataSpan)
             {
-                if (this.GlobalScaleExclusions.Contains(new(config.DstFont)))
+                if (this.GetFontScaleMode(config.DstFont) != FontScaleMode.Default)
                     continue;
 
                 config.SizePixels *= this.Scale;
 
                 config.GlyphMaxAdvanceX *= this.Scale;
-                if (float.IsInfinity(config.GlyphMaxAdvanceX))
+                if (float.IsInfinity(config.GlyphMaxAdvanceX) || float.IsNaN(config.GlyphMaxAdvanceX))
                     config.GlyphMaxAdvanceX = config.GlyphMaxAdvanceX > 0 ? float.MaxValue : -float.MaxValue;
 
                 config.GlyphMinAdvanceX *= this.Scale;
-                if (float.IsInfinity(config.GlyphMinAdvanceX))
+                if (float.IsInfinity(config.GlyphMinAdvanceX) || float.IsNaN(config.GlyphMinAdvanceX))
                     config.GlyphMinAdvanceX = config.GlyphMinAdvanceX > 0 ? float.MaxValue : -float.MaxValue;
 
                 config.GlyphOffset *= this.Scale;
@@ -536,7 +536,7 @@ internal sealed partial class FontAtlasFactory
             var scale = this.Scale;
             foreach (ref var font in this.Fonts.DataSpan)
             {
-                if (!this.GlobalScaleExclusions.Contains(font))
+                if (this.GetFontScaleMode(font) != FontScaleMode.SkipHandling)
                     font.AdjustGlyphMetrics(1 / scale, 1 / scale);
 
                 foreach (var c in FallbackCodepoints)

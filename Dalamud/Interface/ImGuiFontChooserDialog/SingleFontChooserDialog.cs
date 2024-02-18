@@ -342,9 +342,7 @@ public sealed class SingleFontChooserDialog : IDisposable
         {
             this.fontHandle ??= this.selectedFont.CreateFontHandle(
                 this.atlas,
-                tk =>
-                    tk.OnPreBuild(e => e.IgnoreGlobalScale(e.Font))
-                      .OnPostBuild(e => e.Font.AdjustGlyphMetrics(1f / e.Scale)));
+                tk => tk.OnPreBuild(e => e.SetFontScaleMode(e.Font, FontScaleMode.UndoGlobalScale)));
         }
         else
         {
@@ -837,7 +835,7 @@ public sealed class SingleFontChooserDialog : IDisposable
         var changed = false;
 
         if (!ImGui.BeginTable("##advancedOptions", 4))
-            return changed;
+            return false;
 
         var labelWidth = ImGui.CalcTextSize("Letter Spacing:").X;
         labelWidth = Math.Max(labelWidth, ImGui.CalcTextSize("Offset:").X);
