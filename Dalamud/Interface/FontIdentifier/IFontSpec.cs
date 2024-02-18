@@ -31,6 +31,8 @@ public interface IFontSpec
     /// <param name="atlas">The atlas to bind this font handle to.</param>
     /// <param name="callback">Optional callback to be called after creating the font handle.</param>
     /// <returns>The new font handle.</returns>
+    /// <remarks><see cref="IFontAtlasBuildToolkit.Font"/> will be set when <paramref name="callback"/> is invoked.
+    /// </remarks>
     IFontHandle CreateFontHandle(IFontAtlas atlas, FontAtlasBuildStepDelegate? callback = null);
 
     /// <summary>

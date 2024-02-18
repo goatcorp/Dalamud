@@ -109,7 +109,7 @@ public record SingleFontSpec : IFontSpec
         tk.RegisterPostBuild(
             () =>
             {
-                var roundUnit = tk.IsGlobalScaleIgnored(font) ? 1 : 1 / tk.Scale;
+                var roundUnit = tk.GetFontScaleMode(font) == FontScaleMode.SkipHandling ? 1 : 1 / tk.Scale;
                 var newAscent = MathF.Round((font.Ascent * this.LineHeight) / roundUnit) * roundUnit;
                 var newFontSize = MathF.Round((font.FontSize * this.LineHeight) / roundUnit) * roundUnit;
                 var shiftDown = MathF.Round((newFontSize - font.FontSize) / 2f / roundUnit) * roundUnit;

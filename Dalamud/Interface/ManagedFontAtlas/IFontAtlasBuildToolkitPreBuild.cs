@@ -4,6 +4,7 @@ using System.Runtime.InteropServices;
 using Dalamud.Interface.FontIdentifier;
 using Dalamud.Interface.GameFonts;
 using Dalamud.Interface.Utility;
+using Dalamud.Utility;
 
 using ImGuiNET;
 
@@ -45,14 +46,37 @@ public interface IFontAtlasBuildToolkitPreBuild : IFontAtlasBuildToolkit
     /// </summary>
     /// <param name="fontPtr">The font.</param>
     /// <returns>Same <see cref="ImFontPtr"/> with <paramref name="fontPtr"/>.</returns>
-    ImFontPtr IgnoreGlobalScale(ImFontPtr fontPtr);
+    [Obsolete(
+        $"Use {nameof(this.SetFontScaleMode)} with {nameof(FontScaleMode)}.{nameof(FontScaleMode.UndoGlobalScale)}")]
+    [Api10ToDo(Api10ToDoAttribute.DeleteCompatBehavior)]
+    ImFontPtr IgnoreGlobalScale(ImFontPtr fontPtr) => this.SetFontScaleMode(fontPtr, FontScaleMode.UndoGlobalScale);
 
     /// <summary>
     /// Gets whether global scaling is ignored for the given font.
     /// </summary>
     /// <param name="fontPtr">The font.</param>
     /// <returns>True if ignored.</returns>
-    bool IsGlobalScaleIgnored(ImFontPtr fontPtr);
+    [Obsolete($"Use {nameof(this.GetFontScaleMode)}")]
+    [Api10ToDo(Api10ToDoAttribute.DeleteCompatBehavior)]
+    bool IsGlobalScaleIgnored(ImFontPtr fontPtr) => this.GetFontScaleMode(fontPtr) == FontScaleMode.UndoGlobalScale;
+
+    /// <summary>
+    /// Sets the scaling mode for the given font.
+    /// </summary>
+    /// <param name="fontPtr">The font, returned from <see cref="AddFontFromFile"/> and alike.
+    /// Note that <see cref="IFontAtlasBuildToolkit.Font"/> property is not guaranteed to be automatically updated upon
+    /// calling font adding functions. Pass the return value from font adding functions, not
+    /// <see cref="IFontAtlasBuildToolkit.Font"/> property.</param>
+    /// <param name="mode">The scaling mode.</param>
+    /// <returns><paramref name="fontPtr"/>.</returns>
+    ImFontPtr SetFontScaleMode(ImFontPtr fontPtr, FontScaleMode mode);
+
+    /// <summary>
+    /// Gets the scaling mode for the given font.
+    /// </summary>
+    /// <param name="fontPtr">The font.</param>
+    /// <returns>The scaling mode.</returns>
+    FontScaleMode GetFontScaleMode(ImFontPtr fontPtr);
 
     /// <summary>
     /// Registers a function to be run after build.
