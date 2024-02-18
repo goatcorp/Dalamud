@@ -83,9 +83,9 @@ internal sealed partial class FontAtlasFactory
         public ImVectorWrapper<ImFontPtr> Fonts => this.data.Fonts;
 
         /// <summary>
-        /// Gets the list of fonts to ignore global scale.
+        /// Gets the font scale modes.
         /// </summary>
-        private Dictionary<ImFontPtr, FontScaleMode> GlobalScaleExclusions { get; } = new();
+        private Dictionary<ImFontPtr, FontScaleMode> FontScaleModes { get; } = new();
 
         /// <inheritdoc/>
         public void Dispose() => this.disposeAfterBuild.Dispose();
@@ -153,13 +153,13 @@ internal sealed partial class FontAtlasFactory
         /// <inheritdoc/>
         public ImFontPtr SetFontScaleMode(ImFontPtr fontPtr, FontScaleMode scaleMode)
         {
-            this.GlobalScaleExclusions[fontPtr] = scaleMode;
+            this.FontScaleModes[fontPtr] = scaleMode;
             return fontPtr;
         }
 
         /// <inheritdoc cref="IFontAtlasBuildToolkitPreBuild.GetFontScaleMode"/>
         public FontScaleMode GetFontScaleMode(ImFontPtr fontPtr) =>
-            this.GlobalScaleExclusions.GetValueOrDefault(fontPtr, FontScaleMode.Default);
+            this.FontScaleModes.GetValueOrDefault(fontPtr, FontScaleMode.Default);
 
         /// <inheritdoc/>
         public int StoreTexture(IDalamudTextureWrap textureWrap, bool disposeOnError) =>
