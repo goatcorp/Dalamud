@@ -731,8 +731,6 @@ internal class ConsoleWindow : Window, IDisposable
             return false;
         }
 
-        this.regexError = false;
-        
         // else we couldn't find a filter for this entry, if we have any filters, we need to block this entry.
         return !this.pluginFilters.Any();
     }
@@ -741,6 +739,7 @@ internal class ConsoleWindow : Window, IDisposable
     {
         lock (this.renderLock)
         {
+            this.regexError = false;
             this.FilteredLogEntries = this.logText.Where(this.IsFilterApplicable).ToList();
         }
     }
