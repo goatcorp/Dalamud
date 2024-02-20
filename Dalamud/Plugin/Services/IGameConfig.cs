@@ -1,14 +1,20 @@
-﻿using System;
-using System.Diagnostics;
+﻿using System.Diagnostics;
+using System.Threading.Tasks;
 
 using Dalamud.Game.Config;
-using FFXIVClientStructs.FFXIV.Common.Configuration;
+using Dalamud.Plugin.Internal.Types;
 
 namespace Dalamud.Plugin.Services;
 
 /// <summary>
 /// This class represents the game's configuration.
 /// </summary>
+/// <remarks>
+/// Avoid accessing configuration from your plugin constructor, especially if your plugin sets
+/// <see cref="PluginManifest.LoadRequiredState"/> to <c>2</c> and <see cref="PluginManifest.LoadSync"/> to <c>true</c>.
+/// If property access from the plugin constructor is desired, do the value retrieval asynchronously via
+/// <see cref="IFramework.RunOnFrameworkThread{T}(Func{T})"/>; do not wait for the result right away.
+/// </remarks>
 public interface IGameConfig
 {
     /// <summary>
@@ -30,6 +36,16 @@ public interface IGameConfig
     /// Event which is fired when a UiControl config option is changed.
     /// </summary>
     public event EventHandler<ConfigChangeEvent> UiControlChanged; 
+
+    /// <summary>
+    /// Gets a task representing the initialization state of this instance of <see cref="IGameConfig"/>.
+    /// </summary>
+    /// <remarks>
+    /// Accessing <see cref="GameConfigSection"/>-typed properties such as <see cref="System"/>, directly or indirectly
+    /// via <see cref="TryGet(Game.Config.SystemConfigOption,out bool)"/>,
+    /// <see cref="Set(Game.Config.SystemConfigOption,bool)"/>, or alike will block, if this task is incomplete.
+    /// </remarks>
+    public Task InitializationTask { get; }
 
     /// <summary>
     /// Gets the collection of config options that persist between characters.
