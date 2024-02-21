@@ -132,6 +132,6 @@ public partial interface ITextureProvider
     /// Get a texture handle for the specified Lumina <see cref="TexFile"/>.
     /// </summary>
     /// <param name="file">The texture to obtain a handle to.</param>
-    /// <returns>A texture wrap that can be used to render the texture.</returns>
+    /// <returns>A texture wrap that can be used to render the texture. Dispose after use.</returns>
     public IDalamudTextureWrap GetTexture(TexFile file);
 }
