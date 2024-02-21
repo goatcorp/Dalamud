@@ -66,7 +66,7 @@ internal abstract class SharableTexture : IRefCountable
     /// <summary>
     /// Gets or sets the underlying texture wrap.
     /// </summary>
-    protected abstract Task<IDalamudTextureWrap> UnderlyingWrap { get; set; }
+    public Task<IDalamudTextureWrap>? UnderlyingWrap { get; set; }
 
     /// <summary>
     /// Gets or sets the dispose-suppressing wrap for <see cref="UnderlyingWrap"/>.
@@ -185,8 +185,18 @@ internal abstract class SharableTexture : IRefCountable
     public Task<IDalamudTextureWrap> CreateNewReference()
     {
         this.AddRef();
+        if (this.UnderlyingWrap is null)
+            throw new InvalidOperationException("AddRef returned but UnderlyingWrap is null?");
+
         return this.UnderlyingWrap.ContinueWith(
-            r => (IDalamudTextureWrap)new RefCountableWrappingTextureWrap(r.Result, this));
+            r =>
+            {
+                if (r.IsCompletedSuccessfully)
+                    return Task.FromResult((IDalamudTextureWrap)new RefCountableWrappingTextureWrap(r.Result, this));
+
+                this.Release();
+                return r;
+            }).Unwrap();
     }
 
     /// <summary>
@@ -207,9 +217,12 @@ internal abstract class SharableTexture : IRefCountable
             if (this.RevivalPossibility?.TryGetTarget(out this.availableOnAccessWrapForApi9) is true)
                 return this.availableOnAccessWrapForApi9;
 
-            this.UnderlyingWrap.Wait();
-            if (this.UnderlyingWrap.Exception is not null)
+            var newRefTask = this.CreateNewReference();
+            newRefTask.Wait();
+            if (!newRefTask.IsCompletedSuccessfully)
                 return null;
+            newRefTask.Result.Dispose();
+
             this.availableOnAccessWrapForApi9 = new AvailableOnAccessTextureWrap(this);
             this.RevivalPossibility = new(this.availableOnAccessWrapForApi9);
         }
@@ -326,7 +339,7 @@ internal abstract class SharableTexture : IRefCountable
             if (this.inner.GetImmediate() is { } t)
                 return t;
 
-            this.inner.UnderlyingWrap.Wait();
+            this.inner.UnderlyingWrap?.Wait();
             return this.inner.DisposeSuppressingWrap ?? Service<DalamudAssetManager>.Get().Empty4X4;
         }
     }

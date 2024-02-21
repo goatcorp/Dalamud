@@ -1,5 +1,6 @@
 ﻿using System.IO;
 
+using Dalamud.Interface;
 using Dalamud.Interface.Internal;
 using Dalamud.Utility;
 

@@ -146,6 +146,36 @@ internal sealed class TextureManager : IServiceType, IDisposable, ITextureProvid
 #pragma warning restore CS0618 // Type or member is obsolete
 
     /// <inheritdoc/>
+    public bool ImmediateGetStateFromGameIcon(in GameIconLookup lookup, out Exception? exception) =>
+        this.ImmediateGetStateFromGame(this.lookupToPath.GetOrAdd(lookup, this.GetIconPathByValue), out exception);
+
+    /// <inheritdoc/>
+    public bool ImmediateGetStateFromGame(string path, out Exception? exception)
+    {
+        if (!this.gamePathTextures.TryGetValue(path, out var texture))
+        {
+            exception = null;
+            return false;
+        }
+
+        exception = texture.UnderlyingWrap?.Exception;
+        return texture.UnderlyingWrap?.IsCompletedSuccessfully ?? false;
+    }
+
+    /// <inheritdoc/>
+    public bool ImmediateGetStateFromFile(string file, out Exception? exception)
+    {
+        if (!this.fileSystemTextures.TryGetValue(file, out var texture))
+        {
+            exception = null;
+            return false;
+        }
+
+        exception = texture.UnderlyingWrap?.Exception;
+        return texture.UnderlyingWrap?.IsCompletedSuccessfully ?? false;
+    }
+
+    /// <inheritdoc/>
     public IDalamudTextureWrap ImmediateGetFromGameIcon(in GameIconLookup lookup) =>
         this.ImmediateGetFromGame(this.lookupToPath.GetOrAdd(lookup, this.GetIconPathByValue));
 

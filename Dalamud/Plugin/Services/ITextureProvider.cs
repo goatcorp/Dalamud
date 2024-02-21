@@ -13,6 +13,24 @@ namespace Dalamud.Plugin.Services;
 /// </summary>
 public partial interface ITextureProvider
 {
+    /// <summary>Gets the state of the background load task for <see cref="ImmediateGetFromGameIcon"/>.</summary>
+    /// <param name="lookup">The icon specifier.</param>
+    /// <param name="exception">The exception, if failed.</param>
+    /// <returns><c>true</c> if loaded; <c>false</c> if not fully loaded or failed.</returns>
+    public bool ImmediateGetStateFromGameIcon(in GameIconLookup lookup, out Exception? exception);
+
+    /// <summary>Gets the state of the background load task for <see cref="ImmediateGetFromGameIcon"/>.</summary>
+    /// <param name="path">The game-internal path to a .tex, .atex, or an image file such as .png.</param>
+    /// <param name="exception">The exception, if failed.</param>
+    /// <returns><c>true</c> if loaded; <c>false</c> if not fully loaded or failed.</returns>
+    public bool ImmediateGetStateFromGame(string path, out Exception? exception);
+
+    /// <summary>Gets the state of the background load task for <see cref="ImmediateGetFromGameIcon"/>.</summary>
+    /// <param name="file">The filesystem path to a .tex, .atex, or an image file such as .png.</param>
+    /// <param name="exception">The exception, if failed.</param>
+    /// <returns><c>true</c> if loaded; <c>false</c> if not fully loaded or failed.</returns>
+    public bool ImmediateGetStateFromFile(string file, out Exception? exception);
+
     /// <summary>Gets the corresponding game icon for use with the current frame.</summary>
     /// <param name="lookup">The icon specifier.</param>
     /// <returns>An instance of <see cref="IDalamudTextureWrap"/> that is guaranteed to be available for the current

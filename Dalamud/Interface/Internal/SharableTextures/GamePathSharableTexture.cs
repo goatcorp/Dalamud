@@ -26,19 +26,14 @@ internal sealed class GamePathSharableTexture : SharableTexture
     }
 
     /// <inheritdoc/>
-    protected override Task<IDalamudTextureWrap> UnderlyingWrap { get; set; }
-
-    /// <inheritdoc/>
     public override string ToString() => $"{nameof(GamePathSharableTexture)}#{this.InstanceIdForDebug}({this.path})";
 
     /// <inheritdoc/>
     protected override void FinalRelease()
     {
         this.DisposeSuppressingWrap = null;
-        _ = this.UnderlyingWrap.ToContentDisposedTask(true);
-        this.UnderlyingWrap =
-            Task.FromException<IDalamudTextureWrap>(new ObjectDisposedException(nameof(GamePathSharableTexture)));
-        _ = this.UnderlyingWrap.Exception;
+        _ = this.UnderlyingWrap?.ToContentDisposedTask(true);
+        this.UnderlyingWrap = null;
     }
 
     /// <inheritdoc/>
