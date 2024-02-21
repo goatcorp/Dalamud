@@ -1,7 +1,9 @@
-﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Threading.Tasks;
 
 using Dalamud.Interface.Internal;
+
 using Lumina.Data.Files;
 
 namespace Dalamud.Plugin.Services;
@@ -9,86 +11,107 @@ namespace Dalamud.Plugin.Services;
 /// <summary>
 /// Service that grants you access to textures you may render via ImGui.
 /// </summary>
-public interface ITextureProvider
+public partial interface ITextureProvider
 {
-    /// <summary>
-    /// Flags describing the icon you wish to receive.
+    /// <summary>Gets the corresponding game icon for use with the current frame.</summary>
+    /// <param name="lookup">The icon specifier.</param>
+    /// <returns>An instance of <see cref="IDalamudTextureWrap"/> that is guaranteed to be available for the current
+    /// frame being drawn.</returns>
+    /// <remarks><see cref="IDisposable.Dispose"/> will be ignored.<br />
+    /// If the file is unavailable, then the returned instance of <see cref="IDalamudTextureWrap"/> will point to an
+    /// empty texture instead.</remarks>
+    /// <exception cref="InvalidOperationException">Thrown when called outside the UI thread.</exception>
+    public IDalamudTextureWrap ImmediateGetFromGameIcon(in GameIconLookup lookup);
+
+    /// <summary>Gets a texture from a file shipped as a part of the game resources for use with the current frame.
     /// </summary>
-    [Flags]
-    public enum IconFlags
-    {
-        /// <summary>
-        /// Low-resolution, standard quality icon.
-        /// </summary>
-        None = 0,
-        
-        /// <summary>
-        /// If this icon is an item icon, and it has a high-quality variant, receive the high-quality version.
-        /// Null if the item does not have a high-quality variant.
-        /// </summary>
-        ItemHighQuality = 1 << 0,
-        
-        /// <summary>
-        /// Get the hi-resolution version of the icon, if it exists.
-        /// </summary>
-        HiRes = 1 << 1,
-    }
-    
-    /// <summary>
-    /// Get a texture handle for a specific icon.
-    /// </summary>
-    /// <param name="iconId">The ID of the icon to load.</param>
-    /// <param name="flags">Options to be considered when loading the icon.</param>
-    /// <param name="language">
-    /// The language to be considered when loading the icon, if the icon has versions for multiple languages.
-    /// If null, default to the game's current language.
-    /// </param>
-    /// <param name="keepAlive">
-    /// Not used. This parameter is ignored.
-    /// </param>
-    /// <returns>
-    /// Null, if the icon does not exist in the specified configuration, or a texture wrap that can be used
-    /// to render the icon.
-    /// </returns>
-    public IDalamudTextureWrap? GetIcon(uint iconId, IconFlags flags = IconFlags.HiRes, ClientLanguage? language = null, bool keepAlive = false);
+    /// <param name="path">The game-internal path to a .tex, .atex, or an image file such as .png.</param>
+    /// <returns>An instance of <see cref="IDalamudTextureWrap"/> that is guaranteed to be available for the current
+    /// frame being drawn.</returns>
+    /// <remarks><see cref="IDisposable.Dispose"/> will be ignored.<br />
+    /// If the file is unavailable, then the returned instance of <see cref="IDalamudTextureWrap"/> will point to an
+    /// empty texture instead.</remarks>
+    /// <exception cref="InvalidOperationException">Thrown when called outside the UI thread.</exception>
+    public IDalamudTextureWrap ImmediateGetFromGame(string path);
+
+    /// <summary>Gets a texture from a file on the filesystem for use with the current frame.</summary>
+    /// <param name="file">The filesystem path to a .tex, .atex, or an image file such as .png.</param>
+    /// <returns>An instance of <see cref="IDalamudTextureWrap"/> that is guaranteed to be available for the current
+    /// frame being drawn.</returns>
+    /// <remarks><see cref="IDisposable.Dispose"/> will be ignored.<br />
+    /// If the file is unavailable, then the returned instance of <see cref="IDalamudTextureWrap"/> will point to an
+    /// empty texture instead.</remarks>
+    /// <exception cref="InvalidOperationException">Thrown when called outside the UI thread.</exception>
+    public IDalamudTextureWrap ImmediateGetFromFile(string file);
+
+    /// <summary>Gets the corresponding game icon for use with the current frame.</summary>
+    /// <param name="lookup">The icon specifier.</param>
+    /// <returns>A <see cref="Task{TResult}"/> containing the loaded texture on success. Dispose after use.</returns>
+    public Task<IDalamudTextureWrap> GetFromGameIconAsync(in GameIconLookup lookup);
+
+    /// <summary>Gets a texture from a file shipped as a part of the game resources.</summary>
+    /// <param name="path">The game-internal path to a .tex, .atex, or an image file such as .png.</param>
+    /// <returns>A <see cref="Task{TResult}"/> containing the loaded texture on success. Dispose after use.</returns>
+    public Task<IDalamudTextureWrap> GetFromGameAsync(string path);
+
+    /// <summary>Gets a texture from a file on the filesystem.</summary>
+    /// <param name="file">The filesystem path to a .tex, .atex, or an image file such as .png.</param>
+    /// <returns>A <see cref="Task{TResult}"/> containing the loaded texture on success. Dispose after use.</returns>
+    public Task<IDalamudTextureWrap> GetFromFileAsync(string file);
+
+    /// <summary>Gets a texture from the given bytes, trying to interpret it as a .tex file or other well-known image
+    /// files, such as .png.</summary>
+    /// <param name="bytes">The bytes to load.</param>
+    /// <returns>A <see cref="Task{TResult}"/> containing the loaded texture on success. Dispose after use.</returns>
+    public Task<IDalamudTextureWrap> GetFromImageAsync(ReadOnlyMemory<byte> bytes);
+
+    /// <summary>Gets a texture from the given stream, trying to interpret it as a .tex file or other well-known image
+    /// files, such as .png.</summary>
+    /// <param name="stream">The stream to load data from.</param>
+    /// <param name="leaveOpen">Whether to leave the stream open once the task completes, sucessfully or not.</param>
+    /// <returns>A <see cref="Task{TResult}"/> containing the loaded texture on success. Dispose after use.</returns>
+    public Task<IDalamudTextureWrap> GetFromImageAsync(Stream stream, bool leaveOpen = false);
+
+    /// <summary>Gets a texture from the given bytes, interpreting it as a raw bitmap.</summary>
+    /// <param name="specs">The specifications for the raw bitmap.</param>
+    /// <param name="bytes">The bytes to load.</param>
+    /// <returns>The texture loaded from the supplied raw bitmap. Dispose after use.</returns>
+    public IDalamudTextureWrap GetFromRaw(RawImageSpecification specs, ReadOnlySpan<byte> bytes);
+
+    /// <summary>Gets a texture from the given bytes, interpreting it as a raw bitmap.</summary>
+    /// <param name="specs">The specifications for the raw bitmap.</param>
+    /// <param name="bytes">The bytes to load.</param>
+    /// <returns>A <see cref="Task{TResult}"/> containing the loaded texture on success. Dispose after use.</returns>
+    public Task<IDalamudTextureWrap> GetFromRawAsync(RawImageSpecification specs, ReadOnlyMemory<byte> bytes);
+
+    /// <summary>Gets a texture from the given stream, interpreting the read data as a raw bitmap.</summary>
+    /// <param name="specs">The specifications for the raw bitmap.</param>
+    /// <param name="stream">The stream to load data from.</param>
+    /// <param name="leaveOpen">Whether to leave the stream open once the task completes, sucessfully or not.</param>
+    /// <returns>A <see cref="Task{TResult}"/> containing the loaded texture on success. Dispose after use.</returns>
+    public Task<IDalamudTextureWrap> GetFromRawAsync(
+        RawImageSpecification specs,
+        Stream stream,
+        bool leaveOpen = false);
 
     /// <summary>
     /// Get a path for a specific icon's .tex file.
     /// </summary>
-    /// <param name="iconId">The ID of the icon to look up.</param>
-    /// <param name="flags">Options to be considered when loading the icon.</param>
-    /// <param name="language">
-    /// The language to be considered when loading the icon, if the icon has versions for multiple languages.
-    /// If null, default to the game's current language.
-    /// </param>
-    /// <returns>
-    /// Null, if the icon does not exist in the specified configuration, or the path to the texture's .tex file,
-    /// which can be loaded via IDataManager.
-    /// </returns>
-    public string? GetIconPath(uint iconId, IconFlags flags = IconFlags.HiRes, ClientLanguage? language = null);
-    
+    /// <param name="lookup">The icon lookup.</param>
+    /// <returns>The path to the icon.</returns>
+    /// <exception cref="FileNotFoundException">If a corresponding file could not be found.</exception>
+    public string GetIconPath(in GameIconLookup lookup);
+
     /// <summary>
-    /// Get a texture handle for the texture at the specified path.
-    /// You may only specify paths in the game's VFS.
+    /// Gets the path of an icon.
     /// </summary>
-    /// <param name="path">The path to the texture in the game's VFS.</param>
-    /// <param name="keepAlive">Not used. This parameter is ignored.</param>
-    /// <returns>Null, if the icon does not exist, or a texture wrap that can be used to render the texture.</returns>
-    public IDalamudTextureWrap? GetTextureFromGame(string path, bool keepAlive = false);
+    /// <param name="lookup">The icon lookup.</param>
+    /// <param name="path">The resolved path.</param>
+    /// <returns><c>true</c> if the corresponding file exists and <paramref name="path"/> has been set.</returns>
+    public bool TryGetIconPath(in GameIconLookup lookup, [NotNullWhen(true)] out string? path);
     
     /// <summary>
-    /// Get a texture handle for the image or texture, specified by the passed FileInfo.
-    /// You may only specify paths on the native file system.
-    ///
-    /// This API can load .png and .tex files.
-    /// </summary>
-    /// <param name="file">The FileInfo describing the image or texture file.</param>
-    /// <param name="keepAlive">Not used. This parameter is ignored.</param>
-    /// <returns>Null, if the file does not exist, or a texture wrap that can be used to render the texture.</returns>
-    public IDalamudTextureWrap? GetTextureFromFile(FileInfo file, bool keepAlive = false);
-    
-    /// <summary>
-    /// Get a texture handle for the specified Lumina TexFile.
+    /// Get a texture handle for the specified Lumina <see cref="TexFile"/>.
     /// </summary>
     /// <param name="file">The texture to obtain a handle to.</param>
     /// <returns>A texture wrap that can be used to render the texture.</returns>

@@ -25,6 +25,10 @@ using Dalamud.Utility;
 using Dalamud.Utility.Timing;
 using ImGuiNET;
 using ImGuiScene;
+
+using Lumina.Data.Files;
+using Lumina.Data.Parsing.Tex.Buffers;
+
 using PInvoke;
 using Serilog;
 using SharpDX;
@@ -63,7 +67,7 @@ internal class InterfaceManager : IDisposable, IServiceType
     public const float DefaultFontSizePx = (DefaultFontSizePt * 4.0f) / 3.0f;
 
     private readonly ConcurrentBag<IDeferredDisposable> deferredDisposeTextures = new();
-    private readonly ConcurrentBag<ILockedImFont> deferredDisposeImFontLockeds = new();
+    private readonly ConcurrentBag<IDisposable> deferredDisposeDisposables = new();
 
     [ServiceManager.ServiceDependency]
     private readonly WndProcHookManager wndProcHookManager = Service<WndProcHookManager>.Get();
@@ -349,7 +353,7 @@ internal class InterfaceManager : IDisposable, IServiceType
     /// <param name="height">The height in pixels.</param>
     /// <param name="dxgiFormat">Format of the texture.</param>
     /// <returns>A texture, ready to use in ImGui.</returns>
-    public DalamudTextureWrap LoadImageFromDxgiFormat(Span<byte> data, int pitch, int width, int height, Format dxgiFormat)
+    public DalamudTextureWrap LoadImageFromDxgiFormat(ReadOnlySpan<byte> data, int pitch, int width, int height, Format dxgiFormat)
     {
         if (this.scene == null)
             throw new InvalidOperationException("Scene isn't ready.");
@@ -390,6 +394,37 @@ internal class InterfaceManager : IDisposable, IServiceType
 #nullable restore
 
     /// <summary>
+    /// Get a texture handle for the specified Lumina TexFile.
+    /// </summary>
+    /// <param name="file">The texture to obtain a handle to.</param>
+    /// <returns>A texture wrap that can be used to render the texture.</returns>
+    /// <exception cref="InvalidOperationException">Thrown when the graphics system is not available yet. Relevant for plugins when LoadRequiredState is set to 0 or 1.</exception>
+    /// <exception cref="NotSupportedException">Thrown when the given <see cref="TexFile"/> is not supported. Most likely is that the file is corrupt.</exception>
+    public DalamudTextureWrap LoadImageFromTexFile(TexFile file)
+    {
+        if (!this.IsReady)
+            throw new InvalidOperationException("Cannot create textures before scene is ready");
+
+        var buffer = file.TextureBuffer;
+        var bpp = 1 << (((int)file.Header.Format & (int)TexFile.TextureFormat.BppMask) >>
+                        (int)TexFile.TextureFormat.BppShift);
+
+        var (dxgiFormat, conversion) = TexFile.GetDxgiFormatFromTextureFormat(file.Header.Format, false);
+        if (conversion != TexFile.DxgiFormatConversion.NoConversion || !this.SupportsDxgiFormat((Format)dxgiFormat))
+        {
+            dxgiFormat = (int)Format.B8G8R8A8_UNorm;
+            buffer = buffer.Filter(0, 0, TexFile.TextureFormat.B8G8R8A8);
+            bpp = 32;
+        }
+
+        var pitch = buffer is BlockCompressionTextureBuffer
+                        ? Math.Max(1, (buffer.Width + 3) / 4) * 2 * bpp
+                        : ((buffer.Width * bpp) + 7) / 8;
+
+        return this.LoadImageFromDxgiFormat(buffer.RawData, pitch, buffer.Width, buffer.Height, (Format)dxgiFormat);
+    }
+
+    /// <summary>
     /// Sets up a deferred invocation of font rebuilding, before the next render frame.
     /// </summary>
     public void RebuildFonts()
@@ -411,9 +446,9 @@ internal class InterfaceManager : IDisposable, IServiceType
     /// Enqueue an <see cref="ILockedImFont"/> to be disposed at the end of the frame.
     /// </summary>
     /// <param name="locked">The disposable.</param>
-    public void EnqueueDeferredDispose(in ILockedImFont locked)
+    public void EnqueueDeferredDispose(IDisposable locked)
     {
-        this.deferredDisposeImFontLockeds.Add(locked);
+        this.deferredDisposeDisposables.Add(locked);
     }
 
     /// <summary>
@@ -683,12 +718,12 @@ internal class InterfaceManager : IDisposable, IServiceType
             Log.Verbose("[IM] Disposing {Count} textures", count);
         }
 
-        if (!this.deferredDisposeImFontLockeds.IsEmpty)
+        if (!this.deferredDisposeDisposables.IsEmpty)
         {
             // Not logging; the main purpose of this is to keep resources used for rendering the frame to be kept
             // referenced until the resources are actually done being used, and it is expected that this will be
             // frequent.
-            while (this.deferredDisposeImFontLockeds.TryTake(out var d))
+            while (this.deferredDisposeDisposables.TryTake(out var d))
                 d.Dispose();
         }
     }

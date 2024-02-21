@@ -320,7 +320,7 @@ internal sealed class DalamudAssetManager : IServiceType, IDisposable, IDalamudA
                 var disposeDeferred =
                     this.scopedFinalizer.Add(image)
                     ?? throw new InvalidOperationException("Something went wrong very badly");
-                return new DisposeSuppressingDalamudTextureWrap(disposeDeferred);
+                return new DisposeSuppressingTextureWrap(disposeDeferred);
             }
             catch (Exception e)
             {
@@ -341,27 +341,5 @@ internal sealed class DalamudAssetManager : IServiceType, IDisposable, IDalamudA
         if (task.Exception is { } exc)
             return Task.FromException<TOut>(exc);
         return task.ContinueWith(_ => this.TransformImmediate(task, transformer)).Unwrap();
-    }
-
-    private class DisposeSuppressingDalamudTextureWrap : IDalamudTextureWrap
-    {
-        private readonly IDalamudTextureWrap innerWrap;
-
-        public DisposeSuppressingDalamudTextureWrap(IDalamudTextureWrap wrap) => this.innerWrap = wrap;
-
-        /// <inheritdoc/>
-        public IntPtr ImGuiHandle => this.innerWrap.ImGuiHandle;
-
-        /// <inheritdoc/>
-        public int Width => this.innerWrap.Width;
-
-        /// <inheritdoc/>
-        public int Height => this.innerWrap.Height;
-
-        /// <inheritdoc/>
-        public void Dispose()
-        {
-            // suppressed
-        }
     }
 }
