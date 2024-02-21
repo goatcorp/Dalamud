@@ -81,7 +81,9 @@ internal sealed class GameConfig : IServiceType, IGameConfig, IDisposable
     public event EventHandler<ConfigChangeEvent>? UiControlChanged;
 #pragma warning restore 67
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// Gets a task representing the initialization state of this class.
+    /// </summary>
     public Task InitializationTask => this.tcsInitialization.Task;
 
     /// <inheritdoc/>
@@ -251,13 +253,15 @@ internal class GameConfigPluginScoped : IDisposable, IServiceType, IGameConfig
     [ServiceManager.ServiceDependency]
     private readonly GameConfig gameConfigService = Service<GameConfig>.Get();
 
+    private readonly Task initializationTask;
+
     /// <summary>
     /// Initializes a new instance of the <see cref="GameConfigPluginScoped"/> class.
     /// </summary>
     internal GameConfigPluginScoped()
     {
         this.gameConfigService.Changed += this.ConfigChangedForward;
-        this.InitializationTask = this.gameConfigService.InitializationTask.ContinueWith(
+        this.initializationTask = this.gameConfigService.InitializationTask.ContinueWith(
             r =>
             {
                 if (!r.IsCompletedSuccessfully)
@@ -282,9 +286,6 @@ internal class GameConfigPluginScoped : IDisposable, IServiceType, IGameConfig
     public event EventHandler<ConfigChangeEvent>? UiControlChanged;
     
     /// <inheritdoc/>
-    public Task InitializationTask { get; }
-    
-    /// <inheritdoc/>
     public GameConfigSection System => this.gameConfigService.System;
 
     /// <inheritdoc/>
@@ -297,7 +298,7 @@ internal class GameConfigPluginScoped : IDisposable, IServiceType, IGameConfig
     public void Dispose()
     {
         this.gameConfigService.Changed -= this.ConfigChangedForward;
-        this.InitializationTask.ContinueWith(
+        this.initializationTask.ContinueWith(
             r =>
             {
                 if (!r.IsCompletedSuccessfully)
