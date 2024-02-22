@@ -90,6 +90,7 @@ internal class TextureLoadThrottler : IServiceType
                     if (work.CancellationToken.IsCancellationRequested)
                     {
                         work.TaskCompletionSource.SetCanceled(work.CancellationToken);
+                        _ = work.TaskCompletionSource.Task.Exception;
                         this.RelocatePendingWorkItemToEndAndEraseUnsafe(i--);
                         continue;
                     }
@@ -117,6 +118,7 @@ internal class TextureLoadThrottler : IServiceType
             catch (Exception e)
             {
                 minWork.TaskCompletionSource.SetException(e);
+                _ = minWork.TaskCompletionSource.Task.Exception;
             }
 
             lock (this.workListLock)
