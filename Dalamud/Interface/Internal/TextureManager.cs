@@ -265,8 +265,7 @@ internal sealed class TextureManager : IServiceType, IDisposable, ITextureProvid
     /// <inheritdoc/>
     public IDalamudTextureWrap GetFromRaw(
         RawImageSpecification specs,
-        ReadOnlySpan<byte> bytes,
-        CancellationToken cancellationToken = default) =>
+        ReadOnlySpan<byte> bytes) =>
         this.interfaceManager.LoadImageFromDxgiFormat(
             bytes,
             specs.Pitch,
@@ -281,7 +280,7 @@ internal sealed class TextureManager : IServiceType, IDisposable, ITextureProvid
         CancellationToken cancellationToken = default) =>
         this.textureLoadThrottler.CreateLoader(
             new TextureLoadThrottler.ReadOnlyThrottleBasisProvider(),
-            ct => Task.FromResult(this.GetFromRaw(specs, bytes.Span, ct)),
+            ct => Task.FromResult(this.GetFromRaw(specs, bytes.Span)),
             cancellationToken);
 
     /// <inheritdoc/>

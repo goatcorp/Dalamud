@@ -152,12 +152,10 @@ public partial interface ITextureProvider
     /// <summary>Gets a texture from the given bytes, interpreting it as a raw bitmap.</summary>
     /// <param name="specs">The specifications for the raw bitmap.</param>
     /// <param name="bytes">The bytes to load.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>The texture loaded from the supplied raw bitmap. Dispose after use.</returns>
     IDalamudTextureWrap GetFromRaw(
         RawImageSpecification specs,
-        ReadOnlySpan<byte> bytes,
-        CancellationToken cancellationToken = default);
+        ReadOnlySpan<byte> bytes);
 
     /// <summary>Gets a texture from the given bytes, interpreting it as a raw bitmap.</summary>
     /// <param name="specs">The specifications for the raw bitmap.</param>
