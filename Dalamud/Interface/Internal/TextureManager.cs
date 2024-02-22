@@ -252,15 +252,23 @@ internal sealed class TextureManager : IServiceType, IDisposable, ITextureProvid
         bool leaveOpen = false,
         CancellationToken cancellationToken = default) =>
         this.textureLoadThrottler.CreateLoader(
-            new TextureLoadThrottler.ReadOnlyThrottleBasisProvider(),
-            async ct =>
-            {
-                await using var streamDispose = leaveOpen ? null : stream;
-                await using var ms = stream.CanSeek ? new MemoryStream((int)stream.Length) : new();
-                await stream.CopyToAsync(ms, ct).ConfigureAwait(false);
-                return await this.GetFromImageAsync(ms.GetBuffer(), ct);
-            },
-            cancellationToken);
+                new TextureLoadThrottler.ReadOnlyThrottleBasisProvider(),
+                async ct =>
+                {
+                    await using var ms = stream.CanSeek ? new MemoryStream((int)stream.Length) : new();
+                    await stream.CopyToAsync(ms, ct).ConfigureAwait(false);
+                    return await this.GetFromImageAsync(ms.GetBuffer(), ct);
+                },
+                cancellationToken)
+            .ContinueWith(
+                r =>
+                {
+                    if (!leaveOpen)
+                        stream.Dispose();
+                    return r;
+                },
+                default(CancellationToken))
+            .Unwrap();
 
     /// <inheritdoc/>
     public IDalamudTextureWrap GetFromRaw(
@@ -280,7 +288,7 @@ internal sealed class TextureManager : IServiceType, IDisposable, ITextureProvid
         CancellationToken cancellationToken = default) =>
         this.textureLoadThrottler.CreateLoader(
             new TextureLoadThrottler.ReadOnlyThrottleBasisProvider(),
-            ct => Task.FromResult(this.GetFromRaw(specs, bytes.Span)),
+            _ => Task.FromResult(this.GetFromRaw(specs, bytes.Span)),
             cancellationToken);
 
     /// <inheritdoc/>
@@ -290,15 +298,23 @@ internal sealed class TextureManager : IServiceType, IDisposable, ITextureProvid
         bool leaveOpen = false,
         CancellationToken cancellationToken = default) =>
         this.textureLoadThrottler.CreateLoader(
-            new TextureLoadThrottler.ReadOnlyThrottleBasisProvider(),
-            async ct =>
-            {
-                await using var streamDispose = leaveOpen ? null : stream;
-                await using var ms = stream.CanSeek ? new MemoryStream((int)stream.Length) : new();
-                await stream.CopyToAsync(ms, ct).ConfigureAwait(false);
-                return await this.GetFromRawAsync(specs, ms.GetBuffer(), ct);
-            },
-            cancellationToken);
+                new TextureLoadThrottler.ReadOnlyThrottleBasisProvider(),
+                async ct =>
+                {
+                    await using var ms = stream.CanSeek ? new MemoryStream((int)stream.Length) : new();
+                    await stream.CopyToAsync(ms, ct).ConfigureAwait(false);
+                    return await this.GetFromRawAsync(specs, ms.GetBuffer(), ct);
+                },
+                cancellationToken)
+            .ContinueWith(
+                r =>
+                {
+                    if (!leaveOpen)
+                        stream.Dispose();
+                    return r;
+                },
+                default(CancellationToken))
+            .Unwrap();
 
     /// <inheritdoc/>
     public IDalamudTextureWrap GetTexture(TexFile file) => this.GetFromTexFileAsync(file).Result;
