@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 
 using BitFaster.Caching.Lru;
@@ -55,6 +56,9 @@ internal sealed class TextureManager : IServiceType, IDisposable, ITextureProvid
 
     [ServiceManager.ServiceDependency]
     private readonly InterfaceManager interfaceManager = Service<InterfaceManager>.Get();
+
+    [ServiceManager.ServiceDependency]
+    private readonly TextureLoadThrottler textureLoadThrottler = Service<TextureLoadThrottler>.Get();
 
     private readonly ConcurrentLru<GameIconLookup, string> lookupToPath = new(PathLookupLruCount);
     private readonly ConcurrentDictionary<string, SharableTexture> gamePathTextures = new();
@@ -148,13 +152,14 @@ internal sealed class TextureManager : IServiceType, IDisposable, ITextureProvid
     [Api10ToDo(Api10ToDoAttribute.DeleteCompatBehavior)]
     [Obsolete("See interface definition.")]
     public IDalamudTextureWrap? GetTextureFromGame(string path, bool keepAlive = false) =>
-        this.gamePathTextures.GetOrAdd(path, CreateGamePathSharableTexture).GetAvailableOnAccessWrapForApi9();
+        this.gamePathTextures.GetOrAdd(path, GamePathSharableTexture.CreateImmediate)
+            .GetAvailableOnAccessWrapForApi9();
 
     /// <inheritdoc/>
     [Api10ToDo(Api10ToDoAttribute.DeleteCompatBehavior)]
     [Obsolete("See interface definition.")]
     public IDalamudTextureWrap? GetTextureFromFile(FileInfo file, bool keepAlive = false) =>
-        this.fileSystemTextures.GetOrAdd(file.FullName, CreateFileSystemSharableTexture)
+        this.fileSystemTextures.GetOrAdd(file.FullName, FileSystemSharableTexture.CreateImmediate)
             .GetAvailableOnAccessWrapForApi9();
 #pragma warning restore CS0618 // Type or member is obsolete
 
@@ -191,7 +196,7 @@ internal sealed class TextureManager : IServiceType, IDisposable, ITextureProvid
         out Exception? exception)
     {
         ThreadSafety.AssertMainThread();
-        var t = this.gamePathTextures.GetOrAdd(path, CreateGamePathSharableTexture);
+        var t = this.gamePathTextures.GetOrAdd(path, GamePathSharableTexture.CreateImmediate);
         texture = t.GetImmediate();
         exception = t.UnderlyingWrap?.Exception;
         return texture is not null;
@@ -204,41 +209,64 @@ internal sealed class TextureManager : IServiceType, IDisposable, ITextureProvid
         out Exception? exception)
     {
         ThreadSafety.AssertMainThread();
-        var t = this.fileSystemTextures.GetOrAdd(file, CreateFileSystemSharableTexture);
+        var t = this.fileSystemTextures.GetOrAdd(file, FileSystemSharableTexture.CreateImmediate);
         texture = t.GetImmediate();
         exception = t.UnderlyingWrap?.Exception;
         return texture is not null;
     }
 
     /// <inheritdoc/>
-    public Task<IDalamudTextureWrap> GetFromGameIconAsync(in GameIconLookup lookup) =>
-        this.GetFromGameAsync(this.lookupToPath.GetOrAdd(lookup, this.GetIconPathByValue));
+    public Task<IDalamudTextureWrap> GetFromGameIconAsync(
+        in GameIconLookup lookup,
+        CancellationToken cancellationToken = default) =>
+        this.GetFromGameAsync(this.lookupToPath.GetOrAdd(lookup, this.GetIconPathByValue), cancellationToken);
 
     /// <inheritdoc/>
-    public Task<IDalamudTextureWrap> GetFromGameAsync(string path) =>
-        this.gamePathTextures.GetOrAdd(path, CreateGamePathSharableTexture).CreateNewReference();
+    public Task<IDalamudTextureWrap> GetFromGameAsync(
+        string path,
+        CancellationToken cancellationToken = default) =>
+        this.gamePathTextures.GetOrAdd(path, GamePathSharableTexture.CreateAsync)
+            .CreateNewReference(cancellationToken);
 
     /// <inheritdoc/>
-    public Task<IDalamudTextureWrap> GetFromFileAsync(string file) =>
-        this.fileSystemTextures.GetOrAdd(file, CreateFileSystemSharableTexture).CreateNewReference();
+    public Task<IDalamudTextureWrap> GetFromFileAsync(
+        string file,
+        CancellationToken cancellationToken = default) =>
+        this.fileSystemTextures.GetOrAdd(file, FileSystemSharableTexture.CreateAsync)
+            .CreateNewReference(cancellationToken);
 
     /// <inheritdoc/>
-    public Task<IDalamudTextureWrap> GetFromImageAsync(ReadOnlyMemory<byte> bytes) =>
-        Task.Run(
-            () => this.interfaceManager.LoadImage(bytes.ToArray())
-                  ?? throw new("Failed to load image because of an unknown reason."));
+    public Task<IDalamudTextureWrap> GetFromImageAsync(
+        ReadOnlyMemory<byte> bytes,
+        CancellationToken cancellationToken = default) =>
+        this.textureLoadThrottler.CreateLoader(
+            new TextureLoadThrottler.ReadOnlyThrottleBasisProvider(),
+            _ => Task.FromResult(
+                this.interfaceManager.LoadImage(bytes.ToArray())
+                ?? throw new("Failed to load image because of an unknown reason.")),
+            cancellationToken);
 
     /// <inheritdoc/>
-    public async Task<IDalamudTextureWrap> GetFromImageAsync(Stream stream, bool leaveOpen = false)
-    {
-        await using var streamDispose = leaveOpen ? null : stream;
-        await using var ms = stream.CanSeek ? new MemoryStream((int)stream.Length) : new();
-        await stream.CopyToAsync(ms).ConfigureAwait(false);
-        return await this.GetFromImageAsync(ms.GetBuffer());
-    }
+    public Task<IDalamudTextureWrap> GetFromImageAsync(
+        Stream stream,
+        bool leaveOpen = false,
+        CancellationToken cancellationToken = default) =>
+        this.textureLoadThrottler.CreateLoader(
+            new TextureLoadThrottler.ReadOnlyThrottleBasisProvider(),
+            async ct =>
+            {
+                await using var streamDispose = leaveOpen ? null : stream;
+                await using var ms = stream.CanSeek ? new MemoryStream((int)stream.Length) : new();
+                await stream.CopyToAsync(ms, ct).ConfigureAwait(false);
+                return await this.GetFromImageAsync(ms.GetBuffer(), ct);
+            },
+            cancellationToken);
 
     /// <inheritdoc/>
-    public IDalamudTextureWrap GetFromRaw(RawImageSpecification specs, ReadOnlySpan<byte> bytes) =>
+    public IDalamudTextureWrap GetFromRaw(
+        RawImageSpecification specs,
+        ReadOnlySpan<byte> bytes,
+        CancellationToken cancellationToken = default) =>
         this.interfaceManager.LoadImageFromDxgiFormat(
             bytes,
             specs.Pitch,
@@ -247,23 +275,47 @@ internal sealed class TextureManager : IServiceType, IDisposable, ITextureProvid
             (SharpDX.DXGI.Format)specs.DxgiFormat);
 
     /// <inheritdoc/>
-    public Task<IDalamudTextureWrap> GetFromRawAsync(RawImageSpecification specs, ReadOnlyMemory<byte> bytes) =>
-        Task.Run(() => this.GetFromRaw(specs, bytes.Span));
+    public Task<IDalamudTextureWrap> GetFromRawAsync(
+        RawImageSpecification specs,
+        ReadOnlyMemory<byte> bytes,
+        CancellationToken cancellationToken = default) =>
+        this.textureLoadThrottler.CreateLoader(
+            new TextureLoadThrottler.ReadOnlyThrottleBasisProvider(),
+            ct => Task.FromResult(this.GetFromRaw(specs, bytes.Span, ct)),
+            cancellationToken);
 
     /// <inheritdoc/>
-    public async Task<IDalamudTextureWrap> GetFromRawAsync(
+    public Task<IDalamudTextureWrap> GetFromRawAsync(
         RawImageSpecification specs,
         Stream stream,
-        bool leaveOpen = false)
-    {
-        await using var streamDispose = leaveOpen ? null : stream;
-        await using var ms = stream.CanSeek ? new MemoryStream((int)stream.Length) : new();
-        await stream.CopyToAsync(ms).ConfigureAwait(false);
-        return await this.GetFromRawAsync(specs, ms.GetBuffer());
-    }
+        bool leaveOpen = false,
+        CancellationToken cancellationToken = default) =>
+        this.textureLoadThrottler.CreateLoader(
+            new TextureLoadThrottler.ReadOnlyThrottleBasisProvider(),
+            async ct =>
+            {
+                await using var streamDispose = leaveOpen ? null : stream;
+                await using var ms = stream.CanSeek ? new MemoryStream((int)stream.Length) : new();
+                await stream.CopyToAsync(ms, ct).ConfigureAwait(false);
+                return await this.GetFromRawAsync(specs, ms.GetBuffer(), ct);
+            },
+            cancellationToken);
 
     /// <inheritdoc/>
-    public IDalamudTextureWrap GetTexture(TexFile file) => this.interfaceManager.LoadImageFromTexFile(file);
+    public IDalamudTextureWrap GetTexture(TexFile file) => this.GetFromTexFileAsync(file).Result;
+
+    /// <inheritdoc/>
+    public Task<IDalamudTextureWrap> GetFromTexFileAsync(
+        TexFile file,
+        CancellationToken cancellationToken = default) =>
+        this.textureLoadThrottler.CreateLoader(
+            new TextureLoadThrottler.ReadOnlyThrottleBasisProvider(),
+            _ => Task.FromResult<IDalamudTextureWrap>(this.interfaceManager.LoadImageFromTexFile(file)),
+            cancellationToken);
+
+    /// <inheritdoc/>
+    public bool SupportsDxgiFormat(int dxgiFormat) =>
+        this.interfaceManager.SupportsDxgiFormat((SharpDX.DXGI.Format)dxgiFormat);
 
     /// <inheritdoc/>
     public bool TryGetIconPath(in GameIconLookup lookup, out string path)
@@ -375,12 +427,6 @@ internal sealed class TextureManager : IServiceType, IDisposable, ITextureProvid
             }
         }
     }
-
-    private static SharableTexture CreateGamePathSharableTexture(string gamePath) =>
-        new GamePathSharableTexture(gamePath);
-
-    private static SharableTexture CreateFileSystemSharableTexture(string fileSystemPath) =>
-        new FileSystemSharableTexture(fileSystemPath);
 
     private static string FormatIconPath(uint iconId, string? type, bool highResolution)
     {

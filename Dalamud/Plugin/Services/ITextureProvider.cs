@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 
 using Dalamud.Interface.Internal;
@@ -36,7 +37,7 @@ public partial interface ITextureProvider
     /// If the file is unavailable, then the returned instance of <see cref="IDalamudTextureWrap"/> will point to an
     /// empty texture instead.</remarks>
     /// <exception cref="InvalidOperationException">Thrown when called outside the UI thread.</exception>
-    public IDalamudTextureWrap ImmediateGetFromGameIcon(in GameIconLookup lookup);
+    IDalamudTextureWrap ImmediateGetFromGameIcon(in GameIconLookup lookup);
 
     /// <summary>Gets a texture from a file shipped as a part of the game resources for use with the current frame.
     /// </summary>
@@ -47,7 +48,7 @@ public partial interface ITextureProvider
     /// If the file is unavailable, then the returned instance of <see cref="IDalamudTextureWrap"/> will point to an
     /// empty texture instead.</remarks>
     /// <exception cref="InvalidOperationException">Thrown when called outside the UI thread.</exception>
-    public IDalamudTextureWrap ImmediateGetFromGame(string path);
+    IDalamudTextureWrap ImmediateGetFromGame(string path);
 
     /// <summary>Gets a texture from a file on the filesystem for use with the current frame.</summary>
     /// <param name="file">The filesystem path to a .tex, .atex, or an image file such as .png.</param>
@@ -57,7 +58,7 @@ public partial interface ITextureProvider
     /// If the file is unavailable, then the returned instance of <see cref="IDalamudTextureWrap"/> will point to an
     /// empty texture instead.</remarks>
     /// <exception cref="InvalidOperationException">Thrown when called outside the UI thread.</exception>
-    public IDalamudTextureWrap ImmediateGetFromFile(string file);
+    IDalamudTextureWrap ImmediateGetFromFile(string file);
     
     /// <summary>Gets the corresponding game icon for use with the current frame.</summary>
     /// <param name="lookup">The icon specifier.</param>
@@ -68,7 +69,7 @@ public partial interface ITextureProvider
     /// still being loaded, or the load has failed.</returns>
     /// <remarks><see cref="IDisposable.Dispose"/> on the returned <paramref name="texture"/> will be ignored.</remarks>
     /// <exception cref="InvalidOperationException">Thrown when called outside the UI thread.</exception>
-    public bool ImmediateTryGetFromGameIcon(
+    bool ImmediateTryGetFromGameIcon(
         in GameIconLookup lookup,
         [NotNullWhen(true)] out IDalamudTextureWrap? texture,
         out Exception? exception);
@@ -83,7 +84,7 @@ public partial interface ITextureProvider
     /// still being loaded, or the load has failed.</returns>
     /// <remarks><see cref="IDisposable.Dispose"/> on the returned <paramref name="texture"/> will be ignored.</remarks>
     /// <exception cref="InvalidOperationException">Thrown when called outside the UI thread.</exception>
-    public bool ImmediateTryGetFromGame(
+    bool ImmediateTryGetFromGame(
         string path,
         [NotNullWhen(true)] out IDalamudTextureWrap? texture,
         out Exception? exception);
@@ -97,60 +98,90 @@ public partial interface ITextureProvider
     /// still being loaded, or the load has failed.</returns>
     /// <remarks><see cref="IDisposable.Dispose"/> on the returned <paramref name="texture"/> will be ignored.</remarks>
     /// <exception cref="InvalidOperationException">Thrown when called outside the UI thread.</exception>
-    public bool ImmediateTryGetFromFile(
+    bool ImmediateTryGetFromFile(
         string file,
         [NotNullWhen(true)] out IDalamudTextureWrap? texture,
         out Exception? exception);
 
     /// <summary>Gets the corresponding game icon for use with the current frame.</summary>
     /// <param name="lookup">The icon specifier.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A <see cref="Task{TResult}"/> containing the loaded texture on success. Dispose after use.</returns>
-    public Task<IDalamudTextureWrap> GetFromGameIconAsync(in GameIconLookup lookup);
+    Task<IDalamudTextureWrap> GetFromGameIconAsync(
+        in GameIconLookup lookup,
+        CancellationToken cancellationToken = default);
 
     /// <summary>Gets a texture from a file shipped as a part of the game resources.</summary>
     /// <param name="path">The game-internal path to a .tex, .atex, or an image file such as .png.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A <see cref="Task{TResult}"/> containing the loaded texture on success. Dispose after use.</returns>
-    public Task<IDalamudTextureWrap> GetFromGameAsync(string path);
+    Task<IDalamudTextureWrap> GetFromGameAsync(
+        string path,
+        CancellationToken cancellationToken = default);
 
     /// <summary>Gets a texture from a file on the filesystem.</summary>
     /// <param name="file">The filesystem path to a .tex, .atex, or an image file such as .png.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A <see cref="Task{TResult}"/> containing the loaded texture on success. Dispose after use.</returns>
-    public Task<IDalamudTextureWrap> GetFromFileAsync(string file);
+    Task<IDalamudTextureWrap> GetFromFileAsync(
+        string file,
+        CancellationToken cancellationToken = default);
 
     /// <summary>Gets a texture from the given bytes, trying to interpret it as a .tex file or other well-known image
     /// files, such as .png.</summary>
     /// <param name="bytes">The bytes to load.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A <see cref="Task{TResult}"/> containing the loaded texture on success. Dispose after use.</returns>
-    public Task<IDalamudTextureWrap> GetFromImageAsync(ReadOnlyMemory<byte> bytes);
+    Task<IDalamudTextureWrap> GetFromImageAsync(
+        ReadOnlyMemory<byte> bytes,
+        CancellationToken cancellationToken = default);
 
     /// <summary>Gets a texture from the given stream, trying to interpret it as a .tex file or other well-known image
     /// files, such as .png.</summary>
     /// <param name="stream">The stream to load data from.</param>
     /// <param name="leaveOpen">Whether to leave the stream open once the task completes, sucessfully or not.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A <see cref="Task{TResult}"/> containing the loaded texture on success. Dispose after use.</returns>
-    public Task<IDalamudTextureWrap> GetFromImageAsync(Stream stream, bool leaveOpen = false);
+    /// <remarks><paramref name="stream"/> will be closed or not only according to <paramref name="leaveOpen"/>;
+    /// <paramref name="cancellationToken"/> is irrelevant in closing the stream.</remarks>
+    Task<IDalamudTextureWrap> GetFromImageAsync(
+        Stream stream,
+        bool leaveOpen = false,
+        CancellationToken cancellationToken = default);
 
     /// <summary>Gets a texture from the given bytes, interpreting it as a raw bitmap.</summary>
     /// <param name="specs">The specifications for the raw bitmap.</param>
     /// <param name="bytes">The bytes to load.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>The texture loaded from the supplied raw bitmap. Dispose after use.</returns>
-    public IDalamudTextureWrap GetFromRaw(RawImageSpecification specs, ReadOnlySpan<byte> bytes);
+    IDalamudTextureWrap GetFromRaw(
+        RawImageSpecification specs,
+        ReadOnlySpan<byte> bytes,
+        CancellationToken cancellationToken = default);
 
     /// <summary>Gets a texture from the given bytes, interpreting it as a raw bitmap.</summary>
     /// <param name="specs">The specifications for the raw bitmap.</param>
     /// <param name="bytes">The bytes to load.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A <see cref="Task{TResult}"/> containing the loaded texture on success. Dispose after use.</returns>
-    public Task<IDalamudTextureWrap> GetFromRawAsync(RawImageSpecification specs, ReadOnlyMemory<byte> bytes);
+    Task<IDalamudTextureWrap> GetFromRawAsync(
+        RawImageSpecification specs,
+        ReadOnlyMemory<byte> bytes,
+        CancellationToken cancellationToken = default);
 
     /// <summary>Gets a texture from the given stream, interpreting the read data as a raw bitmap.</summary>
     /// <param name="specs">The specifications for the raw bitmap.</param>
     /// <param name="stream">The stream to load data from.</param>
     /// <param name="leaveOpen">Whether to leave the stream open once the task completes, sucessfully or not.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A <see cref="Task{TResult}"/> containing the loaded texture on success. Dispose after use.</returns>
-    public Task<IDalamudTextureWrap> GetFromRawAsync(
+    /// <remarks><paramref name="stream"/> will be closed or not only according to <paramref name="leaveOpen"/>;
+    /// <paramref name="cancellationToken"/> is irrelevant in closing the stream.</remarks>
+    Task<IDalamudTextureWrap> GetFromRawAsync(
         RawImageSpecification specs,
         Stream stream,
-        bool leaveOpen = false);
+        bool leaveOpen = false,
+        CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Get a path for a specific icon's .tex file.
@@ -158,7 +189,7 @@ public partial interface ITextureProvider
     /// <param name="lookup">The icon lookup.</param>
     /// <returns>The path to the icon.</returns>
     /// <exception cref="FileNotFoundException">If a corresponding file could not be found.</exception>
-    public string GetIconPath(in GameIconLookup lookup);
+    string GetIconPath(in GameIconLookup lookup);
 
     /// <summary>
     /// Gets the path of an icon.
@@ -166,12 +197,31 @@ public partial interface ITextureProvider
     /// <param name="lookup">The icon lookup.</param>
     /// <param name="path">The resolved path.</param>
     /// <returns><c>true</c> if the corresponding file exists and <paramref name="path"/> has been set.</returns>
-    public bool TryGetIconPath(in GameIconLookup lookup, [NotNullWhen(true)] out string? path);
+    bool TryGetIconPath(in GameIconLookup lookup, [NotNullWhen(true)] out string? path);
+    
+    /// <summary>
+    /// Get a texture handle for the specified Lumina <see cref="TexFile"/>.
+    /// Alias for fetching <see cref="Task{TResult}.Result"/> from <see cref="GetFromTexFileAsync"/>.
+    /// </summary>
+    /// <param name="file">The texture to obtain a handle to.</param>
+    /// <returns>A texture wrap that can be used to render the texture. Dispose after use.</returns>
+    IDalamudTextureWrap GetTexture(TexFile file);
     
     /// <summary>
     /// Get a texture handle for the specified Lumina <see cref="TexFile"/>.
     /// </summary>
     /// <param name="file">The texture to obtain a handle to.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A texture wrap that can be used to render the texture. Dispose after use.</returns>
-    public IDalamudTextureWrap GetTexture(TexFile file);
+    Task<IDalamudTextureWrap> GetFromTexFileAsync(
+        TexFile file,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Determines whether the system supports the given DXGI format.
+    /// For use with <see cref="RawImageSpecification.DxgiFormat"/>.
+    /// </summary>
+    /// <param name="dxgiFormat">The DXGI format.</param>
+    /// <returns><c>true</c> if supported.</returns>
+    bool SupportsDxgiFormat(int dxgiFormat);
 }

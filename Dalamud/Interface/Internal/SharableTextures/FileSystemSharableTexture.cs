@@ -1,3 +1,4 @@
+using System.Threading;
 using System.Threading.Tasks;
 
 using Dalamud.Utility;
@@ -15,14 +16,39 @@ internal sealed class FileSystemSharableTexture : SharableTexture
     /// Initializes a new instance of the <see cref="FileSystemSharableTexture"/> class.
     /// </summary>
     /// <param name="path">The path.</param>
-    public FileSystemSharableTexture(string path)
+    /// <param name="holdSelfReference">If set to <c>true</c>, this class will hold a reference to self.
+    /// Otherwise, it is expected that the caller to hold the reference.</param>
+    private FileSystemSharableTexture(string path, bool holdSelfReference)
+        : base(holdSelfReference)
     {
         this.path = path;
-        this.UnderlyingWrap = this.CreateTextureAsync();
+        if (holdSelfReference)
+        {
+            this.UnderlyingWrap = Service<TextureLoadThrottler>.Get().CreateLoader(
+                this,
+                this.CreateTextureAsync,
+                this.LoadCancellationToken);
+        }
     }
 
     /// <inheritdoc/>
     public override string SourcePathForDebug => this.path;
+
+    /// <summary>
+    /// Creates a new instance of <see cref="GamePathSharableTexture"/>.
+    /// The new instance will hold a reference to itself.
+    /// </summary>
+    /// <param name="path">The path.</param>
+    /// <returns>The new instance.</returns>
+    public static SharableTexture CreateImmediate(string path) => new FileSystemSharableTexture(path, true);
+
+    /// <summary>
+    /// Creates a new instance of <see cref="GamePathSharableTexture"/>.
+    /// The caller is expected to manage ownership of the new instance.
+    /// </summary>
+    /// <param name="path">The path.</param>
+    /// <returns>The new instance.</returns>
+    public static SharableTexture CreateAsync(string path) => new FileSystemSharableTexture(path, false);
 
     /// <inheritdoc/>
     public override string ToString() =>
@@ -38,15 +64,16 @@ internal sealed class FileSystemSharableTexture : SharableTexture
 
     /// <inheritdoc/>
     protected override void ReviveResources() =>
-        this.UnderlyingWrap = this.CreateTextureAsync();
+        this.UnderlyingWrap = Service<TextureLoadThrottler>.Get().CreateLoader(
+            this,
+            this.CreateTextureAsync,
+            this.LoadCancellationToken);
 
-    private Task<IDalamudTextureWrap> CreateTextureAsync() =>
-        Task.Run(
-            () =>
-            {
-                var w = (IDalamudTextureWrap)Service<InterfaceManager>.Get().LoadImage(this.path)
-                        ?? throw new("Failed to load image because of an unknown reason.");
-                this.DisposeSuppressingWrap = new(w);
-                return w;
-            });
+    private Task<IDalamudTextureWrap> CreateTextureAsync(CancellationToken cancellationToken)
+    {
+        var w = (IDalamudTextureWrap)Service<InterfaceManager>.Get().LoadImage(this.path)
+                ?? throw new("Failed to load image because of an unknown reason.");
+        this.DisposeSuppressingWrap = new(w);
+        return Task.FromResult(w);
+    }
 }

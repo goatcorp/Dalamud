@@ -9,9 +9,9 @@ namespace Dalamud.Interface.Internal.SharableTextures;
 /// <summary>
 /// Represents a texture that may have multiple reference holders (owners).
 /// </summary>
-internal abstract class SharableTexture : IRefCountable
+internal abstract class SharableTexture : IRefCountable, TextureLoadThrottler.IThrottleBasisProvider
 {
-    private const int SelfReferenceDurationTicks = 5000;
+    private const int SelfReferenceDurationTicks = 2000;
     private const long SelfReferenceExpiryExpired = long.MaxValue;
 
     private static long instanceCounter;
@@ -22,15 +22,24 @@ internal abstract class SharableTexture : IRefCountable
     private int refCount;
     private long selfReferenceExpiry;
     private IDalamudTextureWrap? availableOnAccessWrapForApi9;
+    private CancellationTokenSource? cancellationTokenSource;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="SharableTexture"/> class.
     /// </summary>
-    protected SharableTexture()
+    /// <param name="holdSelfReference">If set to <c>true</c>, this class will hold a reference to self.
+    /// Otherwise, it is expected that the caller to hold the reference.</param>
+    protected SharableTexture(bool holdSelfReference)
     {
         this.InstanceIdForDebug = Interlocked.Increment(ref instanceCounter);
         this.refCount = 1;
-        this.selfReferenceExpiry = Environment.TickCount64 + SelfReferenceDurationTicks;
+        this.selfReferenceExpiry =
+            holdSelfReference
+                ? Environment.TickCount64 + SelfReferenceDurationTicks
+                : SelfReferenceExpiryExpired;
+        this.IsOpportunistic = true;
+        this.FirstRequestedTick = this.LatestRequestedTick = Environment.TickCount64;
+        this.cancellationTokenSource = new();
     }
 
     /// <summary>
@@ -66,10 +75,25 @@ internal abstract class SharableTexture : IRefCountable
     /// </summary>
     public Task<IDalamudTextureWrap>? UnderlyingWrap { get; set; }
 
+    /// <inheritdoc/>
+    public bool IsOpportunistic { get; private set; }
+
+    /// <inheritdoc/>
+    public long FirstRequestedTick { get; private set; }
+
+    /// <inheritdoc/>
+    public long LatestRequestedTick { get; private set; }
+
     /// <summary>
     /// Gets or sets the dispose-suppressing wrap for <see cref="UnderlyingWrap"/>.
     /// </summary>
     protected DisposeSuppressingTextureWrap? DisposeSuppressingWrap { get; set; }
+
+    /// <summary>
+    /// Gets a cancellation token for cancelling load.
+    /// Intended to be called from implementors' constructors and <see cref="ReviveResources"/>.
+    /// </summary>
+    protected CancellationToken LoadCancellationToken => this.cancellationTokenSource?.Token ?? default;
 
     /// <summary>
     /// Gets or sets a weak reference to an object that demands this objects to be alive.
@@ -124,6 +148,7 @@ internal abstract class SharableTexture : IRefCountable
                             continue;
                         }
 
+                        this.cancellationTokenSource = null;
                         this.ReleaseResources();
                         this.resourceReleased = true;
 
@@ -175,6 +200,7 @@ internal abstract class SharableTexture : IRefCountable
         if (this.TryAddRef(out _) != IRefCountable.RefCountResult.StillAlive)
             return null;
 
+        this.LatestRequestedTick = Environment.TickCount64;
         var nexp = Environment.TickCount64 + SelfReferenceDurationTicks;
         while (true)
         {
@@ -197,22 +223,45 @@ internal abstract class SharableTexture : IRefCountable
     /// Creates a new reference to this texture. The texture is guaranteed to be available until
     /// <see cref="IDisposable.Dispose"/> is called.
     /// </summary>
+    /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>The task containing the texture.</returns>
-    public Task<IDalamudTextureWrap> CreateNewReference()
+    public async Task<IDalamudTextureWrap> CreateNewReference(CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         this.AddRef();
         if (this.UnderlyingWrap is null)
             throw new InvalidOperationException("AddRef returned but UnderlyingWrap is null?");
 
-        return this.UnderlyingWrap.ContinueWith(
-            r =>
+        this.IsOpportunistic = false;
+        this.LatestRequestedTick = Environment.TickCount64;
+        var uw = this.UnderlyingWrap;
+        if (cancellationToken != default)
+        {
+            while (!uw.IsCompleted)
             {
-                if (r.IsCompletedSuccessfully)
-                    return Task.FromResult((IDalamudTextureWrap)new RefCountableWrappingTextureWrap(r.Result, this));
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    this.Release();
+                    throw new OperationCanceledException(cancellationToken);
+                }
 
-                this.Release();
-                return r;
-            }).Unwrap();
+                await Task.WhenAny(uw, Task.Delay(1000000, cancellationToken));
+            }
+        }
+
+        IDalamudTextureWrap dtw;
+        try
+        {
+            dtw = await uw;
+        }
+        catch
+        {
+            this.Release();
+            throw;
+        }
+
+        return new RefCountableWrappingTextureWrap(dtw, this);
     }
 
     /// <summary>
@@ -233,7 +282,7 @@ internal abstract class SharableTexture : IRefCountable
             if (this.RevivalPossibility?.TryGetTarget(out this.availableOnAccessWrapForApi9) is true)
                 return this.availableOnAccessWrapForApi9;
 
-            var newRefTask = this.CreateNewReference();
+            var newRefTask = this.CreateNewReference(default);
             newRefTask.Wait();
             if (!newRefTask.IsCompletedSuccessfully)
                 return null;
@@ -276,7 +325,17 @@ internal abstract class SharableTexture : IRefCountable
                 if (alterResult != IRefCountable.RefCountResult.AlreadyDisposed)
                     return alterResult;
 
-                this.ReviveResources();
+                this.cancellationTokenSource = new();
+                try
+                {
+                    this.ReviveResources();
+                }
+                catch
+                {
+                    this.cancellationTokenSource = null;
+                    throw;
+                }
+
                 if (this.RevivalPossibility?.TryGetTarget(out var target) is true)
                     this.availableOnAccessWrapForApi9 = target;
 
