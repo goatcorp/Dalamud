@@ -11,7 +11,8 @@ namespace Dalamud.Interface.Internal.SharableTextures;
 [ServiceManager.EarlyLoadedService]
 internal class TextureLoadThrottler : IServiceType
 {
-    private readonly List<WorkItem> workList = new();
+    private readonly object workListLock = new();
+    private readonly List<WorkItem> pendingWorkList = new();
     private readonly List<WorkItem> activeWorkList = new();
 
     [ServiceManager.ServiceConstructor]
@@ -61,78 +62,82 @@ internal class TextureLoadThrottler : IServiceType
             ImmediateLoadFunction = immediateLoadFunction,
         };
 
-        _ = Task.Run(
-            () =>
-            {
-                lock (this.workList)
-                {
-                    this.workList.Add(work);
-                    if (this.activeWorkList.Count >= this.MaxActiveWorkItems)
-                        return;
-                }
-
-                this.ContinueWork();
-            },
-            default);
+        _ = Task.Run(() => this.ContinueWork(work), default);
 
         return work.TaskCompletionSource.Task;
     }
 
-    private void ContinueWork()
+    private async Task ContinueWork(WorkItem? newItem)
     {
-        WorkItem minWork;
-        lock (this.workList)
+        while (true)
         {
-            if (this.workList.Count == 0)
-                return;
-
-            if (this.activeWorkList.Count >= this.MaxActiveWorkItems)
-                return;
-
-            var minIndex = 0;
-            for (var i = 1; i < this.workList.Count; i++)
+            WorkItem? minWork = null;
+            lock (this.workListLock)
             {
-                if (this.workList[i].CompareTo(this.workList[minIndex]) < 0)
-                    minIndex = i;
+                if (newItem is not null)
+                {
+                    this.pendingWorkList.Add(newItem);
+                    newItem = null;
+                }
+
+                if (this.activeWorkList.Count >= this.MaxActiveWorkItems)
+                    return;
+
+                var minIndex = -1;
+                for (var i = 0; i < this.pendingWorkList.Count; i++)
+                {
+                    var work = this.pendingWorkList[i];
+                    if (work.CancellationToken.IsCancellationRequested)
+                    {
+                        work.TaskCompletionSource.SetCanceled(work.CancellationToken);
+                        this.RelocatePendingWorkItemToEndAndEraseUnsafe(i--);
+                        continue;
+                    }
+
+                    if (minIndex == -1 || work.CompareTo(this.pendingWorkList[minIndex]) < 0)
+                    {
+                        minIndex = i;
+                        minWork = work;
+                    }
+                }
+
+                if (minWork is null)
+                    return;
+
+                this.RelocatePendingWorkItemToEndAndEraseUnsafe(minIndex);
+
+                this.activeWorkList.Add(minWork);
             }
 
-            minWork = this.workList[minIndex];
-            // Avoid shifting; relocate the element to remove to the last
-            if (minIndex != this.workList.Count - 1)
-                (this.workList[^1], this.workList[minIndex]) = (this.workList[minIndex], this.workList[^1]);
-            this.workList.RemoveAt(this.workList.Count - 1);
-
-            this.activeWorkList.Add(minWork);
-        }
-
-        try
-        {
-            minWork.CancellationToken.ThrowIfCancellationRequested();
-            minWork.InnerTask = minWork.ImmediateLoadFunction(minWork.CancellationToken);
-        }
-        catch (Exception e)
-        {
-            minWork.InnerTask = Task.FromException<IDalamudTextureWrap>(e);
-        }
-
-        minWork.InnerTask.ContinueWith(
-            r =>
+            try
             {
-                // Swallow exception, if any
-                _ = r.Exception;
+                var r = await minWork.ImmediateLoadFunction(minWork.CancellationToken);
+                minWork.TaskCompletionSource.SetResult(r);
+            }
+            catch (Exception e)
+            {
+                minWork.TaskCompletionSource.SetException(e);
+            }
 
-                lock (this.workList)
-                    this.activeWorkList.Remove(minWork);
-                if (r.IsCompletedSuccessfully)
-                    minWork.TaskCompletionSource.SetResult(r.Result);
-                else if (r.Exception is not null)
-                    minWork.TaskCompletionSource.SetException(r.Exception);
-                else if (r.IsCanceled)
-                    minWork.TaskCompletionSource.SetCanceled();
-                else
-                    minWork.TaskCompletionSource.SetException(new Exception("??"));
-                this.ContinueWork();
-            });
+            lock (this.workListLock)
+                this.activeWorkList.Remove(minWork);
+        }
+    }
+
+    /// <summary>
+    /// Remove an item in <see cref="pendingWorkList"/>, avoiding shifting.
+    /// </summary>
+    /// <param name="index">Index of the item to remove.</param>
+    private void RelocatePendingWorkItemToEndAndEraseUnsafe(int index)
+    {
+        // Relocate the element to remove to the last.
+        if (index != this.pendingWorkList.Count - 1)
+        {
+            (this.pendingWorkList[^1], this.pendingWorkList[index]) =
+                (this.pendingWorkList[index], this.pendingWorkList[^1]);
+        }
+
+        this.pendingWorkList.RemoveAt(this.pendingWorkList.Count - 1);
     }
 
     /// <summary>
@@ -163,8 +168,6 @@ internal class TextureLoadThrottler : IServiceType
         public required CancellationToken CancellationToken { get; init; }
 
         public required Func<CancellationToken, Task<IDalamudTextureWrap>> ImmediateLoadFunction { get; init; }
-
-        public Task<IDalamudTextureWrap>? InnerTask { get; set; }
 
         public int CompareTo(WorkItem other)
         {

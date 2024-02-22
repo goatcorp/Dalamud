@@ -148,6 +148,7 @@ internal abstract class SharableTexture : IRefCountable, TextureLoadThrottler.IT
                             continue;
                         }
 
+                        this.cancellationTokenSource?.Cancel();
                         this.cancellationTokenSource = null;
                         this.ReleaseResources();
                         this.resourceReleased = true;

@@ -36,8 +36,9 @@ internal class TaskTracker : IDisposable, IServiceType
 
     /// <summary>
     /// Gets a read-only list of tracked tasks.
+    /// Intended for use only from UI thread.
     /// </summary>
-    public static IReadOnlyList<TaskInfo> Tasks => TrackedTasksInternal.ToArray();
+    public static IReadOnlyList<TaskInfo> Tasks => TrackedTasksInternal;
 
     /// <summary>
     /// Clear the list of tracked tasks.
