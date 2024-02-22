@@ -6,7 +6,9 @@ using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 
+using AG.Collections;
 using Dalamud.Configuration.Internal;
 using Dalamud.Game.Command;
 using Dalamud.Interface.Colors;
@@ -28,7 +30,9 @@ namespace Dalamud.Interface.Internal.Windows;
 /// </summary>
 internal class ConsoleWindow : Window, IDisposable
 {
-    private readonly List<LogEntry> logText = new();
+    private const int RollingLogSize = 10000; // TODO: Make this configurable
+    private readonly RollingList<LogEntry> logText = new(RollingLogSize);
+    private volatile int newRolledLines;
     private readonly object renderLock = new();
 
     private readonly List<string> history = new();
@@ -76,7 +80,7 @@ internal class ConsoleWindow : Window, IDisposable
         this.RespectCloseHotkey = false;
     }
 
-    private List<LogEntry> FilteredLogEntries { get; set; } = new();
+    private RollingList<LogEntry> FilteredLogEntries { get; set; } = new(RollingLogSize);
 
     /// <inheritdoc/>
     public override void OnOpen()
@@ -180,6 +184,9 @@ internal class ConsoleWindow : Window, IDisposable
         var dividerOffset = ImGui.CalcTextSize("00:00:00.000 | AAA ").X + (ImGui.CalcTextSize(" ").X / 2);
         var cursorLogLine = ImGui.CalcTextSize("00:00:00.000 | AAA | ").X;
 
+        var lastLinePosY = 0.0f;
+        var logLineHeight = 0.0f;
+
         lock (this.renderLock)
         {
             clipper.Begin(this.FilteredLogEntries.Count);
@@ -187,7 +194,8 @@ internal class ConsoleWindow : Window, IDisposable
             {
                 for (var i = clipper.DisplayStart; i < clipper.DisplayEnd; i++)
                 {
-                    var line = this.FilteredLogEntries[i];
+                    var index = Math.Max(i - this.newRolledLines, 0); // Prevents flicker effect. Also workaround to avoid negative indexes.
+                    var line = this.FilteredLogEntries[index];
 
                     if (!line.IsMultiline && !this.copyLog)
                         ImGui.Separator();
@@ -228,6 +236,10 @@ internal class ConsoleWindow : Window, IDisposable
 
                     ImGui.SetCursorPosX(cursorLogLine);
                     ImGui.TextUnformatted(line.Line);
+
+                    var currentLinePosY = ImGui.GetCursorPosY();
+                    logLineHeight = currentLinePosY - lastLinePosY;
+                    lastLinePosY = currentLinePosY;
                 }
             }
 
@@ -238,6 +250,12 @@ internal class ConsoleWindow : Window, IDisposable
         ImGui.PopFont();
 
         ImGui.PopStyleVar();
+
+        var newRolledLinesCount = Interlocked.Exchange(ref this.newRolledLines, 0);
+        if (!this.autoScroll || ImGui.GetScrollY() < ImGui.GetScrollMaxY())
+        {
+            ImGui.SetScrollY(ImGui.GetScrollY() - (logLineHeight * newRolledLinesCount));
+        }
 
         if (this.autoScroll && ImGui.GetScrollY() >= ImGui.GetScrollMaxY())
         {
@@ -686,8 +704,12 @@ internal class ConsoleWindow : Window, IDisposable
 
         this.logText.Add(entry);
 
+        var avoidScroll = this.FilteredLogEntries.Count == this.FilteredLogEntries.Size;
         if (this.IsFilterApplicable(entry))
+        {
             this.FilteredLogEntries.Add(entry);
+            if (avoidScroll) Interlocked.Increment(ref this.newRolledLines);
+        }
     }
 
     private bool IsFilterApplicable(LogEntry entry)
@@ -740,7 +762,7 @@ internal class ConsoleWindow : Window, IDisposable
         lock (this.renderLock)
         {
             this.regexError = false;
-            this.FilteredLogEntries = this.logText.Where(this.IsFilterApplicable).ToList();
+            this.FilteredLogEntries = new RollingList<LogEntry>(this.logText.Where(this.IsFilterApplicable), RollingLogSize);
         }
     }
 
