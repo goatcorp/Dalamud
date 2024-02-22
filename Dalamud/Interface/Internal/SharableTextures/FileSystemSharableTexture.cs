@@ -1,3 +1,5 @@
+using System.Buffers;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -64,11 +66,9 @@ internal sealed class FileSystemSharableTexture : SharableTexture
             this.CreateTextureAsync,
             this.LoadCancellationToken);
 
-    private Task<IDalamudTextureWrap> CreateTextureAsync(CancellationToken cancellationToken)
+    private async Task<IDalamudTextureWrap> CreateTextureAsync(CancellationToken cancellationToken)
     {
-        var w = (IDalamudTextureWrap)Service<InterfaceManager>.Get().LoadImage(this.path)
-                ?? throw new("Failed to load image because of an unknown reason.");
-        this.DisposeSuppressingWrap = new(w);
-        return Task.FromResult(w);
+        var tm = await Service<TextureManager>.GetAsync();
+        return tm.NoThrottleGetFromImage(await File.ReadAllBytesAsync(this.path, cancellationToken));
     }
 }

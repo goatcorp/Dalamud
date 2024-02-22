@@ -1,4 +1,6 @@
-﻿using SharpDX.DXGI;
+﻿using Dalamud.Plugin.Services;
+
+using SharpDX.DXGI;
 
 namespace Dalamud.Storage.Assets;
 
@@ -17,29 +19,11 @@ internal class DalamudAssetRawTextureAttribute : Attribute
     /// <param name="format">The format.</param>
     public DalamudAssetRawTextureAttribute(int width, int pitch, int height, Format format)
     {
-        this.Width = width;
-        this.Pitch = pitch;
-        this.Height = height;
-        this.Format = format;
+        this.Specification = new(width, height, pitch, (int)format);
     }
 
     /// <summary>
-    /// Gets the width.
+    /// Gets the specification.
     /// </summary>
-    public int Width { get; }
-
-    /// <summary>
-    /// Gets the pitch.
-    /// </summary>
-    public int Pitch { get; }
-
-    /// <summary>
-    /// Gets the height.
-    /// </summary>
-    public int Height { get; }
-
-    /// <summary>
-    /// Gets the format.
-    /// </summary>
-    public Format Format { get; }
+    public RawImageSpecification Specification { get; }
 }

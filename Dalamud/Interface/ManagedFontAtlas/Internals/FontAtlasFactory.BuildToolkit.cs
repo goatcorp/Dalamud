@@ -10,6 +10,7 @@ using Dalamud.Interface.FontIdentifier;
 using Dalamud.Interface.GameFonts;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Utility;
+using Dalamud.Plugin.Services;
 using Dalamud.Storage.Assets;
 using Dalamud.Utility;
 
@@ -579,7 +580,7 @@ internal sealed partial class FontAtlasFactory
             var buf = Array.Empty<byte>();
             try
             {
-                var use4 = this.factory.InterfaceManager.SupportsDxgiFormat(Format.B4G4R4A4_UNorm);
+                var use4 = this.factory.TextureManager.SupportsDxgiFormat((int)Format.B4G4R4A4_UNorm);
                 var bpp = use4 ? 2 : 4;
                 var width = this.NewImAtlas.TexWidth;
                 var height = this.NewImAtlas.TexHeight;
@@ -591,12 +592,9 @@ internal sealed partial class FontAtlasFactory
                     }
                     else if (texture.TexPixelsRGBA32 is not null)
                     {
-                        var wrap = this.factory.InterfaceManager.LoadImageFromDxgiFormat(
-                            new(texture.TexPixelsRGBA32, width * height * 4),
-                            width * 4,
-                            width,
-                            height,
-                            use4 ? Format.B4G4R4A4_UNorm : Format.R8G8B8A8_UNorm);
+                        var wrap = this.factory.TextureManager.GetFromRaw(
+                            RawImageSpecification.Rgba32(width, height),
+                            new(texture.TexPixelsRGBA32, width * height * 4));
                         this.data.AddExistingTexture(wrap);
                         texture.TexID = wrap.ImGuiHandle;
                     }
@@ -634,12 +632,13 @@ internal sealed partial class FontAtlasFactory
                             }
                         }
 
-                        var wrap = this.factory.InterfaceManager.LoadImageFromDxgiFormat(
-                            buf,
-                            width * bpp,
-                            width,
-                            height,
-                            use4 ? Format.B4G4R4A4_UNorm : Format.B8G8R8A8_UNorm);
+                        var wrap = this.factory.TextureManager.GetFromRaw(
+                            new(
+                                width,
+                                height,
+                                width * bpp,
+                                (int)(use4 ? Format.B4G4R4A4_UNorm : Format.B8G8R8A8_UNorm)),
+                            buf);
                         this.data.AddExistingTexture(wrap);
                         texture.TexID = wrap.ImGuiHandle;
                         continue;

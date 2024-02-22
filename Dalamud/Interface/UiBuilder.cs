@@ -379,6 +379,8 @@ public sealed class UiBuilder : IDisposable
     private Task<InterfaceManager> InterfaceManagerWithSceneAsync =>
         Service<InterfaceManager.InterfaceManagerWithScene>.GetAsync().ContinueWith(task => task.Result.Manager);
 
+    private ITextureProvider TextureProvider => Service<TextureManager>.Get();
+
     /// <summary>
     /// Loads an image from the specified file.
     /// </summary>
@@ -386,9 +388,7 @@ public sealed class UiBuilder : IDisposable
     /// <returns>A <see cref="TextureWrap"/> object wrapping the created image.  Use <see cref="TextureWrap.ImGuiHandle"/> inside ImGui.Image().</returns>
     [Api10ToDo(Api10ToDoAttribute.DeleteCompatBehavior)]
     [Obsolete($"Use {nameof(ITextureProvider.GetFromFileAsync)}.")]
-    public IDalamudTextureWrap LoadImage(string filePath)
-        => this.InterfaceManagerWithScene?.LoadImage(filePath)
-           ?? throw new InvalidOperationException("Load failed.");
+    public IDalamudTextureWrap LoadImage(string filePath) => this.TextureProvider.GetFromFileAsync(filePath).Result;
 
     /// <summary>
     /// Loads an image from a byte stream, such as a png downloaded into memory.
@@ -397,9 +397,7 @@ public sealed class UiBuilder : IDisposable
     /// <returns>A <see cref="TextureWrap"/> object wrapping the created image.  Use <see cref="TextureWrap.ImGuiHandle"/> inside ImGui.Image().</returns>
     [Api10ToDo(Api10ToDoAttribute.DeleteCompatBehavior)]
     [Obsolete($"Use {nameof(ITextureProvider.GetFromImageAsync)}.")]
-    public IDalamudTextureWrap LoadImage(byte[] imageData)
-        => this.InterfaceManagerWithScene?.LoadImage(imageData)
-           ?? throw new InvalidOperationException("Load failed.");
+    public IDalamudTextureWrap LoadImage(byte[] imageData) => this.TextureProvider.GetFromImageAsync(imageData).Result;
 
     /// <summary>
     /// Loads an image from raw unformatted pixel data, with no type or header information.  To load formatted data, use <see cref="LoadImage(byte[])"/>.
@@ -411,9 +409,12 @@ public sealed class UiBuilder : IDisposable
     /// <returns>A <see cref="TextureWrap"/> object wrapping the created image.  Use <see cref="TextureWrap.ImGuiHandle"/> inside ImGui.Image().</returns>
     [Api10ToDo(Api10ToDoAttribute.DeleteCompatBehavior)]
     [Obsolete($"Use {nameof(ITextureProvider.GetFromRaw)} or {nameof(ITextureProvider.GetFromRawAsync)}.")]
-    public IDalamudTextureWrap LoadImageRaw(byte[] imageData, int width, int height, int numChannels)
-        => this.InterfaceManagerWithScene?.LoadImageRaw(imageData, width, height, numChannels)
-           ?? throw new InvalidOperationException("Load failed.");
+    public IDalamudTextureWrap LoadImageRaw(byte[] imageData, int width, int height, int numChannels) =>
+        numChannels switch
+        {
+            4 => this.TextureProvider.GetFromRaw(RawImageSpecification.Rgba32(width, height), imageData),
+            _ => throw new NotSupportedException(),
+        };
 
     /// <summary>
     /// Loads an ULD file that can load textures containing multiple icons in a single texture.
@@ -430,10 +431,7 @@ public sealed class UiBuilder : IDisposable
     /// <returns>A <see cref="TextureWrap"/> object wrapping the created image.  Use <see cref="TextureWrap.ImGuiHandle"/> inside ImGui.Image().</returns>
     [Api10ToDo(Api10ToDoAttribute.DeleteCompatBehavior)]
     [Obsolete($"Use {nameof(ITextureProvider.GetFromFileAsync)}.")]
-    public Task<IDalamudTextureWrap> LoadImageAsync(string filePath) => Task.Run(
-        async () =>
-            (await this.InterfaceManagerWithSceneAsync).LoadImage(filePath)
-            ?? throw new InvalidOperationException("Load failed."));
+    public Task<IDalamudTextureWrap> LoadImageAsync(string filePath) => this.TextureProvider.GetFromFileAsync(filePath);
 
     /// <summary>
     /// Asynchronously loads an image from a byte stream, such as a png downloaded into memory, when it's possible to do so.
@@ -442,10 +440,8 @@ public sealed class UiBuilder : IDisposable
     /// <returns>A <see cref="TextureWrap"/> object wrapping the created image.  Use <see cref="TextureWrap.ImGuiHandle"/> inside ImGui.Image().</returns>
     [Api10ToDo(Api10ToDoAttribute.DeleteCompatBehavior)]
     [Obsolete($"Use {nameof(ITextureProvider.GetFromImageAsync)}.")]
-    public Task<IDalamudTextureWrap> LoadImageAsync(byte[] imageData) => Task.Run(
-        async () =>
-            (await this.InterfaceManagerWithSceneAsync).LoadImage(imageData)
-            ?? throw new InvalidOperationException("Load failed."));
+    public Task<IDalamudTextureWrap> LoadImageAsync(byte[] imageData) =>
+        this.TextureProvider.GetFromImageAsync(imageData);
 
     /// <summary>
     /// Asynchronously loads an image from raw unformatted pixel data, with no type or header information, when it's possible to do so.  To load formatted data, use <see cref="LoadImage(byte[])"/>.
@@ -457,10 +453,12 @@ public sealed class UiBuilder : IDisposable
     /// <returns>A <see cref="TextureWrap"/> object wrapping the created image.  Use <see cref="TextureWrap.ImGuiHandle"/> inside ImGui.Image().</returns>
     [Api10ToDo(Api10ToDoAttribute.DeleteCompatBehavior)]
     [Obsolete($"Use {nameof(ITextureProvider.GetFromRawAsync)}.")]
-    public Task<IDalamudTextureWrap> LoadImageRawAsync(byte[] imageData, int width, int height, int numChannels) => Task.Run(
-        async () =>
-            (await this.InterfaceManagerWithSceneAsync).LoadImageRaw(imageData, width, height, numChannels)
-            ?? throw new InvalidOperationException("Load failed."));
+    public Task<IDalamudTextureWrap> LoadImageRawAsync(byte[] imageData, int width, int height, int numChannels) =>
+        numChannels switch
+        {
+            4 => this.TextureProvider.GetFromRawAsync(RawImageSpecification.Rgba32(width, height), imageData),
+            _ => Task.FromException<IDalamudTextureWrap>(new NotSupportedException()),
+        };
 
     /// <summary>
     /// Waits for UI to become available for use.

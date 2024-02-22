@@ -69,8 +69,8 @@ internal class PluginInstallerWindow : Window, IDisposable
     private string[] testerImagePaths = new string[5];
     private string testerIconPath = string.Empty;
 
-    private IDalamudTextureWrap?[]? testerImages;
-    private IDalamudTextureWrap? testerIcon;
+    private Task<IDalamudTextureWrap>?[]? testerImages;
+    private Task<IDalamudTextureWrap>? testerIcon;
 
     private bool testerError = false;
     private bool testerUpdateAvailable = false;
@@ -1510,10 +1510,10 @@ internal class PluginInstallerWindow : Window, IDisposable
 
         ImGui.SetCursorPos(startCursor);
 
-        var hasIcon = this.testerIcon != null;
+        var hasIcon = this.testerIcon?.IsCompletedSuccessfully is true;
 
         var iconTex = this.imageCache.DefaultIcon;
-        if (hasIcon) iconTex = this.testerIcon;
+        if (hasIcon) iconTex = this.testerIcon.Result;
 
         var iconSize = ImGuiHelpers.ScaledVector2(64, 64);
 
@@ -1607,9 +1607,23 @@ internal class PluginInstallerWindow : Window, IDisposable
                     for (var i = 0; i < this.testerImages.Length; i++)
                     {
                         var popupId = $"pluginTestingImage{i}";
-                        var image = this.testerImages[i];
-                        if (image == null)
+                        var imageTask = this.testerImages[i];
+                        if (imageTask == null)
                             continue;
+
+                        if (!imageTask.IsCompleted)
+                        {
+                            ImGui.TextUnformatted("Loading...");
+                            continue;
+                        }
+
+                        if (imageTask.Exception is not null)
+                        {
+                            ImGui.TextUnformatted(imageTask.Exception.ToString());
+                            continue;
+                        }
+
+                        var image = imageTask.Result;
 
                         ImGui.PushStyleVar(ImGuiStyleVar.PopupBorderSize, 0);
                         ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, Vector2.Zero);
@@ -1666,14 +1680,37 @@ internal class PluginInstallerWindow : Window, IDisposable
 
         ImGuiHelpers.ScaledDummy(20);
 
-        static void CheckImageSize(IDalamudTextureWrap? image, int maxWidth, int maxHeight, bool requireSquare)
+        static void CheckImageSize(Task<IDalamudTextureWrap>? imageTask, int maxWidth, int maxHeight, bool requireSquare)
         {
-            if (image == null)
+            if (imageTask == null)
                 return;
-            if (image.Width > maxWidth || image.Height > maxHeight)
-                ImGui.TextColored(ImGuiColors.DalamudRed, $"Image is larger than the maximum allowed resolution ({image.Width}x{image.Height} > {maxWidth}x{maxHeight})");
-            if (requireSquare && image.Width != image.Height)
-                ImGui.TextColored(ImGuiColors.DalamudRed, $"Image must be square! Current size: {image.Width}x{image.Height}");
+
+            if (!imageTask.IsCompleted)
+            {
+                ImGui.Text("Loading...");
+                return;
+            }
+
+            ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudRed);
+
+            if (imageTask.Exception is { } exc)
+            {
+                ImGui.TextUnformatted(exc.ToString());
+            }
+            else
+            {
+                var image = imageTask.Result;
+                if (image.Width > maxWidth || image.Height > maxHeight)
+                {
+                    ImGui.TextUnformatted(
+                        $"Image is larger than the maximum allowed resolution ({image.Width}x{image.Height} > {maxWidth}x{maxHeight})");
+                }
+
+                if (requireSquare && image.Width != image.Height)
+                    ImGui.TextUnformatted($"Image must be square! Current size: {image.Width}x{image.Height}");
+            }
+
+            ImGui.PopStyleColor();
         }
 
         ImGui.InputText("Icon Path", ref this.testerIconPath, 1000);
@@ -1695,7 +1732,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         if (this.testerImages?.Length > 4)
             CheckImageSize(this.testerImages[4], PluginImageCache.PluginImageWidth, PluginImageCache.PluginImageHeight, false);
 
-        var im = Service<InterfaceManager>.Get();
+        var tm = Service<TextureManager>.Get();
         if (ImGui.Button("Load"))
         {
             try
@@ -1708,23 +1745,18 @@ internal class PluginInstallerWindow : Window, IDisposable
 
                 if (!this.testerIconPath.IsNullOrEmpty())
                 {
-                    this.testerIcon = im.LoadImage(this.testerIconPath);
+                    this.testerIcon = tm.GetFromFileAsync(this.testerIconPath);
                 }
 
-                this.testerImages = new IDalamudTextureWrap[this.testerImagePaths.Length];
+                this.testerImages = new Task<IDalamudTextureWrap>?[this.testerImagePaths.Length];
 
                 for (var i = 0; i < this.testerImagePaths.Length; i++)
                 {
                     if (this.testerImagePaths[i].IsNullOrEmpty())
                         continue;
 
-                    if (this.testerImages[i] != null)
-                    {
-                        this.testerImages[i].Dispose();
-                        this.testerImages[i] = null;
-                    }
-
-                    this.testerImages[i] = im.LoadImage(this.testerImagePaths[i]);
+                    _ = this.testerImages[i]?.ToContentDisposedTask();
+                    this.testerImages[i] = tm.GetFromFileAsync(this.testerImagePaths[i]);
                 }
             }
             catch (Exception ex)

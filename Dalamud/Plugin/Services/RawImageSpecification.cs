@@ -213,4 +213,14 @@ public record struct RawImageSpecification(int Width, int Height, int Pitch, int
     /// <returns>The new instance.</returns>
     public static RawImageSpecification Rgba32(int width, int height) =>
         new(width, height, width * 4, (int)DXGI_FORMAT.DXGI_FORMAT_R8G8B8A8_UNORM);
+
+    /// <summary>
+    /// Creates a new instance of <see cref="RawImageSpecification"/> record using the given resolution,
+    /// in A8 UNorm pixel format.
+    /// </summary>
+    /// <param name="width">The width.</param>
+    /// <param name="height">The height.</param>
+    /// <returns>The new instance.</returns>
+    public static RawImageSpecification A8(int width, int height) =>
+        new(width, height, width, (int)DXGI_FORMAT.DXGI_FORMAT_A8_UNORM);
 }

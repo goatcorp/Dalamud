@@ -70,10 +70,11 @@ internal sealed class GamePathSharableTexture : SharableTexture
     private async Task<IDalamudTextureWrap> CreateTextureAsync(CancellationToken cancellationToken)
     {
         var dm = await Service<DataManager>.GetAsync();
-        var im = await Service<InterfaceManager>.GetAsync();
-        var file = dm.GetFile<TexFile>(this.path);
+        var tm = await Service<TextureManager>.GetAsync();
+        if (dm.GetFile<TexFile>(this.path) is not { } file)
+            throw new FileNotFoundException();
         cancellationToken.ThrowIfCancellationRequested();
-        var t = (IDalamudTextureWrap)im.LoadImageFromTexFile(file ?? throw new FileNotFoundException());
+        var t = tm.NoThrottleGetFromTexFile(file);
         this.DisposeSuppressingWrap = new(t);
         return t;
     }

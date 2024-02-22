@@ -19,6 +19,11 @@ using Dalamud.Utility;
 
 using Lumina.Data.Files;
 
+using SharpDX;
+using SharpDX.Direct3D;
+using SharpDX.Direct3D11;
+using SharpDX.DXGI;
+
 namespace Dalamud.Interface.Internal;
 
 // TODO API10: Remove keepAlive from public APIs
@@ -241,9 +246,7 @@ internal sealed class TextureManager : IServiceType, IDisposable, ITextureProvid
         CancellationToken cancellationToken = default) =>
         this.textureLoadThrottler.CreateLoader(
             new TextureLoadThrottler.ReadOnlyThrottleBasisProvider(),
-            _ => Task.FromResult(
-                this.interfaceManager.LoadImage(bytes.ToArray())
-                ?? throw new("Failed to load image because of an unknown reason.")),
+            ct => Task.Run(() => this.NoThrottleGetFromImage(bytes.ToArray()), ct),
             cancellationToken);
 
     /// <inheritdoc/>
@@ -273,13 +276,46 @@ internal sealed class TextureManager : IServiceType, IDisposable, ITextureProvid
     /// <inheritdoc/>
     public IDalamudTextureWrap GetFromRaw(
         RawImageSpecification specs,
-        ReadOnlySpan<byte> bytes) =>
-        this.interfaceManager.LoadImageFromDxgiFormat(
-            bytes,
-            specs.Pitch,
-            specs.Width,
-            specs.Height,
-            (SharpDX.DXGI.Format)specs.DxgiFormat);
+        ReadOnlySpan<byte> bytes)
+    {
+        if (this.interfaceManager.Scene is not { } scene)
+        {
+            _ = Service<InterfaceManager.InterfaceManagerWithScene>.Get();
+            scene = this.interfaceManager.Scene ?? throw new InvalidOperationException();
+        }
+
+        ShaderResourceView resView;
+        unsafe
+        {
+            fixed (void* pData = bytes)
+            {
+                var texDesc = new Texture2DDescription
+                {
+                    Width = specs.Width,
+                    Height = specs.Height,
+                    MipLevels = 1,
+                    ArraySize = 1,
+                    Format = (Format)specs.DxgiFormat,
+                    SampleDescription = new(1, 0),
+                    Usage = ResourceUsage.Immutable,
+                    BindFlags = BindFlags.ShaderResource,
+                    CpuAccessFlags = CpuAccessFlags.None,
+                    OptionFlags = ResourceOptionFlags.None,
+                };
+
+                using var texture = new Texture2D(scene.Device, texDesc, new DataRectangle(new(pData), specs.Pitch));
+                resView = new(scene.Device, texture, new()
+                {
+                    Format = texDesc.Format,
+                    Dimension = ShaderResourceViewDimension.Texture2D,
+                    Texture2D = { MipLevels = texDesc.MipLevels },
+                });
+            }
+        }
+        
+        // no sampler for now because the ImGui implementation we copied doesn't allow for changing it
+        return new DalamudTextureWrap(new D3DTextureWrap(resView, specs.Width, specs.Height));
+    }
 
     /// <inheritdoc/>
     public Task<IDalamudTextureWrap> GetFromRawAsync(
@@ -325,12 +361,20 @@ internal sealed class TextureManager : IServiceType, IDisposable, ITextureProvid
         CancellationToken cancellationToken = default) =>
         this.textureLoadThrottler.CreateLoader(
             new TextureLoadThrottler.ReadOnlyThrottleBasisProvider(),
-            _ => Task.FromResult<IDalamudTextureWrap>(this.interfaceManager.LoadImageFromTexFile(file)),
+            ct => Task.Run(() => this.NoThrottleGetFromTexFile(file), ct),
             cancellationToken);
-
+    
     /// <inheritdoc/>
-    public bool SupportsDxgiFormat(int dxgiFormat) =>
-        this.interfaceManager.SupportsDxgiFormat((SharpDX.DXGI.Format)dxgiFormat);
+    public bool SupportsDxgiFormat(int dxgiFormat)
+    {
+        if (this.interfaceManager.Scene is not { } scene)
+        {
+            _ = Service<InterfaceManager.InterfaceManagerWithScene>.Get();
+            scene = this.interfaceManager.Scene ?? throw new InvalidOperationException();
+        }
+
+        return scene.Device.CheckFormatSupport((Format)dxgiFormat).HasFlag(FormatSupport.Texture2D);
+    }
 
     /// <inheritdoc/>
     public bool TryGetIconPath(in GameIconLookup lookup, out string path)
@@ -441,6 +485,46 @@ internal sealed class TextureManager : IServiceType, IDisposable, ITextureProvid
                 }
             }
         }
+    }
+
+    /// <summary>
+    /// Gets a texture from the given image. Skips the load throttler; intended to be used from implementation of
+    /// <see cref="SharableTexture"/>s.
+    /// </summary>
+    /// <param name="bytes">The data.</param>
+    /// <returns>The loaded texture.</returns>
+    internal IDalamudTextureWrap NoThrottleGetFromImage(ReadOnlyMemory<byte> bytes)
+    {
+        if (this.interfaceManager.Scene is not { } scene)
+        {
+            _ = Service<InterfaceManager.InterfaceManagerWithScene>.Get();
+            scene = this.interfaceManager.Scene ?? throw new InvalidOperationException();
+        }
+
+        return new DalamudTextureWrap(
+            scene.LoadImage(bytes.ToArray())
+            ?? throw new("Failed to load image because of an unknown reason."));
+    }
+
+    /// <summary>
+    /// Gets a texture from the given <see cref="TexFile"/>. Skips the load throttler; intended to be used from
+    /// implementation of <see cref="SharableTexture"/>s.
+    /// </summary>
+    /// <param name="file">The data.</param>
+    /// <returns>The loaded texture.</returns>
+    internal IDalamudTextureWrap NoThrottleGetFromTexFile(TexFile file)
+    {
+        var buffer = file.TextureBuffer;
+        var (dxgiFormat, conversion) = TexFile.GetDxgiFormatFromTextureFormat(file.Header.Format, false);
+        if (conversion != TexFile.DxgiFormatConversion.NoConversion || !this.SupportsDxgiFormat(dxgiFormat))
+        {
+            dxgiFormat = (int)Format.B8G8R8A8_UNorm;
+            buffer = buffer.Filter(0, 0, TexFile.TextureFormat.B8G8R8A8);
+        }
+
+        return this.GetFromRaw(
+            RawImageSpecification.From(buffer.Width, buffer.Height, dxgiFormat),
+            buffer.RawData);
     }
 
     private static string FormatIconPath(uint iconId, string? type, bool highResolution)

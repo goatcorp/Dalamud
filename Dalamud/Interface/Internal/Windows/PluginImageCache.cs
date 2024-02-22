@@ -269,33 +269,17 @@ internal class PluginImageCache : IDisposable, IServiceType
         if (bytes == null)
             return null;
 
-        var interfaceManager = (await Service<InterfaceManager.InterfaceManagerWithScene>.GetAsync()).Manager;
-        var framework = await Service<Framework>.GetAsync();
+        var textureManager = await Service<TextureManager>.GetAsync();
 
         IDalamudTextureWrap? image;
         // FIXME(goat): This is a hack around this call failing randomly in certain situations. Might be related to not being called on the main thread.
         try
         {
-            image = interfaceManager.LoadImage(bytes);
+            image = await textureManager.GetFromImageAsync(bytes);
         }
         catch (Exception ex)
         {
-            Log.Error(ex, "Access violation during load plugin {name} from {Loc} (Async Thread)", name, loc);
-
-            try
-            {
-                image = await framework.RunOnFrameworkThread(() => interfaceManager.LoadImage(bytes));
-            }
-            catch (Exception ex2)
-            {
-                Log.Error(ex2, "Access violation during load plugin {name} from {Loc} (Framework Thread)", name, loc);
-                return null;
-            }
-        }
-
-        if (image == null)
-        {
-            Log.Error($"Could not load {name} for {manifest.InternalName} at {loc}");
+            Log.Error(ex, $"Could not load {name} for {manifest.InternalName} at {loc}");
             return null;
         }
 

@@ -46,11 +46,13 @@ internal sealed partial class FontAtlasFactory
         DataManager dataManager,
         Framework framework,
         InterfaceManager interfaceManager,
-        DalamudAssetManager dalamudAssetManager)
+        DalamudAssetManager dalamudAssetManager,
+        TextureManager textureManager)
     {
         this.Framework = framework;
         this.InterfaceManager = interfaceManager;
         this.dalamudAssetManager = dalamudAssetManager;
+        this.TextureManager = textureManager;
         this.SceneTask = Service<InterfaceManager.InterfaceManagerWithScene>
                          .GetAsync()
                          .ContinueWith(r => r.Result.Manager.Scene);
@@ -143,6 +145,11 @@ internal sealed partial class FontAtlasFactory
     /// <see cref="Internal.InterfaceManager.Scene"/> may not yet be available.
     /// </summary>
     public InterfaceManager InterfaceManager { get; }
+
+    /// <summary>
+    /// Gets the service instance of <see cref="TextureManager"/>.
+    /// </summary>
+    public TextureManager TextureManager { get; }
 
     /// <summary>
     /// Gets the async task for <see cref="RawDX11Scene"/> inside <see cref="InterfaceManager"/>.
@@ -346,7 +353,7 @@ internal sealed partial class FontAtlasFactory
         var numPixels = texFile.Header.Width * texFile.Header.Height;
 
         _ = Service<InterfaceManager.InterfaceManagerWithScene>.Get();
-        var targetIsB4G4R4A4 = this.InterfaceManager.SupportsDxgiFormat(Format.B4G4R4A4_UNorm);
+        var targetIsB4G4R4A4 = this.TextureManager.SupportsDxgiFormat((int)Format.B4G4R4A4_UNorm);
         var bpp = targetIsB4G4R4A4 ? 2 : 4;
         var buffer = ArrayPool<byte>.Shared.Rent(numPixels * bpp);
         try
@@ -369,12 +376,13 @@ internal sealed partial class FontAtlasFactory
             }
 
             return this.scopedFinalizer.Add(
-                this.InterfaceManager.LoadImageFromDxgiFormat(
-                    buffer,
-                    texFile.Header.Width * bpp,
-                    texFile.Header.Width,
-                    texFile.Header.Height,
-                    targetIsB4G4R4A4 ? Format.B4G4R4A4_UNorm : Format.B8G8R8A8_UNorm));
+                this.TextureManager.GetFromRaw(
+                    new(
+                        texFile.Header.Width,
+                        texFile.Header.Height,
+                        texFile.Header.Width * bpp,
+                        (int)(targetIsB4G4R4A4 ? Format.B4G4R4A4_UNorm : Format.B8G8R8A8_UNorm)),
+                    buffer));
         }
         finally
         {
