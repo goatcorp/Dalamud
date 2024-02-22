@@ -469,7 +469,7 @@ internal sealed class TextureManager : IServiceType, IDisposable, ITextureProvid
         return;
 
         static bool TextureFinalReleasePredicate(SharableTexture v) =>
-            v.ReleaseSelfReference(false) == 0 && !v.HasRevivalPossibility;
+            v.ContentQueried && v.ReleaseSelfReference(false) == 0 && !v.HasRevivalPossibility;
     }
 
     private string GetIconPathByValue(GameIconLookup lookup) =>

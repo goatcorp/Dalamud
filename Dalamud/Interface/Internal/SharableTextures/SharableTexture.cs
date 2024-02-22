@@ -32,14 +32,26 @@ internal abstract class SharableTexture : IRefCountable, TextureLoadThrottler.IT
     protected SharableTexture(bool holdSelfReference)
     {
         this.InstanceIdForDebug = Interlocked.Increment(ref instanceCounter);
-        this.refCount = 1;
-        this.selfReferenceExpiry =
-            holdSelfReference
-                ? Environment.TickCount64 + SelfReferenceDurationTicks
-                : SelfReferenceExpiryExpired;
-        this.IsOpportunistic = true;
+
+        if (holdSelfReference)
+        {
+            this.refCount = 1;
+            this.selfReferenceExpiry = Environment.TickCount64 + SelfReferenceDurationTicks;
+            this.ContentQueried = true;
+            this.IsOpportunistic = true;
+            this.resourceReleased = false;
+            this.cancellationTokenSource = new();
+        }
+        else
+        {
+            this.refCount = 0;
+            this.selfReferenceExpiry = SelfReferenceExpiryExpired;
+            this.ContentQueried = false;
+            this.IsOpportunistic = false;
+            this.resourceReleased = true;
+        }
+
         this.FirstRequestedTick = this.LatestRequestedTick = Environment.TickCount64;
-        this.cancellationTokenSource = new();
     }
 
     /// <summary>
@@ -83,6 +95,12 @@ internal abstract class SharableTexture : IRefCountable, TextureLoadThrottler.IT
 
     /// <inheritdoc/>
     public long LatestRequestedTick { get; private set; }
+
+    /// <summary>
+    /// Gets a value indicating whether the content has been queried,
+    /// i.e. <see cref="CreateNewReference"/> or <see cref="GetImmediate"/> is called.
+    /// </summary>
+    public bool ContentQueried { get; private set; }
 
     /// <summary>
     /// Gets or sets the dispose-suppressing wrap for <see cref="UnderlyingWrap"/>.
@@ -199,8 +217,12 @@ internal abstract class SharableTexture : IRefCountable, TextureLoadThrottler.IT
     public IDalamudTextureWrap? GetImmediate()
     {
         if (this.TryAddRef(out _) != IRefCountable.RefCountResult.StillAlive)
+        {
+            this.ContentQueried = true;
             return null;
+        }
 
+        this.ContentQueried = true;
         this.LatestRequestedTick = Environment.TickCount64;
         var nexp = Environment.TickCount64 + SelfReferenceDurationTicks;
         while (true)
@@ -230,7 +252,15 @@ internal abstract class SharableTexture : IRefCountable, TextureLoadThrottler.IT
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        this.AddRef();
+        try
+        {
+            this.AddRef();
+        }
+        finally
+        {
+            this.ContentQueried = true;
+        }
+
         if (this.UnderlyingWrap is null)
             throw new InvalidOperationException("AddRef returned but UnderlyingWrap is null?");
 

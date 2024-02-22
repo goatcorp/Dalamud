@@ -27,12 +27,7 @@ internal sealed class GamePathSharableTexture : SharableTexture
     {
         this.path = path;
         if (holdSelfReference)
-        {
-            this.UnderlyingWrap = Service<TextureLoadThrottler>.Get().CreateLoader(
-                this,
-                this.CreateTextureAsync,
-                this.LoadCancellationToken);
-        }
+            this.ReviveResources();
     }
 
     /// <inheritdoc/>

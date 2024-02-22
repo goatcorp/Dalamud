@@ -23,12 +23,7 @@ internal sealed class FileSystemSharableTexture : SharableTexture
     {
         this.path = path;
         if (holdSelfReference)
-        {
-            this.UnderlyingWrap = Service<TextureLoadThrottler>.Get().CreateLoader(
-                this,
-                this.CreateTextureAsync,
-                this.LoadCancellationToken);
-        }
+            this.ReviveResources();
     }
 
     /// <inheritdoc/>
