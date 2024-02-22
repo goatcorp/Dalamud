@@ -1,4 +1,3 @@
-using System.Buffers;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -54,7 +53,6 @@ internal sealed class FileSystemSharableTexture : SharableTexture
     /// <inheritdoc/>
     protected override void ReleaseResources()
     {
-        this.DisposeSuppressingWrap = null;
         _ = this.UnderlyingWrap?.ToContentDisposedTask(true);
         this.UnderlyingWrap = null;
     }

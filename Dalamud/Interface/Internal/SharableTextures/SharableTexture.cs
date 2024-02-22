@@ -23,6 +23,7 @@ internal abstract class SharableTexture : IRefCountable, TextureLoadThrottler.IT
     private long selfReferenceExpiry;
     private IDalamudTextureWrap? availableOnAccessWrapForApi9;
     private CancellationTokenSource? cancellationTokenSource;
+    private DisposeSuppressingTextureWrap? disposeSuppressingWrap;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="SharableTexture"/> class.
@@ -103,11 +104,6 @@ internal abstract class SharableTexture : IRefCountable, TextureLoadThrottler.IT
     public bool ContentQueried { get; private set; }
 
     /// <summary>
-    /// Gets or sets the dispose-suppressing wrap for <see cref="UnderlyingWrap"/>.
-    /// </summary>
-    protected DisposeSuppressingTextureWrap? DisposeSuppressingWrap { get; set; }
-
-    /// <summary>
     /// Gets a cancellation token for cancelling load.
     /// Intended to be called from implementors' constructors and <see cref="ReviveResources"/>.
     /// </summary>
@@ -168,6 +164,7 @@ internal abstract class SharableTexture : IRefCountable, TextureLoadThrottler.IT
 
                         this.cancellationTokenSource?.Cancel();
                         this.cancellationTokenSource = null;
+                        this.disposeSuppressingWrap = null;
                         this.ReleaseResources();
                         this.resourceReleased = true;
 
@@ -238,7 +235,9 @@ internal abstract class SharableTexture : IRefCountable, TextureLoadThrottler.IT
             // Release the reference for rendering, after rendering ImGui.
             Service<InterfaceManager>.Get().EnqueueDeferredDispose(this);
 
-            return this.DisposeSuppressingWrap;
+            return this.UnderlyingWrap?.IsCompletedSuccessfully is true
+                       ? this.disposeSuppressingWrap ??= new(this.UnderlyingWrap.Result)
+                       : null;
         }
     }
 
@@ -458,7 +457,7 @@ internal abstract class SharableTexture : IRefCountable, TextureLoadThrottler.IT
                 return t;
 
             this.inner.UnderlyingWrap?.Wait();
-            return this.inner.DisposeSuppressingWrap ?? Service<DalamudAssetManager>.Get().Empty4X4;
+            return this.inner.disposeSuppressingWrap ?? Service<DalamudAssetManager>.Get().Empty4X4;
         }
     }
 }

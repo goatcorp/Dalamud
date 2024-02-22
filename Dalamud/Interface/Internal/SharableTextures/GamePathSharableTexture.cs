@@ -55,7 +55,6 @@ internal sealed class GamePathSharableTexture : SharableTexture
     /// <inheritdoc/>
     protected override void ReleaseResources()
     {
-        this.DisposeSuppressingWrap = null;
         _ = this.UnderlyingWrap?.ToContentDisposedTask(true);
         this.UnderlyingWrap = null;
     }
@@ -74,8 +73,6 @@ internal sealed class GamePathSharableTexture : SharableTexture
         if (dm.GetFile<TexFile>(this.path) is not { } file)
             throw new FileNotFoundException();
         cancellationToken.ThrowIfCancellationRequested();
-        var t = tm.NoThrottleGetFromTexFile(file);
-        this.DisposeSuppressingWrap = new(t);
-        return t;
+        return tm.NoThrottleGetFromTexFile(file);
     }
 }
