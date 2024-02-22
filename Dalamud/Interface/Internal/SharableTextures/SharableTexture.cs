@@ -283,6 +283,8 @@ internal abstract class SharableTexture : IRefCountable, TextureLoadThrottler.IT
                 return this.availableOnAccessWrapForApi9;
 
             var newRefTask = this.CreateNewReference(default);
+            // Cancellation is not expected for this API
+            // ReSharper disable once MethodSupportsCancellation
             newRefTask.Wait();
             if (!newRefTask.IsCompletedSuccessfully)
                 return null;
