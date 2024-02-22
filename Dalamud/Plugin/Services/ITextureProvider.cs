@@ -11,26 +11,23 @@ namespace Dalamud.Plugin.Services;
 /// <summary>
 /// Service that grants you access to textures you may render via ImGui.
 /// </summary>
+/// <remarks>
+/// <b>Immediate functions</b><br />
+/// Immediate functions do not throw, unless they are called outside the UI thread.<br />
+/// Instances of <see cref="IDalamudTextureWrap"/> returned from Immediate functions do not have to be disposed.
+/// Calling <see cref="IDisposable.Dispose"/> on them is a no-op; it is safe to call <see cref="IDisposable.Dispose"/>
+/// on them, as it will do nothing.<br />
+/// Use <see cref="ImmediateGetFromGameIcon"/> and alike if you don't care about the load state and dimensions of the
+/// texture to be loaded. These functions will return a valid texture that is empty (fully transparent).<br />
+/// Use <see cref="ImmediateTryGetFromGameIcon"/> and alike if you do. These functions will return the load state,
+/// loaded texture if available, and the load exception on failure.<br />
+/// <br />
+/// <b>All other functions</b><br />
+/// Instances of <see cref="IDalamudTextureWrap"/> or <see cref="Task"/>&lt;<see cref="IDalamudTextureWrap"/>&gt;
+/// returned from all other functions must be <see cref="IDisposable.Dispose"/>d after use.
+/// </remarks>
 public partial interface ITextureProvider
 {
-    /// <summary>Gets the state of the background load task for <see cref="ImmediateGetFromGameIcon"/>.</summary>
-    /// <param name="lookup">The icon specifier.</param>
-    /// <param name="exception">The exception, if failed.</param>
-    /// <returns><c>true</c> if loaded; <c>false</c> if not fully loaded or failed.</returns>
-    public bool ImmediateGetStateFromGameIcon(in GameIconLookup lookup, out Exception? exception);
-
-    /// <summary>Gets the state of the background load task for <see cref="ImmediateGetFromGameIcon"/>.</summary>
-    /// <param name="path">The game-internal path to a .tex, .atex, or an image file such as .png.</param>
-    /// <param name="exception">The exception, if failed.</param>
-    /// <returns><c>true</c> if loaded; <c>false</c> if not fully loaded or failed.</returns>
-    public bool ImmediateGetStateFromGame(string path, out Exception? exception);
-
-    /// <summary>Gets the state of the background load task for <see cref="ImmediateGetFromGameIcon"/>.</summary>
-    /// <param name="file">The filesystem path to a .tex, .atex, or an image file such as .png.</param>
-    /// <param name="exception">The exception, if failed.</param>
-    /// <returns><c>true</c> if loaded; <c>false</c> if not fully loaded or failed.</returns>
-    public bool ImmediateGetStateFromFile(string file, out Exception? exception);
-
     /// <summary>Gets the corresponding game icon for use with the current frame.</summary>
     /// <param name="lookup">The icon specifier.</param>
     /// <returns>An instance of <see cref="IDalamudTextureWrap"/> that is guaranteed to be available for the current
@@ -61,6 +58,49 @@ public partial interface ITextureProvider
     /// empty texture instead.</remarks>
     /// <exception cref="InvalidOperationException">Thrown when called outside the UI thread.</exception>
     public IDalamudTextureWrap ImmediateGetFromFile(string file);
+    
+    /// <summary>Gets the corresponding game icon for use with the current frame.</summary>
+    /// <param name="lookup">The icon specifier.</param>
+    /// <param name="texture">An instance of <see cref="IDalamudTextureWrap"/> that is guaranteed to be available for
+    /// the current frame being drawn, or <c>null</c> if texture is not loaded (yet).</param>
+    /// <param name="exception">The load exception, if any.</param>
+    /// <returns><c>true</c> if <paramref name="texture"/> points to the loaded texture; <c>false</c> if the texture is
+    /// still being loaded, or the load has failed.</returns>
+    /// <remarks><see cref="IDisposable.Dispose"/> on the returned <paramref name="texture"/> will be ignored.</remarks>
+    /// <exception cref="InvalidOperationException">Thrown when called outside the UI thread.</exception>
+    public bool ImmediateTryGetFromGameIcon(
+        in GameIconLookup lookup,
+        [NotNullWhen(true)] out IDalamudTextureWrap? texture,
+        out Exception? exception);
+
+    /// <summary>Gets a texture from a file shipped as a part of the game resources for use with the current frame.
+    /// </summary>
+    /// <param name="path">The game-internal path to a .tex, .atex, or an image file such as .png.</param>
+    /// <param name="texture">An instance of <see cref="IDalamudTextureWrap"/> that is guaranteed to be available for
+    /// the current frame being drawn, or <c>null</c> if texture is not loaded (yet).</param>
+    /// <param name="exception">The load exception, if any.</param>
+    /// <returns><c>true</c> if <paramref name="texture"/> points to the loaded texture; <c>false</c> if the texture is
+    /// still being loaded, or the load has failed.</returns>
+    /// <remarks><see cref="IDisposable.Dispose"/> on the returned <paramref name="texture"/> will be ignored.</remarks>
+    /// <exception cref="InvalidOperationException">Thrown when called outside the UI thread.</exception>
+    public bool ImmediateTryGetFromGame(
+        string path,
+        [NotNullWhen(true)] out IDalamudTextureWrap? texture,
+        out Exception? exception);
+
+    /// <summary>Gets a texture from a file on the filesystem for use with the current frame.</summary>
+    /// <param name="file">The filesystem path to a .tex, .atex, or an image file such as .png.</param>
+    /// <param name="texture">An instance of <see cref="IDalamudTextureWrap"/> that is guaranteed to be available for
+    /// the current frame being drawn, or <c>null</c> if texture is not loaded (yet).</param>
+    /// <param name="exception">The load exception, if any.</param>
+    /// <returns><c>true</c> if <paramref name="texture"/> points to the loaded texture; <c>false</c> if the texture is
+    /// still being loaded, or the load has failed.</returns>
+    /// <remarks><see cref="IDisposable.Dispose"/> on the returned <paramref name="texture"/> will be ignored.</remarks>
+    /// <exception cref="InvalidOperationException">Thrown when called outside the UI thread.</exception>
+    public bool ImmediateTryGetFromFile(
+        string file,
+        [NotNullWhen(true)] out IDalamudTextureWrap? texture,
+        out Exception? exception);
 
     /// <summary>Gets the corresponding game icon for use with the current frame.</summary>
     /// <param name="lookup">The icon specifier.</param>

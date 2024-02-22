@@ -26,10 +26,13 @@ internal sealed class GamePathSharableTexture : SharableTexture
     }
 
     /// <inheritdoc/>
+    public override string SourcePathForDebug => this.path;
+
+    /// <inheritdoc/>
     public override string ToString() => $"{nameof(GamePathSharableTexture)}#{this.InstanceIdForDebug}({this.path})";
 
     /// <inheritdoc/>
-    protected override void FinalRelease()
+    protected override void ReleaseResources()
     {
         this.DisposeSuppressingWrap = null;
         _ = this.UnderlyingWrap?.ToContentDisposedTask(true);
@@ -37,7 +40,7 @@ internal sealed class GamePathSharableTexture : SharableTexture
     }
 
     /// <inheritdoc/>
-    protected override void Revive() =>
+    protected override void ReviveResources() =>
         this.UnderlyingWrap = this.CreateTextureAsync();
 
     private Task<IDalamudTextureWrap> CreateTextureAsync() =>

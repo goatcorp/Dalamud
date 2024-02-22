@@ -3,6 +3,7 @@ using System.IO;
 using System.Numerics;
 using System.Threading.Tasks;
 
+using Dalamud.Interface.Components;
 using Dalamud.Interface.Internal.Notifications;
 using Dalamud.Interface.Internal.SharableTextures;
 using Dalamud.Interface.Utility;
@@ -62,14 +63,25 @@ internal class TexWidget : IDataWindowWidget
             GC.Collect();
 
         ImGui.PushID("loadedGameTextures");
-        if (ImGui.CollapsingHeader($"Loaded Game Textures: {this.textureManager.GamePathTextures.Count}###header"))
+        if (ImGui.CollapsingHeader($"Loaded Game Textures: {this.textureManager.GamePathTextures.Count:g}###header"))
             this.DrawLoadedTextures(this.textureManager.GamePathTextures);
         ImGui.PopID();
 
         ImGui.PushID("loadedFileTextures");
-        if (ImGui.CollapsingHeader($"Loaded File Textures: {this.textureManager.FileSystemTextures.Count}###header"))
+        if (ImGui.CollapsingHeader($"Loaded File Textures: {this.textureManager.FileSystemTextures.Count:g}###header"))
             this.DrawLoadedTextures(this.textureManager.FileSystemTextures);
         ImGui.PopID();
+
+        lock (this.textureManager.InvalidatedTextures)
+        {
+            ImGui.PushID("invalidatedTextures");
+            if (ImGui.CollapsingHeader($"Invalidated: {this.textureManager.InvalidatedTextures.Count:g}###header"))
+            {
+                this.DrawLoadedTextures(this.textureManager.InvalidatedTextures);
+            }
+
+            ImGui.PopID();
+        }
 
         if (ImGui.CollapsingHeader("Load Game File by Icon ID", ImGuiTreeNodeFlags.DefaultOpen))
             this.DrawIconInput();
@@ -133,18 +145,33 @@ internal class TexWidget : IDataWindowWidget
         }
     }
 
-    private unsafe void DrawLoadedTextures(IReadOnlyDictionary<string, SharableTexture> textures)
+    private unsafe void DrawLoadedTextures(ICollection<SharableTexture> textures)
     {
+        var im = Service<InterfaceManager>.Get();
         if (!ImGui.BeginTable("##table", 6))
             return;
 
+        const int numIcons = 3;
+        float iconWidths;
+        using (im.IconFontHandle?.Push())
+        {
+            iconWidths = ImGui.CalcTextSize(FontAwesomeIcon.Image.ToIconString()).X;
+            iconWidths += ImGui.CalcTextSize(FontAwesomeIcon.Sync.ToIconString()).X;
+            iconWidths += ImGui.CalcTextSize(FontAwesomeIcon.Trash.ToIconString()).X;
+        }
+
         ImGui.TableSetupScrollFreeze(0, 1);
         ImGui.TableSetupColumn("ID", ImGuiTableColumnFlags.WidthFixed, ImGui.CalcTextSize("000000").X);
-        ImGui.TableSetupColumn("Preview", ImGuiTableColumnFlags.WidthFixed, ImGui.CalcTextSize("Preview_").X);
         ImGui.TableSetupColumn("Source", ImGuiTableColumnFlags.WidthStretch);
         ImGui.TableSetupColumn("RefCount", ImGuiTableColumnFlags.WidthFixed, ImGui.CalcTextSize("RefCount__").X);
         ImGui.TableSetupColumn("SelfRef", ImGuiTableColumnFlags.WidthFixed, ImGui.CalcTextSize("00.000___").X);
         ImGui.TableSetupColumn("CanRevive", ImGuiTableColumnFlags.WidthFixed, ImGui.CalcTextSize("CanRevive__").X);
+        ImGui.TableSetupColumn(
+            "Actions",
+            ImGuiTableColumnFlags.WidthFixed,
+            iconWidths +
+            (ImGui.GetStyle().FramePadding.X * 2 * numIcons) +
+            (ImGui.GetStyle().ItemSpacing.X * 1 * numIcons));
         ImGui.TableHeadersRow();
 
         var clipper = new ImGuiListClipperPtr(ImGuiNative.ImGuiListClipper_ImGuiListClipper());
@@ -168,20 +195,37 @@ internal class TexWidget : IDataWindowWidget
                     if (!valid)
                         break;
 
-                    var (key, texture) = enu.Current;
                     ImGui.TableNextRow();
 
+                    if (enu.Current is not { } texture)
+                    {
+                        // Should not happen
+                        ImGui.TableNextColumn();
+                        ImGui.AlignTextToFramePadding();
+                        ImGui.TextUnformatted("?");
+                        continue;
+                    }
+
+                    var remain = texture.SelfReferenceExpiresInForDebug;
+
                     ImGui.TableNextColumn();
+                    ImGui.AlignTextToFramePadding();
                     this.TextRightAlign($"{texture.InstanceIdForDebug:n0}");
 
                     ImGui.TableNextColumn();
-                    ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, Vector2.Zero);
-                    ImGui.PushStyleColor(ImGuiCol.Button, Vector4.Zero);
-                    ImGui.PushStyleColor(ImGuiCol.ButtonActive, Vector4.Zero);
-                    ImGui.PushStyleColor(ImGuiCol.ButtonHovered, Vector4.Zero);
-                    ImGui.Button("Hover");
-                    ImGui.PopStyleColor(3);
-                    ImGui.PopStyleVar();
+                    this.TextCopiable(texture.SourcePathForDebug, true);
+
+                    ImGui.TableNextColumn();
+                    this.TextRightAlign($"{texture.RefCountForDebug:n0}");
+
+                    ImGui.TableNextColumn();
+                    this.TextRightAlign(remain <= 0 ? "-" : $"{remain:00.000}");
+
+                    ImGui.TableNextColumn();
+                    ImGui.TextUnformatted(texture.HasRevivalPossibility ? "Yes" : "No");
+
+                    ImGui.TableNextColumn();
+                    ImGuiComponents.IconButton(FontAwesomeIcon.Image);
                     if (ImGui.IsItemHovered() && texture.GetImmediate() is { } immediate)
                     {
                         ImGui.BeginTooltip();
@@ -189,18 +233,21 @@ internal class TexWidget : IDataWindowWidget
                         ImGui.EndTooltip();
                     }
 
-                    ImGui.TableNextColumn();
-                    this.TextCopiable(key);
+                    ImGui.SameLine();
+                    if (ImGuiComponents.IconButton(FontAwesomeIcon.Sync))
+                        this.textureManager.InvalidatePaths(new[] { texture.SourcePathForDebug });
+                    if (ImGui.IsItemHovered())
+                        ImGui.SetTooltip($"Call {nameof(ITextureSubstitutionProvider.InvalidatePaths)}.");
 
-                    ImGui.TableNextColumn();
-                    this.TextRightAlign($"{texture.RefCountForDebug:n0}");
-
-                    ImGui.TableNextColumn();
-                    var remain = texture.SelfReferenceExpiresInForDebug;
-                    this.TextRightAlign(remain <= 0 ? "-" : $"{remain:00.000}");
-
-                    ImGui.TableNextColumn();
-                    ImGui.TextUnformatted(texture.RevivalPossibility?.TryGetTarget(out _) is true ? "Yes" : "No");
+                    ImGui.SameLine();
+                    if (remain <= 0)
+                        ImGui.BeginDisabled();
+                    if (ImGuiComponents.IconButton(FontAwesomeIcon.Trash))
+                        texture.ReleaseSelfReference(true);
+                    if (ImGui.IsItemHovered(ImGuiHoveredFlags.AllowWhenDisabled))
+                        ImGui.SetTooltip("Release self-reference immediately.");
+                    if (remain <= 0)
+                        ImGui.EndDisabled();
                 }
 
                 if (!valid)

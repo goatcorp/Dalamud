@@ -33,5 +33,8 @@ public interface ITextureSubstitutionProvider
     /// and paths that are newly substituted.
     /// </summary>
     /// <param name="paths">The paths with a changed substitution status.</param>
+    /// <remarks>
+    /// This function will not invalidate the copies of the textures loaded from plugins.
+    /// </remarks>
     public void InvalidatePaths(IEnumerable<string> paths);
 }

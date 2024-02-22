@@ -18,6 +18,7 @@ internal abstract class SharableTexture : IRefCountable
 
     private readonly object reviveLock = new();
 
+    private bool resourceReleased;
     private int refCount;
     private long selfReferenceExpiry;
     private IDalamudTextureWrap? availableOnAccessWrapForApi9;
@@ -30,20 +31,7 @@ internal abstract class SharableTexture : IRefCountable
         this.InstanceIdForDebug = Interlocked.Increment(ref instanceCounter);
         this.refCount = 1;
         this.selfReferenceExpiry = Environment.TickCount64 + SelfReferenceDurationTicks;
-        this.ReviveEnabled = true;
     }
-
-    /// <summary>
-    /// Gets a weak reference to an object that demands this objects to be alive.
-    /// </summary>
-    /// <remarks>
-    /// TextureManager must keep references to all shared textures, regardless of whether textures' contents are
-    /// flushed, because API9 functions demand that the returned textures may be stored so that they can used anytime,
-    /// possibly reviving a dead-inside object. The object referenced by this property is given out to such use cases,
-    /// which gets created from <see cref="GetAvailableOnAccessWrapForApi9"/>. If this no longer points to an alive
-    /// object, and <see cref="availableOnAccessWrapForApi9"/> is null, then this object is not used from API9 use case.
-    /// </remarks>
-    public WeakReference<IDalamudTextureWrap>? RevivalPossibility { get; private set; }
 
     /// <summary>
     /// Gets the instance ID. Debug use only.
@@ -64,6 +52,16 @@ internal abstract class SharableTexture : IRefCountable
     public int RefCountForDebug => this.refCount;
 
     /// <summary>
+    /// Gets the source path. Debug use only.
+    /// </summary>
+    public abstract string SourcePathForDebug { get; }
+
+    /// <summary>
+    /// Gets a value indicating whether this instance of <see cref="SharableTexture"/> supports revival.
+    /// </summary>
+    public bool HasRevivalPossibility => this.RevivalPossibility?.TryGetTarget(out _) is true;
+
+    /// <summary>
     /// Gets or sets the underlying texture wrap.
     /// </summary>
     public Task<IDalamudTextureWrap>? UnderlyingWrap { get; set; }
@@ -74,9 +72,16 @@ internal abstract class SharableTexture : IRefCountable
     protected DisposeSuppressingTextureWrap? DisposeSuppressingWrap { get; set; }
 
     /// <summary>
-    /// Gets a value indicating whether this instance of <see cref="SharableTexture"/> supports reviving.
+    /// Gets or sets a weak reference to an object that demands this objects to be alive.
     /// </summary>
-    protected bool ReviveEnabled { get; private set; }
+    /// <remarks>
+    /// TextureManager must keep references to all shared textures, regardless of whether textures' contents are
+    /// flushed, because API9 functions demand that the returned textures may be stored so that they can used anytime,
+    /// possibly reviving a dead-inside object. The object referenced by this property is given out to such use cases,
+    /// which gets created from <see cref="GetAvailableOnAccessWrapForApi9"/>. If this no longer points to an alive
+    /// object, and <see cref="availableOnAccessWrapForApi9"/> is null, then this object is not used from API9 use case.
+    /// </remarks>
+    private WeakReference<IDalamudTextureWrap>? RevivalPossibility { get; set; }
 
     /// <inheritdoc/>
     public int AddRef() => this.TryAddRef(out var newRefCount) switch
@@ -96,8 +101,35 @@ internal abstract class SharableTexture : IRefCountable
                 return newRefCount;
 
             case IRefCountable.RefCountResult.FinalRelease:
-                this.FinalRelease();
-                return newRefCount;
+                // This case may not be entered while TryAddRef is in progress.
+                // Note that IRefCountable.AlterRefCount guarantees that either TAR or Release will be called for one
+                // generation of refCount; they never are called together for the same generation of refCount.
+                // If TAR is called when refCount >= 1, and then Release is called, case StillAlive will be run.
+                // If TAR is called when refCount == 0, and then Release is called:
+                // ... * if TAR was done: case FinalRelease will be run.
+                // ... * if TAR was not done: case AlreadyDisposed will be run.
+                // ... Because refCount will be altered as the last step of TAR.
+                // If Release is called when refCount == 1, and then TAR is called,
+                // ... the resource may be released yet, so TAR waits for resourceReleased inside reviveLock,
+                // ... while Release releases the underlying resource and then sets resourceReleased inside reviveLock.
+                // ... Once that's done, TAR may revive the object safely.
+                while (true)
+                {
+                    lock (this.reviveLock)
+                    {
+                        if (this.resourceReleased)
+                        {
+                            // I cannot think of a case that the code entering this code block, but just in case.
+                            Thread.Yield();
+                            continue;
+                        }
+
+                        this.ReleaseResources();
+                        this.resourceReleased = true;
+
+                        return newRefCount;
+                    }
+                }
 
             case IRefCountable.RefCountResult.AlreadyDisposed:
                 throw new ObjectDisposedException(nameof(SharableTexture));
@@ -108,44 +140,28 @@ internal abstract class SharableTexture : IRefCountable
     }
 
     /// <summary>
-    /// Releases self-reference, if it should expire.
+    /// Releases self-reference, if conditions are met.
     /// </summary>
+    /// <param name="immediate">If set to <c>true</c>, the self-reference will be released immediately.</param>
     /// <returns>Number of the new reference count that may or may not have changed.</returns>
-    public int ReleaseSelfReferenceIfExpired()
+    public int ReleaseSelfReference(bool immediate)
     {
         while (true)
         {
             var exp = this.selfReferenceExpiry;
-            if (exp > Environment.TickCount64)
-                return this.refCount;
+            switch (immediate)
+            {
+                case false when exp > Environment.TickCount64:
+                    return this.refCount;
+                case true when exp == SelfReferenceExpiryExpired:
+                    return this.refCount;
+            }
 
             if (exp != Interlocked.CompareExchange(ref this.selfReferenceExpiry, SelfReferenceExpiryExpired, exp))
                 continue;
 
             this.availableOnAccessWrapForApi9 = null;
             return this.Release();
-        }
-    }
-
-    /// <summary>
-    /// Disables revival.
-    /// </summary>
-    public void DisableReviveAndReleaseSelfReference()
-    {
-        this.ReviveEnabled = false;
-
-        while (true)
-        {
-            var exp = this.selfReferenceExpiry;
-            if (exp == SelfReferenceExpiryExpired)
-                return;
-
-            if (exp != Interlocked.CompareExchange(ref this.selfReferenceExpiry, SelfReferenceExpiryExpired, exp))
-                continue;
-
-            this.availableOnAccessWrapForApi9 = null;
-            this.Release();
-            break;
         }
     }
 
@@ -233,31 +249,41 @@ internal abstract class SharableTexture : IRefCountable
     /// <summary>
     /// Cleans up this instance of <see cref="SharableTexture"/>.
     /// </summary>
-    protected abstract void FinalRelease();
+    protected abstract void ReleaseResources();
 
     /// <summary>
     /// Attempts to restore the reference to this texture.
     /// </summary>
-    protected abstract void Revive();
+    protected abstract void ReviveResources();
 
     private IRefCountable.RefCountResult TryAddRef(out int newRefCount)
     {
         var alterResult = IRefCountable.AlterRefCount(1, ref this.refCount, out newRefCount);
-        if (alterResult != IRefCountable.RefCountResult.AlreadyDisposed || !this.ReviveEnabled)
+        if (alterResult != IRefCountable.RefCountResult.AlreadyDisposed)
             return alterResult;
-        lock (this.reviveLock)
+
+        while (true)
         {
-            alterResult = IRefCountable.AlterRefCount(1, ref this.refCount, out newRefCount);
-            if (alterResult != IRefCountable.RefCountResult.AlreadyDisposed)
-                return alterResult;
+            lock (this.reviveLock)
+            {
+                if (!this.resourceReleased)
+                {
+                    Thread.Yield();
+                    continue;
+                }
 
-            this.Revive();
-            Interlocked.Increment(ref this.refCount);
+                alterResult = IRefCountable.AlterRefCount(1, ref this.refCount, out newRefCount);
+                if (alterResult != IRefCountable.RefCountResult.AlreadyDisposed)
+                    return alterResult;
 
-            if (this.RevivalPossibility?.TryGetTarget(out var target) is true)
-                this.availableOnAccessWrapForApi9 = target;
+                this.ReviveResources();
+                if (this.RevivalPossibility?.TryGetTarget(out var target) is true)
+                    this.availableOnAccessWrapForApi9 = target;
 
-            return IRefCountable.RefCountResult.StillAlive;
+                Interlocked.Increment(ref this.refCount);
+                this.resourceReleased = false;
+                return IRefCountable.RefCountResult.StillAlive;
+            }
         }
     }
 

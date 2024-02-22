@@ -117,9 +117,8 @@ public class IconBrowserWidget : IDataWindowWidget
         try
         {
             var cursor = ImGui.GetCursorScreenPos();
-            var texture = texm.ImmediateGetFromGameIcon(new((uint)iconId));
 
-            if (texm.ImmediateGetStateFromGameIcon(new((uint)iconId), out var exc) || exc is null)
+            if (texm.ImmediateTryGetFromGameIcon(new((uint)iconId), out var texture, out var exc))
             {
                 ImGui.Image(texture.ImGuiHandle, this.iconSize);
 
@@ -145,9 +144,9 @@ public class IconBrowserWidget : IDataWindowWidget
                     ImGui.SetTooltip(iconId.ToString());
                 }
             }
-            else
+            else if (exc is not null)
             {
-                // This texture was null, draw nothing, and prevent from trying to show it again.
+                // This texture failed to load; draw nothing, and prevent from trying to show it again.
                 this.nullValues.Add(iconId);
             }
 

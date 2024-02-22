@@ -22,11 +22,14 @@ internal sealed class FileSystemSharableTexture : SharableTexture
     }
 
     /// <inheritdoc/>
+    public override string SourcePathForDebug => this.path;
+
+    /// <inheritdoc/>
     public override string ToString() =>
         $"{nameof(FileSystemSharableTexture)}#{this.InstanceIdForDebug}({this.path})";
 
     /// <inheritdoc/>
-    protected override void FinalRelease()
+    protected override void ReleaseResources()
     {
         this.DisposeSuppressingWrap = null;
         _ = this.UnderlyingWrap?.ToContentDisposedTask(true);
@@ -34,7 +37,7 @@ internal sealed class FileSystemSharableTexture : SharableTexture
     }
 
     /// <inheritdoc/>
-    protected override void Revive() =>
+    protected override void ReviveResources() =>
         this.UnderlyingWrap = this.CreateTextureAsync();
 
     private Task<IDalamudTextureWrap> CreateTextureAsync() =>

@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Threading.Tasks;
 
@@ -58,6 +59,7 @@ internal sealed class TextureManager : IServiceType, IDisposable, ITextureProvid
     private readonly ConcurrentLru<GameIconLookup, string> lookupToPath = new(PathLookupLruCount);
     private readonly ConcurrentDictionary<string, SharableTexture> gamePathTextures = new();
     private readonly ConcurrentDictionary<string, SharableTexture> fileSystemTextures = new();
+    private readonly HashSet<SharableTexture> invalidatedTextures = new();
 
     private bool disposing;
 
@@ -73,12 +75,22 @@ internal sealed class TextureManager : IServiceType, IDisposable, ITextureProvid
     /// <summary>
     /// Gets all the loaded textures from the game resources. Debug use only.
     /// </summary>
-    public IReadOnlyDictionary<string, SharableTexture> GamePathTextures => this.gamePathTextures;
+    public ICollection<SharableTexture> GamePathTextures => this.gamePathTextures.Values;
 
     /// <summary>
     /// Gets all the loaded textures from the game resources. Debug use only.
     /// </summary>
-    public IReadOnlyDictionary<string, SharableTexture> FileSystemTextures => this.fileSystemTextures;
+    public ICollection<SharableTexture> FileSystemTextures => this.fileSystemTextures.Values;
+
+    /// <summary>
+    /// Gets all the loaded textures that are invalidated from <see cref="InvalidatePaths"/>. Debug use only.
+    /// </summary>
+    /// <remarks><c>lock</c> on use of the value returned from this property.</remarks>
+    [SuppressMessage(
+        "ReSharper",
+        "InconsistentlySynchronizedField",
+        Justification = "Debug use only; users are expected to lock around this")]
+    public ICollection<SharableTexture> InvalidatedTextures => this.invalidatedTextures;
 
     /// <inheritdoc/>
     public void Dispose()
@@ -88,9 +100,9 @@ internal sealed class TextureManager : IServiceType, IDisposable, ITextureProvid
 
         this.disposing = true;
         foreach (var v in this.gamePathTextures.Values)
-            v.DisableReviveAndReleaseSelfReference();
+            v.ReleaseSelfReference(true);
         foreach (var v in this.fileSystemTextures.Values)
-            v.DisableReviveAndReleaseSelfReference();
+            v.ReleaseSelfReference(true);
 
         this.lookupToPath.Clear();
         this.gamePathTextures.Clear();
@@ -142,38 +154,9 @@ internal sealed class TextureManager : IServiceType, IDisposable, ITextureProvid
     [Api10ToDo(Api10ToDoAttribute.DeleteCompatBehavior)]
     [Obsolete("See interface definition.")]
     public IDalamudTextureWrap? GetTextureFromFile(FileInfo file, bool keepAlive = false) =>
-        this.fileSystemTextures.GetOrAdd(file.FullName, CreateFileSystemSharableTexture).GetAvailableOnAccessWrapForApi9();
+        this.fileSystemTextures.GetOrAdd(file.FullName, CreateFileSystemSharableTexture)
+            .GetAvailableOnAccessWrapForApi9();
 #pragma warning restore CS0618 // Type or member is obsolete
-
-    /// <inheritdoc/>
-    public bool ImmediateGetStateFromGameIcon(in GameIconLookup lookup, out Exception? exception) =>
-        this.ImmediateGetStateFromGame(this.lookupToPath.GetOrAdd(lookup, this.GetIconPathByValue), out exception);
-
-    /// <inheritdoc/>
-    public bool ImmediateGetStateFromGame(string path, out Exception? exception)
-    {
-        if (!this.gamePathTextures.TryGetValue(path, out var texture))
-        {
-            exception = null;
-            return false;
-        }
-
-        exception = texture.UnderlyingWrap?.Exception;
-        return texture.UnderlyingWrap?.IsCompletedSuccessfully ?? false;
-    }
-
-    /// <inheritdoc/>
-    public bool ImmediateGetStateFromFile(string file, out Exception? exception)
-    {
-        if (!this.fileSystemTextures.TryGetValue(file, out var texture))
-        {
-            exception = null;
-            return false;
-        }
-
-        exception = texture.UnderlyingWrap?.Exception;
-        return texture.UnderlyingWrap?.IsCompletedSuccessfully ?? false;
-    }
 
     /// <inheritdoc/>
     public IDalamudTextureWrap ImmediateGetFromGameIcon(in GameIconLookup lookup) =>
@@ -181,13 +164,51 @@ internal sealed class TextureManager : IServiceType, IDisposable, ITextureProvid
 
     /// <inheritdoc/>
     public IDalamudTextureWrap ImmediateGetFromGame(string path) =>
-        this.gamePathTextures.GetOrAdd(path, CreateGamePathSharableTexture).GetImmediate()
-        ?? this.dalamudAssetManager.Empty4X4;
+        this.ImmediateTryGetFromGame(path, out var texture, out _)
+            ? texture
+            : this.dalamudAssetManager.Empty4X4;
 
     /// <inheritdoc/>
     public IDalamudTextureWrap ImmediateGetFromFile(string file) =>
-        this.fileSystemTextures.GetOrAdd(file, CreateFileSystemSharableTexture).GetImmediate()
-        ?? this.dalamudAssetManager.Empty4X4;
+        this.ImmediateTryGetFromFile(file, out var texture, out _)
+            ? texture
+            : this.dalamudAssetManager.Empty4X4;
+
+    /// <inheritdoc/>
+    public bool ImmediateTryGetFromGameIcon(
+        in GameIconLookup lookup,
+        [NotNullWhen(true)] out IDalamudTextureWrap? texture,
+        out Exception? exception) =>
+        this.ImmediateTryGetFromGame(
+            this.lookupToPath.GetOrAdd(lookup, this.GetIconPathByValue),
+            out texture,
+            out exception);
+
+    /// <inheritdoc/>
+    public bool ImmediateTryGetFromGame(
+        string path,
+        [NotNullWhen(true)] out IDalamudTextureWrap? texture,
+        out Exception? exception)
+    {
+        ThreadSafety.AssertMainThread();
+        var t = this.gamePathTextures.GetOrAdd(path, CreateGamePathSharableTexture);
+        texture = t.GetImmediate();
+        exception = t.UnderlyingWrap?.Exception;
+        return texture is not null;
+    }
+
+    /// <inheritdoc/>
+    public bool ImmediateTryGetFromFile(
+        string file,
+        [NotNullWhen(true)] out IDalamudTextureWrap? texture,
+        out Exception? exception)
+    {
+        ThreadSafety.AssertMainThread();
+        var t = this.fileSystemTextures.GetOrAdd(file, CreateFileSystemSharableTexture);
+        texture = t.GetImmediate();
+        exception = t.UnderlyingWrap?.Exception;
+        return texture is not null;
+    }
 
     /// <inheritdoc/>
     public Task<IDalamudTextureWrap> GetFromGameIconAsync(in GameIconLookup lookup) =>
@@ -336,7 +357,22 @@ internal sealed class TextureManager : IServiceType, IDisposable, ITextureProvid
         foreach (var path in paths)
         {
             if (this.gamePathTextures.TryRemove(path, out var r))
-                r.DisableReviveAndReleaseSelfReference();
+            {
+                if (r.ReleaseSelfReference(true) != 0 || r.HasRevivalPossibility)
+                {
+                    lock (this.invalidatedTextures)
+                        this.invalidatedTextures.Add(r);
+                }
+            }
+
+            if (this.fileSystemTextures.TryRemove(path, out r))
+            {
+                if (r.ReleaseSelfReference(true) != 0 || r.HasRevivalPossibility)
+                {
+                    lock (this.invalidatedTextures)
+                        this.invalidatedTextures.Add(r);
+                }
+            }
         }
     }
 
@@ -359,17 +395,35 @@ internal sealed class TextureManager : IServiceType, IDisposable, ITextureProvid
 
     private void FrameworkOnUpdate(IFramework unused)
     {
-        foreach (var (k, v) in this.gamePathTextures)
+        if (!this.gamePathTextures.IsEmpty)
         {
-            if (v.ReleaseSelfReferenceIfExpired() == 0 && v.RevivalPossibility?.TryGetTarget(out _) is not true)
-                _ = this.gamePathTextures.TryRemove(k, out _);
+            foreach (var (k, v) in this.gamePathTextures)
+            {
+                if (TextureFinalReleasePredicate(v))
+                    _ = this.gamePathTextures.TryRemove(k, out _);
+            }
         }
 
-        foreach (var (k, v) in this.fileSystemTextures)
+        if (!this.fileSystemTextures.IsEmpty)
         {
-            if (v.ReleaseSelfReferenceIfExpired() == 0 && v.RevivalPossibility?.TryGetTarget(out _) is not true)
-                _ = this.fileSystemTextures.TryRemove(k, out _);
+            foreach (var (k, v) in this.fileSystemTextures)
+            {
+                if (TextureFinalReleasePredicate(v))
+                    _ = this.fileSystemTextures.TryRemove(k, out _);
+            }
         }
+
+        // ReSharper disable once InconsistentlySynchronizedField
+        if (this.invalidatedTextures.Count != 0)
+        {
+            lock (this.invalidatedTextures)
+                this.invalidatedTextures.RemoveWhere(TextureFinalReleasePredicate);
+        }
+
+        return;
+
+        static bool TextureFinalReleasePredicate(SharableTexture v) =>
+            v.ReleaseSelfReference(false) == 0 && !v.HasRevivalPossibility;
     }
 
     private string GetIconPathByValue(GameIconLookup lookup) =>
