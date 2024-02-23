@@ -389,6 +389,7 @@ namespace Dalamud.Injector
 #else
             startInfo.LogPath ??= xivlauncherDir;
 #endif
+            startInfo.LogName ??= string.Empty;
 
             // Set boot defaults
             startInfo.BootShowConsole = args.Contains("--console");

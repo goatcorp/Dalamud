@@ -89,13 +89,16 @@ void from_json(const nlohmann::json& json, DalamudStartInfo& config) {
     config.DalamudLoadMethod = json.value("LoadMethod", config.DalamudLoadMethod);
     config.WorkingDirectory = json.value("WorkingDirectory", config.WorkingDirectory);
     config.ConfigurationPath = json.value("ConfigurationPath", config.ConfigurationPath);
+    config.LogPath = json.value("LogPath", config.LogPath);
+    config.LogName = json.value("LogName", config.LogName);
     config.PluginDirectory = json.value("PluginDirectory", config.PluginDirectory);
-    config.DefaultPluginDirectory = json.value("DefaultPluginDirectory", config.DefaultPluginDirectory);
     config.AssetDirectory = json.value("AssetDirectory", config.AssetDirectory);
     config.Language = json.value("Language", config.Language);
     config.GameVersion = json.value("GameVersion", config.GameVersion);
-    config.DelayInitializeMs = json.value("DelayInitializeMs", config.DelayInitializeMs);
     config.TroubleshootingPackData = json.value("TroubleshootingPackData", std::string{});
+    config.DelayInitializeMs = json.value("DelayInitializeMs", config.DelayInitializeMs);
+    config.NoLoadPlugins = json.value("NoLoadPlugins", config.NoLoadPlugins);
+    config.NoLoadThirdPartyPlugins = json.value("NoLoadThirdPartyPlugins", config.NoLoadThirdPartyPlugins);
 
     config.BootLogPath = json.value("BootLogPath", config.BootLogPath);
     config.BootShowConsole = json.value("BootShowConsole", config.BootShowConsole);
