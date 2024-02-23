@@ -64,7 +64,6 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="AG.Collections.RollingList" Version="1.0.2" />
         <PackageReference Include="CheapLoc" Version="1.1.8" />
         <PackageReference Include="goaaats.Reloaded.Hooks" Version="4.2.0-goat.4" />
         <PackageReference Include="goaaats.Reloaded.Assembler" Version="1.0.14-goat.2" />
