@@ -112,13 +112,16 @@ static void append_injector_launch_args(std::vector<std::wstring>& args)
     case DalamudStartInfo::LoadMethod::DllInject:
         args.emplace_back(L"--mode=inject");
     }
-    args.emplace_back(L"--logpath=\"" + unicode::convert<std::wstring>(g_startInfo.BootLogPath) + L"\"");
     args.emplace_back(L"--dalamud-working-directory=\"" + unicode::convert<std::wstring>(g_startInfo.WorkingDirectory) + L"\"");
     args.emplace_back(L"--dalamud-configuration-path=\"" + unicode::convert<std::wstring>(g_startInfo.ConfigurationPath) + L"\"");
+    args.emplace_back(L"--logpath=\"" + unicode::convert<std::wstring>(g_startInfo.LogPath) + L"\"");
+    args.emplace_back(L"--logname=\"" + unicode::convert<std::wstring>(g_startInfo.LogName) + L"\"");
     args.emplace_back(L"--dalamud-plugin-directory=\"" + unicode::convert<std::wstring>(g_startInfo.PluginDirectory) + L"\"");
     args.emplace_back(L"--dalamud-asset-directory=\"" + unicode::convert<std::wstring>(g_startInfo.AssetDirectory) + L"\"");
     args.emplace_back(std::format(L"--dalamud-client-language={}", static_cast<int>(g_startInfo.Language)));
     args.emplace_back(std::format(L"--dalamud-delay-initialize={}", g_startInfo.DelayInitializeMs));
+    // NoLoadPlugins/NoLoadThirdPartyPlugins: supplied from DalamudCrashHandler
+
     if (g_startInfo.BootShowConsole)
         args.emplace_back(L"--console");
     if (g_startInfo.BootEnableEtw)

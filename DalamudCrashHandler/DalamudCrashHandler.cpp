@@ -896,7 +896,6 @@ int main() {
         SYSTEMTIME st;
         GetLocalTime(&st);
         const auto dalamudLogPath = logDir.empty() ? std::filesystem::path() : logDir / L"Dalamud.log";
-        const auto dalamudBootLogPath = logDir.empty() ? std::filesystem::path() : logDir / L"Dalamud.boot.log";
         const auto dumpPath = logDir.empty() ? std::filesystem::path() : logDir / std::format(L"dalamud_appcrash_{:04}{:02}{:02}_{:02}{:02}{:02}_{:03}_{}.dmp", st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond, st.wMilliseconds, dwProcessId);
         const auto logPath = logDir.empty() ? std::filesystem::path() : logDir / std::format(L"dalamud_appcrash_{:04}{:02}{:02}_{:02}{:02}{:02}_{:03}_{}.log", st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond, st.wMilliseconds, dwProcessId);
         std::wstring dumpError;
