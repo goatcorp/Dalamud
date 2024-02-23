@@ -8,7 +8,6 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 
-using AG.Collections;
 using Dalamud.Configuration.Internal;
 using Dalamud.Game.Command;
 using Dalamud.Interface.Colors;
