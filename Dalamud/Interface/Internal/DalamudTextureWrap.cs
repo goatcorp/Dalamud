@@ -8,11 +8,6 @@ namespace Dalamud.Interface.Internal;
 public interface IDalamudTextureWrap : IDisposable
 {
     /// <summary>
-    /// Gets a value indicating whether this instance of <see cref="IDalamudTextureWrap"/> has been disposed.
-    /// </summary>
-    bool IsDisposed { get; }
-
-    /// <summary>
     /// Gets a texture handle suitable for direct use with ImGui functions.
     /// </summary>
     IntPtr ImGuiHandle { get; }
@@ -47,9 +42,6 @@ public class DalamudTextureWrap : IDalamudTextureWrap
     /// <param name="inner">The pointer to an instance of <see cref="IDalamudTextureWrap"/>.</param>
     internal DalamudTextureWrap(IDalamudTextureWrap inner) => this.inner = inner;
 
-    /// <inheritdoc/>
-    public bool IsDisposed => this.inner.IsDisposed;
-    
     /// <inheritdoc/>
     public nint ImGuiHandle => this.inner.ImGuiHandle;
 

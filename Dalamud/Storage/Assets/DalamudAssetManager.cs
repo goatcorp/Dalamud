@@ -351,9 +351,6 @@ internal sealed class DalamudAssetManager : IServiceType, IDisposable, IDalamudA
         public DisposeSuppressingDalamudTextureWrap(IDalamudTextureWrap wrap) => this.innerWrap = wrap;
 
         /// <inheritdoc/>
-        public bool IsDisposed => this.innerWrap.IsDisposed;
-
-        /// <inheritdoc/>
         public IntPtr ImGuiHandle => this.innerWrap.ImGuiHandle;
 
         /// <inheritdoc/>
