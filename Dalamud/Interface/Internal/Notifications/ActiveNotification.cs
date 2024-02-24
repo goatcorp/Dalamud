@@ -43,6 +43,7 @@ internal sealed class ActiveNotification : IActiveNotification, IDisposable
         this.hideEasing = new OutCubic(NotificationConstants.HideAnimationDuration);
 
         this.showEasing.Start();
+        this.UpdateIcon();
     }
 
     /// <inheritdoc/>
