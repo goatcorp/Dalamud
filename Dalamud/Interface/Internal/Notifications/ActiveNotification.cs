@@ -64,9 +64,14 @@ internal sealed class ActiveNotification : IActiveNotification, IDisposable
     public long Id { get; } = IActiveNotification.CreateNewId();
 
     /// <summary>
-    /// Gets the tick of creating this notification.
+    /// Gets the time of creating this notification.
     /// </summary>
-    public long CreatedAt { get; } = Environment.TickCount64;
+    public DateTime CreatedAt { get; } = DateTime.Now;
+
+    /// <summary>
+    /// Gets the time of starting to count the timer for the expiration.
+    /// </summary>
+    public DateTime ExpiryRelativeToTime { get; private set; } = DateTime.Now;
 
     /// <inheritdoc/>
     public string Content => this.underlyingNotification.Content;
@@ -249,6 +254,7 @@ internal sealed class ActiveNotification : IActiveNotification, IDisposable
         ImGui.PushID(this.Id.GetHashCode());
         ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(NotificationConstants.ScaledWindowPadding));
         ImGui.PushStyleVar(ImGuiStyleVar.Alpha, opacity);
+        ImGui.PushStyleVar(ImGuiStyleVar.WindowRounding, 0f);
         unsafe
         {
             ImGui.PushStyleColor(
@@ -289,13 +295,36 @@ internal sealed class ActiveNotification : IActiveNotification, IDisposable
         var windowPos = ImGui.GetWindowPos();
         var windowSize = ImGui.GetWindowSize();
 
+        float expiryRatio;
+        if (this.IsDismissed)
+        {
+            expiryRatio = 0f;
+        }
+        else if (this.Expiry == DateTime.MaxValue || (this.HoverExtendDuration > TimeSpan.Zero && this.IsMouseHovered))
+        {
+            expiryRatio = 1f;
+        }
+        else
+        {
+            expiryRatio = (float)((this.Expiry - DateTime.Now).TotalMilliseconds /
+                                  (this.Expiry - this.ExpiryRelativeToTime).TotalMilliseconds);
+        }
+
+        expiryRatio = Math.Clamp(expiryRatio, 0f, 1f);
+        ImGui.PushClipRect(windowPos, windowPos + windowSize, false);
+        ImGui.GetWindowDrawList().AddRectFilled(
+            windowPos + new Vector2(0, windowSize.Y - NotificationConstants.ScaledExpiryProgressBarHeight),
+            windowPos + windowSize with { X = windowSize.X * expiryRatio },
+            ImGui.GetColorU32(this.DefaultIconColor));
+        ImGui.PopClipRect();
+
         ImGui.End();
 
         if (!this.IsDismissed)
             this.DrawCloseButton(interfaceManager, windowPos);
 
         ImGui.PopStyleColor();
-        ImGui.PopStyleVar(2);
+        ImGui.PopStyleVar(3);
         ImGui.PopID();
 
         if (windowPos.X <= ImGui.GetIO().MousePos.X
@@ -315,7 +344,10 @@ internal sealed class ActiveNotification : IActiveNotification, IDisposable
             {
                 var newExpiry = DateTime.Now + this.HoverExtendDuration;
                 if (newExpiry > this.Expiry)
+                {
                     this.underlyingNotification.Expiry = newExpiry;
+                    this.ExpiryRelativeToTime = DateTime.Now;
+                }
             }
 
             this.IsMouseHovered = false;
@@ -332,7 +364,15 @@ internal sealed class ActiveNotification : IActiveNotification, IDisposable
         this.underlyingNotification.Title = newNotification.Title;
         this.underlyingNotification.Type = newNotification.Type;
         this.underlyingNotification.IconCreator = newNotification.IconCreator;
-        this.underlyingNotification.Expiry = newNotification.Expiry;
+        if (this.underlyingNotification.Expiry != newNotification.Expiry)
+        {
+            this.underlyingNotification.Expiry = newNotification.Expiry;
+            this.ExpiryRelativeToTime = DateTime.Now;
+        }
+
+        this.underlyingNotification.Interactible = newNotification.Interactible;
+        this.underlyingNotification.ClickIsDismiss = newNotification.ClickIsDismiss;
+        this.underlyingNotification.HoverExtendDuration = newNotification.HoverExtendDuration;
     }
 
     /// <inheritdoc/>
@@ -491,7 +531,6 @@ internal sealed class ActiveNotification : IActiveNotification, IDisposable
             ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, Vector2.Zero);
             ImGui.PushStyleVar(ImGuiStyleVar.FrameRounding, 0f);
             ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, Vector2.Zero);
-            ImGui.PushStyleVar(ImGuiStyleVar.WindowRounding, 0f);
             ImGui.PushStyleColor(ImGuiCol.Button, 0);
             ImGui.PushStyleColor(ImGuiCol.Text, NotificationConstants.CloseTextColor);
 
@@ -511,7 +550,7 @@ internal sealed class ActiveNotification : IActiveNotification, IDisposable
 
             ImGui.End();
             ImGui.PopStyleColor(2);
-            ImGui.PopStyleVar(4);
+            ImGui.PopStyleVar(3);
         }
     }
 

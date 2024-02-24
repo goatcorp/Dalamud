@@ -70,5 +70,8 @@ internal static class NotificationConstants
     public static float ScaledIconSize => MathF.Round(IconSize * ImGuiHelpers.GlobalScale);
     
     /// <summary>Gets the scaled size of the close button.</summary>
-    public static float ScaledCloseButtonMinSize => MathF.Round(16 * ImGuiHelpers.GlobalScale);    
+    public static float ScaledCloseButtonMinSize => MathF.Round(16 * ImGuiHelpers.GlobalScale);
+
+    /// <summary>Gets the height of the expiry progress bar.</summary>
+    public static float ScaledExpiryProgressBarHeight => MathF.Round(2 * ImGuiHelpers.GlobalScale);
 }
