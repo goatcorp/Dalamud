@@ -29,8 +29,7 @@ namespace Dalamud.Interface.Internal.Windows;
 /// </summary>
 internal class ConsoleWindow : Window, IDisposable
 {
-    private const int RollingLogSize = 10000; // TODO: Make this configurable
-    private readonly RollingList<LogEntry> logText = new(RollingLogSize);
+    private readonly RollingList<LogEntry> logText;
     private volatile int newRolledLines;
     private readonly object renderLock = new();
 
@@ -77,9 +76,15 @@ internal class ConsoleWindow : Window, IDisposable
         };
 
         this.RespectCloseHotkey = false;
+
+        var limit = Math.Max(100, configuration.LogLinesLimit);
+        this.logText = new(limit);
+        this.FilteredLogEntries = new(limit);
+
+        configuration.DalamudConfigurationSaved += this.OnDalamudConfigurationSaved;
     }
 
-    private RollingList<LogEntry> FilteredLogEntries { get; set; } = new(RollingLogSize);
+    private RollingList<LogEntry> FilteredLogEntries { get; set; }
 
     /// <inheritdoc/>
     public override void OnOpen()
@@ -94,6 +99,7 @@ internal class ConsoleWindow : Window, IDisposable
     public void Dispose()
     {
         SerilogEventSink.Instance.LogLine -= this.OnLogLine;
+        Service<DalamudConfiguration>.Get().DalamudConfigurationSaved -= this.OnDalamudConfigurationSaved;
     }
 
     /// <summary>
@@ -761,7 +767,7 @@ internal class ConsoleWindow : Window, IDisposable
         lock (this.renderLock)
         {
             this.regexError = false;
-            this.FilteredLogEntries = new RollingList<LogEntry>(this.logText.Where(this.IsFilterApplicable), RollingLogSize);
+            this.FilteredLogEntries = new RollingList<LogEntry>(this.logText.Where(this.IsFilterApplicable), Math.Max(100, Service<DalamudConfiguration>.Get().LogLinesLimit));
         }
     }
 
@@ -808,6 +814,13 @@ internal class ConsoleWindow : Window, IDisposable
         if (buttonEnabled) ImGui.PopStyleColor();
 
         return result;
+    }
+
+    private void OnDalamudConfigurationSaved(DalamudConfiguration dalamudConfiguration)
+    {
+        var limit = Math.Max(100, dalamudConfiguration.LogLinesLimit);
+        this.logText.Size = limit;
+        this.FilteredLogEntries.Size = limit;
     }
 
     private class LogEntry
