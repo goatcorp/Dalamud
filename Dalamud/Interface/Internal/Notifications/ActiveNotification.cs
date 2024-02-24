@@ -7,9 +7,11 @@ using Dalamud.Interface.Animation;
 using Dalamud.Interface.Animation.EasingFunctions;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.ImGuiNotification;
+using Dalamud.Interface.Internal.Windows;
 using Dalamud.Interface.ManagedFontAtlas;
 using Dalamud.Interface.Utility;
 using Dalamud.Plugin.Internal.Types;
+using Dalamud.Storage.Assets;
 using Dalamud.Utility;
 
 using ImGuiNET;
@@ -383,23 +385,14 @@ internal sealed class ActiveNotification : IActiveNotification, IDisposable
 
     private void DrawIcon(NotificationManager notificationManager, Vector2 minCoord, Vector2 maxCoord)
     {
-        string? iconString;
-        IFontHandle? fontHandle;
+        string? iconString = null;
+        IFontHandle? fontHandle = null;
+        IDalamudTextureWrap? iconTexture = null;
         switch (this.IconTask?.IsCompletedSuccessfully is true ? this.IconTask.Result : null)
         {
             case IDalamudTextureWrap wrap:
-            {
-                var size = wrap.Size;
-                if (size.X > maxCoord.X - minCoord.X)
-                    size *= (maxCoord.X - minCoord.X) / size.X;
-                if (size.Y > maxCoord.Y - minCoord.Y)
-                    size *= (maxCoord.Y - minCoord.Y) / size.Y;
-                var pos = ((minCoord + maxCoord) - size) / 2;
-                ImGui.SetCursorPos(pos);
-                ImGui.Image(wrap.ImGuiHandle, size);
-                return;
-            }
-
+                iconTexture = wrap;
+                break;
             case SeIconChar icon:
                 iconString = string.Empty + (char)icon;
                 fontHandle = notificationManager.IconAxisFontHandle;
@@ -415,16 +408,52 @@ internal sealed class ActiveNotification : IActiveNotification, IDisposable
         }
 
         if (string.IsNullOrWhiteSpace(iconString))
-            return;
-
-        using (fontHandle.Push())
         {
-            var size = ImGui.CalcTextSize(iconString);
+            var dam = Service<DalamudAssetManager>.Get();
+            if (this.InitiatorPlugin is null)
+            {
+                iconTexture = dam.GetDalamudTextureWrap(DalamudAsset.LogoSmall);
+            }
+            else
+            {
+                if (!Service<PluginImageCache>.Get().TryGetIcon(
+                        this.InitiatorPlugin,
+                        this.InitiatorPlugin.Manifest,
+                        this.InitiatorPlugin.IsThirdParty,
+                        out iconTexture) || iconTexture is null)
+                {
+                    iconTexture = this.InitiatorPlugin switch
+                    {
+                        { IsDev: true } => dam.GetDalamudTextureWrap(DalamudAsset.DevPluginIcon),
+                        { IsThirdParty: true } => dam.GetDalamudTextureWrap(DalamudAsset.ThirdInstalledIcon),
+                        _ => dam.GetDalamudTextureWrap(DalamudAsset.InstalledIcon),
+                    };
+                }
+            }
+        }
+
+        if (iconTexture is not null)
+        {
+            var size = iconTexture.Size;
+            if (size.X > maxCoord.X - minCoord.X)
+                size *= (maxCoord.X - minCoord.X) / size.X;
+            if (size.Y > maxCoord.Y - minCoord.Y)
+                size *= (maxCoord.Y - minCoord.Y) / size.Y;
             var pos = ((minCoord + maxCoord) - size) / 2;
             ImGui.SetCursorPos(pos);
-            ImGui.PushStyleColor(ImGuiCol.Text, this.DefaultIconColor);
-            ImGui.TextUnformatted(iconString);
-            ImGui.PopStyleColor();
+            ImGui.Image(iconTexture.ImGuiHandle, size);
+        }
+        else if (fontHandle is not null)
+        {
+            using (fontHandle.Push())
+            {
+                var size = ImGui.CalcTextSize(iconString);
+                var pos = ((minCoord + maxCoord) - size) / 2;
+                ImGui.SetCursorPos(pos);
+                ImGui.PushStyleColor(ImGuiCol.Text, this.DefaultIconColor);
+                ImGui.TextUnformatted(iconString);
+                ImGui.PopStyleColor();
+            }
         }
     }
 

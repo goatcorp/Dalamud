@@ -55,6 +55,7 @@ internal class ImGuiWidget : IDataWindowWidget
                     Type = type,
                     Interactible = true,
                     ClickIsDismiss = false,
+                    Expiry = DateTime.MaxValue,
                 });
 
             var nclick = 0;
@@ -85,7 +86,7 @@ internal class ImGuiWidget : IDataWindowWidget
     {
         var rand = new Random();
 
-        title = rand.Next(0, 5) switch
+        title = rand.Next(0, 7) switch
         {
             0 => "This is a toast",
             1 => "Truly, a toast",
@@ -96,7 +97,7 @@ internal class ImGuiWidget : IDataWindowWidget
             _ => null,
         };
 
-        type = rand.Next(0, 4) switch
+        type = rand.Next(0, 5) switch
         {
             0 => NotificationType.Error,
             1 => NotificationType.Warning,
