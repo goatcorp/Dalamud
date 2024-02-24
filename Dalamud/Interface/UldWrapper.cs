@@ -108,7 +108,7 @@ public class UldWrapper : IDisposable
 
     private IDalamudTextureWrap? CopyRect(int width, int height, byte[] rgbaData, UldRoot.PartData part)
     {
-        if (part.V + part.W > width || part.U + part.H > height)
+        if (part.U + part.W > width || part.V + part.H > height)
         {
             return null;
         }

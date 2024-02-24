@@ -45,11 +45,11 @@ internal unsafe partial class Dx11Renderer
         {
             using var shader = default(ComPtr<ID3D11PixelShader>);
             fixed (byte* pArray = ps)
-                device->CreatePixelShader(pArray, (nuint)ps.Length, null, shader.GetAddressOf()).ThrowHr();
+                device->CreatePixelShader(pArray, (nuint)ps.Length, null, shader.GetAddressOf()).ThrowOnError();
 
             using var sampler = default(ComPtr<ID3D11SamplerState>);
             fixed (D3D11_SAMPLER_DESC* pSamplerDesc = &samplerDesc)
-                device->CreateSamplerState(pSamplerDesc, sampler.GetAddressOf()).ThrowHr();
+                device->CreateSamplerState(pSamplerDesc, sampler.GetAddressOf()).ThrowOnError();
 
             return new(shader, sampler);
         }

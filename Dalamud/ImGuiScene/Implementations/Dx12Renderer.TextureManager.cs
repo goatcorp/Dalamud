@@ -208,7 +208,7 @@ internal unsafe partial class Dx12Renderer
             {
                 void* mapped;
                 var range = new D3D12_RANGE(0, (nuint)uploadSize);
-                uploadBuffer.Get()->Map(0, &range, &mapped).ThrowHr();
+                uploadBuffer.Get()->Map(0, &range, &mapped).ThrowOnError();
                 var source = data;
                 var target = new Span<byte>(mapped, uploadSize);
                 for (var y = 0; y < numRows; y++)

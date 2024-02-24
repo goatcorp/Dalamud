@@ -276,7 +276,10 @@ internal class TextureManager : IDisposable, IServiceType, ITextureProvider, ITe
     {
         this.framework.Update -= this.FrameworkOnUpdate;
         
-        Log.Verbose("Disposing {Num} left behind textures.");
+        if (this.activeTextures.Count == 0)
+            return;
+
+        Log.Verbose("Disposing {Num} left behind textures.", this.activeTextures.Count);
         
         foreach (var activeTexture in this.activeTextures)
         {

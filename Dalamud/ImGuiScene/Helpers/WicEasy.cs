@@ -33,7 +33,7 @@ internal sealed unsafe class WicEasy : IDisposable
                     null,
                     (uint)CLSCTX.CLSCTX_INPROC_SERVER,
                     iid,
-                    (void**)pp).ThrowHr();
+                    (void**)pp).ThrowOnError();
             }
         }
         catch
@@ -67,7 +67,7 @@ internal sealed unsafe class WicEasy : IDisposable
     public ComPtr<IWICStream> CreateStream()
     {
         var stream = default(ComPtr<IWICStream>);
-        this.Factory->CreateStream(stream.GetAddressOf()).ThrowHr();
+        this.Factory->CreateStream(stream.GetAddressOf()).ThrowOnError();
         return stream;
     }
 
@@ -91,11 +91,11 @@ internal sealed unsafe class WicEasy : IDisposable
             stream,
             null,
             WICDecodeOptions.WICDecodeMetadataCacheOnDemand,
-            decoder.GetAddressOf()).ThrowHr();
+            decoder.GetAddressOf()).ThrowOnError();
 
         var result = default(ComPtr<IWICBitmapSource>);
         // Note: IWICBitmapSource is an ancestor of IWICBitmapFrameDecode; pointer casting is well-defined.
-        decoder.Get()->GetFrame(0, (IWICBitmapFrameDecode**)result.GetAddressOf()).ThrowHr();
+        decoder.Get()->GetFrame(0, (IWICBitmapFrameDecode**)result.GetAddressOf()).ThrowOnError();
         return result;
     }
 
@@ -108,7 +108,7 @@ internal sealed unsafe class WicEasy : IDisposable
     public ComPtr<IWICBitmapSource> ConvertPixelFormat(IWICBitmapSource* source, in Guid newPixelFormat)
     {
         using var converter = default(ComPtr<IWICFormatConverter>);
-        this.Factory->CreateFormatConverter(converter.GetAddressOf()).ThrowHr();
+        this.Factory->CreateFormatConverter(converter.GetAddressOf()).ThrowOnError();
         fixed (Guid* format = &newPixelFormat)
         {
             converter.Get()->Initialize(
@@ -117,7 +117,7 @@ internal sealed unsafe class WicEasy : IDisposable
                 WICBitmapDitherType.WICBitmapDitherTypeNone,
                 null,
                 0,
-                WICBitmapPaletteType.WICBitmapPaletteTypeMedianCut).ThrowHr();
+                WICBitmapPaletteType.WICBitmapPaletteTypeMedianCut).ThrowOnError();
         }
 
         // Avoid increasing refcount; using a constructor of ComPtr<T> will call AddRef.
@@ -136,7 +136,7 @@ internal sealed unsafe class WicEasy : IDisposable
     public ComPtr<IWICBitmap> CreateBitmap(IWICBitmapSource* source)
     {
         uint width, height;
-        source->GetSize(&width, &height).ThrowHr();
+        source->GetSize(&width, &height).ThrowOnError();
         var pixelFormat = source->GetPixelFormat();
         var bitmap = default(ComPtr<IWICBitmap>);
         this.Factory->CreateBitmap(
@@ -144,7 +144,7 @@ internal sealed unsafe class WicEasy : IDisposable
             height,
             &pixelFormat,
             WICBitmapCreateCacheOption.WICBitmapCacheOnDemand,
-            bitmap.GetAddressOf()).ThrowHr();
+            bitmap.GetAddressOf()).ThrowOnError();
         try
         {
             using var targetLock = bitmap.Get()->LockBits(
@@ -153,8 +153,8 @@ internal sealed unsafe class WicEasy : IDisposable
                 out var nb,
                 out _);
             uint stride;
-            targetLock.Get()->GetStride(&stride).ThrowHr();
-            source->CopyPixels(null, stride, nb, pb).ThrowHr();
+            targetLock.Get()->GetStride(&stride).ThrowOnError();
+            source->CopyPixels(null, stride, nb, pb).ThrowOnError();
             return bitmap;
         }
         catch
@@ -173,13 +173,13 @@ internal sealed unsafe class WicEasy : IDisposable
     {
         using var cinfo = default(ComPtr<IWICComponentInfo>);
         fixed (Guid* guid = &pixelFormatGuid)
-            this.Factory->CreateComponentInfo(guid, cinfo.ReleaseAndGetAddressOf()).ThrowHr();
+            this.Factory->CreateComponentInfo(guid, cinfo.ReleaseAndGetAddressOf()).ThrowOnError();
 
         using var pfinfo = default(ComPtr<IWICPixelFormatInfo>);
-        cinfo.As(&pfinfo).ThrowHr();
+        cinfo.As(&pfinfo).ThrowOnError();
 
         uint bpp;
-        pfinfo.Get()->GetBitsPerPixel(&bpp).ThrowHr();
+        pfinfo.Get()->GetBitsPerPixel(&bpp).ThrowOnError();
 
         return (int)bpp;
     }

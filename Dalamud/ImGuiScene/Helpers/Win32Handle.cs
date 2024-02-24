@@ -78,7 +78,7 @@ internal readonly struct Win32Handle : IDisposable
         HANDLE handle;
         fixed (SECURITY_ATTRIBUTES* psa = &securityAttributes)
         fixed (char* pName = name)
-            device->CreateSharedHandle((ID3D12DeviceChild*)resource, psa, access, (ushort*)pName, &handle).ThrowHr();
+            device->CreateSharedHandle((ID3D12DeviceChild*)resource, psa, access, (ushort*)pName, &handle).ThrowOnError();
         return new(handle);
     }
 

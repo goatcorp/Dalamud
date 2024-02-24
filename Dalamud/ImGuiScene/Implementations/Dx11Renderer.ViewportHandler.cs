@@ -154,7 +154,7 @@ internal unsafe partial class Dx11Renderer
             IDCompositionTarget* dcompTarget)
         {
             DXGI_SWAP_CHAIN_DESC desc;
-            swapChain->GetDesc(&desc).ThrowHr();
+            swapChain->GetDesc(&desc).ThrowOnError();
             return new(
                 renderer,
                 swapChain,
@@ -170,7 +170,7 @@ internal unsafe partial class Dx11Renderer
                 throw new NotSupportedException();
 
             var mvsd = default(DXGI_SWAP_CHAIN_DESC);
-            renderer.mainViewport.SwapChain->GetDesc(&mvsd).ThrowHr();
+            renderer.mainViewport.SwapChain->GetDesc(&mvsd).ThrowOnError();
 
             using var dxgiFactory = default(ComPtr<IDXGIFactory4>);
             fixed (Guid* piidFactory = &IID.IID_IDXGIFactory4)
@@ -179,9 +179,9 @@ internal unsafe partial class Dx11Renderer
                 DirectX.CreateDXGIFactory2(
                     DXGI.DXGI_CREATE_FACTORY_DEBUG,
                     piidFactory,
-                    (void**)dxgiFactory.GetAddressOf()).ThrowHr();
+                    (void**)dxgiFactory.GetAddressOf()).ThrowOnError();
 #else
-                DirectX.CreateDXGIFactory1(piidFactory, (void**)dxgiFactory.GetAddressOf()).ThrowHr();
+                DirectX.CreateDXGIFactory1(piidFactory, (void**)dxgiFactory.GetAddressOf()).ThrowOnError();
 #endif
             }
 
@@ -208,26 +208,26 @@ internal unsafe partial class Dx11Renderer
                 (IUnknown*)renderer.device.Get(),
                 &sd1,
                 null,
-                swapChain1.GetAddressOf()).ThrowHr();
+                swapChain1.GetAddressOf()).ThrowOnError();
 
             if (ReShadePeeler.PeelSwapChain(&swapChain1))
             {
                 swapChain1.Get()->ResizeBuffers(sd1.BufferCount, sd1.Width, sd1.Height, sd1.Format, sd1.Flags)
-                    .ThrowHr();
+                    .ThrowOnError();
             }
 
             using var dcTarget = default(ComPtr<IDCompositionTarget>);
             renderer.dcompDevice.Get()->CreateTargetForHwnd(hWnd, BOOL.TRUE, dcTarget.GetAddressOf());
 
             using var dcVisual = default(ComPtr<IDCompositionVisual>);
-            renderer.dcompDevice.Get()->CreateVisual(dcVisual.GetAddressOf()).ThrowHr();
+            renderer.dcompDevice.Get()->CreateVisual(dcVisual.GetAddressOf()).ThrowOnError();
 
-            dcVisual.Get()->SetContent((IUnknown*)swapChain1.Get()).ThrowHr();
-            dcTarget.Get()->SetRoot(dcVisual).ThrowHr();
-            renderer.dcompDevice.Get()->Commit().ThrowHr();
+            dcVisual.Get()->SetContent((IUnknown*)swapChain1.Get()).ThrowOnError();
+            dcTarget.Get()->SetRoot(dcVisual).ThrowOnError();
+            renderer.dcompDevice.Get()->Commit().ThrowOnError();
             
             using var swapChain = default(ComPtr<IDXGISwapChain>);
-            swapChain1.As(&swapChain).ThrowHr();
+            swapChain1.As(&swapChain).ThrowOnError();
             return Create(renderer, swapChain, dcVisual, dcTarget);
         }
 
@@ -240,9 +240,9 @@ internal unsafe partial class Dx11Renderer
                 DirectX.CreateDXGIFactory2(
                     DXGI.DXGI_CREATE_FACTORY_DEBUG,
                     piidFactory,
-                    (void**)dxgiFactory.GetAddressOf()).ThrowHr();
+                    (void**)dxgiFactory.GetAddressOf()).ThrowOnError();
 #else
-                DirectX.CreateDXGIFactory(piidFactory, (void**)dxgiFactory.GetAddressOf()).ThrowHr();
+                DirectX.CreateDXGIFactory(piidFactory, (void**)dxgiFactory.GetAddressOf()).ThrowOnError();
 #endif
             }
 
@@ -262,7 +262,7 @@ internal unsafe partial class Dx11Renderer
                 SwapEffect = DXGI_SWAP_EFFECT.DXGI_SWAP_EFFECT_DISCARD,
             };
             dxgiFactory.Get()->CreateSwapChain((IUnknown*)renderer.device.Get(), &desc, swapChain.GetAddressOf())
-                .ThrowHr();
+                .ThrowOnError();
 
             if (ReShadePeeler.PeelSwapChain(&swapChain))
             {
@@ -272,7 +272,7 @@ internal unsafe partial class Dx11Renderer
                         desc.BufferDesc.Height,
                         desc.BufferDesc.Format,
                         desc.Flags)
-                    .ThrowHr();
+                    .ThrowOnError();
             }
 
             return Create(renderer, swapChain, null, null);
@@ -293,7 +293,7 @@ internal unsafe partial class Dx11Renderer
                 return;
 
             if (!this.swapChain.IsEmpty())
-                this.swapChain.Get()->Present(0, 0).ThrowHr();
+                this.swapChain.Get()->Present(0, 0).ThrowOnError();
         }
 
         public void ResetBuffers()
@@ -314,13 +314,13 @@ internal unsafe partial class Dx11Renderer
             if (resizeSwapChain && !this.swapChain.IsEmpty())
             {
                 DXGI_SWAP_CHAIN_DESC desc;
-                this.swapChain.Get()->GetDesc(&desc).ThrowHr();
+                this.swapChain.Get()->GetDesc(&desc).ThrowOnError();
                 this.swapChain.Get()->ResizeBuffers(
                     desc.BufferCount,
                     (uint)newWidth,
                     (uint)newHeight,
                     DXGI_FORMAT.DXGI_FORMAT_UNKNOWN,
-                    desc.Flags).ThrowHr();
+                    desc.Flags).ThrowOnError();
             }
         }
 
@@ -357,18 +357,18 @@ internal unsafe partial class Dx11Renderer
                         CPUAccessFlags = 0,
                         MiscFlags = (uint)D3D11_RESOURCE_MISC_FLAG.D3D11_RESOURCE_MISC_SHARED_NTHANDLE,
                     };
-                    this.parent.device.Get()->CreateTexture2D(&desc, null, pprt).ThrowHr();
+                    this.parent.device.Get()->CreateTexture2D(&desc, null, pprt).ThrowOnError();
                 }
                 else
                 {
                     fixed (Guid* piid = &IID.IID_ID3D11Texture2D)
                     {
                         this.swapChain.Get()->GetBuffer(0u, piid, (void**)pprt)
-                            .ThrowHr();
+                            .ThrowOnError();
                     }
                 }
 
-                this.parent.device.Get()->CreateRenderTargetView((ID3D11Resource*)*pprt, null, pprtv).ThrowHr();
+                this.parent.device.Get()->CreateRenderTargetView((ID3D11Resource*)*pprt, null, pprtv).ThrowOnError();
             }
         }
     }

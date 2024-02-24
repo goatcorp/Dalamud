@@ -52,7 +52,6 @@ internal sealed unsafe class ImGuiClipboardFunctionProvider : IServiceType, IDis
     private ImGuiClipboardFunctionProvider(InterfaceManager.InterfaceManagerWithScene imws)
     {
         // Effectively waiting for ImGui to become available.
-        _ = imws;
         Debug.Assert(ImGuiHelpers.IsImGuiInitialized, "IMWS initialized but IsImGuiInitialized is false?");
 
         var io = ImGui.GetIO();
@@ -131,6 +130,7 @@ internal sealed unsafe class ImGuiClipboardFunctionProvider : IServiceType, IDis
             ptr[str.Length] = default;
             GlobalUnlock(hMem);
 
+            EmptyClipboard();
             SetClipboardData(CF.CF_UNICODETEXT, hMem);
         }
         catch (Exception e)
@@ -158,9 +158,9 @@ internal sealed unsafe class ImGuiClipboardFunctionProvider : IServiceType, IDis
             return this.clipboardData.Data;
         }
 
+        var hMem = (HGLOBAL)GetClipboardData(CF.CF_UNICODETEXT);
         try
         {
-            var hMem = (HGLOBAL)GetClipboardData(CF.CF_UNICODETEXT);
             if (hMem != default)
             {
                 var ptr = (char*)GlobalLock(hMem);
@@ -191,6 +191,8 @@ internal sealed unsafe class ImGuiClipboardFunctionProvider : IServiceType, IDis
         }
         finally
         {
+            if (hMem != default)
+                GlobalUnlock(hMem);
             CloseClipboard();
         }
 

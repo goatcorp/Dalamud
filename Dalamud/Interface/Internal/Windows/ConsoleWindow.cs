@@ -39,6 +39,7 @@ internal class ConsoleWindow : Window, IDisposable
     private string commandText = string.Empty;
     private string textFilter = string.Empty;
     private string selectedSource = "DalamudInternal";
+    private string pluginFilter = string.Empty;
 
     private bool filterShowUncaughtExceptions;
     private bool showFilterToolbar;
@@ -70,7 +71,6 @@ internal class ConsoleWindow : Window, IDisposable
         this.SizeConstraints = new WindowSizeConstraints
         {
             MinimumSize = new Vector2(600.0f, 200.0f),
-            MaximumSize = new Vector2(9999.0f, 9999.0f),
         };
 
         this.RespectCloseHotkey = false;
@@ -149,10 +149,13 @@ internal class ConsoleWindow : Window, IDisposable
         {
             const string regexErrorString = "Regex Filter Error";
             ImGui.SetCursorPosX(ImGui.GetContentRegionMax().X / 2.0f - ImGui.CalcTextSize(regexErrorString).X / 2.0f);
-            ImGui.TextColored(KnownColor.OrangeRed.Vector(), regexErrorString);
+            ImGui.TextColored(ImGuiColors.DalamudRed, regexErrorString);
         }
-        
-        ImGui.BeginChild("scrolling", new Vector2(0, ImGui.GetFrameHeightWithSpacing() - 55 * ImGuiHelpers.GlobalScale), false, ImGuiWindowFlags.AlwaysHorizontalScrollbar | ImGuiWindowFlags.AlwaysVerticalScrollbar);
+
+        var sendButtonSize = ImGui.CalcTextSize("Send") +
+                             ((new Vector2(16, 0) + (ImGui.GetStyle().FramePadding * 2)) * ImGuiHelpers.GlobalScale);
+        var scrollingHeight = ImGui.GetContentRegionAvail().Y - sendButtonSize.Y;
+        ImGui.BeginChild("scrolling", new Vector2(0, scrollingHeight), false, ImGuiWindowFlags.AlwaysHorizontalScrollbar | ImGuiWindowFlags.AlwaysVerticalScrollbar);
 
         if (this.clearLog) this.Clear();
 
@@ -172,9 +175,10 @@ internal class ConsoleWindow : Window, IDisposable
         var childDrawList = ImGui.GetWindowDrawList();
         var childSize = ImGui.GetWindowSize();
 
-        var cursorDiv = ImGuiHelpers.GlobalScale * 93;
-        var cursorLogLevel = ImGuiHelpers.GlobalScale * 100;
-        var cursorLogLine = ImGuiHelpers.GlobalScale * 135;
+        var cursorDiv = ImGui.CalcTextSize("00:00:00.000 ").X;
+        var cursorLogLevel = ImGui.CalcTextSize("00:00:00.000 | ").X;
+        var dividerOffset = ImGui.CalcTextSize("00:00:00.000 | AAA ").X + (ImGui.CalcTextSize(" ").X / 2);
+        var cursorLogLine = ImGui.CalcTextSize("00:00:00.000 | AAA | ").X;
 
         lock (this.renderLock)
         {
@@ -241,8 +245,7 @@ internal class ConsoleWindow : Window, IDisposable
         }
 
         // Draw dividing line
-        var offset = ImGuiHelpers.GlobalScale * 127;
-        childDrawList.AddLine(new Vector2(childPos.X + offset, childPos.Y), new Vector2(childPos.X + offset, childPos.Y + childSize.Y), 0x4FFFFFFF, 1.0f);
+        childDrawList.AddLine(new Vector2(childPos.X + dividerOffset, childPos.Y), new Vector2(childPos.X + dividerOffset, childPos.Y + childSize.Y), 0x4FFFFFFF, 1.0f);
 
         ImGui.EndChild();
 
@@ -260,7 +263,7 @@ internal class ConsoleWindow : Window, IDisposable
             }
         }
 
-        ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X - (80.0f * ImGuiHelpers.GlobalScale) - (ImGui.GetStyle().ItemSpacing.X * ImGuiHelpers.GlobalScale));
+        ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X - sendButtonSize.X - (ImGui.GetStyle().ItemSpacing.X * ImGuiHelpers.GlobalScale));
 
         var getFocus = false;
         unsafe
@@ -279,7 +282,7 @@ internal class ConsoleWindow : Window, IDisposable
 
         if (hadColor) ImGui.PopStyleColor();
 
-        if (ImGui.Button("Send", ImGuiHelpers.ScaledVector2(80.0f, 23.0f)))
+        if (ImGui.Button("Send", sendButtonSize))
         {
             this.ProcessCommand();
         }
@@ -475,13 +478,23 @@ internal class ConsoleWindow : Window, IDisposable
 
         ImGui.TableNextColumn();
         ImGui.PushItemWidth(ImGui.GetContentRegionAvail().X);
-        if (ImGui.BeginCombo("##Sources", this.selectedSource))
+        if (ImGui.BeginCombo("##Sources", this.selectedSource, ImGuiComboFlags.HeightLarge))
         {
             var sourceNames = Service<PluginManager>.Get().InstalledPlugins
                                                     .Select(p => p.Manifest.InternalName)
                                                     .OrderBy(s => s)
                                                     .Prepend("DalamudInternal")
+                                                    .Where(name => this.pluginFilter is "" || new FuzzyMatcher(this.pluginFilter.ToLowerInvariant(), MatchMode.Fuzzy).Matches(name.ToLowerInvariant()) != 0)
                                                     .ToList();
+
+            ImGui.PushItemWidth(ImGui.GetContentRegionAvail().X);
+            ImGui.InputTextWithHint("##PluginSearchFilter", "Filter Plugin List", ref this.pluginFilter, 2048);
+            ImGui.Separator();
+            
+            if (!sourceNames.Any())
+            {
+                ImGui.TextColored(ImGuiColors.DalamudRed, "No Results");
+            }
 
             foreach (var selectable in sourceNames)
             {
@@ -718,8 +731,6 @@ internal class ConsoleWindow : Window, IDisposable
             return false;
         }
 
-        this.regexError = false;
-        
         // else we couldn't find a filter for this entry, if we have any filters, we need to block this entry.
         return !this.pluginFilters.Any();
     }
@@ -728,6 +739,7 @@ internal class ConsoleWindow : Window, IDisposable
     {
         lock (this.renderLock)
         {
+            this.regexError = false;
             this.FilteredLogEntries = this.logText.Where(this.IsFilterApplicable).ToList();
         }
     }

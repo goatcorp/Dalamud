@@ -5,6 +5,7 @@ namespace Dalamud.Common;
 
 /// <summary>
 /// Struct containing information needed to initialize Dalamud.
+/// Modify DalamudStartInfo.h and DalamudStartInfo.cpp along with this record.
 /// </summary>
 [Serializable]
 public record DalamudStartInfo
@@ -16,6 +17,11 @@ public record DalamudStartInfo
     {
         // ignored
     }
+
+    /// <summary>
+    /// Gets or sets the Dalamud load method.
+    /// </summary>
+    public LoadMethod LoadMethod { get; set; }
 
     /// <summary>
     /// Gets or sets the working directory of the XIVLauncher installations.

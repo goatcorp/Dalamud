@@ -63,41 +63,48 @@ public enum DalamudAsset
     [DalamudAsset(DalamudAssetPurpose.TextureFromPng)]
     [DalamudAssetPath("UIRes", "troubleIcon.png")]
     TroubleIcon = 1006,
+    
+    /// <summary>
+    /// <see cref="DalamudAssetPurpose.TextureFromPng"/>: The plugin trouble icon overlay.
+    /// </summary>
+    [DalamudAsset(DalamudAssetPurpose.TextureFromPng)]
+    [DalamudAssetPath("UIRes", "devPluginIcon.png")]
+    DevPluginIcon = 1007,
 
     /// <summary>
     /// <see cref="DalamudAssetPurpose.TextureFromPng"/>: The plugin update icon overlay.
     /// </summary>
     [DalamudAsset(DalamudAssetPurpose.TextureFromPng)]
     [DalamudAssetPath("UIRes", "updateIcon.png")]
-    UpdateIcon = 1007,
+    UpdateIcon = 1008,
 
     /// <summary>
     /// <see cref="DalamudAssetPurpose.TextureFromPng"/>: The plugin installed icon overlay.
     /// </summary>
     [DalamudAsset(DalamudAssetPurpose.TextureFromPng)]
     [DalamudAssetPath("UIRes", "installedIcon.png")]
-    InstalledIcon = 1008,
+    InstalledIcon = 1009,
 
     /// <summary>
     /// <see cref="DalamudAssetPurpose.TextureFromPng"/>: The third party plugin icon overlay.
     /// </summary>
     [DalamudAsset(DalamudAssetPurpose.TextureFromPng)]
     [DalamudAssetPath("UIRes", "thirdIcon.png")]
-    ThirdIcon = 1009,
+    ThirdIcon = 1010,
 
     /// <summary>
     /// <see cref="DalamudAssetPurpose.TextureFromPng"/>: The installed third party plugin icon overlay.
     /// </summary>
     [DalamudAsset(DalamudAssetPurpose.TextureFromPng)]
     [DalamudAssetPath("UIRes", "thirdInstalledIcon.png")]
-    ThirdInstalledIcon = 1010,
+    ThirdInstalledIcon = 1011,
 
     /// <summary>
     /// <see cref="DalamudAssetPurpose.TextureFromPng"/>: The API bump explainer icon.
     /// </summary>
     [DalamudAsset(DalamudAssetPurpose.TextureFromPng)]
     [DalamudAssetPath("UIRes", "changelogApiBump.png")]
-    ChangelogApiBumpIcon = 1011,
+    ChangelogApiBumpIcon = 1012,
 
     /// <summary>
     /// <see cref="DalamudAssetPurpose.TextureFromPng"/>: The background shade for
@@ -105,7 +112,7 @@ public enum DalamudAsset
     /// </summary>
     [DalamudAsset(DalamudAssetPurpose.TextureFromPng)]
     [DalamudAssetPath("UIRes", "tsmShade.png")]
-    TitleScreenMenuShade = 1012,
+    TitleScreenMenuShade = 1013,
 
     /// <summary>
     /// <see cref="DalamudAssetPurpose.Font"/>: Noto Sans CJK JP Medium.

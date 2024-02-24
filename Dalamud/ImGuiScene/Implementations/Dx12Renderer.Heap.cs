@@ -199,8 +199,8 @@ internal unsafe partial class Dx12Renderer
                     fixed (ID3D12Heap** ppHeap = &this.heap.GetPinnableReference())
                     fixed (void* pName = $"{debugName} ({Util.FormatBytes((long)desc.SizeInBytes)})")
                     {
-                        device->CreateHeap(pDesc, piid, (void**)ppHeap).ThrowHr();
-                        this.heap.Get()->SetName((ushort*)pName).ThrowHr();
+                        device->CreateHeap(pDesc, piid, (void**)ppHeap).ThrowOnError();
+                        this.heap.Get()->SetName((ushort*)pName).ThrowOnError();
                     }
 
                     this.head = new(null, 0, OffsetShift);
@@ -248,11 +248,11 @@ internal unsafe partial class Dx12Renderer
                         initialState,
                         pOptimizedClearValue,
                         piidResource,
-                        (void**)texture.GetAddressOf()).ThrowHr();
+                        (void**)texture.GetAddressOf()).ThrowOnError();
 
-                    texture.Get()->SetName((ushort*)pNameResource).ThrowHr();
-                    texture.Get()->SetPrivateDataInterface(Node.NativeGuid, node.AsIUnknown()).ThrowHr();
-                    texture.Get()->SetPrivateDataInterface(piidHeap, (IUnknown*)this.heap.Get()).ThrowHr();
+                    texture.Get()->SetName((ushort*)pNameResource).ThrowOnError();
+                    texture.Get()->SetPrivateDataInterface(Node.NativeGuid, node.AsIUnknown()).ThrowOnError();
+                    texture.Get()->SetPrivateDataInterface(piidHeap, (IUnknown*)this.heap.Get()).ThrowOnError();
                 }
 
                 return new(texture);

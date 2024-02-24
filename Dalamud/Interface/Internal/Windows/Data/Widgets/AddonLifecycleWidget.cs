@@ -3,6 +3,7 @@ using System.Drawing;
 using System.Linq;
 
 using Dalamud.Game.Addon.Lifecycle;
+using Dalamud.Interface.Colors;
 using Dalamud.Interface.Utility;
 using ImGuiNET;
 
@@ -130,7 +131,7 @@ public class AddonLifecycleWidget : IDataWindowWidget
                 }
                 else
                 {
-                    var color = receiveEventListener.Hook.IsEnabled ? KnownColor.Green.Vector() : KnownColor.OrangeRed.Vector();
+                    var color = receiveEventListener.Hook.IsEnabled ? ImGuiColors.HealerGreen : ImGuiColors.DalamudRed;
                     var text = receiveEventListener.Hook.IsEnabled ? "Enabled" : "Disabled";
                     ImGui.TextColored(color, text);
                 }

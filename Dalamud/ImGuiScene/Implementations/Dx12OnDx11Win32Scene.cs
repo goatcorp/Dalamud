@@ -52,20 +52,20 @@ internal unsafe class Dx12OnDx11Win32Scene : IWin32Scene
 
             fixed (Guid* guid = &IID.IID_ID3D11Device1)
             fixed (ID3D11Device1** pp = &this.device11.GetPinnableReference())
-                this.swapChain.Get()->GetDevice(guid, (void**)pp).ThrowHr();
+                this.swapChain.Get()->GetDevice(guid, (void**)pp).ThrowOnError();
 
             fixed (ID3D11DeviceContext** pp = &this.deviceContext.GetPinnableReference())
                 this.device11.Get()->GetImmediateContext(pp);
 
             using var buffer = default(ComPtr<ID3D11Resource>);
             fixed (Guid* guid = &IID.IID_ID3D11Resource)
-                this.swapChain.Get()->GetBuffer(0, guid, (void**)buffer.GetAddressOf()).ThrowHr();
+                this.swapChain.Get()->GetBuffer(0, guid, (void**)buffer.GetAddressOf()).ThrowOnError();
 
             fixed (ID3D11RenderTargetView** pp = &this.rtv.GetPinnableReference())
-                this.device11.Get()->CreateRenderTargetView(buffer.Get(), null, pp).ThrowHr();
+                this.device11.Get()->CreateRenderTargetView(buffer.Get(), null, pp).ThrowOnError();
 
             var desc = default(DXGI_SWAP_CHAIN_DESC);
-            this.swapChain.Get()->GetDesc(&desc).ThrowHr();
+            this.swapChain.Get()->GetDesc(&desc).ThrowOnError();
             this.targetWidth = (int)desc.BufferDesc.Width;
             this.targetHeight = (int)desc.BufferDesc.Height;
             this.WindowHandle = desc.OutputWindow;
@@ -86,7 +86,7 @@ internal unsafe class Dx12OnDx11Win32Scene : IWin32Scene
                     null,
                     D3D_FEATURE_LEVEL.D3D_FEATURE_LEVEL_11_0,
                     piid,
-                    (void**)ppDevice).ThrowHr();
+                    (void**)ppDevice).ThrowOnError();
             }
 
             this.drawsOneSquare.Setup(this.device11);
@@ -184,7 +184,7 @@ internal unsafe class Dx12OnDx11Win32Scene : IWin32Scene
             using var sharedHandle = Win32Handle.CreateSharedHandle(this.device12, resource);
             using var tex = default(ComPtr<ID3D11Texture2D>);
             fixed (Guid* piid = &IID.IID_ID3D11Texture2D)
-                this.device11.Get()->OpenSharedResource1(sharedHandle, piid, (void**)tex.GetAddressOf()).ThrowHr();
+                this.device11.Get()->OpenSharedResource1(sharedHandle, piid, (void**)tex.GetAddressOf()).ThrowOnError();
 
             D3D11_TEXTURE2D_DESC desc;
             tex.Get()->GetDesc(&desc);
@@ -194,7 +194,7 @@ internal unsafe class Dx12OnDx11Win32Scene : IWin32Scene
                 tex,
                 D3D_SRV_DIMENSION.D3D11_SRV_DIMENSION_TEXTURE2D);
             this.device11.Get()->CreateShaderResourceView((ID3D11Resource*)tex.Get(), &srvDesc, srvTemp.GetAddressOf())
-                .ThrowHr();
+                .ThrowOnError();
             srv.Swap(&srvTemp);
         }
 
@@ -218,10 +218,10 @@ internal unsafe class Dx12OnDx11Win32Scene : IWin32Scene
     {
         using var buffer = default(ComPtr<ID3D11Resource>);
         fixed (Guid* guid = &IID.IID_ID3D11Resource)
-            this.SwapChain->GetBuffer(0, guid, (void**)buffer.ReleaseAndGetAddressOf()).ThrowHr();
+            this.SwapChain->GetBuffer(0, guid, (void**)buffer.ReleaseAndGetAddressOf()).ThrowOnError();
 
         using var rtvTemp = default(ComPtr<ID3D11RenderTargetView>);
-        this.Device->CreateRenderTargetView(buffer.Get(), null, rtvTemp.GetAddressOf()).ThrowHr();
+        this.Device->CreateRenderTargetView(buffer.Get(), null, rtvTemp.GetAddressOf()).ThrowOnError();
         this.rtv.Swap(&rtvTemp);
 
         this.targetWidth = newWidth;
@@ -328,7 +328,7 @@ internal unsafe class Dx12OnDx11Win32Scene : IWin32Scene
                 fixed (void* pszTexCoord = "TEXCOORD"u8)
                 fixed (void* pszColor = "COLOR"u8)
                 {
-                    device->CreateVertexShader(pArray, (nuint)stream.Length, null, ppShader).ThrowHr();
+                    device->CreateVertexShader(pArray, (nuint)stream.Length, null, ppShader).ThrowOnError();
 
                     var ied = stackalloc D3D11_INPUT_ELEMENT_DESC[]
                     {
@@ -351,7 +351,7 @@ internal unsafe class Dx12OnDx11Win32Scene : IWin32Scene
                             AlignedByteOffset = uint.MaxValue,
                         },
                     };
-                    device->CreateInputLayout(ied, 3, pArray, (nuint)stream.Length, ppInputLayout).ThrowHr();
+                    device->CreateInputLayout(ied, 3, pArray, (nuint)stream.Length, ppInputLayout).ThrowOnError();
                 }
 
                 ArrayPool<byte>.Shared.Return(array);
@@ -367,7 +367,7 @@ internal unsafe class Dx12OnDx11Win32Scene : IWin32Scene
                 var data = Matrix4x4.Identity;
                 var subr = new D3D11_SUBRESOURCE_DATA { pSysMem = &data };
                 fixed (ID3D11Buffer** ppBuffer = &this.vertexConstantBuffer.GetPinnableReference())
-                    device->CreateBuffer(&bufferDesc, &subr, ppBuffer).ThrowHr();
+                    device->CreateBuffer(&bufferDesc, &subr, ppBuffer).ThrowOnError();
             }
 
             // Create the pixel shader
@@ -378,7 +378,7 @@ internal unsafe class Dx12OnDx11Win32Scene : IWin32Scene
                 stream.ReadExactly(array, 0, (int)stream.Length);
                 fixed (byte* pArray = array)
                 fixed (ID3D11PixelShader** ppShader = &this.pixelShader.GetPinnableReference())
-                    device->CreatePixelShader(pArray, (nuint)stream.Length, null, ppShader).ThrowHr();
+                    device->CreatePixelShader(pArray, (nuint)stream.Length, null, ppShader).ThrowOnError();
 
                 ArrayPool<byte>.Shared.Return(array);
             }
@@ -404,7 +404,7 @@ internal unsafe class Dx12OnDx11Win32Scene : IWin32Scene
                     },
                 };
                 fixed (ID3D11BlendState** ppBlendState = &this.blendState.GetPinnableReference())
-                    device->CreateBlendState(&blendStateDesc, ppBlendState).ThrowHr();
+                    device->CreateBlendState(&blendStateDesc, ppBlendState).ThrowOnError();
             }
 
             // Create the rasterizer state
@@ -416,7 +416,7 @@ internal unsafe class Dx12OnDx11Win32Scene : IWin32Scene
                     CullMode = D3D11_CULL_MODE.D3D11_CULL_NONE,
                 };
                 fixed (ID3D11RasterizerState** ppRasterizerState = &this.rasterizerState.GetPinnableReference())
-                    device->CreateRasterizerState(&rasterizerDesc, ppRasterizerState).ThrowHr();
+                    device->CreateRasterizerState(&rasterizerDesc, ppRasterizerState).ThrowOnError();
             }
 
             // Create the font sampler
@@ -434,7 +434,7 @@ internal unsafe class Dx12OnDx11Win32Scene : IWin32Scene
                     0,
                     0);
                 fixed (ID3D11SamplerState** ppSampler = &this.sampler.GetPinnableReference())
-                    device->CreateSamplerState(&samplerDesc, ppSampler).ThrowHr();
+                    device->CreateSamplerState(&samplerDesc, ppSampler).ThrowOnError();
             }
 
             if (this.vertexBuffer.IsEmpty())
@@ -452,7 +452,7 @@ internal unsafe class Dx12OnDx11Win32Scene : IWin32Scene
                     D3D11_USAGE.D3D11_USAGE_IMMUTABLE);
                 var subr = new D3D11_SUBRESOURCE_DATA { pSysMem = data };
                 var buffer = default(ID3D11Buffer*);
-                device->CreateBuffer(&desc, &subr, &buffer).ThrowHr();
+                device->CreateBuffer(&desc, &subr, &buffer).ThrowOnError();
                 this.vertexBuffer.Attach(buffer);
             }
 
@@ -465,7 +465,7 @@ internal unsafe class Dx12OnDx11Win32Scene : IWin32Scene
                     D3D11_USAGE.D3D11_USAGE_IMMUTABLE);
                 var subr = new D3D11_SUBRESOURCE_DATA { pSysMem = data };
                 var buffer = default(ID3D11Buffer*);
-                device->CreateBuffer(&desc, &subr, &buffer).ThrowHr();
+                device->CreateBuffer(&desc, &subr, &buffer).ThrowOnError();
                 this.indexBuffer.Attach(buffer);
             }
         }

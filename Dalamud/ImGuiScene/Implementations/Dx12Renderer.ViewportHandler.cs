@@ -185,9 +185,9 @@ internal unsafe partial class Dx12Renderer
                     this.Device->CreateDescriptorHeap(
                         &desc,
                         piidDescHeap,
-                        (void**)this.rtvDescHeap.GetAddressOf()).ThrowHr();
+                        (void**)this.rtvDescHeap.GetAddressOf()).ThrowOnError();
 
-                    this.rtvDescHeap.Get()->SetName((ushort*)pName).ThrowHr();
+                    this.rtvDescHeap.Get()->SetName((ushort*)pName).ThrowOnError();
                 }
 
                 // Create the frame buffers for each one of them.
@@ -230,7 +230,7 @@ internal unsafe partial class Dx12Renderer
             IDCompositionTarget* dcompTarget)
         {
             DXGI_SWAP_CHAIN_DESC desc;
-            swapChain3->GetDesc(&desc).ThrowHr();
+            swapChain3->GetDesc(&desc).ThrowOnError();
             return new(
                 renderer,
                 swapChain3,
@@ -258,7 +258,7 @@ internal unsafe partial class Dx12Renderer
                     Type = D3D12_COMMAND_LIST_TYPE.D3D12_COMMAND_LIST_TYPE_DIRECT,
                 };
 
-                renderer.device.Get()->CreateCommandQueue(&queueDesc, piid, (void**)queue.GetAddressOf()).ThrowHr();
+                renderer.device.Get()->CreateCommandQueue(&queueDesc, piid, (void**)queue.GetAddressOf()).ThrowOnError();
             }
 
             using var dxgiFactory = default(ComPtr<IDXGIFactory4>);
@@ -268,9 +268,9 @@ internal unsafe partial class Dx12Renderer
                 DirectX.CreateDXGIFactory2(
                     DXGI.DXGI_CREATE_FACTORY_DEBUG,
                     piidFactory,
-                    (void**)dxgiFactory.GetAddressOf()).ThrowHr();
+                    (void**)dxgiFactory.GetAddressOf()).ThrowOnError();
 #else
-                DirectX.CreateDXGIFactory1(piidFactory, (void**)dxgiFactory.GetAddressOf()).ThrowHr();
+                DirectX.CreateDXGIFactory1(piidFactory, (void**)dxgiFactory.GetAddressOf()).ThrowOnError();
 #endif
             }
 
@@ -297,26 +297,26 @@ internal unsafe partial class Dx12Renderer
                 (IUnknown*)queue.Get(),
                 &sd1,
                 null,
-                swapChain1.GetAddressOf()).ThrowHr();
+                swapChain1.GetAddressOf()).ThrowOnError();
 
             if (ReShadePeeler.PeelSwapChain(&swapChain1))
             {
                 swapChain1.Get()->ResizeBuffers(sd1.BufferCount, sd1.Width, sd1.Height, sd1.Format, sd1.Flags)
-                    .ThrowHr();
+                    .ThrowOnError();
             }
 
             using var dcTarget = default(ComPtr<IDCompositionTarget>);
             renderer.dcompDevice.Get()->CreateTargetForHwnd(hWnd, BOOL.TRUE, dcTarget.GetAddressOf());
 
             using var dcVisual = default(ComPtr<IDCompositionVisual>);
-            renderer.dcompDevice.Get()->CreateVisual(dcVisual.GetAddressOf()).ThrowHr();
+            renderer.dcompDevice.Get()->CreateVisual(dcVisual.GetAddressOf()).ThrowOnError();
 
-            dcVisual.Get()->SetContent((IUnknown*)swapChain1.Get()).ThrowHr();
-            dcTarget.Get()->SetRoot(dcVisual).ThrowHr();
-            renderer.dcompDevice.Get()->Commit().ThrowHr();
+            dcVisual.Get()->SetContent((IUnknown*)swapChain1.Get()).ThrowOnError();
+            dcTarget.Get()->SetRoot(dcVisual).ThrowOnError();
+            renderer.dcompDevice.Get()->Commit().ThrowOnError();
             
             using var swapChain3 = default(ComPtr<IDXGISwapChain3>);
-            swapChain1.As(&swapChain3).ThrowHr();
+            swapChain1.As(&swapChain3).ThrowOnError();
             return Create(renderer, swapChain3, queue, debugName, dcVisual, dcTarget);
         }
 
@@ -335,7 +335,7 @@ internal unsafe partial class Dx12Renderer
                     Type = D3D12_COMMAND_LIST_TYPE.D3D12_COMMAND_LIST_TYPE_DIRECT,
                 };
 
-                renderer.device.Get()->CreateCommandQueue(&queueDesc, piid, (void**)queue.GetAddressOf()).ThrowHr();
+                renderer.device.Get()->CreateCommandQueue(&queueDesc, piid, (void**)queue.GetAddressOf()).ThrowOnError();
             }
 
             // Create swap chain.
@@ -363,9 +363,9 @@ internal unsafe partial class Dx12Renderer
                 DirectX.CreateDXGIFactory2(
                     DXGI.DXGI_CREATE_FACTORY_DEBUG,
                     piidFactory2,
-                    (void**)dxgiFactory2.GetAddressOf()).ThrowHr();
+                    (void**)dxgiFactory2.GetAddressOf()).ThrowOnError();
 #else
-                DirectX.CreateDXGIFactory1(piidFactory2, (void**)dxgiFactory2.GetAddressOf()).ThrowHr();
+                DirectX.CreateDXGIFactory1(piidFactory2, (void**)dxgiFactory2.GetAddressOf()).ThrowOnError();
 #endif
 
                 using var swapChainTmp = default(ComPtr<IDXGISwapChain1>);
@@ -375,15 +375,15 @@ internal unsafe partial class Dx12Renderer
                     &sd1,
                     null,
                     null,
-                    swapChainTmp.GetAddressOf()).ThrowHr();
+                    swapChainTmp.GetAddressOf()).ThrowOnError();
 
                 if (ReShadePeeler.PeelSwapChain(&swapChainTmp))
                 {
                     swapChainTmp.Get()->ResizeBuffers(sd1.BufferCount, sd1.Width, sd1.Height, sd1.Format, sd1.Flags)
-                        .ThrowHr();
+                        .ThrowOnError();
                 }
 
-                swapChainTmp.Get()->QueryInterface(piidSwapChain3, (void**)swapChain3.GetAddressOf()).ThrowHr();
+                swapChainTmp.Get()->QueryInterface(piidSwapChain3, (void**)swapChain3.GetAddressOf()).ThrowOnError();
             }
 
             return Create(renderer, swapChain3, queue, debugName, null, null);
@@ -445,7 +445,7 @@ internal unsafe partial class Dx12Renderer
                 return;
 
             if (!this.swapChain.IsEmpty())
-                this.swapChain.Get()->Present(0, 0).ThrowHr();            
+                this.swapChain.Get()->Present(0, 0).ThrowOnError();            
         }
 
         public void WaitForPendingOperations()
@@ -479,13 +479,13 @@ internal unsafe partial class Dx12Renderer
             if (!this.swapChain.IsEmpty() && resizeSwapChain)
             {
                 DXGI_SWAP_CHAIN_DESC1 desc;
-                this.swapChain.Get()->GetDesc1(&desc).ThrowHr();
+                this.swapChain.Get()->GetDesc1(&desc).ThrowOnError();
                 this.swapChain.Get()->ResizeBuffers(
                     desc.BufferCount,
                     (uint)newWidth,
                     (uint)newHeight,
                     DXGI_FORMAT.DXGI_FORMAT_UNKNOWN,
-                    desc.Flags).ThrowHr();
+                    desc.Flags).ThrowOnError();
             }
         }
 
@@ -620,18 +620,18 @@ internal unsafe partial class Dx12Renderer
                         D3D12_RESOURCE_STATES.D3D12_RESOURCE_STATE_COMMON,
                         &clearValue,
                         piidResource,
-                        (void**)backBuffer.GetAddressOf()).ThrowHr();
+                        (void**)backBuffer.GetAddressOf()).ThrowOnError();
                 }
                 else
                 {
                     swapChain->GetBuffer(
                         (uint)this.bufferIndex,
                         piidResource,
-                        (void**)backBuffer.GetAddressOf()).ThrowHr();
+                        (void**)backBuffer.GetAddressOf()).ThrowOnError();
                 }
 
                 fixed (void* pName = $"{this.debugName}.{nameof(this.renderTarget)}")
-                    backBuffer.Get()->SetName((ushort*)pName).ThrowHr();
+                    backBuffer.Get()->SetName((ushort*)pName).ThrowOnError();
 
                 device->CreateRenderTargetView(backBuffer, null, this.renderTargetCpuDescriptor);
                 this.renderTarget.Swap(&backBuffer);
@@ -715,10 +715,10 @@ internal unsafe partial class Dx12Renderer
                     D3D12_RESOURCE_STATES.D3D12_RESOURCE_STATE_GENERIC_READ,
                     null,
                     piid,
-                    (void**)this.vertexBuffer.GetAddressOf()).ThrowHr();
+                    (void**)this.vertexBuffer.GetAddressOf()).ThrowOnError();
 
                 fixed (void* pName = $"{this.debugName}.{nameof(this.vertexBuffer)}")
-                    this.vertexBuffer.Get()->SetName((ushort*)pName).ThrowHr();
+                    this.vertexBuffer.Get()->SetName((ushort*)pName).ThrowOnError();
             }
         }
 
@@ -756,10 +756,10 @@ internal unsafe partial class Dx12Renderer
                     D3D12_RESOURCE_STATES.D3D12_RESOURCE_STATE_GENERIC_READ,
                     null,
                     piid,
-                    (void**)this.indexBuffer.GetAddressOf()).ThrowHr();
+                    (void**)this.indexBuffer.GetAddressOf()).ThrowOnError();
 
                 fixed (void* pName = $"{this.debugName}.{nameof(this.indexBuffer)}")
-                    this.indexBuffer.Get()->SetName((ushort*)pName).ThrowHr();
+                    this.indexBuffer.Get()->SetName((ushort*)pName).ThrowOnError();
             }
         }
 
@@ -770,7 +770,7 @@ internal unsafe partial class Dx12Renderer
                 var range = default(D3D12_RANGE); // we don't care about what was in there before
                 void* tmp;
 
-                this.VertexBuffer->Map(0, &range, &tmp).ThrowHr();
+                this.VertexBuffer->Map(0, &range, &tmp).ThrowOnError();
                 var targetVertices = new Span<ImDrawVert>(tmp, this.VertexBufferSize);
             
                 foreach (ref var cmdList in cmdLists)
@@ -793,7 +793,7 @@ internal unsafe partial class Dx12Renderer
                 var range = default(D3D12_RANGE); // we don't care about what was in there before
                 void* tmp;
 
-                this.IndexBuffer->Map(0, &range, &tmp).ThrowHr();
+                this.IndexBuffer->Map(0, &range, &tmp).ThrowOnError();
                 var targetIndices = new Span<ushort>(tmp, this.IndexBufferSize);
             
                 foreach (ref var cmdList in cmdLists)
@@ -858,10 +858,10 @@ internal unsafe partial class Dx12Renderer
             };
             fixed (Guid* guid = &IID.IID_ID3D12DescriptorHeap)
             fixed (ID3D12DescriptorHeap** ppHeap = &this.heap.GetPinnableReference())
-                device->CreateDescriptorHeap(&desc, guid, (void**)ppHeap).ThrowHr();
+                device->CreateDescriptorHeap(&desc, guid, (void**)ppHeap).ThrowOnError();
 
             fixed (void* pName = $"{this.debugName}.{nameof(this.heap)}")
-                this.heap.Get()->SetName((ushort*)pName).ThrowHr();
+                this.heap.Get()->SetName((ushort*)pName).ThrowOnError();
             this.heapCapacity = newCapacity;
         }
 

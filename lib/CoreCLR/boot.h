@@ -1,7 +1,7 @@
 void ConsoleSetup(const std::wstring console_name);
 void ConsoleTeardown();
 
-int InitializeClrAndGetEntryPoint(
+HRESULT InitializeClrAndGetEntryPoint(
     void* calling_module,
     bool enable_etw,
     std::wstring runtimeconfig_path,

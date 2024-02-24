@@ -60,7 +60,7 @@ internal sealed unsafe class Dx12Win32Scene : IWin32Scene
                 ReShadePeeler.PeelD3D12Device(ppDevice);
 
             var desc = default(DXGI_SWAP_CHAIN_DESC);
-            swapChain->GetDesc(&desc).ThrowHr();
+            swapChain->GetDesc(&desc).ThrowOnError();
             this.targetWidth = (int)desc.BufferDesc.Width;
             this.targetHeight = (int)desc.BufferDesc.Height;
             this.WindowHandlePtr = desc.OutputWindow;
@@ -245,10 +245,10 @@ internal sealed unsafe class Dx12Win32Scene : IWin32Scene
         [CallerMemberName] string debugName = "")
     {
         using var stream = default(ComPtr<IWICStream>);
-        this.wicEasy.Factory->CreateStream(stream.ReleaseAndGetAddressOf()).ThrowHr();
+        this.wicEasy.Factory->CreateStream(stream.ReleaseAndGetAddressOf()).ThrowOnError();
         fixed (byte* pData = data)
         {
-            stream.Get()->InitializeFromMemory(pData, (uint)data.Length).ThrowHr();
+            stream.Get()->InitializeFromMemory(pData, (uint)data.Length).ThrowOnError();
             return this.LoadImage((IStream*)stream.Get());
         }
     }
@@ -344,8 +344,8 @@ internal sealed unsafe class Dx12Win32Scene : IWin32Scene
         
         using var l = bitmap.Get()->LockBits(WICBitmapLockFlags.WICBitmapLockRead, out var pb, out _, out _);
         uint stride, width, height;
-        l.Get()->GetStride(&stride).ThrowHr();
-        l.Get()->GetSize(&width, &height).ThrowHr();
+        l.Get()->GetStride(&stride).ThrowOnError();
+        l.Get()->GetSize(&width, &height).ThrowOnError();
         return this.LoadImageRaw(pb, (int)stride, (int)width, (int)height, dxgiFormat);
     }
 

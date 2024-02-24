@@ -35,17 +35,17 @@ internal unsafe partial class Dx12Renderer
                 fixed (ID3D12CommandAllocator** pp = &this.allocator.GetPinnableReference())
                 fixed (void* pName = $"{debugName}.{nameof(this.allocator)}")
                 {
-                    device->CreateCommandAllocator(type, piid, (void**)pp).ThrowHr();
-                    this.allocator.Get()->SetName((ushort*)pName).ThrowHr();
+                    device->CreateCommandAllocator(type, piid, (void**)pp).ThrowOnError();
+                    this.allocator.Get()->SetName((ushort*)pName).ThrowOnError();
                 }
 
                 fixed (Guid* piid = &IID.IID_ID3D12GraphicsCommandList)
                 fixed (ID3D12GraphicsCommandList** pp = &this.list.GetPinnableReference())
                 fixed (void* pName = $"{debugName}.{nameof(this.list)}")
                 {
-                    device->CreateCommandList(0, type, this.allocator, null, piid, (void**)pp).ThrowHr();
-                    this.list.Get()->Close().ThrowHr();
-                    this.list.Get()->SetName((ushort*)pName).ThrowHr();
+                    device->CreateCommandList(0, type, this.allocator, null, piid, (void**)pp).ThrowOnError();
+                    this.list.Get()->Close().ThrowOnError();
+                    this.list.Get()->SetName((ushort*)pName).ThrowOnError();
                 }
             }
             catch
@@ -61,8 +61,8 @@ internal unsafe partial class Dx12Renderer
 
         public CommandListCloser Record(out ID3D12GraphicsCommandList* commandList)
         {
-            this.allocator.Get()->Reset().ThrowHr();
-            this.list.Get()->Reset(this.allocator, null).ThrowHr();
+            this.allocator.Get()->Reset().ThrowOnError();
+            this.list.Get()->Reset(this.allocator, null).ThrowOnError();
             return new(commandList = this.list);
         }
 
@@ -108,16 +108,16 @@ internal unsafe partial class Dx12Renderer
                 fixed (D3D12_COMMAND_QUEUE_DESC* pDesc = &desc)
                 fixed (void* pName = $"{debugName}:{nameof(this.queue)}")
                 {
-                    device->CreateCommandQueue(pDesc, piid, (void**)pp).ThrowHr();
-                    this.queue.Get()->SetName((ushort*)pName).ThrowHr();
+                    device->CreateCommandQueue(pDesc, piid, (void**)pp).ThrowOnError();
+                    this.queue.Get()->SetName((ushort*)pName).ThrowOnError();
                 }
 
                 fixed (Guid* piid = &IID.IID_ID3D12Fence)
                 fixed (ID3D12Fence** pp = &this.fence.GetPinnableReference())
                 fixed (void* pName = $"{debugName}:{nameof(this.fence)}")
                 {
-                    device->CreateFence(0, D3D12_FENCE_FLAGS.D3D12_FENCE_FLAG_NONE, piid, (void**)pp).ThrowHr();
-                    this.fence.Get()->SetName((ushort*)pName).ThrowHr();
+                    device->CreateFence(0, D3D12_FENCE_FLAGS.D3D12_FENCE_FLAG_NONE, piid, (void**)pp).ThrowOnError();
+                    this.fence.Get()->SetName((ushort*)pName).ThrowOnError();
                 }
 
                 this.fenceCounter = 0;
@@ -137,14 +137,14 @@ internal unsafe partial class Dx12Renderer
                 fixed (ComPtr<ID3D12CommandQueue>* ppQueue = &this.queue)
                     ReShadePeeler.PeelD3D12CommandQueue(ppQueue);
                 fixed (void* pName = $"{debugName}:{nameof(this.queue)}")
-                    this.queue.Get()->SetName((ushort*)pName).ThrowHr();
+                    this.queue.Get()->SetName((ushort*)pName).ThrowOnError();
 
                 fixed (Guid* piid = &IID.IID_ID3D12Fence)
                 fixed (ID3D12Fence** pp = &this.fence.GetPinnableReference())
                 fixed (void* pName = $"{debugName}:{nameof(this.fence)}")
                 {
-                    device->CreateFence(0, D3D12_FENCE_FLAGS.D3D12_FENCE_FLAG_NONE, piid, (void**)pp).ThrowHr();
-                    this.fence.Get()->SetName((ushort*)pName).ThrowHr();
+                    device->CreateFence(0, D3D12_FENCE_FLAGS.D3D12_FENCE_FLAG_NONE, piid, (void**)pp).ThrowOnError();
+                    this.fence.Get()->SetName((ushort*)pName).ThrowOnError();
                 }
 
                 this.fenceCounter = 0;
@@ -175,7 +175,7 @@ internal unsafe partial class Dx12Renderer
         {
             var fenceValue = Interlocked.Increment(ref this.fenceCounter);
             this.queue.Get()->ExecuteCommandLists(1, (ID3D12CommandList**)&command);
-            this.queue.Get()->Signal(this.fence, fenceValue).ThrowHr();
+            this.queue.Get()->Signal(this.fence, fenceValue).ThrowOnError();
             return fenceValue;
         }
 
@@ -186,7 +186,7 @@ internal unsafe partial class Dx12Renderer
                 return this.fenceCounter;
             var fenceValue = Interlocked.Increment(ref this.fenceCounter);
             this.queue.Get()->ExecuteCommandLists((uint)count, (ID3D12CommandList**)commands);
-            this.queue.Get()->Signal(this.fence, fenceValue).ThrowHr();
+            this.queue.Get()->Signal(this.fence, fenceValue).ThrowOnError();
             return fenceValue;
         }
 
@@ -195,7 +195,7 @@ internal unsafe partial class Dx12Renderer
         public void WaitMostRecent(HANDLE hEvent = default)
         {
             var fenceValue = Interlocked.Increment(ref this.fenceCounter);
-            this.queue.Get()->Signal(this.fence, fenceValue).ThrowHr();
+            this.queue.Get()->Signal(this.fence, fenceValue).ThrowOnError();
             this.Wait(fenceValue, hEvent);
         }
 
@@ -217,7 +217,7 @@ internal unsafe partial class Dx12Renderer
             {
                 if (!Win32.ResetEvent(hEvent))
                     throw Marshal.GetExceptionForHR(Marshal.GetHRForLastWin32Error()) ?? new();
-                this.fence.Get()->SetEventOnCompletion(fenceValue, hEvent).ThrowHr();
+                this.fence.Get()->SetEventOnCompletion(fenceValue, hEvent).ThrowOnError();
                 if (Win32.WaitForSingleObject(hEvent, Win32.INFINITE) == WAIT.WAIT_FAILED)
                     throw Marshal.GetExceptionForHR(Marshal.GetHRForLastWin32Error()) ?? new();
             }

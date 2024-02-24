@@ -22,7 +22,9 @@ using Dalamud.Logging.Internal;
 using ImGuiNET;
 using Lumina.Excel.GeneratedSheets;
 using Serilog;
+
 using TerraFX.Interop.Windows;
+
 using Windows.Win32.Storage.FileSystem;
 
 namespace Dalamud.Utility;
@@ -45,31 +47,6 @@ public static class Util
     /// </summary>
     public static string AssemblyVersion { get; } =
         Assembly.GetAssembly(typeof(ChatHandlers)).GetName().Version.ToString();
-
-    /// <summary>
-    /// Debug purpose: show a message box so that you can attach a debugger.
-    /// </summary>
-    /// <param name="reason">The reason.</param>
-    public static unsafe void ShowMessageBoxAsBreakpoint(string reason = "")
-    {
-        fixed (void* p = reason)
-        {
-            fixed (void* title = "Dalamud")
-            {
-                _ = TerraFX.Interop.Windows.Windows.MessageBoxW(
-                    default,
-                    (ushort*)p,
-                    (ushort*)title,
-                    MB.MB_OK);
-            }
-        }
-    }
-
-    /// <summary>
-    /// Throws an exception accordingly from a HRESULT.
-    /// </summary>
-    /// <param name="hr">The HRESULT.</param>
-    public static void ThrowHr(this HRESULT hr) => Marshal.ThrowExceptionForHR(hr);
 
     /// <summary>
     /// Determines if the given COM interface wrapper is empty.
@@ -717,6 +694,35 @@ public static class Util
         var rng = new Random();
 
         return names.ElementAt(rng.Next(0, names.Count() - 1)).Singular.RawString;
+    }
+
+    /// <summary>
+    /// Debug purpose: show a message box so that you can attach a debugger.
+    /// </summary>
+    /// <param name="reason">The reason.</param>
+    internal static unsafe void ShowMessageBoxAsBreakpoint(string reason = "")
+    {
+        fixed (void* p = reason)
+        {
+            fixed (void* title = "Dalamud")
+            {
+                _ = TerraFX.Interop.Windows.Windows.MessageBoxW(
+                    default,
+                    (ushort*)p,
+                    (ushort*)title,
+                    MB.MB_OK);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Throws a corresponding exception if <see cref="HRESULT.FAILED"/> is true.
+    /// </summary>
+    /// <param name="hr">The result value.</param>
+    internal static void ThrowOnError(this HRESULT hr)
+    {
+        if (hr.FAILED)
+            Marshal.ThrowExceptionForHR(hr.Value);
     }
 
     /// <summary>

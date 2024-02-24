@@ -72,4 +72,10 @@ public class DalamudTextureWrap : IDalamudTextureWrap
     /// Actually dispose the wrapped texture.
     /// </summary>
     internal void RealDispose() => this.inner.Dispose();
+
+    /// <inheritdoc cref="ICloneable.Clone"/>
+    internal DalamudTextureWrap Clone() =>
+        this.inner is ICloneable cloneable
+            ? new DalamudTextureWrap((IDalamudTextureWrap)cloneable.Clone())
+            : throw new NotSupportedException();
 }

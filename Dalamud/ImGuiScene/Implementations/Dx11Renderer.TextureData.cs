@@ -96,7 +96,7 @@ internal unsafe partial class Dx11Renderer
             GC.SuppressFinalize(this);
         }
 
-        public IDalamudTextureWrap Clone() => new TextureWrap(this.Data);
+        public IDalamudTextureWrap Clone() => NewReference(this.Data);
 
         object ICloneable.Clone() => this.Clone();
 

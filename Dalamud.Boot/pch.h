@@ -26,6 +26,9 @@
 // MSVC Compiler Intrinsic
 #include <intrin.h>
 
+// COM
+#include <comdef.h>
+
 // C++ Standard Libraries
 #include <cassert>
 #include <chrono>
@@ -60,9 +63,6 @@
 #include "../lib/nlohmann-json/json.hpp"
 
 #include "unicode.h"
-
-// Commonly used macros
-#define DllExport extern "C" __declspec(dllexport)
 
 // Global variables
 extern HMODULE g_hModule;

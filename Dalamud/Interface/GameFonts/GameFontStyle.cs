@@ -64,7 +64,7 @@ public struct GameFontStyle
     /// </summary>
     public float SizePt
     {
-        get => this.SizePx * 3 / 4;
+        readonly get => this.SizePx * 3 / 4;
         set => this.SizePx = value * 4 / 3;
     }
 
@@ -73,14 +73,14 @@ public struct GameFontStyle
     /// </summary>
     public float BaseSkewStrength
     {
-        get => this.SkewStrength * this.BaseSizePx / this.SizePx;
+        readonly get => this.SkewStrength * this.BaseSizePx / this.SizePx;
         set => this.SkewStrength = value * this.SizePx / this.BaseSizePx;
     }
 
     /// <summary>
     /// Gets the font family.
     /// </summary>
-    public GameFontFamily Family => this.FamilyAndSize switch
+    public readonly GameFontFamily Family => this.FamilyAndSize switch
     {
         GameFontFamilyAndSize.Undefined => GameFontFamily.Undefined,
         GameFontFamilyAndSize.Axis96 => GameFontFamily.Axis,
@@ -112,7 +112,7 @@ public struct GameFontStyle
     /// <summary>
     /// Gets the corresponding GameFontFamilyAndSize but with minimum possible font sizes.
     /// </summary>
-    public GameFontFamilyAndSize FamilyWithMinimumSize => this.Family switch
+    public readonly GameFontFamilyAndSize FamilyWithMinimumSize => this.Family switch
     {
         GameFontFamily.Axis => GameFontFamilyAndSize.Axis96,
         GameFontFamily.Jupiter => GameFontFamilyAndSize.Jupiter16,
@@ -126,7 +126,7 @@ public struct GameFontStyle
     /// <summary>
     /// Gets the base font size in point unit.
     /// </summary>
-    public float BaseSizePt => this.FamilyAndSize switch
+    public readonly float BaseSizePt => this.FamilyAndSize switch
     {
         GameFontFamilyAndSize.Undefined => 0,
         GameFontFamilyAndSize.Axis96 => 9.6f,
@@ -158,14 +158,14 @@ public struct GameFontStyle
     /// <summary>
     /// Gets the base font size in pixel unit.
     /// </summary>
-    public float BaseSizePx => this.BaseSizePt * 4 / 3;
+    public readonly float BaseSizePx => this.BaseSizePt * 4 / 3;
 
     /// <summary>
     /// Gets or sets a value indicating whether this font is bold.
     /// </summary>
     public bool Bold
     {
-        get => this.Weight > 0f;
+        readonly get => this.Weight > 0f;
         set => this.Weight = value ? 1f : 0f;
     }
 
@@ -174,8 +174,8 @@ public struct GameFontStyle
     /// </summary>
     public bool Italic
     {
-        get => this.SkewStrength != 0;
-        set => this.SkewStrength = value ? this.SizePx / 7 : 0;
+        readonly get => this.SkewStrength != 0;
+        set => this.SkewStrength = value ? this.SizePx / 6 : 0;
     }
 
     /// <summary>
@@ -234,12 +234,25 @@ public struct GameFontStyle
         };
 
     /// <summary>
+    /// Creates a new scaled instance of <see cref="GameFontStyle"/> struct.
+    /// </summary>
+    /// <param name="scale">The scale.</param>
+    /// <returns>The scaled instance.</returns>
+    public readonly GameFontStyle Scale(float scale) => new()
+    {
+        FamilyAndSize = GetRecommendedFamilyAndSize(this.Family, this.SizePt * scale),
+        SizePx = this.SizePx * scale,
+        Weight = this.Weight,
+        SkewStrength = this.SkewStrength * scale,
+    };
+
+    /// <summary>
     /// Calculates the adjustment to width resulting fron Weight and SkewStrength.
     /// </summary>
     /// <param name="header">Font header.</param>
     /// <param name="glyph">Glyph.</param>
     /// <returns>Width adjustment in pixel unit.</returns>
-    public int CalculateBaseWidthAdjustment(in FdtReader.FontTableHeader header, in FdtReader.FontTableEntry glyph)
+    public readonly int CalculateBaseWidthAdjustment(in FdtReader.FontTableHeader header, in FdtReader.FontTableEntry glyph)
     {
         var widthDelta = this.Weight;
         switch (this.BaseSkewStrength)
@@ -263,11 +276,11 @@ public struct GameFontStyle
     /// <param name="reader">Font information.</param>
     /// <param name="glyph">Glyph.</param>
     /// <returns>Width adjustment in pixel unit.</returns>
-    public int CalculateBaseWidthAdjustment(FdtReader reader, FdtReader.FontTableEntry glyph) =>
+    public readonly int CalculateBaseWidthAdjustment(FdtReader reader, FdtReader.FontTableEntry glyph) =>
         this.CalculateBaseWidthAdjustment(reader.FontHeader, glyph);
 
     /// <inheritdoc/>
-    public override string ToString()
+    public override readonly string ToString()
     {
         return $"GameFontStyle({this.FamilyAndSize}, {this.SizePt}pt, skew={this.SkewStrength}, weight={this.Weight})";
     }

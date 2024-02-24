@@ -69,6 +69,14 @@ internal sealed class DalamudAssetManager : IServiceType, IDisposable, IDalamudA
                         .Select(x => x.ToContentDisposedTask()))
                 .ContinueWith(_ => loadTimings.Dispose()),
             "Prevent Dalamud from loading more stuff, until we've ensured that all required assets are available.");
+
+        Task.WhenAll(
+            Enum.GetValues<DalamudAsset>()
+                .Where(x => x is not DalamudAsset.Empty4X4)
+                .Where(x => x.GetAttribute<DalamudAssetAttribute>()?.Required is false)
+                .Select(this.CreateStreamAsync)
+                .Select(x => x.ToContentDisposedTask()))
+            .ContinueWith(r => Log.Verbose($"Optional assets load state: {r}"));
     }
 
     /// <inheritdoc/>

@@ -71,7 +71,7 @@ internal unsafe partial class Dx11Renderer : IImGuiRenderer
         try
         {
             DXGI_SWAP_CHAIN_DESC desc;
-            swapChain->GetDesc(&desc).ThrowHr();
+            swapChain->GetDesc(&desc).ThrowOnError();
             this.rtvFormat = desc.BufferDesc.Format;
             this.device = new(device);
             this.context = new(context);
@@ -88,7 +88,7 @@ internal unsafe partial class Dx11Renderer : IImGuiRenderer
                 {
                     fixed (IDCompositionDevice** pp = &this.dcompDevice.GetPinnableReference())
                     fixed (Guid* piidDCompositionDevice = &IID.IID_IDCompositionDevice)
-                        DirectX.DCompositionCreateDevice(null, piidDCompositionDevice, (void**)pp).ThrowHr();
+                        DirectX.DCompositionCreateDevice(null, piidDCompositionDevice, (void**)pp).ThrowOnError();
 
                     ImGuiViewportHelpers.EnableViewportWindowBackgroundAlpha();
                 }
@@ -250,7 +250,7 @@ internal unsafe partial class Dx11Renderer : IImGuiRenderer
         Encoding.UTF8.GetBytes(name, new(buf, len + 1));
         buf[len] = 0;
         fixed (Guid* pId = &DirectX.WKPDID_D3DDebugObjectName)
-            child->SetPrivateData(pId, (uint)(len + 1), buf).ThrowHr();
+            child->SetPrivateData(pId, (uint)(len + 1), buf).ThrowOnError();
     }
 
     private void RenderDrawDataInternal(
@@ -291,7 +291,7 @@ internal unsafe partial class Dx11Renderer : IImGuiRenderer
                 D3D11_USAGE.D3D11_USAGE_DYNAMIC,
                 (uint)D3D11_CPU_ACCESS_FLAG.D3D11_CPU_ACCESS_WRITE);
             var buffer = default(ID3D11Buffer*);
-            this.device.Get()->CreateBuffer(&desc, null, &buffer).ThrowHr();
+            this.device.Get()->CreateBuffer(&desc, null, &buffer).ThrowOnError();
             this.vertexBuffer.Attach(buffer);
         }
 
@@ -306,7 +306,7 @@ internal unsafe partial class Dx11Renderer : IImGuiRenderer
                 D3D11_USAGE.D3D11_USAGE_DYNAMIC,
                 (uint)D3D11_CPU_ACCESS_FLAG.D3D11_CPU_ACCESS_WRITE);
             var buffer = default(ID3D11Buffer*);
-            this.device.Get()->CreateBuffer(&desc, null, &buffer).ThrowHr();
+            this.device.Get()->CreateBuffer(&desc, null, &buffer).ThrowOnError();
             this.indexBuffer.Attach(buffer);
         }
 
@@ -320,13 +320,13 @@ internal unsafe partial class Dx11Renderer : IImGuiRenderer
                 0,
                 D3D11_MAP.D3D11_MAP_WRITE_DISCARD,
                 0,
-                &vertexData).ThrowHr();
+                &vertexData).ThrowOnError();
             this.context.Get()->Map(
                 (ID3D11Resource*)this.indexBuffer.Get(),
                 0,
                 D3D11_MAP.D3D11_MAP_WRITE_DISCARD,
                 0,
-                &indexData).ThrowHr();
+                &indexData).ThrowOnError();
 
             var targetVertices = new Span<ImDrawVert>(vertexData.pData, this.vertexBufferSize);
             var targetIndices = new Span<ushort>(indexData.pData, this.indexBufferSize);
@@ -359,7 +359,7 @@ internal unsafe partial class Dx11Renderer : IImGuiRenderer
                 0,
                 D3D11_MAP.D3D11_MAP_WRITE_DISCARD,
                 0,
-                &data).ThrowHr();
+                &data).ThrowOnError();
             *(Matrix4x4*)data.pData = Matrix4x4.CreateOrthographicOffCenter(
                 drawData.DisplayPos.X,
                 drawData.DisplayPos.X + drawData.DisplaySize.X,
@@ -520,7 +520,7 @@ internal unsafe partial class Dx11Renderer : IImGuiRenderer
             fixed (void* pszTexCoord = "TEXCOORD"u8)
             fixed (void* pszColor = "COLOR"u8)
             {
-                this.device.Get()->CreateVertexShader(pArray, (nuint)stream.Length, null, ppShader).ThrowHr();
+                this.device.Get()->CreateVertexShader(pArray, (nuint)stream.Length, null, ppShader).ThrowOnError();
 
                 var ied = stackalloc D3D11_INPUT_ELEMENT_DESC[]
                 {
@@ -543,7 +543,7 @@ internal unsafe partial class Dx11Renderer : IImGuiRenderer
                         AlignedByteOffset = uint.MaxValue,
                     },
                 };
-                this.device.Get()->CreateInputLayout(ied, 3, pArray, (nuint)stream.Length, ppInputLayout).ThrowHr();
+                this.device.Get()->CreateInputLayout(ied, 3, pArray, (nuint)stream.Length, ppInputLayout).ThrowOnError();
             }
 
             ArrayPool<byte>.Shared.Return(array);
@@ -558,7 +558,7 @@ internal unsafe partial class Dx11Renderer : IImGuiRenderer
                 D3D11_USAGE.D3D11_USAGE_DYNAMIC,
                 (uint)D3D11_CPU_ACCESS_FLAG.D3D11_CPU_ACCESS_WRITE);
             fixed (ID3D11Buffer** ppBuffer = &this.vertexConstantBuffer.GetPinnableReference())
-                this.device.Get()->CreateBuffer(&bufferDesc, null, ppBuffer).ThrowHr();
+                this.device.Get()->CreateBuffer(&bufferDesc, null, ppBuffer).ThrowOnError();
         }
 
         // Create the default texture pipeline
@@ -593,7 +593,7 @@ internal unsafe partial class Dx11Renderer : IImGuiRenderer
                 },
             };
             fixed (ID3D11BlendState** ppBlendState = &this.blendState.GetPinnableReference())
-                this.device.Get()->CreateBlendState(&blendStateDesc, ppBlendState).ThrowHr();
+                this.device.Get()->CreateBlendState(&blendStateDesc, ppBlendState).ThrowOnError();
         }
 
         // Create the rasterizer state
@@ -607,7 +607,7 @@ internal unsafe partial class Dx11Renderer : IImGuiRenderer
                 DepthClipEnable = true,
             };
             fixed (ID3D11RasterizerState** ppRasterizerState = &this.rasterizerState.GetPinnableReference())
-                this.device.Get()->CreateRasterizerState(&rasterizerDesc, ppRasterizerState).ThrowHr();
+                this.device.Get()->CreateRasterizerState(&rasterizerDesc, ppRasterizerState).ThrowOnError();
         }
 
         // Create the depth-stencil State
@@ -637,7 +637,7 @@ internal unsafe partial class Dx11Renderer : IImGuiRenderer
                 },
             };
             fixed (ID3D11DepthStencilState** ppDepthStencilState = &this.depthStencilState.GetPinnableReference())
-                this.device.Get()->CreateDepthStencilState(&dsDesc, ppDepthStencilState).ThrowHr();
+                this.device.Get()->CreateDepthStencilState(&dsDesc, ppDepthStencilState).ThrowOnError();
         }
 
         this.CreateFontsTexture();

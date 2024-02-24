@@ -99,6 +99,12 @@ internal class PluginImageCache : IDisposable, IServiceType
     /// </summary>
     public IDalamudTextureWrap TroubleIcon =>
         this.dalamudAssetManager.GetDalamudTextureWrap(DalamudAsset.TroubleIcon, this.EmptyTexture);
+    
+    /// <summary>
+    /// Gets the devPlugin icon overlay.
+    /// </summary>
+    public IDalamudTextureWrap DevPluginIcon =>
+        this.dalamudAssetManager.GetDalamudTextureWrap(DalamudAsset.DevPluginIcon, this.EmptyTexture);
 
     /// <summary>
     /// Gets the plugin update icon overlay.

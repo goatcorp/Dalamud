@@ -75,7 +75,7 @@ internal unsafe partial class Dx12Renderer : IImGuiRenderer
             throw new InvalidOperationException("ImGui backend renderer seems to be have been already attached.");
 
         DXGI_SWAP_CHAIN_DESC desc;
-        mySwapChain.Get()->GetDesc(&desc).ThrowHr();
+        mySwapChain.Get()->GetDesc(&desc).ThrowOnError();
         this.NumBackBuffers = (int)desc.BufferCount;
         this.rtvFormat = desc.BufferDesc.Format;
         myDevice.Swap(ref this.device);
@@ -93,7 +93,7 @@ internal unsafe partial class Dx12Renderer : IImGuiRenderer
                 {
                     fixed (IDCompositionDevice** pp = &this.dcompDevice.GetPinnableReference())
                     fixed (Guid* piidDCompositionDevice = &IID.IID_IDCompositionDevice)
-                        DirectX.DCompositionCreateDevice(null, piidDCompositionDevice, (void**)pp).ThrowHr();
+                        DirectX.DCompositionCreateDevice(null, piidDCompositionDevice, (void**)pp).ThrowOnError();
 
                     ImGuiViewportHelpers.EnableViewportWindowBackgroundAlpha();
                 }
@@ -170,7 +170,7 @@ internal unsafe partial class Dx12Renderer : IImGuiRenderer
                 {
                     fixed (IDCompositionDevice** pp = &this.dcompDevice.GetPinnableReference())
                     fixed (Guid* piidDCompositionDevice = &IID.IID_IDCompositionDevice)
-                        DirectX.DCompositionCreateDevice(null, piidDCompositionDevice, (void**)pp).ThrowHr();
+                        DirectX.DCompositionCreateDevice(null, piidDCompositionDevice, (void**)pp).ThrowOnError();
 
                     ImGuiViewportHelpers.EnableViewportWindowBackgroundAlpha();
                 }

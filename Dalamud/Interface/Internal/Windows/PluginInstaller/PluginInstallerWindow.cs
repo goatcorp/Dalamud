@@ -107,6 +107,7 @@ internal class PluginInstallerWindow : Window, IDisposable
     private int updatePluginCount = 0;
     private List<PluginUpdateStatus>? updatedPlugins;
 
+    [SuppressMessage("StyleCop.CSharp.OrderingRules", "SA1201:Elements should appear in the correct order", Justification = "Makes sense like this")]
     private List<RemotePluginManifest> pluginListAvailable = new();
     private List<LocalPlugin> pluginListInstalled = new();
     private List<AvailablePluginUpdate> pluginListUpdatable = new();
@@ -147,7 +148,6 @@ internal class PluginInstallerWindow : Window, IDisposable
         this.SizeConstraints = new WindowSizeConstraints
         {
             MinimumSize = this.Size.Value,
-            MaximumSize = new Vector2(5000, 5000),
         };
 
         Service<PluginManager>.GetAsync().ContinueWith(pluginManagerTask =>
@@ -1126,45 +1126,79 @@ internal class PluginInstallerWindow : Window, IDisposable
             this.DrawChangelog(logEntry);
         }
     }
-
+    
+    private record PluginInstallerAvailablePluginProxy(RemotePluginManifest? RemoteManifest, LocalPlugin? LocalPlugin);
+    
+#pragma warning disable SA1201
     private void DrawAvailablePluginList()
+#pragma warning restore SA1201
     {
-        var pluginList = this.pluginListAvailable;
+        var availableManifests = this.pluginListAvailable;
+        var installedPlugins = this.pluginListInstalled.ToList(); // Copy intended
 
-        if (pluginList.Count == 0)
+        if (availableManifests.Count == 0)
         {
             ImGui.TextColored(ImGuiColors.DalamudGrey, Locs.TabBody_SearchNoCompatible);
             return;
         }
 
-        var filteredManifests = pluginList
+        var filteredAvailableManifests = availableManifests
                                 .Where(rm => !this.IsManifestFiltered(rm))
                                 .ToList();
 
-        if (filteredManifests.Count == 0)
+        if (filteredAvailableManifests.Count == 0)
         {
             ImGui.TextColored(ImGuiColors.DalamudGrey2, Locs.TabBody_SearchNoMatching);
             return;
         }
 
-        // get list to show and reset category dirty flag
-        var categoryManifestsList = this.categoryManager.GetCurrentCategoryContent(filteredManifests);
+        var proxies = new List<PluginInstallerAvailablePluginProxy>();
+        
+        // Go through all AVAILABLE manifests, associate them with a NON-DEV local plugin, if one is available, and remove it from the pile
+        foreach (var availableManifest in this.categoryManager.GetCurrentCategoryContent(filteredAvailableManifests).Cast<RemotePluginManifest>())
+        {
+            var plugin = this.pluginListInstalled.FirstOrDefault(plugin => plugin.Manifest.InternalName == availableManifest.InternalName && plugin.Manifest.RepoUrl == availableManifest.RepoUrl);
+            
+            // We "consumed" this plugin from the pile and remove it. 
+            if (plugin != null && !plugin.IsDev)
+            {
+                installedPlugins.Remove(plugin);
+                proxies.Add(new PluginInstallerAvailablePluginProxy(null, plugin));
+                
+                continue;
+            }
+            
+            proxies.Add(new PluginInstallerAvailablePluginProxy(availableManifest, null));
+        }
+        
+        // Now, add all applicable local plugins that haven't been "used up", in most cases either dev or orphaned plugins.
+        foreach (var installedPlugin in installedPlugins)
+        {
+            if (this.IsManifestFiltered(installedPlugin.Manifest))
+                continue;
+            
+            // TODO: We should also check categories here, for good measure
+            
+            proxies.Add(new PluginInstallerAvailablePluginProxy(null, installedPlugin));
+        }
 
         var i = 0;
-        foreach (var manifest in categoryManifestsList)
+        foreach (var proxy in proxies)
         {
-            if (manifest is not RemotePluginManifest remoteManifest)
-                continue;
-            var (isInstalled, plugin) = this.IsManifestInstalled(remoteManifest);
+            IPluginManifest applicableManifest = proxy.LocalPlugin != null ? proxy.LocalPlugin.Manifest : proxy.RemoteManifest;
 
-            ImGui.PushID($"{manifest.InternalName}{manifest.AssemblyVersion}");
-            if (isInstalled)
+            if (applicableManifest == null)
+                throw new Exception("Could not determine manifest for available plugin");
+            
+            ImGui.PushID($"{applicableManifest.InternalName}{applicableManifest.AssemblyVersion}");
+
+            if (proxy.LocalPlugin != null)
             {
-                this.DrawInstalledPlugin(plugin, i++, true);
+                this.DrawInstalledPlugin(proxy.LocalPlugin, i++, true);
             }
-            else
+            else if (proxy.RemoteManifest != null)
             {
-                this.DrawAvailablePlugin(remoteManifest, i++);
+                this.DrawAvailablePlugin(proxy.RemoteManifest, i++);
             }
 
             ImGui.PopID();
@@ -1832,8 +1866,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         // Name
         ImGui.TextUnformatted(label);
         
-        // Verified Checkmark, don't show for dev plugins
-        if (plugin is null or { IsDev: false })
+        // Verified Checkmark or dev plugin wrench
         {
             ImGui.SameLine();
             ImGui.Text(" ");
@@ -1843,8 +1876,15 @@ internal class PluginInstallerWindow : Window, IDisposable
             var unverifiedOutlineColor = KnownColor.Black.Vector();
             var verifiedIconColor = KnownColor.RoyalBlue.Vector() with { W = 0.75f };
             var unverifiedIconColor = KnownColor.Orange.Vector();
-        
-            if (!isThirdParty)
+            var devIconOutlineColor = KnownColor.White.Vector();
+            var devIconColor = KnownColor.MediumOrchid.Vector();
+
+            if (plugin is LocalDevPlugin)
+            {
+                this.DrawFontawesomeIconOutlined(FontAwesomeIcon.Wrench, devIconOutlineColor, devIconColor);
+                this.VerifiedCheckmarkFadeTooltip(label, "This is a dev plugin. You added it.");
+            }
+            else if (!isThirdParty)
             {
                 this.DrawFontawesomeIconOutlined(FontAwesomeIcon.CheckCircle, verifiedOutlineColor, verifiedIconColor);
                 this.VerifiedCheckmarkFadeTooltip(label, Locs.VerifiedCheckmark_VerifiedTooltip);
@@ -1877,16 +1917,32 @@ internal class PluginInstallerWindow : Window, IDisposable
         if (plugin is { IsOutdated: true, IsBanned: false } || installableOutdated)
         {
             ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudRed);
-            ImGui.TextWrapped(Locs.PluginBody_Outdated);
+
+            var bodyText = Locs.PluginBody_Outdated + " ";
+            if (updateAvailable)
+                bodyText += Locs.PluginBody_Outdated_CanNowUpdate;
+            else
+                bodyText += Locs.PluginBody_Outdated_WaitForUpdate;
+            
+            ImGui.TextWrapped(bodyText);
             ImGui.PopStyleColor();
         }
         else if (plugin is { IsBanned: true })
         {
             // Banned warning
             ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudRed);
-            ImGuiHelpers.SafeTextWrapped(plugin.BanReason.IsNullOrEmpty()
-                                             ? Locs.PluginBody_Banned
-                                             : Locs.PluginBody_BannedReason(plugin.BanReason));
+            
+            var bodyText = plugin.BanReason.IsNullOrEmpty()
+                               ? Locs.PluginBody_Banned
+                               : Locs.PluginBody_BannedReason(plugin.BanReason);
+            bodyText += " ";
+            
+            if (updateAvailable)
+                bodyText += Locs.PluginBody_Outdated_CanNowUpdate;
+            else
+                bodyText += Locs.PluginBody_Outdated_WaitForUpdate;
+            
+            ImGuiHelpers.SafeTextWrapped(bodyText);
 
             ImGui.PopStyleColor();
         }
@@ -2242,6 +2298,11 @@ internal class PluginInstallerWindow : Window, IDisposable
         }
 
         var availablePluginUpdate = this.pluginListUpdatable.FirstOrDefault(up => up.InstalledPlugin == plugin);
+        
+        // Dev plugins can never update
+        if (plugin.IsDev)
+            availablePluginUpdate = null;
+        
         // Update available
         if (availablePluginUpdate != default)
         {
@@ -2498,7 +2559,7 @@ internal class PluginInstallerWindow : Window, IDisposable
 
             if (ImGui.MenuItem(Locs.PluginContext_DeletePluginConfigReload))
             {
-                this.ShowDeletePluginConfigWarningModal(plugin.Name).ContinueWith(t =>
+                this.ShowDeletePluginConfigWarningModal(plugin.Manifest.Name).ContinueWith(t =>
                 {
                     var shouldDelete = t.Result;
 
@@ -2513,7 +2574,7 @@ internal class PluginInstallerWindow : Window, IDisposable
                             {
                                 this.installStatus = OperationStatus.Idle;
 
-                                this.DisplayErrorContinuation(task, Locs.ErrorModal_DeleteConfigFail(plugin.Name));
+                                this.DisplayErrorContinuation(task, Locs.ErrorModal_DeleteConfigFail(plugin.Manifest.InternalName));
                             });
                     }
                 });
@@ -2530,12 +2591,12 @@ internal class PluginInstallerWindow : Window, IDisposable
         var profileManager = Service<ProfileManager>.Get();
         var config = Service<DalamudConfiguration>.Get();
 
-        var applicableForProfiles = plugin.Manifest.SupportsProfiles && !plugin.IsDev;
+        var applicableForProfiles = plugin.Manifest.SupportsProfiles /*&& !plugin.IsDev*/;
         var profilesThatWantThisPlugin = profileManager.Profiles
-                                                       .Where(x => x.WantsPlugin(plugin.InternalName) != null)
+                                                       .Where(x => x.WantsPlugin(plugin.Manifest.WorkingPluginId) != null)
                                                        .ToArray();
         var isInSingleProfile = profilesThatWantThisPlugin.Length == 1;
-        var isDefaultPlugin = profileManager.IsInDefaultProfile(plugin.Manifest.InternalName);
+        var isDefaultPlugin = profileManager.IsInDefaultProfile(plugin.Manifest.WorkingPluginId);
 
         // Disable everything if the updater is running or another plugin is operating
         var disabled = this.updateStatus == OperationStatus.InProgress || this.installStatus == OperationStatus.InProgress;
@@ -2570,17 +2631,17 @@ internal class PluginInstallerWindow : Window, IDisposable
 
             foreach (var profile in profileManager.Profiles.Where(x => !x.IsDefaultProfile))
             {
-                var inProfile = profile.WantsPlugin(plugin.Manifest.InternalName) != null;
+                var inProfile = profile.WantsPlugin(plugin.Manifest.WorkingPluginId) != null;
                 if (ImGui.Checkbox($"###profilePick{profile.Guid}{plugin.Manifest.InternalName}", ref inProfile))
                 {
                     if (inProfile)
                     {
-                        Task.Run(() => profile.AddOrUpdateAsync(plugin.Manifest.InternalName, true))
+                        Task.Run(() => profile.AddOrUpdateAsync(plugin.Manifest.WorkingPluginId, plugin.Manifest.InternalName, true))
                             .ContinueWith(this.DisplayErrorContinuation, Locs.Profiles_CouldNotAdd);
                     }
                     else
                     {
-                        Task.Run(() => profile.RemoveAsync(plugin.Manifest.InternalName))
+                        Task.Run(() => profile.RemoveAsync(plugin.Manifest.WorkingPluginId))
                             .ContinueWith(this.DisplayErrorContinuation, Locs.Profiles_CouldNotRemove);
                     }
                 }
@@ -2600,11 +2661,11 @@ internal class PluginInstallerWindow : Window, IDisposable
             if (ImGuiComponents.IconButton(FontAwesomeIcon.Times))
             {
                 // TODO: Work this out
-                Task.Run(() => profileManager.DefaultProfile.AddOrUpdateAsync(plugin.Manifest.InternalName, plugin.IsLoaded, false))
+                Task.Run(() => profileManager.DefaultProfile.AddOrUpdateAsync(plugin.Manifest.WorkingPluginId, plugin.Manifest.InternalName, plugin.IsLoaded, false))
                     .GetAwaiter().GetResult();
                 foreach (var profile in profileManager.Profiles.Where(x => !x.IsDefaultProfile && x.Plugins.Any(y => y.InternalName == plugin.Manifest.InternalName)))
                 {
-                    Task.Run(() => profile.RemoveAsync(plugin.Manifest.InternalName, false))
+                    Task.Run(() => profile.RemoveAsync(plugin.Manifest.WorkingPluginId, false))
                         .GetAwaiter().GetResult();
                 }
 
@@ -2678,7 +2739,7 @@ internal class PluginInstallerWindow : Window, IDisposable
                     {
                         await plugin.UnloadAsync();
                         await applicableProfile.AddOrUpdateAsync(
-                            plugin.Manifest.InternalName, false, false);
+                            plugin.Manifest.WorkingPluginId, plugin.Manifest.InternalName, false, false);
 
                         notifications.AddNotification(Locs.Notifications_PluginDisabled(plugin.Manifest.Name), Locs.Notifications_PluginDisabledTitle, NotificationType.Success);
                     }).ContinueWith(t =>
@@ -2695,7 +2756,7 @@ internal class PluginInstallerWindow : Window, IDisposable
                         this.loadingIndicatorKind = LoadingIndicatorKind.EnablingSingle;
                         this.enableDisableWorkingPluginId = plugin.Manifest.WorkingPluginId;
 
-                        await applicableProfile.AddOrUpdateAsync(plugin.Manifest.InternalName, true, false);
+                        await applicableProfile.AddOrUpdateAsync(plugin.Manifest.WorkingPluginId, plugin.Manifest.InternalName, true, false);
                         await plugin.LoadAsync(PluginLoadReason.Installer);
 
                         notifications.AddNotification(Locs.Notifications_PluginEnabled(plugin.Manifest.Name), Locs.Notifications_PluginEnabledTitle, NotificationType.Success);
@@ -2716,7 +2777,7 @@ internal class PluginInstallerWindow : Window, IDisposable
                             if (shouldUpdate)
                             {
                                 // We need to update the profile right here, because PM will not enable the plugin otherwise
-                                await applicableProfile.AddOrUpdateAsync(plugin.InternalName, true, false);
+                                await applicableProfile.AddOrUpdateAsync(plugin.Manifest.WorkingPluginId, plugin.Manifest.InternalName, true, false);
                                 await this.UpdateSinglePlugin(availableUpdate);
                             }
                             else
@@ -2897,7 +2958,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         if (localPlugin is LocalDevPlugin plugin)
         {
             var isInDefaultProfile =
-                Service<ProfileManager>.Get().IsInDefaultProfile(localPlugin.Manifest.InternalName);
+                Service<ProfileManager>.Get().IsInDefaultProfile(localPlugin.Manifest.WorkingPluginId);
 
             // https://colorswall.com/palette/2868/
             var greenColor = new Vector4(0x5C, 0xB8, 0x5C, 0xFF) / 0xFF;
@@ -3241,7 +3302,7 @@ internal class PluginInstallerWindow : Window, IDisposable
                 this.pluginListAvailable.Sort((p1, p2) => p1.Name.CompareTo(p2.Name));
                 
                 var profman = Service<ProfileManager>.Get();
-                this.pluginListInstalled.Sort((p1, p2) => profman.IsInDefaultProfile(p1.InternalName).CompareTo(profman.IsInDefaultProfile(p2.InternalName)));
+                this.pluginListInstalled.Sort((p1, p2) => profman.IsInDefaultProfile(p1.Manifest.WorkingPluginId).CompareTo(profman.IsInDefaultProfile(p2.Manifest.WorkingPluginId)));
                 break;
             default:
                 throw new InvalidEnumArgumentException("Unknown plugin sort type.");
@@ -3488,7 +3549,11 @@ internal class PluginInstallerWindow : Window, IDisposable
 
         public static string PluginBody_Plugin3rdPartyRepo(string url) => Loc.Localize("InstallerPlugin3rdPartyRepo", "From custom plugin repository {0}").Format(url);
 
-        public static string PluginBody_Outdated => Loc.Localize("InstallerOutdatedPluginBody ", "This plugin is outdated and incompatible at the moment. Please wait for it to be updated by its author.");
+        public static string PluginBody_Outdated => Loc.Localize("InstallerOutdatedPluginBody ", "This plugin is outdated and incompatible.");
+        
+        public static string PluginBody_Outdated_WaitForUpdate => Loc.Localize("InstallerOutdatedWaitForUpdate", "Please wait for it to be updated by its author.");
+        
+        public static string PluginBody_Outdated_CanNowUpdate => Loc.Localize("InstallerOutdatedCanNowUpdate", "An update is available for installation.");
 
         public static string PluginBody_Orphaned => Loc.Localize("InstallerOrphanedPluginBody ", "This plugin's source repository is no longer available. You may need to reinstall it from its repository, or re-add the repository.");
 
@@ -3498,7 +3563,7 @@ internal class PluginInstallerWindow : Window, IDisposable
 
         public static string PluginBody_LoadFailed => Loc.Localize("InstallerLoadFailedPluginBody ", "This plugin failed to load. Please contact the author for more information.");
 
-        public static string PluginBody_Banned => Loc.Localize("InstallerBannedPluginBody ", "This plugin was automatically disabled due to incompatibilities and is not available at the moment. Please wait for it to be updated by its author.");
+        public static string PluginBody_Banned => Loc.Localize("InstallerBannedPluginBody ", "This plugin was automatically disabled due to incompatibilities and is not available.");
 
         public static string PluginBody_Policy => Loc.Localize("InstallerPolicyPluginBody ", "Plugin loads for this type of plugin were manually disabled.");
 
@@ -3711,7 +3776,7 @@ internal class PluginInstallerWindow : Window, IDisposable
 
         public static string DeletePluginConfigWarningModal_Title => Loc.Localize("InstallerDeletePluginConfigWarning", "Warning###InstallerDeletePluginConfigWarning");
 
-        public static string DeletePluginConfigWarningModal_Body(string pluginName) => Loc.Localize("InstallerDeletePluginConfigWarningBody", "Are you sure you want to delete all data and configuration for v{0}?").Format(pluginName);
+        public static string DeletePluginConfigWarningModal_Body(string pluginName) => Loc.Localize("InstallerDeletePluginConfigWarningBody", "Are you sure you want to delete all data and configuration for {0}?").Format(pluginName);
 
         public static string DeletePluginConfirmWarningModal_Yes => Loc.Localize("InstallerDeletePluginConfigWarningYes", "Yes");
 

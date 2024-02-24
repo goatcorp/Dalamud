@@ -1,7 +1,9 @@
-﻿using System;
+﻿using System.Collections.Generic;
+using System.Reflection;
 
 using Dalamud.Utility;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 
 namespace Dalamud.Plugin.Internal.Profiles;
 
@@ -39,11 +41,11 @@ public abstract class ProfileModel
     }
 
     /// <summary>
-    /// Serialize this model into a string usable for sharing.
+    /// Serialize this model into a string usable for sharing, without including GUIDs.
     /// </summary>
     /// <returns>The serialized representation of the model.</returns>
     /// <exception cref="ArgumentOutOfRangeException">Thrown when an unsupported model is serialized.</exception>
-    public string Serialize()
+    public string SerializeForShare()
     {
         string prefix;
         switch (this)
@@ -55,6 +57,32 @@ public abstract class ProfileModel
                 throw new ArgumentOutOfRangeException();
         }
 
-        return prefix + Convert.ToBase64String(Util.CompressString(JsonConvert.SerializeObject(this)));
+        // HACK: Just filter the ID for now, we should split the sharing + saving model
+        var serialized = JsonConvert.SerializeObject(this, new JsonSerializerSettings()
+                                                         { ContractResolver = new IgnorePropertiesResolver(new[] { "WorkingPluginId" }) });
+
+        return prefix + Convert.ToBase64String(Util.CompressString(serialized));
+    }
+    
+    // Short helper class to ignore some properties from serialization
+    private class IgnorePropertiesResolver : DefaultContractResolver
+    {
+        private readonly HashSet<string> ignoreProps;
+
+        public IgnorePropertiesResolver(IEnumerable<string> propNamesToIgnore)
+        {
+            this.ignoreProps = new HashSet<string>(propNamesToIgnore);
+        }
+
+        protected override JsonProperty CreateProperty(MemberInfo member, MemberSerialization memberSerialization)
+        {
+            var property = base.CreateProperty(member, memberSerialization);
+            if (this.ignoreProps.Contains(property.PropertyName))
+            {
+                property.ShouldSerialize = _ => false;
+            }
+            
+            return property;
+        }
     }
 }

@@ -33,7 +33,7 @@ internal static class WicEasyExtensions
         TerraFX.Interop.Windows.Windows.SHCreateStreamOnFileW(
             (ushort*)buf,
             STGM.STGM_SHARE_DENY_WRITE,
-            stream.ReleaseAndGetAddressOf()).ThrowHr();
+            stream.ReleaseAndGetAddressOf()).ThrowOnError();
         return stream;
     }
 
@@ -54,7 +54,7 @@ internal static class WicEasyExtensions
         out Span<byte> fixedBytes)
     {
         var rc = default(WICRect);
-        bitmap.GetSize((uint*)&rc.Width, (uint*)&rc.Height).ThrowHr();
+        bitmap.GetSize((uint*)&rc.Width, (uint*)&rc.Height).ThrowOnError();
 
         var result = default(ComPtr<IWICBitmapLock>);
         bitmap.Lock(&rc, (uint)mode, result.GetAddressOf());
@@ -62,7 +62,7 @@ internal static class WicEasyExtensions
         {
             uint nbc;
             byte* pbc;
-            result.Get()->GetDataPointer(&nbc, &pbc).ThrowHr();
+            result.Get()->GetDataPointer(&nbc, &pbc).ThrowOnError();
             pb = pbc;
             nb = nbc;
             fixedBytes = new(pb, (int)nb);
@@ -110,7 +110,7 @@ internal static class WicEasyExtensions
     public static unsafe Guid GetPixelFormat(ref this IWICBitmapSource source)
     {
         var pixelFormat = default(Guid);
-        source.GetPixelFormat(&pixelFormat).ThrowHr();
+        source.GetPixelFormat(&pixelFormat).ThrowOnError();
         return pixelFormat;
     }
 }

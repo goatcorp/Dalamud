@@ -53,17 +53,17 @@ internal sealed unsafe class Dx11Win32Scene : IWin32Scene
 
             fixed (Guid* guid = &IID.IID_ID3D11Device)
             fixed (ID3D11Device** pp = &this.device.GetPinnableReference())
-                this.swapChain.Get()->GetDevice(guid, (void**)pp).ThrowHr();
+                this.swapChain.Get()->GetDevice(guid, (void**)pp).ThrowOnError();
 
             fixed (ID3D11DeviceContext** pp = &this.deviceContext.GetPinnableReference())
                 this.device.Get()->GetImmediateContext(pp);
 
             using var buffer = default(ComPtr<ID3D11Resource>);
             fixed (Guid* guid = &IID.IID_ID3D11Resource)
-                this.swapChain.Get()->GetBuffer(0, guid, (void**)buffer.GetAddressOf()).ThrowHr();
+                this.swapChain.Get()->GetBuffer(0, guid, (void**)buffer.GetAddressOf()).ThrowOnError();
 
             var desc = default(DXGI_SWAP_CHAIN_DESC);
-            this.swapChain.Get()->GetDesc(&desc).ThrowHr();
+            this.swapChain.Get()->GetDesc(&desc).ThrowOnError();
             this.targetWidth = (int)desc.BufferDesc.Width;
             this.targetHeight = (int)desc.BufferDesc.Height;
             this.WindowHandle = desc.OutputWindow;
@@ -204,7 +204,7 @@ internal sealed unsafe class Dx11Win32Scene : IWin32Scene
         using var stream = this.wicEasy.CreateStream();
         fixed (byte* pData = data)
         {
-            stream.Get()->InitializeFromMemory(pData, (uint)data.Length).ThrowHr();
+            stream.Get()->InitializeFromMemory(pData, (uint)data.Length).ThrowOnError();
             return this.LoadImage((IStream*)stream.Get());
         }
     }
@@ -287,8 +287,8 @@ internal sealed unsafe class Dx11Win32Scene : IWin32Scene
         
         using var l = bitmap.Get()->LockBits(WICBitmapLockFlags.WICBitmapLockRead, out var pb, out _, out _);
         uint stride, width, height;
-        l.Get()->GetStride(&stride).ThrowHr();
-        l.Get()->GetSize(&width, &height).ThrowHr();
+        l.Get()->GetStride(&stride).ThrowOnError();
+        l.Get()->GetSize(&width, &height).ThrowOnError();
         return this.LoadImageRaw(pb, (int)stride, (int)width, (int)height, dxgiFormat);
     }
 

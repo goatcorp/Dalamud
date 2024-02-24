@@ -120,12 +120,12 @@ internal unsafe partial class Dx12Renderer
                         successBlob.Get()->GetBufferPointer(),
                         successBlob.Get()->GetBufferSize(),
                         piid,
-                        (void**)rootSignature.GetAddressOf()).ThrowHr();
+                        (void**)rootSignature.GetAddressOf()).ThrowOnError();
                 }
             }
 
             fixed (void* pName = $"{debugName}:RootSignature")
-                rootSignature.Get()->SetName((ushort*)pName).ThrowHr();
+                rootSignature.Get()->SetName((ushort*)pName).ThrowOnError();
 
             using var pipelineState = default(ComPtr<ID3D12PipelineState>);
             fixed (void* pvs = vs)
@@ -230,11 +230,11 @@ internal unsafe partial class Dx12Renderer
                 device->CreateGraphicsPipelineState(
                     &pipelineDesc,
                     piidPipelineState,
-                    (void**)pipelineState.GetAddressOf()).ThrowHr();
+                    (void**)pipelineState.GetAddressOf()).ThrowOnError();
             }
 
             fixed (void* pName = $"{debugName}:PipelineState")
-                pipelineState.Get()->SetName((ushort*)pName).ThrowHr();
+                pipelineState.Get()->SetName((ushort*)pName).ThrowOnError();
 
             return new(rootSignature, pipelineState);
         }
