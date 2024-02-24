@@ -461,10 +461,10 @@ internal sealed class ActiveNotification : IActiveNotification, IDisposable
     {
         ImGui.PushTextWrapPos(maxCoord.X);
 
+        ImGui.SetCursorPos(minCoord);
         if ((this.Title ?? this.DefaultTitle) is { } title)
         {
             ImGui.PushStyleColor(ImGuiCol.Text, NotificationConstants.TitleTextColor);
-            ImGui.SetCursorPos(minCoord);
             ImGui.TextUnformatted(title);
             ImGui.PopStyleColor();
         }
