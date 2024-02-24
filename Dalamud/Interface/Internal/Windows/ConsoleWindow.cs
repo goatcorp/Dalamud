@@ -29,6 +29,9 @@ namespace Dalamud.Interface.Internal.Windows;
 /// </summary>
 internal class ConsoleWindow : Window, IDisposable
 {
+    private const int LogLinesMinimum = 100;
+    private const int LogLinesMaximum = 1000000;
+    
     private readonly RollingList<LogEntry> logText;
     private volatile int newRolledLines;
     private readonly object renderLock = new();
@@ -44,12 +47,14 @@ internal class ConsoleWindow : Window, IDisposable
     private string pluginFilter = string.Empty;
 
     private bool filterShowUncaughtExceptions;
+    private bool settingsPopupWasOpen;
     private bool showFilterToolbar;
     private bool clearLog;
     private bool copyLog;
     private bool copyMode;
     private bool killGameArmed;
     private bool autoScroll;
+    private int logLinesLimit;
     private bool autoOpen;
     private bool regexError;
 
@@ -77,7 +82,9 @@ internal class ConsoleWindow : Window, IDisposable
 
         this.RespectCloseHotkey = false;
 
-        var limit = Math.Max(100, configuration.LogLinesLimit);
+        this.logLinesLimit = configuration.LogLinesLimit;
+
+        var limit = Math.Max(LogLinesMinimum, this.logLinesLimit);
         this.logText = new(limit);
         this.FilteredLogEntries = new(limit);
 
@@ -386,21 +393,21 @@ internal class ConsoleWindow : Window, IDisposable
 
         ImGui.SameLine();
 
-        this.autoScroll = configuration.LogAutoScroll;
-        if (this.DrawToggleButtonWithTooltip("auto_scroll", "Auto-scroll", FontAwesomeIcon.Sync, ref this.autoScroll))
+        var settingsPopup = ImGui.BeginPopup("##console_settings");
+        if (settingsPopup)
         {
-            configuration.LogAutoScroll = !configuration.LogAutoScroll;
-            configuration.QueueSave();
+            this.DrawSettingsPopup(configuration);
+            ImGui.EndPopup();
+        }
+        else if (this.settingsPopupWasOpen)
+        {
+            // Prevent side effects in case Apply wasn't clicked
+            this.logLinesLimit = configuration.LogLinesLimit;
         }
 
-        ImGui.SameLine();
+        this.settingsPopupWasOpen = settingsPopup;
 
-        this.autoOpen = configuration.LogOpenAtStartup;
-        if (this.DrawToggleButtonWithTooltip("auto_open", "Open at startup", FontAwesomeIcon.WindowRestore, ref this.autoOpen))
-        {
-            configuration.LogOpenAtStartup = !configuration.LogOpenAtStartup;
-            configuration.QueueSave();
-        }
+        if (this.DrawToggleButtonWithTooltip("show_settings", "Show settings", FontAwesomeIcon.List, ref settingsPopup)) ImGui.OpenPopup("##console_settings");
 
         ImGui.SameLine();
 
@@ -467,6 +474,33 @@ internal class ConsoleWindow : Window, IDisposable
         if (ImGui.IsItemDeactivatedAfterEdit())
         {
             this.Refilter();
+        }
+    }
+
+    private void DrawSettingsPopup(DalamudConfiguration configuration)
+    {
+        if (ImGui.Checkbox("Open at startup", ref this.autoOpen))
+        {
+            configuration.LogOpenAtStartup = this.autoOpen;
+            configuration.QueueSave();
+        }
+
+        if (ImGui.Checkbox("Auto-scroll", ref this.autoScroll))
+        {
+            configuration.LogAutoScroll = this.autoScroll;
+            configuration.QueueSave();
+        }
+
+        ImGui.TextUnformatted("Logs buffer");
+        ImGui.SliderInt("lines", ref this.logLinesLimit, LogLinesMinimum, LogLinesMaximum);
+        if (ImGui.Button("Apply"))
+        {
+            this.logLinesLimit = Math.Max(LogLinesMinimum, this.logLinesLimit);
+
+            configuration.LogLinesLimit = this.logLinesLimit;
+            configuration.QueueSave();
+
+            ImGui.CloseCurrentPopup();
         }
     }
 
@@ -767,7 +801,7 @@ internal class ConsoleWindow : Window, IDisposable
         lock (this.renderLock)
         {
             this.regexError = false;
-            this.FilteredLogEntries = new RollingList<LogEntry>(this.logText.Where(this.IsFilterApplicable), Math.Max(100, Service<DalamudConfiguration>.Get().LogLinesLimit));
+            this.FilteredLogEntries = new RollingList<LogEntry>(this.logText.Where(this.IsFilterApplicable), Math.Max(LogLinesMinimum, this.logLinesLimit));
         }
     }
 
@@ -818,7 +852,8 @@ internal class ConsoleWindow : Window, IDisposable
 
     private void OnDalamudConfigurationSaved(DalamudConfiguration dalamudConfiguration)
     {
-        var limit = Math.Max(100, dalamudConfiguration.LogLinesLimit);
+        this.logLinesLimit = dalamudConfiguration.LogLinesLimit;
+        var limit = Math.Max(LogLinesMinimum, this.logLinesLimit);
         this.logText.Size = limit;
         this.FilteredLogEntries.Size = limit;
     }
