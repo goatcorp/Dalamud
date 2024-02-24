@@ -227,7 +227,9 @@ internal sealed class ActiveNotification : IActiveNotification, IDisposable
         var unboundedWidth = NotificationConstants.ScaledWindowPadding * 3;
         unboundedWidth += NotificationConstants.ScaledIconSize;
         unboundedWidth += Math.Max(
-            ImGui.CalcTextSize(this.Title ?? this.DefaultTitle ?? string.Empty).X,
+            Math.Max(
+                ImGui.CalcTextSize(this.Title ?? this.DefaultTitle ?? string.Empty).X,
+                ImGui.CalcTextSize(this.InitiatorPlugin?.Name ?? NotificationConstants.DefaultInitiator).X),
             ImGui.CalcTextSize(this.Content).X);
 
         var width = Math.Min(maxWidth, unboundedWidth);
