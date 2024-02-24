@@ -44,32 +44,66 @@ internal class ImGuiWidget : IDataWindowWidget
 
         if (ImGui.Button("Add random notification"))
         {
-            var rand = new Random();
-
-            var title = rand.Next(0, 5) switch
-            {
-                0 => "This is a toast",
-                1 => "Truly, a toast",
-                2 => "I am testing this toast",
-                3 => "I hope this looks right",
-                4 => "Good stuff",
-                5 => "Nice",
-                _ => null,
-            };
-
-            var type = rand.Next(0, 4) switch
-            {
-                0 => NotificationType.Error,
-                1 => NotificationType.Warning,
-                2 => NotificationType.Info,
-                3 => NotificationType.Success,
-                4 => NotificationType.None,
-                _ => NotificationType.None,
-            };
-
             const string text = "Bla bla bla bla bla bla bla bla bla bla bla.\nBla bla bla bla bla bla bla bla bla bla bla bla bla bla.";
 
-            notifications.AddNotification(text, title, type);
+            NewRandom(out var title, out var type);
+            var n = notifications.AddNotification(
+                new()
+                {
+                    Content = text,
+                    Title = title,
+                    Type = type,
+                    Interactible = true,
+                    ClickIsDismiss = false,
+                });
+
+            var nclick = 0;
+            n.Click += _ => nclick++;
+            n.DrawActions += an =>
+            {
+                if (ImGui.Button("Update in place"))
+                {
+                    NewRandom(out title, out type);
+                    an.Update(an.CloneNotification() with { Title = title, Type = type });
+                }
+
+                if (an.IsMouseHovered)
+                {
+                    ImGui.SameLine();
+                    if (ImGui.Button("Dismiss"))
+                        an.DismissNow();
+                }
+
+                ImGui.AlignTextToFramePadding();
+                ImGui.SameLine();
+                ImGui.TextUnformatted($"Clicked {nclick} time(s)");
+            };
         }
+    }
+
+    private static void NewRandom(out string? title, out NotificationType type)
+    {
+        var rand = new Random();
+
+        title = rand.Next(0, 5) switch
+        {
+            0 => "This is a toast",
+            1 => "Truly, a toast",
+            2 => "I am testing this toast",
+            3 => "I hope this looks right",
+            4 => "Good stuff",
+            5 => "Nice",
+            _ => null,
+        };
+
+        type = rand.Next(0, 4) switch
+        {
+            0 => NotificationType.Error,
+            1 => NotificationType.Warning,
+            2 => NotificationType.Info,
+            3 => NotificationType.Success,
+            4 => NotificationType.None,
+            _ => NotificationType.None,
+        };
     }
 }
