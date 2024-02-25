@@ -17,7 +17,7 @@ public interface IActiveNotification : INotification
 
     /// <summary>Invoked upon clicking on the notification.</summary>
     /// <remarks>
-    /// This event is not applicable when <see cref="INotification.Interactible"/> is set to <c>false</c>.
+    /// This event is not applicable when <see cref="INotification.Interactable"/> is set to <c>false</c>.
     /// Note that this function may be called even after <see cref="Dismiss"/> has been invoked.
     /// Refer to <see cref="IsDismissed"/>.
     /// </remarks>
@@ -25,7 +25,7 @@ public interface IActiveNotification : INotification
 
     /// <summary>Invoked when the mouse enters the notification window.</summary>
     /// <remarks>
-    /// This event is applicable regardless of <see cref="INotification.Interactible"/>.
+    /// This event is applicable regardless of <see cref="INotification.Interactable"/>.
     /// Note that this function may be called even after <see cref="Dismiss"/> has been invoked.
     /// Refer to <see cref="IsDismissed"/>.
     /// </remarks>
@@ -33,7 +33,7 @@ public interface IActiveNotification : INotification
 
     /// <summary>Invoked when the mouse leaves the notification window.</summary>
     /// <remarks>
-    /// This event is applicable regardless of <see cref="INotification.Interactible"/>.
+    /// This event is applicable regardless of <see cref="INotification.Interactable"/>.
     /// Note that this function may be called even after <see cref="Dismiss"/> has been invoked.
     /// Refer to <see cref="IsDismissed"/>.
     /// </remarks>
@@ -41,7 +41,7 @@ public interface IActiveNotification : INotification
 
     /// <summary>Invoked upon drawing the action bar of the notification.</summary>
     /// <remarks>
-    /// This event is applicable regardless of <see cref="INotification.Interactible"/>.
+    /// This event is applicable regardless of <see cref="INotification.Interactable"/>.
     /// Note that this function may be called even after <see cref="Dismiss"/> has been invoked.
     /// Refer to <see cref="IsDismissed"/>.
     /// </remarks>
@@ -64,8 +64,8 @@ public interface IActiveNotification : INotification
     /// <inheritdoc cref="INotification.Expiry"/>
     new DateTime Expiry { get; set; }
 
-    /// <inheritdoc cref="INotification.Interactible"/>
-    new bool Interactible { get; set; }
+    /// <inheritdoc cref="INotification.Interactable"/>
+    new bool Interactable { get; set; }
 
     /// <inheritdoc cref="INotification.UserDismissable"/>
     new bool UserDismissable { get; set; }

@@ -36,12 +36,12 @@ public interface INotification
     /// <remarks>
     /// Set this value to <c>true</c> if you want to respond to user inputs from
     /// <see cref="IActiveNotification.DrawActions"/>.
-    /// Note that the close buttons for notifications are always provided and interactible.
+    /// Note that the close buttons for notifications are always provided and interactable.
     /// If set to <c>true</c>, then clicking on the notification itself will be interpreted as user-initiated dismissal,
     /// unless <see cref="IActiveNotification.Click"/> is set or <see cref="UserDismissable"/> is unset.
     /// </remarks>
-    bool Interactible { get; }
-    
+    bool Interactable { get; }
+
     /// <summary>Gets a value indicating whether the user can dismiss the notification by themselves.</summary>
     /// <remarks>Consider adding a cancel button to <see cref="IActiveNotification.DrawActions"/>.</remarks>
     bool UserDismissable { get; }
@@ -49,7 +49,7 @@ public interface INotification
     /// <summary>Gets the new duration for this notification if mouse cursor is on the notification window.</summary>
     /// <remarks>
     /// If set to <see cref="TimeSpan.Zero"/> or less, then this feature is turned off.
-    /// This property is applicable regardless of <see cref="Interactible"/>.
+    /// This property is applicable regardless of <see cref="Interactable"/>.
     /// </remarks>
     TimeSpan HoverExtendDuration { get; }
 

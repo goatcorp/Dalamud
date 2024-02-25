@@ -1,4 +1,3 @@
-using Dalamud.Interface.ImGuiNotification.Internal;
 using Dalamud.Interface.Internal.Notifications;
 
 namespace Dalamud.Interface.ImGuiNotification;
@@ -22,10 +21,10 @@ public sealed record Notification : INotification
     public DateTime Expiry { get; set; } = DateTime.Now + NotificationConstants.DefaultDisplayDuration;
 
     /// <inheritdoc/>
-    public bool Interactible { get; set; }
+    public bool Interactable { get; set; } = true;
 
     /// <inheritdoc/>
-    public bool UserDismissable { get; set; }
+    public bool UserDismissable { get; set; } = true;
 
     /// <inheritdoc/>
     public TimeSpan HoverExtendDuration { get; set; } = NotificationConstants.DefaultHoverExtendDuration;

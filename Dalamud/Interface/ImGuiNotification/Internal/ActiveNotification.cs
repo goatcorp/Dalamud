@@ -139,15 +139,15 @@ internal sealed class ActiveNotification : IActiveNotification, IDisposable
         }
     }
 
-    /// <inheritdoc cref="IActiveNotification.Interactible"/>
-    public bool Interactible
+    /// <inheritdoc cref="IActiveNotification.Interactable"/>
+    public bool Interactable
     {
-        get => this.underlyingNotification.Interactible;
+        get => this.underlyingNotification.Interactable;
         set
         {
             if (this.IsDismissed)
                 return;
-            this.underlyingNotification.Interactible = value;
+            this.underlyingNotification.Interactable = value;
         }
     }
 
@@ -407,7 +407,7 @@ internal sealed class ActiveNotification : IActiveNotification, IDisposable
             $"##NotifyMainWindow{this.Id}",
             ImGuiWindowFlags.AlwaysAutoResize |
             ImGuiWindowFlags.NoDecoration |
-            (this.Interactible
+            (this.Interactable
                  ? ImGuiWindowFlags.None
                  : ImGuiWindowFlags.NoInputs | ImGuiWindowFlags.NoBringToFrontOnFocus) |
             ImGuiWindowFlags.NoNav |
@@ -514,7 +514,7 @@ internal sealed class ActiveNotification : IActiveNotification, IDisposable
         this.Type = newNotification.Type;
         this.IconSource = newNotification.IconSource;
         this.Expiry = newNotification.Expiry;
-        this.Interactible = newNotification.Interactible;
+        this.Interactable = newNotification.Interactable;
         this.HoverExtendDuration = newNotification.HoverExtendDuration;
         this.newProgress = newNotification.Progress;
     }
@@ -538,16 +538,14 @@ internal sealed class ActiveNotification : IActiveNotification, IDisposable
         this.MouseEnter = RemoveNonDalamudInvocationsCore(this.MouseEnter);
         this.MouseLeave = RemoveNonDalamudInvocationsCore(this.MouseLeave);
 
-        this.underlyingNotification.Interactible = false;
+        this.Interactable = true;
         this.IsInitiatorUnloaded = true;
+        this.UserDismissable = true;
+        this.HoverExtendDuration = NotificationConstants.DefaultHoverExtendDuration;
 
-        var now = DateTime.Now;
-        var newMaxExpiry = now + NotificationConstants.DefaultDisplayDuration;
-        if (this.underlyingNotification.Expiry > newMaxExpiry)
-        {
-            this.underlyingNotification.Expiry = newMaxExpiry;
-            this.ExpiryRelativeToTime = now;
-        }
+        var newMaxExpiry = DateTime.Now + NotificationConstants.DefaultDisplayDuration;
+        if (this.Expiry > newMaxExpiry)
+            this.Expiry = newMaxExpiry;
 
         return;
 

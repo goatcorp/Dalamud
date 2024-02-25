@@ -119,7 +119,7 @@ internal class ImGuiWidget : IDataWindowWidget
             NotificationTemplate.ProgressModeTitles,
             NotificationTemplate.ProgressModeTitles.Length);
 
-        ImGui.Checkbox("Interactible", ref this.notificationTemplate.Interactible);
+        ImGui.Checkbox("Interactable", ref this.notificationTemplate.Interactable);
 
         ImGui.Checkbox("User Dismissable", ref this.notificationTemplate.UserDismissable);
 
@@ -148,7 +148,7 @@ internal class ImGuiWidget : IDataWindowWidget
                     Content = text,
                     Title = title,
                     Type = type,
-                    Interactible = this.notificationTemplate.Interactible,
+                    Interactable = this.notificationTemplate.Interactable,
                     UserDismissable = this.notificationTemplate.UserDismissable,
                     Expiry = duration == TimeSpan.MaxValue ? DateTime.MaxValue : DateTime.Now + duration,
                     Progress = this.notificationTemplate.ProgressMode switch
@@ -331,7 +331,7 @@ internal class ImGuiWidget : IDataWindowWidget
         public bool ManualType;
         public int TypeInt;
         public int DurationInt;
-        public bool Interactible;
+        public bool Interactable;
         public bool UserDismissable;
         public bool ActionBar;
         public int ProgressMode;
@@ -348,7 +348,7 @@ internal class ImGuiWidget : IDataWindowWidget
             this.ManualType = false;
             this.TypeInt = (int)NotificationType.None;
             this.DurationInt = 2;
-            this.Interactible = true;
+            this.Interactable = true;
             this.UserDismissable = true;
             this.ActionBar = true;
             this.ProgressMode = 0;
