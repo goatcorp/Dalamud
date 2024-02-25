@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 
 using Dalamud.Game.Text;
+using Dalamud.Interface.ImGuiNotification;
 using Dalamud.Interface.ImGuiNotification.IconSource;
 using Dalamud.Interface.ImGuiNotification.Internal;
 using Dalamud.Interface.Internal.Notifications;
