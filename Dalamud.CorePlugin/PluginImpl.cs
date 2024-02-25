@@ -56,16 +56,15 @@ namespace Dalamud.CorePlugin
         /// </summary>
         /// <param name="pluginInterface">Dalamud plugin interface.</param>
         /// <param name="log">Logging service.</param>
-        public PluginImpl(DalamudPluginInterface pluginInterface, IPluginLog log, INotificationManager notificationManager)
+        public PluginImpl(DalamudPluginInterface pluginInterface, IPluginLog log)
         {
-            this.NotificationManager = notificationManager;
             try
             {
                 // this.InitLoc();
                 this.Interface = pluginInterface;
                 this.pluginLog = log;
 
-                this.windowSystem.AddWindow(new PluginWindow(this));
+                this.windowSystem.AddWindow(new PluginWindow());
 
                 this.Interface.UiBuilder.Draw += this.OnDraw;
                 this.Interface.UiBuilder.OpenConfigUi += this.OnOpenConfigUi;
@@ -84,8 +83,6 @@ namespace Dalamud.CorePlugin
                 log.Error(ex, "kaboom");
             }
         }
-
-        public INotificationManager NotificationManager { get; }
 
         /// <summary>
         /// Gets the plugin interface.
