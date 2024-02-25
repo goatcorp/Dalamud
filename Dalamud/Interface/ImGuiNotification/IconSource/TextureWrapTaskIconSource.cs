@@ -6,6 +6,8 @@ using Dalamud.Interface.Internal;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Utility;
 
+using Serilog;
+
 namespace Dalamud.Interface.ImGuiNotification.IconSource;
 
 /// <summary>Represents the use of future <see cref="IDalamudTextureWrap"/> as the icon of a notification.</summary>
@@ -41,7 +43,18 @@ public readonly struct TextureWrapTaskIconSource : INotificationIconSource.IInte
     {
         private Task<IDalamudTextureWrap>? task;
 
-        public MaterializedIcon(Func<Task<IDalamudTextureWrap?>?>? taskFunc) => this.task = taskFunc?.Invoke();
+        public MaterializedIcon(Func<Task<IDalamudTextureWrap?>?>? taskFunc)
+        {
+            try
+            {
+                this.task = taskFunc?.Invoke();
+            }
+            catch (Exception e)
+            {
+                Log.Error(e, $"{nameof(TextureWrapTaskIconSource)}: failed to materialize the icon texture.");
+                this.task = null;
+            }
+        }
 
         public void Dispose()
         {
