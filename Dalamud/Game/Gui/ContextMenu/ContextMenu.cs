@@ -10,6 +10,8 @@ using Dalamud.IoC.Internal;
 using Dalamud.Logging.Internal;
 using Dalamud.Memory;
 using Dalamud.Plugin.Services;
+using Dalamud.Utility;
+
 using FFXIVClientStructs.FFXIV.Client.System.Memory;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
@@ -27,7 +29,7 @@ namespace Dalamud.Game.Gui.ContextMenu;
 [ServiceManager.EarlyLoadedService]
 internal sealed unsafe class ContextMenu : IDisposable, IServiceType, IContextMenu
 {
-    private static readonly ModuleLog Log = new("ContextMenuGui");
+    private static readonly ModuleLog Log = new("ContextMenu");
 
     private readonly ContextMenuAddressResolver address;
 
@@ -333,7 +335,7 @@ internal sealed unsafe class ContextMenu : IDisposable, IServiceType, IContextMe
                         this.SelectedItems = new();
                 }
 
-                this.OnMenuOpened?.Invoke(new(this.SelectedItems.Add, this.SelectedParentAddon, this.SelectedAgent, this.SelectedMenuType.Value, this.SelectedEventInterfaces));
+                this.OnMenuOpened?.InvokeSafely(new(this.SelectedItems.Add, this.SelectedParentAddon, this.SelectedAgent, this.SelectedMenuType.Value, this.SelectedEventInterfaces));
                 this.SetupContextMenu(this.SelectedItems, ref valueCount, ref values);
                 Log.Verbose($"Opening {this.SelectedMenuType} context menu with {this.SelectedItems.Count} custom items.");
             }
@@ -420,7 +422,7 @@ internal sealed unsafe class ContextMenu : IDisposable, IServiceType, IContextMe
             {
                 if (item.OnClicked == null)
                     throw new InvalidOperationException("Item has no OnClicked handler");
-                item.OnClicked(new(
+                item.OnClicked.InvokeSafely(new(
                     (name, items) =>
                     {
                         short x, y;
