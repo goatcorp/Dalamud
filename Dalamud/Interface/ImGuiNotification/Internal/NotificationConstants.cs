@@ -4,9 +4,7 @@ using Dalamud.Interface.Utility;
 
 namespace Dalamud.Interface.ImGuiNotification.Internal;
 
-/// <summary>
-/// Constants for drawing notification windows.
-/// </summary>
+/// <summary>Constants for drawing notification windows.</summary>
 internal static class NotificationConstants
 {
     // .............................[..]
@@ -101,9 +99,7 @@ internal static class NotificationConstants
     /// <summary>Gets the string format of the initiator name field, if the initiator is unloaded.</summary>
     public static string UnloadedInitiatorNameFormat => "{0} (unloaded)";
 
-    /// <summary>
-    /// Formats an instance of <see cref="DateTime"/> as a relative time.
-    /// </summary>
+    /// <summary>Formats an instance of <see cref="DateTime"/> as a relative time.</summary>
     /// <param name="when">When.</param>
     /// <returns>The formatted string.</returns>
     public static string FormatRelativeDateTime(this DateTime when)
@@ -121,9 +117,7 @@ internal static class NotificationConstants
         return when.FormatAbsoluteDateTime();
     }
 
-    /// <summary>
-    /// Formats an instance of <see cref="DateTime"/> as an absolute time.
-    /// </summary>
+    /// <summary>Formats an instance of <see cref="DateTime"/> as an absolute time.</summary>
     /// <param name="when">When.</param>
     /// <returns>The formatted string.</returns>
     public static string FormatAbsoluteDateTime(this DateTime when) => $"{when:G}";

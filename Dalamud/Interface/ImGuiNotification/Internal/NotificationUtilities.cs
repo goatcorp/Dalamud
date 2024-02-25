@@ -9,14 +9,10 @@ using ImGuiNET;
 
 namespace Dalamud.Interface.ImGuiNotification.Internal;
 
-/// <summary>
-/// Utilities for implementing stuff under <see cref="ImGuiNotification"/>.
-/// </summary>
+/// <summary>Utilities for implementing stuff under <see cref="ImGuiNotification"/>.</summary>
 internal static class NotificationUtilities
 {
-    /// <summary>
-    /// Draws the given texture, or the icon of the plugin if texture is <c>null</c>.
-    /// </summary>
+    /// <summary>Draws the given texture, or the icon of the plugin if texture is <c>null</c>.</summary>
     /// <param name="texture">The texture.</param>
     /// <param name="minCoord">The coordinates of the top left of the icon area.</param>
     /// <param name="maxCoord">The coordinates of the bottom right of the icon area.</param>

@@ -3,9 +3,7 @@ using Dalamud.Interface.Internal.Notifications;
 
 namespace Dalamud.Interface.ImGuiNotification;
 
-/// <summary>
-/// Represents a blueprint for a notification.
-/// </summary>
+/// <summary>Represents a blueprint for a notification.</summary>
 public sealed record Notification : INotification
 {
     /// <inheritdoc/>

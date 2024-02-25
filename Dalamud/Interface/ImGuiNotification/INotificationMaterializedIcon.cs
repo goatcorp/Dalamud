@@ -4,9 +4,7 @@ using Dalamud.Plugin.Internal.Types;
 
 namespace Dalamud.Interface.ImGuiNotification;
 
-/// <summary>
-/// Represents a materialized icon.
-/// </summary>
+/// <summary>Represents a materialized icon.</summary>
 internal interface INotificationMaterializedIcon : IDisposable
 {
     /// <summary>Draws the icon.</summary>
