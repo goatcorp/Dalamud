@@ -35,6 +35,9 @@ internal sealed class ActiveNotification : IActiveNotification, IDisposable
     /// <summary>Used for calculating correct dismissal progressbar animation (right edge).</summary>
     private float prevProgressR;
 
+    /// <summary>New progress value to be updated on next call to <see cref="UpdateAnimations"/>.</summary>
+    private float? newProgress;
+
     /// <summary>Initializes a new instance of the <see cref="ActiveNotification"/> class.</summary>
     /// <param name="underlyingNotification">The underlying notification.</param>
     /// <param name="initiatorPlugin">The initiator plugin. Use <c>null</c> if originated by Dalamud.</param>
@@ -175,15 +178,13 @@ internal sealed class ActiveNotification : IActiveNotification, IDisposable
     /// <inheritdoc cref="IActiveNotification.Progress"/>
     public float Progress
     {
-        get => this.underlyingNotification.Progress;
+        get => this.newProgress ?? this.underlyingNotification.Progress;
         set
         {
             if (this.IsDismissed)
                 return;
 
-            this.progressBefore = this.ProgressEased;
-            this.underlyingNotification.Progress = value;
-            this.progressEasing.Restart();
+            this.newProgress = value;
         }
     }
 
@@ -207,14 +208,15 @@ internal sealed class ActiveNotification : IActiveNotification, IDisposable
     {
         get
         {
-            if (this.Progress < 0)
+            var underlyingProgress = this.underlyingNotification.Progress;
+            if (underlyingProgress < 0)
                 return 0f;
 
-            if (Math.Abs(this.Progress - this.progressBefore) < 0.000001f || this.progressEasing.IsDone)
-                return this.Progress;
+            if (Math.Abs(underlyingProgress - this.progressBefore) < 0.000001f || this.progressEasing.IsDone)
+                return underlyingProgress;
 
             var state = Math.Clamp((float)this.progressEasing.Value, 0f, 1f);
-            return this.progressBefore + (state * (this.Progress - this.progressBefore));
+            return this.progressBefore + (state * (underlyingProgress - this.progressBefore));
         }
     }
 
@@ -271,7 +273,13 @@ internal sealed class ActiveNotification : IActiveNotification, IDisposable
     }
 
     /// <inheritdoc/>
-    public Notification CloneNotification() => this.underlyingNotification with { };
+    public Notification CloneNotification()
+    {
+        var newValue = this.underlyingNotification with { };
+        if (this.newProgress is { } p)
+            newValue.Progress = p;
+        return newValue;
+    }
 
     /// <inheritdoc/>
     public void DismissNow() => this.DismissNow(NotificationDismissReason.Programmatical);
@@ -303,6 +311,16 @@ internal sealed class ActiveNotification : IActiveNotification, IDisposable
         this.showEasing.Update();
         this.hideEasing.Update();
         this.progressEasing.Update();
+
+        if (this.newProgress is { } p)
+        {
+            this.progressBefore = this.ProgressEased;
+            this.underlyingNotification.Progress = p;
+            this.progressEasing.Restart();
+            this.progressEasing.Update();
+            this.newProgress = null;
+        }
+
         return this.hideEasing.IsRunning && this.hideEasing.IsDone;
     }
 
@@ -498,7 +516,7 @@ internal sealed class ActiveNotification : IActiveNotification, IDisposable
         this.Expiry = newNotification.Expiry;
         this.Interactible = newNotification.Interactible;
         this.HoverExtendDuration = newNotification.HoverExtendDuration;
-        this.Progress = newNotification.Progress;
+        this.newProgress = newNotification.Progress;
     }
 
     /// <inheritdoc/>
