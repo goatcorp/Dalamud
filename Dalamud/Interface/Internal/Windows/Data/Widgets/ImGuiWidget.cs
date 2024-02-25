@@ -79,27 +79,26 @@ internal class ImGuiWidget : IDataWindowWidget
             NotificationTemplate.IconSourceTitles.Length);
         switch (this.notificationTemplate.IconSourceInt)
         {
-            case 1:
-            case 2:
+            case 1 or 2:
                 ImGui.InputText(
                     "Icon Text##iconSourceText",
                     ref this.notificationTemplate.IconSourceText,
                     255);
                 break;
-            case 3:
+            case 3 or 4:
                 ImGui.Combo(
                     "Icon Source##iconSourceAssetCombo",
                     ref this.notificationTemplate.IconSourceAssetInt,
                     NotificationTemplate.AssetSources,
                     NotificationTemplate.AssetSources.Length);
                 break;
-            case 4:
+            case 5 or 7:
                 ImGui.InputText(
                     "Game Path##iconSourceText",
                     ref this.notificationTemplate.IconSourceText,
                     255);
                 break;
-            case 5:
+            case 6 or 8:
                 ImGui.InputText(
                     "File Path##iconSourceText",
                     ref this.notificationTemplate.IconSourceText,
@@ -170,17 +169,31 @@ internal class ImGuiWidget : IDataWindowWidget
                             (FontAwesomeIcon)(this.notificationTemplate.IconSourceText.Length == 0
                                                   ? 0
                                                   : this.notificationTemplate.IconSourceText[0])),
-                        3 => new TextureWrapTaskIconSource(
+                        3 => new TextureWrapIconSource(
+                            Service<DalamudAssetManager>.Get().GetDalamudTextureWrap(
+                                Enum.Parse<DalamudAsset>(
+                                    NotificationTemplate.AssetSources[
+                                        this.notificationTemplate.IconSourceAssetInt])),
+                            false),
+                        4 => new TextureWrapTaskIconSource(
                             () =>
                                 Service<DalamudAssetManager>.Get().GetDalamudTextureWrapAsync(
                                     Enum.Parse<DalamudAsset>(
                                         NotificationTemplate.AssetSources[
                                             this.notificationTemplate.IconSourceAssetInt]))),
-                        4 => new GamePathIconSource(this.notificationTemplate.IconSourceText),
-                        5 => new FilePathIconSource(this.notificationTemplate.IconSourceText),
+                        5 => new GamePathIconSource(this.notificationTemplate.IconSourceText),
+                        6 => new FilePathIconSource(this.notificationTemplate.IconSourceText),
+                        7 => new TextureWrapIconSource(
+                            Service<TextureManager>.Get().GetTextureFromGame(this.notificationTemplate.IconSourceText),
+                            false),
+                        8 => new TextureWrapIconSource(
+                            Service<TextureManager>.Get().GetTextureFromFile(
+                                new(this.notificationTemplate.IconSourceText)),
+                            false),
                         _ => null,
                     },
-                });
+                },
+                true);
             switch (this.notificationTemplate.ProgressMode)
             {
                 case 2:
@@ -276,9 +289,12 @@ internal class ImGuiWidget : IDataWindowWidget
             "None (use Type)",
             "SeIconChar",
             "FontAwesomeIcon",
+            "TextureWrap from DalamudAssets",
             "TextureWrapTask from DalamudAssets",
             "GamePath",
             "FilePath",
+            "TextureWrap from GamePath",
+            "TextureWrap from FilePath",
         };
 
         public static readonly string[] AssetSources =

@@ -4,7 +4,7 @@ using Dalamud.Interface.Internal.Notifications;
 namespace Dalamud.Interface.ImGuiNotification;
 
 /// <summary>Represents a notification.</summary>
-public interface INotification
+public interface INotification : IDisposable
 {
     /// <summary>Gets the content body of the notification.</summary>
     string Content { get; }
@@ -16,10 +16,15 @@ public interface INotification
     NotificationType Type { get; }
 
     /// <summary>Gets the icon source.</summary>
-    /// <remarks>The following icon sources are currently available.<br />
+    /// <remarks>
+    /// The assigned value will be disposed upon the <see cref="IDisposable.Dispose"/> call on this instance of
+    /// <see cref="INotification"/>.<br />
+    /// <br /> 
+    /// The following icon sources are currently available.<br />
     /// <ul>
     /// <li><see cref="SeIconCharIconSource"/></li>
     /// <li><see cref="FontAwesomeIconIconSource"/></li>
+    /// <li><see cref="TextureWrapIconSource"/></li>
     /// <li><see cref="TextureWrapTaskIconSource"/></li>
     /// <li><see cref="GamePathIconSource"/></li>
     /// <li><see cref="FilePathIconSource"/></li>

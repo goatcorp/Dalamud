@@ -31,4 +31,11 @@ public sealed record Notification : INotification
 
     /// <inheritdoc/>
     public float Progress { get; set; } = 1f;
+
+    /// <inheritdoc/>
+    public void Dispose()
+    {
+        this.IconSource?.Dispose();
+        this.IconSource = null;
+    }
 }

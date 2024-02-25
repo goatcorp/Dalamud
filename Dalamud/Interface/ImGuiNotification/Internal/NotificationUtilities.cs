@@ -23,7 +23,22 @@ internal static class NotificationUtilities
         Vector2 maxCoord,
         LocalPlugin? initiatorPlugin)
     {
-        if (texture is null)
+        var handle = nint.Zero;
+        var size = Vector2.Zero;
+        if (texture is not null)
+        {
+            try
+            {
+                handle = texture.ImGuiHandle;
+                size = texture.Size;
+            }
+            catch
+            {
+                // must have been disposed or something; ignore the texture
+            }
+        }
+
+        if (handle == nint.Zero)
         {
             var dam = Service<DalamudAssetManager>.Get();
             if (initiatorPlugin is null)
@@ -46,14 +61,16 @@ internal static class NotificationUtilities
                     };
                 }
             }
+
+            handle = texture.ImGuiHandle;
+            size = texture.Size;
         }
 
-        var size = texture.Size;
         if (size.X > maxCoord.X - minCoord.X)
             size *= (maxCoord.X - minCoord.X) / size.X;
         if (size.Y > maxCoord.Y - minCoord.Y)
             size *= (maxCoord.Y - minCoord.Y) / size.Y;
         ImGui.SetCursorPos(((minCoord + maxCoord) - size) / 2);
-        ImGui.Image(texture.ImGuiHandle, size);
+        ImGui.Image(handle, size);
     }
 }

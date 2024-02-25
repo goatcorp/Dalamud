@@ -56,8 +56,9 @@ internal class NotificationManager : INotificationManager, IServiceType, IDispos
     }
 
     /// <inheritdoc/>
-    public IActiveNotification AddNotification(Notification notification)
+    public IActiveNotification AddNotification(Notification notification, bool disposeNotification = true)
     {
+        using var disposer = disposeNotification ? notification : null;
         var an = new ActiveNotification(notification, null);
         this.pendingNotifications.Add(an);
         return an;
@@ -65,10 +66,13 @@ internal class NotificationManager : INotificationManager, IServiceType, IDispos
 
     /// <summary>Adds a notification originating from a plugin.</summary>
     /// <param name="notification">The notification.</param>
+    /// <param name="disposeNotification">Dispose <paramref name="notification"/> when this function returns.</param>
     /// <param name="plugin">The source plugin.</param>
-    /// <returns>The new notification.</returns>
-    public IActiveNotification AddNotification(Notification notification, LocalPlugin plugin)
+    /// <returns>The added notification.</returns>
+    /// <remarks><paramref name="disposeNotification"/> will be honored even on exceptions.</remarks>
+    public IActiveNotification AddNotification(Notification notification, bool disposeNotification, LocalPlugin plugin)
     {
+        using var disposer = disposeNotification ? notification : null;
         var an = new ActiveNotification(notification, plugin);
         this.pendingNotifications.Add(an);
         return an;
@@ -88,7 +92,8 @@ internal class NotificationManager : INotificationManager, IServiceType, IDispos
                 Content = content,
                 Title = title,
                 Type = type,
-            });
+            },
+            true);
 
     /// <summary>Draw all currently queued notifications.</summary>
     public void Draw()
@@ -101,7 +106,14 @@ internal class NotificationManager : INotificationManager, IServiceType, IDispos
 
         var maxWidth = Math.Max(320 * ImGuiHelpers.GlobalScale, viewportSize.X / 3);
 
-        this.notifications.RemoveAll(x => x.UpdateAnimations());
+        this.notifications.RemoveAll(static x =>
+        {
+            if (!x.UpdateAnimations())
+                return false;
+
+            x.Dispose();
+            return true;
+        });
         foreach (var tn in this.notifications)
             height += tn.Draw(maxWidth, height) + NotificationConstants.ScaledWindowGap;
     }
@@ -127,9 +139,9 @@ internal class NotificationManagerPluginScoped : INotificationManager, IServiceT
         this.localPlugin = localPlugin;
 
     /// <inheritdoc/>
-    public IActiveNotification AddNotification(Notification notification)
+    public IActiveNotification AddNotification(Notification notification, bool disposeNotification = true)
     {
-        var an = this.notificationManagerService.AddNotification(notification, this.localPlugin);
+        var an = this.notificationManagerService.AddNotification(notification, disposeNotification, this.localPlugin);
         _ = this.notifications.TryAdd(an, 0);
         an.Dismiss += (a, unused) => this.notifications.TryRemove(an, out _);
         return an;

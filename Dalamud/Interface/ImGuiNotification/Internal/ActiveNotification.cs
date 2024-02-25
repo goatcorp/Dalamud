@@ -43,7 +43,10 @@ internal sealed class ActiveNotification : IActiveNotification, IDisposable
     /// <param name="initiatorPlugin">The initiator plugin. Use <c>null</c> if originated by Dalamud.</param>
     public ActiveNotification(Notification underlyingNotification, LocalPlugin? initiatorPlugin)
     {
-        this.underlyingNotification = underlyingNotification with { };
+        this.underlyingNotification = underlyingNotification with
+        {
+            IconSource = underlyingNotification.IconSource?.Clone(),
+        };
         this.InitiatorPlugin = initiatorPlugin;
         this.showEasing = new InCubic(NotificationConstants.ShowAnimationDuration);
         this.hideEasing = new OutCubic(NotificationConstants.HideAnimationDuration);
@@ -51,7 +54,16 @@ internal sealed class ActiveNotification : IActiveNotification, IDisposable
 
         this.showEasing.Start();
         this.progressEasing.Start();
-        this.UpdateIcon();
+        try
+        {
+            this.UpdateIcon();
+        }
+        catch (Exception e)
+        {
+            // Ignore the one caused from ctor only; other UpdateIcon calls are from plugins, and they should handle the
+            // error accordingly.
+            Log.Error(e, $"{nameof(ActiveNotification)}#{this.Id} ctor: {nameof(this.UpdateIcon)} failed and ignored.");
+        }
     }
 
     /// <inheritdoc/>
@@ -114,17 +126,8 @@ internal sealed class ActiveNotification : IActiveNotification, IDisposable
         }
     }
 
-    /// <inheritdoc cref="IActiveNotification.IconSource"/>
-    public INotificationIconSource? IconSource
-    {
-        get => this.underlyingNotification.IconSource;
-        set
-        {
-            if (this.IsDismissed)
-                return;
-            this.underlyingNotification.IconSource = value;
-        }
-    }
+    /// <inheritdoc/>
+    public INotificationIconSource? IconSource => this.underlyingNotification.IconSource;
 
     /// <inheritdoc cref="IActiveNotification.Expiry"/>
     public DateTime Expiry
@@ -264,21 +267,12 @@ internal sealed class ActiveNotification : IActiveNotification, IDisposable
     /// <inheritdoc/>
     public void Dispose()
     {
-        this.ClearIconTask();
-        this.underlyingNotification.IconSource = null;
+        this.ClearMaterializedIcon();
+        this.underlyingNotification.Dispose();
         this.Dismiss = null;
         this.Click = null;
         this.DrawActions = null;
         this.InitiatorPlugin = null;
-    }
-
-    /// <inheritdoc/>
-    public Notification CloneNotification()
-    {
-        var newValue = this.underlyingNotification with { };
-        if (this.newProgress is { } p)
-            newValue.Progress = p;
-        return newValue;
     }
 
     /// <inheritdoc/>
@@ -505,29 +499,25 @@ internal sealed class ActiveNotification : IActiveNotification, IDisposable
     }
 
     /// <inheritdoc/>
-    public void Update(INotification newNotification)
-    {
-        if (this.IsDismissed)
-            return;
-        this.Content = newNotification.Content;
-        this.Title = newNotification.Title;
-        this.Type = newNotification.Type;
-        this.IconSource = newNotification.IconSource;
-        this.Expiry = newNotification.Expiry;
-        this.Interactable = newNotification.Interactable;
-        this.HoverExtendDuration = newNotification.HoverExtendDuration;
-        this.newProgress = newNotification.Progress;
-    }
-
-    /// <inheritdoc/>
     public void UpdateIcon()
     {
         if (this.IsDismissed)
             return;
-        this.ClearIconTask();
+        this.ClearMaterializedIcon();
         this.MaterializedIcon = (this.IconSource as INotificationIconSource.IInternal)?.Materialize();
     }
 
+    /// <inheritdoc/>
+    public void UpdateIconSource(INotificationIconSource? newIconSource)
+    {
+        if (this.IsDismissed || this.underlyingNotification.IconSource == newIconSource)
+            return;
+
+        this.underlyingNotification.IconSource?.Dispose();
+        this.underlyingNotification.IconSource = newIconSource;
+        this.UpdateIcon();
+    }
+    
     /// <summary>Removes non-Dalamud invocation targets from events.</summary>
     public void RemoveNonDalamudInvocations()
     {
@@ -567,7 +557,7 @@ internal sealed class ActiveNotification : IActiveNotification, IDisposable
         }
     }
 
-    private void ClearIconTask()
+    private void ClearMaterializedIcon()
     {
         this.MaterializedIcon?.Dispose();
         this.MaterializedIcon = null;

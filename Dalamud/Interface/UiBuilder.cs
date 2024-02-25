@@ -581,6 +581,7 @@ public sealed class UiBuilder : IDisposable
                 Type = type,
                 Expiry = DateTime.Now + TimeSpan.FromMilliseconds(msDelay),
             },
+            true,
             this.localPlugin);
         _ = this.notifications.TryAdd(an, 0);
         an.Dismiss += (a, unused) => this.notifications.TryRemove(an, out _);
