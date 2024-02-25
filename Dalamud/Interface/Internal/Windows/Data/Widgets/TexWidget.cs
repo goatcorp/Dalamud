@@ -119,6 +119,10 @@ internal class TexWidget : IDataWindowWidget
 
                 if (ImGui.Button($"X##{i}"))
                     toRemove = tex;
+
+                ImGui.SameLine();
+                if (ImGui.Button($"Clone##{i}"))
+                    this.addedTextures.Add(tex.Clone());
             }
         }
 
