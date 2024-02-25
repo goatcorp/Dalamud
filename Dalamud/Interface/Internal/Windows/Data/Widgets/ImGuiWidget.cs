@@ -1,5 +1,8 @@
-﻿using Dalamud.Interface.Internal.Notifications;
+﻿using System.Threading.Tasks;
+
+using Dalamud.Interface.Internal.Notifications;
 using Dalamud.Interface.Windowing;
+
 using ImGuiNET;
 
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
@@ -9,11 +12,13 @@ namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 /// </summary>
 internal class ImGuiWidget : IDataWindowWidget
 {
+    private NotificationTemplate notificationTemplate;
+
     /// <inheritdoc/>
     public string[]? CommandShortcuts { get; init; } = { "imgui" };
-    
+
     /// <inheritdoc/>
-    public string DisplayName { get; init; } = "ImGui"; 
+    public string DisplayName { get; init; } = "ImGui";
 
     /// <inheritdoc/>
     public bool Ready { get; set; }
@@ -22,6 +27,7 @@ internal class ImGuiWidget : IDataWindowWidget
     public void Load()
     {
         this.Ready = true;
+        this.notificationTemplate.Reset();
     }
 
     /// <inheritdoc/>
@@ -38,51 +44,134 @@ internal class ImGuiWidget : IDataWindowWidget
 
         ImGui.Separator();
 
-        ImGui.TextUnformatted($"WindowSystem.TimeSinceLastAnyFocus: {WindowSystem.TimeSinceLastAnyFocus.TotalMilliseconds:0}ms");
+        ImGui.TextUnformatted(
+            $"WindowSystem.TimeSinceLastAnyFocus: {WindowSystem.TimeSinceLastAnyFocus.TotalMilliseconds:0}ms");
 
         ImGui.Separator();
 
-        if (ImGui.Button("Add random notification"))
-        {
-            const string text = "Bla bla bla bla bla bla bla bla bla bla bla.\nBla bla bla bla bla bla bla bla bla bla bla bla bla bla.";
+        ImGui.Checkbox("##manualContent", ref this.notificationTemplate.ManualContent);
+        ImGui.SameLine();
+        ImGui.InputText("Content##content", ref this.notificationTemplate.Content, 255);
 
-            NewRandom(out var title, out var type);
+        ImGui.Checkbox("##manualTitle", ref this.notificationTemplate.ManualTitle);
+        ImGui.SameLine();
+        ImGui.InputText("Title##title", ref this.notificationTemplate.Title, 255);
+
+        ImGui.Checkbox("##manualType", ref this.notificationTemplate.ManualType);
+        ImGui.SameLine();
+        ImGui.Combo(
+            "Type##type",
+            ref this.notificationTemplate.TypeInt,
+            NotificationTemplate.TypeTitles,
+            NotificationTemplate.TypeTitles.Length);
+
+        ImGui.Combo(
+            "Duration",
+            ref this.notificationTemplate.DurationInt,
+            NotificationTemplate.DurationTitles,
+            NotificationTemplate.DurationTitles.Length);
+
+        ImGui.Combo(
+            "Progress",
+            ref this.notificationTemplate.ProgressMode,
+            NotificationTemplate.ProgressModeTitles,
+            NotificationTemplate.ProgressModeTitles.Length);
+
+        ImGui.Checkbox("Interactible", ref this.notificationTemplate.Interactible);
+
+        ImGui.Checkbox("Action Bar", ref this.notificationTemplate.ActionBar);
+
+        if (ImGui.Button("Add notification"))
+        {
+            var text =
+                "Bla bla bla bla bla bla bla bla bla bla bla.\nBla bla bla bla bla bla bla bla bla bla bla bla bla bla.";
+
+            NewRandom(out var title, out var type, out var progress);
+            if (this.notificationTemplate.ManualTitle)
+                title = this.notificationTemplate.Title;
+            if (this.notificationTemplate.ManualContent)
+                text = this.notificationTemplate.Content;
+            if (this.notificationTemplate.ManualType)
+                type = (NotificationType)this.notificationTemplate.TypeInt;
+
+            var duration = NotificationTemplate.Durations[this.notificationTemplate.DurationInt];
+
             var n = notifications.AddNotification(
                 new()
                 {
                     Content = text,
                     Title = title,
                     Type = type,
-                    Interactible = true,
-                    ClickIsDismiss = false,
-                    Expiry = DateTime.MaxValue,
+                    Interactible = this.notificationTemplate.Interactible,
+                    Expiry = duration == TimeSpan.MaxValue ? DateTime.MaxValue : DateTime.Now + duration,
+                    Progress = this.notificationTemplate.ProgressMode switch
+                    {
+                        0 => 1f,
+                        1 => progress,
+                        2 => 0f,
+                        3 => 0f,
+                        4 => -1f,
+                        _ => 0.5f,
+                    },
                 });
-
-            var nclick = 0;
-            n.Click += _ => nclick++;
-            n.DrawActions += an =>
+            switch (this.notificationTemplate.ProgressMode)
             {
-                if (ImGui.Button("Update in place"))
-                {
-                    NewRandom(out title, out type);
-                    an.Update(an.CloneNotification() with { Title = title, Type = type });
-                }
+                case 2:
+                    Task.Run(
+                        async () =>
+                        {
+                            for (var i = 0; i <= 10 && !n.IsDismissed; i++)
+                            {
+                                await Task.Delay(500);
+                                n.Progress = i / 10f;
+                            }
+                        });
+                    break;
+                case 3:
+                    Task.Run(
+                        async () =>
+                        {
+                            for (var i = 0; i <= 10 && !n.IsDismissed; i++)
+                            {
+                                await Task.Delay(500);
+                                n.Progress = i / 10f;
+                            }
 
-                if (an.IsMouseHovered)
+                            n.Expiry = DateTime.Now + NotificationConstants.DefaultDisplayDuration;
+                        });
+                    break;
+            }
+
+            if (this.notificationTemplate.ActionBar)
+            {
+                var nclick = 0;
+                n.Click += _ => nclick++;
+                n.DrawActions += an =>
                 {
+                    if (ImGui.Button("Update in place"))
+                    {
+                        NewRandom(out title, out type, out progress);
+                        an.Title = title;
+                        an.Type = type;
+                        an.Progress = progress;
+                    }
+
+                    if (an.IsMouseHovered)
+                    {
+                        ImGui.SameLine();
+                        if (ImGui.Button("Dismiss"))
+                            an.DismissNow();
+                    }
+
+                    ImGui.AlignTextToFramePadding();
                     ImGui.SameLine();
-                    if (ImGui.Button("Dismiss"))
-                        an.DismissNow();
-                }
-
-                ImGui.AlignTextToFramePadding();
-                ImGui.SameLine();
-                ImGui.TextUnformatted($"Clicked {nclick} time(s)");
-            };
+                    ImGui.TextUnformatted($"Clicked {nclick} time(s)");
+                };
+            }
         }
     }
 
-    private static void NewRandom(out string? title, out NotificationType type)
+    private static void NewRandom(out string? title, out NotificationType type, out float progress)
     {
         var rand = new Random();
 
@@ -106,5 +195,72 @@ internal class ImGuiWidget : IDataWindowWidget
             4 => NotificationType.None,
             _ => NotificationType.None,
         };
+
+        if (rand.Next() % 2 == 0)
+            progress = -1;
+        else
+            progress = rand.NextSingle();
+    }
+
+    private struct NotificationTemplate
+    {
+        public static readonly string[] ProgressModeTitles =
+        {
+            "Default",
+            "Random",
+            "Increasing",
+            "Increasing & Auto Dismiss",
+            "Indeterminate",
+        };
+
+        public static readonly string[] TypeTitles =
+        {
+            nameof(NotificationType.None),
+            nameof(NotificationType.Success),
+            nameof(NotificationType.Warning),
+            nameof(NotificationType.Error),
+            nameof(NotificationType.Info),
+        };
+
+        public static readonly string[] DurationTitles =
+        {
+            "Infinite",
+            "1 seconds",
+            "3 seconds (default)",
+            "10 seconds",
+        };
+
+        public static readonly TimeSpan[] Durations =
+        {
+            TimeSpan.MaxValue,
+            TimeSpan.FromSeconds(1),
+            NotificationConstants.DefaultDisplayDuration,
+            TimeSpan.FromSeconds(10),
+        };
+
+        public bool ManualContent;
+        public string Content;
+        public bool ManualTitle;
+        public string Title;
+        public bool ManualType;
+        public int TypeInt;
+        public int DurationInt;
+        public bool Interactible;
+        public bool ActionBar;
+        public int ProgressMode;
+
+        public void Reset()
+        {
+            this.ManualContent = false;
+            this.Content = string.Empty;
+            this.ManualTitle = false;
+            this.Title = string.Empty;
+            this.ManualType = false;
+            this.TypeInt = (int)NotificationType.None;
+            this.DurationInt = 2;
+            this.Interactible = true;
+            this.ActionBar = true;
+            this.ProgressMode = 0;
+        }
     }
 }

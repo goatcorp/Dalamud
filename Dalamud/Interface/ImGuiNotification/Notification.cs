@@ -28,8 +28,8 @@ public sealed record Notification : INotification
     public bool Interactible { get; set; }
 
     /// <inheritdoc/>
-    public bool ClickIsDismiss { get; set; } = true;
+    public TimeSpan HoverExtendDuration { get; set; } = NotificationConstants.DefaultHoverExtendDuration;
 
     /// <inheritdoc/>
-    public TimeSpan HoverExtendDuration { get; set; } = NotificationConstants.DefaultHoverExtendDuration;
+    public float Progress { get; set; } = 1f;
 }
