@@ -1,12 +1,9 @@
 using System.Collections.Generic;
-using System.Diagnostics;
 
 using Dalamud.Memory;
 using Dalamud.Plugin.Services;
 
-using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
-using FFXIVClientStructs.FFXIV.Client.UI.Info;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 
 namespace Dalamud.Game.Gui.ContextMenu;
@@ -35,7 +32,7 @@ public abstract unsafe class MenuArgs
         this.Target = type switch
         {
             ContextMenuType.Default => new MenuTargetDefault((AgentContext*)agent),
-            ContextMenuType.Inventory => new MenuTargetInventory((AgentInventoryContext*)addon),
+            ContextMenuType.Inventory => new MenuTargetInventory((AgentInventoryContext*)agent),
             _ => throw new ArgumentException("Invalid context menu type", nameof(type)),
         };
     }
