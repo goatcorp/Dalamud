@@ -127,7 +127,7 @@ public unsafe class CharacterData
     /// <summary>
     /// Gets the job of the character.
     /// </summary>
-    public ExcelResolver<ClassJob> Job => new(this.Struct->Job);
+    public ExcelResolver<ClassJob> ClassJob => new(this.Struct->Job);
 
     /// <summary>
     /// Gets the name of the character.

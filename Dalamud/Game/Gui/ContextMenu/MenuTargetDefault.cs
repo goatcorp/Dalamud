@@ -1,4 +1,9 @@
+using Dalamud.Game.ClientState.Resolvers;
+using Dalamud.Game.Network.Structures.InfoProxy;
+
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
+
+using Lumina.Excel.GeneratedSheets;
 
 namespace Dalamud.Game.Gui.ContextMenu;
 
@@ -34,7 +39,7 @@ public sealed unsafe class MenuTargetDefault : MenuTarget
     /// <summary>
     /// Gets the home world id of the target.
     /// </summary>
-    public short TargetHomeWorldId => this.Context->TargetHomeWorldId;
+    public ExcelResolver<World> TargetHomeWorld => new((uint)this.Context->TargetHomeWorldId);
 
     /// <summary>
     /// Gets the currently targeted character.
@@ -45,7 +50,7 @@ public sealed unsafe class MenuTargetDefault : MenuTarget
         {
             var target = this.Context->CurrentContextMenuTarget;
             if (target != null)
-                return new(*target);
+                return new(target);
             return null;
         }
     }
