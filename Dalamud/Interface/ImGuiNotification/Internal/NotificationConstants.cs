@@ -2,7 +2,7 @@ using System.Numerics;
 
 using Dalamud.Interface.Utility;
 
-namespace Dalamud.Interface.Internal.Notifications;
+namespace Dalamud.Interface.ImGuiNotification.Internal;
 
 /// <summary>
 /// Constants for drawing notification windows.
@@ -94,7 +94,7 @@ internal static class NotificationConstants
 
     /// <summary>Gets the scaled size of the icon.</summary>
     public static float ScaledIconSize => MathF.Round(IconSize * ImGuiHelpers.GlobalScale);
-    
+
     /// <summary>Gets the height of the expiry progress bar.</summary>
     public static float ScaledExpiryProgressBarHeight => MathF.Round(2 * ImGuiHelpers.GlobalScale);
 

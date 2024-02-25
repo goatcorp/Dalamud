@@ -35,7 +35,7 @@ public interface INotification
     /// <remarks>Set to <see cref="DateTime.MaxValue"/> to make the notification not have an expiry time
     /// (sticky, indeterminate, permanent, or persistent).</remarks>
     DateTime Expiry { get; }
-    
+
     /// <summary>Gets a value indicating whether this notification may be interacted.</summary>
     /// <remarks>
     /// Set this value to <c>true</c> if you want to respond to user inputs from
@@ -52,7 +52,7 @@ public interface INotification
     /// This property is applicable regardless of <see cref="Interactible"/>.
     /// </remarks>
     TimeSpan HoverExtendDuration { get; }
-    
+
     /// <summary>Gets the progress for the progress bar of the notification.
     /// The progress should either be in the range between 0 and 1 or be a negative value.
     /// Specifying a negative value will show an indeterminate progress bar.</summary>

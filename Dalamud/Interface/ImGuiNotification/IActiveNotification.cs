@@ -1,8 +1,6 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-using Dalamud.Game.Text;
-using Dalamud.Interface.Internal;
 using Dalamud.Interface.Internal.Notifications;
 
 namespace Dalamud.Interface.ImGuiNotification;

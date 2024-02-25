@@ -7,6 +7,7 @@ using Dalamud.Interface.Animation;
 using Dalamud.Interface.Animation.EasingFunctions;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.ImGuiNotification;
+using Dalamud.Interface.ImGuiNotification.Internal;
 using Dalamud.Interface.Internal.Windows;
 using Dalamud.Interface.ManagedFontAtlas;
 using Dalamud.Interface.Utility;

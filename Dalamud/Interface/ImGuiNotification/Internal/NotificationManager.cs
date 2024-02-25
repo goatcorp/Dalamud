@@ -2,7 +2,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 
 using Dalamud.Interface.GameFonts;
-using Dalamud.Interface.ImGuiNotification;
+using Dalamud.Interface.Internal.Notifications;
 using Dalamud.Interface.ManagedFontAtlas;
 using Dalamud.Interface.ManagedFontAtlas.Internals;
 using Dalamud.Interface.Utility;
@@ -11,7 +11,7 @@ using Dalamud.IoC.Internal;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Plugin.Services;
 
-namespace Dalamud.Interface.Internal.Notifications;
+namespace Dalamud.Interface.ImGuiNotification.Internal;
 
 /// <summary>
 /// Class handling notifications/toasts in ImGui.

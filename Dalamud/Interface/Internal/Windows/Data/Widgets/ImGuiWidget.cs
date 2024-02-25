@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 
+using Dalamud.Interface.ImGuiNotification.Internal;
 using Dalamud.Interface.Internal.Notifications;
 using Dalamud.Interface.Windowing;
 
