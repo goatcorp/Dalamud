@@ -38,9 +38,13 @@ public interface INotification
     /// <see cref="IActiveNotification.DrawActions"/>.
     /// Note that the close buttons for notifications are always provided and interactible.
     /// If set to <c>true</c>, then clicking on the notification itself will be interpreted as user-initiated dismissal,
-    /// unless <see cref="IActiveNotification.Click"/> is set.
+    /// unless <see cref="IActiveNotification.Click"/> is set or <see cref="UserDismissable"/> is unset.
     /// </remarks>
     bool Interactible { get; }
+    
+    /// <summary>Gets a value indicating whether the user can dismiss the notification by themselves.</summary>
+    /// <remarks>Consider adding a cancel button to <see cref="IActiveNotification.DrawActions"/>.</remarks>
+    bool UserDismissable { get; }
 
     /// <summary>Gets the new duration for this notification if mouse cursor is on the notification window.</summary>
     /// <remarks>

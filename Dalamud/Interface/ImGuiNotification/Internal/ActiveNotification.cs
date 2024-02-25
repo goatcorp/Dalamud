@@ -148,6 +148,18 @@ internal sealed class ActiveNotification : IActiveNotification, IDisposable
         }
     }
 
+    /// <inheritdoc cref="IActiveNotification.UserDismissable"/>
+    public bool UserDismissable
+    {
+        get => this.underlyingNotification.UserDismissable;
+        set
+        {
+            if (this.IsDismissed)
+                return;
+            this.underlyingNotification.UserDismissable = value;
+        }
+    }
+
     /// <inheritdoc cref="IActiveNotification.HoverExtendDuration"/>
     public TimeSpan HoverExtendDuration
     {
@@ -317,7 +329,6 @@ internal sealed class ActiveNotification : IActiveNotification, IDisposable
         if (opacity <= 0)
             return 0;
 
-        var notificationManager = Service<NotificationManager>.Get();
         var interfaceManager = Service<InterfaceManager>.Get();
         var unboundedWidth = ImGui.CalcTextSize(this.Content).X;
         float closeButtonHorizontalSpaceReservation;
@@ -386,7 +397,7 @@ internal sealed class ActiveNotification : IActiveNotification, IDisposable
             ImGuiWindowFlags.NoFocusOnAppearing |
             ImGuiWindowFlags.NoDocking);
 
-        this.DrawNotificationMainWindowContent(notificationManager, width);
+        this.DrawNotificationMainWindowContent(width);
         var windowPos = ImGui.GetWindowPos();
         var windowSize = ImGui.GetWindowSize();
         var hovered = ImGui.IsWindowHovered();
@@ -433,7 +444,7 @@ internal sealed class ActiveNotification : IActiveNotification, IDisposable
         {
             if (this.Click is null)
             {
-                if (ImGui.IsMouseClicked(ImGuiMouseButton.Left))
+                if (this.UserDismissable && ImGui.IsMouseClicked(ImGuiMouseButton.Left))
                     this.DismissNow(NotificationDismissReason.Manual);
             }
             else
@@ -546,7 +557,7 @@ internal sealed class ActiveNotification : IActiveNotification, IDisposable
         this.MaterializedIcon = null;
     }
 
-    private void DrawNotificationMainWindowContent(NotificationManager notificationManager, float width)
+    private void DrawNotificationMainWindowContent(float width)
     {
         var basePos = ImGui.GetCursorPos();
         this.DrawIcon(
@@ -706,6 +717,9 @@ internal sealed class ActiveNotification : IActiveNotification, IDisposable
 
     private void DrawCloseButton(InterfaceManager interfaceManager, Vector2 rt, float pad)
     {
+        if (!this.UserDismissable)
+            return;
+
         using (interfaceManager.IconFontHandle?.Push())
         {
             var str = FontAwesomeIcon.Times.ToIconString();
@@ -719,7 +733,7 @@ internal sealed class ActiveNotification : IActiveNotification, IDisposable
 
             ImGui.SetCursorPos(rt - new Vector2(size, 0) - new Vector2(pad));
             if (ImGui.Button(str, new(size + (pad * 2))))
-                this.DismissNow();
+                this.DismissNow(NotificationDismissReason.Manual);
 
             ImGui.PopStyleColor(2);
             if (!this.IsMouseHovered)

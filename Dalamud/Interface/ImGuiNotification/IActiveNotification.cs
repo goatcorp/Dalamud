@@ -67,6 +67,9 @@ public interface IActiveNotification : INotification
     /// <inheritdoc cref="INotification.Interactible"/>
     new bool Interactible { get; set; }
 
+    /// <inheritdoc cref="INotification.UserDismissable"/>
+    new bool UserDismissable { get; set; }
+
     /// <inheritdoc cref="INotification.HoverExtendDuration"/>
     new TimeSpan HoverExtendDuration { get; set; }
 

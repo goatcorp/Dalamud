@@ -25,6 +25,9 @@ public sealed record Notification : INotification
     public bool Interactible { get; set; }
 
     /// <inheritdoc/>
+    public bool UserDismissable { get; set; }
+
+    /// <inheritdoc/>
     public TimeSpan HoverExtendDuration { get; set; } = NotificationConstants.DefaultHoverExtendDuration;
 
     /// <inheritdoc/>

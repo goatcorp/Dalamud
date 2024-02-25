@@ -120,7 +120,11 @@ internal class ImGuiWidget : IDataWindowWidget
 
         ImGui.Checkbox("Interactible", ref this.notificationTemplate.Interactible);
 
-        ImGui.Checkbox("Action Bar", ref this.notificationTemplate.ActionBar);
+        ImGui.Checkbox("User Dismissable", ref this.notificationTemplate.UserDismissable);
+
+        ImGui.Checkbox(
+            "Action Bar (always on if not user dismissable for the example)",
+            ref this.notificationTemplate.ActionBar);
 
         if (ImGui.Button("Add notification"))
         {
@@ -144,6 +148,7 @@ internal class ImGuiWidget : IDataWindowWidget
                     Title = title,
                     Type = type,
                     Interactible = this.notificationTemplate.Interactible,
+                    UserDismissable = this.notificationTemplate.UserDismissable,
                     Expiry = duration == TimeSpan.MaxValue ? DateTime.MaxValue : DateTime.Now + duration,
                     Progress = this.notificationTemplate.ProgressMode switch
                     {
@@ -203,7 +208,7 @@ internal class ImGuiWidget : IDataWindowWidget
                     break;
             }
 
-            if (this.notificationTemplate.ActionBar)
+            if (this.notificationTemplate.ActionBar || !this.notificationTemplate.UserDismissable)
             {
                 var nclick = 0;
                 n.Click += _ => nclick++;
@@ -326,6 +331,7 @@ internal class ImGuiWidget : IDataWindowWidget
         public int TypeInt;
         public int DurationInt;
         public bool Interactible;
+        public bool UserDismissable;
         public bool ActionBar;
         public int ProgressMode;
 
@@ -342,6 +348,7 @@ internal class ImGuiWidget : IDataWindowWidget
             this.TypeInt = (int)NotificationType.None;
             this.DurationInt = 2;
             this.Interactible = true;
+            this.UserDismissable = true;
             this.ActionBar = true;
             this.ProgressMode = 0;
         }
