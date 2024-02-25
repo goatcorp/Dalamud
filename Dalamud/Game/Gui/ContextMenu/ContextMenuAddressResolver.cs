@@ -1,7 +1,7 @@
 namespace Dalamud.Game.Gui.ContextMenu;
 
 /// <summary>
-/// <see cref="ContextMenuGui"/> memory address resolver.
+/// <see cref="ContextMenu"/> memory address resolver.
 /// </summary>
 internal class ContextMenuAddressResolver : BaseAddressResolver
 {
