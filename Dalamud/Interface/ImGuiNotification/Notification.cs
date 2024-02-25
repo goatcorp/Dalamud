@@ -1,5 +1,3 @@
-using System.Threading.Tasks;
-
 using Dalamud.Interface.ImGuiNotification.Internal;
 using Dalamud.Interface.Internal.Notifications;
 
@@ -20,7 +18,7 @@ public sealed record Notification : INotification
     public NotificationType Type { get; set; } = NotificationType.None;
 
     /// <inheritdoc/>
-    public Func<Task<object>>? IconCreator { get; set; }
+    public INotificationIconSource? IconSource { get; set; }
 
     /// <inheritdoc/>
     public DateTime Expiry { get; set; } = DateTime.Now + NotificationConstants.DefaultDisplayDuration;

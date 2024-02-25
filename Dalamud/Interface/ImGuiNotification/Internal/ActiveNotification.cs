@@ -1,25 +1,21 @@
 using System.Numerics;
 using System.Runtime.Loader;
-using System.Threading.Tasks;
 
-using Dalamud.Game.Text;
 using Dalamud.Interface.Animation;
 using Dalamud.Interface.Animation.EasingFunctions;
 using Dalamud.Interface.Colors;
-using Dalamud.Interface.ImGuiNotification;
-using Dalamud.Interface.ImGuiNotification.Internal;
-using Dalamud.Interface.Internal.Windows;
-using Dalamud.Interface.ManagedFontAtlas;
+using Dalamud.Interface.ImGuiNotification.IconSource;
+using Dalamud.Interface.Internal;
+using Dalamud.Interface.Internal.Notifications;
 using Dalamud.Interface.Utility;
 using Dalamud.Plugin.Internal.Types;
-using Dalamud.Storage.Assets;
 using Dalamud.Utility;
 
 using ImGuiNET;
 
 using Serilog;
 
-namespace Dalamud.Interface.Internal.Notifications;
+namespace Dalamud.Interface.ImGuiNotification.Internal;
 
 /// <summary>Represents an active notification.</summary>
 internal sealed class ActiveNotification : IActiveNotification, IDisposable
@@ -115,15 +111,15 @@ internal sealed class ActiveNotification : IActiveNotification, IDisposable
         }
     }
 
-    /// <inheritdoc cref="IActiveNotification.IconCreator"/>
-    public Func<Task<object>>? IconCreator
+    /// <inheritdoc cref="IActiveNotification.IconSource"/>
+    public INotificationIconSource? IconSource
     {
-        get => this.underlyingNotification.IconCreator;
+        get => this.underlyingNotification.IconSource;
         set
         {
             if (this.IsDismissed)
                 return;
-            this.underlyingNotification.IconCreator = value;
+            this.underlyingNotification.IconSource = value;
         }
     }
 
@@ -192,7 +188,7 @@ internal sealed class ActiveNotification : IActiveNotification, IDisposable
     public LocalPlugin? InitiatorPlugin { get; set; }
 
     /// <summary>Gets or sets the icon of this notification.</summary>
-    public Task<object>? IconTask { get; set; }
+    public INotificationMaterializedIcon? MaterializedIcon { get; set; }
 
     /// <summary>Gets the eased progress.</summary>
     private float ProgressEased
@@ -255,7 +251,7 @@ internal sealed class ActiveNotification : IActiveNotification, IDisposable
     public void Dispose()
     {
         this.ClearIconTask();
-        this.underlyingNotification.IconCreator = null;
+        this.underlyingNotification.IconSource = null;
         this.Dismiss = null;
         this.Click = null;
         this.DrawActions = null;
@@ -487,7 +483,7 @@ internal sealed class ActiveNotification : IActiveNotification, IDisposable
         this.Content = newNotification.Content;
         this.Title = newNotification.Title;
         this.Type = newNotification.Type;
-        this.IconCreator = newNotification.IconCreator;
+        this.IconSource = newNotification.IconSource;
         this.Expiry = newNotification.Expiry;
         this.Interactible = newNotification.Interactible;
         this.HoverExtendDuration = newNotification.HoverExtendDuration;
@@ -500,7 +496,7 @@ internal sealed class ActiveNotification : IActiveNotification, IDisposable
         if (this.IsDismissed)
             return;
         this.ClearIconTask();
-        this.IconTask = this.IconCreator?.Invoke();
+        this.MaterializedIcon = (this.IconSource as INotificationIconSource.IInternal)?.Materialize();
     }
 
     /// <summary>Removes non-Dalamud invocation targets from events.</summary>
@@ -546,20 +542,14 @@ internal sealed class ActiveNotification : IActiveNotification, IDisposable
 
     private void ClearIconTask()
     {
-        _ = this.IconTask?.ContinueWith(
-            r =>
-            {
-                if (r.IsCompletedSuccessfully && r.Result is IDisposable d)
-                    d.Dispose();
-            });
-        this.IconTask = null;
+        this.MaterializedIcon?.Dispose();
+        this.MaterializedIcon = null;
     }
 
     private void DrawNotificationMainWindowContent(NotificationManager notificationManager, float width)
     {
         var basePos = ImGui.GetCursorPos();
         this.DrawIcon(
-            notificationManager,
             basePos,
             basePos + new Vector2(NotificationConstants.ScaledIconSize));
         basePos.X += NotificationConstants.ScaledIconSize + NotificationConstants.ScaledWindowPadding;
@@ -633,84 +623,26 @@ internal sealed class ActiveNotification : IActiveNotification, IDisposable
         ImGui.PopClipRect();
     }
 
-    private void DrawIcon(NotificationManager notificationManager, Vector2 minCoord, Vector2 maxCoord)
+    private void DrawIcon(Vector2 minCoord, Vector2 maxCoord)
     {
-        string? iconString = null;
-        IFontHandle? fontHandle = null;
-        IDalamudTextureWrap? iconTexture = null;
-        switch (this.IconTask?.IsCompletedSuccessfully is true ? this.IconTask.Result : null)
+        if (this.MaterializedIcon is not null)
         {
-            case IDalamudTextureWrap wrap:
-                iconTexture = wrap;
-                break;
-            case SeIconChar icon:
-                iconString = string.Empty + (char)icon;
-                fontHandle = notificationManager.IconAxisFontHandle;
-                break;
-            case FontAwesomeIcon icon:
-                iconString = icon.ToIconString();
-                fontHandle = notificationManager.IconFontAwesomeFontHandle;
-                break;
-            default:
-                iconString = this.DefaultIconString;
-                fontHandle = notificationManager.IconFontAwesomeFontHandle;
-                break;
+            this.MaterializedIcon.DrawIcon(minCoord, maxCoord, this.DefaultIconColor, this.InitiatorPlugin);
+            return;
         }
 
-        if (string.IsNullOrWhiteSpace(iconString))
+        var defaultIconString = this.DefaultIconString;
+        if (!string.IsNullOrWhiteSpace(defaultIconString))
         {
-            var dam = Service<DalamudAssetManager>.Get();
-            if (this.InitiatorPlugin is null)
-            {
-                iconTexture = dam.GetDalamudTextureWrap(DalamudAsset.LogoSmall);
-            }
-            else
-            {
-                if (!Service<PluginImageCache>.Get().TryGetIcon(
-                        this.InitiatorPlugin,
-                        this.InitiatorPlugin.Manifest,
-                        this.InitiatorPlugin.IsThirdParty,
-                        out iconTexture) || iconTexture is null)
-                {
-                    iconTexture = this.InitiatorPlugin switch
-                    {
-                        { IsDev: true } => dam.GetDalamudTextureWrap(DalamudAsset.DevPluginIcon),
-                        { IsThirdParty: true } => dam.GetDalamudTextureWrap(DalamudAsset.ThirdInstalledIcon),
-                        _ => dam.GetDalamudTextureWrap(DalamudAsset.InstalledIcon),
-                    };
-                }
-            }
+            FontAwesomeIconIconSource.DrawIconStatic(defaultIconString, minCoord, maxCoord, this.DefaultIconColor);
+            return;
         }
 
-        if (iconTexture is not null)
-        {
-            var size = iconTexture.Size;
-            if (size.X > maxCoord.X - minCoord.X)
-                size *= (maxCoord.X - minCoord.X) / size.X;
-            if (size.Y > maxCoord.Y - minCoord.Y)
-                size *= (maxCoord.Y - minCoord.Y) / size.Y;
-            var pos = ((minCoord + maxCoord) - size) / 2;
-            ImGui.SetCursorPos(pos);
-            ImGui.Image(iconTexture.ImGuiHandle, size);
-        }
-        else
-        {
-            // Just making it extremely sure
-            // ReSharper disable once ConditionIsAlwaysTrueOrFalse
-            if (fontHandle is null || iconString is null)
-                // ReSharper disable once HeuristicUnreachableCode
-                return;
-
-            using (fontHandle.Push())
-            {
-                var size = ImGui.CalcTextSize(iconString);
-                var pos = ((minCoord + maxCoord) - size) / 2;
-                ImGui.SetCursorPos(pos);
-                ImGui.PushStyleColor(ImGuiCol.Text, this.DefaultIconColor);
-                ImGui.TextUnformatted(iconString);
-                ImGui.PopStyleColor();
-            }
-        }
+        TextureWrapTaskIconSource.DefaultMaterializedIcon.DrawIcon(
+            minCoord,
+            maxCoord,
+            this.DefaultIconColor,
+            this.InitiatorPlugin);
     }
 
     private void DrawTitle(Vector2 minCoord, Vector2 maxCoord)

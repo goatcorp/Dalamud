@@ -1,7 +1,4 @@
-using System.Threading.Tasks;
-
-using Dalamud.Game.Text;
-using Dalamud.Interface.Internal;
+using Dalamud.Interface.ImGuiNotification.IconSource;
 using Dalamud.Interface.Internal.Notifications;
 
 namespace Dalamud.Interface.ImGuiNotification;
@@ -18,18 +15,17 @@ public interface INotification
     /// <summary>Gets the type of the notification.</summary>
     NotificationType Type { get; }
 
-    /// <summary>Gets the icon creator function for the notification.<br />
-    /// Currently <see cref="IDalamudTextureWrap"/>, <see cref="SeIconChar"/>, and <see cref="FontAwesomeIcon"/> types
-    /// are accepted.</summary>
-    /// <remarks>
-    /// The icon created by the task returned will be owned by Dalamud,
-    /// i.e. it will be <see cref="IDisposable.Dispose"/>d automatically as needed.<br />
-    /// If <c>null</c> is supplied for this property or <see cref="Task.IsCompletedSuccessfully"/> of the returned task
-    /// is <c>false</c>, then the corresponding icon with <see cref="Type"/> will be used.<br />
-    /// Use <see cref="Task.FromResult{TResult}"/> if you have an instance of <see cref="IDalamudTextureWrap"/> that you
-    /// can transfer ownership to Dalamud and is available for use right away.
+    /// <summary>Gets the icon source.</summary>
+    /// <remarks>The following icon sources are currently available.<br />
+    /// <ul>
+    /// <li><see cref="SeIconCharIconSource"/></li>
+    /// <li><see cref="FontAwesomeIconIconSource"/></li>
+    /// <li><see cref="TextureWrapTaskIconSource"/></li>
+    /// <li><see cref="GamePathIconSource"/></li>
+    /// <li><see cref="FilePathIconSource"/></li>
+    /// </ul>
     /// </remarks>
-    Func<Task<object>>? IconCreator { get; }
+    INotificationIconSource? IconSource { get; }
 
     /// <summary>Gets the expiry.</summary>
     /// <remarks>Set to <see cref="DateTime.MaxValue"/> to make the notification not have an expiry time

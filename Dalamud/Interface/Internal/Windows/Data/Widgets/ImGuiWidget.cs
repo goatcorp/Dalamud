@@ -1,8 +1,13 @@
-﻿using System.Threading.Tasks;
+﻿using System.Linq;
+using System.Threading.Tasks;
 
+using Dalamud.Game.Text;
+using Dalamud.Interface.ImGuiNotification.IconSource;
 using Dalamud.Interface.ImGuiNotification.Internal;
 using Dalamud.Interface.Internal.Notifications;
 using Dalamud.Interface.Windowing;
+using Dalamud.Storage.Assets;
+using Dalamud.Utility;
 
 using ImGuiNET;
 
@@ -67,6 +72,41 @@ internal class ImGuiWidget : IDataWindowWidget
             NotificationTemplate.TypeTitles.Length);
 
         ImGui.Combo(
+            "Icon Source##iconSourceCombo",
+            ref this.notificationTemplate.IconSourceInt,
+            NotificationTemplate.IconSourceTitles,
+            NotificationTemplate.IconSourceTitles.Length);
+        switch (this.notificationTemplate.IconSourceInt)
+        {
+            case 1:
+            case 2:
+                ImGui.InputText(
+                    "Icon Text##iconSourceText",
+                    ref this.notificationTemplate.IconSourceText,
+                    255);
+                break;
+            case 3:
+                ImGui.Combo(
+                    "Icon Source##iconSourceAssetCombo",
+                    ref this.notificationTemplate.IconSourceAssetInt,
+                    NotificationTemplate.AssetSources,
+                    NotificationTemplate.AssetSources.Length);
+                break;
+            case 4:
+                ImGui.InputText(
+                    "Game Path##iconSourceText",
+                    ref this.notificationTemplate.IconSourceText,
+                    255);
+                break;
+            case 5:
+                ImGui.InputText(
+                    "File Path##iconSourceText",
+                    ref this.notificationTemplate.IconSourceText,
+                    255);
+                break;
+        }
+
+        ImGui.Combo(
             "Duration",
             ref this.notificationTemplate.DurationInt,
             NotificationTemplate.DurationTitles,
@@ -113,6 +153,26 @@ internal class ImGuiWidget : IDataWindowWidget
                         3 => 0f,
                         4 => -1f,
                         _ => 0.5f,
+                    },
+                    IconSource = this.notificationTemplate.IconSourceInt switch
+                    {
+                        1 => new SeIconCharIconSource(
+                            (SeIconChar)(this.notificationTemplate.IconSourceText.Length == 0
+                                             ? 0
+                                             : this.notificationTemplate.IconSourceText[0])),
+                        2 => new FontAwesomeIconIconSource(
+                            (FontAwesomeIcon)(this.notificationTemplate.IconSourceText.Length == 0
+                                                  ? 0
+                                                  : this.notificationTemplate.IconSourceText[0])),
+                        3 => new TextureWrapTaskIconSource(
+                            () =>
+                                Service<DalamudAssetManager>.Get().GetDalamudTextureWrapAsync(
+                                    Enum.Parse<DalamudAsset>(
+                                        NotificationTemplate.AssetSources[
+                                            this.notificationTemplate.IconSourceAssetInt]))),
+                        4 => new GamePathIconSource(this.notificationTemplate.IconSourceText),
+                        5 => new FilePathIconSource(this.notificationTemplate.IconSourceText),
+                        _ => null,
                     },
                 });
             switch (this.notificationTemplate.ProgressMode)
@@ -205,6 +265,22 @@ internal class ImGuiWidget : IDataWindowWidget
 
     private struct NotificationTemplate
     {
+        public static readonly string[] IconSourceTitles =
+        {
+            "None (use Type)",
+            "SeIconChar",
+            "FontAwesomeIcon",
+            "TextureWrapTask from DalamudAssets",
+            "GamePath",
+            "FilePath",
+        };
+
+        public static readonly string[] AssetSources =
+            Enum.GetValues<DalamudAsset>()
+                .Where(x => x.GetAttribute<DalamudAssetAttribute>()?.Purpose is DalamudAssetPurpose.TextureFromPng)
+                .Select(Enum.GetName)
+                .ToArray();
+
         public static readonly string[] ProgressModeTitles =
         {
             "Default",
@@ -243,6 +319,9 @@ internal class ImGuiWidget : IDataWindowWidget
         public string Content;
         public bool ManualTitle;
         public string Title;
+        public int IconSourceInt;
+        public string IconSourceText;
+        public int IconSourceAssetInt;
         public bool ManualType;
         public int TypeInt;
         public int DurationInt;
@@ -256,6 +335,9 @@ internal class ImGuiWidget : IDataWindowWidget
             this.Content = string.Empty;
             this.ManualTitle = false;
             this.Title = string.Empty;
+            this.IconSourceInt = 0;
+            this.IconSourceText = "ui/icon/000000/000004_hr1.tex";
+            this.IconSourceAssetInt = 0;
             this.ManualType = false;
             this.TypeInt = (int)NotificationType.None;
             this.DurationInt = 2;

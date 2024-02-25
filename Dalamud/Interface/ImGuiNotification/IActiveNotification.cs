@@ -1,5 +1,4 @@
 using System.Threading;
-using System.Threading.Tasks;
 
 using Dalamud.Interface.Internal.Notifications;
 
@@ -57,8 +56,10 @@ public interface IActiveNotification : INotification
     /// <inheritdoc cref="INotification.Type"/>
     new NotificationType Type { get; set; }
 
-    /// <inheritdoc cref="INotification.IconCreator"/>
-    new Func<Task<object>>? IconCreator { get; set; }
+    /// <summary>Gets or sets the icon source.</summary>
+    /// <remarks>Setting a new value to this property does not change the icon. Use <see cref="UpdateIcon"/> to do so.
+    /// </remarks>
+    new INotificationIconSource? IconSource { get; set; }
 
     /// <inheritdoc cref="INotification.Expiry"/>
     new DateTime Expiry { get; set; }
@@ -91,13 +92,13 @@ public interface IActiveNotification : INotification
 
     /// <summary>Updates the notification data.</summary>
     /// <remarks>
-    /// Call <see cref="UpdateIcon"/> to update the icon using the new <see cref="INotification.IconCreator"/>.
+    /// Call <see cref="UpdateIcon"/> to update the icon using the new <see cref="INotification.IconSource"/>.
     /// If <see cref="IsDismissed"/> is <c>true</c>, then this function is a no-op.
     /// </remarks>
     /// <param name="newNotification">The new notification entry.</param>
     void Update(INotification newNotification);
 
-    /// <summary>Loads the icon again using <see cref="INotification.IconCreator"/>.</summary>
+    /// <summary>Loads the icon again using <see cref="INotification.IconSource"/>.</summary>
     /// <remarks>If <see cref="IsDismissed"/> is <c>true</c>, then this function is a no-op.</remarks>
     void UpdateIcon();
 
