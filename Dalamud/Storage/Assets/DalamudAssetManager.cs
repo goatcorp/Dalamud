@@ -194,12 +194,14 @@ internal sealed class DalamudAssetManager : IServiceType, IDisposable, IDalamudA
 
                         try
                         {
-                            await using var tempPathStream = File.Open(tempPath, FileMode.Create, FileAccess.Write);
-                            await url.DownloadAsync(
-                                this.httpClient.SharedHttpClient,
-                                tempPathStream,
-                                this.cancellationTokenSource.Token);
-                            tempPathStream.Dispose();
+                            await using (var tempPathStream = File.Open(tempPath, FileMode.Create, FileAccess.Write))
+                            {
+                                await url.DownloadAsync(
+                                    this.httpClient.SharedHttpClient,
+                                    tempPathStream,
+                                    this.cancellationTokenSource.Token);
+                            }
+
                             for (var j = RenameAttemptCount; ; j--)
                             {
                                 try
@@ -265,7 +267,7 @@ internal sealed class DalamudAssetManager : IServiceType, IDisposable, IDalamudA
     /// <inheritdoc/>
     [Pure]
     public IDalamudTextureWrap GetDalamudTextureWrap(DalamudAsset asset) =>
-        ExtractResult(this.GetDalamudTextureWrapAsync(asset));
+        this.GetDalamudTextureWrapAsync(asset).Result;
 
     /// <inheritdoc/>
     [Pure]
@@ -331,8 +333,6 @@ internal sealed class DalamudAssetManager : IServiceType, IDisposable, IDalamudA
             }
         }
     }
-
-    private static T ExtractResult<T>(Task<T> t) => t.IsCompleted ? t.Result : t.GetAwaiter().GetResult();
 
     private Task<TOut> TransformImmediate<TIn, TOut>(Task<TIn> task, Func<TIn, TOut> transformer)
     {
