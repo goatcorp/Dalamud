@@ -122,7 +122,7 @@ internal class TexWidget : IDataWindowWidget
 
                 ImGui.SameLine();
                 if (ImGui.Button($"Clone##{i}"))
-                    this.addedTextures.Add(tex.Clone());
+                    this.addedTextures.Add(tex.CreateWrapSharingLowLevelResource());
             }
         }
 
