@@ -13,10 +13,7 @@ using Dalamud.Plugin.Services;
 
 namespace Dalamud.Interface.ImGuiNotification.Internal;
 
-/// <summary>
-/// Class handling notifications/toasts in ImGui.
-/// Ported from https://github.com/patrickcjk/imgui-notify.
-/// </summary>
+/// <summary>Class handling notifications/toasts in ImGui.</summary>
 [InterfaceVersion("1.0")]
 [ServiceManager.EarlyLoadedService]
 internal class NotificationManager : INotificationManager, IServiceType, IDisposable
@@ -66,9 +63,7 @@ internal class NotificationManager : INotificationManager, IServiceType, IDispos
         return an;
     }
 
-    /// <summary>
-    /// Adds a notification originating from a plugin.
-    /// </summary>
+    /// <summary>Adds a notification originating from a plugin.</summary>
     /// <param name="notification">The notification.</param>
     /// <param name="plugin">The source plugin.</param>
     /// <returns>The new notification.</returns>
@@ -79,9 +74,7 @@ internal class NotificationManager : INotificationManager, IServiceType, IDispos
         return an;
     }
 
-    /// <summary>
-    /// Add a notification to the notification queue.
-    /// </summary>
+    /// <summary>Add a notification to the notification queue.</summary>
     /// <param name="content">The content of the notification.</param>
     /// <param name="title">The title of the notification.</param>
     /// <param name="type">The type of the notification.</param>
@@ -97,9 +90,7 @@ internal class NotificationManager : INotificationManager, IServiceType, IDispos
                 Type = type,
             });
 
-    /// <summary>
-    /// Draw all currently queued notifications.
-    /// </summary>
+    /// <summary>Draw all currently queued notifications.</summary>
     public void Draw()
     {
         var viewportSize = ImGuiHelpers.MainViewport.WorkSize;
@@ -116,9 +107,7 @@ internal class NotificationManager : INotificationManager, IServiceType, IDispos
     }
 }
 
-/// <summary>
-/// Plugin-scoped version of a <see cref="NotificationManager"/> service.
-/// </summary>
+/// <summary>Plugin-scoped version of a <see cref="NotificationManager"/> service.</summary>
 [PluginInterface]
 [InterfaceVersion("1.0")]
 [ServiceManager.ScopedService]
