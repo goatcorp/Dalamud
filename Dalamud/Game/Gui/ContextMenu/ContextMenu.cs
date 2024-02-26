@@ -245,7 +245,7 @@ internal sealed unsafe class ContextMenu : IDisposable, IServiceType, IContextMe
                 submenuMask |= 1u << i;
 
             nameData[i].ChangeType(ValueType.String);
-            nameData[i].SetString(item.Name.Encode().NullTerminate());
+            nameData[i].SetString(item.PrefixedName.Encode().NullTerminate());
         }
 
         for (var i = 0; i < prefixMenuSize; ++i)
@@ -277,6 +277,16 @@ internal sealed unsafe class ContextMenu : IDisposable, IServiceType, IContextMe
         // 4: UInt = OpenAtCursorPosition ? 2 : 1
         // 5: UInt = 0
         // 6: UInt = 0
+
+        foreach (var item in items)
+        {
+            if (!item.Prefix.HasValue)
+            {
+                item.PrefixChar = 'D';
+                item.PrefixColor = 539;
+                Log.Warning($"Menu item \"{item.Name}\" has no prefix, defaulting to Dalamud's. Menu items outside of a submenu must have a prefix.");
+            }
+        }
 
         this.SetupGenericMenu(7, 0, 2, 3, items, ref valueCount, ref values);
     }

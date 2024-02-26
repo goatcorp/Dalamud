@@ -1,6 +1,8 @@
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
 
+using Lumina.Excel.GeneratedSheets;
+
 namespace Dalamud.Game.Gui.ContextMenu;
 
 /// <summary>
@@ -12,6 +14,38 @@ public sealed record MenuItem
     /// Gets or sets the display name of the menu item.
     /// </summary>
     public SeString Name { get; set; } = SeString.Empty;
+
+    /// <summary>
+    /// Gets or sets the prefix attached to the beginning of <see cref="Name"/>.
+    /// </summary>
+    public SeIconChar? Prefix { get; set; }
+
+    /// <summary>
+    /// Sets the character to prefix the <see cref="Name"/> with. Will be converted into a fancy boxed letter icon. Must be an uppercase letter.
+    /// </summary>
+    /// <exception cref="ArgumentException"><paramref name="value"/> must be an uppercase letter.</exception>
+    public char? PrefixChar
+    {
+        set
+        {
+            if (value is { } prefix)
+            {
+                if (!char.IsAsciiLetterUpper(prefix))
+                    throw new ArgumentException("Prefix must be an uppercase letter", nameof(value));
+
+                this.Prefix = SeIconChar.BoxedLetterA + prefix - 'A';
+            }
+            else
+            {
+                this.Prefix = null;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the color of the <see cref="Prefix"/>. Specifies a <see cref="UIColor"/> row id.
+    /// </summary>
+    public ushort PrefixColor { get; set; }
 
     /// <summary>
     /// Gets or sets the callback to be invoked when the menu item is clicked.
@@ -45,38 +79,13 @@ public sealed record MenuItem
     public bool IsReturn { get; set; }
 
     /// <summary>
-    /// Sets the name with a prefixed letter.
-    /// The prefix is a boxed letter icon with the specified color.
-    /// This can be used for adding a prefix to a <see cref="MenuItem"/>.
+    /// Gets the name with the given prefix.
     /// </summary>
-    /// <param name="name">The name to be prefixed.</param>
-    /// <param name="prefix">The character to prefix the name with.</param>
-    /// <param name="colorKey">The color to make the prefix letter.</param>
-    /// <returns>Itself.</returns>
-    /// <exception cref="ArgumentException"><paramref name="prefix"/> must be an uppercase letter.</exception>
-    public MenuItem WithPrefixedName(SeString name, char prefix = 'D', ushort colorKey = 539)
-    {
-        if (!char.IsAsciiLetterUpper(prefix))
-            throw new ArgumentException("Prefix must be an uppercase letter", nameof(prefix));
-
-        return this.WithPrefixedName(name, SeIconChar.BoxedLetterA + prefix - 'A', colorKey);
-    }
-
-    /// <summary>
-    /// Sets the name with a prefixed icon.
-    /// The prefix can be any icon character with the specified color.
-    /// This can be used for adding a prefix to a <see cref="MenuItem"/>.
-    /// </summary>
-    /// <param name="name">The name to be prefixed.</param>
-    /// <param name="prefix">The icon to prefix the name with.</param>
-    /// <param name="colorKey">The color to make the prefix icon.</param>
-    /// <returns>Itself.</returns>
-    public MenuItem WithPrefixedName(SeString name, SeIconChar prefix, ushort colorKey)
-    {
-        this.Name = new SeStringBuilder()
-            .AddUiForeground($"{prefix.ToIconString()} ", colorKey)
-            .Append(name)
-            .Build();
-        return this;
-    }
+    internal SeString PrefixedName =>
+        this.Prefix is { } prefix
+            ? new SeStringBuilder()
+                .AddUiForeground($"{prefix.ToIconString()} ", this.PrefixColor)
+                .Append(this.Name)
+                .Build()
+            : this.Name;
 }
