@@ -4,7 +4,7 @@ using System.Runtime.Loader;
 using Dalamud.Interface.Animation;
 using Dalamud.Interface.Animation.EasingFunctions;
 using Dalamud.Interface.Colors;
-using Dalamud.Interface.ImGuiNotification.IconSource;
+using Dalamud.Interface.ImGuiNotification.Internal.IconSource;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Internal.Notifications;
 using Dalamud.Interface.Utility;
@@ -18,7 +18,7 @@ using Serilog;
 namespace Dalamud.Interface.ImGuiNotification.Internal;
 
 /// <summary>Represents an active notification.</summary>
-internal sealed class ActiveNotification : IActiveNotification, IDisposable
+internal sealed class ActiveNotification : IActiveNotification
 {
     private readonly Notification underlyingNotification;
 

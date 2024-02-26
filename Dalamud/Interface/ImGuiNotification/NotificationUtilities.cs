@@ -1,5 +1,8 @@
+using System.IO;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 
+using Dalamud.Game.Text;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Internal.Windows;
 using Dalamud.Plugin.Internal.Types;
@@ -7,17 +10,37 @@ using Dalamud.Storage.Assets;
 
 using ImGuiNET;
 
-namespace Dalamud.Interface.ImGuiNotification.Internal;
+namespace Dalamud.Interface.ImGuiNotification;
 
 /// <summary>Utilities for implementing stuff under <see cref="ImGuiNotification"/>.</summary>
-internal static class NotificationUtilities
+public static class NotificationUtilities
 {
+    /// <inheritdoc cref="INotificationIconSource.From(SeIconChar)"/>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static INotificationIconSource ToIconSource(this SeIconChar iconChar) =>
+        INotificationIconSource.From(iconChar);
+    
+    /// <inheritdoc cref="INotificationIconSource.From(FontAwesomeIcon)"/>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static INotificationIconSource ToIconSource(this FontAwesomeIcon iconChar) =>
+        INotificationIconSource.From(iconChar);
+    
+    /// <inheritdoc cref="INotificationIconSource.From(IDalamudTextureWrap,bool)"/>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static INotificationIconSource ToIconSource(this IDalamudTextureWrap? wrap, bool takeOwnership = true) =>
+        INotificationIconSource.From(wrap, takeOwnership);
+    
+    /// <inheritdoc cref="INotificationIconSource.FromFile(string)"/>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static INotificationIconSource ToIconSource(this FileInfo fileInfo) =>
+        INotificationIconSource.FromFile(fileInfo.FullName);
+
     /// <summary>Draws the given texture, or the icon of the plugin if texture is <c>null</c>.</summary>
     /// <param name="texture">The texture.</param>
     /// <param name="minCoord">The coordinates of the top left of the icon area.</param>
     /// <param name="maxCoord">The coordinates of the bottom right of the icon area.</param>
     /// <param name="initiatorPlugin">The initiator plugin.</param>
-    public static void DrawTexture(
+    internal static void DrawTexture(
         IDalamudTextureWrap? texture,
         Vector2 minCoord,
         Vector2 maxCoord,

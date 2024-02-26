@@ -1,33 +1,32 @@
 using System.IO;
 using System.Numerics;
 
-using Dalamud.Interface.ImGuiNotification.Internal;
 using Dalamud.Interface.Internal;
 using Dalamud.Plugin.Internal.Types;
 
-namespace Dalamud.Interface.ImGuiNotification.IconSource;
+namespace Dalamud.Interface.ImGuiNotification.Internal.IconSource;
 
 /// <summary>Represents the use of a texture from a file as the icon of a notification.</summary>
 /// <remarks>If there was no texture loaded for any reason, the plugin icon will be displayed instead.</remarks>
-public readonly struct FilePathIconSource : INotificationIconSource.IInternal
+internal class FilePathIconSource : INotificationIconSource.IInternal
 {
-    /// <summary>The path to a .tex file inside the game resources.</summary>
-    public readonly string FilePath;
-
-    /// <summary>Initializes a new instance of the <see cref="FilePathIconSource"/> struct.</summary>
+    /// <summary>Initializes a new instance of the <see cref="FilePathIconSource"/> class.</summary>
     /// <param name="filePath">The path to a .tex file inside the game resources.</param>
     public FilePathIconSource(string filePath) => this.FilePath = filePath;
+
+    /// <summary>Gets the path to a .tex file inside the game resources.</summary>
+    public string FilePath { get; }
 
     /// <inheritdoc/>
     public INotificationIconSource Clone() => this;
 
     /// <inheritdoc/>
-    void IDisposable.Dispose()
+    public void Dispose()
     {
     }
 
     /// <inheritdoc/>
-    INotificationMaterializedIcon INotificationIconSource.IInternal.Materialize() =>
+    public INotificationMaterializedIcon Materialize() =>
         new MaterializedIcon(this.FilePath);
 
     private sealed class MaterializedIcon : INotificationMaterializedIcon

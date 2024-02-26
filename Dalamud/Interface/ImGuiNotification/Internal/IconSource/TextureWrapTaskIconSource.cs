@@ -1,42 +1,41 @@
 using System.Numerics;
 using System.Threading.Tasks;
 
-using Dalamud.Interface.ImGuiNotification.Internal;
 using Dalamud.Interface.Internal;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Utility;
 
 using Serilog;
 
-namespace Dalamud.Interface.ImGuiNotification.IconSource;
+namespace Dalamud.Interface.ImGuiNotification.Internal.IconSource;
 
 /// <summary>Represents the use of future <see cref="IDalamudTextureWrap"/> as the icon of a notification.</summary>
 /// <remarks>If there was no texture loaded for any reason, the plugin icon will be displayed instead.</remarks>
-public readonly struct TextureWrapTaskIconSource : INotificationIconSource.IInternal
+internal class TextureWrapTaskIconSource : INotificationIconSource.IInternal
 {
-    /// <summary>The function that returns a task resulting in a new instance of <see cref="IDalamudTextureWrap"/>.
-    /// </summary>
-    /// <remarks>Dalamud will take ownership of the result. Do not call <see cref="IDisposable.Dispose"/>.</remarks>
-    public readonly Func<Task<IDalamudTextureWrap?>?>? TextureWrapTaskFunc;
-
     /// <summary>Gets the default materialized icon, for the purpose of displaying the plugin icon.</summary>
     internal static readonly INotificationMaterializedIcon DefaultMaterializedIcon = new MaterializedIcon(null);
 
-    /// <summary>Initializes a new instance of the <see cref="TextureWrapTaskIconSource"/> struct.</summary>
+    /// <summary>Initializes a new instance of the <see cref="TextureWrapTaskIconSource"/> class.</summary>
     /// <param name="taskFunc">The function.</param>
     public TextureWrapTaskIconSource(Func<Task<IDalamudTextureWrap?>?>? taskFunc) =>
         this.TextureWrapTaskFunc = taskFunc;
+
+    /// <summary>Gets the function that returns a task resulting in a new instance of <see cref="IDalamudTextureWrap"/>.
+    /// </summary>
+    /// <remarks>Dalamud will take ownership of the result. Do not call <see cref="IDisposable.Dispose"/>.</remarks>
+    public Func<Task<IDalamudTextureWrap?>?>? TextureWrapTaskFunc { get; }
 
     /// <inheritdoc/>
     public INotificationIconSource Clone() => this;
 
     /// <inheritdoc/>
-    void IDisposable.Dispose()
+    public void Dispose()
     {
     }
 
     /// <inheritdoc/>
-    INotificationMaterializedIcon INotificationIconSource.IInternal.Materialize() =>
+    public INotificationMaterializedIcon Materialize() =>
         new MaterializedIcon(this.TextureWrapTaskFunc);
 
     private sealed class MaterializedIcon : INotificationMaterializedIcon

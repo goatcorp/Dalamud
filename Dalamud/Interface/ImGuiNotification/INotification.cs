@@ -1,4 +1,4 @@
-using Dalamud.Interface.ImGuiNotification.IconSource;
+using Dalamud.Interface.ImGuiNotification.Internal.IconSource;
 using Dalamud.Interface.Internal.Notifications;
 
 namespace Dalamud.Interface.ImGuiNotification;

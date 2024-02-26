@@ -1,32 +1,31 @@
 using System.Numerics;
 
-using Dalamud.Interface.ImGuiNotification.Internal;
 using Dalamud.Plugin.Internal.Types;
 
 using ImGuiNET;
 
-namespace Dalamud.Interface.ImGuiNotification.IconSource;
+namespace Dalamud.Interface.ImGuiNotification.Internal.IconSource;
 
 /// <summary>Represents the use of <see cref="FontAwesomeIcon"/> as the icon of a notification.</summary>
-public readonly struct FontAwesomeIconIconSource : INotificationIconSource.IInternal
+internal class FontAwesomeIconIconSource : INotificationIconSource.IInternal
 {
-    /// <summary>The icon character.</summary>
-    public readonly FontAwesomeIcon Char;
+    /// <summary>Initializes a new instance of the <see cref="FontAwesomeIconIconSource"/> class.</summary>
+    /// <param name="iconChar">The character.</param>
+    public FontAwesomeIconIconSource(FontAwesomeIcon iconChar) => this.IconChar = iconChar;
 
-    /// <summary>Initializes a new instance of the <see cref="FontAwesomeIconIconSource"/> struct.</summary>
-    /// <param name="c">The character.</param>
-    public FontAwesomeIconIconSource(FontAwesomeIcon c) => this.Char = c;
+    /// <summary>Gets the icon character.</summary>
+    public FontAwesomeIcon IconChar { get; }
 
     /// <inheritdoc/>
     public INotificationIconSource Clone() => this;
 
     /// <inheritdoc/>
-    void IDisposable.Dispose()
+    public void Dispose()
     {
     }
 
     /// <inheritdoc/>
-    INotificationMaterializedIcon INotificationIconSource.IInternal.Materialize() => new MaterializedIcon(this.Char);
+    public INotificationMaterializedIcon Materialize() => new MaterializedIcon(this.IconChar);
 
     /// <summary>Draws the icon.</summary>
     /// <param name="iconString">The icon string.</param>

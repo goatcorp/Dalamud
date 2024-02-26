@@ -1,15 +1,14 @@
 using System.Numerics;
 using System.Threading;
 
-using Dalamud.Interface.ImGuiNotification.Internal;
 using Dalamud.Interface.Internal;
 using Dalamud.Plugin.Internal.Types;
 
-namespace Dalamud.Interface.ImGuiNotification.IconSource;
+namespace Dalamud.Interface.ImGuiNotification.Internal.IconSource;
 
 /// <summary>Represents the use of future <see cref="IDalamudTextureWrap"/> as the icon of a notification.</summary>
 /// <remarks>If there was no texture loaded for any reason, the plugin icon will be displayed instead.</remarks>
-public sealed class TextureWrapIconSource : INotificationIconSource.IInternal
+internal class TextureWrapIconSource : INotificationIconSource.IInternal
 {
     private IDalamudTextureWrap? wrap;
 
@@ -38,7 +37,7 @@ public sealed class TextureWrapIconSource : INotificationIconSource.IInternal
     }
 
     /// <inheritdoc/>
-    INotificationMaterializedIcon INotificationIconSource.IInternal.Materialize() =>
+    public INotificationMaterializedIcon Materialize() =>
         new MaterializedIcon(this.wrap?.CreateWrapSharingLowLevelResource());
 
     private sealed class MaterializedIcon : INotificationMaterializedIcon

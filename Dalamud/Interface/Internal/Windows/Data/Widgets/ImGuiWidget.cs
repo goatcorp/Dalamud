@@ -3,8 +3,8 @@ using System.Threading.Tasks;
 
 using Dalamud.Game.Text;
 using Dalamud.Interface.ImGuiNotification;
-using Dalamud.Interface.ImGuiNotification.IconSource;
 using Dalamud.Interface.ImGuiNotification.Internal;
+using Dalamud.Interface.ImGuiNotification.Internal.IconSource;
 using Dalamud.Interface.Internal.Notifications;
 using Dalamud.Interface.Windowing;
 using Dalamud.Storage.Assets;
@@ -161,32 +161,32 @@ internal class ImGuiWidget : IDataWindowWidget
                     },
                     IconSource = this.notificationTemplate.IconSourceInt switch
                     {
-                        1 => new SeIconCharIconSource(
+                        1 => INotificationIconSource.From(
                             (SeIconChar)(this.notificationTemplate.IconSourceText.Length == 0
                                              ? 0
                                              : this.notificationTemplate.IconSourceText[0])),
-                        2 => new FontAwesomeIconIconSource(
+                        2 => INotificationIconSource.From(
                             (FontAwesomeIcon)(this.notificationTemplate.IconSourceText.Length == 0
                                                   ? 0
                                                   : this.notificationTemplate.IconSourceText[0])),
-                        3 => new TextureWrapIconSource(
+                        3 => INotificationIconSource.From(
                             Service<DalamudAssetManager>.Get().GetDalamudTextureWrap(
                                 Enum.Parse<DalamudAsset>(
                                     NotificationTemplate.AssetSources[
                                         this.notificationTemplate.IconSourceAssetInt])),
                             false),
-                        4 => new TextureWrapTaskIconSource(
+                        4 => INotificationIconSource.From(
                             () =>
                                 Service<DalamudAssetManager>.Get().GetDalamudTextureWrapAsync(
                                     Enum.Parse<DalamudAsset>(
                                         NotificationTemplate.AssetSources[
                                             this.notificationTemplate.IconSourceAssetInt]))),
-                        5 => new GamePathIconSource(this.notificationTemplate.IconSourceText),
-                        6 => new FilePathIconSource(this.notificationTemplate.IconSourceText),
-                        7 => new TextureWrapIconSource(
+                        5 => INotificationIconSource.FromGame(this.notificationTemplate.IconSourceText),
+                        6 => INotificationIconSource.FromFile(this.notificationTemplate.IconSourceText),
+                        7 => INotificationIconSource.From(
                             Service<TextureManager>.Get().GetTextureFromGame(this.notificationTemplate.IconSourceText),
                             false),
-                        8 => new TextureWrapIconSource(
+                        8 => INotificationIconSource.From(
                             Service<TextureManager>.Get().GetTextureFromFile(
                                 new(this.notificationTemplate.IconSourceText)),
                             false),

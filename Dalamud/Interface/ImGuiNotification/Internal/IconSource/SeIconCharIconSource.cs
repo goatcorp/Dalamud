@@ -1,33 +1,32 @@
 using System.Numerics;
 
 using Dalamud.Game.Text;
-using Dalamud.Interface.ImGuiNotification.Internal;
 using Dalamud.Plugin.Internal.Types;
 
 using ImGuiNET;
 
-namespace Dalamud.Interface.ImGuiNotification.IconSource;
+namespace Dalamud.Interface.ImGuiNotification.Internal.IconSource;
 
 /// <summary>Represents the use of <see cref="SeIconChar"/> as the icon of a notification.</summary>
-public readonly struct SeIconCharIconSource : INotificationIconSource.IInternal
+internal class SeIconCharIconSource : INotificationIconSource.IInternal
 {
-    /// <summary>The icon character.</summary>
-    public readonly SeIconChar Char;
-
-    /// <summary>Initializes a new instance of the <see cref="SeIconCharIconSource"/> struct.</summary>
+    /// <summary>Initializes a new instance of the <see cref="SeIconCharIconSource"/> class.</summary>
     /// <param name="c">The character.</param>
-    public SeIconCharIconSource(SeIconChar c) => this.Char = c;
+    public SeIconCharIconSource(SeIconChar c) => this.IconChar = c;
+
+    /// <summary>Gets the icon character.</summary>
+    public SeIconChar IconChar { get; }
 
     /// <inheritdoc/>
     public INotificationIconSource Clone() => this;
 
     /// <inheritdoc/>
-    void IDisposable.Dispose()
+    public void Dispose()
     {
     }
 
     /// <inheritdoc/>
-    INotificationMaterializedIcon INotificationIconSource.IInternal.Materialize() => new MaterializedIcon(this.Char);
+    public INotificationMaterializedIcon Materialize() => new MaterializedIcon(this.IconChar);
 
     private sealed class MaterializedIcon : INotificationMaterializedIcon
     {
