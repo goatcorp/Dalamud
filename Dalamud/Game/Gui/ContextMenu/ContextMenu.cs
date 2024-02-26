@@ -369,6 +369,8 @@ internal sealed unsafe class ContextMenu : IDisposable, IServiceType, IContextMe
             this.MenuCallbackIds.Clear();
             if (this.SubmenuItems != null)
             {
+                this.SubmenuItems = this.FixupMenuList(this.SubmenuItems.ToList(), (int)values[0].UInt);
+
                 this.SetupContextSubMenu(this.SubmenuItems, ref valueCount, ref values);
                 Log.Verbose($"Opening {this.SelectedMenuType} submenu with {this.SubmenuItems.Count} custom items.");
             }
@@ -378,6 +380,31 @@ internal sealed unsafe class ContextMenu : IDisposable, IServiceType, IContextMe
         if (values != oldValues)
             this.FreeExpandedContextMenuArray(values, valueCount);
         return ret;
+    }
+
+    private List<MenuItem> FixupMenuList(List<MenuItem> items, int nativeMenuSize)
+    {
+        // The in game menu actually supports 32 items, but the last item can't have a visible submenu arrow.
+        // As such, we'll only work with 31 items.
+        const int MaxMenuItems = 31;
+        if (items.Count + nativeMenuSize > MaxMenuItems)
+        {
+            Log.Warning($"Menu size exceeds {MaxMenuItems} items, truncating.");
+            var orderedItems = items.OrderBy(i => i.Priority).ToArray();
+            var newItems = orderedItems[..(MaxMenuItems - nativeMenuSize - 1)];
+            var submenuItems = orderedItems[(MaxMenuItems - nativeMenuSize - 1)..];
+            return newItems.Append(new MenuItem
+            {
+                Prefix = SeIconChar.BoxedLetterD,
+                PrefixColor = 539,
+                IsSubmenu = true,
+                Priority = int.MaxValue,
+                Name = $"See More ({submenuItems.Length})",
+                OnClicked = a => a.OpenSubmenu(submenuItems),
+            }).ToList();
+        }
+
+        return items;
     }
 
     private void LogMenuOpened(MenuOpenedArgs args)
