@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Numerics;
 
 using Dalamud.Interface.Utility;
@@ -56,6 +57,9 @@ public static class NotificationConstants
     /// <summary>Duration of progress change animation.</summary>
     internal static readonly TimeSpan ProgressChangeAnimationDuration = TimeSpan.FromMilliseconds(200);
 
+    /// <summary>Duration of expando animation.</summary>
+    internal static readonly TimeSpan ExpandoAnimationDuration = TimeSpan.FromMilliseconds(300);
+
     /// <summary>Text color for the when.</summary>
     internal static readonly Vector4 WhenTextColor = new(0.8f, 0.8f, 0.8f, 1f);
 
@@ -90,6 +94,16 @@ public static class NotificationConstants
         (TimeSpan.FromSeconds(2), "{0:%s} seconds ago"),
         (TimeSpan.FromSeconds(1), "a second ago"),
         (TimeSpan.MinValue, "just now"),
+    };
+
+    /// <summary>Gets the relative time format strings.</summary>
+    private static readonly (TimeSpan MinSpan, string FormatString)[] RelativeFormatStringsShort =
+    {
+        (TimeSpan.FromDays(1), "{0:%d}d"),
+        (TimeSpan.FromHours(1), "{0:%h}h"),
+        (TimeSpan.FromMinutes(1), "{0:%m}m"),
+        (TimeSpan.FromSeconds(1), "{0:%s}s"),
+        (TimeSpan.MinValue, "now"),
     };
 
     /// <summary>Gets the scaled padding of the window (dot(.) in the above diagram).</summary>
@@ -137,4 +151,21 @@ public static class NotificationConstants
     /// <param name="when">When.</param>
     /// <returns>The formatted string.</returns>
     internal static string FormatAbsoluteDateTime(this DateTime when) => $"{when:G}";
+
+    /// <summary>Formats an instance of <see cref="DateTime"/> as a relative time.</summary>
+    /// <param name="when">When.</param>
+    /// <returns>The formatted string.</returns>
+    internal static string FormatRelativeDateTimeShort(this DateTime when)
+    {
+        var ts = DateTime.Now - when;
+        foreach (var (minSpan, formatString) in RelativeFormatStringsShort)
+        {
+            if (ts < minSpan)
+                continue;
+            return string.Format(formatString, ts);
+        }
+
+        Debug.Assert(false, "must not reach here");
+        return "???";
+    }
 }

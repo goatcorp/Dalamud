@@ -579,7 +579,7 @@ public sealed class UiBuilder : IDisposable
                 Content = content,
                 Title = title,
                 Type = type,
-                Expiry = DateTime.Now + TimeSpan.FromMilliseconds(msDelay),
+                InitialDuration = TimeSpan.FromMilliseconds(msDelay),
             },
             true,
             this.localPlugin);

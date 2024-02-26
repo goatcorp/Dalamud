@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using Dalamud.Game.Text;
 using Dalamud.Interface.ImGuiNotification;
 using Dalamud.Interface.ImGuiNotification.Internal;
-using Dalamud.Interface.ImGuiNotification.Internal.IconSource;
 using Dalamud.Interface.Internal.Notifications;
 using Dalamud.Interface.Windowing;
 using Dalamud.Storage.Assets;
@@ -64,6 +63,10 @@ internal class ImGuiWidget : IDataWindowWidget
         ImGui.SameLine();
         ImGui.InputText("Title##title", ref this.notificationTemplate.Title, 255);
 
+        ImGui.Checkbox("##manualMinimizedText", ref this.notificationTemplate.ManualMinimizedText);
+        ImGui.SameLine();
+        ImGui.InputText("MinimizedText##minimizedText", ref this.notificationTemplate.MinimizedText, 255);
+
         ImGui.Checkbox("##manualType", ref this.notificationTemplate.ManualType);
         ImGui.SameLine();
         ImGui.Combo(
@@ -107,10 +110,16 @@ internal class ImGuiWidget : IDataWindowWidget
         }
 
         ImGui.Combo(
-            "Duration",
-            ref this.notificationTemplate.DurationInt,
-            NotificationTemplate.DurationTitles,
-            NotificationTemplate.DurationTitles.Length);
+            "Initial Duration",
+            ref this.notificationTemplate.InitialDurationInt,
+            NotificationTemplate.InitialDurationTitles,
+            NotificationTemplate.InitialDurationTitles.Length);
+
+        ImGui.Combo(
+            "Hover Extend Duration",
+            ref this.notificationTemplate.HoverExtendDurationInt,
+            NotificationTemplate.HoverExtendDurationTitles,
+            NotificationTemplate.HoverExtendDurationTitles.Length);
 
         ImGui.Combo(
             "Progress",
@@ -118,7 +127,7 @@ internal class ImGuiWidget : IDataWindowWidget
             NotificationTemplate.ProgressModeTitles,
             NotificationTemplate.ProgressModeTitles.Length);
 
-        ImGui.Checkbox("Interactable", ref this.notificationTemplate.Interactable);
+        ImGui.Checkbox("Minimized", ref this.notificationTemplate.Minimized);
 
         ImGui.Checkbox("Show Indeterminate If No Expiry", ref this.notificationTemplate.ShowIndeterminateIfNoExpiry);
 
@@ -141,18 +150,26 @@ internal class ImGuiWidget : IDataWindowWidget
             if (this.notificationTemplate.ManualType)
                 type = (NotificationType)this.notificationTemplate.TypeInt;
 
-            var duration = NotificationTemplate.Durations[this.notificationTemplate.DurationInt];
-
             var n = notifications.AddNotification(
                 new()
                 {
                     Content = text,
                     Title = title,
+                    MinimizedText = this.notificationTemplate.ManualMinimizedText
+                                        ? this.notificationTemplate.MinimizedText
+                                        : null,
                     Type = type,
                     ShowIndeterminateIfNoExpiry = this.notificationTemplate.ShowIndeterminateIfNoExpiry,
-                    Interactable = this.notificationTemplate.Interactable,
+                    Minimized = this.notificationTemplate.Minimized,
                     UserDismissable = this.notificationTemplate.UserDismissable,
-                    Expiry = duration == TimeSpan.MaxValue ? DateTime.MaxValue : DateTime.Now + duration,
+                    InitialDuration =
+                        this.notificationTemplate.InitialDurationInt == 0
+                            ? TimeSpan.MaxValue
+                            : NotificationTemplate.Durations[this.notificationTemplate.InitialDurationInt],
+                    HoverExtendDuration =
+                        this.notificationTemplate.HoverExtendDurationInt == 0
+                            ? TimeSpan.Zero
+                            : NotificationTemplate.Durations[this.notificationTemplate.HoverExtendDurationInt],
                     Progress = this.notificationTemplate.ProgressMode switch
                     {
                         0 => 1f,
@@ -220,7 +237,8 @@ internal class ImGuiWidget : IDataWindowWidget
                                 n.Progress = i / 10f;
                             }
 
-                            n.Expiry = DateTime.Now + NotificationConstants.DefaultDisplayDuration;
+                            n.ExtendBy(NotificationConstants.DefaultDisplayDuration);
+                            n.InitialDuration = NotificationConstants.DefaultDisplayDuration;
                         });
                     break;
             }
@@ -324,7 +342,7 @@ internal class ImGuiWidget : IDataWindowWidget
             nameof(NotificationType.Info),
         };
 
-        public static readonly string[] DurationTitles =
+        public static readonly string[] InitialDurationTitles =
         {
             "Infinite",
             "1 seconds",
@@ -332,9 +350,17 @@ internal class ImGuiWidget : IDataWindowWidget
             "10 seconds",
         };
 
+        public static readonly string[] HoverExtendDurationTitles =
+        {
+            "Disable",
+            "1 seconds",
+            "3 seconds (default)",
+            "10 seconds",
+        };
+
         public static readonly TimeSpan[] Durations =
         {
-            TimeSpan.MaxValue,
+            TimeSpan.Zero,
             TimeSpan.FromSeconds(1),
             NotificationConstants.DefaultDisplayDuration,
             TimeSpan.FromSeconds(10),
@@ -344,14 +370,17 @@ internal class ImGuiWidget : IDataWindowWidget
         public string Content;
         public bool ManualTitle;
         public string Title;
+        public bool ManualMinimizedText;
+        public string MinimizedText;
         public int IconSourceInt;
         public string IconSourceText;
         public int IconSourceAssetInt;
         public bool ManualType;
         public int TypeInt;
-        public int DurationInt;
+        public int InitialDurationInt;
+        public int HoverExtendDurationInt;
         public bool ShowIndeterminateIfNoExpiry;
-        public bool Interactable;
+        public bool Minimized;
         public bool UserDismissable;
         public bool ActionBar;
         public int ProgressMode;
@@ -362,14 +391,17 @@ internal class ImGuiWidget : IDataWindowWidget
             this.Content = string.Empty;
             this.ManualTitle = false;
             this.Title = string.Empty;
+            this.ManualMinimizedText = false;
+            this.MinimizedText = string.Empty;
             this.IconSourceInt = 0;
             this.IconSourceText = "ui/icon/000000/000004_hr1.tex";
             this.IconSourceAssetInt = 0;
             this.ManualType = false;
             this.TypeInt = (int)NotificationType.None;
-            this.DurationInt = 2;
+            this.InitialDurationInt = 2;
+            this.HoverExtendDurationInt = 2;
             this.ShowIndeterminateIfNoExpiry = true;
-            this.Interactable = true;
+            this.Minimized = true;
             this.UserDismissable = true;
             this.ActionBar = true;
             this.ProgressMode = 0;

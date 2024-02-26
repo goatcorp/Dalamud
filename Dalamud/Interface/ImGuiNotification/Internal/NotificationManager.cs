@@ -106,14 +106,15 @@ internal class NotificationManager : INotificationManager, IServiceType, IDispos
 
         var maxWidth = Math.Max(320 * ImGuiHelpers.GlobalScale, viewportSize.X / 3);
 
-        this.notifications.RemoveAll(static x =>
-        {
-            if (!x.UpdateAnimations())
-                return false;
+        this.notifications.RemoveAll(
+            static x =>
+            {
+                if (!x.UpdateAnimations())
+                    return false;
 
-            x.Dispose();
-            return true;
-        });
+                x.Dispose();
+                return true;
+            });
         foreach (var tn in this.notifications)
             height += tn.Draw(maxWidth, height) + NotificationConstants.ScaledWindowGap;
     }

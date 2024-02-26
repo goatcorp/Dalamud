@@ -3,7 +3,7 @@ namespace Dalamud.Interface.ImGuiNotification;
 /// <summary>Specifies the reason of dismissal for a notification.</summary>
 public enum NotificationDismissReason
 {
-    /// <summary>The notification is dismissed because the expiry specified from <see cref="INotification.Expiry"/> is
+    /// <summary>The notification is dismissed because the expiry specified from <see cref="INotification.HardExpiry"/> is
     /// met.</summary>
     Timeout = 1,
 
