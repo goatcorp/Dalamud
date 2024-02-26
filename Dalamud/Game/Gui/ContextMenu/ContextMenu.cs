@@ -40,33 +40,28 @@ internal sealed unsafe class ContextMenu : IDisposable, IServiceType, IContextMe
     private readonly ExcelSheet<Materia> materiaSheet;
     private readonly ExcelSheet<Stain> stainSheet;
 
-    private readonly ContextMenuAddressResolver address;
-
-    private readonly Hook<ContextAddonOpenByAgentDelegate> contextAddonOpenByAgentHook;
-    private readonly Hook<ContextMenuOnVf72Delegate> contextMenuOnVf72Hook;
+    private readonly Hook<RaptureAtkModuleOpenAddonByAgentDelegate> raptureAtkModuleOpenAddonByAgentHook;
+    private readonly Hook<AddonContextMenuOnMenuSelectedDelegate> addonContextMenuOnMenuSelectedHook;
     private readonly RaptureAtkModuleOpenAddonDelegate raptureAtkModuleOpenAddon;
 
     [ServiceManager.ServiceConstructor]
-    private ContextMenu(TargetSigScanner sigScanner, DataManager dataManager)
+    private ContextMenu(DataManager dataManager)
     {
         this.itemSheet = dataManager.GetExcelSheet<Item>();
         this.materiaSheet = dataManager.GetExcelSheet<Materia>();
         this.stainSheet = dataManager.GetExcelSheet<Stain>();
 
-        this.address = new ContextMenuAddressResolver();
-        this.address.Setup(sigScanner);
+        this.raptureAtkModuleOpenAddonByAgentHook = Hook<RaptureAtkModuleOpenAddonByAgentDelegate>.FromAddress((nint)RaptureAtkModule.Addresses.OpenAddonByAgent.Value, this.RaptureAtkModuleOpenAddonByAgentDetour);
+        this.addonContextMenuOnMenuSelectedHook = Hook<AddonContextMenuOnMenuSelectedDelegate>.FromAddress((nint)AddonContextMenu.StaticVTable.OnMenuSelected, this.AddonContextMenuOnMenuSelectedDetour);
+        this.raptureAtkModuleOpenAddon = Marshal.GetDelegateForFunctionPointer<RaptureAtkModuleOpenAddonDelegate>((nint)RaptureAtkModule.Addresses.OpenAddon.Value);
 
-        this.contextAddonOpenByAgentHook = Hook<ContextAddonOpenByAgentDelegate>.FromAddress(this.address.ContextAddonOpenByAgent, this.ContextAddonOpenByAgentDetour);
-        this.contextMenuOnVf72Hook = Hook<ContextMenuOnVf72Delegate>.FromAddress(this.address.ContextMenuOnVf72, this.ContextMenuOnVf72Detour);
-        this.raptureAtkModuleOpenAddon = Marshal.GetDelegateForFunctionPointer<RaptureAtkModuleOpenAddonDelegate>(this.address.RaptureAtkModuleOpenAddon);
-
-        this.contextAddonOpenByAgentHook.Enable();
-        this.contextMenuOnVf72Hook.Enable();
+        this.raptureAtkModuleOpenAddonByAgentHook.Enable();
+        this.addonContextMenuOnMenuSelectedHook.Enable();
     }
 
-    private unsafe delegate nint ContextAddonOpenByAgentDelegate(RaptureAtkModule* module, byte* addonName, AtkUnitBase* addon, int valueCount, AtkValue* values, AgentInterface* agent, nint a7, ushort parentAddonId);
+    private unsafe delegate nint RaptureAtkModuleOpenAddonByAgentDelegate(RaptureAtkModule* module, byte* addonName, AtkUnitBase* addon, int valueCount, AtkValue* values, AgentInterface* agent, nint a7, ushort parentAddonId);
     
-    private unsafe delegate bool ContextMenuOnVf72Delegate(AddonContextMenu* addon, int selectedIdx, byte a3);
+    private unsafe delegate bool AddonContextMenuOnMenuSelectedDelegate(AddonContextMenu* addon, int selectedIdx, byte a3);
     
     private unsafe delegate nint RaptureAtkModuleOpenAddonDelegate(RaptureAtkModule* a1, uint addonNameId, uint valueCount, AtkValue* values, AgentInterface* parentAgent, long unk, uint ownerAddonId, int unk2);
 
@@ -104,8 +99,8 @@ internal sealed unsafe class ContextMenu : IDisposable, IServiceType, IContextMe
         if (submenu->IsVisible)
             submenu->FireCallbackInt(-1);
 
-        this.contextAddonOpenByAgentHook.Dispose();
-        this.contextMenuOnVf72Hook.Dispose();
+        this.raptureAtkModuleOpenAddonByAgentHook.Dispose();
+        this.addonContextMenuOnMenuSelectedHook.Dispose();
     }
 
     /// <inheritdoc/>
@@ -300,7 +295,7 @@ internal sealed unsafe class ContextMenu : IDisposable, IServiceType, IContextMe
         this.SetupGenericMenu(8, 0, 5, 6, items, ref valueCount, ref values);
     }
 
-    private nint ContextAddonOpenByAgentDetour(RaptureAtkModule* module, byte* addonName, AtkUnitBase* addon, int valueCount, AtkValue* values, AgentInterface* agent, nint a7, ushort parentAddonId)
+    private nint RaptureAtkModuleOpenAddonByAgentDetour(RaptureAtkModule* module, byte* addonName, AtkUnitBase* addon, int valueCount, AtkValue* values, AgentInterface* agent, nint a7, ushort parentAddonId)
     {
         var oldValues = values;
 
@@ -369,7 +364,7 @@ internal sealed unsafe class ContextMenu : IDisposable, IServiceType, IContextMe
             }
         }
 
-        var ret = this.contextAddonOpenByAgentHook.Original(module, addonName, addon, valueCount, values, agent, a7, parentAddonId);
+        var ret = this.raptureAtkModuleOpenAddonByAgentHook.Original(module, addonName, addon, valueCount, values, agent, a7, parentAddonId);
         if (values != oldValues)
             this.FreeExpandedContextMenuArray(values, valueCount);
         return ret;
@@ -517,7 +512,7 @@ internal sealed unsafe class ContextMenu : IDisposable, IServiceType, IContextMe
         this.FreeExpandedContextMenuArray(values, valueCount);
     }
 
-    private bool ContextMenuOnVf72Detour(AddonContextMenu* addon, int selectedIdx, byte a3)
+    private bool AddonContextMenuOnMenuSelectedDetour(AddonContextMenu* addon, int selectedIdx, byte a3)
     {
         var items = this.SubmenuItems ?? this.SelectedItems;
         if (items == null)
@@ -571,7 +566,7 @@ internal sealed unsafe class ContextMenu : IDisposable, IServiceType, IContextMe
 
 original:
         // Eventually handled by inventorycontext here: 14022BBD0 (6.51)
-        return this.contextMenuOnVf72Hook.Original(addon, selectedIdx, a3);
+        return this.addonContextMenuOnMenuSelectedHook.Original(addon, selectedIdx, a3);
     }
 }
 
