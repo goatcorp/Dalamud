@@ -5,6 +5,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 
 using Dalamud.Data;
+using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Hooking;
 using Dalamud.IoC;
@@ -302,7 +303,7 @@ internal sealed unsafe class ContextMenu : IDisposable, IServiceType, IContextMe
         // 6: UInt = _gap_0x6BC ? 1 << (ContextItemCount - 1) : 0
         // 7: UInt = 1
 
-        this.SetupGenericMenu(8, 0, 5, 6, items, ref valueCount, ref values);
+        this.SetupGenericMenu(8, 0, 6, 5, items, ref valueCount, ref values);
     }
 
     private nint RaptureAtkModuleOpenAddonByAgentDetour(RaptureAtkModule* module, byte* addonName, AtkUnitBase* addon, int valueCount, AtkValue* values, AgentInterface* agent, nint a7, ushort parentAddonId)
@@ -356,6 +357,7 @@ internal sealed unsafe class ContextMenu : IDisposable, IServiceType, IContextMe
                 var args = new MenuOpenedArgs(this.SelectedItems.Add, this.SelectedParentAddon, this.SelectedAgent, this.SelectedMenuType.Value, this.SelectedEventInterfaces);
                 this.LogMenuOpened(args);
                 this.OnMenuOpened?.InvokeSafely(args);
+                this.SelectedItems = this.FixupMenuList(this.SelectedItems, (int)values[0].UInt);
                 this.SetupContextMenu(this.SelectedItems, ref valueCount, ref values);
                 Log.Verbose($"Opening {this.SelectedMenuType} context menu with {this.SelectedItems.Count} custom items.");
             }
