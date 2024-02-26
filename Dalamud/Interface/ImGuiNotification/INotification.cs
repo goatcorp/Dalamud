@@ -33,7 +33,7 @@ public interface INotification : IDisposable
 
     /// <summary>Gets or sets the hard expiry.</summary>
     /// <remarks>
-    /// Setting this value will override <see cref="InitialDuration"/> and <see cref="HoverExtendDuration"/>, in that
+    /// Setting this value will override <see cref="InitialDuration"/> and <see cref="DurationSinceLastInterest"/>, in that
     /// the notification will be dismissed when this expiry expires.<br />
     /// Set to <see cref="DateTime.MaxValue"/> to make only <see cref="InitialDuration"/> take effect.<br />
     /// If neither <see cref="HardExpiry"/> nor <see cref="InitialDuration"/> is not MaxValue, then the notification
@@ -48,13 +48,14 @@ public interface INotification : IDisposable
     /// <remarks>Updating this value will reset the dismiss timer.</remarks>
     TimeSpan InitialDuration { get; set; }
 
-    /// <summary>Gets or sets the new duration for this notification once the mouse cursor leaves the window.</summary>
+    /// <summary>Gets or sets the new duration for this notification once the mouse cursor leaves the window and the
+    /// window is no longer focused.</summary>
     /// <remarks>
     /// If set to <see cref="TimeSpan.Zero"/> or less, then this feature is turned off, and hovering the mouse on the
-    /// notification will not make the notification stay.<br />
+    /// notification or focusing on it will not make the notification stay.<br />
     /// Updating this value will reset the dismiss timer.
     /// </remarks>
-    TimeSpan HoverExtendDuration { get; set; }
+    TimeSpan DurationSinceLastInterest { get; set; }
 
     /// <summary>Gets or sets a value indicating whether to show an indeterminate expiration animation if
     /// <see cref="HardExpiry"/> is set to <see cref="DateTime.MaxValue"/>.</summary>

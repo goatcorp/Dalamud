@@ -49,7 +49,10 @@ public interface IActiveNotification : INotification
     DateTime EffectiveExpiry { get; }
 
     /// <summary>Gets a value indicating whether the mouse cursor is on the notification window.</summary>
-    bool IsMouseHovered { get; }
+    bool IsHovered { get; }
+
+    /// <summary>Gets a value indicating whether the notification window is focused.</summary>
+    bool IsFocused { get; }
 
     /// <summary>Gets a value indicating whether the notification has been dismissed.</summary>
     /// <remarks>This includes when the hide animation is being played.</remarks>

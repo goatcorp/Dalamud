@@ -166,7 +166,7 @@ internal class ImGuiWidget : IDataWindowWidget
                         this.notificationTemplate.InitialDurationInt == 0
                             ? TimeSpan.MaxValue
                             : NotificationTemplate.Durations[this.notificationTemplate.InitialDurationInt],
-                    HoverExtendDuration =
+                    DurationSinceLastInterest =
                         this.notificationTemplate.HoverExtendDurationInt == 0
                             ? TimeSpan.Zero
                             : NotificationTemplate.Durations[this.notificationTemplate.HoverExtendDurationInt],
@@ -246,10 +246,12 @@ internal class ImGuiWidget : IDataWindowWidget
             if (this.notificationTemplate.ActionBar || !this.notificationTemplate.UserDismissable)
             {
                 var nclick = 0;
+                var testString = "input";
+
                 n.Click += _ => nclick++;
                 n.DrawActions += an =>
                 {
-                    if (ImGui.Button("Update in place"))
+                    if (ImGui.Button("Update"))
                     {
                         NewRandom(out title, out type, out progress);
                         an.Title = title;
@@ -257,7 +259,10 @@ internal class ImGuiWidget : IDataWindowWidget
                         an.Progress = progress;
                     }
 
-                    if (an.IsMouseHovered)
+                    ImGui.SameLine();
+                    ImGui.InputText("##input", ref testString, 255);
+
+                    if (an.IsHovered)
                     {
                         ImGui.SameLine();
                         if (ImGui.Button("Dismiss"))

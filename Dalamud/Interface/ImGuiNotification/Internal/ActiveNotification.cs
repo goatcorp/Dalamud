@@ -93,7 +93,7 @@ internal sealed class ActiveNotification : IActiveNotification
     public DateTime CreatedAt { get; } = DateTime.Now;
 
     /// <summary>Gets the time of starting to count the timer for the expiration.</summary>
-    public DateTime HoverRelativeToTime { get; private set; } = DateTime.Now;
+    public DateTime LastInterestTime { get; private set; } = DateTime.Now;
 
     /// <summary>Gets the extended expiration time from <see cref="ExtendBy"/>.</summary>
     public DateTime ExtendedExpiry { get; private set; } = DateTime.Now;
@@ -172,7 +172,7 @@ internal sealed class ActiveNotification : IActiveNotification
             if (this.underlyingNotification.HardExpiry == value || this.IsDismissed)
                 return;
             this.underlyingNotification.HardExpiry = value;
-            this.HoverRelativeToTime = DateTime.Now;
+            this.LastInterestTime = DateTime.Now;
         }
     }
 
@@ -185,20 +185,20 @@ internal sealed class ActiveNotification : IActiveNotification
             if (this.IsDismissed)
                 return;
             this.underlyingNotification.InitialDuration = value;
-            this.HoverRelativeToTime = DateTime.Now;
+            this.LastInterestTime = DateTime.Now;
         }
     }
 
     /// <inheritdoc/>
-    public TimeSpan HoverExtendDuration
+    public TimeSpan DurationSinceLastInterest
     {
-        get => this.underlyingNotification.HoverExtendDuration;
+        get => this.underlyingNotification.DurationSinceLastInterest;
         set
         {
             if (this.IsDismissed)
                 return;
-            this.underlyingNotification.HoverExtendDuration = value;
-            this.HoverRelativeToTime = DateTime.Now;
+            this.underlyingNotification.DurationSinceLastInterest = value;
+            this.LastInterestTime = DateTime.Now;
         }
     }
 
@@ -214,8 +214,8 @@ internal sealed class ActiveNotification : IActiveNotification
                     : this.CreatedAt + initialDuration;
 
             DateTime expiry;
-            var hoverExtendDuration = this.HoverExtendDuration;
-            if (hoverExtendDuration > TimeSpan.Zero && this.IsMouseHovered)
+            var hoverExtendDuration = this.DurationSinceLastInterest;
+            if (hoverExtendDuration > TimeSpan.Zero && (this.IsHovered || this.IsFocused))
             {
                 expiry = DateTime.MaxValue;
             }
@@ -224,7 +224,7 @@ internal sealed class ActiveNotification : IActiveNotification
                 var expiryExtend =
                     hoverExtendDuration == TimeSpan.MaxValue
                         ? DateTime.MaxValue
-                        : this.HoverRelativeToTime + hoverExtendDuration;
+                        : this.LastInterestTime + hoverExtendDuration;
 
                 expiry = expiryInitial > expiryExtend ? expiryInitial : expiryExtend;
                 if (expiry < this.ExtendedExpiry)
@@ -287,7 +287,10 @@ internal sealed class ActiveNotification : IActiveNotification
     }
 
     /// <inheritdoc/>
-    public bool IsMouseHovered { get; private set; }
+    public bool IsHovered { get; private set; }
+
+    /// <inheritdoc/>
+    public bool IsFocused { get; private set; }
 
     /// <inheritdoc/>
     public bool IsDismissed => this.hideEasing.IsRunning;
@@ -529,8 +532,12 @@ internal sealed class ActiveNotification : IActiveNotification
             ImGuiWindowFlags.NoMove |
             ImGuiWindowFlags.NoFocusOnAppearing |
             ImGuiWindowFlags.NoDocking);
+        this.IsFocused = ImGui.IsWindowFocused();
+        if (this.IsFocused)
+            this.LastInterestTime = DateTime.Now;
 
         this.DrawWindowBackgroundProgressBar();
+        this.DrawFocusIndicator();
         this.DrawTopBar(interfaceManager, width, actionWindowHeight);
         if (!this.underlyingNotification.Minimized && !this.expandoEasing.IsRunning)
         {
@@ -562,14 +569,14 @@ internal sealed class ActiveNotification : IActiveNotification
             && ImGui.GetIO().MousePos.X < windowPos.X + windowSize.X
             && ImGui.GetIO().MousePos.Y < windowPos.Y + windowSize.Y)
         {
-            if (!this.IsMouseHovered)
+            if (!this.IsHovered)
             {
-                this.IsMouseHovered = true;
+                this.IsHovered = true;
                 this.MouseEnter.InvokeSafely(this);
             }
 
-            if (this.HoverExtendDuration > TimeSpan.Zero)
-                this.HoverRelativeToTime = DateTime.Now;
+            if (this.DurationSinceLastInterest > TimeSpan.Zero)
+                this.LastInterestTime = DateTime.Now;
 
             if (hovered)
             {
@@ -587,9 +594,9 @@ internal sealed class ActiveNotification : IActiveNotification
                 }
             }
         }
-        else if (this.IsMouseHovered)
+        else if (this.IsHovered)
         {
-            this.IsMouseHovered = false;
+            this.IsHovered = false;
             this.MouseLeave.InvokeSafely(this);
         }
 
@@ -625,7 +632,7 @@ internal sealed class ActiveNotification : IActiveNotification
 
         this.IsInitiatorUnloaded = true;
         this.UserDismissable = true;
-        this.HoverExtendDuration = NotificationConstants.DefaultHoverExtendDuration;
+        this.DurationSinceLastInterest = NotificationConstants.DefaultHoverExtendDuration;
 
         var newMaxExpiry = DateTime.Now + NotificationConstants.DefaultDisplayDuration;
         if (this.EffectiveExpiry > newMaxExpiry)
@@ -700,6 +707,23 @@ internal sealed class ActiveNotification : IActiveNotification
         ImGui.PopClipRect();
     }
 
+    private void DrawFocusIndicator()
+    {
+        if (!this.IsFocused)
+            return;
+        var windowPos = ImGui.GetWindowPos();
+        var windowSize = ImGui.GetWindowSize();
+        ImGui.PushClipRect(windowPos, windowPos + windowSize, false);
+        ImGui.GetWindowDrawList().AddRect(
+            windowPos,
+            windowPos + windowSize,
+            ImGui.GetColorU32(NotificationConstants.FocusBorderColor * new Vector4(1f, 1f, 1f, ImGui.GetStyle().Alpha)),
+            0f,
+            ImDrawFlags.None,
+            NotificationConstants.FocusIndicatorThickness);
+        ImGui.PopClipRect();
+    }
+
     private void DrawTopBar(InterfaceManager interfaceManager, float width, float height)
     {
         var windowPos = ImGui.GetWindowPos();
@@ -744,7 +768,7 @@ internal sealed class ActiveNotification : IActiveNotification
             relativeOpacity = this.underlyingNotification.Minimized ? 0f : 1f;
         }
 
-        if (this.IsMouseHovered)
+        if (this.IsHovered || this.IsFocused)
             ImGui.PushClipRect(windowPos, windowPos + rtOffset with { Y = height }, false);
         else
             ImGui.PushClipRect(windowPos, windowPos + windowSize with { Y = height }, false);
@@ -755,7 +779,7 @@ internal sealed class ActiveNotification : IActiveNotification
             ImGui.SetCursorPos(new(NotificationConstants.ScaledWindowPadding));
             ImGui.PushStyleColor(ImGuiCol.Text, NotificationConstants.WhenTextColor);
             ImGui.TextUnformatted(
-                this.IsMouseHovered
+                this.IsHovered || this.IsFocused
                     ? this.CreatedAt.FormatAbsoluteDateTime()
                     : this.CreatedAt.FormatRelativeDateTime());
             ImGui.PopStyleColor();
@@ -799,7 +823,8 @@ internal sealed class ActiveNotification : IActiveNotification
     private bool DrawIconButton(FontAwesomeIcon icon, Vector2 rt, float size)
     {
         ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, Vector2.Zero);
-        if (!this.IsMouseHovered)
+        var alphaPush = !this.IsHovered && !this.IsFocused;
+        if (alphaPush)
             ImGui.PushStyleVar(ImGuiStyleVar.Alpha, 0f);
         ImGui.PushStyleColor(ImGuiCol.Button, 0);
         ImGui.PushStyleColor(ImGuiCol.Text, NotificationConstants.CloseTextColor);
@@ -808,7 +833,7 @@ internal sealed class ActiveNotification : IActiveNotification
         var r = ImGui.Button(icon.ToIconString(), new(size));
 
         ImGui.PopStyleColor(2);
-        if (!this.IsMouseHovered)
+        if (alphaPush)
             ImGui.PopStyleVar();
         ImGui.PopStyleVar();
         return r;
@@ -912,7 +937,7 @@ internal sealed class ActiveNotification : IActiveNotification
             barL = midpoint - (length * v);
             barR = midpoint + (length * v);
         }
-        else if (this.HoverExtendDuration > TimeSpan.Zero && this.IsMouseHovered)
+        else if (this.DurationSinceLastInterest > TimeSpan.Zero && (this.IsHovered || this.IsFocused))
         {
             barL = 0f;
             barR = 1f;
@@ -942,7 +967,7 @@ internal sealed class ActiveNotification : IActiveNotification
         else
         {
             barL = 1f - (float)((effectiveExpiry - DateTime.Now).TotalMilliseconds /
-                                (effectiveExpiry - this.HoverRelativeToTime).TotalMilliseconds);
+                                (effectiveExpiry - this.LastInterestTime).TotalMilliseconds);
             barR = 1f;
             this.prevProgressL = barL;
             this.prevProgressR = barR;

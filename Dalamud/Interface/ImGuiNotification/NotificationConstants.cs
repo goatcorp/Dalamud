@@ -60,6 +60,9 @@ public static class NotificationConstants
     /// <summary>Duration of expando animation.</summary>
     internal static readonly TimeSpan ExpandoAnimationDuration = TimeSpan.FromMilliseconds(300);
 
+    /// <summary>Text color for the rectangular border when the notification is focused.</summary>
+    internal static readonly Vector4 FocusBorderColor = new(0.4f, 0.4f, 0.4f, 1f);
+
     /// <summary>Text color for the when.</summary>
     internal static readonly Vector4 WhenTextColor = new(0.8f, 0.8f, 0.8f, 1f);
 
@@ -125,6 +128,9 @@ public static class NotificationConstants
 
     /// <summary>Gets the height of the expiry progress bar.</summary>
     internal static float ScaledExpiryProgressBarHeight => MathF.Round(3 * ImGuiHelpers.GlobalScale);
+
+    /// <summary>Gets the thickness of the focus indicator rectangle.</summary>
+    internal static float FocusIndicatorThickness => MathF.Round(3 * ImGuiHelpers.GlobalScale);
 
     /// <summary>Gets the string format of the initiator name field, if the initiator is unloaded.</summary>
     internal static string UnloadedInitiatorNameFormat => "{0} (unloaded)";

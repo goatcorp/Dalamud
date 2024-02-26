@@ -53,7 +53,7 @@ public sealed record Notification : INotification
     public TimeSpan InitialDuration { get; set; } = NotificationConstants.DefaultDisplayDuration;
 
     /// <inheritdoc/>
-    public TimeSpan HoverExtendDuration { get; set; } = NotificationConstants.DefaultHoverExtendDuration;
+    public TimeSpan DurationSinceLastInterest { get; set; } = NotificationConstants.DefaultHoverExtendDuration;
 
     /// <inheritdoc/>
     public bool ShowIndeterminateIfNoExpiry { get; set; } = true;
@@ -85,7 +85,7 @@ public sealed record Notification : INotification
         this.IconSource = copyFrom.IconSource?.Clone();
         this.HardExpiry = copyFrom.HardExpiry;
         this.InitialDuration = copyFrom.InitialDuration;
-        this.HoverExtendDuration = copyFrom.HoverExtendDuration;
+        this.DurationSinceLastInterest = copyFrom.DurationSinceLastInterest;
         this.ShowIndeterminateIfNoExpiry = copyFrom.ShowIndeterminateIfNoExpiry;
         this.Minimized = copyFrom.Minimized;
         this.UserDismissable = copyFrom.UserDismissable;
