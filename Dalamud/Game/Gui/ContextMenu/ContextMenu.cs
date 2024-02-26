@@ -391,7 +391,7 @@ internal sealed unsafe class ContextMenu : IDisposable, IServiceType, IContextMe
                 b.AppendLine($"Home World: {targetDefault.TargetHomeWorld.GameData?.Name.ToDalamudString() ?? "Unknown"} ({targetDefault.TargetHomeWorld.Id})");
                 b.AppendLine($"Content Id: 0x{targetDefault.TargetContentId:X8}");
                 b.AppendLine($"Object Id: 0x{targetDefault.TargetObjectId:X8}");
-                Log.Information(b.ToString());
+                Log.Verbose(b.ToString());
             }
 
             if (targetDefault.TargetCharacter is { } character)
@@ -423,11 +423,11 @@ internal sealed unsafe class ContextMenu : IDisposable, IServiceType, IContextMe
                 b.AppendLine($"Display Group: {character.DisplayGroup}");
                 b.AppendLine($"Sort: {character.Sort}");
 
-                Log.Information(b.ToString());
+                Log.Verbose(b.ToString());
             }
             else
             {
-                Log.Information($"Character: null");
+                Log.Verbose($"Character: null");
             }
         }
         else if (args.Target is MenuTargetInventory targetInventory)
