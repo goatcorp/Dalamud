@@ -1,3 +1,5 @@
+using Dalamud.Game.ClientState.Objects;
+using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Game.ClientState.Resolvers;
 using Dalamud.Game.Network.Structures.InfoProxy;
 
@@ -32,6 +34,11 @@ public sealed unsafe class MenuTargetDefault : MenuTarget
     public ulong TargetObjectId => this.Context->TargetObjectId;
 
     /// <summary>
+    /// Gets the target object.
+    /// </summary>
+    public GameObject? TargetObject => Service<ObjectTable>.Get().SearchById(this.TargetObjectId);
+
+    /// <summary>
     /// Gets the content id of the target.
     /// </summary>
     public ulong TargetContentId => this.Context->TargetContentId;
@@ -42,7 +49,8 @@ public sealed unsafe class MenuTargetDefault : MenuTarget
     public ExcelResolver<World> TargetHomeWorld => new((uint)this.Context->TargetHomeWorldId);
 
     /// <summary>
-    /// Gets the currently targeted character.
+    /// Gets the currently targeted character. Only shows up for specific targets, like friends, party finder listings, or party members.
+    /// Just because this is <see langword="null"/> doesn't mean the target isn't a character.
     /// </summary>
     public CharacterData? TargetCharacter
     {
