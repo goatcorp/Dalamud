@@ -120,6 +120,8 @@ internal class ImGuiWidget : IDataWindowWidget
 
         ImGui.Checkbox("Interactable", ref this.notificationTemplate.Interactable);
 
+        ImGui.Checkbox("Show Indeterminate If No Expiry", ref this.notificationTemplate.ShowIndeterminateIfNoExpiry);
+
         ImGui.Checkbox("User Dismissable", ref this.notificationTemplate.UserDismissable);
 
         ImGui.Checkbox(
@@ -147,6 +149,7 @@ internal class ImGuiWidget : IDataWindowWidget
                     Content = text,
                     Title = title,
                     Type = type,
+                    ShowIndeterminateIfNoExpiry = this.notificationTemplate.ShowIndeterminateIfNoExpiry,
                     Interactable = this.notificationTemplate.Interactable,
                     UserDismissable = this.notificationTemplate.UserDismissable,
                     Expiry = duration == TimeSpan.MaxValue ? DateTime.MaxValue : DateTime.Now + duration,
@@ -347,6 +350,7 @@ internal class ImGuiWidget : IDataWindowWidget
         public bool ManualType;
         public int TypeInt;
         public int DurationInt;
+        public bool ShowIndeterminateIfNoExpiry;
         public bool Interactable;
         public bool UserDismissable;
         public bool ActionBar;
@@ -364,6 +368,7 @@ internal class ImGuiWidget : IDataWindowWidget
             this.ManualType = false;
             this.TypeInt = (int)NotificationType.None;
             this.DurationInt = 2;
+            this.ShowIndeterminateIfNoExpiry = true;
             this.Interactable = true;
             this.UserDismissable = true;
             this.ActionBar = true;

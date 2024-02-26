@@ -59,6 +59,9 @@ public interface IActiveNotification : INotification
     /// <inheritdoc cref="INotification.Expiry"/>
     new DateTime Expiry { get; set; }
 
+    /// <inheritdoc cref="INotification.ShowIndeterminateIfNoExpiry"/>
+    new bool ShowIndeterminateIfNoExpiry { get; set; }
+
     /// <inheritdoc cref="INotification.Interactable"/>
     new bool Interactable { get; set; }
 

@@ -37,6 +37,10 @@ public interface INotification : IDisposable
     /// (sticky, indeterminate, permanent, or persistent).</remarks>
     DateTime Expiry { get; }
 
+    /// <summary>Gets a value indicating whether to show an indeterminate expiration animation if <see cref="Expiry"/>
+    /// is set to <see cref="DateTime.MaxValue"/>.</summary>
+    bool ShowIndeterminateIfNoExpiry { get; }
+
     /// <summary>Gets a value indicating whether this notification may be interacted.</summary>
     /// <remarks>
     /// Set this value to <c>true</c> if you want to respond to user inputs from
@@ -58,8 +62,7 @@ public interface INotification : IDisposable
     /// </remarks>
     TimeSpan HoverExtendDuration { get; }
 
-    /// <summary>Gets the progress for the progress bar of the notification.
-    /// The progress should either be in the range between 0 and 1 or be a negative value.
-    /// Specifying a negative value will show an indeterminate progress bar.</summary>
+    /// <summary>Gets the progress for the background progress bar of the notification.</summary>
+    /// <remarks>The progress should be in the range between 0 and 1.</remarks>
     float Progress { get; }
 }

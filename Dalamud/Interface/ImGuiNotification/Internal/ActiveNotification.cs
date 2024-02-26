@@ -50,7 +50,7 @@ internal sealed class ActiveNotification : IActiveNotification
         this.InitiatorPlugin = initiatorPlugin;
         this.showEasing = new InCubic(NotificationConstants.ShowAnimationDuration);
         this.hideEasing = new OutCubic(NotificationConstants.HideAnimationDuration);
-        this.progressEasing = new InOutCubic(NotificationConstants.ProgressAnimationDuration);
+        this.progressEasing = new InOutCubic(NotificationConstants.ProgressChangeAnimationDuration);
 
         this.showEasing.Start();
         this.progressEasing.Start();
@@ -142,6 +142,18 @@ internal sealed class ActiveNotification : IActiveNotification
         }
     }
 
+    /// <inheritdoc cref="IActiveNotification.ShowIndeterminateIfNoExpiry"/>
+    public bool ShowIndeterminateIfNoExpiry
+    {
+        get => this.underlyingNotification.ShowIndeterminateIfNoExpiry;
+        set
+        {
+            if (this.IsDismissed)
+                return;
+            this.underlyingNotification.ShowIndeterminateIfNoExpiry = value;
+        }
+    }
+
     /// <inheritdoc cref="IActiveNotification.Interactable"/>
     public bool Interactable
     {
@@ -212,9 +224,6 @@ internal sealed class ActiveNotification : IActiveNotification
         get
         {
             var underlyingProgress = this.underlyingNotification.Progress;
-            if (underlyingProgress < 0)
-                return 0f;
-
             if (Math.Abs(underlyingProgress - this.progressBefore) < 0.000001f || this.progressEasing.IsDone)
                 return underlyingProgress;
 
@@ -409,6 +418,7 @@ internal sealed class ActiveNotification : IActiveNotification
             ImGuiWindowFlags.NoFocusOnAppearing |
             ImGuiWindowFlags.NoDocking);
 
+        this.DrawWindowBackgroundProgressBar();
         this.DrawNotificationMainWindowContent(width);
         var windowPos = ImGui.GetWindowPos();
         var windowSize = ImGui.GetWindowSize();
@@ -440,6 +450,7 @@ internal sealed class ActiveNotification : IActiveNotification
             ImGuiWindowFlags.NoFocusOnAppearing |
             ImGuiWindowFlags.NoDocking);
 
+        this.DrawWindowBackgroundProgressBar();
         this.DrawNotificationActionWindowContent(interfaceManager, width);
         windowSize.Y += actionWindowHeight;
         windowPos.Y -= actionWindowHeight;
@@ -517,7 +528,7 @@ internal sealed class ActiveNotification : IActiveNotification
         this.underlyingNotification.IconSource = newIconSource;
         this.UpdateIcon();
     }
-    
+
     /// <summary>Removes non-Dalamud invocation targets from events.</summary>
     public void RemoveNonDalamudInvocations()
     {
@@ -563,6 +574,49 @@ internal sealed class ActiveNotification : IActiveNotification
         this.MaterializedIcon = null;
     }
 
+    private void DrawWindowBackgroundProgressBar()
+    {
+        var elapsed = (float)(((DateTime.Now - this.CreatedAt).TotalMilliseconds %
+                               NotificationConstants.ProgressWaveLoopDuration) /
+                              NotificationConstants.ProgressWaveLoopDuration);
+        elapsed /= NotificationConstants.ProgressWaveIdleTimeRatio;
+
+        var colorElapsed =
+            elapsed < NotificationConstants.ProgressWaveLoopMaxColorTimeRatio
+                ? elapsed / NotificationConstants.ProgressWaveLoopMaxColorTimeRatio
+                : ((NotificationConstants.ProgressWaveLoopMaxColorTimeRatio * 2) - elapsed) /
+                  NotificationConstants.ProgressWaveLoopMaxColorTimeRatio;
+
+        elapsed = Math.Clamp(elapsed, 0f, 1f);
+        colorElapsed = Math.Clamp(colorElapsed, 0f, 1f);
+        colorElapsed = MathF.Sin(colorElapsed * (MathF.PI / 2f));
+
+        var progress = Math.Clamp(this.ProgressEased, 0f, 1f);
+        if (progress >= 1f)
+            elapsed = colorElapsed = 0f;
+
+        var windowPos = ImGui.GetWindowPos();
+        var windowSize = ImGui.GetWindowSize();
+        var rb = windowPos + windowSize;
+        var midp = windowPos + windowSize with { X = windowSize.X * progress * elapsed };
+        var rp = windowPos + windowSize with { X = windowSize.X * progress };
+
+        ImGui.PushClipRect(windowPos, rb, false);
+        ImGui.GetWindowDrawList().AddRectFilled(
+            windowPos,
+            midp,
+            ImGui.GetColorU32(
+                Vector4.Lerp(
+                    NotificationConstants.BackgroundProgressColorMin,
+                    NotificationConstants.BackgroundProgressColorMax,
+                    colorElapsed)));
+        ImGui.GetWindowDrawList().AddRectFilled(
+            midp with { Y = 0 },
+            rp,
+            ImGui.GetColorU32(NotificationConstants.BackgroundProgressColorMin));
+        ImGui.PopClipRect();
+    }
+
     private void DrawNotificationMainWindowContent(float width)
     {
         var basePos = ImGui.GetCursorPos();
@@ -580,62 +634,61 @@ internal sealed class ActiveNotification : IActiveNotification
         // Top padding is zero, as the action window will add the padding.
         ImGui.Dummy(new(NotificationConstants.ScaledWindowPadding));
 
-        float progressL, progressR;
+        float barL, barR;
         if (this.IsDismissed)
         {
             var v = this.hideEasing.IsDone ? 0f : 1f - (float)this.hideEasing.Value;
             var midpoint = (this.prevProgressL + this.prevProgressR) / 2f;
             var length = (this.prevProgressR - this.prevProgressL) / 2f;
-            progressL = midpoint - (length * v);
-            progressR = midpoint + (length * v);
+            barL = midpoint - (length * v);
+            barR = midpoint + (length * v);
         }
         else if (this.Expiry == DateTime.MaxValue)
         {
-            if (this.Progress >= 0)
-            {
-                progressL = 0f;
-                progressR = this.ProgressEased;
-            }
-            else
+            if (this.ShowIndeterminateIfNoExpiry)
             {
                 var elapsed = (float)(((DateTime.Now - this.CreatedAt).TotalMilliseconds %
                                        NotificationConstants.IndeterminateProgressbarLoopDuration) /
                                       NotificationConstants.IndeterminateProgressbarLoopDuration);
-                progressL = Math.Max(elapsed - (1f / 3), 0f) / (2f / 3);
-                progressR = Math.Min(elapsed, 2f / 3) / (2f / 3);
-                progressL = MathF.Pow(progressL, 3);
-                progressR = 1f - MathF.Pow(1f - progressR, 3);
+                barL = Math.Max(elapsed - (1f / 3), 0f) / (2f / 3);
+                barR = Math.Min(elapsed, 2f / 3) / (2f / 3);
+                barL = MathF.Pow(barL, 3);
+                barR = 1f - MathF.Pow(1f - barR, 3);
+                this.prevProgressL = barL;
+                this.prevProgressR = barR;
             }
-
-            this.prevProgressL = progressL;
-            this.prevProgressR = progressR;
+            else
+            {
+                this.prevProgressL = barL = 0f;
+                this.prevProgressR = barR = 1f;
+            }
         }
         else if (this.HoverExtendDuration > TimeSpan.Zero && this.IsMouseHovered)
         {
-            progressL = 0f;
-            progressR = 1f;
-            this.prevProgressL = progressL;
-            this.prevProgressR = progressR;
+            barL = 0f;
+            barR = 1f;
+            this.prevProgressL = barL;
+            this.prevProgressR = barR;
         }
         else
         {
-            progressL = 1f - (float)((this.Expiry - DateTime.Now).TotalMilliseconds /
-                                     (this.Expiry - this.ExpiryRelativeToTime).TotalMilliseconds);
-            progressR = 1f;
-            this.prevProgressL = progressL;
-            this.prevProgressR = progressR;
+            barL = 1f - (float)((this.Expiry - DateTime.Now).TotalMilliseconds /
+                                (this.Expiry - this.ExpiryRelativeToTime).TotalMilliseconds);
+            barR = 1f;
+            this.prevProgressL = barL;
+            this.prevProgressR = barR;
         }
 
-        progressR = Math.Clamp(progressR, 0f, 1f);
+        barR = Math.Clamp(barR, 0f, 1f);
 
         var windowPos = ImGui.GetWindowPos();
         var windowSize = ImGui.GetWindowSize();
         ImGui.PushClipRect(windowPos, windowPos + windowSize, false);
         ImGui.GetWindowDrawList().AddRectFilled(
             windowPos + new Vector2(
-                windowSize.X * progressL,
+                windowSize.X * barL,
                 windowSize.Y - NotificationConstants.ScaledExpiryProgressBarHeight),
-            windowPos + windowSize with { X = windowSize.X * progressR },
+            windowPos + windowSize with { X = windowSize.X * barR },
             ImGui.GetColorU32(this.DefaultIconColor));
         ImGui.PopClipRect();
     }

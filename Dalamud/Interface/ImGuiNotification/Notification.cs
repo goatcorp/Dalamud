@@ -21,6 +21,9 @@ public sealed record Notification : INotification
     public DateTime Expiry { get; set; } = DateTime.Now + NotificationConstants.DefaultDisplayDuration;
 
     /// <inheritdoc/>
+    public bool ShowIndeterminateIfNoExpiry { get; set; } = true;
+
+    /// <inheritdoc/>
     public bool Interactable { get; set; } = true;
 
     /// <inheritdoc/>

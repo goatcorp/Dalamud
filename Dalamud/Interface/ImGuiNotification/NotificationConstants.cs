@@ -37,14 +37,24 @@ public static class NotificationConstants
     /// <summary>The duration of indeterminate progress bar loop in milliseconds.</summary>
     internal const float IndeterminateProgressbarLoopDuration = 2000f;
 
+    /// <summary>The duration of the progress wave animation in milliseconds.</summary>
+    internal const float ProgressWaveLoopDuration = 2000f;
+
+    /// <summary>The time ratio of a progress wave loop where the animation is idle.</summary>
+    internal const float ProgressWaveIdleTimeRatio = 0.5f;
+
+    /// <summary>The time ratio of a non-idle portion of the progress wave loop where the color is the most opaque.
+    /// </summary>
+    internal const float ProgressWaveLoopMaxColorTimeRatio = 0.7f;
+
     /// <summary>Duration of show animation.</summary>
     internal static readonly TimeSpan ShowAnimationDuration = TimeSpan.FromMilliseconds(300);
 
     /// <summary>Duration of hide animation.</summary>
     internal static readonly TimeSpan HideAnimationDuration = TimeSpan.FromMilliseconds(300);
 
-    /// <summary>Duration of hide animation.</summary>
-    internal static readonly TimeSpan ProgressAnimationDuration = TimeSpan.FromMilliseconds(200);
+    /// <summary>Duration of progress change animation.</summary>
+    internal static readonly TimeSpan ProgressChangeAnimationDuration = TimeSpan.FromMilliseconds(200);
 
     /// <summary>Text color for the when.</summary>
     internal static readonly Vector4 WhenTextColor = new(0.8f, 0.8f, 0.8f, 1f);
@@ -60,6 +70,12 @@ public static class NotificationConstants
 
     /// <summary>Text color for the body.</summary>
     internal static readonly Vector4 BodyTextColor = new(0.9f, 0.9f, 0.9f, 1f);
+
+    /// <summary>Color for the background progress bar (determinate progress only).</summary>
+    internal static readonly Vector4 BackgroundProgressColorMax = new(1f, 1f, 1f, 0.1f);
+
+    /// <summary>Color for the background progress bar (determinate progress only).</summary>
+    internal static readonly Vector4 BackgroundProgressColorMin = new(1f, 1f, 1f, 0.05f);
 
     /// <summary>Gets the relative time format strings.</summary>
     private static readonly (TimeSpan MinSpan, string? FormatString)[] RelativeFormatStrings =
@@ -94,7 +110,7 @@ public static class NotificationConstants
     internal static float ScaledIconSize => MathF.Round(IconSize * ImGuiHelpers.GlobalScale);
 
     /// <summary>Gets the height of the expiry progress bar.</summary>
-    internal static float ScaledExpiryProgressBarHeight => MathF.Round(2 * ImGuiHelpers.GlobalScale);
+    internal static float ScaledExpiryProgressBarHeight => MathF.Round(3 * ImGuiHelpers.GlobalScale);
 
     /// <summary>Gets the string format of the initiator name field, if the initiator is unloaded.</summary>
     internal static string UnloadedInitiatorNameFormat => "{0} (unloaded)";
