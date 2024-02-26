@@ -2,9 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Text;
 
-using Dalamud.Data;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Hooking;
@@ -21,9 +19,6 @@ using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using FFXIVClientStructs.Interop;
 
-using Lumina.Excel;
-using Lumina.Excel.GeneratedSheets;
-
 using ValueType = FFXIVClientStructs.FFXIV.Component.GUI.ValueType;
 
 namespace Dalamud.Game.Gui.ContextMenu;
@@ -37,21 +32,13 @@ internal sealed unsafe class ContextMenu : IDisposable, IServiceType, IContextMe
 {
     private static readonly ModuleLog Log = new("ContextMenu");
 
-    private readonly ExcelSheet<Item> itemSheet;
-    private readonly ExcelSheet<Materia> materiaSheet;
-    private readonly ExcelSheet<Stain> stainSheet;
-
     private readonly Hook<RaptureAtkModuleOpenAddonByAgentDelegate> raptureAtkModuleOpenAddonByAgentHook;
     private readonly Hook<AddonContextMenuOnMenuSelectedDelegate> addonContextMenuOnMenuSelectedHook;
     private readonly RaptureAtkModuleOpenAddonDelegate raptureAtkModuleOpenAddon;
 
     [ServiceManager.ServiceConstructor]
-    private ContextMenu(DataManager dataManager)
+    private ContextMenu()
     {
-        this.itemSheet = dataManager.GetExcelSheet<Item>();
-        this.materiaSheet = dataManager.GetExcelSheet<Materia>();
-        this.stainSheet = dataManager.GetExcelSheet<Stain>();
-
         this.raptureAtkModuleOpenAddonByAgentHook = Hook<RaptureAtkModuleOpenAddonByAgentDelegate>.FromAddress((nint)RaptureAtkModule.Addresses.OpenAddonByAgent.Value, this.RaptureAtkModuleOpenAddonByAgentDetour);
         this.addonContextMenuOnMenuSelectedHook = Hook<AddonContextMenuOnMenuSelectedDelegate>.FromAddress((nint)AddonContextMenu.StaticVTable.OnMenuSelected, this.AddonContextMenuOnMenuSelectedDetour);
         this.raptureAtkModuleOpenAddon = Marshal.GetDelegateForFunctionPointer<RaptureAtkModuleOpenAddonDelegate>((nint)RaptureAtkModule.Addresses.OpenAddon.Value);
@@ -355,7 +342,6 @@ internal sealed unsafe class ContextMenu : IDisposable, IServiceType, IContextMe
                 }
 
                 var args = new MenuOpenedArgs(this.SelectedItems.Add, this.SelectedParentAddon, this.SelectedAgent, this.SelectedMenuType.Value, this.SelectedEventInterfaces);
-                this.LogMenuOpened(args);
                 this.OnMenuOpened?.InvokeSafely(args);
                 this.SelectedItems = this.FixupMenuList(this.SelectedItems, (int)values[0].UInt);
                 this.SetupContextMenu(this.SelectedItems, ref valueCount, ref values);
@@ -407,114 +393,6 @@ internal sealed unsafe class ContextMenu : IDisposable, IServiceType, IContextMe
         }
 
         return items;
-    }
-
-    private void LogMenuOpened(MenuOpenedArgs args)
-    {
-        Log.Verbose($"Got {args.MenuType} context menu with addon 0x{args.AddonPtr:X8} ({args.AddonName}) and agent 0x{args.AgentPtr:X8}");
-        if (args.Target is MenuTargetDefault targetDefault)
-        {
-            {
-                var b = new StringBuilder();
-                b.AppendLine($"Target: {targetDefault.TargetName}");
-                b.AppendLine($"Home World: {targetDefault.TargetHomeWorld.GameData?.Name.ToDalamudString() ?? "Unknown"} ({targetDefault.TargetHomeWorld.Id})");
-                b.AppendLine($"Content Id: 0x{targetDefault.TargetContentId:X8}");
-                b.AppendLine($"Object Id: 0x{targetDefault.TargetObjectId:X8}");
-                Log.Verbose(b.ToString());
-            }
-
-            if (targetDefault.TargetCharacter is { } character)
-            {
-                var b = new StringBuilder();
-                b.AppendLine($"Character: {character.Name}");
-
-                b.AppendLine($"Name: {character.Name}");
-                b.AppendLine($"Content Id: 0x{character.ContentId:X8}");
-                b.AppendLine($"FC Tag: {character.FCTag}");
-
-                b.AppendLine($"Job: {character.ClassJob.GameData?.Abbreviation.ToDalamudString() ?? "Unknown"} ({character.ClassJob.Id})");
-                b.AppendLine($"Statuses: {string.Join(", ", character.Statuses.Select(s => s.GameData?.Name.ToDalamudString() ?? s.Id.ToString()))}");
-                b.AppendLine($"Home World: {character.HomeWorld.GameData?.Name.ToDalamudString() ?? "Unknown"} ({character.HomeWorld.Id})");
-                b.AppendLine($"Current World: {character.CurrentWorld.GameData?.Name.ToDalamudString() ?? "Unknown"} ({character.CurrentWorld.Id})");
-                b.AppendLine($"Is From Other Server: {character.IsFromOtherServer}");
-
-                b.Append("Location: ");
-                if (character.Location.GameData is { } location)
-                    b.Append($"{location.PlaceNameRegion.Value?.Name.ToDalamudString() ?? "Unknown"}/{location.PlaceNameZone.Value?.Name.ToDalamudString() ?? "Unknown"}/{location.PlaceName.Value?.Name.ToDalamudString() ?? "Unknown"}");
-                else
-                    b.Append("Unknown");
-                b.AppendLine($" ({character.Location.Id})");
-
-                b.AppendLine($"Grand Company: {character.GrandCompany.GameData?.Name.ToDalamudString() ?? "Unknown"} ({character.GrandCompany.Id})");
-                b.AppendLine($"Client Language: {character.ClientLanguage}");
-                b.AppendLine($"Languages: {string.Join(", ", character.Languages)}");
-                b.AppendLine($"Gender: {character.Gender}");
-                b.AppendLine($"Display Group: {character.DisplayGroup}");
-                b.AppendLine($"Sort: {character.Sort}");
-
-                Log.Verbose(b.ToString());
-            }
-            else
-            {
-                Log.Verbose($"Character: null");
-            }
-        }
-        else if (args.Target is MenuTargetInventory targetInventory)
-        {
-            if (targetInventory.TargetItem is { } item)
-            {
-                var b = new StringBuilder();
-                b.AppendLine($"Item: {(item.IsEmpty ? "None" : this.itemSheet.GetRow(item.ItemId)?.Name.ToDalamudString())} ({item.ItemId})");
-                b.AppendLine($"Container: {item.ContainerType}");
-                b.AppendLine($"Slot: {item.InventorySlot}");
-                b.AppendLine($"Quantity: {item.Quantity}");
-                b.AppendLine($"{(item.IsCollectable ? "Collectability" : "Spiritbond")}: {item.Spiritbond}");
-                b.AppendLine($"Condition: {item.Condition / 300f:0.00}% ({item.Condition})");
-                b.AppendLine($"Is HQ: {item.IsHq}");
-                b.AppendLine($"Is Company Crest Applied: {item.IsCompanyCrestApplied}");
-                b.AppendLine($"Is Relic: {item.IsRelic}");
-                b.AppendLine($"Is Collectable: {item.IsCollectable}");
-
-                b.Append("Materia: ");
-                var materias = new List<string>();
-                foreach (var (materiaId, materiaGrade) in item.Materia.ToArray().Zip(item.MateriaGrade.ToArray()).Where(m => m.First != 0))
-                {
-                    Log.Verbose($"{materiaId} {materiaGrade}");
-                    if (this.materiaSheet.GetRow(materiaId) is { } materia &&
-                        materia.Item[materiaGrade].Value is { } materiaItem)
-                        materias.Add($"{materiaItem.Name.ToDalamudString()}");
-                    else
-                        materias.Add($"Unknown (Id: {materiaId}, Grade: {materiaGrade})");
-                }
-
-                if (materias.Count == 0)
-                    b.AppendLine("None");
-                else
-                    b.AppendLine(string.Join(", ", materias));
-
-                b.Append($"Dye/Stain: ");
-                if (item.Stain != 0)
-                    b.AppendLine($"{this.stainSheet.GetRow(item.Stain)?.Name.ToDalamudString() ?? "Unknown"} ({item.Stain})");
-                else
-                    b.AppendLine("None");
-
-                b.Append("Glamoured Item: ");
-                if (item.GlamourId != 0)
-                    b.AppendLine($"{this.itemSheet.GetRow(item.GlamourId)?.Name.ToDalamudString() ?? "Unknown"} ({item.GlamourId})");
-                else
-                    b.AppendLine("None");
-
-                Log.Verbose(b.ToString());
-            }
-            else
-            {
-                Log.Verbose("Item: null");
-            }
-        }
-        else
-        {
-            Log.Verbose($"Target: Unknown ({args.Target?.GetType().Name ?? "null"})");
-        }
     }
 
     private void OpenSubmenu(SeString name, IReadOnlyList<MenuItem> submenuItems, int posX, int posY)
