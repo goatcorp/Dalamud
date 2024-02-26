@@ -1,4 +1,5 @@
 using Dalamud.Data;
+using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.Gui.ContextMenu;
 using Dalamud.Game.Network.Structures.InfoProxy;
 using Dalamud.Game.Text;
@@ -20,7 +21,7 @@ internal class ContextMenuAgingStep : IAgingStep
     private SubStep currentSubStep;
 
     private bool? targetInventorySubmenuOpened;
-    private CharacterData? targetCharacter;
+    private PlayerCharacter? targetCharacter;
 
     private ExcelSheet<Item> itemSheet;
 
@@ -65,7 +66,7 @@ internal class ContextMenuAgingStep : IAgingStep
                 }
                 else
                 {
-                    ImGui.Text("Right-click an item.");
+                    ImGui.Text("Right-click an item and select \"Self Test\".");
 
                     if (ImGui.Button("Skip"))
                         this.currentSubStep++;
@@ -166,7 +167,7 @@ internal class ContextMenuAgingStep : IAgingStep
                 break;
 
             case SubStep.TestDefault:
-                if (args.Target is MenuTargetDefault { TargetCharacter: { } character })
+                if (args.Target is MenuTargetDefault { TargetObject: PlayerCharacter { } character })
                     this.targetCharacter = character;
                 break;
 
