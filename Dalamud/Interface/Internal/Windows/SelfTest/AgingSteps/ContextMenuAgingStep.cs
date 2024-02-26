@@ -1,7 +1,6 @@
 using Dalamud.Data;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.Gui.ContextMenu;
-using Dalamud.Game.Network.Structures.InfoProxy;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Utility;
@@ -126,7 +125,9 @@ internal class ContextMenuAgingStep : IAgingStep
                 {
                     args.AddMenuItem(new()
                     {
-                        Name = "Aging Item",
+                        Name = "Self Test",
+                        Prefix = SeIconChar.Hyadelyn,
+                        PrefixColor = 56,
                         Priority = -1,
                         IsSubmenu = true,
                         OnClicked = (MenuItemClickedArgs a) =>
