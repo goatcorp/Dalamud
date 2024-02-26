@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
@@ -103,7 +103,7 @@ public unsafe struct GameInventoryItem : IEquatable<GameInventoryItem>
     /// <summary>
     /// Gets the array of materia grades.
     /// </summary>
-    public ReadOnlySpan<ushort> MateriaGrade =>
+    public ReadOnlySpan<byte> MateriaGrade =>
         new(Unsafe.AsPointer(ref Unsafe.AsRef(in this.InternalItem.MateriaGrade[0])), 5);
 
     /// <summary>
