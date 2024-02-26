@@ -50,6 +50,15 @@ public static class Util
         Assembly.GetAssembly(typeof(ChatHandlers)).GetName().Version.ToString();
 
     /// <summary>
+    /// Determines if the given COM interface wrapper is empty.
+    /// </summary>
+    /// <param name="t">The object.</param>
+    /// <typeparam name="T">The interface.</typeparam>
+    /// <returns>Whether it is empty.</returns>
+    public static unsafe bool IsEmpty<T>(this ComPtr<T> t)
+        where T : unmanaged, IUnknown.Interface => t.Get() is null;
+
+    /// <summary>
     /// Check two byte arrays for equality.
     /// </summary>
     /// <param name="a1">The first byte array.</param>
@@ -686,6 +695,25 @@ public static class Util
         var rng = new Random();
 
         return names.ElementAt(rng.Next(0, names.Count() - 1)).Singular.RawString;
+    }
+
+    /// <summary>
+    /// Debug purpose: show a message box so that you can attach a debugger.
+    /// </summary>
+    /// <param name="reason">The reason.</param>
+    internal static unsafe void ShowMessageBoxAsBreakpoint(string reason = "")
+    {
+        fixed (void* p = reason)
+        {
+            fixed (void* title = "Dalamud")
+            {
+                _ = TerraFX.Interop.Windows.Windows.MessageBoxW(
+                    default,
+                    (ushort*)p,
+                    (ushort*)title,
+                    MB.MB_OK);
+            }
+        }
     }
 
     /// <summary>

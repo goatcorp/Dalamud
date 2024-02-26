@@ -1,5 +1,7 @@
 ﻿using SharpDX.DXGI;
 
+using TerraFX.Interop.DirectX;
+
 namespace Dalamud.Storage.Assets;
 
 /// <summary>
@@ -15,7 +17,7 @@ internal class DalamudAssetRawTextureAttribute : Attribute
     /// <param name="pitch">The pitch.</param>
     /// <param name="height">The height.</param>
     /// <param name="format">The format.</param>
-    public DalamudAssetRawTextureAttribute(int width, int pitch, int height, Format format)
+    public DalamudAssetRawTextureAttribute(int width, int pitch, int height, DXGI_FORMAT format)
     {
         this.Width = width;
         this.Pitch = pitch;
@@ -41,5 +43,5 @@ internal class DalamudAssetRawTextureAttribute : Attribute
     /// <summary>
     /// Gets the format.
     /// </summary>
-    public Format Format { get; }
+    public DXGI_FORMAT Format { get; }
 }

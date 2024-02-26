@@ -5,6 +5,7 @@ namespace Dalamud.Utility;
 /// <summary>
 /// Extension methods for System.Numerics.VectorN and SharpDX.VectorN.
 /// </summary>
+[Obsolete("Use your own vector extensions. You might as well copy this file.", true)]
 public static class VectorExtensions
 {
     /// <summary>

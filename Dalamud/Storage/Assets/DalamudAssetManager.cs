@@ -307,12 +307,13 @@ internal sealed class DalamudAssetManager : IServiceType, IDisposable, IDalamudA
                 var length = checked((int)stream.Length);
                 buf = ArrayPool<byte>.Shared.Rent(length);
                 stream.ReadExactly(buf, 0, length);
+                var name = $"{nameof(DalamudAssetManager)}:{asset}";
                 var image = purpose switch
                 {
-                    DalamudAssetPurpose.TextureFromPng => im.LoadImage(buf),
+                    DalamudAssetPurpose.TextureFromPng => im.CreateTexture2DFromBytes(buf, name),
                     DalamudAssetPurpose.TextureFromRaw =>
                         asset.GetAttribute<DalamudAssetRawTextureAttribute>() is { } raw
-                            ? im.LoadImageFromDxgiFormat(buf, raw.Pitch, raw.Width, raw.Height, raw.Format)
+                            ? im.CreateTexture2DFromRaw(buf, raw.Pitch, raw.Width, raw.Height, (int)raw.Format, name)
                             : throw new InvalidOperationException(
                                   "TextureFromRaw must accompany a DalamudAssetRawTextureAttribute."),
                     _ => null,

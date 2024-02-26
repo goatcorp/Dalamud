@@ -1,12 +1,9 @@
 ﻿using System.Numerics;
 
-using ImGuiScene;
-
 namespace Dalamud.Interface.Internal;
 
 /// <summary>
-/// Base TextureWrap interface for all Dalamud-owned texture wraps.
-/// Used to avoid referencing ImGuiScene.
+/// Base interface for all Dalamud-owned texture wraps.
 /// </summary>
 public interface IDalamudTextureWrap : IDisposable
 {
@@ -37,62 +34,40 @@ public interface IDalamudTextureWrap : IDisposable
 /// </summary>
 public class DalamudTextureWrap : IDalamudTextureWrap
 {
-    private readonly TextureWrap wrappedWrap;
+    private readonly IDalamudTextureWrap inner;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DalamudTextureWrap"/> class.
     /// </summary>
-    /// <param name="wrappingWrap">The texture wrap to wrap.</param>
-    internal DalamudTextureWrap(TextureWrap wrappingWrap)
-    {
-        this.wrappedWrap = wrappingWrap;
-    }
+    /// <param name="inner">The pointer to an instance of <see cref="IDalamudTextureWrap"/>.</param>
+    internal DalamudTextureWrap(IDalamudTextureWrap inner) => this.inner = inner;
 
-    /// <summary>
-    /// Finalizes an instance of the <see cref="DalamudTextureWrap"/> class.
-    /// </summary>
-    ~DalamudTextureWrap()
-    {
-        this.Dispose(false);
-    }
+    /// <inheritdoc/>
+    public nint ImGuiHandle => this.inner.ImGuiHandle;
 
-    /// <summary>
-    /// Gets the ImGui handle of the texture.
-    /// </summary>
-    public IntPtr ImGuiHandle => this.wrappedWrap.ImGuiHandle;
+    /// <inheritdoc/>
+    public int Width => this.inner.Width;
 
-    /// <summary>
-    /// Gets the width of the texture.
-    /// </summary>
-    public int Width => this.wrappedWrap.Width;
-
-    /// <summary>
-    /// Gets the height of the texture.
-    /// </summary>
-    public int Height => this.wrappedWrap.Height;
+    /// <inheritdoc/>
+    public int Height => this.inner.Height;
 
     /// <summary>
     /// Queue the texture to be disposed once the frame ends.
     /// </summary>
     public void Dispose()
     {
-        this.Dispose(true);
+        Service<InterfaceManager>.GetNullable()?.EnqueueDeferredDispose(this);
         GC.SuppressFinalize(this);
     }
 
     /// <summary>
     /// Actually dispose the wrapped texture.
     /// </summary>
-    internal void RealDispose()
-    {
-        this.wrappedWrap.Dispose();
-    }
+    internal void RealDispose() => this.inner.Dispose();
 
-    private void Dispose(bool disposing)
-    {
-        if (disposing)
-        {
-            Service<InterfaceManager>.GetNullable()?.EnqueueDeferredDispose(this);
-        }
-    }
+    /// <inheritdoc cref="ICloneable.Clone"/>
+    internal DalamudTextureWrap Clone() =>
+        this.inner is ICloneable cloneable
+            ? new DalamudTextureWrap((IDalamudTextureWrap)cloneable.Clone())
+            : throw new NotSupportedException();
 }

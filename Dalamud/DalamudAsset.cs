@@ -19,7 +19,7 @@ public enum DalamudAsset
     /// <see cref="DalamudAssetPurpose.TextureFromRaw"/>: The fallback empty texture.
     /// </summary>
     [DalamudAsset(DalamudAssetPurpose.TextureFromRaw, data: new byte[] { 0, 0, 0, 0, 0, 0, 0, 0 })]
-    [DalamudAssetRawTexture(4, 8, 4, SharpDX.DXGI.Format.BC1_UNorm)]
+    [DalamudAssetRawTexture(4, 8, 4, TerraFX.Interop.DirectX.DXGI_FORMAT.DXGI_FORMAT_BC1_UNORM)]
     Empty4X4 = 1000,
 
     /// <summary>

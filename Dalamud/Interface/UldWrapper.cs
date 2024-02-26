@@ -5,6 +5,7 @@ using System.Linq;
 using Dalamud.Data;
 using Dalamud.Interface.Internal;
 using Dalamud.Utility;
+
 using Lumina.Data.Files;
 using Lumina.Data.Parsing.Uld;
 
@@ -37,7 +38,7 @@ public class UldWrapper : IDisposable
     /// <summary> Load a part of a multi-icon sheet as a texture. </summary>
     /// <param name="texturePath">The path of the requested texture.</param>
     /// <param name="part">The index of the desired icon.</param>
-    /// <returns>A TextureWrap containing the requested part if it exists and null otherwise.</returns>
+    /// <returns>A <see cref="IDalamudTextureWrap"/> containing the requested part if it exists and null otherwise.</returns>
     public IDalamudTextureWrap? LoadTexturePart(string texturePath, int part)
     {
         if (!this.Valid)

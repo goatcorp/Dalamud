@@ -15,7 +15,7 @@ using Dalamud.Utility;
 
 using ImGuiNET;
 
-using SharpDX.DXGI;
+using TerraFX.Interop.DirectX;
 
 namespace Dalamud.Interface.ManagedFontAtlas.Internals;
 
@@ -579,10 +579,11 @@ internal sealed partial class FontAtlasFactory
             var buf = Array.Empty<byte>();
             try
             {
-                var use4 = this.factory.InterfaceManager.SupportsDxgiFormat(Format.B4G4R4A4_UNorm);
+                var use4 = this.factory.InterfaceManager.SupportsTextureFormat(DXGI_FORMAT.DXGI_FORMAT_B4G4R4A4_UNORM);
                 var bpp = use4 ? 2 : 4;
                 var width = this.NewImAtlas.TexWidth;
                 var height = this.NewImAtlas.TexHeight;
+                var textureIndex = 0;
                 foreach (ref var texture in this.data.ImTextures.DataSpan)
                 {
                     if (texture.TexID != 0)
@@ -591,12 +592,15 @@ internal sealed partial class FontAtlasFactory
                     }
                     else if (texture.TexPixelsRGBA32 is not null)
                     {
-                        var wrap = this.factory.InterfaceManager.LoadImageFromDxgiFormat(
+                        var wrap = this.factory.InterfaceManager.CreateTexture2DFromRaw(
                             new(texture.TexPixelsRGBA32, width * height * 4),
                             width * 4,
                             width,
                             height,
-                            use4 ? Format.B4G4R4A4_UNorm : Format.R8G8B8A8_UNorm);
+                            use4
+                                ? (int)DXGI_FORMAT.DXGI_FORMAT_B4G4R4A4_UNORM
+                                : (int)DXGI_FORMAT.DXGI_FORMAT_R8G8B8A8_UNORM,
+                            $"{this.data.Owner?.Name}:{textureIndex}");
                         this.data.AddExistingTexture(wrap);
                         texture.TexID = wrap.ImGuiHandle;
                     }
@@ -634,12 +638,15 @@ internal sealed partial class FontAtlasFactory
                             }
                         }
 
-                        var wrap = this.factory.InterfaceManager.LoadImageFromDxgiFormat(
+                        var wrap = this.factory.InterfaceManager.CreateTexture2DFromRaw(
                             buf,
                             width * bpp,
                             width,
                             height,
-                            use4 ? Format.B4G4R4A4_UNorm : Format.B8G8R8A8_UNorm);
+                            use4
+                                ? (int)DXGI_FORMAT.DXGI_FORMAT_B4G4R4A4_UNORM
+                                : (int)DXGI_FORMAT.DXGI_FORMAT_R8G8B8A8_UNORM,
+                            $"{this.data.Owner?.Name}:{textureIndex}");
                         this.data.AddExistingTexture(wrap);
                         texture.TexID = wrap.ImGuiHandle;
                         continue;
@@ -657,6 +664,8 @@ internal sealed partial class FontAtlasFactory
                         ImGuiNative.igMemFree(texture.TexPixelsAlpha8);
                     texture.TexPixelsRGBA32 = null;
                     texture.TexPixelsAlpha8 = null;
+
+                    textureIndex++;
                 }
             }
             finally

@@ -296,8 +296,8 @@ internal sealed partial class FontAtlasFactory
                         if (this.disposed)
                             return;
 
-                        r.Result.OnNewRenderFrame += this.ImGuiSceneOnNewRenderFrame;
-                        this.disposables.Add(() => r.Result.OnNewRenderFrame -= this.ImGuiSceneOnNewRenderFrame);
+                        r.Result.NewRenderFrame += this.ImGuiSceneOnNewRenderFrame;
+                        this.disposables.Add(() => r.Result.NewRenderFrame -= this.ImGuiSceneOnNewRenderFrame);
                     }
 
                     if (this.AutoRebuildMode == FontAtlasAutoRebuildMode.OnNewFrame)

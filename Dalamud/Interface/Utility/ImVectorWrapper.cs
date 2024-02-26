@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 
 using ImGuiNET;
 
@@ -198,6 +199,25 @@ public unsafe struct ImVectorWrapper<T> : IList<T>, IList, IReadOnlyList<T>, IDi
             throw new ArgumentException($"{nameof(vector)} cannot be null.", nameof(this.vector));
 
         this.vector = vector;
+        this.destroyer = destroyer;
+        this.HasOwnership = ownership;
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ImVectorWrapper{T}"/> struct.<br />
+    /// If <paramref name="ownership"/> is set to true, you must call <see cref="Dispose"/> after use,
+    /// and the underlying memory for <see cref="ImVector"/> must have been allocated using
+    /// <see cref="ImGuiNative.igMemAlloc"/>. Otherwise, it will crash.
+    /// </summary>
+    /// <param name="vector">The underlying vector.</param>
+    /// <param name="destroyer">The destroyer function to call on item removal.</param>
+    /// <param name="ownership">Whether this wrapper owns the vector.</param>
+    public ImVectorWrapper(
+        ref ImVector vector,
+        ImGuiNativeDestroyDelegate? destroyer = null,
+        bool ownership = false)
+    {
+        this.vector = (ImVector*)Unsafe.AsPointer(ref vector);
         this.destroyer = destroyer;
         this.HasOwnership = ownership;
     }
@@ -444,6 +464,20 @@ public unsafe struct ImVectorWrapper<T> : IList<T>, IList, IReadOnlyList<T>, IDi
         {
             throw new ArgumentException(
                 "The number of elements in the source ImVectorWrapper<T> is greater than the available space from arrayIndex to the end of the destination array.",
+                nameof(array));
+        }
+
+        fixed (void* p = array)
+            Buffer.MemoryCopy(this.DataUnsafe, p, this.LengthUnsafe * sizeof(T), this.LengthUnsafe * sizeof(T));
+    }
+
+    /// <inheritdoc cref="Span{T}.CopyTo"/>
+    public void CopyTo(Span<T> array)
+    {
+        if (array.Length < this.LengthUnsafe)
+        {
+            throw new ArgumentException(
+                "The number of elements in the source ImVectorWrapper<T> is greater than the available space of the destination span.",
                 nameof(array));
         }
 

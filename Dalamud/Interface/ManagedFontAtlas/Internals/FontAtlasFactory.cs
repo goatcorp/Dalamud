@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Dalamud.Configuration.Internal;
 using Dalamud.Data;
 using Dalamud.Game;
+using Dalamud.ImGuiScene;
 using Dalamud.Interface.FontIdentifier;
 using Dalamud.Interface.GameFonts;
 using Dalamud.Interface.Internal;
@@ -16,13 +17,9 @@ using Dalamud.Utility;
 
 using ImGuiNET;
 
-using ImGuiScene;
-
 using Lumina.Data.Files;
 
-using SharpDX;
-using SharpDX.Direct3D11;
-using SharpDX.DXGI;
+using TerraFX.Interop.DirectX;
 
 namespace Dalamud.Interface.ManagedFontAtlas.Internals;
 
@@ -145,9 +142,9 @@ internal sealed partial class FontAtlasFactory
     public InterfaceManager InterfaceManager { get; }
 
     /// <summary>
-    /// Gets the async task for <see cref="RawDX11Scene"/> inside <see cref="InterfaceManager"/>.
+    /// Gets the async task for <see cref="IImGuiScene"/> inside <see cref="InterfaceManager"/>.
     /// </summary>
-    public Task<RawDX11Scene> SceneTask { get; }
+    public Task<IImGuiScene> SceneTask { get; }
 
     /// <summary>
     /// Gets the default glyph ranges (glyph ranges of <see cref="GameFontFamilyAndSize.Axis12"/>).
@@ -245,24 +242,13 @@ internal sealed partial class FontAtlasFactory
 
     private static T ExtractResult<T>(Task<T> t) => t.IsCompleted ? t.Result : t.GetAwaiter().GetResult();
 
-    /// <summary>
-    /// Clones a texture wrap, by getting a new reference to the underlying <see cref="ShaderResourceView"/> and the
-    /// texture behind.
-    /// </summary>
-    /// <param name="wrap">The <see cref="IDalamudTextureWrap"/> to clone from.</param>
-    /// <returns>The cloned <see cref="IDalamudTextureWrap"/>.</returns>
-    private static IDalamudTextureWrap CloneTextureWrap(IDalamudTextureWrap wrap)
-    {
-        var srv = CppObject.FromPointer<ShaderResourceView>(wrap.ImGuiHandle);
-        using var res = srv.Resource;
-        using var tex2D = res.QueryInterface<Texture2D>();
-        var description = tex2D.Description;
-        return new DalamudTextureWrap(
-            new D3DTextureWrap(
-                srv.QueryInterface<ShaderResourceView>(),
-                description.Width,
-                description.Height));
-    }
+    private static IDalamudTextureWrap CloneTextureWrap(IDalamudTextureWrap wrap) =>
+        wrap switch
+        {
+            ICloneable cloneable => (IDalamudTextureWrap)cloneable.Clone(),
+            DalamudTextureWrap dalamudTextureWrap => dalamudTextureWrap.Clone(),
+            _ => throw new NotSupportedException(),
+        };
 
     private static unsafe void ExtractChannelFromB8G8R8A8(
         Span<byte> target,
@@ -346,7 +332,7 @@ internal sealed partial class FontAtlasFactory
         var numPixels = texFile.Header.Width * texFile.Header.Height;
 
         _ = Service<InterfaceManager.InterfaceManagerWithScene>.Get();
-        var targetIsB4G4R4A4 = this.InterfaceManager.SupportsDxgiFormat(Format.B4G4R4A4_UNorm);
+        var targetIsB4G4R4A4 = this.InterfaceManager.SupportsTextureFormat(DXGI_FORMAT.DXGI_FORMAT_B4G4R4A4_UNORM);
         var bpp = targetIsB4G4R4A4 ? 2 : 4;
         var buffer = ArrayPool<byte>.Shared.Rent(numPixels * bpp);
         try
@@ -369,12 +355,15 @@ internal sealed partial class FontAtlasFactory
             }
 
             return this.scopedFinalizer.Add(
-                this.InterfaceManager.LoadImageFromDxgiFormat(
+                this.InterfaceManager.CreateTexture2DFromRaw(
                     buffer,
                     texFile.Header.Width * bpp,
                     texFile.Header.Width,
                     texFile.Header.Height,
-                    targetIsB4G4R4A4 ? Format.B4G4R4A4_UNorm : Format.B8G8R8A8_UNorm));
+                    targetIsB4G4R4A4
+                        ? (int)DXGI_FORMAT.DXGI_FORMAT_B4G4R4A4_UNORM
+                        : (int)DXGI_FORMAT.DXGI_FORMAT_B8G8R8A8_UNORM,
+                    $"{texPathFormat.Format(fileIndex)}(channel={channelIndex})"));
         }
         finally
         {
