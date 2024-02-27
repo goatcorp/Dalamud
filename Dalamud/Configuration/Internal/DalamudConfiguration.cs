@@ -216,6 +216,11 @@ internal sealed class DalamudConfiguration : IServiceType, IDisposable
     public bool LogOpenAtStartup { get; set; }
 
     /// <summary>
+    /// Gets or sets the number of lines to keep for the Dalamud Console window.
+    /// </summary>
+    public int LogLinesLimit { get; set; } = 10000;
+
+    /// <summary>
     /// Gets or sets a value indicating whether or not the dev bar should open at startup.
     /// </summary>
     public bool DevBarOpenAtStartup { get; set; }
