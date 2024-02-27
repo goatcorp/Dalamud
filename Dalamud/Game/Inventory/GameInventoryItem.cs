@@ -1,10 +1,13 @@
 using System.Diagnostics;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 using FFXIVClientStructs.FFXIV.Client.Game;
 
 namespace Dalamud.Game.Inventory;
+
+// TODO(api10): MateriaGrade is a byte array in CS, not a ushort array. Replace MateriaGrade with MateriaGradeBytes.
 
 /// <summary>
 /// Dalamud wrapper around a ClientStructs InventoryItem.
@@ -101,10 +104,16 @@ public unsafe struct GameInventoryItem : IEquatable<GameInventoryItem>
     public ReadOnlySpan<ushort> Materia => new(Unsafe.AsPointer(ref Unsafe.AsRef(in this.InternalItem.Materia[0])), 5);
 
     /// <summary>
+    /// Gets the array of materia grades as bytes.
+    /// </summary>
+    public ReadOnlySpan<byte> MateriaGradeBytes =>
+        new(Unsafe.AsPointer(ref Unsafe.AsRef(in this.InternalItem.MateriaGrade[0])), 5);
+
+    /// <summary>
     /// Gets the array of materia grades.
     /// </summary>
-    public ReadOnlySpan<byte> MateriaGrade =>
-        new(Unsafe.AsPointer(ref Unsafe.AsRef(in this.InternalItem.MateriaGrade[0])), 5);
+    public ReadOnlySpan<ushort> MateriaGrade =>
+        this.MateriaGradeBytes.ToArray().Select(g => (ushort)g).ToArray().AsSpan();
 
     /// <summary>
     /// Gets the address of native inventory item in the game.<br />
