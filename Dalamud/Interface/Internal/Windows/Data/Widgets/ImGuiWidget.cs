@@ -116,7 +116,7 @@ internal class ImGuiWidget : IDataWindowWidget
             NotificationTemplate.InitialDurationTitles.Length);
 
         ImGui.Combo(
-            "Hover Extend Duration",
+            "Extension Duration",
             ref this.notificationTemplate.HoverExtendDurationInt,
             NotificationTemplate.HoverExtendDurationTitles,
             NotificationTemplate.HoverExtendDurationTitles.Length);
@@ -166,7 +166,7 @@ internal class ImGuiWidget : IDataWindowWidget
                         this.notificationTemplate.InitialDurationInt == 0
                             ? TimeSpan.MaxValue
                             : NotificationTemplate.Durations[this.notificationTemplate.InitialDurationInt],
-                    DurationSinceLastInterest =
+                    ExtensionDurationSinceLastInterest =
                         this.notificationTemplate.HoverExtendDurationInt == 0
                             ? TimeSpan.Zero
                             : NotificationTemplate.Durations[this.notificationTemplate.HoverExtendDurationInt],
@@ -179,41 +179,40 @@ internal class ImGuiWidget : IDataWindowWidget
                         4 => -1f,
                         _ => 0.5f,
                     },
-                    IconSource = this.notificationTemplate.IconSourceInt switch
+                    Icon = this.notificationTemplate.IconSourceInt switch
                     {
-                        1 => INotificationIconSource.From(
+                        1 => INotificationIcon.From(
                             (SeIconChar)(this.notificationTemplate.IconSourceText.Length == 0
                                              ? 0
                                              : this.notificationTemplate.IconSourceText[0])),
-                        2 => INotificationIconSource.From(
+                        2 => INotificationIcon.From(
                             (FontAwesomeIcon)(this.notificationTemplate.IconSourceText.Length == 0
                                                   ? 0
                                                   : this.notificationTemplate.IconSourceText[0])),
-                        3 => INotificationIconSource.From(
-                            Service<DalamudAssetManager>.Get().GetDalamudTextureWrap(
-                                Enum.Parse<DalamudAsset>(
-                                    NotificationTemplate.AssetSources[
-                                        this.notificationTemplate.IconSourceAssetInt])),
-                            false),
-                        4 => INotificationIconSource.From(
-                            () =>
-                                Service<DalamudAssetManager>.Get().GetDalamudTextureWrapAsync(
-                                    Enum.Parse<DalamudAsset>(
-                                        NotificationTemplate.AssetSources[
-                                            this.notificationTemplate.IconSourceAssetInt]))),
-                        5 => INotificationIconSource.FromGame(this.notificationTemplate.IconSourceText),
-                        6 => INotificationIconSource.FromFile(this.notificationTemplate.IconSourceText),
-                        7 => INotificationIconSource.From(
-                            Service<TextureManager>.Get().GetTextureFromGame(this.notificationTemplate.IconSourceText),
-                            false),
-                        8 => INotificationIconSource.From(
-                            Service<TextureManager>.Get().GetTextureFromFile(
-                                new(this.notificationTemplate.IconSourceText)),
-                            false),
+                        3 => INotificationIcon.FromGame(this.notificationTemplate.IconSourceText),
+                        4 => INotificationIcon.FromFile(this.notificationTemplate.IconSourceText),
                         _ => null,
                     },
-                },
-                true);
+                });
+
+            var dam = Service<DalamudAssetManager>.Get();
+            var tm = Service<TextureManager>.Get();
+            switch (this.notificationTemplate.IconSourceInt)
+            {
+                case 5:
+                    n.SetIconTexture(
+                        dam.GetDalamudTextureWrap(
+                            Enum.Parse<DalamudAsset>(
+                                NotificationTemplate.AssetSources[this.notificationTemplate.IconSourceAssetInt])));
+                    break;
+                case 6:
+                    n.SetIconTexture(tm.GetTextureFromGame(this.notificationTemplate.IconSourceText));
+                    break;
+                case 7:
+                    n.SetIconTexture(tm.GetTextureFromFile(new(this.notificationTemplate.IconSourceText)));
+                    break;
+            }
+
             switch (this.notificationTemplate.ProgressMode)
             {
                 case 2:
@@ -237,8 +236,8 @@ internal class ImGuiWidget : IDataWindowWidget
                                 n.Progress = i / 10f;
                             }
 
-                            n.ExtendBy(NotificationConstants.DefaultDisplayDuration);
-                            n.InitialDuration = NotificationConstants.DefaultDisplayDuration;
+                            n.ExtendBy(NotificationConstants.DefaultDuration);
+                            n.InitialDuration = NotificationConstants.DefaultDuration;
                         });
                     break;
             }
@@ -251,6 +250,10 @@ internal class ImGuiWidget : IDataWindowWidget
                 n.Click += _ => nclick++;
                 n.DrawActions += an =>
                 {
+                    ImGui.AlignTextToFramePadding();
+                    ImGui.TextUnformatted($"{nclick}");
+                    
+                    ImGui.SameLine();
                     if (ImGui.Button("Update"))
                     {
                         NewRandom(out title, out type, out progress);
@@ -260,18 +263,11 @@ internal class ImGuiWidget : IDataWindowWidget
                     }
 
                     ImGui.SameLine();
-                    ImGui.InputText("##input", ref testString, 255);
-
-                    if (an.IsHovered)
-                    {
-                        ImGui.SameLine();
-                        if (ImGui.Button("Dismiss"))
-                            an.DismissNow();
-                    }
-
-                    ImGui.AlignTextToFramePadding();
+                    if (ImGui.Button("Dismiss"))
+                        an.DismissNow();
+                    
                     ImGui.SameLine();
-                    ImGui.TextUnformatted($"Clicked {nclick} time(s)");
+                    ImGui.InputText("##input", ref testString, 255);
                 };
             }
         }
@@ -315,10 +311,9 @@ internal class ImGuiWidget : IDataWindowWidget
             "None (use Type)",
             "SeIconChar",
             "FontAwesomeIcon",
-            "TextureWrap from DalamudAssets",
-            "TextureWrapTask from DalamudAssets",
             "GamePath",
             "FilePath",
+            "TextureWrap from DalamudAssets",
             "TextureWrap from GamePath",
             "TextureWrap from FilePath",
         };
@@ -367,7 +362,7 @@ internal class ImGuiWidget : IDataWindowWidget
         {
             TimeSpan.Zero,
             TimeSpan.FromSeconds(1),
-            NotificationConstants.DefaultDisplayDuration,
+            NotificationConstants.DefaultDuration,
             TimeSpan.FromSeconds(10),
         };
 

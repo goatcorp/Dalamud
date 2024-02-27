@@ -1,24 +1,21 @@
 using System.Numerics;
 using System.Runtime.Loader;
+using System.Threading;
 
 using Dalamud.Interface.Animation;
 using Dalamud.Interface.Animation.EasingFunctions;
 using Dalamud.Interface.Colors;
-using Dalamud.Interface.ImGuiNotification.Internal.IconSource;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Internal.Notifications;
-using Dalamud.Interface.Utility;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Utility;
-
-using ImGuiNET;
 
 using Serilog;
 
 namespace Dalamud.Interface.ImGuiNotification.Internal;
 
 /// <summary>Represents an active notification.</summary>
-internal sealed class ActiveNotification : IActiveNotification
+internal sealed partial class ActiveNotification : IActiveNotification
 {
     private readonly Notification underlyingNotification;
 
@@ -26,6 +23,21 @@ internal sealed class ActiveNotification : IActiveNotification
     private readonly Easing hideEasing;
     private readonly Easing progressEasing;
     private readonly Easing expandoEasing;
+
+    /// <summary>Gets the time of starting to count the timer for the expiration.</summary>
+    private DateTime lastInterestTime;
+
+    /// <summary>Gets the extended expiration time from <see cref="ExtendBy"/>.</summary>
+    private DateTime extendedExpiry;
+
+    /// <summary>The icon texture to use if specified; otherwise, icon will be used from <see cref="Icon"/>.</summary>
+    private IDalamudTextureWrap? iconTextureWrap;
+
+    /// <summary>The plugin that initiated this notification.</summary>
+    private LocalPlugin? initiatorPlugin;
+
+    /// <summary>Whether <see cref="initiatorPlugin"/> has been unloaded.</summary>
+    private bool isInitiatorUnloaded;
 
     /// <summary>The progress before for the progress bar animation with <see cref="progressEasing"/>.</summary>
     private float progressBefore;
@@ -36,10 +48,10 @@ internal sealed class ActiveNotification : IActiveNotification
     /// <summary>Used for calculating correct dismissal progressbar animation (right edge).</summary>
     private float prevProgressR;
 
-    /// <summary>New progress value to be updated on next call to <see cref="UpdateAnimations"/>.</summary>
+    /// <summary>New progress value to be updated on next call to <see cref="UpdateOrDisposeInternal"/>.</summary>
     private float? newProgress;
 
-    /// <summary>New minimized value to be updated on next call to <see cref="UpdateAnimations"/>.</summary>
+    /// <summary>New minimized value to be updated on next call to <see cref="UpdateOrDisposeInternal"/>.</summary>
     private bool? newMinimized;
 
     /// <summary>Initializes a new instance of the <see cref="ActiveNotification"/> class.</summary>
@@ -47,28 +59,16 @@ internal sealed class ActiveNotification : IActiveNotification
     /// <param name="initiatorPlugin">The initiator plugin. Use <c>null</c> if originated by Dalamud.</param>
     public ActiveNotification(Notification underlyingNotification, LocalPlugin? initiatorPlugin)
     {
-        this.underlyingNotification = underlyingNotification with
-        {
-            IconSource = underlyingNotification.IconSource?.Clone(),
-        };
-        this.InitiatorPlugin = initiatorPlugin;
+        this.underlyingNotification = underlyingNotification with { };
+        this.initiatorPlugin = initiatorPlugin;
         this.showEasing = new InCubic(NotificationConstants.ShowAnimationDuration);
         this.hideEasing = new OutCubic(NotificationConstants.HideAnimationDuration);
         this.progressEasing = new InOutCubic(NotificationConstants.ProgressChangeAnimationDuration);
         this.expandoEasing = new InOutCubic(NotificationConstants.ExpandoAnimationDuration);
+        this.CreatedAt = this.lastInterestTime = this.extendedExpiry = DateTime.Now;
 
         this.showEasing.Start();
         this.progressEasing.Start();
-        try
-        {
-            this.UpdateIcon();
-        }
-        catch (Exception e)
-        {
-            // Ignore the one caused from ctor only; other UpdateIcon calls are from plugins, and they should handle the
-            // error accordingly.
-            Log.Error(e, $"{nameof(ActiveNotification)}#{this.Id} ctor: {nameof(this.UpdateIcon)} failed and ignored.");
-        }
     }
 
     /// <inheritdoc/>
@@ -81,22 +81,10 @@ internal sealed class ActiveNotification : IActiveNotification
     public event Action<IActiveNotification>? DrawActions;
 
     /// <inheritdoc/>
-    public event Action<IActiveNotification>? MouseEnter;
-
-    /// <inheritdoc/>
-    public event Action<IActiveNotification>? MouseLeave;
-
-    /// <inheritdoc/>
     public long Id { get; } = IActiveNotification.CreateNewId();
 
-    /// <summary>Gets the time of creating this notification.</summary>
-    public DateTime CreatedAt { get; } = DateTime.Now;
-
-    /// <summary>Gets the time of starting to count the timer for the expiration.</summary>
-    public DateTime LastInterestTime { get; private set; } = DateTime.Now;
-
-    /// <summary>Gets the extended expiration time from <see cref="ExtendBy"/>.</summary>
-    public DateTime ExtendedExpiry { get; private set; } = DateTime.Now;
+    /// <inheritdoc/>
+    public DateTime CreatedAt { get; }
 
     /// <inheritdoc/>
     public string Content
@@ -147,19 +135,14 @@ internal sealed class ActiveNotification : IActiveNotification
     }
 
     /// <inheritdoc/>
-    public INotificationIconSource? IconSource
+    public INotificationIcon? Icon
     {
-        get => this.underlyingNotification.IconSource;
+        get => this.underlyingNotification.Icon;
         set
         {
             if (this.IsDismissed)
-            {
-                value?.Dispose();
                 return;
-            }
-
-            this.underlyingNotification.IconSource = value;
-            this.UpdateIcon();
+            this.underlyingNotification.Icon = value;
         }
     }
 
@@ -172,7 +155,7 @@ internal sealed class ActiveNotification : IActiveNotification
             if (this.underlyingNotification.HardExpiry == value || this.IsDismissed)
                 return;
             this.underlyingNotification.HardExpiry = value;
-            this.LastInterestTime = DateTime.Now;
+            this.lastInterestTime = DateTime.Now;
         }
     }
 
@@ -185,58 +168,25 @@ internal sealed class ActiveNotification : IActiveNotification
             if (this.IsDismissed)
                 return;
             this.underlyingNotification.InitialDuration = value;
-            this.LastInterestTime = DateTime.Now;
+            this.lastInterestTime = DateTime.Now;
         }
     }
 
     /// <inheritdoc/>
-    public TimeSpan DurationSinceLastInterest
+    public TimeSpan ExtensionDurationSinceLastInterest
     {
-        get => this.underlyingNotification.DurationSinceLastInterest;
+        get => this.underlyingNotification.ExtensionDurationSinceLastInterest;
         set
         {
             if (this.IsDismissed)
                 return;
-            this.underlyingNotification.DurationSinceLastInterest = value;
-            this.LastInterestTime = DateTime.Now;
+            this.underlyingNotification.ExtensionDurationSinceLastInterest = value;
+            this.lastInterestTime = DateTime.Now;
         }
     }
 
     /// <inheritdoc/>
-    public DateTime EffectiveExpiry
-    {
-        get
-        {
-            var initialDuration = this.InitialDuration;
-            var expiryInitial =
-                initialDuration == TimeSpan.MaxValue
-                    ? DateTime.MaxValue
-                    : this.CreatedAt + initialDuration;
-
-            DateTime expiry;
-            var hoverExtendDuration = this.DurationSinceLastInterest;
-            if (hoverExtendDuration > TimeSpan.Zero && (this.IsHovered || this.IsFocused))
-            {
-                expiry = DateTime.MaxValue;
-            }
-            else
-            {
-                var expiryExtend =
-                    hoverExtendDuration == TimeSpan.MaxValue
-                        ? DateTime.MaxValue
-                        : this.LastInterestTime + hoverExtendDuration;
-
-                expiry = expiryInitial > expiryExtend ? expiryInitial : expiryExtend;
-                if (expiry < this.ExtendedExpiry)
-                    expiry = this.ExtendedExpiry;
-            }
-
-            var he = this.HardExpiry;
-            if (he < expiry)
-                expiry = he;
-            return expiry;
-        }
-    }
+    public DateTime EffectiveExpiry { get; private set; }
 
     /// <inheritdoc/>
     public bool ShowIndeterminateIfNoExpiry
@@ -287,22 +237,7 @@ internal sealed class ActiveNotification : IActiveNotification
     }
 
     /// <inheritdoc/>
-    public bool IsHovered { get; private set; }
-
-    /// <inheritdoc/>
-    public bool IsFocused { get; private set; }
-
-    /// <inheritdoc/>
     public bool IsDismissed => this.hideEasing.IsRunning;
-
-    /// <summary>Gets a value indicating whether <see cref="InitiatorPlugin"/> has been unloaded.</summary>
-    public bool IsInitiatorUnloaded { get; private set; }
-
-    /// <summary>Gets or sets the plugin that initiated this notification.</summary>
-    public LocalPlugin? InitiatorPlugin { get; set; }
-
-    /// <summary>Gets or sets the icon of this notification.</summary>
-    public INotificationMaterializedIcon? MaterializedIcon { get; set; }
 
     /// <summary>Gets the eased progress.</summary>
     private float ProgressEased
@@ -318,60 +253,16 @@ internal sealed class ActiveNotification : IActiveNotification
         }
     }
 
-    /// <summary>Gets the default color of the notification.</summary>
-    private Vector4 DefaultIconColor => this.Type switch
-    {
-        NotificationType.None => ImGuiColors.DalamudWhite,
-        NotificationType.Success => ImGuiColors.HealerGreen,
-        NotificationType.Warning => ImGuiColors.DalamudOrange,
-        NotificationType.Error => ImGuiColors.DalamudRed,
-        NotificationType.Info => ImGuiColors.TankBlue,
-        _ => ImGuiColors.DalamudWhite,
-    };
-
-    /// <summary>Gets the default icon of the notification.</summary>
-    private char? DefaultIconChar => this.Type switch
-    {
-        NotificationType.None => null,
-        NotificationType.Success => FontAwesomeIcon.CheckCircle.ToIconChar(),
-        NotificationType.Warning => FontAwesomeIcon.ExclamationCircle.ToIconChar(),
-        NotificationType.Error => FontAwesomeIcon.TimesCircle.ToIconChar(),
-        NotificationType.Info => FontAwesomeIcon.InfoCircle.ToIconChar(),
-        _ => null,
-    };
-
-    /// <summary>Gets the default title of the notification.</summary>
-    private string? DefaultTitle => this.Type switch
-    {
-        NotificationType.None => null,
-        NotificationType.Success => NotificationType.Success.ToString(),
-        NotificationType.Warning => NotificationType.Warning.ToString(),
-        NotificationType.Error => NotificationType.Error.ToString(),
-        NotificationType.Info => NotificationType.Info.ToString(),
-        _ => null,
-    };
-
     /// <summary>Gets the string for the initiator field.</summary>
     private string InitiatorString =>
-        this.InitiatorPlugin is not { } initiatorPlugin
+        this.initiatorPlugin is not { } plugin
             ? NotificationConstants.DefaultInitiator
-            : this.IsInitiatorUnloaded
-                ? NotificationConstants.UnloadedInitiatorNameFormat.Format(initiatorPlugin.Name)
-                : initiatorPlugin.Name;
+            : this.isInitiatorUnloaded
+                ? NotificationConstants.UnloadedInitiatorNameFormat.Format(plugin.Name)
+                : plugin.Name;
 
     /// <summary>Gets the effective text to display when minimized.</summary>
     private string EffectiveMinimizedText => (this.MinimizedText ?? this.Content).ReplaceLineEndings(" ");
-
-    /// <inheritdoc/>
-    public void Dispose()
-    {
-        this.ClearMaterializedIcon();
-        this.underlyingNotification.Dispose();
-        this.Dismiss = null;
-        this.Click = null;
-        this.DrawActions = null;
-        this.InitiatorPlugin = null;
-    }
 
     /// <inheritdoc/>
     public void DismissNow() => this.DismissNow(NotificationDismissReason.Programmatical);
@@ -392,13 +283,78 @@ internal sealed class ActiveNotification : IActiveNotification
         {
             Log.Error(
                 e,
-                $"{nameof(this.Dismiss)} error; notification is owned by {this.InitiatorPlugin?.Name ?? NotificationConstants.DefaultInitiator}");
+                $"{nameof(this.Dismiss)} error; notification is owned by {this.initiatorPlugin?.Name ?? NotificationConstants.DefaultInitiator}");
         }
     }
 
-    /// <summary>Updates animations.</summary>
-    /// <returns><c>true</c> if the notification is over.</returns>
-    public bool UpdateAnimations()
+    /// <inheritdoc/>
+    public void ExtendBy(TimeSpan extension)
+    {
+        var newExpiry = DateTime.Now + extension;
+        if (this.extendedExpiry < newExpiry)
+            this.extendedExpiry = newExpiry;
+    }
+
+    /// <inheritdoc/>
+    public void SetIconTexture(IDalamudTextureWrap? textureWrap)
+    {
+        if (this.IsDismissed)
+        {
+            textureWrap?.Dispose();
+            return;
+        }
+
+        // After replacing, if the old texture is not the old texture, then dispose the old texture.
+        if (Interlocked.Exchange(ref this.iconTextureWrap, textureWrap) is { } wrapToDispose &&
+            wrapToDispose != textureWrap)
+        {
+            wrapToDispose.Dispose();
+        }
+    }
+
+    /// <summary>Removes non-Dalamud invocation targets from events.</summary>
+    internal void RemoveNonDalamudInvocations()
+    {
+        var dalamudContext = AssemblyLoadContext.GetLoadContext(typeof(NotificationManager).Assembly);
+        this.Dismiss = RemoveNonDalamudInvocationsCore(this.Dismiss);
+        this.Click = RemoveNonDalamudInvocationsCore(this.Click);
+        this.DrawActions = RemoveNonDalamudInvocationsCore(this.DrawActions);
+
+        if (this.Icon is { } previousIcon && !IsOwnedByDalamud(previousIcon.GetType()))
+            this.Icon = null;
+
+        this.isInitiatorUnloaded = true;
+        this.UserDismissable = true;
+        this.ExtensionDurationSinceLastInterest = NotificationConstants.DefaultDuration;
+
+        var newMaxExpiry = DateTime.Now + NotificationConstants.DefaultDuration;
+        if (this.EffectiveExpiry > newMaxExpiry)
+            this.HardExpiry = newMaxExpiry;
+
+        return;
+
+        bool IsOwnedByDalamud(Type t) => AssemblyLoadContext.GetLoadContext(t.Assembly) == dalamudContext;
+
+        T? RemoveNonDalamudInvocationsCore<T>(T? @delegate) where T : Delegate
+        {
+            if (@delegate is null)
+                return null;
+
+            foreach (var il in @delegate.GetInvocationList())
+            {
+                if (il.Target is { } target && !IsOwnedByDalamud(target.GetType()))
+                    @delegate = (T)Delegate.Remove(@delegate, il);
+            }
+
+            return @delegate;
+        }
+    }
+
+    /// <summary>Updates the state of this notification, and release the relevant resource if this notification is no
+    /// longer in use.</summary>
+    /// <returns><c>true</c> if the notification is over and relevant resources are released.</returns>
+    /// <remarks>Intended to be called from the main thread only.</remarks>
+    internal bool UpdateOrDisposeInternal()
     {
         this.showEasing.Update();
         this.hideEasing.Update();
@@ -435,555 +391,21 @@ internal sealed class ActiveNotification : IActiveNotification
             this.newMinimized = null;
         }
 
-        return this.hideEasing.IsRunning && this.hideEasing.IsDone;
+        if (!this.hideEasing.IsRunning || !this.hideEasing.IsDone)
+            return false;
+
+        this.DisposeInternal();
+        return true;
     }
 
-    /// <summary>Draws this notification.</summary>
-    /// <param name="maxWidth">The maximum width of the notification window.</param>
-    /// <param name="offsetY">The offset from the bottom.</param>
-    /// <returns>The height of the notification.</returns>
-    public float Draw(float maxWidth, float offsetY)
+    /// <summary>Clears the resources associated with this instance of <see cref="ActiveNotification"/>.</summary>
+    internal void DisposeInternal()
     {
-        var effectiveExpiry = this.EffectiveExpiry;
-        if (!this.IsDismissed && DateTime.Now > effectiveExpiry)
-            this.DismissNow(NotificationDismissReason.Timeout);
-
-        var opacity =
-            Math.Clamp(
-                (float)(this.hideEasing.IsRunning
-                            ? (this.hideEasing.IsDone ? 0 : 1f - this.hideEasing.Value)
-                            : (this.showEasing.IsDone ? 1 : this.showEasing.Value)),
-                0f,
-                1f);
-        if (opacity <= 0)
-            return 0;
-
-        var interfaceManager = Service<InterfaceManager>.Get();
-        var unboundedWidth = ImGui.CalcTextSize(this.Content).X;
-        float closeButtonHorizontalSpaceReservation;
-        using (interfaceManager.IconFontHandle?.Push())
-        {
-            closeButtonHorizontalSpaceReservation = ImGui.CalcTextSize(FontAwesomeIcon.Times.ToIconString()).X;
-            closeButtonHorizontalSpaceReservation += NotificationConstants.ScaledWindowPadding;
-        }
-
-        unboundedWidth = Math.Max(
-            unboundedWidth,
-            ImGui.CalcTextSize(this.Title ?? this.DefaultTitle ?? string.Empty).X);
-        unboundedWidth = Math.Max(
-            unboundedWidth,
-            ImGui.CalcTextSize(this.InitiatorString).X);
-        unboundedWidth = Math.Max(
-            unboundedWidth,
-            ImGui.CalcTextSize(this.CreatedAt.FormatAbsoluteDateTime()).X + closeButtonHorizontalSpaceReservation);
-        unboundedWidth = Math.Max(
-            unboundedWidth,
-            ImGui.CalcTextSize(this.CreatedAt.FormatRelativeDateTime()).X + closeButtonHorizontalSpaceReservation);
-
-        unboundedWidth += NotificationConstants.ScaledWindowPadding * 3;
-        unboundedWidth += NotificationConstants.ScaledIconSize;
-
-        var actionWindowHeight =
-            // Content
-            ImGui.GetTextLineHeight() +
-            // Top and bottom padding
-            (NotificationConstants.ScaledWindowPadding * 2);
-
-        var width = Math.Min(maxWidth, unboundedWidth);
-
-        var viewport = ImGuiHelpers.MainViewport;
-        var viewportPos = viewport.WorkPos;
-        var viewportSize = viewport.WorkSize;
-
-        ImGui.PushID(this.Id.GetHashCode());
-        ImGui.PushStyleVar(ImGuiStyleVar.Alpha, opacity);
-        ImGui.PushStyleVar(ImGuiStyleVar.WindowRounding, 0f);
-        ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(NotificationConstants.ScaledWindowPadding));
-        unsafe
-        {
-            ImGui.PushStyleColor(
-                ImGuiCol.WindowBg,
-                *ImGui.GetStyleColorVec4(ImGuiCol.WindowBg) * new Vector4(
-                    1f,
-                    1f,
-                    1f,
-                    NotificationConstants.BackgroundOpacity));
-        }
-
-        ImGuiHelpers.ForceNextWindowMainViewport();
-        ImGui.SetNextWindowPos(
-            (viewportPos + viewportSize) -
-            new Vector2(NotificationConstants.ScaledViewportEdgeMargin) -
-            new Vector2(0, offsetY),
-            ImGuiCond.Always,
-            Vector2.One);
-        ImGui.SetNextWindowSizeConstraints(
-            new(width, actionWindowHeight),
-            new(
-                width,
-                !this.underlyingNotification.Minimized || this.expandoEasing.IsRunning
-                    ? float.MaxValue
-                    : actionWindowHeight));
-        ImGui.Begin(
-            $"##NotifyMainWindow{this.Id}",
-            ImGuiWindowFlags.AlwaysAutoResize |
-            ImGuiWindowFlags.NoDecoration |
-            ImGuiWindowFlags.NoNav |
-            ImGuiWindowFlags.NoMove |
-            ImGuiWindowFlags.NoFocusOnAppearing |
-            ImGuiWindowFlags.NoDocking);
-        this.IsFocused = ImGui.IsWindowFocused();
-        if (this.IsFocused)
-            this.LastInterestTime = DateTime.Now;
-
-        this.DrawWindowBackgroundProgressBar();
-        this.DrawFocusIndicator();
-        this.DrawTopBar(interfaceManager, width, actionWindowHeight);
-        if (!this.underlyingNotification.Minimized && !this.expandoEasing.IsRunning)
-        {
-            this.DrawContentArea(width, actionWindowHeight);
-        }
-        else if (this.expandoEasing.IsRunning)
-        {
-            if (this.underlyingNotification.Minimized)
-                ImGui.PushStyleVar(ImGuiStyleVar.Alpha, opacity * (1f - (float)this.expandoEasing.Value));
-            else
-                ImGui.PushStyleVar(ImGuiStyleVar.Alpha, opacity * (float)this.expandoEasing.Value);
-            this.DrawContentArea(width, actionWindowHeight);
-            ImGui.PopStyleVar();
-        }
-
-        this.DrawExpiryBar(effectiveExpiry);
-
-        var windowPos = ImGui.GetWindowPos();
-        var windowSize = ImGui.GetWindowSize();
-        var hovered = ImGui.IsWindowHovered();
-        ImGui.End();
-
-        ImGui.PopStyleColor();
-        ImGui.PopStyleVar(3);
-        ImGui.PopID();
-
-        if (windowPos.X <= ImGui.GetIO().MousePos.X
-            && windowPos.Y <= ImGui.GetIO().MousePos.Y
-            && ImGui.GetIO().MousePos.X < windowPos.X + windowSize.X
-            && ImGui.GetIO().MousePos.Y < windowPos.Y + windowSize.Y)
-        {
-            if (!this.IsHovered)
-            {
-                this.IsHovered = true;
-                this.MouseEnter.InvokeSafely(this);
-            }
-
-            if (this.DurationSinceLastInterest > TimeSpan.Zero)
-                this.LastInterestTime = DateTime.Now;
-
-            if (hovered)
-            {
-                if (this.Click is null)
-                {
-                    if (this.UserDismissable && ImGui.IsMouseClicked(ImGuiMouseButton.Left))
-                        this.DismissNow(NotificationDismissReason.Manual);
-                }
-                else
-                {
-                    if (ImGui.IsMouseClicked(ImGuiMouseButton.Left)
-                        || ImGui.IsMouseClicked(ImGuiMouseButton.Right)
-                        || ImGui.IsMouseClicked(ImGuiMouseButton.Middle))
-                        this.Click.InvokeSafely(this);
-                }
-            }
-        }
-        else if (this.IsHovered)
-        {
-            this.IsHovered = false;
-            this.MouseLeave.InvokeSafely(this);
-        }
-
-        return windowSize.Y;
-    }
-
-    /// <inheritdoc/>
-    public void ExtendBy(TimeSpan extension)
-    {
-        var newExpiry = DateTime.Now + extension;
-        if (this.ExtendedExpiry < newExpiry)
-            this.ExtendedExpiry = newExpiry;
-    }
-
-    /// <inheritdoc/>
-    public void UpdateIcon()
-    {
-        if (this.IsDismissed)
-            return;
-        this.ClearMaterializedIcon();
-        this.MaterializedIcon = (this.IconSource as INotificationIconSource.IInternal)?.Materialize();
-    }
-
-    /// <summary>Removes non-Dalamud invocation targets from events.</summary>
-    public void RemoveNonDalamudInvocations()
-    {
-        var dalamudContext = AssemblyLoadContext.GetLoadContext(typeof(NotificationManager).Assembly);
-        this.Dismiss = RemoveNonDalamudInvocationsCore(this.Dismiss);
-        this.Click = RemoveNonDalamudInvocationsCore(this.Click);
-        this.DrawActions = RemoveNonDalamudInvocationsCore(this.DrawActions);
-        this.MouseEnter = RemoveNonDalamudInvocationsCore(this.MouseEnter);
-        this.MouseLeave = RemoveNonDalamudInvocationsCore(this.MouseLeave);
-
-        this.IsInitiatorUnloaded = true;
-        this.UserDismissable = true;
-        this.DurationSinceLastInterest = NotificationConstants.DefaultHoverExtendDuration;
-
-        var newMaxExpiry = DateTime.Now + NotificationConstants.DefaultDisplayDuration;
-        if (this.EffectiveExpiry > newMaxExpiry)
-            this.HardExpiry = newMaxExpiry;
-
-        return;
-
-        T? RemoveNonDalamudInvocationsCore<T>(T? @delegate) where T : Delegate
-        {
-            if (@delegate is null)
-                return null;
-
-            foreach (var il in @delegate.GetInvocationList())
-            {
-                if (il.Target is { } target &&
-                    AssemblyLoadContext.GetLoadContext(target.GetType().Assembly) != dalamudContext)
-                {
-                    @delegate = (T)Delegate.Remove(@delegate, il);
-                }
-            }
-
-            return @delegate;
-        }
-    }
-
-    private void ClearMaterializedIcon()
-    {
-        this.MaterializedIcon?.Dispose();
-        this.MaterializedIcon = null;
-    }
-
-    private void DrawWindowBackgroundProgressBar()
-    {
-        var elapsed = (float)(((DateTime.Now - this.CreatedAt).TotalMilliseconds %
-                               NotificationConstants.ProgressWaveLoopDuration) /
-                              NotificationConstants.ProgressWaveLoopDuration);
-        elapsed /= NotificationConstants.ProgressWaveIdleTimeRatio;
-
-        var colorElapsed =
-            elapsed < NotificationConstants.ProgressWaveLoopMaxColorTimeRatio
-                ? elapsed / NotificationConstants.ProgressWaveLoopMaxColorTimeRatio
-                : ((NotificationConstants.ProgressWaveLoopMaxColorTimeRatio * 2) - elapsed) /
-                  NotificationConstants.ProgressWaveLoopMaxColorTimeRatio;
-
-        elapsed = Math.Clamp(elapsed, 0f, 1f);
-        colorElapsed = Math.Clamp(colorElapsed, 0f, 1f);
-        colorElapsed = MathF.Sin(colorElapsed * (MathF.PI / 2f));
-
-        var progress = Math.Clamp(this.ProgressEased, 0f, 1f);
-        if (progress >= 1f)
-            elapsed = colorElapsed = 0f;
-
-        var windowPos = ImGui.GetWindowPos();
-        var windowSize = ImGui.GetWindowSize();
-        var rb = windowPos + windowSize;
-        var midp = windowPos + windowSize with { X = windowSize.X * progress * elapsed };
-        var rp = windowPos + windowSize with { X = windowSize.X * progress };
-
-        ImGui.PushClipRect(windowPos, rb, false);
-        ImGui.GetWindowDrawList().AddRectFilled(
-            windowPos,
-            midp,
-            ImGui.GetColorU32(
-                Vector4.Lerp(
-                    NotificationConstants.BackgroundProgressColorMin,
-                    NotificationConstants.BackgroundProgressColorMax,
-                    colorElapsed)));
-        ImGui.GetWindowDrawList().AddRectFilled(
-            midp with { Y = 0 },
-            rp,
-            ImGui.GetColorU32(NotificationConstants.BackgroundProgressColorMin));
-        ImGui.PopClipRect();
-    }
-
-    private void DrawFocusIndicator()
-    {
-        if (!this.IsFocused)
-            return;
-        var windowPos = ImGui.GetWindowPos();
-        var windowSize = ImGui.GetWindowSize();
-        ImGui.PushClipRect(windowPos, windowPos + windowSize, false);
-        ImGui.GetWindowDrawList().AddRect(
-            windowPos,
-            windowPos + windowSize,
-            ImGui.GetColorU32(NotificationConstants.FocusBorderColor * new Vector4(1f, 1f, 1f, ImGui.GetStyle().Alpha)),
-            0f,
-            ImDrawFlags.None,
-            NotificationConstants.FocusIndicatorThickness);
-        ImGui.PopClipRect();
-    }
-
-    private void DrawTopBar(InterfaceManager interfaceManager, float width, float height)
-    {
-        var windowPos = ImGui.GetWindowPos();
-        var windowSize = ImGui.GetWindowSize();
-
-        var rtOffset = new Vector2(width, 0);
-        using (interfaceManager.IconFontHandle?.Push())
-        {
-            ImGui.PushClipRect(windowPos, windowPos + windowSize with { Y = height }, false);
-            if (this.UserDismissable)
-            {
-                if (this.DrawIconButton(FontAwesomeIcon.Times, rtOffset, height))
-                    this.DismissNow(NotificationDismissReason.Manual);
-                rtOffset.X -= height;
-            }
-
-            if (this.underlyingNotification.Minimized)
-            {
-                if (this.DrawIconButton(FontAwesomeIcon.ChevronDown, rtOffset, height))
-                    this.Minimized = false;
-            }
-            else
-            {
-                if (this.DrawIconButton(FontAwesomeIcon.ChevronUp, rtOffset, height))
-                    this.Minimized = true;
-            }
-
-            rtOffset.X -= height;
-            ImGui.PopClipRect();
-        }
-
-        float relativeOpacity;
-        if (this.expandoEasing.IsRunning)
-        {
-            relativeOpacity =
-                this.underlyingNotification.Minimized
-                    ? 1f - (float)this.expandoEasing.Value
-                    : (float)this.expandoEasing.Value;
-        }
-        else
-        {
-            relativeOpacity = this.underlyingNotification.Minimized ? 0f : 1f;
-        }
-
-        if (this.IsHovered || this.IsFocused)
-            ImGui.PushClipRect(windowPos, windowPos + rtOffset with { Y = height }, false);
-        else
-            ImGui.PushClipRect(windowPos, windowPos + windowSize with { Y = height }, false);
-
-        if (relativeOpacity > 0)
-        {
-            ImGui.PushStyleVar(ImGuiStyleVar.Alpha, ImGui.GetStyle().Alpha * relativeOpacity);
-            ImGui.SetCursorPos(new(NotificationConstants.ScaledWindowPadding));
-            ImGui.PushStyleColor(ImGuiCol.Text, NotificationConstants.WhenTextColor);
-            ImGui.TextUnformatted(
-                this.IsHovered || this.IsFocused
-                    ? this.CreatedAt.FormatAbsoluteDateTime()
-                    : this.CreatedAt.FormatRelativeDateTime());
-            ImGui.PopStyleColor();
-            ImGui.PopStyleVar();
-        }
-
-        if (relativeOpacity < 1)
-        {
-            rtOffset = new(width - NotificationConstants.ScaledWindowPadding, 0);
-            ImGui.PushStyleVar(ImGuiStyleVar.Alpha, ImGui.GetStyle().Alpha * (1f - relativeOpacity));
-
-            var ltOffset = new Vector2(NotificationConstants.ScaledWindowPadding);
-            this.DrawIcon(ltOffset, new(height - (2 * NotificationConstants.ScaledWindowPadding)));
-
-            ltOffset.X = height;
-
-            var agoText = this.CreatedAt.FormatRelativeDateTimeShort();
-            var agoSize = ImGui.CalcTextSize(agoText);
-            rtOffset.X -= agoSize.X;
-            ImGui.SetCursorPos(rtOffset with { Y = NotificationConstants.ScaledWindowPadding });
-            ImGui.PushStyleColor(ImGuiCol.Text, NotificationConstants.WhenTextColor);
-            ImGui.TextUnformatted(agoText);
-            ImGui.PopStyleColor();
-
-            rtOffset.X -= NotificationConstants.ScaledWindowPadding;
-
-            ImGui.PushClipRect(
-                windowPos + ltOffset with { Y = 0 },
-                windowPos + rtOffset with { Y = height },
-                true);
-            ImGui.SetCursorPos(ltOffset with { Y = NotificationConstants.ScaledWindowPadding });
-            ImGui.TextUnformatted(this.EffectiveMinimizedText);
-            ImGui.PopClipRect();
-
-            ImGui.PopStyleVar();
-        }
-
-        ImGui.PopClipRect();
-    }
-
-    private bool DrawIconButton(FontAwesomeIcon icon, Vector2 rt, float size)
-    {
-        ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, Vector2.Zero);
-        var alphaPush = !this.IsHovered && !this.IsFocused;
-        if (alphaPush)
-            ImGui.PushStyleVar(ImGuiStyleVar.Alpha, 0f);
-        ImGui.PushStyleColor(ImGuiCol.Button, 0);
-        ImGui.PushStyleColor(ImGuiCol.Text, NotificationConstants.CloseTextColor);
-
-        ImGui.SetCursorPos(rt - new Vector2(size, 0));
-        var r = ImGui.Button(icon.ToIconString(), new(size));
-
-        ImGui.PopStyleColor(2);
-        if (alphaPush)
-            ImGui.PopStyleVar();
-        ImGui.PopStyleVar();
-        return r;
-    }
-
-    private void DrawContentArea(float width, float actionWindowHeight)
-    {
-        var textColumnX = (NotificationConstants.ScaledWindowPadding * 2) + NotificationConstants.ScaledIconSize;
-        var textColumnWidth = width - textColumnX - NotificationConstants.ScaledWindowPadding;
-        var textColumnOffset = new Vector2(textColumnX, actionWindowHeight);
-
-        this.DrawIcon(
-            new(NotificationConstants.ScaledWindowPadding, actionWindowHeight),
-            new(NotificationConstants.ScaledIconSize));
-
-        textColumnOffset.Y += this.DrawTitle(textColumnOffset, textColumnWidth);
-        textColumnOffset.Y += NotificationConstants.ScaledComponentGap;
-
-        this.DrawContentBody(textColumnOffset, textColumnWidth);
-    }
-
-    private void DrawIcon(Vector2 minCoord, Vector2 size)
-    {
-        var maxCoord = minCoord + size;
-        if (this.MaterializedIcon is not null)
-        {
-            this.MaterializedIcon.DrawIcon(minCoord, maxCoord, this.DefaultIconColor, this.InitiatorPlugin);
-            return;
-        }
-
-        var defaultIconChar = this.DefaultIconChar;
-        if (defaultIconChar is not null)
-        {
-            NotificationUtilities.DrawIconString(
-                Service<NotificationManager>.Get().IconFontAwesomeFontHandle,
-                defaultIconChar.Value,
-                minCoord,
-                maxCoord,
-                this.DefaultIconColor);
-            return;
-        }
-
-        TextureWrapTaskIconSource.DefaultMaterializedIcon.DrawIcon(
-            minCoord,
-            maxCoord,
-            this.DefaultIconColor,
-            this.InitiatorPlugin);
-    }
-
-    private float DrawTitle(Vector2 minCoord, float width)
-    {
-        ImGui.PushTextWrapPos(minCoord.X + width);
-
-        ImGui.SetCursorPos(minCoord);
-        if ((this.Title ?? this.DefaultTitle) is { } title)
-        {
-            ImGui.PushStyleColor(ImGuiCol.Text, NotificationConstants.TitleTextColor);
-            ImGui.TextUnformatted(title);
-            ImGui.PopStyleColor();
-        }
-
-        ImGui.PushStyleColor(ImGuiCol.Text, NotificationConstants.BlameTextColor);
-        ImGui.SetCursorPos(minCoord with { Y = ImGui.GetCursorPosY() });
-        ImGui.TextUnformatted(this.InitiatorString);
-        ImGui.PopStyleColor();
-
-        ImGui.PopTextWrapPos();
-        return ImGui.GetCursorPosY() - minCoord.Y;
-    }
-
-    private void DrawContentBody(Vector2 minCoord, float width)
-    {
-        ImGui.SetCursorPos(minCoord);
-        ImGui.PushTextWrapPos(minCoord.X + width);
-        ImGui.PushStyleColor(ImGuiCol.Text, NotificationConstants.BodyTextColor);
-        ImGui.TextUnformatted(this.Content);
-        ImGui.PopStyleColor();
-        ImGui.PopTextWrapPos();
-        if (this.DrawActions is not null)
-        {
-            ImGui.SetCursorPosY(ImGui.GetCursorPosY() + NotificationConstants.ScaledComponentGap);
-            try
-            {
-                this.DrawActions.Invoke(this);
-            }
-            catch
-            {
-                // ignore
-            }
-        }
-    }
-
-    private void DrawExpiryBar(DateTime effectiveExpiry)
-    {
-        float barL, barR;
-        if (this.IsDismissed)
-        {
-            var v = this.hideEasing.IsDone ? 0f : 1f - (float)this.hideEasing.Value;
-            var midpoint = (this.prevProgressL + this.prevProgressR) / 2f;
-            var length = (this.prevProgressR - this.prevProgressL) / 2f;
-            barL = midpoint - (length * v);
-            barR = midpoint + (length * v);
-        }
-        else if (this.DurationSinceLastInterest > TimeSpan.Zero && (this.IsHovered || this.IsFocused))
-        {
-            barL = 0f;
-            barR = 1f;
-            this.prevProgressL = barL;
-            this.prevProgressR = barR;
-        }
-        else if (effectiveExpiry == DateTime.MaxValue)
-        {
-            if (this.ShowIndeterminateIfNoExpiry)
-            {
-                var elapsed = (float)(((DateTime.Now - this.CreatedAt).TotalMilliseconds %
-                                       NotificationConstants.IndeterminateProgressbarLoopDuration) /
-                                      NotificationConstants.IndeterminateProgressbarLoopDuration);
-                barL = Math.Max(elapsed - (1f / 3), 0f) / (2f / 3);
-                barR = Math.Min(elapsed, 2f / 3) / (2f / 3);
-                barL = MathF.Pow(barL, 3);
-                barR = 1f - MathF.Pow(1f - barR, 3);
-                this.prevProgressL = barL;
-                this.prevProgressR = barR;
-            }
-            else
-            {
-                this.prevProgressL = barL = 0f;
-                this.prevProgressR = barR = 1f;
-            }
-        }
-        else
-        {
-            barL = 1f - (float)((effectiveExpiry - DateTime.Now).TotalMilliseconds /
-                                (effectiveExpiry - this.LastInterestTime).TotalMilliseconds);
-            barR = 1f;
-            this.prevProgressL = barL;
-            this.prevProgressR = barR;
-        }
-
-        barR = Math.Clamp(barR, 0f, 1f);
-
-        var windowPos = ImGui.GetWindowPos();
-        var windowSize = ImGui.GetWindowSize();
-        ImGui.PushClipRect(windowPos, windowPos + windowSize, false);
-        ImGui.GetWindowDrawList().AddRectFilled(
-            windowPos + new Vector2(
-                windowSize.X * barL,
-                windowSize.Y - NotificationConstants.ScaledExpiryProgressBarHeight),
-            windowPos + windowSize with { X = windowSize.X * barR },
-            ImGui.GetColorU32(this.DefaultIconColor));
-        ImGui.PopClipRect();
+        if (Interlocked.Exchange(ref this.iconTextureWrap, null) is { } wrapToDispose)
+            wrapToDispose.Dispose();
+        this.Dismiss = null;
+        this.Click = null;
+        this.DrawActions = null;
+        this.initiatorPlugin = null;
     }
 }

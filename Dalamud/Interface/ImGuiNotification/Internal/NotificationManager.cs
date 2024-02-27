@@ -11,6 +11,8 @@ using Dalamud.IoC.Internal;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Plugin.Services;
 
+using ImGuiNET;
+
 namespace Dalamud.Interface.ImGuiNotification.Internal;
 
 /// <summary>Class handling notifications/toasts in ImGui.</summary>
@@ -41,6 +43,7 @@ internal class NotificationManager : INotificationManager, IServiceType, IDispos
     /// <summary>Gets the handle to FontAwesome fonts, sized for use as an icon.</summary>
     public IFontHandle IconFontAwesomeFontHandle { get; }
 
+    /// <summary>Gets the private atlas for use with notification windows.</summary>
     private IFontAtlas PrivateAtlas { get; }
 
     /// <inheritdoc/>
@@ -48,17 +51,16 @@ internal class NotificationManager : INotificationManager, IServiceType, IDispos
     {
         this.PrivateAtlas.Dispose();
         foreach (var n in this.pendingNotifications)
-            n.Dispose();
+            n.DisposeInternal();
         foreach (var n in this.notifications)
-            n.Dispose();
+            n.DisposeInternal();
         this.pendingNotifications.Clear();
         this.notifications.Clear();
     }
 
     /// <inheritdoc/>
-    public IActiveNotification AddNotification(Notification notification, bool disposeNotification = true)
+    public IActiveNotification AddNotification(Notification notification)
     {
-        using var disposer = disposeNotification ? notification : null;
         var an = new ActiveNotification(notification, null);
         this.pendingNotifications.Add(an);
         return an;
@@ -66,13 +68,10 @@ internal class NotificationManager : INotificationManager, IServiceType, IDispos
 
     /// <summary>Adds a notification originating from a plugin.</summary>
     /// <param name="notification">The notification.</param>
-    /// <param name="disposeNotification">Dispose <paramref name="notification"/> when this function returns.</param>
     /// <param name="plugin">The source plugin.</param>
     /// <returns>The added notification.</returns>
-    /// <remarks><paramref name="disposeNotification"/> will be honored even on exceptions.</remarks>
-    public IActiveNotification AddNotification(Notification notification, bool disposeNotification, LocalPlugin plugin)
+    public IActiveNotification AddNotification(Notification notification, LocalPlugin plugin)
     {
-        using var disposer = disposeNotification ? notification : null;
         var an = new ActiveNotification(notification, plugin);
         this.pendingNotifications.Add(an);
         return an;
@@ -92,8 +91,7 @@ internal class NotificationManager : INotificationManager, IServiceType, IDispos
                 Content = content,
                 Title = title,
                 Type = type,
-            },
-            true);
+            });
 
     /// <summary>Draw all currently queued notifications.</summary>
     public void Draw()
@@ -104,19 +102,14 @@ internal class NotificationManager : INotificationManager, IServiceType, IDispos
         while (this.pendingNotifications.TryTake(out var newNotification))
             this.notifications.Add(newNotification);
 
-        var maxWidth = Math.Max(320 * ImGuiHelpers.GlobalScale, viewportSize.X / 3);
+        var width = ImGui.CalcTextSize(NotificationConstants.NotificationWidthMeasurementString).X;
+        width += NotificationConstants.ScaledWindowPadding * 3;
+        width += NotificationConstants.ScaledIconSize;
+        width = Math.Min(width, viewportSize.X * NotificationConstants.MaxNotificationWindowWidthWrtMainViewportWidth);
 
-        this.notifications.RemoveAll(
-            static x =>
-            {
-                if (!x.UpdateAnimations())
-                    return false;
-
-                x.Dispose();
-                return true;
-            });
+        this.notifications.RemoveAll(static x => x.UpdateOrDisposeInternal());
         foreach (var tn in this.notifications)
-            height += tn.Draw(maxWidth, height) + NotificationConstants.ScaledWindowGap;
+            height += tn.Draw(width, height) + NotificationConstants.ScaledWindowGap;
     }
 }
 
@@ -140,9 +133,9 @@ internal class NotificationManagerPluginScoped : INotificationManager, IServiceT
         this.localPlugin = localPlugin;
 
     /// <inheritdoc/>
-    public IActiveNotification AddNotification(Notification notification, bool disposeNotification = true)
+    public IActiveNotification AddNotification(Notification notification)
     {
-        var an = this.notificationManagerService.AddNotification(notification, disposeNotification, this.localPlugin);
+        var an = this.notificationManagerService.AddNotification(notification, this.localPlugin);
         _ = this.notifications.TryAdd(an, 0);
         an.Dismiss += (a, unused) => this.notifications.TryRemove(an, out _);
         return an;
