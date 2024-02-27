@@ -93,7 +93,7 @@ internal sealed partial class ActiveNotification
         this.DrawTopBar(width, actionWindowHeight, isHovered);
         if (!this.underlyingNotification.Minimized && !this.expandoEasing.IsRunning)
         {
-            this.DrawContentArea(width, actionWindowHeight);
+            this.DrawContentAndActions(width, actionWindowHeight);
         }
         else if (this.expandoEasing.IsRunning)
         {
@@ -101,7 +101,7 @@ internal sealed partial class ActiveNotification
                 ImGui.PushStyleVar(ImGuiStyleVar.Alpha, opacity * (1f - (float)this.expandoEasing.Value));
             else
                 ImGui.PushStyleVar(ImGuiStyleVar.Alpha, opacity * (float)this.expandoEasing.Value);
-            this.DrawContentArea(width, actionWindowHeight);
+            this.DrawContentAndActions(width, actionWindowHeight);
             ImGui.PopStyleVar();
         }
 
@@ -347,7 +347,7 @@ internal sealed partial class ActiveNotification
         return r;
     }
 
-    private void DrawContentArea(float width, float actionWindowHeight)
+    private void DrawContentAndActions(float width, float actionWindowHeight)
     {
         var textColumnX = (NotificationConstants.ScaledWindowPadding * 2) + NotificationConstants.ScaledIconSize;
         var textColumnWidth = width - textColumnX - NotificationConstants.ScaledWindowPadding;
@@ -361,10 +361,17 @@ internal sealed partial class ActiveNotification
         textColumnOffset.Y += NotificationConstants.ScaledComponentGap;
 
         this.DrawContentBody(textColumnOffset, textColumnWidth);
-        textColumnOffset.Y = ImGui.GetCursorPosY() + NotificationConstants.ScaledComponentGap;
 
-        ImGui.SetCursorPos(textColumnOffset);
-        this.InvokeDrawActions(textColumnOffset, new(textColumnX + textColumnWidth, float.MaxValue));
+        if (this.DrawActions is null)
+            return;
+
+        var userActionOffset = new Vector2(
+            NotificationConstants.ScaledWindowPadding,
+            ImGui.GetCursorPosY() + NotificationConstants.ScaledComponentGap);
+        ImGui.SetCursorPos(userActionOffset);
+        this.InvokeDrawActions(
+            userActionOffset,
+            new(width - NotificationConstants.ScaledWindowPadding, float.MaxValue));
     }
 
     private void DrawIcon(Vector2 minCoord, Vector2 size)
