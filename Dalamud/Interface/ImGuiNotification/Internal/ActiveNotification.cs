@@ -9,7 +9,6 @@ using Dalamud.Plugin.Internal.Types;
 using Dalamud.Utility;
 
 using Serilog;
-using Serilog.Events;
 
 namespace Dalamud.Interface.ImGuiNotification.Internal;
 

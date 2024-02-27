@@ -362,7 +362,7 @@ internal sealed partial class ActiveNotification
 
         this.DrawContentBody(textColumnOffset, textColumnWidth);
         textColumnOffset.Y = ImGui.GetCursorPosY() + NotificationConstants.ScaledComponentGap;
-        
+
         ImGui.SetCursorPos(textColumnOffset);
         this.InvokeDrawActions(textColumnOffset, new(textColumnX + textColumnWidth, float.MaxValue));
     }
