@@ -1,5 +1,7 @@
 using System.Numerics;
 
+using CheapLoc;
+
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Internal.Notifications;
 using Dalamud.Interface.Utility;
@@ -21,10 +23,8 @@ internal static class NotificationConstants
     // ..     action buttons          ..
     // .................................
 
-    /// <summary>The string to show in place of this_plugin if the notification is shown by Dalamud.</summary>
-    public const string DefaultInitiator = "Dalamud";
-
     /// <summary>The string to measure size of, to decide the width of notification windows.</summary>
+    /// <remarks>Probably not worth localizing.</remarks>
     public const string NotificationWidthMeasurementString =
         "The width of this text will decide the width\n" +
         "of the notification window.";
@@ -113,8 +113,12 @@ internal static class NotificationConstants
     /// <summary>Gets the thickness of the focus indicator rectangle.</summary>
     public static float FocusIndicatorThickness => MathF.Round(3 * ImGuiHelpers.GlobalScale);
 
+    /// <summary>Gets the string to show in place of this_plugin if the notification is shown by Dalamud.</summary>
+    public static string DefaultInitiator => Loc.Localize("NotificationConstants.DefaultInitiator", "Dalamud");
+
     /// <summary>Gets the string format of the initiator name field, if the initiator is unloaded.</summary>
-    public static string UnloadedInitiatorNameFormat => "{0} (unloaded)";
+    public static string UnloadedInitiatorNameFormat =>
+        Loc.Localize("NotificationConstants.UnloadedInitiatorNameFormat", "{0} (unloaded)");
 
     /// <summary>Gets the color corresponding to the notification type.</summary>
     /// <param name="type">The notification type.</param>
@@ -148,10 +152,10 @@ internal static class NotificationConstants
     public static string? ToTitle(this NotificationType type) => type switch
     {
         NotificationType.None => null,
-        NotificationType.Success => NotificationType.Success.ToString(),
-        NotificationType.Warning => NotificationType.Warning.ToString(),
-        NotificationType.Error => NotificationType.Error.ToString(),
-        NotificationType.Info => NotificationType.Info.ToString(),
+        NotificationType.Success => Loc.Localize("NotificationConstants.Title.Success", "Success"),
+        NotificationType.Warning => Loc.Localize("NotificationConstants.Title.Warning", "Warning"),
+        NotificationType.Error => Loc.Localize("NotificationConstants.Title.Error", "Error"),
+        NotificationType.Info => Loc.Localize("NotificationConstants.Title.Info", "Info"),
         _ => null,
     };
 }

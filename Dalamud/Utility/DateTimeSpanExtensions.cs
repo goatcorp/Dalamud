@@ -11,7 +11,7 @@ namespace Dalamud.Utility;
 /// <summary>
 /// Utility functions for <see cref="DateTime"/> and <see cref="TimeSpan"/>.
 /// </summary>
-internal static class DateTimeSpanExtensions
+public static class DateTimeSpanExtensions
 {
     private static readonly ModuleLog Log = new(nameof(DateTimeSpanExtensions));
 
@@ -34,16 +34,12 @@ internal static class DateTimeSpanExtensions
         var region = 0;
         if (framework is not null)
             region = framework->Region;
-        switch (region)
+        return region switch
         {
-            case 0: // jp
-            default:
-                return when.ToString("yyyy-MM-dd HH:mm:ss");
-            case 1: // na
-                return when.ToString("MM/dd/yyyy HH:mm:ss");
-            case 2: // eu
-                return when.ToString("dd-mm-yyyy HH:mm:ss");
-        }
+            1 => when.ToString("MM/dd/yyyy HH:mm:ss"), // na
+            2 => when.ToString("dd-mm-yyyy HH:mm:ss"), // eu
+            _ => when.ToString("yyyy-MM-dd HH:mm:ss"), // jp(0), cn(3), kr(4), and other possible errorneous cases
+        };
     }
 
     /// <summary>Formats an instance of <see cref="DateTime"/> as a localized relative time.</summary>

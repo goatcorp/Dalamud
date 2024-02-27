@@ -70,7 +70,7 @@ public class Localization : IServiceType
     public CultureInfo DalamudLanguageCultureInfo { get; private set; }
 
     /// <summary>
-    /// Gets an instance of <see cref="CultureInfo"/> that corresponds to <paramref cref="langCode"/>.
+    /// Gets an instance of <see cref="CultureInfo"/> that corresponds to <paramref name="langCode"/>.
     /// </summary>
     /// <param name="langCode">The language code which should be in <see cref="ApplicableLangCodes"/>.</param>
     /// <returns>The corresponding instance of <see cref="CultureInfo"/>.</returns>
