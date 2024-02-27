@@ -19,17 +19,17 @@ public static class NotificationUtilities
 {
     /// <inheritdoc cref="INotificationIcon.From(SeIconChar)"/>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static INotificationIcon ToIconSource(this SeIconChar iconChar) =>
+    public static INotificationIcon ToNotificationIcon(this SeIconChar iconChar) =>
         INotificationIcon.From(iconChar);
 
     /// <inheritdoc cref="INotificationIcon.From(FontAwesomeIcon)"/>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static INotificationIcon ToIconSource(this FontAwesomeIcon iconChar) =>
+    public static INotificationIcon ToNotificationIcon(this FontAwesomeIcon iconChar) =>
         INotificationIcon.From(iconChar);
 
     /// <inheritdoc cref="INotificationIcon.FromFile(string)"/>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static INotificationIcon ToIconSource(this FileInfo fileInfo) =>
+    public static INotificationIcon ToNotificationIcon(this FileInfo fileInfo) =>
         INotificationIcon.FromFile(fileInfo.FullName);
 
     /// <summary>Draws an icon from an <see cref="IFontHandle"/> and a <see cref="char"/>.</summary>

@@ -76,35 +76,35 @@ internal class ImGuiWidget : IDataWindowWidget
             NotificationTemplate.TypeTitles.Length);
 
         ImGui.Combo(
-            "Icon Source##iconSourceCombo",
-            ref this.notificationTemplate.IconSourceInt,
-            NotificationTemplate.IconSourceTitles,
-            NotificationTemplate.IconSourceTitles.Length);
-        switch (this.notificationTemplate.IconSourceInt)
+            "Icon##iconCombo",
+            ref this.notificationTemplate.IconInt,
+            NotificationTemplate.IconTitles,
+            NotificationTemplate.IconTitles.Length);
+        switch (this.notificationTemplate.IconInt)
         {
             case 1 or 2:
                 ImGui.InputText(
-                    "Icon Text##iconSourceText",
-                    ref this.notificationTemplate.IconSourceText,
+                    "Icon Text##iconText",
+                    ref this.notificationTemplate.IconText,
                     255);
                 break;
             case 3 or 4:
                 ImGui.Combo(
-                    "Icon Source##iconSourceAssetCombo",
-                    ref this.notificationTemplate.IconSourceAssetInt,
+                    "Asset##iconAssetCombo",
+                    ref this.notificationTemplate.IconAssetInt,
                     NotificationTemplate.AssetSources,
                     NotificationTemplate.AssetSources.Length);
                 break;
             case 5 or 7:
                 ImGui.InputText(
-                    "Game Path##iconSourceText",
-                    ref this.notificationTemplate.IconSourceText,
+                    "Game Path##iconText",
+                    ref this.notificationTemplate.IconText,
                     255);
                 break;
             case 6 or 8:
                 ImGui.InputText(
-                    "File Path##iconSourceText",
-                    ref this.notificationTemplate.IconSourceText,
+                    "File Path##iconText",
+                    ref this.notificationTemplate.IconText,
                     255);
                 break;
         }
@@ -179,37 +179,37 @@ internal class ImGuiWidget : IDataWindowWidget
                         4 => -1f,
                         _ => 0.5f,
                     },
-                    Icon = this.notificationTemplate.IconSourceInt switch
+                    Icon = this.notificationTemplate.IconInt switch
                     {
                         1 => INotificationIcon.From(
-                            (SeIconChar)(this.notificationTemplate.IconSourceText.Length == 0
+                            (SeIconChar)(this.notificationTemplate.IconText.Length == 0
                                              ? 0
-                                             : this.notificationTemplate.IconSourceText[0])),
+                                             : this.notificationTemplate.IconText[0])),
                         2 => INotificationIcon.From(
-                            (FontAwesomeIcon)(this.notificationTemplate.IconSourceText.Length == 0
+                            (FontAwesomeIcon)(this.notificationTemplate.IconText.Length == 0
                                                   ? 0
-                                                  : this.notificationTemplate.IconSourceText[0])),
-                        3 => INotificationIcon.FromGame(this.notificationTemplate.IconSourceText),
-                        4 => INotificationIcon.FromFile(this.notificationTemplate.IconSourceText),
+                                                  : this.notificationTemplate.IconText[0])),
+                        3 => INotificationIcon.FromGame(this.notificationTemplate.IconText),
+                        4 => INotificationIcon.FromFile(this.notificationTemplate.IconText),
                         _ => null,
                     },
                 });
 
             var dam = Service<DalamudAssetManager>.Get();
             var tm = Service<TextureManager>.Get();
-            switch (this.notificationTemplate.IconSourceInt)
+            switch (this.notificationTemplate.IconInt)
             {
                 case 5:
                     n.SetIconTexture(
                         dam.GetDalamudTextureWrap(
                             Enum.Parse<DalamudAsset>(
-                                NotificationTemplate.AssetSources[this.notificationTemplate.IconSourceAssetInt])));
+                                NotificationTemplate.AssetSources[this.notificationTemplate.IconAssetInt])));
                     break;
                 case 6:
-                    n.SetIconTexture(tm.GetTextureFromGame(this.notificationTemplate.IconSourceText));
+                    n.SetIconTexture(tm.GetTextureFromGame(this.notificationTemplate.IconText));
                     break;
                 case 7:
-                    n.SetIconTexture(tm.GetTextureFromFile(new(this.notificationTemplate.IconSourceText)));
+                    n.SetIconTexture(tm.GetTextureFromFile(new(this.notificationTemplate.IconText)));
                     break;
             }
 
@@ -307,7 +307,7 @@ internal class ImGuiWidget : IDataWindowWidget
 
     private struct NotificationTemplate
     {
-        public static readonly string[] IconSourceTitles =
+        public static readonly string[] IconTitles =
         {
             "None (use Type)",
             "SeIconChar",
@@ -373,9 +373,9 @@ internal class ImGuiWidget : IDataWindowWidget
         public string Title;
         public bool ManualMinimizedText;
         public string MinimizedText;
-        public int IconSourceInt;
-        public string IconSourceText;
-        public int IconSourceAssetInt;
+        public int IconInt;
+        public string IconText;
+        public int IconAssetInt;
         public bool ManualType;
         public int TypeInt;
         public int InitialDurationInt;
@@ -394,9 +394,9 @@ internal class ImGuiWidget : IDataWindowWidget
             this.Title = string.Empty;
             this.ManualMinimizedText = false;
             this.MinimizedText = string.Empty;
-            this.IconSourceInt = 0;
-            this.IconSourceText = "ui/icon/000000/000004_hr1.tex";
-            this.IconSourceAssetInt = 0;
+            this.IconInt = 0;
+            this.IconText = "ui/icon/000000/000004_hr1.tex";
+            this.IconAssetInt = 0;
             this.ManualType = false;
             this.TypeInt = (int)NotificationType.None;
             this.InitialDurationInt = 2;
