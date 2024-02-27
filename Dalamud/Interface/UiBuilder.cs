@@ -212,7 +212,7 @@ public sealed class UiBuilder : IDisposable
     /// <code>
     /// fontAtlas.NewDelegateFontHandle(
     ///     e => e.OnPreBuild(
-    ///         tk => tk.AddDalamudDefaultFont(UiBuilder.DefaultFontSizePt)));
+    ///         tk => tk.AddDalamudDefaultFont(UiBuilder.DefaultFontSizePx)));
     /// </code>
     /// </remarks>
     public IFontHandle DefaultFontHandle =>
@@ -231,6 +231,8 @@ public sealed class UiBuilder : IDisposable
     /// fontAtlas.NewDelegateFontHandle(
     ///     e => e.OnPreBuild(
     ///         tk => tk.AddFontAwesomeIconFont(new() { SizePt = UiBuilder.DefaultFontSizePt })));
+    /// // or use
+    ///         tk => tk.AddFontAwesomeIconFont(new() { SizePx = UiBuilder.DefaultFontSizePx })));
     /// </code>
     /// </remarks>
     public IFontHandle IconFontHandle =>
@@ -251,6 +253,8 @@ public sealed class UiBuilder : IDisposable
     ///         tk => tk.AddDalamudAssetFont(
     ///             DalamudAsset.InconsolataRegular,
     ///             new() { SizePt = UiBuilder.DefaultFontSizePt })));
+    /// // or use
+    ///             new() { SizePx = UiBuilder.DefaultFontSizePx })));
     /// </code>
     /// </remarks>
     public IFontHandle MonoFontHandle => 
