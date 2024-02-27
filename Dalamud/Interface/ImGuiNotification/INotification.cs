@@ -4,6 +4,7 @@ using Dalamud.Plugin.Services;
 namespace Dalamud.Interface.ImGuiNotification;
 
 /// <summary>Represents a notification.</summary>
+/// <remarks>Not to be implemented by plugins.</remarks>
 public interface INotification
 {
     /// <summary>Gets or sets the content body of the notification.</summary>

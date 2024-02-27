@@ -15,7 +15,7 @@ internal class GamePathNotificationIcon : INotificationIcon
     /// <param name="gamePath">The path to a .tex file inside the game resources.</param>
     /// <remarks>Use <see cref="ITextureProvider.GetIconPath"/> to get the game path from icon IDs.</remarks>
     public GamePathNotificationIcon(string gamePath) => this.gamePath = gamePath;
-    
+
     /// <inheritdoc/>
     public bool DrawIcon(Vector2 minCoord, Vector2 maxCoord, Vector4 color) =>
         NotificationUtilities.DrawIconFrom(

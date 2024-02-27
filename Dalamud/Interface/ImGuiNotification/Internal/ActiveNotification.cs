@@ -1,16 +1,15 @@
-using System.Numerics;
 using System.Runtime.Loader;
 using System.Threading;
 
 using Dalamud.Interface.Animation;
 using Dalamud.Interface.Animation.EasingFunctions;
-using Dalamud.Interface.Colors;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Internal.Notifications;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Utility;
 
 using Serilog;
+using Serilog.Events;
 
 namespace Dalamud.Interface.ImGuiNotification.Internal;
 
@@ -72,15 +71,6 @@ internal sealed partial class ActiveNotification : IActiveNotification
     }
 
     /// <inheritdoc/>
-    public event NotificationDismissedDelegate? Dismiss;
-
-    /// <inheritdoc/>
-    public event Action<IActiveNotification>? Click;
-
-    /// <inheritdoc/>
-    public event Action<IActiveNotification>? DrawActions;
-
-    /// <inheritdoc/>
     public long Id { get; } = IActiveNotification.CreateNewId();
 
     /// <inheritdoc/>
@@ -90,60 +80,35 @@ internal sealed partial class ActiveNotification : IActiveNotification
     public string Content
     {
         get => this.underlyingNotification.Content;
-        set
-        {
-            if (this.IsDismissed)
-                return;
-            this.underlyingNotification.Content = value;
-        }
+        set => this.underlyingNotification.Content = value;
     }
 
     /// <inheritdoc/>
     public string? Title
     {
         get => this.underlyingNotification.Title;
-        set
-        {
-            if (this.IsDismissed)
-                return;
-            this.underlyingNotification.Title = value;
-        }
+        set => this.underlyingNotification.Title = value;
     }
 
     /// <inheritdoc/>
     public string? MinimizedText
     {
         get => this.underlyingNotification.MinimizedText;
-        set
-        {
-            if (this.IsDismissed)
-                return;
-            this.underlyingNotification.MinimizedText = value;
-        }
+        set => this.underlyingNotification.MinimizedText = value;
     }
 
     /// <inheritdoc/>
     public NotificationType Type
     {
         get => this.underlyingNotification.Type;
-        set
-        {
-            if (this.IsDismissed)
-                return;
-            this.underlyingNotification.Type = value;
-        }
+        set => this.underlyingNotification.Type = value;
     }
 
     /// <inheritdoc/>
     public INotificationIcon? Icon
     {
         get => this.underlyingNotification.Icon;
-        set
-        {
-            if (this.IsDismissed)
-                return;
-            this.underlyingNotification.Icon = value;
-        }
+        set => this.underlyingNotification.Icon = value;
     }
 
     /// <inheritdoc/>
@@ -152,7 +117,7 @@ internal sealed partial class ActiveNotification : IActiveNotification
         get => this.underlyingNotification.HardExpiry;
         set
         {
-            if (this.underlyingNotification.HardExpiry == value || this.IsDismissed)
+            if (this.underlyingNotification.HardExpiry == value)
                 return;
             this.underlyingNotification.HardExpiry = value;
             this.lastInterestTime = DateTime.Now;
@@ -165,8 +130,6 @@ internal sealed partial class ActiveNotification : IActiveNotification
         get => this.underlyingNotification.InitialDuration;
         set
         {
-            if (this.IsDismissed)
-                return;
             this.underlyingNotification.InitialDuration = value;
             this.lastInterestTime = DateTime.Now;
         }
@@ -178,8 +141,6 @@ internal sealed partial class ActiveNotification : IActiveNotification
         get => this.underlyingNotification.ExtensionDurationSinceLastInterest;
         set
         {
-            if (this.IsDismissed)
-                return;
             this.underlyingNotification.ExtensionDurationSinceLastInterest = value;
             this.lastInterestTime = DateTime.Now;
         }
@@ -189,55 +150,35 @@ internal sealed partial class ActiveNotification : IActiveNotification
     public DateTime EffectiveExpiry { get; private set; }
 
     /// <inheritdoc/>
+    public NotificationDismissReason? DismissReason { get; private set; }
+
+    /// <inheritdoc/>
     public bool ShowIndeterminateIfNoExpiry
     {
         get => this.underlyingNotification.ShowIndeterminateIfNoExpiry;
-        set
-        {
-            if (this.IsDismissed)
-                return;
-            this.underlyingNotification.ShowIndeterminateIfNoExpiry = value;
-        }
+        set => this.underlyingNotification.ShowIndeterminateIfNoExpiry = value;
     }
 
     /// <inheritdoc/>
     public bool Minimized
     {
         get => this.newMinimized ?? this.underlyingNotification.Minimized;
-        set
-        {
-            if (this.IsDismissed)
-                return;
-            this.newMinimized = value;
-        }
+        set => this.newMinimized = value;
     }
 
     /// <inheritdoc/>
     public bool UserDismissable
     {
         get => this.underlyingNotification.UserDismissable;
-        set
-        {
-            if (this.IsDismissed)
-                return;
-            this.underlyingNotification.UserDismissable = value;
-        }
+        set => this.underlyingNotification.UserDismissable = value;
     }
 
     /// <inheritdoc/>
     public float Progress
     {
         get => this.newProgress ?? this.underlyingNotification.Progress;
-        set
-        {
-            if (this.IsDismissed)
-                return;
-            this.newProgress = value;
-        }
+        set => this.newProgress = value;
     }
-
-    /// <inheritdoc/>
-    public bool IsDismissed => this.hideEasing.IsRunning;
 
     /// <summary>Gets the eased progress.</summary>
     private float ProgressEased
@@ -271,20 +212,12 @@ internal sealed partial class ActiveNotification : IActiveNotification
     /// <param name="reason">The reason of dismissal.</param>
     public void DismissNow(NotificationDismissReason reason)
     {
-        if (this.hideEasing.IsRunning)
+        if (this.DismissReason is not null)
             return;
 
+        this.DismissReason = reason;
         this.hideEasing.Start();
-        try
-        {
-            this.Dismiss?.Invoke(this, reason);
-        }
-        catch (Exception e)
-        {
-            Log.Error(
-                e,
-                $"{nameof(this.Dismiss)} error; notification is owned by {this.initiatorPlugin?.Name ?? NotificationConstants.DefaultInitiator}");
-        }
+        this.InvokeDismiss();
     }
 
     /// <inheritdoc/>
@@ -298,7 +231,7 @@ internal sealed partial class ActiveNotification : IActiveNotification
     /// <inheritdoc/>
     public void SetIconTexture(IDalamudTextureWrap? textureWrap)
     {
-        if (this.IsDismissed)
+        if (this.DismissReason is not null)
         {
             textureWrap?.Dispose();
             return;
@@ -408,4 +341,9 @@ internal sealed partial class ActiveNotification : IActiveNotification
         this.DrawActions = null;
         this.initiatorPlugin = null;
     }
+
+    private void LogEventInvokeError(Exception exception, string message) =>
+        Log.Error(
+            exception,
+            $"[{nameof(ActiveNotification)}:{this.initiatorPlugin?.Name ?? NotificationConstants.DefaultInitiator}] {message}");
 }

@@ -219,7 +219,7 @@ internal class ImGuiWidget : IDataWindowWidget
                     Task.Run(
                         async () =>
                         {
-                            for (var i = 0; i <= 10 && !n.IsDismissed; i++)
+                            for (var i = 0; i <= 10 && !n.DismissReason.HasValue; i++)
                             {
                                 await Task.Delay(500);
                                 n.Progress = i / 10f;
@@ -230,7 +230,7 @@ internal class ImGuiWidget : IDataWindowWidget
                     Task.Run(
                         async () =>
                         {
-                            for (var i = 0; i <= 10 && !n.IsDismissed; i++)
+                            for (var i = 0; i <= 10 && !n.DismissReason.HasValue; i++)
                             {
                                 await Task.Delay(500);
                                 n.Progress = i / 10f;
@@ -257,16 +257,17 @@ internal class ImGuiWidget : IDataWindowWidget
                     if (ImGui.Button("Update"))
                     {
                         NewRandom(out title, out type, out progress);
-                        an.Title = title;
-                        an.Type = type;
-                        an.Progress = progress;
+                        an.Notification.Title = title;
+                        an.Notification.Type = type;
+                        an.Notification.Progress = progress;
                     }
 
                     ImGui.SameLine();
                     if (ImGui.Button("Dismiss"))
-                        an.DismissNow();
+                        an.Notification.DismissNow();
                     
                     ImGui.SameLine();
+                    ImGui.SetNextItemWidth(an.MaxCoord.X - ImGui.GetCursorPosX());
                     ImGui.InputText("##input", ref testString, 255);
                 };
             }

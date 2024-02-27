@@ -1,49 +1,48 @@
 using System.Threading;
 
+using Dalamud.Interface.ImGuiNotification.EventArgs;
 using Dalamud.Interface.Internal;
 
 namespace Dalamud.Interface.ImGuiNotification;
 
 /// <summary>Represents an active notification.</summary>
+/// <remarks>Not to be implemented by plugins.</remarks>
 public interface IActiveNotification : INotification
 {
     /// <summary>The counter for <see cref="Id"/> field.</summary>
     private static long idCounter;
 
     /// <summary>Invoked upon dismissing the notification.</summary>
-    /// <remarks>The event callback will not be called,
-    /// if a user interacts with the notification after the plugin is unloaded.</remarks>
-    event NotificationDismissedDelegate Dismiss;
+    /// <remarks>The event callback will not be called, if it gets dismissed after plugin unload.</remarks>
+    event Action<INotificationDismissArgs> Dismiss;
 
     /// <summary>Invoked upon clicking on the notification.</summary>
-    /// <remarks>
-    /// Note that this function may be called even after <see cref="Dismiss"/> has been invoked.
-    /// Refer to <see cref="IsDismissed"/>.
-    /// </remarks>
-    event Action<IActiveNotification> Click;
+    /// <remarks>Note that this function may be called even after <see cref="Dismiss"/> has been invoked.</remarks>
+    event Action<INotificationClickArgs> Click;
 
     /// <summary>Invoked upon drawing the action bar of the notification.</summary>
-    /// <remarks>
-    /// Note that this function may be called even after <see cref="Dismiss"/> has been invoked.
-    /// Refer to <see cref="IsDismissed"/>.
-    /// </remarks>
-    event Action<IActiveNotification> DrawActions;
+    /// <remarks>Note that this function may be called even after <see cref="Dismiss"/> has been invoked.</remarks>
+    event Action<INotificationDrawArgs> DrawActions;
 
     /// <summary>Gets the ID of this notification.</summary>
+    /// <remarks>This value does not change.</remarks>
     long Id { get; }
 
     /// <summary>Gets the time of creating this notification.</summary>
+    /// <remarks>This value does not change.</remarks>
     DateTime CreatedAt { get; }
 
     /// <summary>Gets the effective expiry time.</summary>
     /// <remarks>Contains <see cref="DateTime.MaxValue"/> if the notification does not expire.</remarks>
+    /// <remarks>This value will change depending on property changes and user interactions.</remarks>
     DateTime EffectiveExpiry { get; }
 
-    /// <summary>Gets a value indicating whether the notification has been dismissed.</summary>
+    /// <summary>Gets the reason how this notification got dismissed. <c>null</c> if not dismissed.</summary>
     /// <remarks>This includes when the hide animation is being played.</remarks>
-    bool IsDismissed { get; }
+    NotificationDismissReason? DismissReason { get; }
 
     /// <summary>Dismisses this notification.</summary>
+    /// <remarks>If the notification has already been dismissed, this function does nothing.</remarks>
     void DismissNow();
 
     /// <summary>Extends this notifiation.</summary>
@@ -57,8 +56,8 @@ public interface IActiveNotification : INotification
     /// <remarks>
     /// <para>The texture passed will be disposed when the notification is dismissed or a new different texture is set
     /// via another call to this function. You do not have to dispose it yourself.</para>
-    /// <para>If <see cref="IsDismissed"/> is <c>true</c>, then calling this function will simply dispose the passed
-    /// <paramref name="textureWrap"/> without actually updating the icon.</para>
+    /// <para>If <see cref="DismissReason"/> is not <c>null</c>, then calling this function will simply dispose the
+    /// passed <paramref name="textureWrap"/> without actually updating the icon.</para>
     /// </remarks>
     void SetIconTexture(IDalamudTextureWrap? textureWrap);
 

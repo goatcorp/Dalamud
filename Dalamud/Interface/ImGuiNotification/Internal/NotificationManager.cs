@@ -137,7 +137,7 @@ internal class NotificationManagerPluginScoped : INotificationManager, IServiceT
     {
         var an = this.notificationManagerService.AddNotification(notification, this.localPlugin);
         _ = this.notifications.TryAdd(an, 0);
-        an.Dismiss += (a, unused) => this.notifications.TryRemove(an, out _);
+        an.Dismiss += a => this.notifications.TryRemove(a.Notification, out _);
         return an;
     }
 

@@ -2,7 +2,6 @@ using System.Numerics;
 
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Utility;
-using Dalamud.Utility;
 
 using ImGuiNET;
 
@@ -83,7 +82,7 @@ internal sealed partial class ActiveNotification
 
         this.EffectiveExpiry = this.CalculateEffectiveExpiry(ref warrantsExtension);
 
-        if (!this.IsDismissed && DateTime.Now > this.EffectiveExpiry)
+        if (DateTime.Now > this.EffectiveExpiry)
             this.DismissNow(NotificationDismissReason.Timeout);
 
         if (this.ExtensionDurationSinceLastInterest > TimeSpan.Zero && warrantsExtension)
@@ -121,7 +120,7 @@ internal sealed partial class ActiveNotification
                 if (ImGui.IsMouseClicked(ImGuiMouseButton.Left)
                     || ImGui.IsMouseClicked(ImGuiMouseButton.Right)
                     || ImGui.IsMouseClicked(ImGuiMouseButton.Middle))
-                    this.Click.InvokeSafely(this);
+                    this.InvokeClick();
             }
         }
 
@@ -419,22 +418,16 @@ internal sealed partial class ActiveNotification
         ImGui.PopTextWrapPos();
         if (this.DrawActions is not null)
         {
-            ImGui.SetCursorPosY(ImGui.GetCursorPosY() + NotificationConstants.ScaledComponentGap);
-            try
-            {
-                this.DrawActions.Invoke(this);
-            }
-            catch
-            {
-                // ignore
-            }
+            this.InvokeDrawActions(
+                minCoord with { Y = ImGui.GetCursorPosY() + NotificationConstants.ScaledComponentGap },
+                new(minCoord.X + width, float.MaxValue));
         }
     }
 
     private void DrawExpiryBar(DateTime effectiveExpiry, bool warrantsExtension)
     {
         float barL, barR;
-        if (this.IsDismissed)
+        if (this.DismissReason is not null)
         {
             var v = this.hideEasing.IsDone ? 0f : 1f - (float)this.hideEasing.Value;
             var midpoint = (this.prevProgressL + this.prevProgressR) / 2f;
