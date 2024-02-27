@@ -3,11 +3,11 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
+using Dalamud.Utility;
+
 using FFXIVClientStructs.FFXIV.Client.Game;
 
 namespace Dalamud.Game.Inventory;
-
-// TODO(api10): MateriaGrade is a byte array in CS, not a ushort array. Replace MateriaGrade with MateriaGradeBytes.
 
 /// <summary>
 /// Dalamud wrapper around a ClientStructs InventoryItem.
@@ -104,14 +104,10 @@ public unsafe struct GameInventoryItem : IEquatable<GameInventoryItem>
     public ReadOnlySpan<ushort> Materia => new(Unsafe.AsPointer(ref Unsafe.AsRef(in this.InternalItem.Materia[0])), 5);
 
     /// <summary>
-    /// Gets the array of materia grades as bytes.
-    /// </summary>
-    public ReadOnlySpan<byte> MateriaGradeBytes =>
-        new(Unsafe.AsPointer(ref Unsafe.AsRef(in this.InternalItem.MateriaGrade[0])), 5);
-
-    /// <summary>
     /// Gets the array of materia grades.
     /// </summary>
+    // TODO: Replace with MateriaGradeBytes
+    [Api10ToDo(Api10ToDoAttribute.DeleteCompatBehavior)]
     public ReadOnlySpan<ushort> MateriaGrade =>
         this.MateriaGradeBytes.ToArray().Select(g => (ushort)g).ToArray().AsSpan();
 
@@ -154,6 +150,9 @@ public unsafe struct GameInventoryItem : IEquatable<GameInventoryItem>
     /// NOTE: I'm not sure if this is a good idea to include or not in the dalamud api. Marked internal for now.
     /// </summary>
     internal ulong CrafterContentId => this.InternalItem.CrafterContentID;
+
+    private ReadOnlySpan<byte> MateriaGradeBytes =>
+        new(Unsafe.AsPointer(ref Unsafe.AsRef(in this.InternalItem.MateriaGrade[0])), 5);
 
     public static bool operator ==(in GameInventoryItem l, in GameInventoryItem r) => l.Equals(r);
 
