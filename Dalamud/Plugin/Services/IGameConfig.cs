@@ -1,14 +1,23 @@
-﻿using System;
-using System.Diagnostics;
+﻿using System.Diagnostics;
+using System.Threading.Tasks;
 
 using Dalamud.Game.Config;
-using FFXIVClientStructs.FFXIV.Common.Configuration;
+using Dalamud.Plugin.Internal.Types;
 
 namespace Dalamud.Plugin.Services;
 
 /// <summary>
 /// This class represents the game's configuration.
 /// </summary>
+/// <remarks>
+/// Accessing <see cref="GameConfigSection"/>-typed properties such as <see cref="System"/>, directly or indirectly
+/// via <see cref="TryGet(Game.Config.SystemConfigOption,out bool)"/>,
+/// <see cref="Set(Game.Config.SystemConfigOption,bool)"/>, or alike will block, if the game is not done loading.<br />
+/// Therefore, avoid accessing configuration from your plugin constructor, especially if your plugin sets
+/// <see cref="PluginManifest.LoadRequiredState"/> to <c>2</c> and <see cref="PluginManifest.LoadSync"/> to <c>true</c>.
+/// If property access from the plugin constructor is desired, do the value retrieval asynchronously via
+/// <see cref="IFramework.RunOnFrameworkThread{T}(Func{T})"/>; do not wait for the result right away.
+/// </remarks>
 public interface IGameConfig
 {
     /// <summary>
