@@ -47,11 +47,11 @@ internal sealed unsafe class ContextMenu : IDisposable, IServiceType, IContextMe
         this.addonContextMenuOnMenuSelectedHook.Enable();
     }
 
-    private unsafe delegate nint RaptureAtkModuleOpenAddonByAgentDelegate(RaptureAtkModule* module, byte* addonName, AtkUnitBase* addon, int valueCount, AtkValue* values, AgentInterface* agent, nint a7, ushort parentAddonId);
+    private unsafe delegate ushort RaptureAtkModuleOpenAddonByAgentDelegate(RaptureAtkModule* module, byte* addonName, AtkUnitBase* addon, int valueCount, AtkValue* values, AgentInterface* agent, nint a7, ushort parentAddonId);
     
     private unsafe delegate bool AddonContextMenuOnMenuSelectedDelegate(AddonContextMenu* addon, int selectedIdx, byte a3);
     
-    private unsafe delegate nint RaptureAtkModuleOpenAddonDelegate(RaptureAtkModule* a1, uint addonNameId, uint valueCount, AtkValue* values, AgentInterface* parentAgent, long unk, uint ownerAddonId, int unk2);
+    private unsafe delegate ushort RaptureAtkModuleOpenAddonDelegate(RaptureAtkModule* a1, uint addonNameId, uint valueCount, AtkValue* values, AgentInterface* parentAgent, ulong unk, ushort parentAddonId, int unk2);
 
     /// <inheritdoc/>
     public event IContextMenu.OnMenuOpenedDelegate OnMenuOpened;
@@ -293,7 +293,7 @@ internal sealed unsafe class ContextMenu : IDisposable, IServiceType, IContextMe
         this.SetupGenericMenu(8, 0, 6, 5, items, ref valueCount, ref values);
     }
 
-    private nint RaptureAtkModuleOpenAddonByAgentDetour(RaptureAtkModule* module, byte* addonName, AtkUnitBase* addon, int valueCount, AtkValue* values, AgentInterface* agent, nint a7, ushort parentAddonId)
+    private ushort RaptureAtkModuleOpenAddonByAgentDetour(RaptureAtkModule* module, byte* addonName, AtkUnitBase* addon, int valueCount, AtkValue* values, AgentInterface* agent, nint a7, ushort parentAddonId)
     {
         var oldValues = values;
 
@@ -410,14 +410,14 @@ internal sealed unsafe class ContextMenu : IDisposable, IServiceType, IContextMe
             case ContextMenuType.Default:
                 {
                     var ownerAddonId = ((AgentContext*)this.SelectedAgent)->OwnerAddon;
-                    this.raptureAtkModuleOpenAddon(module, 445, (uint)valueCount, values, this.SelectedAgent, 71, ownerAddonId, 4);
+                    this.raptureAtkModuleOpenAddon(module, 445, (uint)valueCount, values, this.SelectedAgent, 71, checked((ushort)ownerAddonId), 4);
                     break;
                 }
 
             case ContextMenuType.Inventory:
                 {
                     var ownerAddonId = ((AgentInventoryContext*)this.SelectedAgent)->OwnerAddonId;
-                    this.raptureAtkModuleOpenAddon(module, 445, (uint)valueCount, values, this.SelectedAgent, 0, ownerAddonId, 4);
+                    this.raptureAtkModuleOpenAddon(module, 445, (uint)valueCount, values, this.SelectedAgent, 0, checked((ushort)ownerAddonId), 4);
                     break;
                 }
 
