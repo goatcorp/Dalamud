@@ -360,6 +360,10 @@ internal sealed partial class ActiveNotification
         textColumnOffset.Y += NotificationConstants.ScaledComponentGap;
 
         this.DrawContentBody(textColumnOffset, textColumnWidth);
+        textColumnOffset.Y = ImGui.GetCursorPosY() + NotificationConstants.ScaledComponentGap;
+        
+        ImGui.SetCursorPos(textColumnOffset);
+        this.InvokeDrawActions(textColumnOffset, new(textColumnX + textColumnWidth, float.MaxValue));
     }
 
     private void DrawIcon(Vector2 minCoord, Vector2 size)
@@ -416,12 +420,6 @@ internal sealed partial class ActiveNotification
         ImGui.TextUnformatted(this.Content);
         ImGui.PopStyleColor();
         ImGui.PopTextWrapPos();
-        if (this.DrawActions is not null)
-        {
-            this.InvokeDrawActions(
-                minCoord with { Y = ImGui.GetCursorPosY() + NotificationConstants.ScaledComponentGap },
-                new(minCoord.X + width, float.MaxValue));
-        }
     }
 
     private void DrawExpiryBar(DateTime effectiveExpiry, bool warrantsExtension)
