@@ -2,6 +2,7 @@ using System.Numerics;
 
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Utility;
+using Dalamud.Utility;
 
 using ImGuiNET;
 
@@ -288,8 +289,8 @@ internal sealed partial class ActiveNotification
             ImGui.PushStyleColor(ImGuiCol.Text, NotificationConstants.WhenTextColor);
             ImGui.TextUnformatted(
                 ImGui.IsWindowHovered(ImGuiHoveredFlags.AllowWhenBlockedByActiveItem)
-                    ? this.CreatedAt.FormatAbsoluteDateTime()
-                    : this.CreatedAt.FormatRelativeDateTime());
+                    ? this.CreatedAt.LocAbsolute()
+                    : this.CreatedAt.LocRelativePastLong());
             ImGui.PopStyleColor();
             ImGui.PopStyleVar();
         }
@@ -304,7 +305,7 @@ internal sealed partial class ActiveNotification
 
             ltOffset.X = height;
 
-            var agoText = this.CreatedAt.FormatRelativeDateTimeShort();
+            var agoText = this.CreatedAt.LocRelativePastShort();
             var agoSize = ImGui.CalcTextSize(agoText);
             rtOffset.X -= agoSize.X;
             ImGui.SetCursorPos(rtOffset with { Y = NotificationConstants.ScaledWindowPadding });

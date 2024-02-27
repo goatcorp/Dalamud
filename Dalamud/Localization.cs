@@ -36,6 +36,7 @@ public class Localization : IServiceType
     /// <param name="useEmbedded">Use embedded loc resource files.</param>
     public Localization(string locResourceDirectory, string locResourcePrefix = "", bool useEmbedded = false)
     {
+        this.DalamudLanguageCultureInfo = CultureInfo.InvariantCulture;
         this.locResourceDirectory = locResourceDirectory;
         this.locResourcePrefix = locResourcePrefix;
         this.useEmbedded = useEmbedded;
@@ -61,7 +62,24 @@ public class Localization : IServiceType
     /// <summary>
     /// Event that occurs when the language is changed.
     /// </summary>
-    public event LocalizationChangedDelegate LocalizationChanged;
+    public event LocalizationChangedDelegate? LocalizationChanged;
+
+    /// <summary>
+    /// Gets an instance of <see cref="CultureInfo"/> that corresponds to the language configured from Dalamud Settings.
+    /// </summary>
+    public CultureInfo DalamudLanguageCultureInfo { get; private set; }
+
+    /// <summary>
+    /// Gets an instance of <see cref="CultureInfo"/> that corresponds to <paramref cref="langCode"/>.
+    /// </summary>
+    /// <param name="langCode">The language code which should be in <see cref="ApplicableLangCodes"/>.</param>
+    /// <returns>The corresponding instance of <see cref="CultureInfo"/>.</returns>
+    public static CultureInfo GetCultureInfoFromLangCode(string langCode) =>
+        CultureInfo.GetCultureInfo(langCode switch
+        {
+            "tw" => "zh-tw",
+            _ => langCode,
+        });
 
     /// <summary>
     /// Search the set-up localization data for the provided assembly for the given string key and return it.
@@ -108,6 +126,7 @@ public class Localization : IServiceType
     /// </summary>
     public void SetupWithFallbacks()
     {
+        this.DalamudLanguageCultureInfo = CultureInfo.InvariantCulture;
         this.LocalizationChanged?.Invoke(FallbackLangCode);
         Loc.SetupWithFallbacks(this.assembly);
     }
@@ -124,6 +143,7 @@ public class Localization : IServiceType
             return;
         }
 
+        this.DalamudLanguageCultureInfo = GetCultureInfoFromLangCode(langCode);
         this.LocalizationChanged?.Invoke(langCode);
 
         try

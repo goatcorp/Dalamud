@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using System.Numerics;
 
 using Dalamud.Interface.Colors;
@@ -91,31 +90,6 @@ internal static class NotificationConstants
     /// <summary>Color for the background progress bar (determinate progress only).</summary>
     public static readonly Vector4 BackgroundProgressColorMin = new(1f, 1f, 1f, 0.05f);
 
-    /// <summary>Gets the relative time format strings.</summary>
-    private static readonly (TimeSpan MinSpan, string? FormatString)[] RelativeFormatStrings =
-    {
-        (TimeSpan.FromDays(7), null),
-        (TimeSpan.FromDays(2), "{0:%d} days ago"),
-        (TimeSpan.FromDays(1), "yesterday"),
-        (TimeSpan.FromHours(2), "{0:%h} hours ago"),
-        (TimeSpan.FromHours(1), "an hour ago"),
-        (TimeSpan.FromMinutes(2), "{0:%m} minutes ago"),
-        (TimeSpan.FromMinutes(1), "a minute ago"),
-        (TimeSpan.FromSeconds(2), "{0:%s} seconds ago"),
-        (TimeSpan.FromSeconds(1), "a second ago"),
-        (TimeSpan.MinValue, "just now"),
-    };
-
-    /// <summary>Gets the relative time format strings.</summary>
-    private static readonly (TimeSpan MinSpan, string FormatString)[] RelativeFormatStringsShort =
-    {
-        (TimeSpan.FromDays(1), "{0:%d}d"),
-        (TimeSpan.FromHours(1), "{0:%h}h"),
-        (TimeSpan.FromMinutes(1), "{0:%m}m"),
-        (TimeSpan.FromSeconds(1), "{0:%s}s"),
-        (TimeSpan.MinValue, "now"),
-    };
-
     /// <summary>Gets the scaled padding of the window (dot(.) in the above diagram).</summary>
     public static float ScaledWindowPadding => MathF.Round(16 * ImGuiHelpers.GlobalScale);
 
@@ -141,46 +115,6 @@ internal static class NotificationConstants
 
     /// <summary>Gets the string format of the initiator name field, if the initiator is unloaded.</summary>
     public static string UnloadedInitiatorNameFormat => "{0} (unloaded)";
-
-    /// <summary>Formats an instance of <see cref="DateTime"/> as a relative time.</summary>
-    /// <param name="when">When.</param>
-    /// <returns>The formatted string.</returns>
-    public static string FormatRelativeDateTime(this DateTime when)
-    {
-        var ts = DateTime.Now - when;
-        foreach (var (minSpan, formatString) in RelativeFormatStrings)
-        {
-            if (ts < minSpan)
-                continue;
-            if (formatString is null)
-                break;
-            return string.Format(formatString, ts);
-        }
-
-        return when.FormatAbsoluteDateTime();
-    }
-
-    /// <summary>Formats an instance of <see cref="DateTime"/> as an absolute time.</summary>
-    /// <param name="when">When.</param>
-    /// <returns>The formatted string.</returns>
-    public static string FormatAbsoluteDateTime(this DateTime when) => $"{when:G}";
-
-    /// <summary>Formats an instance of <see cref="DateTime"/> as a relative time.</summary>
-    /// <param name="when">When.</param>
-    /// <returns>The formatted string.</returns>
-    public static string FormatRelativeDateTimeShort(this DateTime when)
-    {
-        var ts = DateTime.Now - when;
-        foreach (var (minSpan, formatString) in RelativeFormatStringsShort)
-        {
-            if (ts < minSpan)
-                continue;
-            return string.Format(formatString, ts);
-        }
-
-        Debug.Assert(false, "must not reach here");
-        return "???";
-    }
 
     /// <summary>Gets the color corresponding to the notification type.</summary>
     /// <param name="type">The notification type.</param>
