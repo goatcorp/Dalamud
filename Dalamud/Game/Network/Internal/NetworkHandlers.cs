@@ -268,7 +268,7 @@ internal unsafe class NetworkHandlers : IDisposable, IServiceType
                 return result;
             }
 
-            var cfcName = cfCondition.Name.ToString();
+            var cfcName = cfCondition.Name.RawString;
             if (cfcName.IsNullOrEmpty())
             {
                 cfcName = "Duty Roulette";
