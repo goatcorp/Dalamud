@@ -21,6 +21,8 @@ internal class TextureLoadThrottler : IServiceType, IDisposable
     private readonly Channel<object?> workTokenChannel = Channel.CreateUnbounded<object?>();
     private readonly List<WorkItem> workItemPending = new();
 
+    private bool disposing;
+
     [ServiceManager.ServiceConstructor]
     private TextureLoadThrottler()
     {
@@ -54,6 +56,10 @@ internal class TextureLoadThrottler : IServiceType, IDisposable
     /// <inheritdoc/>
     public void Dispose()
     {
+        if (this.disposing)
+            return;
+
+        this.disposing = true;
         this.newItemChannel.Writer.Complete();
         this.workTokenChannel.Writer.Complete();
         this.disposeCancellationTokenSource.Cancel();

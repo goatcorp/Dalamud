@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -210,10 +211,12 @@ internal abstract class SharedImmediateTexture
     }
 
     /// <inheritdoc/>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public IDalamudTextureWrap GetWrap() => this.GetWrap(Service<DalamudAssetManager>.Get().Empty4X4);
 
     /// <inheritdoc/>
     [return: NotNullIfNotNull(nameof(defaultWrap))]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public IDalamudTextureWrap? GetWrap(IDalamudTextureWrap? defaultWrap)
     {
         if (!this.TryGetWrap(out var texture, out _))
@@ -222,6 +225,7 @@ internal abstract class SharedImmediateTexture
     }
 
     /// <inheritdoc/>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool TryGetWrap([NotNullWhen(true)] out IDalamudTextureWrap? texture, out Exception? exception)
     {
         ThreadSafety.AssertMainThread();

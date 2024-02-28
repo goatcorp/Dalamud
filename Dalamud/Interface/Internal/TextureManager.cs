@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -14,7 +15,6 @@ using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Services;
-using Dalamud.Storage.Assets;
 using Dalamud.Utility;
 
 using Lumina.Data.Files;
@@ -25,8 +25,6 @@ using SharpDX.Direct3D11;
 using SharpDX.DXGI;
 
 namespace Dalamud.Interface.Internal;
-
-// TODO API10: Remove keepAlive from public APIs
 
 /// <summary>
 /// Service responsible for loading and disposing ImGui texture wraps.
@@ -45,13 +43,10 @@ internal sealed class TextureManager : IServiceType, IDisposable, ITextureProvid
     private const string IconFileFormat = "ui/icon/{0:D3}000/{1}{2:D6}.tex";
     private const string HighResolutionIconFileFormat = "ui/icon/{0:D3}000/{1}{2:D6}_hr1.tex";
 
-    private static readonly ModuleLog Log = new("TEXM");
+    private static readonly ModuleLog Log = new(nameof(TextureManager));
 
     [ServiceManager.ServiceDependency]
     private readonly Dalamud dalamud = Service<Dalamud>.Get();
-
-    [ServiceManager.ServiceDependency]
-    private readonly DalamudAssetManager dalamudAssetManager = Service<DalamudAssetManager>.Get();
 
     [ServiceManager.ServiceDependency]
     private readonly DataManager dataManager = Service<DataManager>.Get();
@@ -73,10 +68,7 @@ internal sealed class TextureManager : IServiceType, IDisposable, ITextureProvid
     private bool disposing;
 
     [ServiceManager.ServiceConstructor]
-    private TextureManager()
-    {
-        this.framework.Update += this.FrameworkOnUpdate;
-    }
+    private TextureManager() => this.framework.Update += this.FrameworkOnUpdate;
 
     /// <inheritdoc/>
     public event ITextureSubstitutionProvider.TextureDataInterceptorDelegate? InterceptTexDataLoad;
@@ -118,7 +110,8 @@ internal sealed class TextureManager : IServiceType, IDisposable, ITextureProvid
         this.fileSystemTextures.Clear();
     }
 
-#region API9 compat
+    #region API9 compat
+
 #pragma warning disable CS0618 // Type or member is obsolete
     /// <inheritdoc/>
     [Api10ToDo(Api10ToDoAttribute.DeleteCompatBehavior)]
@@ -162,27 +155,34 @@ internal sealed class TextureManager : IServiceType, IDisposable, ITextureProvid
     IDalamudTextureWrap? ITextureProvider.GetTextureFromFile(FileInfo file, bool keepAlive) =>
         this.GetFromFile(file.FullName).GetAvailableOnAccessWrapForApi9();
 #pragma warning restore CS0618 // Type or member is obsolete
-#endregion
+
+    #endregion
 
     /// <inheritdoc cref="ITextureProvider.GetFromGameIcon"/>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public SharedImmediateTexture GetFromGameIcon(in GameIconLookup lookup) =>
         this.GetFromGame(this.lookupToPath.GetOrAdd(lookup, this.GetIconPathByValue));
 
     /// <inheritdoc cref="ITextureProvider.GetFromGame"/>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public SharedImmediateTexture GetFromGame(string path) =>
         this.gamePathTextures.GetOrAdd(path, GamePathSharedImmediateTexture.CreateImmediate);
 
     /// <inheritdoc cref="ITextureProvider.GetFromFile"/>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public SharedImmediateTexture GetFromFile(string path) =>
         this.fileSystemTextures.GetOrAdd(path, FileSystemSharedImmediateTexture.CreateImmediate);
 
     /// <inheritdoc/>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     ISharedImmediateTexture ITextureProvider.GetFromGameIcon(in GameIconLookup lookup) => this.GetFromGameIcon(lookup);
 
     /// <inheritdoc/>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     ISharedImmediateTexture ITextureProvider.GetFromGame(string path) => this.GetFromGame(path);
 
     /// <inheritdoc/>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     ISharedImmediateTexture ITextureProvider.GetFromFile(string path) => this.GetFromFile(path);
 
     /// <inheritdoc/>
@@ -519,6 +519,7 @@ internal sealed class TextureManager : IServiceType, IDisposable, ITextureProvid
             v.ContentQueried && v.ReleaseSelfReference(false) == 0 && !v.HasRevivalPossibility;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private string GetIconPathByValue(GameIconLookup lookup) =>
         this.TryGetIconPath(lookup, out var path) ? path : throw new FileNotFoundException();
 }
