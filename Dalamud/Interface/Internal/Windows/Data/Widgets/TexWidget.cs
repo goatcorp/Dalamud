@@ -1,6 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Numerics;
+using System.Reflection;
+using System.Runtime.Loader;
 using System.Threading.Tasks;
 
 using Dalamud.Interface.Components;
@@ -27,6 +30,11 @@ internal class TexWidget : IDataWindowWidget
     private bool hq = false;
     private string inputTexPath = string.Empty;
     private string inputFilePath = string.Empty;
+    private Assembly[]? inputManifestResourceAssemblyCandidates;
+    private string[]? inputManifestResourceAssemblyCandidateNames;
+    private int inputManifestResourceAssemblyIndex;
+    private string[]? inputManifestResourceNameCandidates;
+    private int inputManifestResourceNameIndex;
     private Vector2 inputTexUv0 = Vector2.Zero;
     private Vector2 inputTexUv1 = Vector2.One;
     private Vector4 inputTintCol = Vector4.One;
@@ -53,6 +61,11 @@ internal class TexWidget : IDataWindowWidget
         this.inputFilePath = Path.Join(
             Service<Dalamud>.Get().StartInfo.AssetDirectory!,
             DalamudAsset.Logo.GetAttribute<DalamudAssetPathAttribute>()!.FileName);
+        this.inputManifestResourceAssemblyCandidates = null;
+        this.inputManifestResourceAssemblyCandidateNames = null;
+        this.inputManifestResourceAssemblyIndex = 0;
+        this.inputManifestResourceNameCandidates = null;
+        this.inputManifestResourceNameIndex = 0;
         this.Ready = true;
     }
 
@@ -65,19 +78,28 @@ internal class TexWidget : IDataWindowWidget
             GC.Collect();
 
         ImGui.PushID("loadedGameTextures");
-        if (ImGui.CollapsingHeader($"Loaded Game Textures: {this.textureManager.GamePathTexturesForDebug.Count:g}###header"))
+        if (ImGui.CollapsingHeader(
+                $"Loaded Game Textures: {this.textureManager.GamePathTexturesForDebug.Count:g}###header"))
             this.DrawLoadedTextures(this.textureManager.GamePathTexturesForDebug);
         ImGui.PopID();
 
         ImGui.PushID("loadedFileTextures");
-        if (ImGui.CollapsingHeader($"Loaded File Textures: {this.textureManager.FileSystemTexturesForDebug.Count:g}###header"))
+        if (ImGui.CollapsingHeader(
+                $"Loaded File Textures: {this.textureManager.FileSystemTexturesForDebug.Count:g}###header"))
             this.DrawLoadedTextures(this.textureManager.FileSystemTexturesForDebug);
+        ImGui.PopID();
+
+        ImGui.PushID("loadedManifestResourceTextures");
+        if (ImGui.CollapsingHeader(
+                $"Loaded Manifest Resource Textures: {this.textureManager.ManifestResourceTexturesForDebug.Count:g}###header"))
+            this.DrawLoadedTextures(this.textureManager.ManifestResourceTexturesForDebug);
         ImGui.PopID();
 
         lock (this.textureManager.InvalidatedTexturesForDebug)
         {
             ImGui.PushID("invalidatedTextures");
-            if (ImGui.CollapsingHeader($"Invalidated: {this.textureManager.InvalidatedTexturesForDebug.Count:g}###header"))
+            if (ImGui.CollapsingHeader(
+                    $"Invalidated: {this.textureManager.InvalidatedTexturesForDebug.Count:g}###header"))
             {
                 this.DrawLoadedTextures(this.textureManager.InvalidatedTexturesForDebug);
             }
@@ -86,16 +108,39 @@ internal class TexWidget : IDataWindowWidget
         }
 
         if (ImGui.CollapsingHeader("Load Game File by Icon ID", ImGuiTreeNodeFlags.DefaultOpen))
+        {
+            ImGui.PushID(nameof(this.DrawIconInput));
             this.DrawIconInput();
+            ImGui.PopID();
+        }
 
         if (ImGui.CollapsingHeader("Load Game File by Path", ImGuiTreeNodeFlags.DefaultOpen))
+        {
+            ImGui.PushID(nameof(this.DrawGamePathInput));
             this.DrawGamePathInput();
+            ImGui.PopID();
+        }
 
         if (ImGui.CollapsingHeader("Load File", ImGuiTreeNodeFlags.DefaultOpen))
+        {
+            ImGui.PushID(nameof(this.DrawFileInput));
             this.DrawFileInput();
+            ImGui.PopID();
+        }
+
+        if (ImGui.CollapsingHeader("Load Assembly Manifest Resource", ImGuiTreeNodeFlags.DefaultOpen))
+        {
+            ImGui.PushID(nameof(this.DrawAssemblyManifestResourceInput));
+            this.DrawAssemblyManifestResourceInput();
+            ImGui.PopID();
+        }
 
         if (ImGui.CollapsingHeader("UV"))
+        {
+            ImGui.PushID(nameof(this.DrawUvInput));
             this.DrawUvInput();
+            ImGui.PopID();
+        }
 
         TextureEntry? toRemove = null;
         TextureEntry? toCopy = null;
@@ -337,6 +382,81 @@ internal class TexWidget : IDataWindowWidget
         ImGuiHelpers.ScaledDummy(10);
     }
 
+    private void DrawAssemblyManifestResourceInput()
+    {
+        if (this.inputManifestResourceAssemblyCandidateNames is null ||
+            this.inputManifestResourceAssemblyCandidates is null)
+        {
+            this.inputManifestResourceAssemblyIndex = 0;
+            this.inputManifestResourceAssemblyCandidates =
+                AssemblyLoadContext
+                    .All
+                    .SelectMany(x => x.Assemblies)
+                    .Distinct()
+                    .OrderBy(x => x.GetName().FullName)
+                    .ToArray();
+            this.inputManifestResourceAssemblyCandidateNames =
+                this.inputManifestResourceAssemblyCandidates
+                    .Select(x => x.GetName().FullName)
+                    .ToArray();
+        }
+
+        if (ImGui.Combo(
+                "Assembly",
+                ref this.inputManifestResourceAssemblyIndex,
+                this.inputManifestResourceAssemblyCandidateNames,
+                this.inputManifestResourceAssemblyCandidateNames.Length))
+        {
+            this.inputManifestResourceNameIndex = 0;
+            this.inputManifestResourceNameCandidates = null;
+        }
+
+        var assembly =
+            this.inputManifestResourceAssemblyIndex >= 0
+            && this.inputManifestResourceAssemblyIndex < this.inputManifestResourceAssemblyCandidates.Length
+                ? this.inputManifestResourceAssemblyCandidates[this.inputManifestResourceAssemblyIndex]
+                : null;
+
+        this.inputManifestResourceNameCandidates ??= assembly?.GetManifestResourceNames() ?? Array.Empty<string>();
+
+        ImGui.Combo(
+            "Name",
+            ref this.inputManifestResourceNameIndex,
+            this.inputManifestResourceNameCandidates,
+            this.inputManifestResourceNameCandidates.Length);
+
+        var name =
+            this.inputManifestResourceNameIndex >= 0
+            && this.inputManifestResourceNameIndex < this.inputManifestResourceNameCandidates.Length
+                ? this.inputManifestResourceNameCandidates[this.inputManifestResourceNameIndex]
+                : null;
+
+        if (ImGui.Button("Refresh Assemblies"))
+        {
+            this.inputManifestResourceAssemblyIndex = 0;
+            this.inputManifestResourceAssemblyCandidates = null;
+            this.inputManifestResourceAssemblyCandidateNames = null;
+            this.inputManifestResourceNameIndex = 0;
+            this.inputManifestResourceNameCandidates = null;
+        }
+
+        if (assembly is not null && name is not null)
+        {
+            ImGui.SameLine();
+            if (ImGui.Button("Load File (Async)"))
+            {
+                this.addedTextures.Add(
+                    new(Api10: this.textureManager.GetFromManifestResource(assembly, name).RentAsync()));
+            }
+
+            ImGui.SameLine();
+            if (ImGui.Button("Load File (Immediate)"))
+                this.addedTextures.Add(new(Api10ImmManifestResource: (assembly, name)));
+        }
+
+        ImGuiHelpers.ScaledDummy(10);
+    }
+
     private void DrawUvInput()
     {
         ImGui.InputFloat2("UV0", ref this.inputTexUv0);
@@ -389,7 +509,8 @@ internal class TexWidget : IDataWindowWidget
         Task<IDalamudTextureWrap>? Api10 = null,
         GameIconLookup? Api10ImmGameIcon = null,
         string? Api10ImmGamePath = null,
-        string? Api10ImmFile = null) : IDisposable
+        string? Api10ImmFile = null,
+        (Assembly Assembly, string Name)? Api10ImmManifestResource = null) : IDisposable
     {
         private static int idCounter;
 
@@ -421,6 +542,8 @@ internal class TexWidget : IDataWindowWidget
                 return "Must not happen";
             if (this.Api10ImmFile is not null)
                 return "Must not happen";
+            if (this.Api10ImmManifestResource is not null)
+                return "Must not happen";
             return "Not implemented";
         }
 
@@ -438,6 +561,13 @@ internal class TexWidget : IDataWindowWidget
                 return tp.GetFromGame(this.Api10ImmGamePath).GetWrap();
             if (this.Api10ImmFile is not null)
                 return tp.GetFromFile(this.Api10ImmFile).GetWrap();
+            if (this.Api10ImmManifestResource is not null)
+            {
+                return tp.GetFromManifestResource(
+                    this.Api10ImmManifestResource.Value.Assembly,
+                    this.Api10ImmManifestResource.Value.Name).GetWrap();
+            }
+
             return null;
         }
 
@@ -460,6 +590,8 @@ internal class TexWidget : IDataWindowWidget
                 return $"{nameof(this.Api10ImmGamePath)}: {this.Api10ImmGamePath}";
             if (this.Api10ImmFile is not null)
                 return $"{nameof(this.Api10ImmFile)}: {this.Api10ImmFile}";
+            if (this.Api10ImmManifestResource is not null)
+                return $"{nameof(this.Api10ImmManifestResource)}: {this.Api10ImmManifestResource}";
             return "Not implemented";
         }
     }

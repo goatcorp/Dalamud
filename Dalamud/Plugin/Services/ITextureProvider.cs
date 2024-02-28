@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -40,6 +41,12 @@ public partial interface ITextureProvider
     /// <param name="path">A path to a file on the filesystem.</param>
     /// <returns>The shared texture that you may use to obtain the loaded texture wrap and load states.</returns>
     ISharedImmediateTexture GetFromFile(string path);
+
+    /// <summary>Gets a shared texture corresponding to the given file of the assembly manifest resources.</summary>
+    /// <param name="assembly">The assembly containing manifest resources.</param>
+    /// <param name="name">The case-sensitive name of the manifest resource being requested.</param>
+    /// <returns>The shared texture that you may use to obtain the loaded texture wrap and load states.</returns>
+    ISharedImmediateTexture GetFromManifestResource(Assembly assembly, string name);
 
     /// <summary>Gets a texture from the given bytes, trying to interpret it as a .tex file or other well-known image
     /// files, such as .png.</summary>

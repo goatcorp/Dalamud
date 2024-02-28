@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,6 +18,7 @@ using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility;
 
+using Lumina.Data;
 using Lumina.Data.Files;
 
 using SharpDX;
@@ -59,8 +61,14 @@ internal sealed class TextureManager : IServiceType, IDisposable, ITextureProvid
     private readonly TextureLoadThrottler textureLoadThrottler = Service<TextureLoadThrottler>.Get();
 
     private readonly ConcurrentLru<GameIconLookup, string> lookupToPath = new(PathLookupLruCount);
+
     private readonly ConcurrentDictionary<string, SharedImmediateTexture> gamePathTextures = new();
+
     private readonly ConcurrentDictionary<string, SharedImmediateTexture> fileSystemTextures = new();
+
+    private readonly ConcurrentDictionary<(Assembly Assembly, string Name), SharedImmediateTexture>
+        manifestResourceTextures = new();
+
     private readonly HashSet<SharedImmediateTexture> invalidatedTextures = new();
 
     private bool disposing;
@@ -71,11 +79,14 @@ internal sealed class TextureManager : IServiceType, IDisposable, ITextureProvid
     /// <inheritdoc/>
     public event ITextureSubstitutionProvider.TextureDataInterceptorDelegate? InterceptTexDataLoad;
 
-    /// <summary>Gets all the loaded textures from the game resources.</summary>
+    /// <summary>Gets all the loaded textures from game resources.</summary>
     public ICollection<SharedImmediateTexture> GamePathTexturesForDebug => this.gamePathTextures.Values;
 
-    /// <summary>Gets all the loaded textures from the game resources.</summary>
+    /// <summary>Gets all the loaded textures from filesystem.</summary>
     public ICollection<SharedImmediateTexture> FileSystemTexturesForDebug => this.fileSystemTextures.Values;
+
+    /// <summary>Gets all the loaded textures from assembly manifest resources.</summary>
+    public ICollection<SharedImmediateTexture> ManifestResourceTexturesForDebug => this.manifestResourceTextures.Values;
 
     /// <summary>Gets all the loaded textures that are invalidated from <see cref="InvalidatePaths"/>.</summary>
     /// <remarks><c>lock</c> on use of the value returned from this property.</remarks>
@@ -92,14 +103,20 @@ internal sealed class TextureManager : IServiceType, IDisposable, ITextureProvid
             return;
 
         this.disposing = true;
-        foreach (var v in this.gamePathTextures.Values)
-            v.ReleaseSelfReference(true);
-        foreach (var v in this.fileSystemTextures.Values)
-            v.ReleaseSelfReference(true);
 
+        ReleaseSelfReferences(this.gamePathTextures);
+        ReleaseSelfReferences(this.fileSystemTextures);
+        ReleaseSelfReferences(this.manifestResourceTextures);
         this.lookupToPath.Clear();
-        this.gamePathTextures.Clear();
-        this.fileSystemTextures.Clear();
+
+        return;
+
+        static void ReleaseSelfReferences<T>(ConcurrentDictionary<T, SharedImmediateTexture> dict)
+        {
+            foreach (var v in dict.Values)
+                v.ReleaseSelfReference(true);
+            dict.Clear();
+        }
     }
 
     #region API9 compat
@@ -157,13 +174,29 @@ internal sealed class TextureManager : IServiceType, IDisposable, ITextureProvid
 
     /// <inheritdoc cref="ITextureProvider.GetFromGame"/>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public SharedImmediateTexture GetFromGame(string path) =>
-        this.gamePathTextures.GetOrAdd(path, GamePathSharedImmediateTexture.CreatePlaceholder);
+    public SharedImmediateTexture GetFromGame(string path)
+    {
+        ObjectDisposedException.ThrowIf(this.disposing, this);
+        return this.gamePathTextures.GetOrAdd(path, GamePathSharedImmediateTexture.CreatePlaceholder);
+    }
 
     /// <inheritdoc cref="ITextureProvider.GetFromFile"/>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public SharedImmediateTexture GetFromFile(string path) =>
-        this.fileSystemTextures.GetOrAdd(path, FileSystemSharedImmediateTexture.CreatePlaceholder);
+    public SharedImmediateTexture GetFromFile(string path)
+    {
+        ObjectDisposedException.ThrowIf(this.disposing, this);
+        return this.fileSystemTextures.GetOrAdd(path, FileSystemSharedImmediateTexture.CreatePlaceholder);
+    }
+
+    /// <inheritdoc cref="ITextureProvider.GetFromFile"/>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public SharedImmediateTexture GetFromManifestResource(Assembly assembly, string name)
+    {
+        ObjectDisposedException.ThrowIf(this.disposing, this);
+        return this.manifestResourceTextures.GetOrAdd(
+            (assembly, name),
+            ManifestResourceSharedImmediateTexture.CreatePlaceholder);
+    }
 
     /// <inheritdoc/>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -176,6 +209,11 @@ internal sealed class TextureManager : IServiceType, IDisposable, ITextureProvid
     /// <inheritdoc/>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     ISharedImmediateTexture ITextureProvider.GetFromFile(string path) => this.GetFromFile(path);
+
+    /// <inheritdoc/>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    ISharedImmediateTexture ITextureProvider.GetFromManifestResource(Assembly assembly, string name) =>
+        this.GetFromManifestResource(assembly, name);
 
     /// <inheritdoc/>
     public Task<IDalamudTextureWrap> CreateFromImageAsync(
@@ -433,15 +471,39 @@ internal sealed class TextureManager : IServiceType, IDisposable, ITextureProvid
     /// <returns>The loaded texture.</returns>
     internal IDalamudTextureWrap NoThrottleGetFromImage(ReadOnlyMemory<byte> bytes)
     {
+        ObjectDisposedException.ThrowIf(this.disposing, this);
+
         if (this.interfaceManager.Scene is not { } scene)
         {
             _ = Service<InterfaceManager.InterfaceManagerWithScene>.Get();
             scene = this.interfaceManager.Scene ?? throw new InvalidOperationException();
         }
 
+        var bytesArray = bytes.ToArray();
+        var texFileAttemptException = default(Exception);
+        if (TexFileExtensions.IsPossiblyTexFile2D(bytesArray))
+        {
+            var tf = new TexFile();
+            typeof(TexFile).GetProperty(nameof(tf.Data))!.GetSetMethod(true)!.Invoke(
+                tf,
+                new object?[] { bytesArray });
+            typeof(TexFile).GetProperty(nameof(tf.Reader))!.GetSetMethod(true)!.Invoke(
+                tf,
+                new object?[] { new LuminaBinaryReader(bytesArray) });
+            // Note: FileInfo and FilePath are not used from TexFile; skip it.
+            try
+            {
+                return this.NoThrottleGetFromTexFile(tf);
+            }
+            catch (Exception e)
+            {
+                texFileAttemptException = e;
+            }
+        }
+
         return new DalamudTextureWrap(
-            scene.LoadImage(bytes.ToArray())
-            ?? throw new("Failed to load image because of an unknown reason."));
+            scene.LoadImage(bytesArray)
+            ?? throw texFileAttemptException ?? new("Failed to load image because of an unknown reason."));
     }
 
     /// <summary>Gets a texture from the given <see cref="TexFile"/>. Skips the load throttler; intended to be used from
@@ -450,6 +512,8 @@ internal sealed class TextureManager : IServiceType, IDisposable, ITextureProvid
     /// <returns>The loaded texture.</returns>
     internal IDalamudTextureWrap NoThrottleGetFromTexFile(TexFile file)
     {
+        ObjectDisposedException.ThrowIf(this.disposing, this);
+
         var buffer = file.TextureBuffer;
         var (dxgiFormat, conversion) = TexFile.GetDxgiFormatFromTextureFormat(file.Header.Format, false);
         if (conversion != TexFile.DxgiFormatConversion.NoConversion || !this.SupportsDxgiFormat(dxgiFormat))
@@ -476,23 +540,9 @@ internal sealed class TextureManager : IServiceType, IDisposable, ITextureProvid
 
     private void FrameworkOnUpdate(IFramework unused)
     {
-        if (!this.gamePathTextures.IsEmpty)
-        {
-            foreach (var (k, v) in this.gamePathTextures)
-            {
-                if (TextureFinalReleasePredicate(v))
-                    _ = this.gamePathTextures.TryRemove(k, out _);
-            }
-        }
-
-        if (!this.fileSystemTextures.IsEmpty)
-        {
-            foreach (var (k, v) in this.fileSystemTextures)
-            {
-                if (TextureFinalReleasePredicate(v))
-                    _ = this.fileSystemTextures.TryRemove(k, out _);
-            }
-        }
+        RemoveFinalReleased(this.gamePathTextures);
+        RemoveFinalReleased(this.fileSystemTextures);
+        RemoveFinalReleased(this.manifestResourceTextures);
 
         // ReSharper disable once InconsistentlySynchronizedField
         if (this.invalidatedTextures.Count != 0)
@@ -503,6 +553,20 @@ internal sealed class TextureManager : IServiceType, IDisposable, ITextureProvid
 
         return;
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        static void RemoveFinalReleased<T>(ConcurrentDictionary<T, SharedImmediateTexture> dict)
+        {
+            if (!dict.IsEmpty)
+            {
+                foreach (var (k, v) in dict)
+                {
+                    if (TextureFinalReleasePredicate(v))
+                        _ = dict.TryRemove(k, out _);
+                }
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         static bool TextureFinalReleasePredicate(SharedImmediateTexture v) =>
             v.ContentQueried && v.ReleaseSelfReference(false) == 0 && !v.HasRevivalPossibility;
     }
