@@ -107,31 +107,31 @@ internal class TexWidget : IDataWindowWidget
             ImGui.PopID();
         }
 
-        if (ImGui.CollapsingHeader("Load Game File by Icon ID", ImGuiTreeNodeFlags.DefaultOpen))
+        if (ImGui.CollapsingHeader(nameof(ITextureProvider.GetFromGameIcon), ImGuiTreeNodeFlags.DefaultOpen))
         {
-            ImGui.PushID(nameof(this.DrawIconInput));
-            this.DrawIconInput();
+            ImGui.PushID(nameof(this.DrawGetFromGameIcon));
+            this.DrawGetFromGameIcon();
             ImGui.PopID();
         }
 
-        if (ImGui.CollapsingHeader("Load Game File by Path", ImGuiTreeNodeFlags.DefaultOpen))
+        if (ImGui.CollapsingHeader(nameof(ITextureProvider.GetFromGame), ImGuiTreeNodeFlags.DefaultOpen))
         {
-            ImGui.PushID(nameof(this.DrawGamePathInput));
-            this.DrawGamePathInput();
+            ImGui.PushID(nameof(this.DrawGetFromGame));
+            this.DrawGetFromGame();
             ImGui.PopID();
         }
 
-        if (ImGui.CollapsingHeader("Load File", ImGuiTreeNodeFlags.DefaultOpen))
+        if (ImGui.CollapsingHeader(nameof(ITextureProvider.GetFromFile), ImGuiTreeNodeFlags.DefaultOpen))
         {
-            ImGui.PushID(nameof(this.DrawFileInput));
-            this.DrawFileInput();
+            ImGui.PushID(nameof(this.DrawGetFromFile));
+            this.DrawGetFromFile();
             ImGui.PopID();
         }
 
-        if (ImGui.CollapsingHeader("Load Assembly Manifest Resource", ImGuiTreeNodeFlags.DefaultOpen))
+        if (ImGui.CollapsingHeader(nameof(ITextureProvider.GetFromManifestResource), ImGuiTreeNodeFlags.DefaultOpen))
         {
-            ImGui.PushID(nameof(this.DrawAssemblyManifestResourceInput));
-            this.DrawAssemblyManifestResourceInput();
+            ImGui.PushID(nameof(this.DrawGetFromManifestResource));
+            this.DrawGetFromManifestResource();
             ImGui.PopID();
         }
 
@@ -308,7 +308,7 @@ internal class TexWidget : IDataWindowWidget
         ImGuiHelpers.ScaledDummy(10);
     }
 
-    private void DrawIconInput()
+    private void DrawGetFromGameIcon()
     {
         ImGui.InputText("Icon ID", ref this.iconId, 32);
         ImGui.Checkbox("HQ Item", ref this.hq);
@@ -342,7 +342,7 @@ internal class TexWidget : IDataWindowWidget
         ImGuiHelpers.ScaledDummy(10);
     }
 
-    private void DrawGamePathInput()
+    private void DrawGetFromGame()
     {
         ImGui.InputText("Tex Path", ref this.inputTexPath, 255);
 
@@ -362,7 +362,7 @@ internal class TexWidget : IDataWindowWidget
         ImGuiHelpers.ScaledDummy(10);
     }
 
-    private void DrawFileInput()
+    private void DrawGetFromFile()
     {
         ImGui.InputText("File Path", ref this.inputFilePath, 255);
 
@@ -382,7 +382,7 @@ internal class TexWidget : IDataWindowWidget
         ImGuiHelpers.ScaledDummy(10);
     }
 
-    private void DrawAssemblyManifestResourceInput()
+    private void DrawGetFromManifestResource()
     {
         if (this.inputManifestResourceAssemblyCandidateNames is null ||
             this.inputManifestResourceAssemblyCandidates is null)

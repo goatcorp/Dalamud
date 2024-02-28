@@ -4,6 +4,8 @@ using Dalamud.Interface;
 using Dalamud.Interface.Internal;
 using Dalamud.Utility;
 
+using Lumina.Data.Files;
+
 namespace Dalamud.Plugin.Services;
 
 /// <summary>
@@ -96,4 +98,13 @@ public partial interface ITextureProvider
     [Obsolete($"Use {nameof(GetFromFile)}.")]
     [Api10ToDo(Api10ToDoAttribute.DeleteCompatBehavior)]
     public IDalamudTextureWrap? GetTextureFromFile(FileInfo file, bool keepAlive = false);
+
+    /// <summary>
+    /// Get a texture handle for the specified Lumina <see cref="TexFile"/>.
+    /// </summary>
+    /// <param name="file">The texture to obtain a handle to.</param>
+    /// <returns>A texture wrap that can be used to render the texture. Dispose after use.</returns>
+    [Obsolete($"Use {nameof(CreateFromTexFile)}.")]
+    [Api10ToDo(Api10ToDoAttribute.DeleteCompatBehavior)]
+    IDalamudTextureWrap GetTexture(TexFile file) => this.CreateFromTexFile(file);
 }

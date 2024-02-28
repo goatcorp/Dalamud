@@ -27,27 +27,6 @@ namespace Dalamud.Plugin.Services;
 /// </remarks>
 public partial interface ITextureProvider
 {
-    /// <summary>Gets a shared texture corresponding to the given game resource icon specifier.</summary>
-    /// <param name="lookup">A game icon specifier.</param>
-    /// <returns>The shared texture that you may use to obtain the loaded texture wrap and load states.</returns>
-    ISharedImmediateTexture GetFromGameIcon(in GameIconLookup lookup);
-
-    /// <summary>Gets a shared texture corresponding to the given path to a game resource.</summary>
-    /// <param name="path">A path to a game resource.</param>
-    /// <returns>The shared texture that you may use to obtain the loaded texture wrap and load states.</returns>
-    ISharedImmediateTexture GetFromGame(string path);
-
-    /// <summary>Gets a shared texture corresponding to the given file on the filesystem.</summary>
-    /// <param name="path">A path to a file on the filesystem.</param>
-    /// <returns>The shared texture that you may use to obtain the loaded texture wrap and load states.</returns>
-    ISharedImmediateTexture GetFromFile(string path);
-
-    /// <summary>Gets a shared texture corresponding to the given file of the assembly manifest resources.</summary>
-    /// <param name="assembly">The assembly containing manifest resources.</param>
-    /// <param name="name">The case-sensitive name of the manifest resource being requested.</param>
-    /// <returns>The shared texture that you may use to obtain the loaded texture wrap and load states.</returns>
-    ISharedImmediateTexture GetFromManifestResource(Assembly assembly, string name);
-
     /// <summary>Gets a texture from the given bytes, trying to interpret it as a .tex file or other well-known image
     /// files, such as .png.</summary>
     /// <param name="bytes">The bytes to load.</param>
@@ -103,31 +82,6 @@ public partial interface ITextureProvider
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Get a path for a specific icon's .tex file.
-    /// </summary>
-    /// <param name="lookup">The icon lookup.</param>
-    /// <returns>The path to the icon.</returns>
-    /// <exception cref="FileNotFoundException">If a corresponding file could not be found.</exception>
-    string GetIconPath(in GameIconLookup lookup);
-
-    /// <summary>
-    /// Gets the path of an icon.
-    /// </summary>
-    /// <param name="lookup">The icon lookup.</param>
-    /// <param name="path">The resolved path.</param>
-    /// <returns><c>true</c> if the corresponding file exists and <paramref name="path"/> has been set.</returns>
-    bool TryGetIconPath(in GameIconLookup lookup, [NotNullWhen(true)] out string? path);
-
-    /// <summary>
-    /// Get a texture handle for the specified Lumina <see cref="TexFile"/>.
-    /// Alias for fetching <see cref="Task{TResult}.Result"/> from <see cref="CreateFromTexFileAsync"/>.
-    /// </summary>
-    /// <param name="file">The texture to obtain a handle to.</param>
-    /// <returns>A texture wrap that can be used to render the texture. Dispose after use.</returns>
-    /// <remarks>Alias for <see cref="CreateFromTexFile"/>.</remarks>
-    IDalamudTextureWrap GetTexture(TexFile file) => this.CreateFromTexFile(file);
-
-    /// <summary>
     /// Get a texture handle for the specified Lumina <see cref="TexFile"/>.
     /// Alias for fetching <see cref="Task{TResult}.Result"/> from <see cref="CreateFromTexFileAsync"/>.
     /// </summary>
@@ -145,11 +99,48 @@ public partial interface ITextureProvider
         TexFile file,
         CancellationToken cancellationToken = default);
 
+    /// <summary>Gets a shared texture corresponding to the given game resource icon specifier.</summary>
+    /// <param name="lookup">A game icon specifier.</param>
+    /// <returns>The shared texture that you may use to obtain the loaded texture wrap and load states.</returns>
+    ISharedImmediateTexture GetFromGameIcon(in GameIconLookup lookup);
+
+    /// <summary>Gets a shared texture corresponding to the given path to a game resource.</summary>
+    /// <param name="path">A path to a game resource.</param>
+    /// <returns>The shared texture that you may use to obtain the loaded texture wrap and load states.</returns>
+    ISharedImmediateTexture GetFromGame(string path);
+
+    /// <summary>Gets a shared texture corresponding to the given file on the filesystem.</summary>
+    /// <param name="path">A path to a file on the filesystem.</param>
+    /// <returns>The shared texture that you may use to obtain the loaded texture wrap and load states.</returns>
+    ISharedImmediateTexture GetFromFile(string path);
+
+    /// <summary>Gets a shared texture corresponding to the given file of the assembly manifest resources.</summary>
+    /// <param name="assembly">The assembly containing manifest resources.</param>
+    /// <param name="name">The case-sensitive name of the manifest resource being requested.</param>
+    /// <returns>The shared texture that you may use to obtain the loaded texture wrap and load states.</returns>
+    ISharedImmediateTexture GetFromManifestResource(Assembly assembly, string name);
+
+    /// <summary>
+    /// Get a path for a specific icon's .tex file.
+    /// </summary>
+    /// <param name="lookup">The icon lookup.</param>
+    /// <returns>The path to the icon.</returns>
+    /// <exception cref="FileNotFoundException">If a corresponding file could not be found.</exception>
+    string GetIconPath(in GameIconLookup lookup);
+
+    /// <summary>
+    /// Gets the path of an icon.
+    /// </summary>
+    /// <param name="lookup">The icon lookup.</param>
+    /// <param name="path">The resolved path.</param>
+    /// <returns><c>true</c> if the corresponding file exists and <paramref name="path"/> has been set.</returns>
+    bool TryGetIconPath(in GameIconLookup lookup, [NotNullWhen(true)] out string? path);
+
     /// <summary>
     /// Determines whether the system supports the given DXGI format.
     /// For use with <see cref="RawImageSpecification.DxgiFormat"/>.
     /// </summary>
     /// <param name="dxgiFormat">The DXGI format.</param>
     /// <returns><c>true</c> if supported.</returns>
-    bool SupportsDxgiFormat(int dxgiFormat);
+    bool IsDxgiFormatSupported(int dxgiFormat);
 }

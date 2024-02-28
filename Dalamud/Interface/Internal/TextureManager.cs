@@ -343,7 +343,7 @@ internal sealed class TextureManager : IServiceType, IDisposable, ITextureProvid
             cancellationToken);
 
     /// <inheritdoc/>
-    public bool SupportsDxgiFormat(int dxgiFormat)
+    public bool IsDxgiFormatSupported(int dxgiFormat)
     {
         if (this.interfaceManager.Scene is not { } scene)
         {
@@ -516,7 +516,7 @@ internal sealed class TextureManager : IServiceType, IDisposable, ITextureProvid
 
         var buffer = file.TextureBuffer;
         var (dxgiFormat, conversion) = TexFile.GetDxgiFormatFromTextureFormat(file.Header.Format, false);
-        if (conversion != TexFile.DxgiFormatConversion.NoConversion || !this.SupportsDxgiFormat(dxgiFormat))
+        if (conversion != TexFile.DxgiFormatConversion.NoConversion || !this.IsDxgiFormatSupported(dxgiFormat))
         {
             dxgiFormat = (int)Format.B8G8R8A8_UNorm;
             buffer = buffer.Filter(0, 0, TexFile.TextureFormat.B8G8R8A8);

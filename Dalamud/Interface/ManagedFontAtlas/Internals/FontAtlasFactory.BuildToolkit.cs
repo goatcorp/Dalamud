@@ -580,7 +580,7 @@ internal sealed partial class FontAtlasFactory
             var buf = Array.Empty<byte>();
             try
             {
-                var use4 = this.factory.TextureManager.SupportsDxgiFormat((int)Format.B4G4R4A4_UNorm);
+                var use4 = this.factory.TextureManager.IsDxgiFormatSupported((int)Format.B4G4R4A4_UNorm);
                 var bpp = use4 ? 2 : 4;
                 var width = this.NewImAtlas.TexWidth;
                 var height = this.NewImAtlas.TexHeight;
