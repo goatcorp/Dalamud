@@ -309,10 +309,10 @@ internal sealed class DalamudAssetManager : IServiceType, IDisposable, IDalamudA
                 stream.ReadExactly(buf, 0, length);
                 var image = purpose switch
                 {
-                    DalamudAssetPurpose.TextureFromPng => await tm.GetFromImageAsync(buf),
+                    DalamudAssetPurpose.TextureFromPng => await tm.CreateFromImageAsync(buf),
                     DalamudAssetPurpose.TextureFromRaw =>
                         asset.GetAttribute<DalamudAssetRawTextureAttribute>() is { } raw
-                            ? await tm.GetFromRawAsync(raw.Specification, buf)
+                            ? await tm.CreateFromRawAsync(raw.Specification, buf)
                             : throw new InvalidOperationException(
                                   "TextureFromRaw must accompany a DalamudAssetRawTextureAttribute."),
                     _ => null,

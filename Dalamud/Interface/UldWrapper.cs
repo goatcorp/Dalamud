@@ -125,7 +125,7 @@ public class UldWrapper : IDisposable
             inputSlice.CopyTo(outputSlice);
         }
 
-        return this.textureManager.GetFromRaw(RawImageSpecification.Rgba32(part.W, part.H), imageData);
+        return this.textureManager.CreateFromRaw(RawImageSpecification.Rgba32(part.W, part.H), imageData);
     }
 
     private (uint Id, int Width, int Height, bool HD, byte[] RgbaData)? GetTexture(string texturePath)

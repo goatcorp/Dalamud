@@ -376,7 +376,7 @@ internal sealed partial class FontAtlasFactory
             }
 
             return this.scopedFinalizer.Add(
-                this.TextureManager.GetFromRaw(
+                this.TextureManager.CreateFromRaw(
                     new(
                         texFile.Header.Width,
                         texFile.Header.Height,

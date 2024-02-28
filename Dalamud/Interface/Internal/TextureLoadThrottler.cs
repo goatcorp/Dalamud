@@ -3,7 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Dalamud.Interface.Internal.SharableTextures;
+namespace Dalamud.Interface.Internal;
 
 /// <summary>
 /// Service for managing texture loads.

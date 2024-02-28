@@ -275,7 +275,7 @@ internal class PluginImageCache : IDisposable, IServiceType
         // FIXME(goat): This is a hack around this call failing randomly in certain situations. Might be related to not being called on the main thread.
         try
         {
-            image = await textureManager.GetFromImageAsync(bytes);
+            image = await textureManager.CreateFromImageAsync(bytes);
         }
         catch (Exception ex)
         {

@@ -1,6 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 
-namespace Dalamud.Interface.Internal;
+namespace Dalamud.Interface;
 
 /// <summary>
 /// Represents a lookup for a game icon.

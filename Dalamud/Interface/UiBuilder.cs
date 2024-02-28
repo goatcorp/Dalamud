@@ -387,8 +387,9 @@ public sealed class UiBuilder : IDisposable
     /// <param name="filePath">The full filepath to the image.</param>
     /// <returns>A <see cref="TextureWrap"/> object wrapping the created image.  Use <see cref="TextureWrap.ImGuiHandle"/> inside ImGui.Image().</returns>
     [Api10ToDo(Api10ToDoAttribute.DeleteCompatBehavior)]
-    [Obsolete($"Use {nameof(ITextureProvider.GetFromFileAsync)}.")]
-    public IDalamudTextureWrap LoadImage(string filePath) => this.TextureProvider.GetFromFileAsync(filePath).Result;
+    [Obsolete($"Use {nameof(ITextureProvider.GetFromFile)}.")]
+    public IDalamudTextureWrap LoadImage(string filePath) =>
+        this.TextureProvider.GetFromFile(filePath).RentAsync().Result;
 
     /// <summary>
     /// Loads an image from a byte stream, such as a png downloaded into memory.
@@ -396,8 +397,9 @@ public sealed class UiBuilder : IDisposable
     /// <param name="imageData">A byte array containing the raw image data.</param>
     /// <returns>A <see cref="TextureWrap"/> object wrapping the created image.  Use <see cref="TextureWrap.ImGuiHandle"/> inside ImGui.Image().</returns>
     [Api10ToDo(Api10ToDoAttribute.DeleteCompatBehavior)]
-    [Obsolete($"Use {nameof(ITextureProvider.GetFromImageAsync)}.")]
-    public IDalamudTextureWrap LoadImage(byte[] imageData) => this.TextureProvider.GetFromImageAsync(imageData).Result;
+    [Obsolete($"Use {nameof(ITextureProvider.CreateFromImageAsync)}.")]
+    public IDalamudTextureWrap LoadImage(byte[] imageData) =>
+        this.TextureProvider.CreateFromImageAsync(imageData).Result;
 
     /// <summary>
     /// Loads an image from raw unformatted pixel data, with no type or header information.  To load formatted data, use <see cref="LoadImage(byte[])"/>.
@@ -408,11 +410,11 @@ public sealed class UiBuilder : IDisposable
     /// <param name="numChannels">The number of channels (bytes per pixel) of the image contained in <paramref name="imageData"/>.  This should usually be 4.</param>
     /// <returns>A <see cref="TextureWrap"/> object wrapping the created image.  Use <see cref="TextureWrap.ImGuiHandle"/> inside ImGui.Image().</returns>
     [Api10ToDo(Api10ToDoAttribute.DeleteCompatBehavior)]
-    [Obsolete($"Use {nameof(ITextureProvider.GetFromRaw)} or {nameof(ITextureProvider.GetFromRawAsync)}.")]
+    [Obsolete($"Use {nameof(ITextureProvider.CreateFromRaw)} or {nameof(ITextureProvider.CreateFromRawAsync)}.")]
     public IDalamudTextureWrap LoadImageRaw(byte[] imageData, int width, int height, int numChannels) =>
         numChannels switch
         {
-            4 => this.TextureProvider.GetFromRaw(RawImageSpecification.Rgba32(width, height), imageData),
+            4 => this.TextureProvider.CreateFromRaw(RawImageSpecification.Rgba32(width, height), imageData),
             _ => throw new NotSupportedException(),
         };
 
@@ -430,8 +432,9 @@ public sealed class UiBuilder : IDisposable
     /// <param name="filePath">The full filepath to the image.</param>
     /// <returns>A <see cref="TextureWrap"/> object wrapping the created image.  Use <see cref="TextureWrap.ImGuiHandle"/> inside ImGui.Image().</returns>
     [Api10ToDo(Api10ToDoAttribute.DeleteCompatBehavior)]
-    [Obsolete($"Use {nameof(ITextureProvider.GetFromFileAsync)}.")]
-    public Task<IDalamudTextureWrap> LoadImageAsync(string filePath) => this.TextureProvider.GetFromFileAsync(filePath);
+    [Obsolete($"Use {nameof(ITextureProvider.GetFromFile)}.")]
+    public Task<IDalamudTextureWrap> LoadImageAsync(string filePath) =>
+        this.TextureProvider.GetFromFile(filePath).RentAsync();
 
     /// <summary>
     /// Asynchronously loads an image from a byte stream, such as a png downloaded into memory, when it's possible to do so.
@@ -439,9 +442,9 @@ public sealed class UiBuilder : IDisposable
     /// <param name="imageData">A byte array containing the raw image data.</param>
     /// <returns>A <see cref="TextureWrap"/> object wrapping the created image.  Use <see cref="TextureWrap.ImGuiHandle"/> inside ImGui.Image().</returns>
     [Api10ToDo(Api10ToDoAttribute.DeleteCompatBehavior)]
-    [Obsolete($"Use {nameof(ITextureProvider.GetFromImageAsync)}.")]
+    [Obsolete($"Use {nameof(ITextureProvider.CreateFromImageAsync)}.")]
     public Task<IDalamudTextureWrap> LoadImageAsync(byte[] imageData) =>
-        this.TextureProvider.GetFromImageAsync(imageData);
+        this.TextureProvider.CreateFromImageAsync(imageData);
 
     /// <summary>
     /// Asynchronously loads an image from raw unformatted pixel data, with no type or header information, when it's possible to do so.  To load formatted data, use <see cref="LoadImage(byte[])"/>.
@@ -452,11 +455,11 @@ public sealed class UiBuilder : IDisposable
     /// <param name="numChannels">The number of channels (bytes per pixel) of the image contained in <paramref name="imageData"/>.  This should usually be 4.</param>
     /// <returns>A <see cref="TextureWrap"/> object wrapping the created image.  Use <see cref="TextureWrap.ImGuiHandle"/> inside ImGui.Image().</returns>
     [Api10ToDo(Api10ToDoAttribute.DeleteCompatBehavior)]
-    [Obsolete($"Use {nameof(ITextureProvider.GetFromRawAsync)}.")]
+    [Obsolete($"Use {nameof(ITextureProvider.CreateFromRawAsync)}.")]
     public Task<IDalamudTextureWrap> LoadImageRawAsync(byte[] imageData, int width, int height, int numChannels) =>
         numChannels switch
         {
-            4 => this.TextureProvider.GetFromRawAsync(RawImageSpecification.Rgba32(width, height), imageData),
+            4 => this.TextureProvider.CreateFromRawAsync(RawImageSpecification.Rgba32(width, height), imageData),
             _ => Task.FromException<IDalamudTextureWrap>(new NotSupportedException()),
         };
 

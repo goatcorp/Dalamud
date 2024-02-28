@@ -1745,7 +1745,7 @@ internal class PluginInstallerWindow : Window, IDisposable
 
                 if (!this.testerIconPath.IsNullOrEmpty())
                 {
-                    this.testerIcon = tm.GetFromFileAsync(this.testerIconPath);
+                    this.testerIcon = tm.GetFromFile(this.testerIconPath).RentAsync();
                 }
 
                 this.testerImages = new Task<IDalamudTextureWrap>?[this.testerImagePaths.Length];
@@ -1756,7 +1756,7 @@ internal class PluginInstallerWindow : Window, IDisposable
                         continue;
 
                     _ = this.testerImages[i]?.ToContentDisposedTask();
-                    this.testerImages[i] = tm.GetFromFileAsync(this.testerImagePaths[i]);
+                    this.testerImages[i] = tm.GetFromFile(this.testerImagePaths[i]).RentAsync();
                 }
             }
             catch (Exception ex)

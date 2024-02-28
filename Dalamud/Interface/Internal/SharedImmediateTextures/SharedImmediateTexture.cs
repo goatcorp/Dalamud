@@ -1,15 +1,17 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 
 using Dalamud.Storage.Assets;
 using Dalamud.Utility;
 
-namespace Dalamud.Interface.Internal.SharableTextures;
+namespace Dalamud.Interface.Internal.SharedImmediateTextures;
 
 /// <summary>
 /// Represents a texture that may have multiple reference holders (owners).
 /// </summary>
-internal abstract class SharableTexture : IRefCountable, TextureLoadThrottler.IThrottleBasisProvider
+internal abstract class SharedImmediateTexture
+    : ISharedImmediateTexture, IRefCountable, TextureLoadThrottler.IThrottleBasisProvider
 {
     private const int SelfReferenceDurationTicks = 2000;
     private const long SelfReferenceExpiryExpired = long.MaxValue;
@@ -23,14 +25,14 @@ internal abstract class SharableTexture : IRefCountable, TextureLoadThrottler.IT
     private long selfReferenceExpiry;
     private IDalamudTextureWrap? availableOnAccessWrapForApi9;
     private CancellationTokenSource? cancellationTokenSource;
-    private DisposeSuppressingTextureWrap? disposeSuppressingWrap;
+    private NotOwnedTextureWrap? nonOwningWrap;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="SharableTexture"/> class.
+    /// Initializes a new instance of the <see cref="SharedImmediateTexture"/> class.
     /// </summary>
     /// <param name="holdSelfReference">If set to <c>true</c>, this class will hold a reference to self.
     /// Otherwise, it is expected that the caller to hold the reference.</param>
-    protected SharableTexture(bool holdSelfReference)
+    protected SharedImmediateTexture(bool holdSelfReference)
     {
         this.InstanceIdForDebug = Interlocked.Increment(ref instanceCounter);
 
@@ -79,7 +81,7 @@ internal abstract class SharableTexture : IRefCountable, TextureLoadThrottler.IT
     public abstract string SourcePathForDebug { get; }
 
     /// <summary>
-    /// Gets a value indicating whether this instance of <see cref="SharableTexture"/> supports revival.
+    /// Gets a value indicating whether this instance of <see cref="SharedImmediateTexture"/> supports revival.
     /// </summary>
     public bool HasRevivalPossibility => this.RevivalPossibility?.TryGetTarget(out _) is true;
 
@@ -99,7 +101,7 @@ internal abstract class SharableTexture : IRefCountable, TextureLoadThrottler.IT
 
     /// <summary>
     /// Gets a value indicating whether the content has been queried,
-    /// i.e. <see cref="CreateNewReference"/> or <see cref="GetImmediate"/> is called.
+    /// i.e. <see cref="TryGetWrap"/> or <see cref="RentAsync"/> is called.
     /// </summary>
     public bool ContentQueried { get; private set; }
 
@@ -125,7 +127,8 @@ internal abstract class SharableTexture : IRefCountable, TextureLoadThrottler.IT
     public int AddRef() => this.TryAddRef(out var newRefCount) switch
     {
         IRefCountable.RefCountResult.StillAlive => newRefCount,
-        IRefCountable.RefCountResult.AlreadyDisposed => throw new ObjectDisposedException(nameof(SharableTexture)),
+        IRefCountable.RefCountResult.AlreadyDisposed => throw new ObjectDisposedException(
+                                                            nameof(SharedImmediateTexture)),
         IRefCountable.RefCountResult.FinalRelease => throw new InvalidOperationException(),
         _ => throw new InvalidOperationException(),
     };
@@ -164,7 +167,7 @@ internal abstract class SharableTexture : IRefCountable, TextureLoadThrottler.IT
 
                         this.cancellationTokenSource?.Cancel();
                         this.cancellationTokenSource = null;
-                        this.disposeSuppressingWrap = null;
+                        this.nonOwningWrap = null;
                         this.ReleaseResources();
                         this.resourceReleased = true;
 
@@ -173,7 +176,7 @@ internal abstract class SharableTexture : IRefCountable, TextureLoadThrottler.IT
                 }
 
             case IRefCountable.RefCountResult.AlreadyDisposed:
-                throw new ObjectDisposedException(nameof(SharableTexture));
+                throw new ObjectDisposedException(nameof(SharedImmediateTexture));
 
             default:
                 throw new InvalidOperationException();
@@ -206,48 +209,27 @@ internal abstract class SharableTexture : IRefCountable, TextureLoadThrottler.IT
         }
     }
 
-    /// <summary>
-    /// Gets the texture if immediately available. The texture is guarnateed to be available for the rest of the frame.
-    /// Invocation from non-main thread will exhibit an undefined behavior.
-    /// </summary>
-    /// <returns>The texture if available; <c>null</c> if not.</returns>
-    public IDalamudTextureWrap? GetImmediate()
+    /// <inheritdoc/>
+    public IDalamudTextureWrap GetWrap() => this.GetWrap(Service<DalamudAssetManager>.Get().Empty4X4);
+
+    /// <inheritdoc/>
+    [return: NotNullIfNotNull(nameof(defaultWrap))]
+    public IDalamudTextureWrap? GetWrap(IDalamudTextureWrap? defaultWrap)
     {
-        if (this.TryAddRef(out _) != IRefCountable.RefCountResult.StillAlive)
-        {
-            this.ContentQueried = true;
-            return null;
-        }
-
-        this.ContentQueried = true;
-        this.LatestRequestedTick = Environment.TickCount64;
-        var nexp = Environment.TickCount64 + SelfReferenceDurationTicks;
-        while (true)
-        {
-            var exp = this.selfReferenceExpiry;
-            if (exp != Interlocked.CompareExchange(ref this.selfReferenceExpiry, nexp, exp))
-                continue;
-
-            // If below condition is met, the additional reference from above is for the self-reference.
-            if (exp == SelfReferenceExpiryExpired)
-                _ = this.AddRef();
-
-            // Release the reference for rendering, after rendering ImGui.
-            Service<InterfaceManager>.Get().EnqueueDeferredDispose(this);
-
-            return this.UnderlyingWrap?.IsCompletedSuccessfully is true
-                       ? this.disposeSuppressingWrap ??= new(this.UnderlyingWrap.Result)
-                       : null;
-        }
+        if (!this.TryGetWrap(out var texture, out _))
+            texture = null;
+        return texture ?? defaultWrap;
     }
 
-    /// <summary>
-    /// Creates a new reference to this texture. The texture is guaranteed to be available until
-    /// <see cref="IDisposable.Dispose"/> is called.
-    /// </summary>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>The task containing the texture.</returns>
-    public async Task<IDalamudTextureWrap> CreateNewReference(CancellationToken cancellationToken)
+    /// <inheritdoc/>
+    public bool TryGetWrap([NotNullWhen(true)] out IDalamudTextureWrap? texture, out Exception? exception)
+    {
+        ThreadSafety.AssertMainThread();
+        return this.TryGetWrapCore(out texture, out exception);
+    }
+
+    /// <inheritdoc/>
+    public async Task<IDalamudTextureWrap> RentAsync(CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -312,10 +294,8 @@ internal abstract class SharableTexture : IRefCountable, TextureLoadThrottler.IT
             if (this.RevivalPossibility?.TryGetTarget(out this.availableOnAccessWrapForApi9) is true)
                 return this.availableOnAccessWrapForApi9;
 
-            var newRefTask = this.CreateNewReference(default);
-            // Cancellation is not expected for this API
-            // ReSharper disable once MethodSupportsCancellation
-            newRefTask.Wait();
+            var newRefTask = this.RentAsync(this.LoadCancellationToken);
+            newRefTask.Wait(this.LoadCancellationToken);
             if (!newRefTask.IsCompletedSuccessfully)
                 return null;
             newRefTask.Result.Dispose();
@@ -328,7 +308,7 @@ internal abstract class SharableTexture : IRefCountable, TextureLoadThrottler.IT
     }
 
     /// <summary>
-    /// Cleans up this instance of <see cref="SharableTexture"/>.
+    /// Cleans up this instance of <see cref="SharedImmediateTexture"/>.
     /// </summary>
     protected abstract void ReleaseResources();
 
@@ -378,14 +358,95 @@ internal abstract class SharableTexture : IRefCountable, TextureLoadThrottler.IT
         }
     }
 
+    /// <summary><see cref="ISharedImmediateTexture.TryGetWrap"/>, but without checking for thread.</summary>
+    private bool TryGetWrapCore(
+        [NotNullWhen(true)] out IDalamudTextureWrap? texture,
+        out Exception? exception)
+    {
+        if (this.TryAddRef(out _) != IRefCountable.RefCountResult.StillAlive)
+        {
+            this.ContentQueried = true;
+            texture = null;
+            exception = new ObjectDisposedException(this.GetType().Name);
+            return false;
+        }
+
+        this.ContentQueried = true;
+        this.LatestRequestedTick = Environment.TickCount64;
+
+        var nexp = Environment.TickCount64 + SelfReferenceDurationTicks;
+        while (true)
+        {
+            var exp = this.selfReferenceExpiry;
+            if (exp != Interlocked.CompareExchange(ref this.selfReferenceExpiry, nexp, exp))
+                continue;
+
+            // If below condition is met, the additional reference from above is for the self-reference.
+            if (exp == SelfReferenceExpiryExpired)
+                _ = this.AddRef();
+
+            // Release the reference for rendering, after rendering ImGui.
+            Service<InterfaceManager>.Get().EnqueueDeferredDispose(this);
+
+            var uw = this.UnderlyingWrap;
+            if (uw?.IsCompletedSuccessfully is true)
+            {
+                texture = this.nonOwningWrap ??= new(uw.Result, this);
+                exception = null;
+                return true;
+            }
+
+            texture = null;
+            exception = uw?.Exception;
+            return false;
+        }
+    }
+
+    private sealed class NotOwnedTextureWrap : IDalamudTextureWrap
+    {
+        private readonly IDalamudTextureWrap innerWrap;
+        private readonly IRefCountable owner;
+
+        /// <summary>Initializes a new instance of the <see cref="NotOwnedTextureWrap"/> class.</summary>
+        /// <param name="wrap">The inner wrap.</param>
+        /// <param name="owner">The reference counting owner.</param>
+        public NotOwnedTextureWrap(IDalamudTextureWrap wrap, IRefCountable owner)
+        {
+            this.innerWrap = wrap;
+            this.owner = owner;
+        }
+
+        /// <inheritdoc/>
+        public IntPtr ImGuiHandle => this.innerWrap.ImGuiHandle;
+
+        /// <inheritdoc/>
+        public int Width => this.innerWrap.Width;
+
+        /// <inheritdoc/>
+        public int Height => this.innerWrap.Height;
+
+        /// <inheritdoc/>
+        public IDalamudTextureWrap CreateWrapSharingLowLevelResource()
+        {
+            this.owner.AddRef();
+            return new RefCountableWrappingTextureWrap(this.innerWrap, this.owner);
+        }
+
+        /// <inheritdoc/>
+        public void Dispose()
+        {
+        }
+
+        /// <inheritdoc/>
+        public override string ToString() => $"{nameof(NotOwnedTextureWrap)}({this.owner})";
+    }
+
     private sealed class RefCountableWrappingTextureWrap : IDalamudTextureWrap
     {
         private IDalamudTextureWrap? innerWrap;
         private IRefCountable? owner;
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="RefCountableWrappingTextureWrap"/> class.
-        /// </summary>
+        /// <summary>Initializes a new instance of the <see cref="RefCountableWrappingTextureWrap"/> class.</summary>
         /// <param name="wrap">The inner wrap.</param>
         /// <param name="owner">The reference counting owner.</param>
         public RefCountableWrappingTextureWrap(IDalamudTextureWrap wrap, IRefCountable owner)
@@ -409,6 +470,18 @@ internal abstract class SharableTexture : IRefCountable, TextureLoadThrottler.IT
             this.innerWrap ?? throw new ObjectDisposedException(nameof(RefCountableWrappingTextureWrap));
 
         /// <inheritdoc/>
+        public IDalamudTextureWrap CreateWrapSharingLowLevelResource()
+        {
+            var ownerCopy = this.owner;
+            var wrapCopy = this.innerWrap;
+            if (ownerCopy is null || wrapCopy is null)
+                throw new ObjectDisposedException(nameof(RefCountableWrappingTextureWrap));
+
+            ownerCopy.AddRef();
+            return new RefCountableWrappingTextureWrap(wrapCopy, ownerCopy);
+        }
+
+        /// <inheritdoc/>
         public void Dispose()
         {
             while (true)
@@ -417,6 +490,8 @@ internal abstract class SharableTexture : IRefCountable, TextureLoadThrottler.IT
                     return;
                 if (ownerCopy != Interlocked.CompareExchange(ref this.owner, null, ownerCopy))
                     continue;
+
+                // Note: do not dispose this; life of the wrap is managed by the owner.
                 this.innerWrap = null;
                 ownerCopy.Release();
                 GC.SuppressFinalize(this);
@@ -427,20 +502,48 @@ internal abstract class SharableTexture : IRefCountable, TextureLoadThrottler.IT
         public override string ToString() => $"{nameof(RefCountableWrappingTextureWrap)}({this.owner})";
     }
 
+    [Api10ToDo(Api10ToDoAttribute.DeleteCompatBehavior)]
     private sealed class AvailableOnAccessTextureWrap : IDalamudTextureWrap
     {
-        private readonly SharableTexture inner;
+        private readonly SharedImmediateTexture inner;
 
-        public AvailableOnAccessTextureWrap(SharableTexture inner) => this.inner = inner;
-
-        /// <inheritdoc/>
-        public IntPtr ImGuiHandle => this.GetActualTexture().ImGuiHandle;
+        public AvailableOnAccessTextureWrap(SharedImmediateTexture inner) => this.inner = inner;
 
         /// <inheritdoc/>
-        public int Width => this.GetActualTexture().Width;
+        public IntPtr ImGuiHandle => this.WaitGet().ImGuiHandle;
 
         /// <inheritdoc/>
-        public int Height => this.GetActualTexture().Height;
+        public int Width => this.WaitGet().Width;
+
+        /// <inheritdoc/>
+        public int Height => this.WaitGet().Height;
+
+        /// <inheritdoc/>
+        public IDalamudTextureWrap CreateWrapSharingLowLevelResource()
+        {
+            this.inner.AddRef();
+            try
+            {
+                if (!this.inner.TryGetWrapCore(out var wrap, out _))
+                {
+                    this.inner.UnderlyingWrap?.Wait();
+
+                    if (!this.inner.TryGetWrapCore(out wrap, out _))
+                    {
+                        // Calling dispose on Empty4x4 is a no-op, so we can just return that.
+                        this.inner.Release();
+                        return Service<DalamudAssetManager>.Get().Empty4X4;
+                    }
+                }
+
+                return new RefCountableWrappingTextureWrap(wrap, this.inner);
+            }
+            catch
+            {
+                this.inner.Release();
+                throw;
+            }
+        }
 
         /// <inheritdoc/>
         public void Dispose()
@@ -451,13 +554,13 @@ internal abstract class SharableTexture : IRefCountable, TextureLoadThrottler.IT
         /// <inheritdoc/>
         public override string ToString() => $"{nameof(AvailableOnAccessTextureWrap)}({this.inner})";
 
-        private IDalamudTextureWrap GetActualTexture()
+        private IDalamudTextureWrap WaitGet()
         {
-            if (this.inner.GetImmediate() is { } t)
+            if (this.inner.TryGetWrapCore(out var t, out _))
                 return t;
 
             this.inner.UnderlyingWrap?.Wait();
-            return this.inner.disposeSuppressingWrap ?? Service<DalamudAssetManager>.Get().Empty4X4;
+            return this.inner.nonOwningWrap ?? Service<DalamudAssetManager>.Get().Empty4X4;
         }
     }
 }

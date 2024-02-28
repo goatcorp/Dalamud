@@ -592,7 +592,7 @@ internal sealed partial class FontAtlasFactory
                     }
                     else if (texture.TexPixelsRGBA32 is not null)
                     {
-                        var wrap = this.factory.TextureManager.GetFromRaw(
+                        var wrap = this.factory.TextureManager.CreateFromRaw(
                             RawImageSpecification.Rgba32(width, height),
                             new(texture.TexPixelsRGBA32, width * height * 4));
                         this.data.AddExistingTexture(wrap);
@@ -632,7 +632,7 @@ internal sealed partial class FontAtlasFactory
                             }
                         }
 
-                        var wrap = this.factory.TextureManager.GetFromRaw(
+                        var wrap = this.factory.TextureManager.CreateFromRaw(
                             new(
                                 width,
                                 height,

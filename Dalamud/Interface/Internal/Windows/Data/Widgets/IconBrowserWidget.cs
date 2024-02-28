@@ -141,7 +141,7 @@ public class IconBrowserWidget : IDataWindowWidget
         var texm = Service<TextureManager>.Get();
         var cursor = ImGui.GetCursorScreenPos();
 
-        if (texm.ImmediateTryGetFromGameIcon(new((uint)iconId), out var texture, out var exc))
+        if (texm.GetFromGameIcon(new((uint)iconId)).TryGetWrap(out var texture, out var exc))
         {
             ImGui.Image(texture.ImGuiHandle, this.iconSize);
 

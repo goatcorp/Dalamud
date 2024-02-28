@@ -4,22 +4,22 @@ using System.Threading.Tasks;
 
 using Dalamud.Utility;
 
-namespace Dalamud.Interface.Internal.SharableTextures;
+namespace Dalamud.Interface.Internal.SharedImmediateTextures;
 
 /// <summary>
 /// Represents a sharable texture, based on a file on the system filesystem.
 /// </summary>
-internal sealed class FileSystemSharableTexture : SharableTexture
+internal sealed class FileSystemSharedImmediateTexture : SharedImmediateTexture
 {
     private readonly string path;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="FileSystemSharableTexture"/> class.
+    /// Initializes a new instance of the <see cref="FileSystemSharedImmediateTexture"/> class.
     /// </summary>
     /// <param name="path">The path.</param>
     /// <param name="holdSelfReference">If set to <c>true</c>, this class will hold a reference to self.
     /// Otherwise, it is expected that the caller to hold the reference.</param>
-    private FileSystemSharableTexture(string path, bool holdSelfReference)
+    private FileSystemSharedImmediateTexture(string path, bool holdSelfReference)
         : base(holdSelfReference)
     {
         this.path = path;
@@ -31,24 +31,24 @@ internal sealed class FileSystemSharableTexture : SharableTexture
     public override string SourcePathForDebug => this.path;
 
     /// <summary>
-    /// Creates a new instance of <see cref="GamePathSharableTexture"/>.
+    /// Creates a new instance of <see cref="GamePathSharedImmediateTexture"/>.
     /// The new instance will hold a reference to itself.
     /// </summary>
     /// <param name="path">The path.</param>
     /// <returns>The new instance.</returns>
-    public static SharableTexture CreateImmediate(string path) => new FileSystemSharableTexture(path, true);
+    public static SharedImmediateTexture CreateImmediate(string path) => new FileSystemSharedImmediateTexture(path, true);
 
     /// <summary>
-    /// Creates a new instance of <see cref="GamePathSharableTexture"/>.
+    /// Creates a new instance of <see cref="GamePathSharedImmediateTexture"/>.
     /// The caller is expected to manage ownership of the new instance.
     /// </summary>
     /// <param name="path">The path.</param>
     /// <returns>The new instance.</returns>
-    public static SharableTexture CreateAsync(string path) => new FileSystemSharableTexture(path, false);
+    public static SharedImmediateTexture CreateAsync(string path) => new FileSystemSharedImmediateTexture(path, false);
 
     /// <inheritdoc/>
     public override string ToString() =>
-        $"{nameof(FileSystemSharableTexture)}#{this.InstanceIdForDebug}({this.path})";
+        $"{nameof(FileSystemSharedImmediateTexture)}#{this.InstanceIdForDebug}({this.path})";
 
     /// <inheritdoc/>
     protected override void ReleaseResources()

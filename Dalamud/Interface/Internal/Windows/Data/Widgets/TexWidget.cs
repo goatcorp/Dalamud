@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 using Dalamud.Interface.Components;
 using Dalamud.Interface.Internal.Notifications;
-using Dalamud.Interface.Internal.SharableTextures;
+using Dalamud.Interface.Internal.SharedImmediateTextures;
 using Dalamud.Interface.Utility;
 using Dalamud.Plugin.Services;
 using Dalamud.Storage.Assets;
@@ -41,6 +41,8 @@ internal class TexWidget : IDataWindowWidget
 
     /// <inheritdoc/>
     public bool Ready { get; set; }
+
+    private ITextureProvider TextureManagerForApi9 => this.textureManager!;
 
     /// <inheritdoc/>
     public void Load()
@@ -145,7 +147,7 @@ internal class TexWidget : IDataWindowWidget
         }
     }
 
-    private unsafe void DrawLoadedTextures(ICollection<SharableTexture> textures)
+    private unsafe void DrawLoadedTextures(ICollection<SharedImmediateTexture> textures)
     {
         var im = Service<InterfaceManager>.Get();
         if (!ImGui.BeginTable("##table", 6))
@@ -226,7 +228,7 @@ internal class TexWidget : IDataWindowWidget
 
                     ImGui.TableNextColumn();
                     ImGuiComponents.IconButton(FontAwesomeIcon.Image);
-                    if (ImGui.IsItemHovered() && texture.GetImmediate() is { } immediate)
+                    if (ImGui.IsItemHovered() && texture.GetWrap(null) is { } immediate)
                     {
                         ImGui.BeginTooltip();
                         ImGui.Image(immediate.ImGuiHandle, immediate.Size);
@@ -274,7 +276,7 @@ internal class TexWidget : IDataWindowWidget
                 flags |= ITextureProvider.IconFlags.ItemHighQuality;
             if (this.hiRes)
                 flags |= ITextureProvider.IconFlags.HiRes;
-            this.addedTextures.Add(new(Api9: this.textureManager.GetIcon(uint.Parse(this.iconId), flags)));
+            this.addedTextures.Add(new(Api9: this.TextureManagerForApi9.GetIcon(uint.Parse(this.iconId), flags)));
         }
 #pragma warning restore CS0618 // Type or member is obsolete
 
@@ -283,8 +285,9 @@ internal class TexWidget : IDataWindowWidget
         {
             this.addedTextures.Add(
                 new(
-                    Api10: this.textureManager.GetFromGameIconAsync(
-                        new(uint.Parse(this.iconId), this.hq, this.hiRes))));
+                    Api10: this.textureManager
+                               .GetFromGameIcon(new(uint.Parse(this.iconId), this.hq, this.hiRes))
+                               .RentAsync()));
         }
 
         ImGui.SameLine();
@@ -300,12 +303,12 @@ internal class TexWidget : IDataWindowWidget
 
 #pragma warning disable CS0618 // Type or member is obsolete
         if (ImGui.Button("Load Tex (API9)"))
-            this.addedTextures.Add(new(Api9: this.textureManager.GetTextureFromGame(this.inputTexPath)));
+            this.addedTextures.Add(new(Api9: this.TextureManagerForApi9.GetTextureFromGame(this.inputTexPath)));
 #pragma warning restore CS0618 // Type or member is obsolete
 
         ImGui.SameLine();
         if (ImGui.Button("Load Tex (Async)"))
-            this.addedTextures.Add(new(Api10: this.textureManager.GetFromGameAsync(this.inputTexPath)));
+            this.addedTextures.Add(new(Api10: this.textureManager.GetFromGame(this.inputTexPath).RentAsync()));
 
         ImGui.SameLine();
         if (ImGui.Button("Load Tex (Immediate)"))
@@ -320,12 +323,12 @@ internal class TexWidget : IDataWindowWidget
 
 #pragma warning disable CS0618 // Type or member is obsolete
         if (ImGui.Button("Load File (API9)"))
-            this.addedTextures.Add(new(Api9: this.textureManager.GetTextureFromFile(new(this.inputFilePath))));
+            this.addedTextures.Add(new(Api9: this.TextureManagerForApi9.GetTextureFromFile(new(this.inputFilePath))));
 #pragma warning restore CS0618 // Type or member is obsolete
 
         ImGui.SameLine();
         if (ImGui.Button("Load File (Async)"))
-            this.addedTextures.Add(new(Api10: this.textureManager.GetFromFileAsync(this.inputFilePath)));
+            this.addedTextures.Add(new(Api10: this.textureManager.GetFromFile(this.inputFilePath).RentAsync()));
 
         ImGui.SameLine();
         if (ImGui.Button("Load File (Immediate)"))
@@ -430,11 +433,11 @@ internal class TexWidget : IDataWindowWidget
             if (this.Api10 is not null)
                 return this.Api10.IsCompletedSuccessfully ? this.Api10.Result : null;
             if (this.Api10ImmGameIcon is not null)
-                return tp.ImmediateGetFromGameIcon(this.Api10ImmGameIcon.Value);
+                return tp.GetFromGameIcon(this.Api10ImmGameIcon.Value).GetWrap();
             if (this.Api10ImmGamePath is not null)
-                return tp.ImmediateGetFromGame(this.Api10ImmGamePath);
+                return tp.GetFromGame(this.Api10ImmGamePath).GetWrap();
             if (this.Api10ImmFile is not null)
-                return tp.ImmediateGetFromFile(this.Api10ImmFile);
+                return tp.GetFromFile(this.Api10ImmFile).GetWrap();
             return null;
         }
 

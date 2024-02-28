@@ -52,7 +52,7 @@ public partial interface ITextureProvider
     /// Null, if the icon does not exist in the specified configuration, or a texture wrap that can be used
     /// to render the icon.
     /// </returns>
-    [Obsolete($"Use {nameof(ImmediateGetFromGameIcon)} or {nameof(GetFromGameIconAsync)}.")]
+    [Obsolete($"Use {nameof(GetFromGameIcon)}.")]
     [Api10ToDo(Api10ToDoAttribute.DeleteCompatBehavior)]
     public IDalamudTextureWrap? GetIcon(uint iconId, IconFlags flags = IconFlags.HiRes, ClientLanguage? language = null, bool keepAlive = false);
 
@@ -80,7 +80,7 @@ public partial interface ITextureProvider
     /// <param name="path">The path to the texture in the game's VFS.</param>
     /// <param name="keepAlive">Not used. This parameter is ignored.</param>
     /// <returns>Null, if the icon does not exist, or a texture wrap that can be used to render the texture.</returns>
-    [Obsolete($"Use {nameof(ImmediateGetFromGame)} or {nameof(GetFromGameAsync)}.")]
+    [Obsolete($"Use {nameof(GetFromGame)}.")]
     [Api10ToDo(Api10ToDoAttribute.DeleteCompatBehavior)]
     public IDalamudTextureWrap? GetTextureFromGame(string path, bool keepAlive = false);
     
@@ -93,7 +93,7 @@ public partial interface ITextureProvider
     /// <param name="file">The FileInfo describing the image or texture file.</param>
     /// <param name="keepAlive">Not used. This parameter is ignored.</param>
     /// <returns>Null, if the file does not exist, or a texture wrap that can be used to render the texture.</returns>
-    [Obsolete($"Use {nameof(ImmediateGetFromFile)} or {nameof(GetFromFileAsync)}.")]
+    [Obsolete($"Use {nameof(GetFromFile)}.")]
     [Api10ToDo(Api10ToDoAttribute.DeleteCompatBehavior)]
     public IDalamudTextureWrap? GetTextureFromFile(FileInfo file, bool keepAlive = false);
 }
