@@ -158,12 +158,12 @@ internal sealed class TextureManager : IServiceType, IDisposable, ITextureProvid
     /// <inheritdoc cref="ITextureProvider.GetFromGame"/>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public SharedImmediateTexture GetFromGame(string path) =>
-        this.gamePathTextures.GetOrAdd(path, GamePathSharedImmediateTexture.CreateImmediate);
+        this.gamePathTextures.GetOrAdd(path, GamePathSharedImmediateTexture.CreatePlaceholder);
 
     /// <inheritdoc cref="ITextureProvider.GetFromFile"/>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public SharedImmediateTexture GetFromFile(string path) =>
-        this.fileSystemTextures.GetOrAdd(path, FileSystemSharedImmediateTexture.CreateImmediate);
+        this.fileSystemTextures.GetOrAdd(path, FileSystemSharedImmediateTexture.CreatePlaceholder);
 
     /// <inheritdoc/>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

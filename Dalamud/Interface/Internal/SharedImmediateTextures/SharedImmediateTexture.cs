@@ -27,30 +27,15 @@ internal abstract class SharedImmediateTexture
     private NotOwnedTextureWrap? nonOwningWrap;
 
     /// <summary>Initializes a new instance of the <see cref="SharedImmediateTexture"/> class.</summary>
-    /// <param name="holdSelfReference">If set to <c>true</c>, this class will hold a reference to self.
-    /// Otherwise, it is expected that the caller to hold the reference.</param>
-    protected SharedImmediateTexture(bool holdSelfReference)
+    /// <remarks>The new instance is a placeholder instance.</remarks>
+    protected SharedImmediateTexture()
     {
         this.InstanceIdForDebug = Interlocked.Increment(ref instanceCounter);
-
-        if (holdSelfReference)
-        {
-            this.refCount = 1;
-            this.selfReferenceExpiry = Environment.TickCount64 + SelfReferenceDurationTicks;
-            this.ContentQueried = true;
-            this.IsOpportunistic = true;
-            this.resourceReleased = false;
-            this.cancellationTokenSource = new();
-        }
-        else
-        {
-            this.refCount = 0;
-            this.selfReferenceExpiry = SelfReferenceExpiryExpired;
-            this.ContentQueried = false;
-            this.IsOpportunistic = false;
-            this.resourceReleased = true;
-        }
-
+        this.refCount = 0;
+        this.selfReferenceExpiry = SelfReferenceExpiryExpired;
+        this.ContentQueried = false;
+        this.IsOpportunistic = true;
+        this.resourceReleased = true;
         this.FirstRequestedTick = this.LatestRequestedTick = Environment.TickCount64;
     }
 

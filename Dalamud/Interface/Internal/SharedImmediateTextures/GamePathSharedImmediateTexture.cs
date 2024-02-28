@@ -16,30 +16,15 @@ internal sealed class GamePathSharedImmediateTexture : SharedImmediateTexture
 
     /// <summary>Initializes a new instance of the <see cref="GamePathSharedImmediateTexture"/> class.</summary>
     /// <param name="path">The path.</param>
-    /// <param name="holdSelfReference">If set to <c>true</c>, this class will hold a reference to self.
-    /// Otherwise, it is expected that the caller to hold the reference.</param>
-    private GamePathSharedImmediateTexture(string path, bool holdSelfReference)
-        : base(holdSelfReference)
-    {
-        this.path = path;
-        if (holdSelfReference)
-            this.ReviveResources();
-    }
+    private GamePathSharedImmediateTexture(string path) => this.path = path;
 
     /// <inheritdoc/>
     public override string SourcePathForDebug => this.path;
 
-    /// <summary>Creates a new instance of <see cref="GamePathSharedImmediateTexture"/>.
-    /// The new instance will hold a reference to itself.</summary>
+    /// <summary>Creates a new placeholder instance of <see cref="GamePathSharedImmediateTexture"/>.</summary>
     /// <param name="path">The path.</param>
     /// <returns>The new instance.</returns>
-    public static SharedImmediateTexture CreateImmediate(string path) => new GamePathSharedImmediateTexture(path, true);
-
-    /// <summary>Creates a new instance of <see cref="GamePathSharedImmediateTexture"/>.
-    /// The caller is expected to manage ownership of the new instance.</summary>
-    /// <param name="path">The path.</param>
-    /// <returns>The new instance.</returns>
-    public static SharedImmediateTexture CreateAsync(string path) => new GamePathSharedImmediateTexture(path, false);
+    public static SharedImmediateTexture CreatePlaceholder(string path) => new GamePathSharedImmediateTexture(path);
 
     /// <inheritdoc/>
     public override string ToString() => $"{nameof(GamePathSharedImmediateTexture)}#{this.InstanceIdForDebug}({this.path})";
