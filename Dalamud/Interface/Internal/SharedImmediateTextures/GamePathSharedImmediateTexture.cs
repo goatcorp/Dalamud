@@ -9,16 +9,12 @@ using Lumina.Data.Files;
 
 namespace Dalamud.Interface.Internal.SharedImmediateTextures;
 
-/// <summary>
-/// Represents a sharable texture, based on a file in game resources.
-/// </summary>
+/// <summary>Represents a sharable texture, based on a file in game resources.</summary>
 internal sealed class GamePathSharedImmediateTexture : SharedImmediateTexture
 {
     private readonly string path;
 
-    /// <summary>
-    /// Initializes a new instance of the <see cref="GamePathSharedImmediateTexture"/> class.
-    /// </summary>
+    /// <summary>Initializes a new instance of the <see cref="GamePathSharedImmediateTexture"/> class.</summary>
     /// <param name="path">The path.</param>
     /// <param name="holdSelfReference">If set to <c>true</c>, this class will hold a reference to self.
     /// Otherwise, it is expected that the caller to hold the reference.</param>
@@ -33,18 +29,14 @@ internal sealed class GamePathSharedImmediateTexture : SharedImmediateTexture
     /// <inheritdoc/>
     public override string SourcePathForDebug => this.path;
 
-    /// <summary>
-    /// Creates a new instance of <see cref="GamePathSharedImmediateTexture"/>.
-    /// The new instance will hold a reference to itself.
-    /// </summary>
+    /// <summary>Creates a new instance of <see cref="GamePathSharedImmediateTexture"/>.
+    /// The new instance will hold a reference to itself.</summary>
     /// <param name="path">The path.</param>
     /// <returns>The new instance.</returns>
     public static SharedImmediateTexture CreateImmediate(string path) => new GamePathSharedImmediateTexture(path, true);
 
-    /// <summary>
-    /// Creates a new instance of <see cref="GamePathSharedImmediateTexture"/>.
-    /// The caller is expected to manage ownership of the new instance.
-    /// </summary>
+    /// <summary>Creates a new instance of <see cref="GamePathSharedImmediateTexture"/>.
+    /// The caller is expected to manage ownership of the new instance.</summary>
     /// <param name="path">The path.</param>
     /// <returns>The new instance.</returns>
     public static SharedImmediateTexture CreateAsync(string path) => new GamePathSharedImmediateTexture(path, false);

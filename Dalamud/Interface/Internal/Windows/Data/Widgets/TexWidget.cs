@@ -65,21 +65,21 @@ internal class TexWidget : IDataWindowWidget
             GC.Collect();
 
         ImGui.PushID("loadedGameTextures");
-        if (ImGui.CollapsingHeader($"Loaded Game Textures: {this.textureManager.GamePathTextures.Count:g}###header"))
-            this.DrawLoadedTextures(this.textureManager.GamePathTextures);
+        if (ImGui.CollapsingHeader($"Loaded Game Textures: {this.textureManager.GamePathTexturesForDebug.Count:g}###header"))
+            this.DrawLoadedTextures(this.textureManager.GamePathTexturesForDebug);
         ImGui.PopID();
 
         ImGui.PushID("loadedFileTextures");
-        if (ImGui.CollapsingHeader($"Loaded File Textures: {this.textureManager.FileSystemTextures.Count:g}###header"))
-            this.DrawLoadedTextures(this.textureManager.FileSystemTextures);
+        if (ImGui.CollapsingHeader($"Loaded File Textures: {this.textureManager.FileSystemTexturesForDebug.Count:g}###header"))
+            this.DrawLoadedTextures(this.textureManager.FileSystemTexturesForDebug);
         ImGui.PopID();
 
-        lock (this.textureManager.InvalidatedTextures)
+        lock (this.textureManager.InvalidatedTexturesForDebug)
         {
             ImGui.PushID("invalidatedTextures");
-            if (ImGui.CollapsingHeader($"Invalidated: {this.textureManager.InvalidatedTextures.Count:g}###header"))
+            if (ImGui.CollapsingHeader($"Invalidated: {this.textureManager.InvalidatedTexturesForDebug.Count:g}###header"))
             {
-                this.DrawLoadedTextures(this.textureManager.InvalidatedTextures);
+                this.DrawLoadedTextures(this.textureManager.InvalidatedTexturesForDebug);
             }
 
             ImGui.PopID();

@@ -8,9 +8,7 @@ using Dalamud.Utility;
 
 namespace Dalamud.Interface.Internal.SharedImmediateTextures;
 
-/// <summary>
-/// Represents a texture that may have multiple reference holders (owners).
-/// </summary>
+/// <summary>Represents a texture that may have multiple reference holders (owners).</summary>
 internal abstract class SharedImmediateTexture
     : ISharedImmediateTexture, IRefCountable, TextureLoadThrottler.IThrottleBasisProvider
 {
@@ -28,9 +26,7 @@ internal abstract class SharedImmediateTexture
     private CancellationTokenSource? cancellationTokenSource;
     private NotOwnedTextureWrap? nonOwningWrap;
 
-    /// <summary>
-    /// Initializes a new instance of the <see cref="SharedImmediateTexture"/> class.
-    /// </summary>
+    /// <summary>Initializes a new instance of the <see cref="SharedImmediateTexture"/> class.</summary>
     /// <param name="holdSelfReference">If set to <c>true</c>, this class will hold a reference to self.
     /// Otherwise, it is expected that the caller to hold the reference.</param>
     protected SharedImmediateTexture(bool holdSelfReference)
@@ -58,37 +54,26 @@ internal abstract class SharedImmediateTexture
         this.FirstRequestedTick = this.LatestRequestedTick = Environment.TickCount64;
     }
 
-    /// <summary>
-    /// Gets the instance ID. Debug use only.
-    /// </summary>
+    /// <summary>Gets the instance ID. Debug use only.</summary>
     public long InstanceIdForDebug { get; }
 
-    /// <summary>
-    /// Gets the remaining time for self reference in milliseconds. Debug use only.
-    /// </summary>
+    /// <summary>Gets the remaining time for self reference in milliseconds. Debug use only.</summary>
     public long SelfReferenceExpiresInForDebug =>
         this.selfReferenceExpiry == SelfReferenceExpiryExpired
             ? 0
             : Math.Max(0, this.selfReferenceExpiry - Environment.TickCount64);
 
-    /// <summary>
-    /// Gets the reference count. Debug use only.
-    /// </summary>
+    /// <summary>Gets the reference count. Debug use only.</summary>
     public int RefCountForDebug => this.refCount;
 
-    /// <summary>
-    /// Gets the source path. Debug use only.
-    /// </summary>
+    /// <summary>Gets the source path. Debug use only.</summary>
     public abstract string SourcePathForDebug { get; }
 
-    /// <summary>
-    /// Gets a value indicating whether this instance of <see cref="SharedImmediateTexture"/> supports revival.
+    /// <summary>Gets a value indicating whether this instance of <see cref="SharedImmediateTexture"/> supports revival.
     /// </summary>
     public bool HasRevivalPossibility => this.RevivalPossibility?.TryGetTarget(out _) is true;
 
-    /// <summary>
-    /// Gets or sets the underlying texture wrap.
-    /// </summary>
+    /// <summary>Gets or sets the underlying texture wrap.</summary>
     public Task<IDalamudTextureWrap>? UnderlyingWrap { get; set; }
 
     /// <inheritdoc/>
@@ -100,21 +85,15 @@ internal abstract class SharedImmediateTexture
     /// <inheritdoc/>
     public long LatestRequestedTick { get; private set; }
 
-    /// <summary>
-    /// Gets a value indicating whether the content has been queried,
-    /// i.e. <see cref="TryGetWrap"/> or <see cref="RentAsync"/> is called.
-    /// </summary>
+    /// <summary>Gets a value indicating whether the content has been queried,
+    /// i.e. <see cref="TryGetWrap"/> or <see cref="RentAsync"/> is called.</summary>
     public bool ContentQueried { get; private set; }
 
-    /// <summary>
-    /// Gets a cancellation token for cancelling load.
-    /// Intended to be called from implementors' constructors and <see cref="ReviveResources"/>.
-    /// </summary>
+    /// <summary>Gets a cancellation token for cancelling load.
+    /// Intended to be called from implementors' constructors and <see cref="ReviveResources"/>.</summary>
     protected CancellationToken LoadCancellationToken => this.cancellationTokenSource?.Token ?? default;
 
-    /// <summary>
-    /// Gets or sets a weak reference to an object that demands this objects to be alive.
-    /// </summary>
+    /// <summary>Gets or sets a weak reference to an object that demands this objects to be alive.</summary>
     /// <remarks>
     /// TextureManager must keep references to all shared textures, regardless of whether textures' contents are
     /// flushed, because API9 functions demand that the returned textures may be stored so that they can used anytime,
@@ -184,9 +163,7 @@ internal abstract class SharedImmediateTexture
         }
     }
 
-    /// <summary>
-    /// Releases self-reference, if conditions are met.
-    /// </summary>
+    /// <summary>Releases self-reference, if conditions are met.</summary>
     /// <param name="immediate">If set to <c>true</c>, the self-reference will be released immediately.</param>
     /// <returns>Number of the new reference count that may or may not have changed.</returns>
     public int ReleaseSelfReference(bool immediate)
@@ -280,9 +257,7 @@ internal abstract class SharedImmediateTexture
         return new RefCountableWrappingTextureWrap(dtw, this);
     }
 
-    /// <summary>
-    /// Gets a texture wrap which ensures that the values will be populated on access.
-    /// </summary>
+    /// <summary>Gets a texture wrap which ensures that the values will be populated on access.</summary>
     /// <returns>The texture wrap, or null if failed.</returns>
     [Api10ToDo(Api10ToDoAttribute.DeleteCompatBehavior)]
     public IDalamudTextureWrap? GetAvailableOnAccessWrapForApi9()
@@ -311,14 +286,10 @@ internal abstract class SharedImmediateTexture
         return this.availableOnAccessWrapForApi9;
     }
 
-    /// <summary>
-    /// Cleans up this instance of <see cref="SharedImmediateTexture"/>.
-    /// </summary>
+    /// <summary>Cleans up this instance of <see cref="SharedImmediateTexture"/>.</summary>
     protected abstract void ReleaseResources();
 
-    /// <summary>
-    /// Attempts to restore the reference to this texture.
-    /// </summary>
+    /// <summary>Attempts to restore the reference to this texture.</summary>
     protected abstract void ReviveResources();
 
     private IRefCountable.RefCountResult TryAddRef(out int newRefCount)

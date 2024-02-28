@@ -26,9 +26,7 @@ using SharpDX.DXGI;
 
 namespace Dalamud.Interface.Internal;
 
-/// <summary>
-/// Service responsible for loading and disposing ImGui texture wraps.
-/// </summary>
+/// <summary>Service responsible for loading and disposing ImGui texture wraps.</summary>
 [PluginInterface]
 [InterfaceVersion("1.0")]
 [ServiceManager.BlockingEarlyLoadedService]
@@ -73,25 +71,19 @@ internal sealed class TextureManager : IServiceType, IDisposable, ITextureProvid
     /// <inheritdoc/>
     public event ITextureSubstitutionProvider.TextureDataInterceptorDelegate? InterceptTexDataLoad;
 
-    /// <summary>
-    /// Gets all the loaded textures from the game resources. Debug use only.
-    /// </summary>
-    public ICollection<SharedImmediateTexture> GamePathTextures => this.gamePathTextures.Values;
+    /// <summary>Gets all the loaded textures from the game resources.</summary>
+    public ICollection<SharedImmediateTexture> GamePathTexturesForDebug => this.gamePathTextures.Values;
 
-    /// <summary>
-    /// Gets all the loaded textures from the game resources. Debug use only.
-    /// </summary>
-    public ICollection<SharedImmediateTexture> FileSystemTextures => this.fileSystemTextures.Values;
+    /// <summary>Gets all the loaded textures from the game resources.</summary>
+    public ICollection<SharedImmediateTexture> FileSystemTexturesForDebug => this.fileSystemTextures.Values;
 
-    /// <summary>
-    /// Gets all the loaded textures that are invalidated from <see cref="InvalidatePaths"/>. Debug use only.
-    /// </summary>
+    /// <summary>Gets all the loaded textures that are invalidated from <see cref="InvalidatePaths"/>.</summary>
     /// <remarks><c>lock</c> on use of the value returned from this property.</remarks>
     [SuppressMessage(
         "ReSharper",
         "InconsistentlySynchronizedField",
         Justification = "Debug use only; users are expected to lock around this")]
-    public ICollection<SharedImmediateTexture> InvalidatedTextures => this.invalidatedTextures;
+    public ICollection<SharedImmediateTexture> InvalidatedTexturesForDebug => this.invalidatedTextures;
 
     /// <inheritdoc/>
     public void Dispose()
@@ -435,10 +427,8 @@ internal sealed class TextureManager : IServiceType, IDisposable, ITextureProvid
         }
     }
 
-    /// <summary>
-    /// Gets a texture from the given image. Skips the load throttler; intended to be used from implementation of
-    /// <see cref="SharedImmediateTexture"/>s.
-    /// </summary>
+    /// <summary>Gets a texture from the given image. Skips the load throttler; intended to be used from implementation
+    /// of <see cref="SharedImmediateTexture"/>s.</summary>
     /// <param name="bytes">The data.</param>
     /// <returns>The loaded texture.</returns>
     internal IDalamudTextureWrap NoThrottleGetFromImage(ReadOnlyMemory<byte> bytes)
@@ -454,10 +444,8 @@ internal sealed class TextureManager : IServiceType, IDisposable, ITextureProvid
             ?? throw new("Failed to load image because of an unknown reason."));
     }
 
-    /// <summary>
-    /// Gets a texture from the given <see cref="TexFile"/>. Skips the load throttler; intended to be used from
-    /// implementation of <see cref="SharedImmediateTexture"/>s.
-    /// </summary>
+    /// <summary>Gets a texture from the given <see cref="TexFile"/>. Skips the load throttler; intended to be used from
+    /// implementation of <see cref="SharedImmediateTexture"/>s.</summary>
     /// <param name="file">The data.</param>
     /// <returns>The loaded texture.</returns>
     internal IDalamudTextureWrap NoThrottleGetFromTexFile(TexFile file)
