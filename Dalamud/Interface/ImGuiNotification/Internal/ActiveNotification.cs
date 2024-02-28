@@ -1,5 +1,6 @@
 using System.Runtime.Loader;
 using System.Threading;
+using System.Threading.Tasks;
 
 using Dalamud.Interface.Animation;
 using Dalamud.Interface.Animation.EasingFunctions;
@@ -29,7 +30,7 @@ internal sealed partial class ActiveNotification : IActiveNotification
     private DateTime extendedExpiry;
 
     /// <summary>The icon texture to use if specified; otherwise, icon will be used from <see cref="Icon"/>.</summary>
-    private IDalamudTextureWrap? iconTextureWrap;
+    private Task<IDalamudTextureWrap>? iconTextureWrap;
 
     /// <summary>The plugin that initiated this notification.</summary>
     private LocalPlugin? initiatorPlugin;
@@ -230,17 +231,23 @@ internal sealed partial class ActiveNotification : IActiveNotification
     /// <inheritdoc/>
     public void SetIconTexture(IDalamudTextureWrap? textureWrap)
     {
+        this.SetIconTexture(textureWrap is null ? null : Task.FromResult(textureWrap));
+    }
+
+    /// <inheritdoc/>
+    public void SetIconTexture(Task<IDalamudTextureWrap?>? textureWrapTask)
+    {
         if (this.DismissReason is not null)
         {
-            textureWrap?.Dispose();
+            textureWrapTask?.ToContentDisposedTask(true);
             return;
         }
 
         // After replacing, if the old texture is not the old texture, then dispose the old texture.
-        if (Interlocked.Exchange(ref this.iconTextureWrap, textureWrap) is { } wrapToDispose &&
-            wrapToDispose != textureWrap)
+        if (Interlocked.Exchange(ref this.iconTextureWrap, textureWrapTask) is { } wrapTaskToDispose &&
+            wrapTaskToDispose != textureWrapTask)
         {
-            wrapToDispose.Dispose();
+            wrapTaskToDispose.ToContentDisposedTask(true);
         }
     }
 
@@ -333,8 +340,8 @@ internal sealed partial class ActiveNotification : IActiveNotification
     /// <summary>Clears the resources associated with this instance of <see cref="ActiveNotification"/>.</summary>
     internal void DisposeInternal()
     {
-        if (Interlocked.Exchange(ref this.iconTextureWrap, null) is { } wrapToDispose)
-            wrapToDispose.Dispose();
+        if (Interlocked.Exchange(ref this.iconTextureWrap, null) is { } wrapTaskToDispose)
+            wrapTaskToDispose.ToContentDisposedTask(true);
         this.Dismiss = null;
         this.Click = null;
         this.DrawActions = null;

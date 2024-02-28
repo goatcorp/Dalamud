@@ -1,6 +1,7 @@
 using System.IO;
 using System.Numerics;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 
 using Dalamud.Game.Text;
 using Dalamud.Interface.Internal;
@@ -102,6 +103,16 @@ public static class NotificationUtilities
             return false;
         }
     }
+
+    /// <summary>Draws an icon from an instance of <see cref="Task{TResult}"/> that results in an
+    /// <see cref="IDalamudTextureWrap"/>.</summary>
+    /// <param name="minCoord">The coordinates of the top left of the icon area.</param>
+    /// <param name="maxCoord">The coordinates of the bottom right of the icon area.</param>
+    /// <param name="textureTask">The task that results in a texture.</param>
+    /// <returns><c>true</c> if anything has been drawn.</returns>
+    /// <remarks>Exceptions from the task will be treated as if no texture is provided.</remarks>
+    internal static bool DrawIconFrom(Vector2 minCoord, Vector2 maxCoord, Task<IDalamudTextureWrap?>? textureTask) =>
+        textureTask?.IsCompletedSuccessfully is true && DrawIconFrom(minCoord, maxCoord, textureTask.Result);
 
     /// <summary>Draws an icon from an instance of <see cref="LocalPlugin"/>.</summary>
     /// <param name="minCoord">The coordinates of the top left of the icon area.</param>

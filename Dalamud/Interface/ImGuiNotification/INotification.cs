@@ -1,3 +1,6 @@
+using System.Threading.Tasks;
+
+using Dalamud.Interface.Internal;
 using Dalamud.Interface.Internal.Notifications;
 using Dalamud.Plugin.Services;
 
@@ -20,8 +23,10 @@ public interface INotification
     NotificationType Type { get; set; }
 
     /// <summary>Gets or sets the icon source.</summary>
-    /// <remarks>Use <see cref="IActiveNotification.SetIconTexture"/> to use a texture, after calling
-    /// <see cref="INotificationManager.AddNotification"/>.</remarks>
+    /// <remarks>Use <see cref="IActiveNotification.SetIconTexture(IDalamudTextureWrap?)"/> or
+    /// <see cref="IActiveNotification.SetIconTexture(Task{IDalamudTextureWrap?}?)"/> to use a texture, after calling
+    /// <see cref="INotificationManager.AddNotification"/>. Call either of those functions with <c>null</c> to revert
+    /// the effective icon back to this property.</remarks>
     INotificationIcon? Icon { get; set; }
 
     /// <summary>Gets or sets the hard expiry.</summary>

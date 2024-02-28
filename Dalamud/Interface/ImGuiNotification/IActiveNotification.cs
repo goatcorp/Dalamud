@@ -1,4 +1,5 @@
 using System.Threading;
+using System.Threading.Tasks;
 
 using Dalamud.Interface.ImGuiNotification.EventArgs;
 using Dalamud.Interface.Internal;
@@ -50,7 +51,7 @@ public interface IActiveNotification : INotification
     /// <remarks>This does not override <see cref="INotification.HardExpiry"/>.</remarks>
     void ExtendBy(TimeSpan extension);
 
-    /// <summary>Sets the icon from <see cref="IDalamudTextureWrap"/>, overriding the icon .</summary>
+    /// <summary>Sets the icon from <see cref="IDalamudTextureWrap"/>, overriding the icon.</summary>
     /// <param name="textureWrap">The new texture wrap to use, or null to clear and revert back to the icon specified
     /// from <see cref="INotification.Icon"/>.</param>
     /// <remarks>
@@ -60,6 +61,21 @@ public interface IActiveNotification : INotification
     /// passed <paramref name="textureWrap"/> without actually updating the icon.</para>
     /// </remarks>
     void SetIconTexture(IDalamudTextureWrap? textureWrap);
+
+    /// <summary>Sets the icon from <see cref="IDalamudTextureWrap"/>, overriding the icon, once the given task
+    /// completes.</summary>
+    /// <param name="textureWrapTask">The task that will result in a new texture wrap to use, or null to clear and
+    /// revert back to the icon specified from <see cref="INotification.Icon"/>.</param>
+    /// <remarks>
+    /// <para>The texture resulted from the passed <see cref="Task{TResult}"/> will be disposed when the notification
+    /// is dismissed or a new different texture is set via another call to this function. You do not have to dispose the
+    /// resulted instance of <see cref="IDalamudTextureWrap"/> yourself.</para>
+    /// <para>If the task fails for any reason, the exception will be silently ignored and the icon specified from
+    /// <see cref="INotification.Icon"/> will be used instead.</para>
+    /// <para>If <see cref="DismissReason"/> is not <c>null</c>, then calling this function will simply dispose the
+    /// result of the passed <paramref name="textureWrapTask"/> without actually updating the icon.</para>
+    /// </remarks>
+    void SetIconTexture(Task<IDalamudTextureWrap?>? textureWrapTask);
 
     /// <summary>Generates a new value to use for <see cref="Id"/>.</summary>
     /// <returns>The new value.</returns>

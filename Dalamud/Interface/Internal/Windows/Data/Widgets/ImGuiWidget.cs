@@ -88,20 +88,20 @@ internal class ImGuiWidget : IDataWindowWidget
                     ref this.notificationTemplate.IconText,
                     255);
                 break;
-            case 3 or 4:
+            case 5 or 6:
                 ImGui.Combo(
                     "Asset##iconAssetCombo",
                     ref this.notificationTemplate.IconAssetInt,
                     NotificationTemplate.AssetSources,
                     NotificationTemplate.AssetSources.Length);
                 break;
-            case 5 or 7:
+            case 3 or 7:
                 ImGui.InputText(
                     "Game Path##iconText",
                     ref this.notificationTemplate.IconText,
                     255);
                 break;
-            case 6 or 8:
+            case 4 or 8:
                 ImGui.InputText(
                     "File Path##iconText",
                     ref this.notificationTemplate.IconText,
@@ -206,9 +206,15 @@ internal class ImGuiWidget : IDataWindowWidget
                                 NotificationTemplate.AssetSources[this.notificationTemplate.IconAssetInt])));
                     break;
                 case 6:
-                    n.SetIconTexture(tm.GetTextureFromGame(this.notificationTemplate.IconText));
+                    n.SetIconTexture(
+                        dam.GetDalamudTextureWrapAsync(
+                            Enum.Parse<DalamudAsset>(
+                                NotificationTemplate.AssetSources[this.notificationTemplate.IconAssetInt])));
                     break;
                 case 7:
+                    n.SetIconTexture(tm.GetTextureFromGame(this.notificationTemplate.IconText));
+                    break;
+                case 8:
                     n.SetIconTexture(tm.GetTextureFromFile(new(this.notificationTemplate.IconText)));
                     break;
             }
@@ -315,6 +321,7 @@ internal class ImGuiWidget : IDataWindowWidget
             "GamePath",
             "FilePath",
             "TextureWrap from DalamudAssets",
+            "TextureWrap from DalamudAssets(Async)",
             "TextureWrap from GamePath",
             "TextureWrap from FilePath",
         };
