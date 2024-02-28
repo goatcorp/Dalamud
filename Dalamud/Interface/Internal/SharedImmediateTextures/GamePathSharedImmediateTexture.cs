@@ -50,6 +50,6 @@ internal sealed class GamePathSharedImmediateTexture : SharedImmediateTexture
         if (dm.GetFile<TexFile>(this.path) is not { } file)
             throw new FileNotFoundException();
         cancellationToken.ThrowIfCancellationRequested();
-        return tm.NoThrottleGetFromTexFile(file);
+        return tm.NoThrottleCreateFromTexFile(file);
     }
 }

@@ -44,6 +44,6 @@ internal sealed class FileSystemSharedImmediateTexture : SharedImmediateTexture
     private async Task<IDalamudTextureWrap> CreateTextureAsync(CancellationToken cancellationToken)
     {
         var tm = await Service<TextureManager>.GetAsync();
-        return tm.NoThrottleGetFromImage(await File.ReadAllBytesAsync(this.path, cancellationToken));
+        return tm.NoThrottleCreateFromImage(await File.ReadAllBytesAsync(this.path, cancellationToken));
     }
 }

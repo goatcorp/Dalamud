@@ -221,7 +221,7 @@ internal sealed class TextureManager : IServiceType, IDisposable, ITextureProvid
         CancellationToken cancellationToken = default) =>
         this.textureLoadThrottler.CreateLoader(
             new TextureLoadThrottler.ReadOnlyThrottleBasisProvider(),
-            ct => Task.Run(() => this.NoThrottleGetFromImage(bytes.ToArray()), ct),
+            ct => Task.Run(() => this.NoThrottleCreateFromImage(bytes.ToArray()), ct),
             cancellationToken);
 
     /// <inheritdoc/>
@@ -339,7 +339,7 @@ internal sealed class TextureManager : IServiceType, IDisposable, ITextureProvid
         CancellationToken cancellationToken = default) =>
         this.textureLoadThrottler.CreateLoader(
             new TextureLoadThrottler.ReadOnlyThrottleBasisProvider(),
-            ct => Task.Run(() => this.NoThrottleGetFromTexFile(file), ct),
+            ct => Task.Run(() => this.NoThrottleCreateFromTexFile(file), ct),
             cancellationToken);
 
     /// <inheritdoc/>
@@ -465,11 +465,11 @@ internal sealed class TextureManager : IServiceType, IDisposable, ITextureProvid
         }
     }
 
-    /// <summary>Gets a texture from the given image. Skips the load throttler; intended to be used from implementation
-    /// of <see cref="SharedImmediateTexture"/>s.</summary>
+    /// <summary>Creates a texture from the given bytes of an image file. Skips the load throttler; intended to be used
+    /// from implementation of <see cref="SharedImmediateTexture"/>s.</summary>
     /// <param name="bytes">The data.</param>
     /// <returns>The loaded texture.</returns>
-    internal IDalamudTextureWrap NoThrottleGetFromImage(ReadOnlyMemory<byte> bytes)
+    internal IDalamudTextureWrap NoThrottleCreateFromImage(ReadOnlyMemory<byte> bytes)
     {
         ObjectDisposedException.ThrowIf(this.disposing, this);
 
@@ -493,7 +493,7 @@ internal sealed class TextureManager : IServiceType, IDisposable, ITextureProvid
             // Note: FileInfo and FilePath are not used from TexFile; skip it.
             try
             {
-                return this.NoThrottleGetFromTexFile(tf);
+                return this.NoThrottleCreateFromTexFile(tf);
             }
             catch (Exception e)
             {
@@ -506,11 +506,11 @@ internal sealed class TextureManager : IServiceType, IDisposable, ITextureProvid
             ?? throw texFileAttemptException ?? new("Failed to load image because of an unknown reason."));
     }
 
-    /// <summary>Gets a texture from the given <see cref="TexFile"/>. Skips the load throttler; intended to be used from
-    /// implementation of <see cref="SharedImmediateTexture"/>s.</summary>
+    /// <summary>Creates a texture from the given <see cref="TexFile"/>. Skips the load throttler; intended to be used
+    /// from implementation of <see cref="SharedImmediateTexture"/>s.</summary>
     /// <param name="file">The data.</param>
     /// <returns>The loaded texture.</returns>
-    internal IDalamudTextureWrap NoThrottleGetFromTexFile(TexFile file)
+    internal IDalamudTextureWrap NoThrottleCreateFromTexFile(TexFile file)
     {
         ObjectDisposedException.ThrowIf(this.disposing, this);
 
