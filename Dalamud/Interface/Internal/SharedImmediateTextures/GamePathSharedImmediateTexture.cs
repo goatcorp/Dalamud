@@ -38,7 +38,7 @@ internal sealed class GamePathSharedImmediateTexture : SharedImmediateTexture
 
     /// <inheritdoc/>
     protected override void ReviveResources() =>
-        this.UnderlyingWrap = Service<TextureLoadThrottler>.Get().CreateLoader(
+        this.UnderlyingWrap = Service<TextureLoadThrottler>.Get().LoadTextureAsync(
             this,
             this.CreateTextureAsync,
             this.LoadCancellationToken);

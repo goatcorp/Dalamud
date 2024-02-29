@@ -219,7 +219,7 @@ internal sealed class TextureManager : IServiceType, IDisposable, ITextureProvid
     public Task<IDalamudTextureWrap> CreateFromImageAsync(
         ReadOnlyMemory<byte> bytes,
         CancellationToken cancellationToken = default) =>
-        this.textureLoadThrottler.CreateLoader(
+        this.textureLoadThrottler.LoadTextureAsync(
             new TextureLoadThrottler.ReadOnlyThrottleBasisProvider(),
             ct => Task.Run(() => this.NoThrottleCreateFromImage(bytes.ToArray()), ct),
             cancellationToken);
@@ -229,7 +229,7 @@ internal sealed class TextureManager : IServiceType, IDisposable, ITextureProvid
         Stream stream,
         bool leaveOpen = false,
         CancellationToken cancellationToken = default) =>
-        this.textureLoadThrottler.CreateLoader(
+        this.textureLoadThrottler.LoadTextureAsync(
                 new TextureLoadThrottler.ReadOnlyThrottleBasisProvider(),
                 async ct =>
                 {
@@ -300,7 +300,7 @@ internal sealed class TextureManager : IServiceType, IDisposable, ITextureProvid
         RawImageSpecification specs,
         ReadOnlyMemory<byte> bytes,
         CancellationToken cancellationToken = default) =>
-        this.textureLoadThrottler.CreateLoader(
+        this.textureLoadThrottler.LoadTextureAsync(
             new TextureLoadThrottler.ReadOnlyThrottleBasisProvider(),
             _ => Task.FromResult(this.CreateFromRaw(specs, bytes.Span)),
             cancellationToken);
@@ -311,7 +311,7 @@ internal sealed class TextureManager : IServiceType, IDisposable, ITextureProvid
         Stream stream,
         bool leaveOpen = false,
         CancellationToken cancellationToken = default) =>
-        this.textureLoadThrottler.CreateLoader(
+        this.textureLoadThrottler.LoadTextureAsync(
                 new TextureLoadThrottler.ReadOnlyThrottleBasisProvider(),
                 async ct =>
                 {
@@ -337,7 +337,7 @@ internal sealed class TextureManager : IServiceType, IDisposable, ITextureProvid
     public Task<IDalamudTextureWrap> CreateFromTexFileAsync(
         TexFile file,
         CancellationToken cancellationToken = default) =>
-        this.textureLoadThrottler.CreateLoader(
+        this.textureLoadThrottler.LoadTextureAsync(
             new TextureLoadThrottler.ReadOnlyThrottleBasisProvider(),
             ct => Task.Run(() => this.NoThrottleCreateFromTexFile(file), ct),
             cancellationToken);
