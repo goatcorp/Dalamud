@@ -16,8 +16,8 @@ internal class TextureLoadThrottler : IServiceType, IDisposable
     private readonly Task adderTask;
     private readonly Task[] workerTasks;
 
-    private readonly Channel<WorkItem> newItemChannel = Channel.CreateUnbounded<WorkItem>();
-    private readonly Channel<object?> workTokenChannel = Channel.CreateUnbounded<object?>();
+    private readonly Channel<WorkItem> newItemChannel;
+    private readonly Channel<object?> workTokenChannel;
     private readonly List<WorkItem> workItemPending = new();
 
     private bool disposing;
@@ -25,6 +25,9 @@ internal class TextureLoadThrottler : IServiceType, IDisposable
     [ServiceManager.ServiceConstructor]
     private TextureLoadThrottler()
     {
+        this.newItemChannel = Channel.CreateUnbounded<WorkItem>(new() { SingleReader = true });
+        this.workTokenChannel = Channel.CreateUnbounded<object?>(new() { SingleWriter = true });
+
         this.adderTask = Task.Run(this.LoopAddWorkItemAsync);
         this.workerTasks = new Task[Math.Max(1, Environment.ProcessorCount - 1)];
         foreach (ref var task in this.workerTasks.AsSpan())
