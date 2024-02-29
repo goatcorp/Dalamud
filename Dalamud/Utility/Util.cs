@@ -10,6 +10,7 @@ using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading.Tasks;
 
 using Dalamud.Configuration.Internal;
 using Dalamud.Data;
@@ -22,6 +23,9 @@ using Dalamud.Logging.Internal;
 using ImGuiNET;
 using Lumina.Excel.GeneratedSheets;
 using Serilog;
+
+using TerraFX.Interop.Windows;
+
 using Windows.Win32.Storage.FileSystem;
 
 namespace Dalamud.Utility;
@@ -682,6 +686,55 @@ public static class Util
         var rng = new Random();
 
         return names.ElementAt(rng.Next(0, names.Count() - 1)).Singular.RawString;
+    }
+
+    /// <summary>
+    /// Throws a corresponding exception if <see cref="HRESULT.FAILED"/> is true.
+    /// </summary>
+    /// <param name="hr">The result value.</param>
+    internal static void ThrowOnError(this HRESULT hr)
+    {
+        if (hr.FAILED)
+            Marshal.ThrowExceptionForHR(hr.Value);
+    }
+
+    /// <summary>
+    /// Calls <see cref="TaskCompletionSource.SetException(System.Exception)"/> if the task is incomplete.
+    /// </summary>
+    /// <param name="t">The task.</param>
+    /// <param name="ex">The exception to set.</param>
+    internal static void SetExceptionIfIncomplete(this TaskCompletionSource t, Exception ex)
+    {
+        if (t.Task.IsCompleted)
+            return;
+        try
+        {
+            t.SetException(ex);
+        }
+        catch
+        {
+            // ignore
+        }
+    }
+
+    /// <summary>
+    /// Calls <see cref="TaskCompletionSource.SetException(System.Exception)"/> if the task is incomplete.
+    /// </summary>
+    /// <typeparam name="T">The type of the result.</typeparam>
+    /// <param name="t">The task.</param>
+    /// <param name="ex">The exception to set.</param>
+    internal static void SetExceptionIfIncomplete<T>(this TaskCompletionSource<T> t, Exception ex)
+    {
+        if (t.Task.IsCompleted)
+            return;
+        try
+        {
+            t.SetException(ex);
+        }
+        catch
+        {
+            // ignore
+        }
     }
 
     /// <summary>

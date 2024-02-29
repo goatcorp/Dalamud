@@ -43,7 +43,6 @@ public class StyleEditorWindow : Window
         this.SizeConstraints = new WindowSizeConstraints
         {
             MinimumSize = new Vector2(890, 560),
-            MaximumSize = new Vector2(10000, 10000),
         };
     }
 

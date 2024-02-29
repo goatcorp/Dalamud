@@ -1,20 +1,23 @@
 ﻿using Dalamud.Interface.Internal;
+using Dalamud.Utility;
 
 using ImGuiNET;
 
 namespace Dalamud.Interface.ManagedFontAtlas;
 
 /// <summary>
-/// Toolkit for use when the build state is <see cref="FontAtlasBuildStep.PostBuild"/>.
+/// Toolkit for use when the build state is <see cref="FontAtlasBuildStep.PostBuild"/>.<br />
+/// Not intended for plugins to implement.
 /// </summary>
 public interface IFontAtlasBuildToolkitPostBuild : IFontAtlasBuildToolkit
 {
-    /// <summary>
-    /// Gets whether global scaling is ignored for the given font.
-    /// </summary>
-    /// <param name="fontPtr">The font.</param>
-    /// <returns>True if ignored.</returns>
-    bool IsGlobalScaleIgnored(ImFontPtr fontPtr);
+    /// <inheritdoc cref="IFontAtlasBuildToolkitPreBuild.IsGlobalScaleIgnored"/>
+    [Obsolete($"Use {nameof(this.GetFontScaleMode)}")]
+    [Api10ToDo(Api10ToDoAttribute.DeleteCompatBehavior)]
+    bool IsGlobalScaleIgnored(ImFontPtr fontPtr) => this.GetFontScaleMode(fontPtr) == FontScaleMode.UndoGlobalScale;
+
+    /// <inheritdoc cref="IFontAtlasBuildToolkitPreBuild.GetFontScaleMode"/>
+    FontScaleMode GetFontScaleMode(ImFontPtr fontPtr);
 
     /// <summary>
     /// Stores a texture to be managed with the atlas.

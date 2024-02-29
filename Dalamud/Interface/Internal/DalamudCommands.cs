@@ -141,6 +141,13 @@ internal class DalamudCommands : IServiceType
                 "Toggle Dalamud UI display modes. Native UI modifications may also be affected by this, but that depends on the plugin."),
         });
 
+        commandManager.AddHandler("/xlprofiler", new CommandInfo(this.OnOpenProfilerCommand)
+        {
+            HelpMessage = Loc.Localize(
+                "DalamudProfilerHelp",
+                "Open Dalamud's startup timing profiler."),
+        });
+
         commandManager.AddHandler("/imdebug", new CommandInfo(this.OnDebugImInfoCommand)
         {
             HelpMessage = "ImGui DEBUG",
@@ -408,5 +415,10 @@ internal class DalamudCommands : IServiceType
                 plugin.DalamudInterface?.UiBuilder.NotifyHideUi();
             }
         }
+    }
+
+    private void OnOpenProfilerCommand(string command, string arguments)
+    {
+        Service<DalamudInterface>.Get().ToggleProfilerWindow();
     }
 }

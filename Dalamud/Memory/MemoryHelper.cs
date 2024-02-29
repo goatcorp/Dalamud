@@ -1,14 +1,20 @@
-using System;
+using System.Buffers;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Memory.Exceptions;
+
 using FFXIVClientStructs.FFXIV.Client.System.Memory;
 using FFXIVClientStructs.FFXIV.Client.System.String;
 
+using Microsoft.Extensions.ObjectPool;
+
 using static Dalamud.NativeFunctions;
+
+using LPayloadType = Lumina.Text.Payloads.PayloadType;
+using LSeString = Lumina.Text.SeString;
 
 // Heavily inspired from Reloaded (https://github.com/Reloaded-Project/Reloaded.Memory)
 
@@ -19,6 +25,47 @@ namespace Dalamud.Memory;
 /// </summary>
 public static unsafe class MemoryHelper
 {
+    private static readonly ObjectPool<StringBuilder> StringBuilderPool =
+        ObjectPool.Create(new StringBuilderPooledObjectPolicy());
+
+    #region Cast
+
+    /// <summary>Casts the given memory address as the reference to the live object.</summary>
+    /// <param name="memoryAddress">The memory address.</param>
+    /// <typeparam name="T">The unmanaged type.</typeparam>
+    /// <returns>The reference to the live object.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static ref T Cast<T>(nint memoryAddress) where T : unmanaged => ref *(T*)memoryAddress;
+
+    /// <summary>Casts the given memory address as the span of the live object(s).</summary>
+    /// <param name="memoryAddress">The memory address.</param>
+    /// <param name="length">The number of items.</param>
+    /// <typeparam name="T">The unmanaged type.</typeparam>
+    /// <returns>The span containing reference to the live object(s).</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Span<T> Cast<T>(nint memoryAddress, int length) where T : unmanaged =>
+        new((void*)memoryAddress, length);
+
+    /// <summary>Casts the given memory address as the span of the live object(s), until it encounters a zero.</summary>
+    /// <param name="memoryAddress">The memory address.</param>
+    /// <param name="maxLength">The maximum number of items.</param>
+    /// <typeparam name="T">The unmanaged type.</typeparam>
+    /// <returns>The span containing reference to the live object(s).</returns>
+    /// <remarks>If <typeparamref name="T"/> is <c>byte</c> or <c>char</c> and <paramref name="maxLength"/> is not
+    /// specified, consider using <see cref="MemoryMarshal.CreateReadOnlySpanFromNullTerminated(byte*)"/> or
+    /// <see cref="MemoryMarshal.CreateReadOnlySpanFromNullTerminated(char*)"/>.</remarks>
+    public static Span<T> CastNullTerminated<T>(nint memoryAddress, int maxLength = int.MaxValue)
+        where T : unmanaged, IEquatable<T>
+    {
+        var typedPointer = (T*)memoryAddress;
+        var length = 0;
+        while (length < maxLength && !default(T).Equals(*typedPointer++))
+            length++;
+        return new((void*)memoryAddress, length);
+    }
+
+    #endregion
+
     #region Read
 
     /// <summary>
@@ -27,7 +74,9 @@ public static unsafe class MemoryHelper
     /// <typeparam name="T">An individual struct type of a class with an explicit StructLayout.LayoutKind attribute.</typeparam>
     /// <param name="memoryAddress">The memory address to read from.</param>
     /// <returns>The read in struct.</returns>
-    public static T Read<T>(IntPtr memoryAddress) where T : unmanaged
+    /// <remarks>If you do not need to make a copy, use <see cref="Cast{T}(nint)"/> instead.</remarks>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static T Read<T>(nint memoryAddress) where T : unmanaged
         => Read<T>(memoryAddress, false);
 
     /// <summary>
@@ -37,12 +86,13 @@ public static unsafe class MemoryHelper
     /// <param name="memoryAddress">The memory address to read from.</param>
     /// <param name="marshal">Set this to true to enable struct marshalling.</param>
     /// <returns>The read in struct.</returns>
-    public static T Read<T>(IntPtr memoryAddress, bool marshal)
-    {
-        return marshal
-                   ? Marshal.PtrToStructure<T>(memoryAddress)
-                   : Unsafe.Read<T>((void*)memoryAddress);
-    }
+    /// <remarks>If you do not need to make a copy and <paramref name="marshal"/> is <c>false</c>,
+    /// use <see cref="Cast{T}(nint)"/> instead.</remarks>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static T Read<T>(nint memoryAddress, bool marshal) =>
+        marshal
+            ? Marshal.PtrToStructure<T>(memoryAddress)
+            : Unsafe.Read<T>((void*)memoryAddress);
 
     /// <summary>
     /// Reads a byte array from a specified memory address.
@@ -50,12 +100,9 @@ public static unsafe class MemoryHelper
     /// <param name="memoryAddress">The memory address to read from.</param>
     /// <param name="length">The amount of bytes to read starting from the memoryAddress.</param>
     /// <returns>The read in byte array.</returns>
-    public static byte[] ReadRaw(IntPtr memoryAddress, int length)
-    {
-        var value = new byte[length];
-        Marshal.Copy(memoryAddress, value, 0, value.Length);
-        return value;
-    }
+    /// <remarks>If you do not need to make a copy, use <see cref="Cast{T}(nint,int)"/> instead.</remarks>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static byte[] ReadRaw(nint memoryAddress, int length) => Cast<byte>(memoryAddress, length).ToArray();
 
     /// <summary>
     /// Reads a generic type array from a specified memory address.
@@ -64,8 +111,10 @@ public static unsafe class MemoryHelper
     /// <param name="memoryAddress">The memory address to read from.</param>
     /// <param name="arrayLength">The amount of array items to read.</param>
     /// <returns>The read in struct array.</returns>
-    public static T[] Read<T>(IntPtr memoryAddress, int arrayLength) where T : unmanaged
-        => Read<T>(memoryAddress, arrayLength, false);
+    /// <remarks>If you do not need to make a copy, use <see cref="Cast{T}(nint,int)"/> instead.</remarks>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static T[] Read<T>(nint memoryAddress, int arrayLength) where T : unmanaged
+        => Cast<T>(memoryAddress, arrayLength).ToArray();
 
     /// <summary>
     /// Reads a generic type array from a specified memory address.
@@ -75,16 +124,18 @@ public static unsafe class MemoryHelper
     /// <param name="arrayLength">The amount of array items to read.</param>
     /// <param name="marshal">Set this to true to enable struct marshalling.</param>
     /// <returns>The read in struct array.</returns>
-    public static T[] Read<T>(IntPtr memoryAddress, int arrayLength, bool marshal)
+    /// <remarks>If you do not need to make a copy and <paramref name="marshal"/> is <c>false</c>,
+    /// use <see cref="Cast{T}(nint,int)"/> instead.</remarks>
+    public static T[] Read<T>(nint memoryAddress, int arrayLength, bool marshal)
     {
         var structSize = SizeOf<T>(marshal);
         var value = new T[arrayLength];
 
         for (var i = 0; i < arrayLength; i++)
         {
-            var address = memoryAddress + (structSize * i);
-            Read(address, out T result, marshal);
+            Read(memoryAddress, out T result, marshal);
             value[i] = result;
+            memoryAddress += structSize;
         }
 
         return value;
@@ -95,16 +146,10 @@ public static unsafe class MemoryHelper
     /// </summary>
     /// <param name="memoryAddress">The memory address to read from.</param>
     /// <returns>The read in byte array.</returns>
-    public static unsafe byte[] ReadRawNullTerminated(IntPtr memoryAddress)
-    {
-        var byteCount = 0;
-        while (*(byte*)(memoryAddress + byteCount) != 0x00)
-        {
-            byteCount++;
-        }
-
-        return ReadRaw(memoryAddress, byteCount);
-    }
+    /// <remarks>If you do not need to make a copy, use <see cref="CastNullTerminated{T}(nint,int)"/> instead.</remarks>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static byte[] ReadRawNullTerminated(nint memoryAddress) =>
+        MemoryMarshal.CreateReadOnlySpanFromNullTerminated((byte*)memoryAddress).ToArray();
 
     #endregion
 
@@ -116,7 +161,9 @@ public static unsafe class MemoryHelper
     /// <typeparam name="T">An individual struct type of a class with an explicit StructLayout.LayoutKind attribute.</typeparam>
     /// <param name="memoryAddress">The memory address to read from.</param>
     /// <param name="value">Local variable to receive the read in struct.</param>
-    public static void Read<T>(IntPtr memoryAddress, out T value) where T : unmanaged
+    /// <remarks>If you do not need to make a copy, use <see cref="Cast{T}(nint)"/> instead.</remarks>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static void Read<T>(nint memoryAddress, out T value) where T : unmanaged
         => value = Read<T>(memoryAddress);
 
     /// <summary>
@@ -126,7 +173,10 @@ public static unsafe class MemoryHelper
     /// <param name="memoryAddress">The memory address to read from.</param>
     /// <param name="value">Local variable to receive the read in struct.</param>
     /// <param name="marshal">Set this to true to enable struct marshalling.</param>
-    public static void Read<T>(IntPtr memoryAddress, out T value, bool marshal)
+    /// <remarks>If you do not need to make a copy and <paramref name="marshal"/> is <c>false</c>,
+    /// use <see cref="Cast{T}(nint)"/> instead.</remarks>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static void Read<T>(nint memoryAddress, out T value, bool marshal)
         => value = Read<T>(memoryAddress, marshal);
 
     /// <summary>
@@ -135,7 +185,9 @@ public static unsafe class MemoryHelper
     /// <param name="memoryAddress">The memory address to read from.</param>
     /// <param name="length">The amount of bytes to read starting from the memoryAddress.</param>
     /// <param name="value">Local variable to receive the read in bytes.</param>
-    public static void ReadRaw(IntPtr memoryAddress, int length, out byte[] value)
+    /// <remarks>If you do not need to make a copy, use <see cref="Cast{T}(nint,int)"/> instead.</remarks>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static void ReadRaw(nint memoryAddress, int length, out byte[] value)
         => value = ReadRaw(memoryAddress, length);
 
     /// <summary>
@@ -145,7 +197,9 @@ public static unsafe class MemoryHelper
     /// <param name="memoryAddress">The memory address to read from.</param>
     /// <param name="arrayLength">The amount of array items to read.</param>
     /// <param name="value">The read in struct array.</param>
-    public static void Read<T>(IntPtr memoryAddress, int arrayLength, out T[] value) where T : unmanaged
+    /// <remarks>If you do not need to make a copy, use <see cref="Cast{T}(nint,int)"/> instead.</remarks>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static void Read<T>(nint memoryAddress, int arrayLength, out T[] value) where T : unmanaged
         => value = Read<T>(memoryAddress, arrayLength);
 
     /// <summary>
@@ -156,7 +210,10 @@ public static unsafe class MemoryHelper
     /// <param name="arrayLength">The amount of array items to read.</param>
     /// <param name="marshal">Set this to true to enable struct marshalling.</param>
     /// <param name="value">The read in struct array.</param>
-    public static void Read<T>(IntPtr memoryAddress, int arrayLength, bool marshal, out T[] value)
+    /// <remarks>If you do not need to make a copy and <paramref name="marshal"/> is <c>false</c>,
+    /// use <see cref="Cast{T}(nint,int)"/> instead.</remarks>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static void Read<T>(nint memoryAddress, int arrayLength, bool marshal, out T[] value)
         => value = Read<T>(memoryAddress, arrayLength, marshal);
 
     #endregion
@@ -184,15 +241,27 @@ public static unsafe class MemoryHelper
         var length = 0;
         while (length < maxLength && pmem[length] != 0)
             length++;
-        
+
         var mem = new Span<byte>(pmem, length);
         var memCharCount = encoding.GetCharCount(mem);
         if (memCharCount != charSpan.Length)
             return false;
 
-        Span<char> chars = stackalloc char[memCharCount];
-        encoding.GetChars(mem, chars);
-        return charSpan.SequenceEqual(chars);
+        if (memCharCount < 1024)
+        {
+            Span<char> chars = stackalloc char[memCharCount];
+            encoding.GetChars(mem, chars);
+            return charSpan.SequenceEqual(chars);
+        }
+        else
+        {
+            var rented = ArrayPool<char>.Shared.Rent(memCharCount);
+            var chars = rented.AsSpan(0, memCharCount);
+            encoding.GetChars(mem, chars);
+            var equals = charSpan.SequenceEqual(chars);
+            ArrayPool<char>.Shared.Return(rented);
+            return equals;
+        }
     }
 
     /// <summary>
@@ -203,8 +272,9 @@ public static unsafe class MemoryHelper
     /// </remarks>
     /// <param name="memoryAddress">The memory address to read from.</param>
     /// <returns>The read in string.</returns>
-    public static string ReadStringNullTerminated(IntPtr memoryAddress)
-        => ReadStringNullTerminated(memoryAddress, Encoding.UTF8);
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static string ReadStringNullTerminated(nint memoryAddress)
+        => Encoding.UTF8.GetString(MemoryMarshal.CreateReadOnlySpanFromNullTerminated((byte*)memoryAddress));
 
     /// <summary>
     /// Read a string with the given encoding from a specified memory address.
@@ -215,10 +285,25 @@ public static unsafe class MemoryHelper
     /// <param name="memoryAddress">The memory address to read from.</param>
     /// <param name="encoding">The encoding to use to decode the string.</param>
     /// <returns>The read in string.</returns>
-    public static string ReadStringNullTerminated(IntPtr memoryAddress, Encoding encoding)
+    public static string ReadStringNullTerminated(nint memoryAddress, Encoding encoding)
     {
-        var buffer = ReadRawNullTerminated(memoryAddress);
-        return encoding.GetString(buffer);
+        switch (encoding)
+        {
+            case UTF8Encoding:
+            case var _ when encoding.IsSingleByte:
+                return encoding.GetString(MemoryMarshal.CreateReadOnlySpanFromNullTerminated((byte*)memoryAddress));
+            case UnicodeEncoding:
+                // Note that it may be in little or big endian, so using `new string(...)` is not always correct.
+                return encoding.GetString(
+                    MemoryMarshal.Cast<char, byte>(
+                        MemoryMarshal.CreateReadOnlySpanFromNullTerminated((char*)memoryAddress)));
+            case UTF32Encoding:
+                return encoding.GetString(MemoryMarshal.Cast<int, byte>(CastNullTerminated<int>(memoryAddress)));
+            default:
+                // For correctness' sake; if there does not exist an encoding which will contain a (byte)0 for a
+                // non-null character, then this branch can be merged with UTF8Encoding one.
+                return encoding.GetString(ReadRawNullTerminated(memoryAddress));
+        }
     }
 
     /// <summary>
@@ -228,10 +313,12 @@ public static unsafe class MemoryHelper
     /// Attention! If this is an <see cref="SeString"/>, use the applicable helper methods to decode.
     /// </remarks>
     /// <param name="memoryAddress">The memory address to read from.</param>
-    /// <param name="maxLength">The maximum length of the string.</param>
+    /// <param name="maxLength">The maximum number of bytes to read.
+    /// Note that this is NOT the maximum length of the returned string.</param>
     /// <returns>The read in string.</returns>
-    public static string ReadString(IntPtr memoryAddress, int maxLength)
-        => ReadString(memoryAddress, Encoding.UTF8, maxLength);
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static string ReadString(nint memoryAddress, int maxLength)
+        => Encoding.UTF8.GetString(CastNullTerminated<byte>(memoryAddress, maxLength));
 
     /// <summary>
     /// Read a string with the given encoding from a specified memory address.
@@ -241,18 +328,32 @@ public static unsafe class MemoryHelper
     /// </remarks>
     /// <param name="memoryAddress">The memory address to read from.</param>
     /// <param name="encoding">The encoding to use to decode the string.</param>
-    /// <param name="maxLength">The maximum length of the string.</param>
+    /// <param name="maxLength">The maximum number of bytes to read.
+    /// Note that this is NOT the maximum length of the returned string.</param>
     /// <returns>The read in string.</returns>
-    public static string ReadString(IntPtr memoryAddress, Encoding encoding, int maxLength)
+    public static string ReadString(nint memoryAddress, Encoding encoding, int maxLength)
     {
         if (maxLength <= 0)
             return string.Empty;
 
-        ReadRaw(memoryAddress, maxLength, out var buffer);
-
-        var data = encoding.GetString(buffer);
-        var eosPos = data.IndexOf('\0');
-        return eosPos >= 0 ? data.Substring(0, eosPos) : data;
+        switch (encoding)
+        {
+            case UTF8Encoding:
+            case var _ when encoding.IsSingleByte:
+                return encoding.GetString(CastNullTerminated<byte>(memoryAddress, maxLength));
+            case UnicodeEncoding:
+                return encoding.GetString(
+                    MemoryMarshal.Cast<char, byte>(CastNullTerminated<char>(memoryAddress, maxLength / 2)));
+            case UTF32Encoding:
+                return encoding.GetString(
+                    MemoryMarshal.Cast<int, byte>(CastNullTerminated<int>(memoryAddress, maxLength / 4)));
+            default:
+                // For correctness' sake; if there does not exist an encoding which will contain a (byte)0 for a
+                // non-null character, then this branch can be merged with UTF8Encoding one.
+                var data = encoding.GetString(Cast<byte>(memoryAddress, maxLength));
+                var eosPos = data.IndexOf('\0');
+                return eosPos >= 0 ? data[..eosPos] : data;
+        }
     }
 
     /// <summary>
@@ -260,11 +361,9 @@ public static unsafe class MemoryHelper
     /// </summary>
     /// <param name="memoryAddress">The memory address to read from.</param>
     /// <returns>The read in string.</returns>
-    public static SeString ReadSeStringNullTerminated(IntPtr memoryAddress)
-    {
-        var buffer = ReadRawNullTerminated(memoryAddress);
-        return SeString.Parse(buffer);
-    }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static SeString ReadSeStringNullTerminated(nint memoryAddress) =>
+        SeString.Parse(MemoryMarshal.CreateReadOnlySpanFromNullTerminated((byte*)memoryAddress));
 
     /// <summary>
     /// Read an SeString from a specified memory address.
@@ -272,40 +371,165 @@ public static unsafe class MemoryHelper
     /// <param name="memoryAddress">The memory address to read from.</param>
     /// <param name="maxLength">The maximum length of the string.</param>
     /// <returns>The read in string.</returns>
-    public static SeString ReadSeString(IntPtr memoryAddress, int maxLength)
-    {
-        ReadRaw(memoryAddress, maxLength, out var buffer);
-
-        var eos = Array.IndexOf(buffer, (byte)0);
-        if (eos < 0)
-        {
-            return SeString.Parse(buffer);
-        }
-        else
-        {
-            var newBuffer = new byte[eos];
-            Buffer.BlockCopy(buffer, 0, newBuffer, 0, eos);
-            return SeString.Parse(newBuffer);
-        }
-    }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static SeString ReadSeString(nint memoryAddress, int maxLength) =>
+        // Note that a valid SeString never contains a null character, other than for the sequence terminator purpose.
+        SeString.Parse(CastNullTerminated<byte>(memoryAddress, maxLength));
 
     /// <summary>
     /// Read an SeString from a specified Utf8String structure.
     /// </summary>
     /// <param name="utf8String">The memory address to read from.</param>
     /// <returns>The read in string.</returns>
-    public static unsafe SeString ReadSeString(Utf8String* utf8String)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static SeString ReadSeString(Utf8String* utf8String) =>
+        utf8String == null ? string.Empty : SeString.Parse(utf8String->AsSpan());
+
+    /// <summary>
+    /// Reads an SeString from a specified memory address, and extracts the outermost string.<br />
+    /// If the SeString is malformed, behavior is undefined.
+    /// </summary>
+    /// <param name="containsNonRepresentedPayload">Whether the SeString contained a non-represented payload.</param>
+    /// <param name="memoryAddress">The memory address to read from.</param>
+    /// <param name="maxLength">The maximum length of the string.</param>
+    /// <param name="stopOnFirstNonRepresentedPayload">Stop reading on encountering the first non-represented payload.
+    /// What payloads are represented via this function may change.</param>
+    /// <param name="nonRepresentedPayloadReplacement">Replacement for non-represented payloads.</param>
+    /// <returns>The read in string.</returns>
+    public static string ReadSeStringAsString(
+        out bool containsNonRepresentedPayload,
+        nint memoryAddress,
+        int maxLength = int.MaxValue,
+        bool stopOnFirstNonRepresentedPayload = false,
+        string nonRepresentedPayloadReplacement = "*")
     {
-        if (utf8String == null)
-            return string.Empty;
+        var sb = StringBuilderPool.Get();
+        sb.EnsureCapacity(maxLength = CastNullTerminated<byte>(memoryAddress, maxLength).Length);
 
-        var ptr = utf8String->StringPtr;
-        if (ptr == null)
-            return string.Empty;
+        // 1 utf-8 codepoint can spill up to 2 characters.
+        Span<char> tmp = stackalloc char[2];
 
-        var len = Math.Max(utf8String->BufUsed, utf8String->StringLength);
+        var pin = (byte*)memoryAddress;
+        containsNonRepresentedPayload = false;
+        while (*pin != 0 && maxLength > 0)
+        {
+            if (*pin != LSeString.StartByte)
+            {
+                var len = *pin switch
+                {
+                    < 0x80 => 1,
+                    >= 0b11000000 and <= 0b11011111 => 2,
+                    >= 0b11100000 and <= 0b11101111 => 3,
+                    >= 0b11110000 and <= 0b11110111 => 4,
+                    _ => 0,
+                };
+                if (len == 0 || len > maxLength)
+                    break;
 
-        return ReadSeString((IntPtr)ptr, (int)len);
+                var numChars = Encoding.UTF8.GetChars(new(pin, len), tmp);
+                sb.Append(tmp[..numChars]);
+                pin += len;
+                maxLength -= len;
+                continue;
+            }
+
+            // Start byte
+            ++pin;
+            --maxLength;
+
+            // Payload type
+            var payloadType = (LPayloadType)(*pin++);
+
+            // Payload length
+            if (!ReadIntExpression(ref pin, ref maxLength, out var expressionLength))
+                break;
+            if (expressionLength > maxLength)
+                break;
+            pin += expressionLength;
+            maxLength -= unchecked((int)expressionLength);
+
+            // End byte
+            if (*pin++ != LSeString.EndByte)
+                break;
+            --maxLength;
+
+            switch (payloadType)
+            {
+                case LPayloadType.NewLine:
+                    sb.AppendLine();
+                    break;
+                case LPayloadType.Hyphen:
+                    sb.Append('–');
+                    break;
+                case LPayloadType.SoftHyphen:
+                    sb.Append('\u00AD');
+                    break;
+                default:
+                    sb.Append(nonRepresentedPayloadReplacement);
+                    containsNonRepresentedPayload = true;
+                    if (stopOnFirstNonRepresentedPayload)
+                        maxLength = 0;
+                    break;
+            }
+        }
+
+        var res = sb.ToString();
+        StringBuilderPool.Return(sb);
+        return res;
+
+        static bool ReadIntExpression(ref byte* p, ref int maxLength, out uint value)
+        {
+            if (maxLength <= 0)
+            {
+                value = 0;
+                return false;
+            }
+
+            var typeByte = *p++;
+            --maxLength;
+
+            switch (typeByte)
+            {
+                case > 0 and < 0xD0:
+                    value = (uint)typeByte - 1;
+                    return true;
+                case >= 0xF0 and <= 0xFE:
+                    ++typeByte;
+                    value = 0u;
+                    if ((typeByte & 8) != 0)
+                    {
+                        if (maxLength <= 0 || *p == 0)
+                            return false;
+                        value |= (uint)*p++ << 24;
+                    }
+
+                    if ((typeByte & 4) != 0)
+                    {
+                        if (maxLength <= 0 || *p == 0)
+                            return false;
+                        value |= (uint)*p++ << 16;
+                    }
+
+                    if ((typeByte & 2) != 0)
+                    {
+                        if (maxLength <= 0 || *p == 0)
+                            return false;
+                        value |= (uint)*p++ << 8;
+                    }
+
+                    if ((typeByte & 1) != 0)
+                    {
+                        if (maxLength <= 0 || *p == 0)
+                            return false;
+                        value |= *p++;
+                    }
+
+                    return true;
+                default:
+                    value = 0;
+                    return false;
+            }
+        }
     }
 
     #endregion
@@ -320,7 +544,8 @@ public static unsafe class MemoryHelper
     /// </remarks>
     /// <param name="memoryAddress">The memory address to read from.</param>
     /// <param name="value">The read in string.</param>
-    public static void ReadStringNullTerminated(IntPtr memoryAddress, out string value)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static void ReadStringNullTerminated(nint memoryAddress, out string value)
         => value = ReadStringNullTerminated(memoryAddress);
 
     /// <summary>
@@ -332,7 +557,8 @@ public static unsafe class MemoryHelper
     /// <param name="memoryAddress">The memory address to read from.</param>
     /// <param name="encoding">The encoding to use to decode the string.</param>
     /// <param name="value">The read in string.</param>
-    public static void ReadStringNullTerminated(IntPtr memoryAddress, Encoding encoding, out string value)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static void ReadStringNullTerminated(nint memoryAddress, Encoding encoding, out string value)
         => value = ReadStringNullTerminated(memoryAddress, encoding);
 
     /// <summary>
@@ -344,7 +570,8 @@ public static unsafe class MemoryHelper
     /// <param name="memoryAddress">The memory address to read from.</param>
     /// <param name="value">The read in string.</param>
     /// <param name="maxLength">The maximum length of the string.</param>
-    public static void ReadString(IntPtr memoryAddress, out string value, int maxLength)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static void ReadString(nint memoryAddress, out string value, int maxLength)
         => value = ReadString(memoryAddress, maxLength);
 
     /// <summary>
@@ -357,7 +584,8 @@ public static unsafe class MemoryHelper
     /// <param name="encoding">The encoding to use to decode the string.</param>
     /// <param name="maxLength">The maximum length of the string.</param>
     /// <param name="value">The read in string.</param>
-    public static void ReadString(IntPtr memoryAddress, Encoding encoding, int maxLength, out string value)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static void ReadString(nint memoryAddress, Encoding encoding, int maxLength, out string value)
         => value = ReadString(memoryAddress, encoding, maxLength);
 
     /// <summary>
@@ -365,7 +593,8 @@ public static unsafe class MemoryHelper
     /// </summary>
     /// <param name="memoryAddress">The memory address to read from.</param>
     /// <param name="value">The read in SeString.</param>
-    public static void ReadSeStringNullTerminated(IntPtr memoryAddress, out SeString value)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static void ReadSeStringNullTerminated(nint memoryAddress, out SeString value)
         => value = ReadSeStringNullTerminated(memoryAddress);
 
     /// <summary>
@@ -374,7 +603,8 @@ public static unsafe class MemoryHelper
     /// <param name="memoryAddress">The memory address to read from.</param>
     /// <param name="maxLength">The maximum length of the string.</param>
     /// <param name="value">The read in SeString.</param>
-    public static void ReadSeString(IntPtr memoryAddress, int maxLength, out SeString value)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static void ReadSeString(nint memoryAddress, int maxLength, out SeString value)
         => value = ReadSeString(memoryAddress, maxLength);
 
     /// <summary>
@@ -382,6 +612,7 @@ public static unsafe class MemoryHelper
     /// </summary>
     /// <param name="utf8String">The memory address to read from.</param>
     /// <param name="value">The read in string.</param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static unsafe void ReadSeString(Utf8String* utf8String, out SeString value)
         => value = ReadSeString(utf8String);
 
@@ -395,7 +626,8 @@ public static unsafe class MemoryHelper
     /// <typeparam name="T">An individual struct type of a class with an explicit StructLayout.LayoutKind attribute.</typeparam>
     /// <param name="memoryAddress">The memory address to read from.</param>
     /// <param name="item">The item to write to the address.</param>
-    public static void Write<T>(IntPtr memoryAddress, T item) where T : unmanaged
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static void Write<T>(nint memoryAddress, T item) where T : unmanaged
         => Write(memoryAddress, item, false);
 
     /// <summary>
@@ -405,7 +637,7 @@ public static unsafe class MemoryHelper
     /// <param name="memoryAddress">The memory address to read from.</param>
     /// <param name="item">The item to write to the address.</param>
     /// <param name="marshal">Set this to true to enable struct marshalling.</param>
-    public static void Write<T>(IntPtr memoryAddress, T item, bool marshal)
+    public static void Write<T>(nint memoryAddress, T item, bool marshal)
     {
         if (marshal)
             Marshal.StructureToPtr(item, memoryAddress, false);
@@ -418,10 +650,8 @@ public static unsafe class MemoryHelper
     /// </summary>
     /// <param name="memoryAddress">The memory address to read from.</param>
     /// <param name="data">The bytes to write to memoryAddress.</param>
-    public static void WriteRaw(IntPtr memoryAddress, byte[] data)
-    {
-        Marshal.Copy(data, 0, memoryAddress, data.Length);
-    }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static void WriteRaw(nint memoryAddress, byte[] data) => Marshal.Copy(data, 0, memoryAddress, data.Length);
 
     /// <summary>
     /// Writes a generic type array to a specified memory address.
@@ -429,7 +659,8 @@ public static unsafe class MemoryHelper
     /// <typeparam name="T">An individual struct type of a class with an explicit StructLayout.LayoutKind attribute.</typeparam>
     /// <param name="memoryAddress">The memory address to write to.</param>
     /// <param name="items">The array of items to write to the address.</param>
-    public static void Write<T>(IntPtr memoryAddress, T[] items) where T : unmanaged
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static void Write<T>(nint memoryAddress, T[] items) where T : unmanaged
         => Write(memoryAddress, items, false);
 
     /// <summary>
@@ -439,7 +670,8 @@ public static unsafe class MemoryHelper
     /// <param name="memoryAddress">The memory address to write to.</param>
     /// <param name="items">The array of items to write to the address.</param>
     /// <param name="marshal">Set this to true to enable struct marshalling.</param>
-    public static void Write<T>(IntPtr memoryAddress, T[] items, bool marshal)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static void Write<T>(nint memoryAddress, T[] items, bool marshal)
     {
         var structSize = SizeOf<T>(marshal);
 
@@ -462,7 +694,8 @@ public static unsafe class MemoryHelper
     /// </remarks>
     /// <param name="memoryAddress">The memory address to write to.</param>
     /// <param name="value">The string to write.</param>
-    public static void WriteString(IntPtr memoryAddress, string value)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static void WriteString(nint memoryAddress, string? value)
         => WriteString(memoryAddress, value, Encoding.UTF8);
 
     /// <summary>
@@ -474,14 +707,12 @@ public static unsafe class MemoryHelper
     /// <param name="memoryAddress">The memory address to write to.</param>
     /// <param name="value">The string to write.</param>
     /// <param name="encoding">The encoding to use.</param>
-    public static void WriteString(IntPtr memoryAddress, string value, Encoding encoding)
+    public static void WriteString(nint memoryAddress, string? value, Encoding encoding)
     {
-        if (string.IsNullOrEmpty(value))
-            return;
-
-        var bytes = encoding.GetBytes(value + '\0');
-
-        WriteRaw(memoryAddress, bytes);
+        var ptr = 0;
+        if (value is not null)
+            ptr = encoding.GetBytes(value, Cast<byte>(memoryAddress, encoding.GetMaxByteCount(value.Length)));
+        encoding.GetBytes("\0", Cast<byte>(memoryAddress + ptr, 4));
     }
 
     /// <summary>
@@ -489,7 +720,8 @@ public static unsafe class MemoryHelper
     /// </summary>
     /// <param name="memoryAddress">The memory address to write to.</param>
     /// <param name="value">The SeString to write.</param>
-    public static void WriteSeString(IntPtr memoryAddress, SeString value)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static void WriteSeString(nint memoryAddress, SeString? value)
     {
         if (value is null)
             return;
@@ -507,15 +739,16 @@ public static unsafe class MemoryHelper
     /// </summary>
     /// <param name="length">Amount of bytes to be allocated.</param>
     /// <returns>Address to the newly allocated memory.</returns>
-    public static IntPtr Allocate(int length)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static nint Allocate(int length)
     {
         var address = VirtualAlloc(
-            IntPtr.Zero,
-            (UIntPtr)length,
+            nint.Zero,
+            (nuint)length,
             AllocationType.Commit | AllocationType.Reserve,
             MemoryProtection.ExecuteReadWrite);
 
-        if (address == IntPtr.Zero)
+        if (address == nint.Zero)
             throw new MemoryAllocationException($"Unable to allocate {length} bytes.");
 
         return address;
@@ -527,7 +760,8 @@ public static unsafe class MemoryHelper
     /// </summary>
     /// <param name="length">Amount of bytes to be allocated.</param>
     /// <param name="memoryAddress">Address to the newly allocated memory.</param>
-    public static void Allocate(int length, out IntPtr memoryAddress)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static void Allocate(int length, out nint memoryAddress)
         => memoryAddress = Allocate(length);
 
     /// <summary>
@@ -535,9 +769,10 @@ public static unsafe class MemoryHelper
     /// </summary>
     /// <param name="memoryAddress">The address of the memory to free.</param>
     /// <returns>True if the operation is successful.</returns>
-    public static bool Free(IntPtr memoryAddress)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool Free(nint memoryAddress)
     {
-        return VirtualFree(memoryAddress, UIntPtr.Zero, AllocationType.Release);
+        return VirtualFree(memoryAddress, nuint.Zero, AllocationType.Release);
     }
 
     /// <summary>
@@ -547,9 +782,9 @@ public static unsafe class MemoryHelper
     /// <param name="length">The region size for which to change permissions for.</param>
     /// <param name="newPermissions">The new permissions to set.</param>
     /// <returns>The old page permissions.</returns>
-    public static MemoryProtection ChangePermission(IntPtr memoryAddress, int length, MemoryProtection newPermissions)
+    public static MemoryProtection ChangePermission(nint memoryAddress, int length, MemoryProtection newPermissions)
     {
-        var result = VirtualProtect(memoryAddress, (UIntPtr)length, newPermissions, out var oldPermissions);
+        var result = VirtualProtect(memoryAddress, (nuint)length, newPermissions, out var oldPermissions);
 
         if (!result)
             throw new MemoryPermissionException($"Unable to change permissions at 0x{memoryAddress.ToInt64():X} of length {length} and permission {newPermissions} (result={result})");
@@ -568,7 +803,9 @@ public static unsafe class MemoryHelper
     /// <param name="length">The region size for which to change permissions for.</param>
     /// <param name="newPermissions">The new permissions to set.</param>
     /// <param name="oldPermissions">The old page permissions.</param>
-    public static void ChangePermission(IntPtr memoryAddress, int length, MemoryProtection newPermissions, out MemoryProtection oldPermissions)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static void ChangePermission(
+        nint memoryAddress, int length, MemoryProtection newPermissions, out MemoryProtection oldPermissions)
         => oldPermissions = ChangePermission(memoryAddress, length, newPermissions);
 
     /// <summary>
@@ -580,7 +817,9 @@ public static unsafe class MemoryHelper
     /// <param name="newPermissions">The new permissions to set.</param>
     /// <param name="marshal">Set to true to calculate the size of the struct after marshalling instead of before.</param>
     /// <returns>The old page permissions.</returns>
-    public static MemoryProtection ChangePermission<T>(IntPtr memoryAddress, ref T baseElement, MemoryProtection newPermissions, bool marshal)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static MemoryProtection ChangePermission<T>(
+        nint memoryAddress, ref T baseElement, MemoryProtection newPermissions, bool marshal)
         => ChangePermission(memoryAddress, SizeOf<T>(marshal), newPermissions);
 
     /// <summary>
@@ -590,7 +829,8 @@ public static unsafe class MemoryHelper
     /// <param name="memoryAddress">The memory address to read from.</param>
     /// <param name="length">The amount of bytes to read starting from the memoryAddress.</param>
     /// <returns>The read in bytes.</returns>
-    public static byte[] ReadProcessMemory(IntPtr memoryAddress, int length)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static byte[] ReadProcessMemory(nint memoryAddress, int length)
     {
         var value = new byte[length];
         ReadProcessMemory(memoryAddress, ref value);
@@ -604,7 +844,8 @@ public static unsafe class MemoryHelper
     /// <param name="memoryAddress">The memory address to read from.</param>
     /// <param name="length">The amount of bytes to read starting from the memoryAddress.</param>
     /// <param name="value">The read in bytes.</param>
-    public static void ReadProcessMemory(IntPtr memoryAddress, int length, out byte[] value)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static void ReadProcessMemory(nint memoryAddress, int length, out byte[] value)
         => value = ReadProcessMemory(memoryAddress, length);
 
     /// <summary>
@@ -613,12 +854,12 @@ public static unsafe class MemoryHelper
     /// </summary>
     /// <param name="memoryAddress">The memory address to read from.</param>
     /// <param name="value">The read in bytes.</param>
-    public static void ReadProcessMemory(IntPtr memoryAddress, ref byte[] value)
+    public static void ReadProcessMemory(nint memoryAddress, ref byte[] value)
     {
         unchecked
         {
             var length = value.Length;
-            var result = NativeFunctions.ReadProcessMemory((IntPtr)0xFFFFFFFF, memoryAddress, value, length, out _);
+            var result = NativeFunctions.ReadProcessMemory((nint)0xFFFFFFFF, memoryAddress, value, length, out _);
 
             if (!result)
                 throw new MemoryReadException($"Unable to read memory at 0x{memoryAddress.ToInt64():X} of length {length} (result={result})");
@@ -635,12 +876,12 @@ public static unsafe class MemoryHelper
     /// </summary>
     /// <param name="memoryAddress">The memory address to write to.</param>
     /// <param name="data">The bytes to write to memoryAddress.</param>
-    public static void WriteProcessMemory(IntPtr memoryAddress, byte[] data)
+    public static void WriteProcessMemory(nint memoryAddress, byte[] data)
     {
         unchecked
         {
             var length = data.Length;
-            var result = NativeFunctions.WriteProcessMemory((IntPtr)0xFFFFFFFF, memoryAddress, data, length, out _);
+            var result = NativeFunctions.WriteProcessMemory((nint)0xFFFFFFFF, memoryAddress, data, length, out _);
 
             if (!result)
                 throw new MemoryWriteException($"Unable to write memory at 0x{memoryAddress.ToInt64():X} of length {length} (result={result})");
@@ -660,6 +901,7 @@ public static unsafe class MemoryHelper
     /// </summary>
     /// <typeparam name="T">An individual struct type of a class with an explicit StructLayout.LayoutKind attribute.</typeparam>
     /// <returns>The size of the primitive or struct.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int SizeOf<T>()
         => SizeOf<T>(false);
 
@@ -669,6 +911,7 @@ public static unsafe class MemoryHelper
     /// <typeparam name="T">An individual struct type of a class with an explicit StructLayout.LayoutKind attribute.</typeparam>
     /// <param name="marshal">If set to true; will return the size of an element after marshalling.</param>
     /// <returns>The size of the primitive or struct.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int SizeOf<T>(bool marshal)
         => marshal ? Marshal.SizeOf<T>() : Unsafe.SizeOf<T>();
 
@@ -678,6 +921,7 @@ public static unsafe class MemoryHelper
     /// <typeparam name="T">An individual struct type of a class with an explicit StructLayout.LayoutKind attribute.</typeparam>
     /// <param name="elementCount">The number of array elements present.</param>
     /// <returns>The size of the primitive or struct array.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int SizeOf<T>(int elementCount) where T : unmanaged
         => SizeOf<T>() * elementCount;
 
@@ -688,6 +932,7 @@ public static unsafe class MemoryHelper
     /// <param name="elementCount">The number of array elements present.</param>
     /// <param name="marshal">If set to true; will return the size of an element after marshalling.</param>
     /// <returns>The size of the primitive or struct array.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int SizeOf<T>(int elementCount, bool marshal)
         => SizeOf<T>(marshal) * elementCount;
 
@@ -701,9 +946,10 @@ public static unsafe class MemoryHelper
     /// <param name="size">Amount of bytes to allocate.</param>
     /// <param name="alignment">The alignment of the allocation.</param>
     /// <returns>Pointer to the allocated region.</returns>
-    public static IntPtr GameAllocateUi(ulong size, ulong alignment = 0)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static nint GameAllocateUi(ulong size, ulong alignment = 0)
     {
-        return new IntPtr(IMemorySpace.GetUISpace()->Malloc(size, alignment));
+        return new nint(IMemorySpace.GetUISpace()->Malloc(size, alignment));
     }
 
     /// <summary>
@@ -712,9 +958,10 @@ public static unsafe class MemoryHelper
     /// <param name="size">Amount of bytes to allocate.</param>
     /// <param name="alignment">The alignment of the allocation.</param>
     /// <returns>Pointer to the allocated region.</returns>
-    public static IntPtr GameAllocateDefault(ulong size, ulong alignment = 0)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static nint GameAllocateDefault(ulong size, ulong alignment = 0)
     {
-        return new IntPtr(IMemorySpace.GetDefaultSpace()->Malloc(size, alignment));
+        return new nint(IMemorySpace.GetDefaultSpace()->Malloc(size, alignment));
     }
 
     /// <summary>
@@ -723,9 +970,10 @@ public static unsafe class MemoryHelper
     /// <param name="size">Amount of bytes to allocate.</param>
     /// <param name="alignment">The alignment of the allocation.</param>
     /// <returns>Pointer to the allocated region.</returns>
-    public static IntPtr GameAllocateAnimation(ulong size, ulong alignment = 0)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static nint GameAllocateAnimation(ulong size, ulong alignment = 0)
     {
-        return new IntPtr(IMemorySpace.GetAnimationSpace()->Malloc(size, alignment));
+        return new nint(IMemorySpace.GetAnimationSpace()->Malloc(size, alignment));
     }
 
     /// <summary>
@@ -734,9 +982,10 @@ public static unsafe class MemoryHelper
     /// <param name="size">Amount of bytes to allocate.</param>
     /// <param name="alignment">The alignment of the allocation.</param>
     /// <returns>Pointer to the allocated region.</returns>
-    public static IntPtr GameAllocateApricot(ulong size, ulong alignment = 0)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static nint GameAllocateApricot(ulong size, ulong alignment = 0)
     {
-        return new IntPtr(IMemorySpace.GetApricotSpace()->Malloc(size, alignment));
+        return new nint(IMemorySpace.GetApricotSpace()->Malloc(size, alignment));
     }
 
     /// <summary>
@@ -745,9 +994,10 @@ public static unsafe class MemoryHelper
     /// <param name="size">Amount of bytes to allocate.</param>
     /// <param name="alignment">The alignment of the allocation.</param>
     /// <returns>Pointer to the allocated region.</returns>
-    public static IntPtr GameAllocateSound(ulong size, ulong alignment = 0)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static nint GameAllocateSound(ulong size, ulong alignment = 0)
     {
-        return new IntPtr(IMemorySpace.GetSoundSpace()->Malloc(size, alignment));
+        return new nint(IMemorySpace.GetSoundSpace()->Malloc(size, alignment));
     }
 
     /// <summary>
@@ -756,15 +1006,15 @@ public static unsafe class MemoryHelper
     /// <remarks>The memory you are freeing must be allocated with game allocators.</remarks>
     /// <param name="ptr">Position at which the memory to be freed is located.</param>
     /// <param name="size">Amount of bytes to free.</param>
-    public static void GameFree(ref IntPtr ptr, ulong size)
+    public static void GameFree(ref nint ptr, ulong size)
     {
-        if (ptr == IntPtr.Zero)
+        if (ptr == nint.Zero)
         {
             return;
         }
 
         IMemorySpace.Free((void*)ptr, size);
-        ptr = IntPtr.Zero;
+        ptr = nint.Zero;
     }
 
     #endregion

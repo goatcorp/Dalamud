@@ -7,6 +7,7 @@ using Dalamud.Game;
 using Dalamud.Game.ClientState;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.Gui;
+using Dalamud.Interface.FontIdentifier;
 using Dalamud.Interface.GameFonts;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Internal.ManagedAsserts;
@@ -173,12 +174,12 @@ public sealed class UiBuilder : IDisposable
     /// <summary>
     /// Gets the default Dalamud font size in points.
     /// </summary>
-    public static float DefaultFontSizePt => InterfaceManager.DefaultFontSizePt;
+    public static float DefaultFontSizePt => Service<FontAtlasFactory>.Get().DefaultFontSpec.SizePt;
 
     /// <summary>
     /// Gets the default Dalamud font size in pixels.
     /// </summary>
-    public static float DefaultFontSizePx => InterfaceManager.DefaultFontSizePx;
+    public static float DefaultFontSizePx => Service<FontAtlasFactory>.Get().DefaultFontSpec.SizePx;
 
     /// <summary>
     /// Gets the default Dalamud font - supporting all game languages and icons.<br />
@@ -199,6 +200,11 @@ public sealed class UiBuilder : IDisposable
     public static ImFontPtr MonoFont => InterfaceManager.MonoFont;
 
     /// <summary>
+    /// Gets the default font specifications.
+    /// </summary>
+    public IFontSpec DefaultFontSpec => Service<FontAtlasFactory>.Get().DefaultFontSpec;
+
+    /// <summary>
     /// Gets the handle to the default Dalamud font - supporting all game languages and icons.
     /// </summary>
     /// <remarks>
@@ -206,7 +212,7 @@ public sealed class UiBuilder : IDisposable
     /// <code>
     /// fontAtlas.NewDelegateFontHandle(
     ///     e => e.OnPreBuild(
-    ///         tk => tk.AddDalamudDefaultFont(UiBuilder.DefaultFontSizePt)));
+    ///         tk => tk.AddDalamudDefaultFont(UiBuilder.DefaultFontSizePx)));
     /// </code>
     /// </remarks>
     public IFontHandle DefaultFontHandle =>
@@ -225,6 +231,8 @@ public sealed class UiBuilder : IDisposable
     /// fontAtlas.NewDelegateFontHandle(
     ///     e => e.OnPreBuild(
     ///         tk => tk.AddFontAwesomeIconFont(new() { SizePt = UiBuilder.DefaultFontSizePt })));
+    /// // or use
+    ///         tk => tk.AddFontAwesomeIconFont(new() { SizePx = UiBuilder.DefaultFontSizePx })));
     /// </code>
     /// </remarks>
     public IFontHandle IconFontHandle =>
@@ -245,6 +253,8 @@ public sealed class UiBuilder : IDisposable
     ///         tk => tk.AddDalamudAssetFont(
     ///             DalamudAsset.InconsolataRegular,
     ///             new() { SizePt = UiBuilder.DefaultFontSizePt })));
+    /// // or use
+    ///             new() { SizePx = UiBuilder.DefaultFontSizePx })));
     /// </code>
     /// </remarks>
     public IFontHandle MonoFontHandle => 

@@ -107,7 +107,7 @@ internal sealed unsafe partial class DalamudAtkTweaks : IServiceType
 
     private IntPtr AtkUnitBaseReceiveGlobalEventDetour(AtkUnitBase* thisPtr, ushort cmd, uint a3, IntPtr a4, uint* arg)
     {
-        // Log.Information("{0}: cmd#{1} a3#{2} - HasAnyFocus:{3}", Marshal.PtrToStringAnsi(new IntPtr(thisPtr->Name)), cmd, a3, WindowSystem.HasAnyWindowSystemFocus);
+        // Log.Information("{0}: cmd#{1} a3#{2} - HasAnyFocus:{3}", MemoryHelper.ReadSeStringAsString(out _, new IntPtr(thisPtr->Name)), cmd, a3, WindowSystem.HasAnyWindowSystemFocus);
 
         // "SendHotkey"
         // 3 == Close

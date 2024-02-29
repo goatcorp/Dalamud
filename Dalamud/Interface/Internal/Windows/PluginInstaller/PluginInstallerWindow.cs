@@ -148,7 +148,6 @@ internal class PluginInstallerWindow : Window, IDisposable
         this.SizeConstraints = new WindowSizeConstraints
         {
             MinimumSize = this.Size.Value,
-            MaximumSize = new Vector2(5000, 5000),
         };
 
         Service<PluginManager>.GetAsync().ContinueWith(pluginManagerTask =>

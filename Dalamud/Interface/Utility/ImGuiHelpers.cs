@@ -4,6 +4,7 @@ using System.Linq;
 using System.Numerics;
 using System.Reactive.Disposables;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Text.Unicode;
 
 using Dalamud.Configuration.Internal;
@@ -542,6 +543,24 @@ public static class ImGuiHelpers
         // Mark 4K page as used
         var pageIndex = unchecked((ushort)(codepoint / 4096));
         font.NativePtr->Used4kPagesMap[pageIndex >> 3] |= unchecked((byte)(1 << (pageIndex & 7)));
+    }
+
+    /// <summary>
+    /// Sets the text for a text input, during the callback.
+    /// </summary>
+    /// <param name="data">The callback data.</param>
+    /// <param name="s">The new text.</param>
+    internal static unsafe void SetTextFromCallback(ImGuiInputTextCallbackData* data, string s)
+    {
+        if (data->BufTextLen != 0)
+            ImGuiNative.ImGuiInputTextCallbackData_DeleteChars(data, 0, data->BufTextLen);
+
+        var len = Encoding.UTF8.GetByteCount(s);
+        var buf = len < 1024 ? stackalloc byte[len] : new byte[len];
+        Encoding.UTF8.GetBytes(s, buf);
+        fixed (byte* pBuf = buf)
+            ImGuiNative.ImGuiInputTextCallbackData_InsertChars(data, 0, pBuf, pBuf + len);
+        ImGuiNative.ImGuiInputTextCallbackData_SelectAll(data);
     }
     
     /// <summary>

@@ -15,18 +15,28 @@
 #include <Windows.h>
 
 // Windows Header Files (2)
+#include <DbgHelp.h>
 #include <Dbt.h>
 #include <dwmapi.h>
+#include <iphlpapi.h>
 #include <PathCch.h>
 #include <Psapi.h>
 #include <ShlObj.h>
+#include <Shlwapi.h>
 #include <SubAuth.h>
 #include <TlHelp32.h>
+
+// Windows Header Files (3)
+#include <icmpapi.h> // Must be loaded after iphlpapi.h
 
 // MSVC Compiler Intrinsic
 #include <intrin.h>
 
+// COM
+#include <comdef.h>
+
 // C++ Standard Libraries
+#include <algorithm>
 #include <cassert>
 #include <chrono>
 #include <cstdio>
@@ -60,9 +70,6 @@
 #include "../lib/nlohmann-json/json.hpp"
 
 #include "unicode.h"
-
-// Commonly used macros
-#define DllExport extern "C" __declspec(dllexport)
 
 // Global variables
 extern HMODULE g_hModule;

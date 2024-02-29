@@ -345,17 +345,36 @@ internal class GamePrebakedFontHandle : FontHandle
         {
             foreach (var (font, style, ranges) in this.attachments)
             {
-                var effectiveStyle =
-                    toolkitPreBuild.IsGlobalScaleIgnored(font)
-                        ? style.Scale(1 / toolkitPreBuild.Scale)
-                        : style;
                 if (!this.fonts.TryGetValue(style, out var plan))
                 {
-                    plan = new(
-                        effectiveStyle,
-                        toolkitPreBuild.Scale,
-                        this.handleManager.GameFontTextureProvider,
-                        this.CreateTemplateFont(toolkitPreBuild, style.SizePx));
+                    switch (toolkitPreBuild.GetFontScaleMode(font))
+                    {
+                        case FontScaleMode.Default:
+                        default:
+                            plan = new(
+                                style,
+                                toolkitPreBuild.Scale,
+                                this.handleManager.GameFontTextureProvider,
+                                this.CreateTemplateFont(toolkitPreBuild, style.SizePx));
+                            break;
+
+                        case FontScaleMode.SkipHandling:
+                            plan = new(
+                                style,
+                                1f,
+                                this.handleManager.GameFontTextureProvider,
+                                this.CreateTemplateFont(toolkitPreBuild, style.SizePx));
+                            break;
+
+                        case FontScaleMode.UndoGlobalScale:
+                            plan = new(
+                                style.Scale(1 / toolkitPreBuild.Scale),
+                                toolkitPreBuild.Scale,
+                                this.handleManager.GameFontTextureProvider,
+                                this.CreateTemplateFont(toolkitPreBuild, style.SizePx));
+                            break;
+                    }
+
                     this.fonts[style] = plan;
                 }
 
@@ -620,15 +639,14 @@ internal class GamePrebakedFontHandle : FontHandle
         public unsafe void CopyGlyphsToRanges(IFontAtlasBuildToolkitPostBuild toolkitPostBuild)
         {
             var scale = this.Style.SizePt / this.Fdt.FontHeader.Size;
-            var atlasScale = toolkitPostBuild.Scale;
-            var round = 1 / atlasScale;
 
             foreach (var (font, rangeBits) in this.Ranges)
             {
                 if (font.NativePtr == this.FullRangeFont.NativePtr)
                     continue;
 
-                var noGlobalScale = toolkitPostBuild.IsGlobalScaleIgnored(font);
+                var fontScaleMode = toolkitPostBuild.GetFontScaleMode(font);
+                var round = fontScaleMode == FontScaleMode.SkipHandling ? 1 : 1 / toolkitPostBuild.Scale;
 
                 var lookup = font.IndexLookupWrapped();
                 var glyphs = font.GlyphsWrapped();
@@ -649,7 +667,7 @@ internal class GamePrebakedFontHandle : FontHandle
                     
                     ref var g = ref glyphs[glyphIndex];
                     g = sourceGlyph;
-                    if (noGlobalScale)
+                    if (fontScaleMode == FontScaleMode.SkipHandling)
                     {
                         g.XY *= scale;
                         g.AdvanceX *= scale;
@@ -673,7 +691,7 @@ internal class GamePrebakedFontHandle : FontHandle
                         continue;
                     if (!rangeBits[leftInt] || !rangeBits[rightInt])
                         continue;
-                    if (noGlobalScale)
+                    if (fontScaleMode == FontScaleMode.SkipHandling)
                     {
                         font.AddKerningPair((ushort)leftInt, (ushort)rightInt, k.RightOffset * scale);
                     }

@@ -18,4 +18,6 @@ internal static class ImGuiContextOffsets
     public const int FontStackOffset = 0x7A4;
 
     public const int BeginPopupStackOffset = 0x7B8;
+
+    public const int TextStateOffset = 0x4588;
 }
