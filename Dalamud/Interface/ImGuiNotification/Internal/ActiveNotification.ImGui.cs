@@ -75,13 +75,20 @@ internal sealed partial class ActiveNotification
             ImGuiWindowFlags.NoFocusOnAppearing |
             ImGuiWindowFlags.NoDocking);
 
-        var isTakingKeyboardInput = ImGui.IsWindowFocused() && ImGui.GetIO().WantTextInput;
+        var isFocused = ImGui.IsWindowFocused();
         var isHovered = ImGui.IsWindowHovered(ImGuiHoveredFlags.AllowWhenBlockedByActiveItem);
+        var isTakingKeyboardInput = isFocused && ImGui.GetIO().WantTextInput;
         var warrantsExtension =
             this.ExtensionDurationSinceLastInterest > TimeSpan.Zero
             && (isHovered || isTakingKeyboardInput);
 
         this.EffectiveExpiry = this.CalculateEffectiveExpiry(ref warrantsExtension);
+
+        if (!isTakingKeyboardInput && !isHovered && isFocused)
+        {
+            ImGui.SetWindowFocus(null);
+            isFocused = false;
+        }
 
         if (DateTime.Now > this.EffectiveExpiry)
             this.DismissNow(NotificationDismissReason.Timeout);
@@ -105,8 +112,8 @@ internal sealed partial class ActiveNotification
             ImGui.PopStyleVar();
         }
 
-        if (isTakingKeyboardInput)
-            this.DrawKeyboardInputIndicator();
+        if (isFocused)
+            this.DrawFocusIndicator();
         this.DrawExpiryBar(this.EffectiveExpiry, warrantsExtension);
 
         if (ImGui.IsWindowHovered())
@@ -218,7 +225,7 @@ internal sealed partial class ActiveNotification
         ImGui.PopClipRect();
     }
 
-    private void DrawKeyboardInputIndicator()
+    private void DrawFocusIndicator()
     {
         var windowPos = ImGui.GetWindowPos();
         var windowSize = ImGui.GetWindowSize();
