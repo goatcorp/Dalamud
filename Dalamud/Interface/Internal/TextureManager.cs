@@ -235,7 +235,7 @@ internal sealed class TextureManager : IServiceType, IDisposable, ITextureProvid
                 {
                     await using var ms = stream.CanSeek ? new MemoryStream((int)stream.Length) : new();
                     await stream.CopyToAsync(ms, ct).ConfigureAwait(false);
-                    return await this.CreateFromImageAsync(ms.GetBuffer(), ct);
+                    return this.NoThrottleCreateFromImage(ms.GetBuffer());
                 },
                 cancellationToken)
             .ContinueWith(
@@ -249,6 +249,10 @@ internal sealed class TextureManager : IServiceType, IDisposable, ITextureProvid
             .Unwrap();
 
     /// <inheritdoc/>
+    // NOTE: if this function is changed to be placed under the effect of the throttler, then look for the usages of
+    // this function, and for the usages that are used as a part of the delegate passed to LoadTextureAsync, change them
+    // to create texture in a non-throttling way; otherwise, recursive throttled texture load call will happen, and it
+    // may deadlock.
     public IDalamudTextureWrap CreateFromRaw(
         RawImageSpecification specs,
         ReadOnlySpan<byte> bytes)
@@ -317,7 +321,7 @@ internal sealed class TextureManager : IServiceType, IDisposable, ITextureProvid
                 {
                     await using var ms = stream.CanSeek ? new MemoryStream((int)stream.Length) : new();
                     await stream.CopyToAsync(ms, ct).ConfigureAwait(false);
-                    return await this.CreateFromRawAsync(specs, ms.GetBuffer(), ct);
+                    return this.CreateFromRaw(specs, ms.GetBuffer().AsSpan(0, (int)ms.Length));
                 },
                 cancellationToken)
             .ContinueWith(
