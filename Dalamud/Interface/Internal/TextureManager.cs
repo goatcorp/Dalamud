@@ -249,55 +249,10 @@ internal sealed class TextureManager : IServiceType, IDisposable, ITextureProvid
             .Unwrap();
 
     /// <inheritdoc/>
-    // NOTE: if this function is changed to be placed under the effect of the throttler, then look for the usages of
-    // this function, and for the usages that are used as a part of the delegate passed to LoadTextureAsync, change them
-    // to create texture in a non-throttling way; otherwise, recursive throttled texture load call will happen, and it
-    // may deadlock.
+    // It probably doesn't make sense to throttle this, as it copies the passed bytes to GPU without any transformation.
     public IDalamudTextureWrap CreateFromRaw(
         RawImageSpecification specs,
-        ReadOnlySpan<byte> bytes)
-    {
-        if (this.interfaceManager.Scene is not { } scene)
-        {
-            _ = Service<InterfaceManager.InterfaceManagerWithScene>.Get();
-            scene = this.interfaceManager.Scene ?? throw new InvalidOperationException();
-        }
-
-        ShaderResourceView resView;
-        unsafe
-        {
-            fixed (void* pData = bytes)
-            {
-                var texDesc = new Texture2DDescription
-                {
-                    Width = specs.Width,
-                    Height = specs.Height,
-                    MipLevels = 1,
-                    ArraySize = 1,
-                    Format = (Format)specs.DxgiFormat,
-                    SampleDescription = new(1, 0),
-                    Usage = ResourceUsage.Immutable,
-                    BindFlags = BindFlags.ShaderResource,
-                    CpuAccessFlags = CpuAccessFlags.None,
-                    OptionFlags = ResourceOptionFlags.None,
-                };
-
-                using var texture = new Texture2D(scene.Device, texDesc, new DataRectangle(new(pData), specs.Pitch));
-                resView = new(
-                    scene.Device,
-                    texture,
-                    new()
-                    {
-                        Format = texDesc.Format,
-                        Dimension = ShaderResourceViewDimension.Texture2D,
-                        Texture2D = { MipLevels = texDesc.MipLevels },
-                    });
-            }
-        }
-
-        // no sampler for now because the ImGui implementation we copied doesn't allow for changing it
-        return new DalamudTextureWrap(new D3DTextureWrap(resView, specs.Width, specs.Height));
-    }
+        ReadOnlySpan<byte> bytes) => this.NoThrottleCreateFromRaw(specs, bytes);
 
     /// <inheritdoc/>
     public Task<IDalamudTextureWrap> CreateFromRawAsync(
@@ -306,7 +261,7 @@ internal sealed class TextureManager : IServiceType, IDisposable, ITextureProvid
         CancellationToken cancellationToken = default) =>
         this.textureLoadThrottler.LoadTextureAsync(
             new TextureLoadThrottler.ReadOnlyThrottleBasisProvider(),
-            _ => Task.FromResult(this.CreateFromRaw(specs, bytes.Span)),
+            _ => Task.FromResult(this.NoThrottleCreateFromRaw(specs, bytes.Span)),
             cancellationToken);
 
     /// <inheritdoc/>
@@ -321,7 +276,7 @@ internal sealed class TextureManager : IServiceType, IDisposable, ITextureProvid
                 {
                     await using var ms = stream.CanSeek ? new MemoryStream((int)stream.Length) : new();
                     await stream.CopyToAsync(ms, ct).ConfigureAwait(false);
-                    return this.CreateFromRaw(specs, ms.GetBuffer().AsSpan(0, (int)ms.Length));
+                    return this.NoThrottleCreateFromRaw(specs, ms.GetBuffer().AsSpan(0, (int)ms.Length));
                 },
                 cancellationToken)
             .ContinueWith(
@@ -510,6 +465,53 @@ internal sealed class TextureManager : IServiceType, IDisposable, ITextureProvid
             ?? throw texFileAttemptException ?? new("Failed to load image because of an unknown reason."));
     }
 
+    /// <inheritdoc cref="ITextureProvider.CreateFromRaw"/>
+    internal IDalamudTextureWrap NoThrottleCreateFromRaw(
+        RawImageSpecification specs,
+        ReadOnlySpan<byte> bytes)
+    {
+        if (this.interfaceManager.Scene is not { } scene)
+        {
+            _ = Service<InterfaceManager.InterfaceManagerWithScene>.Get();
+            scene = this.interfaceManager.Scene ?? throw new InvalidOperationException();
+        }
+
+        ShaderResourceView resView;
+        unsafe
+        {
+            fixed (void* pData = bytes)
+            {
+                var texDesc = new Texture2DDescription
+                {
+                    Width = specs.Width,
+                    Height = specs.Height,
+                    MipLevels = 1,
+                    ArraySize = 1,
+                    Format = (Format)specs.DxgiFormat,
+                    SampleDescription = new(1, 0),
+                    Usage = ResourceUsage.Immutable,
+                    BindFlags = BindFlags.ShaderResource,
+                    CpuAccessFlags = CpuAccessFlags.None,
+                    OptionFlags = ResourceOptionFlags.None,
+                };
+
+                using var texture = new Texture2D(scene.Device, texDesc, new DataRectangle(new(pData), specs.Pitch));
+                resView = new(
+                    scene.Device,
+                    texture,
+                    new()
+                    {
+                        Format = texDesc.Format,
+                        Dimension = ShaderResourceViewDimension.Texture2D,
+                        Texture2D = { MipLevels = texDesc.MipLevels },
+                    });
+            }
+        }
+
+        // no sampler for now because the ImGui implementation we copied doesn't allow for changing it
+        return new DalamudTextureWrap(new D3DTextureWrap(resView, specs.Width, specs.Height));
+    }
+
     /// <summary>Creates a texture from the given <see cref="TexFile"/>. Skips the load throttler; intended to be used
     /// from implementation of <see cref="SharedImmediateTexture"/>s.</summary>
     /// <param name="file">The data.</param>
@@ -526,7 +528,7 @@ internal sealed class TextureManager : IServiceType, IDisposable, ITextureProvid
             buffer = buffer.Filter(0, 0, TexFile.TextureFormat.B8G8R8A8);
         }
 
-        return this.CreateFromRaw(
+        return this.NoThrottleCreateFromRaw(
             RawImageSpecification.From(buffer.Width, buffer.Height, dxgiFormat),
             buffer.RawData);
     }
