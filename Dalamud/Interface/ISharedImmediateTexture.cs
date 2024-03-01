@@ -11,12 +11,12 @@ namespace Dalamud.Interface;
 /// requesters.</summary>
 /// <remarks>
 /// <para>Calling <see cref="IDisposable.Dispose"/> on this interface is a no-op.</para>
-/// <para><see cref="GetWrap()"/> and <see cref="TryGetWrap"/> may stop returning the intended texture at any point.
+/// <para><see cref="GetWrapOrEmpty"/> and <see cref="TryGetWrap"/> may stop returning the intended texture at any point.
 /// Use <see cref="RentAsync"/> to lock the texture for use in any thread for any duration.</para>
 /// </remarks>
 public interface ISharedImmediateTexture
 {
-    /// <summary>Gets the texture for use with the current frame.</summary>
+    /// <summary>Gets the texture for use with the current frame, or an empty texture if unavailable.</summary>
     /// <returns>An instance of <see cref="IDalamudTextureWrap"/> that is guaranteed to be available for the current
     /// frame being drawn.</returns>
     /// <remarks>
@@ -26,9 +26,10 @@ public interface ISharedImmediateTexture
     /// <para>If the texture is unavailable for any reason, then the returned instance of
     /// <see cref="IDalamudTextureWrap"/> will point to an empty texture instead.</para>
     /// </remarks>
-    IDalamudTextureWrap GetWrap();
+    IDalamudTextureWrap GetWrapOrEmpty();
 
-    /// <summary>Gets the texture for use with the current frame.</summary>
+    /// <summary>Gets the texture for use with the current frame, or a default value specified via
+    /// <paramref name="defaultWrap"/> if unavailable.</summary>
     /// <param name="defaultWrap">The default wrap to return if the requested texture was not immediately available.
     /// </param>
     /// <returns>An instance of <see cref="IDalamudTextureWrap"/> that is guaranteed to be available for the current
@@ -40,7 +41,7 @@ public interface ISharedImmediateTexture
     /// <para>If the texture is unavailable for any reason, then <paramref name="defaultWrap"/> will be returned.</para>
     /// </remarks>
     [return: NotNullIfNotNull(nameof(defaultWrap))]
-    IDalamudTextureWrap? GetWrap(IDalamudTextureWrap? defaultWrap);
+    IDalamudTextureWrap? GetWrapOrDefault(IDalamudTextureWrap? defaultWrap = null);
     
     /// <summary>Attempts to get the texture for use with the current frame.</summary>
     /// <param name="texture">An instance of <see cref="IDalamudTextureWrap"/> that is guaranteed to be available for

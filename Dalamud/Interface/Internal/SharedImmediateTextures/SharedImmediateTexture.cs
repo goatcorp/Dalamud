@@ -174,12 +174,12 @@ internal abstract class SharedImmediateTexture
 
     /// <inheritdoc/>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public IDalamudTextureWrap GetWrap() => this.GetWrap(Service<DalamudAssetManager>.Get().Empty4X4);
+    public IDalamudTextureWrap GetWrapOrEmpty() => this.GetWrapOrDefault(Service<DalamudAssetManager>.Get().Empty4X4);
 
     /// <inheritdoc/>
     [return: NotNullIfNotNull(nameof(defaultWrap))]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public IDalamudTextureWrap? GetWrap(IDalamudTextureWrap? defaultWrap)
+    public IDalamudTextureWrap? GetWrapOrDefault(IDalamudTextureWrap? defaultWrap)
     {
         if (!this.TryGetWrap(out var texture, out _))
             texture = null;

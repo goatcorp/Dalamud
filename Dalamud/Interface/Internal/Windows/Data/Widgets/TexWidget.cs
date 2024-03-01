@@ -273,7 +273,7 @@ internal class TexWidget : IDataWindowWidget
 
                     ImGui.TableNextColumn();
                     ImGuiComponents.IconButton(FontAwesomeIcon.Image);
-                    if (ImGui.IsItemHovered() && texture.GetWrap(null) is { } immediate)
+                    if (ImGui.IsItemHovered() && texture.GetWrapOrDefault(null) is { } immediate)
                     {
                         ImGui.BeginTooltip();
                         ImGui.Image(immediate.ImGuiHandle, immediate.Size);
@@ -556,16 +556,16 @@ internal class TexWidget : IDataWindowWidget
             if (this.Api10 is not null)
                 return this.Api10.IsCompletedSuccessfully ? this.Api10.Result : null;
             if (this.Api10ImmGameIcon is not null)
-                return tp.GetFromGameIcon(this.Api10ImmGameIcon.Value).GetWrap();
+                return tp.GetFromGameIcon(this.Api10ImmGameIcon.Value).GetWrapOrEmpty();
             if (this.Api10ImmGamePath is not null)
-                return tp.GetFromGame(this.Api10ImmGamePath).GetWrap();
+                return tp.GetFromGame(this.Api10ImmGamePath).GetWrapOrEmpty();
             if (this.Api10ImmFile is not null)
-                return tp.GetFromFile(this.Api10ImmFile).GetWrap();
+                return tp.GetFromFile(this.Api10ImmFile).GetWrapOrEmpty();
             if (this.Api10ImmManifestResource is not null)
             {
                 return tp.GetFromManifestResource(
                     this.Api10ImmManifestResource.Value.Assembly,
-                    this.Api10ImmManifestResource.Value.Name).GetWrap();
+                    this.Api10ImmManifestResource.Value.Name).GetWrapOrEmpty();
             }
 
             return null;
