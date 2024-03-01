@@ -1,4 +1,3 @@
-using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -44,6 +43,6 @@ internal sealed class FileSystemSharedImmediateTexture : SharedImmediateTexture
     private async Task<IDalamudTextureWrap> CreateTextureAsync(CancellationToken cancellationToken)
     {
         var tm = await Service<TextureManager>.GetAsync();
-        return tm.NoThrottleCreateFromImage(await File.ReadAllBytesAsync(this.path, cancellationToken));
+        return await tm.NoThrottleCreateFromFileAsync(this.path, cancellationToken);
     }
 }

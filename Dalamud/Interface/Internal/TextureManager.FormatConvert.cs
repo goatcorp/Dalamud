@@ -219,7 +219,11 @@ internal sealed partial class TextureManager
                     0,
                     &mapped).ThrowOnError();
 
-                var specs = RawImageSpecification.From((int)desc.Width, (int)desc.Height, (int)desc.Format);
+                var specs = new RawImageSpecification(
+                    (int)desc.Width,
+                    (int)desc.Height,
+                    (int)mapped.RowPitch,
+                    (int)desc.Format);
                 var bytes = new Span<byte>(mapped.pData, checked((int)mapped.DepthPitch)).ToArray();
                 return (specs, bytes);
             }

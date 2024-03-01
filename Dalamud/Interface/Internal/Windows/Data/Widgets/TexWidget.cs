@@ -190,6 +190,25 @@ internal class TexWidget : IDataWindowWidget
                 }
 
                 ImGui.SameLine();
+                if (ImGui.Button("Save"))
+                {
+                    this.fileDialogManager.SaveFileDialog(
+                        "Save texture...",
+                        string.Join(
+                            ',',
+                            this.textureManager
+                                .GetSaveSupportedImageExtensions()
+                                .Select(x => $"{string.Join(" | ", x)}{{{string.Join(',', x)}}}")),
+                        $"Texture {t.Id}.png",
+                        ".png",
+                        (ok, path) =>
+                        {
+                            if (ok && t.GetTexture(this.textureManager) is { } source)
+                                Task.Run(() => this.SaveTextureWrap(source, path));
+                        });
+                }
+
+                ImGui.SameLine();
                 if (ImGui.Button("Copy Reference"))
                     runLater = () => this.addedTextures.Add(t.CreateFromSharedLowLevelResource(this.textureManager));
 
@@ -329,7 +348,7 @@ internal class TexWidget : IDataWindowWidget
                             string.Join(
                                 ',',
                                 this.textureManager
-                                    .GetSupportedImageExtensions()
+                                    .GetSaveSupportedImageExtensions()
                                     .Select(x => $"{string.Join(" | ", x)}{{{string.Join(',', x)}}}")),
                             Path.ChangeExtension(Path.GetFileName(texture.SourcePathForDebug), ".png"),
                             ".png",
@@ -380,8 +399,24 @@ internal class TexWidget : IDataWindowWidget
         try
         {
             using var rented = await texture.RentAsync();
+            this.SaveTextureWrap(rented, path);
+        }
+        catch (Exception e)
+        {
+            Log.Error(e, $"{nameof(TexWidget)}.{nameof(this.SaveImmediateTexture)}");
+            Service<NotificationManager>.Get().AddNotification(
+                $"Failed to save file: {e}",
+                this.DisplayName,
+                NotificationType.Error);
+        }
+    }
+
+    private async void SaveTextureWrap(IDalamudTextureWrap texture, string path)
+    {
+        try
+        {
             await this.textureManager.SaveAsImageFormatToStreamAsync(
-                rented,
+                texture,
                 Path.GetExtension(path),
                 File.Create(path),
                 props: new Dictionary<string, object>

@@ -180,10 +180,15 @@ public partial interface ITextureProvider
         int dxgiFormat = 0,
         CancellationToken cancellationToken = default);
 
-    /// <summary>Gets the supported image file extensions.</summary>
+    /// <summary>Gets the supported image file extensions available for loading.</summary>
     /// <returns>The supported extensions. Each <c>string[]</c> entry indicates that there can be multiple extensions
     /// that correspond to one container format.</returns>
-    IEnumerable<string[]> GetSupportedImageExtensions();
+    IEnumerable<string[]> GetLoadSupportedImageExtensions();
+
+    /// <summary>Gets the supported image file extensions available for saving.</summary>
+    /// <returns>The supported extensions. Each <c>string[]</c> entry indicates that there can be multiple extensions
+    /// that correspond to one container format.</returns>
+    IEnumerable<string[]> GetSaveSupportedImageExtensions();
 
     /// <summary>Saves a texture wrap to a stream in an image file format.</summary>
     /// <param name="wrap">The texture wrap to save.</param>

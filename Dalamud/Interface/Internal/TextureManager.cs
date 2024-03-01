@@ -18,7 +18,6 @@ using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility;
 
-using Lumina.Data;
 using Lumina.Data.Files;
 
 using SharpDX;
@@ -36,7 +35,7 @@ namespace Dalamud.Interface.Internal;
 /// <summary>Service responsible for loading and disposing ImGui texture wraps.</summary>
 [PluginInterface]
 [InterfaceVersion("1.0")]
-[ServiceManager.BlockingEarlyLoadedService]
+[ServiceManager.EarlyLoadedService]
 #pragma warning disable SA1015
 [ResolveVia<ITextureProvider>]
 [ResolveVia<ITextureSubstitutionProvider>]
@@ -96,7 +95,7 @@ internal sealed partial class TextureManager : IServiceType, IDisposable, ITextu
                     null,
                     (uint)CLSCTX.CLSCTX_INPROC_SERVER,
                     piidWicImagingFactory,
-                    (void**)this.factory.GetAddressOf()).ThrowOnError();
+                    (void**)this.wicFactory.GetAddressOf()).ThrowOnError();
             }
         }
     }
@@ -140,7 +139,7 @@ internal sealed partial class TextureManager : IServiceType, IDisposable, ITextu
         this.drawsOneSquare?.Dispose();
         this.drawsOneSquare = null;
 
-        this.factory.Reset();
+        this.wicFactory.Reset();
 
         return;
 
@@ -254,7 +253,7 @@ internal sealed partial class TextureManager : IServiceType, IDisposable, ITextu
         CancellationToken cancellationToken = default) =>
         this.textureLoadThrottler.LoadTextureAsync(
             new TextureLoadThrottler.ReadOnlyThrottleBasisProvider(),
-            ct => Task.Run(() => this.NoThrottleCreateFromImage(bytes.ToArray()), ct),
+            ct => Task.Run(() => this.NoThrottleCreateFromImage(bytes.ToArray(), ct), ct),
             cancellationToken);
 
     /// <inheritdoc/>
@@ -268,7 +267,7 @@ internal sealed partial class TextureManager : IServiceType, IDisposable, ITextu
                 {
                     await using var ms = stream.CanSeek ? new MemoryStream((int)stream.Length) : new();
                     await stream.CopyToAsync(ms, ct).ConfigureAwait(false);
-                    return this.NoThrottleCreateFromImage(ms.GetBuffer());
+                    return this.NoThrottleCreateFromImage(ms.GetBuffer(), ct);
                 },
                 cancellationToken)
             .ContinueWith(
@@ -462,47 +461,6 @@ internal sealed partial class TextureManager : IServiceType, IDisposable, ITextu
                 }
             }
         }
-    }
-
-    /// <summary>Creates a texture from the given bytes of an image file. Skips the load throttler; intended to be used
-    /// from implementation of <see cref="SharedImmediateTexture"/>s.</summary>
-    /// <param name="bytes">The data.</param>
-    /// <returns>The loaded texture.</returns>
-    internal IDalamudTextureWrap NoThrottleCreateFromImage(ReadOnlyMemory<byte> bytes)
-    {
-        ObjectDisposedException.ThrowIf(this.disposing, this);
-
-        if (this.interfaceManager.Scene is not { } scene)
-        {
-            _ = Service<InterfaceManager.InterfaceManagerWithScene>.Get();
-            scene = this.interfaceManager.Scene ?? throw new InvalidOperationException();
-        }
-
-        var bytesArray = bytes.ToArray();
-        var texFileAttemptException = default(Exception);
-        if (TexFileExtensions.IsPossiblyTexFile2D(bytesArray))
-        {
-            var tf = new TexFile();
-            typeof(TexFile).GetProperty(nameof(tf.Data))!.GetSetMethod(true)!.Invoke(
-                tf,
-                new object?[] { bytesArray });
-            typeof(TexFile).GetProperty(nameof(tf.Reader))!.GetSetMethod(true)!.Invoke(
-                tf,
-                new object?[] { new LuminaBinaryReader(bytesArray) });
-            // Note: FileInfo and FilePath are not used from TexFile; skip it.
-            try
-            {
-                return this.NoThrottleCreateFromTexFile(tf);
-            }
-            catch (Exception e)
-            {
-                texFileAttemptException = e;
-            }
-        }
-
-        return new DalamudTextureWrap(
-            scene.LoadImage(bytesArray)
-            ?? throw texFileAttemptException ?? new("Failed to load image because of an unknown reason."));
     }
 
     /// <inheritdoc cref="ITextureProvider.CreateFromRaw"/>
