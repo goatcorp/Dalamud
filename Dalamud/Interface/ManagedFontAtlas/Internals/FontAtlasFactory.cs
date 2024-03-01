@@ -24,6 +24,8 @@ using SharpDX;
 using SharpDX.Direct3D11;
 using SharpDX.DXGI;
 
+using TerraFX.Interop.DirectX;
+
 namespace Dalamud.Interface.ManagedFontAtlas.Internals;
 
 /// <summary>
@@ -353,7 +355,7 @@ internal sealed partial class FontAtlasFactory
         var numPixels = texFile.Header.Width * texFile.Header.Height;
 
         _ = Service<InterfaceManager.InterfaceManagerWithScene>.Get();
-        var targetIsB4G4R4A4 = this.TextureManager.IsDxgiFormatSupported((int)Format.B4G4R4A4_UNorm);
+        var targetIsB4G4R4A4 = this.TextureManager.IsDxgiFormatSupported(DXGI_FORMAT.DXGI_FORMAT_B4G4R4A4_UNORM);
         var bpp = targetIsB4G4R4A4 ? 2 : 4;
         var buffer = ArrayPool<byte>.Shared.Rent(numPixels * bpp);
         try

@@ -692,11 +692,20 @@ public static class Util
     /// Throws a corresponding exception if <see cref="HRESULT.FAILED"/> is true.
     /// </summary>
     /// <param name="hr">The result value.</param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static void ThrowOnError(this HRESULT hr)
     {
         if (hr.FAILED)
             Marshal.ThrowExceptionForHR(hr.Value);
     }
+
+    /// <summary>Determines if the specified instance of <see cref="ComPtr{T}"/> points to null.</summary>
+    /// <param name="f">The pointer.</param>
+    /// <typeparam name="T">The COM interface type from TerraFX.</typeparam>
+    /// <returns><c>true</c> if not empty.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal static unsafe bool IsEmpty<T>(in this ComPtr<T> f) where T : unmanaged, IUnknown.Interface =>
+        f.Get() is null;
 
     /// <summary>
     /// Calls <see cref="TaskCompletionSource.SetException(System.Exception)"/> if the task is incomplete.

@@ -18,6 +18,8 @@ using ImGuiNET;
 
 using SharpDX.DXGI;
 
+using TerraFX.Interop.DirectX;
+
 namespace Dalamud.Interface.ManagedFontAtlas.Internals;
 
 /// <summary>
@@ -580,7 +582,7 @@ internal sealed partial class FontAtlasFactory
             var buf = Array.Empty<byte>();
             try
             {
-                var use4 = this.factory.TextureManager.IsDxgiFormatSupported((int)Format.B4G4R4A4_UNorm);
+                var use4 = this.factory.TextureManager.IsDxgiFormatSupported(DXGI_FORMAT.DXGI_FORMAT_B4G4R4A4_UNORM);
                 var bpp = use4 ? 2 : 4;
                 var width = this.NewImAtlas.TexWidth;
                 var height = this.NewImAtlas.TexHeight;

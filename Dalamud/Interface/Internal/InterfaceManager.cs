@@ -70,6 +70,8 @@ internal class InterfaceManager : IDisposable, IServiceType
     [ServiceManager.ServiceDependency]
     private readonly DalamudIme dalamudIme = Service<DalamudIme>.Get();
 
+    private readonly ConcurrentQueue<Action> runBeforePresent = new();
+
     private readonly SwapChainVtableResolver address = new();
     private readonly Hook<SetCursorDelegate> setCursorHook;
     private RawDX11Scene? scene;
@@ -282,6 +284,10 @@ internal class InterfaceManager : IDisposable, IServiceType
     {
         this.deferredDisposeDisposables.Add(locked);
     }
+
+    /// <summary>Queues an action to be run before Present call.</summary>
+    /// <param name="action">The action.</param>
+    public void RunBeforePresent(Action action) => this.runBeforePresent.Enqueue(action);
 
     /// <summary>
     /// Get video memory information.
@@ -519,6 +525,9 @@ internal class InterfaceManager : IDisposable, IServiceType
 
         if (!this.dalamudAtlas!.HasBuiltAtlas)
             return this.presentHook!.Original(swapChain, syncInterval, presentFlags);
+
+        while (this.runBeforePresent.TryDequeue(out var action))
+            action.InvokeSafely();
 
         if (this.address.IsReshade)
         {

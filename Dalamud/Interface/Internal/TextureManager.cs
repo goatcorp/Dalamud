@@ -26,6 +26,8 @@ using SharpDX.Direct3D;
 using SharpDX.Direct3D11;
 using SharpDX.DXGI;
 
+using TerraFX.Interop.DirectX;
+
 namespace Dalamud.Interface.Internal;
 
 /// <summary>Service responsible for loading and disposing ImGui texture wraps.</summary>
@@ -36,7 +38,7 @@ namespace Dalamud.Interface.Internal;
 [ResolveVia<ITextureProvider>]
 [ResolveVia<ITextureSubstitutionProvider>]
 #pragma warning restore SA1015
-internal sealed class TextureManager : IServiceType, IDisposable, ITextureProvider, ITextureSubstitutionProvider
+internal sealed partial class TextureManager : IServiceType, IDisposable, ITextureProvider, ITextureSubstitutionProvider
 {
     private const int PathLookupLruCount = 8192;
 
@@ -108,6 +110,9 @@ internal sealed class TextureManager : IServiceType, IDisposable, ITextureProvid
         ReleaseSelfReferences(this.fileSystemTextures);
         ReleaseSelfReferences(this.manifestResourceTextures);
         this.lookupToPath.Clear();
+
+        this.drawsOneSquare?.Dispose();
+        this.drawsOneSquare = null;
 
         return;
 
@@ -302,7 +307,11 @@ internal sealed class TextureManager : IServiceType, IDisposable, ITextureProvid
             cancellationToken);
 
     /// <inheritdoc/>
-    public bool IsDxgiFormatSupported(int dxgiFormat)
+    bool ITextureProvider.IsDxgiFormatSupported(int dxgiFormat) =>
+        this.IsDxgiFormatSupported((DXGI_FORMAT)dxgiFormat);
+
+    /// <inheritdoc cref="ITextureProvider.IsDxgiFormatSupported"/>
+    public bool IsDxgiFormatSupported(DXGI_FORMAT dxgiFormat)
     {
         if (this.interfaceManager.Scene is not { } scene)
         {
@@ -310,7 +319,9 @@ internal sealed class TextureManager : IServiceType, IDisposable, ITextureProvid
             scene = this.interfaceManager.Scene ?? throw new InvalidOperationException();
         }
 
-        return scene.Device.CheckFormatSupport((Format)dxgiFormat).HasFlag(FormatSupport.Texture2D);
+        var format = (Format)dxgiFormat;
+        var support = scene.Device.CheckFormatSupport(format);
+        return (support & FormatSupport.Texture2D) != 0;
     }
 
     /// <inheritdoc/>
@@ -522,7 +533,8 @@ internal sealed class TextureManager : IServiceType, IDisposable, ITextureProvid
 
         var buffer = file.TextureBuffer;
         var (dxgiFormat, conversion) = TexFile.GetDxgiFormatFromTextureFormat(file.Header.Format, false);
-        if (conversion != TexFile.DxgiFormatConversion.NoConversion || !this.IsDxgiFormatSupported(dxgiFormat))
+        if (conversion != TexFile.DxgiFormatConversion.NoConversion ||
+            !this.IsDxgiFormatSupported((DXGI_FORMAT)dxgiFormat))
         {
             dxgiFormat = (int)Format.B8G8R8A8_UNorm;
             buffer = buffer.Filter(0, 0, TexFile.TextureFormat.B8G8R8A8);

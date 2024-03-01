@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Numerics;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
@@ -27,6 +28,28 @@ namespace Dalamud.Plugin.Services;
 /// </remarks>
 public partial interface ITextureProvider
 {
+    /// <summary>Creates a texture from the given existing texture, cropping and converting pixel format as needed.
+    /// </summary>
+    /// <param name="wrap">The source texture wrap. The passed value may be disposed once this function returns,
+    /// without having to wait for the completion of the returned <see cref="Task{TResult}"/>.</param>
+    /// <param name="uv0">The left top coordinates relative to the size of the source texture.</param>
+    /// <param name="uv1">The right bottom coordinates relative to the size of the source texture.</param>
+    /// <param name="dxgiFormat">The desired target format.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>A <see cref="Task{TResult}"/> containing the copied texture on success. Dispose after use.</returns>
+    /// <remarks>
+    /// <para>Coordinates in <paramref name="uv0"/> and <paramref name="uv1"/> should be in range between 0 and 1.
+    /// </para>
+    /// <para>Supported values for <paramref name="dxgiFormat"/> may not necessarily match
+    /// <see cref="IsDxgiFormatSupported"/>.</para>
+    /// </remarks>
+    Task<IDalamudTextureWrap> CreateFromExistingTextureAsync(
+        IDalamudTextureWrap wrap,
+        Vector2 uv0,
+        Vector2 uv1,
+        int dxgiFormat,
+        CancellationToken cancellationToken = default);
+
     /// <summary>Gets a texture from the given bytes, trying to interpret it as a .tex file or other well-known image
     /// files, such as .png.</summary>
     /// <param name="bytes">The bytes to load.</param>
@@ -143,4 +166,10 @@ public partial interface ITextureProvider
     /// <param name="dxgiFormat">The DXGI format.</param>
     /// <returns><c>true</c> if supported.</returns>
     bool IsDxgiFormatSupported(int dxgiFormat);
+
+    /// <summary>Determines whether the system supports the given DXGI format for use with
+    /// <see cref="CreateFromExistingTextureAsync"/>.</summary>
+    /// <param name="dxgiFormat">The DXGI format.</param>
+    /// <returns><c>true</c> if supported.</returns>
+    bool IsDxgiFormatSupportedForCreateFromExistingTextureAsync(int dxgiFormat);
 }

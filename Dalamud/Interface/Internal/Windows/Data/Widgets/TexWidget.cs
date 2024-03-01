@@ -16,6 +16,8 @@ using Dalamud.Utility;
 
 using ImGuiNET;
 
+using TerraFX.Interop.DirectX;
+
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 
 /// <summary>
@@ -40,6 +42,10 @@ internal class TexWidget : IDataWindowWidget
     private Vector4 inputTintCol = Vector4.One;
     private Vector2 inputTexScale = Vector2.Zero;
     private TextureManager textureManager = null!;
+
+    private string[]? supportedRenderTargetFormatNames;
+    private DXGI_FORMAT[]? supportedRenderTargetFormats;
+    private int renderTargetChoiceInt;
 
     /// <inheritdoc/>
     public string[]? CommandShortcuts { get; init; } = { "tex", "texture" };
@@ -66,6 +72,8 @@ internal class TexWidget : IDataWindowWidget
         this.inputManifestResourceAssemblyIndex = 0;
         this.inputManifestResourceNameCandidates = null;
         this.inputManifestResourceNameIndex = 0;
+        this.supportedRenderTargetFormats = null;
+        this.supportedRenderTargetFormatNames = null;
         this.Ready = true;
     }
 
@@ -142,19 +150,63 @@ internal class TexWidget : IDataWindowWidget
             ImGui.PopID();
         }
 
-        TextureEntry? toRemove = null;
-        TextureEntry? toCopy = null;
+        ImGui.Dummy(new(ImGui.GetTextLineHeightWithSpacing()));
+
+        if (this.supportedRenderTargetFormats is null)
+        {
+            this.supportedRenderTargetFormatNames = null;
+            this.supportedRenderTargetFormats =
+                Enum.GetValues<DXGI_FORMAT>()
+                    .Where(this.textureManager.IsDxgiFormatSupportedForCreateFromExistingTextureAsync)
+                    .ToArray();
+            this.renderTargetChoiceInt = 0;
+        }
+
+        this.supportedRenderTargetFormatNames ??= this.supportedRenderTargetFormats.Select(Enum.GetName).ToArray();
+        ImGui.Combo(
+            "CropCopy Format",
+            ref this.renderTargetChoiceInt,
+            this.supportedRenderTargetFormatNames,
+            this.supportedRenderTargetFormatNames.Length);
+
+        Action? runLater = null;
         foreach (var t in this.addedTextures)
         {
             ImGui.PushID(t.Id);
             if (ImGui.CollapsingHeader($"Tex #{t.Id} {t}###header", ImGuiTreeNodeFlags.DefaultOpen))
             {
                 if (ImGui.Button("X"))
-                    toRemove = t;
+                {
+                    runLater = () =>
+                    {
+                        t.Dispose();
+                        this.addedTextures.Remove(t);
+                    };
+                }
 
                 ImGui.SameLine();
-                if (ImGui.Button("Copy"))
-                    toCopy = t;
+                if (ImGui.Button("Copy Reference"))
+                    runLater = () => this.addedTextures.Add(t.CreateFromSharedLowLevelResource(this.textureManager));
+
+                ImGui.SameLine();
+                if (ImGui.Button("CropCopy"))
+                {
+                    runLater = () =>
+                    {
+                        if (t.GetTexture(this.textureManager) is not { } source)
+                            return;
+                        if (this.supportedRenderTargetFormats is not { } supportedFormats)
+                            return;
+                        if (this.renderTargetChoiceInt < 0 || this.renderTargetChoiceInt >= supportedFormats.Length)
+                            return;
+                        var texTask = this.textureManager.CreateFromExistingTextureAsync(
+                            source,
+                            new(0.25f),
+                            new(0.75f),
+                            supportedFormats[this.renderTargetChoiceInt]);
+                        this.addedTextures.Add(new() { Api10 = texTask });
+                    };
+                }
 
                 try
                 {
@@ -162,7 +214,7 @@ internal class TexWidget : IDataWindowWidget
                     {
                         var scale = new Vector2(tex.Width, tex.Height);
                         if (this.inputTexScale != Vector2.Zero)
-                            scale = this.inputTexScale;
+                            scale *= this.inputTexScale;
 
                         ImGui.Image(tex.ImGuiHandle, scale, this.inputTexUv0, this.inputTexUv1, this.inputTintCol);
                     }
@@ -180,16 +232,7 @@ internal class TexWidget : IDataWindowWidget
             ImGui.PopID();
         }
 
-        if (toRemove != null)
-        {
-            toRemove.Dispose();
-            this.addedTextures.Remove(toRemove);
-        }
-
-        if (toCopy != null)
-        {
-            this.addedTextures.Add(toCopy.CreateFromSharedLowLevelResource(this.textureManager));
-        }
+        runLater?.Invoke();
     }
 
     private unsafe void DrawLoadedTextures(ICollection<SharedImmediateTexture> textures)
