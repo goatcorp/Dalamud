@@ -1,4 +1,5 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Numerics;
 using System.Reflection;
@@ -112,9 +113,7 @@ public partial interface ITextureProvider
     /// <returns>A texture wrap that can be used to render the texture. Dispose after use.</returns>
     IDalamudTextureWrap CreateFromTexFile(TexFile file);
 
-    /// <summary>
-    /// Get a texture handle for the specified Lumina <see cref="TexFile"/>.
-    /// </summary>
+    /// <summary>Get a texture handle for the specified Lumina <see cref="TexFile"/>.</summary>
     /// <param name="file">The texture to obtain a handle to.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A texture wrap that can be used to render the texture. Dispose after use.</returns>
@@ -143,9 +142,7 @@ public partial interface ITextureProvider
     /// <returns>The shared texture that you may use to obtain the loaded texture wrap and load states.</returns>
     ISharedImmediateTexture GetFromManifestResource(Assembly assembly, string name);
 
-    /// <summary>
-    /// Get a path for a specific icon's .tex file.
-    /// </summary>
+    /// <summary>Get a path for a specific icon's .tex file.</summary>
     /// <param name="lookup">The icon lookup.</param>
     /// <returns>The path to the icon.</returns>
     /// <exception cref="FileNotFoundException">If a corresponding file could not be found.</exception>
@@ -158,6 +155,62 @@ public partial interface ITextureProvider
     /// <param name="path">The resolved path.</param>
     /// <returns><c>true</c> if the corresponding file exists and <paramref name="path"/> has been set.</returns>
     bool TryGetIconPath(in GameIconLookup lookup, [NotNullWhen(true)] out string? path);
+
+    /// <summary>Gets the raw data of a texture wrap.</summary>
+    /// <param name="wrap">The source texture wrap. The passed value may be disposed once this function returns,
+    /// without having to wait for the completion of the returned <see cref="Task{TResult}"/>.</param>
+    /// <param name="uv0">The left top coordinates relative to the size of the source texture.</param>
+    /// <param name="uv1">The right bottom coordinates relative to the size of the source texture.</param>
+    /// <param name="dxgiFormat">The desired target format.
+    /// If 0 (unknown) is passed, then the format will not be converted.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>The raw data and its specifications.</returns>
+    /// <remarks>
+    /// <para>The length of the returned <c>RawData</c> may not match
+    /// <see cref="RawImageSpecification.Height"/> * <see cref="RawImageSpecification.Pitch"/>.</para>
+    /// <para>If <paramref name="uv0"/> is <see cref="Vector2.Zero"/>,
+    /// <paramref name="uv1"/> is <see cref="Vector2.One"/>, and <paramref name="dxgiFormat"/> is <c>0</c>,
+    /// then the source data will be returned.</para>
+    /// <para>This function can fail.</para>
+    /// </remarks>
+    Task<(RawImageSpecification Specification, byte[] RawData)> GetRawDataAsync(
+        IDalamudTextureWrap wrap,
+        Vector2 uv0,
+        Vector2 uv1,
+        int dxgiFormat = 0,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>Gets the supported image file extensions.</summary>
+    /// <returns>The supported extensions. Each <c>string[]</c> entry indicates that there can be multiple extensions
+    /// that correspond to one container format.</returns>
+    IEnumerable<string[]> GetSupportedImageExtensions();
+
+    /// <summary>Saves a texture wrap to a stream in an image file format.</summary>
+    /// <param name="wrap">The texture wrap to save.</param>
+    /// <param name="extension">The extension of the file to deduce the file format with the leading dot.</param>
+    /// <param name="stream">The stream to save to.</param>
+    /// <param name="leaveOpen">Whether to leave <paramref name="stream"/> open.</param>
+    /// <param name="props">Properties to pass to the encoder. See
+    /// <a href="https://learn.microsoft.com/en-us/windows/win32/wic/-wic-creating-encoder#encoder-options">Microsoft
+    /// Learn</a> for available parameters.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>A task representing the save process.</returns>
+    /// <remarks>
+    /// <para><paramref name="wrap"/> may be disposed as soon as this function returns.</para>
+    /// <para>If no image container format corresponding to <paramref name="extension"/> is found, then the image will
+    /// be saved in png format.</para>
+    /// </remarks>
+    [SuppressMessage(
+        "StyleCop.CSharp.LayoutRules",
+        "SA1519:Braces should not be omitted from multi-line child statement",
+        Justification = "Multiple fixed blocks")]
+    Task SaveAsImageFormatToStreamAsync(
+        IDalamudTextureWrap wrap,
+        string extension,
+        Stream stream,
+        bool leaveOpen = false,
+        IReadOnlyDictionary<string, object>? props = null,
+        CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Determines whether the system supports the given DXGI format.

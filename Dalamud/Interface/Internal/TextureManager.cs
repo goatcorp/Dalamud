@@ -27,6 +27,9 @@ using SharpDX.Direct3D11;
 using SharpDX.DXGI;
 
 using TerraFX.Interop.DirectX;
+using TerraFX.Interop.Windows;
+
+using static TerraFX.Interop.Windows.Windows;
 
 namespace Dalamud.Interface.Internal;
 
@@ -75,8 +78,31 @@ internal sealed partial class TextureManager : IServiceType, IDisposable, ITextu
 
     private bool disposing;
 
+    [SuppressMessage(
+        "StyleCop.CSharp.LayoutRules",
+        "SA1519:Braces should not be omitted from multi-line child statement",
+        Justification = "Multiple fixed blocks")]
     [ServiceManager.ServiceConstructor]
-    private TextureManager() => this.framework.Update += this.FrameworkOnUpdate;
+    private TextureManager()
+    {
+        this.framework.Update += this.FrameworkOnUpdate;
+        unsafe
+        {
+            fixed (Guid* pclsidWicImagingFactory = &CLSID.CLSID_WICImagingFactory)
+            fixed (Guid* piidWicImagingFactory = &IID.IID_IWICImagingFactory)
+            {
+                CoCreateInstance(
+                    pclsidWicImagingFactory,
+                    null,
+                    (uint)CLSCTX.CLSCTX_INPROC_SERVER,
+                    piidWicImagingFactory,
+                    (void**)this.factory.GetAddressOf()).ThrowOnError();
+            }
+        }
+    }
+
+    /// <summary>Finalizes an instance of the <see cref="TextureManager"/> class.</summary>
+    ~TextureManager() => this.Dispose();
 
     /// <inheritdoc/>
     public event ITextureSubstitutionProvider.TextureDataInterceptorDelegate? InterceptTexDataLoad;
@@ -113,6 +139,8 @@ internal sealed partial class TextureManager : IServiceType, IDisposable, ITextu
 
         this.drawsOneSquare?.Dispose();
         this.drawsOneSquare = null;
+
+        this.factory.Reset();
 
         return;
 

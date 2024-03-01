@@ -75,57 +75,37 @@ internal sealed partial class TextureManager
         var wrapCopy = wrap.CreateWrapSharingLowLevelResource();
         return this.textureLoadThrottler.LoadTextureAsync(
                        new TextureLoadThrottler.ReadOnlyThrottleBasisProvider(),
-                       ct =>
+                       async _ =>
                        {
-                           var tcs = new TaskCompletionSource<IDalamudTextureWrap>();
-                           this.interfaceManager.RunBeforePresent(
-                               () =>
-                               {
-                                   try
-                                   {
-                                       ct.ThrowIfCancellationRequested();
-                                       unsafe
-                                       {
-                                           using var tex = default(ComPtr<ID3D11Texture2D>);
-                                           tex.Attach(
-                                               this.NoThrottleCreateFromExistingTextureCore(
-                                                   wrapCopy,
-                                                   uv0,
-                                                   uv1,
-                                                   format,
-                                                   false));
+                           using var tex = await this.NoThrottleCreateFromExistingTextureAsync(
+                                               wrapCopy,
+                                               uv0,
+                                               uv1,
+                                               format);
+                           using var device = default(ComPtr<ID3D11Device>);
+                           using var srv = default(ComPtr<ID3D11ShaderResourceView>);
+                           var desc = default(D3D11_TEXTURE2D_DESC);
+                           unsafe
+                           {
+                               tex.Get()->GetDevice(device.GetAddressOf());
 
-                                           using var device = default(ComPtr<ID3D11Device>);
-                                           tex.Get()->GetDevice(device.GetAddressOf());
+                               var srvDesc = new D3D11_SHADER_RESOURCE_VIEW_DESC(
+                                   tex,
+                                   D3D_SRV_DIMENSION.D3D11_SRV_DIMENSION_TEXTURE2D);
+                               device.Get()->CreateShaderResourceView(
+                                       (ID3D11Resource*)tex.Get(),
+                                       &srvDesc,
+                                       srv.GetAddressOf())
+                                   .ThrowOnError();
 
-                                           using var srv = default(ComPtr<ID3D11ShaderResourceView>);
-                                           var srvDesc = new D3D11_SHADER_RESOURCE_VIEW_DESC(
-                                               tex,
-                                               D3D_SRV_DIMENSION.D3D11_SRV_DIMENSION_TEXTURE2D);
-                                           device.Get()->CreateShaderResourceView(
-                                                   (ID3D11Resource*)tex.Get(),
-                                                   &srvDesc,
-                                                   srv.GetAddressOf())
-                                               .ThrowOnError();
+                               tex.Get()->GetDesc(&desc);
 
-                                           var desc = default(D3D11_TEXTURE2D_DESC);
-                                           tex.Get()->GetDesc(&desc);
-
-                                           tcs.SetResult(
-                                               new UnknownTextureWrap(
-                                                   (IUnknown*)srv.Get(),
-                                                   (int)desc.Width,
-                                                   (int)desc.Height,
-                                                   true));
-                                       }
-                                   }
-                                   catch (Exception e)
-                                   {
-                                       tcs.SetException(e);
-                                   }
-                               });
-
-                           return tcs.Task;
+                               return new UnknownTextureWrap(
+                                   (IUnknown*)srv.Get(),
+                                   (int)desc.Width,
+                                   (int)desc.Height,
+                                   true);
+                           }
                        },
                        cancellationToken)
                    .ContinueWith(
@@ -138,95 +118,209 @@ internal sealed partial class TextureManager
                    .Unwrap();
     }
 
-    private unsafe ID3D11Texture2D* NoThrottleCreateFromExistingTextureCore(
+    /// <inheritdoc/>
+    Task<(RawImageSpecification Specification, byte[] RawData)> ITextureProvider.GetRawDataAsync(
         IDalamudTextureWrap wrap,
         Vector2 uv0,
         Vector2 uv1,
-        DXGI_FORMAT format,
-        bool enableCpuRead)
+        int dxgiFormat,
+        CancellationToken cancellationToken) =>
+        this.GetRawDataAsync(wrap, uv0, uv1, (DXGI_FORMAT)dxgiFormat, cancellationToken);
+
+    /// <inheritdoc cref="ITextureProvider.GetRawDataAsync"/>
+    public async Task<(RawImageSpecification Specification, byte[] RawData)> GetRawDataAsync(
+        IDalamudTextureWrap wrap,
+        Vector2 uv0,
+        Vector2 uv1,
+        DXGI_FORMAT dxgiFormat,
+        CancellationToken cancellationToken)
     {
-        ThreadSafety.AssertMainThread();
-
-        using var resUnk = new ComPtr<IUnknown>((IUnknown*)wrap.ImGuiHandle);
-
+        using var resUnk = default(ComPtr<IUnknown>);
         using var texSrv = default(ComPtr<ID3D11ShaderResourceView>);
-        resUnk.As(&texSrv).ThrowOnError();
-
         using var device = default(ComPtr<ID3D11Device>);
-        texSrv.Get()->GetDevice(device.GetAddressOf());
-
-        using var deviceContext = default(ComPtr<ID3D11DeviceContext>);
-        device.Get()->GetImmediateContext(deviceContext.GetAddressOf());
-
+        using var context = default(ComPtr<ID3D11DeviceContext>);
         using var tex2D = default(ComPtr<ID3D11Texture2D>);
-        using (var texRes = default(ComPtr<ID3D11Resource>))
+        var texDesc = default(D3D11_TEXTURE2D_DESC);
+
+        unsafe
         {
-            texSrv.Get()->GetResource(texRes.GetAddressOf());
-            texRes.As(&tex2D).ThrowOnError();
+            resUnk.Attach((IUnknown*)wrap.ImGuiHandle);
+            resUnk.Get()->AddRef();
+
+            resUnk.As(&texSrv).ThrowOnError();
+
+            texSrv.Get()->GetDevice(device.GetAddressOf());
+
+            device.Get()->GetImmediateContext(context.GetAddressOf());
+
+            using (var texRes = default(ComPtr<ID3D11Resource>))
+            {
+                texSrv.Get()->GetResource(texRes.GetAddressOf());
+
+                using var tex2DTemp = default(ComPtr<ID3D11Texture2D>);
+                texRes.As(&tex2DTemp).ThrowOnError();
+                tex2D.Swap(&tex2DTemp);
+            }
+
+            tex2D.Get()->GetDesc(&texDesc);
         }
 
+        if (texDesc.Format != dxgiFormat && dxgiFormat != DXGI_FORMAT.DXGI_FORMAT_UNKNOWN)
+        {
+            using var tmp = await this.NoThrottleCreateFromExistingTextureAsync(wrap, uv0, uv1, dxgiFormat);
+            unsafe
+            {
+                tex2D.Swap(&tmp);
+            }
+        }
+
+        cancellationToken.ThrowIfCancellationRequested();
+        return await this.interfaceManager.RunBeforePresent(
+                   () => ExtractMappedResource(device, context, tex2D, cancellationToken));
+
+        static unsafe (RawImageSpecification Specification, byte[] RawData) ExtractMappedResource(
+            ComPtr<ID3D11Device> device,
+            ComPtr<ID3D11DeviceContext> context,
+            ComPtr<ID3D11Texture2D> tex2D,
+            CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            ID3D11Resource* mapWhat = null;
+            try
+            {
+                using var tmpTex = default(ComPtr<ID3D11Texture2D>);
+                D3D11_TEXTURE2D_DESC desc;
+                tex2D.Get()->GetDesc(&desc);
+                if ((desc.CPUAccessFlags & (uint)D3D11_CPU_ACCESS_FLAG.D3D11_CPU_ACCESS_READ) == 0)
+                {
+                    var tmpTexDesc = desc with
+                    {
+                        MipLevels = 1,
+                        ArraySize = 1,
+                        SampleDesc = new(1, 0),
+                        Usage = D3D11_USAGE.D3D11_USAGE_STAGING,
+                        BindFlags = 0u,
+                        CPUAccessFlags = (uint)D3D11_CPU_ACCESS_FLAG.D3D11_CPU_ACCESS_READ,
+                        MiscFlags = 0u,
+                    };
+                    device.Get()->CreateTexture2D(&tmpTexDesc, null, tmpTex.GetAddressOf()).ThrowOnError();
+                    context.Get()->CopyResource((ID3D11Resource*)tmpTex.Get(), (ID3D11Resource*)tex2D.Get());
+
+                    cancellationToken.ThrowIfCancellationRequested();
+                }
+
+                D3D11_MAPPED_SUBRESOURCE mapped;
+                mapWhat = (ID3D11Resource*)(tmpTex.IsEmpty() ? tex2D.Get() : tmpTex.Get());
+                context.Get()->Map(
+                    mapWhat,
+                    0,
+                    D3D11_MAP.D3D11_MAP_READ,
+                    0,
+                    &mapped).ThrowOnError();
+
+                var specs = RawImageSpecification.From((int)desc.Width, (int)desc.Height, (int)desc.Format);
+                var bytes = new Span<byte>(mapped.pData, checked((int)mapped.DepthPitch)).ToArray();
+                return (specs, bytes);
+            }
+            finally
+            {
+                if (mapWhat is not null)
+                    context.Get()->Unmap(mapWhat, 0);
+            }
+        }
+    }
+
+    private async Task<ComPtr<ID3D11Texture2D>> NoThrottleCreateFromExistingTextureAsync(
+        IDalamudTextureWrap wrap,
+        Vector2 uv0,
+        Vector2 uv1,
+        DXGI_FORMAT format)
+    {
+        using var resUnk = default(ComPtr<IUnknown>);
+        using var texSrv = default(ComPtr<ID3D11ShaderResourceView>);
+        using var device = default(ComPtr<ID3D11Device>);
+        using var context = default(ComPtr<ID3D11DeviceContext>);
+        using var tex2D = default(ComPtr<ID3D11Texture2D>);
         var texDesc = default(D3D11_TEXTURE2D_DESC);
-        tex2D.Get()->GetDesc(&texDesc);
+
+        unsafe
+        {
+            resUnk.Attach((IUnknown*)wrap.ImGuiHandle);
+            resUnk.Get()->AddRef();
+
+            using (var texSrv2 = default(ComPtr<ID3D11ShaderResourceView>))
+            {
+                resUnk.As(&texSrv2).ThrowOnError();
+                texSrv.Attach(texSrv2);
+                texSrv2.Detach();
+            }
+
+            texSrv.Get()->GetDevice(device.GetAddressOf());
+
+            device.Get()->GetImmediateContext(context.GetAddressOf());
+
+            using (var texRes = default(ComPtr<ID3D11Resource>))
+            {
+                texSrv.Get()->GetResource(texRes.GetAddressOf());
+                texRes.As(&tex2D).ThrowOnError();
+            }
+
+            tex2D.Get()->GetDesc(&texDesc);
+        }
+
+        var newWidth = checked((uint)MathF.Round((uv1.X - uv0.X) * texDesc.Width));
+        var newHeight = checked((uint)MathF.Round((uv1.Y - uv0.Y) * texDesc.Height));
 
         using var tex2DCopyTemp = default(ComPtr<ID3D11Texture2D>);
-        var tex2DCopyTempDesc = new D3D11_TEXTURE2D_DESC
+        unsafe
         {
-            Width = checked((uint)MathF.Round((uv1.X - uv0.X) * wrap.Width)),
-            Height = checked((uint)MathF.Round((uv1.Y - uv0.Y) * wrap.Height)),
-            MipLevels = 1,
-            ArraySize = 1,
-            Format = format,
-            SampleDesc = new(1, 0),
-            Usage = D3D11_USAGE.D3D11_USAGE_DEFAULT,
-            BindFlags = (uint)(D3D11_BIND_FLAG.D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_FLAG.D3D11_BIND_RENDER_TARGET),
-            CPUAccessFlags = 0u,
-            MiscFlags = 0u,
-        };
-        device.Get()->CreateTexture2D(&tex2DCopyTempDesc, null, tex2DCopyTemp.GetAddressOf()).ThrowOnError();
-
-        using (var rtvCopyTemp = default(ComPtr<ID3D11RenderTargetView>))
-        {
-            var rtvCopyTempDesc = new D3D11_RENDER_TARGET_VIEW_DESC(
-                tex2DCopyTemp,
-                D3D11_RTV_DIMENSION.D3D11_RTV_DIMENSION_TEXTURE2D);
-            device.Get()->CreateRenderTargetView(
-                (ID3D11Resource*)tex2DCopyTemp.Get(),
-                &rtvCopyTempDesc,
-                rtvCopyTemp.GetAddressOf()).ThrowOnError();
-
-            this.drawsOneSquare ??= new();
-            this.drawsOneSquare.Setup(device.Get());
-
-            deviceContext.Get()->OMSetRenderTargets(1u, rtvCopyTemp.GetAddressOf(), null);
-            this.drawsOneSquare.Draw(
-                deviceContext.Get(),
-                texSrv.Get(),
-                (int)tex2DCopyTempDesc.Width,
-                (int)tex2DCopyTempDesc.Height,
-                uv0,
-                uv1);
-            deviceContext.Get()->OMSetRenderTargets(0, null, null);
+            var tex2DCopyTempDesc = new D3D11_TEXTURE2D_DESC
+            {
+                Width = newWidth,
+                Height = newHeight,
+                MipLevels = 1,
+                ArraySize = 1,
+                Format = format,
+                SampleDesc = new(1, 0),
+                Usage = D3D11_USAGE.D3D11_USAGE_DEFAULT,
+                BindFlags = (uint)(D3D11_BIND_FLAG.D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_FLAG.D3D11_BIND_RENDER_TARGET),
+                CPUAccessFlags = 0u,
+                MiscFlags = 0u,
+            };
+            device.Get()->CreateTexture2D(&tex2DCopyTempDesc, null, tex2DCopyTemp.GetAddressOf()).ThrowOnError();
         }
 
-        if (!enableCpuRead)
-        {
-            tex2DCopyTemp.Get()->AddRef();
-            return tex2DCopyTemp.Get();
-        }
+        await this.interfaceManager.RunBeforePresent(
+            () =>
+            {
+                unsafe
+                {
+                    using var rtvCopyTemp = default(ComPtr<ID3D11RenderTargetView>);
+                    var rtvCopyTempDesc = new D3D11_RENDER_TARGET_VIEW_DESC(
+                        tex2DCopyTemp,
+                        D3D11_RTV_DIMENSION.D3D11_RTV_DIMENSION_TEXTURE2D);
+                    device.Get()->CreateRenderTargetView(
+                        (ID3D11Resource*)tex2DCopyTemp.Get(),
+                        &rtvCopyTempDesc,
+                        rtvCopyTemp.GetAddressOf()).ThrowOnError();
 
-        using var tex2DTarget = default(ComPtr<ID3D11Texture2D>);
-        var tex2DTargetDesc = tex2DCopyTempDesc with
-        {
-            Usage = D3D11_USAGE.D3D11_USAGE_DYNAMIC,
-            BindFlags = 0u,
-            CPUAccessFlags = (uint)D3D11_CPU_ACCESS_FLAG.D3D11_CPU_ACCESS_READ,
-        };
-        device.Get()->CreateTexture2D(&tex2DTargetDesc, null, tex2DTarget.GetAddressOf()).ThrowOnError();
+                    this.drawsOneSquare ??= new();
+                    this.drawsOneSquare.Setup(device.Get());
 
-        deviceContext.Get()->CopyResource((ID3D11Resource*)tex2DTarget.Get(), (ID3D11Resource*)tex2DCopyTemp.Get());
+                    context.Get()->OMSetRenderTargets(1u, rtvCopyTemp.GetAddressOf(), null);
+                    this.drawsOneSquare.Draw(
+                        context.Get(),
+                        texSrv.Get(),
+                        (int)newWidth,
+                        (int)newHeight,
+                        uv0,
+                        uv1);
+                    context.Get()->OMSetRenderTargets(0, null, null);
+                }
+            });
 
-        tex2DTarget.Get()->AddRef();
-        return tex2DTarget.Get();
+        return new(tex2DCopyTemp);
     }
 
     [SuppressMessage(

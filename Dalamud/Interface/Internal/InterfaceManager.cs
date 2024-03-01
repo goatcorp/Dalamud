@@ -287,7 +287,47 @@ internal class InterfaceManager : IDisposable, IServiceType
 
     /// <summary>Queues an action to be run before Present call.</summary>
     /// <param name="action">The action.</param>
-    public void RunBeforePresent(Action action) => this.runBeforePresent.Enqueue(action);
+    /// <returns>A <see cref="Task"/> that resolves once <paramref name="action"/> is run.</returns>
+    public Task RunBeforePresent(Action action)
+    {
+        var tcs = new TaskCompletionSource();
+        this.runBeforePresent.Enqueue(
+            () =>
+            {
+                try
+                {
+                    action();
+                    tcs.SetResult();
+                }
+                catch (Exception e)
+                {
+                    tcs.SetException(e);
+                }
+            });
+        return tcs.Task;
+    }
+
+    /// <summary>Queues a function to be run before Present call.</summary>
+    /// <typeparam name="T">The type of the return value.</typeparam>
+    /// <param name="func">The function.</param>
+    /// <returns>A <see cref="Task"/> that resolves once <paramref name="func"/> is run.</returns>
+    public Task<T> RunBeforePresent<T>(Func<T> func)
+    {
+        var tcs = new TaskCompletionSource<T>();
+        this.runBeforePresent.Enqueue(
+            () =>
+            {
+                try
+                {
+                    tcs.SetResult(func());
+                }
+                catch (Exception e)
+                {
+                    tcs.SetException(e);
+                }
+            });
+        return tcs.Task;
+    }
 
     /// <summary>
     /// Get video memory information.

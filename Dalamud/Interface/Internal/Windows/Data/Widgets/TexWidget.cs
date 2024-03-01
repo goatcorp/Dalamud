@@ -7,6 +7,7 @@ using System.Runtime.Loader;
 using System.Threading.Tasks;
 
 using Dalamud.Interface.Components;
+using Dalamud.Interface.ImGuiFileDialog;
 using Dalamud.Interface.Internal.Notifications;
 using Dalamud.Interface.Internal.SharedImmediateTextures;
 using Dalamud.Interface.Utility;
@@ -15,6 +16,8 @@ using Dalamud.Storage.Assets;
 using Dalamud.Utility;
 
 using ImGuiNET;
+
+using Serilog;
 
 using TerraFX.Interop.DirectX;
 
@@ -42,6 +45,7 @@ internal class TexWidget : IDataWindowWidget
     private Vector4 inputTintCol = Vector4.One;
     private Vector2 inputTexScale = Vector2.Zero;
     private TextureManager textureManager = null!;
+    private FileDialogManager fileDialogManager = null!;
 
     private string[]? supportedRenderTargetFormatNames;
     private DXGI_FORMAT[]? supportedRenderTargetFormats;
@@ -74,6 +78,7 @@ internal class TexWidget : IDataWindowWidget
         this.inputManifestResourceNameIndex = 0;
         this.supportedRenderTargetFormats = null;
         this.supportedRenderTargetFormatNames = null;
+        this.fileDialogManager = new();
         this.Ready = true;
     }
 
@@ -233,6 +238,8 @@ internal class TexWidget : IDataWindowWidget
         }
 
         runLater?.Invoke();
+
+        this.fileDialogManager.Draw();
     }
 
     private unsafe void DrawLoadedTextures(ICollection<SharedImmediateTexture> textures)
@@ -241,11 +248,11 @@ internal class TexWidget : IDataWindowWidget
         if (!ImGui.BeginTable("##table", 6))
             return;
 
-        const int numIcons = 3;
+        const int numIcons = 4;
         float iconWidths;
         using (im.IconFontHandle?.Push())
         {
-            iconWidths = ImGui.CalcTextSize(FontAwesomeIcon.Image.ToIconString()).X;
+            iconWidths = ImGui.CalcTextSize(FontAwesomeIcon.Save.ToIconString()).X;
             iconWidths += ImGui.CalcTextSize(FontAwesomeIcon.Sync.ToIconString()).X;
             iconWidths += ImGui.CalcTextSize(FontAwesomeIcon.Trash.ToIconString()).X;
         }
@@ -315,7 +322,24 @@ internal class TexWidget : IDataWindowWidget
                     ImGui.TextUnformatted(texture.HasRevivalPossibility ? "Yes" : "No");
 
                     ImGui.TableNextColumn();
-                    ImGuiComponents.IconButton(FontAwesomeIcon.Image);
+                    if (ImGuiComponents.IconButton(FontAwesomeIcon.Save))
+                    {
+                        this.fileDialogManager.SaveFileDialog(
+                            "Save texture...",
+                            string.Join(
+                                ',',
+                                this.textureManager
+                                    .GetSupportedImageExtensions()
+                                    .Select(x => $"{string.Join(" | ", x)}{{{string.Join(',', x)}}}")),
+                            Path.ChangeExtension(Path.GetFileName(texture.SourcePathForDebug), ".png"),
+                            ".png",
+                            (ok, path) =>
+                            {
+                                if (ok)
+                                    Task.Run(() => this.SaveImmediateTexture(texture, path));
+                            });
+                    }
+
                     if (ImGui.IsItemHovered() && texture.GetWrapOrDefault(null) is { } immediate)
                     {
                         ImGui.BeginTooltip();
@@ -349,6 +373,37 @@ internal class TexWidget : IDataWindowWidget
         ImGui.EndTable();
 
         ImGuiHelpers.ScaledDummy(10);
+    }
+
+    private async void SaveImmediateTexture(ISharedImmediateTexture texture, string path)
+    {
+        try
+        {
+            using var rented = await texture.RentAsync();
+            await this.textureManager.SaveAsImageFormatToStreamAsync(
+                rented,
+                Path.GetExtension(path),
+                File.Create(path),
+                props: new Dictionary<string, object>
+                {
+                    ["CompressionQuality"] = 1.0f,
+                    ["ImageQuality"] = 1.0f,
+                });
+        }
+        catch (Exception e)
+        {
+            Log.Error(e, $"{nameof(TexWidget)}.{nameof(this.SaveImmediateTexture)}");
+            Service<NotificationManager>.Get().AddNotification(
+                $"Failed to save file: {e}",
+                this.DisplayName,
+                NotificationType.Error);
+            return;
+        }
+
+        Service<NotificationManager>.Get().AddNotification(
+            $"File saved to: {path}",
+            this.DisplayName,
+            NotificationType.Success);
     }
 
     private void DrawGetFromGameIcon()
