@@ -321,7 +321,8 @@ internal sealed partial class TextureManager : IServiceType, IDisposable, ITextu
 
         var format = (Format)dxgiFormat;
         var support = scene.Device.CheckFormatSupport(format);
-        return (support & FormatSupport.Texture2D) != 0;
+        const FormatSupport required = FormatSupport.Texture2D;
+        return (support & required) == required;
     }
 
     /// <inheritdoc/>

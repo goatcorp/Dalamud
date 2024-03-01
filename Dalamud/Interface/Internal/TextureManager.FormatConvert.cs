@@ -35,10 +35,24 @@ internal sealed partial class TextureManager
             scene = this.interfaceManager.Scene ?? throw new InvalidOperationException();
         }
 
+        switch (dxgiFormat)
+        {
+            // https://learn.microsoft.com/en-us/windows/win32/api/dxgiformat/ne-dxgiformat-dxgi_format
+            // Video formats requiring use of another DXGI_FORMAT when using with CreateRenderTarget
+            case DXGI_FORMAT.DXGI_FORMAT_AYUV:
+            case DXGI_FORMAT.DXGI_FORMAT_NV12:
+            case DXGI_FORMAT.DXGI_FORMAT_P010:
+            case DXGI_FORMAT.DXGI_FORMAT_P016:
+            case DXGI_FORMAT.DXGI_FORMAT_NV11:
+                return false;
+        }
+
         var format = (Format)dxgiFormat;
         var support = scene.Device.CheckFormatSupport(format);
-        return (support & FormatSupport.RenderTarget) != 0
-               && (support & FormatSupport.Texture2D) != 0;
+        const FormatSupport required =
+            FormatSupport.RenderTarget |
+            FormatSupport.Texture2D;
+        return (support & required) == required;
     }
 
     /// <inheritdoc/>
@@ -72,7 +86,8 @@ internal sealed partial class TextureManager
                                        ct.ThrowIfCancellationRequested();
                                        unsafe
                                        {
-                                           using var tex = new ComPtr<ID3D11Texture2D>(
+                                           using var tex = default(ComPtr<ID3D11Texture2D>);
+                                           tex.Attach(
                                                this.NoThrottleCreateFromExistingTextureCore(
                                                    wrapCopy,
                                                    uv0,
