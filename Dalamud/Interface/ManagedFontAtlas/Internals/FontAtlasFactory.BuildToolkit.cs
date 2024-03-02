@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 using System.Text.Unicode;
 
 using Dalamud.Configuration.Internal;
+using Dalamud.Interface.FontIdentifier;
 using Dalamud.Interface.GameFonts;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Utility;
@@ -42,6 +43,7 @@ internal sealed partial class FontAtlasFactory
         private readonly GamePrebakedFontHandle.HandleSubstance gameFontHandleSubstance;
         private readonly FontAtlasFactory factory;
         private readonly FontAtlasBuiltData data;
+        private readonly List<Action> registeredPostBuildActions = new();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="BuildToolkit"/> class.
@@ -81,9 +83,9 @@ internal sealed partial class FontAtlasFactory
         public ImVectorWrapper<ImFontPtr> Fonts => this.data.Fonts;
 
         /// <summary>
-        /// Gets the list of fonts to ignore global scale.
+        /// Gets the font scale modes.
         /// </summary>
-        public List<ImFontPtr> GlobalScaleExclusions { get; } = new();
+        private Dictionary<ImFontPtr, FontScaleMode> FontScaleModes { get; } = new();
 
         /// <inheritdoc/>
         public void Dispose() => this.disposeAfterBuild.Dispose();
@@ -149,19 +151,22 @@ internal sealed partial class FontAtlasFactory
         }
 
         /// <inheritdoc/>
-        public ImFontPtr IgnoreGlobalScale(ImFontPtr fontPtr)
+        public ImFontPtr SetFontScaleMode(ImFontPtr fontPtr, FontScaleMode scaleMode)
         {
-            this.GlobalScaleExclusions.Add(fontPtr);
+            this.FontScaleModes[fontPtr] = scaleMode;
             return fontPtr;
         }
 
-        /// <inheritdoc cref="IFontAtlasBuildToolkitPreBuild.IsGlobalScaleIgnored"/>
-        public bool IsGlobalScaleIgnored(ImFontPtr fontPtr) =>
-            this.GlobalScaleExclusions.Contains(fontPtr);
+        /// <inheritdoc cref="IFontAtlasBuildToolkitPreBuild.GetFontScaleMode"/>
+        public FontScaleMode GetFontScaleMode(ImFontPtr fontPtr) =>
+            this.FontScaleModes.GetValueOrDefault(fontPtr, FontScaleMode.Default);
 
         /// <inheritdoc/>
         public int StoreTexture(IDalamudTextureWrap textureWrap, bool disposeOnError) =>
             this.data.AddNewTexture(textureWrap, disposeOnError);
+        
+        /// <inheritdoc/>
+        public void RegisterPostBuild(Action action) => this.registeredPostBuildActions.Add(action);
 
         /// <inheritdoc/>
         public unsafe ImFontPtr AddFontFromImGuiHeapAllocatedMemory(
@@ -180,6 +185,7 @@ internal sealed partial class FontAtlasFactory
                 dataSize,
                 debugTag);
 
+            var font = default(ImFontPtr);
             try
             {
                 fontConfig.ThrowOnInvalidValues();
@@ -187,6 +193,7 @@ internal sealed partial class FontAtlasFactory
                 var raw = fontConfig.Raw with
                 {
                     FontData = dataPointer,
+                    FontDataOwnedByAtlas = 1,
                     FontDataSize = dataSize,
                 };
 
@@ -198,7 +205,7 @@ internal sealed partial class FontAtlasFactory
 
                 TrueTypeUtils.CheckImGuiCompatibleOrThrow(raw);
 
-                var font = this.NewImAtlas.AddFont(&raw);
+                font = this.NewImAtlas.AddFont(&raw);
 
                 var dataHash = default(HashCode);
                 dataHash.AddBytes(new(dataPointer, dataSize));
@@ -235,8 +242,23 @@ internal sealed partial class FontAtlasFactory
             }
             catch
             {
+                if (!font.IsNull())
+                {
+                    // Note that for both RemoveAt calls, corresponding destructors will be called.
+
+                    var configIndex = this.data.ConfigData.FindIndex(x => x.DstFont == font.NativePtr);
+                    if (configIndex >= 0)
+                        this.data.ConfigData.RemoveAt(configIndex);
+
+                    var index = this.Fonts.IndexOf(font);
+                    if (index >= 0)
+                        this.Fonts.RemoveAt(index);
+                }
+
+                // ImFontConfig has no destructor, and does not free the data.
                 if (freeOnException)
                     ImGuiNative.igMemFree(dataPointer);
+
                 throw;
             }
         }
@@ -314,18 +336,32 @@ internal sealed partial class FontAtlasFactory
         /// <inheritdoc/>
         public ImFontPtr AddDalamudDefaultFont(float sizePx, ushort[]? glyphRanges)
         {
-            ImFontPtr font;
+            ImFontPtr font = default;
             glyphRanges ??= this.factory.DefaultGlyphRanges;
-            if (this.factory.UseAxis)
+
+            var dfid = this.factory.DefaultFontSpec;
+            if (sizePx < 0f)
+                sizePx *= -dfid.SizePx;
+
+            if (dfid is SingleFontSpec sfs)
             {
-                font = this.AddGameGlyphs(new(GameFontFamily.Axis, sizePx), glyphRanges, default);
+                if (sfs.FontId is DalamudDefaultFontAndFamilyId)
+                {
+                    // invalid; calling sfs.AddToBuildToolkit calls this function, causing infinite recursion
+                }
+                else
+                {
+                    sfs = sfs with { SizePx = sizePx };
+                    font = sfs.AddToBuildToolkit(this);
+                    if (sfs.FontId is not GameFontAndFamilyId { GameFontFamily: GameFontFamily.Axis })
+                        this.AddGameSymbol(new() { SizePx = sizePx, MergeFont = font });
+                }
             }
-            else
+
+            if (font.IsNull())
             {
-                font = this.AddDalamudAssetFont(
-                    DalamudAsset.NotoSansJpMedium,
-                    new() { SizePx = sizePx, GlyphRanges = glyphRanges });
-                this.AddGameSymbol(new() { SizePx = sizePx, MergeFont = font });
+                // fall back to AXIS fonts
+                font = this.AddGameGlyphs(new(GameFontFamily.Axis, sizePx), glyphRanges, default);
             }
 
             this.AttachExtraGlyphsForDalamudLanguage(new() { SizePx = sizePx, MergeFont = font });
@@ -460,17 +496,17 @@ internal sealed partial class FontAtlasFactory
             var configData = this.data.ConfigData;
             foreach (ref var config in configData.DataSpan)
             {
-                if (this.GlobalScaleExclusions.Contains(new(config.DstFont)))
+                if (this.GetFontScaleMode(config.DstFont) != FontScaleMode.Default)
                     continue;
 
                 config.SizePixels *= this.Scale;
 
                 config.GlyphMaxAdvanceX *= this.Scale;
-                if (float.IsInfinity(config.GlyphMaxAdvanceX))
+                if (float.IsInfinity(config.GlyphMaxAdvanceX) || float.IsNaN(config.GlyphMaxAdvanceX))
                     config.GlyphMaxAdvanceX = config.GlyphMaxAdvanceX > 0 ? float.MaxValue : -float.MaxValue;
 
                 config.GlyphMinAdvanceX *= this.Scale;
-                if (float.IsInfinity(config.GlyphMinAdvanceX))
+                if (float.IsInfinity(config.GlyphMinAdvanceX) || float.IsNaN(config.GlyphMinAdvanceX))
                     config.GlyphMinAdvanceX = config.GlyphMinAdvanceX > 0 ? float.MaxValue : -float.MaxValue;
 
                 config.GlyphOffset *= this.Scale;
@@ -500,7 +536,7 @@ internal sealed partial class FontAtlasFactory
             var scale = this.Scale;
             foreach (ref var font in this.Fonts.DataSpan)
             {
-                if (!this.GlobalScaleExclusions.Contains(font))
+                if (this.GetFontScaleMode(font) != FontScaleMode.SkipHandling)
                     font.AdjustGlyphMetrics(1 / scale, 1 / scale);
 
                 foreach (var c in FallbackCodepoints)
@@ -529,6 +565,13 @@ internal sealed partial class FontAtlasFactory
         {
             foreach (var substance in this.data.Substances)
                 substance.OnPostBuild(this);
+        }
+
+        public void PostBuildCallbacks()
+        {
+            foreach (var ac in this.registeredPostBuildActions)
+                ac.InvokeSafely();
+            this.registeredPostBuildActions.Clear();
         }
 
         public unsafe void UploadTextures()

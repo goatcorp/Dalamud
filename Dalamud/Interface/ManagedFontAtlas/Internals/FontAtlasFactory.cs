@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Dalamud.Configuration.Internal;
 using Dalamud.Data;
 using Dalamud.Game;
+using Dalamud.Interface.FontIdentifier;
 using Dalamud.Interface.GameFonts;
 using Dalamud.Interface.Internal;
 using Dalamud.Storage.Assets;
@@ -108,14 +109,29 @@ internal sealed partial class FontAtlasFactory
     }
 
     /// <summary>
-    /// Gets or sets a value indicating whether to override configuration for UseAxis.
+    /// Gets or sets a value indicating whether to override configuration for <see cref="DefaultFontSpec"/>.
     /// </summary>
-    public bool? UseAxisOverride { get; set; } = null;
+    public IFontSpec? DefaultFontSpecOverride { get; set; } = null;
 
     /// <summary>
-    /// Gets a value indicating whether to use AXIS fonts.
+    /// Gets the default font ID.
     /// </summary>
-    public bool UseAxis => this.UseAxisOverride ?? Service<DalamudConfiguration>.Get().UseAxisFontsFromGame;
+    public IFontSpec DefaultFontSpec =>
+        this.DefaultFontSpecOverride
+        ?? Service<DalamudConfiguration>.Get().DefaultFontSpec
+#pragma warning disable CS0618 // Type or member is obsolete
+        ?? (Service<DalamudConfiguration>.Get().UseAxisFontsFromGame
+#pragma warning restore CS0618 // Type or member is obsolete
+                ? new()
+                {
+                    FontId = new GameFontAndFamilyId(GameFontFamily.Axis),
+                    SizePx = InterfaceManager.DefaultFontSizePx,
+                }
+                : new SingleFontSpec
+                {
+                    FontId = new DalamudAssetFontAndFamilyId(DalamudAsset.NotoSansJpMedium),
+                    SizePx = InterfaceManager.DefaultFontSizePx + 1,
+                });
 
     /// <summary>
     /// Gets the service instance of <see cref="Framework"/>.
@@ -229,6 +245,25 @@ internal sealed partial class FontAtlasFactory
 
     private static T ExtractResult<T>(Task<T> t) => t.IsCompleted ? t.Result : t.GetAwaiter().GetResult();
 
+    /// <summary>
+    /// Clones a texture wrap, by getting a new reference to the underlying <see cref="ShaderResourceView"/> and the
+    /// texture behind.
+    /// </summary>
+    /// <param name="wrap">The <see cref="IDalamudTextureWrap"/> to clone from.</param>
+    /// <returns>The cloned <see cref="IDalamudTextureWrap"/>.</returns>
+    private static IDalamudTextureWrap CloneTextureWrap(IDalamudTextureWrap wrap)
+    {
+        var srv = CppObject.FromPointer<ShaderResourceView>(wrap.ImGuiHandle);
+        using var res = srv.Resource;
+        using var tex2D = res.QueryInterface<Texture2D>();
+        var description = tex2D.Description;
+        return new DalamudTextureWrap(
+            new D3DTextureWrap(
+                srv.QueryInterface<ShaderResourceView>(),
+                description.Width,
+                description.Height));
+    }
+
     private static unsafe void ExtractChannelFromB8G8R8A8(
         Span<byte> target,
         ReadOnlySpan<byte> source,
@@ -266,25 +301,6 @@ internal sealed partial class FontAtlasFactory
         }
     }
 
-    /// <summary>
-    /// Clones a texture wrap, by getting a new reference to the underlying <see cref="ShaderResourceView"/> and the
-    /// texture behind.
-    /// </summary>
-    /// <param name="wrap">The <see cref="IDalamudTextureWrap"/> to clone from.</param>
-    /// <returns>The cloned <see cref="IDalamudTextureWrap"/>.</returns>
-    private static IDalamudTextureWrap CloneTextureWrap(IDalamudTextureWrap wrap)
-    {
-        var srv = CppObject.FromPointer<ShaderResourceView>(wrap.ImGuiHandle);
-        using var res = srv.Resource;
-        using var tex2D = res.QueryInterface<Texture2D>();
-        var description = tex2D.Description;
-        return new DalamudTextureWrap(
-            new D3DTextureWrap(
-                srv.QueryInterface<ShaderResourceView>(),
-                description.Width,
-                description.Height));
-    }
-
     private static unsafe void ExtractChannelFromB4G4R4A4(
         Span<byte> target,
         ReadOnlySpan<byte> source,
@@ -317,7 +333,7 @@ internal sealed partial class FontAtlasFactory
                         v |= v << 4;
                         *wptr = (uint)((v << 24) | 0x00FFFFFF);
                         wptr++;
-                        rptr += 4;
+                        rptr += 2;
                     }
                 }
             }

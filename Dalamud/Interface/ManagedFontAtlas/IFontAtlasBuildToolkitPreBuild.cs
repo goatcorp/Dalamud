@@ -1,8 +1,10 @@
 ﻿using System.IO;
 using System.Runtime.InteropServices;
 
+using Dalamud.Interface.FontIdentifier;
 using Dalamud.Interface.GameFonts;
 using Dalamud.Interface.Utility;
+using Dalamud.Utility;
 
 using ImGuiNET;
 
@@ -10,6 +12,7 @@ namespace Dalamud.Interface.ManagedFontAtlas;
 
 /// <summary>
 /// Toolkit for use when the build state is <see cref="FontAtlasBuildStep.PreBuild"/>.<br />
+/// Not intended for plugins to implement.<br />
 /// <br />
 /// After <see cref="FontAtlasBuildStepDelegate"/> returns,
 /// either <see cref="IFontAtlasBuildToolkit.Font"/> must be set,
@@ -43,14 +46,43 @@ public interface IFontAtlasBuildToolkitPreBuild : IFontAtlasBuildToolkit
     /// </summary>
     /// <param name="fontPtr">The font.</param>
     /// <returns>Same <see cref="ImFontPtr"/> with <paramref name="fontPtr"/>.</returns>
-    ImFontPtr IgnoreGlobalScale(ImFontPtr fontPtr);
+    [Obsolete(
+        $"Use {nameof(this.SetFontScaleMode)} with {nameof(FontScaleMode)}.{nameof(FontScaleMode.UndoGlobalScale)}")]
+    [Api10ToDo(Api10ToDoAttribute.DeleteCompatBehavior)]
+    ImFontPtr IgnoreGlobalScale(ImFontPtr fontPtr) => this.SetFontScaleMode(fontPtr, FontScaleMode.UndoGlobalScale);
 
     /// <summary>
     /// Gets whether global scaling is ignored for the given font.
     /// </summary>
     /// <param name="fontPtr">The font.</param>
     /// <returns>True if ignored.</returns>
-    bool IsGlobalScaleIgnored(ImFontPtr fontPtr);
+    [Obsolete($"Use {nameof(this.GetFontScaleMode)}")]
+    [Api10ToDo(Api10ToDoAttribute.DeleteCompatBehavior)]
+    bool IsGlobalScaleIgnored(ImFontPtr fontPtr) => this.GetFontScaleMode(fontPtr) == FontScaleMode.UndoGlobalScale;
+
+    /// <summary>
+    /// Sets the scaling mode for the given font.
+    /// </summary>
+    /// <param name="fontPtr">The font, returned from <see cref="AddFontFromFile"/> and alike.
+    /// Note that <see cref="IFontAtlasBuildToolkit.Font"/> property is not guaranteed to be automatically updated upon
+    /// calling font adding functions. Pass the return value from font adding functions, not
+    /// <see cref="IFontAtlasBuildToolkit.Font"/> property.</param>
+    /// <param name="mode">The scaling mode.</param>
+    /// <returns><paramref name="fontPtr"/>.</returns>
+    ImFontPtr SetFontScaleMode(ImFontPtr fontPtr, FontScaleMode mode);
+
+    /// <summary>
+    /// Gets the scaling mode for the given font.
+    /// </summary>
+    /// <param name="fontPtr">The font.</param>
+    /// <returns>The scaling mode.</returns>
+    FontScaleMode GetFontScaleMode(ImFontPtr fontPtr);
+
+    /// <summary>
+    /// Registers a function to be run after build.
+    /// </summary>
+    /// <param name="action">The action to run.</param>
+    void RegisterPostBuild(Action action);
 
     /// <summary>
     /// Adds a font from memory region allocated using <see cref="ImGuiHelpers.AllocateMemory"/>.<br />
@@ -134,7 +166,12 @@ public interface IFontAtlasBuildToolkitPreBuild : IFontAtlasBuildToolkit
     /// As this involves adding multiple fonts, calling this function will set <see cref="IFontAtlasBuildToolkit.Font"/>
     /// as the return value of this function, if it was empty before.
     /// </summary>
-    /// <param name="sizePx">Font size in pixels.</param>
+    /// <param name="sizePx">
+    /// Font size in pixels.
+    /// If a negative value is supplied,
+    /// (<see cref="UiBuilder.DefaultFontSpec"/>.<see cref="IFontSpec.SizePx"/> * <paramref name="sizePx"/>) will be
+    /// used as the font size. Specify -1 to use the default font size.
+    /// </param>
     /// <param name="glyphRanges">The glyph ranges. Use <see cref="FontAtlasBuildToolkitUtilities"/>.ToGlyphRange to build.</param>
     /// <returns>A font returned from <see cref="ImFontAtlasPtr.AddFont"/>.</returns>
     ImFontPtr AddDalamudDefaultFont(float sizePx, ushort[]? glyphRanges = null);

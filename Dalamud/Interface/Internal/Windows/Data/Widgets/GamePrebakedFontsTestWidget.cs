@@ -5,7 +5,10 @@ using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 
+using Dalamud.Game;
+using Dalamud.Interface.FontIdentifier;
 using Dalamud.Interface.GameFonts;
+using Dalamud.Interface.ImGuiFontChooserDialog;
 using Dalamud.Interface.ManagedFontAtlas;
 using Dalamud.Interface.ManagedFontAtlas.Internals;
 using Dalamud.Interface.Utility;
@@ -22,10 +25,20 @@ namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 /// </summary>
 internal class GamePrebakedFontsTestWidget : IDataWindowWidget, IDisposable
 {
+    private static readonly string[] FontScaleModes =
+    {
+        nameof(FontScaleMode.Default),
+        nameof(FontScaleMode.SkipHandling),
+        nameof(FontScaleMode.UndoGlobalScale),
+    };
+
     private ImVectorWrapper<byte> testStringBuffer;
     private IFontAtlas? privateAtlas;
+    private SingleFontSpec fontSpec = new() { FontId = DalamudDefaultFontAndFamilyId.Instance };
+    private IFontHandle? fontDialogHandle;
     private IReadOnlyDictionary<GameFontFamily, (GameFontStyle Size, Lazy<IFontHandle> Handle)[]>? fontHandles;
-    private bool useGlobalScale;
+    private bool atlasScaleMode = true;
+    private int fontScaleMode = (int)FontScaleMode.UndoGlobalScale;
     private bool useWordWrap;
     private bool useItalic;
     private bool useBold;
@@ -47,12 +60,14 @@ internal class GamePrebakedFontsTestWidget : IDataWindowWidget, IDisposable
     public unsafe void Draw()
     {
         ImGui.AlignTextToFramePadding();
-        fixed (byte* labelPtr = "Global Scale"u8)
+        if (ImGui.Combo("Global Scale per Font", ref this.fontScaleMode, FontScaleModes, FontScaleModes.Length))
+            this.ClearAtlas();
+        fixed (byte* labelPtr = "Global Scale for Atlas"u8)
         {
-            var v = (byte)(this.useGlobalScale ? 1 : 0);
+            var v = (byte)(this.atlasScaleMode ? 1 : 0);
             if (ImGuiNative.igCheckbox(labelPtr, &v) != 0)
             {
-                this.useGlobalScale = v != 0;
+                this.atlasScaleMode = v != 0;
                 this.ClearAtlas();
             }
         }
@@ -111,36 +126,76 @@ internal class GamePrebakedFontsTestWidget : IDataWindowWidget, IDisposable
         if (ImGui.Button("Test Lock"))
             Task.Run(this.TestLock);
 
-        fixed (byte* labelPtr = "Test Input"u8)
+        ImGui.SameLine();
+        if (ImGui.Button("Choose Editor Font"))
         {
-            if (ImGuiNative.igInputTextMultiline(
-                    labelPtr,
-                    this.testStringBuffer.Data,
-                    (uint)this.testStringBuffer.Capacity,
-                    new(ImGui.GetContentRegionAvail().X, 32 * ImGuiHelpers.GlobalScale),
-                    0,
-                    null,
-                    null) != 0)
-            {
-                var len = this.testStringBuffer.StorageSpan.IndexOf((byte)0);
-                if (len + 4 >= this.testStringBuffer.Capacity)
-                    this.testStringBuffer.EnsureCapacityExponential(len + 4);
-                if (len < this.testStringBuffer.Capacity)
-                {
-                    this.testStringBuffer.LengthUnsafe = len;
-                    this.testStringBuffer.StorageSpan[len] = default;
-                }
+            var fcd = new SingleFontChooserDialog(
+                Service<FontAtlasFactory>.Get().CreateFontAtlas(
+                    $"{nameof(GamePrebakedFontsTestWidget)}:EditorFont",
+                    FontAtlasAutoRebuildMode.Async));
+            fcd.SelectedFont = this.fontSpec;
+            fcd.IgnorePreviewGlobalScale = !this.atlasScaleMode;
+            Service<InterfaceManager>.Get().Draw += fcd.Draw;
+            fcd.ResultTask.ContinueWith(
+                r => Service<Framework>.Get().RunOnFrameworkThread(
+                    () =>
+                    {
+                        Service<InterfaceManager>.Get().Draw -= fcd.Draw;
+                        fcd.Dispose();
 
-                if (this.useMinimumBuild)
-                    _ = this.privateAtlas?.BuildFontsAsync();
-            }
+                        _ = r.Exception;
+                        if (!r.IsCompletedSuccessfully)
+                            return;
+
+                        this.fontSpec = r.Result;
+                        Log.Information("Selected font: {font}", this.fontSpec);
+                        this.fontDialogHandle?.Dispose();
+                        this.fontDialogHandle = null;
+                    }));
         }
 
         this.privateAtlas ??=
             Service<FontAtlasFactory>.Get().CreateFontAtlas(
                 nameof(GamePrebakedFontsTestWidget),
                 FontAtlasAutoRebuildMode.Async,
-                this.useGlobalScale);
+                this.atlasScaleMode);
+        this.fontDialogHandle ??= this.fontSpec.CreateFontHandle(
+            this.privateAtlas,
+            e => e.OnPreBuild(tk => tk.SetFontScaleMode(tk.Font, (FontScaleMode)this.fontScaleMode)));
+
+        fixed (byte* labelPtr = "Test Input"u8)
+        {
+            if (!this.atlasScaleMode)
+                ImGuiNative.igSetWindowFontScale(1 / ImGuiHelpers.GlobalScale);
+            using (this.fontDialogHandle.Push())
+            {
+                if (ImGuiNative.igInputTextMultiline(
+                        labelPtr,
+                        this.testStringBuffer.Data,
+                        (uint)this.testStringBuffer.Capacity,
+                        new(ImGui.GetContentRegionAvail().X, ImGui.GetTextLineHeight() * 3),
+                        0,
+                        null,
+                        null) != 0)
+                {
+                    var len = this.testStringBuffer.StorageSpan.IndexOf((byte)0);
+                    if (len + 4 >= this.testStringBuffer.Capacity)
+                        this.testStringBuffer.EnsureCapacityExponential(len + 4);
+                    if (len < this.testStringBuffer.Capacity)
+                    {
+                        this.testStringBuffer.LengthUnsafe = len;
+                        this.testStringBuffer.StorageSpan[len] = default;
+                    }
+
+                    if (this.useMinimumBuild)
+                        _ = this.privateAtlas?.BuildFontsAsync();
+                }
+            }
+
+            if (!this.atlasScaleMode)
+                ImGuiNative.igSetWindowFontScale(1);
+        }
+
         this.fontHandles ??=
             Enum.GetValues<GameFontFamilyAndSize>()
                 .Where(x => x.GetAttribute<GameFontFamilyAndSizeAttribute>() is not null)
@@ -149,17 +204,29 @@ internal class GamePrebakedFontsTestWidget : IDataWindowWidget, IDisposable
                 .ToImmutableDictionary(
                     x => x.Key,
                     x => x.Select(
-                              y => (y, new Lazy<IFontHandle>(
-                                           () => this.useMinimumBuild
-                                                     ? this.privateAtlas.NewDelegateFontHandle(
-                                                         e =>
-                                                             e.OnPreBuild(
-                                                                 tk => tk.AddGameGlyphs(
-                                                                     y,
-                                                                     Encoding.UTF8.GetString(
-                                                                         this.testStringBuffer.DataSpan).ToGlyphRange(),
-                                                                     default)))
-                                                     : this.privateAtlas.NewGameFontHandle(y))))
+                              y =>
+                              {
+                                  var range = Encoding.UTF8.GetString(this.testStringBuffer.DataSpan).ToGlyphRange();
+
+                                  Lazy<IFontHandle> l;
+                                  if (this.useMinimumBuild
+                                      || (this.atlasScaleMode && this.fontScaleMode != (int)FontScaleMode.Default))
+                                  {
+                                      l = new(
+                                          () => this.privateAtlas!.NewDelegateFontHandle(
+                                              e =>
+                                                  e.OnPreBuild(
+                                                      tk => tk.SetFontScaleMode(
+                                                          tk.AddGameGlyphs(y, range, default),
+                                                          (FontScaleMode)this.fontScaleMode))));
+                                  }
+                                  else
+                                  {
+                                      l = new(() => this.privateAtlas!.NewGameFontHandle(y));
+                                  }
+
+                                  return (y, l);
+                              })
                           .ToArray());
 
         var offsetX = ImGui.CalcTextSize("99.9pt").X + (ImGui.GetStyle().FramePadding.X * 2);
@@ -187,7 +254,7 @@ internal class GamePrebakedFontsTestWidget : IDataWindowWidget, IDisposable
                     }
                     else
                     {
-                        if (!this.useGlobalScale)
+                        if (!this.atlasScaleMode)
                             ImGuiNative.igSetWindowFontScale(1 / ImGuiHelpers.GlobalScale);
                         if (counter++ % 2 == 0)
                         {
@@ -208,8 +275,8 @@ internal class GamePrebakedFontsTestWidget : IDataWindowWidget, IDisposable
                 }
                 finally
                 {
-                    ImGuiNative.igPopTextWrapPos();
                     ImGuiNative.igSetWindowFontScale(1);
+                    ImGuiNative.igPopTextWrapPos();
                 }
             }
         }
@@ -227,6 +294,8 @@ internal class GamePrebakedFontsTestWidget : IDataWindowWidget, IDisposable
         this.fontHandles?.Values.SelectMany(x => x.Where(y => y.Handle.IsValueCreated).Select(y => y.Handle.Value))
             .AggregateToDisposable().Dispose();
         this.fontHandles = null;
+        this.fontDialogHandle?.Dispose();
+        this.fontDialogHandle = null;
         this.privateAtlas?.Dispose();
         this.privateAtlas = null;
     }

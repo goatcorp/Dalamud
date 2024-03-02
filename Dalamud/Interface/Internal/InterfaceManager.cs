@@ -62,7 +62,7 @@ internal class InterfaceManager : IDisposable, IServiceType
     /// </summary>
     public const float DefaultFontSizePx = (DefaultFontSizePt * 4.0f) / 3.0f;
 
-    private readonly ConcurrentBag<DalamudTextureWrap> deferredDisposeTextures = new();
+    private readonly ConcurrentBag<IDeferredDisposable> deferredDisposeTextures = new();
     private readonly ConcurrentBag<ILockedImFont> deferredDisposeImFontLockeds = new();
 
     [ServiceManager.ServiceDependency]
@@ -402,7 +402,7 @@ internal class InterfaceManager : IDisposable, IServiceType
     /// Enqueue a texture to be disposed at the end of the frame.
     /// </summary>
     /// <param name="wrap">The texture.</param>
-    public void EnqueueDeferredDispose(DalamudTextureWrap wrap)
+    public void EnqueueDeferredDispose(IDeferredDisposable wrap)
     {
         this.deferredDisposeTextures.Add(wrap);
     }
@@ -705,13 +705,13 @@ internal class InterfaceManager : IDisposable, IServiceType
         using (this.dalamudAtlas.SuppressAutoRebuild())
         {
             this.DefaultFontHandle = (FontHandle)this.dalamudAtlas.NewDelegateFontHandle(
-                e => e.OnPreBuild(tk => tk.AddDalamudDefaultFont(DefaultFontSizePx)));
+                e => e.OnPreBuild(tk => tk.AddDalamudDefaultFont(-1)));
             this.IconFontHandle = (FontHandle)this.dalamudAtlas.NewDelegateFontHandle(
                 e => e.OnPreBuild(
                     tk => tk.AddFontAwesomeIconFont(
                         new()
                         {
-                            SizePx = DefaultFontSizePx,
+                            SizePx = Service<FontAtlasFactory>.Get().DefaultFontSpec.SizePx,
                             GlyphMinAdvanceX = DefaultFontSizePx,
                             GlyphMaxAdvanceX = DefaultFontSizePx,
                         })));
@@ -719,7 +719,10 @@ internal class InterfaceManager : IDisposable, IServiceType
                 e => e.OnPreBuild(
                     tk => tk.AddDalamudAssetFont(
                         DalamudAsset.InconsolataRegular,
-                        new() { SizePx = DefaultFontSizePx })));
+                        new()
+                        {
+                            SizePx = Service<FontAtlasFactory>.Get().DefaultFontSpec.SizePx,
+                        })));
             this.dalamudAtlas.BuildStepChange += e => e.OnPostBuild(
                 tk =>
                 {

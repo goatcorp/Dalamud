@@ -11,6 +11,7 @@ using System.Text.Unicode;
 using Dalamud.Game.Text;
 using Dalamud.Hooking.WndProcHook;
 using Dalamud.Interface.GameFonts;
+using Dalamud.Interface.Internal.ManagedAsserts;
 using Dalamud.Interface.ManagedFontAtlas.Internals;
 using Dalamud.Interface.Utility;
 
@@ -28,7 +29,6 @@ namespace Dalamud.Interface.Internal;
 [ServiceManager.BlockingEarlyLoadedService]
 internal sealed unsafe class DalamudIme : IDisposable, IServiceType
 {
-    private const int ImGuiContextTextStateOffset = 0x4588;
     private const int CImGuiStbTextCreateUndoOffset = 0xB57A0;
     private const int CImGuiStbTextUndoOffset = 0xB59C0;
 
@@ -178,7 +178,7 @@ internal sealed unsafe class DalamudIme : IDisposable, IServiceType
     internal char InputModeIcon { get; private set; }
 
     private static ImGuiInputTextState* TextState =>
-        (ImGuiInputTextState*)(ImGui.GetCurrentContext() + ImGuiContextTextStateOffset);
+        (ImGuiInputTextState*)(ImGui.GetCurrentContext() + ImGuiContextOffsets.TextStateOffset);
 
     /// <inheritdoc/>
     public void Dispose()

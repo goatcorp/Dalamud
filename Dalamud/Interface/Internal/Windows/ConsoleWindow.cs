@@ -6,6 +6,7 @@ using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 
 using Dalamud.Configuration.Internal;
 using Dalamud.Game.Command;
@@ -28,7 +29,11 @@ namespace Dalamud.Interface.Internal.Windows;
 /// </summary>
 internal class ConsoleWindow : Window, IDisposable
 {
-    private readonly List<LogEntry> logText = new();
+    private const int LogLinesMinimum = 100;
+    private const int LogLinesMaximum = 1000000;
+    
+    private readonly RollingList<LogEntry> logText;
+    private volatile int newRolledLines;
     private readonly object renderLock = new();
 
     private readonly List<string> history = new();
@@ -42,12 +47,14 @@ internal class ConsoleWindow : Window, IDisposable
     private string pluginFilter = string.Empty;
 
     private bool filterShowUncaughtExceptions;
+    private bool settingsPopupWasOpen;
     private bool showFilterToolbar;
     private bool clearLog;
     private bool copyLog;
     private bool copyMode;
     private bool killGameArmed;
     private bool autoScroll;
+    private int logLinesLimit;
     private bool autoOpen;
     private bool regexError;
 
@@ -71,13 +78,20 @@ internal class ConsoleWindow : Window, IDisposable
         this.SizeConstraints = new WindowSizeConstraints
         {
             MinimumSize = new Vector2(600.0f, 200.0f),
-            MaximumSize = new Vector2(9999.0f, 9999.0f),
         };
 
         this.RespectCloseHotkey = false;
+
+        this.logLinesLimit = configuration.LogLinesLimit;
+
+        var limit = Math.Max(LogLinesMinimum, this.logLinesLimit);
+        this.logText = new(limit);
+        this.FilteredLogEntries = new(limit);
+
+        configuration.DalamudConfigurationSaved += this.OnDalamudConfigurationSaved;
     }
 
-    private List<LogEntry> FilteredLogEntries { get; set; } = new();
+    private RollingList<LogEntry> FilteredLogEntries { get; set; }
 
     /// <inheritdoc/>
     public override void OnOpen()
@@ -92,6 +106,7 @@ internal class ConsoleWindow : Window, IDisposable
     public void Dispose()
     {
         SerilogEventSink.Instance.LogLine -= this.OnLogLine;
+        Service<DalamudConfiguration>.Get().DalamudConfigurationSaved -= this.OnDalamudConfigurationSaved;
     }
 
     /// <summary>
@@ -152,8 +167,11 @@ internal class ConsoleWindow : Window, IDisposable
             ImGui.SetCursorPosX(ImGui.GetContentRegionMax().X / 2.0f - ImGui.CalcTextSize(regexErrorString).X / 2.0f);
             ImGui.TextColored(ImGuiColors.DalamudRed, regexErrorString);
         }
-        
-        ImGui.BeginChild("scrolling", new Vector2(0, ImGui.GetFrameHeightWithSpacing() - 55 * ImGuiHelpers.GlobalScale), false, ImGuiWindowFlags.AlwaysHorizontalScrollbar | ImGuiWindowFlags.AlwaysVerticalScrollbar);
+
+        var sendButtonSize = ImGui.CalcTextSize("Send") +
+                             ((new Vector2(16, 0) + (ImGui.GetStyle().FramePadding * 2)) * ImGuiHelpers.GlobalScale);
+        var scrollingHeight = ImGui.GetContentRegionAvail().Y - sendButtonSize.Y;
+        ImGui.BeginChild("scrolling", new Vector2(0, scrollingHeight), false, ImGuiWindowFlags.AlwaysHorizontalScrollbar | ImGuiWindowFlags.AlwaysVerticalScrollbar);
 
         if (this.clearLog) this.Clear();
 
@@ -173,9 +191,13 @@ internal class ConsoleWindow : Window, IDisposable
         var childDrawList = ImGui.GetWindowDrawList();
         var childSize = ImGui.GetWindowSize();
 
-        var cursorDiv = ImGuiHelpers.GlobalScale * 93;
-        var cursorLogLevel = ImGuiHelpers.GlobalScale * 100;
-        var cursorLogLine = ImGuiHelpers.GlobalScale * 135;
+        var cursorDiv = ImGui.CalcTextSize("00:00:00.000 ").X;
+        var cursorLogLevel = ImGui.CalcTextSize("00:00:00.000 | ").X;
+        var dividerOffset = ImGui.CalcTextSize("00:00:00.000 | AAA ").X + (ImGui.CalcTextSize(" ").X / 2);
+        var cursorLogLine = ImGui.CalcTextSize("00:00:00.000 | AAA | ").X;
+
+        var lastLinePosY = 0.0f;
+        var logLineHeight = 0.0f;
 
         lock (this.renderLock)
         {
@@ -184,7 +206,8 @@ internal class ConsoleWindow : Window, IDisposable
             {
                 for (var i = clipper.DisplayStart; i < clipper.DisplayEnd; i++)
                 {
-                    var line = this.FilteredLogEntries[i];
+                    var index = Math.Max(i - this.newRolledLines, 0); // Prevents flicker effect. Also workaround to avoid negative indexes.
+                    var line = this.FilteredLogEntries[index];
 
                     if (!line.IsMultiline && !this.copyLog)
                         ImGui.Separator();
@@ -225,6 +248,10 @@ internal class ConsoleWindow : Window, IDisposable
 
                     ImGui.SetCursorPosX(cursorLogLine);
                     ImGui.TextUnformatted(line.Line);
+
+                    var currentLinePosY = ImGui.GetCursorPosY();
+                    logLineHeight = currentLinePosY - lastLinePosY;
+                    lastLinePosY = currentLinePosY;
                 }
             }
 
@@ -236,14 +263,19 @@ internal class ConsoleWindow : Window, IDisposable
 
         ImGui.PopStyleVar();
 
+        var newRolledLinesCount = Interlocked.Exchange(ref this.newRolledLines, 0);
+        if (!this.autoScroll || ImGui.GetScrollY() < ImGui.GetScrollMaxY())
+        {
+            ImGui.SetScrollY(ImGui.GetScrollY() - (logLineHeight * newRolledLinesCount));
+        }
+
         if (this.autoScroll && ImGui.GetScrollY() >= ImGui.GetScrollMaxY())
         {
             ImGui.SetScrollHereY(1.0f);
         }
 
         // Draw dividing line
-        var offset = ImGuiHelpers.GlobalScale * 127;
-        childDrawList.AddLine(new Vector2(childPos.X + offset, childPos.Y), new Vector2(childPos.X + offset, childPos.Y + childSize.Y), 0x4FFFFFFF, 1.0f);
+        childDrawList.AddLine(new Vector2(childPos.X + dividerOffset, childPos.Y), new Vector2(childPos.X + dividerOffset, childPos.Y + childSize.Y), 0x4FFFFFFF, 1.0f);
 
         ImGui.EndChild();
 
@@ -261,7 +293,7 @@ internal class ConsoleWindow : Window, IDisposable
             }
         }
 
-        ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X - (80.0f * ImGuiHelpers.GlobalScale) - (ImGui.GetStyle().ItemSpacing.X * ImGuiHelpers.GlobalScale));
+        ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X - sendButtonSize.X - (ImGui.GetStyle().ItemSpacing.X * ImGuiHelpers.GlobalScale));
 
         var getFocus = false;
         unsafe
@@ -280,7 +312,7 @@ internal class ConsoleWindow : Window, IDisposable
 
         if (hadColor) ImGui.PopStyleColor();
 
-        if (ImGui.Button("Send", ImGuiHelpers.ScaledVector2(80.0f, 23.0f)))
+        if (ImGui.Button("Send", sendButtonSize))
         {
             this.ProcessCommand();
         }
@@ -361,21 +393,21 @@ internal class ConsoleWindow : Window, IDisposable
 
         ImGui.SameLine();
 
-        this.autoScroll = configuration.LogAutoScroll;
-        if (this.DrawToggleButtonWithTooltip("auto_scroll", "Auto-scroll", FontAwesomeIcon.Sync, ref this.autoScroll))
+        var settingsPopup = ImGui.BeginPopup("##console_settings");
+        if (settingsPopup)
         {
-            configuration.LogAutoScroll = !configuration.LogAutoScroll;
-            configuration.QueueSave();
+            this.DrawSettingsPopup(configuration);
+            ImGui.EndPopup();
+        }
+        else if (this.settingsPopupWasOpen)
+        {
+            // Prevent side effects in case Apply wasn't clicked
+            this.logLinesLimit = configuration.LogLinesLimit;
         }
 
-        ImGui.SameLine();
+        this.settingsPopupWasOpen = settingsPopup;
 
-        this.autoOpen = configuration.LogOpenAtStartup;
-        if (this.DrawToggleButtonWithTooltip("auto_open", "Open at startup", FontAwesomeIcon.WindowRestore, ref this.autoOpen))
-        {
-            configuration.LogOpenAtStartup = !configuration.LogOpenAtStartup;
-            configuration.QueueSave();
-        }
+        if (this.DrawToggleButtonWithTooltip("show_settings", "Show settings", FontAwesomeIcon.List, ref settingsPopup)) ImGui.OpenPopup("##console_settings");
 
         ImGui.SameLine();
 
@@ -442,6 +474,33 @@ internal class ConsoleWindow : Window, IDisposable
         if (ImGui.IsItemDeactivatedAfterEdit())
         {
             this.Refilter();
+        }
+    }
+
+    private void DrawSettingsPopup(DalamudConfiguration configuration)
+    {
+        if (ImGui.Checkbox("Open at startup", ref this.autoOpen))
+        {
+            configuration.LogOpenAtStartup = this.autoOpen;
+            configuration.QueueSave();
+        }
+
+        if (ImGui.Checkbox("Auto-scroll", ref this.autoScroll))
+        {
+            configuration.LogAutoScroll = this.autoScroll;
+            configuration.QueueSave();
+        }
+
+        ImGui.TextUnformatted("Logs buffer");
+        ImGui.SliderInt("lines", ref this.logLinesLimit, LogLinesMinimum, LogLinesMaximum);
+        if (ImGui.Button("Apply"))
+        {
+            this.logLinesLimit = Math.Max(LogLinesMinimum, this.logLinesLimit);
+
+            configuration.LogLinesLimit = this.logLinesLimit;
+            configuration.QueueSave();
+
+            ImGui.CloseCurrentPopup();
         }
     }
 
@@ -684,8 +743,12 @@ internal class ConsoleWindow : Window, IDisposable
 
         this.logText.Add(entry);
 
+        var avoidScroll = this.FilteredLogEntries.Count == this.FilteredLogEntries.Size;
         if (this.IsFilterApplicable(entry))
+        {
             this.FilteredLogEntries.Add(entry);
+            if (avoidScroll) Interlocked.Increment(ref this.newRolledLines);
+        }
     }
 
     private bool IsFilterApplicable(LogEntry entry)
@@ -729,8 +792,6 @@ internal class ConsoleWindow : Window, IDisposable
             return false;
         }
 
-        this.regexError = false;
-        
         // else we couldn't find a filter for this entry, if we have any filters, we need to block this entry.
         return !this.pluginFilters.Any();
     }
@@ -739,7 +800,8 @@ internal class ConsoleWindow : Window, IDisposable
     {
         lock (this.renderLock)
         {
-            this.FilteredLogEntries = this.logText.Where(this.IsFilterApplicable).ToList();
+            this.regexError = false;
+            this.FilteredLogEntries = new RollingList<LogEntry>(this.logText.Where(this.IsFilterApplicable), Math.Max(LogLinesMinimum, this.logLinesLimit));
         }
     }
 
@@ -786,6 +848,14 @@ internal class ConsoleWindow : Window, IDisposable
         if (buttonEnabled) ImGui.PopStyleColor();
 
         return result;
+    }
+
+    private void OnDalamudConfigurationSaved(DalamudConfiguration dalamudConfiguration)
+    {
+        this.logLinesLimit = dalamudConfiguration.LogLinesLimit;
+        var limit = Math.Max(LogLinesMinimum, this.logLinesLimit);
+        this.logText.Size = limit;
+        this.FilteredLogEntries.Size = limit;
     }
 
     private class LogEntry

@@ -5,7 +5,8 @@ using ImGuiNET;
 namespace Dalamud.Interface.ManagedFontAtlas;
 
 /// <summary>
-/// Represents a reference counting handle for fonts.
+/// Represents a reference counting handle for fonts.<br />
+/// Not intended for plugins to implement.
 /// </summary>
 public interface IFontHandle : IDisposable
 {

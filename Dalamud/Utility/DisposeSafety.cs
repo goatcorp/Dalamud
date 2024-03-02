@@ -39,21 +39,23 @@ public static class DisposeSafety
     public static IDisposable ToDisposableIgnoreExceptions<T>(this Task<T> task)
         where T : IDisposable
     {
-        return Disposable.Create(() => task.ContinueWith(r =>
-        {
-            _ = r.Exception;
-            if (r.IsCompleted)
-            {
-                try
+        return Disposable.Create(
+            () => task.ContinueWith(
+                r =>
                 {
-                    r.Dispose();
-                }
-                catch
-                {
-                    // ignore
-                }
-            }
-        }));
+                    _ = r.Exception;
+                    if (r.IsCompleted)
+                    {
+                        try
+                        {
+                            r.Dispose();
+                        }
+                        catch
+                        {
+                            // ignore
+                        }
+                    }
+                }));
     }
 
     /// <summary>
@@ -102,25 +104,26 @@ public static class DisposeSafety
         if (disposables is not T[] array)
             array = disposables?.ToArray() ?? Array.Empty<T>();
 
-        return Disposable.Create(() =>
-        {
-            List<Exception?> exceptions = null;
-            foreach (var d in array)
+        return Disposable.Create(
+            () =>
             {
-                try
+                List<Exception?> exceptions = null;
+                foreach (var d in array)
                 {
-                    d?.Dispose();
+                    try
+                    {
+                        d?.Dispose();
+                    }
+                    catch (Exception de)
+                    {
+                        exceptions ??= new();
+                        exceptions.Add(de);
+                    }
                 }
-                catch (Exception de)
-                {
-                    exceptions ??= new();
-                    exceptions.Add(de);
-                }
-            }
 
-            if (exceptions is not null)
-                throw new AggregateException(exceptions);
-        });
+                if (exceptions is not null)
+                    throw new AggregateException(exceptions);
+            });
     }
 
     /// <summary>
@@ -137,7 +140,11 @@ public static class DisposeSafety
         public event Action<IDisposeCallback, Exception?>? AfterDispose;
 
         /// <inheritdoc cref="Stack{T}.EnsureCapacity"/>
-        public void EnsureCapacity(int capacity) => this.objects.EnsureCapacity(capacity);
+        public void EnsureCapacity(int capacity)
+        {
+            lock (this.objects)
+                this.objects.EnsureCapacity(capacity);
+        }
 
         /// <inheritdoc cref="Stack{T}.Push"/>
         /// <returns>The parameter.</returns>
@@ -145,7 +152,10 @@ public static class DisposeSafety
         public T? Add<T>(T? d) where T : IDisposable
         {
             if (d is not null)
-                this.objects.Add(this.CheckAdd(d));
+            {
+                lock (this.objects)
+                    this.objects.Add(this.CheckAdd(d));
+            }
 
             return d;
         }
@@ -155,7 +165,10 @@ public static class DisposeSafety
         public Action? Add(Action? d)
         {
             if (d is not null)
-                this.objects.Add(this.CheckAdd(d));
+            {
+                lock (this.objects)
+                    this.objects.Add(this.CheckAdd(d));
+            }
 
             return d;
         }
@@ -165,7 +178,10 @@ public static class DisposeSafety
         public Func<Task>? Add(Func<Task>? d)
         {
             if (d is not null)
-                this.objects.Add(this.CheckAdd(d));
+            {
+                lock (this.objects)
+                    this.objects.Add(this.CheckAdd(d));
+            }
 
             return d;
         }
@@ -174,7 +190,10 @@ public static class DisposeSafety
         public GCHandle Add(GCHandle d)
         {
             if (d != default)
-                this.objects.Add(this.CheckAdd(d));
+            {
+                lock (this.objects)
+                    this.objects.Add(this.CheckAdd(d));
+            }
 
             return d;
         }
@@ -183,29 +202,41 @@ public static class DisposeSafety
         /// Queue all the given <see cref="IDisposable"/> to be disposed later.
         /// </summary>
         /// <param name="ds">Disposables.</param>
-        public void AddRange(IEnumerable<IDisposable?> ds) =>
-            this.objects.AddRange(ds.Where(d => d is not null).Select(d => (object)this.CheckAdd(d)));
+        public void AddRange(IEnumerable<IDisposable?> ds)
+        {
+            lock (this.objects)
+                this.objects.AddRange(ds.Where(d => d is not null).Select(d => (object)this.CheckAdd(d)));
+        }
 
         /// <summary>
         /// Queue all the given <see cref="IDisposable"/> to be run later.
         /// </summary>
         /// <param name="ds">Actions.</param>
-        public void AddRange(IEnumerable<Action?> ds) =>
-            this.objects.AddRange(ds.Where(d => d is not null).Select(d => (object)this.CheckAdd(d)));
+        public void AddRange(IEnumerable<Action?> ds)
+        {
+            lock (this.objects)
+                this.objects.AddRange(ds.Where(d => d is not null).Select(d => (object)this.CheckAdd(d)));
+        }
 
         /// <summary>
         /// Queue all the given <see cref="Func{T}"/> returning <see cref="Task"/> to be run later.
         /// </summary>
         /// <param name="ds">Func{Task}s.</param>
-        public void AddRange(IEnumerable<Func<Task>?> ds) =>
-            this.objects.AddRange(ds.Where(d => d is not null).Select(d => (object)this.CheckAdd(d)));
+        public void AddRange(IEnumerable<Func<Task>?> ds)
+        {
+            lock (this.objects)
+                this.objects.AddRange(ds.Where(d => d is not null).Select(d => (object)this.CheckAdd(d)));
+        }
 
         /// <summary>
         /// Queue all the given <see cref="GCHandle"/> to be disposed later.
         /// </summary>
         /// <param name="ds">GCHandles.</param>
-        public void AddRange(IEnumerable<GCHandle> ds) =>
-            this.objects.AddRange(ds.Select(d => (object)this.CheckAdd(d)));
+        public void AddRange(IEnumerable<GCHandle> ds)
+        {
+            lock (this.objects)
+                this.objects.AddRange(ds.Select(d => (object)this.CheckAdd(d)));
+        }
 
         /// <summary>
         /// Cancel all pending disposals.
@@ -213,9 +244,12 @@ public static class DisposeSafety
         /// <remarks>Use this after successful initialization of multiple disposables.</remarks>
         public void Cancel()
         {
-            foreach (var o in this.objects)
-                this.CheckRemove(o);
-            this.objects.Clear();
+            lock (this.objects)
+            {
+                foreach (var o in this.objects)
+                    this.CheckRemove(o);
+                this.objects.Clear();
+            }
         }
 
         /// <inheritdoc cref="Stack{T}.EnsureCapacity"/>
@@ -264,11 +298,17 @@ public static class DisposeSafety
             this.BeforeDispose?.InvokeSafely(this);
 
             List<Exception>? exceptions = null;
-            while (this.objects.Any())
+            while (true)
             {
-                var obj = this.objects[^1];
-                this.objects.RemoveAt(this.objects.Count - 1);
-                
+                object obj;
+                lock (this.objects)
+                {
+                    if (this.objects.Count == 0)
+                        break;
+                    obj = this.objects[^1];
+                    this.objects.RemoveAt(this.objects.Count - 1);
+                }
+
                 try
                 {
                     switch (obj)
@@ -294,7 +334,8 @@ public static class DisposeSafety
                 }
             }
 
-            this.objects.TrimExcess();
+            lock (this.objects)
+                this.objects.TrimExcess();
 
             if (exceptions is not null)
             {
@@ -318,10 +359,16 @@ public static class DisposeSafety
             this.BeforeDispose?.InvokeSafely(this);
 
             List<Exception>? exceptions = null;
-            while (this.objects.Any())
+            while (true)
             {
-                var obj = this.objects[^1];
-                this.objects.RemoveAt(this.objects.Count - 1);
+                object obj;
+                lock (this.objects)
+                {
+                    if (this.objects.Count == 0)
+                        break;
+                    obj = this.objects[^1];
+                    this.objects.RemoveAt(this.objects.Count - 1);
+                }
 
                 try
                 {
@@ -351,7 +398,8 @@ public static class DisposeSafety
                 }
             }
 
-            this.objects.TrimExcess();
+            lock (this.objects)
+                this.objects.TrimExcess();
 
             if (exceptions is not null)
             {
@@ -386,7 +434,8 @@ public static class DisposeSafety
         private void OnItemDisposed(IDisposeCallback obj)
         {
             obj.BeforeDispose -= this.OnItemDisposed;
-            this.objects.Remove(obj);
+            lock (this.objects)
+                this.objects.Remove(obj);
         }
     }
 }

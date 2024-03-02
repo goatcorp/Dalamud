@@ -35,13 +35,16 @@ struct DalamudStartInfo {
     LoadMethod DalamudLoadMethod = LoadMethod::Entrypoint;
     std::string WorkingDirectory;
     std::string ConfigurationPath;
+    std::string LogPath;
+    std::string LogName;
     std::string PluginDirectory;
-    std::string DefaultPluginDirectory;
     std::string AssetDirectory;
     ClientLanguage Language = ClientLanguage::English;
     std::string GameVersion;
-    int DelayInitializeMs = 0;
     std::string TroubleshootingPackData;
+    int DelayInitializeMs = 0;
+    bool NoLoadPlugins;
+    bool NoLoadThirdPartyPlugins;
 
     std::string BootLogPath;
     bool BootShowConsole = false;

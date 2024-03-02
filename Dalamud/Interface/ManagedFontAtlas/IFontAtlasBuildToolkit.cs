@@ -9,7 +9,8 @@ using ImGuiNET;
 namespace Dalamud.Interface.ManagedFontAtlas;
 
 /// <summary>
-/// Common stuff for <see cref="IFontAtlasBuildToolkitPreBuild"/> and <see cref="IFontAtlasBuildToolkitPostBuild"/>.
+/// Common stuff for <see cref="IFontAtlasBuildToolkitPreBuild"/> and <see cref="IFontAtlasBuildToolkitPostBuild"/>.<br />
+/// Not intended for plugins to implement.
 /// </summary>
 public interface IFontAtlasBuildToolkit
 {

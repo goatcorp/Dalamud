@@ -97,4 +97,76 @@ internal static class ArrayExtensions
     /// <returns><paramref name="array"/> casted as a <see cref="IReadOnlyCollection{T}"/> if it is one; otherwise the result of <see cref="Enumerable.ToArray{TSource}"/>.</returns>
     public static IReadOnlyCollection<T> AsReadOnlyCollection<T>(this IEnumerable<T> array) =>
         array as IReadOnlyCollection<T> ?? array.ToArray();
+
+    /// <inheritdoc cref="List{T}.FindIndex(System.Predicate{T})"/>
+    public static int FindIndex<T>(this IReadOnlyList<T> list, Predicate<T> match)
+        => list.FindIndex(0, list.Count, match);
+
+    /// <inheritdoc cref="List{T}.FindIndex(int,System.Predicate{T})"/>
+    public static int FindIndex<T>(this IReadOnlyList<T> list, int startIndex, Predicate<T> match)
+        => list.FindIndex(startIndex, list.Count - startIndex, match);
+
+    /// <inheritdoc cref="List{T}.FindIndex(int,int,System.Predicate{T})"/>
+    public static int FindIndex<T>(this IReadOnlyList<T> list, int startIndex, int count, Predicate<T> match)
+    {
+        if ((uint)startIndex > (uint)list.Count)
+            throw new ArgumentOutOfRangeException(nameof(startIndex), startIndex, null);
+
+        if (count < 0 || startIndex > list.Count - count)
+            throw new ArgumentOutOfRangeException(nameof(count), count, null);
+
+        if (match == null)
+            throw new ArgumentNullException(nameof(match));
+
+        var endIndex = startIndex + count;
+        for (var i = startIndex; i < endIndex; i++)
+        {
+            if (match(list[i])) return i;
+        }
+
+        return -1;
+    }
+
+    /// <inheritdoc cref="List{T}.FindLastIndex(System.Predicate{T})"/>
+    public static int FindLastIndex<T>(this IReadOnlyList<T> list, Predicate<T> match)
+        => list.FindLastIndex(list.Count - 1, list.Count, match);
+
+    /// <inheritdoc cref="List{T}.FindLastIndex(int,System.Predicate{T})"/>
+    public static int FindLastIndex<T>(this IReadOnlyList<T> list, int startIndex, Predicate<T> match)
+        => list.FindLastIndex(startIndex, startIndex + 1, match);
+
+    /// <inheritdoc cref="List{T}.FindLastIndex(int,int,System.Predicate{T})"/>
+    public static int FindLastIndex<T>(this IReadOnlyList<T> list, int startIndex, int count, Predicate<T> match)
+    {
+        if (match == null)
+            throw new ArgumentNullException(nameof(match));
+
+        if (list.Count == 0)
+        {
+            // Special case for 0 length List
+            if (startIndex != -1)
+                throw new ArgumentOutOfRangeException(nameof(startIndex), startIndex, null);
+        }
+        else
+        {
+            // Make sure we're not out of range
+            if ((uint)startIndex >= (uint)list.Count)
+                throw new ArgumentOutOfRangeException(nameof(startIndex), startIndex, null);
+        }
+
+        // 2nd have of this also catches when startIndex == MAXINT, so MAXINT - 0 + 1 == -1, which is < 0.
+        if (count < 0 || startIndex - count + 1 < 0)
+            throw new ArgumentOutOfRangeException(nameof(count), count, null);
+
+        var endIndex = startIndex - count;
+        for (var i = startIndex; i > endIndex; i--)
+        {
+            if (match(list[i]))
+            {
+                return i;
+            }
+        }
+
+        return -1;
+    }
 }

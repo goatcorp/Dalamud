@@ -46,6 +46,9 @@ internal sealed partial class FontAtlasFactory
 
     private class FontAtlasBuiltData : IRefCountable
     {
+        // Field for debugging.
+        private static int numActiveInstances;
+
         private readonly List<IDalamudTextureWrap> wraps;
         private readonly List<IFontHandleSubstance> substances;
 
@@ -73,6 +76,9 @@ internal sealed partial class FontAtlasFactory
 
                 this.Garbage.Add(() => ImGuiNative.ImFontAtlas_destroy(atlasPtr));
                 this.IsBuildInProgress = true;
+
+                Interlocked.Increment(ref numActiveInstances);
+                this.Garbage.Add(() => Interlocked.Decrement(ref numActiveInstances));
             }
             catch
             {
@@ -658,7 +664,7 @@ internal sealed partial class FontAtlasFactory
                     toolkit = res.CreateToolkit(this.factory, isAsync);
 
                     // PreBuildSubstances deals with toolkit.Add... function family. Do this first.
-                    var defaultFont = toolkit.AddDalamudDefaultFont(InterfaceManager.DefaultFontSizePx, null);
+                    var defaultFont = toolkit.AddDalamudDefaultFont(-1, null);
 
                     this.BuildStepChange?.Invoke(toolkit);
                     toolkit.PreBuildSubstances();
@@ -679,6 +685,7 @@ internal sealed partial class FontAtlasFactory
 
                 toolkit.PostBuild();
                 toolkit.PostBuildSubstances();
+                toolkit.PostBuildCallbacks();
                 this.BuildStepChange?.Invoke(toolkit);
 
                 foreach (var font in toolkit.Fonts)
