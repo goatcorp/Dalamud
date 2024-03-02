@@ -216,12 +216,36 @@ internal class TexWidget : IDataWindowWidget
                         if (this.renderTargetChoiceInt < 0 || this.renderTargetChoiceInt >= supportedFormats.Length)
                             return;
                         var texTask = this.textureManager.CreateFromExistingTextureAsync(
-                            source,
+                            source.CreateWrapSharingLowLevelResource(),
                             new(0.25f),
                             new(0.75f),
                             supportedFormats[this.renderTargetChoiceInt]);
                         this.addedTextures.Add(new() { Api10 = texTask });
                     };
+                }
+                
+                ImGui.SameLine();
+                ImGui.AlignTextToFramePadding();
+                unsafe
+                {
+                    if (t.GetTexture(this.textureManager) is { } source)
+                    {
+                        var psrv = (ID3D11ShaderResourceView*)source.ImGuiHandle;
+                        var rcsrv = psrv->AddRef() - 1;
+                        psrv->Release();
+                        
+                        var pres = default(ID3D11Resource*);
+                        psrv->GetResource(&pres);
+                        var rcres = pres->AddRef() - 1;
+                        pres->Release();
+                        pres->Release();
+
+                        ImGui.TextUnformatted($"RC: Resource({rcres})/View({rcsrv})");
+                    }
+                    else
+                    {
+                        ImGui.TextUnformatted("RC: -");
+                    }
                 }
 
                 try

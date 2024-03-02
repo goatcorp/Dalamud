@@ -36,7 +36,9 @@ public partial interface ITextureProvider
     /// without having to wait for the completion of the returned <see cref="Task{TResult}"/>.</param>
     /// <param name="uv0">The left top coordinates relative to the size of the source texture.</param>
     /// <param name="uv1">The right bottom coordinates relative to the size of the source texture.</param>
-    /// <param name="dxgiFormat">The desired target format.</param>
+    /// <param name="dxgiFormat">The desired target format. Use 0 to use the source format.</param>
+    /// <param name="leaveWrapOpen">Whether to leave <paramref name="wrap"/> non-disposed when the returned
+    /// <see cref="Task{TResult}"/> completes.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A <see cref="Task{TResult}"/> containing the copied texture on success. Dispose after use.</returns>
     /// <remarks>
@@ -49,7 +51,8 @@ public partial interface ITextureProvider
         IDalamudTextureWrap wrap,
         Vector2 uv0,
         Vector2 uv1,
-        int dxgiFormat,
+        int dxgiFormat = 0,
+        bool leaveWrapOpen = false,
         CancellationToken cancellationToken = default);
 
     /// <summary>Gets a texture from the given bytes, trying to interpret it as a .tex file or other well-known image
@@ -185,12 +188,13 @@ public partial interface ITextureProvider
     bool TryGetIconPath(in GameIconLookup lookup, [NotNullWhen(true)] out string? path);
 
     /// <summary>Gets the raw data of a texture wrap.</summary>
-    /// <param name="wrap">The source texture wrap. The passed value may be disposed once this function returns,
-    /// without having to wait for the completion of the returned <see cref="Task{TResult}"/>.</param>
+    /// <param name="wrap">The source texture wrap.</param>
     /// <param name="uv0">The left top coordinates relative to the size of the source texture.</param>
     /// <param name="uv1">The right bottom coordinates relative to the size of the source texture.</param>
     /// <param name="dxgiFormat">The desired target format.
     /// If 0 (unknown) is passed, then the format will not be converted.</param>
+    /// <param name="leaveWrapOpen">Whether to leave <paramref name="wrap"/> non-disposed when the returned
+    /// <see cref="Task{TResult}"/> completes.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>The raw data and its specifications.</returns>
     /// <remarks>
@@ -206,27 +210,32 @@ public partial interface ITextureProvider
         Vector2 uv0,
         Vector2 uv1,
         int dxgiFormat = 0,
+        bool leaveWrapOpen = false,
         CancellationToken cancellationToken = default);
 
     /// <summary>Saves a texture wrap to a stream in an image file format.</summary>
     /// <param name="wrap">The texture wrap to save.</param>
     /// <param name="containerGuid">The container GUID, obtained from <see cref="GetSupportedImageEncoderInfos"/>.</param>
     /// <param name="stream">The stream to save to.</param>
-    /// <param name="leaveOpen">Whether to leave <paramref name="stream"/> open.</param>
     /// <param name="props">Properties to pass to the encoder. See
     /// <a href="https://learn.microsoft.com/en-us/windows/win32/wic/-wic-creating-encoder#encoder-options">Microsoft
     /// Learn</a> for available parameters.</param>
+    /// <param name="leaveWrapOpen">Whether to leave <paramref name="wrap"/> non-disposed when the returned
+    /// <see cref="Task{TResult}"/> completes.</param>
+    /// <param name="leaveStreamOpen">Whether to leave <paramref name="stream"/> open when the returned
+    /// <see cref="Task{TResult}"/> completes.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A task representing the save process.</returns>
     /// <remarks>
-    /// <para><paramref name="wrap"/> may be disposed as soon as this function returns.</para>
+    /// <para><paramref name="wrap"/> must not be disposed until the task finishes.</para>
     /// </remarks>
     Task SaveToStreamAsync(
         IDalamudTextureWrap wrap,
         Guid containerGuid,
         Stream stream,
-        bool leaveOpen = false,
         IReadOnlyDictionary<string, object>? props = null,
+        bool leaveWrapOpen = false,
+        bool leaveStreamOpen = false,
         CancellationToken cancellationToken = default);
     
     /// <summary>Saves a texture wrap to a file as an image file.</summary>
@@ -236,16 +245,19 @@ public partial interface ITextureProvider
     /// <param name="props">Properties to pass to the encoder. See
     /// <a href="https://learn.microsoft.com/en-us/windows/win32/wic/-wic-creating-encoder#encoder-options">Microsoft
     /// Learn</a> for available parameters.</param>
+    /// <param name="leaveWrapOpen">Whether to leave <paramref name="wrap"/> non-disposed when the returned
+    /// <see cref="Task{TResult}"/> completes.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A task representing the save process.</returns>
     /// <remarks>
-    /// <para><paramref name="wrap"/> may be disposed as soon as this function returns.</para>
+    /// <para><paramref name="wrap"/> must not be disposed until the task finishes.</para>
     /// </remarks>
     Task SaveToFileAsync(
         IDalamudTextureWrap wrap,
         Guid containerGuid,
         string path,
         IReadOnlyDictionary<string, object>? props = null,
+        bool leaveWrapOpen = false,
         CancellationToken cancellationToken = default);
 
     /// <summary>

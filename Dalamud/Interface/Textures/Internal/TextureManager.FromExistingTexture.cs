@@ -10,9 +10,6 @@ using Dalamud.Utility;
 
 using ImGuiNET;
 
-using SharpDX.Direct3D11;
-using SharpDX.DXGI;
-
 using TerraFX.Interop.DirectX;
 using TerraFX.Interop.Windows;
 
@@ -28,14 +25,8 @@ internal sealed partial class TextureManager
         this.IsDxgiFormatSupportedForCreateFromExistingTextureAsync((DXGI_FORMAT)dxgiFormat);
 
     /// <inheritdoc cref="ITextureProvider.IsDxgiFormatSupportedForCreateFromExistingTextureAsync"/>
-    public bool IsDxgiFormatSupportedForCreateFromExistingTextureAsync(DXGI_FORMAT dxgiFormat)
+    public unsafe bool IsDxgiFormatSupportedForCreateFromExistingTextureAsync(DXGI_FORMAT dxgiFormat)
     {
-        if (this.interfaceManager.Scene is not { } scene)
-        {
-            _ = Service<InterfaceManager.InterfaceManagerWithScene>.Get();
-            scene = this.interfaceManager.Scene ?? throw new InvalidOperationException();
-        }
-
         switch (dxgiFormat)
         {
             // https://learn.microsoft.com/en-us/windows/win32/api/dxgiformat/ne-dxgiformat-dxgi_format
@@ -48,12 +39,14 @@ internal sealed partial class TextureManager
                 return false;
         }
 
-        var format = (Format)dxgiFormat;
-        var support = scene.Device.CheckFormatSupport(format);
-        const FormatSupport required =
-            FormatSupport.RenderTarget |
-            FormatSupport.Texture2D;
-        return (support & required) == required;
+        D3D11_FORMAT_SUPPORT supported;
+        if (this.Device.Get()->CheckFormatSupport(dxgiFormat, (uint*)&supported).FAILED)
+            return false;
+
+        const D3D11_FORMAT_SUPPORT required =
+            D3D11_FORMAT_SUPPORT.D3D11_FORMAT_SUPPORT_TEXTURE2D
+            | D3D11_FORMAT_SUPPORT.D3D11_FORMAT_SUPPORT_RENDER_TARGET;
+        return (supported & required) == required;
     }
 
     /// <inheritdoc/>
@@ -62,61 +55,56 @@ internal sealed partial class TextureManager
         Vector2 uv0,
         Vector2 uv1,
         int dxgiFormat,
+        bool leaveWrapOpen,
         CancellationToken cancellationToken) =>
-        this.CreateFromExistingTextureAsync(wrap, uv0, uv1, (DXGI_FORMAT)dxgiFormat, cancellationToken);
+        this.CreateFromExistingTextureAsync(
+            wrap,
+            uv0,
+            uv1,
+            (DXGI_FORMAT)dxgiFormat,
+            leaveWrapOpen,
+            cancellationToken);
 
     /// <inheritdoc cref="ITextureProvider.CreateFromExistingTextureAsync"/>
     public Task<IDalamudTextureWrap> CreateFromExistingTextureAsync(
         IDalamudTextureWrap wrap,
         Vector2 uv0,
         Vector2 uv1,
-        DXGI_FORMAT format,
+        DXGI_FORMAT format = DXGI_FORMAT.DXGI_FORMAT_UNKNOWN,
+        bool leaveWrapOpen = false,
         CancellationToken cancellationToken = default)
     {
-        var wrapCopy = wrap.CreateWrapSharingLowLevelResource();
         return this.textureLoadThrottler.LoadTextureAsync(
-                       new TextureLoadThrottler.ReadOnlyThrottleBasisProvider(),
-                       async _ =>
-                       {
-                           using var tex = await this.NoThrottleCreateFromExistingTextureAsync(
-                                               wrapCopy,
-                                               uv0,
-                                               uv1,
-                                               format);
-                           using var device = default(ComPtr<ID3D11Device>);
-                           using var srv = default(ComPtr<ID3D11ShaderResourceView>);
-                           var desc = default(D3D11_TEXTURE2D_DESC);
-                           unsafe
-                           {
-                               tex.Get()->GetDevice(device.GetAddressOf());
+            new TextureLoadThrottler.ReadOnlyThrottleBasisProvider(),
+            ImmediateLoadFunction,
+            cancellationToken,
+            leaveWrapOpen ? null : wrap);
 
-                               var srvDesc = new D3D11_SHADER_RESOURCE_VIEW_DESC(
-                                   tex,
-                                   D3D_SRV_DIMENSION.D3D11_SRV_DIMENSION_TEXTURE2D);
-                               device.Get()->CreateShaderResourceView(
-                                       (ID3D11Resource*)tex.Get(),
-                                       &srvDesc,
-                                       srv.GetAddressOf())
-                                   .ThrowOnError();
+        async Task<IDalamudTextureWrap> ImmediateLoadFunction(CancellationToken ct)
+        {
+            using var tex = await this.NoThrottleCreateFromExistingTextureAsync(wrap, uv0, uv1, format);
 
-                               tex.Get()->GetDesc(&desc);
+            unsafe
+            {
+                var srvDesc = new D3D11_SHADER_RESOURCE_VIEW_DESC(
+                    tex,
+                    D3D_SRV_DIMENSION.D3D11_SRV_DIMENSION_TEXTURE2D);
+                using var srv = default(ComPtr<ID3D11ShaderResourceView>);
+                this.Device.Get()->CreateShaderResourceView(
+                        (ID3D11Resource*)tex.Get(),
+                        &srvDesc,
+                        srv.GetAddressOf())
+                    .ThrowOnError();
 
-                               return new UnknownTextureWrap(
-                                   (IUnknown*)srv.Get(),
-                                   (int)desc.Width,
-                                   (int)desc.Height,
-                                   true);
-                           }
-                       },
-                       cancellationToken)
-                   .ContinueWith(
-                       r =>
-                       {
-                           wrapCopy.Dispose();
-                           return r;
-                       },
-                       default(CancellationToken))
-                   .Unwrap();
+                var desc = default(D3D11_TEXTURE2D_DESC);
+                tex.Get()->GetDesc(&desc);
+                return new UnknownTextureWrap(
+                    (IUnknown*)srv.Get(),
+                    (int)desc.Width,
+                    (int)desc.Height,
+                    true);
+            }
+        }
     }
 
     /// <inheritdoc/>
@@ -125,34 +113,37 @@ internal sealed partial class TextureManager
         Vector2 uv0,
         Vector2 uv1,
         int dxgiFormat,
+        bool leaveWrapOpen,
         CancellationToken cancellationToken) =>
-        this.GetRawDataFromExistingTextureAsync(wrap, uv0, uv1, (DXGI_FORMAT)dxgiFormat, cancellationToken);
+        this.GetRawDataFromExistingTextureAsync(
+            wrap,
+            uv0,
+            uv1,
+            (DXGI_FORMAT)dxgiFormat,
+            leaveWrapOpen,
+            cancellationToken);
 
     /// <inheritdoc cref="ITextureProvider.GetRawDataFromExistingTextureAsync"/>
     public async Task<(RawImageSpecification Specification, byte[] RawData)> GetRawDataFromExistingTextureAsync(
         IDalamudTextureWrap wrap,
         Vector2 uv0,
         Vector2 uv1,
-        DXGI_FORMAT dxgiFormat,
-        CancellationToken cancellationToken)
+        DXGI_FORMAT dxgiFormat = DXGI_FORMAT.DXGI_FORMAT_UNKNOWN,
+        bool leaveWrapOpen = false,
+        CancellationToken cancellationToken = default)
     {
-        using var resUnk = default(ComPtr<IUnknown>);
+        using var wrapDispose = leaveWrapOpen ? null : wrap;
         using var texSrv = default(ComPtr<ID3D11ShaderResourceView>);
-        using var device = default(ComPtr<ID3D11Device>);
         using var context = default(ComPtr<ID3D11DeviceContext>);
         using var tex2D = default(ComPtr<ID3D11Texture2D>);
         var texDesc = default(D3D11_TEXTURE2D_DESC);
 
         unsafe
         {
-            resUnk.Attach((IUnknown*)wrap.ImGuiHandle);
-            resUnk.Get()->AddRef();
+            fixed (Guid* piid = &IID.IID_ID3D11ShaderResourceView)
+                ((IUnknown*)wrap.ImGuiHandle)->QueryInterface(piid, (void**)texSrv.GetAddressOf()).ThrowOnError();
 
-            resUnk.As(&texSrv).ThrowOnError();
-
-            texSrv.Get()->GetDevice(device.GetAddressOf());
-
-            device.Get()->GetImmediateContext(context.GetAddressOf());
+            this.Device.Get()->GetImmediateContext(context.GetAddressOf());
 
             using (var texRes = default(ComPtr<ID3D11Resource>))
             {
@@ -177,7 +168,7 @@ internal sealed partial class TextureManager
 
         cancellationToken.ThrowIfCancellationRequested();
         return await this.interfaceManager.RunBeforePresent(
-                   () => ExtractMappedResource(device, context, tex2D, cancellationToken));
+                   () => ExtractMappedResource(this.Device, context, tex2D, cancellationToken));
 
         static unsafe (RawImageSpecification Specification, byte[] RawData) ExtractMappedResource(
             ComPtr<ID3D11Device> device,
@@ -242,28 +233,17 @@ internal sealed partial class TextureManager
         Vector2 uv1,
         DXGI_FORMAT format)
     {
-        using var resUnk = default(ComPtr<IUnknown>);
         using var texSrv = default(ComPtr<ID3D11ShaderResourceView>);
-        using var device = default(ComPtr<ID3D11Device>);
         using var context = default(ComPtr<ID3D11DeviceContext>);
         using var tex2D = default(ComPtr<ID3D11Texture2D>);
         var texDesc = default(D3D11_TEXTURE2D_DESC);
 
         unsafe
         {
-            resUnk.Attach((IUnknown*)wrap.ImGuiHandle);
-            resUnk.Get()->AddRef();
+            fixed (Guid* piid = &IID.IID_ID3D11ShaderResourceView)
+                ((IUnknown*)wrap.ImGuiHandle)->QueryInterface(piid, (void**)texSrv.GetAddressOf()).ThrowOnError();
 
-            using (var texSrv2 = default(ComPtr<ID3D11ShaderResourceView>))
-            {
-                resUnk.As(&texSrv2).ThrowOnError();
-                texSrv.Attach(texSrv2);
-                texSrv2.Detach();
-            }
-
-            texSrv.Get()->GetDevice(device.GetAddressOf());
-
-            device.Get()->GetImmediateContext(context.GetAddressOf());
+            this.Device.Get()->GetImmediateContext(context.GetAddressOf());
 
             using (var texRes = default(ComPtr<ID3D11Resource>))
             {
@@ -273,6 +253,9 @@ internal sealed partial class TextureManager
 
             tex2D.Get()->GetDesc(&texDesc);
         }
+
+        if (format == DXGI_FORMAT.DXGI_FORMAT_UNKNOWN)
+            format = texDesc.Format;
 
         var newWidth = checked((uint)MathF.Round((uv1.X - uv0.X) * texDesc.Width));
         var newHeight = checked((uint)MathF.Round((uv1.Y - uv0.Y) * texDesc.Height));
@@ -289,11 +272,12 @@ internal sealed partial class TextureManager
                 Format = format,
                 SampleDesc = new(1, 0),
                 Usage = D3D11_USAGE.D3D11_USAGE_DEFAULT,
-                BindFlags = (uint)(D3D11_BIND_FLAG.D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_FLAG.D3D11_BIND_RENDER_TARGET),
+                BindFlags =
+                    (uint)(D3D11_BIND_FLAG.D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_FLAG.D3D11_BIND_RENDER_TARGET),
                 CPUAccessFlags = 0u,
                 MiscFlags = 0u,
             };
-            device.Get()->CreateTexture2D(&tex2DCopyTempDesc, null, tex2DCopyTemp.GetAddressOf()).ThrowOnError();
+            this.Device.Get()->CreateTexture2D(&tex2DCopyTempDesc, null, tex2DCopyTemp.GetAddressOf()).ThrowOnError();
         }
 
         await this.interfaceManager.RunBeforePresent(
@@ -305,13 +289,13 @@ internal sealed partial class TextureManager
                     var rtvCopyTempDesc = new D3D11_RENDER_TARGET_VIEW_DESC(
                         tex2DCopyTemp,
                         D3D11_RTV_DIMENSION.D3D11_RTV_DIMENSION_TEXTURE2D);
-                    device.Get()->CreateRenderTargetView(
+                    this.Device.Get()->CreateRenderTargetView(
                         (ID3D11Resource*)tex2DCopyTemp.Get(),
                         &rtvCopyTempDesc,
                         rtvCopyTemp.GetAddressOf()).ThrowOnError();
 
                     this.drawsOneSquare ??= new();
-                    this.drawsOneSquare.Setup(device.Get());
+                    this.drawsOneSquare.Setup(this.Device.Get());
 
                     context.Get()->OMSetRenderTargets(1u, rtvCopyTemp.GetAddressOf(), null);
                     this.drawsOneSquare.Draw(
@@ -593,6 +577,9 @@ internal sealed partial class TextureManager
             ctx->DSSetShader(null, null, 0);
             ctx->CSSetShader(null, null, 0);
             ctx->DrawIndexed(6, 0, 0);
+
+            var ppn = default(ID3D11ShaderResourceView*);
+            ctx->PSSetShaderResources(0, 1, &ppn);
         }
     }
 }

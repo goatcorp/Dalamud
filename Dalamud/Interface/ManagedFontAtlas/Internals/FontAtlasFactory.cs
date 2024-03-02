@@ -21,10 +21,6 @@ using ImGuiScene;
 
 using Lumina.Data.Files;
 
-using SharpDX;
-using SharpDX.Direct3D11;
-using SharpDX.DXGI;
-
 using TerraFX.Interop.DirectX;
 
 namespace Dalamud.Interface.ManagedFontAtlas.Internals;
@@ -249,30 +245,11 @@ internal sealed partial class FontAtlasFactory
             var fileIndex = textureIndex / 4;
             var channelIndex = FdtReader.FontTableEntry.TextureChannelOrder[textureIndex % 4];
             wraps[textureIndex] ??= this.GetChannelTexture(texPathFormat, fileIndex, channelIndex);
-            return CloneTextureWrap(wraps[textureIndex]);
+            return wraps[textureIndex].CreateWrapSharingLowLevelResource();
         }
     }
 
     private static T ExtractResult<T>(Task<T> t) => t.IsCompleted ? t.Result : t.GetAwaiter().GetResult();
-
-    /// <summary>
-    /// Clones a texture wrap, by getting a new reference to the underlying <see cref="ShaderResourceView"/> and the
-    /// texture behind.
-    /// </summary>
-    /// <param name="wrap">The <see cref="IDalamudTextureWrap"/> to clone from.</param>
-    /// <returns>The cloned <see cref="IDalamudTextureWrap"/>.</returns>
-    private static IDalamudTextureWrap CloneTextureWrap(IDalamudTextureWrap wrap)
-    {
-        var srv = CppObject.FromPointer<ShaderResourceView>(wrap.ImGuiHandle);
-        using var res = srv.Resource;
-        using var tex2D = res.QueryInterface<Texture2D>();
-        var description = tex2D.Description;
-        return new DalamudTextureWrap(
-            new D3DTextureWrap(
-                srv.QueryInterface<ShaderResourceView>(),
-                description.Width,
-                description.Height));
-    }
 
     private static unsafe void ExtractChannelFromB8G8R8A8(
         Span<byte> target,
@@ -384,7 +361,9 @@ internal sealed partial class FontAtlasFactory
                         texFile.Header.Width,
                         texFile.Header.Height,
                         texFile.Header.Width * bpp,
-                        (int)(targetIsB4G4R4A4 ? Format.B4G4R4A4_UNorm : Format.B8G8R8A8_UNorm)),
+                        (int)(targetIsB4G4R4A4
+                                  ? DXGI_FORMAT.DXGI_FORMAT_B4G4R4A4_UNORM
+                                  : DXGI_FORMAT.DXGI_FORMAT_B8G8R8A8_UNORM)),
                     buffer));
         }
         finally

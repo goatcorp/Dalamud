@@ -37,23 +37,21 @@ internal sealed partial class TextureManager
         IDalamudTextureWrap wrap,
         Guid containerGuid,
         Stream stream,
-        bool leaveOpen = false,
         IReadOnlyDictionary<string, object>? props = null,
+        bool leaveWrapOpen = false,
+        bool leaveStreamOpen = false,
         CancellationToken cancellationToken = default)
     {
-        using var istream = ManagedIStream.Create(stream, leaveOpen);
+        using var wrapDispose = leaveWrapOpen ? null : wrap;
+        using var istream = ManagedIStream.Create(stream, leaveStreamOpen);
 
-        RawImageSpecification specs;
-        byte[] bytes;
-        using (var wrapCopy = wrap.CreateWrapSharingLowLevelResource())
-        {
-            (specs, bytes) = await this.GetRawDataFromExistingTextureAsync(
-                                 wrapCopy,
+        var (specs, bytes) = await this.GetRawDataFromExistingTextureAsync(
+                                 wrap,
                                  Vector2.Zero,
                                  Vector2.One,
                                  DXGI_FORMAT.DXGI_FORMAT_B8G8R8A8_UNORM,
+                                 true,
                                  cancellationToken).ConfigureAwait(false);
-        }
 
         this.Wic.SaveToStreamUsingWic(
             specs,
@@ -70,12 +68,21 @@ internal sealed partial class TextureManager
         Guid containerGuid,
         string path,
         IReadOnlyDictionary<string, object>? props = null,
+        bool leaveWrapOpen = false,
         CancellationToken cancellationToken = default)
     {
+        using var wrapDispose = leaveWrapOpen ? null : wrap;
         var pathTemp = $"{path}.{GetCurrentThreadId():X08}{Environment.TickCount64:X16}.tmp";
         try
         {
-            await this.SaveToStreamAsync(wrap, containerGuid, File.Create(pathTemp), false, props, cancellationToken);
+            await this.SaveToStreamAsync(
+                wrap,
+                containerGuid,
+                File.Create(pathTemp),
+                props,
+                true,
+                false,
+                cancellationToken);
         }
         catch (Exception e)
         {

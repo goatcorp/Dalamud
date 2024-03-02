@@ -72,18 +72,21 @@ internal class TextureLoadThrottler : IServiceType, IDisposable
     /// <param name="basis">The throttle basis.</param>
     /// <param name="immediateLoadFunction">The immediate load function.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
+    /// <param name="disposables">Disposables to dispose when the task completes.</param>
     /// <returns>The task.</returns>
     public Task<IDalamudTextureWrap> LoadTextureAsync(
         IThrottleBasisProvider basis,
         Func<CancellationToken, Task<IDalamudTextureWrap>> immediateLoadFunction,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        params IDisposable?[] disposables)
     {
-        var work = new WorkItem(basis, immediateLoadFunction, cancellationToken);
+        var work = new WorkItem(basis, immediateLoadFunction, cancellationToken, disposables);
 
-        return
-            this.newItemChannel.Writer.TryWrite(work)
-                ? work.Task
-                : Task.FromException<IDalamudTextureWrap>(new ObjectDisposedException(nameof(TextureLoadThrottler)));
+        if (this.newItemChannel.Writer.TryWrite(work))
+            return work.Task;
+
+        work.Dispose();
+        return Task.FromException<IDalamudTextureWrap>(new ObjectDisposedException(nameof(TextureLoadThrottler)));
     }
 
     private async Task LoopAddWorkItemAsync()
@@ -118,6 +121,7 @@ internal class TextureLoadThrottler : IServiceType, IDisposable
                 continue;
 
             await work.Process(this.disposeCancellationTokenSource.Token);
+            work.Dispose();
         }
     }
 
@@ -136,6 +140,7 @@ internal class TextureLoadThrottler : IServiceType, IDisposable
                 {
                     if (itemRef.CancelAsRequested())
                     {
+                        itemRef.Dispose();
                         itemRef = lastRef;
                         this.workItemPending.RemoveAt(this.workItemPending.Count - 1);
                         break;
@@ -152,7 +157,13 @@ internal class TextureLoadThrottler : IServiceType, IDisposable
 
             var last = this.workItemPending[^1];
             this.workItemPending.RemoveAt(this.workItemPending.Count - 1);
-            return last.CancelAsRequested() ? null : last;
+            if (last.CancelAsRequested())
+            {
+                last.Dispose();
+                return null;
+            }
+
+            return last;
         }
     }
 
@@ -171,25 +182,33 @@ internal class TextureLoadThrottler : IServiceType, IDisposable
         public long LatestRequestedTick { get; init; } = Environment.TickCount64;
     }
 
-    private class WorkItem : IComparable<WorkItem>
+    private sealed class WorkItem : IComparable<WorkItem>, IDisposable
     {
         private readonly TaskCompletionSource<IDalamudTextureWrap> taskCompletionSource;
         private readonly IThrottleBasisProvider basis;
         private readonly CancellationToken cancellationToken;
         private readonly Func<CancellationToken, Task<IDalamudTextureWrap>> immediateLoadFunction;
+        private readonly IDisposable?[] disposables;
 
         public WorkItem(
             IThrottleBasisProvider basis,
             Func<CancellationToken, Task<IDalamudTextureWrap>> immediateLoadFunction,
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken, IDisposable?[] disposables)
         {
             this.taskCompletionSource = new();
             this.basis = basis;
             this.cancellationToken = cancellationToken;
+            this.disposables = disposables;
             this.immediateLoadFunction = immediateLoadFunction;
         }
 
         public Task<IDalamudTextureWrap> Task => this.taskCompletionSource.Task;
+
+        public void Dispose()
+        {
+            foreach (ref var d in this.disposables.AsSpan())
+                Interlocked.Exchange(ref d, null)?.Dispose();
+        }
 
         public int CompareTo(WorkItem other)
         {

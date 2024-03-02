@@ -16,12 +16,8 @@ using Dalamud.Utility;
 using Lumina.Data;
 using Lumina.Data.Files;
 
-using SharpDX;
-using SharpDX.Direct3D;
-using SharpDX.Direct3D11;
-using SharpDX.DXGI;
-
 using TerraFX.Interop.DirectX;
+using TerraFX.Interop.Windows;
 
 namespace Dalamud.Interface.Textures.Internal;
 
@@ -65,6 +61,23 @@ internal sealed partial class TextureManager : IServiceType, IDisposable, ITextu
     {
         this.sharedTextureManager = new(this);
         this.wicManager = new(this);
+    }
+
+    /// <summary>Gets the D3D11 Device used to create textures.</summary>
+    public unsafe ComPtr<ID3D11Device> Device
+    {
+        get
+        {
+            if (this.interfaceManager.Scene is not { } scene)
+            {
+                _ = Service<InterfaceManager.InterfaceManagerWithScene>.Get();
+                scene = this.interfaceManager.Scene ?? throw new InvalidOperationException();
+            }
+
+            var device = default(ComPtr<ID3D11Device>);
+            device.Attach((ID3D11Device*)scene.Device.NativePointer);
+            return device;
+        }
     }
 
     /// <summary>Gets the shared texture manager.</summary>
@@ -183,65 +196,54 @@ internal sealed partial class TextureManager : IServiceType, IDisposable, ITextu
         this.IsDxgiFormatSupported((DXGI_FORMAT)dxgiFormat);
 
     /// <inheritdoc cref="ITextureProvider.IsDxgiFormatSupported"/>
-    public bool IsDxgiFormatSupported(DXGI_FORMAT dxgiFormat)
+    public unsafe bool IsDxgiFormatSupported(DXGI_FORMAT dxgiFormat)
     {
-        if (this.interfaceManager.Scene is not { } scene)
-        {
-            _ = Service<InterfaceManager.InterfaceManagerWithScene>.Get();
-            scene = this.interfaceManager.Scene ?? throw new InvalidOperationException();
-        }
-
-        var format = (Format)dxgiFormat;
-        var support = scene.Device.CheckFormatSupport(format);
-        const FormatSupport required = FormatSupport.Texture2D;
-        return (support & required) == required;
+        D3D11_FORMAT_SUPPORT supported;
+        if (this.Device.Get()->CheckFormatSupport(dxgiFormat, (uint*)&supported).FAILED)
+            return false;
+        
+        const D3D11_FORMAT_SUPPORT required = D3D11_FORMAT_SUPPORT.D3D11_FORMAT_SUPPORT_TEXTURE2D;
+        return (supported & required) == required;
     }
 
     /// <inheritdoc cref="ITextureProvider.CreateFromRaw"/>
-    internal IDalamudTextureWrap NoThrottleCreateFromRaw(
+    internal unsafe IDalamudTextureWrap NoThrottleCreateFromRaw(
         RawImageSpecification specs,
         ReadOnlySpan<byte> bytes)
     {
-        if (this.interfaceManager.Scene is not { } scene)
+        var device = this.Device;
+
+        var texd = new D3D11_TEXTURE2D_DESC
         {
-            _ = Service<InterfaceManager.InterfaceManagerWithScene>.Get();
-            scene = this.interfaceManager.Scene ?? throw new InvalidOperationException();
-        }
-
-        ShaderResourceView resView;
-        unsafe
+            Width = (uint)specs.Width,
+            Height = (uint)specs.Height,
+            MipLevels = 1,
+            ArraySize = 1,
+            Format = (DXGI_FORMAT)specs.DxgiFormat,
+            SampleDesc = new(1, 0),
+            Usage = D3D11_USAGE.D3D11_USAGE_IMMUTABLE,
+            BindFlags = (uint)D3D11_BIND_FLAG.D3D11_BIND_SHADER_RESOURCE,
+            CPUAccessFlags = 0,
+            MiscFlags = 0,
+        };
+        using var texture = default(ComPtr<ID3D11Texture2D>);
+        fixed (void* dataPtr = bytes)
         {
-            fixed (void* pData = bytes)
-            {
-                var texDesc = new Texture2DDescription
-                {
-                    Width = specs.Width,
-                    Height = specs.Height,
-                    MipLevels = 1,
-                    ArraySize = 1,
-                    Format = (Format)specs.DxgiFormat,
-                    SampleDescription = new(1, 0),
-                    Usage = ResourceUsage.Immutable,
-                    BindFlags = BindFlags.ShaderResource,
-                    CpuAccessFlags = CpuAccessFlags.None,
-                    OptionFlags = ResourceOptionFlags.None,
-                };
-
-                using var texture = new Texture2D(scene.Device, texDesc, new DataRectangle(new(pData), specs.Pitch));
-                resView = new(
-                    scene.Device,
-                    texture,
-                    new()
-                    {
-                        Format = texDesc.Format,
-                        Dimension = ShaderResourceViewDimension.Texture2D,
-                        Texture2D = { MipLevels = texDesc.MipLevels },
-                    });
-            }
+            var subrdata = new D3D11_SUBRESOURCE_DATA { pSysMem = dataPtr, SysMemPitch = (uint)specs.Pitch };
+            device.Get()->CreateTexture2D(&texd, &subrdata, texture.GetAddressOf()).ThrowOnError();
         }
+        
+        var viewDesc = new D3D11_SHADER_RESOURCE_VIEW_DESC
+        {
+            Format = texd.Format,
+            ViewDimension = D3D_SRV_DIMENSION.D3D11_SRV_DIMENSION_TEXTURE2D,
+            Texture2D = new() { MipLevels = texd.MipLevels },
+        };
+        using var view = default(ComPtr<ID3D11ShaderResourceView>);
+        device.Get()->CreateShaderResourceView((ID3D11Resource*)texture.Get(), &viewDesc, view.GetAddressOf())
+            .ThrowOnError();
 
-        // no sampler for now because the ImGui implementation we copied doesn't allow for changing it
-        return new DalamudTextureWrap(new D3DTextureWrap(resView, specs.Width, specs.Height));
+        return new UnknownTextureWrap((IUnknown*)view.Get(), specs.Width, specs.Height, true);
     }
 
     /// <summary>Creates a texture from the given <see cref="TexFile"/>. Skips the load throttler; intended to be used
@@ -257,7 +259,7 @@ internal sealed partial class TextureManager : IServiceType, IDisposable, ITextu
         if (conversion != TexFile.DxgiFormatConversion.NoConversion ||
             !this.IsDxgiFormatSupported((DXGI_FORMAT)dxgiFormat))
         {
-            dxgiFormat = (int)Format.B8G8R8A8_UNorm;
+            dxgiFormat = (int)DXGI_FORMAT.DXGI_FORMAT_B8G8R8A8_UNORM;
             buffer = buffer.Filter(0, 0, TexFile.TextureFormat.B8G8R8A8);
         }
 
