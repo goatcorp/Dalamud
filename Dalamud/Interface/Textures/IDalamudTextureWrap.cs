@@ -1,7 +1,10 @@
 using System.Numerics;
 
+using Dalamud.Interface.Textures.Internal;
+
 using TerraFX.Interop.Windows;
 
+// ReSharper disable once CheckNamespace
 namespace Dalamud.Interface.Internal;
 
 /// <summary>

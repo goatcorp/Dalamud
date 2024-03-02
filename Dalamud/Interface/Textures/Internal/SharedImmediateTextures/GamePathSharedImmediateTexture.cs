@@ -3,11 +3,12 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using Dalamud.Data;
+using Dalamud.Interface.Internal;
 using Dalamud.Utility;
 
 using Lumina.Data.Files;
 
-namespace Dalamud.Interface.Internal.SharedImmediateTextures;
+namespace Dalamud.Interface.Textures.Internal.SharedImmediateTextures;
 
 /// <summary>Represents a sharable texture, based on a file in game resources.</summary>
 internal sealed class GamePathSharedImmediateTexture : SharedImmediateTexture
@@ -46,8 +47,9 @@ internal sealed class GamePathSharedImmediateTexture : SharedImmediateTexture
     private async Task<IDalamudTextureWrap> CreateTextureAsync(CancellationToken cancellationToken)
     {
         var dm = await Service<DataManager>.GetAsync();
-        var tm = await Service<TextureManager>.GetAsync();
-        if (dm.GetFile<TexFile>(this.path) is not { } file)
+        var tm = await Service<Interface.Textures.Internal.TextureManager>.GetAsync();
+        var substPath = tm.GetSubstitutedPath(this.path);
+        if (dm.GetFile<TexFile>(substPath) is not { } file)
             throw new FileNotFoundException();
         cancellationToken.ThrowIfCancellationRequested();
         return tm.NoThrottleCreateFromTexFile(file);

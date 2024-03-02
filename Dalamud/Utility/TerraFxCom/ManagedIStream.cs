@@ -1,5 +1,4 @@
 using System.Buffers;
-using System.Diagnostics;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -7,7 +6,7 @@ using System.Runtime.InteropServices;
 using TerraFX.Interop;
 using TerraFX.Interop.Windows;
 
-namespace Dalamud.Utility;
+namespace Dalamud.Utility.TerraFxCom;
 
 /// <summary>An <see cref="IStream"/> wrapper for <see cref="Stream"/>.</summary>
 [Guid("a620678b-56b9-4202-a1da-b821214dc972")]
@@ -15,7 +14,8 @@ internal sealed unsafe class ManagedIStream : IStream.Interface, IRefCountable
 {
     private static readonly Guid MyGuid = typeof(ManagedIStream).GUID;
 
-    private readonly Stream inner;
+    private readonly Stream innerStream;
+    private readonly bool leaveOpen;
     private readonly nint[] comObject;
     private readonly IStream.Vtbl<IStream> vtbl;
     private GCHandle gchThis;
@@ -23,11 +23,10 @@ internal sealed unsafe class ManagedIStream : IStream.Interface, IRefCountable
     private GCHandle gchVtbl;
     private int refCount;
 
-    /// <summary>Initializes a new instance of the <see cref="ManagedIStream"/> class.</summary>
-    /// <param name="inner">The inner stream.</param>
-    public ManagedIStream(Stream inner)
+    private ManagedIStream(Stream innerStream, bool leaveOpen = false)
     {
-        this.inner = inner;
+        this.innerStream = innerStream ?? throw new NullReferenceException();
+        this.leaveOpen = leaveOpen;
         this.comObject = new nint[2];
 
         this.vtbl.QueryInterface = &QueryInterfaceStatic;
@@ -127,6 +126,26 @@ internal sealed unsafe class ManagedIStream : IStream.Interface, IRefCountable
     public static implicit operator IStream*(ManagedIStream mis) =>
         (IStream*)mis.gchComObject.AddrOfPinnedObject();
 
+    /// <summary>Creates a new instance of <see cref="IStream"/> based on a managed <see cref="Stream"/>.</summary>
+    /// <param name="innerStream">The inner stream.</param>
+    /// <param name="leaveOpen">Whether to leave <paramref name="innerStream"/> open on final release.</param>
+    /// <returns>The new instance of <see cref="IStream"/> based on <paramref name="innerStream"/>.</returns>
+    public static ComPtr<IStream> Create(Stream innerStream, bool leaveOpen = false)
+    {
+        try
+        {
+            var res = default(ComPtr<IStream>);
+            res.Attach(new ManagedIStream(innerStream, leaveOpen));
+            return res;
+        }
+        catch
+        {
+            if (!leaveOpen)
+                innerStream.Dispose();
+            throw;
+        }
+    }
+
     /// <inheritdoc/>
     public HRESULT QueryInterface(Guid* riid, void** ppvObject)
     {
@@ -176,6 +195,8 @@ internal sealed unsafe class ManagedIStream : IStream.Interface, IRefCountable
                 this.gchThis.Free();
                 this.gchComObject.Free();
                 this.gchVtbl.Free();
+                if (!this.leaveOpen)
+                    this.innerStream.Dispose();
                 return newRefCount;
 
             case IRefCountable.RefCountResult.AlreadyDisposed:
@@ -225,7 +246,7 @@ internal sealed unsafe class ManagedIStream : IStream.Interface, IRefCountable
         for (read = 0u; read < cb;)
         {
             var chunkSize = unchecked((int)Math.Min(0x10000000u, cb));
-            var chunkRead = (uint)this.inner.Read(new(pv, chunkSize));
+            var chunkRead = (uint)this.innerStream.Read(new(pv, chunkSize));
             if (chunkRead == 0)
                 break;
             pv = (byte*)pv + chunkRead;
@@ -250,7 +271,7 @@ internal sealed unsafe class ManagedIStream : IStream.Interface, IRefCountable
             for (written = 0u; written < cb;)
             {
                 var chunkSize = Math.Min(0x10000000u, cb);
-                this.inner.Write(new(pv, (int)chunkSize));
+                this.innerStream.Write(new(pv, (int)chunkSize));
                 pv = (byte*)pv + chunkSize;
                 written += chunkSize;
             }
@@ -293,7 +314,7 @@ internal sealed unsafe class ManagedIStream : IStream.Interface, IRefCountable
 
         try
         {
-            var position = this.inner.Seek(dlibMove.QuadPart, seekOrigin);
+            var position = this.innerStream.Seek(dlibMove.QuadPart, seekOrigin);
             if (plibNewPosition != null)
             {
                 *plibNewPosition = new() { QuadPart = (ulong)position };
@@ -312,7 +333,7 @@ internal sealed unsafe class ManagedIStream : IStream.Interface, IRefCountable
     {
         try
         {
-            this.inner.SetLength(checked((long)libNewSize.QuadPart));
+            this.innerStream.SetLength(checked((long)libNewSize.QuadPart));
             return S.S_OK;
         }
         catch (Exception e) when (e.HResult == unchecked((int)(0x80070000u | ERROR.ERROR_HANDLE_DISK_FULL)))
@@ -355,7 +376,7 @@ internal sealed unsafe class ManagedIStream : IStream.Interface, IRefCountable
             {
                 while (cbRead < cb)
                 {
-                    var read = checked((uint)this.inner.Read(buf.AsSpan()));
+                    var read = checked((uint)this.innerStream.Read(buf.AsSpan()));
                     if (read == 0)
                         break;
                     cbRead += read;
@@ -414,13 +435,13 @@ internal sealed unsafe class ManagedIStream : IStream.Interface, IRefCountable
             return STG.STG_E_INVALIDPOINTER;
         ref var streamStats = ref *pstatstg;
         streamStats.type = (uint)STGTY.STGTY_STREAM;
-        streamStats.cbSize = (ulong)this.inner.Length;
+        streamStats.cbSize = (ulong)this.innerStream.Length;
         streamStats.grfMode = 0;
-        if (this.inner.CanRead && this.inner.CanWrite)
+        if (this.innerStream.CanRead && this.innerStream.CanWrite)
             streamStats.grfMode |= STGM.STGM_READWRITE;
-        else if (this.inner.CanRead)
+        else if (this.innerStream.CanRead)
             streamStats.grfMode |= STGM.STGM_READ;
-        else if (this.inner.CanWrite)
+        else if (this.innerStream.CanWrite)
             streamStats.grfMode |= STGM.STGM_WRITE;
         else
             return STG.STG_E_REVERTED;

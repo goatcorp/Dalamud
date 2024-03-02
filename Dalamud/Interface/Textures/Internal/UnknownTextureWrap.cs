@@ -1,10 +1,11 @@
 using System.Threading;
 
+using Dalamud.Interface.Internal;
 using Dalamud.Utility;
 
 using TerraFX.Interop.Windows;
 
-namespace Dalamud.Interface.Internal;
+namespace Dalamud.Interface.Textures.Internal;
 
 /// <summary>
 /// A texture wrap that is created by cloning the underlying <see cref="IDalamudTextureWrap.ImGuiHandle"/>.

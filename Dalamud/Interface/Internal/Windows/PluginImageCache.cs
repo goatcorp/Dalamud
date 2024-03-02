@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using Dalamud.Game;
+using Dalamud.Interface.Textures.Internal;
 using Dalamud.Networking.Http;
 using Dalamud.Plugin.Internal;
 using Dalamud.Plugin.Internal.Types;

@@ -4,6 +4,7 @@ using System.Numerics;
 using System.Threading;
 using System.Threading.Tasks;
 
+using Dalamud.Interface.Internal;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility;
 
@@ -15,7 +16,7 @@ using SharpDX.DXGI;
 using TerraFX.Interop.DirectX;
 using TerraFX.Interop.Windows;
 
-namespace Dalamud.Interface.Internal;
+namespace Dalamud.Interface.Textures.Internal;
 
 /// <summary>Service responsible for loading and disposing ImGui texture wraps.</summary>
 internal sealed partial class TextureManager
@@ -119,16 +120,16 @@ internal sealed partial class TextureManager
     }
 
     /// <inheritdoc/>
-    Task<(RawImageSpecification Specification, byte[] RawData)> ITextureProvider.GetRawDataAsync(
+    Task<(RawImageSpecification Specification, byte[] RawData)> ITextureProvider.GetRawDataFromExistingTextureAsync(
         IDalamudTextureWrap wrap,
         Vector2 uv0,
         Vector2 uv1,
         int dxgiFormat,
         CancellationToken cancellationToken) =>
-        this.GetRawDataAsync(wrap, uv0, uv1, (DXGI_FORMAT)dxgiFormat, cancellationToken);
+        this.GetRawDataFromExistingTextureAsync(wrap, uv0, uv1, (DXGI_FORMAT)dxgiFormat, cancellationToken);
 
-    /// <inheritdoc cref="ITextureProvider.GetRawDataAsync"/>
-    public async Task<(RawImageSpecification Specification, byte[] RawData)> GetRawDataAsync(
+    /// <inheritdoc cref="ITextureProvider.GetRawDataFromExistingTextureAsync"/>
+    public async Task<(RawImageSpecification Specification, byte[] RawData)> GetRawDataFromExistingTextureAsync(
         IDalamudTextureWrap wrap,
         Vector2 uv0,
         Vector2 uv1,

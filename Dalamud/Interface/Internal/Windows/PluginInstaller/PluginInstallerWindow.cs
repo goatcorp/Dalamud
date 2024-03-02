@@ -16,6 +16,7 @@ using Dalamud.Interface.Animation.EasingFunctions;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Components;
 using Dalamud.Interface.Internal.Notifications;
+using Dalamud.Interface.Textures.Internal;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
@@ -1745,7 +1746,7 @@ internal class PluginInstallerWindow : Window, IDisposable
 
                 if (!this.testerIconPath.IsNullOrEmpty())
                 {
-                    this.testerIcon = tm.GetFromFile(this.testerIconPath).RentAsync();
+                    this.testerIcon = tm.Shared.GetFromFile(this.testerIconPath).RentAsync();
                 }
 
                 this.testerImages = new Task<IDalamudTextureWrap>?[this.testerImagePaths.Length];
@@ -1756,7 +1757,7 @@ internal class PluginInstallerWindow : Window, IDisposable
                         continue;
 
                     _ = this.testerImages[i]?.ToContentDisposedTask();
-                    this.testerImages[i] = tm.GetFromFile(this.testerImagePaths[i]).RentAsync();
+                    this.testerImages[i] = tm.Shared.GetFromFile(this.testerImagePaths[i]).RentAsync();
                 }
             }
             catch (Exception ex)

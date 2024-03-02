@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Dalamud.Interface.Internal;
 using Dalamud.Utility;
 
-namespace Dalamud.Interface;
+namespace Dalamud.Interface.Textures;
 
 /// <summary>A texture with a backing instance of <see cref="IDalamudTextureWrap"/> that is shared across multiple
 /// requesters.</summary>

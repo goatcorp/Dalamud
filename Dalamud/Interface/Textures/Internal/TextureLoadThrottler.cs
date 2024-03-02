@@ -4,7 +4,9 @@ using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 
-namespace Dalamud.Interface.Internal;
+using Dalamud.Interface.Internal;
+
+namespace Dalamud.Interface.Textures.Internal;
 
 /// <summary>
 /// Service for managing texture loads.

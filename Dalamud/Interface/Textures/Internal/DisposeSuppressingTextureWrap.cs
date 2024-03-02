@@ -1,4 +1,6 @@
-namespace Dalamud.Interface.Internal;
+using Dalamud.Interface.Internal;
+
+namespace Dalamud.Interface.Textures.Internal;
 
 /// <summary>
 /// A texture wrap that ignores <see cref="IDisposable.Dispose"/> calls.

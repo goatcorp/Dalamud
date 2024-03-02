@@ -1,9 +1,10 @@
 using System.Threading;
 using System.Threading.Tasks;
 
+using Dalamud.Interface.Internal;
 using Dalamud.Utility;
 
-namespace Dalamud.Interface.Internal.SharedImmediateTextures;
+namespace Dalamud.Interface.Textures.Internal.SharedImmediateTextures;
 
 /// <summary>Represents a sharable texture, based on a file on the system filesystem.</summary>
 internal sealed class FileSystemSharedImmediateTexture : SharedImmediateTexture
@@ -42,7 +43,7 @@ internal sealed class FileSystemSharedImmediateTexture : SharedImmediateTexture
 
     private async Task<IDalamudTextureWrap> CreateTextureAsync(CancellationToken cancellationToken)
     {
-        var tm = await Service<TextureManager>.GetAsync();
+        var tm = await Service<Interface.Textures.Internal.TextureManager>.GetAsync();
         return await tm.NoThrottleCreateFromFileAsync(this.path, cancellationToken);
     }
 }

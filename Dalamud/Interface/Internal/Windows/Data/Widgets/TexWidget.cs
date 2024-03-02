@@ -9,7 +9,8 @@ using System.Threading.Tasks;
 using Dalamud.Interface.Components;
 using Dalamud.Interface.ImGuiFileDialog;
 using Dalamud.Interface.Internal.Notifications;
-using Dalamud.Interface.Internal.SharedImmediateTextures;
+using Dalamud.Interface.Textures.Internal;
+using Dalamud.Interface.Textures.Internal.SharedImmediateTextures;
 using Dalamud.Interface.Utility;
 using Dalamud.Plugin.Services;
 using Dalamud.Storage.Assets;
@@ -20,6 +21,8 @@ using ImGuiNET;
 using Serilog;
 
 using TerraFX.Interop.DirectX;
+
+using TextureManager = Dalamud.Interface.Textures.Internal.TextureManager;
 
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 
@@ -92,29 +95,29 @@ internal class TexWidget : IDataWindowWidget
 
         ImGui.PushID("loadedGameTextures");
         if (ImGui.CollapsingHeader(
-                $"Loaded Game Textures: {this.textureManager.GamePathTexturesForDebug.Count:g}###header"))
-            this.DrawLoadedTextures(this.textureManager.GamePathTexturesForDebug);
+                $"Loaded Game Textures: {this.textureManager.Shared.ForDebugGamePathTextures.Count:g}###header"))
+            this.DrawLoadedTextures(this.textureManager.Shared.ForDebugGamePathTextures);
         ImGui.PopID();
 
         ImGui.PushID("loadedFileTextures");
         if (ImGui.CollapsingHeader(
-                $"Loaded File Textures: {this.textureManager.FileSystemTexturesForDebug.Count:g}###header"))
-            this.DrawLoadedTextures(this.textureManager.FileSystemTexturesForDebug);
+                $"Loaded File Textures: {this.textureManager.Shared.ForDebugFileSystemTextures.Count:g}###header"))
+            this.DrawLoadedTextures(this.textureManager.Shared.ForDebugFileSystemTextures);
         ImGui.PopID();
 
         ImGui.PushID("loadedManifestResourceTextures");
         if (ImGui.CollapsingHeader(
-                $"Loaded Manifest Resource Textures: {this.textureManager.ManifestResourceTexturesForDebug.Count:g}###header"))
-            this.DrawLoadedTextures(this.textureManager.ManifestResourceTexturesForDebug);
+                $"Loaded Manifest Resource Textures: {this.textureManager.Shared.ForDebugManifestResourceTextures.Count:g}###header"))
+            this.DrawLoadedTextures(this.textureManager.Shared.ForDebugManifestResourceTextures);
         ImGui.PopID();
 
-        lock (this.textureManager.InvalidatedTexturesForDebug)
+        lock (this.textureManager.Shared.ForDebugInvalidatedTextures)
         {
             ImGui.PushID("invalidatedTextures");
             if (ImGui.CollapsingHeader(
-                    $"Invalidated: {this.textureManager.InvalidatedTexturesForDebug.Count:g}###header"))
+                    $"Invalidated: {this.textureManager.Shared.ForDebugInvalidatedTextures.Count:g}###header"))
             {
-                this.DrawLoadedTextures(this.textureManager.InvalidatedTexturesForDebug);
+                this.DrawLoadedTextures(this.textureManager.Shared.ForDebugInvalidatedTextures);
             }
 
             ImGui.PopID();
@@ -192,20 +195,9 @@ internal class TexWidget : IDataWindowWidget
                 ImGui.SameLine();
                 if (ImGui.Button("Save"))
                 {
-                    this.fileDialogManager.SaveFileDialog(
-                        "Save texture...",
-                        string.Join(
-                            ',',
-                            this.textureManager
-                                .GetSaveSupportedImageExtensions()
-                                .Select(x => $"{string.Join(" | ", x)}{{{string.Join(',', x)}}}")),
-                        $"Texture {t.Id}.png",
-                        ".png",
-                        (ok, path) =>
-                        {
-                            if (ok && t.GetTexture(this.textureManager) is { } source)
-                                Task.Run(() => this.SaveTextureWrap(source, path));
-                        });
+                    this.SaveTextureAsync(
+                        $"Texture {t.Id}",
+                        () => t.CreateNewTextureWrapReference(this.textureManager));
                 }
 
                 ImGui.SameLine();
@@ -244,7 +236,7 @@ internal class TexWidget : IDataWindowWidget
                     }
                     else
                     {
-                        ImGui.TextUnformatted(t.DescribeError());
+                        ImGui.TextUnformatted(t.DescribeError() ?? "Loading");
                     }
                 }
                 catch (Exception e)
@@ -343,20 +335,8 @@ internal class TexWidget : IDataWindowWidget
                     ImGui.TableNextColumn();
                     if (ImGuiComponents.IconButton(FontAwesomeIcon.Save))
                     {
-                        this.fileDialogManager.SaveFileDialog(
-                            "Save texture...",
-                            string.Join(
-                                ',',
-                                this.textureManager
-                                    .GetSaveSupportedImageExtensions()
-                                    .Select(x => $"{string.Join(" | ", x)}{{{string.Join(',', x)}}}")),
-                            Path.ChangeExtension(Path.GetFileName(texture.SourcePathForDebug), ".png"),
-                            ".png",
-                            (ok, path) =>
-                            {
-                                if (ok)
-                                    Task.Run(() => this.SaveImmediateTexture(texture, path));
-                            });
+                        var name = Path.ChangeExtension(Path.GetFileName(texture.SourcePathForDebug), null);
+                        this.SaveTextureAsync(name, () => texture.RentAsync());
                     }
 
                     if (ImGui.IsItemHovered() && texture.GetWrapOrDefault(null) is { } immediate)
@@ -394,53 +374,6 @@ internal class TexWidget : IDataWindowWidget
         ImGuiHelpers.ScaledDummy(10);
     }
 
-    private async void SaveImmediateTexture(ISharedImmediateTexture texture, string path)
-    {
-        try
-        {
-            using var rented = await texture.RentAsync();
-            this.SaveTextureWrap(rented, path);
-        }
-        catch (Exception e)
-        {
-            Log.Error(e, $"{nameof(TexWidget)}.{nameof(this.SaveImmediateTexture)}");
-            Service<NotificationManager>.Get().AddNotification(
-                $"Failed to save file: {e}",
-                this.DisplayName,
-                NotificationType.Error);
-        }
-    }
-
-    private async void SaveTextureWrap(IDalamudTextureWrap texture, string path)
-    {
-        try
-        {
-            await this.textureManager.SaveAsImageFormatToStreamAsync(
-                texture,
-                Path.GetExtension(path),
-                File.Create(path),
-                props: new Dictionary<string, object>
-                {
-                    ["CompressionQuality"] = 1.0f,
-                    ["ImageQuality"] = 1.0f,
-                });
-        }
-        catch (Exception e)
-        {
-            Log.Error(e, $"{nameof(TexWidget)}.{nameof(this.SaveImmediateTexture)}");
-            Service<NotificationManager>.Get().AddNotification(
-                $"Failed to save file: {e}",
-                this.DisplayName,
-                NotificationType.Error);
-            return;
-        }
-
-        Service<NotificationManager>.Get().AddNotification(
-            $"File saved to: {path}",
-            this.DisplayName,
-            NotificationType.Success);
-    }
-
     private void DrawGetFromGameIcon()
     {
         ImGui.InputText("Icon ID", ref this.iconId, 32);
@@ -464,6 +397,7 @@ internal class TexWidget : IDataWindowWidget
             this.addedTextures.Add(
                 new(
                     Api10: this.textureManager
+                               .Shared
                                .GetFromGameIcon(new(uint.Parse(this.iconId), this.hq, this.hiRes))
                                .RentAsync()));
         }
@@ -486,7 +420,7 @@ internal class TexWidget : IDataWindowWidget
 
         ImGui.SameLine();
         if (ImGui.Button("Load Tex (Async)"))
-            this.addedTextures.Add(new(Api10: this.textureManager.GetFromGame(this.inputTexPath).RentAsync()));
+            this.addedTextures.Add(new(Api10: this.textureManager.Shared.GetFromGame(this.inputTexPath).RentAsync()));
 
         ImGui.SameLine();
         if (ImGui.Button("Load Tex (Immediate)"))
@@ -506,7 +440,7 @@ internal class TexWidget : IDataWindowWidget
 
         ImGui.SameLine();
         if (ImGui.Button("Load File (Async)"))
-            this.addedTextures.Add(new(Api10: this.textureManager.GetFromFile(this.inputFilePath).RentAsync()));
+            this.addedTextures.Add(new(Api10: this.textureManager.Shared.GetFromFile(this.inputFilePath).RentAsync()));
 
         ImGui.SameLine();
         if (ImGui.Button("Load File (Immediate)"))
@@ -579,7 +513,7 @@ internal class TexWidget : IDataWindowWidget
             if (ImGui.Button("Load File (Async)"))
             {
                 this.addedTextures.Add(
-                    new(Api10: this.textureManager.GetFromManifestResource(assembly, name).RentAsync()));
+                    new(Api10: this.textureManager.Shared.GetFromManifestResource(assembly, name).RentAsync()));
             }
 
             ImGui.SameLine();
@@ -598,6 +532,100 @@ internal class TexWidget : IDataWindowWidget
         ImGui.InputFloat2("Scale", ref this.inputTexScale);
 
         ImGuiHelpers.ScaledDummy(10);
+    }
+
+    private async void SaveTextureAsync(string name, Func<Task<IDalamudTextureWrap>> textureGetter)
+    {
+        try
+        {
+            BitmapCodecInfo encoder;
+            {
+                var off = ImGui.GetCursorScreenPos();
+                var first = true;
+                var encoders = this.textureManager
+                                   .Wic
+                                   .GetSupportedEncoderInfos()
+                                   .ToList();
+                var tcs = new TaskCompletionSource<BitmapCodecInfo>();
+                Service<InterfaceManager>.Get().Draw += DrawChoices;
+
+                encoder = await tcs.Task;
+
+                void DrawChoices()
+                {
+                    if (first)
+                    {
+                        ImGui.OpenPopup(nameof(this.SaveTextureAsync));
+                        first = false;
+                    }
+
+                    ImGui.SetNextWindowPos(off, ImGuiCond.Appearing);
+                    if (!ImGui.BeginPopup(
+                            nameof(this.SaveTextureAsync),
+                            ImGuiWindowFlags.AlwaysAutoResize |
+                            ImGuiWindowFlags.NoTitleBar |
+                            ImGuiWindowFlags.NoSavedSettings))
+                    {
+                        Service<InterfaceManager>.Get().Draw -= DrawChoices;
+                        tcs.TrySetCanceled();
+                        return;
+                    }
+
+                    foreach (var encoder2 in encoders)
+                    {
+                        if (ImGui.Selectable(encoder2.Name))
+                            tcs.TrySetResult(encoder2);
+                    }
+
+                    if (tcs.Task.IsCompleted)
+                        ImGui.CloseCurrentPopup();
+
+                    ImGui.EndPopup();
+                }
+            }
+
+            string path;
+            {
+                var tcs = new TaskCompletionSource<string>();
+                this.fileDialogManager.SaveFileDialog(
+                    "Save texture...",
+                    $"{encoder.Name.Replace(',', '.')}{{{string.Join(',', encoder.Extensions)}}}",
+                    name + encoder.Extensions.First(),
+                    encoder.Extensions.First(),
+                    (ok, path2) =>
+                    {
+                        if (!ok)
+                            tcs.SetCanceled();
+                        else
+                            tcs.SetResult(path2);
+                    });
+                path = await tcs.Task.ConfigureAwait(false);
+            }
+
+            using var textureWrap = await textureGetter.Invoke();
+            await this.textureManager.SaveToFileAsync(
+                textureWrap,
+                encoder.ContainerGuid,
+                path,
+                props: new Dictionary<string, object>
+                {
+                    ["CompressionQuality"] = 1.0f,
+                    ["ImageQuality"] = 1.0f,
+                });
+
+            Service<NotificationManager>.Get().AddNotification(
+                $"File saved to: {path}",
+                this.DisplayName,
+                NotificationType.Success);
+        }
+        catch (Exception e)
+        {
+            Log.Error(e, $"{nameof(TexWidget)}.{nameof(this.SaveTextureAsync)}");
+            Service<NotificationManager>.Get().AddNotification(
+                $"Failed to save file: {e}",
+                this.DisplayName,
+                NotificationType.Error);
+        }
     }
 
     private void TextRightAlign(string s)
@@ -656,7 +684,7 @@ internal class TexWidget : IDataWindowWidget
             _ = this.Api10?.ToContentDisposedTask();
         }
 
-        public string DescribeError()
+        public string? DescribeError()
         {
             if (this.SharedResource is not null)
                 return "Unknown error";
@@ -665,7 +693,7 @@ internal class TexWidget : IDataWindowWidget
             if (this.Api10 is not null)
             {
                 return !this.Api10.IsCompleted
-                           ? "Loading"
+                           ? null
                            : this.Api10.Exception?.ToString() ?? (this.Api10.IsCanceled ? "Canceled" : "Unknown error");
             }
 
@@ -702,6 +730,18 @@ internal class TexWidget : IDataWindowWidget
             }
 
             return null;
+        }
+
+        public async Task<IDalamudTextureWrap> CreateNewTextureWrapReference(ITextureProvider tp)
+        {
+            while (true)
+            {
+                if (this.GetTexture(tp) is { } textureWrap)
+                    return textureWrap.CreateWrapSharingLowLevelResource();
+                if (this.DescribeError() is { } err)
+                    throw new(err);
+                await Task.Delay(100);
+            }
         }
 
         public TextureEntry CreateFromSharedLowLevelResource(ITextureProvider tp) =>

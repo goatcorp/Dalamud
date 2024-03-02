@@ -3,6 +3,7 @@ using System.Numerics;
 using System.Threading.Tasks;
 
 using Dalamud.Interface.Colors;
+using Dalamud.Interface.Textures.Internal;
 using Dalamud.Interface.Utility;
 
 using ImGuiNET;
@@ -141,7 +142,7 @@ public class IconBrowserWidget : IDataWindowWidget
         var texm = Service<TextureManager>.Get();
         var cursor = ImGui.GetCursorScreenPos();
 
-        if (texm.GetFromGameIcon(new((uint)iconId)).TryGetWrap(out var texture, out var exc))
+        if (texm.Shared.GetFromGameIcon(new((uint)iconId)).TryGetWrap(out var texture, out var exc))
         {
             ImGui.Image(texture.ImGuiHandle, this.iconSize);
 

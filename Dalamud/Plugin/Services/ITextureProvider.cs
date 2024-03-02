@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 
 using Dalamud.Interface;
 using Dalamud.Interface.Internal;
+using Dalamud.Interface.Textures;
 
 using Lumina.Data.Files;
 
@@ -121,14 +122,41 @@ public partial interface ITextureProvider
         TexFile file,
         CancellationToken cancellationToken = default);
 
+    /// <summary>Gets the supported bitmap decoders.</summary>
+    /// <returns>The supported bitmap decoders.</returns>
+    /// <remarks>
+    /// The following functions support the files of the container types pointed by yielded values.
+    /// <ul>
+    /// <li><see cref="GetFromFile"/></li>
+    /// <li><see cref="GetFromManifestResource"/></li>
+    /// <li><see cref="CreateFromImageAsync(ReadOnlyMemory{byte},CancellationToken)"/></li>
+    /// <li><see cref="CreateFromImageAsync(Stream,bool,CancellationToken)"/></li>
+    /// </ul>
+    /// </remarks>
+    IEnumerable<IBitmapCodecInfo> GetSupportedImageDecoderInfos();
+
+    /// <summary>Gets the supported bitmap encoders.</summary>
+    /// <returns>The supported bitmap encoders.</returns>
+    /// <remarks>
+    /// The following function supports the files of the container types pointed by yielded values.
+    /// <ul>
+    /// <li><see cref="SaveToStreamAsync"/></li>
+    /// </ul>
+    /// </remarks>
+    IEnumerable<IBitmapCodecInfo> GetSupportedImageEncoderInfos();
+
     /// <summary>Gets a shared texture corresponding to the given game resource icon specifier.</summary>
     /// <param name="lookup">A game icon specifier.</param>
     /// <returns>The shared texture that you may use to obtain the loaded texture wrap and load states.</returns>
+    /// <remarks>This function is under the effect of <see cref="ITextureSubstitutionProvider.GetSubstitutedPath"/>.
+    /// </remarks>
     ISharedImmediateTexture GetFromGameIcon(in GameIconLookup lookup);
 
     /// <summary>Gets a shared texture corresponding to the given path to a game resource.</summary>
     /// <param name="path">A path to a game resource.</param>
     /// <returns>The shared texture that you may use to obtain the loaded texture wrap and load states.</returns>
+    /// <remarks>This function is under the effect of <see cref="ITextureSubstitutionProvider.GetSubstitutedPath"/>.
+    /// </remarks>
     ISharedImmediateTexture GetFromGame(string path);
 
     /// <summary>Gets a shared texture corresponding to the given file on the filesystem.</summary>
@@ -173,26 +201,16 @@ public partial interface ITextureProvider
     /// then the source data will be returned.</para>
     /// <para>This function can fail.</para>
     /// </remarks>
-    Task<(RawImageSpecification Specification, byte[] RawData)> GetRawDataAsync(
+    Task<(RawImageSpecification Specification, byte[] RawData)> GetRawDataFromExistingTextureAsync(
         IDalamudTextureWrap wrap,
         Vector2 uv0,
         Vector2 uv1,
         int dxgiFormat = 0,
         CancellationToken cancellationToken = default);
 
-    /// <summary>Gets the supported image file extensions available for loading.</summary>
-    /// <returns>The supported extensions. Each <c>string[]</c> entry indicates that there can be multiple extensions
-    /// that correspond to one container format.</returns>
-    IEnumerable<string[]> GetLoadSupportedImageExtensions();
-
-    /// <summary>Gets the supported image file extensions available for saving.</summary>
-    /// <returns>The supported extensions. Each <c>string[]</c> entry indicates that there can be multiple extensions
-    /// that correspond to one container format.</returns>
-    IEnumerable<string[]> GetSaveSupportedImageExtensions();
-
     /// <summary>Saves a texture wrap to a stream in an image file format.</summary>
     /// <param name="wrap">The texture wrap to save.</param>
-    /// <param name="extension">The extension of the file to deduce the file format with the leading dot.</param>
+    /// <param name="containerGuid">The container GUID, obtained from <see cref="GetSupportedImageEncoderInfos"/>.</param>
     /// <param name="stream">The stream to save to.</param>
     /// <param name="leaveOpen">Whether to leave <paramref name="stream"/> open.</param>
     /// <param name="props">Properties to pass to the encoder. See
@@ -202,18 +220,31 @@ public partial interface ITextureProvider
     /// <returns>A task representing the save process.</returns>
     /// <remarks>
     /// <para><paramref name="wrap"/> may be disposed as soon as this function returns.</para>
-    /// <para>If no image container format corresponding to <paramref name="extension"/> is found, then the image will
-    /// be saved in png format.</para>
     /// </remarks>
-    [SuppressMessage(
-        "StyleCop.CSharp.LayoutRules",
-        "SA1519:Braces should not be omitted from multi-line child statement",
-        Justification = "Multiple fixed blocks")]
-    Task SaveAsImageFormatToStreamAsync(
+    Task SaveToStreamAsync(
         IDalamudTextureWrap wrap,
-        string extension,
+        Guid containerGuid,
         Stream stream,
         bool leaveOpen = false,
+        IReadOnlyDictionary<string, object>? props = null,
+        CancellationToken cancellationToken = default);
+    
+    /// <summary>Saves a texture wrap to a file as an image file.</summary>
+    /// <param name="wrap">The texture wrap to save.</param>
+    /// <param name="containerGuid">The container GUID, obtained from <see cref="GetSupportedImageEncoderInfos"/>.</param>
+    /// <param name="path">The target file path. The target file will be overwritten if it exist.</param>
+    /// <param name="props">Properties to pass to the encoder. See
+    /// <a href="https://learn.microsoft.com/en-us/windows/win32/wic/-wic-creating-encoder#encoder-options">Microsoft
+    /// Learn</a> for available parameters.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>A task representing the save process.</returns>
+    /// <remarks>
+    /// <para><paramref name="wrap"/> may be disposed as soon as this function returns.</para>
+    /// </remarks>
+    Task SaveToFileAsync(
+        IDalamudTextureWrap wrap,
+        Guid containerGuid,
+        string path,
         IReadOnlyDictionary<string, object>? props = null,
         CancellationToken cancellationToken = default);
 

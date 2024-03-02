@@ -2,6 +2,7 @@
 
 using ImGuiScene;
 
+// ReSharper disable once CheckNamespace
 namespace Dalamud.Interface.Internal;
 
 /// <summary>

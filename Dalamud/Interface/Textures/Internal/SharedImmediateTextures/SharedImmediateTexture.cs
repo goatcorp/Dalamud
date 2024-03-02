@@ -3,10 +3,11 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
+using Dalamud.Interface.Internal;
 using Dalamud.Storage.Assets;
 using Dalamud.Utility;
 
-namespace Dalamud.Interface.Internal.SharedImmediateTextures;
+namespace Dalamud.Interface.Textures.Internal.SharedImmediateTextures;
 
 /// <summary>Represents a texture that may have multiple reference holders (owners).</summary>
 internal abstract class SharedImmediateTexture
