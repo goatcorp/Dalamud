@@ -41,31 +41,8 @@ internal sealed partial class TextureManager
         CancellationToken cancellationToken = default)
     {
         using var wrapDispose = leaveWrapOpen ? null : wrap;
-        var texDesc = default(D3D11_TEXTURE2D_DESC);
 
-        unsafe
-        {
-            using var texSrv = default(ComPtr<ID3D11ShaderResourceView>);
-            using var context = default(ComPtr<ID3D11DeviceContext>);
-            using var tex2D = default(ComPtr<ID3D11Texture2D>);
-            fixed (Guid* piid = &IID.IID_ID3D11ShaderResourceView)
-                ((IUnknown*)wrap.ImGuiHandle)->QueryInterface(piid, (void**)texSrv.GetAddressOf()).ThrowOnError();
-
-            this.Device.Get()->GetImmediateContext(context.GetAddressOf());
-
-            using (var texRes = default(ComPtr<ID3D11Resource>))
-            {
-                texSrv.Get()->GetResource(texRes.GetAddressOf());
-
-                using var tex2DTemp = default(ComPtr<ID3D11Texture2D>);
-                texRes.As(&tex2DTemp).ThrowOnError();
-                tex2D.Swap(&tex2DTemp);
-            }
-
-            tex2D.Get()->GetDesc(&texDesc);
-        }
-
-        var dxgiFormat = texDesc.Format;
+        var dxgiFormat = this.GetFormatOf(wrap);
         if (!WicManager.GetCorrespondingWicPixelFormat(dxgiFormat, out _, out _))
             dxgiFormat = DXGI_FORMAT.DXGI_FORMAT_B8G8R8A8_UNORM;
 
@@ -73,10 +50,7 @@ internal sealed partial class TextureManager
 
         var (specs, bytes) = await this.GetRawImageAsync(
                                  wrap,
-                                 new()
-                                 {
-                                     Format = dxgiFormat,
-                                 },
+                                 new() { Format = dxgiFormat },
                                  true,
                                  cancellationToken).ConfigureAwait(false);
 
@@ -102,14 +76,29 @@ internal sealed partial class TextureManager
         var pathTemp = $"{path}.{GetCurrentThreadId():X08}{Environment.TickCount64:X16}.tmp";
         try
         {
-            await this.SaveToStreamAsync(
-                wrap,
+            var dxgiFormat = this.GetFormatOf(wrap);
+            if (!WicManager.GetCorrespondingWicPixelFormat(dxgiFormat, out _, out _))
+                dxgiFormat = DXGI_FORMAT.DXGI_FORMAT_B8G8R8A8_UNORM;
+
+            using var istream = TerraFxComInterfaceExtensions.CreateIStreamFromFile(
+                pathTemp,
+                FileMode.Create,
+                FileAccess.Write,
+                FileShare.None);
+
+            var (specs, bytes) = await this.GetRawImageAsync(
+                                     wrap,
+                                     new() { Format = dxgiFormat },
+                                     true,
+                                     cancellationToken).ConfigureAwait(false);
+
+            this.Wic.SaveToStreamUsingWic(
+                specs,
+                bytes,
                 containerGuid,
-                File.Create(pathTemp),
+                istream,
                 props,
-                leaveWrapOpen: true,
-                leaveStreamOpen: false,
-                cancellationToken: cancellationToken);
+                cancellationToken);
         }
         catch (Exception e)
         {
@@ -182,7 +171,7 @@ internal sealed partial class TextureManager
         try
         {
             using var handle = bytes.Pin();
-            using var stream = this.Wic.CreateIStreamFromMemory(handle, bytes.Length);
+            using var stream = this.Wic.CreateIStreamViewOfMemory(handle, bytes.Length);
             return this.Wic.NoThrottleCreateFromWicStream(stream, cancellationToken);
         }
         catch (Exception e1)
@@ -212,7 +201,11 @@ internal sealed partial class TextureManager
 
         try
         {
-            using var stream = this.Wic.CreateIStreamFromFile(path);
+            using var stream = TerraFxComInterfaceExtensions.CreateIStreamFromFile(
+                path,
+                FileMode.Open,
+                FileAccess.Read,
+                FileShare.Read);
             return this.Wic.NoThrottleCreateFromWicStream(stream, cancellationToken);
         }
         catch (Exception e1)
@@ -226,6 +219,26 @@ internal sealed partial class TextureManager
                 throw new AggregateException(e1, e2);
             }
         }
+    }
+
+    private unsafe DXGI_FORMAT GetFormatOf(IDalamudTextureWrap wrap)
+    {
+        using var texSrv = default(ComPtr<ID3D11ShaderResourceView>);
+        using var context = default(ComPtr<ID3D11DeviceContext>);
+        fixed (Guid* piid = &IID.IID_ID3D11ShaderResourceView)
+            ((IUnknown*)wrap.ImGuiHandle)->QueryInterface(piid, (void**)texSrv.GetAddressOf()).ThrowOnError();
+
+        this.Device.Get()->GetImmediateContext(context.GetAddressOf());
+
+        using var texRes = default(ComPtr<ID3D11Resource>);
+        texSrv.Get()->GetResource(texRes.GetAddressOf());
+
+        using var tex2D = default(ComPtr<ID3D11Texture2D>);
+        texRes.As(&tex2D).ThrowOnError();
+
+        var texDesc = default(D3D11_TEXTURE2D_DESC);
+        tex2D.Get()->GetDesc(&texDesc);
+        return texDesc.Format;
     }
 
     /// <summary>A part of texture manager that uses Windows Imaging Component under the hood.</summary>
@@ -355,26 +368,11 @@ internal sealed partial class TextureManager
         /// <param name="handle">An instance of <see cref="MemoryHandle"/>.</param>
         /// <param name="length">The number of bytes in the memory.</param>
         /// <returns>The new instance of <see cref="IStream"/>.</returns>
-        public unsafe ComPtr<IStream> CreateIStreamFromMemory(MemoryHandle handle, int length)
+        public unsafe ComPtr<IStream> CreateIStreamViewOfMemory(MemoryHandle handle, int length)
         {
             using var wicStream = default(ComPtr<IWICStream>);
             this.wicFactory.Get()->CreateStream(wicStream.GetAddressOf()).ThrowOnError();
             wicStream.Get()->InitializeFromMemory((byte*)handle.Pointer, checked((uint)length)).ThrowOnError();
-
-            var res = default(ComPtr<IStream>);
-            wicStream.As(ref res).ThrowOnError();
-            return res;
-        }
-
-        /// <summary>Creates a new instance of <see cref="IStream"/> from a file path.</summary>
-        /// <param name="path">The file path.</param>
-        /// <returns>The new instance of <see cref="IStream"/>.</returns>
-        public unsafe ComPtr<IStream> CreateIStreamFromFile(string path)
-        {
-            using var wicStream = default(ComPtr<IWICStream>);
-            this.wicFactory.Get()->CreateStream(wicStream.GetAddressOf()).ThrowOnError();
-            fixed (char* pPath = path)
-                wicStream.Get()->InitializeFromFilename((ushort*)pPath, GENERIC_READ).ThrowOnError();
 
             var res = default(ComPtr<IStream>);
             wicStream.As(ref res).ThrowOnError();
