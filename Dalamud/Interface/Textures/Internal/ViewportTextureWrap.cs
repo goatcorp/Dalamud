@@ -195,6 +195,7 @@ internal sealed class ViewportTextureWrap : IDalamudTextureWrap, IDeferredDispos
         _ = this.FirstUpdateTask.Exception;
         this.tex.Reset();
         this.srv.Reset();
+        this.rtv.Reset();
     }
 
     private static unsafe ComPtr<ID3D11Texture2D> GetImGuiViewportBackBuffer(uint viewportId)

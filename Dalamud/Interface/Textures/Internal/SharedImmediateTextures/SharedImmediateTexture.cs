@@ -363,46 +363,35 @@ internal abstract class SharedImmediateTexture
         }
     }
 
-    private sealed class NotOwnedTextureWrap : IDalamudTextureWrap
+    /// <summary>Same with <see cref="DisposeSuppressingTextureWrap"/>, but with a custom implementation of
+    /// <see cref="CreateWrapSharingLowLevelResource"/>.</summary>
+    private sealed class NotOwnedTextureWrap : DisposeSuppressingTextureWrap
     {
-        private readonly IDalamudTextureWrap innerWrap;
         private readonly IRefCountable owner;
 
         /// <summary>Initializes a new instance of the <see cref="NotOwnedTextureWrap"/> class.</summary>
         /// <param name="wrap">The inner wrap.</param>
         /// <param name="owner">The reference counting owner.</param>
         public NotOwnedTextureWrap(IDalamudTextureWrap wrap, IRefCountable owner)
+            : base(wrap)
         {
-            this.innerWrap = wrap;
             this.owner = owner;
         }
 
         /// <inheritdoc/>
-        public IntPtr ImGuiHandle => this.innerWrap.ImGuiHandle;
-
-        /// <inheritdoc/>
-        public int Width => this.innerWrap.Width;
-
-        /// <inheritdoc/>
-        public int Height => this.innerWrap.Height;
-
-        /// <inheritdoc/>
-        public IDalamudTextureWrap CreateWrapSharingLowLevelResource()
+        public override IDalamudTextureWrap CreateWrapSharingLowLevelResource()
         {
+            var wrap = this.GetWrap();
             this.owner.AddRef();
-            return new RefCountableWrappingTextureWrap(this.innerWrap, this.owner);
-        }
-
-        /// <inheritdoc/>
-        public void Dispose()
-        {
+            return new RefCountableWrappingTextureWrap(wrap, this.owner);
         }
 
         /// <inheritdoc/>
         public override string ToString() => $"{nameof(NotOwnedTextureWrap)}({this.owner})";
     }
 
-    private sealed class RefCountableWrappingTextureWrap : IDalamudTextureWrap
+    /// <summary>Reference counting texture wrap, to be used with <see cref="RentAsync"/>.</summary>
+    private sealed class RefCountableWrappingTextureWrap : ForwardingTextureWrap
     {
         private IDalamudTextureWrap? innerWrap;
         private IRefCountable? owner;
@@ -416,22 +405,11 @@ internal abstract class SharedImmediateTexture
             this.owner = owner;
         }
 
-        ~RefCountableWrappingTextureWrap() => this.Dispose();
+        /// <summary>Finalizes an instance of the <see cref="RefCountableWrappingTextureWrap"/> class.</summary>
+        ~RefCountableWrappingTextureWrap() => this.Dispose(false);
 
         /// <inheritdoc/>
-        public IntPtr ImGuiHandle => this.InnerWrapNonDisposed.ImGuiHandle;
-
-        /// <inheritdoc/>
-        public int Width => this.InnerWrapNonDisposed.Width;
-
-        /// <inheritdoc/>
-        public int Height => this.InnerWrapNonDisposed.Height;
-
-        private IDalamudTextureWrap InnerWrapNonDisposed =>
-            this.innerWrap ?? throw new ObjectDisposedException(nameof(RefCountableWrappingTextureWrap));
-
-        /// <inheritdoc/>
-        public IDalamudTextureWrap CreateWrapSharingLowLevelResource()
+        public override IDalamudTextureWrap CreateWrapSharingLowLevelResource()
         {
             var ownerCopy = this.owner;
             var wrapCopy = this.innerWrap;
@@ -443,7 +421,13 @@ internal abstract class SharedImmediateTexture
         }
 
         /// <inheritdoc/>
-        public void Dispose()
+        public override string ToString() => $"{nameof(RefCountableWrappingTextureWrap)}({this.owner})";
+
+        /// <inheritdoc/>
+        protected override bool TryGetWrap(out IDalamudTextureWrap? wrap) => (wrap = this.innerWrap) is not null;
+
+        /// <inheritdoc/>
+        protected override void Dispose(bool disposing)
         {
             while (true)
             {
@@ -455,32 +439,22 @@ internal abstract class SharedImmediateTexture
                 // Note: do not dispose this; life of the wrap is managed by the owner.
                 this.innerWrap = null;
                 ownerCopy.Release();
-                GC.SuppressFinalize(this);
             }
         }
-
-        /// <inheritdoc/>
-        public override string ToString() => $"{nameof(RefCountableWrappingTextureWrap)}({this.owner})";
     }
 
+    /// <summary>A texture wrap that revives and waits for the underlying texture as needed on every access.</summary>
     [Api10ToDo(Api10ToDoAttribute.DeleteCompatBehavior)]
-    private sealed class AvailableOnAccessTextureWrap : IDalamudTextureWrap
+    private sealed class AvailableOnAccessTextureWrap : ForwardingTextureWrap
     {
         private readonly SharedImmediateTexture inner;
 
+        /// <summary>Initializes a new instance of the <see cref="AvailableOnAccessTextureWrap"/> class.</summary>
+        /// <param name="inner">The shared texture.</param>
         public AvailableOnAccessTextureWrap(SharedImmediateTexture inner) => this.inner = inner;
 
         /// <inheritdoc/>
-        public IntPtr ImGuiHandle => this.WaitGet().ImGuiHandle;
-
-        /// <inheritdoc/>
-        public int Width => this.WaitGet().Width;
-
-        /// <inheritdoc/>
-        public int Height => this.WaitGet().Height;
-
-        /// <inheritdoc/>
-        public IDalamudTextureWrap CreateWrapSharingLowLevelResource()
+        public override IDalamudTextureWrap CreateWrapSharingLowLevelResource()
         {
             this.inner.AddRef();
             try
@@ -507,21 +481,17 @@ internal abstract class SharedImmediateTexture
         }
 
         /// <inheritdoc/>
-        public void Dispose()
-        {
-            // ignore
-        }
-
-        /// <inheritdoc/>
         public override string ToString() => $"{nameof(AvailableOnAccessTextureWrap)}({this.inner})";
 
-        private IDalamudTextureWrap WaitGet()
+        /// <inheritdoc/>
+        protected override bool TryGetWrap(out IDalamudTextureWrap? wrap)
         {
             if (this.inner.TryGetWrapCore(out var t, out _))
-                return t;
+                wrap = t;
 
             this.inner.UnderlyingWrap?.Wait();
-            return this.inner.nonOwningWrap ?? Service<DalamudAssetManager>.Get().Empty4X4;
+            wrap = this.inner.nonOwningWrap ?? Service<DalamudAssetManager>.Get().Empty4X4;
+            return true;
         }
     }
 }

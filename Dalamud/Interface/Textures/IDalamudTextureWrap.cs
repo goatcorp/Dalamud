@@ -1,5 +1,6 @@
 using System.Numerics;
 
+using Dalamud.Interface.Textures;
 using Dalamud.Interface.Textures.Internal;
 
 using TerraFX.Interop.Windows;
@@ -12,6 +13,8 @@ namespace Dalamud.Interface.Internal;
 /// Base TextureWrap interface for all Dalamud-owned texture wraps.
 /// Used to avoid referencing ImGuiScene.
 /// </summary>
+/// <remarks>If you want to implement this, see if you're actually wrapping an existing instance of
+/// <see cref="IDalamudTextureWrap"/>; if you are, then use <see cref="ForwardingTextureWrap"/>.</remarks>
 public interface IDalamudTextureWrap : IDisposable
 {
     /// <summary>Gets a texture handle suitable for direct use with ImGui functions.</summary>
