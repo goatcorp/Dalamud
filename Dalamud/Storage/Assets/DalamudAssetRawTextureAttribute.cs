@@ -1,6 +1,4 @@
-﻿using Dalamud.Plugin.Services;
-
-using SharpDX.DXGI;
+﻿using Dalamud.Interface.Textures;
 
 using TerraFX.Interop.DirectX;
 

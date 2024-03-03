@@ -4,8 +4,8 @@ using System.Linq;
 
 using Dalamud.Data;
 using Dalamud.Interface.Internal;
+using Dalamud.Interface.Textures;
 using Dalamud.Interface.Textures.Internal;
-using Dalamud.Plugin.Services;
 using Dalamud.Utility;
 using Lumina.Data.Files;
 using Lumina.Data.Parsing.Uld;

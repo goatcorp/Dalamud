@@ -9,8 +9,8 @@ using Dalamud.Configuration.Internal;
 using Dalamud.Interface.FontIdentifier;
 using Dalamud.Interface.GameFonts;
 using Dalamud.Interface.Internal;
+using Dalamud.Interface.Textures;
 using Dalamud.Interface.Utility;
-using Dalamud.Plugin.Services;
 using Dalamud.Storage.Assets;
 using Dalamud.Utility;
 

@@ -1,6 +1,6 @@
 using TerraFX.Interop.DirectX;
 
-namespace Dalamud.Plugin.Services;
+namespace Dalamud.Interface.Textures;
 
 /// <summary>Describes a raw image.</summary>
 public record struct RawImageSpecification

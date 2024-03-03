@@ -14,6 +14,7 @@ using Dalamud.Interface.Internal.ManagedAsserts;
 using Dalamud.Interface.Internal.Notifications;
 using Dalamud.Interface.ManagedFontAtlas;
 using Dalamud.Interface.ManagedFontAtlas.Internals;
+using Dalamud.Interface.Textures;
 using Dalamud.Interface.Textures.Internal;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Plugin.Services;
