@@ -71,7 +71,7 @@ internal sealed partial class TextureManager
 
         using var istream = ManagedIStream.Create(stream, leaveStreamOpen);
 
-        var (specs, bytes) = await this.GetRawDataFromExistingTextureAsync(
+        var (specs, bytes) = await this.GetRawImageAsync(
                                  wrap,
                                  new()
                                  {
@@ -164,7 +164,7 @@ internal sealed partial class TextureManager
         this.Wic.GetSupportedDecoderInfos();
 
     /// <inheritdoc/>
-    IEnumerable<IBitmapCodecInfo> ITextureProvider.GetSupportedImageEncoderInfos() =>
+    IEnumerable<IBitmapCodecInfo> ITextureReadbackProvider.GetSupportedImageEncoderInfos() =>
         this.Wic.GetSupportedEncoderInfos();
 
     /// <summary>Creates a texture from the given bytes of an image file. Skips the load throttler; intended to be used

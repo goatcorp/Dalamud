@@ -45,7 +45,7 @@ internal sealed partial class TextureManager
     /// <inheritdoc/>
     public Task<IDalamudTextureWrap> CreateFromExistingTextureAsync(
         IDalamudTextureWrap wrap,
-        ExistingTextureModificationArgs args = default,
+        TextureModificationArgs args = default,
         bool leaveWrapOpen = false,
         CancellationToken cancellationToken = default)
     {
@@ -94,9 +94,9 @@ internal sealed partial class TextureManager
     }
 
     /// <inheritdoc/>
-    public async Task<(RawImageSpecification Specification, byte[] RawData)> GetRawDataFromExistingTextureAsync(
+    public async Task<(RawImageSpecification Specification, byte[] RawData)> GetRawImageAsync(
         IDalamudTextureWrap wrap,
-        ExistingTextureModificationArgs args = default,
+        TextureModificationArgs args = default,
         bool leaveWrapOpen = false,
         CancellationToken cancellationToken = default)
     {
@@ -197,7 +197,7 @@ internal sealed partial class TextureManager
 
     private async Task<ComPtr<ID3D11Texture2D>> NoThrottleCreateFromExistingTextureAsync(
         IDalamudTextureWrap wrap,
-        ExistingTextureModificationArgs args)
+        TextureModificationArgs args)
     {
         args.ThrowOnInvalidValues();
 

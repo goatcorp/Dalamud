@@ -51,7 +51,7 @@ internal class TexWidget : IDataWindowWidget
     private Vector2 inputTexScale = Vector2.Zero;
     private TextureManager textureManager = null!;
     private FileDialogManager fileDialogManager = null!;
-    private ExistingTextureModificationArgs existingTextureModificationArgs;
+    private TextureModificationArgs textureModificationArgs;
 
     private ImGuiViewportTextureArgs viewportTextureArgs;
     private int viewportIndexInt;
@@ -88,7 +88,7 @@ internal class TexWidget : IDataWindowWidget
         this.supportedRenderTargetFormatNames = null;
         this.renderTargetChoiceInt = 0;
         this.fileDialogManager = new();
-        this.existingTextureModificationArgs = new()
+        this.textureModificationArgs = new()
         {
             Uv0 = new(0.25f),
             Uv1 = new(0.75f),
@@ -231,7 +231,7 @@ internal class TexWidget : IDataWindowWidget
                             return;
                         var texTask = this.textureManager.CreateFromExistingTextureAsync(
                             source.CreateWrapSharingLowLevelResource(),
-                            this.existingTextureModificationArgs with
+                            this.textureModificationArgs with
                             {
                                 Format = supportedFormats[this.renderTargetChoiceInt],
                             });
@@ -626,9 +626,9 @@ internal class TexWidget : IDataWindowWidget
 
     private void DrawExistingTextureModificationArgs()
     {
-        var b = this.existingTextureModificationArgs.MakeOpaque;
-        if (ImGui.Checkbox(nameof(this.existingTextureModificationArgs.MakeOpaque), ref b))
-            this.existingTextureModificationArgs.MakeOpaque = b;
+        var b = this.textureModificationArgs.MakeOpaque;
+        if (ImGui.Checkbox(nameof(this.textureModificationArgs.MakeOpaque), ref b))
+            this.textureModificationArgs.MakeOpaque = b;
 
         if (this.supportedRenderTargetFormats is null)
         {
@@ -642,29 +642,29 @@ internal class TexWidget : IDataWindowWidget
 
         this.supportedRenderTargetFormatNames ??= this.supportedRenderTargetFormats.Select(Enum.GetName).ToArray();
         ImGui.Combo(
-            nameof(this.existingTextureModificationArgs.DxgiFormat),
+            nameof(this.textureModificationArgs.DxgiFormat),
             ref this.renderTargetChoiceInt,
             this.supportedRenderTargetFormatNames,
             this.supportedRenderTargetFormatNames.Length);
 
         Span<int> wh = stackalloc int[2];
-        wh[0] = this.existingTextureModificationArgs.NewWidth;
-        wh[1] = this.existingTextureModificationArgs.NewHeight;
+        wh[0] = this.textureModificationArgs.NewWidth;
+        wh[1] = this.textureModificationArgs.NewHeight;
         if (ImGui.InputInt2(
-                $"{nameof(this.existingTextureModificationArgs.NewWidth)}/{nameof(this.existingTextureModificationArgs.NewHeight)}",
+                $"{nameof(this.textureModificationArgs.NewWidth)}/{nameof(this.textureModificationArgs.NewHeight)}",
                 ref wh[0]))
         {
-            this.existingTextureModificationArgs.NewWidth = wh[0];
-            this.existingTextureModificationArgs.NewHeight = wh[1];
+            this.textureModificationArgs.NewWidth = wh[0];
+            this.textureModificationArgs.NewHeight = wh[1];
         }
 
-        var vec2 = this.existingTextureModificationArgs.Uv0;
-        if (ImGui.InputFloat2(nameof(this.existingTextureModificationArgs.Uv0), ref vec2))
-            this.existingTextureModificationArgs.Uv0 = vec2;
+        var vec2 = this.textureModificationArgs.Uv0;
+        if (ImGui.InputFloat2(nameof(this.textureModificationArgs.Uv0), ref vec2))
+            this.textureModificationArgs.Uv0 = vec2;
 
-        vec2 = this.existingTextureModificationArgs.Uv1;
-        if (ImGui.InputFloat2(nameof(this.existingTextureModificationArgs.Uv1), ref vec2))
-            this.existingTextureModificationArgs.Uv1 = vec2;
+        vec2 = this.textureModificationArgs.Uv1;
+        if (ImGui.InputFloat2(nameof(this.textureModificationArgs.Uv1), ref vec2))
+            this.textureModificationArgs.Uv1 = vec2;
 
         ImGuiHelpers.ScaledDummy(10);
     }

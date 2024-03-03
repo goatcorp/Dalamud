@@ -6,8 +6,8 @@ using TerraFX.Interop.DirectX;
 
 namespace Dalamud.Interface.Textures;
 
-/// <summary>Describes how to modify an existing texture.</summary>
-public record struct ExistingTextureModificationArgs()
+/// <summary>Describes how to modify a texture.</summary>
+public record struct TextureModificationArgs()
 {
     /// <summary>Gets or sets a value indicating whether to make the texture opaque.</summary>
     /// <remarks>If <c>true</c>, then the alpha channel values will be filled with 1.0.</remarks>
@@ -52,10 +52,10 @@ public record struct ExistingTextureModificationArgs()
     /// <summary>Gets the effective value of <see cref="Uv1"/>.</summary>
     internal Vector2 Uv1Effective => this.Uv1 == Vector2.Zero ? Vector2.One : this.Uv1;
 
-    /// <summary>Test if this instance of <see cref="ExistingTextureModificationArgs"/> does not instruct to change the
+    /// <summary>Test if this instance of <see cref="TextureModificationArgs"/> does not instruct to change the
     /// underlying data of a texture.</summary>
     /// <param name="desc">The texture description to test against.</param>
-    /// <returns><c>true</c> if this instance of <see cref="ExistingTextureModificationArgs"/> does not instruct to
+    /// <returns><c>true</c> if this instance of <see cref="TextureModificationArgs"/> does not instruct to
     /// change the underlying data of a texture.</returns>
     internal bool IsCompleteSourceCopy(in D3D11_TEXTURE2D_DESC desc) =>
         this.Uv0 == Vector2.Zero

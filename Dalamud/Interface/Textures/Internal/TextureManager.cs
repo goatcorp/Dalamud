@@ -29,7 +29,8 @@ namespace Dalamud.Interface.Textures.Internal;
 [ResolveVia<ITextureProvider>]
 [ResolveVia<ITextureSubstitutionProvider>]
 #pragma warning restore SA1015
-internal sealed partial class TextureManager : IServiceType, IDisposable, ITextureProvider, ITextureSubstitutionProvider
+internal sealed partial class TextureManager
+    : IServiceType, IDisposable, ITextureProvider, ITextureSubstitutionProvider, ITextureReadbackProvider
 {
     private static readonly ModuleLog Log = new(nameof(TextureManager));
 
