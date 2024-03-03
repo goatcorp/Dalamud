@@ -236,7 +236,7 @@ internal sealed class ViewportTextureWrap : IDalamudTextureWrap, IDeferredDispos
                 throw new InvalidOperationException();
 
             using var resource = default(ComPtr<ID3D11Resource>);
-            ((ID3D11RenderTargetView*)rud[viewportIndex])->GetResource(resource.GetAddressOf());
+            ((ID3D11RenderTargetView*)rud[1])->GetResource(resource.GetAddressOf());
             resource.As(&texture).ThrowOnError();
         }
 
