@@ -7,16 +7,12 @@ using TerraFX.Interop.Windows;
 
 namespace Dalamud.Interface.Textures.Internal;
 
-/// <summary>
-/// A texture wrap that is created by cloning the underlying <see cref="IDalamudTextureWrap.ImGuiHandle"/>.
-/// </summary>
+/// <summary>A texture wrap that is created from an <see cref="IUnknown"/>.</summary>
 internal sealed unsafe class UnknownTextureWrap : IDalamudTextureWrap, IDeferredDisposable
 {
     private IntPtr imGuiHandle;
 
-    /// <summary>
-    /// Initializes a new instance of the <see cref="UnknownTextureWrap"/> class.
-    /// </summary>
+    /// <summary>Initializes a new instance of the <see cref="UnknownTextureWrap"/> class.</summary>
     /// <param name="unknown">The pointer to <see cref="IUnknown"/> that is suitable for use with
     /// <see cref="IDalamudTextureWrap.ImGuiHandle"/>.</param>
     /// <param name="width">The width of the texture.</param>
@@ -32,9 +28,7 @@ internal sealed unsafe class UnknownTextureWrap : IDalamudTextureWrap, IDeferred
             unknown->AddRef();
     }
 
-    /// <summary>
-    /// Finalizes an instance of the <see cref="UnknownTextureWrap"/> class.
-    /// </summary>
+    /// <summary>Finalizes an instance of the <see cref="UnknownTextureWrap"/> class.</summary>
     ~UnknownTextureWrap() => this.Dispose(false);
 
     /// <inheritdoc/>
@@ -49,18 +43,14 @@ internal sealed unsafe class UnknownTextureWrap : IDalamudTextureWrap, IDeferred
     /// <inheritdoc/>
     public int Height { get; }
 
-    /// <summary>
-    /// Queue the texture to be disposed once the frame ends.
-    /// </summary>
+    /// <summary>Queue the texture to be disposed once the frame ends.</summary>
     public void Dispose()
     {
         this.Dispose(true);
         GC.SuppressFinalize(this);
     }
 
-    /// <summary>
-    /// Actually dispose the wrapped texture.
-    /// </summary>
+    /// <summary>Actually dispose the wrapped texture.</summary>
     void IDeferredDisposable.RealDispose()
     {
         var handle = Interlocked.Exchange(ref this.imGuiHandle, nint.Zero);

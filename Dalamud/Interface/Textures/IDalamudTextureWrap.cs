@@ -6,6 +6,7 @@ using TerraFX.Interop.Windows;
 
 // ReSharper disable once CheckNamespace
 namespace Dalamud.Interface.Internal;
+// TODO(api10): fix namespace maybe?
 
 /// <summary>
 /// Base TextureWrap interface for all Dalamud-owned texture wraps.
@@ -13,24 +14,16 @@ namespace Dalamud.Interface.Internal;
 /// </summary>
 public interface IDalamudTextureWrap : IDisposable
 {
-    /// <summary>
-    /// Gets a texture handle suitable for direct use with ImGui functions.
-    /// </summary>
+    /// <summary>Gets a texture handle suitable for direct use with ImGui functions.</summary>
     IntPtr ImGuiHandle { get; }
 
-    /// <summary>
-    /// Gets the width of the texture.
-    /// </summary>
+    /// <summary>Gets the width of the texture.</summary>
     int Width { get; }
 
-    /// <summary>
-    /// Gets the height of the texture.
-    /// </summary>
+    /// <summary>Gets the height of the texture.</summary>
     int Height { get; }
 
-    /// <summary>
-    /// Gets the size vector of the texture using Width, Height.
-    /// </summary>
+    /// <summary>Gets the size vector of the texture using Width, Height.</summary>
     Vector2 Size => new(this.Width, this.Height);
 
     /// <summary>

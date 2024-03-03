@@ -17,7 +17,7 @@ public record struct ImGuiViewportTextureArgs()
     /// <summary>Gets or sets a value indicating whether to automatically update the texture.</summary>
     /// <remarks>Enabling this will also update <see cref="IDalamudTextureWrap.Size"/> as needed.</remarks>
     public bool AutoUpdate { get; set; }
-    
+
     /// <summary>Gets or sets a value indicating whether to get the texture before rendering ImGui.</summary>
     /// <remarks>It probably makes no sense to enable this unless <see cref="ViewportId"/> points to the main viewport.
     /// </remarks>

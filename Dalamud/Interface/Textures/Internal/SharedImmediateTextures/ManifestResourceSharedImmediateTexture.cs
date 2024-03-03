@@ -57,7 +57,7 @@ internal sealed class ManifestResourceSharedImmediateTexture : SharedImmediateTe
         if (stream is null)
             throw new FileNotFoundException("The resource file could not be found.");
 
-        var tm = await Service<Interface.Textures.Internal.TextureManager>.GetAsync();
+        var tm = await Service<TextureManager>.GetAsync();
         var ms = new MemoryStream(stream.CanSeek ? (int)stream.Length : 0);
         await stream.CopyToAsync(ms, cancellationToken);
         return tm.NoThrottleCreateFromImage(ms.GetBuffer().AsMemory(0, (int)ms.Length), cancellationToken);

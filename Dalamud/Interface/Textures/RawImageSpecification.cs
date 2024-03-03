@@ -21,8 +21,8 @@ public record struct RawImageSpecification
                 throw new NotSupportedException(FormatNotSupportedMessage);
 
             pitch = isBlockCompression
-                            ? Math.Max(1, (width + 3) / 4) * 2 * bitsPerPixel
-                            : ((width * bitsPerPixel) + 7) / 8;
+                        ? Math.Max(1, (width + 3) / 4) * 2 * bitsPerPixel
+                        : ((width * bitsPerPixel) + 7) / 8;
         }
 
         this.Width = width;

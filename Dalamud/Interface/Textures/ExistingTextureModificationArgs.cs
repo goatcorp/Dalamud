@@ -20,7 +20,7 @@ public record struct ExistingTextureModificationArgs()
     /// <see cref="ITextureProvider.IsDxgiFormatSupportedForCreateFromExistingTextureAsync"/>. This may not necessarily
     /// match <see cref="ITextureProvider.IsDxgiFormatSupported"/>.
     /// </para></remarks>
-    public int DxgiFormat { get; set; } = (int)DXGI_FORMAT.DXGI_FORMAT_B8G8R8A8_UNORM;
+    public int DxgiFormat { get; set; } = (int)DXGI_FORMAT.DXGI_FORMAT_UNKNOWN;
 
     /// <summary>Gets or sets the new width.</summary>
     /// <remarks>Set to 0 to automatically calculate according to the original texture size, <see cref="Uv0"/>, and

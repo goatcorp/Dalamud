@@ -89,7 +89,7 @@ internal sealed class ViewportTextureWrap : IDalamudTextureWrap, IDeferredDispos
                 bottom = (uint)MathF.Round(newDesc.Height * this.args.Uv1Effective.Y),
                 front = 0,
                 back = 1,
-            }; 
+            };
 
             if (this.desc.Width != copyBox.right - copyBox.left
                 || this.desc.Height != copyBox.bottom - copyBox.top

@@ -42,7 +42,7 @@ public interface ISharedImmediateTexture
     /// </remarks>
     [return: NotNullIfNotNull(nameof(defaultWrap))]
     IDalamudTextureWrap? GetWrapOrDefault(IDalamudTextureWrap? defaultWrap = null);
-    
+
     /// <summary>Attempts to get the texture for use with the current frame.</summary>
     /// <param name="texture">An instance of <see cref="IDalamudTextureWrap"/> that is guaranteed to be available for
     /// the current frame being drawn, or <c>null</c> if texture is not loaded (yet).</param>

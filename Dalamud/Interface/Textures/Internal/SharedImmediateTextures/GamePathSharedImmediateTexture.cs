@@ -48,7 +48,7 @@ internal sealed class GamePathSharedImmediateTexture : SharedImmediateTexture
     private async Task<IDalamudTextureWrap> CreateTextureAsync(CancellationToken cancellationToken)
     {
         var dm = await Service<DataManager>.GetAsync();
-        var tm = await Service<Interface.Textures.Internal.TextureManager>.GetAsync();
+        var tm = await Service<TextureManager>.GetAsync();
         var substPath = tm.GetSubstitutedPath(this.path);
         if (dm.GetFile<TexFile>(substPath) is not { } file)
             throw new FileNotFoundException();
