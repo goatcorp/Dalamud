@@ -3,8 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
-using System.Numerics;
-using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -43,13 +41,42 @@ internal sealed partial class TextureManager
         CancellationToken cancellationToken = default)
     {
         using var wrapDispose = leaveWrapOpen ? null : wrap;
+        var texDesc = default(D3D11_TEXTURE2D_DESC);
+
+        unsafe
+        {
+            using var texSrv = default(ComPtr<ID3D11ShaderResourceView>);
+            using var context = default(ComPtr<ID3D11DeviceContext>);
+            using var tex2D = default(ComPtr<ID3D11Texture2D>);
+            fixed (Guid* piid = &IID.IID_ID3D11ShaderResourceView)
+                ((IUnknown*)wrap.ImGuiHandle)->QueryInterface(piid, (void**)texSrv.GetAddressOf()).ThrowOnError();
+
+            this.Device.Get()->GetImmediateContext(context.GetAddressOf());
+
+            using (var texRes = default(ComPtr<ID3D11Resource>))
+            {
+                texSrv.Get()->GetResource(texRes.GetAddressOf());
+
+                using var tex2DTemp = default(ComPtr<ID3D11Texture2D>);
+                texRes.As(&tex2DTemp).ThrowOnError();
+                tex2D.Swap(&tex2DTemp);
+            }
+
+            tex2D.Get()->GetDesc(&texDesc);
+        }
+
+        var dxgiFormat = texDesc.Format;
+        if (!WicManager.GetCorrespondingWicPixelFormat(dxgiFormat, out _, out _))
+            dxgiFormat = DXGI_FORMAT.DXGI_FORMAT_B8G8R8A8_UNORM;
+
         using var istream = ManagedIStream.Create(stream, leaveStreamOpen);
 
         var (specs, bytes) = await this.GetRawDataFromExistingTextureAsync(
                                  wrap,
-                                 Vector2.Zero,
-                                 Vector2.One,
-                                 DXGI_FORMAT.DXGI_FORMAT_B8G8R8A8_UNORM,
+                                 new()
+                                 {
+                                     Format = dxgiFormat,
+                                 },
                                  true,
                                  cancellationToken).ConfigureAwait(false);
 
@@ -80,9 +107,9 @@ internal sealed partial class TextureManager
                 containerGuid,
                 File.Create(pathTemp),
                 props,
-                true,
-                false,
-                cancellationToken);
+                leaveWrapOpen: true,
+                leaveStreamOpen: false,
+                cancellationToken: cancellationToken);
         }
         catch (Exception e)
         {
@@ -206,6 +233,7 @@ internal sealed partial class TextureManager
     {
         private readonly TextureManager textureManager;
         private ComPtr<IWICImagingFactory> wicFactory;
+        private ComPtr<IWICImagingFactory2> wicFactory2;
 
         /// <summary>Initializes a new instance of the <see cref="WicManager"/> class.</summary>
         /// <param name="textureManager">An instance of <see cref="Interface.Textures.Internal.TextureManager"/>.</param>
@@ -216,13 +244,27 @@ internal sealed partial class TextureManager
             {
                 fixed (Guid* pclsidWicImagingFactory = &CLSID.CLSID_WICImagingFactory)
                 fixed (Guid* piidWicImagingFactory = &IID.IID_IWICImagingFactory)
+                fixed (Guid* pclsidWicImagingFactory2 = &CLSID.CLSID_WICImagingFactory2)
+                fixed (Guid* piidWicImagingFactory2 = &IID.IID_IWICImagingFactory2)
                 {
-                    CoCreateInstance(
-                        pclsidWicImagingFactory,
-                        null,
-                        (uint)CLSCTX.CLSCTX_INPROC_SERVER,
-                        piidWicImagingFactory,
-                        (void**)this.wicFactory.GetAddressOf()).ThrowOnError();
+                    if (CoCreateInstance(
+                            pclsidWicImagingFactory2,
+                            null,
+                            (uint)CLSCTX.CLSCTX_INPROC_SERVER,
+                            piidWicImagingFactory2,
+                            (void**)this.wicFactory2.GetAddressOf()).SUCCEEDED)
+                    {
+                        this.wicFactory2.As(ref this.wicFactory).ThrowOnError();
+                    }
+                    else
+                    {
+                        CoCreateInstance(
+                            pclsidWicImagingFactory,
+                            null,
+                            (uint)CLSCTX.CLSCTX_INPROC_SERVER,
+                            piidWicImagingFactory,
+                            (void**)this.wicFactory.GetAddressOf()).ThrowOnError();
+                    }
                 }
             }
         }
@@ -231,6 +273,76 @@ internal sealed partial class TextureManager
         /// Finalizes an instance of the <see cref="WicManager"/> class.
         /// </summary>
         ~WicManager() => this.ReleaseUnmanagedResource();
+
+        /// <summary>
+        /// Gets the corresponding <see cref="DXGI_FORMAT"/> from a <see cref="Guid"/> containing a WIC pixel format.
+        /// </summary>
+        /// <param name="fmt">The WIC pixel format.</param>
+        /// <returns>The corresponding <see cref="DXGI_FORMAT"/>, or <see cref="DXGI_FORMAT.DXGI_FORMAT_UNKNOWN"/> if
+        /// unavailable.</returns>
+        public static DXGI_FORMAT GetCorrespondingDxgiFormat(Guid fmt) => 0 switch
+        {
+            // See https://github.com/microsoft/DirectXTex/wiki/WIC-I-O-Functions#savetowicmemory-savetowicfile
+            _ when fmt == GUID.GUID_WICPixelFormat128bppRGBAFloat => DXGI_FORMAT.DXGI_FORMAT_R32G32B32A32_FLOAT,
+            _ when fmt == GUID.GUID_WICPixelFormat64bppRGBAHalf => DXGI_FORMAT.DXGI_FORMAT_R16G16B16A16_FLOAT,
+            _ when fmt == GUID.GUID_WICPixelFormat64bppRGBA => DXGI_FORMAT.DXGI_FORMAT_R16G16B16A16_UNORM,
+            _ when fmt == GUID.GUID_WICPixelFormat32bppRGBA1010102XR => DXGI_FORMAT
+                .DXGI_FORMAT_R10G10B10_XR_BIAS_A2_UNORM,
+            _ when fmt == GUID.GUID_WICPixelFormat32bppRGBA1010102 => DXGI_FORMAT.DXGI_FORMAT_R10G10B10A2_UNORM,
+            _ when fmt == GUID.GUID_WICPixelFormat16bppBGRA5551 => DXGI_FORMAT.DXGI_FORMAT_B5G5R5A1_UNORM,
+            _ when fmt == GUID.GUID_WICPixelFormat16bppBGR565 => DXGI_FORMAT.DXGI_FORMAT_B5G6R5_UNORM,
+            _ when fmt == GUID.GUID_WICPixelFormat32bppGrayFloat => DXGI_FORMAT.DXGI_FORMAT_R32_FLOAT,
+            _ when fmt == GUID.GUID_WICPixelFormat16bppGrayHalf => DXGI_FORMAT.DXGI_FORMAT_R16_FLOAT,
+            _ when fmt == GUID.GUID_WICPixelFormat16bppGray => DXGI_FORMAT.DXGI_FORMAT_R16_UNORM,
+            _ when fmt == GUID.GUID_WICPixelFormat8bppGray => DXGI_FORMAT.DXGI_FORMAT_R8_UNORM,
+            _ when fmt == GUID.GUID_WICPixelFormat8bppAlpha => DXGI_FORMAT.DXGI_FORMAT_A8_UNORM,
+            _ when fmt == GUID.GUID_WICPixelFormat32bppRGBA => DXGI_FORMAT.DXGI_FORMAT_R8G8B8A8_UNORM,
+            _ when fmt == GUID.GUID_WICPixelFormat32bppBGRA => DXGI_FORMAT.DXGI_FORMAT_B8G8R8A8_UNORM,
+            _ when fmt == GUID.GUID_WICPixelFormat32bppBGR => DXGI_FORMAT.DXGI_FORMAT_B8G8R8X8_UNORM,
+            _ => DXGI_FORMAT.DXGI_FORMAT_UNKNOWN,
+        };
+
+        /// <summary>
+        /// Gets the corresponding <see cref="Guid"/> containing a WIC pixel format from a <see cref="DXGI_FORMAT"/>.
+        /// </summary>
+        /// <param name="dxgiPixelFormat">The DXGI pixel format.</param>
+        /// <param name="wicPixelFormat">The corresponding <see cref="Guid"/>.</param>
+        /// <param name="srgb">Whether the image is in SRGB.</param>
+        /// <returns><c>true</c> if a corresponding pixel format exists.</returns>
+        public static bool GetCorrespondingWicPixelFormat(
+            DXGI_FORMAT dxgiPixelFormat,
+            out Guid wicPixelFormat,
+            out bool srgb)
+        {
+            wicPixelFormat = dxgiPixelFormat switch
+            {
+                // See https://github.com/microsoft/DirectXTex/wiki/WIC-I-O-Functions#savetowicmemory-savetowicfile
+                DXGI_FORMAT.DXGI_FORMAT_R32G32B32A32_FLOAT => GUID.GUID_WICPixelFormat128bppRGBAFloat,
+                DXGI_FORMAT.DXGI_FORMAT_R16G16B16A16_FLOAT => GUID.GUID_WICPixelFormat64bppRGBAHalf,
+                DXGI_FORMAT.DXGI_FORMAT_R16G16B16A16_UNORM => GUID.GUID_WICPixelFormat64bppRGBA,
+                DXGI_FORMAT.DXGI_FORMAT_R10G10B10_XR_BIAS_A2_UNORM => GUID.GUID_WICPixelFormat32bppRGBA1010102XR,
+                DXGI_FORMAT.DXGI_FORMAT_R10G10B10A2_UNORM => GUID.GUID_WICPixelFormat32bppRGBA1010102,
+                DXGI_FORMAT.DXGI_FORMAT_B5G5R5A1_UNORM => GUID.GUID_WICPixelFormat16bppBGRA5551,
+                DXGI_FORMAT.DXGI_FORMAT_B5G6R5_UNORM => GUID.GUID_WICPixelFormat16bppBGR565,
+                DXGI_FORMAT.DXGI_FORMAT_R32_FLOAT => GUID.GUID_WICPixelFormat32bppGrayFloat,
+                DXGI_FORMAT.DXGI_FORMAT_R16_FLOAT => GUID.GUID_WICPixelFormat16bppGrayHalf,
+                DXGI_FORMAT.DXGI_FORMAT_R16_UNORM => GUID.GUID_WICPixelFormat16bppGray,
+                DXGI_FORMAT.DXGI_FORMAT_R8_UNORM => GUID.GUID_WICPixelFormat8bppGray,
+                DXGI_FORMAT.DXGI_FORMAT_A8_UNORM => GUID.GUID_WICPixelFormat8bppAlpha,
+                DXGI_FORMAT.DXGI_FORMAT_R8G8B8A8_UNORM => GUID.GUID_WICPixelFormat32bppRGBA,
+                DXGI_FORMAT.DXGI_FORMAT_R8G8B8A8_UNORM_SRGB => GUID.GUID_WICPixelFormat32bppRGBA,
+                DXGI_FORMAT.DXGI_FORMAT_B8G8R8A8_UNORM => GUID.GUID_WICPixelFormat32bppBGRA,
+                DXGI_FORMAT.DXGI_FORMAT_B8G8R8A8_UNORM_SRGB => GUID.GUID_WICPixelFormat32bppBGRA,
+                DXGI_FORMAT.DXGI_FORMAT_B8G8R8X8_UNORM => GUID.GUID_WICPixelFormat32bppBGR,
+                DXGI_FORMAT.DXGI_FORMAT_B8G8R8X8_UNORM_SRGB => GUID.GUID_WICPixelFormat32bppBGR,
+                _ => Guid.Empty,
+            };
+            srgb = dxgiPixelFormat
+                       is DXGI_FORMAT.DXGI_FORMAT_B8G8R8A8_UNORM_SRGB
+                       or DXGI_FORMAT.DXGI_FORMAT_B8G8R8X8_UNORM_SRGB
+                       or DXGI_FORMAT.DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+            return wicPixelFormat != Guid.Empty;
+        }
 
         /// <inheritdoc/>
         public void Dispose()
@@ -349,7 +461,7 @@ internal sealed partial class TextureManager
             bitmapLock.Get()->GetDataPointer(&cbBufferSize, &pbData).ThrowOnError();
             bitmapSource.Get()->CopyPixels(null, stride, cbBufferSize, pbData).ThrowOnError();
             return this.textureManager.NoThrottleCreateFromRaw(
-                new(rcLock.Width, rcLock.Height, (int)stride, (int)dxgiFormat),
+                new(rcLock.Width, rcLock.Height, (int)dxgiFormat, (int)stride),
                 new(pbData, (int)cbBufferSize));
         }
 
@@ -382,21 +494,37 @@ internal sealed partial class TextureManager
         /// <param name="cancellationToken">The cancellation token.</param>
         public unsafe void SaveToStreamUsingWic(
             RawImageSpecification specs,
-            byte[] bytes,
+            ReadOnlySpan<byte> bytes,
             Guid containerFormat,
             ComPtr<IStream> stream,
             IReadOnlyDictionary<string, object>? props = null,
             CancellationToken cancellationToken = default)
         {
-            var outPixelFormat = GUID.GUID_WICPixelFormat32bppBGRA;
-            var inPixelFormat = GetCorrespondingWicPixelFormat((DXGI_FORMAT)specs.DxgiFormat);
-            if (inPixelFormat == Guid.Empty)
+            if (!GetCorrespondingWicPixelFormat((DXGI_FORMAT)specs.DxgiFormat, out var inPixelFormat, out var srgb))
                 throw new NotSupportedException("DXGI_FORMAT from specs is not supported by WIC.");
 
             using var encoder = default(ComPtr<IWICBitmapEncoder>);
             using var encoderFrame = default(ComPtr<IWICBitmapFrameEncode>);
             this.wicFactory.Get()->CreateEncoder(&containerFormat, null, encoder.GetAddressOf()).ThrowOnError();
             cancellationToken.ThrowIfCancellationRequested();
+
+            // See: DirectXTK/Src/ScreenGrab.cpp
+            var outPixelFormat = (DXGI_FORMAT)specs.DxgiFormat switch
+            {
+                DXGI_FORMAT.DXGI_FORMAT_R32G32B32A32_FLOAT => GUID.GUID_WICPixelFormat128bppRGBAFloat,
+                DXGI_FORMAT.DXGI_FORMAT_R16G16B16A16_FLOAT when !this.wicFactory2.IsEmpty() =>
+                    GUID.GUID_WICPixelFormat128bppRGBAFloat,
+                DXGI_FORMAT.DXGI_FORMAT_R16G16B16A16_FLOAT => GUID.GUID_WICPixelFormat32bppBGRA,
+                DXGI_FORMAT.DXGI_FORMAT_R16G16B16A16_UNORM => GUID.GUID_WICPixelFormat64bppBGRA,
+                DXGI_FORMAT.DXGI_FORMAT_B5G5R5A1_UNORM => GUID.GUID_WICPixelFormat16bppBGRA5551,
+                DXGI_FORMAT.DXGI_FORMAT_B5G6R5_UNORM => GUID.GUID_WICPixelFormat16bppBGR565,
+                DXGI_FORMAT.DXGI_FORMAT_R32_FLOAT => GUID.GUID_WICPixelFormat8bppGray,
+                DXGI_FORMAT.DXGI_FORMAT_R16_FLOAT => GUID.GUID_WICPixelFormat8bppGray,
+                DXGI_FORMAT.DXGI_FORMAT_R16_UNORM => GUID.GUID_WICPixelFormat8bppGray,
+                DXGI_FORMAT.DXGI_FORMAT_R8_UNORM => GUID.GUID_WICPixelFormat8bppGray,
+                DXGI_FORMAT.DXGI_FORMAT_A8_UNORM => GUID.GUID_WICPixelFormat8bppGray,
+                _ => GUID.GUID_WICPixelFormat24bppBGR,
+            };
 
             encoder.Get()->Initialize(stream, WICBitmapEncoderCacheOption.WICBitmapEncoderNoCache)
                 .ThrowOnError();
@@ -406,35 +534,14 @@ internal sealed partial class TextureManager
             encoder.Get()->CreateNewFrame(encoderFrame.GetAddressOf(), propertyBag.GetAddressOf()).ThrowOnError();
             cancellationToken.ThrowIfCancellationRequested();
 
+            // Opt-in to the WIC2 support for writing 32-bit Windows BMP files with an alpha channel
+            if (containerFormat == GUID.GUID_ContainerFormatBmp && !this.wicFactory2.IsEmpty())
+                propertyBag.Get()->Write("EnableV5Header32bppBGRA", true).ThrowOnError();
+
             if (props is not null)
             {
-                var nprop = 0u;
-                propertyBag.Get()->CountProperties(&nprop).ThrowOnError();
-                for (var i = 0u; i < nprop; i++)
-                {
-                    var pbag2 = default(PROPBAG2);
-                    var npropread = 0u;
-                    propertyBag.Get()->GetPropertyInfo(i, 1, &pbag2, &npropread).ThrowOnError();
-                    if (npropread == 0)
-                        continue;
-                    try
-                    {
-                        var propName = new string((char*)pbag2.pstrName);
-                        if (props.TryGetValue(propName, out var untypedValue))
-                        {
-                            VARIANT val;
-                            // Marshal calls VariantInit.
-                            Marshal.GetNativeVariantForObject(untypedValue, (nint)(&val));
-                            VariantChangeType(&val, &val, 0, pbag2.vt).ThrowOnError();
-                            propertyBag.Get()->Write(1, &pbag2, &val).ThrowOnError();
-                            VariantClear(&val);
-                        }
-                    }
-                    finally
-                    {
-                        CoTaskMemFree(pbag2.pstrName);
-                    }
-                }
+                foreach (var (name, untypedValue) in props)
+                    propertyBag.Get()->Write(name, untypedValue).ThrowOnError();
             }
 
             encoderFrame.Get()->Initialize(propertyBag).ThrowOnError();
@@ -442,6 +549,34 @@ internal sealed partial class TextureManager
 
             encoderFrame.Get()->SetPixelFormat(&outPixelFormat).ThrowOnError();
             encoderFrame.Get()->SetSize(checked((uint)specs.Width), checked((uint)specs.Height)).ThrowOnError();
+            using (var metaWriter = default(ComPtr<IWICMetadataQueryWriter>))
+            {
+                if (encoderFrame.Get()->GetMetadataQueryWriter(metaWriter.GetAddressOf()).SUCCEEDED)
+                {
+                    if (containerFormat == GUID.GUID_ContainerFormatPng)
+                    {
+                        // Set sRGB chunk
+                        if (srgb)
+                        {
+                            _ = metaWriter.Get()->SetMetadataByName("/sRGB/RenderingIntent", (byte)0);
+                        }
+                        else
+                        {
+                            // add gAMA chunk with gamma 1.0
+                            // gama value * 100,000 -- i.e. gamma 1.0
+                            _ = metaWriter.Get()->SetMetadataByName("/sRGB/RenderingIntent", 100000U);
+
+                            // remove sRGB chunk which is added by default.
+                            _ = metaWriter.Get()->RemoveMetadataByName("/sRGB/RenderingIntent");
+                        }
+                    }
+                    else
+                    {
+                        // Set EXIF Colorspace of sRGB
+                        _ = metaWriter.Get()->SetMetadataByName("System.Image.ColorSpace", (ushort)0);
+                    }
+                }
+            }
 
             using var tempBitmap = default(ComPtr<IWICBitmap>);
             fixed (byte* pBytes = bytes)
@@ -480,61 +615,11 @@ internal sealed partial class TextureManager
             encoder.Get()->Commit().ThrowOnError();
         }
 
-        /// <summary>
-        /// Gets the corresponding <see cref="DXGI_FORMAT"/> from a <see cref="Guid"/> containing a WIC pixel format.
-        /// </summary>
-        /// <param name="fmt">The WIC pixel format.</param>
-        /// <returns>The corresponding <see cref="DXGI_FORMAT"/>, or <see cref="DXGI_FORMAT.DXGI_FORMAT_UNKNOWN"/> if
-        /// unavailable.</returns>
-        private static DXGI_FORMAT GetCorrespondingDxgiFormat(Guid fmt) => 0 switch
+        private void ReleaseUnmanagedResource()
         {
-            // See https://github.com/microsoft/DirectXTex/wiki/WIC-I-O-Functions#savetowicmemory-savetowicfile
-            _ when fmt == GUID.GUID_WICPixelFormat128bppRGBAFloat => DXGI_FORMAT.DXGI_FORMAT_R32G32B32A32_FLOAT,
-            _ when fmt == GUID.GUID_WICPixelFormat64bppRGBAHalf => DXGI_FORMAT.DXGI_FORMAT_R16G16B16A16_FLOAT,
-            _ when fmt == GUID.GUID_WICPixelFormat64bppRGBA => DXGI_FORMAT.DXGI_FORMAT_R16G16B16A16_UNORM,
-            _ when fmt == GUID.GUID_WICPixelFormat32bppRGBA1010102XR => DXGI_FORMAT
-                .DXGI_FORMAT_R10G10B10_XR_BIAS_A2_UNORM,
-            _ when fmt == GUID.GUID_WICPixelFormat32bppRGBA1010102 => DXGI_FORMAT.DXGI_FORMAT_R10G10B10A2_UNORM,
-            _ when fmt == GUID.GUID_WICPixelFormat16bppBGRA5551 => DXGI_FORMAT.DXGI_FORMAT_B5G5R5A1_UNORM,
-            _ when fmt == GUID.GUID_WICPixelFormat16bppBGR565 => DXGI_FORMAT.DXGI_FORMAT_B5G6R5_UNORM,
-            _ when fmt == GUID.GUID_WICPixelFormat32bppGrayFloat => DXGI_FORMAT.DXGI_FORMAT_R32_FLOAT,
-            _ when fmt == GUID.GUID_WICPixelFormat16bppGrayHalf => DXGI_FORMAT.DXGI_FORMAT_R16_FLOAT,
-            _ when fmt == GUID.GUID_WICPixelFormat16bppGray => DXGI_FORMAT.DXGI_FORMAT_R16_UNORM,
-            _ when fmt == GUID.GUID_WICPixelFormat8bppGray => DXGI_FORMAT.DXGI_FORMAT_R8_UNORM,
-            _ when fmt == GUID.GUID_WICPixelFormat8bppAlpha => DXGI_FORMAT.DXGI_FORMAT_A8_UNORM,
-            _ when fmt == GUID.GUID_WICPixelFormat32bppRGBA => DXGI_FORMAT.DXGI_FORMAT_R8G8B8A8_UNORM,
-            _ when fmt == GUID.GUID_WICPixelFormat32bppBGRA => DXGI_FORMAT.DXGI_FORMAT_B8G8R8A8_UNORM,
-            _ when fmt == GUID.GUID_WICPixelFormat32bppBGR => DXGI_FORMAT.DXGI_FORMAT_B8G8R8X8_UNORM,
-            _ => DXGI_FORMAT.DXGI_FORMAT_UNKNOWN,
-        };
-
-        /// <summary>
-        /// Gets the corresponding <see cref="Guid"/> containing a WIC pixel format from a <see cref="DXGI_FORMAT"/>.
-        /// </summary>
-        /// <param name="fmt">The DXGI pixel format.</param>
-        /// <returns>The corresponding <see cref="Guid"/>, or <see cref="Guid.Empty"/> if unavailable.</returns>
-        private static Guid GetCorrespondingWicPixelFormat(DXGI_FORMAT fmt) => fmt switch
-        {
-            // See https://github.com/microsoft/DirectXTex/wiki/WIC-I-O-Functions#savetowicmemory-savetowicfile
-            DXGI_FORMAT.DXGI_FORMAT_R32G32B32A32_FLOAT => GUID.GUID_WICPixelFormat128bppRGBAFloat,
-            DXGI_FORMAT.DXGI_FORMAT_R16G16B16A16_FLOAT => GUID.GUID_WICPixelFormat64bppRGBAHalf,
-            DXGI_FORMAT.DXGI_FORMAT_R16G16B16A16_UNORM => GUID.GUID_WICPixelFormat64bppRGBA,
-            DXGI_FORMAT.DXGI_FORMAT_R10G10B10_XR_BIAS_A2_UNORM => GUID.GUID_WICPixelFormat32bppRGBA1010102XR,
-            DXGI_FORMAT.DXGI_FORMAT_R10G10B10A2_UNORM => GUID.GUID_WICPixelFormat32bppRGBA1010102,
-            DXGI_FORMAT.DXGI_FORMAT_B5G5R5A1_UNORM => GUID.GUID_WICPixelFormat16bppBGRA5551,
-            DXGI_FORMAT.DXGI_FORMAT_B5G6R5_UNORM => GUID.GUID_WICPixelFormat16bppBGR565,
-            DXGI_FORMAT.DXGI_FORMAT_R32_FLOAT => GUID.GUID_WICPixelFormat32bppGrayFloat,
-            DXGI_FORMAT.DXGI_FORMAT_R16_FLOAT => GUID.GUID_WICPixelFormat16bppGrayHalf,
-            DXGI_FORMAT.DXGI_FORMAT_R16_UNORM => GUID.GUID_WICPixelFormat16bppGray,
-            DXGI_FORMAT.DXGI_FORMAT_R8_UNORM => GUID.GUID_WICPixelFormat8bppGray,
-            DXGI_FORMAT.DXGI_FORMAT_A8_UNORM => GUID.GUID_WICPixelFormat8bppAlpha,
-            DXGI_FORMAT.DXGI_FORMAT_R8G8B8A8_UNORM => GUID.GUID_WICPixelFormat32bppRGBA,
-            DXGI_FORMAT.DXGI_FORMAT_B8G8R8A8_UNORM => GUID.GUID_WICPixelFormat32bppBGRA,
-            DXGI_FORMAT.DXGI_FORMAT_B8G8R8X8_UNORM => GUID.GUID_WICPixelFormat32bppBGR,
-            _ => Guid.Empty,
-        };
-
-        private void ReleaseUnmanagedResource() => this.wicFactory.Reset();
+            this.wicFactory.Reset();
+            this.wicFactory2.Reset();
+        }
 
         private readonly struct ComponentEnumerable<T> : IEnumerable<ComPtr<T>>
             where T : unmanaged, IWICComponentInfo.Interface

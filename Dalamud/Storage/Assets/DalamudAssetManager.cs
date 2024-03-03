@@ -84,6 +84,9 @@ internal sealed class DalamudAssetManager : IServiceType, IDisposable, IDalamudA
     public IDalamudTextureWrap Empty4X4 => this.GetDalamudTextureWrap(DalamudAsset.Empty4X4);
 
     /// <inheritdoc/>
+    public IDalamudTextureWrap White4X4 => this.GetDalamudTextureWrap(DalamudAsset.White4X4);
+
+    /// <inheritdoc/>
     public void Dispose()
     {
         lock (this.syncRoot)

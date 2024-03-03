@@ -50,7 +50,7 @@ internal sealed partial class TextureManager
             this.textureManager = textureManager;
             this.textureManager.framework.Update += this.FrameworkOnUpdate;
         }
-        
+
         /// <summary>Gets all the loaded textures from game resources.</summary>
         public ICollection<SharedImmediateTexture> ForDebugGamePathTextures => this.gameDict.Values;
 

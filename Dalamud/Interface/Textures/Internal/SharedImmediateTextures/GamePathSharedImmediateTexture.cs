@@ -28,7 +28,8 @@ internal sealed class GamePathSharedImmediateTexture : SharedImmediateTexture
     public static SharedImmediateTexture CreatePlaceholder(string path) => new GamePathSharedImmediateTexture(path);
 
     /// <inheritdoc/>
-    public override string ToString() => $"{nameof(GamePathSharedImmediateTexture)}#{this.InstanceIdForDebug}({this.path})";
+    public override string ToString() =>
+        $"{nameof(GamePathSharedImmediateTexture)}#{this.InstanceIdForDebug}({this.path})";
 
     /// <inheritdoc/>
     protected override void ReleaseResources()

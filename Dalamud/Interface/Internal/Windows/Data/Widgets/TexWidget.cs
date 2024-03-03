@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Dalamud.Interface.Components;
 using Dalamud.Interface.ImGuiFileDialog;
 using Dalamud.Interface.Internal.Notifications;
+using Dalamud.Interface.Textures;
 using Dalamud.Interface.Textures.Internal;
 using Dalamud.Interface.Textures.Internal.SharedImmediateTextures;
 using Dalamud.Interface.Utility;
@@ -21,6 +22,7 @@ using ImGuiNET;
 using Serilog;
 
 using TerraFX.Interop.DirectX;
+using TerraFX.Interop.Windows;
 
 using TextureManager = Dalamud.Interface.Textures.Internal.TextureManager;
 
@@ -49,6 +51,7 @@ internal class TexWidget : IDataWindowWidget
     private Vector2 inputTexScale = Vector2.Zero;
     private TextureManager textureManager = null!;
     private FileDialogManager fileDialogManager = null!;
+    private ExistingTextureModificationArgs existingTextureModificationArgs;
 
     private string[]? supportedRenderTargetFormatNames;
     private DXGI_FORMAT[]? supportedRenderTargetFormats;
@@ -82,6 +85,13 @@ internal class TexWidget : IDataWindowWidget
         this.supportedRenderTargetFormats = null;
         this.supportedRenderTargetFormatNames = null;
         this.fileDialogManager = new();
+        this.existingTextureModificationArgs = new()
+        {
+            Uv0 = new(0.25f),
+            Uv1 = new(0.75f),
+            NewWidth = 320,
+            NewHeight = 240,
+        };
         this.Ready = true;
     }
 
@@ -123,6 +133,31 @@ internal class TexWidget : IDataWindowWidget
             ImGui.PopID();
         }
 
+        ImGui.Dummy(new(ImGui.GetTextLineHeightWithSpacing()));
+
+        ImGui.AlignTextToFramePadding();
+        ImGui.TextUnformatted("Capture: ");
+        if (ImGui.Button("Game"))
+            this.addedTextures.Add(new() { Api10 = this.textureManager.CreateFromGameScreen() });
+
+        ImGui.SameLine();
+        if (ImGui.Button("Game (Auto)"))
+            this.addedTextures.Add(new() { Api10 = this.textureManager.CreateFromGameScreen(true) });
+
+        ImGui.SameLine();
+        if (ImGui.Button("Main Viewport"))
+        {
+            this.addedTextures.Add(
+                new() { Api10 = this.textureManager.CreateFromImGuiViewport(ImGui.GetMainViewport().ID) });
+        }
+
+        ImGui.SameLine();
+        if (ImGui.Button("Main Viewport (Auto)"))
+        {
+            this.addedTextures.Add(
+                new() { Api10 = this.textureManager.CreateFromImGuiViewport(ImGui.GetMainViewport().ID, true) });
+        }
+
         if (ImGui.CollapsingHeader(nameof(ITextureProvider.GetFromGameIcon), ImGuiTreeNodeFlags.DefaultOpen))
         {
             ImGui.PushID(nameof(this.DrawGetFromGameIcon));
@@ -158,24 +193,14 @@ internal class TexWidget : IDataWindowWidget
             ImGui.PopID();
         }
 
-        ImGui.Dummy(new(ImGui.GetTextLineHeightWithSpacing()));
-
-        if (this.supportedRenderTargetFormats is null)
+        if (ImGui.CollapsingHeader($"CropCopy##{this.DrawExistingTextureModificationArgs}"))
         {
-            this.supportedRenderTargetFormatNames = null;
-            this.supportedRenderTargetFormats =
-                Enum.GetValues<DXGI_FORMAT>()
-                    .Where(this.textureManager.IsDxgiFormatSupportedForCreateFromExistingTextureAsync)
-                    .ToArray();
-            this.renderTargetChoiceInt = 0;
+            ImGui.PushID(nameof(this.DrawExistingTextureModificationArgs));
+            this.DrawExistingTextureModificationArgs();
+            ImGui.PopID();
         }
 
-        this.supportedRenderTargetFormatNames ??= this.supportedRenderTargetFormats.Select(Enum.GetName).ToArray();
-        ImGui.Combo(
-            "CropCopy Format",
-            ref this.renderTargetChoiceInt,
-            this.supportedRenderTargetFormatNames,
-            this.supportedRenderTargetFormatNames.Length);
+        ImGui.Dummy(new(ImGui.GetTextLineHeightWithSpacing()));
 
         Action? runLater = null;
         foreach (var t in this.addedTextures)
@@ -217,13 +242,14 @@ internal class TexWidget : IDataWindowWidget
                             return;
                         var texTask = this.textureManager.CreateFromExistingTextureAsync(
                             source.CreateWrapSharingLowLevelResource(),
-                            new(0.25f),
-                            new(0.75f),
-                            supportedFormats[this.renderTargetChoiceInt]);
+                            this.existingTextureModificationArgs with
+                            {
+                                Format = supportedFormats[this.renderTargetChoiceInt],
+                            });
                         this.addedTextures.Add(new() { Api10 = texTask });
                     };
                 }
-                
+
                 ImGui.SameLine();
                 ImGui.AlignTextToFramePadding();
                 unsafe
@@ -233,7 +259,7 @@ internal class TexWidget : IDataWindowWidget
                         var psrv = (ID3D11ShaderResourceView*)source.ImGuiHandle;
                         var rcsrv = psrv->AddRef() - 1;
                         psrv->Release();
-                        
+
                         var pres = default(ID3D11Resource*);
                         psrv->GetResource(&pres);
                         var rcres = pres->AddRef() - 1;
@@ -558,6 +584,49 @@ internal class TexWidget : IDataWindowWidget
         ImGuiHelpers.ScaledDummy(10);
     }
 
+    private void DrawExistingTextureModificationArgs()
+    {
+        var vec2 = this.existingTextureModificationArgs.Uv0;
+        if (ImGui.InputFloat2("UV0", ref vec2))
+            this.existingTextureModificationArgs.Uv0 = vec2;
+        
+        vec2 = this.existingTextureModificationArgs.Uv1;
+        if (ImGui.InputFloat2("UV1", ref vec2))
+            this.existingTextureModificationArgs.Uv1 = vec2;
+
+        Span<int> wh = stackalloc int[2];
+        wh[0] = this.existingTextureModificationArgs.NewWidth;
+        wh[1] = this.existingTextureModificationArgs.NewHeight;
+        if (ImGui.InputInt2("New Size", ref wh[0]))
+        {
+            this.existingTextureModificationArgs.NewWidth = wh[0];
+            this.existingTextureModificationArgs.NewHeight = wh[1];
+        }
+
+        var b = this.existingTextureModificationArgs.MakeOpaque;
+        if (ImGui.Checkbox("Make Opaque", ref b))
+            this.existingTextureModificationArgs.MakeOpaque = b;
+
+        if (this.supportedRenderTargetFormats is null)
+        {
+            this.supportedRenderTargetFormatNames = null;
+            this.supportedRenderTargetFormats =
+                Enum.GetValues<DXGI_FORMAT>()
+                    .Where(this.textureManager.IsDxgiFormatSupportedForCreateFromExistingTextureAsync)
+                    .ToArray();
+            this.renderTargetChoiceInt = 0;
+        }
+
+        this.supportedRenderTargetFormatNames ??= this.supportedRenderTargetFormats.Select(Enum.GetName).ToArray();
+        ImGui.Combo(
+            "Format",
+            ref this.renderTargetChoiceInt,
+            this.supportedRenderTargetFormatNames,
+            this.supportedRenderTargetFormatNames.Length);
+        
+        ImGuiHelpers.ScaledDummy(10);
+    }
+
     private async void SaveTextureAsync(string name, Func<Task<IDalamudTextureWrap>> textureGetter)
     {
         try
@@ -627,15 +696,18 @@ internal class TexWidget : IDataWindowWidget
             }
 
             using var textureWrap = await textureGetter.Invoke();
+            var props = new Dictionary<string, object>();
+            if (encoder.ContainerGuid == GUID.GUID_ContainerFormatTiff)
+                props["CompressionQuality"] = 1.0f;
+            else if (encoder.ContainerGuid == GUID.GUID_ContainerFormatJpeg ||
+                     encoder.ContainerGuid == GUID.GUID_ContainerFormatHeif ||
+                     encoder.ContainerGuid == GUID.GUID_ContainerFormatWmp)
+                props["ImageQuality"] = 1.0f;
             await this.textureManager.SaveToFileAsync(
                 textureWrap,
                 encoder.ContainerGuid,
                 path,
-                props: new Dictionary<string, object>
-                {
-                    ["CompressionQuality"] = 1.0f,
-                    ["ImageQuality"] = 1.0f,
-                });
+                props: props);
 
             Service<NotificationManager>.Get().AddNotification(
                 $"File saved to: {path}",

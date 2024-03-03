@@ -360,10 +360,10 @@ internal sealed partial class FontAtlasFactory
                     new(
                         texFile.Header.Width,
                         texFile.Header.Height,
-                        texFile.Header.Width * bpp,
                         (int)(targetIsB4G4R4A4
                                   ? DXGI_FORMAT.DXGI_FORMAT_B4G4R4A4_UNORM
-                                  : DXGI_FORMAT.DXGI_FORMAT_B8G8R8A8_UNORM)),
+                                  : DXGI_FORMAT.DXGI_FORMAT_B8G8R8A8_UNORM),
+                        texFile.Header.Width * bpp),
                     buffer));
         }
         finally

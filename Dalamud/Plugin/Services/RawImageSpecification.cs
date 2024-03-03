@@ -1,24 +1,52 @@
-using System.Diagnostics.CodeAnalysis;
-
 using TerraFX.Interop.DirectX;
 
 namespace Dalamud.Plugin.Services;
 
-/// <summary>
-/// Describes a raw image.
-/// </summary>
-/// <param name="Width">The width of the image.</param>
-/// <param name="Height">The height of the image.</param>
-/// <param name="Pitch">The pitch of the image in bytes. The value may not always exactly match
-/// <c><paramref name="Width"/> * bytesPerPixelFromDxgiFormat</c>.</param>
-/// <param name="DxgiFormat">The format of the image. See <a href="https://learn.microsoft.com/en-us/windows/win32/api/dxgiformat/ne-dxgiformat-dxgi_format">DXGI_FORMAT</a>.</param>
-[SuppressMessage(
-    "StyleCop.CSharp.NamingRules",
-    "SA1313:Parameter names should begin with lower-case letter",
-    Justification = "no")]
-public readonly record struct RawImageSpecification(int Width, int Height, int Pitch, int DxgiFormat)
+/// <summary>Describes a raw image.</summary>
+public record struct RawImageSpecification
 {
     private const string FormatNotSupportedMessage = $"{nameof(DxgiFormat)} is not supported.";
+
+    /// <summary>Initializes a new instance of the <see cref="RawImageSpecification"/> class.</summary>
+    /// <param name="width">The width of the raw image.</param>
+    /// <param name="height">The height of the raw image.</param>
+    /// <param name="dxgiFormat">The DXGI format of the raw image.</param>
+    /// <param name="pitch">The pitch of the raw image in bytes.
+    /// Specify <c>-1</c> to calculate it from other parameters.</param>
+    public RawImageSpecification(int width, int height, int dxgiFormat, int pitch = -1)
+    {
+        if (pitch < 0)
+        {
+            if (!GetFormatInfo((DXGI_FORMAT)dxgiFormat, out var bitsPerPixel, out var isBlockCompression))
+                throw new NotSupportedException(FormatNotSupportedMessage);
+
+            pitch = isBlockCompression
+                            ? Math.Max(1, (width + 3) / 4) * 2 * bitsPerPixel
+                            : ((width * bitsPerPixel) + 7) / 8;
+        }
+
+        this.Width = width;
+        this.Height = height;
+        this.Pitch = pitch;
+        this.DxgiFormat = dxgiFormat;
+    }
+
+    /// <summary>Gets or sets the width of the raw image.</summary>
+    public int Width { get; set; }
+
+    /// <summary>Gets or sets the height of the raw image.</summary>
+    public int Height { get; set; }
+
+    /// <summary>Gets or sets the pitch of the raw image in bytes.</summary>
+    /// <remarks>The value may not always exactly match
+    /// <c><see cref="Width"/> * bytesPerPixelFromDxgiFormat</c>.
+    /// </remarks>
+    public int Pitch { get; set; }
+
+    /// <summary>Gets or sets the format of the raw image.</summary>
+    /// <remarks>See <a href="https://learn.microsoft.com/en-us/windows/win32/api/dxgiformat/ne-dxgiformat-dxgi_format">
+    /// DXGI_FORMAT</a>.</remarks>
+    public int DxgiFormat { get; set; }
 
     /// <summary>Gets the number of bits per pixel.</summary>
     /// <exception cref="NotSupportedException">Thrown if <see cref="DxgiFormat"/> is not supported.</exception>
@@ -28,27 +56,6 @@ public readonly record struct RawImageSpecification(int Width, int Height, int P
             : throw new NotSupportedException(FormatNotSupportedMessage);
 
     /// <summary>
-    /// Creates a new instance of <see cref="RawImageSpecification"/> record using the given resolution and pixel
-    /// format. Pitch will be automatically calculated.
-    /// </summary>
-    /// <param name="width">The width.</param>
-    /// <param name="height">The height.</param>
-    /// <param name="format">The format.</param>
-    /// <returns>The new instance.</returns>
-    /// <exception cref="NotSupportedException">Thrown if <see cref="DxgiFormat"/> is not supported.</exception>
-    public static RawImageSpecification From(int width, int height, int format)
-    {
-        if (!GetFormatInfo((DXGI_FORMAT)format, out var bitsPerPixel, out var isBlockCompression))
-            throw new NotSupportedException(FormatNotSupportedMessage);
-
-        var pitch = isBlockCompression
-                        ? Math.Max(1, (width + 3) / 4) * 2 * bitsPerPixel
-                        : ((width * bitsPerPixel) + 7) / 8;
-
-        return new(width, height, pitch, format);
-    }
-
-    /// <summary>
     /// Creates a new instance of <see cref="RawImageSpecification"/> record using the given resolution,
     /// in B8G8R8A8(BGRA32) UNorm pixel format.
     /// </summary>
@@ -56,7 +63,7 @@ public readonly record struct RawImageSpecification(int Width, int Height, int P
     /// <param name="height">The height.</param>
     /// <returns>The new instance.</returns>
     public static RawImageSpecification Bgra32(int width, int height) =>
-        new(width, height, width * 4, (int)DXGI_FORMAT.DXGI_FORMAT_B8G8R8A8_UNORM);
+        new(width, height, (int)DXGI_FORMAT.DXGI_FORMAT_B8G8R8A8_UNORM, width * 4);
 
     /// <summary>
     /// Creates a new instance of <see cref="RawImageSpecification"/> record using the given resolution,
@@ -66,7 +73,7 @@ public readonly record struct RawImageSpecification(int Width, int Height, int P
     /// <param name="height">The height.</param>
     /// <returns>The new instance.</returns>
     public static RawImageSpecification Rgba32(int width, int height) =>
-        new(width, height, width * 4, (int)DXGI_FORMAT.DXGI_FORMAT_R8G8B8A8_UNORM);
+        new(width, height, (int)DXGI_FORMAT.DXGI_FORMAT_R8G8B8A8_UNORM, width * 4);
 
     /// <summary>
     /// Creates a new instance of <see cref="RawImageSpecification"/> record using the given resolution,
@@ -76,7 +83,7 @@ public readonly record struct RawImageSpecification(int Width, int Height, int P
     /// <param name="height">The height.</param>
     /// <returns>The new instance.</returns>
     public static RawImageSpecification A8(int width, int height) =>
-        new(width, height, width, (int)DXGI_FORMAT.DXGI_FORMAT_A8_UNORM);
+        new(width, height, (int)DXGI_FORMAT.DXGI_FORMAT_A8_UNORM, width);
 
     private static bool GetFormatInfo(DXGI_FORMAT format, out int bitsPerPixel, out bool isBlockCompression)
     {

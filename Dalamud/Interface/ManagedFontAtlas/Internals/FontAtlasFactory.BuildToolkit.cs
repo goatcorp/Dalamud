@@ -638,8 +638,8 @@ internal sealed partial class FontAtlasFactory
                             new(
                                 width,
                                 height,
-                                width * bpp,
-                                (int)(use4 ? Format.B4G4R4A4_UNorm : Format.B8G8R8A8_UNorm)),
+                                (int)(use4 ? Format.B4G4R4A4_UNorm : Format.B8G8R8A8_UNorm),
+                                width * bpp),
                             buf);
                         this.data.AddExistingTexture(wrap);
                         texture.TexID = wrap.ImGuiHandle;

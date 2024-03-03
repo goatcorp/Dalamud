@@ -63,7 +63,7 @@ internal sealed partial class TextureManager : IServiceType, IDisposable, ITextu
         this.wicManager = new(this);
     }
 
-    /// <summary>Gets the D3D11 Device used to create textures.</summary>
+    /// <summary>Gets the D3D11 Device used to create textures. Ownership is not transferred.</summary>
     public unsafe ComPtr<ID3D11Device> Device
     {
         get
@@ -80,15 +80,19 @@ internal sealed partial class TextureManager : IServiceType, IDisposable, ITextu
         }
     }
 
+    /// <summary>Gets a simpler drawer.</summary>
+    public SimpleDrawerImpl SimpleDrawer =>
+        this.simpleDrawer ?? throw new ObjectDisposedException(nameof(TextureManager));
+
     /// <summary>Gets the shared texture manager.</summary>
     public SharedTextureManager Shared =>
         this.sharedTextureManager ??
-        throw new ObjectDisposedException(nameof(this.sharedTextureManager));
+        throw new ObjectDisposedException(nameof(TextureManager));
 
     /// <summary>Gets the WIC manager.</summary>
     public WicManager Wic =>
         this.wicManager ??
-        throw new ObjectDisposedException(nameof(this.sharedTextureManager));
+        throw new ObjectDisposedException(nameof(TextureManager));
 
     /// <inheritdoc/>
     public void Dispose()
@@ -98,9 +102,7 @@ internal sealed partial class TextureManager : IServiceType, IDisposable, ITextu
 
         this.disposing = true;
 
-        this.drawsOneSquare?.Dispose();
-        this.drawsOneSquare = null;
-
+        Interlocked.Exchange(ref this.simpleDrawer, null)?.Dispose();
         Interlocked.Exchange(ref this.sharedTextureManager, null)?.Dispose();
         Interlocked.Exchange(ref this.wicManager, null)?.Dispose();
     }
@@ -201,7 +203,7 @@ internal sealed partial class TextureManager : IServiceType, IDisposable, ITextu
         D3D11_FORMAT_SUPPORT supported;
         if (this.Device.Get()->CheckFormatSupport(dxgiFormat, (uint*)&supported).FAILED)
             return false;
-        
+
         const D3D11_FORMAT_SUPPORT required = D3D11_FORMAT_SUPPORT.D3D11_FORMAT_SUPPORT_TEXTURE2D;
         return (supported & required) == required;
     }
@@ -232,7 +234,7 @@ internal sealed partial class TextureManager : IServiceType, IDisposable, ITextu
             var subrdata = new D3D11_SUBRESOURCE_DATA { pSysMem = dataPtr, SysMemPitch = (uint)specs.Pitch };
             device.Get()->CreateTexture2D(&texd, &subrdata, texture.GetAddressOf()).ThrowOnError();
         }
-        
+
         var viewDesc = new D3D11_SHADER_RESOURCE_VIEW_DESC
         {
             Format = texd.Format,
@@ -264,7 +266,7 @@ internal sealed partial class TextureManager : IServiceType, IDisposable, ITextu
         }
 
         return this.NoThrottleCreateFromRaw(
-            RawImageSpecification.From(buffer.Width, buffer.Height, dxgiFormat),
+            new(buffer.Width, buffer.Height, dxgiFormat),
             buffer.RawData);
     }
 

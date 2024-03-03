@@ -70,7 +70,8 @@ internal class InterfaceManager : IDisposable, IServiceType
     [ServiceManager.ServiceDependency]
     private readonly DalamudIme dalamudIme = Service<DalamudIme>.Get();
 
-    private readonly ConcurrentQueue<Action> runBeforePresent = new();
+    private readonly ConcurrentQueue<Action> runBeforeImGuiRender = new();
+    private readonly ConcurrentQueue<Action> runAfterImGuiRender = new();
 
     private readonly SwapChainVtableResolver address = new();
     private readonly Hook<SetCursorDelegate> setCursorHook;
@@ -285,13 +286,13 @@ internal class InterfaceManager : IDisposable, IServiceType
         this.deferredDisposeDisposables.Add(locked);
     }
 
-    /// <summary>Queues an action to be run before Present call.</summary>
+    /// <summary>Queues an action to be run before <see cref="ImGui.Render"/> call.</summary>
     /// <param name="action">The action.</param>
     /// <returns>A <see cref="Task"/> that resolves once <paramref name="action"/> is run.</returns>
-    public Task RunBeforePresent(Action action)
+    public Task RunBeforeImGuiRender(Action action)
     {
         var tcs = new TaskCompletionSource();
-        this.runBeforePresent.Enqueue(
+        this.runBeforeImGuiRender.Enqueue(
             () =>
             {
                 try
@@ -307,14 +308,58 @@ internal class InterfaceManager : IDisposable, IServiceType
         return tcs.Task;
     }
 
-    /// <summary>Queues a function to be run before Present call.</summary>
+    /// <summary>Queues a function to be run before <see cref="ImGui.Render"/> call.</summary>
     /// <typeparam name="T">The type of the return value.</typeparam>
     /// <param name="func">The function.</param>
     /// <returns>A <see cref="Task"/> that resolves once <paramref name="func"/> is run.</returns>
-    public Task<T> RunBeforePresent<T>(Func<T> func)
+    public Task<T> RunBeforeImGuiRender<T>(Func<T> func)
     {
         var tcs = new TaskCompletionSource<T>();
-        this.runBeforePresent.Enqueue(
+        this.runBeforeImGuiRender.Enqueue(
+            () =>
+            {
+                try
+                {
+                    tcs.SetResult(func());
+                }
+                catch (Exception e)
+                {
+                    tcs.SetException(e);
+                }
+            });
+        return tcs.Task;
+    }
+
+    /// <summary>Queues an action to be run after <see cref="ImGui.Render"/> call.</summary>
+    /// <param name="action">The action.</param>
+    /// <returns>A <see cref="Task"/> that resolves once <paramref name="action"/> is run.</returns>
+    public Task RunAfterImGuiRender(Action action)
+    {
+        var tcs = new TaskCompletionSource();
+        this.runAfterImGuiRender.Enqueue(
+            () =>
+            {
+                try
+                {
+                    action();
+                    tcs.SetResult();
+                }
+                catch (Exception e)
+                {
+                    tcs.SetException(e);
+                }
+            });
+        return tcs.Task;
+    }
+
+    /// <summary>Queues a function to be run after <see cref="ImGui.Render"/> call.</summary>
+    /// <typeparam name="T">The type of the return value.</typeparam>
+    /// <param name="func">The function.</param>
+    /// <returns>A <see cref="Task"/> that resolves once <paramref name="func"/> is run.</returns>
+    public Task<T> RunAfterImGuiRender<T>(Func<T> func)
+    {
+        var tcs = new TaskCompletionSource<T>();
+        this.runAfterImGuiRender.Enqueue(
             () =>
             {
                 try
@@ -566,7 +611,7 @@ internal class InterfaceManager : IDisposable, IServiceType
         if (!this.dalamudAtlas!.HasBuiltAtlas)
             return this.presentHook!.Original(swapChain, syncInterval, presentFlags);
 
-        while (this.runBeforePresent.TryDequeue(out var action))
+        while (this.runBeforeImGuiRender.TryDequeue(out var action))
             action.InvokeSafely();
 
         if (this.address.IsReshade)
@@ -574,19 +619,22 @@ internal class InterfaceManager : IDisposable, IServiceType
             var pRes = this.presentHook!.Original(swapChain, syncInterval, presentFlags);
 
             RenderImGui(this.scene!);
-            this.CleanupPostImGuiRender();
+            this.PostImGuiRender();
 
             return pRes;
         }
 
         RenderImGui(this.scene!);
-        this.CleanupPostImGuiRender();
+        this.PostImGuiRender();
 
         return this.presentHook!.Original(swapChain, syncInterval, presentFlags);
     }
 
-    private void CleanupPostImGuiRender()
+    private void PostImGuiRender()
     {
+        while (this.runAfterImGuiRender.TryDequeue(out var action))
+            action.InvokeSafely();
+
         if (!this.deferredDisposeTextures.IsEmpty)
         {
             var count = 0;
