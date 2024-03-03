@@ -9,15 +9,18 @@ namespace Dalamud.Interface.Textures;
 /// <summary>Describes how to modify an existing texture.</summary>
 public record struct ExistingTextureModificationArgs()
 {
-    /// <summary>Gets or sets the left top coordinates relative to the size of the source texture.</summary>
-    /// <para>Coordinates should be in range between 0 and 1.</para>
-    public Vector2 Uv0 { get; set; } = Vector2.Zero;
+    /// <summary>Gets or sets a value indicating whether to make the texture opaque.</summary>
+    /// <remarks>If <c>true</c>, then the alpha channel values will be filled with 1.0.</remarks>
+    public bool MakeOpaque { get; set; } = false;
 
-    /// <summary>Gets or sets the right bottom coordinates relative to the size of the source texture.</summary>
-    /// <para>Coordinates should be in range between 0 and 1.</para>
-    /// <remarks>If set to <see cref="Vector2.Zero"/>, then it will be interpreted as <see cref="Vector2.One"/>,
-    /// to accommodate the use of default value of this record struct.</remarks>
-    public Vector2 Uv1 { get; set; } = Vector2.One;
+    /// <summary>Gets or sets the new DXGI format.</summary>
+    /// <remarks>
+    /// <para>Set to 0 (<see cref="DXGI_FORMAT.DXGI_FORMAT_UNKNOWN"/>) to use the source pixel format.</para>
+    /// <para>Supported values can be queried with
+    /// <see cref="ITextureProvider.IsDxgiFormatSupportedForCreateFromExistingTextureAsync"/>. This may not necessarily
+    /// match <see cref="ITextureProvider.IsDxgiFormatSupported"/>.
+    /// </para></remarks>
+    public int DxgiFormat { get; set; } = (int)DXGI_FORMAT.DXGI_FORMAT_B8G8R8A8_UNORM;
 
     /// <summary>Gets or sets the new width.</summary>
     /// <remarks>Set to 0 to automatically calculate according to the original texture size, <see cref="Uv0"/>, and
@@ -29,18 +32,15 @@ public record struct ExistingTextureModificationArgs()
     /// <see cref="Uv1"/>.</remarks>
     public int NewHeight { get; set; }
 
-    /// <summary>Gets or sets a value indicating whether to make the texture opaque.</summary>
-    /// <remarks>Alpha channel values will be filled with 1.0.</remarks>
-    public bool MakeOpaque { get; set; } = false;
+    /// <summary>Gets or sets the left top coordinates relative to the size of the source texture.</summary>
+    /// <para>Coordinates should be in range between 0 and 1.</para>
+    public Vector2 Uv0 { get; set; } = Vector2.Zero;
 
-    /// <summary>Gets or sets the new DXGI format.</summary>
-    /// <remarks>
-    /// <para>Set to 0 (<see cref="DXGI_FORMAT.DXGI_FORMAT_UNKNOWN"/>) to use the source pixel format.</para>
-    /// <para>Supported values can be queried with
-    /// <see cref="ITextureProvider.IsDxgiFormatSupportedForCreateFromExistingTextureAsync"/>. This may not necessarily
-    /// match <see cref="ITextureProvider.IsDxgiFormatSupported"/>.
-    /// </para></remarks>
-    public int DxgiFormat { get; set; } = (int)DXGI_FORMAT.DXGI_FORMAT_B8G8R8A8_UNORM;
+    /// <summary>Gets or sets the right bottom coordinates relative to the size of the source texture.</summary>
+    /// <para>Coordinates should be in range between 0 and 1.</para>
+    /// <remarks>If set to <see cref="Vector2.Zero"/>, then it will be interpreted as <see cref="Vector2.One"/>,
+    /// to accommodate the use of default value of this record struct.</remarks>
+    public Vector2 Uv1 { get; set; } = Vector2.One;
 
     /// <summary>Gets or sets the format (typed).</summary>
     internal DXGI_FORMAT Format

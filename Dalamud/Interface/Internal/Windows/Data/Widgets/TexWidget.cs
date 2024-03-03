@@ -53,6 +53,8 @@ internal class TexWidget : IDataWindowWidget
     private FileDialogManager fileDialogManager = null!;
     private ExistingTextureModificationArgs existingTextureModificationArgs;
 
+    private ImGuiViewportTextureArgs viewportTextureArgs;
+    private int viewportIndexInt;
     private string[]? supportedRenderTargetFormatNames;
     private DXGI_FORMAT[]? supportedRenderTargetFormats;
     private int renderTargetChoiceInt;
@@ -84,6 +86,7 @@ internal class TexWidget : IDataWindowWidget
         this.inputManifestResourceNameIndex = 0;
         this.supportedRenderTargetFormats = null;
         this.supportedRenderTargetFormatNames = null;
+        this.renderTargetChoiceInt = 0;
         this.fileDialogManager = new();
         this.existingTextureModificationArgs = new()
         {
@@ -92,6 +95,8 @@ internal class TexWidget : IDataWindowWidget
             NewWidth = 320,
             NewHeight = 240,
         };
+        this.viewportTextureArgs = default;
+        this.viewportIndexInt = 0;
         this.Ready = true;
     }
 
@@ -135,54 +140,38 @@ internal class TexWidget : IDataWindowWidget
 
         ImGui.Dummy(new(ImGui.GetTextLineHeightWithSpacing()));
 
-        ImGui.AlignTextToFramePadding();
-        ImGui.TextUnformatted("Capture: ");
-        if (ImGui.Button("Game"))
-            this.addedTextures.Add(new() { Api10 = this.textureManager.CreateFromGameScreen() });
-
-        ImGui.SameLine();
-        if (ImGui.Button("Game (Auto)"))
-            this.addedTextures.Add(new() { Api10 = this.textureManager.CreateFromGameScreen(true) });
-
-        ImGui.SameLine();
-        if (ImGui.Button("Main Viewport"))
-        {
-            this.addedTextures.Add(
-                new() { Api10 = this.textureManager.CreateFromImGuiViewport(ImGui.GetMainViewport().ID) });
-        }
-
-        ImGui.SameLine();
-        if (ImGui.Button("Main Viewport (Auto)"))
-        {
-            this.addedTextures.Add(
-                new() { Api10 = this.textureManager.CreateFromImGuiViewport(ImGui.GetMainViewport().ID, true) });
-        }
-
-        if (ImGui.CollapsingHeader(nameof(ITextureProvider.GetFromGameIcon), ImGuiTreeNodeFlags.DefaultOpen))
+        if (ImGui.CollapsingHeader(nameof(ITextureProvider.GetFromGameIcon)))
         {
             ImGui.PushID(nameof(this.DrawGetFromGameIcon));
             this.DrawGetFromGameIcon();
             ImGui.PopID();
         }
 
-        if (ImGui.CollapsingHeader(nameof(ITextureProvider.GetFromGame), ImGuiTreeNodeFlags.DefaultOpen))
+        if (ImGui.CollapsingHeader(nameof(ITextureProvider.GetFromGame)))
         {
             ImGui.PushID(nameof(this.DrawGetFromGame));
             this.DrawGetFromGame();
             ImGui.PopID();
         }
 
-        if (ImGui.CollapsingHeader(nameof(ITextureProvider.GetFromFile), ImGuiTreeNodeFlags.DefaultOpen))
+        if (ImGui.CollapsingHeader(nameof(ITextureProvider.GetFromFile)))
         {
             ImGui.PushID(nameof(this.DrawGetFromFile));
             this.DrawGetFromFile();
             ImGui.PopID();
         }
 
-        if (ImGui.CollapsingHeader(nameof(ITextureProvider.GetFromManifestResource), ImGuiTreeNodeFlags.DefaultOpen))
+        if (ImGui.CollapsingHeader(nameof(ITextureProvider.GetFromManifestResource)))
         {
             ImGui.PushID(nameof(this.DrawGetFromManifestResource));
             this.DrawGetFromManifestResource();
+            ImGui.PopID();
+        }
+
+        if (ImGui.CollapsingHeader(nameof(ITextureProvider.CreateFromImGuiViewportAsync)))
+        {
+            ImGui.PushID(nameof(this.DrawCreateFromImGuiViewportAsync));
+            this.DrawCreateFromImGuiViewportAsync();
             ImGui.PopID();
         }
 
@@ -574,6 +563,57 @@ internal class TexWidget : IDataWindowWidget
         ImGuiHelpers.ScaledDummy(10);
     }
 
+    private void DrawCreateFromImGuiViewportAsync()
+    {
+        var viewports = ImGui.GetPlatformIO().Viewports;
+        if (ImGui.BeginCombo(
+                nameof(this.viewportTextureArgs.ViewportId),
+                $"{this.viewportIndexInt}. {viewports[this.viewportIndexInt].ID:X08}"))
+        {
+            for (var i = 0; i < viewports.Size; i++)
+            {
+                var sel = this.viewportIndexInt == i;
+                if (ImGui.Selectable($"#{i}: {viewports[i].ID:X08}", ref sel))
+                {
+                    this.viewportIndexInt = i;
+                    ImGui.SetItemDefaultFocus();
+                }
+            }
+
+            ImGui.EndCombo();
+        }
+
+        var b = this.viewportTextureArgs.KeepTransparency;
+        if (ImGui.Checkbox(nameof(this.viewportTextureArgs.KeepTransparency), ref b))
+            this.viewportTextureArgs.KeepTransparency = b;
+
+        b = this.viewportTextureArgs.AutoUpdate;
+        if (ImGui.Checkbox(nameof(this.viewportTextureArgs.AutoUpdate), ref b))
+            this.viewportTextureArgs.AutoUpdate = b;
+
+        b = this.viewportTextureArgs.TakeBeforeImGuiRender;
+        if (ImGui.Checkbox(nameof(this.viewportTextureArgs.TakeBeforeImGuiRender), ref b))
+            this.viewportTextureArgs.TakeBeforeImGuiRender = b;
+
+        var vec2 = this.viewportTextureArgs.Uv0;
+        if (ImGui.InputFloat2(nameof(this.viewportTextureArgs.Uv0), ref vec2))
+            this.viewportTextureArgs.Uv0 = vec2;
+
+        vec2 = this.viewportTextureArgs.Uv1;
+        if (ImGui.InputFloat2(nameof(this.viewportTextureArgs.Uv1), ref vec2))
+            this.viewportTextureArgs.Uv1 = vec2;
+
+        if (ImGui.Button("Create") && this.viewportIndexInt >= 0 && this.viewportIndexInt < viewports.Size)
+        {
+            this.addedTextures.Add(
+                new()
+                {
+                    Api10 = this.textureManager.CreateFromImGuiViewportAsync(
+                        this.viewportTextureArgs with { ViewportId = viewports[this.viewportIndexInt].ID }),
+                });
+        }
+    }
+
     private void DrawUvInput()
     {
         ImGui.InputFloat2("UV0", ref this.inputTexUv0);
@@ -586,25 +626,8 @@ internal class TexWidget : IDataWindowWidget
 
     private void DrawExistingTextureModificationArgs()
     {
-        var vec2 = this.existingTextureModificationArgs.Uv0;
-        if (ImGui.InputFloat2("UV0", ref vec2))
-            this.existingTextureModificationArgs.Uv0 = vec2;
-        
-        vec2 = this.existingTextureModificationArgs.Uv1;
-        if (ImGui.InputFloat2("UV1", ref vec2))
-            this.existingTextureModificationArgs.Uv1 = vec2;
-
-        Span<int> wh = stackalloc int[2];
-        wh[0] = this.existingTextureModificationArgs.NewWidth;
-        wh[1] = this.existingTextureModificationArgs.NewHeight;
-        if (ImGui.InputInt2("New Size", ref wh[0]))
-        {
-            this.existingTextureModificationArgs.NewWidth = wh[0];
-            this.existingTextureModificationArgs.NewHeight = wh[1];
-        }
-
         var b = this.existingTextureModificationArgs.MakeOpaque;
-        if (ImGui.Checkbox("Make Opaque", ref b))
+        if (ImGui.Checkbox(nameof(this.existingTextureModificationArgs.MakeOpaque), ref b))
             this.existingTextureModificationArgs.MakeOpaque = b;
 
         if (this.supportedRenderTargetFormats is null)
@@ -619,11 +642,30 @@ internal class TexWidget : IDataWindowWidget
 
         this.supportedRenderTargetFormatNames ??= this.supportedRenderTargetFormats.Select(Enum.GetName).ToArray();
         ImGui.Combo(
-            "Format",
+            nameof(this.existingTextureModificationArgs.DxgiFormat),
             ref this.renderTargetChoiceInt,
             this.supportedRenderTargetFormatNames,
             this.supportedRenderTargetFormatNames.Length);
-        
+
+        Span<int> wh = stackalloc int[2];
+        wh[0] = this.existingTextureModificationArgs.NewWidth;
+        wh[1] = this.existingTextureModificationArgs.NewHeight;
+        if (ImGui.InputInt2(
+                $"{nameof(this.existingTextureModificationArgs.NewWidth)}/{nameof(this.existingTextureModificationArgs.NewHeight)}",
+                ref wh[0]))
+        {
+            this.existingTextureModificationArgs.NewWidth = wh[0];
+            this.existingTextureModificationArgs.NewHeight = wh[1];
+        }
+
+        var vec2 = this.existingTextureModificationArgs.Uv0;
+        if (ImGui.InputFloat2(nameof(this.existingTextureModificationArgs.Uv0), ref vec2))
+            this.existingTextureModificationArgs.Uv0 = vec2;
+
+        vec2 = this.existingTextureModificationArgs.Uv1;
+        if (ImGui.InputFloat2(nameof(this.existingTextureModificationArgs.Uv1), ref vec2))
+            this.existingTextureModificationArgs.Uv1 = vec2;
+
         ImGuiHelpers.ScaledDummy(10);
     }
 

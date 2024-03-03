@@ -5,8 +5,6 @@ using Dalamud.Interface.Internal;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility;
 
-using ImGuiNET;
-
 using TerraFX.Interop.DirectX;
 using TerraFX.Interop.Windows;
 
@@ -85,47 +83,15 @@ internal sealed partial class TextureManager
     }
 
     /// <inheritdoc/>
-    public Task<IDalamudTextureWrap> CreateFromGameScreen(
-        bool autoUpdate = false,
-        CancellationToken cancellationToken = default) =>
-        this.interfaceManager.RunBeforeImGuiRender(
-            () =>
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                var t = new ViewportTextureWrap(ImGui.GetMainViewport().ID, true, autoUpdate, cancellationToken);
-                t.Update();
-                try
-                {
-                    return t.FirstUpdateTask.Result;
-                }
-                catch
-                {
-                    t.Dispose();
-                    throw;
-                }
-            });
-
-    /// <inheritdoc/>
-    public Task<IDalamudTextureWrap> CreateFromImGuiViewport(
-        uint viewportId,
-        bool autoUpdate = false,
-        CancellationToken cancellationToken = default) =>
-        this.interfaceManager.RunBeforeImGuiRender(
-            () =>
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                var t = new ViewportTextureWrap(viewportId, false, autoUpdate, cancellationToken);
-                t.Update();
-                try
-                {
-                    return t.FirstUpdateTask.Result;
-                }
-                catch
-                {
-                    t.Dispose();
-                    throw;
-                }
-            });
+    public async Task<IDalamudTextureWrap> CreateFromImGuiViewportAsync(
+        ImGuiViewportTextureArgs args,
+        CancellationToken cancellationToken = default)
+    {
+        // This constructor may throw; keep the function "async", to wrap the exception as a Task.
+        var t = new ViewportTextureWrap(args, cancellationToken);
+        t.QueueUpdate();
+        return await t.FirstUpdateTask;
+    }
 
     /// <inheritdoc/>
     public async Task<(RawImageSpecification Specification, byte[] RawData)> GetRawDataFromExistingTextureAsync(

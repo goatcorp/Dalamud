@@ -45,27 +45,16 @@ public partial interface ITextureProvider
         bool leaveWrapOpen = false,
         CancellationToken cancellationToken = default);
 
-    /// <summary>Creates a texture from the game screen, before rendering Dalamud.</summary>
-    /// <param name="autoUpdate">If <c>true</c>, automatically update the underlying texture.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A <see cref="Task{TResult}"/> containing the copied texture on success. Dispose after use.</returns>
-    /// <remarks><para>This function may throw an exception.</para></remarks>
-    Task<IDalamudTextureWrap> CreateFromGameScreen(
-        bool autoUpdate = false,
-        CancellationToken cancellationToken = default);
-
-    /// <summary>Creates a texture from the game screen, before rendering Dalamud.</summary>
-    /// <param name="viewportId">The viewport ID.</param>
-    /// <param name="autoUpdate">If <c>true</c>, automatically update the underlying texture.</param>
+    /// <summary>Creates a texture from an ImGui viewport.</summary>
+    /// <param name="args">The arguments for creating a texture.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A <see cref="Task{TResult}"/> containing the copied texture on success. Dispose after use.</returns>
     /// <remarks>
     /// <para>Use <c>ImGui.GetMainViewport().ID</c> to capture the game screen with Dalamud rendered.</para>
     /// <para>This function may throw an exception.</para>
     /// </remarks>
-    Task<IDalamudTextureWrap> CreateFromImGuiViewport(
-        uint viewportId,
-        bool autoUpdate = false,
+    Task<IDalamudTextureWrap> CreateFromImGuiViewportAsync(
+        ImGuiViewportTextureArgs args,
         CancellationToken cancellationToken = default);
 
     /// <summary>Gets a texture from the given bytes, trying to interpret it as a .tex file or other well-known image

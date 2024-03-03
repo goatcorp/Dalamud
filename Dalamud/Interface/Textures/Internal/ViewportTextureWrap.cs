@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using System.Numerics;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -19,33 +18,25 @@ namespace Dalamud.Interface.Textures.Internal;
 /// <summary>A texture wrap that takes its buffer from the frame buffer (of swap chain).</summary>
 internal sealed class ViewportTextureWrap : IDalamudTextureWrap, IDeferredDisposable
 {
-    private readonly uint viewportId;
-    private readonly bool beforeImGuiRender;
     private readonly CancellationToken cancellationToken;
     private readonly TaskCompletionSource<IDalamudTextureWrap> firstUpdateTaskCompletionSource = new();
 
+    private ImGuiViewportTextureArgs args;
     private D3D11_TEXTURE2D_DESC desc;
     private ComPtr<ID3D11Texture2D> tex;
     private ComPtr<ID3D11ShaderResourceView> srv;
     private ComPtr<ID3D11RenderTargetView> rtv;
 
-    private bool autoUpdate;
     private bool disposed;
 
     /// <summary>Initializes a new instance of the <see cref="ViewportTextureWrap"/> class.</summary>
-    /// <param name="viewportId">The source viewport ID.</param>
-    /// <param name="beforeImGuiRender">Capture before calling <see cref="ImGui.Render"/>.</param>
-    /// <param name="autoUpdate">If <c>true</c>, automatically update the underlying texture.</param>
+    /// <param name="args">The arguments for creating a texture.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
-    public ViewportTextureWrap(
-        uint viewportId,
-        bool beforeImGuiRender,
-        bool autoUpdate,
-        CancellationToken cancellationToken)
+    public ViewportTextureWrap(ImGuiViewportTextureArgs args, CancellationToken cancellationToken)
     {
-        this.viewportId = viewportId;
-        this.beforeImGuiRender = beforeImGuiRender;
-        this.autoUpdate = autoUpdate;
+        args.ThrowOnInvalidValues();
+
+        this.args = args;
         this.cancellationToken = cancellationToken;
     }
 
@@ -77,7 +68,7 @@ internal sealed class ViewportTextureWrap : IDalamudTextureWrap, IDeferredDispos
         {
             ThreadSafety.AssertMainThread();
 
-            using var backBuffer = GetImGuiViewportBackBuffer(this.viewportId);
+            using var backBuffer = GetImGuiViewportBackBuffer(this.args.ViewportId);
             D3D11_TEXTURE2D_DESC newDesc;
             backBuffer.Get()->GetDesc(&newDesc);
 
@@ -90,14 +81,24 @@ internal sealed class ViewportTextureWrap : IDalamudTextureWrap, IDeferredDispos
             using var context = default(ComPtr<ID3D11DeviceContext>);
             device.Get()->GetImmediateContext(context.GetAddressOf());
 
-            if (this.desc.Width != newDesc.Width
-                || this.desc.Height != newDesc.Height
+            var copyBox = new D3D11_BOX
+            {
+                left = (uint)MathF.Round(newDesc.Width * this.args.Uv0.X),
+                top = (uint)MathF.Round(newDesc.Height * this.args.Uv0.Y),
+                right = (uint)MathF.Round(newDesc.Width * this.args.Uv1Effective.X),
+                bottom = (uint)MathF.Round(newDesc.Height * this.args.Uv1Effective.Y),
+                front = 0,
+                back = 1,
+            }; 
+
+            if (this.desc.Width != copyBox.right - copyBox.left
+                || this.desc.Height != copyBox.bottom - copyBox.top
                 || this.desc.Format != newDesc.Format)
             {
                 var texDesc = new D3D11_TEXTURE2D_DESC
                 {
-                    Width = newDesc.Width,
-                    Height = newDesc.Height,
+                    Width = copyBox.right - copyBox.left,
+                    Height = copyBox.bottom - copyBox.top,
                     MipLevels = 1,
                     ArraySize = 1,
                     Format = newDesc.Format,
@@ -131,19 +132,32 @@ internal sealed class ViewportTextureWrap : IDalamudTextureWrap, IDeferredDispos
                         srvTemp.GetAddressOf())
                     .ThrowOnError();
 
-                this.desc = newDesc;
+                this.desc = texDesc;
                 srvTemp.Swap(ref this.srv);
                 rtvTemp.Swap(ref this.rtv);
                 texTemp.Swap(ref this.tex);
             }
 
-            context.Get()->CopyResource((ID3D11Resource*)this.tex.Get(), (ID3D11Resource*)backBuffer.Get());
-            var rtvLocal = this.rtv.Get();
-            context.Get()->OMSetRenderTargets(1u, &rtvLocal, null);
-            Service<TextureManager>.Get().SimpleDrawer.StripAlpha(context.Get());
+            // context.Get()->CopyResource((ID3D11Resource*)this.tex.Get(), (ID3D11Resource*)backBuffer.Get());
+            context.Get()->CopySubresourceRegion(
+                (ID3D11Resource*)this.tex.Get(),
+                0,
+                0,
+                0,
+                0,
+                (ID3D11Resource*)backBuffer.Get(),
+                0,
+                &copyBox);
 
-            var dummy = default(ID3D11RenderTargetView*);
-            context.Get()->OMSetRenderTargets(1u, &dummy, null);
+            if (!this.args.KeepTransparency)
+            {
+                var rtvLocal = this.rtv.Get();
+                context.Get()->OMSetRenderTargets(1u, &rtvLocal, null);
+                Service<TextureManager>.Get().SimpleDrawer.StripAlpha(context.Get());
+
+                var dummy = default(ID3D11RenderTargetView*);
+                context.Get()->OMSetRenderTargets(1u, &dummy, null);
+            }
 
             this.firstUpdateTaskCompletionSource.TrySetResult(this);
         }
@@ -152,19 +166,21 @@ internal sealed class ViewportTextureWrap : IDalamudTextureWrap, IDeferredDispos
             this.firstUpdateTaskCompletionSource.TrySetException(e);
         }
 
-        if (this.autoUpdate)
-        {
-            Service<Framework>.Get().RunOnTick(
-                () =>
-                {
-                    if (this.beforeImGuiRender)
-                        Service<InterfaceManager>.Get().RunBeforeImGuiRender(this.Update);
-                    else
-                        Service<InterfaceManager>.Get().RunAfterImGuiRender(this.Update);
-                },
-                cancellationToken: this.cancellationToken);
-        }
+        if (this.args.AutoUpdate)
+            this.QueueUpdate();
     }
+
+    /// <summary>Queues a call to <see cref="Update"/>.</summary>
+    public void QueueUpdate() =>
+        Service<Framework>.Get().RunOnTick(
+            () =>
+            {
+                if (this.args.TakeBeforeImGuiRender)
+                    Service<InterfaceManager>.Get().RunBeforeImGuiRender(this.Update);
+                else
+                    Service<InterfaceManager>.Get().RunAfterImGuiRender(this.Update);
+            },
+            cancellationToken: this.cancellationToken);
 
     /// <summary>Queue the texture to be disposed once the frame ends. </summary>
     public void Dispose()
@@ -230,7 +246,7 @@ internal sealed class ViewportTextureWrap : IDalamudTextureWrap, IDeferredDispos
     private void Dispose(bool disposing)
     {
         this.disposed = true;
-        this.autoUpdate = false;
+        this.args.AutoUpdate = false;
         if (disposing)
             Service<InterfaceManager>.GetNullable()?.EnqueueDeferredDispose(this);
         else
