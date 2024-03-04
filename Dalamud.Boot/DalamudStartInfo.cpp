@@ -82,6 +82,21 @@ void from_json(const nlohmann::json& json, DalamudStartInfo::LoadMethod& value) 
     }
 }
 
+void from_json(const nlohmann::json& json, DalamudStartInfo::UnhandledExceptionHandlingMode& value) {
+    if (json.is_number_integer()) {
+        value = static_cast<DalamudStartInfo::UnhandledExceptionHandlingMode>(json.get<int>());
+
+    } else if (json.is_string()) {
+        const auto langstr = unicode::convert<std::string>(json.get<std::string>(), &unicode::lower);
+        if (langstr == "default")
+            value = DalamudStartInfo::UnhandledExceptionHandlingMode::Default;
+        else if (langstr == "stalldebug")
+            value = DalamudStartInfo::UnhandledExceptionHandlingMode::StallDebug;
+        else if (langstr == "none")
+            value = DalamudStartInfo::UnhandledExceptionHandlingMode::None;
+    }
+}
+
 void from_json(const nlohmann::json& json, DalamudStartInfo& config) {
     if (!json.is_object())
         return;
@@ -121,7 +136,7 @@ void from_json(const nlohmann::json& json, DalamudStartInfo& config) {
     }
 
     config.CrashHandlerShow = json.value("CrashHandlerShow", config.CrashHandlerShow);
-    config.NoExceptionHandlers = json.value("NoExceptionHandlers", config.NoExceptionHandlers);
+    config.UnhandledException = json.value("UnhandledException", config.UnhandledException);
 }
 
 void DalamudStartInfo::from_envvars() {
