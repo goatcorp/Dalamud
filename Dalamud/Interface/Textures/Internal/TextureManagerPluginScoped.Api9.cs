@@ -14,43 +14,42 @@ internal sealed partial class TextureManagerPluginScoped
     /// <inheritdoc/>
     [Api10ToDo(Api10ToDoAttribute.DeleteCompatBehavior)]
     [Obsolete("See interface definition.")]
-    public IDalamudTextureWrap? GetIcon(
+    string? ITextureProvider.GetIconPath(uint iconId, ITextureProvider.IconFlags flags, ClientLanguage? language)
+        => this.TryGetIconPath(
+               new(
+                   iconId,
+                   (flags & ITextureProvider.IconFlags.ItemHighQuality) != 0,
+                   (flags & ITextureProvider.IconFlags.HiRes) != 0,
+                   language),
+               out var path)
+               ? path
+               : null;
+
+    /// <inheritdoc/>
+    [Api10ToDo(Api10ToDoAttribute.DeleteCompatBehavior)]
+    [Obsolete("See interface definition.")]
+    IDalamudTextureWrap? ITextureProvider.GetIcon(
         uint iconId,
-        ITextureProvider.IconFlags flags = ITextureProvider.IconFlags.HiRes,
-        ClientLanguage? language = null,
-        bool keepAlive = false)
-    {
-        throw new NotImplementedException();
-    }
+        ITextureProvider.IconFlags flags,
+        ClientLanguage? language,
+        bool keepAlive) =>
+        this.ManagerOrThrow.Shared.GetFromGameIcon(
+                new(
+                    iconId,
+                    (flags & ITextureProvider.IconFlags.ItemHighQuality) != 0,
+                    (flags & ITextureProvider.IconFlags.HiRes) != 0,
+                    language))
+            .GetAvailableOnAccessWrapForApi9();
 
     /// <inheritdoc/>
     [Api10ToDo(Api10ToDoAttribute.DeleteCompatBehavior)]
     [Obsolete("See interface definition.")]
-    public string? GetIconPath(
-        uint iconId,
-        ITextureProvider.IconFlags flags = ITextureProvider.IconFlags.HiRes,
-        ClientLanguage? language = null)
-    {
-        throw new NotImplementedException();
-    }
+    IDalamudTextureWrap? ITextureProvider.GetTextureFromGame(string path, bool keepAlive) =>
+        this.ManagerOrThrow.Shared.GetFromGame(path).GetAvailableOnAccessWrapForApi9();
 
     /// <inheritdoc/>
     [Api10ToDo(Api10ToDoAttribute.DeleteCompatBehavior)]
     [Obsolete("See interface definition.")]
-    public IDalamudTextureWrap? GetTextureFromGame(
-        string path,
-        bool keepAlive = false)
-    {
-        throw new NotImplementedException();
-    }
-
-    /// <inheritdoc/>
-    [Api10ToDo(Api10ToDoAttribute.DeleteCompatBehavior)]
-    [Obsolete("See interface definition.")]
-    public IDalamudTextureWrap? GetTextureFromFile(
-        FileInfo file,
-        bool keepAlive = false)
-    {
-        throw new NotImplementedException();
-    }
+    IDalamudTextureWrap? ITextureProvider.GetTextureFromFile(FileInfo file, bool keepAlive) =>
+        this.ManagerOrThrow.Shared.GetFromFile(file.FullName).GetAvailableOnAccessWrapForApi9();
 }

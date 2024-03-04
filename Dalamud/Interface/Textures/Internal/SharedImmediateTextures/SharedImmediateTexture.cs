@@ -1,9 +1,12 @@
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
 using Dalamud.Interface.Internal;
+using Dalamud.Plugin.Internal.Types;
 using Dalamud.Storage.Assets;
 using Dalamud.Utility;
 
@@ -41,6 +44,9 @@ internal abstract class SharedImmediateTexture
         this.resourceReleased = true;
         this.FirstRequestedTick = this.LatestRequestedTick = Environment.TickCount64;
     }
+
+    /// <summary>Gets the list of owner plugins.</summary>
+    public List<LocalPlugin> OwnerPlugins { get; } = new();
 
     /// <summary>Gets the instance ID. Debug use only.</summary>
     public long InstanceIdForDebug { get; }
@@ -274,6 +280,26 @@ internal abstract class SharedImmediateTexture
         return this.availableOnAccessWrapForApi9;
     }
 
+    /// <summary>Adds a plugin to <see cref="OwnerPlugins"/>, in a thread-safe way.</summary>
+    /// <param name="plugin">The plugin to add.</param>
+    public void AddOwnerPlugin(LocalPlugin plugin)
+    {
+        lock (this.OwnerPlugins)
+        {
+            if (!this.OwnerPlugins.Contains(plugin))
+            {
+                this.OwnerPlugins.Add(plugin);
+                this.UnderlyingWrap?.ContinueWith(
+                    r =>
+                    {
+                        if (r.IsCompletedSuccessfully)
+                            Service<TextureManager>.Get().Blame(r.Result, plugin);
+                    },
+                    default(CancellationToken));
+            }
+        }
+    }
+
     /// <inheritdoc/>
     public override string ToString() => $"{this.GetType().Name}#{this.InstanceIdForDebug}({this.SourcePathForDebug})";
 
@@ -285,11 +311,31 @@ internal abstract class SharedImmediateTexture
     }
 
     /// <summary>Attempts to restore the reference to this texture.</summary>
-    protected void LoadUnderlyingWrap() =>
-        this.UnderlyingWrap = Service<TextureManager>.Get().DynamicPriorityTextureLoader.LoadAsync(
-            this,
-            this.CreateTextureAsync,
-            this.LoadCancellationToken);
+    protected void LoadUnderlyingWrap()
+    {
+        int addLen;
+        lock (this.OwnerPlugins)
+        {
+            this.UnderlyingWrap = Service<TextureManager>.Get().DynamicPriorityTextureLoader.LoadAsync(
+                this,
+                this.CreateTextureAsync,
+                this.LoadCancellationToken);
+
+            addLen = this.OwnerPlugins.Count;
+        }
+
+        if (addLen == 0)
+            return;
+        this.UnderlyingWrap.ContinueWith(
+            r =>
+            {
+                if (!r.IsCompletedSuccessfully)
+                    return;
+                foreach (var op in this.OwnerPlugins.Take(addLen))
+                    Service<TextureManager>.Get().Blame(r.Result, op);
+            },
+            default(CancellationToken));
+    }
 
     /// <summary>Creates the texture.</summary>
     /// <param name="cancellationToken">The cancellation token.</param>

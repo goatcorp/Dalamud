@@ -257,25 +257,33 @@ internal sealed partial class TextureManagerPluginScoped
     /// <inheritdoc/>
     public ISharedImmediateTexture GetFromGameIcon(in GameIconLookup lookup)
     {
-        return this.ManagerOrThrow.Shared.GetFromGameIcon(lookup);
+        var shared = this.ManagerOrThrow.Shared.GetFromGameIcon(lookup);
+        shared.AddOwnerPlugin(this.plugin);
+        return shared;
     }
 
     /// <inheritdoc/>
     public ISharedImmediateTexture GetFromGame(string path)
     {
-        return this.ManagerOrThrow.Shared.GetFromGame(path);
+        var shared = this.ManagerOrThrow.Shared.GetFromGame(path);
+        shared.AddOwnerPlugin(this.plugin);
+        return shared;
     }
 
     /// <inheritdoc/>
     public ISharedImmediateTexture GetFromFile(string path)
     {
-        return this.ManagerOrThrow.Shared.GetFromFile(path);
+        var shared = this.ManagerOrThrow.Shared.GetFromFile(path);
+        shared.AddOwnerPlugin(this.plugin);
+        return shared;
     }
 
     /// <inheritdoc/>
     public ISharedImmediateTexture GetFromManifestResource(Assembly assembly, string name)
     {
-        return this.ManagerOrThrow.Shared.GetFromManifestResource(assembly, name);
+        var shared = this.ManagerOrThrow.Shared.GetFromManifestResource(assembly, name);
+        shared.AddOwnerPlugin(this.plugin);
+        return shared;
     }
 
     /// <inheritdoc/>

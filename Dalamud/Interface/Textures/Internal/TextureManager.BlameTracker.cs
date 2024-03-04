@@ -48,6 +48,16 @@ internal sealed partial class TextureManager
         if (!this.dalamudConfiguration.UseTexturePluginTracking)
             return textureWrap;
 
+        try
+        {
+            if (textureWrap.ImGuiHandle == nint.Zero)
+                return textureWrap;
+        }
+        catch (ObjectDisposedException)
+        {
+            return textureWrap;
+        }
+
         using var wrapAux = new WrapAux(textureWrap, true);
         var blame = BlameTag.From(wrapAux.ResPtr, out var isNew);
 
@@ -74,6 +84,16 @@ internal sealed partial class TextureManager
     {
         if (!this.dalamudConfiguration.UseTexturePluginTracking)
             return textureWrap;
+
+        try
+        {
+            if (textureWrap.ImGuiHandle == nint.Zero)
+                return textureWrap;
+        }
+        catch (ObjectDisposedException)
+        {
+            return textureWrap;
+        }
 
         using var wrapAux = new WrapAux(textureWrap, true);
         var blame = BlameTag.From(wrapAux.ResPtr, out var isNew);
