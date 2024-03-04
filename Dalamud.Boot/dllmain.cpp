@@ -133,7 +133,7 @@ HRESULT WINAPI InitializeImpl(LPVOID lpParam, HANDLE hMainThreadContinue) {
     // ============================== VEH ======================================== //
 
     logging::I("Initializing VEH...");
-    if (g_startInfo.NoExceptionHandlers) {
+    if (g_startInfo.UnhandledException == DalamudStartInfo::UnhandledExceptionHandlingMode::None) {
         logging::W("=> Exception handlers are disabled from DalamudStartInfo.");
     } else if (g_startInfo.BootVehEnabled) {
         if (veh::add_handler(g_startInfo.BootVehFull, g_startInfo.WorkingDirectory))
