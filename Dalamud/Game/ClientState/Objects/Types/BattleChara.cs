@@ -66,7 +66,7 @@ public unsafe class BattleChara : Character
     public float TotalCastTime => this.Struct->GetCastInfo->TotalCastTime;
 
     /// <summary>
-    /// Gets the adjusted total casting time of the spell being cast by the chara.
+    /// Gets the <see cref="TotalCastTime"/> plus any adjustments from the game, such as Action offset 2B. Used for display purposes.
     /// </summary>
     /// <remarks>
     /// This is the actual total cast time for all actions.
