@@ -54,64 +54,64 @@ internal sealed unsafe class ManagedIStream : IStream.Interface, IRefCountable
         return;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        static IStream.Interface? ToManagedObject(void* pThis) =>
-            GCHandle.FromIntPtr(((nint*)pThis)[1]).Target as IStream.Interface;
+        static ManagedIStream? ToManagedObject(void* pThis) =>
+            GCHandle.FromIntPtr(((nint*)pThis)[1]).Target as ManagedIStream;
 
         [UnmanagedCallersOnly]
         static int QueryInterfaceStatic(IStream* pThis, Guid* riid, void** ppvObject) =>
-            ToManagedObject(pThis)?.QueryInterface(riid, ppvObject) ?? E.E_FAIL;
+            ToManagedObject(pThis)?.QueryInterface(riid, ppvObject) ?? E.E_UNEXPECTED;
 
         [UnmanagedCallersOnly]
-        static uint AddRefStatic(IStream* pThis) => ToManagedObject(pThis)?.AddRef() ?? 0;
+        static uint AddRefStatic(IStream* pThis) => (uint)(ToManagedObject(pThis)?.AddRef() ?? 0);
 
         [UnmanagedCallersOnly]
-        static uint ReleaseStatic(IStream* pThis) => ToManagedObject(pThis)?.Release() ?? 0;
+        static uint ReleaseStatic(IStream* pThis) => (uint)(ToManagedObject(pThis)?.Release() ?? 0);
 
         [UnmanagedCallersOnly]
         static int ReadStatic(IStream* pThis, void* pv, uint cb, uint* pcbRead) =>
-            ToManagedObject(pThis)?.Read(pv, cb, pcbRead) ?? E.E_FAIL;
+            ToManagedObject(pThis)?.Read(pv, cb, pcbRead) ?? E.E_UNEXPECTED;
 
         [UnmanagedCallersOnly]
         static int WriteStatic(IStream* pThis, void* pv, uint cb, uint* pcbWritten) =>
-            ToManagedObject(pThis)?.Write(pv, cb, pcbWritten) ?? E.E_FAIL;
+            ToManagedObject(pThis)?.Write(pv, cb, pcbWritten) ?? E.E_UNEXPECTED;
 
         [UnmanagedCallersOnly]
         static int SeekStatic(
             IStream* pThis, LARGE_INTEGER dlibMove, uint dwOrigin, ULARGE_INTEGER* plibNewPosition) =>
-            ToManagedObject(pThis)?.Seek(dlibMove, dwOrigin, plibNewPosition) ?? E.E_FAIL;
+            ToManagedObject(pThis)?.Seek(dlibMove, dwOrigin, plibNewPosition) ?? E.E_UNEXPECTED;
 
         [UnmanagedCallersOnly]
         static int SetSizeStatic(IStream* pThis, ULARGE_INTEGER libNewSize) =>
-            ToManagedObject(pThis)?.SetSize(libNewSize) ?? E.E_FAIL;
+            ToManagedObject(pThis)?.SetSize(libNewSize) ?? E.E_UNEXPECTED;
 
         [UnmanagedCallersOnly]
         static int CopyToStatic(
             IStream* pThis, IStream* pstm, ULARGE_INTEGER cb, ULARGE_INTEGER* pcbRead,
             ULARGE_INTEGER* pcbWritten) =>
-            ToManagedObject(pThis)?.CopyTo(pstm, cb, pcbRead, pcbWritten) ?? E.E_FAIL;
+            ToManagedObject(pThis)?.CopyTo(pstm, cb, pcbRead, pcbWritten) ?? E.E_UNEXPECTED;
 
         [UnmanagedCallersOnly]
         static int CommitStatic(IStream* pThis, uint grfCommitFlags) =>
-            ToManagedObject(pThis)?.Commit(grfCommitFlags) ?? E.E_FAIL;
+            ToManagedObject(pThis)?.Commit(grfCommitFlags) ?? E.E_UNEXPECTED;
 
         [UnmanagedCallersOnly]
-        static int RevertStatic(IStream* pThis) => ToManagedObject(pThis)?.Revert() ?? E.E_FAIL;
+        static int RevertStatic(IStream* pThis) => ToManagedObject(pThis)?.Revert() ?? E.E_UNEXPECTED;
 
         [UnmanagedCallersOnly]
         static int LockRegionStatic(IStream* pThis, ULARGE_INTEGER libOffset, ULARGE_INTEGER cb, uint dwLockType) =>
-            ToManagedObject(pThis)?.LockRegion(libOffset, cb, dwLockType) ?? E.E_FAIL;
+            ToManagedObject(pThis)?.LockRegion(libOffset, cb, dwLockType) ?? E.E_UNEXPECTED;
 
         [UnmanagedCallersOnly]
         static int UnlockRegionStatic(
             IStream* pThis, ULARGE_INTEGER libOffset, ULARGE_INTEGER cb, uint dwLockType) =>
-            ToManagedObject(pThis)?.UnlockRegion(libOffset, cb, dwLockType) ?? E.E_FAIL;
+            ToManagedObject(pThis)?.UnlockRegion(libOffset, cb, dwLockType) ?? E.E_UNEXPECTED;
 
         [UnmanagedCallersOnly]
         static int StatStatic(IStream* pThis, STATSTG* pstatstg, uint grfStatFlag) =>
-            ToManagedObject(pThis)?.Stat(pstatstg, grfStatFlag) ?? E.E_FAIL;
+            ToManagedObject(pThis)?.Stat(pstatstg, grfStatFlag) ?? E.E_UNEXPECTED;
 
         [UnmanagedCallersOnly]
-        static int CloneStatic(IStream* pThis, IStream** ppstm) => ToManagedObject(pThis)?.Clone(ppstm) ?? E.E_FAIL;
+        static int CloneStatic(IStream* pThis, IStream** ppstm) => ToManagedObject(pThis)?.Clone(ppstm) ?? E.E_UNEXPECTED;
     }
 
     /// <inheritdoc cref="INativeGuid.NativeGuid"/>

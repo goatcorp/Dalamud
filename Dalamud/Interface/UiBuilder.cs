@@ -42,6 +42,7 @@ public sealed class UiBuilder : IDisposable
     private readonly DalamudConfiguration configuration = Service<DalamudConfiguration>.Get();
 
     private readonly DisposeSafety.ScopedFinalizer scopedFinalizer = new();
+    private readonly TextureManagerPluginScoped scopedTextureProvider;
 
     private bool hasErrorWindow = false;
     private bool lastFrameUiHideState = false;
@@ -54,8 +55,9 @@ public sealed class UiBuilder : IDisposable
     /// Initializes a new instance of the <see cref="UiBuilder"/> class and registers it.
     /// You do not have to call this manually.
     /// </summary>
+    /// <param name="plugin">The plugin.</param>
     /// <param name="namespaceName">The plugin namespace.</param>
-    internal UiBuilder(string namespaceName)
+    internal UiBuilder(LocalPlugin plugin, string namespaceName)
     {
         try
         {
@@ -68,6 +70,8 @@ public sealed class UiBuilder : IDisposable
 
             this.interfaceManager.ResizeBuffers += this.OnResizeBuffers;
             this.scopedFinalizer.Add(() => this.interfaceManager.ResizeBuffers -= this.OnResizeBuffers);
+
+            this.scopedFinalizer.Add(this.scopedTextureProvider = new(plugin));
 
             this.FontAtlas =
                 this.scopedFinalizer
@@ -381,8 +385,6 @@ public sealed class UiBuilder : IDisposable
     private Task<InterfaceManager> InterfaceManagerWithSceneAsync =>
         Service<InterfaceManager.InterfaceManagerWithScene>.GetAsync().ContinueWith(task => task.Result.Manager);
 
-    private ITextureProvider TextureProvider => Service<TextureManager>.Get();
-
     /// <summary>
     /// Loads an image from the specified file.
     /// </summary>
@@ -391,7 +393,7 @@ public sealed class UiBuilder : IDisposable
     [Api10ToDo(Api10ToDoAttribute.DeleteCompatBehavior)]
     [Obsolete($"Use {nameof(ITextureProvider.GetFromFile)}.")]
     public IDalamudTextureWrap LoadImage(string filePath) =>
-        this.TextureProvider.GetFromFile(filePath).RentAsync().Result;
+        this.scopedTextureProvider.GetFromFile(filePath).RentAsync().Result;
 
     /// <summary>
     /// Loads an image from a byte stream, such as a png downloaded into memory.
@@ -401,7 +403,7 @@ public sealed class UiBuilder : IDisposable
     [Api10ToDo(Api10ToDoAttribute.DeleteCompatBehavior)]
     [Obsolete($"Use {nameof(ITextureProvider.CreateFromImageAsync)}.")]
     public IDalamudTextureWrap LoadImage(byte[] imageData) =>
-        this.TextureProvider.CreateFromImageAsync(imageData).Result;
+        this.scopedTextureProvider.CreateFromImageAsync(imageData).Result;
 
     /// <summary>
     /// Loads an image from raw unformatted pixel data, with no type or header information.  To load formatted data, use <see cref="LoadImage(byte[])"/>.
@@ -416,7 +418,7 @@ public sealed class UiBuilder : IDisposable
     public IDalamudTextureWrap LoadImageRaw(byte[] imageData, int width, int height, int numChannels) =>
         numChannels switch
         {
-            4 => this.TextureProvider.CreateFromRaw(RawImageSpecification.Rgba32(width, height), imageData),
+            4 => this.scopedTextureProvider.CreateFromRaw(RawImageSpecification.Rgba32(width, height), imageData),
             _ => throw new NotSupportedException(),
         };
 
@@ -436,7 +438,7 @@ public sealed class UiBuilder : IDisposable
     [Api10ToDo(Api10ToDoAttribute.DeleteCompatBehavior)]
     [Obsolete($"Use {nameof(ITextureProvider.GetFromFile)}.")]
     public Task<IDalamudTextureWrap> LoadImageAsync(string filePath) =>
-        this.TextureProvider.GetFromFile(filePath).RentAsync();
+        this.scopedTextureProvider.GetFromFile(filePath).RentAsync();
 
     /// <summary>
     /// Asynchronously loads an image from a byte stream, such as a png downloaded into memory, when it's possible to do so.
@@ -446,7 +448,7 @@ public sealed class UiBuilder : IDisposable
     [Api10ToDo(Api10ToDoAttribute.DeleteCompatBehavior)]
     [Obsolete($"Use {nameof(ITextureProvider.CreateFromImageAsync)}.")]
     public Task<IDalamudTextureWrap> LoadImageAsync(byte[] imageData) =>
-        this.TextureProvider.CreateFromImageAsync(imageData);
+        this.scopedTextureProvider.CreateFromImageAsync(imageData);
 
     /// <summary>
     /// Asynchronously loads an image from raw unformatted pixel data, with no type or header information, when it's possible to do so.  To load formatted data, use <see cref="LoadImage(byte[])"/>.
@@ -461,7 +463,7 @@ public sealed class UiBuilder : IDisposable
     public Task<IDalamudTextureWrap> LoadImageRawAsync(byte[] imageData, int width, int height, int numChannels) =>
         numChannels switch
         {
-            4 => this.TextureProvider.CreateFromRawAsync(RawImageSpecification.Rgba32(width, height), imageData),
+            4 => this.scopedTextureProvider.CreateFromRawAsync(RawImageSpecification.Rgba32(width, height), imageData),
             _ => Task.FromException<IDalamudTextureWrap>(new NotSupportedException()),
         };
 

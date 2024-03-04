@@ -4,6 +4,8 @@ using System.Threading.Tasks;
 
 using Dalamud.Game;
 using Dalamud.Interface.Internal;
+using Dalamud.Plugin.Internal.Types;
+using Dalamud.Storage.Assets;
 using Dalamud.Utility;
 
 using ImGuiNET;
@@ -18,6 +20,7 @@ namespace Dalamud.Interface.Textures.Internal;
 /// <summary>A texture wrap that takes its buffer from the frame buffer (of swap chain).</summary>
 internal sealed class ViewportTextureWrap : IDalamudTextureWrap, IDeferredDisposable
 {
+    private readonly LocalPlugin? ownerPlugin;
     private readonly CancellationToken cancellationToken;
     private readonly TaskCompletionSource<IDalamudTextureWrap> firstUpdateTaskCompletionSource = new();
 
@@ -31,10 +34,13 @@ internal sealed class ViewportTextureWrap : IDalamudTextureWrap, IDeferredDispos
 
     /// <summary>Initializes a new instance of the <see cref="ViewportTextureWrap"/> class.</summary>
     /// <param name="args">The arguments for creating a texture.</param>
+    /// <param name="ownerPlugin">The owner plugin.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
-    public ViewportTextureWrap(ImGuiViewportTextureArgs args, CancellationToken cancellationToken)
+    public ViewportTextureWrap(
+        ImGuiViewportTextureArgs args, LocalPlugin? ownerPlugin, CancellationToken cancellationToken)
     {
         this.args = args;
+        this.ownerPlugin = ownerPlugin;
         this.cancellationToken = cancellationToken;
     }
 
@@ -42,7 +48,14 @@ internal sealed class ViewportTextureWrap : IDalamudTextureWrap, IDeferredDispos
     ~ViewportTextureWrap() => this.Dispose(false);
 
     /// <inheritdoc/>
-    public unsafe nint ImGuiHandle => (nint)this.srv.Get();
+    public unsafe nint ImGuiHandle
+    {
+        get
+        {
+            var t = (nint)this.srv.Get();
+            return t == nint.Zero ? Service<DalamudAssetManager>.Get().Empty4X4.ImGuiHandle : t;
+        }
+    }
 
     /// <inheritdoc/>
     public int Width => (int)this.desc.Width;
@@ -134,6 +147,11 @@ internal sealed class ViewportTextureWrap : IDalamudTextureWrap, IDeferredDispos
                 srvTemp.Swap(ref this.srv);
                 rtvTemp.Swap(ref this.rtv);
                 texTemp.Swap(ref this.tex);
+
+                Service<TextureManager>.Get().Blame(this, this.ownerPlugin);
+                Service<TextureManager>.Get().BlameSetName(
+                    this,
+                    $"{nameof(ViewportTextureWrap)}({this.args})");
             }
 
             // context.Get()->CopyResource((ID3D11Resource*)this.tex.Get(), (ID3D11Resource*)backBuffer.Get());

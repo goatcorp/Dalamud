@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using Dalamud.Interface.Internal;
+using Dalamud.Plugin.Internal.Types;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility;
 
@@ -71,23 +72,34 @@ internal sealed partial class TextureManager
 
                     var desc = default(D3D11_TEXTURE2D_DESC);
                     tex.Get()->GetDesc(&desc);
-                    return new UnknownTextureWrap(
+
+                    var outWrap = new UnknownTextureWrap(
                         (IUnknown*)srv.Get(),
                         (int)desc.Width,
                         (int)desc.Height,
                         true);
+                    this.BlameSetName(
+                        outWrap,
+                        $"{nameof(this.CreateFromExistingTextureAsync)}({nameof(wrap)}, {nameof(args)}, {nameof(leaveWrapOpen)}, {nameof(cancellationToken)})");
+                    return outWrap;
                 }
             },
             cancellationToken,
             leaveWrapOpen ? null : wrap);
 
     /// <inheritdoc/>
+    Task<IDalamudTextureWrap> ITextureProvider.CreateFromImGuiViewportAsync(
+        ImGuiViewportTextureArgs args,
+        CancellationToken cancellationToken) => this.CreateFromImGuiViewportAsync(args, null, cancellationToken);
+
+    /// <inheritdoc cref="ITextureProvider.CreateFromImGuiViewportAsync"/>
     public Task<IDalamudTextureWrap> CreateFromImGuiViewportAsync(
         ImGuiViewportTextureArgs args,
+        LocalPlugin? ownerPlugin,
         CancellationToken cancellationToken = default)
     {
         args.ThrowOnInvalidValues();
-        var t = new ViewportTextureWrap(args, cancellationToken);
+        var t = new ViewportTextureWrap(args, ownerPlugin, cancellationToken);
         t.QueueUpdate();
         return t.FirstUpdateTask;
     }

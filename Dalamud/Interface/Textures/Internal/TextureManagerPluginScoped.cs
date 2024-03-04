@@ -40,8 +40,10 @@ internal sealed partial class TextureManagerPluginScoped
 
     private Task<TextureManager>? managerTaskNullable;
 
+    /// <summary>Initializes a new instance of the <see cref="TextureManagerPluginScoped"/> class.</summary>
+    /// <param name="plugin">The plugin.</param>
     [ServiceManager.ServiceConstructor]
-    private TextureManagerPluginScoped(LocalPlugin plugin)
+    public TextureManagerPluginScoped(LocalPlugin plugin)
     {
         this.plugin = plugin;
         if (plugin.Manifest is LocalPluginManifest lpm)
@@ -155,7 +157,7 @@ internal sealed partial class TextureManagerPluginScoped
         CancellationToken cancellationToken = default)
     {
         var manager = await this.ManagerTask;
-        var textureWrap = await manager.CreateFromImGuiViewportAsync(args, cancellationToken);
+        var textureWrap = await manager.CreateFromImGuiViewportAsync(args, this.plugin, cancellationToken);
         manager.Blame(textureWrap, this.plugin);
         return textureWrap;
     }

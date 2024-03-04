@@ -28,6 +28,8 @@ internal sealed class FileSystemSharedImmediateTexture : SharedImmediateTexture
     protected override async Task<IDalamudTextureWrap> CreateTextureAsync(CancellationToken cancellationToken)
     {
         var tm = await Service<TextureManager>.GetAsync();
-        return await tm.NoThrottleCreateFromFileAsync(this.path, cancellationToken);
+        var wrap = await tm.NoThrottleCreateFromFileAsync(this.path, cancellationToken);
+        tm.BlameSetName(wrap, this.ToString());
+        return wrap;
     }
 }

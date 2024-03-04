@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Runtime.Loader;
 using System.Threading.Tasks;
 
+using Dalamud.Configuration.Internal;
 using Dalamud.Interface.Components;
 using Dalamud.Interface.ImGuiFileDialog;
 using Dalamud.Interface.Internal.Notifications;
@@ -107,6 +108,11 @@ internal class TexWidget : IDataWindowWidget
 
         if (ImGui.Button("GC"))
             GC.Collect();
+
+        ImGui.PushID("blames");
+        if (ImGui.CollapsingHeader($"All Loaded Textures: {this.textureManager.AllBlamesForDebug.Count:g}###header"))
+            this.DrawBlame(this.textureManager.AllBlamesForDebug);
+        ImGui.PopID();
 
         ImGui.PushID("loadedGameTextures");
         if (ImGui.CollapsingHeader(
@@ -292,6 +298,96 @@ internal class TexWidget : IDataWindowWidget
         this.fileDialogManager.Draw();
     }
 
+    private unsafe void DrawBlame(IReadOnlyList<TextureManager.IBlameableDalamudTextureWrap> allBlames)
+    {
+        var conf = Service<DalamudConfiguration>.Get();
+        var im = Service<InterfaceManager>.Get();
+        var blame = conf.UseTexturePluginTracking;
+        if (ImGui.Checkbox("Enable", ref blame))
+        {
+            conf.UseTexturePluginTracking = blame;
+            conf.QueueSave();
+        }
+
+        if (!ImGui.BeginTable("##table", 5))
+            return;
+
+        const int numIcons = 1;
+        float iconWidths;
+        using (im.IconFontHandle?.Push())
+            iconWidths = ImGui.CalcTextSize(FontAwesomeIcon.Save.ToIconString()).X;
+
+        ImGui.TableSetupScrollFreeze(0, 1);
+        ImGui.TableSetupColumn("Size", ImGuiTableColumnFlags.WidthFixed, ImGui.CalcTextSize("00000x00000").X);
+        ImGui.TableSetupColumn(
+            "Format",
+            ImGuiTableColumnFlags.WidthFixed,
+            ImGui.CalcTextSize("R32G32B32A32_TYPELESS").X);
+        ImGui.TableSetupColumn("Name", ImGuiTableColumnFlags.WidthStretch);
+        ImGui.TableSetupColumn(
+            "Actions",
+            ImGuiTableColumnFlags.WidthFixed,
+            iconWidths +
+            (ImGui.GetStyle().FramePadding.X * 2 * numIcons) +
+            (ImGui.GetStyle().ItemSpacing.X * 1 * numIcons));
+        ImGui.TableSetupColumn(
+            "Plugins",
+            ImGuiTableColumnFlags.WidthFixed,
+            ImGui.CalcTextSize("Aaaaaaaaaa Aaaaaaaaaa Aaaaaaaaaa").X);
+        ImGui.TableHeadersRow();
+
+        var clipper = new ImGuiListClipperPtr(ImGuiNative.ImGuiListClipper_ImGuiListClipper());
+        clipper.Begin(allBlames.Count);
+
+        while (clipper.Step())
+        {
+            for (var i = clipper.DisplayStart; i < clipper.DisplayEnd; i++)
+            {
+                var wrap = allBlames[i];
+                ImGui.TableNextRow();
+                ImGui.PushID(i);
+
+                ImGui.TableNextColumn();
+                ImGui.TextUnformatted($"{wrap.Width}x{wrap.Height}");
+
+                ImGui.TableNextColumn();
+                ImGui.TextUnformatted(Enum.GetName(wrap.Format)?[12..] ?? wrap.Format.ToString());
+
+                ImGui.TableNextColumn();
+                ImGui.TextUnformatted(wrap.Name);
+
+                ImGui.TableNextColumn();
+                if (ImGuiComponents.IconButton(FontAwesomeIcon.Save))
+                {
+                    this.SaveTextureAsync(
+                        $"{wrap.ImGuiHandle:X16}",
+                        () => Task.FromResult(wrap.CreateWrapSharingLowLevelResource()));
+                }
+
+                if (ImGui.IsItemHovered())
+                {
+                    ImGui.BeginTooltip();
+                    ImGui.Image(wrap.ImGuiHandle, wrap.Size);
+                    ImGui.EndTooltip();
+                }
+
+                ImGui.TableNextColumn();
+                lock (wrap.OwnerPlugins)
+                {
+                    foreach (var plugin in wrap.OwnerPlugins)
+                        ImGui.TextUnformatted(plugin.Name);
+                }
+
+                ImGui.PopID();
+            }
+        }
+
+        clipper.Destroy();
+        ImGui.EndTable();
+
+        ImGuiHelpers.ScaledDummy(10);
+    }
+
     private unsafe void DrawLoadedTextures(ICollection<SharedImmediateTexture> textures)
     {
         var im = Service<InterfaceManager>.Get();
@@ -354,6 +450,7 @@ internal class TexWidget : IDataWindowWidget
                     }
 
                     var remain = texture.SelfReferenceExpiresInForDebug;
+                    ImGui.PushID(row);
 
                     ImGui.TableNextColumn();
                     ImGui.AlignTextToFramePadding();
@@ -400,6 +497,8 @@ internal class TexWidget : IDataWindowWidget
                         ImGui.SetTooltip("Release self-reference immediately.");
                     if (remain <= 0)
                         ImGui.EndDisabled();
+
+                    ImGui.PopID();
                 }
 
                 if (!valid)
@@ -609,7 +708,8 @@ internal class TexWidget : IDataWindowWidget
                 new()
                 {
                     Api10 = this.textureManager.CreateFromImGuiViewportAsync(
-                        this.viewportTextureArgs with { ViewportId = viewports[this.viewportIndexInt].ID }),
+                        this.viewportTextureArgs with { ViewportId = viewports[this.viewportIndexInt].ID },
+                        null),
                 });
         }
     }
@@ -758,6 +858,9 @@ internal class TexWidget : IDataWindowWidget
         }
         catch (Exception e)
         {
+            if (e is OperationCanceledException)
+                return;
+
             Log.Error(e, $"{nameof(TexWidget)}.{nameof(this.SaveTextureAsync)}");
             Service<NotificationManager>.Get().AddNotification(
                 $"Failed to save file: {e}",

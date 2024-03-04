@@ -45,13 +45,11 @@ internal sealed partial class FontAtlasFactory
         DataManager dataManager,
         Framework framework,
         InterfaceManager interfaceManager,
-        DalamudAssetManager dalamudAssetManager,
-        TextureManager textureManager)
+        DalamudAssetManager dalamudAssetManager)
     {
         this.Framework = framework;
         this.InterfaceManager = interfaceManager;
         this.dalamudAssetManager = dalamudAssetManager;
-        this.TextureManager = textureManager;
         this.SceneTask = Service<InterfaceManager.InterfaceManagerWithScene>
                          .GetAsync()
                          .ContinueWith(r => r.Result.Manager.Scene);
@@ -148,7 +146,7 @@ internal sealed partial class FontAtlasFactory
     /// <summary>
     /// Gets the service instance of <see cref="TextureManager"/>.
     /// </summary>
-    public TextureManager TextureManager { get; }
+    public TextureManager TextureManager => Service<TextureManager>.Get();
 
     /// <summary>
     /// Gets the async task for <see cref="RawDX11Scene"/> inside <see cref="InterfaceManager"/>.
