@@ -57,7 +57,7 @@ public unsafe class BattleChara : Character
     /// <summary>
     /// Gets the total casting time of the spell being cast by the chara.
     /// </summary>
-    public float TotalCastTime => this.Struct->GetCastInfo->TotalCastTime;
+    public float TotalCastTime => this.Struct->GetCastInfo->AdjustedTotalCastTime;
 
     /// <summary>
     /// Gets the underlying structure.
