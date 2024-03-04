@@ -27,124 +27,131 @@ namespace Dalamud.Interface.Textures.Internal;
 internal sealed partial class TextureManager
 {
     /// <inheritdoc/>
-    [SuppressMessage(
-        "StyleCop.CSharp.LayoutRules",
-        "SA1519:Braces should not be omitted from multi-line child statement",
-        Justification = "Multiple fixed blocks")]
     public async Task SaveToStreamAsync(
-        IDalamudTextureWrap wrap,
+        IDalamudTextureWrap? wrap,
         Guid containerGuid,
-        Stream stream,
+        Stream? stream,
         IReadOnlyDictionary<string, object>? props = null,
         bool leaveWrapOpen = false,
         bool leaveStreamOpen = false,
         CancellationToken cancellationToken = default)
     {
-        using var wrapDispose = leaveWrapOpen ? null : wrap;
+        try
+        {
+            if (wrap is null)
+                throw new NullReferenceException($"{nameof(wrap)} cannot be null.");
+            if (stream is null)
+                throw new NullReferenceException($"{nameof(stream)} cannot be null.");
 
-        var dxgiFormat = this.GetFormatOf(wrap);
-        if (!WicManager.GetCorrespondingWicPixelFormat(dxgiFormat, out _, out _))
-            dxgiFormat = DXGI_FORMAT.DXGI_FORMAT_B8G8R8A8_UNORM;
+            using var istream = ManagedIStream.Create(stream, true);
+            using var wrapAux = new WrapAux(wrap, true);
 
-        using var istream = ManagedIStream.Create(stream, leaveStreamOpen);
+            var dxgiFormat =
+                WicManager.GetCorrespondingWicPixelFormat(wrapAux.Desc.Format, out _, out _)
+                    ? wrapAux.Desc.Format
+                    : DXGI_FORMAT.DXGI_FORMAT_B8G8R8A8_UNORM;
 
-        var (specs, bytes) = await this.GetRawImageAsync(
-                                 wrap,
-                                 new() { Format = dxgiFormat },
-                                 true,
-                                 cancellationToken).ConfigureAwait(false);
+            var (specs, bytes) = await this.GetRawImageAsync(wrapAux, new() { Format = dxgiFormat }, cancellationToken)
+                                           .ConfigureAwait(false);
 
-        this.Wic.SaveToStreamUsingWic(
-            specs,
-            bytes,
-            containerGuid,
-            istream,
-            props,
-            cancellationToken);
+            await Task.Run(
+                () => this.Wic.SaveToStreamUsingWic(
+                    specs,
+                    bytes,
+                    containerGuid,
+                    istream,
+                    props,
+                    cancellationToken),
+                cancellationToken);
+        }
+        finally
+        {
+            if (!leaveWrapOpen)
+                wrap?.Dispose();
+            if (!leaveStreamOpen)
+                stream?.Dispose();
+        }
     }
 
     /// <inheritdoc/>
     public async Task SaveToFileAsync(
-        IDalamudTextureWrap wrap,
+        IDalamudTextureWrap? wrap,
         Guid containerGuid,
-        string path,
+        string? path,
         IReadOnlyDictionary<string, object>? props = null,
         bool leaveWrapOpen = false,
         CancellationToken cancellationToken = default)
     {
-        using var wrapDispose = leaveWrapOpen ? null : wrap;
-        var pathTemp = $"{path}.{GetCurrentThreadId():X08}{Environment.TickCount64:X16}.tmp";
         try
         {
-            var dxgiFormat = this.GetFormatOf(wrap);
-            if (!WicManager.GetCorrespondingWicPixelFormat(dxgiFormat, out _, out _))
-                dxgiFormat = DXGI_FORMAT.DXGI_FORMAT_B8G8R8A8_UNORM;
+            if (wrap is null)
+                throw new NullReferenceException($"{nameof(wrap)} cannot be null.");
+            if (path is null)
+                throw new NullReferenceException($"{nameof(path)} cannot be null.");
 
-            using var istream = TerraFxComInterfaceExtensions.CreateIStreamFromFile(
-                pathTemp,
-                FileMode.Create,
-                FileAccess.Write,
-                FileShare.None);
-
-            var (specs, bytes) = await this.GetRawImageAsync(
-                                     wrap,
-                                     new() { Format = dxgiFormat },
-                                     true,
-                                     cancellationToken).ConfigureAwait(false);
-
-            this.Wic.SaveToStreamUsingWic(
-                specs,
-                bytes,
-                containerGuid,
-                istream,
-                props,
-                cancellationToken);
-        }
-        catch (Exception e)
-        {
+            using var wrapAux = new WrapAux(wrap, true);
+            var pathTemp = $"{path}.{GetCurrentThreadId():X08}{Environment.TickCount64:X16}.tmp";
+            var trashfire = new List<Exception>();
             try
             {
-                if (File.Exists(pathTemp))
-                    File.Delete(pathTemp);
+                using (var istream = TerraFxComInterfaceExtensions.CreateIStreamFromFile(
+                           pathTemp,
+                           FileMode.Create,
+                           FileAccess.Write,
+                           FileShare.None))
+                {
+                    var dxgiFormat =
+                        WicManager.GetCorrespondingWicPixelFormat(wrapAux.Desc.Format, out _, out _)
+                            ? wrapAux.Desc.Format
+                            : DXGI_FORMAT.DXGI_FORMAT_B8G8R8A8_UNORM;
+
+                    var (specs, bytes) = await this.GetRawImageAsync(
+                                             wrapAux,
+                                             new() { Format = dxgiFormat },
+                                             cancellationToken).ConfigureAwait(false);
+
+                    await Task.Run(
+                        () => this.Wic.SaveToStreamUsingWic(
+                            specs,
+                            bytes,
+                            containerGuid,
+                            istream,
+                            props,
+                            cancellationToken),
+                        cancellationToken);
+                }
+
+                try
+                {
+                    File.Replace(pathTemp, path, null, true);
+                }
+                catch (Exception e)
+                {
+                    trashfire.Add(e);
+                    File.Move(pathTemp, path, true);
+                }
+
+                return;
             }
-            catch (Exception e2)
+            catch (Exception e)
             {
-                throw new AggregateException(
-                    "Failed to save the file, and failed to remove the temporary file.",
-                    e,
-                    e2);
+                trashfire.Add(e);
+                try
+                {
+                    if (File.Exists(pathTemp))
+                        File.Delete(pathTemp);
+                }
+                catch (Exception e2)
+                {
+                    trashfire.Add(e2);
+                }
             }
 
-            throw;
+            throw new AggregateException($"{nameof(this.SaveToFileAsync)} error.", trashfire);
         }
-
-        try
+        finally
         {
-            try
-            {
-                File.Replace(pathTemp, path, null, true);
-            }
-            catch
-            {
-                File.Move(pathTemp, path, true);
-            }
-        }
-        catch (Exception e)
-        {
-            try
-            {
-                if (File.Exists(pathTemp))
-                    File.Delete(pathTemp);
-            }
-            catch (Exception e2)
-            {
-                throw new AggregateException(
-                    "Failed to move the temporary file to the target path, and failed to remove the temporary file.",
-                    e,
-                    e2);
-            }
-
-            throw;
+            wrap?.Dispose();
         }
     }
 
@@ -219,26 +226,6 @@ internal sealed partial class TextureManager
                 throw new AggregateException(e1, e2);
             }
         }
-    }
-
-    private unsafe DXGI_FORMAT GetFormatOf(IDalamudTextureWrap wrap)
-    {
-        using var texSrv = default(ComPtr<ID3D11ShaderResourceView>);
-        using var context = default(ComPtr<ID3D11DeviceContext>);
-        fixed (Guid* piid = &IID.IID_ID3D11ShaderResourceView)
-            ((IUnknown*)wrap.ImGuiHandle)->QueryInterface(piid, (void**)texSrv.GetAddressOf()).ThrowOnError();
-
-        this.Device.Get()->GetImmediateContext(context.GetAddressOf());
-
-        using var texRes = default(ComPtr<ID3D11Resource>);
-        texSrv.Get()->GetResource(texRes.GetAddressOf());
-
-        using var tex2D = default(ComPtr<ID3D11Texture2D>);
-        texRes.As(&tex2D).ThrowOnError();
-
-        var texDesc = default(D3D11_TEXTURE2D_DESC);
-        tex2D.Get()->GetDesc(&texDesc);
-        return texDesc.Format;
     }
 
     /// <summary>A part of texture manager that uses Windows Imaging Component under the hood.</summary>

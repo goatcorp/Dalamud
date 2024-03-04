@@ -84,6 +84,7 @@ public interface ITextureReadbackProvider
     /// <returns>A task representing the save process.</returns>
     /// <remarks>
     /// <para><paramref name="wrap"/> must not be disposed until the task finishes.</para>
+    /// <para>If the target file exists, it will be overwritten only if the save operation is successful.</para>
     /// <para>See the following webpages for the valid values for <paramref name="props"/> per
     /// <paramref name="containerGuid"/>.</para>
     /// <ul>

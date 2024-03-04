@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -57,7 +58,9 @@ internal sealed partial class TextureManager
 
         async Task<IDalamudTextureWrap> ImmediateLoadFunction(CancellationToken ct)
         {
-            using var tex = await this.NoThrottleCreateFromExistingTextureAsync(wrap, args);
+            // leaveWrapOpen is taken care from calling LoadTextureAsync
+            using var wrapAux = new WrapAux(wrap, true);
+            using var tex = await this.NoThrottleCreateFromExistingTextureAsync(wrapAux, args);
 
             unsafe
             {
@@ -100,34 +103,19 @@ internal sealed partial class TextureManager
         bool leaveWrapOpen = false,
         CancellationToken cancellationToken = default)
     {
-        using var wrapDispose = leaveWrapOpen ? null : wrap;
-        using var texSrv = default(ComPtr<ID3D11ShaderResourceView>);
-        using var context = default(ComPtr<ID3D11DeviceContext>);
-        using var tex2D = default(ComPtr<ID3D11Texture2D>);
-        var texDesc = default(D3D11_TEXTURE2D_DESC);
+        using var wrapAux = new WrapAux(wrap, leaveWrapOpen);
+        return await this.GetRawImageAsync(wrapAux, args, cancellationToken);
+    }
 
-        unsafe
+    private async Task<(RawImageSpecification Specification, byte[] RawData)> GetRawImageAsync(
+        WrapAux wrapAux,
+        TextureModificationArgs args = default,
+        CancellationToken cancellationToken = default)
+    {
+        using var tex2D = wrapAux.NewTexRef();
+        if (!args.IsCompleteSourceCopy(wrapAux.Desc))
         {
-            fixed (Guid* piid = &IID.IID_ID3D11ShaderResourceView)
-                ((IUnknown*)wrap.ImGuiHandle)->QueryInterface(piid, (void**)texSrv.GetAddressOf()).ThrowOnError();
-
-            this.Device.Get()->GetImmediateContext(context.GetAddressOf());
-
-            using (var texRes = default(ComPtr<ID3D11Resource>))
-            {
-                texSrv.Get()->GetResource(texRes.GetAddressOf());
-
-                using var tex2DTemp = default(ComPtr<ID3D11Texture2D>);
-                texRes.As(&tex2DTemp).ThrowOnError();
-                tex2D.Swap(&tex2DTemp);
-            }
-
-            tex2D.Get()->GetDesc(&texDesc);
-        }
-
-        if (!args.IsCompleteSourceCopy(texDesc))
-        {
-            using var tmp = await this.NoThrottleCreateFromExistingTextureAsync(wrap, args);
+            using var tmp = await this.NoThrottleCreateFromExistingTextureAsync(wrapAux, args);
             unsafe
             {
                 tex2D.Swap(&tmp);
@@ -136,11 +124,10 @@ internal sealed partial class TextureManager
 
         cancellationToken.ThrowIfCancellationRequested();
         return await this.interfaceManager.RunBeforeImGuiRender(
-                   () => ExtractMappedResource(this.Device, context, tex2D, cancellationToken));
+                   () => ExtractMappedResource(wrapAux, tex2D, cancellationToken));
 
         static unsafe (RawImageSpecification Specification, byte[] RawData) ExtractMappedResource(
-            ComPtr<ID3D11Device> device,
-            ComPtr<ID3D11DeviceContext> context,
+            in WrapAux wrapAux,
             ComPtr<ID3D11Texture2D> tex2D,
             CancellationToken cancellationToken)
         {
@@ -150,11 +137,9 @@ internal sealed partial class TextureManager
             try
             {
                 using var tmpTex = default(ComPtr<ID3D11Texture2D>);
-                D3D11_TEXTURE2D_DESC desc;
-                tex2D.Get()->GetDesc(&desc);
-                if ((desc.CPUAccessFlags & (uint)D3D11_CPU_ACCESS_FLAG.D3D11_CPU_ACCESS_READ) == 0)
+                if ((wrapAux.Desc.CPUAccessFlags & (uint)D3D11_CPU_ACCESS_FLAG.D3D11_CPU_ACCESS_READ) == 0)
                 {
-                    var tmpTexDesc = desc with
+                    var tmpTexDesc = wrapAux.Desc with
                     {
                         MipLevels = 1,
                         ArraySize = 1,
@@ -164,15 +149,15 @@ internal sealed partial class TextureManager
                         CPUAccessFlags = (uint)D3D11_CPU_ACCESS_FLAG.D3D11_CPU_ACCESS_READ,
                         MiscFlags = 0u,
                     };
-                    device.Get()->CreateTexture2D(&tmpTexDesc, null, tmpTex.GetAddressOf()).ThrowOnError();
-                    context.Get()->CopyResource((ID3D11Resource*)tmpTex.Get(), (ID3D11Resource*)tex2D.Get());
+                    wrapAux.DevPtr->CreateTexture2D(&tmpTexDesc, null, tmpTex.GetAddressOf()).ThrowOnError();
+                    wrapAux.CtxPtr->CopyResource((ID3D11Resource*)tmpTex.Get(), (ID3D11Resource*)tex2D.Get());
 
                     cancellationToken.ThrowIfCancellationRequested();
                 }
 
                 D3D11_MAPPED_SUBRESOURCE mapped;
                 mapWhat = (ID3D11Resource*)(tmpTex.IsEmpty() ? tex2D.Get() : tmpTex.Get());
-                context.Get()->Map(
+                wrapAux.CtxPtr->Map(
                     mapWhat,
                     0,
                     D3D11_MAP.D3D11_MAP_READ,
@@ -180,9 +165,9 @@ internal sealed partial class TextureManager
                     &mapped).ThrowOnError();
 
                 var specs = new RawImageSpecification(
-                    (int)desc.Width,
-                    (int)desc.Height,
-                    (int)desc.Format,
+                    (int)wrapAux.Desc.Width,
+                    (int)wrapAux.Desc.Height,
+                    (int)wrapAux.Desc.Format,
                     (int)mapped.RowPitch);
                 var bytes = new Span<byte>(mapped.pData, checked((int)mapped.DepthPitch)).ToArray();
                 return (specs, bytes);
@@ -190,44 +175,23 @@ internal sealed partial class TextureManager
             finally
             {
                 if (mapWhat is not null)
-                    context.Get()->Unmap(mapWhat, 0);
+                    wrapAux.CtxPtr->Unmap(mapWhat, 0);
             }
         }
     }
 
     private async Task<ComPtr<ID3D11Texture2D>> NoThrottleCreateFromExistingTextureAsync(
-        IDalamudTextureWrap wrap,
+        WrapAux wrapAux,
         TextureModificationArgs args)
     {
         args.ThrowOnInvalidValues();
 
-        using var texSrv = default(ComPtr<ID3D11ShaderResourceView>);
-        using var context = default(ComPtr<ID3D11DeviceContext>);
-        using var tex2D = default(ComPtr<ID3D11Texture2D>);
-        var texDesc = default(D3D11_TEXTURE2D_DESC);
-
-        unsafe
-        {
-            fixed (Guid* piid = &IID.IID_ID3D11ShaderResourceView)
-                ((IUnknown*)wrap.ImGuiHandle)->QueryInterface(piid, (void**)texSrv.GetAddressOf()).ThrowOnError();
-
-            this.Device.Get()->GetImmediateContext(context.GetAddressOf());
-
-            using (var texRes = default(ComPtr<ID3D11Resource>))
-            {
-                texSrv.Get()->GetResource(texRes.GetAddressOf());
-                texRes.As(&tex2D).ThrowOnError();
-            }
-
-            tex2D.Get()->GetDesc(&texDesc);
-        }
-
         if (args.Format == DXGI_FORMAT.DXGI_FORMAT_UNKNOWN)
-            args = args with { Format = texDesc.Format };
+            args = args with { Format = wrapAux.Desc.Format };
         if (args.NewWidth == 0)
-            args = args with { NewWidth = (int)MathF.Round((args.Uv1Effective.X - args.Uv0.X) * texDesc.Width) };
+            args = args with { NewWidth = (int)MathF.Round((args.Uv1Effective.X - args.Uv0.X) * wrapAux.Desc.Width) };
         if (args.NewHeight == 0)
-            args = args with { NewHeight = (int)MathF.Round((args.Uv1Effective.Y - args.Uv0.Y) * texDesc.Height) };
+            args = args with { NewHeight = (int)MathF.Round((args.Uv1Effective.Y - args.Uv0.Y) * wrapAux.Desc.Height) };
 
         using var tex2DCopyTemp = default(ComPtr<ID3D11Texture2D>);
         unsafe
@@ -263,20 +227,120 @@ internal sealed partial class TextureManager
                         &rtvCopyTempDesc,
                         rtvCopyTemp.GetAddressOf()).ThrowOnError();
 
-                    context.Get()->OMSetRenderTargets(1u, rtvCopyTemp.GetAddressOf(), null);
+                    wrapAux.CtxPtr->OMSetRenderTargets(1u, rtvCopyTemp.GetAddressOf(), null);
                     this.SimpleDrawer.Draw(
-                        context.Get(),
-                        texSrv.Get(),
+                        wrapAux.CtxPtr,
+                        wrapAux.SrvPtr,
                         args.Uv0,
                         args.Uv1Effective);
                     if (args.MakeOpaque)
-                        this.SimpleDrawer.StripAlpha(context.Get());
+                        this.SimpleDrawer.StripAlpha(wrapAux.CtxPtr);
 
                     var dummy = default(ID3D11RenderTargetView*);
-                    context.Get()->OMSetRenderTargets(1u, &dummy, null);
+                    wrapAux.CtxPtr->OMSetRenderTargets(1u, &dummy, null);
                 }
             });
 
         return new(tex2DCopyTemp);
+    }
+
+    /// <summary>Auxiliary data from <see cref="IDalamudTextureWrap"/>.</summary>
+    private unsafe struct WrapAux : IDisposable
+    {
+        public readonly D3D11_TEXTURE2D_DESC Desc;
+
+        private IDalamudTextureWrap? wrapToClose;
+
+        private ComPtr<ID3D11ShaderResourceView> srv;
+        private ComPtr<ID3D11Resource> res;
+        private ComPtr<ID3D11Texture2D> tex;
+        private ComPtr<ID3D11Device> device;
+        private ComPtr<ID3D11DeviceContext> context;
+
+        public WrapAux(IDalamudTextureWrap wrap, bool leaveWrapOpen)
+        {
+            this.wrapToClose = leaveWrapOpen ? null : wrap;
+
+            using var unk = new ComPtr<IUnknown>((IUnknown*)wrap.ImGuiHandle);
+
+            using var srvTemp = default(ComPtr<ID3D11ShaderResourceView>);
+            unk.As(&srvTemp).ThrowOnError();
+
+            using var resTemp = default(ComPtr<ID3D11Resource>);
+            srvTemp.Get()->GetResource(resTemp.GetAddressOf());
+
+            using var texTemp = default(ComPtr<ID3D11Texture2D>);
+            resTemp.As(&texTemp).ThrowOnError();
+
+            using var deviceTemp = default(ComPtr<ID3D11Device>);
+            texTemp.Get()->GetDevice(deviceTemp.GetAddressOf());
+
+            using var contextTemp = default(ComPtr<ID3D11DeviceContext>);
+            deviceTemp.Get()->GetImmediateContext(contextTemp.GetAddressOf());
+
+            fixed (D3D11_TEXTURE2D_DESC* pDesc = &this.Desc)
+                texTemp.Get()->GetDesc(pDesc);
+
+            srvTemp.Swap(ref this.srv);
+            resTemp.Swap(ref this.res);
+            texTemp.Swap(ref this.tex);
+            deviceTemp.Swap(ref this.device);
+            contextTemp.Swap(ref this.context);
+        }
+
+        public ID3D11ShaderResourceView* SrvPtr
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => this.srv.Get();
+        }
+
+        public ID3D11Resource* ResPtr
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => this.res.Get();
+        }
+
+        public ID3D11Texture2D* TexPtr
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => this.tex.Get();
+        }
+
+        public ID3D11Device* DevPtr
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => this.device.Get();
+        }
+
+        public ID3D11DeviceContext* CtxPtr
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => this.context.Get();
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public ComPtr<ID3D11ShaderResourceView> NewSrvRef() => new(this.srv);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public ComPtr<ID3D11Resource> NewResRef() => new(this.res);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public ComPtr<ID3D11Texture2D> NewTexRef() => new(this.tex);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public ComPtr<ID3D11Device> NewDevRef() => new(this.device);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public ComPtr<ID3D11DeviceContext> NewCtxRef() => new(this.context);
+
+        public void Dispose()
+        {
+            this.srv.Reset();
+            this.res.Reset();
+            this.tex.Reset();
+            this.device.Reset();
+            this.context.Reset();
+            Interlocked.Exchange(ref this.wrapToClose, null)?.Dispose();
+        }
     }
 }
