@@ -309,7 +309,7 @@ internal class TexWidget : IDataWindowWidget
             conf.QueueSave();
         }
 
-        if (!ImGui.BeginTable("##table", 5))
+        if (!ImGui.BeginTable("##table", 6))
             return;
 
         const int numIcons = 1;
@@ -318,12 +318,21 @@ internal class TexWidget : IDataWindowWidget
             iconWidths = ImGui.CalcTextSize(FontAwesomeIcon.Save.ToIconString()).X;
 
         ImGui.TableSetupScrollFreeze(0, 1);
-        ImGui.TableSetupColumn("Size", ImGuiTableColumnFlags.WidthFixed, ImGui.CalcTextSize("00000x00000").X);
+        ImGui.TableSetupColumn(
+            "Dimensions",
+            ImGuiTableColumnFlags.WidthFixed,
+            ImGui.CalcTextSize("00000x00000").X);
         ImGui.TableSetupColumn(
             "Format",
             ImGuiTableColumnFlags.WidthFixed,
             ImGui.CalcTextSize("R32G32B32A32_TYPELESS").X);
-        ImGui.TableSetupColumn("Name", ImGuiTableColumnFlags.WidthStretch);
+        ImGui.TableSetupColumn(
+            "Size",
+            ImGuiTableColumnFlags.WidthFixed,
+            ImGui.CalcTextSize("123.45 MB").X);
+        ImGui.TableSetupColumn(
+            "Name",
+            ImGuiTableColumnFlags.WidthStretch);
         ImGui.TableSetupColumn(
             "Actions",
             ImGuiTableColumnFlags.WidthFixed,
@@ -352,6 +361,11 @@ internal class TexWidget : IDataWindowWidget
 
                 ImGui.TableNextColumn();
                 ImGui.TextUnformatted(Enum.GetName(wrap.Format)?[12..] ?? wrap.Format.ToString());
+
+                ImGui.TableNextColumn();
+                var rawSpec = new RawImageSpecification(wrap.Width, wrap.Height, (int)wrap.Format, 0);
+                var bytes = rawSpec.EstimatedBytes;
+                ImGui.TextUnformatted(bytes < 0 ? "-" : Util.FormatBytes(bytes));
 
                 ImGui.TableNextColumn();
                 ImGui.TextUnformatted(wrap.Name);

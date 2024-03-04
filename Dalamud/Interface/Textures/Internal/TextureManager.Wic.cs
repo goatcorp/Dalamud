@@ -485,7 +485,7 @@ internal sealed partial class TextureManager
             IReadOnlyDictionary<string, object>? props = null,
             CancellationToken cancellationToken = default)
         {
-            if (!GetCorrespondingWicPixelFormat((DXGI_FORMAT)specs.DxgiFormat, out var inPixelFormat, out var srgb))
+            if (!GetCorrespondingWicPixelFormat(specs.Format, out var inPixelFormat, out var srgb))
                 throw new NotSupportedException("DXGI_FORMAT from specs is not supported by WIC.");
 
             using var encoder = default(ComPtr<IWICBitmapEncoder>);
@@ -494,7 +494,7 @@ internal sealed partial class TextureManager
             cancellationToken.ThrowIfCancellationRequested();
 
             // See: DirectXTK/Src/ScreenGrab.cpp
-            var outPixelFormat = (DXGI_FORMAT)specs.DxgiFormat switch
+            var outPixelFormat = specs.Format switch
             {
                 DXGI_FORMAT.DXGI_FORMAT_R32G32B32A32_FLOAT => GUID.GUID_WICPixelFormat128bppRGBAFloat,
                 DXGI_FORMAT.DXGI_FORMAT_R16G16B16A16_FLOAT when !this.wicFactory2.IsEmpty() =>

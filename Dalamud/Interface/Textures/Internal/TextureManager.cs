@@ -242,7 +242,7 @@ internal sealed partial class TextureManager
             Height = (uint)specs.Height,
             MipLevels = 1,
             ArraySize = 1,
-            Format = (DXGI_FORMAT)specs.DxgiFormat,
+            Format = specs.Format,
             SampleDesc = new(1, 0),
             Usage = D3D11_USAGE.D3D11_USAGE_IMMUTABLE,
             BindFlags = (uint)D3D11_BIND_FLAG.D3D11_BIND_SHADER_RESOURCE,

@@ -51,9 +51,26 @@ public record struct RawImageSpecification
     /// <summary>Gets the number of bits per pixel.</summary>
     /// <exception cref="NotSupportedException">Thrown if <see cref="DxgiFormat"/> is not supported.</exception>
     public int BitsPerPixel =>
-        GetFormatInfo((DXGI_FORMAT)this.DxgiFormat, out var bitsPerPixel, out _)
+        GetFormatInfo(this.Format, out var bitsPerPixel, out _)
             ? bitsPerPixel
             : throw new NotSupportedException(FormatNotSupportedMessage);
+
+    /// <summary>Gets or sets the format (typed).</summary>
+    internal DXGI_FORMAT Format
+    {
+        get => (DXGI_FORMAT)this.DxgiFormat;
+        set => this.DxgiFormat = (int)value;
+    }
+
+    /// <summary>Gets the estimated number of bytes.</summary>
+    /// <remarks><c>-1</c> if failed.</remarks>
+    internal int EstimatedBytes =>
+        GetFormatInfo(this.Format, out var bitsPerPixel, out var isBlockCompression)
+            ? isBlockCompression
+                  ? (((Math.Max(1, (this.Width + 3) / 4) * 2 * bitsPerPixel) + 63) / 64) * 64 *
+                    Math.Max(1, (this.Height + 3) / 4)
+                  : (((((bitsPerPixel * this.Width) + 7) / 8) + 63) / 64) * 64 * this.Height
+            : -1;
 
     /// <summary>
     /// Creates a new instance of <see cref="RawImageSpecification"/> record using the given resolution,
@@ -230,7 +247,7 @@ public record struct RawImageSpecification
             case DXGI_FORMAT.DXGI_FORMAT_B4G4R4A4_UNORM:
                 bitsPerPixel = 16;
                 isBlockCompression = true;
-                return false;
+                return true;
             default:
                 bitsPerPixel = 0;
                 isBlockCompression = false;
