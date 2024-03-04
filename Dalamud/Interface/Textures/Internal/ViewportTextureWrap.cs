@@ -34,8 +34,6 @@ internal sealed class ViewportTextureWrap : IDalamudTextureWrap, IDeferredDispos
     /// <param name="cancellationToken">The cancellation token.</param>
     public ViewportTextureWrap(ImGuiViewportTextureArgs args, CancellationToken cancellationToken)
     {
-        args.ThrowOnInvalidValues();
-
         this.args = args;
         this.cancellationToken = cancellationToken;
     }

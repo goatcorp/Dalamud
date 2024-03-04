@@ -2,7 +2,6 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using Dalamud.Interface.Internal;
-using Dalamud.Utility;
 
 namespace Dalamud.Interface.Textures.Internal.SharedImmediateTextures;
 
@@ -13,10 +12,8 @@ internal sealed class FileSystemSharedImmediateTexture : SharedImmediateTexture
 
     /// <summary>Initializes a new instance of the <see cref="FileSystemSharedImmediateTexture"/> class.</summary>
     /// <param name="path">The path.</param>
-    private FileSystemSharedImmediateTexture(string path) => this.path = path;
-
-    /// <inheritdoc/>
-    public override string SourcePathForDebug => this.path;
+    private FileSystemSharedImmediateTexture(string path)
+        : base(path) => this.path = path;
 
     /// <summary>Creates a new placeholder instance of <see cref="GamePathSharedImmediateTexture"/>.</summary>
     /// <param name="path">The path.</param>
@@ -28,20 +25,7 @@ internal sealed class FileSystemSharedImmediateTexture : SharedImmediateTexture
         $"{nameof(FileSystemSharedImmediateTexture)}#{this.InstanceIdForDebug}({this.path})";
 
     /// <inheritdoc/>
-    protected override void ReleaseResources()
-    {
-        _ = this.UnderlyingWrap?.ToContentDisposedTask(true);
-        this.UnderlyingWrap = null;
-    }
-
-    /// <inheritdoc/>
-    protected override void ReviveResources() =>
-        this.UnderlyingWrap = Service<TextureLoadThrottler>.Get().LoadTextureAsync(
-            this,
-            this.CreateTextureAsync,
-            this.LoadCancellationToken);
-
-    private async Task<IDalamudTextureWrap> CreateTextureAsync(CancellationToken cancellationToken)
+    protected override async Task<IDalamudTextureWrap> CreateTextureAsync(CancellationToken cancellationToken)
     {
         var tm = await Service<TextureManager>.GetAsync();
         return await tm.NoThrottleCreateFromFileAsync(this.path, cancellationToken);

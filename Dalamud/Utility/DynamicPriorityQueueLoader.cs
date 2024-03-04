@@ -4,15 +4,10 @@ using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 
-using Dalamud.Interface.Internal;
+namespace Dalamud.Utility;
 
-namespace Dalamud.Interface.Textures.Internal;
-
-/// <summary>
-/// Service for managing texture loads.
-/// </summary>
-[ServiceManager.EarlyLoadedService]
-internal class TextureLoadThrottler : IServiceType, IDisposable
+/// <summary>Base class for loading resources in dynamic order.</summary>
+internal class DynamicPriorityQueueLoader : IDisposable
 {
     private readonly CancellationTokenSource disposeCancellationTokenSource = new();
     private readonly Task adderTask;
@@ -24,19 +19,20 @@ internal class TextureLoadThrottler : IServiceType, IDisposable
 
     private bool disposing;
 
-    [ServiceManager.ServiceConstructor]
-    private TextureLoadThrottler()
+    /// <summary>Initializes a new instance of the <see cref="DynamicPriorityQueueLoader"/> class.</summary>
+    /// <param name="concurrency">Maximum number of concurrent load tasks.</param>
+    public DynamicPriorityQueueLoader(int concurrency)
     {
         this.newItemChannel = Channel.CreateUnbounded<WorkItem>(new() { SingleReader = true });
         this.workTokenChannel = Channel.CreateUnbounded<object?>(new() { SingleWriter = true });
 
         this.adderTask = Task.Run(this.LoopAddWorkItemAsync);
-        this.workerTasks = new Task[Math.Max(1, Environment.ProcessorCount - 1)];
+        this.workerTasks = new Task[concurrency];
         foreach (ref var task in this.workerTasks.AsSpan())
             task = Task.Run(this.LoopProcessWorkItemAsync);
     }
 
-    /// <summary>Basis for throttling. Values may be changed anytime.</summary>
+    /// <summary>Provider for priority metrics.</summary>
     internal interface IThrottleBasisProvider
     {
         /// <summary>Gets a value indicating whether the resource is requested in an opportunistic way.</summary>
@@ -68,27 +64,36 @@ internal class TextureLoadThrottler : IServiceType, IDisposable
             _ = t.Exception;
     }
 
-    /// <summary>Loads a texture according to some order.</summary>
-    /// <param name="basis">The throttle basis.</param>
+    /// <summary>Loads a resource according to some order.</summary>
+    /// <typeparam name="T">The type of resource.</typeparam>
+    /// <param name="basis">The throttle basis. <c>null</c> may be used to create a new instance of
+    /// <see cref="IThrottleBasisProvider"/> that is not opportunistic with time values of now.</param>
     /// <param name="immediateLoadFunction">The immediate load function.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <param name="disposables">Disposables to dispose when the task completes.</param>
     /// <returns>The task.</returns>
-    public Task<IDalamudTextureWrap> LoadTextureAsync(
-        IThrottleBasisProvider basis,
-        Func<CancellationToken, Task<IDalamudTextureWrap>> immediateLoadFunction,
+    /// <remarks>
+    /// <paramref name="immediateLoadFunction"/> may throw immediately without returning anything, or the returned
+    /// <see cref="Task{TResult}"/> may complete in failure.
+    /// </remarks>
+    public Task<T> LoadAsync<T>(
+        IThrottleBasisProvider? basis,
+        Func<CancellationToken, Task<T>> immediateLoadFunction,
         CancellationToken cancellationToken,
         params IDisposable?[] disposables)
     {
-        var work = new WorkItem(basis, immediateLoadFunction, cancellationToken, disposables);
+        basis ??= new ReadOnlyThrottleBasisProvider();
+        var work = new WorkItem<T>(basis, immediateLoadFunction, cancellationToken, disposables);
 
         if (this.newItemChannel.Writer.TryWrite(work))
             return work.Task;
 
         work.Dispose();
-        return Task.FromException<IDalamudTextureWrap>(new ObjectDisposedException(nameof(TextureLoadThrottler)));
+        return Task.FromException<T>(new ObjectDisposedException(this.GetType().Name));
     }
 
+    /// <summary>Continuously transfers work items added from <see cref="LoadAsync{T}"/> to
+    /// <see cref="workItemPending"/>, until all items are transferred and <see cref="Dispose"/> is called.</summary>
     private async Task LoopAddWorkItemAsync()
     {
         const int batchAddSize = 64;
@@ -109,6 +114,8 @@ internal class TextureLoadThrottler : IServiceType, IDisposable
         }
     }
 
+    /// <summary>Continuously processes work items in <see cref="workItemPending"/>, until all items are processed and
+    /// <see cref="Dispose"/> is called.</summary>
     private async Task LoopProcessWorkItemAsync()
     {
         var reader = this.workTokenChannel.Reader;
@@ -167,10 +174,8 @@ internal class TextureLoadThrottler : IServiceType, IDisposable
         }
     }
 
-    /// <summary>
-    /// A read-only implementation of <see cref="IThrottleBasisProvider"/>.
-    /// </summary>
-    public class ReadOnlyThrottleBasisProvider : IThrottleBasisProvider
+    /// <summary>A read-only implementation of <see cref="IThrottleBasisProvider"/>.</summary>
+    private class ReadOnlyThrottleBasisProvider : IThrottleBasisProvider
     {
         /// <inheritdoc/>
         public bool IsOpportunistic { get; init; } = false;
@@ -182,27 +187,23 @@ internal class TextureLoadThrottler : IServiceType, IDisposable
         public long LatestRequestedTick { get; init; } = Environment.TickCount64;
     }
 
-    private sealed class WorkItem : IComparable<WorkItem>, IDisposable
+    /// <summary>Represents a work item added from <see cref="LoadAsync{T}"/>.</summary>
+    private abstract class WorkItem : IComparable<WorkItem>, IDisposable
     {
-        private readonly TaskCompletionSource<IDalamudTextureWrap> taskCompletionSource;
         private readonly IThrottleBasisProvider basis;
-        private readonly CancellationToken cancellationToken;
-        private readonly Func<CancellationToken, Task<IDalamudTextureWrap>> immediateLoadFunction;
         private readonly IDisposable?[] disposables;
 
-        public WorkItem(
+        protected WorkItem(
             IThrottleBasisProvider basis,
-            Func<CancellationToken, Task<IDalamudTextureWrap>> immediateLoadFunction,
-            CancellationToken cancellationToken, IDisposable?[] disposables)
+            CancellationToken cancellationToken,
+            params IDisposable?[] disposables)
         {
-            this.taskCompletionSource = new();
             this.basis = basis;
-            this.cancellationToken = cancellationToken;
+            this.CancellationToken = cancellationToken;
             this.disposables = disposables;
-            this.immediateLoadFunction = immediateLoadFunction;
         }
 
-        public Task<IDalamudTextureWrap> Task => this.taskCompletionSource.Task;
+        protected CancellationToken CancellationToken { get; }
 
         public void Dispose()
         {
@@ -219,13 +220,37 @@ internal class TextureLoadThrottler : IServiceType, IDisposable
             return this.basis.FirstRequestedTick.CompareTo(other.basis.FirstRequestedTick);
         }
 
-        public bool CancelAsRequested()
+        public abstract bool CancelAsRequested();
+
+        public abstract ValueTask Process(CancellationToken serviceDisposeToken);
+    }
+
+    /// <summary>Typed version of <see cref="WorkItem"/>.</summary>
+    private sealed class WorkItem<T> : WorkItem
+    {
+        private readonly TaskCompletionSource<T> taskCompletionSource;
+        private readonly Func<CancellationToken, Task<T>> immediateLoadFunction;
+
+        public WorkItem(
+            IThrottleBasisProvider basis,
+            Func<CancellationToken, Task<T>> immediateLoadFunction,
+            CancellationToken cancellationToken,
+            params IDisposable?[] disposables)
+            : base(basis, cancellationToken, disposables)
         {
-            if (!this.cancellationToken.IsCancellationRequested)
+            this.taskCompletionSource = new();
+            this.immediateLoadFunction = immediateLoadFunction;
+        }
+
+        public Task<T> Task => this.taskCompletionSource.Task;
+
+        public override bool CancelAsRequested()
+        {
+            if (!this.CancellationToken.IsCancellationRequested)
                 return false;
 
             // Cancel the load task and move on.
-            this.taskCompletionSource.TrySetCanceled(this.cancellationToken);
+            this.taskCompletionSource.TrySetCanceled(this.CancellationToken);
 
             // Suppress the OperationCanceledException caused from the above.
             _ = this.taskCompletionSource.Task.Exception;
@@ -233,16 +258,16 @@ internal class TextureLoadThrottler : IServiceType, IDisposable
             return true;
         }
 
-        public async ValueTask Process(CancellationToken serviceDisposeToken)
+        public override async ValueTask Process(CancellationToken serviceDisposeToken)
         {
             try
             {
-                IDalamudTextureWrap wrap;
-                if (this.cancellationToken.CanBeCanceled)
+                T wrap;
+                if (this.CancellationToken.CanBeCanceled)
                 {
                     using var cts = CancellationTokenSource.CreateLinkedTokenSource(
                         serviceDisposeToken,
-                        this.cancellationToken);
+                        this.CancellationToken);
                     wrap = await this.immediateLoadFunction(cts.Token);
                 }
                 else
@@ -251,7 +276,7 @@ internal class TextureLoadThrottler : IServiceType, IDisposable
                 }
 
                 if (!this.taskCompletionSource.TrySetResult(wrap))
-                    wrap.Dispose();
+                    (wrap as IDisposable)?.Dispose();
             }
             catch (Exception e)
             {

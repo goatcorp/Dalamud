@@ -1,15 +1,17 @@
-using System.Diagnostics.CodeAnalysis;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
+using Dalamud.Configuration.Internal;
 using Dalamud.Data;
 using Dalamud.Game;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Textures.Internal.SharedImmediateTextures;
-using Dalamud.IoC;
-using Dalamud.IoC.Internal;
 using Dalamud.Logging.Internal;
+using Dalamud.Plugin.Internal.Types;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility;
 
@@ -22,21 +24,21 @@ using TerraFX.Interop.Windows;
 namespace Dalamud.Interface.Textures.Internal;
 
 /// <summary>Service responsible for loading and disposing ImGui texture wraps.</summary>
-[PluginInterface]
-[InterfaceVersion("1.0")]
 [ServiceManager.EarlyLoadedService]
-#pragma warning disable SA1015
-[ResolveVia<ITextureProvider>]
-[ResolveVia<ITextureSubstitutionProvider>]
-[ResolveVia<ITextureReadbackProvider>]
-#pragma warning restore SA1015
 internal sealed partial class TextureManager
-    : IServiceType, IDisposable, ITextureProvider, ITextureSubstitutionProvider, ITextureReadbackProvider
+    : IServiceType,
+      IDisposable,
+      ITextureProvider,
+      ITextureSubstitutionProvider,
+      ITextureReadbackProvider
 {
     private static readonly ModuleLog Log = new(nameof(TextureManager));
 
     [ServiceManager.ServiceDependency]
     private readonly Dalamud dalamud = Service<Dalamud>.Get();
+
+    [ServiceManager.ServiceDependency]
+    private readonly DalamudConfiguration dalamudConfiguration = Service<DalamudConfiguration>.Get();
 
     [ServiceManager.ServiceDependency]
     private readonly DataManager dataManager = Service<DataManager>.Get();
@@ -47,54 +49,56 @@ internal sealed partial class TextureManager
     [ServiceManager.ServiceDependency]
     private readonly InterfaceManager interfaceManager = Service<InterfaceManager>.Get();
 
-    [ServiceManager.ServiceDependency]
-    private readonly TextureLoadThrottler textureLoadThrottler = Service<TextureLoadThrottler>.Get();
-
+    private DynamicPriorityQueueLoader? dynamicPriorityTextureLoader;
     private SharedTextureManager? sharedTextureManager;
     private WicManager? wicManager;
     private bool disposing;
+    private ComPtr<ID3D11Device> device;
 
-    [SuppressMessage(
-        "StyleCop.CSharp.LayoutRules",
-        "SA1519:Braces should not be omitted from multi-line child statement",
-        Justification = "Multiple fixed blocks")]
     [ServiceManager.ServiceConstructor]
-    private TextureManager()
+    private unsafe TextureManager(InterfaceManager.InterfaceManagerWithScene withScene)
     {
-        this.sharedTextureManager = new(this);
-        this.wicManager = new(this);
+        using var failsafe = new DisposeSafety.ScopedFinalizer();
+        failsafe.Add(this.device = new((ID3D11Device*)withScene.Manager.Device!.NativePointer));
+        failsafe.Add(this.dynamicPriorityTextureLoader = new(Math.Max(1, Environment.ProcessorCount - 1)));
+        failsafe.Add(this.sharedTextureManager = new(this));
+        failsafe.Add(this.wicManager = new(this));
+        failsafe.Add(this.simpleDrawer = new());
+        this.simpleDrawer.Setup(this.device.Get());
+
+        failsafe.Cancel();
     }
 
-    /// <summary>Gets the D3D11 Device used to create textures. Ownership is not transferred.</summary>
-    public unsafe ComPtr<ID3D11Device> Device
-    {
-        get
-        {
-            if (this.interfaceManager.Scene is not { } scene)
-            {
-                _ = Service<InterfaceManager.InterfaceManagerWithScene>.Get();
-                scene = this.interfaceManager.Scene ?? throw new InvalidOperationException();
-            }
+    /// <summary>Finalizes an instance of the <see cref="TextureManager"/> class.</summary>
+    ~TextureManager() => this.ReleaseUnmanagedResources();
 
-            var device = default(ComPtr<ID3D11Device>);
-            device.Attach((ID3D11Device*)scene.Device.NativePointer);
-            return device;
-        }
+    /// <summary>Gets the dynamic-priority queue texture loader.</summary>
+    public DynamicPriorityQueueLoader DynamicPriorityTextureLoader
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => this.dynamicPriorityTextureLoader ?? throw new ObjectDisposedException(nameof(TextureManager));
     }
 
     /// <summary>Gets a simpler drawer.</summary>
-    public SimpleDrawerImpl SimpleDrawer =>
-        this.simpleDrawer ?? throw new ObjectDisposedException(nameof(TextureManager));
+    public SimpleDrawerImpl SimpleDrawer
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => this.simpleDrawer ?? throw new ObjectDisposedException(nameof(TextureManager));
+    }
 
     /// <summary>Gets the shared texture manager.</summary>
-    public SharedTextureManager Shared =>
-        this.sharedTextureManager ??
-        throw new ObjectDisposedException(nameof(TextureManager));
+    public SharedTextureManager Shared
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => this.sharedTextureManager ?? throw new ObjectDisposedException(nameof(TextureManager));
+    }
 
     /// <summary>Gets the WIC manager.</summary>
-    public WicManager Wic =>
-        this.wicManager ??
-        throw new ObjectDisposedException(nameof(TextureManager));
+    public WicManager Wic
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => this.wicManager ?? throw new ObjectDisposedException(nameof(TextureManager));
+    }
 
     /// <inheritdoc/>
     public void Dispose()
@@ -104,17 +108,28 @@ internal sealed partial class TextureManager
 
         this.disposing = true;
 
+        Interlocked.Exchange(ref this.dynamicPriorityTextureLoader, null)?.Dispose();
         Interlocked.Exchange(ref this.simpleDrawer, null)?.Dispose();
         Interlocked.Exchange(ref this.sharedTextureManager, null)?.Dispose();
         Interlocked.Exchange(ref this.wicManager, null)?.Dispose();
+        this.ReleaseUnmanagedResources();
+        GC.SuppressFinalize(this);
+    }
+
+    /// <summary>Puts a plugin on blame for a texture.</summary>
+    /// <param name="textureWrap">The texture.</param>
+    /// <param name="ownerPlugin">The plugin.</param>
+    public void Blame(IDalamudTextureWrap textureWrap, LocalPlugin ownerPlugin)
+    {
+        // nop for now
     }
 
     /// <inheritdoc/>
     public Task<IDalamudTextureWrap> CreateFromImageAsync(
         ReadOnlyMemory<byte> bytes,
         CancellationToken cancellationToken = default) =>
-        this.textureLoadThrottler.LoadTextureAsync(
-            new TextureLoadThrottler.ReadOnlyThrottleBasisProvider(),
+        this.DynamicPriorityTextureLoader.LoadAsync(
+            null,
             ct => Task.Run(() => this.NoThrottleCreateFromImage(bytes.ToArray(), ct), ct),
             cancellationToken);
 
@@ -123,24 +138,16 @@ internal sealed partial class TextureManager
         Stream stream,
         bool leaveOpen = false,
         CancellationToken cancellationToken = default) =>
-        this.textureLoadThrottler.LoadTextureAsync(
-                new TextureLoadThrottler.ReadOnlyThrottleBasisProvider(),
-                async ct =>
-                {
-                    await using var ms = stream.CanSeek ? new MemoryStream((int)stream.Length) : new();
-                    await stream.CopyToAsync(ms, ct).ConfigureAwait(false);
-                    return this.NoThrottleCreateFromImage(ms.GetBuffer(), ct);
-                },
-                cancellationToken)
-            .ContinueWith(
-                r =>
-                {
-                    if (!leaveOpen)
-                        stream.Dispose();
-                    return r;
-                },
-                default(CancellationToken))
-            .Unwrap();
+        this.DynamicPriorityTextureLoader.LoadAsync(
+            null,
+            async ct =>
+            {
+                await using var ms = stream.CanSeek ? new MemoryStream((int)stream.Length) : new();
+                await stream.CopyToAsync(ms, ct).ConfigureAwait(false);
+                return this.NoThrottleCreateFromImage(ms.GetBuffer(), ct);
+            },
+            cancellationToken,
+            leaveOpen ? null : stream);
 
     /// <inheritdoc/>
     // It probably doesn't make sense to throttle this, as it copies the passed bytes to GPU without any transformation.
@@ -153,8 +160,8 @@ internal sealed partial class TextureManager
         RawImageSpecification specs,
         ReadOnlyMemory<byte> bytes,
         CancellationToken cancellationToken = default) =>
-        this.textureLoadThrottler.LoadTextureAsync(
-            new TextureLoadThrottler.ReadOnlyThrottleBasisProvider(),
+        this.DynamicPriorityTextureLoader.LoadAsync(
+            null,
             _ => Task.FromResult(this.NoThrottleCreateFromRaw(specs, bytes.Span)),
             cancellationToken);
 
@@ -164,24 +171,16 @@ internal sealed partial class TextureManager
         Stream stream,
         bool leaveOpen = false,
         CancellationToken cancellationToken = default) =>
-        this.textureLoadThrottler.LoadTextureAsync(
-                new TextureLoadThrottler.ReadOnlyThrottleBasisProvider(),
-                async ct =>
-                {
-                    await using var ms = stream.CanSeek ? new MemoryStream((int)stream.Length) : new();
-                    await stream.CopyToAsync(ms, ct).ConfigureAwait(false);
-                    return this.NoThrottleCreateFromRaw(specs, ms.GetBuffer().AsSpan(0, (int)ms.Length));
-                },
-                cancellationToken)
-            .ContinueWith(
-                r =>
-                {
-                    if (!leaveOpen)
-                        stream.Dispose();
-                    return r;
-                },
-                default(CancellationToken))
-            .Unwrap();
+        this.DynamicPriorityTextureLoader.LoadAsync(
+            null,
+            async ct =>
+            {
+                await using var ms = stream.CanSeek ? new MemoryStream((int)stream.Length) : new();
+                await stream.CopyToAsync(ms, ct).ConfigureAwait(false);
+                return this.NoThrottleCreateFromRaw(specs, ms.GetBuffer().AsSpan(0, (int)ms.Length));
+            },
+            cancellationToken,
+            leaveOpen ? null : stream);
 
     /// <inheritdoc/>
     public IDalamudTextureWrap CreateFromTexFile(TexFile file) => this.CreateFromTexFileAsync(file).Result;
@@ -190,9 +189,9 @@ internal sealed partial class TextureManager
     public Task<IDalamudTextureWrap> CreateFromTexFileAsync(
         TexFile file,
         CancellationToken cancellationToken = default) =>
-        this.textureLoadThrottler.LoadTextureAsync(
-            new TextureLoadThrottler.ReadOnlyThrottleBasisProvider(),
-            ct => Task.Run(() => this.NoThrottleCreateFromTexFile(file), ct),
+        this.DynamicPriorityTextureLoader.LoadAsync(
+            null,
+            _ => Task.FromResult(this.NoThrottleCreateFromTexFile(file)),
             cancellationToken);
 
     /// <inheritdoc/>
@@ -203,7 +202,7 @@ internal sealed partial class TextureManager
     public unsafe bool IsDxgiFormatSupported(DXGI_FORMAT dxgiFormat)
     {
         D3D11_FORMAT_SUPPORT supported;
-        if (this.Device.Get()->CheckFormatSupport(dxgiFormat, (uint*)&supported).FAILED)
+        if (this.device.Get()->CheckFormatSupport(dxgiFormat, (uint*)&supported).FAILED)
             return false;
 
         const D3D11_FORMAT_SUPPORT required = D3D11_FORMAT_SUPPORT.D3D11_FORMAT_SUPPORT_TEXTURE2D;
@@ -215,8 +214,6 @@ internal sealed partial class TextureManager
         RawImageSpecification specs,
         ReadOnlySpan<byte> bytes)
     {
-        var device = this.Device;
-
         var texd = new D3D11_TEXTURE2D_DESC
         {
             Width = (uint)specs.Width,
@@ -234,7 +231,7 @@ internal sealed partial class TextureManager
         fixed (void* dataPtr = bytes)
         {
             var subrdata = new D3D11_SUBRESOURCE_DATA { pSysMem = dataPtr, SysMemPitch = (uint)specs.Pitch };
-            device.Get()->CreateTexture2D(&texd, &subrdata, texture.GetAddressOf()).ThrowOnError();
+            this.device.Get()->CreateTexture2D(&texd, &subrdata, texture.GetAddressOf()).ThrowOnError();
         }
 
         var viewDesc = new D3D11_SHADER_RESOURCE_VIEW_DESC
@@ -244,7 +241,7 @@ internal sealed partial class TextureManager
             Texture2D = new() { MipLevels = texd.MipLevels },
         };
         using var view = default(ComPtr<ID3D11ShaderResourceView>);
-        device.Get()->CreateShaderResourceView((ID3D11Resource*)texture.Get(), &viewDesc, view.GetAddressOf())
+        this.device.Get()->CreateShaderResourceView((ID3D11Resource*)texture.Get(), &viewDesc, view.GetAddressOf())
             .ThrowOnError();
 
         return new UnknownTextureWrap((IUnknown*)view.Get(), specs.Width, specs.Height, true);
@@ -294,4 +291,6 @@ internal sealed partial class TextureManager
         // Note: FileInfo and FilePath are not used from TexFile; skip it.
         return this.NoThrottleCreateFromTexFile(tf);
     }
+
+    private void ReleaseUnmanagedResources() => this.device.Reset();
 }

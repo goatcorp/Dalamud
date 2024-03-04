@@ -11,7 +11,7 @@ namespace Dalamud.Interface.Textures.Internal.SharedImmediateTextures;
 
 /// <summary>Represents a texture that may have multiple reference holders (owners).</summary>
 internal abstract class SharedImmediateTexture
-    : ISharedImmediateTexture, IRefCountable, TextureLoadThrottler.IThrottleBasisProvider
+    : ISharedImmediateTexture, IRefCountable, DynamicPriorityQueueLoader.IThrottleBasisProvider
 {
     private const int SelfReferenceDurationTicks = 2000;
     private const long SelfReferenceExpiryExpired = long.MaxValue;
@@ -28,9 +28,11 @@ internal abstract class SharedImmediateTexture
     private NotOwnedTextureWrap? nonOwningWrap;
 
     /// <summary>Initializes a new instance of the <see cref="SharedImmediateTexture"/> class.</summary>
+    /// <param name="sourcePathForDebug">Name of the underlying resource.</param>
     /// <remarks>The new instance is a placeholder instance.</remarks>
-    protected SharedImmediateTexture()
+    protected SharedImmediateTexture(string sourcePathForDebug)
     {
+        this.SourcePathForDebug = sourcePathForDebug;
         this.InstanceIdForDebug = Interlocked.Increment(ref instanceCounter);
         this.refCount = 0;
         this.selfReferenceExpiry = SelfReferenceExpiryExpired;
@@ -53,7 +55,7 @@ internal abstract class SharedImmediateTexture
     public int RefCountForDebug => this.refCount;
 
     /// <summary>Gets the source path. Debug use only.</summary>
-    public abstract string SourcePathForDebug { get; }
+    public string SourcePathForDebug { get; }
 
     /// <summary>Gets a value indicating whether this instance of <see cref="SharedImmediateTexture"/> supports revival.
     /// </summary>
@@ -76,7 +78,7 @@ internal abstract class SharedImmediateTexture
     public bool ContentQueried { get; private set; }
 
     /// <summary>Gets a cancellation token for cancelling load.
-    /// Intended to be called from implementors' constructors and <see cref="ReviveResources"/>.</summary>
+    /// Intended to be called from implementors' constructors and <see cref="LoadUnderlyingWrap"/>.</summary>
     protected CancellationToken LoadCancellationToken => this.cancellationTokenSource?.Token ?? default;
 
     /// <summary>Gets or sets a weak reference to an object that demands this objects to be alive.</summary>
@@ -134,7 +136,7 @@ internal abstract class SharedImmediateTexture
                         this.cancellationTokenSource?.Cancel();
                         this.cancellationTokenSource = null;
                         this.nonOwningWrap = null;
-                        this.ReleaseResources();
+                        this.ClearUnderlyingWrap();
                         this.resourceReleased = true;
 
                         return newRefCount;
@@ -272,11 +274,27 @@ internal abstract class SharedImmediateTexture
         return this.availableOnAccessWrapForApi9;
     }
 
+    /// <inheritdoc/>
+    public override string ToString() => $"{this.GetType().Name}#{this.InstanceIdForDebug}({this.SourcePathForDebug})";
+
     /// <summary>Cleans up this instance of <see cref="SharedImmediateTexture"/>.</summary>
-    protected abstract void ReleaseResources();
+    protected void ClearUnderlyingWrap()
+    {
+        _ = this.UnderlyingWrap?.ToContentDisposedTask(true);
+        this.UnderlyingWrap = null;
+    }
 
     /// <summary>Attempts to restore the reference to this texture.</summary>
-    protected abstract void ReviveResources();
+    protected void LoadUnderlyingWrap() =>
+        this.UnderlyingWrap = Service<TextureManager>.Get().DynamicPriorityTextureLoader.LoadAsync(
+            this,
+            this.CreateTextureAsync,
+            this.LoadCancellationToken);
+
+    /// <summary>Creates the texture.</summary>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>The task resulting in a loaded texture.</returns>
+    protected abstract Task<IDalamudTextureWrap> CreateTextureAsync(CancellationToken cancellationToken);
 
     private IRefCountable.RefCountResult TryAddRef(out int newRefCount)
     {
@@ -301,7 +319,7 @@ internal abstract class SharedImmediateTexture
                 this.cancellationTokenSource = new();
                 try
                 {
-                    this.ReviveResources();
+                    this.LoadUnderlyingWrap();
                 }
                 catch
                 {

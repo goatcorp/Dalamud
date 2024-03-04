@@ -34,7 +34,7 @@ internal sealed partial class TextureManager
         }
 
         D3D11_FORMAT_SUPPORT supported;
-        if (this.Device.Get()->CheckFormatSupport(dxgiFormat, (uint*)&supported).FAILED)
+        if (this.device.Get()->CheckFormatSupport(dxgiFormat, (uint*)&supported).FAILED)
             return false;
 
         const D3D11_FORMAT_SUPPORT required =
@@ -48,52 +48,48 @@ internal sealed partial class TextureManager
         IDalamudTextureWrap wrap,
         TextureModificationArgs args = default,
         bool leaveWrapOpen = false,
-        CancellationToken cancellationToken = default)
-    {
-        return this.textureLoadThrottler.LoadTextureAsync(
-            new TextureLoadThrottler.ReadOnlyThrottleBasisProvider(),
-            ImmediateLoadFunction,
+        CancellationToken cancellationToken = default) =>
+        this.DynamicPriorityTextureLoader.LoadAsync<IDalamudTextureWrap>(
+            null,
+            async _ =>
+            {
+                // leaveWrapOpen is taken care from calling LoadTextureAsync
+                using var wrapAux = new WrapAux(wrap, true);
+                using var tex = await this.NoThrottleCreateFromExistingTextureAsync(wrapAux, args);
+
+                unsafe
+                {
+                    var srvDesc = new D3D11_SHADER_RESOURCE_VIEW_DESC(
+                        tex,
+                        D3D_SRV_DIMENSION.D3D11_SRV_DIMENSION_TEXTURE2D);
+                    using var srv = default(ComPtr<ID3D11ShaderResourceView>);
+                    this.device.Get()->CreateShaderResourceView(
+                            (ID3D11Resource*)tex.Get(),
+                            &srvDesc,
+                            srv.GetAddressOf())
+                        .ThrowOnError();
+
+                    var desc = default(D3D11_TEXTURE2D_DESC);
+                    tex.Get()->GetDesc(&desc);
+                    return new UnknownTextureWrap(
+                        (IUnknown*)srv.Get(),
+                        (int)desc.Width,
+                        (int)desc.Height,
+                        true);
+                }
+            },
             cancellationToken,
             leaveWrapOpen ? null : wrap);
 
-        async Task<IDalamudTextureWrap> ImmediateLoadFunction(CancellationToken ct)
-        {
-            // leaveWrapOpen is taken care from calling LoadTextureAsync
-            using var wrapAux = new WrapAux(wrap, true);
-            using var tex = await this.NoThrottleCreateFromExistingTextureAsync(wrapAux, args);
-
-            unsafe
-            {
-                var srvDesc = new D3D11_SHADER_RESOURCE_VIEW_DESC(
-                    tex,
-                    D3D_SRV_DIMENSION.D3D11_SRV_DIMENSION_TEXTURE2D);
-                using var srv = default(ComPtr<ID3D11ShaderResourceView>);
-                this.Device.Get()->CreateShaderResourceView(
-                        (ID3D11Resource*)tex.Get(),
-                        &srvDesc,
-                        srv.GetAddressOf())
-                    .ThrowOnError();
-
-                var desc = default(D3D11_TEXTURE2D_DESC);
-                tex.Get()->GetDesc(&desc);
-                return new UnknownTextureWrap(
-                    (IUnknown*)srv.Get(),
-                    (int)desc.Width,
-                    (int)desc.Height,
-                    true);
-            }
-        }
-    }
-
     /// <inheritdoc/>
-    public async Task<IDalamudTextureWrap> CreateFromImGuiViewportAsync(
+    public Task<IDalamudTextureWrap> CreateFromImGuiViewportAsync(
         ImGuiViewportTextureArgs args,
         CancellationToken cancellationToken = default)
     {
-        // This constructor may throw; keep the function "async", to wrap the exception as a Task.
+        args.ThrowOnInvalidValues();
         var t = new ViewportTextureWrap(args, cancellationToken);
         t.QueueUpdate();
-        return await t.FirstUpdateTask;
+        return t.FirstUpdateTask;
     }
 
     /// <inheritdoc/>
@@ -210,7 +206,7 @@ internal sealed partial class TextureManager
                 CPUAccessFlags = 0u,
                 MiscFlags = 0u,
             };
-            this.Device.Get()->CreateTexture2D(&tex2DCopyTempDesc, null, tex2DCopyTemp.GetAddressOf()).ThrowOnError();
+            this.device.Get()->CreateTexture2D(&tex2DCopyTempDesc, null, tex2DCopyTemp.GetAddressOf()).ThrowOnError();
         }
 
         await this.interfaceManager.RunBeforeImGuiRender(
@@ -222,7 +218,7 @@ internal sealed partial class TextureManager
                     var rtvCopyTempDesc = new D3D11_RENDER_TARGET_VIEW_DESC(
                         tex2DCopyTemp,
                         D3D11_RTV_DIMENSION.D3D11_RTV_DIMENSION_TEXTURE2D);
-                    this.Device.Get()->CreateRenderTargetView(
+                    this.device.Get()->CreateRenderTargetView(
                         (ID3D11Resource*)tex2DCopyTemp.Get(),
                         &rtvCopyTempDesc,
                         rtvCopyTemp.GetAddressOf()).ThrowOnError();

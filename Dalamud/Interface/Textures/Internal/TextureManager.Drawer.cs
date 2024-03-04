@@ -2,7 +2,6 @@ using System.Buffers;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 
-using Dalamud.Interface.Internal;
 using Dalamud.Storage.Assets;
 using Dalamud.Utility;
 
@@ -17,13 +16,6 @@ namespace Dalamud.Interface.Textures.Internal;
 internal sealed partial class TextureManager
 {
     private SimpleDrawerImpl? simpleDrawer;
-
-    [ServiceManager.CallWhenServicesReady("Need device")]
-    private unsafe void ContinueConstructionFromExistingTextures(InterfaceManager.InterfaceManagerWithScene withScene)
-    {
-        this.simpleDrawer = new();
-        this.simpleDrawer.Setup(this.Device.Get());
-    }
 
     /// <summary>A class for drawing simple stuff.</summary>
     [SuppressMessage(
