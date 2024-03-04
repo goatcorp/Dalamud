@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 using Dalamud.Interface;
 using Dalamud.Interface.Internal;
+using Dalamud.Interface.Internal.Windows.Data.Widgets;
 using Dalamud.Interface.Textures;
 
 using Lumina.Data.Files;
@@ -16,6 +17,10 @@ namespace Dalamud.Plugin.Services;
 /// <summary>Service that grants you access to textures you may render via ImGui.</summary>
 /// <remarks>
 /// <para>
+/// <b>Create</b> functions will return a new texture, and the returned instance of <see cref="IDalamudTextureWrap"/>
+/// must be disposed after use.
+/// </para>
+/// <para>
 /// <b>Get</b> functions will return a shared texture, and the returnd instance of <see cref="ISharedImmediateTexture"/>
 /// do not require calling <see cref="IDisposable.Dispose"/>, unless a new reference has been created by calling
 /// <see cref="ISharedImmediateTexture.RentAsync"/>.<br />
@@ -23,8 +28,8 @@ namespace Dalamud.Plugin.Services;
 /// <see cref="IDalamudTextureWrap"/> that will stay valid for the rest of the frame.
 /// </para>
 /// <para>
-/// <b>Create</b> functions will return a new texture, and the returned instance of <see cref="IDalamudTextureWrap"/>
-/// must be disposed after use.
+/// <c>debugName</c> parameter can be used to name your textures, to aid debugging resource leaks using
+/// <see cref="TexWidget"/>.
 /// </para>
 /// </remarks>
 public partial interface ITextureProvider
@@ -36,6 +41,7 @@ public partial interface ITextureProvider
     /// <param name="args">The texture modification arguments.</param>
     /// <param name="leaveWrapOpen">Whether to leave <paramref name="wrap"/> non-disposed when the returned
     /// <see cref="Task{TResult}"/> completes.</param>
+    /// <param name="debugName">Name for debug display purposes.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A <see cref="Task{TResult}"/> containing the copied texture on success. Dispose after use.</returns>
     /// <remarks><para>This function may throw an exception.</para></remarks>
@@ -43,10 +49,12 @@ public partial interface ITextureProvider
         IDalamudTextureWrap wrap,
         TextureModificationArgs args = default,
         bool leaveWrapOpen = false,
+        string? debugName = null,
         CancellationToken cancellationToken = default);
 
     /// <summary>Creates a texture from an ImGui viewport.</summary>
     /// <param name="args">The arguments for creating a texture.</param>
+    /// <param name="debugName">Name for debug display purposes.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A <see cref="Task{TResult}"/> containing the copied texture on success. Dispose after use.</returns>
     /// <remarks>
@@ -55,22 +63,26 @@ public partial interface ITextureProvider
     /// </remarks>
     Task<IDalamudTextureWrap> CreateFromImGuiViewportAsync(
         ImGuiViewportTextureArgs args,
+        string? debugName = null,
         CancellationToken cancellationToken = default);
 
     /// <summary>Gets a texture from the given bytes, trying to interpret it as a .tex file or other well-known image
     /// files, such as .png.</summary>
     /// <param name="bytes">The bytes to load.</param>
+    /// <param name="debugName">Name for debug display purposes.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A <see cref="Task{TResult}"/> containing the loaded texture on success. Dispose after use.</returns>
     /// <remarks><para>This function may throw an exception.</para></remarks>
     Task<IDalamudTextureWrap> CreateFromImageAsync(
         ReadOnlyMemory<byte> bytes,
+        string? debugName = null,
         CancellationToken cancellationToken = default);
 
     /// <summary>Gets a texture from the given stream, trying to interpret it as a .tex file or other well-known image
     /// files, such as .png.</summary>
     /// <param name="stream">The stream to load data from.</param>
     /// <param name="leaveOpen">Whether to leave the stream open once the task completes, sucessfully or not.</param>
+    /// <param name="debugName">Name for debug display purposes.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A <see cref="Task{TResult}"/> containing the loaded texture on success. Dispose after use.</returns>
     /// <remarks>
@@ -80,32 +92,38 @@ public partial interface ITextureProvider
     Task<IDalamudTextureWrap> CreateFromImageAsync(
         Stream stream,
         bool leaveOpen = false,
+        string? debugName = null,
         CancellationToken cancellationToken = default);
 
     /// <summary>Gets a texture from the given bytes, interpreting it as a raw bitmap.</summary>
     /// <param name="specs">The specifications for the raw bitmap.</param>
     /// <param name="bytes">The bytes to load.</param>
+    /// <param name="debugName">Name for debug display purposes.</param>
     /// <returns>The texture loaded from the supplied raw bitmap. Dispose after use.</returns>
     /// <remarks><para>This function may throw an exception.</para></remarks>
     IDalamudTextureWrap CreateFromRaw(
         RawImageSpecification specs,
-        ReadOnlySpan<byte> bytes);
+        ReadOnlySpan<byte> bytes,
+        string? debugName = null);
 
     /// <summary>Gets a texture from the given bytes, interpreting it as a raw bitmap.</summary>
     /// <param name="specs">The specifications for the raw bitmap.</param>
     /// <param name="bytes">The bytes to load.</param>
+    /// <param name="debugName">Name for debug display purposes.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A <see cref="Task{TResult}"/> containing the loaded texture on success. Dispose after use.</returns>
     /// <remarks><para>This function may throw an exception.</para></remarks>
     Task<IDalamudTextureWrap> CreateFromRawAsync(
         RawImageSpecification specs,
         ReadOnlyMemory<byte> bytes,
+        string? debugName = null,
         CancellationToken cancellationToken = default);
 
     /// <summary>Gets a texture from the given stream, interpreting the read data as a raw bitmap.</summary>
     /// <param name="specs">The specifications for the raw bitmap.</param>
     /// <param name="stream">The stream to load data from.</param>
     /// <param name="leaveOpen">Whether to leave the stream open once the task completes, sucessfully or not.</param>
+    /// <param name="debugName">Name for debug display purposes.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A <see cref="Task{TResult}"/> containing the loaded texture on success. Dispose after use.</returns>
     /// <remarks>
@@ -117,6 +135,7 @@ public partial interface ITextureProvider
         RawImageSpecification specs,
         Stream stream,
         bool leaveOpen = false,
+        string? debugName = null,
         CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -130,11 +149,13 @@ public partial interface ITextureProvider
 
     /// <summary>Get a texture handle for the specified Lumina <see cref="TexFile"/>.</summary>
     /// <param name="file">The texture to obtain a handle to.</param>
+    /// <param name="debugName">Name for debug display purposes.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A texture wrap that can be used to render the texture. Dispose after use.</returns>
     /// <remarks><para>This function may throw an exception.</para></remarks>
     Task<IDalamudTextureWrap> CreateFromTexFileAsync(
         TexFile file,
+        string? debugName = null,
         CancellationToken cancellationToken = default);
 
     /// <summary>Gets the supported bitmap decoders.</summary>
@@ -144,8 +165,8 @@ public partial interface ITextureProvider
     /// <ul>
     /// <li><see cref="GetFromFile"/></li>
     /// <li><see cref="GetFromManifestResource"/></li>
-    /// <li><see cref="CreateFromImageAsync(ReadOnlyMemory{byte},CancellationToken)"/></li>
-    /// <li><see cref="CreateFromImageAsync(Stream,bool,CancellationToken)"/></li>
+    /// <li><see cref="CreateFromImageAsync(ReadOnlyMemory{byte},string?,CancellationToken)"/></li>
+    /// <li><see cref="CreateFromImageAsync(Stream,bool,string?,CancellationToken)"/></li>
     /// </ul>
     /// <para>This function may throw an exception.</para>
     /// </remarks>

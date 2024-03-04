@@ -586,8 +586,12 @@ internal sealed partial class FontAtlasFactory
                 var bpp = use4 ? 2 : 4;
                 var width = this.NewImAtlas.TexWidth;
                 var height = this.NewImAtlas.TexHeight;
-                foreach (ref var texture in this.data.ImTextures.DataSpan)
+                var textureSpan = this.data.ImTextures.DataSpan;
+                for (var i = 0; i < textureSpan.Length; i++)
                 {
+                    ref var texture = ref textureSpan[i];
+                    var name =
+                        $"FontAtlas.{ this.data.Owner?.Name ?? "(no owner or name)"}[0x{(long)this.data.Atlas.NativePtr:X}][{i}]";
                     if (texture.TexID != 0)
                     {
                         // Nothing to do
@@ -596,7 +600,8 @@ internal sealed partial class FontAtlasFactory
                     {
                         var wrap = this.factory.TextureManager.CreateFromRaw(
                             RawImageSpecification.Rgba32(width, height),
-                            new(texture.TexPixelsRGBA32, width * height * 4));
+                            new(texture.TexPixelsRGBA32, width * height * 4),
+                            name);
                         this.data.AddExistingTexture(wrap);
                         texture.TexID = wrap.ImGuiHandle;
                     }
@@ -640,7 +645,8 @@ internal sealed partial class FontAtlasFactory
                                 height,
                                 (int)(use4 ? Format.B4G4R4A4_UNorm : Format.B8G8R8A8_UNorm),
                                 width * bpp),
-                            buf);
+                            buf,
+                            name);
                         this.data.AddExistingTexture(wrap);
                         texture.TexID = wrap.ImGuiHandle;
                         continue;

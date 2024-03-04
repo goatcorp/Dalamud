@@ -362,7 +362,8 @@ internal sealed partial class FontAtlasFactory
                                   ? DXGI_FORMAT.DXGI_FORMAT_B4G4R4A4_UNORM
                                   : DXGI_FORMAT.DXGI_FORMAT_B8G8R8A8_UNORM),
                         texFile.Header.Width * bpp),
-                    buffer));
+                    buffer,
+                    $"{nameof(FontAtlasFactory)}:{texPathFormat.Format(fileIndex)}:{channelIndex}"));
         }
         finally
         {

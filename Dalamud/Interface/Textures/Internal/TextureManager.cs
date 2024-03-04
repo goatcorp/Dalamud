@@ -118,6 +118,7 @@ internal sealed partial class TextureManager
     /// <inheritdoc/>
     public Task<IDalamudTextureWrap> CreateFromImageAsync(
         ReadOnlyMemory<byte> bytes,
+        string? debugName = null,
         CancellationToken cancellationToken = default) =>
         this.DynamicPriorityTextureLoader.LoadAsync(
             null,
@@ -125,6 +126,7 @@ internal sealed partial class TextureManager
                 () =>
                     this.BlameSetName(
                         this.NoThrottleCreateFromImage(bytes.ToArray(), ct),
+                        debugName ??
                         $"{nameof(this.CreateFromImageAsync)}({nameof(bytes)}, {nameof(cancellationToken)})"),
                 ct),
             cancellationToken);
@@ -133,6 +135,7 @@ internal sealed partial class TextureManager
     public Task<IDalamudTextureWrap> CreateFromImageAsync(
         Stream stream,
         bool leaveOpen = false,
+        string? debugName = null,
         CancellationToken cancellationToken = default) =>
         this.DynamicPriorityTextureLoader.LoadAsync(
             null,
@@ -142,6 +145,7 @@ internal sealed partial class TextureManager
                 await stream.CopyToAsync(ms, ct).ConfigureAwait(false);
                 return this.BlameSetName(
                     this.NoThrottleCreateFromImage(ms.GetBuffer(), ct),
+                    debugName ??
                     $"{nameof(this.CreateFromImageAsync)}({nameof(stream)}, {nameof(leaveOpen)}, {nameof(cancellationToken)})");
             },
             cancellationToken,
@@ -151,21 +155,24 @@ internal sealed partial class TextureManager
     // It probably doesn't make sense to throttle this, as it copies the passed bytes to GPU without any transformation.
     public IDalamudTextureWrap CreateFromRaw(
         RawImageSpecification specs,
-        ReadOnlySpan<byte> bytes) =>
+        ReadOnlySpan<byte> bytes,
+        string? debugName = null) =>
         this.BlameSetName(
             this.NoThrottleCreateFromRaw(specs, bytes),
-            $"{nameof(this.CreateFromRaw)}({nameof(specs)}, {nameof(bytes)})");
+            debugName ?? $"{nameof(this.CreateFromRaw)}({nameof(specs)}, {nameof(bytes)})");
 
     /// <inheritdoc/>
     public Task<IDalamudTextureWrap> CreateFromRawAsync(
         RawImageSpecification specs,
         ReadOnlyMemory<byte> bytes,
+        string? debugName = null,
         CancellationToken cancellationToken = default) =>
         this.DynamicPriorityTextureLoader.LoadAsync(
             null,
             _ => Task.FromResult(
                 this.BlameSetName(
                     this.NoThrottleCreateFromRaw(specs, bytes.Span),
+                    debugName ??
                     $"{nameof(this.CreateFromRawAsync)}({nameof(specs)}, {nameof(bytes)}, {nameof(cancellationToken)})")),
             cancellationToken);
 
@@ -174,6 +181,7 @@ internal sealed partial class TextureManager
         RawImageSpecification specs,
         Stream stream,
         bool leaveOpen = false,
+        string? debugName = null,
         CancellationToken cancellationToken = default) =>
         this.DynamicPriorityTextureLoader.LoadAsync(
             null,
@@ -183,6 +191,7 @@ internal sealed partial class TextureManager
                 await stream.CopyToAsync(ms, ct).ConfigureAwait(false);
                 return this.BlameSetName(
                     this.NoThrottleCreateFromRaw(specs, ms.GetBuffer().AsSpan(0, (int)ms.Length)),
+                    debugName ??
                     $"{nameof(this.CreateFromRawAsync)}({nameof(specs)}, {nameof(stream)}, {nameof(leaveOpen)}, {nameof(cancellationToken)})");
             },
             cancellationToken,
@@ -197,13 +206,14 @@ internal sealed partial class TextureManager
     /// <inheritdoc/>
     public Task<IDalamudTextureWrap> CreateFromTexFileAsync(
         TexFile file,
+        string? debugName = null,
         CancellationToken cancellationToken = default) =>
         this.DynamicPriorityTextureLoader.LoadAsync(
             null,
             _ => Task.FromResult(
                 this.BlameSetName(
                     this.NoThrottleCreateFromTexFile(file),
-                    $"{nameof(this.CreateFromTexFile)}({nameof(file)})")),
+                    debugName ?? $"{nameof(this.CreateFromTexFile)}({nameof(file)})")),
             cancellationToken);
 
     /// <inheritdoc/>

@@ -58,7 +58,7 @@ internal sealed class DalamudAssetManager : IServiceType, IDisposable, IDalamudA
 
         this.fileStreams = Enum.GetValues<DalamudAsset>().ToDictionary(x => x, _ => (Task<FileStream>?)null);
         this.textureWraps = Enum.GetValues<DalamudAsset>().ToDictionary(x => x, _ => (Task<IDalamudTextureWrap>?)null);
-        
+
         // Block until all the required assets to be ready.
         var loadTimings = Timings.Start("DAM LoadAll");
         registerStartupBlocker(
@@ -72,11 +72,11 @@ internal sealed class DalamudAssetManager : IServiceType, IDisposable, IDalamudA
             "Prevent Dalamud from loading more stuff, until we've ensured that all required assets are available.");
 
         Task.WhenAll(
-            Enum.GetValues<DalamudAsset>()
-                .Where(x => x is not DalamudAsset.Empty4X4)
-                .Where(x => x.GetAttribute<DalamudAssetAttribute>()?.Required is false)
-                .Select(this.CreateStreamAsync)
-                .Select(x => x.ToContentDisposedTask()))
+                Enum.GetValues<DalamudAsset>()
+                    .Where(x => x is not DalamudAsset.Empty4X4)
+                    .Where(x => x.GetAttribute<DalamudAssetAttribute>()?.Required is false)
+                    .Select(this.CreateStreamAsync)
+                    .Select(x => x.ToContentDisposedTask()))
             .ContinueWith(r => Log.Verbose($"Optional assets load state: {r}"));
     }
 
@@ -206,7 +206,7 @@ internal sealed class DalamudAssetManager : IServiceType, IDisposable, IDalamudA
                                     this.cancellationTokenSource.Token);
                             }
 
-                            for (var j = RenameAttemptCount; ; j--)
+                            for (var j = RenameAttemptCount;; j--)
                             {
                                 try
                                 {
@@ -313,10 +313,15 @@ internal sealed class DalamudAssetManager : IServiceType, IDisposable, IDalamudA
                 stream.ReadExactly(buf, 0, length);
                 var image = purpose switch
                 {
-                    DalamudAssetPurpose.TextureFromPng => await tm.CreateFromImageAsync(buf),
+                    DalamudAssetPurpose.TextureFromPng => await tm.CreateFromImageAsync(
+                                                              buf,
+                                                              $"{nameof(DalamudAsset)}.{Enum.GetName(asset)}"),
                     DalamudAssetPurpose.TextureFromRaw =>
                         asset.GetAttribute<DalamudAssetRawTextureAttribute>() is { } raw
-                            ? await tm.CreateFromRawAsync(raw.Specification, buf)
+                            ? await tm.CreateFromRawAsync(
+                                  raw.Specification,
+                                  buf,
+                                  $"{nameof(DalamudAsset)}.{Enum.GetName(asset)}")
                             : throw new InvalidOperationException(
                                   "TextureFromRaw must accompany a DalamudAssetRawTextureAttribute."),
                     _ => null,

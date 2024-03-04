@@ -139,6 +139,7 @@ internal sealed partial class TextureManagerPluginScoped
         IDalamudTextureWrap wrap,
         TextureModificationArgs args = default,
         bool leaveWrapOpen = false,
+        string? debugName = null,
         CancellationToken cancellationToken = default)
     {
         var manager = await this.ManagerTask;
@@ -146,6 +147,7 @@ internal sealed partial class TextureManagerPluginScoped
                               wrap,
                               args,
                               leaveWrapOpen,
+                              debugName,
                               cancellationToken);
         manager.Blame(textureWrap, this.plugin);
         return textureWrap;
@@ -154,10 +156,11 @@ internal sealed partial class TextureManagerPluginScoped
     /// <inheritdoc/>
     public async Task<IDalamudTextureWrap> CreateFromImGuiViewportAsync(
         ImGuiViewportTextureArgs args,
+        string? debugName = null,
         CancellationToken cancellationToken = default)
     {
         var manager = await this.ManagerTask;
-        var textureWrap = await manager.CreateFromImGuiViewportAsync(args, this.plugin, cancellationToken);
+        var textureWrap = await manager.CreateFromImGuiViewportAsync(args, this.plugin, debugName, cancellationToken);
         manager.Blame(textureWrap, this.plugin);
         return textureWrap;
     }
@@ -165,10 +168,11 @@ internal sealed partial class TextureManagerPluginScoped
     /// <inheritdoc/>
     public async Task<IDalamudTextureWrap> CreateFromImageAsync(
         ReadOnlyMemory<byte> bytes,
+        string? debugName = null,
         CancellationToken cancellationToken = default)
     {
         var manager = await this.ManagerTask;
-        var textureWrap = await manager.CreateFromImageAsync(bytes, cancellationToken);
+        var textureWrap = await manager.CreateFromImageAsync(bytes, debugName, cancellationToken);
         manager.Blame(textureWrap, this.plugin);
         return textureWrap;
     }
@@ -177,10 +181,11 @@ internal sealed partial class TextureManagerPluginScoped
     public async Task<IDalamudTextureWrap> CreateFromImageAsync(
         Stream stream,
         bool leaveOpen = false,
+        string? debugName = null,
         CancellationToken cancellationToken = default)
     {
         var manager = await this.ManagerTask;
-        var textureWrap = await manager.CreateFromImageAsync(stream, leaveOpen, cancellationToken);
+        var textureWrap = await manager.CreateFromImageAsync(stream, leaveOpen, debugName, cancellationToken);
         manager.Blame(textureWrap, this.plugin);
         return textureWrap;
     }
@@ -188,10 +193,11 @@ internal sealed partial class TextureManagerPluginScoped
     /// <inheritdoc/>
     public IDalamudTextureWrap CreateFromRaw(
         RawImageSpecification specs,
-        ReadOnlySpan<byte> bytes)
+        ReadOnlySpan<byte> bytes,
+        string? debugName = null)
     {
         var manager = this.ManagerOrThrow;
-        var textureWrap = manager.CreateFromRaw(specs, bytes);
+        var textureWrap = manager.CreateFromRaw(specs, bytes, debugName);
         manager.Blame(textureWrap, this.plugin);
         return textureWrap;
     }
@@ -200,10 +206,11 @@ internal sealed partial class TextureManagerPluginScoped
     public async Task<IDalamudTextureWrap> CreateFromRawAsync(
         RawImageSpecification specs,
         ReadOnlyMemory<byte> bytes,
+        string? debugName = null,
         CancellationToken cancellationToken = default)
     {
         var manager = await this.ManagerTask;
-        var textureWrap = await manager.CreateFromRawAsync(specs, bytes, cancellationToken);
+        var textureWrap = await manager.CreateFromRawAsync(specs, bytes, debugName, cancellationToken);
         manager.Blame(textureWrap, this.plugin);
         return textureWrap;
     }
@@ -213,10 +220,11 @@ internal sealed partial class TextureManagerPluginScoped
         RawImageSpecification specs,
         Stream stream,
         bool leaveOpen = false,
+        string? debugName = null,
         CancellationToken cancellationToken = default)
     {
         var manager = await this.ManagerTask;
-        var textureWrap = await manager.CreateFromRawAsync(specs, stream, leaveOpen, cancellationToken);
+        var textureWrap = await manager.CreateFromRawAsync(specs, stream, leaveOpen, debugName, cancellationToken);
         manager.Blame(textureWrap, this.plugin);
         return textureWrap;
     }
@@ -233,10 +241,11 @@ internal sealed partial class TextureManagerPluginScoped
     /// <inheritdoc/>
     public async Task<IDalamudTextureWrap> CreateFromTexFileAsync(
         TexFile file,
+        string? debugName = null,
         CancellationToken cancellationToken = default)
     {
         var manager = await this.ManagerTask;
-        var textureWrap = await manager.CreateFromTexFileAsync(file, cancellationToken);
+        var textureWrap = await manager.CreateFromTexFileAsync(file, debugName, cancellationToken);
         manager.Blame(textureWrap, this.plugin);
         return textureWrap;
     }

@@ -49,6 +49,7 @@ internal sealed partial class TextureManager
         IDalamudTextureWrap wrap,
         TextureModificationArgs args = default,
         bool leaveWrapOpen = false,
+        string? debugName = null,
         CancellationToken cancellationToken = default) =>
         this.DynamicPriorityTextureLoader.LoadAsync<IDalamudTextureWrap>(
             null,
@@ -80,6 +81,7 @@ internal sealed partial class TextureManager
                         true);
                     this.BlameSetName(
                         outWrap,
+                        debugName ??
                         $"{nameof(this.CreateFromExistingTextureAsync)}({nameof(wrap)}, {nameof(args)}, {nameof(leaveWrapOpen)}, {nameof(cancellationToken)})");
                     return outWrap;
                 }
@@ -90,16 +92,19 @@ internal sealed partial class TextureManager
     /// <inheritdoc/>
     Task<IDalamudTextureWrap> ITextureProvider.CreateFromImGuiViewportAsync(
         ImGuiViewportTextureArgs args,
-        CancellationToken cancellationToken) => this.CreateFromImGuiViewportAsync(args, null, cancellationToken);
+        string? debugName,
+        CancellationToken cancellationToken) =>
+        this.CreateFromImGuiViewportAsync(args, null, debugName, cancellationToken);
 
     /// <inheritdoc cref="ITextureProvider.CreateFromImGuiViewportAsync"/>
     public Task<IDalamudTextureWrap> CreateFromImGuiViewportAsync(
         ImGuiViewportTextureArgs args,
         LocalPlugin? ownerPlugin,
+        string? debugName = null,
         CancellationToken cancellationToken = default)
     {
         args.ThrowOnInvalidValues();
-        var t = new ViewportTextureWrap(args, ownerPlugin, cancellationToken);
+        var t = new ViewportTextureWrap(args, debugName, ownerPlugin, cancellationToken);
         t.QueueUpdate();
         return t.FirstUpdateTask;
     }
