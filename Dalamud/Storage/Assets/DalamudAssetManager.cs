@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Textures.Internal;
+using Dalamud.Interface.Textures.TextureWraps.Internal;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Networking.Http;
@@ -206,7 +207,7 @@ internal sealed class DalamudAssetManager : IServiceType, IDisposable, IDalamudA
                                     this.cancellationTokenSource.Token);
                             }
 
-                            for (var j = RenameAttemptCount;; j--)
+                            for (var j = RenameAttemptCount; ; j--)
                             {
                                 try
                                 {
@@ -311,17 +312,13 @@ internal sealed class DalamudAssetManager : IServiceType, IDisposable, IDalamudA
                 var length = checked((int)stream.Length);
                 buf = ArrayPool<byte>.Shared.Rent(length);
                 stream.ReadExactly(buf, 0, length);
+                var name = $"{nameof(DalamudAsset)}[{Enum.GetName(asset)}]";
                 var image = purpose switch
                 {
-                    DalamudAssetPurpose.TextureFromPng => await tm.CreateFromImageAsync(
-                                                              buf,
-                                                              $"{nameof(DalamudAsset)}.{Enum.GetName(asset)}"),
+                    DalamudAssetPurpose.TextureFromPng => await tm.CreateFromImageAsync(buf, name),
                     DalamudAssetPurpose.TextureFromRaw =>
                         asset.GetAttribute<DalamudAssetRawTextureAttribute>() is { } raw
-                            ? await tm.CreateFromRawAsync(
-                                  raw.Specification,
-                                  buf,
-                                  $"{nameof(DalamudAsset)}.{Enum.GetName(asset)}")
+                            ? await tm.CreateFromRawAsync(raw.Specification, buf, name)
                             : throw new InvalidOperationException(
                                   "TextureFromRaw must accompany a DalamudAssetRawTextureAttribute."),
                     _ => null,

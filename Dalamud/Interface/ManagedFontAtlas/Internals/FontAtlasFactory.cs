@@ -12,6 +12,7 @@ using Dalamud.Interface.FontIdentifier;
 using Dalamud.Interface.GameFonts;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Textures.Internal;
+using Dalamud.Plugin.Internal.Types;
 using Dalamud.Storage.Assets;
 using Dalamud.Utility;
 
@@ -178,12 +179,14 @@ internal sealed partial class FontAtlasFactory
     /// <param name="atlasName">Name of atlas, for debugging and logging purposes.</param>
     /// <param name="autoRebuildMode">Specify how to auto rebuild.</param>
     /// <param name="isGlobalScaled">Whether the fonts in the atlas is global scaled.</param>
+    /// <param name="ownerPlugin">The owner plugin, if any.</param>
     /// <returns>The new font atlas.</returns>
     public IFontAtlas CreateFontAtlas(
         string atlasName,
         FontAtlasAutoRebuildMode autoRebuildMode,
-        bool isGlobalScaled = true) =>
-        new DalamudFontAtlas(this, atlasName, autoRebuildMode, isGlobalScaled);
+        bool isGlobalScaled = true,
+        LocalPlugin? ownerPlugin = null) =>
+        new DalamudFontAtlas(this, atlasName, autoRebuildMode, isGlobalScaled, ownerPlugin);
 
     /// <summary>
     /// Adds the font from Dalamud Assets.
@@ -363,7 +366,7 @@ internal sealed partial class FontAtlasFactory
                                   : DXGI_FORMAT.DXGI_FORMAT_B8G8R8A8_UNORM),
                         texFile.Header.Width * bpp),
                     buffer,
-                    $"{nameof(FontAtlasFactory)}:{texPathFormat.Format(fileIndex)}:{channelIndex}"));
+                    $"{nameof(FontAtlasFactory)}[{texPathFormat.Format(fileIndex)}][{channelIndex}]"));
         }
         finally
         {

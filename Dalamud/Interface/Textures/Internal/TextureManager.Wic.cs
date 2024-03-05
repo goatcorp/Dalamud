@@ -318,6 +318,7 @@ internal sealed partial class TextureManager
             {
                 // See https://github.com/microsoft/DirectXTex/wiki/WIC-I-O-Functions#savetowicmemory-savetowicfile
                 DXGI_FORMAT.DXGI_FORMAT_R32G32B32A32_FLOAT => GUID.GUID_WICPixelFormat128bppRGBAFloat,
+                DXGI_FORMAT.DXGI_FORMAT_R32G32B32_FLOAT => GUID.GUID_WICPixelFormat96bppRGBFloat,
                 DXGI_FORMAT.DXGI_FORMAT_R16G16B16A16_FLOAT => GUID.GUID_WICPixelFormat64bppRGBAHalf,
                 DXGI_FORMAT.DXGI_FORMAT_R16G16B16A16_UNORM => GUID.GUID_WICPixelFormat64bppRGBA,
                 DXGI_FORMAT.DXGI_FORMAT_R10G10B10_XR_BIAS_A2_UNORM => GUID.GUID_WICPixelFormat32bppRGBA1010102XR,
@@ -497,10 +498,10 @@ internal sealed partial class TextureManager
             var outPixelFormat = specs.Format switch
             {
                 DXGI_FORMAT.DXGI_FORMAT_R32G32B32A32_FLOAT => GUID.GUID_WICPixelFormat128bppRGBAFloat,
-                DXGI_FORMAT.DXGI_FORMAT_R16G16B16A16_FLOAT when !this.wicFactory2.IsEmpty() =>
-                    GUID.GUID_WICPixelFormat128bppRGBAFloat,
-                DXGI_FORMAT.DXGI_FORMAT_R16G16B16A16_FLOAT => GUID.GUID_WICPixelFormat32bppBGRA,
+                DXGI_FORMAT.DXGI_FORMAT_R32G32B32_FLOAT => GUID.GUID_WICPixelFormat96bppRGBFloat,
+                DXGI_FORMAT.DXGI_FORMAT_R16G16B16A16_FLOAT => GUID.GUID_WICPixelFormat128bppRGBAFloat,
                 DXGI_FORMAT.DXGI_FORMAT_R16G16B16A16_UNORM => GUID.GUID_WICPixelFormat64bppBGRA,
+                DXGI_FORMAT.DXGI_FORMAT_B8G8R8X8_UNORM => GUID.GUID_WICPixelFormat24bppBGR,
                 DXGI_FORMAT.DXGI_FORMAT_B5G5R5A1_UNORM => GUID.GUID_WICPixelFormat16bppBGRA5551,
                 DXGI_FORMAT.DXGI_FORMAT_B5G6R5_UNORM => GUID.GUID_WICPixelFormat16bppBGR565,
                 DXGI_FORMAT.DXGI_FORMAT_R32_FLOAT => GUID.GUID_WICPixelFormat8bppGray,
@@ -508,8 +509,24 @@ internal sealed partial class TextureManager
                 DXGI_FORMAT.DXGI_FORMAT_R16_UNORM => GUID.GUID_WICPixelFormat8bppGray,
                 DXGI_FORMAT.DXGI_FORMAT_R8_UNORM => GUID.GUID_WICPixelFormat8bppGray,
                 DXGI_FORMAT.DXGI_FORMAT_A8_UNORM => GUID.GUID_WICPixelFormat8bppGray,
-                _ => GUID.GUID_WICPixelFormat24bppBGR,
+                _ => GUID.GUID_WICPixelFormat32bppBGRA,
             };
+
+            var accepted = false;
+            foreach (var pfi in new ComponentEnumerable<IWICPixelFormatInfo>(
+                         this.wicFactory,
+                         WICComponentType.WICPixelFormat))
+            {
+                Guid tmp;
+                if (pfi.Get()->GetFormatGUID(&tmp).FAILED)
+                    continue;
+                accepted = tmp == outPixelFormat;
+                if (accepted)
+                    break;
+            }
+
+            if (!accepted)
+                outPixelFormat = GUID.GUID_WICPixelFormat32bppBGRA;
 
             encoder.Get()->Initialize(stream, WICBitmapEncoderCacheOption.WICBitmapEncoderNoCache)
                 .ThrowOnError();
@@ -613,8 +630,7 @@ internal sealed partial class TextureManager
             private readonly WICComponentType componentType;
 
             /// <summary>Initializes a new instance of the <see cref="ComponentEnumerable{T}"/> struct.</summary>
-            /// <param name="factory">The WIC factory. Ownership is not transferred.
-            /// </param>
+            /// <param name="factory">The WIC factory. Ownership is not transferred.</param>
             /// <param name="componentType">The component type to enumerate.</param>
             public ComponentEnumerable(ComPtr<IWICImagingFactory> factory, WICComponentType componentType)
             {

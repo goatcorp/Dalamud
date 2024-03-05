@@ -18,6 +18,7 @@ internal sealed class FileSystemSharedImmediateTexture : SharedImmediateTexture
     /// <summary>Creates a new placeholder instance of <see cref="GamePathSharedImmediateTexture"/>.</summary>
     /// <param name="path">The path.</param>
     /// <returns>The new instance.</returns>
+    /// <remarks>Only to be used from <see cref="TextureManager.SharedTextureManager.GetFromFile"/>.</remarks>
     public static SharedImmediateTexture CreatePlaceholder(string path) => new FileSystemSharedImmediateTexture(path);
 
     /// <inheritdoc/>

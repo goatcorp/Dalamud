@@ -142,7 +142,7 @@ public class IconBrowserWidget : IDataWindowWidget
         var texm = Service<TextureManager>.Get();
         var cursor = ImGui.GetCursorScreenPos();
 
-        if (texm.Shared.GetFromGameIcon(new((uint)iconId)).TryGetWrap(out var texture, out var exc))
+        if (texm.Shared.GetFromGameIcon(iconId).TryGetWrap(out var texture, out var exc))
         {
             ImGui.Image(texture.ImGuiHandle, this.iconSize);
 
@@ -166,6 +166,14 @@ public class IconBrowserWidget : IDataWindowWidget
             else if (ImGui.IsItemHovered())
             {
                 ImGui.SetTooltip(iconId.ToString());
+            }
+
+            if (ImGui.IsItemClicked(ImGuiMouseButton.Right))
+            {
+                _ = Service<DalamudInterface>.Get().ShowTextureSaveMenuAsync(
+                    this.DisplayName,
+                    iconId.ToString(),
+                    Task.FromResult(texture.CreateWrapSharingLowLevelResource()));
             }
 
             ImGui.GetWindowDrawList().AddRect(

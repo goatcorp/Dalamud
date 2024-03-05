@@ -199,6 +199,10 @@ internal class InterfaceManager : IDisposable, IServiceType
     /// </summary>
     public bool IsDispatchingEvents { get; set; } = true;
 
+    /// <summary>Gets a value indicating whether the main thread is executing <see cref="PresentDetour"/>.</summary>
+    /// <remarks>This still will be <c>true</c> even when queried off the main thread.</remarks>
+    public bool IsInPresent { get; private set; }
+
     /// <summary>
     /// Gets a value indicating the native handle of the game main window.
     /// </summary>
@@ -595,8 +599,6 @@ internal class InterfaceManager : IDisposable, IServiceType
      */
     private IntPtr PresentDetour(IntPtr swapChain, uint syncInterval, uint presentFlags)
     {
-        this.CumulativePresentCalls++;
-
         Debug.Assert(this.presentHook is not null, "How did PresentDetour get called when presentHook is null?");
         Debug.Assert(this.dalamudAtlas is not null, "dalamudAtlas should have been set already");
 
@@ -611,6 +613,9 @@ internal class InterfaceManager : IDisposable, IServiceType
         if (!this.dalamudAtlas!.HasBuiltAtlas)
             return this.presentHook!.Original(swapChain, syncInterval, presentFlags);
 
+        this.CumulativePresentCalls++;
+        this.IsInPresent = true;
+
         while (this.runBeforeImGuiRender.TryDequeue(out var action))
             action.InvokeSafely();
 
@@ -620,12 +625,14 @@ internal class InterfaceManager : IDisposable, IServiceType
 
             RenderImGui(this.scene!);
             this.PostImGuiRender();
+            this.IsInPresent = false;
 
             return pRes;
         }
 
         RenderImGui(this.scene!);
         this.PostImGuiRender();
+        this.IsInPresent = false;
 
         return this.presentHook!.Original(swapChain, syncInterval, presentFlags);
     }

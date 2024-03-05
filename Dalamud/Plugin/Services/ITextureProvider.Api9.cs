@@ -2,6 +2,7 @@
 
 using Dalamud.Interface;
 using Dalamud.Interface.Internal;
+using Dalamud.Interface.Textures;
 using Dalamud.Utility;
 
 using Lumina.Data.Files;

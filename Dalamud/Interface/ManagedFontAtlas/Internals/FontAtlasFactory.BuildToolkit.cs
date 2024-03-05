@@ -591,7 +591,7 @@ internal sealed partial class FontAtlasFactory
                 {
                     ref var texture = ref textureSpan[i];
                     var name =
-                        $"FontAtlas.{ this.data.Owner?.Name ?? "(no owner or name)"}[0x{(long)this.data.Atlas.NativePtr:X}][{i}]";
+                        $"{nameof(FontAtlasBuiltData)}[{this.data.Owner?.Name ?? "-"}][0x{(long)this.data.Atlas.NativePtr:X}][{i}]";
                     if (texture.TexID != 0)
                     {
                         // Nothing to do
@@ -602,6 +602,7 @@ internal sealed partial class FontAtlasFactory
                             RawImageSpecification.Rgba32(width, height),
                             new(texture.TexPixelsRGBA32, width * height * 4),
                             name);
+                        this.factory.TextureManager.Blame(wrap, this.data.Owner?.OwnerPlugin);
                         this.data.AddExistingTexture(wrap);
                         texture.TexID = wrap.ImGuiHandle;
                     }
@@ -647,6 +648,7 @@ internal sealed partial class FontAtlasFactory
                                 width * bpp),
                             buf,
                             name);
+                        this.factory.TextureManager.Blame(wrap, this.data.Owner?.OwnerPlugin);
                         this.data.AddExistingTexture(wrap);
                         texture.TexID = wrap.ImGuiHandle;
                         continue;

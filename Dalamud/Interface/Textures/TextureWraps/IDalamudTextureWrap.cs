@@ -2,6 +2,8 @@ using System.Numerics;
 
 using Dalamud.Interface.Textures;
 using Dalamud.Interface.Textures.Internal;
+using Dalamud.Interface.Textures.TextureWraps;
+using Dalamud.Interface.Textures.TextureWraps.Internal;
 
 using TerraFX.Interop.Windows;
 

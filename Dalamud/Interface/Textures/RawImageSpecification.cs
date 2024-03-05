@@ -12,7 +12,7 @@ public record struct RawImageSpecification
     /// <param name="height">The height of the raw image.</param>
     /// <param name="dxgiFormat">The DXGI format of the raw image.</param>
     /// <param name="pitch">The pitch of the raw image in bytes.
-    /// Specify <c>-1</c> to calculate it from other parameters.</param>
+    /// Specify <c>-1</c> to calculate from other parameters.</param>
     public RawImageSpecification(int width, int height, int dxgiFormat, int pitch = -1)
     {
         if (pitch < 0)
@@ -29,6 +29,14 @@ public record struct RawImageSpecification
         this.Height = height;
         this.Pitch = pitch;
         this.DxgiFormat = dxgiFormat;
+    }
+
+    /// <summary>Initializes a new instance of the <see cref="RawImageSpecification"/> class.</summary>
+    /// <param name="desc">The source texture description.</param>
+    /// <param name="pitch">The pitch of the raw image in bytes.</param>
+    internal RawImageSpecification(in D3D11_TEXTURE2D_DESC desc, uint pitch)
+        : this((int)desc.Width, (int)desc.Height, (int)desc.Format, checked((int)pitch))
+    {
     }
 
     /// <summary>Gets or sets the width of the raw image.</summary>
@@ -101,6 +109,10 @@ public record struct RawImageSpecification
     /// <returns>The new instance.</returns>
     public static RawImageSpecification A8(int width, int height) =>
         new(width, height, (int)DXGI_FORMAT.DXGI_FORMAT_A8_UNORM, width);
+
+    /// <inheritdoc/>
+    public override string ToString() =>
+        $"{nameof(RawImageSpecification)}({this.Width}x{this.Height}, {this.Format}, {this.Pitch}b)";
 
     private static bool GetFormatInfo(DXGI_FORMAT format, out int bitsPerPixel, out bool isBlockCompression)
     {
@@ -246,7 +258,7 @@ public record struct RawImageSpecification
                 return true;
             case DXGI_FORMAT.DXGI_FORMAT_B4G4R4A4_UNORM:
                 bitsPerPixel = 16;
-                isBlockCompression = true;
+                isBlockCompression = false;
                 return true;
             default:
                 bitsPerPixel = 0;

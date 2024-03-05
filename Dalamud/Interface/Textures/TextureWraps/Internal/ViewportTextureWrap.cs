@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 
 using Dalamud.Game;
 using Dalamud.Interface.Internal;
+using Dalamud.Interface.Textures.Internal;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Storage.Assets;
 using Dalamud.Utility;
@@ -15,7 +16,7 @@ using TerraFX.Interop.Windows;
 
 using NotSupportedException = System.NotSupportedException;
 
-namespace Dalamud.Interface.Textures.Internal;
+namespace Dalamud.Interface.Textures.TextureWraps.Internal;
 
 /// <summary>A texture wrap that takes its buffer from the frame buffer (of swap chain).</summary>
 internal sealed class ViewportTextureWrap : IDalamudTextureWrap, IDeferredDisposable

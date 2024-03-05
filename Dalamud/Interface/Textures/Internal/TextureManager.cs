@@ -8,6 +8,7 @@ using Dalamud.Data;
 using Dalamud.Game;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Textures.Internal.SharedImmediateTextures;
+using Dalamud.Interface.Textures.TextureWraps.Internal;
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility;
@@ -127,7 +128,7 @@ internal sealed partial class TextureManager
                     this.BlameSetName(
                         this.NoThrottleCreateFromImage(bytes.ToArray(), ct),
                         debugName ??
-                        $"{nameof(this.CreateFromImageAsync)}({nameof(bytes)}, {nameof(cancellationToken)})"),
+                        $"{nameof(this.CreateFromImageAsync)}({bytes.Length:n0}b)"),
                 ct),
             cancellationToken);
 
@@ -146,7 +147,7 @@ internal sealed partial class TextureManager
                 return this.BlameSetName(
                     this.NoThrottleCreateFromImage(ms.GetBuffer(), ct),
                     debugName ??
-                    $"{nameof(this.CreateFromImageAsync)}({nameof(stream)}, {nameof(leaveOpen)}, {nameof(cancellationToken)})");
+                    $"{nameof(this.CreateFromImageAsync)}(stream)");
             },
             cancellationToken,
             leaveOpen ? null : stream);
@@ -159,7 +160,7 @@ internal sealed partial class TextureManager
         string? debugName = null) =>
         this.BlameSetName(
             this.NoThrottleCreateFromRaw(specs, bytes),
-            debugName ?? $"{nameof(this.CreateFromRaw)}({nameof(specs)}, {nameof(bytes)})");
+            debugName ?? $"{nameof(this.CreateFromRaw)}({specs}, {bytes.Length:n0})");
 
     /// <inheritdoc/>
     public Task<IDalamudTextureWrap> CreateFromRawAsync(
@@ -173,7 +174,7 @@ internal sealed partial class TextureManager
                 this.BlameSetName(
                     this.NoThrottleCreateFromRaw(specs, bytes.Span),
                     debugName ??
-                    $"{nameof(this.CreateFromRawAsync)}({nameof(specs)}, {nameof(bytes)}, {nameof(cancellationToken)})")),
+                    $"{nameof(this.CreateFromRawAsync)}({specs}, {bytes.Length:n0})")),
             cancellationToken);
 
     /// <inheritdoc/>
@@ -192,7 +193,7 @@ internal sealed partial class TextureManager
                 return this.BlameSetName(
                     this.NoThrottleCreateFromRaw(specs, ms.GetBuffer().AsSpan(0, (int)ms.Length)),
                     debugName ??
-                    $"{nameof(this.CreateFromRawAsync)}({nameof(specs)}, {nameof(stream)}, {nameof(leaveOpen)}, {nameof(cancellationToken)})");
+                    $"{nameof(this.CreateFromRawAsync)}({specs}, stream)");
             },
             cancellationToken,
             leaveOpen ? null : stream);
@@ -207,14 +208,18 @@ internal sealed partial class TextureManager
     public Task<IDalamudTextureWrap> CreateFromTexFileAsync(
         TexFile file,
         string? debugName = null,
-        CancellationToken cancellationToken = default) =>
-        this.DynamicPriorityTextureLoader.LoadAsync(
+        CancellationToken cancellationToken = default)
+    {
+        return this.DynamicPriorityTextureLoader.LoadAsync(
             null,
             _ => Task.FromResult(
                 this.BlameSetName(
                     this.NoThrottleCreateFromTexFile(file),
-                    debugName ?? $"{nameof(this.CreateFromTexFile)}({nameof(file)})")),
+                    debugName ?? $"{nameof(this.CreateFromTexFile)}({ForceNullable(file.FilePath)?.Path})")),
             cancellationToken);
+
+        static T? ForceNullable<T>(T s) => s;
+    }
 
     /// <inheritdoc/>
     bool ITextureProvider.IsDxgiFormatSupported(int dxgiFormat) =>
@@ -267,7 +272,7 @@ internal sealed partial class TextureManager
             .ThrowOnError();
 
         var wrap = new UnknownTextureWrap((IUnknown*)view.Get(), specs.Width, specs.Height, true);
-        this.BlameSetName(wrap, $"{nameof(this.NoThrottleCreateFromRaw)}({nameof(specs)}, {nameof(bytes)})");
+        this.BlameSetName(wrap, $"{nameof(this.NoThrottleCreateFromRaw)}({specs}, {bytes.Length:n0})");
         return wrap;
     }
 
@@ -289,8 +294,10 @@ internal sealed partial class TextureManager
         }
 
         var wrap = this.NoThrottleCreateFromRaw(new(buffer.Width, buffer.Height, dxgiFormat), buffer.RawData);
-        this.BlameSetName(wrap, $"{nameof(this.NoThrottleCreateFromTexFile)}({nameof(file)})");
+        this.BlameSetName(wrap, $"{nameof(this.NoThrottleCreateFromTexFile)}({ForceNullable(file.FilePath).Path})");
         return wrap;
+
+        static T? ForceNullable<T>(T s) => s;
     }
 
     /// <summary>Creates a texture from the given <paramref name="fileBytes"/>, trying to interpret it as a
@@ -315,9 +322,31 @@ internal sealed partial class TextureManager
         // Note: FileInfo and FilePath are not used from TexFile; skip it.
 
         var wrap = this.NoThrottleCreateFromTexFile(tf);
-        this.BlameSetName(wrap, $"{nameof(this.NoThrottleCreateFromTexFile)}({nameof(fileBytes)})");
+        this.BlameSetName(wrap, $"{nameof(this.NoThrottleCreateFromTexFile)}({fileBytes.Length:n0})");
         return wrap;
     }
 
     private void ReleaseUnmanagedResources() => this.device.Reset();
+
+    /// <summary>Runs the given action in IDXGISwapChain.Present immediately or waiting as needed.</summary>
+    /// <param name="action">The action to run.</param>
+    // Not sure why this and the below can't be unconditional RunOnFrameworkThread
+    private async Task RunDuringPresent(Action action)
+    {
+        if (this.interfaceManager.IsInPresent && ThreadSafety.IsMainThread)
+            action();
+        else
+            await this.interfaceManager.RunBeforeImGuiRender(action);
+    }
+
+    /// <summary>Runs the given function in IDXGISwapChain.Present immediately or waiting as needed.</summary>
+    /// <typeparam name="T">The type of the return value.</typeparam>
+    /// <param name="func">The function to run.</param>
+    /// <returns>The return value from the function.</returns>
+    private async Task<T> RunDuringPresent<T>(Func<T> func)
+    {
+        if (this.interfaceManager.IsInPresent && ThreadSafety.IsMainThread)
+            return func();
+        return await this.interfaceManager.RunBeforeImGuiRender(func);
+    }
 }

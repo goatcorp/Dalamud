@@ -6,6 +6,8 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using Dalamud.Interface.Internal;
+using Dalamud.Interface.Textures.TextureWraps;
+using Dalamud.Interface.Textures.TextureWraps.Internal;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Storage.Assets;
 using Dalamud.Utility;
@@ -22,6 +24,7 @@ internal abstract class SharedImmediateTexture
     private static long instanceCounter;
 
     private readonly object reviveLock = new();
+    private readonly List<LocalPlugin> ownerPlugins = new();
 
     private bool resourceReleased;
     private int refCount;
@@ -43,10 +46,11 @@ internal abstract class SharedImmediateTexture
         this.IsOpportunistic = true;
         this.resourceReleased = true;
         this.FirstRequestedTick = this.LatestRequestedTick = Environment.TickCount64;
+        this.PublicUseInstance = new(this);
     }
 
-    /// <summary>Gets the list of owner plugins.</summary>
-    public List<LocalPlugin> OwnerPlugins { get; } = new();
+    /// <summary>Gets a wrapper for this instance which disables resource reference management.</summary>
+    public PureImpl PublicUseInstance { get; }
 
     /// <summary>Gets the instance ID. Debug use only.</summary>
     public long InstanceIdForDebug { get; }
@@ -280,15 +284,15 @@ internal abstract class SharedImmediateTexture
         return this.availableOnAccessWrapForApi9;
     }
 
-    /// <summary>Adds a plugin to <see cref="OwnerPlugins"/>, in a thread-safe way.</summary>
+    /// <summary>Adds a plugin to <see cref="ownerPlugins"/>, in a thread-safe way.</summary>
     /// <param name="plugin">The plugin to add.</param>
     public void AddOwnerPlugin(LocalPlugin plugin)
     {
-        lock (this.OwnerPlugins)
+        lock (this.ownerPlugins)
         {
-            if (!this.OwnerPlugins.Contains(plugin))
+            if (!this.ownerPlugins.Contains(plugin))
             {
-                this.OwnerPlugins.Add(plugin);
+                this.ownerPlugins.Add(plugin);
                 this.UnderlyingWrap?.ContinueWith(
                     r =>
                     {
@@ -314,14 +318,14 @@ internal abstract class SharedImmediateTexture
     protected void LoadUnderlyingWrap()
     {
         int addLen;
-        lock (this.OwnerPlugins)
+        lock (this.ownerPlugins)
         {
             this.UnderlyingWrap = Service<TextureManager>.Get().DynamicPriorityTextureLoader.LoadAsync(
                 this,
                 this.CreateTextureAsync,
                 this.LoadCancellationToken);
 
-            addLen = this.OwnerPlugins.Count;
+            addLen = this.ownerPlugins.Count;
         }
 
         if (addLen == 0)
@@ -331,8 +335,11 @@ internal abstract class SharedImmediateTexture
             {
                 if (!r.IsCompletedSuccessfully)
                     return;
-                foreach (var op in this.OwnerPlugins.Take(addLen))
-                    Service<TextureManager>.Get().Blame(r.Result, op);
+                lock (this.ownerPlugins)
+                {
+                    foreach (var op in this.ownerPlugins.Take(addLen))
+                        Service<TextureManager>.Get().Blame(r.Result, op);
+                }
             },
             default(CancellationToken));
     }
@@ -425,6 +432,52 @@ internal abstract class SharedImmediateTexture
             exception = uw?.Exception;
             return false;
         }
+    }
+
+    /// <summary>A wrapper around <see cref="SharedImmediateTexture"/>, to prevent external consumers from mistakenly
+    /// calling <see cref="IDisposable.Dispose"/> or <see cref="IRefCountable.Release"/>.</summary>
+    internal sealed class PureImpl : ISharedImmediateTexture
+    {
+        private readonly SharedImmediateTexture inner;
+
+        /// <summary>Initializes a new instance of the <see cref="PureImpl"/> class.</summary>
+        /// <param name="inner">The actual instance.</param>
+        public PureImpl(SharedImmediateTexture inner) => this.inner = inner;
+
+        /// <inheritdoc/>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public IDalamudTextureWrap GetWrapOrEmpty() =>
+            this.inner.GetWrapOrEmpty();
+
+        /// <inheritdoc/>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [return: NotNullIfNotNull(nameof(defaultWrap))]
+        public IDalamudTextureWrap? GetWrapOrDefault(IDalamudTextureWrap? defaultWrap = null) =>
+            this.inner.GetWrapOrDefault(defaultWrap);
+
+        /// <inheritdoc/>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryGetWrap([NotNullWhen(true)] out IDalamudTextureWrap? texture, out Exception? exception) =>
+            this.inner.TryGetWrap(out texture, out exception);
+
+        /// <inheritdoc/>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public Task<IDalamudTextureWrap> RentAsync(CancellationToken cancellationToken = default) =>
+            this.inner.RentAsync(cancellationToken);
+
+        /// <inheritdoc cref="SharedImmediateTexture.GetAvailableOnAccessWrapForApi9"/>
+        [Api10ToDo(Api10ToDoAttribute.DeleteCompatBehavior)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public IDalamudTextureWrap? GetAvailableOnAccessWrapForApi9() =>
+            this.inner.GetAvailableOnAccessWrapForApi9();
+
+        /// <inheritdoc cref="SharedImmediateTexture.AddOwnerPlugin"/>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void AddOwnerPlugin(LocalPlugin plugin) =>
+            this.inner.AddOwnerPlugin(plugin);
+
+        /// <inheritdoc/>
+        public override string ToString() => $"{this.inner}({nameof(PureImpl)})";
     }
 
     /// <summary>Same with <see cref="DisposeSuppressingTextureWrap"/>, but with a custom implementation of

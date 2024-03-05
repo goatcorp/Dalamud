@@ -3,11 +3,11 @@ using System.Numerics;
 using System.Runtime.CompilerServices;
 
 using Dalamud.Interface.Internal;
-using Dalamud.Interface.Textures.Internal;
+using Dalamud.Interface.Textures.TextureWraps.Internal;
 
 using TerraFX.Interop.Windows;
 
-namespace Dalamud.Interface.Textures;
+namespace Dalamud.Interface.Textures.TextureWraps;
 
 /// <summary>Base class for implementations of <see cref="IDalamudTextureWrap"/> that forwards to another.</summary>
 public abstract class ForwardingTextureWrap : IDalamudTextureWrap

@@ -32,6 +32,7 @@ namespace Dalamud.Interface;
 /// </summary>
 public sealed class UiBuilder : IDisposable
 {
+    private readonly LocalPlugin plugin;
     private readonly Stopwatch stopwatch;
     private readonly HitchDetector hitchDetector;
     private readonly string namespaceName;
@@ -42,6 +43,8 @@ public sealed class UiBuilder : IDisposable
     private readonly DalamudConfiguration configuration = Service<DalamudConfiguration>.Get();
 
     private readonly DisposeSafety.ScopedFinalizer scopedFinalizer = new();
+
+    [Api10ToDo(Api10ToDoAttribute.DeleteCompatBehavior)]
     private readonly TextureManagerPluginScoped scopedTextureProvider;
 
     private bool hasErrorWindow = false;
@@ -64,6 +67,7 @@ public sealed class UiBuilder : IDisposable
             this.stopwatch = new Stopwatch();
             this.hitchDetector = new HitchDetector($"UiBuilder({namespaceName})", this.configuration.UiBuilderHitch);
             this.namespaceName = namespaceName;
+            this.plugin = plugin;
 
             this.interfaceManager.Draw += this.OnDraw;
             this.scopedFinalizer.Add(() => this.interfaceManager.Draw -= this.OnDraw);
@@ -78,7 +82,10 @@ public sealed class UiBuilder : IDisposable
                     .Add(
                         Service<FontAtlasFactory>
                             .Get()
-                            .CreateFontAtlas(namespaceName, FontAtlasAutoRebuildMode.Disable));
+                            .CreateFontAtlas(
+                                namespaceName,
+                                FontAtlasAutoRebuildMode.Disable,
+                                ownerPlugin: plugin));
             this.FontAtlas.BuildStepChange += this.PrivateAtlasOnBuildStepChange;
             this.FontAtlas.RebuildRecommend += this.RebuildFonts;
         }
@@ -565,7 +572,8 @@ public sealed class UiBuilder : IDisposable
                                  .CreateFontAtlas(
                                      this.namespaceName + ":" + (debugName ?? "custom"),
                                      autoRebuildMode,
-                                     isGlobalScaled));
+                                     isGlobalScaled,
+                                     this.plugin));
 
     /// <summary>
     /// Add a notification to the notification queue.

@@ -88,25 +88,28 @@ internal sealed partial class TextureManager
 
         /// <inheritdoc cref="ITextureProvider.GetFromGameIcon"/>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public SharedImmediateTexture GetFromGameIcon(in GameIconLookup lookup) =>
+        public SharedImmediateTexture.PureImpl GetFromGameIcon(in GameIconLookup lookup) =>
             this.GetFromGame(this.lookupCache.GetOrAdd(lookup, this.GetIconPathByValue));
 
         /// <inheritdoc cref="ITextureProvider.GetFromGame"/>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public SharedImmediateTexture GetFromGame(string path) =>
-            this.gameDict.GetOrAdd(path, GamePathSharedImmediateTexture.CreatePlaceholder);
+        public SharedImmediateTexture.PureImpl GetFromGame(string path) =>
+            this.gameDict.GetOrAdd(path, GamePathSharedImmediateTexture.CreatePlaceholder)
+                .PublicUseInstance;
 
         /// <inheritdoc cref="ITextureProvider.GetFromFile"/>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public SharedImmediateTexture GetFromFile(string path) =>
-            this.fileDict.GetOrAdd(path, FileSystemSharedImmediateTexture.CreatePlaceholder);
+        public SharedImmediateTexture.PureImpl GetFromFile(string path) =>
+            this.fileDict.GetOrAdd(path, FileSystemSharedImmediateTexture.CreatePlaceholder)
+                .PublicUseInstance;
 
         /// <inheritdoc cref="ITextureProvider.GetFromFile"/>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public SharedImmediateTexture GetFromManifestResource(Assembly assembly, string name) =>
+        public SharedImmediateTexture.PureImpl GetFromManifestResource(Assembly assembly, string name) =>
             this.manifestResourceDict.GetOrAdd(
                 (assembly, name),
-                ManifestResourceSharedImmediateTexture.CreatePlaceholder);
+                ManifestResourceSharedImmediateTexture.CreatePlaceholder)
+                .PublicUseInstance;
 
         /// <summary>Invalidates a cached item from <see cref="GetFromGame"/> and <see cref="GetFromGameIcon"/>.
         /// </summary>

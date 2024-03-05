@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
@@ -18,11 +17,12 @@ namespace Dalamud.Interface.Textures.Internal;
 /// <summary>Service responsible for loading and disposing ImGui texture wraps.</summary>
 internal sealed partial class TextureManager
 {
-    private readonly List<BlameTag> blameTracker = new();
-
     /// <summary>A wrapper for underlying texture2D resources.</summary>
     public interface IBlameableDalamudTextureWrap : IDalamudTextureWrap
     {
+        /// <summary>Gets the address of the native resource.</summary>
+        public nint ResourceAddress { get; }
+
         /// <summary>Gets the name of the underlying resource of this texture wrap.</summary>
         public string Name { get; }
 
@@ -31,13 +31,27 @@ internal sealed partial class TextureManager
 
         /// <summary>Gets the list of owner plugins.</summary>
         public List<LocalPlugin> OwnerPlugins { get; }
+
+        /// <summary>Gets the raw image specification.</summary>
+        public RawImageSpecification RawSpecs { get; }
+
+        /// <summary>Tests whether the tag and the underlying resource are released or should be released.</summary>
+        /// <returns><c>true</c> if there are no more remaining references to this instance.</returns>
+        bool TestIsReleasedOrShouldRelease();
     }
 
-    /// <summary>Gets all the loaded textures from plugins.</summary>
-    /// <returns>The enumerable that goes through all textures and relevant plugins.</returns>
+    /// <summary>Gets the list containing all the loaded textures from plugins.</summary>
     /// <remarks>Returned value must be used inside a lock.</remarks>
-    [SuppressMessage("ReSharper", "InconsistentlySynchronizedField", Justification = "Caller locks the return value.")]
-    public IReadOnlyList<IBlameableDalamudTextureWrap> AllBlamesForDebug => this.blameTracker;
+    public List<IBlameableDalamudTextureWrap> BlameTracker { get; } = new();
+
+    /// <summary>Gets the blame for a texture wrap.</summary>
+    /// <param name="textureWrap">The texture wrap.</param>
+    /// <returns>The blame, if it exists.</returns>
+    public unsafe IBlameableDalamudTextureWrap? GetBlame(IDalamudTextureWrap textureWrap)
+    {
+        using var wrapAux = new WrapAux(textureWrap, true);
+        return BlameTag.Get(wrapAux.ResPtr);
+    }
 
     /// <summary>Puts a plugin on blame for a texture.</summary>
     /// <param name="textureWrap">The texture.</param>
@@ -59,7 +73,7 @@ internal sealed partial class TextureManager
         }
 
         using var wrapAux = new WrapAux(textureWrap, true);
-        var blame = BlameTag.From(wrapAux.ResPtr, out var isNew);
+        var blame = BlameTag.GetOrCreate(wrapAux.ResPtr, out var isNew);
 
         if (ownerPlugin is not null)
         {
@@ -69,8 +83,8 @@ internal sealed partial class TextureManager
 
         if (isNew)
         {
-            lock (this.blameTracker)
-                this.blameTracker.Add(blame);
+            lock (this.BlameTracker)
+                this.BlameTracker.Add(blame);
         }
 
         return textureWrap;
@@ -96,13 +110,13 @@ internal sealed partial class TextureManager
         }
 
         using var wrapAux = new WrapAux(textureWrap, true);
-        var blame = BlameTag.From(wrapAux.ResPtr, out var isNew);
-        blame.Name = name;
+        var blame = BlameTag.GetOrCreate(wrapAux.ResPtr, out var isNew);
+        blame.Name = name.Length <= 1024 ? name : $"{name[..1024]}...";
 
         if (isNew)
         {
-            lock (this.blameTracker)
-                this.blameTracker.Add(blame);
+            lock (this.BlameTracker)
+                this.BlameTracker.Add(blame);
         }
 
         return textureWrap;
@@ -110,15 +124,15 @@ internal sealed partial class TextureManager
 
     private void BlameTrackerUpdate(IFramework unused)
     {
-        lock (this.blameTracker)
+        lock (this.BlameTracker)
         {
-            for (var i = 0; i < this.blameTracker.Count;)
+            for (var i = 0; i < this.BlameTracker.Count;)
             {
-                var entry = this.blameTracker[i];
+                var entry = this.BlameTracker[i];
                 if (entry.TestIsReleasedOrShouldRelease())
                 {
-                    this.blameTracker[i] = this.blameTracker[^1];
-                    this.blameTracker.RemoveAt(this.blameTracker.Count - 1);
+                    this.BlameTracker[i] = this.BlameTracker[^1];
+                    this.BlameTracker.RemoveAt(this.BlameTracker.Count - 1);
                 }
                 else
                 {
@@ -221,10 +235,20 @@ internal sealed partial class TextureManager
         public List<LocalPlugin> OwnerPlugins { get; } = new();
 
         /// <inheritdoc/>
+        public nint ResourceAddress => (nint)this.tex2D;
+
+        /// <inheritdoc/>
         public string Name { get; set; } = "<unnamed>";
 
         /// <inheritdoc/>
         public DXGI_FORMAT Format => this.desc.Format;
+
+        /// <inheritdoc/>
+        public RawImageSpecification RawSpecs => new(
+            (int)this.desc.Width,
+            (int)this.desc.Height,
+            (int)this.desc.Format,
+            0);
 
         /// <inheritdoc/>
         public IntPtr ImGuiHandle
@@ -267,7 +291,23 @@ internal sealed partial class TextureManager
         /// <param name="isNew"><c>true</c> if the tracker is new.</param>
         /// <typeparam name="T">A COM object type.</typeparam>
         /// <returns>A new instance of <see cref="BlameTag"/>.</returns>
-        public static BlameTag From<T>(T* trackWhat, out bool isNew) where T : unmanaged, IUnknown.Interface
+        public static BlameTag GetOrCreate<T>(T* trackWhat, out bool isNew) where T : unmanaged, IUnknown.Interface
+        {
+            if (Get(trackWhat) is { } v)
+            {
+                isNew = false;
+                return v;
+            }
+
+            isNew = true;
+            return new((IUnknown*)trackWhat);
+        }
+
+        /// <summary>Gets an existing instance of <see cref="BlameTag"/> for the given resource.</summary>
+        /// <param name="trackWhat">The COM object to track.</param>
+        /// <typeparam name="T">A COM object type.</typeparam>
+        /// <returns>An existing instance of <see cref="BlameTag"/>.</returns>
+        public static BlameTag? Get<T>(T* trackWhat) where T : unmanaged, IUnknown.Interface
         {
             using var deviceChild = default(ComPtr<ID3D11DeviceChild>);
             fixed (Guid* piid = &IID.IID_ID3D11DeviceChild)
@@ -282,18 +322,15 @@ internal sealed partial class TextureManager
                     if (ToManagedObject(existingTag) is { } existingTagInstance)
                     {
                         existingTagInstance.Release();
-                        isNew = false;
                         return existingTagInstance;
                     }
                 }
             }
 
-            isNew = true;
-            return new((IUnknown*)trackWhat);
+            return null;
         }
 
-        /// <summary>Tests whether the tag and the underlying resource are released or should be released.</summary>
-        /// <returns><c>true</c> if there are no more remaining references to this instance.</returns>
+        /// <inheritdoc/>
         public bool TestIsReleasedOrShouldRelease()
         {
             if (this.srvDebugPreviewExpiryTick <= Environment.TickCount64)

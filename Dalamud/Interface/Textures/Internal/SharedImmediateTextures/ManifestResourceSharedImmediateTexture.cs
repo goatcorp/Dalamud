@@ -27,6 +27,8 @@ internal sealed class ManifestResourceSharedImmediateTexture : SharedImmediateTe
     /// <summary>Creates a new placeholder instance of <see cref="ManifestResourceSharedImmediateTexture"/>.</summary>
     /// <param name="args">The arguments to pass to the constructor.</param>
     /// <returns>The new instance.</returns>
+    /// <remarks>Only to be used from <see cref="TextureManager.SharedTextureManager.GetFromManifestResource"/>.
+    /// </remarks>
     public static SharedImmediateTexture CreatePlaceholder((Assembly Assembly, string Name) args) =>
         new ManifestResourceSharedImmediateTexture(args.Assembly, args.Name);
 

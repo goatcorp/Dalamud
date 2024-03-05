@@ -1,4 +1,5 @@
 using System.Numerics;
+using System.Text;
 
 using Dalamud.Plugin.Services;
 
@@ -51,6 +52,36 @@ public record struct TextureModificationArgs()
 
     /// <summary>Gets the effective value of <see cref="Uv1"/>.</summary>
     internal Vector2 Uv1Effective => this.Uv1 == Vector2.Zero ? Vector2.One : this.Uv1;
+
+    /// <inheritdoc/>
+    public override string ToString()
+    {
+        var sb = new StringBuilder();
+        sb.Append(nameof(TextureModificationArgs)).Append('(');
+        if (this.MakeOpaque)
+            sb.Append($"{nameof(this.MakeOpaque)}, ");
+        if (this.Format != DXGI_FORMAT.DXGI_FORMAT_UNKNOWN)
+            sb.Append(Enum.GetName(this.Format) is { } name ? name[12..] : this.Format.ToString()).Append(", ");
+        if (this.NewWidth != 0 || this.NewHeight != 0)
+        {
+            sb.Append(this.NewWidth == 0 ? "?" : this.NewWidth.ToString())
+              .Append('x')
+              .Append(this.NewHeight == 0 ? "?" : this.NewHeight.ToString())
+              .Append(", ");
+        }
+
+        if (this.Uv0 != Vector2.Zero || this.Uv1Effective != Vector2.One)
+        {
+            sb.Append(this.Uv0.ToString())
+              .Append('-')
+              .Append(this.Uv1.ToString())
+              .Append(", ");
+        }
+
+        if (sb[^1] != '(')
+            sb.Remove(sb.Length - 2, 2);
+        return sb.Append(')').ToString();
+    }
 
     /// <summary>Test if this instance of <see cref="TextureModificationArgs"/> does not instruct to change the
     /// underlying data of a texture.</summary>

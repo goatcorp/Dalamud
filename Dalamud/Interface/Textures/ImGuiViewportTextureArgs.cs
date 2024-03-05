@@ -1,8 +1,11 @@
 using System.Numerics;
+using System.Text;
 
 using Dalamud.Interface.Internal;
 
 using ImGuiNET;
+
+using TerraFX.Interop.DirectX;
 
 namespace Dalamud.Interface.Textures;
 
@@ -43,6 +46,30 @@ public record struct ImGuiViewportTextureArgs()
 
     /// <summary>Gets the effective value of <see cref="Uv1"/>.</summary>
     internal Vector2 Uv1Effective => this.Uv1 == Vector2.Zero ? Vector2.One : this.Uv1;
+
+    /// <inheritdoc/>
+    public override string ToString()
+    {
+        var sb = new StringBuilder();
+        sb.Append(nameof(ImGuiViewportTextureArgs)).Append('(');
+        sb.Append($"0x{this.ViewportId:X}");
+        if (this.AutoUpdate)
+            sb.Append($", {nameof(this.AutoUpdate)}");
+        if (this.TakeBeforeImGuiRender)
+            sb.Append($", {nameof(this.TakeBeforeImGuiRender)}");
+        if (this.KeepTransparency)
+            sb.Append($", {nameof(this.KeepTransparency)}");
+
+        if (this.Uv0 != Vector2.Zero || this.Uv1Effective != Vector2.One)
+        {
+            sb.Append(", ")
+              .Append(this.Uv0.ToString())
+              .Append('-')
+              .Append(this.Uv1.ToString());
+        }
+
+        return sb.Append(')').ToString();
+    }
 
     /// <summary>Checks the properties and throws an exception if values are invalid.</summary>
     internal void ThrowOnInvalidValues()
