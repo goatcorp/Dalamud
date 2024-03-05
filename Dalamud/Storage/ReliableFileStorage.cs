@@ -22,12 +22,14 @@ namespace Dalamud.Storage;
 /// This is not an early-loaded service, as it is needed before they are initialized.
 /// </remarks>
 [ServiceManager.ProvidedService]
-public class ReliableFileStorage : IServiceType, IDisposable
+public class ReliableFileStorage : IPublicDisposableService
 {
     private static readonly ModuleLog Log = new("VFS");
 
     private readonly object syncRoot = new();
+
     private SQLiteConnection? db;
+    private bool isService;
     
     /// <summary>
     /// Initializes a new instance of the <see cref="ReliableFileStorage"/> class.
@@ -60,7 +62,7 @@ public class ReliableFileStorage : IServiceType, IDisposable
             }
         }
     }
-    
+
     /// <summary>
     /// Check if a file exists.
     /// This will return true if the file does not exist on the filesystem, but in the transparent backup.
@@ -288,8 +290,19 @@ public class ReliableFileStorage : IServiceType, IDisposable
     /// <inheritdoc/>
     public void Dispose()
     {
-        this.db?.Dispose();
+        if (!this.isService)
+            this.DisposeCore();
     }
+
+    /// <inheritdoc/>
+    void IInternalDisposableService.DisposeService()
+    {
+        if (this.isService)
+            this.DisposeCore();
+    }
+
+    /// <inheritdoc/>
+    void IPublicDisposableService.MarkDisposeOnlyFromService() => this.isService = true;
 
     /// <summary>
     /// Replace possible non-portable parts of a path with portable versions.
@@ -311,6 +324,8 @@ public class ReliableFileStorage : IServiceType, IDisposable
                                        SQLiteOpenFlags.ReadWrite | SQLiteOpenFlags.Create | SQLiteOpenFlags.FullMutex);
         this.db.CreateTable<DbFile>();
     }
+
+    private void DisposeCore() => this.db?.Dispose();
 
     private class DbFile
     {

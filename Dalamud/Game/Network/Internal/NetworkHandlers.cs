@@ -25,7 +25,7 @@ namespace Dalamud.Game.Network.Internal;
 /// This class handles network notifications and uploading market board data.
 /// </summary>
 [ServiceManager.BlockingEarlyLoadedService]
-internal unsafe class NetworkHandlers : IDisposable, IServiceType
+internal unsafe class NetworkHandlers : IInternalDisposableService
 {
     private readonly IMarketBoardUploader uploader;
 
@@ -212,7 +212,7 @@ internal unsafe class NetworkHandlers : IDisposable, IServiceType
     /// <summary>
     /// Disposes of managed and unmanaged resources.
     /// </summary>
-    public void Dispose()
+    void IInternalDisposableService.DisposeService()
     {
         this.disposing = true;
         this.Dispose(this.disposing);

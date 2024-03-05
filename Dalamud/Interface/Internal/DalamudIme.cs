@@ -27,7 +27,7 @@ namespace Dalamud.Interface.Internal;
 /// This class handles CJK IME.
 /// </summary>
 [ServiceManager.BlockingEarlyLoadedService]
-internal sealed unsafe class DalamudIme : IDisposable, IServiceType
+internal sealed unsafe class DalamudIme : IInternalDisposableService
 {
     private const int CImGuiStbTextCreateUndoOffset = 0xB57A0;
     private const int CImGuiStbTextUndoOffset = 0xB59C0;
@@ -181,7 +181,7 @@ internal sealed unsafe class DalamudIme : IDisposable, IServiceType
         (ImGuiInputTextState*)(ImGui.GetCurrentContext() + ImGuiContextOffsets.TextStateOffset);
 
     /// <inheritdoc/>
-    public void Dispose()
+    void IInternalDisposableService.DisposeService()
     {
         this.ReleaseUnmanagedResources();
         GC.SuppressFinalize(this);

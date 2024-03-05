@@ -15,7 +15,7 @@ namespace Dalamud.Game;
 #pragma warning disable SA1015
 [ResolveVia<ISigScanner>]
 #pragma warning restore SA1015
-internal class TargetSigScanner : SigScanner, IServiceType
+internal class TargetSigScanner : SigScanner, IPublicDisposableService
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="TargetSigScanner"/> class.
@@ -26,4 +26,14 @@ internal class TargetSigScanner : SigScanner, IServiceType
         : base(Process.GetCurrentProcess().MainModule!, doCopy, cacheFile)
     {
     }
+
+    /// <inheritdoc/>
+    void IInternalDisposableService.DisposeService()
+    {
+        if (this.IsService)
+            this.DisposeCore();
+    }
+
+    /// <inheritdoc/>
+    void IPublicDisposableService.MarkDisposeOnlyFromService() => this.IsService = true;
 }

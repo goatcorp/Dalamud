@@ -74,7 +74,7 @@ internal class GameInventoryTestWidget : IDataWindowWidget
                 this.standardEnabled = false;
                 if (!this.rawEnabled)
                 {
-                    this.scoped.Dispose();
+                    ((IInternalDisposableService)this.scoped).DisposeService();
                     this.scoped = null;
                 }
             }
@@ -105,7 +105,7 @@ internal class GameInventoryTestWidget : IDataWindowWidget
                 this.rawEnabled = false;
                 if (!this.standardEnabled)
                 {
-                    this.scoped.Dispose();
+                    ((IInternalDisposableService)this.scoped).DisposeService();
                     this.scoped = null;
                 }
             }
@@ -135,7 +135,7 @@ internal class GameInventoryTestWidget : IDataWindowWidget
         {
             if (ImGui.Button("Disable##all-disable"))
             {
-                this.scoped?.Dispose();
+                ((IInternalDisposableService)this.scoped)?.DisposeService();
                 this.scoped = null;
                 this.standardEnabled = this.rawEnabled = false;
             }

@@ -14,6 +14,7 @@ using Dalamud.Interface.Internal.ManagedAsserts;
 using Dalamud.Interface.Internal.Notifications;
 using Dalamud.Interface.ManagedFontAtlas;
 using Dalamud.Interface.ManagedFontAtlas.Internals;
+using Dalamud.Plugin;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Utility;
 using ImGuiNET;
@@ -568,10 +569,12 @@ public sealed class UiBuilder : IDisposable
             });
     }
 
-    /// <summary>
-    /// Unregister the UiBuilder. Do not call this in plugin code.
-    /// </summary>
+    /// <inheritdoc cref="DalamudPluginInterface.Dispose"/>
     void IDisposable.Dispose() => this.scopedFinalizer.Dispose();
+
+    /// <summary>Clean up resources allocated by this instance of <see cref="UiBuilder"/>.</summary>
+    /// <remarks>Dalamud internal use only.</remarks>
+    internal void DisposeInternal() => this.scopedFinalizer.Dispose();
 
     /// <summary>
     /// Open the registered configuration UI, if it exists.

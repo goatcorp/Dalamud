@@ -50,7 +50,7 @@ namespace Dalamud.Interface.Internal;
 /// This class manages interaction with the ImGui interface.
 /// </summary>
 [ServiceManager.BlockingEarlyLoadedService]
-internal class InterfaceManager : IDisposable, IServiceType
+internal class InterfaceManager : IInternalDisposableService
 {
     /// <summary>
     /// The default font size, in points.
@@ -235,7 +235,7 @@ internal class InterfaceManager : IDisposable, IServiceType
     /// <summary>
     /// Dispose of managed and unmanaged resources.
     /// </summary>
-    public void Dispose()
+    void IInternalDisposableService.DisposeService()
     {
         if (Service<Framework>.GetNullable() is { } framework)
             framework.RunOnFrameworkThread(Disposer).Wait();

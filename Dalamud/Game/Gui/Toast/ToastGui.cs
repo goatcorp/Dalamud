@@ -14,7 +14,7 @@ namespace Dalamud.Game.Gui.Toast;
 /// </summary>
 [InterfaceVersion("1.0")]
 [ServiceManager.BlockingEarlyLoadedService]
-internal sealed partial class ToastGui : IDisposable, IServiceType, IToastGui
+internal sealed partial class ToastGui : IInternalDisposableService, IToastGui
 {
     private const uint QuestToastCheckmarkMagic = 60081;
 
@@ -73,7 +73,7 @@ internal sealed partial class ToastGui : IDisposable, IServiceType, IToastGui
     /// <summary>
     /// Disposes of managed and unmanaged resources.
     /// </summary>
-    void IDisposable.Dispose()
+    void IInternalDisposableService.DisposeService()
     {
         this.showNormalToastHook.Dispose();
         this.showQuestToastHook.Dispose();
@@ -383,7 +383,7 @@ internal sealed partial class ToastGui
 #pragma warning disable SA1015
 [ResolveVia<IToastGui>]
 #pragma warning restore SA1015
-internal class ToastGuiPluginScoped : IDisposable, IServiceType, IToastGui
+internal class ToastGuiPluginScoped : IInternalDisposableService, IToastGui
 {
     [ServiceManager.ServiceDependency]
     private readonly ToastGui toastGuiService = Service<ToastGui>.Get();
@@ -408,7 +408,7 @@ internal class ToastGuiPluginScoped : IDisposable, IServiceType, IToastGui
     public event IToastGui.OnErrorToastDelegate? ErrorToast;
     
     /// <inheritdoc/>
-    public void Dispose()
+    void IInternalDisposableService.DisposeService()
     {
         this.toastGuiService.Toast -= this.ToastForward;
         this.toastGuiService.QuestToast -= this.QuestToastForward;

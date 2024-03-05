@@ -174,7 +174,20 @@ internal static class ServiceManager
         foreach (var serviceType in GetConcreteServiceTypes())
         {
             var serviceKind = serviceType.GetServiceKind();
-            Debug.Assert(serviceKind != ServiceKind.None, $"Service<{serviceType.FullName}> did not specify a kind");
+#if DEBUG
+            if (serviceKind == ServiceKind.None)
+                throw new InvalidOperationException($"Service<{serviceType.FullName}> did not specify a kind");
+            if (serviceType.IsAssignableTo(typeof(IDisposable))
+                && !serviceType.IsAssignableTo(typeof(IInternalDisposableService)))
+            {
+                throw new InvalidOperationException(
+                    $"{serviceType.Name} must be an {nameof(IInternalDisposableService)} without specifying " +
+                    $"{nameof(IDisposable)} if it is purely meant to be a service, " +
+                    $"or an {nameof(IPublicDisposableService)} if it also is allowed to be constructed not as a " +
+                    $"service to be used elsewhere and has to offer {nameof(IDisposable)}. See " +
+                    $"{nameof(ReliableFileStorage)} for an example of {nameof(IPublicDisposableService)}.");
+            }
+#endif
 
             // Let IoC know about the interfaces this service implements
             serviceContainer.RegisterInterfaces(serviceType);

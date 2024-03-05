@@ -28,7 +28,7 @@ namespace Dalamud.Game.Gui.ContextMenu;
 /// </summary>
 [InterfaceVersion("1.0")]
 [ServiceManager.EarlyLoadedService]
-internal sealed unsafe class ContextMenu : IDisposable, IServiceType, IContextMenu
+internal sealed unsafe class ContextMenu : IInternalDisposableService, IContextMenu
 {
     private static readonly ModuleLog Log = new("ContextMenu");
 
@@ -77,7 +77,7 @@ internal sealed unsafe class ContextMenu : IDisposable, IServiceType, IContextMe
     private IReadOnlyList<MenuItem>? SubmenuItems { get; set; }
 
     /// <inheritdoc/>
-    public void Dispose()
+    void IInternalDisposableService.DisposeService()
     {
         var manager = RaptureAtkUnitManager.Instance();
         var menu = manager->GetAddonByName("ContextMenu");
@@ -496,7 +496,7 @@ original:
 #pragma warning disable SA1015
 [ResolveVia<IContextMenu>]
 #pragma warning restore SA1015
-internal class ContextMenuPluginScoped : IDisposable, IServiceType, IContextMenu
+internal class ContextMenuPluginScoped : IInternalDisposableService, IContextMenu
 {
     [ServiceManager.ServiceDependency]
     private readonly ContextMenu parentService = Service<ContextMenu>.Get();
@@ -514,7 +514,7 @@ internal class ContextMenuPluginScoped : IDisposable, IServiceType, IContextMenu
     private object MenuItemsLock { get; } = new();
 
     /// <inheritdoc/>
-    public void Dispose()
+    void IInternalDisposableService.DisposeService()
     {
         this.parentService.OnMenuOpened -= this.OnMenuOpenedForward;
 
