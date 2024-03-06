@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using System.Threading.Tasks;
 
 using Dalamud.Interface.Internal;
@@ -284,11 +285,15 @@ internal abstract class FontHandle : IFontHandle
     {
         if (disposing)
         {
+            if (Interlocked.Exchange(ref this.manager, null) is not { } managerToDisassociate)
+                return;
+
             if (this.pushedFonts.Count > 0)
                 Log.Warning($"{nameof(IFontHandle)}.{nameof(IDisposable.Dispose)}: fonts were still in a stack.");
-            this.Manager.FreeFontHandle(this);
-            this.manager = null;
+
+            managerToDisassociate.FreeFontHandle(this);
             this.Disposed?.InvokeSafely();
+            this.Disposed = null;
             this.ImFontChanged = null;
         }
     }

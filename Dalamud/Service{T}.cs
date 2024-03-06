@@ -321,15 +321,8 @@ internal static class Service<T> where T : IServiceType
 
                 break;
 
-            case IDisposable:
-                ServiceManager.Log.Fatal(
-                    "Service<{0}>: Type does not implement {1} but it implements {2}?",
-                    typeof(T).Name,
-                    nameof(IInternalDisposableService),
-                    nameof(IDisposable));
-                break;
-
             default:
+                ServiceManager.CheckServiceTypeContracts(typeof(T));
                 ServiceManager.Log.Debug("Service<{0}>: Unset", typeof(T).Name);
                 break;
         }
