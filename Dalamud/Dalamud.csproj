@@ -112,10 +112,6 @@
       </Content>
     </ItemGroup>
 
-    <ItemGroup>
-      <Folder Include="Game\Addon\" />
-    </ItemGroup>
-
     <Target Name="AddRuntimeDependenciesToContent" BeforeTargets="GetCopyToOutputDirectoryItems" DependsOnTargets="GenerateBuildDependencyFile;GenerateBuildRuntimeConfigurationFiles">
         <ItemGroup>
             <ContentWithTargetPath Include="$(ProjectDepsFilePath)" CopyToOutputDirectory="PreserveNewest" TargetPath="$(ProjectDepsFileName)" />
