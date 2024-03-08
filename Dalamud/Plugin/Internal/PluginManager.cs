@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using CheapLoc;
+
 using Dalamud.Configuration;
 using Dalamud.Configuration.Internal;
 using Dalamud.Game;
@@ -33,6 +34,7 @@ using Dalamud.Plugin.Ipc.Internal;
 using Dalamud.Support;
 using Dalamud.Utility;
 using Dalamud.Utility.Timing;
+
 using Newtonsoft.Json;
 
 namespace Dalamud.Plugin.Internal;
@@ -1299,7 +1301,30 @@ internal partial class PluginManager : IDisposable, IServiceType
                     : repoManifest.DownloadLinkUpdate)
                 : repoManifest.DownloadLinkInstall);
 
-        var request = new HttpRequestMessage(HttpMethod.Get, downloadUrl)
+        HttpResponseMessage response;
+        try
+        {
+            response = await this.DownloadZipFromUrlAsync(downloadUrl);
+            response.EnsureSuccessStatusCode();
+        }
+        catch
+        {
+            if (isUpdate && string.Equals(repoManifest.DownloadLinkUpdate, downloadUrl))
+            {
+                response = await this.DownloadZipFromUrlAsync(repoManifest.DownloadLinkInstall);
+            }
+            else
+            {
+                throw;
+            }
+        }
+
+        return await response.Content.ReadAsStreamAsync();
+    }
+
+    private async Task<HttpResponseMessage> DownloadZipFromUrlAsync(string downloadUrl)
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Get, downloadUrl)
         {
             Headers =
             {
@@ -1309,37 +1334,11 @@ internal partial class PluginManager : IDisposable, IServiceType
                 },
             },
         };
-        var response = await this.happyHttpClient.SharedHttpClient.SendAsync(request);
-        try
-        {
-            response.EnsureSuccessStatusCode();
-        }
-        catch
-        {
-            if (isUpdate && string.Equals(repoManifest.DownloadLinkUpdate, downloadUrl))
-            {
-                downloadUrl = repoManifest.DownloadLinkInstall;
-                request = new HttpRequestMessage(HttpMethod.Get, downloadUrl)
-                {
-                    Headers =
-                    {
-                        Accept =
-                        {
-                            new MediaTypeWithQualityHeaderValue("application/zip"),
-                        },
-                    },
-                };
 
-                response = await this.happyHttpClient.SharedHttpClient.SendAsync(request);
-                response.EnsureSuccessStatusCode();
-            }
-            else
-            {
-                throw;
-            }
-        }
+        var response = await this.happyHttpClient.SharedHttpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
 
-        return await response.Content.ReadAsStreamAsync();
+        response.EnsureSuccessStatusCode();
+        return response;
     }
 
     /// <summary>
