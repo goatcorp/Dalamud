@@ -26,7 +26,7 @@ public struct SafeFontConfig
         this.PixelSnapH = true;
         this.GlyphMaxAdvanceX = float.MaxValue;
         this.RasterizerMultiply = 1f;
-        this.RasterizerGamma = 1.4f;
+        this.RasterizerGamma = 1.7f;
         this.EllipsisChar = unchecked((char)-1);
         this.Raw.FontDataOwnedByAtlas = 1;
     }

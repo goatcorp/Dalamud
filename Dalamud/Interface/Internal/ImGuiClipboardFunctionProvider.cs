@@ -52,7 +52,6 @@ internal sealed unsafe class ImGuiClipboardFunctionProvider : IServiceType, IDis
     private ImGuiClipboardFunctionProvider(InterfaceManager.InterfaceManagerWithScene imws)
     {
         // Effectively waiting for ImGui to become available.
-        _ = imws;
         Debug.Assert(ImGuiHelpers.IsImGuiInitialized, "IMWS initialized but IsImGuiInitialized is false?");
 
         var io = ImGui.GetIO();

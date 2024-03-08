@@ -5,9 +5,8 @@
 #include "DalamudStartInfo.h"
 #include "hooks.h"
 #include "logging.h"
+#include "ntdll.h"
 #include "utils.h"
-#include <iphlpapi.h>
-#include <icmpapi.h>
 
 template<typename T>
 static std::span<T> assume_nonempty_span(std::span<T> t, const char* descr) {
@@ -513,50 +512,6 @@ void xivfixes::backup_userdata_save(bool bApply) {
     }
 }
 
-void xivfixes::clr_failfast_hijack(bool bApply)
-{
-    static const char* LogTag = "[xivfixes:clr_failfast_hijack]";
-    static std::optional<hooks::import_hook<decltype(RaiseFailFastException)>> s_HookClrFatalError;
-    static std::optional<hooks::import_hook<decltype(SetUnhandledExceptionFilter)>> s_HookSetUnhandledExceptionFilter;
-
-    if (bApply)
-    {
-        if (!g_startInfo.BootEnabledGameFixes.contains("clr_failfast_hijack")) {
-            logging::I("{} Turned off via environment variable.", LogTag);
-            return;
-        }
-
-        s_HookClrFatalError.emplace("kernel32.dll!RaiseFailFastException (import, backup_userdata_save)", "kernel32.dll", "RaiseFailFastException", 0);
-        s_HookSetUnhandledExceptionFilter.emplace("kernel32.dll!SetUnhandledExceptionFilter (lpTopLevelExceptionFilter)", "kernel32.dll", "SetUnhandledExceptionFilter", 0);
-        
-        s_HookClrFatalError->set_detour([](PEXCEPTION_RECORD pExceptionRecord,
-                                           _In_opt_ PCONTEXT pContextRecord,
-                                           _In_ DWORD dwFlags)
-        {
-            MessageBoxW(nullptr, L"An error in a Dalamud plugin was detected and the game cannot continue.\n\nPlease take a screenshot of this error message and let us know about it.", L"Dalamud", MB_OK | MB_ICONERROR);
-            
-            return s_HookClrFatalError->call_original(pExceptionRecord, pContextRecord, dwFlags);
-        });
-
-        s_HookSetUnhandledExceptionFilter->set_detour([](LPTOP_LEVEL_EXCEPTION_FILTER lpTopLevelExceptionFilter) -> LPTOP_LEVEL_EXCEPTION_FILTER
-        {
-            logging::I("{} SetUnhandledExceptionFilter", LogTag);
-            return nullptr;
-        });
-
-        logging::I("{} Enable", LogTag);
-    }
-    else
-    {
-        if (s_HookClrFatalError) {
-            logging::I("{} Disable ClrFatalError", LogTag);
-            s_HookClrFatalError.reset();
-            s_HookSetUnhandledExceptionFilter.reset();
-        }
-    }
-}
-
-
 void xivfixes::prevent_icmphandle_crashes(bool bApply) {
     static const char* LogTag = "[xivfixes:prevent_icmphandle_crashes]";
 
@@ -590,6 +545,109 @@ void xivfixes::prevent_icmphandle_crashes(bool bApply) {
     }
 }
 
+void xivfixes::symbol_load_patches(bool bApply) {
+    static const char* LogTag = "[xivfixes:symbol_load_patches]";
+
+    static std::optional<hooks::import_hook<decltype(SymInitialize)>> s_hookSymInitialize;
+    static PVOID s_dllNotificationCookie = nullptr;
+
+    static const auto RemoveFullPathPdbInfo = [](const utils::loaded_module& mod) {
+        const auto ddva = mod.data_directory(IMAGE_DIRECTORY_ENTRY_DEBUG).VirtualAddress;
+        if (!ddva)
+            return;
+
+        const auto& ddir = mod.ref_as<IMAGE_DEBUG_DIRECTORY>(ddva);
+        if (ddir.Type == IMAGE_DEBUG_TYPE_CODEVIEW) {
+            // The Visual C++ debug information.
+            // Ghidra calls it "DotNetPdbInfo".
+            static constexpr DWORD DotNetPdbInfoSignatureValue = 0x53445352;
+            struct DotNetPdbInfo {
+                DWORD Signature; // RSDS
+                GUID Guid;
+                DWORD Age;
+                char PdbPath[1];
+            };
+
+            const auto& pdbref = mod.ref_as<DotNetPdbInfo>(ddir.AddressOfRawData);
+            if (pdbref.Signature == DotNetPdbInfoSignatureValue) {
+                const auto pathSpan = std::string_view(pdbref.PdbPath, strlen(pdbref.PdbPath));
+                const auto pathWide = unicode::convert<std::wstring>(pathSpan);
+                std::wstring windowsDirectory(GetWindowsDirectoryW(nullptr, 0) + 1, L'\0');
+                windowsDirectory.resize(
+                    GetWindowsDirectoryW(windowsDirectory.data(), static_cast<UINT>(windowsDirectory.size())));
+                if (!PathIsRelativeW(pathWide.c_str()) && !PathIsSameRootW(windowsDirectory.c_str(), pathWide.c_str())) {
+                    utils::memory_tenderizer pathOverwrite(&pdbref.PdbPath, pathSpan.size(), PAGE_READWRITE);
+                    auto sep = std::find(pathSpan.rbegin(), pathSpan.rend(), '/');
+                    if (sep == pathSpan.rend())
+                        sep = std::find(pathSpan.rbegin(), pathSpan.rend(), '\\');
+                    if (sep != pathSpan.rend()) {
+                        logging::I(
+                            "{} Stripping pdb path folder: {} to {}",
+                            LogTag,
+                            pathSpan,
+                            &*sep + 1);
+                        memmove(const_cast<char*>(pathSpan.data()), &*sep + 1, sep - pathSpan.rbegin() + 1);
+                    } else {
+                        logging::I("{} Leaving pdb path unchanged: {}", LogTag, pathSpan);
+                    }
+                } else {
+                    logging::I("{} Leaving pdb path unchanged: {}", LogTag, pathSpan);
+                }
+            } else {
+                logging::I("{} CODEVIEW struct signature mismatch: got {:08X} instead.", LogTag, pdbref.Signature);
+            }
+        } else {
+            logging::I("{} Debug directory: type {} is unsupported.", LogTag, ddir.Type);
+        }
+    };
+
+    if (bApply) {
+        if (!g_startInfo.BootEnabledGameFixes.contains("symbol_load_patches")) {
+            logging::I("{} Turned off via environment variable.", LogTag);
+            return;
+        }
+
+        for (const auto& mod : utils::loaded_module::all_modules())
+           RemoveFullPathPdbInfo(mod); 
+
+        if (!s_dllNotificationCookie) {
+            const auto res = LdrRegisterDllNotification(
+                0,
+                [](ULONG notiReason, const LDR_DLL_NOTIFICATION_DATA* pData, void* /* context */) {
+                    if (notiReason == LDR_DLL_NOTIFICATION_REASON_LOADED)
+                        RemoveFullPathPdbInfo(pData->Loaded.DllBase);
+                },
+                nullptr,
+                &s_dllNotificationCookie);
+
+            if (res != STATUS_SUCCESS) {
+                logging::E("{} LdrRegisterDllNotification failure: 0x{:08X}", LogTag, res);
+                s_dllNotificationCookie = nullptr;
+            }
+        }
+
+        s_hookSymInitialize.emplace("dbghelp.dll!SymInitialize (import, symbol_load_patches)", "dbghelp.dll", "SymInitialize", 0);
+        s_hookSymInitialize->set_detour([](HANDLE hProcess, PCSTR UserSearchPath, BOOL fInvadeProcess) noexcept {
+            logging::I("{} Suppressed SymInitialize.", LogTag);
+            SetLastError(ERROR_NOT_SUPPORTED);
+            return FALSE;
+        });
+
+        logging::I("{} Enable", LogTag);
+    }
+    else {
+        if (s_hookSymInitialize) {
+            logging::I("{} Disable", LogTag);
+            s_hookSymInitialize.reset();
+        }
+
+        if (s_dllNotificationCookie) {
+            (void)LdrUnregisterDllNotification(s_dllNotificationCookie);
+            s_dllNotificationCookie = nullptr;
+        }
+    }
+}
+
 void xivfixes::apply_all(bool bApply) {
     for (const auto& [taskName, taskFunction] : std::initializer_list<std::pair<const char*, void(*)(bool)>>
         {
@@ -598,8 +656,8 @@ void xivfixes::apply_all(bool bApply) {
             { "disable_game_openprocess_access_check", &disable_game_openprocess_access_check },
             { "redirect_openprocess", &redirect_openprocess },
             { "backup_userdata_save", &backup_userdata_save },
-            { "clr_failfast_hijack", &clr_failfast_hijack },
-            { "prevent_icmphandle_crashes", &prevent_icmphandle_crashes }
+            { "prevent_icmphandle_crashes", &prevent_icmphandle_crashes },
+            { "symbol_load_patches", &symbol_load_patches },
         }
         ) {
         try {

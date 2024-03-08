@@ -5,6 +5,7 @@ namespace Dalamud.Common;
 
 /// <summary>
 /// Struct containing information needed to initialize Dalamud.
+/// Modify DalamudStartInfo.h and DalamudStartInfo.cpp along with this record.
 /// </summary>
 [Serializable]
 public record DalamudStartInfo

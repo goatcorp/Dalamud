@@ -1,6 +1,7 @@
 using System.Linq;
 
 using Dalamud.Game;
+using Dalamud.Game.Gui.ContextMenu;
 using Dalamud.Plugin.Services;
 using Serilog;
 
@@ -96,6 +97,23 @@ internal static class EventHandlerExtensions
         foreach (var action in updateDelegate.GetInvocationList().Cast<IFramework.OnUpdateDelegate>())
         {
             HandleInvoke(() => action(framework));
+        }
+    }
+
+    /// <summary>
+    /// Replacement for Invoke() on OnMenuOpenedDelegate to catch exceptions that stop event propagation in case
+    /// of a thrown Exception inside of an invocation.
+    /// </summary>
+    /// <param name="openedDelegate">The OnMenuOpenedDelegate in question.</param>
+    /// <param name="argument">Templated argument for Action.</param>
+    public static void InvokeSafely(this IContextMenu.OnMenuOpenedDelegate? openedDelegate, MenuOpenedArgs argument)
+    {
+        if (openedDelegate == null)
+            return;
+
+        foreach (var action in openedDelegate.GetInvocationList().Cast<IContextMenu.OnMenuOpenedDelegate>())
+        {
+            HandleInvoke(() => action(argument));
         }
     }
 

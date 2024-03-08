@@ -16,12 +16,8 @@ internal unsafe class AddonLifecycleReceiveEventListener : IDisposable
 {
     private static readonly ModuleLog Log = new("AddonLifecycle");
 
-    // Note: these can be sourced from ObjectPool of appropriate types instead, but since we don't import that NuGet
-    // package, and these events are always called from the main thread, this is fine.
-#pragma warning disable CS0618 // Type or member is obsolete
-    // TODO: turn constructors of these internal
-    private readonly AddonReceiveEventArgs recyclingReceiveEventArgs = new();
-#pragma warning restore CS0618 // Type or member is obsolete
+    [ServiceManager.ServiceDependency]
+    private readonly AddonLifecyclePooledArgs argsPool = Service<AddonLifecyclePooledArgs>.Get();
 
     /// <summary>
     /// Initializes a new instance of the <see cref="AddonLifecycleReceiveEventListener"/> class.
@@ -82,16 +78,17 @@ internal unsafe class AddonLifecycleReceiveEventListener : IDisposable
             return;
         }
 
-        this.recyclingReceiveEventArgs.AddonInternal = (nint)addon;
-        this.recyclingReceiveEventArgs.AtkEventType = (byte)eventType;
-        this.recyclingReceiveEventArgs.EventParam = eventParam;
-        this.recyclingReceiveEventArgs.AtkEvent = (IntPtr)atkEvent;
-        this.recyclingReceiveEventArgs.Data = data;
-        this.AddonLifecycle.InvokeListenersSafely(AddonEvent.PreReceiveEvent, this.recyclingReceiveEventArgs);
-        eventType = (AtkEventType)this.recyclingReceiveEventArgs.AtkEventType;
-        eventParam = this.recyclingReceiveEventArgs.EventParam;
-        atkEvent = (AtkEvent*)this.recyclingReceiveEventArgs.AtkEvent;
-        data = this.recyclingReceiveEventArgs.Data;
+        using var returner = this.argsPool.Rent(out AddonReceiveEventArgs arg);
+        arg.AddonInternal = (nint)addon;
+        arg.AtkEventType = (byte)eventType;
+        arg.EventParam = eventParam;
+        arg.AtkEvent = (IntPtr)atkEvent;
+        arg.Data = data;
+        this.AddonLifecycle.InvokeListenersSafely(AddonEvent.PreReceiveEvent, arg);
+        eventType = (AtkEventType)arg.AtkEventType;
+        eventParam = arg.EventParam;
+        atkEvent = (AtkEvent*)arg.AtkEvent;
+        data = arg.Data;
         
         try
         {
@@ -102,6 +99,6 @@ internal unsafe class AddonLifecycleReceiveEventListener : IDisposable
             Log.Error(e, "Caught exception when calling original AddonReceiveEvent. This may be a bug in the game or another plugin hooking this method.");
         }
 
-        this.AddonLifecycle.InvokeListenersSafely(AddonEvent.PostReceiveEvent, this.recyclingReceiveEventArgs);
+        this.AddonLifecycle.InvokeListenersSafely(AddonEvent.PostReceiveEvent, arg);
     }
 }

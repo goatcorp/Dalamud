@@ -6,6 +6,7 @@
 
 #include "logging.h"
 #include "utils.h"
+#include "hooks.h"
 
 #include "crashhandler_shared.h"
 #include "DalamudStartInfo.h"
@@ -24,6 +25,7 @@
 
 PVOID g_veh_handle = nullptr;
 bool g_veh_do_full_dump = false;
+std::optional<hooks::import_hook<decltype(SetUnhandledExceptionFilter)>> g_HookSetUnhandledExceptionFilter;
 
 HANDLE g_crashhandler_process = nullptr;
 HANDLE g_crashhandler_event = nullptr;
@@ -110,13 +112,16 @@ static void append_injector_launch_args(std::vector<std::wstring>& args)
     case DalamudStartInfo::LoadMethod::DllInject:
         args.emplace_back(L"--mode=inject");
     }
-    args.emplace_back(L"--logpath=\"" + utils::to_wstring(g_startInfo.BootLogPath) + L"\"");
-    args.emplace_back(L"--dalamud-working-directory=\"" + utils::to_wstring(g_startInfo.WorkingDirectory) + L"\"");
-    args.emplace_back(L"--dalamud-configuration-path=\"" + utils::to_wstring(g_startInfo.ConfigurationPath) + L"\"");
-    args.emplace_back(L"--dalamud-plugin-directory=\"" + utils::to_wstring(g_startInfo.PluginDirectory) + L"\"");
-    args.emplace_back(L"--dalamud-asset-directory=\"" + utils::to_wstring(g_startInfo.AssetDirectory) + L"\"");
-    args.emplace_back(L"--dalamud-client-language=" + std::to_wstring(static_cast<int>(g_startInfo.Language)));
-    args.emplace_back(L"--dalamud-delay-initialize=" + std::to_wstring(g_startInfo.DelayInitializeMs));
+    args.emplace_back(L"--dalamud-working-directory=\"" + unicode::convert<std::wstring>(g_startInfo.WorkingDirectory) + L"\"");
+    args.emplace_back(L"--dalamud-configuration-path=\"" + unicode::convert<std::wstring>(g_startInfo.ConfigurationPath) + L"\"");
+    args.emplace_back(L"--logpath=\"" + unicode::convert<std::wstring>(g_startInfo.LogPath) + L"\"");
+    args.emplace_back(L"--logname=\"" + unicode::convert<std::wstring>(g_startInfo.LogName) + L"\"");
+    args.emplace_back(L"--dalamud-plugin-directory=\"" + unicode::convert<std::wstring>(g_startInfo.PluginDirectory) + L"\"");
+    args.emplace_back(L"--dalamud-asset-directory=\"" + unicode::convert<std::wstring>(g_startInfo.AssetDirectory) + L"\"");
+    args.emplace_back(std::format(L"--dalamud-client-language={}", static_cast<int>(g_startInfo.Language)));
+    args.emplace_back(std::format(L"--dalamud-delay-initialize={}", g_startInfo.DelayInitializeMs));
+    // NoLoadPlugins/NoLoadThirdPartyPlugins: supplied from DalamudCrashHandler
+
     if (g_startInfo.BootShowConsole)
         args.emplace_back(L"--console");
     if (g_startInfo.BootEnableEtw)
@@ -143,21 +148,7 @@ static void append_injector_launch_args(std::vector<std::wstring>& args)
 
 LONG exception_handler(EXCEPTION_POINTERS* ex)
 {
-    if (ex->ExceptionRecord->ExceptionCode == 0x12345678)
-    {
-        // pass
-    }
-    else
-    {
-        if (!is_whitelist_exception(ex->ExceptionRecord->ExceptionCode))
-            return EXCEPTION_CONTINUE_SEARCH;
-
-        if (!is_ffxiv_address(L"ffxiv_dx11.exe", ex->ContextRecord->Rip) &&
-            !is_ffxiv_address(L"cimgui.dll", ex->ContextRecord->Rip))
-            return EXCEPTION_CONTINUE_SEARCH;   
-    }
-
-    // block any other exceptions hitting the veh while the messagebox is open
+    // block any other exceptions hitting the handler while the messagebox is open
     const auto lock = std::lock_guard(g_exception_handler_mutex);
 
     exception_info exinfo{};
@@ -167,7 +158,7 @@ LONG exception_handler(EXCEPTION_POINTERS* ex)
     exinfo.ExceptionRecord = ex->ExceptionRecord ? *ex->ExceptionRecord : EXCEPTION_RECORD{};
     const auto time_now = std::chrono::system_clock::now();
     auto lifetime = std::chrono::duration_cast<std::chrono::seconds>(
-            time_now.time_since_epoch()).count()
+        time_now.time_since_epoch()).count()
         - std::chrono::duration_cast<std::chrono::seconds>(
             g_time_start.time_since_epoch()).count();
     exinfo.nLifetime = lifetime;
@@ -175,10 +166,14 @@ LONG exception_handler(EXCEPTION_POINTERS* ex)
     DuplicateHandle(GetCurrentProcess(), g_crashhandler_event, g_crashhandler_process, &exinfo.hEventHandle, 0, TRUE, DUPLICATE_SAME_ACCESS);
 
     std::wstring stackTrace;
-    if (void* fn; const auto err = static_cast<DWORD>(g_clr->get_function_pointer(
+    if (!g_clr)
+    {
+        stackTrace = L"(no CLR stack trace available)";
+    }
+    else if (void* fn; const auto err = static_cast<DWORD>(g_clr->get_function_pointer(
         L"Dalamud.EntryPoint, Dalamud",
         L"VehCallback",
-        L"Dalamud.EntryPoint+VehDelegate, Dalamud", 
+        L"Dalamud.EntryPoint+VehDelegate, Dalamud",
         nullptr, nullptr, &fn)))
     {
         stackTrace = std::format(L"Failed to read stack trace: 0x{:08x}", err);
@@ -188,17 +183,25 @@ LONG exception_handler(EXCEPTION_POINTERS* ex)
         stackTrace = static_cast<wchar_t*(*)()>(fn)();
         // Don't free it, as the program's going to be quit anyway
     }
-    
+
     exinfo.dwStackTraceLength = static_cast<DWORD>(stackTrace.size());
     exinfo.dwTroubleshootingPackDataLength = static_cast<DWORD>(g_startInfo.TroubleshootingPackData.size());
     if (DWORD written; !WriteFile(g_crashhandler_pipe_write, &exinfo, static_cast<DWORD>(sizeof exinfo), &written, nullptr) || sizeof exinfo != written)
         return EXCEPTION_CONTINUE_SEARCH;
 
-    if (DWORD written; !WriteFile(g_crashhandler_pipe_write, &stackTrace[0], static_cast<DWORD>(std::span(stackTrace).size_bytes()), &written, nullptr) || std::span(stackTrace).size_bytes() != written)
-        return EXCEPTION_CONTINUE_SEARCH;
+    if (const auto nb = static_cast<DWORD>(std::span(stackTrace).size_bytes()))
+    {
+        if (DWORD written; !WriteFile(g_crashhandler_pipe_write, stackTrace.data(), nb, &written, nullptr) || nb != written)
+            return EXCEPTION_CONTINUE_SEARCH;
+    }
 
-    if (DWORD written; !WriteFile(g_crashhandler_pipe_write, &g_startInfo.TroubleshootingPackData[0], static_cast<DWORD>(std::span(g_startInfo.TroubleshootingPackData).size_bytes()), &written, nullptr) || std::span(g_startInfo.TroubleshootingPackData).size_bytes() != written)
-        return EXCEPTION_CONTINUE_SEARCH;
+    if (const auto nb = static_cast<DWORD>(std::span(g_startInfo.TroubleshootingPackData).size_bytes()))
+    {
+        if (DWORD written; !WriteFile(g_crashhandler_pipe_write, g_startInfo.TroubleshootingPackData.data(), nb, &written, nullptr) || nb != written)
+            return EXCEPTION_CONTINUE_SEARCH;
+    }
+
+    AllowSetForegroundWindow(GetProcessId(g_crashhandler_process));
 
     HANDLE waitHandles[] = { g_crashhandler_process, g_crashhandler_event };
     DWORD waitResult = WaitForMultipleObjects(2, waitHandles, FALSE, INFINITE);
@@ -217,13 +220,44 @@ LONG exception_handler(EXCEPTION_POINTERS* ex)
     return EXCEPTION_CONTINUE_SEARCH;
 }
 
+LONG WINAPI structured_exception_handler(EXCEPTION_POINTERS* ex)
+{
+    return exception_handler(ex);
+}
+
+LONG WINAPI vectored_exception_handler(EXCEPTION_POINTERS* ex)
+{
+    if (ex->ExceptionRecord->ExceptionCode == 0x12345678)
+    {
+        // pass
+    }
+    else
+    {
+        if (!is_whitelist_exception(ex->ExceptionRecord->ExceptionCode))
+            return EXCEPTION_CONTINUE_SEARCH;
+
+        if (!is_ffxiv_address(L"ffxiv_dx11.exe", ex->ContextRecord->Rip) &&
+            !is_ffxiv_address(L"cimgui.dll", ex->ContextRecord->Rip))
+            return EXCEPTION_CONTINUE_SEARCH;   
+    }
+
+    return exception_handler(ex);
+}
+
 bool veh::add_handler(bool doFullDump, const std::string& workingDirectory)
 {
     if (g_veh_handle)
         return false;
 
-    g_veh_handle = AddVectoredExceptionHandler(1, exception_handler);
-    SetUnhandledExceptionFilter(nullptr);
+    g_veh_handle = AddVectoredExceptionHandler(TRUE, vectored_exception_handler);
+
+    g_HookSetUnhandledExceptionFilter.emplace("kernel32.dll!SetUnhandledExceptionFilter (lpTopLevelExceptionFilter)", "kernel32.dll", "SetUnhandledExceptionFilter", 0);
+    g_HookSetUnhandledExceptionFilter->set_detour([](LPTOP_LEVEL_EXCEPTION_FILTER lpTopLevelExceptionFilter) -> LPTOP_LEVEL_EXCEPTION_FILTER
+    {
+        logging::I("Overwriting UnhandledExceptionFilter from {} to {}", reinterpret_cast<ULONG_PTR>(lpTopLevelExceptionFilter), reinterpret_cast<ULONG_PTR>(structured_exception_handler));
+        return g_HookSetUnhandledExceptionFilter->call_original(structured_exception_handler);
+    });
+    SetUnhandledExceptionFilter(structured_exception_handler);
 
     g_veh_do_full_dump = doFullDump;
     g_time_start = std::chrono::system_clock::now();
@@ -355,6 +389,8 @@ bool veh::remove_handler()
     if (g_veh_handle && RemoveVectoredExceptionHandler(g_veh_handle) != 0)
     {
         g_veh_handle = nullptr;
+        g_HookSetUnhandledExceptionFilter.reset();
+        SetUnhandledExceptionFilter(nullptr);
         return true;
     }
     return false;
