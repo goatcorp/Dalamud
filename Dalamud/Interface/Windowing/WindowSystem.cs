@@ -112,12 +112,8 @@ public class WindowSystem
 #if DEBUG
                 // Log.Verbose($"[WS{(hasNamespace ? "/" + this.Namespace : string.Empty)}] Drawing {window.WindowName}");
 #endif
-            var snapshot = ImGuiManagedAsserts.GetSnapshot();
-
-            window.DrawInternal(config);
-
-            var source = ($"{this.Namespace}::" ?? string.Empty) + window.WindowName;
-            ImGuiManagedAsserts.ReportProblems(source, snapshot);
+            using (new ImGuiManagedAsserts.ScopedSnapshotProblemReporter($"{this.Namespace}::{window.WindowName}"))
+                window.DrawInternal(config);
         }
 
         var focusedWindow = this.windows.FirstOrDefault(window => window.IsFocused && window.RespectCloseHotkey);
