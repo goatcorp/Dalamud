@@ -1,3 +1,5 @@
+// #define IMEDEBUG
+
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -107,6 +109,9 @@ internal sealed unsafe class DalamudIme : IDisposable, IServiceType
 
     /// <summary>Undo range for modifying the buffer while composition is in progress.</summary>
     private (int Start, int End, int Cursor)? temporaryUndoSelection;
+
+    private bool updateInputLanguage = true;
+    private bool updateImeStatusAgain;
 
     [SuppressMessage("StyleCop.CSharp.SpacingRules", "SA1003:Symbols should be spaced correctly", Justification = ".")]
     static DalamudIme()
@@ -255,15 +260,24 @@ internal sealed unsafe class DalamudIme : IDisposable, IServiceType
     private void WndProcHookManagerOnPreWndProc(WndProcEventArgs args)
     {
         if (!ImGuiHelpers.IsImGuiInitialized)
+        {
+            this.updateInputLanguage = true;
             return;
+        }
 
         // Are we not the target of text input?
         if (!ImGui.GetIO().WantTextInput)
+        {
+            this.updateInputLanguage = true;
             return;
+        }
 
         var hImc = ImmGetContext(args.Hwnd);
         if (hImc == nint.Zero)
+        {
+            this.updateInputLanguage = true;
             return;
+        }
 
         try
         {
@@ -313,16 +327,36 @@ internal sealed unsafe class DalamudIme : IDisposable, IServiceType
                     break;
             }
 #endif
+            if (this.updateInputLanguage
+                || (args.Message == WM.WM_IME_NOTIFY
+                    && (int)args.WParam
+                    is IMN.IMN_SETCONVERSIONMODE
+                    or IMN.IMN_OPENSTATUSWINDOW
+                    or IMN.IMN_CLOSESTATUSWINDOW))
+            {
+                this.UpdateInputLanguage(hImc);
+                this.updateInputLanguage = false;
+            }
+
+            if (this.updateImeStatusAgain)
+            {
+                this.ReplaceCompositionString(hImc, false);
+                this.UpdateCandidates(hImc);
+                this.updateImeStatusAgain = false;
+            }
+
             switch (args.Message)
             {
                 case WM.WM_IME_NOTIFY
                     when (nint)args.WParam is IMN.IMN_OPENCANDIDATE or IMN.IMN_CLOSECANDIDATE
                          or IMN.IMN_CHANGECANDIDATE:
                     this.UpdateCandidates(hImc);
+                    this.updateImeStatusAgain = true;
                     args.SuppressWithValue(0);
                     break;
 
                 case WM.WM_IME_STARTCOMPOSITION:
+                    this.updateImeStatusAgain = true;
                     args.SuppressWithValue(0);
                     break;
 
@@ -330,17 +364,24 @@ internal sealed unsafe class DalamudIme : IDisposable, IServiceType
                     if (invalidTarget)
                         ImmNotifyIME(hImc, NI.NI_COMPOSITIONSTR, CPS_CANCEL, 0);
                     else
-                        this.ReplaceCompositionString(hImc, (uint)args.LParam);
+                        this.ReplaceCompositionString(hImc, ((int)args.LParam & GCS.GCS_RESULTSTR) != 0);
 
+                    this.updateImeStatusAgain = true;
                     args.SuppressWithValue(0);
                     break;
 
                 case WM.WM_IME_ENDCOMPOSITION:
                     this.ClearState(hImc, false);
+                    this.updateImeStatusAgain = true;
                     args.SuppressWithValue(0);
                     break;
+
+                case WM.WM_IME_CHAR:
+                case WM.WM_IME_KEYDOWN:
+                case WM.WM_IME_KEYUP:
                 case WM.WM_IME_CONTROL:
                 case WM.WM_IME_REQUEST:
+                    this.updateImeStatusAgain = true;
                     args.SuppressWithValue(0);
                     break;
 
@@ -348,7 +389,14 @@ internal sealed unsafe class DalamudIme : IDisposable, IServiceType
                     // Hide candidate and composition windows.
                     args.LParam = (LPARAM)((nint)args.LParam & ~(ISC_SHOWUICOMPOSITIONWINDOW | 0xF));
 
+                    this.updateImeStatusAgain = true;
                     args.SuppressWithDefault();
+                    break;
+
+                case WM.WM_IME_NOTIFY:
+                case WM.WM_IME_COMPOSITIONFULL:
+                case WM.WM_IME_SELECT:
+                    this.updateImeStatusAgain = true;
                     break;
 
                 case WM.WM_KEYDOWN when (int)args.WParam is
@@ -382,13 +430,6 @@ internal sealed unsafe class DalamudIme : IDisposable, IServiceType
                 case WM.WM_XBUTTONDOWN:
                     ImmNotifyIME(hImc, NI.NI_COMPOSITIONSTR, CPS_COMPLETE, 0);
                     break;
-            }
-
-            if (args.Message != WM.WM_MOUSEMOVE)
-            {
-                this.UpdateInputLanguage(hImc);
-                if (this.inputModeIcon == (char)SeIconChar.ImeKoreanHangul)
-                    this.UpdateCandidates(hImc);
             }
         }
         finally
@@ -446,9 +487,8 @@ internal sealed unsafe class DalamudIme : IDisposable, IServiceType
         }
     }
 
-    private void ReplaceCompositionString(HIMC hImc, uint comp)
+    private void ReplaceCompositionString(HIMC hImc, bool finalCommit)
     {
-        var finalCommit = (comp & GCS.GCS_RESULTSTR) != 0;
         var newString = finalCommit
                             ? ImmGetCompositionString(hImc, GCS.GCS_RESULTSTR)
                             : ImmGetCompositionString(hImc, GCS.GCS_COMPSTR);
@@ -482,9 +522,9 @@ internal sealed unsafe class DalamudIme : IDisposable, IServiceType
         this.compositionString = newString;
         this.compositionCursorOffset = ImmGetCompositionStringW(hImc, GCS.GCS_CURSORPOS, null, 0);
 
-        if ((comp & GCS.GCS_COMPATTR) != 0)
+        var attrLength = ImmGetCompositionStringW(hImc, GCS.GCS_COMPATTR, null, 0);
+        if (attrLength > 0)
         {
-            var attrLength = ImmGetCompositionStringW(hImc, GCS.GCS_COMPATTR, null, 0);
             var attrPtr = stackalloc byte[attrLength];
             var attr = new Span<byte>(attrPtr, Math.Min(this.compositionString.Length, attrLength));
             _ = ImmGetCompositionStringW(hImc, GCS.GCS_COMPATTR, attrPtr, (uint)attrLength);
