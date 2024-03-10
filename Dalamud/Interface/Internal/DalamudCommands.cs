@@ -96,12 +96,6 @@ internal class DalamudCommands : IServiceType
             ShowInHelp = false,
         });
 
-        commandManager.AddHandler("/xlime", new CommandInfo(this.OnDebugDrawIMEPanel)
-        {
-            HelpMessage = Loc.Localize("DalamudIMEPanelHelp", "Draw IME panel"),
-            ShowInHelp = false,
-        });
-
         commandManager.AddHandler("/xllog", new CommandInfo(this.OnOpenLog)
         {
             HelpMessage = Loc.Localize("DalamudDevLogHelp", "Open dev log DEBUG"),
@@ -306,11 +300,6 @@ internal class DalamudCommands : IServiceType
             dalamudInterface.ToggleDataWindow();
         else
             dalamudInterface.ToggleDataWindow(arguments);
-    }
-
-    private void OnDebugDrawIMEPanel(string command, string arguments)
-    {
-        Service<DalamudInterface>.Get().OpenImeWindow();
     }
 
     private void OnOpenLog(string command, string arguments)
