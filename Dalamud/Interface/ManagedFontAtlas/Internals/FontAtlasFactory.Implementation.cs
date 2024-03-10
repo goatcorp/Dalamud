@@ -12,6 +12,7 @@ using Dalamud.Interface.GameFonts;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Utility;
 using Dalamud.Logging.Internal;
+using Dalamud.Plugin.Internal.Types;
 using Dalamud.Utility;
 
 using ImGuiNET;
@@ -256,12 +257,15 @@ internal sealed partial class FontAtlasFactory
         /// <param name="atlasName">Name of atlas, for debugging and logging purposes.</param>
         /// <param name="autoRebuildMode">Specify how to auto rebuild.</param>
         /// <param name="isGlobalScaled">Whether the fonts in the atlas are under the effect of global scale.</param>
+        /// <param name="ownerPlugin">The owner plugin, if any.</param>
         public DalamudFontAtlas(
             FontAtlasFactory factory,
             string atlasName,
             FontAtlasAutoRebuildMode autoRebuildMode,
-            bool isGlobalScaled)
+            bool isGlobalScaled,
+            LocalPlugin? ownerPlugin)
         {
+            this.OwnerPlugin = ownerPlugin;
             this.IsGlobalScaled = isGlobalScaled;
             try
             {
@@ -354,6 +358,9 @@ internal sealed partial class FontAtlasFactory
 
         /// <inheritdoc/>
         public bool IsGlobalScaled { get; }
+
+        /// <summary>Gets the owner plugin, if any.</summary>
+        public LocalPlugin? OwnerPlugin { get; }
 
         /// <inheritdoc/>
         public void Dispose()

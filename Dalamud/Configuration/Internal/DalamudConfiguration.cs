@@ -443,6 +443,9 @@ internal sealed class DalamudConfiguration : IServiceType, IDisposable
     /// </summary>
     public double UiBuilderHitch { get; set; } = 100;
 
+    /// <summary>Gets or sets a value indicating whether to track texture allocation by plugins.</summary>
+    public bool UseTexturePluginTracking { get; set; }
+
     /// <summary>
     /// Gets or sets the page of the plugin installer that is shown by default when opened.
     /// </summary>

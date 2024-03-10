@@ -1,33 +1,34 @@
 using System.Numerics;
 
+using Dalamud.Interface.Textures;
+using Dalamud.Interface.Textures.Internal;
+using Dalamud.Interface.Textures.TextureWraps;
+using Dalamud.Interface.Textures.TextureWraps.Internal;
+
 using TerraFX.Interop.Windows;
 
+// ReSharper disable once CheckNamespace
 namespace Dalamud.Interface.Internal;
+// TODO(api10): fix namespace maybe?
 
 /// <summary>
 /// Base TextureWrap interface for all Dalamud-owned texture wraps.
 /// Used to avoid referencing ImGuiScene.
 /// </summary>
+/// <remarks>If you want to implement this, see if you're actually wrapping an existing instance of
+/// <see cref="IDalamudTextureWrap"/>; if you are, then use <see cref="ForwardingTextureWrap"/>.</remarks>
 public interface IDalamudTextureWrap : IDisposable
 {
-    /// <summary>
-    /// Gets a texture handle suitable for direct use with ImGui functions.
-    /// </summary>
+    /// <summary>Gets a texture handle suitable for direct use with ImGui functions.</summary>
     IntPtr ImGuiHandle { get; }
 
-    /// <summary>
-    /// Gets the width of the texture.
-    /// </summary>
+    /// <summary>Gets the width of the texture.</summary>
     int Width { get; }
 
-    /// <summary>
-    /// Gets the height of the texture.
-    /// </summary>
+    /// <summary>Gets the height of the texture.</summary>
     int Height { get; }
 
-    /// <summary>
-    /// Gets the size vector of the texture using Width, Height.
-    /// </summary>
+    /// <summary>Gets the size vector of the texture using Width, Height.</summary>
     Vector2 Size => new(this.Width, this.Height);
 
     /// <summary>
