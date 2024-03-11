@@ -134,7 +134,17 @@ internal class GamePrebakedFontsTestWidget : IDataWindowWidget, IDisposable
                 $"{nameof(GamePrebakedFontsTestWidget)}:EditorFont");
             fcd.SelectedFont = this.fontSpec;
             fcd.IgnorePreviewGlobalScale = !this.atlasScaleMode;
+            fcd.IsModal = false;
+            fcd.SetPopupPositionAndSizeToCurrentWindowCenter();
             Service<InterfaceManager>.Get().Draw += fcd.Draw;
+            var prevSpec = this.fontSpec;
+            fcd.SelectedFontSpecChanged += spec =>
+            {
+                this.fontSpec = spec;
+                Log.Information("Selected font: {font}", this.fontSpec);
+                this.fontDialogHandle?.Dispose();
+                this.fontDialogHandle = null;
+            };
             fcd.ResultTask.ContinueWith(
                 r => Service<Framework>.Get().RunOnFrameworkThread(
                     () =>
@@ -143,13 +153,13 @@ internal class GamePrebakedFontsTestWidget : IDataWindowWidget, IDisposable
                         fcd.Dispose();
 
                         _ = r.Exception;
-                        if (!r.IsCompletedSuccessfully)
-                            return;
-
-                        this.fontSpec = r.Result;
-                        Log.Information("Selected font: {font}", this.fontSpec);
-                        this.fontDialogHandle?.Dispose();
-                        this.fontDialogHandle = null;
+                        var spec = r.IsCompletedSuccessfully ? r.Result : prevSpec;
+                        if (this.fontSpec != spec)
+                        {
+                            this.fontSpec = spec;
+                            this.fontDialogHandle?.Dispose();
+                            this.fontDialogHandle = null;
+                        }
                     }));
         }
 
