@@ -44,6 +44,8 @@ internal class GamePrebakedFontsTestWidget : IDataWindowWidget, IDisposable
     private bool useBold;
     private bool useMinimumBuild;
 
+    private SingleFontChooserDialog? chooserDialog;
+
     /// <inheritdoc/>
     public string[]? CommandShortcuts { get; init; }
 
@@ -126,41 +128,75 @@ internal class GamePrebakedFontsTestWidget : IDataWindowWidget, IDisposable
         if (ImGui.Button("Test Lock"))
             Task.Run(this.TestLock);
 
-        ImGui.SameLine();
         if (ImGui.Button("Choose Editor Font"))
         {
-            var fcd = new SingleFontChooserDialog(
-                Service<FontAtlasFactory>.Get(),
-                $"{nameof(GamePrebakedFontsTestWidget)}:EditorFont");
-            fcd.SelectedFont = this.fontSpec;
-            fcd.IgnorePreviewGlobalScale = !this.atlasScaleMode;
-            fcd.IsModal = false;
-            fcd.SetPopupPositionAndSizeToCurrentWindowCenter();
-            Service<InterfaceManager>.Get().Draw += fcd.Draw;
-            var prevSpec = this.fontSpec;
-            fcd.SelectedFontSpecChanged += spec =>
+            if (this.chooserDialog is null)
             {
-                this.fontSpec = spec;
-                Log.Information("Selected font: {font}", this.fontSpec);
-                this.fontDialogHandle?.Dispose();
-                this.fontDialogHandle = null;
-            };
-            fcd.ResultTask.ContinueWith(
-                r => Service<Framework>.Get().RunOnFrameworkThread(
-                    () =>
-                    {
-                        Service<InterfaceManager>.Get().Draw -= fcd.Draw;
-                        fcd.Dispose();
+                DoNext();
+            }
+            else
+            {
+                this.chooserDialog.Cancel();
+                this.chooserDialog.ResultTask.ContinueWith(_ => Service<Framework>.Get().RunOnFrameworkThread(DoNext));
+                this.chooserDialog = null;
+            }
 
-                        _ = r.Exception;
-                        var spec = r.IsCompletedSuccessfully ? r.Result : prevSpec;
-                        if (this.fontSpec != spec)
+            void DoNext()
+            {
+                var fcd = new SingleFontChooserDialog(
+                    Service<FontAtlasFactory>.Get(),
+                    $"{nameof(GamePrebakedFontsTestWidget)}:EditorFont");
+                this.chooserDialog = fcd;
+                fcd.SelectedFont = this.fontSpec;
+                fcd.IgnorePreviewGlobalScale = !this.atlasScaleMode;
+                fcd.IsModal = false;
+                Service<InterfaceManager>.Get().Draw += fcd.Draw;
+                var prevSpec = this.fontSpec;
+                fcd.SelectedFontSpecChanged += spec =>
+                {
+                    this.fontSpec = spec;
+                    Log.Information("Selected font: {font}", this.fontSpec);
+                    this.fontDialogHandle?.Dispose();
+                    this.fontDialogHandle = null;
+                };
+                fcd.ResultTask.ContinueWith(
+                    r => Service<Framework>.Get().RunOnFrameworkThread(
+                        () =>
                         {
-                            this.fontSpec = spec;
-                            this.fontDialogHandle?.Dispose();
-                            this.fontDialogHandle = null;
-                        }
-                    }));
+                            Service<InterfaceManager>.Get().Draw -= fcd.Draw;
+                            fcd.Dispose();
+
+                            _ = r.Exception;
+                            var spec = r.IsCompletedSuccessfully ? r.Result : prevSpec;
+                            if (this.fontSpec != spec)
+                            {
+                                this.fontSpec = spec;
+                                this.fontDialogHandle?.Dispose();
+                                this.fontDialogHandle = null;
+                            }
+
+                            this.chooserDialog = null;
+                        }));
+            }
+        }
+
+        if (this.chooserDialog is not null)
+        {
+            ImGui.SameLine();
+            ImGui.TextUnformatted($"{this.chooserDialog.PopupPosition}, {this.chooserDialog.PopupSize}");
+
+            ImGui.SameLine();
+            if (ImGui.Button("Random Location"))
+            {
+                var monitors = ImGui.GetPlatformIO().Monitors;
+                var monitor = monitors[Random.Shared.Next() % monitors.Size];
+                this.chooserDialog.PopupPosition = monitor.WorkPos + (monitor.WorkSize * new Vector2(
+                                                                          Random.Shared.NextSingle(),
+                                                                          Random.Shared.NextSingle()));
+                this.chooserDialog.PopupSize = monitor.WorkSize * new Vector2(
+                                                   Random.Shared.NextSingle(),
+                                                   Random.Shared.NextSingle());
+            }
         }
 
         this.privateAtlas ??=

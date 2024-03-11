@@ -85,6 +85,11 @@ public sealed class SingleFontChooserDialog : IDisposable
     private IFontHandle? fontHandle;
     private SingleFontSpec selectedFont;
 
+    private bool popupPositionChanged;
+    private bool popupSizeChanged;
+    private Vector2 popupPosition = new(float.NaN);
+    private Vector2 popupSize = new(float.NaN);
+
     /// <summary>Initializes a new instance of the <see cref="SingleFontChooserDialog"/> class.</summary>
     /// <param name="newAsyncAtlas">A new instance of <see cref="IFontAtlas"/> created using
     /// <see cref="FontAtlasAutoRebuildMode.Async"/> as its auto-rebuild mode.</param>
@@ -223,7 +228,15 @@ public sealed class SingleFontChooserDialog : IDisposable
     /// <para>If any of the coordinates are <see cref="float.NaN"/>, default position will be used.</para>
     /// <para>The position will be clamped into the work area of the selected monitor.</para>
     /// </remarks>
-    public Vector2 PopupPosition { get; set; } = new(float.NaN);
+    public Vector2 PopupPosition
+    {
+        get => this.popupPosition;
+        set
+        {
+            this.popupPositionChanged = true;
+            this.popupPosition = value;
+        }
+    }
 
     /// <summary>Gets or sets the popup window size.</summary>
     /// <remarks>
@@ -231,7 +244,15 @@ public sealed class SingleFontChooserDialog : IDisposable
     /// <para>If any of the coordinates are <see cref="float.NaN"/>, default size will be used.</para>
     /// <para>The size will be clamped into the work area of the selected monitor.</para>
     /// </remarks>
-    public Vector2 PopupSize { get; set; } = new(float.NaN);
+    public Vector2 PopupSize
+    {
+        get => this.popupSize;
+        set
+        {
+            this.popupSizeChanged = true;
+            this.popupSize = value;
+        }
+    }
 
     /// <summary>Creates a new instance of <see cref="SingleFontChooserDialog"/> that will automatically draw and
     /// dispose itself as needed; calling <see cref="Draw"/> and <see cref="Dispose"/> are handled automatically.
@@ -313,14 +334,17 @@ public sealed class SingleFontChooserDialog : IDisposable
         {
             if (this.IsModal)
                 ImGui.OpenPopup(this.popupImGuiName);
+        }
 
-            var preferProvidedSize = !float.IsNaN(this.PopupSize.X) && !float.IsNaN(this.PopupSize.Y);
-            var size = preferProvidedSize ? this.PopupSize : GetDefaultPopupSizeNonClamped();
+        if (this.firstDraw || this.popupPositionChanged || this.popupSizeChanged)
+        {
+            var preferProvidedSize = !float.IsNaN(this.popupSize.X) && !float.IsNaN(this.popupSize.Y);
+            var size = preferProvidedSize ? this.popupSize : GetDefaultPopupSizeNonClamped();
             size.X = Math.Max(size.X, popupMinWidth);
             size.Y = Math.Max(size.Y, popupMinHeight);
 
-            var preferProvidedPos = !float.IsNaN(this.PopupPosition.X) && !float.IsNaN(this.PopupPosition.Y);
-            var monitorLocatorPos = preferProvidedPos ? this.PopupPosition + (size / 2) : ImGui.GetMousePos();
+            var preferProvidedPos = !float.IsNaN(this.popupPosition.X) && !float.IsNaN(this.popupPosition.Y);
+            var monitorLocatorPos = preferProvidedPos ? this.popupPosition + (size / 2) : ImGui.GetMousePos();
 
             var monitors = ImGui.GetPlatformIO().Monitors;
             var preferredMonitor = 0;
@@ -346,8 +370,9 @@ public sealed class SingleFontChooserDialog : IDisposable
                     ? new(Math.Clamp(this.PopupPosition.X, lt.X, rb.X), Math.Clamp(this.PopupPosition.Y, lt.Y, rb.Y))
                     : (lt + rb) / 2;
 
-            ImGui.SetNextWindowSize(size, ImGuiCond.Appearing);
-            ImGui.SetNextWindowPos(pos, ImGuiCond.Appearing);
+            ImGui.SetNextWindowSize(size, ImGuiCond.Always);
+            ImGui.SetNextWindowPos(pos, ImGuiCond.Always);
+            this.popupPositionChanged = this.popupSizeChanged = false;
         }
 
         ImGui.SetNextWindowSizeConstraints(new(popupMinWidth, popupMinHeight), new(float.MaxValue));
@@ -404,6 +429,8 @@ public sealed class SingleFontChooserDialog : IDisposable
 
         ImGui.EndChild();
 
+        this.popupPosition = ImGui.GetWindowPos();
+        this.popupSize = ImGui.GetWindowSize();
         if (this.IsModal)
             ImGui.EndPopup();
         else
