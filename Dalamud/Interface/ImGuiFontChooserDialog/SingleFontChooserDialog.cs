@@ -9,6 +9,7 @@ using Dalamud.Configuration.Internal;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.FontIdentifier;
 using Dalamud.Interface.ManagedFontAtlas;
+using Dalamud.Interface.ManagedFontAtlas.Internals;
 using Dalamud.Interface.Utility;
 using Dalamud.Utility;
 
@@ -84,11 +85,17 @@ public sealed class SingleFontChooserDialog : IDisposable
     private IFontHandle? fontHandle;
     private SingleFontSpec selectedFont;
 
-    /// <summary>
-    /// Initializes a new instance of the <see cref="SingleFontChooserDialog"/> class.
-    /// </summary>
+    /// <summary>Initializes a new instance of the <see cref="SingleFontChooserDialog"/> class.</summary>
     /// <param name="newAsyncAtlas">A new instance of <see cref="IFontAtlas"/> created using
     /// <see cref="FontAtlasAutoRebuildMode.Async"/> as its auto-rebuild mode.</param>
+    /// <remarks>The passed instance of <see cref="newAsyncAtlas"/> will be disposed after use. If you pass an atlas
+    /// that is already being used, then all the font handles under the passed atlas will be invalidated upon disposing
+    /// this font chooser. Consider using <see cref="SingleFontChooserDialog(UiBuilder, bool, string?)"/> for automatic
+    /// handling of font atlas derived from a <see cref="UiBuilder"/>, or even <see cref="CreateAuto"/> for automatic
+    /// registration and unregistration of <see cref="Draw"/> event handler in addition to automatic disposal of this
+    /// class and the temporary font atlas for this font chooser dialog.</remarks>
+    [Obsolete("See remarks, and use the other constructor.", false)]
+    [Api10ToDo("Make private.")]
     public SingleFontChooserDialog(IFontAtlas newAsyncAtlas)
     {
         this.counter = Interlocked.Increment(ref counterStatic);
@@ -98,6 +105,36 @@ public sealed class SingleFontChooserDialog : IDisposable
         this.selectedFont = new() { FontId = DalamudDefaultFontAndFamilyId.Instance };
         Encoding.UTF8.GetBytes("Font preview.\n0123456789!", this.fontPreviewText);
     }
+
+#pragma warning disable CS0618 // Type or member is obsolete
+    // TODO: Api10ToDo; Remove this pragma warning disable line
+    
+    /// <summary>Initializes a new instance of the <see cref="SingleFontChooserDialog"/> class.</summary>
+    /// <param name="uiBuilder">The relevant instance of UiBuilder.</param>
+    /// <param name="isGlobalScaled">Whether the fonts in the atlas is global scaled.</param>
+    /// <param name="debugAtlasName">Atlas name for debugging purposes.</param>
+    /// <remarks>
+    /// <para>The passed <see cref="UiBuilder"/> is only used for creating a temporary font atlas. It will not
+    /// automatically register a hander for <see cref="UiBuilder.Draw"/>.</para>
+    /// <para>Consider using <see cref="CreateAuto"/> for automatic registration and unregistration of
+    /// <see cref="Draw"/> event handler in addition to automatic disposal of this class and the temporary font atlas
+    /// for this font chooser dialog.</para>
+    /// </remarks>
+    public SingleFontChooserDialog(UiBuilder uiBuilder, bool isGlobalScaled = true, string? debugAtlasName = null)
+        : this(uiBuilder.CreateFontAtlas(FontAtlasAutoRebuildMode.Async, isGlobalScaled, debugAtlasName))
+    {
+    }
+
+    /// <summary>Initializes a new instance of the <see cref="SingleFontChooserDialog"/> class.</summary>
+    /// <param name="factory">An instance of <see cref="FontAtlasFactory"/>.</param>
+    /// <param name="debugAtlasName">The temporary atlas name.</param>
+    internal SingleFontChooserDialog(FontAtlasFactory factory, string debugAtlasName)
+        : this(factory.CreateFontAtlas(debugAtlasName, FontAtlasAutoRebuildMode.Async))
+    {
+    }
+    
+#pragma warning restore CS0618 // Type or member is obsolete
+    // TODO: Api10ToDo; Remove this pragma warning restore line
 
     /// <summary>
     /// Gets or sets the title of this font chooser dialog popup.
@@ -166,15 +203,14 @@ public sealed class SingleFontChooserDialog : IDisposable
     /// </summary>
     public bool IgnorePreviewGlobalScale { get; set; }
 
-    /// <summary>
-    /// Creates a new instance of <see cref="SingleFontChooserDialog"/> that will automatically draw and dispose itself as
-    /// needed.
+    /// <summary>Creates a new instance of <see cref="SingleFontChooserDialog"/> that will automatically draw and
+    /// dispose itself as needed; calling <see cref="Draw"/> and <see cref="Dispose"/> are handled automatically.
     /// </summary>
     /// <param name="uiBuilder">An instance of <see cref="UiBuilder"/>.</param>
     /// <returns>The new instance of <see cref="SingleFontChooserDialog"/>.</returns>
     public static SingleFontChooserDialog CreateAuto(UiBuilder uiBuilder)
     {
-        var fcd = new SingleFontChooserDialog(uiBuilder.CreateFontAtlas(FontAtlasAutoRebuildMode.Async));
+        var fcd = new SingleFontChooserDialog(uiBuilder);
         uiBuilder.Draw += fcd.Draw;
         fcd.tcs.Task.ContinueWith(
             r =>

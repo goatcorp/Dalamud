@@ -130,9 +130,8 @@ internal class GamePrebakedFontsTestWidget : IDataWindowWidget, IDisposable
         if (ImGui.Button("Choose Editor Font"))
         {
             var fcd = new SingleFontChooserDialog(
-                Service<FontAtlasFactory>.Get().CreateFontAtlas(
-                    $"{nameof(GamePrebakedFontsTestWidget)}:EditorFont",
-                    FontAtlasAutoRebuildMode.Async));
+                Service<FontAtlasFactory>.Get(),
+                $"{nameof(GamePrebakedFontsTestWidget)}:EditorFont");
             fcd.SelectedFont = this.fontSpec;
             fcd.IgnorePreviewGlobalScale = !this.atlasScaleMode;
             Service<InterfaceManager>.Get().Draw += fcd.Draw;

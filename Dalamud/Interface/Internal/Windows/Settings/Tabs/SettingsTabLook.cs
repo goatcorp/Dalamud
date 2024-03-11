@@ -199,8 +199,7 @@ public class SettingsTabLook : SettingsTab
         if (ImGui.Button(Loc.Localize("DalamudSettingChooseDefaultFont", "Choose Default Font")))
         {
             var faf = Service<FontAtlasFactory>.Get();
-            var fcd = new SingleFontChooserDialog(
-                faf.CreateFontAtlas($"{nameof(SettingsTabLook)}:Default", FontAtlasAutoRebuildMode.Async));
+            var fcd = new SingleFontChooserDialog(faf, $"{nameof(SettingsTabLook)}:Default");
             fcd.SelectedFont = (SingleFontSpec)this.defaultFontSpec;
             fcd.FontFamilyExcludeFilter = x => x is DalamudDefaultFontAndFamilyId;
             interfaceManager.Draw += fcd.Draw;
