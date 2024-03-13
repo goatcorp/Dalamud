@@ -25,9 +25,9 @@ namespace Dalamud.Game;
 internal sealed class Framework : IDisposable, IServiceType, IFramework
 {
     private static readonly ModuleLog Log = new("Framework");
-    
+
     private static readonly Stopwatch StatsStopwatch = new();
-    
+
     private readonly GameLifecycle lifecycle;
 
     private readonly Stopwatch updateStopwatch = new();
@@ -75,6 +75,11 @@ internal sealed class Framework : IDisposable, IServiceType, IFramework
 
     /// <inheritdoc/>
     public event IFramework.OnUpdateDelegate? Update;
+
+    /// <summary>
+    /// Executes during FrameworkUpdate before all <see cref="Update"/> delegates.
+    /// </summary>
+    internal event IFramework.OnUpdateDelegate BeforeUpdate;
 
     /// <summary>
     /// Gets or sets a value indicating whether the collection of stats is enabled.
@@ -280,7 +285,7 @@ internal sealed class Framework : IDisposable, IServiceType, IFramework
         this.updateStopwatch.Reset();
         StatsStopwatch.Reset();
     }
-            
+
     /// <summary>
     /// Adds a update time to the stats history.
     /// </summary>
@@ -307,7 +312,7 @@ internal sealed class Framework : IDisposable, IServiceType, IFramework
     internal void ProfileAndInvoke(IFramework.OnUpdateDelegate? eventDelegate, IFramework frameworkInstance)
     {
         if (eventDelegate is null) return;
-        
+
         var invokeList = eventDelegate.GetInvocationList();
 
         // Individually invoke OnUpdate handlers and time them.
@@ -352,6 +357,8 @@ internal sealed class Framework : IDisposable, IServiceType, IFramework
         this.frameworkUpdateThread ??= Thread.CurrentThread;
 
         ThreadSafety.MarkMainThread();
+
+        this.BeforeUpdate?.InvokeSafely(this);
 
         this.hitchDetector.Start();
 
@@ -425,7 +432,7 @@ internal sealed class Framework : IDisposable, IServiceType, IFramework
 
         this.hitchDetector.Stop();
 
-        original:
+    original:
         return this.updateHook.OriginalDisposeSafe(framework);
     }
 
@@ -558,19 +565,19 @@ internal class FrameworkPluginScoped : IDisposable, IServiceType, IFramework
 
     /// <inheritdoc/>
     public DateTime LastUpdate => this.frameworkService.LastUpdate;
-    
+
     /// <inheritdoc/>
     public DateTime LastUpdateUTC => this.frameworkService.LastUpdateUTC;
-    
+
     /// <inheritdoc/>
     public TimeSpan UpdateDelta => this.frameworkService.UpdateDelta;
-    
+
     /// <inheritdoc/>
     public bool IsInFrameworkUpdateThread => this.frameworkService.IsInFrameworkUpdateThread;
-    
+
     /// <inheritdoc/>
     public bool IsFrameworkUnloading => this.frameworkService.IsFrameworkUnloading;
-    
+
     /// <inheritdoc/>
     public void Dispose()
     {
@@ -582,27 +589,27 @@ internal class FrameworkPluginScoped : IDisposable, IServiceType, IFramework
     /// <inheritdoc/>
     public Task<T> RunOnFrameworkThread<T>(Func<T> func)
         => this.frameworkService.RunOnFrameworkThread(func);
-    
+
     /// <inheritdoc/>
     public Task RunOnFrameworkThread(Action action)
         => this.frameworkService.RunOnFrameworkThread(action);
-    
+
     /// <inheritdoc/>
     public Task<T> RunOnFrameworkThread<T>(Func<Task<T>> func)
         => this.frameworkService.RunOnFrameworkThread(func);
-    
+
     /// <inheritdoc/>
     public Task RunOnFrameworkThread(Func<Task> func)
         => this.frameworkService.RunOnFrameworkThread(func);
-    
+
     /// <inheritdoc/>
     public Task<T> RunOnTick<T>(Func<T> func, TimeSpan delay = default, int delayTicks = default, CancellationToken cancellationToken = default)
         => this.frameworkService.RunOnTick(func, delay, delayTicks, cancellationToken);
-    
+
     /// <inheritdoc/>
     public Task RunOnTick(Action action, TimeSpan delay = default, int delayTicks = default, CancellationToken cancellationToken = default)
         => this.frameworkService.RunOnTick(action, delay, delayTicks, cancellationToken);
-    
+
     /// <inheritdoc/>
     public Task<T> RunOnTick<T>(Func<Task<T>> func, TimeSpan delay = default, int delayTicks = default, CancellationToken cancellationToken = default)
         => this.frameworkService.RunOnTick(func, delay, delayTicks, cancellationToken);
