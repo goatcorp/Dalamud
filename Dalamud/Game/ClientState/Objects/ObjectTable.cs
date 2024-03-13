@@ -22,18 +22,19 @@ namespace Dalamud.Game.ClientState.Objects;
 #pragma warning disable SA1015
 [ResolveVia<IObjectTable>]
 #pragma warning restore SA1015
-internal sealed partial class ObjectTable : IServiceType, IObjectTable
+internal sealed partial class ObjectTable : IServiceType, IObjectTable, IDisposable
 {
     private const int ObjectTableLength = 599;
 
     private readonly ClientState clientState;
+    private readonly Framework framework;
     private GameObject?[] cachedObjectTable = new GameObject?[ObjectTableLength];
 
     [ServiceManager.ServiceConstructor]
     private ObjectTable(ClientState clientState, Framework framework)
     {
         this.clientState = clientState;
-
+        this.framework = framework;
         framework.Update += this.FrameworkOnUpdate;
 
         Log.Verbose($"Object table address 0x{this.clientState.AddressResolver.ObjectTable.ToInt64():X}");
@@ -107,6 +108,12 @@ internal sealed partial class ObjectTable : IServiceType, IObjectTable
             ObjectKind.Ornament => new Npc(address),
             _ => new GameObject(address),
         };
+    }
+
+    /// <inheritdoc />
+    public void Dispose()
+    {
+        this.framework.Update -= this.FrameworkOnUpdate;
     }
 
     private void FrameworkOnUpdate(IFramework framework)
