@@ -87,6 +87,11 @@ public interface IFontAtlas : IDisposable
     /// </summary>
     /// <param name="style">Font to use.</param>
     /// <returns>Handle to a font that may or may not be ready yet.</returns>
+    /// <remarks>
+    /// <para>Do not call this function during <see cref="BuildStepChange"/>, <see cref="UiBuilder.BuildFonts"/>,
+    /// <see cref="UiBuilder.AfterBuildFonts"/>, and alike. If it works, it is accidental.</para>
+    /// <para>It is safe to call this function from the plugin constructor.</para>
+    /// </remarks>
     public IFontHandle NewGameFontHandle(GameFontStyle style);
 
     /// <summary>
@@ -95,8 +100,12 @@ public interface IFontAtlas : IDisposable
     /// <param name="buildStepDelegate">Callback for <see cref="IFontAtlas.BuildStepChange"/>.</param>
     /// <returns>Handle to a font that may or may not be ready yet.</returns>
     /// <remarks>
-    /// Consider calling <see cref="IFontAtlasBuildToolkitPreBuild.AttachExtraGlyphsForDalamudLanguage"/> to support
-    /// glyphs that are not supplied by the game by default; this mostly affects Chinese and Korean language users.
+    /// <para>Consider calling <see cref="IFontAtlasBuildToolkitPreBuild.AttachExtraGlyphsForDalamudLanguage"/> to
+    /// support glyphs that are not supplied by the game by default; this mostly affects Chinese and Korean language
+    /// users.</para>
+    /// <para>Do not call this function during <see cref="BuildStepChange"/>, <see cref="UiBuilder.BuildFonts"/>,
+    /// <see cref="UiBuilder.AfterBuildFonts"/>, and alike. If it works, it is accidental.</para>
+    /// <para>It is safe to call this function from the plugin constructor.</para>
     /// </remarks>
     /// <example>
     /// <b>On initialization</b>:
