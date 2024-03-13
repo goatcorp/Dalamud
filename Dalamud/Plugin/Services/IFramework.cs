@@ -30,6 +30,11 @@ public interface IFramework
     public DateTime LastUpdateUTC { get; }
 
     /// <summary>
+    /// Gets a <see cref="TaskFactory"/> that runs tasks during Framework Update event.
+    /// </summary>
+    public TaskFactory FrameworkThreadTaskFactory { get; }
+
+    /// <summary>
     /// Gets the delta between the last Framework Update and the currently executing one.
     /// </summary>
     public TimeSpan UpdateDelta { get; }
@@ -43,6 +48,14 @@ public interface IFramework
     /// Gets a value indicating whether game Framework is unloading.
     /// </summary>
     public bool IsFrameworkUnloading { get; }
+
+    /// <summary>
+    /// Returns a task that completes after the given number of ticks. 
+    /// </summary>
+    /// <param name="numTicks">Number of ticks to delay.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>A new <see cref="Task"/> that gets resolved after specified number of ticks happen.</returns>
+    public Task DelayTicks(long numTicks, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Run given function right away if this function has been called from game's Framework.Update thread, or otherwise run on next Framework.Update call.
@@ -65,6 +78,7 @@ public interface IFramework
     /// <typeparam name="T">Return type.</typeparam>
     /// <param name="func">Function to call.</param>
     /// <returns>Task representing the pending or already completed function.</returns>
+    [Obsolete($"Use {nameof(RunOnTick)} instead.")]
     public Task<T> RunOnFrameworkThread<T>(Func<Task<T>> func);
 
     /// <summary>
@@ -72,6 +86,7 @@ public interface IFramework
     /// </summary>
     /// <param name="func">Function to call.</param>
     /// <returns>Task representing the pending or already completed function.</returns>
+    [Obsolete($"Use {nameof(RunOnTick)} instead.")]
     public Task RunOnFrameworkThread(Func<Task> func);
 
     /// <summary>
