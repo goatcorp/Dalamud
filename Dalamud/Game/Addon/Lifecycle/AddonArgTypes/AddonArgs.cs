@@ -44,10 +44,10 @@ public abstract unsafe class AddonArgs
         get => this.addon;
         set
         {
-            if (this.addon == value)
-                return;
-
             this.addon = value;
+
+            // Note: always clear addonName on updating the addon being pointed.
+            // Same address may point to a different addon.
             this.addonName = null;
         }
     }

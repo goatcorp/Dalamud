@@ -68,9 +68,6 @@ internal class InterfaceManager : IDisposable, IServiceType
 
     [ServiceManager.ServiceDependency]
     private readonly WndProcHookManager wndProcHookManager = Service<WndProcHookManager>.Get();
-    
-    [ServiceManager.ServiceDependency]
-    private readonly DalamudIme dalamudIme = Service<DalamudIme>.Get();
 
     private readonly SwapChainVtableResolver address = new();
     private readonly Hook<SetCursorDelegate> setCursorHook;
@@ -628,8 +625,6 @@ internal class InterfaceManager : IDisposable, IServiceType
         var r = this.scene?.ProcessWndProcW(args.Hwnd, (User32.WindowMessage)args.Message, args.WParam, args.LParam);
         if (r is not null)
             args.SuppressWithValue(r.Value);
-
-        this.dalamudIme.ProcessImeMessage(args);
     }
 
     /*

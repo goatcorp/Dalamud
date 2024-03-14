@@ -395,9 +395,15 @@ namespace Dalamud.Injector
             startInfo.BootShowConsole = args.Contains("--console");
             startInfo.BootEnableEtw = args.Contains("--etw");
             startInfo.BootLogPath = GetLogPath(startInfo.LogPath, "dalamud.boot", startInfo.LogName);
-            startInfo.BootEnabledGameFixes = new List<string> {
-                "prevent_devicechange_crashes", "disable_game_openprocess_access_check",
-                "redirect_openprocess", "backup_userdata_save", "prevent_icmphandle_crashes",
+            startInfo.BootEnabledGameFixes = new()
+            {
+                // See: xivfixes.h, xivfixes.cpp
+                "prevent_devicechange_crashes",
+                "disable_game_openprocess_access_check",
+                "redirect_openprocess",
+                "backup_userdata_save",
+                "prevent_icmphandle_crashes",
+                "symbol_load_patches",
             };
             startInfo.BootDotnetOpenProcessHookMode = 0;
             startInfo.BootWaitMessageBox |= args.Contains("--msgbox1") ? 1 : 0;
