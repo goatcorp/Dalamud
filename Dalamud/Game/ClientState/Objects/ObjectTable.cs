@@ -26,12 +26,11 @@ namespace Dalamud.Game.ClientState.Objects;
 #pragma warning disable SA1015
 [ResolveVia<IObjectTable>]
 #pragma warning restore SA1015
-internal sealed partial class ObjectTable : IServiceType, IObjectTable, IDisposable
+internal sealed partial class ObjectTable : IServiceType, IObjectTable
 {
     private const int ObjectTableLength = 599;
 
     private readonly ClientState clientState;
-    private readonly Framework framework;
     private readonly CachedEntry[] cachedObjectTable = new CachedEntry[ObjectTableLength];
 
     private readonly ObjectPool<Enumerator> multiThreadedEnumerators =
@@ -42,16 +41,14 @@ internal sealed partial class ObjectTable : IServiceType, IObjectTable, IDisposa
     private long nextMultithreadedUsageWarnTime;
 
     [ServiceManager.ServiceConstructor]
-    private ObjectTable(ClientState clientState, Framework framework)
+    private ObjectTable(ClientState clientState)
     {
         this.clientState = clientState;
-        this.framework = framework;
         foreach (ref var e in this.cachedObjectTable.AsSpan())
             e = CachedEntry.CreateNew();
         for (var i = 0; i < this.frameworkThreadEnumerators.Length; i++)
             this.frameworkThreadEnumerators[i] = new(this, i);
 
-        framework.BeforeUpdate += this.FrameworkOnBeforeUpdate;
         Log.Verbose($"Object table address 0x{this.clientState.AddressResolver.ObjectTable.ToInt64():X}");
     }
 
@@ -76,7 +73,9 @@ internal sealed partial class ObjectTable : IServiceType, IObjectTable, IDisposa
         {
             _ = this.WarnMultithreadedUsage();
 
-            return index is >= ObjectTableLength or < 0 ? null : this.cachedObjectTable[index].ActiveObject;
+            if (index is >= ObjectTableLength or < 0) return null;
+            this.cachedObjectTable[index].Update(this.GetObjectAddressUnsafe(index));
+            return this.cachedObjectTable[index].ActiveObject;
         }
     }
 
@@ -135,12 +134,6 @@ internal sealed partial class ObjectTable : IServiceType, IObjectTable, IDisposa
         };
     }
 
-    /// <inheritdoc />
-    public void Dispose()
-    {
-        this.framework.BeforeUpdate -= this.FrameworkOnBeforeUpdate;
-    }
-
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private bool WarnMultithreadedUsage()
     {
@@ -192,6 +185,9 @@ internal sealed partial class ObjectTable : IServiceType, IObjectTable, IDisposa
 
         public unsafe void Update(nint address)
         {
+            if (this.ActiveObject != null && address == this.ActiveObject.Address)
+                return;
+
             if (address == nint.Zero)
             {
                 this.ActiveObject = null;
