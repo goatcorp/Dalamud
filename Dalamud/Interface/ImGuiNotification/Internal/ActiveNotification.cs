@@ -252,6 +252,14 @@ internal sealed partial class ActiveNotification : IActiveNotification
     }
 
     /// <summary>Removes non-Dalamud invocation targets from events.</summary>
+    /// <remarks>
+    /// This is done to prevent references of plugins being unloaded from outliving the plugin itself.
+    /// Anything that can contain plugin-provided types and functions count, which effectively means that events and
+    /// interface/object-typed fields need to be scrubbed.
+    /// As a notification can be marked as non-user-dismissable, in which case after removing event handlers there will
+    /// be no way to remove the notification, we force the notification to become user-dismissable, and reset the expiry
+    /// to the default duration on unload.
+    /// </remarks>
     internal void RemoveNonDalamudInvocations()
     {
         var dalamudContext = AssemblyLoadContext.GetLoadContext(typeof(NotificationManager).Assembly);
