@@ -70,7 +70,16 @@ public static class DisposeSafety
         r =>
         {
             if (!r.IsCompletedSuccessfully)
-                return ignoreAllExceptions ? Task.CompletedTask : r;
+            {
+                if (ignoreAllExceptions)
+                {
+                    _ = r.Exception;
+                    return Task.CompletedTask;
+                }
+
+                return r;
+            }
+
             try
             {
                 r.Result.Dispose();

@@ -549,8 +549,7 @@ internal static class ServiceManager
         }
         catch (Exception e)
         {
-            // TODO: attach type name
-            throw new NotImplementedException();
+            throw new InvalidOperationException($"{serviceType.Name}: {e.Message}");
         }
 #endif
     }
