@@ -499,6 +499,9 @@ internal class FrameworkPluginScoped : IDisposable, IServiceType, IFramework
     public DateTime LastUpdateUTC => this.frameworkService.LastUpdateUTC;
 
     /// <inheritdoc/>
+    public TaskFactory FrameworkThreadTaskFactory => this.frameworkService.FrameworkThreadTaskFactory;
+
+    /// <inheritdoc/>
     public TimeSpan UpdateDelta => this.frameworkService.UpdateDelta;
 
     /// <inheritdoc/>

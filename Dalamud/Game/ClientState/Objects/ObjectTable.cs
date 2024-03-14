@@ -15,6 +15,8 @@ using Microsoft.Extensions.ObjectPool;
 
 using Serilog;
 
+using CSGameObject = FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject;
+
 namespace Dalamud.Game.ClientState.Objects;
 
 /// <summary>
@@ -36,16 +38,19 @@ internal sealed partial class ObjectTable : IServiceType, IObjectTable
     private readonly ObjectPool<Enumerator> multiThreadedEnumerators =
         new DefaultObjectPoolProvider().Create<Enumerator>();
 
-    private readonly Enumerator?[] frameworkThreadEnumerators = new Enumerator?[64];
+    private readonly Enumerator?[] frameworkThreadEnumerators = new Enumerator?[4];
 
     private long nextMultithreadedUsageWarnTime;
 
     [ServiceManager.ServiceConstructor]
-    private ObjectTable(ClientState clientState)
+    private unsafe ObjectTable(ClientState clientState)
     {
         this.clientState = clientState;
-        foreach (ref var e in this.cachedObjectTable.AsSpan())
-            e = CachedEntry.CreateNew();
+
+        var nativeObjectTableAddress = (CSGameObject**)this.clientState.AddressResolver.ObjectTable;
+        for (var i = 0; i < this.cachedObjectTable.Length; i++)
+            this.cachedObjectTable[i] = new(nativeObjectTableAddress, i);
+
         for (var i = 0; i < this.frameworkThreadEnumerators.Length; i++)
             this.frameworkThreadEnumerators[i] = new(this, i);
 
@@ -73,9 +78,7 @@ internal sealed partial class ObjectTable : IServiceType, IObjectTable
         {
             _ = this.WarnMultithreadedUsage();
 
-            if (index is >= ObjectTableLength or < 0) return null;
-            this.cachedObjectTable[index].Update(this.GetObjectAddressUnsafe(index));
-            return this.cachedObjectTable[index].ActiveObject;
+            return index is >= ObjectTableLength or < 0 ? null : this.cachedObjectTable[index].Update();
         }
     }
 
@@ -87,13 +90,10 @@ internal sealed partial class ObjectTable : IServiceType, IObjectTable
         if (objectId is GameObject.InvalidGameObjectId or 0)
             return null;
 
-        foreach (var obj in this)
+        foreach (var e in this.cachedObjectTable)
         {
-            if (obj == null)
-                continue;
-
-            if (obj.ObjectId == objectId)
-                return obj;
+            if (e.Update() is { } o && o.ObjectId == objectId)
+                return o;
         }
 
         return null;
@@ -118,7 +118,7 @@ internal sealed partial class ObjectTable : IServiceType, IObjectTable
         if (address == nint.Zero)
             return null;
 
-        var obj = (FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject*)address;
+        var obj = (CSGameObject*)address;
         var objKind = (ObjectKind)obj->ObjectKind;
         return objKind switch
         {
@@ -134,6 +134,7 @@ internal sealed partial class ObjectTable : IServiceType, IObjectTable
         };
     }
 
+    [Api10ToDo("Use ThreadSafety.AssertMainThread() instead of this.")]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private bool WarnMultithreadedUsage()
     {
@@ -158,52 +159,58 @@ internal sealed partial class ObjectTable : IServiceType, IObjectTable
     private unsafe nint GetObjectAddressUnsafe(int index) =>
         *(nint*)(this.clientState.AddressResolver.ObjectTable + (8 * index));
 
-    private struct CachedEntry
+    /// <summary>Stores an object table entry, with preallocated concrete types.</summary>
+    internal readonly unsafe struct CachedEntry
     {
-        public GameObject? ActiveObject;
-        public PlayerCharacter PlayerCharacter;
-        public BattleNpc BattleNpc;
-        public Npc Npc;
-        public EventObj EventObj;
-        public GameObject GameObject;
+        private readonly CSGameObject** gameObjectPtrPtr;
+        private readonly PlayerCharacter playerCharacter;
+        private readonly BattleNpc battleNpc;
+        private readonly Npc npc;
+        private readonly EventObj eventObj;
+        private readonly GameObject gameObject;
 
-        public static CachedEntry CreateNew() =>
-            new()
-            {
-                PlayerCharacter = new(nint.Zero),
-                BattleNpc = new(nint.Zero),
-                Npc = new(nint.Zero),
-                EventObj = new(nint.Zero),
-                GameObject = new(nint.Zero),
-            };
-
-        public unsafe void Update(nint address)
+        /// <summary>Initializes a new instance of the <see cref="CachedEntry"/> struct.</summary>
+        /// <param name="ownerTable">The object table that this entry should be pointing to.</param>
+        /// <param name="slot">The slot index inside the table.</param>
+        public CachedEntry(CSGameObject** ownerTable, int slot)
         {
-            if (this.ActiveObject != null && address == this.ActiveObject.Address)
-                return;
+            this.gameObjectPtrPtr = ownerTable + slot;
+            this.playerCharacter = new(nint.Zero);
+            this.battleNpc = new(nint.Zero);
+            this.npc = new(nint.Zero);
+            this.eventObj = new(nint.Zero);
+            this.gameObject = new(nint.Zero);
+        }
 
-            if (address == nint.Zero)
-            {
-                this.ActiveObject = null;
-                return;
-            }
+        /// <summary>Gets the address of the underlying native object. May be null.</summary>
+        public CSGameObject* Address
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => *this.gameObjectPtrPtr;
+        }
 
-            var obj = (FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject*)address;
-            var objKind = (ObjectKind)obj->ObjectKind;
-            var activeObject = objKind switch
+        /// <summary>Updates and gets the wrapped game object pointed by this struct.</summary>
+        /// <returns>The pointed object, or <c>null</c> if no object exists at that slot.</returns>
+        public GameObject? Update()
+        {
+            var address = this.Address;
+            if (address is null)
+                return null;
+
+            var activeObject = (ObjectKind)address->ObjectKind switch
             {
-                ObjectKind.Player => this.PlayerCharacter,
-                ObjectKind.BattleNpc => this.BattleNpc,
-                ObjectKind.EventNpc => this.Npc,
-                ObjectKind.Retainer => this.Npc,
-                ObjectKind.EventObj => this.EventObj,
-                ObjectKind.Companion => this.Npc,
-                ObjectKind.MountType => this.Npc,
-                ObjectKind.Ornament => this.Npc,
-                _ => this.GameObject,
+                ObjectKind.Player => this.playerCharacter,
+                ObjectKind.BattleNpc => this.battleNpc,
+                ObjectKind.EventNpc => this.npc,
+                ObjectKind.Retainer => this.npc,
+                ObjectKind.EventObj => this.eventObj,
+                ObjectKind.Companion => this.npc,
+                ObjectKind.MountType => this.npc,
+                ObjectKind.Ornament => this.npc,
+                _ => this.gameObject,
             };
-            activeObject.Address = address;
-            this.ActiveObject = activeObject;
+            activeObject.Address = (nint)address;
+            return activeObject;
         }
     }
 }
@@ -219,6 +226,7 @@ internal sealed partial class ObjectTable
     /// <inheritdoc/>
     public IEnumerator<GameObject> GetEnumerator()
     {
+        // If something's trying to enumerate outside the framework thread, we use the ObjectPool.
         if (this.WarnMultithreadedUsage())
         {
             // let's not
@@ -227,6 +235,7 @@ internal sealed partial class ObjectTable
             return e;
         }
 
+        // If we're on the framework thread, see if there's an already allocated enumerator available for use.
         foreach (ref var x in this.frameworkThreadEnumerators.AsSpan())
         {
             if (x is not null)
@@ -238,6 +247,7 @@ internal sealed partial class ObjectTable
             }
         }
 
+        // No reusable enumerator is available; allocate a new temporary one.
         return new Enumerator(this, -1);
     }
 
@@ -271,9 +281,7 @@ internal sealed partial class ObjectTable
             var cache = this.owner!.cachedObjectTable.AsSpan();
             for (this.index++; this.index < ObjectTableLength; this.index++)
             {
-                this.owner!.cachedObjectTable[this.index].Update(this.owner!.GetObjectAddressUnsafe(this.index));
-                
-                if (cache[this.index].ActiveObject is { } ao)
+                if (cache[this.index].Update() is { } ao)
                 {
                     this.Current = ao;
                     return true;
