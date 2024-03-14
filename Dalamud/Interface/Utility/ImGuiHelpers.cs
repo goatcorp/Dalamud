@@ -3,7 +3,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Numerics;
 using System.Reactive.Disposables;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Unicode;
@@ -533,12 +532,6 @@ public static class ImGuiHelpers
     /// <returns><paramref name="self"/> if it is not default; otherwise, <paramref name="other"/>.</returns>
     public static unsafe ImFontPtr OrElse(this ImFontPtr self, ImFontPtr other) =>
         self.NativePtr is null ? other : self;
-
-    /// <summary>Converts the wrong struct to a correct struct.</summary>
-    /// <param name="glyph">The glyph being corrected.</param>
-    /// <returns>The correct struct.</returns>
-    internal static unsafe ref ImFontGlyphReal ToReal(in this ImFontGlyphPtr glyph) =>
-        ref *(ImFontGlyphReal*)glyph.NativePtr;
 
     /// <summary>
     /// Mark 4K page as used, after adding a codepoint to a font.
