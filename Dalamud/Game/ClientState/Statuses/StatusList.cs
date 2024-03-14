@@ -1,4 +1,3 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
@@ -10,6 +9,8 @@ namespace Dalamud.Game.ClientState.Statuses;
 /// </summary>
 public sealed unsafe partial class StatusList
 {
+    private readonly Status[] cachedStatus;
+
     /// <summary>
     /// Initializes a new instance of the <see cref="StatusList"/> class.
     /// </summary>
@@ -17,6 +18,12 @@ public sealed unsafe partial class StatusList
     internal StatusList(IntPtr address)
     {
         this.Address = address;
+        this.cachedStatus = new Status[this.Length];
+
+        for (var i = 0; i < this.cachedStatus.Length; i++)
+        {
+            this.cachedStatus[i] = new Status(nint.Zero);
+        }
     }
 
     /// <summary>
@@ -51,11 +58,13 @@ public sealed unsafe partial class StatusList
     {
         get
         {
-            if (index < 0 || index > this.Length)
+            var addr = this.GetStatusAddress(index);
+            if (addr == nint.Zero)
                 return null;
 
-            var addr = this.GetStatusAddress(index);
-            return CreateStatusReference(addr);
+            var status = this.cachedStatus[index];
+            status.Address = addr;
+            return status;
         }
     }
 

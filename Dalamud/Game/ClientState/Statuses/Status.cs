@@ -23,7 +23,7 @@ public unsafe class Status
     /// <summary>
     /// Gets the address of the status in memory.
     /// </summary>
-    public IntPtr Address { get; }
+    public IntPtr Address { get; internal set; }
 
     /// <summary>
     /// Gets the status ID of this status.
