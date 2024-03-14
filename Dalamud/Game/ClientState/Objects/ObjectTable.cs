@@ -296,7 +296,7 @@ internal sealed partial class ObjectTable
             if (this.owner is not { } o)
                 return;
 
-            if (this.index == -1)
+            if (this.slotId == -1)
                 o.multiThreadedEnumerators.Return(this);
             else
                 o.frameworkThreadEnumerators[this.slotId] = this;
