@@ -22,6 +22,7 @@ namespace Dalamud.Storage;
 /// This is not an early-loaded service, as it is needed before they are initialized.
 /// </remarks>
 [ServiceManager.ProvidedService]
+[Api10ToDo("Make internal and IInternalDisposableService, and remove #pragma guard from the caller.")]
 public class ReliableFileStorage : IPublicDisposableService
 {
     private static readonly ModuleLog Log = new("VFS");
@@ -35,6 +36,8 @@ public class ReliableFileStorage : IPublicDisposableService
     /// Initializes a new instance of the <see cref="ReliableFileStorage"/> class.
     /// </summary>
     /// <param name="vfsDbPath">Path to the VFS.</param>
+    [Obsolete("Dalamud internal use only.", false)]
+    [Api10ToDo("Make internal, and remove #pragma guard from the caller.")]
     public ReliableFileStorage(string vfsDbPath)
     {
         var databasePath = Path.Combine(vfsDbPath, "dalamudVfs.db");
