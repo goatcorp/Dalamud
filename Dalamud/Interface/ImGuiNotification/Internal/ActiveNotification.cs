@@ -91,6 +91,13 @@ internal sealed partial class ActiveNotification : IActiveNotification
     }
 
     /// <inheritdoc/>
+    public bool RespectUiHidden
+    {
+        get => this.underlyingNotification.RespectUiHidden;
+        set => this.underlyingNotification.RespectUiHidden = value;
+    }
+
+    /// <inheritdoc/>
     public string? MinimizedText
     {
         get => this.underlyingNotification.MinimizedText;

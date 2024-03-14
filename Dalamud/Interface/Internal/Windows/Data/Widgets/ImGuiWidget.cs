@@ -127,6 +127,8 @@ internal class ImGuiWidget : IDataWindowWidget
             NotificationTemplate.ProgressModeTitles,
             NotificationTemplate.ProgressModeTitles.Length);
 
+        ImGui.Checkbox("Respect UI Hidden", ref this.notificationTemplate.RespectUiHidden);
+
         ImGui.Checkbox("Minimized", ref this.notificationTemplate.Minimized);
 
         ImGui.Checkbox("Show Indeterminate If No Expiry", ref this.notificationTemplate.ShowIndeterminateIfNoExpiry);
@@ -160,6 +162,7 @@ internal class ImGuiWidget : IDataWindowWidget
                                         : null,
                     Type = type,
                     ShowIndeterminateIfNoExpiry = this.notificationTemplate.ShowIndeterminateIfNoExpiry,
+                    RespectUiHidden = this.notificationTemplate.RespectUiHidden,
                     Minimized = this.notificationTemplate.Minimized,
                     UserDismissable = this.notificationTemplate.UserDismissable,
                     InitialDuration =
@@ -388,6 +391,7 @@ internal class ImGuiWidget : IDataWindowWidget
         public int InitialDurationInt;
         public int HoverExtendDurationInt;
         public bool ShowIndeterminateIfNoExpiry;
+        public bool RespectUiHidden;
         public bool Minimized;
         public bool UserDismissable;
         public bool ActionBar;
@@ -413,6 +417,7 @@ internal class ImGuiWidget : IDataWindowWidget
             this.UserDismissable = true;
             this.ActionBar = true;
             this.ProgressMode = 0;
+            this.RespectUiHidden = true;
         }
     }
 }

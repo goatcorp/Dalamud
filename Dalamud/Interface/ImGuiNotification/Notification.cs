@@ -39,6 +39,9 @@ public sealed record Notification : INotification
     public bool ShowIndeterminateIfNoExpiry { get; set; } = true;
 
     /// <inheritdoc/>
+    public bool RespectUiHidden { get; set; } = true;
+
+    /// <inheritdoc/>
     public bool Minimized { get; set; } = true;
 
     /// <inheritdoc/>

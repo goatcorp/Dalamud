@@ -60,6 +60,9 @@ public interface INotification
     /// <see cref="HardExpiry"/> is set to <see cref="DateTime.MaxValue"/>.</summary>
     bool ShowIndeterminateIfNoExpiry { get; set; }
 
+    /// <summary>Gets or sets a value indicating whether to respect the current UI visibility state.</summary>
+    bool RespectUiHidden { get; set; }
+
     /// <summary>Gets or sets a value indicating whether the notification has been minimized.</summary>
     bool Minimized { get; set; }
 

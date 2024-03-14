@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 
+using Dalamud.Game.Gui;
 using Dalamud.Interface.GameFonts;
 using Dalamud.Interface.Internal.Notifications;
 using Dalamud.Interface.ManagedFontAtlas;
@@ -20,6 +21,9 @@ namespace Dalamud.Interface.ImGuiNotification.Internal;
 [ServiceManager.EarlyLoadedService]
 internal class NotificationManager : INotificationManager, IServiceType, IDisposable
 {
+    [ServiceManager.ServiceDependency]
+    private readonly GameGui gameGui = Service<GameGui>.Get();
+
     private readonly List<ActiveNotification> notifications = new();
     private readonly ConcurrentBag<ActiveNotification> pendingNotifications = new();
 
@@ -98,6 +102,7 @@ internal class NotificationManager : INotificationManager, IServiceType, IDispos
     {
         var viewportSize = ImGuiHelpers.MainViewport.WorkSize;
         var height = 0f;
+        var uiHidden = this.gameGui.GameUiHidden;
 
         while (this.pendingNotifications.TryTake(out var newNotification))
             this.notifications.Add(newNotification);
@@ -109,7 +114,11 @@ internal class NotificationManager : INotificationManager, IServiceType, IDispos
 
         this.notifications.RemoveAll(static x => x.UpdateOrDisposeInternal());
         foreach (var tn in this.notifications)
+        {
+            if (uiHidden && tn.RespectUiHidden)
+                continue;
             height += tn.Draw(width, height) + NotificationConstants.ScaledWindowGap;
+        }
     }
 }
 

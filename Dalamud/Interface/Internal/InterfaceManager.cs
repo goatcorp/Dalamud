@@ -923,7 +923,7 @@ internal class InterfaceManager : IDisposable, IServiceType
         if (this.IsDispatchingEvents)
         {
             this.Draw?.Invoke();
-            Service<NotificationManager>.Get().Draw();
+            Service<NotificationManager>.GetNullable()?.Draw();
         }
 
         ImGuiManagedAsserts.ReportProblems("Dalamud Core", snap);
