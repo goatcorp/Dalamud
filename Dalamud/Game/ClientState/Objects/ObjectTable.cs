@@ -154,12 +154,6 @@ internal sealed partial class ObjectTable : IServiceType, IObjectTable
         return true;
     }
 
-    private void FrameworkOnBeforeUpdate(IFramework unused)
-    {
-        for (var i = 0; i < ObjectTableLength; i++)
-            this.cachedObjectTable[i].Update(this.GetObjectAddressUnsafe(i));
-    }
-
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private unsafe nint GetObjectAddressUnsafe(int index) =>
         *(nint*)(this.clientState.AddressResolver.ObjectTable + (8 * index));
