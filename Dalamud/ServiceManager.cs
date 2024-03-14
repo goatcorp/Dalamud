@@ -166,6 +166,7 @@ internal static class ServiceManager
 
         var earlyLoadingServices = new HashSet<Type>();
         var blockingEarlyLoadingServices = new HashSet<Type>();
+        var providedServices = new HashSet<Type>();
 
         var dependencyServicesMap = new Dictionary<Type, List<Type>>();
         var getAsyncTaskMap = new Dictionary<Type, Task>();
@@ -199,7 +200,10 @@ internal static class ServiceManager
 
             // We don't actually need to load provided services, something else does
             if (serviceKind.HasFlag(ServiceKind.ProvidedService))
+            {
+                providedServices.Add(serviceType);
                 continue;
+            }
 
             Debug.Assert(
                 serviceKind.HasFlag(ServiceKind.EarlyLoadedService) ||
@@ -342,7 +346,16 @@ internal static class ServiceManager
                 }
 
                 if (!tasks.Any())
-                    throw new InvalidOperationException("Unresolvable dependency cycle detected");
+                {
+                    // No more services we can start loading for now.
+                    // Either we're waiting for provided services, or there's a dependency cycle.
+                    providedServices.RemoveWhere(x => getAsyncTaskMap[x].IsCompleted);
+                    if (providedServices.Any())
+                        await Task.WhenAny(providedServices.Select(x => getAsyncTaskMap[x]));
+                    else
+                        throw new InvalidOperationException("Unresolvable dependency cycle detected");
+                    continue;
+                }
 
                 if (servicesToLoad.Any())
                 {

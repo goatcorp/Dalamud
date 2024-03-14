@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -41,11 +42,13 @@ internal sealed class Framework : IInternalDisposableService, IFramework
     [ServiceManager.ServiceDependency]
     private readonly DalamudConfiguration configuration = Service<DalamudConfiguration>.Get();
 
-    private readonly object runOnNextTickTaskListSync = new();
-    private List<RunOnNextTickTaskBase> runOnNextTickTaskList = new();
-    private List<RunOnNextTickTaskBase> runOnNextTickTaskList2 = new();
+    private readonly CancellationTokenSource frameworkDestroy;
+    private readonly ThreadBoundTaskScheduler frameworkThreadTaskScheduler;
 
-    private Thread? frameworkUpdateThread;
+    private readonly ConcurrentDictionary<TaskCompletionSource, (ulong Expire, CancellationToken CancellationToken)>
+        tickDelayedTaskCompletionSources = new();
+
+    private ulong tickCounter; 
 
     [ServiceManager.ServiceConstructor]
     private Framework(TargetSigScanner sigScanner, GameLifecycle lifecycle)
@@ -55,6 +58,14 @@ internal sealed class Framework : IInternalDisposableService, IFramework
 
         this.addressResolver = new FrameworkAddressResolver();
         this.addressResolver.Setup(sigScanner);
+
+        this.frameworkDestroy = new();
+        this.frameworkThreadTaskScheduler = new();
+        this.FrameworkThreadTaskFactory = new(
+            this.frameworkDestroy.Token,
+            TaskCreationOptions.None,
+            TaskContinuationOptions.None,
+            this.frameworkThreadTaskScheduler);
 
         this.updateHook = Hook<OnUpdateDetour>.FromAddress(this.addressResolver.TickAddress, this.HandleFrameworkUpdate);
         this.destroyHook = Hook<OnRealDestroyDelegate>.FromAddress(this.addressResolver.DestroyAddress, this.HandleFrameworkDestroy);
@@ -93,13 +104,16 @@ internal sealed class Framework : IInternalDisposableService, IFramework
     public DateTime LastUpdateUTC { get; private set; } = DateTime.MinValue;
 
     /// <inheritdoc/>
+    public TaskFactory FrameworkThreadTaskFactory { get; }
+
+    /// <inheritdoc/>
     public TimeSpan UpdateDelta { get; private set; } = TimeSpan.Zero;
 
     /// <inheritdoc/>
-    public bool IsInFrameworkUpdateThread => Thread.CurrentThread == this.frameworkUpdateThread;
+    public bool IsInFrameworkUpdateThread => this.frameworkThreadTaskScheduler.IsOnBoundThread;
 
     /// <inheritdoc/>
-    public bool IsFrameworkUnloading { get; internal set; }
+    public bool IsFrameworkUnloading => this.frameworkDestroy.IsCancellationRequested;
 
     /// <summary>
     /// Gets the list of update sub-delegates that didn't get updated this frame.
@@ -110,6 +124,19 @@ internal sealed class Framework : IInternalDisposableService, IFramework
     /// Gets or sets a value indicating whether to dispatch update events.
     /// </summary>
     internal bool DispatchUpdateEvents { get; set; } = true;
+
+    /// <inheritdoc/>
+    public Task DelayTicks(long numTicks, CancellationToken cancellationToken = default)
+    {
+        if (this.frameworkDestroy.IsCancellationRequested)
+            return Task.FromCanceled(this.frameworkDestroy.Token);
+        if (numTicks <= 0)
+            return Task.CompletedTask;
+
+        var tcs = new TaskCompletionSource();
+        this.tickDelayedTaskCompletionSources[tcs] = (this.tickCounter + (ulong)numTicks, cancellationToken);
+        return tcs.Task;
+    }
 
     /// <inheritdoc/>
     public Task<T> RunOnFrameworkThread<T>(Func<T> func) =>
@@ -157,20 +184,16 @@ internal sealed class Framework : IInternalDisposableService, IFramework
             return Task.FromCanceled<T>(cts.Token);
         }
 
-        var tcs = new TaskCompletionSource<T>();
-        lock (this.runOnNextTickTaskListSync)
-        {
-            this.runOnNextTickTaskList.Add(new RunOnNextTickTaskFunc<T>()
+        if (cancellationToken == default)
+            cancellationToken = this.FrameworkThreadTaskFactory.CancellationToken;
+        return this.FrameworkThreadTaskFactory.ContinueWhenAll(
+            new[]
             {
-                RemainingTicks = delayTicks,
-                RunAfterTickCount = Environment.TickCount64 + (long)Math.Ceiling(delay.TotalMilliseconds),
-                CancellationToken = cancellationToken,
-                TaskCompletionSource = tcs,
-                Func = func,
-            });
-        }
-
-        return tcs.Task;
+                Task.Delay(delay, cancellationToken),
+                this.DelayTicks(delayTicks, cancellationToken),
+            },
+            _ => func(),
+            cancellationToken);
     }
 
     /// <inheritdoc/>
@@ -186,20 +209,16 @@ internal sealed class Framework : IInternalDisposableService, IFramework
             return Task.FromCanceled(cts.Token);
         }
 
-        var tcs = new TaskCompletionSource();
-        lock (this.runOnNextTickTaskListSync)
-        {
-            this.runOnNextTickTaskList.Add(new RunOnNextTickTaskAction()
+        if (cancellationToken == default)
+            cancellationToken = this.FrameworkThreadTaskFactory.CancellationToken;
+        return this.FrameworkThreadTaskFactory.ContinueWhenAll(
+            new[]
             {
-                RemainingTicks = delayTicks,
-                RunAfterTickCount = Environment.TickCount64 + (long)Math.Ceiling(delay.TotalMilliseconds),
-                CancellationToken = cancellationToken,
-                TaskCompletionSource = tcs,
-                Action = action,
-            });
-        }
-
-        return tcs.Task;
+                Task.Delay(delay, cancellationToken),
+                this.DelayTicks(delayTicks, cancellationToken),
+            },
+            _ => action(),
+            cancellationToken);
     }
 
     /// <inheritdoc/>
@@ -215,20 +234,16 @@ internal sealed class Framework : IInternalDisposableService, IFramework
             return Task.FromCanceled<T>(cts.Token);
         }
 
-        var tcs = new TaskCompletionSource<Task<T>>();
-        lock (this.runOnNextTickTaskListSync)
-        {
-            this.runOnNextTickTaskList.Add(new RunOnNextTickTaskFunc<Task<T>>()
+        if (cancellationToken == default)
+            cancellationToken = this.FrameworkThreadTaskFactory.CancellationToken;
+        return this.FrameworkThreadTaskFactory.ContinueWhenAll(
+            new[]
             {
-                RemainingTicks = delayTicks,
-                RunAfterTickCount = Environment.TickCount64 + (long)Math.Ceiling(delay.TotalMilliseconds),
-                CancellationToken = cancellationToken,
-                TaskCompletionSource = tcs,
-                Func = func,
-            });
-        }
-
-        return tcs.Task.ContinueWith(x => x.Result, cancellationToken).Unwrap();
+                Task.Delay(delay, cancellationToken),
+                this.DelayTicks(delayTicks, cancellationToken),
+            },
+            _ => func(),
+            cancellationToken).Unwrap();
     }
 
     /// <inheritdoc/>
@@ -244,20 +259,16 @@ internal sealed class Framework : IInternalDisposableService, IFramework
             return Task.FromCanceled(cts.Token);
         }
 
-        var tcs = new TaskCompletionSource<Task>();
-        lock (this.runOnNextTickTaskListSync)
-        {
-            this.runOnNextTickTaskList.Add(new RunOnNextTickTaskFunc<Task>()
+        if (cancellationToken == default)
+            cancellationToken = this.FrameworkThreadTaskFactory.CancellationToken;
+        return this.FrameworkThreadTaskFactory.ContinueWhenAll(
+            new[]
             {
-                RemainingTicks = delayTicks,
-                RunAfterTickCount = Environment.TickCount64 + (long)Math.Ceiling(delay.TotalMilliseconds),
-                CancellationToken = cancellationToken,
-                TaskCompletionSource = tcs,
-                Func = func,
-            });
-        }
-
-        return tcs.Task.ContinueWith(x => x.Result, cancellationToken).Unwrap();
+                Task.Delay(delay, cancellationToken),
+                this.DelayTicks(delayTicks, cancellationToken),
+            },
+            _ => func(),
+            cancellationToken).Unwrap();
     }
 
     /// <summary>
@@ -333,23 +344,9 @@ internal sealed class Framework : IInternalDisposableService, IFramework
         }
     }
 
-    private void RunPendingTickTasks()
-    {
-        if (this.runOnNextTickTaskList.Count == 0 && this.runOnNextTickTaskList2.Count == 0)
-            return;
-
-        for (var i = 0; i < 2; i++)
-        {
-            lock (this.runOnNextTickTaskListSync)
-                (this.runOnNextTickTaskList, this.runOnNextTickTaskList2) = (this.runOnNextTickTaskList2, this.runOnNextTickTaskList);
-
-            this.runOnNextTickTaskList2.RemoveAll(x => x.Run());
-        }
-    }
-
     private bool HandleFrameworkUpdate(IntPtr framework)
     {
-        this.frameworkUpdateThread ??= Thread.CurrentThread;
+        this.frameworkThreadTaskScheduler.BoundThread ??= Thread.CurrentThread;
 
         ThreadSafety.MarkMainThread();
 
@@ -381,18 +378,30 @@ internal sealed class Framework : IInternalDisposableService, IFramework
 
             this.LastUpdate = DateTime.Now;
             this.LastUpdateUTC = DateTime.UtcNow;
+            this.tickCounter++;
+            foreach (var (k, (expiry, ct)) in this.tickDelayedTaskCompletionSources)
+            {
+                if (ct.IsCancellationRequested)
+                    k.SetCanceled(ct);
+                else if (expiry <= this.tickCounter)
+                    k.SetResult();
+                else
+                    continue;
+
+                this.tickDelayedTaskCompletionSources.Remove(k, out _);
+            }
 
             if (StatsEnabled)
             {
                 StatsStopwatch.Restart();
-                this.RunPendingTickTasks();
+                this.frameworkThreadTaskScheduler.Run();
                 StatsStopwatch.Stop();
 
-                AddToStats(nameof(this.RunPendingTickTasks), StatsStopwatch.Elapsed.TotalMilliseconds);
+                AddToStats(nameof(this.frameworkThreadTaskScheduler), StatsStopwatch.Elapsed.TotalMilliseconds);
             }
             else
             {
-                this.RunPendingTickTasks();
+                this.frameworkThreadTaskScheduler.Run();
             }
 
             if (StatsEnabled && this.Update != null)
@@ -404,7 +413,7 @@ internal sealed class Framework : IInternalDisposableService, IFramework
                 // Cleanup handlers that are no longer being called
                 foreach (var key in this.NonUpdatedSubDelegates)
                 {
-                    if (key == nameof(this.RunPendingTickTasks))
+                    if (key == nameof(this.FrameworkThreadTaskFactory))
                         continue;
 
                     if (StatsHistory[key].Count > 0)
@@ -431,8 +440,11 @@ internal sealed class Framework : IInternalDisposableService, IFramework
 
     private bool HandleFrameworkDestroy(IntPtr framework)
     {
-        this.IsFrameworkUnloading = true;
+        this.frameworkDestroy.Cancel();
         this.DispatchUpdateEvents = false;
+        foreach (var k in this.tickDelayedTaskCompletionSources.Keys)
+            k.SetCanceled(this.frameworkDestroy.Token);
+        this.tickDelayedTaskCompletionSources.Clear();
 
         // All the same, for now...
         this.lifecycle.SetShuttingDown();
@@ -440,94 +452,11 @@ internal sealed class Framework : IInternalDisposableService, IFramework
 
         Log.Information("Framework::Destroy!");
         Service<Dalamud>.Get().Unload();
-        this.RunPendingTickTasks();
+        this.frameworkThreadTaskScheduler.Run();
         ServiceManager.WaitForServiceUnload();
         Log.Information("Framework::Destroy OK!");
 
         return this.destroyHook.OriginalDisposeSafe(framework);
-    }
-
-    private abstract class RunOnNextTickTaskBase
-    {
-        internal int RemainingTicks { get; set; }
-
-        internal long RunAfterTickCount { get; init; }
-
-        internal CancellationToken CancellationToken { get; init; }
-
-        internal bool Run()
-        {
-            if (this.CancellationToken.IsCancellationRequested)
-            {
-                this.CancelImpl();
-                return true;
-            }
-
-            if (this.RemainingTicks > 0)
-                this.RemainingTicks -= 1;
-            if (this.RemainingTicks > 0)
-                return false;
-
-            if (this.RunAfterTickCount > Environment.TickCount64)
-                return false;
-
-            this.RunImpl();
-
-            return true;
-        }
-
-        protected abstract void RunImpl();
-
-        protected abstract void CancelImpl();
-    }
-
-    private class RunOnNextTickTaskFunc<T> : RunOnNextTickTaskBase
-    {
-        internal TaskCompletionSource<T> TaskCompletionSource { get; init; }
-
-        internal Func<T> Func { get; init; }
-
-        protected override void RunImpl()
-        {
-            try
-            {
-                this.TaskCompletionSource.SetResult(this.Func());
-            }
-            catch (Exception ex)
-            {
-                this.TaskCompletionSource.SetException(ex);
-            }
-        }
-
-        protected override void CancelImpl()
-        {
-            this.TaskCompletionSource.SetCanceled();
-        }
-    }
-
-    private class RunOnNextTickTaskAction : RunOnNextTickTaskBase
-    {
-        internal TaskCompletionSource TaskCompletionSource { get; init; }
-
-        internal Action Action { get; init; }
-
-        protected override void RunImpl()
-        {
-            try
-            {
-                this.Action();
-                this.TaskCompletionSource.SetResult();
-            }
-            catch (Exception ex)
-            {
-                this.TaskCompletionSource.SetException(ex);
-            }
-        }
-
-        protected override void CancelImpl()
-        {
-            this.TaskCompletionSource.SetCanceled();
-        }
     }
 }
 
@@ -561,7 +490,10 @@ internal class FrameworkPluginScoped : IInternalDisposableService, IFramework
     
     /// <inheritdoc/>
     public DateTime LastUpdateUTC => this.frameworkService.LastUpdateUTC;
-    
+
+    /// <inheritdoc/>
+    public TaskFactory FrameworkThreadTaskFactory => this.frameworkService.FrameworkThreadTaskFactory;
+
     /// <inheritdoc/>
     public TimeSpan UpdateDelta => this.frameworkService.UpdateDelta;
     
@@ -578,6 +510,10 @@ internal class FrameworkPluginScoped : IInternalDisposableService, IFramework
 
         this.Update = null;
     }
+
+    /// <inheritdoc/>
+    public Task DelayTicks(long numTicks, CancellationToken cancellationToken = default) =>
+        this.frameworkService.DelayTicks(numTicks, cancellationToken);
 
     /// <inheritdoc/>
     public Task<T> RunOnFrameworkThread<T>(Func<T> func)

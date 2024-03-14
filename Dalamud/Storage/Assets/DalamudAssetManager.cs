@@ -105,6 +105,7 @@ internal sealed class DalamudAssetManager : IInternalDisposableService, IDalamud
                  .Concat(this.fileStreams.Values)
                  .Concat(this.textureWraps.Values)
                  .Where(x => x is not null)
+                 .Select(x => x.ContinueWith(r => { _ = r.Exception; }))
                  .ToArray());
         this.scopedFinalizer.Dispose();
     }
