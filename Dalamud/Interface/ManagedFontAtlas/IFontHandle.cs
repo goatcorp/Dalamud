@@ -58,10 +58,27 @@ public interface IFontHandle : IDisposable
     /// <returns>A disposable object that will pop the font on dispose.</returns>
     /// <exception cref="InvalidOperationException">If called outside of the main thread.</exception>
     /// <remarks>
-    /// This function uses <see cref="ImGui.PushFont"/>, and may do extra things.
+    /// <para>This function uses <see cref="ImGui.PushFont"/>, and may do extra things. 
     /// Use <see cref="IDisposable.Dispose"/> or <see cref="Pop"/> to undo this operation.
-    /// Do not use <see cref="ImGui.PopFont"/>.
+    /// Do not use <see cref="ImGui.PopFont"/>.</para>
     /// </remarks>
+    /// <example>
+    /// <b>Push a font with `using` clause.</b>
+    /// <code>
+    /// using (fontHandle.Push())
+    ///     ImGui.TextUnformatted("Test");
+    /// </code>
+    /// <b>Push a font with a matching call to <see cref="Pop"/>.</b>
+    /// <code>
+    /// fontHandle.Push();
+    /// ImGui.TextUnformatted("Test 2");
+    /// </code>
+    /// <b>Push a font between two choices.</b>
+    /// <code>
+    /// using ((someCondition ? myFontHandle : dalamudPluginInterface.UiBuilder.MonoFontHandle).Push())
+    ///     ImGui.TextUnformatted("Test 3"); 
+    /// </code>
+    /// </example>
     IDisposable Push();
 
     /// <summary>

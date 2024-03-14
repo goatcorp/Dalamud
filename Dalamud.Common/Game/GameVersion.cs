@@ -23,7 +23,6 @@ public sealed class GameVersion : ICloneable, IComparable, IComparable<GameVersi
     /// Initializes a new instance of the <see cref="GameVersion"/> class.
     /// </summary>
     /// <param name="version">Version string to parse.</param>
-    [JsonConstructor]
     public GameVersion(string version)
     {
         var ver = Parse(version);
@@ -42,20 +41,9 @@ public sealed class GameVersion : ICloneable, IComparable, IComparable<GameVersi
     /// <param name="day">The day.</param>
     /// <param name="major">The major version.</param>
     /// <param name="minor">The minor version.</param>
-    public GameVersion(int year, int month, int day, int major, int minor)
+    [JsonConstructor]
+    public GameVersion(int year, int month, int day, int major, int minor) : this(year, month, day, major)
     {
-        if ((this.Year = year) < 0)
-            throw new ArgumentOutOfRangeException(nameof(year));
-
-        if ((this.Month = month) < 0)
-            throw new ArgumentOutOfRangeException(nameof(month));
-
-        if ((this.Day = day) < 0)
-            throw new ArgumentOutOfRangeException(nameof(day));
-
-        if ((this.Major = major) < 0)
-            throw new ArgumentOutOfRangeException(nameof(major));
-
         if ((this.Minor = minor) < 0)
             throw new ArgumentOutOfRangeException(nameof(minor));
     }
@@ -67,17 +55,8 @@ public sealed class GameVersion : ICloneable, IComparable, IComparable<GameVersi
     /// <param name="month">The month.</param>
     /// <param name="day">The day.</param>
     /// <param name="major">The major version.</param>
-    public GameVersion(int year, int month, int day, int major)
+    public GameVersion(int year, int month, int day, int major) : this(year, month, day)
     {
-        if ((this.Year = year) < 0)
-            throw new ArgumentOutOfRangeException(nameof(year));
-
-        if ((this.Month = month) < 0)
-            throw new ArgumentOutOfRangeException(nameof(month));
-
-        if ((this.Day = day) < 0)
-            throw new ArgumentOutOfRangeException(nameof(day));
-
         if ((this.Major = major) < 0)
             throw new ArgumentOutOfRangeException(nameof(major));
     }
@@ -88,14 +67,8 @@ public sealed class GameVersion : ICloneable, IComparable, IComparable<GameVersi
     /// <param name="year">The year.</param>
     /// <param name="month">The month.</param>
     /// <param name="day">The day.</param>
-    public GameVersion(int year, int month, int day)
+    public GameVersion(int year, int month, int day) : this(year, month)
     {
-        if ((this.Year = year) < 0)
-            throw new ArgumentOutOfRangeException(nameof(year));
-
-        if ((this.Month = month) < 0)
-            throw new ArgumentOutOfRangeException(nameof(month));
-
         if ((this.Day = day) < 0)
             throw new ArgumentOutOfRangeException(nameof(day));
     }
@@ -105,11 +78,8 @@ public sealed class GameVersion : ICloneable, IComparable, IComparable<GameVersi
     /// </summary>
     /// <param name="year">The year.</param>
     /// <param name="month">The month.</param>
-    public GameVersion(int year, int month)
+    public GameVersion(int year, int month) : this(year)
     {
-        if ((this.Year = year) < 0)
-            throw new ArgumentOutOfRangeException(nameof(year));
-
         if ((this.Month = month) < 0)
             throw new ArgumentOutOfRangeException(nameof(month));
     }
@@ -183,17 +153,13 @@ public sealed class GameVersion : ICloneable, IComparable, IComparable<GameVersi
 
     public static bool operator <(GameVersion v1, GameVersion v2)
     {
-        if (v1 is null)
-            throw new ArgumentNullException(nameof(v1));
-
+        ArgumentNullException.ThrowIfNull(v1);
         return v1.CompareTo(v2) < 0;
     }
 
     public static bool operator <=(GameVersion v1, GameVersion v2)
     {
-        if (v1 is null)
-            throw new ArgumentNullException(nameof(v1));
-
+        ArgumentNullException.ThrowIfNull(v1);
         return v1.CompareTo(v2) <= 0;
     }
 
@@ -209,8 +175,7 @@ public sealed class GameVersion : ICloneable, IComparable, IComparable<GameVersi
 
     public static GameVersion operator +(GameVersion v1, TimeSpan v2)
     {
-        if (v1 == null)
-            throw new ArgumentNullException(nameof(v1));
+        ArgumentNullException.ThrowIfNull(v1);
 
         if (v1.Year == -1 || v1.Month == -1 || v1.Day == -1)
             return v1;
@@ -222,8 +187,7 @@ public sealed class GameVersion : ICloneable, IComparable, IComparable<GameVersi
 
     public static GameVersion operator -(GameVersion v1, TimeSpan v2)
     {
-        if (v1 == null)
-            throw new ArgumentNullException(nameof(v1));
+        ArgumentNullException.ThrowIfNull(v1);
 
         if (v1.Year == -1 || v1.Month == -1 || v1.Day == -1)
             return v1;
@@ -240,18 +204,18 @@ public sealed class GameVersion : ICloneable, IComparable, IComparable<GameVersi
     /// <returns>GameVersion object.</returns>
     public static GameVersion Parse(string input)
     {
-        if (input == null)
-            throw new ArgumentNullException(nameof(input));
+        ArgumentNullException.ThrowIfNull(input);
 
         if (input.ToLower(CultureInfo.InvariantCulture) == "any")
-            return new GameVersion();
+            return Any;
 
         var parts = input.Split('.');
-        var tplParts = parts.Select(p =>
-        {
-            var result = int.TryParse(p, out var value);
-            return (result, value);
-        }).ToArray();
+        var tplParts = parts.Select(
+            p =>
+            {
+                var result = int.TryParse(p, out var value);
+                return (result, value);
+            }).ToArray();
 
         if (tplParts.Any(t => !t.result))
             throw new FormatException("Bad formatting");
@@ -259,18 +223,15 @@ public sealed class GameVersion : ICloneable, IComparable, IComparable<GameVersi
         var intParts = tplParts.Select(t => t.value).ToArray();
         var len = intParts.Length;
 
-        if (len == 1)
-            return new GameVersion(intParts[0]);
-        else if (len == 2)
-            return new GameVersion(intParts[0], intParts[1]);
-        else if (len == 3)
-            return new GameVersion(intParts[0], intParts[1], intParts[2]);
-        else if (len == 4)
-            return new GameVersion(intParts[0], intParts[1], intParts[2], intParts[3]);
-        else if (len == 5)
-            return new GameVersion(intParts[0], intParts[1], intParts[2], intParts[3], intParts[4]);
-        else
-            throw new ArgumentException("Too many parts");
+        return len switch
+        {
+            1 => new GameVersion(intParts[0]),
+            2 => new GameVersion(intParts[0], intParts[1]),
+            3 => new GameVersion(intParts[0], intParts[1], intParts[2]),
+            4 => new GameVersion(intParts[0], intParts[1], intParts[2], intParts[3]),
+            5 => new GameVersion(intParts[0], intParts[1], intParts[2], intParts[3], intParts[4]),
+            _ => throw new ArgumentException("Too many parts"),
+        };
     }
 
     /// <summary>
@@ -299,17 +260,12 @@ public sealed class GameVersion : ICloneable, IComparable, IComparable<GameVersi
     /// <inheritdoc/>
     public int CompareTo(object? obj)
     {
-        if (obj == null)
-            return 1;
-
-        if (obj is GameVersion value)
+        return obj switch
         {
-            return this.CompareTo(value);
-        }
-        else
-        {
-            throw new ArgumentException("Argument must be a GameVersion");
-        }
+            null => 1,
+            GameVersion value => this.CompareTo(value),
+            _ => throw new ArgumentException("Argument must be a GameVersion", nameof(obj)),
+        };
     }
 
     /// <inheritdoc/>
@@ -342,16 +298,14 @@ public sealed class GameVersion : ICloneable, IComparable, IComparable<GameVersi
         if (this.Minor != value.Minor)
             return this.Minor > value.Minor ? 1 : -1;
 
+        // This should never happen
         return 0;
     }
 
     /// <inheritdoc/>
     public override bool Equals(object? obj)
     {
-        if (obj is not GameVersion value)
-            return false;
-
-        return this.Equals(value);
+        return obj is GameVersion value && this.Equals(value);
     }
 
     /// <inheritdoc/>
@@ -373,16 +327,8 @@ public sealed class GameVersion : ICloneable, IComparable, IComparable<GameVersi
     /// <inheritdoc/>
     public override int GetHashCode()
     {
-        var accumulator = 0;
-
-        // This might be horribly wrong, but it isn't used heavily.
-        accumulator |= this.Year.GetHashCode();
-        accumulator |= this.Month.GetHashCode();
-        accumulator |= this.Day.GetHashCode();
-        accumulator |= this.Major.GetHashCode();
-        accumulator |= this.Minor.GetHashCode();
-
-        return accumulator;
+        // https://learn.microsoft.com/en-us/dotnet/api/system.object.gethashcode?view=net-8.0#notes-to-inheritors
+        return HashCode.Combine(this.Year, this.Month, this.Day, this.Major, this.Minor);
     }
 
     /// <inheritdoc/>
@@ -396,11 +342,11 @@ public sealed class GameVersion : ICloneable, IComparable, IComparable<GameVersi
             return "any";
 
         return new StringBuilder()
-               .Append(string.Format("{0:D4}.", this.Year == -1 ? 0 : this.Year))
-               .Append(string.Format("{0:D2}.", this.Month == -1 ? 0 : this.Month))
-               .Append(string.Format("{0:D2}.", this.Day == -1 ? 0 : this.Day))
-               .Append(string.Format("{0:D4}.", this.Major == -1 ? 0 : this.Major))
-               .Append(string.Format("{0:D4}", this.Minor == -1 ? 0 : this.Minor))
+               .Append($"{(this.Year == -1 ? 0 : this.Year):D4}.")
+               .Append($"{(this.Month == -1 ? 0 : this.Month):D2}.")
+               .Append($"{(this.Day == -1 ? 0 : this.Day):D2}.")
+               .Append($"{(this.Major == -1 ? 0 : this.Major):D4}.")
+               .Append($"{(this.Minor == -1 ? 0 : this.Minor):D4}")
                .ToString();
     }
 }
