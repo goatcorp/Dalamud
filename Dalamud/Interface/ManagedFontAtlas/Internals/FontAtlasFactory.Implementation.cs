@@ -35,6 +35,9 @@ internal sealed partial class FontAtlasFactory
     /// </summary>
     public const string EllipsisCodepoints = "\u2026\u0085";
 
+    /// <summary>Marker for tasks on whether it's being called inside a font build cycle.</summary>
+    public static readonly AsyncLocal<bool> IsBuildInProgressForTask = new();
+
     /// <summary>
     /// If set, disables concurrent font build operation.
     /// </summary>
@@ -413,11 +416,28 @@ internal sealed partial class FontAtlasFactory
         }
 
         /// <inheritdoc/>
-        public IFontHandle NewGameFontHandle(GameFontStyle style) => this.gameFontHandleManager.NewFontHandle(style);
+        public IFontHandle NewGameFontHandle(GameFontStyle style)
+        {
+            if (IsBuildInProgressForTask.Value)
+            {
+                throw new InvalidOperationException(
+                    $"{nameof(this.NewGameFontHandle)} may not be called during {nameof(this.BuildStepChange)}, the callback of {nameof(this.NewDelegateFontHandle)}, {nameof(UiBuilder.BuildFonts)} or {nameof(UiBuilder.AfterBuildFonts)}.");
+            }
+
+            return this.gameFontHandleManager.NewFontHandle(style);
+        }
 
         /// <inheritdoc/>
-        public IFontHandle NewDelegateFontHandle(FontAtlasBuildStepDelegate buildStepDelegate) =>
-            this.delegateFontHandleManager.NewFontHandle(buildStepDelegate);
+        public IFontHandle NewDelegateFontHandle(FontAtlasBuildStepDelegate buildStepDelegate)
+        {
+            if (IsBuildInProgressForTask.Value)
+            {
+                throw new InvalidOperationException(
+                    $"{nameof(this.NewDelegateFontHandle)} may not be called during {nameof(this.BuildStepChange)} or the callback of {nameof(this.NewDelegateFontHandle)}, {nameof(UiBuilder.BuildFonts)} or {nameof(UiBuilder.AfterBuildFonts)}.");
+            }
+
+            return this.delegateFontHandleManager.NewFontHandle(buildStepDelegate);
+        }
 
         /// <inheritdoc/>
         public void BuildFontsOnNextFrame()
@@ -616,6 +636,8 @@ internal sealed partial class FontAtlasFactory
             FontAtlasBuiltData? res = null;
             nint atlasPtr = 0;
             BuildToolkit? toolkit = null;
+
+            IsBuildInProgressForTask.Value = true;
             try
             {
                 res = new(this, scale);
@@ -740,6 +762,7 @@ internal sealed partial class FontAtlasFactory
                 // ReSharper disable once ConstantConditionalAccessQualifier
                 toolkit?.Dispose();
                 this.buildQueued = false;
+                IsBuildInProgressForTask.Value = false;
             }
 
             unsafe bool ValidateMergeFontReferences(ImFontPtr replacementDstFont)

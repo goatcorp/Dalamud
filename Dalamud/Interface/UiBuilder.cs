@@ -507,9 +507,16 @@ public sealed class UiBuilder : IDisposable
     /// <returns>Handle to the game font which may or may not be available for use yet.</returns>
     [Obsolete($"Use {nameof(this.FontAtlas)}.{nameof(IFontAtlas.NewGameFontHandle)} instead.", false)]
     [Api10ToDo(Api10ToDoAttribute.DeleteCompatBehavior)]
-    public GameFontHandle GetGameFontHandle(GameFontStyle style) => new(
-        (GamePrebakedFontHandle)this.FontAtlas.NewGameFontHandle(style),
-        Service<FontAtlasFactory>.Get());
+    public GameFontHandle GetGameFontHandle(GameFontStyle style)
+    {
+        var prevValue = FontAtlasFactory.IsBuildInProgressForTask.Value;
+        FontAtlasFactory.IsBuildInProgressForTask.Value = false;
+        var v = new GameFontHandle(
+            (GamePrebakedFontHandle)this.FontAtlas.NewGameFontHandle(style),
+            Service<FontAtlasFactory>.Get());
+        FontAtlasFactory.IsBuildInProgressForTask.Value = prevValue;
+        return v;
+    }
 
     /// <summary>
     /// Call this to queue a rebuild of the font atlas.<br/>
