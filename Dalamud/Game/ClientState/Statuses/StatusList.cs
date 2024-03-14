@@ -38,7 +38,7 @@ public sealed unsafe partial class StatusList
     /// <summary>
     /// Gets the address of the status list in memory.
     /// </summary>
-    public IntPtr Address { get; }
+    public IntPtr Address { get; internal set; }
 
     /// <summary>
     /// Gets the amount of status effect slots the actor has.

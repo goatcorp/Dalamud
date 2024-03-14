@@ -1,4 +1,3 @@
-using System;
 using System.Numerics;
 
 using Dalamud.Game.ClientState.Objects;
@@ -15,6 +14,8 @@ namespace Dalamud.Game.ClientState.Party;
 /// </summary>
 public unsafe class PartyMember
 {
+    private nint address;
+
     /// <summary>
     /// Initializes a new instance of the <see cref="PartyMember"/> class.
     /// </summary>
@@ -22,17 +23,33 @@ public unsafe class PartyMember
     internal PartyMember(IntPtr address)
     {
         this.Address = address;
+        if (address != nint.Zero)
+            this.Statuses = new(&this.Struct->StatusManager);
     }
 
     /// <summary>
     /// Gets the address of this party member in memory.
     /// </summary>
-    public IntPtr Address { get; }
+    public IntPtr Address
+    {
+        get => this.address;
+        internal set
+        {
+            if (this.address != value)
+            {
+                this.address = value;
+                if (this.Statuses == null && value != nint.Zero)
+                    this.Statuses = new(&this.Struct->StatusManager);
+                else if (value != nint.Zero)
+                    this.Statuses.Address = (nint)(&this.Struct->StatusManager);
+            }
+        }
+    }
 
     /// <summary>
     /// Gets a list of buffs or debuffs applied to this party member.
     /// </summary>
-    public StatusList Statuses => new(&this.Struct->StatusManager);
+    public StatusList Statuses { get; private set; }
 
     /// <summary>
     /// Gets the position of the party member.

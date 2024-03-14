@@ -1,4 +1,3 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
@@ -6,6 +5,7 @@ using System.Runtime.InteropServices;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Plugin.Services;
+
 using Serilog;
 
 namespace Dalamud.Game.ClientState.Party;
@@ -29,10 +29,18 @@ internal sealed unsafe partial class PartyList : IServiceType, IPartyList
 
     private readonly ClientStateAddressResolver address;
 
+    private PartyMember[] cachedMember;
+
     [ServiceManager.ServiceConstructor]
     private PartyList()
     {
         this.address = this.clientState.AddressResolver;
+
+        this.cachedMember = new PartyMember[AllianceLength];
+        for (var i = 0; i < this.cachedMember.Length; i++)
+        {
+            this.cachedMember[i] = new PartyMember(nint.Zero);
+        }
 
         Log.Verbose($"Group manager address 0x{this.address.GroupManager.ToInt64():X}");
     }
@@ -71,16 +79,16 @@ internal sealed unsafe partial class PartyList : IServiceType, IPartyList
             if (index < 0 || index >= this.Length)
                 return null;
 
-            if (this.Length > GroupLength)
-            {
-                var addr = this.GetAllianceMemberAddress(index);
-                return this.CreateAllianceMemberReference(addr);
-            }
-            else
-            {
-                var addr = this.GetPartyMemberAddress(index);
-                return this.CreatePartyMemberReference(addr);
-            }
+            var address = this.Length > GroupLength
+                ? this.GetAllianceMemberAddress(index)
+                : this.GetPartyMemberAddress(index);
+
+            if (address == nint.Zero)
+                return null;
+
+            var partyMember = this.cachedMember[index];
+            partyMember.Address = address;
+            return partyMember;
         }
     }
 
