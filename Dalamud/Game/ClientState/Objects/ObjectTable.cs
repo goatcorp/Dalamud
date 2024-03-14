@@ -271,6 +271,8 @@ internal sealed partial class ObjectTable
             var cache = this.owner!.cachedObjectTable.AsSpan();
             for (this.index++; this.index < ObjectTableLength; this.index++)
             {
+                this.owner!.cachedObjectTable[this.index].Update(this.owner!.GetObjectAddressUnsafe(this.index));
+                
                 if (cache[this.index].ActiveObject is { } ao)
                 {
                     this.Current = ao;
