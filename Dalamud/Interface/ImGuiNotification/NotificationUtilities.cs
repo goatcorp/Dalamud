@@ -131,12 +131,7 @@ public static class NotificationUtilities
                 plugin.IsThirdParty,
                 out var texture) || texture is null)
         {
-            texture = plugin switch
-            {
-                { IsDev: true } => dam.GetDalamudTextureWrap(DalamudAsset.DevPluginIcon),
-                { IsThirdParty: true } => dam.GetDalamudTextureWrap(DalamudAsset.ThirdInstalledIcon),
-                _ => dam.GetDalamudTextureWrap(DalamudAsset.InstalledIcon),
-            };
+            texture = dam.GetDalamudTextureWrap(DalamudAsset.DefaultIcon);
         }
 
         return DrawIconFrom(minCoord, maxCoord, texture);
