@@ -23,8 +23,6 @@ public unsafe class PartyMember
     internal PartyMember(IntPtr address)
     {
         this.Address = address;
-        if (address != nint.Zero)
-            this.Statuses = new(&this.Struct->StatusManager);
     }
 
     /// <summary>
