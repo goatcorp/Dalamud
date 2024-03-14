@@ -69,6 +69,9 @@ internal class InterfaceManager : IInternalDisposableService
     [ServiceManager.ServiceDependency]
     private readonly WndProcHookManager wndProcHookManager = Service<WndProcHookManager>.Get();
 
+    [ServiceManager.ServiceDependency]
+    private readonly Framework framework = Service<Framework>.Get();
+
     private readonly SwapChainVtableResolver address = new();
     private RawDX11Scene? scene;
 
@@ -234,12 +237,15 @@ internal class InterfaceManager : IInternalDisposableService
     void IInternalDisposableService.DisposeService()
     {
         // Unload hooks from the framework thread if possible.
-        // The functions being unhooked are mostly called from the main thread, so unhooking here would avoid any
-        // chance of unhooking a function that currently is being called.
-        if (Service<Framework>.GetNullable() is { } framework)
-            framework.RunOnFrameworkThread(ClearHooks).Wait();
-        else
-            ClearHooks();
+        // We're currently off the framework thread, as this function can only be called from
+        // ServiceManager.UnloadAllServices, which is called from EntryPoint.RunThread.
+        // The functions being unhooked are mostly called from the main thread, so unhooking from the main thread when
+        // possible would avoid any chance of unhooking a function that currently is being called.
+        // If unloading is initiated from "Unload Dalamud" /xldev menu, then the framework would still be running, as
+        // Framework.Destroy has never been called and thus Framework.IsFrameworkUnloading cannot be true, and this
+        // function will actually run the destroy from the framework thread.
+        // Otherwise, as Framework.IsFrameworkUnloading should have been set, this code should run immediately.
+        this.framework.RunOnFrameworkThread(ClearHooks).Wait();
 
         // Below this point, hooks are guaranteed to be no longer called.
 
@@ -708,7 +714,6 @@ internal class InterfaceManager : IInternalDisposableService
         "InterfaceManager accepts event registration and stuff even when the game window is not ready.")]
     private void ContinueConstruction(
         TargetSigScanner sigScanner,
-        Framework framework,
         FontAtlasFactory fontAtlasFactory)
     {
         this.dalamudAtlas = fontAtlasFactory
@@ -746,7 +751,7 @@ internal class InterfaceManager : IInternalDisposableService
             this.DefaultFontHandle.ImFontChanged += (_, font) =>
             {
                 var fontLocked = font.NewRef();
-                Service<Framework>.Get().RunOnFrameworkThread(
+                this.framework.RunOnFrameworkThread(
                     () =>
                     {
                         // Update the ImGui default font.
