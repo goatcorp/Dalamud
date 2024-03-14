@@ -100,11 +100,11 @@ internal sealed partial class ObjectTable : IServiceType, IObjectTable
     }
 
     /// <inheritdoc/>
-    public nint GetObjectAddress(int index)
+    public unsafe nint GetObjectAddress(int index)
     {
         _ = this.WarnMultithreadedUsage();
 
-        return index is < 0 or >= ObjectTableLength ? nint.Zero : this.GetObjectAddressUnsafe(index);
+        return index is < 0 or >= ObjectTableLength ? nint.Zero : (nint)this.cachedObjectTable[index].Address;
     }
 
     /// <inheritdoc/>
@@ -154,10 +154,6 @@ internal sealed partial class ObjectTable : IServiceType, IObjectTable
 
         return true;
     }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private unsafe nint GetObjectAddressUnsafe(int index) =>
-        *(nint*)(this.clientState.AddressResolver.ObjectTable + (8 * index));
 
     /// <summary>Stores an object table entry, with preallocated concrete types.</summary>
     internal readonly unsafe struct CachedEntry
