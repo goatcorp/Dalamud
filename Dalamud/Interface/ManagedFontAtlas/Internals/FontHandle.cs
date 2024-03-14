@@ -136,13 +136,18 @@ internal abstract class FontHandle : IFontHandle
     /// An instance of <see cref="ILockedImFont"/> that <b>must</b> be disposed after use on success;
     /// <c>null</c> with <paramref name="errorMessage"/> populated on failure.
     /// </returns>
-    /// <exception cref="ObjectDisposedException">Still may be thrown.</exception>
     public ILockedImFont? TryLock(out string? errorMessage)
     {
         IFontHandleSubstance? prevSubstance = default;
         while (true)
         {
-            var substance = this.Manager.Substance;
+            if (this.manager is not { } nonDisposedManager)
+            {
+                errorMessage = "The font handle has been disposed.";
+                return null;
+            }
+
+            var substance = nonDisposedManager.Substance;
 
             // Does the associated IFontAtlas have a built substance?
             if (substance is null)

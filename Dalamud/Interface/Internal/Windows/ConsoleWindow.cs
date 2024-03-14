@@ -90,11 +90,6 @@ internal class ConsoleWindow : Window, IDisposable
         this.Size = new Vector2(500, 400);
         this.SizeCondition = ImGuiCond.FirstUseEver;
 
-        this.SizeConstraints = new WindowSizeConstraints
-        {
-            MinimumSize = new Vector2(600.0f, 200.0f),
-        };
-
         this.RespectCloseHotkey = false;
 
         this.logLinesLimit = configuration.LogLinesLimit;
@@ -555,10 +550,24 @@ internal class ConsoleWindow : Window, IDisposable
         if (ImGui.IsItemHovered()) ImGui.SetTooltip("Kill game");
 
         ImGui.SameLine();
-        ImGui.SetCursorPosX(
-            ImGui.GetContentRegionMax().X - (2 * 200.0f * ImGuiHelpers.GlobalScale) - ImGui.GetStyle().ItemSpacing.X);
 
-        ImGui.PushItemWidth(200.0f * ImGuiHelpers.GlobalScale);
+        var inputWidth = 200.0f * ImGuiHelpers.GlobalScale;
+        var nextCursorPosX = ImGui.GetContentRegionMax().X - (2 * inputWidth) - ImGui.GetStyle().ItemSpacing.X;
+        var breakInputLines = nextCursorPosX < 0;
+        if (ImGui.GetCursorPosX() > nextCursorPosX)
+        {
+            ImGui.NewLine();
+            inputWidth = ImGui.GetWindowWidth() - (ImGui.GetStyle().WindowPadding.X * 2);
+
+            if (!breakInputLines)
+                inputWidth = (inputWidth - ImGui.GetStyle().ItemSpacing.X) / 2; 
+        }
+        else
+        {
+            ImGui.SetCursorPosX(nextCursorPosX);
+        }
+
+        ImGui.PushItemWidth(inputWidth);
         if (ImGui.InputTextWithHint(
                 "##textHighlight",
                 "regex highlight",
@@ -583,8 +592,10 @@ internal class ConsoleWindow : Window, IDisposable
                 log.HighlightMatches = null;
         }
 
-        ImGui.SameLine();
-        ImGui.PushItemWidth(200.0f * ImGuiHelpers.GlobalScale);
+        if (!breakInputLines)
+            ImGui.SameLine();
+
+        ImGui.PushItemWidth(inputWidth);
         if (ImGui.InputTextWithHint(
                 "##textFilter",
                 "regex global filter",
@@ -1082,6 +1093,8 @@ internal class ConsoleWindow : Window, IDisposable
                 lastc = currc;
             }
         }
+
+        ImGui.Dummy(screenPos - ImGui.GetCursorScreenPos());
     }
 
     private record LogEntry
