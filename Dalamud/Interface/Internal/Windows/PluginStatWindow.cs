@@ -7,6 +7,7 @@ using System.Reflection;
 using Dalamud.Game;
 using Dalamud.Hooking.Internal;
 using Dalamud.Interface.Components;
+using Dalamud.Interface.ImGuiNotification.Internal;
 using Dalamud.Interface.Internal.Notifications;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin.Internal;

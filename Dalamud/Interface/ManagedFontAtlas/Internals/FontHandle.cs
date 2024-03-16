@@ -24,7 +24,6 @@ internal abstract class FontHandle : IFontHandle
     private static readonly ConditionalWeakTable<LocalPlugin, object> NonMainThreadFontAccessWarning = new();
     private static long nextNonMainThreadFontAccessWarningCheck;
 
-    private readonly InterfaceManager interfaceManager;
     private readonly List<IDisposable> pushedFonts = new(8);
 
     private IFontHandleManager? manager;
@@ -36,7 +35,6 @@ internal abstract class FontHandle : IFontHandle
     /// <param name="manager">An instance of <see cref="IFontHandleManager"/>.</param>
     protected FontHandle(IFontHandleManager manager)
     {
-        this.interfaceManager = Service<InterfaceManager>.Get();
         this.manager = manager;
     }
 
@@ -58,7 +56,11 @@ internal abstract class FontHandle : IFontHandle
     /// Gets the associated <see cref="IFontHandleManager"/>.
     /// </summary>
     /// <exception cref="ObjectDisposedException">When the object has already been disposed.</exception>
-    protected IFontHandleManager Manager => this.manager ?? throw new ObjectDisposedException(this.GetType().Name);
+    protected IFontHandleManager Manager =>
+        this.manager
+        ?? throw new ObjectDisposedException(
+            this.GetType().Name,
+            "Did you write `using (fontHandle)` instead of `using (fontHandle.Push())`?");
 
     /// <inheritdoc/>
     public void Dispose()
@@ -122,7 +124,7 @@ internal abstract class FontHandle : IFontHandle
             }
         }
 
-        this.interfaceManager.EnqueueDeferredDispose(locked);
+        Service<InterfaceManager>.Get().EnqueueDeferredDispose(locked);
         return locked.ImFont;
     }
 
@@ -136,13 +138,18 @@ internal abstract class FontHandle : IFontHandle
     /// An instance of <see cref="ILockedImFont"/> that <b>must</b> be disposed after use on success;
     /// <c>null</c> with <paramref name="errorMessage"/> populated on failure.
     /// </returns>
-    /// <exception cref="ObjectDisposedException">Still may be thrown.</exception>
     public ILockedImFont? TryLock(out string? errorMessage)
     {
         IFontHandleSubstance? prevSubstance = default;
         while (true)
         {
-            var substance = this.Manager.Substance;
+            if (this.manager is not { } nonDisposedManager)
+            {
+                errorMessage = "The font handle has been disposed.";
+                return null;
+            }
+
+            var substance = nonDisposedManager.Substance;
 
             // Does the associated IFontAtlas have a built substance?
             if (substance is null)
@@ -196,7 +203,7 @@ internal abstract class FontHandle : IFontHandle
         ThreadSafety.AssertMainThread();
 
         // Warn if the client is not properly managing the pushed font stack.
-        var cumulativePresentCalls = this.interfaceManager.CumulativePresentCalls;
+        var cumulativePresentCalls = Service<InterfaceManager>.Get().CumulativePresentCalls;
         if (this.lastCumulativePresentCalls != cumulativePresentCalls)
         {
             this.lastCumulativePresentCalls = cumulativePresentCalls;
@@ -213,7 +220,7 @@ internal abstract class FontHandle : IFontHandle
         if (this.TryLock(out _) is { } locked)
         {
             font = locked.ImFont;
-            this.interfaceManager.EnqueueDeferredDispose(locked);
+            Service<InterfaceManager>.Get().EnqueueDeferredDispose(locked);
         }
 
         var rented = SimplePushedFont.Rent(this.pushedFonts, font);
