@@ -12,6 +12,8 @@ using Dalamud.Game;
 using Dalamud.Game.Command;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Components;
+using Dalamud.Interface.ImGuiNotification;
+using Dalamud.Interface.ImGuiNotification.Internal;
 using Dalamud.Interface.Internal.Notifications;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
@@ -75,6 +77,8 @@ internal class ConsoleWindow : Window, IDisposable
 
     private int historyPos;
     private int copyStart = -1;
+
+    private IActiveNotification? prevCopyNotification;
 
     /// <summary>Initializes a new instance of the <see cref="ConsoleWindow"/> class.</summary>
     /// <param name="configuration">An instance of <see cref="DalamudConfiguration"/>.</param>
@@ -436,10 +440,14 @@ internal class ConsoleWindow : Window, IDisposable
             return;
 
         ImGui.SetClipboardText(sb.ToString());
-        Service<NotificationManager>.Get().AddNotification(
-            $"{n:n0} line(s) copied.",
-            this.WindowName,
-            NotificationType.Success);
+        this.prevCopyNotification?.DismissNow();
+        this.prevCopyNotification = Service<NotificationManager>.Get().AddNotification(
+            new()
+            {
+                Title = this.WindowName,
+                Content = $"{n:n0} line(s) copied.",
+                Type = NotificationType.Success,
+            });
     }
 
     private void DrawOptionsToolbar()

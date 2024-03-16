@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading.Tasks;
@@ -9,12 +10,16 @@ using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.Gui;
 using Dalamud.Interface.FontIdentifier;
 using Dalamud.Interface.GameFonts;
+using Dalamud.Interface.ImGuiNotification;
+using Dalamud.Interface.ImGuiNotification.Internal;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Internal.ManagedAsserts;
 using Dalamud.Interface.Internal.Notifications;
 using Dalamud.Interface.ManagedFontAtlas;
 using Dalamud.Interface.ManagedFontAtlas.Internals;
+using Dalamud.Plugin;
 using Dalamud.Plugin.Internal.Types;
+using Dalamud.Plugin.Services;
 using Dalamud.Utility;
 using ImGuiNET;
 using ImGuiScene;
@@ -29,11 +34,13 @@ namespace Dalamud.Interface;
 /// </summary>
 public sealed class UiBuilder : IDisposable
 {
+    private readonly LocalPlugin localPlugin;
     private readonly Stopwatch stopwatch;
     private readonly HitchDetector hitchDetector;
     private readonly string namespaceName;
     private readonly InterfaceManager interfaceManager = Service<InterfaceManager>.Get();
     private readonly Framework framework = Service<Framework>.Get();
+    private readonly ConcurrentDictionary<IActiveNotification, int> notifications = new();
 
     [ServiceManager.ServiceDependency]
     private readonly DalamudConfiguration configuration = Service<DalamudConfiguration>.Get();
@@ -52,8 +59,10 @@ public sealed class UiBuilder : IDisposable
     /// You do not have to call this manually.
     /// </summary>
     /// <param name="namespaceName">The plugin namespace.</param>
-    internal UiBuilder(string namespaceName)
+    /// <param name="localPlugin">The relevant local plugin.</param>
+    internal UiBuilder(string namespaceName, LocalPlugin localPlugin)
     {
+        this.localPlugin = localPlugin;
         try
         {
             this.stopwatch = new Stopwatch();
@@ -507,9 +516,16 @@ public sealed class UiBuilder : IDisposable
     /// <returns>Handle to the game font which may or may not be available for use yet.</returns>
     [Obsolete($"Use {nameof(this.FontAtlas)}.{nameof(IFontAtlas.NewGameFontHandle)} instead.", false)]
     [Api10ToDo(Api10ToDoAttribute.DeleteCompatBehavior)]
-    public GameFontHandle GetGameFontHandle(GameFontStyle style) => new(
-        (GamePrebakedFontHandle)this.FontAtlas.NewGameFontHandle(style),
-        Service<FontAtlasFactory>.Get());
+    public GameFontHandle GetGameFontHandle(GameFontStyle style)
+    {
+        var prevValue = FontAtlasFactory.IsBuildInProgressForTask.Value;
+        FontAtlasFactory.IsBuildInProgressForTask.Value = false;
+        var v = new GameFontHandle(
+            (GamePrebakedFontHandle)this.FontAtlas.NewGameFontHandle(style),
+            Service<FontAtlasFactory>.Get());
+        FontAtlasFactory.IsBuildInProgressForTask.Value = prevValue;
+        return v;
+    }
 
     /// <summary>
     /// Call this to queue a rebuild of the font atlas.<br/>
@@ -556,22 +572,50 @@ public sealed class UiBuilder : IDisposable
     /// <param name="title">The title of the notification.</param>
     /// <param name="type">The type of the notification.</param>
     /// <param name="msDelay">The time the notification should be displayed for.</param>
-    public void AddNotification(
-        string content, string? title = null, NotificationType type = NotificationType.None, uint msDelay = 3000)
+    [Obsolete($"Use {nameof(INotificationManager)}.", false)]
+    [Api10ToDo(Api10ToDoAttribute.DeleteCompatBehavior)]
+    public async void AddNotification(
+        string content,
+        string? title = null,
+        NotificationType type = NotificationType.None,
+        uint msDelay = 3000)
     {
-        Service<NotificationManager>
-            .GetAsync()
-            .ContinueWith(task =>
+        var nm = await Service<NotificationManager>.GetAsync();
+        var an = nm.AddNotification(
+            new()
             {
-                if (task.IsCompletedSuccessfully)
-                    task.Result.AddNotification(content, title, type, msDelay);
-            });
+                Content = content,
+                Title = title,
+                Type = type,
+                InitialDuration = TimeSpan.FromMilliseconds(msDelay),
+            },
+            this.localPlugin);
+        _ = this.notifications.TryAdd(an, 0);
+        an.Dismiss += a => this.notifications.TryRemove(a.Notification, out _);
     }
 
     /// <summary>
     /// Unregister the UiBuilder. Do not call this in plugin code.
     /// </summary>
-    void IDisposable.Dispose() => this.scopedFinalizer.Dispose();
+    void IDisposable.Dispose()
+    {
+        this.scopedFinalizer.Dispose();
+
+        // Taken from NotificationManagerPluginScoped.
+        // TODO: remove on API 10.
+        while (!this.notifications.IsEmpty)
+        {
+            foreach (var n in this.notifications.Keys)
+            {
+                this.notifications.TryRemove(n, out _);
+                ((ActiveNotification)n).RemoveNonDalamudInvocations();
+            }
+        }
+    }
+
+    /// <summary>Clean up resources allocated by this instance of <see cref="UiBuilder"/>.</summary>
+    /// <remarks>Dalamud internal use only.</remarks>
+    internal void DisposeInternal() => this.scopedFinalizer.Dispose();
 
     /// <summary>
     /// Open the registered configuration UI, if it exists.

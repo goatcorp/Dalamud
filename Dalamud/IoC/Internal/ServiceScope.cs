@@ -96,6 +96,17 @@ internal class ServiceScopeImpl : IServiceScope
     /// <inheritdoc />
     public void Dispose()
     {
-        foreach (var createdObject in this.scopeCreatedObjects.OfType<IDisposable>()) createdObject.Dispose();
+        foreach (var createdObject in this.scopeCreatedObjects)
+        {
+            switch (createdObject)
+            {
+                case IInternalDisposableService d:
+                    d.DisposeService();
+                    break;
+                case IDisposable d:
+                    d.Dispose();
+                    break;
+            }
+        }
     }
 }

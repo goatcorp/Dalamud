@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -175,7 +176,8 @@ internal static class ServiceManager
         foreach (var serviceType in GetConcreteServiceTypes())
         {
             var serviceKind = serviceType.GetServiceKind();
-            Debug.Assert(serviceKind != ServiceKind.None, $"Service<{serviceType.FullName}> did not specify a kind");
+
+            CheckServiceTypeContracts(serviceType);
 
             // Let IoC know about the interfaces this service implements
             serviceContainer.RegisterInterfaces(serviceType);
@@ -512,6 +514,44 @@ internal static class ServiceManager
             return ServiceKind.ScopedService;
 
         return ServiceKind.ProvidedService;
+    }
+
+    /// <summary>Validate service type contracts, and throws exceptions accordingly.</summary>
+    /// <param name="serviceType">An instance of <see cref="Type"/> that is supposed to be a service type.</param>
+    /// <remarks>Does nothing on non-debug builds.</remarks>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static void CheckServiceTypeContracts(Type serviceType)
+    {
+#if DEBUG
+        try
+        {
+            if (!serviceType.IsAssignableTo(typeof(IServiceType)))
+                throw new InvalidOperationException($"Non-{nameof(IServiceType)} passed.");
+            if (serviceType.GetServiceKind() == ServiceKind.None)
+                throw new InvalidOperationException("Service type is not specified.");
+
+            var isServiceDisposable =
+                serviceType.IsAssignableTo(typeof(IInternalDisposableService));
+            var isAnyDisposable =
+                isServiceDisposable
+                || serviceType.IsAssignableTo(typeof(IDisposable))
+                || serviceType.IsAssignableTo(typeof(IAsyncDisposable)); 
+            if (isAnyDisposable && !isServiceDisposable)
+            {
+                throw new InvalidOperationException(
+                    $"A service must be an {nameof(IInternalDisposableService)} without specifying " +
+                    $"{nameof(IDisposable)} nor {nameof(IAsyncDisposable)} if it is purely meant to be a service, " +
+                    $"or an {nameof(IPublicDisposableService)} if it also is allowed to be constructed not as a " +
+                    $"service to be used elsewhere and has to offer {nameof(IDisposable)} or " +
+                    $"{nameof(IAsyncDisposable)}. See {nameof(ReliableFileStorage)} for an example of " +
+                    $"{nameof(IPublicDisposableService)}.");
+            }
+        }
+        catch (Exception e)
+        {
+            throw new InvalidOperationException($"{serviceType.Name}: {e.Message}");
+        }
+#endif
     }
 
     /// <summary>

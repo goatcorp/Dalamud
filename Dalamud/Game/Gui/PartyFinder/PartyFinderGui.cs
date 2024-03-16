@@ -15,7 +15,7 @@ namespace Dalamud.Game.Gui.PartyFinder;
 /// </summary>
 [InterfaceVersion("1.0")]
 [ServiceManager.BlockingEarlyLoadedService]
-internal sealed class PartyFinderGui : IDisposable, IServiceType, IPartyFinderGui
+internal sealed class PartyFinderGui : IInternalDisposableService, IPartyFinderGui
 {
     private readonly PartyFinderAddressResolver address;
     private readonly IntPtr memory;
@@ -47,7 +47,7 @@ internal sealed class PartyFinderGui : IDisposable, IServiceType, IPartyFinderGu
     /// <summary>
     /// Dispose of managed and unmanaged resources.
     /// </summary>
-    void IDisposable.Dispose()
+    void IInternalDisposableService.DisposeService()
     {
         this.receiveListingHook.Dispose();
 
@@ -131,7 +131,7 @@ internal sealed class PartyFinderGui : IDisposable, IServiceType, IPartyFinderGu
 #pragma warning disable SA1015
 [ResolveVia<IPartyFinderGui>]
 #pragma warning restore SA1015
-internal class PartyFinderGuiPluginScoped : IDisposable, IServiceType, IPartyFinderGui
+internal class PartyFinderGuiPluginScoped : IInternalDisposableService, IPartyFinderGui
 {
     [ServiceManager.ServiceDependency]
     private readonly PartyFinderGui partyFinderGuiService = Service<PartyFinderGui>.Get();
@@ -148,7 +148,7 @@ internal class PartyFinderGuiPluginScoped : IDisposable, IServiceType, IPartyFin
     public event IPartyFinderGui.PartyFinderListingEventDelegate? ReceiveListing;
 
     /// <inheritdoc/>
-    public void Dispose()
+    void IInternalDisposableService.DisposeService()
     {
         this.partyFinderGuiService.ReceiveListing -= this.ReceiveListingForward;
 
