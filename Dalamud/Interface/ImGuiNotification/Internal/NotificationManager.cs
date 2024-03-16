@@ -19,7 +19,7 @@ namespace Dalamud.Interface.ImGuiNotification.Internal;
 /// <summary>Class handling notifications/toasts in ImGui.</summary>
 [InterfaceVersion("1.0")]
 [ServiceManager.EarlyLoadedService]
-internal class NotificationManager : INotificationManager, IServiceType, IDisposable
+internal class NotificationManager : INotificationManager, IInternalDisposableService
 {
     [ServiceManager.ServiceDependency]
     private readonly GameGui gameGui = Service<GameGui>.Get();
@@ -51,7 +51,7 @@ internal class NotificationManager : INotificationManager, IServiceType, IDispos
     private IFontAtlas PrivateAtlas { get; }
 
     /// <inheritdoc/>
-    public void Dispose()
+    public void DisposeService()
     {
         this.PrivateAtlas.Dispose();
         foreach (var n in this.pendingNotifications)
@@ -129,7 +129,7 @@ internal class NotificationManager : INotificationManager, IServiceType, IDispos
 #pragma warning disable SA1015
 [ResolveVia<INotificationManager>]
 #pragma warning restore SA1015
-internal class NotificationManagerPluginScoped : INotificationManager, IServiceType, IDisposable
+internal class NotificationManagerPluginScoped : INotificationManager, IInternalDisposableService
 {
     private readonly LocalPlugin localPlugin;
     private readonly ConcurrentDictionary<IActiveNotification, int> notifications = new();
@@ -151,7 +151,7 @@ internal class NotificationManagerPluginScoped : INotificationManager, IServiceT
     }
 
     /// <inheritdoc/>
-    public void Dispose()
+    public void DisposeService()
     {
         while (!this.notifications.IsEmpty)
         {
