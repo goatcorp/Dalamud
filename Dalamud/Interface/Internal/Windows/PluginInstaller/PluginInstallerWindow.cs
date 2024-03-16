@@ -15,6 +15,7 @@ using Dalamud.Game.Command;
 using Dalamud.Interface.Animation.EasingFunctions;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Components;
+using Dalamud.Interface.ImGuiNotification.Internal;
 using Dalamud.Interface.Internal.Notifications;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;

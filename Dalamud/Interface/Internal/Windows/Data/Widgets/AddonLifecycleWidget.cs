@@ -90,7 +90,7 @@ public class AddonLifecycleWidget : IDataWindowWidget
                         ImGui.Text(listener.AddonName is "" ? "GLOBAL" : listener.AddonName);
 
                         ImGui.TableNextColumn();
-                        ImGui.Text($"{listener.FunctionDelegate.Target}::{listener.FunctionDelegate.Method.Name}");
+                        ImGui.Text($"{listener.FunctionDelegate.Method.DeclaringType.FullName}::{listener.FunctionDelegate.Method.Name}");
                     }
                     
                     ImGui.EndTable();
