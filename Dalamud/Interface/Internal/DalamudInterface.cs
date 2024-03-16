@@ -46,7 +46,7 @@ namespace Dalamud.Interface.Internal;
 /// This plugin implements all of the Dalamud interface separately, to allow for reloading of the interface and rapid prototyping.
 /// </summary>
 [ServiceManager.EarlyLoadedService]
-internal class DalamudInterface : IDisposable, IServiceType
+internal class DalamudInterface : IInternalDisposableService
 {
     private const float CreditsDarkeningMaxAlpha = 0.8f;
 
@@ -209,7 +209,7 @@ internal class DalamudInterface : IDisposable, IServiceType
     }
 
     /// <inheritdoc/>
-    public void Dispose()
+    void IInternalDisposableService.DisposeService()
     {
         this.interfaceManager.Draw -= this.OnDraw;
 

@@ -55,7 +55,7 @@ namespace Dalamud.Plugin.Internal;
 [InherentDependency<DataShare>]
 
 #pragma warning restore SA1015
-internal partial class PluginManager : IDisposable, IServiceType
+internal partial class PluginManager : IInternalDisposableService
 {
     /// <summary>
     /// Default time to wait between plugin unload and plugin assembly unload.
@@ -371,7 +371,7 @@ internal partial class PluginManager : IDisposable, IServiceType
     }
 
     /// <inheritdoc/>
-    public void Dispose()
+    void IInternalDisposableService.DisposeService()
     {
         var disposablePlugins =
             this.installedPluginsList.Where(plugin => plugin.State is PluginState.Loaded or PluginState.LoadError).ToArray();
@@ -411,7 +411,16 @@ internal partial class PluginManager : IDisposable, IServiceType
             // Now that we've waited enough, dispose the whole plugin.
             // Since plugins should have been unloaded above, this should be done quickly.
             foreach (var plugin in disposablePlugins)
-                plugin.ExplicitDisposeIgnoreExceptions($"Error disposing {plugin.Name}", Log);
+            {
+                try
+                {
+                    plugin.Dispose();
+                }
+                catch (Exception e)
+                {
+                    Log.Error(e, $"Error disposing {plugin.Name}");
+                }
+            }
         }
 
         // NET8 CHORE

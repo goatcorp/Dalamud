@@ -34,7 +34,7 @@ namespace Dalamud.Interface.Internal;
 /// This class handles CJK IME.
 /// </summary>
 [ServiceManager.EarlyLoadedService]
-internal sealed unsafe class DalamudIme : IDisposable, IServiceType
+internal sealed unsafe class DalamudIme : IInternalDisposableService
 {
     private const int CImGuiStbTextCreateUndoOffset = 0xB57A0;
     private const int CImGuiStbTextUndoOffset = 0xB59C0;
@@ -200,7 +200,7 @@ internal sealed unsafe class DalamudIme : IDisposable, IServiceType
         this.candidateStrings.Count != 0 || this.ShowPartialConversion || this.inputModeIcon != default;
 
     /// <inheritdoc/>
-    public void Dispose()
+    void IInternalDisposableService.DisposeService()
     {
         this.interfaceManager.Draw -= this.Draw;
         this.ReleaseUnmanagedResources();

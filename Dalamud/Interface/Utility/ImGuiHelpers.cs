@@ -493,12 +493,13 @@ public static class ImGuiHelpers
     /// <returns>The range array that can be used for <see cref="SafeFontConfig.GlyphRanges"/>.</returns>
     public static ushort[] CreateImGuiRangesFrom(IEnumerable<UnicodeRange> ranges) =>
         ranges
-            .Where(x => x.FirstCodePoint <= ushort.MaxValue)
+            .Select(x => (First: Math.Max(x.FirstCodePoint, 1), Last: x.FirstCodePoint + x.Length))
+            .Where(x => x.First <= ushort.MaxValue && x.First <= x.Last)
             .SelectMany(
                 x => new[]
                 {
-                    (ushort)Math.Min(x.FirstCodePoint, ushort.MaxValue),
-                    (ushort)Math.Min(x.FirstCodePoint + x.Length, ushort.MaxValue),
+                    (ushort)Math.Min(x.First, ushort.MaxValue),
+                    (ushort)Math.Min(x.Last, ushort.MaxValue),
                 })
             .Append((ushort)0)
             .ToArray();

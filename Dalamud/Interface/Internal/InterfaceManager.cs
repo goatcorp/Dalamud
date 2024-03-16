@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Threading;
 using System.Threading.Tasks;
 
 using Dalamud.Configuration.Internal;
@@ -14,6 +15,7 @@ using Dalamud.Game.ClientState.Keys;
 using Dalamud.Game.Internal.DXGI;
 using Dalamud.Hooking;
 using Dalamud.Hooking.WndProcHook;
+using Dalamud.Interface.ImGuiNotification.Internal;
 using Dalamud.Interface.Internal.ManagedAsserts;
 using Dalamud.Interface.Internal.Notifications;
 using Dalamud.Interface.ManagedFontAtlas;
@@ -50,7 +52,7 @@ namespace Dalamud.Interface.Internal;
 /// This class manages interaction with the ImGui interface.
 /// </summary>
 [ServiceManager.BlockingEarlyLoadedService]
-internal class InterfaceManager : IDisposable, IServiceType
+internal class InterfaceManager : IInternalDisposableService
 {
     /// <summary>
     /// The default font size, in points.
@@ -68,10 +70,13 @@ internal class InterfaceManager : IDisposable, IServiceType
     [ServiceManager.ServiceDependency]
     private readonly WndProcHookManager wndProcHookManager = Service<WndProcHookManager>.Get();
 
+    [ServiceManager.ServiceDependency]
+    private readonly Framework framework = Service<Framework>.Get();
+
     private readonly SwapChainVtableResolver address = new();
-    private readonly Hook<SetCursorDelegate> setCursorHook;
     private RawDX11Scene? scene;
 
+    private Hook<SetCursorDelegate>? setCursorHook;
     private Hook<PresentDelegate>? presentHook;
     private Hook<ResizeBuffersDelegate>? resizeBuffersHook;
 
@@ -86,8 +91,6 @@ internal class InterfaceManager : IDisposable, IServiceType
     [ServiceManager.ServiceConstructor]
     private InterfaceManager()
     {
-        this.setCursorHook = Hook<SetCursorDelegate>.FromImport(
-            null, "user32.dll", "SetCursor", 0, this.SetCursorDetour);
     }
 
     [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
@@ -232,25 +235,45 @@ internal class InterfaceManager : IDisposable, IServiceType
     /// <summary>
     /// Dispose of managed and unmanaged resources.
     /// </summary>
-    public void Dispose()
+    void IInternalDisposableService.DisposeService()
     {
-        if (Service<Framework>.GetNullable() is { } framework)
-            framework.RunOnFrameworkThread(Disposer).Wait();
-        else
-            Disposer();
+        // Unload hooks from the framework thread if possible.
+        // We're currently off the framework thread, as this function can only be called from
+        // ServiceManager.UnloadAllServices, which is called from EntryPoint.RunThread.
+        // The functions being unhooked are mostly called from the main thread, so unhooking from the main thread when
+        // possible would avoid any chance of unhooking a function that currently is being called.
+        // If unloading is initiated from "Unload Dalamud" /xldev menu, then the framework would still be running, as
+        // Framework.Destroy has never been called and thus Framework.IsFrameworkUnloading cannot be true, and this
+        // function will actually run the destroy from the framework thread.
+        // Otherwise, as Framework.IsFrameworkUnloading should have been set, this code should run immediately.
+        this.framework.RunOnFrameworkThread(ClearHooks).Wait();
 
-        this.wndProcHookManager.PreWndProc -= this.WndProcHookManagerOnPreWndProc;
-        this.defaultFontResourceLock?.Dispose(); // lock outlives handle and atlas
-        this.defaultFontResourceLock = null;
-        this.dalamudAtlas?.Dispose();
-        this.scene?.Dispose();
+        // Below this point, hooks are guaranteed to be no longer called.
+
+        // A font resource lock outlives the parent handle and the owner atlas. It should be disposed.
+        Interlocked.Exchange(ref this.defaultFontResourceLock, null)?.Dispose();
+
+        // Font handles become invalid after disposing the atlas, but just to be safe.
+        this.DefaultFontHandle?.Dispose();
+        this.DefaultFontHandle = null;
+
+        this.MonoFontHandle?.Dispose();
+        this.MonoFontHandle = null;
+
+        this.IconFontHandle?.Dispose();
+        this.IconFontHandle = null;
+
+        Interlocked.Exchange(ref this.dalamudAtlas, null)?.Dispose();
+        Interlocked.Exchange(ref this.scene, null)?.Dispose();
+
         return;
 
-        void Disposer()
+        void ClearHooks()
         {
-            this.setCursorHook.Dispose();
-            this.presentHook?.Dispose();
-            this.resizeBuffersHook?.Dispose();
+            this.wndProcHookManager.PreWndProc -= this.WndProcHookManagerOnPreWndProc;
+            Interlocked.Exchange(ref this.setCursorHook, null)?.Dispose();
+            Interlocked.Exchange(ref this.presentHook, null)?.Dispose();
+            Interlocked.Exchange(ref this.resizeBuffersHook, null)?.Dispose();
         }
     }
 
@@ -692,7 +715,6 @@ internal class InterfaceManager : IDisposable, IServiceType
         "InterfaceManager accepts event registration and stuff even when the game window is not ready.")]
     private void ContinueConstruction(
         TargetSigScanner sigScanner,
-        Framework framework,
         FontAtlasFactory fontAtlasFactory)
     {
         this.dalamudAtlas = fontAtlasFactory
@@ -730,7 +752,7 @@ internal class InterfaceManager : IDisposable, IServiceType
             this.DefaultFontHandle.ImFontChanged += (_, font) =>
             {
                 var fontLocked = font.NewRef();
-                Service<Framework>.Get().RunOnFrameworkThread(
+                this.framework.RunOnFrameworkThread(
                     () =>
                     {
                         // Update the ImGui default font.
@@ -764,6 +786,7 @@ internal class InterfaceManager : IDisposable, IServiceType
             Log.Error(ex, "Could not enable immersive mode");
         }
 
+        this.setCursorHook = Hook<SetCursorDelegate>.FromImport(null, "user32.dll", "SetCursor", 0, this.SetCursorDetour);
         this.presentHook = Hook<PresentDelegate>.FromAddress(this.address.Present, this.PresentDetour);
         this.resizeBuffersHook = Hook<ResizeBuffersDelegate>.FromAddress(this.address.ResizeBuffers, this.ResizeBuffersDetour);
 
@@ -807,7 +830,7 @@ internal class InterfaceManager : IDisposable, IServiceType
         if (this.lastWantCapture && (!this.scene?.IsImGuiCursor(hCursor) ?? false) && this.OverrideGameCursor)
             return IntPtr.Zero;
 
-        return this.setCursorHook.IsDisposed
+        return this.setCursorHook?.IsDisposed is not false
                    ? User32.SetCursor(new(hCursor, false)).DangerousGetHandle()
                    : this.setCursorHook.Original(hCursor);
     }
@@ -917,7 +940,7 @@ internal class InterfaceManager : IDisposable, IServiceType
         if (this.IsDispatchingEvents)
         {
             this.Draw?.Invoke();
-            Service<NotificationManager>.Get().Draw();
+            Service<NotificationManager>.GetNullable()?.Draw();
         }
 
         ImGuiManagedAsserts.ReportProblems("Dalamud Core", snap);

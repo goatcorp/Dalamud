@@ -23,7 +23,7 @@ namespace Dalamud.Game;
 /// </summary>
 [InterfaceVersion("1.0")]
 [ServiceManager.BlockingEarlyLoadedService]
-internal sealed class Framework : IDisposable, IServiceType, IFramework
+internal sealed class Framework : IInternalDisposableService, IFramework
 {
     private static readonly ModuleLog Log = new("Framework");
 
@@ -279,7 +279,7 @@ internal sealed class Framework : IDisposable, IServiceType, IFramework
     /// <summary>
     /// Dispose of managed and unmanaged resources.
     /// </summary>
-    void IDisposable.Dispose()
+    void IInternalDisposableService.DisposeService()
     {
         this.RunOnFrameworkThread(() =>
         {
@@ -476,7 +476,7 @@ internal sealed class Framework : IDisposable, IServiceType, IFramework
 #pragma warning disable SA1015
 [ResolveVia<IFramework>]
 #pragma warning restore SA1015
-internal class FrameworkPluginScoped : IDisposable, IServiceType, IFramework
+internal class FrameworkPluginScoped : IInternalDisposableService, IFramework
 {
     [ServiceManager.ServiceDependency]
     private readonly Framework frameworkService = Service<Framework>.Get();
@@ -511,7 +511,7 @@ internal class FrameworkPluginScoped : IDisposable, IServiceType, IFramework
     public bool IsFrameworkUnloading => this.frameworkService.IsFrameworkUnloading;
 
     /// <inheritdoc/>
-    public void Dispose()
+    void IInternalDisposableService.DisposeService()
     {
         this.frameworkService.Update -= this.OnUpdateForward;
 

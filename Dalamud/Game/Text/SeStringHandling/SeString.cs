@@ -381,7 +381,7 @@ public class SeString
         {
             new PartyFinderPayload(listingId, isCrossWorld ? PartyFinderPayload.PartyFinderLinkType.NotSpecified : PartyFinderPayload.PartyFinderLinkType.LimitedToHomeWorld),
             // ->
-            new TextPayload($"Looking for Party ({recruiterName})"),
+            new TextPayload($"Looking for Party ({recruiterName})" + (isCrossWorld ? " " : string.Empty)),
         };
 
         payloads.InsertRange(1, TextArrowPayloads);

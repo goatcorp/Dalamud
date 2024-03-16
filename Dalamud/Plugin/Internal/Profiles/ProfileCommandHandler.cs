@@ -16,7 +16,7 @@ namespace Dalamud.Plugin.Internal.Profiles;
 /// Service responsible for profile-related chat commands.
 /// </summary>
 [ServiceManager.EarlyLoadedService]
-internal class ProfileCommandHandler : IServiceType, IDisposable
+internal class ProfileCommandHandler : IInternalDisposableService
 {
     private readonly CommandManager cmd;
     private readonly ProfileManager profileManager;
@@ -69,7 +69,7 @@ internal class ProfileCommandHandler : IServiceType, IDisposable
     }
     
     /// <inheritdoc/>
-    public void Dispose()
+    void IInternalDisposableService.DisposeService()
     {
         this.cmd.RemoveHandler("/xlenablecollection");
         this.cmd.RemoveHandler("/xldisablecollection");
