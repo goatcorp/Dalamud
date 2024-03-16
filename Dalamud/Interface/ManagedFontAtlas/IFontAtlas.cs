@@ -85,6 +85,10 @@ public interface IFontAtlas : IDisposable
     /// <summary>Creates a new <see cref="IFontHandle"/> from game's built-in fonts.</summary>
     /// <param name="style">Font to use.</param>
     /// <returns>Handle to a font that may or may not be ready yet.</returns>
+    /// <exception cref="InvalidOperationException">When called during <see cref="BuildStepChange"/>,
+    /// <see cref="UiBuilder.BuildFonts"/>, <see cref="UiBuilder.AfterBuildFonts"/>, and alike. Move the font handle
+    /// creating code outside those handlers, and only initialize them once. Call <see cref="IDisposable.Dispose"/>
+    /// on a previous font handle if you're replacing one.</exception>
     /// <remarks>This function does not throw. <see cref="IFontHandle.LoadException"/> will be populated instead, if
     /// the build procedure has failed. <see cref="IFontHandle.Push"/> can be used regardless of the state of the font
     /// handle.</remarks>
@@ -93,6 +97,13 @@ public interface IFontAtlas : IDisposable
     /// <summary>Creates a new IFontHandle using your own callbacks.</summary>
     /// <param name="buildStepDelegate">Callback for <see cref="IFontAtlas.BuildStepChange"/>.</param>
     /// <returns>Handle to a font that may or may not be ready yet.</returns>
+    /// <exception cref="InvalidOperationException">When called during <see cref="BuildStepChange"/>,
+    /// <see cref="UiBuilder.BuildFonts"/>, <see cref="UiBuilder.AfterBuildFonts"/>, and alike. Move the font handle
+    /// creating code outside those handlers, and only initialize them once. Call <see cref="IDisposable.Dispose"/>
+    /// on a previous font handle if you're replacing one.</exception>
+    /// <remarks>Consider calling <see cref="IFontAtlasBuildToolkitPreBuild.AttachExtraGlyphsForDalamudLanguage"/> to
+    /// support glyphs that are not supplied by the game by default; this mostly affects Chinese and Korean language
+    /// users.</remarks>
     /// <remarks>
     /// <para>Consider calling <see cref="IFontAtlasBuildToolkitPreBuild.AttachExtraGlyphsForDalamudLanguage"/> to
     /// support glyphs that are not supplied by the game by default; this mostly affects Chinese and Korean language
