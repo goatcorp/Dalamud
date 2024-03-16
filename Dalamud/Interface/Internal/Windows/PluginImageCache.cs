@@ -21,7 +21,7 @@ namespace Dalamud.Interface.Internal.Windows;
 /// A cache for plugin icons and images.
 /// </summary>
 [ServiceManager.EarlyLoadedService]
-internal class PluginImageCache : IDisposable, IServiceType
+internal class PluginImageCache : IInternalDisposableService
 {
     /// <summary>
     /// Maximum plugin image width.
@@ -136,7 +136,7 @@ internal class PluginImageCache : IDisposable, IServiceType
         this.dalamudAssetManager.GetDalamudTextureWrap(DalamudAsset.LogoSmall, this.EmptyTexture);
 
     /// <inheritdoc/>
-    public void Dispose()
+    void IInternalDisposableService.DisposeService()
     {
         this.cancelToken.Cancel();
         this.downloadQueue.CompleteAdding();

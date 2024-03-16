@@ -240,7 +240,7 @@ internal class LocalPlugin : IDisposable
             this.instance = null;
         }
 
-        this.DalamudInterface?.ExplicitDispose();
+        this.DalamudInterface?.DisposeInternal();
         this.DalamudInterface = null;
 
         this.ServiceScope?.Dispose();
@@ -426,7 +426,7 @@ internal class LocalPlugin : IDisposable
             if (this.instance == null)
             {
                 this.State = PluginState.LoadError;
-                this.DalamudInterface.ExplicitDispose();
+                this.DalamudInterface.DisposeInternal();
                 Log.Error(
                     $"Error while loading {this.Name}, failed to bind and call the plugin constructor");
                 return;
@@ -499,7 +499,7 @@ internal class LocalPlugin : IDisposable
 
             this.instance = null;
 
-            this.DalamudInterface?.ExplicitDispose();
+            this.DalamudInterface?.DisposeInternal();
             this.DalamudInterface = null;
 
             this.ServiceScope?.Dispose();

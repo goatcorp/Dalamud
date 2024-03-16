@@ -65,6 +65,12 @@ internal static class Service<T> where T : IServiceType
         None,
     }
 
+    /// <summary>Does nothing.</summary>
+    /// <remarks>Used to invoke the static ctor.</remarks>
+    public static void Nop()
+    {
+    }
+
     /// <summary>
     /// Sets the type in the service locator to the given object.
     /// </summary>
@@ -72,6 +78,8 @@ internal static class Service<T> where T : IServiceType
     public static void Provide(T obj)
     {
         ServiceManager.Log.Debug("Service<{0}>: Provided", typeof(T).Name);
+        if (obj is IPublicDisposableService pds)
+            pds.MarkDisposeOnlyFromService();
         instanceTcs.SetResult(obj);
     }
 
@@ -297,23 +305,26 @@ internal static class Service<T> where T : IServiceType
         if (!instanceTcs.Task.IsCompletedSuccessfully)
             return;
 
-        var instance = instanceTcs.Task.Result;
-        if (instance is IDisposable disposable)
+        switch (instanceTcs.Task.Result)
         {
-            ServiceManager.Log.Debug("Service<{0}>: Disposing", typeof(T).Name);
-            try
-            {
-                disposable.Dispose();
-                ServiceManager.Log.Debug("Service<{0}>: Disposed", typeof(T).Name);
-            }
-            catch (Exception e)
-            {
-                ServiceManager.Log.Warning(e, "Service<{0}>: Dispose failure", typeof(T).Name);
-            }
-        }
-        else
-        {
-            ServiceManager.Log.Debug("Service<{0}>: Unset", typeof(T).Name);
+            case IInternalDisposableService d:
+                ServiceManager.Log.Debug("Service<{0}>: Disposing", typeof(T).Name);
+                try
+                {
+                    d.DisposeService();
+                    ServiceManager.Log.Debug("Service<{0}>: Disposed", typeof(T).Name);
+                }
+                catch (Exception e)
+                {
+                    ServiceManager.Log.Warning(e, "Service<{0}>: Dispose failure", typeof(T).Name);
+                }
+
+                break;
+
+            default:
+                ServiceManager.CheckServiceTypeContracts(typeof(T));
+                ServiceManager.Log.Debug("Service<{0}>: Unset", typeof(T).Name);
+                break;
         }
 
         instanceTcs = new TaskCompletionSource<T>();

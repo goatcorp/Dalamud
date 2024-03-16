@@ -35,7 +35,7 @@ namespace Dalamud.Interface.Internal;
 /// </para>
 /// </remarks>
 [ServiceManager.EarlyLoadedService]
-internal sealed unsafe class ImGuiClipboardFunctionProvider : IServiceType, IDisposable
+internal sealed unsafe class ImGuiClipboardFunctionProvider : IInternalDisposableService
 {
     private static readonly ModuleLog Log = new(nameof(ImGuiClipboardFunctionProvider));
     private readonly nint clipboardUserDataOriginal;
@@ -75,7 +75,7 @@ internal sealed unsafe class ImGuiClipboardFunctionProvider : IServiceType, IDis
     }
 
     /// <inheritdoc/>
-    public void Dispose()
+    void IInternalDisposableService.DisposeService()
     {
         if (!this.clipboardUserData.IsAllocated)
             return;

@@ -29,7 +29,7 @@ namespace Dalamud.Game.Gui;
 /// </summary>
 [InterfaceVersion("1.0")]
 [ServiceManager.BlockingEarlyLoadedService]
-internal sealed unsafe class ChatGui : IDisposable, IServiceType, IChatGui
+internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
 {
     private static readonly ModuleLog Log = new("ChatGui");
 
@@ -109,7 +109,7 @@ internal sealed unsafe class ChatGui : IDisposable, IServiceType, IChatGui
     /// <summary>
     /// Dispose of managed and unmanaged resources.
     /// </summary>
-    void IDisposable.Dispose()
+    void IInternalDisposableService.DisposeService()
     {
         this.printMessageHook.Dispose();
         this.populateItemLinkHook.Dispose();
@@ -409,7 +409,7 @@ internal sealed unsafe class ChatGui : IDisposable, IServiceType, IChatGui
 #pragma warning disable SA1015
 [ResolveVia<IChatGui>]
 #pragma warning restore SA1015
-internal class ChatGuiPluginScoped : IDisposable, IServiceType, IChatGui
+internal class ChatGuiPluginScoped : IInternalDisposableService, IChatGui
 {
     [ServiceManager.ServiceDependency]
     private readonly ChatGui chatGuiService = Service<ChatGui>.Get();
@@ -447,7 +447,7 @@ internal class ChatGuiPluginScoped : IDisposable, IServiceType, IChatGui
     public IReadOnlyDictionary<(string PluginName, uint CommandId), Action<uint, SeString>> RegisteredLinkHandlers => this.chatGuiService.RegisteredLinkHandlers;
 
     /// <inheritdoc/>
-    public void Dispose()
+    void IInternalDisposableService.DisposeService()
     {
         this.chatGuiService.ChatMessage -= this.OnMessageForward;
         this.chatGuiService.CheckMessageHandled -= this.OnCheckMessageForward;

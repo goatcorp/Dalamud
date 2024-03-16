@@ -193,7 +193,7 @@ internal class TitleScreenMenu : IServiceType, ITitleScreenMenu
 #pragma warning disable SA1015
 [ResolveVia<ITitleScreenMenu>]
 #pragma warning restore SA1015
-internal class TitleScreenMenuPluginScoped : IDisposable, IServiceType, ITitleScreenMenu
+internal class TitleScreenMenuPluginScoped : IInternalDisposableService, ITitleScreenMenu
 {
     [ServiceManager.ServiceDependency]
     private readonly TitleScreenMenu titleScreenMenuService = Service<TitleScreenMenu>.Get();
@@ -204,7 +204,7 @@ internal class TitleScreenMenuPluginScoped : IDisposable, IServiceType, ITitleSc
     public IReadOnlyList<TitleScreenMenuEntry>? Entries => this.titleScreenMenuService.Entries;
 
     /// <inheritdoc/>
-    public void Dispose()
+    void IInternalDisposableService.DisposeService()
     {
         foreach (var entry in this.pluginEntries)
         {

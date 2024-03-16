@@ -97,8 +97,6 @@ namespace Dalamud.CorePlugin
             this.Interface.UiBuilder.Draw -= this.OnDraw;
 
             this.windowSystem.RemoveAllWindows();
-
-            this.Interface.ExplicitDispose();
         }
 
         /// <summary>

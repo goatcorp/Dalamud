@@ -93,7 +93,7 @@ public sealed class SingleFontChooserDialog : IDisposable
     /// <summary>Initializes a new instance of the <see cref="SingleFontChooserDialog"/> class.</summary>
     /// <param name="newAsyncAtlas">A new instance of <see cref="IFontAtlas"/> created using
     /// <see cref="FontAtlasAutoRebuildMode.Async"/> as its auto-rebuild mode.</param>
-    /// <remarks>The passed instance of <see cref="newAsyncAtlas"/> will be disposed after use. If you pass an atlas
+    /// <remarks>The passed instance of <paramref see="newAsyncAtlas"/> will be disposed after use. If you pass an atlas
     /// that is already being used, then all the font handles under the passed atlas will be invalidated upon disposing
     /// this font chooser. Consider using <see cref="SingleFontChooserDialog(UiBuilder, bool, string?)"/> for automatic
     /// handling of font atlas derived from a <see cref="UiBuilder"/>, or even <see cref="CreateAuto"/> for automatic

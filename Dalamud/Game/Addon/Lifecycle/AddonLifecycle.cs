@@ -19,7 +19,7 @@ namespace Dalamud.Game.Addon.Lifecycle;
 /// </summary>
 [InterfaceVersion("1.0")]
 [ServiceManager.EarlyLoadedService]
-internal unsafe class AddonLifecycle : IDisposable, IServiceType
+internal unsafe class AddonLifecycle : IInternalDisposableService
 {
     private static readonly ModuleLog Log = new("AddonLifecycle");
 
@@ -89,7 +89,7 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
     internal List<AddonLifecycleEventListener> EventListeners { get; } = new();
 
     /// <inheritdoc/>
-    public void Dispose()
+    void IInternalDisposableService.DisposeService()
     {
         this.onAddonSetupHook.Dispose();
         this.onAddonSetup2Hook.Dispose();
@@ -383,7 +383,7 @@ internal unsafe class AddonLifecycle : IDisposable, IServiceType
 #pragma warning disable SA1015
 [ResolveVia<IAddonLifecycle>]
 #pragma warning restore SA1015
-internal class AddonLifecyclePluginScoped : IDisposable, IServiceType, IAddonLifecycle
+internal class AddonLifecyclePluginScoped : IInternalDisposableService, IAddonLifecycle
 {
     [ServiceManager.ServiceDependency]
     private readonly AddonLifecycle addonLifecycleService = Service<AddonLifecycle>.Get();
@@ -391,7 +391,7 @@ internal class AddonLifecyclePluginScoped : IDisposable, IServiceType, IAddonLif
     private readonly List<AddonLifecycleEventListener> eventListeners = new();
 
     /// <inheritdoc/>
-    public void Dispose()
+    void IInternalDisposableService.DisposeService()
     {
         foreach (var listener in this.eventListeners)
         {

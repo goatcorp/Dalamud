@@ -16,7 +16,7 @@ namespace Dalamud.Game.Gui.FlyText;
 /// </summary>
 [InterfaceVersion("1.0")]
 [ServiceManager.BlockingEarlyLoadedService]
-internal sealed class FlyTextGui : IDisposable, IServiceType, IFlyTextGui
+internal sealed class FlyTextGui : IInternalDisposableService, IFlyTextGui
 {
     /// <summary>
     /// The native function responsible for adding fly text to the UI. See <see cref="FlyTextGuiAddressResolver.AddFlyText"/>.
@@ -78,7 +78,7 @@ internal sealed class FlyTextGui : IDisposable, IServiceType, IFlyTextGui
     /// <summary>
     /// Disposes of managed and unmanaged resources.
     /// </summary>
-    public void Dispose()
+    void IInternalDisposableService.DisposeService()
     {
         this.createFlyTextHook.Dispose();
     }
@@ -277,7 +277,7 @@ internal sealed class FlyTextGui : IDisposable, IServiceType, IFlyTextGui
 #pragma warning disable SA1015
 [ResolveVia<IFlyTextGui>]
 #pragma warning restore SA1015
-internal class FlyTextGuiPluginScoped : IDisposable, IServiceType, IFlyTextGui
+internal class FlyTextGuiPluginScoped : IInternalDisposableService, IFlyTextGui
 {
     [ServiceManager.ServiceDependency]
     private readonly FlyTextGui flyTextGuiService = Service<FlyTextGui>.Get();
@@ -294,7 +294,7 @@ internal class FlyTextGuiPluginScoped : IDisposable, IServiceType, IFlyTextGui
     public event IFlyTextGui.OnFlyTextCreatedDelegate? FlyTextCreated;
 
     /// <inheritdoc/>
-    public void Dispose()
+    void IInternalDisposableService.DisposeService()
     {
         this.flyTextGuiService.FlyTextCreated -= this.FlyTextCreatedForward;
 

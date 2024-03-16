@@ -13,7 +13,7 @@ namespace Dalamud.Logging.Internal;
 /// Class responsible for tracking asynchronous tasks.
 /// </summary>
 [ServiceManager.EarlyLoadedService]
-internal class TaskTracker : IDisposable, IServiceType
+internal class TaskTracker : IInternalDisposableService
 {
     private static readonly ModuleLog Log = new("TT");
     private static readonly List<TaskInfo> TrackedTasksInternal = new();
@@ -119,7 +119,7 @@ internal class TaskTracker : IDisposable, IServiceType
     }
 
     /// <inheritdoc/>
-    public void Dispose()
+    void IInternalDisposableService.DisposeService()
     {
         this.scheduleAndStartHook?.Dispose();
 

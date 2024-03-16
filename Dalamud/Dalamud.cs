@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using Dalamud.Common;
 using Dalamud.Configuration.Internal;
 using Dalamud.Game;
-using Dalamud.Interface.Internal;
 using Dalamud.Plugin.Internal;
 using Dalamud.Storage;
 using Dalamud.Utility;
@@ -185,27 +184,6 @@ internal sealed class Dalamud : IServiceType
     public void WaitForUnload()
     {
         this.unloadSignal.WaitOne();
-    }
-
-    /// <summary>
-    /// Dispose subsystems related to plugin handling.
-    /// </summary>
-    public void DisposePlugins()
-    {
-        // this must be done before unloading interface manager, in order to do rebuild
-        // the correct cascaded WndProc (IME -> RawDX11Scene -> Game). Otherwise the game
-        // will not receive any windows messages
-        Service<DalamudIme>.GetNullable()?.Dispose();
-
-        // this must be done before unloading plugins, or it can cause a race condition
-        // due to rendering happening on another thread, where a plugin might receive
-        // a render call after it has been disposed, which can crash if it attempts to
-        // use any resources that it freed in its own Dispose method
-        Service<InterfaceManager>.GetNullable()?.Dispose();
-
-        Service<DalamudInterface>.GetNullable()?.Dispose();
-
-        Service<PluginManager>.GetNullable()?.Dispose();
     }
 
     /// <summary>

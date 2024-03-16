@@ -204,12 +204,12 @@ internal sealed partial class FontAtlasFactory
                             {
                                 while (this.IsBuildInProgress)
                                     await Task.Delay(100);
-                                this.Garbage.Dispose();
+                                this.Clear();
                             });
                     }
                     else
                     {
-                        this.Garbage.Dispose();
+                        this.Clear();
                     }
 
                     return newRefCount;
@@ -226,6 +226,20 @@ internal sealed partial class FontAtlasFactory
         {
             var axisSubstance = this.Substances.OfType<GamePrebakedFontHandle.HandleSubstance>().Single();
             return new(factory, this, axisSubstance, isAsync) { BuildStep = FontAtlasBuildStep.PreBuild };
+        }
+
+        public void Clear()
+        {
+            try
+            {
+                this.Garbage.Dispose();
+            }
+            catch (Exception e)
+            {
+                Log.Error(
+                    e,
+                    $"Disposing {nameof(FontAtlasBuiltData)} of {this.Owner?.Name ?? "???"}.");
+            }
         }
     }
 
@@ -547,13 +561,13 @@ internal sealed partial class FontAtlasFactory
             {
                 if (this.buildIndex != rebuildIndex)
                 {
-                    data.ExplicitDisposeIgnoreExceptions();
+                    data.Release();
                     return;
                 }
 
                 var prevBuiltData = this.builtData;
                 this.builtData = data;
-                prevBuiltData.ExplicitDisposeIgnoreExceptions();
+                prevBuiltData?.Release();
 
                 this.buildTask = EmptyTask;
                 fontsAndLocks.EnsureCapacity(data.Substances.Sum(x => x.RelevantHandles.Count));

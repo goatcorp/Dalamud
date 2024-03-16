@@ -19,7 +19,7 @@ namespace Dalamud.Game.Inventory;
 /// </summary>
 [InterfaceVersion("1.0")]
 [ServiceManager.BlockingEarlyLoadedService]
-internal class GameInventory : IDisposable, IServiceType
+internal class GameInventory : IInternalDisposableService
 {
     private readonly List<GameInventoryPluginScoped> subscribersPendingChange = new();
     private readonly List<GameInventoryPluginScoped> subscribers = new();
@@ -61,7 +61,7 @@ internal class GameInventory : IDisposable, IServiceType
     private unsafe delegate void RaptureAtkModuleUpdateDelegate(RaptureAtkModule* ram, float f1);
 
     /// <inheritdoc/>
-    public void Dispose()
+    void IInternalDisposableService.DisposeService()
     {
         lock (this.subscribersPendingChange)
         {
@@ -351,7 +351,7 @@ internal class GameInventory : IDisposable, IServiceType
 #pragma warning disable SA1015
 [ResolveVia<IGameInventory>]
 #pragma warning restore SA1015
-internal class GameInventoryPluginScoped : IDisposable, IServiceType, IGameInventory
+internal class GameInventoryPluginScoped : IInternalDisposableService, IGameInventory
 {
     private static readonly ModuleLog Log = new(nameof(GameInventoryPluginScoped));
 
@@ -406,7 +406,7 @@ internal class GameInventoryPluginScoped : IDisposable, IServiceType, IGameInven
     public event IGameInventory.InventoryChangedDelegate<InventoryItemMergedArgs>? ItemMergedExplicit;
 
     /// <inheritdoc/>
-    public void Dispose()
+    void IInternalDisposableService.DisposeService()
     {
         this.gameInventoryService.Unsubscribe(this);
 
