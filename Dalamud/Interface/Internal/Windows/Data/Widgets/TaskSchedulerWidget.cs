@@ -155,7 +155,7 @@ internal class TaskSchedulerWidget : IDataWindowWidget
                     {
                         Log.Information($"Loop #{i}; MainThread={ThreadSafety.IsMainThread}");
                         var it = i;
-                        _ = Task.Run(() => Log.Information($" => Sub #{it}; MainThread={ThreadSafety.IsMainThread}"));
+                        _ = Task.Factory.StartNew(() => Log.Information($" => Sub #{it}; MainThread={ThreadSafety.IsMainThread}"));
                         await framework.DelayTicks(60, this.taskSchedulerCancelSource.Token);
                     }
                 },
@@ -173,7 +173,7 @@ internal class TaskSchedulerWidget : IDataWindowWidget
                     {
                         Log.Information($"Loop #{i}; MainThread={ThreadSafety.IsMainThread}");
                         var it = i;
-                        _ = Task.Run(() => Log.Information($" => Sub #{it}; MainThread={ThreadSafety.IsMainThread}"));
+                        _ = Task.Factory.StartNew(() => Log.Information($" => Sub #{it}; MainThread={ThreadSafety.IsMainThread}"));
                         await Task.Delay(TimeSpan.FromSeconds(1), this.taskSchedulerCancelSource.Token);
                     }
                 },
@@ -191,7 +191,7 @@ internal class TaskSchedulerWidget : IDataWindowWidget
                     {
                         Log.Information($"Loop #{i}; MainThread={ThreadSafety.IsMainThread}");
                         var it = i;
-                        _ = Task.Run(() => Log.Information($" => Sub #{it}; MainThread={ThreadSafety.IsMainThread}"));
+                        _ = Task.Factory.StartNew(() => Log.Information($" => Sub #{it}; MainThread={ThreadSafety.IsMainThread}"));
                         await framework.DelayTicks(60, this.taskSchedulerCancelSource.Token);
                     }
                 },
@@ -209,7 +209,7 @@ internal class TaskSchedulerWidget : IDataWindowWidget
                     {
                         Log.Information($"Loop #{i}; MainThread={ThreadSafety.IsMainThread}");
                         var it = i;
-                        _ = Task.Run(() => Log.Information($" => Sub #{it}; MainThread={ThreadSafety.IsMainThread}"));
+                        _ = Task.Factory.StartNew(() => Log.Information($" => Sub #{it}; MainThread={ThreadSafety.IsMainThread}"));
                         await Task.Delay(TimeSpan.FromSeconds(1), this.taskSchedulerCancelSource.Token);
                     }
                 },
