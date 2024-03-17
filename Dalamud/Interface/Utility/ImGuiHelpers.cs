@@ -3,6 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Numerics;
 using System.Reactive.Disposables;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Unicode;
@@ -742,25 +743,29 @@ public static class ImGuiHelpers
 
         public bool Colored
         {
-            get => (int)((this.ColoredVisibleTextureIndexCodepoint & ColoredMask) >> ColoredShift) != 0;
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            readonly get => (int)((this.ColoredVisibleTextureIndexCodepoint & ColoredMask) >> ColoredShift) != 0;
             set => this.ColoredVisibleTextureIndexCodepoint = (this.ColoredVisibleTextureIndexCodepoint & ~ColoredMask) | (value ? 1u << ColoredShift : 0u);
         }
 
         public bool Visible
         {
-            get => (int)((this.ColoredVisibleTextureIndexCodepoint & VisibleMask) >> VisibleShift) != 0;
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            readonly get => (int)((this.ColoredVisibleTextureIndexCodepoint & VisibleMask) >> VisibleShift) != 0;
             set => this.ColoredVisibleTextureIndexCodepoint = (this.ColoredVisibleTextureIndexCodepoint & ~VisibleMask) | (value ? 1u << VisibleShift : 0u);
         }
 
         public int TextureIndex
         {
-            get => (int)(this.ColoredVisibleTextureIndexCodepoint & TextureMask) >> TextureShift;
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            readonly get => (int)(this.ColoredVisibleTextureIndexCodepoint & TextureMask) >> TextureShift;
             set => this.ColoredVisibleTextureIndexCodepoint = (this.ColoredVisibleTextureIndexCodepoint & ~TextureMask) | ((uint)value << TextureShift);
         }
 
         public int Codepoint
         {
-            get => (int)(this.ColoredVisibleTextureIndexCodepoint & CodepointMask) >> CodepointShift;
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            readonly get => (int)(this.ColoredVisibleTextureIndexCodepoint & CodepointMask) >> CodepointShift;
             set => this.ColoredVisibleTextureIndexCodepoint = (this.ColoredVisibleTextureIndexCodepoint & ~CodepointMask) | ((uint)value << CodepointShift);
         }
     }
@@ -785,19 +790,22 @@ public static class ImGuiHelpers
 
         public bool UseBisect
         {
-            get => (int)((this.KerningPairInfo & UseBisectMask) >> UseBisectShift) != 0;
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            readonly get => (int)((this.KerningPairInfo & UseBisectMask) >> UseBisectShift) != 0;
             set => this.KerningPairInfo = (this.KerningPairInfo & ~UseBisectMask) | (value ? 1u << UseBisectShift : 0u);
         }
 
         public bool Offset
         {
-            get => (int)((this.KerningPairInfo & OffsetMask) >> OffsetShift) != 0;
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            readonly get => (int)((this.KerningPairInfo & OffsetMask) >> OffsetShift) != 0;
             set => this.KerningPairInfo = (this.KerningPairInfo & ~OffsetMask) | (value ? 1u << OffsetShift : 0u);
         }
 
         public int Count
         {
-            get => (int)(this.KerningPairInfo & CountMask) >> CountShift;
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            readonly get => (int)(this.KerningPairInfo & CountMask) >> CountShift;
             set => this.KerningPairInfo = (this.KerningPairInfo & ~CountMask) | ((uint)value << CountShift);
         }
     }
@@ -826,13 +834,15 @@ public static class ImGuiHelpers
 
         public int TextureIndex
         {
-            get => (int)(this.TextureIndexAndGlyphId & TextureIndexMask) >> TextureIndexShift;
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            readonly get => (int)(this.TextureIndexAndGlyphId & TextureIndexMask) >> TextureIndexShift;
             set => this.TextureIndexAndGlyphId = (this.TextureIndexAndGlyphId & ~TextureIndexMask) | ((uint)value << TextureIndexShift);
         }
 
         public int GlyphId
         {
-            get => (int)(this.TextureIndexAndGlyphId & GlyphIdMask) >> GlyphIdShift;
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            readonly get => (int)(this.TextureIndexAndGlyphId & GlyphIdMask) >> GlyphIdShift;
             set => this.TextureIndexAndGlyphId = (this.TextureIndexAndGlyphId & ~GlyphIdMask) | ((uint)value << GlyphIdShift);
         }
     }

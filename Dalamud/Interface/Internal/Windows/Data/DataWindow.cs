@@ -49,6 +49,7 @@ internal class DataWindow : Window, IDisposable
         new PluginIpcWidget(),
         new SeFontTestWidget(),
         new ServicesWidget(),
+        new SpannedStringWidget(),
         new StartInfoWidget(),
         new TargetWidget(),
         new TaskSchedulerWidget(),

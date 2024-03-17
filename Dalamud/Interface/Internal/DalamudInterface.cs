@@ -499,7 +499,15 @@ internal class DalamudInterface : IInternalDisposableService
                 ImGui.PushFont(InterfaceManager.MonoFont);
 
             if (this.isImGuiDrawDemoWindow)
-                ImGui.ShowDemoWindow(ref this.isImGuiDrawDemoWindow);
+            {
+                unsafe
+                {
+                    var prevAtlas = ImGui.GetIO().NativePtr->Fonts;
+                    ImGui.GetIO().NativePtr->Fonts = ImGui.GetFont().ContainerAtlas;
+                    ImGui.ShowDemoWindow(ref this.isImGuiDrawDemoWindow);
+                    ImGui.GetIO().NativePtr->Fonts = prevAtlas;
+                }
+            }
 
             if (this.isImPlotDrawDemoWindow)
                 ImPlot.ShowDemoWindow(ref this.isImPlotDrawDemoWindow);
