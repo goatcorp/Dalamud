@@ -139,6 +139,38 @@ internal sealed class Framework : IInternalDisposableService, IFramework
     }
 
     /// <inheritdoc/>
+    public Task RunOnFrameworkThreadAwaitable(Action action, CancellationToken cancellationToken = default)
+    {
+        if (cancellationToken == default)
+            cancellationToken = this.FrameworkThreadTaskFactory.CancellationToken;
+        return this.FrameworkThreadTaskFactory.StartNew(action, cancellationToken);
+    }
+
+    /// <inheritdoc/>
+    public Task<T> RunOnFrameworkThreadAwaitable<T>(Func<T> action, CancellationToken cancellationToken = default)
+    {
+        if (cancellationToken == default)
+            cancellationToken = this.FrameworkThreadTaskFactory.CancellationToken;
+        return this.FrameworkThreadTaskFactory.StartNew(action, cancellationToken);
+    }
+
+    /// <inheritdoc/>
+    public Task RunOnFrameworkThreadAwaitable(Func<Task> action, CancellationToken cancellationToken = default)
+    {
+        if (cancellationToken == default)
+            cancellationToken = this.FrameworkThreadTaskFactory.CancellationToken;
+        return this.FrameworkThreadTaskFactory.StartNew(action, cancellationToken).Unwrap();
+    }
+
+    /// <inheritdoc/>
+    public Task<T> RunOnFrameworkThreadAwaitable<T>(Func<Task<T>> action, CancellationToken cancellationToken = default)
+    {
+        if (cancellationToken == default)
+            cancellationToken = this.FrameworkThreadTaskFactory.CancellationToken;
+        return this.FrameworkThreadTaskFactory.StartNew(action, cancellationToken).Unwrap();
+    }
+
+    /// <inheritdoc/>
     public Task<T> RunOnFrameworkThread<T>(Func<T> func) =>
         this.IsInFrameworkUpdateThread || this.IsFrameworkUnloading ? Task.FromResult(func()) : this.RunOnTick(func);
 
@@ -193,7 +225,9 @@ internal sealed class Framework : IInternalDisposableService, IFramework
                 this.DelayTicks(delayTicks, cancellationToken),
             },
             _ => func(),
-            cancellationToken);
+            cancellationToken,
+            TaskContinuationOptions.HideScheduler,
+            this.frameworkThreadTaskScheduler);
     }
 
     /// <inheritdoc/>
@@ -218,7 +252,9 @@ internal sealed class Framework : IInternalDisposableService, IFramework
                 this.DelayTicks(delayTicks, cancellationToken),
             },
             _ => action(),
-            cancellationToken);
+            cancellationToken,
+            TaskContinuationOptions.HideScheduler,
+            this.frameworkThreadTaskScheduler);
     }
 
     /// <inheritdoc/>
@@ -243,7 +279,9 @@ internal sealed class Framework : IInternalDisposableService, IFramework
                 this.DelayTicks(delayTicks, cancellationToken),
             },
             _ => func(),
-            cancellationToken).Unwrap();
+            cancellationToken,
+            TaskContinuationOptions.HideScheduler,
+            this.frameworkThreadTaskScheduler).Unwrap();
     }
 
     /// <inheritdoc/>
@@ -268,7 +306,9 @@ internal sealed class Framework : IInternalDisposableService, IFramework
                 this.DelayTicks(delayTicks, cancellationToken),
             },
             _ => func(),
-            cancellationToken).Unwrap();
+            cancellationToken,
+            TaskContinuationOptions.HideScheduler,
+            this.frameworkThreadTaskScheduler).Unwrap();
     }
 
     /// <summary>
@@ -514,6 +554,22 @@ internal class FrameworkPluginScoped : IInternalDisposableService, IFramework
     /// <inheritdoc/>
     public Task DelayTicks(long numTicks, CancellationToken cancellationToken = default) =>
         this.frameworkService.DelayTicks(numTicks, cancellationToken);
+
+    /// <inheritdoc/>
+    public Task RunOnFrameworkThreadAwaitable(Action action, CancellationToken cancellationToken = default) =>
+        this.frameworkService.RunOnFrameworkThreadAwaitable(action, cancellationToken);
+
+    /// <inheritdoc/>
+    public Task<T> RunOnFrameworkThreadAwaitable<T>(Func<T> action, CancellationToken cancellationToken = default) =>
+        this.frameworkService.RunOnFrameworkThreadAwaitable(action, cancellationToken);
+
+    /// <inheritdoc/>
+    public Task RunOnFrameworkThreadAwaitable(Func<Task> action, CancellationToken cancellationToken = default) =>
+        this.frameworkService.RunOnFrameworkThreadAwaitable(action, cancellationToken);
+
+    /// <inheritdoc/>
+    public Task<T> RunOnFrameworkThreadAwaitable<T>(Func<Task<T>> action, CancellationToken cancellationToken = default) =>
+        this.frameworkService.RunOnFrameworkThreadAwaitable(action, cancellationToken);
 
     /// <inheritdoc/>
     public Task<T> RunOnFrameworkThread<T>(Func<T> func)

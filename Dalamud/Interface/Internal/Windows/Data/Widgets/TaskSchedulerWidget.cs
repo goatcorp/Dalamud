@@ -146,7 +146,7 @@ internal class TaskSchedulerWidget : IDataWindowWidget
 
         ImGui.SameLine();
 
-        if (ImGui.Button("Every 60 frames"))
+        if (ImGui.Button("Every 60f"))
         {
             _ = framework.RunOnTick(
                 async () =>
@@ -154,10 +154,66 @@ internal class TaskSchedulerWidget : IDataWindowWidget
                     for (var i = 0L; ; i++)
                     {
                         Log.Information($"Loop #{i}; MainThread={ThreadSafety.IsMainThread}");
+                        var it = i;
+                        _ = Task.Run(() => Log.Information($" => Sub #{it}; MainThread={ThreadSafety.IsMainThread}"));
                         await framework.DelayTicks(60, this.taskSchedulerCancelSource.Token);
                     }
                 },
                 cancellationToken: this.taskSchedulerCancelSource.Token);
+        }
+
+        ImGui.SameLine();
+
+        if (ImGui.Button("Every 1s"))
+        {
+            _ = framework.RunOnTick(
+                async () =>
+                {
+                    for (var i = 0L; ; i++)
+                    {
+                        Log.Information($"Loop #{i}; MainThread={ThreadSafety.IsMainThread}");
+                        var it = i;
+                        _ = Task.Run(() => Log.Information($" => Sub #{it}; MainThread={ThreadSafety.IsMainThread}"));
+                        await Task.Delay(TimeSpan.FromSeconds(1), this.taskSchedulerCancelSource.Token);
+                    }
+                },
+                cancellationToken: this.taskSchedulerCancelSource.Token);
+        }
+
+        ImGui.SameLine();
+
+        if (ImGui.Button("Every 60f (Await)"))
+        {
+            _ = framework.RunOnFrameworkThreadAwaitable(
+                async () =>
+                {
+                    for (var i = 0L; ; i++)
+                    {
+                        Log.Information($"Loop #{i}; MainThread={ThreadSafety.IsMainThread}");
+                        var it = i;
+                        _ = Task.Run(() => Log.Information($" => Sub #{it}; MainThread={ThreadSafety.IsMainThread}"));
+                        await framework.DelayTicks(60, this.taskSchedulerCancelSource.Token);
+                    }
+                },
+                this.taskSchedulerCancelSource.Token);
+        }
+
+        ImGui.SameLine();
+
+        if (ImGui.Button("Every 1s (Await)"))
+        {
+            _ = framework.RunOnFrameworkThreadAwaitable(
+                async () =>
+                {
+                    for (var i = 0L; ; i++)
+                    {
+                        Log.Information($"Loop #{i}; MainThread={ThreadSafety.IsMainThread}");
+                        var it = i;
+                        _ = Task.Run(() => Log.Information($" => Sub #{it}; MainThread={ThreadSafety.IsMainThread}"));
+                        await Task.Delay(TimeSpan.FromSeconds(1), this.taskSchedulerCancelSource.Token);
+                    }
+                },
+                this.taskSchedulerCancelSource.Token);
         }
 
         ImGui.SameLine();
