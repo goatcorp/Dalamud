@@ -109,26 +109,31 @@ public sealed class GameVersion : ICloneable, IComparable, IComparable<GameVersi
     /// <summary>
     /// Gets the year component.
     /// </summary>
+    [JsonRequired]
     public int Year { get; } = -1;
 
     /// <summary>
     /// Gets the month component.
     /// </summary>
+    [JsonRequired]
     public int Month { get; } = -1;
 
     /// <summary>
     /// Gets the day component.
     /// </summary>
+    [JsonRequired]
     public int Day { get; } = -1;
 
     /// <summary>
     /// Gets the major version component.
     /// </summary>
+    [JsonRequired]
     public int Major { get; } = -1;
 
     /// <summary>
     /// Gets the minor version component.
     /// </summary>
+    [JsonRequired]
     public int Minor { get; } = -1;
 
     public static implicit operator GameVersion(string ver)

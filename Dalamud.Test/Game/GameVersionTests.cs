@@ -226,6 +226,17 @@ namespace Dalamud.Test.Game
         }
 
         [Fact]
+        public void VersionInvalidTypeDeserialization()
+        {
+            var serialized = """
+                             {
+                                "Value": "Hello"
+                             }
+                             """;
+            Assert.Throws<JsonSerializationException>(() => JsonConvert.DeserializeObject<GameVersion>(serialized));
+        }
+
+        [Fact]
         public void VersionConstructorNegativeYear()
         {
             Assert.Throws<ArgumentOutOfRangeException>(() => new GameVersion(-2024));
