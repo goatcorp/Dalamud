@@ -48,11 +48,6 @@ public interface IFramework
     public DateTime LastUpdateUTC { get; }
 
     /// <summary>
-    /// Gets a <see cref="TaskFactory"/> that runs tasks during Framework Update event.
-    /// </summary>
-    public TaskFactory FrameworkThreadTaskFactory { get; }
-
-    /// <summary>
     /// Gets the delta between the last Framework Update and the currently executing one.
     /// </summary>
     public TimeSpan UpdateDelta { get; }
@@ -66,6 +61,10 @@ public interface IFramework
     /// Gets a value indicating whether game Framework is unloading.
     /// </summary>
     public bool IsFrameworkUnloading { get; }
+
+    /// <summary>Gets a <see cref="TaskFactory"/> that runs tasks during Framework Update event.</summary>
+    /// <returns>The task factory.</returns>
+    public TaskFactory GetTaskFactory();
 
     /// <summary>
     /// Returns a task that completes after the given number of ticks. 

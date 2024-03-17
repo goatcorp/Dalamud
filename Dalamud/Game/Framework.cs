@@ -104,9 +104,6 @@ internal sealed class Framework : IInternalDisposableService, IFramework
     public DateTime LastUpdateUTC { get; private set; } = DateTime.MinValue;
 
     /// <inheritdoc/>
-    public TaskFactory FrameworkThreadTaskFactory { get; }
-
-    /// <inheritdoc/>
     public TimeSpan UpdateDelta { get; private set; } = TimeSpan.Zero;
 
     /// <inheritdoc/>
@@ -124,6 +121,11 @@ internal sealed class Framework : IInternalDisposableService, IFramework
     /// Gets or sets a value indicating whether to dispatch update events.
     /// </summary>
     internal bool DispatchUpdateEvents { get; set; } = true;
+
+    private TaskFactory FrameworkThreadTaskFactory { get; }
+
+    /// <inheritdoc/>
+    public TaskFactory GetTaskFactory() => this.FrameworkThreadTaskFactory;
 
     /// <inheritdoc/>
     public Task DelayTicks(long numTicks, CancellationToken cancellationToken = default)
@@ -532,9 +534,6 @@ internal class FrameworkPluginScoped : IInternalDisposableService, IFramework
     public DateTime LastUpdateUTC => this.frameworkService.LastUpdateUTC;
 
     /// <inheritdoc/>
-    public TaskFactory FrameworkThreadTaskFactory => this.frameworkService.FrameworkThreadTaskFactory;
-
-    /// <inheritdoc/>
     public TimeSpan UpdateDelta => this.frameworkService.UpdateDelta;
     
     /// <inheritdoc/>
@@ -550,6 +549,9 @@ internal class FrameworkPluginScoped : IInternalDisposableService, IFramework
 
         this.Update = null;
     }
+
+    /// <inheritdoc/>
+    public TaskFactory GetTaskFactory() => this.frameworkService.GetTaskFactory();
 
     /// <inheritdoc/>
     public Task DelayTicks(long numTicks, CancellationToken cancellationToken = default) =>
