@@ -144,8 +144,6 @@ internal class TaskSchedulerWidget : IDataWindowWidget
             _ = framework.RunOnTick(() => Log.Information("Framework.Update - In 2s+60f"), cancellationToken: this.taskSchedulerCancelSource.Token, delay: TimeSpan.FromSeconds(2), delayTicks: 60);
         }
 
-        ImGui.SameLine();
-
         if (ImGui.Button("Every 60f"))
         {
             _ = framework.RunOnTick(
@@ -218,6 +216,14 @@ internal class TaskSchedulerWidget : IDataWindowWidget
 
         ImGui.SameLine();
 
+        if (ImGui.Button("As long as it's in Framework Thread"))
+        {
+            Task.Run(async () => await framework.RunOnFrameworkThread(() => { Log.Information("Task dispatched from non-framework.update thread"); }));
+            framework.RunOnFrameworkThread(() => { Log.Information("Task dispatched from framework.update thread"); }).Wait();
+        }
+
+        ImGui.SameLine();
+
         if (ImGui.Button("Error in 1s"))
         {
             _ = framework.RunOnTick(() => throw new Exception("Test Exception"), cancellationToken: this.taskSchedulerCancelSource.Token, delay: TimeSpan.FromSeconds(1));
@@ -225,10 +231,18 @@ internal class TaskSchedulerWidget : IDataWindowWidget
 
         ImGui.SameLine();
 
-        if (ImGui.Button("As long as it's in Framework Thread"))
+        if (ImGui.Button("Freeze 1s"))
         {
-            Task.Run(async () => await framework.RunOnFrameworkThread(() => { Log.Information("Task dispatched from non-framework.update thread"); }));
-            framework.RunOnFrameworkThread(() => { Log.Information("Task dispatched from framework.update thread"); }).Wait();
+            _ = framework.RunOnFrameworkThread(() => Helper().Wait());
+            static async Task Helper() => await Task.Delay(1000);
+        }
+
+        ImGui.SameLine();
+
+        if (ImGui.Button("Freeze Completely"))
+        {
+            _ = framework.RunOnFrameworkThreadAwaitable(() => Helper().Wait());
+            static async Task Helper() => await Task.Delay(1000);
         }
 
         if (ImGui.CollapsingHeader("Download"))
