@@ -33,12 +33,16 @@ public sealed partial class SpannedStringBuilder
     private Stack<int>? stackVerticalAlignment;
     private Stack<BoolOrToggle>? stackItalicMode;
     private Stack<BoolOrToggle>? stackBoldMode;
+    private Stack<int>? stackTextDecoration;
+    private Stack<int>? stackTextDecorationStyle;
     private Stack<int>? stackBackColor;
     private Stack<int>? stackShadowColor;
     private Stack<int>? stackEdgeColor;
+    private Stack<int>? stackTextDecorationColor;
     private Stack<int>? stackForeCoor;
     private Stack<int>? stackBorderWidth;
     private Stack<int>? stackShadowOffset;
+    private Stack<int>? stackTextDecorationThickness;
 
     /// <summary>Initializes a new instance of the <see cref="SpannedStringBuilder"/> class.</summary>
     public SpannedStringBuilder() => this.records.Add(default);
@@ -73,12 +77,16 @@ public sealed partial class SpannedStringBuilder
         this.stackVerticalAlignment?.Clear();
         this.stackItalicMode?.Clear();
         this.stackBoldMode?.Clear();
+        this.stackTextDecoration?.Clear();
+        this.stackTextDecorationStyle?.Clear();
         this.stackBackColor?.Clear();
         this.stackShadowColor?.Clear();
         this.stackEdgeColor?.Clear();
+        this.stackTextDecorationColor?.Clear();
         this.stackForeCoor?.Clear();
         this.stackBorderWidth?.Clear();
         this.stackShadowOffset?.Clear();
+        this.stackTextDecorationThickness?.Clear();
         return true;
     }
 

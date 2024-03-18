@@ -153,6 +153,34 @@ internal sealed class SpannedRecordCodec
     public static int EncodeBold(Span<byte> dataStream, BoolOrToggle value) =>
         Encode(ref dataStream, value);
 
+    /// <summary>Decodes data for <see cref="SpannedRecordType.TextDecoration"/>.</summary>
+    /// <param name="dataStream">The data stream to decode from.</param>
+    /// <param name="value">The value.</param>
+    /// <returns><c>true</c> on success.</returns>
+    public static bool TryDecodeTextDecoration(ReadOnlySpan<byte> dataStream, out TextDecoration value) =>
+        TryDecode(ref dataStream, out value);
+
+    /// <summary>Encodes data for <see cref="SpannedRecordType.TextDecoration"/>.</summary>
+    /// <param name="dataStream">The optional data stream to encode to.</param>
+    /// <param name="value">The value.</param>
+    /// <returns>The remaning region of <paramref name="dataStream"/>.</returns>
+    public static int EncodeTextDecoration(Span<byte> dataStream, TextDecoration value) =>
+        Encode(ref dataStream, value);
+
+    /// <summary>Decodes data for <see cref="SpannedRecordType.TextDecorationStyle"/>.</summary>
+    /// <param name="dataStream">The data stream to decode from.</param>
+    /// <param name="value">The value.</param>
+    /// <returns><c>true</c> on success.</returns>
+    public static bool TryDecodeTextDecorationStyle(ReadOnlySpan<byte> dataStream, out TextDecorationStyle value) =>
+        TryDecode(ref dataStream, out value);
+
+    /// <summary>Encodes data for <see cref="SpannedRecordType.TextDecorationStyle"/>.</summary>
+    /// <param name="dataStream">The optional data stream to encode to.</param>
+    /// <param name="value">The value.</param>
+    /// <returns>The remaning region of <paramref name="dataStream"/>.</returns>
+    public static int EncodeTextDecorationStyle(Span<byte> dataStream, TextDecorationStyle value) =>
+        Encode(ref dataStream, value);
+
     /// <summary>Decodes data for <see cref="SpannedRecordType.BackColor"/>.</summary>
     /// <param name="dataStream">The data stream to decode from.</param>
     /// <param name="color">The RGBA color value.</param>
@@ -193,6 +221,20 @@ internal sealed class SpannedRecordCodec
     /// <param name="color">The RGBA color value.</param>
     /// <returns>The remaning region of <paramref name="dataStream"/>.</returns>
     public static int EncodeEdgeColor(Span<byte> dataStream, Rgba32 color) =>
+        Encode(ref dataStream, color);
+
+    /// <summary>Decodes data for <see cref="SpannedRecordType.TextDecorationColor"/>.</summary>
+    /// <param name="dataStream">The data stream to decode from.</param>
+    /// <param name="color">The RGBA color value.</param>
+    /// <returns><c>true</c> on success.</returns>
+    public static bool TryDecodeTextDecorationColor(ReadOnlySpan<byte> dataStream, out Rgba32 color) =>
+        TryDecode(ref dataStream, out color);
+
+    /// <summary>Encodes data for <see cref="SpannedRecordType.TextDecorationColor"/>.</summary>
+    /// <param name="dataStream">The optional data stream to encode to.</param>
+    /// <param name="color">The RGBA color value.</param>
+    /// <returns>The remaning region of <paramref name="dataStream"/>.</returns>
+    public static int EncodeTextDecorationColor(Span<byte> dataStream, Rgba32 color) =>
         Encode(ref dataStream, color);
 
     /// <summary>Decodes data for <see cref="SpannedRecordType.ForeColor"/>.</summary>
@@ -236,6 +278,20 @@ internal sealed class SpannedRecordCodec
     /// <returns>The remaning region of <paramref name="dataStream"/>.</returns>
     public static int EncodeShadowOffset(Span<byte> dataStream, Vector2 offset) =>
         Encode(ref dataStream, offset);
+
+    /// <summary>Decodes data for <see cref="SpannedRecordType.TextDecorationThickness"/>.</summary>
+    /// <param name="dataStream">The data stream to decode from.</param>
+    /// <param name="value">The value.</param>
+    /// <returns><c>true</c> on success.</returns>
+    public static bool TryDecodeTextDecorationThickness(ReadOnlySpan<byte> dataStream, out float value) =>
+        TryDecode(ref dataStream, out value);
+
+    /// <summary>Encodes data for <see cref="SpannedRecordType.TextDecorationThickness"/>.</summary>
+    /// <param name="dataStream">The optional data stream to encode to.</param>
+    /// <param name="value">The value.</param>
+    /// <returns>The remaning region of <paramref name="dataStream"/>.</returns>
+    public static int EncodeTextDecorationThickness(Span<byte> dataStream, float value) =>
+        Encode(ref dataStream, value);
 
     /// <summary>Decodes data for <see cref="SpannedRecordType.InsertionIcon"/>.</summary>
     /// <param name="dataStream">The data stream to decode from.</param>

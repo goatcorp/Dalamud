@@ -286,6 +286,28 @@ public interface ISpannedStringBuilder<out TReturn>
     [SpannedParseInstruction(SpannedRecordType.Bold, true, "/b", "/bold")]
     TReturn PopBold();
 
+    /// <summary>Pushes a text decoration to use from now on.</summary>
+    /// <param name="value">The new value.</param>
+    /// <returns>A reference of this instance after the push operation is completed.</returns>
+    [SpannedParseInstruction(SpannedRecordType.TextDecoration, false, "td", "text-decoration")]
+    TReturn PushTextDecoration(TextDecoration value);
+    
+    /// <summary>Pops a text decoration.</summary>
+    /// <returns>A reference of this instance after the pop operation is completed.</returns>
+    [SpannedParseInstruction(SpannedRecordType.TextDecoration, true, "/td", "/text-decoration")]
+    TReturn PopTextDecoration();
+
+    /// <summary>Pushes a text decoration style to use from now on.</summary>
+    /// <param name="value">The new value.</param>
+    /// <returns>A reference of this instance after the push operation is completed.</returns>
+    [SpannedParseInstruction(SpannedRecordType.TextDecorationStyle, false, "tds", "text-decoration-style")]
+    TReturn PushTextDecorationStyle(TextDecorationStyle value);
+    
+    /// <summary>Pops a text decoration style.</summary>
+    /// <returns>A reference of this instance after the pop operation is completed.</returns>
+    [SpannedParseInstruction(SpannedRecordType.TextDecorationStyle, true, "/tds", "/text-decoration-style")]
+    TReturn PopTextDecorationStyle();
+
     /// <summary>Pushes a background color to use from now on.</summary>
     /// <param name="color">The new color.</param>
     /// <returns>A reference of this instance after the push operation is completed.</returns>
@@ -322,6 +344,18 @@ public interface ISpannedStringBuilder<out TReturn>
     [SpannedParseInstruction(SpannedRecordType.EdgeColor, true, "/ec", "/edge-color")]
     TReturn PopEdgeColor();
 
+    /// <summary>Pushes an text decoration color to use from now on.</summary>
+    /// <param name="color">The new color.</param>
+    /// <returns>A reference of this instance after the push operation is completed.</returns>
+    [SpannedParseInstruction(SpannedRecordType.TextDecorationColor, false, "tdc", "text-decoration-color")]
+    TReturn PushTextDecorationColor(Rgba32 color);
+
+    /// <summary>Pops an text decoration color.</summary>
+    /// <returns>A reference of this instance after the pop operation is completed.</returns>
+    /// <exception cref="InvalidOperationException">The stack is empty.</exception>
+    [SpannedParseInstruction(SpannedRecordType.TextDecorationColor, true, "/tdc", "/text-decoration-color")]
+    TReturn PopTextDecorationColor();
+
     /// <summary>Pushes a foreground color to use from now on.</summary>
     /// <param name="color">The new color.</param>
     /// <returns>A reference of this instance after the push operation is completed.</returns>
@@ -357,6 +391,18 @@ public interface ISpannedStringBuilder<out TReturn>
     /// <exception cref="InvalidOperationException">The stack is empty.</exception>
     [SpannedParseInstruction(SpannedRecordType.ShadowOffset, true, "/so", "/shadow-offset")]
     TReturn PopShadowOffset();
+
+    /// <summary>Pushes a text decoration stroke thickness to use from now on.</summary>
+    /// <param name="value">The new thickness.</param>
+    /// <returns>A reference of this instance after the push operation is completed.</returns>
+    [SpannedParseInstruction(SpannedRecordType.TextDecorationThickness, false, "tdt", "text-decoration-thickness")]
+    TReturn PushTextDecorationThickness(float value);
+
+    /// <summary>Pops a text decoration stroke thickness.</summary>
+    /// <returns>A reference of this instance after the pop operation is completed.</returns>
+    /// <exception cref="InvalidOperationException">The stack is empty.</exception>
+    [SpannedParseInstruction(SpannedRecordType.TextDecorationThickness, true, "/tdt", "/text-decoration-thickness")]
+    TReturn PopTextDecorationThickness();
 
     /// <summary>Pushes all values from the given span style.</summary>
     /// <param name="value">The new span styles.</param>

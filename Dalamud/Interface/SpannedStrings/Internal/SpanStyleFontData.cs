@@ -10,6 +10,12 @@ namespace Dalamud.Interface.SpannedStrings.Internal;
 /// <summary>Font related values calculated from <see cref="SpanStyle"/>.</summary>
 internal ref struct SpanStyleFontData
 {
+    /// <summary>The fake bold divisor, for scaling the thickness to the font size.</summary>
+    public const float FakeBoldDivisor = 18f;
+
+    /// <summary>The fake italic divisor, for scaling the top displacement to the font size.</summary>
+    public const float FakeItalicDivisor = 6f;
+
     /// <summary>Whether kerning is enabled.</summary>
     public readonly bool UseKern;
 
@@ -40,11 +46,11 @@ internal ref struct SpanStyleFontData
     /// <summary>The additional glyph width introduced by faux bold.</summary>
     public int BoldExtraWidth;
 
+    /// <summary>The scaled text decoration thickness.</summary>
+    public float ScaledTextDecorationThickness;
+
     /// <summary>The scale, relative to <see cref="ImFontPtr.FontSize"/> of <see cref="Font"/>.</summary>
     public float Scale;
-
-    private const int FakeBoldDivisor = 18;
-    private const int FakeItalicDivisor = 6;
 
     private readonly float renderScale;
 
@@ -120,5 +126,10 @@ internal ref struct SpanStyleFontData
         this.ScaledHorizontalOffset = MathF.Round(this.ScaledFontSize * style.HorizontalOffset);
 
         this.BoldExtraWidth = fakeBold ? (int)MathF.Ceiling(this.ScaledFontSize / FakeBoldDivisor) - 1 : 0;
+
+        this.ScaledTextDecorationThickness =
+            style.TextDecorationThickness > 0
+                ? Math.Max(1, MathF.Round(this.ScaledFontSize * style.TextDecorationThickness))
+                : 0;
     }
 }

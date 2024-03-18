@@ -35,6 +35,12 @@ internal enum SpannedRecordType : byte
 
     /// <summary>Whether to use bold fonts has been changed.</summary>
     Bold,
+    
+    /// <summary>Text decoration has been changed.</summary>
+    TextDecoration,
+    
+    /// <summary>Text decoration style has been changed.</summary>
+    TextDecorationStyle,
 
     /// <summary>Background color has been changed.</summary>
     BackColor,
@@ -45,6 +51,9 @@ internal enum SpannedRecordType : byte
     /// <summary>Border color has been changed.</summary>
     EdgeColor,
 
+    /// <summary>Text decoration color has been changed.</summary>
+    TextDecorationColor,
+
     /// <summary>Foreground color has been changed.</summary>
     ForeColor,
 
@@ -53,6 +62,9 @@ internal enum SpannedRecordType : byte
 
     /// <summary>Shadow offset has been changed.</summary>
     ShadowOffset,
+
+    /// <summary>Thickness of text decoration has been changed.</summary>
+    TextDecorationThickness,
 
     /// <summary>An icon entity should be drawn from gfdata.gfd file.</summary>
     InsertionIcon,

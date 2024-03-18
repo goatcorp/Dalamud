@@ -12,7 +12,6 @@ using Dalamud.Interface.ManagedFontAtlas.Internals;
 using Dalamud.Interface.SpannedStrings;
 using Dalamud.Interface.SpannedStrings.Enums;
 using Dalamud.Interface.SpannedStrings.Internal;
-using Dalamud.Interface.SpannedStrings.Styles;
 using Dalamud.Interface.Utility;
 
 using ImGuiNET;
@@ -80,7 +79,12 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
             {bw 1}{ec rgba(128 0 255 / 50%)}a{bw 2}s{bw 3}d{bw 4}f{/bw}{/bw}{/bw}{/bw}
             {size 48}{icon dpadleft}{/size}{size 48}{icon dpadright}{/size}
             {va top}top {va bottom}bottom {va baseline}{link "a"}baseline{/link} {size 32}32{/size}{/va}{/va}{/va}{br}
-            {va middle}test {vo 0.3} {b}bold{/b} {vo -0.3}{i}italic{/i} {/vo}{/vo} {i}{b}italic {size 48}bold{/i}{/b}
+            {va middle}test {vo 0.3} {b}bold{/b} {vo -0.3}{i}italic{/i} {/vo}{/vo} {i}{b}italic {size 48}bold{/i}{/b}{/size}
+            {tdc #FFFF9900}
+            {tds Double}1/16 Double {tdt 0.0625}{td _}Underlined{/td} {td -}Strikethrough{/td} {td ^}Over{/td} {td below,above,mid}all{/td}{br}
+            {tds solid}1/16 Solid {tdt 0.0625}{td _}Underlined{/td} {td -}Strikethrough{/td} {td ^}Over{/td} {td below,above,mid}all{/td}{br}
+            {tds Double}1/8 Double {tdt 0.125}{td _}Underlined{/td} {td -}Strikethrough{/td} {td ^}Over{/td} {td below,above,mid}all{/td}{br}
+            {tds solid}1/8 Solid {tdt 0.125}{td _}Underlined{/td} {td -}Strikethrough{/td} {td ^}Over{/td} {td below,above,mid}all{/td}{br}
             """u8);
 
         foreach (ref var e in this.spannableTestFontHandle.AsSpan())
@@ -119,8 +123,8 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
                     ? new()
                     {
                         Font = new(interfaceManager.MonoFontHandle),
-                        BackColorU32 = 0xFF004400,
-                        ForeColorU32 = 0xFFCCFFCC,
+                        BackColor = 0xFF004400,
+                        ForeColor = 0xFFCCFFCC,
                         FontSize = ImGui.GetFont().FontSize * 0.6f,
                         VerticalAlignment = VerticalAlignment.Middle,
                     }
@@ -128,9 +132,9 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
             WrapMarkerStyle = new()
             {
                 Font = new(interfaceManager.IconFontHandle),
-                EdgeColorU32 = 0xFF000044,
+                EdgeColor = 0xFF000044,
                 BorderWidth = 1,
-                ForeColorU32 = 0xFFCCCCFF,
+                ForeColor = 0xFFCCCCFF,
                 Italic = true,
                 FontSize = ImGui.GetFont().FontSize * 0.6f,
                 VerticalAlignment = VerticalAlignment.Middle,
@@ -195,9 +199,17 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
         {
             renderer.PushLink("copy"u8)
                     .PushEdgeColor(ImGuiColors.TankBlue)
+                    .PushTextDecoration(TextDecoration.Underline)
+                    .PushTextDecorationColor(ImGuiColors.TankBlue)
+                    .PushTextDecorationThickness(1 / ImGui.GetFont().FontSize)
+                    .PushTextDecorationStyle(TextDecorationStyle.Double)
                     .PushBorderWidth(1)
                     .Append("Copy ToString")
                     .PopBorderWidth()
+                    .PopTextDecoration()
+                    .PopTextDecorationColor()
+                    .PopTextDecorationThickness()
+                    .PopTextDecorationStyle()
                     .PopEdgeColor()
                     .PopLink()
                     .AppendLine()
@@ -484,7 +496,8 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
                         new(ImGui.GetContentRegionAvail().X, ImGui.GetTextLineHeight() * 3),
                         0,
                         null,
-                        null) != 0)
+                        null) != 0
+                    || this.parseAttempt == default)
                 {
                     var len = this.testStringBuffer.StorageSpan.IndexOf((byte)0);
                     if (len + 4 >= this.testStringBuffer.Capacity)

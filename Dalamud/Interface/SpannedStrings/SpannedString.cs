@@ -255,11 +255,12 @@ public sealed class SpannedString : ISpannableDataProvider, ISpanParsable<Spanne
     {
         const string whitespaces = " \t\r\n";
         const string argumentEndTokens = " \t\r\n}";
+        const string flagEnumSeps = " \t\r\n,|/\\;";
 
         result = null;
         exception = null;
         var ssb = new SpannedStringBuilder();
-        var ms = default(MemoryStream);
+        var ms = new MemoryStream();
         while (!s.IsEmpty)
         {
             // Find instructions region.
@@ -286,7 +287,7 @@ public sealed class SpannedString : ISpannableDataProvider, ISpanParsable<Spanne
             var sep = s.IndexOfAny(argumentEndTokens);
             if (sep == -1)
             {
-                exception = new FormatException("Missing }");
+                exception ??= new FormatException("Missing }");
                 return false;
             }
 
@@ -304,8 +305,7 @@ public sealed class SpannedString : ISpannableDataProvider, ISpanParsable<Spanne
                 {
                     // special-casing because of ReadOnlySpan arg
 
-                    ms ??= new();
-                    if (!ConsumeEscapedStringToken(ref allArgsSpan, ms))
+                    if (!ConsumeArgumentToken(ref allArgsSpan, ms))
                         continue;
                     ssb.PushLink(ms.GetDataSpan());
                     ms.Clear();
@@ -319,7 +319,8 @@ public sealed class SpannedString : ISpannableDataProvider, ISpanParsable<Spanne
                 var valid = true;
                 for (var i = 0; i < argDefinitions.Length; i++)
                 {
-                    if (!ConsumeArgumentToken(ref allArgsSpan, out var arg))
+                    ms.Clear();
+                    if (!ConsumeArgumentToken(ref allArgsSpan, ms))
                     {
                         if (argDefinitions[i].HasDefaultValue)
                         {
@@ -331,13 +332,15 @@ public sealed class SpannedString : ISpannableDataProvider, ISpanParsable<Spanne
                         break;
                     }
 
+                    var arg = Encoding.UTF8.GetString(ms.GetDataSpan());
                     var ptype = argDefinitions[i].ParameterType;
                     if (ptype.IsEnum)
                     {
+                        arg = arg.Trim();
                         var parseArgs = new object?[]
                         {
                             ptype,
-                            arg.Trim().ToString(),
+                            arg,
                             true,
                             null,
                         };
@@ -354,9 +357,9 @@ public sealed class SpannedString : ISpannableDataProvider, ISpanParsable<Spanne
                                           typeof(object).MakeByRefType(),
                                       })!
                                   .Invoke(null, parseArgs)!;
-                        if (!parseResult)
+                        if (!parseResult && !TryParseFlagsEnum(ptype, arg, out parseArgs[3], out var ex2))
                         {
-                            exception = new FormatException($"Failed to parse: {ptype} {name} at #{i}");
+                            exception = ex2 ?? new FormatException($"Failed to parse: {ptype} {name} at #{i}");
                             valid = false;
                             break;
                         }
@@ -365,11 +368,18 @@ public sealed class SpannedString : ISpannableDataProvider, ISpanParsable<Spanne
                     }
                     else if (ptype == typeof(Vector2))
                     {
-                        if (!ConsumeArgumentToken(ref allArgsSpan, out var arg2)
-                            || !float.TryParse(arg, provider, out var v1)
-                            || !float.TryParse(arg2, provider, out var v2))
+                        if (!float.TryParse(arg, provider, out var v1))
                         {
-                            exception = new FormatException($"Failed to parse: {ptype} {name} at #{i}");
+                            exception ??= new FormatException($"Failed to parse: {ptype} {name} at #{i}");
+                            valid = false;
+                            break;
+                        }
+
+                        ms.Clear();
+                        if (!ConsumeArgumentToken(ref allArgsSpan, ms)
+                            || !float.TryParse(Encoding.UTF8.GetString(ms.GetDataSpan()), provider, out var v2))
+                        {
+                            exception ??= new FormatException($"Failed to parse: {ptype} {name} at #{i}");
                             valid = false;
                             break;
                         }
@@ -381,7 +391,7 @@ public sealed class SpannedString : ISpannableDataProvider, ISpanParsable<Spanne
                     {
                         var parseArgs = new[]
                         {
-                            arg.ToString(),
+                            arg,
                             provider,
                             Activator.CreateInstance(ptype),
                         };
@@ -399,7 +409,7 @@ public sealed class SpannedString : ISpannableDataProvider, ISpanParsable<Spanne
                                   .Invoke(null, parseArgs)!;
                         if (!parseResult)
                         {
-                            exception = new FormatException($"Failed to parse: {ptype} {name} at #{i}");
+                            exception ??= new FormatException($"Failed to parse: {ptype} {name} at #{i}");
                             valid = false;
                             break;
                         }
@@ -408,14 +418,17 @@ public sealed class SpannedString : ISpannableDataProvider, ISpanParsable<Spanne
                     }
                     else
                     {
-                        exception = new FormatException($"Failed to parse: {ptype} {name} at #{i}");
+                        exception ??= new FormatException($"Failed to parse: {ptype} {name} at #{i}");
                         valid = false;
                         break;
                     }
                 }
 
                 if (!valid)
+                {
+                    exception ??= new FormatException($"Failed to parse: {name}");
                     continue;
+                }
 
                 method.Info.Invoke(ssb, argValues);
 
@@ -443,27 +456,28 @@ public sealed class SpannedString : ISpannableDataProvider, ISpanParsable<Spanne
         result = ssb.Build();
         return true;
 
-        static bool ConsumeArgumentToken(ref ReadOnlySpan<char> from, out ReadOnlySpan<char> arg)
+        static bool ConsumeArgumentToken(ref ReadOnlySpan<char> from, MemoryStream writeTo)
         {
-            arg = default;
-
-            var test = from.TrimStart(whitespaces);
-            if (test.IsEmpty || test[0] == '}')
+            from = from.TrimStart(whitespaces);
+            if (from.IsEmpty || from[0] == '}')
                 return false;
+            if (argumentEndTokens.Contains(from[0]))
+                return true;
 
+            var currentQuote = '\0';
             Span<char> parenthesisStack = stackalloc char[64];
             var parenthesisLevel = 0;
-            var len = 0;
-            for (var test2 = test; !test2.IsEmpty; len++)
+            while (!from.IsEmpty)
             {
-                if (parenthesisLevel == 0 && argumentEndTokens.Contains(test2[0]))
+                if (currentQuote == 0 && parenthesisLevel == 0 && argumentEndTokens.Contains(from[0]))
                     break;
-                switch (test2[0])
+
+                switch (from[0])
                 {
-                    case '(' or '[' or '{' or '<':
+                    case '(' or '[' or '{' or '<' when currentQuote == 0:
                         if (parenthesisLevel == parenthesisStack.Length)
                             return false;
-                        parenthesisStack[parenthesisLevel++] = test2[0] switch
+                        parenthesisStack[parenthesisLevel++] = from[0] switch
                         {
                             '(' => ')',
                             '[' => ']',
@@ -471,47 +485,25 @@ public sealed class SpannedString : ISpannableDataProvider, ISpanParsable<Spanne
                             '<' => '>',
                             _ => throw new InvalidOperationException(),
                         };
-                        break;
-                    case ')' or ']' or '}' or '>':
-                        if (parenthesisLevel == 0 || parenthesisStack[--parenthesisLevel] != test2[0])
+                        goto default;
+
+                    case ')' or ']' or '}' or '>' when currentQuote == 0:
+                        if (parenthesisLevel == 0 || parenthesisStack[--parenthesisLevel] != from[0])
                             return false;
-                        break;
-                }
+                        goto default;
 
-                test2 = test2[1..];
-            }
-
-            arg = test[..len];
-            from = test[len..];
-            return !arg.IsEmpty;
-        }
-
-        static bool ConsumeEscapedStringToken(ref ReadOnlySpan<char> from, MemoryStream writeTo)
-        {
-            from = from.TrimStart();
-            if (from.IsEmpty)
-                return false;
-            if (argumentEndTokens.Contains(from[0]))
-                return true;
-
-            var currentQuote = '\0';
-            while (!from.IsEmpty)
-            {
-                if (currentQuote == 0 && argumentEndTokens.Contains(from[0]))
-                    break;
-
-                switch (from[0])
-                {
                     case '\'' when currentQuote == '\'':
                     case '"' when currentQuote == '"':
                         currentQuote = '\0';
                         from = from[1..];
                         continue;
+
                     case '\'' when currentQuote == 0:
                     case '"' when currentQuote == 0:
                         currentQuote = from[0];
                         from = from[1..];
                         continue;
+
                     case var _ when from.Length >= 2 && char.IsSurrogatePair(from[0], from[1]):
                     {
                         var rune = new Rune(from[0], from[1]);
@@ -522,20 +514,12 @@ public sealed class SpannedString : ISpannableDataProvider, ISpanParsable<Spanne
                         continue;
                     }
 
-                    case not '\\' when Rune.IsValid(from[0]):
-                    case '\\' when from.Length < 2:
-                    {
-                        var rune = new Rune(from[0]);
-                        var off = (int)writeTo.Length;
-                        writeTo.SetLength(writeTo.Position = off + rune.Utf8SequenceLength);
-                        rune.EncodeToUtf8(writeTo.GetBuffer().AsSpan(off));
-                        from = from[1..];
-                        continue;
-                    }
+                    case '\\' when from.Length >= 2:
+                        break;
 
-                    case not '\\':
+                    default:
                     {
-                        var rune = Rune.ReplacementChar;
+                        var rune = Rune.IsValid(from[0]) ? new(from[0]) : Rune.ReplacementChar;
                         var off = (int)writeTo.Length;
                         writeTo.SetLength(writeTo.Position = off + rune.Utf8SequenceLength);
                         rune.EncodeToUtf8(writeTo.GetBuffer().AsSpan(off));
@@ -602,6 +586,77 @@ public sealed class SpannedString : ISpannableDataProvider, ISpanParsable<Spanne
                         continue;
                     default:
                         return false;
+                }
+            }
+
+            return true;
+        }
+
+        static bool TryParseFlagsEnum(Type enumType, ReadOnlySpan<char> span, out object result, out Exception? exc)
+        {
+            result = Activator.CreateInstance(enumType)!;
+            exc = null;
+            var isFlag = enumType.GetCustomAttribute<FlagsAttribute>() is not null;
+            var foundCount = 0;
+            while (!span.IsEmpty)
+            {
+                var sep = span.IndexOfAny(flagEnumSeps);
+                var current = sep == -1 ? span : span[..sep];
+                span = sep == -1 ? default : span[(sep + 1)..];
+
+                object? foundValue = null;
+                foreach (var name in Enum.GetNames(enumType))
+                {
+                    var efield = enumType.GetField(name)!;
+                    if (current.Equals(name, StringComparison.InvariantCultureIgnoreCase)
+                        || efield.GetCustomAttribute<SpannedParseShortNameAttribute>()?.Matches(current) is true)
+                    {
+                        foundValue = efield.GetRawConstantValue()!;
+                        break;
+                    }
+                }
+
+                if (foundValue != null)
+                {
+                    foundCount++;
+                    if (foundCount > 1 && !isFlag)
+                    {
+                        exc = new FormatException($"{enumType} is not a flag enum.");
+                        return false;
+                    }
+
+                    var ut = enumType.GetEnumUnderlyingType();
+                    object? ored;
+                    if (ut == typeof(byte))
+                        ored = (byte)((byte)foundValue | (byte)result);
+                    else if (ut == typeof(sbyte))
+                        ored = (sbyte)((sbyte)foundValue | (sbyte)result);
+                    else if (ut == typeof(short))
+                        ored = (short)((short)foundValue | (short)result);
+                    else if (ut == typeof(ushort))
+                        ored = (ushort)((ushort)foundValue | (ushort)result);
+                    else if (ut == typeof(int))
+                        ored = (int)foundValue | (int)result;
+                    else if (ut == typeof(uint))
+                        ored = (uint)foundValue | (uint)result;
+                    else if (ut == typeof(long))
+                        ored = (long)foundValue | (long)result;
+                    else if (ut == typeof(ulong))
+                        ored = (ulong)foundValue | (ulong)result;
+                    else
+                        ored = null;
+                    if (ored is null)
+                    {
+                        exc = new FormatException($"{current} has an {enumType} unsupported for or operation.");
+                        return false;
+                    }
+
+                    result = ored;
+                }
+                else
+                {
+                    exc = new FormatException($"{current} is an invalid {enumType}.");
+                    return false;
                 }
             }
 

@@ -52,7 +52,7 @@ public class HintSettingsEntry : SettingsEntry
                 WordBreak = WordBreakType.BreakWord,
                 InitialStyle = new()
                 {
-                    ForeColorU32 = this.color,
+                    ForeColor = this.color,
                 },
             });
         renderer.Render(this.text, out _, out _);

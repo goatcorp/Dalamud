@@ -64,7 +64,7 @@ public interface ISpannedStringRenderer : ISpannedStringBuilder<ISpannedStringRe
 
         /// <summary>Gets or sets the initial style.</summary>
         /// <remarks>Specifying <c>null</c> will use a default value that will only have
-        /// <see cref="SpanStyle.ForeColorU32"/> set to <c>ImGui.GetColorU32(ImGuiCol.Text)</c> multiplied by
+        /// <see cref="SpanStyle.ForeColor"/> set to <c>ImGui.GetColorU32(ImGuiCol.Text)</c> multiplied by
         /// <c>ImGui.GetStyle().Alpha</c>.</remarks>
         public SpanStyle? InitialStyle { get; set; }
 

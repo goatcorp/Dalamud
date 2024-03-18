@@ -19,21 +19,26 @@ public struct SpanStyle
     /// <summary>Whether to render the text in bold.</summary>
     public bool Bold;
 
+    /// <summary>The text decoration to use.</summary>
+    public TextDecoration TextDecoration;
+
+    /// <summary>The text decoration style to use.</summary>
+    public TextDecorationStyle TextDecorationStyle;
+
     /// <summary>The background color.</summary>
-    /// <remarks>Pixel layout is RGBA; in little endian uint32, it is 0xAABBGGRR.</remarks>
-    public Rgba32 BackColorU32;
+    public Rgba32 BackColor;
 
     /// <summary>The shadow color.</summary>
-    /// <remarks>Pixel layout is RGBA; in little endian uint32, it is 0xAABBGGRR.</remarks>
-    public Rgba32 ShadowColorU32;
+    public Rgba32 ShadowColor;
 
     /// <summary>The border color.</summary>
-    /// <remarks>Pixel layout is RGBA; in little endian uint32, it is 0xAABBGGRR.</remarks>
-    public Rgba32 EdgeColorU32;
+    public Rgba32 EdgeColor;
+
+    /// <summary>The color for the lines specified with <see cref="TextDecoration"/>.</summary>
+    public Rgba32 TextDecorationColor;
 
     /// <summary>The foreground color.</summary>
-    /// <remarks>Pixel layout is RGBA; in little endian uint32, it is 0xAABBGGRR.</remarks>
-    public Rgba32 ForeColorU32;
+    public Rgba32 ForeColor;
 
     /// <summary>The border width.</summary>
     /// <remarks>Currently, only the integer part is effective.</remarks>
@@ -42,6 +47,9 @@ public struct SpanStyle
     /// <summary>The shadow offset.</summary>
     /// <remarks>If <see cref="Vector2.Zero"/>, then shadow is turned off.</remarks>
     public Vector2 ShadowOffset;
+
+    /// <summary>The stroke thickness for the lines specified with <see cref="TextDecoration"/>.</summary>
+    public float TextDecorationThickness;
 
     /// <summary>The font size.</summary>
     /// <remarks>If not set (<c>0</c> or less), then the current font size will be used.</remarks>
@@ -81,7 +89,9 @@ public struct SpanStyle
     /// <summary>Gets the style from current ImGui context.</summary>
     public static SpanStyle FromContext => new()
     {
-        ForeColorU32 = ApplyOpacity(ImGui.GetColorU32(ImGuiCol.Text), ImGui.GetStyle().Alpha),
+        ForeColor = ApplyOpacity(ImGui.GetColorU32(ImGuiCol.Text), ImGui.GetStyle().Alpha),
+        TextDecorationColor = ApplyOpacity(ImGui.GetColorU32(ImGuiCol.Text), ImGui.GetStyle().Alpha),
+        TextDecorationThickness = 1 / 16f,
     };
 
     /// <summary>Updates the struct according to the spanned record.</summary>
@@ -90,16 +100,16 @@ public struct SpanStyle
     /// <param name="recordData">The attached data.</param>
     /// <param name="initialStyle">The initial style to revert to.</param>
     /// <param name="fontUpdated">Whether any of the font parameters have been updated.</param>
-    /// <param name="colorUpdated">Whether any of the decorative parameters have been updated.</param>
+    /// <param name="drawOptionsUpdated">Whether any of the decorative parameters have been updated.</param>
     internal void UpdateFrom(
         in SpannedStringData data,
         in SpannedRecord record,
         ReadOnlySpan<byte> recordData,
         in SpanStyle initialStyle,
         out bool fontUpdated,
-        out bool colorUpdated)
+        out bool drawOptionsUpdated)
     {
-        fontUpdated = colorUpdated = false;
+        fontUpdated = drawOptionsUpdated = false;
         if (record.IsRevert)
         {
             switch (record.Type)
@@ -148,35 +158,55 @@ public struct SpanStyle
                     this.Bold = initialStyle.Bold;
                     fontUpdated = true;
                     return;
+                
+                case SpannedRecordType.TextDecoration:
+                    this.TextDecoration = initialStyle.TextDecoration;
+                    drawOptionsUpdated = true;
+                    return;
+                
+                case SpannedRecordType.TextDecorationStyle:
+                    this.TextDecorationStyle = initialStyle.TextDecorationStyle;
+                    drawOptionsUpdated = true;
+                    return;
 
                 case SpannedRecordType.BackColor:
-                    this.BackColorU32 = initialStyle.BackColorU32;
-                    colorUpdated = true;
+                    this.BackColor = initialStyle.BackColor;
+                    drawOptionsUpdated = true;
                     return;
 
                 case SpannedRecordType.ShadowColor:
-                    this.ShadowColorU32 = initialStyle.ShadowColorU32;
-                    colorUpdated = true;
+                    this.ShadowColor = initialStyle.ShadowColor;
+                    drawOptionsUpdated = true;
                     return;
 
                 case SpannedRecordType.EdgeColor:
-                    this.EdgeColorU32 = initialStyle.EdgeColorU32;
-                    colorUpdated = true;
+                    this.EdgeColor = initialStyle.EdgeColor;
+                    drawOptionsUpdated = true;
+                    return;
+
+                case SpannedRecordType.TextDecorationColor:
+                    this.TextDecorationColor = initialStyle.TextDecorationColor;
+                    drawOptionsUpdated = true;
                     return;
 
                 case SpannedRecordType.ForeColor:
-                    this.ForeColorU32 = initialStyle.ForeColorU32;
-                    colorUpdated = true;
+                    this.ForeColor = initialStyle.ForeColor;
+                    drawOptionsUpdated = true;
                     return;
 
                 case SpannedRecordType.BorderWidth:
                     this.BorderWidth = initialStyle.BorderWidth;
-                    colorUpdated = true;
+                    drawOptionsUpdated = true;
                     return;
 
                 case SpannedRecordType.ShadowOffset:
                     this.ShadowOffset = initialStyle.ShadowOffset;
-                    colorUpdated = true;
+                    drawOptionsUpdated = true;
+                    return;
+
+                case SpannedRecordType.TextDecorationThickness:
+                    this.TextDecorationThickness = initialStyle.TextDecorationThickness;
+                    fontUpdated = true;
                     return;
 
                 default:
@@ -248,34 +278,54 @@ public struct SpanStyle
                 fontUpdated = true;
                 return;
 
+            case SpannedRecordType.TextDecoration
+                when SpannedRecordCodec.TryDecodeTextDecoration(recordData, out this.TextDecoration):
+                drawOptionsUpdated = true;
+                return;
+
+            case SpannedRecordType.TextDecorationStyle
+                when SpannedRecordCodec.TryDecodeTextDecorationStyle(recordData, out this.TextDecorationStyle):
+                drawOptionsUpdated = true;
+                return;
+
             case SpannedRecordType.BackColor
-                when SpannedRecordCodec.TryDecodeBackColor(recordData, out this.BackColorU32):
-                colorUpdated = true;
+                when SpannedRecordCodec.TryDecodeBackColor(recordData, out this.BackColor):
+                drawOptionsUpdated = true;
                 return;
 
             case SpannedRecordType.ShadowColor
-                when SpannedRecordCodec.TryDecodeShadowColor(recordData, out this.ShadowColorU32):
-                colorUpdated = true;
+                when SpannedRecordCodec.TryDecodeShadowColor(recordData, out this.ShadowColor):
+                drawOptionsUpdated = true;
                 return;
 
             case SpannedRecordType.EdgeColor
-                when SpannedRecordCodec.TryDecodeEdgeColor(recordData, out this.EdgeColorU32):
-                colorUpdated = true;
+                when SpannedRecordCodec.TryDecodeEdgeColor(recordData, out this.EdgeColor):
+                drawOptionsUpdated = true;
+                return;
+
+            case SpannedRecordType.TextDecorationColor
+                when SpannedRecordCodec.TryDecodeTextDecorationColor(recordData, out this.TextDecorationColor):
+                drawOptionsUpdated = true;
                 return;
 
             case SpannedRecordType.ForeColor
-                when SpannedRecordCodec.TryDecodeForeColor(recordData, out this.ForeColorU32):
-                colorUpdated = true;
+                when SpannedRecordCodec.TryDecodeForeColor(recordData, out this.ForeColor):
+                drawOptionsUpdated = true;
                 return;
 
             case SpannedRecordType.BorderWidth
                 when SpannedRecordCodec.TryDecodeBorderWidth(recordData, out this.BorderWidth):
-                colorUpdated = true;
+                drawOptionsUpdated = true;
                 return;
 
             case SpannedRecordType.ShadowOffset
                 when SpannedRecordCodec.TryDecodeShadowOffset(recordData, out this.ShadowOffset):
-                colorUpdated = true;
+                drawOptionsUpdated = true;
+                return;
+
+            case SpannedRecordType.TextDecorationThickness
+                when SpannedRecordCodec.TryDecodeTextDecorationThickness(recordData, out this.TextDecorationThickness):
+                fontUpdated = true;
                 return;
         }
     }

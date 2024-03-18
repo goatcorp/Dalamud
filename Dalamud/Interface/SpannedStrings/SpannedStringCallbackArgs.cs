@@ -86,9 +86,21 @@ public readonly unsafe ref struct SpannedStringCallbackArgs
         this.drawListPtr,
         SpannedStringRenderer.BorderChannel);
 
+    /// <summary>Switches to the text decoration channel for overline and underline.</summary>
+    public void SwitchToTextDecorationOverUnderChannel() => ImGuiNative.ImDrawListSplitter_SetCurrentChannel(
+        this.splitterPtr,
+        this.drawListPtr,
+        SpannedStringRenderer.TextDecorationOverUnderChannel);
+
     /// <summary>Switches to the foreground channel.</summary>
     public void SwitchToForegroundChannel() => ImGuiNative.ImDrawListSplitter_SetCurrentChannel(
         this.splitterPtr,
         this.drawListPtr,
-        SpannedStringRenderer.BorderChannel);
+        SpannedStringRenderer.ForeChannel);
+
+    /// <summary>Switches to the text decoration channel for line through.</summary>
+    public void SwitchToTextDecorationThroughChannel() => ImGuiNative.ImDrawListSplitter_SetCurrentChannel(
+        this.splitterPtr,
+        this.drawListPtr,
+        SpannedStringRenderer.TextDecorationThroughChannel);
 }

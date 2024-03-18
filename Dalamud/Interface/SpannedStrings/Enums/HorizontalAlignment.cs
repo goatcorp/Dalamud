@@ -1,4 +1,6 @@
-namespace Dalamud.Interface.SpannedStrings.Styles;
+using Dalamud.Interface.SpannedStrings.Internal;
+
+namespace Dalamud.Interface.SpannedStrings.Enums;
 
 /// <summary>Specifies the horizontal alignment of the text in the line.</summary>
 public enum HorizontalAlignment : byte
@@ -7,6 +9,7 @@ public enum HorizontalAlignment : byte
     Left,
 
     /// <summary>Align to the center.</summary>
+    [SpannedParseShortName("middle", "mid")]
     Center,
 
     /// <summary>Align to the right.</summary>

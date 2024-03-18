@@ -313,6 +313,34 @@ internal sealed partial class SpannedStringRenderer
     }
 
     /// <inheritdoc/>
+    public ISpannedStringRenderer PushTextDecoration(TextDecoration value)
+    {
+        this.builder.PushTextDecoration(value);
+        return this;
+    }
+
+    /// <inheritdoc/>
+    public ISpannedStringRenderer PopTextDecoration()
+    {
+        this.builder.PopTextDecoration();
+        return this;
+    }
+
+    /// <inheritdoc/>
+    public ISpannedStringRenderer PushTextDecorationStyle(TextDecorationStyle value)
+    {
+        this.builder.PushTextDecorationStyle(value);
+        return this;
+    }
+
+    /// <inheritdoc/>
+    public ISpannedStringRenderer PopTextDecorationStyle()
+    {
+        this.builder.PopTextDecorationStyle();
+        return this;
+    }
+
+    /// <inheritdoc/>
     public ISpannedStringRenderer PushBackColor(Rgba32 color)
     {
         this.builder.PushBackColor(color);
@@ -355,6 +383,20 @@ internal sealed partial class SpannedStringRenderer
     }
 
     /// <inheritdoc/>
+    public ISpannedStringRenderer PushTextDecorationColor(Rgba32 color)
+    {
+        this.builder.PushTextDecorationColor(color);
+        return this;
+    }
+
+    /// <inheritdoc/>
+    public ISpannedStringRenderer PopTextDecorationColor()
+    {
+        this.builder.PopTextDecorationColor();
+        return this;
+    }
+
+    /// <inheritdoc/>
     public ISpannedStringRenderer PushForeColor(Rgba32 color)
     {
         this.builder.PushForeColor(color);
@@ -393,6 +435,20 @@ internal sealed partial class SpannedStringRenderer
     public ISpannedStringRenderer PopShadowOffset()
     {
         this.builder.PopShadowOffset();
+        return this;
+    }
+
+    /// <inheritdoc/>
+    public ISpannedStringRenderer PushTextDecorationThickness(float value)
+    {
+        this.builder.PushTextDecorationThickness(value);
+        return this;
+    }
+
+    /// <inheritdoc/>
+    public ISpannedStringRenderer PopTextDecorationThickness()
+    {
+        this.builder.PopTextDecorationThickness();
         return this;
     }
 

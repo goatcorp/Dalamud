@@ -210,6 +210,14 @@ internal struct SpannedRecord
                 if (SpannedRecordCodec.TryDecodeBold(data, out toggle))
                     sb.Append(' ').Append(toggle);
                 break;
+            case SpannedRecordType.TextDecoration:
+                if (SpannedRecordCodec.TryDecodeTextDecoration(data, out var textDecorationLine))
+                    sb.Append(' ').Append(textDecorationLine);
+                break;
+            case SpannedRecordType.TextDecorationStyle:
+                if (SpannedRecordCodec.TryDecodeTextDecorationStyle(data, out var textDecorationStyle))
+                    sb.Append(' ').Append(textDecorationStyle);
+                break;
             case SpannedRecordType.BackColor:
                 if (SpannedRecordCodec.TryDecodeBackColor(data, out var color))
                     sb.Append(' ').Append(color.ToString());
@@ -226,6 +234,10 @@ internal struct SpannedRecord
                 if (SpannedRecordCodec.TryDecodeForeColor(data, out color))
                     sb.Append(' ').Append(color.ToString());
                 break;
+            case SpannedRecordType.TextDecorationColor:
+                if (SpannedRecordCodec.TryDecodeTextDecorationColor(data, out color))
+                    sb.Append(' ').Append(color.ToString());
+                break;
             case SpannedRecordType.BorderWidth:
                 if (SpannedRecordCodec.TryDecodeBorderWidth(data, out f32))
                     sb.Append(formatProvider, $" {f32:g}");
@@ -233,6 +245,10 @@ internal struct SpannedRecord
             case SpannedRecordType.ShadowOffset:
                 if (SpannedRecordCodec.TryDecodeShadowOffset(data, out var v2))
                     sb.Append(formatProvider, $" {v2.X:g} {v2.Y:g}");
+                break;
+            case SpannedRecordType.TextDecorationThickness:
+                if (SpannedRecordCodec.TryDecodeTextDecorationThickness(data, out f32))
+                    sb.Append(formatProvider, $" {f32:g}");
                 break;
             case SpannedRecordType.InsertionIcon:
                 if (SpannedRecordCodec.TryDecodeInsertionIcon(data, out var icon))

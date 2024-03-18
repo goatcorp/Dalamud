@@ -19,10 +19,16 @@ internal sealed unsafe partial class SpannedStringRenderer : ISpannedStringRende
     public const char SoftHyphenReplacementChar = '-';
 
     /// <summary>The total number of channels.</summary>
-    public const int TotalChannels = 4;
+    public const int TotalChannels = 6;
+
+    /// <summary>The text decoration channel.</summary>
+    public const int TextDecorationThroughChannel = 5;
 
     /// <summary>The foreground channel.</summary>
-    public const int ForeChannel = 3;
+    public const int ForeChannel = 4;
+
+    /// <summary>The text decoration channel.</summary>
+    public const int TextDecorationOverUnderChannel = 3;
 
     /// <summary>The border channel.</summary>
     public const int BorderChannel = 2;

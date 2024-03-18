@@ -1176,9 +1176,9 @@ internal class ConsoleWindow : Window, IDisposable
             ControlCharactersSpanParams = new()
             {
                 Font = new(Service<InterfaceManager>.Get().MonoFontHandle),
-                BackColorU32 = 0xFF333333,
+                BackColor = 0xFF333333,
                 BorderWidth = 1,
-                ForeColorU32 = 0xFFFFFFFF,
+                ForeColor = 0xFFFFFFFF,
                 FontSize = ImGui.GetFont().FontSize * 0.6f,
                 VerticalAlignment = VerticalAlignment.Middle,
             },
@@ -1186,7 +1186,7 @@ internal class ConsoleWindow : Window, IDisposable
         if (r.WordBreak == WordBreakType.KeepAll)
         {
             r.WrapMarker = "…";
-            r.WrapMarkerStyle = new() { ForeColorU32 = 0x80FFFFFF };
+            r.WrapMarkerStyle = new() { ForeColor = 0x80FFFFFF };
         }
         else
         {
@@ -1194,9 +1194,9 @@ internal class ConsoleWindow : Window, IDisposable
             r.WrapMarkerStyle = new()
             {
                 Font = new(Service<InterfaceManager>.Get().IconFontHandle),
-                EdgeColorU32 = 0xFF000044,
+                EdgeColor = 0xFF000044,
                 BorderWidth = 1,
-                ForeColorU32 = 0xFFCCCCFF,
+                ForeColor = 0xFFCCCCFF,
                 Italic = true,
                 FontSize = ImGui.GetFont().FontSize * 0.6f,
                 VerticalAlignment = VerticalAlignment.Middle,

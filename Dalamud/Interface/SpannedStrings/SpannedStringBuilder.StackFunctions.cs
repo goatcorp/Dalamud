@@ -179,6 +179,32 @@ public sealed partial class SpannedStringBuilder
     }
 
     /// <inheritdoc/>
+    public SpannedStringBuilder PushTextDecoration(TextDecoration value)
+    {
+        var len = SpannedRecordCodec.EncodeTextDecoration(default, value);
+        var recordIndex = this.AddRecordAndReserveData(SpannedRecordType.TextDecoration, len, out var data);
+        SpannedRecordCodec.EncodeTextDecoration(data, value);
+        return this.PushHelper(ref this.stackTextDecoration, recordIndex);
+    }
+
+    /// <inheritdoc/>
+    public SpannedStringBuilder PopTextDecoration() =>
+        this.PopHelper(this.stackTextDecoration, SpannedRecordType.TextDecoration);
+
+    /// <inheritdoc/>
+    public SpannedStringBuilder PushTextDecorationStyle(TextDecorationStyle value)
+    {
+        var len = SpannedRecordCodec.EncodeTextDecorationStyle(default, value);
+        var recordIndex = this.AddRecordAndReserveData(SpannedRecordType.TextDecorationStyle, len, out var data);
+        SpannedRecordCodec.EncodeTextDecorationStyle(data, value);
+        return this.PushHelper(ref this.stackTextDecorationStyle, recordIndex);
+    }
+
+    /// <inheritdoc/>
+    public SpannedStringBuilder PopTextDecorationStyle() =>
+        this.PopHelper(this.stackTextDecorationStyle, SpannedRecordType.TextDecorationStyle);
+
+    /// <inheritdoc/>
     public SpannedStringBuilder PushBackColor(Rgba32 color)
     {
         var len = SpannedRecordCodec.EncodeBackColor(default, color);
@@ -216,6 +242,19 @@ public sealed partial class SpannedStringBuilder
     /// <inheritdoc/>
     public SpannedStringBuilder PopEdgeColor() =>
         this.PopHelper(this.stackEdgeColor, SpannedRecordType.EdgeColor);
+
+    /// <inheritdoc/>
+    public SpannedStringBuilder PushTextDecorationColor(Rgba32 color)
+    {
+        var len = SpannedRecordCodec.EncodeTextDecorationColor(default, color);
+        var recordIndex = this.AddRecordAndReserveData(SpannedRecordType.TextDecorationColor, len, out var data);
+        SpannedRecordCodec.EncodeTextDecorationColor(data, color);
+        return this.PushHelper(ref this.stackTextDecorationColor, recordIndex);
+    }
+
+    /// <inheritdoc/>
+    public SpannedStringBuilder PopTextDecorationColor() =>
+        this.PopHelper(this.stackTextDecorationColor, SpannedRecordType.TextDecorationColor);
 
     /// <inheritdoc/>
     public SpannedStringBuilder PushForeColor(Rgba32 color)
@@ -257,14 +296,27 @@ public sealed partial class SpannedStringBuilder
         this.PopHelper(this.stackShadowOffset, SpannedRecordType.ShadowOffset);
 
     /// <inheritdoc/>
+    public SpannedStringBuilder PushTextDecorationThickness(float value)
+    {
+        var len = SpannedRecordCodec.EncodeTextDecorationThickness(default, value);
+        var recordIndex = this.AddRecordAndReserveData(SpannedRecordType.TextDecorationThickness, len, out var data);
+        SpannedRecordCodec.EncodeTextDecorationThickness(data, value);
+        return this.PushHelper(ref this.stackTextDecorationThickness, recordIndex);
+    }
+
+    /// <inheritdoc/>
+    public SpannedStringBuilder PopTextDecorationThickness() =>
+        this.PopHelper(this.stackTextDecorationThickness, SpannedRecordType.TextDecorationThickness);
+
+    /// <inheritdoc/>
     public SpannedStringBuilder PushAll(in SpanStyle value) =>
         this.PushFontSet(value.Font, out _)
             .PushItalic(value.Italic)
             .PushBold(value.Bold)
-            .PushBackColor(value.BackColorU32)
-            .PushShadowColor(value.ShadowColorU32)
-            .PushEdgeColor(value.EdgeColorU32)
-            .PushForeColor(value.ForeColorU32)
+            .PushBackColor(value.BackColor)
+            .PushShadowColor(value.ShadowColor)
+            .PushEdgeColor(value.EdgeColor)
+            .PushForeColor(value.ForeColor)
             .PushBorderWidth(value.BorderWidth)
             .PushShadowOffset(value.ShadowOffset);
 
