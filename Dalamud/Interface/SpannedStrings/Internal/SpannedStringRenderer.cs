@@ -180,7 +180,7 @@ internal sealed unsafe partial class SpannedStringRenderer : ISpannedStringRende
         {
             if (new SpannedOffset(segment) >= state.LastMeasurement.Offset)
             {
-                this.OnMeasuredLineEnd(ref state, ref charRenderer, in linkEntity, in data, ref dropUntilNextNewline);
+                this.OnMeasuredLineEnd(ref state, ref charRenderer, in linkEntity, ref dropUntilNextNewline);
                 this.FindFirstWordWrapByteOffset(ref state, segment, new(segment), ref dropUntilNextNewline);
                 state.LastMeasurement.LastGlyphCodepoint = 0;
                 charRenderer.SpanFontOptionsUpdated();
@@ -193,7 +193,7 @@ internal sealed unsafe partial class SpannedStringRenderer : ISpannedStringRende
                     var absOffset = new SpannedOffset(segment, c.Offset);
                     if (absOffset >= state.LastMeasurement.Offset)
                     {
-                        this.OnMeasuredLineEnd(ref state, ref charRenderer, in linkEntity, in data, ref dropUntilNextNewline);
+                        this.OnMeasuredLineEnd(ref state, ref charRenderer, in linkEntity, ref dropUntilNextNewline);
                         this.FindFirstWordWrapByteOffset(ref state, segment, absOffset, ref dropUntilNextNewline);
                         state.LastMeasurement.LastGlyphCodepoint = 0;
                         charRenderer.SpanFontOptionsUpdated();
@@ -407,7 +407,6 @@ internal sealed unsafe partial class SpannedStringRenderer : ISpannedStringRende
         ref RenderState state,
         ref CharRenderer charRenderer,
         in SpannedRecord linkEntity,
-        in SpannedStringData data,
         ref bool dropUntilNextNewline)
     {
         if (state.LastMeasurement.HasNewLineAtEnd)
@@ -420,7 +419,6 @@ internal sealed unsafe partial class SpannedStringRenderer : ISpannedStringRende
             if (state.LastMeasurement.LastGlyphCodepoint == 0x00AD && this.options.WordBreak != WordBreakType.KeepAll)
                 charRenderer.RenderChar(SoftHyphenReplacementChar);
 
-            var textOffset = state.LastMeasurement.Offset.Text;
             if (this.options.UseWrapMarker && !dropUntilNextNewline)
             {
                 if (this.options.UseWrapMarkerParams)

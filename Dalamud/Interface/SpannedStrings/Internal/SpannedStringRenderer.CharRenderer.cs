@@ -109,19 +109,20 @@ internal sealed unsafe partial class SpannedStringRenderer
             {
                 case '\r' or '\n': // Newline characters are never drawn.
                 case '\u00AD': // Soft hyphen is never drawn here, and is not considered for kerning.
+                    // Still reflect the last codepoint.
+                    this.lastCodepoint = c;
                     return false;
             }
 
-            var glyphIndex = this.fontInfo.Lookup[c >= this.fontInfo.HotData.Length || c < 0 ? this.fontInfo.Font.NativePtr->FallbackChar : c];
+            var glyphIndex = this.fontInfo.Lookup[
+                c >= this.fontInfo.HotData.Length || c < 0 ? this.fontInfo.Font.NativePtr->FallbackChar : c];
             if (glyphIndex == ushort.MaxValue)
                 glyphIndex = this.fontInfo.Lookup[this.fontInfo.Font.NativePtr->FallbackChar];
             ref var glyph = ref this.fontInfo.Glyphs[glyphIndex];
-            ref var hot = ref this.fontInfo.HotData[glyph.Codepoint];
 
             var xy0 = glyph.XY0;
             var xy1 = glyph.XY1;
             var advX = glyph.AdvanceX;
-            var occupiedWidth = hot.OccupiedWidth;
             var uv0 = glyph.UV0;
             var uv1 = glyph.UV1;
             var texId = this.fontInfo.Font.ContainerAtlas.Textures[glyph.TextureIndex].TexID;
@@ -142,7 +143,6 @@ internal sealed unsafe partial class SpannedStringRenderer
                             xy1 = new(
                                 advX = (entry.Width * this.fontInfo.ScaledFontSize) / entry.Height,
                                 this.fontInfo.ScaledFontSize);
-                            occupiedWidth = advX;
 
                             var useHiRes = entry.Height < this.fontInfo.ScaledFontSize;
                             uv0 = new(entry.Left, entry.Top);
@@ -176,7 +176,6 @@ internal sealed unsafe partial class SpannedStringRenderer
                                 advX = (tex.Width * (uv1.X - uv0.X) * this.fontInfo.ScaledFontSize) /
                                        (tex.Height * (uv1.Y - uv0.Y)),
                                 this.fontInfo.ScaledFontSize);
-                            occupiedWidth = xy1.X;
                             texId = tex.ImGuiHandle;
                             forceOverrideDraw = true;
                             break;
@@ -186,7 +185,6 @@ internal sealed unsafe partial class SpannedStringRenderer
                             when SpannedRecordCodec.TryDecodeInsertionCallback(recordData, out var index, out var ratio):
                             xy0 = Vector2.Zero;
                             xy1 = new(advX = this.fontInfo.ScaledFontSize * ratio, this.fontInfo.ScaledFontSize);
-                            occupiedWidth = xy1.X;
                             forceOverrideDraw = false;
                             if (!this.data.TryGetCallbackAt(index, out callback))
                                 callback = null;
@@ -202,9 +200,9 @@ internal sealed unsafe partial class SpannedStringRenderer
                 {
                     var tabWidth = this.renderer.options.TabWidth;
                     var next = MathF.Floor((this.offset.X + tabWidth) / tabWidth) * tabWidth;
-                    advX = occupiedWidth = next - this.offset.X;
+                    advX = next - this.offset.X;
                     xy0 = Vector2.Zero;
-                    xy1 = new(occupiedWidth, this.fontInfo.ScaledFontSize);
+                    xy1 = new(advX, this.fontInfo.ScaledFontSize);
                     break;
                 }
 
@@ -213,7 +211,6 @@ internal sealed unsafe partial class SpannedStringRenderer
                     xy0 *= this.fontInfo.Scale;
                     xy1 *= this.fontInfo.Scale;
                     advX *= this.fontInfo.Scale;
-                    occupiedWidth *= this.fontInfo.Scale;
                     this.offset.X += this.fontInfo.GetScaledGap(this.lastCodepoint, glyph.Codepoint);
                     break;
                 }
