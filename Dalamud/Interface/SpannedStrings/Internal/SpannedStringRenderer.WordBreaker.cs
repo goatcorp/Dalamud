@@ -33,7 +33,7 @@ internal sealed partial class SpannedStringRenderer
             this.renderer = renderer;
             this.data = data;
             this.currentStyle = state.LastStyle;
-            this.prev = MeasuredLine.Empty; // state.LastMeasurement;
+            this.prev = MeasuredLine.Empty;
             this.first = MeasuredLine.Empty;
             this.normalBreak = MeasuredLine.Empty;
             this.wrapMarkerBreak = MeasuredLine.Empty;
@@ -93,38 +93,6 @@ internal sealed partial class SpannedStringRenderer
             ReadOnlySpan<byte> recordData = default,
             float pad = 0)
         {
-            if (this.breakOnFirstNonWhitespace)
-            {
-                if (!IsBreakableWhitespace(c))
-                {
-                    this.prev.LastThing.SetCodepoint(c);
-                    this.prev.SetOffset(offsetBefore);
-                    return this.prev.WithWrapped();
-                }
-
-                return MeasuredLine.Empty;
-            }
-
-            var breakable = c >= 0 && c < WordBreakNormalBreakChars.Length && WordBreakNormalBreakChars[c];
-            if (this.breakOnFirstNormalBreakableOffset)
-            {
-                if (breakable)
-                {
-                    if (IsBreakableWhitespace(c))
-                    {
-                        this.breakOnFirstNonWhitespace = true;
-                    }
-                    else
-                    {
-                        this.prev.LastThing.SetCodepoint(c);
-                        this.prev.SetOffset(offsetBefore);
-                        return this.prev.WithWrapped();
-                    }
-                }
-
-                return MeasuredLine.Empty;
-            }
-
             var current = this.prev;
             switch (c)
             {
@@ -181,16 +149,53 @@ internal sealed partial class SpannedStringRenderer
                             this.fontInfo,
                             this.wrapMarker.Width,
                             this.renderer.options.LineWrapWidth))
+                    {
                         this.wrapMarkerBreak = this.normalBreak = current;
+                    }
+                    else if (this.renderer.options.WordBreak != WordBreakType.KeepAll)
+                    {
+                        this.prev = current;
+                        this.prev.LastThing.SetCodepoint(c);
+                        this.prev.SetOffset(offsetAfter);
+                        return this.prev.WithWrapped();
+                    }
 
-                    if (pad == 0)
-                        return MeasuredLine.Empty;
                     break;
 
                 default:
                     current.AddStandardCharacter(this.fontInfo, c);
                     current.SetOffset(offsetAfter, pad);
                     break;
+            }
+
+            if (this.breakOnFirstNonWhitespace)
+            {
+                if (!IsBreakableWhitespace(c))
+                {
+                    this.prev.LastThing.SetCodepoint(c);
+                    this.prev.SetOffset(offsetBefore);
+                    return this.prev.WithWrapped();
+                }
+
+                return MeasuredLine.Empty;
+            }
+
+            var breakable = c >= 0 && c < WordBreakNormalBreakChars.Length && WordBreakNormalBreakChars[c];
+            if (this.breakOnFirstNormalBreakableOffset)
+            {
+                if (breakable)
+                {
+                    if (IsBreakableWhitespace(c))
+                    {
+                        this.breakOnFirstNonWhitespace = true;
+                    }
+                    else
+                    {
+                        this.prev.LastThing.SetCodepoint(c);
+                        this.prev.SetOffset(offsetBefore);
+                        return this.prev.WithWrapped();
+                    }
+                }
             }
 
             if (this.first.IsEmpty)
@@ -205,14 +210,12 @@ internal sealed partial class SpannedStringRenderer
             }
             else
             {
-                if (IsBreakableWhitespace(c))
-                {
-                    this.breakOnFirstNonWhitespace = true;
-                    return MeasuredLine.Empty;
-                }
-
                 switch (this.renderer.options.WordBreak)
                 {
+                    case not WordBreakType.KeepAll when IsBreakableWhitespace(c):
+                        this.breakOnFirstNonWhitespace = true;
+                        return MeasuredLine.Empty;
+
                     case WordBreakType.Normal:
                         this.breakOnFirstNormalBreakableOffset = true;
                         return MeasuredLine.FirstNonEmpty(this.normalBreak)

@@ -34,7 +34,8 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
     private int numLinkClicks;
     private VerticalAlignment valign;
     private float vertOffset;
-    private float wrapWidthRatio;
+    private float wrapLeftWidthRatio;
+    private float wrapRightWidthRatio;
     private bool useItalic;
     private bool usePrebuiltSpannable;
     private bool useWrapMarkers;
@@ -63,7 +64,8 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
         this.valign = VerticalAlignment.Baseline;
         this.vertOffset = 0;
         this.useItalic = false;
-        this.wrapWidthRatio = 1f;
+        this.wrapLeftWidthRatio = 0f;
+        this.wrapRightWidthRatio = 1f;
         this.prebuiltSpannable = null;
         this.usePrebuiltSpannable = this.useWrapMarkers = this.useVisibleControlCharacters = false;
         this.showComplicatedTextTest = this.showDynamicOffsetTest = false;
@@ -143,26 +145,52 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
                  bgpos + ImGui.GetWindowContentRegionMax(),
                  Vector2.Zero,
                  (ImGui.GetWindowContentRegionMax() - ImGui.GetWindowContentRegionMin()) / 64);
-        ImGui.Indent(8 * ImGuiHelpers.GlobalScale);
-
-        ImGui.SetCursorPosY(ImGui.GetCursorPosY() + (8 * ImGuiHelpers.GlobalScale));
         var dynamicOffsetTestOffset = ImGui.GetCursorScreenPos();
+        var pad = MathF.Round(8 * ImGuiHelpers.GlobalScale);
+        ImGui.Indent(pad);
 
-        var validWidth = ImGui.GetColumnWidth() - (8 * ImGuiHelpers.GlobalScale);
+        ImGui.SetCursorPosY(ImGui.GetCursorPosY() + pad);
+
+        var validWidth = ImGui.GetColumnWidth() - pad;
         ImGui.PushItemWidth(validWidth);
-        ImGui.SliderFloat("##wrapWidth", ref this.wrapWidthRatio, 0f, 1f);
+        if (ImGui.SliderFloat("##wrapLeftWidthRatio", ref this.wrapLeftWidthRatio, 0f, 1f))
+        {
+            if (this.wrapRightWidthRatio < this.wrapLeftWidthRatio)
+                this.wrapRightWidthRatio = this.wrapLeftWidthRatio;
+        }
+
+        ImGui.PushItemWidth(validWidth);
+        ImGui.SliderFloat("##wrapRightWidthRatio", ref this.wrapRightWidthRatio, 0f, 1f);
+        {
+            if (this.wrapRightWidthRatio < this.wrapLeftWidthRatio)
+                this.wrapLeftWidthRatio = this.wrapRightWidthRatio;
+        }
+
         ImGui.GetWindowDrawList()
              .AddLine(
                  new(
-                     ImGui.GetCursorScreenPos().X + (validWidth * this.wrapWidthRatio),
+                     ImGui.GetCursorScreenPos().X + (validWidth * this.wrapLeftWidthRatio),
                      ImGui.GetWindowPos().Y),
                  new(
-                     ImGui.GetCursorScreenPos().X + (validWidth * this.wrapWidthRatio),
+                     ImGui.GetCursorScreenPos().X + (validWidth * this.wrapLeftWidthRatio),
+                     ImGui.GetWindowPos().Y + ImGui.GetWindowSize().Y),
+                 0xFFFFFFFF,
+                 1);
+        ImGui.GetWindowDrawList()
+             .AddLine(
+                 new(
+                     ImGui.GetCursorScreenPos().X + (validWidth * this.wrapRightWidthRatio),
+                     ImGui.GetWindowPos().Y),
+                 new(
+                     ImGui.GetCursorScreenPos().X + (validWidth * this.wrapRightWidthRatio),
                      ImGui.GetWindowPos().Y + ImGui.GetWindowSize().Y),
                  0xFFFFFFFF,
                  1);
 
-        p.LineWrapWidth = validWidth * this.wrapWidthRatio;
+        dynamicOffsetTestOffset.X += pad + MathF.Round(validWidth * this.wrapLeftWidthRatio);
+        ImGui.SetCursorScreenPos(ImGui.GetCursorScreenPos() with { X = dynamicOffsetTestOffset.X });
+
+        p.LineWrapWidth = validWidth * (this.wrapRightWidthRatio - this.wrapLeftWidthRatio);
         using (var renderer = Service<SpannableFactory>.Get().Rent("##config", p))
         {
             renderer.PushLink("copy"u8)
@@ -388,6 +416,7 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
                 }
             }
 
+            ImGui.SetCursorScreenPos(ImGui.GetCursorScreenPos() with { X = dynamicOffsetTestOffset.X });
             using var renderer = Service<SpannableFactory>.Get().Rent("##test", p);
             var result =
                 this.usePrebuiltSpannable && this.prebuiltSpannable is not null
@@ -446,6 +475,7 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
         {
             fixed (byte* labelPtr = "##Test"u8)
             {
+                ImGui.SetCursorScreenPos(ImGui.GetCursorScreenPos() with { X = dynamicOffsetTestOffset.X });
                 ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X);
                 if (ImGuiNative.igInputTextMultiline(
                         labelPtr,
@@ -476,6 +506,7 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
                 }
             }
 
+            ImGui.SetCursorScreenPos(ImGui.GetCursorScreenPos() with { X = dynamicOffsetTestOffset.X });
             using var renderer = Service<SpannableFactory>.Get().Rent("##parsedPreview", p);
             if (this.parseAttempt.Parsed is { } parsed)
             {
