@@ -287,7 +287,7 @@ internal class TaskSchedulerWidget : IDataWindowWidget
                 this.downloadState = default;
                 var factory = downloadUsingGlobalScheduler
                                   ? Task.Factory
-                                  : framework.FrameworkThreadTaskFactory;
+                                  : framework.GetTaskFactory();
                 this.downloadState = default;
                 this.downloadTask = factory.StartNew(
                     async () =>
