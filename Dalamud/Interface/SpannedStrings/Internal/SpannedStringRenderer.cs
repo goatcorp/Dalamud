@@ -166,7 +166,7 @@ internal sealed unsafe partial class SpannedStringRenderer : ISpannedStringRende
             BoundsRightBottom = new(float.MinValue),
             LastLineIndex = 0,
             ClickedMouseButton = unchecked((ImGuiMouseButton)(-1)),
-            LastSpanStyle = this.options.InitialSpanStyle,
+            LastStyle = this.options.InitialSpanStyle,
             LastMeasurement = default,
         };
 
@@ -182,7 +182,6 @@ internal sealed unsafe partial class SpannedStringRenderer : ISpannedStringRende
             {
                 this.OnMeasuredLineEnd(ref state, ref charRenderer, in linkEntity, ref dropUntilNextNewline);
                 this.FindFirstWordWrapByteOffset(ref state, segment, new(segment), ref dropUntilNextNewline);
-                state.LastMeasurement.LastGlyphCodepoint = 0;
                 charRenderer.SpanFontOptionsUpdated();
             }
 
@@ -195,12 +194,14 @@ internal sealed unsafe partial class SpannedStringRenderer : ISpannedStringRende
                     {
                         this.OnMeasuredLineEnd(ref state, ref charRenderer, in linkEntity, ref dropUntilNextNewline);
                         this.FindFirstWordWrapByteOffset(ref state, segment, absOffset, ref dropUntilNextNewline);
-                        state.LastMeasurement.LastGlyphCodepoint = 0;
                         charRenderer.SpanFontOptionsUpdated();
                     }
 
                     if (dropUntilNextNewline)
+                    {
+                        state.LastMeasurement.LastThing.SetCodepoint(c.Value);
                         continue;
+                    }
 
                     if (this.options.UseControlCharacter)
                     {
@@ -210,16 +211,17 @@ internal sealed unsafe partial class SpannedStringRenderer : ISpannedStringRende
                             var offset = charRenderer.StyleTranslation;
                             state.Offset += offset;
                             var old = charRenderer.UpdateSpanParams(this.options.ControlCharactersSpanStyle);
-                            state.LastMeasurement.LastGlyphCodepoint = -1;
+                            state.LastMeasurement.LastThing.Clear();
                             foreach (var c2 in name)
                                 charRenderer.RenderChar(c2);
-                            state.LastMeasurement.LastGlyphCodepoint = -1;
+                            state.LastMeasurement.LastThing.Clear();
                             _ = charRenderer.UpdateSpanParams(old);
                             state.Offset -= offset;
                         }
                     }
 
                     charRenderer.RenderChar(c.EffectiveChar);
+                    state.LastMeasurement.LastThing.SetCodepoint(c.Value);
                 }
             }
             else if (segment.TryGetRecord(out var record, out var recordData))
@@ -240,7 +242,8 @@ internal sealed unsafe partial class SpannedStringRenderer : ISpannedStringRende
                     case SpannedRecordType.InsertionManualNewLine
                         when (this.options.AcceptedNewLines & NewLineType.Manual) != 0:
                         this.OnLinkOrRenderEnd(ref state, ref charRenderer, linkEntity);
-                        this.BreakLineImmediate(ref state);
+                        this.BreakLineImmediate(ref state, ref charRenderer);
+                        state.LastMeasurement.LastThing.SetRecord(segment.RecordIndex);
                         dropUntilNextNewline = false;
                         break;
                 }
@@ -250,6 +253,7 @@ internal sealed unsafe partial class SpannedStringRenderer : ISpannedStringRende
         }
 
         this.OnLinkOrRenderEnd(ref state, ref charRenderer, linkEntity);
+        state.BoundsRightBottom.Y = Math.Max(state.BoundsRightBottom.Y, state.Offset.Y);
 
         hoveredLink = default;
         if (this.options is { DrawListPtr: not null, UseLinks: true, ImGuiGlobalId: not 0u })
@@ -412,11 +416,11 @@ internal sealed unsafe partial class SpannedStringRenderer : ISpannedStringRende
         if (state.LastMeasurement.HasNewLineAtEnd)
         {
             this.OnLinkOrRenderEnd(ref state, ref charRenderer, linkEntity);
-            this.BreakLineImmediate(ref state);
+            this.BreakLineImmediate(ref state, ref charRenderer);
         }
         else if (state.LastMeasurement.IsWrapped)
         {
-            if (state.LastMeasurement.LastGlyphCodepoint == 0x00AD && this.options.WordBreak != WordBreakType.KeepAll)
+            if (state.LastMeasurement.LastThing.IsCodepoint(0x00AD) && this.options.WordBreak != WordBreakType.KeepAll)
                 charRenderer.RenderChar(SoftHyphenReplacementChar);
 
             if (this.options.UseWrapMarker && !dropUntilNextNewline)
@@ -443,7 +447,7 @@ internal sealed unsafe partial class SpannedStringRenderer : ISpannedStringRende
             if (this.options.WordBreak == WordBreakType.KeepAll)
                 dropUntilNextNewline = true;
             else
-                this.BreakLineImmediate(ref state);
+                this.BreakLineImmediate(ref state, ref charRenderer);
         }
     }
 
@@ -452,9 +456,14 @@ internal sealed unsafe partial class SpannedStringRenderer : ISpannedStringRende
         ref CharRenderer charRenderer,
         in SpannedRecord linkRecord)
     {
-        if (!(charRenderer.BoundsLeftTop.X > charRenderer.BoundsRightBottom.X)
-            && !(charRenderer.BoundsLeftTop.Y > charRenderer.BoundsRightBottom.Y)
-            && linkRecord.Type == SpannedRecordType.Link)
+        if (!(charRenderer.BoundsLeftTop.X <= charRenderer.BoundsRightBottom.X)
+            || !(charRenderer.BoundsLeftTop.Y <= charRenderer.BoundsRightBottom.Y))
+        {
+            // Nothing has been rendered since the last call to this function.
+            return;
+        }
+        
+        if (linkRecord.Type == SpannedRecordType.Link)
         {
             this.linkRenderCoordinatesList.Add(
                 new()
@@ -465,7 +474,7 @@ internal sealed unsafe partial class SpannedStringRenderer : ISpannedStringRende
                     RightBottom = charRenderer.BoundsRightBottom,
                 });
         }
-
+            
         state.BoundsLeftTop = Vector2.Min(state.BoundsLeftTop, charRenderer.BoundsLeftTop);
         state.BoundsRightBottom = Vector2.Max(state.BoundsRightBottom, charRenderer.BoundsRightBottom);
         charRenderer.BoundsLeftTop = new(float.MaxValue);
@@ -473,10 +482,11 @@ internal sealed unsafe partial class SpannedStringRenderer : ISpannedStringRende
     }
 
     /// <summary>Forces a line break.</summary>
-    private void BreakLineImmediate(ref RenderState state)
+    private void BreakLineImmediate(ref RenderState state, ref CharRenderer charRenderer)
     {
         state.LastLineIndex++;
         state.Offset = new(0, MathF.Round(state.Offset.Y + state.LastMeasurement.Height));
+        state.BoundsRightBottom.Y = Math.Max(state.BoundsRightBottom.Y, state.Offset.Y + charRenderer.LastLineHeight);
     }
 
     /// <summary>Finds the first line break point, only taking word wrapping into account.</summary>
@@ -507,7 +517,7 @@ internal sealed unsafe partial class SpannedStringRenderer : ISpannedStringRende
                     var pad = 0f;
                     if (this.options.UseControlCharacter && c.Value.ShortName is { IsEmpty: false } name)
                     {
-                        var state2 = new RenderState { LastSpanStyle = this.options.ControlCharactersSpanStyle };
+                        var state2 = new RenderState { LastStyle = this.options.ControlCharactersSpanStyle };
                         var measurePass = new CharRenderer(this, segment.Data, ref state2, true);
                         foreach (var c2 in name)
                             measurePass.RenderChar(c2);
@@ -552,12 +562,7 @@ internal sealed unsafe partial class SpannedStringRenderer : ISpannedStringRende
                     }
 
                     if (!measuredLine.IsEmpty)
-                    {
-                        if (measuredLine.Offset == lineStartOffset)
-                            measuredLine.SetOffset(nextOffset, 1);
-
                         return;
-                    }
                 }
 
                 startOffset = new(segment.TextOffset + rawText.Length, segment.RecordIndex);

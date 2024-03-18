@@ -1,5 +1,6 @@
 using System.Numerics;
 using System.Runtime.CompilerServices;
+using System.Text;
 
 using Dalamud.Interface.SpannedStrings.Enums;
 using Dalamud.Interface.SpannedStrings.Styles;
@@ -18,9 +19,11 @@ internal sealed partial class SpannedStringRenderer
         private SpanStyleFontData fontInfo;
 
         private bool breakOnFirstNormalBreakableOffset;
+        private bool breakOnFirstNonWhitespace;
 
         private MeasuredLine wrapMarker;
-        private MeasuredLine current;
+        private MeasuredLine prev;
+        private MeasuredLine first;
 
         private MeasuredLine normalBreak;
         private MeasuredLine wrapMarkerBreak;
@@ -29,8 +32,9 @@ internal sealed partial class SpannedStringRenderer
         {
             this.renderer = renderer;
             this.data = data;
-            this.currentStyle = state.LastSpanStyle;
-            this.current = state.LastMeasurement;
+            this.currentStyle = state.LastStyle;
+            this.prev = MeasuredLine.Empty; // state.LastMeasurement;
+            this.first = MeasuredLine.Empty;
             this.normalBreak = MeasuredLine.Empty;
             this.wrapMarkerBreak = MeasuredLine.Empty;
             this.fontInfo = new(renderer.options.Scale);
@@ -42,10 +46,10 @@ internal sealed partial class SpannedStringRenderer
                 this.wrapMarker = MeasuredLine.Empty;
         }
 
-        public readonly MeasuredLine Last => this.current;
+        public readonly MeasuredLine Last => this.prev;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void ResetLastChar() => this.current.LastGlyphCodepoint = 0;
+        public void ResetLastChar() => this.prev.LastThing.Clear();
 
         public MeasuredLine HandleSpan(
             in SpannedRecord record,
@@ -71,9 +75,11 @@ internal sealed partial class SpannedStringRenderer
                     return this.AddCodepointAndMeasure(offsetBefore, offsetAfter, -1, record, recordData);
                 case SpannedRecordType.InsertionManualNewLine
                     when (this.renderer.options.AcceptedNewLines & NewLineType.Manual) != 0:
-                    this.current.SetOffset(offsetAfter);
-                    return this.current;
+                    this.prev.LastThing.SetRecord(offsetBefore.Record);
+                    this.prev.SetOffset(offsetAfter);
+                    return this.prev;
                 default:
+                    this.prev.LastThing.SetRecord(offsetBefore.Record);
                     return MeasuredLine.Empty;
             }
         }
@@ -87,18 +93,39 @@ internal sealed partial class SpannedStringRenderer
             ReadOnlySpan<byte> recordData = default,
             float pad = 0)
         {
-            var breakable = c >= 0 && c < WordBreakNormalBreakChars.Length && WordBreakNormalBreakChars[c];
-            if (this.breakOnFirstNormalBreakableOffset)
+            if (this.breakOnFirstNonWhitespace)
             {
-                if (breakable)
+                if (!IsBreakableWhitespace(c))
                 {
-                    this.current.SetOffset(offsetBefore);
-                    return this.current.WithWrapped();
+                    this.prev.LastThing.SetCodepoint(c);
+                    this.prev.SetOffset(offsetBefore);
+                    return this.prev.WithWrapped();
                 }
 
                 return MeasuredLine.Empty;
             }
 
+            var breakable = c >= 0 && c < WordBreakNormalBreakChars.Length && WordBreakNormalBreakChars[c];
+            if (this.breakOnFirstNormalBreakableOffset)
+            {
+                if (breakable)
+                {
+                    if (IsBreakableWhitespace(c))
+                    {
+                        this.breakOnFirstNonWhitespace = true;
+                    }
+                    else
+                    {
+                        this.prev.LastThing.SetCodepoint(c);
+                        this.prev.SetOffset(offsetBefore);
+                        return this.prev.WithWrapped();
+                    }
+                }
+
+                return MeasuredLine.Empty;
+            }
+
+            var current = this.prev;
             switch (c)
             {
                 case -1:
@@ -131,47 +158,59 @@ internal sealed partial class SpannedStringRenderer
                             break;
 
                         default:
-                            this.current.SetOffset(offsetAfter, pad);
-                            return MeasuredLine.Empty;
+                            dim = new(0, 1);
+                            break;
                     }
 
                     var width = MathF.Round((this.fontInfo.ScaledFontSize * dim.X) / dim.Y);
-                    this.current.AddObject(this.fontInfo, 0, width);
-                    this.current.SetOffset(offsetAfter, pad);
+                    current.AddObject(this.fontInfo, offsetBefore.Record, 0, width);
+                    current.SetOffset(offsetAfter, pad);
                     break;
                 }
 
                 case '\t':
-                    this.current.SetOffset(offsetAfter, pad);
-                    this.current.AddTabCharacter(this.fontInfo, this.renderer.options.TabWidth);
+                    current.SetOffset(offsetAfter, pad);
+                    current.AddTabCharacter(this.fontInfo, this.renderer.options.TabWidth);
                     break;
 
                 // Soft hyphen; only determine if this offset can be used as a word break point.
                 case '\u00AD':
-                    this.current.AddSoftHyphenCharacter(this.fontInfo);
-                    this.current.SetOffset(offsetAfter, pad);
-                    if (this.current.WithObject(this.fontInfo, 0, this.wrapMarker.Width).BBoxHorizontal.Y
-                        <= this.renderer.options.LineWrapWidth)
-                        this.wrapMarkerBreak = this.normalBreak = this.current;
+                    current.AddSoftHyphenCharacter(this.fontInfo);
+                    current.SetOffset(offsetAfter, pad);
+                    if (current.ContainedInBoundsWithObject(
+                            this.fontInfo,
+                            this.wrapMarker.Width,
+                            this.renderer.options.LineWrapWidth))
+                        this.wrapMarkerBreak = this.normalBreak = current;
 
-                    return MeasuredLine.Empty;
+                    if (pad == 0)
+                        return MeasuredLine.Empty;
+                    break;
 
                 default:
-                    this.current.AddStandardCharacter(this.fontInfo, c);
-                    this.current.SetOffset(offsetAfter, pad);
+                    current.AddStandardCharacter(this.fontInfo, c);
+                    current.SetOffset(offsetAfter, pad);
                     break;
             }
 
-            if (this.current.BBoxHorizontal.Y <= this.renderer.options.LineWrapWidth)
+            if (this.first.IsEmpty)
+                this.first = current;
+
+            if (current.ContainedInBoundsWithObject(this.fontInfo, 0, this.renderer.options.LineWrapWidth))
             {
-                if (this.current.WithObject(this.fontInfo, 0, this.wrapMarker.Width).BBoxHorizontal.Y
-                    <= this.renderer.options.LineWrapWidth)
-                    this.wrapMarkerBreak = this.current;
+                if (current.ContainedInBoundsWithObject(this.fontInfo, this.wrapMarker.Width, this.renderer.options.LineWrapWidth))
+                    this.wrapMarkerBreak = current;
                 else
                     breakable = false;
             }
             else
             {
+                if (IsBreakableWhitespace(c))
+                {
+                    this.breakOnFirstNonWhitespace = true;
+                    return MeasuredLine.Empty;
+                }
+
                 switch (this.renderer.options.WordBreak)
                 {
                     case WordBreakType.Normal:
@@ -179,13 +218,21 @@ internal sealed partial class SpannedStringRenderer
                         return MeasuredLine.FirstNonEmpty(this.normalBreak)
                                            .WithWrapped();
 
-                    case WordBreakType.BreakAll:
+                    case WordBreakType.BreakAll when this.renderer.options.UseWrapMarker:
                     case WordBreakType.KeepAll when this.renderer.options.UseWrapMarker:
-                        return MeasuredLine.FirstNonEmpty(this.wrapMarkerBreak, this.current)
+                        return MeasuredLine.FirstNonEmpty(this.wrapMarkerBreak, this.first)
+                                           .WithWrapped();
+                    
+                    case WordBreakType.BreakAll:
+                        return MeasuredLine.FirstNonEmpty(this.prev, this.first)
+                                           .WithWrapped();
+
+                    case WordBreakType.BreakWord when this.renderer.options.UseWrapMarker:
+                        return MeasuredLine.FirstNonEmpty(this.normalBreak, this.wrapMarkerBreak, this.first)
                                            .WithWrapped();
 
                     case WordBreakType.BreakWord:
-                        return MeasuredLine.FirstNonEmpty(this.normalBreak, this.wrapMarkerBreak, this.current)
+                        return MeasuredLine.FirstNonEmpty(this.normalBreak, this.prev, this.first)
                                            .WithWrapped();
 
                     case WordBreakType.KeepAll:
@@ -194,16 +241,22 @@ internal sealed partial class SpannedStringRenderer
                 }
             }
 
+            this.prev = current;
             if (breakable)
-                this.normalBreak = this.current;
+                this.normalBreak = current;
 
             return MeasuredLine.Empty;
         }
 
+        /// <summary>Tests if a codepoint is a whitespace, and permits breaking under normal word break rules.</summary>
+        /// <param name="c">The codepoint.</param>
+        /// <returns><c>true</c> if it is the case.</returns>
+        private static bool IsBreakableWhitespace(int c) => c != 0x00A0 && Rune.IsValid(c) && Rune.IsWhiteSpace(new(c)); 
+
         private void SpanFontOptionsUpdated()
         {
             this.fontInfo.Update(in this.currentStyle);
-            this.current.UnionBBoxVertical(this.fontInfo.BBoxVertical.X, this.fontInfo.BBoxVertical.Y);
+            this.prev.UnionBBoxVertical(this.fontInfo.BBoxVertical.X, this.fontInfo.BBoxVertical.Y);
             if (!this.renderer.options.UseWrapMarkerParams)
                 this.UpdateWrapMarker(in this.currentStyle);
         }

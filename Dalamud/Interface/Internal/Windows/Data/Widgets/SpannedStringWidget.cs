@@ -34,6 +34,7 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
     private int numLinkClicks;
     private VerticalAlignment valign;
     private float vertOffset;
+    private float wrapWidthRatio;
     private bool useItalic;
     private bool usePrebuiltSpannable;
     private bool useWrapMarkers;
@@ -62,6 +63,7 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
         this.valign = VerticalAlignment.Baseline;
         this.vertOffset = 0;
         this.useItalic = false;
+        this.wrapWidthRatio = 1f;
         this.prebuiltSpannable = null;
         this.usePrebuiltSpannable = this.useWrapMarkers = this.useVisibleControlCharacters = false;
         this.showComplicatedTextTest = this.showDynamicOffsetTest = false;
@@ -142,8 +144,25 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
                  Vector2.Zero,
                  (ImGui.GetWindowContentRegionMax() - ImGui.GetWindowContentRegionMin()) / 64);
         ImGui.Indent(8 * ImGuiHelpers.GlobalScale);
+
         ImGui.SetCursorPosY(ImGui.GetCursorPosY() + (8 * ImGuiHelpers.GlobalScale));
         var dynamicOffsetTestOffset = ImGui.GetCursorScreenPos();
+
+        var validWidth = ImGui.GetColumnWidth() - (8 * ImGuiHelpers.GlobalScale);
+        ImGui.PushItemWidth(validWidth);
+        ImGui.SliderFloat("##wrapWidth", ref this.wrapWidthRatio, 0f, 1f);
+        ImGui.GetWindowDrawList()
+             .AddLine(
+                 new(
+                     ImGui.GetCursorScreenPos().X + (validWidth * this.wrapWidthRatio),
+                     ImGui.GetWindowPos().Y),
+                 new(
+                     ImGui.GetCursorScreenPos().X + (validWidth * this.wrapWidthRatio),
+                     ImGui.GetWindowPos().Y + ImGui.GetWindowSize().Y),
+                 0xFFFFFFFF,
+                 1);
+
+        p.LineWrapWidth = validWidth * this.wrapWidthRatio;
         using (var renderer = Service<SpannableFactory>.Get().Rent("##config", p))
         {
             renderer.PushLink("copy"u8)
@@ -595,8 +614,7 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
               .PopItalic()
               .AppendLine();
 
-        target.PushBackColor(0xFF313131)
-              .PushForeColor(0xFFC5E1EE)
+        target.PushForeColor(0xFFC5E1EE)
               .PushShadowColor(0xFF000000)
               .PushShadowOffset(new(0, 1))
               .Append("Soft Hyphen test:"u8);
@@ -604,7 +622,7 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
         {
             for (var i = 0; i < 10; i++)
             {
-                target.Append(i == 0 ? ' ' : '\u00AD')
+                target.AppendChar(i == 0 ? ' ' : '\u00AD', i == 0 ? (c - 'a') + 1 : 1)
                       .PushLink("a"u8)
                       .PushItalic(i % 2 == 0)
                       .Append(c, 5)
@@ -617,7 +635,6 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
               .PopShadowColor()
               .AppendLine()
               .PopForeColor()
-              .PopBackColor()
               .AppendLine();
 
         target.PushLink("Link 1"u8)

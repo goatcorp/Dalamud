@@ -35,7 +35,7 @@ public struct RenderState
     public ImGuiMouseButton ClickedMouseButton;
 
     /// <summary>The final spannable param state.</summary>
-    internal SpanStyle LastSpanStyle;
+    internal SpanStyle LastStyle;
 
     /// <summary>The latest measurement.</summary>
     internal MeasuredLine LastMeasurement;

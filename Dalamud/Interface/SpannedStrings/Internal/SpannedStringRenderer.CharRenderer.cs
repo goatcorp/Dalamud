@@ -1,4 +1,5 @@
 using System.Numerics;
+using System.Runtime.CompilerServices;
 
 using Dalamud.Interface.SpannedStrings.Styles;
 
@@ -22,11 +23,7 @@ internal sealed unsafe partial class SpannedStringRenderer
         private readonly SpannedStringData data;
         private readonly bool skipDraw;
 
-        private readonly Vector2 startScreenOffset;
         private readonly ref RenderState state;
-        private readonly ref SpanStyle currentStyle;
-        private readonly ref Vector2 offset;
-        private readonly ref int lastCodepoint;
 
         private SpanStyleFontData fontInfo;
         private StateInfo stateInfo;
@@ -50,10 +47,6 @@ internal sealed unsafe partial class SpannedStringRenderer
             this.skipDraw = skipDraw;
 
             this.state = ref state;
-            this.startScreenOffset = state.StartScreenOffset;
-            this.currentStyle = ref state.LastSpanStyle;
-            this.offset = ref state.Offset;
-            this.lastCodepoint = ref state.LastMeasurement.LastGlyphCodepoint;
             
             this.fontInfo = new(renderer.options.Scale);
             this.stateInfo = new(renderer.options.LineWrapWidth, ref state);
@@ -64,9 +57,15 @@ internal sealed unsafe partial class SpannedStringRenderer
             this.SpanDrawOptionsUpdated();
         }
 
+        public readonly float LastLineHeight
+        {
+            [MethodImpl(MethodImplOptions.AggressiveOptimization)]
+            get => this.fontInfo.BBoxVertical.Y - this.fontInfo.BBoxVertical.X;
+        }
+
         public void HandleSpan(in SpannedRecord record, ReadOnlySpan<byte> recordData, bool dropUntilNextNewline)
         {
-            this.currentStyle.UpdateFrom(
+            this.state.LastStyle.UpdateFrom(
                 this.data,
                 record,
                 recordData,
@@ -91,8 +90,8 @@ internal sealed unsafe partial class SpannedStringRenderer
 
         public SpanStyle UpdateSpanParams(in SpanStyle newStyle)
         {
-            var old = this.currentStyle;
-            this.currentStyle = newStyle;
+            var old = this.state.LastStyle;
+            this.state.LastStyle = newStyle;
             this.SpanFontOptionsUpdated();
             this.SpanDrawOptionsUpdated();
             return old;
@@ -102,16 +101,13 @@ internal sealed unsafe partial class SpannedStringRenderer
         /// <param name="c">The character to render.</param>
         /// <param name="record">The span to render instead.</param>
         /// <param name="recordData">The span record data.</param>
-        /// <returns><c>true</c> if the processing is not skipped.</returns>
-        public bool RenderChar(int c, in SpannedRecord record = default, ReadOnlySpan<byte> recordData = default)
+        public void RenderChar(int c, in SpannedRecord record = default, ReadOnlySpan<byte> recordData = default)
         {
             switch (c)
             {
                 case '\r' or '\n': // Newline characters are never drawn.
                 case '\u00AD': // Soft hyphen is never drawn here, and is not considered for kerning.
-                    // Still reflect the last codepoint.
-                    this.lastCodepoint = c;
-                    return false;
+                    return;
             }
 
             var glyphIndex = this.fontInfo.Lookup[
@@ -182,7 +178,10 @@ internal sealed unsafe partial class SpannedStringRenderer
                         }
 
                         case SpannedRecordType.InsertionCallback
-                            when SpannedRecordCodec.TryDecodeInsertionCallback(recordData, out var index, out var ratio):
+                            when SpannedRecordCodec.TryDecodeInsertionCallback(
+                                recordData,
+                                out var index,
+                                out var ratio):
                             xy0 = Vector2.Zero;
                             xy1 = new(advX = this.fontInfo.ScaledFontSize * ratio, this.fontInfo.ScaledFontSize);
                             forceOverrideDraw = false;
@@ -191,7 +190,7 @@ internal sealed unsafe partial class SpannedStringRenderer
                             break;
 
                         default:
-                            return false;
+                            return;
                     }
 
                     break;
@@ -199,8 +198,8 @@ internal sealed unsafe partial class SpannedStringRenderer
                 case '\t':
                 {
                     var tabWidth = this.renderer.options.TabWidth;
-                    var next = MathF.Floor((this.offset.X + tabWidth) / tabWidth) * tabWidth;
-                    advX = next - this.offset.X;
+                    var next = MathF.Floor((this.state.Offset.X + tabWidth) / tabWidth) * tabWidth;
+                    advX = next - this.state.Offset.X;
                     xy0 = Vector2.Zero;
                     xy1 = new(advX, this.fontInfo.ScaledFontSize);
                     break;
@@ -211,7 +210,8 @@ internal sealed unsafe partial class SpannedStringRenderer
                     xy0 *= this.fontInfo.Scale;
                     xy1 *= this.fontInfo.Scale;
                     advX *= this.fontInfo.Scale;
-                    this.offset.X += this.fontInfo.GetScaledGap(this.lastCodepoint, glyph.Codepoint);
+                    if (this.state.LastMeasurement.LastThing.TryGetCodepoint(out var lastCodepoint))
+                        this.state.Offset.X += this.fontInfo.GetScaledGap(lastCodepoint, glyph.Codepoint);
                     break;
                 }
             }
@@ -222,7 +222,7 @@ internal sealed unsafe partial class SpannedStringRenderer
             xy1 += this.StyleTranslation;
             advX = MathF.Round(advX);
 
-            var glyphScreenOffset = this.startScreenOffset + this.offset;
+            var glyphScreenOffset = this.state.StartScreenOffset + this.state.Offset;
             var glyphVisible = forceOverrideDraw ?? (glyph.Visible && c is not ' ' and not '\t');
 
             if (this.useBackground)
@@ -239,7 +239,7 @@ internal sealed unsafe partial class SpannedStringRenderer
                     this.renderer.options.DrawListPtr,
                     glyphScreenOffset + new Vector2(0, this.stateInfo.VerticalOffsetWrtLine),
                     glyphScreenOffset + fillSize + new Vector2(0, this.stateInfo.VerticalOffsetWrtLine),
-                    this.currentStyle.BackColorU32,
+                    this.state.LastStyle.BackColorU32,
                     0,
                     ImDrawFlags.None);
             }
@@ -255,8 +255,8 @@ internal sealed unsafe partial class SpannedStringRenderer
                 if (push)
                     ImGuiNative.ImDrawList_PushTextureID(this.renderer.options.DrawListPtr, texId);
 
-                var lt = glyphScreenOffset + this.currentStyle.ShadowOffset + xy0;
-                var rb = glyphScreenOffset + this.currentStyle.ShadowOffset + xy1;
+                var lt = glyphScreenOffset + this.state.LastStyle.ShadowOffset + xy0;
+                var rb = glyphScreenOffset + this.state.LastStyle.ShadowOffset + xy1;
                 var rt = new Vector2(rb.X, lt.Y);
                 var lb = new Vector2(lt.X, rb.Y);
                 lt.X += glyphTopSkewDistance;
@@ -283,7 +283,7 @@ internal sealed unsafe partial class SpannedStringRenderer
                                 new(uv1.X, uv0.Y),
                                 uv1,
                                 new(uv0.X, uv1.Y),
-                                this.currentStyle.ShadowColorU32);
+                                this.state.LastStyle.ShadowColorU32);
                         }
                     }
                 }
@@ -333,7 +333,7 @@ internal sealed unsafe partial class SpannedStringRenderer
                                 new(uv1.X, uv0.Y),
                                 uv1,
                                 new(uv0.X, uv1.Y),
-                                this.currentStyle.EdgeColorU32);
+                                this.state.LastStyle.EdgeColorU32);
                         }
                     }
                 }
@@ -376,15 +376,15 @@ internal sealed unsafe partial class SpannedStringRenderer
                         new(uv1.X, uv0.Y),
                         uv1,
                         new(uv0.X, uv1.Y),
-                        this.currentStyle.ForeColorU32);
+                        this.state.LastStyle.ForeColorU32);
                 }
 
                 if (push)
                     ImGuiNative.ImDrawList_PopTextureID(this.renderer.options.DrawListPtr);
             }
 
-            var glyphBoundsLeftTop = this.offset + xy0;
-            var glyphBoundsRightBottom = this.offset + xy1;
+            var glyphBoundsLeftTop = this.state.Offset + xy0;
+            var glyphBoundsRightBottom = this.state.Offset + xy1;
 
             try
             {
@@ -396,7 +396,7 @@ internal sealed unsafe partial class SpannedStringRenderer
                         glyphBoundsLeftTop,
                         glyphBoundsRightBottom,
                         this.fontInfo,
-                        this.currentStyle));
+                        this.state.LastStyle));
             }
             catch (Exception e)
             {
@@ -405,15 +405,12 @@ internal sealed unsafe partial class SpannedStringRenderer
 
             this.BoundsLeftTop = Vector2.Min(this.BoundsLeftTop, glyphBoundsLeftTop);
             this.BoundsRightBottom = Vector2.Max(this.BoundsRightBottom, glyphBoundsRightBottom);
-            this.offset.X += advX;
-
-            this.lastCodepoint = c;
-            return true;
+            this.state.Offset.X += advX;
         }
 
         public void SpanFontOptionsUpdated()
         {
-            this.fontInfo.Update(in this.currentStyle);
+            this.fontInfo.Update(in this.state.LastStyle);
             this.RenderStateUpdated();
         }
 
@@ -432,14 +429,14 @@ internal sealed unsafe partial class SpannedStringRenderer
             if (this.renderer.options.DrawListPtr is null || this.skipDraw)
                 return;
 
-            this.useBackground = IsColorVisible(this.currentStyle.BackColorU32);
-            this.useShadow = IsColorVisible(this.currentStyle.ShadowColorU32) &&
-                             this.currentStyle.ShadowOffset != Vector2.Zero;
-            this.useBorder = IsColorVisible(this.currentStyle.EdgeColorU32) && this.currentStyle.BorderWidth >= 1f;
-            this.useForeground = IsColorVisible(this.currentStyle.ForeColorU32);
+            this.useBackground = IsColorVisible(this.state.LastStyle.BackColorU32);
+            this.useShadow = IsColorVisible(this.state.LastStyle.ShadowColorU32) &&
+                             this.state.LastStyle.ShadowOffset != Vector2.Zero;
+            this.useBorder = IsColorVisible(this.state.LastStyle.EdgeColorU32) && this.state.LastStyle.BorderWidth >= 1f;
+            this.useForeground = IsColorVisible(this.state.LastStyle.ForeColorU32);
             if (this.useBorder)
             {
-                this.borderRange = Math.Max(0, (int)this.currentStyle.BorderWidth);
+                this.borderRange = Math.Max(0, (int)this.state.LastStyle.BorderWidth);
                 this.numBorderDraws = (((2 * this.borderRange) + 1) * ((2 * this.borderRange) + 1)) - 1;
             }
             else

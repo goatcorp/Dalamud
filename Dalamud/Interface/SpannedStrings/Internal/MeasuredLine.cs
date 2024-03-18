@@ -1,5 +1,6 @@
 using System.Numerics;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 namespace Dalamud.Interface.SpannedStrings.Internal;
 
@@ -18,38 +19,14 @@ internal struct MeasuredLine
     /// <summary>The ascent(-) and descent(+) of the line.</summary>
     public Vector2 BBoxVertical;
 
-    /// <summary>The effective glyph codepoint of the last character processed.</summary>
-    /// <remarks>Used only for calculating kerning distances.</remarks>
-    public int LastGlyphCodepoint;
+    /// <summary>The last thing processed.</summary>
+    public LastThingStruct LastThing;
 
     /// <summary>Whether the line ends because it was too long and got wrapped/truncated.</summary>
     public bool IsWrapped;
 
     /// <summary>Whether the line ends because there is a line break character at the end.</summary>
     public bool HasNewLineAtEnd;
-
-    /// <summary>Initializes a new instance of the <see cref="MeasuredLine"/> struct.</summary>
-    /// <param name="offset">The span cursor offset.</param>
-    /// <param name="x">The horizontal cursor offset.</param>
-    /// <param name="bBoxHorizontal">The left and right bounds of the line.</param>
-    /// <param name="bBoxVertical">The ascent and descent of the line.</param>
-    /// <param name="lastGlyphCodepoint">The last glyph codepoint.</param>
-    [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
-    public MeasuredLine(
-        SpannedOffset offset,
-        float x,
-        Vector2 bBoxHorizontal,
-        Vector2 bBoxVertical,
-        int lastGlyphCodepoint)
-    {
-        this.Offset = offset;
-        this.LastGlyphCodepoint = lastGlyphCodepoint;
-        this.X = x;
-        this.BBoxHorizontal = bBoxHorizontal;
-        this.BBoxVertical = bBoxVertical;
-        this.IsWrapped = false;
-        this.HasNewLineAtEnd = false;
-    }
 
     /// <summary>Gets an empty value.</summary>
     public static MeasuredLine Empty
@@ -60,7 +37,7 @@ internal struct MeasuredLine
             Offset = SpannedOffset.Empty,
             BBoxHorizontal = new(float.MaxValue, float.MinValue),
             BBoxVertical = new(float.MaxValue, float.MinValue),
-            LastGlyphCodepoint = -1,
+            LastThing = default,
         };
     }
 
@@ -126,7 +103,27 @@ internal struct MeasuredLine
             return si3;
         return Empty;
     }
-    
+
+    /// <summary>Gets the first non-empty value, or <see cref="Empty"/>.</summary>
+    /// <param name="si1">The first value.</param>
+    /// <param name="si2">The second value.</param>
+    /// <param name="si3">The third value.</param>
+    /// <param name="si4">The fourth value.</param>
+    /// <returns>The first non-empty value, or <see cref="Empty"/>.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
+    public static MeasuredLine FirstNonEmpty(in MeasuredLine si1, in MeasuredLine si2, in MeasuredLine si3, in MeasuredLine si4)
+    {
+        if (!si1.IsEmpty)
+            return si1;
+        if (!si2.IsEmpty)
+            return si2;
+        if (!si3.IsEmpty)
+            return si3;
+        if (!si4.IsEmpty)
+            return si4;
+        return Empty;
+    }
+
     /// <summary>Unions the given horizontal boundary box to this instance.</summary>
     /// <param name="x0">The left boundary.</param>
     /// <param name="x1">The right boundary.</param>
@@ -147,17 +144,17 @@ internal struct MeasuredLine
         this.BBoxVertical.Y = MathF.Round(Math.Max(this.BBoxVertical.Y, descent));
     }
 
-    /// <summary>Returns a new instance of this struct after calling <see cref="AddObject"/>.</summary>
-    /// <param name="font">The font data.</param>
-    /// <param name="x0">The X0.</param>
-    /// <param name="x1">The X1.</param>
-    /// <returns>The new instance.</returns>
-    public readonly MeasuredLine WithObject(in SpanStyleFontData font, float x0, float x1)
-    {
-        var test = this;
-        test.AddObject(font, x0, x1);
-        return test;
-    }
+    /// <summary>Tests if adding an object will still keep the line from reaching a right boundary.</summary>
+    /// <param name="fontData">The font data.</param>
+    /// <param name="objectWidth">The object width.</param>
+    /// <param name="rightBoundary">The right boundary.</param>
+    /// <returns><c>true</c> if it will.</returns>
+    public readonly bool ContainedInBoundsWithObject(
+        SpanStyleFontData fontData,
+        float objectWidth,
+        float rightBoundary) =>
+        MathF.Round(Math.Max(this.BBoxHorizontal.Y, this.X + objectWidth + fontData.ScaledHorizontalOffset))
+        <= rightBoundary;
 
     /// <summary>Returns a new instance of this struct after setting <see cref="IsWrapped"/>.</summary>
     /// <returns>The new instance.</returns>
@@ -171,20 +168,26 @@ internal struct MeasuredLine
         this.Offset = offset;
         if (pad != 0f)
         {
-            this.LastGlyphCodepoint = -1;
+            this.LastThing.Clear();
             this.X += MathF.Round(pad);
             this.UnionBBoxHorizontal(this.X, this.X);
         }
     }
 
     /// <summary>Adds an object.</summary>
-    /// <param name="font">The font data.</param>
+    /// <param name="fontData">The current font data.</param>
+    /// <param name="recordIndex">The index of the record of this span, or -1 if none.</param>
     /// <param name="x0">The X0.</param>
     /// <param name="x1">The X1.</param>
-    public void AddObject(in SpanStyleFontData font, float x0, float x1)
+    public void AddObject(SpanStyleFontData fontData, int recordIndex, float x0, float x1)
     {
-        this.LastGlyphCodepoint = -1;
-        this.UnionBBoxHorizontal(this.X + x0, this.X + x1);
+        if (recordIndex == -1)
+            this.LastThing.SetRecord(recordIndex);
+        else
+            this.LastThing.Clear();
+        this.UnionBBoxHorizontal(
+            this.X + x0 + fontData.ScaledHorizontalOffset,
+            this.X + x1 + fontData.ScaledHorizontalOffset);
         this.X += MathF.Round(x1);
     }
 
@@ -207,7 +210,7 @@ internal struct MeasuredLine
             MathF.Round(xoff + xy1.X + font.GetScaledTopSkew(xy0) + font.BoldExtraWidth));
         this.UnionBBoxVertical(font.BBoxVertical.X, font.BBoxVertical.Y);
         this.X += MathF.Round(advance);
-        this.LastGlyphCodepoint = codepoint;
+        this.LastThing.SetCodepoint(codepoint);
     }
 
     /// <summary>Adds a standard character.</summary>
@@ -217,12 +220,17 @@ internal struct MeasuredLine
     {
         codepoint = font.GetEffeciveCodepoint(codepoint);
         ref var glyph = ref font.Glyphs[font.Lookup[codepoint]];
-        var adjust = font.GetScaledGap(this.LastGlyphCodepoint, codepoint);
+
+        var adjust =
+            this.LastThing.TryGetCodepoint(out var lastCodepoint)
+                ? font.GetScaledGap(lastCodepoint, codepoint)
+                : 0;
+        var boxOffset = new Vector2(adjust, 0);
         this.AddCharacter(
             font,
             codepoint,
-            (glyph.XY0 * font.Scale) + new Vector2(adjust + font.ScaledHorizontalOffset, 0),
-            (glyph.XY1 * font.Scale) + new Vector2(adjust + font.ScaledHorizontalOffset, 0),
+            (glyph.XY0 * font.Scale) + boxOffset,
+            (glyph.XY1 * font.Scale) + boxOffset,
             (glyph.AdvanceX * font.Scale) + adjust);
     }
 
@@ -234,7 +242,7 @@ internal struct MeasuredLine
         this.X = MathF.Floor((this.X + tabWidth) / tabWidth) * tabWidth;
         this.UnionBBoxHorizontal(this.X, this.X);
         this.UnionBBoxVertical(font.BBoxVertical.X, font.BBoxVertical.Y);
-        this.LastGlyphCodepoint = '\t';
+        this.LastThing.SetCodepoint('\t');
     }
 
     /// <summary>Adds a soft hyphen character.</summary>
@@ -243,12 +251,73 @@ internal struct MeasuredLine
     {
         var codepoint = font.GetEffeciveCodepoint(SpannedStringRenderer.SoftHyphenReplacementChar);
         ref var glyph = ref font.Glyphs[font.Lookup[codepoint]];
-        var adjust = font.GetScaledGap(this.LastGlyphCodepoint, codepoint) + font.ScaledHorizontalOffset;
+
+        var adjust =
+            this.LastThing.TryGetCodepoint(out var lastCodepoint)
+                ? font.GetScaledGap(lastCodepoint, codepoint)
+                : 0;
+        var boxOffset = new Vector2(adjust, 0);
+
         this.AddCharacter(
             font,
             codepoint,
-            (glyph.XY0 * font.Scale) + new Vector2(adjust, 0),
-            (glyph.XY1 * font.Scale) + new Vector2(adjust, 0),
+            (glyph.XY0 * font.Scale) + boxOffset,
+            (glyph.XY1 * font.Scale) + boxOffset,
             0);
+    }
+
+    /// <summary>Stores information on what has been processed most recently.</summary>
+    [StructLayout(LayoutKind.Explicit, Size = 5)]
+    public struct LastThingStruct
+    {
+        [FieldOffset(0)]
+        private int value;
+
+        [FieldOffset(4)]
+        private byte type;
+
+        /// <summary>Attempts to get the last codepoint.</summary>
+        /// <param name="codepoint">The retrieved codepoint.</param>
+        /// <returns><c>true</c> if it was a codepoint.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public readonly bool TryGetCodepoint(out int codepoint)
+        {
+            if (this.type == 1)
+            {
+                codepoint = this.value;
+                return true;
+            }
+
+            codepoint = 0;
+            return false;
+        }
+
+        /// <summary>Tests if the struct contains the specified codepoint.</summary>
+        /// <param name="codepoint">The codepoint to test.</param>
+        /// <returns><c>true</c> if it is.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public readonly bool IsCodepoint(int codepoint) => this.value == codepoint && this.type == 1;
+
+        /// <summary>Clears the thing.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Clear() => this = default;
+
+        /// <summary>Sets the last thing to a codepoint.</summary>
+        /// <param name="codepoint">The codepoint.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void SetCodepoint(int codepoint)
+        {
+            this.value = codepoint;
+            this.type = 1;
+        }
+
+        /// <summary>Sets the last thing to a record.</summary>
+        /// <param name="recordIndex">The record index.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void SetRecord(int recordIndex)
+        {
+            this.value = recordIndex;
+            this.type = 2;
+        }
     }
 }

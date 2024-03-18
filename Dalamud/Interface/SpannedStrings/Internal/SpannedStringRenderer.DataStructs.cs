@@ -66,8 +66,8 @@ internal sealed partial class SpannedStringRenderer
         {
             var lineAscentDescent = this.state.LastMeasurement.BBoxVertical;
             this.VerticalOffsetWrtLine = (fontInfo.BBoxVertical.Y - fontInfo.BBoxVertical.X) *
-                                         this.state.LastSpanStyle.VerticalOffset;
-            switch (this.state.LastSpanStyle.VerticalAlignment)
+                                         this.state.LastStyle.VerticalOffset;
+            switch (this.state.LastStyle.VerticalAlignment)
             {
                 case VerticalAlignment.Baseline:
                     this.VerticalOffsetWrtLine -= lineAscentDescent.X + (fontInfo.Font.Ascent * fontInfo.Scale);
@@ -86,7 +86,7 @@ internal sealed partial class SpannedStringRenderer
 
             this.VerticalOffsetWrtLine = MathF.Round(this.VerticalOffsetWrtLine);
 
-            switch (this.state.LastSpanStyle.HorizontalAlignment)
+            switch (this.state.LastStyle.HorizontalAlignment)
             {
                 case HorizontalAlignment.Right:
                     this.HorizontalOffsetWrtLine = this.wrapWidth - this.state.LastMeasurement.Width;
