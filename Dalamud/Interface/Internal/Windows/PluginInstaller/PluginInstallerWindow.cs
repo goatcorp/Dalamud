@@ -1811,6 +1811,8 @@ internal class PluginInstallerWindow : Window, IDisposable
         var iconSize = ImGuiHelpers.ScaledVector2(64, 64);
         var cursorBeforeImage = ImGui.GetCursorPos();
         var rectOffset = ImGui.GetWindowContentRegionMin() + ImGui.GetWindowPos();
+
+        var overlayAlpha = 1.0f;
         if (ImGui.IsRectVisible(rectOffset + cursorBeforeImage, rectOffset + cursorBeforeImage + iconSize))
         {
             var iconTex = this.imageCache.DefaultIcon;
@@ -1829,7 +1831,10 @@ internal class PluginInstallerWindow : Window, IDisposable
                 
                 var secondsSinceLoad = (float)DateTime.Now.Subtract(loadedSince.Value).TotalSeconds;
                 var fadeTo = pluginDisabled || installableOutdated ? 0.4f : 1f;
-                iconAlpha = Math.Clamp(EaseOutCubic(Math.Min(secondsSinceLoad, fadeTime) / fadeTime) * fadeTo, 0, 1);
+                
+                float Interp(float to) => Math.Clamp(EaseOutCubic(Math.Min(secondsSinceLoad, fadeTime) / fadeTime) * to, 0, 1);
+                iconAlpha = Interp(fadeTo);
+                overlayAlpha = Interp(1f);
             }
 
             ImGui.PushStyleVar(ImGuiStyleVar.Alpha, iconAlpha);
@@ -1842,6 +1847,7 @@ internal class PluginInstallerWindow : Window, IDisposable
 
         var isLoaded = plugin is { IsLoaded: true };
 
+        ImGui.PushStyleVar(ImGuiStyleVar.Alpha, overlayAlpha);
         if (updateAvailable)
             ImGui.Image(this.imageCache.UpdateIcon.ImGuiHandle, iconSize);
         else if ((trouble && !pluginDisabled) || isOrphan)
@@ -1860,6 +1866,8 @@ internal class PluginInstallerWindow : Window, IDisposable
             ImGui.Image(this.imageCache.InstalledIcon.ImGuiHandle, iconSize);
         else
             ImGui.Dummy(iconSize);
+        ImGui.PopStyleVar();
+        
         ImGui.SameLine();
 
         ImGuiHelpers.ScaledDummy(5);
