@@ -145,7 +145,8 @@ internal partial class PluginManager : IInternalDisposableService
         this.configuration.PluginTestingOptIns ??= new();
         this.MainRepo = PluginRepository.CreateMainRepo(this.happyHttpClient);
 
-        this.ApplyPatches();
+        // NET8 CHORE
+        //this.ApplyPatches();
 
         registerStartupBlocker(
             Task.Run(this.LoadAndStartLoadSyncPlugins),
@@ -422,8 +423,9 @@ internal partial class PluginManager : IInternalDisposableService
             }
         }
 
-        this.assemblyLocationMonoHook?.Dispose();
-        this.assemblyCodeBaseMonoHook?.Dispose();
+        // NET8 CHORE
+        // this.assemblyLocationMonoHook?.Dispose();
+        // this.assemblyCodeBaseMonoHook?.Dispose();
     }
 
     /// <summary>
@@ -842,7 +844,8 @@ internal partial class PluginManager : IInternalDisposableService
             this.installedPluginsList.Remove(plugin);
         }
 
-        PluginLocations.Remove(plugin.AssemblyName?.FullName ?? string.Empty, out _);
+        // NET8 CHORE
+        // PluginLocations.Remove(plugin.AssemblyName?.FullName ?? string.Empty, out _);
 
         this.NotifyinstalledPluginsListChanged();
         this.NotifyAvailablePluginsChanged();
@@ -1583,7 +1586,8 @@ internal partial class PluginManager : IInternalDisposableService
             }
             catch (InvalidPluginException)
             {
-                PluginLocations.Remove(plugin.AssemblyName?.FullName ?? string.Empty, out _);
+                // NET8 CHORE
+                // PluginLocations.Remove(plugin.AssemblyName?.FullName ?? string.Empty, out _);
                 throw;
             }
             catch (BannedPluginException)
@@ -1629,7 +1633,8 @@ internal partial class PluginManager : IInternalDisposableService
                 }
                 else
                 {
-                    PluginLocations.Remove(plugin.AssemblyName?.FullName ?? string.Empty, out _);
+                    // NET8 CHORE
+                    // PluginLocations.Remove(plugin.AssemblyName?.FullName ?? string.Empty, out _);
                     throw;
                 }
             }
@@ -1756,6 +1761,8 @@ internal partial class PluginManager : IInternalDisposableService
     }
 }
 
+// NET8 CHORE
+/*
 /// <summary>
 /// Class responsible for loading and unloading plugins.
 /// This contains the assembly patching functionality to resolve assembly locations.
@@ -1863,3 +1870,4 @@ internal partial class PluginManager
         this.assemblyCodeBaseMonoHook = new MonoMod.RuntimeDetour.Hook(codebaseTarget, codebasePatch);
     }
 }
+*/
