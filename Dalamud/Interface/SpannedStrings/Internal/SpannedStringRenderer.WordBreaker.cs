@@ -222,7 +222,6 @@ internal sealed partial class SpannedStringRenderer
                                            .WithWrapped();
 
                     case WordBreakType.BreakAll when this.renderer.options.UseWrapMarker:
-                    case WordBreakType.KeepAll when this.renderer.options.UseWrapMarker:
                         return MeasuredLine.FirstNonEmpty(this.wrapMarkerBreak, this.first)
                                            .WithWrapped();
                     
