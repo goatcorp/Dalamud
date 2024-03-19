@@ -182,7 +182,7 @@ internal class TaskSchedulerWidget : IDataWindowWidget
 
         if (ImGui.Button("Every 60f (Await)"))
         {
-            _ = framework.RunOnFrameworkThreadAwaitable(
+            _ = framework.Run(
                 async () =>
                 {
                     for (var i = 0L; ; i++)
@@ -200,7 +200,7 @@ internal class TaskSchedulerWidget : IDataWindowWidget
 
         if (ImGui.Button("Every 1s (Await)"))
         {
-            _ = framework.RunOnFrameworkThreadAwaitable(
+            _ = framework.Run(
                 async () =>
                 {
                     for (var i = 0L; ; i++)
@@ -241,7 +241,7 @@ internal class TaskSchedulerWidget : IDataWindowWidget
 
         if (ImGui.Button("Freeze Completely"))
         {
-            _ = framework.RunOnFrameworkThreadAwaitable(() => Helper().Wait());
+            _ = framework.Run(() => Helper().Wait());
             static async Task Helper() => await Task.Delay(1000);
         }
 
