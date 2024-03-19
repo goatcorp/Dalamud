@@ -1,5 +1,6 @@
 using System.Numerics;
 
+using Dalamud.Configuration.Internal;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Utility;
 using Dalamud.Utility;
@@ -20,8 +21,8 @@ internal sealed partial class ActiveNotification
         var opacity =
             Math.Clamp(
                 (float)(this.hideEasing.IsRunning
-                            ? (this.hideEasing.IsDone ? 0 : 1f - this.hideEasing.Value)
-                            : (this.showEasing.IsDone ? 1 : this.showEasing.Value)),
+                            ? (this.hideEasing.IsDone || ReducedMotions ? 0 : 1f - this.hideEasing.Value)
+                            : (this.showEasing.IsDone || ReducedMotions ? 1 : this.showEasing.Value)),
                 0f,
                 1f);
         if (opacity <= 0)
@@ -97,24 +98,25 @@ internal sealed partial class ActiveNotification
             this.lastInterestTime = DateTime.Now;
 
         this.DrawWindowBackgroundProgressBar();
-        this.DrawTopBar(width, actionWindowHeight, isHovered);
+        this.DrawTopBar(width, actionWindowHeight, isHovered, warrantsExtension);
         if (!this.underlyingNotification.Minimized && !this.expandoEasing.IsRunning)
         {
             this.DrawContentAndActions(width, actionWindowHeight);
         }
         else if (this.expandoEasing.IsRunning)
         {
+            var easedValue = ReducedMotions ? 1f : (float)this.expandoEasing.Value;
             if (this.underlyingNotification.Minimized)
-                ImGui.PushStyleVar(ImGuiStyleVar.Alpha, opacity * (1f - (float)this.expandoEasing.Value));
+                ImGui.PushStyleVar(ImGuiStyleVar.Alpha, opacity * (1f - easedValue));
             else
-                ImGui.PushStyleVar(ImGuiStyleVar.Alpha, opacity * (float)this.expandoEasing.Value);
+                ImGui.PushStyleVar(ImGuiStyleVar.Alpha, opacity * easedValue);
             this.DrawContentAndActions(width, actionWindowHeight);
             ImGui.PopStyleVar();
         }
 
         if (isFocused)
             this.DrawFocusIndicator();
-        this.DrawExpiryBar(this.EffectiveExpiry, warrantsExtension);
+        this.DrawExpiryBar(warrantsExtension);
 
         if (ImGui.IsWindowHovered())
         {
@@ -184,24 +186,36 @@ internal sealed partial class ActiveNotification
 
     private void DrawWindowBackgroundProgressBar()
     {
-        var elapsed = (float)(((DateTime.Now - this.CreatedAt).TotalMilliseconds %
-                               NotificationConstants.ProgressWaveLoopDuration) /
-                              NotificationConstants.ProgressWaveLoopDuration);
-        elapsed /= NotificationConstants.ProgressWaveIdleTimeRatio;
+        var elapsed = 0f;
+        var colorElapsed = 0f;
+        float progress;
 
-        var colorElapsed =
-            elapsed < NotificationConstants.ProgressWaveLoopMaxColorTimeRatio
-                ? elapsed / NotificationConstants.ProgressWaveLoopMaxColorTimeRatio
-                : ((NotificationConstants.ProgressWaveLoopMaxColorTimeRatio * 2) - elapsed) /
-                  NotificationConstants.ProgressWaveLoopMaxColorTimeRatio;
+        if (ReducedMotions)
+        {
+            progress = this.Progress;
+        }
+        else
+        {
+            progress = Math.Clamp(this.ProgressEased, 0f, 1f);
 
-        elapsed = Math.Clamp(elapsed, 0f, 1f);
-        colorElapsed = Math.Clamp(colorElapsed, 0f, 1f);
-        colorElapsed = MathF.Sin(colorElapsed * (MathF.PI / 2f));
+            elapsed =
+                (float)(((DateTime.Now - this.CreatedAt).TotalMilliseconds %
+                         NotificationConstants.ProgressWaveLoopDuration) /
+                        NotificationConstants.ProgressWaveLoopDuration);
+            elapsed /= NotificationConstants.ProgressWaveIdleTimeRatio;
 
-        var progress = Math.Clamp(this.ProgressEased, 0f, 1f);
-        if (progress >= 1f)
-            elapsed = colorElapsed = 0f;
+            colorElapsed = elapsed < NotificationConstants.ProgressWaveLoopMaxColorTimeRatio
+                               ? elapsed / NotificationConstants.ProgressWaveLoopMaxColorTimeRatio
+                               : ((NotificationConstants.ProgressWaveLoopMaxColorTimeRatio * 2) - elapsed) /
+                                 NotificationConstants.ProgressWaveLoopMaxColorTimeRatio;
+
+            elapsed = Math.Clamp(elapsed, 0f, 1f);
+            colorElapsed = Math.Clamp(colorElapsed, 0f, 1f);
+            colorElapsed = MathF.Sin(colorElapsed * (MathF.PI / 2f));
+
+            if (progress >= 1f)
+                elapsed = colorElapsed = 0f;
+        }
 
         var windowPos = ImGui.GetWindowPos();
         var windowSize = ImGui.GetWindowSize();
@@ -240,7 +254,7 @@ internal sealed partial class ActiveNotification
         ImGui.PopClipRect();
     }
 
-    private void DrawTopBar(float width, float height, bool drawActionButtons)
+    private void DrawTopBar(float width, float height, bool drawActionButtons, bool warrantsExtension)
     {
         var windowPos = ImGui.GetWindowPos();
         var windowSize = ImGui.GetWindowSize();
@@ -249,6 +263,10 @@ internal sealed partial class ActiveNotification
         using (Service<InterfaceManager>.Get().IconFontHandle?.Push())
         {
             ImGui.PushClipRect(windowPos, windowPos + windowSize with { Y = height }, false);
+
+            if (!drawActionButtons)
+                this.DrawExpiryPie(warrantsExtension, new(width - height, 0), new(height));
+
             if (this.UserDismissable)
             {
                 if (this.DrawIconButton(FontAwesomeIcon.Times, rtOffset, height, drawActionButtons))
@@ -272,7 +290,7 @@ internal sealed partial class ActiveNotification
         }
 
         float relativeOpacity;
-        if (this.expandoEasing.IsRunning)
+        if (this.expandoEasing.IsRunning && !ReducedMotions)
         {
             relativeOpacity =
                 this.underlyingNotification.Minimized
@@ -297,36 +315,35 @@ internal sealed partial class ActiveNotification
             ImGui.TextUnformatted(
                 ImGui.IsWindowHovered(ImGuiHoveredFlags.AllowWhenBlockedByActiveItem)
                     ? this.CreatedAt.LocAbsolute()
-                    : this.CreatedAt.LocRelativePastLong());
+                    : ReducedMotions
+                        ? this.CreatedAt.LocRelativePastLong(TimeSpan.FromSeconds(15))
+                        : this.CreatedAt.LocRelativePastLong(TimeSpan.FromSeconds(5)));
             ImGui.PopStyleColor();
             ImGui.PopStyleVar();
         }
 
         if (relativeOpacity < 1)
         {
-            rtOffset = new(width - NotificationConstants.ScaledWindowPadding, 0);
             ImGui.PushStyleVar(ImGuiStyleVar.Alpha, ImGui.GetStyle().Alpha * (1f - relativeOpacity));
 
-            var ltOffset = new Vector2(NotificationConstants.ScaledWindowPadding);
-            this.DrawIcon(ltOffset, new(height - (2 * NotificationConstants.ScaledWindowPadding)));
-
-            ltOffset.X = height;
-
-            var agoText = this.CreatedAt.LocRelativePastShort();
+            var agoText =
+                ReducedMotions
+                    ? this.CreatedAt.LocRelativePastShort(TimeSpan.FromSeconds(15))
+                    : this.CreatedAt.LocRelativePastShort(TimeSpan.FromSeconds(5));
             var agoSize = ImGui.CalcTextSize(agoText);
-            rtOffset.X -= agoSize.X;
-            ImGui.SetCursorPos(rtOffset with { Y = NotificationConstants.ScaledWindowPadding });
+            ImGui.SetCursorPos(new(width - ((height + agoSize.X) / 2f), NotificationConstants.ScaledWindowPadding));
             ImGui.PushStyleColor(ImGuiCol.Text, NotificationConstants.WhenTextColor);
             ImGui.TextUnformatted(agoText);
             ImGui.PopStyleColor();
 
-            rtOffset.X -= NotificationConstants.ScaledWindowPadding;
-
+            this.DrawIcon(
+                new(NotificationConstants.ScaledWindowPadding),
+                new(height - (2 * NotificationConstants.ScaledWindowPadding)));
             ImGui.PushClipRect(
-                windowPos + ltOffset with { Y = 0 },
-                windowPos + rtOffset with { Y = height },
+                windowPos + new Vector2(height, 0),
+                windowPos + new Vector2(width - height, height),
                 true);
-            ImGui.SetCursorPos(ltOffset with { Y = NotificationConstants.ScaledWindowPadding });
+            ImGui.SetCursorPos(new(height, NotificationConstants.ScaledWindowPadding));
             ImGui.TextUnformatted(this.EffectiveMinimizedText);
             ImGui.PopClipRect();
 
@@ -437,12 +454,95 @@ internal sealed partial class ActiveNotification
         ImGui.PopTextWrapPos();
     }
 
-    private void DrawExpiryBar(DateTime effectiveExpiry, bool warrantsExtension)
+    private void DrawExpiryPie(bool warrantsExtension, Vector2 offset, Vector2 size)
     {
+        if (!Service<DalamudConfiguration>.Get().ReduceMotions)
+            return;
+
+        // circle here; 0 means 0deg; 1 means 360deg
+        float fillStartCw, fillEndCw;
+        if (this.DismissReason is not null)
+        {
+            fillStartCw = fillEndCw = 0f;
+        }
+        else if (warrantsExtension)
+        {
+            fillStartCw = fillEndCw = 0f;
+        }
+        else if (this.EffectiveExpiry == DateTime.MaxValue)
+        {
+            if (this.ShowIndeterminateIfNoExpiry)
+            {
+                // draw
+                var elapsed = (float)(((DateTime.Now - this.CreatedAt).TotalMilliseconds %
+                                       NotificationConstants.IndeterminatePieLoopDuration) /
+                                      NotificationConstants.IndeterminatePieLoopDuration);
+                fillStartCw = elapsed;
+                fillEndCw = elapsed + 0.2f + (MathF.Sin(elapsed * MathF.PI) * 0.2f);
+            }
+            else
+            {
+                // do not draw
+                fillStartCw = fillEndCw = 0f;
+            }
+        }
+        else
+        {
+            fillStartCw = 1f - (float)((this.EffectiveExpiry - DateTime.Now).TotalMilliseconds /
+                                       (this.EffectiveExpiry - this.lastInterestTime).TotalMilliseconds);
+            fillEndCw = 1f;
+        }
+
+        if (fillStartCw > fillEndCw)
+            (fillStartCw, fillEndCw) = (fillEndCw, fillStartCw);
+
+        if (fillStartCw == 0 && fillEndCw == 0)
+            return;
+       
+        var radius = Math.Min(size.X, size.Y) / 3f;
+        var ifrom = fillStartCw * MathF.PI * 2;
+        var ito = fillEndCw * MathF.PI * 2;
+
+        var nseg = MathF.Ceiling(2 * MathF.PI * radius);
+        var step = (MathF.PI * 2) / nseg;
+
+        var center = ImGui.GetWindowPos() + offset + (size / 2);
+        var color = ImGui.GetColorU32(this.Type.ToColor() * new Vector4(1, 1, 1, 0.2f));
+
+        var prevOff = center + (radius * new Vector2(MathF.Sin(ifrom), -MathF.Cos(ifrom)));
+        Span<Vector2> verts = stackalloc Vector2[(int)MathF.Ceiling(((ito - ifrom) / step) + 3)];
+        var vertPtr = 0;
+        verts[vertPtr++] = center;
+        verts[vertPtr++] = prevOff;
+
+        var cur = ifrom + step;
+        for (; cur < ito; cur += step)
+        {
+            var curOff = center + (radius * new Vector2(MathF.Sin(cur), -MathF.Cos(cur)));
+            if (Vector2.DistanceSquared(prevOff, curOff) >= 1)
+                verts[vertPtr++] = prevOff = curOff;
+        }
+
+        var lastOff = center + (radius * new Vector2(MathF.Sin(ito), -MathF.Cos(ito)));
+        if (Vector2.DistanceSquared(prevOff, lastOff) >= 1)
+            verts[vertPtr++] = lastOff;
+        unsafe
+        {
+            var dlist = ImGui.GetWindowDrawList().NativePtr;
+            fixed (Vector2* pvert = verts)
+                ImGuiNative.ImDrawList_AddConvexPolyFilled(dlist, pvert, vertPtr, color);
+        }
+    }
+
+    private void DrawExpiryBar(bool warrantsExtension)
+    {
+        if (Service<DalamudConfiguration>.Get().ReduceMotions)
+            return;
+
         float barL, barR;
         if (this.DismissReason is not null)
         {
-            var v = this.hideEasing.IsDone ? 0f : 1f - (float)this.hideEasing.Value;
+            var v = this.hideEasing.IsDone || ReducedMotions ? 0f : 1f - (float)this.hideEasing.Value;
             var midpoint = (this.prevProgressL + this.prevProgressR) / 2f;
             var length = (this.prevProgressR - this.prevProgressL) / 2f;
             barL = midpoint - (length * v);
@@ -455,7 +555,7 @@ internal sealed partial class ActiveNotification
             this.prevProgressL = barL;
             this.prevProgressR = barR;
         }
-        else if (effectiveExpiry == DateTime.MaxValue)
+        else if (this.EffectiveExpiry == DateTime.MaxValue)
         {
             if (this.ShowIndeterminateIfNoExpiry)
             {
@@ -477,8 +577,8 @@ internal sealed partial class ActiveNotification
         }
         else
         {
-            barL = 1f - (float)((effectiveExpiry - DateTime.Now).TotalMilliseconds /
-                                (effectiveExpiry - this.lastInterestTime).TotalMilliseconds);
+            barL = 1f - (float)((this.EffectiveExpiry - DateTime.Now).TotalMilliseconds /
+                                (this.EffectiveExpiry - this.lastInterestTime).TotalMilliseconds);
             barR = 1f;
             this.prevProgressL = barL;
             this.prevProgressR = barR;

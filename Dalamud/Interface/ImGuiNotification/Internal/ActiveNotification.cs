@@ -2,6 +2,7 @@ using System.Runtime.Loader;
 using System.Threading;
 using System.Threading.Tasks;
 
+using Dalamud.Configuration.Internal;
 using Dalamud.Interface.Animation;
 using Dalamud.Interface.Animation.EasingFunctions;
 using Dalamud.Interface.Internal;
@@ -187,16 +188,18 @@ internal sealed partial class ActiveNotification : IActiveNotification
         set => this.newProgress = value;
     }
 
+    private static bool ReducedMotions => Service<DalamudConfiguration>.Get().ReduceMotions;
+
     /// <summary>Gets the eased progress.</summary>
     private float ProgressEased
     {
         get
         {
             var underlyingProgress = this.underlyingNotification.Progress;
-            if (Math.Abs(underlyingProgress - this.progressBefore) < 0.000001f || this.progressEasing.IsDone)
+            if (Math.Abs(underlyingProgress - this.progressBefore) < 0.000001f || this.progressEasing.IsDone || ReducedMotions)
                 return underlyingProgress;
 
-            var state = Math.Clamp((float)this.progressEasing.Value, 0f, 1f);
+            var state = ReducedMotions ? 1f : Math.Clamp((float)this.progressEasing.Value, 0f, 1f);
             return this.progressBefore + (state * (underlyingProgress - this.progressBefore));
         }
     }

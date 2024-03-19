@@ -41,6 +41,10 @@ internal static class NotificationConstants
     /// <summary>The duration of indeterminate progress bar loop in milliseconds.</summary>
     public const float IndeterminateProgressbarLoopDuration = 2000f;
 
+    /// <summary>The duration of indeterminate pie loop in milliseconds.</summary>
+    /// <remarks>Note that this value is applicable when reduced motion configuration is on.</remarks>
+    public const float IndeterminatePieLoopDuration = 8000f;
+
     /// <summary>The duration of the progress wave animation in milliseconds.</summary>
     public const float ProgressWaveLoopDuration = 2000f;
 
