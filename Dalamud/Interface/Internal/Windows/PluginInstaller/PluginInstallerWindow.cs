@@ -1158,10 +1158,13 @@ internal class PluginInstallerWindow : Window, IDisposable
         // Go through all AVAILABLE manifests, associate them with a NON-DEV local plugin, if one is available, and remove it from the pile
         foreach (var availableManifest in this.categoryManager.GetCurrentCategoryContent(filteredAvailableManifests).Cast<RemotePluginManifest>())
         {
-            var plugin = this.pluginListInstalled.FirstOrDefault(plugin => plugin.Manifest.InternalName == availableManifest.InternalName && plugin.Manifest.RepoUrl == availableManifest.RepoUrl);
+            var plugin = this.pluginListInstalled
+                             .FirstOrDefault(plugin => plugin.Manifest.InternalName == availableManifest.InternalName &&
+                                                       plugin.Manifest.RepoUrl == availableManifest.RepoUrl &&
+                                                       !plugin.IsDev);
             
             // We "consumed" this plugin from the pile and remove it. 
-            if (plugin != null && !plugin.IsDev)
+            if (plugin != null)
             {
                 installedPlugins.Remove(plugin);
                 proxies.Add(new PluginInstallerAvailablePluginProxy(null, plugin));
