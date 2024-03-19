@@ -54,8 +54,6 @@ internal class PluginImageCache : IInternalDisposableService
     private readonly CancellationTokenSource cancelToken = new();
     private readonly Task downloadTask;
     private readonly Task loadTask;
-
-    private record LoadedIcon(IDalamudTextureWrap Texture, DateTime LoadedSince);
     
     private readonly ConcurrentDictionary<string, LoadedIcon?> pluginIconMap = new();
     private readonly ConcurrentDictionary<string, IDalamudTextureWrap?[]?> pluginImagesMap = new();
@@ -701,4 +699,11 @@ internal class PluginImageCache : IInternalDisposableService
 
         return output;
     }
+    
+    /// <summary>
+    /// Record for a loaded icon.
+    /// </summary>
+    /// <param name="Texture">The texture of the icon.</param>
+    /// <param name="LoadedSince">The time the icon was loaded at.</param>
+    private record LoadedIcon(IDalamudTextureWrap Texture, DateTime LoadedSince);
 }

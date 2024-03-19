@@ -146,7 +146,7 @@ internal partial class PluginManager : IInternalDisposableService
         this.MainRepo = PluginRepository.CreateMainRepo(this.happyHttpClient);
 
         // NET8 CHORE
-        //this.ApplyPatches();
+        // this.ApplyPatches();
 
         registerStartupBlocker(
             Task.Run(this.LoadAndStartLoadSyncPlugins),

@@ -33,14 +33,4 @@ public class MemoryWriteException : MemoryException
         : base(message, innerException)
     {
     }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="MemoryWriteException"/> class.
-    /// </summary>
-    /// <param name="info">The object that holds the serialized data about the exception being thrown.</param>
-    /// <param name="context">The object that contains contextual information about the source or destination.</param>
-    protected MemoryWriteException(SerializationInfo info, StreamingContext context)
-        : base(info, context)
-    {
-    }
 }
