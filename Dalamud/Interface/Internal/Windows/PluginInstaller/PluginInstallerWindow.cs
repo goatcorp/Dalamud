@@ -1814,23 +1814,27 @@ internal class PluginInstallerWindow : Window, IDisposable
         if (ImGui.IsRectVisible(rectOffset + cursorBeforeImage, rectOffset + cursorBeforeImage + iconSize))
         {
             var iconTex = this.imageCache.DefaultIcon;
-            var hasIcon = this.imageCache.TryGetIcon(plugin, manifest, isThirdParty, out var cachedIconTex);
+            var hasIcon = this.imageCache.TryGetIcon(plugin, manifest, isThirdParty, out var cachedIconTex, out var loadedSince);
             if (hasIcon && cachedIconTex != null)
             {
                 iconTex = cachedIconTex;
             }
+            
+            const float fadeTime = 0.3f;
+            var iconAlpha = 1f;
 
-            if (pluginDisabled || installableOutdated)
+            if (loadedSince.HasValue)
             {
-                ImGui.PushStyleVar(ImGuiStyleVar.Alpha, 0.4f);
+                float EaseOutCubic(float t) => 1 - MathF.Pow(1 - t, 3);
+                
+                var secondsSinceLoad = (float)DateTime.Now.Subtract(loadedSince.Value).TotalSeconds;
+                var fadeTo = pluginDisabled || installableOutdated ? 0.4f : 1f;
+                iconAlpha = Math.Clamp(EaseOutCubic(Math.Min(secondsSinceLoad, fadeTime) / fadeTime) * fadeTo, 0, 1);
             }
 
+            ImGui.PushStyleVar(ImGuiStyleVar.Alpha, iconAlpha);
             ImGui.Image(iconTex.ImGuiHandle, iconSize);
-
-            if (pluginDisabled || installableOutdated)
-            {
-                ImGui.PopStyleVar();
-            }
+            ImGui.PopStyleVar();
 
             ImGui.SameLine();
             ImGui.SetCursorPos(cursorBeforeImage);
@@ -2019,7 +2023,7 @@ internal class PluginInstallerWindow : Window, IDisposable
             if (log is PluginChangelogEntry pluginLog)
             {
                 icon = this.imageCache.DefaultIcon;
-                var hasIcon = this.imageCache.TryGetIcon(pluginLog.Plugin, pluginLog.Plugin.Manifest, pluginLog.Plugin.IsThirdParty, out var cachedIconTex);
+                var hasIcon = this.imageCache.TryGetIcon(pluginLog.Plugin, pluginLog.Plugin.Manifest, pluginLog.Plugin.IsThirdParty, out var cachedIconTex, out _);
                 if (hasIcon && cachedIconTex != null)
                 {
                     icon = cachedIconTex;

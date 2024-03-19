@@ -55,7 +55,9 @@ internal class PluginImageCache : IInternalDisposableService
     private readonly Task downloadTask;
     private readonly Task loadTask;
 
-    private readonly ConcurrentDictionary<string, IDalamudTextureWrap?> pluginIconMap = new();
+    private record LoadedIcon(IDalamudTextureWrap Texture, DateTime LoadedSince);
+    
+    private readonly ConcurrentDictionary<string, LoadedIcon?> pluginIconMap = new();
     private readonly ConcurrentDictionary<string, IDalamudTextureWrap?[]?> pluginImagesMap = new();
     private readonly DalamudAssetManager dalamudAssetManager;
 
@@ -153,7 +155,7 @@ internal class PluginImageCache : IInternalDisposableService
 
         foreach (var icon in this.pluginIconMap.Values)
         {
-            icon?.Dispose();
+            icon?.Texture.Dispose();
         }
 
         foreach (var images in this.pluginImagesMap.Values)
@@ -185,10 +187,12 @@ internal class PluginImageCache : IInternalDisposableService
     /// <param name="manifest">The plugin manifest.</param>
     /// <param name="isThirdParty">If the plugin was third party sourced.</param>
     /// <param name="iconTexture">Cached image textures, or an empty array.</param>
+    /// <param name="loadedSince">The time the icon was successfully downloaded.</param>
     /// <returns>True if an entry exists, may be null if currently downloading.</returns>
-    public bool TryGetIcon(LocalPlugin? plugin, IPluginManifest manifest, bool isThirdParty, out IDalamudTextureWrap? iconTexture)
+    public bool TryGetIcon(LocalPlugin? plugin, IPluginManifest manifest, bool isThirdParty, out IDalamudTextureWrap? iconTexture, out DateTime? loadedSince)
     {
         iconTexture = null;
+        loadedSince = null;
 
         if (manifest == null || manifest.InternalName == null)
         {
@@ -198,7 +202,13 @@ internal class PluginImageCache : IInternalDisposableService
 
         if (!this.pluginIconMap.TryAdd(manifest.InternalName, null))
         {
-            iconTexture = this.pluginIconMap[manifest.InternalName];
+            var loaded = this.pluginIconMap[manifest.InternalName];
+            if (loaded != null)
+            {
+                iconTexture = loaded.Texture;
+                loadedSince = loaded.LoadedSince;
+            }
+
             return true;
         }
 
@@ -207,8 +217,9 @@ internal class PluginImageCache : IInternalDisposableService
         {
             try
             {
-                this.pluginIconMap[manifest.InternalName] =
-                    await this.DownloadPluginIconAsync(plugin, manifest, isThirdParty, requestedFrame);
+                var texture = await this.DownloadPluginIconAsync(plugin, manifest, isThirdParty, requestedFrame);
+                if (texture != null)
+                    this.pluginIconMap[manifest.InternalName] = new LoadedIcon(texture, DateTime.Now);
             }
             catch (Exception ex)
             {
