@@ -41,6 +41,7 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
     private bool useVisibleControlCharacters;
     private bool showComplicatedTextTest;
     private bool showDynamicOffsetTest;
+    private bool showTransformationTest;
     private bool showParseTest;
     private WordBreakType wordBreakType;
     private long catchMeBegin;
@@ -67,7 +68,7 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
         this.wrapRightWidthRatio = 1f;
         this.prebuiltSpannable = null;
         this.usePrebuiltSpannable = this.useWrapMarkers = this.useVisibleControlCharacters = false;
-        this.showComplicatedTextTest = this.showDynamicOffsetTest = false;
+        this.showComplicatedTextTest = this.showDynamicOffsetTest = this.showTransformationTest = false;
         this.parseAttempt = default;
 
         this.testStringBuffer.Dispose();
@@ -362,6 +363,18 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
                     .AppendLine("\u00A0Test Dynamic Horizontal and Vertical Offsets")
                     .PopLink();
 
+            renderer.PushLink("showTransformationTest"u8)
+                    .PushForeColor(0xFFFFFFFF)
+                    .PushShadowOffset(Vector2.Zero)
+                    .AppendTexture(
+                        texIdCheckbox,
+                        this.showTransformationTest ? new(0.5f, 0) : Vector2.Zero,
+                        this.showTransformationTest ? Vector2.One : new(0.5f, 1))
+                    .PopShadowOffset()
+                    .PopForeColor()
+                    .AppendLine("\u00A0Test Transformation")
+                    .PopLink();
+
             renderer.PushLink("showParseTest"u8)
                     .PushForeColor(0xFFFFFFFF)
                     .PushShadowOffset(Vector2.Zero)
@@ -388,6 +401,8 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
                     this.showComplicatedTextTest ^= true;
                 else if (link.SequenceEqual("showDynamicOffsetTest"u8))
                     this.showDynamicOffsetTest ^= true;
+                else if (link.SequenceEqual("showTransformationTest"u8))
+                    this.showTransformationTest ^= true;
                 else if (link.SequenceEqual("showParseTest"u8))
                     this.showParseTest ^= true;
                 else if (link.SequenceEqual("wordBreakTypeNormal"u8))
@@ -535,10 +550,10 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
 
         if (this.showDynamicOffsetTest)
         {
+            const float interval = 2000;
             var prevPos = ImGui.GetCursorScreenPos();
             ImGui.SetCursorScreenPos(dynamicOffsetTestOffset);
             using var renderer = Service<SpannableFactory>.Get().Rent("##catchme", p);
-            const float interval = 2000;
             var v = ((this.catchMeBegin + Environment.TickCount64) / interval) % (2 * MathF.PI);
             renderer.PushHorizontalAlignment(HorizontalAlignment.Center)
                     .PushHorizontalOffset(MathF.Sin(v) * 8)
@@ -547,6 +562,36 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
                     .PushEdgeColor(new(new Vector4(0.3f, 0.3f, 1f, 0.5f + (MathF.Sin(v) * 0.5f))))
                     .PushLink("a"u8)
                     .Append("Text\ngoing\nround");
+            if (renderer.Render(out _, out _))
+                this.catchMeBegin += 50;
+            ImGui.SetCursorScreenPos(prevPos);
+        }
+
+        if (this.showTransformationTest)
+        {
+            const float interval = 2000;
+            var prevPos = ImGui.GetCursorScreenPos();
+            ImGui.SetCursorScreenPos(dynamicOffsetTestOffset);
+            var v = ((this.catchMeBegin + Environment.TickCount64) / interval) % (2 * MathF.PI);
+            using var renderer = Service<SpannableFactory>.Get().Rent(
+                "##catchme_link",
+                p with
+                {
+                    LineWrapWidth = 0,
+                    WordBreak = WordBreakType.KeepAll,
+                    Transformation = Matrix4x4.Multiply(
+                        Matrix4x4.CreateRotationZ(v),
+                        Matrix4x4.CreateTranslation(
+                            (validWidth * (1 + MathF.Cos(v - (MathF.PI / 2)))) / 2,
+                            (validWidth * (1 + MathF.Sin(v - (MathF.PI / 2)))) / 2,
+                            0)),
+                });
+            renderer.PushHorizontalAlignment(HorizontalAlignment.Center)
+                    .PushBorderWidth(1)
+                    .PushEdgeColor(new(new Vector4(0.3f, 0.3f, 1f, 0.5f + (MathF.Sin(v) * 0.5f))))
+                    .PushLink("a"u8)
+                    .Append(
+                        "Text\ngoing\nround\nusing\nmatrix\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|");
             if (renderer.Render(out _, out _))
                 this.catchMeBegin += 50;
             ImGui.SetCursorScreenPos(prevPos);

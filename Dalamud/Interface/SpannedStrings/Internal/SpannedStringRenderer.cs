@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 using System.Text.Unicode;
 
 using Dalamud.Interface.SpannedStrings.Enums;
@@ -269,7 +270,7 @@ internal sealed unsafe partial class SpannedStringRenderer : ISpannedStringRende
                                         this.options.ImGuiGlobalId,
                                         nint.Zero);
             var mouse = ImGui.GetMousePos();
-            var mouseRel = mouse - state.StartScreenOffset;
+            var mouseRel = this.TransformInverse(mouse - state.StartScreenOffset);
             var hoveredLinkDataBegin = -1;
             if (ImGui.IsWindowHovered() || itemState.IsMouseButtonDownHandled)
             {
@@ -357,19 +358,18 @@ internal sealed unsafe partial class SpannedStringRenderer : ISpannedStringRende
 
                 if (color != 0)
                 {
-                    var rounding = ImGui.GetStyle().FrameRounding;
                     foreach (var entry in this.linkRenderCoordinatesList)
                     {
                         if (entry.DataBegin != hoveredLinkDataBegin)
                             continue;
 
-                        ImGuiNative.ImDrawList_AddRectFilled(
+                        ImGuiNative.ImDrawList_AddQuadFilled(
                             this.options.DrawListPtr,
-                            state.StartScreenOffset + entry.LeftTop,
-                            state.StartScreenOffset + entry.RightBottom,
-                            color,
-                            rounding,
-                            ImDrawFlags.None);
+                            state.StartScreenOffset + this.Transform(entry.LeftTop),
+                            state.StartScreenOffset + this.Transform(new(entry.RightBottom.X, entry.LeftTop.Y)),
+                            state.StartScreenOffset + this.Transform(entry.RightBottom),
+                            state.StartScreenOffset + this.Transform(new(entry.LeftTop.X, entry.RightBottom.Y)),
+                            color);
                     }
                 }
             }
@@ -380,8 +380,17 @@ internal sealed unsafe partial class SpannedStringRenderer : ISpannedStringRende
 
         if (this.options.PutDummyAfterRender)
         {
-            if (state.BoundsRightBottom is { X: >= 0, Y: >= 0 })
-                ImGui.Dummy(state.BoundsRightBottom);
+            var lt = this.Transform(state.BoundsLeftTop);
+            var rt = this.Transform(new(state.BoundsRightBottom.X, state.BoundsLeftTop.Y));
+            var rb = this.Transform(state.BoundsRightBottom);
+            var lb = this.Transform(new(state.BoundsLeftTop.X, state.BoundsRightBottom.Y));
+            var minPos = Vector2.Min(Vector2.Min(lt, rt), Vector2.Min(lb, rb));
+            var maxPos = Vector2.Max(Vector2.Max(lt, rt), Vector2.Max(lb, rb));
+            if (minPos.X <= maxPos.X && minPos.Y <= maxPos.Y)
+            {
+                ImGui.SetCursorPos(ImGui.GetCursorPos() + minPos);
+                ImGui.Dummy(maxPos - minPos);
+            }
         }
 
         this.rendered = true;
@@ -589,4 +598,10 @@ internal sealed unsafe partial class SpannedStringRenderer : ISpannedStringRende
         measuredLine = wordBreaker.Last;
         measuredLine.SetOffset(new(segment.TextOffset, segment.RecordIndex));
     }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private Vector2 Transform(Vector2 v) => Vector2.Transform(v, this.options.Transformation);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private Vector2 TransformInverse(Vector2 v) => Vector2.Transform(v, this.options.TransformationInverse);
 }

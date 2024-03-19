@@ -16,6 +16,9 @@ public readonly unsafe ref struct SpannedStringCallbackArgs
     /// <summary>The current style.</summary>
     public readonly ref readonly SpanStyle Style;
 
+    /// <summary>The transformation matrix in use.</summary>
+    public readonly ref readonly Matrix4x4 Transformation;
+
     /// <summary>The left top screen coordinates for this span.</summary>
     public readonly Vector2 Xy0;
 
@@ -34,6 +37,7 @@ public readonly unsafe ref struct SpannedStringCallbackArgs
     /// <param name="xy1">The right bottom screen coordinates for this span.</param>
     /// <param name="fontData">The current font data.</param>
     /// <param name="style">The current style.</param>
+    /// <param name="transformation">The transformation matrix in use.</param>
     internal SpannedStringCallbackArgs(
         ImDrawList* drawListPtr,
         ImDrawListSplitter* splitterPtr,
@@ -41,13 +45,15 @@ public readonly unsafe ref struct SpannedStringCallbackArgs
         Vector2 xy0,
         Vector2 xy1,
         SpanStyleFontData fontData,
-        in SpanStyle style)
+        in SpanStyle style,
+        in Matrix4x4 transformation)
     {
         this.drawListPtr = drawListPtr;
         this.splitterPtr = splitterPtr;
         this.Xy0 = xy0;
         this.Xy1 = xy1;
         this.fontData = fontData;
+        this.Transformation = ref transformation;
         this.Style = ref style;
         this.RenderState = ref renderState;
     }
@@ -67,6 +73,11 @@ public readonly unsafe ref struct SpannedStringCallbackArgs
     public static implicit operator ImDrawListPtr(SpannedStringCallbackArgs a) => a.drawListPtr;
 
     public static implicit operator ImDrawList*(SpannedStringCallbackArgs a) => a.drawListPtr;
+
+    /// <summary>Transforms the given coordinates w.r.t. <see cref="Xy0"/> by <see cref="Transformation"/>.</summary>
+    /// <param name="coord">The screen coordinates.</param>
+    /// <returns>The transformed screen coordinates.</returns>
+    public Vector2 Transform(Vector2 coord) => this.Xy0 + Vector2.Transform(this.Xy1 - this.Xy0, this.Transformation);
 
     /// <summary>Switches to the background channel.</summary>
     public void SwitchToBackgroundChannel() => ImGuiNative.ImDrawListSplitter_SetCurrentChannel(

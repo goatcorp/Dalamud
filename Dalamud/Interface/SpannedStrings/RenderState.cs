@@ -14,15 +14,15 @@ public struct RenderState
     /// <remarks>This is an offset obtained from <see cref="ImGui.GetCursorScreenPos"/>.</remarks>
     public Vector2 StartScreenOffset;
 
-    /// <summary>The final drawing relative offset.</summary>
+    /// <summary>The final drawing relative offset, pre-transformed value.</summary>
     /// <remarks>Relativity begins from the cursor position at the construction of this struct.</remarks>
     public Vector2 Offset;
 
-    /// <summary>The left top relative offset of the text rendered so far.</summary>
+    /// <summary>The left top relative offset of the text rendered so far, pre-transformed value.</summary>
     /// <remarks>Relativity begins from the cursor position at the construction of this struct.</remarks>
     public Vector2 BoundsLeftTop;
 
-    /// <summary>The right bottom relative offset of the text rendered so far.</summary>
+    /// <summary>The right bottom relative offset of the text rendered so far, pre-transformed value.</summary>
     /// <remarks>Relativity begins from the cursor position at the construction of this struct.</remarks>
     public Vector2 BoundsRightBottom;
 

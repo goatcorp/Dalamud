@@ -1,3 +1,5 @@
+using System.Numerics;
+
 using Dalamud.Game.Config;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.SpannedStrings.Enums;
@@ -40,12 +42,16 @@ internal sealed unsafe partial class SpannedStringRenderer
             TabWidth = rendererOptions.TabWidth ?? -4,
             Scale = rendererOptions.Scale ?? ImGuiHelpers.GlobalScale,
             LineWrapWidth = rendererOptions.LineWrapWidth ?? ImGui.GetColumnWidth(),
+            Transformation = rendererOptions.Transformation ?? Matrix4x4.Identity,
             ControlCharactersSpanStyle = rendererOptions.ControlCharactersSpanParams ?? default,
             InitialSpanStyle = rendererOptions.InitialStyle ?? SpanStyle.FromContext,
             WrapMarker = rendererOptions.WrapMarker ?? string.Empty,
             WrapMarkerStyle = rendererOptions.WrapMarkerStyle ?? default,
             DrawListPtr = drawListPtr,
         };
+
+        if (!Matrix4x4.Invert(this.options.Transformation, out this.options.TransformationInverse))
+            this.options.TransformationInverse = Matrix4x4.Identity;
 
         var gfdIndex = rendererOptions.GraphicFontIconMode ?? -1;
         if (gfdIndex < 0)
@@ -78,6 +84,8 @@ internal sealed unsafe partial class SpannedStringRenderer
         public float Scale;
         public float LineWrapWidth;
         public string WrapMarker;
+        public Matrix4x4 Transformation;
+        public Matrix4x4 TransformationInverse;
         public SpanStyle ControlCharactersSpanStyle;
         public SpanStyle InitialSpanStyle;
         public SpanStyle WrapMarkerStyle;

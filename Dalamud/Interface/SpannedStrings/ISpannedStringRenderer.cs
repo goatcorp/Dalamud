@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Numerics;
 
 using Dalamud.Interface.SpannedStrings.Enums;
 using Dalamud.Interface.SpannedStrings.Styles;
@@ -106,6 +107,9 @@ public interface ISpannedStringRenderer : ISpannedStringBuilder<ISpannedStringRe
         /// <remarks>Default value is <c>null</c>, specifying that whatever style was in use will also be used for
         /// drawing wrap markers.</remarks>
         public SpanStyle? WrapMarkerStyle { get; set; }
+
+        /// <summary>Gets or sets the transformation matrix.</summary>
+        public Matrix4x4? Transformation { get; set; }
     }
 
     /// <summary>Struct that defines the purpose of borrowing an instance of <see cref="ISpannedStringRenderer"/>.</summary>
