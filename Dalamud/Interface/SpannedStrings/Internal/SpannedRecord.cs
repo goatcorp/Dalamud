@@ -65,11 +65,11 @@ internal struct SpannedRecord
         get
         {
             var res = 0
-                      + Utf8Value.GetEncodedLength(this.TextStart)
-                      + Utf8Value.GetEncodedLength(this.DataStart)
-                      + Utf8Value.GetEncodedLength(this.DataLength)
-                      + Utf8Value.GetEncodedLength((byte)this.Type)
-                      + Utf8Value.GetEncodedLength(this.IsRevertByte);
+                      + UtfValue.GetEncodedLength8(this.TextStart)
+                      + UtfValue.GetEncodedLength8(this.DataStart)
+                      + UtfValue.GetEncodedLength8(this.DataLength)
+                      + UtfValue.GetEncodedLength8((byte)this.Type)
+                      + UtfValue.GetEncodedLength8(this.IsRevertByte);
             return res;
         }
     }
@@ -88,19 +88,19 @@ internal struct SpannedRecord
     {
         length = 0;
         spannedRecord = default;
-        if (!Utf8Value.TryDecode(ref textStream, out var v, out _))
+        if (!UtfValue.TryDecode8(ref textStream, out var v, out _))
             return false;
         spannedRecord.TextStart = v;
-        if (!Utf8Value.TryDecode(ref textStream, out v, out _))
+        if (!UtfValue.TryDecode8(ref textStream, out v, out _))
             return false;
         spannedRecord.DataStart = v;
-        if (!Utf8Value.TryDecode(ref textStream, out v, out _))
+        if (!UtfValue.TryDecode8(ref textStream, out v, out _))
             return false;
         spannedRecord.DataLength = v;
-        if (!Utf8Value.TryDecode(ref textStream, out v, out _))
+        if (!UtfValue.TryDecode8(ref textStream, out v, out _))
             return false;
         spannedRecord.Type = (SpannedRecordType)v.IntValue;
-        if (!Utf8Value.TryDecode(ref textStream, out v, out _))
+        if (!UtfValue.TryDecode8(ref textStream, out v, out _))
             return false;
         spannedRecord.IsRevertByte = (byte)v.IntValue;
         return true;
@@ -116,11 +116,11 @@ internal struct SpannedRecord
     public readonly int Encode(ref Span<byte> textStream)
     {
         var length = 0;
-        length += Utf8Value.Encode(ref textStream, this.TextStart);
-        length += Utf8Value.Encode(ref textStream, this.DataStart);
-        length += Utf8Value.Encode(ref textStream, this.DataLength);
-        length += Utf8Value.Encode(ref textStream, (byte)this.Type);
-        length += Utf8Value.Encode(ref textStream, this.IsRevertByte);
+        length += UtfValue.Encode8(ref textStream, this.TextStart);
+        length += UtfValue.Encode8(ref textStream, this.DataStart);
+        length += UtfValue.Encode8(ref textStream, this.DataLength);
+        length += UtfValue.Encode8(ref textStream, (byte)this.Type);
+        length += UtfValue.Encode8(ref textStream, this.IsRevertByte);
         return length;
     }
 
@@ -147,7 +147,7 @@ internal struct SpannedRecord
                 if (SpannedRecordCodec.TryDecodeLink(data, out var link))
                 {
                     sb.Append(" \"");
-                    foreach (var c in link.AsUtf8Enumerable())
+                    foreach (var c in link.EnumerateUtf(UtfEnumeratorFlags.Utf8))
                     {
                         if (c.Value.TryGetRune(out var rune))
                         {
@@ -164,9 +164,17 @@ internal struct SpannedRecord
                                     break;
                             }
                         }
-                        else
+                        else if (c.Value.UIntValue < 0x100)
                         {
                             sb.Append($"\\x{c.Value.UIntValue:X02}");
+                        }
+                        else if (c.Value.UIntValue < 0x10000)
+                        {
+                            sb.Append($"\\u{c.Value.UIntValue:X04}");
+                        }
+                        else
+                        {
+                            sb.Append($"\\U{c.Value.UIntValue:X08}");
                         }
                     }
 

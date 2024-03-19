@@ -3,7 +3,6 @@ using System.Runtime.CompilerServices;
 
 using Dalamud.Game.Text;
 using Dalamud.Interface.SpannedStrings.Enums;
-using Dalamud.Interface.SpannedStrings.Styles;
 using Dalamud.Utility.Text;
 
 namespace Dalamud.Interface.SpannedStrings.Internal;
@@ -375,7 +374,7 @@ internal sealed class SpannedRecordCodec
     /// <returns>The remaning region of <paramref name="dataStream"/>.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
     private static unsafe int Encode<T>(ref Span<byte> dataStream, T value)
-        where T : unmanaged => Utf8Value.Encode(
+        where T : unmanaged => UtfValue.Encode8(
         ref dataStream,
         BitConverter.IsLittleEndian
             ? (int)(sizeof(T) switch
@@ -402,7 +401,7 @@ internal sealed class SpannedRecordCodec
         where T : unmanaged
     {
         value = default;
-        if (!Utf8Value.TryDecode(ref dataStream, out var v, out _))
+        if (!UtfValue.TryDecode8(ref dataStream, out var v, out _))
             return false;
 
         if (BitConverter.IsLittleEndian || sizeof(T) == 4)
@@ -424,7 +423,7 @@ internal sealed class SpannedRecordCodec
     private static int EncodeRawBytes(ref Span<byte> dataStream, ReadOnlySpan<byte> data)
     {
         var length = 0;
-        length += Utf8Value.Encode(ref dataStream, data.Length + 1);
+        length += UtfValue.Encode8(ref dataStream, data.Length + 1);
 
         length += data.Length + 1;
         if (!dataStream.IsEmpty)
@@ -445,7 +444,7 @@ internal sealed class SpannedRecordCodec
     private static bool TryDecodeRawBytes(scoped ref ReadOnlySpan<byte> dataStream, out ReadOnlySpan<byte> value)
     {
         value = default;
-        if (!Utf8Value.TryDecode(ref dataStream, out var v, out _) || dataStream.Length < v.IntValue || v.IntValue < 1)
+        if (!UtfValue.TryDecode8(ref dataStream, out var v, out _) || dataStream.Length < v.IntValue || v.IntValue < 1)
             return false;
         value = dataStream[..(v.IntValue - 1)]; // ignore zero terminator
         dataStream = dataStream[v.IntValue..];

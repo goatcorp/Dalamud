@@ -72,6 +72,23 @@ public sealed partial class SpannedStringBuilder
         this.Append((text ?? "null").AsSpan(), repeat);
 
     /// <inheritdoc/>
+    public SpannedStringBuilder Append(UtfEnumerator utfEnumerator, int repeat = 1)
+    {
+        while (repeat-- > 0)
+        {
+            foreach (var c in utfEnumerator)
+            {
+                if (c.IsValid())
+                    this.AppendChar(c.Value);
+                else
+                    this.AppendChar(Rune.ReplacementChar);
+            }
+        }
+
+        return this;
+    }
+
+    /// <inheritdoc/>
     public SpannedStringBuilder Append(ISpanFormattable? value, int repeat = 1) =>
         value is null ? this.Append("null"u8) : this.AppendSpanFormattable(value, repeat);
 
@@ -125,10 +142,25 @@ public sealed partial class SpannedStringBuilder
         if (repeat < 1)
             return this;
 
-        var len = Utf8Value.GetEncodedLength(codepoint);
+        var len = UtfValue.GetEncodedLength8(codepoint);
         var target = this.ReserveBytes(len * repeat);
         var template = target[..len];
-        Utf8Value.Encode(template, codepoint, out _);
+        UtfValue.Encode8(template, codepoint, out _);
+        for (; !target.IsEmpty; target = target[len..])
+            template.CopyTo(target);
+        return this;
+    }
+
+    /// <inheritdoc/>
+    public SpannedStringBuilder AppendChar(Rune rune, int repeat = 1)
+    {
+        if (repeat < 1)
+            return this;
+
+        var len = rune.Utf8SequenceLength;
+        var target = this.ReserveBytes(len * repeat);
+        var template = target[..len];
+        rune.EncodeToUtf8(template);
         for (; !target.IsEmpty; target = target[len..])
             template.CopyTo(target);
         return this;

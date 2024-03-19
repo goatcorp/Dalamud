@@ -7,6 +7,7 @@ using System.Text.Unicode;
 
 using Dalamud.Interface.SpannedStrings.Enums;
 using Dalamud.Utility;
+using Dalamud.Utility.Text;
 
 using ImGuiNET;
 
@@ -193,9 +194,9 @@ internal sealed unsafe partial class SpannedStringRenderer : ISpannedStringRende
 
             if (segment.TryGetRawText(out var rawText))
             {
-                foreach (var c in rawText.AsUtf8Enumerable())
+                foreach (var c in rawText.EnumerateUtf(UtfEnumeratorFlags.Utf8))
                 {
-                    var absOffset = new SpannedOffset(segment, c.Offset);
+                    var absOffset = new SpannedOffset(segment, c.ByteOffset);
                     if (absOffset >= state.LastMeasurement.Offset)
                     {
                         this.OnMeasuredLineEnd(ref state, ref charRenderer, in linkEntity, ref dropUntilNextNewline);
@@ -515,10 +516,11 @@ internal sealed unsafe partial class SpannedStringRenderer : ISpannedStringRende
         {
             if (segment.TryGetRawText(out var rawText))
             {
-                foreach (var c in rawText[(startOffset.Text - segment.TextOffset)..].AsUtf8Enumerable())
+                foreach (var c in rawText[(startOffset.Text - segment.TextOffset)..]
+                             .EnumerateUtf(UtfEnumeratorFlags.Utf8))
                 {
-                    var currentOffset = new SpannedOffset(startOffset.Text + c.Offset, segment.RecordIndex);
-                    var nextOffset = currentOffset.AddTextOffset(c.Length);
+                    var currentOffset = new SpannedOffset(startOffset.Text + c.ByteOffset, segment.RecordIndex);
+                    var nextOffset = currentOffset.AddTextOffset(c.ByteLength);
 
                     var pad = 0f;
                     if (this.options.UseControlCharacter && c.Value.ShortName is { IsEmpty: false } name)

@@ -1,9 +1,11 @@
 using System.Numerics;
+using System.Text;
 
 using Dalamud.Game.Text;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.SpannedStrings.Enums;
 using Dalamud.Interface.SpannedStrings.Styles;
+using Dalamud.Utility.Text;
 
 namespace Dalamud.Interface.SpannedStrings.Internal;
 
@@ -42,6 +44,13 @@ internal sealed partial class SpannedStringRenderer
     public ISpannedStringRenderer Append(string? text, int repeat = 1)
     {
         this.builder.Append(text, repeat);
+        return this;
+    }
+
+    /// <inheritdoc/>
+    public ISpannedStringRenderer Append(UtfEnumerator utfEnumerator, int repeat = 1)
+    {
+        this.builder.Append(utfEnumerator, repeat);
         return this;
     }
 
@@ -91,6 +100,13 @@ internal sealed partial class SpannedStringRenderer
     public ISpannedStringRenderer AppendChar(int codepoint, int repeat = 1)
     {
         this.builder.AppendChar(codepoint, repeat);
+        return this;
+    }
+
+    /// <inheritdoc/>
+    public ISpannedStringRenderer AppendChar(Rune rune, int repeat = 1)
+    {
+        this.builder.AppendChar(rune, repeat);
         return this;
     }
 

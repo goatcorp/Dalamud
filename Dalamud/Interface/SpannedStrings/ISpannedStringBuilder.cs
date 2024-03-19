@@ -1,10 +1,12 @@
 using System.Numerics;
+using System.Text;
 
 using Dalamud.Game.Text;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.SpannedStrings.Enums;
 using Dalamud.Interface.SpannedStrings.Internal;
 using Dalamud.Interface.SpannedStrings.Styles;
+using Dalamud.Utility.Text;
 
 namespace Dalamud.Interface.SpannedStrings;
 
@@ -41,6 +43,12 @@ public interface ISpannedStringBuilder<out TReturn>
     /// <param name="repeat">Number of times to repeat.</param>
     /// <returns>A reference of this instance after the append operation is completed.</returns>
     TReturn Append(string? text, int repeat = 1);
+
+    /// <summary>Adds the given unicode sequence.</summary>
+    /// <param name="utfEnumerator">A codepoint enumerator.</param>
+    /// <param name="repeat">Number of times to repeat.</param>
+    /// <returns>A reference of this instance after the append operation is completed.</returns>
+    TReturn Append(UtfEnumerator utfEnumerator, int repeat = 1);
 
     /// <summary>Adds the string representation of the given value.</summary>
     /// <param name="value">The value to add.</param>
@@ -88,6 +96,12 @@ public interface ISpannedStringBuilder<out TReturn>
     /// <param name="repeat">Number of times to repeat.</param>
     /// <returns>A reference of this instance after the append operation is completed.</returns>
     TReturn AppendChar(int codepoint, int repeat = 1);
+
+    /// <summary>Adds a rune.</summary>
+    /// <param name="rune">The rune.</param>
+    /// <param name="repeat">Number of times to repeat.</param>
+    /// <returns>A reference of this instance after the append operation is completed.</returns>
+    TReturn AppendChar(Rune rune, int repeat = 1);
 
     /// <summary>Adds an icon from the GFD file.</summary>
     /// <param name="iconId">The icon ID.</param>

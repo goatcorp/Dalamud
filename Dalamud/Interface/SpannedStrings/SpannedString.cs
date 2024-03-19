@@ -99,22 +99,22 @@ public sealed class SpannedString : ISpannableDataProvider, ISpanParsable<Spanne
     public static bool TryDecode(ReadOnlySpan<byte> source, [NotNullWhen(true)] out SpannedString? value)
     {
         value = null;
-        if (!Utf8Value.TryDecode(ref source, out var version, out _))
+        if (!UtfValue.TryDecode8(ref source, out var version, out _))
             return false;
         if (version != 1)
             return false;
 
-        if (!Utf8Value.TryDecode(ref source, out var textLength, out _))
+        if (!UtfValue.TryDecode8(ref source, out var textLength, out _))
             return false;
-        if (!Utf8Value.TryDecode(ref source, out var dataLength, out _))
+        if (!UtfValue.TryDecode8(ref source, out var dataLength, out _))
             return false;
-        if (!Utf8Value.TryDecode(ref source, out var numRecords, out _))
+        if (!UtfValue.TryDecode8(ref source, out var numRecords, out _))
             return false;
-        if (!Utf8Value.TryDecode(ref source, out var numFontSets, out _))
+        if (!UtfValue.TryDecode8(ref source, out var numFontSets, out _))
             return false;
-        if (!Utf8Value.TryDecode(ref source, out var numTextures, out _))
+        if (!UtfValue.TryDecode8(ref source, out var numTextures, out _))
             return false;
-        if (!Utf8Value.TryDecode(ref source, out var numCallbacks, out _))
+        if (!UtfValue.TryDecode8(ref source, out var numCallbacks, out _))
             return false;
 
         if (source.Length < textLength.IntValue)
@@ -151,13 +151,13 @@ public sealed class SpannedString : ISpannableDataProvider, ISpanParsable<Spanne
     public int Encode(Span<byte> target)
     {
         var length = 0;
-        length += Utf8Value.Encode(ref target, 1); // version
-        length += Utf8Value.Encode(ref target, this.textStream.Length);
-        length += Utf8Value.Encode(ref target, this.dataStream.Length);
-        length += Utf8Value.Encode(ref target, this.records.Length);
-        length += Utf8Value.Encode(ref target, this.fontSets.Length);
-        length += Utf8Value.Encode(ref target, this.textures.Length);
-        length += Utf8Value.Encode(ref target, this.callbacks.Length);
+        length += UtfValue.Encode8(ref target, 1); // version
+        length += UtfValue.Encode8(ref target, this.textStream.Length);
+        length += UtfValue.Encode8(ref target, this.dataStream.Length);
+        length += UtfValue.Encode8(ref target, this.records.Length);
+        length += UtfValue.Encode8(ref target, this.fontSets.Length);
+        length += UtfValue.Encode8(ref target, this.textures.Length);
+        length += UtfValue.Encode8(ref target, this.callbacks.Length);
 
         length += this.textStream.Length;
         if (!target.IsEmpty)
@@ -191,7 +191,7 @@ public sealed class SpannedString : ISpannableDataProvider, ISpanParsable<Spanne
         {
             if (segment.TryGetRawText(out var text))
             {
-                foreach (var c in text.AsUtf8Enumerable())
+                foreach (var c in text.EnumerateUtf(UtfEnumeratorFlags.Utf8))
                 {
                     if (c.Value.TryGetRune(out var rune))
                         sb.Append(rune.Value == '{' ? "{{" : rune.ToString());
@@ -305,10 +305,10 @@ public sealed class SpannedString : ISpannableDataProvider, ISpanParsable<Spanne
                 {
                     // special-casing because of ReadOnlySpan arg
 
+                    ms.Clear();
                     if (!ConsumeArgumentToken(ref allArgsSpan, ms))
                         continue;
                     ssb.PushLink(ms.GetDataSpan());
-                    ms.Clear();
                     found = true;
                     s = allArgsSpan;
                     break;
@@ -575,13 +575,13 @@ public sealed class SpannedString : ISpannableDataProvider, ISpanParsable<Spanne
                     case 'u' when from.Length >= 6:
                         if (!uint.TryParse(from[2..6], NumberStyles.HexNumber, null, out var u32))
                             return false;
-                        Utf8Value.Encode(writeTo, (int)u32);
+                        UtfValue.Encode8(writeTo, (int)u32);
                         from = from[6..];
                         continue;
                     case 'U' when from.Length >= 10:
                         if (!uint.TryParse(from[2..10], NumberStyles.HexNumber, null, out u32))
                             return false;
-                        Utf8Value.Encode(writeTo, (int)u32);
+                        UtfValue.Encode8(writeTo, (int)u32);
                         from = from[10..];
                         continue;
                     default:
