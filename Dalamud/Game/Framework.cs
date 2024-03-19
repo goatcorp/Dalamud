@@ -104,9 +104,6 @@ internal sealed class Framework : IInternalDisposableService, IFramework
     public DateTime LastUpdateUTC { get; private set; } = DateTime.MinValue;
 
     /// <inheritdoc/>
-    public TaskFactory FrameworkThreadTaskFactory { get; }
-
-    /// <inheritdoc/>
     public TimeSpan UpdateDelta { get; private set; } = TimeSpan.Zero;
 
     /// <inheritdoc/>
@@ -125,6 +122,11 @@ internal sealed class Framework : IInternalDisposableService, IFramework
     /// </summary>
     internal bool DispatchUpdateEvents { get; set; } = true;
 
+    private TaskFactory FrameworkThreadTaskFactory { get; }
+
+    /// <inheritdoc/>
+    public TaskFactory GetTaskFactory() => this.FrameworkThreadTaskFactory;
+
     /// <inheritdoc/>
     public Task DelayTicks(long numTicks, CancellationToken cancellationToken = default)
     {
@@ -136,6 +138,38 @@ internal sealed class Framework : IInternalDisposableService, IFramework
         var tcs = new TaskCompletionSource();
         this.tickDelayedTaskCompletionSources[tcs] = (this.tickCounter + (ulong)numTicks, cancellationToken);
         return tcs.Task;
+    }
+
+    /// <inheritdoc/>
+    public Task RunOnFrameworkThreadAwaitable(Action action, CancellationToken cancellationToken = default)
+    {
+        if (cancellationToken == default)
+            cancellationToken = this.FrameworkThreadTaskFactory.CancellationToken;
+        return this.FrameworkThreadTaskFactory.StartNew(action, cancellationToken);
+    }
+
+    /// <inheritdoc/>
+    public Task<T> RunOnFrameworkThreadAwaitable<T>(Func<T> action, CancellationToken cancellationToken = default)
+    {
+        if (cancellationToken == default)
+            cancellationToken = this.FrameworkThreadTaskFactory.CancellationToken;
+        return this.FrameworkThreadTaskFactory.StartNew(action, cancellationToken);
+    }
+
+    /// <inheritdoc/>
+    public Task RunOnFrameworkThreadAwaitable(Func<Task> action, CancellationToken cancellationToken = default)
+    {
+        if (cancellationToken == default)
+            cancellationToken = this.FrameworkThreadTaskFactory.CancellationToken;
+        return this.FrameworkThreadTaskFactory.StartNew(action, cancellationToken).Unwrap();
+    }
+
+    /// <inheritdoc/>
+    public Task<T> RunOnFrameworkThreadAwaitable<T>(Func<Task<T>> action, CancellationToken cancellationToken = default)
+    {
+        if (cancellationToken == default)
+            cancellationToken = this.FrameworkThreadTaskFactory.CancellationToken;
+        return this.FrameworkThreadTaskFactory.StartNew(action, cancellationToken).Unwrap();
     }
 
     /// <inheritdoc/>
@@ -193,7 +227,9 @@ internal sealed class Framework : IInternalDisposableService, IFramework
                 this.DelayTicks(delayTicks, cancellationToken),
             },
             _ => func(),
-            cancellationToken);
+            cancellationToken,
+            TaskContinuationOptions.HideScheduler,
+            this.frameworkThreadTaskScheduler);
     }
 
     /// <inheritdoc/>
@@ -218,7 +254,9 @@ internal sealed class Framework : IInternalDisposableService, IFramework
                 this.DelayTicks(delayTicks, cancellationToken),
             },
             _ => action(),
-            cancellationToken);
+            cancellationToken,
+            TaskContinuationOptions.HideScheduler,
+            this.frameworkThreadTaskScheduler);
     }
 
     /// <inheritdoc/>
@@ -243,7 +281,9 @@ internal sealed class Framework : IInternalDisposableService, IFramework
                 this.DelayTicks(delayTicks, cancellationToken),
             },
             _ => func(),
-            cancellationToken).Unwrap();
+            cancellationToken,
+            TaskContinuationOptions.HideScheduler,
+            this.frameworkThreadTaskScheduler).Unwrap();
     }
 
     /// <inheritdoc/>
@@ -268,7 +308,9 @@ internal sealed class Framework : IInternalDisposableService, IFramework
                 this.DelayTicks(delayTicks, cancellationToken),
             },
             _ => func(),
-            cancellationToken).Unwrap();
+            cancellationToken,
+            TaskContinuationOptions.HideScheduler,
+            this.frameworkThreadTaskScheduler).Unwrap();
     }
 
     /// <summary>
@@ -492,9 +534,6 @@ internal class FrameworkPluginScoped : IInternalDisposableService, IFramework
     public DateTime LastUpdateUTC => this.frameworkService.LastUpdateUTC;
 
     /// <inheritdoc/>
-    public TaskFactory FrameworkThreadTaskFactory => this.frameworkService.FrameworkThreadTaskFactory;
-
-    /// <inheritdoc/>
     public TimeSpan UpdateDelta => this.frameworkService.UpdateDelta;
     
     /// <inheritdoc/>
@@ -512,8 +551,27 @@ internal class FrameworkPluginScoped : IInternalDisposableService, IFramework
     }
 
     /// <inheritdoc/>
+    public TaskFactory GetTaskFactory() => this.frameworkService.GetTaskFactory();
+
+    /// <inheritdoc/>
     public Task DelayTicks(long numTicks, CancellationToken cancellationToken = default) =>
         this.frameworkService.DelayTicks(numTicks, cancellationToken);
+
+    /// <inheritdoc/>
+    public Task RunOnFrameworkThreadAwaitable(Action action, CancellationToken cancellationToken = default) =>
+        this.frameworkService.RunOnFrameworkThreadAwaitable(action, cancellationToken);
+
+    /// <inheritdoc/>
+    public Task<T> RunOnFrameworkThreadAwaitable<T>(Func<T> action, CancellationToken cancellationToken = default) =>
+        this.frameworkService.RunOnFrameworkThreadAwaitable(action, cancellationToken);
+
+    /// <inheritdoc/>
+    public Task RunOnFrameworkThreadAwaitable(Func<Task> action, CancellationToken cancellationToken = default) =>
+        this.frameworkService.RunOnFrameworkThreadAwaitable(action, cancellationToken);
+
+    /// <inheritdoc/>
+    public Task<T> RunOnFrameworkThreadAwaitable<T>(Func<Task<T>> action, CancellationToken cancellationToken = default) =>
+        this.frameworkService.RunOnFrameworkThreadAwaitable(action, cancellationToken);
 
     /// <inheritdoc/>
     public Task<T> RunOnFrameworkThread<T>(Func<T> func)

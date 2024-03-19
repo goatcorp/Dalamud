@@ -144,9 +144,7 @@ internal class TaskSchedulerWidget : IDataWindowWidget
             _ = framework.RunOnTick(() => Log.Information("Framework.Update - In 2s+60f"), cancellationToken: this.taskSchedulerCancelSource.Token, delay: TimeSpan.FromSeconds(2), delayTicks: 60);
         }
 
-        ImGui.SameLine();
-
-        if (ImGui.Button("Every 60 frames"))
+        if (ImGui.Button("Every 60f"))
         {
             _ = framework.RunOnTick(
                 async () =>
@@ -154,10 +152,74 @@ internal class TaskSchedulerWidget : IDataWindowWidget
                     for (var i = 0L; ; i++)
                     {
                         Log.Information($"Loop #{i}; MainThread={ThreadSafety.IsMainThread}");
+                        var it = i;
+                        _ = Task.Factory.StartNew(() => Log.Information($" => Sub #{it}; MainThread={ThreadSafety.IsMainThread}"));
                         await framework.DelayTicks(60, this.taskSchedulerCancelSource.Token);
                     }
                 },
                 cancellationToken: this.taskSchedulerCancelSource.Token);
+        }
+
+        ImGui.SameLine();
+
+        if (ImGui.Button("Every 1s"))
+        {
+            _ = framework.RunOnTick(
+                async () =>
+                {
+                    for (var i = 0L; ; i++)
+                    {
+                        Log.Information($"Loop #{i}; MainThread={ThreadSafety.IsMainThread}");
+                        var it = i;
+                        _ = Task.Factory.StartNew(() => Log.Information($" => Sub #{it}; MainThread={ThreadSafety.IsMainThread}"));
+                        await Task.Delay(TimeSpan.FromSeconds(1), this.taskSchedulerCancelSource.Token);
+                    }
+                },
+                cancellationToken: this.taskSchedulerCancelSource.Token);
+        }
+
+        ImGui.SameLine();
+
+        if (ImGui.Button("Every 60f (Await)"))
+        {
+            _ = framework.RunOnFrameworkThreadAwaitable(
+                async () =>
+                {
+                    for (var i = 0L; ; i++)
+                    {
+                        Log.Information($"Loop #{i}; MainThread={ThreadSafety.IsMainThread}");
+                        var it = i;
+                        _ = Task.Factory.StartNew(() => Log.Information($" => Sub #{it}; MainThread={ThreadSafety.IsMainThread}"));
+                        await framework.DelayTicks(60, this.taskSchedulerCancelSource.Token);
+                    }
+                },
+                this.taskSchedulerCancelSource.Token);
+        }
+
+        ImGui.SameLine();
+
+        if (ImGui.Button("Every 1s (Await)"))
+        {
+            _ = framework.RunOnFrameworkThreadAwaitable(
+                async () =>
+                {
+                    for (var i = 0L; ; i++)
+                    {
+                        Log.Information($"Loop #{i}; MainThread={ThreadSafety.IsMainThread}");
+                        var it = i;
+                        _ = Task.Factory.StartNew(() => Log.Information($" => Sub #{it}; MainThread={ThreadSafety.IsMainThread}"));
+                        await Task.Delay(TimeSpan.FromSeconds(1), this.taskSchedulerCancelSource.Token);
+                    }
+                },
+                this.taskSchedulerCancelSource.Token);
+        }
+
+        ImGui.SameLine();
+
+        if (ImGui.Button("As long as it's in Framework Thread"))
+        {
+            Task.Run(async () => await framework.RunOnFrameworkThread(() => { Log.Information("Task dispatched from non-framework.update thread"); }));
+            framework.RunOnFrameworkThread(() => { Log.Information("Task dispatched from framework.update thread"); }).Wait();
         }
 
         ImGui.SameLine();
@@ -169,10 +231,18 @@ internal class TaskSchedulerWidget : IDataWindowWidget
 
         ImGui.SameLine();
 
-        if (ImGui.Button("As long as it's in Framework Thread"))
+        if (ImGui.Button("Freeze 1s"))
         {
-            Task.Run(async () => await framework.RunOnFrameworkThread(() => { Log.Information("Task dispatched from non-framework.update thread"); }));
-            framework.RunOnFrameworkThread(() => { Log.Information("Task dispatched from framework.update thread"); }).Wait();
+            _ = framework.RunOnFrameworkThread(() => Helper().Wait());
+            static async Task Helper() => await Task.Delay(1000);
+        }
+
+        ImGui.SameLine();
+
+        if (ImGui.Button("Freeze Completely"))
+        {
+            _ = framework.RunOnFrameworkThreadAwaitable(() => Helper().Wait());
+            static async Task Helper() => await Task.Delay(1000);
         }
 
         if (ImGui.CollapsingHeader("Download"))
@@ -217,7 +287,7 @@ internal class TaskSchedulerWidget : IDataWindowWidget
                 this.downloadState = default;
                 var factory = downloadUsingGlobalScheduler
                                   ? Task.Factory
-                                  : framework.FrameworkThreadTaskFactory;
+                                  : framework.GetTaskFactory();
                 this.downloadState = default;
                 this.downloadTask = factory.StartNew(
                     async () =>
