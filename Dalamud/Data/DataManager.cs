@@ -3,6 +3,7 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
+using System.Windows.Forms;
 
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
@@ -76,12 +77,17 @@ internal sealed class DataManager : IInternalDisposableService, IDataManager
                                 dalamud.StartInfo.TroubleshootingPackData);
                         this.HasModifiedGameDataFiles =
                             tsInfo?.IndexIntegrity is LauncherTroubleshootingInfo.IndexIntegrityResult.Failed or LauncherTroubleshootingInfo.IndexIntegrityResult.Exception;
+                        
+                        if (this.HasModifiedGameDataFiles)
+                            Log.Verbose("Game data integrity check failed!\n{TsData}", dalamud.StartInfo.TroubleshootingPackData);
                     }
                     catch
                     {
                         // ignored
                     }
                 }
+
+                MessageBox.Show(this.HasModifiedGameDataFiles.ToString());
             }
 
             this.IsDataReady = true;
@@ -175,6 +181,6 @@ internal sealed class DataManager : IInternalDisposableService, IDataManager
             Success,
         }
 
-        public IndexIntegrityResult IndexIntegrity { get; set; }
+        public IndexIntegrityResult? IndexIntegrity { get; set; }
     }
 }
