@@ -16,11 +16,11 @@ using Dalamud.Interface.ImGuiNotification;
 using Dalamud.Interface.ImGuiNotification.Internal;
 using Dalamud.Interface.Internal.Notifications;
 using Dalamud.Interface.ManagedFontAtlas;
-using Dalamud.Interface.SpannedStrings;
+using Dalamud.Interface.ManagedFontAtlas.Internals;
 using Dalamud.Interface.SpannedStrings.Enums;
-using Dalamud.Interface.SpannedStrings.Internal;
 using Dalamud.Interface.SpannedStrings.Rendering;
 using Dalamud.Interface.SpannedStrings.Rendering.Internal;
+using Dalamud.Interface.SpannedStrings.Spannables;
 using Dalamud.Interface.SpannedStrings.Styles;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
@@ -64,6 +64,9 @@ internal class ConsoleWindow : Window, IDisposable
     private readonly List<PluginFilterEntry> pluginFilters = new();
 
     private readonly DalamudConfiguration activeConfiguration;
+
+    private readonly ISpannable ellipsisSpannable;
+    private ISpannable wrapMarkerSpannable;
 
     private bool pendingRefilter;
     private bool pendingClearLog;
@@ -111,7 +114,11 @@ internal class ConsoleWindow : Window, IDisposable
 
         Service<Framework>.GetAsync().ContinueWith(r => r.Result.Update += this.FrameworkOnUpdate);
         Service<InterfaceManager.InterfaceManagerWithScene>.GetAsync().ContinueWith(
-            r => r.Result.Manager.MonoFontHandle!.ImFontChanged += this.MonoFontOnImFontChanged);
+            r =>
+            {
+                r.Result.Manager.MonoFontHandle!.ImFontChanged += this.MonoFontOnImFontChanged;
+                r.Result.Manager.IconFontHandle!.ImFontChanged += this.IconFontOnImFontChanged;
+            });
 
         this.Size = new Vector2(500, 400);
         this.SizeCondition = ImGuiCond.FirstUseEver;
@@ -122,6 +129,19 @@ internal class ConsoleWindow : Window, IDisposable
         this.newLogEntries = new();
         this.logText = new(limit);
         this.filteredLogEntries = new(limit);
+
+        this.ellipsisSpannable = new SpannedStringBuilder().PushForeColor(0x80FFFFFF).Append("…");
+        this.wrapMarkerSpannable = new SpannedStringBuilder().PushAll(
+            new()
+            {
+                Font = new(Service<InterfaceManager>.Get().IconFontHandle),
+                EdgeColor = 0xFF000044,
+                BorderWidth = 1,
+                ForeColor = 0xFFCCCCFF,
+                Italic = true,
+                FontSize = Service<FontAtlasFactory>.Get().DefaultFontSpec.SizePx * 0.6f,
+                VerticalAlignment = VerticalAlignment.Middle,
+            }).Append(FontAwesomeIcon.ArrowTurnDown.ToIconString());
 
         configuration.DalamudConfigurationSaved += this.OnDalamudConfigurationSaved;
 
@@ -155,7 +175,10 @@ internal class ConsoleWindow : Window, IDisposable
         if (Service<Framework>.GetNullable() is { } framework)
             framework.Update -= this.FrameworkOnUpdate;
         if (Service<InterfaceManager.InterfaceManagerWithScene>.GetNullable() is { } imws)
+        {
             imws.Manager.MonoFontHandle!.ImFontChanged -= this.MonoFontOnImFontChanged;
+            imws.Manager.DefaultFontHandle!.ImFontChanged -= this.IconFontOnImFontChanged;
+        }
 
         this.clipperPtr.Destroy();
         this.clipperPtr = default;
@@ -244,7 +267,7 @@ internal class ConsoleWindow : Window, IDisposable
 
             var state = new RenderState(true, this.GetRendererOptions(messageAreaWidth));
             Service<SpannableRenderer>.Get().Render(entry.Line, ref state);
-            entry.NumLines = 1 + state.LastLineIndex;
+            entry.NumLines = state.LineCount;
             this.totalWrappedLines += entry.NumLines;
 
             if (i == 0)
@@ -433,6 +456,21 @@ internal class ConsoleWindow : Window, IDisposable
         LogEventLevel.Fatal => 0xFF00000A,
         _ => 0x30FFFFFF,
     };
+
+    private void IconFontOnImFontChanged(IFontHandle fonthandle, ILockedImFont lockedfont)
+    {
+        this.wrapMarkerSpannable = new SpannedStringBuilder().PushAll(
+            new()
+            {
+                Font = new(Service<InterfaceManager>.Get().IconFontHandle),
+                EdgeColor = 0xFF000044,
+                BorderWidth = 1,
+                ForeColor = 0xFFCCCCFF,
+                Italic = true,
+                FontSize = lockedfont.ImFont.FontSize * 0.6f,
+                VerticalAlignment = VerticalAlignment.Middle,
+            }).Append(FontAwesomeIcon.ArrowTurnDown.ToIconString());
+    }
 
     private void MonoFontOnImFontChanged(IFontHandle fonthandle, ILockedImFont lockedfont) =>
         this.configGeneration++;
@@ -1165,45 +1203,25 @@ internal class ConsoleWindow : Window, IDisposable
         return ~l;
     }
 
-    private RenderOptions GetRendererOptions(float width)
+    private RenderOptions GetRendererOptions(float width) => new()
     {
-        var r = new RenderOptions
+        MaxSize = new(width, float.MaxValue),
+        WordBreak = this.activeConfiguration.LogLineBreakMode,
+        InitialStyle = new() { BorderWidth = 1f },
+        ControlCharactersSpanParams = new()
         {
-            LineWrapWidth = width,
-            WordBreak = this.activeConfiguration.LogLineBreakMode,
-            InitialStyle = new() { BorderWidth = 1f },
-            ControlCharactersSpanParams = new()
-            {
-                Font = new(Service<InterfaceManager>.Get().MonoFontHandle),
-                BackColor = 0xFF333333,
-                BorderWidth = 1,
-                ForeColor = 0xFFFFFFFF,
-                FontSize = ImGui.GetFont().FontSize * 0.6f,
-                VerticalAlignment = VerticalAlignment.Middle,
-            },
-        };
-        if (r.WordBreak == WordBreakType.KeepAll)
-        {
-            r.WrapMarker = "…";
-            r.WrapMarkerStyle = new() { ForeColor = 0x80FFFFFF };
-        }
-        else
-        {
-            r.WrapMarker = FontAwesomeIcon.ArrowTurnDown.ToIconString();
-            r.WrapMarkerStyle = new()
-            {
-                Font = new(Service<InterfaceManager>.Get().IconFontHandle),
-                EdgeColor = 0xFF000044,
-                BorderWidth = 1,
-                ForeColor = 0xFFCCCCFF,
-                Italic = true,
-                FontSize = ImGui.GetFont().FontSize * 0.6f,
-                VerticalAlignment = VerticalAlignment.Middle,
-            };
-        }
-
-        return r;
-    }
+            Font = new(Service<InterfaceManager>.Get().MonoFontHandle),
+            BackColor = 0xFF333333,
+            BorderWidth = 1,
+            ForeColor = 0xFFFFFFFF,
+            FontSize = ImGui.GetFont().FontSize * 0.6f,
+            VerticalAlignment = VerticalAlignment.Middle,
+        },
+        WrapMarker =
+            this.activeConfiguration.LogLineBreakMode == WordBreakType.KeepAll
+                ? this.ellipsisSpannable
+                : this.wrapMarkerSpannable,
+    };
 
     private unsafe void DrawHighlighted(
         ReadOnlySpan<char> line,
@@ -1245,7 +1263,7 @@ internal class ConsoleWindow : Window, IDisposable
             new(
                 ImGui.GetWindowDrawList(),
                 this.GetRendererOptions((width + ImGui.GetScrollX()) - ImGui.GetCursorPosX())));
-        
+
         // Allocate scroll region
         if (this.activeConfiguration.LogLineBreakMode == WordBreakType.KeepAll)
         {
@@ -1255,8 +1273,8 @@ internal class ConsoleWindow : Window, IDisposable
                 var begin = charOffsets[i];
                 var end = charOffsets[i + 1];
                 ssb.PushItalic(i % 2 == 1)
-                      .Append(line[begin..end])
-                      .PopItalic();
+                   .Append(line[begin..end])
+                   .PopItalic();
             }
 
             ImGui.SetCursorScreenPos(cursorScreenPos);
@@ -1266,6 +1284,8 @@ internal class ConsoleWindow : Window, IDisposable
                     false,
                     this.GetRendererOptions(float.MaxValue) with { InitialStyle = SpanStyle.Empty }));
         }
+
+        Renderer.ReturnBuilder(ssb);
     }
 
     private record LogEntry

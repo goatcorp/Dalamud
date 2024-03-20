@@ -1,5 +1,6 @@
 using System.Numerics;
 using System.Runtime.CompilerServices;
+using System.Text;
 
 using Dalamud.Game.Text;
 using Dalamud.Interface.SpannedStrings.Enums;
@@ -293,27 +294,27 @@ internal sealed class SpannedRecordCodec
     public static int EncodeTextDecorationThickness(Span<byte> dataStream, float value) =>
         Encode(ref dataStream, value);
 
-    /// <summary>Decodes data for <see cref="SpannedRecordType.InsertionIcon"/>.</summary>
+    /// <summary>Decodes data for <see cref="SpannedRecordType.ObjectIcon"/>.</summary>
     /// <param name="dataStream">The data stream to decode from.</param>
     /// <param name="icon">The icon.</param>
     /// <returns><c>true</c> on success.</returns>
-    public static bool TryDecodeInsertionIcon(ReadOnlySpan<byte> dataStream, out GfdIcon icon) =>
+    public static bool TryDecodeObjectIcon(ReadOnlySpan<byte> dataStream, out GfdIcon icon) =>
         TryDecode(ref dataStream, out icon);
 
-    /// <summary>Encodes data for <see cref="SpannedRecordType.InsertionIcon"/>.</summary>
+    /// <summary>Encodes data for <see cref="SpannedRecordType.ObjectIcon"/>.</summary>
     /// <param name="dataStream">The optional data stream to encode to.</param>
     /// <param name="icon">The icon.</param>
     /// <returns>The remaning region of <paramref name="dataStream"/>.</returns>
-    public static int EncodeInsertionIcon(Span<byte> dataStream, GfdIcon icon) =>
+    public static int EncodeObjectIcon(Span<byte> dataStream, GfdIcon icon) =>
         Encode(ref dataStream, icon);
 
-    /// <summary>Decodes data for <see cref="SpannedRecordType.InsertionTexture"/>.</summary>
+    /// <summary>Decodes data for <see cref="SpannedRecordType.ObjectTexture"/>.</summary>
     /// <param name="dataStream">The data stream to decode from.</param>
     /// <param name="index">The texture index.</param>
     /// <param name="uv0">The UV0.</param>
     /// <param name="uv1">The UV1.</param>
     /// <returns><c>true</c> on success.</returns>
-    public static bool TryDecodeInsertionTexture(
+    public static bool TryDecodeObjectTexture(
         ReadOnlySpan<byte> dataStream,
         out int index,
         out Vector2 uv0,
@@ -322,34 +323,34 @@ internal sealed class SpannedRecordCodec
         & TryDecode(ref dataStream, out uv0)
         & TryDecode(ref dataStream, out uv1);
 
-    /// <summary>Encodes data for <see cref="SpannedRecordType.InsertionTexture"/>.</summary>
+    /// <summary>Encodes data for <see cref="SpannedRecordType.ObjectTexture"/>.</summary>
     /// <param name="dataStream">The optional data stream to encode to.</param>
     /// <param name="index">The texture index.</param>
     /// <param name="uv0">The UV0.</param>
     /// <param name="uv1">The UV1.</param>
     /// <returns>The remaning region of <paramref name="dataStream"/>.</returns>
-    public static int EncodeInsertionTexture(Span<byte> dataStream, int index, Vector2 uv0, Vector2 uv1) =>
+    public static int EncodeObjectTexture(Span<byte> dataStream, int index, Vector2 uv0, Vector2 uv1) =>
         Encode(ref dataStream, index)
         + Encode(ref dataStream, uv0)
         + Encode(ref dataStream, uv1);
 
-    /// <summary>Decodes data for <see cref="SpannedRecordType.InsertionCallback"/>.</summary>
+    /// <summary>Decodes data for <see cref="SpannedRecordType.ObjectSpannable"/>.</summary>
     /// <param name="dataStream">The data stream to decode from.</param>
     /// <param name="index">The callback index.</param>
-    /// <param name="ratio">The size ratio.</param>
+    /// <param name="args">The optional string arguments for the spannable.</param>
     /// <returns><c>true</c> on success.</returns>
-    public static bool TryDecodeInsertionCallback(ReadOnlySpan<byte> dataStream, out int index, out float ratio) =>
-        TryDecode(ref dataStream, out index) & TryDecode(ref dataStream, out ratio);
+    public static bool TryDecodeObjectSpannable(ReadOnlySpan<byte> dataStream, out int index, out string? args) =>
+        TryDecode(ref dataStream, out index) & TryDecode(ref dataStream, out args);
 
-    /// <summary>Encodes data for <see cref="SpannedRecordType.InsertionCallback"/>.</summary>
+    /// <summary>Encodes data for <see cref="SpannedRecordType.ObjectSpannable"/>.</summary>
     /// <param name="dataStream">The optional data stream to encode to.</param>
     /// <param name="index">The callback index.</param>
-    /// <param name="ratio">The size ratio.</param>
+    /// <param name="args">The optional string arguments for the spannable.</param>
     /// <returns>The remaning region of <paramref name="dataStream"/>.</returns>
-    public static int EncodeInsertionCallback(Span<byte> dataStream, int index, float ratio) =>
-        Encode(ref dataStream, index) + Encode(ref dataStream, ratio);
+    public static int EncodeObjectSpannable(Span<byte> dataStream, int index, string? args) =>
+        Encode(ref dataStream, index) + Encode(ref dataStream, args);
 
-    /// <summary>Decodes data for <see cref="SpannedRecordType.InsertionManualNewLine"/>.</summary>
+    /// <summary>Decodes data for <see cref="SpannedRecordType.ObjectNewLine"/>.</summary>
     /// <param name="dataStream">The data stream to decode from.</param>
     /// <returns><c>true</c> on success.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
@@ -359,7 +360,7 @@ internal sealed class SpannedRecordCodec
         return true;
     }
 
-    /// <summary>Encodes data for <see cref="SpannedRecordType.InsertionManualNewLine"/>.</summary>
+    /// <summary>Encodes data for <see cref="SpannedRecordType.ObjectNewLine"/>.</summary>
     /// <param name="dataStream">The optional data stream to encode to.</param>
     /// <returns>The remaning region of <paramref name="dataStream"/>.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
@@ -475,5 +476,49 @@ internal sealed class SpannedRecordCodec
 
         value = default;
         return false;
+    }
+
+    /// <summary>Encodes a <see cref="string"/>.</summary>
+    /// <param name="dataStream">The optional data stream to encode to.</param>
+    /// <param name="value">The value to encode.</param>
+    /// <returns>The remaning region of <paramref name="dataStream"/>.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
+    private static int Encode(ref Span<byte> dataStream, string? value)
+    {
+        var len = Encode(ref dataStream, value?.Length ?? -1);
+        if (!string.IsNullOrEmpty(value))
+        {
+            var len2 =
+                dataStream.IsEmpty
+                    ? Encoding.UTF8.GetByteCount(value)
+                    : Encoding.UTF8.GetBytes(value, dataStream);
+            len += len2;
+        }
+
+        return len;
+    }
+
+    /// <summary>Decodes a <see cref="string"/>.</summary>
+    /// <param name="dataStream">The data stream to decode from.</param>
+    /// <param name="value">The retrieved value.</param>
+    /// <returns><c>true</c> on success.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
+    private static bool TryDecode(ref ReadOnlySpan<byte> dataStream, out string? value)
+    {
+        if (!TryDecode(ref dataStream, out int len) || len < -1 || (len > 0 && dataStream.Length < len))
+        {
+            value = null;
+            return false;
+        }
+
+        if (len == -1)
+        {
+            value = null;
+            return true;
+        }
+
+        value = Encoding.UTF8.GetString(dataStream[..len]);
+        dataStream = dataStream[len..];
+        return true;
     }
 }

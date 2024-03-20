@@ -31,14 +31,11 @@ internal ref struct SpanStyleFontData
     /// <summary>The ascent(-) and descent(+) of the line.</summary>
     public Vector2 BBoxVertical;
 
-    /// <summary>The hot data from fonts.</summary>
-    public ImVectorWrapper<ImGuiHelpers.ImFontGlyphHotDataReal> HotData;
-
     /// <summary>The glyphs from fonts.</summary>
-    public ImVectorWrapper<ImGuiHelpers.ImFontGlyphReal> Glyphs;
+    public ReadOnlySpan<ImGuiHelpers.ImFontGlyphReal> Glyphs;
 
     /// <summary>The lookup table from fonts.</summary>
-    public ImVectorWrapper<ushort> Lookup;
+    public ReadOnlySpan<ushort> Lookup;
 
     /// <summary>The scaled horizontal offset.</summary>
     public float ScaledHorizontalOffset;
@@ -67,7 +64,7 @@ internal ref struct SpanStyleFontData
     /// <param name="c">The codepoint.</param>
     /// <returns>The effective codepoint.</returns>
     public readonly int GetEffeciveCodepoint(int c) =>
-        c >= this.HotData.Length || c >= this.Lookup.Length || this.Lookup[c] == ushort.MaxValue
+        c >= this.Lookup.Length || this.Lookup[c] == ushort.MaxValue
             ? this.Font.FallbackChar
             : c;
 
@@ -109,9 +106,11 @@ internal ref struct SpanStyleFontData
             out var fakeBold);
 
         this.Font = ImGui.GetFont();
-        this.HotData = this.Font.IndexedHotDataWrapped();
-        this.Glyphs = this.Font.GlyphsWrapped();
-        this.Lookup = this.Font.IndexLookupWrapped();
+        unsafe
+        {
+            this.Glyphs = new((void*)this.Font.NativePtr->Glyphs.Data, this.Font.NativePtr->Glyphs.Size);
+            this.Lookup = new((void*)this.Font.NativePtr->IndexLookup.Data, this.Font.NativePtr->IndexLookup.Size);
+        }
 
         this.ScaledFontSize = style.FontSize;
         if (this.ScaledFontSize <= 0)

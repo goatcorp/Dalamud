@@ -9,7 +9,7 @@ using Dalamud.Interface.SpannedStrings.Styles;
 using Dalamud.Utility;
 using Dalamud.Utility.Text;
 
-namespace Dalamud.Interface.SpannedStrings;
+namespace Dalamud.Interface.SpannedStrings.Spannables;
 
 /// <summary>A builder for spannables.</summary>
 /// <typeparam name="TReturn">The return type.</typeparam>
@@ -78,19 +78,19 @@ public interface ISpannedStringBuilder<out TReturn>
 
     /// <summary>Adds a callback to be called upon rendering.</summary>
     /// <param name="callback">The callback to be called. If null is provided, a placeholder will be added.</param>
-    /// <param name="sizeRatio">The width-to-height ratio. 2 means that it is twice as wide as its height.</param>
+    /// <param name="args">The optional string arguments for the spannable.</param>
     /// <param name="id">The ID of this texture wrap, in the context of the built string.</param>
     /// <returns>A reference of this instance after the append operation is completed.</returns>
-    TReturn AppendCallback(SpannedStringCallbackDelegate? callback, float sizeRatio, out int id);
+    TReturn AppendSpannable(ISpannable? callback, string? args, out int id);
 
     /// <summary>Adds a callback to be called upon rendering.</summary>
     /// <param name="id">The ID of the callback, in the context of the built string. If providing a value not fetched
-    /// from <see cref="AppendCallback(SpannedStringCallbackDelegate?, float, out int)"/>, avoid making the number too
+    /// from <see cref="AppendSpannable(ISpannable?, string?, out int)"/>, avoid making the number too
     /// large.</param>
-    /// <param name="sizeRatio">The width-to-height ratio. 2 means that it is twice as wide as its height.</param>
+    /// <param name="args">The optional string arguments for the spannable.</param>
     /// <returns>A reference of this instance after the append operation is completed.</returns>
-    [SpannedParseInstruction(SpannedRecordType.InsertionCallback, false, "cb", "callback")]
-    TReturn AppendCallback(int id, float sizeRatio);
+    [SpannedParseInstruction(SpannedRecordType.ObjectSpannable, false, "sp", "spannable")]
+    TReturn AppendSpannable(int id, string? args);
 
     /// <summary>Adds a codepoint.</summary>
     /// <param name="codepoint">The codepoint.</param>
@@ -107,14 +107,14 @@ public interface ISpannedStringBuilder<out TReturn>
     /// <summary>Adds an icon from the GFD file.</summary>
     /// <param name="iconId">The icon ID.</param>
     /// <returns>A reference of this instance after the append operation is completed.</returns>
-    [SpannedParseInstruction(SpannedRecordType.InsertionIcon, false, "icon")]
+    [SpannedParseInstruction(SpannedRecordType.ObjectIcon, false, "icon")]
     TReturn AppendIconGfd(GfdIcon iconId);
 
     /// <summary>Adds an icon from a texture.</summary>
     /// <param name="id">The ID of the texture, in the context of the built string. If providing a value not fetched
     /// from <see cref="AppendTexture(IDalamudTextureWrap?, out int)"/>, avoid making the number too large.</param>
     /// <returns>A reference of this instance after the append operation is completed.</returns>
-    [SpannedParseInstruction(SpannedRecordType.InsertionTexture, false, "tex")]
+    [SpannedParseInstruction(SpannedRecordType.ObjectTexture, false, "tex")]
     TReturn AppendTexture(int id);
 
     /// <summary>Adds an icon from a texture.</summary>
@@ -123,7 +123,7 @@ public interface ISpannedStringBuilder<out TReturn>
     /// <param name="uv0">The relative UV0.</param>
     /// <param name="uv1">The relative UV1.</param>
     /// <returns>A reference of this instance after the append operation is completed.</returns>
-    [SpannedParseInstruction(SpannedRecordType.InsertionTexture, false, "tex")]
+    [SpannedParseInstruction(SpannedRecordType.ObjectTexture, false, "tex")]
     TReturn AppendTexture(int id, Vector2 uv0, Vector2 uv1);
 
     /// <summary>Adds an icon from a texture.</summary>
@@ -144,7 +144,7 @@ public interface ISpannedStringBuilder<out TReturn>
     /// <param name="newLineType">The line break type. Multiple values may be specified.</param>
     /// <returns>A reference of this instance after the append operation is completed.</returns>
     /// <remarks>Using multiple values are disallowed.</remarks>
-    [SpannedParseInstruction(SpannedRecordType.InsertionManualNewLine, false, "br")]
+    [SpannedParseInstruction(SpannedRecordType.ObjectNewLine, false, "br")]
     TReturn AppendLine(NewLineType newLineType = NewLineType.Manual);
 
     /// <summary>Adds the given UTF-16 char sequence.</summary>
@@ -306,7 +306,7 @@ public interface ISpannedStringBuilder<out TReturn>
     /// <returns>A reference of this instance after the push operation is completed.</returns>
     [SpannedParseInstruction(SpannedRecordType.TextDecoration, false, "td", "text-decoration")]
     TReturn PushTextDecoration(TextDecoration value);
-    
+
     /// <summary>Pops a text decoration.</summary>
     /// <returns>A reference of this instance after the pop operation is completed.</returns>
     [SpannedParseInstruction(SpannedRecordType.TextDecoration, true, "/td", "/text-decoration")]
@@ -317,7 +317,7 @@ public interface ISpannedStringBuilder<out TReturn>
     /// <returns>A reference of this instance after the push operation is completed.</returns>
     [SpannedParseInstruction(SpannedRecordType.TextDecorationStyle, false, "tds", "text-decoration-style")]
     TReturn PushTextDecorationStyle(TextDecorationStyle value);
-    
+
     /// <summary>Pops a text decoration style.</summary>
     /// <returns>A reference of this instance after the pop operation is completed.</returns>
     [SpannedParseInstruction(SpannedRecordType.TextDecorationStyle, true, "/tds", "/text-decoration-style")]

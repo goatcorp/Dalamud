@@ -1,3 +1,5 @@
+using Dalamud.Interface.SpannedStrings.Spannables;
+
 namespace Dalamud.Interface.SpannedStrings.Internal;
 
 /// <summary>Instructions on how to parse a string into a <see cref="SpannedString"/>.</summary>

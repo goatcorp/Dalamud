@@ -2,6 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 
 using Dalamud.Interface.SpannedStrings.Enums;
+using Dalamud.Interface.SpannedStrings.Spannables;
 using Dalamud.Interface.SpannedStrings.Styles;
 using Dalamud.Interface.Utility;
 
@@ -38,9 +39,9 @@ public record struct RenderOptions
     /// <c>ImGui.GetStyle().Alpha</c>.</remarks>
     public SpanStyle? InitialStyle { get; set; }
 
-    /// <summary>Gets or sets horizontal offset at which point line break or ellipsis should happen.</summary>
-    /// <remarks>Default value is <c>ImGui.GetColumnWidth()</c>.</remarks>
-    public float? LineWrapWidth { get; set; }
+    /// <summary>Gets or sets the maximum size at which point line break or ellipsis should happen.</summary>
+    /// <remarks>Default value is <c>new Vector2(ImGui.GetColumnWidth(), float.MaxValue)</c>.</remarks>
+    public Vector2? MaxSize { get; set; }
 
     /// <summary>Gets or sets the tab size.</summary>
     /// <remarks>
@@ -69,13 +70,11 @@ public record struct RenderOptions
     public WordBreakType? WordBreak { get; set; }
 
     /// <summary>Gets or sets the ellipsis or line break indicator string to display.</summary>
-    /// <remarks>Default value is <c>null</c>, indicating that wrap markers are disabled.</remarks>
-    public string? WrapMarker { get; set; }
-
-    /// <summary>Gets or sets the wrap marker style.</summary>
-    /// <remarks>Default value is <c>null</c>, specifying that whatever style was in use will also be used for
-    /// drawing wrap markers.</remarks>
-    public SpanStyle? WrapMarkerStyle { get; set; }
+    /// <remarks>
+    /// <para>Default value is <c>null</c>, indicating that wrap markers are disabled.</para>
+    /// <para>Currently not fully supported with <see cref="Transformation"/>.</para>
+    /// </remarks>
+    public ISpannable? WrapMarker { get; set; }
 
     /// <summary>Gets or sets the screen offset.</summary>
     /// <remarks>Default value is <c>null</c>, specifying that it will use <see cref="ImGui.GetCursorScreenPos"/>

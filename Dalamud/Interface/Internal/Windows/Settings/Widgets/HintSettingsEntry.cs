@@ -7,6 +7,7 @@ using Dalamud.Interface.SpannedStrings;
 using Dalamud.Interface.SpannedStrings.Enums;
 using Dalamud.Interface.SpannedStrings.Internal;
 using Dalamud.Interface.SpannedStrings.Rendering.Internal;
+using Dalamud.Interface.SpannedStrings.Spannables;
 
 using Serilog;
 

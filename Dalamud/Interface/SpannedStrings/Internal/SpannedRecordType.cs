@@ -35,10 +35,10 @@ internal enum SpannedRecordType : byte
 
     /// <summary>Whether to use bold fonts has been changed.</summary>
     Bold,
-    
+
     /// <summary>Text decoration has been changed.</summary>
     TextDecoration,
-    
+
     /// <summary>Text decoration style has been changed.</summary>
     TextDecorationStyle,
 
@@ -67,14 +67,14 @@ internal enum SpannedRecordType : byte
     TextDecorationThickness,
 
     /// <summary>An icon entity should be drawn from gfdata.gfd file.</summary>
-    InsertionIcon,
+    ObjectIcon,
 
     /// <summary>An icon entity should be drawn from a texture.</summary>
-    InsertionTexture,
+    ObjectTexture,
 
     /// <summary>A manual newline should be processed.</summary>
-    InsertionManualNewLine,
+    ObjectNewLine,
 
     /// <summary>A callback should be called upon processing this insertion entry.</summary>
-    InsertionCallback,
+    ObjectSpannable,
 }

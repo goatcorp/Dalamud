@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Text;
 
+using Dalamud.Interface.SpannedStrings.Spannables;
 using Dalamud.Utility;
 using Dalamud.Utility.Text;
 
@@ -143,139 +144,130 @@ internal struct SpannedRecord
     {
         switch (this.Type)
         {
-            case SpannedRecordType.Link:
-                if (SpannedRecordCodec.TryDecodeLink(data, out var link))
-                {
-                    sb.Append(" \"");
-                    foreach (var c in link.EnumerateUtf(UtfEnumeratorFlags.Utf8))
-                    {
-                        if (c.Value.TryGetRune(out var rune))
-                        {
-                            switch (rune.Value)
-                            {
-                                case '"':
-                                    sb.Append("\\\"");
-                                    break;
-                                case '\\':
-                                    sb.Append(@"\\");
-                                    break;
-                                default:
-                                    sb.Append(rune.ToString());
-                                    break;
-                            }
-                        }
-                        else if (c.Value.UIntValue < 0x100)
-                        {
-                            sb.Append($"\\x{c.Value.UIntValue:X02}");
-                        }
-                        else if (c.Value.UIntValue < 0x10000)
-                        {
-                            sb.Append($"\\u{c.Value.UIntValue:X04}");
-                        }
-                        else
-                        {
-                            sb.Append($"\\U{c.Value.UIntValue:X08}");
-                        }
-                    }
-
-                    sb.Append('"');
-                }
-
+            case SpannedRecordType.Link when SpannedRecordCodec.TryDecodeLink(data, out var link):
+                AppendString(sb, link.EnumerateUtf(UtfEnumeratorFlags.Utf8));
                 break;
-            case SpannedRecordType.FontHandleSetIndex:
-                if (SpannedRecordCodec.TryDecodeFontHandleSetIndex(data, out var i32))
-                    sb.Append(' ').Append(i32);
+            case SpannedRecordType.FontHandleSetIndex
+                when SpannedRecordCodec.TryDecodeFontHandleSetIndex(data, out var i32):
+                sb.Append(' ').Append(i32);
                 break;
-            case SpannedRecordType.FontSize:
-                if (SpannedRecordCodec.TryDecodeFontSize(data, out var f32))
-                    sb.Append(formatProvider, $" {f32:g}");
+            case SpannedRecordType.FontSize when SpannedRecordCodec.TryDecodeFontSize(data, out var f32):
+                sb.Append(formatProvider, $" {f32:g}");
                 break;
-            case SpannedRecordType.LineHeight:
-                if (SpannedRecordCodec.TryDecodeLineHeight(data, out f32))
-                    sb.Append(formatProvider, $" {f32:g}");
+            case SpannedRecordType.LineHeight when SpannedRecordCodec.TryDecodeLineHeight(data, out var f32):
+                sb.Append(formatProvider, $" {f32:g}");
                 break;
-            case SpannedRecordType.HorizontalOffset:
-                if (SpannedRecordCodec.TryDecodeHorizontalOffset(data, out f32))
-                    sb.Append(formatProvider, $" {f32:g}");
+            case SpannedRecordType.HorizontalOffset
+                when SpannedRecordCodec.TryDecodeHorizontalOffset(data, out var f32):
+                sb.Append(formatProvider, $" {f32:g}");
                 break;
-            case SpannedRecordType.HorizontalAlignment:
-                if (SpannedRecordCodec.TryDecodeHorizontalAlignment(data, out var horizontalAlignment))
-                    sb.Append(' ').Append(horizontalAlignment);
+            case SpannedRecordType.HorizontalAlignment
+                when SpannedRecordCodec.TryDecodeHorizontalAlignment(data, out var horizontalAlignment):
+                sb.Append(' ').Append(horizontalAlignment);
                 break;
-            case SpannedRecordType.VerticalOffset:
-                if (SpannedRecordCodec.TryDecodeVerticalOffset(data, out f32))
-                    sb.Append(formatProvider, $" {f32:g}");
+            case SpannedRecordType.VerticalOffset when SpannedRecordCodec.TryDecodeVerticalOffset(data, out var f32):
+                sb.Append(formatProvider, $" {f32:g}");
                 break;
-            case SpannedRecordType.VerticalAlignment:
-                if (SpannedRecordCodec.TryDecodeVerticalAlignment(data, out var verticalAlignment))
-                    sb.Append(' ').Append(verticalAlignment);
+            case SpannedRecordType.VerticalAlignment
+                when SpannedRecordCodec.TryDecodeVerticalAlignment(data, out var verticalAlignment):
+                sb.Append(' ').Append(verticalAlignment);
                 break;
-            case SpannedRecordType.Italic:
-                if (SpannedRecordCodec.TryDecodeItalic(data, out var toggle))
-                    sb.Append(' ').Append(toggle);
+            case SpannedRecordType.Italic when SpannedRecordCodec.TryDecodeItalic(data, out var toggle):
+                sb.Append(' ').Append(toggle);
                 break;
-            case SpannedRecordType.Bold:
-                if (SpannedRecordCodec.TryDecodeBold(data, out toggle))
-                    sb.Append(' ').Append(toggle);
+            case SpannedRecordType.Bold when SpannedRecordCodec.TryDecodeBold(data, out var toggle):
+                sb.Append(' ').Append(toggle);
                 break;
-            case SpannedRecordType.TextDecoration:
-                if (SpannedRecordCodec.TryDecodeTextDecoration(data, out var textDecorationLine))
-                    sb.Append(' ').Append(textDecorationLine);
+            case SpannedRecordType.TextDecoration
+                when SpannedRecordCodec.TryDecodeTextDecoration(data, out var textDecorationLine):
+                sb.Append(' ').Append(textDecorationLine);
                 break;
-            case SpannedRecordType.TextDecorationStyle:
-                if (SpannedRecordCodec.TryDecodeTextDecorationStyle(data, out var textDecorationStyle))
-                    sb.Append(' ').Append(textDecorationStyle);
+            case SpannedRecordType.TextDecorationStyle
+                when SpannedRecordCodec.TryDecodeTextDecorationStyle(data, out var textDecorationStyle):
+                sb.Append(' ').Append(textDecorationStyle);
                 break;
-            case SpannedRecordType.BackColor:
-                if (SpannedRecordCodec.TryDecodeBackColor(data, out var color))
-                    sb.Append(' ').Append(color.ToString());
+            case SpannedRecordType.BackColor when SpannedRecordCodec.TryDecodeBackColor(data, out var color):
+                sb.Append(' ').Append(color.ToString());
                 break;
-            case SpannedRecordType.ShadowColor:
-                if (SpannedRecordCodec.TryDecodeShadowColor(data, out color))
-                    sb.Append(' ').Append(color.ToString());
+            case SpannedRecordType.ShadowColor when SpannedRecordCodec.TryDecodeShadowColor(data, out var color):
+                sb.Append(' ').Append(color.ToString());
                 break;
-            case SpannedRecordType.EdgeColor:
-                if (SpannedRecordCodec.TryDecodeEdgeColor(data, out color))
-                    sb.Append(' ').Append(color.ToString());
+            case SpannedRecordType.EdgeColor when SpannedRecordCodec.TryDecodeEdgeColor(data, out var color):
+                sb.Append(' ').Append(color.ToString());
                 break;
-            case SpannedRecordType.ForeColor:
-                if (SpannedRecordCodec.TryDecodeForeColor(data, out color))
-                    sb.Append(' ').Append(color.ToString());
+            case SpannedRecordType.ForeColor when SpannedRecordCodec.TryDecodeForeColor(data, out var color):
+                sb.Append(' ').Append(color.ToString());
                 break;
-            case SpannedRecordType.TextDecorationColor:
-                if (SpannedRecordCodec.TryDecodeTextDecorationColor(data, out color))
-                    sb.Append(' ').Append(color.ToString());
+            case SpannedRecordType.TextDecorationColor
+                when SpannedRecordCodec.TryDecodeTextDecorationColor(data, out var color):
+                sb.Append(' ').Append(color.ToString());
                 break;
-            case SpannedRecordType.BorderWidth:
-                if (SpannedRecordCodec.TryDecodeBorderWidth(data, out f32))
-                    sb.Append(formatProvider, $" {f32:g}");
+            case SpannedRecordType.BorderWidth when SpannedRecordCodec.TryDecodeBorderWidth(data, out var f32):
+                sb.Append(formatProvider, $" {f32:g}");
                 break;
-            case SpannedRecordType.ShadowOffset:
-                if (SpannedRecordCodec.TryDecodeShadowOffset(data, out var v2))
-                    sb.Append(formatProvider, $" {v2.X:g} {v2.Y:g}");
+            case SpannedRecordType.ShadowOffset when SpannedRecordCodec.TryDecodeShadowOffset(data, out var v2):
+                sb.Append(formatProvider, $" {v2.X:g} {v2.Y:g}");
                 break;
-            case SpannedRecordType.TextDecorationThickness:
-                if (SpannedRecordCodec.TryDecodeTextDecorationThickness(data, out f32))
-                    sb.Append(formatProvider, $" {f32:g}");
+            case SpannedRecordType.TextDecorationThickness
+                when SpannedRecordCodec.TryDecodeTextDecorationThickness(data, out var f32):
+                sb.Append(formatProvider, $" {f32:g}");
                 break;
-            case SpannedRecordType.InsertionIcon:
-                if (SpannedRecordCodec.TryDecodeInsertionIcon(data, out var icon))
-                    sb.Append(' ').Append(icon);
+            case SpannedRecordType.ObjectIcon when SpannedRecordCodec.TryDecodeObjectIcon(data, out var icon):
+                sb.Append(' ').Append(icon);
                 break;
-            case SpannedRecordType.InsertionTexture:
-                if (SpannedRecordCodec.TryDecodeInsertionTexture(data, out i32, out var uv0, out var uv1))
-                    sb.Append(formatProvider, $" {i32} {uv0.X:g} {uv0.Y:g} {uv1.X:g} {uv1.Y:g}");
+            case SpannedRecordType.ObjectTexture
+                when SpannedRecordCodec.TryDecodeObjectTexture(data, out var i32, out var uv0, out var uv1):
+                sb.Append(formatProvider, $" {i32} {uv0.X:g} {uv0.Y:g} {uv1.X:g} {uv1.Y:g}");
                 break;
-            case SpannedRecordType.InsertionManualNewLine:
+            case SpannedRecordType.ObjectNewLine:
                 _ = SpannedRecordCodec.TryDecodeInsertManualNewLine(data);
                 break;
-            case SpannedRecordType.InsertionCallback:
-                if (SpannedRecordCodec.TryDecodeInsertionCallback(data, out i32, out f32))
-                    sb.Append(formatProvider, $" {i32:g} {f32:g}");
+            case SpannedRecordType.ObjectSpannable
+                when SpannedRecordCodec.TryDecodeObjectSpannable(data, out var i32, out var s):
+                sb.Append(formatProvider, $" {i32:g}");
+                AppendString(sb, s.EnumerateUtf(UtfEnumeratorFlags.Utf16));
                 break;
             case SpannedRecordType.None:
-            default:
-                break;
+            default: break;
+        }
+
+        return;
+
+        static void AppendString(StringBuilder sb, UtfEnumerator enumerator)
+        {
+            sb.Append(" \"");
+            foreach (var c in enumerator)
+            {
+                if (c.Value.TryGetRune(out var rune))
+                {
+                    switch (rune.Value)
+                    {
+                        case '"':
+                            sb.Append("\\\"");
+                            break;
+                        case '\\':
+                            sb.Append(@"\\");
+                            break;
+                        default:
+                            sb.Append(rune.ToString());
+                            break;
+                    }
+                }
+                else if (c.Value.UIntValue < 0x100)
+                {
+                    sb.Append($"\\x{c.Value.UIntValue:X02}");
+                }
+                else if (c.Value.UIntValue < 0x10000)
+                {
+                    sb.Append($"\\u{c.Value.UIntValue:X04}");
+                }
+                else
+                {
+                    sb.Append($"\\U{c.Value.UIntValue:X08}");
+                }
+            }
+
+            sb.Append('"');
         }
     }
 }

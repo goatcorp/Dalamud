@@ -123,6 +123,6 @@ public static class SpanExtensions
         new(MemoryMarshal.Cast<char, byte>(data.Span), flags);
 
     /// <inheritdoc cref="EnumerateUtf(ReadOnlySpan{byte}, UtfEnumeratorFlags)"/>
-    public static UtfEnumerator EnumerateUtf(this string data, UtfEnumeratorFlags flags) =>
+    public static UtfEnumerator EnumerateUtf(this string? data, UtfEnumeratorFlags flags) =>
         new(MemoryMarshal.Cast<char, byte>(data.AsSpan()), flags);
 }

@@ -7,7 +7,7 @@ using Dalamud.Interface.SpannedStrings.Internal;
 using Dalamud.Interface.SpannedStrings.Styles;
 using Dalamud.Utility;
 
-namespace Dalamud.Interface.SpannedStrings;
+namespace Dalamud.Interface.SpannedStrings.Spannables;
 
 /// <summary>A custom text renderer implementation.</summary>
 public sealed partial class SpannedStringBuilder
@@ -311,27 +311,47 @@ public sealed partial class SpannedStringBuilder
 
     /// <inheritdoc/>
     public SpannedStringBuilder PushAll(in SpanStyle value) =>
-        this.PushFontSet(value.Font, out _)
+        this.PushFontSize(value.FontSize)
+            .PushFontSet(value.Font, out _)
+            .PushLineHeight(value.LineHeight)
+            .PushHorizontalOffset(value.HorizontalOffset)
+            .PushHorizontalAlignment(value.HorizontalAlignment)
+            .PushVerticalOffset(value.VerticalOffset)
+            .PushVerticalAlignment(value.VerticalAlignment)
             .PushItalic(value.Italic)
             .PushBold(value.Bold)
+            .PushTextDecoration(value.TextDecoration)
+            .PushTextDecorationStyle(value.TextDecorationStyle)
             .PushBackColor(value.BackColor)
             .PushShadowColor(value.ShadowColor)
             .PushEdgeColor(value.EdgeColor)
+            .PushTextDecorationColor(value.TextDecorationColor)
             .PushForeColor(value.ForeColor)
             .PushBorderWidth(value.BorderWidth)
-            .PushShadowOffset(value.ShadowOffset);
+            .PushShadowOffset(value.ShadowOffset)
+            .PushTextDecorationThickness(value.TextDecorationThickness);
 
     /// <inheritdoc/>
     public SpannedStringBuilder PopAll() =>
-        this.PopFontSet()
+        this.PopFontSize()
+            .PopFontSet()
+            .PopLineHeight()
+            .PopHorizontalOffset()
+            .PopHorizontalAlignment()
+            .PopVerticalOffset()
+            .PopVerticalAlignment()
             .PopItalic()
             .PopBold()
+            .PopTextDecoration()
+            .PopTextDecorationStyle()
             .PopBackColor()
             .PopShadowColor()
             .PopEdgeColor()
+            .PopTextDecorationColor()
             .PopForeColor()
             .PopBorderWidth()
-            .PopShadowOffset();
+            .PopShadowOffset()
+            .PopTextDecorationThickness();
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static BoolOrToggle ResolveToggleValue(Stack<BoolOrToggle>? stack, BoolOrToggle mode) =>

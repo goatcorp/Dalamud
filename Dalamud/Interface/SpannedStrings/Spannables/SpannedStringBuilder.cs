@@ -5,24 +5,23 @@ using System.Runtime.InteropServices;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.SpannedStrings.Enums;
 using Dalamud.Interface.SpannedStrings.Internal;
-using Dalamud.Interface.SpannedStrings.Spannables;
 using Dalamud.Interface.SpannedStrings.Styles;
 using Dalamud.Utility;
 
 using Microsoft.Extensions.ObjectPool;
 
-namespace Dalamud.Interface.SpannedStrings;
+namespace Dalamud.Interface.SpannedStrings.Spannables;
 
 /// <summary>A custom text renderer implementation.</summary>
 public sealed partial class SpannedStringBuilder
-    : ISpannedStringBuilder<SpannedStringBuilder>, IBlockSpannable, IResettable
+    : BaseSpannedString, ISpannedStringBuilder<SpannedStringBuilder>, IResettable
 {
     private readonly MemoryStream textStream = new();
     private readonly MemoryStream dataStream = new();
     private readonly List<SpannedRecord> records = new();
     private readonly List<FontHandleVariantSet> fontSets = new();
     private readonly List<IDalamudTextureWrap?> textures = new();
-    private readonly List<SpannedStringCallbackDelegate?> callbacks = new();
+    private readonly List<ISpannable?> spannables = new();
 
     private Stack<int>? stackLink;
     private Stack<int>? stackFontSize;
@@ -56,7 +55,7 @@ public sealed partial class SpannedStringBuilder
             this.records.ToArray(),
             this.fontSets.ToArray(),
             this.textures.ToArray(),
-            this.callbacks.ToArray());
+            this.spannables.ToArray());
 
     /// <inheritdoc/>
     public SpannedStringBuilder Clear()
@@ -66,7 +65,7 @@ public sealed partial class SpannedStringBuilder
         this.records.Clear();
         this.fontSets.Clear();
         this.textures.Clear();
-        this.callbacks.Clear();
+        this.spannables.Clear();
 
         this.stackLink?.Clear();
         this.stackFontSize?.Clear();
@@ -99,17 +98,14 @@ public sealed partial class SpannedStringBuilder
     }
 
     /// <inheritdoc/>
-    SpannedStringData IBlockSpannable.GetData() => this.GetData();
-
-    /// <inheritdoc cref="IBlockSpannable.GetData"/>
-    internal SpannedStringData GetData() =>
+    private protected override DataRef GetData() =>
         new(
             this.textStream.GetDataSpan(),
             this.dataStream.GetDataSpan(),
             CollectionsMarshal.AsSpan(this.records),
             CollectionsMarshal.AsSpan(this.fontSets),
             CollectionsMarshal.AsSpan(this.textures),
-            CollectionsMarshal.AsSpan(this.callbacks));
+            CollectionsMarshal.AsSpan(this.spannables));
 
     /// <summary>Reserves an area of bytes at the end of <see cref="textStream"/>.</summary>
     /// <param name="numBytes">The number of bytes.</param>

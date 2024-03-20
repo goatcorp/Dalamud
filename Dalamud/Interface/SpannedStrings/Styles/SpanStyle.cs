@@ -96,17 +96,17 @@ public struct SpanStyle
     };
 
     /// <summary>Updates the struct according to the spanned record.</summary>
-    /// <param name="data">The data.</param>
     /// <param name="record">The spanned record.</param>
     /// <param name="recordData">The attached data.</param>
     /// <param name="initialStyle">The initial style to revert to.</param>
+    /// <param name="fontSets">The font sets, for use with <see cref="SpannedRecordType.FontHandleSetIndex"/>.</param>
     /// <param name="fontUpdated">Whether any of the font parameters have been updated.</param>
     /// <param name="drawOptionsUpdated">Whether any of the decorative parameters have been updated.</param>
     internal void UpdateFrom(
-        in SpannedStringData data,
         in SpannedRecord record,
         ReadOnlySpan<byte> recordData,
         in SpanStyle initialStyle,
+        ReadOnlySpan<FontHandleVariantSet> fontSets,
         out bool fontUpdated,
         out bool drawOptionsUpdated)
     {
@@ -159,12 +159,12 @@ public struct SpanStyle
                     this.Bold = initialStyle.Bold;
                     fontUpdated = true;
                     return;
-                
+
                 case SpannedRecordType.TextDecoration:
                     this.TextDecoration = initialStyle.TextDecoration;
                     drawOptionsUpdated = true;
                     return;
-                
+
                 case SpannedRecordType.TextDecorationStyle:
                     this.TextDecorationStyle = initialStyle.TextDecorationStyle;
                     drawOptionsUpdated = true;
@@ -219,7 +219,10 @@ public struct SpanStyle
         {
             case SpannedRecordType.FontHandleSetIndex
                 when SpannedRecordCodec.TryDecodeFontHandleSetIndex(recordData, out var index):
-                this.Font = data.TryGetFontSetAt(index, out var newFontSet) ? newFontSet : initialStyle.Font;
+                this.Font =
+                    index < 0 || index >= fontSets.Length || fontSets[index] == default
+                        ? initialStyle.Font
+                        : fontSets[index];
                 fontUpdated = true;
                 return;
 

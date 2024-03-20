@@ -13,7 +13,7 @@ using Dalamud.Interface.SpannedStrings.Internal;
 using Dalamud.Utility;
 using Dalamud.Utility.Text;
 
-namespace Dalamud.Interface.SpannedStrings;
+namespace Dalamud.Interface.SpannedStrings.Spannables;
 
 /// <summary>A custom text renderer implementation.</summary>
 public sealed partial class SpannedStringBuilder
@@ -117,22 +117,22 @@ public sealed partial class SpannedStringBuilder
     }
 
     /// <inheritdoc/>
-    public SpannedStringBuilder AppendCallback(SpannedStringCallbackDelegate? callback, float sizeRatio, out int id)
+    public SpannedStringBuilder AppendSpannable(ISpannable? callback, string? args, out int id)
     {
-        id = this.callbacks.Count;
-        this.callbacks.Add(callback);
-        return this.AppendCallback(id, sizeRatio);
+        id = this.spannables.Count;
+        this.spannables.Add(callback);
+        return this.AppendSpannable(id, args);
     }
 
     /// <inheritdoc/>
-    public SpannedStringBuilder AppendCallback(int id, float sizeRatio)
+    public SpannedStringBuilder AppendSpannable(int id, string? args)
     {
-        this.callbacks.EnsureCapacity(id + 1);
-        while (this.callbacks.Count <= id)
-            this.callbacks.Add(null);
-        var len = SpannedRecordCodec.EncodeInsertionCallback(default, id, sizeRatio);
-        this.AddRecordAndReserveData(SpannedRecordType.InsertionCallback, len, out var data);
-        SpannedRecordCodec.EncodeInsertionCallback(data, id, sizeRatio);
+        this.spannables.EnsureCapacity(id + 1);
+        while (this.spannables.Count <= id)
+            this.spannables.Add(null);
+        var len = SpannedRecordCodec.EncodeObjectSpannable(default, id, args);
+        this.AddRecordAndReserveData(SpannedRecordType.ObjectSpannable, len, out var data);
+        SpannedRecordCodec.EncodeObjectSpannable(data, id, args);
         return this;
     }
 
@@ -169,9 +169,9 @@ public sealed partial class SpannedStringBuilder
     /// <inheritdoc/>
     public SpannedStringBuilder AppendIconGfd(GfdIcon iconId)
     {
-        var len = SpannedRecordCodec.EncodeInsertionIcon(default, iconId);
-        this.AddRecordAndReserveData(SpannedRecordType.InsertionIcon, len, out var data);
-        SpannedRecordCodec.EncodeInsertionIcon(data, iconId);
+        var len = SpannedRecordCodec.EncodeObjectIcon(default, iconId);
+        this.AddRecordAndReserveData(SpannedRecordType.ObjectIcon, len, out var data);
+        SpannedRecordCodec.EncodeObjectIcon(data, iconId);
         return this;
     }
 
@@ -184,9 +184,9 @@ public sealed partial class SpannedStringBuilder
         this.textures.EnsureCapacity(id + 1);
         while (this.textures.Count <= id)
             this.textures.Add(null);
-        var len = SpannedRecordCodec.EncodeInsertionTexture(default, id, uv0, uv1);
-        this.AddRecordAndReserveData(SpannedRecordType.InsertionTexture, len, out var data);
-        SpannedRecordCodec.EncodeInsertionTexture(data, id, uv0, uv1);
+        var len = SpannedRecordCodec.EncodeObjectTexture(default, id, uv0, uv1);
+        this.AddRecordAndReserveData(SpannedRecordType.ObjectTexture, len, out var data);
+        SpannedRecordCodec.EncodeObjectTexture(data, id, uv0, uv1);
         return this;
     }
 
@@ -212,7 +212,7 @@ public sealed partial class SpannedStringBuilder
             case NewLineType.Manual:
             {
                 var len = SpannedRecordCodec.EncodeInsertManualNewLine(default);
-                this.AddRecordAndReserveData(SpannedRecordType.InsertionManualNewLine, len, out var data);
+                this.AddRecordAndReserveData(SpannedRecordType.ObjectNewLine, len, out var data);
                 SpannedRecordCodec.EncodeInsertManualNewLine(data);
                 return this;
             }

@@ -9,11 +9,10 @@ using Dalamud.Interface.ImGuiNotification.Internal;
 using Dalamud.Interface.Internal.Notifications;
 using Dalamud.Interface.ManagedFontAtlas;
 using Dalamud.Interface.ManagedFontAtlas.Internals;
-using Dalamud.Interface.SpannedStrings;
 using Dalamud.Interface.SpannedStrings.Enums;
-using Dalamud.Interface.SpannedStrings.Internal;
 using Dalamud.Interface.SpannedStrings.Rendering;
 using Dalamud.Interface.SpannedStrings.Rendering.Internal;
+using Dalamud.Interface.SpannedStrings.Spannables;
 using Dalamud.Interface.Utility;
 using Dalamud.Utility;
 
@@ -29,7 +28,9 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
     private readonly Stopwatch stopwatch = new();
     private readonly IFontHandle?[] spannableTestFontHandle = new IFontHandle?[37];
 
-    private SpannedString? prebuiltSpannable;
+    private ISpannable ellipsisSpannable = null!;
+    private ISpannable wrapMarkerSpannable = null!;
+
     private IFontAtlas? spannableTestAtlas;
 
     private ImVectorWrapper<byte> testStringBuffer;
@@ -39,7 +40,6 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
     private float wrapLeftWidthRatio;
     private float wrapRightWidthRatio;
     private bool useItalic;
-    private bool usePrebuiltSpannable;
     private bool useWrapMarkers;
     private bool useVisibleControlCharacters;
     private bool showComplicatedTextTest;
@@ -69,10 +69,21 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
         this.useItalic = false;
         this.wrapLeftWidthRatio = 0f;
         this.wrapRightWidthRatio = 1f;
-        this.prebuiltSpannable = null;
-        this.usePrebuiltSpannable = this.useWrapMarkers = this.useVisibleControlCharacters = false;
         this.showComplicatedTextTest = this.showDynamicOffsetTest = this.showTransformationTest = false;
         this.parseAttempt = default;
+
+        this.ellipsisSpannable = new SpannedStringBuilder().PushForeColor(0x80FFFFFF).Append("…");
+        this.wrapMarkerSpannable = new SpannedStringBuilder().PushAll(
+            new()
+            {
+                Font = new(Service<InterfaceManager>.Get().IconFontHandle),
+                EdgeColor = 0xFF000044,
+                BorderWidth = 1,
+                ForeColor = 0xFFCCCCFF,
+                Italic = true,
+                FontSize = InterfaceManager.DefaultFontSizePx * 0.6f,
+                VerticalAlignment = VerticalAlignment.Middle,
+            }).Append(FontAwesomeIcon.ArrowTurnDown.ToIconString());
 
         this.testStringBuffer.Dispose();
         this.testStringBuffer = new(65536);
@@ -123,7 +134,12 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
         var p = new RenderOptions
         {
             WordBreak = this.wordBreakType,
-            WrapMarker = this.useWrapMarkers ? FontAwesomeIcon.ArrowTurnDown.ToIconString() : string.Empty,
+            WrapMarker =
+                this.useWrapMarkers
+                    ? this.wordBreakType == WordBreakType.KeepAll
+                          ? this.ellipsisSpannable
+                          : this.wrapMarkerSpannable
+                    : null,
             ControlCharactersSpanParams =
                 this.useVisibleControlCharacters
                     ? new()
@@ -135,16 +151,6 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
                         VerticalAlignment = VerticalAlignment.Middle,
                     }
                     : null,
-            WrapMarkerStyle = new()
-            {
-                Font = new(interfaceManager.IconFontHandle),
-                EdgeColor = 0xFF000044,
-                BorderWidth = 1,
-                ForeColor = 0xFFCCCCFF,
-                Italic = true,
-                FontSize = ImGui.GetFont().FontSize * 0.6f,
-                VerticalAlignment = VerticalAlignment.Middle,
-            },
         };
 
         var bgpos = ImGui.GetWindowPos() + new Vector2(ImGui.GetScrollX(), ImGui.GetScrollY());
@@ -202,7 +208,7 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
 
         var ssb = renderer.RentBuilder();
 
-        p.LineWrapWidth = validWidth * (this.wrapRightWidthRatio - this.wrapLeftWidthRatio);
+        p.MaxSize = new(validWidth * (this.wrapRightWidthRatio - this.wrapLeftWidthRatio), float.MaxValue);
         this.DrawTestConfigBlock(ssb, p);
 
         ImGuiHelpers.ScaledDummy(8);
@@ -219,6 +225,8 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
         if (this.showTransformationTest)
             this.DrawTransformationTest(ssb, p, dynamicOffsetTestOffset, validWidth);
 
+        renderer.ReturnBuilder(ssb);
+
         ImGuiHelpers.ScaledDummy(8);
         ImGui.TextUnformatted($"Took {this.stopwatch.Elapsed.TotalMilliseconds:g}ms");
     }
@@ -234,8 +242,8 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
             decoded.Textures[i] = ss.Textures[i];
         for (var i = 0; i < ss.FontHandleSets.Count; i++)
             decoded.FontHandleSets[i] = ss.FontHandleSets[i];
-        for (var i = 0; i < ss.Callbacks.Count; i++)
-            decoded.Callbacks[i] = ss.Callbacks[i];
+        for (var i = 0; i < ss.Spannables.Count; i++)
+            decoded.Spannables[i] = ss.Spannables[i];
         return decoded;
     }
 
@@ -249,28 +257,28 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
             decoded.Textures[i] = ss.Textures[i];
         for (var i = 0; i < ss.FontHandleSets.Count; i++)
             decoded.FontHandleSets[i] = ss.FontHandleSets[i];
-        for (var i = 0; i < ss.Callbacks.Count; i++)
-            decoded.Callbacks[i] = ss.Callbacks[i];
+        for (var i = 0; i < ss.Spannables.Count; i++)
+            decoded.Spannables[i] = ss.Spannables[i];
         return decoded;
     }
 
-    private static void CustomDrawCallback(in SpannedStringCallbackArgs args)
-    {
-        var hover = ImGui.IsMouseHoveringRect(
-            args.RenderState.StartScreenOffset + args.Xy0,
-            args.RenderState.StartScreenOffset + args.Xy1);
-        args.SwitchToForegroundChannel();
-        args.DrawListPtr.PushClipRect(
-            args.RenderState.StartScreenOffset + args.Xy0,
-            args.RenderState.StartScreenOffset + args.Xy1);
-        args.DrawListPtr.AddText(
-            args.FontPtr,
-            args.FontSize,
-            args.RenderState.StartScreenOffset + args.Xy0,
-            (Rgba32)(hover ? ImGuiColors.HealerGreen : ImGuiColors.DalamudRed),
-            $"@line {args.RenderState.LastLineIndex}");
-        args.DrawListPtr.PopClipRect();
-    }
+    // private static void CustomDrawCallback(in SpannedStringCallbackArgs args)
+    // {
+    //     var hover = ImGui.IsMouseHoveringRect(
+    //         args.RenderState.StartScreenOffset + args.Xy0,
+    //         args.RenderState.StartScreenOffset + args.Xy1);
+    //     args.SwitchToForegroundChannel();
+    //     args.DrawListPtr.PushClipRect(
+    //         args.RenderState.StartScreenOffset + args.Xy0,
+    //         args.RenderState.StartScreenOffset + args.Xy1);
+    //     args.DrawListPtr.AddText(
+    //         args.FontPtr,
+    //         args.FontSize,
+    //         args.RenderState.StartScreenOffset + args.Xy0,
+    //         (Rgba32)(hover ? ImGuiColors.HealerGreen : ImGuiColors.DalamudRed),
+    //         $"@line {args.RenderState.LastLineIndex}");
+    //     args.DrawListPtr.PopClipRect();
+    // }
 
     private void DrawTestConfigBlock(SpannedStringBuilder ssb, in RenderOptions p)
     {
@@ -306,26 +314,14 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
            .PopLineHeight()
            .PushHorizontalOffset(1.5f);
 
-        ssb.PushLink("usePrebuiltSpannable"u8)
-           .PushForeColor(0xFFFFFFFF)
-           .PushShadowOffset(Vector2.Zero)
-           .AppendTexture(
-               Service<TextureManager>.Get().GetTextureFromGame("ui/uld/CheckBoxA_hr1.tex"),
-               this.usePrebuiltSpannable ? new(0.5f, 0) : Vector2.Zero,
-               this.usePrebuiltSpannable ? Vector2.One : new(0.5f, 1),
-               out var texIdCheckbox)
-           .PopShadowOffset()
-           .PopForeColor()
-           .AppendLine("\u00A0Use Prebuilt Spannable")
-           .PopLink();
-
         ssb.PushLink("useWrapMarkers"u8)
            .PushForeColor(0xFFFFFFFF)
            .PushShadowOffset(Vector2.Zero)
            .AppendTexture(
-               texIdCheckbox,
+               Service<TextureManager>.Get().GetTextureFromGame("ui/uld/CheckBoxA_hr1.tex"),
                this.useWrapMarkers ? new(0.5f, 0) : Vector2.Zero,
-               this.useWrapMarkers ? Vector2.One : new(0.5f, 1))
+               this.useWrapMarkers ? Vector2.One : new(0.5f, 1),
+               out var texIdCheckbox)
            .PopShadowOffset()
            .PopForeColor()
            .AppendLine("\u00A0Use Wrap Markers")
@@ -464,14 +460,24 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
            .AppendLine("\u00A0Test Parsing")
            .PopLink();
 
+        // ssb.Clear()
+        //    .PushLineHeight(1.0f).PushLink("x"u8).Append("1.0").PopLink().AppendLine().AppendLine()
+        //    .PushLineHeight(0.9f).PushLink("x"u8).Append("0.9").PopLink().AppendLine().AppendLine()
+        //    .PushLineHeight(0.8f).PushLink("x"u8).Append("0.8").PopLink().AppendLine().AppendLine()
+        //    .PushLineHeight(0.7f).PushLink("x"u8).Append("0.7").PopLink().AppendLine().AppendLine()
+        //    .PushLineHeight(0.6f).PushLink("x"u8).Append("0.6").PopLink().AppendLine().AppendLine()
+        //    .PushLineHeight(0.5f).PushLink("x"u8).Append("0.5").PopLink().AppendLine().AppendLine()
+        //    .PushLineHeight(0.4f).PushLink("x"u8).Append("0.4").PopLink().AppendLine().AppendLine()
+        //    .PushLineHeight(0.3f).PushLink("x"u8).Append("0.3").PopLink().AppendLine().AppendLine()
+        //    .PushLineHeight(0.2f).PushLink("x"u8).Append("0.2").PopLink().AppendLine().AppendLine()
+        //     ;
+
         var state = new RenderState(nameof(this.DrawTestConfigBlock), p);
         if (Service<SpannableRenderer>.Get().Render(ssb, ref state, out var link)
             && state.ClickedMouseButton == ImGuiMouseButton.Left)
         {
             if (link.SequenceEqual("copy"u8))
                 this.CopyMe(ssb.Build().ToString());
-            else if (link.SequenceEqual("usePrebuiltSpannable"u8))
-                this.usePrebuiltSpannable ^= true;
             else if (link.SequenceEqual("useWrapMarkers"u8))
                 this.useWrapMarkers ^= true;
             else if (link.SequenceEqual("useVisibleControlCharacters"u8))
@@ -514,11 +520,12 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
            .AppendLine()
            .AppendLine();
 
-        ssb.PushLineHeight(2)
-           .AppendCallback(CustomDrawCallback, 4, out _)
-           .PopLineHeight()
-           .AppendLine()
-           .AppendLine();
+        // TODO
+        // ssb.PushLineHeight(2)
+        //    .AppendSpannable(CustomDrawCallback, 4, out _)
+        //    .PopLineHeight()
+        //    .AppendLine()
+        //    .AppendLine();
 
         var fontSizeCounter = 9;
         ssb.PushLink("valign_next"u8)
@@ -663,8 +670,8 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
                .Append(' ');
         }
 
-        var state = new RenderState(nameof(this.DrawTestComplicatedTextBlock), p);
         ImGui.SetCursorScreenPos(ImGui.GetCursorScreenPos() with { X = x });
+        var state = new RenderState(nameof(this.DrawTestComplicatedTextBlock), p);
         if (!Service<SpannableRenderer>.Get().Render(ssb, ref state, out var link))
             return;
 
@@ -672,36 +679,28 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
         {
             if (link.SequenceEqual("copy"u8))
             {
-                if (this.usePrebuiltSpannable && this.prebuiltSpannable is not null)
-                    this.CopyMe(this.prebuiltSpannable.ToString());
-                else
-                    this.CopyMe(ssb.Build().ToString());
+                this.CopyMe(ssb.Build().ToString());
             }
             else if (link.SequenceEqual("Link 1"u8))
             {
-                this.prebuiltSpannable = null;
                 this.numLinkClicks++;
             }
             else if (link.SequenceEqual("valign_up"u8))
             {
-                this.prebuiltSpannable = null;
                 this.vertOffset -= 1 / 8f;
             }
             else if (link.SequenceEqual("valign_next"u8))
             {
-                this.prebuiltSpannable = null;
                 this.valign =
                     (VerticalAlignment)(((int)this.valign + 1) %
                                         Enum.GetValues<VerticalAlignment>().Length);
             }
             else if (link.SequenceEqual("valign_down"u8))
             {
-                this.prebuiltSpannable = null;
                 this.vertOffset += 1 / 8f;
             }
             else if (link.SequenceEqual("italic_toggle"u8))
             {
-                this.prebuiltSpannable = null;
                 this.useItalic ^= true;
             }
         }
@@ -780,16 +779,16 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
     {
         const float interval = 2000;
         var v = ((this.catchMeBegin + Environment.TickCount64) / interval) % (2 * MathF.PI);
-        
+
         ssb.Clear()
-            .PushHorizontalAlignment(HorizontalAlignment.Center)
-                .PushHorizontalOffset(MathF.Sin(v) * 8)
-                .PushVerticalOffset((1 + MathF.Cos(v)) * 8)
-                .PushBorderWidth(1)
-                .PushEdgeColor(new(new Vector4(0.3f, 0.3f, 1f, 0.5f + (MathF.Sin(v) * 0.5f))))
-                .PushLink("a"u8)
-                .Append("Text\ngoing\nround");
-        
+           .PushHorizontalAlignment(HorizontalAlignment.Center)
+           .PushHorizontalOffset(MathF.Sin(v) * 8)
+           .PushVerticalOffset((1 + MathF.Cos(v)) * 8)
+           .PushBorderWidth(1)
+           .PushEdgeColor(new(new Vector4(0.3f, 0.3f, 1f, 0.5f + (MathF.Sin(v) * 0.5f))))
+           .PushLink("a"u8)
+           .Append("Text\ngoing\nround");
+
         var prevPos = ImGui.GetCursorScreenPos();
         ImGui.SetCursorScreenPos(dynamicOffsetTestOffset);
         if (Service<SpannableRenderer>.Get().Render(ssb, new(nameof(this.DrawDynamicOffsetTest), p), out _))
@@ -807,12 +806,12 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
         var v = ((this.catchMeBegin + Environment.TickCount64) / interval) % (2 * MathF.PI);
 
         ssb.Clear()
-        .PushHorizontalAlignment(HorizontalAlignment.Center)
-                .PushBorderWidth(1)
-                .PushEdgeColor(new(new Vector4(0.3f, 0.3f, 1f, 0.5f + (MathF.Sin(v) * 0.5f))))
-                .PushLink("a"u8)
-                .Append(
-                    "Text\ngoing\nround\nusing\nmatrix\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|");
+           .PushHorizontalAlignment(HorizontalAlignment.Center)
+           .PushBorderWidth(1)
+           .PushEdgeColor(new(new Vector4(0.3f, 0.3f, 1f, 0.5f + (MathF.Sin(v) * 0.5f))))
+           .PushLink("a"u8)
+           .Append(
+               "Text\ngoing\nround\nusing\nmatrix\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|");
 
         var prevPos = ImGui.GetCursorScreenPos();
         ImGui.SetCursorScreenPos(dynamicOffsetTestOffset);
@@ -822,7 +821,7 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
                     nameof(this.DrawDynamicOffsetTest),
                     p with
                     {
-                        LineWrapWidth = 0,
+                        MaxSize = new(0, float.MaxValue),
                         WordBreak = WordBreakType.KeepAll,
                         Transformation = Matrix4x4.Multiply(
                             Matrix4x4.CreateRotationZ(v),
