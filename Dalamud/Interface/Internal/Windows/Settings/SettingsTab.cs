@@ -1,5 +1,6 @@
-﻿using System;
-using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics.CodeAnalysis;
+
+using Dalamud.Interface.Utility;
 
 namespace Dalamud.Interface.Internal.Windows.Settings;
 
@@ -16,7 +17,10 @@ public abstract class SettingsTab : IDisposable
 
     public virtual void OnOpen()
     {
-        // ignored
+        foreach (var settingsEntry in this.Entries)
+        {
+            settingsEntry.OnOpen();
+        }
     }
 
     public virtual void OnClose()

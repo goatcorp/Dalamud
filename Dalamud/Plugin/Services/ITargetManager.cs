@@ -41,4 +41,16 @@ public interface ITargetManager
     /// Set to null to clear the target.
     /// </summary>
     public GameObject? SoftTarget { get; set; }
+    
+    /// <summary>
+    /// Gets or sets the gpose target.
+    /// Set to null to clear the target.
+    /// </summary>
+    public GameObject? GPoseTarget { get; set; }
+    
+    /// <summary>
+    /// Gets or sets the mouseover nameplate target.
+    /// Set to null to clear the target.
+    /// </summary>
+    public GameObject? MouseOverNameplateTarget { get; set; }
 }

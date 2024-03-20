@@ -1,7 +1,6 @@
-﻿using System;
-
-using CheapLoc;
+﻿using CheapLoc;
 using Dalamud.Plugin.Internal.Types;
+using Serilog;
 
 namespace Dalamud.Interface.Internal.Windows.PluginInstaller;
 
@@ -36,7 +35,18 @@ internal class PluginChangelogEntry : IChangelogEntry
         this.Version = plugin.EffectiveVersion.ToString();
         this.Text = plugin.Manifest.Changelog ?? Loc.Localize("ChangelogNoText", "No changelog for this version.");
         this.Author = plugin.Manifest.Author;
-        this.Date = DateTimeOffset.FromUnixTimeSeconds(this.Plugin.Manifest.LastUpdate).DateTime;
+
+        try
+        {
+            this.Date = DateTimeOffset.FromUnixTimeSeconds(this.Plugin.Manifest.LastUpdate).DateTime;
+        }
+        catch (ArgumentOutOfRangeException ex)
+        {
+            Log.Warning(ex, "Manifest included improper timestamp, e.g. wrong unit: {PluginName}",
+                        plugin.Manifest.Name);
+            // Create a Date from 0 as with a manifest that does not include a LastUpdate field
+            this.Date = DateTimeOffset.FromUnixTimeSeconds(0).DateTime;
+        }
     }
 
     /// <summary>

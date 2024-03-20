@@ -1,9 +1,12 @@
 using System;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 using Dalamud.Game;
 using Dalamud.Game.Gui;
+using Dalamud.Interface.Utility;
+using Dalamud.Memory;
 using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using ImGuiNET;
@@ -80,7 +83,7 @@ internal unsafe class UiDebug
     private void DrawUnitBase(AtkUnitBase* atkUnitBase)
     {
         var isVisible = (atkUnitBase->Flags & 0x20) == 0x20;
-        var addonName = Marshal.PtrToStringAnsi(new IntPtr(atkUnitBase->Name));
+        var addonName = MemoryHelper.ReadSeStringAsString(out _, new IntPtr(atkUnitBase->Name));
         var agent = Service<GameGui>.Get().FindAgentInterface(atkUnitBase);
 
         ImGui.Text($"{addonName}");
@@ -202,7 +205,7 @@ internal unsafe class UiDebug
             {
                 case NodeType.Text:
                     var textNode = (AtkTextNode*)node;
-                    ImGui.Text($"text: {Marshal.PtrToStringAnsi(new IntPtr(textNode->NodeText.StringPtr))}");
+                    ImGui.Text($"text: {MemoryHelper.ReadSeStringAsString(out _, (nint)textNode->NodeText.StringPtr)}");
 
                     ImGui.InputText($"Replace Text##{(ulong)textNode:X}", new IntPtr(textNode->NodeText.StringPtr), (uint)textNode->NodeText.BufSize);
 
@@ -213,7 +216,7 @@ internal unsafe class UiDebug
                         while (b > byte.MaxValue) b -= byte.MaxValue;
                         while (b < byte.MinValue) b += byte.MaxValue;
                         textNode->AlignmentFontType = (byte)b;
-                        textNode->AtkResNode.Flags_2 |= 0x1;
+                        textNode->AtkResNode.DrawFlags |= 0x1;
                     }
 
                     ImGui.Text($"Color: #{textNode->TextColor.R:X2}{textNode->TextColor.G:X2}{textNode->TextColor.B:X2}{textNode->TextColor.A:X2}");
@@ -229,7 +232,7 @@ internal unsafe class UiDebug
                     break;
                 case NodeType.Counter:
                     var counterNode = (AtkCounterNode*)node;
-                    ImGui.Text($"text: {Marshal.PtrToStringAnsi(new IntPtr(counterNode->NodeText.StringPtr))}");
+                    ImGui.Text($"text: {MemoryHelper.ReadSeStringAsString(out _, (nint)counterNode->NodeText.StringPtr)}");
                     break;
                 case NodeType.Image:
                     var imageNode = (AtkImageNode*)node;
@@ -248,8 +251,8 @@ internal unsafe class UiDebug
                             {
                                 var texFileNameStdString = &textureInfo->AtkTexture.Resource->TexFileResourceHandle->ResourceHandle.FileName;
                                 var texString = texFileNameStdString->Length < 16
-                                                    ? Marshal.PtrToStringAnsi((IntPtr)texFileNameStdString->Buffer)
-                                                    : Marshal.PtrToStringAnsi((IntPtr)texFileNameStdString->BufferPtr);
+                                                    ? MemoryHelper.ReadSeStringAsString(out _, (nint)texFileNameStdString->Buffer)
+                                                    : MemoryHelper.ReadSeStringAsString(out _, (nint)texFileNameStdString->BufferPtr);
 
                                 ImGui.Text($"texture path: {texString}");
                                 var kernelTexture = textureInfo->AtkTexture.Resource->KernelTextureObject;
@@ -350,13 +353,13 @@ internal unsafe class UiDebug
             {
                 case ComponentType.TextInput:
                     var textInputComponent = (AtkComponentTextInput*)compNode->Component;
-                    ImGui.Text($"InputBase Text1: {Marshal.PtrToStringAnsi(new IntPtr(textInputComponent->AtkComponentInputBase.UnkText1.StringPtr))}");
-                    ImGui.Text($"InputBase Text2: {Marshal.PtrToStringAnsi(new IntPtr(textInputComponent->AtkComponentInputBase.UnkText2.StringPtr))}");
-                    ImGui.Text($"Text1: {Marshal.PtrToStringAnsi(new IntPtr(textInputComponent->UnkText1.StringPtr))}");
-                    ImGui.Text($"Text2: {Marshal.PtrToStringAnsi(new IntPtr(textInputComponent->UnkText2.StringPtr))}");
-                    ImGui.Text($"Text3: {Marshal.PtrToStringAnsi(new IntPtr(textInputComponent->UnkText3.StringPtr))}");
-                    ImGui.Text($"Text4: {Marshal.PtrToStringAnsi(new IntPtr(textInputComponent->UnkText4.StringPtr))}");
-                    ImGui.Text($"Text5: {Marshal.PtrToStringAnsi(new IntPtr(textInputComponent->UnkText5.StringPtr))}");
+                    ImGui.Text($"InputBase Text1: {MemoryHelper.ReadSeStringAsString(out _, new IntPtr(textInputComponent->AtkComponentInputBase.UnkText1.StringPtr))}");
+                    ImGui.Text($"InputBase Text2: {MemoryHelper.ReadSeStringAsString(out _, new IntPtr(textInputComponent->AtkComponentInputBase.UnkText2.StringPtr))}");
+                    ImGui.Text($"Text1: {MemoryHelper.ReadSeStringAsString(out _, new IntPtr(textInputComponent->UnkText1.StringPtr))}");
+                    ImGui.Text($"Text2: {MemoryHelper.ReadSeStringAsString(out _, new IntPtr(textInputComponent->UnkText2.StringPtr))}");
+                    ImGui.Text($"Text3: {MemoryHelper.ReadSeStringAsString(out _, new IntPtr(textInputComponent->UnkText3.StringPtr))}");
+                    ImGui.Text($"Text4: {MemoryHelper.ReadSeStringAsString(out _, new IntPtr(textInputComponent->UnkText4.StringPtr))}");
+                    ImGui.Text($"Text5: {MemoryHelper.ReadSeStringAsString(out _, new IntPtr(textInputComponent->UnkText5.StringPtr))}");
                     break;
             }
 
@@ -415,7 +418,7 @@ internal unsafe class UiDebug
             $"MultiplyRGB: {node->MultiplyRed} {node->MultiplyGreen} {node->MultiplyBlue}");
     }
 
-    private bool DrawUnitListHeader(int index, uint count, ulong ptr, bool highlight)
+    private bool DrawUnitListHeader(int index, ushort count, ulong ptr, bool highlight)
     {
         ImGui.PushStyleColor(ImGuiCol.Text, highlight ? 0xFFAAAA00 : 0xFFFFFFFF);
         if (!string.IsNullOrEmpty(this.searchInput) && !this.doingSearch)
@@ -454,8 +457,6 @@ internal unsafe class UiDebug
             this.selectedInList[i] = false;
             var unitManager = &unitManagers[i];
 
-            var unitBaseArray = &unitManager->AtkUnitEntries;
-
             var headerOpen = true;
 
             if (!searching)
@@ -467,14 +468,14 @@ internal unsafe class UiDebug
 
             for (var j = 0; j < unitManager->Count && headerOpen; j++)
             {
-                var unitBase = unitBaseArray[j];
+                var unitBase = *(AtkUnitBase**)Unsafe.AsPointer(ref unitManager->EntriesSpan[j]);
                 if (this.selectedUnitBase != null && unitBase == this.selectedUnitBase)
                 {
                     this.selectedInList[i] = true;
                     foundSelected = true;
                 }
 
-                var name = Marshal.PtrToStringAnsi(new IntPtr(unitBase->Name));
+                var name = MemoryHelper.ReadSeStringAsString(out _, new IntPtr(unitBase->Name));
                 if (searching)
                 {
                     if (name == null || !name.ToLower().Contains(searchStr.ToLower())) continue;
@@ -512,7 +513,8 @@ internal unsafe class UiDebug
             {
                 for (var j = 0; j < unitManager->Count; j++)
                 {
-                    if (this.selectedUnitBase == null || unitBaseArray[j] != this.selectedUnitBase) continue;
+                    var unitBase = *(AtkUnitBase**)Unsafe.AsPointer(ref unitManager->EntriesSpan[j]);
+                    if (this.selectedUnitBase == null || unitBase != this.selectedUnitBase) continue;
                     this.selectedInList[i] = true;
                     foundSelected = true;
                 }

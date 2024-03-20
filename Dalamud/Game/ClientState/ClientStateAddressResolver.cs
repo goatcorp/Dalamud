@@ -5,7 +5,7 @@ namespace Dalamud.Game.ClientState;
 /// <summary>
 /// Client state memory address resolver.
 /// </summary>
-public sealed class ClientStateAddressResolver : BaseAddressResolver
+internal sealed class ClientStateAddressResolver : BaseAddressResolver
 {
     // Static offsets
 
@@ -79,7 +79,7 @@ public sealed class ClientStateAddressResolver : BaseAddressResolver
     /// Scan for and setup any configured address pointers.
     /// </summary>
     /// <param name="sig">The signature scanner to facilitate setup.</param>
-    protected override void Setup64Bit(SigScanner sig)
+    protected override void Setup64Bit(ISigScanner sig)
     {
         this.ObjectTable = sig.GetStaticAddressFromSig("48 8D 0D ?? ?? ?? ?? E8 ?? ?? ?? ?? 44 0F B6 83 ?? ?? ?? ?? C6 83 ?? ?? ?? ?? ??");
 

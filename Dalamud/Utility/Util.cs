@@ -1,28 +1,31 @@
-using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
-using System.Net.Http;
 using System.Numerics;
 using System.Reflection;
+using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading.Tasks;
 
 using Dalamud.Configuration.Internal;
 using Dalamud.Data;
 using Dalamud.Game;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
-using Dalamud.Interface;
 using Dalamud.Interface.Colors;
-using Dalamud.Logging.Internal;
-using Dalamud.Networking.Http;
+using Dalamud.Interface.Utility;
 using ImGuiNET;
 using Lumina.Excel.GeneratedSheets;
-using Microsoft.Win32;
 using Serilog;
+
+using TerraFX.Interop.Windows;
+
+using Windows.Win32.Storage.FileSystem;
 
 namespace Dalamud.Utility;
 
@@ -31,24 +34,19 @@ namespace Dalamud.Utility;
 /// </summary>
 public static class Util
 {
+    private static readonly Type GenericSpanType = typeof(Span<>);
     private static string? gitHashInternal;
     private static int? gitCommitCountInternal;
     private static string? gitHashClientStructsInternal;
 
     private static ulong moduleStartAddr;
     private static ulong moduleEndAddr;
-    
-    /// <summary>
-    /// Gets an httpclient for usage.
-    /// Do NOT await this.
-    /// </summary>
-    [Obsolete($"Use Service<{nameof(HappyHttpClient)}> instead.")]
-    public static HttpClient HttpClient { get; } = Service<HappyHttpClient>.Get().SharedHttpClient;
 
     /// <summary>
     /// Gets the assembly version of Dalamud.
     /// </summary>
-    public static string AssemblyVersion { get; } = Assembly.GetAssembly(typeof(ChatHandlers)).GetName().Version.ToString();
+    public static string AssemblyVersion { get; } =
+        Assembly.GetAssembly(typeof(ChatHandlers)).GetName().Version.ToString();
 
     /// <summary>
     /// Check two byte arrays for equality.
@@ -250,80 +248,7 @@ public static class Util
     /// <param name="autoExpand">Whether or not this structure should start out expanded.</param>
     /// <param name="path">The already followed path.</param>
     public static void ShowStruct(object obj, ulong addr, bool autoExpand = false, IEnumerable<string>? path = null)
-    {
-        ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(3, 2));
-        path ??= new List<string>();
-
-        if (moduleEndAddr == 0 && moduleStartAddr == 0)
-        {
-            try
-            {
-                var processModule = Process.GetCurrentProcess().MainModule;
-                if (processModule != null)
-                {
-                    moduleStartAddr = (ulong)processModule.BaseAddress.ToInt64();
-                    moduleEndAddr = moduleStartAddr + (ulong)processModule.ModuleMemorySize;
-                }
-                else
-                {
-                    moduleEndAddr = 1;
-                }
-            }
-            catch
-            {
-                moduleEndAddr = 1;
-            }
-        }
-
-        ImGui.PushStyleColor(ImGuiCol.Text, 0xFF00FFFF);
-        if (autoExpand)
-        {
-            ImGui.SetNextItemOpen(true, ImGuiCond.Appearing);
-        }
-
-        if (ImGui.TreeNode($"{obj}##print-obj-{addr:X}-{string.Join("-", path)}"))
-        {
-            ImGui.PopStyleColor();
-            foreach (var f in obj.GetType().GetFields(BindingFlags.Static | BindingFlags.Public | BindingFlags.Instance))
-            {
-                var fixedBuffer = (FixedBufferAttribute)f.GetCustomAttribute(typeof(FixedBufferAttribute));
-                if (fixedBuffer != null)
-                {
-                    ImGui.Text($"fixed");
-                    ImGui.SameLine();
-                    ImGui.TextColored(new Vector4(0.2f, 0.9f, 0.9f, 1), $"{fixedBuffer.ElementType.Name}[0x{fixedBuffer.Length:X}]");
-                }
-                else
-                {
-                    ImGui.TextColored(new Vector4(0.2f, 0.9f, 0.9f, 1), $"{f.FieldType.Name}");
-                }
-
-                ImGui.SameLine();
-                ImGui.TextColored(new Vector4(0.2f, 0.9f, 0.4f, 1), $"{f.Name}: ");
-                ImGui.SameLine();
-
-                ShowValue(addr, new List<string>(path) { f.Name }, f.FieldType, f.GetValue(obj));
-            }
-
-            foreach (var p in obj.GetType().GetProperties().Where(p => p.GetGetMethod()?.GetParameters().Length == 0))
-            {
-                ImGui.TextColored(new Vector4(0.2f, 0.9f, 0.9f, 1), $"{p.PropertyType.Name}");
-                ImGui.SameLine();
-                ImGui.TextColored(new Vector4(0.2f, 0.6f, 0.4f, 1), $"{p.Name}: ");
-                ImGui.SameLine();
-
-                ShowValue(addr, new List<string>(path) { p.Name }, p.PropertyType, p.GetValue(obj));
-            }
-
-            ImGui.TreePop();
-        }
-        else
-        {
-            ImGui.PopStyleColor();
-        }
-
-        ImGui.PopStyleVar();
-    }
+        => ShowStructInternal(obj, addr, autoExpand, path);
 
     /// <summary>
     /// Show a structure in an ImGui context.
@@ -373,14 +298,21 @@ public static class Util
 
         ImGui.Indent();
 
-        foreach (var propertyInfo in type.GetProperties().Where(p => p.GetGetMethod()?.GetParameters().Length == 0))
+        foreach (var p in type.GetProperties().Where(p => p.GetGetMethod()?.GetParameters().Length == 0))
         {
-            var value = propertyInfo.GetValue(obj);
-            var valueType = value?.GetType();
-            if (valueType == typeof(IntPtr))
-                ImGui.TextColored(ImGuiColors.DalamudOrange, $"    {propertyInfo.Name}: 0x{value:X}");
+            if (p.PropertyType.IsGenericType && (p.PropertyType.IsByRef || p.PropertyType.IsByRefLike))
+            {
+                ImGui.TextColored(ImGuiColors.DalamudOrange, $"    {p.Name}: (ref typed property)");
+            }
             else
-                ImGui.TextColored(ImGuiColors.DalamudOrange, $"    {propertyInfo.Name}: {value}");
+            {
+                var value = p.GetValue(obj);
+                var valueType = value?.GetType();
+                if (valueType == typeof(IntPtr))
+                    ImGui.TextColored(ImGuiColors.DalamudOrange, $"    {p.Name}: 0x{value:X}");
+                else
+                    ImGui.TextColored(ImGuiColors.DalamudOrange, $"    {p.Name}: {value}");
+            }
         }
 
         ImGui.Unindent();
@@ -407,7 +339,8 @@ public static class Util
     /// <param name="exit">Specify whether to exit immediately.</param>
     public static void Fatal(string message, string caption, bool exit = true)
     {
-        var flags = NativeFunctions.MessageBoxType.Ok | NativeFunctions.MessageBoxType.IconError | NativeFunctions.MessageBoxType.Topmost;
+        var flags = NativeFunctions.MessageBoxType.Ok | NativeFunctions.MessageBoxType.IconError |
+                    NativeFunctions.MessageBoxType.Topmost;
         _ = NativeFunctions.MessageBoxW(Process.GetCurrentProcess().MainWindowHandle, message, caption, flags);
 
         if (exit)
@@ -497,47 +430,57 @@ public static class Util
     }
 
     /// <summary>
-    /// Copy one stream to another.
+    /// Determine if Dalamud is currently running within a Wine context (e.g. either on macOS or Linux). This method
+    /// will not return information about the host operating system.
     /// </summary>
-    /// <param name="src">The source stream.</param>
-    /// <param name="dest">The destination stream.</param>
-    /// <param name="len">The maximum length to copy.</param>
-    [Obsolete("Use Stream.CopyTo() instead", true)]
-    public static void CopyTo(Stream src, Stream dest, int len = 4069)
+    /// <returns>Returns true if Wine is detected, false otherwise.</returns>
+    public static bool IsWine()
     {
-        var bytes = new byte[len];
-        int cnt;
+        if (EnvironmentConfiguration.XlWineOnLinux) return true;
+        if (Environment.GetEnvironmentVariable("XL_PLATFORM") is not null and not "Windows") return true;
 
-        while ((cnt = src.Read(bytes, 0, bytes.Length)) != 0) dest.Write(bytes, 0, cnt);
+        var ntdll = NativeFunctions.GetModuleHandleW("ntdll.dll");
+
+        // Test to see if any Wine specific exports exist. If they do, then we are running on Wine.
+        // The exports "wine_get_version", "wine_get_build_id", and "wine_get_host_version" will tend to be hidden
+        // by most Linux users (else FFXIV will want a macOS license), so we will additionally check some lesser-known
+        // exports as well.
+        return AnyProcExists(
+            ntdll,
+            "wine_get_version",
+            "wine_get_build_id",
+            "wine_get_host_version",
+            "wine_server_call",
+            "wine_unix_to_nt_file_name");
+
+        bool AnyProcExists(nint handle, params string[] procs) =>
+            procs.Any(p => NativeFunctions.GetProcAddress(handle, p) != nint.Zero);
     }
 
     /// <summary>
-    /// Heuristically determine if Dalamud is running on Linux/WINE.
+    /// Gets the best guess for the current host's platform based on the <c>XL_PLATFORM</c> environment variable or
+    /// heuristics.
     /// </summary>
-    /// <returns>Whether or not Dalamud is running on Linux/WINE.</returns>
-    public static bool IsLinux()
+    /// <remarks>
+    /// macOS users running without <c>XL_PLATFORM</c> being set will be reported as Linux users. Due to the way our
+    /// Wines work, there isn't a great (consistent) way to split the two apart if we're not told.
+    /// </remarks>
+    /// <returns>Returns the <see cref="OSPlatform"/> that Dalamud is currently running on.</returns>
+    public static OSPlatform GetHostPlatform()
     {
-        bool Check1()
+        switch (Environment.GetEnvironmentVariable("XL_PLATFORM"))
         {
-            return EnvironmentConfiguration.XlWineOnLinux;
+            case "Windows": return OSPlatform.Windows;
+            case "MacOS": return OSPlatform.OSX;
+            case "Linux": return OSPlatform.Linux;
         }
-
-        bool Check2()
-        {
-            var hModule = NativeFunctions.GetModuleHandleW("ntdll.dll");
-            var proc1 = NativeFunctions.GetProcAddress(hModule, "wine_get_version");
-            var proc2 = NativeFunctions.GetProcAddress(hModule, "wine_get_build_id");
-
-            return proc1 != IntPtr.Zero || proc2 != IntPtr.Zero;
-        }
-
-        bool Check3()
-        {
-            return Registry.CurrentUser.OpenSubKey(@"Software\Wine") != null ||
-                   Registry.LocalMachine.OpenSubKey(@"Software\Wine") != null;
-        }
-
-        return Check1() || Check2() || Check3();
+        
+        // n.b. we had some fancy code here to check if the Wine host version returned "Darwin" but apparently
+        // *all* our Wines report Darwin if exports aren't hidden. As such, it is effectively impossible (without some
+        // (very cursed and inaccurate heuristics) to determine if we're on macOS or Linux unless we're explicitly told
+        // by our launcher. See commit a7aacb15e4603a367e2f980578271a9a639d8852 for the old check.
+        
+        return IsWine() ? OSPlatform.Linux : OSPlatform.Windows;
     }
 
     /// <summary>
@@ -637,7 +580,7 @@ public static class Util
                     }
                 }
             }
-        }
+        } 
         finally
         {
             foreach (var enumerator in enumerators)
@@ -648,38 +591,24 @@ public static class Util
     }
 
     /// <summary>
-    /// Dispose this object.
+    /// Request that Windows flash the game window to grab the user's attention.
     /// </summary>
-    /// <param name="obj">The object to dispose.</param>
-    /// <typeparam name="T">The type of object to dispose.</typeparam>
-    internal static void ExplicitDispose<T>(this T obj) where T : IDisposable
+    /// <param name="flashIfOpen">Attempt to flash even if the game is currently focused.</param>
+    public static void FlashWindow(bool flashIfOpen = false)
     {
-        obj.Dispose();
-    }
+        if (NativeFunctions.ApplicationIsActivated() && !flashIfOpen)
+            return;
 
-    /// <summary>
-    /// Dispose this object.
-    /// </summary>
-    /// <param name="obj">The object to dispose.</param>
-    /// <param name="logMessage">Log message to print, if specified and an error occurs.</param>
-    /// <param name="moduleLog">Module logger, if any.</param>
-    /// <typeparam name="T">The type of object to dispose.</typeparam>
-    internal static void ExplicitDisposeIgnoreExceptions<T>(this T obj, string? logMessage = null, ModuleLog? moduleLog = null) where T : IDisposable
-    {
-        try
+        var flashInfo = new NativeFunctions.FlashWindowInfo
         {
-            obj.Dispose();
-        }
-        catch (Exception e)
-        {
-            if (logMessage == null)
-                return;
+            Size = (uint)Marshal.SizeOf<NativeFunctions.FlashWindowInfo>(),
+            Count = uint.MaxValue,
+            Timeout = 0,
+            Flags = NativeFunctions.FlashWindow.All | NativeFunctions.FlashWindow.TimerNoFG,
+            Hwnd = Process.GetCurrentProcess().MainWindowHandle,
+        };
 
-            if (moduleLog != null)
-                moduleLog.Error(e, logMessage);
-            else
-                Log.Error(e, logMessage);
-        }
+        NativeFunctions.FlashWindowEx(ref flashInfo);
     }
 
     /// <summary>
@@ -688,14 +617,63 @@ public static class Util
     /// </summary>
     /// <param name="path">The path of the file to write to.</param>
     /// <param name="text">The text to write.</param>
-    internal static void WriteAllTextSafe(string path, string text)
+    public static void WriteAllTextSafe(string path, string text)
     {
-        var tmpPath = path + ".tmp";
-        if (File.Exists(tmpPath))
-            File.Delete(tmpPath);
+        WriteAllTextSafe(path, text, Encoding.UTF8);
+    }
+    
+    /// <summary>
+    /// Overwrite text in a file by first writing it to a temporary file, and then
+    /// moving that file to the path specified.
+    /// </summary>
+    /// <param name="path">The path of the file to write to.</param>
+    /// <param name="text">The text to write.</param>
+    /// <param name="encoding">Encoding to use.</param>
+    public static void WriteAllTextSafe(string path, string text, Encoding encoding)
+    {
+        WriteAllBytesSafe(path, encoding.GetBytes(text));
+    }
+    
+    /// <summary>
+    /// Overwrite data in a file by first writing it to a temporary file, and then
+    /// moving that file to the path specified.
+    /// </summary>
+    /// <param name="path">The path of the file to write to.</param>
+    /// <param name="bytes">The data to write.</param>
+    public static unsafe void WriteAllBytesSafe(string path, byte[] bytes)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(path);
+        
+        // Open the temp file
+        var tempPath = path + ".tmp";
 
-        File.WriteAllText(tmpPath, text);
-        File.Move(tmpPath, path, true);
+        using var tempFile = Windows.Win32.PInvoke.CreateFile(
+            tempPath, 
+            (uint)(FILE_ACCESS_RIGHTS.FILE_GENERIC_READ | FILE_ACCESS_RIGHTS.FILE_GENERIC_WRITE), 
+            FILE_SHARE_MODE.FILE_SHARE_NONE,
+            null,
+            FILE_CREATION_DISPOSITION.CREATE_ALWAYS,
+            FILE_FLAGS_AND_ATTRIBUTES.FILE_ATTRIBUTE_NORMAL,
+            null);
+
+        if (tempFile.IsInvalid)
+            throw new Win32Exception();
+        
+        // Write the data
+        uint bytesWritten = 0;
+        if (!Windows.Win32.PInvoke.WriteFile(tempFile, new ReadOnlySpan<byte>(bytes), &bytesWritten, null))
+            throw new Win32Exception();
+
+        if (bytesWritten != bytes.Length)
+            throw new Exception($"Could not write all bytes to temp file ({bytesWritten} of {bytes.Length})");
+
+        if (!Windows.Win32.PInvoke.FlushFileBuffers(tempFile))
+            throw new Win32Exception();
+        
+        tempFile.Close();
+
+        if (!Windows.Win32.PInvoke.MoveFileEx(tempPath, path, MOVE_FILE_FLAGS.MOVEFILE_REPLACE_EXISTING | MOVE_FILE_FLAGS.MOVEFILE_WRITE_THROUGH))
+            throw new Win32Exception();
     }
 
     /// <summary>
@@ -709,6 +687,55 @@ public static class Util
         var rng = new Random();
 
         return names.ElementAt(rng.Next(0, names.Count() - 1)).Singular.RawString;
+    }
+
+    /// <summary>
+    /// Throws a corresponding exception if <see cref="HRESULT.FAILED"/> is true.
+    /// </summary>
+    /// <param name="hr">The result value.</param>
+    internal static void ThrowOnError(this HRESULT hr)
+    {
+        if (hr.FAILED)
+            Marshal.ThrowExceptionForHR(hr.Value);
+    }
+
+    /// <summary>
+    /// Calls <see cref="TaskCompletionSource.SetException(System.Exception)"/> if the task is incomplete.
+    /// </summary>
+    /// <param name="t">The task.</param>
+    /// <param name="ex">The exception to set.</param>
+    internal static void SetExceptionIfIncomplete(this TaskCompletionSource t, Exception ex)
+    {
+        if (t.Task.IsCompleted)
+            return;
+        try
+        {
+            t.SetException(ex);
+        }
+        catch
+        {
+            // ignore
+        }
+    }
+
+    /// <summary>
+    /// Calls <see cref="TaskCompletionSource.SetException(System.Exception)"/> if the task is incomplete.
+    /// </summary>
+    /// <typeparam name="T">The type of the result.</typeparam>
+    /// <param name="t">The task.</param>
+    /// <param name="ex">The exception to set.</param>
+    internal static void SetExceptionIfIncomplete<T>(this TaskCompletionSource<T> t, Exception ex)
+    {
+        if (t.Task.IsCompleted)
+            return;
+        try
+        {
+            t.SetException(ex);
+        }
+        catch
+        {
+            // ignore
+        }
     }
 
     /// <summary>
@@ -744,8 +771,121 @@ public static class Util
             ImGui.SetClipboardText(actor.Address.ToInt64().ToString("X"));
         }
     }
-    
-    private static unsafe void ShowValue(ulong addr, IEnumerable<string> path, Type type, object value)
+
+    private static void ShowSpanProperty(ulong addr, IList<string> path, PropertyInfo p, object obj)
+    {
+        var objType = obj.GetType();
+        var propType = p.PropertyType;
+        if (p.GetGetMethod() is not { } getMethod)
+        {
+            ImGui.Text("(No getter available)");
+            return;
+        }
+
+        var dm = new DynamicMethod(
+            "-",
+            MethodAttributes.Public | MethodAttributes.Static,
+            CallingConventions.Standard,
+            null, 
+            new[] { typeof(object), typeof(IList<string>), typeof(ulong) },
+            obj.GetType(),
+            true);
+
+        var ilg = dm.GetILGenerator();
+        var objLocalIndex = unchecked((byte)ilg.DeclareLocal(objType, true).LocalIndex);
+        var propLocalIndex = unchecked((byte)ilg.DeclareLocal(propType, true).LocalIndex);
+        ilg.Emit(OpCodes.Ldarg_0);
+        if (objType.IsValueType)
+        {
+            ilg.Emit(OpCodes.Unbox_Any, objType);
+            ilg.Emit(OpCodes.Stloc_S, objLocalIndex);
+            ilg.Emit(OpCodes.Ldloca_S, objLocalIndex);
+        }
+
+        ilg.Emit(OpCodes.Call, getMethod);
+        var mm = typeof(Util).GetMethod(nameof(ShowSpanPrivate), BindingFlags.Static | BindingFlags.NonPublic)!
+                             .MakeGenericMethod(p.PropertyType.GetGenericArguments());
+        ilg.Emit(OpCodes.Stloc_S, propLocalIndex);
+        ilg.Emit(OpCodes.Ldarg_2); // addr = arg2
+        ilg.Emit(OpCodes.Ldarg_1); // path = arg1
+        ilg.Emit(OpCodes.Ldc_I4_0); // offset = 0
+        ilg.Emit(OpCodes.Ldc_I4_1); // isTop = true
+        ilg.Emit(OpCodes.Ldloca_S, propLocalIndex); // spanobj
+        ilg.Emit(OpCodes.Call, mm);
+        ilg.Emit(OpCodes.Ret);
+
+        dm.Invoke(null, new[] { obj, path, addr });
+    }
+
+    private static unsafe void ShowSpanPrivate<T>(ulong addr, IList<string> path, int offset, bool isTop, in Span<T> spanobj)
+    {
+#pragma warning disable CS8500 // This takes the address of, gets the size of, or declares a pointer to a managed type
+        if (isTop)
+        {
+            fixed (void* p = spanobj)
+            {
+                if (!ImGui.TreeNode(
+                    $"Span<{typeof(T).Name}> of length {spanobj.Length:n0} (0x{spanobj.Length:X})" +
+                    $"##print-obj-{addr:X}-{string.Join("-", path)}-head"))
+                {
+                    return;
+                }
+            }
+        }
+
+        try
+        {
+            const int batchSize = 20;
+            if (spanobj.Length > batchSize)
+            {
+                var skip = batchSize;
+                while ((spanobj.Length + skip - 1) / skip > batchSize)
+                    skip *= batchSize;
+                for (var i = 0; i < spanobj.Length; i += skip)
+                {
+                    var next = Math.Min(i + skip, spanobj.Length);
+                    path.Add($"{offset + i:X}_{skip}");
+                    if (ImGui.TreeNode(
+                        $"{offset + i:n0} ~ {offset + next - 1:n0} (0x{offset + i:X} ~ 0x{offset + next - 1:X})" +
+                        $"##print-obj-{addr:X}-{string.Join("-", path)}"))
+                    {
+                        try
+                        {
+                            ShowSpanPrivate(addr, path, offset + i, false, spanobj[i..next]);
+                        }
+                        finally
+                        {
+                            ImGui.TreePop();
+                        }
+                    }
+
+                    path.RemoveAt(path.Count - 1);
+                }
+            }
+            else
+            {
+                fixed (T* p = spanobj)
+                {
+                    var pointerType = typeof(T*);
+                    for (var i = 0; i < spanobj.Length; i++)
+                    {
+                        ImGui.TextUnformatted($"[{offset + i:n0} (0x{offset + i:X})] ");
+                        ImGui.SameLine();
+                        path.Add($"{offset + i}");
+                        ShowValue(addr, path, pointerType, Pointer.Box(p + i, pointerType), true);
+                    }
+                }
+            }
+        }
+        finally
+        {
+            if (isTop)
+                ImGui.TreePop();
+        }
+#pragma warning restore CS8500 // This takes the address of, gets the size of, or declares a pointer to a managed type
+    }
+
+    private static unsafe void ShowValue(ulong addr, IList<string> path, Type type, object value, bool hideAddress)
     {
         if (type.IsPointer)
         {
@@ -753,28 +893,32 @@ public static class Util
             var unboxed = Pointer.Unbox(val);
             if (unboxed != null)
             {
-                var unboxedAddr = (ulong)unboxed;
-                ImGuiHelpers.ClickToCopyText($"{(ulong)unboxed:X}");
-                if (moduleStartAddr > 0 && unboxedAddr >= moduleStartAddr && unboxedAddr <= moduleEndAddr)
+                if (!hideAddress)
                 {
+                    var unboxedAddr = (ulong)unboxed;
+                    ImGuiHelpers.ClickToCopyText($"{(ulong)unboxed:X}");
+                    if (moduleStartAddr > 0 && unboxedAddr >= moduleStartAddr && unboxedAddr <= moduleEndAddr)
+                    {
+                        ImGui.SameLine();
+                        ImGui.PushStyleColor(ImGuiCol.Text, 0xffcbc0ff);
+                        ImGuiHelpers.ClickToCopyText($"ffxiv_dx11.exe+{unboxedAddr - moduleStartAddr:X}");
+                        ImGui.PopStyleColor();
+                    }
+
                     ImGui.SameLine();
-                    ImGui.PushStyleColor(ImGuiCol.Text, 0xffcbc0ff);
-                    ImGuiHelpers.ClickToCopyText($"ffxiv_dx11.exe+{unboxedAddr - moduleStartAddr:X}");
-                    ImGui.PopStyleColor();
                 }
 
                 try
                 {
                     var eType = type.GetElementType();
                     var ptrObj = SafeMemory.PtrToStructure(new IntPtr(unboxed), eType);
-                    ImGui.SameLine();
                     if (ptrObj == null)
                     {
                         ImGui.Text("null or invalid");
                     }
                     else
                     {
-                        ShowStruct(ptrObj, (ulong)unboxed, path: new List<string>(path));
+                        ShowStructInternal(ptrObj, addr, path: path, hideAddress: hideAddress);
                     }
                 }
                 catch
@@ -791,12 +935,135 @@ public static class Util
         {
             if (!type.IsPrimitive)
             {
-                ShowStruct(value, addr, path: new List<string>(path));
+                ShowStructInternal(value, addr, path: path, hideAddress: hideAddress);
             }
             else
             {
                 ImGui.Text($"{value}");
             }
         }
+    }
+    
+    /// <summary>
+    /// Show a structure in an ImGui context.
+    /// </summary>
+    /// <param name="obj">The structure to show.</param>
+    /// <param name="addr">The address to the structure.</param>
+    /// <param name="autoExpand">Whether or not this structure should start out expanded.</param>
+    /// <param name="path">The already followed path.</param>
+    /// <param name="hideAddress">Do not print addresses. Use when displaying a copied value.</param>
+    private static void ShowStructInternal(object obj, ulong addr, bool autoExpand = false, IEnumerable<string>? path = null, bool hideAddress = false)
+    {
+        ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(3, 2));
+        path ??= new List<string>();
+        var pathList = path is List<string> ? (List<string>)path : path.ToList();
+
+        if (moduleEndAddr == 0 && moduleStartAddr == 0)
+        {
+            try
+            {
+                var processModule = Process.GetCurrentProcess().MainModule;
+                if (processModule != null)
+                {
+                    moduleStartAddr = (ulong)processModule.BaseAddress.ToInt64();
+                    moduleEndAddr = moduleStartAddr + (ulong)processModule.ModuleMemorySize;
+                }
+                else
+                {
+                    moduleEndAddr = 1;
+                }
+            }
+            catch
+            {
+                moduleEndAddr = 1;
+            }
+        }
+
+        ImGui.PushStyleColor(ImGuiCol.Text, 0xFF00FFFF);
+        if (autoExpand)
+        {
+            ImGui.SetNextItemOpen(true, ImGuiCond.Appearing);
+        }
+
+        if (ImGui.TreeNode($"{obj}##print-obj-{addr:X}-{string.Join("-", pathList)}"))
+        {
+            ImGui.PopStyleColor();
+            foreach (var f in obj.GetType()
+                                 .GetFields(BindingFlags.Static | BindingFlags.Public | BindingFlags.Instance))
+            {
+                var fixedBuffer = (FixedBufferAttribute)f.GetCustomAttribute(typeof(FixedBufferAttribute));
+                if (fixedBuffer != null)
+                {
+                    ImGui.Text($"fixed");
+                    ImGui.SameLine();
+                    ImGui.TextColored(new Vector4(0.2f, 0.9f, 0.9f, 1),
+                                      $"{fixedBuffer.ElementType.Name}[0x{fixedBuffer.Length:X}]");
+                }
+                else
+                {
+                    ImGui.TextColored(new Vector4(0.2f, 0.9f, 0.9f, 1), $"{f.FieldType.Name}");
+                }
+
+                ImGui.SameLine();
+                ImGui.TextColored(new Vector4(0.2f, 0.9f, 0.4f, 1), $"{f.Name}: ");
+                ImGui.SameLine();
+
+                pathList.Add(f.Name);
+                try
+                {
+                    if (f.FieldType.IsGenericType && (f.FieldType.IsByRef || f.FieldType.IsByRefLike))
+                        ImGui.Text("Cannot preview ref typed fields."); // object never contains ref struct
+                    else
+                        ShowValue(addr, pathList, f.FieldType, f.GetValue(obj), hideAddress);
+                }
+                catch (Exception ex)
+                {
+                    ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(1f, 0.4f, 0.4f, 1f));
+                    ImGui.TextUnformatted($"Error: {ex.GetType().Name}: {ex.Message}");
+                    ImGui.PopStyleColor();
+                }
+                finally
+                {
+                    pathList.RemoveAt(pathList.Count - 1);
+                }
+            }
+
+            foreach (var p in obj.GetType().GetProperties().Where(p => p.GetGetMethod()?.GetParameters().Length == 0))
+            {
+                ImGui.TextColored(new Vector4(0.2f, 0.9f, 0.9f, 1), $"{p.PropertyType.Name}");
+                ImGui.SameLine();
+                ImGui.TextColored(new Vector4(0.2f, 0.6f, 0.4f, 1), $"{p.Name}: ");
+                ImGui.SameLine();
+
+                pathList.Add(p.Name);
+                try
+                {
+                    if (p.PropertyType.IsGenericType && p.PropertyType.GetGenericTypeDefinition() == GenericSpanType)
+                        ShowSpanProperty(addr, pathList, p, obj);
+                    else if (p.PropertyType.IsGenericType && (p.PropertyType.IsByRef || p.PropertyType.IsByRefLike))
+                        ImGui.Text("Cannot preview ref typed properties.");
+                    else
+                        ShowValue(addr, pathList, p.PropertyType, p.GetValue(obj), hideAddress);
+                }
+                catch (Exception ex)
+                {
+                    ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(1f, 0.4f, 0.4f, 1f));
+                    ImGui.TextUnformatted($"Error: {ex.GetType().Name}: {ex.Message}");
+                    ImGui.PopStyleColor();
+                }
+                finally
+                {
+                    pathList.RemoveAt(pathList.Count - 1);
+                }
+            }
+
+            ImGui.TreePop();
+        }
+        else
+        {
+            ImGui.PopStyleColor();
+        }
+
+        ImGui.PopStyleVar();
     }
 }

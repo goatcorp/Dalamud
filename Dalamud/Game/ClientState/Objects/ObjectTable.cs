@@ -21,9 +21,9 @@ namespace Dalamud.Game.ClientState.Objects;
 #pragma warning disable SA1015
 [ResolveVia<IObjectTable>]
 #pragma warning restore SA1015
-public sealed partial class ObjectTable : IServiceType, IObjectTable
+internal sealed partial class ObjectTable : IServiceType, IObjectTable
 {
-    private const int ObjectTableLength = 596;
+    private const int ObjectTableLength = 599;
 
     private readonly ClientStateAddressResolver address;
 
@@ -109,7 +109,7 @@ public sealed partial class ObjectTable : IServiceType, IObjectTable
 /// <summary>
 /// This collection represents the currently spawned FFXIV game objects.
 /// </summary>
-public sealed partial class ObjectTable
+internal sealed partial class ObjectTable
 {
     /// <inheritdoc/>
     int IReadOnlyCollection<GameObject>.Count => this.Length;

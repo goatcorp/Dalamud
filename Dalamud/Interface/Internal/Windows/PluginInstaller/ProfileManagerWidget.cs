@@ -7,10 +7,13 @@ using CheapLoc;
 using Dalamud.Configuration.Internal;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Components;
+using Dalamud.Interface.ImGuiNotification.Internal;
 using Dalamud.Interface.Internal.Notifications;
-using Dalamud.Interface.Raii;
+using Dalamud.Interface.Utility;
+using Dalamud.Interface.Utility.Raii;
 using Dalamud.Plugin.Internal;
 using Dalamud.Plugin.Internal.Profiles;
+using Dalamud.Plugin.Internal.Types;
 using Dalamud.Utility;
 using ImGuiNET;
 using Serilog;
@@ -49,6 +52,12 @@ internal class ProfileManagerWidget
     /// </summary>
     public void Draw()
     {
+        if (!Service<DalamudConfiguration>.Get().ProfilesEnabled)
+        {
+            this.DrawChoice();
+            return;
+        }
+        
         var tutorialTitle = Locs.TutorialTitle + "###collectionsTutorWindow";
         var tutorialId = ImGui.GetID(tutorialTitle);
         this.DrawTutorial(tutorialTitle);
@@ -75,10 +84,27 @@ internal class ProfileManagerWidget
         this.pickerSearch = string.Empty;
     }
 
+    private void DrawChoice()
+    {
+        ImGuiHelpers.ScaledDummy(60);
+        ImGuiHelpers.CenteredText(Locs.Choice1);
+        ImGuiHelpers.CenteredText(Locs.Choice2);
+        ImGuiHelpers.ScaledDummy(20);
+
+        var buttonWidth = ImGui.GetWindowWidth() / 3;
+        ImGuiHelpers.CenterCursorFor((int)buttonWidth);
+        if (ImGui.Button(Locs.ChoiceConfirmation, new Vector2(buttonWidth, 40 * ImGuiHelpers.GlobalScale)))
+        {
+            var config = Service<DalamudConfiguration>.Get();
+            config.ProfilesEnabled = true;
+            config.QueueSave();
+        }
+    }
+
     private void DrawTutorial(string modalTitle)
     {
         var open = true;
-        ImGui.SetNextWindowSize(new Vector2(450, 350), ImGuiCond.Appearing);
+        ImGui.SetNextWindowSize(new Vector2(650, 550), ImGuiCond.Appearing);
         using (var popup = ImRaii.PopupModal(modalTitle, ref open))
         {
             if (popup)
@@ -228,7 +254,7 @@ internal class ProfileManagerWidget
 
                 if (ImGuiComponents.IconButton($"###exportButton{profile.Guid}", FontAwesomeIcon.FileExport))
                 {
-                    ImGui.SetClipboardText(profile.Model.Serialize());
+                    ImGui.SetClipboardText(profile.Model.SerializeForShare());
                     Service<NotificationManager>.Get().AddNotification(Locs.CopyToClipboardNotification, type: NotificationType.Success);
                 }
 
@@ -291,15 +317,15 @@ internal class ProfileManagerWidget
                 if (ImGui.BeginListBox("###pluginPicker", new Vector2(width, width - 80)))
                 {
                     // TODO: Plugin searching should be abstracted... installer and this should use the same search
-                    foreach (var plugin in pm.InstalledPlugins.Where(x => x.Manifest.SupportsProfiles && !x.IsDev &&
+                    foreach (var plugin in pm.InstalledPlugins.Where(x => x.Manifest.SupportsProfiles &&
                                                                           (this.pickerSearch.IsNullOrWhitespace() || x.Manifest.Name.ToLowerInvariant().Contains(this.pickerSearch.ToLowerInvariant()))))
                     {
                         using var disabled2 =
                             ImRaii.Disabled(profile.Plugins.Any(y => y.InternalName == plugin.Manifest.InternalName));
 
-                        if (ImGui.Selectable($"{plugin.Manifest.Name}###selector{plugin.Manifest.InternalName}"))
+                        if (ImGui.Selectable($"{plugin.Manifest.Name}{(plugin is LocalDevPlugin ? "(dev plugin)" : string.Empty)}###selector{plugin.Manifest.InternalName}"))
                         {
-                            Task.Run(() => profile.AddOrUpdateAsync(plugin.Manifest.InternalName, true, false))
+                            Task.Run(() => profile.AddOrUpdateAsync(plugin.Manifest.WorkingPluginId, plugin.Manifest.InternalName, true, false))
                                 .ContinueWith(this.installer.DisplayErrorContinuation, Locs.ErrorCouldNotChangeState);
                         }
                     }
@@ -326,7 +352,7 @@ internal class ProfileManagerWidget
 
         if (ImGuiComponents.IconButton(FontAwesomeIcon.FileExport))
         {
-            ImGui.SetClipboardText(profile.Model.Serialize());
+            ImGui.SetClipboardText(profile.Model.SerializeForShare());
             Service<NotificationManager>.Get().AddNotification(Locs.CopyToClipboardNotification, type: NotificationType.Success);
         }
 
@@ -399,24 +425,34 @@ internal class ProfileManagerWidget
         if (pluginListChild)
         {
             var pluginLineHeight = 32 * ImGuiHelpers.GlobalScale;
-            string? wantRemovePluginInternalName = null;
+            Guid? wantRemovePluginGuid = null;
 
             using var syncScope = profile.GetSyncScope();
-            foreach (var plugin in profile.Plugins.ToArray())
+            foreach (var profileEntry in profile.Plugins.ToArray())
             {
                 didAny = true;
-                var pmPlugin = pm.InstalledPlugins.FirstOrDefault(x => x.Manifest.InternalName == plugin.InternalName);
+                var pmPlugin = pm.InstalledPlugins.FirstOrDefault(x => x.Manifest.WorkingPluginId == profileEntry.WorkingPluginId);
                 var btnOffset = 2;
 
                 if (pmPlugin != null)
                 {
+                    var cursorBeforeIcon = ImGui.GetCursorPos();
                     pic.TryGetIcon(pmPlugin, pmPlugin.Manifest, pmPlugin.IsThirdParty, out var icon);
                     icon ??= pic.DefaultIcon;
 
                     ImGui.Image(icon.ImGuiHandle, new Vector2(pluginLineHeight));
+
+                    if (pmPlugin.IsDev)
+                    {
+                        ImGui.SetCursorPos(cursorBeforeIcon);
+                        ImGui.PushStyleVar(ImGuiStyleVar.Alpha, 0.7f);
+                        ImGui.Image(pic.DevPluginIcon.ImGuiHandle, new Vector2(pluginLineHeight));
+                        ImGui.PopStyleVar();
+                    }
+                    
                     ImGui.SameLine();
 
-                    var text = $"{pmPlugin.Name}";
+                    var text = $"{pmPlugin.Name}{(pmPlugin.IsDev ? " (dev plugin" : string.Empty)}";
                     var textHeight = ImGui.CalcTextSize(text);
                     var before = ImGui.GetCursorPos();
 
@@ -430,32 +466,53 @@ internal class ProfileManagerWidget
                     ImGui.Image(pic.DefaultIcon.ImGuiHandle, new Vector2(pluginLineHeight));
                     ImGui.SameLine();
 
-                    var text = Locs.NotInstalled(plugin.InternalName);
+                    var text = Locs.NotInstalled(profileEntry.InternalName);
                     var textHeight = ImGui.CalcTextSize(text);
                     var before = ImGui.GetCursorPos();
 
                     ImGui.SetCursorPosY(ImGui.GetCursorPosY() + (pluginLineHeight / 2) - (textHeight.Y / 2));
                     ImGui.TextUnformatted(text);
-
-                    var available =
+                    
+                    var firstAvailableInstalled = pm.InstalledPlugins.FirstOrDefault(x => x.InternalName == profileEntry.InternalName);
+                    var installable =
                         pm.AvailablePlugins.FirstOrDefault(
-                            x => x.InternalName == plugin.InternalName && !x.SourceRepo.IsThirdParty);
-                    if (available != null)
+                            x => x.InternalName == profileEntry.InternalName && !x.SourceRepo.IsThirdParty);
+                    
+                    if (firstAvailableInstalled != null)
+                    {
+                        ImGui.Text($"Match to plugin '{firstAvailableInstalled.Name}'?");
+                        ImGui.SameLine();
+                        if (ImGuiComponents.IconButtonWithText(
+                                FontAwesomeIcon.Check,
+                                "Yes, use this one"))
+                        {
+                            profileEntry.WorkingPluginId = firstAvailableInstalled.Manifest.WorkingPluginId;
+                            Task.Run(async () =>
+                                {
+                                    await profman.ApplyAllWantStatesAsync();
+                                })
+                                .ContinueWith(t =>
+                                {
+                                    this.installer.DisplayErrorContinuation(t, Locs.ErrorCouldNotChangeState);
+                                });
+                        }
+                    }
+                    else if (installable != null)
                     {
                         ImGui.SameLine();
                         ImGui.SetCursorPosX(windowSize.X - (ImGuiHelpers.GlobalScale * 30 * 2) - 2);
                         ImGui.SetCursorPosY(ImGui.GetCursorPosY() + (pluginLineHeight / 2) - (ImGui.GetFrameHeight() / 2));
                         btnOffset = 3;
 
-                        if (ImGuiComponents.IconButton($"###installMissingPlugin{available.InternalName}", FontAwesomeIcon.Download))
+                        if (ImGuiComponents.IconButton($"###installMissingPlugin{installable.InternalName}", FontAwesomeIcon.Download))
                         {
-                            this.installer.StartInstall(available, false);
+                            this.installer.StartInstall(installable, false);
                         }
 
                         if (ImGui.IsItemHovered())
                             ImGui.SetTooltip(Locs.InstallPlugin);
                     }
-
+                    
                     ImGui.SetCursorPos(before);
                 }
 
@@ -463,10 +520,10 @@ internal class ProfileManagerWidget
                 ImGui.SetCursorPosX(windowSize.X - (ImGuiHelpers.GlobalScale * 30));
                 ImGui.SetCursorPosY(ImGui.GetCursorPosY() + (pluginLineHeight / 2) - (ImGui.GetFrameHeight() / 2));
 
-                var enabled = plugin.IsEnabled;
-                if (ImGui.Checkbox($"###{this.editingProfileGuid}-{plugin.InternalName}", ref enabled))
+                var enabled = profileEntry.IsEnabled;
+                if (ImGui.Checkbox($"###{this.editingProfileGuid}-{profileEntry.InternalName}", ref enabled))
                 {
-                    Task.Run(() => profile.AddOrUpdateAsync(plugin.InternalName, enabled))
+                    Task.Run(() => profile.AddOrUpdateAsync(profileEntry.WorkingPluginId, profileEntry.InternalName, enabled))
                         .ContinueWith(this.installer.DisplayErrorContinuation, Locs.ErrorCouldNotChangeState);
                 }
 
@@ -474,19 +531,19 @@ internal class ProfileManagerWidget
                 ImGui.SetCursorPosX(windowSize.X - (ImGuiHelpers.GlobalScale * 30 * btnOffset) - 5);
                 ImGui.SetCursorPosY(ImGui.GetCursorPosY() + (pluginLineHeight / 2) - (ImGui.GetFrameHeight() / 2));
 
-                if (ImGuiComponents.IconButton($"###removePlugin{plugin.InternalName}", FontAwesomeIcon.Trash))
+                if (ImGuiComponents.IconButton($"###removePlugin{profileEntry.InternalName}", FontAwesomeIcon.Trash))
                 {
-                    wantRemovePluginInternalName = plugin.InternalName;
+                    wantRemovePluginGuid = profileEntry.WorkingPluginId;
                 }
 
                 if (ImGui.IsItemHovered())
                     ImGui.SetTooltip(Locs.RemovePlugin);
             }
 
-            if (wantRemovePluginInternalName != null)
+            if (wantRemovePluginGuid != null)
             {
                 // TODO: handle error
-                Task.Run(() => profile.RemoveAsync(wantRemovePluginInternalName, false))
+                Task.Run(() => profile.RemoveAsync(wantRemovePluginGuid.Value, false))
                                 .ContinueWith(this.installer.DisplayErrorContinuation, Locs.ErrorCouldNotRemove);
             }
 
@@ -604,6 +661,15 @@ internal class ProfileManagerWidget
         
         public static string TutorialCommandsEnd =>
             Loc.Localize("ProfileManagerTutorialCommandsEnd", "If you run multiple of these commands, they will be executed in order.");
+
+        public static string Choice1 =>
+            Loc.Localize("ProfileManagerChoice1", "Plugin collections are a new feature that allow you to group plugins into collections which can be toggled and shared.");
+        
+        public static string Choice2 =>
+            Loc.Localize("ProfileManagerChoice2", "They are experimental and may still contain bugs. Do you want to enable them now?");
+       
+        public static string ChoiceConfirmation =>
+            Loc.Localize("ProfileManagerChoiceConfirmation", "Yes, enable Plugin Collections");
 
         public static string NotInstalled(string name) =>
             Loc.Localize("ProfileManagerNotInstalled", "{0} (Not Installed)").Format(name);

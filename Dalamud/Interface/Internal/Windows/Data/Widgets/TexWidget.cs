@@ -1,21 +1,21 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Numerics;
 
+using Dalamud.Interface.Utility;
 using Dalamud.Plugin.Services;
 using ImGuiNET;
 using ImGuiScene;
 using Serilog;
 
-namespace Dalamud.Interface.Internal.Windows.Data;
+namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 
 /// <summary>
 /// Widget for displaying texture test.
 /// </summary>
 internal class TexWidget : IDataWindowWidget
 {
-    private readonly List<TextureWrap> addedTextures = new();
+    private readonly List<IDalamudTextureWrap> addedTextures = new();
     
     private string iconId = "18";
     private bool hiRes = true;
@@ -28,7 +28,10 @@ internal class TexWidget : IDataWindowWidget
     private Vector2 inputTexScale = Vector2.Zero;
 
     /// <inheritdoc/>
-    public DataKind DataKind { get; init; } = DataKind.Tex;
+    public string[]? CommandShortcuts { get; init; } = { "tex", "texture" };
+    
+    /// <inheritdoc/>
+    public string DisplayName { get; init; } = "Tex"; 
 
     /// <inheritdoc/>
     public bool Ready { get; set; }
@@ -101,7 +104,7 @@ internal class TexWidget : IDataWindowWidget
 
         ImGuiHelpers.ScaledDummy(10);
 
-        TextureWrap? toRemove = null;
+        IDalamudTextureWrap? toRemove = null;
         for (var i = 0; i < this.addedTextures.Count; i++)
         {
             if (ImGui.CollapsingHeader($"Tex #{i}"))
@@ -116,6 +119,10 @@ internal class TexWidget : IDataWindowWidget
 
                 if (ImGui.Button($"X##{i}"))
                     toRemove = tex;
+
+                ImGui.SameLine();
+                if (ImGui.Button($"Clone##{i}"))
+                    this.addedTextures.Add(tex.CreateWrapSharingLowLevelResource());
             }
         }
 

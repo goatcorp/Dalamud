@@ -2,7 +2,7 @@
 using Dalamud.Utility;
 using ImGuiNET;
 
-namespace Dalamud.Interface.Internal.Windows.Data;
+namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 
 /// <summary>
 /// Widget for displaying data about the Buddy List.
@@ -12,10 +12,13 @@ internal class BuddyListWidget : IDataWindowWidget
     private bool resolveGameData;
 
     /// <inheritdoc/>
-    public DataKind DataKind { get; init; } = DataKind.Buddy_List;
+    public bool Ready { get; set; }
 
     /// <inheritdoc/>
-    public bool Ready { get; set; }
+    public string[]? CommandShortcuts { get; init; } = { "buddy", "buddylist" };
+    
+    /// <inheritdoc/>
+    public string DisplayName { get; init; } = "Buddy List"; 
 
     /// <inheritdoc/>
     public void Load()

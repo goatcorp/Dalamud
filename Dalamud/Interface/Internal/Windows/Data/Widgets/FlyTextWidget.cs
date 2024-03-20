@@ -1,10 +1,9 @@
-﻿using System;
-using System.Numerics;
+﻿using System.Numerics;
 
 using Dalamud.Game.Gui.FlyText;
 using ImGuiNET;
 
-namespace Dalamud.Interface.Internal.Windows.Data;
+namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 
 /// <summary>
 /// Widget for displaying fly text info.
@@ -22,7 +21,10 @@ internal class FlyTextWidget : IDataWindowWidget
     private Vector4 flyColor = new(1, 0, 0, 1);
     
     /// <inheritdoc/>
-    public DataKind DataKind { get; init; } = DataKind.FlyText;
+    public string[]? CommandShortcuts { get; init; } = { "flytext" };
+    
+    /// <inheritdoc/>
+    public string DisplayName { get; init; } = "Fly Text"; 
 
     /// <inheritdoc/>
     public bool Ready { get; set; }

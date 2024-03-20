@@ -408,14 +408,20 @@ utils::signature_finder::result utils::signature_finder::find_one() const {
     return find(1, 1, false).front();
 }
 
-utils::memory_tenderizer::memory_tenderizer(const void* pAddress, size_t length, DWORD dwNewProtect) : m_data(reinterpret_cast<char*>(const_cast<void*>(pAddress)), length) {
+utils::memory_tenderizer::memory_tenderizer(const void* pAddress, size_t length, DWORD dwNewProtect)
+    : memory_tenderizer(GetCurrentProcess(), pAddress, length, dwNewProtect) {
+}
+
+utils::memory_tenderizer::memory_tenderizer(HANDLE hProcess, const void* pAddress, size_t length, DWORD dwNewProtect)
+: m_process(hProcess)
+, m_data(static_cast<char*>(const_cast<void*>(pAddress)), length) {
     try {
-        for (auto pCoveredAddress = &m_data[0];
-            pCoveredAddress < &m_data[0] + m_data.size();
-            pCoveredAddress = reinterpret_cast<char*>(m_regions.back().BaseAddress) + m_regions.back().RegionSize) {
+        for (auto pCoveredAddress = m_data.data();
+            pCoveredAddress < m_data.data() + m_data.size();
+            pCoveredAddress = static_cast<char*>(m_regions.back().BaseAddress) + m_regions.back().RegionSize) {
 
             MEMORY_BASIC_INFORMATION region{};
-            if (!VirtualQuery(pCoveredAddress, &region, sizeof region)) {
+            if (!VirtualQueryEx(hProcess, pCoveredAddress, &region, sizeof region)) {
                 throw std::runtime_error(std::format(
                     "VirtualQuery(addr=0x{:X}, ..., cb={}) failed with Win32 code 0x{:X}",
                     reinterpret_cast<size_t>(pCoveredAddress),
@@ -423,7 +429,7 @@ utils::memory_tenderizer::memory_tenderizer(const void* pAddress, size_t length,
                     GetLastError()));
             }
 
-            if (!VirtualProtect(region.BaseAddress, region.RegionSize, dwNewProtect, &region.Protect)) {
+            if (!VirtualProtectEx(hProcess, region.BaseAddress, region.RegionSize, dwNewProtect, &region.Protect)) {
                 throw std::runtime_error(std::format(
                     "(Change)VirtualProtect(addr=0x{:X}, size=0x{:X}, ..., ...) failed with Win32 code 0x{:X}",
                     reinterpret_cast<size_t>(region.BaseAddress),
@@ -436,7 +442,7 @@ utils::memory_tenderizer::memory_tenderizer(const void* pAddress, size_t length,
 
     } catch (...) {
         for (auto& region : std::ranges::reverse_view(m_regions)) {
-            if (!VirtualProtect(region.BaseAddress, region.RegionSize, region.Protect, &region.Protect)) {
+            if (!VirtualProtectEx(hProcess, region.BaseAddress, region.RegionSize, region.Protect, &region.Protect)) {
                 // Could not restore; fast fail
                 __fastfail(GetLastError());
             }
@@ -448,7 +454,7 @@ utils::memory_tenderizer::memory_tenderizer(const void* pAddress, size_t length,
 
 utils::memory_tenderizer::~memory_tenderizer() {
     for (auto& region : std::ranges::reverse_view(m_regions)) {
-        if (!VirtualProtect(region.BaseAddress, region.RegionSize, region.Protect, &region.Protect)) {
+        if (!VirtualProtectEx(m_process, region.BaseAddress, region.RegionSize, region.Protect, &region.Protect)) {
             // Could not restore; fast fail
             __fastfail(GetLastError());
         }
@@ -578,19 +584,6 @@ std::vector<std::string> utils::get_env_list(const wchar_t* pcszName) {
     return res;
 }
 
-bool utils::is_running_on_linux() {
-    if (get_env<bool>(L"XL_WINEONLINUX"))
-        return true;
-    HMODULE hntdll = GetModuleHandleW(L"ntdll.dll");
-    if (!hntdll)
-        return true;
-    if (GetProcAddress(hntdll, "wine_get_version"))
-        return true;
-    if (GetProcAddress(hntdll, "wine_get_host_version"))
-        return true;
-    return false;
-}
-
 std::filesystem::path utils::get_module_path(HMODULE hModule) {
     std::wstring buf(MAX_PATH, L'\0');
     while (true) {
@@ -656,4 +649,26 @@ std::wstring utils::escape_shell_arg(const std::wstring& arg) {
         res.push_back(L'"');
     }
     return res;
+}
+
+std::wstring utils::format_win32_error(DWORD err) {
+    wchar_t* pwszMsg = nullptr;
+    FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER |
+        FORMAT_MESSAGE_FROM_SYSTEM |
+        FORMAT_MESSAGE_IGNORE_INSERTS,
+        nullptr,
+        err,
+        MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US),
+        reinterpret_cast<LPWSTR>(&pwszMsg),
+        0,
+        nullptr);
+    if (pwszMsg) {
+        std::wstring result = std::format(L"Win32 error ({}=0x{:X}): {}", err, err, pwszMsg);
+        while (!result.empty() && std::isspace(result.back()))
+            result.pop_back();
+        LocalFree(pwszMsg);
+        return result;
+    }
+
+    return std::format(L"Win32 error ({}=0x{:X})", err, err);
 }

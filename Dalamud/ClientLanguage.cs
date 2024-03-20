@@ -1,5 +1,7 @@
 namespace Dalamud;
 
+// TODO(v10): Delete this, and use Dalamud.Common.ClientLanguage instead for everything.
+
 /// <summary>
 /// Enum describing the language the game loads in.
 /// </summary>

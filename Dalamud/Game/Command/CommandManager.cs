@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -9,22 +8,21 @@ using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
+using Dalamud.Logging.Internal;
+using Dalamud.Plugin.Internal.Types;
 using Dalamud.Plugin.Services;
-using Serilog;
 
 namespace Dalamud.Game.Command;
 
 /// <summary>
 /// This class manages registered in-game slash commands.
 /// </summary>
-[PluginInterface]
 [InterfaceVersion("1.0")]
 [ServiceManager.BlockingEarlyLoadedService]
-#pragma warning disable SA1015
-[ResolveVia<ICommandManager>]
-#pragma warning restore SA1015
-public sealed class CommandManager : IServiceType, IDisposable, ICommandManager
+internal sealed class CommandManager : IInternalDisposableService, ICommandManager
 {
+    private static readonly ModuleLog Log = new("Command");
+
     private readonly ConcurrentDictionary<string, CommandInfo> commandMap = new();
     private readonly Regex commandRegexEn = new(@"^The command (?<command>.+) does not exist\.$", RegexOptions.Compiled);
     private readonly Regex commandRegexJp = new(@"^そのコマンドはありません。： (?<command>.+)$", RegexOptions.Compiled);
@@ -37,15 +35,15 @@ public sealed class CommandManager : IServiceType, IDisposable, ICommandManager
     private readonly ChatGui chatGui = Service<ChatGui>.Get();
 
     [ServiceManager.ServiceConstructor]
-    private CommandManager(DalamudStartInfo startInfo)
+    private CommandManager(Dalamud dalamud)
     {
-        this.currentLangCommandRegex = startInfo.Language switch
+        this.currentLangCommandRegex = (ClientLanguage)dalamud.StartInfo.Language switch
         {
             ClientLanguage.Japanese => this.commandRegexJp,
             ClientLanguage.English => this.commandRegexEn,
             ClientLanguage.German => this.commandRegexDe,
             ClientLanguage.French => this.commandRegexFr,
-            _ => this.currentLangCommandRegex,
+            _ => this.commandRegexEn,
         };
 
         this.chatGui.CheckMessageHandled += this.OnCheckMessageHandled;
@@ -84,7 +82,7 @@ public sealed class CommandManager : IServiceType, IDisposable, ICommandManager
             // => command: 0-12 (12 chars)
             // => argument: 13-17 (4 chars)
             // => content.IndexOf(' ') == 12
-            command = content.Substring(0, separatorPosition);
+            command = content[..separatorPosition];
 
             var argStart = separatorPosition + 1;
             argument = content[argStart..];
@@ -132,7 +130,7 @@ public sealed class CommandManager : IServiceType, IDisposable, ICommandManager
     }
 
     /// <inheritdoc/>
-    void IDisposable.Dispose()
+    void IInternalDisposableService.DisposeService()
     {
         this.chatGui.CheckMessageHandled -= this.OnCheckMessageHandled;
     }
@@ -160,5 +158,95 @@ public sealed class CommandManager : IServiceType, IDisposable, ICommandManager
                 }
             }
         }
+    }
+}
+
+/// <summary>
+/// Plugin-scoped version of a AddonLifecycle service.
+/// </summary>
+[PluginInterface]
+[InterfaceVersion("1.0")]
+[ServiceManager.ScopedService]
+#pragma warning disable SA1015
+[ResolveVia<ICommandManager>]
+#pragma warning restore SA1015
+internal class CommandManagerPluginScoped : IInternalDisposableService, ICommandManager
+{
+    private static readonly ModuleLog Log = new("Command");
+    
+    [ServiceManager.ServiceDependency]
+    private readonly CommandManager commandManagerService = Service<CommandManager>.Get();
+
+    private readonly List<string> pluginRegisteredCommands = new();
+    private readonly LocalPlugin pluginInfo;
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="CommandManagerPluginScoped"/> class.
+    /// </summary>
+    /// <param name="localPlugin">Info for the plugin that requests this service.</param>
+    public CommandManagerPluginScoped(LocalPlugin localPlugin)
+    {
+        this.pluginInfo = localPlugin;
+    }
+    
+    /// <inheritdoc/>
+    public ReadOnlyDictionary<string, CommandInfo> Commands => this.commandManagerService.Commands;
+    
+    /// <inheritdoc/>
+    void IInternalDisposableService.DisposeService()
+    {
+        foreach (var command in this.pluginRegisteredCommands)
+        {
+            this.commandManagerService.RemoveHandler(command);
+        }
+        
+        this.pluginRegisteredCommands.Clear();
+    }
+
+    /// <inheritdoc/>
+    public bool ProcessCommand(string content)
+        => this.commandManagerService.ProcessCommand(content);
+
+    /// <inheritdoc/>
+    public void DispatchCommand(string command, string argument, CommandInfo info)
+        => this.commandManagerService.DispatchCommand(command, argument, info);
+    
+    /// <inheritdoc/>
+    public bool AddHandler(string command, CommandInfo info)
+    {
+        if (!this.pluginRegisteredCommands.Contains(command))
+        {
+            info.LoaderAssemblyName = this.pluginInfo.InternalName;
+            if (this.commandManagerService.AddHandler(command, info))
+            {
+                this.pluginRegisteredCommands.Add(command);
+                return true;
+            }
+        }
+        else
+        {
+            Log.Error($"Command {command} is already registered.");
+        }
+
+        return false;
+    }
+    
+    /// <inheritdoc/>
+    public bool RemoveHandler(string command)
+    {
+        if (this.pluginRegisteredCommands.Contains(command))
+        {
+            if (this.commandManagerService.RemoveHandler(command))
+            {
+                this.pluginRegisteredCommands.Remove(command);
+                return true;
+            }
+        }
+        else
+        {
+            Log.Error($"Command {command} not found.");
+        }
+
+        return false;
     }
 }

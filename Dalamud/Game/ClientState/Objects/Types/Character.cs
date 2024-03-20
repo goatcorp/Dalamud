@@ -1,5 +1,3 @@
-using System;
-
 using Dalamud.Game.ClientState.Objects.Enums;
 using Dalamud.Game.ClientState.Resolvers;
 using Dalamud.Game.Text.SeStringHandling;
@@ -64,6 +62,11 @@ public unsafe class Character : GameObject
     public uint MaxCp => this.Struct->CharacterData.MaxCraftingPoints;
 
     /// <summary>
+    /// Gets the shield percentage of this Chara.
+    /// </summary>
+    public byte ShieldPercentage => this.Struct->CharacterData.ShieldValue;
+
+    /// <summary>
     /// Gets the ClassJob of this Chara.
     /// </summary>
     public ExcelResolver<ClassJob> ClassJob => new(this.Struct->CharacterData.ClassJob);
@@ -87,7 +90,7 @@ public unsafe class Character : GameObject
     /// <summary>
     /// Gets the target object ID of the character.
     /// </summary>
-    public override ulong TargetObjectId => this.Struct->TargetObjectID;
+    public override ulong TargetObjectId => this.Struct->TargetId;
 
     /// <summary>
     /// Gets the name ID of the character.
@@ -115,5 +118,6 @@ public unsafe class Character : GameObject
     /// <summary>
     /// Gets the underlying structure.
     /// </summary>
-    protected internal new FFXIVClientStructs.FFXIV.Client.Game.Character.Character* Struct => (FFXIVClientStructs.FFXIV.Client.Game.Character.Character*)this.Address;
+    protected internal new FFXIVClientStructs.FFXIV.Client.Game.Character.Character* Struct =>
+        (FFXIVClientStructs.FFXIV.Client.Game.Character.Character*)this.Address;
 }

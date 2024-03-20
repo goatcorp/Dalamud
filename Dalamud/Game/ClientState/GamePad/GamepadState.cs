@@ -21,7 +21,7 @@ namespace Dalamud.Game.ClientState.GamePad;
 #pragma warning disable SA1015
 [ResolveVia<IGamepadState>]
 #pragma warning restore SA1015
-public unsafe class GamepadState : IDisposable, IServiceType, IGamepadState
+internal unsafe class GamepadState : IInternalDisposableService, IGamepadState
 {
     private readonly Hook<ControllerPoll>? gamepadPoll;
 
@@ -38,6 +38,7 @@ public unsafe class GamepadState : IDisposable, IServiceType, IGamepadState
         var resolver = clientState.AddressResolver;
         Log.Verbose($"GamepadPoll address 0x{resolver.GamepadPoll.ToInt64():X}");
         this.gamepadPoll = Hook<ControllerPoll>.FromAddress(resolver.GamepadPoll, this.GamepadPollDetour);
+        this.gamepadPoll?.Enable();
     }
 
     private delegate int ControllerPoll(IntPtr controllerInput);
@@ -54,54 +55,6 @@ public unsafe class GamepadState : IDisposable, IServiceType, IGamepadState
     /// <inheritdoc/>
     public Vector2 RightStick => 
         new(this.rightStickX, this.rightStickY);
-
-    /// <summary>
-    ///     Gets the state of the left analogue stick in the left direction between 0 (not tilted) and 1 (max tilt).
-    /// </summary>
-    [Obsolete("Use IGamepadState.LeftStick.X", false)]
-    public float LeftStickLeft => this.leftStickX < 0 ? -this.leftStickX / 100f : 0;
-
-    /// <summary>
-    ///     Gets the state of the left analogue stick in the right direction between 0 (not tilted) and 1 (max tilt).
-    /// </summary>
-    [Obsolete("Use IGamepadState.LeftStick.X", false)]
-    public float LeftStickRight => this.leftStickX > 0 ? this.leftStickX / 100f : 0;
-
-    /// <summary>
-    ///     Gets the state of the left analogue stick in the up direction between 0 (not tilted) and 1 (max tilt).
-    /// </summary>
-    [Obsolete("Use IGamepadState.LeftStick.Y", false)]
-    public float LeftStickUp => this.leftStickY > 0 ? this.leftStickY / 100f : 0;
-
-    /// <summary>
-    ///     Gets the state of the left analogue stick in the down direction between 0 (not tilted) and 1 (max tilt).
-    /// </summary>
-    [Obsolete("Use IGamepadState.LeftStick.Y", false)]
-    public float LeftStickDown => this.leftStickY < 0 ? -this.leftStickY / 100f : 0;
-
-    /// <summary>
-    ///     Gets the state of the right analogue stick in the left direction between 0 (not tilted) and 1 (max tilt).
-    /// </summary>
-    [Obsolete("Use IGamepadState.RightStick.X", false)]
-    public float RightStickLeft => this.rightStickX < 0 ? -this.rightStickX / 100f : 0;
-
-    /// <summary>
-    ///     Gets the state of the right analogue stick in the right direction between 0 (not tilted) and 1 (max tilt).
-    /// </summary>
-    [Obsolete("Use IGamepadState.RightStick.X", false)]
-    public float RightStickRight => this.rightStickX > 0 ? this.rightStickX / 100f : 0;
-
-    /// <summary>
-    ///     Gets the state of the right analogue stick in the up direction between 0 (not tilted) and 1 (max tilt).
-    /// </summary>
-    [Obsolete("Use IGamepadState.RightStick.Y", false)]
-    public float RightStickUp => this.rightStickY > 0 ? this.rightStickY / 100f : 0;
-
-    /// <summary>
-    ///     Gets the state of the right analogue stick in the down direction between 0 (not tilted) and 1 (max tilt).
-    /// </summary>
-    [Obsolete("Use IGamepadState.RightStick.Y", false)]
-    public float RightStickDown => this.rightStickY < 0 ? -this.rightStickY / 100f : 0;
 
     /// <summary>
     /// Gets buttons pressed bitmask, set once when the button is pressed. See <see cref="GamepadButtons"/> for the mapping.
@@ -156,16 +109,10 @@ public unsafe class GamepadState : IDisposable, IServiceType, IGamepadState
     /// <summary>
     /// Disposes this instance, alongside its hooks.
     /// </summary>
-    void IDisposable.Dispose()
+    void IInternalDisposableService.DisposeService()
     {
         this.Dispose(true);
         GC.SuppressFinalize(this);
-    }
-
-    [ServiceManager.CallWhenServicesReady]
-    private void ContinueConstruction()
-    {
-        this.gamepadPoll?.Enable();
     }
 
     private int GamepadPollDetour(IntPtr gamepadInput)

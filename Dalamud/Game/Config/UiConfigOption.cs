@@ -3473,4 +3473,67 @@ public enum UiConfigOption
     /// </summary>
     [GameConfigOption("ItemInventryStoreEnd", ConfigType.UInt)]
     ItemInventryStoreEnd,
+
+    /// <summary>
+    /// System option with the internal name HotbarXHBEditEnable.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("HotbarXHBEditEnable", ConfigType.UInt)]
+    HotbarXHBEditEnable,
+
+    /// <summary>
+    /// System option with the internal name NamePlateDispJobIconInPublicParty.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("NamePlateDispJobIconInPublicParty", ConfigType.UInt)]
+    NamePlateDispJobIconInPublicParty,
+
+    /// <summary>
+    /// System option with the internal name NamePlateDispJobIconInPublicOther.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("NamePlateDispJobIconInPublicOther", ConfigType.UInt)]
+    NamePlateDispJobIconInPublicOther,
+
+    /// <summary>
+    /// System option with the internal name NamePlateDispJobIconInInstanceParty.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("NamePlateDispJobIconInInstanceParty", ConfigType.UInt)]
+    NamePlateDispJobIconInInstanceParty,
+
+    /// <summary>
+    /// System option with the internal name NamePlateDispJobIconInInstanceOther.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("NamePlateDispJobIconInInstanceOther", ConfigType.UInt)]
+    NamePlateDispJobIconInInstanceOther,
+
+    /// <summary>
+    /// System option with the internal name CCProgressAllyFixLeftSide.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("CCProgressAllyFixLeftSide", ConfigType.UInt)]
+    CCProgressAllyFixLeftSide,
+
+    /// <summary>
+    /// System option with the internal name CCMapAllyFixLeftSide.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("CCMapAllyFixLeftSide", ConfigType.UInt)]
+    CCMapAllyFixLeftSide,
+
+    /// <summary>
+    /// System option with the internal name DispCCCountDown.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("DispCCCountDown", ConfigType.UInt)]
+    DispCCCountDown,
+
+    /// <summary>
+    /// System option with the internal name TelepoCategoryType.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("TelepoCategoryType", ConfigType.UInt)]
+    TelepoCategoryType,
 }

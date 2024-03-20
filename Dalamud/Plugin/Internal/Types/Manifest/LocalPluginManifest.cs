@@ -14,18 +14,6 @@ namespace Dalamud.Plugin.Internal.Types.Manifest;
 internal record LocalPluginManifest : PluginManifest, ILocalPluginManifest
 {
     /// <summary>
-    /// Flag indicating that a plugin was installed from the official repo.
-    /// </summary>
-    [JsonIgnore]
-    public const string FlagMainRepo = "OFFICIAL";
-
-    /// <summary>
-    /// Flag indicating that a plugin is a dev plugin..
-    /// </summary>
-    [JsonIgnore]
-    public const string FlagDevPlugin = "DEVPLUGIN";
-
-    /// <summary>
     /// Gets or sets a value indicating whether the plugin is disabled and should not be loaded.
     /// This value supersedes the ".disabled" file functionality and should not be included in the plugin master.
     /// </summary>
@@ -51,7 +39,7 @@ internal record LocalPluginManifest : PluginManifest, ILocalPluginManifest
     /// Gets a value indicating whether this manifest is associated with a plugin that was installed from a third party
     /// repo. Unless the manifest has been manually modified, this is determined by the InstalledFromUrl being null.
     /// </summary>
-    public bool IsThirdParty => !this.InstalledFromUrl.IsNullOrEmpty() && this.InstalledFromUrl != FlagMainRepo;
+    public bool IsThirdParty => !this.InstalledFromUrl.IsNullOrEmpty() && this.InstalledFromUrl != SpecialPluginSource.MainRepo;
 
     /// <summary>
     /// Gets the effective version of this plugin.

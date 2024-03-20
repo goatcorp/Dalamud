@@ -1,0 +1,5 @@
+CreateFile
+FILE_ACCESS_RIGHTS
+MoveFileEx
+FlushFileBuffers
+WriteFile

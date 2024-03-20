@@ -2,7 +2,7 @@
 using Dalamud.Game.Gui.Dtr;
 using ImGuiNET;
 
-namespace Dalamud.Interface.Internal.Windows.Data;
+namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 
 /// <summary>
 /// Widget for displaying dtr test.
@@ -14,7 +14,10 @@ internal class DtrBarWidget : IDataWindowWidget
     private DtrBarEntry? dtrTest3;
     
     /// <inheritdoc/>
-    public DataKind DataKind { get; init; } = DataKind.Dtr_Bar;
+    public string[]? CommandShortcuts { get; init; } = { "dtr", "dtrbar" };
+    
+    /// <inheritdoc/>
+    public string DisplayName { get; init; } = "DTR Bar"; 
 
     /// <inheritdoc/>
     public bool Ready { get; set; }

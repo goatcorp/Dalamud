@@ -1,12 +1,11 @@
-﻿using System;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 
 using Dalamud.Hooking;
 using ImGuiNET;
 using PInvoke;
 using Serilog;
 
-namespace Dalamud.Interface.Internal.Windows.Data;
+namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 
 /// <summary>
 /// Widget for displaying hook information.
@@ -23,8 +22,11 @@ internal class HookWidget : IDataWindowWidget
         NativeFunctions.MessageBoxType type);
     
     /// <inheritdoc/>
-    public DataKind DataKind { get; init; } = DataKind.Hook;
+    public string DisplayName { get; init; } = "Hook"; 
 
+    /// <inheritdoc/>
+    public string[]? CommandShortcuts { get; init; } = { "hook" };
+    
     /// <inheritdoc/>
     public bool Ready { get; set; }
 

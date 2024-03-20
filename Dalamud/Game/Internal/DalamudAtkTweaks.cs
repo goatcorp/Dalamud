@@ -20,7 +20,7 @@ namespace Dalamud.Game.Internal;
 /// This class implements in-game Dalamud options in the in-game System menu.
 /// </summary>
 [ServiceManager.EarlyLoadedService]
-internal sealed unsafe partial class DalamudAtkTweaks : IServiceType
+internal sealed unsafe class DalamudAtkTweaks : IInternalDisposableService
 {
     private readonly AtkValueChangeType atkValueChangeType;
     private readonly AtkValueSetString atkValueSetString;
@@ -40,8 +40,10 @@ internal sealed unsafe partial class DalamudAtkTweaks : IServiceType
     private readonly string locDalamudPlugins;
     private readonly string locDalamudSettings;
 
+    private bool disposed = false;
+
     [ServiceManager.ServiceConstructor]
-    private DalamudAtkTweaks(SigScanner sigScanner)
+    private DalamudAtkTweaks(TargetSigScanner sigScanner)
     {
         var openSystemMenuAddress = sigScanner.ScanText("E8 ?? ?? ?? ?? 32 C0 4C 8B AC 24 ?? ?? ?? ?? 48 8B 8D ?? ?? ?? ??");
 
@@ -63,7 +65,14 @@ internal sealed unsafe partial class DalamudAtkTweaks : IServiceType
         this.locDalamudSettings = Loc.Localize("SystemMenuSettings", "Dalamud Settings");
 
         // this.contextMenu.ContextMenuOpened += this.ContextMenuOnContextMenuOpened;
+        
+        this.hookAgentHudOpenSystemMenu.Enable();
+        this.hookUiModuleRequestMainCommand.Enable();
+        this.hookAtkUnitBaseReceiveGlobalEvent.Enable();
     }
+
+    /// <summary>Finalizes an instance of the <see cref="DalamudAtkTweaks"/> class.</summary>
+    ~DalamudAtkTweaks() => this.Dispose(false);
 
     private delegate void AgentHudOpenSystemMenuPrototype(void* thisPtr, AtkValue* atkValueArgs, uint menuSize);
 
@@ -75,12 +84,24 @@ internal sealed unsafe partial class DalamudAtkTweaks : IServiceType
 
     private delegate IntPtr AtkUnitBaseReceiveGlobalEvent(AtkUnitBase* thisPtr, ushort cmd, uint a3, IntPtr a4, uint* a5);
 
-    [ServiceManager.CallWhenServicesReady]
-    private void ContinueConstruction(DalamudInterface dalamudInterface)
+    /// <inheritdoc/>
+    void IInternalDisposableService.DisposeService() => this.Dispose(true);
+
+    private void Dispose(bool disposing)
     {
-        this.hookAgentHudOpenSystemMenu.Enable();
-        this.hookUiModuleRequestMainCommand.Enable();
-        this.hookAtkUnitBaseReceiveGlobalEvent.Enable();
+        if (this.disposed)
+            return;
+
+        if (disposing)
+        {
+            this.hookAgentHudOpenSystemMenu.Dispose();
+            this.hookUiModuleRequestMainCommand.Dispose();
+            this.hookAtkUnitBaseReceiveGlobalEvent.Dispose();
+
+            // this.contextMenu.ContextMenuOpened -= this.ContextMenuOnContextMenuOpened;
+        }
+
+        this.disposed = true;
     }
 
     /*
@@ -111,7 +132,7 @@ internal sealed unsafe partial class DalamudAtkTweaks : IServiceType
 
     private IntPtr AtkUnitBaseReceiveGlobalEventDetour(AtkUnitBase* thisPtr, ushort cmd, uint a3, IntPtr a4, uint* arg)
     {
-        // Log.Information("{0}: cmd#{1} a3#{2} - HasAnyFocus:{3}", Marshal.PtrToStringAnsi(new IntPtr(thisPtr->Name)), cmd, a3, WindowSystem.HasAnyWindowSystemFocus);
+        // Log.Information("{0}: cmd#{1} a3#{2} - HasAnyFocus:{3}", MemoryHelper.ReadSeStringAsString(out _, new IntPtr(thisPtr->Name)), cmd, a3, WindowSystem.HasAnyWindowSystemFocus);
 
         // "SendHotkey"
         // 3 == Close
@@ -222,56 +243,14 @@ internal sealed unsafe partial class DalamudAtkTweaks : IServiceType
         switch (commandId)
         {
             case 69420:
-                dalamudInterface?.TogglePluginInstallerWindow();
+                dalamudInterface?.OpenPluginInstaller();
                 break;
             case 69421:
-                dalamudInterface?.ToggleSettingsWindow();
+                dalamudInterface?.OpenSettings();
                 break;
             default:
                 this.hookUiModuleRequestMainCommand.Original(thisPtr, commandId);
                 break;
         }
-    }
-}
-
-/// <summary>
-/// Implements IDisposable.
-/// </summary>
-internal sealed partial class DalamudAtkTweaks : IDisposable
-{
-    private bool disposed = false;
-
-    /// <summary>
-    /// Finalizes an instance of the <see cref="DalamudAtkTweaks"/> class.
-    /// </summary>
-    ~DalamudAtkTweaks() => this.Dispose(false);
-
-    /// <summary>
-    /// Dispose of managed and unmanaged resources.
-    /// </summary>
-    public void Dispose()
-    {
-        this.Dispose(true);
-        GC.SuppressFinalize(this);
-    }
-
-    /// <summary>
-    /// Dispose of managed and unmanaged resources.
-    /// </summary>
-    private void Dispose(bool disposing)
-    {
-        if (this.disposed)
-            return;
-
-        if (disposing)
-        {
-            this.hookAgentHudOpenSystemMenu.Dispose();
-            this.hookUiModuleRequestMainCommand.Dispose();
-            this.hookAtkUnitBaseReceiveGlobalEvent.Dispose();
-
-            // this.contextMenu.ContextMenuOpened -= this.ContextMenuOnContextMenuOpened;
-        }
-
-        this.disposed = true;
     }
 }

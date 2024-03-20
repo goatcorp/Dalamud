@@ -110,6 +110,14 @@ public abstract class Easing
     }
 
     /// <summary>
+    /// Resets the animation.
+    /// </summary>
+    public void Reset()
+    {
+        this.animationTimer.Reset();
+    }
+
+    /// <summary>
     /// Updates the animation.
     /// </summary>
     public abstract void Update();

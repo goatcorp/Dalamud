@@ -1,9 +1,11 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
+using Dalamud.Plugin.Services;
 using Serilog;
 
 namespace Dalamud.Game.ClientState.Keys;
@@ -23,7 +25,10 @@ namespace Dalamud.Game.ClientState.Keys;
 [PluginInterface]
 [InterfaceVersion("1.0")]
 [ServiceManager.BlockingEarlyLoadedService]
-public class KeyState : IServiceType
+#pragma warning disable SA1015
+[ResolveVia<IKeyState>]
+#pragma warning restore SA1015
+internal class KeyState : IServiceType, IKeyState
 {
     // The array is accessed in a way that this limit doesn't appear to exist
     // but there is other state data past this point, and keys beyond here aren't
@@ -31,10 +36,10 @@ public class KeyState : IServiceType
     private const int MaxKeyCode = 0xF0;
     private readonly IntPtr bufferBase;
     private readonly IntPtr indexBase;
-    private VirtualKey[] validVirtualKeyCache = null;
+    private VirtualKey[]? validVirtualKeyCache;
 
     [ServiceManager.ServiceConstructor]
-    private KeyState(SigScanner sigScanner, ClientState clientState)
+    private KeyState(TargetSigScanner sigScanner, ClientState clientState)
     {
         var moduleBaseAddress = sigScanner.Module.BaseAddress;
         var addressResolver = clientState.AddressResolver;
@@ -44,46 +49,29 @@ public class KeyState : IServiceType
         Log.Verbose($"Keyboard state buffer address 0x{this.bufferBase.ToInt64():X}");
     }
 
-    /// <summary>
-    /// Get or set the key-pressed state for a given vkCode.
-    /// </summary>
-    /// <param name="vkCode">The virtual key to change.</param>
-    /// <returns>Whether the specified key is currently pressed.</returns>
-    /// <exception cref="ArgumentException">If the vkCode is not valid. Refer to <see cref="IsVirtualKeyValid(int)"/> or <see cref="GetValidVirtualKeys"/>.</exception>
-    /// <exception cref="ArgumentOutOfRangeException">If the set value is non-zero.</exception>
-    public unsafe bool this[int vkCode]
+    /// <inheritdoc/>
+    public bool this[int vkCode]
     {
         get => this.GetRawValue(vkCode) != 0;
         set => this.SetRawValue(vkCode, value ? 1 : 0);
     }
 
-    /// <inheritdoc cref="this[int]"/>
+    /// <inheritdoc/>
     public bool this[VirtualKey vkCode]
     {
         get => this[(int)vkCode];
         set => this[(int)vkCode] = value;
     }
 
-    /// <summary>
-    /// Gets the value in the index array.
-    /// </summary>
-    /// <param name="vkCode">The virtual key to change.</param>
-    /// <returns>The raw value stored in the index array.</returns>
-    /// <exception cref="ArgumentException">If the vkCode is not valid. Refer to <see cref="IsVirtualKeyValid(int)"/> or <see cref="GetValidVirtualKeys"/>.</exception>
+    /// <inheritdoc/>
     public int GetRawValue(int vkCode)
         => this.GetRefValue(vkCode);
 
-    /// <inheritdoc cref="GetRawValue(int)"/>
+    /// <inheritdoc/>
     public int GetRawValue(VirtualKey vkCode)
         => this.GetRawValue((int)vkCode);
 
-    /// <summary>
-    /// Sets the value in the index array.
-    /// </summary>
-    /// <param name="vkCode">The virtual key to change.</param>
-    /// <param name="value">The raw value to set in the index array.</param>
-    /// <exception cref="ArgumentException">If the vkCode is not valid. Refer to <see cref="IsVirtualKeyValid(int)"/> or <see cref="GetValidVirtualKeys"/>.</exception>
-    /// <exception cref="ArgumentOutOfRangeException">If the set value is non-zero.</exception>
+    /// <inheritdoc/>
     public void SetRawValue(int vkCode, int value)
     {
         if (value != 0)
@@ -92,32 +80,23 @@ public class KeyState : IServiceType
         this.GetRefValue(vkCode) = value;
     }
 
-    /// <inheritdoc cref="SetRawValue(int, int)"/>
+    /// <inheritdoc/>
     public void SetRawValue(VirtualKey vkCode, int value)
         => this.SetRawValue((int)vkCode, value);
 
-    /// <summary>
-    /// Gets a value indicating whether the given VirtualKey code is regarded as valid input by the game.
-    /// </summary>
-    /// <param name="vkCode">Virtual key code.</param>
-    /// <returns>If the code is valid.</returns>
+    /// <inheritdoc/>
     public bool IsVirtualKeyValid(int vkCode)
         => this.ConvertVirtualKey(vkCode) != 0;
 
-    /// <inheritdoc cref="IsVirtualKeyValid(int)"/>
+    /// <inheritdoc/>
     public bool IsVirtualKeyValid(VirtualKey vkCode)
         => this.IsVirtualKeyValid((int)vkCode);
 
-    /// <summary>
-    /// Gets an array of virtual keys the game considers valid input.
-    /// </summary>
-    /// <returns>An array of valid virtual keys.</returns>
-    public VirtualKey[] GetValidVirtualKeys()
-        => this.validVirtualKeyCache ??= Enum.GetValues<VirtualKey>().Where(vk => this.IsVirtualKeyValid(vk)).ToArray();
+    /// <inheritdoc/>
+    public IEnumerable<VirtualKey> GetValidVirtualKeys()
+        => this.validVirtualKeyCache ??= Enum.GetValues<VirtualKey>().Where(this.IsVirtualKeyValid).ToArray();
 
-    /// <summary>
-    /// Clears the pressed state for all keys.
-    /// </summary>
+    /// <inheritdoc/>
     public void ClearAll()
     {
         foreach (var vk in this.GetValidVirtualKeys())

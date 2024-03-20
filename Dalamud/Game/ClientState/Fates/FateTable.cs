@@ -18,7 +18,7 @@ namespace Dalamud.Game.ClientState.Fates;
 #pragma warning disable SA1015
 [ResolveVia<IFateTable>]
 #pragma warning restore SA1015
-public sealed partial class FateTable : IServiceType, IFateTable
+internal sealed partial class FateTable : IServiceType, IFateTable
 {
     private readonly ClientStateAddressResolver address;
 
@@ -110,7 +110,7 @@ public sealed partial class FateTable : IServiceType, IFateTable
 /// <summary>
 /// This collection represents the currently available Fate events.
 /// </summary>
-public sealed partial class FateTable
+internal sealed partial class FateTable
 {
     /// <inheritdoc/>
     int IReadOnlyCollection<Fate>.Count => this.Length;

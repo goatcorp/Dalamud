@@ -1,4 +1,4 @@
-using Dalamud.Game;
+using Dalamud.Common.Game;
 using Xunit;
 
 namespace Dalamud.Test.Game

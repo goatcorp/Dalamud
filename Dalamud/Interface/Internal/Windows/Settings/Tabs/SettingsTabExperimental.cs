@@ -6,6 +6,7 @@ using Dalamud.Configuration.Internal;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Internal.Windows.PluginInstaller;
 using Dalamud.Interface.Internal.Windows.Settings.Widgets;
+using Dalamud.Interface.Utility;
 using Dalamud.Plugin.Internal;
 using Dalamud.Utility;
 
@@ -25,8 +26,16 @@ public class SettingsTabExperimental : SettingsTab
             c => c.DoPluginTest,
             (v, c) => c.DoPluginTest = v),
         new HintSettingsEntry(
-            Loc.Localize("DalamudSettingsPluginTestWarning", "Testing plugins may not have been vetted before being published. Please only enable this if you are aware of the risks."),
+            Loc.Localize("DalamudSettingsPluginTestWarning", "Testing plugins may contain bugs or crash your game. Please only enable this if you are aware of the risks."),
             ImGuiColors.DalamudRed),
+        
+        new GapSettingsEntry(5),
+        
+        new SettingsEntry<bool>(
+            Loc.Localize("DalamudSettingEnablePluginUIAdditionalOptions", "Add a button to the title bar of plugin windows to open additional options"),
+            Loc.Localize("DalamudSettingEnablePluginUIAdditionalOptionsHint", "This will allow you to pin certain plugin windows, make them clickthrough or adjust their opacity.\nThis may not be supported by all of your plugins. Contact the plugin author if you want them to support this feature."),
+            c => c.EnablePluginUiAdditionalOptions,
+            (v, c) => c.EnablePluginUiAdditionalOptions = v),
 
         new GapSettingsEntry(5),
 
@@ -47,6 +56,7 @@ public class SettingsTabExperimental : SettingsTab
 
         new ThirdRepoSettingsEntry(),
 
+        /* Disabling profiles after they've been enabled doesn't make much sense, at least not if the user has already created profiles.
         new GapSettingsEntry(5, true),
 
         new SettingsEntry<bool>(
@@ -54,6 +64,7 @@ public class SettingsTabExperimental : SettingsTab
             Loc.Localize("DalamudSettingsEnableProfilesHint", "Enables plugin collections, which lets you create toggleable lists of plugins."),
             c => c.ProfilesEnabled,
             (v, c) => c.ProfilesEnabled = v),
+            */
     };
 
     public override string Title => Loc.Localize("DalamudSettingsExperimental", "Experimental");

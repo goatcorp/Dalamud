@@ -1,10 +1,9 @@
-﻿using System;
-using System.Numerics;
+﻿using System.Numerics;
 
 using Dalamud.Memory;
 using ImGuiNET;
 
-namespace Dalamud.Interface.Internal.Windows.Data;
+namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 
 /// <summary>
 /// Widget for displaying AtkArrayData.
@@ -12,10 +11,13 @@ namespace Dalamud.Interface.Internal.Windows.Data;
 internal unsafe class AtkArrayDataBrowserWidget : IDataWindowWidget
 {
     /// <inheritdoc/>
-    public DataKind DataKind { get; init; } = DataKind.AtkArrayData_Browser;
+    public bool Ready { get; set; }
 
     /// <inheritdoc/>
-    public bool Ready { get; set; }
+    public string[]? CommandShortcuts { get; init; } = { "atkarray" };
+    
+    /// <inheritdoc/>
+    public string DisplayName { get; init; } = "Atk Array Data"; 
 
     /// <inheritdoc/>
     public void Load()

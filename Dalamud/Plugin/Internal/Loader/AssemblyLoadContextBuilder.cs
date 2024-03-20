@@ -131,9 +131,16 @@ internal class AssemblyLoadContextBuilder
     /// or the default app context.
     /// </summary>
     /// <param name="assemblyName">The name of the assembly.</param>
+    /// <param name="recursive">Pull assmeblies recursively.</param>
     /// <returns>The builder.</returns>
-    public AssemblyLoadContextBuilder PreferDefaultLoadContextAssembly(AssemblyName assemblyName)
+    public AssemblyLoadContextBuilder PreferDefaultLoadContextAssembly(AssemblyName assemblyName, bool recursive)
     {
+        if (!recursive)
+        {
+            this.defaultAssemblies.Add(assemblyName.Name);
+            return this;
+        }
+
         var names = new Queue<AssemblyName>(new[] { assemblyName });
 
         while (names.TryDequeue(out var name))

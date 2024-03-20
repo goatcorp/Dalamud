@@ -1,4 +1,3 @@
-using System;
 using System.Diagnostics;
 using System.IO;
 using System.Net;
@@ -6,10 +5,12 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 
+using Dalamud.Common;
 using Dalamud.Configuration.Internal;
 using Dalamud.Logging.Internal;
 using Dalamud.Logging.Retention;
 using Dalamud.Plugin.Internal;
+using Dalamud.Storage;
 using Dalamud.Support;
 using Dalamud.Utility;
 using Newtonsoft.Json;
@@ -162,7 +163,10 @@ public static class EntryPoint
         SerilogEventSink.Instance.LogLine += SerilogOnLogLine;
 
         // Load configuration first to get some early persistent state, like log level
-        var configuration = DalamudConfiguration.Load(info.ConfigurationPath!);
+#pragma warning disable CS0618 // Type or member is obsolete
+        var fs = new ReliableFileStorage(Path.GetDirectoryName(info.ConfigurationPath)!);
+#pragma warning restore CS0618 // Type or member is obsolete
+        var configuration = DalamudConfiguration.Load(info.ConfigurationPath!, fs);
 
         // Set the appropriate logging level from the configuration
         if (!configuration.LogSynchronously)
@@ -170,7 +174,8 @@ public static class EntryPoint
         LogLevelSwitch.MinimumLevel = configuration.LogLevel;
 
         // Log any unhandled exception.
-        AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
+        if (!info.NoExceptionHandlers)
+            AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
         TaskScheduler.UnobservedTaskException += OnUnobservedTaskException;
 
         var unloadFailed = false;
@@ -186,15 +191,18 @@ public static class EntryPoint
             Log.Information(new string('-', 80));
             Log.Information("Initializing a session..");
 
+            if (string.IsNullOrEmpty(info.WorkingDirectory))
+                throw new Exception("Working directory was invalid");
+
             Reloaded.Hooks.Tools.Utilities.FasmBasePath = new DirectoryInfo(info.WorkingDirectory);
 
             // This is due to GitHub not supporting TLS 1.0, so we enable all TLS versions globally
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12 | SecurityProtocolType.Tls;
 
-            if (!Util.IsLinux())
+            if (!Util.IsWine())
                 InitSymbolHandler(info);
 
-            var dalamud = new Dalamud(info, configuration, mainThreadContinueEvent);
+            var dalamud = new Dalamud(info, fs, configuration, mainThreadContinueEvent);
             Log.Information("This is Dalamud - Core: {GitHash}, CS: {CsGitHash} [{CsVersion}]", Util.GetGitHash(), Util.GetGitHashClientStructs(), FFXIVClientStructs.Interop.Resolver.Version);
 
             dalamud.WaitForUnload();
@@ -216,7 +224,8 @@ public static class EntryPoint
         finally
         {
             TaskScheduler.UnobservedTaskException -= OnUnobservedTaskException;
-            AppDomain.CurrentDomain.UnhandledException -= OnUnhandledException;
+            if (!info.NoExceptionHandlers)
+                AppDomain.CurrentDomain.UnhandledException -= OnUnhandledException;
 
             Log.Information("Session has ended.");
             Log.CloseAndFlush();

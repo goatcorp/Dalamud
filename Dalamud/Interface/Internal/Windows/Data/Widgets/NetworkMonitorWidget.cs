@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,11 +6,12 @@ using System.Text.RegularExpressions;
 
 using Dalamud.Data;
 using Dalamud.Game.Network;
-using Dalamud.Interface.Raii;
+using Dalamud.Interface.Utility;
+using Dalamud.Interface.Utility.Raii;
 using Dalamud.Memory;
 using ImGuiNET;
 
-namespace Dalamud.Interface.Internal.Windows.Data;
+namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 
 /// <summary>
 /// Widget to display the current packets.
@@ -30,7 +30,6 @@ internal class NetworkMonitorWidget : IDataWindowWidget
     }
 
     private readonly ConcurrentQueue<NetworkPacketData> packets = new();
-    private readonly Dictionary<ushort, (string Name, int Size)> opCodeDict = new();
 
     private bool trackNetwork;
     private int trackedPackets;
@@ -54,7 +53,10 @@ internal class NetworkMonitorWidget : IDataWindowWidget
     }
 
     /// <inheritdoc/>
-    public DataKind DataKind { get; init; } = DataKind.Network_Monitor;
+    public string[]? CommandShortcuts { get; init; } = { "network", "netmon", "networkmonitor" };
+    
+    /// <inheritdoc/>
+    public string DisplayName { get; init; } = "Network Monitor"; 
 
     /// <inheritdoc/>
     public bool Ready { get; set; }
@@ -68,9 +70,6 @@ internal class NetworkMonitorWidget : IDataWindowWidget
         this.filterString = string.Empty;
         this.packets.Clear();
         this.Ready = true;
-        var dataManager = Service<DataManager>.Get();
-        foreach (var (name, code) in dataManager.ClientOpCodes.Concat(dataManager.ServerOpCodes))
-            this.opCodeDict.TryAdd(code, (name, this.GetSizeFromName(name)));
     }
     
     /// <inheritdoc/>
@@ -95,26 +94,21 @@ internal class NetworkMonitorWidget : IDataWindowWidget
             this.trackedPackets = Math.Clamp(this.trackedPackets, 1, 512);
         }
 
+        if (ImGui.Button("Clear Stored Packets"))
+        {
+            this.packets.Clear();
+        }
+
         this.DrawFilterInput();
         this.DrawNegativeFilterInput();
 
-        ImGuiTable.DrawTable(string.Empty, this.packets, this.DrawNetworkPacket, ImGuiTableFlags.SizingFixedFit | ImGuiTableFlags.RowBg, "Direction", "Known Name", "OpCode", "Hex", "Target", "Source", "Data");
+        ImGuiTable.DrawTable(string.Empty, this.packets, this.DrawNetworkPacket, ImGuiTableFlags.SizingFixedFit | ImGuiTableFlags.RowBg, "Direction", "OpCode", "Hex", "Target", "Source", "Data");
     }
 
     private void DrawNetworkPacket(NetworkPacketData data)
     {
         ImGui.TableNextColumn();
         ImGui.TextUnformatted(data.Direction.ToString());
-
-        ImGui.TableNextColumn();
-        if (this.opCodeDict.TryGetValue(data.OpCode, out var pair))
-        {
-            ImGui.TextUnformatted(pair.Name);
-        }
-        else
-        {
-            ImGui.Dummy(new Vector2(150 * ImGuiHelpers.GlobalScale, 0));
-        }
 
         ImGui.TableNextColumn();
         ImGui.TextUnformatted(data.OpCode.ToString());
@@ -209,7 +203,7 @@ internal class NetworkMonitorWidget : IDataWindowWidget
     }
 
     private int GetSizeFromOpCode(ushort opCode)
-        => this.opCodeDict.TryGetValue(opCode, out var pair) ? pair.Size : 0;
+        => 0;
 
     /// <remarks> Add known packet-name -> packet struct size associations here to copy the byte data for such packets. </remarks>>
     private int GetSizeFromName(string name)
@@ -220,5 +214,5 @@ internal class NetworkMonitorWidget : IDataWindowWidget
 
     /// <remarks> The filter should find opCodes by number (decimal and hex) and name, if existing. </remarks>
     private string OpCodeToString(ushort opCode)
-        => this.opCodeDict.TryGetValue(opCode, out var pair) ? $"{opCode}\0{opCode:X}\0{pair.Name}" : $"{opCode}\0{opCode:X}";
+        => $"{opCode}\0{opCode:X}";
 }

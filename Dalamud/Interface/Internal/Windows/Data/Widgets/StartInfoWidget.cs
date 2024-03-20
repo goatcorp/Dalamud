@@ -1,7 +1,7 @@
 ﻿using ImGuiNET;
 using Newtonsoft.Json;
 
-namespace Dalamud.Interface.Internal.Windows.Data;
+namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 
 /// <summary>
 /// Widget for displaying start info.
@@ -9,7 +9,10 @@ namespace Dalamud.Interface.Internal.Windows.Data;
 internal class StartInfoWidget : IDataWindowWidget
 {
     /// <inheritdoc/>
-    public DataKind DataKind { get; init; } = DataKind.StartInfo;
+    public string[]? CommandShortcuts { get; init; } = { "startinfo" };
+    
+    /// <inheritdoc/>
+    public string DisplayName { get; init; } = "Start Info"; 
 
     /// <inheritdoc/>
     public bool Ready { get; set; }
@@ -23,7 +26,7 @@ internal class StartInfoWidget : IDataWindowWidget
     /// <inheritdoc/>
     public void Draw()
     {
-        var startInfo = Service<DalamudStartInfo>.Get();
+        var startInfo = Service<Dalamud>.Get().StartInfo;
 
         ImGui.Text(JsonConvert.SerializeObject(startInfo, Formatting.Indented));
     }

@@ -1,4 +1,4 @@
-﻿namespace Dalamud.Interface.Internal.Windows.Data;
+﻿namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 
 /// <summary>
 /// Widget for displaying addon inspector.
@@ -8,7 +8,10 @@ internal class AddonInspectorWidget : IDataWindowWidget
     private UiDebug? addonInspector;
     
     /// <inheritdoc/>
-    public DataKind DataKind { get; init; } = DataKind.Addon_Inspector;
+    public string[]? CommandShortcuts { get; init; } = { "ai", "addoninspector" };
+
+    /// <inheritdoc/>
+    public string DisplayName { get; init; } = "Addon Inspector";
 
     /// <inheritdoc/>
     public bool Ready { get; set; }
