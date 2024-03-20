@@ -470,10 +470,18 @@ internal partial class PluginManager : IInternalDisposableService
                 try
                 {
                     var dllFile = new FileInfo(Path.Combine(versionDir.FullName, $"{pluginDir.Name}.dll"));
-                    var manifestFile = LocalPluginManifest.GetManifestFile(dllFile);
-
-                    if (!manifestFile.Exists)
+                    if (!dllFile.Exists)
+                    {
+                        Log.Error("No DLL found for plugin at {Path}", versionDir.FullName);
                         continue;
+                    }
+                    
+                    var manifestFile = LocalPluginManifest.GetManifestFile(dllFile);
+                    if (!manifestFile.Exists)
+                    {
+                        Log.Error("No manifest for plugin at {Path}", dllFile.FullName);
+                        continue;
+                    }
 
                     var manifest = LocalPluginManifest.Load(manifestFile);
                     if (manifest == null)
@@ -494,6 +502,12 @@ internal partial class PluginManager : IInternalDisposableService
             }
 
             this.configuration.QueueSave();
+            
+            if (versionsDefs.Count == 0)
+            {
+                Log.Verbose("No versions found for plugin: {Name}", pluginDir.Name);
+                continue;
+            }
 
             try
             {
