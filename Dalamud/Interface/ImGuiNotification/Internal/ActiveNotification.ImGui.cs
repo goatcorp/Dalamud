@@ -38,7 +38,6 @@ internal sealed partial class ActiveNotification
         var viewportPos = viewport.WorkPos;
         var viewportSize = viewport.WorkSize;
 
-        ImGui.PushID(this.Id.GetHashCode());
         ImGui.PushStyleVar(ImGuiStyleVar.Alpha, opacity);
         ImGui.PushStyleVar(ImGuiStyleVar.WindowRounding, 0f);
         ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(NotificationConstants.ScaledWindowPadding));
@@ -74,7 +73,9 @@ internal sealed partial class ActiveNotification
             ImGuiWindowFlags.NoNav |
             ImGuiWindowFlags.NoMove |
             ImGuiWindowFlags.NoFocusOnAppearing |
-            ImGuiWindowFlags.NoDocking);
+            ImGuiWindowFlags.NoDocking |
+            ImGuiWindowFlags.NoSavedSettings);
+        ImGui.PushID(this.Id.GetHashCode());
 
         var isFocused = ImGui.IsWindowFocused();
         var isHovered = ImGui.IsWindowHovered(ImGuiHoveredFlags.AllowWhenBlockedByActiveItem);
@@ -135,11 +136,11 @@ internal sealed partial class ActiveNotification
         }
 
         var windowSize = ImGui.GetWindowSize();
+        ImGui.PopID();
         ImGui.End();
 
         ImGui.PopStyleColor();
         ImGui.PopStyleVar(3);
-        ImGui.PopID();
 
         return windowSize.Y;
     }
