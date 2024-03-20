@@ -29,7 +29,7 @@ public unsafe partial class GameObject : IEquatable<GameObject>
     /// <summary>
     /// Gets the address of the game object in memory.
     /// </summary>
-    public IntPtr Address { get; }
+    public IntPtr Address { get; internal set; }
 
     /// <summary>
     /// Gets the Dalamud instance.

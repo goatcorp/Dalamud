@@ -404,7 +404,8 @@ internal class LocalPlugin : IDisposable
             }
 
             // Update the location for the Location and CodeBase patches
-            PluginManager.PluginLocations[this.pluginType.Assembly.FullName] = new PluginPatchData(this.DllFile);
+            // NET8 CHORE
+            // PluginManager.PluginLocations[this.pluginType.Assembly.FullName] = new PluginPatchData(this.DllFile);
 
             this.DalamudInterface =
                 new DalamudPluginInterface(this, reason);

@@ -93,8 +93,9 @@ namespace Dalamud.Utility
                         this.firstIndex = 0;
                     }
                 }
-                else // value < this._size
+                else
                 {
+                    // value < this._size
                     ThrowHelper.ThrowArgumentOutOfRangeExceptionIfLessThan(nameof(value), value, 0);
                     if (value < this.Count)
                     {
@@ -156,14 +157,14 @@ namespace Dalamud.Utility
         }
 
         /// <summary>Add items to this <see cref="RollingList{T}"/>.</summary>
-        /// <param name="items">Items to add.</param>
-        public void AddRange(IEnumerable<T> items)
+        /// <param name="range">Items to add.</param>
+        public void AddRange(IEnumerable<T> range)
         {
             if (this.size == 0) return;
-            foreach (var item in items) this.Add(item);
+            foreach (var item in range) this.Add(item);
         }
 
-        /// <summary>Removes all elements from the <see cref="RollingList{T}"/></summary>
+        /// <summary>Removes all elements from the <see cref="RollingList{T}"/>.</summary>
         public void Clear()
         {
             this.items.Clear();

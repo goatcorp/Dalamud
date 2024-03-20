@@ -11,8 +11,7 @@ jobs:
     strategy:
       matrix:
         branches:
-          - net8
-          #- new_im_hooks # Unmergeable
+          - new_im_hooks
 
     defaults:
       run:
