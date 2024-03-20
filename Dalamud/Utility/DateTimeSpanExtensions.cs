@@ -44,8 +44,9 @@ public static class DateTimeSpanExtensions
 
     /// <summary>Formats an instance of <see cref="DateTime"/> as a localized relative time.</summary>
     /// <param name="when">When.</param>
+    /// <param name="floorBy">The alignment unit of time span.</param>
     /// <returns>The formatted string.</returns>
-    public static string LocRelativePastLong(this DateTime when)
+    public static string LocRelativePastLong(this DateTime when, TimeSpan floorBy)
     {
         var loc = Loc.Localize(
             "DateTimeSpanExtensions.RelativeFormatStringsLong",
@@ -55,13 +56,17 @@ public static class DateTimeSpanExtensions
         if (relativeFormatStringLong?.FormatStringLoc != loc)
             relativeFormatStringLong ??= new(loc);
 
-        return relativeFormatStringLong.Format(DateTime.Now - when);
+        return
+            floorBy == default
+                ? relativeFormatStringLong.Format(DateTime.Now - when)
+                : relativeFormatStringLong.Format(Math.Floor((DateTime.Now - when) / floorBy) * floorBy);
     }
 
     /// <summary>Formats an instance of <see cref="DateTime"/> as a localized relative time.</summary>
     /// <param name="when">When.</param>
+    /// <param name="floorBy">The alignment unit of time span.</param>
     /// <returns>The formatted string.</returns>
-    public static string LocRelativePastShort(this DateTime when)
+    public static string LocRelativePastShort(this DateTime when, TimeSpan floorBy)
     {
         var loc = Loc.Localize(
             "DateTimeSpanExtensions.RelativeFormatStringsShort",
@@ -71,8 +76,21 @@ public static class DateTimeSpanExtensions
         if (relativeFormatStringShort?.FormatStringLoc != loc)
             relativeFormatStringShort = new(loc);
 
-        return relativeFormatStringShort.Format(DateTime.Now - when);
+        return
+            floorBy == default
+                ? relativeFormatStringShort.Format(DateTime.Now - when)
+                : relativeFormatStringShort.Format(Math.Floor((DateTime.Now - when) / floorBy) * floorBy);
     }
+
+    /// <summary>Formats an instance of <see cref="DateTime"/> as a localized relative time.</summary>
+    /// <param name="when">When.</param>
+    /// <returns>The formatted string.</returns>
+    public static string LocRelativePastLong(this DateTime when) => when.LocRelativePastLong(TimeSpan.FromSeconds(1));
+
+    /// <summary>Formats an instance of <see cref="DateTime"/> as a localized relative time.</summary>
+    /// <param name="when">When.</param>
+    /// <returns>The formatted string.</returns>
+    public static string LocRelativePastShort(this DateTime when) => when.LocRelativePastShort(TimeSpan.FromSeconds(1));
 
     private sealed class ParsedRelativeFormatStrings
     {

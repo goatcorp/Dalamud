@@ -130,6 +130,12 @@ public class SettingsTabLook : SettingsTab
             Loc.Localize("DalamudSettingInstallerOpenDefaultHint", "This will allow you to open the Plugin Installer to the \"Installed Plugins\" tab by default, instead of the \"Available Plugins\" tab."),
             c => c.PluginInstallerOpen == PluginInstallerWindow.PluginInstallerOpenKind.InstalledPlugins,
             (v, c) => c.PluginInstallerOpen = v ? PluginInstallerWindow.PluginInstallerOpenKind.InstalledPlugins : PluginInstallerWindow.PluginInstallerOpenKind.AllPlugins),
+        
+        new SettingsEntry<bool>(
+            Loc.Localize("DalamudSettingReducedMotion", "Reduce motions"),
+            Loc.Localize("DalamudSettingReducedMotion", "This will suppress certain animations from Dalamud, such as the notification popup."),
+            c => c.ReduceMotions,
+            (v, c) => c.ReduceMotions = v),
     };
 
     public override string Title => Loc.Localize("DalamudSettingsVisual", "Look & Feel");

@@ -368,6 +368,11 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
     public bool ShowTsm { get; set; } = true;
 
     /// <summary>
+    /// Gets or sets a value indicating whether to reduce motions (animations).
+    /// </summary>
+    public bool ReduceMotions { get; set; } = false;
+
+    /// <summary>
     /// Gets or sets a value indicating whether or not market board data should be uploaded.
     /// </summary>
     public bool IsMbCollect { get; set; } = true;
