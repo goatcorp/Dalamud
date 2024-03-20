@@ -82,6 +82,7 @@ public class StyleEditorWindow : Window
         var workStyle = config.SavedStyles[this.currentSel];
         workStyle.BuiltInColors ??= StyleModelV1.DalamudStandard.BuiltInColors;
 
+        var isBuiltinStyle = this.currentSel < 2;
         var appliedThisFrame = false;
 
         var styleAry = config.SavedStyles.Select(x => x.Name).ToArray();
@@ -111,6 +112,9 @@ public class StyleEditorWindow : Window
 
         ImGui.SameLine();
 
+        if (isBuiltinStyle)
+            ImGui.BeginDisabled();
+        
         if (ImGuiComponents.IconButton(FontAwesomeIcon.Trash) && this.currentSel != 0)
         {
             this.currentSel--;
@@ -155,6 +159,9 @@ public class StyleEditorWindow : Window
 
         if (ImGui.IsItemHovered())
             ImGui.SetTooltip(Loc.Localize("StyleEditorCopy", "Copy style to clipboard for sharing"));
+        
+        if (isBuiltinStyle)
+            ImGui.EndDisabled();
 
         ImGui.SameLine();
 
@@ -196,7 +203,7 @@ public class StyleEditorWindow : Window
 
         ImGui.PushItemWidth(ImGui.GetWindowWidth() * 0.50f);
 
-        if (this.currentSel < 2)
+        if (isBuiltinStyle)
         {
             ImGui.TextColored(ImGuiColors.DalamudRed, Loc.Localize("StyleEditorNotAllowed", "You cannot edit built-in styles. Please add a new style first."));
         }

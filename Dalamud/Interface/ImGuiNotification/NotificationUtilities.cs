@@ -129,7 +129,7 @@ public static class NotificationUtilities
                 plugin,
                 plugin.Manifest,
                 plugin.IsThirdParty,
-                out var texture) || texture is null)
+                out var texture, out _) || texture is null)
         {
             texture = dam.GetDalamudTextureWrap(DalamudAsset.DefaultIcon);
         }

@@ -826,6 +826,27 @@ internal static partial class NativeFunctions
         /// </summary>
         public uint Timeout;
     }
+
+    /// <summary>
+    /// Parameters for use with SystemParametersInfo.
+    /// </summary>
+    public enum AccessibilityParameter
+    {
+#pragma warning disable SA1602
+        SPI_GETCLIENTAREAANIMATION = 0x1042,
+#pragma warning restore SA1602
+    }
+    
+    /// <summary>
+    /// Retrieves or sets the value of one of the system-wide parameters. This function can also update the user profile while setting a parameter.
+    /// </summary>
+    /// <param name="uiAction">The system-wide parameter to be retrieved or set.</param>
+    /// <param name="uiParam">A parameter whose usage and format depends on the system parameter being queried or set.</param>
+    /// <param name="pvParam">A parameter whose usage and format depends on the system parameter being queried or set. If not otherwise indicated, you must specify zero for this parameter.</param>
+    /// <param name="fWinIni">If a system parameter is being set, specifies whether the user profile is to be updated, and if so, whether the WM_SETTINGCHANGE message is to be broadcast to all top-level windows to notify them of the change.</param>
+    /// <returns>If the function succeeds, the return value is a nonzero value.</returns>
+    [DllImport("user32.dll", SetLastError = true)]
+    public static extern bool SystemParametersInfo(uint uiAction, uint uiParam, ref int pvParam, uint fWinIni);
 }
 
 /// <summary>

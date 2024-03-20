@@ -23,7 +23,8 @@ internal class TaskTracker : IInternalDisposableService
     [ServiceManager.ServiceDependency]
     private readonly Framework framework = Service<Framework>.Get();
 
-    private MonoMod.RuntimeDetour.Hook? scheduleAndStartHook;
+    // NET8 CHORE
+    // private MonoMod.RuntimeDetour.Hook? scheduleAndStartHook;
     private bool enabled = false;
 
     [ServiceManager.ServiceConstructor]
@@ -121,7 +122,8 @@ internal class TaskTracker : IInternalDisposableService
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
     {
-        this.scheduleAndStartHook?.Dispose();
+        // NET8 CHORE
+        // this.scheduleAndStartHook?.Dispose();
 
         this.framework.Update -= this.FrameworkOnUpdate;
     }
@@ -170,7 +172,8 @@ internal class TaskTracker : IInternalDisposableService
             return;
         }
 
-        this.scheduleAndStartHook = new MonoMod.RuntimeDetour.Hook(targetMethod, patchMethod);
+        // NET8 CHORE
+        // this.scheduleAndStartHook = new MonoMod.RuntimeDetour.Hook(targetMethod, patchMethod);
 
         Log.Information("AddToActiveTasks Hooked!");
     }

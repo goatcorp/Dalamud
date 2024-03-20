@@ -125,7 +125,7 @@ internal class ContextMenuAgingStep : IAgingStep
 
     private void OnMenuOpened(MenuOpenedArgs args)
     {
-        LogMenuOpened(args);
+        this.LogMenuOpened(args);
 
         switch (this.currentSubStep)
         {
