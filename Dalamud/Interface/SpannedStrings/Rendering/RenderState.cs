@@ -63,11 +63,11 @@ public struct RenderState
     /// <summary>Inverse of <see cref="Transformation"/>.</summary>
     public Matrix4x4 TransformationInverse;
 
-    /// <inheritdoc cref="RenderOptions.ControlCharactersSpanParams"/>
-    public SpanStyle ControlCharactersSpanStyle;
+    /// <inheritdoc cref="RenderOptions.ControlCharactersStyle"/>
+    public SpanStyle ControlCharactersStyle;
 
     /// <inheritdoc cref="RenderOptions.InitialStyle"/>
-    public SpanStyle InitialSpanStyle;
+    public SpanStyle InitialStyle;
 
     /// <summary>The latest style.</summary>
     public SpanStyle LastStyle;
@@ -165,7 +165,7 @@ public struct RenderState
         ThreadSafety.DebugAssertMainThread();
 
         this.UseLinks = rendererOptions.UseLinks ?? true;
-        this.UseControlCharacter = rendererOptions.ControlCharactersSpanParams.HasValue;
+        this.UseControlCharacter = rendererOptions.ControlCharactersStyle.HasValue;
         this.WrapMarker = rendererOptions.WrapMarker;
         this.PutDummyAfterRender = putDummyAfterRender;
         this.WordBreak = rendererOptions.WordBreak ?? WordBreakType.Normal;
@@ -174,8 +174,9 @@ public struct RenderState
         this.Scale = rendererOptions.Scale ?? ImGuiHelpers.GlobalScale;
         this.MaxSize = rendererOptions.MaxSize ?? new(ImGui.GetColumnWidth(), float.MaxValue);
         this.Transformation = rendererOptions.Transformation ?? Matrix4x4.Identity;
-        this.ControlCharactersSpanStyle = rendererOptions.ControlCharactersSpanParams ?? default;
-        this.InitialSpanStyle = rendererOptions.InitialStyle ?? SpanStyle.FromContext;
+        this.ControlCharactersStyle = rendererOptions.ControlCharactersStyle ?? default;
+        this.InitialStyle = rendererOptions.InitialStyle ?? SpanStyle.FromContext;
+        this.StartScreenOffset = rendererOptions.ScreenOffset ?? ImGui.GetCursorScreenPos();
         this.DrawListPtr = drawListPtr;
 
         if (!Matrix4x4.Invert(this.Transformation, out this.TransformationInverse))
@@ -191,12 +192,11 @@ public struct RenderState
         }
 
         this.GfdIndex = gfdIndex;
-        this.StartScreenOffset = ImGui.GetCursorScreenPos();
         this.Offset = Vector2.Zero;
         this.Boundary = RectVector4.InvertedExtrema;
         this.LineCount = 0;
         this.ClickedMouseButton = unchecked((ImGuiMouseButton)(-1));
-        this.LastStyle = this.InitialSpanStyle;
+        this.LastStyle = this.InitialStyle;
     }
 
     /// <summary>Gets a value indicating whether to actually draw.</summary>

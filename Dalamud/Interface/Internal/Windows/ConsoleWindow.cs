@@ -1208,7 +1208,7 @@ internal class ConsoleWindow : Window, IDisposable
         MaxSize = new(width, float.MaxValue),
         WordBreak = this.activeConfiguration.LogLineBreakMode,
         InitialStyle = new() { BorderWidth = 1f },
-        ControlCharactersSpanParams = new()
+        ControlCharactersStyle = new()
         {
             Font = new(Service<InterfaceManager>.Get().MonoFontHandle),
             BackColor = 0xFF333333,

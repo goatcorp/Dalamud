@@ -66,7 +66,7 @@ public abstract partial class BaseSpannedString
             this.currentStyle.UpdateFrom(
                 record,
                 recordData,
-                this.state.RenderState.InitialSpanStyle,
+                this.state.RenderState.InitialStyle,
                 this.data.FontSets,
                 out var fontUpdated,
                 out _);
@@ -165,7 +165,7 @@ public abstract partial class BaseSpannedString
                                     PutDummyAfterRender = false,
                                     ImGuiGlobalId = 0, // TODO
                                     StartScreenOffset = new(float.NaN),
-                                    InitialSpanStyle = this.state.RenderState.LastStyle,
+                                    InitialStyle = this.state.RenderState.LastStyle,
                                     LineCount = 0,
                                     Offset = Vector2.Zero,
                                     Boundary = RectVector4.InvertedExtrema,

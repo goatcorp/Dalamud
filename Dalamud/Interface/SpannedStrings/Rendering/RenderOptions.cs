@@ -24,7 +24,7 @@ public record struct RenderOptions
 
     /// <summary>Gets or sets the design parameters for displaying the invisible control characters.</summary>
     /// <remarks><c>null</c> specifies that it should not be displayed.</remarks>
-    public SpanStyle? ControlCharactersSpanParams { get; set; }
+    public SpanStyle? ControlCharactersStyle { get; set; }
 
     /// <summary>Gets or sets the graphic font icon mode.</summary>
     /// <remarks>

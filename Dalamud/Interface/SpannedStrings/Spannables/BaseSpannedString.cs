@@ -153,7 +153,7 @@ public abstract partial class BaseSpannedString : ISpannable
                                     var offset = charRenderer.StyleTranslation;
                                     state.RenderState.Offset += offset;
                                     var old = charRenderer.UpdateSpanParams(
-                                        state.RenderState.ControlCharactersSpanStyle);
+                                        state.RenderState.ControlCharactersStyle);
                                     charRenderer.LastRendered.Clear();
                                     foreach (var c2 in name)
                                         charRenderer.RenderOne(c2);
@@ -330,7 +330,7 @@ public abstract partial class BaseSpannedString : ISpannable
         var state = args.State as State ?? new();
         var data = this.GetData();
         state.RenderState.Offset = Vector2.Zero;
-        state.RenderState.LastStyle = state.RenderState.InitialSpanStyle;
+        state.RenderState.LastStyle = state.RenderState.InitialStyle;
 
         var charRenderer = new CharRenderer(args, data, state, false);
         var segment = new DataRef.Segment(data, 0, 0);
@@ -364,7 +364,7 @@ public abstract partial class BaseSpannedString : ISpannable
                                     var offset = charRenderer.StyleTranslation;
                                     state.RenderState.Offset += offset;
                                     var old = charRenderer.UpdateSpanParams(
-                                        state.RenderState.ControlCharactersSpanStyle);
+                                        state.RenderState.ControlCharactersStyle);
                                     charRenderer.LastRendered.Clear();
                                     foreach (var c2 in name)
                                         charRenderer.RenderOne(c2);
@@ -637,8 +637,8 @@ public abstract partial class BaseSpannedString : ISpannable
                                 this.Renderer,
                                 this.renderState with
                                 {
-                                    LastStyle = this.renderState.ControlCharactersSpanStyle,
-                                    InitialSpanStyle = this.renderState.ControlCharactersSpanStyle,
+                                    LastStyle = this.renderState.ControlCharactersStyle,
+                                    InitialStyle = this.renderState.ControlCharactersStyle,
                                     Offset = Vector2.Zero,
                                     DrawListPtr = null,
                                     Boundary = RectVector4.InvertedExtrema,

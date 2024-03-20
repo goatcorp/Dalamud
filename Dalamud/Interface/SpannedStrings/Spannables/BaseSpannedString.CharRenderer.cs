@@ -73,7 +73,7 @@ public abstract partial class BaseSpannedString
             this.state.RenderState.LastStyle.UpdateFrom(
                 record,
                 recordData,
-                this.state.RenderState.InitialSpanStyle,
+                this.state.RenderState.InitialStyle,
                 this.data.FontSets,
                 out var fontUpdated,
                 out var drawOptionsUpdated);

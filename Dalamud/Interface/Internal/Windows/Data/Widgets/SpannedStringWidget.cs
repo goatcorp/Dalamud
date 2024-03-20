@@ -39,7 +39,7 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
     private float vertOffset;
     private float wrapLeftWidthRatio;
     private float wrapRightWidthRatio;
-    private bool useItalic;
+    private bool useImages;
     private bool useWrapMarkers;
     private bool useVisibleControlCharacters;
     private bool showComplicatedTextTest;
@@ -66,7 +66,7 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
         this.numLinkClicks = 0;
         this.valign = VerticalAlignment.Baseline;
         this.vertOffset = 0;
-        this.useItalic = false;
+        this.useImages = false;
         this.wrapLeftWidthRatio = 0f;
         this.wrapRightWidthRatio = 1f;
         this.showComplicatedTextTest = this.showDynamicOffsetTest = this.showTransformationTest = false;
@@ -140,7 +140,7 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
                           ? this.ellipsisSpannable
                           : this.wrapMarkerSpannable
                     : null,
-            ControlCharactersSpanParams =
+            ControlCharactersStyle =
                 this.useVisibleControlCharacters
                     ? new()
                     {
@@ -529,7 +529,6 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
 
         var fontSizeCounter = 9;
         ssb.PushLink("valign_next"u8)
-           .PushItalic(this.useItalic)
            .PushVerticalAlignment(this.valign)
            .PushVerticalOffset(this.vertOffset);
         foreach (var c in $"Vertical Align: {this.valign}")
@@ -561,11 +560,11 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
            .PushLink("valign_down"u8)
            .AppendIconGfd(GfdIcon.RelativeLocationDown)
            .PopLink()
-           .PushLink("italic_toggle"u8)
+           .PushLink("image_toggle"u8)
            .PushFontSet(new(interfaceManager.IconFontHandle), out _)
            .PushFontSize(18)
            .PushVerticalAlignment(VerticalAlignment.Middle)
-           .Append(FontAwesomeIcon.Italic.ToIconChar())
+           .Append(FontAwesomeIcon.Image.ToIconChar())
            .PopVerticalAlignment()
            .PopFontSize()
            .PopFontSet()
@@ -574,7 +573,6 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
            .PopBackColor()
            .PopLink()
            .AppendLine()
-           .PopItalic()
            .AppendLine();
 
         ssb.PushForeColor(0xFFC5E1EE)
@@ -601,7 +599,6 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
            .AppendLine();
 
         ssb.PushLink("Link 1"u8)
-           .PushItalic(this.useItalic)
            .PushHorizontalAlignment(HorizontalAlignment.Center)
            .Append("This link is clicked "u8)
            .PushBold(true)
@@ -609,13 +606,11 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
            .PopBold()
            .Append(" times."u8)
            .PopHorizontalAlignment()
-           .PopItalic()
            .PopLink()
            .AppendLine()
            .AppendLine();
 
         ssb.PushLink("Link 2"u8)
-           .PushItalic(this.useItalic)
            .PushForeColor(0xFF00CC00)
            .PushEdgeColor(0xFF005500)
            .PushBorderWidth(1)
@@ -636,7 +631,6 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
            .PopFontSet()
            .Append(" Link.")
            .PopHorizontalAlignment()
-           .PopItalic()
            .PopBorderWidth()
            .PopEdgeColor()
            .PopForeColor()
@@ -644,30 +638,33 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
            .AppendLine()
            .AppendLine();
 
-        for (var i = 0; i < 30; i++)
+        if (this.useImages)
         {
-            var tex = Service<TextureManager>.Get().GetTextureFromGame($"ui/icon/000000/{i:000000}.tex");
-            ssb.AppendTexture(tex, out _)
-               .Append("UI#")
-               .PushForeColor(0xFF9999FF)
-               .Append(i)
-               .PopForeColor()
-               .Append(' ');
-        }
+            for (var i = 0; i < 30; i++)
+            {
+                var tex = Service<TextureManager>.Get().GetTextureFromGame($"ui/icon/000000/{i:000000}.tex");
+                ssb.AppendTexture(tex, out _)
+                   .Append("UI#")
+                   .PushForeColor(0xFF9999FF)
+                   .Append(i)
+                   .PopForeColor()
+                   .Append(' ');
+            }
 
-        ssb.AppendLine()
-           .AppendLine();
+            ssb.AppendLine()
+               .AppendLine();
 
-        foreach (var e in Enum.GetValues<GfdIcon>())
-        {
-            ssb.AppendIconGfd(e)
-               .Append('#')
-               .PushForeColor(0xFFFF9999)
-               .Append((int)e)
-               .PopForeColor()
-               .Append('\u00A0')
-               .Append(Enum.GetName(e))
-               .Append(' ');
+            foreach (var e in Enum.GetValues<GfdIcon>())
+            {
+                ssb.AppendIconGfd(e)
+                   .Append('#')
+                   .PushForeColor(0xFFFF9999)
+                   .Append((int)e)
+                   .PopForeColor()
+                   .Append('\u00A0')
+                   .Append(Enum.GetName(e))
+                   .Append(' ');
+            }
         }
 
         ImGui.SetCursorScreenPos(ImGui.GetCursorScreenPos() with { X = x });
@@ -699,9 +696,9 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
             {
                 this.vertOffset += 1 / 8f;
             }
-            else if (link.SequenceEqual("italic_toggle"u8))
+            else if (link.SequenceEqual("image_toggle"u8))
             {
-                this.useItalic ^= true;
+                this.useImages ^= true;
             }
         }
 
