@@ -1,9 +1,11 @@
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
 using Dalamud.Configuration.Internal;
+using Dalamud.Interface.ImGuiNotification.Internal;
 using Dalamud.Interface.Internal.Notifications;
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Internal.Types.Manifest;
@@ -39,6 +41,22 @@ internal class LocalDevPlugin : LocalPlugin, IDisposable
         {
             configuration.DevPluginSettings[dllFile.FullName] = this.devSettings = new DevPluginSettings();
             configuration.QueueSave();
+        }
+        
+        // Legacy dev plugins might not have this!
+        if (this.devSettings.WorkingPluginId == Guid.Empty)
+        {
+            this.devSettings.WorkingPluginId = Guid.NewGuid();
+            Log.Verbose("{InternalName} was assigned new devPlugin GUID {Guid}", this.InternalName, this.devSettings.WorkingPluginId);
+            configuration.QueueSave();
+        }
+        
+        // If the ID in the manifest is wrong, force the good one
+        if (this.DevImposedWorkingPluginId != this.manifest.WorkingPluginId)
+        {
+            Debug.Assert(this.DevImposedWorkingPluginId != Guid.Empty, "Empty guid for devPlugin");
+            this.manifest.WorkingPluginId = this.DevImposedWorkingPluginId;
+            this.SaveManifest("dev imposed working plugin id");
         }
 
         if (this.AutomaticReload)
@@ -76,6 +94,11 @@ internal class LocalDevPlugin : LocalPlugin, IDisposable
             }
         }
     }
+    
+    /// <summary>
+    /// Gets an ID uniquely identifying this specific instance of a devPlugin.
+    /// </summary>
+    public Guid DevImposedWorkingPluginId => this.devSettings.WorkingPluginId;
 
     /// <inheritdoc/>
     public new void Dispose()

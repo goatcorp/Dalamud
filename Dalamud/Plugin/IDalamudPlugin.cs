@@ -7,8 +7,4 @@ namespace Dalamud.Plugin;
 /// </summary>
 public interface IDalamudPlugin : IDisposable
 {
-    /// <summary>
-    /// Gets the name of the plugin.
-    /// </summary>
-    string Name { get; }
 }

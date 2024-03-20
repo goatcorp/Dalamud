@@ -3,7 +3,7 @@ using Dalamud.Memory;
 using Dalamud.Utility;
 using ImGuiNET;
 
-namespace Dalamud.Interface.Internal.Windows.Data;
+namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 
 /// <summary>
 /// Widget for displaying Addon Data.
@@ -15,7 +15,10 @@ internal unsafe class AddonWidget : IDataWindowWidget
     private nint findAgentInterfacePtr;
 
     /// <inheritdoc/>
-    public DataKind DataKind { get; init; } = DataKind.Addon;
+    public string DisplayName { get; init; } = "Addon"; 
+
+    /// <inheritdoc/>
+    public string[]? CommandShortcuts { get; init; }
 
     /// <inheritdoc/>
     public bool Ready { get; set; }

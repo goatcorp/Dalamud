@@ -2,7 +2,7 @@
 using Dalamud.Utility;
 using ImGuiNET;
 
-namespace Dalamud.Interface.Internal.Windows.Data;
+namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 
 /// <summary>
 /// Widget for displaying information about the current party.
@@ -12,7 +12,10 @@ internal class PartyListWidget : IDataWindowWidget
     private bool resolveGameData;
 
     /// <inheritdoc/>
-    public DataKind DataKind { get; init; } = DataKind.Party_List;
+    public string[]? CommandShortcuts { get; init; } = { "partylist", "party" };
+    
+    /// <inheritdoc/>
+    public string DisplayName { get; init; } = "Party List"; 
 
     /// <inheritdoc/>
     public bool Ready { get; set; }

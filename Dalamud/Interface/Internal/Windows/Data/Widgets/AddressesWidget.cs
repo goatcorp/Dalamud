@@ -3,7 +3,7 @@
 using Dalamud.Game;
 using ImGuiNET;
 
-namespace Dalamud.Interface.Internal.Windows.Data;
+namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 
 /// <summary>
 /// Widget to display resolved .text sigs.
@@ -14,7 +14,10 @@ internal class AddressesWidget : IDataWindowWidget
     private nint sigResult = nint.Zero;
 
     /// <inheritdoc/>
-    public DataKind DataKind { get; init; } = DataKind.Address;
+    public string[]? CommandShortcuts { get; init; } = { "address" };
+
+    /// <inheritdoc/>
+    public string DisplayName { get; init; } = "Addresses"; 
 
     /// <inheritdoc/>
     public bool Ready { get; set; }
@@ -33,7 +36,7 @@ internal class AddressesWidget : IDataWindowWidget
         {
             try
             {
-                var sigScanner = Service<SigScanner>.Get();
+                var sigScanner = Service<TargetSigScanner>.Get();
                 this.sigResult = sigScanner.ScanText(this.inputSig);
             }
             catch (KeyNotFoundException)

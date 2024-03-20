@@ -4,7 +4,7 @@ using Dalamud.Data;
 using ImGuiNET;
 using Lumina.Excel.GeneratedSheets;
 
-namespace Dalamud.Interface.Internal.Windows.Data;
+namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 
 /// <summary>
 /// Widget for displaying all UI Colors from Lumina.
@@ -12,7 +12,10 @@ namespace Dalamud.Interface.Internal.Windows.Data;
 internal class UIColorWidget : IDataWindowWidget
 {
     /// <inheritdoc/>
-    public DataKind DataKind { get; init; } = DataKind.UIColor;
+    public string[]? CommandShortcuts { get; init; } = { "uicolor" };
+    
+    /// <inheritdoc/>
+    public string DisplayName { get; init; } = "UIColor"; 
 
     /// <inheritdoc/>
     public bool Ready { get; set; }

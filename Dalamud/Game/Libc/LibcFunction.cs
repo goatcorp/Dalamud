@@ -17,14 +17,14 @@ namespace Dalamud.Game.Libc;
 #pragma warning disable SA1015
 [ResolveVia<ILibcFunction>]
 #pragma warning restore SA1015
-public sealed class LibcFunction : IServiceType, ILibcFunction
+internal sealed class LibcFunction : IServiceType, ILibcFunction
 {
     private readonly LibcFunctionAddressResolver address;
     private readonly StdStringFromCStringDelegate stdStringCtorCString;
     private readonly StdStringDeallocateDelegate stdStringDeallocate;
 
     [ServiceManager.ServiceConstructor]
-    private LibcFunction(SigScanner sigScanner)
+    private LibcFunction(TargetSigScanner sigScanner)
     {
         this.address = new LibcFunctionAddressResolver();
         this.address.Setup(sigScanner);

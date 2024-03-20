@@ -1,7 +1,7 @@
 ﻿using Dalamud.Game.Text;
 using ImGuiNET;
 
-namespace Dalamud.Interface.Internal.Windows.Data;
+namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 
 /// <summary>
 /// Widget for displaying test data for SE Font Symbols.
@@ -9,7 +9,10 @@ namespace Dalamud.Interface.Internal.Windows.Data;
 internal class SeFontTestWidget : IDataWindowWidget
 {
     /// <inheritdoc/>
-    public DataKind DataKind { get; init; } = DataKind.SE_Font_Test;
+    public string[]? CommandShortcuts { get; init; } = { "sefont", "sefonttest" };
+    
+    /// <inheritdoc/>
+    public string DisplayName { get; init; } = "SeFont Test"; 
 
     /// <inheritdoc/>
     public bool Ready { get; set; }

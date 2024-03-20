@@ -6,6 +6,7 @@ using System.Numerics;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Components;
 using Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps;
+using Dalamud.Interface.Utility;
 using Dalamud.Interface.Windowing;
 using Dalamud.Logging.Internal;
 using ImGuiNET;
@@ -39,6 +40,7 @@ internal class SelfTestWindow : Window
             new ChatAgingStep(),
             new HoverAgingStep(),
             new LuminaAgingStep<TerritoryType>(),
+            new AddonLifecycleAgingStep(),
             new PartyFinderAgingStep(),
             new HandledExceptionAgingStep(),
             new DutyStateAgingStep(),

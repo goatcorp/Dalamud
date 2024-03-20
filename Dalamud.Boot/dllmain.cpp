@@ -17,7 +17,7 @@ static void OnReshadeOverlay(reshade::api::effect_runtime *runtime) {
         s_pfnReshadeOverlayCallback(reinterpret_cast<void*>(runtime->get_native()));
 }
 
-DWORD WINAPI InitializeImpl(LPVOID lpParam, HANDLE hMainThreadContinue) {
+HRESULT WINAPI InitializeImpl(LPVOID lpParam, HANDLE hMainThreadContinue) {
     g_startInfo.from_envvars();
     
     std::string jsonParseError;
@@ -122,7 +122,7 @@ DWORD WINAPI InitializeImpl(LPVOID lpParam, HANDLE hMainThreadContinue) {
     logging::I("Calling InitializeClrAndGetEntryPoint");
 
     void* entrypoint_vfn;
-    int result = InitializeClrAndGetEntryPoint(
+    const auto result = InitializeClrAndGetEntryPoint(
         g_hModule,
         g_startInfo.BootEnableEtw,
         runtimeconfig_path,
@@ -132,7 +132,7 @@ DWORD WINAPI InitializeImpl(LPVOID lpParam, HANDLE hMainThreadContinue) {
         L"Dalamud.EntryPoint+InitDelegate, Dalamud",
         &entrypoint_vfn);
 
-    if (result != 0)
+    if (FAILED(result))
         return result;
 
     using custom_component_entry_point_fn = void (CORECLR_DELEGATE_CALLTYPE*)(LPVOID, HANDLE, LPVOID);
@@ -141,8 +141,8 @@ DWORD WINAPI InitializeImpl(LPVOID lpParam, HANDLE hMainThreadContinue) {
     // ============================== VEH ======================================== //
 
     logging::I("Initializing VEH...");
-    if (utils::is_running_on_linux()) {
-        logging::I("=> VEH was disabled, running on linux");
+    if (g_startInfo.NoExceptionHandlers) {
+        logging::W("=> Exception handlers are disabled from DalamudStartInfo.");
     } else if (g_startInfo.BootVehEnabled) {
         if (veh::add_handler(g_startInfo.BootVehFull, g_startInfo.WorkingDirectory))
             logging::I("=> Done!");
@@ -164,10 +164,10 @@ DWORD WINAPI InitializeImpl(LPVOID lpParam, HANDLE hMainThreadContinue) {
     entrypoint_fn(lpParam, hMainThreadContinue, g_bReshadeAvailable ? &s_pfnReshadeOverlayCallback : nullptr);
     logging::I("Done!");
 
-    return 0;
+    return S_OK;
 }
 
-DllExport DWORD WINAPI Initialize(LPVOID lpParam) {
+extern "C" DWORD WINAPI Initialize(LPVOID lpParam) {
     return InitializeImpl(lpParam, CreateEvent(nullptr, TRUE, FALSE, nullptr));
 }
 

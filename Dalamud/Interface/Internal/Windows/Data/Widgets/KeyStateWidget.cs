@@ -2,7 +2,7 @@
 using Dalamud.Interface.Colors;
 using ImGuiNET;
 
-namespace Dalamud.Interface.Internal.Windows.Data;
+namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 
 /// <summary>
 /// Widget for displaying keyboard state.
@@ -10,7 +10,10 @@ namespace Dalamud.Interface.Internal.Windows.Data;
 internal class KeyStateWidget : IDataWindowWidget
 {
     /// <inheritdoc/>
-    public DataKind DataKind { get; init; } = DataKind.KeyState;
+    public string[]? CommandShortcuts { get; init; } = { "keystate" };
+    
+    /// <inheritdoc/>
+    public string DisplayName { get; init; } = "KeyState"; 
 
     /// <inheritdoc/>
     public bool Ready { get; set; }

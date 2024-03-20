@@ -1,12 +1,10 @@
-﻿using System;
-
-using Dalamud.Plugin.Ipc;
+﻿using Dalamud.Plugin.Ipc;
 using Dalamud.Plugin.Ipc.Internal;
 using Dalamud.Utility;
 using ImGuiNET;
 using Serilog;
 
-namespace Dalamud.Interface.Internal.Windows.Data;
+namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 
 /// <summary>
 /// Widget for testing plugin IPC systems.
@@ -19,7 +17,10 @@ internal class PluginIpcWidget : IDataWindowWidget
     private string callGateResponse = string.Empty;
     
     /// <inheritdoc/>
-    public DataKind DataKind { get; init; } = DataKind.Plugin_IPC;
+    public string[]? CommandShortcuts { get; init; } = { "ipc" };
+    
+    /// <inheritdoc/>
+    public string DisplayName { get; init; } = "Plugin IPC"; 
 
     /// <inheritdoc/>
     public bool Ready { get; set; }

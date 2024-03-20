@@ -1,5 +1,4 @@
-﻿using System;
-using System.Numerics;
+﻿using System.Numerics;
 
 using Dalamud.Game.ClientState;
 using Dalamud.Game.ClientState.Objects;
@@ -7,7 +6,7 @@ using Dalamud.Game.Gui;
 using Dalamud.Utility;
 using ImGuiNET;
 
-namespace Dalamud.Interface.Internal.Windows.Data;
+namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 
 /// <summary>
 /// Widget to display the Object Table.
@@ -19,8 +18,11 @@ internal class ObjectTableWidget : IDataWindowWidget
     private float maxCharaDrawDistance = 20.0f;
 
     /// <inheritdoc/>
-    public DataKind DataKind { get; init; } = DataKind.Object_Table;
+    public string[]? CommandShortcuts { get; init; } = { "ot", "objecttable" };
     
+    /// <inheritdoc/>
+    public string DisplayName { get; init; } = "Object Table"; 
+
     /// <inheritdoc/>
     public bool Ready { get; set; }
     

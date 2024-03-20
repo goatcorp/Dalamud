@@ -1,11 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
-using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
 using Dalamud.Configuration.Internal;
@@ -14,7 +12,11 @@ using Dalamud.Game.Gui;
 using Dalamud.Game.Network.Internal.MarketBoardUploaders;
 using Dalamud.Game.Network.Internal.MarketBoardUploaders.Universalis;
 using Dalamud.Game.Network.Structures;
+using Dalamud.Game.Text.SeStringHandling;
+using Dalamud.Hooking;
+using Dalamud.Networking.Http;
 using Dalamud.Utility;
+using FFXIVClientStructs.FFXIV.Client.UI.Info;
 using Lumina.Excel.GeneratedSheets;
 using Serilog;
 
@@ -23,17 +25,31 @@ namespace Dalamud.Game.Network.Internal;
 /// <summary>
 /// This class handles network notifications and uploading market board data.
 /// </summary>
-[ServiceManager.EarlyLoadedService]
-internal class NetworkHandlers : IDisposable, IServiceType
+[ServiceManager.BlockingEarlyLoadedService]
+internal unsafe class NetworkHandlers : IInternalDisposableService
 {
     private readonly IMarketBoardUploader uploader;
 
-    private readonly IObservable<NetworkMessage> messages;
+    private readonly IObservable<MarketBoardPurchase> mbPurchaseObservable;
+    private readonly IObservable<MarketBoardHistory> mbHistoryObservable;
+    private readonly IObservable<MarketTaxRates> mbTaxesObservable;
+    private readonly IObservable<MarketBoardItemRequest> mbItemRequestObservable;
+    private readonly IObservable<MarketBoardCurrentOfferings> mbOfferingsObservable;
+    private readonly IObservable<MarketBoardPurchaseHandler> mbPurchaseSentObservable;
 
     private readonly IDisposable handleMarketBoardItemRequest;
     private readonly IDisposable handleMarketTaxRates;
     private readonly IDisposable handleMarketBoardPurchaseHandler;
-    private readonly IDisposable handleCfPop;
+
+    private readonly NetworkHandlersAddressResolver addressResolver;
+
+    private readonly Hook<CfPopDelegate> cfPopHook;
+    private readonly Hook<MarketBoardPurchasePacketHandler> mbPurchaseHook;
+    private readonly Hook<MarketBoardHistoryPacketHandler> mbHistoryHook;
+    private readonly Hook<CustomTalkReceiveResponse> customTalkHook; // used for marketboard taxes
+    private readonly Hook<MarketBoardItemRequestStartPacketHandler> mbItemRequestStartHook;
+    private readonly Hook<InfoProxyItemSearchAddPage> mbOfferingsHook;
+    private readonly Hook<MarketBoardSendPurchaseRequestPacket> mbSendPurchaseRequestHook;
 
     [ServiceManager.ServiceDependency]
     private readonly DalamudConfiguration configuration = Service<DalamudConfiguration>.Get();
@@ -41,46 +57,163 @@ internal class NetworkHandlers : IDisposable, IServiceType
     private bool disposing;
 
     [ServiceManager.ServiceConstructor]
-    private NetworkHandlers(GameNetwork gameNetwork)
+    private NetworkHandlers(
+        GameNetwork gameNetwork,
+        TargetSigScanner sigScanner,
+        HappyHttpClient happyHttpClient)
     {
-        this.uploader = new UniversalisMarketBoardUploader();
-        this.CfPop = (_, _) => { };
+        this.uploader = new UniversalisMarketBoardUploader(happyHttpClient);
 
-        this.messages = Observable.Create<NetworkMessage>(observer =>
+        this.addressResolver = new NetworkHandlersAddressResolver();
+        this.addressResolver.Setup(sigScanner);
+
+        this.CfPop = _ => { };
+
+        this.mbPurchaseObservable = Observable.Create<MarketBoardPurchase>(observer =>
         {
-            void Observe(IntPtr dataPtr, ushort opCode, uint sourceActorId, uint targetActorId, NetworkMessageDirection direction)
-            {
-                var dataManager = Service<DataManager>.GetNullable();
-                observer.OnNext(new NetworkMessage
-                {
-                    DataManager = dataManager,
-                    Data = dataPtr,
-                    Opcode = opCode,
-                    SourceActorId = sourceActorId,
-                    TargetActorId = targetActorId,
-                    Direction = direction,
-                });
-            }
+            this.MarketBoardPurchaseReceived += Observe;
+            return () => { this.MarketBoardPurchaseReceived -= Observe; };
 
-            gameNetwork.NetworkMessage += Observe;
-            return () => { gameNetwork.NetworkMessage -= Observe; };
+            void Observe(nint packetPtr)
+            {
+                observer.OnNext(MarketBoardPurchase.Read(packetPtr));
+            }
+        });
+
+        this.mbHistoryObservable = Observable.Create<MarketBoardHistory>(observer =>
+        {
+            this.MarketBoardHistoryReceived += Observe;
+            return () => { this.MarketBoardHistoryReceived -= Observe; };
+
+            void Observe(nint packetPtr)
+            {
+                observer.OnNext(MarketBoardHistory.Read(packetPtr));
+            }
+        });
+
+        this.mbTaxesObservable = Observable.Create<MarketTaxRates>(observer =>
+        {
+            this.MarketBoardTaxesReceived += Observe;
+            return () => { this.MarketBoardTaxesReceived -= Observe; };
+
+            void Observe(nint dataPtr)
+            {
+                // n.b. we precleared the packet information so we're sure that this is *just* tax rate info.
+                observer.OnNext(MarketTaxRates.ReadFromCustomTalk(dataPtr));
+            }
+        });
+
+        this.mbItemRequestObservable = Observable.Create<MarketBoardItemRequest>(observer =>
+        {
+            this.MarketBoardItemRequestStartReceived += Observe;
+            return () => this.MarketBoardItemRequestStartReceived -= Observe;
+
+            void Observe(nint dataPtr)
+            {
+                observer.OnNext(MarketBoardItemRequest.Read(dataPtr));
+            }
+        });
+
+        this.mbOfferingsObservable = Observable.Create<MarketBoardCurrentOfferings>(observer =>
+        {
+            this.MarketBoardOfferingsReceived += Observe;
+            return () => { this.MarketBoardOfferingsReceived -= Observe; };
+
+            void Observe(nint packetPtr)
+            {
+                observer.OnNext(MarketBoardCurrentOfferings.Read(packetPtr));
+            }
+        });
+
+        this.mbPurchaseSentObservable = Observable.Create<MarketBoardPurchaseHandler>(observer =>
+        {
+            this.MarketBoardPurchaseRequestSent += Observe;
+            return () => { this.MarketBoardPurchaseRequestSent -= Observe; };
+
+            void Observe(nint dataPtr)
+            {
+                // fortunately, this dataptr has the same structure as the sent packet.
+                observer.OnNext(MarketBoardPurchaseHandler.Read(dataPtr));
+            }
         });
 
         this.handleMarketBoardItemRequest = this.HandleMarketBoardItemRequest();
         this.handleMarketTaxRates = this.HandleMarketTaxRates();
         this.handleMarketBoardPurchaseHandler = this.HandleMarketBoardPurchaseHandler();
-        this.handleCfPop = this.HandleCfPop();
+
+        this.mbPurchaseHook =
+            Hook<MarketBoardPurchasePacketHandler>.FromAddress(
+                this.addressResolver.MarketBoardPurchasePacketHandler,
+                this.MarketPurchasePacketDetour);
+        this.mbPurchaseHook.Enable();
+
+        this.mbHistoryHook =
+            Hook<MarketBoardHistoryPacketHandler>.FromAddress(
+                this.addressResolver.MarketBoardHistoryPacketHandler,
+                this.MarketHistoryPacketDetour);
+        this.mbHistoryHook.Enable();
+
+        this.customTalkHook =
+            Hook<CustomTalkReceiveResponse>.FromAddress(
+                this.addressResolver.CustomTalkEventResponsePacketHandler,
+                this.CustomTalkReceiveResponseDetour);
+        this.customTalkHook.Enable();
+
+        this.mbItemRequestStartHook = Hook<MarketBoardItemRequestStartPacketHandler>.FromAddress(
+            this.addressResolver.MarketBoardItemRequestStartPacketHandler,
+            this.MarketItemRequestStartDetour);
+        this.mbItemRequestStartHook.Enable();
+
+        this.mbOfferingsHook = Hook<InfoProxyItemSearchAddPage>.FromAddress(
+            this.addressResolver.InfoProxyItemSearchAddPage,
+            this.MarketBoardOfferingsDetour);
+        this.mbOfferingsHook.Enable();
+
+        this.mbSendPurchaseRequestHook = Hook<MarketBoardSendPurchaseRequestPacket>.FromAddress(
+            this.addressResolver.BuildMarketBoardPurchaseHandlerPacket,
+            this.MarketBoardSendPurchaseRequestDetour);
+        this.mbSendPurchaseRequestHook.Enable();
+
+        this.cfPopHook = Hook<CfPopDelegate>.FromAddress(this.addressResolver.CfPopPacketHandler, this.CfPopDetour);
+        this.cfPopHook.Enable();
     }
+
+    private delegate nint MarketBoardPurchasePacketHandler(nint a1, nint packetRef);
+
+    private delegate nint MarketBoardHistoryPacketHandler(nint self, nint packetData, uint a3, char a4);
+
+    private delegate void CustomTalkReceiveResponse(
+        nuint a1, ushort eventId, byte responseId, uint* args, byte argCount);
+
+    private delegate nint MarketBoardItemRequestStartPacketHandler(nint a1, nint packetRef);
+
+    private delegate byte InfoProxyItemSearchAddPage(nint self, nint packetRef);
+
+    private delegate byte MarketBoardSendPurchaseRequestPacket(InfoProxyItemSearch* infoProxy);
+
+    private delegate nint CfPopDelegate(nint packetData);
 
     /// <summary>
     /// Event which gets fired when a duty is ready.
     /// </summary>
-    public event EventHandler<ContentFinderCondition> CfPop;
+    public event Action<ContentFinderCondition> CfPop;
+
+    private event Action<nint>? MarketBoardPurchaseReceived;
+
+    private event Action<nint>? MarketBoardHistoryReceived;
+
+    private event Action<nint>? MarketBoardTaxesReceived;
+
+    private event Action<nint>? MarketBoardItemRequestStartReceived;
+
+    private event Action<nint>? MarketBoardOfferingsReceived;
+
+    private event Action<nint>? MarketBoardPurchaseRequestSent;
 
     /// <summary>
     /// Disposes of managed and unmanaged resources.
     /// </summary>
-    public void Dispose()
+    void IInternalDisposableService.DisposeService()
     {
         this.disposing = true;
         this.Dispose(this.disposing);
@@ -98,81 +231,78 @@ internal class NetworkHandlers : IDisposable, IServiceType
         this.handleMarketBoardItemRequest.Dispose();
         this.handleMarketTaxRates.Dispose();
         this.handleMarketBoardPurchaseHandler.Dispose();
-        this.handleCfPop.Dispose();
+
+        this.mbPurchaseHook.Dispose();
+        this.mbHistoryHook.Dispose();
+        this.customTalkHook.Dispose();
+        this.mbItemRequestStartHook.Dispose();
+        this.mbOfferingsHook.Dispose();
+        this.mbSendPurchaseRequestHook.Dispose();
+        this.cfPopHook.Dispose();
     }
 
-    private IObservable<NetworkMessage> OnNetworkMessage()
+    private unsafe nint CfPopDetour(nint packetData)
     {
-        return this.messages.Where(message => message.DataManager?.IsDataReady == true);
-    }
+        var result = this.cfPopHook.OriginalDisposeSafe(packetData);
 
-    private IObservable<MarketBoardItemRequest> OnMarketBoardItemRequestStart()
-    {
-        return this.OnNetworkMessage()
-                   .Where(message => message.Direction == NetworkMessageDirection.ZoneDown)
-                   .Where(message => message.Opcode ==
-                                     message.DataManager?.ServerOpCodes["MarketBoardItemRequestStart"])
-                   .Select(message => MarketBoardItemRequest.Read(message.Data));
-    }
+        try
+        {
+            using var stream = new UnmanagedMemoryStream((byte*)packetData, 64);
+            using var reader = new BinaryReader(stream);
 
-    private IObservable<MarketBoardCurrentOfferings> OnMarketBoardOfferings()
-    {
-        return this.OnNetworkMessage()
-                   .Where(message => message.Direction == NetworkMessageDirection.ZoneDown)
-                   .Where(message => message.Opcode == message.DataManager?.ServerOpCodes["MarketBoardOfferings"])
-                   .Select(message => MarketBoardCurrentOfferings.Read(message.Data));
-    }
+            var notifyType = reader.ReadByte();
+            stream.Position += 0x1B;
+            var conditionId = reader.ReadUInt16();
 
-    private IObservable<MarketBoardHistory> OnMarketBoardHistory()
-    {
-        return this.OnNetworkMessage()
-                   .Where(message => message.Direction == NetworkMessageDirection.ZoneDown)
-                   .Where(message => message.Opcode == message.DataManager?.ServerOpCodes["MarketBoardHistory"])
-                   .Select(message => MarketBoardHistory.Read(message.Data));
-    }
+            if (notifyType != 3)
+                return result;
 
-    private IObservable<MarketTaxRates> OnMarketTaxRates()
-    {
-        return this.OnNetworkMessage()
-                   .Where(message => message.Direction == NetworkMessageDirection.ZoneDown)
-                   .Where(message => message.Opcode == message.DataManager?.ServerOpCodes["MarketTaxRates"])
-                   .Where(message =>
-                   {
-                       // Only some categories of the result dialog packet contain market tax rates
-                       var category = (uint)Marshal.ReadInt32(message.Data);
-                       return category == 720905;
-                   })
-                   .Select(message => MarketTaxRates.Read(message.Data))
-                   .Where(taxes => taxes.Category == 0xb0009);
-    }
+            if (this.configuration.DutyFinderTaskbarFlash)
+                Util.FlashWindow();
 
-    private IObservable<MarketBoardPurchaseHandler> OnMarketBoardPurchaseHandler()
-    {
-        return this.OnNetworkMessage()
-                   .Where(message => message.Direction == NetworkMessageDirection.ZoneUp)
-                   .Where(message => message.Opcode == message.DataManager?.ClientOpCodes["MarketBoardPurchaseHandler"])
-                   .Select(message => MarketBoardPurchaseHandler.Read(message.Data));
-    }
+            var cfConditionSheet = Service<DataManager>.Get().GetExcelSheet<ContentFinderCondition>()!;
+            var cfCondition = cfConditionSheet.GetRow(conditionId);
 
-    private IObservable<MarketBoardPurchase> OnMarketBoardPurchase()
-    {
-        return this.OnNetworkMessage()
-                   .Where(message => message.Direction == NetworkMessageDirection.ZoneDown)
-                   .Where(message => message.Opcode == message.DataManager?.ServerOpCodes["MarketBoardPurchase"])
-                   .Select(message => MarketBoardPurchase.Read(message.Data));
-    }
+            if (cfCondition == null)
+            {
+                Log.Error("CFC key {ConditionId} not in Lumina data", conditionId);
+                return result;
+            }
 
-    private IObservable<NetworkMessage> OnCfNotifyPop()
-    {
-        return this.OnNetworkMessage()
-                   .Where(message => message.Direction == NetworkMessageDirection.ZoneDown)
-                   .Where(message => message.Opcode == message.DataManager?.ServerOpCodes["CfNotifyPop"]);
+            var cfcName = cfCondition.Name.ToDalamudString();
+            if (cfcName.Payloads.Count == 0)
+            {
+                cfcName = "Duty Roulette";
+                cfCondition.Image = 112324;
+            }
+
+            Task.Run(() =>
+            {
+                if (this.configuration.DutyFinderChatMessage)
+                {
+                    var b = new SeStringBuilder();
+                    b.Append("Duty pop: ");
+                    b.Append(cfcName);
+                    Service<ChatGui>.GetNullable()?.Print(b.Build());
+                }
+
+                this.CfPop.InvokeSafely(cfCondition);
+            }).ContinueWith(
+                task => Log.Error(task.Exception, "CfPop.Invoke failed"),
+                TaskContinuationOptions.OnlyOnFaulted);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "CfPopDetour threw an exception");   
+        }
+
+        return result;
     }
 
     private IObservable<List<MarketBoardCurrentOfferings.MarketBoardItemListing>> OnMarketBoardListingsBatch(
         IObservable<MarketBoardItemRequest> start)
     {
-        var offeringsObservable = this.OnMarketBoardOfferings().Publish().RefCount();
+        var offeringsObservable = this.mbOfferingsObservable.Publish().RefCount();
 
         void LogEndObserved(MarketBoardCurrentOfferings offerings)
         {
@@ -222,7 +352,7 @@ internal class NetworkHandlers : IDisposable, IServiceType
     private IObservable<List<MarketBoardHistory.MarketBoardHistoryListing>> OnMarketBoardSalesBatch(
         IObservable<MarketBoardItemRequest> start)
     {
-        var historyObservable = this.OnMarketBoardHistory().Publish().RefCount();
+        var historyObservable = this.mbHistoryObservable.Publish().RefCount();
 
         void LogHistoryObserved(MarketBoardHistory history)
         {
@@ -265,7 +395,7 @@ internal class NetworkHandlers : IDisposable, IServiceType
                 request.AmountToArrive);
         }
 
-        var startObservable = this.OnMarketBoardItemRequestStart()
+        var startObservable = this.mbItemRequestObservable
                                   .Where(request => request.Ok).Do(LogStartObserved)
                                   .Publish()
                                   .RefCount();
@@ -292,7 +422,9 @@ internal class NetworkHandlers : IDisposable, IServiceType
     {
         if (listings.Count != request.AmountToArrive)
         {
-            Log.Error("Wrong number of Market Board listings received for request: {ListingsCount} != {RequestAmountToArrive} item#{RequestCatalogId}", listings.Count, request.AmountToArrive, request.CatalogId);
+            Log.Error(
+                "Wrong number of Market Board listings received for request: {ListingsCount} != {RequestAmountToArrive} item#{RequestCatalogId}",
+                listings.Count, request.AmountToArrive, request.CatalogId);
             return;
         }
 
@@ -319,7 +451,7 @@ internal class NetworkHandlers : IDisposable, IServiceType
 
     private IDisposable HandleMarketTaxRates()
     {
-        return this.OnMarketTaxRates()
+        return this.mbTaxesObservable
                    .Where(this.ShouldUpload)
                    .SubscribeOn(ThreadPoolScheduler.Instance)
                    .Subscribe(
@@ -345,8 +477,8 @@ internal class NetworkHandlers : IDisposable, IServiceType
 
     private IDisposable HandleMarketBoardPurchaseHandler()
     {
-        return this.OnMarketBoardPurchaseHandler()
-                   .Zip(this.OnMarketBoardPurchase())
+        return this.mbPurchaseSentObservable
+                   .Zip(this.mbPurchaseObservable)
                    .Where(this.ShouldUpload)
                    .SubscribeOn(ThreadPoolScheduler.Instance)
                    .Subscribe(
@@ -376,85 +508,93 @@ internal class NetworkHandlers : IDisposable, IServiceType
                        ex => Log.Error(ex, "Failed to handle Market Board purchase event"));
     }
 
-    private unsafe IDisposable HandleCfPop()
-    {
-        return this.OnCfNotifyPop()
-                   .SubscribeOn(ThreadPoolScheduler.Instance)
-                   .Subscribe(
-                       message =>
-                       {
-                           using var stream = new UnmanagedMemoryStream((byte*)message.Data.ToPointer(), 64);
-                           using var reader = new BinaryReader(stream);
-
-                           var notifyType = reader.ReadByte();
-                           stream.Position += 0x1B;
-                           var conditionId = reader.ReadUInt16();
-
-                           if (notifyType != 3)
-                               return;
-
-                           var cfConditionSheet = message.DataManager!.GetExcelSheet<ContentFinderCondition>()!;
-                           var cfCondition = cfConditionSheet.GetRow(conditionId);
-
-                           if (cfCondition == null)
-                           {
-                               Log.Error("CFC key {ConditionId} not in Lumina data", conditionId);
-                               return;
-                           }
-
-                           var cfcName = cfCondition.Name.ToString();
-                           if (cfcName.IsNullOrEmpty())
-                           {
-                               cfcName = "Duty Roulette";
-                               cfCondition.Image = 112324;
-                           }
-
-                           // Flash window
-                           if (this.configuration.DutyFinderTaskbarFlash && !NativeFunctions.ApplicationIsActivated())
-                           {
-                               var flashInfo = new NativeFunctions.FlashWindowInfo
-                               {
-                                   Size = (uint)Marshal.SizeOf<NativeFunctions.FlashWindowInfo>(),
-                                   Count = uint.MaxValue,
-                                   Timeout = 0,
-                                   Flags = NativeFunctions.FlashWindow.All | NativeFunctions.FlashWindow.TimerNoFG,
-                                   Hwnd = Process.GetCurrentProcess().MainWindowHandle,
-                               };
-                               NativeFunctions.FlashWindowEx(ref flashInfo);
-                           }
-
-                           Task.Run(() =>
-                           {
-                               if (this.configuration.DutyFinderChatMessage)
-                               {
-                                   Service<ChatGui>.GetNullable()?.Print($"Duty pop: {cfcName}");
-                               }
-
-                               this.CfPop.InvokeSafely(this, cfCondition);
-                           }).ContinueWith(
-                               task => Log.Error(task.Exception, "CfPop.Invoke failed"),
-                               TaskContinuationOptions.OnlyOnFaulted);
-                       },
-                       ex => Log.Error(ex, "Failed to handle Market Board purchase event"));
-    }
-
     private bool ShouldUpload<T>(T any)
     {
         return this.configuration.IsMbCollect;
     }
 
-    private class NetworkMessage
+    private nint MarketPurchasePacketDetour(nint a1, nint packetData)
     {
-        public DataManager? DataManager { get; init; }
+        try
+        {
+            this.MarketBoardPurchaseReceived?.InvokeSafely(packetData);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "MarketPurchasePacketHandler threw an exception");
+        }
+        
+        return this.mbPurchaseHook.OriginalDisposeSafe(a1, packetData);
+    }
 
-        public IntPtr Data { get; init; }
+    private nint MarketHistoryPacketDetour(nint a1, nint packetData, uint a3, char a4)
+    {
+        try
+        {
+            this.MarketBoardHistoryReceived?.InvokeSafely(packetData);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "MarketHistoryPacketDetour threw an exception");
+        }
+        
+        return this.mbHistoryHook.OriginalDisposeSafe(a1, packetData, a3, a4);
+    }
 
-        public ushort Opcode { get; init; }
+    private void CustomTalkReceiveResponseDetour(nuint a1, ushort eventId, byte responseId, uint* args, byte argCount)
+    {
+        try
+        {
+            if (eventId == 7 && responseId == 8)
+                this.MarketBoardTaxesReceived?.InvokeSafely((nint)args);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "CustomTalkReceiveResponseDetour threw an exception");
+        }
 
-        public uint SourceActorId { get; init; }
+        this.customTalkHook.OriginalDisposeSafe(a1, eventId, responseId, args, argCount);
+    }
 
-        public uint TargetActorId { get; init; }
+    private nint MarketItemRequestStartDetour(nint a1, nint packetRef)
+    {
+        try
+        {
+            this.MarketBoardItemRequestStartReceived?.InvokeSafely(packetRef);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "MarketItemRequestStartDetour threw an exception");
+        }
+        
+        return this.mbItemRequestStartHook.OriginalDisposeSafe(a1, packetRef);
+    }
 
-        public NetworkMessageDirection Direction { get; init; }
+    private byte MarketBoardOfferingsDetour(nint a1, nint packetRef)
+    {
+        try
+        {
+            this.MarketBoardOfferingsReceived?.InvokeSafely(packetRef);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "MarketBoardOfferingsDetour threw an exception");
+        }
+        
+        return this.mbOfferingsHook.OriginalDisposeSafe(a1, packetRef);
+    }
+
+    private byte MarketBoardSendPurchaseRequestDetour(InfoProxyItemSearch* infoProxyItemSearch)
+    {
+        try
+        {
+            this.MarketBoardPurchaseRequestSent?.InvokeSafely((nint)infoProxyItemSearch + 0x5680);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "MarketBoardSendPurchaseRequestDetour threw an exception");
+        }
+        
+        return this.mbSendPurchaseRequestHook.OriginalDisposeSafe(infoProxyItemSearch);
     }
 }

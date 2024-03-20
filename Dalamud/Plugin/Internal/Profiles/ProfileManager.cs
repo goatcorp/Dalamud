@@ -69,11 +69,12 @@ internal class ProfileManager : IServiceType
     /// <summary>
     /// Check if any enabled profile wants a specific plugin enabled.
     /// </summary>
-    /// <param name="internalName">The internal name of the plugin.</param>
+    /// <param name="workingPluginId">The ID of the plugin.</param>
+    /// <param name="internalName">The internal name of the plugin, if available.</param>
     /// <param name="defaultState">The state the plugin shall be in, if it needs to be added.</param>
     /// <param name="addIfNotDeclared">Whether or not the plugin should be added to the default preset, if it's not present in any preset.</param>
     /// <returns>Whether or not the plugin shall be enabled.</returns>
-    public async Task<bool> GetWantStateAsync(string internalName, bool defaultState, bool addIfNotDeclared = true)
+    public async Task<bool> GetWantStateAsync(Guid workingPluginId, string? internalName, bool defaultState, bool addIfNotDeclared = true)
     {
         var want = false;
         var wasInAnyProfile = false;
@@ -82,7 +83,7 @@ internal class ProfileManager : IServiceType
         {
             foreach (var profile in this.profiles)
             {
-                var state = profile.WantsPlugin(internalName);
+                var state = profile.WantsPlugin(workingPluginId);
                 if (state.HasValue)
                 {
                     want = want || (profile.IsEnabled && state.Value);
@@ -93,8 +94,8 @@ internal class ProfileManager : IServiceType
 
         if (!wasInAnyProfile && addIfNotDeclared)
         {
-            Log.Warning("{Name} was not in any profile, adding to default with {Default}", internalName, defaultState);
-            await this.DefaultProfile.AddOrUpdateAsync(internalName, defaultState, false);
+            Log.Warning("'{Guid}'('{InternalName}') was not in any profile, adding to default with {Default}", workingPluginId, internalName, defaultState);
+            await this.DefaultProfile.AddOrUpdateAsync(workingPluginId, internalName, defaultState, false);
 
             return defaultState;
         }
@@ -105,22 +106,22 @@ internal class ProfileManager : IServiceType
     /// <summary>
     /// Check whether a plugin is declared in any profile.
     /// </summary>
-    /// <param name="internalName">The internal name of the plugin.</param>
+    /// <param name="workingPluginId">The ID of the plugin.</param>
     /// <returns>Whether or not the plugin is in any profile.</returns>
-    public bool IsInAnyProfile(string internalName)
+    public bool IsInAnyProfile(Guid workingPluginId)
     {
         lock (this.profiles)
-            return this.profiles.Any(x => x.WantsPlugin(internalName) != null);
+            return this.profiles.Any(x => x.WantsPlugin(workingPluginId) != null);
     }
 
     /// <summary>
     /// Check whether a plugin is only in the default profile.
     /// A plugin can never be in the default profile if it is in any other profile.
     /// </summary>
-    /// <param name="internalName">The internal name of the plugin.</param>
+    /// <param name="workingPluginId">The ID of the plugin.</param>
     /// <returns>Whether or not the plugin is in the default profile.</returns>
-    public bool IsInDefaultProfile(string internalName)
-        => this.DefaultProfile.WantsPlugin(internalName) != null;
+    public bool IsInDefaultProfile(Guid workingPluginId)
+        => this.DefaultProfile.WantsPlugin(workingPluginId) != null;
 
     /// <summary>
     /// Add a new profile.
@@ -151,7 +152,7 @@ internal class ProfileManager : IServiceType
     /// <returns>The newly cloned profile.</returns>
     public Profile CloneProfile(Profile toClone)
     {
-        var newProfile = this.ImportProfile(toClone.Model.Serialize());
+        var newProfile = this.ImportProfile(toClone.Model.SerializeForShare());
         if (newProfile == null)
             throw new Exception("New profile was null while cloning");
 
@@ -172,7 +173,27 @@ internal class ProfileManager : IServiceType
         newModel.Guid = Guid.NewGuid();
         newModel.Name = this.GenerateUniqueProfileName(newModel.Name.IsNullOrEmpty() ? "Unknown Collection" : newModel.Name);
         if (newModel is ProfileModelV1 modelV1)
+        {
+            // Disable it
             modelV1.IsEnabled = false;
+            
+            // Try to find matching plugins for all plugins in the profile
+            var pm = Service<PluginManager>.Get();
+            foreach (var plugin in modelV1.Plugins)
+            {
+                var installedPlugin = pm.InstalledPlugins.FirstOrDefault(x => x.Manifest.InternalName == plugin.InternalName);
+                if (installedPlugin != null)
+                {
+                    Log.Information("Satisfying plugin {InternalName} for profile {Name} with {Guid}", plugin.InternalName, newModel.Name, installedPlugin.Manifest.WorkingPluginId);
+                    plugin.WorkingPluginId = installedPlugin.Manifest.WorkingPluginId;
+                }
+                else
+                {
+                    Log.Warning("Couldn't find plugin {InternalName} for profile {Name}", plugin.InternalName, newModel.Name);
+                    plugin.WorkingPluginId = Guid.Empty;
+                }
+            }
+        }
 
         this.config.SavedProfiles!.Add(newModel);
         this.config.QueueSave();
@@ -196,19 +217,18 @@ internal class ProfileManager : IServiceType
         this.isBusy = true;
         Log.Information("Getting want states...");
 
-        List<string> wantActive;
+        List<ProfilePluginEntry> wantActive;
         lock (this.profiles)
         {
             wantActive = this.profiles
                              .Where(x => x.IsEnabled)
-                             .SelectMany(profile => profile.Plugins.Where(plugin => plugin.IsEnabled)
-                                                           .Select(plugin => plugin.InternalName))
+                             .SelectMany(profile => profile.Plugins.Where(plugin => plugin.IsEnabled))
                              .Distinct().ToList();
         }
 
-        foreach (var internalName in wantActive)
+        foreach (var profilePluginEntry in wantActive)
         {
-            Log.Information("\t=> Want {Name}", internalName);
+            Log.Information("\t=> Want {Name}({WorkingPluginId})", profilePluginEntry.InternalName, profilePluginEntry.WorkingPluginId);
         }
 
         Log.Information("Applying want states...");
@@ -218,7 +238,7 @@ internal class ProfileManager : IServiceType
         var pm = Service<PluginManager>.Get();
         foreach (var installedPlugin in pm.InstalledPlugins)
         {
-            var wantThis = wantActive.Contains(installedPlugin.Manifest.InternalName);
+            var wantThis = wantActive.Any(x => x.WorkingPluginId == installedPlugin.Manifest.WorkingPluginId);
             switch (wantThis)
             {
                 case true when !installedPlugin.IsLoaded:
@@ -267,7 +287,7 @@ internal class ProfileManager : IServiceType
         // We need to remove all plugins from the profile first, so that they are re-added to the default profile if needed
         foreach (var plugin in profile.Plugins.ToArray())
         {
-            await profile.RemoveAsync(plugin.InternalName, false);
+            await profile.RemoveAsync(plugin.WorkingPluginId, false);
         }
 
         if (!this.config.SavedProfiles!.Remove(profile.Model))
@@ -277,6 +297,42 @@ internal class ProfileManager : IServiceType
             throw new Exception("Couldn't remove runtime profile");
 
         this.config.QueueSave();
+    }
+
+    /// <summary>
+    /// This function tries to migrate all plugins with this internalName which do not have
+    /// a GUID to the specified GUID.
+    /// This is best-effort and will probably work well for anyone that only uses regular plugins.
+    /// </summary>
+    /// <param name="internalName">InternalName of the plugin to migrate.</param>
+    /// <param name="newGuid">Guid to use.</param>
+    public void MigrateProfilesToGuidsForPlugin(string internalName, Guid newGuid)
+    {
+        lock (this.profiles)
+        {
+            foreach (var profile in this.profiles)
+                profile.MigrateProfilesToGuidsForPlugin(internalName, newGuid);
+        }
+    }
+    
+    /// <summary>
+    /// Validate profiles for errors.
+    /// </summary>
+    /// <exception cref="Exception">Thrown when a profile is not sane.</exception>
+    public void ParanoiaValidateProfiles()
+    {
+        foreach (var profile in this.profiles)
+        {
+            var seenIds = new List<Guid>();
+
+            foreach (var pluginEntry in profile.Plugins)
+            {
+                if (seenIds.Contains(pluginEntry.WorkingPluginId))
+                    throw new Exception($"Plugin '{pluginEntry.WorkingPluginId}'('{pluginEntry.InternalName}') is twice in profile '{profile.Guid}'('{profile.Name}')");
+                
+                seenIds.Add(pluginEntry.WorkingPluginId);
+            }
+        }
     }
 
     private string GenerateUniqueProfileName(string startingWith)

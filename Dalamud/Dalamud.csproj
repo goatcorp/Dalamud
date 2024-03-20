@@ -8,11 +8,12 @@
     </PropertyGroup>
 
     <PropertyGroup Label="Feature">
-        <DalamudVersion>7.10.1.0</DalamudVersion>
+        <DalamudVersion>9.0.0.21</DalamudVersion>
         <Description>XIV Launcher addon framework</Description>
         <AssemblyVersion>$(DalamudVersion)</AssemblyVersion>
         <Version>$(DalamudVersion)</Version>
         <FileVersion>$(DalamudVersion)</FileVersion>
+        <PackageLicenseExpression>AGPL-3.0-or-later</PackageLicenseExpression>
     </PropertyGroup>
 
     <PropertyGroup Label="Output">
@@ -67,8 +68,12 @@
         <PackageReference Include="goaaats.Reloaded.Hooks" Version="4.2.0-goat.4" />
         <PackageReference Include="goaaats.Reloaded.Assembler" Version="1.0.14-goat.2" />
         <PackageReference Include="JetBrains.Annotations" Version="2021.2.0" />
-        <PackageReference Include="Lumina" Version="3.10.2" />
-        <PackageReference Include="Lumina.Excel" Version="6.4.0" />
+        <PackageReference Include="Lumina" Version="3.16.0" />
+        <PackageReference Include="Lumina.Excel" Version="6.5.2" />
+        <PackageReference Include="Microsoft.Extensions.ObjectPool" Version="8.0.1" />
+        <PackageReference Include="Microsoft.Windows.CsWin32" Version="0.3.46-beta">
+          <PrivateAssets>all</PrivateAssets>
+        </PackageReference>
         <PackageReference Include="MinSharp" Version="1.0.4" />
         <PackageReference Include="MonoModReorg.RuntimeDetour" Version="23.1.2-prerelease.1" />
         <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
@@ -76,6 +81,7 @@
         <PackageReference Include="Serilog.Sinks.Async" Version="1.5.0" />
         <PackageReference Include="Serilog.Sinks.Console" Version="4.0.1" />
         <PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />
+        <PackageReference Include="sqlite-net-pcl" Version="1.8.116" />
         <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.333">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -85,9 +91,10 @@
         <PackageReference Include="System.Reactive" Version="5.0.0" />
         <PackageReference Include="System.Reflection.MetadataLoadContext" Version="7.0.0" />
         <PackageReference Include="System.Resources.Extensions" Version="7.0.0" />
+        <PackageReference Include="TerraFX.Interop.Windows" Version="10.0.22621.2" />
     </ItemGroup>
     <ItemGroup>
-        <ProjectReference Include="..\Dalamud.Interface\Dalamud.Interface.csproj" />
+        <ProjectReference Include="..\Dalamud.Common\Dalamud.Common.csproj" />
         <ProjectReference Include="..\lib\FFXIVClientStructs\FFXIVClientStructs\FFXIVClientStructs.csproj" />
         <ProjectReference Include="..\lib\ImGuiScene\deps\ImGui.NET\src\ImGui.NET-472\ImGui.NET-472.csproj" />
         <ProjectReference Include="..\lib\ImGuiScene\deps\SDL2-CS\SDL2-CS.csproj" />

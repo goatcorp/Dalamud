@@ -1,22 +1,14 @@
-﻿using System;
+﻿using Dalamud.Utility;
 
 using ImGuiScene;
 
 namespace Dalamud.Interface.Internal;
 
 /// <summary>
-/// Base TextureWrap interface for all Dalamud-owned texture wraps.
-/// Used to avoid referencing ImGuiScene.
-/// </summary>
-public interface IDalamudTextureWrap : TextureWrap
-{
-}
-
-/// <summary>
 /// Safety harness for ImGuiScene textures that will defer destruction until
 /// the end of the frame.
 /// </summary>
-public class DalamudTextureWrap : IDalamudTextureWrap
+public class DalamudTextureWrap : IDalamudTextureWrap, IDeferredDisposable
 {
     private readonly TextureWrap wrappedWrap;
 
@@ -64,7 +56,7 @@ public class DalamudTextureWrap : IDalamudTextureWrap
     /// <summary>
     /// Actually dispose the wrapped texture.
     /// </summary>
-    internal void RealDispose()
+    void IDeferredDisposable.RealDispose()
     {
         this.wrappedWrap.Dispose();
     }

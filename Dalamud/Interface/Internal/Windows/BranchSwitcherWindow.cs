@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 
 using Dalamud.Configuration.Internal;
 using Dalamud.Interface.Colors;
+using Dalamud.Interface.Utility;
 using Dalamud.Interface.Windowing;
 using Dalamud.Networking.Http;
 using ImGuiNET;
@@ -65,7 +66,7 @@ public class BranchSwitcherWindow : Window
             return;
         }
 
-        var si = Service<DalamudStartInfo>.Get();
+        var si = Service<Dalamud>.Get().StartInfo;
 
         var itemsArray = this.branches.Select(x => x.Key).ToArray();
         ImGui.ListBox("Branch", ref this.selectedBranchIndex, itemsArray, itemsArray.Length);

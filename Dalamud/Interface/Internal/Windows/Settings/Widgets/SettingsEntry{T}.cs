@@ -7,7 +7,8 @@ using System.Linq;
 using Dalamud.Configuration.Internal;
 
 using Dalamud.Interface.Colors;
-using Dalamud.Interface.Raii;
+using Dalamud.Interface.Utility;
+using Dalamud.Interface.Utility.Raii;
 using Dalamud.Utility;
 using ImGuiNET;
 

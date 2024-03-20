@@ -1,4 +1,3 @@
-using System;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
@@ -7,6 +6,7 @@ using Dalamud.Hooking;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Memory;
+using Dalamud.Plugin.Services;
 using Serilog;
 
 namespace Dalamud.Game.Gui.FlyText;
@@ -14,10 +14,9 @@ namespace Dalamud.Game.Gui.FlyText;
 /// <summary>
 /// This class facilitates interacting with and creating native in-game "fly text".
 /// </summary>
-[PluginInterface]
 [InterfaceVersion("1.0")]
 [ServiceManager.BlockingEarlyLoadedService]
-public sealed class FlyTextGui : IDisposable, IServiceType
+internal sealed class FlyTextGui : IInternalDisposableService, IFlyTextGui
 {
     /// <summary>
     /// The native function responsible for adding fly text to the UI. See <see cref="FlyTextGuiAddressResolver.AddFlyText"/>.
@@ -30,40 +29,16 @@ public sealed class FlyTextGui : IDisposable, IServiceType
     private readonly Hook<CreateFlyTextDelegate> createFlyTextHook;
 
     [ServiceManager.ServiceConstructor]
-    private FlyTextGui(SigScanner sigScanner)
+    private FlyTextGui(TargetSigScanner sigScanner)
     {
         this.Address = new FlyTextGuiAddressResolver();
         this.Address.Setup(sigScanner);
 
         this.addFlyTextNative = Marshal.GetDelegateForFunctionPointer<AddFlyTextDelegate>(this.Address.AddFlyText);
         this.createFlyTextHook = Hook<CreateFlyTextDelegate>.FromAddress(this.Address.CreateFlyText, this.CreateFlyTextDetour);
-    }
 
-    /// <summary>
-    /// The delegate defining the type for the FlyText event.
-    /// </summary>
-    /// <param name="kind">The FlyTextKind. See <see cref="FlyTextKind"/>.</param>
-    /// <param name="val1">Value1 passed to the native flytext function.</param>
-    /// <param name="val2">Value2 passed to the native flytext function. Seems unused.</param>
-    /// <param name="text1">Text1 passed to the native flytext function.</param>
-    /// <param name="text2">Text2 passed to the native flytext function.</param>
-    /// <param name="color">Color passed to the native flytext function. Changes flytext color.</param>
-    /// <param name="icon">Icon ID passed to the native flytext function. Only displays with select FlyTextKind.</param>
-    /// <param name="damageTypeIcon">Damage Type Icon ID passed to the native flytext function. Displayed next to damage values to denote damage type.</param>
-    /// <param name="yOffset">The vertical offset to place the flytext at. 0 is default. Negative values result
-    /// in text appearing higher on the screen. This does not change where the element begins to fade.</param>
-    /// <param name="handled">Whether this flytext has been handled. If a subscriber sets this to true, the FlyText will not appear.</param>
-    public delegate void OnFlyTextCreatedDelegate(
-        ref FlyTextKind kind,
-        ref int val1,
-        ref int val2,
-        ref SeString text1,
-        ref SeString text2,
-        ref uint color,
-        ref uint icon,
-        ref uint damageTypeIcon,
-        ref float yOffset,
-        ref bool handled);
+        this.createFlyTextHook.Enable();
+    }
 
     /// <summary>
     /// Private delegate for the native CreateFlyText function's hook.
@@ -95,41 +70,26 @@ public sealed class FlyTextGui : IDisposable, IServiceType
         uint offsetStrMax,
         int unknown);
 
-    /// <summary>
-    /// The FlyText event that can be subscribed to.
-    /// </summary>
-    public event OnFlyTextCreatedDelegate? FlyTextCreated;
-
-    private Dalamud Dalamud { get; }
+    /// <inheritdoc/>
+    public event IFlyTextGui.OnFlyTextCreatedDelegate? FlyTextCreated;
 
     private FlyTextGuiAddressResolver Address { get; }
 
     /// <summary>
     /// Disposes of managed and unmanaged resources.
     /// </summary>
-    public void Dispose()
+    void IInternalDisposableService.DisposeService()
     {
         this.createFlyTextHook.Dispose();
     }
 
-    /// <summary>
-    /// Displays a fly text in-game on the local player.
-    /// </summary>
-    /// <param name="kind">The FlyTextKind. See <see cref="FlyTextKind"/>.</param>
-    /// <param name="actorIndex">The index of the actor to place flytext on. Indexing unknown. 1 places flytext on local player.</param>
-    /// <param name="val1">Value1 passed to the native flytext function.</param>
-    /// <param name="val2">Value2 passed to the native flytext function. Seems unused.</param>
-    /// <param name="text1">Text1 passed to the native flytext function.</param>
-    /// <param name="text2">Text2 passed to the native flytext function.</param>
-    /// <param name="color">Color passed to the native flytext function. Changes flytext color.</param>
-    /// <param name="icon">Icon ID passed to the native flytext function. Only displays with select FlyTextKind.</param>
-    /// <param name="damageTypeIcon">Damage Type Icon ID passed to the native flytext function. Displayed next to damage values to denote damage type.</param>
+    /// <inheritdoc/>
     public unsafe void AddFlyText(FlyTextKind kind, uint actorIndex, uint val1, uint val2, SeString text1, SeString text2, uint color, uint icon, uint damageTypeIcon)
     {
         // Known valid flytext region within the atk arrays
-        var numIndex = 28;
-        var strIndex = 25;
-        var numOffset = 147u;
+        var numIndex = 30;
+        var strIndex = 27;
+        var numOffset = 161u;
         var strOffset = 28u;
 
         // Get the UI module and flytext addon pointers
@@ -154,32 +114,26 @@ public sealed class FlyTextGui : IDisposable, IServiceType
         numArray->IntArray[numOffset + 2] = unchecked((int)val1);
         numArray->IntArray[numOffset + 3] = unchecked((int)val2);
         numArray->IntArray[numOffset + 4] = unchecked((int)damageTypeIcon); // Icons for damage type
-        numArray->IntArray[numOffset + 5] = 5; // Unknown
+        numArray->IntArray[numOffset + 5] = 5;                              // Unknown
         numArray->IntArray[numOffset + 6] = unchecked((int)color);
         numArray->IntArray[numOffset + 7] = unchecked((int)icon);
         numArray->IntArray[numOffset + 8] = 0; // Unknown
         numArray->IntArray[numOffset + 9] = 0; // Unknown, has something to do with yOffset
 
-        fixed (byte* pText1 = text1.Encode())
-        {
-            fixed (byte* pText2 = text2.Encode())
-            {
-                strArray->StringArray[strOffset + 0] = pText1;
-                strArray->StringArray[strOffset + 1] = pText2;
+        strArray->SetValue((int)strOffset + 0, text1.Encode(), false, true, false);
+        strArray->SetValue((int)strOffset + 1, text2.Encode(), false, true, false);
 
-                this.addFlyTextNative(
-                    flytext,
-                    actorIndex,
-                    1,
-                    (IntPtr)numArray,
-                    numOffset,
-                    9,
-                    (IntPtr)strArray,
-                    strOffset,
-                    2,
-                    0);
-            }
-        }
+        this.addFlyTextNative(
+            flytext,
+            actorIndex,
+            1,
+            (IntPtr)numArray,
+            numOffset,
+            10,
+            (IntPtr)strArray,
+            strOffset,
+            2,
+            0);
     }
 
     private static byte[] Terminate(byte[] source)
@@ -189,12 +143,6 @@ public sealed class FlyTextGui : IDisposable, IServiceType
         terminated[^1] = 0;
 
         return terminated;
-    }
-
-    [ServiceManager.CallWhenServicesReady]
-    private void ContinueConstruction(GameGui gameGui)
-    {
-        this.createFlyTextHook.Enable();
     }
 
     private IntPtr CreateFlyTextDetour(
@@ -271,7 +219,8 @@ public sealed class FlyTextGui : IDisposable, IServiceType
             if (!dirty)
             {
                 Log.Verbose("[FlyText] Calling flytext with original args.");
-                return this.createFlyTextHook.Original(addonFlyText, kind, val1, val2, text2, color, icon, damageTypeIcon, text1, yOffset);
+                return this.createFlyTextHook.Original(addonFlyText, kind, val1, val2, text2, color, icon,
+                                                       damageTypeIcon, text1, yOffset);
             }
 
             var terminated1 = Terminate(tmpText1.Encode());
@@ -317,4 +266,47 @@ public sealed class FlyTextGui : IDisposable, IServiceType
 
         return retVal;
     }
+}
+
+/// <summary>
+/// Plugin scoped version of FlyTextGui.
+/// </summary>
+[PluginInterface]
+[InterfaceVersion("1.0")]
+[ServiceManager.ScopedService]
+#pragma warning disable SA1015
+[ResolveVia<IFlyTextGui>]
+#pragma warning restore SA1015
+internal class FlyTextGuiPluginScoped : IInternalDisposableService, IFlyTextGui
+{
+    [ServiceManager.ServiceDependency]
+    private readonly FlyTextGui flyTextGuiService = Service<FlyTextGui>.Get();
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="FlyTextGuiPluginScoped"/> class.
+    /// </summary>
+    internal FlyTextGuiPluginScoped()
+    {
+        this.flyTextGuiService.FlyTextCreated += this.FlyTextCreatedForward;
+    }
+
+    /// <inheritdoc/>
+    public event IFlyTextGui.OnFlyTextCreatedDelegate? FlyTextCreated;
+
+    /// <inheritdoc/>
+    void IInternalDisposableService.DisposeService()
+    {
+        this.flyTextGuiService.FlyTextCreated -= this.FlyTextCreatedForward;
+
+        this.FlyTextCreated = null;
+    }
+
+    /// <inheritdoc/>
+    public void AddFlyText(FlyTextKind kind, uint actorIndex, uint val1, uint val2, SeString text1, SeString text2, uint color, uint icon, uint damageTypeIcon)
+    {
+        this.flyTextGuiService.AddFlyText(kind, actorIndex, val1, val2, text1, text2, color, icon, damageTypeIcon);
+    }
+
+    private void FlyTextCreatedForward(ref FlyTextKind kind, ref int val1, ref int val2, ref SeString text1, ref SeString text2, ref uint color, ref uint icon, ref uint damageTypeIcon, ref float yOffset, ref bool handled)
+        => this.FlyTextCreated?.Invoke(ref kind, ref val1, ref val2, ref text1, ref text2, ref color, ref icon, ref damageTypeIcon, ref yOffset, ref handled);
 }

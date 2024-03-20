@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
+
+using Dalamud.Utility;
 
 namespace Dalamud.Networking.Http;
 
@@ -9,7 +12,7 @@ namespace Dalamud.Networking.Http;
 /// awareness.
 /// </summary>
 [ServiceManager.BlockingEarlyLoadedService]
-internal class HappyHttpClient : IDisposable, IServiceType
+internal class HappyHttpClient : IInternalDisposableService
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="HappyHttpClient"/> class.
@@ -25,7 +28,16 @@ internal class HappyHttpClient : IDisposable, IServiceType
         {
             AutomaticDecompression = DecompressionMethods.All,
             ConnectCallback = this.SharedHappyEyeballsCallback.ConnectCallback,
-        });
+        })
+        {
+            DefaultRequestHeaders =
+            {
+                UserAgent =
+                {
+                    new ProductInfoHeaderValue("Dalamud", Util.AssemblyVersion),
+                },
+            },
+        };
     }
 
     /// <summary>
@@ -46,7 +58,7 @@ internal class HappyHttpClient : IDisposable, IServiceType
     public HappyEyeballsCallback SharedHappyEyeballsCallback { get; }
 
     /// <inheritdoc/>
-    void IDisposable.Dispose()
+    void IInternalDisposableService.DisposeService()
     {
         this.SharedHttpClient.Dispose();
         this.SharedHappyEyeballsCallback.Dispose();

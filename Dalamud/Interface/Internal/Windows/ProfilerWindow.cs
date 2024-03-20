@@ -1,10 +1,10 @@
-using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Numerics;
 
 using Dalamud.Interface.Colors;
+using Dalamud.Interface.Utility;
 using Dalamud.Interface.Windowing;
 using Dalamud.Utility.Numerics;
 using Dalamud.Utility.Timing;
@@ -45,7 +45,7 @@ public class ProfilerWindow : Window
 
         ImGui.Text("Timings");
 
-        var childHeight = Math.Max(300, 20 * (2 + this.occupied.Count));
+        var childHeight = Math.Max(300, 20 * (2.5f + this.occupied.Count));
 
         if (ImGui.BeginChild("Timings", new Vector2(0, childHeight), true))
         {
@@ -114,7 +114,7 @@ public class ProfilerWindow : Window
                 parentDepthDict[timingHandle.Id] = depth;
 
                 startX = Math.Max(startX, 0);
-                endX = Math.Max(endX, 0);
+                endX = Math.Max(endX, startX + (ImGuiHelpers.GlobalScale * 16));
 
                 Vector4 rectColor;
                 if (this.occupied[depth].Count % 2 == 0)
@@ -127,11 +127,6 @@ public class ProfilerWindow : Window
 
                 if (maxRectDept < depth)
                     maxRectDept = (uint)depth;
-
-                if (startX == endX)
-                {
-                    continue;
-                }
 
                 var minPos = pos + new Vector2((uint)startX, 20 * depth);
                 var maxPos = pos + new Vector2((uint)endX, 20 * (depth + 1));
@@ -230,22 +225,22 @@ public class ProfilerWindow : Window
         ImGui.EndChild();
 
         var sliderMin = (float)this.min / 1000f;
-        if (ImGui.SliderFloat("Start", ref sliderMin, (float)actualMin / 1000f, (float)this.max / 1000f, "%.1fs"))
+        if (ImGui.SliderFloat("Start", ref sliderMin, (float)actualMin / 1000f, (float)this.max / 1000f, "%.2fs"))
         {
             this.min = sliderMin * 1000f;
         }
 
         var sliderMax = (float)this.max / 1000f;
-        if (ImGui.SliderFloat("End", ref sliderMax, (float)this.min / 1000f, (float)actualMax / 1000f, "%.1fs"))
+        if (ImGui.SliderFloat("End", ref sliderMax, (float)this.min / 1000f, (float)actualMax / 1000f, "%.2fs"))
         {
             this.max = sliderMax * 1000f;
         }
 
-        var sizeShown = (float)(this.max - this.min);
-        var sizeActual = (float)(actualMax - actualMin);
-        if (ImGui.SliderFloat("Size", ref sizeShown, sizeActual / 10f, sizeActual, "%.1fs"))
+        var sizeShown = (float)(this.max - this.min) / 1000f;
+        var sizeActual = (float)(actualMax - actualMin) / 1000f;
+        if (ImGui.SliderFloat("Size", ref sizeShown, sizeActual / 10f, sizeActual, "%.2fs"))
         {
-            this.max = this.min + sizeShown;
+            this.max = this.min + (sizeShown * 1000f);
         }
 
         ImGui.Text("Min: " + actualMin.ToString("0.000"));
@@ -256,6 +251,7 @@ public class ProfilerWindow : Window
     [SuppressMessage("StyleCop.CSharp.MaintainabilityRules", "SA1401:Fields should be private", Justification = "Internals")]
     private class RectInfo
     {
+        // ReSharper disable once NotNullOrRequiredMemberIsNotInitialized <- well you're wrong
         internal TimingHandle Timing;
         internal Vector2 MinPos;
         internal Vector2 MaxPos;

@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -6,6 +5,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 
 using Dalamud.Game;
+using Dalamud.Plugin.Services;
 
 namespace Dalamud.Logging.Internal;
 
@@ -13,7 +13,7 @@ namespace Dalamud.Logging.Internal;
 /// Class responsible for tracking asynchronous tasks.
 /// </summary>
 [ServiceManager.EarlyLoadedService]
-internal class TaskTracker : IDisposable, IServiceType
+internal class TaskTracker : IInternalDisposableService
 {
     private static readonly ModuleLog Log = new("TT");
     private static readonly List<TaskInfo> TrackedTasksInternal = new();
@@ -119,7 +119,7 @@ internal class TaskTracker : IDisposable, IServiceType
     }
 
     /// <inheritdoc/>
-    public void Dispose()
+    void IInternalDisposableService.DisposeService()
     {
         this.scheduleAndStartHook?.Dispose();
 
@@ -141,7 +141,7 @@ internal class TaskTracker : IDisposable, IServiceType
         return true;
     }
 
-    private void FrameworkOnUpdate(Framework framework)
+    private void FrameworkOnUpdate(IFramework framework)
     {
         UpdateData();
     }

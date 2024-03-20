@@ -1,10 +1,10 @@
-using System;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
+using Dalamud.Common.Game;
 using Dalamud.Configuration.Internal;
 using Dalamud.Game;
 using Dalamud.Game.Gui.Dtr;
@@ -26,6 +26,13 @@ namespace Dalamud.Plugin.Internal.Types;
 /// </summary>
 internal class LocalPlugin : IDisposable
 {
+    /// <summary>
+    /// The underlying manifest for this plugin.
+    /// </summary>
+#pragma warning disable SA1401
+    protected LocalPluginManifest manifest;
+#pragma warning restore SA1401
+    
     private static readonly ModuleLog Log = new("LOCALPLUGIN");
 
     private readonly FileInfo manifestFile;
@@ -39,14 +46,12 @@ internal class LocalPlugin : IDisposable
     private Type? pluginType;
     private IDalamudPlugin? instance;
 
-    private LocalPluginManifest manifest;
-
     /// <summary>
     /// Initializes a new instance of the <see cref="LocalPlugin"/> class.
     /// </summary>
     /// <param name="dllFile">Path to the DLL file.</param>
     /// <param name="manifest">The plugin manifest.</param>
-    public LocalPlugin(FileInfo dllFile, LocalPluginManifest? manifest)
+    public LocalPlugin(FileInfo dllFile, LocalPluginManifest manifest)
     {
         if (dllFile.Name == "FFXIVClientStructs.Generators.dll")
         {
@@ -59,80 +64,9 @@ internal class LocalPlugin : IDisposable
         this.DllFile = dllFile;
         this.State = PluginState.Unloaded;
 
-        try
-        {
-            this.loader = PluginLoader.CreateFromAssemblyFile(this.DllFile.FullName, SetupLoaderConfig);
-        }
-        catch (InvalidOperationException ex)
-        {
-            Log.Error(ex, "Loader.CreateFromAssemblyFile() failed");
-            this.State = PluginState.DependencyResolutionFailed;
-            throw;
-        }
-
-        try
-        {
-            this.pluginAssembly = this.loader.LoadDefaultAssembly();
-        }
-        catch (Exception ex)
-        {
-            this.pluginAssembly = null;
-            this.pluginType = null;
-            this.loader.Dispose();
-
-            Log.Error(ex, $"Not a plugin: {this.DllFile.FullName}");
-            throw new InvalidPluginException(this.DllFile);
-        }
-
-        try
-        {
-            this.pluginType = this.pluginAssembly.GetTypes().FirstOrDefault(type => type.IsAssignableTo(typeof(IDalamudPlugin)));
-        }
-        catch (ReflectionTypeLoadException ex)
-        {
-            Log.Error(ex, $"Could not load one or more types when searching for IDalamudPlugin: {this.DllFile.FullName}");
-            // Something blew up when parsing types, but we still want to look for IDalamudPlugin. Let Load() handle the error.
-            this.pluginType = ex.Types.FirstOrDefault(type => type != null && type.IsAssignableTo(typeof(IDalamudPlugin)));
-        }
-
-        if (this.pluginType == default)
-        {
-            this.pluginAssembly = null;
-            this.pluginType = null;
-            this.loader.Dispose();
-
-            Log.Error($"Nothing inherits from IDalamudPlugin: {this.DllFile.FullName}");
-            throw new InvalidPluginException(this.DllFile);
-        }
-
-        var assemblyVersion = this.pluginAssembly.GetName().Version;
-
         // Although it is conditionally used here, we need to set the initial value regardless.
         this.manifestFile = LocalPluginManifest.GetManifestFile(this.DllFile);
-
-        // If the parameter manifest was null
-        if (manifest == null)
-        {
-            this.manifest = new LocalPluginManifest()
-            {
-                Author = "developer",
-                Name = Path.GetFileNameWithoutExtension(this.DllFile.Name),
-                InternalName = Path.GetFileNameWithoutExtension(this.DllFile.Name),
-                AssemblyVersion = assemblyVersion ?? new Version("1.0.0.0"),
-                Description = string.Empty,
-                ApplicableVersion = GameVersion.Any,
-                DalamudApiLevel = PluginManager.DalamudApiLevel,
-                IsHide = false,
-            };
-
-            // Save the manifest to disk so there won't be any problems later.
-            // We'll update the name property after it can be retrieved from the instance.
-            this.manifest.Save(this.manifestFile, "manifest was null");
-        }
-        else
-        {
-            this.manifest = manifest;
-        }
+        this.manifest = manifest;
 
         var needsSaveDueToLegacyFiles = false;
 
@@ -230,7 +164,7 @@ internal class LocalPlugin : IDisposable
     /// INCLUDES the default profile.
     /// </summary>
     public bool IsWantedByAnyProfile =>
-        Service<ProfileManager>.Get().GetWantStateAsync(this.manifest.InternalName, false, false).GetAwaiter().GetResult();
+        Service<ProfileManager>.Get().GetWantStateAsync(this.manifest.WorkingPluginId, this.Manifest.InternalName, false, false).GetAwaiter().GetResult();
 
     /// <summary>
     /// Gets a value indicating whether this plugin's API level is out of date.
@@ -306,7 +240,7 @@ internal class LocalPlugin : IDisposable
             this.instance = null;
         }
 
-        this.DalamudInterface?.ExplicitDispose();
+        this.DalamudInterface?.DisposeInternal();
         this.DalamudInterface = null;
 
         this.ServiceScope?.Dispose();
@@ -331,11 +265,7 @@ internal class LocalPlugin : IDisposable
         var framework = await Service<Framework>.GetAsync();
         var ioc = await Service<ServiceContainer>.GetAsync();
         var pluginManager = await Service<PluginManager>.GetAsync();
-        var startInfo = await Service<DalamudStartInfo>.GetAsync();
-
-        // UiBuilder constructor requires the following two.
-        await Service<InterfaceManager>.GetAsync();
-        await Service<GameFontManager>.GetAsync();
+        var dalamud = await Service<Dalamud>.GetAsync();
 
         if (this.manifest.LoadRequiredState == 0)
             _ = await Service<InterfaceManager.InterfaceManagerWithScene>.GetAsync();
@@ -385,26 +315,28 @@ internal class LocalPlugin : IDisposable
             }
 
             if (pluginManager.IsManifestBanned(this.manifest) && !this.IsDev)
-                throw new BannedPluginException($"Unable to load {this.Name}, banned");
+                throw new BannedPluginException($"Unable to load {this.Name} as it was banned");
 
-            if (this.manifest.ApplicableVersion < startInfo.GameVersion)
-                throw new InvalidPluginOperationException($"Unable to load {this.Name}, no applicable version");
+            if (this.manifest.ApplicableVersion < dalamud.StartInfo.GameVersion)
+                throw new PluginPreconditionFailedException($"Unable to load {this.Name}, game is newer than applicable version {this.manifest.ApplicableVersion}");
 
             if (this.manifest.DalamudApiLevel < PluginManager.DalamudApiLevel && !pluginManager.LoadAllApiLevels)
-                throw new InvalidPluginOperationException($"Unable to load {this.Name}, incompatible API level");
+                throw new PluginPreconditionFailedException($"Unable to load {this.Name}, incompatible API level {this.manifest.DalamudApiLevel}");
 
             // We might want to throw here?
             if (!this.IsWantedByAnyProfile)
                 Log.Warning("{Name} is loading, but isn't wanted by any profile", this.Name);
 
             if (this.IsOrphaned)
-                throw new InvalidPluginOperationException($"Plugin {this.Name} had no associated repo.");
+                throw new PluginPreconditionFailedException($"Plugin {this.Name} had no associated repo");
 
             if (!this.CheckPolicy())
-                throw new InvalidPluginOperationException("Plugin was not loaded as per policy");
+                throw new PluginPreconditionFailedException($"Unable to load {this.Name} as a load policy forbids it");
 
             this.State = PluginState.Loading;
             Log.Information($"Loading {this.DllFile.Name}");
+            
+            this.EnsureLoader();
 
             if (this.DllFile.DirectoryName != null &&
                 File.Exists(Path.Combine(this.DllFile.DirectoryName, "Dalamud.dll")))
@@ -494,17 +426,10 @@ internal class LocalPlugin : IDisposable
             if (this.instance == null)
             {
                 this.State = PluginState.LoadError;
-                this.DalamudInterface.ExplicitDispose();
+                this.DalamudInterface.DisposeInternal();
                 Log.Error(
                     $"Error while loading {this.Name}, failed to bind and call the plugin constructor");
                 return;
-            }
-
-            // In-case the manifest name was a placeholder. Can occur when no manifest was included.
-            if (this.manifest.Name.IsNullOrEmpty() && !this.IsDev)
-            {
-                this.manifest.Name = this.instance.Name;
-                this.manifest.Save(this.manifestFile, "manifest name null or empty");
             }
 
             this.State = PluginState.Loaded;
@@ -514,7 +439,10 @@ internal class LocalPlugin : IDisposable
         {
             this.State = PluginState.LoadError;
 
-            if (ex is not BannedPluginException)
+            // If a precondition fails, don't record it as an error, as it isn't really. 
+            if (ex is PluginPreconditionFailedException)
+                Log.Warning(ex.Message);
+            else
                 Log.Error(ex, $"Error while loading {this.Name}");
 
             throw;
@@ -571,7 +499,7 @@ internal class LocalPlugin : IDisposable
 
             this.instance = null;
 
-            this.DalamudInterface?.ExplicitDispose();
+            this.DalamudInterface?.DisposeInternal();
             this.DalamudInterface = null;
 
             this.ServiceScope?.Dispose();
@@ -626,7 +554,7 @@ internal class LocalPlugin : IDisposable
     /// <returns>Whether or not this plugin shouldn't load.</returns>
     public bool CheckPolicy()
     {
-        var startInfo = Service<DalamudStartInfo>.Get();
+        var startInfo = Service<Dalamud>.Get().StartInfo;
         var manager = Service<PluginManager>.Get();
 
         if (startInfo.NoLoadPlugins)
@@ -659,9 +587,11 @@ internal class LocalPlugin : IDisposable
         var manifestPath = LocalPluginManifest.GetManifestFile(this.DllFile);
         if (manifestPath.Exists)
         {
-            // var isDisabled = this.IsDisabled; // saving the internal state because it could have been deleted
+            // Save some state that we do actually want to carry over
+            var guid = this.manifest.WorkingPluginId;
+            
             this.manifest = LocalPluginManifest.Load(manifestPath) ?? throw new Exception("Could not reload manifest.");
-            // this.manifest.Disabled = isDisabled;
+            this.manifest.WorkingPluginId = guid;
 
             this.SaveManifest("dev reload");
         }
@@ -686,14 +616,80 @@ internal class LocalPlugin : IDisposable
         });
     }
 
+    /// <summary>
+    /// Save this plugin manifest.
+    /// </summary>
+    /// <param name="reason">Why it should be saved.</param>
+    protected void SaveManifest(string reason) => this.manifest.Save(this.manifestFile, reason);
+
     private static void SetupLoaderConfig(LoaderConfig config)
     {
         config.IsUnloadable = true;
         config.LoadInMemory = true;
         config.PreferSharedTypes = false;
-        config.SharedAssemblies.Add(typeof(Lumina.GameData).Assembly.GetName());
-        config.SharedAssemblies.Add(typeof(Lumina.Excel.ExcelSheetImpl).Assembly.GetName());
+
+        // Pin Lumina and its dependencies recursively (compatibility behavior).
+        // It currently only pulls in System.* anyway.
+        // TODO(api10): Remove this. We don't want to pin Lumina anymore, plugins should be able to provide their own.
+        config.SharedAssemblies.Add((typeof(Lumina.GameData).Assembly.GetName(), true));
+        config.SharedAssemblies.Add((typeof(Lumina.Excel.ExcelSheetImpl).Assembly.GetName(), true));
+
+        // Make sure that plugins do not load their own Dalamud assembly.
+        // We do not pin this recursively; if a plugin loads its own assembly of Dalamud, it is always wrong,
+        // but plugins may load other versions of assemblies that Dalamud depends on.
+        config.SharedAssemblies.Add((typeof(EntryPoint).Assembly.GetName(), false));
+        config.SharedAssemblies.Add((typeof(Common.DalamudStartInfo).Assembly.GetName(), false));
     }
 
-    private void SaveManifest(string reason) => this.manifest.Save(this.manifestFile, reason);
+    private void EnsureLoader()
+    {
+        if (this.loader != null)
+            return;
+        
+        try
+        {
+            this.loader = PluginLoader.CreateFromAssemblyFile(this.DllFile.FullName, SetupLoaderConfig);
+        }
+        catch (InvalidOperationException ex)
+        {
+            Log.Error(ex, "Loader.CreateFromAssemblyFile() failed");
+            this.State = PluginState.DependencyResolutionFailed;
+            throw;
+        }
+
+        try
+        {
+            this.pluginAssembly = this.loader.LoadDefaultAssembly();
+        }
+        catch (Exception ex)
+        {
+            this.pluginAssembly = null;
+            this.pluginType = null;
+            this.loader.Dispose();
+
+            Log.Error(ex, $"Not a plugin: {this.DllFile.FullName}");
+            throw new InvalidPluginException(this.DllFile);
+        }
+
+        try
+        {
+            this.pluginType = this.pluginAssembly.GetTypes().FirstOrDefault(type => type.IsAssignableTo(typeof(IDalamudPlugin)));
+        }
+        catch (ReflectionTypeLoadException ex)
+        {
+            Log.Error(ex, $"Could not load one or more types when searching for IDalamudPlugin: {this.DllFile.FullName}");
+            // Something blew up when parsing types, but we still want to look for IDalamudPlugin. Let Load() handle the error.
+            this.pluginType = ex.Types.FirstOrDefault(type => type != null && type.IsAssignableTo(typeof(IDalamudPlugin)));
+        }
+
+        if (this.pluginType == default)
+        {
+            this.pluginAssembly = null;
+            this.pluginType = null;
+            this.loader.Dispose();
+
+            Log.Error($"Nothing inherits from IDalamudPlugin: {this.DllFile.FullName}");
+            throw new InvalidPluginException(this.DllFile);
+        }
+    }
 }

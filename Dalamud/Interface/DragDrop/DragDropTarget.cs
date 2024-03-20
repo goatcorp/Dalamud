@@ -51,7 +51,7 @@ internal partial class DragDropManager : DragDropManager.IDropTarget
             this.Extensions = this.Files.Select(Path.GetExtension).Where(p => !p.IsNullOrEmpty()).Distinct().ToHashSet();
         }
 
-        Log.Debug("[DragDrop] Entering external Drag and Drop with {KeyState} at {PtX}, {PtY} and with {N} files.", (DragDropInterop.ModifierKeys)grfKeyState, pt.x, pt.y, this.Files.Count + this.Directories.Count);
+        Log.Debug("[DragDrop] Entering external Drag and Drop with {KeyState} at {PtX}, {PtY} and with {N} files.", (DragDropInterop.ModifierKeys)grfKeyState, pt.X, pt.Y, this.Files.Count + this.Directories.Count);
     }
 
     /// <summary> Invoked every windows update-frame as long as the drag and drop process keeps hovering over an FFXIV-related viewport. </summary>
@@ -67,7 +67,7 @@ internal partial class DragDropManager : DragDropManager.IDropTarget
             this.lastUpdateFrame = frame;
             this.lastKeyState = UpdateIo((DragDropInterop.ModifierKeys)grfKeyState, false);
             pdwEffect &= (uint)DragDropInterop.DropEffects.Copy;
-            Log.Verbose("[DragDrop] External Drag and Drop with {KeyState} at {PtX}, {PtY}.", (DragDropInterop.ModifierKeys)grfKeyState, pt.x, pt.y);
+            Log.Verbose("[DragDrop] External Drag and Drop with {KeyState} at {PtX}, {PtY}.", (DragDropInterop.ModifierKeys)grfKeyState, pt.X, pt.Y);
         }
     }
 
@@ -101,7 +101,7 @@ internal partial class DragDropManager : DragDropManager.IDropTarget
             pdwEffect = 0;
         }
 
-        Log.Debug("[DragDrop] Dropping {N} files with {KeyState} at {PtX}, {PtY}.", this.Files.Count + this.Directories.Count, (DragDropInterop.ModifierKeys)grfKeyState, pt.x, pt.y);
+        Log.Debug("[DragDrop] Dropping {N} files with {KeyState} at {PtX}, {PtY}.", this.Files.Count + this.Directories.Count, (DragDropInterop.ModifierKeys)grfKeyState, pt.X, pt.Y);
     }
 
     private static DragDropInterop.ModifierKeys UpdateIo(DragDropInterop.ModifierKeys keys, bool entering)
@@ -204,7 +204,7 @@ internal partial class DragDropManager : DragDropManager.IDropTarget
         try
         {
             data.GetData(ref this.formatEtc, out var stgMedium);
-            var numFiles = DragDropInterop.DragQueryFile(stgMedium.unionmember, uint.MaxValue, new StringBuilder(), 0);
+            var numFiles = DragDropInterop.DragQueryFileW(stgMedium.unionmember, uint.MaxValue, new StringBuilder(), 0);
             var files = new string[numFiles];
             var sb = new StringBuilder(1024);
             var directoryCount = 0;
@@ -212,11 +212,11 @@ internal partial class DragDropManager : DragDropManager.IDropTarget
             for (var i = 0u; i < numFiles; ++i)
             {
                 sb.Clear();
-                var ret = DragDropInterop.DragQueryFile(stgMedium.unionmember, i, sb, sb.Capacity);
+                var ret = DragDropInterop.DragQueryFileW(stgMedium.unionmember, i, sb, sb.Capacity);
                 if (ret >= sb.Capacity)
                 {
                     sb.Capacity = ret + 1;
-                    ret = DragDropInterop.DragQueryFile(stgMedium.unionmember, i, sb, sb.Capacity);
+                    ret = DragDropInterop.DragQueryFileW(stgMedium.unionmember, i, sb, sb.Capacity);
                 }
 
                 if (ret > 0 && ret < sb.Capacity)

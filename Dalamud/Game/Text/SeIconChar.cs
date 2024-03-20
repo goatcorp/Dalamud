@@ -611,29 +611,51 @@ public enum SeIconChar
     QuestRepeatable = 0xE0BF,
 
     /// <summary>
-    /// The IME hiragana icon unicode character.
+    /// The [あ] character indicating that the Japanese IME is in full-width Hiragana input mode.
     /// </summary>
+    /// <remarks>
+    /// Half-width Hiragana exists as a Windows API constant, but the feature is unused, or at least unexposed to the end user via the IME.
+    /// </remarks>
     ImeHiragana = 0xE020,
 
     /// <summary>
-    /// The IME katakana icon unicode character.
+    /// The [ア] character indicating that the Japanese IME is in full-width Katakana input mode.
     /// </summary>
     ImeKatakana = 0xE021,
 
     /// <summary>
-    /// The IME alphanumeric icon unicode character.
+    /// The [Ａ] character indicating that Japanese or Korean IME is in full-width Latin character input mode.
     /// </summary>
     ImeAlphanumeric = 0xE022,
 
     /// <summary>
-    /// The IME katakana half-width icon unicode character.
+    /// The [_ｱ] character indicating that the Japanese IME is in half-width Katakana input mode.
     /// </summary>
     ImeKatakanaHalfWidth = 0xE023,
 
     /// <summary>
-    /// The IME alphanumeric half-width icon unicode character.
+    /// The [_A] character indicating that Japanese or Korean IME is in half-width Latin character input mode.
     /// </summary>
     ImeAlphanumericHalfWidth = 0xE024,
+    
+    /// <summary>
+    /// The [가] character indicating that the Korean IME is in Hangul input mode.
+    /// </summary>
+    /// <remarks>
+    /// Use <see cref="ImeAlphanumeric"/> and <see cref="ImeAlphanumericHalfWidth"/> for alphanumeric input mode,
+    /// toggled via Alt+=.
+    /// </remarks>
+    ImeKoreanHangul = 0xE025,
+
+    /// <summary>
+    /// The [中] character indicating that the Chinese IME is in Han character input mode.
+    /// </summary>
+    ImeChineseHan = 0xE026,
+    
+    /// <summary>
+    /// The [英] character indicating that the Chinese IME is in Latin character input mode.
+    /// </summary>
+    ImeChineseLatin = 0xE027,
 
     /// <summary>
     /// The instance (1) icon unicode character.

@@ -96,12 +96,6 @@ internal class DalamudCommands : IServiceType
             ShowInHelp = false,
         });
 
-        commandManager.AddHandler("/xlime", new CommandInfo(this.OnDebugDrawIMEPanel)
-        {
-            HelpMessage = Loc.Localize("DalamudIMEPanelHelp", "Draw IME panel"),
-            ShowInHelp = false,
-        });
-
         commandManager.AddHandler("/xllog", new CommandInfo(this.OnOpenLog)
         {
             HelpMessage = Loc.Localize("DalamudDevLogHelp", "Open dev log DEBUG"),
@@ -139,6 +133,13 @@ internal class DalamudCommands : IServiceType
             HelpMessage = Loc.Localize(
                 "DalamudUiModeHelp",
                 "Toggle Dalamud UI display modes. Native UI modifications may also be affected by this, but that depends on the plugin."),
+        });
+
+        commandManager.AddHandler("/xlprofiler", new CommandInfo(this.OnOpenProfilerCommand)
+        {
+            HelpMessage = Loc.Localize(
+                "DalamudProfilerHelp",
+                "Open Dalamud's startup timing profiler."),
         });
 
         commandManager.AddHandler("/imdebug", new CommandInfo(this.OnDebugImInfoCommand)
@@ -301,11 +302,6 @@ internal class DalamudCommands : IServiceType
             dalamudInterface.ToggleDataWindow(arguments);
     }
 
-    private void OnDebugDrawIMEPanel(string command, string arguments)
-    {
-        Service<DalamudInterface>.Get().OpenImeWindow();
-    }
-
     private void OnOpenLog(string command, string arguments)
     {
         Service<DalamudInterface>.Get().ToggleLogWindow();
@@ -351,7 +347,8 @@ internal class DalamudCommands : IServiceType
 
     private void OnOpenInstallerCommand(string command, string arguments)
     {
-        Service<DalamudInterface>.Get().TogglePluginInstallerWindow();
+        var configuration = Service<DalamudConfiguration>.Get();
+        Service<DalamudInterface>.Get().TogglePluginInstallerWindowTo(configuration.PluginInstallerOpen);
     }
 
     private void OnSetLanguageCommand(string command, string arguments)
@@ -407,5 +404,10 @@ internal class DalamudCommands : IServiceType
                 plugin.DalamudInterface?.UiBuilder.NotifyHideUi();
             }
         }
+    }
+
+    private void OnOpenProfilerCommand(string command, string arguments)
+    {
+        Service<DalamudInterface>.Get().ToggleProfilerWindow();
     }
 }

@@ -68,19 +68,37 @@ void from_json(const nlohmann::json& json, DalamudStartInfo::ClientLanguage& val
     }
 }
 
+void from_json(const nlohmann::json& json, DalamudStartInfo::LoadMethod& value) {
+    if (json.is_number_integer()) {
+        value = static_cast<DalamudStartInfo::LoadMethod>(json.get<int>());
+
+    }
+    else if (json.is_string()) {
+        const auto langstr = unicode::convert<std::string>(json.get<std::string>(), &unicode::lower);
+        if (langstr == "entrypoint")
+            value = DalamudStartInfo::LoadMethod::Entrypoint;
+        else if (langstr == "inject")
+            value = DalamudStartInfo::LoadMethod::DllInject;
+    }
+}
+
 void from_json(const nlohmann::json& json, DalamudStartInfo& config) {
     if (!json.is_object())
         return;
 
+    config.DalamudLoadMethod = json.value("LoadMethod", config.DalamudLoadMethod);
     config.WorkingDirectory = json.value("WorkingDirectory", config.WorkingDirectory);
     config.ConfigurationPath = json.value("ConfigurationPath", config.ConfigurationPath);
+    config.LogPath = json.value("LogPath", config.LogPath);
+    config.LogName = json.value("LogName", config.LogName);
     config.PluginDirectory = json.value("PluginDirectory", config.PluginDirectory);
-    config.DefaultPluginDirectory = json.value("DefaultPluginDirectory", config.DefaultPluginDirectory);
     config.AssetDirectory = json.value("AssetDirectory", config.AssetDirectory);
     config.Language = json.value("Language", config.Language);
     config.GameVersion = json.value("GameVersion", config.GameVersion);
-    config.DelayInitializeMs = json.value("DelayInitializeMs", config.DelayInitializeMs);
     config.TroubleshootingPackData = json.value("TroubleshootingPackData", std::string{});
+    config.DelayInitializeMs = json.value("DelayInitializeMs", config.DelayInitializeMs);
+    config.NoLoadPlugins = json.value("NoLoadPlugins", config.NoLoadPlugins);
+    config.NoLoadThirdPartyPlugins = json.value("NoLoadThirdPartyPlugins", config.NoLoadThirdPartyPlugins);
 
     config.BootLogPath = json.value("BootLogPath", config.BootLogPath);
     config.BootShowConsole = json.value("BootShowConsole", config.BootShowConsole);
@@ -103,6 +121,7 @@ void from_json(const nlohmann::json& json, DalamudStartInfo& config) {
     }
 
     config.CrashHandlerShow = json.value("CrashHandlerShow", config.CrashHandlerShow);
+    config.NoExceptionHandlers = json.value("NoExceptionHandlers", config.NoExceptionHandlers);
 }
 
 void DalamudStartInfo::from_envvars() {

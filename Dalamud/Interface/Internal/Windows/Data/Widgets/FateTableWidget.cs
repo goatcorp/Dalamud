@@ -1,7 +1,7 @@
 ﻿using Dalamud.Game.ClientState.Fates;
 using ImGuiNET;
 
-namespace Dalamud.Interface.Internal.Windows.Data;
+namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 
 /// <summary>
 /// Widget for displaying the Fate Table.
@@ -11,7 +11,10 @@ internal class FateTableWidget : IDataWindowWidget
     private bool resolveGameData;
     
     /// <inheritdoc/>
-    public DataKind DataKind { get; init; } = DataKind.Fate_Table;
+    public string[]? CommandShortcuts { get; init; } = { "fate", "fatetable" };
+    
+    /// <inheritdoc/>
+    public string DisplayName { get; init; } = "Fate Table"; 
 
     /// <inheritdoc/>
     public bool Ready { get; set; }

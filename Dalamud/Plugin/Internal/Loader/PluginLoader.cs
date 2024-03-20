@@ -1,7 +1,7 @@
 // Copyright (c) Nate McMaster, Dalamud team.
 // Licensed under the Apache License, Version 2.0. See License.txt in the Loader root for license information.
 
-using System;
+using System.IO;
 using System.Reflection;
 using System.Runtime.Loader;
 
@@ -146,10 +146,14 @@ internal class PluginLoader : IDisposable
             builder.ShadowCopyNativeLibraries();
         }
 
-        foreach (var assemblyName in config.SharedAssemblies)
+        foreach (var (assemblyName, recursive) in config.SharedAssemblies)
         {
-            builder.PreferDefaultLoadContextAssembly(assemblyName);
+            builder.PreferDefaultLoadContextAssembly(assemblyName, recursive);
         }
+
+        // Note: not adding Dalamud path here as a probing path.
+        // It will be dealt as the last resort from ManagedLoadContext.Load.
+        // See there for more details.
 
         return builder;
     }

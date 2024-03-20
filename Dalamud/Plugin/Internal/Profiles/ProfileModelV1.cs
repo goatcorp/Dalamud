@@ -46,6 +46,11 @@ public class ProfileModelV1 : ProfileModel
         /// Gets or sets the internal name of the plugin.
         /// </summary>
         public string? InternalName { get; set; }
+        
+        /// <summary>
+        /// Gets or sets an ID uniquely identifying this specific instance of a plugin.
+        /// </summary>
+        public Guid WorkingPluginId { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether or not this entry is enabled.

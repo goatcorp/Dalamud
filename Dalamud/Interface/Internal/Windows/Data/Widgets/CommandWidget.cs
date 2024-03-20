@@ -1,7 +1,11 @@
-﻿using Dalamud.Game.Command;
+﻿using System.Linq;
+
+using Dalamud.Game.Command;
+using Dalamud.Interface.Utility.Raii;
+
 using ImGuiNET;
 
-namespace Dalamud.Interface.Internal.Windows.Data;
+namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 
 /// <summary>
 /// Widget for displaying command info.
@@ -9,7 +13,10 @@ namespace Dalamud.Interface.Internal.Windows.Data;
 internal class CommandWidget : IDataWindowWidget
 {
     /// <inheritdoc/>
-    public DataKind DataKind { get; init; } = DataKind.Command;
+    public string[]? CommandShortcuts { get; init; } = { "command" };
+    
+    /// <inheritdoc/>
+    public string DisplayName { get; init; } = "Command"; 
 
     /// <inheritdoc/>
     public bool Ready { get; set; }
@@ -25,9 +32,52 @@ internal class CommandWidget : IDataWindowWidget
     {
         var commandManager = Service<CommandManager>.Get();
 
-        foreach (var command in commandManager.Commands)
+        var tableFlags = ImGuiTableFlags.ScrollY | ImGuiTableFlags.Borders | ImGuiTableFlags.SizingStretchProp |
+                         ImGuiTableFlags.Sortable | ImGuiTableFlags.SortTristate;
+        using var table = ImRaii.Table("CommandList", 4, tableFlags);
+        if (table)
         {
-            ImGui.Text($"{command.Key}\n    -> {command.Value.HelpMessage}\n    -> In help: {command.Value.ShowInHelp}\n\n");
+            ImGui.TableSetupScrollFreeze(0, 1);
+
+            ImGui.TableSetupColumn("Command");
+            ImGui.TableSetupColumn("Plugin");
+            ImGui.TableSetupColumn("HelpMessage", ImGuiTableColumnFlags.NoSort);
+            ImGui.TableSetupColumn("In Help?", ImGuiTableColumnFlags.NoSort);
+            ImGui.TableHeadersRow();
+            
+            var sortSpecs = ImGui.TableGetSortSpecs();
+            var commands = commandManager.Commands.ToArray();
+
+            if (sortSpecs.SpecsCount != 0)
+            {
+                commands = sortSpecs.Specs.ColumnIndex switch
+                {
+                    0 => sortSpecs.Specs.SortDirection == ImGuiSortDirection.Ascending
+                             ? commands.OrderBy(kv => kv.Key).ToArray()
+                             : commands.OrderByDescending(kv => kv.Key).ToArray(),
+                    1 => sortSpecs.Specs.SortDirection == ImGuiSortDirection.Ascending
+                             ? commands.OrderBy(kv => kv.Value.LoaderAssemblyName).ToArray()
+                             : commands.OrderByDescending(kv => kv.Value.LoaderAssemblyName).ToArray(),
+                    _ => commands,
+                };
+            }
+
+            foreach (var command in commands)
+            {
+                ImGui.TableNextRow();
+            
+                ImGui.TableSetColumnIndex(0);
+                ImGui.Text(command.Key);
+            
+                ImGui.TableNextColumn();
+                ImGui.Text(command.Value.LoaderAssemblyName);
+            
+                ImGui.TableNextColumn();
+                ImGui.TextWrapped(command.Value.HelpMessage);
+            
+                ImGui.TableNextColumn();
+                ImGui.Text(command.Value.ShowInHelp ? "Yes" : "No");
+            }
         }
     }
 }

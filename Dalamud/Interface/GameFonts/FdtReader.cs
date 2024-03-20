@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
@@ -22,7 +21,7 @@ public class FdtReader
         for (var i = 0; i < this.FontHeader.FontTableEntryCount; i++)
             this.Glyphs.Add(StructureFromByteArray<FontTableEntry>(data, this.FileHeader.FontTableHeaderOffset + Marshal.SizeOf<FontTableHeader>() + (Marshal.SizeOf<FontTableEntry>() * i)));
 
-        for (int i = 0, i_ = Math.Min(this.FontHeader.KerningTableEntryCount, this.KerningHeader.Count); i < i_; i++)
+        for (int i = 0, to = Math.Min(this.FontHeader.KerningTableEntryCount, this.KerningHeader.Count); i < to; i++)
             this.Distances.Add(StructureFromByteArray<KerningTableEntry>(data, this.FileHeader.KerningTableHeaderOffset + Marshal.SizeOf<KerningTableHeader>() + (Marshal.SizeOf<KerningTableEntry>() * i)));
     }
 
@@ -52,13 +51,21 @@ public class FdtReader
     public List<KerningTableEntry> Distances { get; init; } = new();
 
     /// <summary>
+    /// Finds the glyph index for the corresponding codepoint.
+    /// </summary>
+    /// <param name="codepoint">Unicode codepoint (UTF-32 value).</param>
+    /// <returns>Corresponding index, or a negative number according to <see cref="List{T}.BinarySearch(int,int,T,System.Collections.Generic.IComparer{T}?)"/>.</returns>
+    public int FindGlyphIndex(int codepoint) =>
+        this.Glyphs.BinarySearch(new FontTableEntry { CharUtf8 = CodePointToUtf8Int32(codepoint) });
+
+    /// <summary>
     /// Finds glyph definition for corresponding codepoint.
     /// </summary>
     /// <param name="codepoint">Unicode codepoint (UTF-32 value).</param>
     /// <returns>Corresponding FontTableEntry, or null if not found.</returns>
     public FontTableEntry? FindGlyph(int codepoint)
     {
-        var i = this.Glyphs.BinarySearch(new FontTableEntry { CharUtf8 = CodePointToUtf8Int32(codepoint) });
+        var i = this.FindGlyphIndex(codepoint);
         if (i < 0 || i == this.Glyphs.Count)
             return null;
         return this.Glyphs[i];
@@ -91,17 +98,12 @@ public class FdtReader
         return this.Distances[i].RightOffset;
     }
 
-    private static unsafe T StructureFromByteArray<T>(byte[] data, int offset)
-    {
-        var len = Marshal.SizeOf<T>();
-        if (offset + len > data.Length)
-            throw new Exception("Data too short");
-
-        fixed (byte* ptr = data)
-            return Marshal.PtrToStructure<T>(new(ptr + offset));
-    }
-
-    private static int CodePointToUtf8Int32(int codepoint)
+    /// <summary>
+    /// Translates a UTF-32 codepoint to a <see cref="uint"/> containing a UTF-8 character.
+    /// </summary>
+    /// <param name="codepoint">The codepoint.</param>
+    /// <returns>The uint.</returns>
+    internal static int CodePointToUtf8Int32(int codepoint)
     {
         if (codepoint <= 0x7F)
         {
@@ -129,6 +131,16 @@ public class FdtReader
         {
             return 0xFFFE;
         }
+    }
+
+    private static unsafe T StructureFromByteArray<T>(byte[] data, int offset)
+    {
+        var len = Marshal.SizeOf<T>();
+        if (offset + len > data.Length)
+            throw new Exception("Data too short");
+
+        fixed (byte* ptr = data)
+            return Marshal.PtrToStructure<T>(new(ptr + offset));
     }
 
     private static int Utf8Uint32ToCodePoint(int n)
@@ -252,7 +264,7 @@ public class FdtReader
     /// Glyph table entry.
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
-    public unsafe struct FontTableEntry : IComparable<FontTableEntry>
+    public struct FontTableEntry : IComparable<FontTableEntry>
     {
         /// <summary>
         /// Mapping of texture channel index to byte index.
@@ -367,7 +379,7 @@ public class FdtReader
     /// Kerning table entry.
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
-    public unsafe struct KerningTableEntry : IComparable<KerningTableEntry>
+    public struct KerningTableEntry : IComparable<KerningTableEntry>
     {
         /// <summary>
         /// Integer representation of a Unicode character in UTF-8 in reverse order, read in little endian, for the left character.

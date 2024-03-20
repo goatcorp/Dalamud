@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -7,6 +6,7 @@ using CheapLoc;
 using Dalamud.Game;
 using Dalamud.Game.Command;
 using Dalamud.Game.Gui;
+using Dalamud.Plugin.Services;
 using Dalamud.Utility;
 using Serilog;
 
@@ -16,7 +16,7 @@ namespace Dalamud.Plugin.Internal.Profiles;
 /// Service responsible for profile-related chat commands.
 /// </summary>
 [ServiceManager.EarlyLoadedService]
-internal class ProfileCommandHandler : IServiceType, IDisposable
+internal class ProfileCommandHandler : IInternalDisposableService
 {
     private readonly CommandManager cmd;
     private readonly ProfileManager profileManager;
@@ -69,7 +69,7 @@ internal class ProfileCommandHandler : IServiceType, IDisposable
     }
     
     /// <inheritdoc/>
-    public void Dispose()
+    void IInternalDisposableService.DisposeService()
     {
         this.cmd.RemoveHandler("/xlenablecollection");
         this.cmd.RemoveHandler("/xldisablecollection");
@@ -78,7 +78,7 @@ internal class ProfileCommandHandler : IServiceType, IDisposable
         this.framework.Update += this.FrameworkOnUpdate;
     }
 
-    private void FrameworkOnUpdate(Framework framework1)
+    private void FrameworkOnUpdate(IFramework framework1)
     {
         if (this.profileManager.IsBusy)
             return;
