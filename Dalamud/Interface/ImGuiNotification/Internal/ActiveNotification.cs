@@ -188,7 +188,7 @@ internal sealed partial class ActiveNotification : IActiveNotification
         set => this.newProgress = value;
     }
 
-    private static bool ReducedMotions => Service<DalamudConfiguration>.Get().ReduceMotions;
+    private static bool ReducedMotions => Service<DalamudConfiguration>.Get().ReduceMotions ?? false;
 
     /// <summary>Gets the eased progress.</summary>
     private float ProgressEased

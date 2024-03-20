@@ -456,7 +456,7 @@ internal sealed partial class ActiveNotification
 
     private void DrawExpiryPie(bool warrantsExtension, Vector2 offset, Vector2 size)
     {
-        if (!Service<DalamudConfiguration>.Get().ReduceMotions)
+        if (!Service<DalamudConfiguration>.Get().ReduceMotions ?? false)
             return;
 
         // circle here; 0 means 0deg; 1 means 360deg
@@ -536,7 +536,7 @@ internal sealed partial class ActiveNotification
 
     private void DrawExpiryBar(bool warrantsExtension)
     {
-        if (Service<DalamudConfiguration>.Get().ReduceMotions)
+        if (Service<DalamudConfiguration>.Get().ReduceMotions ?? false)
             return;
 
         float barL, barR;
