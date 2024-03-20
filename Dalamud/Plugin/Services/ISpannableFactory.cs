@@ -1,5 +1,7 @@
 using Dalamud.Interface.SpannedStrings;
 using Dalamud.Interface.SpannedStrings.Internal;
+using Dalamud.Interface.SpannedStrings.Rendering;
+using Dalamud.Interface.SpannedStrings.Rendering.Internal;
 
 using ImGuiNET;
 
@@ -8,7 +10,7 @@ namespace Dalamud.Plugin.Services;
 /// <summary>Factory for custom text rendering.</summary>
 public interface ISpannableFactory
 {
-    /// <summary>Rents an instance of the <see cref="SpannedStringRenderer"/> class.</summary>
+    /// <summary>Rents an instance of the <see cref="SpannableRenderer"/> class.</summary>
     /// <param name="usage">The usage.<ul>
     /// <li>Specify a <see cref="string"/>, <see cref="ReadOnlySpan{T}"/> of <see cref="char"/> or <see cref="byte"/>,
     /// or an integer to use it as an interactable item.</li>
@@ -20,5 +22,5 @@ public interface ISpannableFactory
     /// default values.</param>
     /// <returns>The rented renderer.</returns>
     /// <exception cref="InvalidOperationException">Thrown if called outside the main thread.</exception>
-    ISpannedStringRenderer Rent(ISpannedStringRenderer.Usage usage, ISpannedStringRenderer.Options options = default);
+    ISpannableRenderer Rent(ISpannableRenderer.Usage usage, RenderOptions options = default);
 }

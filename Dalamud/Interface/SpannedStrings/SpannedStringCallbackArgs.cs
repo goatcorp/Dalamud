@@ -1,6 +1,8 @@
 using System.Numerics;
 
 using Dalamud.Interface.SpannedStrings.Internal;
+using Dalamud.Interface.SpannedStrings.Rendering;
+using Dalamud.Interface.SpannedStrings.Rendering.Internal;
 using Dalamud.Interface.SpannedStrings.Styles;
 
 using ImGuiNET;
@@ -83,35 +85,35 @@ public readonly unsafe ref struct SpannedStringCallbackArgs
     public void SwitchToBackgroundChannel() => ImGuiNative.ImDrawListSplitter_SetCurrentChannel(
         this.splitterPtr,
         this.drawListPtr,
-        SpannedStringRenderer.BackChannel);
+        SpannableRenderer.BackChannel);
 
     /// <summary>Switches to the shadow channel.</summary>
     public void SwitchToShadowChannel() => ImGuiNative.ImDrawListSplitter_SetCurrentChannel(
         this.splitterPtr,
         this.drawListPtr,
-        SpannedStringRenderer.ShadowChannel);
+        SpannableRenderer.ShadowChannel);
 
     /// <summary>Switches to the border channel.</summary>
     public void SwitchToBorderChannel() => ImGuiNative.ImDrawListSplitter_SetCurrentChannel(
         this.splitterPtr,
         this.drawListPtr,
-        SpannedStringRenderer.BorderChannel);
+        SpannableRenderer.BorderChannel);
 
     /// <summary>Switches to the text decoration channel for overline and underline.</summary>
     public void SwitchToTextDecorationOverUnderChannel() => ImGuiNative.ImDrawListSplitter_SetCurrentChannel(
         this.splitterPtr,
         this.drawListPtr,
-        SpannedStringRenderer.TextDecorationOverUnderChannel);
+        SpannableRenderer.TextDecorationOverUnderChannel);
 
     /// <summary>Switches to the foreground channel.</summary>
     public void SwitchToForegroundChannel() => ImGuiNative.ImDrawListSplitter_SetCurrentChannel(
         this.splitterPtr,
         this.drawListPtr,
-        SpannedStringRenderer.ForeChannel);
+        SpannableRenderer.ForeChannel);
 
     /// <summary>Switches to the text decoration channel for line through.</summary>
     public void SwitchToTextDecorationThroughChannel() => ImGuiNative.ImDrawListSplitter_SetCurrentChannel(
         this.splitterPtr,
         this.drawListPtr,
-        SpannedStringRenderer.TextDecorationThroughChannel);
+        SpannableRenderer.TextDecorationThroughChannel);
 }

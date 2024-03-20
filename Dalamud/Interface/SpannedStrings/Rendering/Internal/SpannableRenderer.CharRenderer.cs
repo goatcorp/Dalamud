@@ -2,16 +2,17 @@ using System.Numerics;
 using System.Runtime.CompilerServices;
 
 using Dalamud.Interface.SpannedStrings.Enums;
+using Dalamud.Interface.SpannedStrings.Internal;
 using Dalamud.Interface.SpannedStrings.Styles;
 
 using ImGuiNET;
 
 using Serilog;
 
-namespace Dalamud.Interface.SpannedStrings.Internal;
+namespace Dalamud.Interface.SpannedStrings.Rendering.Internal;
 
 /// <summary>A custom text renderer implementation.</summary>
-internal sealed unsafe partial class SpannedStringRenderer
+internal sealed unsafe partial class SpannableRenderer
 {
     private ref struct CharRenderer
     {
@@ -20,12 +21,12 @@ internal sealed unsafe partial class SpannedStringRenderer
 
         public Vector2 StyleTranslation;
 
-        private readonly SpannedStringRenderer renderer;
+        private readonly SpannableRenderer renderer;
         private readonly SpannedStringData data;
-        private readonly bool skipDraw;
-
+        private readonly RentedDrawListSplitter splitter;
         private readonly ref RenderState state;
-
+        private readonly bool skipDraw;
+        
         private SpanStyleFontData fontInfo;
         private StateInfo stateInfo;
 
@@ -39,19 +40,20 @@ internal sealed unsafe partial class SpannedStringRenderer
         private bool useForeground;
 
         public CharRenderer(
-            SpannedStringRenderer renderer,
+            SpannableRenderer renderer,
             in SpannedStringData data,
+            in RentedDrawListSplitter splitter,
             ref RenderState state,
             bool skipDraw)
         {
             this.renderer = renderer;
             this.data = data;
-            this.skipDraw = skipDraw;
-
+            this.splitter = splitter;
             this.state = ref state;
+            this.skipDraw = skipDraw || !state.UseDrawing;
 
-            this.fontInfo = new(renderer.options.Scale);
-            this.stateInfo = new(renderer.options.LineWrapWidth, ref state);
+            this.fontInfo = new(this.state.Scale);
+            this.stateInfo = new(this.state.LineWrapWidth, ref state);
 
             this.BoundsLeftTop = new(float.MaxValue);
             this.BoundsRightBottom = new(float.MinValue);
@@ -71,7 +73,7 @@ internal sealed unsafe partial class SpannedStringRenderer
                 this.data,
                 record,
                 recordData,
-                this.renderer.options.InitialSpanStyle,
+                this.state.InitialSpanStyle,
                 out var fontUpdated,
                 out var drawOptionsUpdated);
             if (fontUpdated)
@@ -134,8 +136,8 @@ internal sealed unsafe partial class SpannedStringRenderer
                     {
                         case SpannedRecordType.InsertionIcon
                             when SpannedRecordCodec.TryDecodeInsertionIcon(recordData, out var gfdIcon)
-                                 && this.renderer.factory.GfdFileView.TryGetEntry((uint)gfdIcon, out var entry)
-                                 && this.renderer.options.GfdTexture is { } tex:
+                                 && this.renderer.GfdFileView.TryGetEntry((uint)gfdIcon, out var entry)
+                                 && this.renderer.GfdTextures[this.state.GfdIndex] is { } tex:
                         {
                             xy0 = Vector2.Zero;
                             xy1 = new(
@@ -199,7 +201,7 @@ internal sealed unsafe partial class SpannedStringRenderer
 
                 case '\t':
                 {
-                    var tabWidth = this.renderer.options.TabWidth;
+                    var tabWidth = this.state.TabWidth;
                     var next = MathF.Floor((this.state.Offset.X + tabWidth) / tabWidth) * tabWidth;
                     advX = next - this.state.Offset.X;
                     xy0 = Vector2.Zero;
@@ -228,34 +230,28 @@ internal sealed unsafe partial class SpannedStringRenderer
 
             if (this.useBackground)
             {
-                ImGuiNative.ImDrawListSplitter_SetCurrentChannel(
-                    this.renderer.splitterPtr,
-                    this.renderer.options.DrawListPtr,
-                    BackChannel);
+                this.splitter.SetChannel(BackChannel);
 
                 var lt = this.state.Offset + this.StyleTranslation;
                 var rb = lt + new Vector2(advX + this.fontInfo.BoldExtraWidth, this.fontInfo.ScaledFontSize);
                 var rt = new Vector2(rb.X, lt.Y);
                 var lb = new Vector2(lt.X, rb.Y);
                 ImGuiNative.ImDrawList_AddQuadFilled(
-                    this.renderer.options.DrawListPtr,
-                    this.state.StartScreenOffset + this.renderer.Transform(lt),
-                    this.state.StartScreenOffset + this.renderer.Transform(rt),
-                    this.state.StartScreenOffset + this.renderer.Transform(rb),
-                    this.state.StartScreenOffset + this.renderer.Transform(lb),
+                    this.state.DrawListPtr,
+                    this.state.StartScreenOffset + this.state.Transform(lt),
+                    this.state.StartScreenOffset + this.state.Transform(rt),
+                    this.state.StartScreenOffset + this.state.Transform(rb),
+                    this.state.StartScreenOffset + this.state.Transform(lb),
                     this.state.LastStyle.BackColor);
             }
 
             if (glyphVisible && this.useShadow)
             {
-                ImGuiNative.ImDrawListSplitter_SetCurrentChannel(
-                    this.renderer.splitterPtr,
-                    this.renderer.options.DrawListPtr,
-                    ShadowChannel);
+                this.splitter.SetChannel(ShadowChannel);
 
-                var push = texId != this.renderer.options.DrawListPtr->_CmdHeader.TextureId;
+                var push = texId != this.state.DrawListPtr._CmdHeader.TextureId;
                 if (push)
-                    ImGuiNative.ImDrawList_PushTextureID(this.renderer.options.DrawListPtr, texId);
+                    ImGuiNative.ImDrawList_PushTextureID(this.state.DrawListPtr, texId);
 
                 var lt = this.state.Offset + this.state.LastStyle.ShadowOffset + xy0;
                 var rb = this.state.Offset + this.state.LastStyle.ShadowOffset + xy1;
@@ -265,7 +261,7 @@ internal sealed unsafe partial class SpannedStringRenderer
                 rt.X += glyphTopSkewDistance;
 
                 ImGuiNative.ImDrawList_PrimReserve(
-                    this.renderer.options.DrawListPtr,
+                    this.state.DrawListPtr,
                     6 * (this.numBorderDraws + 1) * (1 + this.fontInfo.BoldExtraWidth),
                     4 * (this.numBorderDraws + 1) * (1 + this.fontInfo.BoldExtraWidth));
                 for (var h = 0; h <= this.fontInfo.BoldExtraWidth; h++)
@@ -276,11 +272,11 @@ internal sealed unsafe partial class SpannedStringRenderer
                         {
                             var v = new Vector2(x + h, y);
                             ImGuiNative.ImDrawList_PrimQuadUV(
-                                this.renderer.options.DrawListPtr,
-                                this.state.StartScreenOffset + this.renderer.Transform(lt + v),
-                                this.state.StartScreenOffset + this.renderer.Transform(rt + v),
-                                this.state.StartScreenOffset + this.renderer.Transform(rb + v),
-                                this.state.StartScreenOffset + this.renderer.Transform(lb + v),
+                                this.state.DrawListPtr,
+                                this.state.StartScreenOffset + this.state.Transform(lt + v),
+                                this.state.StartScreenOffset + this.state.Transform(rt + v),
+                                this.state.StartScreenOffset + this.state.Transform(rb + v),
+                                this.state.StartScreenOffset + this.state.Transform(lb + v),
                                 uv0,
                                 new(uv1.X, uv0.Y),
                                 uv1,
@@ -291,19 +287,16 @@ internal sealed unsafe partial class SpannedStringRenderer
                 }
 
                 if (push)
-                    ImGuiNative.ImDrawList_PopTextureID(this.renderer.options.DrawListPtr);
+                    ImGuiNative.ImDrawList_PopTextureID(this.state.DrawListPtr);
             }
 
             if (glyphVisible && this.useBorder)
             {
-                ImGuiNative.ImDrawListSplitter_SetCurrentChannel(
-                    this.renderer.splitterPtr,
-                    this.renderer.options.DrawListPtr,
-                    BorderChannel);
+                this.splitter.SetChannel(BorderChannel);
 
-                var push = texId != this.renderer.options.DrawListPtr->_CmdHeader.TextureId;
+                var push = texId != this.state.DrawListPtr._CmdHeader.TextureId;
                 if (push)
-                    ImGuiNative.ImDrawList_PushTextureID(this.renderer.options.DrawListPtr, texId);
+                    ImGuiNative.ImDrawList_PushTextureID(this.state.DrawListPtr, texId);
 
                 var lt = this.state.Offset + xy0;
                 var rb = this.state.Offset + xy1;
@@ -313,7 +306,7 @@ internal sealed unsafe partial class SpannedStringRenderer
                 rt.X += glyphTopSkewDistance;
 
                 ImGuiNative.ImDrawList_PrimReserve(
-                    this.renderer.options.DrawListPtr,
+                    this.state.DrawListPtr,
                     6 * this.numBorderDraws * (1 + this.fontInfo.BoldExtraWidth),
                     4 * this.numBorderDraws * (1 + this.fontInfo.BoldExtraWidth));
                 for (var h = 0; h <= this.fontInfo.BoldExtraWidth; h++)
@@ -326,11 +319,11 @@ internal sealed unsafe partial class SpannedStringRenderer
                                 continue;
                             var v = new Vector2(x + h, y);
                             ImGuiNative.ImDrawList_PrimQuadUV(
-                                this.renderer.options.DrawListPtr,
-                                this.state.StartScreenOffset + this.renderer.Transform(lt + v),
-                                this.state.StartScreenOffset + this.renderer.Transform(rt + v),
-                                this.state.StartScreenOffset + this.renderer.Transform(rb + v),
-                                this.state.StartScreenOffset + this.renderer.Transform(lb + v),
+                                this.state.DrawListPtr,
+                                this.state.StartScreenOffset + this.state.Transform(lt + v),
+                                this.state.StartScreenOffset + this.state.Transform(rt + v),
+                                this.state.StartScreenOffset + this.state.Transform(rb + v),
+                                this.state.StartScreenOffset + this.state.Transform(lb + v),
                                 uv0,
                                 new(uv1.X, uv0.Y),
                                 uv1,
@@ -341,15 +334,12 @@ internal sealed unsafe partial class SpannedStringRenderer
                 }
 
                 if (push)
-                    ImGuiNative.ImDrawList_PopTextureID(this.renderer.options.DrawListPtr);
+                    ImGuiNative.ImDrawList_PopTextureID(this.state.DrawListPtr);
             }
 
             if (this.useTextDecoration)
             {
-                ImGuiNative.ImDrawListSplitter_SetCurrentChannel(
-                    this.renderer.splitterPtr,
-                    this.renderer.options.DrawListPtr,
-                    TextDecorationOverUnderChannel);
+                this.splitter.SetChannel(TextDecorationOverUnderChannel);
 
                 var lt = this.state.Offset + this.StyleTranslation +
                          new Vector2(0, this.stateInfo.VerticalOffsetWrtLine);
@@ -368,10 +358,7 @@ internal sealed unsafe partial class SpannedStringRenderer
                 if ((this.state.LastStyle.TextDecoration & TextDecoration.Underline) != 0)
                     this.DrawDecoration(this.state.StartScreenOffset, rbase with { X = lt.X }, rbase, 1, xdivy);
 
-                ImGuiNative.ImDrawListSplitter_SetCurrentChannel(
-                    this.renderer.splitterPtr,
-                    this.renderer.options.DrawListPtr,
-                    TextDecorationThroughChannel);
+                this.splitter.SetChannel(TextDecorationThroughChannel);
 
                 if ((this.state.LastStyle.TextDecoration & TextDecoration.LineThrough) != 0)
                     this.DrawDecoration(this.state.StartScreenOffset, (lt + lbottom) / 2, (rt + rbottom) / 2, 0, xdivy);
@@ -379,16 +366,13 @@ internal sealed unsafe partial class SpannedStringRenderer
 
             if (glyphVisible && this.useForeground)
             {
-                ImGuiNative.ImDrawListSplitter_SetCurrentChannel(
-                    this.renderer.splitterPtr,
-                    this.renderer.options.DrawListPtr,
-                    ForeChannel);
+                this.splitter.SetChannel(ForeChannel);
 
-                var push = texId != this.renderer.options.DrawListPtr->_CmdHeader.TextureId;
+                var push = texId != this.state.DrawListPtr._CmdHeader.TextureId;
                 if (push)
-                    ImGuiNative.ImDrawList_PushTextureID(this.renderer.options.DrawListPtr, texId);
+                    ImGuiNative.ImDrawList_PushTextureID(this.state.DrawListPtr, texId);
                 ImGuiNative.ImDrawList_PrimReserve(
-                    this.renderer.options.DrawListPtr,
+                    this.state.DrawListPtr,
                     6 * (1 + this.fontInfo.BoldExtraWidth),
                     4 * (1 + this.fontInfo.BoldExtraWidth));
 
@@ -402,11 +386,11 @@ internal sealed unsafe partial class SpannedStringRenderer
                 for (var h = 0; h <= this.fontInfo.BoldExtraWidth; h++)
                 {
                     ImGuiNative.ImDrawList_PrimQuadUV(
-                        this.renderer.options.DrawListPtr,
-                        this.state.StartScreenOffset + this.renderer.Transform(lt),
-                        this.state.StartScreenOffset + this.renderer.Transform(rt + new Vector2(h, 0)),
-                        this.state.StartScreenOffset + this.renderer.Transform(rb + new Vector2(h, 0)),
-                        this.state.StartScreenOffset + this.renderer.Transform(lb),
+                        this.state.DrawListPtr,
+                        this.state.StartScreenOffset + this.state.Transform(lt),
+                        this.state.StartScreenOffset + this.state.Transform(rt + new Vector2(h, 0)),
+                        this.state.StartScreenOffset + this.state.Transform(rb + new Vector2(h, 0)),
+                        this.state.StartScreenOffset + this.state.Transform(lb),
                         uv0,
                         new(uv1.X, uv0.Y),
                         uv1,
@@ -415,7 +399,7 @@ internal sealed unsafe partial class SpannedStringRenderer
                 }
 
                 if (push)
-                    ImGuiNative.ImDrawList_PopTextureID(this.renderer.options.DrawListPtr);
+                    ImGuiNative.ImDrawList_PopTextureID(this.state.DrawListPtr);
             }
 
             var glyphBoundsLeftTop = this.state.Offset + xy0;
@@ -423,27 +407,24 @@ internal sealed unsafe partial class SpannedStringRenderer
 
             if (callback is not null)
             {
-                ImGuiNative.ImDrawListSplitter_SetCurrentChannel(
-                    this.renderer.splitterPtr,
-                    this.renderer.options.DrawListPtr,
-                    ForeChannel);
+                this.splitter.SetChannel(ForeChannel);
 
                 try
                 {
                     callback.Invoke(
                         new(
-                            this.renderer.options.DrawListPtr,
-                            this.renderer.splitterPtr,
+                            this.state.DrawListPtr,
+                            this.splitter,
                             in this.state,
                             glyphBoundsLeftTop,
                             glyphBoundsRightBottom,
                             this.fontInfo,
                             this.state.LastStyle,
-                            this.renderer.options.Transformation));
+                            this.state.Transformation));
                 }
                 catch (Exception e)
                 {
-                    Log.Error(e, $"{nameof(SpannedStringRenderer)}: callback error");
+                    Log.Error(e, $"{nameof(SpannableRenderer)}: callback error");
                 }
             }
 
@@ -470,7 +451,7 @@ internal sealed unsafe partial class SpannedStringRenderer
 
         private void SpanDrawOptionsUpdated()
         {
-            if (this.renderer.options.DrawListPtr is null || this.skipDraw)
+            if (this.skipDraw)
                 return;
 
             this.useBackground =
@@ -499,7 +480,7 @@ internal sealed unsafe partial class SpannedStringRenderer
 
         private void DrawDecoration(Vector2 glyphScreenOffset, Vector2 xy0, Vector2 xy1, int direction, Vector2 xdivy)
         {
-            var dlptr = this.renderer.options.DrawListPtr;
+            var dlptr = this.state.DrawListPtr;
             var thicc = this.fontInfo.ScaledTextDecorationThickness;
             var color = this.state.LastStyle.TextDecorationColor;
             switch (this.state.LastStyle.TextDecorationStyle)
@@ -508,8 +489,8 @@ internal sealed unsafe partial class SpannedStringRenderer
                 default:
                     ImGuiNative.ImDrawList_AddLine(
                         dlptr,
-                        glyphScreenOffset + this.renderer.Transform(xy0),
-                        glyphScreenOffset + this.renderer.Transform(xy1),
+                        glyphScreenOffset + this.state.Transform(xy0),
+                        glyphScreenOffset + this.state.Transform(xy1),
                         color,
                         thicc);
                     break;
@@ -540,14 +521,14 @@ internal sealed unsafe partial class SpannedStringRenderer
 
                     ImGuiNative.ImDrawList_AddLine(
                         dlptr,
-                        glyphScreenOffset + this.renderer.Transform(xy0 + dispUp),
-                        glyphScreenOffset + this.renderer.Transform(xy1 + dispUp),
+                        glyphScreenOffset + this.state.Transform(xy0 + dispUp),
+                        glyphScreenOffset + this.state.Transform(xy1 + dispUp),
                         color,
                         thicc);
                     ImGuiNative.ImDrawList_AddLine(
                         dlptr,
-                        glyphScreenOffset + this.renderer.Transform(xy0 + dispDown),
-                        glyphScreenOffset + this.renderer.Transform(xy1 + dispDown),
+                        glyphScreenOffset + this.state.Transform(xy0 + dispDown),
+                        glyphScreenOffset + this.state.Transform(xy1 + dispDown),
                         color,
                         thicc);
                     break;

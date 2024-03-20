@@ -2,6 +2,8 @@ using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
+using Dalamud.Interface.SpannedStrings.Rendering.Internal;
+
 namespace Dalamud.Interface.SpannedStrings.Internal;
 
 /// <summary>Represents a measured line.</summary>
@@ -249,7 +251,7 @@ internal struct MeasuredLine
     /// <param name="font">The font.</param>
     public void AddSoftHyphenCharacter(in SpanStyleFontData font)
     {
-        var codepoint = font.GetEffeciveCodepoint(SpannedStringRenderer.SoftHyphenReplacementChar);
+        var codepoint = font.GetEffeciveCodepoint(SpannableRenderer.SoftHyphenReplacementChar);
         ref var glyph = ref font.Glyphs[font.Lookup[codepoint]];
 
         var adjust =

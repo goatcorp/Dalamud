@@ -5,6 +5,7 @@ using System.Runtime.CompilerServices;
 using Dalamud.Interface.SpannedStrings.Enums;
 using Dalamud.Interface.SpannedStrings.Internal;
 using Dalamud.Interface.SpannedStrings.Styles;
+using Dalamud.Utility;
 
 namespace Dalamud.Interface.SpannedStrings;
 

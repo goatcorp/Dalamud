@@ -2,6 +2,7 @@ using System.Numerics;
 
 using Dalamud.Interface.SpannedStrings.Enums;
 using Dalamud.Interface.SpannedStrings.Internal;
+using Dalamud.Utility;
 
 using ImGuiNET;
 

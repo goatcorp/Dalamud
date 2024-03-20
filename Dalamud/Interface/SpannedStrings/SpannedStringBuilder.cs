@@ -5,6 +5,7 @@ using System.Runtime.InteropServices;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.SpannedStrings.Enums;
 using Dalamud.Interface.SpannedStrings.Internal;
+using Dalamud.Interface.SpannedStrings.Spannables;
 using Dalamud.Interface.SpannedStrings.Styles;
 using Dalamud.Utility;
 
@@ -14,7 +15,7 @@ namespace Dalamud.Interface.SpannedStrings;
 
 /// <summary>A custom text renderer implementation.</summary>
 public sealed partial class SpannedStringBuilder
-    : ISpannedStringBuilder<SpannedStringBuilder>, ISpannableDataProvider, IResettable
+    : ISpannedStringBuilder<SpannedStringBuilder>, IBlockSpannable, IResettable
 {
     private readonly MemoryStream textStream = new();
     private readonly MemoryStream dataStream = new();
@@ -58,7 +59,7 @@ public sealed partial class SpannedStringBuilder
             this.callbacks.ToArray());
 
     /// <inheritdoc/>
-    public bool TryReset()
+    public SpannedStringBuilder Clear()
     {
         this.textStream.Clear();
         this.dataStream.Clear();
@@ -87,13 +88,20 @@ public sealed partial class SpannedStringBuilder
         this.stackBorderWidth?.Clear();
         this.stackShadowOffset?.Clear();
         this.stackTextDecorationThickness?.Clear();
+        return this;
+    }
+
+    /// <inheritdoc/>
+    bool IResettable.TryReset()
+    {
+        this.Clear();
         return true;
     }
 
     /// <inheritdoc/>
-    SpannedStringData ISpannableDataProvider.GetData() => this.GetData();
+    SpannedStringData IBlockSpannable.GetData() => this.GetData();
 
-    /// <inheritdoc cref="ISpannableDataProvider.GetData"/>
+    /// <inheritdoc cref="IBlockSpannable.GetData"/>
     internal SpannedStringData GetData() =>
         new(
             this.textStream.GetDataSpan(),

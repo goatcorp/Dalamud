@@ -3,6 +3,7 @@ using System.Runtime.CompilerServices;
 
 using Dalamud.Game.Text;
 using Dalamud.Interface.SpannedStrings.Enums;
+using Dalamud.Utility;
 using Dalamud.Utility.Text;
 
 namespace Dalamud.Interface.SpannedStrings.Internal;

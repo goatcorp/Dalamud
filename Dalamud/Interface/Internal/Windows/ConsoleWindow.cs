@@ -19,6 +19,8 @@ using Dalamud.Interface.ManagedFontAtlas;
 using Dalamud.Interface.SpannedStrings;
 using Dalamud.Interface.SpannedStrings.Enums;
 using Dalamud.Interface.SpannedStrings.Internal;
+using Dalamud.Interface.SpannedStrings.Rendering;
+using Dalamud.Interface.SpannedStrings.Rendering.Internal;
 using Dalamud.Interface.SpannedStrings.Styles;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
@@ -129,6 +131,8 @@ internal class ConsoleWindow : Window, IDisposable
         }
     }
 
+    private static SpannableRenderer Renderer => Service<SpannableRenderer>.Get();
+
     /// <summary>
     /// Gets an instance of <see cref="DalamudConfiguration"/> that may point to the live object or our temporary object
     /// for storing the configuration being changed.
@@ -238,15 +242,10 @@ internal class ConsoleWindow : Window, IDisposable
                 break;
             }
 
-            using (var renderer = Service<SpannableFactory>.Get().Rent(
-                       default,
-                       this.GetRendererOptions(messageAreaWidth)))
-            {
-                renderer.Append(entry.Line);
-                renderer.Render(out var finalState);
-                entry.NumLines = 1 + finalState.LastLineIndex;
-                this.totalWrappedLines += entry.NumLines;
-            }
+            var state = new RenderState(true, this.GetRendererOptions(messageAreaWidth));
+            Service<SpannableRenderer>.Get().Render(entry.Line, ref state);
+            entry.NumLines = 1 + state.LastLineIndex;
+            this.totalWrappedLines += entry.NumLines;
 
             if (i == 0)
             {
@@ -662,7 +661,7 @@ internal class ConsoleWindow : Window, IDisposable
             inputWidth = ImGui.GetWindowWidth() - (ImGui.GetStyle().WindowPadding.X * 2);
 
             if (!breakInputLines)
-                inputWidth = (inputWidth - ImGui.GetStyle().ItemSpacing.X) / 2; 
+                inputWidth = (inputWidth - ImGui.GetStyle().ItemSpacing.X) / 2;
         }
         else
         {
@@ -1166,9 +1165,9 @@ internal class ConsoleWindow : Window, IDisposable
         return ~l;
     }
 
-    private ISpannedStringRenderer.Options GetRendererOptions(float width)
+    private RenderOptions GetRendererOptions(float width)
     {
-        var r = new ISpannedStringRenderer.Options
+        var r = new RenderOptions
         {
             LineWrapWidth = width,
             WordBreak = this.activeConfiguration.LogLineBreakMode,
@@ -1228,41 +1227,44 @@ internal class ConsoleWindow : Window, IDisposable
 
         var cursorScreenPos = ImGui.GetCursorScreenPos();
         var width = ImGui.GetWindowContentRegionMax().X - ImGui.GetWindowContentRegionMin().X;
-        using (var renderer = Service<SpannableFactory>.Get().Rent(
-                   ImGui.GetWindowDrawList(),
-                   this.GetRendererOptions((width + ImGui.GetScrollX()) - ImGui.GetCursorPosX())))
-        {
-            for (var i = 0; i < charOffsetsIndex - 1; i++)
-            {
-                var begin = charOffsets[i];
-                var end = charOffsets[i + 1];
-                renderer.PushForeColor(i % 2 == 1 ? highlightCol : col)
-                        .PushItalic(i % 2 == 1)
-                        .Append(line[begin..end])
-                        .PopItalic()
-                        .PopForeColor();
-            }
 
-            renderer.Render(out _);
+        var ssb = Renderer.RentBuilder();
+        for (var i = 0; i < charOffsetsIndex - 1; i++)
+        {
+            var begin = charOffsets[i];
+            var end = charOffsets[i + 1];
+            ssb.PushForeColor(i % 2 == 1 ? highlightCol : col)
+               .PushItalic(i % 2 == 1)
+               .Append(line[begin..end])
+               .PopItalic()
+               .PopForeColor();
         }
 
+        Renderer.Render(
+            ssb,
+            new(
+                ImGui.GetWindowDrawList(),
+                this.GetRendererOptions((width + ImGui.GetScrollX()) - ImGui.GetCursorPosX())));
+        
         // Allocate scroll region
         if (this.activeConfiguration.LogLineBreakMode == WordBreakType.KeepAll)
         {
-            ImGui.SetCursorScreenPos(cursorScreenPos);
-            using var spacer = Service<SpannableFactory>.Get().Rent(
-                true,
-                this.GetRendererOptions(float.MaxValue) with { InitialStyle = SpanStyle.Empty });
+            ssb.Clear();
             for (var i = 0; i < charOffsetsIndex - 1; i++)
             {
                 var begin = charOffsets[i];
                 var end = charOffsets[i + 1];
-                spacer.PushItalic(i % 2 == 1)
+                ssb.PushItalic(i % 2 == 1)
                       .Append(line[begin..end])
                       .PopItalic();
             }
 
-            spacer.Render();
+            ImGui.SetCursorScreenPos(cursorScreenPos);
+            Renderer.Render(
+                ssb,
+                new(
+                    false,
+                    this.GetRendererOptions(float.MaxValue) with { InitialStyle = SpanStyle.Empty }));
         }
     }
 

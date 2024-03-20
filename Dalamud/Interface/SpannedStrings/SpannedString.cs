@@ -9,6 +9,7 @@ using System.Text;
 
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.SpannedStrings.Internal;
+using Dalamud.Interface.SpannedStrings.Spannables;
 using Dalamud.Interface.SpannedStrings.Styles;
 using Dalamud.Utility;
 using Dalamud.Utility.Text;
@@ -16,7 +17,7 @@ using Dalamud.Utility.Text;
 namespace Dalamud.Interface.SpannedStrings;
 
 /// <summary>A character sequence with embedded styling information.</summary>
-public sealed class SpannedString : ISpannableDataProvider, ISpanParsable<SpannedString>
+public sealed class SpannedString : IBlockSpannable, ISpanParsable<SpannedString>
 {
     private static readonly (MethodInfo Info, SpannedParseInstructionAttribute Attr)[] SsbMethods =
         typeof(ISpannedStringBuilder<>)
@@ -237,7 +238,7 @@ public sealed class SpannedString : ISpannableDataProvider, ISpanParsable<Spanne
     }
 
     /// <inheritdoc/>
-    SpannedStringData ISpannableDataProvider.GetData() => this.GetData();
+    SpannedStringData IBlockSpannable.GetData() => this.GetData();
 
     /// <summary>Tries to parse a span of characters into a value.</summary>
     /// <param name="s">The span of characters to parse.</param>
@@ -664,7 +665,7 @@ public sealed class SpannedString : ISpannableDataProvider, ISpanParsable<Spanne
         }
     }
 
-    /// <inheritdoc cref="ISpannableDataProvider.GetData"/>
+    /// <inheritdoc cref="IBlockSpannable.GetData"/>
     internal SpannedStringData GetData() =>
         new(this.textStream, this.dataStream, this.records, this.fontSets, this.textures, this.callbacks);
 }

@@ -3,19 +3,18 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 using Dalamud.Interface.SpannedStrings.Enums;
-using Dalamud.Interface.SpannedStrings.Styles;
+using Dalamud.Interface.SpannedStrings.Internal;
 
 using ImGuiNET;
 
-namespace Dalamud.Interface.SpannedStrings.Internal;
+namespace Dalamud.Interface.SpannedStrings.Rendering.Internal;
 
 /// <summary>A custom text renderer implementation.</summary>
-internal sealed partial class SpannedStringRenderer
+internal sealed partial class SpannableRenderer
 {
     private struct LinkRangeToRenderCoordinates
     {
-        public int DataBegin;
-        public int DataEnd;
+        public int RecordIndex;
         public Vector2 LeftTop;
         public Vector2 RightBottom;
     }
@@ -24,7 +23,7 @@ internal sealed partial class SpannedStringRenderer
     private struct ItemStateStruct
     {
         [FieldOffset(0)]
-        public int LinkDataOffset;
+        public int LinkRecordIndex;
 
         [FieldOffset(4)]
         public uint Flags;

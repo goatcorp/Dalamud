@@ -2,7 +2,7 @@ using System.Globalization;
 using System.Numerics;
 using System.Runtime.InteropServices;
 
-namespace Dalamud.Interface.SpannedStrings;
+namespace Dalamud.Utility;
 
 /// <summary>Represents a 32-bit RGBA color.</summary>
 [StructLayout(LayoutKind.Explicit, Size = 4)]

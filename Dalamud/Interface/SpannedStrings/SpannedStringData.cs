@@ -4,31 +4,35 @@ using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 
 using Dalamud.Interface.Internal;
+using Dalamud.Interface.SpannedStrings.Internal;
 using Dalamud.Interface.SpannedStrings.Styles;
+using Dalamud.Utility.Text;
 
-namespace Dalamud.Interface.SpannedStrings.Internal;
+namespace Dalamud.Interface.SpannedStrings;
 
 /// <summary>A reference of data contained within a spannable.</summary>
-internal ref struct SpannedStringData
+public readonly ref struct SpannedStringData
 {
     /// <summary>The text data.</summary>
-    public ReadOnlySpan<byte> TextStream;
+    private readonly ReadOnlySpan<byte> textStream;
 
     /// <summary>The link data.</summary>
-    public ReadOnlySpan<byte> DataStream;
+    private readonly ReadOnlySpan<byte> dataStream;
 
     /// <summary>The span entity data.</summary>
-    public ReadOnlySpan<SpannedRecord> Records;
+    private readonly ReadOnlySpan<SpannedRecord> records;
 
     /// <summary>The used font sets.</summary>
-    public ReadOnlySpan<FontHandleVariantSet> FontSets;
+    private readonly ReadOnlySpan<FontHandleVariantSet> fontSets;
 
     /// <summary>The textures used.</summary>
-    public ReadOnlySpan<IDalamudTextureWrap?> Textures;
+    private readonly ReadOnlySpan<IDalamudTextureWrap?> textures;
 
     /// <summary>The callbacks used.</summary>
-    public ReadOnlySpan<SpannedStringCallbackDelegate?> Callbacks;
+    private readonly ReadOnlySpan<SpannedStringCallbackDelegate?> callbacks;
 
+    // TODO: what's the best way to make this public, if we're to do that? 
+    
     /// <summary>Initializes a new instance of the <see cref="SpannedStringData"/> struct.</summary>
     /// <param name="textStream">The text data.</param>
     /// <param name="dataStream">The link data.</param>
@@ -36,7 +40,7 @@ internal ref struct SpannedStringData
     /// <param name="fontSets">The font sets.</param>
     /// <param name="textures">The textures.</param>
     /// <param name="callbacks">The callbacks.</param>
-    public SpannedStringData(
+    internal SpannedStringData(
         ReadOnlySpan<byte> textStream,
         ReadOnlySpan<byte> dataStream,
         ReadOnlySpan<SpannedRecord> records,
@@ -44,24 +48,52 @@ internal ref struct SpannedStringData
         ReadOnlySpan<IDalamudTextureWrap?> textures,
         ReadOnlySpan<SpannedStringCallbackDelegate?> callbacks)
     {
-        this.TextStream = textStream;
-        this.DataStream = dataStream;
-        this.Records = records;
-        this.FontSets = fontSets;
-        this.Textures = textures;
-        this.Callbacks = callbacks;
+        this.textStream = textStream;
+        this.dataStream = dataStream;
+        this.records = records;
+        this.fontSets = fontSets;
+        this.textures = textures;
+        this.callbacks = callbacks;
     }
 
     /// <inheritdoc cref="IEnumerable{T}.GetEnumerator"/>
     public Enumerator GetEnumerator() => new(this);
 
+    /// <summary>Attempts to get the codepoint at the given offset.</summary>
+    /// <param name="offset">The offset.</param>
+    /// <param name="numSkipCodepoints">Number of codepoints to skip.</param>
+    /// <param name="codepoint">The retrieved codepoint.</param>
+    /// <returns><c>true</c> if retrieved.</returns>
+    public bool TryGetCodepointAt(int offset, int numSkipCodepoints, out int codepoint)
+    {
+        if (offset < 0 || offset >= this.textStream.Length || numSkipCodepoints < 0)
+        {
+            codepoint = 0;
+            return false;
+        }
+
+        var from = this.textStream[offset..];
+        var v = default(UtfValue);
+        while (numSkipCodepoints-- >= 0)
+        {
+            if (!UtfValue.TryDecode8(ref from, out v, out _))
+            {
+                codepoint = 0;
+                return false;
+            }
+        }
+
+        codepoint = v;
+        return true;
+    }
+
     /// <summary>Attempts to get a non-null texture for the given span entity.</summary>
     /// <param name="index">The index.</param>
     /// <param name="texture">The retrieved texture.</param>
     /// <returns><c>true</c> if a corresponding texture is retrieved.</returns>
-    public readonly bool TryGetTextureAt(int index, [NotNullWhen(true)] out IDalamudTextureWrap? texture)
+    public bool TryGetTextureAt(int index, [NotNullWhen(true)] out IDalamudTextureWrap? texture)
     {
-        texture = index < 0 || index >= this.Textures.Length ? null : this.Textures[index];
+        texture = index < 0 || index >= this.textures.Length ? null : this.textures[index];
         return texture is not null;
     }
 
@@ -69,9 +101,9 @@ internal ref struct SpannedStringData
     /// <param name="index">The index.</param>
     /// <param name="fontSet">The retrieved font set.</param>
     /// <returns><c>true</c> if a corresponding font set is retrieved.</returns>
-    public readonly bool TryGetFontSetAt(int index, out FontHandleVariantSet fontSet)
+    public bool TryGetFontSetAt(int index, out FontHandleVariantSet fontSet)
     {
-        fontSet = index < 0 || index >= this.FontSets.Length ? default : this.FontSets[index];
+        fontSet = index < 0 || index >= this.fontSets.Length ? default : this.fontSets[index];
         return fontSet != default;
     }
 
@@ -79,10 +111,27 @@ internal ref struct SpannedStringData
     /// <param name="index">The index.</param>
     /// <param name="callback">The retrieved callback.</param>
     /// <returns><c>true</c> if a corresponding callback is retrieved.</returns>
-    public readonly bool TryGetCallbackAt(int index, [NotNullWhen(true)] out SpannedStringCallbackDelegate? callback)
+    public bool TryGetCallbackAt(int index, [NotNullWhen(true)] out SpannedStringCallbackDelegate? callback)
     {
-        callback = index < 0 || index >= this.Callbacks.Length ? default : this.Callbacks[index];
+        callback = index < 0 || index >= this.callbacks.Length ? default : this.callbacks[index];
         return callback != default;
+    }
+
+    /// <summary>Attempts to get the link contained in the given span record.</summary>
+    /// <param name="recordIndex">The record index.</param>
+    /// <param name="link">The retrieved link, if any.</param>
+    /// <returns><c>true</c> if retrieved.</returns>
+    public bool TryGetLinkAt(int recordIndex, out ReadOnlySpan<byte> link)
+    {
+        link = default;
+        if (recordIndex < 0 || recordIndex >= this.records.Length)
+            return false;
+
+        ref readonly var record = ref this.records[recordIndex];
+        if (record.Type != SpannedRecordType.Link)
+            return false;
+
+        return SpannedRecordCodec.TryDecodeLink(this.dataStream.Slice(record.DataStart, record.DataLength), out link);
     }
 
     /// <summary>Represents a segment during enumeration.</summary>
@@ -114,8 +163,8 @@ internal ref struct SpannedStringData
         public readonly bool IsText
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => this.RecordIndex >= this.Data.Records.Length
-                   || this.Data.Records[this.RecordIndex].TextStart > this.TextOffset;
+            get => this.RecordIndex >= this.Data.records.Length
+                   || this.Data.records[this.RecordIndex].TextStart > this.TextOffset;
         }
 
         /// <summary>Attempts to get the next segment.</summary>
@@ -131,9 +180,9 @@ internal ref struct SpannedStringData
             }
             else
             {
-                if (next.RecordIndex < next.Data.Records.Length)
+                if (next.RecordIndex < next.Data.records.Length)
                 {
-                    ref readonly var rec = ref next.Data.Records[next.RecordIndex];
+                    ref readonly var rec = ref next.Data.records[next.RecordIndex];
                     if (rec.TextStart <= this.TextOffset)
                         next.RecordIndex++;
                     else
@@ -141,11 +190,11 @@ internal ref struct SpannedStringData
                 }
                 else
                 {
-                    next.TextOffset = next.Data.TextStream.Length;
+                    next.TextOffset = next.Data.textStream.Length;
                 }
             }
 
-            return next.TextOffset < next.Data.TextStream.Length || next.RecordIndex < next.Data.Records.Length;
+            return next.TextOffset < next.Data.textStream.Length || next.RecordIndex < next.Data.records.Length;
         }
 
         /// <summary>Attempts to get the next text segment.</summary>
@@ -167,24 +216,24 @@ internal ref struct SpannedStringData
         /// <param name="record">The record.</param>
         /// <param name="data">The record data.</param>
         /// <returns><c>true</c> if retrieved.</returns>
-        public readonly bool TryGetRecord(out SpannedRecord record, out ReadOnlySpan<byte> data)
+        internal readonly bool TryGetRecord(out SpannedRecord record, out ReadOnlySpan<byte> data)
         {
-            if (this.IsText || this.RecordIndex >= this.Data.Records.Length)
+            if (this.IsText || this.RecordIndex >= this.Data.records.Length)
             {
                 record = default;
                 data = default;
                 return false;
             }
 
-            record = this.Data.Records[this.RecordIndex];
-            data = this.Data.DataStream.Slice(record.DataStart, record.DataLength);
+            record = this.Data.records[this.RecordIndex];
+            data = this.Data.dataStream.Slice(record.DataStart, record.DataLength);
             return true;
         }
 
         /// <summary>Attempts to get the current raw text.</summary>
         /// <param name="text">The text.</param>
         /// <returns><c>true</c> if retrieved.</returns>
-        public readonly bool TryGetRawText(out ReadOnlySpan<byte> text)
+        internal readonly bool TryGetRawText(out ReadOnlySpan<byte> text)
         {
             if (!this.IsText)
             {
@@ -192,9 +241,9 @@ internal ref struct SpannedStringData
                 return false;
             }
 
-            text = this.RecordIndex < this.Data.Records.Length
-                       ? this.Data.TextStream[this.TextOffset..this.Data.Records[this.RecordIndex].TextStart]
-                       : this.Data.TextStream[this.TextOffset..];
+            text = this.RecordIndex < this.Data.records.Length
+                       ? this.Data.textStream[this.TextOffset..this.Data.records[this.RecordIndex].TextStart]
+                       : this.Data.textStream[this.TextOffset..];
             return true;
         }
     }

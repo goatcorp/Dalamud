@@ -6,7 +6,7 @@ using Dalamud.Interface.Colors;
 using Dalamud.Interface.SpannedStrings;
 using Dalamud.Interface.SpannedStrings.Enums;
 using Dalamud.Interface.SpannedStrings.Internal;
-using Dalamud.Interface.Utility;
+using Dalamud.Interface.SpannedStrings.Rendering.Internal;
 
 using Serilog;
 
@@ -45,16 +45,18 @@ public class HintSettingsEntry : SettingsEntry
 
     public override void Draw()
     {
-        using var renderer = Service<SpannableFactory>.Get().Rent(
-            true,
-            new()
-            {
-                WordBreak = WordBreakType.BreakWord,
-                InitialStyle = new()
+        Service<SpannableRenderer>.Get().Render(
+            this.text,
+            new(
+                false,
+                new()
                 {
-                    ForeColor = this.color,
-                },
-            });
-        renderer.Render(this.text, out _, out _);
+                    WordBreak = WordBreakType.BreakWord,
+                    InitialStyle = new()
+                    {
+                        ForeColor = this.color,
+                        TextDecorationColor = this.color,
+                    },
+                }));
     }
 }

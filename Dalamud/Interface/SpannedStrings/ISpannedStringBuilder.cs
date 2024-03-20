@@ -6,6 +6,7 @@ using Dalamud.Interface.Internal;
 using Dalamud.Interface.SpannedStrings.Enums;
 using Dalamud.Interface.SpannedStrings.Internal;
 using Dalamud.Interface.SpannedStrings.Styles;
+using Dalamud.Utility;
 using Dalamud.Utility.Text;
 
 namespace Dalamud.Interface.SpannedStrings;
@@ -426,6 +427,10 @@ public interface ISpannedStringBuilder<out TReturn>
     /// <summary>Pops all values pushed from <see cref="PushAll"/>.</summary>
     /// <returns>A reference of this instance after the pop operation is completed.</returns>
     TReturn PopAll();
+
+    /// <summary>Clears everything.</summary>
+    /// <returns>A reference of this instance after the clear operation is completed.</returns>
+    TReturn Clear();
 
     /// <summary>Builds a spannable.</summary>
     /// <returns>The built spannable.</returns>
