@@ -61,6 +61,12 @@ public interface ISpannedStringBuilder<out TReturn>
     /// <param name="value">The value to add.</param>
     /// <param name="repeat">Number of times to repeat.</param>
     /// <returns>A reference of this instance after the append operation is completed.</returns>
+    TReturn Append(IUtf8SpanFormattable? value, int repeat = 1);
+
+    /// <summary>Adds the string representation of the given value.</summary>
+    /// <param name="value">The value to add.</param>
+    /// <param name="repeat">Number of times to repeat.</param>
+    /// <returns>A reference of this instance after the append operation is completed.</returns>
     TReturn Append(object? value, int repeat = 1);
 
     /// <summary>Appends the given UTF-16 codepoint.</summary>

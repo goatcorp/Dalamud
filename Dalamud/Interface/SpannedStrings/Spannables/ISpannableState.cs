@@ -1,4 +1,5 @@
 using Dalamud.Interface.SpannedStrings.Rendering;
+using Dalamud.Plugin.Services;
 
 namespace Dalamud.Interface.SpannedStrings.Spannables;
 

@@ -93,6 +93,10 @@ public sealed partial class SpannedStringBuilder
         value is null ? this.Append("null"u8) : this.AppendSpanFormattable(value, repeat);
 
     /// <inheritdoc/>
+    public SpannedStringBuilder Append(IUtf8SpanFormattable? value, int repeat = 1) =>
+        value is null ? this.Append("null"u8) : this.AppendUtf8SpanFormattable(value, repeat);
+
+    /// <inheritdoc/>
     public SpannedStringBuilder Append(object? value, int repeat = 1) =>
         this.Append((value?.ToString() ?? "null").AsSpan(), repeat);
 
@@ -103,11 +107,21 @@ public sealed partial class SpannedStringBuilder
     public SpannedStringBuilder Append<T>(T value, int repeat = 1) where T : struct
     {
         this.appendSpanFormattableDelegates ??= new(8);
+        var methodName =
+            typeof(T).IsAssignableTo(typeof(IUtf8SpanFormattable))
+                ? nameof(this.AppendUtf8SpanFormattable)
+                : typeof(T).IsAssignableTo(typeof(ISpanFormattable))
+                    ? nameof(this.AppendSpanFormattable)
+                    : null;
+
+        if (methodName is null)
+            return this.Append(value.ToString());
+
         if (!this.appendSpanFormattableDelegates.TryGetValue(typeof(T), out var @delegate))
         {
             @delegate = this
                         .GetType()
-                        .GetMethod(nameof(this.AppendSpanFormattable), BindingFlags.Instance | BindingFlags.NonPublic)!
+                        .GetMethod(methodName, BindingFlags.Instance | BindingFlags.NonPublic)!
                         .MakeGenericMethod(typeof(T))
                         .CreateDelegate<AppendSpanFormattableDelegate<T>>(this);
             this.appendSpanFormattableDelegates[typeof(T)] = @delegate;
@@ -273,6 +287,29 @@ public sealed partial class SpannedStringBuilder
                 return this.Append(buf[..written], repeat);
 
             this.appendBuffer.SetLength(Math.Min(Array.MaxLength, Math.Max(64, this.appendBuffer.Length * 2)));
+        }
+    }
+
+    private SpannedStringBuilder AppendUtf8SpanFormattable<T>(T value, int repeat = 1) where T : IUtf8SpanFormattable
+    {
+        if (repeat < 1)
+            return this;
+
+        var off = unchecked((int)this.textStream.Length);
+        var len = 128;
+        this.textStream.SetLength(off + len);
+        this.appendBuffer ??= new();
+        while (true)
+        {
+            if (value.TryFormat(this.textStream.GetDataSpan()[off..len], out var written, default, null))
+            {
+                this.textStream.SetLength(off + written);
+                this.textStream.Position = off + written;
+                return this;
+            }
+
+            len *= 2;
+            this.textStream.SetLength(off + len);
         }
     }
 }

@@ -5,6 +5,7 @@ using Dalamud.Interface.SpannedStrings.Enums;
 using Dalamud.Interface.SpannedStrings.Spannables;
 using Dalamud.Interface.SpannedStrings.Styles;
 using Dalamud.Interface.Utility;
+using Dalamud.Plugin.Services;
 
 using ImGuiNET;
 

@@ -27,7 +27,7 @@ public abstract partial class BaseSpannedString
         private readonly State state;
         private readonly bool skipDraw;
 
-        private SpanStyleFontData fontInfo;
+        private FontData fontInfo;
         private StateInfo stateInfo;
 
         private int borderRange;
@@ -356,7 +356,7 @@ public abstract partial class BaseSpannedString
                 var skew = this.fontInfo.GetScaledTopSkew(default);
                 lt.X += skew;
                 rt.X += skew;
-                var xdivy = new Vector2(this.fontInfo.FakeItalic ? 1f / SpanStyleFontData.FakeItalicDivisor : 0, 1f);
+                var xdivy = new Vector2(this.fontInfo.FakeItalic ? 1f / FontData.FakeItalicDivisor : 0, 1f);
 
                 if ((this.state.RenderState.LastStyle.TextDecoration & TextDecoration.Overline) != 0)
                     this.DrawDecoration(this.state.RenderState.StartScreenOffset, lt, rt, -1, xdivy);

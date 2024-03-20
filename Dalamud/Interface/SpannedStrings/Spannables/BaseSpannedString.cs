@@ -9,6 +9,7 @@ using System.Text.Unicode;
 using Dalamud.Interface.SpannedStrings.Enums;
 using Dalamud.Interface.SpannedStrings.Internal;
 using Dalamud.Interface.SpannedStrings.Rendering;
+using Dalamud.Plugin.Services;
 using Dalamud.Utility;
 using Dalamud.Utility.Text;
 
@@ -451,7 +452,7 @@ public abstract partial class BaseSpannedString : ISpannable
             this.lineWidth = lineMeasurement.Width;
         }
 
-        public void Update(in SpanStyleFontData fontInfo)
+        public void Update(in FontData fontInfo)
         {
             var lineAscentDescent = this.lineBBoxVertical;
             this.VerticalOffsetWrtLine = (fontInfo.BBoxVertical.Y - fontInfo.BBoxVertical.X) *

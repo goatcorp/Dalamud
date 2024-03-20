@@ -6,6 +6,7 @@ using Dalamud.Interface.Internal;
 using Dalamud.Interface.SpannedStrings.Spannables;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
+using Dalamud.Plugin.Services;
 using Dalamud.Utility;
 
 using ImGuiNET;

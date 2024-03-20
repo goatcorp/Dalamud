@@ -2,11 +2,10 @@ using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 
 using Dalamud.Interface.Internal;
+using Dalamud.Interface.SpannedStrings.Rendering;
 using Dalamud.Interface.SpannedStrings.Spannables;
 
-using ImGuiNET;
-
-namespace Dalamud.Interface.SpannedStrings.Rendering;
+namespace Dalamud.Plugin.Services;
 
 /// <summary>A custom text renderer.</summary>
 public interface ISpannableRenderer
@@ -82,53 +81,4 @@ public interface ISpannableRenderer
     /// <returns><c>true</c> if any payload is currently being hovered.</returns>
     /// <remarks><paramref name="hoveredLink"/> is only valid until next render.</remarks>
     bool Render(ISpannable spannable, ref RenderState renderState, out ReadOnlySpan<byte> hoveredLink);
-
-    /// <summary>Struct that defines the purpose of borrowing an instance of <see cref="ISpannableRenderer"/>.</summary>
-    public ref struct Usage
-    {
-        /// <summary>Label in UTF-8.</summary>
-        internal ReadOnlySpan<byte> LabelU8;
-
-        /// <summary>Label in UTF-16.</summary>
-        internal ReadOnlySpan<char> LabelU16;
-
-        /// <summary>Numeric local ImGui ID.</summary>
-        internal nint? Id;
-
-        /// <summary>DrawList to draw to.</summary>
-        internal ImDrawListPtr DrawListPtr;
-
-        /// <summary>Whether to put <see cref="ImGui.Dummy"/>.</summary>
-        internal bool PutDummy;
-
-        public static implicit operator Usage(ReadOnlySpan<byte> labelU8) =>
-            new() { LabelU8 = labelU8 };
-
-        public static implicit operator Usage(ReadOnlySpan<char> labelU16) =>
-            new() { LabelU16 = labelU16 };
-
-        public static implicit operator Usage(ReadOnlyMemory<byte> labelU8) =>
-            new() { LabelU8 = labelU8.Span };
-
-        public static implicit operator Usage(ReadOnlyMemory<char> labelU16) =>
-            new() { LabelU16 = labelU16.Span };
-
-        public static implicit operator Usage(string label) => new() { LabelU16 = label };
-
-        public static implicit operator Usage(int id) => new() { Id = id };
-
-        public static implicit operator Usage(uint id) => new() { Id = unchecked((nint)id) };
-
-        public static implicit operator Usage(nint id) => new() { Id = id };
-
-        public static implicit operator Usage(nuint id) => new() { Id = unchecked((nint)id) };
-
-        public static implicit operator Usage(ImDrawListPtr drawListPtr) =>
-            new() { DrawListPtr = drawListPtr };
-
-        public static unsafe implicit operator Usage(ImDrawList* drawListPtr) =>
-            new() { DrawListPtr = drawListPtr };
-
-        public static implicit operator Usage(bool b) => new() { PutDummy = b };
-    }
 }

@@ -1,7 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using System.Runtime.CompilerServices;
-using System.Text;
 
 using Dalamud.Interface.SpannedStrings.Enums;
 using Dalamud.Interface.SpannedStrings.Internal;
@@ -21,7 +20,7 @@ public abstract partial class BaseSpannedString
         private readonly DataRef data;
 
         private SpanStyle currentStyle;
-        private SpanStyleFontData fontInfo;
+        private FontData fontInfo;
 
         private bool breakOnFirstNormalBreakableOffset;
 
