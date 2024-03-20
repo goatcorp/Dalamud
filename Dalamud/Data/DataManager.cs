@@ -1,16 +1,12 @@
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
-using System.Windows.Forms;
 
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility;
 using Dalamud.Utility.Timing;
-using JetBrains.Annotations;
 using Lumina;
 using Lumina.Data;
 using Lumina.Excel;
@@ -86,8 +82,6 @@ internal sealed class DataManager : IInternalDisposableService, IDataManager
                         // ignored
                     }
                 }
-
-                MessageBox.Show(this.HasModifiedGameDataFiles.ToString());
             }
 
             this.IsDataReady = true;
