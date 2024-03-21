@@ -2,9 +2,10 @@ using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 
 using Dalamud.Interface.Internal;
-using Dalamud.Interface.SpannedStrings.Rendering;
-using Dalamud.Interface.SpannedStrings.Spannables;
-using Dalamud.Interface.SpannedStrings.Styles;
+using Dalamud.Interface.Spannables;
+using Dalamud.Interface.Spannables.Elements.Strings;
+using Dalamud.Interface.Spannables.Rendering;
+using Dalamud.Interface.Spannables.Styles;
 
 using ImGuiNET;
 

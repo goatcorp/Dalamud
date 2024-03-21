@@ -1,4 +1,4 @@
-﻿using Dalamud.Interface.SpannedStrings.Internal;
+﻿using Dalamud.Interface.Spannables.Internal;
 using Dalamud.Storage.Assets;
 
 namespace Dalamud;

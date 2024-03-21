@@ -9,7 +9,7 @@ using System.Runtime.InteropServices;
 using Dalamud.Game.Text;
 using Dalamud.Interface.FontIdentifier;
 using Dalamud.Interface.Internal.Windows.PluginInstaller;
-using Dalamud.Interface.SpannedStrings.Enums;
+using Dalamud.Interface.Spannables.Styles;
 using Dalamud.Interface.Style;
 using Dalamud.IoC.Internal;
 using Dalamud.Plugin.Internal.Profiles;

@@ -3,11 +3,9 @@ using System.Globalization;
 using System.Numerics;
 
 using Dalamud.Interface.Colors;
-using Dalamud.Interface.SpannedStrings;
-using Dalamud.Interface.SpannedStrings.Enums;
-using Dalamud.Interface.SpannedStrings.Internal;
-using Dalamud.Interface.SpannedStrings.Rendering.Internal;
-using Dalamud.Interface.SpannedStrings.Spannables;
+using Dalamud.Interface.Spannables.Elements.Strings;
+using Dalamud.Interface.Spannables.Rendering.Internal;
+using Dalamud.Interface.Spannables.Styles;
 
 using Serilog;
 
