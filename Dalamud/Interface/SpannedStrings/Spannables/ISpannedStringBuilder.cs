@@ -7,6 +7,7 @@ using Dalamud.Interface.GameFonts;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.SpannedStrings.Enums;
 using Dalamud.Interface.SpannedStrings.Internal;
+using Dalamud.Interface.SpannedStrings.Rendering;
 using Dalamud.Interface.SpannedStrings.Styles;
 using Dalamud.Utility;
 using Dalamud.Utility.Text;
@@ -278,13 +279,25 @@ internal interface ISpannedStringBuilder
     [SpannedParseInstruction(SpannedRecordType.HorizontalOffset, true, "/ho", "/horizontal-offset")]
     SpannedStringBuilder PopHorizontalOffset();
 
-    /// <summary>Pushes a Horizontal alignment mode to use from now on.</summary>
-    /// <param name="value">The line offset.</param>
+    /// <summary>Pushes a horizontal alignment mode to use from now on, with respect to the whole alloted region
+    /// specified from <see cref="RenderOptions.MaxSize"/>, or <see cref="RenderState.Boundary"/> if no maximum width
+    /// is specified.</summary>
+    /// <param name="value">The horizontal alignment.</param>
+    /// <returns>A reference of this instance after the push operation is completed.</returns>
+    [SpannedParseInstruction(SpannedRecordType.HorizontalAlignment, false, "ha", "horizontal-align")]
+    SpannedStringBuilder PushHorizontalAlignment(float value);
+
+    /// <summary>Pushes a horizontal alignment mode to use from now on, with respect to the whole alloted region
+    /// specified from <see cref="RenderOptions.MaxSize"/>, or <see cref="RenderState.Boundary"/> if no maximum width
+    /// is specified.</summary>
+    /// <param name="value">The horizontal alignment.</param>
     /// <returns>A reference of this instance after the push operation is completed.</returns>
     [SpannedParseInstruction(SpannedRecordType.HorizontalAlignment, false, "ha", "horizontal-align")]
     SpannedStringBuilder PushHorizontalAlignment(HorizontalAlignment value);
 
-    /// <summary>Pops a Horizontal alignment mode to use from now on.</summary>
+    /// <summary>Pops a horizontal alignment mode to use from now on, with respect to the whole alloted region
+    /// specified from <see cref="RenderOptions.MaxSize"/>, or <see cref="RenderState.Boundary"/> if no maximum width
+    /// is specified.</summary>
     /// <returns>A reference of this instance after the pop operation is completed.</returns>
     /// <exception cref="InvalidOperationException">The stack is empty.</exception>
     [SpannedParseInstruction(SpannedRecordType.HorizontalAlignment, true, "/ha", "/horizontal-align")]
@@ -302,17 +315,23 @@ internal interface ISpannedStringBuilder
     [SpannedParseInstruction(SpannedRecordType.VerticalOffset, true, "/vo", "/vertical-offset")]
     SpannedStringBuilder PopVerticalOffset();
 
-    /// <summary>Pushes a vertical alignment mode to use from now on.</summary>
-    /// <param name="value">The line offset.</param>
+    /// <summary>Pushes a vertical alignment mode to use from now on, with respect to the current line.</summary>
+    /// <param name="value">The vertical alignment.</param>
     /// <returns>A reference of this instance after the push operation is completed.</returns>
-    [SpannedParseInstruction(SpannedRecordType.VerticalAlignment, false, "va", "vertical-align")]
-    SpannedStringBuilder PushVerticalAlignment(VerticalAlignment value);
+    [SpannedParseInstruction(SpannedRecordType.VerticalAlignment, false, "lva", "local-vertical-align")]
+    SpannedStringBuilder PushLineVerticalAlignment(float value);
 
-    /// <summary>Pops a vertical alignment mode to use from now on.</summary>
+    /// <summary>Pushes a vertical alignment mode to use from now on, with respect to the current line.</summary>
+    /// <param name="value">The vertical alignment.</param>
+    /// <returns>A reference of this instance after the push operation is completed.</returns>
+    [SpannedParseInstruction(SpannedRecordType.VerticalAlignment, false, "lva", "local-vertical-align")]
+    SpannedStringBuilder PushLineVerticalAlignment(VerticalAlignment value);
+
+    /// <summary>Pops a vertical alignment mode to use from now on, with respect to the current line.</summary>
     /// <returns>A reference of this instance after the pop operation is completed.</returns>
     /// <exception cref="InvalidOperationException">The stack is empty.</exception>
-    [SpannedParseInstruction(SpannedRecordType.VerticalAlignment, true, "/va", "/vertical-align")]
-    SpannedStringBuilder PopVerticalAlignment();
+    [SpannedParseInstruction(SpannedRecordType.VerticalAlignment, true, "/lva", "/local-vertical-align")]
+    SpannedStringBuilder PopLineVerticalAlignment();
 
     /// <summary>Pushes a boolean value indicating whether to use italics from now on.</summary>
     /// <param name="mode">Whether to use italics.</param>

@@ -12,6 +12,7 @@ using Dalamud.Interface.SpannedStrings.Enums;
 using Dalamud.Interface.SpannedStrings.Rendering;
 using Dalamud.Interface.SpannedStrings.Rendering.Internal;
 using Dalamud.Interface.SpannedStrings.Spannables;
+using Dalamud.Interface.SpannedStrings.Styles;
 using Dalamud.Interface.Utility;
 using Dalamud.Utility;
 
@@ -78,7 +79,7 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
                                    .PushForeColor(0xFFCCCCFF)
                                    .PushItalic(true)
                                    .PushFontSize(-0.6f)
-                                   .PushVerticalAlignment(VerticalAlignment.Middle)
+                                   .PushLineVerticalAlignment(VerticalAlignment.Middle)
                                    .Append(FontAwesomeIcon.ArrowTurnDown.ToIconString());
 
         this.testStringBuffer.Dispose();
@@ -131,7 +132,7 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
                         BackColor = 0xFF004400,
                         ForeColor = 0xFFCCFFCC,
                         FontSize = ImGui.GetFont().FontSize * 0.6f,
-                        VerticalAlignment = VerticalAlignment.Middle,
+                        VerticalAlignment = 0.5f,
                     }
                     : null,
         };
@@ -204,9 +205,9 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
         if (this.showParseTest)
             this.DrawParseTest(ssb, p, dynamicOffsetTestOffset.X);
         if (this.showDynamicOffsetTest)
-            this.DrawDynamicOffsetTest(ssb, p, dynamicOffsetTestOffset);
+            this.DrawDynamicOffsetTest(ssb, p);
         if (this.showTransformationTest)
-            this.DrawTransformationTest(ssb, p, dynamicOffsetTestOffset, validWidth);
+            this.DrawTransformationTest(ssb, p);
 
         renderer.ReturnBuilder(ssb);
 
@@ -506,7 +507,7 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
 
         var fontSizeCounter = 9;
         ssb.PushLink("valign_next"u8)
-           .PushVerticalAlignment(this.valign)
+           .PushLineVerticalAlignment(this.valign)
            .PushVerticalOffset(this.vertOffset);
         foreach (var c in $"Vertical Align: {this.valign}")
         {
@@ -521,12 +522,12 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
         }
 
         ssb.PopLink()
-           .PopVerticalAlignment()
+           .PopLineVerticalAlignment()
            .PopVerticalOffset()
            .Append(' ')
            .PushBackColor(0xFF000044)
            .PushFontSize(18)
-           .PushVerticalAlignment(VerticalAlignment.Middle)
+           .PushLineVerticalAlignment(VerticalAlignment.Middle)
            .PushLink("valign_up"u8)
            .AppendIcon(GfdIcon.RelativeLocationUp)
            .PopLink()
@@ -536,13 +537,13 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
            .PushLink("image_toggle"u8)
            .PushFontSet(new(DalamudAssetFontAndFamilyId.From(DalamudAsset.FontAwesomeFreeSolid)), out _)
            .PushFontSize(18)
-           .PushVerticalAlignment(VerticalAlignment.Middle)
+           .PushLineVerticalAlignment(VerticalAlignment.Middle)
            .Append(FontAwesomeIcon.Image.ToIconChar())
-           .PopVerticalAlignment()
+           .PopLineVerticalAlignment()
            .PopFontSize()
            .PopFontSet()
            .PopFontSize()
-           .PopVerticalAlignment()
+           .PopLineVerticalAlignment()
            .PopBackColor()
            .PopLink()
            .AppendLine()
@@ -742,62 +743,73 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
         }
     }
 
-    private void DrawDynamicOffsetTest(
-        SpannedStringBuilder ssb,
-        in RenderOptions p,
-        Vector2 dynamicOffsetTestOffset)
+    private void DrawDynamicOffsetTest(SpannedStringBuilder ssb, in RenderOptions p)
     {
         const float interval = 2000;
         var v = ((this.catchMeBegin + Environment.TickCount64) / interval) % (2 * MathF.PI);
+        var size = ImGui.GetWindowContentRegionMax() - ImGui.GetWindowContentRegionMin();
 
         ssb.Clear()
-           .PushHorizontalAlignment(HorizontalAlignment.Center)
            .PushHorizontalOffset(MathF.Sin(v) * 8)
-           .PushVerticalOffset((1 + MathF.Cos(v)) * 8)
+           .PushVerticalOffset(MathF.Cos(v) * 8)
            .PushBorderWidth(1)
            .PushEdgeColor(new(new Vector4(0.3f, 0.3f, 1f, 0.5f + (MathF.Sin(v) * 0.5f))))
            .PushLink("a"u8)
            .Append("Text\ngoing\nround");
 
         var prevPos = ImGui.GetCursorScreenPos();
-        ImGui.SetCursorScreenPos(dynamicOffsetTestOffset);
-        if (Service<SpannableRenderer>.Get().Render(ssb, new(nameof(this.DrawDynamicOffsetTest), p), out _))
-            this.catchMeBegin += 50;
-        ImGui.SetCursorScreenPos(prevPos);
-    }
-
-    private void DrawTransformationTest(
-        SpannedStringBuilder ssb,
-        in RenderOptions p,
-        Vector2 dynamicOffsetTestOffset,
-        float validWidth)
-    {
-        const float interval = 2000;
-        var v = ((this.catchMeBegin + Environment.TickCount64) / interval) % (2 * MathF.PI);
-
-        ssb.Clear()
-           .PushHorizontalAlignment(HorizontalAlignment.Center)
-           .PushBorderWidth(1)
-           .PushEdgeColor(new(new Vector4(0.3f, 0.3f, 1f, 0.5f + (MathF.Sin(v) * 0.5f))))
-           .PushLink("a"u8)
-           .Append(
-               "Text\ngoing\nround\nusing\nmatrix\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|");
-
-        var prevPos = ImGui.GetCursorScreenPos();
-        ImGui.SetCursorScreenPos(dynamicOffsetTestOffset);
         if (Service<SpannableRenderer>.Get().Render(
                 ssb,
                 new(
                     nameof(this.DrawDynamicOffsetTest),
                     p with
                     {
-                        MaxSize = new(0, float.MaxValue),
+                        ScreenOffset = ImGui.GetWindowPos(),
+                        MaxSize = size,
+                        VerticalAlignment = 0.5f,
+                        InitialStyle = SpanStyle.FromContext with 
+                        {
+                            HorizontalAlignment = 0.5f,
+                        },
+                    }),
+                out _))
+            this.catchMeBegin += 50;
+        ImGui.SetCursorScreenPos(prevPos);
+    }
+
+    private void DrawTransformationTest(SpannedStringBuilder ssb, in RenderOptions p)
+    {
+        const float interval = 2000;
+        var v = ((this.catchMeBegin + Environment.TickCount64) / interval) % (2 * MathF.PI);
+        var size = ImGui.GetWindowContentRegionMax() - ImGui.GetWindowContentRegionMin();
+        var minDim = Math.Min(size.X, size.Y);
+
+        ssb.Clear()
+           .PushLink("a"u8)
+           .Append(
+               "Text\ngoing\nround\nusing\nmatrix\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|");
+
+        var prevPos = ImGui.GetCursorScreenPos();
+        if (Service<SpannableRenderer>.Get().Render(
+                ssb,
+                new(
+                    nameof(this.DrawDynamicOffsetTest),
+                    p with
+                    {
+                        ScreenOffset = ImGui.GetWindowPos(),
+                        MaxSize = size with { X = 0 },
                         WordBreak = WordBreakType.KeepAll,
+                        InitialStyle = SpanStyle.FromContext with
+                        {
+                            BorderWidth = 1f,
+                            EdgeColor = new Vector4(0.3f, 0.3f, 1f, 0.5f + (MathF.Sin(v) * 0.5f)),
+                            HorizontalAlignment = 0.5f,
+                        },
                         Transformation = Matrix4x4.Multiply(
                             Matrix4x4.CreateRotationZ(v),
                             Matrix4x4.CreateTranslation(
-                                (validWidth * (1 + MathF.Cos(v - (MathF.PI / 2)))) / 2,
-                                (validWidth * (1 + MathF.Sin(v - (MathF.PI / 2)))) / 2,
+                                (minDim * (1 + MathF.Cos(v - (MathF.PI / 2)))) / 2,
+                                (minDim * (1 + MathF.Sin(v - (MathF.PI / 2)))) / 2,
                                 0)),
                     }),
                 out _))

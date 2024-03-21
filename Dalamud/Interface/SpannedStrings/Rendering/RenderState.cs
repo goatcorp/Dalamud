@@ -23,9 +23,6 @@ public struct RenderState
     /// <summary>Whether to show representations of control characters.</summary>
     public bool UseControlCharacter;
 
-    /// <inheritdoc cref="RenderOptions.WrapMarker"/>
-    public ISpannable? WrapMarker;
-
     /// <summary>Whether to put a dummy after rendering.</summary>
     public bool PutDummyAfterRender;
 
@@ -34,7 +31,7 @@ public struct RenderState
 
     /// <inheritdoc cref="RenderOptions.AcceptedNewLines"/>
     public NewLineType AcceptedNewLines;
-
+    
     /// <summary>The resolved ImGui global ID, or 0 if no ImGui state management is used.</summary>
     public uint ImGuiGlobalId;
 
@@ -44,18 +41,32 @@ public struct RenderState
     /// <inheritdoc cref="RenderOptions.Scale"/>
     public float Scale;
 
+    /// <inheritdoc cref="RenderOptions.VerticalAlignment"/>
+    public float VerticalAlignment;
+
+    /// <summary>Resolved vertical shift value from <see cref="VerticalAlignment"/>.</summary>
+    public float ShiftFromVerticalAlignment;
+    
+    /// <inheritdoc cref="RenderOptions.GraphicFontIconMode"/>
+    public int GfdIndex;
+
+    /// <summary>The index of the last line, including new lines from word wrapping.</summary>
+    public int LineCount;
+    
     /// <inheritdoc cref="RenderOptions.MaxSize"/>
     public Vector2 MaxSize;
 
     /// <summary>The first drawing screen offset.</summary>
     /// <remarks>This is an offset obtained from <see cref="ImGui.GetCursorScreenPos"/>.</remarks>
     public Vector2 StartScreenOffset;
+    
+    /// <summary>The final drawing relative offset, pre-transformed value.</summary>
+    /// <remarks>Relativity begins from the cursor position at the construction of this struct.</remarks>
+    public Vector2 Offset;
 
-    /// <summary>The target draw list. Can be null.</summary>
-    public ImDrawListPtr DrawListPtr;
-
-    /// <inheritdoc cref="RenderOptions.GraphicFontIconMode"/>
-    public int GfdIndex;
+    /// <summary>The boundary containing the relative offset of the text rendered, pre-transformed value.</summary>
+    /// <remarks>Relativity begins from the cursor position at the construction of this struct.</remarks>
+    public RectVector4 Boundary;
 
     /// <inheritdoc cref="RenderOptions.Transformation"/>
     public Matrix4x4 Transformation;
@@ -72,21 +83,16 @@ public struct RenderState
     /// <summary>The latest style.</summary>
     public SpanStyle LastStyle;
 
-    /// <summary>The index of the last line, including new lines from word wrapping.</summary>
-    public int LineCount;
-
-    /// <summary>The final drawing relative offset, pre-transformed value.</summary>
-    /// <remarks>Relativity begins from the cursor position at the construction of this struct.</remarks>
-    public Vector2 Offset;
-
-    /// <summary>The boundary containing the relative offset of the text rendered, pre-transformed value.</summary>
-    /// <remarks>Relativity begins from the cursor position at the construction of this struct.</remarks>
-    public RectVector4 Boundary;
+    /// <summary>The target draw list. Can be null.</summary>
+    public ImDrawListPtr DrawListPtr;
 
     /// <summary>The mouse button that has been clicked.</summary>
     /// <remarks>As <c>0</c> is <see cref="ImGuiMouseButton.Left"/>, if no mouse button is detected clicked, then it
     /// will be set to an invalid enum value.</remarks>
     public ImGuiMouseButton ClickedMouseButton;
+
+    /// <inheritdoc cref="RenderOptions.WrapMarker"/>
+    public ISpannable? WrapMarker;
 
     /// <summary>Initializes a new instance of the <see cref="RenderState"/> struct.</summary>
     /// <param name="imGuiLabel">The ImGui label in UTF-16 for tracking interaction state.</param>
@@ -177,6 +183,7 @@ public struct RenderState
         this.ControlCharactersStyle = rendererOptions.ControlCharactersStyle ?? default;
         this.InitialStyle = rendererOptions.InitialStyle ?? SpanStyle.FromContext;
         this.StartScreenOffset = rendererOptions.ScreenOffset ?? ImGui.GetCursorScreenPos();
+        this.VerticalAlignment = rendererOptions.VerticalAlignment ?? 0f;
         this.DrawListPtr = drawListPtr;
 
         if (!Matrix4x4.Invert(this.Transformation, out this.TransformationInverse))

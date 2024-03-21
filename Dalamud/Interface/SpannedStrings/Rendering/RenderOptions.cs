@@ -62,6 +62,15 @@ public record struct RenderOptions
     /// <remarks>Defaults to <see cref="ImGuiHelpers.GlobalScale"/>.</remarks>
     public float? Scale { get; set; }
 
+    /// <summary>Gets or sets the vertical alignment, with respect to <see cref="MaxSize"/>.</summary>
+    /// <remarks>
+    /// <para><c>0</c> will align to top. <c>1</c> will align to right. <c>0.5</c> will align to center.
+    /// Values outside the range of [0, 1] will be clamped.</para>
+    /// <para>Does nothing if <see cref="MaxSize"/> has no (infinite) vertical boundary.</para>
+    /// <para>Specifying <c>null</c> will use <c>0</c> as the default for now.</para>
+    /// </remarks>
+    public float? VerticalAlignment { get; set; }
+
     /// <summary>Gets or sets a value indicating whether to handle links.</summary>
     /// <remarks>Default value is to enable link handling.</remarks>
     public bool? UseLinks { get; set; }

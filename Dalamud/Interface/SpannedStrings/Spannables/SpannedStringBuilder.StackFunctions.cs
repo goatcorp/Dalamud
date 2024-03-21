@@ -113,13 +113,24 @@ public sealed partial class SpannedStringBuilder
         this.PopHelper(this.stackHorizontalOffset, SpannedRecordType.HorizontalOffset);
 
     /// <inheritdoc/>
-    public SpannedStringBuilder PushHorizontalAlignment(HorizontalAlignment value)
+    public SpannedStringBuilder PushHorizontalAlignment(float value)
     {
         var len = SpannedRecordCodec.EncodeHorizontalAlignment(default, value);
         var recordIndex = this.AddRecordAndReserveData(SpannedRecordType.HorizontalAlignment, len, out var data);
         SpannedRecordCodec.EncodeHorizontalAlignment(data, value);
         return this.PushHelper(ref this.stackHorizontalAlignment, recordIndex);
     }
+
+    /// <inheritdoc/>
+    public SpannedStringBuilder PushHorizontalAlignment(HorizontalAlignment value) =>
+        this.PushHorizontalAlignment(
+            value switch
+            {
+                HorizontalAlignment.Left => 0f,
+                HorizontalAlignment.Center => 0.5f,
+                HorizontalAlignment.Right => 1f,
+                _ => 0f,
+            });
 
     /// <inheritdoc/>
     public SpannedStringBuilder PopHorizontalAlignment() =>
@@ -139,7 +150,7 @@ public sealed partial class SpannedStringBuilder
         this.PopHelper(this.stackVerticalOffset, SpannedRecordType.VerticalOffset);
 
     /// <inheritdoc/>
-    public SpannedStringBuilder PushVerticalAlignment(VerticalAlignment value)
+    public SpannedStringBuilder PushLineVerticalAlignment(float value)
     {
         var len = SpannedRecordCodec.EncodeVerticalAlignment(default, value);
         var recordIndex = this.AddRecordAndReserveData(SpannedRecordType.VerticalAlignment, len, out var data);
@@ -148,7 +159,19 @@ public sealed partial class SpannedStringBuilder
     }
 
     /// <inheritdoc/>
-    public SpannedStringBuilder PopVerticalAlignment() =>
+    public SpannedStringBuilder PushLineVerticalAlignment(VerticalAlignment value) =>
+        this.PushLineVerticalAlignment(
+            value switch
+            {
+                VerticalAlignment.Top => 0f,
+                VerticalAlignment.Middle => 0.5f,
+                VerticalAlignment.Bottom => 1f,
+                VerticalAlignment.Baseline => -1f,
+                _ => -1f,
+            });
+
+    /// <inheritdoc/>
+    public SpannedStringBuilder PopLineVerticalAlignment() =>
         this.PopHelper(this.stackVerticalAlignment, SpannedRecordType.VerticalAlignment);
 
     /// <inheritdoc/>

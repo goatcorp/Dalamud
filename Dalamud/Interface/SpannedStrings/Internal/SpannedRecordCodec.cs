@@ -111,15 +111,14 @@ internal sealed class SpannedRecordCodec
     /// <param name="dataStream">The data stream to decode from.</param>
     /// <param name="value">The value.</param>
     /// <returns><c>true</c> on success.</returns>
-    public static bool TryDecodeHorizontalAlignment(
-        ReadOnlySpan<byte> dataStream, out HorizontalAlignment value) =>
+    public static bool TryDecodeHorizontalAlignment(ReadOnlySpan<byte> dataStream, out float value) =>
         TryDecode(ref dataStream, out value);
 
     /// <summary>Encodes data for <see cref="SpannedRecordType.HorizontalAlignment"/>.</summary>
     /// <param name="dataStream">The optional data stream to encode to.</param>
     /// <param name="value">The value.</param>
     /// <returns>The remaning region of <paramref name="dataStream"/>.</returns>
-    public static int EncodeHorizontalAlignment(Span<byte> dataStream, HorizontalAlignment value) =>
+    public static int EncodeHorizontalAlignment(Span<byte> dataStream, float value) =>
         Encode(ref dataStream, value);
 
     /// <summary>Decodes data for <see cref="SpannedRecordType.VerticalOffset"/>.</summary>
@@ -140,15 +139,14 @@ internal sealed class SpannedRecordCodec
     /// <param name="dataStream">The data stream to decode from.</param>
     /// <param name="value">The value.</param>
     /// <returns><c>true</c> on success.</returns>
-    public static bool TryDecodeVerticalAlignment(
-        ReadOnlySpan<byte> dataStream, out VerticalAlignment value) =>
+    public static bool TryDecodeVerticalAlignment(ReadOnlySpan<byte> dataStream, out float value) =>
         TryDecode(ref dataStream, out value);
 
     /// <summary>Encodes data for <see cref="SpannedRecordType.VerticalAlignment"/>.</summary>
     /// <param name="dataStream">The optional data stream to encode to.</param>
     /// <param name="value">The value.</param>
     /// <returns>The remaning region of <paramref name="dataStream"/>.</returns>
-    public static int EncodeVerticalAlignment(Span<byte> dataStream, VerticalAlignment value) =>
+    public static int EncodeVerticalAlignment(Span<byte> dataStream, float value) =>
         Encode(ref dataStream, value);
 
     /// <summary>Decodes data for <see cref="SpannedRecordType.Italic"/>.</summary>

@@ -136,7 +136,7 @@ internal class ConsoleWindow : Window, IDisposable
                                    .PushForeColor(0xFFCCCCFF)
                                    .PushItalic(true)
                                    .PushFontSize(-0.6f)
-                                   .PushVerticalAlignment(VerticalAlignment.Middle)
+                                   .PushLineVerticalAlignment(VerticalAlignment.Middle)
                                    .Append(FontAwesomeIcon.ArrowTurnDown.ToIconString());
 
         configuration.DalamudConfigurationSaved += this.OnDalamudConfigurationSaved;
@@ -1193,7 +1193,7 @@ internal class ConsoleWindow : Window, IDisposable
             BorderWidth = 1,
             ForeColor = 0xFFFFFFFF,
             FontSize = ImGui.GetFont().FontSize * 0.6f,
-            VerticalAlignment = VerticalAlignment.Middle,
+            VerticalAlignment = 0.5f,
         },
         WrapMarker =
             this.activeConfiguration.LogLineBreakMode == WordBreakType.KeepAll

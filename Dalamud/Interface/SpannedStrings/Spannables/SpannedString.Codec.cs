@@ -228,6 +228,7 @@ public sealed partial class SpannedString
 
         result = null;
         exception = null;
+        var sOrig = s;
         var ssb = new SpannedStringBuilder();
         var ms = new MemoryStream();
         while (!s.IsEmpty)
@@ -256,7 +257,7 @@ public sealed partial class SpannedString
             var sep = s.IndexOfAny(argumentEndTokens);
             if (sep == -1)
             {
-                exception ??= new FormatException("Missing }");
+                exception ??= new FormatException($"Missing }} at offset {sOrig.Length - s.Length}");
                 return false;
             }
 
@@ -327,7 +328,8 @@ public sealed partial class SpannedString
                                   .Invoke(null, parseArgs)!;
                         if (!parseResult && !TryParseFlagsEnum(ptype, arg, out parseArgs[3], out var ex2))
                         {
-                            exception = ex2 ?? new FormatException($"Failed to parse: {ptype} {name} at #{i}");
+                            exception = ex2 ?? new FormatException(
+                                            $"Failed to parse: {ptype} {name} at #{i} at offset {sOrig.Length - s.Length}");
                             valid = false;
                             break;
                         }
@@ -338,7 +340,8 @@ public sealed partial class SpannedString
                     {
                         if (!float.TryParse(arg, provider, out var v1))
                         {
-                            exception ??= new FormatException($"Failed to parse: {ptype} {name} at #{i}");
+                            exception ??= new FormatException(
+                                $"Failed to parse: {ptype} {name} at #{i} at offset {sOrig.Length - s.Length}");
                             valid = false;
                             break;
                         }
@@ -347,7 +350,8 @@ public sealed partial class SpannedString
                         if (!ConsumeArgumentToken(ref allArgsSpan, ms)
                             || !float.TryParse(Encoding.UTF8.GetString(ms.GetDataSpan()), provider, out var v2))
                         {
-                            exception ??= new FormatException($"Failed to parse: {ptype} {name} at #{i}");
+                            exception ??= new FormatException(
+                                $"Failed to parse: {ptype} {name} at #{i} at offset {sOrig.Length - s.Length}");
                             valid = false;
                             break;
                         }
@@ -372,7 +376,8 @@ public sealed partial class SpannedString
                                 .Invoke(null, parseArgs)!;
                         if (!parseResult)
                         {
-                            exception ??= new FormatException($"Failed to parse: {ptype} {name} at #{i}");
+                            exception ??= new FormatException(
+                                $"Failed to parse: {ptype} {name} at #{i} at offset {sOrig.Length - s.Length}");
                             valid = false;
                             break;
                         }
@@ -381,7 +386,8 @@ public sealed partial class SpannedString
                     }
                     else
                     {
-                        exception ??= new FormatException($"Failed to parse: {ptype} {name} at #{i}");
+                        exception ??= new FormatException(
+                            $"Failed to parse: {ptype} {name} at #{i} at offset {sOrig.Length - s.Length}");
                         valid = false;
                         break;
                     }
@@ -389,7 +395,7 @@ public sealed partial class SpannedString
 
                 if (!valid)
                 {
-                    exception ??= new FormatException($"Failed to parse: {name}");
+                    exception ??= new FormatException($"Failed to parse: {name} at offset {sOrig.Length - s.Length}");
                     continue;
                 }
 
@@ -422,6 +428,7 @@ public sealed partial class SpannedString
                 return false;
             }
 
+            exception = null;
             s = s.TrimStart();
             if (!s.StartsWith("}"))
             {

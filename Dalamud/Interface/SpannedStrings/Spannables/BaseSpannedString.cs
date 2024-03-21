@@ -234,6 +234,23 @@ public abstract partial class BaseSpannedString : ISpannable
 
         state.RenderState.LineCount = state.MeasuredLines.Length;
         state.RenderState.Boundary.Bottom = Math.Max(state.RenderState.Boundary.Bottom, state.RenderState.Offset.Y);
+
+#pragma warning disable SA1101
+        if (state.RenderState is { VerticalAlignment: > 0f, MaxSize.Y: < float.MaxValue })
+#pragma warning restore SA1101
+        {
+            var offset = MathF.Round(
+                (state.RenderState.MaxSize.Y - state.RenderState.Boundary.Bottom) *
+                Math.Clamp(state.RenderState.VerticalAlignment, 0f, 1f));
+            foreach (ref var b in state.LinkBoundaries)
+                b.Boundary = RectVector4.Translate(b.Boundary, new(0, offset));
+            state.RenderState.Boundary = RectVector4.Translate(state.RenderState.Boundary, new(0, offset));
+            state.RenderState.ShiftFromVerticalAlignment = offset;
+        }
+        else
+        {
+            state.RenderState.ShiftFromVerticalAlignment = 0;
+        }
     }
 
     /// <inheritdoc/>
@@ -330,7 +347,7 @@ public abstract partial class BaseSpannedString : ISpannable
     {
         var state = args.State as State ?? new();
         var data = this.GetData();
-        state.RenderState.Offset = Vector2.Zero;
+        state.RenderState.Offset = new(0, state.RenderState.ShiftFromVerticalAlignment);
         state.RenderState.LastStyle = state.RenderState.InitialStyle;
 
         var charRenderer = new CharRenderer(args, data, state, false);
@@ -427,11 +444,6 @@ public abstract partial class BaseSpannedString : ISpannable
     /// <returns>The data.</returns>
     private protected abstract DataRef GetData();
 
-    /// <summary>Tests if a codepoint is a whitespace, and permits breaking under normal word break rules.</summary>
-    /// <param name="c">The codepoint.</param>
-    /// <returns><c>true</c> if it is the case.</returns>
-    private static bool IsBreakableWhitespace(int c) => c != 0x00A0 && Rune.IsValid(c) && Rune.IsWhiteSpace(new(c));
-
     private ref struct StateInfo
     {
         public float HorizontalOffsetWrtLine;
@@ -459,37 +471,37 @@ public abstract partial class BaseSpannedString : ISpannable
                                          this.state.LastStyle.VerticalOffset;
             switch (this.state.LastStyle.VerticalAlignment)
             {
-                case VerticalAlignment.Baseline:
+                case < 0:
                     this.VerticalOffsetWrtLine -= lineAscentDescent.X + (fontInfo.Font.Ascent * fontInfo.Scale);
                     break;
-                case VerticalAlignment.Middle:
-                    this.VerticalOffsetWrtLine +=
-                        (lineAscentDescent.Y - lineAscentDescent.X - fontInfo.ScaledFontSize) / 2;
-                    break;
-                case VerticalAlignment.Bottom:
+                case >= 1f:
                     this.VerticalOffsetWrtLine += lineAscentDescent.Y - lineAscentDescent.X - fontInfo.ScaledFontSize;
                     break;
-                case VerticalAlignment.Top:
                 default:
+                    this.VerticalOffsetWrtLine +=
+                        (lineAscentDescent.Y - lineAscentDescent.X - fontInfo.ScaledFontSize) *
+                        this.state.LastStyle.VerticalAlignment;
                     break;
             }
 
             this.VerticalOffsetWrtLine = MathF.Round(this.VerticalOffsetWrtLine);
 
+            var alignWidth = this.wrapWidth;
+            if (alignWidth is >= float.MaxValue or < 0f)
+                alignWidth = this.state.Boundary.Right;
             switch (this.state.LastStyle.HorizontalAlignment)
             {
-                case HorizontalAlignment.Right:
-                    this.HorizontalOffsetWrtLine = this.wrapWidth - this.lineWidth;
-                    break;
-
-                case HorizontalAlignment.Center:
-                    this.HorizontalOffsetWrtLine = MathF.Round((this.wrapWidth - this.lineWidth) / 2);
-                    break;
-
-                case HorizontalAlignment.Left:
-                case var _ when this.wrapWidth is <= 0 or >= float.MaxValue or float.NaN:
-                default:
+                case <= 0f:
                     this.HorizontalOffsetWrtLine = 0;
+                    break;
+
+                case >= 1f:
+                    this.HorizontalOffsetWrtLine = alignWidth - this.lineWidth;
+                    break;
+                
+                default:
+                    this.HorizontalOffsetWrtLine = MathF.Round(
+                        (alignWidth - this.lineWidth) * this.state.LastStyle.HorizontalAlignment);
                     break;
             }
         }

@@ -2,6 +2,7 @@ using System.Numerics;
 
 using Dalamud.Interface.SpannedStrings.Enums;
 using Dalamud.Interface.SpannedStrings.Internal;
+using Dalamud.Interface.SpannedStrings.Rendering;
 using Dalamud.Utility;
 
 using ImGuiNET;
@@ -76,8 +77,14 @@ public struct SpanStyle
     public float HorizontalOffset;
 
     /// <summary>The horizontal alignment. Applicable for the current whole line.</summary>
-    /// <remarks>If changed multiple times in a line, the last value wins.</remarks>
-    public HorizontalAlignment HorizontalAlignment;
+    /// <remarks>
+    /// <para><c>0</c> will align to left. <c>1</c> will align to right. <c>0.5</c> will align to center.
+    /// Values outside the range to [0, 1] are clamped.</para>
+    /// <para>If changed multiple times in a line, the last value wins.</para>
+    /// <para>Will use <see cref="RenderState.Boundary"/> instead of <see cref="RenderState.MaxSize"/> if maximum size
+    /// is unspecified (<see cref="float.MaxValue"/> or <see cref="float.PositiveInfinity"/>.)</para>
+    /// </remarks>
+    public float HorizontalAlignment;
 
     /// <summary>The vertical offset, relative to <see cref="FontSize"/>.</summary>
     /// <remarks>
@@ -87,7 +94,9 @@ public struct SpanStyle
     public float VerticalOffset;
 
     /// <summary>The vertical alignment, in case of a line consisting of texts of mixed line heights.</summary>
-    public VerticalAlignment VerticalAlignment;
+    /// <remarks><c>0</c> will align to top. <c>1</c> will align to right. <c>0.5</c> will align to center.
+    /// Values outside the range of [0, 1] will align to the baseline instead.</remarks>
+    public float VerticalAlignment;
 
     /// <summary>Gets the empty span style. Nothing will be drawn.</summary>
     public static SpanStyle Empty => default;
