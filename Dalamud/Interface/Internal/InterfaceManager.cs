@@ -728,7 +728,12 @@ internal class InterfaceManager : IDisposable, IServiceType
                             GlyphMaxAdvanceX = DefaultFontSizePx,
                         })));
             this.IconFontFixedWidthHandle = (FontHandle)this.dalamudAtlas.NewDelegateFontHandle(
-                e => e.OnPreBuild(tk => tk.AddDalamudDefaultFont(-1, new ushort[] { 0x20 })));
+                e => e.OnPreBuild(tk => tk.AddDalamudAssetFont(
+                    DalamudAsset.FontAwesomeFreeSolid,
+                    new()
+                    {
+                        GlyphRanges = new ushort[] { 0x20 },
+                    })));
             this.MonoFontHandle = (FontHandle)this.dalamudAtlas.NewDelegateFontHandle(
                 e => e.OnPreBuild(
                     tk => tk.AddDalamudAssetFont(
