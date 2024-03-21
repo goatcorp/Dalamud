@@ -2,6 +2,8 @@ using System.Collections.Generic;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 
+using Dalamud.Interface.FontIdentifier;
+using Dalamud.Interface.GameFonts;
 using Dalamud.Interface.SpannedStrings.Enums;
 using Dalamud.Interface.SpannedStrings.Internal;
 using Dalamud.Interface.SpannedStrings.Styles;
@@ -39,6 +41,28 @@ public sealed partial class SpannedStringBuilder
         this.PopHelper(this.stackFontSize, SpannedRecordType.FontSize);
 
     /// <inheritdoc/>
+    public SpannedStringBuilder PushDefaultFontFamily() =>
+        this.PushFontSet(new(DalamudDefaultFontAndFamilyId.Instance), out _);
+
+    /// <inheritdoc/>
+    public SpannedStringBuilder PushAssetFontFamily(DalamudAsset asset) =>
+        this.PushFontSet(new(DalamudAssetFontAndFamilyId.From(asset)), out _);
+
+    /// <inheritdoc/>
+    public SpannedStringBuilder PushGameFontFamily(GameFontFamily family) =>
+        this.PushFontSet(new(GameFontAndFamilyId.From(family)), out _);
+
+    /// <inheritdoc/>
+    public SpannedStringBuilder PushSystemFontFamilyIfAvailable(string name) =>
+        SystemFontFamilyId.TryGet(name, out var familyId)
+            ? this.PushFontSet(new(familyId), out _)
+            : this.PushFontSet(default);
+
+    /// <inheritdoc/>
+    public SpannedStringBuilder PushFontFamily(IFontFamilyId family) =>
+        this.PushFontSet(new(family), out _);
+
+    /// <inheritdoc/>
     public SpannedStringBuilder PushFontSet(FontHandleVariantSet fontSet, out int id)
     {
         id = this.fontSets.Count;
@@ -52,9 +76,9 @@ public sealed partial class SpannedStringBuilder
         this.fontSets.EnsureCapacity(id + 1);
         while (this.fontSets.Count <= id)
             this.fontSets.Add(default);
-        var len = SpannedRecordCodec.EncodeFontHandleSetIndex(default, id);
+        var len = SpannedRecordCodec.EncodeFontHandleSetIndex(default, id, this.fontSets[id].FontFamilyId);
         var recordIndex = this.AddRecordAndReserveData(SpannedRecordType.FontHandleSetIndex, len, out var data);
-        SpannedRecordCodec.EncodeFontHandleSetIndex(data, id);
+        SpannedRecordCodec.EncodeFontHandleSetIndex(data, id, this.fontSets[id].FontFamilyId);
         return this.PushHelper(ref this.stackFont, recordIndex);
     }
 
@@ -308,50 +332,6 @@ public sealed partial class SpannedStringBuilder
     /// <inheritdoc/>
     public SpannedStringBuilder PopTextDecorationThickness() =>
         this.PopHelper(this.stackTextDecorationThickness, SpannedRecordType.TextDecorationThickness);
-
-    /// <inheritdoc/>
-    public SpannedStringBuilder PushAll(in SpanStyle value) =>
-        this.PushFontSize(value.FontSize)
-            .PushFontSet(value.Font, out _)
-            .PushLineHeight(value.LineHeight)
-            .PushHorizontalOffset(value.HorizontalOffset)
-            .PushHorizontalAlignment(value.HorizontalAlignment)
-            .PushVerticalOffset(value.VerticalOffset)
-            .PushVerticalAlignment(value.VerticalAlignment)
-            .PushItalic(value.Italic)
-            .PushBold(value.Bold)
-            .PushTextDecoration(value.TextDecoration)
-            .PushTextDecorationStyle(value.TextDecorationStyle)
-            .PushBackColor(value.BackColor)
-            .PushShadowColor(value.ShadowColor)
-            .PushEdgeColor(value.EdgeColor)
-            .PushTextDecorationColor(value.TextDecorationColor)
-            .PushForeColor(value.ForeColor)
-            .PushBorderWidth(value.BorderWidth)
-            .PushShadowOffset(value.ShadowOffset)
-            .PushTextDecorationThickness(value.TextDecorationThickness);
-
-    /// <inheritdoc/>
-    public SpannedStringBuilder PopAll() =>
-        this.PopFontSize()
-            .PopFontSet()
-            .PopLineHeight()
-            .PopHorizontalOffset()
-            .PopHorizontalAlignment()
-            .PopVerticalOffset()
-            .PopVerticalAlignment()
-            .PopItalic()
-            .PopBold()
-            .PopTextDecoration()
-            .PopTextDecorationStyle()
-            .PopBackColor()
-            .PopShadowColor()
-            .PopEdgeColor()
-            .PopTextDecorationColor()
-            .PopForeColor()
-            .PopBorderWidth()
-            .PopShadowOffset()
-            .PopTextDecorationThickness();
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static BoolOrToggle ResolveToggleValue(Stack<BoolOrToggle>? stack, BoolOrToggle mode) =>

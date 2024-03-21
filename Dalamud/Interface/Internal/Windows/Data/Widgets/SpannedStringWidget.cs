@@ -5,10 +5,9 @@ using System.Text;
 
 using Dalamud.Game.Text;
 using Dalamud.Interface.Colors;
+using Dalamud.Interface.FontIdentifier;
 using Dalamud.Interface.ImGuiNotification.Internal;
 using Dalamud.Interface.Internal.Notifications;
-using Dalamud.Interface.ManagedFontAtlas;
-using Dalamud.Interface.ManagedFontAtlas.Internals;
 using Dalamud.Interface.SpannedStrings.Enums;
 using Dalamud.Interface.SpannedStrings.Rendering;
 using Dalamud.Interface.SpannedStrings.Rendering.Internal;
@@ -26,12 +25,9 @@ namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 internal class SpannedStringWidget : IDataWindowWidget, IDisposable
 {
     private readonly Stopwatch stopwatch = new();
-    private readonly IFontHandle?[] spannableTestFontHandle = new IFontHandle?[37];
 
     private ISpannable ellipsisSpannable = null!;
     private ISpannable wrapMarkerSpannable = null!;
-
-    private IFontAtlas? spannableTestAtlas;
 
     private ImVectorWrapper<byte> testStringBuffer;
     private int numLinkClicks;
@@ -73,17 +69,17 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
         this.parseAttempt = default;
 
         this.ellipsisSpannable = new SpannedStringBuilder().PushForeColor(0x80FFFFFF).Append("…");
-        this.wrapMarkerSpannable = new SpannedStringBuilder().PushAll(
-            new()
-            {
-                Font = new(Service<InterfaceManager>.Get().IconFontHandle),
-                EdgeColor = 0xFF000044,
-                BorderWidth = 1,
-                ForeColor = 0xFFCCCCFF,
-                Italic = true,
-                FontSize = InterfaceManager.DefaultFontSizePx * 0.6f,
-                VerticalAlignment = VerticalAlignment.Middle,
-            }).Append(FontAwesomeIcon.ArrowTurnDown.ToIconString());
+        this.wrapMarkerSpannable = new SpannedStringBuilder()
+                                   .PushFontSet(
+                                       new(DalamudAssetFontAndFamilyId.From(DalamudAsset.InconsolataRegular)),
+                                       out _)
+                                   .PushEdgeColor(0xFF000044)
+                                   .PushBorderWidth(1)
+                                   .PushForeColor(0xFFCCCCFF)
+                                   .PushItalic(true)
+                                   .PushFontSize(-0.6f)
+                                   .PushVerticalAlignment(VerticalAlignment.Middle)
+                                   .Append(FontAwesomeIcon.ArrowTurnDown.ToIconString());
 
         this.testStringBuffer.Dispose();
         this.testStringBuffer = new(65536);
@@ -91,6 +87,8 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
         this.testStringBuffer.Clear();
         this.testStringBuffer.AddRange(
             """
+            {font-default}Default{/font} {font-asset notojp}NotoJP{/font} {font-game axis}Axis{/font} {font-game miedingermid}Miedinger{/font} {font-system "Comic Sans MS"}Comic{b}Bold{/b}{i}Italic{b}Bold Italic{font-default}DefaulE{/i}{/b}
+            Mo{font-asset mono}no{b}bo{/font}ld{/b} {font-asset fa}{\xE4AB}{/font}
             {bw 1}{ec rgba(128 0 255 / 50%)}a{bw 2}s{bw 3}d{bw 4}f{/bw}{/bw}{/bw}{/bw}
             {size 48}{icon dpadleft}{/size}{size 48}{icon dpadright}{/size}
             {va top}top {va bottom}bottom {va baseline}{link "a"}baseline{/link} {size 32}32{/size}{/va}{/va}{/va}{br}
@@ -102,33 +100,18 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
             {tds solid}1/8 Solid {tdt 0.125}{td _}Underlined{/td} {td -}Strikethrough{/td} {td ^}Over{/td} {td below,above,mid}all{/td}{br}
             """u8);
 
-        foreach (ref var e in this.spannableTestFontHandle.AsSpan())
-        {
-            e?.Dispose();
-            e = null;
-        }
-
         this.Ready = true;
     }
 
     /// <inheritdoc/>
     public void Dispose()
     {
-        foreach (ref var e in this.spannableTestFontHandle.AsSpan())
-        {
-            e?.Dispose();
-            e = null;
-        }
-
-        this.spannableTestAtlas?.Dispose();
-        this.spannableTestAtlas = null;
         this.testStringBuffer.Dispose();
     }
 
     /// <inheritdoc/>
     public void Draw()
     {
-        var interfaceManager = Service<InterfaceManager>.Get();
         var renderer = Service<SpannableRenderer>.Get();
 
         var p = new RenderOptions
@@ -144,7 +127,7 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
                 this.useVisibleControlCharacters
                     ? new()
                     {
-                        Font = new(interfaceManager.MonoFontHandle),
+                        Font = new(DalamudAssetFontAndFamilyId.From(DalamudAsset.InconsolataRegular)),
                         BackColor = 0xFF004400,
                         ForeColor = 0xFFCCFFCC,
                         FontSize = ImGui.GetFont().FontSize * 0.6f,
@@ -503,12 +486,6 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
 
     private void DrawTestComplicatedTextBlock(SpannedStringBuilder ssb, in RenderOptions p, float x)
     {
-        var interfaceManager = Service<InterfaceManager>.Get();
-        var atlas =
-            this.spannableTestAtlas ??=
-                Service<FontAtlasFactory>.Get().CreateFontAtlas(
-                    nameof(ImGuiWidget),
-                    FontAtlasAutoRebuildMode.Async);
         ssb.Clear()
            .PushLink("copy"u8)
            .PushEdgeColor(ImGuiColors.HealerGreen)
@@ -533,12 +510,8 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
            .PushVerticalOffset(this.vertOffset);
         foreach (var c in $"Vertical Align: {this.valign}")
         {
-            ref var fh = ref this.spannableTestFontHandle[fontSizeCounter];
-            var fontSizeCounterPx = (fontSizeCounter * 4f) / 3;
-            fh ??= atlas.NewDelegateFontHandle(
-                e => e.OnPreBuild(tk => tk.AddDalamudDefaultFont(fontSizeCounterPx)));
-            ssb.PushFontSet(new(fh), out _)
-               .PushFontSize(fontSizeCounterPx)
+            ssb.PushFontSet(new(DalamudDefaultFontAndFamilyId.Instance), out _)
+               .PushFontSize((fontSizeCounter * 4f) / 3)
                .PushBackColor(0xFF111111)
                .Append(c)
                .PopBackColor()
@@ -555,13 +528,13 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
            .PushFontSize(18)
            .PushVerticalAlignment(VerticalAlignment.Middle)
            .PushLink("valign_up"u8)
-           .AppendIconGfd(GfdIcon.RelativeLocationUp)
+           .AppendIcon(GfdIcon.RelativeLocationUp)
            .PopLink()
            .PushLink("valign_down"u8)
-           .AppendIconGfd(GfdIcon.RelativeLocationDown)
+           .AppendIcon(GfdIcon.RelativeLocationDown)
            .PopLink()
            .PushLink("image_toggle"u8)
-           .PushFontSet(new(interfaceManager.IconFontHandle), out _)
+           .PushFontSet(new(DalamudAssetFontAndFamilyId.From(DalamudAsset.FontAwesomeFreeSolid)), out _)
            .PushFontSize(18)
            .PushVerticalAlignment(VerticalAlignment.Middle)
            .Append(FontAwesomeIcon.Image.ToIconChar())
@@ -616,7 +589,7 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
            .PushBorderWidth(1)
            .PushHorizontalAlignment(HorizontalAlignment.Right)
            .Append("Another "u8)
-           .PushFontSet(new(interfaceManager.MonoFontHandle), out _)
+           .PushFontSet(new(DalamudAssetFontAndFamilyId.From(DalamudAsset.InconsolataRegular)), out _)
            .PushForeColor(0xFF9999FF)
            .PushVerticalOffset(-0.4f).Append('M').PopVerticalOffset()
            .PushVerticalOffset(-0.3f).Append('o').PopVerticalOffset()
@@ -656,7 +629,7 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
 
             foreach (var e in Enum.GetValues<GfdIcon>())
             {
-                ssb.AppendIconGfd(e)
+                ssb.AppendIcon(e)
                    .Append('#')
                    .PushForeColor(0xFFFF9999)
                    .Append((int)e)
@@ -722,7 +695,7 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
                     labelPtr,
                     this.testStringBuffer.Data,
                     (uint)this.testStringBuffer.Capacity,
-                    new(ImGui.GetContentRegionAvail().X, ImGui.GetTextLineHeight() * 3),
+                    new(ImGui.GetContentRegionAvail().X, ImGui.GetTextLineHeight() * 8),
                     0,
                     null,
                     null) != 0

@@ -36,26 +36,25 @@ public interface IFontFamilyId : IObjectWithLocalizableName
     /// </summary>
     /// <returns>The list of fonts.</returns>
     public static List<IFontFamilyId> ListDalamudFonts() =>
-        new()
-        {
-            new DalamudAssetFontAndFamilyId(DalamudAsset.NotoSansJpMedium),
-            new DalamudAssetFontAndFamilyId(DalamudAsset.InconsolataRegular),
-            new DalamudAssetFontAndFamilyId(DalamudAsset.FontAwesomeFreeSolid),
-        };
+    [
+        DalamudAssetFontAndFamilyId.From(DalamudAsset.NotoSansJpMedium),
+        DalamudAssetFontAndFamilyId.From(DalamudAsset.InconsolataRegular),
+        DalamudAssetFontAndFamilyId.From(DalamudAsset.FontAwesomeFreeSolid)
+    ];
 
     /// <summary>
     /// Gets the list of Game-provided fonts.
     /// </summary>
     /// <returns>The list of fonts.</returns>
-    public static List<IFontFamilyId> ListGameFonts() => new()
-    {
-        new GameFontAndFamilyId(GameFontFamily.Axis),
-        new GameFontAndFamilyId(GameFontFamily.Jupiter),
-        new GameFontAndFamilyId(GameFontFamily.JupiterNumeric),
-        new GameFontAndFamilyId(GameFontFamily.Meidinger),
-        new GameFontAndFamilyId(GameFontFamily.MiedingerMid),
-        new GameFontAndFamilyId(GameFontFamily.TrumpGothic),
-    };
+    public static List<IFontFamilyId> ListGameFonts() =>
+    [
+        GameFontAndFamilyId.From(GameFontFamily.Axis),
+        GameFontAndFamilyId.From(GameFontFamily.Jupiter),
+        GameFontAndFamilyId.From(GameFontFamily.JupiterNumeric),
+        GameFontAndFamilyId.From(GameFontFamily.Meidinger),
+        GameFontAndFamilyId.From(GameFontFamily.MiedingerMid),
+        GameFontAndFamilyId.From(GameFontFamily.TrumpGothic)
+    ];
 
     /// <summary>
     /// Gets the list of System-provided fonts.

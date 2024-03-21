@@ -2,8 +2,7 @@ using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-using Dalamud.Interface.SpannedStrings.Internal;
-using Dalamud.Interface.SpannedStrings.Rendering.Internal;
+using Dalamud.Interface.SpannedStrings.Rendering;
 
 namespace Dalamud.Interface.SpannedStrings.Spannables;
 
@@ -161,7 +160,7 @@ public abstract partial class BaseSpannedString
         /// <param name="fontData">The font data.</param>
         /// <param name="rightBoundary">The right boundary.</param>
         /// <returns><c>true</c> if it will.</returns>
-        public readonly bool ContainedInBounds(FontData fontData, float rightBoundary) =>
+        public readonly bool ContainedInBounds(SpanStyleFontData fontData, float rightBoundary) =>
             MathF.Round(this.BBoxHorizontal.Y) <= rightBoundary;
 
         /// <summary>Tests if adding an object will still keep the line from reaching a right boundary.</summary>
@@ -170,7 +169,7 @@ public abstract partial class BaseSpannedString
         /// <param name="rightBoundary">The right boundary.</param>
         /// <returns><c>true</c> if it will.</returns>
         public readonly bool ContainedInBoundsWithObject(
-            FontData fontData,
+            SpanStyleFontData fontData,
             float objectWidth,
             float rightBoundary) =>
             MathF.Round(Math.Max(this.BBoxHorizontal.Y, this.X + objectWidth + fontData.ScaledHorizontalOffset))
@@ -199,7 +198,7 @@ public abstract partial class BaseSpannedString
         /// <param name="recordIndex">The index of the record of this span, or -1 if none.</param>
         /// <param name="x0">The X0.</param>
         /// <param name="x1">The X1.</param>
-        public void AddObject(FontData fontData, int recordIndex, float x0, float x1)
+        public void AddObject(SpanStyleFontData fontData, int recordIndex, float x0, float x1)
         {
             if (recordIndex == -1)
                 this.LastThing.SetRecord(recordIndex);
@@ -218,7 +217,7 @@ public abstract partial class BaseSpannedString
         /// <param name="xy1">The scaled XY1.</param>
         /// <param name="advance">The scaled advance width.</param>
         public void AddCharacter(
-            in FontData font,
+            in SpanStyleFontData font,
             int codepoint,
             Vector2 xy0,
             Vector2 xy1,
@@ -236,14 +235,13 @@ public abstract partial class BaseSpannedString
         /// <summary>Adds a standard character.</summary>
         /// <param name="font">The font.</param>
         /// <param name="codepoint">The codepoint.</param>
-        public void AddStandardCharacter(in FontData font, int codepoint)
+        public void AddStandardCharacter(in SpanStyleFontData font, int codepoint)
         {
-            codepoint = font.GetEffeciveCodepoint(codepoint);
-            ref readonly var glyph = ref font.Glyphs[font.Lookup[codepoint]];
+            ref readonly var glyph = ref font.GetEffectiveGlyph(codepoint);
 
             var adjust =
                 this.LastThing.TryGetCodepoint(out var lastCodepoint)
-                    ? font.GetScaledGap(lastCodepoint, codepoint)
+                    ? font.GetScaledGap(lastCodepoint, glyph.Codepoint)
                     : 0;
             var boxOffset = new Vector2(adjust, 0);
             this.AddCharacter(
@@ -257,7 +255,7 @@ public abstract partial class BaseSpannedString
         /// <summary>Adds a tab character, by aligning to the specified tab width.</summary>
         /// <param name="font">The font.</param>
         /// <param name="tabWidth">The width.</param>
-        public void AddTabCharacter(in FontData font, float tabWidth)
+        public void AddTabCharacter(in SpanStyleFontData font, float tabWidth)
         {
             this.X = MathF.Floor((this.X + tabWidth) / tabWidth) * tabWidth;
             this.UnionBBoxHorizontal(this.X, this.X);
@@ -267,20 +265,19 @@ public abstract partial class BaseSpannedString
 
         /// <summary>Adds a soft hyphen character.</summary>
         /// <param name="font">The font.</param>
-        public void AddSoftHyphenCharacter(in FontData font)
+        public void AddSoftHyphenCharacter(in SpanStyleFontData font)
         {
-            var codepoint = font.GetEffeciveCodepoint(SpannableRenderer.SoftHyphenReplacementChar);
-            ref readonly var glyph = ref font.Glyphs[font.Lookup[codepoint]];
+            ref readonly var glyph = ref font.GetEffectiveGlyph(SoftHyphenReplacementChar);
 
             var adjust =
                 this.LastThing.TryGetCodepoint(out var lastCodepoint)
-                    ? font.GetScaledGap(lastCodepoint, codepoint)
+                    ? font.GetScaledGap(lastCodepoint, glyph.Codepoint)
                     : 0;
             var boxOffset = new Vector2(adjust, 0);
 
             this.AddCharacter(
                 font,
-                codepoint,
+                glyph.Codepoint,
                 (glyph.XY0 * font.Scale) + boxOffset,
                 (glyph.XY1 * font.Scale) + boxOffset,
                 0);

@@ -13,7 +13,7 @@ namespace Dalamud.Interface.SpannedStrings.Spannables;
 public sealed partial class SpannedString : BaseSpannedString, ISpanParsable<SpannedString>
 {
     private static readonly (MethodInfo Info, SpannedParseInstructionAttribute Attr)[] SsbMethods =
-        typeof(ISpannedStringBuilder<>)
+        typeof(ISpannedStringBuilder)
             .GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.FlattenHierarchy)
             .Select(
                 x => (

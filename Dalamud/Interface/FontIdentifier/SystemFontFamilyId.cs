@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 
@@ -61,6 +62,54 @@ public sealed class SystemFontFamilyId : IFontFamilyId
     public static bool operator ==(SystemFontFamilyId? left, SystemFontFamilyId? right) => Equals(left, right);
 
     public static bool operator !=(SystemFontFamilyId? left, SystemFontFamilyId? right) => !Equals(left, right);
+
+    /// <summary>Gets the instance of <see cref="SystemFontFamilyId"/> for the given name.</summary>
+    /// <param name="name">The font name.</param>
+    /// <returns>The found instance.</returns>
+    public static unsafe SystemFontFamilyId From(string name)
+    {
+        using var dwf = default(ComPtr<IDWriteFactory>);
+        fixed (Guid* piid = &IID.IID_IDWriteFactory)
+        {
+            DirectX.DWriteCreateFactory(
+                DWRITE_FACTORY_TYPE.DWRITE_FACTORY_TYPE_SHARED,
+                piid,
+                (IUnknown**)dwf.GetAddressOf()).ThrowOnError();
+        }
+
+        using var sfc = default(ComPtr<IDWriteFontCollection>);
+        dwf.Get()->GetSystemFontCollection(sfc.GetAddressOf(), false).ThrowOnError();
+
+        var familyIndex = 0u;
+        BOOL exists = false;
+        fixed (void* pName = name)
+            sfc.Get()->FindFamilyName((ushort*)pName, &familyIndex, &exists).ThrowOnError();
+        if (!exists)
+            throw new FileNotFoundException($"Font \"{name}\" not found.");
+
+        using var ff = default(ComPtr<IDWriteFontFamily>);
+        sfc.Get()->GetFontFamily(familyIndex, ff.GetAddressOf()).ThrowOnError();
+
+        return FromDWriteFamily(ff);
+    }
+
+    /// <summary>Attempts to get the instance of <see cref="SystemFontFamilyId"/> for the given name.</summary>
+    /// <param name="name">The font name.</param>
+    /// <param name="familyId">The family ID.</param>
+    /// <returns><c>true</c> if found.</returns>
+    public static bool TryGet(string name, [NotNullWhen(true)] out SystemFontFamilyId? familyId)
+    {
+        try
+        {
+            familyId = From(name);
+            return true;
+        }
+        catch
+        {
+            familyId = null;
+            return false;
+        }
+    }
 
     /// <inheritdoc/>
     public int FindBestMatch(int weight, int stretch, int style)

@@ -181,7 +181,10 @@ public sealed partial class SpannedStringBuilder
     }
 
     /// <inheritdoc/>
-    public SpannedStringBuilder AppendIconGfd(GfdIcon iconId)
+    public SpannedStringBuilder AppendIcon(GfdIcon iconId) => this.AppendIcon((int)iconId);
+
+    /// <inheritdoc/>
+    public SpannedStringBuilder AppendIcon(int iconId)
     {
         var len = SpannedRecordCodec.EncodeObjectIcon(default, iconId);
         this.AddRecordAndReserveData(SpannedRecordType.ObjectIcon, len, out var data);
@@ -301,7 +304,7 @@ public sealed partial class SpannedStringBuilder
         this.appendBuffer ??= new();
         while (true)
         {
-            if (value.TryFormat(this.textStream.GetDataSpan()[off..len], out var written, default, null))
+            if (value.TryFormat(this.textStream.GetDataSpan().Slice(off, len), out var written, default, null))
             {
                 this.textStream.SetLength(off + written);
                 this.textStream.Position = off + written;

@@ -452,7 +452,7 @@ public abstract partial class BaseSpannedString : ISpannable
             this.lineWidth = lineMeasurement.Width;
         }
 
-        public void Update(in FontData fontInfo)
+        public void Update(in SpanStyleFontData fontInfo)
         {
             var lineAscentDescent = this.lineBBoxVertical;
             this.VerticalOffsetWrtLine = (fontInfo.BBoxVertical.Y - fontInfo.BBoxVertical.X) *

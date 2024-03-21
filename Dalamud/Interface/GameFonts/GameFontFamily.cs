@@ -1,3 +1,5 @@
+using Dalamud.Interface.SpannedStrings.Internal;
+
 namespace Dalamud.Interface.GameFonts;
 
 /// <summary>
@@ -23,20 +25,24 @@ public enum GameFontFamily
     /// <summary>
     /// Digit-only serif fonts used for flying texts. Contains numbers.
     /// </summary>
+    [SpannedParseShortName("jupitern")]
     JupiterNumeric,
 
     /// <summary>
     /// Digit-only sans-serif horizontally wide fonts used for HP/MP/IL numbers.
     /// </summary>
+    [SpannedParseShortName("miedinger")]
     Meidinger,
 
     /// <summary>
     /// Sans-serif horizontally wide font used for names of gauges. Contains Latin characters.
     /// </summary>
+    [SpannedParseShortName("meidingermid")]
     MiedingerMid,
 
     /// <summary>
     /// Sans-serif horizontally narrow font used for addon titles. Contains Latin characters.
     /// </summary>
+    [SpannedParseShortName("trump")]
     TrumpGothic,
 }

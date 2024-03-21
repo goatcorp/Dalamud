@@ -1,4 +1,5 @@
-﻿using Dalamud.Storage.Assets;
+﻿using Dalamud.Interface.SpannedStrings.Internal;
+using Dalamud.Storage.Assets;
 
 namespace Dalamud;
 
@@ -120,6 +121,7 @@ public enum DalamudAsset
     [DalamudAsset(DalamudAssetPurpose.Font)]
     [DalamudAssetPath("UIRes", "NotoSansCJKjp-Regular.otf")]
     [DalamudAssetPath("UIRes", "NotoSansCJKjp-Medium.otf")]
+    [SpannedParseShortName("notojp")]
     NotoSansJpMedium = 2000,
 
     /// <summary>
@@ -128,6 +130,7 @@ public enum DalamudAsset
     [DalamudAsset(DalamudAssetPurpose.Font)]
     [DalamudAssetPath("UIRes", "NotoSansCJKkr-Regular.otf")]
     [DalamudAssetPath("UIRes", "NotoSansKR-Regular.otf")]
+    [SpannedParseShortName("notokr")]
     NotoSansKrRegular = 2001,
 
     /// <summary>
@@ -135,6 +138,7 @@ public enum DalamudAsset
     /// </summary>
     [DalamudAsset(DalamudAssetPurpose.Font)]
     [DalamudAssetPath("UIRes", "Inconsolata-Regular.ttf")]
+    [SpannedParseShortName("inconsolata", "mono", "monospace")]
     InconsolataRegular = 2002,
 
     /// <summary>
@@ -142,6 +146,7 @@ public enum DalamudAsset
     /// </summary>
     [DalamudAsset(DalamudAssetPurpose.Font)]
     [DalamudAssetPath("UIRes", "FontAwesomeFreeSolid.otf")]
+    [SpannedParseShortName("fontawesome", "fa", "iconfont", "icon")]
     FontAwesomeFreeSolid = 2003,
 
     /// <summary>

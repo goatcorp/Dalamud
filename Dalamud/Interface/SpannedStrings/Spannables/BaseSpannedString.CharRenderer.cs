@@ -27,7 +27,7 @@ public abstract partial class BaseSpannedString
         private readonly State state;
         private readonly bool skipDraw;
 
-        private FontData fontInfo;
+        private SpanStyleFontData fontInfo;
         private StateInfo stateInfo;
 
         private int borderRange;
@@ -49,8 +49,6 @@ public abstract partial class BaseSpannedString
             this.data = data;
             this.state = state;
             this.skipDraw = skipDraw || !state.RenderState.UseDrawing;
-
-            this.fontInfo = new(this.state.RenderState.Scale);
 
             this.SpanFontOptionsUpdated();
             this.SpanDrawOptionsUpdated();
@@ -125,11 +123,7 @@ public abstract partial class BaseSpannedString
                         new(0, this.fontInfo.ScaledFontSize));
             }
 
-            var glyphIndex = this.fontInfo.Lookup[
-                c >= this.fontInfo.Lookup.Length || c < 0 ? this.fontInfo.Font.NativePtr->FallbackChar : c];
-            if (glyphIndex == ushort.MaxValue)
-                glyphIndex = this.fontInfo.Lookup[this.fontInfo.Font.NativePtr->FallbackChar];
-            ref readonly var glyph = ref this.fontInfo.Glyphs[glyphIndex];
+            ref readonly var glyph = ref this.fontInfo.GetEffectiveGlyph(c);
 
             var xy0 = glyph.XY0;
             var xy1 = glyph.XY1;
@@ -356,7 +350,7 @@ public abstract partial class BaseSpannedString
                 var skew = this.fontInfo.GetScaledTopSkew(default);
                 lt.X += skew;
                 rt.X += skew;
-                var xdivy = new Vector2(this.fontInfo.FakeItalic ? 1f / FontData.FakeItalicDivisor : 0, 1f);
+                var xdivy = this.fontInfo.SlopeVector2;
 
                 if ((this.state.RenderState.LastStyle.TextDecoration & TextDecoration.Overline) != 0)
                     this.DrawDecoration(this.state.RenderState.StartScreenOffset, lt, rt, -1, xdivy);
@@ -431,7 +425,10 @@ public abstract partial class BaseSpannedString
 
         public void SpanFontOptionsUpdated()
         {
-            this.fontInfo.Update(in this.state.RenderState.LastStyle);
+            this.state.Renderer.TryGetFontData(
+                this.state.RenderState.Scale,
+                in this.state.RenderState.LastStyle,
+                out this.fontInfo);
         }
 
         private static bool IsColorVisible(uint color) => color >= 0x1000000;

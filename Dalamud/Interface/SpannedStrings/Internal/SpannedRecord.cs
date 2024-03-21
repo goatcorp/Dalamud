@@ -2,9 +2,13 @@ using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Text;
 
+using Dalamud.Interface.FontIdentifier;
 using Dalamud.Interface.SpannedStrings.Spannables;
+using Dalamud.Interface.SpannedStrings.Styles;
 using Dalamud.Utility;
 using Dalamud.Utility.Text;
+
+using Newtonsoft.Json;
 
 namespace Dalamud.Interface.SpannedStrings.Internal;
 
@@ -133,105 +137,128 @@ internal struct SpannedRecord
                   : $"{this.TextStart}({this.Type}, set)"
             : $"{this.TextStart}({this.Type}, {this.DataStart}, {this.DataLength})";
 
-    /// <summary>Write parameters for use with <see cref="ISpannedStringBuilder{TReturn}"/> functions.</summary>
+    /// <summary>Write parameters for use with <see cref="ISpannedStringBuilder"/> functions.</summary>
     /// <param name="sb">The string builder.</param>
     /// <param name="data">The data attached to the record.</param>
+    /// <param name="fontSets">The font sets.</param>
     /// <param name="formatProvider">The format provider.</param>
     internal readonly void WritePushParameters(
         StringBuilder sb,
         ReadOnlySpan<byte> data,
+        FontHandleVariantSet[] fontSets,
         IFormatProvider? formatProvider)
     {
         switch (this.Type)
         {
             case SpannedRecordType.Link when SpannedRecordCodec.TryDecodeLink(data, out var link):
                 AppendString(sb, link.EnumerateUtf(UtfEnumeratorFlags.Utf8));
-                break;
+                return;
             case SpannedRecordType.FontHandleSetIndex
                 when SpannedRecordCodec.TryDecodeFontHandleSetIndex(data, out var i32):
                 sb.Append(' ').Append(i32);
-                break;
+                switch (fontSets[i32].FontFamilyId)
+                {
+                    case DalamudDefaultFontAndFamilyId:
+                    case null:
+                        // no extra parameter required
+                        return;
+                    case DalamudAssetFontAndFamilyId ff:
+                        sb.Append(' ').Append(ff.Asset);
+                        return;
+                    case GameFontAndFamilyId ff:
+                        sb.Append(' ').Append(ff.Family);
+                        return;
+                    case SystemFontFamilyId ff:
+                        sb.Append(' ').Append(ff.EnglishName);
+                        return;
+                    default:
+                        sb.Append(' ')
+                          .Append(JsonConvert.SerializeObject(
+                                      fontSets[i32].FontFamilyId,
+                                      SpannedRecordCodec.FontFamilyJsonSerdeSettings));
+                        return;
+                }
+                
             case SpannedRecordType.FontSize when SpannedRecordCodec.TryDecodeFontSize(data, out var f32):
                 sb.Append(formatProvider, $" {f32:g}");
-                break;
+                return;
             case SpannedRecordType.LineHeight when SpannedRecordCodec.TryDecodeLineHeight(data, out var f32):
                 sb.Append(formatProvider, $" {f32:g}");
-                break;
+                return;
             case SpannedRecordType.HorizontalOffset
                 when SpannedRecordCodec.TryDecodeHorizontalOffset(data, out var f32):
                 sb.Append(formatProvider, $" {f32:g}");
-                break;
+                return;
             case SpannedRecordType.HorizontalAlignment
                 when SpannedRecordCodec.TryDecodeHorizontalAlignment(data, out var horizontalAlignment):
                 sb.Append(' ').Append(horizontalAlignment);
-                break;
+                return;
             case SpannedRecordType.VerticalOffset when SpannedRecordCodec.TryDecodeVerticalOffset(data, out var f32):
                 sb.Append(formatProvider, $" {f32:g}");
-                break;
+                return;
             case SpannedRecordType.VerticalAlignment
                 when SpannedRecordCodec.TryDecodeVerticalAlignment(data, out var verticalAlignment):
                 sb.Append(' ').Append(verticalAlignment);
-                break;
+                return;
             case SpannedRecordType.Italic when SpannedRecordCodec.TryDecodeItalic(data, out var toggle):
                 sb.Append(' ').Append(toggle);
-                break;
+                return;
             case SpannedRecordType.Bold when SpannedRecordCodec.TryDecodeBold(data, out var toggle):
                 sb.Append(' ').Append(toggle);
-                break;
+                return;
             case SpannedRecordType.TextDecoration
                 when SpannedRecordCodec.TryDecodeTextDecoration(data, out var textDecorationLine):
                 sb.Append(' ').Append(textDecorationLine);
-                break;
+                return;
             case SpannedRecordType.TextDecorationStyle
                 when SpannedRecordCodec.TryDecodeTextDecorationStyle(data, out var textDecorationStyle):
                 sb.Append(' ').Append(textDecorationStyle);
-                break;
+                return;
             case SpannedRecordType.BackColor when SpannedRecordCodec.TryDecodeBackColor(data, out var color):
                 sb.Append(' ').Append(color.ToString());
-                break;
+                return;
             case SpannedRecordType.ShadowColor when SpannedRecordCodec.TryDecodeShadowColor(data, out var color):
                 sb.Append(' ').Append(color.ToString());
-                break;
+                return;
             case SpannedRecordType.EdgeColor when SpannedRecordCodec.TryDecodeEdgeColor(data, out var color):
                 sb.Append(' ').Append(color.ToString());
-                break;
+                return;
             case SpannedRecordType.ForeColor when SpannedRecordCodec.TryDecodeForeColor(data, out var color):
                 sb.Append(' ').Append(color.ToString());
-                break;
+                return;
             case SpannedRecordType.TextDecorationColor
                 when SpannedRecordCodec.TryDecodeTextDecorationColor(data, out var color):
                 sb.Append(' ').Append(color.ToString());
-                break;
+                return;
             case SpannedRecordType.BorderWidth when SpannedRecordCodec.TryDecodeBorderWidth(data, out var f32):
                 sb.Append(formatProvider, $" {f32:g}");
-                break;
+                return;
             case SpannedRecordType.ShadowOffset when SpannedRecordCodec.TryDecodeShadowOffset(data, out var v2):
                 sb.Append(formatProvider, $" {v2.X:g} {v2.Y:g}");
-                break;
+                return;
             case SpannedRecordType.TextDecorationThickness
                 when SpannedRecordCodec.TryDecodeTextDecorationThickness(data, out var f32):
                 sb.Append(formatProvider, $" {f32:g}");
-                break;
+                return;
             case SpannedRecordType.ObjectIcon when SpannedRecordCodec.TryDecodeObjectIcon(data, out var icon):
                 sb.Append(' ').Append(icon);
-                break;
+                return;
             case SpannedRecordType.ObjectTexture
                 when SpannedRecordCodec.TryDecodeObjectTexture(data, out var i32, out var uv0, out var uv1):
                 sb.Append(formatProvider, $" {i32} {uv0.X:g} {uv0.Y:g} {uv1.X:g} {uv1.Y:g}");
-                break;
+                return;
             case SpannedRecordType.ObjectNewLine:
                 _ = SpannedRecordCodec.TryDecodeInsertManualNewLine(data);
-                break;
+                return;
             case SpannedRecordType.ObjectSpannable
                 when SpannedRecordCodec.TryDecodeObjectSpannable(data, out var i32, out var s):
                 sb.Append(formatProvider, $" {i32:g}");
                 AppendString(sb, s.EnumerateUtf(UtfEnumeratorFlags.Utf16));
-                break;
+                return;
             case SpannedRecordType.None:
-            default: break;
+            default:
+                return;
         }
-
-        return;
 
         static void AppendString(StringBuilder sb, UtfEnumerator enumerator)
         {

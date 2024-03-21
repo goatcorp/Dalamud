@@ -14,7 +14,7 @@ namespace Dalamud.Interface.SpannedStrings.Spannables;
 
 /// <summary>A custom text renderer implementation.</summary>
 public sealed partial class SpannedStringBuilder
-    : BaseSpannedString, ISpannedStringBuilder<SpannedStringBuilder>, IResettable
+    : BaseSpannedString, ISpannedStringBuilder, IResettable
 {
     private readonly MemoryStream textStream = new();
     private readonly MemoryStream dataStream = new();

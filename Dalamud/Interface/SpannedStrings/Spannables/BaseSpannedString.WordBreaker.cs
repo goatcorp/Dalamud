@@ -20,7 +20,7 @@ public abstract partial class BaseSpannedString
         private readonly DataRef data;
 
         private SpanStyle currentStyle;
-        private FontData fontInfo;
+        private SpanStyleFontData fontInfo;
 
         private bool breakOnFirstNormalBreakableOffset;
 
@@ -40,7 +40,6 @@ public abstract partial class BaseSpannedString
             this.first = MeasuredLine.Empty;
             this.normalBreak = MeasuredLine.Empty;
             this.wrapMarkerBreak = MeasuredLine.Empty;
-            this.fontInfo = new(this.state.RenderState.Scale);
 
             this.SpanFontOptionsUpdated();
             if (this.state.RenderState.WrapMarker is not null)
@@ -285,7 +284,7 @@ public abstract partial class BaseSpannedString
 
         private void SpanFontOptionsUpdated()
         {
-            this.fontInfo.Update(in this.currentStyle);
+            this.state.Renderer.TryGetFontData(this.state.RenderState.Scale, in this.currentStyle, out this.fontInfo);
             if (this.state.RenderState.WrapMarker is not null)
                 this.UpdateWrapMarker();
         }

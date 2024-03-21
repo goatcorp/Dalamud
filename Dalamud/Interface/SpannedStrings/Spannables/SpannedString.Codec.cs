@@ -6,6 +6,7 @@ using System.Numerics;
 using System.Reflection;
 using System.Text;
 
+using Dalamud.Interface.FontIdentifier;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.SpannedStrings.Internal;
 using Dalamud.Interface.SpannedStrings.Styles;
@@ -79,11 +80,18 @@ public sealed partial class SpannedString
                 return false;
         }
 
+        var fontSets = new FontHandleVariantSet[numFontSets];
+        foreach (ref var f in fontSets.AsSpan())
+        {
+            if (!SpannedRecordCodec.TryDecode(ref source, out f.FontFamilyId))
+                return false;
+        }
+
         value = new(
             textByteSpan.ToArray(),
             dataByteSpan.ToArray(),
             records,
-            new FontHandleVariantSet[numFontSets],
+            fontSets,
             new IDalamudTextureWrap?[numTextures],
             new ISpannable?[numCallbacks]);
         return true;
@@ -121,6 +129,9 @@ public sealed partial class SpannedString
         foreach (ref var rec in this.records.AsSpan())
             length += rec.Encode(ref target);
 
+        foreach (ref var f in this.fontSets.AsSpan())
+            length += SpannedRecordCodec.Encode(ref target, f.FontFamilyId);
+
         return length;
     }
 
@@ -143,6 +154,25 @@ public sealed partial class SpannedString
             }
             else if (segment.TryGetRecord(out var record, out var data))
             {
+                // Special shortcuts for font sets.
+                if (record.Type == SpannedRecordType.FontHandleSetIndex
+                    && SpannedRecordCodec.TryDecodeFontHandleSetIndex(data, out var setIndex))
+                {
+                    var functionName = this.fontSets[setIndex].FontFamilyId switch
+                    {
+                        DalamudDefaultFontAndFamilyId => nameof(ISpannedStringBuilder.PushDefaultFontFamily),
+                        DalamudAssetFontAndFamilyId => nameof(ISpannedStringBuilder.PushAssetFontFamily),
+                        GameFontAndFamilyId => nameof(ISpannedStringBuilder.PushGameFontFamily),
+                        SystemFontFamilyId => nameof(ISpannedStringBuilder.PushSystemFontFamilyIfAvailable),
+                        not null => nameof(ISpannedStringBuilder.PushFontFamily),
+                        _ => nameof(ISpannedStringBuilder.PushFontSet),
+                    };
+                    sb.Append('{').Append(SsbMethods.Single(x => x.Info.Name == functionName).Attr.Name);
+                    record.WritePushParameters(sb, data, this.fontSets, formatProvider);
+                    sb.Append('}');
+                    continue;
+                }
+
                 foreach (var method in SsbMethods)
                 {
                     if (method.Attr.RecordType != record.Type || method.Attr.IsRevert != record.IsRevert)
@@ -167,7 +197,7 @@ public sealed partial class SpannedString
                     }
 
                     sb.Append('{').Append(method.Attr.Name);
-                    record.WritePushParameters(sb, data, formatProvider);
+                    record.WritePushParameters(sb, data, this.fontSets, formatProvider);
                     sb.Append('}');
                     typeNeedsReverting[(int)record.Type] = true;
                     break;
@@ -287,14 +317,13 @@ public sealed partial class SpannedString
                             (bool)typeof(Enum)
                                   .GetMethod(
                                       nameof(Enum.TryParse),
-                                      BindingFlags.Static | BindingFlags.Public,
-                                      new[]
-                                      {
+                                      BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic,
+                                      [
                                           typeof(Type),
                                           typeof(string),
                                           typeof(bool),
-                                          typeof(object).MakeByRefType(),
-                                      })!
+                                          typeof(object).MakeByRefType()
+                                      ])!
                                   .Invoke(null, parseArgs)!;
                         if (!parseResult && !TryParseFlagsEnum(ptype, arg, out parseArgs[3], out var ex2))
                         {
@@ -328,24 +357,19 @@ public sealed partial class SpannedString
                     else if (ptype.GetInterfaces().Any(
                                  x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(ISpanParsable<>)))
                     {
-                        var parseArgs = new[]
+                        var parseArgs = new object?[]
                         {
                             arg,
                             provider,
-                            Activator.CreateInstance(ptype),
+                            null,
                         };
                         var parseResult =
-                            (bool)ptype
-                                  .GetMethod(
-                                      nameof(ISpanParsable<int>.TryParse),
-                                      BindingFlags.Static | BindingFlags.Public,
-                                      new[]
-                                      {
-                                          typeof(string),
-                                          typeof(IFormatProvider),
-                                          ptype.MakeByRefType(),
-                                      })!
-                                  .Invoke(null, parseArgs)!;
+                            (bool)GetTryParseMethod(
+                                    ptype,
+                                    typeof(string),
+                                    typeof(IFormatProvider),
+                                    ptype.MakeByRefType())
+                                .Invoke(null, parseArgs)!;
                         if (!parseResult)
                         {
                             exception ??= new FormatException($"Failed to parse: {ptype} {name} at #{i}");
@@ -376,6 +400,22 @@ public sealed partial class SpannedString
                 break;
             }
 
+            if (name.StartsWith("\\x", StringComparison.InvariantCultureIgnoreCase)
+                || name.StartsWith("\\u", StringComparison.InvariantCultureIgnoreCase))
+            {
+                if (int.TryParse(
+                        name[2..],
+                        NumberStyles.HexNumber
+                        | NumberStyles.AllowLeadingWhite
+                        | NumberStyles.AllowTrailingWhite,
+                        provider,
+                        out var codepoint))
+                {
+                    ssb.AppendChar(codepoint);
+                    found = true;
+                }
+            }
+
             if (!found)
             {
                 exception ??= new FormatException($"Unknown instruction: {name}");
@@ -394,6 +434,32 @@ public sealed partial class SpannedString
 
         result = ssb.Build();
         return true;
+
+        static MethodInfo GetTryParseMethod(Type type, params Type[] parameterTypes)
+        {
+            var methods = type.GetMethods(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+            foreach (var m in methods)
+            {
+                if (!m.Name.Equals("TryParse", StringComparison.Ordinal)
+                    && !m.Name.EndsWith(".TryParse", StringComparison.Ordinal))
+                    continue;
+                var ps = m.GetParameters();
+                if (ps.Length != parameterTypes.Length)
+                    continue;
+                var i = 0;
+                for (; i < ps.Length; i++)
+                {
+                    if (ps[i].ParameterType != parameterTypes[i])
+                        break;
+                }
+
+                if (i != ps.Length)
+                    continue;
+                return m;
+            }
+
+            throw new NullReferenceException($"TryParse could not be found in {type}.");
+        }
 
         static bool ConsumeArgumentToken(ref ReadOnlySpan<char> from, MemoryStream writeTo)
         {
