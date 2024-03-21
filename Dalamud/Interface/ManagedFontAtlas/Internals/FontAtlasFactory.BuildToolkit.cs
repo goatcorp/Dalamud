@@ -389,12 +389,10 @@ internal sealed partial class FontAtlasFactory
                         });
 
                 case DalamudAsset.LodestoneGameSymbol when !this.factory.HasGameSymbolsFontFile:
-                    {
-                        return this.AddGameGlyphs(
-                            new(GameFontFamily.Axis, fontConfig.SizePx),
-                            fontConfig.GlyphRanges,
-                            fontConfig.MergeFont);
-                    }
+                    return this.AddGameGlyphs(
+                        new(GameFontFamily.Axis, fontConfig.SizePx),
+                        fontConfig.GlyphRanges,
+                        fontConfig.MergeFont);
 
                 default:
                     return this.factory.AddFont(
