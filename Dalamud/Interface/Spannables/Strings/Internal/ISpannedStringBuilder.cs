@@ -317,20 +317,20 @@ internal interface ISpannedStringBuilder
     /// <summary>Pushes a vertical alignment mode to use from now on, with respect to the current line.</summary>
     /// <param name="value">The vertical alignment.</param>
     /// <returns>A reference of this instance after the push operation is completed.</returns>
-    [SpannedParseInstruction(SpannedRecordType.VerticalAlignment, false, "lva", "local-vertical-align")]
-    SpannedStringBuilder PushLineVerticalAlignment(float value);
+    [SpannedParseInstruction(SpannedRecordType.VerticalAlignment, false, "va", "vertical-align")]
+    SpannedStringBuilder PushVerticalAlignment(float value);
 
     /// <summary>Pushes a vertical alignment mode to use from now on, with respect to the current line.</summary>
     /// <param name="value">The vertical alignment.</param>
     /// <returns>A reference of this instance after the push operation is completed.</returns>
-    [SpannedParseInstruction(SpannedRecordType.VerticalAlignment, false, "lva", "local-vertical-align")]
-    SpannedStringBuilder PushLineVerticalAlignment(VerticalAlignment value);
+    [SpannedParseInstruction(SpannedRecordType.VerticalAlignment, false, "va", "vertical-align")]
+    SpannedStringBuilder PushVerticalAlignment(VerticalAlignment value);
 
     /// <summary>Pops a vertical alignment mode to use from now on, with respect to the current line.</summary>
     /// <returns>A reference of this instance after the pop operation is completed.</returns>
     /// <exception cref="InvalidOperationException">The stack is empty.</exception>
-    [SpannedParseInstruction(SpannedRecordType.VerticalAlignment, true, "/lva", "/local-vertical-align")]
-    SpannedStringBuilder PopLineVerticalAlignment();
+    [SpannedParseInstruction(SpannedRecordType.VerticalAlignment, true, "/va", "/vertical-align")]
+    SpannedStringBuilder PopVerticalAlignment();
 
     /// <summary>Pushes a boolean value indicating whether to use italics from now on.</summary>
     /// <param name="mode">Whether to use italics.</param>

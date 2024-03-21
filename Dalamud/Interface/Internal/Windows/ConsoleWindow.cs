@@ -136,7 +136,7 @@ internal class ConsoleWindow : Window, IDisposable
                                    .PushForeColor(0xFFCCCCFF)
                                    .PushItalic(true)
                                    .PushFontSize(-0.6f)
-                                   .PushLineVerticalAlignment(VerticalAlignment.Middle)
+                                   .PushVerticalAlignment(VerticalAlignment.Middle)
                                    .Append(FontAwesomeIcon.ArrowTurnDown.ToIconString());
 
         configuration.DalamudConfigurationSaved += this.OnDalamudConfigurationSaved;

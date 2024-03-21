@@ -82,7 +82,7 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
                                    .PushForeColor(0xFFCCCCFF)
                                    .PushItalic(true)
                                    .PushFontSize(-0.6f)
-                                   .PushLineVerticalAlignment(VerticalAlignment.Middle)
+                                   .PushVerticalAlignment(VerticalAlignment.Middle)
                                    .Append(FontAwesomeIcon.ArrowTurnDown.ToIconString());
 
         this.spannableButton = new SpannableButton[12];
@@ -91,7 +91,7 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
             this.spannableButton[i] = new()
             {
                 SpannableText = new SpannedStringBuilder()
-                                .PushLineVerticalAlignment(0.5f)
+                                .PushVerticalAlignment(0.5f)
                                 .PushLink("tlink"u8)
                                 .PushBorderWidth(1)
                                 .PushEdgeColor(0xFF2222AA)
@@ -569,7 +569,7 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
 
         var fontSizeCounter = 9;
         ssb.PushLink("valign_next"u8)
-           .PushLineVerticalAlignment(this.valign)
+           .PushVerticalAlignment(this.valign)
            .PushVerticalOffset(this.vertOffset);
         foreach (var c in $"Vertical Align: {this.valign}")
         {
@@ -584,12 +584,12 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
         }
 
         ssb.PopLink()
-           .PopLineVerticalAlignment()
+           .PopVerticalAlignment()
            .PopVerticalOffset()
            .Append(' ')
            .PushBackColor(0xFF000044)
            .PushFontSize(18)
-           .PushLineVerticalAlignment(VerticalAlignment.Middle)
+           .PushVerticalAlignment(VerticalAlignment.Middle)
            .PushLink("valign_up"u8)
            .AppendIcon(GfdIcon.RelativeLocationUp)
            .PopLink()
@@ -599,13 +599,13 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
            .PushLink("image_toggle"u8)
            .PushFontSet(new(DalamudAssetFontAndFamilyId.From(DalamudAsset.FontAwesomeFreeSolid)), out _)
            .PushFontSize(18)
-           .PushLineVerticalAlignment(VerticalAlignment.Middle)
+           .PushVerticalAlignment(VerticalAlignment.Middle)
            .Append(FontAwesomeIcon.Image.ToIconChar())
-           .PopLineVerticalAlignment()
+           .PopVerticalAlignment()
            .PopFontSize()
            .PopFontSet()
            .PopFontSize()
-           .PopLineVerticalAlignment()
+           .PopVerticalAlignment()
            .PopBackColor()
            .PopLink()
            .AppendLine()

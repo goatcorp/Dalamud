@@ -149,7 +149,7 @@ public sealed partial class SpannedStringBuilder
         this.PopHelper(this.stackVerticalOffset, SpannedRecordType.VerticalOffset);
 
     /// <inheritdoc/>
-    public SpannedStringBuilder PushLineVerticalAlignment(float value)
+    public SpannedStringBuilder PushVerticalAlignment(float value)
     {
         var len = SpannedRecordCodec.EncodeVerticalAlignment(default, value);
         var recordIndex = this.AddRecordAndReserveData(SpannedRecordType.VerticalAlignment, len, out var data);
@@ -158,8 +158,8 @@ public sealed partial class SpannedStringBuilder
     }
 
     /// <inheritdoc/>
-    public SpannedStringBuilder PushLineVerticalAlignment(VerticalAlignment value) =>
-        this.PushLineVerticalAlignment(
+    public SpannedStringBuilder PushVerticalAlignment(VerticalAlignment value) =>
+        this.PushVerticalAlignment(
             value switch
             {
                 VerticalAlignment.Top => 0f,
@@ -170,7 +170,7 @@ public sealed partial class SpannedStringBuilder
             });
 
     /// <inheritdoc/>
-    public SpannedStringBuilder PopLineVerticalAlignment() =>
+    public SpannedStringBuilder PopVerticalAlignment() =>
         this.PopHelper(this.stackVerticalAlignment, SpannedRecordType.VerticalAlignment);
 
     /// <inheritdoc/>
