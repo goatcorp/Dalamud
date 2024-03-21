@@ -1,4 +1,4 @@
-﻿using Dalamud.Interface.Internal;
+using Dalamud.Interface.Internal;
 using Dalamud.Utility;
 
 using ImGuiNET;
@@ -26,6 +26,12 @@ public interface IFontAtlasBuildToolkitPostBuild : IFontAtlasBuildToolkit
     /// <param name="disposeOnError">Dispose the wrap on error.</param>
     /// <returns>The texture index.</returns>
     int StoreTexture(IDalamudTextureWrap textureWrap, bool disposeOnError);
+
+    /// <summary>
+    /// Fits a font to a fixed 1:1 ratio adjusting glyph positions horizontally and vertically to fit within font size boundaries.
+    /// </summary>
+    /// <param name="font">The font to fit.</param>
+    void FitRatio(ImFontPtr font);
 
     /// <summary>
     /// Copies glyphs across fonts, in a safer way.<br />

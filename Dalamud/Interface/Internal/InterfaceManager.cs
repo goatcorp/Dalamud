@@ -23,10 +23,15 @@ using Dalamud.Interface.Utility;
 using Dalamud.Interface.Windowing;
 using Dalamud.Utility;
 using Dalamud.Utility.Timing;
+
 using ImGuiNET;
+
 using ImGuiScene;
+
 using PInvoke;
+
 using Serilog;
+
 using SharpDX;
 using SharpDX.Direct3D;
 using SharpDX.Direct3D11;
@@ -129,6 +134,13 @@ internal class InterfaceManager : IDisposable, IServiceType
         WhenFontsReady().IconFontHandle!.LockUntilPostFrame().OrElse(ImGui.GetIO().FontDefault);
 
     /// <summary>
+    /// Gets an included FontAwesome icon font with fixed width.
+    /// <strong>Accessing this static property outside of the main thread is dangerous and not supported.</strong>
+    /// </summary>
+    public static ImFontPtr IconFontFixedWidth =>
+        WhenFontsReady().IconFontFixedWidthHandle!.LockUntilPostFrame().OrElse(ImGui.GetIO().FontDefault);
+
+    /// <summary>
     /// Gets an included monospaced font.<br />
     /// <strong>Accessing this static property outside of the main thread is dangerous and not supported.</strong>
     /// </summary>
@@ -144,6 +156,11 @@ internal class InterfaceManager : IDisposable, IServiceType
     /// Gets the icon font handle.
     /// </summary>
     public FontHandle? IconFontHandle { get; private set; }
+
+    /// <summary>
+    /// Gets the icon font handle with fixed width.
+    /// </summary>
+    public FontHandle? IconFontFixedWidthHandle { get; private set; }
 
     /// <summary>
     /// Gets the mono font handle.
@@ -379,7 +396,7 @@ internal class InterfaceManager : IDisposable, IServiceType
                 });
             }
         }
-        
+
         // no sampler for now because the ImGui implementation we copied doesn't allow for changing it
         return new DalamudTextureWrap(new D3DTextureWrap(resView, width, height));
     }
@@ -475,7 +492,7 @@ internal class InterfaceManager : IDisposable, IServiceType
             atlas.BuildTask.GetAwaiter().GetResult();
         return im;
     }
-    
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void RenderImGui(RawDX11Scene scene)
     {
@@ -710,6 +727,25 @@ internal class InterfaceManager : IDisposable, IServiceType
                             GlyphMinAdvanceX = DefaultFontSizePx,
                             GlyphMaxAdvanceX = DefaultFontSizePx,
                         })));
+            this.IconFontFixedWidthHandle = (FontHandle)this.dalamudAtlas.NewDelegateFontHandle(
+                e =>
+                {
+                    e.OnPreBuild(
+                    tk => tk.AddFontAwesomeIconFont(
+                        new()
+                        {
+                            SizePx = Service<FontAtlasFactory>.Get().DefaultFontSpec.SizePx,
+                            GlyphMinAdvanceX = DefaultFontSizePx,
+                            GlyphMaxAdvanceX = DefaultFontSizePx,
+                        }));
+                    e.OnPostBuild(
+                        tk =>
+                        {
+                            var font = tk.Font;
+                            tk.FitRatio(font);
+                            tk.BuildLookupTable(font);
+                        });
+                });
             this.MonoFontHandle = (FontHandle)this.dalamudAtlas.NewDelegateFontHandle(
                 e => e.OnPreBuild(
                     tk => tk.AddDalamudAssetFont(

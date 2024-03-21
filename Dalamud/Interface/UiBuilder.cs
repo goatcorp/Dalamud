@@ -16,9 +16,13 @@ using Dalamud.Interface.ManagedFontAtlas;
 using Dalamud.Interface.ManagedFontAtlas.Internals;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Utility;
+
 using ImGuiNET;
+
 using ImGuiScene;
+
 using Serilog;
+
 using SharpDX.Direct3D11;
 
 namespace Dalamud.Interface;
@@ -46,6 +50,7 @@ public sealed class UiBuilder : IDisposable
     private IFontHandle? defaultFontHandle;
     private IFontHandle? iconFontHandle;
     private IFontHandle? monoFontHandle;
+    private IFontHandle? iconFontFixedWidthHandle;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="UiBuilder"/> class and registers it.
@@ -97,7 +102,7 @@ public sealed class UiBuilder : IDisposable
     /// Event that is fired when the plugin should open its configuration interface.
     /// </summary>
     public event Action OpenConfigUi;
-    
+
     /// <summary>
     /// Event that is fired when the plugin should open its main interface.
     /// </summary>
@@ -243,6 +248,16 @@ public sealed class UiBuilder : IDisposable
                     ?? throw new InvalidOperationException("Scene is not yet ready.")));
 
     /// <summary>
+    /// Gets the default Dalamud icon font based on FontAwesome 5 free solid with a fixed width and vertically centered glyphs.
+    /// </summary>
+    public IFontHandle IconFontFixedWidthHandle =>
+        this.iconFontFixedWidthHandle ??=
+            this.scopedFinalizer.Add(
+                new FontHandleWrapper(
+                    this.InterfaceManagerWithScene?.IconFontFixedWidthHandle
+                    ?? throw new InvalidOperationException("Scene is not yet ready.")));
+
+    /// <summary>
     /// Gets the default Dalamud monospaced font based on Inconsolata Regular.
     /// </summary>
     /// <remarks>
@@ -257,7 +272,7 @@ public sealed class UiBuilder : IDisposable
     ///             new() { SizePx = UiBuilder.DefaultFontSizePx })));
     /// </code>
     /// </remarks>
-    public IFontHandle MonoFontHandle => 
+    public IFontHandle MonoFontHandle =>
         this.monoFontHandle ??=
             this.scopedFinalizer.Add(
                 new FontHandleWrapper(
@@ -580,7 +595,7 @@ public sealed class UiBuilder : IDisposable
     {
         this.OpenConfigUi?.InvokeSafely();
     }
-    
+
     /// <summary>
     /// Open the registered configuration UI, if it exists.
     /// </summary>
@@ -788,5 +803,5 @@ public sealed class UiBuilder : IDisposable
 
         private void WrappedOnImFontChanged(IFontHandle obj, ILockedImFont lockedFont) =>
             this.ImFontChanged?.Invoke(obj, lockedFont);
-    } 
+    }
 }
