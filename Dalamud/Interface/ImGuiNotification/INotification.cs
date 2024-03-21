@@ -58,7 +58,7 @@ public interface INotification
     /// the notification will be dismissed when this expiry expires.<br />
     /// Set to <see cref="DateTime.MaxValue"/> to make only <see cref="InitialDuration"/> take effect.<br />
     /// If both <see cref="HardExpiry"/> and <see cref="InitialDuration"/> are MaxValue, then the notification
-    /// will not expire after a set time. It must be explicitly dismissed by the user of via calling
+    /// will not expire after a set time. It must be explicitly dismissed by the user or via calling
     /// <see cref="IActiveNotification.DismissNow"/>.<br />
     /// Updating this value will reset the dismiss timer.
     /// </remarks>
