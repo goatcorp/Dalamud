@@ -137,17 +137,19 @@ internal sealed unsafe partial class SpannableRenderer : ISpannableRenderer, IIn
     public bool Render(ISpannable spannable, ref RenderState renderState, out ReadOnlySpan<byte> hoveredLink)
     {
         ThreadSafety.AssertMainThread();
+        hoveredLink = default;
 
         using var splitter = renderState.UseDrawing ? this.RentSplitter(renderState.DrawListPtr) : default;
 
         var state = spannable.RentState(this, renderState, null);
 
         spannable.Measure(new(state));
-        if (renderState.UseLinks)
-            spannable.InteractWith(new(state), out hoveredLink);
-        else
-            hoveredLink = default;
-        spannable.Draw(new(state, splitter));
+        if (renderState.UseDrawing)
+        {
+            if (renderState.UseLinks)
+                spannable.InteractWith(new(state), out hoveredLink);
+            spannable.Draw(new(state, splitter));
+        }
 
         renderState = state.RenderState;
         spannable.ReturnState(state);

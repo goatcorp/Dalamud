@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 
 using Dalamud.Interface.Spannables.Rendering;
 
-namespace Dalamud.Interface.Spannables.Elements.Strings;
+namespace Dalamud.Interface.Spannables.Strings;
 
 /// <summary>Base class for <see cref="SpannedString"/> and <see cref="SpannedStringBuilder"/>.</summary>
 public abstract partial class SpannedStringBase

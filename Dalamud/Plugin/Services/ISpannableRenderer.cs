@@ -3,8 +3,8 @@ using System.Numerics;
 
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Spannables;
-using Dalamud.Interface.Spannables.Elements.Strings;
 using Dalamud.Interface.Spannables.Rendering;
+using Dalamud.Interface.Spannables.Strings;
 using Dalamud.Interface.Spannables.Styles;
 
 using ImGuiNET;

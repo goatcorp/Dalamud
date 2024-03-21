@@ -7,7 +7,7 @@ using Dalamud.Interface.Spannables.Styles;
 
 using ImGuiNET;
 
-namespace Dalamud.Interface.Spannables.Elements.Strings;
+namespace Dalamud.Interface.Spannables.Strings;
 
 /// <summary>Base class for <see cref="SpannedString"/> and <see cref="SpannedStringBuilder"/>.</summary>
 public abstract partial class SpannedStringBase
@@ -130,6 +130,7 @@ public abstract partial class SpannedStringBase
             var uv0 = glyph.UV0;
             var uv1 = glyph.UV1;
             var texId = this.fontInfo.Font.ContainerAtlas.Textures[glyph.TextureIndex].TexID;
+            var nonNullSpannableStateIndex = -1;
 
             bool? forceVisible = null;
             ISpannable? spannable = null;
@@ -180,15 +181,23 @@ public abstract partial class SpannedStringBase
                         case SpannedRecordType.ObjectSpannable
                             when SpannedRecordCodec.TryDecodeObjectSpannable(
                                      recordData,
-                                     out var index,
+                                     out nonNullSpannableStateIndex,
                                      out _)
-                                 && this.data.TryGetSpannableAt(index, out spannable)
-                                 && this.state.SpannableStates[index] is { } spannableState:
+                                 && this.data.TryGetSpannableAt(nonNullSpannableStateIndex, out spannable)
+                                 && this.state.SpannableStates[nonNullSpannableStateIndex] is { } spannableState:
                         {
                             xy0 = spannableState.RenderState.Boundary.LeftTop;
                             xy1 = spannableState.RenderState.Boundary.RightBottom;
+                            if (xy1.Y < this.fontInfo.ScaledFontSize)
+                            {
+                                var d = (this.fontInfo.ScaledFontSize - (xy1.Y - xy0.Y)) *
+                                        this.state.RenderState.LastStyle.VerticalAlignment;
+                                xy0.Y += d;
+                                xy1.Y += d;
+                            }
+
                             advX = xy1.X;
-                            forceVisible = true;
+                            forceVisible = false;
                             break;
                         }
 
@@ -416,7 +425,32 @@ public abstract partial class SpannedStringBase
                     ImGuiNative.ImDrawList_PopTextureID(this.state.RenderState.DrawListPtr);
             }
 
-            spannable?.Draw(this.args.WithState(this.state));
+            if (spannable is not null && nonNullSpannableStateIndex != -1)
+            {
+                ref var spannableState = ref this.state.SpannableStates[nonNullSpannableStateIndex]!;
+                if (this.state.RenderState.UseDrawing && !this.skipDraw)
+                {
+                    spannable.Draw(this.args.WithState(spannableState));
+                }
+                else
+                {
+                    spannableState.RenderState.StartScreenOffset =
+                        this.state.RenderState.StartScreenOffset +
+                        this.state.RenderState.Transform(this.state.RenderState.Offset + this.StyleTranslation + xy0);
+                    if (Matrix4x4.Decompose(this.state.RenderState.Transformation, out var scale, out var rot, out _))
+                    {
+                        var m = Matrix4x4.Identity;
+                        if (this.state.RenderState.LastStyle.Italic)
+                            m = Matrix4x4.Multiply(m, new Matrix4x4(Matrix3x2.CreateSkew(MathF.Atan(-1 / 6f), 0)));
+                        m = Matrix4x4.Multiply(m, Matrix4x4.CreateFromQuaternion(rot));
+                        m = Matrix4x4.Multiply(m, Matrix4x4.CreateScale(scale));
+
+                        spannableState.RenderState = spannableState.RenderState.WithTransformation(m);
+                    }
+
+                    spannable.Measure(new(spannableState));
+                }
+            }
 
             this.state.RenderState.Offset.X += advX;
             return bounds;

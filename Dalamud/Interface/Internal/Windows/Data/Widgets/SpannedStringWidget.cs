@@ -9,9 +9,10 @@ using Dalamud.Interface.FontIdentifier;
 using Dalamud.Interface.ImGuiNotification.Internal;
 using Dalamud.Interface.Internal.Notifications;
 using Dalamud.Interface.Spannables;
-using Dalamud.Interface.Spannables.Elements.Strings;
+using Dalamud.Interface.Spannables.Controls.Buttons;
 using Dalamud.Interface.Spannables.Rendering;
 using Dalamud.Interface.Spannables.Rendering.Internal;
+using Dalamud.Interface.Spannables.Strings;
 using Dalamud.Interface.Spannables.Styles;
 using Dalamud.Interface.Utility;
 using Dalamud.Utility;
@@ -45,6 +46,8 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
     private bool showParseTest;
     private WordBreakType wordBreakType;
     private long catchMeBegin;
+
+    private SpannableButton[] spannableButton = null!;
 
     private (SpannedString? Parsed, Exception? Exception) parseAttempt;
 
@@ -82,6 +85,42 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
                                    .PushLineVerticalAlignment(VerticalAlignment.Middle)
                                    .Append(FontAwesomeIcon.ArrowTurnDown.ToIconString());
 
+        this.spannableButton = new SpannableButton[12];
+        for (var i = 0; i < this.spannableButton.Length; i++)
+        {
+            this.spannableButton[i] = new()
+            {
+                SpannableText = new SpannedStringBuilder()
+                                .PushLineVerticalAlignment(0.5f)
+                                .PushLink("tlink"u8)
+                                .PushBorderWidth(1)
+                                .PushEdgeColor(0xFF2222AA)
+                                .Append("Link ")
+                                .PopEdgeColor()
+                                .PopBorderWidth()
+                                .PopLink()
+                                .PushItalic()
+                                .Append("Italic ")
+                                .PushFontSize(-2)
+                                .AppendSpannable(
+                                    new SpannableButton
+                                    {
+                                        SpannableText = new SpannedStringBuilder()
+                                                            .Append("Inner ")
+                                                            .PushSystemFontFamilyIfAvailable("Comic Sans MS")
+                                                            .Append("Comic"),
+                                    },
+                                    null,
+                                    out _)
+                                .PopFontSize()
+                                .Append(' ')
+                                .PushItalic()
+                                .Append(i)
+                                .PopItalic()
+                                .Append(" end"),
+            };
+        }
+
         this.testStringBuffer.Dispose();
         this.testStringBuffer = new(65536);
         this.testStringBuffer.StorageSpan.Clear();
@@ -115,6 +154,37 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
     {
         var renderer = Service<SpannableRenderer>.Get();
 
+        var bgpos = ImGui.GetWindowPos() + new Vector2(ImGui.GetScrollX(), ImGui.GetScrollY());
+        ImGui.GetWindowDrawList()
+             .AddImage(
+                 Service<TextureManager>.Get().GetTextureFromGame("ui/uld/WindowA_BgSelected_HV_hr1.tex")!.ImGuiHandle,
+                 bgpos + ImGui.GetWindowContentRegionMin(),
+                 bgpos + ImGui.GetWindowContentRegionMax(),
+                 Vector2.Zero,
+                 (ImGui.GetWindowContentRegionMax() - ImGui.GetWindowContentRegionMin()) / 64);
+
+        var off = ImGui.GetCursorPos();
+        ImGui.SetCursorPos(off);
+        for (var i = 0; i < this.spannableButton.Length; i++)
+        {
+            ImGui.SetCursorPos(off);
+            renderer.Render(
+                this.spannableButton[i],
+                new(
+                    $"TestButton{i}",
+                    new()
+                    {
+                        // Rotate 30deg first, and then translate by (+32, +32).
+                        Transformation = Matrix4x4.Multiply(
+                            Matrix4x4.CreateTranslation(80, 0, 0),
+                            Matrix4x4.Multiply(
+                                Matrix4x4.CreateRotationZ((i / 6f) * MathF.PI),
+                                Matrix4x4.CreateTranslation(320, 320, 0))),
+                    }));
+        }
+
+        ImGui.SetCursorPos(off + new Vector2(0, 640));
+
         var p = new RenderOptions
         {
             WordBreak = this.wordBreakType,
@@ -137,14 +207,6 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
                     : null,
         };
 
-        var bgpos = ImGui.GetWindowPos() + new Vector2(ImGui.GetScrollX(), ImGui.GetScrollY());
-        ImGui.GetWindowDrawList()
-             .AddImage(
-                 Service<TextureManager>.Get().GetTextureFromGame("ui/uld/WindowA_BgSelected_HV_hr1.tex")!.ImGuiHandle,
-                 bgpos + ImGui.GetWindowContentRegionMin(),
-                 bgpos + ImGui.GetWindowContentRegionMax(),
-                 Vector2.Zero,
-                 (ImGui.GetWindowContentRegionMax() - ImGui.GetWindowContentRegionMin()) / 64);
         var dynamicOffsetTestOffset = ImGui.GetCursorScreenPos();
         var pad = MathF.Round(8 * ImGuiHelpers.GlobalScale);
         ImGui.Indent(pad);
@@ -767,7 +829,7 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
                         ScreenOffset = ImGui.GetWindowPos(),
                         MaxSize = size,
                         VerticalAlignment = 0.5f,
-                        InitialStyle = SpanStyle.FromContext with 
+                        InitialStyle = SpanStyle.FromContext with
                         {
                             HorizontalAlignment = 0.5f,
                         },

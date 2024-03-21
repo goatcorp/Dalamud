@@ -8,7 +8,7 @@ using Dalamud.Interface.Spannables.Internal;
 using Dalamud.Interface.Spannables.Styles;
 using Dalamud.Utility;
 
-namespace Dalamud.Interface.Spannables.Elements.Strings;
+namespace Dalamud.Interface.Spannables.Strings;
 
 /// <summary>A custom text renderer implementation.</summary>
 public sealed partial class SpannedStringBuilder

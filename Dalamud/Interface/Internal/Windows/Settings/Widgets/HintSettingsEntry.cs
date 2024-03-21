@@ -3,8 +3,8 @@ using System.Globalization;
 using System.Numerics;
 
 using Dalamud.Interface.Colors;
-using Dalamud.Interface.Spannables.Elements.Strings;
 using Dalamud.Interface.Spannables.Rendering.Internal;
+using Dalamud.Interface.Spannables.Strings;
 using Dalamud.Interface.Spannables.Styles;
 
 using Serilog;

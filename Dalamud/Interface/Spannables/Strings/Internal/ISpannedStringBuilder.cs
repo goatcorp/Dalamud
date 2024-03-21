@@ -11,7 +11,7 @@ using Dalamud.Interface.Spannables.Styles;
 using Dalamud.Utility;
 using Dalamud.Utility.Text;
 
-namespace Dalamud.Interface.Spannables.Elements.Strings.Internal;
+namespace Dalamud.Interface.Spannables.Strings.Internal;
 
 /// <summary>A builder for <see cref="SpannedString"/>.</summary>
 /// <remarks>This is an interface just for the sake of managing doccomments. Nothing else than

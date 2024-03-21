@@ -1,4 +1,4 @@
-using Dalamud.Interface.Spannables.Elements.Strings;
+using Dalamud.Interface.Spannables.Strings;
 
 namespace Dalamud.Interface.Spannables.Internal;
 

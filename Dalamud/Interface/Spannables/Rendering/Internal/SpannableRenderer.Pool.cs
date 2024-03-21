@@ -1,6 +1,6 @@
 using System.Runtime.CompilerServices;
 
-using Dalamud.Interface.Spannables.Elements.Strings;
+using Dalamud.Interface.Spannables.Strings;
 using Dalamud.Utility;
 
 using ImGuiNET;

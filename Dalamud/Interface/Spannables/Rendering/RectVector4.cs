@@ -37,40 +37,55 @@ public struct RectVector4 : IEquatable<RectVector4>
     public float Bottom;
 
     /// <summary>Initializes a new instance of the <see cref="RectVector4"/> struct.</summary>
+    /// <param name="value">The value to use for all fields.</param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public RectVector4(float value) => this.Left = this.Top = this.Right = this.Bottom = value;
+
+    /// <summary>Initializes a new instance of the <see cref="RectVector4"/> struct.</summary>
+    /// <param name="xy">The value to use for horizontal and vertical fields, respectively.</param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public RectVector4(Vector2 xy) => this.LeftTop = this.RightBottom = xy;
+
+    /// <summary>Initializes a new instance of the <see cref="RectVector4"/> struct.</summary>
+    /// <param name="x">The value to use for horizontal fields.</param>
+    /// <param name="y">The value to use for vertical fields.</param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public RectVector4(float x, float y) => this.LeftTop = this.RightBottom = new(x, y);
+
+    /// <summary>Initializes a new instance of the <see cref="RectVector4"/> struct.</summary>
     /// <param name="left">The left value.</param>
     /// <param name="top">The top value.</param>
     /// <param name="right">The right value.</param>
     /// <param name="bottom">The bottom value.</param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public RectVector4(float left, float top, float right, float bottom)
-    {
-        this.Left = left;
-        this.Top = top;
-        this.Right = right;
-        this.Bottom = bottom;
-    }
+    public RectVector4(float left, float top, float right, float bottom) =>
+        this.Vector4 = new(left, top, right, bottom);
 
     /// <summary>Initializes a new instance of the <see cref="RectVector4"/> struct.</summary>
     /// <param name="leftTop">The left top coordinates.</param>
     /// <param name="rightBottom">The right bottom coordinates.</param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public RectVector4(Vector2 leftTop, Vector2 rightBottom)
-    {
-        this.LeftTop = leftTop;
-        this.RightBottom = rightBottom;
-    }
+    public RectVector4(Vector2 leftTop, Vector2 rightBottom) =>
+        this.Vector4 = new(leftTop, rightBottom.X, rightBottom.Y);
 
     /// <summary>Initializes a new instance of the <see cref="RectVector4"/> struct.</summary>
     /// <param name="vector4">A <see cref="Vector4"/> value to copy from.</param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public RectVector4(Vector4 vector4) => this.Vector4 = vector4;
 
+    /// <summary>Gets an instance of <see cref="RectVector4"/> containing zeroes.</summary>
+    public static RectVector4 Zero
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => default;
+    }
+
     /// <summary>Gets an instance of <see cref="RectVector4"/> containing the inverted extrema, so that extending with
     /// any other valid instance of <see cref="RectVector4"/> can work reliably.</summary>
     public static RectVector4 InvertedExtrema
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => new(new(float.MaxValue), new(float.MinValue));
+        get => new(new Vector2(float.MaxValue), new(float.MinValue));
     }
 
     /// <summary>Gets or sets the left bottom coordinates.</summary>
@@ -121,11 +136,54 @@ public struct RectVector4 : IEquatable<RectVector4>
         get => this.IsValid ? this.Bottom - this.Top : 0f;
     }
 
+    /// <summary>Gets the size, if <see cref="IsValid"/> is <c>true</c>.</summary>
+    public readonly Vector2 Size
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => this.IsValid ? this.RightBottom - this.LeftTop : Vector2.Zero;
+    }
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool operator ==(in RectVector4 left, in RectVector4 right) => left.Equals(in right);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool operator !=(in RectVector4 left, in RectVector4 right) => !left.Equals(in right);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static RectVector4 operator -(in RectVector4 a) => new(-a.Vector4);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static RectVector4 operator +(in RectVector4 left, in RectVector4 right) =>
+        new(left.Vector4 + right.Vector4);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static RectVector4 operator -(in RectVector4 left, in RectVector4 right) =>
+        new(left.Vector4 - right.Vector4);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static RectVector4 operator *(in RectVector4 left, in RectVector4 right) =>
+        new(left.Vector4 * right.Vector4);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static RectVector4 operator /(in RectVector4 left, in RectVector4 right) =>
+        new(left.Vector4 / right.Vector4);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static RectVector4 operator *(in RectVector4 left, in float right) =>
+        new(left.Vector4 * right);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static RectVector4 operator /(in RectVector4 left, in float right) =>
+        new(left.Vector4 / right);
+
+    /// <summary>Extrudes <paramref name="what"/> by <paramref name="by"/>, by subtracting <see cref="LeftTop"/>
+    /// and adding <see cref="RightBottom"/>.</summary>
+    /// <param name="what">The rect vector to extrude from.</param>
+    /// <param name="by">The extrusion distance.</param>
+    /// <returns>The extruded rect vector.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static RectVector4 Extrude(in RectVector4 what, in RectVector4 by) =>
+        new(what.LeftTop - by.LeftTop, what.RightBottom + by.RightBottom);
 
     /// <summary>Creates a new instance of <see cref="RectVector4"/> from a vector containing the coordinates at
     /// left top and a vector containing the size of rect.</summary>
@@ -135,6 +193,20 @@ public struct RectVector4 : IEquatable<RectVector4>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static RectVector4 FromCoordAndSize(in Vector2 coordinates, in Vector2 size) =>
         new(coordinates, coordinates + size);
+
+    /// <summary>Normalizes this rect vector so that left &lt;= right &amp;&amp; top &lt;= bottom.</summary>
+    /// <param name="rv">The rect vector.</param>
+    /// <returns>The normalized rect vector.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static RectVector4 Normalize(in RectVector4 rv)
+    {
+        var res = rv;
+        if (res.Left > res.Right)
+            res.Left = res.Right = MathF.Round((res.Left + res.Right) / 2);
+        if (res.Top > res.Bottom)
+            res.Top = res.Bottom = MathF.Round((res.Top + res.Bottom) / 2);
+        return res;
+    }
 
     /// <summary>Translates <paramref name="what"/> by <paramref name="by"/>.</summary>
     /// <param name="what">The rect vector to translate.</param>

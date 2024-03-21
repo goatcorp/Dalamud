@@ -20,7 +20,9 @@ public readonly struct SpannableInteractionArgs
     private const int CImGuiContextCurrentWindowOffset = 0x3ff0;
     private const int CImGuiContextHoveredWindowOffset = 0x3ff8;
     private const int CImGuiContextHoveredIdOffset = 0x4030;
+    private const int CImGuiContextHoveredIdUsingMouseWheelOffset = 0x4039;
     private const int CImGuiContextActiveIdOffset = 0x4044;
+    private const int CImGuiContextActiveIdUsingMouseWheelOffset = 0x4088;
 
     private static readonly unsafe delegate* unmanaged<uint, nint, void> ImGuiSetActiveId;
     private static readonly unsafe delegate* unmanaged<uint, void> ImGuiSetHoveredId;
@@ -49,17 +51,31 @@ public readonly struct SpannableInteractionArgs
 
     /// <summary>Marks the specified inner ID as hovered.</summary>
     /// <param name="innerId">The inner ID.</param>
+    /// <param name="useWheel">Whether to take wheel inputs, preventing window from handling wheel events.</param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public unsafe void SetHovered(int innerId) =>
-        ImGuiSetHoveredId(this.GlobalIdFromInnerId(innerId));
+    public unsafe void SetHovered(int innerId, bool useWheel = false)
+    {
+        ImGuiSetHoveredId(this.State.RenderState.GetGlobalIdFromInnerId(innerId));
+        if (useWheel)
+        {
+            *(byte*)(ImGui.GetCurrentContext() + CImGuiContextHoveredIdUsingMouseWheelOffset) = 1;
+        }
+    }
 
     /// <summary>Marks the specified inner ID as active (pressed).</summary>
     /// <param name="innerId">The inner ID.</param>
+    /// <param name="useWheel">Whether to take wheel inputs, preventing window from handling wheel events.</param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public unsafe void SetActive(int innerId) =>
+    public unsafe void SetActive(int innerId, bool useWheel = false)
+    {
         ImGuiSetActiveId(
-            this.GlobalIdFromInnerId(innerId),
+            this.State.RenderState.GetGlobalIdFromInnerId(innerId),
             *(nint*)(ImGui.GetCurrentContext() + CImGuiContextCurrentWindowOffset));
+        if (useWheel)
+        {
+            *(byte*)(ImGui.GetCurrentContext() + CImGuiContextActiveIdUsingMouseWheelOffset) = 1;
+        }
+    }
 
     /// <summary>Clears the active item ID.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -75,7 +91,7 @@ public readonly struct SpannableInteractionArgs
         if (currentWindow != hoveredWindow)
             return false;
 
-        var innerIdGlobal = this.GlobalIdFromInnerId(innerId);
+        var innerIdGlobal = this.State.RenderState.GetGlobalIdFromInnerId(innerId);
         var hoveredId = *(uint*)(ImGui.GetCurrentContext() + CImGuiContextHoveredIdOffset);
         if (hoveredId != 0 && hoveredId != innerIdGlobal)
             return false;
@@ -86,10 +102,4 @@ public readonly struct SpannableInteractionArgs
 
         return true;
     }
-
-    /// <summary>Gets a global ID from an inner ID.</summary>
-    /// <param name="innerId">The inner ID.</param>
-    /// <returns>The global ID.</returns>
-    public unsafe uint GlobalIdFromInnerId(int innerId) =>
-        ImGuiNative.igGetID_Ptr((void*)(((ulong)this.State.RenderState.ImGuiGlobalId << 32) | (uint)innerId));
 }

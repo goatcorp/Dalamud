@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 
 using Dalamud.Interface.FontIdentifier;
-using Dalamud.Interface.Spannables.Elements.Strings.Internal;
+using Dalamud.Interface.Spannables.Strings.Internal;
 using Dalamud.Interface.Spannables.Styles;
 using Dalamud.Utility;
 using Dalamud.Utility.Text;

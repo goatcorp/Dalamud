@@ -17,7 +17,7 @@ using ImGuiNET;
 
 using Microsoft.Extensions.ObjectPool;
 
-namespace Dalamud.Interface.Spannables.Elements.Strings;
+namespace Dalamud.Interface.Spannables.Strings;
 
 /// <summary>Base class for <see cref="SpannedString"/> and <see cref="SpannedStringBuilder"/>.</summary>
 public abstract partial class SpannedStringBase : ISpannable
@@ -61,8 +61,8 @@ public abstract partial class SpannedStringBase : ISpannable
     }
 
     /// <inheritdoc/>
-    public ISpannableState? RentState(ISpannableRenderer renderer, RenderState initialState, string? args) =>
-        State.Rent(renderer, initialState, this.GetData());
+    public ISpannableState? RentState(ISpannableRenderer renderer, RenderState renderState, string? args) =>
+        State.Rent(renderer, renderState, this.GetData());
 
     /// <inheritdoc/>
     public void ReturnState(ISpannableState? state)
@@ -75,6 +75,9 @@ public abstract partial class SpannedStringBase : ISpannable
     public void Measure(SpannableMeasureArgs args)
     {
         var state = args.State as State ?? new();
+        state.RenderState.Offset = Vector2.Zero;
+        state.RenderState.LastStyle = state.RenderState.InitialStyle;
+
         var data = this.GetData();
         var segment = new DataRef.Segment(data, 0, 0);
         var linkRecordIndex = -1;
@@ -257,6 +260,16 @@ public abstract partial class SpannedStringBase : ISpannable
     public unsafe void InteractWith(SpannableInteractionArgs args, out ReadOnlySpan<byte> linkData)
     {
         var state = args.State as State ?? new();
+        var data = this.GetData();
+
+        for (var i = 0; i < data.Spannables.Length; i++)
+        {
+            if (state.SpannableStates[i] is not { } spannableState)
+                continue;
+            data.Spannables[i].InteractWith(new(spannableState), out linkData);
+            if (!linkData.IsEmpty)
+                return;
+        }
 
         var mouseRel = args.GetRelativeMouseCoord();
         var lmb = ImGui.IsMouseDown(ImGuiMouseButton.Left);
@@ -287,7 +300,7 @@ public abstract partial class SpannedStringBase : ISpannable
             prevLinkRecordIndex = link.RecordIndex;
 
             ref var itemState = ref *(ItemStateStruct*)ImGui.GetStateStorage().GetVoidPtrRef(
-                                        args.GlobalIdFromInnerId(link.RecordIndex),
+                                        args.State.RenderState.GetGlobalIdFromInnerId(link.RecordIndex),
                                         nint.Zero);
 
             if (itemState.IsMouseButtonDownHandled)
@@ -584,6 +597,8 @@ public abstract partial class SpannedStringBase : ISpannable
             t.Renderer = renderer;
             t.renderState = initialState;
             t.spannableStates.EnsureCapacity(data.Spannables.Length);
+            while (t.spannableStates.Count < data.Spannables.Length)
+                t.spannableStates.Add(null);
             return t;
         }
 
@@ -595,7 +610,7 @@ public abstract partial class SpannedStringBase : ISpannable
             state.InteractedLinkRecordIndex = -1;
             state.IsInteractedLinkRecordActive = false;
 
-            for (var i = 0; i < state.spannableStates.Count; i++)
+            for (var i = 0; i < data.Spannables.Length; i++)
                 data.Spannables[i]?.ReturnState(state.spannableStates[i]);
             state.SpannableStates.Clear();
             Pool.Return(state);
@@ -765,7 +780,9 @@ public abstract partial class SpannedStringBase : ISpannable
                     wrapMarker.Measure(new(state2));
                     if (state2.RenderState.Boundary.IsValid)
                     {
-                        wrapMarker.Draw(args.WithState(state2));
+                        if (this.renderState.UseDrawing)
+                            wrapMarker.Draw(args.WithState(state2));
+
                         accumulatedBoundary = RectVector4.Union(
                             accumulatedBoundary,
                             RectVector4.Translate(

@@ -8,10 +8,10 @@ public interface ISpannable
 {
     /// <summary>Rents a state.</summary>
     /// <param name="renderer">The associated renderer.</param>
-    /// <param name="initialState">The initial render state.</param>
+    /// <param name="renderState">The initial render state.</param>
     /// <param name="args">Optional spannable-implementation defined arguments.</param>
     /// <returns>The rented state.</returns>
-    ISpannableState RentState(ISpannableRenderer renderer, RenderState initialState, string? args);
+    ISpannableState RentState(ISpannableRenderer renderer, RenderState renderState, string? args);
 
     /// <summary>Returns a state.</summary>
     /// <param name="state">The state to return.</param>

@@ -229,4 +229,20 @@ public struct RenderState
     /// <returns>The reverse transformed coordinates.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public readonly Vector2 TransformInverse(Vector2 coord) => Vector2.Transform(coord, this.TransformationInverse);
+
+    /// <summary>Gets a global ID from an inner ID.</summary>
+    /// <param name="innerId">The inner ID.</param>
+    /// <returns>The global ID.</returns>
+    public readonly unsafe uint GetGlobalIdFromInnerId(int innerId) =>
+        ImGuiNative.igGetID_Ptr((void*)(((ulong)this.ImGuiGlobalId << 32) | (uint)innerId));
+
+    /// <summary>Gets a copy of this instance, but with the new transformation matrix.</summary>
+    /// <param name="transformation">The transformation matrix.</param>
+    /// <returns>The cloned render state with new transformation matrix.</returns>
+    public readonly RenderState WithTransformation(in Matrix4x4 transformation) =>
+        this with
+        {
+            Transformation = transformation,
+            TransformationInverse = Matrix4x4.Invert(transformation, out var inverted) ? inverted : Matrix4x4.Identity,
+        };
 }

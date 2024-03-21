@@ -3,14 +3,14 @@ using System.IO;
 using System.Runtime.InteropServices;
 
 using Dalamud.Interface.Internal;
-using Dalamud.Interface.Spannables.Elements.Strings.Internal;
 using Dalamud.Interface.Spannables.Internal;
+using Dalamud.Interface.Spannables.Strings.Internal;
 using Dalamud.Interface.Spannables.Styles;
 using Dalamud.Utility;
 
 using Microsoft.Extensions.ObjectPool;
 
-namespace Dalamud.Interface.Spannables.Elements.Strings;
+namespace Dalamud.Interface.Spannables.Strings;
 
 /// <summary>A custom text renderer implementation.</summary>
 public sealed partial class SpannedStringBuilder

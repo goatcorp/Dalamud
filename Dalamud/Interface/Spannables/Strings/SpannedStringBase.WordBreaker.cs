@@ -8,7 +8,7 @@ using Dalamud.Interface.Spannables.Styles;
 
 using ImGuiNET;
 
-namespace Dalamud.Interface.Spannables.Elements.Strings;
+namespace Dalamud.Interface.Spannables.Strings;
 
 /// <summary>Base class for <see cref="SpannedString"/> and <see cref="SpannedStringBuilder"/>.</summary>
 public abstract partial class SpannedStringBase
@@ -157,25 +157,35 @@ public abstract partial class SpannedStringBase
 
                             spannableState = spannable.RentState(
                                 this.state.Renderer,
-                                this.state.RenderState with
-                                {
-                                    PutDummyAfterRender = false,
-                                    ImGuiGlobalId = 0, // TODO
-                                    StartScreenOffset = new(float.NaN),
-                                    InitialStyle = this.state.RenderState.LastStyle,
-                                    LineCount = 0,
-                                    Offset = Vector2.Zero,
-                                    Boundary = RectVector4.InvertedExtrema,
-                                    ClickedMouseButton = (ImGuiMouseButton)(-1),
-                                    DrawListPtr = null,
-                                    MaxSize = new(
-                                        IsEffectivelyInfinity(this.state.RenderState.MaxSize.X)
-                                            ? float.MaxValue
-                                            : this.state.RenderState.MaxSize.X - this.state.RenderState.Offset.X,
-                                        Math.Min(
-                                            this.state.RenderState.MaxSize.Y - this.state.RenderState.Offset.Y,
-                                            this.fontInfo.ScaledFontSize)),
-                                },
+                                (this.state.RenderState with
+                                    {
+                                        PutDummyAfterRender = false,
+                                        ImGuiGlobalId =
+                                        this.state.RenderState.GetGlobalIdFromInnerId(offsetBefore.Record),
+                                        InitialStyle = this.state.RenderState.LastStyle with
+                                        {
+                                            Italic = false,
+                                        },
+                                        LineCount = 0,
+                                        Offset = Vector2.Zero,
+                                        Boundary = RectVector4.InvertedExtrema,
+                                        ClickedMouseButton = (ImGuiMouseButton)(-1),
+                                        MaxSize = new(
+                                            IsEffectivelyInfinity(this.state.RenderState.MaxSize.X)
+                                                ? float.MaxValue
+                                                : this.state.RenderState.MaxSize.X - this.state.RenderState.Offset.X,
+                                            Math.Min(
+                                                this.state.RenderState.MaxSize.Y - this.state.RenderState.Offset.Y,
+                                                this.fontInfo.ScaledFontSize)),
+                                    }).WithTransformation(
+                                    Matrix4x4.Multiply(
+                                        Matrix4x4.CreateTranslation(
+                                            new(
+                                                Vector2.Transform(
+                                                    this.state.RenderState.Offset,
+                                                    this.state.RenderState.Transformation),
+                                                0)),
+                                        this.state.RenderState.Transformation)),
                                 spannableArgs);
                             spannable.Measure(new(spannableState));
                             boundary = spannableState.RenderState.Boundary;

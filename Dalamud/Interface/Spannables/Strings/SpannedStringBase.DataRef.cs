@@ -8,7 +8,7 @@ using Dalamud.Interface.Spannables.Internal;
 using Dalamud.Interface.Spannables.Styles;
 using Dalamud.Utility.Text;
 
-namespace Dalamud.Interface.Spannables.Elements.Strings;
+namespace Dalamud.Interface.Spannables.Strings;
 
 /// <summary>Base class for <see cref="SpannedString"/> and <see cref="SpannedStringBuilder"/>.</summary>
 public abstract partial class SpannedStringBase

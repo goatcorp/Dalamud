@@ -4,11 +4,11 @@ using System.Reflection;
 using System.Text;
 
 using Dalamud.Interface.Internal;
-using Dalamud.Interface.Spannables.Elements.Strings.Internal;
 using Dalamud.Interface.Spannables.Internal;
+using Dalamud.Interface.Spannables.Strings.Internal;
 using Dalamud.Interface.Spannables.Styles;
 
-namespace Dalamud.Interface.Spannables.Elements.Strings;
+namespace Dalamud.Interface.Spannables.Strings;
 
 /// <summary>A UTF-8 character sequence with embedded styling information.</summary>
 public sealed partial class SpannedString : SpannedStringBase, ISpanParsable<SpannedString>
