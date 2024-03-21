@@ -728,24 +728,7 @@ internal class InterfaceManager : IDisposable, IServiceType
                             GlyphMaxAdvanceX = DefaultFontSizePx,
                         })));
             this.IconFontFixedWidthHandle = (FontHandle)this.dalamudAtlas.NewDelegateFontHandle(
-                e =>
-                {
-                    e.OnPreBuild(
-                    tk => tk.AddFontAwesomeIconFont(
-                        new()
-                        {
-                            SizePx = Service<FontAtlasFactory>.Get().DefaultFontSpec.SizePx,
-                            GlyphMinAdvanceX = DefaultFontSizePx,
-                            GlyphMaxAdvanceX = DefaultFontSizePx,
-                        }));
-                    e.OnPostBuild(
-                        tk =>
-                        {
-                            var font = tk.Font;
-                            tk.FitRatio(font);
-                            tk.BuildLookupTable(font);
-                        });
-                });
+                e => e.OnPreBuild(tk => tk.AddDalamudDefaultFont(-1, new ushort[] { 0x20 })));
             this.MonoFontHandle = (FontHandle)this.dalamudAtlas.NewDelegateFontHandle(
                 e => e.OnPreBuild(
                     tk => tk.AddDalamudAssetFont(
@@ -762,6 +745,13 @@ internal class InterfaceManager : IDisposable, IServiceType
                         tk.GetFont(this.DefaultFontHandle),
                         tk.GetFont(this.MonoFontHandle),
                         missingOnly: true);
+
+                    // Fill missing glyphs in IconFontFixedWidth with IconFont and fit ratio
+                    tk.CopyGlyphsAcrossFonts(
+                        tk.GetFont(this.IconFontHandle),
+                        tk.GetFont(this.IconFontFixedWidthHandle),
+                        missingOnly: true);
+                    tk.FitRatio(tk.GetFont(this.IconFontFixedWidthHandle));
                 });
             this.DefaultFontHandle.ImFontChanged += (_, font) =>
             {

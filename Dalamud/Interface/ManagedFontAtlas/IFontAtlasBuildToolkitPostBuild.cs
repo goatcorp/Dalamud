@@ -31,7 +31,8 @@ public interface IFontAtlasBuildToolkitPostBuild : IFontAtlasBuildToolkit
     /// Fits a font to a fixed 1:1 ratio adjusting glyph positions horizontally and vertically to fit within font size boundaries.
     /// </summary>
     /// <param name="font">The font to fit.</param>
-    void FitRatio(ImFontPtr font);
+    /// <param name="rebuildLookupTable">Whether to call target.BuildLookupTable().</param>
+    void FitRatio(ImFontPtr font, bool rebuildLookupTable = true);
 
     /// <summary>
     /// Copies glyphs across fonts, in a safer way.<br />

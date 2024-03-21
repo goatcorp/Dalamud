@@ -719,7 +719,7 @@ internal sealed partial class FontAtlasFactory
         }
 
         /// <inheritdoc/>
-        public void FitRatio(ImFontPtr font)
+        public void FitRatio(ImFontPtr font, bool rebuildLookupTable = true)
         {
             var nsize = font.FontSize;
             var glyphs = font.GlyphsWrapped();
@@ -738,6 +738,9 @@ internal sealed partial class FontAtlasFactory
                 glyph.Y1 = glyph.Y0 + h;
                 glyph.AdvanceX = nsize;
             }
+
+            if (rebuildLookupTable)
+                this.BuildLookupTable(font);
         }
     }
 }
