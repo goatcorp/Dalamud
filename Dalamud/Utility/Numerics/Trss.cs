@@ -264,4 +264,14 @@ public struct Trss
     /// <returns>The translated TRSS.</returns>
     public static Trss Translate(in Trss transformation, Vector3 translation) =>
         new(transformation.Translation3 + translation, transformation.Rotation, transformation.Scale3, transformation.SkewXY);
+
+    /// <summary>Removes the translation component from the given TRSS.</summary>
+    /// <param name="transformation">The TRSS to remove component from.</param>
+    /// <returns>The TRSS without translation.</returns>
+    public static Trss WithoutTranslation(in Trss transformation)
+    {
+        if (transformation.ContainsRawMatrix)
+            return new(transformation.Matrix with { M41 = 0, M42 = 0, M43 = 0 });
+        return transformation with { Translation3 = Vector3.Zero };
+    }
 }

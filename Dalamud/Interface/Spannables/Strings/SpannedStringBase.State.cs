@@ -299,7 +299,7 @@ public abstract partial class SpannedStringBase
                                     state2,
                                     this.TransformToScreen(this.Offset + charRenderer.StyleTranslation),
                                     this.TransformationOrigin,
-                                    Trss.Multiply(trss, this.Transformation)));
+                                    Trss.Multiply(trss, Trss.WithoutTranslation(this.Transformation))));
                             wrapMarker.Draw(args with { State = state2 });
                         }
 

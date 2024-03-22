@@ -6,6 +6,8 @@ using Dalamud.Interface.Spannables.Rendering;
 using Dalamud.Interface.Spannables.Styles;
 using Dalamud.Utility.Numerics;
 
+using FFXIVClientStructs.FFXIV.Common.Math;
+
 namespace Dalamud.Interface.Spannables.Strings;
 
 /// <summary>Base class for <see cref="SpannedString"/> and <see cref="SpannedStringBuilder"/>.</summary>
@@ -184,8 +186,12 @@ public abstract partial class SpannedStringBase
                             break;
                     }
 
+                    current.UnionBBoxVertical(this.fontInfo.BBoxVertical.X, this.fontInfo.BBoxVertical.Y);
                     current.AddObject(this.fontInfo, offset.Record, boundary.Left, boundary.Right);
                     current.SetOffset(offsetAfter, pad);
+                    if (current.Height < boundary.Height)
+                        current.BBoxVertical *= boundary.Height / current.Height;
+
                     break;
                 }
 

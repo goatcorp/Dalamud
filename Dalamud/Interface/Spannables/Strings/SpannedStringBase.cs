@@ -274,8 +274,8 @@ public abstract partial class SpannedStringBase : ISpannable
                 new(
                     spannableState,
                     state.TransformToScreen(state.SpannableOffsets[i]),
-                    state.TransformationOrigin,
-                    Trss.Multiply(trss, state.Transformation)));
+                    Vector2.Zero,
+                    Trss.Multiply(trss, Trss.WithoutTranslation(state.Transformation))));
         }
     }
 
@@ -289,7 +289,7 @@ public abstract partial class SpannedStringBase : ISpannable
         {
             if (state.SpannableStates[i] is not { } spannableState)
                 continue;
-            data.Spannables[i].HandleInteraction(new(spannableState), out link);
+            data.Spannables[i].HandleInteraction(args with { State = spannableState }, out link);
             if (!link.IsEmpty)
                 return;
         }

@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Numerics;
 
 using Dalamud.Interface.Spannables.EventHandlerArgs;
 using Dalamud.Interface.Spannables.Rendering;
@@ -71,16 +72,16 @@ public class SpannableButton : SpannableControl
         spannable.CommitMeasurement(
             new(
                 this.spannableState,
-                this.ScreenOffset + this.MeasuredContentBox.LeftTop,
-                this.TransformationOrigin,
-                this.Transformation));
+                this.TransformToScreen(this.MeasuredContentBox.LeftTop),
+                Vector2.Zero, // yes
+                Trss.WithoutTranslation(this.Transformation)));
     }
 
     /// <inheritdoc/>
     public override void HandleInteraction(SpannableHandleInteractionArgs args, out SpannableLinkInteracted link)
     {
         if (this.spannableText is not null && this.spannableState is not null)
-            this.spannableText.HandleInteraction(new(this.spannableState), out link);
+            this.spannableText.HandleInteraction(args with { State = this.spannableState }, out link);
         base.HandleInteraction(args, out link);
     }
 
@@ -148,9 +149,9 @@ public class SpannableButton : SpannableControl
 
         var res = availableContentBox;
         if (this.IsWidthWrapContent)
-            res.Right = Math.Min(res.Right, res.Left + b.Right);
+            res.Right = res.Left + b.Right;
         if (this.IsHeightWrapContent)
-            res.Bottom = Math.Min(res.Bottom, res.Top + b.Bottom);
+            res.Bottom = res.Top + b.Bottom;
         return res;
     }
 }

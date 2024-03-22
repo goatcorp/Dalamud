@@ -217,7 +217,7 @@ public class SpannableControl : ISpannable, ISpannableState
                 ResolveSize(args, this.MinSize),
                 ResolveSize(args, this.MaxSize)));
 
-        rv = RectVector4.Extrude(rv, -(this.Margin + this.Padding));
+        rv = RectVector4.Extrude(rv, -(this.Margin + this.Padding) * this.Scale);
         rv = RectVector4.Normalize(rv);
 
         if (rv.Right >= 1000000f)
@@ -227,9 +227,9 @@ public class SpannableControl : ISpannable, ISpannableState
         this.measuredContentBox = this.MeasureContentBox(args, rv);
         this.measuredContentBox = RectVector4.Normalize(this.measuredContentBox);
 
-        this.measuredInteractiveBox = RectVector4.Extrude(this.measuredContentBox, this.Padding);
-        this.boundary = RectVector4.Extrude(this.measuredInteractiveBox, this.Margin);
-        this.measuredExtrudedBox = RectVector4.Extrude(this.boundary, this.Extrude);
+        this.measuredInteractiveBox = RectVector4.Extrude(this.measuredContentBox, this.Padding * this.Scale);
+        this.boundary = RectVector4.Extrude(this.measuredInteractiveBox, this.Margin * this.Scale);
+        this.measuredExtrudedBox = RectVector4.Extrude(this.boundary, this.Extrude * this.Scale);
         return;
 
         static Vector2 ResolveSize(SpannableMeasureArgs args, in Vector2 dim)

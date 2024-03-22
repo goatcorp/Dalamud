@@ -132,7 +132,11 @@ internal sealed partial class SpannableRenderer : ISpannableRenderer, IInternalD
 
         spannable.Measure(new(state, renderContext.MaxSize));
         spannable.CommitMeasurement(
-            new(state, renderContext.ScreenOffset, renderContext.TransformationOrigin, renderContext.Transformation));
+            new(
+                state,
+                renderContext.ScreenOffset,
+                renderContext.TransformationOrigin,
+                renderContext.Transformation));
         if (renderContext.UseDrawing)
         {
             if (renderContext.UseLinks)

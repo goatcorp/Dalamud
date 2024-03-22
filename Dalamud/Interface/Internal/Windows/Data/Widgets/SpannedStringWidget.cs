@@ -114,6 +114,7 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
         {
             this.spannableButton[i] = new()
             {
+                Margin = new(64, 0, 0, 0),
                 SpannableText = new SpannedStringBuilder()
                                 .PushVerticalAlignment(0.5f)
                                 .PushLink("tlink"u8)
@@ -125,7 +126,6 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
                                 .PopLink()
                                 .PushItalic()
                                 .Append("Italic ")
-                                .PushFontSize(-2)
                                 .AppendSpannable(
                                     new SpannableButton
                                     {
@@ -136,7 +136,6 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
                                     },
                                     null,
                                     out _)
-                                .PopFontSize()
                                 .Append(' ')
                                 .PushItalic()
                                 .Append(i)
@@ -173,6 +172,8 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
         this.testStringBuffer.Dispose();
     }
 
+    private float angle = 0;
+
     /// <inheritdoc/>
     public void Draw()
     {
@@ -186,28 +187,31 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
                  bgpos + ImGui.GetWindowContentRegionMax(),
                  Vector2.Zero,
                  (ImGui.GetWindowContentRegionMax() - ImGui.GetWindowContentRegionMin()) / 64);
-
-        // var off = ImGui.GetCursorPos();
-        // ImGui.SetCursorPos(off);
-        // for (var i = 0; i < this.spannableButton.Length; i++)
-        // {
-        //     ImGui.SetCursorPos(off);
-        //     renderer.Render(
-        //         this.spannableButton[i],
-        //         new(
-        //             $"TestButton{i}",
-        //             new()
-        //             {
-        //                 ScreenOffset = ImGui.GetCursorScreenPos() + new Vector2(320, 320),
-        //                 Transformation = new(
-        //                     new(1, 0),
-        //                     Quaternion.CreateFromAxisAngle(Vector3.UnitZ, (i / 6f) * MathF.PI),
-        //                     Vector2.Zero,
-        //                     Vector2.Zero),
-        //             }));
-        // }
-        //
-        // ImGui.SetCursorPos(off + new Vector2(0, 640));
+        
+        ImGui.SliderFloat("##angle", ref this.angle, 0f, MathF.PI * 2);
+        
+        var off = ImGui.GetCursorPos();
+        ImGui.SetCursorPos(off);
+        for (var i = 0; i < this.spannableButton.Length; i++)
+        {
+            ImGui.SetCursorPos(off);
+            renderer.Render(
+                this.spannableButton[i],
+                new(
+                    $"TestButton{i}",
+                    new()
+                    {
+                        ScreenOffset = ImGui.GetCursorScreenPos() + new Vector2(480, 320),
+                        TransformationOrigin = new(0, 0.5f),
+                        Transformation = new(
+                            Vector2.Zero,
+                            Quaternion.CreateFromAxisAngle(Vector3.UnitZ, this.angle + ((i / 6f) * MathF.PI)),
+                            Vector2.One,
+                            Vector2.Zero),
+                    }));
+        }
+        
+        ImGui.SetCursorPos(off + new Vector2(0, 640));
 
         var dynamicOffsetTestOffset = ImGui.GetCursorScreenPos();
         var pad = MathF.Round(8 * ImGuiHelpers.GlobalScale);

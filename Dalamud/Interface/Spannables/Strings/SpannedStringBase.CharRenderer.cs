@@ -122,6 +122,7 @@ public abstract partial class SpannedStringBase
 
             ref readonly var glyph = ref this.fontInfo.GetEffectiveGlyph(c);
 
+            var xySpannableBase = Vector2.Zero;
             var xy0 = glyph.XY0;
             var xy1 = glyph.XY1;
             var advX = glyph.AdvanceX;
@@ -184,14 +185,21 @@ public abstract partial class SpannedStringBase
                                  && this.data.TryGetSpannableAt(nonNullSpannableStateIndex, out spannable)
                                  && this.state.SpannableStates[nonNullSpannableStateIndex] is { } spannableState:
                         {
-                            xy0 = spannableState.Boundary.LeftTop;
-                            xy1 = spannableState.Boundary.RightBottom;
-                            if (xy1.Y < this.fontInfo.ScaledFontSize)
+                            ref readonly var spanBounds = ref spannableState.Boundary;
+                            xy0 = spanBounds.LeftTop;
+                            xy1 = spanBounds.RightBottom;
+                            if (Math.Abs(spanBounds.Height - this.fontInfo.ScaledFontSize) > 0.00001f)
                             {
-                                var d = (this.fontInfo.ScaledFontSize - (xy1.Y - xy0.Y)) *
+                                var d = (this.fontInfo.ScaledFontSize - spanBounds.Height) *
                                         this.state.TextState.LastStyle.VerticalAlignment;
                                 xy0.Y += d;
                                 xy1.Y += d;
+                                xySpannableBase = new(0, d);
+                                if (spanBounds.Height > this.fontInfo.ScaledFontSize)
+                                {
+                                    xy0.Y -= this.StyleTranslation.Y;
+                                    xy0.Y -= this.StyleTranslation.Y;
+                                }
                             }
 
                             advX = xy1.X;
@@ -417,7 +425,7 @@ public abstract partial class SpannedStringBase
                     // Measure pass
                     spannableState.TextState = this.state.TextState;
                     this.state.SpannableOffsets[nonNullSpannableStateIndex] =
-                        this.state.Offset + this.StyleTranslation + xy0;
+                        this.state.Offset + this.StyleTranslation + xySpannableBase;
                 }
                 else
                 {
