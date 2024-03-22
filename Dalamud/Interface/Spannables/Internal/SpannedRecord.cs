@@ -252,9 +252,8 @@ internal struct SpannedRecord
                 _ = SpannedRecordCodec.TryDecodeInsertManualNewLine(data);
                 return;
             case SpannedRecordType.ObjectSpannable
-                when SpannedRecordCodec.TryDecodeObjectSpannable(data, out var i32, out var s):
+                when SpannedRecordCodec.TryDecodeObjectSpannable(data, out var i32):
                 sb.Append(formatProvider, $" {i32:g}");
-                AppendString(sb, s.EnumerateUtf(UtfEnumeratorFlags.Utf16));
                 return;
             case SpannedRecordType.None:
             default:

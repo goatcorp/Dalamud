@@ -123,16 +123,16 @@ internal sealed partial class SpannableRenderer : ISpannableRenderer, IInternalD
         using var splitter = renderContext.UseDrawing ? this.RentSplitter(renderContext.DrawListPtr) : default;
 
         var state = spannable.RentState(
-            this,
-            renderContext.ImGuiGlobalId,
-            renderContext.Scale,
-            null,
-            new(textOptions));
+            new(
+                this,
+                renderContext.ImGuiGlobalId,
+                renderContext.Scale,
+                new(textOptions)));
 
         var result = default(RenderResult);
 
-        spannable.Measure(new(state, renderContext.MaxSize));
-        spannable.CommitMeasurement(
+        spannable.MeasureSpannable(new(state, renderContext.MaxSize));
+        spannable.CommitSpannableMeasurement(
             new(
                 state,
                 renderContext.ScreenOffset,
@@ -142,7 +142,7 @@ internal sealed partial class SpannableRenderer : ISpannableRenderer, IInternalD
         {
             if (renderContext.UseLinks)
             {
-                spannable.HandleInteraction(
+                spannable.HandleSpannableInteraction(
                     new(state)
                     {
                         MouseButtonStateFlags = (ImGui.IsMouseDown(ImGuiMouseButton.Left) ? 1 : 0)
@@ -154,7 +154,7 @@ internal sealed partial class SpannableRenderer : ISpannableRenderer, IInternalD
                     out result.InteractedLink);
             }
 
-            spannable.Draw(new(state, splitter, renderContext.DrawListPtr));
+            spannable.DrawSpannable(new(state, splitter, renderContext.DrawListPtr));
         }
 
         result.Boundary = state.Boundary;

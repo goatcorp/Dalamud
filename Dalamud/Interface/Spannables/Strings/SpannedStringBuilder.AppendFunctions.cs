@@ -131,22 +131,22 @@ public sealed partial class SpannedStringBuilder
     }
 
     /// <inheritdoc/>
-    public SpannedStringBuilder AppendSpannable(ISpannable? callback, string? args, out int id)
+    public SpannedStringBuilder AppendSpannable(ISpannable? callback, out int id)
     {
         id = this.spannables.Count;
         this.spannables.Add(callback);
-        return this.AppendSpannable(id, args);
+        return this.AppendSpannable(id);
     }
 
     /// <inheritdoc/>
-    public SpannedStringBuilder AppendSpannable(int id, string? args)
+    public SpannedStringBuilder AppendSpannable(int id)
     {
         this.spannables.EnsureCapacity(id + 1);
         while (this.spannables.Count <= id)
             this.spannables.Add(null);
-        var len = SpannedRecordCodec.EncodeObjectSpannable(default, id, args);
+        var len = SpannedRecordCodec.EncodeObjectSpannable(default, id);
         this.AddRecordAndReserveData(SpannedRecordType.ObjectSpannable, len, out var data);
-        SpannedRecordCodec.EncodeObjectSpannable(data, id, args);
+        SpannedRecordCodec.EncodeObjectSpannable(data, id);
         return this;
     }
 

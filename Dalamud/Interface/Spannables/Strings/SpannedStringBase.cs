@@ -9,7 +9,6 @@ using Dalamud.Interface.Spannables.EventHandlerArgs;
 using Dalamud.Interface.Spannables.Internal;
 using Dalamud.Interface.Spannables.Rendering;
 using Dalamud.Interface.Spannables.Styles;
-using Dalamud.Plugin.Services;
 using Dalamud.Utility;
 using Dalamud.Utility.Numerics;
 using Dalamud.Utility.Text;
@@ -60,9 +59,8 @@ public abstract partial class SpannedStringBase : ISpannable
     }
 
     /// <inheritdoc/>
-    public ISpannableState RentState(
-        ISpannableRenderer renderer, uint imGuiGlobalId, float scale, string? args, in TextState textState) =>
-        State.Rent(renderer, textState, imGuiGlobalId, scale, this.GetData());
+    public ISpannableState RentState(scoped in SpannableRentStateArgs args) =>
+        State.Rent(args, this.GetData());
 
     /// <inheritdoc/>
     public void ReturnState(ISpannableState? state)
@@ -72,7 +70,7 @@ public abstract partial class SpannedStringBase : ISpannable
     }
 
     /// <inheritdoc/>
-    public void Measure(SpannableMeasureArgs args)
+    public void MeasureSpannable(scoped in SpannableMeasureArgs args)
     {
         var state = args.State as State ?? new();
         state.Offset = Vector2.Zero;
@@ -254,7 +252,7 @@ public abstract partial class SpannedStringBase : ISpannable
     }
 
     /// <inheritdoc/>
-    public void CommitMeasurement(SpannableCommitTransformationArgs args)
+    public void CommitSpannableMeasurement(scoped in SpannableCommitTransformationArgs args)
     {
         var state = args.State as State ?? new();
         var data = this.GetData();
@@ -266,21 +264,18 @@ public abstract partial class SpannedStringBase : ISpannable
             if (state.SpannableStates[i] is not { } spannableState)
                 continue;
 
-            var trss = Trss.Identity;
-            if (spannableState.TextState.LastStyle.Italic)
-                trss = Trss.CreateSkew(new(MathF.Atan(-1 / TextStyleFontData.FakeItalicDivisor), 0));
-
-            data.Spannables[i].CommitMeasurement(
-                new(
-                    spannableState,
-                    state.TransformToScreen(state.SpannableOffsets[i]),
-                    Vector2.Zero,
-                    Trss.Multiply(trss, Trss.WithoutTranslation(state.Transformation))));
+            args.NotifyChild(
+                data.Spannables[i],
+                spannableState,
+                state.SpannableOffsets[i],
+                spannableState.TextState.LastStyle.Italic
+                    ? Trss.CreateSkew(new(MathF.Atan(-1 / TextStyleFontData.FakeItalicDivisor), 0))
+                    : Trss.Identity);
         }
     }
 
     /// <inheritdoc/>
-    public unsafe void HandleInteraction(SpannableHandleInteractionArgs args, out SpannableLinkInteracted link)
+    public unsafe void HandleSpannableInteraction(scoped in SpannableHandleInteractionArgs args, out SpannableLinkInteracted link)
     {
         var state = args.State as State ?? new();
         var data = this.GetData();
@@ -289,7 +284,7 @@ public abstract partial class SpannedStringBase : ISpannable
         {
             if (state.SpannableStates[i] is not { } spannableState)
                 continue;
-            data.Spannables[i].HandleInteraction(args with { State = spannableState }, out link);
+            args.NotifyChild(data.Spannables[i], spannableState, out link);
             if (!link.IsEmpty)
                 return;
         }
@@ -380,7 +375,7 @@ public abstract partial class SpannedStringBase : ISpannable
     }
 
     /// <inheritdoc/>
-    public unsafe void Draw(SpannableDrawArgs args)
+    public unsafe void DrawSpannable(SpannableDrawArgs args)
     {
         var state = args.State as State ?? new();
         var data = this.GetData();

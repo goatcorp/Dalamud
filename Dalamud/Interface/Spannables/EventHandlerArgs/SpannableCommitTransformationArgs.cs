@@ -5,7 +5,7 @@ using Dalamud.Utility.Numerics;
 
 namespace Dalamud.Interface.Spannables.EventHandlerArgs;
 
-/// <summary>Arguments for use with <see cref="ISpannable.CommitMeasurement"/>.</summary>
+/// <summary>Arguments for use with <see cref="ISpannable.CommitSpannableMeasurement"/>.</summary>
 public struct SpannableCommitTransformationArgs
 {
     /// <summary>The state obtained from <see cref="ISpannable.RentState"/>.</summary>
@@ -37,4 +37,21 @@ public struct SpannableCommitTransformationArgs
         this.Transformation = transformation;
         this.TransformationOrigin = transformationOrigin;
     }
+
+    /// <summary>Notifies a child <see cref="ISpannable"/> with transformed arguments.</summary>
+    /// <param name="child">A child to notify the event.</param>
+    /// <param name="childState">The child state.</param>
+    /// <param name="childOffset">The child offset within this spannable.</param>
+    /// <param name="extraTransformation">Any extra transformation for the child.</param>
+    public readonly void NotifyChild(
+        ISpannable child,
+        ISpannableState childState,
+        Vector2 childOffset,
+        in Trss extraTransformation) =>
+        child.CommitSpannableMeasurement(
+            new(
+                childState,
+                this.State.TransformToScreen(childOffset),
+                Vector2.Zero,
+                Trss.Multiply(extraTransformation, Trss.WithoutTranslation(this.Transformation))));
 }

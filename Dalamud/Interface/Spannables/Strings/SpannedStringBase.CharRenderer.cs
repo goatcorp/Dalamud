@@ -178,10 +178,7 @@ public abstract partial class SpannedStringBase
                         }
 
                         case SpannedRecordType.ObjectSpannable
-                            when SpannedRecordCodec.TryDecodeObjectSpannable(
-                                     recordData,
-                                     out nonNullSpannableStateIndex,
-                                     out _)
+                            when SpannedRecordCodec.TryDecodeObjectSpannable(recordData, out nonNullSpannableStateIndex)
                                  && this.data.TryGetSpannableAt(nonNullSpannableStateIndex, out spannable)
                                  && this.state.SpannableStates[nonNullSpannableStateIndex] is { } spannableState:
                         {
@@ -429,7 +426,7 @@ public abstract partial class SpannedStringBase
                 }
                 else
                 {
-                    spannable.Draw(this.args with { State = spannableState });
+                    this.args.NotifyChild(spannable, spannableState);
                 }
             }
 

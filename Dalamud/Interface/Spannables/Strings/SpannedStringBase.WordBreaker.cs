@@ -6,8 +6,6 @@ using Dalamud.Interface.Spannables.Rendering;
 using Dalamud.Interface.Spannables.Styles;
 using Dalamud.Utility.Numerics;
 
-using FFXIVClientStructs.FFXIV.Common.Math;
-
 namespace Dalamud.Interface.Spannables.Strings;
 
 /// <summary>Base class for <see cref="SpannedString"/> and <see cref="SpannedStringBuilder"/>.</summary>
@@ -146,8 +144,7 @@ public abstract partial class SpannedStringBase
                         case SpannedRecordType.ObjectSpannable
                             when SpannedRecordCodec.TryDecodeObjectSpannable(
                                      recordData,
-                                     out var index,
-                                     out var spannableArgs)
+                                     out var index)
                                  && this.data.TryGetSpannableAt(index, out var spannable):
                         {
                             ref var spannableState = ref this.state.SpannableStates[index];
@@ -158,16 +155,16 @@ public abstract partial class SpannedStringBase
                             }
 
                             spannableState = spannable.RentState(
-                                this.state.Renderer,
-                                this.state.GetGlobalIdFromInnerId(offset.Record),
-                                this.state.Scale,
-                                spannableArgs,
-                                this.state.TextState with
-                                {
-                                    InitialStyle = this.currentStyle,
-                                    LastStyle = this.currentStyle,
-                                });
-                            spannable.Measure(
+                                new(
+                                    this.state.Renderer,
+                                    this.state.GetGlobalIdFromInnerId(offset.Record),
+                                    this.state.Scale,
+                                    this.state.TextState with
+                                    {
+                                        InitialStyle = this.currentStyle,
+                                        LastStyle = this.currentStyle,
+                                    }));
+                            spannable.MeasureSpannable(
                                 new(
                                     spannableState,
                                     new(
@@ -301,17 +298,17 @@ public abstract partial class SpannedStringBase
                 return;
 
             var spannableState = wm.RentState(
-                this.state.Renderer,
-                0,
-                this.state.Scale,
-                null,
-                this.state.TextState with
-                {
-                    InitialStyle = this.currentStyle,
-                    LastStyle = this.currentStyle,
-                    WrapMarker = null,
-                });
-            wm.Measure(
+                new(
+                    this.state.Renderer,
+                    0,
+                    this.state.Scale,
+                    this.state.TextState with
+                    {
+                        InitialStyle = this.currentStyle,
+                        LastStyle = this.currentStyle,
+                        WrapMarker = null,
+                    }));
+            wm.MeasureSpannable(
                 new(
                     spannableState,
                     new(

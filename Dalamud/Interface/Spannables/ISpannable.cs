@@ -1,6 +1,5 @@
 using Dalamud.Interface.Spannables.EventHandlerArgs;
 using Dalamud.Interface.Spannables.Rendering;
-using Dalamud.Plugin.Services;
 
 namespace Dalamud.Interface.Spannables;
 
@@ -8,18 +7,9 @@ namespace Dalamud.Interface.Spannables;
 public interface ISpannable
 {
     /// <summary>Rents a state.</summary>
-    /// <param name="renderer">The associated renderer.</param>
-    /// <param name="imGuiGlobalId">The allocated ImGui global ID. <c>0</c> to disable interaction.</param>
-    /// <param name="scale">The render scale to use.</param>
-    /// <param name="args">Optional spannable-implementation defined arguments.</param>
-    /// <param name="textState">The initial text state.</param>
     /// <returns>The rented state.</returns>
-    ISpannableState RentState(
-        ISpannableRenderer renderer,
-        uint imGuiGlobalId,
-        float scale,
-        string? args,
-        in TextState textState);
+    /// <param name="args">The arguments.</param>
+    ISpannableState RentState(scoped in SpannableRentStateArgs args);
 
     /// <summary>Returns a state.</summary>
     /// <param name="state">The state to return.</param>
@@ -28,18 +18,18 @@ public interface ISpannable
 
     /// <summary>Measures this spannable, given the constraints set via <see cref="TextState"/>.</summary>
     /// <param name="args">The arguments.</param>
-    void Measure(SpannableMeasureArgs args);
+    void MeasureSpannable(scoped in SpannableMeasureArgs args);
 
     /// <summary>Commits the calculated transformation values. </summary>
     /// <param name="args">The arguments.</param>
-    void CommitMeasurement(SpannableCommitTransformationArgs args);
+    void CommitSpannableMeasurement(scoped in SpannableCommitTransformationArgs args);
 
     /// <summary>Interacts with this spannable.</summary>
     /// <param name="args">The arguments.</param>
     /// <param name="link">The interacted link.</param>
-    void HandleInteraction(SpannableHandleInteractionArgs args, out SpannableLinkInteracted link);
+    void HandleSpannableInteraction(scoped in SpannableHandleInteractionArgs args, out SpannableLinkInteracted link);
 
     /// <summary>Draws this spannable.</summary>
     /// <param name="args">The arguments.</param>
-    void Draw(SpannableDrawArgs args);
+    void DrawSpannable(SpannableDrawArgs args);
 }

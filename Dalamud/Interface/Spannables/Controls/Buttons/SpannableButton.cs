@@ -1,6 +1,4 @@
-using System.Globalization;
-using System.Numerics;
-
+using Dalamud.Interface.Spannables.Brushes;
 using Dalamud.Interface.Spannables.EventHandlerArgs;
 using Dalamud.Interface.Spannables.Rendering;
 using Dalamud.Interface.Spannables.Strings;
@@ -24,6 +22,27 @@ public class SpannableButton : SpannableControl
     public SpannableButton()
     {
         this.Padding = new(8);
+        this.NormalBackground = new ImGuiColorSolidBrushDrawable
+        {
+            TargetChannel = RenderChannel.BackChannel,
+            Color = ImGuiCol.Button,
+        };
+        this.HoveredBackground = new ImGuiColorSolidBrushDrawable
+        {
+            TargetChannel = RenderChannel.BackChannel,
+            Color = ImGuiCol.ButtonHovered,
+        };
+        this.ActiveBackground = new ImGuiColorSolidBrushDrawable
+        {
+            TargetChannel = RenderChannel.BackChannel,
+            Color = ImGuiCol.ButtonActive,
+        };
+        this.DisabledBackground = new ImGuiColorSolidBrushDrawable
+        {
+            TargetChannel = RenderChannel.BackChannel,
+            Color = ImGuiCol.Button,
+            ColorMultiplier = new(1.4f, 1.4f, 1.4f, 0.6f),
+        };
     }
 
     /// <summary>Gets or sets a spannable text.</summary>
@@ -51,60 +70,32 @@ public class SpannableButton : SpannableControl
         }
     }
 
+    /// <summary>Gets or sets the opacity of the text when the control is disabled.</summary>
+    public float DisabledTextOpacity { get; set; } = 0.5f;
+
     /// <inheritdoc/>
-    public override void CommitMeasurement(SpannableCommitTransformationArgs args)
+    public override void CommitSpannableMeasurement(scoped in SpannableCommitTransformationArgs args)
     {
-        base.CommitMeasurement(args);
+        base.CommitSpannableMeasurement(args);
 
         if (this.spannableState is null)
             return;
 
-        var spannable = this.spannableText ?? this.spannedStringBuilder;
-
-        // TODO: is this necessary?
-        // if (this.IsWidthWrapContent || this.IsHeightWrapContent)
-        // {
-        //     this.spannableState.RenderState.MaxSize = this.MeasuredContentBox.Size;
-        //
-        //     spannable.Measure(new(this.spannableState, this.MeasuredContentBox.Size));
-        // }
-
-        spannable.CommitMeasurement(
-            new(
-                this.spannableState,
-                this.TransformToScreen(this.MeasuredContentBox.LeftTop),
-                Vector2.Zero, // yes
-                Trss.WithoutTranslation(this.Transformation)));
+        args.NotifyChild(
+            this.spannableText ?? this.spannedStringBuilder,
+            this.spannableState,
+            this.MeasuredContentBox.LeftTop,
+            Trss.Identity);
     }
 
     /// <inheritdoc/>
-    public override void HandleInteraction(SpannableHandleInteractionArgs args, out SpannableLinkInteracted link)
+    public override void HandleSpannableInteraction(
+        scoped in SpannableHandleInteractionArgs args,
+        out SpannableLinkInteracted link)
     {
-        if (this.spannableText is not null && this.spannableState is not null)
-            this.spannableText.HandleInteraction(args with { State = this.spannableState }, out link);
-        base.HandleInteraction(args, out link);
-    }
-
-    /// <inheritdoc/>
-    public override void Draw(SpannableDrawArgs args)
-    {
-        var lt = this.TransformToScreen(this.MeasuredInteractiveBox.LeftTop);
-        var rt = this.TransformToScreen(this.MeasuredInteractiveBox.RightTop);
-        var rb = this.TransformToScreen(this.MeasuredInteractiveBox.RightBottom);
-        var lb = this.TransformToScreen(this.MeasuredInteractiveBox.LeftBottom);
-        args.SwitchToChannel(RenderChannel.BackChannel);
-        if (this.IsMouseHovered && this.IsLeftMouseButtonDown)
-            args.DrawListPtr.AddQuadFilled(lt, rt, rb, lb, ImGui.GetColorU32(ImGuiCol.ButtonActive));
-        else if (this.IsMouseHovered)
-            args.DrawListPtr.AddQuadFilled(lt, rt, rb, lb, ImGui.GetColorU32(ImGuiCol.ButtonHovered));
-        else
-            args.DrawListPtr.AddQuadFilled(lt, rt, rb, lb, ImGui.GetColorU32(ImGuiCol.Button));
-
-        if (this.spannableState is not null)
-        {
-            var spannable = this.spannableText ?? this.spannedStringBuilder;
-            spannable.Draw(args with { State = this.spannableState });
-        }
+        if (this.spannableText is not null && this.spannableState is not null && this.Enabled)
+            args.NotifyChild(this.spannableText, this.spannableState, out link);
+        base.HandleSpannableInteraction(args, out link);
     }
 
     /// <inheritdoc/>
@@ -118,32 +109,20 @@ public class SpannableButton : SpannableControl
     }
 
     /// <inheritdoc/>
-    protected override void InitializeFromArguments(string? args)
-    {
-        if (string.IsNullOrEmpty(args))
-            return;
-
-        if (SpannedString.TryParse(args, CultureInfo.InvariantCulture, out var parsed))
-            this.SpannableText = parsed;
-        else
-            this.Text = args;
-    }
-
-    /// <inheritdoc/>
     protected override RectVector4 MeasureContentBox(SpannableMeasureArgs args, in RectVector4 availableContentBox)
     {
         var spannable = this.spannableText ?? this.spannedStringBuilder;
         this.spannableState = spannable.RentState(
-            this.Renderer,
-            args.State.GetGlobalIdFromInnerId(1),
-            this.Scale,
-            null,
-            this.TextState with
-            {
-                InitialStyle = this.TextState.LastStyle,
-                WordBreak = WordBreakType.KeepAll,
-            });
-        spannable.Measure(new(this.spannableState, availableContentBox.Size));
+            new(
+                this.Renderer,
+                args.State.GetGlobalIdFromInnerId(1),
+                this.Scale,
+                this.TextState with
+                {
+                    InitialStyle = this.TextState.LastStyle,
+                    WordBreak = WordBreakType.KeepAll,
+                }));
+        spannable.MeasureSpannable(new(this.spannableState, availableContentBox.Size));
 
         var b = RectVector4.Normalize(this.spannableState.Boundary);
 
@@ -153,5 +132,27 @@ public class SpannableButton : SpannableControl
         if (this.IsHeightWrapContent)
             res.Bottom = res.Top + b.Bottom;
         return res;
+    }
+
+    /// <inheritdoc/>
+    protected override unsafe void OnDraw(SpannableControlDrawArgs args)
+    {
+        if (this.spannableState is not null)
+        {
+            var numVertices = args.DrawArgs.DrawListPtr.VtxBuffer.Size;
+            args.DrawArgs.NotifyChild(this.spannableText ?? this.spannedStringBuilder, this.spannableState);
+
+            if (!this.Enabled)
+            {
+                var ptr = (ImDrawVert*)args.DrawArgs.DrawListPtr.VtxBuffer.Data + numVertices;
+                for (var remaining = args.DrawArgs.DrawListPtr.VtxBuffer.Size - numVertices;
+                     remaining > 0;
+                     remaining--, ptr++)
+                {
+                    ref var a = ref ((byte*)&ptr->col)[3];
+                    a = (byte)Math.Clamp(a * this.DisabledTextOpacity, 0, 255);
+                }
+            }
+        }
     }
 }

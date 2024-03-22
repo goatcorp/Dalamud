@@ -359,18 +359,16 @@ internal sealed class SpannedRecordCodec
     /// <summary>Decodes data for <see cref="SpannedRecordType.ObjectSpannable"/>.</summary>
     /// <param name="dataStream">The data stream to decode from.</param>
     /// <param name="index">The callback index.</param>
-    /// <param name="args">The optional string arguments for the spannable.</param>
     /// <returns><c>true</c> on success.</returns>
-    public static bool TryDecodeObjectSpannable(ReadOnlySpan<byte> dataStream, out int index, out string? args) =>
-        TryDecode(ref dataStream, out index) & TryDecode(ref dataStream, out args);
+    public static bool TryDecodeObjectSpannable(ReadOnlySpan<byte> dataStream, out int index) =>
+        TryDecode(ref dataStream, out index);
 
     /// <summary>Encodes data for <see cref="SpannedRecordType.ObjectSpannable"/>.</summary>
     /// <param name="dataStream">The optional data stream to encode to.</param>
     /// <param name="index">The callback index.</param>
-    /// <param name="args">The optional string arguments for the spannable.</param>
     /// <returns>The remaning region of <paramref name="dataStream"/>.</returns>
-    public static int EncodeObjectSpannable(Span<byte> dataStream, int index, string? args) =>
-        Encode(ref dataStream, index) + Encode(ref dataStream, args);
+    public static int EncodeObjectSpannable(Span<byte> dataStream, int index) =>
+        Encode(ref dataStream, index);
 
     /// <summary>Decodes data for <see cref="SpannedRecordType.ObjectNewLine"/>.</summary>
     /// <param name="dataStream">The data stream to decode from.</param>

@@ -1,5 +1,7 @@
 using System.Numerics;
 
+using Dalamud.Interface.Spannables.Controls;
+
 using ImGuiNET;
 
 namespace Dalamud.Interface.Spannables.EventHandlerArgs;
@@ -7,6 +9,9 @@ namespace Dalamud.Interface.Spannables.EventHandlerArgs;
 /// <summary>Mouse event arguments.</summary>
 public struct SpannableControlMouseEventArgs
 {
+    /// <summary>The control that generated the event.</summary>
+    public SpannableControl Sender;
+
     /// <summary>The location of the mouse, relative to the left top of the control, without having
     /// <see cref="ISpannableState.Transformation"/> or <see cref="ISpannableState.ScreenOffset"/> applied.</summary>
     public Vector2 LocalLocation;
@@ -19,4 +24,18 @@ public struct SpannableControlMouseEventArgs
 
     /// <summary>The number of detents the mouse wheel has rotated, <b>without</b> WHEEL_DELTA multiplied.</summary>
     public Vector2 Delta;
+
+    /// <summary>Initializes a new instance of the <see cref="SpannableControlMouseEventArgs"/> struct.</summary>
+    /// <param name="sender">The control that generated the event.</param>
+    public SpannableControlMouseEventArgs(SpannableControl sender) => this.Sender = sender;
+}
+
+/// <summary>Draw event arguments.</summary>
+public struct SpannableControlDrawArgs
+{
+    /// <summary>The control that generated the event.</summary>
+    public SpannableControl Sender;
+
+    /// <summary>The draw arguments from the spannable invoker.</summary>
+    public SpannableDrawArgs DrawArgs;
 }

@@ -87,19 +87,16 @@ internal interface ISpannedStringBuilder
 
     /// <summary>Adds a callback to be called upon rendering.</summary>
     /// <param name="callback">The callback to be called. If null is provided, a placeholder will be added.</param>
-    /// <param name="args">The optional string arguments for the spannable.</param>
     /// <param name="id">The ID of this texture wrap, in the context of the built string.</param>
     /// <returns>A reference of this instance after the append operation is completed.</returns>
-    SpannedStringBuilder AppendSpannable(ISpannable? callback, string? args, out int id);
+    SpannedStringBuilder AppendSpannable(ISpannable? callback, out int id);
 
     /// <summary>Adds a callback to be called upon rendering.</summary>
     /// <param name="id">The ID of the callback, in the context of the built string. If providing a value not fetched
-    /// from <see cref="AppendSpannable(ISpannable?, string?, out int)"/>, avoid making the number too
-    /// large.</param>
-    /// <param name="args">The optional string arguments for the spannable.</param>
+    /// from <see cref="AppendSpannable(ISpannable?, out int)"/>, avoid making the number too large.</param>
     /// <returns>A reference of this instance after the append operation is completed.</returns>
     [SpannedParseInstruction(SpannedRecordType.ObjectSpannable, false, "sp", "spannable")]
-    SpannedStringBuilder AppendSpannable(int id, string? args);
+    SpannedStringBuilder AppendSpannable(int id);
 
     /// <summary>Adds a codepoint.</summary>
     /// <param name="codepoint">The codepoint.</param>

@@ -7,7 +7,7 @@ using ImGuiNET;
 
 namespace Dalamud.Interface.Spannables.EventHandlerArgs;
 
-/// <summary>Arguments for use with <see cref="ISpannable.HandleInteraction"/>.</summary>
+/// <summary>Arguments for use with <see cref="ISpannable.HandleSpannableInteraction"/>.</summary>
 public struct SpannableHandleInteractionArgs
 {
     /// <summary>The state obtained from <see cref="ISpannable.RentState"/>.</summary>
@@ -144,4 +144,14 @@ public struct SpannableHandleInteractionArgs
 
         return true;
     }
+
+    /// <summary>Notifies a child <see cref="ISpannable"/> with transformed arguments.</summary>
+    /// <param name="child">A child to notify the event.</param>
+    /// <param name="childState">The child state.</param>
+    /// <param name="link">The interacted link, if the child processed the event.</param>
+    public readonly void NotifyChild(
+        ISpannable child,
+        ISpannableState childState,
+        out SpannableLinkInteracted link) =>
+        child.HandleSpannableInteraction(this with { State = childState }, out link);
 }

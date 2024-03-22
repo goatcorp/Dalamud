@@ -2,7 +2,7 @@ using System.Numerics;
 
 namespace Dalamud.Interface.Spannables.EventHandlerArgs;
 
-/// <summary>Arguments for use with <see cref="ISpannable.Measure"/>.</summary>
+/// <summary>Arguments for use with <see cref="ISpannable.MeasureSpannable"/>.</summary>
 public struct SpannableMeasureArgs
 {
     /// <summary>The state obtained from <see cref="ISpannable.RentState"/>.</summary>

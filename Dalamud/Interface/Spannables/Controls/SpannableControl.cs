@@ -3,7 +3,6 @@ using System.Numerics;
 
 using Dalamud.Interface.Spannables.EventHandlerArgs;
 using Dalamud.Interface.Spannables.Rendering;
-using Dalamud.Interface.Spannables.Strings;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility.Numerics;
 
@@ -25,7 +24,8 @@ public class SpannableControl : ISpannable, ISpannableState
     private static readonly ImGuiMouseButton[] MouseButtonsWeCare =
         [ImGuiMouseButton.Left, ImGuiMouseButton.Right, ImGuiMouseButton.Middle];
 
-    private bool initializeFromArgumentsCalled;
+    private ISpannable? background;
+    private ISpannableState? backgroundState;
 
     private TextState activeTextState;
 
@@ -40,6 +40,9 @@ public class SpannableControl : ISpannable, ISpannableState
     private int heldMouseButtons;
     private long[] lastMouseClickTick = new long[MouseButtonsWeCare.Length];
     private int[] lastMouseClickCount = new int[MouseButtonsWeCare.Length];
+
+    /// <summary>Occurs when the control is clicked by the mouse.</summary>
+    public event SpannableControlDrawEventHandler? Draw;
 
     /// <summary>Occurs when the control is clicked by the mouse.</summary>
     public event SpannableControlMouseEventHandler? MouseClick;
@@ -62,8 +65,11 @@ public class SpannableControl : ISpannable, ISpannableState
     /// <summary>Occurs when the mouse wheel moves while the control is hovered.</summary>
     public event SpannableControlMouseEventHandler? MouseWheel;
 
-    /// <summary>Gets or sets a value indicating whether this control is enabled and accepting inputs.</summary>
+    /// <summary>Gets or sets a value indicating whether this control is enabled.</summary>
     public bool Enabled { get; set; } = true;
+
+    /// <summary>Gets or sets a value indicating whether this control is visible.</summary>
+    public bool Visible { get; set; } = true;
 
     /// <summary>Gets or sets the size.</summary>
     /// <remarks>
@@ -132,6 +138,18 @@ public class SpannableControl : ISpannable, ISpannableState
     /// <inheritdoc/>
     public ISpannableRenderer Renderer { get; private set; } = null!;
 
+    /// <summary>Gets or sets the normal background spannable.</summary>
+    public ISpannable? NormalBackground { get; set; } 
+
+    /// <summary>Gets or sets the hovered background spannable.</summary>
+    public ISpannable? HoveredBackground { get; set; }
+
+    /// <summary>Gets or sets the active background spannable.</summary>
+    public ISpannable? ActiveBackground { get; set; } 
+
+    /// <summary>Gets or sets the disabled background spannable.</summary>
+    public ISpannable? DisabledBackground { get; set; }
+
     /// <summary>Gets or sets a value indicating whether mouse wheel scroll up event should be intercepted.</summary>
     public bool InterceptMouseWheelUp { get; set; }
 
@@ -180,23 +198,12 @@ public class SpannableControl : ISpannable, ISpannableState
     protected float Scale { get; private set; }
 
     /// <inheritdoc/>
-    public ISpannableState RentState(
-        ISpannableRenderer renderer,
-        uint imGuiGlobalId,
-        float scale,
-        string? args,
-        in TextState textState)
+    public ISpannableState RentState(scoped in SpannableRentStateArgs args)
     {
-        this.Renderer = renderer;
-        if (!this.initializeFromArgumentsCalled)
-        {
-            this.InitializeFromArguments(args);
-            this.initializeFromArgumentsCalled = true;
-        }
-
-        this.ImGuiGlobalId = imGuiGlobalId;
-        this.Scale = scale;
-        this.activeTextState = textState;
+        this.Renderer = args.Renderer;
+        this.ImGuiGlobalId = args.ImGuiGlobalId;
+        this.Scale = args.Scale;
+        this.activeTextState = args.TextState;
 
         // Spannable itself is a state. Return self.
         return this;
@@ -208,7 +215,7 @@ public class SpannableControl : ISpannable, ISpannableState
     }
 
     /// <inheritdoc/>
-    public void Measure(SpannableMeasureArgs args)
+    public void MeasureSpannable(scoped in SpannableMeasureArgs args)
     {
         var rv = new RectVector4(
             Vector2.Zero,
@@ -249,7 +256,7 @@ public class SpannableControl : ISpannable, ISpannableState
     }
 
     /// <inheritdoc/>
-    public virtual void CommitMeasurement(SpannableCommitTransformationArgs args)
+    public virtual void CommitSpannableMeasurement(scoped in SpannableCommitTransformationArgs args)
     {
         this.ScreenOffset = args.ScreenOffset;
         this.TransformationOrigin = args.TransformationOrigin;
@@ -257,115 +264,143 @@ public class SpannableControl : ISpannable, ISpannableState
     }
 
     /// <inheritdoc/>
-    public virtual void HandleInteraction(SpannableHandleInteractionArgs args, out SpannableLinkInteracted link)
+    public virtual void HandleSpannableInteraction(scoped in SpannableHandleInteractionArgs args, out SpannableLinkInteracted link)
     {
         const int selfInnerId = 0x1234;
 
         link = default;
 
-        if (!this.Enabled)
+        if (!this.Enabled || !this.Visible)
         {
             this.IsMouseHovered = false;
             this.heldMouseButtons = 0;
-            return;
+
+            this.background = this.Visible ? this.DisabledBackground ?? this.NormalBackground : null;
         }
-
-        var margs = new SpannableControlMouseEventArgs { LocalLocation = args.MouseLocalLocation };
-        var interceptWheel = false;
-        interceptWheel |= args.WheelDelta.X > 0 && this.InterceptMouseWheelRight;
-        interceptWheel |= args.WheelDelta.X < 0 && this.InterceptMouseWheelLeft;
-        interceptWheel |= args.WheelDelta.Y > 0 && this.InterceptMouseWheelDown;
-        interceptWheel |= args.WheelDelta.Y < 0 && this.InterceptMouseWheelUp;
-
-        if (this.heldMouseButtons != 0)
-            args.SetActive(selfInnerId, interceptWheel);
-
-        var hovered = this.measuredInteractiveBox.Contains(margs.LocalLocation) && args.IsItemHoverable(selfInnerId);
-        if (hovered != this.IsMouseHovered)
+        else
         {
-            if (hovered)
-                this.OnMouseEnter(margs);
-            else
-                this.OnMouseLeave(margs);
-            this.IsMouseHovered = hovered;
-        }
+            var margs = new SpannableControlMouseEventArgs { LocalLocation = args.MouseLocalLocation };
+            var interceptWheel = false;
+            interceptWheel |= args.WheelDelta.X > 0 && this.InterceptMouseWheelRight;
+            interceptWheel |= args.WheelDelta.X < 0 && this.InterceptMouseWheelLeft;
+            interceptWheel |= args.WheelDelta.Y > 0 && this.InterceptMouseWheelDown;
+            interceptWheel |= args.WheelDelta.Y < 0 && this.InterceptMouseWheelUp;
 
-        if (args.WheelDelta != Vector2.Zero)
-            this.OnMouseWheel(margs with { Delta = args.WheelDelta });
-        
-        if (this.lastMouseLocation != margs.LocalLocation)
-        {
-            this.OnMouseMove(margs);
-            this.lastMouseLocation = margs.LocalLocation;
-        }
+            if (this.heldMouseButtons != 0)
+                args.SetActive(selfInnerId, interceptWheel);
 
-        var lastHeldMouseButtons = this.heldMouseButtons;
-        if (lastHeldMouseButtons != 0 || hovered)
-        {
-            for (var i = 0; i < MouseButtonsWeCare.Length; i++)
+            var hovered = this.measuredInteractiveBox.Contains(margs.LocalLocation) &&
+                          args.IsItemHoverable(selfInnerId);
+            if (hovered != this.IsMouseHovered)
             {
-                var held = args.IsMouseButtonDown(MouseButtonsWeCare[i]);
-                if (held == ((this.heldMouseButtons & (1 << i)) != 0))
-                    continue;
-
-                if (held)
-                {
-                    this.OnMouseDown(margs with { Button = MouseButtonsWeCare[i] });
-                    this.heldMouseButtons |= 1 << i;
-                }
+                if (hovered)
+                    this.OnMouseEnter(margs);
                 else
-                {
-                    this.OnMouseUp(margs with { Button = MouseButtonsWeCare[i] });
-                    this.heldMouseButtons &= ~(1 << i);
+                    this.OnMouseLeave(margs);
+                this.IsMouseHovered = hovered;
+            }
 
-                    if (hovered)
+            if (args.WheelDelta != Vector2.Zero)
+                this.OnMouseWheel(margs with { Delta = args.WheelDelta });
+
+            if (this.lastMouseLocation != margs.LocalLocation)
+            {
+                this.OnMouseMove(margs);
+                this.lastMouseLocation = margs.LocalLocation;
+            }
+
+            var lastHeldMouseButtons = this.heldMouseButtons;
+            if (lastHeldMouseButtons != 0 || hovered)
+            {
+                for (var i = 0; i < MouseButtonsWeCare.Length; i++)
+                {
+                    var held = args.IsMouseButtonDown(MouseButtonsWeCare[i]);
+                    if (held == ((this.heldMouseButtons & (1 << i)) != 0))
+                        continue;
+
+                    if (held)
                     {
-                        if (this.lastMouseClickTick[i] < Environment.TickCount64)
-                            this.lastMouseClickCount[i] = 1;
-                        else
-                            this.lastMouseClickCount[i] += 1;
-                        this.lastMouseClickTick[i] = Environment.TickCount64 + GetDoubleClickTime();
-                        this.OnMouseClick(
-                            margs with
-                            {
-                                Button = MouseButtonsWeCare[i],
-                                Clicks = this.lastMouseClickCount[i],
-                            });
+                        this.OnMouseDown(margs with { Button = MouseButtonsWeCare[i] });
+                        this.heldMouseButtons |= 1 << i;
                     }
                     else
                     {
-                        this.lastMouseClickTick[i] = 0;
+                        this.OnMouseUp(margs with { Button = MouseButtonsWeCare[i] });
+                        this.heldMouseButtons &= ~(1 << i);
+
+                        if (hovered)
+                        {
+                            if (this.lastMouseClickTick[i] < Environment.TickCount64)
+                                this.lastMouseClickCount[i] = 1;
+                            else
+                                this.lastMouseClickCount[i] += 1;
+                            this.lastMouseClickTick[i] = Environment.TickCount64 + GetDoubleClickTime();
+                            this.OnMouseClick(
+                                margs with
+                                {
+                                    Button = MouseButtonsWeCare[i],
+                                    Clicks = this.lastMouseClickCount[i],
+                                });
+                        }
+                        else
+                        {
+                            this.lastMouseClickTick[i] = 0;
+                        }
                     }
                 }
             }
+
+            if ((this.heldMouseButtons != 0) != (lastHeldMouseButtons != 0))
+            {
+                ImGui.SetNextFrameWantCaptureMouse(this.heldMouseButtons != 0);
+                if (this.heldMouseButtons == 0)
+                    args.ClearActive();
+            }
+
+            if (this.IsMouseHovered)
+                args.SetHovered(selfInnerId, interceptWheel);
+
+            if (this.heldMouseButtons != 0)
+                args.SetActive(selfInnerId, interceptWheel);
+            
+            if (this.IsMouseHovered && this.IsLeftMouseButtonDown && this.ActiveBackground is not null)
+                this.background = this.ActiveBackground;
+            else if (this.IsMouseHovered && this.HoveredBackground is not null)
+                this.background = this.HoveredBackground;
+            else
+                this.background = this.NormalBackground;
         }
 
-        if ((this.heldMouseButtons != 0) != (lastHeldMouseButtons != 0))
+        if (this.background is not null)
         {
-            ImGui.SetNextFrameWantCaptureMouse(this.heldMouseButtons != 0);
-            if (this.heldMouseButtons == 0)
-                args.ClearActive();
+            this.backgroundState = this.background.RentState(
+                new(
+                    this.Renderer,
+                    0,
+                    this.Scale,
+                    this.TextState));
+            this.background.MeasureSpannable(new(this.backgroundState, this.MeasuredInteractiveBox.Size));
+            this.background.CommitSpannableMeasurement(
+                new(
+                    this.backgroundState,
+                    this.TransformToScreen(this.MeasuredInteractiveBox.LeftTop),
+                    Vector2.Zero,
+                    Trss.WithoutTranslation(this.Transformation)));
+            args.NotifyChild(this.background, this.backgroundState, out _);
         }
-
-        if (this.IsMouseHovered)
-            args.SetHovered(selfInnerId, interceptWheel);
-
-        if (this.heldMouseButtons != 0)
-            args.SetActive(selfInnerId, interceptWheel);
     }
 
     /// <inheritdoc/>
-    public virtual void Draw(SpannableDrawArgs args)
+    public void DrawSpannable(SpannableDrawArgs args)
     {
-    }
+        if (!this.Visible)
+            return;
 
-    /// <summary>Clears any initialized state.</summary>
-    public virtual void Reset()
-    {
-        this.initializeFromArgumentsCalled = false;
-        this.IsMouseHovered = false;
-        this.lastMouseLocation = Vector2.Zero;
-        this.heldMouseButtons = 0;
+        if (this.background is not null && this.backgroundState is not null)
+            args.NotifyChild(this.background, this.backgroundState);
+
+        args.SwitchToChannel(RenderChannel.ForeChannel);
+        this.OnDraw(new() { Sender = this, DrawArgs = args });
     }
 
     /// <summary>Clamps the given value without performing sanity check.</summary>
@@ -376,15 +411,6 @@ public class SpannableControl : ISpannable, ISpannableState
     /// <returns>The clamped vector.</returns>
     /// <remarks>This follows the behavior of <see cref="Vector4.Clamp"/>.</remarks>
     protected static T ClampNoCheck<T>(T value, T min, T max) where T : INumber<T> => T.Min(T.Max(value, min), max);
-
-    /// <summary>Initializes this control from the given arguments, specified from
-    /// <see cref="SpannedStringBuilder.AppendSpannable(ISpannable?, string?, out int)"/>.</summary>
-    /// <param name="args">The arbitrary arguments.</param>
-    /// <remarks>Once returned from this function without exceptions, this function will not be called again until the
-    /// next call to <see cref="Reset"/>.</remarks>
-    protected virtual void InitializeFromArguments(string? args)
-    {
-    }
 
     /// <summary>Measures the content box, given the available content box excluding the margin and padding.</summary>
     /// <param name="args">Measure arguments.</param>
@@ -412,31 +438,35 @@ public class SpannableControl : ISpannable, ISpannableState
         };
     }
 
+    /// <summary>Raises the <see cref="Draw"/> event.</summary>
+    /// <param name="args">A <see cref="SpannableControlDrawArgs"/> that contains the event data.</param>
+    protected virtual void OnDraw(SpannableControlDrawArgs args) => this.Draw?.Invoke(args);
+
     /// <summary>Raises the <see cref="MouseClick"/> event.</summary>
     /// <param name="args">A <see cref="SpannableControlMouseEventArgs"/> that contains the event data.</param>
-    protected virtual void OnMouseClick(in SpannableControlMouseEventArgs args) => this.MouseClick?.Invoke(args);
+    protected virtual void OnMouseClick(SpannableControlMouseEventArgs args) => this.MouseClick?.Invoke(args);
 
     /// <summary>Raises the <see cref="MouseDown"/> event.</summary>
     /// <param name="args">A <see cref="SpannableControlMouseEventArgs"/> that contains the event data.</param>
-    protected virtual void OnMouseDown(in SpannableControlMouseEventArgs args) => this.MouseDown?.Invoke(args);
+    protected virtual void OnMouseDown(SpannableControlMouseEventArgs args) => this.MouseDown?.Invoke(args);
 
     /// <summary>Raises the <see cref="MouseEnter"/> event.</summary>
     /// <param name="args">A <see cref="SpannableControlMouseEventArgs"/> that contains the event data.</param>
-    protected virtual void OnMouseEnter(in SpannableControlMouseEventArgs args) => this.MouseEnter?.Invoke(args);
+    protected virtual void OnMouseEnter(SpannableControlMouseEventArgs args) => this.MouseEnter?.Invoke(args);
 
     /// <summary>Raises the <see cref="MouseLeave"/> event.</summary>
     /// <param name="args">A <see cref="SpannableControlMouseEventArgs"/> that contains the event data.</param>
-    protected virtual void OnMouseLeave(in SpannableControlMouseEventArgs args) => this.MouseLeave?.Invoke(args);
+    protected virtual void OnMouseLeave(SpannableControlMouseEventArgs args) => this.MouseLeave?.Invoke(args);
 
     /// <summary>Raises the <see cref="MouseMove"/> event.</summary>
     /// <param name="args">A <see cref="SpannableControlMouseEventArgs"/> that contains the event data.</param>
-    protected virtual void OnMouseMove(in SpannableControlMouseEventArgs args) => this.MouseMove?.Invoke(args);
+    protected virtual void OnMouseMove(SpannableControlMouseEventArgs args) => this.MouseMove?.Invoke(args);
 
     /// <summary>Raises the <see cref="MouseUp"/> event.</summary>
     /// <param name="args">A <see cref="SpannableControlMouseEventArgs"/> that contains the event data.</param>
-    protected virtual void OnMouseUp(in SpannableControlMouseEventArgs args) => this.MouseUp?.Invoke(args);
+    protected virtual void OnMouseUp(SpannableControlMouseEventArgs args) => this.MouseUp?.Invoke(args);
 
     /// <summary>Raises the <see cref="MouseWheel"/> event.</summary>
     /// <param name="args">A <see cref="SpannableControlMouseEventArgs"/> that contains the event data.</param>
-    protected virtual void OnMouseWheel(in SpannableControlMouseEventArgs args) => this.MouseWheel?.Invoke(args);
+    protected virtual void OnMouseWheel(SpannableControlMouseEventArgs args) => this.MouseWheel?.Invoke(args);
 }

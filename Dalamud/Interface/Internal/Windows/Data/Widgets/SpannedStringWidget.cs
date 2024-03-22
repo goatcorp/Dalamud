@@ -49,6 +49,8 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
     private WordBreakType wordBreakType;
     private long catchMeBegin;
 
+    private float angle;
+
     private SpannableButton[] spannableButton = null!;
 
     private (SpannedString? Parsed, Exception? Exception) parseAttempt;
@@ -95,6 +97,7 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
         this.wrapRightWidthRatio = 1f;
         this.showComplicatedTextTest = this.showDynamicOffsetTest = this.showTransformationTest = false;
         this.parseAttempt = default;
+        this.angle = 0;
 
         this.ellipsisSpannable = new SpannedStringBuilder().PushForeColor(0x80FFFFFF).Append("…");
         this.wrapMarkerSpannable = new SpannedStringBuilder()
@@ -115,6 +118,7 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
             this.spannableButton[i] = new()
             {
                 Margin = new(64, 0, 0, 0),
+                Enabled = i % 2 == 0,
                 SpannableText = new SpannedStringBuilder()
                                 .PushVerticalAlignment(0.5f)
                                 .PushLink("tlink"u8)
@@ -134,7 +138,6 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
                                                         .PushSystemFontFamilyIfAvailable("Comic Sans MS")
                                                         .Append("Comic"),
                                     },
-                                    null,
                                     out _)
                                 .Append(' ')
                                 .PushItalic()
@@ -171,8 +174,6 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
     {
         this.testStringBuffer.Dispose();
     }
-
-    private float angle = 0;
 
     /// <inheritdoc/>
     public void Draw()

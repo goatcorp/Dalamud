@@ -6,7 +6,7 @@ using ImGuiNET;
 
 namespace Dalamud.Interface.Spannables.EventHandlerArgs;
 
-/// <summary>Arguments for use with <see cref="ISpannable.Draw"/>.</summary>
+/// <summary>Arguments for use with <see cref="ISpannable.DrawSpannable"/>.</summary>
 public struct SpannableDrawArgs
 {
     /// <summary>The state obtained from <see cref="ISpannable.RentState"/>.</summary>
@@ -48,4 +48,10 @@ public struct SpannableDrawArgs
             this.DrawListPtr,
             (int)channel);
     }
+
+    /// <summary>Notifies a child <see cref="ISpannable"/> with transformed arguments.</summary>
+    /// <param name="child">A child to notify the event.</param>
+    /// <param name="childState">The child state.</param>
+    public readonly void NotifyChild(ISpannable child, ISpannableState childState) =>
+        child.DrawSpannable(this with { State = childState });
 }

@@ -74,14 +74,13 @@ public abstract partial class SpannedStringBase
 
         public bool IsInteractedLinkRecordActive { get; set; }
 
-        public static State Rent(
-            ISpannableRenderer renderer, in TextState initialState, uint imGuiGlobalId, float scale, DataRef data)
+        public static State Rent(in SpannableRentStateArgs args, DataRef data)
         {
             var t = Pool.Get();
-            t.Renderer = renderer;
-            t.textState = initialState;
-            t.ImGuiGlobalId = imGuiGlobalId;
-            t.Scale = scale;
+            t.Renderer = args.Renderer;
+            t.textState = args.TextState;
+            t.ImGuiGlobalId = args.ImGuiGlobalId;
+            t.Scale = args.Scale;
             t.spannableStates.EnsureCapacity(data.Spannables.Length);
             t.spannableOffsets.EnsureCapacity(data.Spannables.Length);
             while (t.spannableStates.Count < data.Spannables.Length)
@@ -107,15 +106,15 @@ public abstract partial class SpannedStringBase
             Pool.Return(state);
         }
 
-        /// <summary>Adds a line, from <see cref="SpannedStringBase.Measure"/> step.</summary>
+        /// <summary>Adds a line, from <see cref="SpannedStringBase.MeasureSpannable"/> step.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void AddLine(in MeasuredLine line) => this.measuredLines.Add(line);
 
-        /// <summary>Clears the boundary, to be used from <see cref="SpannedStringBase.Measure"/> step.</summary>
+        /// <summary>Clears the boundary, to be used from <see cref="SpannedStringBase.MeasureSpannable"/> step.</summary>
         public void ClearBoundary() => this.boundary = RectVector4.InvertedExtrema;
 
         /// <summary>Updates <see cref="boundary"/>, <see cref="linkBoundaries"/>,
-        /// and resets <paramref name="accumulator"/>, from <see cref="SpannedStringBase.Measure"/> step.</summary>
+        /// and resets <paramref name="accumulator"/>, from <see cref="SpannedStringBase.MeasureSpannable"/> step.</summary>
         public void UpdateAndResetBoundary(ref RectVector4 accumulator, int linkRecordIndex)
         {
             if (!accumulator.IsValid)
@@ -141,7 +140,7 @@ public abstract partial class SpannedStringBase
         }
 
         /// <summary>Finds the first line break point, only taking word wrapping into account, from
-        /// <see cref="SpannedStringBase.Measure"/> step.</summary>
+        /// <see cref="SpannedStringBase.MeasureSpannable"/> step.</summary>
         public void FindFirstWordWrapByteOffset(
             SpannableMeasureArgs args,
             DataRef.Segment segment,
@@ -169,16 +168,17 @@ public abstract partial class SpannedStringBase
                             ssb.Clear().Append(name);
 
                             var state2 = Rent(
-                                this.Renderer,
-                                this.textState with
-                                {
-                                    LastStyle = this.textState.ControlCharactersStyle,
-                                    InitialStyle = this.textState.ControlCharactersStyle,
-                                },
-                                0,
-                                this.Scale,
+                                new(
+                                    this.Renderer,
+                                    0,
+                                    this.Scale,
+                                    this.textState with
+                                    {
+                                        LastStyle = this.textState.ControlCharactersStyle,
+                                        InitialStyle = this.textState.ControlCharactersStyle,
+                                    }),
                                 ssb.GetData());
-                            ssb.Measure(new(state2, new(float.MaxValue)));
+                            ssb.MeasureSpannable(new(state2, new(float.MaxValue)));
 
                             if (state2.Boundary.IsValid)
                             {
@@ -245,21 +245,21 @@ public abstract partial class SpannedStringBase
             measuredLine.SetOffset(new(segment.Offset.Text, segment.Offset.Record));
         }
 
-        public void CommitMeasurement(SpannableCommitTransformationArgs args)
+        public void CommitMeasurement(scoped in SpannableCommitTransformationArgs args)
         {
             this.ScreenOffset = args.ScreenOffset;
             this.TransformationOrigin = args.TransformationOrigin;
             this.transformation = args.Transformation;
         }
 
-        /// <summary>Forces a line break, from both <see cref="SpannedStringBase.Measure"/> and
-        /// <see cref="SpannedStringBase.Draw"/> step.</summary>
+        /// <summary>Forces a line break, from both <see cref="SpannedStringBase.MeasureSpannable"/> and
+        /// <see cref="SpannedStringBase.DrawSpannable"/> step.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void BreakLineImmediate(in MeasuredLine mostRecentLine) =>
             this.Offset = new(0, MathF.Round(this.Offset.Y + mostRecentLine.Height));
 
-        /// <summary>Add decorations and break line once a line ends, from both <see cref="SpannedStringBase.Measure"/>
-        /// and <see cref="SpannedStringBase.Draw"/> step.</summary>
+        /// <summary>Add decorations and break line once a line ends, from both <see cref="SpannedStringBase.MeasureSpannable"/>
+        /// and <see cref="SpannedStringBase.DrawSpannable"/> step.</summary>
         public RectVector4 ProcessPostLine(in MeasuredLine line, ref CharRenderer charRenderer, SpannableDrawArgs args)
         {
             var accumulatedBoundary = RectVector4.InvertedExtrema;
@@ -275,17 +275,17 @@ public abstract partial class SpannedStringBase
                 if (this.textState.WrapMarker is { } wrapMarker)
                 {
                     var state2 = wrapMarker.RentState(
+                        new(
                         this.Renderer,
                         0,
                         this.Scale,
-                        null,
                         this.textState with
                         {
                             InitialStyle = this.textState.LastStyle,
                             WordBreak = WordBreakType.KeepAll,
                             WrapMarker = null,
-                        });
-                    wrapMarker.Measure(new(state2, new(float.MaxValue)));
+                        }));
+                    wrapMarker.MeasureSpannable(new(state2, new(float.MaxValue)));
                     if (state2.Boundary.IsValid)
                     {
                         if (!args.IsEmpty)
@@ -294,13 +294,13 @@ public abstract partial class SpannedStringBase
                             if (this.textState.LastStyle.Italic)
                                 trss = Trss.CreateSkew(new(MathF.Atan(-1 / TextStyleFontData.FakeItalicDivisor), 0));
 
-                            wrapMarker.CommitMeasurement(
+                            wrapMarker.CommitSpannableMeasurement(
                                 new(
                                     state2,
                                     this.TransformToScreen(this.Offset + charRenderer.StyleTranslation),
                                     this.TransformationOrigin,
                                     Trss.Multiply(trss, Trss.WithoutTranslation(this.Transformation))));
-                            wrapMarker.Draw(args with { State = state2 });
+                            args.NotifyChild(wrapMarker, state2);
                         }
 
                         accumulatedBoundary = RectVector4.Union(
