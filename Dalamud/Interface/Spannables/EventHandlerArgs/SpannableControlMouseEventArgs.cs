@@ -24,8 +24,4 @@ public struct SpannableControlMouseEventArgs
 
     /// <summary>The number of detents the mouse wheel has rotated, <b>without</b> WHEEL_DELTA multiplied.</summary>
     public Vector2 Delta;
-
-    /// <summary>Initializes a new instance of the <see cref="SpannableControlMouseEventArgs"/> struct.</summary>
-    /// <param name="sender">The control that generated the event.</param>
-    public SpannableControlMouseEventArgs(SpannableControl sender) => this.Sender = sender;
 }

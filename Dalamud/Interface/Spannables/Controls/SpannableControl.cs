@@ -1,7 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 
-using Dalamud.Interface.Spannables.Controls.Animations;
 using Dalamud.Interface.Spannables.EventHandlerArgs;
 using Dalamud.Interface.Spannables.Rendering;
 using Dalamud.Plugin.Services;
@@ -14,7 +13,7 @@ using static TerraFX.Interop.Windows.Windows;
 namespace Dalamud.Interface.Spannables.Controls;
 
 /// <summary>A base spannable control that does nothing by itself.</summary>
-public class SpannableControl : ISpannable, ISpannableState
+public partial class SpannableControl : ISpannable, ISpannableState
 {
     /// <summary>Uses the dimensions provided from the parent.</summary>
     public const float MatchParent = -1f;
@@ -43,87 +42,6 @@ public class SpannableControl : ISpannable, ISpannableState
 
     private bool wasVisible;
 
-    /// <summary>Occurs when the control obtained the final layout parameters for the render pass.</summary>
-    public event SpannableControlMeasureEventHandler? CommitMeasurement;
-
-    /// <summary>Occurs when the control should handle interactions.</summary>
-    public event SpannableControlHandleInteractionEventHandler? HandleInteraction;
-
-    /// <summary>Occurs when the control is clicked by the mouse.</summary>
-    public event SpannableControlDrawEventHandler? Draw;
-
-    /// <summary>Occurs when the control is clicked by the mouse.</summary>
-    public event SpannableControlMouseEventHandler? MouseClick;
-
-    /// <summary>Occurs when the mouse pointer is over the control and a mouse button is pressed.</summary>
-    public event SpannableControlMouseEventHandler? MouseDown;
-
-    /// <summary>Occurs when the mouse pointer enters the control.</summary>
-    public event SpannableControlMouseEventHandler? MouseEnter;
-
-    /// <summary>Occurs when the mouse pointer leaves the control.</summary>
-    public event SpannableControlMouseEventHandler? MouseLeave;
-
-    /// <summary>Occurs when the mouse pointer is moved over the control.</summary>
-    public event SpannableControlMouseEventHandler? MouseMove;
-
-    /// <summary>Occurs when the mouse pointer is over the control and a mouse button is released.</summary>
-    public event SpannableControlMouseEventHandler? MouseUp;
-
-    /// <summary>Occurs when the mouse wheel moves while the control is hovered.</summary>
-    public event SpannableControlMouseEventHandler? MouseWheel;
-
-    /// <summary>Gets or sets a value indicating whether this control is enabled.</summary>
-    public bool Enabled { get; set; } = true;
-
-    /// <summary>Gets or sets a value indicating whether this control is visible.</summary>
-    public bool Visible { get; set; } = true;
-
-    /// <summary>Gets or sets the size.</summary>
-    /// <remarks>
-    /// <para><see cref="MatchParent"/> and <see cref="WrapContent"/> can be used.</para>
-    /// <para>The value will be scaled by <see cref="Scale"/>.</para>
-    /// <para>The value includes the margin and padding.</para>
-    /// </remarks>
-    public Vector2 Size { get; set; } = new(WrapContent);
-
-    /// <summary>Gets or sets the minimum size.</summary>
-    /// <remarks>
-    /// <para><see cref="MatchParent"/> and <see cref="WrapContent"/> can be used.</para>
-    /// <para>The value will be scaled by <see cref="Scale"/>.</para>
-    /// <para>The value includes the margin and padding.</para>
-    /// </remarks>
-    public Vector2 MinSize { get; set; } = Vector2.Zero;
-
-    /// <summary>Gets or sets the maximum size.</summary>
-    /// <remarks>
-    /// <para><see cref="MatchParent"/> and <see cref="WrapContent"/> can be used.</para>
-    /// <para>The value will be scaled by <see cref="Scale"/>.</para>
-    /// <para>The value includes the margin and padding.</para>
-    /// </remarks>
-    public Vector2 MaxSize { get; set; } = new(float.MaxValue);
-
-    /// <summary>Gets or sets the extrusion.</summary>
-    /// <remarks>
-    /// <para><see cref="MatchParent"/> and <see cref="WrapContent"/> can be used.</para>
-    /// <para>The value will be scaled by <see cref="Scale"/>.</para>
-    /// </remarks>
-    public RectVector4 Extrude { get; set; } = RectVector4.Zero;
-
-    /// <summary>Gets or sets the margin.</summary>
-    /// <remarks>
-    /// <para><see cref="MatchParent"/> and <see cref="WrapContent"/> can be used.</para>
-    /// <para>The value will be scaled by <see cref="Scale"/>.</para>
-    /// </remarks>
-    public RectVector4 Margin { get; set; } = RectVector4.Zero;
-
-    /// <summary>Gets or sets the padding.</summary>
-    /// <remarks>
-    /// <para><see cref="MatchParent"/> and <see cref="WrapContent"/> can be used.</para>
-    /// <para>The value will be scaled by <see cref="Scale"/>.</para>
-    /// </remarks>
-    public RectVector4 Padding { get; set; } = RectVector4.Zero;
-
     /// <inheritdoc/>
     public ref TextState TextState => ref this.activeTextState;
 
@@ -145,39 +63,6 @@ public class SpannableControl : ISpannable, ISpannableState
 
     /// <inheritdoc/>
     public ISpannableRenderer Renderer { get; private set; } = null!;
-
-    /// <summary>Gets or sets the opacity of the body when the control is disabled.</summary>
-    public float DisabledTextOpacity { get; set; } = 0.5f;
-
-    /// <summary>Gets or sets the normal background spannable.</summary>
-    public ISpannable? NormalBackground { get; set; }
-
-    /// <summary>Gets or sets the hovered background spannable.</summary>
-    public ISpannable? HoveredBackground { get; set; }
-
-    /// <summary>Gets or sets the active background spannable.</summary>
-    public ISpannable? ActiveBackground { get; set; }
-
-    /// <summary>Gets or sets the disabled background spannable.</summary>
-    public ISpannable? DisabledBackground { get; set; }
-
-    /// <summary>Gets or sets the animation to play when <see cref="Visible"/> changes to <c>true</c>.</summary>
-    public SpannableControlAnimator? ShowAnimation { get; set; }
-
-    /// <summary>Gets or sets the animation to play when <see cref="Visible"/> changes to <c>false</c>.</summary>
-    public SpannableControlAnimator? HideAnimation { get; set; }
-
-    /// <summary>Gets or sets a value indicating whether mouse wheel scroll up event should be intercepted.</summary>
-    public bool InterceptMouseWheelUp { get; set; }
-
-    /// <summary>Gets or sets a value indicating whether mouse wheel scroll down event should be intercepted.</summary>
-    public bool InterceptMouseWheelDown { get; set; }
-
-    /// <summary>Gets or sets a value indicating whether mouse wheel scroll left event should be intercepted.</summary>
-    public bool InterceptMouseWheelLeft { get; set; }
-
-    /// <summary>Gets or sets a value indicating whether mouse wheel scroll right event should be intercepted.</summary>
-    public bool InterceptMouseWheelRight { get; set; }
 
     /// <summary>Gets a value indicating whether the mouse button is hovering.</summary>
     public bool IsMouseHovered { get; private set; }
@@ -482,6 +367,9 @@ public class SpannableControl : ISpannable, ISpannableState
         }
     }
 
+    /// <inheritdoc/>
+    public override string ToString() => $"{this.GetType().Name}({this.Text})";
+
     /// <summary>Measures the content box, given the available content box excluding the margin and padding.</summary>
     /// <param name="args">Measure arguments.</param>
     /// <param name="availableContentBox">The available content box.</param>
@@ -507,51 +395,4 @@ public class SpannableControl : ISpannable, ISpannableState
                          : availableContentBox.Bottom,
         };
     }
-
-    /// <summary>Raises the <see cref="CommitMeasurement"/> event.</summary>
-    /// <param name="args">A <see cref="SpannableControlCommitMeasurementArgs"/> that contains the event data.</param>
-    protected virtual void OnCommitMeasurement(SpannableControlCommitMeasurementArgs args) =>
-        this.CommitMeasurement?.Invoke(args);
-
-    /// <summary>Raises the <see cref="HandleInteraction"/> event.</summary>
-    /// <param name="args">A <see cref="SpannableControlHandleInteractionArgs"/> that contains the event data.</param>
-    /// <param name="link">The interacted link, if any.</param>
-    protected virtual void OnHandleInteraction(
-        SpannableControlHandleInteractionArgs args, out SpannableLinkInteracted link)
-    {
-        link = default;
-        this.HandleInteraction?.Invoke(args, out link);
-    }
-
-    /// <summary>Raises the <see cref="Draw"/> event.</summary>
-    /// <param name="args">A <see cref="SpannableControlDrawArgs"/> that contains the event data.</param>
-    protected virtual void OnDraw(SpannableControlDrawArgs args) => this.Draw?.Invoke(args);
-
-    /// <summary>Raises the <see cref="MouseClick"/> event.</summary>
-    /// <param name="args">A <see cref="SpannableControlMouseEventArgs"/> that contains the event data.</param>
-    protected virtual void OnMouseClick(SpannableControlMouseEventArgs args) => this.MouseClick?.Invoke(args);
-
-    /// <summary>Raises the <see cref="MouseDown"/> event.</summary>
-    /// <param name="args">A <see cref="SpannableControlMouseEventArgs"/> that contains the event data.</param>
-    protected virtual void OnMouseDown(SpannableControlMouseEventArgs args) => this.MouseDown?.Invoke(args);
-
-    /// <summary>Raises the <see cref="MouseEnter"/> event.</summary>
-    /// <param name="args">A <see cref="SpannableControlMouseEventArgs"/> that contains the event data.</param>
-    protected virtual void OnMouseEnter(SpannableControlMouseEventArgs args) => this.MouseEnter?.Invoke(args);
-
-    /// <summary>Raises the <see cref="MouseLeave"/> event.</summary>
-    /// <param name="args">A <see cref="SpannableControlMouseEventArgs"/> that contains the event data.</param>
-    protected virtual void OnMouseLeave(SpannableControlMouseEventArgs args) => this.MouseLeave?.Invoke(args);
-
-    /// <summary>Raises the <see cref="MouseMove"/> event.</summary>
-    /// <param name="args">A <see cref="SpannableControlMouseEventArgs"/> that contains the event data.</param>
-    protected virtual void OnMouseMove(SpannableControlMouseEventArgs args) => this.MouseMove?.Invoke(args);
-
-    /// <summary>Raises the <see cref="MouseUp"/> event.</summary>
-    /// <param name="args">A <see cref="SpannableControlMouseEventArgs"/> that contains the event data.</param>
-    protected virtual void OnMouseUp(SpannableControlMouseEventArgs args) => this.MouseUp?.Invoke(args);
-
-    /// <summary>Raises the <see cref="MouseWheel"/> event.</summary>
-    /// <param name="args">A <see cref="SpannableControlMouseEventArgs"/> that contains the event data.</param>
-    protected virtual void OnMouseWheel(SpannableControlMouseEventArgs args) => this.MouseWheel?.Invoke(args);
 }

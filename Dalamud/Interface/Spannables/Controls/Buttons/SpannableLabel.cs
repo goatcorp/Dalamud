@@ -1,6 +1,10 @@
+using System.IO;
+
+using Dalamud.Interface.Spannables.Controls.EventHandlerDelegates;
 using Dalamud.Interface.Spannables.EventHandlerArgs;
 using Dalamud.Interface.Spannables.Strings;
 using Dalamud.Interface.Spannables.Styles;
+using Dalamud.Utility;
 using Dalamud.Utility.Numerics;
 
 using FFXIVClientStructs.FFXIV.Common.Math;
@@ -11,33 +15,30 @@ namespace Dalamud.Interface.Spannables.Controls.Buttons;
 public class SpannableLabel : SpannableControl
 {
     private readonly SpannedStringBuilder spannedStringBuilder = new();
+    private readonly MemoryStream lastLink = new();
 
     private ISpannableState? spannableState;
     private ISpannable? spannableText;
-    private string? text;
+
+    /// <summary>Occurs when the mouse pointer enters a link in the control.</summary>
+    public event SpannableControlLinkEventHandler? LinkMouseEnter;
+
+    /// <summary>Occurs when the mouse pointer leaves a link in the control.</summary>
+    public event SpannableControlLinkEventHandler? LinkMouseLeave;
+
+    /// <summary>Occurs when a link in the control is clicked by the mouse.</summary>
+    public event SpannableControlLinkEventHandler? LinkMouseClick;
 
     /// <summary>Gets or sets a spannable text.</summary>
-    /// <remarks>Setting this property clears <see cref="Text"/>.</remarks>
+    /// <remarks>Setting this property clears <see cref="SpannableControl.Text"/>.</remarks>
     public ISpannable? SpannableText
     {
         get => this.spannableText;
         set
         {
-            this.text = null;
+            this.Text = null;
             this.spannedStringBuilder.Clear();
             this.spannableText = value;
-        }
-    }
-
-    /// <summary>Gets or sets a standard text.</summary>
-    public string? Text
-    {
-        get => this.text;
-        set
-        {
-            this.spannableText = null;
-            this.text = value;
-            this.spannedStringBuilder.Clear().Append(this.text);
         }
     }
 
@@ -98,15 +99,68 @@ public class SpannableLabel : SpannableControl
         out SpannableLinkInteracted link)
     {
         base.OnHandleInteraction(args, out link);
-        if (this.spannableText is not null && this.spannableState is not null && this.Enabled)
+        if (!link.IsEmpty)
+        {
+            if (this.spannableText is not null && this.spannableState is not null && this.Enabled)
+                args.HandleInteractionArgs.NotifyChild(this.spannableText, this.spannableState, out _);
+        }
+        else if (this.spannableText is not null && this.spannableState is not null && this.Enabled)
+        {
             args.HandleInteractionArgs.NotifyChild(this.spannableText, this.spannableState, out link);
+        }
+
+        if (!this.lastLink.GetDataSpan().SequenceEqual(link.Link))
+        {
+            if (this.lastLink.Length != 0)
+            {
+                this.OnLinkMouseLeave(new() { Sender = this, Link = this.lastLink.GetDataSpan() });
+                this.lastLink.Clear();
+            }
+
+            this.lastLink.Write(link.Link);
+            this.OnLinkMouseEnter(new() { Sender = this, Link = this.lastLink.GetDataSpan() });
+        }
+
+        if (link.IsMouseClicked)
+        {
+            this.OnLinkMouseClick(
+                new()
+                {
+                    Sender = this,
+                    Button = link.ClickedMouseButton,
+                    Link = this.lastLink.GetDataSpan(),
+                });
+        }
     }
 
     /// <inheritdoc/>
-    protected sealed override void OnDraw(SpannableControlDrawArgs args)
+    protected override void OnDraw(SpannableControlDrawArgs args)
     {
         base.OnDraw(args);
         if (this.spannableState is not null)
             args.DrawArgs.NotifyChild(this.spannableText ?? this.spannedStringBuilder, this.spannableState);
+    }
+
+    /// <summary>Raises the <see cref="LinkMouseEnter"/> event.</summary>
+    /// <param name="args">A <see cref="SpannableControlMouseLinkEventArgs"/> that contains the event data.</param>
+    protected virtual void OnLinkMouseEnter(SpannableControlMouseLinkEventArgs args) =>
+        this.LinkMouseEnter?.Invoke(args);
+
+    /// <summary>Raises the <see cref="LinkMouseLeave"/> event.</summary>
+    /// <param name="args">A <see cref="SpannableControlMouseLinkEventArgs"/> that contains the event data.</param>
+    protected virtual void OnLinkMouseLeave(SpannableControlMouseLinkEventArgs args) =>
+        this.LinkMouseLeave?.Invoke(args);
+
+    /// <summary>Raises the <see cref="LinkMouseClick"/> event.</summary>
+    /// <param name="args">A <see cref="SpannableControlMouseLinkEventArgs"/> that contains the event data.</param>
+    protected virtual void OnLinkMouseClick(SpannableControlMouseLinkEventArgs args) =>
+        this.LinkMouseClick?.Invoke(args);
+
+    /// <inheritdoc/>
+    protected override void OnTextChanged(SpannableControlPropertyChangedEventArgs<string?> args)
+    {
+        this.spannableText = null;
+        this.spannedStringBuilder.Clear().Append(args.NewValue);
+        base.OnTextChanged(args);
     }
 }

@@ -1,6 +1,6 @@
 using Dalamud.Interface.Spannables.EventHandlerArgs;
 
-namespace Dalamud.Interface.Spannables.Controls;
+namespace Dalamud.Interface.Spannables.Controls.EventHandlerDelegates;
 
 /// <summary>Handle interaction event delegate.</summary>
 /// <param name="args">Handle interaction event arguments.</param>

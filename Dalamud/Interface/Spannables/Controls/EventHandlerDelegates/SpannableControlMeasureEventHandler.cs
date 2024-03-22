@@ -1,6 +1,6 @@
 using Dalamud.Interface.Spannables.EventHandlerArgs;
 
-namespace Dalamud.Interface.Spannables.Controls;
+namespace Dalamud.Interface.Spannables.Controls.EventHandlerDelegates;
 
 /// <summary>Measure event delegate.</summary>
 /// <param name="args">Measure event arguments.</param>
