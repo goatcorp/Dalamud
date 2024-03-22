@@ -1,5 +1,4 @@
 using System.Runtime.Loader;
-using System.Threading;
 using System.Threading.Tasks;
 
 using Dalamud.Configuration.Internal;
@@ -24,14 +23,14 @@ internal sealed partial class ActiveNotification : IActiveNotification
     private readonly Easing progressEasing;
     private readonly Easing expandoEasing;
 
+    /// <summary>Whether to call <see cref="IDisposable.Dispose"/> on <see cref="DisposeInternal"/>.</summary>
+    private bool hasIconTextureOwnership;
+
     /// <summary>Gets the time of starting to count the timer for the expiration.</summary>
     private DateTime lastInterestTime;
 
     /// <summary>Gets the extended expiration time from <see cref="ExtendBy"/>.</summary>
     private DateTime extendedExpiry;
-
-    /// <summary>The icon texture to use if specified; otherwise, icon will be used from <see cref="Icon"/>.</summary>
-    private Task<IDalamudTextureWrap>? iconTextureWrap;
 
     /// <summary>The plugin that initiated this notification.</summary>
     private LocalPlugin? initiatorPlugin;
@@ -117,6 +116,34 @@ internal sealed partial class ActiveNotification : IActiveNotification
     {
         get => this.underlyingNotification.Icon;
         set => this.underlyingNotification.Icon = value;
+    }
+
+    /// <inheritdoc/>
+    public IDalamudTextureWrap? IconTexture
+    {
+        get => this.underlyingNotification.IconTexture;
+        set => this.IconTextureTask = value is null ? null : Task.FromResult(value);
+    }
+
+    /// <inheritdoc/>
+    public Task<IDalamudTextureWrap?>? IconTextureTask
+    {
+        get => this.underlyingNotification.IconTextureTask;
+        set
+        {
+            // Do nothing if the value did not change.
+            if (this.underlyingNotification.IconTextureTask == value)
+                return;
+
+            if (this.hasIconTextureOwnership)
+            {
+                _ = this.underlyingNotification.IconTextureTask?.ToContentDisposedTask(true);
+                this.underlyingNotification.IconTextureTask = null;
+                this.hasIconTextureOwnership = false;
+            }
+
+            this.underlyingNotification.IconTextureTask = value;
+        }
     }
 
     /// <inheritdoc/>
@@ -239,26 +266,36 @@ internal sealed partial class ActiveNotification : IActiveNotification
     }
 
     /// <inheritdoc/>
-    public void SetIconTexture(IDalamudTextureWrap? textureWrap)
-    {
-        this.SetIconTexture(textureWrap is null ? null : Task.FromResult(textureWrap));
-    }
+    public void SetIconTexture(IDalamudTextureWrap? textureWrap) =>
+        this.SetIconTexture(textureWrap, false);
 
     /// <inheritdoc/>
-    public void SetIconTexture(Task<IDalamudTextureWrap?>? textureWrapTask)
+    public void SetIconTexture(IDalamudTextureWrap? textureWrap, bool leaveOpen) =>
+        this.SetIconTexture(textureWrap is null ? null : Task.FromResult(textureWrap), leaveOpen);
+
+    /// <inheritdoc/>
+    public void SetIconTexture(Task<IDalamudTextureWrap?>? textureWrapTask) =>
+        this.SetIconTexture(textureWrapTask, false);
+
+    /// <inheritdoc/>
+    public void SetIconTexture(Task<IDalamudTextureWrap?>? textureWrapTask, bool leaveOpen)
     {
+        // If we're requested to replace the texture with the same texture, do nothing.
+        if (this.underlyingNotification.IconTextureTask == textureWrapTask)
+            return;
+
         if (this.DismissReason is not null)
         {
-            textureWrapTask?.ToContentDisposedTask(true);
+            if (!leaveOpen)
+                textureWrapTask?.ToContentDisposedTask(true);
             return;
         }
 
-        // After replacing, if the old texture is not the old texture, then dispose the old texture.
-        if (Interlocked.Exchange(ref this.iconTextureWrap, textureWrapTask) is { } wrapTaskToDispose &&
-            wrapTaskToDispose != textureWrapTask)
-        {
-            wrapTaskToDispose.ToContentDisposedTask(true);
-        }
+        if (this.hasIconTextureOwnership)
+            _ = this.underlyingNotification.IconTextureTask?.ToContentDisposedTask(true);
+
+        this.hasIconTextureOwnership = !leaveOpen;
+        this.underlyingNotification.IconTextureTask = textureWrapTask;
     }
 
     /// <summary>Removes non-Dalamud invocation targets from events.</summary>
@@ -279,6 +316,11 @@ internal sealed partial class ActiveNotification : IActiveNotification
 
         if (this.Icon is { } previousIcon && !IsOwnedByDalamud(previousIcon.GetType()))
             this.Icon = null;
+
+        // Clear the texture if we don't have the ownership.
+        // The texture probably was owned by the plugin being unloaded in such case.
+        if (!this.hasIconTextureOwnership)
+            this.IconTextureTask = null;
 
         this.isInitiatorUnloaded = true;
         this.UserDismissable = true;
@@ -358,8 +400,13 @@ internal sealed partial class ActiveNotification : IActiveNotification
     /// <summary>Clears the resources associated with this instance of <see cref="ActiveNotification"/>.</summary>
     internal void DisposeInternal()
     {
-        if (Interlocked.Exchange(ref this.iconTextureWrap, null) is { } wrapTaskToDispose)
-            wrapTaskToDispose.ToContentDisposedTask(true);
+        if (this.hasIconTextureOwnership)
+        {
+            _ = this.underlyingNotification.IconTextureTask?.ToContentDisposedTask(true);
+            this.underlyingNotification.IconTextureTask = null;
+            this.hasIconTextureOwnership = false;
+        }
+
         this.Dismiss = null;
         this.Click = null;
         this.DrawActions = null;

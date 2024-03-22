@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 using Dalamud.Game.Text;
@@ -18,6 +19,7 @@ namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 /// </summary>
 internal class ImGuiWidget : IDataWindowWidget
 {
+    private readonly HashSet<IActiveNotification> notifications = new();
     private NotificationTemplate notificationTemplate;
 
     /// <inheritdoc/>
@@ -39,8 +41,10 @@ internal class ImGuiWidget : IDataWindowWidget
     /// <inheritdoc/>
     public void Draw()
     {
+        this.notifications.RemoveWhere(x => x.DismissReason.HasValue);
+
         var interfaceManager = Service<InterfaceManager>.Get();
-        var notifications = Service<NotificationManager>.Get();
+        var nm = Service<NotificationManager>.Get();
 
         ImGui.Text("Monitor count: " + ImGui.GetPlatformIO().Monitors.Size);
         ImGui.Text("OverrideGameCursor: " + interfaceManager.OverrideGameCursor);
@@ -139,6 +143,8 @@ internal class ImGuiWidget : IDataWindowWidget
             "Action Bar (always on if not user dismissable for the example)",
             ref this.notificationTemplate.ActionBar);
 
+        ImGui.Checkbox("Leave Textures Open", ref this.notificationTemplate.LeaveTexturesOpen);
+
         if (ImGui.Button("Add notification"))
         {
             var text =
@@ -152,7 +158,7 @@ internal class ImGuiWidget : IDataWindowWidget
             if (this.notificationTemplate.ManualType)
                 type = (NotificationType)this.notificationTemplate.TypeInt;
 
-            var n = notifications.AddNotification(
+            var n = nm.AddNotification(
                 new()
                 {
                     Content = text,
@@ -198,27 +204,40 @@ internal class ImGuiWidget : IDataWindowWidget
                     },
                 });
 
+            this.notifications.Add(n);
+
             var dam = Service<DalamudAssetManager>.Get();
             var tm = Service<TextureManager>.Get();
             switch (this.notificationTemplate.IconInt)
             {
                 case 5:
                     n.SetIconTexture(
-                        dam.GetDalamudTextureWrap(
-                            Enum.Parse<DalamudAsset>(
-                                NotificationTemplate.AssetSources[this.notificationTemplate.IconAssetInt])));
+                        DisposeLoggingTextureWrap.Wrap(
+                            dam.GetDalamudTextureWrap(
+                                Enum.Parse<DalamudAsset>(
+                                    NotificationTemplate.AssetSources[this.notificationTemplate.IconAssetInt]))),
+                        this.notificationTemplate.LeaveTexturesOpen);
                     break;
                 case 6:
                     n.SetIconTexture(
                         dam.GetDalamudTextureWrapAsync(
-                            Enum.Parse<DalamudAsset>(
-                                NotificationTemplate.AssetSources[this.notificationTemplate.IconAssetInt])));
+                               Enum.Parse<DalamudAsset>(
+                                   NotificationTemplate.AssetSources[this.notificationTemplate.IconAssetInt]))
+                           .ContinueWith(
+                               r => r.IsCompletedSuccessfully
+                                        ? Task.FromResult<IDalamudTextureWrap>(DisposeLoggingTextureWrap.Wrap(r.Result))
+                                        : r).Unwrap(),
+                        this.notificationTemplate.LeaveTexturesOpen);
                     break;
                 case 7:
-                    n.SetIconTexture(tm.GetTextureFromGame(this.notificationTemplate.IconText));
+                    n.SetIconTexture(
+                        DisposeLoggingTextureWrap.Wrap(tm.GetTextureFromGame(this.notificationTemplate.IconText)),
+                        this.notificationTemplate.LeaveTexturesOpen);
                     break;
                 case 8:
-                    n.SetIconTexture(tm.GetTextureFromFile(new(this.notificationTemplate.IconText)));
+                    n.SetIconTexture(
+                        DisposeLoggingTextureWrap.Wrap(tm.GetTextureFromFile(new(this.notificationTemplate.IconText))),
+                        this.notificationTemplate.LeaveTexturesOpen);
                     break;
             }
 
@@ -261,7 +280,7 @@ internal class ImGuiWidget : IDataWindowWidget
                 {
                     ImGui.AlignTextToFramePadding();
                     ImGui.TextUnformatted($"{nclick}");
-                    
+
                     ImGui.SameLine();
                     if (ImGui.Button("Update"))
                     {
@@ -274,11 +293,21 @@ internal class ImGuiWidget : IDataWindowWidget
                     ImGui.SameLine();
                     if (ImGui.Button("Dismiss"))
                         an.Notification.DismissNow();
-                    
+
                     ImGui.SameLine();
                     ImGui.SetNextItemWidth(an.MaxCoord.X - ImGui.GetCursorPosX());
                     ImGui.InputText("##input", ref testString, 255);
                 };
+            }
+        }
+        
+        ImGui.SameLine();
+        if (ImGui.Button("Replace images using setter"))
+        {
+            foreach (var n in this.notifications)
+            {
+                var i = (uint)Random.Shared.NextInt64(0, 200000);
+                n.IconTexture = DisposeLoggingTextureWrap.Wrap(Service<TextureManager>.Get().GetIcon(i));
             }
         }
     }
@@ -395,6 +424,7 @@ internal class ImGuiWidget : IDataWindowWidget
         public bool Minimized;
         public bool UserDismissable;
         public bool ActionBar;
+        public bool LeaveTexturesOpen;
         public int ProgressMode;
 
         public void Reset()
@@ -416,8 +446,33 @@ internal class ImGuiWidget : IDataWindowWidget
             this.Minimized = true;
             this.UserDismissable = true;
             this.ActionBar = true;
+            this.LeaveTexturesOpen = true;
             this.ProgressMode = 0;
             this.RespectUiHidden = true;
+        }
+    }
+
+    private sealed class DisposeLoggingTextureWrap : IDalamudTextureWrap
+    {
+        private readonly IDalamudTextureWrap inner;
+
+        public DisposeLoggingTextureWrap(IDalamudTextureWrap inner) => this.inner = inner;
+
+        public nint ImGuiHandle => this.inner.ImGuiHandle;
+
+        public int Width => this.inner.Width;
+
+        public int Height => this.inner.Height;
+
+        public static DisposeLoggingTextureWrap? Wrap(IDalamudTextureWrap? inner) => inner is null ? null : new(inner);
+
+        public void Dispose()
+        {
+            this.inner.Dispose();
+            Service<NotificationManager>.Get().AddNotification(
+                "Texture disposed",
+                "ImGui Widget",
+                NotificationType.Info);
         }
     }
 }
