@@ -1,6 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 
+using Dalamud.Interface.Spannables.Controls.Animations;
 using Dalamud.Interface.Spannables.EventHandlerArgs;
 using Dalamud.Interface.Spannables.Rendering;
 using Dalamud.Plugin.Services;
@@ -24,8 +25,8 @@ public partial class SpannableControl : ISpannable, ISpannableState
     private static readonly ImGuiMouseButton[] MouseButtonsWeCare =
         [ImGuiMouseButton.Left, ImGuiMouseButton.Right, ImGuiMouseButton.Middle];
 
-    private ISpannable? background;
-    private ISpannableState? backgroundState;
+    private ISpannable? currentBackground;
+    private ISpannableState? currentBackgroundState;
 
     private TextState activeTextState;
     private RectVector4 boundary;
@@ -90,14 +91,18 @@ public partial class SpannableControl : ISpannable, ISpannableState
 
     /// <summary>Gets a value indicating whether the width is set to wrap content.</summary>
     [SuppressMessage("ReSharper", "CompareOfFloatsByEqualityOperator", Justification = "Sentinel value")]
-    protected bool IsWidthWrapContent => this.Size.X == WrapContent;
+    protected bool IsWidthWrapContent => this.size.X == WrapContent;
 
     /// <summary>Gets a value indicating whether the height is set to wrap content.</summary>
     [SuppressMessage("ReSharper", "CompareOfFloatsByEqualityOperator", Justification = "Sentinel value")]
-    protected bool IsHeightWrapContent => this.Size.Y == WrapContent;
+    protected bool IsHeightWrapContent => this.size.Y == WrapContent;
 
     /// <summary>Gets the scale.</summary>
     protected float Scale { get; private set; }
+
+    /// <summary>Gets either <see cref="showAnimation"/> or <see cref="hideAnimation"/> according to
+    /// <see cref="visible"/>.</summary>
+    private SpannableControlAnimator? VisibilityAnimation => this.visible ? this.showAnimation : this.hideAnimation;
 
     /// <inheritdoc/>
     public ISpannableState RentState(scoped in SpannableRentStateArgs args)
@@ -122,11 +127,11 @@ public partial class SpannableControl : ISpannable, ISpannableState
         var rv = new RectVector4(
             Vector2.Zero,
             Vector2.Clamp(
-                ResolveSize(args, this.Size),
-                ResolveSize(args, this.MinSize),
-                ResolveSize(args, this.MaxSize)));
+                ResolveSize(args, this.size),
+                ResolveSize(args, this.minSize),
+                ResolveSize(args, this.maxSize)));
 
-        rv = RectVector4.Extrude(rv, -(this.Margin + this.Padding) * this.Scale);
+        rv = RectVector4.Extrude(rv, -(this.margin + this.padding) * this.Scale);
         rv = RectVector4.Normalize(rv);
 
         if (rv.Right >= 1000000f)
@@ -136,9 +141,29 @@ public partial class SpannableControl : ISpannable, ISpannableState
         this.measuredContentBox = this.MeasureContentBox(args, rv);
         this.measuredContentBox = RectVector4.Normalize(this.measuredContentBox);
 
-        this.measuredInteractiveBox = RectVector4.Extrude(this.measuredContentBox, this.Padding * this.Scale);
-        this.boundary = RectVector4.Extrude(this.measuredInteractiveBox, this.Margin * this.Scale);
-        this.measuredExtrudedBox = RectVector4.Extrude(this.boundary, this.Extrude * this.Scale);
+        this.measuredInteractiveBox = RectVector4.Extrude(this.measuredContentBox, this.padding * this.Scale);
+        this.boundary = RectVector4.Extrude(this.measuredInteractiveBox, this.margin * this.Scale);
+        this.measuredExtrudedBox = RectVector4.Extrude(this.boundary, this.extrude * this.Scale);
+
+        if (this.wasVisible != this.Visible)
+        {
+            this.VisibilityAnimation?.Restart();
+            this.wasVisible = this.Visible;
+        }
+
+        if (this.VisibilityAnimation is { } visibilityAnimation)
+        {
+            visibilityAnimation.Update(this);
+            this.measuredContentBox =
+                RectVector4.Normalize(this.measuredContentBox + visibilityAnimation.AnimatedBoundaryAdjustment);
+            this.measuredInteractiveBox = RectVector4.Normalize(
+                this.measuredInteractiveBox + visibilityAnimation.AnimatedBoundaryAdjustment);
+            this.boundary =
+                RectVector4.Normalize(this.boundary + visibilityAnimation.AnimatedBoundaryAdjustment);
+            this.measuredContentBox =
+                RectVector4.Normalize(this.measuredContentBox + visibilityAnimation.AnimatedBoundaryAdjustment);
+        }
+
         return;
 
         static Vector2 ResolveSize(SpannableMeasureArgs args, in Vector2 dim)
@@ -164,18 +189,8 @@ public partial class SpannableControl : ISpannable, ISpannableState
         this.TransformationOrigin = args.TransformationOrigin;
         this.transformation = args.Transformation;
 
-        var relevantAnimation = this.Visible ? this.ShowAnimation : this.HideAnimation;
-        if (this.wasVisible != this.Visible)
-        {
-            relevantAnimation?.Restart();
-            this.wasVisible = this.Visible;
-        }
-
-        if (relevantAnimation?.IsRunning is true)
-        {
-            relevantAnimation.Update(this);
-            this.transformation = Matrix4x4.Multiply(relevantAnimation.Transformation, this.Transformation);
-        }
+        if (this.VisibilityAnimation is { IsRunning: true } visibilityAnimation)
+            this.transformation = Matrix4x4.Multiply(visibilityAnimation.AnimatedTransformation, this.Transformation);
 
         this.OnCommitMeasurement(
             new()
@@ -197,28 +212,28 @@ public partial class SpannableControl : ISpannable, ISpannableState
 
         this.OnHandleInteraction(new() { Sender = this, HandleInteractionArgs = args }, out link);
 
-        if (!this.Visible && this.HideAnimation?.IsRunning is not true)
+        if (!this.visible && this.hideAnimation?.IsRunning is not true)
         {
             this.IsMouseHovered = false;
             this.heldMouseButtons = 0;
 
-            this.background = this.NormalBackground;
+            this.currentBackground = this.normalBackground;
         }
         else if (!this.Enabled)
         {
             this.IsMouseHovered = false;
             this.heldMouseButtons = 0;
 
-            this.background = this.DisabledBackground ?? this.NormalBackground;
+            this.currentBackground = this.disabledBackground ?? this.normalBackground;
         }
         else
         {
             var margs = new SpannableControlMouseEventArgs { LocalLocation = args.MouseLocalLocation };
             var interceptWheel = false;
-            interceptWheel |= args.WheelDelta.X > 0 && this.InterceptMouseWheelRight;
-            interceptWheel |= args.WheelDelta.X < 0 && this.InterceptMouseWheelLeft;
-            interceptWheel |= args.WheelDelta.Y > 0 && this.InterceptMouseWheelDown;
-            interceptWheel |= args.WheelDelta.Y < 0 && this.InterceptMouseWheelUp;
+            interceptWheel |= args.WheelDelta.X > 0 && this.interceptMouseWheelRight;
+            interceptWheel |= args.WheelDelta.X < 0 && this.interceptMouseWheelLeft;
+            interceptWheel |= args.WheelDelta.Y > 0 && this.interceptMouseWheelDown;
+            interceptWheel |= args.WheelDelta.Y < 0 && this.interceptMouseWheelUp;
 
             if (this.heldMouseButtons != 0)
                 args.SetActive(selfInnerId, interceptWheel);
@@ -298,29 +313,29 @@ public partial class SpannableControl : ISpannable, ISpannableState
                 args.SetActive(selfInnerId, interceptWheel);
 
             if (this.IsMouseHovered && this.IsLeftMouseButtonDown && this.ActiveBackground is not null)
-                this.background = this.ActiveBackground;
+                this.currentBackground = this.ActiveBackground;
             else if (this.IsMouseHovered && this.HoveredBackground is not null)
-                this.background = this.HoveredBackground;
+                this.currentBackground = this.HoveredBackground;
             else
-                this.background = this.NormalBackground;
+                this.currentBackground = this.NormalBackground;
         }
 
-        if (this.background is not null)
+        if (this.currentBackground is not null)
         {
-            this.backgroundState = this.background.RentState(
+            this.currentBackgroundState = this.currentBackground.RentState(
                 new(
                     this.Renderer,
                     0,
                     this.Scale,
                     this.TextState));
-            this.background.MeasureSpannable(new(this.backgroundState, this.MeasuredInteractiveBox.Size));
-            this.background.CommitSpannableMeasurement(
+            this.currentBackground.MeasureSpannable(new(this.currentBackgroundState, this.MeasuredInteractiveBox.Size));
+            this.currentBackground.CommitSpannableMeasurement(
                 new(
-                    this.backgroundState,
+                    this.currentBackgroundState,
                     this.TransformToScreen(this.MeasuredInteractiveBox.LeftTop),
                     Vector2.Zero,
                     this.Transformation.WithoutTranslation()));
-            args.NotifyChild(this.background, this.backgroundState, out _);
+            args.NotifyChild(this.currentBackground, this.currentBackgroundState, out _);
         }
     }
 
@@ -331,11 +346,11 @@ public partial class SpannableControl : ISpannable, ISpannableState
             return;
 
         var opacity = 1f;
-        opacity *= (this.Visible ? this.ShowAnimation : this.HideAnimation)?.Opacity ?? 1f;
+        opacity *= this.VisibilityAnimation?.AnimatedOpacity ?? 1f;
 
         var numVertices = args.DrawListPtr.VtxBuffer.Size;
-        if (this.background is not null && this.backgroundState is not null)
-            args.NotifyChild(this.background, this.backgroundState);
+        if (this.currentBackground is not null && this.currentBackgroundState is not null)
+            args.NotifyChild(this.currentBackground, this.currentBackgroundState);
 
         if (opacity < 1)
         {
@@ -353,7 +368,7 @@ public partial class SpannableControl : ISpannable, ISpannableState
         args.SwitchToChannel(RenderChannel.ForeChannel);
         this.OnDraw(new() { Sender = this, DrawArgs = args });
 
-        opacity *= this.Enabled ? 1f : this.DisabledTextOpacity;
+        opacity *= this.enabled ? 1f : this.disabledTextOpacity;
         if (opacity < 1)
         {
             var ptr = (ImDrawVert*)args.DrawListPtr.VtxBuffer.Data + numVertices;
@@ -368,7 +383,7 @@ public partial class SpannableControl : ISpannable, ISpannableState
     }
 
     /// <inheritdoc/>
-    public override string ToString() => $"{this.GetType().Name}({this.Text})";
+    public override string ToString() => $"{this.GetType().Name}({this.text})";
 
     /// <summary>Measures the content box, given the available content box excluding the margin and padding.</summary>
     /// <param name="args">Measure arguments.</param>

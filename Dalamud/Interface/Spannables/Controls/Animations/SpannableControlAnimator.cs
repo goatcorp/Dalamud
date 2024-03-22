@@ -2,7 +2,6 @@ using System.Numerics;
 using System.Runtime.CompilerServices;
 
 using Dalamud.Interface.Animation;
-using Dalamud.Interface.Animation.EasingFunctions;
 using Dalamud.Utility.Numerics;
 
 namespace Dalamud.Interface.Spannables.Controls.Animations;
@@ -11,6 +10,7 @@ namespace Dalamud.Interface.Spannables.Controls.Animations;
 public abstract class SpannableControlAnimator
 {
     private Matrix4x4 transformation = Matrix4x4.Identity;
+    private RectVector4 boundaryAdjustment = new(Vector4.Zero);
 
     /// <summary>Gets or sets the easing function to use.</summary>
     public Easing? TransformationEasing { get; set; }
@@ -28,7 +28,17 @@ public abstract class SpannableControlAnimator
     public float AfterOpacity { get; set; } = 1f;
 
     /// <summary>Gets or sets the opacity being animated.</summary>
-    public float Opacity { get; protected set; } = 1f;
+    public float AnimatedOpacity { get; protected set; } = 1f;
+
+    /// <summary>Gets the boundary adjustment.</summary>
+    /// <remarks>Each component of the returned value should be added to all boxes, normalizing the addition results
+    /// as needed.</remarks>
+    // TODO: is this useful?
+    public ref readonly RectVector4 AnimatedBoundaryAdjustment
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => ref this.boundaryAdjustment;
+    } 
 
     /// <inheritdoc cref="Animation.Easing.IsRunning"/>
     public bool IsRunning
@@ -38,7 +48,7 @@ public abstract class SpannableControlAnimator
     }
 
     /// <summary>Gets the transformation matrix for the animation.</summary>
-    public ref readonly Matrix4x4 Transformation
+    public ref readonly Matrix4x4 AnimatedTransformation
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get => ref this.transformation;
@@ -126,11 +136,11 @@ public abstract class SpannableControlAnimator
             if (this.OpacityEasing.IsDone)
             {
                 this.OpacityEasing.Stop();
-                this.Opacity = this.AfterOpacity;
+                this.AnimatedOpacity = this.AfterOpacity;
             }
             else
             {
-                this.Opacity =
+                this.AnimatedOpacity =
                     float.Lerp(
                         this.BeforeOpacity,
                         this.AfterOpacity,
