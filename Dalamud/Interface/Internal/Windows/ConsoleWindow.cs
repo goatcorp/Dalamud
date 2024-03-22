@@ -258,9 +258,10 @@ internal class ConsoleWindow : Window, IDisposable
                 break;
             }
 
-            var state = new RenderState(true, this.GetRendererOptions(messageAreaWidth));
-            Service<SpannableRenderer>.Get().Render(entry.Line, ref state);
-            entry.NumLines = state.LineCount;
+            entry.NumLines = Service<SpannableRenderer>.Get().Render(
+                entry.Line,
+                new(true, new() { MaxSize = new(messageAreaWidth, float.MaxValue) }),
+                this.GetTextStateOptions()).FinalTextState.LineCount;
             this.totalWrappedLines += entry.NumLines;
 
             if (i == 0)
@@ -1181,9 +1182,8 @@ internal class ConsoleWindow : Window, IDisposable
         return ~l;
     }
 
-    private RenderOptions GetRendererOptions(float width) => new()
+    private TextState.Options GetTextStateOptions() => new()
     {
-        MaxSize = new(width, float.MaxValue),
         WordBreak = this.activeConfiguration.LogLineBreakMode,
         InitialStyle = new() { BorderWidth = 1f },
         ControlCharactersStyle = new()
@@ -1240,7 +1240,8 @@ internal class ConsoleWindow : Window, IDisposable
             ssb,
             new(
                 ImGui.GetWindowDrawList(),
-                this.GetRendererOptions((width + ImGui.GetScrollX()) - ImGui.GetCursorPosX())));
+                new() { MaxSize = new((width + ImGui.GetScrollX()) - ImGui.GetCursorPosX()) }),
+            this.GetTextStateOptions());
 
         // Allocate scroll region
         if (this.activeConfiguration.LogLineBreakMode == WordBreakType.KeepAll)
@@ -1258,9 +1259,8 @@ internal class ConsoleWindow : Window, IDisposable
             ImGui.SetCursorScreenPos(cursorScreenPos);
             Renderer.Render(
                 ssb,
-                new(
-                    false,
-                    this.GetRendererOptions(float.MaxValue) with { InitialStyle = SpanStyle.Empty }));
+                new(false, new() { MaxSize = new(float.MaxValue) }),
+                this.GetTextStateOptions());
         }
 
         Renderer.ReturnBuilder(ssb);

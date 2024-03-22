@@ -1,3 +1,5 @@
+using Dalamud.Interface.Spannables.EventHandlerArgs;
+
 namespace Dalamud.Interface.Spannables.Controls;
 
 /// <summary>Mouse event delegate.</summary>

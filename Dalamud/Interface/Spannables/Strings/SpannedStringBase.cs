@@ -1,21 +1,20 @@
 using System.Collections;
-using System.Collections.Generic;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Unicode;
 
+using Dalamud.Interface.Spannables.EventHandlerArgs;
 using Dalamud.Interface.Spannables.Internal;
 using Dalamud.Interface.Spannables.Rendering;
 using Dalamud.Interface.Spannables.Styles;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility;
+using Dalamud.Utility.Numerics;
 using Dalamud.Utility.Text;
 
 using ImGuiNET;
-
-using Microsoft.Extensions.ObjectPool;
 
 namespace Dalamud.Interface.Spannables.Strings;
 
@@ -61,8 +60,9 @@ public abstract partial class SpannedStringBase : ISpannable
     }
 
     /// <inheritdoc/>
-    public ISpannableState? RentState(ISpannableRenderer renderer, RenderState renderState, string? args) =>
-        State.Rent(renderer, renderState, this.GetData());
+    public ISpannableState RentState(
+        ISpannableRenderer renderer, uint imGuiGlobalId, float scale, string? args, in TextState textState) =>
+        State.Rent(renderer, textState, imGuiGlobalId, scale, this.GetData());
 
     /// <inheritdoc/>
     public void ReturnState(ISpannableState? state)
@@ -75,19 +75,21 @@ public abstract partial class SpannedStringBase : ISpannable
     public void Measure(SpannableMeasureArgs args)
     {
         var state = args.State as State ?? new();
-        state.RenderState.Offset = Vector2.Zero;
-        state.RenderState.LastStyle = state.RenderState.InitialStyle;
+        state.Offset = Vector2.Zero;
+        state.TextState.LastStyle = state.TextState.InitialStyle;
+        state.MaxSize = args.MaxSize;
+        state.ClearBoundary();
 
         var data = this.GetData();
         var segment = new DataRef.Segment(data, 0, 0);
         var linkRecordIndex = -1;
 
-        var drawArgs = new SpannableDrawArgs(state, default);
+        var drawArgs = new SpannableDrawArgs(state, default, default);
         var charRenderer = new CharRenderer(drawArgs, data, state, true);
         var skipNextLine = false;
         while (true)
         {
-            state.FindFirstWordWrapByteOffset(segment, new(segment), out var line);
+            state.FindFirstWordWrapByteOffset(args, segment, new(segment), out var line);
             line.FirstOffset = new(segment);
             var lineSegment = new DataRef.Segment(data, line.Offset.Text, line.Offset.Record);
 
@@ -149,21 +151,21 @@ public abstract partial class SpannedStringBase : ISpannable
                             if (absOffset.Text >= line.OmitOffset.Text)
                                 break;
 
-                            if (state.RenderState.UseControlCharacter)
+                            if (state.TextState.UseControlCharacter)
                             {
                                 var name = c.Value.ShortName;
                                 if (!name.IsEmpty)
                                 {
                                     var offset = charRenderer.StyleTranslation;
-                                    state.RenderState.Offset += offset;
+                                    state.Offset += offset;
                                     var old = charRenderer.UpdateSpanParams(
-                                        state.RenderState.ControlCharactersStyle);
+                                        state.TextState.ControlCharactersStyle);
                                     charRenderer.LastRendered.Clear();
                                     foreach (var c2 in name)
                                         charRenderer.RenderOne(c2);
                                     charRenderer.LastRendered.Clear();
                                     _ = charRenderer.UpdateSpanParams(old);
-                                    state.RenderState.Offset -= offset;
+                                    state.Offset -= offset;
                                 }
                             }
 
@@ -199,13 +201,10 @@ public abstract partial class SpannedStringBase : ISpannable
 
                 accumulatedBoundary = RectVector4.Union(
                     accumulatedBoundary,
-                    state.ProcessPostLine(line, ref charRenderer, default, true));
-                state.UpdateAndResetBoundary(ref accumulatedBoundary, linkRecordIndex);
+                    state.ProcessPostLine(line, ref charRenderer, default));
 
-                state.RenderState.Boundary.Bottom =
-                    Math.Max(
-                        state.RenderState.Boundary.Bottom,
-                        state.RenderState.Offset.Y + charRenderer.MostRecentLineHeight);
+                state.UpdateAndResetBoundary(ref accumulatedBoundary, linkRecordIndex);
+                state.ExtendBoundaryBottom(state.Offset.Y + charRenderer.MostRecentLineHeight);
             }
             else
             {
@@ -220,14 +219,14 @@ public abstract partial class SpannedStringBase : ISpannable
                         break;
                 }
 
-                if (line.HasNewLineAtEnd || (line.IsWrapped && state.RenderState.WordBreak != WordBreakType.KeepAll))
+                if (line.HasNewLineAtEnd || (line.IsWrapped && state.TextState.WordBreak != WordBreakType.KeepAll))
                     state.BreakLineImmediate(line);
             }
 
             if (lineSegment.Offset == data.EndOffset)
                 break;
             segment = lineSegment;
-            if (state.RenderState.WordBreak == WordBreakType.KeepAll)
+            if (state.TextState.WordBreak == WordBreakType.KeepAll)
             {
                 if (skipNextLine && !line.IsWrapped)
                     state.MeasuredLines[^1].HasNewLineAtEnd = true;
@@ -235,29 +234,53 @@ public abstract partial class SpannedStringBase : ISpannable
             }
         }
 
-        state.RenderState.LineCount = state.MeasuredLines.Length;
-        state.RenderState.Boundary.Bottom = Math.Max(state.RenderState.Boundary.Bottom, state.RenderState.Offset.Y);
+        state.TextState.LineCount = state.MeasuredLines.Length;
+        state.ExtendBoundaryBottom(state.Offset.Y);
 
 #pragma warning disable SA1101
-        if (state.RenderState is { VerticalAlignment: > 0f, MaxSize.Y: < float.MaxValue })
+        if (state.TextState is { VerticalAlignment: > 0f } && args.MaxSize.Y < float.MaxValue)
 #pragma warning restore SA1101
         {
             var offset = MathF.Round(
-                (state.RenderState.MaxSize.Y - state.RenderState.Boundary.Bottom) *
-                Math.Clamp(state.RenderState.VerticalAlignment, 0f, 1f));
-            foreach (ref var b in state.LinkBoundaries)
-                b.Boundary = RectVector4.Translate(b.Boundary, new(0, offset));
-            state.RenderState.Boundary = RectVector4.Translate(state.RenderState.Boundary, new(0, offset));
-            state.RenderState.ShiftFromVerticalAlignment = offset;
+                (args.MaxSize.Y - state.Boundary.Bottom) *
+                Math.Clamp(state.TextState.VerticalAlignment, 0f, 1f));
+            state.TranslateBoundaries(new(0, offset), data);
+            state.TextState.ShiftFromVerticalAlignment = offset;
         }
         else
         {
-            state.RenderState.ShiftFromVerticalAlignment = 0;
+            state.TextState.ShiftFromVerticalAlignment = 0;
         }
     }
 
     /// <inheritdoc/>
-    public unsafe void InteractWith(SpannableInteractionArgs args, out ReadOnlySpan<byte> linkData)
+    public void CommitMeasurement(SpannableCommitTransformationArgs args)
+    {
+        var state = args.State as State ?? new();
+        var data = this.GetData();
+
+        state.CommitMeasurement(args);
+
+        for (var i = 0; i < data.Spannables.Length; i++)
+        {
+            if (state.SpannableStates[i] is not { } spannableState)
+                continue;
+
+            var trss = Trss.Identity;
+            if (spannableState.TextState.LastStyle.Italic)
+                trss = Trss.CreateSkew(new(MathF.Atan(-1 / TextStyleFontData.FakeItalicDivisor), 0));
+
+            data.Spannables[i].CommitMeasurement(
+                new(
+                    spannableState,
+                    state.TransformToScreen(state.SpannableOffsets[i]),
+                    state.TransformationOrigin,
+                    Trss.Multiply(trss, state.Transformation)));
+        }
+    }
+
+    /// <inheritdoc/>
+    public unsafe void HandleInteraction(SpannableHandleInteractionArgs args, out SpannableLinkInteracted link)
     {
         var state = args.State as State ?? new();
         var data = this.GetData();
@@ -266,93 +289,94 @@ public abstract partial class SpannedStringBase : ISpannable
         {
             if (state.SpannableStates[i] is not { } spannableState)
                 continue;
-            data.Spannables[i].InteractWith(new(spannableState), out linkData);
-            if (!linkData.IsEmpty)
+            data.Spannables[i].HandleInteraction(new(spannableState), out link);
+            if (!link.IsEmpty)
                 return;
         }
 
-        var mouseRel = args.GetRelativeMouseCoord();
-        var lmb = ImGui.IsMouseDown(ImGuiMouseButton.Left);
-        var mmb = ImGui.IsMouseDown(ImGuiMouseButton.Middle);
-        var rmb = ImGui.IsMouseDown(ImGuiMouseButton.Right);
+        link = default;
 
+        var mouseRel = args.MouseLocalLocation;
+        
         state.InteractedLinkRecordIndex = -1;
         state.IsInteractedLinkRecordActive = false;
-        linkData = default;
+        link = default;
         foreach (ref var entry in state.LinkBoundaries)
         {
             if (entry.Boundary.Contains(mouseRel) && args.IsItemHoverable(entry.RecordIndex))
             {
-                if (this.GetData().TryGetLinkAt(entry.RecordIndex, out linkData))
+                if (this.GetData().TryGetLinkAt(entry.RecordIndex, out link.Link))
                     state.InteractedLinkRecordIndex = entry.RecordIndex;
                 else
                     state.InteractedLinkRecordIndex = -1;
-
+        
                 break;
             }
         }
-
+        
         var prevLinkRecordIndex = -1;
-        foreach (ref var link in state.LinkBoundaries)
+        foreach (ref var linkBoundary in state.LinkBoundaries)
         {
-            if (prevLinkRecordIndex == link.RecordIndex)
+            if (prevLinkRecordIndex == linkBoundary.RecordIndex)
                 continue;
-            prevLinkRecordIndex = link.RecordIndex;
-
+            prevLinkRecordIndex = linkBoundary.RecordIndex;
+        
             ref var itemState = ref *(ItemStateStruct*)ImGui.GetStateStorage().GetVoidPtrRef(
-                                        args.State.RenderState.GetGlobalIdFromInnerId(link.RecordIndex),
+                                        args.State.GetGlobalIdFromInnerId(linkBoundary.RecordIndex),
                                         nint.Zero);
-
+        
             if (itemState.IsMouseButtonDownHandled)
             {
                 switch (itemState.FirstMouseButton)
                 {
-                    case var _ when link.RecordIndex != state.InteractedLinkRecordIndex:
+                    case var _ when linkBoundary.RecordIndex != state.InteractedLinkRecordIndex:
                         state.InteractedLinkRecordIndex = -1;
                         break;
-                    case ImGuiMouseButton.Left when !lmb:
-                        state.RenderState.ClickedMouseButton = ImGuiMouseButton.Left;
+                    case ImGuiMouseButton.Left when !args.IsMouseButtonDown(ImGuiMouseButton.Left):
+                        link.IsMouseClicked = true;
+                        link.ClickedMouseButton = ImGuiMouseButton.Left;
                         itemState.IsMouseButtonDownHandled = false;
                         break;
-                    case ImGuiMouseButton.Right when !rmb:
-                        state.RenderState.ClickedMouseButton = ImGuiMouseButton.Right;
+                    case ImGuiMouseButton.Right when !args.IsMouseButtonDown(ImGuiMouseButton.Right):
+                        link.IsMouseClicked = true;
+                        link.ClickedMouseButton = ImGuiMouseButton.Right;
                         itemState.IsMouseButtonDownHandled = false;
                         break;
-                    case ImGuiMouseButton.Middle when !mmb:
-                        state.RenderState.ClickedMouseButton = ImGuiMouseButton.Middle;
+                    case ImGuiMouseButton.Middle when !args.IsMouseButtonDown(ImGuiMouseButton.Middle):
+                        link.IsMouseClicked = true;
+                        link.ClickedMouseButton = ImGuiMouseButton.Middle;
                         itemState.IsMouseButtonDownHandled = false;
                         break;
                 }
-
-                if (!lmb && !rmb && !mmb)
+        
+                if (args.MouseButtonStateFlags == 0)
                 {
                     itemState.IsMouseButtonDownHandled = false;
                     args.ClearActive();
                 }
             }
-
-            if (state.InteractedLinkRecordIndex == link.RecordIndex)
+        
+            if (state.InteractedLinkRecordIndex == linkBoundary.RecordIndex)
             {
-                args.SetHovered(link.RecordIndex);
-                if (!itemState.IsMouseButtonDownHandled && (lmb || rmb || mmb))
+                args.SetHovered(linkBoundary.RecordIndex);
+                if (!itemState.IsMouseButtonDownHandled && args.TryGetAnyHeldMouseButton(out var heldButton))
                 {
                     itemState.IsMouseButtonDownHandled = true;
-                    itemState.FirstMouseButton = lmb ? ImGuiMouseButton.Left :
-                                                 rmb ? ImGuiMouseButton.Right : ImGuiMouseButton.Middle;
+                    itemState.FirstMouseButton = heldButton;
                 }
-
+        
                 state.IsInteractedLinkRecordActive = itemState.IsMouseButtonDownHandled;
             }
-
+        
             if (itemState.IsMouseButtonDownHandled)
             {
-                args.SetHovered(link.RecordIndex);
-                args.SetActive(link.RecordIndex);
+                args.SetHovered(linkBoundary.RecordIndex);
+                args.SetActive(linkBoundary.RecordIndex);
             }
         }
-
+        
         if (state.InteractedLinkRecordIndex == -1)
-            linkData = default;
+            link = default;
     }
 
     /// <inheritdoc/>
@@ -360,8 +384,8 @@ public abstract partial class SpannedStringBase : ISpannable
     {
         var state = args.State as State ?? new();
         var data = this.GetData();
-        state.RenderState.Offset = new(0, state.RenderState.ShiftFromVerticalAlignment);
-        state.RenderState.LastStyle = state.RenderState.InitialStyle;
+        state.Offset = new(0, state.TextState.ShiftFromVerticalAlignment);
+        state.TextState.LastStyle = state.TextState.InitialStyle;
 
         var charRenderer = new CharRenderer(args, data, state, false);
         var segment = new DataRef.Segment(data, 0, 0);
@@ -387,21 +411,21 @@ public abstract partial class SpannedStringBase : ISpannable
 
                         if (absOffset < line.OmitOffset)
                         {
-                            if (state.RenderState.UseControlCharacter)
+                            if (state.TextState.UseControlCharacter)
                             {
                                 var name = c.Value.ShortName;
                                 if (!name.IsEmpty)
                                 {
                                     var offset = charRenderer.StyleTranslation;
-                                    state.RenderState.Offset += offset;
+                                    state.Offset += offset;
                                     var old = charRenderer.UpdateSpanParams(
-                                        state.RenderState.ControlCharactersStyle);
+                                        state.TextState.ControlCharactersStyle);
                                     charRenderer.LastRendered.Clear();
                                     foreach (var c2 in name)
                                         charRenderer.RenderOne(c2);
                                     charRenderer.LastRendered.Clear();
                                     _ = charRenderer.UpdateSpanParams(old);
-                                    state.RenderState.Offset -= offset;
+                                    state.Offset -= offset;
                                 }
                             }
 
@@ -426,7 +450,7 @@ public abstract partial class SpannedStringBase : ISpannable
                     break;
             }
 
-            state.ProcessPostLine(line, ref charRenderer, args, false);
+            state.ProcessPostLine(line, ref charRenderer, args);
         }
 
         if (state.InteractedLinkRecordIndex != -1)
@@ -436,53 +460,53 @@ public abstract partial class SpannedStringBase : ISpannable
             var color =
                 ImGui.GetColorU32(state.IsInteractedLinkRecordActive ? ImGuiCol.ButtonActive : ImGuiCol.ButtonHovered);
 
-            var sso = state.RenderState.StartScreenOffset;
             foreach (var entry in state.LinkBoundaries)
             {
                 if (entry.RecordIndex != state.InteractedLinkRecordIndex)
                     continue;
 
                 ImGuiNative.ImDrawList_AddQuadFilled(
-                    state.RenderState.DrawListPtr,
-                    sso + state.RenderState.Transform(entry.Boundary.LeftTop),
-                    sso + state.RenderState.Transform(entry.Boundary.RightTop),
-                    sso + state.RenderState.Transform(entry.Boundary.RightBottom),
-                    sso + state.RenderState.Transform(entry.Boundary.LeftBottom),
+                    args.DrawListPtr,
+                    state.TransformToScreen(entry.Boundary.LeftTop),
+                    state.TransformToScreen(entry.Boundary.RightTop),
+                    state.TransformToScreen(entry.Boundary.RightBottom),
+                    state.TransformToScreen(entry.Boundary.LeftBottom),
                     color);
             }
         }
     }
-
+    
     /// <summary>Gets the data required for rendering.</summary>
     /// <returns>The data.</returns>
     private protected abstract DataRef GetData();
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool IsEffectivelyInfinity(float f) => f >= float.MaxValue;
 
     private ref struct StateInfo
     {
         public float HorizontalOffsetWrtLine;
         public float VerticalOffsetWrtLine;
 
-        private readonly ref readonly RenderState state;
-        private readonly float wrapWidth;
+        private readonly State state;
 
         private readonly Vector2 lineBBoxVertical;
         private readonly float lineWidth;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public StateInfo(float wrapWidth, in RenderState state, scoped in MeasuredLine lineMeasurement)
+        public StateInfo(State state, scoped in MeasuredLine lineMeasurement)
         {
-            this.state = ref state;
-            this.wrapWidth = wrapWidth;
+            this.state = state;
             this.lineBBoxVertical = lineMeasurement.BBoxVertical;
             this.lineWidth = lineMeasurement.Width;
         }
 
-        public void Update(in SpanStyleFontData fontInfo)
+        public void Update(in TextStyleFontData fontInfo)
         {
             var lineAscentDescent = this.lineBBoxVertical;
             this.VerticalOffsetWrtLine = (fontInfo.BBoxVertical.Y - fontInfo.BBoxVertical.X) *
-                                         this.state.LastStyle.VerticalOffset;
-            switch (this.state.LastStyle.VerticalAlignment)
+                                         this.state.TextState.LastStyle.VerticalOffset;
+            switch (this.state.TextState.LastStyle.VerticalAlignment)
             {
                 case < 0:
                     this.VerticalOffsetWrtLine -= lineAscentDescent.X + (fontInfo.Font.Ascent * fontInfo.Scale);
@@ -493,28 +517,41 @@ public abstract partial class SpannedStringBase : ISpannable
                 default:
                     this.VerticalOffsetWrtLine +=
                         (lineAscentDescent.Y - lineAscentDescent.X - fontInfo.ScaledFontSize) *
-                        this.state.LastStyle.VerticalAlignment;
+                        this.state.TextState.LastStyle.VerticalAlignment;
                     break;
             }
 
             this.VerticalOffsetWrtLine = MathF.Round(this.VerticalOffsetWrtLine);
 
-            var alignWidth = this.wrapWidth;
-            if (alignWidth is >= float.MaxValue or < 0f)
-                alignWidth = this.state.Boundary.Right;
-            switch (this.state.LastStyle.HorizontalAlignment)
+            var alignWidth = this.state.MaxSize.X;
+            var alignLeft = 0f;
+            if (IsEffectivelyInfinity(alignWidth))
+            {
+                if (!this.state.Boundary.IsValid)
+                {
+                    this.HorizontalOffsetWrtLine = 0;
+                    return;
+                }
+
+                alignWidth = this.state.Boundary.Width;
+                alignLeft = this.state.Boundary.Left;
+            }
+
+            switch (this.state.TextState.LastStyle.HorizontalAlignment)
             {
                 case <= 0f:
                     this.HorizontalOffsetWrtLine = 0;
                     break;
 
                 case >= 1f:
-                    this.HorizontalOffsetWrtLine = alignWidth - this.lineWidth;
+                    this.HorizontalOffsetWrtLine = alignLeft + (alignWidth - this.lineWidth);
                     break;
 
                 default:
-                    this.HorizontalOffsetWrtLine = MathF.Round(
-                        (alignWidth - this.lineWidth) * this.state.LastStyle.HorizontalAlignment);
+                    this.HorizontalOffsetWrtLine =
+                        MathF.Round(
+                            (alignLeft + (alignWidth - this.lineWidth)) *
+                            this.state.TextState.LastStyle.HorizontalAlignment);
                     break;
             }
         }
@@ -535,270 +572,25 @@ public abstract partial class SpannedStringBase : ISpannable
     [StructLayout(LayoutKind.Explicit, Size = 8)]
     private struct ItemStateStruct
     {
-        public const ImGuiMouseButton InvalidMouseButton = (ImGuiMouseButton)3;
-
         [FieldOffset(0)]
         public uint Flags;
-
+    
         public bool IsMouseButtonDownHandled
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             readonly get => (this.Flags & 1) != 0;
-
+    
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set => this.Flags = (this.Flags & ~1u) | (value ? 1u : 0u);
         }
-
+    
         public ImGuiMouseButton FirstMouseButton
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             readonly get => (ImGuiMouseButton)((this.Flags >> 1) & 3);
-
+    
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set => this.Flags = (this.Flags & ~(3u << 1)) | ((uint)value << 1);
-        }
-    }
-
-    private class State : ISpannableState
-    {
-        private static readonly ObjectPool<State> Pool =
-            new DefaultObjectPool<State>(new DefaultPooledObjectPolicy<State>());
-
-        private readonly List<BoundaryToRecord> linkBoundaries = new();
-        private readonly List<MeasuredLine> measuredLines = new();
-        private readonly List<ISpannableState?> spannableStates = new();
-        private RenderState renderState;
-
-        /// <inheritdoc/>
-        public ref RenderState RenderState => ref this.renderState;
-
-        /// <inheritdoc/>
-        /// <remarks>This is not supposed to be called when not rented, so NRE on accessing this is fine.</remarks>
-        public ISpannableRenderer Renderer { get; private set; } = null!;
-
-        /// <summary>Gets the span of measured lines.</summary>
-        public Span<MeasuredLine> MeasuredLines => CollectionsMarshal.AsSpan(this.measuredLines);
-
-        /// <summary>Gets the span of mapping between link range to render coordinates.</summary>
-        public Span<BoundaryToRecord> LinkBoundaries => CollectionsMarshal.AsSpan(this.linkBoundaries);
-
-        /// <summary>Gets the span of mapping between link range to render coordinates.</summary>
-        public Span<ISpannableState?> SpannableStates => CollectionsMarshal.AsSpan(this.spannableStates);
-
-        public SpannedStringBuilder? TempBuilder { get; set; }
-
-        public int InteractedLinkRecordIndex { get; set; }
-
-        public bool IsInteractedLinkRecordActive { get; set; }
-
-        public static State Rent(ISpannableRenderer renderer, RenderState initialState, DataRef data)
-        {
-            var t = Pool.Get();
-            t.Renderer = renderer;
-            t.renderState = initialState;
-            t.spannableStates.EnsureCapacity(data.Spannables.Length);
-            while (t.spannableStates.Count < data.Spannables.Length)
-                t.spannableStates.Add(null);
-            return t;
-        }
-
-        public static void Return(State state, DataRef data)
-        {
-            state.Renderer = null!;
-            state.linkBoundaries.Clear();
-            state.measuredLines.Clear();
-            state.InteractedLinkRecordIndex = -1;
-            state.IsInteractedLinkRecordActive = false;
-
-            for (var i = 0; i < data.Spannables.Length; i++)
-                data.Spannables[i]?.ReturnState(state.spannableStates[i]);
-            state.SpannableStates.Clear();
-            Pool.Return(state);
-        }
-
-        /// <summary>Adds a line, from <see cref="SpannedStringBase.Measure"/> step.</summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void AddLine(in MeasuredLine line) => this.measuredLines.Add(line);
-
-        /// <summary>Updates <see cref="Rendering.RenderState.Boundary"/>, <see cref="linkBoundaries"/>,
-        /// and resets <paramref name="boundary"/>, from <see cref="SpannedStringBase.Measure"/> step.</summary>
-        public void UpdateAndResetBoundary(ref RectVector4 boundary, int linkRecordIndex)
-        {
-            if (!boundary.IsValid)
-                return;
-
-            if (linkRecordIndex != -1 && this.renderState.UseLinks)
-                this.linkBoundaries.Add(new(linkRecordIndex, boundary));
-
-            this.renderState.Boundary = RectVector4.Union(boundary, this.renderState.Boundary);
-            boundary = RectVector4.InvertedExtrema;
-        }
-
-        /// <summary>Finds the first line break point, only taking word wrapping into account, from
-        /// <see cref="SpannedStringBase.Measure"/> step.</summary>
-        public void FindFirstWordWrapByteOffset(
-            DataRef.Segment segment,
-            CompositeOffset lineStartOffset,
-            out MeasuredLine measuredLine)
-        {
-            measuredLine = MeasuredLine.Empty;
-
-            var wordBreaker = new WordBreaker(segment.Data, this);
-            var startOffset = lineStartOffset;
-            do
-            {
-                if (segment.TryGetRawText(out var rawText))
-                {
-                    foreach (var c in rawText[(startOffset.Text - segment.Offset.Text)..]
-                                 .EnumerateUtf(UtfEnumeratorFlags.Utf8))
-                    {
-                        var currentOffset = new CompositeOffset(startOffset.Text + c.ByteOffset, segment.Offset.Record);
-                        var nextOffset = currentOffset.AddTextOffset(c.ByteLength);
-
-                        var pad = 0f;
-                        if (this.renderState.UseControlCharacter && c.Value.ShortName is { IsEmpty: false } name)
-                        {
-                            var ssb = this.TempBuilder ??= new();
-                            ssb.Clear().Append(name);
-
-                            var state2 = Rent(
-                                this.Renderer,
-                                this.renderState with
-                                {
-                                    LastStyle = this.renderState.ControlCharactersStyle,
-                                    InitialStyle = this.renderState.ControlCharactersStyle,
-                                    Offset = Vector2.Zero,
-                                    DrawListPtr = null,
-                                    Boundary = RectVector4.InvertedExtrema,
-                                },
-                                ssb.GetData());
-                            ssb.Measure(new(state2));
-
-                            if (state2.renderState.Boundary.IsValid)
-                            {
-                                pad = MathF.Round(state2.renderState.Boundary.Width);
-                                wordBreaker.ResetLastChar();
-                            }
-
-                            Return(state2, ssb.GetData());
-                        }
-
-                        switch (c.Value.IntValue)
-                        {
-                            case '\r'
-                                when segment.Data.TryGetCodepointAt(nextOffset.Text, 0, out var nextCodepoint)
-                                     && nextCodepoint == '\n'
-                                     && (this.renderState.AcceptedNewLines & NewLineType.CrLf) != 0:
-                                measuredLine = wordBreaker.Last;
-                                measuredLine.SetOffset(nextOffset.AddTextOffset(1), pad);
-                                measuredLine.HasNewLineAtEnd = true;
-                                wordBreaker.UnionLineBBoxVertical(ref measuredLine);
-                                return;
-
-                            case '\r' when (this.renderState.AcceptedNewLines & NewLineType.Cr) != 0:
-                            case '\n' when (this.renderState.AcceptedNewLines & NewLineType.Lf) != 0:
-                                measuredLine = wordBreaker.Last;
-                                measuredLine.SetOffset(nextOffset, pad);
-                                measuredLine.HasNewLineAtEnd = true;
-                                wordBreaker.UnionLineBBoxVertical(ref measuredLine);
-                                return;
-
-                            case '\r' or '\n':
-                                measuredLine = wordBreaker.AddCodepointAndMeasure(
-                                    currentOffset,
-                                    nextOffset,
-                                    -1,
-                                    pad: pad);
-                                break;
-
-                            default:
-                                measuredLine = wordBreaker.AddCodepointAndMeasure(
-                                    currentOffset,
-                                    nextOffset,
-                                    c.EffectiveChar,
-                                    pad: pad);
-                                break;
-                        }
-
-                        if (!measuredLine.IsEmpty)
-                            return;
-                    }
-
-                    startOffset = new(segment.Offset.Text + rawText.Length, segment.Offset.Record);
-                }
-                else if (segment.TryGetRecord(out var record, out var recordData))
-                {
-                    measuredLine = wordBreaker.HandleSpan(record, recordData, new(segment), new(segment, 0, 1));
-                    if (!measuredLine.IsEmpty)
-                        return;
-                }
-            }
-            while (segment.TryGetNext(out segment));
-
-            measuredLine = wordBreaker.Last;
-            measuredLine.SetOffset(new(segment.Offset.Text, segment.Offset.Record));
-        }
-
-        /// <summary>Forces a line break, from both <see cref="SpannedStringBase.Measure"/> and
-        /// <see cref="SpannedStringBase.Draw"/> step.</summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void BreakLineImmediate(in MeasuredLine mostRecentLine) =>
-            this.renderState.Offset = new(0, MathF.Round(this.renderState.Offset.Y + mostRecentLine.Height));
-
-        /// <summary>Add decorations and break line once a line ends, from both <see cref="SpannedStringBase.Measure"/>
-        /// and <see cref="SpannedStringBase.Draw"/> step.</summary>
-        public RectVector4 ProcessPostLine(
-            in MeasuredLine line, ref CharRenderer charRenderer, SpannableDrawArgs args, bool measureOnly)
-        {
-            var accumulatedBoundary = RectVector4.InvertedExtrema;
-            if (line.IsWrapped)
-            {
-                if (line.LastThing.IsCodepoint(0x00AD) && this.renderState.WordBreak != WordBreakType.KeepAll)
-                {
-                    accumulatedBoundary = RectVector4.Union(
-                        accumulatedBoundary,
-                        charRenderer.RenderOne(SoftHyphenReplacementChar));
-                }
-
-                if (this.renderState.WrapMarker is { } wrapMarker)
-                {
-                    var state2 = wrapMarker.RentState(
-                        this.Renderer,
-                        this.renderState with
-                        {
-                            DrawListPtr = measureOnly ? default : this.renderState.DrawListPtr,
-                            StartScreenOffset = this.renderState.StartScreenOffset +
-                                                this.renderState.Offset +
-                                                charRenderer.StyleTranslation,
-                            Offset = Vector2.Zero,
-                            Boundary = RectVector4.InvertedExtrema,
-                            WordBreak = WordBreakType.KeepAll,
-                            WrapMarker = null,
-                            MaxSize = new(float.MaxValue),
-                        },
-                        null);
-                    wrapMarker.Measure(new(state2));
-                    if (state2.RenderState.Boundary.IsValid)
-                    {
-                        if (this.renderState.UseDrawing)
-                            wrapMarker.Draw(args.WithState(state2));
-
-                        accumulatedBoundary = RectVector4.Union(
-                            accumulatedBoundary,
-                            RectVector4.Translate(
-                                state2.RenderState.Boundary,
-                                this.renderState.Offset + charRenderer.StyleTranslation));
-                        this.renderState.Offset.X += state2.RenderState.Boundary.Right;
-                        charRenderer.LastRendered.Clear();
-                    }
-
-                    wrapMarker.ReturnState(state2);
-                }
-            }
-
-            if (line.HasNewLineAtEnd || (line.IsWrapped && this.renderState.WordBreak != WordBreakType.KeepAll))
-                this.BreakLineImmediate(line);
-            return accumulatedBoundary;
         }
     }
 }

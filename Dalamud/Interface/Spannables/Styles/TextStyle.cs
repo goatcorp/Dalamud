@@ -8,8 +8,8 @@ using ImGuiNET;
 
 namespace Dalamud.Interface.Spannables.Styles;
 
-/// <summary>Decorative parameters.</summary>
-public struct SpanStyle
+/// <summary>Style descriptor for text.</summary>
+public struct TextStyle
 {
     /// <summary>The default font to use.</summary>
     public FontHandleVariantSet Font;
@@ -80,8 +80,8 @@ public struct SpanStyle
     /// <para><c>0</c> will align to left. <c>1</c> will align to right. <c>0.5</c> will align to center.
     /// Values outside the range to [0, 1] are clamped.</para>
     /// <para>If changed multiple times in a line, the last value wins.</para>
-    /// <para>Will use <see cref="RenderState.Boundary"/> instead of <see cref="RenderState.MaxSize"/> if maximum size
-    /// is unspecified (<see cref="float.MaxValue"/> or <see cref="float.PositiveInfinity"/>.)</para>
+    /// <para>Will use <see cref="ISpannableState.Boundary"/> instead of <see cref="RenderContext.MaxSize"/> if maximum
+    /// size is unspecified (<see cref="float.MaxValue"/> or <see cref="float.PositiveInfinity"/>.)</para>
     /// </remarks>
     public float HorizontalAlignment;
 
@@ -98,10 +98,10 @@ public struct SpanStyle
     public float VerticalAlignment;
 
     /// <summary>Gets the empty span style. Nothing will be drawn.</summary>
-    public static SpanStyle Empty => default;
+    public static TextStyle Empty => default;
 
     /// <summary>Gets the style from current ImGui context.</summary>
-    public static SpanStyle FromContext => new()
+    public static TextStyle FromContext => new()
     {
         ForeColor = ApplyOpacity(ImGui.GetColorU32(ImGuiCol.Text), ImGui.GetStyle().Alpha),
         TextDecorationColor = ApplyOpacity(ImGui.GetColorU32(ImGuiCol.Text), ImGui.GetStyle().Alpha),
@@ -118,7 +118,7 @@ public struct SpanStyle
     internal void UpdateFrom(
         in SpannedRecord record,
         ReadOnlySpan<byte> recordData,
-        in SpanStyle initialStyle,
+        in TextStyle initialStyle,
         ReadOnlySpan<FontHandleVariantSet> fontSets,
         out bool fontUpdated,
         out bool drawOptionsUpdated)

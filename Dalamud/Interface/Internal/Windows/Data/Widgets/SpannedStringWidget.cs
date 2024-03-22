@@ -31,6 +31,8 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
     private ISpannable ellipsisSpannable = null!;
     private ISpannable wrapMarkerSpannable = null!;
 
+    private RenderContext.Options renderContextOptions;
+
     private ImVectorWrapper<byte> testStringBuffer;
     private int numLinkClicks;
     private VerticalAlignment valign;
@@ -59,6 +61,28 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
 
     /// <inheritdoc/>
     public bool Ready { get; set; }
+
+    private TextState.Options TextStateOptions => new()
+    {
+        WordBreak = this.wordBreakType,
+        WrapMarker =
+            this.useWrapMarkers
+                ? this.wordBreakType == WordBreakType.KeepAll
+                      ? this.ellipsisSpannable
+                      : this.wrapMarkerSpannable
+                : null,
+        ControlCharactersStyle =
+            this.useVisibleControlCharacters
+                ? new()
+                {
+                    Font = new(DalamudAssetFontAndFamilyId.From(DalamudAsset.InconsolataRegular)),
+                    BackColor = 0xFF004400,
+                    ForeColor = 0xFFCCFFCC,
+                    FontSize = ImGui.GetFont().FontSize * 0.6f,
+                    VerticalAlignment = 0.5f,
+                }
+                : null,
+    };
 
     /// <inheritdoc/>
     public void Load()
@@ -106,9 +130,9 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
                                     new SpannableButton
                                     {
                                         SpannableText = new SpannedStringBuilder()
-                                                            .Append("Inner ")
-                                                            .PushSystemFontFamilyIfAvailable("Comic Sans MS")
-                                                            .Append("Comic"),
+                                                        .Append("Inner ")
+                                                        .PushSystemFontFamilyIfAvailable("Comic Sans MS")
+                                                        .Append("Comic"),
                                     },
                                     null,
                                     out _)
@@ -163,49 +187,27 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
                  Vector2.Zero,
                  (ImGui.GetWindowContentRegionMax() - ImGui.GetWindowContentRegionMin()) / 64);
 
-        var off = ImGui.GetCursorPos();
-        ImGui.SetCursorPos(off);
-        for (var i = 0; i < this.spannableButton.Length; i++)
-        {
-            ImGui.SetCursorPos(off);
-            renderer.Render(
-                this.spannableButton[i],
-                new(
-                    $"TestButton{i}",
-                    new()
-                    {
-                        // Rotate 30deg first, and then translate by (+32, +32).
-                        Transformation = Matrix4x4.Multiply(
-                            Matrix4x4.CreateTranslation(80, 0, 0),
-                            Matrix4x4.Multiply(
-                                Matrix4x4.CreateRotationZ((i / 6f) * MathF.PI),
-                                Matrix4x4.CreateTranslation(320, 320, 0))),
-                    }));
-        }
-
-        ImGui.SetCursorPos(off + new Vector2(0, 640));
-
-        var p = new RenderOptions
-        {
-            WordBreak = this.wordBreakType,
-            WrapMarker =
-                this.useWrapMarkers
-                    ? this.wordBreakType == WordBreakType.KeepAll
-                          ? this.ellipsisSpannable
-                          : this.wrapMarkerSpannable
-                    : null,
-            ControlCharactersStyle =
-                this.useVisibleControlCharacters
-                    ? new()
-                    {
-                        Font = new(DalamudAssetFontAndFamilyId.From(DalamudAsset.InconsolataRegular)),
-                        BackColor = 0xFF004400,
-                        ForeColor = 0xFFCCFFCC,
-                        FontSize = ImGui.GetFont().FontSize * 0.6f,
-                        VerticalAlignment = 0.5f,
-                    }
-                    : null,
-        };
+        // var off = ImGui.GetCursorPos();
+        // ImGui.SetCursorPos(off);
+        // for (var i = 0; i < this.spannableButton.Length; i++)
+        // {
+        //     ImGui.SetCursorPos(off);
+        //     renderer.Render(
+        //         this.spannableButton[i],
+        //         new(
+        //             $"TestButton{i}",
+        //             new()
+        //             {
+        //                 ScreenOffset = ImGui.GetCursorScreenPos() + new Vector2(320, 320),
+        //                 Transformation = new(
+        //                     new(1, 0),
+        //                     Quaternion.CreateFromAxisAngle(Vector3.UnitZ, (i / 6f) * MathF.PI),
+        //                     Vector2.Zero,
+        //                     Vector2.Zero),
+        //             }));
+        // }
+        //
+        // ImGui.SetCursorPos(off + new Vector2(0, 640));
 
         var dynamicOffsetTestOffset = ImGui.GetCursorScreenPos();
         var pad = MathF.Round(8 * ImGuiHelpers.GlobalScale);
@@ -254,8 +256,10 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
 
         var ssb = renderer.RentBuilder();
 
-        p.MaxSize = new(validWidth * (this.wrapRightWidthRatio - this.wrapLeftWidthRatio), float.MaxValue);
-        this.DrawTestConfigBlock(ssb, p);
+        this.renderContextOptions.MaxSize = new(
+            validWidth * (this.wrapRightWidthRatio - this.wrapLeftWidthRatio),
+            float.MaxValue);
+        this.DrawTestConfigBlock(ssb);
 
         ImGuiHelpers.ScaledDummy(8);
         ImGui.Separator();
@@ -263,13 +267,13 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
 
         this.stopwatch.Restart();
         if (this.showComplicatedTextTest)
-            this.DrawTestComplicatedTextBlock(ssb, p, dynamicOffsetTestOffset.X);
+            this.DrawTestComplicatedTextBlock(ssb, dynamicOffsetTestOffset.X);
         if (this.showParseTest)
-            this.DrawParseTest(ssb, p, dynamicOffsetTestOffset.X);
+            this.DrawParseTest(ssb, dynamicOffsetTestOffset.X);
         if (this.showDynamicOffsetTest)
-            this.DrawDynamicOffsetTest(ssb, p);
+            this.DrawDynamicOffsetTest(ssb);
         if (this.showTransformationTest)
-            this.DrawTransformationTest(ssb, p);
+            this.DrawTransformationTest(ssb);
 
         renderer.ReturnBuilder(ssb);
 
@@ -311,25 +315,26 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
     // private static void CustomDrawCallback(in SpannedStringCallbackArgs args)
     // {
     //     var hover = ImGui.IsMouseHoveringRect(
-    //         args.RenderState.StartScreenOffset + args.Xy0,
-    //         args.RenderState.StartScreenOffset + args.Xy1);
+    //         args.ScreenOffset + args.Xy0,
+    //         args.ScreenOffset + args.Xy1);
     //     args.SwitchToForegroundChannel();
     //     args.DrawListPtr.PushClipRect(
-    //         args.RenderState.StartScreenOffset + args.Xy0,
-    //         args.RenderState.StartScreenOffset + args.Xy1);
+    //         args.ScreenOffset + args.Xy0,
+    //         args.ScreenOffset + args.Xy1);
     //     args.DrawListPtr.AddText(
     //         args.FontPtr,
     //         args.FontSize,
-    //         args.RenderState.StartScreenOffset + args.Xy0,
+    //         args.ScreenOffset + args.Xy0,
     //         (Rgba32)(hover ? ImGuiColors.HealerGreen : ImGuiColors.DalamudRed),
     //         $"@line {args.RenderState.LastLineIndex}");
     //     args.DrawListPtr.PopClipRect();
     // }
 
-    private void DrawTestConfigBlock(SpannedStringBuilder ssb, in RenderOptions p)
+    private void DrawTestConfigBlock(SpannedStringBuilder ssb)
     {
-        ssb.Clear()
-           .PushLink("copy"u8)
+        ssb.Clear();
+
+        ssb.PushLink("copy"u8)
            .PushEdgeColor(ImGuiColors.TankBlue)
            .PushTextDecoration(TextDecoration.Underline)
            .PushTextDecorationColor(ImGuiColors.TankBlue)
@@ -343,8 +348,9 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
            .PopTextDecorationThickness()
            .PopTextDecorationStyle()
            .PopEdgeColor()
-           .PopLink()
-           .AppendLine()
+           .PopLink();
+
+        ssb.AppendLine()
            .AppendLine();
 
         ssb.PushForeColor(0xFFC5E1EE)
@@ -506,21 +512,14 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
            .AppendLine("\u00A0Test Parsing")
            .PopLink();
 
-        // ssb.Clear()
-        //    .PushLineHeight(1.0f).PushLink("x"u8).Append("1.0").PopLink().AppendLine().AppendLine()
-        //    .PushLineHeight(0.9f).PushLink("x"u8).Append("0.9").PopLink().AppendLine().AppendLine()
-        //    .PushLineHeight(0.8f).PushLink("x"u8).Append("0.8").PopLink().AppendLine().AppendLine()
-        //    .PushLineHeight(0.7f).PushLink("x"u8).Append("0.7").PopLink().AppendLine().AppendLine()
-        //    .PushLineHeight(0.6f).PushLink("x"u8).Append("0.6").PopLink().AppendLine().AppendLine()
-        //    .PushLineHeight(0.5f).PushLink("x"u8).Append("0.5").PopLink().AppendLine().AppendLine()
-        //    .PushLineHeight(0.4f).PushLink("x"u8).Append("0.4").PopLink().AppendLine().AppendLine()
-        //    .PushLineHeight(0.3f).PushLink("x"u8).Append("0.3").PopLink().AppendLine().AppendLine()
-        //    .PushLineHeight(0.2f).PushLink("x"u8).Append("0.2").PopLink().AppendLine().AppendLine()
-        //     ;
+        var mtx = Matrix4x4.Identity;
+        mtx = Matrix4x4.Multiply(mtx, Matrix4x4.CreateRotationZ((15 / 180f) * MathF.PI));
 
-        var state = new RenderState(nameof(this.DrawTestConfigBlock), p);
-        if (Service<SpannableRenderer>.Get().Render(ssb, ref state, out var link)
-            && state.ClickedMouseButton == ImGuiMouseButton.Left)
+        var renderResult = Service<SpannableRenderer>.Get().Render(
+            ssb,
+            new(nameof(this.DrawTestConfigBlock), this.renderContextOptions with { Transformation = new(mtx) }),
+            this.TextStateOptions);
+        if (renderResult.TryGetLinkOnClick(out var link))
         {
             if (link.SequenceEqual("copy"u8))
                 this.CopyMe(ssb.Build().ToString());
@@ -547,7 +546,7 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
         }
     }
 
-    private void DrawTestComplicatedTextBlock(SpannedStringBuilder ssb, in RenderOptions p, float x)
+    private void DrawTestComplicatedTextBlock(SpannedStringBuilder ssb, float x)
     {
         ssb.Clear()
            .PushLink("copy"u8)
@@ -704,11 +703,10 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
         }
 
         ImGui.SetCursorScreenPos(ImGui.GetCursorScreenPos() with { X = x });
-        var state = new RenderState(nameof(this.DrawTestComplicatedTextBlock), p);
-        if (!Service<SpannableRenderer>.Get().Render(ssb, ref state, out var link))
-            return;
-
-        if (state.ClickedMouseButton == ImGuiMouseButton.Left)
+        if (Service<SpannableRenderer>.Get().Render(
+                ssb,
+                new(nameof(this.DrawTestComplicatedTextBlock), this.renderContextOptions),
+                this.TextStateOptions).TryGetLinkOnClick(out var link))
         {
             if (link.SequenceEqual("copy"u8))
             {
@@ -736,19 +734,19 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
             {
                 this.useImages ^= true;
             }
-        }
 
-        if (!link.SequenceEqual("a"u8))
-        {
-            unsafe
+            if (!link.SequenceEqual("a"u8))
             {
-                fixed (byte* p2 = link)
-                    ImGuiNative.igSetTooltip(p2);
+                unsafe
+                {
+                    fixed (byte* p2 = link)
+                        ImGuiNative.igSetTooltip(p2);
+                }
             }
         }
     }
 
-    private unsafe void DrawParseTest(SpannedStringBuilder ssb, RenderOptions p, float x)
+    private unsafe void DrawParseTest(SpannedStringBuilder ssb, float x)
     {
         ImGui.SetCursorScreenPos(ImGui.GetCursorScreenPos() with { X = x });
         ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X);
@@ -787,7 +785,10 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
         ImGui.SetCursorScreenPos(ImGui.GetCursorScreenPos() with { X = x });
         if (this.parseAttempt.Parsed is { } parsed)
         {
-            Service<SpannableRenderer>.Get().Render(parsed, new(nameof(this.DrawParseTest), p));
+            Service<SpannableRenderer>.Get().Render(
+                parsed,
+                new(nameof(this.DrawParseTest), this.renderContextOptions),
+                this.TextStateOptions);
         }
         else if (this.parseAttempt.Exception is { } e)
         {
@@ -795,17 +796,19 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
                 ssb.Clear()
                    .PushEdgeColor(new Rgba32(ImGuiColors.DalamudRed).MultiplyOpacity(0.5f))
                    .Append(e.ToString()),
-                new(nameof(this.DrawParseTest), p));
+                new(nameof(this.DrawParseTest), this.renderContextOptions),
+                this.TextStateOptions);
         }
         else
         {
             Service<SpannableRenderer>.Get().Render(
                 ssb.Clear().Append("Try writing something to the above text box."),
-                new(nameof(this.DrawParseTest), p));
+                new(nameof(this.DrawParseTest), this.renderContextOptions),
+                this.TextStateOptions);
         }
     }
 
-    private void DrawDynamicOffsetTest(SpannedStringBuilder ssb, in RenderOptions p)
+    private void DrawDynamicOffsetTest(SpannedStringBuilder ssb)
     {
         const float interval = 2000;
         var v = ((this.catchMeBegin + Environment.TickCount64) / interval) % (2 * MathF.PI);
@@ -824,22 +827,24 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
                 ssb,
                 new(
                     nameof(this.DrawDynamicOffsetTest),
-                    p with
+                    this.renderContextOptions with
                     {
-                        ScreenOffset = ImGui.GetWindowPos(),
                         MaxSize = size,
-                        VerticalAlignment = 0.5f,
-                        InitialStyle = SpanStyle.FromContext with
-                        {
-                            HorizontalAlignment = 0.5f,
-                        },
+                        ScreenOffset = ImGui.GetWindowPos(),
                     }),
-                out _))
+                this.TextStateOptions with
+                {
+                    VerticalAlignment = 0.5f,
+                    InitialStyle = TextStyle.FromContext with
+                    {
+                        HorizontalAlignment = 0.5f,
+                    },
+                }).TryGetLink(out _))
             this.catchMeBegin += 50;
         ImGui.SetCursorScreenPos(prevPos);
     }
 
-    private void DrawTransformationTest(SpannedStringBuilder ssb, in RenderOptions p)
+    private void DrawTransformationTest(SpannedStringBuilder ssb)
     {
         const float interval = 2000;
         var v = ((this.catchMeBegin + Environment.TickCount64) / interval) % (2 * MathF.PI);
@@ -852,29 +857,36 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
                "Text\ngoing\nround\nusing\nmatrix\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|\n|");
 
         var prevPos = ImGui.GetCursorScreenPos();
+
+        var mtx = Matrix4x4.Identity;
+        mtx = Matrix4x4.Multiply(mtx, Matrix4x4.CreateRotationZ(v));
+        mtx = Matrix4x4.Multiply(
+            mtx,
+            Matrix4x4.CreateTranslation(
+                (minDim * (1 + MathF.Cos(v - (MathF.PI / 2)) / 4)) / 2,
+                (minDim * (1 + MathF.Sin(v - (MathF.PI / 2)) / 4)) / 2,
+                0));
+
         if (Service<SpannableRenderer>.Get().Render(
                 ssb,
                 new(
                     nameof(this.DrawDynamicOffsetTest),
-                    p with
+                    this.renderContextOptions with
                     {
                         ScreenOffset = ImGui.GetWindowPos(),
+                        Transformation = new(mtx),
                         MaxSize = size with { X = 0 },
-                        WordBreak = WordBreakType.KeepAll,
-                        InitialStyle = SpanStyle.FromContext with
-                        {
-                            BorderWidth = 1f,
-                            EdgeColor = new Vector4(0.3f, 0.3f, 1f, 0.5f + (MathF.Sin(v) * 0.5f)),
-                            HorizontalAlignment = 0.5f,
-                        },
-                        Transformation = Matrix4x4.Multiply(
-                            Matrix4x4.CreateRotationZ(v),
-                            Matrix4x4.CreateTranslation(
-                                (minDim * (1 + MathF.Cos(v - (MathF.PI / 2)))) / 2,
-                                (minDim * (1 + MathF.Sin(v - (MathF.PI / 2)))) / 2,
-                                0)),
                     }),
-                out _))
+                this.TextStateOptions with
+                {
+                    WordBreak = WordBreakType.KeepAll,
+                    InitialStyle = TextStyle.FromContext with
+                    {
+                        BorderWidth = 1f,
+                        EdgeColor = new Vector4(0.3f, 0.3f, 1f, 0.5f + (MathF.Sin(v) * 0.5f)),
+                        HorizontalAlignment = 0.5f,
+                    },
+                }).TryGetLink(out _))
             this.catchMeBegin += 50;
         ImGui.SetCursorScreenPos(prevPos);
     }

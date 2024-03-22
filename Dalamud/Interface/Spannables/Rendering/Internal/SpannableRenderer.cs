@@ -35,11 +35,8 @@ namespace Dalamud.Interface.Spannables.Rendering.Internal;
     "SA1010:Opening square brackets should be spaced correctly",
     Justification = "bad")]
 #pragma warning restore SA1015
-internal sealed unsafe partial class SpannableRenderer : ISpannableRenderer, IInternalDisposableService
+internal sealed partial class SpannableRenderer : ISpannableRenderer, IInternalDisposableService
 {
-    /// <summary>The display character in place of a soft hyphen character.</summary>
-    public const char SoftHyphenReplacementChar = '-';
-
     /// <summary>The number of <see cref="InterfaceManager.CumulativePresentCalls"/> that a <see cref="ResolvedFonts"/>
     /// needs to be kept unused for it to get destroyed.</summary>
     private const long FontExpiryTicks = 600;
@@ -102,78 +99,84 @@ internal sealed unsafe partial class SpannableRenderer : ISpannableRenderer, IIn
     }
 
     /// <inheritdoc/>
-    public void Render(ReadOnlySpan<char> sequence, RenderState renderState)
+    public RenderResult Render(
+        ReadOnlySpan<char> sequence,
+        in RenderContext renderContext = default,
+        in TextState.Options textOptions = default)
     {
         var ssb = this.RentBuilder();
         ssb.Append(sequence);
-        this.Render(ssb, ref renderState);
+        var res = this.Render(ssb, in renderContext, in textOptions);
         this.ReturnBuilder(ssb);
+        return res;
     }
 
     /// <inheritdoc/>
-    public void Render(ReadOnlySpan<char> sequence, ref RenderState renderState)
-    {
-        var ssb = this.RentBuilder();
-        ssb.Append(sequence);
-        this.Render(ssb, ref renderState);
-        this.ReturnBuilder(ssb);
-    }
-
-    /// <inheritdoc/>
-    public void Render(ISpannable spannable, RenderState renderState) =>
-        this.Render(spannable, ref renderState, out _);
-
-    /// <inheritdoc/>
-#pragma warning disable CS9087 // This returns a parameter by reference but it is not a ref parameter
-    public bool Render(ISpannable spannable, RenderState renderState, out ReadOnlySpan<byte> hoveredLink) =>
-        this.Render(spannable, ref renderState, out hoveredLink);
-#pragma warning restore CS9087 // This returns a parameter by reference but it is not a ref parameter
-
-    /// <inheritdoc/>
-    public void Render(ISpannable spannable, ref RenderState renderState) =>
-        this.Render(spannable, ref renderState, out _);
-
-    /// <inheritdoc/>
-    public bool Render(ISpannable spannable, ref RenderState renderState, out ReadOnlySpan<byte> hoveredLink)
+    public RenderResult Render(
+        ISpannable spannable,
+        in RenderContext renderContext = default,
+        in TextState.Options textOptions = default)
     {
         ThreadSafety.AssertMainThread();
-        hoveredLink = default;
 
-        using var splitter = renderState.UseDrawing ? this.RentSplitter(renderState.DrawListPtr) : default;
+        using var splitter = renderContext.UseDrawing ? this.RentSplitter(renderContext.DrawListPtr) : default;
 
-        var state = spannable.RentState(this, renderState, null);
+        var state = spannable.RentState(
+            this,
+            renderContext.ImGuiGlobalId,
+            renderContext.Scale,
+            null,
+            new(textOptions));
 
-        spannable.Measure(new(state));
-        if (renderState.UseDrawing)
+        var result = default(RenderResult);
+
+        spannable.Measure(new(state, renderContext.MaxSize));
+        spannable.CommitMeasurement(
+            new(state, renderContext.ScreenOffset, renderContext.TransformationOrigin, renderContext.Transformation));
+        if (renderContext.UseDrawing)
         {
-            if (renderState.UseLinks)
-                spannable.InteractWith(new(state), out hoveredLink);
-            spannable.Draw(new(state, splitter));
+            if (renderContext.UseLinks)
+            {
+                spannable.HandleInteraction(
+                    new(state)
+                    {
+                        MouseButtonStateFlags = (ImGui.IsMouseDown(ImGuiMouseButton.Left) ? 1 : 0)
+                                                | (ImGui.IsMouseDown(ImGuiMouseButton.Right) ? 2 : 0)
+                                                | (ImGui.IsMouseDown(ImGuiMouseButton.Middle) ? 4 : 0),
+                        MouseScreenLocation = renderContext.MouseScreenLocation,
+                        WheelDelta = new(ImGui.GetIO().MouseWheelH, ImGui.GetIO().MouseWheel),
+                    },
+                    out result.InteractedLink);
+            }
+
+            spannable.Draw(new(state, splitter, renderContext.DrawListPtr));
         }
 
-        renderState = state.RenderState;
-        spannable.ReturnState(state);
+        result.Boundary = state.Boundary;
+        result.FinalTextState = state.TextState;
 
-        if (renderState.PutDummyAfterRender)
+        if (renderContext.PutDummyAfterRender)
         {
-            var lt = renderState.Transform(renderState.Boundary.LeftTop);
-            var rt = renderState.Transform(renderState.Boundary.RightTop);
-            var rb = renderState.Transform(renderState.Boundary.RightBottom);
-            var lb = renderState.Transform(renderState.Boundary.LeftBottom);
+            var lt = state.TransformToScreen(state.Boundary.LeftTop);
+            var rt = state.TransformToScreen(state.Boundary.RightTop);
+            var rb = state.TransformToScreen(state.Boundary.RightBottom);
+            var lb = state.TransformToScreen(state.Boundary.LeftBottom);
             var minPos = Vector2.Min(Vector2.Min(lt, rt), Vector2.Min(lb, rb));
             var maxPos = Vector2.Max(Vector2.Max(lt, rt), Vector2.Max(lb, rb));
             if (minPos.X <= maxPos.X && minPos.Y <= maxPos.Y)
             {
-                ImGui.SetCursorPos(ImGui.GetCursorPos() + minPos);
+                ImGui.SetCursorScreenPos(minPos);
                 ImGui.Dummy(maxPos - minPos);
             }
         }
 
-        return !hoveredLink.IsEmpty;
+        spannable.ReturnState(state);
+
+        return result;
     }
 
     /// <inheritdoc/>
-    public bool TryGetFontData(float renderScale, scoped in SpanStyle style, out SpanStyleFontData fontData)
+    public bool TryGetFontData(float renderScale, scoped in TextStyle style, out TextStyleFontData fontData)
     {
         ThreadSafety.AssertMainThread();
 
@@ -249,15 +252,15 @@ internal sealed unsafe partial class SpannableRenderer : ISpannableRenderer, IIn
     private sealed class ResolvedFonts : IDisposable
     {
         private readonly SpannableRenderer owner;
-        private readonly float absoluteSize;
+        private readonly float sizePreScale;
         private FontHandleVariantSet set;
         private long expiryTick;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ResolvedFonts(SpannableRenderer owner, float absoluteSize, IFontFamilyId fontFamilyId)
+        public ResolvedFonts(SpannableRenderer owner, float sizePreScale, IFontFamilyId fontFamilyId)
         {
             this.owner = owner;
-            this.absoluteSize = absoluteSize;
+            this.sizePreScale = sizePreScale;
             this.set = new(fontFamilyId);
         }
 
@@ -269,7 +272,7 @@ internal sealed unsafe partial class SpannableRenderer : ISpannableRenderer, IIn
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool CanAccommodate(IFontFamilyId familyId, float absSize) =>
-            Math.Abs(this.absoluteSize - absSize) < 0.00001f && this.FamilyId.Equals(familyId);
+            Math.Abs(this.sizePreScale - absSize) < 0.00001f && this.FamilyId.Equals(familyId);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void MarkUsed(long tick) => this.expiryTick = tick + FontExpiryTicks;
@@ -341,7 +344,7 @@ internal sealed unsafe partial class SpannableRenderer : ISpannableRenderer, IIn
                 x => x.OnPreBuild(
                     tk =>
                     {
-                        var conf = new SafeFontConfig { SizePx = this.absoluteSize, };
+                        var conf = new SafeFontConfig { SizePx = this.sizePreScale, };
                         conf.MergeFont = tk.Font = fontId.AddToBuildToolkit(tk, conf);
                         tk.AttachExtraGlyphsForDalamudLanguage(conf);
                     }));

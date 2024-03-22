@@ -1,17 +1,15 @@
 using System.Numerics;
 
-using Dalamud.Interface.Spannables.Rendering;
-
 using ImGuiNET;
 
-namespace Dalamud.Interface.Spannables.Controls;
+namespace Dalamud.Interface.Spannables.EventHandlerArgs;
 
 /// <summary>Mouse event arguments.</summary>
 public struct SpannableControlMouseEventArgs
 {
     /// <summary>The location of the mouse, relative to the left top of the control, without having
-    /// <see cref="RenderState.Transformation"/> applied.</summary>
-    public Vector2 Location;
+    /// <see cref="ISpannableState.Transformation"/> or <see cref="ISpannableState.ScreenOffset"/> applied.</summary>
+    public Vector2 LocalLocation;
 
     /// <summary>The mouse button that has been pressed or released.</summary>
     public ImGuiMouseButton Button;

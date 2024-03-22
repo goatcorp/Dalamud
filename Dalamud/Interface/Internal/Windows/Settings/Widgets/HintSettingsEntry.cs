@@ -11,7 +11,10 @@ using Serilog;
 
 namespace Dalamud.Interface.Internal.Windows.Settings.Widgets;
 
-[SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1600:Elements should be documented", Justification = "Internals")]
+[SuppressMessage(
+    "StyleCop.CSharp.DocumentationRules",
+    "SA1600:Elements should be documented",
+    Justification = "Internals")]
 public class HintSettingsEntry : SettingsEntry
 {
     private readonly SpannedString text;
@@ -46,16 +49,15 @@ public class HintSettingsEntry : SettingsEntry
     {
         Service<SpannableRenderer>.Get().Render(
             this.text,
-            new(
-                false,
-                new()
+            new(false),
+            new()
+            {
+                WordBreak = WordBreakType.BreakWord,
+                InitialStyle = new()
                 {
-                    WordBreak = WordBreakType.BreakWord,
-                    InitialStyle = new()
-                    {
-                        ForeColor = this.color,
-                        TextDecorationColor = this.color,
-                    },
-                }));
+                    ForeColor = this.color,
+                    TextDecorationColor = this.color,
+                },
+            });
     }
 }

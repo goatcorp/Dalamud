@@ -2,7 +2,7 @@ using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-namespace Dalamud.Interface.Spannables.Rendering;
+namespace Dalamud.Utility.Numerics;
 
 /// <summary>A specialization of <see cref="System.Numerics.Vector4"/> that deals with four boundaries of a rectangle.</summary>
 [StructLayout(LayoutKind.Explicit, Size = 16)]
@@ -230,7 +230,7 @@ public struct RectVector4 : IEquatable<RectVector4>
     /// <param name="coord">The coordiantes to test.</param>
     /// <returns><c>true</c> if it is contained within.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public readonly bool Contains(in Vector2 coord) =>
+    public readonly bool Contains(Vector2 coord) =>
         this.Left <= coord.X && this.Top <= coord.Y && coord.X < this.Right && coord.Y < this.Bottom;
 
     /// <inheritdoc/>

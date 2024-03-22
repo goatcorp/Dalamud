@@ -8,9 +8,15 @@ using ImGuiNET;
 
 namespace Dalamud.Interface.Spannables.Rendering;
 
-/// <summary>Font related values calculated from <see cref="SpanStyle"/>.</summary>
-public readonly ref struct SpanStyleFontData
+/// <summary>Font related values calculated from <see cref="TextStyle"/>.</summary>
+public readonly ref struct TextStyleFontData
 {
+    /// <summary>The fake bold divisor, for scaling the thickness to the font size.</summary>
+    public const float FakeBoldDivisor = 18f;
+
+    /// <summary>The fake italic divisor, for scaling the top displacement to the font size.</summary>
+    public const float FakeItalicDivisor = 6f;
+
     /// <summary>The font being contained.</summary>
     public readonly ImFontPtr Font;
 
@@ -32,12 +38,6 @@ public readonly ref struct SpanStyleFontData
     /// <summary>The scale, relative to <see cref="ImFontPtr.FontSize"/> of <see cref="Font"/>.</summary>
     public readonly float Scale;
 
-    /// <summary>The fake bold divisor, for scaling the thickness to the font size.</summary>
-    private const float FakeBoldDivisor = 18f;
-
-    /// <summary>The fake italic divisor, for scaling the top displacement to the font size.</summary>
-    private const float FakeItalicDivisor = 6f;
-
     /// <summary>Whether kerning is enabled.</summary>
     private readonly bool useKern;
 
@@ -56,16 +56,16 @@ public readonly ref struct SpanStyleFontData
     /// <summary>The lookup table from fonts.</summary>
     private readonly ReadOnlySpan<ushort> lookup;
 
-    /// <summary>Initializes a new instance of the <see cref="SpanStyleFontData"/> struct.</summary>
+    /// <summary>Initializes a new instance of the <see cref="TextStyleFontData"/> struct.</summary>
     /// <param name="renderScale">The scale applicable for everything.</param>
     /// <param name="style">The span style.</param>
     /// <param name="font">The resolved font.</param>
     /// <param name="fakeItalic">Whether to use faux italics.</param>
     /// <param name="fakeBold">Whether to use faux bold.</param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal unsafe SpanStyleFontData(
+    internal unsafe TextStyleFontData(
         float renderScale,
-        scoped in SpanStyle style,
+        scoped in TextStyle style,
         ImFontPtr font,
         bool fakeItalic,
         bool fakeBold)

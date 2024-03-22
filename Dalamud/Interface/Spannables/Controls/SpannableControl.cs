@@ -1,9 +1,11 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 
+using Dalamud.Interface.Spannables.EventHandlerArgs;
 using Dalamud.Interface.Spannables.Rendering;
 using Dalamud.Interface.Spannables.Strings;
 using Dalamud.Plugin.Services;
+using Dalamud.Utility.Numerics;
 
 using ImGuiNET;
 
@@ -15,11 +17,9 @@ namespace Dalamud.Interface.Spannables.Controls;
 public class SpannableControl : ISpannable, ISpannableState
 {
     /// <summary>Uses the dimensions provided from the parent.</summary>
-    /// <remarks>See <see cref="RenderState.MaxSize"/>.</remarks>
     public const float MatchParent = -1f;
 
     /// <summary>Uses the dimensions that will wrap the content.</summary>
-    /// <remarks>See <see cref="RenderState.Boundary"/>.</remarks>
     public const float WrapContent = -2f;
 
     private static readonly ImGuiMouseButton[] MouseButtonsWeCare =
@@ -27,10 +27,12 @@ public class SpannableControl : ISpannable, ISpannableState
 
     private bool initializeFromArgumentsCalled;
 
-    private RenderState activeRenderState;
+    private TextState activeTextState;
+
+    private RectVector4 boundary;
+    private Trss transformation;
 
     private RectVector4 measuredExtrudedBox;
-    private RectVector4 measuredBox;
     private RectVector4 measuredInteractiveBox;
     private RectVector4 measuredContentBox;
 
@@ -66,7 +68,7 @@ public class SpannableControl : ISpannable, ISpannableState
     /// <summary>Gets or sets the size.</summary>
     /// <remarks>
     /// <para><see cref="MatchParent"/> and <see cref="WrapContent"/> can be used.</para>
-    /// <para>The value will be scaled by <see cref="RenderState.Scale"/>.</para>
+    /// <para>The value will be scaled by <see cref="Scale"/>.</para>
     /// <para>The value includes the margin and padding.</para>
     /// </remarks>
     public Vector2 Size { get; set; } = new(WrapContent);
@@ -74,7 +76,7 @@ public class SpannableControl : ISpannable, ISpannableState
     /// <summary>Gets or sets the minimum size.</summary>
     /// <remarks>
     /// <para><see cref="MatchParent"/> and <see cref="WrapContent"/> can be used.</para>
-    /// <para>The value will be scaled by <see cref="RenderState.Scale"/>.</para>
+    /// <para>The value will be scaled by <see cref="Scale"/>.</para>
     /// <para>The value includes the margin and padding.</para>
     /// </remarks>
     public Vector2 MinSize { get; set; } = Vector2.Zero;
@@ -82,7 +84,7 @@ public class SpannableControl : ISpannable, ISpannableState
     /// <summary>Gets or sets the maximum size.</summary>
     /// <remarks>
     /// <para><see cref="MatchParent"/> and <see cref="WrapContent"/> can be used.</para>
-    /// <para>The value will be scaled by <see cref="RenderState.Scale"/>.</para>
+    /// <para>The value will be scaled by <see cref="Scale"/>.</para>
     /// <para>The value includes the margin and padding.</para>
     /// </remarks>
     public Vector2 MaxSize { get; set; } = new(float.MaxValue);
@@ -90,26 +92,42 @@ public class SpannableControl : ISpannable, ISpannableState
     /// <summary>Gets or sets the extrusion.</summary>
     /// <remarks>
     /// <para><see cref="MatchParent"/> and <see cref="WrapContent"/> can be used.</para>
-    /// <para>The value will be scaled by <see cref="RenderState.Scale"/>.</para>
+    /// <para>The value will be scaled by <see cref="Scale"/>.</para>
     /// </remarks>
     public RectVector4 Extrude { get; set; } = RectVector4.Zero;
 
     /// <summary>Gets or sets the margin.</summary>
     /// <remarks>
     /// <para><see cref="MatchParent"/> and <see cref="WrapContent"/> can be used.</para>
-    /// <para>The value will be scaled by <see cref="RenderState.Scale"/>.</para>
+    /// <para>The value will be scaled by <see cref="Scale"/>.</para>
     /// </remarks>
     public RectVector4 Margin { get; set; } = RectVector4.Zero;
 
     /// <summary>Gets or sets the padding.</summary>
     /// <remarks>
     /// <para><see cref="MatchParent"/> and <see cref="WrapContent"/> can be used.</para>
-    /// <para>The value will be scaled by <see cref="RenderState.Scale"/>.</para>
+    /// <para>The value will be scaled by <see cref="Scale"/>.</para>
     /// </remarks>
     public RectVector4 Padding { get; set; } = RectVector4.Zero;
 
     /// <inheritdoc/>
-    public ref RenderState RenderState => ref this.activeRenderState;
+    public ref TextState TextState => ref this.activeTextState;
+
+    /// <inheritdoc/>
+    public uint ImGuiGlobalId { get; private set; }
+
+    /// <inheritdoc/>
+    /// <remarks>This excludes <see cref="Extrude"/>.</remarks>
+    public ref readonly RectVector4 Boundary => ref this.boundary;
+
+    /// <inheritdoc/>
+    public Vector2 ScreenOffset { get; private set; }
+
+    /// <inheritdoc/>
+    public Vector2 TransformationOrigin { get; private set; }
+
+    /// <inheritdoc/>
+    public ref readonly Trss Transformation => ref this.transformation;
 
     /// <inheritdoc/>
     public ISpannableRenderer Renderer { get; private set; } = null!;
@@ -150,10 +168,6 @@ public class SpannableControl : ISpannable, ISpannableState
     /// <remarks>Useful for drawing decoration outside the standard box, such as glow or shadow effects.</remarks>
     protected ref readonly RectVector4 MeasuredExtrudedBox => ref this.measuredExtrudedBox;
 
-    /// <summary>Gets the last measured box size.</summary>
-    /// <remarks>This excludes <see cref="Extrude"/>.</remarks>
-    protected ref readonly RectVector4 MeasuredBox => ref this.measuredBox;
-
     /// <summary>Gets the last measured interactive box size.</summary>
     /// <remarks>This excludes <see cref="Extrude"/> and <see cref="Margin"/>.</remarks>
     protected ref readonly RectVector4 MeasuredInteractiveBox => ref this.measuredInteractiveBox;
@@ -162,16 +176,27 @@ public class SpannableControl : ISpannable, ISpannableState
     /// <remarks>This excludes <see cref="Extrude"/>, <see cref="Margin"/>, and <see cref="Padding"/>.</remarks>
     protected ref readonly RectVector4 MeasuredContentBox => ref this.measuredContentBox;
 
+    /// <summary>Gets the scale.</summary>
+    protected float Scale { get; private set; }
+
     /// <inheritdoc/>
-    public ISpannableState RentState(ISpannableRenderer renderer, RenderState renderState, string? args)
+    public ISpannableState RentState(
+        ISpannableRenderer renderer,
+        uint imGuiGlobalId,
+        float scale,
+        string? args,
+        in TextState textState)
     {
-        this.activeRenderState = renderState;
         this.Renderer = renderer;
         if (!this.initializeFromArgumentsCalled)
         {
             this.InitializeFromArguments(args);
             this.initializeFromArgumentsCalled = true;
         }
+
+        this.ImGuiGlobalId = imGuiGlobalId;
+        this.Scale = scale;
+        this.activeTextState = textState;
 
         // Spannable itself is a state. Return self.
         return this;
@@ -188,9 +213,9 @@ public class SpannableControl : ISpannable, ISpannableState
         var rv = new RectVector4(
             Vector2.Zero,
             Vector2.Clamp(
-                ResolveSize(this, this.Size),
-                ResolveSize(this, this.MinSize),
-                ResolveSize(this, this.MaxSize)));
+                ResolveSize(args, this.Size),
+                ResolveSize(args, this.MinSize),
+                ResolveSize(args, this.MaxSize)));
 
         rv = RectVector4.Extrude(rv, -(this.Margin + this.Padding));
         rv = RectVector4.Normalize(rv);
@@ -203,35 +228,40 @@ public class SpannableControl : ISpannable, ISpannableState
         this.measuredContentBox = RectVector4.Normalize(this.measuredContentBox);
 
         this.measuredInteractiveBox = RectVector4.Extrude(this.measuredContentBox, this.Padding);
-        this.measuredBox = RectVector4.Extrude(this.measuredInteractiveBox, this.Margin);
-        this.measuredExtrudedBox = RectVector4.Extrude(this.measuredBox, this.Extrude);
-        this.activeRenderState.Boundary = this.measuredExtrudedBox;
-
-        this.OnMeasureEnd(args);
+        this.boundary = RectVector4.Extrude(this.measuredInteractiveBox, this.Margin);
+        this.measuredExtrudedBox = RectVector4.Extrude(this.boundary, this.Extrude);
         return;
 
-        static Vector2 ResolveSize(SpannableControl control, in Vector2 dim)
+        static Vector2 ResolveSize(SpannableMeasureArgs args, in Vector2 dim)
         {
             return new(
                 dim.X switch
                 {
-                    MatchParent or WrapContent => control.activeRenderState.MaxSize.X,
+                    MatchParent or WrapContent => args.MaxSize.X,
                     _ => dim.X,
                 },
                 dim.Y switch
                 {
-                    MatchParent or WrapContent => control.activeRenderState.MaxSize.Y,
+                    MatchParent or WrapContent => args.MaxSize.Y,
                     _ => dim.Y,
                 });
         }
     }
 
     /// <inheritdoc/>
-    public virtual void InteractWith(SpannableInteractionArgs args, out ReadOnlySpan<byte> linkData)
+    public virtual void CommitMeasurement(SpannableCommitTransformationArgs args)
+    {
+        this.ScreenOffset = args.ScreenOffset;
+        this.TransformationOrigin = args.TransformationOrigin;
+        this.transformation = args.Transformation;
+    }
+
+    /// <inheritdoc/>
+    public virtual void HandleInteraction(SpannableHandleInteractionArgs args, out SpannableLinkInteracted link)
     {
         const int selfInnerId = 0x1234;
 
-        linkData = default;
+        link = default;
 
         if (!this.Enabled)
         {
@@ -240,19 +270,17 @@ public class SpannableControl : ISpannable, ISpannableState
             return;
         }
 
-        var margs = new SpannableControlMouseEventArgs { Location = args.GetRelativeMouseCoord() };
-        var whx = ImGui.GetIO().MouseWheelH;
-        var why = ImGui.GetIO().MouseWheel;
+        var margs = new SpannableControlMouseEventArgs { LocalLocation = args.MouseLocalLocation };
         var interceptWheel = false;
-        interceptWheel |= whx > 0 && this.InterceptMouseWheelRight;
-        interceptWheel |= whx < 0 && this.InterceptMouseWheelLeft;
-        interceptWheel |= why > 0 && this.InterceptMouseWheelDown;
-        interceptWheel |= why < 0 && this.InterceptMouseWheelUp;
+        interceptWheel |= args.WheelDelta.X > 0 && this.InterceptMouseWheelRight;
+        interceptWheel |= args.WheelDelta.X < 0 && this.InterceptMouseWheelLeft;
+        interceptWheel |= args.WheelDelta.Y > 0 && this.InterceptMouseWheelDown;
+        interceptWheel |= args.WheelDelta.Y < 0 && this.InterceptMouseWheelUp;
 
         if (this.heldMouseButtons != 0)
             args.SetActive(selfInnerId, interceptWheel);
 
-        var hovered = this.activeRenderState.Boundary.Contains(margs.Location) && args.IsItemHoverable(selfInnerId);
+        var hovered = this.measuredInteractiveBox.Contains(margs.LocalLocation) && args.IsItemHoverable(selfInnerId);
         if (hovered != this.IsMouseHovered)
         {
             if (hovered)
@@ -262,13 +290,13 @@ public class SpannableControl : ISpannable, ISpannableState
             this.IsMouseHovered = hovered;
         }
 
-        if (whx != 0 || why != 0)
-            this.OnMouseWheel(margs with { Delta = new(whx, why) });
+        if (args.WheelDelta != Vector2.Zero)
+            this.OnMouseWheel(margs with { Delta = args.WheelDelta });
         
-        if (this.lastMouseLocation != margs.Location)
+        if (this.lastMouseLocation != margs.LocalLocation)
         {
             this.OnMouseMove(margs);
-            this.lastMouseLocation = margs.Location;
+            this.lastMouseLocation = margs.LocalLocation;
         }
 
         var lastHeldMouseButtons = this.heldMouseButtons;
@@ -276,7 +304,7 @@ public class SpannableControl : ISpannable, ISpannableState
         {
             for (var i = 0; i < MouseButtonsWeCare.Length; i++)
             {
-                var held = ImGui.IsMouseDown(MouseButtonsWeCare[i]);
+                var held = args.IsMouseButtonDown(MouseButtonsWeCare[i]);
                 if (held == ((this.heldMouseButtons & (1 << i)) != 0))
                     continue;
 
@@ -382,12 +410,6 @@ public class SpannableControl : ISpannable, ISpannableState
                          ? availableContentBox.Top
                          : availableContentBox.Bottom,
         };
-    }
-
-    /// <summary>Called after <see cref="Measure"/> is complete.</summary>
-    /// <param name="args">Measure arguments.</param>
-    protected virtual void OnMeasureEnd(SpannableMeasureArgs args)
-    {
     }
 
     /// <summary>Raises the <see cref="MouseClick"/> event.</summary>

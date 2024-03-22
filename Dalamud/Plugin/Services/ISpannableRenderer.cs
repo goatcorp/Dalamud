@@ -40,7 +40,7 @@ public interface ISpannableRenderer
     /// <returns><c>true</c> if any font was available; <c>false</c> if the current ImGui font from
     /// <see cref="ImGui.GetFont"/> has been used instead.</returns>
     /// <remarks>Regardless of the return value, <paramref name="fontData"/> will contain valid values.</remarks>
-    bool TryGetFontData(float renderScale, scoped in SpanStyle style, out SpanStyleFontData fontData);
+    bool TryGetFontData(float renderScale, scoped in TextStyle style, out TextStyleFontData fontData);
 
     /// <summary>Attempts to get an icon by icon ID.</summary>
     /// <param name="iconType">The icon type.</param>
@@ -58,45 +58,23 @@ public interface ISpannableRenderer
         out Vector2 uv0,
         out Vector2 uv1);
 
-    /// <summary>Renders a spannable.</summary>
-    /// <param name="sequence">The char sequence.</param>
-    /// <param name="renderState">The final render state.</param>
-    /// <remarks>Use <see cref="Render(ReadOnlySpan{char}, ref RenderState)"/> if you want to retrieve the state after
-    /// rendering.</remarks>
-    void Render(ReadOnlySpan<char> sequence, RenderState renderState);
+    /// <summary>Renders plain text.</summary>
+    /// <param name="sequence">The UTF-16 character sequence.</param>
+    /// <param name="renderContext">The render context.</param>
+    /// <param name="textOptions">The text styling options.</param>
+    /// <returns>The render results.</returns>
+    RenderResult Render(
+        ReadOnlySpan<char> sequence,
+        in RenderContext renderContext = default,
+        in TextState.Options textOptions = default);
 
     /// <summary>Renders a spannable.</summary>
-    /// <param name="sequence">The char sequence.</param>
-    /// <param name="renderState">The final render state.</param>
-    void Render(ReadOnlySpan<char> sequence, ref RenderState renderState);
-
-    /// <summary>Renders a spannable.</summary>
-    /// <param name="spannable">The spannable.</param>
-    /// <param name="renderState">The final render state.</param>
-    /// <remarks>Use <see cref="Render(ISpannable, ref RenderState)"/> if you want to retrieve the state after
-    /// rendering.</remarks>
-    void Render(ISpannable spannable, RenderState renderState);
-
-    /// <summary>Renders a spannable.</summary>
-    /// <param name="spannable">The spannable.</param>
-    /// <param name="renderState">The final render state.</param>
-    void Render(ISpannable spannable, ref RenderState renderState);
-
-    /// <summary>Renders an interactive spannable.</summary>
-    /// <param name="spannable">The spannable.</param>
-    /// <param name="renderState">The final render state.</param>
-    /// <param name="hoveredLink">The payload being hovered, if any.</param>
-    /// <returns><c>true</c> if any payload is currently being hovered.</returns>
-    /// <remarks><paramref name="hoveredLink"/> is only valid until next render.</remarks>
-    /// <remarks>Use <see cref="Render(ISpannable, ref RenderState, out ReadOnlySpan{byte})"/> if you want to
-    /// retrieve the state after rendering.</remarks>
-    bool Render(ISpannable spannable, RenderState renderState, out ReadOnlySpan<byte> hoveredLink);
-
-    /// <summary>Renders a spannable.</summary>
-    /// <param name="spannable">The spannable.</param>
-    /// <param name="renderState">The final render state.</param>
-    /// <param name="hoveredLink">The payload being hovered, if any.</param>
-    /// <returns><c>true</c> if any payload is currently being hovered.</returns>
-    /// <remarks><paramref name="hoveredLink"/> is only valid until next render.</remarks>
-    bool Render(ISpannable spannable, ref RenderState renderState, out ReadOnlySpan<byte> hoveredLink);
+    /// <param name="spannable">An instance of <see cref="ISpannable"/>.</param>
+    /// <param name="renderContext">The render context.</param>
+    /// <param name="textOptions">The initial text styling options.</param>
+    /// <returns>The render results.</returns>
+    RenderResult Render(
+        ISpannable spannable,
+        in RenderContext renderContext = default,
+        in TextState.Options textOptions = default);
 }

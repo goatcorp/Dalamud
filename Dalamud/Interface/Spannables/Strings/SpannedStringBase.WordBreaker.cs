@@ -1,12 +1,10 @@
-using System.Diagnostics.CodeAnalysis;
-using System.Numerics;
 using System.Runtime.CompilerServices;
 
+using Dalamud.Interface.Spannables.EventHandlerArgs;
 using Dalamud.Interface.Spannables.Internal;
 using Dalamud.Interface.Spannables.Rendering;
 using Dalamud.Interface.Spannables.Styles;
-
-using ImGuiNET;
+using Dalamud.Utility.Numerics;
 
 namespace Dalamud.Interface.Spannables.Strings;
 
@@ -15,11 +13,12 @@ public abstract partial class SpannedStringBase
 {
     private ref struct WordBreaker
     {
+        private readonly SpannableMeasureArgs args;
         private readonly State state;
         private readonly DataRef data;
-
-        private SpanStyle currentStyle;
-        private SpanStyleFontData fontInfo;
+        
+        private TextStyle currentStyle;
+        private TextStyleFontData fontInfo;
 
         private bool breakOnFirstNormalBreakableOffset;
 
@@ -30,18 +29,19 @@ public abstract partial class SpannedStringBase
         private MeasuredLine normalBreak;
         private MeasuredLine wrapMarkerBreak;
 
-        public WordBreaker(in DataRef data, State state)
+        public WordBreaker(SpannableMeasureArgs args, in DataRef data, State state)
         {
+            this.args = args;
             this.state = state;
             this.data = data;
-            this.currentStyle = state.RenderState.LastStyle;
+            this.currentStyle = state.TextState.LastStyle;
             this.prev = MeasuredLine.Empty;
             this.first = MeasuredLine.Empty;
             this.normalBreak = MeasuredLine.Empty;
             this.wrapMarkerBreak = MeasuredLine.Empty;
 
             this.SpanFontOptionsUpdated();
-            if (this.state.RenderState.WrapMarker is not null)
+            if (this.state.TextState.WrapMarker is not null)
                 this.UpdateWrapMarker();
         }
 
@@ -63,7 +63,7 @@ public abstract partial class SpannedStringBase
             this.currentStyle.UpdateFrom(
                 record,
                 recordData,
-                this.state.RenderState.InitialStyle,
+                this.state.TextState.InitialStyle,
                 this.data.FontSets,
                 out var fontUpdated,
                 out _);
@@ -77,7 +77,7 @@ public abstract partial class SpannedStringBase
                 case SpannedRecordType.ObjectSpannable:
                     return this.AddCodepointAndMeasure(offsetBefore, offsetAfter, -1, record, recordData);
                 case SpannedRecordType.ObjectNewLine
-                    when (this.state.RenderState.AcceptedNewLines & NewLineType.Manual) != 0:
+                    when (this.state.TextState.AcceptedNewLines & NewLineType.Manual) != 0:
                     this.prev.LastThing.SetRecord(offsetBefore.Record);
                     this.prev.SetOffset(offsetAfter);
                     this.UnionLineBBoxVertical(ref this.prev);
@@ -90,7 +90,7 @@ public abstract partial class SpannedStringBase
 
         [MethodImpl(MethodImplOptions.AggressiveOptimization)]
         public MeasuredLine AddCodepointAndMeasure(
-            CompositeOffset offsetBefore,
+            CompositeOffset offset,
             CompositeOffset offsetAfter,
             int c,
             in SpannedRecord record = default,
@@ -108,7 +108,7 @@ public abstract partial class SpannedStringBase
                         case SpannedRecordType.ObjectIcon
                             when SpannedRecordCodec.TryDecodeObjectIcon(recordData, out var gfdIcon)
                                  && this.state.Renderer.TryGetIcon(
-                                     this.state.RenderState.GfdIndex,
+                                     this.state.TextState.GfdIndex,
                                      (uint)gfdIcon,
                                      new(0, this.fontInfo.ScaledFontSize),
                                      out var tex,
@@ -157,38 +157,25 @@ public abstract partial class SpannedStringBase
 
                             spannableState = spannable.RentState(
                                 this.state.Renderer,
-                                (this.state.RenderState with
-                                    {
-                                        PutDummyAfterRender = false,
-                                        ImGuiGlobalId =
-                                        this.state.RenderState.GetGlobalIdFromInnerId(offsetBefore.Record),
-                                        InitialStyle = this.state.RenderState.LastStyle with
-                                        {
-                                            Italic = false,
-                                        },
-                                        LineCount = 0,
-                                        Offset = Vector2.Zero,
-                                        Boundary = RectVector4.InvertedExtrema,
-                                        ClickedMouseButton = (ImGuiMouseButton)(-1),
-                                        MaxSize = new(
-                                            IsEffectivelyInfinity(this.state.RenderState.MaxSize.X)
-                                                ? float.MaxValue
-                                                : this.state.RenderState.MaxSize.X - this.state.RenderState.Offset.X,
-                                            Math.Min(
-                                                this.state.RenderState.MaxSize.Y - this.state.RenderState.Offset.Y,
-                                                this.fontInfo.ScaledFontSize)),
-                                    }).WithTransformation(
-                                    Matrix4x4.Multiply(
-                                        Matrix4x4.CreateTranslation(
-                                            new(
-                                                Vector2.Transform(
-                                                    this.state.RenderState.Offset,
-                                                    this.state.RenderState.Transformation),
-                                                0)),
-                                        this.state.RenderState.Transformation)),
-                                spannableArgs);
-                            spannable.Measure(new(spannableState));
-                            boundary = spannableState.RenderState.Boundary;
+                                this.state.GetGlobalIdFromInnerId(offset.Record),
+                                this.state.Scale,
+                                spannableArgs,
+                                this.state.TextState with
+                                {
+                                    InitialStyle = this.currentStyle,
+                                    LastStyle = this.currentStyle,
+                                });
+                            spannable.Measure(
+                                new(
+                                    spannableState,
+                                    new(
+                                        IsEffectivelyInfinity(this.args.MaxSize.X)
+                                            ? float.MaxValue
+                                            : this.args.MaxSize.X - this.state.Offset.X,
+                                        Math.Min(
+                                            this.args.MaxSize.Y - this.state.Offset.Y,
+                                            this.fontInfo.ScaledFontSize))));
+                            boundary = spannableState.Boundary;
                             break;
                         }
 
@@ -197,14 +184,14 @@ public abstract partial class SpannedStringBase
                             break;
                     }
 
-                    current.AddObject(this.fontInfo, offsetBefore.Record, boundary.Left, boundary.Right);
+                    current.AddObject(this.fontInfo, offset.Record, boundary.Left, boundary.Right);
                     current.SetOffset(offsetAfter, pad);
                     break;
                 }
 
                 case '\t':
                     current.SetOffset(offsetAfter, pad);
-                    current.AddTabCharacter(this.fontInfo, this.state.RenderState.TabWidth);
+                    current.AddTabCharacter(this.fontInfo, this.state.TextState.TabWidth);
                     break;
 
                 // Soft hyphen; only determine if this offset can be used as a word break point.
@@ -214,7 +201,7 @@ public abstract partial class SpannedStringBase
                     if (current.ContainedInBoundsWithObject(
                             this.fontInfo,
                             this.wrapMarkerWidth,
-                            this.state.RenderState.MaxSize.X))
+                            this.args.MaxSize.X))
                     {
                         this.wrapMarkerBreak = this.normalBreak = current;
                     }
@@ -231,7 +218,7 @@ public abstract partial class SpannedStringBase
             if (this.breakOnFirstNormalBreakableOffset && breakable)
             {
                 this.prev.LastThing.SetCodepoint(c);
-                this.prev.SetOffset(offsetBefore);
+                this.prev.SetOffset(offsetAfter);
                 return this.prev.WithWrapped();
             }
 
@@ -239,46 +226,53 @@ public abstract partial class SpannedStringBase
             if (this.first.IsEmpty)
                 this.first = current;
 
-            if (current.ContainedInBounds(this.fontInfo, this.state.RenderState.MaxSize.X))
+            if (current.ContainedInBounds(this.fontInfo, this.args.MaxSize.X))
             {
-                if (current.ContainedInBoundsWithObject(
-                        this.fontInfo,
-                        this.wrapMarkerWidth,
-                        this.state.RenderState.MaxSize.X))
-                    this.wrapMarkerBreak = current;
-                else
-                    breakable = false;
+                if (this.state.TextState.WrapMarker is not null)
+                {
+                    if (current.ContainedInBoundsWithObject(
+                            this.fontInfo,
+                            this.wrapMarkerWidth,
+                            this.args.MaxSize.X))
+                        this.wrapMarkerBreak = current;
+                    else
+                        breakable = false;
+                }
             }
             else
             {
-                switch (this.state.RenderState.WordBreak)
+                var resolved = MeasuredLine.Empty;
+                switch (this.state.TextState.WordBreak)
                 {
                     case WordBreakType.Normal:
                         this.breakOnFirstNormalBreakableOffset = true;
-                        return MeasuredLine.FirstNonEmpty(this.normalBreak)
-                                           .WithWrapped();
+                        resolved = MeasuredLine.FirstNonEmpty(this.normalBreak);
+                        break;
 
-                    case WordBreakType.BreakAll when this.state.RenderState.WrapMarker is not null:
-                    case WordBreakType.KeepAll when this.state.RenderState.WrapMarker is not null:
-                        return MeasuredLine.FirstNonEmpty(this.wrapMarkerBreak, this.first)
-                                           .WithWrapped();
+                    case WordBreakType.BreakAll when this.state.TextState.WrapMarker is not null:
+                    case WordBreakType.KeepAll when this.state.TextState.WrapMarker is not null:
+                        resolved = MeasuredLine.FirstNonEmpty(this.wrapMarkerBreak, this.first);
+                        break;
 
                     case WordBreakType.BreakAll:
-                        return MeasuredLine.FirstNonEmpty(this.prev, this.first)
-                                           .WithWrapped();
+                        resolved = MeasuredLine.FirstNonEmpty(this.prev, this.first);
+                        break;
 
-                    case WordBreakType.BreakWord when this.state.RenderState.WrapMarker is not null:
-                        return MeasuredLine.FirstNonEmpty(this.normalBreak, this.wrapMarkerBreak, this.first)
-                                           .WithWrapped();
+                    case WordBreakType.BreakWord when this.state.TextState.WrapMarker is not null:
+                        resolved = MeasuredLine.FirstNonEmpty(this.normalBreak, this.wrapMarkerBreak, this.first);
+                        break;
 
                     case WordBreakType.BreakWord:
-                        return MeasuredLine.FirstNonEmpty(this.normalBreak, this.prev, this.first)
-                                           .WithWrapped();
+                        resolved = MeasuredLine.FirstNonEmpty(this.normalBreak, this.prev, this.first);
+                        break;
 
                     case WordBreakType.KeepAll:
                     default:
                         break;
                 }
+
+                if (!resolved.IsEmpty)
+                    return resolved.WithWrapped();
             }
 
             this.prev = current;
@@ -288,43 +282,39 @@ public abstract partial class SpannedStringBase
             return MeasuredLine.Empty;
         }
 
-        [SuppressMessage("ReSharper", "CompareOfFloatsByEqualityOperator", Justification = "no")]
-        private static bool IsEffectivelyInfinity(float f) => f == float.MaxValue || float.IsPositiveInfinity(f);
-
         private void SpanFontOptionsUpdated()
         {
-            this.state.Renderer.TryGetFontData(this.state.RenderState.Scale, in this.currentStyle, out this.fontInfo);
-            if (this.state.RenderState.WrapMarker is not null)
+            this.state.Renderer.TryGetFontData(this.state.Scale, in this.currentStyle, out this.fontInfo);
+            if (this.state.TextState.WrapMarker is not null)
                 this.UpdateWrapMarker();
         }
 
         private void UpdateWrapMarker()
         {
-            if (this.state.RenderState.WrapMarker is not { } wm)
+            if (this.state.TextState.WrapMarker is not { } wm)
                 return;
 
-            var state2 = wm.RentState(
+            var spannableState = wm.RentState(
                 this.state.Renderer,
-                this.state.RenderState with
+                0,
+                this.state.Scale,
+                null,
+                this.state.TextState with
                 {
-                    Offset = Vector2.Zero,
-                    Boundary = RectVector4.InvertedExtrema,
-                    WordBreak = WordBreakType.KeepAll,
+                    InitialStyle = this.currentStyle,
+                    LastStyle = this.currentStyle,
                     WrapMarker = null,
-                    DrawListPtr = null,
-                    MaxSize = new(
-                        IsEffectivelyInfinity(this.state.RenderState.MaxSize.X)
+                });
+            wm.Measure(
+                new(
+                    spannableState,
+                    new(
+                        IsEffectivelyInfinity(this.args.MaxSize.X)
                             ? float.MaxValue
-                            : this.state.RenderState.MaxSize.X - this.state.RenderState.Offset.X,
-                        this.prev.Height),
-                },
-                null);
-            this.state.RenderState.WrapMarker.Measure(new(state2));
-            if (state2.RenderState.Boundary.IsValid)
-                this.wrapMarkerWidth = state2.RenderState.Boundary.Right;
-            else
-                this.wrapMarkerWidth = 0;
-            wm.ReturnState(state2);
+                            : this.args.MaxSize.X - this.state.Offset.X,
+                        this.prev.Height)));
+            this.wrapMarkerWidth = spannableState.Boundary.IsValid ? spannableState.Boundary.Right : 0;
+            wm.ReturnState(spannableState);
         }
     }
 }

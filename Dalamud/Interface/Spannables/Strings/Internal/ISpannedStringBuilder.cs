@@ -244,7 +244,7 @@ internal interface ISpannedStringBuilder
     /// <summary>Pushes a float value indicating the font size to use from now on.</summary>
     /// <param name="value">The font size.</param>
     /// <returns>A reference of this instance after the push operation is completed.</returns>
-    /// <remarks>See <see cref="SpanStyle.FontSize"/> for meaning of values.</remarks>
+    /// <remarks>See <see cref="TextStyle.FontSize"/> for meaning of values.</remarks>
     [SpannedParseInstruction(SpannedRecordType.FontSize, false, "size")]
     SpannedStringBuilder PushFontSize(float value);
 
@@ -279,24 +279,24 @@ internal interface ISpannedStringBuilder
     SpannedStringBuilder PopHorizontalOffset();
 
     /// <summary>Pushes a horizontal alignment mode to use from now on, with respect to the whole alloted region
-    /// specified from <see cref="RenderOptions.MaxSize"/>, or <see cref="RenderState.Boundary"/> if no maximum width
-    /// is specified.</summary>
+    /// specified from <see cref="RenderContext.MaxSize"/>, or <see cref="ISpannableState.Boundary"/> if no maximum
+    /// width is specified.</summary>
     /// <param name="value">The horizontal alignment.</param>
     /// <returns>A reference of this instance after the push operation is completed.</returns>
     [SpannedParseInstruction(SpannedRecordType.HorizontalAlignment, false, "ha", "horizontal-align")]
     SpannedStringBuilder PushHorizontalAlignment(float value);
 
     /// <summary>Pushes a horizontal alignment mode to use from now on, with respect to the whole alloted region
-    /// specified from <see cref="RenderOptions.MaxSize"/>, or <see cref="RenderState.Boundary"/> if no maximum width
-    /// is specified.</summary>
+    /// specified from <see cref="RenderContext.MaxSize"/>, or <see cref="ISpannableState.Boundary"/> if no maximum
+    /// width is specified.</summary>
     /// <param name="value">The horizontal alignment.</param>
     /// <returns>A reference of this instance after the push operation is completed.</returns>
     [SpannedParseInstruction(SpannedRecordType.HorizontalAlignment, false, "ha", "horizontal-align")]
     SpannedStringBuilder PushHorizontalAlignment(HorizontalAlignment value);
 
     /// <summary>Pops a horizontal alignment mode to use from now on, with respect to the whole alloted region
-    /// specified from <see cref="RenderOptions.MaxSize"/>, or <see cref="RenderState.Boundary"/> if no maximum width
-    /// is specified.</summary>
+    /// specified from <see cref="RenderContext.MaxSize"/>, or <see cref="ISpannableState.Boundary"/> if no maximum
+    /// width is specified.</summary>
     /// <returns>A reference of this instance after the pop operation is completed.</returns>
     /// <exception cref="InvalidOperationException">The stack is empty.</exception>
     [SpannedParseInstruction(SpannedRecordType.HorizontalAlignment, true, "/ha", "/horizontal-align")]
