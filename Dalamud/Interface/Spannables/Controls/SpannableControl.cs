@@ -1,6 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 
+using Dalamud.Interface.Spannables.Controls.Animations;
 using Dalamud.Interface.Spannables.EventHandlerArgs;
 using Dalamud.Interface.Spannables.Rendering;
 using Dalamud.Plugin.Services;
@@ -28,7 +29,6 @@ public class SpannableControl : ISpannable, ISpannableState
     private ISpannableState? backgroundState;
 
     private TextState activeTextState;
-
     private RectVector4 boundary;
     private Matrix4x4 transformation;
 
@@ -40,6 +40,14 @@ public class SpannableControl : ISpannable, ISpannableState
     private int heldMouseButtons;
     private long[] lastMouseClickTick = new long[MouseButtonsWeCare.Length];
     private int[] lastMouseClickCount = new int[MouseButtonsWeCare.Length];
+
+    private bool wasVisible;
+
+    /// <summary>Occurs when the control obtained the final layout parameters for the render pass.</summary>
+    public event SpannableControlMeasureEventHandler? CommitMeasurement;
+
+    /// <summary>Occurs when the control should handle interactions.</summary>
+    public event SpannableControlHandleInteractionEventHandler? HandleInteraction;
 
     /// <summary>Occurs when the control is clicked by the mouse.</summary>
     public event SpannableControlDrawEventHandler? Draw;
@@ -138,17 +146,26 @@ public class SpannableControl : ISpannable, ISpannableState
     /// <inheritdoc/>
     public ISpannableRenderer Renderer { get; private set; } = null!;
 
+    /// <summary>Gets or sets the opacity of the body when the control is disabled.</summary>
+    public float DisabledTextOpacity { get; set; } = 0.5f;
+
     /// <summary>Gets or sets the normal background spannable.</summary>
-    public ISpannable? NormalBackground { get; set; } 
+    public ISpannable? NormalBackground { get; set; }
 
     /// <summary>Gets or sets the hovered background spannable.</summary>
     public ISpannable? HoveredBackground { get; set; }
 
     /// <summary>Gets or sets the active background spannable.</summary>
-    public ISpannable? ActiveBackground { get; set; } 
+    public ISpannable? ActiveBackground { get; set; }
 
     /// <summary>Gets or sets the disabled background spannable.</summary>
     public ISpannable? DisabledBackground { get; set; }
+
+    /// <summary>Gets or sets the animation to play when <see cref="Visible"/> changes to <c>true</c>.</summary>
+    public SpannableControlAnimator? ShowAnimation { get; set; }
+
+    /// <summary>Gets or sets the animation to play when <see cref="Visible"/> changes to <c>false</c>.</summary>
+    public SpannableControlAnimator? HideAnimation { get; set; }
 
     /// <summary>Gets or sets a value indicating whether mouse wheel scroll up event should be intercepted.</summary>
     public bool InterceptMouseWheelUp { get; set; }
@@ -174,6 +191,18 @@ public class SpannableControl : ISpannable, ISpannableState
     /// <summary>Gets a value indicating whether the middle mouse button is down.</summary>
     public bool IsMiddleMouseButtonDown => (this.heldMouseButtons & 4) != 0;
 
+    /// <summary>Gets the last measured extruded box size.</summary>
+    /// <remarks>Useful for drawing decoration outside the standard box, such as glow or shadow effects.</remarks>
+    public ref readonly RectVector4 MeasuredExtrudedBox => ref this.measuredExtrudedBox;
+
+    /// <summary>Gets the last measured interactive box size.</summary>
+    /// <remarks>This excludes <see cref="Extrude"/> and <see cref="Margin"/>.</remarks>
+    public ref readonly RectVector4 MeasuredInteractiveBox => ref this.measuredInteractiveBox;
+
+    /// <summary>Gets the last measured content box size.</summary>
+    /// <remarks>This excludes <see cref="Extrude"/>, <see cref="Margin"/>, and <see cref="Padding"/>.</remarks>
+    public ref readonly RectVector4 MeasuredContentBox => ref this.measuredContentBox;
+
     /// <summary>Gets a value indicating whether the width is set to wrap content.</summary>
     [SuppressMessage("ReSharper", "CompareOfFloatsByEqualityOperator", Justification = "Sentinel value")]
     protected bool IsWidthWrapContent => this.Size.X == WrapContent;
@@ -181,18 +210,6 @@ public class SpannableControl : ISpannable, ISpannableState
     /// <summary>Gets a value indicating whether the height is set to wrap content.</summary>
     [SuppressMessage("ReSharper", "CompareOfFloatsByEqualityOperator", Justification = "Sentinel value")]
     protected bool IsHeightWrapContent => this.Size.Y == WrapContent;
-
-    /// <summary>Gets the last measured extruded box size.</summary>
-    /// <remarks>Useful for drawing decoration outside the standard box, such as glow or shadow effects.</remarks>
-    protected ref readonly RectVector4 MeasuredExtrudedBox => ref this.measuredExtrudedBox;
-
-    /// <summary>Gets the last measured interactive box size.</summary>
-    /// <remarks>This excludes <see cref="Extrude"/> and <see cref="Margin"/>.</remarks>
-    protected ref readonly RectVector4 MeasuredInteractiveBox => ref this.measuredInteractiveBox;
-
-    /// <summary>Gets the last measured content box size.</summary>
-    /// <remarks>This excludes <see cref="Extrude"/>, <see cref="Margin"/>, and <see cref="Padding"/>.</remarks>
-    protected ref readonly RectVector4 MeasuredContentBox => ref this.measuredContentBox;
 
     /// <summary>Gets the scale.</summary>
     protected float Scale { get; private set; }
@@ -256,26 +273,58 @@ public class SpannableControl : ISpannable, ISpannableState
     }
 
     /// <inheritdoc/>
-    public virtual void CommitSpannableMeasurement(scoped in SpannableCommitTransformationArgs args)
+    public void CommitSpannableMeasurement(scoped in SpannableCommitTransformationArgs args)
     {
         this.ScreenOffset = args.ScreenOffset;
         this.TransformationOrigin = args.TransformationOrigin;
         this.transformation = args.Transformation;
+
+        var relevantAnimation = this.Visible ? this.ShowAnimation : this.HideAnimation;
+        if (this.wasVisible != this.Visible)
+        {
+            relevantAnimation?.Restart();
+            this.wasVisible = this.Visible;
+        }
+
+        if (relevantAnimation?.IsRunning is true)
+        {
+            relevantAnimation.Update(this);
+            this.transformation = Matrix4x4.Multiply(relevantAnimation.Transformation, this.Transformation);
+        }
+
+        this.OnCommitMeasurement(
+            new()
+            {
+                Sender = this,
+                MeasureArgs = args with
+                {
+                    Transformation = this.transformation,
+                },
+            });
     }
 
     /// <inheritdoc/>
-    public virtual void HandleSpannableInteraction(scoped in SpannableHandleInteractionArgs args, out SpannableLinkInteracted link)
+    public void HandleSpannableInteraction(
+        scoped in SpannableHandleInteractionArgs args,
+        out SpannableLinkInteracted link)
     {
-        const int selfInnerId = 0x1234;
+        const int selfInnerId = 0x0;
 
-        link = default;
+        this.OnHandleInteraction(new() { Sender = this, HandleInteractionArgs = args }, out link);
 
-        if (!this.Enabled || !this.Visible)
+        if (!this.Visible && this.HideAnimation?.IsRunning is not true)
         {
             this.IsMouseHovered = false;
             this.heldMouseButtons = 0;
 
-            this.background = this.Visible ? this.DisabledBackground ?? this.NormalBackground : null;
+            this.background = this.NormalBackground;
+        }
+        else if (!this.Enabled)
+        {
+            this.IsMouseHovered = false;
+            this.heldMouseButtons = 0;
+
+            this.background = this.DisabledBackground ?? this.NormalBackground;
         }
         else
         {
@@ -362,7 +411,7 @@ public class SpannableControl : ISpannable, ISpannableState
 
             if (this.heldMouseButtons != 0)
                 args.SetActive(selfInnerId, interceptWheel);
-            
+
             if (this.IsMouseHovered && this.IsLeftMouseButtonDown && this.ActiveBackground is not null)
                 this.background = this.ActiveBackground;
             else if (this.IsMouseHovered && this.HoveredBackground is not null)
@@ -391,26 +440,47 @@ public class SpannableControl : ISpannable, ISpannableState
     }
 
     /// <inheritdoc/>
-    public void DrawSpannable(SpannableDrawArgs args)
+    public unsafe void DrawSpannable(SpannableDrawArgs args)
     {
-        if (!this.Visible)
+        if (!this.Visible && this.HideAnimation?.IsRunning is not true)
             return;
 
+        var opacity = 1f;
+        opacity *= (this.Visible ? this.ShowAnimation : this.HideAnimation)?.Opacity ?? 1f;
+
+        var numVertices = args.DrawListPtr.VtxBuffer.Size;
         if (this.background is not null && this.backgroundState is not null)
             args.NotifyChild(this.background, this.backgroundState);
 
+        if (opacity < 1)
+        {
+            var ptr = (ImDrawVert*)args.DrawListPtr.VtxBuffer.Data + numVertices;
+            for (var remaining = args.DrawListPtr.VtxBuffer.Size - numVertices;
+                 remaining > 0;
+                 remaining--, ptr++)
+            {
+                ref var a = ref ((byte*)&ptr->col)[3];
+                a = (byte)Math.Clamp(a * opacity, 0, 255);
+            }
+        }
+
+        numVertices = args.DrawListPtr.VtxBuffer.Size;
         args.SwitchToChannel(RenderChannel.ForeChannel);
         this.OnDraw(new() { Sender = this, DrawArgs = args });
-    }
 
-    /// <summary>Clamps the given value without performing sanity check.</summary>
-    /// <param name="value">The vector to clamp.</param>
-    /// <param name="min">The minimum value.</param>
-    /// <param name="max">The maximum value.</param>
-    /// <typeparam name="T">A numeric type.</typeparam>
-    /// <returns>The clamped vector.</returns>
-    /// <remarks>This follows the behavior of <see cref="Vector4.Clamp"/>.</remarks>
-    protected static T ClampNoCheck<T>(T value, T min, T max) where T : INumber<T> => T.Min(T.Max(value, min), max);
+        opacity *= this.Enabled ? 1f : this.DisabledTextOpacity;
+        if (opacity < 1)
+        {
+            var ptr = (ImDrawVert*)args.DrawListPtr.VtxBuffer.Data + numVertices;
+            for (var remaining = args.DrawListPtr.VtxBuffer.Size - numVertices;
+                 remaining > 0;
+                 remaining--, ptr++)
+            {
+                ref var a = ref ((byte*)&ptr->col)[3];
+                a = (byte)Math.Clamp(a * opacity, 0, 255);
+            }
+        }
+    }
 
     /// <summary>Measures the content box, given the available content box excluding the margin and padding.</summary>
     /// <param name="args">Measure arguments.</param>
@@ -436,6 +506,21 @@ public class SpannableControl : ISpannable, ISpannableState
                          ? availableContentBox.Top
                          : availableContentBox.Bottom,
         };
+    }
+
+    /// <summary>Raises the <see cref="CommitMeasurement"/> event.</summary>
+    /// <param name="args">A <see cref="SpannableControlCommitMeasurementArgs"/> that contains the event data.</param>
+    protected virtual void OnCommitMeasurement(SpannableControlCommitMeasurementArgs args) =>
+        this.CommitMeasurement?.Invoke(args);
+
+    /// <summary>Raises the <see cref="HandleInteraction"/> event.</summary>
+    /// <param name="args">A <see cref="SpannableControlHandleInteractionArgs"/> that contains the event data.</param>
+    /// <param name="link">The interacted link, if any.</param>
+    protected virtual void OnHandleInteraction(
+        SpannableControlHandleInteractionArgs args, out SpannableLinkInteracted link)
+    {
+        link = default;
+        this.HandleInteraction?.Invoke(args, out link);
     }
 
     /// <summary>Raises the <see cref="Draw"/> event.</summary>

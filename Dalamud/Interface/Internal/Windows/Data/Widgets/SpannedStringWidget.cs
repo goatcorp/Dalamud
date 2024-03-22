@@ -4,11 +4,13 @@ using System.Numerics;
 using System.Text;
 
 using Dalamud.Game.Text;
+using Dalamud.Interface.Animation.EasingFunctions;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.FontIdentifier;
 using Dalamud.Interface.ImGuiNotification.Internal;
 using Dalamud.Interface.Internal.Notifications;
 using Dalamud.Interface.Spannables;
+using Dalamud.Interface.Spannables.Controls.Animations;
 using Dalamud.Interface.Spannables.Controls.Buttons;
 using Dalamud.Interface.Spannables.Rendering;
 using Dalamud.Interface.Spannables.Rendering.Internal;
@@ -49,7 +51,8 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
     private WordBreakType wordBreakType;
     private long catchMeBegin;
 
-    private float angle;
+    private float buttonFlowerAngle;
+    private float buttonFlowerScale;
 
     private SpannableButton[] spannableButton = null!;
 
@@ -97,7 +100,8 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
         this.wrapRightWidthRatio = 1f;
         this.showComplicatedTextTest = this.showDynamicOffsetTest = this.showTransformationTest = false;
         this.parseAttempt = default;
-        this.angle = 0;
+        this.buttonFlowerAngle = 0;
+        this.buttonFlowerScale = 1f;
 
         this.ellipsisSpannable = new SpannedStringBuilder().PushForeColor(0x80FFFFFF).Append("…");
         this.wrapMarkerSpannable = new SpannedStringBuilder()
@@ -119,6 +123,20 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
             {
                 Margin = new(64, 0, 0, 0),
                 Enabled = i % 2 == 0,
+                ShowAnimation = new SpannableControlSizeAnimator
+                {
+                    BeforeRatio = new(-0.7f, -0.7f, 0.7f, 0.7f),
+                    BeforeOpacity = 0f,
+                    TransformationEasing = new OutCubic(TimeSpan.FromMilliseconds(300)),
+                    OpacityEasing = new OutCubic(TimeSpan.FromMilliseconds(300)),
+                },
+                HideAnimation = new SpannableControlSizeAnimator
+                {
+                    AfterRatio = new(-0.7f, -0.7f, 0.7f, 0.7f),
+                    AfterOpacity = 0f,
+                    TransformationEasing = new InCubic(TimeSpan.FromMilliseconds(300)),
+                    OpacityEasing = new InCubic(TimeSpan.FromMilliseconds(300)),
+                },
                 SpannableText = new SpannedStringBuilder()
                                 .PushVerticalAlignment(0.5f)
                                 .PushLink("tlink"u8)
@@ -189,7 +207,16 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
                  Vector2.Zero,
                  (ImGui.GetWindowContentRegionMax() - ImGui.GetWindowContentRegionMin()) / 64);
         
-        ImGui.SliderFloat("##angle", ref this.angle, 0f, MathF.PI * 2);
+        ImGui.SliderFloat("Angle##angle", ref this.buttonFlowerAngle, 0f, MathF.PI * 2);
+        ImGui.SliderFloat("Scale##angle", ref this.buttonFlowerScale, 0f, 2f);
+        {
+            var tmp = this.spannableButton[0].Visible;
+            if (ImGui.Checkbox("Visibility?", ref tmp))
+            {
+                foreach (ref var v in this.spannableButton.AsSpan())
+                    v.Visible = tmp;
+            }
+        }
         
         var off = ImGui.GetCursorPos();
         ImGui.SetCursorPos(off);
@@ -204,7 +231,10 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
                     {
                         ScreenOffset = ImGui.GetCursorScreenPos() + new Vector2(480, 320),
                         TransformationOrigin = new(0, 0.5f),
-                        Transformation = Matrix4x4.CreateRotationZ(this.angle + ((i / 6f) * MathF.PI)),
+                        Transformation =
+                            Matrix4x4.Multiply(
+                                Matrix4x4.CreateScale(this.buttonFlowerScale, this.buttonFlowerScale, 1f),
+                                Matrix4x4.CreateRotationZ(this.buttonFlowerAngle + ((i / 6f) * MathF.PI))),
                     }));
         }
         

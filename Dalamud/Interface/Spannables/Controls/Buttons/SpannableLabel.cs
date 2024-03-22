@@ -5,8 +5,6 @@ using Dalamud.Utility.Numerics;
 
 using FFXIVClientStructs.FFXIV.Common.Math;
 
-using ImGuiNET;
-
 namespace Dalamud.Interface.Spannables.Controls.Buttons;
 
 /// <summary>A label that is spannable.</summary>
@@ -41,34 +39,6 @@ public class SpannableLabel : SpannableControl
             this.text = value;
             this.spannedStringBuilder.Clear().Append(this.text);
         }
-    }
-
-    /// <summary>Gets or sets the opacity of the text when the control is disabled.</summary>
-    public float DisabledTextOpacity { get; set; } = 0.5f;
-
-    /// <inheritdoc/>
-    public override void CommitSpannableMeasurement(scoped in SpannableCommitTransformationArgs args)
-    {
-        base.CommitSpannableMeasurement(args);
-
-        if (this.spannableState is null)
-            return;
-
-        args.NotifyChild(
-            this.spannableText ?? this.spannedStringBuilder,
-            this.spannableState,
-            this.MeasuredContentBox.LeftTop,
-            Matrix4x4.Identity);
-    }
-
-    /// <inheritdoc/>
-    public override void HandleSpannableInteraction(
-        scoped in SpannableHandleInteractionArgs args,
-        out SpannableLinkInteracted link)
-    {
-        if (this.spannableText is not null && this.spannableState is not null && this.Enabled)
-            args.NotifyChild(this.spannableText, this.spannableState, out link);
-        base.HandleSpannableInteraction(args, out link);
     }
 
     /// <inheritdoc/>
@@ -108,23 +78,35 @@ public class SpannableLabel : SpannableControl
     }
 
     /// <inheritdoc/>
-    protected sealed override unsafe void OnDraw(SpannableControlDrawArgs args)
+    protected override void OnCommitMeasurement(SpannableControlCommitMeasurementArgs args)
     {
-        var numVertices = args.DrawArgs.DrawListPtr.VtxBuffer.Size;
+        base.OnCommitMeasurement(args);
+
+        if (this.spannableState is null)
+            return;
+
+        args.MeasureArgs.NotifyChild(
+            this.spannableText ?? this.spannedStringBuilder,
+            this.spannableState,
+            this.MeasuredContentBox.LeftTop,
+            Matrix4x4.Identity);
+    }
+
+    /// <inheritdoc/>
+    protected override void OnHandleInteraction(
+        SpannableControlHandleInteractionArgs args,
+        out SpannableLinkInteracted link)
+    {
+        base.OnHandleInteraction(args, out link);
+        if (this.spannableText is not null && this.spannableState is not null && this.Enabled)
+            args.HandleInteractionArgs.NotifyChild(this.spannableText, this.spannableState, out link);
+    }
+
+    /// <inheritdoc/>
+    protected sealed override void OnDraw(SpannableControlDrawArgs args)
+    {
         base.OnDraw(args);
         if (this.spannableState is not null)
             args.DrawArgs.NotifyChild(this.spannableText ?? this.spannedStringBuilder, this.spannableState);
-
-        if (!this.Enabled)
-        {
-            var ptr = (ImDrawVert*)args.DrawArgs.DrawListPtr.VtxBuffer.Data + numVertices;
-            for (var remaining = args.DrawArgs.DrawListPtr.VtxBuffer.Size - numVertices;
-                 remaining > 0;
-                 remaining--, ptr++)
-            {
-                ref var a = ref ((byte*)&ptr->col)[3];
-                a = (byte)Math.Clamp(a * this.DisabledTextOpacity, 0, 255);
-            }
-        }
     }
 }

@@ -29,13 +29,3 @@ public struct SpannableControlMouseEventArgs
     /// <param name="sender">The control that generated the event.</param>
     public SpannableControlMouseEventArgs(SpannableControl sender) => this.Sender = sender;
 }
-
-/// <summary>Draw event arguments.</summary>
-public struct SpannableControlDrawArgs
-{
-    /// <summary>The control that generated the event.</summary>
-    public SpannableControl Sender;
-
-    /// <summary>The draw arguments from the spannable invoker.</summary>
-    public SpannableDrawArgs DrawArgs;
-}
