@@ -11,6 +11,7 @@ using Dalamud.Interface.Internal;
 using Dalamud.Interface.ManagedFontAtlas;
 using Dalamud.Interface.ManagedFontAtlas.Internals;
 using Dalamud.Interface.Spannables.Styles;
+using Dalamud.Interface.Utility;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Plugin.Services;
@@ -189,12 +190,14 @@ internal sealed partial class SpannableRenderer : ISpannableRenderer, IInternalD
         if (style.Font.FontFamilyId is { } familyId)
         {
             var i = 0;
-            var absoluteFontSize = renderScale * style.FontSize switch
+            var absoluteFontSize = (renderScale / ImGuiHelpers.GlobalScale) * style.FontSize switch
             {
                 < 0f => -style.FontSize * ImGui.GetFont().FontSize,
                 > 0f => style.FontSize,
                 _ => this.fontAtlasFactory.DefaultFontSpec.SizePx,
             };
+            absoluteFontSize = MathF.Round(absoluteFontSize * 32f) / 32f;
+
             for (; i < this.resolvedFonts.Count; i++)
             {
                 if (this.resolvedFonts[i].CanAccommodate(familyId, absoluteFontSize))
