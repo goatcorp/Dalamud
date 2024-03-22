@@ -27,7 +27,7 @@ public abstract partial class SpannedStringBase
         private readonly List<MeasuredLine> measuredLines = new();
         private readonly List<ISpannableState?> spannableStates = new();
         private readonly List<Vector2> spannableOffsets = new();
-        private Trss transformation;
+        private Matrix4x4 transformation;
         private Vector2 offset;
         private RectVector4 boundary;
         private TextState textState;
@@ -46,7 +46,7 @@ public abstract partial class SpannedStringBase
         public Vector2 TransformationOrigin { get; private set; }
 
         /// <inheritdoc/>
-        public ref readonly Trss Transformation => ref this.transformation;
+        public ref readonly Matrix4x4 Transformation => ref this.transformation;
 
         /// <inheritdoc/>
         /// <remarks>This is not supposed to be called when not rented, so NRE on accessing this is fine.</remarks>
@@ -290,16 +290,19 @@ public abstract partial class SpannedStringBase
                     {
                         if (!args.IsEmpty)
                         {
-                            var trss = Trss.Identity;
+                            var mtx = Matrix4x4.Identity;
                             if (this.textState.LastStyle.Italic)
-                                trss = Trss.CreateSkew(new(MathF.Atan(-1 / TextStyleFontData.FakeItalicDivisor), 0));
+                            {
+                                mtx = new(
+                                    Matrix3x2.CreateSkew(MathF.Atan(-1 / TextStyleFontData.FakeItalicDivisor), 0));
+                            }
 
                             wrapMarker.CommitSpannableMeasurement(
                                 new(
                                     state2,
                                     this.TransformToScreen(this.Offset + charRenderer.StyleTranslation),
                                     this.TransformationOrigin,
-                                    Trss.Multiply(trss, Trss.WithoutTranslation(this.Transformation))));
+                                    Matrix4x4.Multiply(mtx, this.Transformation.WithoutTranslation())));
                             args.NotifyChild(wrapMarker, state2);
                         }
 

@@ -269,8 +269,8 @@ public abstract partial class SpannedStringBase : ISpannable
                 spannableState,
                 state.SpannableOffsets[i],
                 spannableState.TextState.LastStyle.Italic
-                    ? Trss.CreateSkew(new(MathF.Atan(-1 / TextStyleFontData.FakeItalicDivisor), 0))
-                    : Trss.Identity);
+                    ? new(Matrix3x2.CreateSkew(MathF.Atan(-1 / TextStyleFontData.FakeItalicDivisor), 0))
+                    : Matrix4x4.Identity);
         }
     }
 

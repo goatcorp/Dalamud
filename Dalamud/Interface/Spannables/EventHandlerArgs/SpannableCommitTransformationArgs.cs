@@ -18,7 +18,7 @@ public struct SpannableCommitTransformationArgs
     public Vector2 TransformationOrigin;
 
     /// <inheritdoc cref="ISpannableState.Transformation"/>
-    public Trss Transformation;
+    public Matrix4x4 Transformation;
 
     /// <summary>Initializes a new instance of the <see cref="SpannableCommitTransformationArgs"/> struct.</summary>
     /// <param name="state">The state for the spannable.</param>
@@ -30,7 +30,7 @@ public struct SpannableCommitTransformationArgs
         ISpannableState state,
         Vector2 screenOffset,
         Vector2 transformationOrigin,
-        Trss transformation)
+        Matrix4x4 transformation)
     {
         this.State = state;
         this.ScreenOffset = screenOffset;
@@ -47,11 +47,11 @@ public struct SpannableCommitTransformationArgs
         ISpannable child,
         ISpannableState childState,
         Vector2 childOffset,
-        in Trss extraTransformation) =>
+        in Matrix4x4 extraTransformation) =>
         child.CommitSpannableMeasurement(
             new(
                 childState,
                 this.State.TransformToScreen(childOffset),
                 Vector2.Zero,
-                Trss.Multiply(extraTransformation, Trss.WithoutTranslation(this.Transformation))));
+                Matrix4x4.Multiply(extraTransformation, this.Transformation.WithoutTranslation())));
 }

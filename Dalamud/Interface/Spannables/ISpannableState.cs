@@ -32,7 +32,7 @@ public interface ISpannableState
     Vector2 TransformationOrigin { get; }
 
     /// <summary>Gets the transformation matrix from <see cref="ISpannable.CommitSpannableMeasurement"/>.</summary>
-    ref readonly Trss Transformation { get; }
+    ref readonly Matrix4x4 Transformation { get; }
 
     /// <summary>Gets the current renderer.</summary>
     ISpannableRenderer Renderer { get; }

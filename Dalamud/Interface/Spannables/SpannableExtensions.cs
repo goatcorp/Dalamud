@@ -1,8 +1,6 @@
 using System.Numerics;
 using System.Runtime.CompilerServices;
 
-using Dalamud.Utility.Numerics;
-
 using ImGuiNET;
 
 namespace Dalamud.Interface.Spannables;
@@ -18,7 +16,7 @@ public static class SpannableExtensions
     public static Vector2 TransformToScreen(this ISpannableState state, Vector2 coordinates)
     {
         var b = state.Boundary.Size * state.TransformationOrigin;
-        return state.ScreenOffset + Trss.TransformVector(coordinates - b, state.Transformation) + b;
+        return state.ScreenOffset + Vector2.Transform(coordinates - b, state.Transformation) + b;
     }
 
     /// <summary>Transforms the screen coordinates to local coordinates.</summary>
@@ -29,7 +27,9 @@ public static class SpannableExtensions
     public static Vector2 TransformToLocal(this ISpannableState state, Vector2 coordinates)
     {
         var b = state.Boundary.Size * state.TransformationOrigin;
-        return Trss.TransformVectorInverse(coordinates - state.ScreenOffset - b, state.Transformation) + b;
+        if (Matrix4x4.Invert(state.Transformation, out var inverted))
+            return Vector2.Transform(coordinates - state.ScreenOffset - b, inverted) + b;
+        return Vector2.Zero;
     }
 
     /// <summary>Gets a global ID from an inner ID.</summary>

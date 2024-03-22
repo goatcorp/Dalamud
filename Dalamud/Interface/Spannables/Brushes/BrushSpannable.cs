@@ -67,7 +67,7 @@ public abstract class BrushSpannable : ISpannable
     {
         private TextState activeTextState;
         private RectVector4 boundary;
-        private Trss transformation;
+        private Matrix4x4 transformation;
 
         /// <inheritdoc/>
         public ref TextState TextState => ref this.activeTextState;
@@ -88,7 +88,7 @@ public abstract class BrushSpannable : ISpannable
         public Vector2 TransformationOrigin { get; private set; }
 
         /// <inheritdoc/>
-        public ref readonly Trss Transformation => ref this.transformation;
+        public ref readonly Matrix4x4 Transformation => ref this.transformation;
 
         /// <inheritdoc/>
         public ISpannableRenderer Renderer { get; private set; } = null!;

@@ -4,7 +4,6 @@ using System.Text;
 
 using Dalamud.Interface.Utility;
 using Dalamud.Utility;
-using Dalamud.Utility.Numerics;
 
 using ImGuiNET;
 
@@ -44,8 +43,8 @@ public readonly struct RenderContext
     public readonly Vector2 TransformationOrigin;
 
     /// <inheritdoc cref="ISpannableState.Transformation"/>
-    /// <remarks>Default value is <see cref="Trss.Identity"/>.</remarks>
-    public readonly Trss Transformation;
+    /// <remarks>Default value is <see cref="Matrix4x4.Identity"/>.</remarks>
+    public readonly Matrix4x4 Transformation;
 
     /// <summary>Whether to put a dummy after rendering.</summary>
     public readonly bool PutDummyAfterRender;
@@ -130,7 +129,7 @@ public readonly struct RenderContext
         this.MouseScreenLocation = ImGui.GetMousePos();
         this.ScreenOffset = options.ScreenOffset ?? ImGui.GetCursorScreenPos();
         this.TransformationOrigin = options.TransformationOrigin ?? new(0.5f);
-        this.Transformation = options.Transformation ?? Trss.Identity;
+        this.Transformation = options.Transformation ?? Matrix4x4.Identity;
 
         this.UseLinks &= this.UseDrawing;
     }
@@ -161,6 +160,6 @@ public readonly struct RenderContext
         public Vector2? TransformationOrigin { get; set; }
 
         /// <inheritdoc cref="RenderContext.Transformation"/>
-        public Trss? Transformation { get; set; }
+        public Matrix4x4? Transformation { get; set; }
     }
 }

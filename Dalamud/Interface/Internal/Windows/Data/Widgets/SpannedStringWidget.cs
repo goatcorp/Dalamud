@@ -204,11 +204,7 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
                     {
                         ScreenOffset = ImGui.GetCursorScreenPos() + new Vector2(480, 320),
                         TransformationOrigin = new(0, 0.5f),
-                        Transformation = new(
-                            Vector2.Zero,
-                            Quaternion.CreateFromAxisAngle(Vector3.UnitZ, this.angle + ((i / 6f) * MathF.PI)),
-                            Vector2.One,
-                            Vector2.Zero),
+                        Transformation = Matrix4x4.CreateRotationZ(this.angle + ((i / 6f) * MathF.PI)),
                     }));
         }
         
@@ -522,7 +518,7 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
 
         var renderResult = Service<SpannableRenderer>.Get().Render(
             ssb,
-            new(nameof(this.DrawTestConfigBlock), this.renderContextOptions with { Transformation = new(mtx) }),
+            new(nameof(this.DrawTestConfigBlock), this.renderContextOptions with { Transformation = mtx }),
             this.TextStateOptions);
         if (renderResult.TryGetLinkOnClick(out var link))
         {
@@ -879,7 +875,7 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
                     this.renderContextOptions with
                     {
                         ScreenOffset = ImGui.GetWindowPos(),
-                        Transformation = new(mtx),
+                        Transformation = mtx,
                         MaxSize = size with { X = 0 },
                     }),
                 this.TextStateOptions with

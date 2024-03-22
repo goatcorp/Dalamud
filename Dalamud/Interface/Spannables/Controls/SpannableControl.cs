@@ -30,7 +30,7 @@ public class SpannableControl : ISpannable, ISpannableState
     private TextState activeTextState;
 
     private RectVector4 boundary;
-    private Trss transformation;
+    private Matrix4x4 transformation;
 
     private RectVector4 measuredExtrudedBox;
     private RectVector4 measuredInteractiveBox;
@@ -133,7 +133,7 @@ public class SpannableControl : ISpannable, ISpannableState
     public Vector2 TransformationOrigin { get; private set; }
 
     /// <inheritdoc/>
-    public ref readonly Trss Transformation => ref this.transformation;
+    public ref readonly Matrix4x4 Transformation => ref this.transformation;
 
     /// <inheritdoc/>
     public ISpannableRenderer Renderer { get; private set; } = null!;
@@ -385,7 +385,7 @@ public class SpannableControl : ISpannable, ISpannableState
                     this.backgroundState,
                     this.TransformToScreen(this.MeasuredInteractiveBox.LeftTop),
                     Vector2.Zero,
-                    Trss.WithoutTranslation(this.Transformation)));
+                    this.Transformation.WithoutTranslation()));
             args.NotifyChild(this.background, this.backgroundState, out _);
         }
     }
