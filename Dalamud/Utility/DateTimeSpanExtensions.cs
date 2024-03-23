@@ -37,7 +37,7 @@ public static class DateTimeSpanExtensions
         return region switch
         {
             1 => when.ToString("MM/dd/yyyy HH:mm:ss"), // na
-            2 => when.ToString("dd-mm-yyyy HH:mm:ss"), // eu
+            2 => when.ToString("dd-MM-yyyy HH:mm:ss"), // eu
             _ => when.ToString("yyyy-MM-dd HH:mm:ss"), // jp(0), cn(3), kr(4), and other possible errorneous cases
         };
     }
