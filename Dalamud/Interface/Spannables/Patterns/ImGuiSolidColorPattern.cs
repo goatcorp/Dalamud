@@ -10,7 +10,7 @@ using ImGuiNET;
 namespace Dalamud.Interface.Spannables.Patterns;
 
 /// <summary>A spannable that renders a solid color from ImGui style values.</summary>
-public sealed class ImGuiSolidColorPattern : SpannablePattern
+public sealed class ImGuiSolidColorPattern : PatternSpannable
 {
     /// <summary>Gets or sets the channel to render to.</summary>
     public RenderChannel TargetChannel { get; set; } = RenderChannel.BackChannel;

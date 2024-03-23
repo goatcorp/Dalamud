@@ -1,14 +1,12 @@
-using Dalamud.Interface.Spannables.Controls;
-
 using ImGuiNET;
 
-namespace Dalamud.Interface.Spannables.EventHandlerArgs;
+namespace Dalamud.Interface.Spannables.Controls.EventHandlers;
 
 /// <summary>Link event arguments.</summary>
-public ref struct SpannableControlMouseLinkEventArgs
+public ref struct ControlMouseLinkEventArgs
 {
     /// <summary>The control that generated the event.</summary>
-    public SpannableControl Sender;
+    public ControlSpannable Sender;
 
     /// <summary>The link being interacted with.</summary>
     public ReadOnlySpan<byte> Link;

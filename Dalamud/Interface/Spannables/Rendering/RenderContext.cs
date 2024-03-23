@@ -34,10 +34,10 @@ public readonly struct RenderContext
     /// <summary>Gets or sets the maximum size at which point line break or ellipsis should happen.</summary>
     /// <remarks>Default value is <c>new Vector2(ImGui.GetColumnWidth(), float.MaxValue)</c>.</remarks>
     public readonly Vector2 MaxSize;
-    
+
     /// <inheritdoc cref="ISpannableRenderPass.ScreenOffset"/>
     public readonly Vector2 ScreenOffset;
-    
+
     /// <inheritdoc cref="ISpannableRenderPass.TransformationOrigin"/>
     /// <remarks>Default value is <c>(0.5, 0.5)</c>.</remarks>
     public readonly Vector2 TransformationOrigin;

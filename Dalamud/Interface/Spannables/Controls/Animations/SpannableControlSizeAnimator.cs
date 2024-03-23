@@ -14,7 +14,7 @@ public sealed class SpannableControlSizeAnimator : SpannableControlAnimator
     public RectVector4 AfterRatio { get; set; } = new(-1, -1, 1, 1);
 
     /// <inheritdoc/>
-    protected override void CalculateMatrix(float p, SpannableControl control, in RectVector4 box, out Matrix4x4 result)
+    protected override void CalculateMatrix(float p, ControlSpannable control, in RectVector4 box, out Matrix4x4 result)
     {
         var lt = Vector2.Lerp(this.BeforeRatio.LeftTop, this.AfterRatio.LeftTop, p);
         var rb = Vector2.Lerp(this.BeforeRatio.RightBottom, this.AfterRatio.RightBottom, p);
@@ -27,7 +27,7 @@ public sealed class SpannableControlSizeAnimator : SpannableControlAnimator
     }
 }
 
-/// <summary>A box of a <see cref="SpannableControl"/>.</summary>
+/// <summary>A box of a <see cref="ControlSpannable"/>.</summary>
 public enum SpannableControlBox
 {
     /// <summary>Use the extruded box.</summary>

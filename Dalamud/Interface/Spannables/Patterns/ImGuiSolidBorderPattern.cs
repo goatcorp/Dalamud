@@ -10,7 +10,7 @@ using ImGuiNET;
 namespace Dalamud.Interface.Spannables.Patterns;
 
 /// <summary>A spannable that renders a solid colored border from ImGui style values.</summary>
-public sealed class ImGuiSolidBorderPattern : SpannablePattern
+public sealed class ImGuiSolidBorderPattern : PatternSpannable
 {
     /// <summary>Gets or sets the channel to render to.</summary>
     public RenderChannel TargetChannel { get; set; } = RenderChannel.BackChannel;
@@ -39,7 +39,7 @@ public sealed class ImGuiSolidBorderPattern : SpannablePattern
         public override unsafe void DrawSpannable(SpannableDrawArgs args)
         {
             base.DrawSpannable(args);
-            
+
             var lt = args.RenderPass.Boundary.LeftTop;
             var rb = args.RenderPass.Boundary.RightBottom;
             var color4 = new Rgba32(*ImGui.GetStyleColorVec4(owner.Color) * owner.ColorMultiplier);

@@ -4,6 +4,7 @@ using System.Numerics;
 using System.Runtime.InteropServices;
 
 using Dalamud.Interface.Spannables.Controls.Animations;
+using Dalamud.Interface.Spannables.Controls.EventHandlers;
 using Dalamud.Interface.Spannables.EventHandlerArgs;
 using Dalamud.Interface.Spannables.Helpers;
 using Dalamud.Interface.Spannables.Rendering;
@@ -21,7 +22,7 @@ namespace Dalamud.Interface.Spannables.Controls;
     "StyleCop.CSharp.SpacingRules",
     "SA1010:Opening square brackets should be spaced correctly",
     Justification = "No")]
-public partial class SpannableControl : ISpannable, ISpannableRenderPass, ISpannableSerializable
+public partial class ControlSpannable : ISpannable, ISpannableRenderPass, ISpannableSerializable
 {
     /// <summary>Uses the dimensions provided from the parent.</summary>
     public const float MatchParent = -1f;
@@ -58,8 +59,8 @@ public partial class SpannableControl : ISpannable, ISpannableRenderPass, ISpann
 
     private bool wasVisible;
 
-    /// <summary>Initializes a new instance of the <see cref="SpannableControl"/> class.</summary>
-    public SpannableControl()
+    /// <summary>Initializes a new instance of the <see cref="ControlSpannable"/> class.</summary>
+    public ControlSpannable()
     {
         this.backgroundInnerId = this.InnerIdAvailableSlot++;
         this.selfInnerId = this.InnerIdAvailableSlot++;
@@ -281,7 +282,7 @@ public partial class SpannableControl : ISpannable, ISpannableRenderPass, ISpann
         }
         else
         {
-            var margs = new SpannableControlMouseEventArgs { LocalLocation = args.MouseLocalLocation };
+            var margs = new ControlMouseEventArgs { LocalLocation = args.MouseLocalLocation };
             var interceptWheel = false;
             interceptWheel |= args.WheelDelta.X > 0 && this.interceptMouseWheelRight;
             interceptWheel |= args.WheelDelta.X < 0 && this.interceptMouseWheelLeft;
@@ -465,7 +466,7 @@ public partial class SpannableControl : ISpannable, ISpannableRenderPass, ISpann
     /// <inheritdoc/>
     public override string ToString() => $"{this.GetType().Name}({this.text})";
 
-    /// <summary>Disposes this instance of <see cref="SpannableControl"/>.</summary>
+    /// <summary>Disposes this instance of <see cref="ControlSpannable"/>.</summary>
     /// <param name="disposing">Whether it is being called from <see cref="Dispose"/>.</param>
     protected virtual void Dispose(bool disposing)
     {

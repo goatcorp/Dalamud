@@ -6,7 +6,7 @@ using Dalamud.Utility.Numerics;
 
 namespace Dalamud.Interface.Spannables.Controls.Animations;
 
-/// <summary>Animator for <see cref="SpannableControl"/>.</summary>
+/// <summary>Animator for <see cref="ControlSpannable"/>.</summary>
 public abstract class SpannableControlAnimator
 {
     private Matrix4x4 transformation = Matrix4x4.Identity;
@@ -38,7 +38,7 @@ public abstract class SpannableControlAnimator
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get => ref this.boundaryAdjustment;
-    } 
+    }
 
     /// <inheritdoc cref="Animation.Easing.IsRunning"/>
     public bool IsRunning
@@ -88,7 +88,7 @@ public abstract class SpannableControlAnimator
 
     /// <summary>Updates the animation.</summary>
     /// <param name="control">The control being animated.</param>
-    public void Update(SpannableControl control)
+    public void Update(ControlSpannable control)
     {
         if (this.TransformationEasing?.IsRunning is true)
         {
@@ -125,7 +125,7 @@ public abstract class SpannableControlAnimator
                         out this.transformation);
                     break;
             }
-            
+
             if (this.TransformationEasing.IsDone)
                 this.TransformationEasing.Stop();
         }
@@ -156,7 +156,7 @@ public abstract class SpannableControlAnimator
     /// <param name="result">The calculated matrix.</param>
     protected abstract void CalculateMatrix(
         float p,
-        SpannableControl control,
+        ControlSpannable control,
         in RectVector4 box,
         out Matrix4x4 result);
 }

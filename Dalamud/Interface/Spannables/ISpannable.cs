@@ -9,7 +9,7 @@ public interface ISpannable : IDisposable
 {
     /// <summary>Gets all the children.</summary>
     IReadOnlyCollection<ISpannable?> Children { get; }
-    
+
     /// <summary>Gets the generation of the state.</summary>
     /// <remarks>Increase this by 1 every time anything about the spannable changes.</remarks>
     int StateGeneration { get; }

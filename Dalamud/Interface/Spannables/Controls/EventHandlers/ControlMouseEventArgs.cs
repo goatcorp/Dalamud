@@ -1,16 +1,14 @@
 using System.Numerics;
 
-using Dalamud.Interface.Spannables.Controls;
-
 using ImGuiNET;
 
-namespace Dalamud.Interface.Spannables.EventHandlerArgs;
+namespace Dalamud.Interface.Spannables.Controls.EventHandlers;
 
 /// <summary>Mouse event arguments.</summary>
-public struct SpannableControlMouseEventArgs
+public struct ControlMouseEventArgs
 {
     /// <summary>The control that generated the event.</summary>
-    public SpannableControl Sender;
+    public ControlSpannable Sender;
 
     /// <summary>The location of the mouse, relative to the left top of the control, without having
     /// <see cref="ISpannableRenderPass.Transformation"/> or <see cref="ISpannableRenderPass.ScreenOffset"/> applied.</summary>

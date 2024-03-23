@@ -17,7 +17,7 @@ namespace Dalamud.Interface.Spannables.Patterns;
     "StyleCop.CSharp.SpacingRules",
     "SA1010:Opening square brackets should be spaced correctly",
     Justification = "No")]
-public abstract class SpannablePattern : ISpannable
+public abstract class PatternSpannable : ISpannable
 {
     private readonly PatternRenderPass?[] statePool = new PatternRenderPass?[4];
 
@@ -75,7 +75,7 @@ public abstract class SpannablePattern : ISpannable
         }
     }
 
-    /// <summary>Disposes this instance of <see cref="SpannablePattern"/>.</summary>
+    /// <summary>Disposes this instance of <see cref="PatternSpannable"/>.</summary>
     /// <param name="disposing">Whether it is being called from <see cref="Dispose"/>.</param>
     protected virtual void Dispose(bool disposing)
     {
@@ -93,7 +93,7 @@ public abstract class SpannablePattern : ISpannable
     /// <returns>The new state.</returns>
     protected virtual PatternRenderPass CreateNewRenderPass() => new();
 
-    /// <summary>A state for <see cref="SpannablePattern"/>.</summary>
+    /// <summary>A state for <see cref="PatternSpannable"/>.</summary>
     protected class PatternRenderPass : ISpannableRenderPass
     {
         private TextState activeTextState;

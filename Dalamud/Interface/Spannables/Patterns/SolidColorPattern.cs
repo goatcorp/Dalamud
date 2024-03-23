@@ -8,7 +8,7 @@ using ImGuiNET;
 namespace Dalamud.Interface.Spannables.Patterns;
 
 /// <summary>A spannable that renders a solid color.</summary>
-public sealed class SolidColorPattern : SpannablePattern
+public sealed class SolidColorPattern : PatternSpannable
 {
     /// <summary>Gets or sets the channel to render to.</summary>
     public RenderChannel TargetChannel { get; set; } = RenderChannel.BackChannel;
@@ -31,7 +31,7 @@ public sealed class SolidColorPattern : SpannablePattern
         public override void DrawSpannable(SpannableDrawArgs args)
         {
             base.DrawSpannable(args);
-            
+
             var lt = args.RenderPass.Boundary.LeftTop;
             var rb = args.RenderPass.Boundary.RightBottom;
 

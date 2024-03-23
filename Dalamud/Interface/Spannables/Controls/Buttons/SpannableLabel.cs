@@ -1,9 +1,9 @@
 using System.IO;
 
 using Dalamud.Interface.Spannables.Controls.EventHandlerDelegates;
+using Dalamud.Interface.Spannables.Controls.EventHandlers;
 using Dalamud.Interface.Spannables.EventHandlerArgs;
 using Dalamud.Interface.Spannables.Strings;
-using Dalamud.Interface.Spannables.Styles;
 using Dalamud.Utility;
 using Dalamud.Utility.Numerics;
 
@@ -12,7 +12,7 @@ using FFXIVClientStructs.FFXIV.Common.Math;
 namespace Dalamud.Interface.Spannables.Controls.Buttons;
 
 /// <summary>A label that is spannable.</summary>
-public class SpannableLabel : SpannableControl
+public class SpannableLabel : ControlSpannable
 {
     private readonly int childrenSlotText;
     private readonly int innerIdSlotText;
@@ -35,24 +35,23 @@ public class SpannableLabel : SpannableControl
     }
 
     /// <summary>Occurs when the mouse pointer enters a link in the control.</summary>
-    public event SpannableControlLinkEventHandler? LinkMouseEnter;
+    public event ControlLinkEventHandler? LinkMouseEnter;
 
     /// <summary>Occurs when the mouse pointer leaves a link in the control.</summary>
-    public event SpannableControlLinkEventHandler? LinkMouseLeave;
+    public event ControlLinkEventHandler? LinkMouseLeave;
 
     /// <summary>Occurs when a link in the control is clicked by the mouse.</summary>
-    public event SpannableControlLinkEventHandler? LinkMouseClick;
+    public event ControlLinkEventHandler? LinkMouseClick;
 
     /// <summary>Occurs when the property <see cref="SpannableText"/> has been changed.</summary>
-    public event SpannableControlPropertyChangedEventHandler<ISpannable?>? SpannableTextChanged;
+    public event PropertyChangedEventHandler<ISpannable?>? SpannableTextChanged;
 
     /// <summary>Gets or sets a spannable text.</summary>
-    /// <remarks>Setting this property clears <see cref="SpannableControl.Text"/>.</remarks>
+    /// <remarks>Setting this property clears <see cref="ControlSpannable.Text"/>.</remarks>
     public ISpannable? SpannableText
     {
         get => this.spannableText;
-        set => HandlePropertyChange(
-            this,
+        set => this.HandlePropertyChange(
             nameof(this.SpannableText),
             ref this.spannableText,
             value,
@@ -103,7 +102,6 @@ public class SpannableLabel : SpannableControl
                 this.TextState with
                 {
                     InitialStyle = this.TextState.LastStyle,
-                    WordBreak = WordBreakType.KeepAll,
                 }));
 
         var b = RectVector4.Normalize(this.activeSpannablePass.Boundary);
@@ -117,7 +115,7 @@ public class SpannableLabel : SpannableControl
     }
 
     /// <inheritdoc/>
-    protected override void OnCommitMeasurement(SpannableControlCommitMeasurementArgs args)
+    protected override void OnCommitMeasurement(ControlCommitMeasurementArgs args)
     {
         base.OnCommitMeasurement(args);
 
@@ -133,7 +131,7 @@ public class SpannableLabel : SpannableControl
 
     /// <inheritdoc/>
     protected override void OnHandleInteraction(
-        SpannableControlHandleInteractionArgs args,
+        ControlHandleInteractionArgs args,
         out SpannableLinkInteracted link)
     {
         base.OnHandleInteraction(args, out link);
@@ -186,7 +184,7 @@ public class SpannableLabel : SpannableControl
     }
 
     /// <inheritdoc/>
-    protected override void OnDraw(SpannableControlDrawArgs args)
+    protected override void OnDraw(ControlDrawArgs args)
     {
         base.OnDraw(args);
 
@@ -197,22 +195,22 @@ public class SpannableLabel : SpannableControl
     }
 
     /// <summary>Raises the <see cref="LinkMouseEnter"/> event.</summary>
-    /// <param name="args">A <see cref="SpannableControlMouseLinkEventArgs"/> that contains the event data.</param>
-    protected virtual void OnLinkMouseEnter(SpannableControlMouseLinkEventArgs args) =>
+    /// <param name="args">A <see cref="ControlMouseLinkEventArgs"/> that contains the event data.</param>
+    protected virtual void OnLinkMouseEnter(ControlMouseLinkEventArgs args) =>
         this.LinkMouseEnter?.Invoke(args);
 
     /// <summary>Raises the <see cref="LinkMouseLeave"/> event.</summary>
-    /// <param name="args">A <see cref="SpannableControlMouseLinkEventArgs"/> that contains the event data.</param>
-    protected virtual void OnLinkMouseLeave(SpannableControlMouseLinkEventArgs args) =>
+    /// <param name="args">A <see cref="ControlMouseLinkEventArgs"/> that contains the event data.</param>
+    protected virtual void OnLinkMouseLeave(ControlMouseLinkEventArgs args) =>
         this.LinkMouseLeave?.Invoke(args);
 
     /// <summary>Raises the <see cref="LinkMouseClick"/> event.</summary>
-    /// <param name="args">A <see cref="SpannableControlMouseLinkEventArgs"/> that contains the event data.</param>
-    protected virtual void OnLinkMouseClick(SpannableControlMouseLinkEventArgs args) =>
+    /// <param name="args">A <see cref="ControlMouseLinkEventArgs"/> that contains the event data.</param>
+    protected virtual void OnLinkMouseClick(ControlMouseLinkEventArgs args) =>
         this.LinkMouseClick?.Invoke(args);
 
     /// <inheritdoc/>
-    protected override void OnTextChanged(SpannableControlPropertyChangedEventArgs<string?> args)
+    protected override void OnTextChanged(PropertyChangedEventArgs<string?> args)
     {
         if (this.spannedStringBuilder is null)
             return;
@@ -224,8 +222,8 @@ public class SpannableLabel : SpannableControl
     }
 
     /// <summary>Raises the <see cref="SpannableTextChanged"/> event.</summary>
-    /// <param name="args">A <see cref="SpannableControlPropertyChangedEventArgs{T}"/> that contains the event data.</param>
-    protected virtual void OnSpannableTextChanged(SpannableControlPropertyChangedEventArgs<ISpannable?> args)
+    /// <param name="args">A <see cref="PropertyChangedEventArgs{T}"/> that contains the event data.</param>
+    protected virtual void OnSpannableTextChanged(PropertyChangedEventArgs<ISpannable?> args)
     {
         if (this.spannedStringBuilder is null)
             return;

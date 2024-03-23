@@ -17,7 +17,7 @@ public interface ISpannableRenderPass
 
     /// <summary>Gets the measured boundary from <see cref="MeasureSpannable"/>.</summary>
     ref readonly RectVector4 Boundary { get; }
-    
+
     /// <summary>Gets the screen offset of the left top, pre-transformed, from
     /// <see cref="CommitSpannableMeasurement"/>.</summary>
     Vector2 ScreenOffset { get; }

@@ -4,12 +4,13 @@ using System.Numerics;
 using System.Runtime.InteropServices;
 
 using Dalamud.Interface.Spannables.EventHandlerArgs;
+using Dalamud.Utility.Enumeration;
 
 namespace Dalamud.Interface.Spannables.Patterns;
 
 /// <summary>A pattern spannable that has multiple layers.</summary>
 public sealed class LayeredPattern
-    : SpannablePattern, IList<ISpannable?>, IReadOnlyList<ISpannable?>, ICollection
+    : PatternSpannable, IList<ISpannable?>, IReadOnlyList<ISpannable?>, ICollection
 {
     /// <inheritdoc cref="ICollection.Count"/>
     public int Count => this.AllChildren.Count - this.AllChildrenAvailableSlot;
@@ -61,16 +62,6 @@ public sealed class LayeredPattern
     void ICollection.CopyTo(Array array, int index) => this.CopyTo((ISpannable?[])array, index);
 
     /// <inheritdoc/>
-    public bool Remove(ISpannable? item)
-    {
-        var i = this.AllChildren.IndexOf(item);
-        if (i < this.AllChildrenAvailableSlot)
-            return false;
-        this.AllChildren.RemoveAt(i);
-        return true;
-    }
-
-    /// <inheritdoc/>
     public int IndexOf(ISpannable? item)
     {
         var i = this.AllChildren.IndexOf(item);
@@ -88,6 +79,16 @@ public sealed class LayeredPattern
     }
 
     /// <inheritdoc/>
+    public bool Remove(ISpannable? item)
+    {
+        var i = this.AllChildren.IndexOf(item);
+        if (i < this.AllChildrenAvailableSlot)
+            return false;
+        this.AllChildren.RemoveAt(i);
+        return true;
+    }
+
+    /// <inheritdoc/>
     public void RemoveAt(int index)
     {
         if (index < 0 || index >= this.AllChildren.Count - this.AllChildrenAvailableSlot)
@@ -95,54 +96,17 @@ public sealed class LayeredPattern
         this.AllChildren.RemoveAt(this.AllChildrenAvailableSlot + index);
     }
 
+    /// <inheritdoc cref="IEnumerable{T}.GetEnumerator"/>
+    public ListRangeEnumerator<ISpannable> GetEnumerator() => new(this.AllChildren, this.AllChildrenAvailableSlot..);
+
     /// <inheritdoc/>
-    public IEnumerator<ISpannable?> GetEnumerator() => new Enumerator(this.AllChildren, this.AllChildrenAvailableSlot);
+    IEnumerator<ISpannable?> IEnumerable<ISpannable?>.GetEnumerator() => this.GetEnumerator();
 
     /// <inheritdoc/>
     IEnumerator IEnumerable.GetEnumerator() => this.GetEnumerator();
 
     /// <inheritdoc/>
     protected override PatternRenderPass CreateNewRenderPass() => new LayeredRenderPass(this);
-
-    /// <inheritdoc/>
-    public struct Enumerator : IEnumerator<ISpannable?>
-    {
-        private readonly List<ISpannable> items;
-        private readonly int firstIndex;
-        private int index;
-
-        /// <summary>Initializes a new instance of the <see cref="Enumerator"/> struct.</summary>
-        /// <param name="items">The list of items.</param>
-        /// <param name="firstIndex">The first index.</param>
-        internal Enumerator(List<ISpannable> items, int firstIndex)
-        {
-            this.items = items;
-            this.firstIndex = firstIndex;
-        }
-
-        /// <inheritdoc/>
-        public ISpannable? Current => this.items[this.firstIndex + this.index];
-
-        /// <inheritdoc/>
-        object? IEnumerator.Current => this.Current;
-
-        /// <inheritdoc/>
-        public bool MoveNext()
-        {
-            if (this.index + this.firstIndex >= this.items.Count)
-                return false;
-            this.index++;
-            return true;
-        }
-
-        /// <inheritdoc/>
-        public void Reset() => this.index = 0;
-
-        /// <inheritdoc/>
-        public void Dispose()
-        {
-        }
-    }
 
     /// <summary>A state for <see cref="LayeredPattern"/>.</summary>
     private class LayeredRenderPass : PatternRenderPass
@@ -163,10 +127,10 @@ public sealed class LayeredPattern
             {
                 if (this.owner[i] is not { } child)
                     continue;
-                
+
                 this.passes[i] ??= child.RentRenderPass(new(this.Renderer));
                 args.NotifyChild(child, this.passes[i], args.MaxSize, args.TextState);
-            } 
+            }
         }
 
         public override void CommitSpannableMeasurement(scoped in SpannableCommitTransformationArgs args)
@@ -176,7 +140,7 @@ public sealed class LayeredPattern
             {
                 if (this.owner[i] is not { } child || this.passes[i] is not { } pass)
                     continue;
-                
+
                 args.NotifyChild(child, pass, Vector2.Zero, Matrix4x4.Identity);
             }
         }
@@ -189,7 +153,7 @@ public sealed class LayeredPattern
             {
                 if (this.owner[i] is not { } child || this.passes[i] is not { } pass)
                     continue;
-                
+
                 if (link.IsEmpty)
                     args.NotifyChild(child, pass, this.owner.InnerIdAvailableSlot + i, out link);
                 else
@@ -204,7 +168,7 @@ public sealed class LayeredPattern
             {
                 if (this.owner[i] is not { } child || this.passes[i] is not { } pass)
                     continue;
-                
+
                 args.NotifyChild(child, pass);
             }
         }

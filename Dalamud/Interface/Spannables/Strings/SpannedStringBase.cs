@@ -197,21 +197,21 @@ public abstract partial class SpannedStringBase : ISpannable, ISpannableSerializ
     {
         [FieldOffset(0)]
         public uint Flags;
-    
+
         public bool IsMouseButtonDownHandled
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             readonly get => (this.Flags & 1) != 0;
-    
+
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set => this.Flags = (this.Flags & ~1u) | (value ? 1u : 0u);
         }
-    
+
         public ImGuiMouseButton FirstMouseButton
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             readonly get => (ImGuiMouseButton)((this.Flags >> 1) & 3);
-    
+
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set => this.Flags = (this.Flags & ~(3u << 1)) | ((uint)value << 1);
         }
