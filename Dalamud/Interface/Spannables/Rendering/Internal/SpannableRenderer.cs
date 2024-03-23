@@ -10,6 +10,7 @@ using Dalamud.Interface.FontIdentifier;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.ManagedFontAtlas;
 using Dalamud.Interface.ManagedFontAtlas.Internals;
+using Dalamud.Interface.Spannables.Helpers;
 using Dalamud.Interface.Spannables.Styles;
 using Dalamud.Interface.Utility;
 using Dalamud.IoC;
@@ -122,29 +123,24 @@ internal sealed partial class SpannableRenderer : ISpannableRenderer, IInternalD
 
         using var splitter = renderContext.UseDrawing ? this.RentSplitter(renderContext.DrawListPtr) : default;
 
-        var state = spannable.RentState(
-            new(
-                this,
-                renderContext.ImGuiGlobalId,
-                renderContext.Scale,
-                new(textOptions)));
-
         var result = default(RenderResult);
-
-        spannable.MeasureSpannable(new(state, renderContext.MaxSize));
-        spannable.CommitSpannableMeasurement(
+        var state = spannable.RentRenderPass(new(this));
+        state.MeasureSpannable(new(spannable, state, renderContext.MaxSize, renderContext.Scale, new(textOptions)));
+        state.CommitSpannableMeasurement(
             new(
+                spannable,
                 state,
                 renderContext.ScreenOffset,
                 renderContext.TransformationOrigin,
                 renderContext.Transformation));
         if (renderContext.UseDrawing)
         {
-            if (renderContext.UseLinks)
+            if (renderContext.UseInteraction)
             {
-                spannable.HandleSpannableInteraction(
-                    new(state)
+                state.HandleSpannableInteraction(
+                    new(spannable, state)
                     {
+                        ImGuiGlobalId = renderContext.ImGuiGlobalId,
                         MouseButtonStateFlags = (ImGui.IsMouseDown(ImGuiMouseButton.Left) ? 1 : 0)
                                                 | (ImGui.IsMouseDown(ImGuiMouseButton.Right) ? 2 : 0)
                                                 | (ImGui.IsMouseDown(ImGuiMouseButton.Middle) ? 4 : 0),
@@ -154,7 +150,7 @@ internal sealed partial class SpannableRenderer : ISpannableRenderer, IInternalD
                     out result.InteractedLink);
             }
 
-            spannable.DrawSpannable(new(state, splitter, renderContext.DrawListPtr));
+            state.DrawSpannable(new(spannable, state, splitter, renderContext.DrawListPtr));
         }
 
         result.Boundary = state.Boundary;
@@ -175,7 +171,7 @@ internal sealed partial class SpannableRenderer : ISpannableRenderer, IInternalD
             }
         }
 
-        spannable.ReturnState(state);
+        spannable.ReturnRenderPass(state);
 
         return result;
     }

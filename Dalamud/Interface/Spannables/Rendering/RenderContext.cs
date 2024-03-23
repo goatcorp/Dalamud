@@ -35,24 +35,24 @@ public readonly struct RenderContext
     /// <remarks>Default value is <c>new Vector2(ImGui.GetColumnWidth(), float.MaxValue)</c>.</remarks>
     public readonly Vector2 MaxSize;
     
-    /// <inheritdoc cref="ISpannableState.ScreenOffset"/>
+    /// <inheritdoc cref="ISpannableRenderPass.ScreenOffset"/>
     public readonly Vector2 ScreenOffset;
     
-    /// <inheritdoc cref="ISpannableState.TransformationOrigin"/>
+    /// <inheritdoc cref="ISpannableRenderPass.TransformationOrigin"/>
     /// <remarks>Default value is <c>(0.5, 0.5)</c>.</remarks>
     public readonly Vector2 TransformationOrigin;
 
-    /// <inheritdoc cref="ISpannableState.Transformation"/>
+    /// <inheritdoc cref="ISpannableRenderPass.Transformation"/>
     /// <remarks>Default value is <see cref="Matrix4x4.Identity"/>.</remarks>
     public readonly Matrix4x4 Transformation;
 
     /// <summary>Whether to put a dummy after rendering.</summary>
     public readonly bool PutDummyAfterRender;
 
-    /// <summary>Gets or sets a value indicating whether to handle links.</summary>
-    /// <remarks>Default value is to enable link handling. Will never be set to <c>true</c> if <see cref="DrawListPtr"/>
+    /// <summary>Gets or sets a value indicating whether to handle interactions.</summary>
+    /// <remarks>Default value is to enable interaction handling. Will turn to <c>false</c> if <see cref="DrawListPtr"/>
     /// is empty.</remarks>
-    public readonly bool UseLinks;
+    public readonly bool UseInteraction;
 
     /// <summary>Initializes a new instance of the <see cref="RenderContext"/> struct.</summary>
     /// <param name="imGuiLabel">The ImGui label in UTF-16 for tracking interaction state.</param>
@@ -121,7 +121,7 @@ public readonly struct RenderContext
     {
         ThreadSafety.DebugAssertMainThread();
 
-        this.UseLinks = options.UseLinks ?? true;
+        this.UseInteraction = options.UseLinks ?? true;
         this.MaxSize = options.MaxSize ?? new(ImGui.GetColumnWidth(), float.MaxValue);
         this.Scale = options.Scale ?? ImGuiHelpers.GlobalScale;
         this.DrawListPtr = drawListPtr;
@@ -131,7 +131,7 @@ public readonly struct RenderContext
         this.TransformationOrigin = options.TransformationOrigin ?? new(0.5f);
         this.Transformation = options.Transformation ?? Matrix4x4.Identity;
 
-        this.UseLinks &= this.UseDrawing;
+        this.UseInteraction &= this.UseDrawing;
     }
 
     /// <summary>Gets a value indicating whether to actually draw.</summary>
@@ -144,7 +144,7 @@ public readonly struct RenderContext
     /// <summary>The initial options that may be set to <c>null</c> to use the default values.</summary>
     public struct Options
     {
-        /// <inheritdoc cref="RenderContext.UseLinks"/>
+        /// <inheritdoc cref="RenderContext.UseInteraction"/>
         public bool? UseLinks { get; set; }
 
         /// <inheritdoc cref="RenderContext.Scale"/>

@@ -1,8 +1,11 @@
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
+using System.Runtime.InteropServices;
 
 using Dalamud.Interface.Spannables.Controls.Animations;
 using Dalamud.Interface.Spannables.EventHandlerArgs;
+using Dalamud.Interface.Spannables.Helpers;
 using Dalamud.Interface.Spannables.Rendering;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility.Numerics;
@@ -14,7 +17,11 @@ using static TerraFX.Interop.Windows.Windows;
 namespace Dalamud.Interface.Spannables.Controls;
 
 /// <summary>A base spannable control that does nothing by itself.</summary>
-public partial class SpannableControl : ISpannable, ISpannableState
+[SuppressMessage(
+    "StyleCop.CSharp.SpacingRules",
+    "SA1010:Opening square brackets should be spaced correctly",
+    Justification = "No")]
+public partial class SpannableControl : ISpannable, ISpannableRenderPass, ISpannableSerializable
 {
     /// <summary>Uses the dimensions provided from the parent.</summary>
     public const float MatchParent = -1f;
@@ -25,8 +32,16 @@ public partial class SpannableControl : ISpannable, ISpannableState
     private static readonly ImGuiMouseButton[] MouseButtonsWeCare =
         [ImGuiMouseButton.Left, ImGuiMouseButton.Right, ImGuiMouseButton.Middle];
 
+    private readonly int backgroundInnerId;
+    private readonly int selfInnerId;
+
+    private readonly int normalBackgroundChildIndex;
+    private readonly int hoveredBackgroundChildIndex;
+    private readonly int activeBackgroundChildIndex;
+    private readonly int disabledBackgroundChildIndex;
+
     private ISpannable? currentBackground;
-    private ISpannableState? currentBackgroundState;
+    private ISpannableRenderPass? currentBackgroundPass;
 
     private TextState activeTextState;
     private RectVector4 boundary;
@@ -43,11 +58,29 @@ public partial class SpannableControl : ISpannable, ISpannableState
 
     private bool wasVisible;
 
-    /// <inheritdoc/>
-    public ref TextState TextState => ref this.activeTextState;
+    /// <summary>Initializes a new instance of the <see cref="SpannableControl"/> class.</summary>
+    public SpannableControl()
+    {
+        this.backgroundInnerId = this.InnerIdAvailableSlot++;
+        this.selfInnerId = this.InnerIdAvailableSlot++;
+        this.normalBackgroundChildIndex = this.AllChildrenAvailableSlot++;
+        this.hoveredBackgroundChildIndex = this.AllChildrenAvailableSlot++;
+        this.activeBackgroundChildIndex = this.AllChildrenAvailableSlot++;
+        this.disabledBackgroundChildIndex = this.AllChildrenAvailableSlot++;
+        this.AllChildren.Add(null);
+        this.AllChildren.Add(null);
+        this.AllChildren.Add(null);
+        this.AllChildren.Add(null);
+    }
+
+    /// <inheritdoc />
+    public IReadOnlyCollection<ISpannable?> Children => this.AllChildren;
+
+    /// <inheritdoc />
+    public int StateGeneration { get; protected set; }
 
     /// <inheritdoc/>
-    public uint ImGuiGlobalId { get; private set; }
+    public ref TextState TextState => ref this.activeTextState;
 
     /// <inheritdoc/>
     /// <remarks>This excludes <see cref="Extrude"/>.</remarks>
@@ -61,6 +94,9 @@ public partial class SpannableControl : ISpannable, ISpannableState
 
     /// <inheritdoc/>
     public ref readonly Matrix4x4 Transformation => ref this.transformation;
+
+    /// <inheritdoc/>
+    public uint ImGuiGlobalId { get; private set; }
 
     /// <inheritdoc/>
     public ISpannableRenderer Renderer { get; private set; } = null!;
@@ -100,24 +136,38 @@ public partial class SpannableControl : ISpannable, ISpannableState
     /// <summary>Gets the scale.</summary>
     protected float Scale { get; private set; }
 
+    /// <summary>Gets the list of all children contained within this control, including decorative ones.</summary>
+    protected List<ISpannable?> AllChildren { get; } = [];
+
+    /// <summary>Gets the available slot index in <see cref="AllChildren"/> for use by inheritors.</summary>
+    protected int AllChildrenAvailableSlot { get; init; }
+
+    /// <summary>Gets the available slot index for inner ID, for use with
+    /// <see cref="SpannableExtensions.GetGlobalIdFromInnerId"/>.</summary>
+    protected int InnerIdAvailableSlot { get; init; }
+
     /// <summary>Gets either <see cref="showAnimation"/> or <see cref="hideAnimation"/> according to
     /// <see cref="visible"/>.</summary>
     private SpannableControlAnimator? VisibilityAnimation => this.visible ? this.showAnimation : this.hideAnimation;
 
     /// <inheritdoc/>
-    public ISpannableState RentState(scoped in SpannableRentStateArgs args)
+    public void Dispose()
+    {
+        this.Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    /// <inheritdoc/>
+    public ISpannableRenderPass RentRenderPass(scoped in SpannableRentRenderPassArgs args)
     {
         this.Renderer = args.Renderer;
-        this.ImGuiGlobalId = args.ImGuiGlobalId;
-        this.Scale = args.Scale;
-        this.activeTextState = args.TextState;
 
         // Spannable itself is a state. Return self.
         return this;
     }
 
     /// <inheritdoc/>
-    public virtual void ReturnState(ISpannableState? state)
+    public virtual void ReturnRenderPass(ISpannableRenderPass? pass)
     {
     }
 
@@ -134,6 +184,8 @@ public partial class SpannableControl : ISpannable, ISpannableState
         rv = RectVector4.Extrude(rv, -(this.margin + this.padding) * this.Scale);
         rv = RectVector4.Normalize(rv);
 
+        this.Scale = args.Scale;
+        this.activeTextState = args.TextState;
         if (rv.Right >= 1000000f)
             rv.Right = float.PositiveInfinity;
         if (rv.Bottom >= 1000000f)
@@ -208,23 +260,24 @@ public partial class SpannableControl : ISpannable, ISpannableState
         scoped in SpannableHandleInteractionArgs args,
         out SpannableLinkInteracted link)
     {
-        const int selfInnerId = 0x0;
+        this.ImGuiGlobalId = args.ImGuiGlobalId;
 
         this.OnHandleInteraction(new() { Sender = this, HandleInteractionArgs = args }, out link);
 
+        ISpannable? newBackground;
         if (!this.visible && this.hideAnimation?.IsRunning is not true)
         {
             this.IsMouseHovered = false;
             this.heldMouseButtons = 0;
 
-            this.currentBackground = this.normalBackground;
+            newBackground = this.normalBackground;
         }
         else if (!this.Enabled)
         {
             this.IsMouseHovered = false;
             this.heldMouseButtons = 0;
 
-            this.currentBackground = this.disabledBackground ?? this.normalBackground;
+            newBackground = this.disabledBackground ?? this.normalBackground;
         }
         else
         {
@@ -236,10 +289,10 @@ public partial class SpannableControl : ISpannable, ISpannableState
             interceptWheel |= args.WheelDelta.Y < 0 && this.interceptMouseWheelUp;
 
             if (this.heldMouseButtons != 0)
-                args.SetActive(selfInnerId, interceptWheel);
+                args.SetActive(this.selfInnerId, interceptWheel);
 
             var hovered = this.measuredInteractiveBox.Contains(margs.LocalLocation) &&
-                          args.IsItemHoverable(selfInnerId);
+                          args.IsItemHoverable(this.selfInnerId);
             if (hovered != this.IsMouseHovered)
             {
                 if (hovered)
@@ -307,35 +360,47 @@ public partial class SpannableControl : ISpannable, ISpannableState
             }
 
             if (this.IsMouseHovered)
-                args.SetHovered(selfInnerId, interceptWheel);
+                args.SetHovered(this.selfInnerId, interceptWheel);
 
             if (this.heldMouseButtons != 0)
-                args.SetActive(selfInnerId, interceptWheel);
+                args.SetActive(this.selfInnerId, interceptWheel);
 
             if (this.IsMouseHovered && this.IsLeftMouseButtonDown && this.ActiveBackground is not null)
-                this.currentBackground = this.ActiveBackground;
+                newBackground = this.ActiveBackground;
             else if (this.IsMouseHovered && this.HoveredBackground is not null)
-                this.currentBackground = this.HoveredBackground;
+                newBackground = this.HoveredBackground;
             else
-                this.currentBackground = this.NormalBackground;
+                newBackground = this.NormalBackground;
+        }
+
+        if (!ReferenceEquals(this.currentBackground, newBackground))
+        {
+            this.currentBackground?.ReturnRenderPass(this.currentBackgroundPass);
+            this.currentBackgroundPass = null;
+            this.currentBackground = newBackground;
         }
 
         if (this.currentBackground is not null)
         {
-            this.currentBackgroundState = this.currentBackground.RentState(
+            this.currentBackgroundPass ??= this.currentBackground.RentRenderPass(new(this.Renderer));
+            this.currentBackgroundPass.MeasureSpannable(
                 new(
-                    this.Renderer,
-                    0,
+                    this.currentBackground,
+                    this.currentBackgroundPass,
+                    this.MeasuredInteractiveBox.Size,
                     this.Scale,
                     this.TextState));
-            this.currentBackground.MeasureSpannable(new(this.currentBackgroundState, this.MeasuredInteractiveBox.Size));
-            this.currentBackground.CommitSpannableMeasurement(
+            this.currentBackgroundPass.CommitSpannableMeasurement(
                 new(
-                    this.currentBackgroundState,
+                    this.currentBackground,
+                    this.currentBackgroundPass,
                     this.TransformToScreen(this.MeasuredInteractiveBox.LeftTop),
                     Vector2.Zero,
                     this.Transformation.WithoutTranslation()));
-            args.NotifyChild(this.currentBackground, this.currentBackgroundState, out _);
+            if (link.IsEmpty)
+                args.NotifyChild(this.currentBackground, this.currentBackgroundPass, this.backgroundInnerId, out link);
+            else
+                args.NotifyChild(this.currentBackground, this.currentBackgroundPass, this.backgroundInnerId, out _);
         }
     }
 
@@ -349,8 +414,8 @@ public partial class SpannableControl : ISpannable, ISpannableState
         opacity *= this.VisibilityAnimation?.AnimatedOpacity ?? 1f;
 
         var numVertices = args.DrawListPtr.VtxBuffer.Size;
-        if (this.currentBackground is not null && this.currentBackgroundState is not null)
-            args.NotifyChild(this.currentBackground, this.currentBackgroundState);
+        if (this.currentBackground is not null && this.currentBackgroundPass is not null)
+            args.NotifyChild(this.currentBackground, this.currentBackgroundPass);
 
         if (opacity < 1)
         {
@@ -383,7 +448,42 @@ public partial class SpannableControl : ISpannable, ISpannableState
     }
 
     /// <inheritdoc/>
+    public int SerializeState(Span<byte> buffer) =>
+        SpannableSerializationHelper.Write(ref buffer, this.Children);
+
+    /// <inheritdoc/>
+    public bool TryDeserializeState(ReadOnlySpan<byte> buffer, out int consumed)
+    {
+        var origLen = buffer.Length;
+        consumed = 0;
+        if (!SpannableSerializationHelper.TryRead(ref buffer, this.Children))
+            return false;
+        consumed += origLen - buffer.Length;
+        return true;
+    }
+
+    /// <inheritdoc/>
     public override string ToString() => $"{this.GetType().Name}({this.text})";
+
+    /// <summary>Disposes this instance of <see cref="SpannableControl"/>.</summary>
+    /// <param name="disposing">Whether it is being called from <see cref="Dispose"/>.</param>
+    protected virtual void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            foreach (ref var s in CollectionsMarshal.AsSpan(this.AllChildren))
+            {
+                s?.Dispose();
+                s = null;
+            }
+
+            this.currentBackground = null;
+            this.normalBackground = null;
+            this.hoveredBackground = null;
+            this.activeBackground = null;
+            this.disabledBackground = null;
+        }
+    }
 
     /// <summary>Measures the content box, given the available content box excluding the margin and padding.</summary>
     /// <param name="args">Measure arguments.</param>

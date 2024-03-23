@@ -126,80 +126,142 @@ public partial class SpannableControl
     public ISpannable? NormalBackground
     {
         get => this.normalBackground;
-        set => HandlePropertyChange(this, nameof(this.NormalBackground), ref this.normalBackground, value, this.OnNormalBackgroundChanged);
+        set => HandlePropertyChange(
+            this,
+            nameof(this.NormalBackground),
+            ref this.normalBackground,
+            value,
+            this.OnNormalBackgroundChanged);
     }
 
     /// <summary>Gets or sets the hovered background spannable.</summary>
     public ISpannable? HoveredBackground
     {
         get => this.hoveredBackground;
-        set => HandlePropertyChange(this, nameof(this.HoveredBackground), ref this.hoveredBackground, value, this.OnHoveredBackgroundChanged);
+        set => HandlePropertyChange(
+            this,
+            nameof(this.HoveredBackground),
+            ref this.hoveredBackground,
+            value,
+            this.OnHoveredBackgroundChanged);
     }
 
     /// <summary>Gets or sets the active background spannable.</summary>
     public ISpannable? ActiveBackground
     {
         get => this.activeBackground;
-        set => HandlePropertyChange(this, nameof(this.ActiveBackground), ref this.activeBackground, value, this.OnActiveBackgroundChanged);
+        set => HandlePropertyChange(
+            this,
+            nameof(this.ActiveBackground),
+            ref this.activeBackground,
+            value,
+            this.OnActiveBackgroundChanged);
     }
 
     /// <summary>Gets or sets the disabled background spannable.</summary>
     public ISpannable? DisabledBackground
     {
         get => this.disabledBackground;
-        set => HandlePropertyChange(this, nameof(this.DisabledBackground), ref this.disabledBackground, value, this.OnDisabledBackgroundChanged);
+        set => HandlePropertyChange(
+            this,
+            nameof(this.DisabledBackground),
+            ref this.disabledBackground,
+            value,
+            this.OnDisabledBackgroundChanged);
     }
 
     /// <summary>Gets or sets the animation to play when <see cref="Visible"/> changes to <c>true</c>.</summary>
     public SpannableControlAnimator? ShowAnimation
     {
         get => this.showAnimation;
-        set => HandlePropertyChange(this, nameof(this.ShowAnimation), ref this.showAnimation, value, this.OnShowAnimationChanged);
+        set => HandlePropertyChange(
+            this,
+            nameof(this.ShowAnimation),
+            ref this.showAnimation,
+            value,
+            this.OnShowAnimationChanged);
     }
 
     /// <summary>Gets or sets the animation to play when <see cref="Visible"/> changes to <c>false</c>.</summary>
     public SpannableControlAnimator? HideAnimation
     {
         get => this.hideAnimation;
-        set => HandlePropertyChange(this, nameof(this.HideAnimation), ref this.hideAnimation, value, this.OnHideAnimationChanged);
+        set => HandlePropertyChange(
+            this,
+            nameof(this.HideAnimation),
+            ref this.hideAnimation,
+            value,
+            this.OnHideAnimationChanged);
     }
 
     /// <summary>Gets or sets the opacity of the body when the control is disabled.</summary>
     public float DisabledTextOpacity
     {
         get => this.disabledTextOpacity;
-        set => HandlePropertyChange(this, nameof(this.DisabledTextOpacity), ref this.disabledTextOpacity, value, this.OnDisabledTextOpacityChanged);
+        set => HandlePropertyChange(
+            this,
+            nameof(this.DisabledTextOpacity),
+            ref this.disabledTextOpacity,
+            value,
+            this.OnDisabledTextOpacityChanged);
     }
 
     /// <summary>Gets or sets a value indicating whether mouse wheel scroll up event should be intercepted.</summary>
     public bool InterceptMouseWheelUp
     {
         get => this.interceptMouseWheelUp;
-        set => HandlePropertyChange(this, nameof(this.InterceptMouseWheelUp), ref this.interceptMouseWheelUp, value, this.OnInterceptMouseWheelUpChanged);
+        set => HandlePropertyChange(
+            this,
+            nameof(this.InterceptMouseWheelUp),
+            ref this.interceptMouseWheelUp,
+            value,
+            this.OnInterceptMouseWheelUpChanged);
     }
 
     /// <summary>Gets or sets a value indicating whether mouse wheel scroll down event should be intercepted.</summary>
     public bool InterceptMouseWheelDown
     {
         get => this.interceptMouseWheelDown;
-        set => HandlePropertyChange(this, nameof(this.InterceptMouseWheelDown), ref this.interceptMouseWheelDown, value, this.OnInterceptMouseWheelDownChanged);
+        set => HandlePropertyChange(
+            this,
+            nameof(this.InterceptMouseWheelDown),
+            ref this.interceptMouseWheelDown,
+            value,
+            this.OnInterceptMouseWheelDownChanged);
     }
 
     /// <summary>Gets or sets a value indicating whether mouse wheel scroll left event should be intercepted.</summary>
     public bool InterceptMouseWheelLeft
     {
         get => this.interceptMouseWheelLeft;
-        set => HandlePropertyChange(this, nameof(this.InterceptMouseWheelLeft), ref this.interceptMouseWheelLeft, value, this.OnInterceptMouseWheelLeftChanged);
+        set => HandlePropertyChange(
+            this,
+            nameof(this.InterceptMouseWheelLeft),
+            ref this.interceptMouseWheelLeft,
+            value,
+            this.OnInterceptMouseWheelLeftChanged);
     }
 
     /// <summary>Gets or sets a value indicating whether mouse wheel scroll right event should be intercepted.</summary>
     public bool InterceptMouseWheelRight
     {
         get => this.interceptMouseWheelRight;
-        set => HandlePropertyChange(this, nameof(this.InterceptMouseWheelRight), ref this.interceptMouseWheelRight, value, this.OnInterceptMouseWheelRightChanged);
+        set => HandlePropertyChange(
+            this,
+            nameof(this.InterceptMouseWheelRight),
+            ref this.interceptMouseWheelRight,
+            value,
+            this.OnInterceptMouseWheelRightChanged);
     }
 
-    private static void HandlePropertyChange<T>(
+    /// <summary>Compares a new value with the old value, and invokes event handler accordingly.</summary>
+    /// <param name="sender">The control.</param>
+    /// <param name="propName">The property name. Use <c>nameof(...)</c>.</param>
+    /// <param name="storage">The reference of the stored value.</param>
+    /// <param name="newValue">The new value.</param>
+    /// <param name="eh">The event handler.</param>
+    /// <typeparam name="T">The type of the property.</typeparam>
+    protected static void HandlePropertyChange<T>(
         SpannableControl sender,
         string propName,
         ref T storage,
@@ -210,12 +272,14 @@ public partial class SpannableControl
             return;
         var old = storage;
         storage = newValue;
-        eh(new()
-        {
-            Sender = sender,
-            PropertyName = propName,
-            PreviousValue = old,
-            NewValue = newValue,
-        });
+        eh(
+            new()
+            {
+                Sender = sender,
+                PropertyName = propName,
+                PreviousValue = old,
+                NewValue = newValue,
+            });
+        sender.StateGeneration++;
     }
 }

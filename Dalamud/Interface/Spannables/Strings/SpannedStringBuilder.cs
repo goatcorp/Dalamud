@@ -21,7 +21,7 @@ public sealed partial class SpannedStringBuilder
     private readonly List<SpannedRecord> records = new();
     private readonly List<FontHandleVariantSet> fontSets = new();
     private readonly List<IDalamudTextureWrap?> textures = new();
-    private readonly List<ISpannable?> spannables = new();
+    private readonly List<ISpannable?> spannables;
 
     private Stack<int>? stackLink;
     private Stack<int>? stackFontSize;
@@ -45,7 +45,12 @@ public sealed partial class SpannedStringBuilder
     private Stack<int>? stackTextDecorationThickness;
 
     /// <summary>Initializes a new instance of the <see cref="SpannedStringBuilder"/> class.</summary>
-    public SpannedStringBuilder() => this.records.Add(default);
+    public SpannedStringBuilder()
+        : base(new List<ISpannable?>())
+    {
+        this.spannables = (List<ISpannable>)this.Children;
+        this.records.Add(default);
+    }
 
     /// <inheritdoc/>
     public SpannedString Build() =>

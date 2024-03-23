@@ -195,23 +195,35 @@ public partial class SpannableControl
 
     /// <summary>Raises the <see cref="NormalBackgroundChanged"/> event.</summary>
     /// <param name="args">A <see cref="SpannableControlPropertyChangedEventArgs{T}"/> that contains the event data.</param>
-    protected virtual void OnNormalBackgroundChanged(SpannableControlPropertyChangedEventArgs<ISpannable?> args) =>
+    protected virtual void OnNormalBackgroundChanged(SpannableControlPropertyChangedEventArgs<ISpannable?> args)
+    {
+        this.AllChildren[this.normalBackgroundChildIndex] = args.NewValue;
         this.NormalBackgroundChanged?.Invoke(args);
+    }
 
     /// <summary>Raises the <see cref="HoveredBackgroundChanged"/> event.</summary>
     /// <param name="args">A <see cref="SpannableControlPropertyChangedEventArgs{T}"/> that contains the event data.</param>
-    protected virtual void OnHoveredBackgroundChanged(SpannableControlPropertyChangedEventArgs<ISpannable?> args) =>
+    protected virtual void OnHoveredBackgroundChanged(SpannableControlPropertyChangedEventArgs<ISpannable?> args)
+    {
+        this.AllChildren[this.hoveredBackgroundChildIndex] = args.NewValue;
         this.HoveredBackgroundChanged?.Invoke(args);
+    }
 
     /// <summary>Raises the <see cref="ActiveBackgroundChanged"/> event.</summary>
     /// <param name="args">A <see cref="SpannableControlPropertyChangedEventArgs{T}"/> that contains the event data.</param>
-    protected virtual void OnActiveBackgroundChanged(SpannableControlPropertyChangedEventArgs<ISpannable?> args) =>
+    protected virtual void OnActiveBackgroundChanged(SpannableControlPropertyChangedEventArgs<ISpannable?> args)
+    {
+        this.AllChildren[this.activeBackgroundChildIndex] = args.NewValue;
         this.ActiveBackgroundChanged?.Invoke(args);
+    }
 
     /// <summary>Raises the <see cref="DisabledBackgroundChanged"/> event.</summary>
     /// <param name="args">A <see cref="SpannableControlPropertyChangedEventArgs{T}"/> that contains the event data.</param>
-    protected virtual void OnDisabledBackgroundChanged(SpannableControlPropertyChangedEventArgs<ISpannable?> args) =>
+    protected virtual void OnDisabledBackgroundChanged(SpannableControlPropertyChangedEventArgs<ISpannable?> args)
+    {
+        this.AllChildren[this.disabledBackgroundChildIndex] = args.NewValue;
         this.DisabledBackgroundChanged?.Invoke(args);
+    }
 
     /// <summary>Raises the <see cref="ShowAnimationChanged"/> event.</summary>
     /// <param name="args">A <see cref="SpannableControlPropertyChangedEventArgs{T}"/> that contains the event data.</param>

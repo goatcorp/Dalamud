@@ -1,35 +1,26 @@
+using System.Collections.Generic;
+
 using Dalamud.Interface.Spannables.EventHandlerArgs;
-using Dalamud.Interface.Spannables.Rendering;
 
 namespace Dalamud.Interface.Spannables;
 
 /// <summary>A spannable that draws into a rectangular region.</summary>
-public interface ISpannable
+public interface ISpannable : IDisposable
 {
-    /// <summary>Rents a state.</summary>
-    /// <returns>The rented state.</returns>
-    /// <param name="args">The arguments.</param>
-    ISpannableState RentState(scoped in SpannableRentStateArgs args);
+    /// <summary>Gets all the children.</summary>
+    IReadOnlyCollection<ISpannable?> Children { get; }
+    
+    /// <summary>Gets the generation of the state.</summary>
+    /// <remarks>Increase this by 1 every time anything about the spannable changes.</remarks>
+    int StateGeneration { get; }
 
-    /// <summary>Returns a state.</summary>
-    /// <param name="state">The state to return.</param>
-    /// <remarks>If <paramref name="state"/> is null, the call is a no-op.</remarks>
-    void ReturnState(ISpannableState? state);
-
-    /// <summary>Measures this spannable, given the constraints set via <see cref="TextState"/>.</summary>
+    /// <summary>Rents a render pass.</summary>
+    /// <returns>The rented render pass.</returns>
     /// <param name="args">The arguments.</param>
-    void MeasureSpannable(scoped in SpannableMeasureArgs args);
+    ISpannableRenderPass RentRenderPass(scoped in SpannableRentRenderPassArgs args);
 
-    /// <summary>Commits the calculated transformation values. </summary>
-    /// <param name="args">The arguments.</param>
-    void CommitSpannableMeasurement(scoped in SpannableCommitTransformationArgs args);
-
-    /// <summary>Interacts with this spannable.</summary>
-    /// <param name="args">The arguments.</param>
-    /// <param name="link">The interacted link.</param>
-    void HandleSpannableInteraction(scoped in SpannableHandleInteractionArgs args, out SpannableLinkInteracted link);
-
-    /// <summary>Draws this spannable.</summary>
-    /// <param name="args">The arguments.</param>
-    void DrawSpannable(SpannableDrawArgs args);
+    /// <summary>Returns a render pass.</summary>
+    /// <param name="pass">The render pass to return.</param>
+    /// <remarks>If <paramref name="pass"/> is null, the call is a no-op.</remarks>
+    void ReturnRenderPass(ISpannableRenderPass? pass);
 }

@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 
 using Dalamud.Interface.FontIdentifier;
@@ -59,6 +60,19 @@ public struct FontHandleVariantSet : IEquatable<FontHandleVariantSet>
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool operator !=(FontHandleVariantSet left, FontHandleVariantSet right) => !left.Equals(right);
+
+    /// <summary>Determine if properties are equal, using <see cref="object.ReferenceEquals"/> for reference types.
+    /// </summary>
+    /// <param name="l">The 1st object to compare.</param>
+    /// <param name="r">The 2nd object to compare.</param>
+    /// <returns><c>true</c> if they are equal.</returns>
+    [SuppressMessage("ReSharper", "CompareOfFloatsByEqualityOperator", Justification = "opportunistic")]
+    public static bool PropertyReferenceEquals(in FontHandleVariantSet l, in FontHandleVariantSet r) =>
+        ReferenceEquals(l.FontFamilyId, r.FontFamilyId)
+        && ReferenceEquals(l.Normal, r.Normal)
+        && ReferenceEquals(l.Italic, r.Italic)
+        && ReferenceEquals(l.Bold, r.Bold)
+        && ReferenceEquals(l.ItalicBold, r.ItalicBold);
 
     /// <inheritdoc/>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

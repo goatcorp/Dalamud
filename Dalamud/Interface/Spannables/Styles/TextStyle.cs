@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 
 using Dalamud.Interface.Spannables.Internal;
@@ -80,7 +81,7 @@ public struct TextStyle
     /// <para><c>0</c> will align to left. <c>1</c> will align to right. <c>0.5</c> will align to center.
     /// Values outside the range to [0, 1] are clamped.</para>
     /// <para>If changed multiple times in a line, the last value wins.</para>
-    /// <para>Will use <see cref="ISpannableState.Boundary"/> instead of <see cref="RenderContext.MaxSize"/> if maximum
+    /// <para>Will use <see cref="ISpannableRenderPass.Boundary"/> instead of <see cref="RenderContext.MaxSize"/> if maximum
     /// size is unspecified (<see cref="float.MaxValue"/> or <see cref="float.PositiveInfinity"/>.)</para>
     /// </remarks>
     public float HorizontalAlignment;
@@ -107,6 +108,33 @@ public struct TextStyle
         TextDecorationColor = ApplyOpacity(ImGui.GetColorU32(ImGuiCol.Text), ImGui.GetStyle().Alpha),
         TextDecorationThickness = 1 / 16f,
     };
+
+    /// <summary>Determine if properties are equal, using <see cref="object.ReferenceEquals"/> for reference types.
+    /// </summary>
+    /// <param name="l">The 1st text state to compare.</param>
+    /// <param name="r">The 2nd text state to compare.</param>
+    /// <returns><c>true</c> if they are equal.</returns>
+    [SuppressMessage("ReSharper", "CompareOfFloatsByEqualityOperator", Justification = "opportunistic")]
+    public static bool PropertyReferenceEquals(in TextStyle l, in TextStyle r) =>
+        FontHandleVariantSet.PropertyReferenceEquals(l.Font, r.Font)
+        && l.Italic == r.Italic
+        && l.Bold == r.Bold
+        && l.TextDecoration == r.TextDecoration
+        && l.TextDecorationStyle == r.TextDecorationStyle
+        && l.BackColor == r.BackColor
+        && l.ShadowColor == r.ShadowColor
+        && l.EdgeColor == r.EdgeColor
+        && l.TextDecorationColor == r.TextDecorationColor
+        && l.ForeColor == r.ForeColor
+        && l.BorderWidth == r.BorderWidth
+        && l.ShadowOffset == r.ShadowOffset
+        && l.TextDecorationThickness == r.TextDecorationThickness
+        && l.FontSize == r.FontSize
+        && l.LineHeight == r.LineHeight
+        && l.HorizontalOffset == r.HorizontalOffset
+        && l.HorizontalAlignment == r.HorizontalAlignment
+        && l.VerticalOffset == r.VerticalOffset
+        && l.VerticalAlignment == r.VerticalAlignment;
 
     /// <summary>Updates the struct according to the spanned record.</summary>
     /// <param name="record">The spanned record.</param>

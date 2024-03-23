@@ -1,3 +1,6 @@
+using System.Diagnostics.CodeAnalysis;
+using System.Runtime.InteropServices;
+
 using Dalamud.Game.Config;
 using Dalamud.Interface.Spannables.Rendering.Internal;
 using Dalamud.Interface.Spannables.Styles;
@@ -7,6 +10,7 @@ using Dalamud.Utility;
 namespace Dalamud.Interface.Spannables.Rendering;
 
 /// <summary>Represents a text state.</summary>
+[StructLayout(LayoutKind.Sequential)]
 public struct TextState
 {
     /// <summary>Whether to show representations of control characters.</summary>
@@ -77,6 +81,26 @@ public struct TextState
         this.LastStyle = this.InitialStyle;
     }
 
+    /// <summary>Determine if properties are equal, using <see cref="object.ReferenceEquals"/> for reference types.
+    /// </summary>
+    /// <param name="l">The 1st text state to compare.</param>
+    /// <param name="r">The 2nd text state to compare.</param>
+    /// <returns><c>true</c> if they are equal.</returns>
+    [SuppressMessage("ReSharper", "CompareOfFloatsByEqualityOperator", Justification = "opportunistic")]
+    public static bool PropertyReferenceEquals(in TextState l, in TextState r) =>
+        l.UseControlCharacter == r.UseControlCharacter
+        && l.WordBreak == r.WordBreak
+        && l.AcceptedNewLines == r.AcceptedNewLines
+        && l.TabWidth == r.TabWidth
+        && l.VerticalAlignment == r.VerticalAlignment
+        && l.ShiftFromVerticalAlignment == r.ShiftFromVerticalAlignment
+        && l.GfdIndex == r.GfdIndex
+        && l.LineCount == r.LineCount
+        && TextStyle.PropertyReferenceEquals(l.ControlCharactersStyle, r.ControlCharactersStyle)
+        && TextStyle.PropertyReferenceEquals(l.InitialStyle, r.InitialStyle)
+        && TextStyle.PropertyReferenceEquals(l.LastStyle, r.LastStyle)
+        && ReferenceEquals(l.WrapMarker, r.WrapMarker);
+
     /// <summary>Initial options for <see cref="ISpannableRenderer"/>.</summary>
     /// <remarks>Unspecified options (<c>null</c>) will use the default values.</remarks>
     public struct Options
@@ -124,7 +148,7 @@ public struct TextState
         /// <para>Specifying <c>null</c> will use <c>0</c> as the default for now.</para>
         /// </remarks>
         public float? VerticalAlignment { get; set; }
-        
+
         /// <summary>Gets or sets the word break mode.</summary>
         /// <remarks>Default value is <see cref="WordBreakType.Normal"/>.</remarks>
         public WordBreakType? WordBreak { get; set; }

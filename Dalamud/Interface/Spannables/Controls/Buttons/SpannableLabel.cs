@@ -14,11 +14,25 @@ namespace Dalamud.Interface.Spannables.Controls.Buttons;
 /// <summary>A label that is spannable.</summary>
 public class SpannableLabel : SpannableControl
 {
-    private readonly SpannedStringBuilder spannedStringBuilder = new();
-    private readonly MemoryStream lastLink = new();
+    private readonly int childrenSlotText;
+    private readonly int innerIdSlotText;
 
-    private ISpannableState? spannableState;
+    private SpannedStringBuilder? spannedStringBuilder;
+    private MemoryStream? lastLink = new();
+
     private ISpannable? spannableText;
+
+    private ISpannable? activeSpannable;
+    private ISpannableRenderPass? activeSpannablePass;
+
+    /// <summary>Initializes a new instance of the <see cref="SpannableLabel"/> class.</summary>
+    public SpannableLabel()
+    {
+        this.activeSpannable = this.spannedStringBuilder = new();
+        this.childrenSlotText = this.AllChildrenAvailableSlot++;
+        this.AllChildren.Add(this.activeSpannable);
+        this.innerIdSlotText = this.InnerIdAvailableSlot++;
+    }
 
     /// <summary>Occurs when the mouse pointer enters a link in the control.</summary>
     public event SpannableControlLinkEventHandler? LinkMouseEnter;
@@ -29,46 +43,70 @@ public class SpannableLabel : SpannableControl
     /// <summary>Occurs when a link in the control is clicked by the mouse.</summary>
     public event SpannableControlLinkEventHandler? LinkMouseClick;
 
+    /// <summary>Occurs when the property <see cref="SpannableText"/> has been changed.</summary>
+    public event SpannableControlPropertyChangedEventHandler<ISpannable?>? SpannableTextChanged;
+
     /// <summary>Gets or sets a spannable text.</summary>
     /// <remarks>Setting this property clears <see cref="SpannableControl.Text"/>.</remarks>
     public ISpannable? SpannableText
     {
         get => this.spannableText;
-        set
-        {
-            this.Text = null;
-            this.spannedStringBuilder.Clear();
-            this.spannableText = value;
-        }
+        set => HandlePropertyChange(
+            this,
+            nameof(this.SpannableText),
+            ref this.spannableText,
+            value,
+            this.OnSpannableTextChanged);
     }
 
     /// <inheritdoc/>
-    public override void ReturnState(ISpannableState? state)
+    protected override void Dispose(bool disposing)
     {
-        var spannable = this.spannableText ?? this.spannedStringBuilder;
-        spannable.ReturnState(this.spannableState);
-        this.spannableState = null;
+        if (disposing)
+        {
+            this.spannedStringBuilder?.Dispose();
+            this.spannedStringBuilder = null;
+            this.lastLink?.Dispose();
+            this.lastLink = null;
+            this.spannableText?.Dispose();
+            this.spannableText = null;
+            this.activeSpannable?.Dispose();
+            this.activeSpannable = null;
+            this.spannedStringBuilder?.Dispose();
+            this.spannedStringBuilder = null!;
+        }
 
-        base.ReturnState(state);
+        base.Dispose(disposing);
     }
 
     /// <inheritdoc/>
     protected override RectVector4 MeasureContentBox(SpannableMeasureArgs args, in RectVector4 availableContentBox)
     {
         var spannable = this.spannableText ?? this.spannedStringBuilder;
-        this.spannableState = spannable.RentState(
+        if (this.activeSpannable is null || spannable is null)
+            return RectVector4.InvertedExtrema;
+
+        if (!ReferenceEquals(spannable, this.activeSpannable))
+        {
+            this.activeSpannable.ReturnRenderPass(this.activeSpannablePass);
+            this.activeSpannablePass = null;
+            this.activeSpannable = spannable;
+        }
+
+        this.activeSpannablePass ??= spannable.RentRenderPass(new(this.Renderer));
+        this.activeSpannablePass.MeasureSpannable(
             new(
-                this.Renderer,
-                args.State.GetGlobalIdFromInnerId(1),
+                spannable,
+                this.activeSpannablePass,
+                availableContentBox.Size,
                 this.Scale,
                 this.TextState with
                 {
                     InitialStyle = this.TextState.LastStyle,
                     WordBreak = WordBreakType.KeepAll,
                 }));
-        spannable.MeasureSpannable(new(this.spannableState, availableContentBox.Size));
 
-        var b = RectVector4.Normalize(this.spannableState.Boundary);
+        var b = RectVector4.Normalize(this.activeSpannablePass.Boundary);
 
         var res = availableContentBox;
         if (this.IsWidthWrapContent)
@@ -83,12 +121,12 @@ public class SpannableLabel : SpannableControl
     {
         base.OnCommitMeasurement(args);
 
-        if (this.spannableState is null)
+        if (this.activeSpannable is null || this.activeSpannablePass is null)
             return;
 
         args.MeasureArgs.NotifyChild(
-            this.spannableText ?? this.spannedStringBuilder,
-            this.spannableState,
+            this.activeSpannable,
+            this.activeSpannablePass,
             this.MeasuredContentBox.LeftTop,
             Matrix4x4.Identity);
     }
@@ -99,15 +137,29 @@ public class SpannableLabel : SpannableControl
         out SpannableLinkInteracted link)
     {
         base.OnHandleInteraction(args, out link);
+
         if (!link.IsEmpty)
         {
-            if (this.spannableText is not null && this.spannableState is not null && this.Enabled)
-                args.HandleInteractionArgs.NotifyChild(this.spannableText, this.spannableState, out _);
+            if (this.spannableText is not null && this.activeSpannablePass is not null && this.Enabled)
+            {
+                args.HandleInteractionArgs.NotifyChild(
+                    this.spannableText,
+                    this.activeSpannablePass,
+                    this.innerIdSlotText,
+                    out _);
+            }
         }
-        else if (this.spannableText is not null && this.spannableState is not null && this.Enabled)
+        else if (this.spannableText is not null && this.activeSpannablePass is not null && this.Enabled)
         {
-            args.HandleInteractionArgs.NotifyChild(this.spannableText, this.spannableState, out link);
+            args.HandleInteractionArgs.NotifyChild(
+                this.spannableText,
+                this.activeSpannablePass,
+                this.innerIdSlotText,
+                out link);
         }
+
+        if (this.lastLink is null)
+            return;
 
         if (!this.lastLink.GetDataSpan().SequenceEqual(link.Link))
         {
@@ -137,8 +189,11 @@ public class SpannableLabel : SpannableControl
     protected override void OnDraw(SpannableControlDrawArgs args)
     {
         base.OnDraw(args);
-        if (this.spannableState is not null)
-            args.DrawArgs.NotifyChild(this.spannableText ?? this.spannedStringBuilder, this.spannableState);
+
+        if (this.activeSpannable is null || this.activeSpannablePass is null)
+            return;
+
+        args.DrawArgs.NotifyChild(this.activeSpannable, this.activeSpannablePass);
     }
 
     /// <summary>Raises the <see cref="LinkMouseEnter"/> event.</summary>
@@ -159,8 +214,25 @@ public class SpannableLabel : SpannableControl
     /// <inheritdoc/>
     protected override void OnTextChanged(SpannableControlPropertyChangedEventArgs<string?> args)
     {
-        this.spannableText = null;
+        if (this.spannedStringBuilder is null)
+            return;
+
+        this.SpannableText = null;
         this.spannedStringBuilder.Clear().Append(args.NewValue);
+        this.AllChildren[this.childrenSlotText] = this.spannedStringBuilder;
         base.OnTextChanged(args);
+    }
+
+    /// <summary>Raises the <see cref="SpannableTextChanged"/> event.</summary>
+    /// <param name="args">A <see cref="SpannableControlPropertyChangedEventArgs{T}"/> that contains the event data.</param>
+    protected virtual void OnSpannableTextChanged(SpannableControlPropertyChangedEventArgs<ISpannable?> args)
+    {
+        if (this.spannedStringBuilder is null)
+            return;
+
+        this.Text = null;
+        this.spannedStringBuilder.Clear();
+        this.AllChildren[this.childrenSlotText] = this.spannableText ?? this.spannedStringBuilder;
+        this.SpannableTextChanged?.Invoke(args);
     }
 }

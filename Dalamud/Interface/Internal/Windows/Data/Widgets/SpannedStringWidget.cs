@@ -12,6 +12,7 @@ using Dalamud.Interface.Internal.Notifications;
 using Dalamud.Interface.Spannables;
 using Dalamud.Interface.Spannables.Controls.Animations;
 using Dalamud.Interface.Spannables.Controls.Buttons;
+using Dalamud.Interface.Spannables.Patterns;
 using Dalamud.Interface.Spannables.Rendering;
 using Dalamud.Interface.Spannables.Rendering.Internal;
 using Dalamud.Interface.Spannables.Strings;
@@ -122,13 +123,13 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
             this.spannableButton[i] = new()
             {
                 Margin = new(64, 0, 0, 0),
-                Enabled = i % 2 == 0,
+                Enabled = i % 4 != 3,
                 ShowAnimation = new SpannableControlSizeAnimator
                 {
                     BeforeRatio = new(-0.7f, -0.7f, 0.7f, 0.7f),
                     BeforeOpacity = 0f,
-                    TransformationEasing = new OutCubic(TimeSpan.FromMilliseconds(300)),
-                    OpacityEasing = new OutCubic(TimeSpan.FromMilliseconds(300)),
+                    TransformationEasing = new OutCubic(TimeSpan.FromMilliseconds(3000)),
+                    OpacityEasing = new OutCubic(TimeSpan.FromMilliseconds(3000)),
                 },
                 HideAnimation = new SpannableControlSizeAnimator
                 {
@@ -163,6 +164,16 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
                                 .PopItalic()
                                 .Append(" end"),
             };
+
+            if (i % 3 == 0)
+            {
+                this.spannableButton[i].NormalBackground =
+                    new LayeredPattern
+                    {
+                        new ImGuiSolidColorPattern { Color = ImGuiCol.Button },
+                        new SolidBorderPattern { Color = 0xFF000000 },
+                    };
+            }
         }
 
         this.testStringBuffer.Dispose();

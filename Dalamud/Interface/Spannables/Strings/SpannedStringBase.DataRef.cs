@@ -107,12 +107,12 @@ public abstract partial class SpannedStringBase
 
         /// <summary>Attempts to get a spannable for the given span entity.</summary>
         /// <param name="index">The index.</param>
-        /// <param name="callback">The retrieved spannable.</param>
+        /// <param name="spannable">The retrieved spannable.</param>
         /// <returns><c>true</c> if a corresponding spannable is retrieved.</returns>
-        public bool TryGetSpannableAt(int index, [NotNullWhen(true)] out ISpannable? callback)
+        public bool TryGetSpannableAt(int index, [NotNullWhen(true)] out ISpannable? spannable)
         {
-            callback = index < 0 || index >= this.Spannables.Length ? default : this.Spannables[index];
-            return callback != default;
+            spannable = index < 0 || index >= this.Spannables.Length ? default : this.Spannables[index];
+            return spannable != default;
         }
 
         /// <summary>Attempts to get the link contained in the given span record.</summary>

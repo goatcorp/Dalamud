@@ -1,4 +1,4 @@
-using Dalamud.Interface.Spannables.Brushes;
+using Dalamud.Interface.Spannables.Patterns;
 using Dalamud.Interface.Spannables.Rendering;
 
 using ImGuiNET;
@@ -12,22 +12,22 @@ public class SpannableButton : SpannableLabel
     public SpannableButton()
     {
         this.Padding = new(8);
-        this.NormalBackground = new ImGuiColorSolidBrushDrawable
+        this.NormalBackground = new ImGuiSolidColorPattern
         {
             TargetChannel = RenderChannel.BackChannel,
             Color = ImGuiCol.Button,
         };
-        this.HoveredBackground = new ImGuiColorSolidBrushDrawable
+        this.HoveredBackground = new ImGuiSolidColorPattern
         {
             TargetChannel = RenderChannel.BackChannel,
             Color = ImGuiCol.ButtonHovered,
         };
-        this.ActiveBackground = new ImGuiColorSolidBrushDrawable
+        this.ActiveBackground = new ImGuiSolidColorPattern
         {
             TargetChannel = RenderChannel.BackChannel,
             Color = ImGuiCol.ButtonActive,
         };
-        this.DisabledBackground = new ImGuiColorSolidBrushDrawable
+        this.DisabledBackground = new ImGuiSolidColorPattern
         {
             TargetChannel = RenderChannel.BackChannel,
             Color = ImGuiCol.Button,

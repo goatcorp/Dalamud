@@ -13,7 +13,7 @@ public struct SpannableControlMouseEventArgs
     public SpannableControl Sender;
 
     /// <summary>The location of the mouse, relative to the left top of the control, without having
-    /// <see cref="ISpannableState.Transformation"/> or <see cref="ISpannableState.ScreenOffset"/> applied.</summary>
+    /// <see cref="ISpannableRenderPass.Transformation"/> or <see cref="ISpannableRenderPass.ScreenOffset"/> applied.</summary>
     public Vector2 LocalLocation;
 
     /// <summary>The mouse button that has been pressed or released.</summary>

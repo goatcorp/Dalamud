@@ -3,15 +3,23 @@ using System.Linq;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 
+using Dalamud.Interface.Spannables.Helpers;
+
 using ImGuiNET;
 
 namespace Dalamud.Interface.Spannables.EventHandlerArgs;
 
-/// <summary>Arguments for use with <see cref="ISpannable.HandleSpannableInteraction"/>.</summary>
+/// <summary>Arguments for use with <see cref="ISpannableRenderPass.HandleSpannableInteraction"/>.</summary>
 public struct SpannableHandleInteractionArgs
 {
-    /// <summary>The state obtained from <see cref="ISpannable.RentState"/>.</summary>
-    public ISpannableState State;
+    /// <summary>The associated spannable.</summary>
+    public ISpannable Sender;
+
+    /// <summary>The state obtained from <see cref="ISpannable.RentRenderPass"/>.</summary>
+    public ISpannableRenderPass RenderPass;
+
+    /// <summary>The allocated ImGui global ID.</summary>
+    public uint ImGuiGlobalId;
 
     /// <summary>Each bit indicates whether a mouse button is held down.</summary>
     /// <remarks>Use the helper method <see cref="IsMouseButtonDown"/>.</remarks>
@@ -47,15 +55,17 @@ public struct SpannableHandleInteractionArgs
     }
 
     /// <summary>Initializes a new instance of the <see cref="SpannableHandleInteractionArgs"/> struct.</summary>
-    /// <param name="state">The state for the spannable.</param>
-    public SpannableHandleInteractionArgs(ISpannableState state)
+    /// <param name="sender">The associated spannable.</param>
+    /// <param name="renderPass">The state for the spannable.</param>
+    public SpannableHandleInteractionArgs(ISpannable sender, ISpannableRenderPass renderPass)
     {
-        this.State = state;
+        this.Sender = sender;
+        this.RenderPass = renderPass;
     }
-    
+
     /// <summary>Gets the location of the mouse, relative to the left top of the control, without having
-    /// <see cref="ISpannableState.Transformation"/> or <see cref="ISpannableState.ScreenOffset"/> applied.</summary>
-    public readonly Vector2 MouseLocalLocation => this.State.TransformToLocal(this.MouseScreenLocation);
+    /// <see cref="ISpannableRenderPass.Transformation"/> or <see cref="ISpannableRenderPass.ScreenOffset"/> applied.</summary>
+    public readonly Vector2 MouseLocalLocation => this.RenderPass.TransformToLocal(this.MouseScreenLocation);
 
     /// <summary>Gets a value indicating whether the specified mouse button is down, at the point of the beginning of
     /// handling this spannable.</summary>
@@ -74,7 +84,7 @@ public struct SpannableHandleInteractionArgs
             button = ImGuiMouseButton.Left;
             return true;
         }
-        
+
         if (this.IsMouseButtonDown(ImGuiMouseButton.Right))
         {
             button = ImGuiMouseButton.Right;
@@ -97,7 +107,7 @@ public struct SpannableHandleInteractionArgs
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public readonly unsafe void SetHovered(int innerId, bool useWheel = false)
     {
-        ImGuiSetHoveredId(this.State.GetGlobalIdFromInnerId(innerId));
+        ImGuiSetHoveredId(this.RenderPass.GetGlobalIdFromInnerId(innerId));
         if (useWheel)
         {
             *(byte*)(ImGui.GetCurrentContext() + CImGuiContextHoveredIdUsingMouseWheelOffset) = 1;
@@ -111,7 +121,7 @@ public struct SpannableHandleInteractionArgs
     public readonly unsafe void SetActive(int innerId, bool useWheel = false)
     {
         ImGuiSetActiveId(
-            this.State.GetGlobalIdFromInnerId(innerId),
+            this.RenderPass.GetGlobalIdFromInnerId(innerId),
             *(nint*)(ImGui.GetCurrentContext() + CImGuiContextCurrentWindowOffset));
         if (useWheel)
         {
@@ -133,7 +143,7 @@ public struct SpannableHandleInteractionArgs
         if (currentWindow != hoveredWindow)
             return false;
 
-        var innerIdGlobal = this.State.GetGlobalIdFromInnerId(innerId);
+        var innerIdGlobal = this.RenderPass.GetGlobalIdFromInnerId(innerId);
         var hoveredId = *(uint*)(ImGui.GetCurrentContext() + CImGuiContextHoveredIdOffset);
         if (hoveredId != 0 && hoveredId != innerIdGlobal)
             return false;
@@ -147,11 +157,22 @@ public struct SpannableHandleInteractionArgs
 
     /// <summary>Notifies a child <see cref="ISpannable"/> with transformed arguments.</summary>
     /// <param name="child">A child to notify the event.</param>
-    /// <param name="childState">The child state.</param>
+    /// <param name="childRenderPass">The child state.</param>
+    /// <param name="childInnerId">The inner ID of the child. <c>-1</c> to disable.</param>
     /// <param name="link">The interacted link, if the child processed the event.</param>
     public readonly void NotifyChild(
         ISpannable child,
-        ISpannableState childState,
+        ISpannableRenderPass childRenderPass,
+        int childInnerId,
         out SpannableLinkInteracted link) =>
-        child.HandleSpannableInteraction(this with { State = childState }, out link);
+        childRenderPass.HandleSpannableInteraction(
+            this with
+            {
+                Sender = child,
+                RenderPass = childRenderPass,
+                ImGuiGlobalId = childRenderPass.ImGuiGlobalId == 0 || childInnerId == -1
+                                    ? 0
+                                    : childRenderPass.GetGlobalIdFromInnerId(childInnerId),
+            },
+            out link);
 }

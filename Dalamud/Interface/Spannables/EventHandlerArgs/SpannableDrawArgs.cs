@@ -6,11 +6,14 @@ using ImGuiNET;
 
 namespace Dalamud.Interface.Spannables.EventHandlerArgs;
 
-/// <summary>Arguments for use with <see cref="ISpannable.DrawSpannable"/>.</summary>
+/// <summary>Arguments for use with <see cref="ISpannableRenderPass.DrawSpannable"/>.</summary>
 public struct SpannableDrawArgs
 {
-    /// <summary>The state obtained from <see cref="ISpannable.RentState"/>.</summary>
-    public ISpannableState State;
+    /// <summary>The associated spannable.</summary>
+    public ISpannable Sender;
+
+    /// <summary>The state obtained from <see cref="ISpannable.RentRenderPass"/>.</summary>
+    public ISpannableRenderPass RenderPass;
 
     /// <summary>The splitter.</summary>
     public ImDrawListSplitterPtr SplitterPtr;
@@ -19,12 +22,18 @@ public struct SpannableDrawArgs
     public ImDrawListPtr DrawListPtr;
 
     /// <summary>Initializes a new instance of the <see cref="SpannableDrawArgs"/> struct.</summary>
-    /// <param name="state">The state for the spannable.</param>
+    /// <param name="sender">The associated spannable.</param>
+    /// <param name="renderPass">The state for the spannable.</param>
     /// <param name="splitterPtr">The splitter to use.</param>
     /// <param name="drawListPtr">The darw list to use.</param>
-    public SpannableDrawArgs(ISpannableState state, ImDrawListSplitterPtr splitterPtr, ImDrawListPtr drawListPtr)
+    public SpannableDrawArgs(
+        ISpannable sender,
+        ISpannableRenderPass renderPass,
+        ImDrawListSplitterPtr splitterPtr,
+        ImDrawListPtr drawListPtr)
     {
-        this.State = state;
+        this.Sender = sender;
+        this.RenderPass = renderPass;
         this.SplitterPtr = splitterPtr;
         this.DrawListPtr = drawListPtr;
     }
@@ -51,7 +60,7 @@ public struct SpannableDrawArgs
 
     /// <summary>Notifies a child <see cref="ISpannable"/> with transformed arguments.</summary>
     /// <param name="child">A child to notify the event.</param>
-    /// <param name="childState">The child state.</param>
-    public readonly void NotifyChild(ISpannable child, ISpannableState childState) =>
-        child.DrawSpannable(this with { State = childState });
+    /// <param name="childRenderPass">The child state.</param>
+    public readonly void NotifyChild(ISpannable child, ISpannableRenderPass childRenderPass) =>
+        childRenderPass.DrawSpannable(this with { Sender = child, RenderPass = childRenderPass });
 }
