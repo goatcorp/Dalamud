@@ -1,6 +1,5 @@
 using System.Numerics;
 
-using Dalamud.Interface.Spannables.Helpers;
 using Dalamud.Interface.Spannables.Rendering;
 using Dalamud.Interface.Spannables.RenderPassMethodArgs;
 using Dalamud.Utility;
@@ -22,6 +21,12 @@ public class ShapePattern : PatternSpannable
 
         /// <summary>A filled rectangle.</summary>
         RectFilled,
+
+        /// <summary>A hollow square.</summary>
+        Square,
+
+        /// <summary>A filled square.</summary>
+        SquareFilled,
 
         /// <summary>A hollow circle.</summary>
         Circle,
@@ -101,6 +106,23 @@ public class ShapePattern : PatternSpannable
                 case Shape.RectFilled:
                     args.DrawListPtr.AddRectFilled(pos, pos + sz, color, owner.Rounding, owner.RoundingFlags);
                     break;
+                case Shape.Square:
+                    args.DrawListPtr.AddRect(
+                        pos + ((sz - new Vector2(sz1)) / 2f),
+                        pos + ((sz + new Vector2(sz1)) / 2f),
+                        color,
+                        owner.Rounding,
+                        owner.RoundingFlags,
+                        owner.Thickness);
+                    break;
+                case Shape.SquareFilled:
+                    args.DrawListPtr.AddRectFilled(
+                        pos + ((sz - new Vector2(sz1)) / 2f),
+                        pos + ((sz + new Vector2(sz1)) / 2f),
+                        color,
+                        owner.Rounding,
+                        owner.RoundingFlags);
+                    break;
                 case Shape.Circle:
                     args.DrawListPtr.AddCircle(pos + (sz / 2), sz1 / 2, color, 0, owner.Thickness);
                     break;
@@ -112,6 +134,11 @@ public class ShapePattern : PatternSpannable
                     var thickness = Math.Max(sz1 / 5.0f, 1.0f);
                     sz1 -= thickness * 0.5f;
                     pos += new Vector2(thickness * 0.25f, thickness * 0.25f);
+
+                    if (sz.X > sz.Y)
+                        pos.X += (sz.X - sz.Y) / 2f;
+                    else if (sz.Y > sz.X)
+                        pos.Y += (sz.Y - sz.X) / 2f;
 
                     var third = sz1 / 3.0f;
                     var bx = pos.X + third;

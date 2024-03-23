@@ -45,9 +45,12 @@ public class LinearContainer : ContainerControl
     /// <summary>Gets or sets the direction of laying out the child controls.</summary>
     public LinearDirection Direction
     {
-        // TODO: test right->left, bottom->top
         get => this.direction;
-        set => this.direction = value;
+        set => this.HandlePropertyChange(
+            nameof(this.Direction),
+            ref this.direction,
+            value,
+            this.OnDirectionChange);
     }
 
     /// <summary>Gets or sets the content bias, which decides where the child controls are, in case their sizes do not
@@ -56,9 +59,12 @@ public class LinearContainer : ContainerControl
     /// <see cref="Direction"/>.</remarks>
     public float ContentBias
     {
-        // TODO: test this
         get => this.contentBias;
-        set => this.contentBias = value;
+        set => this.HandlePropertyChange(
+            nameof(this.ContentBias),
+            ref this.contentBias,
+            value,
+            this.OnContentBiasChange);
     }
 
     /// <summary>Gets or sets a weight value that <see cref="ChildLayout.Weight"/> will treat this property as a
@@ -66,9 +72,12 @@ public class LinearContainer : ContainerControl
     /// will be used in place.</summary>
     public float TotalWeight
     {
-        // TODO: test this
         get => this.totalWeight;
-        set => this.totalWeight = value;
+        set => this.HandlePropertyChange(
+            nameof(this.TotalWeight),
+            ref this.totalWeight,
+            value,
+            this.OnTotalWeightChange);
     }
 
     /// <summary>Gets the child layout.</summary>
@@ -179,31 +188,63 @@ public class LinearContainer : ContainerControl
                 ? RectVector4.Translate(selfBoundary, box.LeftTop)
                 : base.MeasureChildren(args, children, renderPasses, box);
 
-        if (!this.IsWidthWrapContent && box.Width < float.PositiveInfinity)
+        var maxWidth = box.Width < float.PositiveInfinity ? box.Width : selfBoundary.Width;
+        var maxHeight = box.Height < float.PositiveInfinity ? box.Height : selfBoundary.Height;
+
+        if (selfBoundary.Width < maxWidth)
         {
-            if (this.Direction == LinearDirection.RightToLeft)
-                selfBoundary = selfBoundary with { Left = box.Right - selfBoundary.Width, Right = box.Right };
-            else
-                selfBoundary.Right = selfBoundary.Left + Math.Max(box.Width, selfBoundary.Width);
+            var bias = this.direction switch {
+                LinearDirection.LeftToRight => this.contentBias,
+                LinearDirection.RightToLeft => 1 - this.contentBias,
+                LinearDirection.TopToBottom => 0,
+                LinearDirection.BottomToTop => 0,
+                _ => 0,
+            };
+            selfBoundary = selfBoundary with
+            {
+                Left = (maxWidth - selfBoundary.Width) * bias,
+                Right = ((maxWidth - selfBoundary.Width) * bias) + selfBoundary.Width,
+            };
         }
-        else if (this.Direction == LinearDirection.RightToLeft)
+        else
         {
-            selfBoundary = selfBoundary with { Left = 0, Right = selfBoundary.Width };
+            selfBoundary = selfBoundary with
+            {
+                Left = 0,
+                Right = selfBoundary.Width,
+            };
         }
 
-        if (!this.IsHeightWrapContent && box.Height < float.PositiveInfinity)
+        if (selfBoundary.Height < maxHeight)
         {
-            if (this.Direction == LinearDirection.BottomToTop)
-                selfBoundary = selfBoundary with { Top = box.Bottom - selfBoundary.Height, Bottom = box.Bottom };
-            else
-                selfBoundary.Bottom = selfBoundary.Top + Math.Max(box.Height, selfBoundary.Height);
+            var bias = this.direction switch {
+                LinearDirection.LeftToRight => 0,
+                LinearDirection.RightToLeft => 0,
+                LinearDirection.TopToBottom => this.contentBias,
+                LinearDirection.BottomToTop => 1 - this.contentBias,
+                _ => 0,
+            };
+            selfBoundary = selfBoundary with
+            {
+                Top = (maxHeight - selfBoundary.Height) * bias,
+                Bottom = ((maxHeight - selfBoundary.Height) * bias) + selfBoundary.Height,
+            };
         }
-        else if (this.Direction == LinearDirection.BottomToTop)
+        else
         {
-            selfBoundary = selfBoundary with { Top = 0, Bottom = selfBoundary.Height };
+            selfBoundary = selfBoundary with
+            {
+                Top = 0,
+                Bottom = selfBoundary.Height,
+            };
         }
 
-        return selfBoundary;
+        selfBoundary = RectVector4.Translate(selfBoundary, box.LeftTop);
+        return new(
+            MathF.Round(selfBoundary.Left),
+            MathF.Round(selfBoundary.Top),
+            MathF.Round(selfBoundary.Right),
+            MathF.Round(selfBoundary.Bottom));
     }
 
     /// <inheritdoc/>

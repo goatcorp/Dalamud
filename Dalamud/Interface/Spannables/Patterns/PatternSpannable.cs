@@ -24,6 +24,12 @@ public abstract class PatternSpannable : ISpannable
     /// <summary>Gets or sets the size.</summary>
     public Vector2 Size { get; set; } = new(float.PositiveInfinity);
 
+    /// <summary>Gets or sets the minimum size.</summary>
+    public Vector2 MinSize { get; set; } = Vector2.Zero;
+
+    /// <summary>Gets or sets the maximum size.</summary>
+    public Vector2 MaxSize { get; set; } = new(float.PositiveInfinity);
+
     /// <inheritdoc/>
     public int StateGeneration { get; protected set; }
 
@@ -141,7 +147,8 @@ public abstract class PatternSpannable : ISpannable
             this.ImGuiGlobalId = args.ImGuiGlobalId;
             this.activeTextState = args.TextState;
 
-            var size = Vector2.Min(((PatternSpannable)args.Sender).Size * args.Scale, args.MaxSize);
+            var ps = (PatternSpannable)args.Sender;
+            var size = Vector2.Clamp(Vector2.Min(ps.Size * args.Scale, args.MaxSize), ps.MinSize, ps.MaxSize);
             if (size.X >= float.PositiveInfinity)
                 size.X = 0;
             if (size.Y >= float.PositiveInfinity)

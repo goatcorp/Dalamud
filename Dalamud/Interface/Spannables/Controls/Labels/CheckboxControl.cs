@@ -13,8 +13,6 @@ public class CheckboxControl : TristateControl
     /// <summary>Initializes a new instance of the <see cref="CheckboxControl"/> class.</summary>
     public CheckboxControl()
     {
-        this.CaptureMouseOnMouseDown = true;
-
         var animationDuration = TimeSpan.FromMilliseconds(200);
         var showAnimation = new SpannableSizeAnimator
         {
@@ -32,8 +30,6 @@ public class CheckboxControl : TristateControl
             OpacityEasing = new InCubic(animationDuration),
         };
 
-        // SpannableSizeAnimator? hideAnimation = null, showAnimation = null;
-
         const float checkSize = 22;
         const float gap = 4;
         const float checkMargin = 4;
@@ -41,11 +37,13 @@ public class CheckboxControl : TristateControl
         this.NormalIcon = new()
         {
             Size = new(checkSize + gap, checkSize),
+            MinSize = new((checkSize / 1.5f) + gap, checkSize / 1.5f),
+            MaxSize = new(checkSize + gap, checkSize),
             ShowIconAnimation = showAnimation,
             HideIconAnimation = hideAnimation,
             Background = new ShapePattern
             {
-                Type = ShapePattern.Shape.RectFilled,
+                Type = ShapePattern.Shape.SquareFilled,
                 ImGuiColor = ImGuiCol.FrameBg,
                 Rounding = 4,
                 Margin = new(0, 0, gap, 0),
@@ -67,11 +65,13 @@ public class CheckboxControl : TristateControl
         this.HoveredIcon = new()
         {
             Size = new(checkSize + gap, checkSize),
+            MinSize = new((checkSize / 1.5f) + gap, checkSize / 1.5f),
+            MaxSize = new(checkSize + gap, checkSize),
             ShowIconAnimation = showAnimation,
             HideIconAnimation = hideAnimation,
             Background = new ShapePattern
             {
-                Type = ShapePattern.Shape.RectFilled,
+                Type = ShapePattern.Shape.SquareFilled,
                 ImGuiColor = ImGuiCol.FrameBgHovered,
                 Rounding = 4,
                 Margin = new(0, 0, gap, 0),
@@ -93,11 +93,13 @@ public class CheckboxControl : TristateControl
         this.ActiveIcon = new()
         {
             Size = new(checkSize + gap, checkSize),
+            MinSize = new((checkSize / 1.5f) + gap, checkSize / 1.5f),
+            MaxSize = new(checkSize + gap, checkSize),
             ShowIconAnimation = showAnimation,
             HideIconAnimation = hideAnimation,
             Background = new ShapePattern
             {
-                Type = ShapePattern.Shape.RectFilled,
+                Type = ShapePattern.Shape.SquareFilled,
                 ImGuiColor = ImGuiCol.FrameBgActive,
                 Rounding = 4,
                 Margin = new(0, 0, gap, 0),

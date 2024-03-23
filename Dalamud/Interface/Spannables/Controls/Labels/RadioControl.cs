@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 
+using Dalamud.Interface.Animation.EasingFunctions;
+using Dalamud.Interface.Spannables.Controls.Animations;
 using Dalamud.Interface.Spannables.Controls.EventHandlers;
 using Dalamud.Interface.Spannables.Patterns;
 using Dalamud.Utility.Numerics;
@@ -16,7 +18,22 @@ public class RadioControl : TristateControl
     /// <summary>Initializes a new instance of the <see cref="RadioControl"/> class.</summary>
     public RadioControl()
     {
-        this.CaptureMouseOnMouseDown = true;
+        var animationDuration = TimeSpan.FromMilliseconds(200);
+        var showAnimation = new SpannableSizeAnimator
+        {
+            BeforeRatio = new(-0.7f, -0.7f, 0.7f, 0.7f),
+            BeforeOpacity = 0f,
+            TransformationEasing = new OutCubic(animationDuration),
+            OpacityEasing = new OutCubic(animationDuration),
+        };
+        
+        var hideAnimation = new SpannableSizeAnimator
+        {
+            AfterRatio = new(-0.7f, -0.7f, 0.7f, 0.7f),
+            AfterOpacity = 0f,
+            TransformationEasing = new InCubic(animationDuration),
+            OpacityEasing = new InCubic(animationDuration),
+        };
 
         const float checkSize = 22;
         const float gap = 4;
@@ -25,16 +42,20 @@ public class RadioControl : TristateControl
         this.NormalIcon = new()
         {
             Size = new(checkSize + gap, checkSize),
+            MinSize = new((checkSize / 1.5f) + gap, checkSize / 1.5f),
+            MaxSize = new(checkSize + gap, checkSize),
+            ShowIconAnimation = showAnimation,
+            HideIconAnimation = hideAnimation,
             Background = new ShapePattern
             {
-                Type = ShapePattern.Shape.RectFilled,
+                Type = ShapePattern.Shape.CircleFilled,
                 ImGuiColor = ImGuiCol.FrameBg,
                 Rounding = 4,
                 Margin = new(0, 0, gap, 0),
             },
             TrueIcon = new ShapePattern
             {
-                Type = ShapePattern.Shape.Checkmark,
+                Type = ShapePattern.Shape.CircleFilled,
                 ImGuiColor = ImGuiCol.CheckMark,
                 Margin = new RectVector4(checkMargin) + new RectVector4(0, 0, gap, 0),
             },
@@ -49,16 +70,20 @@ public class RadioControl : TristateControl
         this.HoveredIcon = new()
         {
             Size = new(checkSize + gap, checkSize),
+            MinSize = new((checkSize / 1.5f) + gap, checkSize / 1.5f),
+            MaxSize = new(checkSize + gap, checkSize),
+            ShowIconAnimation = showAnimation,
+            HideIconAnimation = hideAnimation,
             Background = new ShapePattern
             {
-                Type = ShapePattern.Shape.RectFilled,
+                Type = ShapePattern.Shape.CircleFilled,
                 ImGuiColor = ImGuiCol.FrameBgHovered,
                 Rounding = 4,
                 Margin = new(0, 0, gap, 0),
             },
             TrueIcon = new ShapePattern
             {
-                Type = ShapePattern.Shape.Checkmark,
+                Type = ShapePattern.Shape.CircleFilled,
                 ImGuiColor = ImGuiCol.CheckMark,
                 Margin = new RectVector4(checkMargin) + new RectVector4(0, 0, gap, 0),
             },
@@ -73,16 +98,20 @@ public class RadioControl : TristateControl
         this.ActiveIcon = new()
         {
             Size = new(checkSize + gap, checkSize),
+            MinSize = new((checkSize / 1.5f) + gap, checkSize / 1.5f),
+            MaxSize = new(checkSize + gap, checkSize),
+            ShowIconAnimation = showAnimation,
+            HideIconAnimation = hideAnimation,
             Background = new ShapePattern
             {
-                Type = ShapePattern.Shape.RectFilled,
+                Type = ShapePattern.Shape.CircleFilled,
                 ImGuiColor = ImGuiCol.FrameBgActive,
                 Rounding = 4,
                 Margin = new(0, 0, gap, 0),
             },
             TrueIcon = new ShapePattern
             {
-                Type = ShapePattern.Shape.Checkmark,
+                Type = ShapePattern.Shape.CircleFilled,
                 ImGuiColor = ImGuiCol.CheckMark,
                 Margin = new RectVector4(checkMargin) + new RectVector4(0, 0, gap, 0),
             },

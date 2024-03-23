@@ -376,7 +376,7 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
         };
         this.linearContainer = new()
         {
-            ContentBias = 0.5f,
+            ContentBias = 0.3f,
             Direction = LinearContainer.LinearDirection.LeftToRight,
             Size = new(ControlSpannable.MatchParent, ControlSpannable.WrapContent),
             Padding = new(16f),
