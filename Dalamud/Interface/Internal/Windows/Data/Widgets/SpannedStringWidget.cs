@@ -368,6 +368,14 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
             TextDecorationThickness = 1 / 8f,
             TextDecorationStyle = TextDecorationStyle.Double,
         };
+        var notLinkStyle = linkStyle with
+        {
+            EdgeColor = ImGuiColors.DPSRed,
+            TextDecoration = TextDecoration.LineThrough,
+            TextDecorationColor = ImGuiColors.DPSRed,
+            TextDecorationStyle = TextDecorationStyle.Solid,
+            TextDecorationThickness = 1 / 8f,
+        };
         var h2Style = new TextStyle
         {
             ShadowOffset = new(0, 1),
@@ -401,10 +409,11 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
                             SpannableText = new SpannedStringBuilder().PushLink("test"u8).Append("Test Link"),
                             TextStateOptions = new() { InitialStyle = linkStyle },
                         }.GetAsOut(out var linkLabel),
+                        new ControlSpannable { Size = new(0, 12) },
                         new LabelControl
                         {
                             Text = "Horizontal LinearContainer",
-                            Margin = new(0, 16, 0, 4),
+                            Margin = new(0, 4),
                             TextStateOptions = new() { InitialStyle = h2Style },
                         },
                         new LinearContainer
@@ -419,10 +428,11 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
                                     .GetAsOut(out _).WithBound(optLinearContainerLtr),
                             },
                         },
+                        new ControlSpannable { Size = new(0, 12) },
                         new LabelControl
                         {
                             Text = "Vertical LinearContainer",
-                            Margin = new(0, 16, 0, 4),
+                            Margin = new(0, 4),
                             TextStateOptions = new() { InitialStyle = h2Style },
                         },
                         new LinearContainer
@@ -437,43 +447,81 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
                                     .GetAsOut(out _).WithBound(optLinearContainerTtb),
                             },
                         },
+                        new ControlSpannable { Size = new(0, 12) },
                         new LabelControl
                         {
                             Text = "Options",
-                            Margin = new(0, 16, 0, 4),
+                            Margin = new(0, 4),
+                            Size = new(ControlSpannable.MatchParent, ControlSpannable.WrapContent),
                             TextStateOptions = new() { InitialStyle = h2Style },
                         },
                         new LinearContainer
                         {
                             Margin = new(16f, 0f),
+                            Size = new(ControlSpannable.MatchParent, ControlSpannable.WrapContent),
                             Direction = LinearContainer.LinearDirection.TopToBottom,
                             ChildrenList =
                             {
-                                new CheckboxControl { Text = "Use Wrap Markers", }
+                                new CheckboxControl
+                                    {
+                                        Text = "Use Wrap Markers",
+                                        Size = new(ControlSpannable.MatchParent, ControlSpannable.WrapContent),
+                                    }
                                     .GetAsOut(out var chkWrapMarker),
-                                new CheckboxControl { Text = "Show Control Characters", }
+                                new CheckboxControl
+                                    {
+                                        Text = "Show Control Characters",
+                                        Size = new(ControlSpannable.MatchParent, ControlSpannable.WrapContent),
+                                    }
                                     .GetAsOut(out var chkVisibleControlCharacters),
                             },
                         },
+                        new ControlSpannable { Size = new(0, 12) },
                         new LabelControl
                         {
                             Text = "Word Break Type",
-                            Margin = new(0, 16, 0, 4),
+                            Margin = new(0, 4),
+                            Size = new(ControlSpannable.MatchParent, ControlSpannable.WrapContent),
                             TextStateOptions = new() { InitialStyle = h2Style },
                         },
                         new LinearContainer
                         {
                             Margin = new(16f, 0f),
+                            Size = new(ControlSpannable.MatchParent, ControlSpannable.WrapContent),
                             Direction = LinearContainer.LinearDirection.TopToBottom,
                             ChildrenList =
                             {
-                                new RadioControl { Text = "Normal", Checked = true, }
+                                new RadioControl
+                                    {
+                                        SpannableText =
+                                            new SpannedStringBuilder()
+                                                .PushHorizontalAlignment(HorizontalAlignment.Right)
+                                                .Append("Normal"),
+                                        // TODO: add SpannableMeasureArgs.MinSize
+                                        Checked = true,
+                                        Size = new(ControlSpannable.MatchParent, ControlSpannable.WrapContent),
+                                    }
                                     .GetAsOut(out var optBreakNormal),
-                                new RadioControl { Text = "Break All", }
+                                new RadioControl
+                                    {
+                                        SpannableText =
+                                            new SpannedStringBuilder()
+                                                .PushHorizontalAlignment(HorizontalAlignment.Center)
+                                                .Append("Break All"),
+                                        Size = new(ControlSpannable.MatchParent, ControlSpannable.WrapContent),
+                                    }
                                     .GetAsOut(out var optBreakAll).WithBound(optBreakNormal),
-                                new RadioControl { Text = "Keep All", }
+                                new RadioControl
+                                    {
+                                        Text = "Keep All",
+                                        Size = new(ControlSpannable.MatchParent, ControlSpannable.WrapContent),
+                                    }
                                     .GetAsOut(out var optKeepAll).WithBound(optBreakNormal),
-                                new RadioControl { Text = "Break Word", }
+                                new RadioControl
+                                    {
+                                        Text = "Break Word",
+                                        Size = new(ControlSpannable.MatchParent, ControlSpannable.WrapContent),
+                                    }
                                     .GetAsOut(out var optBreakWord).WithBound(optKeepAll),
                             },
                         },
@@ -487,8 +535,14 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
                     {
                         new LabelControl
                         {
+                            SpannableText = new SpannedStringBuilder().Append("Not a Link"),
+                            TextStateOptions = new() { InitialStyle = notLinkStyle },
+                        },
+                        new ControlSpannable { Size = new(0, 12) },
+                        new LabelControl
+                        {
                             Text = "Tests",
-                            Margin = new(0, 16, 0, 4),
+                            Margin = new(0, 4),
                             TextStateOptions = new() { InitialStyle = h2Style },
                         },
                         new LinearContainer

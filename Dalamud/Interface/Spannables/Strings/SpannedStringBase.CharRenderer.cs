@@ -369,7 +369,7 @@ public abstract partial class SpannedStringBase
 
                 if ((this.renderPass.ActiveTextState.LastStyle.TextDecoration & TextDecoration.LineThrough) != 0)
                 {
-                    this.args.SwitchToChannel(RenderChannel.TextDecorationOverUnderChannel);
+                    this.args.SwitchToChannel(RenderChannel.TextDecorationThroughChannel);
                     this.DrawDecoration((lt + lbottom) / 2, (rt + rbottom) / 2, 0, xdivy);
                 }
             }
