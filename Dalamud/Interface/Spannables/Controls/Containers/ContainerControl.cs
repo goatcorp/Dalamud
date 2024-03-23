@@ -3,9 +3,8 @@ using System.Collections.Generic;
 using System.Numerics;
 using System.Runtime.InteropServices;
 
-using Dalamud.Interface.Spannables.Controls.EventHandlerDelegates;
 using Dalamud.Interface.Spannables.Controls.EventHandlers;
-using Dalamud.Interface.Spannables.EventHandlerArgs;
+using Dalamud.Interface.Spannables.RenderPassMethodArgs;
 using Dalamud.Utility.Enumeration;
 using Dalamud.Utility.Numerics;
 
@@ -13,13 +12,17 @@ namespace Dalamud.Interface.Spannables.Controls.Containers;
 
 /// <summary>A control that contains multiple spannables.</summary>
 /// <remarks>Base container control implementation will place everything to top left.</remarks>
-public class ContainerControl
-    : ControlSpannable, IList<ISpannable>, IReadOnlyList<ISpannable>, ICollection
+public class ContainerControl : ControlSpannable
 {
     private readonly List<ISpannableRenderPass?> childRenderPasses = new();
+    private readonly ChildrenCollection childrenCollection;
 
     private Vector2 scroll;
     private RectVector4 scrollBoundary;
+    private bool useAutoScrollBoundary = true;
+
+    /// <summary>Initializes a new instance of the <see cref="ContainerControl"/> class.</summary>
+    public ContainerControl() => this.childrenCollection = new ChildrenCollection(this);
 
     /// <summary>Occurs when a child has been added.</summary>
     public event ControlChildEventHandler? ChildAdd;
@@ -30,11 +33,14 @@ public class ContainerControl
     /// <summary>Occurs when a child has been removed.</summary>
     public event ControlChildEventHandler? ChildRemove;
 
-    /// <summary>Occurs when the current scroll position changes.</summary>
-    public event PropertyChangedEventHandler<ControlSpannable, Vector2>? ScrollChanged;
+    /// <summary>Occurs when the scroll position changes.</summary>
+    public event PropertyChangeEventHandler<ControlSpannable, Vector2>? ScrollChange;
 
-    /// <summary>Occurs when the maximum scroll region changes.</summary>
-    public event PropertyChangedEventHandler<ControlSpannable, RectVector4>? ScrollBoundaryChanged;
+    /// <summary>Occurs when the scroll boundary changes.</summary>
+    public event PropertyChangeEventHandler<ControlSpannable, RectVector4>? ScrollBoundaryChange;
+
+    /// <summary>Occurs when <see cref="UseAutoScrollBoundary"/> changes.</summary>
+    public event PropertyChangeEventHandler<ControlSpannable, bool>? UseAutoScrollBoundaryChange;
 
     /// <summary>Gets or sets the current scroll distance.</summary>
     public Vector2 Scroll
@@ -43,8 +49,8 @@ public class ContainerControl
         set => this.HandlePropertyChange(
             nameof(this.Scroll),
             ref this.scroll,
-            value,
-            this.OnScrollChanged);
+            Vector2.Clamp(value, this.scrollBoundary.LeftTop, this.scrollBoundary.RightBottom),
+            this.OnScrollChange);
     }
 
     /// <summary>Gets or sets the scroll boundary.</summary>
@@ -55,150 +61,43 @@ public class ContainerControl
             nameof(this.ScrollBoundary),
             ref this.scrollBoundary,
             value,
-            this.OnScrollBoundaryChanged);
+            this.OnScrollBoundaryChange);
     }
 
     /// <summary>Gets or sets a value indicating whether to adjust <see cref="ScrollBoundary"/> automatically according
     /// to children measurements.</summary>
-    public bool UseAutoScrollBoundary { get; set; } = true;
-
-    /// <inheritdoc cref="ICollection.Count"/>
-    public int Count => this.AllChildren.Count - this.AllChildrenAvailableSlot;
-
-    /// <inheritdoc/>
-    bool ICollection.IsSynchronized => false;
-
-    /// <inheritdoc/>
-    object ICollection.SyncRoot => this;
-
-    /// <inheritdoc/>
-    public bool IsReadOnly => false;
-
-    /// <inheritdoc cref="IList{T}.this"/>
-    public ISpannable this[int index]
+    public bool UseAutoScrollBoundary
     {
-        get
-        {
-            if (index < 0 || index >= this.AllChildren.Count - this.AllChildrenAvailableSlot)
-                throw new IndexOutOfRangeException();
-            return this.AllChildren[this.AllChildrenAvailableSlot + index]!;
-        }
-
-        set
-        {
-            if (index < 0 || index >= this.AllChildren.Count - this.AllChildrenAvailableSlot)
-                throw new IndexOutOfRangeException();
-            var prev = this.AllChildren[this.AllChildrenAvailableSlot + index];
-            this.AllChildren[this.AllChildrenAvailableSlot + index] = value ?? throw new NullReferenceException();
-            this.OnChildChange(new() { Sender = this, OldChild = prev, Child = value, Index = index });
-        }
+        get => this.useAutoScrollBoundary;
+        set => this.HandlePropertyChange(
+            nameof(this.UseAutoScrollBoundary),
+            ref this.useAutoScrollBoundary,
+            value,
+            this.OnUseAutoScrollBoundaryChange);
     }
 
-    /// <inheritdoc/>
-    public void Add(ISpannable item)
-    {
-        this.AllChildren.Add(item ?? throw new NullReferenceException());
-        this.childRenderPasses.Add(null);
-        this.OnChildAdd(
-            new()
-            {
-                Sender = this,
-                Child = item,
-                Index = this.AllChildren.Count - this.AllChildrenAvailableSlot - 1,
-            });
-    }
+    /// <summary>Gets the children as an <see cref="IList{T}"/>.</summary>
+    public IList<ISpannable> ChildrenList => this.childrenCollection;
 
-    /// <inheritdoc/>
-    public void Clear() =>
-        this.AllChildren.RemoveRange(
-            this.AllChildrenAvailableSlot,
-            this.AllChildren.Count - this.AllChildrenAvailableSlot);
-
-    /// <inheritdoc/>
-    public bool Contains(ISpannable item) => this.AllChildren.IndexOf(item) >= this.AllChildrenAvailableSlot;
-
-    /// <inheritdoc/>
-    public void CopyTo(ISpannable[] array, int arrayIndex) =>
-        CollectionsMarshal.AsSpan(this.AllChildren)[this.AllChildrenAvailableSlot..].CopyTo(array.AsSpan(arrayIndex));
-
-    /// <inheritdoc/>
-    void ICollection.CopyTo(Array array, int index) => this.CopyTo((ISpannable[])array, index);
-
-    /// <inheritdoc/>
-    public bool Remove(ISpannable item)
-    {
-        var i = this.AllChildren.IndexOf(item);
-        if (i < this.AllChildrenAvailableSlot)
-            return false;
-
-        this.RemoveAt(i);
-        return true;
-    }
-
-    /// <inheritdoc/>
-    public void RemoveAt(int index)
-    {
-        if (index < 0 || index >= this.AllChildren.Count - this.AllChildrenAvailableSlot)
-            throw new IndexOutOfRangeException();
-
-        var removedChild = this.AllChildren[this.AllChildrenAvailableSlot + index];
-        removedChild!.ReturnRenderPass(this.childRenderPasses[index]);
-
-        this.AllChildren.RemoveAt(this.AllChildrenAvailableSlot + index);
-        this.childRenderPasses.RemoveAt(index);
-        this.OnChildRemove(new() { Sender = this, Child = removedChild!, Index = index });
-    }
-
-    /// <inheritdoc/>
-    public int IndexOf(ISpannable item)
-    {
-        var i = this.AllChildren.IndexOf(item);
-        if (i >= this.AllChildrenAvailableSlot)
-            return i - this.AllChildrenAvailableSlot;
-        return -1;
-    }
-
-    /// <inheritdoc/>
-    public void Insert(int index, ISpannable item)
-    {
-        if (index < 0 || index > this.AllChildren.Count - this.AllChildrenAvailableSlot)
-            throw new IndexOutOfRangeException();
-        this.AllChildren.Insert(this.AllChildrenAvailableSlot + index, item);
-        this.childRenderPasses.Insert(index, null);
-        this.OnChildAdd(
-            new()
-            {
-                Sender = this,
-                Child = item,
-                Index = index,
-            });
-    }
-
-    /// <inheritdoc cref="IEnumerable{T}.GetEnumerator"/>
-    public ListRangeEnumerator<ISpannable> GetEnumerator() => new(this.AllChildren, this.AllChildrenAvailableSlot..);
-
-    /// <inheritdoc/>
-    IEnumerator<ISpannable> IEnumerable<ISpannable>.GetEnumerator() => this.GetEnumerator();
-
-    /// <inheritdoc/>
-    IEnumerator IEnumerable.GetEnumerator() => this.GetEnumerator();
+    /// <summary>Gets the children as an <see cref="IReadOnlyList{T}"/>.</summary>
+    public IReadOnlyList<ISpannable> ChildrenReadOnlyList => this.childrenCollection;
 
     /// <inheritdoc/>
     protected override RectVector4 MeasureContentBox(SpannableMeasureArgs args, in RectVector4 availableContentBox)
     {
-        var children = CollectionsMarshal.AsSpan(this.AllChildren)[this.AllChildrenAvailableSlot..];
+        var children = CollectionsMarshal.AsSpan(this.AllSpannables)[this.AllSpannablesAvailableSlot..];
         var renderPasses = CollectionsMarshal.AsSpan(this.childRenderPasses);
-        this.MeasureChildren(args, children, renderPasses, availableContentBox);
 
-        var res = RectVector4.InvertedExtrema;
-        foreach (var t in renderPasses)
-            res = RectVector4.Union(res, t.Boundary);
+        for (var i = 0; i < children.Length; i++)
+            renderPasses[i] ??= children[i].RentRenderPass(args.RenderPass.Renderer);
+
+        var res = this.MeasureChildren(args, children, renderPasses, availableContentBox);
 
         if (this.UseAutoScrollBoundary)
         {
             this.UpdateScrollBoundary(
-                Math.Max(0, res.Right - this.MeasuredInteractiveBox.Width),
-                Math.Max(0, res.Bottom - this.MeasuredInteractiveBox.Height));
+                Math.Max(0, res.Right - availableContentBox.Width - this.Padding.Width),
+                Math.Max(0, res.Bottom - availableContentBox.Height - this.Padding.Height));
         }
 
         this.Scroll = Vector2.Clamp(this.scroll, this.scrollBoundary.LeftTop, this.scrollBoundary.RightBottom);
@@ -207,23 +106,23 @@ public class ContainerControl
     }
 
     /// <inheritdoc/>
-    protected override void OnCommitMeasurement(ControlCommitMeasurementArgs args)
+    protected override void OnCommitMeasurement(ControlCommitMeasurementEventArgs args)
     {
         base.OnCommitMeasurement(args);
 
-        var children = CollectionsMarshal.AsSpan(this.AllChildren)[this.AllChildrenAvailableSlot..];
+        var children = CollectionsMarshal.AsSpan(this.AllSpannables)[this.AllSpannablesAvailableSlot..];
         var renderPasses = CollectionsMarshal.AsSpan(this.childRenderPasses);
         this.CommitMeasurementChildren(args, children, renderPasses);
     }
 
     /// <inheritdoc/>
     protected override void OnHandleInteraction(
-        ControlHandleInteractionArgs args,
+        ControlHandleInteractionEventArgs args,
         out SpannableLinkInteracted link)
     {
         base.OnHandleInteraction(args, out link);
 
-        var children = CollectionsMarshal.AsSpan(this.AllChildren)[this.AllChildrenAvailableSlot..];
+        var children = CollectionsMarshal.AsSpan(this.AllSpannables)[this.AllSpannablesAvailableSlot..];
         var renderPasses = CollectionsMarshal.AsSpan(this.childRenderPasses);
         if (link.IsEmpty)
             this.HandleInteractionChildren(args, children, renderPasses, out link);
@@ -232,11 +131,11 @@ public class ContainerControl
     }
 
     /// <inheritdoc/>
-    protected override void OnDraw(ControlDrawArgs args)
+    protected override void OnDraw(ControlDrawEventArgs args)
     {
         base.OnDraw(args);
 
-        var children = CollectionsMarshal.AsSpan(this.AllChildren)[this.AllChildrenAvailableSlot..];
+        var children = CollectionsMarshal.AsSpan(this.AllSpannables)[this.AllSpannablesAvailableSlot..];
         var renderPasses = CollectionsMarshal.AsSpan(this.childRenderPasses);
         this.DrawChildren(args, children, renderPasses);
     }
@@ -246,7 +145,8 @@ public class ContainerControl
     /// <param name="children">The children in container contents. This may include nulls.</param>
     /// <param name="renderPasses">The render passes for each of the children.</param>
     /// <param name="availableContentBox">The available content box.</param>
-    protected virtual void MeasureChildren(
+    /// <returns>The measured content boundary.</returns>
+    protected virtual RectVector4 MeasureChildren(
         SpannableMeasureArgs args,
         ReadOnlySpan<ISpannable> children,
         ReadOnlySpan<ISpannableRenderPass> renderPasses,
@@ -254,14 +154,16 @@ public class ContainerControl
     {
         for (var i = 0; i < children.Length; i++)
         {
-            renderPasses[i].MeasureSpannable(
-                new(
-                    children[i],
-                    renderPasses[i],
-                    availableContentBox.Size,
-                    this.Scale,
-                    this.TextState with { InitialStyle = this.TextState.LastStyle }));
+            var child = children[i];
+            var pass = renderPasses[i];
+            var innerId = this.InnerIdAvailableSlot + i;
+            args.NotifyChild(child, pass, innerId, availableContentBox.Size, this.ActiveTextState);
         }
+
+        var res = RectVector4.InvertedExtrema;
+        foreach (var t in renderPasses)
+            res = RectVector4.Union(res, t.Boundary);
+        return res;
     }
 
     /// <summary>Updates <see cref="ScrollBoundary"/> from measured children.</summary>
@@ -275,17 +177,16 @@ public class ContainerControl
     /// <param name="children">The children in container contents. This may include nulls.</param>
     /// <param name="renderPasses">The render passes for each of the children.</param>
     protected virtual void CommitMeasurementChildren(
-        ControlCommitMeasurementArgs args,
+        ControlCommitMeasurementEventArgs args,
         ReadOnlySpan<ISpannable> children,
         ReadOnlySpan<ISpannableRenderPass> renderPasses)
     {
+        var offset = this.MeasuredContentBox.LeftTop + this.Scroll;
         for (var i = 0; i < children.Length; i++)
         {
-            args.MeasureArgs.NotifyChild(
-                children[i],
-                renderPasses[i],
-                this.MeasuredContentBox.LeftTop,
-                Matrix4x4.Identity);
+            var child = children[i];
+            var pass = renderPasses[i];
+            args.SpannableArgs.NotifyChild(child, pass, offset, Matrix4x4.Identity);
         }
     }
 
@@ -295,7 +196,7 @@ public class ContainerControl
     /// <param name="renderPasses">The render passes for each of the children.</param>
     /// <param name="link">The interacted link, if any.</param>
     protected virtual void HandleInteractionChildren(
-        ControlHandleInteractionArgs args,
+        ControlHandleInteractionEventArgs args,
         ReadOnlySpan<ISpannable> children,
         ReadOnlySpan<ISpannableRenderPass> renderPasses,
         out SpannableLinkInteracted link)
@@ -303,22 +204,12 @@ public class ContainerControl
         link = default;
         for (var i = 0; i < children.Length; i++)
         {
+            var child = children[i];
+            var pass = renderPasses[i];
             if (link.IsEmpty)
-            {
-                args.HandleInteractionArgs.NotifyChild(
-                    children[i],
-                    renderPasses[i],
-                    this.InnerIdAvailableSlot + i,
-                    out link);
-            }
+                args.SpannableArgs.NotifyChild(child, pass, out link);
             else
-            {
-                args.HandleInteractionArgs.NotifyChild(
-                    children[i],
-                    renderPasses[i],
-                    this.InnerIdAvailableSlot + i,
-                    out _);
-            }
+                args.SpannableArgs.NotifyChild(child, pass, out _);
         }
     }
 
@@ -327,33 +218,187 @@ public class ContainerControl
     /// <param name="children">The children in container contents. This may include nulls.</param>
     /// <param name="renderPasses">The render passes for each of the children.</param>
     protected virtual void DrawChildren(
-        ControlDrawArgs args,
+        ControlDrawEventArgs args,
         ReadOnlySpan<ISpannable> children,
         ReadOnlySpan<ISpannableRenderPass> renderPasses)
     {
         for (var i = 0; i < children.Length; i++)
-            args.DrawArgs.NotifyChild(children[i], renderPasses[i]);
+        {
+            var child = children[i];
+            var pass = renderPasses[i];
+            args.SpannableArgs.NotifyChild(child, pass);
+        }
     }
 
-    /// <summary>Raises the <see cref="ScrollChanged"/> event.</summary>
-    /// <param name="args">A <see cref="PropertyChangedEventArgs{TSender,T}"/> that contains the event data.</param>
-    protected virtual void OnScrollChanged(PropertyChangedEventArgs<ControlSpannable, Vector2> args) =>
-        this.ScrollChanged?.Invoke(args);
+    /// <summary>Updates whether to intercept mouse wheel.</summary>
+    /// <remarks>Called whenever <see cref="Scroll"/> or <see cref="ScrollBoundary"/> changes.</remarks>
+    protected virtual void UpdateInterceptMouseWheel()
+    {
+        this.InterceptMouseWheelLeft = this.scroll.X <= this.scrollBoundary.Left;
+        this.InterceptMouseWheelRight = this.scroll.X >= this.scrollBoundary.Right;
+        this.InterceptMouseWheelUp = this.scroll.Y <= this.scrollBoundary.Top;
+        this.InterceptMouseWheelDown = this.scroll.Y >= this.scrollBoundary.Bottom;
+    }
 
-    /// <summary>Raises the <see cref="ScrollBoundaryChanged"/> event.</summary>
-    /// <param name="args">A <see cref="PropertyChangedEventArgs{TSender,T}"/> that contains the event data.</param>
-    protected virtual void OnScrollBoundaryChanged(PropertyChangedEventArgs<ControlSpannable, RectVector4> args) =>
-        this.ScrollBoundaryChanged?.Invoke(args);
+    /// <summary>Raises the <see cref="ScrollChange"/> event.</summary>
+    /// <param name="args">A <see cref="PropertyChangeEventArgs{TSender,T}"/> that contains the event data.</param>
+    protected virtual void OnScrollChange(PropertyChangeEventArgs<ControlSpannable, Vector2> args)
+    {
+        this.ScrollChange?.Invoke(args);
+        this.UpdateInterceptMouseWheel();
+    }
+
+    /// <summary>Raises the <see cref="ScrollBoundaryChange"/> event.</summary>
+    /// <param name="args">A <see cref="PropertyChangeEventArgs{TSender,T}"/> that contains the event data.</param>
+    protected virtual void OnScrollBoundaryChange(PropertyChangeEventArgs<ControlSpannable, RectVector4> args)
+    {
+        this.ScrollBoundaryChange?.Invoke(args);
+        this.Scroll = Vector2.Clamp(this.Scroll, this.scrollBoundary.LeftTop, this.scrollBoundary.RightBottom);
+        this.UpdateInterceptMouseWheel();
+    }
 
     /// <summary>Raises the <see cref="ChildAdd"/> event.</summary>
-    /// <param name="args">A <see cref="ControlChildArgs"/> that contains the event data.</param>
-    protected virtual void OnChildAdd(ControlChildArgs args) => this.ChildAdd?.Invoke(args);
+    /// <param name="args">A <see cref="ControlChildEventArgs"/> that contains the event data.</param>
+    protected virtual void OnChildAdd(ControlChildEventArgs args) => this.ChildAdd?.Invoke(args);
 
     /// <summary>Raises the <see cref="ChildChange"/> event.</summary>
-    /// <param name="args">A <see cref="ControlChildArgs"/> that contains the event data.</param>
-    protected virtual void OnChildChange(ControlChildArgs args) => this.ChildChange?.Invoke(args);
+    /// <param name="args">A <see cref="ControlChildEventArgs"/> that contains the event data.</param>
+    protected virtual void OnChildChange(ControlChildEventArgs args) => this.ChildChange?.Invoke(args);
 
     /// <summary>Raises the <see cref="ChildRemove"/> event.</summary>
-    /// <param name="args">A <see cref="ControlChildArgs"/> that contains the event data.</param>
-    protected virtual void OnChildRemove(ControlChildArgs args) => this.ChildRemove?.Invoke(args);
+    /// <param name="args">A <see cref="ControlChildEventArgs"/> that contains the event data.</param>
+    protected virtual void OnChildRemove(ControlChildEventArgs args) => this.ChildRemove?.Invoke(args);
+
+    /// <summary>Raises the <see cref="ChildRemove"/> event.</summary>
+    /// <param name="args">A <see cref="PropertyChangeEventArgs{TSender,T}"/> that contains the event data.</param>
+    protected virtual void OnUseAutoScrollBoundaryChange(PropertyChangeEventArgs<ControlSpannable, bool> args) =>
+        this.UseAutoScrollBoundaryChange?.Invoke(args);
+
+    private class ChildrenCollection(ContainerControl owner)
+        : IList<ISpannable>, IReadOnlyList<ISpannable>, ICollection
+    {
+        /// <inheritdoc cref="ICollection.Count"/>
+        public int Count => owner.AllSpannables.Count - owner.AllSpannablesAvailableSlot;
+
+        /// <inheritdoc/>
+        bool ICollection.IsSynchronized => false;
+
+        /// <inheritdoc/>
+        object ICollection.SyncRoot => this;
+
+        /// <inheritdoc/>
+        public bool IsReadOnly => false;
+
+        /// <inheritdoc cref="IList{T}.this"/>
+        public ISpannable this[int index]
+        {
+            get
+            {
+                if (index < 0 || index >= owner.AllSpannables.Count - owner.AllSpannablesAvailableSlot)
+                    throw new IndexOutOfRangeException();
+                return owner.AllSpannables[owner.AllSpannablesAvailableSlot + index]!;
+            }
+
+            set
+            {
+                if (index < 0 || index >= owner.AllSpannables.Count - owner.AllSpannablesAvailableSlot)
+                    throw new IndexOutOfRangeException();
+                var prev = owner.AllSpannables[owner.AllSpannablesAvailableSlot + index];
+                owner.AllSpannables[owner.AllSpannablesAvailableSlot + index] =
+                    value ?? throw new NullReferenceException();
+                owner.OnChildChange(new() { Sender = owner, OldChild = prev, Child = value, Index = index });
+            }
+        }
+
+        /// <inheritdoc/>
+        public void Add(ISpannable item)
+        {
+            owner.AllSpannables.Add(item ?? throw new NullReferenceException());
+            owner.childRenderPasses.Add(null);
+            owner.OnChildAdd(
+                new()
+                {
+                    Sender = owner,
+                    Child = item,
+                    Index = owner.AllSpannables.Count - owner.AllSpannablesAvailableSlot - 1,
+                });
+        }
+
+        /// <inheritdoc/>
+        public void Clear() =>
+            owner.AllSpannables.RemoveRange(
+                owner.AllSpannablesAvailableSlot,
+                owner.AllSpannables.Count - owner.AllSpannablesAvailableSlot);
+
+        /// <inheritdoc/>
+        public bool Contains(ISpannable item) => owner.AllSpannables.IndexOf(item) >= owner.AllSpannablesAvailableSlot;
+
+        /// <inheritdoc/>
+        public void CopyTo(ISpannable[] array, int arrayIndex) =>
+            CollectionsMarshal.AsSpan(owner.AllSpannables)[owner.AllSpannablesAvailableSlot..]
+                              .CopyTo(array.AsSpan(arrayIndex));
+
+        /// <inheritdoc/>
+        void ICollection.CopyTo(Array array, int index) => this.CopyTo((ISpannable[])array, index);
+
+        /// <inheritdoc/>
+        public bool Remove(ISpannable item)
+        {
+            var i = owner.AllSpannables.IndexOf(item);
+            if (i < owner.AllSpannablesAvailableSlot)
+                return false;
+
+            this.RemoveAt(i);
+            return true;
+        }
+
+        /// <inheritdoc/>
+        public void RemoveAt(int index)
+        {
+            if (index < 0 || index >= owner.AllSpannables.Count - owner.AllSpannablesAvailableSlot)
+                throw new IndexOutOfRangeException();
+
+            var removedChild = owner.AllSpannables[owner.AllSpannablesAvailableSlot + index];
+            removedChild!.ReturnRenderPass(owner.childRenderPasses[index]);
+
+            owner.AllSpannables.RemoveAt(owner.AllSpannablesAvailableSlot + index);
+            owner.childRenderPasses.RemoveAt(index);
+            owner.OnChildRemove(new() { Sender = owner, Child = removedChild!, Index = index });
+        }
+
+        /// <inheritdoc/>
+        public int IndexOf(ISpannable item)
+        {
+            var i = owner.AllSpannables.IndexOf(item);
+            if (i >= owner.AllSpannablesAvailableSlot)
+                return i - owner.AllSpannablesAvailableSlot;
+            return -1;
+        }
+
+        /// <inheritdoc/>
+        public void Insert(int index, ISpannable item)
+        {
+            if (index < 0 || index > owner.AllSpannables.Count - owner.AllSpannablesAvailableSlot)
+                throw new IndexOutOfRangeException();
+            owner.AllSpannables.Insert(owner.AllSpannablesAvailableSlot + index, item);
+            owner.childRenderPasses.Insert(index, null);
+            owner.OnChildAdd(
+                new()
+                {
+                    Sender = owner,
+                    Child = item,
+                    Index = index,
+                });
+        }
+
+        /// <inheritdoc cref="IEnumerable{T}.GetEnumerator"/>
+        public ListRangeEnumerator<ISpannable> GetEnumerator() =>
+            new(owner.AllSpannables, owner.AllSpannablesAvailableSlot..);
+
+        /// <inheritdoc/>
+        IEnumerator<ISpannable> IEnumerable<ISpannable>.GetEnumerator() => this.GetEnumerator();
+
+        /// <inheritdoc/>
+        IEnumerator IEnumerable.GetEnumerator() => this.GetEnumerator();
+    }
 }

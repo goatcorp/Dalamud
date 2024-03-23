@@ -7,7 +7,7 @@ using Dalamud.Interface.Spannables.Helpers;
 
 using ImGuiNET;
 
-namespace Dalamud.Interface.Spannables.EventHandlerArgs;
+namespace Dalamud.Interface.Spannables.RenderPassMethodArgs;
 
 /// <summary>Arguments for use with <see cref="ISpannableRenderPass.HandleSpannableInteraction"/>.</summary>
 public struct SpannableHandleInteractionArgs
@@ -18,17 +18,17 @@ public struct SpannableHandleInteractionArgs
     /// <summary>The state obtained from <see cref="ISpannable.RentRenderPass"/>.</summary>
     public ISpannableRenderPass RenderPass;
 
-    /// <summary>The allocated ImGui global ID.</summary>
-    public uint ImGuiGlobalId;
-
     /// <summary>Each bit indicates whether a mouse button is held down.</summary>
     /// <remarks>Use the helper method <see cref="IsMouseButtonDown"/>.</remarks>
     public int MouseButtonStateFlags;
 
-    /// <summary>The location of the mouse in screen coordinates.</summary>
+    /// <summary>Location of the mouse in screen coordinates.</summary>
     public Vector2 MouseScreenLocation;
 
-    /// <summary>The number of detents the mouse wheel has rotated, <b>without</b> WHEEL_DELTA multiplied.</summary>
+    /// <summary>Location of the mouse in local coordinates.</summary>
+    public Vector2 MouseLocalLocation;
+
+    /// <summary>Number of detents the mouse wheel has rotated, <b>without</b> WHEEL_DELTA multiplied.</summary>
     public Vector2 WheelDelta;
 
     private const int CImGuiSetActiveIdOffset = 0x483f0;
@@ -62,10 +62,6 @@ public struct SpannableHandleInteractionArgs
         this.Sender = sender;
         this.RenderPass = renderPass;
     }
-
-    /// <summary>Gets the location of the mouse, relative to the left top of the control, without having
-    /// <see cref="ISpannableRenderPass.Transformation"/> or <see cref="ISpannableRenderPass.ScreenOffset"/> applied.</summary>
-    public readonly Vector2 MouseLocalLocation => this.RenderPass.TransformToLocal(this.MouseScreenLocation);
 
     /// <summary>Gets a value indicating whether the specified mouse button is down, at the point of the beginning of
     /// handling this spannable.</summary>
@@ -158,21 +154,21 @@ public struct SpannableHandleInteractionArgs
     /// <summary>Notifies a child <see cref="ISpannable"/> with transformed arguments.</summary>
     /// <param name="child">A child to notify the event.</param>
     /// <param name="childRenderPass">The child state.</param>
-    /// <param name="childInnerId">The inner ID of the child. <c>-1</c> to disable.</param>
     /// <param name="link">The interacted link, if the child processed the event.</param>
     public readonly void NotifyChild(
         ISpannable child,
         ISpannableRenderPass childRenderPass,
-        int childInnerId,
         out SpannableLinkInteracted link) =>
         childRenderPass.HandleSpannableInteraction(
             this with
             {
                 Sender = child,
                 RenderPass = childRenderPass,
-                ImGuiGlobalId = childRenderPass.ImGuiGlobalId == 0 || childInnerId == -1
-                                    ? 0
-                                    : childRenderPass.GetGlobalIdFromInnerId(childInnerId),
+                MouseLocalLocation = Vector2.Transform(
+                    this.MouseLocalLocation,
+                    Matrix4x4.Invert(childRenderPass.Transformation, out var inverted)
+                        ? inverted
+                        : Matrix4x4.Identity),
             },
             out link);
 }

@@ -42,9 +42,9 @@ public struct TextStyle
     /// <summary>The foreground color.</summary>
     public Rgba32 ForeColor;
 
-    /// <summary>The border width.</summary>
+    /// <summary>The edge width.</summary>
     /// <remarks>Currently, only the integer part is effective.</remarks>
-    public float BorderWidth;
+    public float EdgeWidth;
 
     /// <summary>The shadow offset.</summary>
     /// <remarks>If <see cref="Vector2.Zero"/>, then shadow is turned off.</remarks>
@@ -82,7 +82,7 @@ public struct TextStyle
     /// Values outside the range to [0, 1] are clamped.</para>
     /// <para>If changed multiple times in a line, the last value wins.</para>
     /// <para>Will use <see cref="ISpannableRenderPass.Boundary"/> instead of <see cref="RenderContext.MaxSize"/> if maximum
-    /// size is unspecified (<see cref="float.MaxValue"/> or <see cref="float.PositiveInfinity"/>.)</para>
+    /// size is unspecified (<see cref="float.PositiveInfinity"/> or <see cref="float.PositiveInfinity"/>.)</para>
     /// </remarks>
     public float HorizontalAlignment;
 
@@ -107,6 +107,7 @@ public struct TextStyle
         ForeColor = ApplyOpacity(ImGui.GetColorU32(ImGuiCol.Text), ImGui.GetStyle().Alpha),
         TextDecorationColor = ApplyOpacity(ImGui.GetColorU32(ImGuiCol.Text), ImGui.GetStyle().Alpha),
         TextDecorationThickness = 1 / 16f,
+        VerticalAlignment = -1,
     };
 
     /// <summary>Determine if properties are equal, using <see cref="object.ReferenceEquals"/> for reference types.
@@ -126,7 +127,7 @@ public struct TextStyle
         && l.EdgeColor == r.EdgeColor
         && l.TextDecorationColor == r.TextDecorationColor
         && l.ForeColor == r.ForeColor
-        && l.BorderWidth == r.BorderWidth
+        && l.EdgeWidth == r.EdgeWidth
         && l.ShadowOffset == r.ShadowOffset
         && l.TextDecorationThickness == r.TextDecorationThickness
         && l.FontSize == r.FontSize
@@ -236,8 +237,8 @@ public struct TextStyle
                     drawOptionsUpdated = true;
                     return;
 
-                case SpannedRecordType.BorderWidth:
-                    this.BorderWidth = initialStyle.BorderWidth;
+                case SpannedRecordType.EdgeWidth:
+                    this.EdgeWidth = initialStyle.EdgeWidth;
                     drawOptionsUpdated = true;
                     return;
 
@@ -358,8 +359,8 @@ public struct TextStyle
                 drawOptionsUpdated = true;
                 return;
 
-            case SpannedRecordType.BorderWidth
-                when SpannedRecordCodec.TryDecodeBorderWidth(recordData, out this.BorderWidth):
+            case SpannedRecordType.EdgeWidth
+                when SpannedRecordCodec.TryDecodeEdgeWidth(recordData, out this.EdgeWidth):
                 drawOptionsUpdated = true;
                 return;
 

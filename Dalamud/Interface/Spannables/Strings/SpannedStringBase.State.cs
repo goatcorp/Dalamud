@@ -5,10 +5,10 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 
-using Dalamud.Interface.Spannables.EventHandlerArgs;
 using Dalamud.Interface.Spannables.Helpers;
 using Dalamud.Interface.Spannables.Internal;
 using Dalamud.Interface.Spannables.Rendering;
+using Dalamud.Interface.Spannables.RenderPassMethodArgs;
 using Dalamud.Interface.Spannables.Styles;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility;
@@ -39,22 +39,19 @@ public abstract partial class SpannedStringBase
         private Measurement measured;
 
         /// <inheritdoc/>
-        public ref TextState TextState => ref this.measured.TextState;
+        public ref TextState ActiveTextState => ref this.measured.TextState;
+
+        /// <inheritdoc/>
+        public uint ImGuiGlobalId { get; private set; }
 
         /// <inheritdoc/>
         public ref readonly RectVector4 Boundary => ref this.measured.Boundary;
 
         /// <inheritdoc/>
-        public Vector2 ScreenOffset { get; private set; }
-
-        /// <inheritdoc/>
-        public Vector2 TransformationOrigin { get; private set; }
+        public Vector2 InnerOrigin { get; private set; }
 
         /// <inheritdoc/>
         public ref readonly Matrix4x4 Transformation => ref this.measured.Transformation;
-
-        /// <inheritdoc/>
-        public uint ImGuiGlobalId { get; private set; }
 
         /// <inheritdoc/>
         /// <remarks>This is not supposed to be called when not rented, so NRE on accessing this is fine.</remarks>
@@ -76,14 +73,10 @@ public abstract partial class SpannedStringBase
 
         public ref Vector2 MaxSize => ref this.measured.MaxSize;
 
-        public int InteractedLinkRecordIndex { get; set; }
-
-        public bool IsInteractedLinkRecordActive { get; set; }
-
-        public static RenderPass Rent(in SpannableRentRenderPassArgs args)
+        public static RenderPass Rent(in ISpannableRenderer renderer)
         {
             var t = Pool.Get();
-            t.Renderer = args.Renderer;
+            t.Renderer = renderer;
             return t;
         }
 
@@ -91,37 +84,38 @@ public abstract partial class SpannedStringBase
         {
             renderPass.Renderer = null!;
             renderPass.measured.Clear(data);
-            renderPass.InteractedLinkRecordIndex = -1;
-            renderPass.IsInteractedLinkRecordActive = false;
             Pool.Return(renderPass);
         }
 
         /// <inheritdoc/>
         public void MeasureSpannable(scoped in SpannableMeasureArgs args)
         {
-            var state = args.RenderPass as RenderPass ?? new();
             if (args.Sender is not SpannedStringBase ssb)
                 return;
+
+            this.ImGuiGlobalId = args.ImGuiGlobalId;
+
             var data = ssb.GetData();
 
             // Did nothing change? Skip the measurement.
             if (this.measured.UpdateMeasureParams(args, ssb))
                 return;
 
-            state.Offset = Vector2.Zero;
-            state.TextState.LastStyle = state.TextState.InitialStyle;
-            state.MaxSize = args.MaxSize;
-            state.ClearBoundary();
+            this.Offset = Vector2.Zero;
+            this.ActiveTextState.LastStyle = this.ActiveTextState.InitialStyle;
+            this.MaxSize = args.MaxSize;
+            this.measured.Clear(data);
+            this.measured.Boundary = RectVector4.InvertedExtrema;
 
             var segment = new DataRef.Segment(data, 0, 0);
             var linkRecordIndex = -1;
 
-            var drawArgs = new SpannableDrawArgs(ssb, state, default, default);
-            var charRenderer = new CharRenderer(drawArgs, data, state, true);
+            var drawArgs = new SpannableDrawArgs(ssb, this, default, default);
+            var charRenderer = new CharRenderer(drawArgs, data, this, true);
             var skipNextLine = false;
             while (true)
             {
-                state.FindFirstWordWrapByteOffset(args, segment, new(segment), out var line);
+                this.FindFirstWordWrapByteOffset(args, segment, new(segment), out var line);
                 line.FirstOffset = new(segment);
                 var lineSegment = new DataRef.Segment(data, line.Offset.Text, line.Offset.Record);
 
@@ -166,7 +160,7 @@ public abstract partial class SpannedStringBase
 
                 if (!skipNextLine)
                 {
-                    state.AddLine(line);
+                    this.AddLine(line);
                     charRenderer.SetLine(line);
 
                     var accumulatedBoundary = RectVector4.InvertedExtrema;
@@ -183,21 +177,21 @@ public abstract partial class SpannedStringBase
                                 if (absOffset.Text >= line.OmitOffset.Text)
                                     break;
 
-                                if (state.TextState.UseControlCharacter)
+                                if (this.ActiveTextState.UseControlCharacter)
                                 {
                                     var name = c.Value.ShortName;
                                     if (!name.IsEmpty)
                                     {
                                         var offset = charRenderer.StyleTranslation;
-                                        state.Offset += offset;
+                                        this.Offset += offset;
                                         var old = charRenderer.UpdateSpanParams(
-                                            state.TextState.ControlCharactersStyle);
+                                            this.ActiveTextState.ControlCharactersStyle);
                                         charRenderer.LastRendered.Clear();
                                         foreach (var c2 in name)
                                             charRenderer.RenderOne(c2);
                                         charRenderer.LastRendered.Clear();
                                         _ = charRenderer.UpdateSpanParams(old);
-                                        state.Offset -= offset;
+                                        this.Offset -= offset;
                                     }
                                 }
 
@@ -212,13 +206,13 @@ public abstract partial class SpannedStringBase
                             switch (record.Type)
                             {
                                 case SpannedRecordType.Link when record.IsRevert:
-                                    state.UpdateAndResetBoundary(ref accumulatedBoundary, linkRecordIndex);
+                                    this.UpdateAndResetBoundary(ref accumulatedBoundary, linkRecordIndex);
                                     linkRecordIndex = -1;
                                     break;
 
                                 case SpannedRecordType.Link
                                     when SpannedRecordCodec.TryDecodeLink(recordData, out var link):
-                                    state.UpdateAndResetBoundary(ref accumulatedBoundary, linkRecordIndex);
+                                    this.UpdateAndResetBoundary(ref accumulatedBoundary, linkRecordIndex);
                                     linkRecordIndex = record.IsRevert || link.IsEmpty ? -1 : seg.Offset.Record;
                                     break;
                             }
@@ -234,10 +228,10 @@ public abstract partial class SpannedStringBase
 
                     accumulatedBoundary = RectVector4.Union(
                         accumulatedBoundary,
-                        state.ProcessPostLine(line, ref charRenderer, default));
+                        this.ProcessPostLine(line, ref charRenderer, default));
 
-                    state.UpdateAndResetBoundary(ref accumulatedBoundary, linkRecordIndex);
-                    state.ExtendBoundaryBottom(state.Offset.Y + charRenderer.MostRecentLineHeight);
+                    this.UpdateAndResetBoundary(ref accumulatedBoundary, linkRecordIndex);
+                    this.ExtendBoundaryBottom(this.Offset.Y + charRenderer.MostRecentLineHeight);
                 }
                 else
                 {
@@ -252,185 +246,83 @@ public abstract partial class SpannedStringBase
                             break;
                     }
 
-                    if (line.HasNewLineAtEnd || (line.IsWrapped && state.TextState.WordBreak != WordBreakType.KeepAll))
-                        state.BreakLineImmediate(line);
+                    if (line.HasNewLineAtEnd || (line.IsWrapped && this.ActiveTextState.WordBreak != WordBreakType.KeepAll))
+                        this.BreakLineImmediate(line);
                 }
 
                 if (lineSegment.Offset == data.EndOffset)
                     break;
                 segment = lineSegment;
-                if (state.TextState.WordBreak == WordBreakType.KeepAll)
+                if (this.ActiveTextState.WordBreak == WordBreakType.KeepAll)
                 {
                     if (skipNextLine && !line.IsWrapped)
-                        state.MeasuredLines[^1].HasNewLineAtEnd = true;
+                        this.MeasuredLines[^1].HasNewLineAtEnd = true;
                     skipNextLine = line.IsWrapped;
                 }
             }
 
-            state.TextState.LineCount = state.MeasuredLines.Length;
-            state.ExtendBoundaryBottom(state.Offset.Y);
+            this.ActiveTextState.LineCount = this.MeasuredLines.Length;
+            this.ExtendBoundaryBottom(this.Offset.Y);
+
+            if (!this.Boundary.IsValid)
+                this.measured.Boundary = default;
 
 #pragma warning disable SA1101
-            if (state.TextState is { VerticalAlignment: > 0f } && args.MaxSize.Y < float.MaxValue)
+            if (this.ActiveTextState is { VerticalAlignment: > 0f } && args.MaxSize.Y < float.PositiveInfinity)
 #pragma warning restore SA1101
             {
                 var offset = MathF.Round(
-                    (args.MaxSize.Y - state.Boundary.Bottom) *
-                    Math.Clamp(state.TextState.VerticalAlignment, 0f, 1f));
-                state.TranslateBoundaries(new(0, offset), data);
-                state.TextState.ShiftFromVerticalAlignment = offset;
+                    (args.MaxSize.Y - this.Boundary.Bottom) *
+                    Math.Clamp(this.ActiveTextState.VerticalAlignment, 0f, 1f));
+                this.TranslateBoundaries(new(0, offset), data);
+                this.ActiveTextState.ShiftFromVerticalAlignment = offset;
             }
             else
             {
-                state.TextState.ShiftFromVerticalAlignment = 0;
+                this.ActiveTextState.ShiftFromVerticalAlignment = 0;
             }
         }
 
         /// <inheritdoc/>
         public void CommitSpannableMeasurement(scoped in SpannableCommitTransformationArgs args)
         {
-            var state = args.RenderPass as RenderPass ?? new();
             if (args.Sender is not SpannedStringBase ssb)
                 return;
             var data = ssb.GetData();
 
-            this.ScreenOffset = args.ScreenOffset;
-            this.TransformationOrigin = args.TransformationOrigin;
+            this.InnerOrigin = args.InnerOrigin;
             this.measured.Transformation = args.Transformation;
 
             for (var i = 0; i < data.Spannables.Length; i++)
             {
-                if (state.SpannableStates[i] is not { } spannableState)
+                if (this.SpannableStates[i] is not { } spannableState)
                     continue;
 
                 args.NotifyChild(
                     data.Spannables[i],
                     spannableState,
-                    state.SpannableOffsets[i],
-                    spannableState.TextState.LastStyle.Italic
+                    this.SpannableOffsets[i],
+                    spannableState.ActiveTextState.LastStyle.Italic
                         ? new(Matrix3x2.CreateSkew(MathF.Atan(-1 / TextStyleFontData.FakeItalicDivisor), 0))
                         : Matrix4x4.Identity);
             }
         }
 
         /// <inheritdoc/>
-        public unsafe void HandleSpannableInteraction(
-            scoped in SpannableHandleInteractionArgs args,
-            out SpannableLinkInteracted link)
-        {
-            link = default;
-            this.ImGuiGlobalId = args.ImGuiGlobalId;
-
-            var state = args.RenderPass as RenderPass ?? new();
-            if (args.Sender is not SpannedStringBase ssb)
-                return;
-            var data = ssb.GetData();
-
-            for (var i = 0; i < data.Spannables.Length; i++)
-            {
-                if (state.SpannableStates[i] is not { } spannableState)
-                    continue;
-                args.NotifyChild(data.Spannables[i], spannableState, i, out link);
-                if (!link.IsEmpty)
-                    return;
-            }
-
-            var mouseRel = args.MouseLocalLocation;
-
-            state.InteractedLinkRecordIndex = -1;
-            state.IsInteractedLinkRecordActive = false;
-            link = default;
-            foreach (ref var entry in state.LinkBoundaries)
-            {
-                if (entry.Boundary.Contains(mouseRel) && args.IsItemHoverable(entry.RecordIndex))
-                {
-                    if (ssb.GetData().TryGetLinkAt(entry.RecordIndex, out link.Link))
-                        state.InteractedLinkRecordIndex = entry.RecordIndex;
-                    else
-                        state.InteractedLinkRecordIndex = -1;
-
-                    break;
-                }
-            }
-
-            var prevLinkRecordIndex = -1;
-            foreach (ref var linkBoundary in state.LinkBoundaries)
-            {
-                if (prevLinkRecordIndex == linkBoundary.RecordIndex)
-                    continue;
-                prevLinkRecordIndex = linkBoundary.RecordIndex;
-
-                ref var itemState = ref *(ImGuiItemStateStruct*)ImGui.GetStateStorage().GetVoidPtrRef(
-                                            args.RenderPass.GetGlobalIdFromInnerId(linkBoundary.RecordIndex),
-                                            nint.Zero);
-
-                if (itemState.IsMouseButtonDownHandled)
-                {
-                    switch (itemState.FirstMouseButton)
-                    {
-                        case var _ when linkBoundary.RecordIndex != state.InteractedLinkRecordIndex:
-                            state.InteractedLinkRecordIndex = -1;
-                            break;
-                        case ImGuiMouseButton.Left when !args.IsMouseButtonDown(ImGuiMouseButton.Left):
-                            link.IsMouseClicked = true;
-                            link.ClickedMouseButton = ImGuiMouseButton.Left;
-                            itemState.IsMouseButtonDownHandled = false;
-                            break;
-                        case ImGuiMouseButton.Right when !args.IsMouseButtonDown(ImGuiMouseButton.Right):
-                            link.IsMouseClicked = true;
-                            link.ClickedMouseButton = ImGuiMouseButton.Right;
-                            itemState.IsMouseButtonDownHandled = false;
-                            break;
-                        case ImGuiMouseButton.Middle when !args.IsMouseButtonDown(ImGuiMouseButton.Middle):
-                            link.IsMouseClicked = true;
-                            link.ClickedMouseButton = ImGuiMouseButton.Middle;
-                            itemState.IsMouseButtonDownHandled = false;
-                            break;
-                    }
-
-                    if (args.MouseButtonStateFlags == 0)
-                    {
-                        itemState.IsMouseButtonDownHandled = false;
-                        args.ClearActive();
-                    }
-                }
-
-                if (state.InteractedLinkRecordIndex == linkBoundary.RecordIndex)
-                {
-                    args.SetHovered(linkBoundary.RecordIndex);
-                    if (!itemState.IsMouseButtonDownHandled && args.TryGetAnyHeldMouseButton(out var heldButton))
-                    {
-                        itemState.IsMouseButtonDownHandled = true;
-                        itemState.FirstMouseButton = heldButton;
-                    }
-
-                    state.IsInteractedLinkRecordActive = itemState.IsMouseButtonDownHandled;
-                }
-
-                if (itemState.IsMouseButtonDownHandled)
-                {
-                    args.SetHovered(linkBoundary.RecordIndex);
-                    args.SetActive(linkBoundary.RecordIndex);
-                }
-            }
-
-            if (state.InteractedLinkRecordIndex == -1)
-                link = default;
-        }
-
-        /// <inheritdoc/>
         public unsafe void DrawSpannable(SpannableDrawArgs args)
         {
-            var state = args.RenderPass as RenderPass ?? new();
             if (args.Sender is not SpannedStringBase ssb)
                 return;
-            var data = ssb.GetData();
-            state.Offset = new(0, state.TextState.ShiftFromVerticalAlignment);
-            state.TextState.LastStyle = state.TextState.InitialStyle;
 
-            var charRenderer = new CharRenderer(args, data, state, false);
+            using var transformer = ScopedTransformer.From(args, 1f);
+            
+            var data = ssb.GetData();
+            this.Offset = new(0, this.ActiveTextState.ShiftFromVerticalAlignment);
+            this.ActiveTextState.LastStyle = this.ActiveTextState.InitialStyle;
+
+            var charRenderer = new CharRenderer(args, data, this, false);
             var segment = new DataRef.Segment(data, 0, 0);
-            foreach (ref readonly var line in state.MeasuredLines)
+            foreach (ref readonly var line in this.MeasuredLines)
             {
                 charRenderer.SetLine(line);
 
@@ -452,21 +344,21 @@ public abstract partial class SpannedStringBase
 
                             if (absOffset < line.OmitOffset)
                             {
-                                if (state.TextState.UseControlCharacter)
+                                if (this.ActiveTextState.UseControlCharacter)
                                 {
                                     var name = c.Value.ShortName;
                                     if (!name.IsEmpty)
                                     {
                                         var offset = charRenderer.StyleTranslation;
-                                        state.Offset += offset;
+                                        this.Offset += offset;
                                         var old = charRenderer.UpdateSpanParams(
-                                            state.TextState.ControlCharactersStyle);
+                                            this.ActiveTextState.ControlCharactersStyle);
                                         charRenderer.LastRendered.Clear();
                                         foreach (var c2 in name)
                                             charRenderer.RenderOne(c2);
                                         charRenderer.LastRendered.Clear();
                                         _ = charRenderer.UpdateSpanParams(old);
-                                        state.Offset -= offset;
+                                        this.Offset -= offset;
                                     }
                                 }
 
@@ -491,39 +383,155 @@ public abstract partial class SpannedStringBase
                         break;
                 }
 
-                state.ProcessPostLine(line, ref charRenderer, args);
+                this.ProcessPostLine(line, ref charRenderer, args);
             }
 
-            if (state.InteractedLinkRecordIndex != -1)
+            ref var itemState = ref *(ImGuiItemStateStruct*)ImGui.GetStateStorage().GetVoidPtrRef(
+                                        args.RenderPass.ImGuiGlobalId,
+                                        nint.Zero);
+
+            if (itemState.State != ImGuiItemStateStruct.InteractionState.Clear)
             {
                 args.SwitchToChannel(RenderChannel.BackChannel);
 
                 var color =
                     ImGui.GetColorU32(
-                        state.IsInteractedLinkRecordActive ? ImGuiCol.ButtonActive : ImGuiCol.ButtonHovered);
+                        itemState.State == ImGuiItemStateStruct.InteractionState.Active
+                            ? ImGuiCol.ButtonActive
+                            : ImGuiCol.ButtonHovered);
 
-                foreach (var entry in state.LinkBoundaries)
+                foreach (var entry in this.LinkBoundaries)
                 {
-                    if (entry.RecordIndex != state.InteractedLinkRecordIndex)
+                    if (entry.RecordIndex != itemState.InteractedLinkRecordIndex)
                         continue;
 
-                    ImGuiNative.ImDrawList_AddQuadFilled(
+                    ImGuiNative.ImDrawList_AddRectFilled(
                         args.DrawListPtr,
-                        state.TransformToScreen(entry.Boundary.LeftTop),
-                        state.TransformToScreen(entry.Boundary.RightTop),
-                        state.TransformToScreen(entry.Boundary.RightBottom),
-                        state.TransformToScreen(entry.Boundary.LeftBottom),
-                        color);
+                        entry.Boundary.LeftTop,
+                        entry.Boundary.RightBottom,
+                        color,
+                        0f,
+                        ImDrawFlags.None);
                 }
+            }
+        }
+
+        /// <inheritdoc/>
+        public unsafe void HandleSpannableInteraction(
+            scoped in SpannableHandleInteractionArgs args,
+            out SpannableLinkInteracted link)
+        {
+            link = default;
+
+            if (args.Sender is not SpannedStringBase ssb)
+                return;
+            var data = ssb.GetData();
+
+            for (var i = 0; i < data.Spannables.Length; i++)
+            {
+                if (this.SpannableStates[i] is not { } spannableState)
+                    continue;
+                args.NotifyChild(data.Spannables[i], spannableState, out link);
+                if (!link.IsEmpty)
+                    return;
+            }
+
+            var mouseRel = args.MouseLocalLocation;
+
+            ref var itemState = ref *(ImGuiItemStateStruct*)ImGui.GetStateStorage().GetVoidPtrRef(
+                                        args.RenderPass.ImGuiGlobalId,
+                                        nint.Zero);
+
+            itemState.InteractedLinkRecordIndex = -1;
+            itemState.State = ImGuiItemStateStruct.InteractionState.Clear;
+            link = default;
+            foreach (ref var entry in this.LinkBoundaries)
+            {
+                if (entry.Boundary.Contains(mouseRel) && args.IsItemHoverable(entry.RecordIndex))
+                {
+                    if (ssb.GetData().TryGetLinkAt(entry.RecordIndex, out link.Link))
+                        itemState.InteractedLinkRecordIndex = entry.RecordIndex;
+                    else
+                        itemState.InteractedLinkRecordIndex = -1;
+
+                    break;
+                }
+            }
+
+            var prevLinkRecordIndex = -1;
+            foreach (ref var linkBoundary in this.LinkBoundaries)
+            {
+                if (prevLinkRecordIndex == linkBoundary.RecordIndex)
+                    continue;
+                prevLinkRecordIndex = linkBoundary.RecordIndex;
+
+                ref var linkState = ref *(ImGuiLinkStateStruct*)ImGui.GetStateStorage().GetVoidPtrRef(
+                                            args.RenderPass.GetGlobalIdFromInnerId(linkBoundary.RecordIndex),
+                                            nint.Zero);
+
+                if (linkState.IsMouseButtonDownHandled)
+                {
+                    switch (linkState.FirstMouseButton)
+                    {
+                        case var _ when linkBoundary.RecordIndex != itemState.InteractedLinkRecordIndex:
+                            itemState.InteractedLinkRecordIndex = -1;
+                            break;
+                        case ImGuiMouseButton.Left when !args.IsMouseButtonDown(ImGuiMouseButton.Left):
+                            link.IsMouseClicked = true;
+                            link.ClickedMouseButton = ImGuiMouseButton.Left;
+                            linkState.IsMouseButtonDownHandled = false;
+                            break;
+                        case ImGuiMouseButton.Right when !args.IsMouseButtonDown(ImGuiMouseButton.Right):
+                            link.IsMouseClicked = true;
+                            link.ClickedMouseButton = ImGuiMouseButton.Right;
+                            linkState.IsMouseButtonDownHandled = false;
+                            break;
+                        case ImGuiMouseButton.Middle when !args.IsMouseButtonDown(ImGuiMouseButton.Middle):
+                            link.IsMouseClicked = true;
+                            link.ClickedMouseButton = ImGuiMouseButton.Middle;
+                            linkState.IsMouseButtonDownHandled = false;
+                            break;
+                    }
+
+                    if (args.MouseButtonStateFlags == 0)
+                    {
+                        linkState.IsMouseButtonDownHandled = false;
+                        args.ClearActive();
+                    }
+                }
+
+                if (itemState.InteractedLinkRecordIndex == linkBoundary.RecordIndex)
+                {
+                    args.SetHovered(linkBoundary.RecordIndex);
+                    if (!linkState.IsMouseButtonDownHandled && args.TryGetAnyHeldMouseButton(out var heldButton))
+                    {
+                        linkState.IsMouseButtonDownHandled = true;
+                        linkState.FirstMouseButton = heldButton;
+                    }
+
+                    itemState.State =
+                        linkState.IsMouseButtonDownHandled
+                            ? ImGuiItemStateStruct.InteractionState.Active
+                            : ImGuiItemStateStruct.InteractionState.Hover;
+                }
+
+                if (linkState.IsMouseButtonDownHandled)
+                {
+                    args.SetHovered(linkBoundary.RecordIndex);
+                    args.SetActive(linkBoundary.RecordIndex);
+                }
+            }
+
+            if (itemState.InteractedLinkRecordIndex == -1)
+            {
+                itemState.State = ImGuiItemStateStruct.InteractionState.Clear;
+                link = default;
             }
         }
 
         /// <summary>Adds a line, from <see cref="MeasureSpannable"/> step.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void AddLine(in MeasuredLine line) => this.measured.Lines!.Add(line);
-
-        /// <summary>Clears the boundary, to be used from <see cref="MeasureSpannable"/> step.</summary>
-        public void ClearBoundary() => this.measured.Boundary = RectVector4.InvertedExtrema;
 
         /// <summary>Updates <see cref="Measurement.Boundary"/>, <see cref="Measurement.LinkBoundaries"/>,
         /// and resets <paramref name="accumulator"/>, from <see cref="MeasureSpannable"/> step.</summary>
@@ -539,8 +547,13 @@ public abstract partial class SpannedStringBase
             accumulator = RectVector4.InvertedExtrema;
         }
 
-        public void ExtendBoundaryBottom(float b) =>
+        public void ExtendBoundaryBottom(float b)
+        {
+            if (!this.measured.Boundary.IsValid)
+                return;
+
             this.measured.Boundary.Bottom = Math.Max(this.measured.Boundary.Bottom, b);
+        }
 
         public void TranslateBoundaries(Vector2 translation, DataRef data)
         {
@@ -579,18 +592,19 @@ public abstract partial class SpannedStringBase
                             var ssb = this.TempBuilder ??= new();
                             ssb.Clear().Append(name);
 
-                            var state2 = Rent(new(this.Renderer));
+                            var state2 = Rent(this.Renderer);
                             state2.MeasureSpannable(
                                 new(
                                     ssb,
                                     state2,
-                                    new(float.MaxValue),
+                                    new(float.PositiveInfinity),
                                     this.Scale,
                                     this.measured.TextState with
                                     {
                                         LastStyle = this.measured.TextState.ControlCharactersStyle,
                                         InitialStyle = this.measured.TextState.ControlCharactersStyle,
-                                    }));
+                                    },
+                                    0));
 
                             if (state2.Boundary.IsValid)
                             {
@@ -677,22 +691,23 @@ public abstract partial class SpannedStringBase
                         charRenderer.RenderOne(SoftHyphenReplacementChar));
                 }
 
-                if (this.measured.TextState.WrapMarker is { } wrapMarker)
+                if (this.measured.TextState.WrapMarker is { } wm)
                 {
-                    var state2 = wrapMarker.RentRenderPass(new(this.Renderer));
-                    state2.MeasureSpannable(
+                    var wmrp = wm.RentRenderPass(this.Renderer);
+                    wmrp.MeasureSpannable(
                         new(
-                            wrapMarker,
-                            state2,
-                            new(float.MaxValue),
+                            wm,
+                            wmrp,
+                            new(float.PositiveInfinity),
                             this.Scale,
                             this.measured.TextState with
                             {
                                 InitialStyle = this.measured.TextState.LastStyle,
                                 WordBreak = WordBreakType.KeepAll,
                                 WrapMarker = null,
-                            }));
-                    if (state2.Boundary.IsValid)
+                            },
+                            0));
+                    if (wmrp.Boundary.IsValid)
                     {
                         if (!args.IsEmpty)
                         {
@@ -703,26 +718,36 @@ public abstract partial class SpannedStringBase
                                     Matrix3x2.CreateSkew(MathF.Atan(-1 / TextStyleFontData.FakeItalicDivisor), 0));
                             }
 
-                            state2.CommitSpannableMeasurement(
-                                new(
-                                    wrapMarker,
-                                    state2,
-                                    this.TransformToScreen(this.Offset + charRenderer.StyleTranslation),
-                                    this.TransformationOrigin,
-                                    Matrix4x4.Multiply(mtx, this.Transformation.WithoutTranslation())));
-                            args.NotifyChild(wrapMarker, state2);
+                            new SpannableCommitTransformationArgs(
+                                    args.Sender,
+                                    args.RenderPass,
+                                    this.InnerOrigin,
+                                    this.Transformation)
+                                .NotifyChild(
+                                    wm,
+                                    wmrp,
+                                    this.Offset + charRenderer.StyleTranslation,
+                                    mtx);
+                            // wmrp.CommitSpannableMeasurement(
+                            //     new(
+                            //         wm,
+                            //         wmrp,
+                            //         this.TransformToScreen(this.Offset + charRenderer.StyleTranslation),
+                            //         this.TransformationOrigin,
+                            //         Matrix4x4.Multiply(mtx, this.Transformation.WithoutTranslation())));
+                            args.NotifyChild(wm, wmrp);
                         }
 
                         accumulatedBoundary = RectVector4.Union(
                             accumulatedBoundary,
                             RectVector4.Translate(
-                                state2.Boundary,
+                                wmrp.Boundary,
                                 this.Offset + charRenderer.StyleTranslation));
-                        this.Offset.X += state2.Boundary.Right;
+                        this.Offset.X += wmrp.Boundary.Right;
                         charRenderer.LastRendered.Clear();
                     }
 
-                    wrapMarker.ReturnRenderPass(state2);
+                    wm.ReturnRenderPass(wmrp);
                 }
             }
 
@@ -788,9 +813,9 @@ public abstract partial class SpannedStringBase
                     this.SpannableOffsets.Add(default);
                     this.SpannableGenerations.Add(-1);
                 }
-    
+
                 for (var i = 0; i < data.Spannables.Length; i++)
-                    this.SpannableStates[i] = data.Spannables[i]?.RentRenderPass(new(args.RenderPass.Renderer));
+                    this.SpannableStates[i] = data.Spannables[i]?.RentRenderPass(args.RenderPass.Renderer);
 
                 return false;
             }

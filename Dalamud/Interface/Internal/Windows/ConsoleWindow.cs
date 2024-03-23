@@ -132,7 +132,7 @@ internal class ConsoleWindow : Window, IDisposable
                                        new(DalamudAssetFontAndFamilyId.From(DalamudAsset.InconsolataRegular)),
                                        out _)
                                    .PushEdgeColor(0xFF000044)
-                                   .PushBorderWidth(1)
+                                   .PushEdgeWidth(1)
                                    .PushForeColor(0xFFCCCCFF)
                                    .PushItalic(true)
                                    .PushFontSize(-0.6f)
@@ -1185,12 +1185,12 @@ internal class ConsoleWindow : Window, IDisposable
     private TextState.Options GetTextStateOptions() => new()
     {
         WordBreak = this.activeConfiguration.LogLineBreakMode,
-        InitialStyle = new() { BorderWidth = 1f },
+        InitialStyle = new() { EdgeWidth = 1f },
         ControlCharactersStyle = new()
         {
             Font = new(DalamudAssetFontAndFamilyId.From(DalamudAsset.InconsolataRegular)),
             BackColor = 0xFF333333,
-            BorderWidth = 1,
+            EdgeWidth = 1,
             ForeColor = 0xFFFFFFFF,
             FontSize = ImGui.GetFont().FontSize * 0.6f,
             VerticalAlignment = 0.5f,

@@ -446,14 +446,14 @@ internal interface ISpannedStringBuilder
     /// <summary>Pushes a border width (thickness) to use from now on.</summary>
     /// <param name="value">The new width (thickness).</param>
     /// <returns>A reference of this instance after the push operation is completed.</returns>
-    [SpannedParseInstruction(SpannedRecordType.BorderWidth, false, "bw", "border-width")]
-    SpannedStringBuilder PushBorderWidth(float value);
+    [SpannedParseInstruction(SpannedRecordType.EdgeWidth, false, "ew", "edge-width")]
+    SpannedStringBuilder PushEdgeWidth(float value);
 
     /// <summary>Pops a border width.</summary>
     /// <returns>A reference of this instance after the pop operation is completed.</returns>
     /// <exception cref="InvalidOperationException">The stack is empty.</exception>
-    [SpannedParseInstruction(SpannedRecordType.BorderWidth, true, "/bw", "/border-width")]
-    SpannedStringBuilder PopBorderWidth();
+    [SpannedParseInstruction(SpannedRecordType.EdgeWidth, true, "/ew", "/edge-width")]
+    SpannedStringBuilder PopEdgeWidth();
 
     /// <summary>Pushes a shadow offset to use from now on.</summary>
     /// <param name="value">The new shadow offset.</param>

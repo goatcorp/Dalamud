@@ -124,52 +124,74 @@ internal sealed partial class SpannableRenderer : ISpannableRenderer, IInternalD
         using var splitter = renderContext.UseDrawing ? this.RentSplitter(renderContext.DrawListPtr) : default;
 
         var result = default(RenderResult);
-        var state = spannable.RentRenderPass(new(this));
-        state.MeasureSpannable(new(spannable, state, renderContext.MaxSize, renderContext.Scale, new(textOptions)));
+        var state = spannable.RentRenderPass(this);
+        state.MeasureSpannable(
+            new(
+                spannable,
+                state,
+                renderContext.MaxSize,
+                renderContext.Scale,
+                new(textOptions),
+                renderContext.ImGuiGlobalId));
+
         state.CommitSpannableMeasurement(
             new(
                 spannable,
                 state,
-                renderContext.ScreenOffset,
-                renderContext.TransformationOrigin,
+                renderContext.InnerOrigin,
                 renderContext.Transformation));
+
         if (renderContext.UseDrawing)
         {
+            using (new ScopedTransformer(
+                       Matrix4x4.CreateTranslation(new(renderContext.ScreenOffset, 0)),
+                       renderContext.DrawListPtr,
+                       1f))
+            {
+                state.DrawSpannable(new(spannable, state, splitter, renderContext.DrawListPtr));
+            }
+
             if (renderContext.UseInteraction)
             {
+                var msl = renderContext.MouseScreenLocation;
+                var mll = Vector2.Transform(
+                    msl - renderContext.ScreenOffset,
+                    Matrix4x4.Invert(state.Transformation, out var inverted) ? inverted : Matrix4x4.Identity);
                 state.HandleSpannableInteraction(
                     new(spannable, state)
                     {
-                        ImGuiGlobalId = renderContext.ImGuiGlobalId,
                         MouseButtonStateFlags = (ImGui.IsMouseDown(ImGuiMouseButton.Left) ? 1 : 0)
                                                 | (ImGui.IsMouseDown(ImGuiMouseButton.Right) ? 2 : 0)
                                                 | (ImGui.IsMouseDown(ImGuiMouseButton.Middle) ? 4 : 0),
-                        MouseScreenLocation = renderContext.MouseScreenLocation,
+                        MouseScreenLocation = msl,
+                        MouseLocalLocation = mll,
                         WheelDelta = new(ImGui.GetIO().MouseWheelH, ImGui.GetIO().MouseWheel),
                     },
                     out result.InteractedLink);
             }
 
-            state.DrawSpannable(new(spannable, state, splitter, renderContext.DrawListPtr));
+            if (renderContext.PutDummyAfterRender)
+            {
+                var lt = renderContext.ScreenOffset
+                         + Vector2.Transform(state.Boundary.LeftTop, renderContext.Transformation);
+                var rt = renderContext.ScreenOffset
+                         + Vector2.Transform(state.Boundary.RightTop, renderContext.Transformation);
+                var rb = renderContext.ScreenOffset
+                         + Vector2.Transform(state.Boundary.RightBottom, renderContext.Transformation);
+                var lb = renderContext.ScreenOffset
+                         + Vector2.Transform(state.Boundary.LeftBottom, renderContext.Transformation);
+                var minPos = Vector2.Min(Vector2.Min(lt, rt), Vector2.Min(lb, rb));
+                var maxPos = Vector2.Max(Vector2.Max(lt, rt), Vector2.Max(lb, rb));
+                if (minPos.X <= maxPos.X && minPos.Y <= maxPos.Y)
+                {
+                    ImGui.SetCursorScreenPos(minPos);
+                    ImGui.Dummy(maxPos - minPos);
+                }
+            }
         }
 
         result.Boundary = state.Boundary;
-        result.FinalTextState = state.TextState;
-
-        if (renderContext.PutDummyAfterRender)
-        {
-            var lt = state.TransformToScreen(state.Boundary.LeftTop);
-            var rt = state.TransformToScreen(state.Boundary.RightTop);
-            var rb = state.TransformToScreen(state.Boundary.RightBottom);
-            var lb = state.TransformToScreen(state.Boundary.LeftBottom);
-            var minPos = Vector2.Min(Vector2.Min(lt, rt), Vector2.Min(lb, rb));
-            var maxPos = Vector2.Max(Vector2.Max(lt, rt), Vector2.Max(lb, rb));
-            if (minPos.X <= maxPos.X && minPos.Y <= maxPos.Y)
-            {
-                ImGui.SetCursorScreenPos(minPos);
-                ImGui.Dummy(maxPos - minPos);
-            }
-        }
+        result.FinalTextState = state.ActiveTextState;
 
         spannable.ReturnRenderPass(state);
 

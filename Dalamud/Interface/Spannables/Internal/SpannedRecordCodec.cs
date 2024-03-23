@@ -274,18 +274,18 @@ internal sealed class SpannedRecordCodec
     public static int EncodeForeColor(Span<byte> dataStream, Rgba32 color) =>
         Encode(ref dataStream, color);
 
-    /// <summary>Decodes data for <see cref="SpannedRecordType.BorderWidth"/>.</summary>
+    /// <summary>Decodes data for <see cref="SpannedRecordType.EdgeWidth"/>.</summary>
     /// <param name="dataStream">The data stream to decode from.</param>
     /// <param name="width">The border width.</param>
     /// <returns><c>true</c> on success.</returns>
-    public static bool TryDecodeBorderWidth(ReadOnlySpan<byte> dataStream, out float width) =>
+    public static bool TryDecodeEdgeWidth(ReadOnlySpan<byte> dataStream, out float width) =>
         TryDecode(ref dataStream, out width);
 
-    /// <summary>Encodes data for <see cref="SpannedRecordType.BorderWidth"/>.</summary>
+    /// <summary>Encodes data for <see cref="SpannedRecordType.EdgeWidth"/>.</summary>
     /// <param name="dataStream">The optional data stream to encode to.</param>
     /// <param name="width">The border width.</param>
     /// <returns>The remaning region of <paramref name="dataStream"/>.</returns>
-    public static int EncodeBorderWidth(Span<byte> dataStream, float width) =>
+    public static int EncodeEdgeWidth(Span<byte> dataStream, float width) =>
         Encode(ref dataStream, width);
 
     /// <summary>Decodes data for <see cref="SpannedRecordType.ShadowOffset"/>.</summary>

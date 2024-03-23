@@ -3,9 +3,9 @@ using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using System.Runtime.InteropServices;
 
-using Dalamud.Interface.Spannables.EventHandlerArgs;
 using Dalamud.Interface.Spannables.Helpers;
 using Dalamud.Interface.Spannables.Rendering;
+using Dalamud.Interface.Spannables.RenderPassMethodArgs;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility.Numerics;
 
@@ -21,8 +21,8 @@ public abstract class PatternSpannable : ISpannable
 {
     private readonly PatternRenderPass?[] statePool = new PatternRenderPass?[4];
 
-    /// <inheritdoc/>
-    public IReadOnlyCollection<ISpannable?> Children => this.AllChildren;
+    /// <summary>Gets or sets the size.</summary>
+    public Vector2 Size { get; set; } = new(float.PositiveInfinity);
 
     /// <inheritdoc/>
     public int StateGeneration { get; protected set; }
@@ -45,7 +45,10 @@ public abstract class PatternSpannable : ISpannable
     }
 
     /// <inheritdoc/>
-    public ISpannableRenderPass RentRenderPass(scoped in SpannableRentRenderPassArgs args)
+    public IReadOnlyCollection<ISpannable?> GetAllChildSpannables() => this.AllChildren;
+
+    /// <inheritdoc/>
+    public ISpannableRenderPass RentRenderPass(ISpannableRenderer renderer)
     {
         PatternRenderPass? res = null;
         foreach (ref var s in this.statePool.AsSpan())
@@ -58,7 +61,7 @@ public abstract class PatternSpannable : ISpannable
         }
 
         res ??= this.CreateNewRenderPass();
-        res.OnRentState(args);
+        res.OnRentState(renderer);
         return res;
     }
 
@@ -70,13 +73,14 @@ public abstract class PatternSpannable : ISpannable
             if (s is null)
             {
                 s = pass as PatternRenderPass;
+                s?.OnReturnState();
                 return;
             }
         }
     }
 
     /// <summary>Disposes this instance of <see cref="PatternSpannable"/>.</summary>
-    /// <param name="disposing">Whether it is being called from <see cref="Dispose"/>.</param>
+    /// <param name="disposing">Whether it is being called from <see cref="IDisposable.Dispose"/>.</param>
     protected virtual void Dispose(bool disposing)
     {
         if (disposing)
@@ -101,53 +105,63 @@ public abstract class PatternSpannable : ISpannable
         private Matrix4x4 transformation;
 
         /// <inheritdoc/>
-        public ref TextState TextState => ref this.activeTextState;
+        public ref TextState ActiveTextState => ref this.activeTextState;
 
         /// <summary>Gets the active render scale.</summary>
         public float Scale { get; private set; }
 
         /// <inheritdoc/>
+        public uint ImGuiGlobalId { get; private set; }
+
+        /// <inheritdoc/>
         public ref readonly RectVector4 Boundary => ref this.boundary;
 
         /// <inheritdoc/>
-        public Vector2 ScreenOffset { get; private set; }
-
-        /// <inheritdoc/>
-        public Vector2 TransformationOrigin { get; private set; }
+        public Vector2 InnerOrigin { get; private set; }
 
         /// <inheritdoc/>
         public ref readonly Matrix4x4 Transformation => ref this.transformation;
 
         /// <inheritdoc/>
-        public uint ImGuiGlobalId { get; private set; }
-
-        /// <inheritdoc/>
         public ISpannableRenderer Renderer { get; private set; } = null!;
 
         /// <summary>Called when <see cref="ISpannable.RentRenderPass"/> has been called.</summary>
-        /// <param name="args">The arguments.</param>
-        public virtual void OnRentState(SpannableRentRenderPassArgs args)
+        /// <param name="renderer">The renderer.</param>
+        public virtual void OnRentState(ISpannableRenderer renderer) => this.Renderer = renderer;
+
+        /// <summary>Called when <see cref="ISpannable.ReturnRenderPass"/> has been called.</summary>
+        public virtual void OnReturnState()
         {
-            this.Renderer = args.Renderer;
         }
 
         /// <inheritdoc/>
         public virtual void MeasureSpannable(scoped in SpannableMeasureArgs args)
         {
             this.Scale = args.Scale;
+            this.ImGuiGlobalId = args.ImGuiGlobalId;
             this.activeTextState = args.TextState;
-            if (args.MaxSize.X >= float.MaxValue || args.MaxSize.Y >= float.MaxValue)
-                this.boundary = new(Vector2.Zero);
-            else
-                this.boundary = new(Vector2.Zero, args.MaxSize);
+
+            var size = Vector2.Min(((PatternSpannable)args.Sender).Size * args.Scale, args.MaxSize);
+            if (size.X >= float.PositiveInfinity)
+                size.X = 0;
+            if (size.Y >= float.PositiveInfinity)
+                size.Y = 0;
+
+            this.boundary = new(Vector2.Zero, size);
         }
 
         /// <inheritdoc/>
         public virtual void CommitSpannableMeasurement(scoped in SpannableCommitTransformationArgs args)
         {
-            this.ScreenOffset = args.ScreenOffset;
-            this.TransformationOrigin = args.TransformationOrigin;
+            this.InnerOrigin = args.InnerOrigin;
             this.transformation = args.Transformation;
+        }
+
+        /// <inheritdoc/>
+        public void DrawSpannable(SpannableDrawArgs args)
+        {
+            using var st = ScopedTransformer.From(args, 1f);
+            this.DrawUntransformed(args);
         }
 
         /// <inheritdoc/>
@@ -155,12 +169,12 @@ public abstract class PatternSpannable : ISpannable
             scoped in SpannableHandleInteractionArgs args,
             out SpannableLinkInteracted link)
         {
-            this.ImGuiGlobalId = args.ImGuiGlobalId;
             link = default;
         }
 
-        /// <inheritdoc/>
-        public virtual void DrawSpannable(SpannableDrawArgs args)
+        /// <summary>Draws the spannable without regarding to <see cref="Transformation"/>.</summary>
+        /// <param name="args">The drawing arguments.</param>
+        protected virtual void DrawUntransformed(SpannableDrawArgs args)
         {
         }
     }

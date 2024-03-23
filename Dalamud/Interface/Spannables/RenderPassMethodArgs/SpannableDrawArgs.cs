@@ -4,7 +4,7 @@ using Dalamud.Interface.Spannables.Rendering;
 
 using ImGuiNET;
 
-namespace Dalamud.Interface.Spannables.EventHandlerArgs;
+namespace Dalamud.Interface.Spannables.RenderPassMethodArgs;
 
 /// <summary>Arguments for use with <see cref="ISpannableRenderPass.DrawSpannable"/>.</summary>
 public struct SpannableDrawArgs

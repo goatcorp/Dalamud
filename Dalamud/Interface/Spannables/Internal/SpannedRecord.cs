@@ -231,7 +231,7 @@ internal struct SpannedRecord
                 when SpannedRecordCodec.TryDecodeTextDecorationColor(data, out var color):
                 sb.Append(' ').Append(color.ToString());
                 return;
-            case SpannedRecordType.BorderWidth when SpannedRecordCodec.TryDecodeBorderWidth(data, out var f32):
+            case SpannedRecordType.EdgeWidth when SpannedRecordCodec.TryDecodeEdgeWidth(data, out var f32):
                 sb.Append(formatProvider, $" {f32:g}");
                 return;
             case SpannedRecordType.ShadowOffset when SpannedRecordCodec.TryDecodeShadowOffset(data, out var v2):

@@ -21,7 +21,7 @@ public sealed partial class SpannedStringBuilder
     private readonly List<SpannedRecord> records = new();
     private readonly List<FontHandleVariantSet> fontSets = new();
     private readonly List<IDalamudTextureWrap?> textures = new();
-    private readonly List<ISpannable?> spannables;
+    private readonly List<ISpannable?> spannables = new();
 
     private Stack<int>? stackLink;
     private Stack<int>? stackFontSize;
@@ -40,17 +40,12 @@ public sealed partial class SpannedStringBuilder
     private Stack<int>? stackEdgeColor;
     private Stack<int>? stackTextDecorationColor;
     private Stack<int>? stackForeCoor;
-    private Stack<int>? stackBorderWidth;
+    private Stack<int>? stackEdgeWidth;
     private Stack<int>? stackShadowOffset;
     private Stack<int>? stackTextDecorationThickness;
 
-    /// <summary>Initializes a new instance of the <see cref="SpannedStringBuilder"/> class.</summary>
-    public SpannedStringBuilder()
-        : base(new List<ISpannable?>())
-    {
-        this.spannables = (List<ISpannable>)this.Children;
-        this.records.Add(default);
-    }
+    /// <inheritdoc/>
+    public override IReadOnlyCollection<ISpannable?> GetAllChildSpannables() => this.spannables;
 
     /// <inheritdoc/>
     public SpannedString Build() =>
@@ -89,7 +84,7 @@ public sealed partial class SpannedStringBuilder
         this.stackEdgeColor?.Clear();
         this.stackTextDecorationColor?.Clear();
         this.stackForeCoor?.Clear();
-        this.stackBorderWidth?.Clear();
+        this.stackEdgeWidth?.Clear();
         this.stackShadowOffset?.Clear();
         this.stackTextDecorationThickness?.Clear();
         return this;
@@ -101,6 +96,9 @@ public sealed partial class SpannedStringBuilder
         this.Clear();
         return true;
     }
+
+    /// <inheritdoc/>
+    public override string ToString() => this.Build().ToString();
 
     /// <inheritdoc/>
     private protected override DataRef GetData() =>

@@ -46,8 +46,8 @@ public abstract partial class SpannedStringBase
             get => new()
             {
                 Offset = CompositeOffset.Empty,
-                BBoxHorizontal = new(float.MaxValue, float.MinValue),
-                BBoxVertical = new(float.MaxValue, float.MinValue),
+                BBoxHorizontal = new(float.PositiveInfinity, float.NegativeInfinity),
+                BBoxVertical = new(float.PositiveInfinity, float.NegativeInfinity),
                 LastThing = default,
             };
         }

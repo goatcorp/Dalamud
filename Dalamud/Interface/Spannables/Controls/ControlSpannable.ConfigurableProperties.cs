@@ -1,7 +1,8 @@
 using System.Numerics;
 
 using Dalamud.Interface.Spannables.Controls.Animations;
-using Dalamud.Interface.Spannables.Controls.EventHandlerDelegates;
+using Dalamud.Interface.Spannables.Controls.EventHandlers;
+using Dalamud.Interface.Spannables.Rendering;
 using Dalamud.Utility.Numerics;
 
 namespace Dalamud.Interface.Spannables.Controls;
@@ -12,9 +13,10 @@ public partial class ControlSpannable
     private bool enabled = true;
     private bool visible = true;
     private string? text;
+    private TextState.Options textStateOptions;
     private Vector2 size = new(WrapContent);
     private Vector2 minSize = Vector2.Zero;
-    private Vector2 maxSize = new(float.MaxValue);
+    private Vector2 maxSize = new(float.PositiveInfinity);
     private RectVector4 extrude = RectVector4.Zero;
     private RectVector4 margin = RectVector4.Zero;
     private RectVector4 padding = RectVector4.Zero;
@@ -22,9 +24,10 @@ public partial class ControlSpannable
     private ISpannable? hoveredBackground;
     private ISpannable? activeBackground;
     private ISpannable? disabledBackground;
-    private SpannableControlAnimator? showAnimation;
-    private SpannableControlAnimator? hideAnimation;
+    private SpannableAnimator? showAnimation;
+    private SpannableAnimator? hideAnimation;
     private float disabledTextOpacity = 0.5f;
+    private bool captureMouseOnMouseDown;
     private bool interceptMouseWheelUp;
     private bool interceptMouseWheelDown;
     private bool interceptMouseWheelLeft;
@@ -34,14 +37,14 @@ public partial class ControlSpannable
     public bool Enabled
     {
         get => this.enabled;
-        set => this.HandlePropertyChange(nameof(this.Enabled), ref this.enabled, value, this.OnEnabledChanged);
+        set => this.HandlePropertyChange(nameof(this.Enabled), ref this.enabled, value, this.OnEnabledChange);
     }
 
     /// <summary>Gets or sets a value indicating whether this control is visible.</summary>
     public bool Visible
     {
         get => this.visible;
-        set => this.HandlePropertyChange(nameof(this.Visible), ref this.visible, value, this.OnVisibleChanged);
+        set => this.HandlePropertyChange(nameof(this.Visible), ref this.visible, value, this.OnVisibleChange);
     }
 
     /// <summary>Gets or sets a text.</summary>
@@ -50,7 +53,19 @@ public partial class ControlSpannable
     public string? Text
     {
         get => this.text;
-        set => this.HandlePropertyChange(nameof(this.Text), ref this.text, value, this.OnTextChanged);
+        set => this.HandlePropertyChange(nameof(this.Text), ref this.text, value, this.OnTextChange);
+    }
+
+    /// <summary>Gets or sets the text state options.</summary>
+    /// <remarks>If empty, the text state from the parent will be used.</remarks>
+    public TextState.Options TextStateOptions
+    {
+        get => this.textStateOptions;
+        set => this.HandlePropertyChange(
+            nameof(this.TextStateOptions),
+            ref this.textStateOptions,
+            value,
+            this.OnTextStateOptionsChange);
     }
 
     /// <summary>Gets or sets the size.</summary>
@@ -62,7 +77,7 @@ public partial class ControlSpannable
     public Vector2 Size
     {
         get => this.size;
-        set => this.HandlePropertyChange(nameof(this.Size), ref this.size, value, this.OnSizeChanged);
+        set => this.HandlePropertyChange(nameof(this.Size), ref this.size, value, this.OnSizeChange);
     }
 
     /// <summary>Gets or sets the minimum size.</summary>
@@ -74,7 +89,7 @@ public partial class ControlSpannable
     public Vector2 MinSize
     {
         get => this.minSize;
-        set => this.HandlePropertyChange(nameof(this.MinSize), ref this.minSize, value, this.OnMinSizeChanged);
+        set => this.HandlePropertyChange(nameof(this.MinSize), ref this.minSize, value, this.OnMinSizeChange);
     }
 
     /// <summary>Gets or sets the maximum size.</summary>
@@ -86,7 +101,7 @@ public partial class ControlSpannable
     public Vector2 MaxSize
     {
         get => this.maxSize;
-        set => this.HandlePropertyChange(nameof(this.MaxSize), ref this.maxSize, value, this.OnMaxSizeChanged);
+        set => this.HandlePropertyChange(nameof(this.MaxSize), ref this.maxSize, value, this.OnMaxSizeChange);
     }
 
     /// <summary>Gets or sets the extrusion.</summary>
@@ -97,7 +112,7 @@ public partial class ControlSpannable
     public RectVector4 Extrude
     {
         get => this.extrude;
-        set => this.HandlePropertyChange(nameof(this.Extrude), ref this.extrude, value, this.OnExtrudeChanged);
+        set => this.HandlePropertyChange(nameof(this.Extrude), ref this.extrude, value, this.OnExtrudeChange);
     }
 
     /// <summary>Gets or sets the margin.</summary>
@@ -108,7 +123,7 @@ public partial class ControlSpannable
     public RectVector4 Margin
     {
         get => this.margin;
-        set => this.HandlePropertyChange(nameof(this.Margin), ref this.margin, value, this.OnMarginChanged);
+        set => this.HandlePropertyChange(nameof(this.Margin), ref this.margin, value, this.OnMarginChange);
     }
 
     /// <summary>Gets or sets the padding.</summary>
@@ -119,7 +134,7 @@ public partial class ControlSpannable
     public RectVector4 Padding
     {
         get => this.padding;
-        set => this.HandlePropertyChange(nameof(this.Padding), ref this.padding, value, this.OnPaddingChanged);
+        set => this.HandlePropertyChange(nameof(this.Padding), ref this.padding, value, this.OnPaddingChange);
     }
 
     /// <summary>Gets or sets the normal background spannable.</summary>
@@ -130,7 +145,7 @@ public partial class ControlSpannable
             nameof(this.NormalBackground),
             ref this.normalBackground,
             value,
-            this.OnNormalBackgroundChanged);
+            this.OnNormalBackgroundChange);
     }
 
     /// <summary>Gets or sets the hovered background spannable.</summary>
@@ -141,7 +156,7 @@ public partial class ControlSpannable
             nameof(this.HoveredBackground),
             ref this.hoveredBackground,
             value,
-            this.OnHoveredBackgroundChanged);
+            this.OnHoveredBackgroundChange);
     }
 
     /// <summary>Gets or sets the active background spannable.</summary>
@@ -152,7 +167,7 @@ public partial class ControlSpannable
             nameof(this.ActiveBackground),
             ref this.activeBackground,
             value,
-            this.OnActiveBackgroundChanged);
+            this.OnActiveBackgroundChange);
     }
 
     /// <summary>Gets or sets the disabled background spannable.</summary>
@@ -163,29 +178,29 @@ public partial class ControlSpannable
             nameof(this.DisabledBackground),
             ref this.disabledBackground,
             value,
-            this.OnDisabledBackgroundChanged);
+            this.OnDisabledBackgroundChange);
     }
 
     /// <summary>Gets or sets the animation to play when <see cref="Visible"/> changes to <c>true</c>.</summary>
-    public SpannableControlAnimator? ShowAnimation
+    public SpannableAnimator? ShowAnimation
     {
         get => this.showAnimation;
         set => this.HandlePropertyChange(
             nameof(this.ShowAnimation),
             ref this.showAnimation,
             value,
-            this.OnShowAnimationChanged);
+            this.OnShowAnimationChange);
     }
 
     /// <summary>Gets or sets the animation to play when <see cref="Visible"/> changes to <c>false</c>.</summary>
-    public SpannableControlAnimator? HideAnimation
+    public SpannableAnimator? HideAnimation
     {
         get => this.hideAnimation;
         set => this.HandlePropertyChange(
             nameof(this.HideAnimation),
             ref this.hideAnimation,
             value,
-            this.OnHideAnimationChanged);
+            this.OnHideAnimationChange);
     }
 
     /// <summary>Gets or sets the opacity of the body when the control is disabled.</summary>
@@ -196,7 +211,21 @@ public partial class ControlSpannable
             nameof(this.DisabledTextOpacity),
             ref this.disabledTextOpacity,
             value,
-            this.OnDisabledTextOpacityChanged);
+            this.OnDisabledTextOpacityChange);
+    }
+
+    /// <summary>Gets or sets a value indicating whether to capture mouse events when a mouse button is held on
+    /// the control.</summary>
+    /// <remarks>Enabling this when <see cref="Enabled"/> is set will typically prevent moving the container window by
+    /// dragging on what <i>looks</i> like the window background.</remarks>
+    public bool CaptureMouseOnMouseDown
+    {
+        get => this.captureMouseOnMouseDown;
+        set => this.HandlePropertyChange(
+            nameof(this.CaptureMouseOnMouseDown),
+            ref this.captureMouseOnMouseDown,
+            value,
+            this.OnCaptureMouseOnMouseDownChange);
     }
 
     /// <summary>Gets or sets a value indicating whether mouse wheel scroll up event should be intercepted.</summary>
@@ -207,7 +236,7 @@ public partial class ControlSpannable
             nameof(this.InterceptMouseWheelUp),
             ref this.interceptMouseWheelUp,
             value,
-            this.OnInterceptMouseWheelUpChanged);
+            this.OnInterceptMouseWheelUpChange);
     }
 
     /// <summary>Gets or sets a value indicating whether mouse wheel scroll down event should be intercepted.</summary>
@@ -218,7 +247,7 @@ public partial class ControlSpannable
             nameof(this.InterceptMouseWheelDown),
             ref this.interceptMouseWheelDown,
             value,
-            this.OnInterceptMouseWheelDownChanged);
+            this.OnInterceptMouseWheelDownChange);
     }
 
     /// <summary>Gets or sets a value indicating whether mouse wheel scroll left event should be intercepted.</summary>
@@ -229,7 +258,7 @@ public partial class ControlSpannable
             nameof(this.InterceptMouseWheelLeft),
             ref this.interceptMouseWheelLeft,
             value,
-            this.OnInterceptMouseWheelLeftChanged);
+            this.OnInterceptMouseWheelLeftChange);
     }
 
     /// <summary>Gets or sets a value indicating whether mouse wheel scroll right event should be intercepted.</summary>
@@ -240,7 +269,7 @@ public partial class ControlSpannable
             nameof(this.InterceptMouseWheelRight),
             ref this.interceptMouseWheelRight,
             value,
-            this.OnInterceptMouseWheelRightChanged);
+            this.OnInterceptMouseWheelRightChange);
     }
 
     /// <summary>Compares a new value with the old value, and invokes event handler accordingly.</summary>
@@ -257,10 +286,10 @@ public partial class ControlSpannable
         string propName,
         ref T storage,
         T newValue,
-        PropertyChangedEventHandler<TSender, T> eh)
+        PropertyChangeEventHandler<TSender, T> eh)
     {
         if (Equals(storage, newValue))
-            return false ;
+            return false;
         var old = storage;
         storage = newValue;
         eh(
@@ -284,7 +313,7 @@ public partial class ControlSpannable
         string propName,
         ref T storage,
         T newValue,
-        PropertyChangedEventHandler<ControlSpannable, T> eh)
+        PropertyChangeEventHandler<ControlSpannable, T> eh)
     {
         if (HandlePropertyChange(this, propName, ref storage, newValue, eh))
             this.StateGeneration++;

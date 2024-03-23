@@ -317,17 +317,17 @@ public sealed partial class SpannedStringBuilder
         this.PopHelper(this.stackForeCoor, SpannedRecordType.ForeColor);
 
     /// <inheritdoc/>
-    public SpannedStringBuilder PushBorderWidth(float value)
+    public SpannedStringBuilder PushEdgeWidth(float value)
     {
-        var len = SpannedRecordCodec.EncodeBorderWidth(default, value);
-        var recordIndex = this.AddRecordAndReserveData(SpannedRecordType.BorderWidth, len, out var data);
-        SpannedRecordCodec.EncodeBorderWidth(data, value);
-        return this.PushHelper(ref this.stackBorderWidth, recordIndex);
+        var len = SpannedRecordCodec.EncodeEdgeWidth(default, value);
+        var recordIndex = this.AddRecordAndReserveData(SpannedRecordType.EdgeWidth, len, out var data);
+        SpannedRecordCodec.EncodeEdgeWidth(data, value);
+        return this.PushHelper(ref this.stackEdgeWidth, recordIndex);
     }
 
     /// <inheritdoc/>
-    public SpannedStringBuilder PopBorderWidth() =>
-        this.PopHelper(this.stackBorderWidth, SpannedRecordType.BorderWidth);
+    public SpannedStringBuilder PopEdgeWidth() =>
+        this.PopHelper(this.stackEdgeWidth, SpannedRecordType.EdgeWidth);
 
     /// <inheritdoc/>
     public SpannedStringBuilder PushShadowOffset(Vector2 value)

@@ -5,9 +5,9 @@ using System.Runtime.InteropServices;
 
 using Dalamud.Interface.Spannables.Controls.Animations;
 using Dalamud.Interface.Spannables.Controls.EventHandlers;
-using Dalamud.Interface.Spannables.EventHandlerArgs;
 using Dalamud.Interface.Spannables.Helpers;
 using Dalamud.Interface.Spannables.Rendering;
+using Dalamud.Interface.Spannables.RenderPassMethodArgs;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility.Numerics;
 
@@ -64,34 +64,28 @@ public partial class ControlSpannable : ISpannable, ISpannableRenderPass, ISpann
     {
         this.backgroundInnerId = this.InnerIdAvailableSlot++;
         this.selfInnerId = this.InnerIdAvailableSlot++;
-        this.normalBackgroundChildIndex = this.AllChildrenAvailableSlot++;
-        this.hoveredBackgroundChildIndex = this.AllChildrenAvailableSlot++;
-        this.activeBackgroundChildIndex = this.AllChildrenAvailableSlot++;
-        this.disabledBackgroundChildIndex = this.AllChildrenAvailableSlot++;
-        this.AllChildren.Add(null);
-        this.AllChildren.Add(null);
-        this.AllChildren.Add(null);
-        this.AllChildren.Add(null);
+        this.normalBackgroundChildIndex = this.AllSpannablesAvailableSlot++;
+        this.hoveredBackgroundChildIndex = this.AllSpannablesAvailableSlot++;
+        this.activeBackgroundChildIndex = this.AllSpannablesAvailableSlot++;
+        this.disabledBackgroundChildIndex = this.AllSpannablesAvailableSlot++;
+        this.AllSpannables.Add(null);
+        this.AllSpannables.Add(null);
+        this.AllSpannables.Add(null);
+        this.AllSpannables.Add(null);
     }
-
-    /// <inheritdoc />
-    public IReadOnlyCollection<ISpannable?> Children => this.AllChildren;
 
     /// <inheritdoc />
     public int StateGeneration { get; protected set; }
 
     /// <inheritdoc/>
-    public ref TextState TextState => ref this.activeTextState;
+    public ref TextState ActiveTextState => ref this.activeTextState;
 
     /// <inheritdoc/>
     /// <remarks>This excludes <see cref="Extrude"/>.</remarks>
     public ref readonly RectVector4 Boundary => ref this.boundary;
 
     /// <inheritdoc/>
-    public Vector2 ScreenOffset { get; private set; }
-
-    /// <inheritdoc/>
-    public Vector2 TransformationOrigin { get; private set; }
+    public Vector2 InnerOrigin { get; private set; }
 
     /// <inheritdoc/>
     public ref readonly Matrix4x4 Transformation => ref this.transformation;
@@ -102,7 +96,7 @@ public partial class ControlSpannable : ISpannable, ISpannableRenderPass, ISpann
     /// <inheritdoc/>
     public ISpannableRenderer Renderer { get; private set; } = null!;
 
-    /// <summary>Gets a value indicating whether the mouse button is hovering.</summary>
+    /// <summary>Gets a value indicating whether the mouse pointer is hovering.</summary>
     public bool IsMouseHovered { get; private set; }
 
     /// <summary>Gets a value indicating whether the left mouse button is down.</summary>
@@ -138,30 +132,40 @@ public partial class ControlSpannable : ISpannable, ISpannableRenderPass, ISpann
     protected float Scale { get; private set; }
 
     /// <summary>Gets the list of all children contained within this control, including decorative ones.</summary>
-    protected List<ISpannable?> AllChildren { get; } = [];
+    protected List<ISpannable?> AllSpannables { get; } = [];
 
-    /// <summary>Gets the available slot index in <see cref="AllChildren"/> for use by inheritors.</summary>
-    protected int AllChildrenAvailableSlot { get; init; }
+    /// <summary>Gets the available slot index in <see cref="AllSpannables"/> for use by inheritors.</summary>
+    protected int AllSpannablesAvailableSlot { get; init; }
 
     /// <summary>Gets the available slot index for inner ID, for use with
     /// <see cref="SpannableExtensions.GetGlobalIdFromInnerId"/>.</summary>
     protected int InnerIdAvailableSlot { get; init; }
 
+    /// <summary>Gets a value indicating whether <see cref="IDisposable.Dispose"/> has been called.</summary>
+    protected bool IsDisposed { get; private set; }
+
     /// <summary>Gets either <see cref="showAnimation"/> or <see cref="hideAnimation"/> according to
     /// <see cref="visible"/>.</summary>
-    private SpannableControlAnimator? VisibilityAnimation => this.visible ? this.showAnimation : this.hideAnimation;
+    private SpannableAnimator? VisibilityAnimation => this.visible ? this.showAnimation : this.hideAnimation;
 
     /// <inheritdoc/>
     public void Dispose()
     {
+        if (this.IsDisposed)
+            return;
+
+        this.IsDisposed = true;
         this.Dispose(true);
         GC.SuppressFinalize(this);
     }
 
+    /// <inheritdoc />
+    public IReadOnlyCollection<ISpannable?> GetAllChildSpannables() => this.AllSpannables;
+
     /// <inheritdoc/>
-    public ISpannableRenderPass RentRenderPass(scoped in SpannableRentRenderPassArgs args)
+    public ISpannableRenderPass RentRenderPass(ISpannableRenderer renderer)
     {
-        this.Renderer = args.Renderer;
+        this.Renderer = renderer;
 
         // Spannable itself is a state. Return self.
         return this;
@@ -185,8 +189,10 @@ public partial class ControlSpannable : ISpannable, ISpannableRenderPass, ISpann
         rv = RectVector4.Extrude(rv, -(this.margin + this.padding) * this.Scale);
         rv = RectVector4.Normalize(rv);
 
+        this.ImGuiGlobalId = args.ImGuiGlobalId;
         this.Scale = args.Scale;
-        this.activeTextState = args.TextState;
+        this.activeTextState = new(this.textStateOptions, args.TextState);
+
         if (rv.Right >= 1000000f)
             rv.Right = float.PositiveInfinity;
         if (rv.Bottom >= 1000000f)
@@ -204,17 +210,17 @@ public partial class ControlSpannable : ISpannable, ISpannableRenderPass, ISpann
             this.wasVisible = this.Visible;
         }
 
-        if (this.VisibilityAnimation is { } visibilityAnimation)
+        if (this.VisibilityAnimation is { IsRunning: true } visibilityAnimation)
         {
             visibilityAnimation.Update(this);
             this.measuredContentBox =
                 RectVector4.Normalize(this.measuredContentBox + visibilityAnimation.AnimatedBoundaryAdjustment);
-            this.measuredInteractiveBox = RectVector4.Normalize(
-                this.measuredInteractiveBox + visibilityAnimation.AnimatedBoundaryAdjustment);
+            this.measuredInteractiveBox =
+                RectVector4.Normalize(this.measuredInteractiveBox + visibilityAnimation.AnimatedBoundaryAdjustment);
             this.boundary =
                 RectVector4.Normalize(this.boundary + visibilityAnimation.AnimatedBoundaryAdjustment);
-            this.measuredContentBox =
-                RectVector4.Normalize(this.measuredContentBox + visibilityAnimation.AnimatedBoundaryAdjustment);
+            this.extrude =
+                RectVector4.Normalize(this.extrude + visibilityAnimation.AnimatedBoundaryAdjustment);
         }
 
         return;
@@ -238,22 +244,58 @@ public partial class ControlSpannable : ISpannable, ISpannableRenderPass, ISpann
     /// <inheritdoc/>
     public void CommitSpannableMeasurement(scoped in SpannableCommitTransformationArgs args)
     {
-        this.ScreenOffset = args.ScreenOffset;
-        this.TransformationOrigin = args.TransformationOrigin;
-        this.transformation = args.Transformation;
+        this.InnerOrigin = args.InnerOrigin;
+
+        this.transformation = Matrix4x4.Identity;
 
         if (this.VisibilityAnimation is { IsRunning: true } visibilityAnimation)
-            this.transformation = Matrix4x4.Multiply(visibilityAnimation.AnimatedTransformation, this.Transformation);
+            this.transformation = visibilityAnimation.AnimatedTransformation;
+
+        this.transformation = Matrix4x4.Multiply(
+            this.transformation,
+            Matrix4x4.CreateTranslation(new(-this.boundary.RightBottom * args.InnerOrigin, 0)));
+
+        this.transformation = Matrix4x4.Multiply(this.transformation, args.Transformation);
+
+        this.transformation = Matrix4x4.Multiply(
+            this.transformation,
+            Matrix4x4.CreateTranslation(new(this.boundary.RightBottom * args.InnerOrigin, 0)));
 
         this.OnCommitMeasurement(
             new()
             {
                 Sender = this,
-                MeasureArgs = args with
+                SpannableArgs = args with
                 {
-                    Transformation = this.transformation,
+                    Transformation = Matrix4x4.Identity,
                 },
             });
+    }
+
+    /// <inheritdoc/>
+    public void DrawSpannable(SpannableDrawArgs args)
+    {
+        if (!this.Visible && this.HideAnimation?.IsRunning is not true)
+            return;
+
+        var opacity = 1f;
+        opacity *= this.VisibilityAnimation?.AnimatedOpacity ?? 1f;
+
+        if (this.currentBackground is not null && this.currentBackgroundPass is not null)
+        {
+            using (ScopedTransformer.From(args, opacity))
+                args.NotifyChild(this.currentBackground, this.currentBackgroundPass);
+        }
+
+        opacity *= this.enabled ? 1f : this.disabledTextOpacity;
+        using (ScopedTransformer.From(args, opacity))
+        {
+            args.SwitchToChannel(RenderChannel.ForeChannel);
+            this.OnDraw(new() { Sender = this, SpannableArgs = args });
+        }
+
+        using (ScopedTransformer.From(args, 1f))
+            args.DrawListPtr.AddRect(this.Boundary.LeftTop, this.Boundary.RightBottom, 0x20000000);
     }
 
     /// <inheritdoc/>
@@ -261,9 +303,7 @@ public partial class ControlSpannable : ISpannable, ISpannableRenderPass, ISpann
         scoped in SpannableHandleInteractionArgs args,
         out SpannableLinkInteracted link)
     {
-        this.ImGuiGlobalId = args.ImGuiGlobalId;
-
-        this.OnHandleInteraction(new() { Sender = this, HandleInteractionArgs = args }, out link);
+        this.OnHandleInteraction(new() { Sender = this, SpannableArgs = args }, out link);
 
         ISpannable? newBackground;
         if (!this.visible && this.hideAnimation?.IsRunning is not true)
@@ -289,18 +329,21 @@ public partial class ControlSpannable : ISpannable, ISpannableRenderPass, ISpann
             interceptWheel |= args.WheelDelta.Y > 0 && this.interceptMouseWheelDown;
             interceptWheel |= args.WheelDelta.Y < 0 && this.interceptMouseWheelUp;
 
-            if (this.heldMouseButtons != 0)
-                args.SetActive(this.selfInnerId, interceptWheel);
+            if (this.captureMouseOnMouseDown)
+            {
+                if (this.heldMouseButtons != 0)
+                    args.SetActive(this.selfInnerId, interceptWheel);
+            }
 
             var hovered = this.measuredInteractiveBox.Contains(margs.LocalLocation) &&
                           args.IsItemHoverable(this.selfInnerId);
             if (hovered != this.IsMouseHovered)
             {
+                this.IsMouseHovered = hovered;
                 if (hovered)
                     this.OnMouseEnter(margs);
                 else
                     this.OnMouseLeave(margs);
-                this.IsMouseHovered = hovered;
             }
 
             if (args.WheelDelta != Vector2.Zero)
@@ -308,8 +351,8 @@ public partial class ControlSpannable : ISpannable, ISpannableRenderPass, ISpann
 
             if (this.lastMouseLocation != margs.LocalLocation)
             {
-                this.OnMouseMove(margs);
                 this.lastMouseLocation = margs.LocalLocation;
+                this.OnMouseMove(margs);
             }
 
             var lastHeldMouseButtons = this.heldMouseButtons;
@@ -323,16 +366,17 @@ public partial class ControlSpannable : ISpannable, ISpannableRenderPass, ISpann
 
                     if (held)
                     {
-                        this.OnMouseDown(margs with { Button = MouseButtonsWeCare[i] });
                         this.heldMouseButtons |= 1 << i;
+                        if (hovered)
+                            this.OnMouseDown(margs with { Button = MouseButtonsWeCare[i] });
                     }
                     else
                     {
-                        this.OnMouseUp(margs with { Button = MouseButtonsWeCare[i] });
                         this.heldMouseButtons &= ~(1 << i);
-
                         if (hovered)
                         {
+                            this.OnMouseUp(margs with { Button = MouseButtonsWeCare[i] });
+
                             if (this.lastMouseClickTick[i] < Environment.TickCount64)
                                 this.lastMouseClickCount[i] = 1;
                             else
@@ -353,18 +397,21 @@ public partial class ControlSpannable : ISpannable, ISpannableRenderPass, ISpann
                 }
             }
 
-            if ((this.heldMouseButtons != 0) != (lastHeldMouseButtons != 0))
+            if (this.captureMouseOnMouseDown)
             {
-                ImGui.SetNextFrameWantCaptureMouse(this.heldMouseButtons != 0);
-                if (this.heldMouseButtons == 0)
-                    args.ClearActive();
+                if ((this.heldMouseButtons != 0) != (lastHeldMouseButtons != 0))
+                {
+                    ImGui.SetNextFrameWantCaptureMouse(this.heldMouseButtons != 0);
+                    if (this.heldMouseButtons == 0)
+                        args.ClearActive();
+                }
+
+                if (this.IsMouseHovered)
+                    args.SetHovered(this.selfInnerId, interceptWheel);
+
+                if (this.heldMouseButtons != 0)
+                    args.SetActive(this.selfInnerId, interceptWheel);
             }
-
-            if (this.IsMouseHovered)
-                args.SetHovered(this.selfInnerId, interceptWheel);
-
-            if (this.heldMouseButtons != 0)
-                args.SetActive(this.selfInnerId, interceptWheel);
 
             if (this.IsMouseHovered && this.IsLeftMouseButtonDown && this.ActiveBackground is not null)
                 newBackground = this.ActiveBackground;
@@ -383,81 +430,42 @@ public partial class ControlSpannable : ISpannable, ISpannableRenderPass, ISpann
 
         if (this.currentBackground is not null)
         {
-            this.currentBackgroundPass ??= this.currentBackground.RentRenderPass(new(this.Renderer));
+            this.currentBackgroundPass ??= this.currentBackground.RentRenderPass(this.Renderer);
             this.currentBackgroundPass.MeasureSpannable(
                 new(
                     this.currentBackground,
                     this.currentBackgroundPass,
                     this.MeasuredInteractiveBox.Size,
                     this.Scale,
-                    this.TextState));
-            this.currentBackgroundPass.CommitSpannableMeasurement(
-                new(
+                    this.ActiveTextState,
+                    this.GetGlobalIdFromInnerId(this.backgroundInnerId)));
+            new SpannableCommitTransformationArgs(
+                    args.Sender,
+                    args.RenderPass,
+                    this.InnerOrigin,
+                    this.transformation)
+                .NotifyChild(
                     this.currentBackground,
                     this.currentBackgroundPass,
-                    this.TransformToScreen(this.MeasuredInteractiveBox.LeftTop),
-                    Vector2.Zero,
-                    this.Transformation.WithoutTranslation()));
+                    this.MeasuredInteractiveBox.LeftTop,
+                    Matrix4x4.Identity);
             if (link.IsEmpty)
-                args.NotifyChild(this.currentBackground, this.currentBackgroundPass, this.backgroundInnerId, out link);
+                args.NotifyChild(this.currentBackground, this.currentBackgroundPass, out link);
             else
-                args.NotifyChild(this.currentBackground, this.currentBackgroundPass, this.backgroundInnerId, out _);
-        }
-    }
-
-    /// <inheritdoc/>
-    public unsafe void DrawSpannable(SpannableDrawArgs args)
-    {
-        if (!this.Visible && this.HideAnimation?.IsRunning is not true)
-            return;
-
-        var opacity = 1f;
-        opacity *= this.VisibilityAnimation?.AnimatedOpacity ?? 1f;
-
-        var numVertices = args.DrawListPtr.VtxBuffer.Size;
-        if (this.currentBackground is not null && this.currentBackgroundPass is not null)
-            args.NotifyChild(this.currentBackground, this.currentBackgroundPass);
-
-        if (opacity < 1)
-        {
-            var ptr = (ImDrawVert*)args.DrawListPtr.VtxBuffer.Data + numVertices;
-            for (var remaining = args.DrawListPtr.VtxBuffer.Size - numVertices;
-                 remaining > 0;
-                 remaining--, ptr++)
-            {
-                ref var a = ref ((byte*)&ptr->col)[3];
-                a = (byte)Math.Clamp(a * opacity, 0, 255);
-            }
-        }
-
-        numVertices = args.DrawListPtr.VtxBuffer.Size;
-        args.SwitchToChannel(RenderChannel.ForeChannel);
-        this.OnDraw(new() { Sender = this, DrawArgs = args });
-
-        opacity *= this.enabled ? 1f : this.disabledTextOpacity;
-        if (opacity < 1)
-        {
-            var ptr = (ImDrawVert*)args.DrawListPtr.VtxBuffer.Data + numVertices;
-            for (var remaining = args.DrawListPtr.VtxBuffer.Size - numVertices;
-                 remaining > 0;
-                 remaining--, ptr++)
-            {
-                ref var a = ref ((byte*)&ptr->col)[3];
-                a = (byte)Math.Clamp(a * opacity, 0, 255);
-            }
+                args.NotifyChild(this.currentBackground, this.currentBackgroundPass, out _);
         }
     }
 
     /// <inheritdoc/>
     public int SerializeState(Span<byte> buffer) =>
-        SpannableSerializationHelper.Write(ref buffer, this.Children);
+        SpannableSerializationHelper.Write(ref buffer, this.GetAllChildSpannables());
 
     /// <inheritdoc/>
     public bool TryDeserializeState(ReadOnlySpan<byte> buffer, out int consumed)
     {
         var origLen = buffer.Length;
         consumed = 0;
-        if (!SpannableSerializationHelper.TryRead(ref buffer, this.Children))
+        if (!SpannableSerializationHelper.TryRead(ref buffer, this.GetAllChildSpannables()))
             return false;
         consumed += origLen - buffer.Length;
         return true;
@@ -467,12 +475,12 @@ public partial class ControlSpannable : ISpannable, ISpannableRenderPass, ISpann
     public override string ToString() => $"{this.GetType().Name}({this.text})";
 
     /// <summary>Disposes this instance of <see cref="ControlSpannable"/>.</summary>
-    /// <param name="disposing">Whether it is being called from <see cref="Dispose"/>.</param>
+    /// <param name="disposing">Whether it is being called from <see cref="IDisposable.Dispose"/>.</param>
     protected virtual void Dispose(bool disposing)
     {
         if (disposing)
         {
-            foreach (ref var s in CollectionsMarshal.AsSpan(this.AllChildren))
+            foreach (ref var s in CollectionsMarshal.AsSpan(this.AllSpannables))
             {
                 s?.Dispose();
                 s = null;
@@ -494,8 +502,8 @@ public partial class ControlSpannable : ISpannable, ISpannableRenderPass, ISpann
     /// should be treated as having no defined limits, and <see cref="WrapContent"/> behavior should be done.</remarks>
     protected virtual RectVector4 MeasureContentBox(SpannableMeasureArgs args, in RectVector4 availableContentBox)
     {
-        var widthDefined = availableContentBox is { Left: >= -65536, Right: <= 65535 };
-        var heightDefined = availableContentBox is { Top: >= -65536, Bottom: <= 65535 };
+        var widthDefined = availableContentBox is { Left: > float.NegativeInfinity, Right: < float.PositiveInfinity };
+        var heightDefined = availableContentBox is { Top: > float.NegativeInfinity, Bottom: < float.PositiveInfinity };
         var result = availableContentBox;
         if (!widthDefined)
             result.Right = result.Left /* + WrapContentWidth */;
@@ -503,10 +511,10 @@ public partial class ControlSpannable : ISpannable, ISpannableRenderPass, ISpann
             result.Bottom = result.Top /* + WrapContentHeight */;
         return availableContentBox with
         {
-            Right = availableContentBox.Right >= float.MaxValue
+            Right = availableContentBox.Right >= float.PositiveInfinity
                         ? availableContentBox.Left
                         : availableContentBox.Right,
-            Bottom = availableContentBox.Bottom >= float.MaxValue
+            Bottom = availableContentBox.Bottom >= float.PositiveInfinity
                          ? availableContentBox.Top
                          : availableContentBox.Bottom,
         };

@@ -1,6 +1,6 @@
 using System.Numerics;
 
-using Dalamud.Interface.Spannables.EventHandlerArgs;
+using Dalamud.Interface.Spannables.RenderPassMethodArgs;
 
 using ImGuiNET;
 
@@ -33,11 +33,8 @@ public readonly ref struct ScopedTransformer
     /// <returns>A new instance of <see cref="ScopedTransformer"/>.</returns>
     public static ScopedTransformer From(SpannableDrawArgs args, float opacityMultiplier)
     {
-        var b = args.RenderPass.Boundary.Size * args.RenderPass.TransformationOrigin;
-        var mtx = Matrix4x4.CreateTranslation(new(-b, 0));
-        mtx = Matrix4x4.Multiply(mtx, args.RenderPass.Transformation);
-        mtx = Matrix4x4.Multiply(mtx, Matrix4x4.CreateTranslation(new(args.RenderPass.ScreenOffset + b, 0)));
-        return new(mtx, args.DrawListPtr, opacityMultiplier);
+        // var b = args.RenderPass.Boundary.Size * args.RenderPass.InnerOrigin;
+        return new(args.RenderPass.Transformation, args.DrawListPtr, opacityMultiplier);
     }
 
     /// <summary>Transforms the vertices.</summary>

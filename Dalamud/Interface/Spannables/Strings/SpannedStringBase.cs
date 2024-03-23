@@ -5,9 +5,9 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text.Unicode;
 
-using Dalamud.Interface.Spannables.EventHandlerArgs;
 using Dalamud.Interface.Spannables.Helpers;
 using Dalamud.Interface.Spannables.Rendering;
+using Dalamud.Plugin.Services;
 using Dalamud.Utility.Numerics;
 
 using ImGuiNET;
@@ -55,26 +55,22 @@ public abstract partial class SpannedStringBase : ISpannable, ISpannableSerializ
         }
     }
 
-    /// <summary>Initializes a new instance of the <see cref="SpannedStringBase"/> class.</summary>
-    /// <param name="children">A collection of child spannables.</param>
-    protected SpannedStringBase(IReadOnlyCollection<ISpannable?> children) => this.Children = children;
-
-    /// <inheritdoc/>
-    public IReadOnlyCollection<ISpannable?> Children { get; }
-
     /// <inheritdoc/>
     public int StateGeneration { get; protected set; }
 
     /// <inheritdoc/>
     public void Dispose()
     {
-        foreach (var s in this.Children)
+        foreach (var s in this.GetAllChildSpannables())
             s?.Dispose();
         GC.SuppressFinalize(this);
     }
 
     /// <inheritdoc/>
-    public ISpannableRenderPass RentRenderPass(scoped in SpannableRentRenderPassArgs args) => RenderPass.Rent(args);
+    public abstract IReadOnlyCollection<ISpannable?> GetAllChildSpannables();
+
+    /// <inheritdoc/>
+    public ISpannableRenderPass RentRenderPass(ISpannableRenderer renderer) => RenderPass.Rent(renderer);
 
     /// <inheritdoc/>
     public void ReturnRenderPass(ISpannableRenderPass? pass)
@@ -85,14 +81,14 @@ public abstract partial class SpannedStringBase : ISpannable, ISpannableSerializ
 
     /// <inheritdoc/>
     public int SerializeState(Span<byte> buffer) =>
-        SpannableSerializationHelper.Write(ref buffer, this.Children);
+        SpannableSerializationHelper.Write(ref buffer, this.GetAllChildSpannables());
 
     /// <inheritdoc/>
     public bool TryDeserializeState(ReadOnlySpan<byte> buffer, out int consumed)
     {
         var origLen = buffer.Length;
         consumed = 0;
-        if (!SpannableSerializationHelper.TryRead(ref buffer, this.Children))
+        if (!SpannableSerializationHelper.TryRead(ref buffer, this.GetAllChildSpannables()))
             return false;
         consumed += origLen - buffer.Length;
         return true;
@@ -103,7 +99,7 @@ public abstract partial class SpannedStringBase : ISpannable, ISpannableSerializ
     private protected abstract DataRef GetData();
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static bool IsEffectivelyInfinity(float f) => f >= float.MaxValue;
+    private static bool IsEffectivelyInfinity(float f) => f >= float.PositiveInfinity;
 
     private ref struct StateInfo
     {
@@ -127,8 +123,8 @@ public abstract partial class SpannedStringBase : ISpannable, ISpannableSerializ
         {
             var lineAscentDescent = this.lineBBoxVertical;
             this.VerticalOffsetWrtLine = (fontInfo.BBoxVertical.Y - fontInfo.BBoxVertical.X) *
-                                         this.renderPass.TextState.LastStyle.VerticalOffset;
-            switch (this.renderPass.TextState.LastStyle.VerticalAlignment)
+                                         this.renderPass.ActiveTextState.LastStyle.VerticalOffset;
+            switch (this.renderPass.ActiveTextState.LastStyle.VerticalAlignment)
             {
                 case < 0:
                     this.VerticalOffsetWrtLine -= lineAscentDescent.X + (fontInfo.Font.Ascent * fontInfo.Scale);
@@ -139,7 +135,7 @@ public abstract partial class SpannedStringBase : ISpannable, ISpannableSerializ
                 default:
                     this.VerticalOffsetWrtLine +=
                         (lineAscentDescent.Y - lineAscentDescent.X - fontInfo.ScaledFontSize) *
-                        this.renderPass.TextState.LastStyle.VerticalAlignment;
+                        this.renderPass.ActiveTextState.LastStyle.VerticalAlignment;
                     break;
             }
 
@@ -159,7 +155,7 @@ public abstract partial class SpannedStringBase : ISpannable, ISpannableSerializ
                 alignLeft = this.renderPass.Boundary.Left;
             }
 
-            switch (this.renderPass.TextState.LastStyle.HorizontalAlignment)
+            switch (this.renderPass.ActiveTextState.LastStyle.HorizontalAlignment)
             {
                 case <= 0f:
                     this.HorizontalOffsetWrtLine = 0;
@@ -173,7 +169,7 @@ public abstract partial class SpannedStringBase : ISpannable, ISpannableSerializ
                     this.HorizontalOffsetWrtLine =
                         MathF.Round(
                             (alignLeft + (alignWidth - this.lineWidth)) *
-                            this.renderPass.TextState.LastStyle.HorizontalAlignment);
+                            this.renderPass.ActiveTextState.LastStyle.HorizontalAlignment);
                     break;
             }
         }
@@ -192,8 +188,27 @@ public abstract partial class SpannedStringBase : ISpannable, ISpannableSerializ
         }
     }
 
+    /// <summary>Item state for the spanned string itself.</summary>
     [StructLayout(LayoutKind.Explicit, Size = 8)]
     private struct ImGuiItemStateStruct
+    {
+        [FieldOffset(0)]
+        public int InteractedLinkRecordIndex;
+
+        [FieldOffset(4)]
+        public InteractionState State;
+
+        public enum InteractionState : byte
+        {
+            Clear,
+            Hover,
+            Active,
+        }
+    }
+
+    /// <summary>Item state for individual links.</summary>
+    [StructLayout(LayoutKind.Explicit, Size = 8)]
+    private struct ImGuiLinkStateStruct
     {
         [FieldOffset(0)]
         public uint Flags;

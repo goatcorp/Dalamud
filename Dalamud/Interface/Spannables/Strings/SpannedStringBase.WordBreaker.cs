@@ -1,8 +1,9 @@
 using System.Runtime.CompilerServices;
 
-using Dalamud.Interface.Spannables.EventHandlerArgs;
+using Dalamud.Interface.Spannables.Helpers;
 using Dalamud.Interface.Spannables.Internal;
 using Dalamud.Interface.Spannables.Rendering;
+using Dalamud.Interface.Spannables.RenderPassMethodArgs;
 using Dalamud.Interface.Spannables.Styles;
 using Dalamud.Utility.Numerics;
 
@@ -34,14 +35,14 @@ public abstract partial class SpannedStringBase
             this.args = args;
             this.renderPass = renderPass;
             this.data = data;
-            this.currentStyle = renderPass.TextState.LastStyle;
+            this.currentStyle = renderPass.ActiveTextState.LastStyle;
             this.prev = MeasuredLine.Empty;
             this.first = MeasuredLine.Empty;
             this.normalBreak = MeasuredLine.Empty;
             this.wrapMarkerBreak = MeasuredLine.Empty;
 
             this.SpanFontOptionsUpdated();
-            if (this.renderPass.TextState.WrapMarker is not null)
+            if (this.renderPass.ActiveTextState.WrapMarker is not null)
                 this.UpdateWrapMarker();
         }
 
@@ -63,7 +64,7 @@ public abstract partial class SpannedStringBase
             this.currentStyle.UpdateFrom(
                 record,
                 recordData,
-                this.renderPass.TextState.InitialStyle,
+                this.renderPass.ActiveTextState.InitialStyle,
                 this.data.FontSets,
                 out var fontUpdated,
                 out _);
@@ -77,7 +78,7 @@ public abstract partial class SpannedStringBase
                 case SpannedRecordType.ObjectSpannable:
                     return this.AddCodepointAndMeasure(offsetBefore, offsetAfter, -1, record, recordData);
                 case SpannedRecordType.ObjectNewLine
-                    when (this.renderPass.TextState.AcceptedNewLines & NewLineType.Manual) != 0:
+                    when (this.renderPass.ActiveTextState.AcceptedNewLines & NewLineType.Manual) != 0:
                     this.prev.LastThing.SetRecord(offsetBefore.Record);
                     this.prev.SetOffset(offsetAfter);
                     this.UnionLineBBoxVertical(ref this.prev);
@@ -108,7 +109,7 @@ public abstract partial class SpannedStringBase
                         case SpannedRecordType.ObjectIcon
                             when SpannedRecordCodec.TryDecodeObjectIcon(recordData, out var gfdIcon)
                                  && this.renderPass.Renderer.TryGetIcon(
-                                     this.renderPass.TextState.GfdIndex,
+                                     this.renderPass.ActiveTextState.GfdIndex,
                                      (uint)gfdIcon,
                                      new(0, this.fontInfo.ScaledFontSize),
                                      out var tex,
@@ -154,17 +155,18 @@ public abstract partial class SpannedStringBase
                                     spannableState,
                                     new(
                                         IsEffectivelyInfinity(this.args.MaxSize.X)
-                                            ? float.MaxValue
+                                            ? float.PositiveInfinity
                                             : this.args.MaxSize.X - this.renderPass.Offset.X,
                                         Math.Min(
                                             this.args.MaxSize.Y - this.renderPass.Offset.Y,
                                             this.fontInfo.ScaledFontSize)),
                                     this.renderPass.Scale,
-                                    this.renderPass.TextState with
+                                    this.renderPass.ActiveTextState with
                                     {
                                         InitialStyle = this.currentStyle,
                                         LastStyle = this.currentStyle,
-                                    }));
+                                    },
+                                    this.args.RenderPass.GetGlobalIdFromInnerId(offset.Record)));
                             boundary = spannableState.Boundary;
                             break;
                         }
@@ -185,7 +187,7 @@ public abstract partial class SpannedStringBase
 
                 case '\t':
                     current.SetOffset(offsetAfter, pad);
-                    current.AddTabCharacter(this.fontInfo, this.renderPass.TextState.TabWidth);
+                    current.AddTabCharacter(this.fontInfo, this.renderPass.ActiveTextState.TabWidth);
                     break;
 
                 // Soft hyphen; only determine if this offset can be used as a word break point.
@@ -222,7 +224,7 @@ public abstract partial class SpannedStringBase
 
             if (current.ContainedInBounds(this.fontInfo, this.args.MaxSize.X))
             {
-                if (this.renderPass.TextState.WrapMarker is not null)
+                if (this.renderPass.ActiveTextState.WrapMarker is not null)
                 {
                     if (current.ContainedInBoundsWithObject(
                             this.fontInfo,
@@ -236,15 +238,15 @@ public abstract partial class SpannedStringBase
             else
             {
                 var resolved = MeasuredLine.Empty;
-                switch (this.renderPass.TextState.WordBreak)
+                switch (this.renderPass.ActiveTextState.WordBreak)
                 {
                     case WordBreakType.Normal:
                         this.breakOnFirstNormalBreakableOffset = true;
                         resolved = MeasuredLine.FirstNonEmpty(this.normalBreak);
                         break;
 
-                    case WordBreakType.BreakAll when this.renderPass.TextState.WrapMarker is not null:
-                    case WordBreakType.KeepAll when this.renderPass.TextState.WrapMarker is not null:
+                    case WordBreakType.BreakAll when this.renderPass.ActiveTextState.WrapMarker is not null:
+                    case WordBreakType.KeepAll when this.renderPass.ActiveTextState.WrapMarker is not null:
                         resolved = MeasuredLine.FirstNonEmpty(this.wrapMarkerBreak, this.first);
                         break;
 
@@ -252,7 +254,7 @@ public abstract partial class SpannedStringBase
                         resolved = MeasuredLine.FirstNonEmpty(this.prev, this.first);
                         break;
 
-                    case WordBreakType.BreakWord when this.renderPass.TextState.WrapMarker is not null:
+                    case WordBreakType.BreakWord when this.renderPass.ActiveTextState.WrapMarker is not null:
                         resolved = MeasuredLine.FirstNonEmpty(this.normalBreak, this.wrapMarkerBreak, this.first);
                         break;
 
@@ -279,32 +281,33 @@ public abstract partial class SpannedStringBase
         private void SpanFontOptionsUpdated()
         {
             this.renderPass.Renderer.TryGetFontData(this.renderPass.Scale, in this.currentStyle, out this.fontInfo);
-            if (this.renderPass.TextState.WrapMarker is not null)
+            if (this.renderPass.ActiveTextState.WrapMarker is not null)
                 this.UpdateWrapMarker();
         }
 
         private void UpdateWrapMarker()
         {
-            if (this.renderPass.TextState.WrapMarker is not { } wm)
+            if (this.renderPass.ActiveTextState.WrapMarker is not { } wm)
                 return;
 
-            var spannableState = wm.RentRenderPass(new(this.renderPass.Renderer));
+            var spannableState = wm.RentRenderPass(this.renderPass.Renderer);
             spannableState.MeasureSpannable(
                 new(
                     wm,
                     spannableState,
                     new(
                         IsEffectivelyInfinity(this.args.MaxSize.X)
-                            ? float.MaxValue
+                            ? float.PositiveInfinity
                             : this.args.MaxSize.X - this.renderPass.Offset.X,
                         this.prev.Height),
                     this.renderPass.Scale,
-                    this.renderPass.TextState with
+                    this.renderPass.ActiveTextState with
                     {
                         InitialStyle = this.currentStyle,
                         LastStyle = this.currentStyle,
                         WrapMarker = null,
-                    }));
+                    },
+                    0));
             this.wrapMarkerWidth = spannableState.Boundary.IsValid ? spannableState.Boundary.Right : 0;
             wm.ReturnRenderPass(spannableState);
         }

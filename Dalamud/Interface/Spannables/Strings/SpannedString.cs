@@ -93,7 +93,6 @@ public sealed partial class SpannedString : SpannedStringBase, ISpanParsable<Spa
         FontHandleVariantSet[] fontSets,
         IDalamudTextureWrap?[] textures,
         ISpannable?[] spannables)
-        : base(spannables)
     {
         this.textStream = textStream;
         this.dataStream = dataStream;
@@ -148,6 +147,9 @@ public sealed partial class SpannedString : SpannedStringBase, ISpanParsable<Spa
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool operator !=(SpannedString? left, SpannedString? right) => !Equals(left, right);
+
+    /// <inheritdoc/>
+    public override IReadOnlyCollection<ISpannable?> GetAllChildSpannables() => this.spannables;
 
     /// <inheritdoc/>
     public bool Equals(SpannedString? other)

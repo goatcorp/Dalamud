@@ -1,10 +1,9 @@
 using System.Numerics;
 using System.Runtime.CompilerServices;
 
-using Dalamud.Interface.Spannables.EventHandlerArgs;
-using Dalamud.Interface.Spannables.Helpers;
 using Dalamud.Interface.Spannables.Internal;
 using Dalamud.Interface.Spannables.Rendering;
+using Dalamud.Interface.Spannables.RenderPassMethodArgs;
 using Dalamud.Interface.Spannables.Styles;
 using Dalamud.Utility.Numerics;
 
@@ -66,10 +65,10 @@ public abstract partial class SpannedStringBase
 
         public RectVector4 HandleSpan(in SpannedRecord record, ReadOnlySpan<byte> recordData)
         {
-            this.renderPass.TextState.LastStyle.UpdateFrom(
+            this.renderPass.ActiveTextState.LastStyle.UpdateFrom(
                 record,
                 recordData,
-                this.renderPass.TextState.InitialStyle,
+                this.renderPass.ActiveTextState.InitialStyle,
                 this.data.FontSets,
                 out var fontUpdated,
                 out var drawOptionsUpdated);
@@ -95,8 +94,8 @@ public abstract partial class SpannedStringBase
 
         public TextStyle UpdateSpanParams(in TextStyle newStyle)
         {
-            var old = this.renderPass.TextState.LastStyle;
-            this.renderPass.TextState.LastStyle = newStyle;
+            var old = this.renderPass.ActiveTextState.LastStyle;
+            this.renderPass.ActiveTextState.LastStyle = newStyle;
             this.SpanFontOptionsUpdated();
             this.RenderStateUpdated();
             this.SpanDrawOptionsUpdated();
@@ -142,7 +141,7 @@ public abstract partial class SpannedStringBase
                         case SpannedRecordType.ObjectIcon
                             when SpannedRecordCodec.TryDecodeObjectIcon(recordData, out var gfdIcon)
                                  && this.renderPass.Renderer.TryGetIcon(
-                                     this.renderPass.TextState.GfdIndex,
+                                     this.renderPass.ActiveTextState.GfdIndex,
                                      (uint)gfdIcon,
                                      new(0, this.fontInfo.ScaledFontSize),
                                      out var tex,
@@ -189,7 +188,7 @@ public abstract partial class SpannedStringBase
                             if (Math.Abs(spanBounds.Height - this.fontInfo.ScaledFontSize) > 0.00001f)
                             {
                                 var d = (this.fontInfo.ScaledFontSize - spanBounds.Height) *
-                                        this.renderPass.TextState.LastStyle.VerticalAlignment;
+                                        this.renderPass.ActiveTextState.LastStyle.VerticalAlignment;
                                 xy0.Y += d;
                                 xy1.Y += d;
                                 xySpannableBase = new(0, d);
@@ -213,7 +212,7 @@ public abstract partial class SpannedStringBase
 
                 case '\t':
                 {
-                    var tabWidth = this.renderPass.TextState.TabWidth;
+                    var tabWidth = this.renderPass.ActiveTextState.TabWidth;
                     var next = MathF.Floor((this.renderPass.Offset.X + tabWidth) / tabWidth) * tabWidth;
                     advX = next - this.renderPass.Offset.X;
                     xy0 = Vector2.Zero;
@@ -246,15 +245,13 @@ public abstract partial class SpannedStringBase
 
                 var lt = this.renderPass.Offset + this.StyleTranslation;
                 var rb = lt + new Vector2(advX + this.fontInfo.BoldExtraWidth, this.fontInfo.ScaledFontSize);
-                var rt = new Vector2(rb.X, lt.Y);
-                var lb = new Vector2(lt.X, rb.Y);
-                ImGuiNative.ImDrawList_AddQuadFilled(
+                ImGuiNative.ImDrawList_AddRectFilled(
                     this.args.DrawListPtr,
-                    this.renderPass.TransformToScreen(lt),
-                    this.renderPass.TransformToScreen(rt),
-                    this.renderPass.TransformToScreen(rb),
-                    this.renderPass.TransformToScreen(lb),
-                    this.renderPass.TextState.LastStyle.BackColor);
+                    lt,
+                    rb,
+                    this.renderPass.ActiveTextState.LastStyle.BackColor,
+                    0,
+                    ImDrawFlags.None);
             }
 
             if (visible && this.useShadow)
@@ -265,8 +262,8 @@ public abstract partial class SpannedStringBase
                 if (push)
                     ImGuiNative.ImDrawList_PushTextureID(this.args.DrawListPtr, texId);
 
-                var lt = this.renderPass.Offset + this.renderPass.TextState.LastStyle.ShadowOffset + xy0;
-                var rb = this.renderPass.Offset + this.renderPass.TextState.LastStyle.ShadowOffset + xy1;
+                var lt = this.renderPass.Offset + this.renderPass.ActiveTextState.LastStyle.ShadowOffset + xy0;
+                var rb = this.renderPass.Offset + this.renderPass.ActiveTextState.LastStyle.ShadowOffset + xy1;
                 var rt = new Vector2(rb.X, lt.Y);
                 var lb = new Vector2(lt.X, rb.Y);
                 lt.X += topSkewDistance;
@@ -285,15 +282,15 @@ public abstract partial class SpannedStringBase
                             var v = new Vector2(x + h, y);
                             ImGuiNative.ImDrawList_PrimQuadUV(
                                 this.args.DrawListPtr,
-                                this.renderPass.TransformToScreen(lt + v),
-                                this.renderPass.TransformToScreen(rt + v),
-                                this.renderPass.TransformToScreen(rb + v),
-                                this.renderPass.TransformToScreen(lb + v),
+                                lt + v,
+                                rt + v,
+                                rb + v,
+                                lb + v,
                                 uv0,
                                 new(uv1.X, uv0.Y),
                                 uv1,
                                 new(uv0.X, uv1.Y),
-                                this.renderPass.TextState.LastStyle.ShadowColor);
+                                this.renderPass.ActiveTextState.LastStyle.ShadowColor);
                         }
                     }
                 }
@@ -332,15 +329,15 @@ public abstract partial class SpannedStringBase
                             var v = new Vector2(x + h, y);
                             ImGuiNative.ImDrawList_PrimQuadUV(
                                 this.args.DrawListPtr,
-                                this.renderPass.TransformToScreen(lt + v),
-                                this.renderPass.TransformToScreen(rt + v),
-                                this.renderPass.TransformToScreen(rb + v),
-                                this.renderPass.TransformToScreen(lb + v),
+                                lt + v,
+                                rt + v,
+                                rb + v,
+                                lb + v,
                                 uv0,
                                 new(uv1.X, uv0.Y),
                                 uv1,
                                 new(uv0.X, uv1.Y),
-                                this.renderPass.TextState.LastStyle.EdgeColor);
+                                this.renderPass.ActiveTextState.LastStyle.EdgeColor);
                         }
                     }
                 }
@@ -364,13 +361,13 @@ public abstract partial class SpannedStringBase
                 rt.X += skew;
                 var xdivy = this.fontInfo.SlopeVector2;
 
-                if ((this.renderPass.TextState.LastStyle.TextDecoration & TextDecoration.Overline) != 0)
+                if ((this.renderPass.ActiveTextState.LastStyle.TextDecoration & TextDecoration.Overline) != 0)
                     this.DrawDecoration(lt, rt, -1, xdivy);
 
-                if ((this.renderPass.TextState.LastStyle.TextDecoration & TextDecoration.Underline) != 0)
+                if ((this.renderPass.ActiveTextState.LastStyle.TextDecoration & TextDecoration.Underline) != 0)
                     this.DrawDecoration(rbase with { X = lt.X }, rbase, 1, xdivy);
 
-                if ((this.renderPass.TextState.LastStyle.TextDecoration & TextDecoration.LineThrough) != 0)
+                if ((this.renderPass.ActiveTextState.LastStyle.TextDecoration & TextDecoration.LineThrough) != 0)
                 {
                     this.args.SwitchToChannel(RenderChannel.TextDecorationOverUnderChannel);
                     this.DrawDecoration((lt + lbottom) / 2, (rt + rbottom) / 2, 0, xdivy);
@@ -400,15 +397,15 @@ public abstract partial class SpannedStringBase
                 {
                     ImGuiNative.ImDrawList_PrimQuadUV(
                         this.args.DrawListPtr,
-                        this.renderPass.TransformToScreen(lt),
-                        this.renderPass.TransformToScreen(rt + new Vector2(h, 0)),
-                        this.renderPass.TransformToScreen(rb + new Vector2(h, 0)),
-                        this.renderPass.TransformToScreen(lb),
+                        lt,
+                        rt + new Vector2(h, 0),
+                        rb + new Vector2(h, 0),
+                        lb,
                         uv0,
                         new(uv1.X, uv0.Y),
                         uv1,
                         new(uv0.X, uv1.Y),
-                        this.renderPass.TextState.LastStyle.ForeColor);
+                        this.renderPass.ActiveTextState.LastStyle.ForeColor);
                 }
 
                 if (push)
@@ -421,7 +418,7 @@ public abstract partial class SpannedStringBase
                 if (this.skipDraw)
                 {
                     // Measure pass
-                    spannableState.TextState = this.renderPass.TextState;
+                    spannableState.ActiveTextState = this.renderPass.ActiveTextState;
                     this.renderPass.SpannableOffsets[nonNullSpannableStateIndex] =
                         this.renderPass.Offset + this.StyleTranslation + xySpannableBase;
                 }
@@ -439,7 +436,7 @@ public abstract partial class SpannedStringBase
         {
             this.renderPass.Renderer.TryGetFontData(
                 this.renderPass.Scale,
-                in this.renderPass.TextState.LastStyle,
+                in this.renderPass.ActiveTextState.LastStyle,
                 out this.fontInfo);
         }
 
@@ -459,22 +456,22 @@ public abstract partial class SpannedStringBase
                 return;
 
             this.useBackground =
-                IsColorVisible(this.renderPass.TextState.LastStyle.BackColor);
+                IsColorVisible(this.renderPass.ActiveTextState.LastStyle.BackColor);
             this.useShadow =
-                IsColorVisible(this.renderPass.TextState.LastStyle.ShadowColor)
-                && this.renderPass.TextState.LastStyle.ShadowOffset != Vector2.Zero;
+                IsColorVisible(this.renderPass.ActiveTextState.LastStyle.ShadowColor)
+                && this.renderPass.ActiveTextState.LastStyle.ShadowOffset != Vector2.Zero;
             this.useBorder =
-                IsColorVisible(this.renderPass.TextState.LastStyle.EdgeColor) &&
-                this.renderPass.TextState.LastStyle.BorderWidth >= 1f;
+                IsColorVisible(this.renderPass.ActiveTextState.LastStyle.EdgeColor) &&
+                this.renderPass.ActiveTextState.LastStyle.EdgeWidth >= 1f;
             this.useTextDecoration =
-                this.renderPass.TextState.LastStyle.TextDecoration != TextDecoration.None
-                && IsColorVisible(this.renderPass.TextState.LastStyle.TextDecorationColor)
-                && this.renderPass.TextState.LastStyle.TextDecorationThickness > 0f;
+                this.renderPass.ActiveTextState.LastStyle.TextDecoration != TextDecoration.None
+                && IsColorVisible(this.renderPass.ActiveTextState.LastStyle.TextDecorationColor)
+                && this.renderPass.ActiveTextState.LastStyle.TextDecorationThickness > 0f;
             this.useForeground =
-                IsColorVisible(this.renderPass.TextState.LastStyle.ForeColor);
+                IsColorVisible(this.renderPass.ActiveTextState.LastStyle.ForeColor);
             if (this.useBorder)
             {
-                this.borderRange = Math.Max(0, (int)this.renderPass.TextState.LastStyle.BorderWidth);
+                this.borderRange = Math.Max(0, (int)this.renderPass.ActiveTextState.LastStyle.EdgeWidth);
                 this.numBorderDraws = (((2 * this.borderRange) + 1) * ((2 * this.borderRange) + 1)) - 1;
             }
             else
@@ -487,17 +484,12 @@ public abstract partial class SpannedStringBase
         {
             var dlptr = this.args.DrawListPtr;
             var thicc = this.fontInfo.ScaledTextDecorationThickness;
-            var color = this.renderPass.TextState.LastStyle.TextDecorationColor;
-            switch (this.renderPass.TextState.LastStyle.TextDecorationStyle)
+            var color = this.renderPass.ActiveTextState.LastStyle.TextDecorationColor;
+            switch (this.renderPass.ActiveTextState.LastStyle.TextDecorationStyle)
             {
                 case TextDecorationStyle.Solid:
                 default:
-                    ImGuiNative.ImDrawList_AddLine(
-                        dlptr,
-                        this.renderPass.TransformToScreen(xy0),
-                        this.renderPass.TransformToScreen(xy1),
-                        color,
-                        thicc);
+                    ImGuiNative.ImDrawList_AddLine(dlptr, xy0, xy1, color, thicc);
                     break;
                 case TextDecorationStyle.Double:
                 {
@@ -524,18 +516,8 @@ public abstract partial class SpannedStringBase
                             break;
                     }
 
-                    ImGuiNative.ImDrawList_AddLine(
-                        dlptr,
-                        this.renderPass.TransformToScreen(xy0 + dispUp),
-                        this.renderPass.TransformToScreen(xy1 + dispUp),
-                        color,
-                        thicc);
-                    ImGuiNative.ImDrawList_AddLine(
-                        dlptr,
-                        this.renderPass.TransformToScreen(xy0 + dispDown),
-                        this.renderPass.TransformToScreen(xy1 + dispDown),
-                        color,
-                        thicc);
+                    ImGuiNative.ImDrawList_AddLine(dlptr, xy0 + dispUp, xy1 + dispUp, color, thicc);
+                    ImGuiNative.ImDrawList_AddLine(dlptr, xy0 + dispDown, xy1 + dispDown, color, thicc);
                     break;
                 }
             }

@@ -85,7 +85,7 @@ public struct RectVector4 : IEquatable<RectVector4>
     public static RectVector4 InvertedExtrema
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => new(new Vector2(float.MaxValue), new(float.MinValue));
+        get => new(new Vector2(float.PositiveInfinity), new(float.NegativeInfinity));
     }
 
     /// <summary>Gets or sets the left bottom coordinates.</summary>

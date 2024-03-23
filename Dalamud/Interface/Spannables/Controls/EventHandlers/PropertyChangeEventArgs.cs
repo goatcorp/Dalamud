@@ -3,7 +3,7 @@ namespace Dalamud.Interface.Spannables.Controls.EventHandlers;
 /// <summary>Property changed event arguments.</summary>
 /// <typeparam name="TSender">Type of the object that generated the event.</typeparam>
 /// <typeparam name="T">Type of the changed value.</typeparam>
-public struct PropertyChangedEventArgs<TSender, T>
+public struct PropertyChangeEventArgs<TSender, T>
 {
     /// <summary>The object that generated the event.</summary>
     public TSender Sender;

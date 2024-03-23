@@ -58,7 +58,7 @@ internal enum SpannedRecordType : byte
     ForeColor,
 
     /// <summary>Border width has been changed.</summary>
-    BorderWidth,
+    EdgeWidth,
 
     /// <summary>Shadow offset has been changed.</summary>
     ShadowOffset,

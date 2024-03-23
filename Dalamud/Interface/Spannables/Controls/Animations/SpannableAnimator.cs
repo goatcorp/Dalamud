@@ -6,8 +6,8 @@ using Dalamud.Utility.Numerics;
 
 namespace Dalamud.Interface.Spannables.Controls.Animations;
 
-/// <summary>Animator for <see cref="ControlSpannable"/>.</summary>
-public abstract class SpannableControlAnimator
+/// <summary>Animator for <see cref="ISpannable"/>.</summary>
+public abstract class SpannableAnimator
 {
     private Matrix4x4 transformation = Matrix4x4.Identity;
     private RectVector4 boundaryAdjustment = new(Vector4.Zero);
@@ -19,7 +19,7 @@ public abstract class SpannableControlAnimator
     public Easing? OpacityEasing { get; set; }
 
     /// <summary>Gets or sets the box that will be used for the purpose of calculating the animation.</summary>
-    public SpannableControlBox AnimateBox { get; set; } = SpannableControlBox.Interactive;
+    public ControlSpannableBox AnimateBox { get; set; } = ControlSpannableBox.Boundary;
 
     /// <summary>Gets or sets the opacity at the beginning of the animation.</summary>
     public float BeforeOpacity { get; set; } = 1f;
@@ -87,45 +87,41 @@ public abstract class SpannableControlAnimator
     }
 
     /// <summary>Updates the animation.</summary>
-    /// <param name="control">The control being animated.</param>
+    /// <param name="control">Control being animated.</param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Update(ControlSpannable control)
+    {
+        switch (this.AnimateBox)
+        {
+            case ControlSpannableBox.Extruded:
+                this.Update(control.MeasuredExtrudedBox);
+                break;
+            case ControlSpannableBox.Boundary:
+                this.Update(control.Boundary);
+                break;
+            case ControlSpannableBox.Interactive:
+            default:
+                this.Update(control.MeasuredInteractiveBox);
+                break;
+            case ControlSpannableBox.Content:
+                this.Update(control.MeasuredContentBox);
+                break;
+        }
+    }
+
+    /// <summary>Updates the animation.</summary>
+    /// <param name="renderPass">Render pass of the spannable being animated.</param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void Update(ISpannableRenderPass renderPass) => this.Update(renderPass.Boundary);
+
+    /// <summary>Updates the animation.</summary>
+    /// <param name="boundary">Boundary to animate.</param>
+    public void Update(scoped in RectVector4 boundary)
     {
         if (this.TransformationEasing?.IsRunning is true)
         {
             this.TransformationEasing.Update();
-            switch (this.AnimateBox)
-            {
-                case SpannableControlBox.Extruded:
-                    this.CalculateMatrix(
-                        (float)this.TransformationEasing.Value,
-                        control,
-                        control.MeasuredExtrudedBox,
-                        out this.transformation);
-                    break;
-                case SpannableControlBox.Boundary:
-                    this.CalculateMatrix(
-                        (float)this.TransformationEasing.Value,
-                        control,
-                        control.Boundary,
-                        out this.transformation);
-                    break;
-                case SpannableControlBox.Interactive:
-                default:
-                    this.CalculateMatrix(
-                        (float)this.TransformationEasing.Value,
-                        control,
-                        control.MeasuredInteractiveBox,
-                        out this.transformation);
-                    break;
-                case SpannableControlBox.Content:
-                    this.CalculateMatrix(
-                        (float)this.TransformationEasing.Value,
-                        control,
-                        control.MeasuredContentBox,
-                        out this.transformation);
-                    break;
-            }
-
+            this.CalculateMatrix((float)this.TransformationEasing.Value, boundary, out this.transformation);
             if (this.TransformationEasing.IsDone)
                 this.TransformationEasing.Stop();
         }
@@ -151,12 +147,10 @@ public abstract class SpannableControlAnimator
 
     /// <summary>Calculates the transformation matrix, given a progress value during animation.</summary>
     /// <param name="p">The progress value.</param>
-    /// <param name="control">The control being animated.</param>
     /// <param name="box">The box to use for calculating animation.</param>
     /// <param name="result">The calculated matrix.</param>
     protected abstract void CalculateMatrix(
         float p,
-        ControlSpannable control,
-        in RectVector4 box,
+        scoped in RectVector4 box,
         out Matrix4x4 result);
 }

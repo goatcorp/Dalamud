@@ -32,15 +32,15 @@ public readonly struct RenderContext
     public readonly Vector2 MouseScreenLocation;
 
     /// <summary>Gets or sets the maximum size at which point line break or ellipsis should happen.</summary>
-    /// <remarks>Default value is <c>new Vector2(ImGui.GetColumnWidth(), float.MaxValue)</c>.</remarks>
+    /// <remarks>Default value is <c>new Vector2(ImGui.GetColumnWidth(), float.PositiveInfinity)</c>.</remarks>
     public readonly Vector2 MaxSize;
 
-    /// <inheritdoc cref="ISpannableRenderPass.ScreenOffset"/>
+    /// <summary>The offset to start drawing in screen offset.</summary>
     public readonly Vector2 ScreenOffset;
 
-    /// <inheritdoc cref="ISpannableRenderPass.TransformationOrigin"/>
+    /// <inheritdoc cref="ISpannableRenderPass.InnerOrigin"/>
     /// <remarks>Default value is <c>(0.5, 0.5)</c>.</remarks>
-    public readonly Vector2 TransformationOrigin;
+    public readonly Vector2 InnerOrigin;
 
     /// <inheritdoc cref="ISpannableRenderPass.Transformation"/>
     /// <remarks>Default value is <see cref="Matrix4x4.Identity"/>.</remarks>
@@ -122,13 +122,13 @@ public readonly struct RenderContext
         ThreadSafety.DebugAssertMainThread();
 
         this.UseInteraction = options.UseLinks ?? true;
-        this.MaxSize = options.MaxSize ?? new(ImGui.GetColumnWidth(), float.MaxValue);
+        this.MaxSize = options.MaxSize ?? new(ImGui.GetColumnWidth(), float.PositiveInfinity);
         this.Scale = options.Scale ?? ImGuiHelpers.GlobalScale;
         this.DrawListPtr = drawListPtr;
         this.PutDummyAfterRender = putDummyAfterRender;
         this.MouseScreenLocation = ImGui.GetMousePos();
         this.ScreenOffset = options.ScreenOffset ?? ImGui.GetCursorScreenPos();
-        this.TransformationOrigin = options.TransformationOrigin ?? new(0.5f);
+        this.InnerOrigin = options.InnerOrigin ?? new(0.5f);
         this.Transformation = options.Transformation ?? Matrix4x4.Identity;
 
         this.UseInteraction &= this.UseDrawing;
@@ -156,8 +156,8 @@ public readonly struct RenderContext
         /// <inheritdoc cref="RenderContext.ScreenOffset"/>
         public Vector2? ScreenOffset { get; set; }
 
-        /// <inheritdoc cref="RenderContext.TransformationOrigin"/>
-        public Vector2? TransformationOrigin { get; set; }
+        /// <inheritdoc cref="RenderContext.InnerOrigin"/>
+        public Vector2? InnerOrigin { get; set; }
 
         /// <inheritdoc cref="RenderContext.Transformation"/>
         public Matrix4x4? Transformation { get; set; }

@@ -3,7 +3,7 @@ using Dalamud.Interface.Spannables.Controls.Containers;
 namespace Dalamud.Interface.Spannables.Controls.EventHandlers;
 
 /// <summary>Arguments for child controls related events.</summary>
-public struct ControlChildArgs
+public struct ControlChildEventArgs
 {
     /// <summary>The control that generated the event.</summary>
     public ContainerControl Sender;

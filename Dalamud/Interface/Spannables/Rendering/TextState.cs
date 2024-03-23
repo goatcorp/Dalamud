@@ -81,6 +81,40 @@ public struct TextState
         this.LastStyle = this.InitialStyle;
     }
 
+    /// <summary>Initializes a new instance of the <see cref="TextState"/> struct.</summary>
+    /// <param name="rendererOptions">the initial parameters.</param>
+    /// <param name="defaultValues">The default values if none is specified from <paramref name="rendererOptions"/>.
+    /// </param>
+    /// <returns>A reference of this instance after the initialize operation is completed.</returns>
+    /// <exception cref="InvalidOperationException">Called outside the main thread. If called from the main thread,
+    /// but not during the drawing context, the behavior is undefined and may crash.</exception>
+    public TextState(in Options rendererOptions, in TextState defaultValues)
+    {
+        ThreadSafety.DebugAssertMainThread();
+
+        this.UseControlCharacter = rendererOptions.ControlCharactersStyle.HasValue;
+        this.WrapMarker = rendererOptions.WrapMarker ?? defaultValues.WrapMarker;
+        this.WordBreak = rendererOptions.WordBreak ?? defaultValues.WordBreak;
+        this.AcceptedNewLines = rendererOptions.AcceptedNewLines ?? defaultValues.AcceptedNewLines;
+        this.TabWidth = rendererOptions.TabWidth ?? defaultValues.TabWidth;
+        this.ControlCharactersStyle = rendererOptions.ControlCharactersStyle ?? defaultValues.ControlCharactersStyle;
+        this.InitialStyle = rendererOptions.InitialStyle ?? defaultValues.InitialStyle;
+        this.VerticalAlignment = rendererOptions.VerticalAlignment ?? defaultValues.VerticalAlignment;
+
+        var gfdIndex = rendererOptions.GraphicFontIconMode ?? defaultValues.GfdIndex;
+        if (gfdIndex < 0 || gfdIndex >= SpannableRenderer.GfdTexturePaths.Length)
+        {
+            gfdIndex =
+                Service<GameConfig>.Get().TryGet(SystemConfigOption.PadSelectButtonIcon, out uint iconTmp)
+                    ? (int)iconTmp
+                    : 0;
+        }
+
+        this.GfdIndex = gfdIndex;
+        this.LineCount = 0;
+        this.LastStyle = this.InitialStyle;
+    }
+
     /// <summary>Determine if properties are equal, using <see cref="object.ReferenceEquals"/> for reference types.
     /// </summary>
     /// <param name="l">The 1st text state to compare.</param>
