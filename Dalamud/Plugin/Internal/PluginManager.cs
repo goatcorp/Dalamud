@@ -1355,12 +1355,25 @@ internal partial class PluginManager : IInternalDisposableService
         {
             try
             {
-                // We don't need to apply, it doesn't matter
-                await this.profileManager.DefaultProfile.RemoveByInternalNameAsync(repoManifest.InternalName, false);
+                // Only remove entries from the default profile that are NOT currently tied to an active LocalPlugin
+                var guidsToRemove = this.profileManager.DefaultProfile.Plugins
+                                        .Where(x => this.InstalledPlugins.All(y => y.Manifest.WorkingPluginId != x.WorkingPluginId))
+                                        .Select(x => x.WorkingPluginId)
+                                        .ToArray();
+
+                if (guidsToRemove.Length != 0)
+                {
+                    Log.Verbose("Removing {Cnt} orphaned entries from default profile", guidsToRemove.Length);
+                    foreach (var guid in guidsToRemove)
+                    {
+                        // We don't need to apply, it doesn't matter
+                        await this.profileManager.DefaultProfile.RemoveAsync(guid, false, false);
+                    }
+                }
             }
-            catch (ProfileOperationException)
+            catch (ProfileOperationException ex)
             {
-                // ignored
+                Log.Error(ex, "Error during default profile cleanup");
             }
         }
         else
