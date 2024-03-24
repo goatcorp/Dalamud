@@ -25,5 +25,6 @@ public sealed class SpannableSizeAnimator : SpannableAnimator
         result = Matrix4x4.Multiply(result, Matrix4x4.CreateScale(new Vector3(scale, 1)));
         var translation = (box.Size * (lt + rb)) + center;
         result = Matrix4x4.Multiply(result, Matrix4x4.CreateTranslation(new(translation, 0)));
+        result = Matrix4x4.Multiply(result, Matrix4x4.Lerp(this.BeforeMatrix, this.AfterMatrix, p));
     }
 }

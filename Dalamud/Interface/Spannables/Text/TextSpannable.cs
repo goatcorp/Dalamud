@@ -7,20 +7,20 @@ using System.Text;
 
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Spannables.Internal;
-using Dalamud.Interface.Spannables.Strings.Internal;
 using Dalamud.Interface.Spannables.Styles;
+using Dalamud.Interface.Spannables.Text.Internal;
 
-namespace Dalamud.Interface.Spannables.Strings;
+namespace Dalamud.Interface.Spannables.Text;
 
 /// <summary>A UTF-8 character sequence with embedded styling information.</summary>
-public sealed partial class SpannedString : SpannedStringBase, ISpanParsable<SpannedString>, IEquatable<SpannedString>
+public sealed partial class TextSpannable : TextSpannableBase, ISpanParsable<TextSpannable>, IEquatable<TextSpannable>
 {
     private static readonly (MethodInfo Info, SpannedParseInstructionAttribute Attr)[] SsbMethods =
-        typeof(ISpannedStringBuilder)
+        typeof(ITextSpannableBuilder)
             .GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.FlattenHierarchy)
             .Select(
                 x => (
-                         Info: typeof(SpannedStringBuilder).GetMethod(
+                         Info: typeof(TextSpannableBuilder).GetMethod(
                              x.Name,
                              BindingFlags.Instance | BindingFlags.Public,
                              x.GetParameters().Select(y => y.ParameterType).ToArray()),
@@ -38,9 +38,9 @@ public sealed partial class SpannedString : SpannedStringBase, ISpanParsable<Spa
     private readonly ISpannable?[] spannables;
     private readonly Lazy<int> hashCode;
 
-    /// <summary>Initializes a new instance of the <see cref="SpannedString"/> class.</summary>
+    /// <summary>Initializes a new instance of the <see cref="TextSpannable"/> class.</summary>
     /// <param name="data">The plain text.</param>
-    public SpannedString(ReadOnlySpan<char> data)
+    public TextSpannable(ReadOnlySpan<char> data)
         : this(
             Array.Empty<byte>(),
             Array.Empty<byte>(),
@@ -53,9 +53,9 @@ public sealed partial class SpannedString : SpannedStringBase, ISpanParsable<Spa
         Encoding.UTF8.GetBytes(data, this.textStream);
     }
 
-    /// <summary>Initializes a new instance of the <see cref="SpannedString"/> class.</summary>
+    /// <summary>Initializes a new instance of the <see cref="TextSpannable"/> class.</summary>
     /// <param name="data">The plain UTF-8 text.</param>
-    public SpannedString(ReadOnlySpan<byte> data)
+    public TextSpannable(ReadOnlySpan<byte> data)
         : this(
             data.ToArray(),
             Array.Empty<byte>(),
@@ -66,9 +66,9 @@ public sealed partial class SpannedString : SpannedStringBase, ISpanParsable<Spa
     {
     }
 
-    /// <summary>Initializes a new instance of the <see cref="SpannedString"/> class.</summary>
+    /// <summary>Initializes a new instance of the <see cref="TextSpannable"/> class.</summary>
     /// <param name="data">The plain UTF-8 text.</param>
-    public SpannedString(byte[] data)
+    public TextSpannable(byte[] data)
         : this(
             data,
             Array.Empty<byte>(),
@@ -79,14 +79,14 @@ public sealed partial class SpannedString : SpannedStringBase, ISpanParsable<Spa
     {
     }
 
-    /// <summary>Initializes a new instance of the <see cref="SpannedString"/> class.</summary>
+    /// <summary>Initializes a new instance of the <see cref="TextSpannable"/> class.</summary>
     /// <param name="textStream">The text storage.</param>
     /// <param name="dataStream">The link strorage.</param>
     /// <param name="records">The spans.</param>
     /// <param name="fontSets">The font sets.</param>
     /// <param name="textures">The textures.</param>
     /// <param name="spannables">The callbacks.</param>
-    internal SpannedString(
+    internal TextSpannable(
         byte[] textStream,
         byte[] dataStream,
         SpannedRecord[] records,
@@ -118,8 +118,8 @@ public sealed partial class SpannedString : SpannedStringBase, ISpanParsable<Spa
             });
     }
 
-    /// <summary>Gets an empty instance of <see cref="SpannedString"/>.</summary>
-    public static SpannedString Empty { get; } = new(Array.Empty<byte>());
+    /// <summary>Gets an empty instance of <see cref="TextSpannable"/>.</summary>
+    public static TextSpannable Empty { get; } = new(Array.Empty<byte>());
 
     /// <summary>Gets the font handle sets.</summary>
     public IList<FontHandleVariantSet> FontHandleSets
@@ -143,16 +143,16 @@ public sealed partial class SpannedString : SpannedStringBase, ISpanParsable<Spa
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator ==(SpannedString? left, SpannedString? right) => Equals(left, right);
+    public static bool operator ==(TextSpannable? left, TextSpannable? right) => Equals(left, right);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator !=(SpannedString? left, SpannedString? right) => !Equals(left, right);
+    public static bool operator !=(TextSpannable? left, TextSpannable? right) => !Equals(left, right);
 
     /// <inheritdoc/>
     public override IReadOnlyCollection<ISpannable?> GetAllChildSpannables() => this.spannables;
 
     /// <inheritdoc/>
-    public bool Equals(SpannedString? other)
+    public bool Equals(TextSpannable? other)
     {
         if (ReferenceEquals(null, other)) return false;
         if (ReferenceEquals(this, other)) return true;
@@ -168,7 +168,7 @@ public sealed partial class SpannedString : SpannedStringBase, ISpanParsable<Spa
 
     /// <inheritdoc/>
     public override bool Equals(object? obj) =>
-        ReferenceEquals(this, obj) || (obj is SpannedString other && this.Equals(other));
+        ReferenceEquals(this, obj) || (obj is TextSpannable other && this.Equals(other));
 
     /// <inheritdoc/>
     public override string ToString() => this.ToString(null);

@@ -20,8 +20,8 @@ using Dalamud.Interface.Spannables.Helpers;
 using Dalamud.Interface.Spannables.Patterns;
 using Dalamud.Interface.Spannables.Rendering;
 using Dalamud.Interface.Spannables.Rendering.Internal;
-using Dalamud.Interface.Spannables.Strings;
 using Dalamud.Interface.Spannables.Styles;
+using Dalamud.Interface.Spannables.Text;
 using Dalamud.Interface.Utility;
 using Dalamud.Utility;
 
@@ -32,9 +32,9 @@ using Serilog;
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 
 /// <summary>
-/// Widget for displaying <see cref="SpannedString"/> test.
+/// Widget for displaying <see cref="TextSpannable"/> test.
 /// </summary>
-internal class SpannedStringWidget : IDataWindowWidget, IDisposable
+internal class TextSpannableWidget : IDataWindowWidget, IDisposable
 {
     private readonly Stopwatch stopwatch = new();
 
@@ -67,10 +67,10 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
     private ButtonControl[] spannableButton = null!;
     private LinearContainer linearContainer = null!;
 
-    private (SpannedString? Parsed, Exception? Exception) parseAttempt;
+    private (TextSpannable? Parsed, Exception? Exception) parseAttempt;
 
     /// <inheritdoc/>
-    public string[]? CommandShortcuts { get; init; } = { "spannedstring" };
+    public string[]? CommandShortcuts { get; init; } = { "TextSpannable" };
 
     /// <inheritdoc/>
     public string DisplayName { get; init; } = "Spanned Strings";
@@ -116,8 +116,8 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
         this.buttonFlowerScale = 1f;
         this.setupControlNeeded = true;
 
-        this.ellipsisSpannable = new SpannedStringBuilder().PushForeColor(0x80FFFFFF).Append("…");
-        this.wrapMarkerSpannable = new SpannedStringBuilder()
+        this.ellipsisSpannable = new TextSpannableBuilder().PushForeColor(0x80FFFFFF).Append("…");
+        this.wrapMarkerSpannable = new TextSpannableBuilder()
                                    .PushFontSet(
                                        new(DalamudAssetFontAndFamilyId.From(DalamudAsset.FontAwesomeFreeSolid)),
                                        out _)
@@ -251,11 +251,11 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
         ImGui.TextUnformatted($"Took {this.stopwatch.Elapsed.TotalMilliseconds:g}ms");
     }
 
-    private static SpannedString? TestEncodeDecode(SpannedString ss)
+    private static TextSpannable? TestEncodeDecode(TextSpannable ss)
     {
         var buf = new byte[ss.Encode(default)];
         ss.Encode(buf);
-        if (!SpannedString.TryDecode(buf, out var decoded))
+        if (!TextSpannable.TryDecode(buf, out var decoded))
             return null;
 
         for (var i = 0; i < ss.Textures.Count; i++)
@@ -267,10 +267,10 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
         return decoded;
     }
 
-    private static SpannedString? TestToStringParse(SpannedString ss)
+    private static TextSpannable? TestToStringParse(TextSpannable ss)
     {
         var str = ss.ToString(CultureInfo.InvariantCulture);
-        if (!SpannedString.TryParse(str, CultureInfo.InvariantCulture, out var decoded))
+        if (!TextSpannable.TryParse(str, CultureInfo.InvariantCulture, out var decoded))
             return null;
 
         for (var i = 0; i < ss.Textures.Count; i++)
@@ -310,7 +310,7 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
                     TransformationEasing = new InCubic(TimeSpan.FromMilliseconds(300)),
                     OpacityEasing = new InCubic(TimeSpan.FromMilliseconds(300)),
                 },
-                SpannableText = new SpannedStringBuilder()
+                SpannableText = new TextSpannableBuilder()
                                 .PushVerticalAlignment(0.5f)
                                 .PushLink("tlink"u8)
                                 .PushEdgeWidth(1)
@@ -324,7 +324,7 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
                                 .AppendSpannable(
                                     new ButtonControl
                                     {
-                                        SpannableText = new SpannedStringBuilder()
+                                        SpannableText = new TextSpannableBuilder()
                                                         .Append("Inner ")
                                                         .PushSystemFontFamilyIfAvailable("Comic Sans MS")
                                                         .Append("Comic"),
@@ -382,19 +382,21 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
             ShadowColor = 0xFF000000,
             ForeColor = 0xFFCCCCCC,
         };
+        var animTimeSpan = TimeSpan.FromMilliseconds(300);
         this.linearContainer = new()
         {
             ContentBias = 0.3f,
             Direction = LinearContainer.LinearDirection.LeftToRight,
             Size = new(ControlSpannable.MatchParent, ControlSpannable.WrapContent),
+            MinSize = new(640, 480),
             Padding = new(16f),
             TextStateOptions = new() { InitialStyle = defaultStyle },
             ShowAnimation = new SpannableSizeAnimator
             {
                 BeforeRatio = new(-0.7f, -0.7f, 0.7f, 0.7f),
                 BeforeOpacity = 0f,
-                TransformationEasing = new OutCubic(TimeSpan.FromMilliseconds(500)),
-                OpacityEasing = new OutCubic(TimeSpan.FromMilliseconds(500)),
+                TransformationEasing = new OutCubic(animTimeSpan),
+                OpacityEasing = new OutCubic(animTimeSpan),
             },
             ChildrenList =
             {
@@ -406,7 +408,7 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
                     {
                         new LabelControl
                         {
-                            SpannableText = new SpannedStringBuilder().PushLink("test"u8).Append("Test Link"),
+                            SpannableText = new TextSpannableBuilder().PushLink("test"u8).Append("Test Link"),
                             TextStateOptions = new() { InitialStyle = linkStyle },
                         }.GetAsOut(out var linkLabel),
                         new ControlSpannable { Size = new(0, 12) },
@@ -494,7 +496,7 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
                                 new RadioControl
                                     {
                                         SpannableText =
-                                            new SpannedStringBuilder()
+                                            new TextSpannableBuilder()
                                                 .PushHorizontalAlignment(HorizontalAlignment.Right)
                                                 .Append("Normal"),
                                         // TODO: add SpannableMeasureArgs.MinSize
@@ -505,7 +507,7 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
                                 new RadioControl
                                     {
                                         SpannableText =
-                                            new SpannedStringBuilder()
+                                            new TextSpannableBuilder()
                                                 .PushHorizontalAlignment(HorizontalAlignment.Center)
                                                 .Append("Break All"),
                                         Size = new(ControlSpannable.MatchParent, ControlSpannable.WrapContent),
@@ -535,7 +537,7 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
                     {
                         new LabelControl
                         {
-                            SpannableText = new SpannedStringBuilder().Append("Not a Link"),
+                            SpannableText = new TextSpannableBuilder().Append("Not a Link"),
                             TextStateOptions = new() { InitialStyle = notLinkStyle },
                         },
                         new ControlSpannable { Size = new(0, 12) },
@@ -565,23 +567,29 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
                         },
                     },
                 },
-                new LabelControl { ActiveTextState = new(this.TextStateOptions) }.GetAsOut(out var lblOptions),
+                new LabelControl { ActiveTextState = new(this.TextStateOptions), }.GetAsOut(out var lblOptions),
             },
         };
 
+        foreach (var lc in this.linearContainer.EnumerateHierarchy<LinearContainer>())
+        {
+            foreach (var dc in lc.ChildrenReadOnlyList.OfType<ControlSpannable>())
+                dc.MoveAnimation = new SpannableSizeAnimator { TransformationEasing = new InOutCubic(animTimeSpan) };
+        }
+
         optLinearContainerLtr.CheckedChange += e =>
-            this.linearContainer.Direction = e.NewValue is true
+            this.linearContainer.Direction = e.NewValue
                                                  ? LinearContainer.LinearDirection.LeftToRight
                                                  : LinearContainer.LinearDirection.RightToLeft;
         optLinearContainerTtb.CheckedChange += e =>
         {
-            var align = e.NewValue is true ? 0f : 1f;
+            var align = e.NewValue ? 0f : 1f;
             for (var i = 0; i < this.linearContainer.ChildrenList.Count; i++)
                 this.linearContainer.SetChildLayout(i, new() { Weight = i < 2 ? 0.25f : 0f, Alignment = align });
             foreach (var x in this.linearContainer.ChildrenList.OfType<LinearContainer>())
             {
                 x.Direction =
-                    e.NewValue is true
+                    e.NewValue
                         ? LinearContainer.LinearDirection.TopToBottom
                         : LinearContainer.LinearDirection.BottomToTop;
             }
@@ -592,41 +600,41 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
 
         linkLabel.LinkMouseClick += e => Log.Information($"Clicked with {e.Button}");
 
-        chkWrapMarker.CheckedChange += e => this.useWrapMarkers = e.NewValue is not false;
-        chkVisibleControlCharacters.CheckedChange += e => this.useVisibleControlCharacters = e.NewValue is not false;
+        chkWrapMarker.CheckedChange += e => this.useWrapMarkers = e.NewValue;
+        chkVisibleControlCharacters.CheckedChange += e => this.useVisibleControlCharacters = e.NewValue;
         chkWrapMarker.CheckedChange += UpdateLblOptions;
         chkVisibleControlCharacters.CheckedChange += UpdateLblOptions;
 
         optBreakNormal.CheckedChange += e =>
         {
-            if (e.NewValue is true) this.wordBreakType = WordBreakType.Normal;
+            if (e.NewValue) this.wordBreakType = WordBreakType.Normal;
         };
         optBreakAll.CheckedChange += e =>
         {
-            if (e.NewValue is true) this.wordBreakType = WordBreakType.BreakAll;
+            if (e.NewValue) this.wordBreakType = WordBreakType.BreakAll;
         };
         optKeepAll.CheckedChange += e =>
         {
-            if (e.NewValue is true) this.wordBreakType = WordBreakType.KeepAll;
+            if (e.NewValue) this.wordBreakType = WordBreakType.KeepAll;
         };
         optBreakWord.CheckedChange += e =>
         {
-            if (e.NewValue is true) this.wordBreakType = WordBreakType.BreakWord;
+            if (e.NewValue) this.wordBreakType = WordBreakType.BreakWord;
         };
         optBreakNormal.CheckedChange += UpdateLblOptions;
         optBreakAll.CheckedChange += UpdateLblOptions;
         optKeepAll.CheckedChange += UpdateLblOptions;
         optBreakWord.CheckedChange += UpdateLblOptions;
 
-        chkComplicatedText.CheckedChange += e => this.showComplicatedTextTest = e.NewValue is not false;
-        chkDynamicOffset.CheckedChange += e => this.showDynamicOffsetTest = e.NewValue is not false;
-        chkTransformation.CheckedChange += e => this.showTransformationTest = e.NewValue is not false;
+        chkComplicatedText.CheckedChange += e => this.showComplicatedTextTest = e.NewValue;
+        chkDynamicOffset.CheckedChange += e => this.showDynamicOffsetTest = e.NewValue;
+        chkTransformation.CheckedChange += e => this.showTransformationTest = e.NewValue;
         chkComplicatedText.CheckedChange += UpdateLblOptions;
         chkDynamicOffset.CheckedChange += UpdateLblOptions;
         chkTransformation.CheckedChange += UpdateLblOptions;
 
-        chkParsing.CheckedChange += e => this.showParseTest = e.NewValue is not false;
-        chkFlower.CheckedChange += e => this.showFlowerTest = e.NewValue is not false;
+        chkParsing.CheckedChange += e => this.showParseTest = e.NewValue;
+        chkFlower.CheckedChange += e => this.showFlowerTest = e.NewValue;
         chkParsing.CheckedChange += UpdateLblOptions;
         chkFlower.CheckedChange += UpdateLblOptions;
 
@@ -674,11 +682,11 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
         UpdateLblOptions(default);
         return;
 
-        void UpdateLblOptions(PropertyChangeEventArgs<ControlSpannable, bool?> e)
+        void UpdateLblOptions(PropertyChangeEventArgs<ControlSpannable, bool> e)
         {
             lblOptions.ActiveTextState = new(this.TextStateOptions);
             lblOptions.SpannableText =
-                new SpannedStringBuilder()
+                new TextSpannableBuilder()
                     .PushLink("copy"u8)
                     .PushEdgeColor(ImGuiColors.TankBlue)
                     .PushTextDecoration(TextDecoration.Underline)
@@ -854,7 +862,7 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
         }
     }
 
-    private void DrawTestComplicatedTextBlock(SpannedStringBuilder ssb, float x)
+    private void DrawTestComplicatedTextBlock(TextSpannableBuilder ssb, float x)
     {
         ssb.Clear()
            .PushLink("copy"u8)
@@ -1047,7 +1055,7 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
         }
     }
 
-    private unsafe void DrawParseTest(SpannedStringBuilder ssb, float x)
+    private unsafe void DrawParseTest(TextSpannableBuilder ssb, float x)
     {
         ImGui.SetCursorScreenPos(ImGui.GetCursorScreenPos() with { X = x });
         ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X);
@@ -1072,7 +1080,7 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
                     this.testStringBuffer.StorageSpan[len] = default;
                 }
 
-                if (SpannedString.TryParse(
+                if (TextSpannable.TryParse(
                         Encoding.UTF8.GetString(this.testStringBuffer.DataSpan),
                         CultureInfo.InvariantCulture,
                         out var r,
@@ -1151,7 +1159,7 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
         ImGui.SetCursorPos(off + (new Vector2(0, 480) * ImGuiHelpers.GlobalScale));
     }
 
-    private void DrawDynamicOffsetTest(SpannedStringBuilder ssb)
+    private void DrawDynamicOffsetTest(TextSpannableBuilder ssb)
     {
         const float interval = 2000;
         var v = ((this.catchMeBegin + Environment.TickCount64) / interval) % (2 * MathF.PI);
@@ -1187,7 +1195,7 @@ internal class SpannedStringWidget : IDataWindowWidget, IDisposable
         ImGui.SetCursorScreenPos(prevPos);
     }
 
-    private void DrawTransformationTest(SpannedStringBuilder ssb)
+    private void DrawTransformationTest(TextSpannableBuilder ssb)
     {
         const float interval = 2000;
         var v = ((this.catchMeBegin + Environment.TickCount64) / interval) % (2 * MathF.PI);

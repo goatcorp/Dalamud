@@ -9,6 +9,7 @@ namespace Dalamud.Utility.Text;
 
 /// <summary>Represents a single value to be used in a UTF-N byte sequence.</summary>
 [StructLayout(LayoutKind.Explicit, Size = 4)]
+[DebuggerDisplay("0x{IntValue,h} ({CharValue})")]
 public readonly struct UtfValue : IEquatable<UtfValue>, IComparable<UtfValue>
 {
     /// <summary>The unicode codepoint in <c>int</c>, that may not be in a valid range.</summary>
@@ -18,6 +19,10 @@ public readonly struct UtfValue : IEquatable<UtfValue>, IComparable<UtfValue>
     /// <summary>The unicode codepoint in <c>uint</c>, that may not be in a valid range.</summary>
     [FieldOffset(0)]
     public readonly uint UIntValue;
+
+    /// <summary>The high UInt16 value in <c>char</c>, that may have been cut off if outside BMP.</summary>
+    [FieldOffset(0)]
+    public readonly char CharValue;
 
     /// <summary>Initializes a new instance of the <see cref="UtfValue"/> struct.</summary>
     /// <param name="value">The raw codepoint value.</param>

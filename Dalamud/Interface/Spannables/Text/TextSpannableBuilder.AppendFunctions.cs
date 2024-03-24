@@ -13,10 +13,10 @@ using Dalamud.Interface.Spannables.Styles;
 using Dalamud.Utility;
 using Dalamud.Utility.Text;
 
-namespace Dalamud.Interface.Spannables.Strings;
+namespace Dalamud.Interface.Spannables.Text;
 
 /// <summary>A custom text renderer implementation.</summary>
-public sealed partial class SpannedStringBuilder
+public sealed partial class TextSpannableBuilder
 {
     /// <summary>A dictionary for exclusive use with <see cref="Append{T}"/>.</summary>
     private Dictionary<Type, Delegate>? appendSpanFormattableDelegates;
@@ -24,11 +24,11 @@ public sealed partial class SpannedStringBuilder
     /// <summary>A buffer for exclusive use with <see cref="AppendSpanFormattable{T}"/>.</summary>
     private MemoryStream? appendBuffer;
 
-    private delegate SpannedStringBuilder AppendSpanFormattableDelegate<in T>(T value, int repeat = 1)
+    private delegate TextSpannableBuilder AppendSpanFormattableDelegate<in T>(T value, int repeat = 1)
         where T : struct;
 
     /// <inheritdoc/>
-    public SpannedStringBuilder Append(ReadOnlySpan<char> span, int repeat = 1)
+    public TextSpannableBuilder Append(ReadOnlySpan<char> span, int repeat = 1)
     {
         if (repeat < 1 || span.IsEmpty)
             return this;
@@ -44,7 +44,7 @@ public sealed partial class SpannedStringBuilder
     }
 
     /// <inheritdoc/>
-    public SpannedStringBuilder Append(ReadOnlySpan<byte> span, int repeat = 1)
+    public TextSpannableBuilder Append(ReadOnlySpan<byte> span, int repeat = 1)
     {
         if (repeat < 1 || span.IsEmpty)
             return this;
@@ -60,19 +60,19 @@ public sealed partial class SpannedStringBuilder
     }
 
     /// <inheritdoc/>
-    public SpannedStringBuilder Append(ReadOnlyMemory<char> memory, int repeat = 1) =>
+    public TextSpannableBuilder Append(ReadOnlyMemory<char> memory, int repeat = 1) =>
         this.Append(memory.Span, repeat);
 
     /// <inheritdoc/>
-    public SpannedStringBuilder Append(ReadOnlyMemory<byte> memory, int repeat = 1) =>
+    public TextSpannableBuilder Append(ReadOnlyMemory<byte> memory, int repeat = 1) =>
         this.Append(memory.Span, repeat);
 
     /// <inheritdoc/>
-    public SpannedStringBuilder Append(string? text, int repeat = 1) =>
+    public TextSpannableBuilder Append(string? text, int repeat = 1) =>
         this.Append((text ?? "null").AsSpan(), repeat);
 
     /// <inheritdoc/>
-    public SpannedStringBuilder Append(UtfEnumerator utfEnumerator, int repeat = 1)
+    public TextSpannableBuilder Append(UtfEnumerator utfEnumerator, int repeat = 1)
     {
         while (repeat-- > 0)
         {
@@ -89,22 +89,22 @@ public sealed partial class SpannedStringBuilder
     }
 
     /// <inheritdoc/>
-    public SpannedStringBuilder Append(ISpanFormattable? value, int repeat = 1) =>
+    public TextSpannableBuilder Append(ISpanFormattable? value, int repeat = 1) =>
         value is null ? this.Append("null"u8) : this.AppendSpanFormattable(value, repeat);
 
     /// <inheritdoc/>
-    public SpannedStringBuilder Append(IUtf8SpanFormattable? value, int repeat = 1) =>
+    public TextSpannableBuilder Append(IUtf8SpanFormattable? value, int repeat = 1) =>
         value is null ? this.Append("null"u8) : this.AppendUtf8SpanFormattable(value, repeat);
 
     /// <inheritdoc/>
-    public SpannedStringBuilder Append(object? value, int repeat = 1) =>
+    public TextSpannableBuilder Append(object? value, int repeat = 1) =>
         this.Append((value?.ToString() ?? "null").AsSpan(), repeat);
 
     /// <inheritdoc/>
-    public SpannedStringBuilder Append(char value, int repeat = 1) => this.AppendChar(value, repeat);
+    public TextSpannableBuilder Append(char value, int repeat = 1) => this.AppendChar(value, repeat);
 
     /// <inheritdoc/>
-    public SpannedStringBuilder Append<T>(T value, int repeat = 1) where T : struct
+    public TextSpannableBuilder Append<T>(T value, int repeat = 1) where T : struct
     {
         this.appendSpanFormattableDelegates ??= new(8);
         var methodName =
@@ -131,7 +131,7 @@ public sealed partial class SpannedStringBuilder
     }
 
     /// <inheritdoc/>
-    public SpannedStringBuilder AppendSpannable(ISpannable? callback, out int id)
+    public TextSpannableBuilder AppendSpannable(ISpannable? callback, out int id)
     {
         id = this.spannables.Count;
         this.spannables.Add(callback);
@@ -139,7 +139,7 @@ public sealed partial class SpannedStringBuilder
     }
 
     /// <inheritdoc/>
-    public SpannedStringBuilder AppendSpannable(int id)
+    public TextSpannableBuilder AppendSpannable(int id)
     {
         this.spannables.EnsureCapacity(id + 1);
         while (this.spannables.Count <= id)
@@ -151,7 +151,7 @@ public sealed partial class SpannedStringBuilder
     }
 
     /// <inheritdoc/>
-    public SpannedStringBuilder AppendChar(int codepoint, int repeat = 1)
+    public TextSpannableBuilder AppendChar(int codepoint, int repeat = 1)
     {
         if (repeat < 1)
             return this;
@@ -166,7 +166,7 @@ public sealed partial class SpannedStringBuilder
     }
 
     /// <inheritdoc/>
-    public SpannedStringBuilder AppendChar(Rune rune, int repeat = 1)
+    public TextSpannableBuilder AppendChar(Rune rune, int repeat = 1)
     {
         if (repeat < 1)
             return this;
@@ -181,10 +181,10 @@ public sealed partial class SpannedStringBuilder
     }
 
     /// <inheritdoc/>
-    public SpannedStringBuilder AppendIcon(GfdIcon iconId) => this.AppendIcon((int)iconId);
+    public TextSpannableBuilder AppendIcon(GfdIcon iconId) => this.AppendIcon((int)iconId);
 
     /// <inheritdoc/>
-    public SpannedStringBuilder AppendIcon(int iconId)
+    public TextSpannableBuilder AppendIcon(int iconId)
     {
         var len = SpannedRecordCodec.EncodeObjectIcon(default, iconId);
         this.AddRecordAndReserveData(SpannedRecordType.ObjectIcon, len, out var data);
@@ -193,10 +193,10 @@ public sealed partial class SpannedStringBuilder
     }
 
     /// <inheritdoc/>
-    public SpannedStringBuilder AppendTexture(int id) => this.AppendTexture(id, Vector2.Zero, Vector2.One);
+    public TextSpannableBuilder AppendTexture(int id) => this.AppendTexture(id, Vector2.Zero, Vector2.One);
 
     /// <inheritdoc/>
-    public SpannedStringBuilder AppendTexture(int id, Vector2 uv0, Vector2 uv1)
+    public TextSpannableBuilder AppendTexture(int id, Vector2 uv0, Vector2 uv1)
     {
         this.textures.EnsureCapacity(id + 1);
         while (this.textures.Count <= id)
@@ -208,11 +208,11 @@ public sealed partial class SpannedStringBuilder
     }
 
     /// <inheritdoc/>
-    public SpannedStringBuilder AppendTexture(IDalamudTextureWrap? textureWrap, out int id) =>
+    public TextSpannableBuilder AppendTexture(IDalamudTextureWrap? textureWrap, out int id) =>
         this.AppendTexture(textureWrap, Vector2.Zero, Vector2.One, out id);
 
     /// <inheritdoc/>
-    public SpannedStringBuilder AppendTexture(IDalamudTextureWrap? textureWrap, Vector2 uv0, Vector2 uv1, out int id)
+    public TextSpannableBuilder AppendTexture(IDalamudTextureWrap? textureWrap, Vector2 uv0, Vector2 uv1, out int id)
     {
         id = this.textures.Count;
         this.textures.Add(textureWrap);
@@ -220,7 +220,7 @@ public sealed partial class SpannedStringBuilder
     }
 
     /// <inheritdoc/>
-    public SpannedStringBuilder AppendLine(NewLineType newLineType = NewLineType.Manual)
+    public TextSpannableBuilder AppendLine(NewLineType newLineType = NewLineType.Manual)
     {
         switch (newLineType)
         {
@@ -258,7 +258,7 @@ public sealed partial class SpannedStringBuilder
     }
 
     /// <inheritdoc/>
-    public SpannedStringBuilder AppendLine(
+    public TextSpannableBuilder AppendLine(
         ReadOnlySpan<char> span,
         NewLineType newLineType = NewLineType.Manual)
     {
@@ -268,7 +268,7 @@ public sealed partial class SpannedStringBuilder
     }
 
     /// <inheritdoc/>
-    public SpannedStringBuilder AppendLine(
+    public TextSpannableBuilder AppendLine(
         ReadOnlySpan<byte> span,
         NewLineType newLineType = NewLineType.Manual)
     {
@@ -277,7 +277,7 @@ public sealed partial class SpannedStringBuilder
         return this;
     }
 
-    private SpannedStringBuilder AppendSpanFormattable<T>(T value, int repeat = 1) where T : ISpanFormattable
+    private TextSpannableBuilder AppendSpanFormattable<T>(T value, int repeat = 1) where T : ISpanFormattable
     {
         if (repeat < 1)
             return this;
@@ -293,7 +293,7 @@ public sealed partial class SpannedStringBuilder
         }
     }
 
-    private SpannedStringBuilder AppendUtf8SpanFormattable<T>(T value, int repeat = 1) where T : IUtf8SpanFormattable
+    private TextSpannableBuilder AppendUtf8SpanFormattable<T>(T value, int repeat = 1) where T : IUtf8SpanFormattable
     {
         if (repeat < 1)
             return this;

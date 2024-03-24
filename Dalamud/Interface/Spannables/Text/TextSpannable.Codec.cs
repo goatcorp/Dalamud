@@ -9,33 +9,33 @@ using System.Text;
 using Dalamud.Interface.FontIdentifier;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Spannables.Internal;
-using Dalamud.Interface.Spannables.Strings.Internal;
 using Dalamud.Interface.Spannables.Styles;
+using Dalamud.Interface.Spannables.Text.Internal;
 using Dalamud.Utility;
 using Dalamud.Utility.Text;
 
-namespace Dalamud.Interface.Spannables.Strings;
+namespace Dalamud.Interface.Spannables.Text;
 
 /// <summary>A UTF-8 character sequence with embedded styling information.</summary>
-public sealed partial class SpannedString
+public sealed partial class TextSpannable
 {
     /// <inheritdoc cref="IParsable{TSelf}.Parse(string, IFormatProvider?)"/>
-    public static SpannedString Parse(string s, IFormatProvider? provider) =>
+    public static TextSpannable Parse(string s, IFormatProvider? provider) =>
         TryParse(s, provider, out var result, out var exception) ? result : throw exception;
 
     /// <inheritdoc cref="IParsable{TSelf}.TryParse(string?, IFormatProvider?, out TSelf)"/>
-    public static bool TryParse(string? s, IFormatProvider? provider, [NotNullWhen(true)] out SpannedString? result) =>
+    public static bool TryParse(string? s, IFormatProvider? provider, [NotNullWhen(true)] out TextSpannable? result) =>
         TryParse(s, provider, out result, out _);
 
     /// <inheritdoc cref="ISpanParsable{TSelf}.Parse(ReadOnlySpan{char}, IFormatProvider?)"/>
-    public static SpannedString Parse(ReadOnlySpan<char> s, IFormatProvider? provider) =>
+    public static TextSpannable Parse(ReadOnlySpan<char> s, IFormatProvider? provider) =>
         TryParse(s, provider, out var result, out var exception) ? result : throw exception;
 
     /// <inheritdoc cref="ISpanParsable{TSelf}.TryParse(ReadOnlySpan{char}, IFormatProvider?, out TSelf)"/>
     public static bool TryParse(
         ReadOnlySpan<char> s,
         IFormatProvider? provider,
-        [NotNullWhen(true)] out SpannedString? result) =>
+        [NotNullWhen(true)] out TextSpannable? result) =>
         TryParse(s, provider, out result, out _);
 
     /// <summary>Decodes a spannable from source bytes.</summary>
@@ -43,7 +43,7 @@ public sealed partial class SpannedString
     /// <param name="value">The decoded instance.</param>
     /// <returns><c>true</c> if decoded.</returns>
     /// <remarks>Font handles and textures need to be supplied back separately.</remarks>
-    public static bool TryDecode(ReadOnlySpan<byte> source, [NotNullWhen(true)] out SpannedString? value)
+    public static bool TryDecode(ReadOnlySpan<byte> source, [NotNullWhen(true)] out TextSpannable? value)
     {
         value = null;
         if (!UtfValue.TryDecode8(ref source, out var version, out _))
@@ -161,12 +161,12 @@ public sealed partial class SpannedString
                 {
                     var functionName = this.fontSets[setIndex].FontFamilyId switch
                     {
-                        DalamudDefaultFontAndFamilyId => nameof(ISpannedStringBuilder.PushDefaultFontFamily),
-                        DalamudAssetFontAndFamilyId => nameof(ISpannedStringBuilder.PushAssetFontFamily),
-                        GameFontAndFamilyId => nameof(ISpannedStringBuilder.PushGameFontFamily),
-                        SystemFontFamilyId => nameof(ISpannedStringBuilder.PushSystemFontFamilyIfAvailable),
-                        not null => nameof(ISpannedStringBuilder.PushFontFamily),
-                        _ => nameof(ISpannedStringBuilder.PushFontSet),
+                        DalamudDefaultFontAndFamilyId => nameof(ITextSpannableBuilder.PushDefaultFontFamily),
+                        DalamudAssetFontAndFamilyId => nameof(ITextSpannableBuilder.PushAssetFontFamily),
+                        GameFontAndFamilyId => nameof(ITextSpannableBuilder.PushGameFontFamily),
+                        SystemFontFamilyId => nameof(ITextSpannableBuilder.PushSystemFontFamilyIfAvailable),
+                        not null => nameof(ITextSpannableBuilder.PushFontFamily),
+                        _ => nameof(ITextSpannableBuilder.PushFontSet),
                     };
                     sb.Append('{').Append(SsbMethods.Single(x => x.Info.Name == functionName).Attr.Name);
                     record.WritePushParameters(sb, data, this.fontSets, formatProvider);
@@ -220,7 +220,7 @@ public sealed partial class SpannedString
     internal static bool TryParse(
         ReadOnlySpan<char> s,
         IFormatProvider? provider,
-        [NotNullWhen(true)] out SpannedString? result,
+        [NotNullWhen(true)] out TextSpannable? result,
         [NotNullWhen(false)] out Exception? exception)
     {
         const string whitespaces = " \t\r\n";
@@ -230,7 +230,7 @@ public sealed partial class SpannedString
         result = null;
         exception = null;
         var sOrig = s;
-        var ssb = new SpannedStringBuilder();
+        var ssb = new TextSpannableBuilder();
         var ms = new MemoryStream();
         while (!s.IsEmpty)
         {
@@ -272,7 +272,7 @@ public sealed partial class SpannedString
                     continue;
 
                 var allArgsSpan = s;
-                if (method.Info.Name == nameof(SpannedStringBuilder.PushLink))
+                if (method.Info.Name == nameof(TextSpannableBuilder.PushLink))
                 {
                     // special-casing because of ReadOnlySpan arg
 

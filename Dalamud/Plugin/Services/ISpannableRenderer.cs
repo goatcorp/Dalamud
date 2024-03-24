@@ -4,8 +4,8 @@ using System.Numerics;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Spannables;
 using Dalamud.Interface.Spannables.Rendering;
-using Dalamud.Interface.Spannables.Strings;
 using Dalamud.Interface.Spannables.Styles;
+using Dalamud.Interface.Spannables.Text;
 
 using ImGuiNET;
 
@@ -21,9 +21,9 @@ public interface ISpannableRenderer
     /// <para>This function is safe to use from a non-main thread.</para>
     /// <para>Return using <see cref="ReturnBuilder"/>, but don't bother to wrap in <c>try { ... } finally { ... }</c>
     /// block, unless you already have one. The cost of throwing an exception is more significant enough that creating
-    /// another instance of <see cref="SpannedStringBuilder"/> doesn't matter at that point.</para>
+    /// another instance of <see cref="TextSpannableBuilder"/> doesn't matter at that point.</para>
     /// </remarks>
-    SpannedStringBuilder RentBuilder();
+    TextSpannableBuilder RentBuilder();
 
     /// <summary>Returns the rented builder.</summary>
     /// <param name="builder">The rented builder from <see cref="RentBuilder"/>.</param>
@@ -31,7 +31,7 @@ public interface ISpannableRenderer
     /// <para>This function is safe to use from a non-main thread.</para>
     /// <para>Specifying <c>null</c> to <paramref name="builder"/> is a no-op.</para>
     /// </remarks>
-    void ReturnBuilder(SpannedStringBuilder? builder);
+    void ReturnBuilder(TextSpannableBuilder? builder);
 
     /// <summary>Attempts to resolve the font data.</summary>
     /// <param name="renderScale">The render scale.</param>

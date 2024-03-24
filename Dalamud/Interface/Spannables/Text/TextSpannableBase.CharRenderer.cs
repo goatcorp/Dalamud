@@ -9,10 +9,10 @@ using Dalamud.Utility.Numerics;
 
 using ImGuiNET;
 
-namespace Dalamud.Interface.Spannables.Strings;
+namespace Dalamud.Interface.Spannables.Text;
 
-/// <summary>Base class for <see cref="SpannedString"/> and <see cref="SpannedStringBuilder"/>.</summary>
-public abstract partial class SpannedStringBase
+/// <summary>Base class for <see cref="TextSpannable"/> and <see cref="TextSpannableBuilder"/>.</summary>
+public abstract partial class TextSpannableBase
 {
     /// <summary>The display character in place of a soft hyphen character.</summary>
     public const char SoftHyphenReplacementChar = '-';

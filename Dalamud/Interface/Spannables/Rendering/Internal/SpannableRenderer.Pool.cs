@@ -1,6 +1,6 @@
 using System.Runtime.CompilerServices;
 
-using Dalamud.Interface.Spannables.Strings;
+using Dalamud.Interface.Spannables.Text;
 using Dalamud.Utility;
 
 using ImGuiNET;
@@ -12,8 +12,8 @@ namespace Dalamud.Interface.Spannables.Rendering.Internal;
 /// <summary>A custom text renderer implementation.</summary>
 internal sealed unsafe partial class SpannableRenderer
 {
-    private ObjectPool<SpannedStringBuilder>? builderPool =
-        new DefaultObjectPool<SpannedStringBuilder>(new DefaultPooledObjectPolicy<SpannedStringBuilder>());
+    private ObjectPool<TextSpannableBuilder>? builderPool =
+        new DefaultObjectPool<TextSpannableBuilder>(new DefaultPooledObjectPolicy<TextSpannableBuilder>());
 
     /// <summary>Do not use directly. Use <see cref="RentSplitter"/>.</summary>
     [Obsolete($"Do not use directly. Use {nameof(RentSplitter)}.")]
@@ -22,11 +22,11 @@ internal sealed unsafe partial class SpannableRenderer
     /// <inheritdoc/>
     // Let it throw NRE of builderPool is null (disposed).
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public SpannedStringBuilder RentBuilder() => this.builderPool!.Get();
+    public TextSpannableBuilder RentBuilder() => this.builderPool!.Get();
 
     /// <inheritdoc/>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void ReturnBuilder(SpannedStringBuilder? builder)
+    public void ReturnBuilder(TextSpannableBuilder? builder)
     {
         // Let it throw NRE of builderPool is null (disposed).
         if (builder != null)

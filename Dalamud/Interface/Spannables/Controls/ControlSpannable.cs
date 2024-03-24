@@ -48,7 +48,7 @@ public partial class ControlSpannable : ISpannable, ISpannableRenderPass, ISpann
     private RectVector4 boundary;
     private Matrix4x4 transformation;
 
-    private RectVector4 measuredExtrudedBox;
+    private RectVector4 measuredOutsideBox;
     private RectVector4 measuredInteractiveBox;
     private RectVector4 measuredContentBox;
 
@@ -81,7 +81,7 @@ public partial class ControlSpannable : ISpannable, ISpannableRenderPass, ISpann
     public ref TextState ActiveTextState => ref this.activeTextState;
 
     /// <inheritdoc/>
-    /// <remarks>This excludes <see cref="Extrude"/>.</remarks>
+    /// <remarks>This excludes <see cref="ExtendOutside"/>.</remarks>
     public ref readonly RectVector4 Boundary => ref this.boundary;
 
     /// <inheritdoc/>
@@ -110,14 +110,14 @@ public partial class ControlSpannable : ISpannable, ISpannableRenderPass, ISpann
 
     /// <summary>Gets the last measured extruded box size.</summary>
     /// <remarks>Useful for drawing decoration outside the standard box, such as glow or shadow effects.</remarks>
-    public ref readonly RectVector4 MeasuredExtrudedBox => ref this.measuredExtrudedBox;
+    public ref readonly RectVector4 MeasuredExtrudedBox => ref this.measuredOutsideBox;
 
     /// <summary>Gets the last measured interactive box size.</summary>
-    /// <remarks>This excludes <see cref="Extrude"/> and <see cref="Margin"/>.</remarks>
+    /// <remarks>This excludes <see cref="ExtendOutside"/> and <see cref="Margin"/>.</remarks>
     public ref readonly RectVector4 MeasuredInteractiveBox => ref this.measuredInteractiveBox;
 
     /// <summary>Gets the last measured content box size.</summary>
-    /// <remarks>This excludes <see cref="Extrude"/>, <see cref="Margin"/>, and <see cref="Padding"/>.</remarks>
+    /// <remarks>This excludes <see cref="ExtendOutside"/>, <see cref="Margin"/>, and <see cref="Padding"/>.</remarks>
     public ref readonly RectVector4 MeasuredContentBox => ref this.measuredContentBox;
 
     /// <summary>Gets a value indicating whether the width is set to wrap content.</summary>
@@ -179,14 +179,17 @@ public partial class ControlSpannable : ISpannable, ISpannableRenderPass, ISpann
     /// <inheritdoc/>
     public void MeasureSpannable(scoped in SpannableMeasureArgs args)
     {
+        var effMaxSize = Vector2.Max(this.minSize, args.MaxSize);
+
         var rv = new RectVector4(
             Vector2.Zero,
             Vector2.Clamp(
-                ResolveSize(args, this.size),
-                ResolveSize(args, this.minSize),
-                ResolveSize(args, this.maxSize)));
+                ResolveSize(this.size, effMaxSize),
+                ResolveSize(this.minSize, effMaxSize),
+                ResolveSize(this.maxSize, effMaxSize)));
 
-        rv = RectVector4.Extrude(rv, -(this.margin + this.padding) * this.Scale);
+        var boundaryContentGap = (this.margin + this.padding) * this.Scale;
+        rv = RectVector4.Shrink(rv, boundaryContentGap);
         rv = RectVector4.Normalize(rv);
 
         this.ImGuiGlobalId = args.ImGuiGlobalId;
@@ -197,12 +200,25 @@ public partial class ControlSpannable : ISpannable, ISpannableRenderPass, ISpann
             rv.Right = float.PositiveInfinity;
         if (rv.Bottom >= 1000000f)
             rv.Bottom = float.PositiveInfinity;
-        this.measuredContentBox = this.MeasureContentBox(args, rv);
-        this.measuredContentBox = RectVector4.Normalize(this.measuredContentBox);
 
-        this.measuredInteractiveBox = RectVector4.Extrude(this.measuredContentBox, this.padding * this.Scale);
-        this.boundary = RectVector4.Extrude(this.measuredInteractiveBox, this.margin * this.Scale);
-        this.measuredExtrudedBox = RectVector4.Extrude(this.boundary, this.extrude * this.Scale);
+        var contentMeasurementArgs = args with
+        {
+            MinSize = Vector2.Max(args.MinSize, ResolveSize(this.minSize, effMaxSize)) - boundaryContentGap.Size,
+            MaxSize = Vector2.Min(effMaxSize, ResolveSize(this.maxSize, effMaxSize)) - boundaryContentGap.Size,
+        };
+        contentMeasurementArgs.SuggestedSize =
+            Vector2.Clamp(
+                ResolveSize(this.size, effMaxSize) - boundaryContentGap.Size,
+                contentMeasurementArgs.MinSize,
+                contentMeasurementArgs.MaxSize);
+
+        this.measuredContentBox = this.MeasureContentBox(contentMeasurementArgs);
+        this.measuredContentBox = RectVector4.Normalize(this.measuredContentBox);
+        this.measuredContentBox = RectVector4.Translate(this.measuredContentBox, boundaryContentGap.LeftTop);
+
+        this.measuredInteractiveBox = RectVector4.Expand(this.measuredContentBox, this.padding * this.Scale);
+        this.boundary = RectVector4.Expand(this.measuredInteractiveBox, this.margin * this.Scale);
+        this.measuredOutsideBox = RectVector4.Expand(this.boundary, this.extendOutside * this.Scale);
 
         if (this.wasVisible != this.Visible)
         {
@@ -213,29 +229,29 @@ public partial class ControlSpannable : ISpannable, ISpannableRenderPass, ISpann
         if (this.VisibilityAnimation is { IsRunning: true } visibilityAnimation)
         {
             visibilityAnimation.Update(this);
-            this.measuredContentBox =
-                RectVector4.Normalize(this.measuredContentBox + visibilityAnimation.AnimatedBoundaryAdjustment);
-            this.measuredInteractiveBox =
-                RectVector4.Normalize(this.measuredInteractiveBox + visibilityAnimation.AnimatedBoundaryAdjustment);
-            this.boundary =
-                RectVector4.Normalize(this.boundary + visibilityAnimation.AnimatedBoundaryAdjustment);
-            this.extrude =
-                RectVector4.Normalize(this.extrude + visibilityAnimation.AnimatedBoundaryAdjustment);
+            this.measuredContentBox = RectVector4.Normalize(
+                RectVector4.Expand(this.measuredContentBox, visibilityAnimation.AnimatedBoundaryAdjustment));
+            this.measuredInteractiveBox = RectVector4.Normalize(
+                RectVector4.Expand(this.measuredInteractiveBox, visibilityAnimation.AnimatedBoundaryAdjustment));
+            this.boundary = RectVector4.Normalize(
+                RectVector4.Expand(this.boundary, visibilityAnimation.AnimatedBoundaryAdjustment));
+            this.measuredOutsideBox = RectVector4.Normalize(
+                RectVector4.Expand(this.measuredOutsideBox, visibilityAnimation.AnimatedBoundaryAdjustment));
         }
 
         return;
 
-        static Vector2 ResolveSize(SpannableMeasureArgs args, in Vector2 dim)
+        static Vector2 ResolveSize(in Vector2 dim, in Vector2 maxSize)
         {
             return new(
                 dim.X switch
                 {
-                    MatchParent or WrapContent => args.MaxSize.X,
+                    MatchParent or WrapContent => maxSize.X,
                     _ => dim.X,
                 },
                 dim.Y switch
                 {
-                    MatchParent or WrapContent => args.MaxSize.Y,
+                    MatchParent or WrapContent => maxSize.Y,
                     _ => dim.Y,
                 });
         }
@@ -255,7 +271,25 @@ public partial class ControlSpannable : ISpannable, ISpannableRenderPass, ISpann
             this.transformation,
             Matrix4x4.CreateTranslation(new(-this.boundary.RightBottom * args.InnerOrigin, 0)));
 
-        this.transformation = Matrix4x4.Multiply(this.transformation, args.Transformation);
+        if (this.moveAnimation is not null)
+        {
+            this.moveAnimation.Update(this);
+            if (this.moveAnimation.AfterMatrix != args.Transformation)
+            {
+                this.moveAnimation.BeforeMatrix = this.moveAnimation.AnimatedTransformation;
+                this.moveAnimation.AfterMatrix = args.Transformation;
+                this.moveAnimation.Restart();
+                this.moveAnimation.Update(this);
+            }
+
+            this.transformation = Matrix4x4.Multiply(
+                this.transformation,
+                this.moveAnimation.IsRunning ? this.moveAnimation.AnimatedTransformation : args.Transformation);
+        }
+        else
+        {
+            this.transformation = Matrix4x4.Multiply(this.transformation, args.Transformation);
+        }
 
         this.transformation = Matrix4x4.Multiply(
             this.transformation,
@@ -295,7 +329,7 @@ public partial class ControlSpannable : ISpannable, ISpannableRenderPass, ISpann
         }
 
         using (ScopedTransformer.From(args, 1f))
-            args.DrawListPtr.AddRect(this.Boundary.LeftTop, this.Boundary.RightBottom, 0x20000000);
+            args.DrawListPtr.AddRect(this.Boundary.LeftTop, this.Boundary.RightBottom, 0x20FFFFFF);
     }
 
     /// <inheritdoc/>
@@ -436,6 +470,7 @@ public partial class ControlSpannable : ISpannable, ISpannableRenderPass, ISpann
                     this.currentBackground,
                     this.currentBackgroundPass,
                     this.MeasuredInteractiveBox.Size,
+                    this.MeasuredInteractiveBox.Size,
                     this.Scale,
                     this.ActiveTextState,
                     this.GetGlobalIdFromInnerId(this.backgroundInnerId)));
@@ -496,27 +531,12 @@ public partial class ControlSpannable : ISpannable, ISpannableRenderPass, ISpann
 
     /// <summary>Measures the content box, given the available content box excluding the margin and padding.</summary>
     /// <param name="args">Measure arguments.</param>
-    /// <param name="availableContentBox">The available content box.</param>
-    /// <returns>The resolved content box.</returns>
-    /// <remarks>Right and bottom values can be unbound (<see cref="float.PositiveInfinity"/>), in which case, it
-    /// should be treated as having no defined limits, and <see cref="WrapContent"/> behavior should be done.</remarks>
-    protected virtual RectVector4 MeasureContentBox(SpannableMeasureArgs args, in RectVector4 availableContentBox)
-    {
-        var widthDefined = availableContentBox is { Left: > float.NegativeInfinity, Right: < float.PositiveInfinity };
-        var heightDefined = availableContentBox is { Top: > float.NegativeInfinity, Bottom: < float.PositiveInfinity };
-        var result = availableContentBox;
-        if (!widthDefined)
-            result.Right = result.Left /* + WrapContentWidth */;
-        if (!heightDefined)
-            result.Bottom = result.Top /* + WrapContentHeight */;
-        return availableContentBox with
-        {
-            Right = availableContentBox.Right >= float.PositiveInfinity
-                        ? availableContentBox.Left
-                        : availableContentBox.Right,
-            Bottom = availableContentBox.Bottom >= float.PositiveInfinity
-                         ? availableContentBox.Top
-                         : availableContentBox.Bottom,
-        };
-    }
+    /// <returns>The resolved content box, relative to the content box origin.</returns>
+    /// <remarks>Right and bottom values can be unbound (<see cref="float.PositiveInfinity"/>).</remarks>
+    protected virtual RectVector4 MeasureContentBox(SpannableMeasureArgs args) =>
+        RectVector4.FromCoordAndSize(
+            Vector2.Zero,
+            new(
+                args.SuggestedSize.X >= float.PositiveInfinity ? 0 : args.SuggestedSize.X,
+                args.SuggestedSize.Y >= float.PositiveInfinity ? 0 : args.SuggestedSize.Y));
 }

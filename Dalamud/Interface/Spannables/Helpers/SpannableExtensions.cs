@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
 using ImGuiNET;
@@ -23,4 +24,38 @@ public static class SpannableExtensions
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static unsafe uint GetGlobalIdFromInnerId(this ISpannableRenderPass renderPass, int innerId) =>
         ImGuiNative.igGetID_Ptr((void*)(((ulong)renderPass.ImGuiGlobalId << 32) | (uint)innerId));
+
+    /// <summary>Enumerates all items in the hierarchy under a spannable, including itself.</summary>
+    /// <param name="root">The root item to enumerate.</param>
+    /// <returns>An enumerable that enumerates through all spannables under the root, including itself.</returns>
+    public static IEnumerable<ISpannable> EnumerateHierarchy(this ISpannable root)
+    {
+        yield return root;
+        foreach (var s in root.GetAllChildSpannables())
+        {
+            if (s is null)
+                continue;
+
+            foreach (var child in s.EnumerateHierarchy())
+                yield return child;
+        }
+    }
+
+    /// <summary>Enumerates all items in the hierarchy under a spannable, including itself.</summary>
+    /// <param name="root">The root item to enumerate.</param>
+    /// <typeparam name="T">The type of spannable interested.</typeparam>
+    /// <returns>An enumerable that enumerates through all spannables under the root, including itself.</returns>
+    public static IEnumerable<T> EnumerateHierarchy<T>(this ISpannable root) where T : ISpannable
+    {
+        if (root is T roott)
+            yield return roott;
+        foreach (var s in root.GetAllChildSpannables())
+        {
+            if (s is null)
+                continue;
+
+            foreach (var child in s.EnumerateHierarchy<T>())
+                yield return child;
+        }
+    }
 }

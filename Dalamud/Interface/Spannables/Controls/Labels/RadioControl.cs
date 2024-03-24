@@ -4,14 +4,13 @@ using Dalamud.Interface.Animation.EasingFunctions;
 using Dalamud.Interface.Spannables.Controls.Animations;
 using Dalamud.Interface.Spannables.Controls.EventHandlers;
 using Dalamud.Interface.Spannables.Patterns;
-using Dalamud.Utility.Numerics;
 
 using ImGuiNET;
 
 namespace Dalamud.Interface.Spannables.Controls.Labels;
 
 /// <summary>A tristate control that defaults to a radio theme.</summary>
-public class RadioControl : TristateControl
+public class RadioControl : BooleanControl
 {
     private HashSet<RadioControl>? bindGroup;
 
@@ -26,7 +25,7 @@ public class RadioControl : TristateControl
             TransformationEasing = new OutCubic(animationDuration),
             OpacityEasing = new OutCubic(animationDuration),
         };
-        
+
         var hideAnimation = new SpannableSizeAnimator
         {
             AfterRatio = new(-0.7f, -0.7f, 0.7f, 0.7f),
@@ -36,14 +35,15 @@ public class RadioControl : TristateControl
         };
 
         const float checkSize = 22;
-        const float gap = 4;
-        const float checkMargin = 4;
+        const float checkmarkMargin = 4;
         const float circleMargin = 6;
+        this.TextMargin = new(4);
+        this.Padding = new(4);
         this.NormalIcon = new()
         {
-            Size = new(checkSize + gap, checkSize),
-            MinSize = new((checkSize / 1.5f) + gap, checkSize / 1.5f),
-            MaxSize = new(checkSize + gap, checkSize),
+            Size = new(checkSize, checkSize),
+            MinSize = new(checkSize / 1.5f, checkSize / 1.5f),
+            MaxSize = new(checkSize, checkSize),
             ShowIconAnimation = showAnimation,
             HideIconAnimation = hideAnimation,
             Background = new ShapePattern
@@ -51,27 +51,27 @@ public class RadioControl : TristateControl
                 Type = ShapePattern.Shape.CircleFilled,
                 ImGuiColor = ImGuiCol.FrameBg,
                 Rounding = 4,
-                Margin = new(0, 0, gap, 0),
+                Margin = new(0, 0, 0, 0),
             },
             TrueIcon = new ShapePattern
             {
                 Type = ShapePattern.Shape.CircleFilled,
                 ImGuiColor = ImGuiCol.CheckMark,
-                Margin = new RectVector4(checkMargin) + new RectVector4(0, 0, gap, 0),
+                Margin = new(checkmarkMargin),
             },
             NullIcon = new ShapePattern
             {
                 Type = ShapePattern.Shape.CircleFilled,
                 ImGuiColor = ImGuiCol.CheckMark,
                 ColorMultiplier = new(1, 1, 1, 0.6f),
-                Margin = new RectVector4(circleMargin) + new RectVector4(0, 0, gap, 0),
+                Margin = new(circleMargin),
             },
         };
         this.HoveredIcon = new()
         {
-            Size = new(checkSize + gap, checkSize),
-            MinSize = new((checkSize / 1.5f) + gap, checkSize / 1.5f),
-            MaxSize = new(checkSize + gap, checkSize),
+            Size = new(checkSize, checkSize),
+            MinSize = new(checkSize / 1.5f, checkSize / 1.5f),
+            MaxSize = new(checkSize, checkSize),
             ShowIconAnimation = showAnimation,
             HideIconAnimation = hideAnimation,
             Background = new ShapePattern
@@ -79,27 +79,27 @@ public class RadioControl : TristateControl
                 Type = ShapePattern.Shape.CircleFilled,
                 ImGuiColor = ImGuiCol.FrameBgHovered,
                 Rounding = 4,
-                Margin = new(0, 0, gap, 0),
+                Margin = new(0, 0, 0, 0),
             },
             TrueIcon = new ShapePattern
             {
                 Type = ShapePattern.Shape.CircleFilled,
                 ImGuiColor = ImGuiCol.CheckMark,
-                Margin = new RectVector4(checkMargin) + new RectVector4(0, 0, gap, 0),
+                Margin = new(checkmarkMargin),
             },
             NullIcon = new ShapePattern
             {
                 Type = ShapePattern.Shape.CircleFilled,
                 ImGuiColor = ImGuiCol.CheckMark,
                 ColorMultiplier = new(1, 1, 1, 0.6f),
-                Margin = new RectVector4(circleMargin) + new RectVector4(0, 0, gap, 0),
+                Margin = new(circleMargin),
             },
         };
         this.ActiveIcon = new()
         {
-            Size = new(checkSize + gap, checkSize),
-            MinSize = new((checkSize / 1.5f) + gap, checkSize / 1.5f),
-            MaxSize = new(checkSize + gap, checkSize),
+            Size = new(checkSize, checkSize),
+            MinSize = new(checkSize / 1.5f, checkSize / 1.5f),
+            MaxSize = new(checkSize, checkSize),
             ShowIconAnimation = showAnimation,
             HideIconAnimation = hideAnimation,
             Background = new ShapePattern
@@ -107,23 +107,22 @@ public class RadioControl : TristateControl
                 Type = ShapePattern.Shape.CircleFilled,
                 ImGuiColor = ImGuiCol.FrameBgActive,
                 Rounding = 4,
-                Margin = new(0, 0, gap, 0),
+                Margin = new(0, 0, 0, 0),
             },
             TrueIcon = new ShapePattern
             {
                 Type = ShapePattern.Shape.CircleFilled,
                 ImGuiColor = ImGuiCol.CheckMark,
-                Margin = new RectVector4(checkMargin) + new RectVector4(0, 0, gap, 0),
+                Margin = new(checkmarkMargin),
             },
             NullIcon = new ShapePattern
             {
                 Type = ShapePattern.Shape.CircleFilled,
                 ImGuiColor = ImGuiCol.CheckMark,
                 ColorMultiplier = new(1, 1, 1, 0.6f),
-                Margin = new RectVector4(circleMargin) + new RectVector4(0, 0, gap, 0),
+                Margin = new(circleMargin),
             },
         };
-        this.Margin = new(gap);
     }
 
     /// <summary>Binds this radio control with <paramref name="other"/>.</summary>
@@ -155,7 +154,7 @@ public class RadioControl : TristateControl
             this.bindGroup.Add(other);
         }
 
-        if (this.Checked is true)
+        if (this.Checked)
         {
             foreach (var x in this.bindGroup)
                 x.Checked = false;
@@ -166,21 +165,27 @@ public class RadioControl : TristateControl
     }
 
     /// <inheritdoc/>
-    protected override void OnCheckedChange(PropertyChangeEventArgs<ControlSpannable, bool?> args)
+    protected override void OnCheckedChange(PropertyChangeEventArgs<ControlSpannable, bool> args)
     {
-        if (this.bindGroup is not null)
+        if (this.bindGroup is not null && !this.Indeterminate)
         {
-            if (args.NewValue is true)
+            var anyIndeterminate = false;
+            foreach (var x in this.bindGroup)
+                anyIndeterminate |= x.Indeterminate;
+            if (!anyIndeterminate)
             {
-                foreach (var x in this.bindGroup)
-                    x.Checked = x == this;
-            }
-            else if (args is { NewValue: false, PreviousValue: true })
-            {
-                var anyTrue = false;
-                foreach (var x in this.bindGroup)
-                    anyTrue |= x.Checked is true;
-                this.Checked = !anyTrue;
+                if (args.NewValue)
+                {
+                    foreach (var x in this.bindGroup)
+                        x.Checked = x == this;
+                }
+                else if (args is { NewValue: false, PreviousValue: true })
+                {
+                    var anyTrue = false;
+                    foreach (var x in this.bindGroup)
+                        anyTrue |= x.Checked;
+                    this.Checked = !anyTrue;
+                }
             }
         }
 

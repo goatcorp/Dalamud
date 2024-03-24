@@ -61,14 +61,14 @@ public partial class ControlSpannable
     /// <summary>Occurs when the property <see cref="MaxSize"/> has been changed.</summary>
     public event PropertyChangeEventHandler<ControlSpannable, Vector2>? MaxSizeChange;
 
-    /// <summary>Occurs when the property <see cref="Extrude"/> has been changed.</summary>
-    public event PropertyChangeEventHandler<ControlSpannable, RectVector4>? ExtrudeChange;
+    /// <summary>Occurs when the property <see cref="ExtendOutside"/> has been changed.</summary>
+    public event PropertyChangeEventHandler<ControlSpannable, BorderVector4>? ExtendOutsideChange;
 
     /// <summary>Occurs when the property <see cref="Margin"/> has been changed.</summary>
-    public event PropertyChangeEventHandler<ControlSpannable, RectVector4>? MarginChange;
+    public event PropertyChangeEventHandler<ControlSpannable, BorderVector4>? MarginChange;
 
     /// <summary>Occurs when the property <see cref="Padding"/> has been changed.</summary>
-    public event PropertyChangeEventHandler<ControlSpannable, RectVector4>? PaddingChange;
+    public event PropertyChangeEventHandler<ControlSpannable, BorderVector4>? PaddingChange;
 
     /// <summary>Occurs when the property <see cref="NormalBackground"/> has been changed.</summary>
     public event PropertyChangeEventHandler<ControlSpannable, ISpannable?>? NormalBackgroundChange;
@@ -87,6 +87,9 @@ public partial class ControlSpannable
 
     /// <summary>Occurs when the property <see cref="HideAnimation"/> has been changed.</summary>
     public event PropertyChangeEventHandler<ControlSpannable, SpannableAnimator?>? HideAnimationChange;
+
+    /// <summary>Occurs when the property <see cref="MoveAnimation"/> has been changed.</summary>
+    public event PropertyChangeEventHandler<ControlSpannable, SpannableAnimator?>? MoveAnimationChange;
 
     /// <summary>Occurs when the property <see cref="DisabledTextOpacity"/> has been changed.</summary>
     public event PropertyChangeEventHandler<ControlSpannable, float>? DisabledTextOpacityChange;
@@ -189,19 +192,19 @@ public partial class ControlSpannable
     protected virtual void OnMaxSizeChange(PropertyChangeEventArgs<ControlSpannable, Vector2> args) =>
         this.MaxSizeChange?.Invoke(args);
 
-    /// <summary>Raises the <see cref="ExtrudeChange"/> event.</summary>
+    /// <summary>Raises the <see cref="ExtendOutsideChange"/> event.</summary>
     /// <param name="args">A <see cref="PropertyChangeEventArgs{T, TSender}"/> that contains the event data.</param>
-    protected virtual void OnExtrudeChange(PropertyChangeEventArgs<ControlSpannable, RectVector4> args) =>
-        this.ExtrudeChange?.Invoke(args);
+    protected virtual void OnExtendOutsideChange(PropertyChangeEventArgs<ControlSpannable, BorderVector4> args) =>
+        this.ExtendOutsideChange?.Invoke(args);
 
     /// <summary>Raises the <see cref="MarginChange"/> event.</summary>
     /// <param name="args">A <see cref="PropertyChangeEventArgs{T, TSender}"/> that contains the event data.</param>
-    protected virtual void OnMarginChange(PropertyChangeEventArgs<ControlSpannable, RectVector4> args) =>
+    protected virtual void OnMarginChange(PropertyChangeEventArgs<ControlSpannable, BorderVector4> args) =>
         this.MarginChange?.Invoke(args);
 
     /// <summary>Raises the <see cref="PaddingChange"/> event.</summary>
     /// <param name="args">A <see cref="PropertyChangeEventArgs{T, TSender}"/> that contains the event data.</param>
-    protected virtual void OnPaddingChange(PropertyChangeEventArgs<ControlSpannable, RectVector4> args) =>
+    protected virtual void OnPaddingChange(PropertyChangeEventArgs<ControlSpannable, BorderVector4> args) =>
         this.PaddingChange?.Invoke(args);
 
     /// <summary>Raises the <see cref="NormalBackgroundChange"/> event.</summary>
@@ -242,11 +245,17 @@ public partial class ControlSpannable
         PropertyChangeEventArgs<ControlSpannable, SpannableAnimator?> args) =>
         this.ShowAnimationChange?.Invoke(args);
 
-    /// <summary>Raises the <see cref="OnHideAnimationChange"/> event.</summary>
+    /// <summary>Raises the <see cref="HideAnimationChange"/> event.</summary>
     /// <param name="args">A <see cref="PropertyChangeEventArgs{T, TSender}"/> that contains the event data.</param>
     protected virtual void OnHideAnimationChange(
         PropertyChangeEventArgs<ControlSpannable, SpannableAnimator?> args) =>
         this.HideAnimationChange?.Invoke(args);
+
+    /// <summary>Raises the <see cref="MoveAnimationChange"/> event.</summary>
+    /// <param name="args">A <see cref="PropertyChangeEventArgs{T, TSender}"/> that contains the event data.</param>
+    protected virtual void OnMoveAnimationChange(
+        PropertyChangeEventArgs<ControlSpannable, SpannableAnimator?> args) =>
+        this.MoveAnimationChange?.Invoke(args);
 
     /// <summary>Raises the <see cref="DisabledTextOpacityChange"/> event.</summary>
     /// <param name="args">A <see cref="PropertyChangeEventArgs{T, TSender}"/> that contains the event data.</param>

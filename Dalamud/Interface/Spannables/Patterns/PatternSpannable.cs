@@ -148,7 +148,10 @@ public abstract class PatternSpannable : ISpannable
             this.activeTextState = args.TextState;
 
             var ps = (PatternSpannable)args.Sender;
-            var size = Vector2.Clamp(Vector2.Min(ps.Size * args.Scale, args.MaxSize), ps.MinSize, ps.MaxSize);
+
+            var size = Vector2.Clamp(ps.Size, ps.MinSize, ps.MaxSize) * args.Scale;
+            size = Vector2.Clamp(size, args.MinSize, args.MaxSize);
+
             if (size.X >= float.PositiveInfinity)
                 size.X = 0;
             if (size.Y >= float.PositiveInfinity)

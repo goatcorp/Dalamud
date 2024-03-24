@@ -1,11 +1,14 @@
+using System.Diagnostics;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace Dalamud.Utility.Numerics;
 
-/// <summary>A specialization of <see cref="System.Numerics.Vector4"/> that deals with four boundaries of a rectangle.</summary>
+/// <summary>A specialization of <see cref="System.Numerics.Vector4"/> that deals with the left top and right bottom of
+/// a rectangle.</summary>
 [StructLayout(LayoutKind.Explicit, Size = 16)]
+[DebuggerDisplay("<({Left}, {Top})-({Right}, {Bottom})>")]
 public struct RectVector4 : IEquatable<RectVector4>
 {
     /// <summary>The <see cref="System.Numerics.Vector4"/> view.</summary>
@@ -73,13 +76,6 @@ public struct RectVector4 : IEquatable<RectVector4>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public RectVector4(Vector4 vector4) => this.Vector4 = vector4;
 
-    /// <summary>Gets an instance of <see cref="RectVector4"/> containing zeroes.</summary>
-    public static RectVector4 Zero
-    {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => default;
-    }
-
     /// <summary>Gets an instance of <see cref="RectVector4"/> containing the inverted extrema, so that extending with
     /// any other valid instance of <see cref="RectVector4"/> can work reliably.</summary>
     public static RectVector4 InvertedExtrema
@@ -122,21 +118,21 @@ public struct RectVector4 : IEquatable<RectVector4>
         get => this.Left <= this.Right && this.Top <= this.Bottom;
     }
 
-    /// <summary>Gets the width, if <see cref="IsValid"/> is <c>true</c>.</summary>
+    /// <summary>Gets the width of the box formed within, if <see cref="IsValid"/> is <c>true</c>.</summary>
     public readonly float Width
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get => this.IsValid ? this.Right - this.Left : 0f;
     }
 
-    /// <summary>Gets the height, if <see cref="IsValid"/> is <c>true</c>.</summary>
+    /// <summary>Gets the height of the box formed within, if <see cref="IsValid"/> is <c>true</c>.</summary>
     public readonly float Height
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get => this.IsValid ? this.Bottom - this.Top : 0f;
     }
 
-    /// <summary>Gets the size, if <see cref="IsValid"/> is <c>true</c>.</summary>
+    /// <summary>Gets the size of the box formed within, if <see cref="IsValid"/> is <c>true</c>.</summary>
     public readonly Vector2 Size
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -161,14 +157,6 @@ public struct RectVector4 : IEquatable<RectVector4>
         new(left.Vector4 - right.Vector4);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static RectVector4 operator *(in RectVector4 left, in RectVector4 right) =>
-        new(left.Vector4 * right.Vector4);
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static RectVector4 operator /(in RectVector4 left, in RectVector4 right) =>
-        new(left.Vector4 / right.Vector4);
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static RectVector4 operator *(in RectVector4 left, in float right) =>
         new(left.Vector4 * right);
 
@@ -176,14 +164,23 @@ public struct RectVector4 : IEquatable<RectVector4>
     public static RectVector4 operator /(in RectVector4 left, in float right) =>
         new(left.Vector4 / right);
 
-    /// <summary>Extrudes <paramref name="what"/> by <paramref name="by"/>, by subtracting <see cref="LeftTop"/>
+    /// <summary>expands <paramref name="what"/> by <paramref name="by"/>, by subtracting <see cref="LeftTop"/>
     /// and adding <see cref="RightBottom"/>.</summary>
     /// <param name="what">The rect vector to extrude from.</param>
-    /// <param name="by">The extrusion distance.</param>
-    /// <returns>The extruded rect vector.</returns>
+    /// <param name="by">The expansion distance.</param>
+    /// <returns>The expanded rect vector.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static RectVector4 Extrude(in RectVector4 what, in RectVector4 by) =>
+    public static RectVector4 Expand(in RectVector4 what, in BorderVector4 by) =>
         new(what.LeftTop - by.LeftTop, what.RightBottom + by.RightBottom);
+
+    /// <summary>Shrinks <paramref name="what"/> by <paramref name="by"/>, by adding <see cref="LeftTop"/>
+    /// and subtracting <see cref="RightBottom"/>.</summary>
+    /// <param name="what">The rect vector to extrude from.</param>
+    /// <param name="by">The shrinkign distance.</param>
+    /// <returns>The shrinked rect vector.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static RectVector4 Shrink(in RectVector4 what, in BorderVector4 by) =>
+        new(what.LeftTop + by.LeftTop, what.RightBottom - by.RightBottom);
 
     /// <summary>Creates a new instance of <see cref="RectVector4"/> from a vector containing the coordinates at
     /// left top and a vector containing the size of rect.</summary>
@@ -207,6 +204,12 @@ public struct RectVector4 : IEquatable<RectVector4>
             res.Top = res.Bottom = MathF.Round((res.Top + res.Bottom) / 2);
         return res;
     }
+
+    /// <summary>Rounds every components of <paramref name="rv"/>.</summary>
+    /// <param name="rv">The rect vector.</param>
+    /// <returns>The rounded rect vector.</returns>
+    public static RectVector4 Round(in RectVector4 rv) =>
+        new(MathF.Round(rv.Left), MathF.Round(rv.Top), MathF.Round(rv.Right), MathF.Round(rv.Bottom));
 
     /// <summary>Translates <paramref name="what"/> by <paramref name="by"/>.</summary>
     /// <param name="what">The rect vector to translate.</param>
@@ -234,8 +237,7 @@ public struct RectVector4 : IEquatable<RectVector4>
         this.Left <= coord.X && this.Top <= coord.Y && coord.X < this.Right && coord.Y < this.Bottom;
 
     /// <inheritdoc/>
-    public override readonly string ToString() =>
-        $"{nameof(RectVector4)}<({this.Left:g}, {this.Top:g})-({this.Right:g}, {this.Bottom:g})>";
+    public override readonly string ToString() => $"<({this.Left:g}, {this.Top:g})-({this.Right:g}, {this.Bottom:g})>";
 
     /// <inheritdoc cref="object.Equals(object?)"/>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

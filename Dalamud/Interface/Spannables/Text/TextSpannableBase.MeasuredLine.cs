@@ -4,21 +4,21 @@ using System.Runtime.InteropServices;
 
 using Dalamud.Interface.Spannables.Rendering;
 
-namespace Dalamud.Interface.Spannables.Strings;
+namespace Dalamud.Interface.Spannables.Text;
 
-/// <summary>Base class for <see cref="SpannedString"/> and <see cref="SpannedStringBuilder"/>.</summary>
-public abstract partial class SpannedStringBase
+/// <summary>Base class for <see cref="TextSpannable"/> and <see cref="TextSpannableBuilder"/>.</summary>
+public abstract partial class TextSpannableBase
 {
     /// <summary>Represents a measured line.</summary>
     private protected struct MeasuredLine
     {
-        /// <summary>The offset in a <see cref="SpannedString"/> to begin to skip rendering.</summary>
+        /// <summary>The offset in a <see cref="TextSpannable"/> to begin to skip rendering.</summary>
         public CompositeOffset FirstOffset;
 
-        /// <summary>The offset in a <see cref="SpannedString"/> pointing to the end of a line.</summary>
+        /// <summary>The offset in a <see cref="TextSpannable"/> pointing to the end of a line.</summary>
         public CompositeOffset Offset;
 
-        /// <summary>The offset in a <see cref="SpannedString"/> to begin to skip rendering.</summary>
+        /// <summary>The offset in a <see cref="TextSpannable"/> to begin to skip rendering.</summary>
         public CompositeOffset OmitOffset;
 
         /// <summary>The horizontal cursor offset at the end of the line.</summary>

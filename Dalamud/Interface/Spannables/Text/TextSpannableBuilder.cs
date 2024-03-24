@@ -4,17 +4,17 @@ using System.Runtime.InteropServices;
 
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Spannables.Internal;
-using Dalamud.Interface.Spannables.Strings.Internal;
 using Dalamud.Interface.Spannables.Styles;
+using Dalamud.Interface.Spannables.Text.Internal;
 using Dalamud.Utility;
 
 using Microsoft.Extensions.ObjectPool;
 
-namespace Dalamud.Interface.Spannables.Strings;
+namespace Dalamud.Interface.Spannables.Text;
 
 /// <summary>A custom text renderer implementation.</summary>
-public sealed partial class SpannedStringBuilder
-    : SpannedStringBase, ISpannedStringBuilder, IResettable
+public sealed partial class TextSpannableBuilder
+    : TextSpannableBase, ITextSpannableBuilder, IResettable
 {
     private readonly MemoryStream textStream = new();
     private readonly MemoryStream dataStream = new();
@@ -48,7 +48,7 @@ public sealed partial class SpannedStringBuilder
     public override IReadOnlyCollection<ISpannable?> GetAllChildSpannables() => this.spannables;
 
     /// <inheritdoc/>
-    public SpannedString Build() =>
+    public TextSpannable Build() =>
         new(
             this.textStream.ToArray(),
             this.dataStream.ToArray(),
@@ -58,7 +58,7 @@ public sealed partial class SpannedStringBuilder
             this.spannables.ToArray());
 
     /// <inheritdoc/>
-    public SpannedStringBuilder Clear()
+    public TextSpannableBuilder Clear()
     {
         this.textStream.Clear();
         this.dataStream.Clear();

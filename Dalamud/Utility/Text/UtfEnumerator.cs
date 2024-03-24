@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -6,6 +7,7 @@ using System.Text;
 namespace Dalamud.Utility.Text;
 
 /// <summary>Enumerates a UTF-N byte sequence by codepoint.</summary>
+[DebuggerDisplay("{Current}/{data.Length} ({flags}, BE={isBigEndian})")]
 public ref struct UtfEnumerator
 {
     private readonly ReadOnlySpan<byte> data;
@@ -131,6 +133,7 @@ public ref struct UtfEnumerator
 
     /// <summary>A part of a UTF-N sequence containing one codepoint.</summary>
     [StructLayout(LayoutKind.Explicit, Size = 16)]
+    [DebuggerDisplay("[{ByteOffset}, {ByteLength}] {Value}")]
     public readonly struct Subsequence : IEquatable<Subsequence>
     {
         /// <summary>The codepoint.</summary>

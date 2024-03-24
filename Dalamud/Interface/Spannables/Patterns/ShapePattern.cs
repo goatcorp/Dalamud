@@ -67,7 +67,7 @@ public class ShapePattern : PatternSpannable
     public ImDrawFlags RoundingFlags { get; set; } = ImDrawFlags.RoundCornersDefault;
 
     /// <summary>Gets or sets the margin.</summary>
-    public RectVector4 Margin { get; set; }
+    public BorderVector4 Margin { get; set; }
 
     /// <inheritdoc/>
     protected override PatternRenderPass CreateNewRenderPass() => new CheckmarkRenderPass(this);
@@ -85,7 +85,7 @@ public class ShapePattern : PatternSpannable
 
             var pos = owner.Margin.LeftTop * this.Scale;
             var sz = Vector2.Max(
-                this.Boundary.Size - ((owner.Margin.LeftTop + owner.Margin.RightBottom) * this.Scale),
+                this.Boundary.Size - (owner.Margin.Size * this.Scale),
                 Vector2.Zero);
             var sz1 = Math.Min(sz.X, sz.Y);
             if (sz1 is >= float.PositiveInfinity or <= 0)

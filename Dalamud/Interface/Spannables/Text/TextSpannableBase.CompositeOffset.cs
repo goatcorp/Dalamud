@@ -1,12 +1,12 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-namespace Dalamud.Interface.Spannables.Strings;
+namespace Dalamud.Interface.Spannables.Text;
 
-/// <summary>Base class for <see cref="SpannedString"/> and <see cref="SpannedStringBuilder"/>.</summary>
-public abstract partial class SpannedStringBase
+/// <summary>Base class for <see cref="TextSpannable"/> and <see cref="TextSpannableBuilder"/>.</summary>
+public abstract partial class TextSpannableBase
 {
-    /// <summary>Represents an offset in a <see cref="SpannedString"/>.</summary>
+    /// <summary>Represents an offset in a <see cref="TextSpannable"/>.</summary>
     [StructLayout(LayoutKind.Explicit, Size = 8)]
     private protected struct CompositeOffset : IEquatable<CompositeOffset>, IComparable<CompositeOffset>, IComparable
     {

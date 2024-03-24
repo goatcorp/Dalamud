@@ -4,8 +4,8 @@ using System.Numerics;
 
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Spannables.Rendering.Internal;
-using Dalamud.Interface.Spannables.Strings;
 using Dalamud.Interface.Spannables.Styles;
+using Dalamud.Interface.Spannables.Text;
 
 using Serilog;
 
@@ -17,19 +17,19 @@ namespace Dalamud.Interface.Internal.Windows.Settings.Widgets;
     Justification = "Internals")]
 public class HintSettingsEntry : SettingsEntry
 {
-    private readonly SpannedString text;
+    private readonly TextSpannable text;
     private readonly Vector4 color;
 
     public HintSettingsEntry(string text, Vector4? color = null)
     {
         try
         {
-            this.text = SpannedString.Parse(text, CultureInfo.InvariantCulture);
+            this.text = TextSpannable.Parse(text, CultureInfo.InvariantCulture);
         }
         catch (Exception e)
         {
             Log.Error(e, $"{nameof(HintSettingsEntry)}: failed to parse");
-            this.text = new SpannedStringBuilder().Append(text).Build();
+            this.text = new TextSpannableBuilder().Append(text).Build();
         }
 
         this.color = color ?? ImGuiColors.DalamudGrey;

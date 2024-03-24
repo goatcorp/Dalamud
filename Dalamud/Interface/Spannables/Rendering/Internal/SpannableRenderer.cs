@@ -129,6 +129,7 @@ internal sealed partial class SpannableRenderer : ISpannableRenderer, IInternalD
             new(
                 spannable,
                 state,
+                renderContext.MinSize,
                 renderContext.MaxSize,
                 renderContext.Scale,
                 new(textOptions),

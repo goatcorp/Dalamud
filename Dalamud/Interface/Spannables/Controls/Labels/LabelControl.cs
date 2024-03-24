@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 
 using Dalamud.Interface.Spannables.Controls.EventHandlers;
 using Dalamud.Interface.Spannables.RenderPassMethodArgs;
-using Dalamud.Interface.Spannables.Strings;
+using Dalamud.Interface.Spannables.Text;
 using Dalamud.Utility;
 using Dalamud.Utility.Numerics;
 
@@ -24,10 +24,13 @@ public class LabelControl : ControlSpannable
 
     private readonly ISpannableRenderPass?[] iconSpannableRenderPasses = new ISpannableRenderPass?[IconSlotCount];
 
-    private SpannedStringBuilder? spannedStringBuilder;
-    private MemoryStream? lastLink = new();
-
+    // Properties
     private ISpannable? spannableText;
+    private BorderVector4 textMargin;
+
+    // States
+    private TextSpannableBuilder? textSpannableBuilder;
+    private MemoryStream? lastLink = new();
 
     private ISpannableRenderPass? activeSpannableRenderPass;
 
@@ -36,7 +39,7 @@ public class LabelControl : ControlSpannable
     {
         this.childrenSlotText = this.AllSpannablesAvailableSlot++;
         this.innerIdText = this.InnerIdAvailableSlot++;
-        this.AllSpannables.Add(this.spannedStringBuilder = new());
+        this.AllSpannables.Add(this.textSpannableBuilder = new());
 
         this.childrenSlotIconBase = this.AllSpannablesAvailableSlot;
         this.innerIdIconBase = this.InnerIdAvailableSlot;
@@ -57,6 +60,9 @@ public class LabelControl : ControlSpannable
 
     /// <summary>Occurs when the property <see cref="SpannableText"/> has been changed.</summary>
     public event PropertyChangeEventHandler<ControlSpannable, ISpannable?>? SpannableTextChange;
+
+    /// <summary>Occurs when the property <see cref="TextMargin"/> has been changed.</summary>
+    public event PropertyChangeEventHandler<ControlSpannable, BorderVector4>? TextMarginChange;
 
     /// <summary>Occurs when the property <see cref="LeftIcon"/> has been changed.</summary>
     public event PropertyChangeEventHandler<ControlSpannable, ISpannable?>? LeftIconChange;
@@ -82,8 +88,13 @@ public class LabelControl : ControlSpannable
             this.OnSpannableTextChange);
     }
 
-    /// <summary>Gets or sets the icon size.</summary>
-    public Vector2 IconSize { get; set; }
+    /// <summary>Gets or sets the text margin, which is the gap between icons and the text.</summary>
+    /// <remarks>The value will be scaled by <see cref="ControlSpannable.Scale"/>.</remarks>
+    public BorderVector4 TextMargin
+    {
+        get => this.textMargin;
+        set => this.HandlePropertyChange(nameof(this.TextMargin), ref this.textMargin, value, this.OnTextMarginChange);
+    }
 
     /// <summary>Gets or sets the spannable to display on the left side.</summary>
     /// <remarks>Primary use case is for displaying an icon.</remarks>
@@ -134,7 +145,7 @@ public class LabelControl : ControlSpannable
     }
 
     /// <summary>Gets or sets the currently active spannable between <see cref="spannableText"/> and
-    /// <see cref="spannedStringBuilder"/>.</summary>
+    /// <see cref="textSpannableBuilder"/>.</summary>
     private ISpannable ActiveSpannable
     {
         get => this.AllSpannables[this.childrenSlotText] ?? throw new ObjectDisposedException(this.GetType().Name);
@@ -157,21 +168,21 @@ public class LabelControl : ControlSpannable
     {
         if (disposing)
         {
-            this.spannedStringBuilder?.Dispose();
-            this.spannedStringBuilder = null;
+            this.textSpannableBuilder?.Dispose();
+            this.textSpannableBuilder = null;
             this.lastLink?.Dispose();
             this.lastLink = null;
             this.spannableText?.Dispose();
             this.spannableText = null;
-            this.spannedStringBuilder?.Dispose();
-            this.spannedStringBuilder = null!;
+            this.textSpannableBuilder?.Dispose();
+            this.textSpannableBuilder = null!;
         }
 
         base.Dispose(disposing);
     }
 
     /// <inheritdoc/>
-    protected override RectVector4 MeasureContentBox(SpannableMeasureArgs args, in RectVector4 availableContentBox)
+    protected override RectVector4 MeasureContentBox(SpannableMeasureArgs args)
     {
         if (this.IsDisposed)
             return RectVector4.InvertedExtrema;
@@ -186,9 +197,16 @@ public class LabelControl : ControlSpannable
                 sp,
                 rp,
                 this.innerIdIconBase + i,
-                availableContentBox.Size,
+                Vector2.Zero,
+                args.MaxSize - this.TextMargin.Size,
                 this.ActiveTextState);
         }
+
+        var totalIconSize = this.TextMargin.Size;
+        totalIconSize.X += this.iconSpannableRenderPasses[0]?.Boundary.Width ?? 0;
+        totalIconSize.X += this.iconSpannableRenderPasses[2]?.Boundary.Width ?? 0;
+        totalIconSize.Y += this.iconSpannableRenderPasses[1]?.Boundary.Height ?? 0;
+        totalIconSize.Y += this.iconSpannableRenderPasses[3]?.Boundary.Height ?? 0;
 
         var spannable = this.ActiveSpannable;
         this.activeSpannableRenderPass ??= spannable.RentRenderPass(this.Renderer);
@@ -196,41 +214,22 @@ public class LabelControl : ControlSpannable
             spannable,
             this.activeSpannableRenderPass,
             this.innerIdText,
-            new(
-                availableContentBox.Right >= float.PositiveInfinity ||
-                availableContentBox.Left <= float.NegativeInfinity
-                    ? float.PositiveInfinity
-                    : Math.Max(
-                        0,
-                        availableContentBox.Width
-                        - (this.iconSpannableRenderPasses[0]?.Boundary.Width ?? 0)
-                        - (this.iconSpannableRenderPasses[2]?.Boundary.Width ?? 0)),
-                availableContentBox.Bottom >= float.PositiveInfinity ||
-                availableContentBox.Top <= float.NegativeInfinity
-                    ? float.PositiveInfinity
-                    : Math.Max(
-                        0,
-                        availableContentBox.Height
-                        - (this.iconSpannableRenderPasses[1]?.Boundary.Height ?? 0)
-                        - (this.iconSpannableRenderPasses[3]?.Boundary.Height ?? 0))),
+            Vector2.Max(Vector2.Zero, args.MinSize - totalIconSize),
+            Vector2.Max(Vector2.Zero, args.MaxSize - totalIconSize),
             this.ActiveTextState);
 
-        var b = RectVector4.Normalize(this.activeSpannableRenderPass.Boundary);
-        b.Right += this.iconSpannableRenderPasses[0]?.Boundary.Width ?? 0;
-        b.Right += this.iconSpannableRenderPasses[2]?.Boundary.Width ?? 0;
-        b.Right = Math.Max(b.Right, this.iconSpannableRenderPasses[1]?.Boundary.Width ?? 0);
-        b.Right = Math.Max(b.Right, this.iconSpannableRenderPasses[3]?.Boundary.Width ?? 0);
-        b.Bottom += this.iconSpannableRenderPasses[1]?.Boundary.Height ?? 0;
-        b.Bottom += this.iconSpannableRenderPasses[3]?.Boundary.Height ?? 0;
-        b.Bottom = Math.Max(b.Bottom, this.iconSpannableRenderPasses[0]?.Boundary.Height ?? 0);
-        b.Bottom = Math.Max(b.Bottom, this.iconSpannableRenderPasses[2]?.Boundary.Height ?? 0);
+        var b = RectVector4.Normalize(this.activeSpannableRenderPass.Boundary).RightBottom;
+        b += totalIconSize;
+        b.X = Math.Max(b.X, this.iconSpannableRenderPasses[1]?.Boundary.Width ?? 0);
+        b.X = Math.Max(b.X, this.iconSpannableRenderPasses[3]?.Boundary.Width ?? 0);
+        b.Y = Math.Max(b.Y, this.iconSpannableRenderPasses[0]?.Boundary.Height ?? 0);
+        b.Y = Math.Max(b.Y, this.iconSpannableRenderPasses[2]?.Boundary.Height ?? 0);
 
-        var res = availableContentBox;
-        if (this.IsWidthWrapContent)
-            res.Right = res.Left + b.Right;
-        if (this.IsHeightWrapContent)
-            res.Bottom = res.Top + b.Bottom;
-        return res;
+        if (!this.IsWidthWrapContent)
+            b.X = args.SuggestedSize.X;
+        if (!this.IsHeightWrapContent)
+            b.Y = args.SuggestedSize.Y;
+        return RectVector4.FromCoordAndSize(Vector2.Zero, Vector2.Clamp(b, args.MinSize, args.MaxSize));
     }
 
     /// <inheritdoc/>
@@ -246,36 +245,50 @@ public class LabelControl : ControlSpannable
         {
             if (this.IconSpannables[i] is not { } sp || this.iconSpannableRenderPasses[i] is not { } rp)
                 continue;
-            args.SpannableArgs.NotifyChild(
-                sp,
-                rp,
-                i switch
-                {
-                    0 => this.MeasuredContentBox.LeftTop,
-                    1 => this.MeasuredContentBox.LeftTop,
-                    2 => this.MeasuredContentBox.RightTop - new Vector2(rp.Boundary.Width, 0),
-                    3 => this.MeasuredContentBox.LeftBottom - new Vector2(0, rp.Boundary.Height),
-                    _ => Vector2.Zero,
-                },
-                Matrix4x4.Identity);
+            var iconLt = Vector2.Zero;
+            switch (i)
+            {
+                case 0:
+                    iconLt = this.MeasuredContentBox.LeftTop;
+                    break;
+                case 1:
+                    iconLt = this.MeasuredContentBox.LeftTop;
+                    break;
+                case 2:
+                    iconLt = this.MeasuredContentBox.RightTop - new Vector2(rp.Boundary.Width, 0);
+                    break;
+                case 3:
+                    iconLt = this.MeasuredContentBox.LeftBottom - new Vector2(0, rp.Boundary.Height);
+                    break;
+            }
+
+            if ((i & 1) == 0)
+                iconLt.Y += (this.MeasuredContentBox.Height - rp.Boundary.Height) / 2f;
+            else
+                iconLt.X += (this.MeasuredContentBox.Width - rp.Boundary.Width) / 2f;
+
+            args.SpannableArgs.NotifyChild(sp, rp, iconLt, Matrix4x4.Identity);
         }
 
         var lt =
             this.MeasuredContentBox.LeftTop
             + new Vector2(
                 this.iconSpannableRenderPasses[0]?.Boundary.Width ?? 0,
-                this.iconSpannableRenderPasses[1]?.Boundary.Height ?? 0);
+                this.iconSpannableRenderPasses[1]?.Boundary.Height ?? 0)
+            + this.textMargin.LeftTop;
+        var rb =
+            this.MeasuredContentBox.RightBottom
+            - new Vector2(
+                this.iconSpannableRenderPasses[2]?.Boundary.Width ?? 0,
+                this.iconSpannableRenderPasses[3]?.Boundary.Height ?? 0)
+            - this.TextMargin.RightBottom;
 
         // If we don't have enough space for the text, try to center align it.
-        var availTextSize =
-            this.MeasuredContentBox.Size
-            - new Vector2(
-                this.iconSpannableRenderPasses[0]?.Boundary.Width ?? 0
-                + this.iconSpannableRenderPasses[2]?.Boundary.Width ?? 0,
-                this.iconSpannableRenderPasses[1]?.Boundary.Height ?? 0
-                + this.iconSpannableRenderPasses[3]?.Boundary.Height ?? 0);
-        lt.X -= MathF.Round((this.activeSpannableRenderPass.Boundary.Width - availTextSize.X) / 2f);
-        lt.Y -= MathF.Round((this.activeSpannableRenderPass.Boundary.Height - availTextSize.Y) / 2f);
+        var availTextSize = rb - lt;
+        if (this.activeSpannableRenderPass.Boundary.Width > availTextSize.X)
+            lt.X -= MathF.Round((this.activeSpannableRenderPass.Boundary.Width - availTextSize.X) / 2f);
+        if (this.activeSpannableRenderPass.Boundary.Height > availTextSize.Y)
+            lt.Y -= MathF.Round((this.activeSpannableRenderPass.Boundary.Height - availTextSize.Y) / 2f);
 
         args.SpannableArgs.NotifyChild(this.ActiveSpannable, this.activeSpannableRenderPass, lt, Matrix4x4.Identity);
     }
@@ -380,11 +393,11 @@ public class LabelControl : ControlSpannable
     /// <inheritdoc/>
     protected override void OnTextChange(PropertyChangeEventArgs<ControlSpannable, string?> args)
     {
-        if (this.spannedStringBuilder is null)
+        if (this.textSpannableBuilder is null)
             return;
 
-        this.spannedStringBuilder.Clear().Append(args.NewValue);
-        this.ActiveSpannable = this.spannableText ?? this.spannedStringBuilder;
+        this.textSpannableBuilder.Clear().Append(args.NewValue);
+        this.ActiveSpannable = this.spannableText ?? this.textSpannableBuilder;
         base.OnTextChange(args);
     }
 
@@ -392,15 +405,20 @@ public class LabelControl : ControlSpannable
     /// <param name="args">A <see cref="PropertyChangeEventArgs{TSender,T}"/> that contains the event data.</param>
     protected virtual void OnSpannableTextChange(PropertyChangeEventArgs<ControlSpannable, ISpannable?> args)
     {
-        if (this.spannedStringBuilder is null)
+        if (this.textSpannableBuilder is null)
             return;
 
         this.ActiveSpannable.ReturnRenderPass(this.activeSpannableRenderPass);
         this.activeSpannableRenderPass = null;
 
-        this.ActiveSpannable = this.spannableText ?? this.spannedStringBuilder;
+        this.ActiveSpannable = this.spannableText ?? this.textSpannableBuilder;
         this.SpannableTextChange?.Invoke(args);
     }
+
+    /// <summary>Raises the <see cref="TextMarginChange"/> event.</summary>
+    /// <param name="args">A <see cref="PropertyChangeEventArgs{TSender,T}"/> that contains the event data.</param>
+    protected virtual void OnTextMarginChange(PropertyChangeEventArgs<ControlSpannable, BorderVector4> args) =>
+        this.TextMarginChange?.Invoke(args);
 
     /// <summary>Raises the <see cref="LeftIconChange"/> event.</summary>
     /// <param name="args">A <see cref="PropertyChangeEventArgs{TSender,T}"/> that contains the event data.</param>

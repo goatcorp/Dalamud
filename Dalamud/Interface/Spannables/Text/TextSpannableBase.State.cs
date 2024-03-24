@@ -19,10 +19,10 @@ using ImGuiNET;
 
 using Microsoft.Extensions.ObjectPool;
 
-namespace Dalamud.Interface.Spannables.Strings;
+namespace Dalamud.Interface.Spannables.Text;
 
-/// <summary>Base class for <see cref="SpannedString"/> and <see cref="SpannedStringBuilder"/>.</summary>
-public abstract partial class SpannedStringBase
+/// <summary>Base class for <see cref="TextSpannable"/> and <see cref="TextSpannableBuilder"/>.</summary>
+public abstract partial class TextSpannableBase
 {
     [SuppressMessage(
         "StyleCop.CSharp.MaintainabilityRules",
@@ -67,11 +67,11 @@ public abstract partial class SpannedStringBase
 
         public Span<Vector2> SpannableOffsets => CollectionsMarshal.AsSpan(this.measured.SpannableOffsets);
 
-        public SpannedStringBuilder? TempBuilder { get; set; }
+        public TextSpannableBuilder? TempBuilder { get; set; }
 
-        public ref float Scale => ref this.measured.Scale;
+        public ref readonly float Scale => ref this.measured.Scale;
 
-        public ref Vector2 MaxSize => ref this.measured.MaxSize;
+        public ref readonly Vector2 MaxSize => ref this.measured.MaxSize;
 
         public static RenderPass Rent(in ISpannableRenderer renderer)
         {
@@ -90,7 +90,7 @@ public abstract partial class SpannedStringBase
         /// <inheritdoc/>
         public void MeasureSpannable(scoped in SpannableMeasureArgs args)
         {
-            if (args.Sender is not SpannedStringBase ssb)
+            if (args.Sender is not TextSpannableBase ssb)
                 return;
 
             this.ImGuiGlobalId = args.ImGuiGlobalId;
@@ -103,7 +103,6 @@ public abstract partial class SpannedStringBase
 
             this.Offset = Vector2.Zero;
             this.ActiveTextState.LastStyle = this.ActiveTextState.InitialStyle;
-            this.MaxSize = args.MaxSize;
             this.measured.Clear(data);
             this.measured.Boundary = RectVector4.InvertedExtrema;
 
@@ -246,7 +245,8 @@ public abstract partial class SpannedStringBase
                             break;
                     }
 
-                    if (line.HasNewLineAtEnd || (line.IsWrapped && this.ActiveTextState.WordBreak != WordBreakType.KeepAll))
+                    if (line.HasNewLineAtEnd ||
+                        (line.IsWrapped && this.ActiveTextState.WordBreak != WordBreakType.KeepAll))
                         this.BreakLineImmediate(line);
                 }
 
@@ -267,12 +267,16 @@ public abstract partial class SpannedStringBase
             if (!this.Boundary.IsValid)
                 this.measured.Boundary = default;
 
-#pragma warning disable SA1101
+            if (this.measured.Boundary.Width < args.MinSize.X)
+                this.measured.Boundary.Right = this.measured.Boundary.Left + args.MinSize.X;
+
+            if (this.measured.Boundary.Height < args.MinSize.Y)
+                this.measured.Boundary.Bottom = this.measured.Boundary.Top + args.MinSize.Y;
+
             if (this.ActiveTextState is { VerticalAlignment: > 0f } && args.MaxSize.Y < float.PositiveInfinity)
-#pragma warning restore SA1101
             {
                 var offset = MathF.Round(
-                    (args.MaxSize.Y - this.Boundary.Bottom) *
+                    (args.MaxSize.Y - this.Boundary.Height) *
                     Math.Clamp(this.ActiveTextState.VerticalAlignment, 0f, 1f));
                 this.TranslateBoundaries(new(0, offset), data);
                 this.ActiveTextState.ShiftFromVerticalAlignment = offset;
@@ -286,7 +290,7 @@ public abstract partial class SpannedStringBase
         /// <inheritdoc/>
         public void CommitSpannableMeasurement(scoped in SpannableCommitTransformationArgs args)
         {
-            if (args.Sender is not SpannedStringBase ssb)
+            if (args.Sender is not TextSpannableBase ssb)
                 return;
             var data = ssb.GetData();
 
@@ -311,11 +315,11 @@ public abstract partial class SpannedStringBase
         /// <inheritdoc/>
         public unsafe void DrawSpannable(SpannableDrawArgs args)
         {
-            if (args.Sender is not SpannedStringBase ssb)
+            if (args.Sender is not TextSpannableBase ssb)
                 return;
 
             using var transformer = ScopedTransformer.From(args, 1f);
-            
+
             var data = ssb.GetData();
             this.Offset = new(0, this.ActiveTextState.ShiftFromVerticalAlignment);
             this.ActiveTextState.LastStyle = this.ActiveTextState.InitialStyle;
@@ -423,7 +427,7 @@ public abstract partial class SpannedStringBase
         {
             link = default;
 
-            if (args.Sender is not SpannedStringBase ssb)
+            if (args.Sender is not TextSpannableBase ssb)
                 return;
             var data = ssb.GetData();
 
@@ -597,8 +601,9 @@ public abstract partial class SpannedStringBase
                                 new(
                                     ssb,
                                     state2,
+                                    Vector2.Zero,
                                     new(float.PositiveInfinity),
-                                    this.Scale,
+                                    this.measured.Scale,
                                     this.measured.TextState with
                                     {
                                         LastStyle = this.measured.TextState.ControlCharactersStyle,
@@ -698,8 +703,9 @@ public abstract partial class SpannedStringBase
                         new(
                             wm,
                             wmrp,
+                            Vector2.Zero,
                             new(float.PositiveInfinity),
-                            this.Scale,
+                            this.measured.Scale,
                             this.measured.TextState with
                             {
                                 InitialStyle = this.measured.TextState.LastStyle,
@@ -764,8 +770,9 @@ public abstract partial class SpannedStringBase
             public List<Vector2>? SpannableOffsets;
             public List<int>? SpannableGenerations;
             public Matrix4x4 Transformation;
-            public RectVector4 Boundary;
+            public Vector2 MinSize;
             public Vector2 MaxSize;
+            public RectVector4 Boundary;
             public TextState TextState;
             public int SpanCount;
             public float Scale;
@@ -774,35 +781,38 @@ public abstract partial class SpannedStringBase
             /// <summary>Updates measurement parameters.</summary>
             /// <returns><c>true</c> if nothing has been changed.</returns>
             [SuppressMessage("ReSharper", "CompareOfFloatsByEqualityOperator", Justification = "opportunistic")]
-            public bool UpdateMeasureParams(scoped in SpannableMeasureArgs args, SpannedStringBase ss)
+            public bool UpdateMeasureParams(scoped in SpannableMeasureArgs args, TextSpannableBase ss)
             {
-                var sp = ss.GetData().Spannables;
+                var data = ss.GetData();
+                var spannables = data.Spannables;
                 if (this.Scale == args.Scale
+                    && this.MinSize == args.MinSize
                     && this.MaxSize == args.MaxSize
                     && this.StateGeneration == ss.StateGeneration
-                    && this.SpanCount == sp.Length
+                    && this.SpanCount == spannables.Length
                     && TextState.PropertyReferenceEquals(this.TextState, args.TextState))
                 {
                     var i = 0;
                     for (; i < this.SpanCount; i++)
                     {
-                        if (this.SpannableGenerations?[i] != sp[i]?.StateGeneration)
+                        if (this.SpannableGenerations?[i] != spannables[i]?.StateGeneration)
                             break;
                     }
 
                     return i == this.SpanCount;
                 }
 
-                var data = ss.GetData();
                 this.TextState = args.TextState;
+                this.MinSize = args.MinSize;
+                this.MaxSize = args.MaxSize;
                 this.Scale = args.Scale;
+
                 this.LinkBoundaries ??= new();
                 this.Lines ??= new();
                 this.SpannableStates ??= new();
                 this.SpannableOffsets ??= new();
                 this.SpannableGenerations ??= new();
-                this.MaxSize = Vector2.Zero;
-                this.SpanCount = data.Spannables.Length;
+                this.SpanCount = spannables.Length;
                 this.StateGeneration = ss.StateGeneration;
                 this.SpannableStates.EnsureCapacity(this.SpanCount);
                 this.SpannableOffsets.EnsureCapacity(this.SpanCount);
@@ -814,8 +824,8 @@ public abstract partial class SpannedStringBase
                     this.SpannableGenerations.Add(-1);
                 }
 
-                for (var i = 0; i < data.Spannables.Length; i++)
-                    this.SpannableStates[i] = data.Spannables[i]?.RentRenderPass(args.RenderPass.Renderer);
+                for (var i = 0; i < spannables.Length; i++)
+                    this.SpannableStates[i] = spannables[i]?.RentRenderPass(args.RenderPass.Renderer);
 
                 return false;
             }

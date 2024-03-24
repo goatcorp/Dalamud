@@ -12,14 +12,14 @@ using Dalamud.Utility.Numerics;
 
 using ImGuiNET;
 
-namespace Dalamud.Interface.Spannables.Strings;
+namespace Dalamud.Interface.Spannables.Text;
 
-/// <summary>Base class for <see cref="SpannedString"/> and <see cref="SpannedStringBuilder"/>.</summary>
-public abstract partial class SpannedStringBase : ISpannable, ISpannableSerializable
+/// <summary>Base class for <see cref="TextSpannable"/> and <see cref="TextSpannableBuilder"/>.</summary>
+public abstract partial class TextSpannableBase : ISpannable, ISpannableSerializable
 {
     private static readonly BitArray WordBreakNormalBreakChars;
 
-    static SpannedStringBase()
+    static TextSpannableBase()
     {
         // Initialize which characters will make a valid word break point.
 

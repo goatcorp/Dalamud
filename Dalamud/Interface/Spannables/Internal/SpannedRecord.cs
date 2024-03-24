@@ -3,8 +3,8 @@ using System.Runtime.CompilerServices;
 using System.Text;
 
 using Dalamud.Interface.FontIdentifier;
-using Dalamud.Interface.Spannables.Strings.Internal;
 using Dalamud.Interface.Spannables.Styles;
+using Dalamud.Interface.Spannables.Text.Internal;
 using Dalamud.Utility;
 using Dalamud.Utility.Text;
 
@@ -137,7 +137,7 @@ internal struct SpannedRecord
                   : $"{this.TextStart}({this.Type}, set)"
             : $"{this.TextStart}({this.Type}, {this.DataStart}, {this.DataLength})";
 
-    /// <summary>Write parameters for use with <see cref="ISpannedStringBuilder"/> functions.</summary>
+    /// <summary>Write parameters for use with <see cref="ITextSpannableBuilder"/> functions.</summary>
     /// <param name="sb">The string builder.</param>
     /// <param name="data">The data attached to the record.</param>
     /// <param name="fontSets">The font sets.</param>

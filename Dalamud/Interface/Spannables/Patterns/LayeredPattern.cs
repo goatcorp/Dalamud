@@ -143,7 +143,13 @@ public sealed class LayeredPattern : PatternSpannable
                     continue;
 
                 this.passes[i] ??= child.RentRenderPass(this.Renderer);
-                args.NotifyChild(child, this.passes[i], owner.InnerIdAvailableSlot + i, args.MaxSize, args.TextState);
+                args.NotifyChild(
+                    child,
+                    this.passes[i],
+                    owner.InnerIdAvailableSlot + i,
+                    args.MinSize,
+                    args.MaxSize,
+                    args.TextState);
             }
         }
 
@@ -174,7 +180,7 @@ public sealed class LayeredPattern : PatternSpannable
                     args.NotifyChild(child, pass, out _);
             }
         }
-    
+
         protected override void DrawUntransformed(SpannableDrawArgs args)
         {
             base.DrawUntransformed(args);

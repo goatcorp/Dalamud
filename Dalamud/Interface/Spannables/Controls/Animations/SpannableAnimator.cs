@@ -9,8 +9,10 @@ namespace Dalamud.Interface.Spannables.Controls.Animations;
 /// <summary>Animator for <see cref="ISpannable"/>.</summary>
 public abstract class SpannableAnimator
 {
+    private Matrix4x4 beforeMatrix = Matrix4x4.Identity;
+    private Matrix4x4 afterMatrix = Matrix4x4.Identity;
     private Matrix4x4 transformation = Matrix4x4.Identity;
-    private RectVector4 boundaryAdjustment = new(Vector4.Zero);
+    private BorderVector4 boundaryAdjustment = BorderVector4.Zero;
 
     /// <summary>Gets or sets the easing function to use.</summary>
     public Easing? TransformationEasing { get; set; }
@@ -30,11 +32,17 @@ public abstract class SpannableAnimator
     /// <summary>Gets or sets the opacity being animated.</summary>
     public float AnimatedOpacity { get; protected set; } = 1f;
 
+    /// <summary>Gets the mutable reference of transformation matrix at the beginning of the animation.</summary>
+    public ref Matrix4x4 BeforeMatrix => ref this.beforeMatrix;
+    
+    /// <summary>Gets the mutable reference of transformation matrix at the end of the animation.</summary>
+    public ref Matrix4x4 AfterMatrix => ref this.afterMatrix;
+
     /// <summary>Gets the boundary adjustment.</summary>
     /// <remarks>Each component of the returned value should be added to all boxes, normalizing the addition results
     /// as needed.</remarks>
     // TODO: is this useful?
-    public ref readonly RectVector4 AnimatedBoundaryAdjustment
+    public ref readonly BorderVector4 AnimatedBoundaryAdjustment
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get => ref this.boundaryAdjustment;

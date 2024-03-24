@@ -105,8 +105,7 @@ public class LinearContainer : ContainerControl
     protected override RectVector4 MeasureChildren(
         SpannableMeasureArgs args,
         ReadOnlySpan<ISpannable> children,
-        ReadOnlySpan<ISpannableRenderPass> renderPasses,
-        in RectVector4 box)
+        ReadOnlySpan<ISpannableRenderPass> renderPasses)
     {
         Debug.Assert(
             children.Length == this.childLayouts.Count,
@@ -125,8 +124,11 @@ public class LinearContainer : ContainerControl
                 weightSum = 1f;
         }
 
+        var isHorizontal = this.direction is LinearDirection.LeftToRight or LinearDirection.RightToLeft;
+        var isVertical = this.direction is LinearDirection.TopToBottom or LinearDirection.BottomToTop;
         var childOffset = Vector2.Zero;
-        var selfBoundary = RectVector4.InvertedExtrema;
+        var contentBox = RectVector4.InvertedExtrema;
+        var childSizeSum = Vector2.Zero;
         for (var i = 0; i < children.Length; i++)
         {
             var child = children[i];
@@ -134,117 +136,106 @@ public class LinearContainer : ContainerControl
             var layout = this.childLayouts[i];
             var innerId = this.InnerIdAvailableSlot + i;
 
-            var childBox = this.direction switch
-            {
-                LinearDirection.LeftToRight or LinearDirection.RightToLeft
-                    when layout.Weight > 0f && box.Right < float.PositiveInfinity =>
-                    box with { Left = 0, Right = box.Width * (layout.Weight / weightSum) },
-                LinearDirection.TopToBottom or LinearDirection.BottomToTop
-                    when layout.Weight > 0f && box.Bottom < float.PositiveInfinity =>
-                    box with { Top = 0, Bottom = box.Height * (layout.Weight / weightSum) },
-                LinearDirection.LeftToRight or LinearDirection.RightToLeft =>
-                    box with { Left = 0, Right = float.PositiveInfinity },
-                LinearDirection.TopToBottom or LinearDirection.BottomToTop =>
-                    box with { Top = 0, Bottom = float.PositiveInfinity },
-                _ => box,
-            };
+            var maxChildSize = new Vector2(
+                args.MaxSize.X >= float.PositiveInfinity ? args.SuggestedSize.X : args.MaxSize.X,
+                args.MaxSize.Y >= float.PositiveInfinity ? args.SuggestedSize.Y : args.MaxSize.Y);
+            var useHorizontalWeight = isHorizontal && layout.Weight > 0f && maxChildSize.X < float.PositiveInfinity;
+            var useVerticalWeight = isVertical && layout.Weight > 0f && maxChildSize.Y < float.PositiveInfinity;
 
-            if (childBox.Right < float.PositiveInfinity)
-                childBox.Right = MathF.Round(childBox.Right - childBox.Left);
-            childBox.Left = 0;
-            if (childBox.Bottom < float.PositiveInfinity)
-                childBox.Bottom = MathF.Round(childBox.Bottom - childBox.Top);
-            childBox.Top = 0;
-            args.NotifyChild(child, pass, innerId, childBox.RightBottom);
+            if (useHorizontalWeight)
+                maxChildSize.X *= layout.Weight / weightSum;
+            else if (useVerticalWeight)
+                maxChildSize.Y *= layout.Weight / weightSum;
+            else if (isHorizontal)
+                maxChildSize.X -= childSizeSum.X;
+            else if (isVertical)
+                maxChildSize.Y -= childSizeSum.Y;
 
-            var occupyWidth = MathF.Round(pass.Boundary.Right);
-            var occupyHeight = MathF.Round(pass.Boundary.Bottom);
+            var minChildSize = new Vector2(
+                useHorizontalWeight ? maxChildSize.X : 0,
+                useVerticalWeight ? maxChildSize.Y : 0);
+
+            args.NotifyChild(child, pass, innerId, minChildSize, maxChildSize);
+            childSizeSum += pass.Boundary.RightBottom;
+
             switch (this.direction)
             {
                 case LinearDirection.RightToLeft:
-                    childOffset.X -= occupyWidth;
+                    childOffset.X -= pass.Boundary.Right;
                     break;
                 case LinearDirection.BottomToTop:
-                    childOffset.Y -= occupyHeight;
+                    childOffset.Y -= pass.Boundary.Bottom;
                     break;
             }
 
             this.childOffsets[i] = childOffset;
-            selfBoundary = RectVector4.Union(selfBoundary, RectVector4.Translate(pass.Boundary, childOffset));
+            contentBox = RectVector4.Union(contentBox, RectVector4.Translate(pass.Boundary, childOffset));
 
             switch (this.direction)
             {
                 case LinearDirection.LeftToRight:
-                    childOffset.X += occupyWidth;
+                    childOffset.X += pass.Boundary.Right;
                     break;
                 case LinearDirection.TopToBottom:
-                    childOffset.Y += occupyHeight;
+                    childOffset.Y += pass.Boundary.Bottom;
                     break;
             }
         }
 
-        selfBoundary =
-            selfBoundary.IsValid
-                ? RectVector4.Translate(selfBoundary, box.LeftTop)
-                : base.MeasureChildren(args, children, renderPasses, box);
+        if (!contentBox.IsValid)
+            contentBox = base.MeasureChildren(args, children, renderPasses);
 
-        var maxWidth = box.Width < float.PositiveInfinity ? box.Width : selfBoundary.Width;
-        var maxHeight = box.Height < float.PositiveInfinity ? box.Height : selfBoundary.Height;
-
-        if (selfBoundary.Width < maxWidth)
+        if (contentBox.Width < args.MaxSize.X && args.MaxSize.X < float.PositiveInfinity)
         {
-            var bias = this.direction switch {
+            var bias = this.direction switch
+            {
                 LinearDirection.LeftToRight => this.contentBias,
                 LinearDirection.RightToLeft => 1 - this.contentBias,
                 LinearDirection.TopToBottom => 0,
                 LinearDirection.BottomToTop => 0,
                 _ => 0,
             };
-            selfBoundary = selfBoundary with
+            contentBox = contentBox with
             {
-                Left = (maxWidth - selfBoundary.Width) * bias,
-                Right = ((maxWidth - selfBoundary.Width) * bias) + selfBoundary.Width,
+                Left = (args.MaxSize.X - contentBox.Width) * bias,
+                Right = ((args.MaxSize.X - contentBox.Width) * bias) + contentBox.Width,
             };
         }
         else
         {
-            selfBoundary = selfBoundary with
+            contentBox = contentBox with
             {
                 Left = 0,
-                Right = selfBoundary.Width,
+                Right = contentBox.Width,
             };
         }
 
-        if (selfBoundary.Height < maxHeight)
+        if (contentBox.Height < args.MaxSize.Y && args.MaxSize.Y < float.PositiveInfinity)
         {
-            var bias = this.direction switch {
+            var bias = this.direction switch
+            {
                 LinearDirection.LeftToRight => 0,
                 LinearDirection.RightToLeft => 0,
                 LinearDirection.TopToBottom => this.contentBias,
                 LinearDirection.BottomToTop => 1 - this.contentBias,
                 _ => 0,
             };
-            selfBoundary = selfBoundary with
+            contentBox = contentBox with
             {
-                Top = (maxHeight - selfBoundary.Height) * bias,
-                Bottom = ((maxHeight - selfBoundary.Height) * bias) + selfBoundary.Height,
+                Top = (args.MaxSize.Y - contentBox.Height) * bias,
+                Bottom = ((args.MaxSize.Y - contentBox.Height) * bias) + contentBox.Height,
             };
         }
         else
         {
-            selfBoundary = selfBoundary with
+            contentBox = contentBox with
             {
                 Top = 0,
-                Bottom = selfBoundary.Height,
+                Bottom = contentBox.Height,
             };
         }
 
-        selfBoundary = RectVector4.Translate(selfBoundary, box.LeftTop);
-        return new(
-            MathF.Round(selfBoundary.Left),
-            MathF.Round(selfBoundary.Top),
-            MathF.Round(selfBoundary.Right),
-            MathF.Round(selfBoundary.Bottom));
+        return contentBox;
     }
 
     /// <inheritdoc/>

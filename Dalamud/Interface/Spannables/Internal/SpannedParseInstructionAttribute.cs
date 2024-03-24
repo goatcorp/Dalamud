@@ -1,8 +1,8 @@
-using Dalamud.Interface.Spannables.Strings;
+using Dalamud.Interface.Spannables.Text;
 
 namespace Dalamud.Interface.Spannables.Internal;
 
-/// <summary>Instructions on how to parse a string into a <see cref="SpannedString"/>.</summary>
+/// <summary>Instructions on how to parse a string into a <see cref="TextSpannable"/>.</summary>
 [AttributeUsage(AttributeTargets.Method)]
 internal class SpannedParseInstructionAttribute : Attribute
 {

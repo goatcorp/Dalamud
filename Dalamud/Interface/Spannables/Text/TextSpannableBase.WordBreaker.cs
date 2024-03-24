@@ -1,3 +1,4 @@
+using System.Numerics;
 using System.Runtime.CompilerServices;
 
 using Dalamud.Interface.Spannables.Helpers;
@@ -7,10 +8,10 @@ using Dalamud.Interface.Spannables.RenderPassMethodArgs;
 using Dalamud.Interface.Spannables.Styles;
 using Dalamud.Utility.Numerics;
 
-namespace Dalamud.Interface.Spannables.Strings;
+namespace Dalamud.Interface.Spannables.Text;
 
-/// <summary>Base class for <see cref="SpannedString"/> and <see cref="SpannedStringBuilder"/>.</summary>
-public abstract partial class SpannedStringBase
+/// <summary>Base class for <see cref="TextSpannable"/> and <see cref="TextSpannableBuilder"/>.</summary>
+public abstract partial class TextSpannableBase
 {
     private ref struct WordBreaker
     {
@@ -153,6 +154,7 @@ public abstract partial class SpannedStringBase
                                 new(
                                     spannable,
                                     spannableState,
+                                    Vector2.Zero,
                                     new(
                                         IsEffectivelyInfinity(this.args.MaxSize.X)
                                             ? float.PositiveInfinity
@@ -295,6 +297,7 @@ public abstract partial class SpannedStringBase
                 new(
                     wm,
                     spannableState,
+                    Vector2.Zero,
                     new(
                         IsEffectivelyInfinity(this.args.MaxSize.X)
                             ? float.PositiveInfinity

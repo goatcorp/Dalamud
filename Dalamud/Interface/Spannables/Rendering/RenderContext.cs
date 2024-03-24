@@ -31,6 +31,10 @@ public readonly struct RenderContext
     /// <summary>The location of the mouse in screen coordinates.</summary>
     public readonly Vector2 MouseScreenLocation;
 
+    /// <summary>Gets or sets the minimum size for the calculated boundary.</summary>
+    /// <remarks>Default value is <see cref="Vector2.Zero"/>.</remarks>
+    public readonly Vector2 MinSize;
+
     /// <summary>Gets or sets the maximum size at which point line break or ellipsis should happen.</summary>
     /// <remarks>Default value is <c>new Vector2(ImGui.GetColumnWidth(), float.PositiveInfinity)</c>.</remarks>
     public readonly Vector2 MaxSize;
@@ -122,6 +126,7 @@ public readonly struct RenderContext
         ThreadSafety.DebugAssertMainThread();
 
         this.UseInteraction = options.UseLinks ?? true;
+        this.MinSize = options.MinSize ?? Vector2.Zero;
         this.MaxSize = options.MaxSize ?? new(ImGui.GetColumnWidth(), float.PositiveInfinity);
         this.Scale = options.Scale ?? ImGuiHelpers.GlobalScale;
         this.DrawListPtr = drawListPtr;
@@ -149,6 +154,9 @@ public readonly struct RenderContext
 
         /// <inheritdoc cref="RenderContext.Scale"/>
         public float? Scale { get; set; }
+
+        /// <inheritdoc cref="RenderContext.MinSize"/>
+        public Vector2? MinSize { get; set; }
 
         /// <inheritdoc cref="RenderContext.MaxSize"/>
         public Vector2? MaxSize { get; set; }

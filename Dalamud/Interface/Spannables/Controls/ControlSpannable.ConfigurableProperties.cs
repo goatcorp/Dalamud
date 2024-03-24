@@ -17,15 +17,16 @@ public partial class ControlSpannable
     private Vector2 size = new(WrapContent);
     private Vector2 minSize = Vector2.Zero;
     private Vector2 maxSize = new(float.PositiveInfinity);
-    private RectVector4 extrude = RectVector4.Zero;
-    private RectVector4 margin = RectVector4.Zero;
-    private RectVector4 padding = RectVector4.Zero;
+    private BorderVector4 extendOutside = BorderVector4.Zero;
+    private BorderVector4 margin = BorderVector4.Zero;
+    private BorderVector4 padding = BorderVector4.Zero;
     private ISpannable? normalBackground;
     private ISpannable? hoveredBackground;
     private ISpannable? activeBackground;
     private ISpannable? disabledBackground;
     private SpannableAnimator? showAnimation;
     private SpannableAnimator? hideAnimation;
+    private SpannableAnimator? moveAnimation;
     private float disabledTextOpacity = 0.5f;
     private bool captureMouseOnMouseDown;
     private bool interceptMouseWheelUp;
@@ -105,33 +106,28 @@ public partial class ControlSpannable
     }
 
     /// <summary>Gets or sets the extrusion.</summary>
-    /// <remarks>
-    /// <para><see cref="MatchParent"/> and <see cref="WrapContent"/> can be used.</para>
-    /// <para>The value will be scaled by <see cref="Scale"/>.</para>
-    /// </remarks>
-    public RectVector4 Extrude
+    /// <remarks>The value will be scaled by <see cref="Scale"/>.</remarks>
+    public BorderVector4 ExtendOutside
     {
-        get => this.extrude;
-        set => this.HandlePropertyChange(nameof(this.Extrude), ref this.extrude, value, this.OnExtrudeChange);
+        get => this.extendOutside;
+        set => this.HandlePropertyChange(
+            nameof(this.ExtendOutside),
+            ref this.extendOutside,
+            value,
+            this.OnExtendOutsideChange);
     }
 
     /// <summary>Gets or sets the margin.</summary>
-    /// <remarks>
-    /// <para><see cref="MatchParent"/> and <see cref="WrapContent"/> can be used.</para>
-    /// <para>The value will be scaled by <see cref="Scale"/>.</para>
-    /// </remarks>
-    public RectVector4 Margin
+    /// <remarks>The value will be scaled by <see cref="Scale"/>.</remarks>
+    public BorderVector4 Margin
     {
         get => this.margin;
         set => this.HandlePropertyChange(nameof(this.Margin), ref this.margin, value, this.OnMarginChange);
     }
 
     /// <summary>Gets or sets the padding.</summary>
-    /// <remarks>
-    /// <para><see cref="MatchParent"/> and <see cref="WrapContent"/> can be used.</para>
-    /// <para>The value will be scaled by <see cref="Scale"/>.</para>
-    /// </remarks>
-    public RectVector4 Padding
+    /// <remarks>The value will be scaled by <see cref="Scale"/>.</remarks>
+    public BorderVector4 Padding
     {
         get => this.padding;
         set => this.HandlePropertyChange(nameof(this.Padding), ref this.padding, value, this.OnPaddingChange);
@@ -201,6 +197,18 @@ public partial class ControlSpannable
             ref this.hideAnimation,
             value,
             this.OnHideAnimationChange);
+    }
+
+    /// <summary>Gets or sets the animation to play when the control effectively moves for any reason, with respect to
+    /// its parent.</summary>
+    public SpannableAnimator? MoveAnimation
+    {
+        get => this.moveAnimation;
+        set => this.HandlePropertyChange(
+            nameof(this.MoveAnimation),
+            ref this.moveAnimation,
+            value,
+            this.OnMoveAnimationChange);
     }
 
     /// <summary>Gets or sets the opacity of the body when the control is disabled.</summary>

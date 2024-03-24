@@ -83,7 +83,7 @@ public class ContainerControl : ControlSpannable
     public IReadOnlyList<ISpannable> ChildrenReadOnlyList => this.childrenCollection;
 
     /// <inheritdoc/>
-    protected override RectVector4 MeasureContentBox(SpannableMeasureArgs args, in RectVector4 availableContentBox)
+    protected override RectVector4 MeasureContentBox(SpannableMeasureArgs args)
     {
         var children = CollectionsMarshal.AsSpan(this.AllSpannables)[this.AllSpannablesAvailableSlot..];
         var renderPasses = CollectionsMarshal.AsSpan(this.childRenderPasses);
@@ -91,18 +91,19 @@ public class ContainerControl : ControlSpannable
         for (var i = 0; i < children.Length; i++)
             renderPasses[i] ??= children[i].RentRenderPass(args.RenderPass.Renderer);
 
-        var res = this.MeasureChildren(args, children, renderPasses, availableContentBox);
+        var unboundChildren = this.MeasureChildren(args, children, renderPasses);
+        var boundChildren = Vector2.Min(unboundChildren.Size, args.MaxSize);
 
         if (this.UseAutoScrollBoundary)
         {
             this.UpdateScrollBoundary(
-                Math.Max(0, res.Right - availableContentBox.Width - this.Padding.Width),
-                Math.Max(0, res.Bottom - availableContentBox.Height - this.Padding.Height));
+                unboundChildren.Width - boundChildren.X,
+                unboundChildren.Height - boundChildren.Y);
         }
 
         this.Scroll = Vector2.Clamp(this.scroll, this.scrollBoundary.LeftTop, this.scrollBoundary.RightBottom);
 
-        return res;
+        return unboundChildren;
     }
 
     /// <inheritdoc/>
@@ -144,26 +145,24 @@ public class ContainerControl : ControlSpannable
     /// <param name="args">The event arguments.</param>
     /// <param name="children">The children in container contents. This may include nulls.</param>
     /// <param name="renderPasses">The render passes for each of the children.</param>
-    /// <param name="availableContentBox">The available content box.</param>
     /// <returns>The measured content boundary.</returns>
     protected virtual RectVector4 MeasureChildren(
         SpannableMeasureArgs args,
         ReadOnlySpan<ISpannable> children,
-        ReadOnlySpan<ISpannableRenderPass> renderPasses,
-        in RectVector4 availableContentBox)
+        ReadOnlySpan<ISpannableRenderPass> renderPasses)
     {
         for (var i = 0; i < children.Length; i++)
         {
             var child = children[i];
             var pass = renderPasses[i];
             var innerId = this.InnerIdAvailableSlot + i;
-            args.NotifyChild(child, pass, innerId, availableContentBox.Size, this.ActiveTextState);
+            args.NotifyChild(child, pass, innerId, Vector2.Zero, args.MaxSize, this.ActiveTextState);
         }
 
         var res = RectVector4.InvertedExtrema;
         foreach (var t in renderPasses)
             res = RectVector4.Union(res, t.Boundary);
-        return res;
+        return RectVector4.Normalize(res);
     }
 
     /// <summary>Updates <see cref="ScrollBoundary"/> from measured children.</summary>

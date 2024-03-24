@@ -20,8 +20,8 @@ using Dalamud.Interface.ManagedFontAtlas;
 using Dalamud.Interface.Spannables;
 using Dalamud.Interface.Spannables.Rendering;
 using Dalamud.Interface.Spannables.Rendering.Internal;
-using Dalamud.Interface.Spannables.Strings;
 using Dalamud.Interface.Spannables.Styles;
+using Dalamud.Interface.Spannables.Text;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
@@ -126,8 +126,8 @@ internal class ConsoleWindow : Window, IDisposable
         this.logText = new(limit);
         this.filteredLogEntries = new(limit);
 
-        this.ellipsisSpannable = new SpannedStringBuilder().PushForeColor(0x80FFFFFF).Append("…");
-        this.wrapMarkerSpannable = new SpannedStringBuilder()
+        this.ellipsisSpannable = new TextSpannableBuilder().PushForeColor(0x80FFFFFF).Append("…");
+        this.wrapMarkerSpannable = new TextSpannableBuilder()
                                    .PushFontSet(
                                        new(DalamudAssetFontAndFamilyId.From(DalamudAsset.InconsolataRegular)),
                                        out _)

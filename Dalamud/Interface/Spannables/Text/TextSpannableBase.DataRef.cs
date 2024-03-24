@@ -8,10 +8,10 @@ using Dalamud.Interface.Spannables.Internal;
 using Dalamud.Interface.Spannables.Styles;
 using Dalamud.Utility.Text;
 
-namespace Dalamud.Interface.Spannables.Strings;
+namespace Dalamud.Interface.Spannables.Text;
 
-/// <summary>Base class for <see cref="SpannedString"/> and <see cref="SpannedStringBuilder"/>.</summary>
-public abstract partial class SpannedStringBase
+/// <summary>Base class for <see cref="TextSpannable"/> and <see cref="TextSpannableBuilder"/>.</summary>
+public abstract partial class TextSpannableBase
 {
     /// <summary>A reference of data contained within a spannable.</summary>
     private protected readonly ref struct DataRef

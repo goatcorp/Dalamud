@@ -102,6 +102,7 @@ public class TristateIconPattern : PatternSpannable
                     owner.Background!,
                     this.backgroundRenderPass,
                     owner.backgroundInnerId,
+                    args.MinSize,
                     this.Boundary.Size);
             }
 
@@ -122,6 +123,7 @@ public class TristateIconPattern : PatternSpannable
                         this.disappearingState!,
                         this.disappearingStateRenderPass,
                         -1,
+                        args.MinSize,
                         this.Boundary.Size);
                 }
             }
@@ -135,6 +137,7 @@ public class TristateIconPattern : PatternSpannable
                     this.activeState!,
                     this.activeStateRenderPass,
                     owner.foregroundInnerId,
+                    args.MinSize,
                     this.Boundary.Size);
             }
         }

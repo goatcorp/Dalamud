@@ -17,6 +17,12 @@ public ref struct SpannableMeasureArgs
     /// <summary>The initial text state.</summary>
     public TextState TextState;
 
+    /// <summary>The minimum size that the spannable should be.</summary>
+    public Vector2 MinSize;
+
+    /// <summary>The suggested size that the spannable should be.</summary>
+    public Vector2 SuggestedSize;
+
     /// <summary>The maximum size available for the spannable.</summary>
     public Vector2 MaxSize;
 
@@ -29,6 +35,7 @@ public ref struct SpannableMeasureArgs
     /// <summary>Initializes a new instance of the <see cref="SpannableMeasureArgs"/> struct.</summary>
     /// <param name="sender">The associated spannable.</param>
     /// <param name="renderPass">The state for the spannable.</param>
+    /// <param name="minSize">The minimum size.</param>
     /// <param name="maxSize">The maximum size.</param>
     /// <param name="scale">The render scale to use.</param>
     /// <param name="textState">The initial text state.</param>
@@ -36,6 +43,7 @@ public ref struct SpannableMeasureArgs
     public SpannableMeasureArgs(
         ISpannable sender,
         ISpannableRenderPass renderPass,
+        Vector2 minSize,
         Vector2 maxSize,
         float scale,
         TextState textState,
@@ -47,18 +55,21 @@ public ref struct SpannableMeasureArgs
         this.Scale = scale;
         this.TextState = textState;
         this.ImGuiGlobalId = imGuiGlobalId;
+        this.MinSize = minSize;
     }
 
     /// <summary>Notifies a child <see cref="ISpannable"/> with transformed arguments.</summary>
     /// <param name="child">A child to notify the event.</param>
     /// <param name="childRenderPass">The child state.</param>
     /// <param name="childInnerId">The inner ID of the child. <c>-1</c> to disable.</param>
+    /// <param name="minSize">The minimum size for the child.</param>
     /// <param name="maxSize">The maximum size for the child.</param>
     /// <param name="textState">The initial text state for the child.</param>
     public readonly void NotifyChild(
         ISpannable child,
         ISpannableRenderPass childRenderPass,
         int childInnerId,
+        Vector2 minSize,
         Vector2 maxSize,
         in TextState textState) =>
         childRenderPass.MeasureSpannable(
@@ -69,6 +80,7 @@ public ref struct SpannableMeasureArgs
                 ImGuiGlobalId = this.RenderPass.ImGuiGlobalId == 0 || childInnerId == -1
                                     ? 0
                                     : this.RenderPass.GetGlobalIdFromInnerId(childInnerId),
+                MinSize = minSize,
                 MaxSize = maxSize,
                 TextState = textState with { InitialStyle = textState.LastStyle },
             });
@@ -77,10 +89,18 @@ public ref struct SpannableMeasureArgs
     /// <param name="child">A child to notify the event.</param>
     /// <param name="childRenderPass">The child state.</param>
     /// <param name="childInnerId">The inner ID of the child. <c>-1</c> to disable.</param>
+    /// <param name="minSize">The minimum size for the child.</param>
     /// <param name="maxSize">The maximum size for the child.</param>
     public readonly void NotifyChild(
         ISpannable child,
         ISpannableRenderPass childRenderPass,
         int childInnerId,
-        Vector2 maxSize) => this.NotifyChild(child, childRenderPass, childInnerId, maxSize, this.RenderPass.ActiveTextState);
+        Vector2 minSize,
+        Vector2 maxSize) => this.NotifyChild(
+        child,
+        childRenderPass,
+        childInnerId,
+        minSize,
+        maxSize,
+        this.RenderPass.ActiveTextState);
 }
