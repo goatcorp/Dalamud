@@ -97,17 +97,8 @@ public partial class ControlSpannable
     /// <summary>Occurs when the property <see cref="CaptureMouseOnMouseDown"/> has been changed.</summary>
     public event PropertyChangeEventHandler<ControlSpannable, bool>? CaptureMouseOnMouseDownChange;
 
-    /// <summary>Occurs when the property <see cref="InterceptMouseWheelUp"/> has been changed.</summary>
-    public event PropertyChangeEventHandler<ControlSpannable, bool>? InterceptMouseWheelUpChange;
-
-    /// <summary>Occurs when the property <see cref="InterceptMouseWheelDown"/> has been changed.</summary>
-    public event PropertyChangeEventHandler<ControlSpannable, bool>? InterceptMouseWheelDownChange;
-
-    /// <summary>Occurs when the property <see cref="InterceptMouseWheelLeft"/> has been changed.</summary>
-    public event PropertyChangeEventHandler<ControlSpannable, bool>? InterceptMouseWheelLeftChange;
-
-    /// <summary>Occurs when the property <see cref="InterceptMouseWheelRight"/> has been changed.</summary>
-    public event PropertyChangeEventHandler<ControlSpannable, bool>? InterceptMouseWheelRightChange;
+    /// <summary>Occurs when the property <see cref="CaptureMouseWheel"/> has been changed.</summary>
+    public event PropertyChangeEventHandler<ControlSpannable, bool>? CaptureMouseWheelChange;
 
     /// <summary>Raises the <see cref="CommitMeasurement"/> event.</summary>
     /// <param name="args">A <see cref="ControlCommitMeasurementEventArgs"/> that contains the event data.</param>
@@ -267,23 +258,8 @@ public partial class ControlSpannable
     protected virtual void OnCaptureMouseOnMouseDownChange(PropertyChangeEventArgs<ControlSpannable, bool> args) =>
         this.CaptureMouseOnMouseDownChange?.Invoke(args);
 
-    /// <summary>Raises the <see cref="InterceptMouseWheelUpChange"/> event.</summary>
+    /// <summary>Raises the <see cref="CaptureMouseWheelChange"/> event.</summary>
     /// <param name="args">A <see cref="PropertyChangeEventArgs{T, TSender}"/> that contains the event data.</param>
-    protected virtual void OnInterceptMouseWheelUpChange(PropertyChangeEventArgs<ControlSpannable, bool> args) =>
-        this.InterceptMouseWheelUpChange?.Invoke(args);
-
-    /// <summary>Raises the <see cref="InterceptMouseWheelDownChange"/> event.</summary>
-    /// <param name="args">A <see cref="PropertyChangeEventArgs{T, TSender}"/> that contains the event data.</param>
-    protected virtual void OnInterceptMouseWheelDownChange(PropertyChangeEventArgs<ControlSpannable, bool> args) =>
-        this.InterceptMouseWheelDownChange?.Invoke(args);
-
-    /// <summary>Raises the <see cref="InterceptMouseWheelLeftChange"/> event.</summary>
-    /// <param name="args">A <see cref="PropertyChangeEventArgs{T, TSender}"/> that contains the event data.</param>
-    protected virtual void OnInterceptMouseWheelLeftChange(PropertyChangeEventArgs<ControlSpannable, bool> args) =>
-        this.InterceptMouseWheelLeftChange?.Invoke(args);
-
-    /// <summary>Raises the <see cref="InterceptMouseWheelRightChange"/> event.</summary>
-    /// <param name="args">A <see cref="PropertyChangeEventArgs{T, TSender}"/> that contains the event data.</param>
-    protected virtual void OnInterceptMouseWheelRightChange(PropertyChangeEventArgs<ControlSpannable, bool> args) =>
-        this.InterceptMouseWheelRightChange?.Invoke(args);
+    protected virtual void OnCaptureMouseWheelChange(PropertyChangeEventArgs<ControlSpannable, bool> args) =>
+        this.CaptureMouseWheelChange?.Invoke(args);
 }

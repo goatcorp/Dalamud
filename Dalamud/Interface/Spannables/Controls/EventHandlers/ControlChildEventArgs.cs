@@ -1,19 +1,17 @@
-using Dalamud.Interface.Spannables.Controls.Containers;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Dalamud.Interface.Spannables.Controls.EventHandlers;
 
 /// <summary>Arguments for child controls related events.</summary>
-public struct ControlChildEventArgs
+[SuppressMessage("ReSharper", "NotNullOrRequiredMemberIsNotInitialized", Justification = "Pooled object")]
+public record ControlChildEventArgs : ControlEventArgs
 {
-    /// <summary>The control that generated the event.</summary>
-    public ContainerControl Sender;
+    /// <summary>Gets or sets index of <see cref="Child"/> within <see cref="ControlEventArgs.Sender"/>.</summary>
+    public int Index { get; set; }
 
-    /// <summary>The previous child control, if the child at <see cref="Index"/> has been changed.</summary>
-    public ISpannable? OldChild;
+    /// <summary>Gets or sets the relevant child control.</summary>
+    public ISpannable Child { get; set; }
 
-    /// <summary>The relevant child control.</summary>
-    public ISpannable Child;
-
-    /// <summary>Index of <see cref="Child"/> within <see cref="Sender"/>.</summary>
-    public int Index;
+    /// <summary>Gets or sets the previous child control, if the child at <see cref="Index"/> has been changed.</summary>
+    public ISpannable? OldChild { get; set; }
 }

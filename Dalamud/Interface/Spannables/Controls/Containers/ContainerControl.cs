@@ -3,10 +3,15 @@ using System.Collections.Generic;
 using System.Numerics;
 using System.Runtime.InteropServices;
 
+using Dalamud.Interface.ManagedFontAtlas.Internals;
 using Dalamud.Interface.Spannables.Controls.EventHandlers;
 using Dalamud.Interface.Spannables.RenderPassMethodArgs;
 using Dalamud.Utility.Enumeration;
 using Dalamud.Utility.Numerics;
+
+using TerraFX.Interop.Windows;
+
+using static TerraFX.Interop.Windows.Windows;
 
 namespace Dalamud.Interface.Spannables.Controls.Containers;
 
@@ -91,7 +96,48 @@ public class ContainerControl : ControlSpannable
         for (var i = 0; i < children.Length; i++)
             renderPasses[i] ??= children[i].RentRenderPass(args.RenderPass.Renderer);
 
-        var unboundChildren = this.MeasureChildren(args, children, renderPasses);
+        var measureChildArgs = args;
+
+        // If either of minimum size for domensions are instructed to wrap contents, try measuring without bounds.
+        if (this.IsMinWidthWrapContent)
+        {
+            measureChildArgs.MinSize.X =
+                measureChildArgs.MaxSize.X = measureChildArgs.SuggestedSize.X = float.PositiveInfinity;
+        }
+
+        if (this.IsMinHeightWrapContent)
+        {
+            measureChildArgs.MinSize.Y =
+                measureChildArgs.MaxSize.Y = measureChildArgs.SuggestedSize.Y = float.PositiveInfinity;
+        }
+
+        var unboundChildren = this.MeasureChildren(measureChildArgs, children, renderPasses);
+
+        // Now that it's measured without bounds, if it fits in the given max size, measure again so that it can
+        // utilize the rest of the area.
+        if (this.IsMinWidthWrapContent || this.IsMinHeightWrapContent)
+        {
+            measureChildArgs = args;
+
+            var dirty = 2;
+            if (unboundChildren.Width > args.MaxSize.X)
+            {
+                measureChildArgs.MinSize.X =
+                    measureChildArgs.MaxSize.X = measureChildArgs.SuggestedSize.X = float.PositiveInfinity;
+                dirty--;
+            }
+
+            if (unboundChildren.Height > args.MaxSize.Y)
+            {
+                measureChildArgs.MinSize.Y =
+                    measureChildArgs.MaxSize.Y = measureChildArgs.SuggestedSize.Y = float.PositiveInfinity;
+                dirty--;
+            }
+            
+            if (dirty != 0)
+                unboundChildren = this.MeasureChildren(measureChildArgs, children, renderPasses);
+        }
+
         var boundChildren = Vector2.Min(unboundChildren.Size, args.MaxSize);
 
         if (this.UseAutoScrollBoundary)
@@ -180,7 +226,7 @@ public class ContainerControl : ControlSpannable
         ReadOnlySpan<ISpannable> children,
         ReadOnlySpan<ISpannableRenderPass> renderPasses)
     {
-        var offset = this.MeasuredContentBox.LeftTop + this.Scroll;
+        var offset = this.MeasuredContentBox.LeftTop - this.Scroll;
         for (var i = 0; i < children.Length; i++)
         {
             var child = children[i];
@@ -233,10 +279,31 @@ public class ContainerControl : ControlSpannable
     /// <remarks>Called whenever <see cref="Scroll"/> or <see cref="ScrollBoundary"/> changes.</remarks>
     protected virtual void UpdateInterceptMouseWheel()
     {
-        this.InterceptMouseWheelLeft = this.scroll.X <= this.scrollBoundary.Left;
-        this.InterceptMouseWheelRight = this.scroll.X >= this.scrollBoundary.Right;
-        this.InterceptMouseWheelUp = this.scroll.Y <= this.scrollBoundary.Top;
-        this.InterceptMouseWheelDown = this.scroll.Y >= this.scrollBoundary.Bottom;
+        this.CaptureMouseWheel = this.scrollBoundary.LeftTop != this.scrollBoundary.RightBottom;
+        this.CaptureMouseOnMouseDown = this.scrollBoundary.LeftTop != this.scrollBoundary.RightBottom;
+    }
+
+    /// <inheritdoc/>
+    protected override void OnMouseWheel(ControlMouseEventArgs args)
+    {
+        base.OnMouseWheel(args);
+        float scrollScale;
+        if (this.Renderer.TryGetFontData(this.Scale, this.ActiveTextState.InitialStyle, out var fontData))
+            scrollScale = fontData.ScaledFontSize;
+        else
+            scrollScale = Service<FontAtlasFactory>.Get().DefaultFontSpec.SizePx * this.Scale;
+
+        int nlines;
+        unsafe
+        {
+            if (!SystemParametersInfoW(SPI.SPI_GETWHEELSCROLLLINES, 0, &nlines, 0))
+                nlines = 3;
+        }
+
+        this.Scroll -= args.WheelDelta * scrollScale * nlines;
+        this.SuppressNextMoveAnimation();
+
+        this.UpdateInterceptMouseWheel();
     }
 
     /// <summary>Raises the <see cref="ScrollChange"/> event.</summary>
@@ -303,9 +370,19 @@ public class ContainerControl : ControlSpannable
                 if (index < 0 || index >= owner.AllSpannables.Count - owner.AllSpannablesAvailableSlot)
                     throw new IndexOutOfRangeException();
                 var prev = owner.AllSpannables[owner.AllSpannablesAvailableSlot + index];
+                if (ReferenceEquals(prev, value))
+                    return;
+
                 owner.AllSpannables[owner.AllSpannablesAvailableSlot + index] =
                     value ?? throw new NullReferenceException();
-                owner.OnChildChange(new() { Sender = owner, OldChild = prev, Child = value, Index = index });
+
+                var e = ControlEventArgsPool.Rent<ControlChildEventArgs>();
+                e.Sender = owner;
+                e.OldChild = prev;
+                e.Child = value;
+                e.Index = index;
+                owner.OnChildChange(e);
+                ControlEventArgsPool.Return(e);
             }
         }
 
@@ -314,13 +391,13 @@ public class ContainerControl : ControlSpannable
         {
             owner.AllSpannables.Add(item ?? throw new NullReferenceException());
             owner.childRenderPasses.Add(null);
-            owner.OnChildAdd(
-                new()
-                {
-                    Sender = owner,
-                    Child = item,
-                    Index = owner.AllSpannables.Count - owner.AllSpannablesAvailableSlot - 1,
-                });
+
+            var e = ControlEventArgsPool.Rent<ControlChildEventArgs>();
+            e.Sender = owner;
+            e.Child = item;
+            e.Index = owner.AllSpannables.Count - owner.AllSpannablesAvailableSlot - 1;
+            owner.OnChildAdd(e);
+            ControlEventArgsPool.Return(e);
         }
 
         /// <inheritdoc/>
@@ -362,7 +439,14 @@ public class ContainerControl : ControlSpannable
 
             owner.AllSpannables.RemoveAt(owner.AllSpannablesAvailableSlot + index);
             owner.childRenderPasses.RemoveAt(index);
-            owner.OnChildRemove(new() { Sender = owner, Child = removedChild!, Index = index });
+
+            var e = ControlEventArgsPool.Rent<ControlChildEventArgs>();
+            e.Sender = owner;
+            e.OldChild = removedChild;
+            e.Child = removedChild;
+            e.Index = index;
+            owner.OnChildRemove(e);
+            ControlEventArgsPool.Return(e);
         }
 
         /// <inheritdoc/>
@@ -381,13 +465,13 @@ public class ContainerControl : ControlSpannable
                 throw new IndexOutOfRangeException();
             owner.AllSpannables.Insert(owner.AllSpannablesAvailableSlot + index, item);
             owner.childRenderPasses.Insert(index, null);
-            owner.OnChildAdd(
-                new()
-                {
-                    Sender = owner,
-                    Child = item,
-                    Index = index,
-                });
+
+            var e = ControlEventArgsPool.Rent<ControlChildEventArgs>();
+            e.Sender = owner;
+            e.Child = item;
+            e.Index = index;
+            owner.OnChildAdd(e);
+            ControlEventArgsPool.Return(e);
         }
 
         /// <inheritdoc cref="IEnumerable{T}.GetEnumerator"/>

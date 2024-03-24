@@ -252,7 +252,7 @@ public class LinearContainer : ContainerControl
             LinearDirection.BottomToTop => this.MeasuredContentBox.LeftBottom,
             _ => Vector2.Zero,
         };
-        baseOffset += this.Scroll;
+        baseOffset -= this.Scroll;
 
         for (var i = 0; i < children.Length; i++)
         {

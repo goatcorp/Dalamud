@@ -57,6 +57,7 @@ public partial class ControlSpannable : ISpannable, ISpannableRenderPass, ISpann
     private long[] lastMouseClickTick = new long[MouseButtonsWeCare.Length];
     private int[] lastMouseClickCount = new int[MouseButtonsWeCare.Length];
 
+    private bool suppressNextMoveAnimation;
     private bool wasVisible;
 
     /// <summary>Initializes a new instance of the <see cref="ControlSpannable"/> class.</summary>
@@ -128,6 +129,30 @@ public partial class ControlSpannable : ISpannable, ISpannableRenderPass, ISpann
     [SuppressMessage("ReSharper", "CompareOfFloatsByEqualityOperator", Justification = "Sentinel value")]
     protected bool IsHeightWrapContent => this.size.Y == WrapContent;
 
+    /// <summary>Gets a value indicating whether the width is set to match parent.</summary>
+    [SuppressMessage("ReSharper", "CompareOfFloatsByEqualityOperator", Justification = "Sentinel value")]
+    protected bool IsWidthMatchParent => this.size.X == MatchParent;
+
+    /// <summary>Gets a value indicating whether the height is set to match parent.</summary>
+    [SuppressMessage("ReSharper", "CompareOfFloatsByEqualityOperator", Justification = "Sentinel value")]
+    protected bool IsHeightMatchParent => this.size.Y == MatchParent;
+
+    /// <summary>Gets a value indicating whether the width is set to wrap content.</summary>
+    [SuppressMessage("ReSharper", "CompareOfFloatsByEqualityOperator", Justification = "Sentinel value")]
+    protected bool IsMinWidthWrapContent => this.minSize.X == WrapContent;
+
+    /// <summary>Gets a value indicating whether the height is set to wrap content.</summary>
+    [SuppressMessage("ReSharper", "CompareOfFloatsByEqualityOperator", Justification = "Sentinel value")]
+    protected bool IsMinHeightWrapContent => this.minSize.Y == WrapContent;
+
+    /// <summary>Gets a value indicating whether the width is set to match parent.</summary>
+    [SuppressMessage("ReSharper", "CompareOfFloatsByEqualityOperator", Justification = "Sentinel value")]
+    protected bool IsMinWidthMatchParent => this.minSize.X == MatchParent;
+
+    /// <summary>Gets a value indicating whether the height is set to match parent.</summary>
+    [SuppressMessage("ReSharper", "CompareOfFloatsByEqualityOperator", Justification = "Sentinel value")]
+    protected bool IsMinHeightMatchParent => this.minSize.Y == MatchParent;
+
     /// <summary>Gets the scale.</summary>
     protected float Scale { get; private set; }
 
@@ -179,14 +204,12 @@ public partial class ControlSpannable : ISpannable, ISpannableRenderPass, ISpann
     /// <inheritdoc/>
     public void MeasureSpannable(scoped in SpannableMeasureArgs args)
     {
-        var effMaxSize = Vector2.Max(this.minSize, args.MaxSize);
-
         var rv = new RectVector4(
             Vector2.Zero,
             Vector2.Clamp(
-                ResolveSize(this.size, effMaxSize),
-                ResolveSize(this.minSize, effMaxSize),
-                ResolveSize(this.maxSize, effMaxSize)));
+                ResolveSize(this.size, args.MaxSize),
+                ResolveSize(this.minSize, args.MaxSize),
+                ResolveSize(this.maxSize, args.MaxSize)));
 
         var boundaryContentGap = (this.margin + this.padding) * this.Scale;
         rv = RectVector4.Shrink(rv, boundaryContentGap);
@@ -203,16 +226,18 @@ public partial class ControlSpannable : ISpannable, ISpannableRenderPass, ISpann
 
         var contentMeasurementArgs = args with
         {
-            MinSize = Vector2.Max(args.MinSize, ResolveSize(this.minSize, effMaxSize)) - boundaryContentGap.Size,
-            MaxSize = Vector2.Min(effMaxSize, ResolveSize(this.maxSize, effMaxSize)) - boundaryContentGap.Size,
+            MinSize = Vector2.Max(args.MinSize, ResolveSize(this.minSize, args.MaxSize)) - boundaryContentGap.Size,
+            MaxSize = Vector2.Min(args.MaxSize, ResolveSize(this.maxSize, args.MaxSize)) - boundaryContentGap.Size,
         };
+        contentMeasurementArgs.MinSize = Vector2.Max(Vector2.Zero, contentMeasurementArgs.MinSize);
         contentMeasurementArgs.SuggestedSize =
             Vector2.Clamp(
-                ResolveSize(this.size, effMaxSize) - boundaryContentGap.Size,
+                ResolveSize(this.size, args.MaxSize) - boundaryContentGap.Size,
                 contentMeasurementArgs.MinSize,
                 contentMeasurementArgs.MaxSize);
 
         this.measuredContentBox = this.MeasureContentBox(contentMeasurementArgs);
+
         this.measuredContentBox = RectVector4.Normalize(this.measuredContentBox);
         this.measuredContentBox = RectVector4.Translate(this.measuredContentBox, boundaryContentGap.LeftTop);
 
@@ -276,9 +301,14 @@ public partial class ControlSpannable : ISpannable, ISpannableRenderPass, ISpann
             this.moveAnimation.Update(this);
             if (this.moveAnimation.AfterMatrix != args.Transformation)
             {
-                this.moveAnimation.BeforeMatrix = this.moveAnimation.AnimatedTransformation;
                 this.moveAnimation.AfterMatrix = args.Transformation;
-                this.moveAnimation.Restart();
+
+                if (!this.suppressNextMoveAnimation)
+                {
+                    this.moveAnimation.BeforeMatrix = this.moveAnimation.AnimatedTransformation;
+                    this.moveAnimation.Restart();
+                }
+
                 this.moveAnimation.Update(this);
             }
 
@@ -291,19 +321,17 @@ public partial class ControlSpannable : ISpannable, ISpannableRenderPass, ISpann
             this.transformation = Matrix4x4.Multiply(this.transformation, args.Transformation);
         }
 
+        this.suppressNextMoveAnimation = false;
+
         this.transformation = Matrix4x4.Multiply(
             this.transformation,
             Matrix4x4.CreateTranslation(new(this.boundary.RightBottom * args.InnerOrigin, 0)));
 
-        this.OnCommitMeasurement(
-            new()
-            {
-                Sender = this,
-                SpannableArgs = args with
-                {
-                    Transformation = Matrix4x4.Identity,
-                },
-            });
+        var e = ControlEventArgsPool.Rent<ControlCommitMeasurementEventArgs>();
+        e.Sender = this;
+        e.SpannableArgs = args with { Transformation = Matrix4x4.Identity };
+        this.OnCommitMeasurement(e);
+        ControlEventArgsPool.Return(e);
     }
 
     /// <inheritdoc/>
@@ -325,7 +353,12 @@ public partial class ControlSpannable : ISpannable, ISpannableRenderPass, ISpann
         using (ScopedTransformer.From(args, opacity))
         {
             args.SwitchToChannel(RenderChannel.ForeChannel);
-            this.OnDraw(new() { Sender = this, SpannableArgs = args });
+
+            var e = ControlEventArgsPool.Rent<ControlDrawEventArgs>();
+            e.Sender = this;
+            e.SpannableArgs = args;
+            this.OnDraw(e);
+            ControlEventArgsPool.Return(e);
         }
 
         using (ScopedTransformer.From(args, 1f))
@@ -337,7 +370,13 @@ public partial class ControlSpannable : ISpannable, ISpannableRenderPass, ISpann
         scoped in SpannableHandleInteractionArgs args,
         out SpannableLinkInteracted link)
     {
-        this.OnHandleInteraction(new() { Sender = this, SpannableArgs = args }, out link);
+        {
+            var e = ControlEventArgsPool.Rent<ControlHandleInteractionEventArgs>();
+            e.Sender = this;
+            e.SpannableArgs = args;
+            this.OnHandleInteraction(e, out link);
+            ControlEventArgsPool.Return(e);
+        }
 
         ISpannable? newBackground;
         if (!this.visible && this.hideAnimation?.IsRunning is not true)
@@ -356,37 +395,33 @@ public partial class ControlSpannable : ISpannable, ISpannableRenderPass, ISpann
         }
         else
         {
-            var margs = new ControlMouseEventArgs { LocalLocation = args.MouseLocalLocation };
-            var interceptWheel = false;
-            interceptWheel |= args.WheelDelta.X > 0 && this.interceptMouseWheelRight;
-            interceptWheel |= args.WheelDelta.X < 0 && this.interceptMouseWheelLeft;
-            interceptWheel |= args.WheelDelta.Y > 0 && this.interceptMouseWheelDown;
-            interceptWheel |= args.WheelDelta.Y < 0 && this.interceptMouseWheelUp;
+            var e = ControlEventArgsPool.Rent<ControlMouseEventArgs>();
+            e.Sender = this;
+            e.LocalLocation = args.MouseLocalLocation;
+            e.LocalLocationDelta = e.LocalLocation - this.lastMouseLocation;
+            e.WheelDelta = args.WheelDelta;
 
-            if (this.captureMouseOnMouseDown)
-            {
-                if (this.heldMouseButtons != 0)
-                    args.SetActive(this.selfInnerId, interceptWheel);
-            }
+            if (this.captureMouseOnMouseDown && this.heldMouseButtons != 0)
+                args.SetActive(this.selfInnerId, this.captureMouseWheel);
 
-            var hovered = this.measuredInteractiveBox.Contains(margs.LocalLocation) &&
-                          args.IsItemHoverable(this.selfInnerId);
+            var hoveredOnRect = this.measuredInteractiveBox.Contains(e.LocalLocation);
+            var hovered = hoveredOnRect && args.IsItemHoverable(this.selfInnerId);
             if (hovered != this.IsMouseHovered)
             {
                 this.IsMouseHovered = hovered;
                 if (hovered)
-                    this.OnMouseEnter(margs);
+                    this.OnMouseEnter(e);
                 else
-                    this.OnMouseLeave(margs);
+                    this.OnMouseLeave(e);
             }
 
             if (args.WheelDelta != Vector2.Zero)
-                this.OnMouseWheel(margs with { Delta = args.WheelDelta });
+                this.OnMouseWheel(e);
 
-            if (this.lastMouseLocation != margs.LocalLocation)
+            if (this.lastMouseLocation != e.LocalLocation)
             {
-                this.lastMouseLocation = margs.LocalLocation;
-                this.OnMouseMove(margs);
+                this.lastMouseLocation = e.LocalLocation;
+                this.OnMouseMove(e);
             }
 
             var lastHeldMouseButtons = this.heldMouseButtons;
@@ -398,18 +433,19 @@ public partial class ControlSpannable : ISpannable, ISpannableRenderPass, ISpann
                     if (held == ((this.heldMouseButtons & (1 << i)) != 0))
                         continue;
 
+                    e.Button = MouseButtonsWeCare[i];
                     if (held)
                     {
                         this.heldMouseButtons |= 1 << i;
                         if (hovered)
-                            this.OnMouseDown(margs with { Button = MouseButtonsWeCare[i] });
+                            this.OnMouseDown(e);
                     }
                     else
                     {
                         this.heldMouseButtons &= ~(1 << i);
                         if (hovered)
                         {
-                            this.OnMouseUp(margs with { Button = MouseButtonsWeCare[i] });
+                            this.OnMouseUp(e);
 
                             if (this.lastMouseClickTick[i] < Environment.TickCount64)
                                 this.lastMouseClickCount[i] = 1;
@@ -417,7 +453,7 @@ public partial class ControlSpannable : ISpannable, ISpannableRenderPass, ISpann
                                 this.lastMouseClickCount[i] += 1;
                             this.lastMouseClickTick[i] = Environment.TickCount64 + GetDoubleClickTime();
                             this.OnMouseClick(
-                                margs with
+                                e with
                                 {
                                     Button = MouseButtonsWeCare[i],
                                     Clicks = this.lastMouseClickCount[i],
@@ -441,11 +477,14 @@ public partial class ControlSpannable : ISpannable, ISpannableRenderPass, ISpann
                 }
 
                 if (this.IsMouseHovered)
-                    args.SetHovered(this.selfInnerId, interceptWheel);
+                    args.SetHovered(this.selfInnerId, this.captureMouseWheel);
 
                 if (this.heldMouseButtons != 0)
-                    args.SetActive(this.selfInnerId, interceptWheel);
+                    args.SetActive(this.selfInnerId, this.captureMouseWheel);
             }
+
+            if (hoveredOnRect && this.captureMouseWheel)
+                args.SetHovered(-1, true);
 
             if (this.IsMouseHovered && this.IsLeftMouseButtonDown && this.ActiveBackground is not null)
                 newBackground = this.ActiveBackground;
@@ -453,6 +492,8 @@ public partial class ControlSpannable : ISpannable, ISpannableRenderPass, ISpann
                 newBackground = this.HoveredBackground;
             else
                 newBackground = this.NormalBackground;
+
+            ControlEventArgsPool.Return(e);
         }
 
         if (!ReferenceEquals(this.currentBackground, newBackground))
@@ -504,6 +545,17 @@ public partial class ControlSpannable : ISpannable, ISpannableRenderPass, ISpann
             return false;
         consumed += origLen - buffer.Length;
         return true;
+    }
+
+    /// <summary>Suppresses starting the move animation for the next render cycle.</summary>
+    /// <param name="recursive">Whether to suppress recursively.</param>
+    public void SuppressNextMoveAnimation(bool recursive = true)
+    {
+        this.suppressNextMoveAnimation = true;
+        if (!recursive)
+            return;
+        foreach (var f in this.EnumerateHierarchy<ControlSpannable>())
+            f.SuppressNextMoveAnimation(false);
     }
 
     /// <inheritdoc/>

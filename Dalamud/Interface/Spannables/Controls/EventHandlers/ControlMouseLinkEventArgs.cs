@@ -1,16 +1,16 @@
+using System.Diagnostics.CodeAnalysis;
+
 using ImGuiNET;
 
 namespace Dalamud.Interface.Spannables.Controls.EventHandlers;
 
 /// <summary>Link event arguments.</summary>
-public ref struct ControlMouseLinkEventArgs
+[SuppressMessage("ReSharper", "NotNullOrRequiredMemberIsNotInitialized", Justification = "Pooled object")]
+public record ControlMouseLinkEventArgs : ControlEventArgs
 {
-    /// <summary>The control that generated the event.</summary>
-    public ControlSpannable Sender;
+    /// <summary>Gets or sets the link being interacted with.</summary>
+    public ReadOnlyMemory<byte> Link { get; set; }
 
-    /// <summary>The link being interacted with.</summary>
-    public ReadOnlySpan<byte> Link;
-
-    /// <summary>The mouse button that has been pressed or released.</summary>
-    public ImGuiMouseButton Button;
+    /// <summary>Gets or sets the mouse button that has been pressed or released.</summary>
+    public ImGuiMouseButton Button { get; set; }
 }

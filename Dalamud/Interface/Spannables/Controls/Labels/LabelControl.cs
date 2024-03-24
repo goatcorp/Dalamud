@@ -225,9 +225,9 @@ public class LabelControl : ControlSpannable
         b.Y = Math.Max(b.Y, this.iconSpannableRenderPasses[0]?.Boundary.Height ?? 0);
         b.Y = Math.Max(b.Y, this.iconSpannableRenderPasses[2]?.Boundary.Height ?? 0);
 
-        if (!this.IsWidthWrapContent)
+        if (!this.IsWidthWrapContent && args.SuggestedSize.X < float.MaxValue)
             b.X = args.SuggestedSize.X;
-        if (!this.IsHeightWrapContent)
+        if (!this.IsHeightWrapContent && args.SuggestedSize.Y < float.MaxValue)
             b.Y = args.SuggestedSize.Y;
         return RectVector4.FromCoordAndSize(Vector2.Zero, Vector2.Clamp(b, args.MinSize, args.MaxSize));
     }
@@ -351,28 +351,33 @@ public class LabelControl : ControlSpannable
 
         Debug.Assert(this.lastLink is not null, "LastLink must not be null if not disposed");
 
+        ControlMouseLinkEventArgs? e = null;
         if (!this.lastLink!.GetDataSpan().SequenceEqual(link.Link))
         {
+            e = ControlEventArgsPool.Rent<ControlMouseLinkEventArgs>();
+            e.Sender = this;
+            e.Link = this.lastLink.GetDataMemory();
+            
             if (this.lastLink.Length != 0)
             {
-                this.OnLinkMouseLeave(new() { Sender = this, Link = this.lastLink.GetDataSpan() });
+                this.OnLinkMouseLeave(e);
                 this.lastLink.Clear();
             }
 
             this.lastLink.Write(link.Link);
-            this.OnLinkMouseEnter(new() { Sender = this, Link = this.lastLink.GetDataSpan() });
+            e.Link = this.lastLink.GetDataMemory();
+            this.OnLinkMouseEnter(e);
         }
 
         if (link.IsMouseClicked)
         {
-            this.OnLinkMouseClick(
-                new()
-                {
-                    Sender = this,
-                    Button = link.ClickedMouseButton,
-                    Link = this.lastLink.GetDataSpan(),
-                });
+            e ??= ControlEventArgsPool.Rent<ControlMouseLinkEventArgs>();
+            e.Sender = this;
+            e.Link = this.lastLink.GetDataMemory();
+            this.OnLinkMouseClick(e);
         }
+            
+        ControlEventArgsPool.Return(e);
     }
 
     /// <summary>Raises the <see cref="LinkMouseEnter"/> event.</summary>

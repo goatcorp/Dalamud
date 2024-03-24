@@ -29,10 +29,7 @@ public partial class ControlSpannable
     private SpannableAnimator? moveAnimation;
     private float disabledTextOpacity = 0.5f;
     private bool captureMouseOnMouseDown;
-    private bool interceptMouseWheelUp;
-    private bool interceptMouseWheelDown;
-    private bool interceptMouseWheelLeft;
-    private bool interceptMouseWheelRight;
+    private bool captureMouseWheel;
 
     /// <summary>Gets or sets a value indicating whether this control is enabled.</summary>
     public bool Enabled
@@ -236,48 +233,18 @@ public partial class ControlSpannable
             this.OnCaptureMouseOnMouseDownChange);
     }
 
-    /// <summary>Gets or sets a value indicating whether mouse wheel scroll up event should be intercepted.</summary>
-    public bool InterceptMouseWheelUp
+    /// <summary>Gets or sets a value indicating whether to capture mouse events when a mouse button is held on
+    /// the control.</summary>
+    /// <remarks>Enabling this when <see cref="Enabled"/> is set will typically prevent moving the container window by
+    /// dragging on what <i>looks</i> like the window background.</remarks>
+    public bool CaptureMouseWheel
     {
-        get => this.interceptMouseWheelUp;
+        get => this.captureMouseWheel;
         set => this.HandlePropertyChange(
-            nameof(this.InterceptMouseWheelUp),
-            ref this.interceptMouseWheelUp,
+            nameof(this.CaptureMouseWheel),
+            ref this.captureMouseWheel,
             value,
-            this.OnInterceptMouseWheelUpChange);
-    }
-
-    /// <summary>Gets or sets a value indicating whether mouse wheel scroll down event should be intercepted.</summary>
-    public bool InterceptMouseWheelDown
-    {
-        get => this.interceptMouseWheelDown;
-        set => this.HandlePropertyChange(
-            nameof(this.InterceptMouseWheelDown),
-            ref this.interceptMouseWheelDown,
-            value,
-            this.OnInterceptMouseWheelDownChange);
-    }
-
-    /// <summary>Gets or sets a value indicating whether mouse wheel scroll left event should be intercepted.</summary>
-    public bool InterceptMouseWheelLeft
-    {
-        get => this.interceptMouseWheelLeft;
-        set => this.HandlePropertyChange(
-            nameof(this.InterceptMouseWheelLeft),
-            ref this.interceptMouseWheelLeft,
-            value,
-            this.OnInterceptMouseWheelLeftChange);
-    }
-
-    /// <summary>Gets or sets a value indicating whether mouse wheel scroll right event should be intercepted.</summary>
-    public bool InterceptMouseWheelRight
-    {
-        get => this.interceptMouseWheelRight;
-        set => this.HandlePropertyChange(
-            nameof(this.InterceptMouseWheelRight),
-            ref this.interceptMouseWheelRight,
-            value,
-            this.OnInterceptMouseWheelRightChange);
+            this.OnCaptureMouseWheelChange);
     }
 
     /// <summary>Compares a new value with the old value, and invokes event handler accordingly.</summary>
@@ -295,19 +262,20 @@ public partial class ControlSpannable
         ref T storage,
         T newValue,
         PropertyChangeEventHandler<TSender, T> eh)
+        where TSender : ControlSpannable
     {
         if (Equals(storage, newValue))
             return false;
         var old = storage;
         storage = newValue;
-        eh(
-            new()
-            {
-                Sender = sender,
-                PropertyName = propName,
-                PreviousValue = old,
-                NewValue = newValue,
-            });
+        
+        var e = ControlEventArgsPool.Rent<PropertyChangeEventArgs<TSender, T>>();
+        e.Sender = sender;
+        e.PropertyName = propName;
+        e.PreviousValue = old;
+        e.NewValue = newValue;
+        eh(e);
+        ControlEventArgsPool.Return(e);
         return false;
     }
 

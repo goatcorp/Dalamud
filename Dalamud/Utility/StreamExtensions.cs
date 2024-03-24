@@ -18,4 +18,10 @@ internal static class StreamExtensions
     /// <returns>The data span.</returns>
     public static Span<byte> GetDataSpan(this MemoryStream memoryStream) =>
         memoryStream.GetBuffer().AsSpan(0, unchecked((int)memoryStream.Length));
+
+    /// <summary>Gets the underlying data memory of a memory stream.</summary>
+    /// <param name="memoryStream">The memory stream.</param>
+    /// <returns>The data memory.</returns>
+    public static Memory<byte> GetDataMemory(this MemoryStream memoryStream) =>
+        memoryStream.GetBuffer().AsMemory(0, unchecked((int)memoryStream.Length));
 }

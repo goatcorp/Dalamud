@@ -103,7 +103,8 @@ public struct SpannableHandleInteractionArgs
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public readonly unsafe void SetHovered(int innerId, bool useWheel = false)
     {
-        ImGuiSetHoveredId(this.RenderPass.GetGlobalIdFromInnerId(innerId));
+        if (innerId != -1)
+            ImGuiSetHoveredId(this.RenderPass.GetGlobalIdFromInnerId(innerId));
         if (useWheel)
         {
             *(byte*)(ImGui.GetCurrentContext() + CImGuiContextHoveredIdUsingMouseWheelOffset) = 1;
@@ -116,9 +117,13 @@ public struct SpannableHandleInteractionArgs
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public readonly unsafe void SetActive(int innerId, bool useWheel = false)
     {
-        ImGuiSetActiveId(
-            this.RenderPass.GetGlobalIdFromInnerId(innerId),
-            *(nint*)(ImGui.GetCurrentContext() + CImGuiContextCurrentWindowOffset));
+        if (innerId != -1)
+        {
+            ImGuiSetActiveId(
+                this.RenderPass.GetGlobalIdFromInnerId(innerId),
+                *(nint*)(ImGui.GetCurrentContext() + CImGuiContextCurrentWindowOffset));
+        }
+
         if (useWheel)
         {
             *(byte*)(ImGui.GetCurrentContext() + CImGuiContextActiveIdUsingMouseWheelOffset) = 1;

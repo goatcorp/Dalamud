@@ -225,7 +225,13 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
 
         renderer.Render(
             this.linearContainer,
-            new("LinearContainerTest", this.renderContextOptions),
+            new(
+                "LinearContainerTest",
+                this.renderContextOptions with
+                {
+                    MinSize = this.renderContextOptions.MaxSize.Value! with { Y = ImGui.GetContentRegionAvail().Y },
+                    MaxSize = this.renderContextOptions.MaxSize.Value! with { Y = ImGui.GetContentRegionAvail().Y },
+                }),
             this.TextStateOptions);
 
         ImGuiHelpers.ScaledDummy(8);
@@ -388,7 +394,7 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
             ContentBias = 0.3f,
             Direction = LinearContainer.LinearDirection.LeftToRight,
             Size = new(ControlSpannable.MatchParent, ControlSpannable.WrapContent),
-            MinSize = new(640, 480),
+            MinSize = new(ControlSpannable.WrapContent),
             Padding = new(16f),
             TextStateOptions = new() { InitialStyle = defaultStyle },
             ShowAnimation = new SpannableSizeAnimator
@@ -640,49 +646,50 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
 
         lblOptions.LinkMouseClick += e =>
         {
-            if (e.Link.SequenceEqual("copy"u8))
+            var linkSpan = e.Link.Span;
+            if (linkSpan.SequenceEqual("copy"u8))
                 this.CopyMe(lblOptions.SpannableText?.ToString() ?? string.Empty);
-            else if (e.Link.SequenceEqual("useWrapMarkers"u8))
+            else if (linkSpan.SequenceEqual("useWrapMarkers"u8))
                 chkWrapMarker.Checked = this.useWrapMarkers ^= true;
-            else if (e.Link.SequenceEqual("useVisibleControlCharacters"u8))
+            else if (linkSpan.SequenceEqual("useVisibleControlCharacters"u8))
                 chkVisibleControlCharacters.Checked = this.useVisibleControlCharacters ^= true;
-            else if (e.Link.SequenceEqual("showComplicatedTextTest"u8))
+            else if (linkSpan.SequenceEqual("showComplicatedTextTest"u8))
                 chkComplicatedText.Checked = this.showComplicatedTextTest ^= true;
-            else if (e.Link.SequenceEqual("showDynamicOffsetTest"u8))
+            else if (linkSpan.SequenceEqual("showDynamicOffsetTest"u8))
                 chkDynamicOffset.Checked = this.showDynamicOffsetTest ^= true;
-            else if (e.Link.SequenceEqual("showTransformationTest"u8))
+            else if (linkSpan.SequenceEqual("showTransformationTest"u8))
                 chkTransformation.Checked = this.showTransformationTest ^= true;
-            else if (e.Link.SequenceEqual("showParseTest"u8))
+            else if (linkSpan.SequenceEqual("showParseTest"u8))
                 chkParsing.Checked = this.showParseTest ^= true;
-            else if (e.Link.SequenceEqual("showFlowerTest"u8))
+            else if (linkSpan.SequenceEqual("showFlowerTest"u8))
                 chkFlower.Checked = this.showFlowerTest ^= true;
 
-            if (e.Link.SequenceEqual("wordBreakTypeNormal"u8))
+            if (linkSpan.SequenceEqual("wordBreakTypeNormal"u8))
             {
                 optBreakNormal.Checked = true;
                 this.wordBreakType = WordBreakType.Normal;
             }
-            else if (e.Link.SequenceEqual("wordBreakTypeBreakAll"u8))
+            else if (linkSpan.SequenceEqual("wordBreakTypeBreakAll"u8))
             {
                 optBreakAll.Checked = true;
                 this.wordBreakType = WordBreakType.BreakAll;
             }
-            else if (e.Link.SequenceEqual("wordBreakTypeKeepAll"u8))
+            else if (linkSpan.SequenceEqual("wordBreakTypeKeepAll"u8))
             {
                 optKeepAll.Checked = true;
                 this.wordBreakType = WordBreakType.KeepAll;
             }
-            else if (e.Link.SequenceEqual("wordBreakTypeBreakWord"u8))
+            else if (linkSpan.SequenceEqual("wordBreakTypeBreakWord"u8))
             {
                 optBreakWord.Checked = true;
                 this.wordBreakType = WordBreakType.BreakWord;
             }
         };
 
-        UpdateLblOptions(default);
+        UpdateLblOptions(null);
         return;
 
-        void UpdateLblOptions(PropertyChangeEventArgs<ControlSpannable, bool> e)
+        void UpdateLblOptions(PropertyChangeEventArgs<ControlSpannable, bool>? e)
         {
             lblOptions.ActiveTextState = new(this.TextStateOptions);
             lblOptions.SpannableText =
