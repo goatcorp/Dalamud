@@ -222,7 +222,7 @@ public class LinearContainer : ContainerControl
             };
             contentBox = contentBox with
             {
-                Top = (args.MaxSize.Y - contentBox.Height) * bias,
+                Top = 0,
                 Bottom = ((args.MaxSize.Y - contentBox.Height) * bias) + contentBox.Height,
             };
         }

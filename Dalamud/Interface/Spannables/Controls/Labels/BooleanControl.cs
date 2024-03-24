@@ -180,15 +180,6 @@ public class BooleanControl : LabelControl
         this.UpdateIcon();
     }
 
-    /// <inheritdoc/>
-    protected override void OnMouseClick(ControlMouseEventArgs args)
-    {
-        if (!this.indeterminate)
-            this.Checked = !this.@checked;
-
-        base.OnMouseClick(args);
-    }
-
     /// <summary>Updates the icon.</summary>
     private void UpdateIcon()
     {

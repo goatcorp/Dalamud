@@ -165,26 +165,48 @@ public class RadioControl : BooleanControl
     }
 
     /// <inheritdoc/>
-    protected override void OnCheckedChange(PropertyChangeEventArgs<ControlSpannable, bool> args)
+    protected override void OnMouseClick(ControlMouseEventArgs args)
     {
-        if (this.bindGroup is not null && !this.Indeterminate)
+        if (!this.Indeterminate && !this.Checked)
         {
-            var anyIndeterminate = false;
-            foreach (var x in this.bindGroup)
-                anyIndeterminate |= x.Indeterminate;
-            if (!anyIndeterminate)
+            if (this.bindGroup is null)
             {
-                if (args.NewValue)
+                this.Checked = true;
+            }
+            else
+            {
+                var anyIndeterminate = false;
+                foreach (var x in this.bindGroup)
+                    anyIndeterminate |= x.Indeterminate;
+                if (!anyIndeterminate)
                 {
                     foreach (var x in this.bindGroup)
                         x.Checked = x == this;
                 }
-                else if (args is { NewValue: false, PreviousValue: true })
+            }
+        }
+
+        base.OnMouseClick(args);
+    }
+
+    /// <inheritdoc/>
+    protected override void OnCheckedChange(PropertyChangeEventArgs<ControlSpannable, bool> args)
+    {
+        if (!this.Indeterminate && this.Checked)
+        {
+            if (this.bindGroup is null)
+            {
+                this.Checked = true;
+            }
+            else
+            {
+                var anyIndeterminate = false;
+                foreach (var x in this.bindGroup)
+                    anyIndeterminate |= x.Indeterminate;
+                if (!anyIndeterminate)
                 {
-                    var anyTrue = false;
                     foreach (var x in this.bindGroup)
-                        anyTrue |= x.Checked;
-                    this.Checked = !anyTrue;
+                        x.Checked = x == this;
                 }
             }
         }

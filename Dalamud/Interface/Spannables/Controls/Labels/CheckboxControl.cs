@@ -1,5 +1,6 @@
 using Dalamud.Interface.Animation.EasingFunctions;
 using Dalamud.Interface.Spannables.Controls.Animations;
+using Dalamud.Interface.Spannables.Controls.EventHandlers;
 using Dalamud.Interface.Spannables.Patterns;
 
 using ImGuiNET;
@@ -118,5 +119,14 @@ public class CheckboxControl : BooleanControl
                 Margin = new(circleMargin),
             },
         };
+    }
+
+    /// <inheritdoc/>
+    protected override void OnMouseClick(ControlMouseEventArgs args)
+    {
+        if (!this.Indeterminate)
+            this.Checked = !this.Checked;
+
+        base.OnMouseClick(args);
     }
 }
