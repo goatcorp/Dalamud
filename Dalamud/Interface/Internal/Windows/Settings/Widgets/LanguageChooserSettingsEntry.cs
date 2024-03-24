@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
@@ -36,10 +36,13 @@ public sealed class LanguageChooserSettingsEntry : SettingsEntry
                 switch (language)
                 {
                     case "ko":
-                        locLanguagesList.Add("Korean");
+                        locLanguagesList.Add("한국어");
+                        break;
+                    case "cn":
+                        locLanguagesList.Add("简体中文");
                         break;
                     case "tw":
-                        locLanguagesList.Add("中華民國國語");
+                        locLanguagesList.Add("繁体中文");
                         break;
                     default:
                         string locLanguage = CultureInfo.GetCultureInfo(language).NativeName;
