@@ -51,7 +51,10 @@ public abstract partial class TextSpannableBase
         public Vector2 InnerOrigin { get; private set; }
 
         /// <inheritdoc/>
-        public ref readonly Matrix4x4 Transformation => ref this.measured.Transformation;
+        public ref readonly Matrix4x4 TransformationFromParent => ref this.measured.TransformationFromParent;
+
+        /// <inheritdoc/>
+        public ref readonly Matrix4x4 TransformationFromAncestors => ref this.measured.TransformationFromAncestors;
 
         /// <inheritdoc/>
         /// <remarks>This is not supposed to be called when not rented, so NRE on accessing this is fine.</remarks>
@@ -295,7 +298,8 @@ public abstract partial class TextSpannableBase
             var data = ssb.GetData();
 
             this.InnerOrigin = args.InnerOrigin;
-            this.measured.Transformation = args.Transformation;
+            this.measured.TransformationFromParent = args.TransformationFromParent;
+            this.measured.TransformationFromAncestors = args.TransformationFromAncestors;
 
             for (var i = 0; i < data.Spannables.Length; i++)
             {
@@ -451,7 +455,7 @@ public abstract partial class TextSpannableBase
             link = default;
             foreach (ref var entry in this.LinkBoundaries)
             {
-                if (entry.Boundary.Contains(mouseRel) && args.IsItemHoverable(entry.RecordIndex))
+                if (entry.Boundary.Contains(mouseRel) && args.IsItemHoverable(entry.Boundary, entry.RecordIndex))
                 {
                     if (ssb.GetData().TryGetLinkAt(entry.RecordIndex, out link.Link))
                         itemState.InteractedLinkRecordIndex = entry.RecordIndex;
@@ -728,7 +732,8 @@ public abstract partial class TextSpannableBase
                                     args.Sender,
                                     args.RenderPass,
                                     this.InnerOrigin,
-                                    this.Transformation)
+                                    this.TransformationFromParent,
+                                    this.TransformationFromAncestors)
                                 .NotifyChild(
                                     wm,
                                     wmrp,
@@ -769,7 +774,8 @@ public abstract partial class TextSpannableBase
             public List<ISpannableRenderPass?>? SpannableStates;
             public List<Vector2>? SpannableOffsets;
             public List<int>? SpannableGenerations;
-            public Matrix4x4 Transformation;
+            public Matrix4x4 TransformationFromParent;
+            public Matrix4x4 TransformationFromAncestors;
             public Vector2 MinSize;
             public Vector2 MaxSize;
             public RectVector4 Boundary;

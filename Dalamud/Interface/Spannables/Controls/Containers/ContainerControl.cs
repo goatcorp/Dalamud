@@ -9,6 +9,8 @@ using Dalamud.Interface.Spannables.RenderPassMethodArgs;
 using Dalamud.Utility.Enumeration;
 using Dalamud.Utility.Numerics;
 
+using ImGuiNET;
+
 using TerraFX.Interop.Windows;
 
 using static TerraFX.Interop.Windows.Windows;

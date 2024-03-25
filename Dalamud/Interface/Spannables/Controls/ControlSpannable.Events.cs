@@ -16,8 +16,17 @@ public partial class ControlSpannable
     /// <summary>Occurs when the control should handle interactions.</summary>
     public event ControlHandleInteractionEventHandler? HandleInteraction;
 
+    /// <summary>Occurs when the control is clicked.</summary>
+    public event ControlEventHandler? Click;
+
     /// <summary>Occurs when the control is clicked by the mouse.</summary>
     public event ControlDrawEventHandler? Draw;
+
+    /// <summary>Occurs when the control receives focus.</summary>
+    public event ControlEventHandler? GotFocus;
+
+    /// <summary>Occurs when the control loses focus.</summary>
+    public event ControlEventHandler? LostFocus;
 
     /// <summary>Occurs when the control is clicked by the mouse.</summary>
     public event ControlMouseEventHandler? MouseClick;
@@ -40,11 +49,26 @@ public partial class ControlSpannable
     /// <summary>Occurs when the mouse wheel moves while the control is hovered.</summary>
     public event ControlMouseEventHandler? MouseWheel;
 
+    /// <summary>Occurs when a key is pressed while the control has focus.</summary>
+    public event ControlKeyEventHandler? KeyDown;
+    
+    /// <summary>Occurs when a character, space or backspace key is pressed while the control has focus.</summary>
+    public event ControlKeyPressEventHandler? KeyPress;
+    
+    /// <summary>Occurs when a key is released while the control has focus.</summary>
+    public event ControlKeyEventHandler? KeyUp;
+
     /// <summary>Occurs when the property <see cref="Enabled"/> has been changed.</summary>
     public event PropertyChangeEventHandler<ControlSpannable, bool>? EnabledChange;
 
+    /// <summary>Occurs when the property <see cref="Focusable"/> has been changed.</summary>
+    public event PropertyChangeEventHandler<ControlSpannable, bool>? FocusableChange;
+
     /// <summary>Occurs when the property <see cref="Visible"/> has been changed.</summary>
     public event PropertyChangeEventHandler<ControlSpannable, bool>? VisibleChange;
+
+    /// <summary>Occurs when the property <see cref="TakeKeyboardInputsOnFocus"/> has been changed.</summary>
+    public event PropertyChangeEventHandler<ControlSpannable, bool>? TakeKeyboardInputsOnFocusChange;
 
     /// <summary>Occurs when the property <see cref="Text"/> has been changed.</summary>
     public event PropertyChangeEventHandler<ControlSpannable, string?>? TextChange;
@@ -105,6 +129,10 @@ public partial class ControlSpannable
     protected virtual void OnCommitMeasurement(ControlCommitMeasurementEventArgs args) =>
         this.CommitMeasurement?.Invoke(args);
 
+    /// <summary>Raises the <see cref="Click"/> event.</summary>
+    /// <param name="args">A <see cref="SpannableControlEventArgs"/> that contains the event data.</param>
+    protected virtual void OnClick(SpannableControlEventArgs args) => this.Click?.Invoke(args);
+
     /// <summary>Raises the <see cref="Draw"/> event.</summary>
     /// <param name="args">A <see cref="ControlDrawEventArgs"/> that contains the event data.</param>
     protected virtual void OnDraw(ControlDrawEventArgs args) => this.Draw?.Invoke(args);
@@ -120,9 +148,21 @@ public partial class ControlSpannable
         this.HandleInteraction?.Invoke(args, out link);
     }
 
+    /// <summary>Raises the <see cref="GotFocus"/> event.</summary>
+    /// <param name="args">A <see cref="SpannableControlEventArgs"/> that contains the event data.</param>
+    protected virtual void OnGotFocus(SpannableControlEventArgs args) => this.GotFocus?.Invoke(args);
+
+    /// <summary>Raises the <see cref="LostFocus"/> event.</summary>
+    /// <param name="args">A <see cref="SpannableControlEventArgs"/> that contains the event data.</param>
+    protected virtual void OnLostFocus(SpannableControlEventArgs args) => this.LostFocus?.Invoke(args);
+
     /// <summary>Raises the <see cref="MouseClick"/> event.</summary>
     /// <param name="args">A <see cref="ControlMouseEventArgs"/> that contains the event data.</param>
-    protected virtual void OnMouseClick(ControlMouseEventArgs args) => this.MouseClick?.Invoke(args);
+    protected virtual void OnMouseClick(ControlMouseEventArgs args)
+    {
+        this.MouseClick?.Invoke(args);
+        this.OnClick(args);
+    }
 
     /// <summary>Raises the <see cref="MouseDown"/> event.</summary>
     /// <param name="args">A <see cref="ControlMouseEventArgs"/> that contains the event data.</param>
@@ -148,15 +188,42 @@ public partial class ControlSpannable
     /// <param name="args">A <see cref="ControlMouseEventArgs"/> that contains the event data.</param>
     protected virtual void OnMouseWheel(ControlMouseEventArgs args) => this.MouseWheel?.Invoke(args);
 
+    /// <summary>Raises the <see cref="KeyDown"/> event.</summary>
+    /// <param name="args">A <see cref="ControlKeyEventArgs"/> that contains the event data.</param>
+    protected virtual void OnKeyDown(ControlKeyEventArgs args) => this.KeyDown?.Invoke(args);
+
+    /// <summary>Raises the <see cref="KeyPress"/> event.</summary>
+    /// <param name="args">A <see cref="ControlKeyPressEventArgs"/> that contains the event data.</param>
+    protected virtual void OnKeyPress(ControlKeyPressEventArgs args)
+    {
+        this.KeyPress?.Invoke(args);
+        if (!args.Handled && args.KeyChar == 13)
+            this.OnClick(args);
+    }
+
+    /// <summary>Raises the <see cref="KeyUp"/> event.</summary>
+    /// <param name="args">A <see cref="ControlKeyEventArgs"/> that contains the event data.</param>
+    protected virtual void OnKeyUp(ControlKeyEventArgs args) => this.KeyUp?.Invoke(args);
+
     /// <summary>Raises the <see cref="EnabledChange"/> event.</summary>
     /// <param name="args">A <see cref="PropertyChangeEventArgs{T, TSender}"/> that contains the event data.</param>
     protected virtual void OnEnabledChange(PropertyChangeEventArgs<ControlSpannable, bool> args) =>
         this.EnabledChange?.Invoke(args);
 
+    /// <summary>Raises the <see cref="FocusableChange"/> event.</summary>
+    /// <param name="args">A <see cref="PropertyChangeEventArgs{T, TSender}"/> that contains the event data.</param>
+    protected virtual void OnFocusableChange(PropertyChangeEventArgs<ControlSpannable, bool> args) =>
+        this.FocusableChange?.Invoke(args);
+
     /// <summary>Raises the <see cref="VisibleChange"/> event.</summary>
     /// <param name="args">A <see cref="PropertyChangeEventArgs{T, TSender}"/> that contains the event data.</param>
     protected virtual void OnVisibleChange(PropertyChangeEventArgs<ControlSpannable, bool> args) =>
         this.VisibleChange?.Invoke(args);
+
+    /// <summary>Raises the <see cref="TakeKeyboardInputsOnFocusChange"/> event.</summary>
+    /// <param name="args">A <see cref="PropertyChangeEventArgs{T, TSender}"/> that contains the event data.</param>
+    protected virtual void OnTakeKeyboardInputsOnFocusChange(PropertyChangeEventArgs<ControlSpannable, bool> args) =>
+        this.TakeKeyboardInputsOnFocusChange?.Invoke(args);
 
     /// <summary>Raises the <see cref="TextChange"/> event.</summary>
     /// <param name="args">A <see cref="PropertyChangeEventArgs{T, TSender}"/> that contains the event data.</param>

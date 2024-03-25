@@ -7,7 +7,7 @@ namespace Dalamud.Interface.Spannables.Controls.EventHandlers;
 
 /// <summary>Mouse event arguments.</summary>
 [SuppressMessage("ReSharper", "NotNullOrRequiredMemberIsNotInitialized", Justification = "Pooled object")]
-public record ControlMouseEventArgs : ControlEventArgs
+public record ControlMouseEventArgs : SpannableControlEventArgs
 {
     /// <summary>Gets or sets the location of the mouse in local coordinates.</summary>
     public Vector2 LocalLocation { get; set; }

@@ -25,8 +25,13 @@ public interface ISpannableRenderPass
     /// <summary>Gets the origin, in the offset ratio of <see cref="Boundary"/>.</summary>
     Vector2 InnerOrigin { get; }
 
-    /// <summary>Gets the transformation matrix from <see cref="CommitSpannableMeasurement"/>.</summary>
-    ref readonly Matrix4x4 Transformation { get; }
+    /// <summary>Gets the direct transformation matrix from the parent, from <see cref="CommitSpannableMeasurement"/>.
+    /// </summary>
+    ref readonly Matrix4x4 TransformationFromParent { get; }
+
+    /// <summary>Gets the full transformation matrix from all the ancestors, from
+    /// <see cref="CommitSpannableMeasurement"/>.</summary>
+    ref readonly Matrix4x4 TransformationFromAncestors { get; }
 
     /// <summary>Gets the current renderer.</summary>
     ISpannableRenderer Renderer { get; }

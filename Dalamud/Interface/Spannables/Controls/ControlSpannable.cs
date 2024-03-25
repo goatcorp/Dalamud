@@ -1,13 +1,17 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Text;
 
 using Dalamud.Interface.Spannables.Controls.Animations;
 using Dalamud.Interface.Spannables.Controls.EventHandlers;
 using Dalamud.Interface.Spannables.Helpers;
+using Dalamud.Interface.Spannables.Internal;
 using Dalamud.Interface.Spannables.Rendering;
 using Dalamud.Interface.Spannables.RenderPassMethodArgs;
+using Dalamud.Interface.Utility;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility.Numerics;
 
@@ -46,7 +50,8 @@ public partial class ControlSpannable : ISpannable, ISpannableRenderPass, ISpann
 
     private TextState activeTextState;
     private RectVector4 boundary;
-    private Matrix4x4 transformation;
+    private Matrix4x4 transformationFromParent;
+    private Matrix4x4 transformationFromAncestors;
 
     private RectVector4 measuredOutsideBox;
     private RectVector4 measuredInteractiveBox;
@@ -59,6 +64,7 @@ public partial class ControlSpannable : ISpannable, ISpannableRenderPass, ISpann
 
     private bool suppressNextMoveAnimation;
     private bool wasVisible;
+    private bool wasFocused;
 
     /// <summary>Initializes a new instance of the <see cref="ControlSpannable"/> class.</summary>
     public ControlSpannable()
@@ -89,7 +95,10 @@ public partial class ControlSpannable : ISpannable, ISpannableRenderPass, ISpann
     public Vector2 InnerOrigin { get; private set; }
 
     /// <inheritdoc/>
-    public ref readonly Matrix4x4 Transformation => ref this.transformation;
+    public ref readonly Matrix4x4 TransformationFromParent => ref this.transformationFromParent;
+
+    /// <inheritdoc/>
+    public ref readonly Matrix4x4 TransformationFromAncestors => ref this.transformationFromAncestors;
 
     /// <inheritdoc/>
     public uint ImGuiGlobalId { get; private set; }
@@ -109,9 +118,9 @@ public partial class ControlSpannable : ISpannable, ISpannableRenderPass, ISpann
     /// <summary>Gets a value indicating whether the middle mouse button is down.</summary>
     public bool IsMiddleMouseButtonDown => (this.heldMouseButtons & 4) != 0;
 
-    /// <summary>Gets the last measured extruded box size.</summary>
+    /// <summary>Gets the last measured outside box size.</summary>
     /// <remarks>Useful for drawing decoration outside the standard box, such as glow or shadow effects.</remarks>
-    public ref readonly RectVector4 MeasuredExtrudedBox => ref this.measuredOutsideBox;
+    public ref readonly RectVector4 MeasuredOutsideBox => ref this.measuredOutsideBox;
 
     /// <summary>Gets the last measured interactive box size.</summary>
     /// <remarks>This excludes <see cref="ExtendOutside"/> and <see cref="Margin"/>.</remarks>
@@ -287,21 +296,21 @@ public partial class ControlSpannable : ISpannable, ISpannableRenderPass, ISpann
     {
         this.InnerOrigin = args.InnerOrigin;
 
-        this.transformation = Matrix4x4.Identity;
+        this.transformationFromParent = Matrix4x4.Identity;
 
         if (this.VisibilityAnimation is { IsRunning: true } visibilityAnimation)
-            this.transformation = visibilityAnimation.AnimatedTransformation;
+            this.transformationFromParent = visibilityAnimation.AnimatedTransformation;
 
-        this.transformation = Matrix4x4.Multiply(
-            this.transformation,
+        this.transformationFromParent = Matrix4x4.Multiply(
+            this.transformationFromParent,
             Matrix4x4.CreateTranslation(new(-this.boundary.RightBottom * args.InnerOrigin, 0)));
 
         if (this.moveAnimation is not null)
         {
             this.moveAnimation.Update(this);
-            if (this.moveAnimation.AfterMatrix != args.Transformation)
+            if (this.moveAnimation.AfterMatrix != args.TransformationFromParent)
             {
-                this.moveAnimation.AfterMatrix = args.Transformation;
+                this.moveAnimation.AfterMatrix = args.TransformationFromParent;
 
                 if (!this.suppressNextMoveAnimation)
                 {
@@ -312,24 +321,42 @@ public partial class ControlSpannable : ISpannable, ISpannableRenderPass, ISpann
                 this.moveAnimation.Update(this);
             }
 
-            this.transformation = Matrix4x4.Multiply(
-                this.transformation,
-                this.moveAnimation.IsRunning ? this.moveAnimation.AnimatedTransformation : args.Transformation);
+            this.transformationFromParent = Matrix4x4.Multiply(
+                this.transformationFromParent,
+                this.moveAnimation.IsRunning
+                    ? this.moveAnimation.AnimatedTransformation
+                    : args.TransformationFromParent);
         }
         else
         {
-            this.transformation = Matrix4x4.Multiply(this.transformation, args.Transformation);
+            this.transformationFromParent = Matrix4x4.Multiply(
+                this.transformationFromParent,
+                args.TransformationFromParent);
         }
 
         this.suppressNextMoveAnimation = false;
 
-        this.transformation = Matrix4x4.Multiply(
-            this.transformation,
+        this.transformationFromParent = Matrix4x4.Multiply(
+            this.transformationFromParent,
             Matrix4x4.CreateTranslation(new(this.boundary.RightBottom * args.InnerOrigin, 0)));
+
+        this.transformationFromAncestors =
+            Matrix4x4.Multiply(
+                Matrix4x4.Invert(args.TransformationFromParent, out var inverted)
+                    ? inverted
+                    : Matrix4x4.Identity,
+                args.TransformationFromAncestors);
+        this.transformationFromAncestors = Matrix4x4.Multiply(
+            this.transformationFromParent,
+            this.transformationFromAncestors);
 
         var e = ControlEventArgsPool.Rent<ControlCommitMeasurementEventArgs>();
         e.Sender = this;
-        e.SpannableArgs = args with { Transformation = Matrix4x4.Identity };
+        e.SpannableArgs = args with
+        {
+            TransformationFromParent = Matrix4x4.Identity,
+            TransformationFromAncestors = this.transformationFromAncestors,
+        };
         this.OnCommitMeasurement(e);
         ControlEventArgsPool.Return(e);
     }
@@ -361,22 +388,68 @@ public partial class ControlSpannable : ISpannable, ISpannableRenderPass, ISpann
             ControlEventArgsPool.Return(e);
         }
 
+        // TODO: testing
         using (ScopedTransformer.From(args, 1f))
             args.DrawListPtr.AddRect(this.Boundary.LeftTop, this.Boundary.RightBottom, 0x20FFFFFF);
+
+        // TODO: make better focus indicator
+        if (this.wasFocused)
+        {
+            using (ScopedTransformer.From(args, 1f))
+            {
+                args.DrawListPtr.AddRect(
+                    this.Boundary.LeftTop,
+                    this.Boundary.RightBottom,
+                    0x6033BB33,
+                    0,
+                    ImDrawFlags.None,
+                    ImGuiInternals.ImGuiContext.Instance.ActiveId == this.GetGlobalIdFromInnerId(this.selfInnerId)
+                        ? 2f
+                        : 1f);
+            }
+        }
     }
 
     /// <inheritdoc/>
-    public void HandleSpannableInteraction(
+    public unsafe void HandleSpannableInteraction(
         scoped in SpannableHandleInteractionArgs args,
         out SpannableLinkInteracted link)
     {
-        {
-            var e = ControlEventArgsPool.Rent<ControlHandleInteractionEventArgs>();
-            e.Sender = this;
-            e.SpannableArgs = args;
-            this.OnHandleInteraction(e, out link);
-            ControlEventArgsPool.Return(e);
-        }
+        var io = ImGui.GetIO().NativePtr;
+        
+        // This is, in fact, not a new vector
+        // ReSharper disable once CollectionNeverUpdated.Local
+        var inputQueueCharacters = new ImVectorWrapper<char>(&io->InputQueueCharacters);
+        var inputEventsTrail = new ImVectorWrapper<ImGuiInternals.ImGuiInputEvent>(
+            (ImVector*)Unsafe.AsPointer(ref ImGuiInternals.ImGuiContext.Instance.InputEventsTrail));
+        
+        var chiea = ControlEventArgsPool.Rent<ControlHandleInteractionEventArgs>();
+        chiea.Sender = this;
+        chiea.SpannableArgs = args;
+        this.OnHandleInteraction(chiea, out link);
+        ControlEventArgsPool.Return(chiea);
+
+        var cmea = ControlEventArgsPool.Rent<ControlMouseEventArgs>();
+        cmea.Sender = this;
+        cmea.LocalLocation = args.MouseLocalLocation;
+        cmea.LocalLocationDelta = cmea.LocalLocation - this.lastMouseLocation;
+        cmea.WheelDelta = args.WheelDelta;
+        var hoveredOnRect = this.measuredInteractiveBox.Contains(cmea.LocalLocation);
+
+        args.ItemAdd(
+            this.selfInnerId,
+            this.measuredInteractiveBox,
+            this.measuredInteractiveBox,
+            this.measuredOutsideBox,
+            hoveredOnRect,
+            !this.focusable,
+            false,
+            !this.enabled);
+
+        var hovered = args.IsItemHoverable(
+            this.measuredInteractiveBox,
+            this.captureMouseOnMouseDown ? this.selfInnerId : -1);
+        var focused = ImGui.IsItemFocused();
 
         ISpannable? newBackground;
         if (!this.visible && this.hideAnimation?.IsRunning is not true)
@@ -385,6 +458,7 @@ public partial class ControlSpannable : ISpannable, ISpannableRenderPass, ISpann
             this.heldMouseButtons = 0;
 
             newBackground = this.normalBackground;
+            focused = false;
         }
         else if (!this.Enabled)
         {
@@ -392,36 +466,32 @@ public partial class ControlSpannable : ISpannable, ISpannableRenderPass, ISpann
             this.heldMouseButtons = 0;
 
             newBackground = this.disabledBackground ?? this.normalBackground;
+            focused = false;
         }
         else
         {
-            var e = ControlEventArgsPool.Rent<ControlMouseEventArgs>();
-            e.Sender = this;
-            e.LocalLocation = args.MouseLocalLocation;
-            e.LocalLocationDelta = e.LocalLocation - this.lastMouseLocation;
-            e.WheelDelta = args.WheelDelta;
-
-            if (this.captureMouseOnMouseDown && this.heldMouseButtons != 0)
-                args.SetActive(this.selfInnerId, this.captureMouseWheel);
-
-            var hoveredOnRect = this.measuredInteractiveBox.Contains(e.LocalLocation);
-            var hovered = hoveredOnRect && args.IsItemHoverable(this.selfInnerId);
             if (hovered != this.IsMouseHovered)
             {
                 this.IsMouseHovered = hovered;
+
                 if (hovered)
-                    this.OnMouseEnter(e);
+                {
+                    args.SetHovered(this.selfInnerId, this.captureMouseWheel);
+                    this.OnMouseEnter(cmea);
+                }
                 else
-                    this.OnMouseLeave(e);
+                {
+                    this.OnMouseLeave(cmea);
+                }
             }
 
             if (args.WheelDelta != Vector2.Zero)
-                this.OnMouseWheel(e);
+                this.OnMouseWheel(cmea);
 
-            if (this.lastMouseLocation != e.LocalLocation)
+            if (this.lastMouseLocation != cmea.LocalLocation)
             {
-                this.lastMouseLocation = e.LocalLocation;
-                this.OnMouseMove(e);
+                this.lastMouseLocation = cmea.LocalLocation;
+                this.OnMouseMove(cmea);
             }
 
             var lastHeldMouseButtons = this.heldMouseButtons;
@@ -433,19 +503,22 @@ public partial class ControlSpannable : ISpannable, ISpannableRenderPass, ISpann
                     if (held == ((this.heldMouseButtons & (1 << i)) != 0))
                         continue;
 
-                    e.Button = MouseButtonsWeCare[i];
+                    cmea.Button = MouseButtonsWeCare[i];
                     if (held)
                     {
                         this.heldMouseButtons |= 1 << i;
                         if (hovered)
-                            this.OnMouseDown(e);
+                            this.OnMouseDown(cmea);
+
+                        if (this.focusable)
+                            focused = true;
                     }
                     else
                     {
                         this.heldMouseButtons &= ~(1 << i);
                         if (hovered)
                         {
-                            this.OnMouseUp(e);
+                            this.OnMouseUp(cmea);
 
                             if (this.lastMouseClickTick[i] < Environment.TickCount64)
                                 this.lastMouseClickCount[i] = 1;
@@ -453,7 +526,7 @@ public partial class ControlSpannable : ISpannable, ISpannableRenderPass, ISpann
                                 this.lastMouseClickCount[i] += 1;
                             this.lastMouseClickTick[i] = Environment.TickCount64 + GetDoubleClickTime();
                             this.OnMouseClick(
-                                e with
+                                cmea with
                                 {
                                     Button = MouseButtonsWeCare[i],
                                     Clicks = this.lastMouseClickCount[i],
@@ -476,9 +549,6 @@ public partial class ControlSpannable : ISpannable, ISpannableRenderPass, ISpann
                         args.ClearActive();
                 }
 
-                if (this.IsMouseHovered)
-                    args.SetHovered(this.selfInnerId, this.captureMouseWheel);
-
                 if (this.heldMouseButtons != 0)
                     args.SetActive(this.selfInnerId, this.captureMouseWheel);
             }
@@ -492,9 +562,81 @@ public partial class ControlSpannable : ISpannable, ISpannableRenderPass, ISpann
                 newBackground = this.HoveredBackground;
             else
                 newBackground = this.NormalBackground;
-
-            ControlEventArgsPool.Return(e);
         }
+
+        if (!this.focusable && focused)
+            focused = false;
+        if (focused)
+        {
+            if (this.takeKeyboardInputsOnFocus)
+            {
+                inputQueueCharacters.Clear();
+                io->WantTextInput = 1;
+
+                foreach (ref var trailedEvent in inputEventsTrail.DataSpan)
+                {
+                    switch (trailedEvent.Type)
+                    {
+                        case ImGuiInternals.ImGuiInputEventType.Key:
+                        {
+                            if (this.ProcessCmdKey(trailedEvent.Key.Key))
+                                ImGuiInternals.ImGuiNavMoveRequestCancel();
+
+                            var kpe = ControlEventArgsPool.Rent<ControlKeyEventArgs>();
+                            kpe.Sender = this;
+                            kpe.Handled = false;
+                            kpe.KeyCode = trailedEvent.Key.Key;
+                            kpe.Control = io->KeyCtrl != 0;
+                            kpe.Alt = io->KeyAlt != 0;
+                            kpe.Shift = io->KeyShift != 0;
+                            kpe.Modifiers = io->KeyMods;
+                            if (trailedEvent.Key.Down != 0)
+                                this.OnKeyDown(kpe);
+                            else
+                                this.OnKeyUp(kpe);
+                            ControlEventArgsPool.Return(kpe);
+                            break;
+                        }
+                        
+                        case ImGuiInternals.ImGuiInputEventType.Text:
+                        {
+                            var kpe = ControlEventArgsPool.Rent<ControlKeyPressEventArgs>();
+                            kpe.Sender = this;
+                            kpe.Handled = false;
+                            kpe.Rune =
+                                Rune.TryCreate(trailedEvent.Text.Char, out var rune)
+                                    ? rune
+                                    : Rune.ReplacementChar;
+                            kpe.KeyChar = unchecked((char)rune.Value);
+                            this.OnKeyPress(kpe);
+                            ControlEventArgsPool.Return(kpe);
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        if (focused != this.wasFocused)
+        {
+            this.wasFocused = focused;
+
+            var cea = ControlEventArgsPool.Rent<SpannableControlEventArgs>();
+            cea.Sender = this;
+            if (focused)
+            {
+                args.SetFocused(this.selfInnerId);
+                this.OnGotFocus(cea);
+            }
+            else
+            {
+                this.OnLostFocus(cea);
+            }
+
+            ControlEventArgsPool.Return(cea);
+        }
+
+        ControlEventArgsPool.Return(cmea);
 
         if (!ReferenceEquals(this.currentBackground, newBackground))
         {
@@ -519,7 +661,8 @@ public partial class ControlSpannable : ISpannable, ISpannableRenderPass, ISpann
                     args.Sender,
                     args.RenderPass,
                     this.InnerOrigin,
-                    this.transformation)
+                    this.transformationFromParent,
+                    this.transformationFromAncestors)
                 .NotifyChild(
                     this.currentBackground,
                     this.currentBackgroundPass,
@@ -580,6 +723,11 @@ public partial class ControlSpannable : ISpannable, ISpannableRenderPass, ISpann
             this.disabledBackground = null;
         }
     }
+
+    /// <summary>Processes a command key.</summary>
+    /// <param name="key">One of the <see cref="ImGuiKey"/> values that represents the key to process.</param>
+    /// <returns><c>true</c> if the character was processed by the control; otherwise, <c>false</c>.</returns>
+    protected virtual bool ProcessCmdKey(ImGuiKey key) => false;
 
     /// <summary>Measures the content box, given the available content box excluding the margin and padding.</summary>
     /// <param name="args">Measure arguments.</param>

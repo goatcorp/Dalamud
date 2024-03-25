@@ -16,7 +16,6 @@ public class BooleanControl : LabelControl
     /// <summary>Initializes a new instance of the <see cref="BooleanControl"/> class.</summary>
     public BooleanControl()
     {
-        this.CaptureMouseOnMouseDown = true;
     }
 
     /// <summary>Occurs when the property <see cref="Checked"/> has been changed.</summary>

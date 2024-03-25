@@ -4,7 +4,6 @@ using System.Numerics;
 using System.Runtime.InteropServices;
 
 using Dalamud.Interface.Spannables.Controls.EventHandlers;
-using Dalamud.Interface.Spannables.Helpers;
 using Dalamud.Interface.Spannables.RenderPassMethodArgs;
 using Dalamud.Interface.Spannables.Text;
 using Dalamud.Utility;

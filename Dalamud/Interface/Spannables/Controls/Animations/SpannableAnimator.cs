@@ -102,7 +102,7 @@ public abstract class SpannableAnimator
         switch (this.AnimateBox)
         {
             case ControlSpannableBox.Extruded:
-                this.Update(control.MeasuredExtrudedBox);
+                this.Update(control.MeasuredOutsideBox);
                 break;
             case ControlSpannableBox.Boundary:
                 this.Update(control.Boundary);

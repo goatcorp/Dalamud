@@ -108,7 +108,8 @@ public abstract class PatternSpannable : ISpannable
     {
         private TextState activeTextState;
         private RectVector4 boundary;
-        private Matrix4x4 transformation;
+        private Matrix4x4 transformationFromParent;
+        private Matrix4x4 transformationFromAncestors;
 
         /// <inheritdoc/>
         public ref TextState ActiveTextState => ref this.activeTextState;
@@ -126,7 +127,10 @@ public abstract class PatternSpannable : ISpannable
         public Vector2 InnerOrigin { get; private set; }
 
         /// <inheritdoc/>
-        public ref readonly Matrix4x4 Transformation => ref this.transformation;
+        public ref readonly Matrix4x4 TransformationFromParent => ref this.transformationFromParent;
+
+        /// <inheritdoc/>
+        public ref readonly Matrix4x4 TransformationFromAncestors => ref this.transformationFromAncestors;
 
         /// <inheritdoc/>
         public ISpannableRenderer Renderer { get; private set; } = null!;
@@ -164,7 +168,8 @@ public abstract class PatternSpannable : ISpannable
         public virtual void CommitSpannableMeasurement(scoped in SpannableCommitTransformationArgs args)
         {
             this.InnerOrigin = args.InnerOrigin;
-            this.transformation = args.Transformation;
+            this.transformationFromParent = args.TransformationFromParent;
+            this.transformationFromAncestors = args.TransformationFromAncestors;
         }
 
         /// <inheritdoc/>
@@ -182,7 +187,7 @@ public abstract class PatternSpannable : ISpannable
             link = default;
         }
 
-        /// <summary>Draws the spannable without regarding to <see cref="Transformation"/>.</summary>
+        /// <summary>Draws the spannable without regarding to <see cref="TransformationFromParent"/>.</summary>
         /// <param name="args">The drawing arguments.</param>
         protected virtual void DrawUntransformed(SpannableDrawArgs args)
         {

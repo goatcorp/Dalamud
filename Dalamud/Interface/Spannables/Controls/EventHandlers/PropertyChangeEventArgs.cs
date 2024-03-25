@@ -6,7 +6,7 @@ namespace Dalamud.Interface.Spannables.Controls.EventHandlers;
 /// <typeparam name="TSender">Type of the object that generated the event.</typeparam>
 /// <typeparam name="T">Type of the changed value.</typeparam>
 [SuppressMessage("ReSharper", "NotNullOrRequiredMemberIsNotInitialized", Justification = "Pooled object")]
-public record PropertyChangeEventArgs<TSender, T> : ControlEventArgs
+public record PropertyChangeEventArgs<TSender, T> : SpannableControlEventArgs
 {
     /// <summary>Gets or sets the name of the changed property.</summary>
     public string PropertyName { get; set; }

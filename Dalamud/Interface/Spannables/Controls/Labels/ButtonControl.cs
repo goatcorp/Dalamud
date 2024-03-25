@@ -12,6 +12,7 @@ public class ButtonControl : LabelControl
     public ButtonControl()
     {
         this.CaptureMouseOnMouseDown = true;
+        this.Focusable = true;
         this.Padding = new(8);
         this.NormalBackground = new ShapePattern
         {

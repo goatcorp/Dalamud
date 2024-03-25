@@ -6,7 +6,7 @@ namespace Dalamud.Interface.Spannables.Controls.EventHandlers;
 
 /// <summary>Link event arguments.</summary>
 [SuppressMessage("ReSharper", "NotNullOrRequiredMemberIsNotInitialized", Justification = "Pooled object")]
-public record ControlMouseLinkEventArgs : ControlEventArgs
+public record ControlMouseLinkEventArgs : SpannableControlEventArgs
 {
     /// <summary>Gets or sets the link being interacted with.</summary>
     public ReadOnlyMemory<byte> Link { get; set; }

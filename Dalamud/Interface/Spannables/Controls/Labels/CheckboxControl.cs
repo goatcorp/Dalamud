@@ -33,6 +33,8 @@ public class CheckboxControl : BooleanControl
         const float checkSize = 22;
         const float checkmarkMargin = 4;
         const float circleMargin = 6;
+        this.CaptureMouseOnMouseDown = true;
+        this.Focusable = true;
         this.TextMargin = new(4);
         this.Padding = new(4);
         this.NormalIcon = new()
@@ -122,11 +124,11 @@ public class CheckboxControl : BooleanControl
     }
 
     /// <inheritdoc/>
-    protected override void OnMouseClick(ControlMouseEventArgs args)
+    protected override void OnClick(SpannableControlEventArgs args)
     {
         if (!this.Indeterminate)
             this.Checked = !this.Checked;
 
-        base.OnMouseClick(args);
+        base.OnClick(args);
     }
 }

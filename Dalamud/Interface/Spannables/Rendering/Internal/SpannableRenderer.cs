@@ -140,7 +140,10 @@ internal sealed partial class SpannableRenderer : ISpannableRenderer, IInternalD
                 spannable,
                 state,
                 renderContext.InnerOrigin,
-                renderContext.Transformation));
+                renderContext.Transformation,
+                Matrix4x4.Multiply(
+                    renderContext.Transformation,
+                    Matrix4x4.CreateTranslation(new(renderContext.ScreenOffset, 0)))));
 
         if (renderContext.UseDrawing)
         {
@@ -157,7 +160,7 @@ internal sealed partial class SpannableRenderer : ISpannableRenderer, IInternalD
                 var msl = renderContext.MouseScreenLocation;
                 var mll = Vector2.Transform(
                     msl - renderContext.ScreenOffset,
-                    Matrix4x4.Invert(state.Transformation, out var inverted) ? inverted : Matrix4x4.Identity);
+                    Matrix4x4.Invert(state.TransformationFromParent, out var inverted) ? inverted : Matrix4x4.Identity);
                 state.HandleSpannableInteraction(
                     new(spannable, state)
                     {

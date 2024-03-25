@@ -32,7 +32,7 @@ public readonly ref struct ScopedTransformer
     /// <param name="opacityMultiplier">The opacity multiplier.</param>
     /// <returns>A new instance of <see cref="ScopedTransformer"/>.</returns>
     public static ScopedTransformer From(SpannableDrawArgs args, float opacityMultiplier) =>
-        new(args.RenderPass.Transformation, args.DrawListPtr, opacityMultiplier);
+        new(args.RenderPass.TransformationFromParent, args.DrawListPtr, opacityMultiplier);
 
     /// <summary>Transforms the vertices.</summary>
     public unsafe void Dispose()

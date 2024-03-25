@@ -211,6 +211,25 @@ public struct RectVector4 : IEquatable<RectVector4>
     public static RectVector4 Round(in RectVector4 rv) =>
         new(MathF.Round(rv.Left), MathF.Round(rv.Top), MathF.Round(rv.Right), MathF.Round(rv.Bottom));
 
+    /// <summary>Transforms <paramref name="what"/> by <paramref name="by"/>.</summary>
+    /// <param name="what">The rect vector to transform.</param>
+    /// <param name="by">The transformation matrix.</param>
+    /// <returns>The transformed rect vector.</returns>
+    /// <remarks>As the result of LT and RB may no longer be rectangular, this operation loses information.</remarks>
+    public static RectVector4 TransformLossy(in RectVector4 what, in Matrix4x4 by)
+    {
+        if (by.IsIdentity)
+            return what;
+
+        var ltt = Vector2.Transform(what.LeftTop, by);
+        var rtt = Vector2.Transform(what.RightTop, by);
+        var rbt = Vector2.Transform(what.RightBottom, by);
+        var lbt = Vector2.Transform(what.LeftBottom, by);
+        var min = Vector2.Min(Vector2.Min(ltt, lbt), Vector2.Min(rtt, rbt));
+        var max = Vector2.Max(Vector2.Max(ltt, lbt), Vector2.Max(rtt, rbt));
+        return new(min, max);
+    }
+
     /// <summary>Translates <paramref name="what"/> by <paramref name="by"/>.</summary>
     /// <param name="what">The rect vector to translate.</param>
     /// <param name="by">The translation distance.</param>

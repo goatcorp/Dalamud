@@ -46,7 +46,7 @@ public readonly struct RenderContext
     /// <remarks>Default value is <c>(0.5, 0.5)</c>.</remarks>
     public readonly Vector2 InnerOrigin;
 
-    /// <inheritdoc cref="ISpannableRenderPass.Transformation"/>
+    /// <inheritdoc cref="ISpannableRenderPass.TransformationFromParent"/>
     /// <remarks>Default value is <see cref="Matrix4x4.Identity"/>.</remarks>
     public readonly Matrix4x4 Transformation;
 

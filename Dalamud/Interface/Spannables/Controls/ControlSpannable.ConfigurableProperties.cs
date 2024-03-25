@@ -11,6 +11,8 @@ namespace Dalamud.Interface.Spannables.Controls;
 public partial class ControlSpannable
 {
     private bool enabled = true;
+    private bool focusable;
+    private bool takeKeyboardInputsOnFocus = true;
     private bool visible = true;
     private string? text;
     private TextState.Options textStateOptions;
@@ -38,11 +40,33 @@ public partial class ControlSpannable
         set => this.HandlePropertyChange(nameof(this.Enabled), ref this.enabled, value, this.OnEnabledChange);
     }
 
+    /// <summary>Gets or sets a value indicating whether this control is focusable.</summary>
+    public bool Focusable
+    {
+        get => this.focusable;
+        set => this.HandlePropertyChange(nameof(this.Focusable), ref this.focusable, value, this.OnFocusableChange);
+    }
+
     /// <summary>Gets or sets a value indicating whether this control is visible.</summary>
     public bool Visible
     {
         get => this.visible;
         set => this.HandlePropertyChange(nameof(this.Visible), ref this.visible, value, this.OnVisibleChange);
+    }
+
+    /// <summary>Gets or sets a value indicating whether to take and claim keyboard inputs when focused.</summary>
+    /// <remarks>
+    /// <para>If set to <c>true</c>, then the game will not receive keyboard inputs when this control is focused.</para>
+    /// <para>Does nothing if <see cref="Focusable"/> is <c>false</c>.</para>
+    /// </remarks>
+    public bool TakeKeyboardInputsOnFocus
+    {
+        get => this.takeKeyboardInputsOnFocus;
+        set => this.HandlePropertyChange(
+            nameof(this.TakeKeyboardInputsOnFocus),
+            ref this.takeKeyboardInputsOnFocus,
+            value,
+            this.OnTakeKeyboardInputsOnFocusChange);
     }
 
     /// <summary>Gets or sets a text.</summary>
