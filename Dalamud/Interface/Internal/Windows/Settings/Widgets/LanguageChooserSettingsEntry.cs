@@ -36,7 +36,7 @@ public sealed class LanguageChooserSettingsEntry : SettingsEntry
                 switch (language)
                 {
                     case "ko":
-                        locLanguagesList.Add("한국어");
+                        locLanguagesList.Add("Korean");
                         break;
                     case "cn":
                         locLanguagesList.Add("简体中文");
