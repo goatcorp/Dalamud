@@ -36,17 +36,14 @@ public sealed class LanguageChooserSettingsEntry : SettingsEntry
                 switch (language)
                 {
                     case "ko":
+                        // We're intentionally keeping this in English, as the Korean fonts are not loaded in unless
+                        // the language is already Korean or other preconditions are met. It's excessive to load a font
+                        // for two characters.
                         locLanguagesList.Add("Korean");
                         break;
-                    case "zh":
-                        locLanguagesList.Add("简体中文");
-                        break;
-                    case "tw":
-                        locLanguagesList.Add("繁体中文");
-                        break;
                     default:
-                        string locLanguage = CultureInfo.GetCultureInfo(language).NativeName;
-                        locLanguagesList.Add(char.ToUpper(locLanguage[0]) + locLanguage[1..]);
+                        var loc = Localization.GetCultureInfoFromLangCode(language);
+                        locLanguagesList.Add(loc.TextInfo.ToTitleCase(loc.NativeName));
                         break;
                 }
             }
