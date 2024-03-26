@@ -85,6 +85,10 @@ internal record PluginManifest : IPluginManifest
 
     /// <inheritdoc/>
     [JsonProperty]
+    public long EndorsementCount { get; init; }
+
+    /// <inheritdoc/>
+    [JsonProperty]
     public long LastUpdate { get; set; }
 
     /// <summary>

@@ -9,7 +9,7 @@ using System.Net.Http.Headers;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-
+using System.Web;
 using CheapLoc;
 using Dalamud.Configuration;
 using Dalamud.Configuration.Internal;
@@ -1676,6 +1676,35 @@ internal partial class PluginManager : IInternalDisposableService
         }
 
         return plugin;
+    }
+
+    /// <summary>
+    /// Determine if a plugin has been endorsed already.
+    /// </summary>
+    /// <param name="plugin">The local plugin.</param>
+    /// <returns>A value indicating whether the plugin has been endorsed already.</returns>
+    public bool IsPluginEndorsed(LocalPlugin plugin)
+    {
+        var config = Service<DalamudConfiguration>.Get();
+
+        return config.EndorsedPluginInternalNames.Contains(plugin.InternalName);
+    }
+    
+    /// <summary>
+    /// Endorse a plugin.
+    /// </summary>
+    /// <param name="localPlugin">The plugin to endorse.</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    public async Task EndorsePluginAsync(LocalPlugin localPlugin)
+    {
+        Log.Debug($"Endorsing plugin {localPlugin.Name}");
+
+        var response = await this.happyHttpClient.SharedHttpClient.PostAsync("https://kamori.goats.dev/Plugin/Endorse/" + HttpUtility.UrlEncode(localPlugin.InternalName), null);
+        response.EnsureSuccessStatusCode();
+        
+        var config = Service<DalamudConfiguration>.Get();
+        config.EndorsedPluginInternalNames.Add(localPlugin.InternalName);
+        config.QueueSave();
     }
 
     private void DetectAvailablePluginUpdates()
