@@ -203,8 +203,8 @@ public class TristateIconPattern : PatternSpannable
             if (this.disappearingStateRenderPass is not null)
             {
                 using var transformer = new ScopedTransformer(
-                    Matrix4x4.Identity,
                     args.DrawListPtr,
+                    Matrix4x4.Identity,
                     owner.HideIconAnimation?.IsRunning is true ? owner.HideIconAnimation.AnimatedOpacity : 0f);
                 args.NotifyChild(this.disappearingState!, this.disappearingStateRenderPass);
             }
@@ -212,8 +212,8 @@ public class TristateIconPattern : PatternSpannable
             if (this.activeStateRenderPass is not null)
             {
                 using var transformer = new ScopedTransformer(
-                    Matrix4x4.Identity,
                     args.DrawListPtr,
+                    Matrix4x4.Identity,
                     owner.ShowIconAnimation?.IsRunning is true ? owner.ShowIconAnimation.AnimatedOpacity : 1f);
                 args.NotifyChild(this.activeState!, this.activeStateRenderPass);
             }

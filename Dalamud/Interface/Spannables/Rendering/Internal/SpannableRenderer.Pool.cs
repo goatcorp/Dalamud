@@ -1,7 +1,12 @@
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Numerics;
 using System.Runtime.CompilerServices;
+using System.Threading;
 
+using Dalamud.Interface.Internal;
 using Dalamud.Interface.Spannables.Text;
-using Dalamud.Utility;
+using Dalamud.Utility.Numerics;
 
 using ImGuiNET;
 
@@ -12,17 +17,19 @@ namespace Dalamud.Interface.Spannables.Rendering.Internal;
 /// <summary>A custom text renderer implementation.</summary>
 internal sealed unsafe partial class SpannableRenderer
 {
-    private ObjectPool<TextSpannableBuilder>? builderPool =
-        new DefaultObjectPool<TextSpannableBuilder>(new DefaultPooledObjectPolicy<TextSpannableBuilder>());
+    private readonly nint[] drawListPool = new nint[64];
 
-    /// <summary>Do not use directly. Use <see cref="RentSplitter"/>.</summary>
-    [Obsolete($"Do not use directly. Use {nameof(RentSplitter)}.")]
-    private nint[] splitters = new nint[16];
+    private readonly DrawListTexture?[] drawListTexturePool = new DrawListTexture?[64];
+
+    private readonly ConcurrentBag<DrawListTexture> returnToPoolLater = new();
+
+    private ObjectPool<TextSpannableBuilder>? textSpannableBuilderPool =
+        new DefaultObjectPool<TextSpannableBuilder>(new DefaultPooledObjectPolicy<TextSpannableBuilder>());
 
     /// <inheritdoc/>
     // Let it throw NRE of builderPool is null (disposed).
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public TextSpannableBuilder RentBuilder() => this.builderPool!.Get();
+    public TextSpannableBuilder RentBuilder() => this.textSpannableBuilderPool!.Get();
 
     /// <inheritdoc/>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -30,115 +37,134 @@ internal sealed unsafe partial class SpannableRenderer
     {
         // Let it throw NRE of builderPool is null (disposed).
         if (builder != null)
-            this.builderPool!.Return(builder);
+            this.textSpannableBuilderPool!.Return(builder);
     }
 
-#pragma warning disable CS0618 // Type or member is obsolete
-
-    /// <summary>Rents a splitter.</summary>
-    /// <param name="drawListPtr">An instance of <see cref="ImDrawList"/>.</param>
-    /// <returns>The rented instance.</returns>
-    public DrawListSplitter RentSplitter(ImDrawListPtr drawListPtr)
+    /// <inheritdoc/>
+    public ImDrawListPtr RentDrawList(ImDrawListPtr template)
     {
-        ThreadSafety.DebugAssertMainThread();
-
-        if (drawListPtr.NativePtr is null)
-            return default;
-
-        foreach (ref var slot in this.splitters.AsSpan())
+        foreach (ref var x in this.drawListPool.AsSpan())
         {
-            if (slot == 0)
-                continue;
-            var rented = new DrawListSplitter(slot, drawListPtr, this);
-            slot = nint.Zero;
-            return rented;
-        }
-
-        return new(ImGuiNative.ImDrawListSplitter_ImDrawListSplitter(), drawListPtr, this);
-    }
-
-    private void DisposePooledObjects()
-    {
-        foreach (ref var slot in this.splitters.AsSpan())
-        {
-            if (slot != 0)
-                ImGuiNative.ImDrawListSplitter_destroy((ImDrawListSplitter*)slot);
-            slot = 0;
-        }
-
-        this.splitters = Array.Empty<nint>();
-        this.builderPool = null;
-    }
-
-    /// <summary>Pooled draw list splitter.</summary>
-    public struct DrawListSplitter : IDisposable
-    {
-        private ImDrawListSplitter* splitter;
-        private ImDrawList* drawList;
-        private SpannableRenderer? returnTo;
-
-        /// <summary>Initializes a new instance of the <see cref="DrawListSplitter"/> struct.</summary>
-        /// <param name="splitter">An instance of <see cref="ImDrawListSplitter"/>.</param>
-        /// <param name="drawList">An instance of <see cref="ImDrawList"/>.</param>
-        /// <param name="returnTo">The pool owner.</param>
-        public DrawListSplitter(
-            ImDrawListSplitterPtr splitter,
-            ImDrawListPtr drawList,
-            SpannableRenderer? returnTo)
-        {
-            ThreadSafety.DebugAssertMainThread();
-
-            this.splitter = splitter;
-            this.drawList = drawList;
-            this.returnTo = returnTo;
-
-            if (this.drawList is not null && this.splitter is not null)
-                ImGuiNative.ImDrawListSplitter_Split(this.splitter, this.drawList, (int)RenderChannel.Count);
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator ImDrawListSplitterPtr(DrawListSplitter s) => s.splitter;
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator ImDrawListSplitter*(DrawListSplitter s) => s.splitter;
-
-        /// <summary>Sets the current channel.</summary>
-        /// <param name="channel">The channel.</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly void SetChannel(RenderChannel channel)
-        {
-            if (this.drawList is not null && this.splitter is not null)
-                ImGuiNative.ImDrawListSplitter_SetCurrentChannel(this.splitter, this.drawList, (int)channel);
-        }
-
-        /// <inheritdoc/>
-        public void Dispose()
-        {
-            ThreadSafety.DebugAssertMainThread();
-
-            if (this.drawList is not null && this.splitter is not null)
-                ImGuiNative.ImDrawListSplitter_Merge(this.splitter, this.drawList);
-
-            if (this.returnTo is not null)
+            if (Interlocked.Exchange(ref x, 0) is var y && y != 0)
             {
-                foreach (ref var slot in this.returnTo.splitters.AsSpan())
+                var res = new ImDrawListPtr(y);
+                res._ResetForNewFrame();
+                res._Data = template._Data;
+                res._CmdHeader = template._CmdHeader with { VtxOffset = 0 };
+                res.CmdBuffer[0].ClipRect = template._CmdHeader.ClipRect;
+                res.CmdBuffer[0].TextureId = template._CmdHeader.TextureId;
+                return res;
+            }
+        }
+
+        var drawList = new ImDrawListPtr(ImGuiNative.ImDrawList_ImDrawList(template._Data))
+        {
+            _CmdHeader = template._CmdHeader with { VtxOffset = 0 },
+        };
+        drawList.AddDrawCmd();
+        drawList.PushTextureID(template._CmdHeader.TextureId);
+        return drawList;
+    }
+
+    /// <inheritdoc/>
+    public void ReturnDrawList(ImDrawListPtr drawListPtr)
+    {
+        var y = (nint)drawListPtr.NativePtr;
+        if (y == 0)
+            return;
+
+        foreach (ref var x in this.drawListPool.AsSpan())
+        {
+            if (Interlocked.CompareExchange(ref x, y, 0) is 0)
+                return;
+        }
+
+        drawListPtr.Destroy();
+    }
+
+    /// <inheritdoc/>
+    public IDalamudTextureWrap? RentDrawListTexture(
+        ImDrawListPtr drawListPtr,
+        RectVector4 clipRect,
+        Vector4 clearColor,
+        Vector2 scale,
+        out RectVector4 clipRectUv)
+    {
+        if (drawListPtr.CmdBuffer.Size == 0 || drawListPtr.IdxBuffer.Size == 0 || drawListPtr.VtxBuffer.Size == 0)
+        {
+            clipRectUv = default;
+            return null;
+        }
+
+        foreach (ref var x in this.drawListTexturePool.AsSpan())
+        {
+            if (Interlocked.Exchange(ref x, null) is { } y)
+            {
+                if (y.Draw(drawListPtr, clipRect, clearColor, scale, out clipRectUv).SUCCEEDED)
+                    return y;
+
+                this.ReturnDrawListTexture(y);
+                return null;
+            }
+        }
+
+        var t = new DrawListTexture(
+            Service<InterfaceManager.InterfaceManagerWithScene>.Get().Manager.Device!.NativePointer);
+        if (t.Draw(drawListPtr, clipRect, clearColor, scale, out clipRectUv).SUCCEEDED)
+            return t;
+
+        this.ReturnDrawListTexture(t);
+        return null;
+    }
+
+    /// <inheritdoc/>
+    public void ReturnDrawListTexture(IDalamudTextureWrap? textureWrap)
+    {
+        if (textureWrap is not DrawListTexture y)
+        {
+            textureWrap?.Dispose();
+            return;
+        }
+
+        this.returnToPoolLater.Add(y);
+    }
+
+    private void FrameworkOnUpdateReturnPooledObjects()
+    {
+        var i = 0;
+        while (this.returnToPoolLater.TryTake(out var y))
+        {
+            for (; i < this.drawListTexturePool.Length; i++)
+            {
+                if (Interlocked.CompareExchange(ref this.drawListTexturePool[i], y, null) is null)
                 {
-                    if (slot == 0)
-                        continue;
-                    slot = (nint)this.splitter;
-                    this.splitter = default;
+                    i++;
+                    y = null;
                     break;
                 }
             }
 
-            if (this.splitter is not null)
-                ImGuiNative.ImDrawListSplitter_destroy(this.splitter);
-
-            this.splitter = default;
-            this.drawList = default;
-            this.returnTo = null;
+            y?.Dispose();
         }
     }
 
-#pragma warning restore CS0618 // Type or member is obsolete
+    private void DisposePooledObjects()
+    {
+        foreach (ref var x in this.drawListPool.AsSpan())
+        {
+            if (x != 0)
+                ImGuiNative.ImDrawList_destroy((ImDrawList*)x);
+            x = 0;
+        }
+
+        foreach (ref var x in this.drawListTexturePool.AsSpan())
+        {
+            x?.Dispose();
+            x = null;
+        }
+
+        foreach (var x in this.returnToPoolLater)
+            x.Dispose();
+        this.returnToPoolLater.Clear();
+    }
 }

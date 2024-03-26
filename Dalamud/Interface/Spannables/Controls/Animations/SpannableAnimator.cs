@@ -34,7 +34,7 @@ public abstract class SpannableAnimator
 
     /// <summary>Gets the mutable reference of transformation matrix at the beginning of the animation.</summary>
     public ref Matrix4x4 BeforeMatrix => ref this.beforeMatrix;
-    
+
     /// <summary>Gets the mutable reference of transformation matrix at the end of the animation.</summary>
     public ref Matrix4x4 AfterMatrix => ref this.afterMatrix;
 

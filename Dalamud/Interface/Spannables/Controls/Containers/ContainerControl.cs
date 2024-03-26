@@ -9,8 +9,6 @@ using Dalamud.Interface.Spannables.RenderPassMethodArgs;
 using Dalamud.Utility.Enumeration;
 using Dalamud.Utility.Numerics;
 
-using ImGuiNET;
-
 using TerraFX.Interop.Windows;
 
 using static TerraFX.Interop.Windows.Windows;
@@ -117,41 +115,70 @@ public class ContainerControl : ControlSpannable
 
         // Now that it's measured without bounds, if it fits in the given max size, measure again so that it can
         // utilize the rest of the area.
-        if (this.IsMinWidthWrapContent || this.IsMinHeightWrapContent)
-        {
-            measureChildArgs = args;
+        measureChildArgs = args;
 
-            var dirty = 2;
-            if (unboundChildren.Width > args.MaxSize.X)
+        if (this.IsMinWidthWrapContent)
+        {
+            if (unboundChildren.Right <= args.MinSize.X)
             {
                 measureChildArgs.MinSize.X =
-                    measureChildArgs.MaxSize.X = measureChildArgs.SuggestedSize.X = float.PositiveInfinity;
-                dirty--;
+                    measureChildArgs.MaxSize.X = measureChildArgs.SuggestedSize.X = args.MinSize.X;
+            }
+            else if (unboundChildren.Right >= args.MaxSize.X)
+            {
+                measureChildArgs.MinSize.X =
+                    measureChildArgs.MaxSize.X = measureChildArgs.SuggestedSize.X = unboundChildren.Right;
+            }
+            else if (this.IsWidthMatchParent && args.MaxSize.X < float.MaxValue)
+            {
+                measureChildArgs.MinSize.X =
+                    measureChildArgs.MaxSize.X = measureChildArgs.SuggestedSize.X = args.MaxSize.X;
             }
 
-            if (unboundChildren.Height > args.MaxSize.Y)
+            if (this.IsMinHeightWrapContent)
             {
                 measureChildArgs.MinSize.Y =
                     measureChildArgs.MaxSize.Y = measureChildArgs.SuggestedSize.Y = float.PositiveInfinity;
-                dirty--;
             }
-            
-            if (dirty != 0)
-                unboundChildren = this.MeasureChildren(measureChildArgs, children, renderPasses);
+
+            // Pass 2. Limit width, and measure the height.
+            unboundChildren = this.MeasureChildren(measureChildArgs, children, renderPasses);
         }
 
-        var boundChildren = Vector2.Min(unboundChildren.Size, args.MaxSize);
+        if (this.IsMinHeightWrapContent)
+        {
+            if (unboundChildren.Bottom <= args.MinSize.Y)
+            {
+                measureChildArgs.MinSize.Y =
+                    measureChildArgs.MaxSize.Y = measureChildArgs.SuggestedSize.Y = args.MinSize.Y;
+            }
+            else if (unboundChildren.Bottom >= args.MaxSize.Y)
+            {
+                measureChildArgs.MinSize.Y =
+                    measureChildArgs.MaxSize.Y = measureChildArgs.SuggestedSize.Y = unboundChildren.Bottom;
+            }
+            else if (this.IsHeightMatchParent && args.MaxSize.Y < float.MaxValue)
+            {
+                measureChildArgs.MinSize.Y =
+                    measureChildArgs.MaxSize.Y = measureChildArgs.SuggestedSize.Y = args.MaxSize.Y;
+            }
+
+            // Pass 3. Confirm the size.
+            unboundChildren = this.MeasureChildren(measureChildArgs, children, renderPasses);
+        }
+
+        var boundChildren = Vector2.Min(unboundChildren.RightBottom, args.MaxSize);
 
         if (this.UseAutoScrollBoundary)
         {
             this.UpdateScrollBoundary(
-                unboundChildren.Width - boundChildren.X,
-                unboundChildren.Height - boundChildren.Y);
+                unboundChildren.Right - boundChildren.X,
+                unboundChildren.Bottom - boundChildren.Y);
         }
 
         this.Scroll = Vector2.Clamp(this.scroll, this.scrollBoundary.LeftTop, this.scrollBoundary.RightBottom);
 
-        return unboundChildren;
+        return new(Vector2.Zero, boundChildren);
     }
 
     /// <inheritdoc/>
@@ -303,7 +330,6 @@ public class ContainerControl : ControlSpannable
         }
 
         this.Scroll -= args.WheelDelta * scrollScale * nlines;
-        this.SuppressNextMoveAnimation();
 
         this.UpdateInterceptMouseWheel();
     }
@@ -313,6 +339,7 @@ public class ContainerControl : ControlSpannable
     protected virtual void OnScrollChange(PropertyChangeEventArgs<ControlSpannable, Vector2> args)
     {
         this.ScrollChange?.Invoke(args);
+        this.SuppressNextMoveAnimation();
         this.UpdateInterceptMouseWheel();
     }
 

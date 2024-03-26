@@ -48,8 +48,6 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
     private int numLinkClicks;
     private VerticalAlignment valign;
     private float vertOffset;
-    private float wrapLeftWidthRatio;
-    private float wrapRightWidthRatio;
     private bool useImages;
     private bool useWrapMarkers;
     private bool useVisibleControlCharacters;
@@ -66,6 +64,7 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
 
     private ButtonControl[] spannableButton = null!;
     private LinearContainer linearContainer = null!;
+    private LabelControl lblStopwatch = null!;
 
     private (TextSpannable? Parsed, Exception? Exception) parseAttempt;
 
@@ -107,8 +106,6 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
         this.valign = VerticalAlignment.Baseline;
         this.vertOffset = 0;
         this.useImages = false;
-        this.wrapLeftWidthRatio = 0f;
-        this.wrapRightWidthRatio = 1f;
         this.showComplicatedTextTest = this.showDynamicOffsetTest = this.showTransformationTest = false;
         this.showFlowerTest = this.showParseTest = false;
         this.parseAttempt = default;
@@ -164,6 +161,8 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
         var renderer = Service<SpannableRenderer>.Get();
 
         this.SetupControls();
+        this.lblStopwatch.Text =
+            $"{this.stopwatch.Elapsed.TotalMilliseconds:0}ms {this.stopwatch.Elapsed.Microseconds:000}us {this.stopwatch.Elapsed.Nanoseconds:000}ns";
 
         var bgpos = ImGui.GetWindowPos() + new Vector2(ImGui.GetScrollX(), ImGui.GetScrollY());
         ImGui.GetWindowDrawList()
@@ -174,71 +173,28 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
                  Vector2.Zero,
                  (ImGui.GetWindowContentRegionMax() - ImGui.GetWindowContentRegionMin()) / 64);
 
-        var dynamicOffsetTestOffset = ImGui.GetCursorScreenPos();
-        var pad = MathF.Round(8 * ImGuiHelpers.GlobalScale);
-        ImGui.Indent(pad);
-
-        ImGui.SetCursorPosY(ImGui.GetCursorPosY() + pad);
-
-        var validWidth = ImGui.GetColumnWidth() - pad;
-        ImGui.PushItemWidth(validWidth);
-        if (ImGui.SliderFloat("##wrapLeftWidthRatio", ref this.wrapLeftWidthRatio, 0f, 1f))
-        {
-            if (this.wrapRightWidthRatio < this.wrapLeftWidthRatio)
-                this.wrapRightWidthRatio = this.wrapLeftWidthRatio;
-        }
-
-        ImGui.PushItemWidth(validWidth);
-        ImGui.SliderFloat("##wrapRightWidthRatio", ref this.wrapRightWidthRatio, 0f, 1f);
-        {
-            if (this.wrapRightWidthRatio < this.wrapLeftWidthRatio)
-                this.wrapLeftWidthRatio = this.wrapRightWidthRatio;
-        }
-
-        ImGui.GetWindowDrawList()
-             .AddLine(
-                 new(
-                     ImGui.GetCursorScreenPos().X + (validWidth * this.wrapLeftWidthRatio),
-                     ImGui.GetWindowPos().Y),
-                 new(
-                     ImGui.GetCursorScreenPos().X + (validWidth * this.wrapLeftWidthRatio),
-                     ImGui.GetWindowPos().Y + ImGui.GetWindowSize().Y),
-                 0xFFFFFFFF,
-                 1);
-        ImGui.GetWindowDrawList()
-             .AddLine(
-                 new(
-                     ImGui.GetCursorScreenPos().X + (validWidth * this.wrapRightWidthRatio),
-                     ImGui.GetWindowPos().Y),
-                 new(
-                     ImGui.GetCursorScreenPos().X + (validWidth * this.wrapRightWidthRatio),
-                     ImGui.GetWindowPos().Y + ImGui.GetWindowSize().Y),
-                 0xFFFFFFFF,
-                 1);
-
-        dynamicOffsetTestOffset.X += pad + MathF.Round(validWidth * this.wrapLeftWidthRatio);
-        ImGui.SetCursorScreenPos(ImGui.GetCursorScreenPos() with { X = dynamicOffsetTestOffset.X });
-
-        this.renderContextOptions.MaxSize = new(
-            validWidth * (this.wrapRightWidthRatio - this.wrapLeftWidthRatio),
-            float.PositiveInfinity);
-
         renderer.Render(
             this.linearContainer,
             new(
                 "LinearContainerTest",
                 this.renderContextOptions with
                 {
-                    MinSize = this.renderContextOptions.MaxSize.Value! with { Y = ImGui.GetContentRegionAvail().Y },
-                    MaxSize = this.renderContextOptions.MaxSize.Value! with { Y = ImGui.GetContentRegionAvail().Y },
+                    MinSize = ImGui.GetContentRegionAvail(),
+                    MaxSize = ImGui.GetContentRegionAvail(),
                 }),
             this.TextStateOptions);
+
+        var dynamicOffsetTestOffset = ImGui.GetCursorScreenPos();
+        var pad = MathF.Round(8 * ImGuiHelpers.GlobalScale);
+        dynamicOffsetTestOffset.X += pad;
+        this.renderContextOptions.MaxSize = new(ImGui.GetColumnWidth() - pad, float.PositiveInfinity);
 
         ImGuiHelpers.ScaledDummy(8);
         ImGui.Separator();
         ImGuiHelpers.ScaledDummy(8);
 
         var ssb = renderer.RentBuilder();
+
         this.stopwatch.Restart();
         if (this.showComplicatedTextTest)
             this.DrawTestComplicatedTextBlock(ssb, dynamicOffsetTestOffset.X);
@@ -250,42 +206,9 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
             this.DrawDynamicOffsetTest(ssb);
         if (this.showTransformationTest)
             this.DrawTransformationTest(ssb);
+        this.stopwatch.Stop();
 
         renderer.ReturnBuilder(ssb);
-
-        ImGuiHelpers.ScaledDummy(8);
-        ImGui.TextUnformatted($"Took {this.stopwatch.Elapsed.TotalMilliseconds:g}ms");
-    }
-
-    private static TextSpannable? TestEncodeDecode(TextSpannable ss)
-    {
-        var buf = new byte[ss.Encode(default)];
-        ss.Encode(buf);
-        if (!TextSpannable.TryDecode(buf, out var decoded))
-            return null;
-
-        for (var i = 0; i < ss.Textures.Count; i++)
-            decoded.Textures[i] = ss.Textures[i];
-        for (var i = 0; i < ss.FontHandleSets.Count; i++)
-            decoded.FontHandleSets[i] = ss.FontHandleSets[i];
-        for (var i = 0; i < ss.Spannables.Count; i++)
-            decoded.Spannables[i] = ss.Spannables[i];
-        return decoded;
-    }
-
-    private static TextSpannable? TestToStringParse(TextSpannable ss)
-    {
-        var str = ss.ToString(CultureInfo.InvariantCulture);
-        if (!TextSpannable.TryParse(str, CultureInfo.InvariantCulture, out var decoded))
-            return null;
-
-        for (var i = 0; i < ss.Textures.Count; i++)
-            decoded.Textures[i] = ss.Textures[i];
-        for (var i = 0; i < ss.FontHandleSets.Count; i++)
-            decoded.FontHandleSets[i] = ss.FontHandleSets[i];
-        for (var i = 0; i < ss.Spannables.Count; i++)
-            decoded.Spannables[i] = ss.Spannables[i];
-        return decoded;
     }
 
     private void SetupControls()
@@ -364,6 +287,10 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
             ShadowColor = 0xFF000000,
             ForeColor = 0xFFC5E1EE,
         };
+        var directionTextStyle = defaultStyle with
+        {
+            Font = new(DalamudAssetFontAndFamilyId.From(DalamudAsset.FontAwesomeFreeSolid)),
+        };
         var linkStyle = new TextStyle
         {
             EdgeColor = ImGuiColors.TankBlue,
@@ -391,9 +318,8 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
         var animTimeSpan = TimeSpan.FromMilliseconds(300);
         this.linearContainer = new()
         {
-            ContentBias = 0.3f,
             Direction = LinearContainer.LinearDirection.LeftToRight,
-            Size = new(ControlSpannable.MatchParent, ControlSpannable.WrapContent),
+            Size = new(ControlSpannable.MatchParent),
             MinSize = new(ControlSpannable.WrapContent),
             Padding = new(16f),
             TextStateOptions = new() { InitialStyle = defaultStyle },
@@ -412,125 +338,183 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
                     Size = new(ControlSpannable.MatchParent, ControlSpannable.WrapContent),
                     ChildrenList =
                     {
-                        new LabelControl
-                        {
-                            SpannableText = new TextSpannableBuilder().PushLink("test"u8).Append("Test Link"),
-                            TextStateOptions = new() { InitialStyle = linkStyle },
-                        }.GetAsOut(out var linkLabel),
+                        new LabelControl().GetAsOut(out this.lblStopwatch),
                         new ControlSpannable { Size = new(0, 12) },
                         new LabelControl
                         {
-                            Text = "Horizontal LinearContainer",
+                            Text = "Direction",
                             Margin = new(0, 4),
+                            Size = new(ControlSpannable.MatchParent, ControlSpannable.WrapContent),
                             TextStateOptions = new() { InitialStyle = h2Style },
                         },
                         new LinearContainer
                         {
                             Margin = new(16f, 0f),
-                            Direction = LinearContainer.LinearDirection.TopToBottom,
+                            Size = new(ControlSpannable.MatchParent, ControlSpannable.WrapContent),
+                            Direction = LinearContainer.LinearDirection.LeftToRight,
                             ChildrenList =
                             {
-                                new RadioControl { Text = "Left to Right", Checked = true, }
-                                    .GetAsOut(out var optLinearContainerLtr),
-                                new RadioControl { Text = "Right to Left", }
-                                    .GetAsOut(out _).WithBound(optLinearContainerLtr),
+                                new LinearContainer
+                                {
+                                    Direction = LinearContainer.LinearDirection.LeftToRight,
+                                    ChildrenList =
+                                    {
+                                        new RadioControl
+                                            {
+                                                Text = FontAwesomeIcon.ArrowRight.ToIconString(),
+                                                TextStateOptions = new() { InitialStyle = directionTextStyle },
+                                                Side = BooleanControl.IconSide.Top,
+                                                Alignment = new(0.5f, 0),
+                                                Checked = true,
+                                            }
+                                            .GetAsOut(out var optLinearContainerLtr),
+                                        new RadioControl
+                                            {
+                                                Text = FontAwesomeIcon.ArrowLeft.ToIconString(),
+                                                TextStateOptions = new() { InitialStyle = directionTextStyle },
+                                                Side = BooleanControl.IconSide.Top,
+                                                Alignment = new(0.5f, 0),
+                                            }
+                                            .GetAsOut(out _).WithBound(optLinearContainerLtr),
+                                    },
+                                },
+                                new ControlSpannable { Size = new(12, 0) },
+                                new LinearContainer
+                                {
+                                    Direction = LinearContainer.LinearDirection.LeftToRight,
+                                    ChildrenList =
+                                    {
+                                        new RadioControl
+                                            {
+                                                Text = FontAwesomeIcon.ArrowDown.ToIconString(),
+                                                TextStateOptions = new() { InitialStyle = directionTextStyle },
+                                                Side = BooleanControl.IconSide.Top,
+                                                Alignment = new(0.5f, 0),
+                                                Checked = true,
+                                            }
+                                            .GetAsOut(out var optLinearContainerTtb),
+                                        new RadioControl
+                                            {
+                                                Text = FontAwesomeIcon.ArrowUp.ToIconString(),
+                                                TextStateOptions = new() { InitialStyle = directionTextStyle },
+                                                Side = BooleanControl.IconSide.Top,
+                                                Alignment = new(0.5f, 0),
+                                            }
+                                            .GetAsOut(out _).WithBound(optLinearContainerTtb),
+                                    },
+                                },
                             },
                         },
                         new ControlSpannable { Size = new(0, 12) },
                         new LabelControl
                         {
-                            Text = "Vertical LinearContainer",
+                            Text = "Alignment",
                             Margin = new(0, 4),
                             TextStateOptions = new() { InitialStyle = h2Style },
                         },
                         new LinearContainer
                         {
                             Margin = new(16f, 0f),
-                            Direction = LinearContainer.LinearDirection.TopToBottom,
+                            Direction = LinearContainer.LinearDirection.LeftToRight,
                             ChildrenList =
                             {
-                                new RadioControl { Text = "Top to Bottom", Checked = true, }
-                                    .GetAsOut(out var optLinearContainerTtb),
-                                new RadioControl { Text = "Bottom to Top", }
-                                    .GetAsOut(out _).WithBound(optLinearContainerTtb),
+                                new LinearContainer
+                                {
+                                    Direction = LinearContainer.LinearDirection.LeftToRight,
+                                    ChildrenList =
+                                    {
+                                        new RadioControl
+                                            {
+                                                Text = "L",
+                                                Checked = true,
+                                                Side = BooleanControl.IconSide.Top,
+                                                Alignment = new(0.5f, 0),
+                                                TextStateOptions = new()
+                                                    { InitialStyle = defaultStyle with { HorizontalAlignment = 0.5f } },
+                                            }
+                                            .GetAsOut(out var optAlignHorzLeft),
+                                        new RadioControl
+                                            {
+                                                Text = "M",
+                                                Side = BooleanControl.IconSide.Top,
+                                                Alignment = new(0.5f, 0),
+                                                TextStateOptions = new()
+                                                    { InitialStyle = defaultStyle with { HorizontalAlignment = 0.5f } },
+                                            }
+                                            .GetAsOut(out var optAlignHorzMid).WithBound(optAlignHorzLeft),
+                                        new RadioControl
+                                            {
+                                                Text = "R",
+                                                Side = BooleanControl.IconSide.Top,
+                                                Alignment = new(0.5f, 0),
+                                                TextStateOptions = new()
+                                                    { InitialStyle = defaultStyle with { HorizontalAlignment = 0.5f } },
+                                            }
+                                            .GetAsOut(out var optAlignHorzRight).WithBound(optAlignHorzLeft),
+                                    },
+                                },
+                                new ControlSpannable { Size = new(12, 0) },
+                                new LinearContainer
+                                {
+                                    Direction = LinearContainer.LinearDirection.LeftToRight,
+                                    ChildrenList =
+                                    {
+                                        new RadioControl
+                                            {
+                                                Text = "T",
+                                                Checked = true,
+                                                Side = BooleanControl.IconSide.Top,
+                                                Alignment = new(0.5f, 0),
+                                                TextStateOptions = new()
+                                                    { InitialStyle = defaultStyle with { HorizontalAlignment = 0.5f } },
+                                            }
+                                            .GetAsOut(out var optAlignVertTop),
+                                        new RadioControl
+                                            {
+                                                Text = "M",
+                                                Side = BooleanControl.IconSide.Top,
+                                                Alignment = new(0.5f, 0),
+                                                TextStateOptions = new()
+                                                    { InitialStyle = defaultStyle with { HorizontalAlignment = 0.5f } },
+                                            }
+                                            .GetAsOut(out var optAlignVertMid).WithBound(optAlignVertTop),
+                                        new RadioControl
+                                            {
+                                                Text = "B",
+                                                Side = BooleanControl.IconSide.Top,
+                                                Alignment = new(0.5f, 0),
+                                                TextStateOptions = new()
+                                                    { InitialStyle = defaultStyle with { HorizontalAlignment = 0.5f } },
+                                            }
+                                            .GetAsOut(out var optAlignVertBottom).WithBound(optAlignVertTop),
+                                    },
+                                },
                             },
                         },
                         new ControlSpannable { Size = new(0, 12) },
                         new LabelControl
                         {
-                            Text = "Options",
+                            Text = "Bias",
                             Margin = new(0, 4),
-                            Size = new(ControlSpannable.MatchParent, ControlSpannable.WrapContent),
                             TextStateOptions = new() { InitialStyle = h2Style },
                         },
                         new LinearContainer
                         {
                             Margin = new(16f, 0f),
                             Size = new(ControlSpannable.MatchParent, ControlSpannable.WrapContent),
-                            Direction = LinearContainer.LinearDirection.TopToBottom,
+                            Direction = LinearContainer.LinearDirection.LeftToRight,
                             ChildrenList =
                             {
-                                new CheckboxControl
-                                    {
-                                        Text = "Use Wrap Markers",
-                                        Size = new(ControlSpannable.MatchParent, ControlSpannable.WrapContent),
-                                    }
-                                    .GetAsOut(out var chkWrapMarker),
-                                new CheckboxControl
-                                    {
-                                        Text = "Show Control Characters",
-                                        Size = new(ControlSpannable.MatchParent, ControlSpannable.WrapContent),
-                                    }
-                                    .GetAsOut(out var chkVisibleControlCharacters),
-                            },
-                        },
-                        new ControlSpannable { Size = new(0, 12) },
-                        new LabelControl
-                        {
-                            Text = "Word Break Type",
-                            Margin = new(0, 4),
-                            Size = new(ControlSpannable.MatchParent, ControlSpannable.WrapContent),
-                            TextStateOptions = new() { InitialStyle = h2Style },
-                        },
-                        new LinearContainer
-                        {
-                            Margin = new(16f, 0f),
-                            Size = new(ControlSpannable.MatchParent, ControlSpannable.WrapContent),
-                            Direction = LinearContainer.LinearDirection.TopToBottom,
-                            ChildrenList =
-                            {
-                                new RadioControl
-                                    {
-                                        SpannableText =
-                                            new TextSpannableBuilder()
-                                                .PushHorizontalAlignment(HorizontalAlignment.Right)
-                                                .Append("Normal"),
-                                        // TODO: add SpannableMeasureArgs.MinSize
-                                        Checked = true,
-                                        Size = new(ControlSpannable.MatchParent, ControlSpannable.WrapContent),
-                                    }
-                                    .GetAsOut(out var optBreakNormal),
-                                new RadioControl
-                                    {
-                                        SpannableText =
-                                            new TextSpannableBuilder()
-                                                .PushHorizontalAlignment(HorizontalAlignment.Center)
-                                                .Append("Break All"),
-                                        Size = new(ControlSpannable.MatchParent, ControlSpannable.WrapContent),
-                                    }
-                                    .GetAsOut(out var optBreakAll).WithBound(optBreakNormal),
-                                new RadioControl
-                                    {
-                                        Text = "Keep All",
-                                        Size = new(ControlSpannable.MatchParent, ControlSpannable.WrapContent),
-                                    }
-                                    .GetAsOut(out var optKeepAll).WithBound(optBreakNormal),
-                                new RadioControl
-                                    {
-                                        Text = "Break Word",
-                                        Size = new(ControlSpannable.MatchParent, ControlSpannable.WrapContent),
-                                    }
-                                    .GetAsOut(out var optBreakWord).WithBound(optKeepAll),
+                                new RadioControl { Text = "0/4", Checked = true, Side = BooleanControl.IconSide.Top }
+                                    .GetAsOut(out var optBias0),
+                                new RadioControl { Text = "1/4", Side = BooleanControl.IconSide.Top, }
+                                    .GetAsOut(out var optBias1).WithBound(optBias0),
+                                new RadioControl { Text = "2/4", Side = BooleanControl.IconSide.Top, }
+                                    .GetAsOut(out var optBias2).WithBound(optBias0),
+                                new RadioControl { Text = "3/4", Side = BooleanControl.IconSide.Top, }
+                                    .GetAsOut(out var optBias3).WithBound(optBias0),
+                                new RadioControl { Text = "4/4", Side = BooleanControl.IconSide.Top, }
+                                    .GetAsOut(out var optBias4).WithBound(optBias0),
                             },
                         },
                     },
@@ -545,6 +529,62 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
                         {
                             SpannableText = new TextSpannableBuilder().Append("Not a Link"),
                             TextStateOptions = new() { InitialStyle = notLinkStyle },
+                        },
+                        new ControlSpannable { Size = new(0, 12) },
+                        new LabelControl
+                        {
+                            Text = "Options",
+                            Margin = new(0, 4),
+                            TextStateOptions = new() { InitialStyle = h2Style },
+                        },
+                        new LinearContainer
+                        {
+                            Margin = new(16f, 0f),
+                            Direction = LinearContainer.LinearDirection.TopToBottom,
+                            ChildrenList =
+                            {
+                                new CheckboxControl { Text = "Use Wrap Markers" }
+                                    .GetAsOut(out var chkWrapMarker),
+                                new CheckboxControl { Text = "Show Control Characters" }
+                                    .GetAsOut(out var chkVisibleControlCharacters),
+                            },
+                        },
+                        new ControlSpannable { Size = new(0, 12) },
+                        new LabelControl
+                        {
+                            Text = "Word Break Type",
+                            Margin = new(0, 4),
+                            TextStateOptions = new() { InitialStyle = h2Style },
+                        },
+                        new LinearContainer
+                        {
+                            Margin = new(16f, 0f),
+                            Direction = LinearContainer.LinearDirection.TopToBottom,
+                            ChildrenList =
+                            {
+                                new RadioControl
+                                    {
+                                        SpannableText =
+                                            new TextSpannableBuilder()
+                                                .PushHorizontalAlignment(HorizontalAlignment.Right)
+                                                .Append("Normal"),
+                                        // TODO: add SpannableMeasureArgs.MinSize
+                                        Checked = true,
+                                    }
+                                    .GetAsOut(out var optBreakNormal),
+                                new RadioControl
+                                    {
+                                        SpannableText =
+                                            new TextSpannableBuilder()
+                                                .PushHorizontalAlignment(HorizontalAlignment.Center)
+                                                .Append("Break All"),
+                                    }
+                                    .GetAsOut(out var optBreakAll).WithBound(optBreakNormal),
+                                new RadioControl { Text = "Keep All" }
+                                    .GetAsOut(out var optKeepAll).WithBound(optBreakNormal),
+                                new RadioControl { Text = "Break Word" }
+                                    .GetAsOut(out var optBreakWord).WithBound(optKeepAll),
+                            },
                         },
                         new ControlSpannable { Size = new(0, 12) },
                         new LabelControl
@@ -589,9 +629,6 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
                                                  : LinearContainer.LinearDirection.RightToLeft;
         optLinearContainerTtb.CheckedChange += e =>
         {
-            var align = e.NewValue ? 0f : 1f;
-            for (var i = 0; i < this.linearContainer.ChildrenList.Count; i++)
-                this.linearContainer.SetChildLayout(i, new() { Weight = i < 2 ? 0.25f : 0f, Alignment = align });
             foreach (var x in this.linearContainer.ChildrenList.OfType<LinearContainer>())
             {
                 x.Direction =
@@ -601,10 +638,24 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
             }
         };
 
-        this.linearContainer.SetChildLayout(0, new() { Weight = 0.25f, Alignment = 0f });
-        this.linearContainer.SetChildLayout(1, new() { Weight = 0.25f, Alignment = 0f });
+        optAlignHorzLeft.CheckedChange += UpdateHorzAlignment;
+        optAlignHorzMid.CheckedChange += UpdateHorzAlignment;
+        optAlignHorzRight.CheckedChange += UpdateHorzAlignment;
+        optAlignVertTop.CheckedChange += UpdateVertAlignment;
+        optAlignVertMid.CheckedChange += UpdateVertAlignment;
+        optAlignVertBottom.CheckedChange += UpdateVertAlignment;
+        optBias0.CheckedChange += UpdateBias;
+        optBias1.CheckedChange += UpdateBias;
+        optBias2.CheckedChange += UpdateBias;
+        optBias3.CheckedChange += UpdateBias;
+        optBias4.CheckedChange += UpdateBias;
 
-        linkLabel.LinkMouseClick += e => Log.Information($"Clicked with {e.Button}");
+        this.linearContainer.SetChildLayout(0, new() { Weight = 0.25f });
+        this.linearContainer.SetChildLayout(1, new() { Weight = 0.25f });
+        this.linearContainer.SetChildLayout(2, new() { Weight = 0.00f });
+        this.linearContainer.SuppressNextMoveAnimation();
+
+        this.lblStopwatch.LinkMouseClick += e => Log.Information($"Clicked with {e.Button}");
 
         chkWrapMarker.CheckedChange += e => this.useWrapMarkers = e.NewValue;
         chkVisibleControlCharacters.CheckedChange += e => this.useVisibleControlCharacters = e.NewValue;
@@ -688,6 +739,41 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
 
         UpdateLblOptions(null);
         return;
+
+        void UpdateHorzAlignment(PropertyChangeEventArgs<ControlSpannable, bool> args)
+        {
+            var n = optAlignHorzLeft.Checked ? 0f : optAlignHorzMid.Checked ? 0.5f : 1f;
+            foreach (var x in this.linearContainer.EnumerateHierarchy<LinearContainer>())
+            {
+                if (x.Direction is LinearContainer.LinearDirection.TopToBottom
+                    or LinearContainer.LinearDirection.BottomToTop)
+                {
+                    for (var i = 0; i < x.ChildrenList.Count; i++)
+                        x.SetChildLayout(i, x.GetChildLayout(i) with { Alignment = n });
+                }
+            }
+        }
+
+        void UpdateVertAlignment(PropertyChangeEventArgs<ControlSpannable, bool> args)
+        {
+            var n = optAlignVertTop.Checked ? 0f : optAlignVertMid.Checked ? 0.5f : 1f;
+            foreach (var x in this.linearContainer.EnumerateHierarchy<LinearContainer>())
+            {
+                if (x.Direction is LinearContainer.LinearDirection.LeftToRight
+                    or LinearContainer.LinearDirection.RightToLeft)
+                {
+                    for (var i = 0; i < x.ChildrenList.Count; i++)
+                        x.SetChildLayout(i, x.GetChildLayout(i) with { Alignment = n });
+                }
+            }
+        }
+
+        void UpdateBias(PropertyChangeEventArgs<ControlSpannable, bool> args)
+        {
+            var n = optBias0.Checked ? 0f : optBias1.Checked ? 1f : optBias2.Checked ? 2f : optBias3.Checked ? 3f : 4f;
+            foreach (var x in this.linearContainer.EnumerateHierarchy<LinearContainer>())
+                x.ContentBias = n / 4f;
+        }
 
         void UpdateLblOptions(PropertyChangeEventArgs<ControlSpannable, bool>? e)
         {

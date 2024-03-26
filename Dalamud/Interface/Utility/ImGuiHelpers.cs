@@ -13,6 +13,8 @@ using Dalamud.Game.ClientState.Keys;
 using Dalamud.Interface.ManagedFontAtlas;
 using Dalamud.Interface.ManagedFontAtlas.Internals;
 using Dalamud.Interface.Utility.Raii;
+using Dalamud.Utility;
+
 using ImGuiNET;
 using ImGuiScene;
 
@@ -504,6 +506,61 @@ public static class ImGuiHelpers
                 })
             .Append((ushort)0)
             .ToArray();
+
+    /// <summary>Copies the draw data from a draw list to another.</summary>
+    /// <param name="source">The source draw list.</param>
+    /// <param name="target">The target draw list.</param>
+    /// <param name="transformation">The transformation matrix. Use <see cref="Matrix4x4.Identity"/> to not transform.
+    /// </param>
+    /// <param name="colorMultiplier">The color multiplier. Use <see cref="Vector4.One"/> to leave it alone.</param>
+    public static unsafe void CopyDrawListDataTo(
+        this ImDrawListPtr source,
+        ImDrawListPtr target,
+        in Matrix4x4 transformation,
+        in Vector4 colorMultiplier)
+    {
+        var sourceIndices = new ReadOnlySpan<ushort>((void*)source.IdxBuffer.Data, source.IdxBuffer.Size);
+        var sourceVertices = new ReadOnlySpan<ImDrawVert>((void*)source.VtxBuffer.Data, source.VtxBuffer.Size);
+        var sourceCommands = new ReadOnlySpan<ImDrawCmd>((void*)source.CmdBuffer.Data, source.CmdBuffer.Size);
+        var targetIndices = new ImVectorWrapper<ushort>(&target.NativePtr->IdxBuffer);
+        var targetVertices = new ImVectorWrapper<ImDrawVert>(&target.NativePtr->VtxBuffer);
+        var targetCommands = new ImVectorWrapper<ImDrawCmd>(&target.NativePtr->CmdBuffer);
+
+        if (sourceIndices.Length == 0)
+            return;
+
+        var vtxi = (ushort)targetVertices.Length;
+        target.NativePtr->_VtxWritePtr += sourceVertices.Length;
+        target.NativePtr->_VtxCurrentIdx += (uint)sourceVertices.Length;
+        targetVertices.AddRange(sourceVertices);
+
+        var newVertices = targetVertices.DataSpan[vtxi..];
+        if (!transformation.IsIdentity)
+        {
+            foreach (ref var v in newVertices)
+                v.pos = Vector2.Transform(v.pos, transformation);
+        }
+
+        if (colorMultiplier != Vector4.One)
+        {
+            foreach (ref var v in newVertices)
+                v.col = new Rgba32(new Rgba32(v.col).AsVector4() * colorMultiplier);
+        }
+        
+        // Not sure why can't I just copy the indices and commands, and then adjust the vertex/index indices
+        targetIndices.EnsureCapacity(targetIndices.Length + sourceIndices.Length);
+        targetCommands.EnsureCapacity(targetCommands.Length + sourceCommands.Length);
+        foreach (ref readonly var cmd in sourceCommands)
+        {
+            var cmdIndices = sourceIndices.Slice((int)cmd.IdxOffset, (int)cmd.ElemCount);
+            target.PushTextureID(cmd.TextureId);
+            target.PrimReserve(cmdIndices.Length, 0);
+            ref var iptr = ref *&target.NativePtr->_IdxWritePtr;
+            foreach (var t in cmdIndices)
+                (iptr++)[0] = (ushort)(t + vtxi);
+            target.PopTextureID();
+        }
+    }
 
     /// <summary>
     /// Determines whether <paramref name="ptr"/> is empty.

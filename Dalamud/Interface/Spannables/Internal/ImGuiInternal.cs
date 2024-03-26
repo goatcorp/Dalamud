@@ -198,7 +198,7 @@ internal static class ImGuiInternals
         /// This is to allow domain-specific application to access e.g mouse/pen trail.</summary>
         [FieldOffset(0x3900)]
         public ImVector InputEventsTrail;
-        
+
         /// <summary>Pointer to the currently active ImGui window.</summary>
         [FieldOffset(0x3ff0)]
         public nint CurrentWindow; // type: ImGuiWindow*

@@ -3,6 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Numerics;
 using System.Runtime.CompilerServices;
+using System.Threading;
 
 using Dalamud.Data;
 using Dalamud.Game;
@@ -97,6 +98,7 @@ internal sealed partial class SpannableRenderer : ISpannableRenderer, IInternalD
         foreach (var f in this.atlases)
             f.Dispose();
         this.atlases.AsSpan().Clear();
+        (Interlocked.Exchange(ref this.textSpannableBuilderPool, null) as IDisposable)?.Dispose();
         this.ReleaseUnmanagedResources();
     }
 
@@ -120,8 +122,6 @@ internal sealed partial class SpannableRenderer : ISpannableRenderer, IInternalD
         in TextState.Options textOptions = default)
     {
         ThreadSafety.AssertMainThread();
-
-        using var splitter = renderContext.UseDrawing ? this.RentSplitter(renderContext.DrawListPtr) : default;
 
         var result = default(RenderResult);
         var state = spannable.RentRenderPass(this);
@@ -148,11 +148,11 @@ internal sealed partial class SpannableRenderer : ISpannableRenderer, IInternalD
         if (renderContext.UseDrawing)
         {
             using (new ScopedTransformer(
-                       Matrix4x4.CreateTranslation(new(renderContext.ScreenOffset, 0)),
                        renderContext.DrawListPtr,
+                       Matrix4x4.CreateTranslation(new(renderContext.ScreenOffset, 0)),
                        1f))
             {
-                state.DrawSpannable(new(spannable, state, splitter, renderContext.DrawListPtr));
+                state.DrawSpannable(new(spannable, state, renderContext.DrawListPtr));
             }
 
             if (renderContext.UseInteraction)
@@ -276,6 +276,8 @@ internal sealed partial class SpannableRenderer : ISpannableRenderer, IInternalD
             this.resolvedFonts.RemoveAt(this.resolvedFonts.Count - 1);
             i--;
         }
+
+        this.FrameworkOnUpdateReturnPooledObjects();
     }
 
     private sealed class ResolvedFonts : IDisposable

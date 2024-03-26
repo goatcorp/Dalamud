@@ -129,13 +129,14 @@ internal class ConsoleWindow : Window, IDisposable
         this.ellipsisSpannable = new TextSpannableBuilder().PushForeColor(0x80FFFFFF).Append("…");
         this.wrapMarkerSpannable = new TextSpannableBuilder()
                                    .PushFontSet(
-                                       new(DalamudAssetFontAndFamilyId.From(DalamudAsset.InconsolataRegular)),
+                                       new(DalamudAssetFontAndFamilyId.From(DalamudAsset.FontAwesomeFreeSolid)),
                                        out _)
                                    .PushEdgeColor(0xFF000044)
                                    .PushEdgeWidth(1)
                                    .PushForeColor(0xFFCCCCFF)
                                    .PushItalic(true)
-                                   .PushFontSize(-0.6f)
+                                   .PushFontSize(-0.4f)
+                                   .PushLineHeight(2.5f)
                                    .PushVerticalAlignment(VerticalAlignment.Middle)
                                    .Append(FontAwesomeIcon.ArrowTurnDown.ToIconString());
 

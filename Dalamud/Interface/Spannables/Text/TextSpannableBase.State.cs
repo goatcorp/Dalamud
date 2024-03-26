@@ -10,6 +10,7 @@ using Dalamud.Interface.Spannables.Internal;
 using Dalamud.Interface.Spannables.Rendering;
 using Dalamud.Interface.Spannables.RenderPassMethodArgs;
 using Dalamud.Interface.Spannables.Styles;
+using Dalamud.Interface.Utility;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility;
 using Dalamud.Utility.Numerics;
@@ -112,7 +113,7 @@ public abstract partial class TextSpannableBase
             var segment = new DataRef.Segment(data, 0, 0);
             var linkRecordIndex = -1;
 
-            var drawArgs = new SpannableDrawArgs(ssb, this, default, default);
+            var drawArgs = new SpannableDrawArgs(ssb, this, default);
             var charRenderer = new CharRenderer(drawArgs, data, this, true);
             var skipNextLine = false;
             while (true)
@@ -322,105 +323,108 @@ public abstract partial class TextSpannableBase
             if (args.Sender is not TextSpannableBase ssb)
                 return;
 
-            using var transformer = ScopedTransformer.From(args, 1f);
-
             var data = ssb.GetData();
             this.Offset = new(0, this.ActiveTextState.ShiftFromVerticalAlignment);
             this.ActiveTextState.LastStyle = this.ActiveTextState.InitialStyle;
 
             var charRenderer = new CharRenderer(args, data, this, false);
-            var segment = new DataRef.Segment(data, 0, 0);
-            foreach (ref readonly var line in this.MeasuredLines)
+            try
             {
-                charRenderer.SetLine(line);
-
-                while (segment.Offset < line.Offset)
+                var segment = new DataRef.Segment(data, 0, 0);
+                foreach (ref readonly var line in this.MeasuredLines)
                 {
-                    if (segment.TryGetRawText(out var rawText))
-                    {
-                        var lineHasMoreText = true;
-                        foreach (var c in rawText.EnumerateUtf(UtfEnumeratorFlags.Utf8))
-                        {
-                            var absOffset = new CompositeOffset(segment, c.ByteOffset);
-                            if (absOffset < line.FirstOffset)
-                                continue;
-                            if (absOffset >= line.Offset)
-                            {
-                                lineHasMoreText = false;
-                                break;
-                            }
+                    charRenderer.SetLine(line);
 
-                            if (absOffset < line.OmitOffset)
+                    while (segment.Offset < line.Offset)
+                    {
+                        if (segment.TryGetRawText(out var rawText))
+                        {
+                            var lineHasMoreText = true;
+                            foreach (var c in rawText.EnumerateUtf(UtfEnumeratorFlags.Utf8))
                             {
-                                if (this.ActiveTextState.UseControlCharacter)
+                                var absOffset = new CompositeOffset(segment, c.ByteOffset);
+                                if (absOffset < line.FirstOffset)
+                                    continue;
+                                if (absOffset >= line.Offset)
                                 {
-                                    var name = c.Value.ShortName;
-                                    if (!name.IsEmpty)
-                                    {
-                                        var offset = charRenderer.StyleTranslation;
-                                        this.Offset += offset;
-                                        var old = charRenderer.UpdateSpanParams(
-                                            this.ActiveTextState.ControlCharactersStyle);
-                                        charRenderer.LastRendered.Clear();
-                                        foreach (var c2 in name)
-                                            charRenderer.RenderOne(c2);
-                                        charRenderer.LastRendered.Clear();
-                                        _ = charRenderer.UpdateSpanParams(old);
-                                        this.Offset -= offset;
-                                    }
+                                    lineHasMoreText = false;
+                                    break;
                                 }
 
-                                charRenderer.RenderOne(c.EffectiveChar);
+                                if (absOffset < line.OmitOffset)
+                                {
+                                    if (this.ActiveTextState.UseControlCharacter)
+                                    {
+                                        var name = c.Value.ShortName;
+                                        if (!name.IsEmpty)
+                                        {
+                                            var offset = charRenderer.StyleTranslation;
+                                            this.Offset += offset;
+                                            var old = charRenderer.UpdateSpanParams(
+                                                this.ActiveTextState.ControlCharactersStyle);
+                                            charRenderer.LastRendered.Clear();
+                                            foreach (var c2 in name)
+                                                charRenderer.RenderOne(c2);
+                                            charRenderer.LastRendered.Clear();
+                                            _ = charRenderer.UpdateSpanParams(old);
+                                            this.Offset -= offset;
+                                        }
+                                    }
+
+                                    charRenderer.RenderOne(c.EffectiveChar);
+                                }
+
+                                charRenderer.LastRendered.SetCodepoint(c.Value);
                             }
 
-                            charRenderer.LastRendered.SetCodepoint(c.Value);
+                            if (!lineHasMoreText)
+                                break;
+                        }
+                        else if (segment.TryGetRecord(out var record, out var recordData))
+                        {
+                            if (!record.Type.IsObject() || segment.Offset >= line.FirstOffset)
+                            {
+                                charRenderer.HandleSpan(record, recordData);
+                            }
                         }
 
-                        if (!lineHasMoreText)
+                        if (!segment.TryGetNext(out segment))
                             break;
                     }
-                    else if (segment.TryGetRecord(out var record, out var recordData))
-                    {
-                        if (!record.Type.IsObject() || segment.Offset >= line.FirstOffset)
-                        {
-                            charRenderer.HandleSpan(record, recordData);
-                        }
-                    }
 
-                    if (!segment.TryGetNext(out segment))
-                        break;
+                    this.ProcessPostLine(line, ref charRenderer, args);
                 }
 
-                this.ProcessPostLine(line, ref charRenderer, args);
-            }
+                ref var itemState = ref *(ImGuiItemStateStruct*)ImGui.GetStateStorage().GetVoidPtrRef(
+                                            args.RenderPass.ImGuiGlobalId,
+                                            nint.Zero);
 
-            ref var itemState = ref *(ImGuiItemStateStruct*)ImGui.GetStateStorage().GetVoidPtrRef(
-                                        args.RenderPass.ImGuiGlobalId,
-                                        nint.Zero);
-
-            if (itemState.State != ImGuiItemStateStruct.InteractionState.Clear)
-            {
-                args.SwitchToChannel(RenderChannel.BackChannel);
-
-                var color =
-                    ImGui.GetColorU32(
-                        itemState.State == ImGuiItemStateStruct.InteractionState.Active
-                            ? ImGuiCol.ButtonActive
-                            : ImGuiCol.ButtonHovered);
-
-                foreach (var entry in this.LinkBoundaries)
+                if (itemState.State != ImGuiItemStateStruct.InteractionState.Clear)
                 {
-                    if (entry.RecordIndex != itemState.InteractedLinkRecordIndex)
-                        continue;
+                    var color =
+                        ImGui.GetColorU32(
+                            itemState.State == ImGuiItemStateStruct.InteractionState.Active
+                                ? ImGuiCol.ButtonActive
+                                : ImGuiCol.ButtonHovered);
 
-                    ImGuiNative.ImDrawList_AddRectFilled(
-                        args.DrawListPtr,
-                        entry.Boundary.LeftTop,
-                        entry.Boundary.RightBottom,
-                        color,
-                        0f,
-                        ImDrawFlags.None);
+                    foreach (var entry in this.LinkBoundaries)
+                    {
+                        if (entry.RecordIndex != itemState.InteractedLinkRecordIndex)
+                            continue;
+
+                        ImGuiNative.ImDrawList_AddRectFilled(
+                            charRenderer.BackChannel,
+                            entry.Boundary.LeftTop,
+                            entry.Boundary.RightBottom,
+                            color,
+                            0f,
+                            ImDrawFlags.None);
+                    }
                 }
+            }
+            finally
+            {
+                charRenderer.AppendAndReturnChannels(this.TransformationFromParent);
             }
         }
 
@@ -739,14 +743,21 @@ public abstract partial class TextSpannableBase
                                     wmrp,
                                     this.Offset + charRenderer.StyleTranslation,
                                     mtx);
-                            // wmrp.CommitSpannableMeasurement(
-                            //     new(
-                            //         wm,
-                            //         wmrp,
-                            //         this.TransformToScreen(this.Offset + charRenderer.StyleTranslation),
-                            //         this.TransformationOrigin,
-                            //         Matrix4x4.Multiply(mtx, this.Transformation.WithoutTranslation())));
-                            args.NotifyChild(wm, wmrp);
+
+                            var tmpDrawList = this.Renderer.RentDrawList(args.DrawListPtr);
+                            try
+                            {
+                                var tmpargs = args with { DrawListPtr = tmpDrawList };
+                                tmpargs.NotifyChild(wm, wmrp);
+                                tmpDrawList.CopyDrawListDataTo(
+                                    args.DrawListPtr,
+                                    this.TransformationFromParent,
+                                    Vector4.One);
+                            }
+                            finally
+                            {
+                                this.Renderer.ReturnDrawList(tmpDrawList);
+                            }
                         }
 
                         accumulatedBoundary = RectVector4.Union(

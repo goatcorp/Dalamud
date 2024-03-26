@@ -11,7 +11,7 @@ public record ControlKeyPressEventArgs : SpannableControlEventArgs
     /// <value><c>true</c> to bypass the control's default handling; otherwise, <c>false</c> to also pass the event
     /// along to the default control handler.</value>
     public bool Handled { get; set; }
-    
+
     /// <summary>Gets or sets the character corresponding to the key pressed.</summary>
     public char KeyChar { get; set; }
 

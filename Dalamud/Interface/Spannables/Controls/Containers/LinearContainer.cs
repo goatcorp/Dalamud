@@ -129,6 +129,9 @@ public class LinearContainer : ContainerControl
         var childOffset = Vector2.Zero;
         var contentBox = RectVector4.InvertedExtrema;
         var childSizeSum = Vector2.Zero;
+
+        var requiredMinSizeForWeight = Vector2.Zero;
+
         for (var i = 0; i < children.Length; i++)
         {
             var child = children[i];
@@ -136,20 +139,20 @@ public class LinearContainer : ContainerControl
             var layout = this.childLayouts[i];
             var innerId = this.InnerIdAvailableSlot + i;
 
-            var maxChildSize = new Vector2(
-                args.MaxSize.X >= float.PositiveInfinity ? args.SuggestedSize.X : args.MaxSize.X,
-                args.MaxSize.Y >= float.PositiveInfinity ? args.SuggestedSize.Y : args.MaxSize.Y);
-            var useHorizontalWeight = isHorizontal && layout.Weight > 0f && maxChildSize.X < float.PositiveInfinity;
-            var useVerticalWeight = isVertical && layout.Weight > 0f && maxChildSize.Y < float.PositiveInfinity;
+            var useHorizontalWeight = isHorizontal && layout.Weight > 0f && args.MaxSize.X < float.PositiveInfinity;
+            var useVerticalWeight = isVertical && layout.Weight > 0f && args.MaxSize.Y < float.PositiveInfinity;
 
+            Vector2 maxChildSize;
             if (useHorizontalWeight)
-                maxChildSize.X *= layout.Weight / weightSum;
+                maxChildSize = new(args.MaxSize.X * (layout.Weight / weightSum), float.MaxValue);
             else if (useVerticalWeight)
-                maxChildSize.Y *= layout.Weight / weightSum;
+                maxChildSize = new(float.MaxValue, args.MaxSize.Y * (layout.Weight / weightSum));
             else if (isHorizontal)
-                maxChildSize.X -= childSizeSum.X;
+                maxChildSize = args.MaxSize with { X = float.PositiveInfinity };
             else if (isVertical)
-                maxChildSize.Y -= childSizeSum.Y;
+                maxChildSize = args.MaxSize with { Y = float.PositiveInfinity };
+            else
+                maxChildSize = new(float.PositiveInfinity);
 
             var minChildSize = new Vector2(
                 useHorizontalWeight ? maxChildSize.X : 0,
@@ -157,6 +160,13 @@ public class LinearContainer : ContainerControl
 
             args.NotifyChild(child, pass, innerId, minChildSize, maxChildSize);
             childSizeSum += pass.Boundary.RightBottom;
+
+            if (isHorizontal && layout.Weight > 0 && weightSum > 0)
+            {
+                requiredMinSizeForWeight.X = Math.Max(
+                    requiredMinSizeForWeight.X,
+                    (pass.Boundary.Right * weightSum) / layout.Weight);
+            }
 
             switch (this.direction)
             {
@@ -185,57 +195,18 @@ public class LinearContainer : ContainerControl
         if (!contentBox.IsValid)
             contentBox = base.MeasureChildren(args, children, renderPasses);
 
-        if (contentBox.Width < args.MaxSize.X && args.MaxSize.X < float.PositiveInfinity)
-        {
-            var bias = this.direction switch
-            {
-                LinearDirection.LeftToRight => this.contentBias,
-                LinearDirection.RightToLeft => 1 - this.contentBias,
-                LinearDirection.TopToBottom => 0,
-                LinearDirection.BottomToTop => 0,
-                _ => 0,
-            };
-            contentBox = contentBox with
-            {
-                Left = (args.MaxSize.X - contentBox.Width) * bias,
-                Right = ((args.MaxSize.X - contentBox.Width) * bias) + contentBox.Width,
-            };
-        }
-        else
-        {
-            contentBox = contentBox with
-            {
-                Left = 0,
-                Right = contentBox.Width,
-            };
-        }
+        var rb = contentBox.Size;
+        if (args.SuggestedSize.X < float.PositiveInfinity)
+            rb.X = Math.Max(rb.X, args.SuggestedSize.X);
+        if (args.SuggestedSize.Y < float.PositiveInfinity)
+            rb.Y = Math.Max(rb.Y, args.SuggestedSize.Y);
+        if (args.MinSize.X < float.PositiveInfinity && rb.X < args.MinSize.X)
+            rb.X = args.MinSize.X;
+        if (args.MinSize.Y < float.PositiveInfinity && rb.Y < args.MinSize.Y)
+            rb.Y = args.MinSize.Y;
+        rb = Vector2.Max(rb, requiredMinSizeForWeight);
 
-        if (contentBox.Height < args.MaxSize.Y && args.MaxSize.Y < float.PositiveInfinity)
-        {
-            var bias = this.direction switch
-            {
-                LinearDirection.LeftToRight => 0,
-                LinearDirection.RightToLeft => 0,
-                LinearDirection.TopToBottom => this.contentBias,
-                LinearDirection.BottomToTop => 1 - this.contentBias,
-                _ => 0,
-            };
-            contentBox = contentBox with
-            {
-                Top = 0,
-                Bottom = ((args.MaxSize.Y - contentBox.Height) * bias) + contentBox.Height,
-            };
-        }
-        else
-        {
-            contentBox = contentBox with
-            {
-                Top = 0,
-                Bottom = contentBox.Height,
-            };
-        }
-
-        return contentBox;
+        return new(Vector2.Zero, Vector2.Min(rb, args.MaxSize));
     }
 
     /// <inheritdoc/>
@@ -244,14 +215,44 @@ public class LinearContainer : ContainerControl
         ReadOnlySpan<ISpannable> children,
         ReadOnlySpan<ISpannableRenderPass> renderPasses)
     {
-        var baseOffset = this.direction switch
+        var childSizeSum = Vector2.Zero;
+        var childSizeMax = Vector2.Zero;
+        foreach (var x in renderPasses)
         {
-            LinearDirection.LeftToRight => this.MeasuredContentBox.LeftTop,
-            LinearDirection.RightToLeft => this.MeasuredContentBox.RightTop,
-            LinearDirection.TopToBottom => this.MeasuredContentBox.LeftTop,
-            LinearDirection.BottomToTop => this.MeasuredContentBox.LeftBottom,
+            childSizeSum += x.Boundary.RightBottom;
+            childSizeMax = Vector2.Max(childSizeMax, x.Boundary.RightBottom);
+        }
+
+        var myBoxSize = this.direction switch
+        {
+            LinearDirection.LeftToRight or LinearDirection.RightToLeft => new(childSizeSum.X, childSizeMax.Y),
+            LinearDirection.TopToBottom or LinearDirection.BottomToTop => new(childSizeMax.X, childSizeSum.Y),
             _ => Vector2.Zero,
         };
+        var myFullBoxSize = Vector2.Max(myBoxSize, this.MeasuredContentBox.Size);
+
+        var baseOffset = this.direction switch
+        {
+            LinearDirection.LeftToRight or LinearDirection.TopToBottom => this.MeasuredContentBox.LeftTop,
+            LinearDirection.RightToLeft => new(
+                Math.Max(this.MeasuredContentBox.Right, childSizeSum.X),
+                this.MeasuredContentBox.Top),
+            LinearDirection.BottomToTop => new(
+                this.MeasuredContentBox.Left,
+                Math.Max(this.MeasuredContentBox.Bottom, childSizeSum.Y)),
+            _ => Vector2.Zero,
+        };
+
+        var bias = this.direction switch
+        {
+            LinearDirection.LeftToRight => new(this.contentBias, 0),
+            LinearDirection.RightToLeft => new(-this.contentBias, 0),
+            LinearDirection.TopToBottom => new(0, this.contentBias),
+            LinearDirection.BottomToTop => new(0, -this.contentBias),
+            _ => Vector2.Zero,
+        };
+
+        baseOffset += Vector2.Max(Vector2.Zero, myFullBoxSize - myBoxSize) * bias;
         baseOffset -= this.Scroll;
 
         for (var i = 0; i < children.Length; i++)
@@ -263,16 +264,15 @@ public class LinearContainer : ContainerControl
             switch (this.direction)
             {
                 case LinearDirection.LeftToRight or LinearDirection.RightToLeft:
-                    offset.Y += (this.MeasuredContentBox.Height - pass.Boundary.Height) * layout.Alignment;
+                    offset.Y += (myFullBoxSize.Y - pass.Boundary.Height) * layout.Alignment;
                     break;
                 case LinearDirection.TopToBottom or LinearDirection.BottomToTop:
-                    offset.X += (this.MeasuredContentBox.Width - pass.Boundary.Width) * layout.Alignment;
+                    offset.X += (myFullBoxSize.X - pass.Boundary.Width) * layout.Alignment;
                     break;
             }
 
             var childFinalLocalOffset = baseOffset + offset;
-            childFinalLocalOffset = new(MathF.Round(childFinalLocalOffset.X), MathF.Round(childFinalLocalOffset.Y));
-            args.SpannableArgs.NotifyChild(child, pass, childFinalLocalOffset, Matrix4x4.Identity);
+            args.SpannableArgs.NotifyChild(child, pass, childFinalLocalOffset.Round(), Matrix4x4.Identity);
         }
     }
 

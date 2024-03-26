@@ -1,5 +1,4 @@
 using Dalamud.Interface.Spannables.Patterns;
-using Dalamud.Interface.Spannables.Rendering;
 
 using ImGuiNET;
 
@@ -16,25 +15,21 @@ public class ButtonControl : LabelControl
         this.Padding = new(8);
         this.NormalBackground = new ShapePattern
         {
-            TargetChannel = RenderChannel.BackChannel,
             Type = ShapePattern.Shape.RectFilled,
             ImGuiColor = ImGuiCol.Button,
         };
         this.HoveredBackground = new ShapePattern
         {
-            TargetChannel = RenderChannel.BackChannel,
             Type = ShapePattern.Shape.RectFilled,
             ImGuiColor = ImGuiCol.ButtonHovered,
         };
         this.ActiveBackground = new ShapePattern
         {
-            TargetChannel = RenderChannel.BackChannel,
             Type = ShapePattern.Shape.RectFilled,
             ImGuiColor = ImGuiCol.ButtonActive,
         };
         this.DisabledBackground = new ShapePattern
         {
-            TargetChannel = RenderChannel.BackChannel,
             Type = ShapePattern.Shape.RectFilled,
             ImGuiColor = ImGuiCol.Button,
             ColorMultiplier = new(1.4f, 1.4f, 1.4f, 0.6f),

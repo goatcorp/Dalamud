@@ -5,6 +5,7 @@ using Dalamud.Interface.Spannables.Internal;
 using Dalamud.Interface.Spannables.Rendering;
 using Dalamud.Interface.Spannables.RenderPassMethodArgs;
 using Dalamud.Interface.Spannables.Styles;
+using Dalamud.Interface.Utility;
 using Dalamud.Utility.Numerics;
 
 using ImGuiNET;
@@ -19,6 +20,13 @@ public abstract partial class TextSpannableBase
 
     private unsafe ref struct CharRenderer
     {
+        public readonly ImDrawListPtr BackChannel;
+        public readonly ImDrawListPtr ShadowChannel;
+        public readonly ImDrawListPtr BorderChannel;
+        public readonly ImDrawListPtr TextDecorationOverUnderChannel;
+        public readonly ImDrawListPtr ForeChannel;
+        public readonly ImDrawListPtr TextDecorationThroughChannel;
+
         public Vector2 StyleTranslation;
 
         public MeasuredLine.LastThingStruct LastRendered;
@@ -47,6 +55,16 @@ public abstract partial class TextSpannableBase
             this.renderPass = renderPass;
             this.skipDraw = skipDraw || args.IsEmpty;
 
+            if (!this.skipDraw)
+            {
+                this.BackChannel = this.args.RenderPass.Renderer.RentDrawList(args.DrawListPtr);
+                this.ShadowChannel = this.args.RenderPass.Renderer.RentDrawList(args.DrawListPtr);
+                this.BorderChannel = this.args.RenderPass.Renderer.RentDrawList(args.DrawListPtr);
+                this.TextDecorationOverUnderChannel = this.args.RenderPass.Renderer.RentDrawList(args.DrawListPtr);
+                this.ForeChannel = this.args.RenderPass.Renderer.RentDrawList(args.DrawListPtr);
+                this.TextDecorationThroughChannel = this.args.RenderPass.Renderer.RentDrawList(args.DrawListPtr);
+            }
+
             this.SpanFontOptionsUpdated();
             this.SpanDrawOptionsUpdated();
         }
@@ -57,6 +75,28 @@ public abstract partial class TextSpannableBase
             get => this.fontInfo.BBoxVertical.Y - this.fontInfo.BBoxVertical.X;
         }
 
+        public void AppendAndReturnChannels(in Matrix4x4 transformationFromParent)
+        {
+            if (!this.skipDraw)
+            {
+                var renderer = this.args.RenderPass.Renderer;
+                var target = this.args.DrawListPtr;
+                this.BackChannel.CopyDrawListDataTo(target, transformationFromParent, Vector4.One);
+                this.ShadowChannel.CopyDrawListDataTo(target, transformationFromParent, Vector4.One);
+                this.BorderChannel.CopyDrawListDataTo(target, transformationFromParent, Vector4.One);
+                this.TextDecorationOverUnderChannel.CopyDrawListDataTo(target, transformationFromParent, Vector4.One);
+                this.ForeChannel.CopyDrawListDataTo(target, transformationFromParent, Vector4.One);
+                this.TextDecorationThroughChannel.CopyDrawListDataTo(target, transformationFromParent, Vector4.One);
+                renderer.ReturnDrawList(this.BackChannel);
+                renderer.ReturnDrawList(this.ShadowChannel);
+                renderer.ReturnDrawList(this.BorderChannel);
+                renderer.ReturnDrawList(this.TextDecorationOverUnderChannel);
+                renderer.ReturnDrawList(this.ForeChannel);
+                renderer.ReturnDrawList(this.TextDecorationThroughChannel);
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void SetLine(in MeasuredLine measuredLine)
         {
             this.stateInfo = new(this.renderPass, in measuredLine);
@@ -241,12 +281,10 @@ public abstract partial class TextSpannableBase
 
             if (this.useBackground)
             {
-                this.args.SwitchToChannel(RenderChannel.BackChannel);
-
                 var lt = this.renderPass.Offset + this.StyleTranslation;
                 var rb = lt + new Vector2(advX + this.fontInfo.BoldExtraWidth, this.fontInfo.ScaledFontSize);
                 ImGuiNative.ImDrawList_AddRectFilled(
-                    this.args.DrawListPtr,
+                    this.BackChannel,
                     lt,
                     rb,
                     this.renderPass.ActiveTextState.LastStyle.BackColor,
@@ -256,11 +294,9 @@ public abstract partial class TextSpannableBase
 
             if (visible && this.useShadow)
             {
-                this.args.SwitchToChannel(RenderChannel.ShadowChannel);
-
-                var push = texId != this.args.DrawListPtr._CmdHeader.TextureId;
+                var push = texId != this.ShadowChannel._CmdHeader.TextureId;
                 if (push)
-                    ImGuiNative.ImDrawList_PushTextureID(this.args.DrawListPtr, texId);
+                    ImGuiNative.ImDrawList_PushTextureID(this.ShadowChannel, texId);
 
                 var lt = this.renderPass.Offset + this.renderPass.ActiveTextState.LastStyle.ShadowOffset + xy0;
                 var rb = this.renderPass.Offset + this.renderPass.ActiveTextState.LastStyle.ShadowOffset + xy1;
@@ -270,7 +306,7 @@ public abstract partial class TextSpannableBase
                 rt.X += topSkewDistance;
 
                 ImGuiNative.ImDrawList_PrimReserve(
-                    this.args.DrawListPtr,
+                    this.ShadowChannel,
                     6 * (this.numBorderDraws + 1) * (1 + this.fontInfo.BoldExtraWidth),
                     4 * (this.numBorderDraws + 1) * (1 + this.fontInfo.BoldExtraWidth));
                 for (var h = 0; h <= this.fontInfo.BoldExtraWidth; h++)
@@ -281,7 +317,7 @@ public abstract partial class TextSpannableBase
                         {
                             var v = new Vector2(x + h, y);
                             ImGuiNative.ImDrawList_PrimQuadUV(
-                                this.args.DrawListPtr,
+                                this.ShadowChannel,
                                 lt + v,
                                 rt + v,
                                 rb + v,
@@ -296,16 +332,14 @@ public abstract partial class TextSpannableBase
                 }
 
                 if (push)
-                    ImGuiNative.ImDrawList_PopTextureID(this.args.DrawListPtr);
+                    ImGuiNative.ImDrawList_PopTextureID(this.ShadowChannel);
             }
 
             if (visible && this.useBorder)
             {
-                this.args.SwitchToChannel(RenderChannel.BorderChannel);
-
-                var push = texId != this.args.DrawListPtr._CmdHeader.TextureId;
+                var push = texId != this.BorderChannel._CmdHeader.TextureId;
                 if (push)
-                    ImGuiNative.ImDrawList_PushTextureID(this.args.DrawListPtr, texId);
+                    ImGuiNative.ImDrawList_PushTextureID(this.BorderChannel, texId);
 
                 var lt = this.renderPass.Offset + xy0;
                 var rb = this.renderPass.Offset + xy1;
@@ -315,7 +349,7 @@ public abstract partial class TextSpannableBase
                 rt.X += topSkewDistance;
 
                 ImGuiNative.ImDrawList_PrimReserve(
-                    this.args.DrawListPtr,
+                    this.BorderChannel,
                     6 * this.numBorderDraws * (1 + this.fontInfo.BoldExtraWidth),
                     4 * this.numBorderDraws * (1 + this.fontInfo.BoldExtraWidth));
                 for (var h = 0; h <= this.fontInfo.BoldExtraWidth; h++)
@@ -328,7 +362,7 @@ public abstract partial class TextSpannableBase
                                 continue;
                             var v = new Vector2(x + h, y);
                             ImGuiNative.ImDrawList_PrimQuadUV(
-                                this.args.DrawListPtr,
+                                this.BorderChannel,
                                 lt + v,
                                 rt + v,
                                 rb + v,
@@ -343,13 +377,11 @@ public abstract partial class TextSpannableBase
                 }
 
                 if (push)
-                    ImGuiNative.ImDrawList_PopTextureID(this.args.DrawListPtr);
+                    ImGuiNative.ImDrawList_PopTextureID(this.BorderChannel);
             }
 
             if (this.useTextDecoration)
             {
-                this.args.SwitchToChannel(RenderChannel.TextDecorationOverUnderChannel);
-
                 var lt = this.renderPass.Offset + this.StyleTranslation +
                          new Vector2(0, this.stateInfo.VerticalOffsetWrtLine);
                 var rbase = lt + new Vector2(advX + this.fontInfo.BoldExtraWidth, -this.fontInfo.BBoxVertical.X);
@@ -360,29 +392,55 @@ public abstract partial class TextSpannableBase
                 lt.X += skew;
                 rt.X += skew;
                 var xdivy = this.fontInfo.SlopeVector2;
+                if ((this.renderPass.ActiveTextState.LastStyle.TextDecoration
+                     & (TextDecoration.Overline | TextDecoration.Underline)) != 0)
+                {
+                    var push = texId != this.TextDecorationOverUnderChannel._CmdHeader.TextureId;
+                    if (push)
+                        ImGuiNative.ImDrawList_PushTextureID(this.TextDecorationOverUnderChannel, texId);
 
-                if ((this.renderPass.ActiveTextState.LastStyle.TextDecoration & TextDecoration.Overline) != 0)
-                    this.DrawDecoration(lt, rt, -1, xdivy);
+                    if ((this.renderPass.ActiveTextState.LastStyle.TextDecoration & TextDecoration.Overline) != 0)
+                        this.DrawDecoration(this.TextDecorationOverUnderChannel, lt, rt, -1, xdivy);
 
-                if ((this.renderPass.ActiveTextState.LastStyle.TextDecoration & TextDecoration.Underline) != 0)
-                    this.DrawDecoration(rbase with { X = lt.X }, rbase, 1, xdivy);
+                    if ((this.renderPass.ActiveTextState.LastStyle.TextDecoration & TextDecoration.Underline) != 0)
+                    {
+                        this.DrawDecoration(
+                            this.TextDecorationOverUnderChannel,
+                            rbase with { X = lt.X },
+                            rbase,
+                            1,
+                            xdivy);
+                    }
+
+                    if (push)
+                        ImGuiNative.ImDrawList_PopTextureID(this.TextDecorationOverUnderChannel);
+                }
 
                 if ((this.renderPass.ActiveTextState.LastStyle.TextDecoration & TextDecoration.LineThrough) != 0)
                 {
-                    this.args.SwitchToChannel(RenderChannel.TextDecorationThroughChannel);
-                    this.DrawDecoration((lt + lbottom) / 2, (rt + rbottom) / 2, 0, xdivy);
+                    var push = texId != this.TextDecorationThroughChannel._CmdHeader.TextureId;
+                    if (push)
+                        ImGuiNative.ImDrawList_PushTextureID(this.TextDecorationThroughChannel, texId);
+
+                    this.DrawDecoration(
+                        this.TextDecorationThroughChannel,
+                        (lt + lbottom) / 2,
+                        (rt + rbottom) / 2,
+                        0,
+                        xdivy);
+
+                    if (push)
+                        ImGuiNative.ImDrawList_PopTextureID(this.TextDecorationThroughChannel);
                 }
             }
 
             if (visible && this.useForeground)
             {
-                this.args.SwitchToChannel(RenderChannel.ForeChannel);
-
-                var push = texId != this.args.DrawListPtr._CmdHeader.TextureId;
+                var push = texId != this.ForeChannel._CmdHeader.TextureId;
                 if (push)
-                    ImGuiNative.ImDrawList_PushTextureID(this.args.DrawListPtr, texId);
+                    ImGuiNative.ImDrawList_PushTextureID(this.ForeChannel, texId);
                 ImGuiNative.ImDrawList_PrimReserve(
-                    this.args.DrawListPtr,
+                    this.ForeChannel,
                     6 * (1 + this.fontInfo.BoldExtraWidth),
                     4 * (1 + this.fontInfo.BoldExtraWidth));
 
@@ -396,7 +454,7 @@ public abstract partial class TextSpannableBase
                 for (var h = 0; h <= this.fontInfo.BoldExtraWidth; h++)
                 {
                     ImGuiNative.ImDrawList_PrimQuadUV(
-                        this.args.DrawListPtr,
+                        this.ForeChannel,
                         lt,
                         rt + new Vector2(h, 0),
                         rb + new Vector2(h, 0),
@@ -409,7 +467,7 @@ public abstract partial class TextSpannableBase
                 }
 
                 if (push)
-                    ImGuiNative.ImDrawList_PopTextureID(this.args.DrawListPtr);
+                    ImGuiNative.ImDrawList_PopTextureID(this.ForeChannel);
             }
 
             if (spannable is not null && nonNullSpannableStateIndex != -1)
@@ -480,16 +538,15 @@ public abstract partial class TextSpannableBase
             }
         }
 
-        private void DrawDecoration(Vector2 xy0, Vector2 xy1, int direction, Vector2 xdivy)
+        private void DrawDecoration(ImDrawListPtr drawList, Vector2 xy0, Vector2 xy1, int direction, Vector2 xdivy)
         {
-            var dlptr = this.args.DrawListPtr;
             var thicc = this.fontInfo.ScaledTextDecorationThickness;
             var color = this.renderPass.ActiveTextState.LastStyle.TextDecorationColor;
             switch (this.renderPass.ActiveTextState.LastStyle.TextDecorationStyle)
             {
                 case TextDecorationStyle.Solid:
                 default:
-                    ImGuiNative.ImDrawList_AddLine(dlptr, xy0, xy1, color, thicc);
+                    ImGuiNative.ImDrawList_AddLine(drawList, xy0, xy1, color, thicc);
                     break;
                 case TextDecorationStyle.Double:
                 {
@@ -516,8 +573,8 @@ public abstract partial class TextSpannableBase
                             break;
                     }
 
-                    ImGuiNative.ImDrawList_AddLine(dlptr, xy0 + dispUp, xy1 + dispUp, color, thicc);
-                    ImGuiNative.ImDrawList_AddLine(dlptr, xy0 + dispDown, xy1 + dispDown, color, thicc);
+                    ImGuiNative.ImDrawList_AddLine(drawList, xy0 + dispUp, xy1 + dispUp, color, thicc);
+                    ImGuiNative.ImDrawList_AddLine(drawList, xy0 + dispDown, xy1 + dispDown, color, thicc);
                     break;
                 }
             }

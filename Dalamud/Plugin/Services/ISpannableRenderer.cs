@@ -6,6 +6,7 @@ using Dalamud.Interface.Spannables;
 using Dalamud.Interface.Spannables.Rendering;
 using Dalamud.Interface.Spannables.Styles;
 using Dalamud.Interface.Spannables.Text;
+using Dalamud.Utility.Numerics;
 
 using ImGuiNET;
 
@@ -25,13 +26,51 @@ public interface ISpannableRenderer
     /// </remarks>
     TextSpannableBuilder RentBuilder();
 
-    /// <summary>Returns the rented builder.</summary>
-    /// <param name="builder">The rented builder from <see cref="RentBuilder"/>.</param>
+    /// <summary>Returns a builder borrowed using <see cref="RentBuilder"/>.</summary>
+    /// <param name="builder">The rented builder using <see cref="RentBuilder"/>.</param>
     /// <remarks>
     /// <para>This function is safe to use from a non-main thread.</para>
     /// <para>Specifying <c>null</c> to <paramref name="builder"/> is a no-op.</para>
     /// </remarks>
     void ReturnBuilder(TextSpannableBuilder? builder);
+
+    /// <summary>Rents a private draw list.</summary>
+    /// <param name="template">Template for the first draw command.</param>
+    /// <returns>The rented draw list.</returns>
+    /// <remarks>
+    /// <para>This function is safe to use from a non-main thread.</para>
+    /// <para>Always return using <see cref="ReturnDrawList"/>. Not doing so will result in a memory leak.</para>
+    /// </remarks>
+    ImDrawListPtr RentDrawList(ImDrawListPtr template);
+
+    /// <summary>Returns a draw list borrowed using <see cref="RentDrawList"/>.</summary>
+    /// <param name="drawListPtr">The draw list borrowed using <see cref="RentDrawList"/>.</param>
+    /// <remarks>
+    /// <para>This function is safe to use from a non-main thread.</para>
+    /// <para>Specifying <c>null</c> to <paramref name="drawListPtr"/> is a no-op.</para>
+    /// </remarks>
+    void ReturnDrawList(ImDrawListPtr drawListPtr);
+
+    /// <summary>Draws the draw list to the texture, resizing as necessary.</summary>
+    /// <param name="drawListPtr">The pointer to the draw list.</param>
+    /// <param name="clipRect">The clip rect.</param>
+    /// <param name="clearColor">The color to clear with.</param>
+    /// <param name="scale">The texture size scaling.</param>
+    /// <param name="clipRectUv">The UV for the clip rect.</param>
+    /// <returns>An instance of <see cref="IDalamudTextureWrap"/> that is valid for the rest of the frame, with draw
+    /// instructions from <paramref name="drawListPtr"/> applied, or <c>null</c> if there was nothing to draw.</returns>
+    IDalamudTextureWrap? RentDrawListTexture(
+        ImDrawListPtr drawListPtr,
+        RectVector4 clipRect,
+        Vector4 clearColor,
+        Vector2 scale,
+        out RectVector4 clipRectUv);
+
+    /// <summary>Returns a texture borrowed from <see cref="RentDrawListTexture"/>.</summary>
+    /// <param name="textureWrap">The texture list borrowed from <see cref="RentDrawListTexture"/>.</param>
+    /// <remarks>Specifyling a null pointer is a no-op. A returned texture will become available for use after the
+    /// drawing cycle is complete.</remarks>
+    void ReturnDrawListTexture(IDalamudTextureWrap? textureWrap);
 
     /// <summary>Attempts to resolve the font data.</summary>
     /// <param name="renderScale">The render scale.</param>

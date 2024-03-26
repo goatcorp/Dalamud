@@ -13,6 +13,7 @@ using Dalamud.Interface.Spannables.Rendering;
 using Dalamud.Interface.Spannables.RenderPassMethodArgs;
 using Dalamud.Interface.Utility;
 using Dalamud.Plugin.Services;
+using Dalamud.Utility;
 using Dalamud.Utility.Numerics;
 
 using ImGuiNET;
@@ -213,39 +214,24 @@ public partial class ControlSpannable : ISpannable, ISpannableRenderPass, ISpann
     /// <inheritdoc/>
     public void MeasureSpannable(scoped in SpannableMeasureArgs args)
     {
-        var rv = new RectVector4(
-            Vector2.Zero,
-            Vector2.Clamp(
-                ResolveSize(this.size, args.MaxSize),
-                ResolveSize(this.minSize, args.MaxSize),
-                ResolveSize(this.maxSize, args.MaxSize)));
-
-        var boundaryContentGap = (this.margin + this.padding) * this.Scale;
-        rv = RectVector4.Shrink(rv, boundaryContentGap);
-        rv = RectVector4.Normalize(rv);
-
         this.ImGuiGlobalId = args.ImGuiGlobalId;
         this.Scale = args.Scale;
         this.activeTextState = new(this.textStateOptions, args.TextState);
 
-        if (rv.Right >= 1000000f)
-            rv.Right = float.PositiveInfinity;
-        if (rv.Bottom >= 1000000f)
-            rv.Bottom = float.PositiveInfinity;
-
-        var contentMeasurementArgs = args with
+        var cmargs = args with
         {
-            MinSize = Vector2.Max(args.MinSize, ResolveSize(this.minSize, args.MaxSize)) - boundaryContentGap.Size,
-            MaxSize = Vector2.Min(args.MaxSize, ResolveSize(this.maxSize, args.MaxSize)) - boundaryContentGap.Size,
+            MinSize = ResolveSize(this.minSize, args.MinSize, args.MaxSize, this.Scale),
+            MaxSize = ResolveSize(this.maxSize, args.MaxSize, args.MaxSize, this.Scale),
+            SuggestedSize = ResolveSize(this.size, args.MinSize, args.MaxSize, this.Scale),
         };
-        contentMeasurementArgs.MinSize = Vector2.Max(Vector2.Zero, contentMeasurementArgs.MinSize);
-        contentMeasurementArgs.SuggestedSize =
-            Vector2.Clamp(
-                ResolveSize(this.size, args.MaxSize) - boundaryContentGap.Size,
-                contentMeasurementArgs.MinSize,
-                contentMeasurementArgs.MaxSize);
+        
+        var boundaryContentGap = (this.margin + this.padding) * this.Scale;
+        cmargs.MinSize = Vector2.Max(Vector2.Zero, cmargs.MinSize - boundaryContentGap.Size);
+        cmargs.MaxSize = Vector2.Max(Vector2.Zero, cmargs.MaxSize - boundaryContentGap.Size);
+        cmargs.SuggestedSize = Vector2.Max(Vector2.Zero, cmargs.SuggestedSize - boundaryContentGap.Size);
+        cmargs.SuggestedSize = Vector2.Clamp(cmargs.SuggestedSize, cmargs.MinSize, cmargs.MaxSize);
 
-        this.measuredContentBox = this.MeasureContentBox(contentMeasurementArgs);
+        this.measuredContentBox = this.MeasureContentBox(cmargs);
 
         this.measuredContentBox = RectVector4.Normalize(this.measuredContentBox);
         this.measuredContentBox = RectVector4.Translate(this.measuredContentBox, boundaryContentGap.LeftTop);
@@ -254,10 +240,10 @@ public partial class ControlSpannable : ISpannable, ISpannableRenderPass, ISpann
         this.boundary = RectVector4.Expand(this.measuredInteractiveBox, this.margin * this.Scale);
         this.measuredOutsideBox = RectVector4.Expand(this.boundary, this.extendOutside * this.Scale);
 
-        if (this.wasVisible != this.Visible)
+        if (this.wasVisible != this.visible)
         {
             this.VisibilityAnimation?.Restart();
-            this.wasVisible = this.Visible;
+            this.wasVisible = this.visible;
         }
 
         if (this.VisibilityAnimation is { IsRunning: true } visibilityAnimation)
@@ -273,20 +259,36 @@ public partial class ControlSpannable : ISpannable, ISpannableRenderPass, ISpann
                 RectVector4.Expand(this.measuredOutsideBox, visibilityAnimation.AnimatedBoundaryAdjustment));
         }
 
+        if (this.currentBackground is not null)
+        {
+            this.currentBackgroundPass ??= this.currentBackground.RentRenderPass(this.Renderer);
+            args.NotifyChild(
+                    this.currentBackground,
+                    this.currentBackgroundPass,
+                    this.backgroundInnerId,
+                    this.MeasuredInteractiveBox.Size,
+                    this.MeasuredInteractiveBox.Size,
+                    this.ActiveTextState);
+        }
+
         return;
 
-        static Vector2 ResolveSize(in Vector2 dim, in Vector2 maxSize)
+        static Vector2 ResolveSize(in Vector2 dim, in Vector2 minSize, in Vector2 maxSize, float scale)
         {
             return new(
                 dim.X switch
                 {
-                    MatchParent or WrapContent => maxSize.X,
-                    _ => dim.X,
+                    WrapContent => minSize.X,
+                    MatchParent => maxSize.X,
+                    float.PositiveInfinity => maxSize.X,
+                    _ => dim.X * scale,
                 },
                 dim.Y switch
                 {
-                    MatchParent or WrapContent => maxSize.Y,
-                    _ => dim.Y,
+                    WrapContent => minSize.Y,
+                    MatchParent => maxSize.Y,
+                    float.PositiveInfinity => maxSize.Y,
+                    _ => dim.Y * scale,
                 });
         }
     }
@@ -296,6 +298,7 @@ public partial class ControlSpannable : ISpannable, ISpannableRenderPass, ISpann
     {
         this.InnerOrigin = args.InnerOrigin;
 
+        var transformationFromParentBefore = this.transformationFromParent;
         this.transformationFromParent = Matrix4x4.Identity;
 
         if (this.VisibilityAnimation is { IsRunning: true } visibilityAnimation)
@@ -314,7 +317,10 @@ public partial class ControlSpannable : ISpannable, ISpannableRenderPass, ISpann
 
                 if (!this.suppressNextMoveAnimation)
                 {
-                    this.moveAnimation.BeforeMatrix = this.moveAnimation.AnimatedTransformation;
+                    this.moveAnimation.BeforeMatrix
+                        = this.moveAnimation.IsRunning
+                              ? this.moveAnimation.AnimatedTransformation
+                              : transformationFromParentBefore;
                     this.moveAnimation.Restart();
                 }
 
@@ -350,6 +356,15 @@ public partial class ControlSpannable : ISpannable, ISpannableRenderPass, ISpann
             this.transformationFromParent,
             this.transformationFromAncestors);
 
+        if (this.currentBackground is not null && this.currentBackgroundPass is not null)
+        {
+            args.NotifyChild(
+                this.currentBackground,
+                this.currentBackgroundPass,
+                this.measuredInteractiveBox.LeftTop,
+                Matrix4x4.Identity);
+        }
+
         var e = ControlEventArgsPool.Rent<ControlCommitMeasurementEventArgs>();
         e.Sender = this;
         e.SpannableArgs = args with
@@ -367,30 +382,63 @@ public partial class ControlSpannable : ISpannable, ISpannableRenderPass, ISpann
         if (!this.Visible && this.HideAnimation?.IsRunning is not true)
             return;
 
-        var opacity = 1f;
-        opacity *= this.VisibilityAnimation?.AnimatedOpacity ?? 1f;
-
-        if (this.currentBackground is not null && this.currentBackgroundPass is not null)
+        var tmpDrawList = this.Renderer.RentDrawList(args.DrawListPtr);
+        tmpDrawList._CmdHeader.ClipRect = this.boundary.Vector4;
+        tmpDrawList.CmdBuffer[0].ClipRect = this.boundary.Vector4;
+        try
         {
-            using (ScopedTransformer.From(args, opacity))
-                args.NotifyChild(this.currentBackground, this.currentBackgroundPass);
+            var tmpargs = args with { DrawListPtr = tmpDrawList };
+            if (this.currentBackground is not null && this.currentBackgroundPass is not null)
+                tmpargs.NotifyChild(this.currentBackground, this.currentBackgroundPass);
+
+            using (new ScopedTransformer(
+                       tmpargs.DrawListPtr,
+                       Matrix4x4.Identity,
+                       this.enabled ? 1f : this.disabledTextOpacity))
+            {
+                var e = ControlEventArgsPool.Rent<ControlDrawEventArgs>();
+                e.Sender = this;
+                e.SpannableArgs = tmpargs;
+                this.OnDraw(e);
+                ControlEventArgsPool.Return(e);
+            }
+
+            var opacity = this.VisibilityAnimation?.AnimatedOpacity ?? 1f;
+            var b = this.measuredInteractiveBox;
+            if (this.clipChildren)
+            {
+                if (this.Renderer.RentDrawListTexture(tmpDrawList, b, Vector4.Zero, Vector2.One, out var uvrc) is
+                    { } dlt)
+                {
+                    args.DrawListPtr.AddImageQuad(
+                        dlt.ImGuiHandle,
+                        Vector2.Transform(b.LeftTop, this.transformationFromParent),
+                        Vector2.Transform(b.RightTop, this.transformationFromParent),
+                        Vector2.Transform(b.RightBottom, this.transformationFromParent),
+                        Vector2.Transform(b.LeftBottom, this.transformationFromParent),
+                        uvrc.LeftTop,
+                        uvrc.RightTop,
+                        uvrc.RightBottom,
+                        uvrc.LeftBottom,
+                        new Rgba32(new Vector4(1, 1, 1, opacity)));
+                    this.Renderer.ReturnDrawListTexture(dlt);
+                }
+            }
+            else
+            {
+                tmpDrawList.CopyDrawListDataTo(args.DrawListPtr, this.transformationFromParent, new(1, 1, 1, opacity));
+            }
         }
-
-        opacity *= this.enabled ? 1f : this.disabledTextOpacity;
-        using (ScopedTransformer.From(args, opacity))
+        finally
         {
-            args.SwitchToChannel(RenderChannel.ForeChannel);
-
-            var e = ControlEventArgsPool.Rent<ControlDrawEventArgs>();
-            e.Sender = this;
-            e.SpannableArgs = args;
-            this.OnDraw(e);
-            ControlEventArgsPool.Return(e);
+            this.Renderer.ReturnDrawList(tmpDrawList);
         }
 
         // TODO: testing
         using (ScopedTransformer.From(args, 1f))
+        {
             args.DrawListPtr.AddRect(this.Boundary.LeftTop, this.Boundary.RightBottom, 0x20FFFFFF);
+        }
 
         // TODO: make better focus indicator
         if (this.wasFocused)
@@ -416,13 +464,13 @@ public partial class ControlSpannable : ISpannable, ISpannableRenderPass, ISpann
         out SpannableLinkInteracted link)
     {
         var io = ImGui.GetIO().NativePtr;
-        
+
         // This is, in fact, not a new vector
         // ReSharper disable once CollectionNeverUpdated.Local
         var inputQueueCharacters = new ImVectorWrapper<char>(&io->InputQueueCharacters);
         var inputEventsTrail = new ImVectorWrapper<ImGuiInternals.ImGuiInputEvent>(
             (ImVector*)Unsafe.AsPointer(ref ImGuiInternals.ImGuiContext.Instance.InputEventsTrail));
-        
+
         var chiea = ControlEventArgsPool.Rent<ControlHandleInteractionEventArgs>();
         chiea.Sender = this;
         chiea.SpannableArgs = args;
@@ -597,7 +645,7 @@ public partial class ControlSpannable : ISpannable, ISpannableRenderPass, ISpann
                             ControlEventArgsPool.Return(kpe);
                             break;
                         }
-                        
+
                         case ImGuiInternals.ImGuiInputEventType.Text:
                         {
                             var kpe = ControlEventArgsPool.Rent<ControlKeyPressEventArgs>();
@@ -645,29 +693,8 @@ public partial class ControlSpannable : ISpannable, ISpannableRenderPass, ISpann
             this.currentBackground = newBackground;
         }
 
-        if (this.currentBackground is not null)
+        if (this.currentBackground is not null && this.currentBackgroundPass is not null)
         {
-            this.currentBackgroundPass ??= this.currentBackground.RentRenderPass(this.Renderer);
-            this.currentBackgroundPass.MeasureSpannable(
-                new(
-                    this.currentBackground,
-                    this.currentBackgroundPass,
-                    this.MeasuredInteractiveBox.Size,
-                    this.MeasuredInteractiveBox.Size,
-                    this.Scale,
-                    this.ActiveTextState,
-                    this.GetGlobalIdFromInnerId(this.backgroundInnerId)));
-            new SpannableCommitTransformationArgs(
-                    args.Sender,
-                    args.RenderPass,
-                    this.InnerOrigin,
-                    this.transformationFromParent,
-                    this.transformationFromAncestors)
-                .NotifyChild(
-                    this.currentBackground,
-                    this.currentBackgroundPass,
-                    this.MeasuredInteractiveBox.LeftTop,
-                    Matrix4x4.Identity);
             if (link.IsEmpty)
                 args.NotifyChild(this.currentBackground, this.currentBackgroundPass, out link);
             else

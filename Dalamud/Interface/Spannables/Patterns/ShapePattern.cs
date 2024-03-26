@@ -2,6 +2,7 @@ using System.Numerics;
 
 using Dalamud.Interface.Spannables.Rendering;
 using Dalamud.Interface.Spannables.RenderPassMethodArgs;
+using Dalamud.Interface.Spannables.Text.Internal;
 using Dalamud.Utility;
 using Dalamud.Utility.Numerics;
 
@@ -37,9 +38,6 @@ public class ShapePattern : PatternSpannable
         /// <summary>A checkmark.</summary>
         Checkmark,
     }
-
-    /// <summary>Gets or sets the channel to render to.</summary>
-    public RenderChannel TargetChannel { get; set; } = RenderChannel.ForeChannel;
 
     /// <summary>Gets or sets a shape.</summary>
     public Shape Type { get; set; }
@@ -91,7 +89,6 @@ public class ShapePattern : PatternSpannable
             if (sz1 is >= float.PositiveInfinity or <= 0)
                 return;
 
-            args.SwitchToChannel(owner.TargetChannel);
             switch (owner.Type)
             {
                 case Shape.Rect:

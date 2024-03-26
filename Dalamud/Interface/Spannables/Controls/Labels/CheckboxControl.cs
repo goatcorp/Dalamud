@@ -36,6 +36,7 @@ public class CheckboxControl : BooleanControl
         this.CaptureMouseOnMouseDown = true;
         this.Focusable = true;
         this.TextMargin = new(4);
+        this.Alignment = new(0, 0.5f);
         this.Padding = new(4);
         this.NormalIcon = new()
         {

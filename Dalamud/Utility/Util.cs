@@ -655,11 +655,20 @@ public static class Util
     /// Throws a corresponding exception if <see cref="HRESULT.FAILED"/> is true.
     /// </summary>
     /// <param name="hr">The result value.</param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static void ThrowOnError(this HRESULT hr)
     {
         if (hr.FAILED)
             Marshal.ThrowExceptionForHR(hr.Value);
     }
+
+    /// <summary>Determines if a <see cref="ComPtr{T}"/> is empty.</summary>
+    /// <param name="comptr">The pointer to test.</param>
+    /// <typeparam name="T">The type contained within.</typeparam>
+    /// <returns><c>true</c> if it is empty.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal static unsafe bool IsEmpty<T>(this ComPtr<T> comptr) where T : unmanaged, IUnknown.Interface =>
+        comptr.Get() is null;
 
     /// <summary>
     /// Calls <see cref="TaskCompletionSource.SetException(System.Exception)"/> if the task is incomplete.

@@ -15,12 +15,15 @@ public readonly ref struct ScopedTransformer
     private readonly int numVertices;
 
     /// <summary>Initializes a new instance of the <see cref="ScopedTransformer"/> struct.</summary>
-    /// <param name="mtx">The transformation matrix.</param>
     /// <param name="drawListPtr">The draw list.</param>
+    /// <param name="transformationMatrix">The transformation matrix.</param>
     /// <param name="opacityMultiplier">The opacity multiplier.</param>
-    public ScopedTransformer(scoped in Matrix4x4 mtx, ImDrawListPtr drawListPtr, float opacityMultiplier)
+    public ScopedTransformer(
+        ImDrawListPtr drawListPtr,
+        scoped in Matrix4x4 transformationMatrix,
+        float opacityMultiplier)
     {
-        this.matrix = mtx;
+        this.matrix = transformationMatrix;
         this.drawListPtr = drawListPtr;
         this.opacityMultiplier = opacityMultiplier;
         this.numVertices = drawListPtr.VtxBuffer.Size;
@@ -32,7 +35,7 @@ public readonly ref struct ScopedTransformer
     /// <param name="opacityMultiplier">The opacity multiplier.</param>
     /// <returns>A new instance of <see cref="ScopedTransformer"/>.</returns>
     public static ScopedTransformer From(SpannableDrawArgs args, float opacityMultiplier) =>
-        new(args.RenderPass.TransformationFromParent, args.DrawListPtr, opacityMultiplier);
+        new(args.DrawListPtr, args.RenderPass.TransformationFromParent, opacityMultiplier);
 
     /// <summary>Transforms the vertices.</summary>
     public unsafe void Dispose()

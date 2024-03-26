@@ -12,8 +12,8 @@ public partial class ControlSpannable
 {
     private bool enabled = true;
     private bool focusable;
-    private bool takeKeyboardInputsOnFocus = true;
     private bool visible = true;
+    private bool clipChildren = true;
     private string? text;
     private TextState.Options textStateOptions;
     private Vector2 size = new(WrapContent);
@@ -32,6 +32,7 @@ public partial class ControlSpannable
     private float disabledTextOpacity = 0.5f;
     private bool captureMouseOnMouseDown;
     private bool captureMouseWheel;
+    private bool takeKeyboardInputsOnFocus = true;
 
     /// <summary>Gets or sets a value indicating whether this control is enabled.</summary>
     public bool Enabled
@@ -54,19 +55,15 @@ public partial class ControlSpannable
         set => this.HandlePropertyChange(nameof(this.Visible), ref this.visible, value, this.OnVisibleChange);
     }
 
-    /// <summary>Gets or sets a value indicating whether to take and claim keyboard inputs when focused.</summary>
-    /// <remarks>
-    /// <para>If set to <c>true</c>, then the game will not receive keyboard inputs when this control is focused.</para>
-    /// <para>Does nothing if <see cref="Focusable"/> is <c>false</c>.</para>
-    /// </remarks>
-    public bool TakeKeyboardInputsOnFocus
+    /// <summary>Gets or sets a value indicating whether to clip the children.</summary>
+    public bool ClipChildren
     {
-        get => this.takeKeyboardInputsOnFocus;
+        get => this.clipChildren;
         set => this.HandlePropertyChange(
-            nameof(this.TakeKeyboardInputsOnFocus),
-            ref this.takeKeyboardInputsOnFocus,
+            nameof(this.ClipChildren),
+            ref this.clipChildren,
             value,
-            this.OnTakeKeyboardInputsOnFocusChange);
+            this.OnClipChildrenChange);
     }
 
     /// <summary>Gets or sets a text.</summary>
@@ -271,6 +268,21 @@ public partial class ControlSpannable
             this.OnCaptureMouseWheelChange);
     }
 
+    /// <summary>Gets or sets a value indicating whether to take and claim keyboard inputs when focused.</summary>
+    /// <remarks>
+    /// <para>If set to <c>true</c>, then the game will not receive keyboard inputs when this control is focused.</para>
+    /// <para>Does nothing if <see cref="Focusable"/> is <c>false</c>.</para>
+    /// </remarks>
+    public bool TakeKeyboardInputsOnFocus
+    {
+        get => this.takeKeyboardInputsOnFocus;
+        set => this.HandlePropertyChange(
+            nameof(this.TakeKeyboardInputsOnFocus),
+            ref this.takeKeyboardInputsOnFocus,
+            value,
+            this.OnTakeKeyboardInputsOnFocusChange);
+    }
+
     /// <summary>Compares a new value with the old value, and invokes event handler accordingly.</summary>
     /// <param name="sender">The object that generated the event.</param>
     /// <param name="propName">The property name. Use <c>nameof(...)</c>.</param>
@@ -292,7 +304,7 @@ public partial class ControlSpannable
             return false;
         var old = storage;
         storage = newValue;
-        
+
         var e = ControlEventArgsPool.Rent<PropertyChangeEventArgs<TSender, T>>();
         e.Sender = sender;
         e.PropertyName = propName;

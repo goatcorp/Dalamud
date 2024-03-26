@@ -1,11 +1,14 @@
+using System.Diagnostics;
 using System.Globalization;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace Dalamud.Utility;
 
 /// <summary>Represents a 32-bit RGBA color.</summary>
 [StructLayout(LayoutKind.Explicit, Size = 4)]
+[DebuggerDisplay("#{Rgba,h} ({R}, {G}, {B} / {A})")]
 public struct Rgba32 : ISpanParsable<Rgba32>, ISpanFormattable
 {
     /// <summary>The RGBA value.</summary>
@@ -29,12 +32,8 @@ public struct Rgba32 : ISpanParsable<Rgba32>, ISpanFormattable
     public byte A;
 
     /// <summary>Initializes a new instance of the <see cref="Rgba32"/> struct.</summary>
-    public Rgba32()
-    {
-    }
-
-    /// <summary>Initializes a new instance of the <see cref="Rgba32"/> struct.</summary>
     /// <param name="rgba">The RGBA color value.</param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Rgba32(uint rgba) => this.Rgba = rgba;
 
     /// <summary>Initializes a new instance of the <see cref="Rgba32"/> struct.</summary>
@@ -42,10 +41,12 @@ public struct Rgba32 : ISpanParsable<Rgba32>, ISpanFormattable
     /// <param name="g">The green value.</param>
     /// <param name="b">The blue value.</param>
     /// <param name="a">The opacity value.</param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Rgba32(byte r, byte g, byte b, byte a = 255) => (this.R, this.G, this.B, this.A) = (r, g, b, a);
 
     /// <summary>Initializes a new instance of the <see cref="Rgba32"/> struct.</summary>
     /// <param name="color">The RGBA color value.</param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Rgba32(Vector4 color)
         : this(
             (byte)Math.Clamp(color.X * 256, 0, 255),
@@ -55,14 +56,17 @@ public struct Rgba32 : ISpanParsable<Rgba32>, ISpanFormattable
     {
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static implicit operator Rgba32(uint color) => new(color);
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static implicit operator Rgba32(Vector4 color) => new(color);
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static implicit operator uint(Rgba32 color) => color.Rgba;
 
-    public static implicit operator Vector4(Rgba32 color) =>
-        new Vector4(color.R, color.G, color.B, color.A) / byte.MaxValue;
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static implicit operator Vector4(Rgba32 color) => color.AsVector4();
 
     /// <summary>Creates an RGBA value from a BGRA value.</summary>
     /// <param name="value">The BGRA color value.</param>
@@ -97,20 +101,29 @@ public struct Rgba32 : ISpanParsable<Rgba32>, ISpanFormattable
     public static bool TryParse(ReadOnlySpan<char> s, IFormatProvider? provider, out Rgba32 result) =>
         TryParseCore(s, provider, out result) is null;
 
+    /// <summary>Gets the equivalent <see cref="Vector4"/> color value.</summary>
+    /// <returns>A new <see cref="Vector4"/>.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public readonly Vector4 AsVector4() => new Vector4(this.R, this.G, this.B, this.A) / byte.MaxValue;
+
     /// <summary>Multiplies elements by the given value.</summary>
     /// <param name="by">The mulitiplication factor.</param>
     /// <returns>The multiplied value.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public readonly Rgba32 Multiply(float by) => this.Multiply(new Vector4(by));
 
     /// <inheritdoc cref="Multiply(float)"/>
-    public readonly Rgba32 Multiply(Vector4 by) => (Vector4)this * by;
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public readonly Rgba32 Multiply(Vector4 by) => this.AsVector4() * by;
 
     /// <summary>Multiplies opacity by the given value.</summary>
     /// <param name="by">The mulitiplication factor.</param>
     /// <returns>The multiplied value.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public readonly Rgba32 MultiplyOpacity(float by) => this.Multiply(new Vector4(1, 1, 1, by));
 
     /// <inheritdoc/>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public override readonly string ToString() => $"#{this.Rgba:X08}";
 
     /// <inheritdoc/>
