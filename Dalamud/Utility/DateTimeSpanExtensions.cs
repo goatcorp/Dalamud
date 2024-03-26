@@ -15,6 +15,10 @@ public static class DateTimeSpanExtensions
 {
     private static readonly ModuleLog Log = new(nameof(DateTimeSpanExtensions));
 
+    private static readonly CultureInfo Region0CultureInfo = CultureInfo.GetCultureInfo("ja-jp");
+    private static readonly CultureInfo Region1CultureInfo = CultureInfo.GetCultureInfo("en-us");
+    private static readonly CultureInfo Region2CultureInfo = CultureInfo.GetCultureInfo("en-gb");
+
     private static ParsedRelativeFormatStrings? relativeFormatStringLong;
 
     private static ParsedRelativeFormatStrings? relativeFormatStringShort;
@@ -27,19 +31,21 @@ public static class DateTimeSpanExtensions
     public static unsafe string LocAbsolute(this DateTime when)
     {
         var culture = Service<Localization>.GetNullable()?.DalamudLanguageCultureInfo ?? CultureInfo.InvariantCulture;
-        if (!Equals(culture, CultureInfo.InvariantCulture))
-            return when.ToString("G", culture);
-
-        var framework = FFXIVClientStructs.FFXIV.Client.System.Framework.Framework.Instance();
-        var region = 0;
-        if (framework is not null)
-            region = framework->Region;
-        return region switch
+        if (Equals(culture, CultureInfo.InvariantCulture))
         {
-            1 => when.ToString("MM/dd/yyyy HH:mm:ss"), // na
-            2 => when.ToString("dd-mm-yyyy HH:mm:ss"), // eu
-            _ => when.ToString("yyyy-MM-dd HH:mm:ss"), // jp(0), cn(3), kr(4), and other possible errorneous cases
-        };
+            var framework = FFXIVClientStructs.FFXIV.Client.System.Framework.Framework.Instance();
+            var region = 0;
+            if (framework is not null)
+                region = framework->Region;
+            culture = region switch
+            {
+                1 => Region1CultureInfo,
+                2 => Region2CultureInfo,
+                _ => Region0CultureInfo,
+            };
+        }
+        
+        return when.ToString("G", culture);
     }
 
     /// <summary>Formats an instance of <see cref="DateTime"/> as a localized relative time.</summary>

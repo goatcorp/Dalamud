@@ -70,14 +70,15 @@ public class Localization : IServiceType
     public CultureInfo DalamudLanguageCultureInfo { get; private set; }
 
     /// <summary>
-    /// Gets an instance of <see cref="CultureInfo"/> that corresponds to <paramref name="langCode"/>.
+    /// Gets an instance of <see cref="CultureInfo"/> that corresponds to a Dalamud <paramref name="langCode"/>.
     /// </summary>
     /// <param name="langCode">The language code which should be in <see cref="ApplicableLangCodes"/>.</param>
     /// <returns>The corresponding instance of <see cref="CultureInfo"/>.</returns>
     public static CultureInfo GetCultureInfoFromLangCode(string langCode) =>
         CultureInfo.GetCultureInfo(langCode switch
         {
-            "tw" => "zh-tw",
+            "tw" => "zh-hant",
+            "zh" => "zh-hans",
             _ => langCode,
         });
 

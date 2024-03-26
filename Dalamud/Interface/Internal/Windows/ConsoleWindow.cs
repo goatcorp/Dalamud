@@ -345,7 +345,7 @@ internal class ConsoleWindow : Window, IDisposable
         LogEventLevel.Debug => 0x00000000,
         LogEventLevel.Information => 0x00000000,
         LogEventLevel.Warning => 0x8A0070EE,
-        LogEventLevel.Fatal => 0xFF00000A,
+        LogEventLevel.Fatal => 0x800000EE,
         _ => 0x30FFFFFF,
     };
 
