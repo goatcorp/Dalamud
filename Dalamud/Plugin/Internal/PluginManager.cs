@@ -470,10 +470,18 @@ internal partial class PluginManager : IInternalDisposableService
                 try
                 {
                     var dllFile = new FileInfo(Path.Combine(versionDir.FullName, $"{pluginDir.Name}.dll"));
-                    var manifestFile = LocalPluginManifest.GetManifestFile(dllFile);
-
-                    if (!manifestFile.Exists)
+                    if (!dllFile.Exists)
+                    {
+                        Log.Error("No DLL found for plugin at {Path}", versionDir.FullName);
                         continue;
+                    }
+                    
+                    var manifestFile = LocalPluginManifest.GetManifestFile(dllFile);
+                    if (!manifestFile.Exists)
+                    {
+                        Log.Error("No manifest for plugin at {Path}", dllFile.FullName);
+                        continue;
+                    }
 
                     var manifest = LocalPluginManifest.Load(manifestFile);
                     if (manifest == null)
@@ -494,6 +502,12 @@ internal partial class PluginManager : IInternalDisposableService
             }
 
             this.configuration.QueueSave();
+            
+            if (versionsDefs.Count == 0)
+            {
+                Log.Verbose("No versions found for plugin: {Name}", pluginDir.Name);
+                continue;
+            }
 
             try
             {
@@ -1341,12 +1355,25 @@ internal partial class PluginManager : IInternalDisposableService
         {
             try
             {
-                // We don't need to apply, it doesn't matter
-                await this.profileManager.DefaultProfile.RemoveByInternalNameAsync(repoManifest.InternalName, false);
+                // Only remove entries from the default profile that are NOT currently tied to an active LocalPlugin
+                var guidsToRemove = this.profileManager.DefaultProfile.Plugins
+                                        .Where(x => this.InstalledPlugins.All(y => y.Manifest.WorkingPluginId != x.WorkingPluginId))
+                                        .Select(x => x.WorkingPluginId)
+                                        .ToArray();
+
+                if (guidsToRemove.Length != 0)
+                {
+                    Log.Verbose("Removing {Cnt} orphaned entries from default profile", guidsToRemove.Length);
+                    foreach (var guid in guidsToRemove)
+                    {
+                        // We don't need to apply, it doesn't matter
+                        await this.profileManager.DefaultProfile.RemoveAsync(guid, false, false);
+                    }
+                }
             }
-            catch (ProfileOperationException)
+            catch (ProfileOperationException ex)
             {
-                // ignored
+                Log.Error(ex, "Error during default profile cleanup");
             }
         }
         else

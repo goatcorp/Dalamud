@@ -1,4 +1,7 @@
+using System.Threading.Tasks;
+
 using Dalamud.Interface.ImGuiNotification.Internal;
+using Dalamud.Interface.Internal;
 using Dalamud.Interface.Internal.Notifications;
 
 namespace Dalamud.Interface.ImGuiNotification;
@@ -25,6 +28,16 @@ public sealed record Notification : INotification
 
     /// <inheritdoc/>
     public INotificationIcon? Icon { get; set; }
+
+    /// <inheritdoc/>
+    public IDalamudTextureWrap? IconTexture
+    {
+        get => this.IconTextureTask?.IsCompletedSuccessfully is true ? this.IconTextureTask.Result : null;
+        set => this.IconTextureTask = value is null ? null : Task.FromResult(value);
+    }
+
+    /// <inheritdoc/>
+    public Task<IDalamudTextureWrap?>? IconTextureTask { get; set; }
 
     /// <inheritdoc/>
     public DateTime HardExpiry { get; set; } = DateTime.MaxValue;

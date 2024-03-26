@@ -363,6 +363,10 @@ internal sealed unsafe class ContextMenu : IInternalDisposableService, IContextM
                 Log.Verbose($"Opening {this.SelectedMenuType} submenu with {this.SubmenuItems.Count} custom items.");
             }
         }
+        else if (MemoryHelper.EqualsZeroTerminatedString("AddonContextMenuTitle", (nint)addonName))
+        {
+            this.MenuCallbackIds.Clear();
+        }
 
         var ret = this.raptureAtkModuleOpenAddonByAgentHook.Original(module, addonName, addon, valueCount, values, agent, a7, parentAddonId);
         if (values != oldValues)
