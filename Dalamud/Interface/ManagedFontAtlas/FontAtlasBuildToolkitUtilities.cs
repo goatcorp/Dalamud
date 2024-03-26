@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using System.Text.Unicode;
 
 using Dalamud.Interface.Utility;
 
@@ -12,6 +13,34 @@ namespace Dalamud.Interface.ManagedFontAtlas;
 /// </summary>
 public static class FontAtlasBuildToolkitUtilities
 {
+    /// <summary>Begins building a new array of <see cref="ushort"/> containing ImGui glyph ranges.</summary>
+    /// <param name="chars">The chars.</param>
+    /// <returns>A new range builder.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static FluentGlyphRangeBuilder BeginGlyphRange(this IEnumerable<char> chars) =>
+        default(FluentGlyphRangeBuilder).With(chars);
+
+    /// <summary>Begins building a new array of <see cref="ushort"/> containing ImGui glyph ranges.</summary>
+    /// <param name="chars">The chars.</param>
+    /// <returns>A new range builder.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static FluentGlyphRangeBuilder BeginGlyphRange(this ReadOnlySpan<char> chars) =>
+        default(FluentGlyphRangeBuilder).With(chars);
+
+    /// <summary>Begins building a new array of <see cref="ushort"/> containing ImGui glyph ranges.</summary>
+    /// <param name="chars">The chars.</param>
+    /// <returns>A new range builder.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static FluentGlyphRangeBuilder BeginGlyphRange(this string chars) =>
+        default(FluentGlyphRangeBuilder).With(chars);
+
+    /// <summary>Begins building a new array of <see cref="ushort"/> containing ImGui glyph ranges.</summary>
+    /// <param name="range">The unicode range.</param>
+    /// <returns>A new range builder.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static FluentGlyphRangeBuilder BeginGlyphRange(this UnicodeRange range) =>
+        default(FluentGlyphRangeBuilder).With(range);
+
     /// <summary>
     /// Compiles given <see cref="char"/>s into an array of <see cref="ushort"/> containing ImGui glyph ranges. 
     /// </summary>
@@ -19,16 +48,12 @@ public static class FontAtlasBuildToolkitUtilities
     /// <param name="addFallbackCodepoints">Add fallback codepoints to the range.</param>
     /// <param name="addEllipsisCodepoints">Add ellipsis codepoints to the range.</param>
     /// <returns>The compiled range.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static ushort[] ToGlyphRange(
         this IEnumerable<char> enumerable,
         bool addFallbackCodepoints = true,
-        bool addEllipsisCodepoints = true)
-    {
-        using var builderScoped = ImGuiHelpers.NewFontGlyphRangeBuilderPtrScoped(out var builder);
-        foreach (var c in enumerable)
-            builder.AddChar(c);
-        return builder.BuildRangesToArray(addFallbackCodepoints, addEllipsisCodepoints);
-    }
+        bool addEllipsisCodepoints = true) =>
+        enumerable.BeginGlyphRange().Build(addFallbackCodepoints, addEllipsisCodepoints);
 
     /// <summary>
     /// Compiles given <see cref="char"/>s into an array of <see cref="ushort"/> containing ImGui glyph ranges. 
@@ -37,16 +62,12 @@ public static class FontAtlasBuildToolkitUtilities
     /// <param name="addFallbackCodepoints">Add fallback codepoints to the range.</param>
     /// <param name="addEllipsisCodepoints">Add ellipsis codepoints to the range.</param>
     /// <returns>The compiled range.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static ushort[] ToGlyphRange(
         this ReadOnlySpan<char> span,
         bool addFallbackCodepoints = true,
-        bool addEllipsisCodepoints = true)
-    {
-        using var builderScoped = ImGuiHelpers.NewFontGlyphRangeBuilderPtrScoped(out var builder);
-        foreach (var c in span)
-            builder.AddChar(c);
-        return builder.BuildRangesToArray(addFallbackCodepoints, addEllipsisCodepoints);
-    }
+        bool addEllipsisCodepoints = true) =>
+        span.BeginGlyphRange().Build(addFallbackCodepoints, addEllipsisCodepoints);
 
     /// <summary>
     /// Compiles given string into an array of <see cref="ushort"/> containing ImGui glyph ranges. 
@@ -55,11 +76,12 @@ public static class FontAtlasBuildToolkitUtilities
     /// <param name="addFallbackCodepoints">Add fallback codepoints to the range.</param>
     /// <param name="addEllipsisCodepoints">Add ellipsis codepoints to the range.</param>
     /// <returns>The compiled range.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static ushort[] ToGlyphRange(
         this string @string,
         bool addFallbackCodepoints = true,
         bool addEllipsisCodepoints = true) =>
-        @string.AsSpan().ToGlyphRange(addFallbackCodepoints, addEllipsisCodepoints);
+        @string.BeginGlyphRange().Build(addFallbackCodepoints, addEllipsisCodepoints);
 
     /// <summary>
     /// Finds the corresponding <see cref="ImFontConfigPtr"/> in

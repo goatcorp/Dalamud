@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Globalization;
+using System.IO;
 using System.Runtime.InteropServices;
 
 using Dalamud.Interface.FontIdentifier;
@@ -7,6 +8,8 @@ using Dalamud.Interface.Utility;
 using Dalamud.Utility;
 
 using ImGuiNET;
+
+using TerraFX.Interop.DirectX;
 
 namespace Dalamud.Interface.ManagedFontAtlas;
 
@@ -216,10 +219,35 @@ public interface IFontAtlasBuildToolkitPreBuild : IFontAtlasBuildToolkit
     /// <returns>The added font.</returns>
     ImFontPtr AddGameGlyphs(GameFontStyle gameFontStyle, ushort[]? glyphRanges, ImFontPtr mergeFont);
 
+    /// <summary>Adds glyphs from the Windows default font for the given culture info into the provided font.</summary>
+    /// <param name="cultureInfo">The culture info.</param>
+    /// <param name="fontConfig">The font config. If <see cref="SafeFontConfig.MergeFont"/> is not set, then
+    /// <see cref="IFontAtlasBuildToolkit.Font"/> will be used as the target. If that is empty too, then it will do
+    /// nothing.</param>
+    /// <param name="weight">The font weight, in range from <c>1</c> to <c>1000</c>. <c>400</c> is regular(normal).
+    /// </param>
+    /// <param name="stretch">The font stretch, in range from <c>1</c> to <c>9</c>. <c>5</c> is medium(normal).
+    /// </param>
+    /// <param name="style">The font style, in range from <c>0</c> to <c>2</c>. <c>0</c> is normal.</param>
+    /// <remarks>
+    /// <para>May do nothing at all if <paramref name="cultureInfo"/> is unsupported by Dalamud font handler.</para> 
+    /// <para>See
+    /// <a href="https://learn.microsoft.com/en-us/windows/apps/design/globalizing/loc-international-fonts">Microsoft
+    /// Learn</a> for the fonts.</para>
+    /// </remarks>
+    void AttachWindowsDefaultFont(
+        CultureInfo cultureInfo,
+        in SafeFontConfig fontConfig,
+        int weight = (int)DWRITE_FONT_WEIGHT.DWRITE_FONT_WEIGHT_NORMAL,
+        int stretch = (int)DWRITE_FONT_STRETCH.DWRITE_FONT_STRETCH_NORMAL,
+        int style = (int)DWRITE_FONT_STYLE.DWRITE_FONT_STYLE_NORMAL);
+
     /// <summary>
     /// Adds glyphs of extra languages into the provided font, depending on Dalamud Configuration.<br />
     /// <see cref="SafeFontConfig.GlyphRanges"/> will be ignored.
     /// </summary>
-    /// <param name="fontConfig">The font config.</param>
+    /// <param name="fontConfig">The font config. If <see cref="SafeFontConfig.MergeFont"/> is not set, then
+    /// <see cref="IFontAtlasBuildToolkit.Font"/> will be used as the target. If that is empty too, then it will do
+    /// nothing.</param>
     void AttachExtraGlyphsForDalamudLanguage(in SafeFontConfig fontConfig);
 }
