@@ -1,7 +1,9 @@
 using System.Linq;
 using System.Numerics;
 
+using Dalamud.Configuration.Internal;
 using Dalamud.Game.Gui;
+using Dalamud.Interface.Colors;
 using Dalamud.Interface.Components;
 using Dalamud.Interface.Internal.Windows.Data.Widgets;
 using Dalamud.Interface.Utility;
@@ -59,6 +61,7 @@ internal class DataWindow : Window, IDisposable
 
     private readonly IOrderedEnumerable<IDataWindowWidget> orderedModules;
 
+    private bool showDebugWidgets;
     private bool isExcept;
     private bool selectionCollapsed;
     private IDataWindowWidget currentWidget;
@@ -66,9 +69,13 @@ internal class DataWindow : Window, IDisposable
     /// <summary>
     /// Initializes a new instance of the <see cref="DataWindow"/> class.
     /// </summary>
-    public DataWindow()
+    /// <param name="configuration">An instance of <see cref="DalamudConfiguration"/>.</param>
+    public DataWindow(DalamudConfiguration configuration)
         : base("Dalamud Data", ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse)
     {
+        this.showDebugWidgets = configuration.DataShowDebug;
+        Service<DalamudConfiguration>.Get().DalamudConfigurationSaved += this.OnDalamudConfigurationSaved;
+
         this.Size = new Vector2(400, 300);
         this.SizeCondition = ImGuiCond.FirstUseEver;
 
@@ -80,7 +87,11 @@ internal class DataWindow : Window, IDisposable
     }
 
     /// <inheritdoc/>
-    public void Dispose() => this.modules.OfType<IDisposable>().AggregateToDisposable().Dispose();
+    public void Dispose()
+    {
+        this.modules.OfType<IDisposable>().AggregateToDisposable().Dispose();
+        Service<DalamudConfiguration>.Get().DalamudConfigurationSaved -= this.OnDalamudConfigurationSaved;
+    }
 
     /// <inheritdoc/>
     public override void OnOpen()
@@ -146,9 +157,20 @@ internal class DataWindow : Window, IDisposable
             {
                 foreach (var widget in this.orderedModules)
                 {
+                    if (!this.showDebugWidgets && widget is IDebugWidget) continue;
+                    
                     if (ImGui.Selectable(widget.DisplayName, this.currentWidget == widget))
                     {
                         this.currentWidget = widget;
+                    }
+
+                    if (widget is IDebugWidget)
+                    {
+                        ImGui.SameLine();
+                        ImGui.PushFont(UiBuilder.IconFont);
+                        ImGui.SetCursorPosX(ImGui.GetContentRegionMax().X - ImGui.CalcTextSize(FontAwesomeIcon.Bug.ToIconString()).X);
+                        ImGui.Text(FontAwesomeIcon.Bug.ToIconString());
+                        ImGui.PopFont();
                     }
                 }
 
@@ -187,8 +209,48 @@ internal class DataWindow : Window, IDisposable
 
             ImGui.SameLine();
 
+            if (this.DrawToggleButtonWithTooltip("showDebug", "Show Debug Widgets", FontAwesomeIcon.Bug, ref this.showDebugWidgets))
+            {
+                var dalamudConfiguration = Service<DalamudConfiguration>.Get();
+                
+                dalamudConfiguration.DataShowDebug = !this.showDebugWidgets;
+                dalamudConfiguration.QueueSave();
+
+                if (!this.showDebugWidgets && this.currentWidget is IDebugWidget)
+                {
+                    this.currentWidget = this.orderedModules.First();
+                }
+            }
+
+            ImGui.SameLine();
+
             var copy = ImGuiComponents.IconButton("copyAll", FontAwesomeIcon.ClipboardList);
 
+            ImGui.SameLine();
+            ImGui.SetCursorPosX(ImGui.GetContentRegionMax().X - ImGui.GetItemRectSize().X);
+            if (ImGuiComponents.IconButton("popOut", FontAwesomeIcon.ArrowUpRightFromSquare))
+            {
+                var dalamudInterface = Service<DalamudInterface>.Get();
+
+                if (dalamudInterface.WindowSystem.Windows.FirstOrDefault(window => window.WindowName == this.currentWidget.DisplayName) is { } targetWidgetWindow)
+                {
+                    if (targetWidgetWindow is { IsOpen: false } or { Collapsed: true })
+                    {
+                        targetWidgetWindow.IsOpen = true;
+                        targetWidgetWindow.Collapsed = false;
+                    }
+                }
+                else
+                {
+                    dalamudInterface.WindowSystem.AddWindow(new DataWidgetPopoutWindow(this.currentWidget) { IsOpen = true });
+                }
+            }
+            
+            if (ImGui.IsItemHovered())
+            {
+                ImGui.SetTooltip("Popout Widget into New Window");
+            }
+            
             ImGuiHelpers.ScaledDummy(10.0f);
 
             if (ImGui.BeginChild("XlData_WidgetContents", ImGui.GetContentRegionAvail()))
@@ -234,5 +296,28 @@ internal class DataWindow : Window, IDisposable
         {
             widget.Load();
         }
+    }
+    
+    private void OnDalamudConfigurationSaved(DalamudConfiguration dalamudConfiguration)
+    {
+        this.showDebugWidgets = dalamudConfiguration.DataShowDebug;
+    }
+    
+    private bool DrawToggleButtonWithTooltip(string buttonId, string tooltip, FontAwesomeIcon icon, ref bool enabledState)
+    {
+        var result = false;
+
+        var buttonEnabled = enabledState;
+        if (buttonEnabled) ImGui.PushStyleColor(ImGuiCol.Button, ImGuiColors.HealerGreen with { W = 0.25f });
+        if (ImGuiComponents.IconButton(buttonId, icon))
+        {
+            result = true;
+        }
+
+        if (ImGui.IsItemHovered()) ImGui.SetTooltip(tooltip);
+
+        if (buttonEnabled) ImGui.PopStyleColor();
+
+        return result;
     }
 }

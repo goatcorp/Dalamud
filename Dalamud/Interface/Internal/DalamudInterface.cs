@@ -111,7 +111,7 @@ internal class DalamudInterface : IInternalDisposableService
         
         this.colorDemoWindow = new ColorDemoWindow() { IsOpen = false };
         this.componentDemoWindow = new ComponentDemoWindow() { IsOpen = false };
-        this.dataWindow = new DataWindow() { IsOpen = false };
+        this.dataWindow = new DataWindow(configuration) { IsOpen = false };
         this.gamepadModeNotifierWindow = new GamepadModeNotifierWindow() { IsOpen = false };
         this.consoleWindow = new ConsoleWindow(configuration) { IsOpen = configuration.LogOpenAtStartup };
         this.pluginStatWindow = new PluginStatWindow() { IsOpen = false };
