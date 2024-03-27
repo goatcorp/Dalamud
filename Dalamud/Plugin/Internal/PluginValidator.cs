@@ -11,6 +11,8 @@ namespace Dalamud.Plugin.Internal;
 /// </summary>
 internal static class PluginValidator
 {
+    private static readonly char[] LineSeparator = new[] { ' ', '\n', '\r' };
+    
     /// <summary>
     /// Represents the severity of a validation problem.
     /// </summary>
@@ -48,7 +50,7 @@ internal static class PluginValidator
         /// <returns>Localized string to be shown to the developer.</returns>
         public string GetLocalizedDescription();
     }
-    
+
     /// <summary>
     /// Check for problems in a plugin.
     /// </summary>
@@ -74,6 +76,12 @@ internal static class PluginValidator
             if (string.IsNullOrEmpty(cmd.Value.HelpMessage))
                 problems.Add(new CommandWithoutHelpTextProblem(cmd.Key));
         }
+        
+        if (plugin.Manifest.Tags == null || plugin.Manifest.Tags.Count == 0)
+            problems.Add(new NoTagsProblem());
+        
+        if (string.IsNullOrEmpty(plugin.Manifest.Description) || plugin.Manifest.Description.Split(LineSeparator, StringSplitOptions.RemoveEmptyEntries).Length <= 2)
+            problems.Add(new NoDescriptionProblem());
         
         return problems;
     }
@@ -113,5 +121,29 @@ internal static class PluginValidator
 
         /// <inheritdoc/>
         public string GetLocalizedDescription() => $"The plugin has a command ({commandName}) without a help message. Please consider adding a help message to the command when registering it.";
+    }
+
+    /// <summary>
+    /// Representing a problem where a plugin does not have any tags in its manifest.
+    /// </summary>
+    public class NoTagsProblem : IValidationProblem
+    {
+        /// <inheritdoc/>
+        public ValidationSeverity Severity => ValidationSeverity.Information;
+
+        /// <inheritdoc/>
+        public string GetLocalizedDescription() => "Your plugin does not have any tags in its manifest. Please consider adding some to make it easier for users to find your plugin in the installer.";
+    }
+    
+    /// <summary>
+    /// Representing a problem where a plugin does not have a description in its manifest.
+    /// </summary>
+    public class NoDescriptionProblem : IValidationProblem
+    {
+        /// <inheritdoc/>
+        public ValidationSeverity Severity => ValidationSeverity.Information;
+
+        /// <inheritdoc/>
+        public string GetLocalizedDescription() => "Your plugin does not have a description in its manifest, or it is very terse. Please consider adding one to give users more information about your plugin.";
     }
 }
