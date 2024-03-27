@@ -80,8 +80,17 @@ internal static class PluginValidator
         if (plugin.Manifest.Tags == null || plugin.Manifest.Tags.Count == 0)
             problems.Add(new NoTagsProblem());
         
-        if (string.IsNullOrEmpty(plugin.Manifest.Description) || plugin.Manifest.Description.Split(LineSeparator, StringSplitOptions.RemoveEmptyEntries).Length <= 2)
+        if (string.IsNullOrEmpty(plugin.Manifest.Description) || plugin.Manifest.Description.Split(LineSeparator, StringSplitOptions.RemoveEmptyEntries).Length <= 1)
             problems.Add(new NoDescriptionProblem());
+        
+        if (string.IsNullOrEmpty(plugin.Manifest.Punchline))
+            problems.Add(new NoPunchlineProblem());
+        
+        if (string.IsNullOrEmpty(plugin.Manifest.Name))
+            problems.Add(new NoNameProblem());
+        
+        if (string.IsNullOrEmpty(plugin.Manifest.Author))
+            problems.Add(new NoAuthorProblem());
         
         return problems;
     }
@@ -145,5 +154,41 @@ internal static class PluginValidator
 
         /// <inheritdoc/>
         public string GetLocalizedDescription() => "Your plugin does not have a description in its manifest, or it is very terse. Please consider adding one to give users more information about your plugin.";
+    }
+    
+    /// <summary>
+    /// Representing a problem where a plugin has no punchline in its manifest.
+    /// </summary>
+    public class NoPunchlineProblem : IValidationProblem
+    {
+        /// <inheritdoc/>
+        public ValidationSeverity Severity => ValidationSeverity.Information;
+
+        /// <inheritdoc/>
+        public string GetLocalizedDescription() => "Your plugin does not have a punchline in its manifest. Please consider adding one to give users a quick overview of what your plugin does.";
+    }
+    
+    /// <summary>
+    /// Representing a problem where a plugin has no name in its manifest.
+    /// </summary>
+    public class NoNameProblem : IValidationProblem
+    {
+        /// <inheritdoc/>
+        public ValidationSeverity Severity => ValidationSeverity.Fatal;
+
+        /// <inheritdoc/>
+        public string GetLocalizedDescription() => "Your plugin does not have a name in its manifest.";
+    }
+    
+    /// <summary>
+    /// Representing a problem where a plugin has no author in its manifest.
+    /// </summary>
+    public class NoAuthorProblem : IValidationProblem
+    {
+        /// <inheritdoc/>
+        public ValidationSeverity Severity => ValidationSeverity.Fatal;
+
+        /// <inheritdoc/>
+        public string GetLocalizedDescription() => "Your plugin does not have an author in its manifest.";
     }
 }
