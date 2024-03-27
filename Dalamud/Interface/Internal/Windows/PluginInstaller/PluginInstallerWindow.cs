@@ -2986,23 +2986,53 @@ internal class PluginInstallerWindow : Window, IDisposable
             }
             else
             {
-                ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudOrange);
-                using (var tree = ImRaii.TreeNode($"Found {problems.Count} validation issue{(problems.Count > 1 ? "s" : string.Empty)} in this plugin!"))
+                var numValidProblems = problems.Count(
+                    problem => devPlugin.DismissedValidationProblems.All(name => name != problem.GetType().Name));
+                var shouldBother = numValidProblems > 0;
+                var validationIssuesText = shouldBother ?
+                    $"Found {problems.Count} validation issue{(problems.Count > 1 ? "s" : string.Empty)} in this plugin!" :
+                    $"{problems.Count} dismissed validation issue{(problems.Count > 1 ? "s" : string.Empty)} in this plugin.";
+                
+                using var col = ImRaii.PushColor(ImGuiCol.Text, shouldBother ? ImGuiColors.DalamudOrange : ImGuiColors.DalamudGrey);
+                using var tree = ImRaii.TreeNode($"{validationIssuesText}###validationIssueCollapsible");
+                if (tree.Success)
                 {
-                    if (tree.Success)
+                    foreach (var problem in problems)
                     {
-                        foreach (var problem in problems)
-                        {
-                            ImGui.PushStyleColor(ImGuiCol.Text, problem.Severity switch
-                            {
-                                PluginValidator.ValidationSeverity.Fatal => ImGuiColors.DalamudRed,
-                                PluginValidator.ValidationSeverity.Warning => ImGuiColors.DalamudOrange,
-                                PluginValidator.ValidationSeverity.Information => ImGuiColors.TankBlue,
-                                _ => ImGuiColors.DalamudGrey,
-                            });
-                                    
-                            ImGui.PushFont(InterfaceManager.IconFont);
+                        var thisProblemIsDismissed = devPlugin.DismissedValidationProblems.Contains(problem.GetType().Name);
 
+                        if (!thisProblemIsDismissed)
+                        {
+                            using (ImRaii.PushColor(ImGuiCol.Text, ImGuiColors.DalamudWhite))
+                            {
+                                if (ImGuiComponents.IconButton(
+                                        $"##dismissValidationIssue{problem.GetType().Name}",
+                                        FontAwesomeIcon.TimesCircle))
+                                {
+                                    devPlugin.DismissedValidationProblems.Add(problem.GetType().Name);
+                                    Service<DalamudConfiguration>.Get().QueueSave();
+                                }
+                            
+                                if (ImGui.IsItemHovered())
+                                {
+                                    ImGui.SetTooltip("Dismiss this issue");
+                                }
+                            }
+
+                            ImGui.SameLine();
+                        }
+
+                        var iconColor = problem.Severity switch
+                        {
+                            PluginValidator.ValidationSeverity.Fatal => ImGuiColors.DalamudRed,
+                            PluginValidator.ValidationSeverity.Warning => ImGuiColors.DalamudOrange,
+                            PluginValidator.ValidationSeverity.Information => ImGuiColors.TankBlue,
+                            _ => ImGuiColors.DalamudGrey,
+                        };
+
+                        using (ImRaii.PushColor(ImGuiCol.Text, iconColor))
+                        using (ImRaii.PushFont(InterfaceManager.IconFont))
+                        {
                             switch (problem.Severity)
                             {
                                 case PluginValidator.ValidationSeverity.Fatal:
@@ -3017,16 +3047,16 @@ internal class PluginInstallerWindow : Window, IDisposable
                                 default:
                                     throw new ArgumentOutOfRangeException();
                             }
+                        }
                             
-                            ImGui.PopFont();
-                            ImGui.SameLine();
+                        ImGui.SameLine();
+
+                        using (ImRaii.PushColor(ImGuiCol.Text, thisProblemIsDismissed ? ImGuiColors.DalamudGrey : ImGuiColors.DalamudWhite))
+                        {
                             ImGuiHelpers.SafeTextWrapped(problem.GetLocalizedDescription());
-                            ImGui.PopStyleColor();
                         }
                     }
                 }
-                        
-                ImGui.PopStyleColor();
             }
         }
     }
