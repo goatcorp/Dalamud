@@ -2458,6 +2458,12 @@ internal class PluginInstallerWindow : Window, IDisposable
                 }
             }
 
+            if (plugin is LocalDevPlugin devPlugin)
+            {
+                this.DrawDevPluginValidationIssues(devPlugin);
+                ImGuiHelpers.ScaledDummy(5);
+            }
+
             // Controls
             this.DrawPluginControlButton(plugin, availablePluginUpdate);
             this.DrawDevPluginButtons(plugin);
@@ -2958,6 +2964,70 @@ internal class PluginInstallerWindow : Window, IDisposable
         if (ImGui.IsItemHovered())
         {
             ImGui.SetTooltip(Locs.FeedbackModal_Title);
+        }
+    }
+
+    private void DrawDevPluginValidationIssues(LocalDevPlugin devPlugin)
+    {
+        if (!devPlugin.IsLoaded)
+        {
+            ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudGrey, "You have to load this plugin to see validation issues.");
+        }
+        else
+        {
+            var problems = PluginValidator.CheckForProblems(devPlugin);
+            if (problems.Count == 0)
+            {
+                ImGui.PushFont(InterfaceManager.IconFont);
+                ImGui.Text(FontAwesomeIcon.Check.ToIconString());
+                ImGui.PopFont();
+                ImGui.SameLine();
+                ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.HealerGreen, "No validation issues found in this plugin!");
+            }
+            else
+            {
+                ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudOrange);
+                using (var tree = ImRaii.TreeNode($"Found {problems.Count} validation issue{(problems.Count > 1 ? "s" : string.Empty)} in this plugin!"))
+                {
+                    if (tree.Success)
+                    {
+                        foreach (var problem in problems)
+                        {
+                            ImGui.PushStyleColor(ImGuiCol.Text, problem.Severity switch
+                            {
+                                PluginValidator.ValidationSeverity.Fatal => ImGuiColors.DalamudRed,
+                                PluginValidator.ValidationSeverity.Warning => ImGuiColors.DalamudOrange,
+                                PluginValidator.ValidationSeverity.Information => ImGuiColors.TankBlue,
+                                _ => ImGuiColors.DalamudGrey,
+                            });
+                                    
+                            ImGui.PushFont(InterfaceManager.IconFont);
+
+                            switch (problem.Severity)
+                            {
+                                case PluginValidator.ValidationSeverity.Fatal:
+                                    ImGui.Text(FontAwesomeIcon.TimesCircle.ToIconString());
+                                    break;
+                                case PluginValidator.ValidationSeverity.Warning:
+                                    ImGui.Text(FontAwesomeIcon.ExclamationTriangle.ToIconString());
+                                    break;
+                                case PluginValidator.ValidationSeverity.Information:
+                                    ImGui.Text(FontAwesomeIcon.InfoCircle.ToIconString());
+                                    break;
+                                default:
+                                    throw new ArgumentOutOfRangeException();
+                            }
+                            
+                            ImGui.PopFont();
+                            ImGui.SameLine();
+                            ImGuiHelpers.SafeTextWrapped(problem.GetLocalizedDescription());
+                            ImGui.PopStyleColor();
+                        }
+                    }
+                }
+                        
+                ImGui.PopStyleColor();
+            }
         }
     }
 
