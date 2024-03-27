@@ -15,7 +15,7 @@ public partial class ControlSpannable
     private bool enabled = true;
     private bool focusable;
     private bool visible = true;
-    private bool clipChildren = false;
+    private bool clipChildren = true;
     private string? text;
     private TextState.Options textStateOptions;
     private float scale = 1f;
@@ -66,6 +66,7 @@ public partial class ControlSpannable
     }
 
     /// <summary>Gets or sets a value indicating whether this control is visible.</summary>
+    // TODO: a property indicating whether to assume zero size when invisible, so that it can skip measure pass
     public bool Visible
     {
         get => this.visible;
