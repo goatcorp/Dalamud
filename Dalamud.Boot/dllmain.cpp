@@ -117,6 +117,7 @@ HRESULT WINAPI InitializeImpl(LPVOID lpParam, HANDLE hMainThreadContinue) {
     const auto result = InitializeClrAndGetEntryPoint(
         g_hModule,
         g_startInfo.BootEnableEtw,
+        g_startInfo.BootEnableGcServer,
         runtimeconfig_path,
         module_path,
         L"Dalamud.EntryPoint, Dalamud",

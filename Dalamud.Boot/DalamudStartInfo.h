@@ -54,6 +54,7 @@ struct DalamudStartInfo {
     bool BootVehEnabled = false;
     bool BootVehFull = false;
     bool BootEnableEtw = false;
+    bool BootEnableGcServer = false;
     DotNetOpenProcessHookMode BootDotnetOpenProcessHookMode = DotNetOpenProcessHookMode::ImportHooks;
     std::set<std::string> BootEnabledGameFixes{};
     std::set<std::string> BootUnhookDlls{};

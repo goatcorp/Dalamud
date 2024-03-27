@@ -394,6 +394,7 @@ namespace Dalamud.Injector
             // Set boot defaults
             startInfo.BootShowConsole = args.Contains("--console");
             startInfo.BootEnableEtw = args.Contains("--etw");
+            startInfo.BootEnableGcServer = args.Contains("--gc-server");
             startInfo.BootLogPath = GetLogPath(startInfo.LogPath, "dalamud.boot", startInfo.LogName);
             startInfo.BootEnabledGameFixes = new()
             {
