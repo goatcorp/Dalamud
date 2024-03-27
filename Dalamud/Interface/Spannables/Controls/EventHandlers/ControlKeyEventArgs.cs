@@ -30,4 +30,13 @@ public record ControlKeyEventArgs : SpannableControlEventArgs
     /// <summary>Gets or sets the keyboard code for a <see cref="ControlSpannable.KeyDown"/> or
     /// <see cref="ControlSpannable.KeyUp"/> event.</summary>
     public ImGuiKey KeyCode { get; set; }
+
+    /// <inheritdoc/>
+    public override bool TryReset()
+    {
+        this.Handled = this.Control = this.Alt = this.Shift = false;
+        this.Modifiers = default;
+        this.KeyCode = default;
+        return base.TryReset();
+    }
 }

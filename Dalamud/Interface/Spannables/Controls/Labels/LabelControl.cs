@@ -4,6 +4,7 @@ using System.Numerics;
 using System.Runtime.InteropServices;
 
 using Dalamud.Interface.Spannables.Controls.EventHandlers;
+using Dalamud.Interface.Spannables.Helpers;
 using Dalamud.Interface.Spannables.RenderPassMethodArgs;
 using Dalamud.Interface.Spannables.Text;
 using Dalamud.Utility;
@@ -93,7 +94,7 @@ public class LabelControl : ControlSpannable
     }
 
     /// <summary>Gets or sets the text margin, which is the gap between icons and the text.</summary>
-    /// <remarks>The value will be scaled by <see cref="ControlSpannable.Scale"/>.</remarks>
+    /// <remarks>The value will be scaled by <see cref="ControlSpannable.EffectiveScale"/>.</remarks>
     public BorderVector4 TextMargin
     {
         get => this.textMargin;
@@ -206,15 +207,18 @@ public class LabelControl : ControlSpannable
             ref var rp = ref this.iconSpannableRenderPasses[i];
             rp ??= sp.RentRenderPass(this.Renderer);
             args.NotifyChild(
-                sp,
                 rp,
                 this.innerIdIconBase + i,
-                Vector2.Zero,
-                (args.MaxSize - (this.textMargin.Size * this.Scale)).Round(),
-                this.ActiveTextState);
+                args with
+                {
+                    Scale = this.EffectiveScale,
+                    MinSize = Vector2.Zero,
+                    MaxSize = args.MaxSize - this.textMargin.Size,
+                    TextState = this.ActiveTextState.Fork(),
+                });
         }
 
-        var totalIconSize = this.textMargin.Size * this.Scale;
+        var totalIconSize = this.textMargin.Size;
         totalIconSize.X += this.iconSpannableRenderPasses[0]?.Boundary.Width ?? 0;
         totalIconSize.X += this.iconSpannableRenderPasses[2]?.Boundary.Width ?? 0;
         totalIconSize.Y += this.iconSpannableRenderPasses[1]?.Boundary.Height ?? 0;
@@ -223,25 +227,29 @@ public class LabelControl : ControlSpannable
         var spannable = this.ActiveSpannable;
         this.activeSpannableRenderPass ??= spannable.RentRenderPass(this.Renderer);
         args.NotifyChild(
-            spannable,
             this.activeSpannableRenderPass,
             this.innerIdText,
-            Vector2.Max(Vector2.Zero, args.MinSize - totalIconSize).Round(),
-            Vector2.Max(Vector2.Zero, args.MaxSize - totalIconSize).Round(),
-            this.ActiveTextState);
+            args with
+            {
+                Scale = this.EffectiveScale,
+                MinSize = Vector2.Max(Vector2.Zero, args.MinSize - totalIconSize),
+                MaxSize = Vector2.Max(Vector2.Zero, args.MaxSize - totalIconSize),
+                TextState = this.ActiveTextState.Fork(),
+            });
 
-        var b = RectVector4.Normalize(this.activeSpannableRenderPass.Boundary).RightBottom;
+        var bb = RectVector4.Normalize(this.activeSpannableRenderPass.Boundary);
+        var b = Vector2.Max(bb.Size, bb.RightBottom);
         b += totalIconSize;
         b.X = Math.Max(b.X, this.iconSpannableRenderPasses[1]?.Boundary.Width ?? 0);
         b.X = Math.Max(b.X, this.iconSpannableRenderPasses[3]?.Boundary.Width ?? 0);
         b.Y = Math.Max(b.Y, this.iconSpannableRenderPasses[0]?.Boundary.Height ?? 0);
         b.Y = Math.Max(b.Y, this.iconSpannableRenderPasses[2]?.Boundary.Height ?? 0);
 
-        if (!this.IsWidthWrapContent && args.SuggestedSize.X < float.MaxValue)
+        if (!this.IsWidthWrapContent && args.SuggestedSize.X < float.PositiveInfinity)
             b.X = args.SuggestedSize.X;
-        if (!this.IsHeightWrapContent && args.SuggestedSize.Y < float.MaxValue)
+        if (!this.IsHeightWrapContent && args.SuggestedSize.Y < float.PositiveInfinity)
             b.Y = args.SuggestedSize.Y;
-        return RectVector4.FromCoordAndSize(Vector2.Zero, Vector2.Clamp(b, args.MinSize, args.MaxSize).Round());
+        return RectVector4.FromCoordAndSize(Vector2.Zero, b);
     }
 
     /// <inheritdoc/>
@@ -255,7 +263,7 @@ public class LabelControl : ControlSpannable
         // Icons get all the space they want. They may overlap.
         for (var i = 0; i < IconSlotCount; i++)
         {
-            if (this.IconSpannables[i] is not { } sp || this.iconSpannableRenderPasses[i] is not { } rp)
+            if (this.iconSpannableRenderPasses[i] is not { } rp)
                 continue;
             var iconLt = Vector2.Zero;
             switch (i)
@@ -279,8 +287,8 @@ public class LabelControl : ControlSpannable
             else
                 iconLt.X += (this.MeasuredContentBox.Width - rp.Boundary.Width) / 2f;
 
-            iconLt = new(MathF.Round(iconLt.X), MathF.Round(iconLt.Y));
-            args.SpannableArgs.NotifyChild(sp, rp, iconLt, Matrix4x4.Identity);
+            iconLt = iconLt.Round(1f / this.EffectiveScale);
+            args.SpannableArgs.NotifyChild(rp, args.SpannableArgs, Matrix4x4.CreateTranslation(new(iconLt, 0)));
         }
 
         var lt =
@@ -288,20 +296,22 @@ public class LabelControl : ControlSpannable
             + new Vector2(
                 this.iconSpannableRenderPasses[0]?.Boundary.Width ?? 0,
                 this.iconSpannableRenderPasses[1]?.Boundary.Height ?? 0)
-            + (this.textMargin.LeftTop * this.Scale);
+            + this.textMargin.LeftTop;
         var rb =
             this.MeasuredContentBox.RightBottom
             - new Vector2(
                 this.iconSpannableRenderPasses[2]?.Boundary.Width ?? 0,
                 this.iconSpannableRenderPasses[3]?.Boundary.Height ?? 0)
-            - (this.textMargin.RightBottom * this.Scale);
+            - this.textMargin.RightBottom;
 
         // If we don't have enough space for the text, try to center align it.
         var availTextSize = rb - lt;
-        lt -= ((this.activeSpannableRenderPass.Boundary.Size - availTextSize) * this.alignment).Round();
-
-        lt = new(MathF.Round(lt.X), MathF.Round(lt.Y));
-        args.SpannableArgs.NotifyChild(this.ActiveSpannable, this.activeSpannableRenderPass, lt, Matrix4x4.Identity);
+        lt -= (this.activeSpannableRenderPass.Boundary.Size - availTextSize) * this.alignment;
+        lt = lt.Round(1f / this.EffectiveScale);
+        args.SpannableArgs.NotifyChild(
+            this.activeSpannableRenderPass,
+            args.SpannableArgs,
+            Matrix4x4.CreateTranslation(new(lt, 0)));
     }
 
     /// <inheritdoc/>
@@ -314,12 +324,12 @@ public class LabelControl : ControlSpannable
 
         for (var i = 0; i < IconSlotCount; i++)
         {
-            if (this.IconSpannables[i] is not { } sp || this.iconSpannableRenderPasses[i] is not { } rp)
+            if (this.iconSpannableRenderPasses[i] is not { } rp)
                 continue;
-            args.SpannableArgs.NotifyChild(sp, rp);
+            args.SpannableArgs.NotifyChild(rp, args.SpannableArgs);
         }
 
-        args.SpannableArgs.NotifyChild(this.ActiveSpannable, this.activeSpannableRenderPass);
+        args.SpannableArgs.NotifyChild(this.activeSpannableRenderPass, args.SpannableArgs);
     }
 
     /// <inheritdoc/>
@@ -336,28 +346,22 @@ public class LabelControl : ControlSpannable
         {
             if (this.activeSpannableRenderPass is not null && this.Enabled)
             {
-                args.SpannableArgs.NotifyChild(
-                    this.ActiveSpannable,
-                    this.activeSpannableRenderPass,
-                    out _);
+                args.SpannableArgs.NotifyChild(this.activeSpannableRenderPass, args.SpannableArgs, out _);
             }
         }
         else if (this.activeSpannableRenderPass is not null && this.Enabled)
         {
-            args.SpannableArgs.NotifyChild(
-                this.ActiveSpannable,
-                this.activeSpannableRenderPass,
-                out link);
+            args.SpannableArgs.NotifyChild(this.activeSpannableRenderPass, args.SpannableArgs, out link);
         }
 
         for (var i = 0; i < IconSlotCount; i++)
         {
-            if (this.IconSpannables[i] is not { } sp || this.iconSpannableRenderPasses[i] is not { } rp)
+            if (this.iconSpannableRenderPasses[i] is not { } rp)
                 continue;
             if (!link.IsEmpty)
-                args.SpannableArgs.NotifyChild(sp, rp, out link);
+                args.SpannableArgs.NotifyChild(rp, args.SpannableArgs, out link);
             else
-                args.SpannableArgs.NotifyChild(sp, rp, out _);
+                args.SpannableArgs.NotifyChild(rp, args.SpannableArgs, out _);
         }
 
         Debug.Assert(this.lastLink is not null, "LastLink must not be null if not disposed");
@@ -365,7 +369,7 @@ public class LabelControl : ControlSpannable
         ControlMouseLinkEventArgs? e = null;
         if (!this.lastLink!.GetDataSpan().SequenceEqual(link.Link))
         {
-            e = ControlEventArgsPool.Rent<ControlMouseLinkEventArgs>();
+            e = SpannableControlEventArgsPool.Rent<ControlMouseLinkEventArgs>();
             e.Sender = this;
             e.Link = this.lastLink.GetDataMemory();
 
@@ -382,13 +386,13 @@ public class LabelControl : ControlSpannable
 
         if (link.IsMouseClicked)
         {
-            e ??= ControlEventArgsPool.Rent<ControlMouseLinkEventArgs>();
+            e ??= SpannableControlEventArgsPool.Rent<ControlMouseLinkEventArgs>();
             e.Sender = this;
             e.Link = this.lastLink.GetDataMemory();
             this.OnLinkMouseClick(e);
         }
 
-        ControlEventArgsPool.Return(e);
+        SpannableControlEventArgsPool.Return(e);
     }
 
     /// <summary>Raises the <see cref="LinkMouseEnter"/> event.</summary>

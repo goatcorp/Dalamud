@@ -54,7 +54,10 @@ public abstract partial class TextSpannableBase
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void UnionLineBBoxVertical(ref MeasuredLine line) =>
-            line.UnionBBoxVertical(this.fontInfo.BBoxVertical.X, this.fontInfo.BBoxVertical.Y);
+            line.UnionBBoxVertical(
+                this.fontInfo.BBoxVertical.X,
+                this.fontInfo.BBoxVertical.Y,
+                this.fontInfo.RenderScale);
 
         public MeasuredLine HandleSpan(
             in SpannedRecord record,
@@ -81,7 +84,7 @@ public abstract partial class TextSpannableBase
                 case SpannedRecordType.ObjectNewLine
                     when (this.renderPass.ActiveTextState.AcceptedNewLines & NewLineType.Manual) != 0:
                     this.prev.LastThing.SetRecord(offsetBefore.Record);
-                    this.prev.SetOffset(offsetAfter);
+                    this.prev.SetOffset(offsetAfter, this.fontInfo.RenderScale, 0);
                     this.UnionLineBBoxVertical(ref this.prev);
                     return this.prev with { HasNewLineAtEnd = true };
                 default:
@@ -121,7 +124,8 @@ public abstract partial class TextSpannableBase
                             boundary = new(
                                 0,
                                 0,
-                                MathF.Round((this.fontInfo.ScaledFontSize * dim.X) / dim.Y),
+                                MathF.Ceiling((this.fontInfo.ScaledFontSize * dim.X * this.fontInfo.Scale) / dim.Y)
+                                / this.fontInfo.Scale,
                                 this.fontInfo.ScaledFontSize);
                             break;
                         }
@@ -138,7 +142,8 @@ public abstract partial class TextSpannableBase
                             boundary = new(
                                 0,
                                 0,
-                                MathF.Round((this.fontInfo.ScaledFontSize * dim.X) / dim.Y),
+                                MathF.Ceiling((this.fontInfo.ScaledFontSize * dim.X * this.fontInfo.Scale) / dim.Y)
+                                / this.fontInfo.Scale,
                                 this.fontInfo.ScaledFontSize);
                             break;
                         }
@@ -147,12 +152,10 @@ public abstract partial class TextSpannableBase
                             when SpannedRecordCodec.TryDecodeObjectSpannable(
                                      recordData,
                                      out var index)
-                                 && this.data.TryGetSpannableAt(index, out var spannable)
                                  && this.renderPass.SpannableStates[index] is { } spannableState:
                         {
                             spannableState.MeasureSpannable(
                                 new(
-                                    spannable,
                                     spannableState,
                                     Vector2.Zero,
                                     new(
@@ -168,7 +171,7 @@ public abstract partial class TextSpannableBase
                                         InitialStyle = this.currentStyle,
                                         LastStyle = this.currentStyle,
                                     },
-                                    this.args.RenderPass.GetGlobalIdFromInnerId(offset.Record)));
+                                    this.renderPass.GetGlobalIdFromInnerId(offset.Record)));
                             boundary = spannableState.Boundary;
                             break;
                         }
@@ -178,9 +181,9 @@ public abstract partial class TextSpannableBase
                             break;
                     }
 
-                    current.UnionBBoxVertical(this.fontInfo.BBoxVertical.X, this.fontInfo.BBoxVertical.Y);
+                    current.UnionBBoxVertical(this.fontInfo.BBoxVertical.X, this.fontInfo.BBoxVertical.Y, this.fontInfo.RenderScale);
                     current.AddObject(this.fontInfo, offset.Record, boundary.Left, boundary.Right);
-                    current.SetOffset(offsetAfter, pad);
+                    current.SetOffset(offsetAfter, this.fontInfo.RenderScale, pad);
                     if (current.Height < boundary.Height)
                         current.BBoxVertical *= boundary.Height / current.Height;
 
@@ -188,14 +191,14 @@ public abstract partial class TextSpannableBase
                 }
 
                 case '\t':
-                    current.SetOffset(offsetAfter, pad);
+                    current.SetOffset(offsetAfter, this.fontInfo.RenderScale, pad);
                     current.AddTabCharacter(this.fontInfo, this.renderPass.ActiveTextState.TabWidth);
                     break;
 
                 // Soft hyphen; only determine if this offset can be used as a word break point.
                 case '\u00AD':
                     current.AddSoftHyphenCharacter(this.fontInfo);
-                    current.SetOffset(offsetAfter, pad);
+                    current.SetOffset(offsetAfter, this.fontInfo.RenderScale, pad);
                     if (current.ContainedInBoundsWithObject(
                             this.fontInfo,
                             this.wrapMarkerWidth,
@@ -208,7 +211,7 @@ public abstract partial class TextSpannableBase
 
                 default:
                     current.AddStandardCharacter(this.fontInfo, c);
-                    current.SetOffset(offsetAfter, pad);
+                    current.SetOffset(offsetAfter, this.fontInfo.RenderScale, pad);
                     break;
             }
 
@@ -216,7 +219,7 @@ public abstract partial class TextSpannableBase
             if (this.breakOnFirstNormalBreakableOffset && breakable)
             {
                 this.prev.LastThing.SetCodepoint(c);
-                this.prev.SetOffset(offsetAfter);
+                this.prev.SetOffset(offsetAfter, this.fontInfo.RenderScale, 0);
                 return this.prev.WithWrapped();
             }
 
@@ -224,7 +227,7 @@ public abstract partial class TextSpannableBase
             if (this.first.IsEmpty)
                 this.first = current;
 
-            if (current.ContainedInBounds(this.fontInfo, this.args.MaxSize.X))
+            if (current.ContainedInBounds(this.args.MaxSize.X, this.fontInfo.RenderScale))
             {
                 if (this.renderPass.ActiveTextState.WrapMarker is not null)
                 {
@@ -295,7 +298,6 @@ public abstract partial class TextSpannableBase
             var spannableState = wm.RentRenderPass(this.renderPass.Renderer);
             spannableState.MeasureSpannable(
                 new(
-                    wm,
                     spannableState,
                     Vector2.Zero,
                     new(

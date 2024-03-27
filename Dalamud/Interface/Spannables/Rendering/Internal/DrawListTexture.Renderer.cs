@@ -165,13 +165,14 @@ internal sealed unsafe partial class DrawListTexture
                     0,
                     &data).ThrowOnError();
                 ref var xform = ref *(TransformationBuffer*)data.pData;
-                xform.View = Matrix4x4.CreateOrthographicOffCenter(
-                    drawData.DisplayPos.X,
-                    drawData.DisplayPos.X + drawData.DisplaySize.X,
-                    drawData.DisplayPos.Y + drawData.DisplaySize.Y,
-                    drawData.DisplayPos.Y,
-                    1f,
-                    0f);
+                xform.View =
+                    Matrix4x4.CreateOrthographicOffCenter(
+                        drawData.DisplayPos.X,
+                        drawData.DisplayPos.X + drawData.DisplaySize.X,
+                        drawData.DisplayPos.Y + drawData.DisplaySize.Y,
+                        drawData.DisplayPos.Y,
+                        1f,
+                        0f);
             }
             finally
             {
@@ -192,7 +193,11 @@ internal sealed unsafe partial class DrawListTexture
                 this.deviceContext.Get()->IASetPrimitiveTopology(
                     D3D_PRIMITIVE_TOPOLOGY.D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-                var viewport = new D3D11_VIEWPORT(0, 0, drawData.DisplaySize.X, drawData.DisplaySize.Y);
+                var viewport = new D3D11_VIEWPORT(
+                    0,
+                    0,
+                    drawData.DisplaySize.X * drawData.FramebufferScale.X,
+                    drawData.DisplaySize.Y * drawData.FramebufferScale.Y);
                 this.deviceContext.Get()->RSSetState(this.rasterizerState);
                 this.deviceContext.Get()->RSSetViewports(1, &viewport);
 
@@ -218,12 +223,14 @@ internal sealed unsafe partial class DrawListTexture
             var vertexOffset = 0;
             var indexOffset = 0;
             var clipOff = new Vector4(drawData.DisplayPos, drawData.DisplayPos.X, drawData.DisplayPos.Y);
+            var frameBufferScaleV4 =
+                new Vector4(drawData.FramebufferScale, drawData.FramebufferScale.X, drawData.FramebufferScale.Y);
             foreach (ref var cmdList in cmdLists)
             {
                 var cmds = new ImVectorWrapper<ImDrawCmd>(&cmdList.NativePtr->CmdBuffer);
                 foreach (ref var cmd in cmds.DataSpan)
                 {
-                    var clipV4 = cmd.ClipRect - clipOff;
+                    var clipV4 = (cmd.ClipRect - clipOff) * frameBufferScaleV4;
                     var clipRect = new RECT((int)clipV4.X, (int)clipV4.Y, (int)clipV4.Z, (int)clipV4.W);
 
                     // Skip the draw if nothing would be visible

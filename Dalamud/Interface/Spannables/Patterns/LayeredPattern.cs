@@ -1,8 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
-using System.Numerics;
 using System.Runtime.InteropServices;
 
+using Dalamud.Interface.Spannables.Helpers;
 using Dalamud.Interface.Spannables.RenderPassMethodArgs;
 using Dalamud.Utility.Enumeration;
 
@@ -125,7 +125,7 @@ public sealed class LayeredPattern : PatternSpannable
     }
 
     /// <summary>A state for <see cref="LayeredPattern"/>.</summary>
-    private class LayeredRenderPass(LayeredPattern owner) : PatternRenderPass
+    private class LayeredRenderPass(LayeredPattern owner) : PatternRenderPass(owner)
     {
         private readonly ChildrenCollection children = owner.childrenCollection;
         private readonly List<ISpannableRenderPass?> passes = new();
@@ -144,24 +144,22 @@ public sealed class LayeredPattern : PatternSpannable
 
                 this.passes[i] ??= child.RentRenderPass(this.Renderer);
                 args.NotifyChild(
-                    child,
                     this.passes[i],
                     owner.InnerIdAvailableSlot + i,
-                    args.MinSize,
-                    args.MaxSize,
-                    args.TextState);
+                    args with
+                    {
+                        TextState = this.ActiveTextState.Fork(),
+                    });
             }
         }
 
-        public override void CommitSpannableMeasurement(scoped in SpannableCommitTransformationArgs args)
+        public override void CommitSpannableMeasurement(scoped in SpannableCommitMeasurementArgs args)
         {
             base.CommitSpannableMeasurement(in args);
-            for (var i = 0; i < this.children.Count; i++)
+            foreach (var pass in this.passes)
             {
-                if (this.children[i] is not { } child || this.passes[i] is not { } pass)
-                    continue;
-
-                args.NotifyChild(child, pass, Vector2.Zero, Matrix4x4.Identity);
+                if (pass is not null)
+                    args.NotifyChild(pass, args);
             }
         }
 
@@ -169,15 +167,15 @@ public sealed class LayeredPattern : PatternSpannable
             scoped in SpannableHandleInteractionArgs args, out SpannableLinkInteracted link)
         {
             base.HandleSpannableInteraction(in args, out link);
-            for (var i = 0; i < this.children.Count; i++)
+            foreach (var pass in this.passes)
             {
-                if (this.children[i] is not { } child || this.passes[i] is not { } pass)
+                if (pass is null)
                     continue;
 
                 if (link.IsEmpty)
-                    args.NotifyChild(child, pass, out link);
+                    args.NotifyChild(pass, args, out link);
                 else
-                    args.NotifyChild(child, pass, out _);
+                    args.NotifyChild(pass, args, out _);
             }
         }
 
@@ -186,10 +184,8 @@ public sealed class LayeredPattern : PatternSpannable
             base.DrawUntransformed(args);
             for (var i = 0; i < this.children.Count; i++)
             {
-                if (this.children[i] is not { } child || this.passes[i] is not { } pass)
-                    continue;
-
-                args.NotifyChild(child, pass);
+                if (this.passes[i] is { } pass)
+                    args.NotifyChild(pass, args);
             }
         }
     }

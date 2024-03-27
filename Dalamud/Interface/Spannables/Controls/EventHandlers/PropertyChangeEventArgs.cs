@@ -16,4 +16,13 @@ public record PropertyChangeEventArgs<TSender, T> : SpannableControlEventArgs
 
     /// <summary>Gets or sets the new value.</summary>
     public T NewValue { get; set; }
+
+    /// <inheritdoc/>
+    public override bool TryReset()
+    {
+        this.PropertyName = null!;
+        this.PreviousValue = default!;
+        this.NewValue = default!;
+        return base.TryReset();
+    }
 }

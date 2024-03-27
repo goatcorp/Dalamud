@@ -1,8 +1,7 @@
 using System.Numerics;
 
-using Dalamud.Interface.Spannables.Rendering;
+using Dalamud.Interface.Spannables.Helpers;
 using Dalamud.Interface.Spannables.RenderPassMethodArgs;
-using Dalamud.Interface.Spannables.Text.Internal;
 using Dalamud.Utility;
 using Dalamud.Utility.Numerics;
 
@@ -71,7 +70,7 @@ public class ShapePattern : PatternSpannable
     protected override PatternRenderPass CreateNewRenderPass() => new CheckmarkRenderPass(this);
 
     /// <summary>A state for <see cref="LayeredPattern"/>.</summary>
-    private class CheckmarkRenderPass(ShapePattern owner) : PatternRenderPass
+    private class CheckmarkRenderPass(ShapePattern owner) : PatternRenderPass(owner)
     {
         protected override void DrawUntransformed(SpannableDrawArgs args)
         {
@@ -81,13 +80,16 @@ public class ShapePattern : PatternSpannable
                     : owner.Color;
             color = (Vector4)color * owner.ColorMultiplier;
 
-            var pos = owner.Margin.LeftTop * this.Scale;
-            var sz = Vector2.Max(
-                this.Boundary.Size - (owner.Margin.Size * this.Scale),
-                Vector2.Zero);
+            var pos = owner.Margin.LeftTop;
+            var sz = Vector2.Max(this.Boundary.Size - owner.Margin.Size, Vector2.Zero);
             var sz1 = Math.Min(sz.X, sz.Y);
             if (sz1 is >= float.PositiveInfinity or <= 0)
                 return;
+
+            pos *= this.Scale;
+            sz *= this.Scale;
+            sz1 *= this.Scale;
+            using var st = new ScopedTransformer(args.DrawListPtr, Matrix4x4.Identity, new(1 / this.Scale), 1f);
 
             switch (owner.Type)
             {

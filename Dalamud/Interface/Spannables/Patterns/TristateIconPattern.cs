@@ -62,7 +62,7 @@ public class TristateIconPattern : PatternSpannable
     protected override PatternRenderPass CreateNewRenderPass() => new CheckmarkRenderPass(this);
 
     /// <summary>A state for <see cref="LayeredPattern"/>.</summary>
-    private class CheckmarkRenderPass(TristateIconPattern owner) : PatternRenderPass
+    private class CheckmarkRenderPass(TristateIconPattern owner) : PatternRenderPass(owner)
     {
         private ISpannable? activeState;
         private ISpannable? disappearingState;
@@ -95,15 +95,17 @@ public class TristateIconPattern : PatternSpannable
                 false => owner.FalseIcon,
             };
 
-            this.backgroundRenderPass = owner.Background?.RentRenderPass(args.RenderPass.Renderer);
+            this.backgroundRenderPass = owner.Background?.RentRenderPass(this.Renderer);
             if (this.backgroundRenderPass is not null)
             {
                 args.NotifyChild(
-                    owner.Background!,
                     this.backgroundRenderPass,
                     owner.backgroundInnerId,
-                    args.MinSize,
-                    this.Boundary.Size);
+                    args with
+                    {
+                        MaxSize = this.Boundary.Size,
+                        TextState = this.ActiveTextState.Fork(),
+                    });
             }
 
             if (owner.HideIconAnimation?.IsRunning is true)
@@ -116,59 +118,71 @@ public class TristateIconPattern : PatternSpannable
                     false => owner.FalseIcon,
                 };
 
-                this.disappearingStateRenderPass = this.disappearingState?.RentRenderPass(args.RenderPass.Renderer);
+                this.disappearingStateRenderPass = this.disappearingState?.RentRenderPass(this.Renderer);
                 if (this.disappearingStateRenderPass is not null)
                 {
                     args.NotifyChild(
-                        this.disappearingState!,
                         this.disappearingStateRenderPass,
                         -1,
-                        args.MinSize,
-                        this.Boundary.Size);
+                        args with
+                        {
+                            MaxSize = this.Boundary.Size,
+                            TextState = this.ActiveTextState.Fork(),
+                        });
                 }
             }
 
             owner.ShowIconAnimation?.Update(this.Boundary);
 
-            this.activeStateRenderPass = this.activeState?.RentRenderPass(args.RenderPass.Renderer);
+            this.activeStateRenderPass = this.activeState?.RentRenderPass(this.Renderer);
             if (this.activeStateRenderPass is not null)
             {
                 args.NotifyChild(
-                    this.activeState!,
                     this.activeStateRenderPass,
                     owner.foregroundInnerId,
-                    args.MinSize,
-                    this.Boundary.Size);
+                    args with
+                    {
+                        MaxSize = this.Boundary.Size,
+                        TextState = this.ActiveTextState.Fork(),
+                    });
             }
         }
 
-        public override void CommitSpannableMeasurement(scoped in SpannableCommitTransformationArgs args)
+        public override void CommitSpannableMeasurement(scoped in SpannableCommitMeasurementArgs args)
         {
             base.CommitSpannableMeasurement(in args);
 
             if (this.backgroundRenderPass is not null)
-                args.NotifyChild(owner.Background!, this.backgroundRenderPass, Vector2.Zero, Matrix4x4.Identity);
+                args.NotifyChild(this.backgroundRenderPass, args);
 
             if (this.disappearingStateRenderPass is not null)
             {
-                args.NotifyChild(
-                    this.disappearingState!,
-                    this.disappearingStateRenderPass,
-                    Vector2.Zero,
-                    owner.HideIconAnimation?.IsRunning is true
-                        ? owner.HideIconAnimation.AnimatedTransformation
-                        : Matrix4x4.Identity);
+                if (owner.HideIconAnimation?.IsRunning is true)
+                {
+                    args.NotifyChild(
+                        this.disappearingStateRenderPass,
+                        args,
+                        owner.HideIconAnimation.AnimatedTransformation);
+                }
+                else
+                {
+                    args.NotifyChild(this.disappearingStateRenderPass, args);
+                }
             }
 
             if (this.activeStateRenderPass is not null)
             {
-                args.NotifyChild(
-                    this.activeState!,
-                    this.activeStateRenderPass,
-                    Vector2.Zero,
-                    owner.ShowIconAnimation?.IsRunning is true
-                        ? owner.ShowIconAnimation.AnimatedTransformation
-                        : Matrix4x4.Identity);
+                if (owner.HideIconAnimation?.IsRunning is true)
+                {
+                    args.NotifyChild(
+                        this.activeStateRenderPass,
+                        args,
+                        owner.HideIconAnimation.AnimatedTransformation);
+                }
+                else
+                {
+                    args.NotifyChild(this.activeStateRenderPass, args);
+                }
             }
         }
 
@@ -181,32 +195,33 @@ public class TristateIconPattern : PatternSpannable
             if (this.backgroundRenderPass is not null)
             {
                 if (link.IsEmpty)
-                    args.NotifyChild(owner.Background!, this.backgroundRenderPass, out link);
+                    args.NotifyChild(this.backgroundRenderPass, args, out link);
                 else
-                    args.NotifyChild(owner.Background!, this.backgroundRenderPass, out _);
+                    args.NotifyChild(this.backgroundRenderPass, args, out _);
             }
 
             if (this.activeStateRenderPass is not null)
             {
                 if (link.IsEmpty)
-                    args.NotifyChild(this.activeState!, this.activeStateRenderPass, out link);
+                    args.NotifyChild(this.activeStateRenderPass, args, out link);
                 else
-                    args.NotifyChild(this.activeState!, this.activeStateRenderPass, out _);
+                    args.NotifyChild(this.activeStateRenderPass, args, out _);
             }
         }
 
         protected override void DrawUntransformed(SpannableDrawArgs args)
         {
             if (this.backgroundRenderPass is not null)
-                args.NotifyChild(owner.Background!, this.backgroundRenderPass);
+                args.NotifyChild(this.backgroundRenderPass, args);
 
             if (this.disappearingStateRenderPass is not null)
             {
                 using var transformer = new ScopedTransformer(
                     args.DrawListPtr,
                     Matrix4x4.Identity,
+                    Vector2.One,
                     owner.HideIconAnimation?.IsRunning is true ? owner.HideIconAnimation.AnimatedOpacity : 0f);
-                args.NotifyChild(this.disappearingState!, this.disappearingStateRenderPass);
+                args.NotifyChild(this.disappearingStateRenderPass, args);
             }
 
             if (this.activeStateRenderPass is not null)
@@ -214,8 +229,9 @@ public class TristateIconPattern : PatternSpannable
                 using var transformer = new ScopedTransformer(
                     args.DrawListPtr,
                     Matrix4x4.Identity,
+                    Vector2.One,
                     owner.ShowIconAnimation?.IsRunning is true ? owner.ShowIconAnimation.AnimatedOpacity : 1f);
-                args.NotifyChild(this.activeState!, this.activeStateRenderPass);
+                args.NotifyChild(this.activeStateRenderPass, args);
             }
         }
     }

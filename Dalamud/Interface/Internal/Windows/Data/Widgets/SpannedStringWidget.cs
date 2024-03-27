@@ -15,6 +15,7 @@ using Dalamud.Interface.Spannables.Controls;
 using Dalamud.Interface.Spannables.Controls.Animations;
 using Dalamud.Interface.Spannables.Controls.Containers;
 using Dalamud.Interface.Spannables.Controls.EventHandlers;
+using Dalamud.Interface.Spannables.Controls.Gestures;
 using Dalamud.Interface.Spannables.Controls.Labels;
 using Dalamud.Interface.Spannables.Helpers;
 using Dalamud.Interface.Spannables.Patterns;
@@ -63,7 +64,7 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
     private float buttonFlowerScale;
 
     private ButtonControl[] spannableButton = null!;
-    private LinearContainer linearContainer = null!;
+    private ContainerControl rootContainer = null!;
     private LabelControl lblStopwatch = null!;
 
     private (TextSpannable? Parsed, Exception? Exception) parseAttempt;
@@ -174,7 +175,7 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
                  (ImGui.GetWindowContentRegionMax() - ImGui.GetWindowContentRegionMin()) / 64);
 
         renderer.Render(
-            this.linearContainer,
+            this.rootContainer,
             new(
                 "LinearContainerTest",
                 this.renderContextOptions with
@@ -216,6 +217,7 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
         if (!this.setupControlNeeded)
             return;
 
+        var animTimeSpan = TimeSpan.FromMilliseconds(300);
         this.setupControlNeeded = false;
         this.spannableButton = new ButtonControl[12];
         for (var i = 0; i < this.spannableButton.Length; i++)
@@ -229,16 +231,17 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
                 {
                     BeforeRatio = new(-0.7f, -0.7f, 0.7f, 0.7f),
                     BeforeOpacity = 0f,
-                    TransformationEasing = new OutCubic(TimeSpan.FromMilliseconds(3000)),
-                    OpacityEasing = new OutCubic(TimeSpan.FromMilliseconds(3000)),
+                    TransformationEasing = new OutCubic(animTimeSpan),
+                    OpacityEasing = new OutCubic(animTimeSpan),
                 },
                 HideAnimation = new SpannableSizeAnimator
                 {
                     AfterRatio = new(-0.7f, -0.7f, 0.7f, 0.7f),
                     AfterOpacity = 0f,
-                    TransformationEasing = new InCubic(TimeSpan.FromMilliseconds(300)),
-                    OpacityEasing = new InCubic(TimeSpan.FromMilliseconds(300)),
+                    TransformationEasing = new InCubic(animTimeSpan),
+                    OpacityEasing = new InCubic(animTimeSpan),
                 },
+                MoveAnimation = new SpannableSizeAnimator { TransformationEasing = new InOutCubic(animTimeSpan) },
                 SpannableText = new TextSpannableBuilder()
                                 .PushVerticalAlignment(0.5f)
                                 .PushLink("tlink"u8)
@@ -315,12 +318,11 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
             ShadowColor = 0xFF000000,
             ForeColor = 0xFFCCCCCC,
         };
-        var animTimeSpan = TimeSpan.FromMilliseconds(300);
-        this.linearContainer = new()
+        var linearContainer = new LinearContainer
         {
+            Name = "columns",
             Direction = LinearContainer.LinearDirection.LeftToRight,
-            Size = new(ControlSpannable.MatchParent),
-            MinSize = new(ControlSpannable.WrapContent),
+            Size = new(ControlSpannable.WrapContent),
             Padding = new(16f),
             TextStateOptions = new() { InitialStyle = defaultStyle },
             ShowAnimation = new SpannableSizeAnimator
@@ -330,10 +332,16 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
                 TransformationEasing = new OutCubic(animTimeSpan),
                 OpacityEasing = new OutCubic(animTimeSpan),
             },
+            TransformationChangeAnimation = new()
+            {
+                TransformationEasing = new OutCubic(animTimeSpan),
+                OpacityEasing = new OutCubic(animTimeSpan),
+            },
             ChildrenList =
             {
                 new LinearContainer
                 {
+                    Name = "linearContainerTests",
                     Direction = LinearContainer.LinearDirection.TopToBottom,
                     Size = new(ControlSpannable.MatchParent, ControlSpannable.WrapContent),
                     ChildrenList =
@@ -342,15 +350,15 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
                         new ControlSpannable { Size = new(0, 12) },
                         new LabelControl
                         {
+                            Name = "lblLinearContainerTestsDirection",
                             Text = "Direction",
                             Margin = new(0, 4),
-                            Size = new(ControlSpannable.MatchParent, ControlSpannable.WrapContent),
                             TextStateOptions = new() { InitialStyle = h2Style },
                         },
                         new LinearContainer
                         {
+                            Name = "linearContainerTestsDirection",
                             Margin = new(16f, 0f),
-                            Size = new(ControlSpannable.MatchParent, ControlSpannable.WrapContent),
                             Direction = LinearContainer.LinearDirection.LeftToRight,
                             ChildrenList =
                             {
@@ -408,100 +416,89 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
                         new ControlSpannable { Size = new(0, 12) },
                         new LabelControl
                         {
+                            Name = "lblLinearContainerTestsAlignment",
                             Text = "Alignment",
                             Margin = new(0, 4),
                             TextStateOptions = new() { InitialStyle = h2Style },
                         },
                         new LinearContainer
                         {
+                            Name = "linearContainerTestsAlignment",
                             Margin = new(16f, 0f),
                             Direction = LinearContainer.LinearDirection.LeftToRight,
                             ChildrenList =
                             {
-                                new LinearContainer
-                                {
-                                    Direction = LinearContainer.LinearDirection.LeftToRight,
-                                    ChildrenList =
+                                new RadioControl
                                     {
-                                        new RadioControl
-                                            {
-                                                Text = "L",
-                                                Checked = true,
-                                                Side = BooleanControl.IconSide.Top,
-                                                Alignment = new(0.5f, 0),
-                                                TextStateOptions = new()
-                                                    { InitialStyle = defaultStyle with { HorizontalAlignment = 0.5f } },
-                                            }
-                                            .GetAsOut(out var optAlignHorzLeft),
-                                        new RadioControl
-                                            {
-                                                Text = "M",
-                                                Side = BooleanControl.IconSide.Top,
-                                                Alignment = new(0.5f, 0),
-                                                TextStateOptions = new()
-                                                    { InitialStyle = defaultStyle with { HorizontalAlignment = 0.5f } },
-                                            }
-                                            .GetAsOut(out var optAlignHorzMid).WithBound(optAlignHorzLeft),
-                                        new RadioControl
-                                            {
-                                                Text = "R",
-                                                Side = BooleanControl.IconSide.Top,
-                                                Alignment = new(0.5f, 0),
-                                                TextStateOptions = new()
-                                                    { InitialStyle = defaultStyle with { HorizontalAlignment = 0.5f } },
-                                            }
-                                            .GetAsOut(out var optAlignHorzRight).WithBound(optAlignHorzLeft),
-                                    },
-                                },
+                                        Text = "L",
+                                        Checked = true,
+                                        Side = BooleanControl.IconSide.Top,
+                                        Alignment = new(0.5f, 0),
+                                        TextStateOptions = new()
+                                            { InitialStyle = defaultStyle with { HorizontalAlignment = 0.5f } },
+                                    }
+                                    .GetAsOut(out var optAlignHorzLeft),
+                                new RadioControl
+                                    {
+                                        Text = "M",
+                                        Side = BooleanControl.IconSide.Top,
+                                        Alignment = new(0.5f, 0),
+                                        TextStateOptions = new()
+                                            { InitialStyle = defaultStyle with { HorizontalAlignment = 0.5f } },
+                                    }
+                                    .GetAsOut(out var optAlignHorzMid).WithBound(optAlignHorzLeft),
+                                new RadioControl
+                                    {
+                                        Text = "R",
+                                        Side = BooleanControl.IconSide.Top,
+                                        Alignment = new(0.5f, 0),
+                                        TextStateOptions = new()
+                                            { InitialStyle = defaultStyle with { HorizontalAlignment = 0.5f } },
+                                    }
+                                    .GetAsOut(out var optAlignHorzRight).WithBound(optAlignHorzLeft),
                                 new ControlSpannable { Size = new(12, 0) },
-                                new LinearContainer
-                                {
-                                    Direction = LinearContainer.LinearDirection.LeftToRight,
-                                    ChildrenList =
+                                new RadioControl
                                     {
-                                        new RadioControl
-                                            {
-                                                Text = "T",
-                                                Checked = true,
-                                                Side = BooleanControl.IconSide.Top,
-                                                Alignment = new(0.5f, 0),
-                                                TextStateOptions = new()
-                                                    { InitialStyle = defaultStyle with { HorizontalAlignment = 0.5f } },
-                                            }
-                                            .GetAsOut(out var optAlignVertTop),
-                                        new RadioControl
-                                            {
-                                                Text = "M",
-                                                Side = BooleanControl.IconSide.Top,
-                                                Alignment = new(0.5f, 0),
-                                                TextStateOptions = new()
-                                                    { InitialStyle = defaultStyle with { HorizontalAlignment = 0.5f } },
-                                            }
-                                            .GetAsOut(out var optAlignVertMid).WithBound(optAlignVertTop),
-                                        new RadioControl
-                                            {
-                                                Text = "B",
-                                                Side = BooleanControl.IconSide.Top,
-                                                Alignment = new(0.5f, 0),
-                                                TextStateOptions = new()
-                                                    { InitialStyle = defaultStyle with { HorizontalAlignment = 0.5f } },
-                                            }
-                                            .GetAsOut(out var optAlignVertBottom).WithBound(optAlignVertTop),
-                                    },
-                                },
+                                        Text = "T",
+                                        Checked = true,
+                                        Side = BooleanControl.IconSide.Top,
+                                        Alignment = new(0.5f, 0),
+                                        TextStateOptions = new()
+                                            { InitialStyle = defaultStyle with { HorizontalAlignment = 0.5f } },
+                                    }
+                                    .GetAsOut(out var optAlignVertTop),
+                                new RadioControl
+                                    {
+                                        Text = "M",
+                                        Side = BooleanControl.IconSide.Top,
+                                        Alignment = new(0.5f, 0),
+                                        TextStateOptions = new()
+                                            { InitialStyle = defaultStyle with { HorizontalAlignment = 0.5f } },
+                                    }
+                                    .GetAsOut(out var optAlignVertMid).WithBound(optAlignVertTop),
+                                new RadioControl
+                                    {
+                                        Text = "B",
+                                        Side = BooleanControl.IconSide.Top,
+                                        Alignment = new(0.5f, 0),
+                                        TextStateOptions = new()
+                                            { InitialStyle = defaultStyle with { HorizontalAlignment = 0.5f } },
+                                    }
+                                    .GetAsOut(out var optAlignVertBottom).WithBound(optAlignVertTop),
                             },
                         },
                         new ControlSpannable { Size = new(0, 12) },
                         new LabelControl
                         {
+                            Name = "lblLinearContainerTestsBias",
                             Text = "Bias",
                             Margin = new(0, 4),
                             TextStateOptions = new() { InitialStyle = h2Style },
                         },
                         new LinearContainer
                         {
+                            Name = "linearContainerTestsBias",
                             Margin = new(16f, 0f),
-                            Size = new(ControlSpannable.MatchParent, ControlSpannable.WrapContent),
                             Direction = LinearContainer.LinearDirection.LeftToRight,
                             ChildrenList =
                             {
@@ -517,28 +514,38 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
                                     .GetAsOut(out var optBias4).WithBound(optBias0),
                             },
                         },
+                        new ControlSpannable { Size = new(0, 12) },
+                        new ButtonControl
+                        {
+                            Text = "Rotate it",
+                            Size = new(ControlSpannable.MatchParent, ControlSpannable.WrapContent),
+                        }.GetAsOut(out var cmdRotate),
                     },
                 },
                 new LinearContainer
                 {
+                    Name = "textSpannableTests",
                     Direction = LinearContainer.LinearDirection.TopToBottom,
                     Size = new(ControlSpannable.MatchParent, ControlSpannable.WrapContent),
                     ChildrenList =
                     {
                         new LabelControl
                         {
+                            Name = "lblNotALink",
                             SpannableText = new TextSpannableBuilder().Append("Not a Link"),
                             TextStateOptions = new() { InitialStyle = notLinkStyle },
                         },
                         new ControlSpannable { Size = new(0, 12) },
                         new LabelControl
                         {
+                            Name = "lblSpannableTestsOptions",
                             Text = "Options",
                             Margin = new(0, 4),
                             TextStateOptions = new() { InitialStyle = h2Style },
                         },
                         new LinearContainer
                         {
+                            Name = "linearContainerSpannableTestsOptions",
                             Margin = new(16f, 0f),
                             Direction = LinearContainer.LinearDirection.TopToBottom,
                             ChildrenList =
@@ -552,33 +559,21 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
                         new ControlSpannable { Size = new(0, 12) },
                         new LabelControl
                         {
+                            Name = "lblSpannableTestsWordBreakType",
                             Text = "Word Break Type",
                             Margin = new(0, 4),
                             TextStateOptions = new() { InitialStyle = h2Style },
                         },
                         new LinearContainer
                         {
+                            Name = "linearContainerSpannableTestsWordBreakType",
                             Margin = new(16f, 0f),
                             Direction = LinearContainer.LinearDirection.TopToBottom,
                             ChildrenList =
                             {
-                                new RadioControl
-                                    {
-                                        SpannableText =
-                                            new TextSpannableBuilder()
-                                                .PushHorizontalAlignment(HorizontalAlignment.Right)
-                                                .Append("Normal"),
-                                        // TODO: add SpannableMeasureArgs.MinSize
-                                        Checked = true,
-                                    }
+                                new RadioControl { Text = "Normal", Checked = true, }
                                     .GetAsOut(out var optBreakNormal),
-                                new RadioControl
-                                    {
-                                        SpannableText =
-                                            new TextSpannableBuilder()
-                                                .PushHorizontalAlignment(HorizontalAlignment.Center)
-                                                .Append("Break All"),
-                                    }
+                                new RadioControl { Text = "Break All" }
                                     .GetAsOut(out var optBreakAll).WithBound(optBreakNormal),
                                 new RadioControl { Text = "Keep All" }
                                     .GetAsOut(out var optKeepAll).WithBound(optBreakNormal),
@@ -589,12 +584,14 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
                         new ControlSpannable { Size = new(0, 12) },
                         new LabelControl
                         {
-                            Text = "Tests",
+                            Name = "lblSpannableTestsMiscTests",
+                            Text = "Miscellaneuos Tests",
                             Margin = new(0, 4),
                             TextStateOptions = new() { InitialStyle = h2Style },
                         },
                         new LinearContainer
                         {
+                            Name = "linearContainerSpannableTestsMiscTests",
                             Margin = new(16f, 0f),
                             Direction = LinearContainer.LinearDirection.TopToBottom,
                             ChildrenList =
@@ -617,19 +614,58 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
             },
         };
 
-        foreach (var lc in this.linearContainer.EnumerateHierarchy<LinearContainer>())
+        this.rootContainer = new()
+        {
+            Name = "root",
+            Size = new(ControlSpannable.MatchParent),
+            ChildrenList = { linearContainer },
+            UseDefaultScrollHandling = false,
+        };
+
+        foreach (var lc in this.rootContainer.EnumerateHierarchy<LinearContainer>())
         {
             foreach (var dc in lc.ChildrenReadOnlyList.OfType<ControlSpannable>())
                 dc.MoveAnimation = new SpannableSizeAnimator { TransformationEasing = new InOutCubic(animTimeSpan) };
         }
 
+        var mat = new MouseActivityTracker(this.rootContainer);
+        var pzt = new PanZoomTracker(mat);
+        mat.UseLeftDrag = true;
+        mat.UseMiddleDrag = true;
+        mat.UseRightDrag = true;
+        mat.UseLeftDouble = true;
+        mat.UseWheelZoom = MouseActivityTracker.WheelZoomMode.RequireControlKey;
+        mat.UseDoubleClickDragZoom = true;
+        mat.UseInfiniteLeftDrag = true;
+        mat.UseInfiniteRightDrag = true;
+        mat.UseInfiniteMiddleDrag = true;
+        pzt.PanExtraRange = new(64);
+        pzt.ViewportChanged += () =>
+        {
+            this.rootContainer.ScrollBoundary = new(new Vector2(-float.PositiveInfinity), new(float.PositiveInfinity));
+            // this.rootContainer.Scroll = linearContainer.MeasuredContentBox.Center -
+            //                             this.rootContainer.MeasuredContentBox.Center - pzt.Pan;
+            this.rootContainer.SmoothScroll(
+                linearContainer.MeasuredContentBox.Center -
+                this.rootContainer.MeasuredContentBox.Center - pzt.Pan,
+                new InOutCubic(TimeSpan.FromMilliseconds(150)));
+            linearContainer.Scale = pzt.EffectiveZoom;
+            linearContainer.Transformation = Matrix4x4.CreateRotationZ(pzt.Rotation);
+        };
+        this.rootContainer.MeasuredBoundaryBoxChange += _ =>
+        {
+            pzt.Size = linearContainer.MeasuredBoundaryBox.Size;
+        };
+
+        cmdRotate.Click += _ => pzt.Rotation += MathF.PI / 16f;
+
         optLinearContainerLtr.CheckedChange += e =>
-            this.linearContainer.Direction = e.NewValue
+            linearContainer.Direction = e.NewValue
                                                  ? LinearContainer.LinearDirection.LeftToRight
                                                  : LinearContainer.LinearDirection.RightToLeft;
         optLinearContainerTtb.CheckedChange += e =>
         {
-            foreach (var x in this.linearContainer.ChildrenList.OfType<LinearContainer>())
+            foreach (var x in linearContainer.ChildrenList.OfType<LinearContainer>())
             {
                 x.Direction =
                     e.NewValue
@@ -650,10 +686,10 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
         optBias3.CheckedChange += UpdateBias;
         optBias4.CheckedChange += UpdateBias;
 
-        this.linearContainer.SetChildLayout(0, new() { Weight = 0.25f });
-        this.linearContainer.SetChildLayout(1, new() { Weight = 0.25f });
-        this.linearContainer.SetChildLayout(2, new() { Weight = 0.00f });
-        this.linearContainer.SuppressNextMoveAnimation();
+        linearContainer.SetChildLayout(0, new() { Weight = 0.25f });
+        linearContainer.SetChildLayout(1, new() { Weight = 0.25f });
+        linearContainer.SetChildLayout(2, new() { Weight = 0.00f });
+        linearContainer.SuppressNextAnimation();
 
         this.lblStopwatch.LinkMouseClick += e => Log.Information($"Clicked with {e.Button}");
 
@@ -743,7 +779,7 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
         void UpdateHorzAlignment(PropertyChangeEventArgs<ControlSpannable, bool> args)
         {
             var n = optAlignHorzLeft.Checked ? 0f : optAlignHorzMid.Checked ? 0.5f : 1f;
-            foreach (var x in this.linearContainer.EnumerateHierarchy<LinearContainer>())
+            foreach (var x in linearContainer.EnumerateHierarchy<LinearContainer>())
             {
                 if (x.Direction is LinearContainer.LinearDirection.TopToBottom
                     or LinearContainer.LinearDirection.BottomToTop)
@@ -757,7 +793,7 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
         void UpdateVertAlignment(PropertyChangeEventArgs<ControlSpannable, bool> args)
         {
             var n = optAlignVertTop.Checked ? 0f : optAlignVertMid.Checked ? 0.5f : 1f;
-            foreach (var x in this.linearContainer.EnumerateHierarchy<LinearContainer>())
+            foreach (var x in linearContainer.EnumerateHierarchy<LinearContainer>())
             {
                 if (x.Direction is LinearContainer.LinearDirection.LeftToRight
                     or LinearContainer.LinearDirection.RightToLeft)
@@ -771,7 +807,7 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
         void UpdateBias(PropertyChangeEventArgs<ControlSpannable, bool> args)
         {
             var n = optBias0.Checked ? 0f : optBias1.Checked ? 1f : optBias2.Checked ? 2f : optBias3.Checked ? 3f : 4f;
-            foreach (var x in this.linearContainer.EnumerateHierarchy<LinearContainer>())
+            foreach (var x in linearContainer.EnumerateHierarchy<LinearContainer>())
                 x.ContentBias = n / 4f;
         }
 

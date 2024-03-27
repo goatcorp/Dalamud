@@ -7,7 +7,7 @@ using Dalamud.Utility.Numerics;
 namespace Dalamud.Interface.Spannables.Controls.Animations;
 
 /// <summary>Animator for <see cref="ISpannable"/>.</summary>
-public abstract class SpannableAnimator
+public class SpannableAnimator
 {
     private Matrix4x4 beforeMatrix = Matrix4x4.Identity;
     private Matrix4x4 afterMatrix = Matrix4x4.Identity;
@@ -157,8 +157,6 @@ public abstract class SpannableAnimator
     /// <param name="p">The progress value.</param>
     /// <param name="box">The box to use for calculating animation.</param>
     /// <param name="result">The calculated matrix.</param>
-    protected abstract void CalculateMatrix(
-        float p,
-        scoped in RectVector4 box,
-        out Matrix4x4 result);
+    protected virtual void CalculateMatrix(float p, scoped in RectVector4 box, out Matrix4x4 result) =>
+        result = Matrix4x4.Lerp(this.BeforeMatrix, this.AfterMatrix, p);
 }

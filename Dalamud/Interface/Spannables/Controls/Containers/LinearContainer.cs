@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Numerics;
 
 using Dalamud.Interface.Spannables.Controls.EventHandlers;
+using Dalamud.Interface.Spannables.Helpers;
 using Dalamud.Interface.Spannables.RenderPassMethodArgs;
 using Dalamud.Utility.Numerics;
 
@@ -104,15 +105,11 @@ public class LinearContainer : ContainerControl
     /// <inheritdoc/>
     protected override RectVector4 MeasureChildren(
         SpannableMeasureArgs args,
-        ReadOnlySpan<ISpannable> children,
-        ReadOnlySpan<ISpannableRenderPass> renderPasses)
+        ReadOnlySpan<ISpannableRenderPass> childrenPasses)
     {
         Debug.Assert(
-            children.Length == this.childLayouts.Count,
-            $"{nameof(children)} and {nameof(this.childLayouts)} got out of synchronization.");
-        Debug.Assert(
-            renderPasses.Length == this.childLayouts.Count,
-            $"{nameof(renderPasses)} and {nameof(this.childLayouts)} got out of synchronization.");
+            childrenPasses.Length == this.childLayouts.Count,
+            $"{nameof(childrenPasses)} and {nameof(this.childLayouts)} got out of synchronization.");
 
         var weightSum = this.totalWeight;
         if (weightSum <= 0)
@@ -126,98 +123,122 @@ public class LinearContainer : ContainerControl
 
         var isHorizontal = this.direction is LinearDirection.LeftToRight or LinearDirection.RightToLeft;
         var isVertical = this.direction is LinearDirection.TopToBottom or LinearDirection.BottomToTop;
-        var childOffset = Vector2.Zero;
+
         var contentBox = RectVector4.InvertedExtrema;
-        var childSizeSum = Vector2.Zero;
-
         var requiredMinSizeForWeight = Vector2.Zero;
-
-        for (var i = 0; i < children.Length; i++)
+        for (var j = 0; j < 2; j++)
         {
-            var child = children[i];
-            var pass = renderPasses[i];
-            var layout = this.childLayouts[i];
-            var innerId = this.InnerIdAvailableSlot + i;
-
-            var useHorizontalWeight = isHorizontal && layout.Weight > 0f && args.MaxSize.X < float.PositiveInfinity;
-            var useVerticalWeight = isVertical && layout.Weight > 0f && args.MaxSize.Y < float.PositiveInfinity;
-
-            Vector2 maxChildSize;
-            if (useHorizontalWeight)
-                maxChildSize = new(args.MaxSize.X * (layout.Weight / weightSum), float.MaxValue);
-            else if (useVerticalWeight)
-                maxChildSize = new(float.MaxValue, args.MaxSize.Y * (layout.Weight / weightSum));
-            else if (isHorizontal)
-                maxChildSize = args.MaxSize with { X = float.PositiveInfinity };
-            else if (isVertical)
-                maxChildSize = args.MaxSize with { Y = float.PositiveInfinity };
-            else
-                maxChildSize = new(float.PositiveInfinity);
-
-            var minChildSize = new Vector2(
-                useHorizontalWeight ? maxChildSize.X : 0,
-                useVerticalWeight ? maxChildSize.Y : 0);
-
-            args.NotifyChild(child, pass, innerId, minChildSize, maxChildSize);
-            childSizeSum += pass.Boundary.RightBottom;
-
-            if (isHorizontal && layout.Weight > 0 && weightSum > 0)
+            // Handle MatchParent inside WrapContent containers, by doing a two-pass, and using the measured
+            // dimension for the second pass.
+            // TODO: Propagate MatchParent inside WrapContent containers information back to measuring parent,
+            // so that the second pass can be skipped when unnecessary.
+            if (j == 1)
             {
-                requiredMinSizeForWeight.X = Math.Max(
-                    requiredMinSizeForWeight.X,
-                    (pass.Boundary.Right * weightSum) / layout.Weight);
+                if (isVertical)
+                    args.SuggestedSize.X = contentBox.Right;
+                else
+                    args.SuggestedSize.Y = contentBox.Bottom;
+
+                contentBox = RectVector4.InvertedExtrema;
+                requiredMinSizeForWeight = Vector2.Zero;
             }
 
-            switch (this.direction)
-            {
-                case LinearDirection.RightToLeft:
-                    childOffset.X -= pass.Boundary.Right;
-                    break;
-                case LinearDirection.BottomToTop:
-                    childOffset.Y -= pass.Boundary.Bottom;
-                    break;
-            }
+            var childOffset = Vector2.Zero;
+            var childSizeSum = Vector2.Zero;
 
-            this.childOffsets[i] = childOffset;
-            contentBox = RectVector4.Union(contentBox, RectVector4.Translate(pass.Boundary, childOffset));
-
-            switch (this.direction)
+            for (var i = 0; i < childrenPasses.Length; i++)
             {
-                case LinearDirection.LeftToRight:
-                    childOffset.X += pass.Boundary.Right;
-                    break;
-                case LinearDirection.TopToBottom:
-                    childOffset.Y += pass.Boundary.Bottom;
-                    break;
+                var pass = childrenPasses[i];
+                var layout = this.childLayouts[i];
+                var innerId = this.InnerIdAvailableSlot + i;
+
+                var useHorizontalWeight =
+                    isHorizontal && layout.Weight > 0f && args.SuggestedSize.X < float.PositiveInfinity;
+                var useVerticalWeight =
+                    isVertical && layout.Weight > 0f && args.SuggestedSize.Y < float.PositiveInfinity;
+
+                Vector2 maxChildSize;
+                if (useHorizontalWeight)
+                    maxChildSize = new(args.SuggestedSize.X * (layout.Weight / weightSum), float.PositiveInfinity);
+                else if (useVerticalWeight)
+                    maxChildSize = new(float.PositiveInfinity, args.SuggestedSize.Y * (layout.Weight / weightSum));
+                else if (isHorizontal)
+                    maxChildSize = args.SuggestedSize with { X = float.PositiveInfinity };
+                else if (isVertical)
+                    maxChildSize = args.SuggestedSize with { Y = float.PositiveInfinity };
+                else
+                    maxChildSize = new(float.PositiveInfinity);
+
+                var minChildSize = new Vector2(
+                    useHorizontalWeight ? maxChildSize.X : 0,
+                    useVerticalWeight ? maxChildSize.Y : 0);
+
+                args.NotifyChild(
+                    pass,
+                    innerId,
+                    args with
+                    {
+                        Scale = this.EffectiveScale,
+                        MinSize = minChildSize,
+                        MaxSize = maxChildSize,
+                        TextState = this.ActiveTextState.Fork(),
+                    });
+                var b = Vector2.Max(pass.Boundary.RightBottom, pass.Boundary.Size);
+                childSizeSum += b;
+
+                if (isHorizontal && layout.Weight > 0 && weightSum > 0)
+                {
+                    requiredMinSizeForWeight.X = Math.Max(
+                        requiredMinSizeForWeight.X,
+                        (b.X * weightSum) / layout.Weight);
+                }
+
+                switch (this.direction)
+                {
+                    case LinearDirection.RightToLeft:
+                        childOffset.X -= b.X;
+                        break;
+                    case LinearDirection.BottomToTop:
+                        childOffset.Y -= b.Y;
+                        break;
+                }
+
+                this.childOffsets[i] = childOffset;
+                contentBox = RectVector4.Union(contentBox, RectVector4.Translate(pass.Boundary, childOffset));
+
+                switch (this.direction)
+                {
+                    case LinearDirection.LeftToRight:
+                        childOffset.X += b.X;
+                        break;
+                    case LinearDirection.TopToBottom:
+                        childOffset.Y += b.Y;
+                        break;
+                }
             }
         }
 
         if (!contentBox.IsValid)
-            contentBox = base.MeasureChildren(args, children, renderPasses);
+            contentBox = base.MeasureChildren(args, childrenPasses);
 
         var rb = contentBox.Size;
         if (args.SuggestedSize.X < float.PositiveInfinity)
             rb.X = Math.Max(rb.X, args.SuggestedSize.X);
         if (args.SuggestedSize.Y < float.PositiveInfinity)
             rb.Y = Math.Max(rb.Y, args.SuggestedSize.Y);
-        if (args.MinSize.X < float.PositiveInfinity && rb.X < args.MinSize.X)
-            rb.X = args.MinSize.X;
-        if (args.MinSize.Y < float.PositiveInfinity && rb.Y < args.MinSize.Y)
-            rb.Y = args.MinSize.Y;
         rb = Vector2.Max(rb, requiredMinSizeForWeight);
 
-        return new(Vector2.Zero, Vector2.Min(rb, args.MaxSize));
+        return new(Vector2.Zero, rb);
     }
 
     /// <inheritdoc/>
     protected override void CommitMeasurementChildren(
         ControlCommitMeasurementEventArgs args,
-        ReadOnlySpan<ISpannable> children,
-        ReadOnlySpan<ISpannableRenderPass> renderPasses)
+        ReadOnlySpan<ISpannableRenderPass> childPasses)
     {
         var childSizeSum = Vector2.Zero;
         var childSizeMax = Vector2.Zero;
-        foreach (var x in renderPasses)
+        foreach (var x in childPasses)
         {
             childSizeSum += x.Boundary.RightBottom;
             childSizeMax = Vector2.Max(childSizeMax, x.Boundary.RightBottom);
@@ -255,10 +276,9 @@ public class LinearContainer : ContainerControl
         baseOffset += Vector2.Max(Vector2.Zero, myFullBoxSize - myBoxSize) * bias;
         baseOffset -= this.Scroll;
 
-        for (var i = 0; i < children.Length; i++)
+        for (var i = 0; i < childPasses.Length; i++)
         {
-            var child = children[i];
-            var pass = renderPasses[i];
+            var pass = childPasses[i];
             var layout = this.childLayouts[i];
             var offset = this.childOffsets[i];
             switch (this.direction)
@@ -272,7 +292,10 @@ public class LinearContainer : ContainerControl
             }
 
             var childFinalLocalOffset = baseOffset + offset;
-            args.SpannableArgs.NotifyChild(child, pass, childFinalLocalOffset.Round(), Matrix4x4.Identity);
+            args.SpannableArgs.NotifyChild(
+                pass,
+                args.SpannableArgs,
+                Matrix4x4.CreateTranslation(new(childFinalLocalOffset.Round(1f / this.EffectiveScale), 0)));
         }
     }
 

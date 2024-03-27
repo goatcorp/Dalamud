@@ -79,7 +79,7 @@ internal sealed unsafe partial class DrawListTexture : IDalamudTextureWrap
         if (hr.FAILED)
             return hr;
 
-        clipRectUv = new(Vector2.Zero, clipRect.Size / this.Size);
+        clipRectUv = new(Vector2.Zero, (clipRect.Size * scale) / this.Size);
 
         var dd = new ImDrawData
         {
@@ -97,7 +97,7 @@ internal sealed unsafe partial class DrawListTexture : IDalamudTextureWrap
 
         this.deviceContext.Get()->ClearRenderTargetView(this.rtv.Get(), (float*)&clearColor);
         Service<Renderer>.Get().RenderDrawData(this.rtv.Get(), &dd);
-        Service<Renderer>.Get().MakeStraight(this.uav.Get(), new(Vector2.Zero, clipRect.Size));
+        Service<Renderer>.Get().MakeStraight(this.uav.Get(), new(Vector2.Zero, clipRect.Size * scale));
 
         this.LastUpdate = DateTime.Now;
         return S.S_OK;

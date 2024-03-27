@@ -101,15 +101,18 @@ public abstract class PatternSpannable : ISpannable
 
     /// <summary>Creates a new state.</summary>
     /// <returns>The new state.</returns>
-    protected virtual PatternRenderPass CreateNewRenderPass() => new();
+    protected virtual PatternRenderPass CreateNewRenderPass() => new(this);
 
     /// <summary>A state for <see cref="PatternSpannable"/>.</summary>
-    protected class PatternRenderPass : ISpannableRenderPass
+    protected class PatternRenderPass(PatternSpannable owner) : ISpannableRenderPass
     {
         private TextState activeTextState;
         private RectVector4 boundary;
         private Matrix4x4 transformationFromParent;
         private Matrix4x4 transformationFromAncestors;
+
+        /// <inheritdoc/>
+        public ISpannable RenderPassCreator => owner;
 
         /// <inheritdoc/>
         public ref TextState ActiveTextState => ref this.activeTextState;
@@ -151,9 +154,9 @@ public abstract class PatternSpannable : ISpannable
             this.ImGuiGlobalId = args.ImGuiGlobalId;
             this.activeTextState = args.TextState;
 
-            var ps = (PatternSpannable)args.Sender;
+            var ps = (PatternSpannable)owner;
 
-            var size = Vector2.Clamp(ps.Size, ps.MinSize, ps.MaxSize) * args.Scale;
+            var size = Vector2.Clamp(ps.Size, ps.MinSize, ps.MaxSize);
             size = Vector2.Clamp(size, args.MinSize, args.MaxSize);
 
             if (size.X >= float.PositiveInfinity)
@@ -165,7 +168,7 @@ public abstract class PatternSpannable : ISpannable
         }
 
         /// <inheritdoc/>
-        public virtual void CommitSpannableMeasurement(scoped in SpannableCommitTransformationArgs args)
+        public virtual void CommitSpannableMeasurement(scoped in SpannableCommitMeasurementArgs args)
         {
             this.InnerOrigin = args.InnerOrigin;
             this.transformationFromParent = args.TransformationFromParent;
@@ -175,7 +178,7 @@ public abstract class PatternSpannable : ISpannable
         /// <inheritdoc/>
         public void DrawSpannable(SpannableDrawArgs args)
         {
-            using var st = ScopedTransformer.From(args, 1f);
+            using var st = ScopedTransformer.From(args, Vector2.One, 1f);
             this.DrawUntransformed(args);
         }
 

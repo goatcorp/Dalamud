@@ -12,9 +12,6 @@ namespace Dalamud.Interface.Spannables.RenderPassMethodArgs;
 /// <summary>Arguments for use with <see cref="ISpannableRenderPass.HandleSpannableInteraction"/>.</summary>
 public struct SpannableHandleInteractionArgs
 {
-    /// <summary>The associated spannable.</summary>
-    public ISpannable Sender;
-
     /// <summary>The state obtained from <see cref="ISpannable.RentRenderPass"/>.</summary>
     public ISpannableRenderPass RenderPass;
 
@@ -32,11 +29,9 @@ public struct SpannableHandleInteractionArgs
     public Vector2 WheelDelta;
 
     /// <summary>Initializes a new instance of the <see cref="SpannableHandleInteractionArgs"/> struct.</summary>
-    /// <param name="sender">The associated spannable.</param>
     /// <param name="renderPass">The state for the spannable.</param>
-    public SpannableHandleInteractionArgs(ISpannable sender, ISpannableRenderPass renderPass)
+    public SpannableHandleInteractionArgs(ISpannableRenderPass renderPass)
     {
-        this.Sender = sender;
         this.RenderPass = renderPass;
     }
 
@@ -188,25 +183,4 @@ public struct SpannableHandleInteractionArgs
 
         return true;
     }
-
-    /// <summary>Notifies a child <see cref="ISpannable"/> with transformed arguments.</summary>
-    /// <param name="child">A child to notify the event.</param>
-    /// <param name="childRenderPass">The child state.</param>
-    /// <param name="link">The interacted link, if the child processed the event.</param>
-    public readonly void NotifyChild(
-        ISpannable child,
-        ISpannableRenderPass childRenderPass,
-        out SpannableLinkInteracted link) =>
-        childRenderPass.HandleSpannableInteraction(
-            this with
-            {
-                Sender = child,
-                RenderPass = childRenderPass,
-                MouseLocalLocation = Vector2.Transform(
-                    this.MouseLocalLocation,
-                    Matrix4x4.Invert(childRenderPass.TransformationFromParent, out var inverted)
-                        ? inverted
-                        : Matrix4x4.Identity),
-            },
-            out link);
 }

@@ -1,4 +1,5 @@
 using System.Numerics;
+using System.Runtime.CompilerServices;
 
 using Dalamud.Interface.Spannables.Controls.Animations;
 using Dalamud.Interface.Spannables.Controls.EventHandlers;
@@ -10,18 +11,21 @@ namespace Dalamud.Interface.Spannables.Controls;
 /// <summary>A base spannable control that does nothing by itself.</summary>
 public partial class ControlSpannable
 {
+    private string name = string.Empty;
     private bool enabled = true;
     private bool focusable;
     private bool visible = true;
-    private bool clipChildren = true;
+    private bool clipChildren = false;
     private string? text;
     private TextState.Options textStateOptions;
+    private float scale = 1f;
     private Vector2 size = new(WrapContent);
     private Vector2 minSize = Vector2.Zero;
     private Vector2 maxSize = new(float.PositiveInfinity);
     private BorderVector4 extendOutside = BorderVector4.Zero;
     private BorderVector4 margin = BorderVector4.Zero;
     private BorderVector4 padding = BorderVector4.Zero;
+    private Matrix4x4 transformation = Matrix4x4.Identity;
     private ISpannable? normalBackground;
     private ISpannable? hoveredBackground;
     private ISpannable? activeBackground;
@@ -29,10 +33,23 @@ public partial class ControlSpannable
     private SpannableAnimator? showAnimation;
     private SpannableAnimator? hideAnimation;
     private SpannableAnimator? moveAnimation;
+    private SpannableAnimator? transformationChangeAnimation;
     private float disabledTextOpacity = 0.5f;
     private bool captureMouseOnMouseDown;
     private bool captureMouseWheel;
+    private bool captureMouse;
     private bool takeKeyboardInputsOnFocus = true;
+
+    /// <summary>Gets or sets a name, for internal identification purpose.</summary>
+    public string Name
+    {
+        get => this.name;
+        set => this.HandlePropertyChange(
+            nameof(this.Name),
+            ref this.name,
+            value ?? throw new NullReferenceException(),
+            this.OnNameChange);
+    }
 
     /// <summary>Gets or sets a value indicating whether this control is enabled.</summary>
     public bool Enabled
@@ -87,10 +104,23 @@ public partial class ControlSpannable
             this.OnTextStateOptionsChange);
     }
 
+    /// <summary>Gets or sets the scale, applicable for this and all the descendant spannables.</summary>
+    /// <remarks>Effective scale is <see cref="EffectiveScale"/>, which takes this and the render scale specified from
+    /// <see cref="RenderContext.Scale"/> into consideration.</remarks>
+    public float Scale
+    {
+        get => this.scale;
+        set => this.HandlePropertyChange(
+            nameof(this.Scale),
+            ref this.scale,
+            value,
+            this.OnScaleChange);
+    }
+
     /// <summary>Gets or sets the size.</summary>
     /// <remarks>
     /// <para><see cref="MatchParent"/> and <see cref="WrapContent"/> can be used.</para>
-    /// <para>The value will be scaled by <see cref="Scale"/>.</para>
+    /// <para>The value will be scaled by <see cref="EffectiveScale"/>.</para>
     /// <para>The value includes the margin and padding.</para>
     /// </remarks>
     public Vector2 Size
@@ -101,8 +131,7 @@ public partial class ControlSpannable
 
     /// <summary>Gets or sets the minimum size.</summary>
     /// <remarks>
-    /// <para><see cref="MatchParent"/> and <see cref="WrapContent"/> can be used.</para>
-    /// <para>The value will be scaled by <see cref="Scale"/>.</para>
+    /// <para>The value will be scaled by <see cref="EffectiveScale"/>.</para>
     /// <para>The value includes the margin and padding.</para>
     /// </remarks>
     public Vector2 MinSize
@@ -113,8 +142,7 @@ public partial class ControlSpannable
 
     /// <summary>Gets or sets the maximum size.</summary>
     /// <remarks>
-    /// <para><see cref="MatchParent"/> and <see cref="WrapContent"/> can be used.</para>
-    /// <para>The value will be scaled by <see cref="Scale"/>.</para>
+    /// <para>The value will be scaled by <see cref="EffectiveScale"/>.</para>
     /// <para>The value includes the margin and padding.</para>
     /// </remarks>
     public Vector2 MaxSize
@@ -124,7 +152,7 @@ public partial class ControlSpannable
     }
 
     /// <summary>Gets or sets the extrusion.</summary>
-    /// <remarks>The value will be scaled by <see cref="Scale"/>.</remarks>
+    /// <remarks>The value will be scaled by <see cref="EffectiveScale"/>.</remarks>
     public BorderVector4 ExtendOutside
     {
         get => this.extendOutside;
@@ -136,7 +164,7 @@ public partial class ControlSpannable
     }
 
     /// <summary>Gets or sets the margin.</summary>
-    /// <remarks>The value will be scaled by <see cref="Scale"/>.</remarks>
+    /// <remarks>The value will be scaled by <see cref="EffectiveScale"/>.</remarks>
     public BorderVector4 Margin
     {
         get => this.margin;
@@ -144,11 +172,23 @@ public partial class ControlSpannable
     }
 
     /// <summary>Gets or sets the padding.</summary>
-    /// <remarks>The value will be scaled by <see cref="Scale"/>.</remarks>
+    /// <remarks>The value will be scaled by <see cref="EffectiveScale"/>.</remarks>
     public BorderVector4 Padding
     {
         get => this.padding;
         set => this.HandlePropertyChange(nameof(this.Padding), ref this.padding, value, this.OnPaddingChange);
+    }
+
+    /// <summary>Gets or sets the transformation.</summary>
+    /// <remarks>This value does not count when calculating <see cref="EffectiveScale"/>.</remarks>
+    public Matrix4x4 Transformation
+    {
+        get => this.transformation;
+        set => this.HandlePropertyChange(
+            nameof(this.Transformation),
+            ref this.transformation,
+            value,
+            this.OnTransformationChange);
     }
 
     /// <summary>Gets or sets the normal background spannable.</summary>
@@ -229,6 +269,17 @@ public partial class ControlSpannable
             this.OnMoveAnimationChange);
     }
 
+    /// <summary>Gets or sets the animation to play when <see cref="Transformation"/> changes.</summary>
+    public SpannableAnimator? TransformationChangeAnimation
+    {
+        get => this.transformationChangeAnimation;
+        set => this.HandlePropertyChange(
+            nameof(this.TransformationChangeAnimation),
+            ref this.transformationChangeAnimation,
+            value,
+            this.OnTransformationChangeAnimationChange);
+    }
+
     /// <summary>Gets or sets the opacity of the body when the control is disabled.</summary>
     public float DisabledTextOpacity
     {
@@ -268,6 +319,18 @@ public partial class ControlSpannable
             this.OnCaptureMouseWheelChange);
     }
 
+    /// <summary>Gets or sets a value indicating whether to capture mouse events, regardless of whether the control is
+    /// held.</summary>
+    public bool CaptureMouse
+    {
+        get => this.captureMouse;
+        set => this.HandlePropertyChange(
+            nameof(this.CaptureMouse),
+            ref this.captureMouse,
+            value,
+            this.OnCaptureMouseChange);
+    }
+
     /// <summary>Gets or sets a value indicating whether to take and claim keyboard inputs when focused.</summary>
     /// <remarks>
     /// <para>If set to <c>true</c>, then the game will not receive keyboard inputs when this control is focused.</para>
@@ -292,6 +355,7 @@ public partial class ControlSpannable
     /// <typeparam name="TSender">Type of the object that generated the event.</typeparam>
     /// <typeparam name="T">Type of the changed value.</typeparam>
     /// <returns><c>true</c> if changed.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     protected static bool HandlePropertyChange<TSender, T>(
         TSender sender,
         string propName,
@@ -305,13 +369,13 @@ public partial class ControlSpannable
         var old = storage;
         storage = newValue;
 
-        var e = ControlEventArgsPool.Rent<PropertyChangeEventArgs<TSender, T>>();
+        var e = SpannableControlEventArgsPool.Rent<PropertyChangeEventArgs<TSender, T>>();
         e.Sender = sender;
         e.PropertyName = propName;
         e.PreviousValue = old;
         e.NewValue = newValue;
         eh(e);
-        ControlEventArgsPool.Return(e);
+        SpannableControlEventArgsPool.Return(e);
         return false;
     }
 
@@ -321,6 +385,7 @@ public partial class ControlSpannable
     /// <param name="newValue">The new value.</param>
     /// <param name="eh">The event handler.</param>
     /// <typeparam name="T">Type of the changed value.</typeparam>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     protected void HandlePropertyChange<T>(
         string propName,
         ref T storage,

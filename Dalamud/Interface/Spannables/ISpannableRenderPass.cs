@@ -12,6 +12,9 @@ namespace Dalamud.Interface.Spannables;
 /// <see cref="HandleSpannableInteraction"/>, and <see cref="DrawSpannable"/> calls.</remarks>
 public interface ISpannableRenderPass
 {
+    /// <summary>Gets the object that created this render pass.</summary>
+    ISpannable RenderPassCreator { get; }
+    
     /// <summary>Gets the mutable reference to the render state.</summary>
     ref TextState ActiveTextState { get; }
 
@@ -42,7 +45,7 @@ public interface ISpannableRenderPass
 
     /// <summary>Commits the calculated transformation values. </summary>
     /// <param name="args">The arguments.</param>
-    void CommitSpannableMeasurement(scoped in SpannableCommitTransformationArgs args);
+    void CommitSpannableMeasurement(scoped in SpannableCommitMeasurementArgs args);
 
     /// <summary>Draws this spannable.</summary>
     /// <param name="args">The arguments.</param>

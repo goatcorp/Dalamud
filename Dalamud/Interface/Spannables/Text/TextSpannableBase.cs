@@ -70,7 +70,7 @@ public abstract partial class TextSpannableBase : ISpannable, ISpannableSerializ
     public abstract IReadOnlyCollection<ISpannable?> GetAllChildSpannables();
 
     /// <inheritdoc/>
-    public ISpannableRenderPass RentRenderPass(ISpannableRenderer renderer) => RenderPass.Rent(renderer);
+    public ISpannableRenderPass RentRenderPass(ISpannableRenderer renderer) => RenderPass.Rent(renderer, this);
 
     /// <inheritdoc/>
     public void ReturnRenderPass(ISpannableRenderPass? pass)
@@ -139,7 +139,7 @@ public abstract partial class TextSpannableBase : ISpannable, ISpannableSerializ
                     break;
             }
 
-            this.VerticalOffsetWrtLine = MathF.Round(this.VerticalOffsetWrtLine);
+            this.VerticalOffsetWrtLine = MathF.Round(this.VerticalOffsetWrtLine * fontInfo.Scale) / fontInfo.Scale;
 
             var alignWidth = this.renderPass.MaxSize.X;
             var alignLeft = 0f;
@@ -169,7 +169,9 @@ public abstract partial class TextSpannableBase : ISpannable, ISpannableSerializ
                     this.HorizontalOffsetWrtLine =
                         MathF.Round(
                             (alignLeft + (alignWidth - this.lineWidth)) *
-                            this.renderPass.ActiveTextState.LastStyle.HorizontalAlignment);
+                            this.renderPass.ActiveTextState.LastStyle.HorizontalAlignment *
+                            fontInfo.Scale)
+                        / fontInfo.Scale;
                     break;
             }
         }

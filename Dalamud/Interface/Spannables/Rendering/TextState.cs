@@ -135,6 +135,10 @@ public struct TextState
         && TextStyle.PropertyReferenceEquals(l.LastStyle, r.LastStyle)
         && ReferenceEquals(l.WrapMarker, r.WrapMarker);
 
+    /// <summary>Forks this text state, so that stored initial values are set to the latest values.</summary>
+    /// <returns>A fork of this text state.</returns>
+    public readonly TextState Fork() => this with { InitialStyle = this.LastStyle };
+
     /// <summary>Initial options for <see cref="ISpannableRenderer"/>.</summary>
     /// <remarks>Unspecified options (<c>null</c>) will use the default values.</remarks>
     public struct Options

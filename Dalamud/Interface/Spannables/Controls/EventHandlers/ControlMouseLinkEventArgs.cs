@@ -13,4 +13,12 @@ public record ControlMouseLinkEventArgs : SpannableControlEventArgs
 
     /// <summary>Gets or sets the mouse button that has been pressed or released.</summary>
     public ImGuiMouseButton Button { get; set; }
+
+    /// <inheritdoc/>
+    public override bool TryReset()
+    {
+        this.Link = default;
+        this.Button = default;
+        return base.TryReset();
+    }
 }

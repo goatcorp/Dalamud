@@ -17,4 +17,13 @@ public record ControlKeyPressEventArgs : SpannableControlEventArgs
 
     /// <summary>Gets or sets the character corresponding to the key pressed.</summary>
     public Rune Rune { get; set; }
+
+    /// <inheritdoc/>
+    public override bool TryReset()
+    {
+        this.Handled = false;
+        this.KeyChar = default;
+        this.Rune = default;
+        return base.TryReset();
+    }
 }

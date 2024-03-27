@@ -58,6 +58,14 @@ public static class VectorExtensions
 
     public static Vector2 Round(this Vector2 v) => new(MathF.Round(v.X), MathF.Round(v.Y));
 
+    public static Vector2 Round(this Vector2 v, float unit) =>
+        new Vector2(MathF.Round(v.X / unit), MathF.Round(v.Y / unit)) * unit;
+
+    public static Vector2 Ceiling(this Vector2 v) => new(MathF.Ceiling(v.X), MathF.Ceiling(v.Y));
+
+    public static Vector2 Ceiling(this Vector2 v, float unit) =>
+        new Vector2(MathF.Ceiling(v.X / unit), MathF.Ceiling(v.Y / unit)) * unit;
+
     public static ByteColor ToByteColor(this Vector4 v)
     {
         return new ByteColor { A = (byte)(v.W * 255), R = (byte)(v.X * 255), G = (byte)(v.Y * 255), B = (byte)(v.Z * 255) };

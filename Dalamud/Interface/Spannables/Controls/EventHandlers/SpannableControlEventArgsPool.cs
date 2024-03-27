@@ -2,8 +2,8 @@ using Dalamud.Utility;
 
 namespace Dalamud.Interface.Spannables.Controls.EventHandlers;
 
-/// <summary>Utility interface for implement event object instance pools.</summary>
-public static class ControlEventArgsPool
+/// <summary>A non-threadsafe pool of objects derived from <see cref="SpannableControlEventArgs"/>.</summary>
+public static class SpannableControlEventArgsPool
 {
     /// <summary>Rents an instance of the object.</summary>
     /// <returns>The rented object.</returns>
@@ -37,8 +37,8 @@ public static class ControlEventArgsPool
         {
             if (x is null)
             {
-                value.Sender = null!;
-                x = value;
+                if (value.TryReset())
+                    x = value;
                 return;
             }
         }

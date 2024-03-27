@@ -118,6 +118,13 @@ public struct RectVector4 : IEquatable<RectVector4>
         get => this.Left <= this.Right && this.Top <= this.Bottom;
     }
 
+    /// <summary>Gets the center point of the box formed within, if <see cref="IsValid"/> is true.</summary>
+    public readonly Vector2 Center
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => this.IsValid ? (this.LeftTop + this.RightBottom) / 2f : Vector2.Zero;
+    }
+
     /// <summary>Gets the width of the box formed within, if <see cref="IsValid"/> is <c>true</c>.</summary>
     public readonly float Width
     {
@@ -161,8 +168,21 @@ public struct RectVector4 : IEquatable<RectVector4>
         new(left.Vector4 * right);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static RectVector4 operator *(in float left, in RectVector4 right) =>
+        new(right.Vector4 * left);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static RectVector4 operator /(in RectVector4 left, in float right) =>
         new(left.Vector4 / right);
+
+    /// <summary>expands <paramref name="what"/> by <paramref name="by"/>, by subtracting <see cref="LeftTop"/>
+    /// and adding <see cref="RightBottom"/>.</summary>
+    /// <param name="what">The rect vector to extrude from.</param>
+    /// <param name="by">The expansion distance.</param>
+    /// <returns>The expanded rect vector.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static RectVector4 Expand(in RectVector4 what, in Vector2 by) =>
+        new(what.LeftTop - by, what.RightBottom + by);
 
     /// <summary>expands <paramref name="what"/> by <paramref name="by"/>, by subtracting <see cref="LeftTop"/>
     /// and adding <see cref="RightBottom"/>.</summary>

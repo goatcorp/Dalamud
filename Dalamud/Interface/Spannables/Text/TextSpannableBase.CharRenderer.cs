@@ -1,6 +1,7 @@
 using System.Numerics;
 using System.Runtime.CompilerServices;
 
+using Dalamud.Interface.Spannables.Helpers;
 using Dalamud.Interface.Spannables.Internal;
 using Dalamud.Interface.Spannables.Rendering;
 using Dalamud.Interface.Spannables.RenderPassMethodArgs;
@@ -57,12 +58,12 @@ public abstract partial class TextSpannableBase
 
             if (!this.skipDraw)
             {
-                this.BackChannel = this.args.RenderPass.Renderer.RentDrawList(args.DrawListPtr);
-                this.ShadowChannel = this.args.RenderPass.Renderer.RentDrawList(args.DrawListPtr);
-                this.BorderChannel = this.args.RenderPass.Renderer.RentDrawList(args.DrawListPtr);
-                this.TextDecorationOverUnderChannel = this.args.RenderPass.Renderer.RentDrawList(args.DrawListPtr);
-                this.ForeChannel = this.args.RenderPass.Renderer.RentDrawList(args.DrawListPtr);
-                this.TextDecorationThroughChannel = this.args.RenderPass.Renderer.RentDrawList(args.DrawListPtr);
+                this.BackChannel = renderPass.Renderer.RentDrawList(args.DrawListPtr);
+                this.ShadowChannel = renderPass.Renderer.RentDrawList(args.DrawListPtr);
+                this.BorderChannel = renderPass.Renderer.RentDrawList(args.DrawListPtr);
+                this.TextDecorationOverUnderChannel = renderPass.Renderer.RentDrawList(args.DrawListPtr);
+                this.ForeChannel = renderPass.Renderer.RentDrawList(args.DrawListPtr);
+                this.TextDecorationThroughChannel = renderPass.Renderer.RentDrawList(args.DrawListPtr);
             }
 
             this.SpanFontOptionsUpdated();
@@ -79,7 +80,7 @@ public abstract partial class TextSpannableBase
         {
             if (!this.skipDraw)
             {
-                var renderer = this.args.RenderPass.Renderer;
+                var renderer = this.renderPass.Renderer;
                 var target = this.args.DrawListPtr;
                 this.BackChannel.CopyDrawListDataTo(target, transformationFromParent, Vector4.One);
                 this.ShadowChannel.CopyDrawListDataTo(target, transformationFromParent, Vector4.One);
@@ -273,7 +274,7 @@ public abstract partial class TextSpannableBase
 
             xy0 += this.StyleTranslation;
             xy1 += this.StyleTranslation;
-            advX = MathF.Round(advX);
+            advX = MathF.Round(advX * this.renderPass.Scale) / this.renderPass.Scale;
 
             var topSkewDistance = this.fontInfo.GetScaledTopSkew(xy0);
             var bounds = RectVector4.Translate(new(xy0, xy1), this.renderPass.Offset);
@@ -482,7 +483,7 @@ public abstract partial class TextSpannableBase
                 }
                 else
                 {
-                    this.args.NotifyChild(spannable, spannableState);
+                    this.args.NotifyChild(spannableState, this.args);
                 }
             }
 

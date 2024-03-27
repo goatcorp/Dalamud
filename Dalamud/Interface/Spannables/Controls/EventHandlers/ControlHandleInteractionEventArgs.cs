@@ -10,4 +10,11 @@ public record ControlHandleInteractionEventArgs : SpannableControlEventArgs
 {
     /// <summary>Gets or sets the handle interaction arguments from the spannable invoker.</summary>
     public SpannableHandleInteractionArgs SpannableArgs { get; set; }
+
+    /// <inheritdoc/>
+    public override bool TryReset()
+    {
+        this.SpannableArgs = default;
+        return base.TryReset();
+    }
 }

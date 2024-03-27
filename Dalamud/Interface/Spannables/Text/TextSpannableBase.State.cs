@@ -40,6 +40,9 @@ public abstract partial class TextSpannableBase
         private Measurement measured;
 
         /// <inheritdoc/>
+        public ISpannable RenderPassCreator { get; private set; } = null!;
+
+        /// <inheritdoc/>
         public ref TextState ActiveTextState => ref this.measured.TextState;
 
         /// <inheritdoc/>
@@ -77,10 +80,11 @@ public abstract partial class TextSpannableBase
 
         public ref readonly Vector2 MaxSize => ref this.measured.MaxSize;
 
-        public static RenderPass Rent(in ISpannableRenderer renderer)
+        public static RenderPass Rent(in ISpannableRenderer renderer, TextSpannableBase renderPassCreator)
         {
             var t = Pool.Get();
             t.Renderer = renderer;
+            t.RenderPassCreator = renderPassCreator;
             return t;
         }
 
@@ -94,7 +98,7 @@ public abstract partial class TextSpannableBase
         /// <inheritdoc/>
         public void MeasureSpannable(scoped in SpannableMeasureArgs args)
         {
-            if (args.Sender is not TextSpannableBase ssb)
+            if (this.RenderPassCreator is not TextSpannableBase ssb)
                 return;
 
             this.ImGuiGlobalId = args.ImGuiGlobalId;
@@ -102,7 +106,7 @@ public abstract partial class TextSpannableBase
             var data = ssb.GetData();
 
             // Did nothing change? Skip the measurement.
-            if (this.measured.UpdateMeasureParams(args, ssb))
+            if (this.measured.UpdateMeasureParams(this.Renderer, args, ssb))
                 return;
 
             this.Offset = Vector2.Zero;
@@ -113,7 +117,7 @@ public abstract partial class TextSpannableBase
             var segment = new DataRef.Segment(data, 0, 0);
             var linkRecordIndex = -1;
 
-            var drawArgs = new SpannableDrawArgs(ssb, this, default);
+            var drawArgs = new SpannableDrawArgs(this, default);
             var charRenderer = new CharRenderer(drawArgs, data, this, true);
             var skipNextLine = false;
             while (true)
@@ -270,6 +274,8 @@ public abstract partial class TextSpannableBase
 
             if (!this.Boundary.IsValid)
                 this.measured.Boundary = default;
+            else
+                this.measured.Boundary.Right += 1;
 
             if (this.measured.Boundary.Width < args.MinSize.X)
                 this.measured.Boundary.Right = this.measured.Boundary.Left + args.MinSize.X;
@@ -277,11 +283,14 @@ public abstract partial class TextSpannableBase
             if (this.measured.Boundary.Height < args.MinSize.Y)
                 this.measured.Boundary.Bottom = this.measured.Boundary.Top + args.MinSize.Y;
 
+            this.measured.Boundary.Right = MathF.Ceiling(this.measured.Boundary.Right * this.Scale) / this.Scale;
+
             if (this.ActiveTextState is { VerticalAlignment: > 0f } && args.MaxSize.Y < float.PositiveInfinity)
             {
                 var offset = MathF.Round(
-                    (args.MaxSize.Y - this.Boundary.Height) *
-                    Math.Clamp(this.ActiveTextState.VerticalAlignment, 0f, 1f));
+                                 (args.MaxSize.Y - this.Boundary.Height) *
+                                 Math.Clamp(this.ActiveTextState.VerticalAlignment, 0f, 1f) *
+                                 this.Scale) / this.Scale;
                 this.TranslateBoundaries(new(0, offset), data);
                 this.ActiveTextState.ShiftFromVerticalAlignment = offset;
             }
@@ -292,9 +301,9 @@ public abstract partial class TextSpannableBase
         }
 
         /// <inheritdoc/>
-        public void CommitSpannableMeasurement(scoped in SpannableCommitTransformationArgs args)
+        public void CommitSpannableMeasurement(scoped in SpannableCommitMeasurementArgs args)
         {
-            if (args.Sender is not TextSpannableBase ssb)
+            if (this.RenderPassCreator is not TextSpannableBase ssb)
                 return;
             var data = ssb.GetData();
 
@@ -308,9 +317,9 @@ public abstract partial class TextSpannableBase
                     continue;
 
                 args.NotifyChild(
-                    data.Spannables[i],
                     spannableState,
-                    this.SpannableOffsets[i],
+                    args,
+                    Matrix4x4.CreateTranslation(new(this.SpannableOffsets[i], 0)),
                     spannableState.ActiveTextState.LastStyle.Italic
                         ? new(Matrix3x2.CreateSkew(MathF.Atan(-1 / TextStyleFontData.FakeItalicDivisor), 0))
                         : Matrix4x4.Identity);
@@ -320,7 +329,7 @@ public abstract partial class TextSpannableBase
         /// <inheritdoc/>
         public unsafe void DrawSpannable(SpannableDrawArgs args)
         {
-            if (args.Sender is not TextSpannableBase ssb)
+            if (this.RenderPassCreator is not TextSpannableBase ssb)
                 return;
 
             var data = ssb.GetData();
@@ -396,7 +405,7 @@ public abstract partial class TextSpannableBase
                 }
 
                 ref var itemState = ref *(ImGuiItemStateStruct*)ImGui.GetStateStorage().GetVoidPtrRef(
-                                            args.RenderPass.ImGuiGlobalId,
+                                            this.ImGuiGlobalId,
                                             nint.Zero);
 
                 if (itemState.State != ImGuiItemStateStruct.InteractionState.Clear)
@@ -435,28 +444,29 @@ public abstract partial class TextSpannableBase
         {
             link = default;
 
-            if (args.Sender is not TextSpannableBase ssb)
+            if (this.RenderPassCreator is not TextSpannableBase ssb)
                 return;
             var data = ssb.GetData();
-
-            for (var i = 0; i < data.Spannables.Length; i++)
-            {
-                if (this.SpannableStates[i] is not { } spannableState)
-                    continue;
-                args.NotifyChild(data.Spannables[i], spannableState, out link);
-                if (!link.IsEmpty)
-                    return;
-            }
 
             var mouseRel = args.MouseLocalLocation;
 
             ref var itemState = ref *(ImGuiItemStateStruct*)ImGui.GetStateStorage().GetVoidPtrRef(
-                                        args.RenderPass.ImGuiGlobalId,
+                                        this.ImGuiGlobalId,
                                         nint.Zero);
 
             itemState.InteractedLinkRecordIndex = -1;
             itemState.State = ImGuiItemStateStruct.InteractionState.Clear;
             link = default;
+            
+            for (var i = 0; i < data.Spannables.Length; i++)
+            {
+                if (this.SpannableStates[i] is not { } spannableState)
+                    continue;
+                args.NotifyChild(spannableState, args, out link);
+                if (!link.IsEmpty)
+                    return;
+            }
+
             foreach (ref var entry in this.LinkBoundaries)
             {
                 if (entry.Boundary.Contains(mouseRel) && args.IsItemHoverable(entry.Boundary, entry.RecordIndex))
@@ -478,7 +488,7 @@ public abstract partial class TextSpannableBase
                 prevLinkRecordIndex = linkBoundary.RecordIndex;
 
                 ref var linkState = ref *(ImGuiLinkStateStruct*)ImGui.GetStateStorage().GetVoidPtrRef(
-                                            args.RenderPass.GetGlobalIdFromInnerId(linkBoundary.RecordIndex),
+                                            this.GetGlobalIdFromInnerId(linkBoundary.RecordIndex),
                                             nint.Zero);
 
                 if (linkState.IsMouseButtonDownHandled)
@@ -604,10 +614,9 @@ public abstract partial class TextSpannableBase
                             var ssb = this.TempBuilder ??= new();
                             ssb.Clear().Append(name);
 
-                            var state2 = Rent(this.Renderer);
+                            var state2 = Rent(this.Renderer, ssb);
                             state2.MeasureSpannable(
                                 new(
-                                    ssb,
                                     state2,
                                     Vector2.Zero,
                                     new(float.PositiveInfinity),
@@ -621,7 +630,7 @@ public abstract partial class TextSpannableBase
 
                             if (state2.Boundary.IsValid)
                             {
-                                pad = MathF.Round(state2.Boundary.Width);
+                                pad = MathF.Ceiling(state2.Boundary.Width * this.Scale) / this.Scale;
                                 wordBreaker.ResetLastChar();
                             }
 
@@ -635,7 +644,7 @@ public abstract partial class TextSpannableBase
                                      && nextCodepoint == '\n'
                                      && (this.measured.TextState.AcceptedNewLines & NewLineType.CrLf) != 0:
                                 measuredLine = wordBreaker.Last;
-                                measuredLine.SetOffset(nextOffset.AddTextOffset(1), pad);
+                                measuredLine.SetOffset(nextOffset.AddTextOffset(1), this.Scale, pad);
                                 measuredLine.HasNewLineAtEnd = true;
                                 wordBreaker.UnionLineBBoxVertical(ref measuredLine);
                                 return;
@@ -643,7 +652,7 @@ public abstract partial class TextSpannableBase
                             case '\r' when (this.measured.TextState.AcceptedNewLines & NewLineType.Cr) != 0:
                             case '\n' when (this.measured.TextState.AcceptedNewLines & NewLineType.Lf) != 0:
                                 measuredLine = wordBreaker.Last;
-                                measuredLine.SetOffset(nextOffset, pad);
+                                measuredLine.SetOffset(nextOffset, this.Scale, pad);
                                 measuredLine.HasNewLineAtEnd = true;
                                 wordBreaker.UnionLineBBoxVertical(ref measuredLine);
                                 return;
@@ -681,14 +690,14 @@ public abstract partial class TextSpannableBase
             while (segment.TryGetNext(out segment));
 
             measuredLine = wordBreaker.Last;
-            measuredLine.SetOffset(new(segment.Offset.Text, segment.Offset.Record));
+            measuredLine.SetOffset(new(segment.Offset.Text, segment.Offset.Record), this.Scale, 0f);
         }
 
         /// <summary>Forces a line break, from both <see cref="MeasureSpannable"/> and <see cref="DrawSpannable"/>
         /// step.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void BreakLineImmediate(in MeasuredLine mostRecentLine) =>
-            this.Offset = new(0, MathF.Round(this.Offset.Y + mostRecentLine.Height));
+            this.Offset = new(0, MathF.Round((this.Offset.Y + mostRecentLine.Height) * this.Scale) / this.Scale);
 
         /// <summary>Add decorations and break line once a line ends, from both <see cref="MeasureSpannable"/>
         /// and <see cref="DrawSpannable"/> step.</summary>
@@ -709,7 +718,6 @@ public abstract partial class TextSpannableBase
                     var wmrp = wm.RentRenderPass(this.Renderer);
                     wmrp.MeasureSpannable(
                         new(
-                            wm,
                             wmrp,
                             Vector2.Zero,
                             new(float.PositiveInfinity),
@@ -725,30 +733,26 @@ public abstract partial class TextSpannableBase
                     {
                         if (!args.IsEmpty)
                         {
-                            var mtx = Matrix4x4.Identity;
+                            var mtx = Matrix4x4.CreateTranslation(new(this.Offset + charRenderer.StyleTranslation, 0));
                             if (this.measured.TextState.LastStyle.Italic)
                             {
-                                mtx = new(
-                                    Matrix3x2.CreateSkew(MathF.Atan(-1 / TextStyleFontData.FakeItalicDivisor), 0));
+                                mtx = Matrix4x4.Multiply(
+                                    mtx,
+                                    new Matrix4x4(
+                                        Matrix3x2.CreateSkew(MathF.Atan(-1 / TextStyleFontData.FakeItalicDivisor), 0)));
                             }
 
-                            new SpannableCommitTransformationArgs(
-                                    args.Sender,
-                                    args.RenderPass,
-                                    this.InnerOrigin,
-                                    this.TransformationFromParent,
-                                    this.TransformationFromAncestors)
-                                .NotifyChild(
-                                    wm,
-                                    wmrp,
-                                    this.Offset + charRenderer.StyleTranslation,
-                                    mtx);
+                            wmrp.CommitSpannableMeasurement(new()
+                            {
+                                InnerOrigin = this.InnerOrigin,
+                                TransformationFromAncestors = Matrix4x4.Multiply(mtx, this.TransformationFromAncestors),
+                                TransformationFromParent = mtx,
+                            });
 
                             var tmpDrawList = this.Renderer.RentDrawList(args.DrawListPtr);
                             try
                             {
-                                var tmpargs = args with { DrawListPtr = tmpDrawList };
-                                tmpargs.NotifyChild(wm, wmrp);
+                                args.NotifyChild(wmrp, args with { DrawListPtr = tmpDrawList });
                                 tmpDrawList.CopyDrawListDataTo(
                                     args.DrawListPtr,
                                     this.TransformationFromParent,
@@ -798,7 +802,10 @@ public abstract partial class TextSpannableBase
             /// <summary>Updates measurement parameters.</summary>
             /// <returns><c>true</c> if nothing has been changed.</returns>
             [SuppressMessage("ReSharper", "CompareOfFloatsByEqualityOperator", Justification = "opportunistic")]
-            public bool UpdateMeasureParams(scoped in SpannableMeasureArgs args, TextSpannableBase ss)
+            public bool UpdateMeasureParams(
+                ISpannableRenderer renderer,
+                scoped in SpannableMeasureArgs args,
+                TextSpannableBase ss)
             {
                 var data = ss.GetData();
                 var spannables = data.Spannables;
@@ -842,7 +849,7 @@ public abstract partial class TextSpannableBase
                 }
 
                 for (var i = 0; i < spannables.Length; i++)
-                    this.SpannableStates[i] = spannables[i]?.RentRenderPass(args.RenderPass.Renderer);
+                    this.SpannableStates[i] = spannables[i]?.RentRenderPass(renderer);
 
                 return false;
             }

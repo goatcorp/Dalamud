@@ -139,41 +139,45 @@ public abstract partial class TextSpannableBase
         /// <summary>Unions the given horizontal boundary box to this instance.</summary>
         /// <param name="x0">The left boundary.</param>
         /// <param name="x1">The right boundary.</param>
+        /// <param name="renderScale">The render scale for rounding.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
-        public void UnionBBoxHorizontal(float x0, float x1)
+        public void UnionBBoxHorizontal(float x0, float x1, float renderScale)
         {
-            this.BBoxHorizontal.X = MathF.Round(Math.Min(this.BBoxHorizontal.X, x0));
-            this.BBoxHorizontal.Y = MathF.Round(Math.Max(this.BBoxHorizontal.Y, x1));
+            this.BBoxHorizontal.X = MathF.Ceiling(Math.Min(this.BBoxHorizontal.X, x0) * renderScale) / renderScale;
+            this.BBoxHorizontal.Y = MathF.Ceiling(Math.Max(this.BBoxHorizontal.Y, x1) * renderScale) / renderScale;
         }
 
         /// <summary>Unions the given vertical boundary box to this instance.</summary>
         /// <param name="ascent">The top boundary (=ascent for this implementation).</param>
         /// <param name="descent">The bottom boundary (=descent for this implementation).</param>
+        /// <param name="renderScale">The render scale for rounding.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
-        public void UnionBBoxVertical(float ascent, float descent)
+        public void UnionBBoxVertical(float ascent, float descent, float renderScale)
         {
-            this.BBoxVertical.X = MathF.Round(Math.Min(this.BBoxVertical.X, ascent));
-            this.BBoxVertical.Y = MathF.Round(Math.Max(this.BBoxVertical.Y, descent));
+            this.BBoxVertical.X = MathF.Ceiling(Math.Min(this.BBoxVertical.X, ascent) * renderScale) / renderScale;
+            this.BBoxVertical.Y = MathF.Ceiling(Math.Max(this.BBoxVertical.Y, descent) * renderScale) / renderScale;
         }
 
         /// <summary>Tests if the line is contained within a right boundary.</summary>
-        /// <param name="fontData">The font data.</param>
         /// <param name="rightBoundary">The right boundary.</param>
+        /// <param name="renderScale">The render scale for rounding.</param>
         /// <returns><c>true</c> if it will.</returns>
-        public readonly bool ContainedInBounds(TextStyleFontData fontData, float rightBoundary) =>
-            MathF.Round(this.BBoxHorizontal.Y) <= rightBoundary;
+        public readonly bool ContainedInBounds(float rightBoundary, float renderScale) =>
+            MathF.Ceiling(this.BBoxHorizontal.Y * renderScale) / renderScale <= rightBoundary;
 
         /// <summary>Tests if adding an object will still keep the line from reaching a right boundary.</summary>
-        /// <param name="fontData">The font data.</param>
+        /// <param name="font">The font data.</param>
         /// <param name="objectWidth">The object width.</param>
         /// <param name="rightBoundary">The right boundary.</param>
         /// <returns><c>true</c> if it will.</returns>
         public readonly bool ContainedInBoundsWithObject(
-            TextStyleFontData fontData,
+            in TextStyleFontData font,
             float objectWidth,
             float rightBoundary) =>
-            MathF.Round(Math.Max(this.BBoxHorizontal.Y, this.X + objectWidth + fontData.ScaledHorizontalOffset))
-            <= rightBoundary;
+            MathF.Ceiling(
+                Math.Max(this.BBoxHorizontal.Y, this.X + objectWidth + font.ScaledHorizontalOffset) *
+                font.RenderScale)
+            <= rightBoundary * font.RenderScale;
 
         /// <summary>Returns a new instance of this struct after setting <see cref="IsWrapped"/>.</summary>
         /// <returns>The new instance.</returns>
@@ -181,33 +185,35 @@ public abstract partial class TextSpannableBase
 
         /// <summary>Sets the offset.</summary>
         /// <param name="offset">The offset.</param>
+        /// <param name="renderScale">The render scale for rounding.</param>
         /// <param name="pad">The extra padding, if any.</param>
-        public void SetOffset(CompositeOffset offset, float pad = 0f)
+        public void SetOffset(CompositeOffset offset, float renderScale, float pad)
         {
             this.Offset = offset;
             if (pad != 0f)
             {
                 this.LastThing.Clear();
-                this.X += MathF.Round(pad);
-                this.UnionBBoxHorizontal(this.X, this.X);
+                this.X += MathF.Ceiling(pad * renderScale) / renderScale;
+                this.UnionBBoxHorizontal(this.X, this.X, renderScale);
             }
         }
 
         /// <summary>Adds an object.</summary>
-        /// <param name="fontData">The current font data.</param>
+        /// <param name="font">The current font data.</param>
         /// <param name="recordIndex">The index of the record of this span, or -1 if none.</param>
         /// <param name="x0">The X0.</param>
         /// <param name="x1">The X1.</param>
-        public void AddObject(TextStyleFontData fontData, int recordIndex, float x0, float x1)
+        public void AddObject(TextStyleFontData font, int recordIndex, float x0, float x1)
         {
             if (recordIndex == -1)
                 this.LastThing.SetRecord(recordIndex);
             else
                 this.LastThing.Clear();
             this.UnionBBoxHorizontal(
-                this.X + x0 + fontData.ScaledHorizontalOffset,
-                this.X + x1 + fontData.ScaledHorizontalOffset);
-            this.X += MathF.Round(x1);
+                this.X + x0 + font.ScaledHorizontalOffset,
+                this.X + x1 + font.ScaledHorizontalOffset,
+                font.RenderScale);
+            this.X += MathF.Round(x1 * font.RenderScale) / font.RenderScale;
         }
 
         /// <summary>Adds a character.</summary>
@@ -225,10 +231,11 @@ public abstract partial class TextSpannableBase
         {
             var xoff = this.X + font.ScaledHorizontalOffset;
             this.UnionBBoxHorizontal(
-                MathF.Round(xoff + xy0.X),
-                MathF.Round(xoff + xy1.X + font.GetScaledTopSkew(xy0) + font.BoldExtraWidth));
-            this.UnionBBoxVertical(font.BBoxVertical.X, font.BBoxVertical.Y);
-            this.X += MathF.Round(advance);
+                xoff + xy0.X,
+                xoff + xy1.X + font.GetScaledTopSkew(xy0) + font.BoldExtraWidth,
+                font.RenderScale);
+            this.UnionBBoxVertical(font.BBoxVertical.X, font.BBoxVertical.Y, font.RenderScale);
+            this.X += MathF.Round(advance * font.RenderScale) / font.RenderScale;
             this.LastThing.SetCodepoint(codepoint);
         }
 
@@ -257,9 +264,9 @@ public abstract partial class TextSpannableBase
         /// <param name="tabWidth">The width.</param>
         public void AddTabCharacter(in TextStyleFontData font, float tabWidth)
         {
-            this.X = MathF.Floor((this.X + tabWidth) / tabWidth) * tabWidth;
-            this.UnionBBoxHorizontal(this.X, this.X);
-            this.UnionBBoxVertical(font.BBoxVertical.X, font.BBoxVertical.Y);
+            this.X = MathF.Floor(((this.X + tabWidth) / tabWidth) * font.RenderScale) * tabWidth * font.RenderScale;
+            this.UnionBBoxHorizontal(this.X, this.X, font.RenderScale);
+            this.UnionBBoxVertical(font.BBoxVertical.X, font.BBoxVertical.X, font.RenderScale);
             this.LastThing.SetCodepoint('\t');
         }
 

@@ -38,11 +38,11 @@ public readonly ref struct TextStyleFontData
     /// <summary>The scale, relative to <see cref="ImFontPtr.FontSize"/> of <see cref="Font"/>.</summary>
     public readonly float Scale;
 
+    /// <summary>The render scale.</summary>
+    public readonly float RenderScale;
+
     /// <summary>Whether kerning is enabled.</summary>
     private readonly bool useKern;
-
-    /// <summary>The render scale.</summary>
-    private readonly float renderScale;
 
     /// <summary>Whether fake italic is being used.</summary>
     private readonly bool fakeItalic;
@@ -60,6 +60,7 @@ public readonly ref struct TextStyleFontData
     /// <param name="renderScale">The scale applicable for everything.</param>
     /// <param name="style">The span style.</param>
     /// <param name="font">The resolved font.</param>
+    /// <param name="intendedFontSize">The intended font size.</param>
     /// <param name="fakeItalic">Whether to use faux italics.</param>
     /// <param name="fakeBold">Whether to use faux bold.</param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -67,10 +68,11 @@ public readonly ref struct TextStyleFontData
         float renderScale,
         scoped in TextStyle style,
         ImFontPtr font,
+        float intendedFontSize,
         bool fakeItalic,
         bool fakeBold)
     {
-        this.renderScale = renderScale;
+        this.RenderScale = renderScale;
         this.Font = font;
         this.fakeBold = fakeBold;
         this.fakeItalic = fakeItalic;
@@ -79,26 +81,26 @@ public readonly ref struct TextStyleFontData
         this.glyphs = new((void*)font.NativePtr->Glyphs.Data, font.NativePtr->Glyphs.Size);
         this.lookup = new((void*)font.NativePtr->IndexLookup.Data, font.NativePtr->IndexLookup.Size);
 
-        this.ScaledFontSize = style.FontSize switch
-        {
-            < 0f => -style.FontSize * ImGui.GetFont().FontSize,
-            > 0f => style.FontSize,
-            _ => font.FontSize,
-        };
-        this.ScaledFontSize *= this.renderScale;
+        this.ScaledFontSize = intendedFontSize;
         this.Scale = this.ScaledFontSize / font.FontSize;
 
         this.BBoxVertical = new Vector2(-font.Ascent, font.Descent) * this.Scale;
         if (style.LineHeight > 0)
             this.BBoxVertical *= style.LineHeight;
 
-        this.ScaledHorizontalOffset = MathF.Round(this.ScaledFontSize * style.HorizontalOffset);
+        this.ScaledHorizontalOffset =
+            MathF.Round(this.ScaledFontSize * style.HorizontalOffset * renderScale) / renderScale;
 
-        this.BoldExtraWidth = this.fakeBold ? (int)MathF.Ceiling(this.ScaledFontSize / FakeBoldDivisor) - 1 : 0;
+        this.BoldExtraWidth =
+            this.fakeBold
+                ? (int)(MathF.Ceiling((this.ScaledFontSize / FakeBoldDivisor) * renderScale) / renderScale) - 1
+                : 0;
 
         this.ScaledTextDecorationThickness =
             style.TextDecorationThickness > 0
-                ? Math.Max(1, MathF.Round(this.ScaledFontSize * style.TextDecorationThickness))
+                ? Math.Max(
+                    1,
+                    MathF.Round(this.ScaledFontSize * style.TextDecorationThickness * renderScale) / renderScale)
                 : 0;
     }
 

@@ -127,42 +127,43 @@ internal sealed partial class SpannableRenderer : ISpannableRenderer, IInternalD
         var state = spannable.RentRenderPass(this);
         state.MeasureSpannable(
             new(
-                spannable,
                 state,
-                renderContext.MinSize,
-                renderContext.MaxSize,
+                renderContext.MinSize / renderContext.Scale,
+                renderContext.MaxSize / renderContext.Scale,
                 renderContext.Scale,
                 new(textOptions),
                 renderContext.ImGuiGlobalId));
 
         state.CommitSpannableMeasurement(
             new(
-                spannable,
                 state,
                 renderContext.InnerOrigin,
                 renderContext.Transformation,
                 Matrix4x4.Multiply(
                     renderContext.Transformation,
-                    Matrix4x4.CreateTranslation(new(renderContext.ScreenOffset, 0)))));
+                    Matrix4x4.Multiply(
+                        Matrix4x4.CreateScale(renderContext.Scale),
+                        Matrix4x4.CreateTranslation(new(renderContext.ScreenOffset, 0))))));
 
         if (renderContext.UseDrawing)
         {
             using (new ScopedTransformer(
                        renderContext.DrawListPtr,
                        Matrix4x4.CreateTranslation(new(renderContext.ScreenOffset, 0)),
+                       new(renderContext.Scale),
                        1f))
             {
-                state.DrawSpannable(new(spannable, state, renderContext.DrawListPtr));
+                state.DrawSpannable(new(state, renderContext.DrawListPtr));
             }
 
             if (renderContext.UseInteraction)
             {
                 var msl = renderContext.MouseScreenLocation;
                 var mll = Vector2.Transform(
-                    msl - renderContext.ScreenOffset,
+                    (msl - renderContext.ScreenOffset) / renderContext.Scale,
                     Matrix4x4.Invert(state.TransformationFromParent, out var inverted) ? inverted : Matrix4x4.Identity);
                 state.HandleSpannableInteraction(
-                    new(spannable, state)
+                    new(state)
                     {
                         MouseButtonStateFlags = (ImGui.IsMouseDown(ImGuiMouseButton.Left) ? 1 : 0)
                                                 | (ImGui.IsMouseDown(ImGuiMouseButton.Right) ? 2 : 0)
@@ -176,14 +177,13 @@ internal sealed partial class SpannableRenderer : ISpannableRenderer, IInternalD
 
             if (renderContext.PutDummyAfterRender)
             {
-                var lt = renderContext.ScreenOffset
-                         + Vector2.Transform(state.Boundary.LeftTop, renderContext.Transformation);
-                var rt = renderContext.ScreenOffset
-                         + Vector2.Transform(state.Boundary.RightTop, renderContext.Transformation);
-                var rb = renderContext.ScreenOffset
-                         + Vector2.Transform(state.Boundary.RightBottom, renderContext.Transformation);
-                var lb = renderContext.ScreenOffset
-                         + Vector2.Transform(state.Boundary.LeftBottom, renderContext.Transformation);
+                var tf = Matrix4x4.Multiply(
+                    Matrix4x4.CreateScale(new Vector3(renderContext.Scale)),
+                    renderContext.Transformation);
+                var lt = renderContext.ScreenOffset + Vector2.Transform(state.Boundary.LeftTop, tf);
+                var rt = renderContext.ScreenOffset + Vector2.Transform(state.Boundary.RightTop, tf);
+                var rb = renderContext.ScreenOffset + Vector2.Transform(state.Boundary.RightBottom, tf);
+                var lb = renderContext.ScreenOffset + Vector2.Transform(state.Boundary.LeftBottom, tf);
                 var minPos = Vector2.Min(Vector2.Min(lt, rt), Vector2.Min(lb, rb));
                 var maxPos = Vector2.Max(Vector2.Max(lt, rt), Vector2.Max(lb, rb));
                 if (minPos.X <= maxPos.X && minPos.Y <= maxPos.Y)
@@ -203,21 +203,25 @@ internal sealed partial class SpannableRenderer : ISpannableRenderer, IInternalD
     }
 
     /// <inheritdoc/>
-    public bool TryGetFontData(float renderScale, scoped in TextStyle style, out TextStyleFontData fontData)
+    public unsafe bool TryGetFontData(float renderScale, scoped in TextStyle style, out TextStyleFontData fontData)
     {
         ThreadSafety.AssertMainThread();
+
+        var currentFont = ImGui.GetFont();
+        var intendedFontSize = style.FontSize switch
+        {
+            < 0f => -style.FontSize * currentFont.FontSize,
+            > 0f => style.FontSize,
+            _ => this.fontAtlasFactory.DefaultFontSpec.SizePx,
+        };
 
         IFontHandle? fh;
         bool fakeItalic, fakeBold;
         if (style.Font.FontFamilyId is { } familyId)
         {
             var i = 0;
-            var absoluteFontSize = (renderScale / ImGuiHelpers.GlobalScale) * style.FontSize switch
-            {
-                < 0f => -style.FontSize * ImGui.GetFont().FontSize,
-                > 0f => style.FontSize,
-                _ => this.fontAtlasFactory.DefaultFontSpec.SizePx,
-            };
+            var absoluteFontSize = intendedFontSize;
+            absoluteFontSize *= renderScale / ImGuiHelpers.GlobalScale;
             absoluteFontSize = MathF.Round(absoluteFontSize * 32f) / 32f;
 
             for (; i < this.resolvedFonts.Count; i++)
@@ -232,15 +236,78 @@ internal sealed partial class SpannableRenderer : ISpannableRenderer, IInternalD
             var rfont = this.resolvedFonts[i];
             rfont.MarkUsed(this.interfaceManager.CumulativePresentCalls);
             fh = rfont.GetEffectiveFont(style.Italic, style.Bold, out fakeItalic, out fakeBold);
+
+            // Attempt to get the best already-loaded font.
+            if (fh?.Available is not true)
+            {
+                ResolvedFonts? searching = null;
+                var searchingDiff = float.NegativeInfinity;
+                foreach (var x in this.resolvedFonts)
+                {
+                    var diff = x.TestFontSizeDifference(familyId, absoluteFontSize);
+                    if (diff is float.NaN)
+                        continue;
+                    if (x.GetEffectiveFont(style.Italic, style.Bold, out _, out _)?.Available is not true)
+                        continue;
+
+                    if (diff >= 0)
+                    {
+                        if (diff < searchingDiff || searchingDiff < 0)
+                        {
+                            searching = x;
+                            searchingDiff = diff;
+                        }
+                    }
+                    else
+                    {
+                        if (diff > searchingDiff && searchingDiff < 0)
+                        {
+                            searching = x;
+                            searchingDiff = diff;
+                        }
+                    }
+                }
+
+                if (searching is not null)
+                    fh = searching.GetEffectiveFont(style.Italic, style.Bold, out fakeItalic, out fakeBold);
+            }
         }
         else
         {
+            familyId = null;
             fh = style.Font.GetEffectiveFont(style.Italic, style.Bold, out fakeItalic, out fakeBold);
         }
 
         if (fh?.Available is not true)
         {
-            fontData = new(renderScale, style, ImGui.GetFont(), style.Italic, style.Bold);
+            if (currentFont.NativePtr == InterfaceManager.DefaultFont.NativePtr
+                && !ReferenceEquals(familyId, DalamudDefaultFontAndFamilyId.Instance))
+            {
+                return this.TryGetFontData(
+                    renderScale,
+                    style with { Font = new(DalamudDefaultFontAndFamilyId.Instance) },
+                    out fontData);
+            }
+
+            if (currentFont.NativePtr == InterfaceManager.MonoFont.NativePtr
+                && !ReferenceEquals(familyId, DalamudAssetFontAndFamilyId.From(DalamudAsset.InconsolataRegular)))
+            {
+                return this.TryGetFontData(
+                    renderScale,
+                    style with { Font = new(DalamudAssetFontAndFamilyId.From(DalamudAsset.InconsolataRegular)) },
+                    out fontData);
+            }
+
+            if (currentFont.NativePtr == InterfaceManager.IconFont.NativePtr
+                && !ReferenceEquals(familyId, DalamudAssetFontAndFamilyId.From(DalamudAsset.FontAwesomeFreeSolid)))
+            {
+                return this.TryGetFontData(
+                    renderScale,
+                    style with { Font = new(DalamudAssetFontAndFamilyId.From(DalamudAsset.FontAwesomeFreeSolid)) },
+                    out fontData);
+            }
+
+            fontData = new(renderScale, style, currentFont, intendedFontSize, style.Italic, style.Bold);
             return false;
         }
 
@@ -253,7 +320,7 @@ internal sealed partial class SpannableRenderer : ISpannableRenderer, IInternalD
                 this.fontPtrsCache.Add(fh, font = ImGui.GetFont());
         }
 
-        fontData = new(renderScale, style, font, fakeItalic, fakeBold);
+        fontData = new(renderScale, style, font, intendedFontSize, fakeItalic, fakeBold);
         return style.Font.Normal?.Available is true;
     }
 
@@ -300,6 +367,12 @@ internal sealed partial class SpannableRenderer : ISpannableRenderer, IInternalD
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get => ref this.set.FontFamilyId!;
         }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public float TestFontSizeDifference(IFontFamilyId familyId, float wantedAbsSize) =>
+            this.FamilyId.Equals(familyId)
+                ? this.sizePreScale - wantedAbsSize
+                : float.NaN;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool CanAccommodate(IFontFamilyId familyId, float absSize) =>

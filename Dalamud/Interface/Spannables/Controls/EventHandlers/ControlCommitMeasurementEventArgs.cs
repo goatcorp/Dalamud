@@ -9,5 +9,5 @@ namespace Dalamud.Interface.Spannables.Controls.EventHandlers;
 public record ControlCommitMeasurementEventArgs : SpannableControlEventArgs
 {
     /// <summary>Gets or sets the commit measure arguments from the spannable invoker.</summary>
-    public SpannableCommitTransformationArgs SpannableArgs { get; set; }
+    public SpannableCommitMeasurementArgs SpannableArgs { get; set; }
 }

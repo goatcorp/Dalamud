@@ -14,4 +14,13 @@ public record ControlChildEventArgs : SpannableControlEventArgs
 
     /// <summary>Gets or sets the previous child control, if the child at <see cref="Index"/> has been changed.</summary>
     public ISpannable? OldChild { get; set; }
+
+    /// <inheritdoc/>
+    public override bool TryReset()
+    {
+        this.Index = 0;
+        this.Child = null!;
+        this.OldChild = null;
+        return base.TryReset();
+    }
 }
