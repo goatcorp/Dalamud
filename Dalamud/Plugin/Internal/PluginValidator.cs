@@ -87,7 +87,7 @@ internal static class PluginValidator
         public ValidationSeverity Severity => ValidationSeverity.Warning;
         
         /// <inheritdoc/>
-        public string GetLocalizedDescription() => "The plugin does register a config UI callback. If you have a settings window or section, please consider registering UiBuilder.OpenConfigUi.";
+        public string GetLocalizedDescription() => "The plugin does not register a config UI callback. If you have a settings window or section, please consider registering UiBuilder.OpenConfigUi to open it.";
     }
     
     /// <summary>
@@ -99,7 +99,7 @@ internal static class PluginValidator
         public ValidationSeverity Severity => ValidationSeverity.Warning;
 
         /// <inheritdoc/>
-        public string GetLocalizedDescription() => "The plugin does not register a main UI callback. If your plugin draws any kind of ImGui windows, please consider registering UiBuilder.OpenMainUi to open the plugin's main window.";
+        public string GetLocalizedDescription() => "The plugin does not register a main UI callback. If your plugin has a window that could be considered the main entrypoint to its features, please consider registering UiBuilder.OpenMainUi to open the plugin's main window.";
     }
     
     /// <summary>
@@ -112,6 +112,6 @@ internal static class PluginValidator
         public ValidationSeverity Severity => ValidationSeverity.Fatal;
 
         /// <inheritdoc/>
-        public string GetLocalizedDescription() => $"The plugin has a command({commandName}) without a help message. Please consider adding a help message to the command when registering it.";
+        public string GetLocalizedDescription() => $"The plugin has a command ({commandName}) without a help message. Please consider adding a help message to the command when registering it.";
     }
 }
