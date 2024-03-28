@@ -26,7 +26,9 @@ public class SettingsTabExperimental : SettingsTab
             c => c.DoPluginTest,
             (v, c) => c.DoPluginTest = v),
         new HintSettingsEntry(
-            Loc.Localize("DalamudSettingsPluginTestWarning", "Testing plugins may contain bugs or crash your game. Please only enable this if you are aware of the risks."),
+            Loc.Localize(
+                "DalamudSettingsPluginTestWarning",
+                "Testing plugins may contain {ew 1}{ec rgba(255, 50, 50, 255)}{fc #FFF}bugs{/fc}{/ec}{/ew} or {ew 1}{ec rgba(255, 50, 50, 255)}{fc #FFF}crash{/fc}{/ec}{/ew} your game. Please only enable this if you are aware of the risks."),
             ImGuiColors.DalamudRed),
         
         new GapSettingsEntry(5),

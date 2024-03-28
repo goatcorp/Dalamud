@@ -234,7 +234,7 @@ public class SettingsTabLook : SettingsTab
                 var faf = Service<FontAtlasFactory>.Get();
                 faf.DefaultFontSpecOverride =
                     this.defaultFontSpec =
-                        new SingleFontSpec { FontId = new GameFontAndFamilyId(GameFontFamily.Axis) };
+                        new SingleFontSpec { FontId = GameFontAndFamilyId.From(GameFontFamily.Axis) };
                 interfaceManager.RebuildFonts();
             }
         }

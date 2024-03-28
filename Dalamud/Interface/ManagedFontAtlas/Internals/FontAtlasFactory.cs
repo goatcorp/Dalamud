@@ -124,12 +124,12 @@ internal sealed partial class FontAtlasFactory
 #pragma warning restore CS0618 // Type or member is obsolete
                 ? new()
                 {
-                    FontId = new GameFontAndFamilyId(GameFontFamily.Axis),
+                    FontId = GameFontAndFamilyId.From(GameFontFamily.Axis),
                     SizePx = InterfaceManager.DefaultFontSizePx,
                 }
                 : new SingleFontSpec
                 {
-                    FontId = new DalamudAssetFontAndFamilyId(DalamudAsset.NotoSansJpMedium),
+                    FontId = DalamudAssetFontAndFamilyId.From(DalamudAsset.NotoSansJpMedium),
                     SizePx = InterfaceManager.DefaultFontSizePx + 1,
                 });
 
